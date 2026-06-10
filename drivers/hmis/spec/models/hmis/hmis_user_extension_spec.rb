@@ -38,7 +38,6 @@ RSpec.describe User, type: :model do
     expect do
       user.email = new_email
       user.save!
-      user.confirm
       user.sync_to_hud_users(previous_email: old_email)
       hmis_hud_user.reload
       other_hud_user.reload
@@ -53,7 +52,6 @@ RSpec.describe User, type: :model do
       user.first_name = new_first_name
       user.last_name = new_last_name
       user.save!
-      user.confirm
       user.sync_to_hud_users(previous_email: old_email)
       hmis_hud_user.reload
       other_hud_user.reload

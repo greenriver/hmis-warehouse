@@ -104,6 +104,11 @@ class Hmis::BaseController < ActionController::Base
   end
   helper_method :current_hmis_user
 
+  def hmis_user_signed_in?
+    current_hmis_user.present?
+  end
+  helper_method :hmis_user_signed_in?
+
   # Authenticate HMIS user via JWT token.
   #
   # Returns 401 JSON response if authentication fails.

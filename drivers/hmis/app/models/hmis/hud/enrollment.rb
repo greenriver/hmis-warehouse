@@ -588,5 +588,6 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
     ]).any?
   end
 
-  include RailsDrivers::Extensions
+  # Extensions from drivers — see ADR 0007
+  include HmisExternalApis::Hmis::Hud::EnrollmentExtension
 end

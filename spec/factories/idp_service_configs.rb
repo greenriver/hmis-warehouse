@@ -14,6 +14,7 @@ FactoryBot.define do
     service_token { 'test-token-secret-key' }
     org_id { 'org-123456' }
     project_id { 'proj-789012' }
+    additional_config { { client_id: 'rails-service-account', realm: 'openpath' } }
     active { true }
   end
 end

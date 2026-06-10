@@ -11,7 +11,6 @@ module SimpleReports
   class UniverseMember < GrdaWarehouseBase
     acts_as_paranoid
     self.table_name = 'simple_report_universe_members'
-    include RailsDrivers::Extensions
 
     include HasPiiAttributes
     pii_attr :first_name

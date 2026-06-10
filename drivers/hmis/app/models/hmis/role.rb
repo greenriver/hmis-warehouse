@@ -510,6 +510,8 @@ class Hmis::Role < ::ApplicationRecord
         access: [:editable],
         category: 'Administration',
         sub_category: 'Admin Tools',
+        # Requires can_configure_data_collection permission, which governs viewability of forms
+        requirements: [:can_configure_data_collection],
       },
       can_configure_data_collection: {
         description: 'Ability to configure data collection rules for assessments, services, auto-exit, and more.',
@@ -524,6 +526,7 @@ class Hmis::Role < ::ApplicationRecord
         access: [:editable],
         category: 'Administration',
         sub_category: 'Admin Tools',
+        requirements: [:can_manage_forms],
       },
       can_manage_scan_cards: {
         description: 'Ability to create and deactivate Scan Cards',

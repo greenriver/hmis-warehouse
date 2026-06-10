@@ -28,7 +28,7 @@ The remaining quality goals — Modifiability (#flexible), Interoperability (#in
 ## 4.3 Core Architectural Patterns
 
 - **Source-Preserving Warehouse**: All ingested data is stored in HUD-schema source tables before normalization into unified warehouse records. This preserves full provenance and supports re-processing without data loss.
-- **Modular Feature Drivers**: Large features are isolated as self-contained Rails engine modules. See [8.3 Driver Module Pattern](08-concepts/08-3-driver-module-pattern.md) and the [driver catalog](05-building-blocks/05-2-1-warehouse.md).
+- **Modular Feature Drivers**: Features are isolated as self-contained module directories under `/drivers/`. See [8.3 Driver Module Pattern](08-concepts/08-3-driver-module-pattern.md) and the [driver catalog](05-building-blocks/05-2-1-warehouse.md).
 - **Deduplication & Linking**: Cross-source fuzzy matching creates unified client identities while maintaining links to all contributing source records. See [5.2.1 Warehouse](05-building-blocks/05-2-1-warehouse.md).
 - **Data-Driven Forms & Workflows**: Configurable form definitions handle evolving HUD and custom data collection requirements. CE referral lifecycles are driven by configuration rather than code.
 - **Policy-Based Authorization**: Complex access control logic (ROI rules, role-based and relationship-based permissions, CoC-scoped visibility) is encapsulated in dedicated policy objects.

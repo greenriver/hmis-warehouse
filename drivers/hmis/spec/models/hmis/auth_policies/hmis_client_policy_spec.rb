@@ -207,5 +207,33 @@ RSpec.describe Hmis::AuthPolicies::HmisClientPolicy, type: :model do
         expect(policy.can_merge_clients?).to be true
       end
     end
+
+    describe '#can_view_dob?' do
+      it 'denies when user lacks can_view_dob permission' do
+        expect(policy.can_view_dob?).to be false
+      end
+
+      context 'with can_view_dob permission' do
+        let!(:access_control) { create_access_control(user, project, with_permission: [:can_view_dob]) }
+
+        it 'grants can_view_dob?' do
+          expect(policy.can_view_dob?).to be true
+        end
+      end
+    end
+
+    describe '#can_view_client_alerts?' do
+      it 'denies when user lacks can_view_client_alerts permission' do
+        expect(policy.can_view_client_alerts?).to be false
+      end
+
+      context 'with can_view_client_alerts permission' do
+        let!(:access_control) { create_access_control(user, project, with_permission: [:can_view_client_alerts]) }
+
+        it 'grants can_view_client_alerts?' do
+          expect(policy.can_view_client_alerts?).to be true
+        end
+      end
+    end
   end
 end

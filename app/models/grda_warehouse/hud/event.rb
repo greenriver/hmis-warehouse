@@ -11,7 +11,11 @@ module GrdaWarehouse::Hud
     include HudSharedScopes
     include ::HmisStructure::Event
     include ::HmisStructure::Shared
-    include RailsDrivers::Extensions
+    # Extensions from drivers — see ADR 0007
+    include HmisCsvImporter::GrdaWarehouse::Hud::EventExtension
+    include HmisCsvTwentyTwenty::GrdaWarehouse::Hud::EventExtension
+    include HmisCsvTwentyTwentyFour::GrdaWarehouse::Hud::EventExtension
+    include HmisCsvTwentyTwentySix::GrdaWarehouse::Hud::EventExtension
 
     attr_accessor :source_id
 

@@ -15,6 +15,14 @@ RSpec.describe Idp::ServiceConfig, type: :model do
     it { is_expected.to validate_presence_of(:api_url) }
     it { is_expected.to validate_presence_of(:service_token) }
 
+    describe 'connector_id validation' do
+      it 'rejects unknown connector_id' do
+        config = build(:idp_service_config, connector_id: 'unknown_provider')
+        expect(config).not_to be_valid
+        expect(config.errors[:connector_id].first).to include('unknown provider')
+      end
+    end
+
     describe 'connector_id uniqueness' do
       let!(:existing) { create(:idp_service_config, connector_id: 'keycloak') }
 
@@ -69,12 +77,9 @@ RSpec.describe Idp::ServiceConfig, type: :model do
       expect(config.service_class).to eq(Idp::KeycloakService)
     end
 
-    it 'returns NullService for unknown connector' do
-      config = create(
-        :idp_service_config,
-        connector_id: 'unknown_idp',
-      )
-      expect(config.service_class).to eq(Idp::NullService)
+    it 'raises ServiceError for unknown connector' do
+      config = build(:idp_service_config, connector_id: 'unknown_idp')
+      expect { config.service_class }.to raise_error(Idp::ServiceError, /Unknown connector/)
     end
   end
 
@@ -87,30 +92,28 @@ RSpec.describe Idp::ServiceConfig, type: :model do
         service_token: 'test-token',
         org_id: 'test-org',
         project_id: 'test-proj',
+        additional_config: { client_id: 'my-service-account', realm: 'test-realm' },
       )
 
       service = config.to_service
       expect(service).to be_a(Idp::KeycloakService)
       expect(service.send(:api_url)).to eq('http://test.keycloak:8080')
       expect(service.send(:client_secret)).to eq('test-token')
+      expect(service.send(:client_id)).to eq('my-service-account')
+      expect(service.send(:realm)).to eq('test-realm')
       expect(service.config[:org_id]).to eq('test-org')
       expect(service.config[:project_id]).to eq('test-proj')
     end
 
-    it 'instantiates NullService for unknown connector' do
-      config = create(
-        :idp_service_config,
-        connector_id: 'unknown',
-      )
-
-      service = config.to_service
-      expect(service).to be_a(Idp::NullService)
+    it 'raises ServiceError for unknown connector' do
+      config = build(:idp_service_config, connector_id: 'unknown')
+      expect { config.to_service }.to raise_error(Idp::ServiceError, /Unknown connector/)
     end
 
     it 'merges additional_config into service config' do
       config = create(
         :idp_service_config,
-        additional_config: { timeout: 30 },
+        additional_config: { client_id: 'test-client', realm: 'openpath', timeout: 30 },
       )
 
       service = config.to_service

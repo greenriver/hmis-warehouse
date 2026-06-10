@@ -159,26 +159,6 @@ module UserConcern
       where(permission_context: [nil, 'role_based'])
     end
 
-    # Returns true if this user has any groups in the given destination.
-    # :warehouse — user is a member of at least one warehouse UserGroup, or is not using ACLs
-    # :hmis — user is a member of at least one HMIS UserGroup (and is not a system user)
-    def login_to?(destination)
-      return false if first_name == 'System'
-
-      case destination.to_sym
-      when :warehouse
-        if using_acls?
-          user_group_members.exists?
-        else
-          true
-        end
-      when :hmis
-        Hmis::UserGroupMember.exists?(user_id: id)
-      else
-        false
-      end
-    end
-
     def using_acls?
       # Note using hash syntax to get around lack of column for some data migrations
       self[:permission_context].to_s == 'acls'
@@ -362,33 +342,15 @@ module UserConcern
       root_path
     end
 
+    INVITATION_LIFESPAN = 72.hours unless const_defined?(:INVITATION_LIFESPAN)
+
     def invitation_status
       if invitation_accepted_at.present? || invitation_sent_at.blank?
         :active
-      elsif invitation_due_at > Time.now
+      elsif invitation_sent_at + INVITATION_LIFESPAN > Time.current
         :pending_confirmation
       else
         :invitation_expired
-      end
-    end
-
-    # Prevent sending confirmation emails if the user has an open invitation
-    def send_reset_password_instructions
-      if invitation_token.present?
-        errors.add :email, 'There is an open invitation for this account.'
-        false
-      else
-        super
-      end
-    end
-
-    # Prevent confirming accounts if the user has an open invitation
-    def pending_any_confirmation
-      if invitation_token.present?
-        errors.add :email, 'There is an open invitation for this account.'
-        false
-      else
-        super
       end
     end
 

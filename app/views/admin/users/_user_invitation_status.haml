@@ -1,0 +1,7 @@
+- case user.invitation_status
+- when :active
+  %span.badge.bg-success Active
+- when :pending_confirmation
+  %span.badge.bg-warning Pending Setup
+- when :invitation_expired
+  %span.badge.bg-danger Setup Expired

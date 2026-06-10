@@ -1,7 +1,6 @@
 source 'https://rubygems.org'
 
 gem 'rails', '7.2.3.1'
-gem 'rails_drivers', github: 'greenriver/rails_drivers', branch: 'rails-7'
 gem 'rack', '< 3.2' # pinning to the same max version as is required by rails 7.2
 
 gem 'openssl', '>=3.3.1' # override the default ruby version of openssl https://github.com/ruby/openssl/issues/949#issuecomment-3370358680
@@ -96,10 +95,9 @@ gem 'acts-as-taggable-on', '~>12.0'
 
 gem 'rack-cors'
 # Zitadel client is used for migrating users to Zitadel
-gem 'zitadel-client', require: false
 gem 'jwt', '~> 3.1'
 gem 'faraday', '~> 2.2'
-gem 'oauth2'
+gem 'oauth2', '>= 2.0.22'
 
 gem 'maxminddb' # for local geocoding of login attempts
 gem 'geocoder'
@@ -149,7 +147,7 @@ gem 'htmlentities'
 # ETO API related
 gem 'rest-client', '~> 2.0'
 gem 'curb', '~> 1.0.9', require: false # pinning to 1.0.9 to keep webmock happy
-gem 'gmail', require: false
+# gem 'gmail', require: false
 # gem 'savon'
 # gem 'qaaws', require: false, git: 'https://github.com/greenriver/eis-ruby-qaaws.git', branch: 'master'
 
@@ -178,7 +176,7 @@ gem 'progress_bar', require: false
 
 gem 'slack-notifier'
 
-gem 'puma', '~> 6'
+gem 'puma', '~> 7'
 
 gem 'dotenv-rails'
 

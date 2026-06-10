@@ -249,11 +249,16 @@ services:
     depends_on:
       dex:
         condition: service_healthy
-  dex-db-init:
+  auth-db-init:
     image: index.docker.io/library/postgres@sha256:fbcea1bd13b6a882cd6caa6b58db3ae5c102efe50ec625b3e2a5cbc50db5bfe4 # 17.5-bookworm
-    container_name: dex-db-init
+    container_name: auth-db-init
     command: >
-      bash -c "psql -h db -U postgres -tc \"SELECT 1 FROM pg_database WHERE datname = 'dex'\" | grep -q 1 || psql -h db -U postgres -c 'CREATE DATABASE dex'"
+      bash -c "
+        for dbname in dex keycloak; do
+          psql -h db -U postgres -tc \"SELECT 1 FROM pg_database WHERE datname = '$$dbname'\" | grep -q 1 ||
+            psql -h db -U postgres -c \"CREATE DATABASE $$dbname\";
+        done
+      "
     environment:
       PGPASSWORD: postgres
     depends_on:
@@ -272,18 +277,24 @@ services:
     container_name: dex
     # image: dexidp/dex:latest-alpine
     image: ghcr.io/dexidp/dex@sha256:5d0656fce7d453c0e3b2706abf40c0d0ce5b371fb0b73b3cf714d05f35fa5f86 # v2.44.0
-    # Source Keycloak credentials at runtime before starting Dex
-    command: >
-      sh -c '
+    # Source Keycloak credentials at runtime, expand env vars in template, then start Dex
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
         if [ -f /auth/keycloak-credentials.env ]; then
           echo "Loading Keycloak credentials..."
           export $$(grep -v "^#" /auth/keycloak-credentials.env | xargs)
         fi
-        dex serve /dex.yaml
-      '
+        sed \
+          -e "s|\$${KEYCLOAK_IDP_CLIENT_ID}|$${KEYCLOAK_IDP_CLIENT_ID}|g" \
+          -e "s|\$${KEYCLOAK_IDP_CLIENT_SECRET}|$${KEYCLOAK_IDP_CLIENT_SECRET}|g" \
+          -e "s|\$${GITHUB_IDP_CLIENT_ID}|$${GITHUB_IDP_CLIENT_ID}|g" \
+          -e "s|\$${GITHUB_IDP_CLIENT_SECRET}|$${GITHUB_IDP_CLIENT_SECRET}|g" \
+          /dex.yaml.template > /tmp/dex.yaml
+        exec dex serve /tmp/dex.yaml
     hostname: dex
     volumes:
-      - "./docker/auth/dev.dex.yaml.template:/dex.yaml"
+      - "./docker/auth/dev.dex.yaml.template:/dex.yaml.template:ro"
       - "./docker/auth:/auth:ro"
     env_file: *env_file
     environment:
@@ -302,7 +313,7 @@ services:
         condition: service_healthy
       db:
         condition: service_healthy
-      dex-db-init:
+      auth-db-init:
         condition: service_completed_successfully
     # oauth2 proxy kept failing intermittently, added this health check
     healthcheck:
@@ -508,6 +519,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      auth-db-init:
+        condition: service_completed_successfully
 
 volumes:
   bundle_bookworm:

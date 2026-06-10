@@ -12,7 +12,10 @@ class User < ApplicationRecord
   include UserConcern
   include IdpSupport
   include JwtUser
-  include RailsDrivers::Extensions
+
+  # Extensions from drivers — see ADR 0007
+  include CasAccess::UserExtension
+  include Hmis::UserExtension
 
   validates :talent_lms_email, format: { with: URI::MailTo::EMAIL_REGEXP }, unless: -> { talent_lms_email.blank? }
 

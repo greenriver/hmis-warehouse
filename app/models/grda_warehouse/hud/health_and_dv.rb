@@ -12,7 +12,11 @@ module GrdaWarehouse::Hud
     include HudSharedScopes
     include ::HmisStructure::HealthAndDv
     include ::HmisStructure::Shared
-    include RailsDrivers::Extensions
+    # Extensions from drivers — see ADR 0007
+    include HmisCsvImporter::GrdaWarehouse::Hud::HealthAndDvExtension
+    include HmisCsvTwentyTwenty::GrdaWarehouse::Hud::HealthAndDvExtension
+    include HmisCsvTwentyTwentyFour::GrdaWarehouse::Hud::HealthAndDvExtension
+    include HmisCsvTwentyTwentySix::GrdaWarehouse::Hud::HealthAndDvExtension
 
     attr_accessor :source_id
 

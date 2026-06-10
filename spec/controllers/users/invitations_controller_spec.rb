@@ -39,7 +39,6 @@ RSpec.describe Users::InvitationsController, type: :controller do
   end
 
   before do
-    @request.env['devise.mapping'] = Devise.mappings[:user]
     sign_in admin_user
     setup_access_control(admin_user, admin_role, no_data_source_collection)
   end
@@ -52,7 +51,7 @@ RSpec.describe Users::InvitationsController, type: :controller do
         end.to change(User, :count).by(1)
 
         expect(response).to redirect_to(edit_admin_user_path(User.last))
-        expect(flash[:notice]).to eq('An invitation email has been sent to john.doe@example.com.')
+        expect(flash[:notice]).to eq('User account created for john.doe@example.com.')
       end
     end
 

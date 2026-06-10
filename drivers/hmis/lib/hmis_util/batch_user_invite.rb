@@ -14,10 +14,10 @@ module HmisUtil
     #
     # users = [['First', 'Last', 'Sample Agency', 'example@greenriver.org',]]
     # HmisUtil::BatchUserInvite.invite_users!(users, dry_run: true)
-    def self.invite_users!(users, dry_run: true, skip_invitation: false)
+    # TODO: Add Keycloak setup-email support
+    def self.invite_users!(users, dry_run: true, skip_invitation: false) # rubocop:disable Lint/UnusedMethodArgument
       existing_users = User.pluck(:email)
       agency_by_name = Agency.all.index_by(&:name)
-      invited_by = User.system_user
       users.each do |first_name, last_name, agency_name, email|
         cleaned_email = email.downcase.strip
         if existing_users.include?(cleaned_email)
@@ -27,14 +27,17 @@ module HmisUtil
 
         agency = agency_by_name[agency_name]
         agency ||= Agency.where(name: agency_name).first_or_create!
-        puts "#{dry_run ? '' : 'Inviting user:'} #{first_name} #{last_name}, Agency: #{agency.name}, Email: #{cleaned_email}"
-        attributes = { first_name: first_name, last_name: last_name, email: cleaned_email, agency_id: agency.id }
+        puts "#{dry_run ? '' : 'Creating user:'} #{first_name} #{last_name}, Agency: #{agency.name}, Email: #{cleaned_email}"
 
         next if dry_run
 
-        User.invite!(attributes, invited_by) do |u|
-          u.skip_invitation = skip_invitation
-        end
+        User.create!(
+          first_name: first_name,
+          last_name: last_name,
+          email: cleaned_email,
+          agency_id: agency.id,
+          confirmed_at: Time.current,
+        )
       end
     end
   end

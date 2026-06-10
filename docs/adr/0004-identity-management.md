@@ -3,9 +3,10 @@
 
 ## Status
 
-- Current Status: Superseded (for Zitadel)
-- Date of last update: 2025-04-29
+- Current Status: Superseded
+- Date of last update: 2025-06-04
 - Decision-makers: OP engineering team, DevOps team
+- Revision note: Default IdP changed from Zitadel to Keycloak; superseded by [ADR 0008](0008-identity-management.md)
 
 ## Context
 
@@ -56,7 +57,7 @@ Zitadel is untested at Green River though, it isn't unknown.   The architecture 
 
 Using Zitadel will require (allow?) us to remove much (or all) of the devise code.  This may cause a significant amount of code churn, but should not be particularly difficult.  Moving the security risk from devise and devise-related gems to Zitadel should be a security win overall but will impact authentication workflows and may require trainings or additional documentation.
 
-Migrating from in-app authentication to [Zitatdel may be script-able](https://zitadel.com/docs/guides/migrate/introduction) but this is currently untested at Green River.  Best case scenario, we could migrate all data seamlessly en masse and logins would simply shift.  Worst-case scenario, we would need to write post-login workflows to explain and facilitate the change-over on a per-account basis.
+Migrating from in-app authentication to [Zitadel may be script-able](https://zitadel.com/docs/guides/migrate/introduction) but this is currently untested at Green River.  Best case scenario, we could migrate all data seamlessly en masse and logins would simply shift.  Worst-case scenario, we would need to write post-login workflows to explain and facilitate the change-over on a per-account basis.
 
 Using JWT to determine the current user will also require effort, but should result in significantly less application code.  Of note, we would need to re-write the masquerade/become/impersonate feature.
 
@@ -71,6 +72,6 @@ We have customers who already use external IdPs through the OmniAuth gem.  The l
 
 ## Additional Info
 
-Zidtadel [documentation](https://zitadel.com/docs/guides/overview)
+Zitadel [documentation](https://zitadel.com/docs/guides/overview)
 Dex [documentation](https://dexidp.io/docs/)
 Oauth2-Proxy [documentation](https://oauth2-proxy.github.io/oauth2-proxy/)
