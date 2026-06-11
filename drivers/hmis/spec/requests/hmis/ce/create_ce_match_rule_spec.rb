@@ -130,6 +130,9 @@ RSpec.describe 'createCeMatchRule mutation', type: :request do
       expect(errors.first).to include('severity' => 'warning')
       expect(errors.first.dig('data', 'affectedUnitGroups').first).to include(
         'unitGroupId' => unit_group.id.to_s,
+        'unitGroupName' => unit_group.name,
+        'projectId' => p1.id.to_s,
+        'projectName' => p1.name,
         'currentCandidateCount' => 4,
         'removedCandidateCount' => 1,
       )
