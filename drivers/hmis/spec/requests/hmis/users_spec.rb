@@ -115,9 +115,52 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
     it 'does not resolve users from another data source' do
       add_permissions(access_control, :can_audit_users)
-      response, result = post_graphql(id: other_data_source_hmis_user.id) { query }
+      expect_access_denied post_graphql(id: other_data_source_hmis_user.id) { query }
+    end
+  end
+
+  describe 'audit fields' do
+    let(:query) do
+      <<~GRAPHQL
+        query UserLookupWithAuditFields($id: ID!) {
+          user(id: $id) {
+            id
+            auditHistory {
+              nodes {
+                id
+              }
+            }
+            clientAccessSummaries {
+              nodes {
+                id
+              }
+            }
+            enrollmentAccessSummaries {
+              nodes {
+                id
+              }
+            }
+            loginActivities {
+              nodes {
+                id
+              }
+            }
+          }
+        }
+      GRAPHQL
+    end
+
+    it 'allows lookup with permission' do
+      add_permissions(access_control, :can_audit_users)
+      response, = post_graphql(id: other_hmis_user.id) { query }
       expect(response.status).to eq(200)
-      expect(result.dig('data', 'user')).to be_nil
+    end
+
+    it 'raises if user lacks access to audit fields, even if they can otherwise resolve the user' do
+      add_permissions(access_control, :can_impersonate_users)
+      remove_permissions(access_control, :can_audit_users)
+      response, = post_graphql(id: other_hmis_user.id) { query }
+      expect(response.status).to eq(500)
     end
   end
 end
