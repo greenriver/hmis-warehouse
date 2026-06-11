@@ -3,7 +3,7 @@ set -e
 
 # Script to install multiple versions of pg_repack
 # Define the versions to install here
-VERSIONS=("1.5.1" "1.5.2")
+VERSIONS=("1.5.1" "1.5.2" "1.5.3")
 
 TEMP_DIR="/tmp/pg_repack_build"
 PG_CONFIG=$(which pg_config)
