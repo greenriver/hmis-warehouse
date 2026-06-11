@@ -87,7 +87,7 @@ RSpec.describe GrdaWarehouse::Tasks::GenerateClientRoiAuthorizationsTask, type: 
         create(:client_file_expanded_consent, client: client_losing_roi)
       end
 
-      it 'clears consent fields for the missing client' do
+      it 'clears consent fields for client that lost ROI status' do
         expect { task.perform(batch_size: batch_size) }.
           to change { client_losing_roi.reload.consent_form_id }.to(nil)
       end

@@ -282,7 +282,7 @@ module GrdaWarehouse
     def calculated_expiration_date
       case GrdaWarehouse::Hud::Client.release_duration
       when 'One Year', 'Two Years'
-        consent_form_signed_on&.+(GrdaWarehouse::Hud::Client.consent_validity_period)
+        consent_form_signed_on && consent_form_signed_on + GrdaWarehouse::Hud::Client.consent_validity_period
       when 'Use Expiration Date'
         expiration_date
       when 'Indefinite'

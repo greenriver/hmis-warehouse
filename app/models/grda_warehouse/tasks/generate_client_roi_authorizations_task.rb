@@ -22,6 +22,12 @@ module GrdaWarehouse::Tasks
       end
     end
 
+    # Rebuild ROI authorization records for destination clients. For each client:
+    #   - upsert a ClientRoiAuthorization if roi_status returns a value
+    #   - delete the authorization and invalidate consent if roi_status returns nil
+    #     (covers both data corrections and clients with no consent of any kind)
+    # After processing all batches, invalidate consent for clients whose authorization
+    # has passed its expiry date, and delete orphaned auth records whose client no longer exists.
     # @param client_ids [Array<Integer>, nil] client ids to rebuild. Rebuild all clients if nil
     # @param batch_size [Integer] number of records to process in each batch
     def _perform(client_ids: nil, batch_size: 500)
@@ -32,10 +38,11 @@ module GrdaWarehouse::Tasks
         scope = scope.where(id: client_ids) unless client_ids.nil?
         scope.find_in_batches(batch_size: batch_size) do |batch|
           values = []
-          missing_ids = []
+          # Clients in this batch that have no current ROI status (e.g. data correction removed their consent)
+          no_roi_status_ids = []
           batch.each do |client|
             result = process_client(client)
-            missing_ids << client.id if result.nil?
+            no_roi_status_ids << client.id if result.nil?
             values << result if result
           end
 
@@ -47,9 +54,11 @@ module GrdaWarehouse::Tasks
             },
           )
 
-          # cleanup auth records for clients that have lost ROI status (but client still exists). This might be due to data correction rather than revocation
-          GrdaWarehouse::ClientRoiAuthorization.where(destination_client: missing_ids).delete_all
-          GrdaWarehouse::Hud::Client.bulk_invalidate_consent!(missing_ids, batch_size: batch_size) if missing_ids.any?
+          # Cleanup auth records for clients that have lost ROI status (but client still exists)
+          GrdaWarehouse::ClientRoiAuthorization.where(destination_client: no_roi_status_ids).delete_all
+          # Clears stale consent_form_id and related fields on the client record. This is a no-op
+          # for clients that never had consent, but necessary for those whose ROI was removed.
+          GrdaWarehouse::Hud::Client.bulk_invalidate_consent!(no_roi_status_ids, batch_size: batch_size) if no_roi_status_ids.any?
         end
 
         # Invalidate consent for clients whose ROI has expired but still have consent_form_id set
@@ -74,11 +83,14 @@ module GrdaWarehouse::Tasks
 
     protected
 
-    # we only consider building ROI authorizations for destination clients
+    # @return [ActiveRecord::Relation<GrdaWarehouse::Hud::Client>] destination clients only
     def destination_client_scope
       GrdaWarehouse::Hud::Client.destination
     end
 
+    # Build a hash of ROI authorization attributes for a destination client.
+    # @param destination_client [GrdaWarehouse::Hud::Client] a destination client
+    # @return [Hash, nil] authorization attributes for upsert, or nil if the client has no current ROI status
     def process_client(destination_client)
       status = roi_status(destination_client)
 
@@ -90,10 +102,13 @@ module GrdaWarehouse::Tasks
         coc_codes: roi_coc_codes(destination_client),
         starts_at: destination_client.consent_form_signed_on,
         expires_at: roi_expiry_date(destination_client),
-        # maybe add file, other fields
       }
     end
 
+    # Calculate the ROI expiration date for a client based on the configured release duration.
+    # Raises if the duration is time-based and the client has no signature date.
+    # @param client [GrdaWarehouse::Hud::Client]
+    # @return [Date, nil] expiration date, or nil for indefinite releases
     def roi_expiry_date(client)
       case roi_duration
       when 'One Year', 'Two Years'
@@ -109,17 +124,25 @@ module GrdaWarehouse::Tasks
       end
     end
 
+    # @return [String] configured release duration (e.g. 'One Year', 'Two Years', 'Use Expiration Date', 'Indefinite')
     def roi_duration
       GrdaWarehouse::Hud::Client.release_duration
     end
 
+    # @param client [GrdaWarehouse::Hud::Client]
+    # @return [Array<String>, nil] sorted unique CoC codes the client has consented to, or nil if none
     def roi_coc_codes(client)
       result = client.consented_coc_codes&.compact_blank&.presence
       result&.sort&.uniq
     end
 
+    # Determine the ROI authorization status for a client.
+    # Returns nil when no authorization record should be created or kept. This happens when:
+    #   - the signature date is missing and the duration mode requires one to compute validity, or
+    #   - the client has no active, partial, or revoked consent of any kind.
+    # @param client [GrdaWarehouse::Hud::Client]
+    # @return [String, nil] one of the ClientRoiAuthorization status constants, or nil
     def roi_status(client)
-      # skip if the roi is missing a signature date and it's needed to determine the validity period
       return nil if client.consent_form_signed_on.nil? && roi_duration.in?(['One Year', 'Two Years'])
 
       if client.revoked_consent?
@@ -131,6 +154,8 @@ module GrdaWarehouse::Tasks
       end
     end
 
+    # Acquire an advisory lock so only one instance of this task runs at a time.
+    # Skips execution (does not yield) if the lock is already held.
     def with_lock(&block)
       lock_name = self.class.name.demodulize
       GrdaWarehouseBase.with_advisory_lock(lock_name, timeout_seconds: 0, &block)

@@ -1119,11 +1119,10 @@ module GrdaWarehouse::Hud
       client_files.consent_forms.order(updated_at: :desc)&.first
     end
 
+    # Clear this client's consent fields and invalidate any cached views.
     def invalidate_consent!
-      hr_status = nil
       # If using implied consent, we need to set the housing release status to the current consent type ("Implied Consent")
       hr_status = GrdaWarehouse::Config.active_consent_class.new(client: self).current_consent_type if GrdaWarehouse::Config.implied_consent?
-
       update_columns(
         consent_form_id: nil,
         housing_release_status: hr_status,
@@ -1135,11 +1134,25 @@ module GrdaWarehouse::Hud
       clear_view_cache
     end
 
+    # Clear consent fields for multiple clients in batches using a single UPDATE per batch.
+    # @param ids [Array<Integer>] client ids to invalidate
+    # @param batch_size [Integer] number of records per batch
     def self.bulk_invalidate_consent!(ids, batch_size: 500)
       return if ids.blank?
 
-      where(id: ids).find_in_batches(batch_size: batch_size) do |batch|
-        batch.each(&:invalidate_consent!)
+      # If using implied consent, we need to set the housing release status to the current consent type ("Implied Consent")
+      hr_status = GrdaWarehouse::Config.active_consent_class.new(client: new).current_consent_type if GrdaWarehouse::Config.implied_consent?
+
+      ids.each_slice(batch_size) do |slice|
+        clients = where(id: slice)
+        clients.update_all(
+          consent_form_id: nil,
+          housing_release_status: hr_status,
+          consent_form_signed_on: nil,
+          consent_expires_on: nil,
+          consented_coc_codes: [],
+        )
+        clients.each(&:clear_view_cache)
       end
     end
 
