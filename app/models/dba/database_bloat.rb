@@ -188,6 +188,7 @@ class Dba::DatabaseBloat
   SUPPORTED_VERSIONS = {
     '1.5.1' => 'pg_repack-1.5.1',
     '1.5.2' => 'pg_repack-1.5.2',
+    '1.5.3' => 'pg_repack-1.5.3',
   }.freeze
 
   # Ensure the pg_repack extension is installed in the database and the version of the pg_repack extension matches the version of the pg_repack binary.
