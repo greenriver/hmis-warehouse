@@ -26,7 +26,7 @@ module Admin
     private
 
     def set_variables
-      @collection = Collection.find(params[:collection_id].to_i)
+      @collection = Collection.with_deleted.find(params[:collection_id].to_i)
       @history = Audit::Versions.new(@collection, collection_audit_config)
       @versions = @history.version_array.sort_by(&:created_at).reverse
     end

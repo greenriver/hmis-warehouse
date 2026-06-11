@@ -11,7 +11,11 @@ module GrdaWarehouse::Hud
     include HudSharedScopes
     include ::HmisStructure::AssessmentResult
     include ::HmisStructure::Shared
-    include RailsDrivers::Extensions
+    # Extensions from drivers — see ADR 0007
+    include HmisCsvImporter::GrdaWarehouse::Hud::AssessmentResultExtension
+    include HmisCsvTwentyTwenty::GrdaWarehouse::Hud::AssessmentResultExtension
+    include HmisCsvTwentyTwentyFour::GrdaWarehouse::Hud::AssessmentResultExtension
+    include HmisCsvTwentyTwentySix::GrdaWarehouse::Hud::AssessmentResultExtension
 
     attr_accessor :source_id
 

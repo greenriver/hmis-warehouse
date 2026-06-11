@@ -12,7 +12,11 @@ module GrdaWarehouse::Hud
     include ::HmisStructure::ProjectCoc
     include ::HmisStructure::Shared
     include ArelHelper
-    include RailsDrivers::Extensions
+    # Extensions from drivers — see ADR 0007
+    include HmisCsvImporter::GrdaWarehouse::Hud::ProjectCocExtension
+    include HmisCsvTwentyTwenty::GrdaWarehouse::Hud::ProjectCocExtension
+    include HmisCsvTwentyTwentyFour::GrdaWarehouse::Hud::ProjectCocExtension
+    include HmisCsvTwentyTwentySix::GrdaWarehouse::Hud::ProjectCocExtension
     require 'csv'
 
     attr_accessor :source_id

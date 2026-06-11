@@ -15,8 +15,8 @@ RSpec.describe 'Delete Form Rule Mutation', type: :request do
 
   let!(:access_control) { create_access_control(hmis_user, ds1, with_permission: [:can_configure_data_collection]) }
 
-  let!(:form_definition) { create(:hmis_form_definition, identifier: 'test-custom-assessment', role: :CUSTOM_ASSESSMENT, status: :published) }
-  let!(:form_instance) { create(:hmis_form_instance, definition: form_definition, entity: p1, active: true, system: false) }
+  let!(:form_definition) { create(:hmis_form_definition, identifier: 'test-custom-assessment', role: :CUSTOM_ASSESSMENT, status: :published, data_source: ds1) }
+  let!(:form_instance) { create(:hmis_form_instance, definition: form_definition, entity: p1, active: true, system: false, data_source: ds1) }
 
   before(:each) do
     hmis_login(user)
@@ -56,7 +56,7 @@ RSpec.describe 'Delete Form Rule Mutation', type: :request do
   end
 
   context 'when deleting a system rule' do
-    let!(:form_instance) { create(:hmis_form_instance, definition: form_definition, entity: p1, active: true, system: true) }
+    let!(:form_instance) { create(:hmis_form_instance, definition: form_definition, entity: p1, active: true, system: true, data_source: ds1) }
 
     it 'raises an error' do
       expect_gql_error post_graphql(input) { mutation }, message: 'cannot delete system rule'

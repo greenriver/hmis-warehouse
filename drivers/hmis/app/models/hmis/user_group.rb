@@ -10,6 +10,7 @@ class Hmis::UserGroup < ApplicationRecord
   acts_as_paranoid
   has_paper_trail
   include UserPermissionCache
+  include HistoryDescriptions
 
   has_many :access_controls, inverse_of: :user_group
   has_many :user_group_members, class_name: '::Hmis::UserGroupMember', inverse_of: :user_group

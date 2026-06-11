@@ -11,7 +11,10 @@ module GrdaWarehouse::Hud
     include HudSharedScopes
     include ::HmisStructure::YouthEducationStatus
     include ::HmisStructure::Shared
-    include RailsDrivers::Extensions
+    # Extensions from drivers — see ADR 0007
+    include HmisCsvImporter::GrdaWarehouse::Hud::YouthEducationStatusExtension
+    include HmisCsvTwentyTwentyFour::GrdaWarehouse::Hud::YouthEducationStatusExtension
+    include HmisCsvTwentyTwentySix::GrdaWarehouse::Hud::YouthEducationStatusExtension
 
     attr_accessor :source_id
 
