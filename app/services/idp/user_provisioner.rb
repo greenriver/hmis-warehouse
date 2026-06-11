@@ -95,7 +95,7 @@ module Idp
     def ensure_authentication_source(user)
       # Prefer a live row; otherwise restore the most recently deleted record so the
       # row's id/created_at/history survive. The unique index is partial
-      # (WHERE deleted_at IS NULL), so a tombstone never blocks this.
+      # (WHERE deleted_at IS NULL), so a deleted record never blocks this.
       source = UserAuthenticationSource.where(connector_identity).first ||
         UserAuthenticationSource.only_deleted.where(connector_identity).order(updated_at: :desc).first ||
         UserAuthenticationSource.new(connector_identity)

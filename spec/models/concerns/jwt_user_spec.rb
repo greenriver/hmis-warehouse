@@ -152,8 +152,8 @@ RSpec.describe JwtUser, type: :model do
       let(:other_user) { create(:user) }
 
       # The pair's live link is gone (soft-deleted), so the JWT resolves to
-      # `user` by email; the surviving tombstone still belongs to `other_user`.
-      # When the provisioner tries to re-vivify that tombstone it detects the
+      # `user` by email; the surviving deleted record still belongs to `other_user`.
+      # When the provisioner tries to re-vivify that deleted record it detects the
       # user mismatch — the misconfiguration the Sentry guard is meant to catch.
       before do
         source = other_user.user_authentication_sources.create!(
@@ -171,10 +171,10 @@ RSpec.describe JwtUser, type: :model do
         expect(result).to eq(user)
         expect(user.user_authentication_sources).to be_empty
 
-        # the tombstone is left untouched: still owned by other_user, still deleted
-        tombstone = UserAuthenticationSource.unscoped.find_by(connector_id: 'test-idp', connector_user_id: 'ext-user-1')
-        expect(tombstone.user_id).to eq(other_user.id)
-        expect(tombstone.deleted_at).to be_present
+        # the deleted record is left untouched: still owned by other_user, still deleted
+        deleted = UserAuthenticationSource.only_deleted.find_by(connector_id: 'test-idp', connector_user_id: 'ext-user-1')
+        expect(deleted.user_id).to eq(other_user.id)
+        expect(deleted.deleted_at).to be_present
       end
     end
   end
