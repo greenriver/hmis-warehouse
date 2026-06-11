@@ -46,6 +46,7 @@ class HmisCsvImporter::ImporterExtensionsController < ApplicationController
       HmisCsvImporter::HmisCsvCleanup::EnforceRelationshipToHoh,
       HmisCsvImporter::HmisCsvCleanup::ForcePrioritizedPlacementStatus,
       HmisCsvImporter::HmisCsvCleanup::FixBlankHouseholdIds,
+      HmisCsvImporter::HmisCsvCleanup::FixNullDisablingCondition,
     ].sort_by(&:associated_model).
       freeze
   end

@@ -122,4 +122,15 @@ FactoryBot.define do
       }
     end
   end
+
+  factory :importer_fix_null_disabling_condition_ds, class: 'GrdaWarehouse::DataSource' do
+    name { 'Fix null disabling condition' }
+    short_name { 'DisablingCondition' }
+    source_type { :sftp }
+    import_cleanups do
+      {
+        'Enrollment': ['HmisCsvImporter::HmisCsvCleanup::FixNullDisablingCondition'],
+      }
+    end
+  end
 end
