@@ -57,18 +57,6 @@ RSpec.describe JwtUser, type: :model do
       expect(user.reload.last_connector_id).to be_nil
     end
 
-    it 'does not authenticate through a disabled Authentication Source' do
-      user.user_authentication_sources.create!(
-        connector_id: 'test-idp',
-        connector_user_id: 'ext-user-1',
-        enabled: false,
-      )
-      # Email deliberately does not match so the auth-source path is the only
-      # way to resolve the user; a disabled source must not grant access.
-      allow(jwt_helper).to receive(:payload_email).and_return('different@example.com')
-      expect(User.find_from_jwt(jwt_helper)).to be_nil
-    end
-
     it 'returns nil when no user matches by either path' do
       allow(jwt_helper).to receive(:payload_email).and_return('nobody@example.com')
       expect(User.find_from_jwt(jwt_helper)).to be_nil
@@ -137,7 +125,6 @@ RSpec.describe JwtUser, type: :model do
         # the original row is restored, not recreated
         expect(all_rows.first.id).to eq(auth.id)
         expect(all_rows.first.deleted_at).to be_nil
-        expect(all_rows.first.enabled).to be(true)
       end
     end
 

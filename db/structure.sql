@@ -2314,7 +2314,6 @@ CREATE TABLE public.user_authentication_sources (
     user_id bigint NOT NULL,
     connector_id character varying NOT NULL,
     connector_user_id character varying NOT NULL,
-    enabled boolean DEFAULT true NOT NULL,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
     deleted_at timestamp without time zone
@@ -4299,6 +4298,7 @@ ALTER TABLE ONLY public.oauth_access_tokens
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260611120000'),
 ('20260520213800'),
 ('20260207120000'),
 ('20251215205826'),

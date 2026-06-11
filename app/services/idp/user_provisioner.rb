@@ -16,7 +16,6 @@ module Idp
 
     def call
       return nil unless validate_and_extract_claims
-      return nil if connector_link_disabled?
 
       user = find_existing_user
       if !user && @allow_create
@@ -59,23 +58,10 @@ module Idp
       { connector_id: @connector_id, connector_user_id: @connector_user_id }
     end
 
-    # A present (non-deleted) but disabled link for this connector pair is a
-    # deliberate admin block. Abort entirely so neither the email fallback nor
-    # create_user's RecordNotUnique rescue can resurrect the user by email.
-    # A deleted link is "severed/auto-healable" and does NOT block (see
-    # ensure_authentication_source).
-    def connector_link_disabled?
-      UserAuthenticationSource.
-        where(connector_identity).
-        where(deleted_at: nil, enabled: false).
-        exists?
-    end
-
     def find_existing_user
-      auth_source = UserAuthenticationSource.enabled.
-        order(:id).
+      auth_source = UserAuthenticationSource.
         where(connector_identity).
-        where(deleted_at: nil).
+        order(:id).
         first
 
       return auth_source.user if auth_source
@@ -90,6 +76,7 @@ module Idp
       # (create_access_group, paper_trail, presence checks). Rescue handles the
       # rare concurrent-provision race on the unique email.
       # password only satisfies Devise :secure_validatable; drop when devise is gone
+      TodoOrDie('Remove devise password behavior', if: !defined?(Devise))
       password = SecureRandom.base64(32)
       @user_class.create!(
         email: @email,
@@ -106,7 +93,7 @@ module Idp
     end
 
     def ensure_authentication_source(user)
-      # Prefer a live row; otherwise re-vivify the most recent tombstone so the
+      # Prefer a live row; otherwise restore the most recently deleted record so the
       # row's id/created_at/history survive. The unique index is partial
       # (WHERE deleted_at IS NULL), so a tombstone never blocks this.
       source = UserAuthenticationSource.where(connector_identity).first ||
@@ -129,15 +116,7 @@ module Idp
         return
       end
 
-      # A restored tombstone is a re-established link, so treat it like a fresh
-      # one and default it back to enabled. A *live* disabled row, by contrast,
-      # is a sticky admin block — connector_link_disabled? rejects it upstream,
-      # so we never reach here for one. New rows get enabled=true from the
-      # column default.
-      if source.deleted?
-        source.restore
-        source.enabled = true
-      end
+      source.restore if source.deleted?
       source.user = user
       source.save!
     rescue ActiveRecord::RecordNotUnique

@@ -24,7 +24,7 @@ module IdpSupport
   end
 
   def primary_idp
-    last_connector_id.presence || user_authentication_sources.enabled.order(:created_at).first&.connector_id
+    last_connector_id.presence || user_authentication_sources.order(:created_at).first&.connector_id
   end
 
   def email_change_enabled?

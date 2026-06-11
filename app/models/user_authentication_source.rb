@@ -13,6 +13,4 @@ class UserAuthenticationSource < ApplicationRecord
 
   validates :connector_id, presence: true, uniqueness: { scope: [:connector_user_id], conditions: -> { where(deleted_at: nil) } }
   validates :connector_user_id, presence: true
-
-  scope :enabled, -> { where(enabled: true) }
 end

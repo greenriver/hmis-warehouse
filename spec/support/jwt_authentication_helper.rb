@@ -41,9 +41,7 @@ module JwtAuthenticationHelper
     user.user_authentication_sources.find_or_create_by!(
       connector_id: 'test',
       connector_user_id: user.id.to_s,
-    ) do |auth_source|
-      auth_source.enabled = true
-    end
+    )
     user.update_column(:last_connector_id, 'test') if user.last_connector_id != 'test'
 
     if defined?(controller) && defined?(request) && request.present?

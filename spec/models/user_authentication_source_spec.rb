@@ -47,13 +47,4 @@ RSpec.describe UserAuthenticationSource, type: :model do
       expect(new_record).to be_valid
     end
   end
-
-  describe '.enabled' do
-    it 'returns only enabled records' do
-      enabled = described_class.create!(user: user, connector_id: 'idp-1', connector_user_id: 'uid-1', enabled: true)
-      _disabled = described_class.create!(user: user, connector_id: 'idp-2', connector_user_id: 'uid-2', enabled: false)
-
-      expect(described_class.enabled).to eq([enabled])
-    end
-  end
 end
