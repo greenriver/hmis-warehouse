@@ -268,7 +268,7 @@ class WarehouseReport::Outcomes::Base
     @destinations ||= begin
       @destinations = {}
       destinations = {
-        'returned to shelter' => {},
+        'exited to homelessness' => {},
         'exited to other institution' => {},
         'successful exit to PH' => {},
         'exited to temporary destination' => {},
@@ -315,6 +315,7 @@ class WarehouseReport::Outcomes::Base
   end
 
   def destination_bucket(dest_id)
+    return 'exited to homelessness' if HudHelper.util.homeless_destinations.include?(dest_id)
     return 'exited to other institution' if HudHelper.util.institutional_destinations.include?(dest_id)
     return 'successful exit to PH' if HudHelper.util.permanent_destinations.include?(dest_id)
     return 'exited to temporary destination' if HudHelper.util.temporary_destinations.include?(dest_id)

@@ -241,5 +241,19 @@ RSpec.describe HudReportArchival, type: :model do
       results = HudReports::ReportInstance.purge_eligible(60, Time.current)
       expect(results).not_to include(ineligible_recent)
     end
+
+    it 'excludes reports that have a recorded purge failure' do
+      failed_report = HudReports::ReportInstance.create!(
+        report_name: 'Test',
+        user_id: User.system_user.id,
+        state: 'Completed',
+        completed_at: 61.days.ago,
+        question_names: [],
+      )
+      failed_report.update_column(:archival_metadata, { 'purge_failed_at' => Time.current.iso8601 })
+
+      results = HudReports::ReportInstance.purge_eligible(60, Time.current)
+      expect(results).not_to include(failed_report)
+    end
   end
 end

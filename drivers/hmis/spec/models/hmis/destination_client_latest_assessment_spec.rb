@@ -90,4 +90,106 @@ RSpec.describe Hmis::DestinationClientLatestAssessment, type: :model do
       end
     end
   end
+
+  describe '.with_cde_value scope' do
+    let(:current_date) { Date.new(2024, 12, 26) }
+    # Form definition, CDEDs, and clients must share a data source: the view keys on the form
+    # definition's data_source_id, and with_cde_value filters on it.
+    let!(:ds) { create(:hmis_data_source) }
+    let(:form_definition) { create(:hmis_form_definition, identifier: 'cde_value_form', data_source: ds) }
+    let(:string_cded) do
+      create(:hmis_custom_data_element_definition,
+             owner_type: 'Hmis::Hud::CustomAssessment',
+             key: 'language_preference',
+             field_type: 'string',
+             data_source: ds,
+             form_definition_identifier: 'cde_value_form')
+    end
+    let(:repeating_cded) do
+      create(:hmis_custom_data_element_definition,
+             owner_type: 'Hmis::Hud::CustomAssessment',
+             key: 'allergies',
+             field_type: 'string',
+             repeats: true,
+             data_source: ds,
+             form_definition_identifier: 'cde_value_form')
+    end
+
+    def create_assessment_for_client(client, language_preference: nil, allergies: [], assessment_date: nil)
+      assessment_date ||= current_date - 1.week
+
+      assessment = create(:hmis_custom_assessment,
+                          client: client,
+                          data_source: client.data_source,
+                          assessment_date: assessment_date,
+                          definition: form_definition)
+
+      if language_preference
+        create(:hmis_custom_data_element,
+               owner: assessment,
+               data_element_definition: string_cded,
+               value_string: language_preference,
+               data_source: client.data_source)
+      end
+
+      allergies.each do |allergy|
+        create(:hmis_custom_data_element,
+               owner: assessment,
+               data_element_definition: repeating_cded,
+               value_string: allergy,
+               data_source: client.data_source)
+      end
+
+      assessment
+    end
+
+    let(:candidate_client_ids) { [destination_client1.id, destination_client2.id] }
+
+    # Convenience: the matching destination client ids for a given scope, bounded to candidates.
+    def matching_ids(cded, filter_values)
+      described_class.
+        where(destination_client_id: candidate_client_ids).
+        with_cde_value(cded, filter_values).
+        distinct.
+        pluck(:destination_client_id)
+    end
+
+    before do
+      create_assessment_for_client(
+        client1,
+        language_preference: 'English',
+        allergies: ['Peanuts', 'Dust'],
+      )
+      create_assessment_for_client(
+        client2,
+        language_preference: 'French',
+        # Client 2 has no 'allergies' data
+      )
+    end
+
+    it 'matches rows whose latest assessment has a non-repeating CDE value in the list' do
+      expect(matching_ids(string_cded, ['English'])).to contain_exactly(destination_client1.id)
+    end
+
+    it 'matches any of several string values (OR across filter values)' do
+      expect(matching_ids(string_cded, ['English', 'French'])).to contain_exactly(destination_client1.id, destination_client2.id)
+    end
+
+    it 'matches when any repeating CDE row matches one of the filter values' do
+      expect(matching_ids(repeating_cded, ['Peanuts'])).to contain_exactly(destination_client1.id)
+    end
+
+    it 'is bounded by the destination_client_id restriction the caller applies' do
+      result = described_class.
+        where(destination_client_id: [destination_client2.id]).
+        with_cde_value(string_cded, ['English', 'French']).
+        distinct.
+        pluck(:destination_client_id)
+      expect(result).to contain_exactly(destination_client2.id)
+    end
+
+    it 'returns no rows when no value matches' do
+      expect(matching_ids(string_cded, ['Klingon'])).to be_empty
+    end
+  end
 end

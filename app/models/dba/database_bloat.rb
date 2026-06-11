@@ -32,7 +32,7 @@ class Dba::DatabaseBloat
   MIN_ROWS = ENV.fetch('DBA_MIN_ROWS', 1_000).to_i
 
   # minimum percentage of non-analyzed rows to trigger adjusting autovaccuum
-  MIN_PCT_NOT_ANALZYED = ENV.fetch('DBA_MIN_PCT_NOT_ANALYZED', 4).to_i
+  MIN_PCT_NOT_ANALYZED = ENV.fetch('DBA_MIN_PCT_NOT_ANALYZED', 4).to_i
 
   def initialize(ar_base_class:, dry_run: false)
     self.ar_base_class = ar_base_class
@@ -99,7 +99,7 @@ class Dba::DatabaseBloat
 
   # Autovacuum is tied to autoanalyze
   def adjust_autovacuum_for(row)
-    return unless row['percent_unanalyzed'] > MIN_PCT_NOT_ANALZYED
+    return unless row['percent_unanalyzed'] > MIN_PCT_NOT_ANALYZED
 
     autovacuum_analyze_threshold = (row['autovacuum_analyze_threshold'] / 2).to_i
     autovacuum_analyze_scale_factor = (row['autovacuum_analyze_scale_factor'] / 2).round(2)
@@ -483,7 +483,12 @@ class Dba::DatabaseBloat
                                 FROM pg_catalog.pg_index i
                                 JOIN pg_catalog.pg_class ci ON ci.oid = i.indexrelid
                                 WHERE ci.relam=(SELECT oid FROM pg_am WHERE amname = 'btree')
-                                AND ci.relpages > 0
+                                -- relpages is the number of 8KB disk pages the index occupies. An index's maximum possible
+                                -- bloat equals its total size (relpages * 8192 bytes), so any index below this threshold
+                                -- can never exceed SIZE_CUTOFF bytes of bloat and will never appear in final results.
+                                -- This avoids running expensive per-index statistics for thousands of small indexes
+                                -- (e.g. child partition indexes from hmis_2022_* tables).
+                                AND ci.relpages > #{(SIZE_CUTOFF / 8192.0).ceil}
                             ) AS idx_data
                         ) AS ic
                         JOIN pg_catalog.pg_class ct ON ct.oid = ic.tbloid

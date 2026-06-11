@@ -607,7 +607,8 @@ module Types
       resolve_ce_opportunities(Hmis::Ce::Opportunity.viewable_by(current_user), **args)
     end
 
-    ce_referrals_field
+    # Omit assigned_to_user for now. Enabling it will require a frontend change to map the filter to a user picklist
+    ce_referrals_field(filter_args: { omit: [:assigned_to_user], type_name: 'CeReferral' })
     def ce_referrals(**args)
       resolve_ce_referrals(Hmis::Ce::Referral.viewable_by(current_user), **args)
     end
@@ -633,9 +634,10 @@ module Types
       scope = Hmis::Ce::ClientProxy.for_warehouse_clients.
         joins(ce_match_candidates: :candidate_pool).
         merge(Hmis::Ce::Match::CandidatePool.active).
-        distinct.order(:id)
+        distinct
 
       scope = scope.apply_filters(filters) if filters
+      scope = scope.order(:id)
       scope
     end
 
