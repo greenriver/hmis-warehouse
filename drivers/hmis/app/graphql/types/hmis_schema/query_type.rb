@@ -371,7 +371,8 @@ module Types
 
     application_users_field :application_users
     def application_users(**args)
-      raise 'Access denied' unless current_user.can_audit_users? || current_user.can_impersonate_users?
+      user_policy = policy_for(Hmis::User, policy_type: :hmis_user)
+      access_denied! unless user_policy.can_index_application_users?
 
       user_scope = Hmis::User.active.with_hmis_access_in_data_source(current_user.hmis_data_source_id)
       resolve_application_users(user_scope, **args)
@@ -381,10 +382,11 @@ module Types
       argument :id, ID, required: true
     end
     def user(id:)
-      raise 'Access denied' unless id == current_user.id.to_s || current_user.can_audit_users? || current_user.can_impersonate_users?
-
       user_scope = Hmis::User.with_hmis_access_in_data_source(current_user.hmis_data_source_id)
-      load_ar_scope(scope: user_scope, id: id)
+      user = load_ar_scope(scope: user_scope, id: id)
+      access_denied! unless user && policy_for(user, policy_type: :hmis_user).can_view?
+
+      user
     end
 
     field :merge_audit_history, Types::HmisSchema::MergeAuditEvent.page_type, null: false do
