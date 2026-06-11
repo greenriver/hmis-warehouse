@@ -27,7 +27,7 @@ RSpec.describe 'ceMatchClientFields query', type: :request do
     GRAPHQL
   end
 
-  let!(:access_control) { create_access_control(hmis_user, ds1, with_permission: :can_administrate_config) }
+  let!(:access_control) { create_access_control(hmis_user, ds1, with_permission: [:can_administrate_config, :can_manage_forms, :can_configure_data_collection]) }
 
   before(:each) { hmis_login(user) }
 
