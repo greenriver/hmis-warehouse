@@ -35,12 +35,8 @@ class Idp::ImpersonationManager
     data = session[:impersonation]
     return nil unless data
 
-    # Ensure keys are symbols for consistency (the session store may stringify them).
-    stored_data = {
-      true_user_id: data[:true_user_id] || data['true_user_id'],
-      impersonated_user_id: data[:impersonated_user_id] || data['impersonated_user_id'],
-      session_id: data[:session_id] || data['session_id'],
-    }
+    # The session store may come back with string keys; normalize to symbols.
+    stored_data = data.symbolize_keys
 
     # If the session has changed, impersonation is invalid
     return nil if stored_data[:session_id] != @session_id

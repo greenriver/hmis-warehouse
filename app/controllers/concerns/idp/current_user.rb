@@ -103,13 +103,22 @@ module Idp::CurrentUser
       # Connector (the DB last_connector_id is unreadable when there's no current_user).
       cookies.permanent[:last_connector_id] = jwt_helper.connector_id if jwt_helper.connector_id.present?
 
-      # Hmis::User shares the users table, so the warehouse-resolved id names the same row.
+      # find_or_create_from_jwt can hand back a plain User even when the caller wants an
+      # Hmis::User, so re-fetch by id as the requested class. Both use the users table — same row.
       user = user_class == User ? authenticated_user : user_class.find_by(id: authenticated_user.id)
       return nil unless user
 
       impersonation_manager = Idp::ImpersonationManager.new(session)
       impersonation_data = impersonation_manager.get
       if impersonation_data && impersonation_data[:impersonated_user_id].present?
+        # Only honor impersonation for the person who started it. If the logged-in user
+        # (from the token) isn't the stored true_user, this is a leftover session from an
+        # earlier sign-in on this browser — ignore it.
+        if impersonation_data[:true_user_id] != authenticated_user.id
+          impersonation_manager.clear
+          return user
+        end
+
         # Validate permissions on every request, using user_class for both users so
         # permissions load correctly (both User in warehouse, both Hmis::User in HMIS).
         true_user = user_class.find_by(id: impersonation_data[:true_user_id])

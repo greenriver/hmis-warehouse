@@ -182,6 +182,17 @@ RSpec.describe Idp::CurrentUser, type: :controller do
 
       expect(response.body).to eq('10')
     end
+
+    it 'ignores impersonation when the JWT principal is not the stored true_user' do
+      # Leftover session: the token now logs in a different user (77) than the one who
+      # started impersonating (10), so the impersonation should be ignored.
+      other_principal = double('User', id: 77)
+      allow(User).to receive(:find_or_create_from_jwt).and_return(other_principal)
+
+      get :index
+
+      expect(response.body).to eq('77')
+    end
   end
 
   describe 'dropped methods (regression guard for the subtractions)' do
