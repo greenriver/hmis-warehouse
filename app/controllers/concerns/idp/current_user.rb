@@ -137,10 +137,10 @@ module Idp::CurrentUser
     # Capture the original request URL and redirect to OAuth2-proxy sign-in, preserving the
     # URL via the `rd` query parameter. Override in subclasses for custom behavior (e.g. JSON).
     def handle_unauthenticated
-      original_url = Idp::RedirectUrlHelper.capture_original_request_url(
+      original_url = Idp::PostAuthRedirect.new(
         request: request,
-        session_id: session&.id&.to_s,
-      )
+        cookies: cookies,
+      ).capture
       # No current_user here (that's why we're unauthenticated), so the connector comes
       # from the cookie oauth2-proxy set on the last sign-in.
       redirect_to Idp::Oauth2ProxySignInPath.call(

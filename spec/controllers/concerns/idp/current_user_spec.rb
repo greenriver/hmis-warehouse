@@ -126,11 +126,12 @@ RSpec.describe Idp::CurrentUser, type: :controller do
     # only the rd parameter appears.
     it 'captures the original URL and redirects to the oauth2 sign-in path when unauthenticated' do
       allow(User).to receive(:find_or_create_from_jwt).and_return(nil)
-      allow(Idp::RedirectUrlHelper).to receive(:capture_original_request_url).and_return('/some/path')
+      redirect = instance_double(Idp::PostAuthRedirect, capture: '/some/path')
+      allow(Idp::PostAuthRedirect).to receive(:new).and_return(redirect)
 
       get :auth
 
-      expect(Idp::RedirectUrlHelper).to have_received(:capture_original_request_url)
+      expect(redirect).to have_received(:capture)
       expect(response).to redirect_to('/oauth2/sign_in?rd=%2Fsome%2Fpath')
     end
   end
