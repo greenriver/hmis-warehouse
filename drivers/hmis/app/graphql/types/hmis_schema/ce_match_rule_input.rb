@@ -13,7 +13,7 @@ module Types
     argument :name, String, required: false
     argument :owner_id, ID, required: false
     argument :owner_type, Types::HmisSchema::Enums::CeMatchRuleOwner, required: false
-    argument :rule_type, String, required: false
+    argument :rule_type, Types::HmisSchema::Enums::CeMatchRuleType, required: false
     argument :priority_rank, Integer, required: false
     argument :expression, String, required: false
     argument :structured_expression, Types::HmisSchema::CeMatchRuleStructuredExpressionInput, required: false

@@ -673,13 +673,29 @@ module Types
       Hmis::Unit.viewable_by(current_user).find_by(id: id)
     end
 
+    field :ce_match_rule, HmisSchema::CeMatchRule, null: false do
+      argument :id, ID, required: true
+    end
+    def ce_match_rule(id:)
+      rule = Hmis::Ce::Match::Rule.find_by(id: id)
+      access_denied! unless rule && policy_for(rule, policy_type: :ce_match_rule).can_update?
+
+      rule
+    end
+
+    field :ce_match_global_rules, HmisSchema::CeMatchRule.page_type, null: false, description: 'Global CE Match Rules for the current data source.'
+    def ce_match_global_rules
+      access_denied! unless policy_for(Hmis::Ce::Match::Rule, policy_type: :ce_match_rule).can_manage?
+
+      Hmis::Ce::Match::Rule.
+        where(owner_type: 'GrdaWarehouse::DataSource', owner_id: current_user.hmis_data_source_id).
+        order(:id)
+    end
+
     # Client fields (from ClientFieldMap) available in CE Match Rule expressions.
     field :ce_match_client_fields, [HmisSchema::CeMatchField], null: false, description: 'Client fields available for CE Match Rule expressions.'
     def ce_match_client_fields
-      access_denied! unless policy_for(Hmis::Form::Definition, policy_type: :form_definition).can_administrate_config?
-      # TODO: when UI is ready for non-GR users, replace with:
-      # access_denied! unless policy_for(Hmis::Ce::Match::Rule, policy_type: :ce_match_rule).can_manage?
-      # and do the same in the next two queries.
+      access_denied! unless policy_for(Hmis::Ce::Match::Rule, policy_type: :ce_match_rule).can_manage?
 
       Hmis::Ce::Match::Expression::FieldMetadataResolver.new.client_fields
     end
@@ -687,7 +703,7 @@ module Types
     # Custom-assessment form definitions in the user's data source that have at least one CDED usable for CE Match Rules.
     field :ce_match_custom_assessment_forms, [Forms::FormDefinition], null: false, description: 'Published and retired custom assessment form definitions in the user\'s data source that have CE Match fields.'
     def ce_match_custom_assessment_forms
-      access_denied! unless policy_for(Hmis::Form::Definition, policy_type: :form_definition).can_administrate_config?
+      access_denied! unless policy_for(Hmis::Ce::Match::Rule, policy_type: :ce_match_rule).can_manage?
 
       ds_id = current_user.hmis_data_source_id
 
@@ -710,7 +726,7 @@ module Types
       argument :form_definition_identifier, String, required: true
     end
     def ce_match_custom_assessment_fields(form_definition_identifier:)
-      access_denied! unless policy_for(Hmis::Form::Definition, policy_type: :form_definition).can_administrate_config?
+      access_denied! unless policy_for(Hmis::Ce::Match::Rule, policy_type: :ce_match_rule).can_manage?
 
       Hmis::Ce::Match::Expression::FieldMetadataResolver.new.custom_assessment_fields_for(
         data_source_id: current_user.hmis_data_source_id,
