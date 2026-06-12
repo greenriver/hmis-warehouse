@@ -93,32 +93,15 @@ module Idp
     end
 
     def ensure_authentication_source(user)
-      # Prefer a live row; otherwise restore the most recently deleted record so the
-      # row's id/created_at/history survive. The unique index is partial
-      # (WHERE deleted_at IS NULL), so a deleted record never blocks this.
-      source = UserAuthenticationSource.where(connector_identity).first ||
-        UserAuthenticationSource.only_deleted.where(connector_identity).order(updated_at: :desc).first ||
-        UserAuthenticationSource.new(connector_identity)
+      # Common per-request path: the durable link already exists for this user.
+      # (find_existing_user resolves the live row first, so a live row always
+      # belongs to the resolved user — no cross-user case to handle here.)
+      return if user.user_authentication_sources.where(connector_identity).exists?
 
-      # Strictly shouldn't happen: connector_user_id is the IdP's stable per-user
-      # id, so a pair maps to exactly one of our users.
-      if source.persisted? && source.user_id != user.id
-        Sentry.capture_message(
-          'IdP: connector pair already linked to a different user',
-          level: :error,
-          extra: {
-            connector_id: @connector_id,
-            connector_user_id: @connector_user_id,
-            existing_user_id: source.user_id,
-            attempted_user_id: user.id,
-          },
-        )
-        return
-      end
-
-      source.restore if source.deleted?
-      source.user = user
-      source.save!
+      # First JWT login (resolved by email): establish the link. Any prior
+      # soft-deleted row for this pair is left as inert history — the partial
+      # unique index ignores deleted rows, so a fresh live row inserts cleanly.
+      user.user_authentication_sources.create!(connector_identity)
     rescue ActiveRecord::RecordNotUnique
       # Lost a concurrent first-login race; a live row for this pair now exists.
       nil
