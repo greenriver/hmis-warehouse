@@ -59,6 +59,31 @@ RSpec.describe Idp::RedirectUrlHelper do
         expect(result).to eq('/header/path')
       end
 
+      it 'clears the cached backup once consumed' do
+        Rails.cache.write("redirect:#{session_id}", '/cached/path', expires_in: 10.minutes)
+
+        described_class.redirect_url_after_auth(
+          params: params,
+          request: request,
+          session_id: session_id,
+        )
+
+        expect(Rails.cache.read("redirect:#{session_id}")).to be_nil
+      end
+
+      it 'clears a stale cached backup even when the rd parameter wins' do
+        Rails.cache.write("redirect:#{session_id}", '/cached/path', expires_in: 10.minutes)
+        params[:rd] = '/rd/parameter/path'
+
+        described_class.redirect_url_after_auth(
+          params: params,
+          request: request,
+          session_id: session_id,
+        )
+
+        expect(Rails.cache.read("redirect:#{session_id}")).to be_nil
+      end
+
       it 'falls back to user.my_root_path when other sources are not present' do
         result = described_class.redirect_url_after_auth(
           params: params,
@@ -186,7 +211,9 @@ RSpec.describe Idp::RedirectUrlHelper do
     let(:request) do
       double(
         'Request',
+        get?: true,
         xhr?: false,
+        format: Mime[:html],
         path: '/some/path',
         fullpath: '/some/path?foo=bar',
       )
@@ -216,6 +243,28 @@ RSpec.describe Idp::RedirectUrlHelper do
     context 'when request should not be captured' do
       it 'returns nil for AJAX requests' do
         allow(request).to receive(:xhr?).and_return(true)
+
+        result = described_class.capture_original_request_url(
+          request: request,
+          session_id: session_id,
+        )
+
+        expect(result).to be_nil
+      end
+
+      it 'returns nil for non-GET requests' do
+        allow(request).to receive(:get?).and_return(false)
+
+        result = described_class.capture_original_request_url(
+          request: request,
+          session_id: session_id,
+        )
+
+        expect(result).to be_nil
+      end
+
+      it 'returns nil for non-HTML (JSON/API) requests' do
+        allow(request).to receive(:format).and_return(Mime[:json])
 
         result = described_class.capture_original_request_url(
           request: request,

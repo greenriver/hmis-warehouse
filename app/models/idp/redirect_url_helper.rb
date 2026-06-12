@@ -21,6 +21,11 @@ module Idp::RedirectUrlHelper
   def redirect_url_after_auth(params:, request:, session_id:, user: nil)
     redirect_url = params[:rd].presence || read_redirect(session_id: session_id) || request.headers['X-Auth-Request-Redirect'].presence || user&.my_root_path
 
+    # The cached backup is single-use: once we've resolved a post-auth redirect it's
+    # spent, so clear it regardless of which source won (the `rd` param short-circuits
+    # the cache read above, so this also drops a stale backup in that case).
+    clear_redirect(session_id: session_id)
+
     redirect_url if redirect_url.present? && safe_redirect_url?(redirect_url, request)
   end
 
@@ -54,7 +59,12 @@ module Idp::RedirectUrlHelper
   # Capture the full request path for post-auth redirect, excluding OAuth2-proxy /
   # sign-in/sign-out endpoints and AJAX requests. Stores a cache backup keyed by session.
   def capture_original_request_url(request:, session_id:)
-    return nil if request.xhr? # Don't capture AJAX requests
+    # Only capture a normal page navigation we can send the user back to after sign-in:
+    # a GET (you can't redirect someone back to a POST — that also covers GraphQL), not a
+    # background/AJAX request, and an HTML page (don't bounce a browser to a JSON/API URL).
+    return nil unless request.get?
+    return nil if request.xhr?
+    return nil unless request.format.html?
     return nil if request.path.start_with?('/oauth2/')
     return nil if request.path.in?(['/users/sign_in', '/users/sign_out', '/hmis/login', '/hmis/logout'])
 
@@ -70,14 +80,20 @@ module Idp::RedirectUrlHelper
   def store_redirect(session_id:, url:)
     return unless session_id.present? && url.present?
 
-    # Reasonable TTL as a safety net; the redirect is consumed right after sign-in.
-    Rails.cache.write(redirect_cache_key(session_id), url, expires_in: 1.hour)
+    # Short TTL as a safety net; the redirect is consumed right after sign-in.
+    Rails.cache.write(redirect_cache_key(session_id), url, expires_in: 10.minutes)
   end
 
   def read_redirect(session_id:)
     return unless session_id.present?
 
     Rails.cache.read(redirect_cache_key(session_id))
+  end
+
+  def clear_redirect(session_id:)
+    return unless session_id.present?
+
+    Rails.cache.delete(redirect_cache_key(session_id))
   end
 
   def redirect_cache_key(session_id)
