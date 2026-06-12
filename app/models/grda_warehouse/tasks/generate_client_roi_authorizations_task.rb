@@ -58,7 +58,7 @@ module GrdaWarehouse::Tasks
           GrdaWarehouse::ClientRoiAuthorization.where(destination_client: no_roi_status_ids).delete_all
           # Clears stale consent_form_id and related fields on the client record. This is a no-op
           # for clients that never had consent, but necessary for those whose ROI was removed.
-          GrdaWarehouse::Hud::Client.bulk_invalidate_consent!(no_roi_status_ids, batch_size: batch_size) if no_roi_status_ids.any?
+          GrdaWarehouse::Hud::Client.invalidate_consent!(no_roi_status_ids) if no_roi_status_ids.any?
         end
 
         # Invalidate consent for clients whose ROI has expired but still have consent_form_id set
@@ -70,7 +70,7 @@ module GrdaWarehouse::Tasks
           merge(GrdaWarehouse::Hud::Client.where.not(consent_form_id: nil))
         expired_scope = expired_scope.where(destination_client_id: client_ids) if client_ids
         expired_client_ids = expired_scope.pluck(:destination_client_id)
-        GrdaWarehouse::Hud::Client.bulk_invalidate_consent!(expired_client_ids, batch_size: batch_size)
+        GrdaWarehouse::Hud::Client.invalidate_consent!(expired_client_ids)
 
         # cleanup orphaned auth records where the client record no-longer exists at all
         orphan_ids = GrdaWarehouse::ClientRoiAuthorization.with_invalid_client.pluck(:id)

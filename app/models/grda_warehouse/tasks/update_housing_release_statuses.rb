@@ -25,7 +25,7 @@ module GrdaWarehouse
         status_groups = {}
 
         clients.each do |client|
-          consent_class = GrdaWarehouse::Config.active_consent_class.new(client: client)
+          consent_class ||= GrdaWarehouse::Config.active_consent_class.new(client: client)
 
           old_status = client.housing_release_status
           new_status = consent_class.current_consent_type
