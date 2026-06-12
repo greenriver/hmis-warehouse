@@ -164,14 +164,6 @@ module Types
       load_ar_association(object, :referral)
     end
 
-    # Decided not to add this yet, but leaving comment in case there is a request in the future to link them up.
-    # def source_enrollment
-    #   return unless current_permission?(permission: :can_view_project, entity: enrollment_project)
-    #   return unless current_permission?(permission: :can_view_enrollment_details, entity: enrollment_project)
-
-    #   protected_source_enrollment
-    # end
-
     protected
 
     # Note: The User who can view this referral may not have access to view the referring project.
