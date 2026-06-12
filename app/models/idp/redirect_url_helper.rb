@@ -9,7 +9,9 @@
 # Helper methods for redirect URL logic that requires controller context.
 #
 # These methods need access to `request`, `params`, and `session`, so they accept
-# them as parameters.
+# them as parameters. The session-keyed cache (backed by Redis) holds a backup of the
+# original URL so it survives the OAuth2-proxy redirect flow even if the `rd` parameter
+# is dropped; tying it to the session id keeps one session from reading another's.
 module Idp::RedirectUrlHelper
   module_function
 
@@ -17,8 +19,7 @@ module Idp::RedirectUrlHelper
   # 1. `rd` query parameter (from OAuth2-proxy), 2. Rails cache (redirect:{session_id}),
   # 3. X-Auth-Request-Redirect header, 4. user.my_root_path. Only returns safe URLs.
   def redirect_url_after_auth(params:, request:, session_id:, user: nil)
-    redirect_manager = Idp::RedirectManager.new(session_id)
-    redirect_url = params[:rd].presence || redirect_manager.get || request.headers['X-Auth-Request-Redirect'].presence || user&.my_root_path
+    redirect_url = params[:rd].presence || read_redirect(session_id: session_id) || request.headers['X-Auth-Request-Redirect'].presence || user&.my_root_path
 
     redirect_url if redirect_url.present? && safe_redirect_url?(redirect_url, request)
   end
@@ -61,9 +62,25 @@ module Idp::RedirectUrlHelper
     return nil if url.blank?
 
     # Store in cache as backup (in case OAuth2-proxy doesn't preserve the rd parameter)
-    redirect_manager = Idp::RedirectManager.new(session_id)
-    redirect_manager.store(url) if session_id.present?
+    store_redirect(session_id: session_id, url: url)
 
     url
+  end
+
+  def store_redirect(session_id:, url:)
+    return unless session_id.present? && url.present?
+
+    # Reasonable TTL as a safety net; the redirect is consumed right after sign-in.
+    Rails.cache.write(redirect_cache_key(session_id), url, expires_in: 1.hour)
+  end
+
+  def read_redirect(session_id:)
+    return unless session_id.present?
+
+    Rails.cache.read(redirect_cache_key(session_id))
+  end
+
+  def redirect_cache_key(session_id)
+    "redirect:#{session_id}"
   end
 end

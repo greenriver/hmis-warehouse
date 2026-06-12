@@ -23,7 +23,7 @@ RSpec.describe Idp::RedirectUrlHelper do
   describe '.redirect_url_after_auth' do
     context 'priority order' do
       it 'prefers rd parameter over cache' do
-        Idp::RedirectManager.new(session_id).store('/cached/path')
+        Rails.cache.write("redirect:#{session_id}", '/cached/path', expires_in: 1.hour)
         params[:rd] = '/rd/parameter/path'
 
         result = described_class.redirect_url_after_auth(
@@ -36,7 +36,7 @@ RSpec.describe Idp::RedirectUrlHelper do
       end
 
       it 'falls back to cache when rd parameter is not present' do
-        Idp::RedirectManager.new(session_id).store('/cached/path')
+        Rails.cache.write("redirect:#{session_id}", '/cached/path', expires_in: 1.hour)
 
         result = described_class.redirect_url_after_auth(
           params: params,
@@ -208,7 +208,7 @@ RSpec.describe Idp::RedirectUrlHelper do
           session_id: session_id,
         )
 
-        stored_url = Idp::RedirectManager.new(session_id).get
+        stored_url = Rails.cache.read("redirect:#{session_id}")
         expect(stored_url).to eq('/some/path?foo=bar')
       end
     end
@@ -300,7 +300,7 @@ RSpec.describe Idp::RedirectUrlHelper do
         )
 
         expect(result).to eq('/some/path?foo=bar')
-        expect(Idp::RedirectManager.new('').get).to be_nil
+        expect(Rails.cache.read('redirect:')).to be_nil
       end
     end
   end
