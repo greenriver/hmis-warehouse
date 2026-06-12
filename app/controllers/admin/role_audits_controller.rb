@@ -26,7 +26,7 @@ module Admin
     private
 
     def set_variables
-      @role = Role.find(params[:role_id].to_i)
+      @role = Role.with_deleted.find(params[:role_id].to_i)
       @history = Audit::Versions.new(@role, role_audit_config)
       @versions = @history.version_array.sort_by(&:created_at).reverse
     end

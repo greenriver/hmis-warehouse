@@ -1,5 +1,12 @@
 = render 'breadcrumbs'
 
-%h1 Edit Role: #{@role.name}
+.d-flex
+  %h1 Edit Role: #{@role.name}
+  .ml-auto
+    = link_to hmis_admin_role_audit_path(@role), class: 'btn btn-info mb-3' do
+      %i.fa.fa-history
+      %span.icon-eye
+      History
+
 = simple_form_for @role, as: :role, url: hmis_admin_role_path(@role) do |f|
   = render 'admin/roles/new_form', f: f, submit_text: 'Update Role'

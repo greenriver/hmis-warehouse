@@ -39,21 +39,31 @@ class Hmis::AuthPolicies::FormDefinitionPolicy < Hmis::AuthPolicies::ResourcePol
       form_definition.draft? && can_manage_form?
     end
 
+    # Whether the user can configure this form in the form editor.
+    def can_configure_form? = can_configure_data_collection_for_form_by_role?
+
     # Whether the user can add a new Hmis::Form::Instance to the form definition
-    def can_add_form_rule?
-      global_permissions.include?(:can_configure_data_collection) && manageable_form_role?
-    end
+    def can_add_form_rule? = can_configure_data_collection_for_form_by_role?
 
     # Whether the user can delete a Hmis::Form::Instance rule from the form definition
-    def can_delete_form_rule? = can_add_form_rule?
+    def can_delete_form_rule? = can_configure_data_collection_for_form_by_role?
 
     protected
+
+    def in_data_source?
+      form_definition.data_source_id == user.hmis_data_source_id
+    end
 
     # Determines if the current user can manage forms for a given role.
     # can_manage_forms permission grants access to edit certain form roles (SERVICE, CUSTOM_ASSESSMENT),
     # while "super-admin" permission can_administrate_config grants access to edit all form roles.
     def can_manage_form_by_role?
-      global_permissions.include?(:can_manage_forms) && manageable_form_role?
+      in_data_source? && global_permissions.include?(:can_manage_forms) && manageable_form_role?
+    end
+
+    # Determines if the current user can view and manage form rules for a given form.
+    def can_configure_data_collection_for_form_by_role?
+      in_data_source? && global_permissions.include?(:can_configure_data_collection) && manageable_form_role?
     end
 
     # Determines if the form role is considered a non-super-admin form or a super-admin form
@@ -75,6 +85,11 @@ class Hmis::AuthPolicies::FormDefinitionPolicy < Hmis::AuthPolicies::ResourcePol
     # Whether the user can manage some forms in the data source
     def can_manage_forms?
       global_permissions.include?(:can_manage_forms)
+    end
+
+    # Whether the user can configure some forms in the data source. Governs overall access to the Admin Forms UI.
+    def can_configure_forms?
+      global_permissions.include?(:can_configure_data_collection)
     end
 
     # Whether the user can manage some form rules in the data source.

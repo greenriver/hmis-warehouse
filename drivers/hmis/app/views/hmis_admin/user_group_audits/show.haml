@@ -1,0 +1,5 @@
+= render 'admin/audits/shared/layout',
+  entity_type: 'HMIS User Group',
+  entity_path: hmis_admin_user_groups_path,
+  export_path: export_hmis_admin_user_group_audit_path(@user_group, format: :csv),
+  item: @user_group
