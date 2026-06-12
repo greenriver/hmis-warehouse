@@ -10,6 +10,11 @@ module Types
   class HmisSchema::CeMatchRule < Types::BaseObject
     # object is a Hmis::Ce::Match::Rule
 
+    available_filter_options do
+      arg :owner_type, Types::HmisSchema::Enums::CeMatchRuleOwner
+      arg :owner_id, ID
+    end
+
     field :id, ID, null: false
     def id
       object.graphql_id || object.id

@@ -33,10 +33,10 @@ RSpec.describe 'CE Match Rules queries', type: :request do
     )
   end
 
-  let(:global_rules_query) do
+  let(:rules_query) do
     <<~GRAPHQL
-      query GetCeMatchGlobalRules {
-        ceMatchGlobalRules {
+      query GetCeMatchRules($filters: CeMatchRuleFilterOptions) {
+        ceMatchRules(filters: $filters) {
           nodesCount
           nodes {
             id
@@ -73,11 +73,11 @@ RSpec.describe 'CE Match Rules queries', type: :request do
   end
 
   it 'returns global rules for the current data source' do
-    response, result = post_graphql { global_rules_query }
+    response, result = post_graphql(filters: { ownerType: 'DATA_SOURCE' }) { rules_query }
     expect(response.status).to eq(200), result.inspect
 
-    expect(result.dig('data', 'ceMatchGlobalRules', 'nodesCount')).to eq(1)
-    expect(result.dig('data', 'ceMatchGlobalRules', 'nodes')).to contain_exactly(
+    expect(result.dig('data', 'ceMatchRules', 'nodesCount')).to eq(1)
+    expect(result.dig('data', 'ceMatchRules', 'nodes')).to contain_exactly(
       include(
         'id' => global_rule.id.to_s,
         'name' => 'Must be 18 or older',
@@ -106,7 +106,7 @@ RSpec.describe 'CE Match Rules queries', type: :request do
   it 'denies access without can_administrate_coordinated_entry' do
     remove_permissions(access_control, :can_administrate_coordinated_entry)
 
-    expect_access_denied(post_graphql { global_rules_query })
+    expect_access_denied(post_graphql(filters: { ownerType: 'DATA_SOURCE' }) { rules_query })
     expect_access_denied(post_graphql(id: global_rule.id) { rule_query })
   end
 end

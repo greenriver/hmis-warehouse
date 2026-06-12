@@ -1026,6 +1026,11 @@ enum CeMatchRuleComparator {
   NOT_EQ
 }
 
+input CeMatchRuleFilterOptions {
+  ownerId: ID
+  ownerType: CeMatchRuleOwner
+}
+
 input CeMatchRuleInput {
   expression: String
   name: String
@@ -10208,12 +10213,12 @@ type Query {
   Published and retired custom assessment form definitions in the user's data source that have CE Match fields.
   """
   ceMatchCustomAssessmentForms: [FormDefinition!]!
+  ceMatchRule(id: ID!): CeMatchRule!
 
   """
-  Global CE Match Rules for the current data source.
+  Coordinated Entry Match Rules in the current data source.
   """
-  ceMatchGlobalRules(limit: Int, offset: Int): CeMatchRulesPaginated!
-  ceMatchRule(id: ID!): CeMatchRule!
+  ceMatchRules(filters: CeMatchRuleFilterOptions, limit: Int, offset: Int): CeMatchRulesPaginated!
   ceOpportunities(filters: CeOpportunityFilterOptions, limit: Int, offset: Int, sortOrder: CeOpportunitySortOption): CeOpportunitiesPaginated!
   ceOpportunity(id: ID!): CeOpportunity
   ceReferral(id: ID!): CeReferral

@@ -683,13 +683,15 @@ module Types
       rule
     end
 
-    field :ce_match_global_rules, HmisSchema::CeMatchRule.page_type, null: false, description: 'Global CE Match Rules for the current data source.'
-    def ce_match_global_rules
+    field :ce_match_rules, HmisSchema::CeMatchRule.page_type, null: false, description: 'Coordinated Entry Match Rules in the current data source.' do
+      filters_argument HmisSchema::CeMatchRule
+    end
+    def ce_match_rules(filters: nil)
       access_denied! unless policy_for(Hmis::Ce::Match::Rule, policy_type: :ce_match_rule).can_manage?
 
-      Hmis::Ce::Match::Rule.
-        where(owner_type: 'GrdaWarehouse::DataSource', owner_id: current_user.hmis_data_source_id).
-        order(:id)
+      scope = Hmis::Ce::Match::Rule.in_data_source(current_user.hmis_data_source_id)
+      scope = scope.apply_filters(filters) if filters.present?
+      scope.order(:id)
     end
 
     # Client fields (from ClientFieldMap) available in CE Match Rule expressions.
