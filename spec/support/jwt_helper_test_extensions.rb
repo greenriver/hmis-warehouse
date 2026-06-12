@@ -15,8 +15,8 @@
 #
 # Mock tokens follow the format: "mock-jwt-token-{user_id}-{random_hex}"
 module JwtHelperTestExtensions
-  # Override validate! to bypass cryptographic validation for mock tokens
-  def validate!
+  # Override valid? to bypass cryptographic validation for mock tokens
+  def valid?
     return false unless token?
 
     # In system tests, allow mock tokens to bypass validation
