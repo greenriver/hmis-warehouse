@@ -53,8 +53,4 @@ class Idp::ImpersonationManager
 
     session.delete(:impersonation)
   end
-
-  def active?
-    get.present?
-  end
 end

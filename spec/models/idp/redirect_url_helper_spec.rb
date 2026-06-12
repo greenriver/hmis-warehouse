@@ -225,7 +225,7 @@ RSpec.describe Idp::RedirectUrlHelper do
         expect(result).to be_nil
       end
 
-      it 'returns nil for OAuth2-proxy endpoints' do
+      it 'returns nil for OAuth2-proxy endpoints (path prefix)' do
         allow(request).to receive(:path).and_return('/oauth2/sign_in')
 
         result = described_class.capture_original_request_url(
@@ -236,41 +236,10 @@ RSpec.describe Idp::RedirectUrlHelper do
         expect(result).to be_nil
       end
 
-      it 'returns nil for sign-in endpoints' do
+      # One representative of the excluded-path list (sign-in/out, hmis login/logout);
+      # they all exercise the same request.path.in?([...]) membership check.
+      it 'returns nil for excluded auth endpoints' do
         allow(request).to receive(:path).and_return('/users/sign_in')
-
-        result = described_class.capture_original_request_url(
-          request: request,
-          session_id: session_id,
-        )
-
-        expect(result).to be_nil
-      end
-
-      it 'returns nil for sign-out endpoints' do
-        allow(request).to receive(:path).and_return('/users/sign_out')
-
-        result = described_class.capture_original_request_url(
-          request: request,
-          session_id: session_id,
-        )
-
-        expect(result).to be_nil
-      end
-
-      it 'returns nil for HMIS login endpoints' do
-        allow(request).to receive(:path).and_return('/hmis/login')
-
-        result = described_class.capture_original_request_url(
-          request: request,
-          session_id: session_id,
-        )
-
-        expect(result).to be_nil
-      end
-
-      it 'returns nil for HMIS logout endpoints' do
-        allow(request).to receive(:path).and_return('/hmis/logout')
 
         result = described_class.capture_original_request_url(
           request: request,

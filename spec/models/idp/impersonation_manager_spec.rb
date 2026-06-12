@@ -145,47 +145,4 @@ RSpec.describe Idp::ImpersonationManager do
       expect { manager.clear }.not_to raise_error
     end
   end
-
-  describe '#active?' do
-    let(:true_user_id) { 1 }
-    let(:impersonated_user_id) { 2 }
-    let(:session_id) { 'test-session-123' }
-
-    it 'returns true when impersonation exists and session matches' do
-      impersonation_data = {
-        true_user_id: true_user_id,
-        impersonated_user_id: impersonated_user_id,
-        session_id: session_id,
-      }
-      session = double(id: session_id, present?: true)
-      allow(session).to receive(:[]).with(:impersonation).and_return(impersonation_data)
-
-      manager = described_class.new(session)
-
-      expect(manager.active?).to be true
-    end
-
-    it 'returns false when impersonation does not exist' do
-      session = double(id: session_id, present?: true)
-      allow(session).to receive(:[]).with(:impersonation).and_return(nil)
-
-      manager = described_class.new(session)
-
-      expect(manager.active?).to be false
-    end
-
-    it 'returns false when session_id does not match stored session_id' do
-      impersonation_data = {
-        true_user_id: true_user_id,
-        impersonated_user_id: impersonated_user_id,
-        session_id: 'different-session-id',
-      }
-      session = double(id: session_id, present?: true)
-      allow(session).to receive(:[]).with(:impersonation).and_return(impersonation_data)
-
-      manager = described_class.new(session)
-
-      expect(manager.active?).to be false
-    end
-  end
 end
