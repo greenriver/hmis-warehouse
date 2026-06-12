@@ -8,9 +8,9 @@
 
 require 'rails_helper'
 
-RSpec.describe CurrentUser, type: :controller do
+RSpec.describe Idp::CurrentUser, type: :controller do
   controller(ActionController::Base) do
-    include CurrentUser
+    include Idp::CurrentUser
 
     def index
       render plain: current_user&.id.to_s
@@ -37,7 +37,7 @@ RSpec.describe CurrentUser, type: :controller do
 
   let(:jwt_helper) do
     double(
-      'JwtHelper',
+      'Idp::JwtHelper',
       token?: true,
       valid?: true,
       connector_id: 'keycloak',
@@ -126,11 +126,11 @@ RSpec.describe CurrentUser, type: :controller do
     # only the rd parameter appears.
     it 'captures the original URL and redirects to the oauth2 sign-in path when unauthenticated' do
       allow(User).to receive(:find_or_create_from_jwt).and_return(nil)
-      allow(RedirectUrlHelper).to receive(:capture_original_request_url).and_return('/some/path')
+      allow(Idp::RedirectUrlHelper).to receive(:capture_original_request_url).and_return('/some/path')
 
       get :auth
 
-      expect(RedirectUrlHelper).to have_received(:capture_original_request_url)
+      expect(Idp::RedirectUrlHelper).to have_received(:capture_original_request_url)
       expect(response).to redirect_to('/oauth2/sign_in?rd=%2Fsome%2Fpath')
     end
   end
@@ -154,13 +154,13 @@ RSpec.describe CurrentUser, type: :controller do
       allow(User).to receive(:find_by).with(id: 10).and_return(true_user)
       allow(User).to receive(:find_by).with(id: 20).and_return(impersonated_user)
 
-      impersonation = double('ImpersonationManager')
+      impersonation = double('Idp::ImpersonationManager')
       allow(impersonation).to receive(:get).and_return(
         true_user_id: 10,
         impersonated_user_id: 20,
       )
       allow(impersonation).to receive(:clear)
-      allow(ImpersonationManager).to receive(:new).and_return(impersonation)
+      allow(Idp::ImpersonationManager).to receive(:new).and_return(impersonation)
     end
 
     it 'current_user returns the impersonated user when permissions validate' do

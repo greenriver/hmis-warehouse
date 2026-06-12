@@ -8,7 +8,7 @@
 
 require 'rails_helper'
 
-RSpec.describe JwtHelper do
+RSpec.describe Idp::JwtHelper do
   let(:jwks_url) { 'http://example.com/jwks' }
   let(:kid) { 'test_kid' }
   let(:rsa_key) { OpenSSL::PKey::RSA.generate(2048) }
@@ -31,7 +31,7 @@ RSpec.describe JwtHelper do
   let(:helper) { described_class.new(access_token: access_token) }
 
   before do
-    JwtHelper.memory_cache.clear
+    Idp::JwtHelper.memory_cache.clear
     allow(ENV).to receive(:fetch).and_call_original
     allow(ENV).to receive(:fetch).with('JWKS_URL').and_return(jwks_url)
     allow(ENV).to receive(:fetch).with('IDP_AUD').and_return('test_aud')

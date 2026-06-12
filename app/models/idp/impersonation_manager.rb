@@ -11,7 +11,7 @@
 # Stores impersonation state ({ true_user_id, impersonated_user_id, session_id }) in the
 # Rails session, and in Rails.cache under RUN_SYSTEM_TESTS (cookie sessions don't persist
 # reliably under Cuprite). Replaces pretender's session machinery.
-class ImpersonationManager
+class Idp::ImpersonationManager
   attr_reader :session
 
   def initialize(session)

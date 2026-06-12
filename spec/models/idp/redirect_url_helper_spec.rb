@@ -8,7 +8,7 @@
 
 require 'rails_helper'
 
-RSpec.describe RedirectUrlHelper do
+RSpec.describe Idp::RedirectUrlHelper do
   let(:session_id) { 'test-session-123' }
   let(:request) { double('Request', host: 'example.com', path: '/some/path', fullpath: '/some/path?foo=bar', xhr?: false, headers: {}) }
   let(:params) { ActionController::Parameters.new({}) }
@@ -23,7 +23,7 @@ RSpec.describe RedirectUrlHelper do
   describe '.redirect_url_after_auth' do
     context 'priority order' do
       it 'prefers rd parameter over cache' do
-        RedirectManager.new(session_id).store('/cached/path')
+        Idp::RedirectManager.new(session_id).store('/cached/path')
         params[:rd] = '/rd/parameter/path'
 
         result = described_class.redirect_url_after_auth(
@@ -36,7 +36,7 @@ RSpec.describe RedirectUrlHelper do
       end
 
       it 'falls back to cache when rd parameter is not present' do
-        RedirectManager.new(session_id).store('/cached/path')
+        Idp::RedirectManager.new(session_id).store('/cached/path')
 
         result = described_class.redirect_url_after_auth(
           params: params,
@@ -208,7 +208,7 @@ RSpec.describe RedirectUrlHelper do
           session_id: session_id,
         )
 
-        stored_url = RedirectManager.new(session_id).get
+        stored_url = Idp::RedirectManager.new(session_id).get
         expect(stored_url).to eq('/some/path?foo=bar')
       end
     end
@@ -300,7 +300,7 @@ RSpec.describe RedirectUrlHelper do
         )
 
         expect(result).to eq('/some/path?foo=bar')
-        expect(RedirectManager.new('').get).to be_nil
+        expect(Idp::RedirectManager.new('').get).to be_nil
       end
     end
   end

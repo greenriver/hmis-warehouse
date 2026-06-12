@@ -11,8 +11,8 @@
 # Re-implements Devise's current_user / authenticate_user! / user_signed_in? / true_user /
 # impersonating? / warden on top of a validated JWT instead of a Devise/Warden session, so
 # existing call sites keep working unchanged once a Deployment flips to JWT. The token is read
-# from X-Forwarded-Access-Token, validated via JwtHelper, and resolved via User.find_or_create_from_jwt.
-module CurrentUser
+# from X-Forwarded-Access-Token, validated via Idp::JwtHelper, and resolved via User.find_or_create_from_jwt.
+module Idp::CurrentUser
   extend ActiveSupport::Concern
 
   included do
@@ -22,7 +22,7 @@ module CurrentUser
     helper_method :current_user
 
     def warden
-      @warden ||= WardenProxy.new(current_user, session: session)
+      @warden ||= Idp::WardenProxy.new(current_user, session: session)
     end
 
     def authenticate_user!
@@ -39,7 +39,7 @@ module CurrentUser
     def true_user
       return nil unless current_user
 
-      impersonation_manager = ImpersonationManager.new(session)
+      impersonation_manager = Idp::ImpersonationManager.new(session)
       impersonation_data = impersonation_manager.get
       return current_user unless impersonation_data && impersonation_data[:true_user_id].present?
 
@@ -52,7 +52,7 @@ module CurrentUser
     def impersonating?
       return false unless current_user
 
-      impersonation_manager = ImpersonationManager.new(session)
+      impersonation_manager = Idp::ImpersonationManager.new(session)
       impersonation_data = impersonation_manager.get
       return false unless impersonation_data && impersonation_data[:impersonated_user_id].present?
 
@@ -77,7 +77,7 @@ module CurrentUser
       @jwt_helper_for_request ||= begin
         token = request.headers['HTTP_X_FORWARDED_ACCESS_TOKEN']
 
-        JwtHelper.new(access_token: token)
+        Idp::JwtHelper.new(access_token: token)
       end
     end
 
@@ -107,7 +107,7 @@ module CurrentUser
       user = user_class == User ? authenticated_user : user_class.find_by(id: authenticated_user.id)
       return nil unless user
 
-      impersonation_manager = ImpersonationManager.new(session)
+      impersonation_manager = Idp::ImpersonationManager.new(session)
       impersonation_data = impersonation_manager.get
       if impersonation_data && impersonation_data[:impersonated_user_id].present?
         # Validate permissions on every request, using user_class for both users so
@@ -128,7 +128,7 @@ module CurrentUser
     # Capture the original request URL and redirect to OAuth2-proxy sign-in, preserving the
     # URL via the `rd` query parameter. Override in subclasses for custom behavior (e.g. JSON).
     def handle_unauthenticated
-      original_url = RedirectUrlHelper.capture_original_request_url(
+      original_url = Idp::RedirectUrlHelper.capture_original_request_url(
         request: request,
         session_id: session&.id&.to_s,
       )

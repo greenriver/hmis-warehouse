@@ -10,7 +10,7 @@
 #
 # Stores redirect URLs in Rails cache (backed by Redis) to survive the OAuth2-proxy
 # redirect flow. URLs are tied to session ID to prevent cross-session access.
-class RedirectManager
+class Idp::RedirectManager
   attr_reader :session_id
 
   def initialize(session_id)

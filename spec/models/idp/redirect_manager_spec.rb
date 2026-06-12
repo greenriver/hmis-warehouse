@@ -8,7 +8,7 @@
 
 require 'rails_helper'
 
-RSpec.describe RedirectManager do
+RSpec.describe Idp::RedirectManager do
   let(:session_id) { 'test-session-123' }
   let(:manager) { described_class.new(session_id) }
   let(:redirect_url) { '/admin/users' }

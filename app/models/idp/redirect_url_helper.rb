@@ -10,14 +10,14 @@
 #
 # These methods need access to `request`, `params`, and `session`, so they accept
 # them as parameters.
-module RedirectUrlHelper
+module Idp::RedirectUrlHelper
   module_function
 
   # Resolve the post-auth redirect URL, checking sources in priority order:
   # 1. `rd` query parameter (from OAuth2-proxy), 2. Rails cache (redirect:{session_id}),
   # 3. X-Auth-Request-Redirect header, 4. user.my_root_path. Only returns safe URLs.
   def redirect_url_after_auth(params:, request:, session_id:, user: nil)
-    redirect_manager = RedirectManager.new(session_id)
+    redirect_manager = Idp::RedirectManager.new(session_id)
     redirect_url = params[:rd].presence || redirect_manager.get || request.headers['X-Auth-Request-Redirect'].presence || user&.my_root_path
 
     redirect_url if redirect_url.present? && safe_redirect_url?(redirect_url, request)
@@ -61,7 +61,7 @@ module RedirectUrlHelper
     return nil if url.blank?
 
     # Store in cache as backup (in case OAuth2-proxy doesn't preserve the rd parameter)
-    redirect_manager = RedirectManager.new(session_id)
+    redirect_manager = Idp::RedirectManager.new(session_id)
     redirect_manager.store(url) if session_id.present?
 
     url

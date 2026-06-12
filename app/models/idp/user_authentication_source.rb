@@ -6,7 +6,10 @@
 
 # frozen_string_literal: true
 
-class UserAuthenticationSource < ApplicationRecord
+class Idp::UserAuthenticationSource < ApplicationRecord
+  # Namespaced under Idp for code organization, but the table predates the namespace.
+  self.table_name = 'user_authentication_sources'
+
   acts_as_paranoid
 
   belongs_to :user

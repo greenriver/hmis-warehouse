@@ -16,7 +16,7 @@
 # scope-iterating helpers (e.g. signed_in?) probe authenticate?(scope: :hmis_user) on
 # every registered mapping, and :hmis_user remains a Devise mapping until seam 6. A raise
 # here would turn a routine "is the hmis_user signed in? no" probe into a 500.
-class WardenProxy
+class Idp::WardenProxy
   def initialize(user, session: nil)
     @user = user
     @session = session

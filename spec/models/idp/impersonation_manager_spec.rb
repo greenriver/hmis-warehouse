@@ -8,7 +8,7 @@
 
 require 'rails_helper'
 
-RSpec.describe ImpersonationManager do
+RSpec.describe Idp::ImpersonationManager do
   let(:memory_store) { ActiveSupport::Cache.lookup_store(:memory_store) }
 
   before do

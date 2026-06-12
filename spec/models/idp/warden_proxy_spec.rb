@@ -8,7 +8,7 @@
 
 require 'rails_helper'
 
-RSpec.describe WardenProxy do
+RSpec.describe Idp::WardenProxy do
   let(:user) { double('User', id: 1) }
   let(:other_user) { double('User', id: 2) }
   let(:session) { { foo: 'bar' } }

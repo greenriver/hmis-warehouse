@@ -8,7 +8,7 @@
 
 require 'rails_helper'
 
-RSpec.describe UserAuthenticationSource, type: :model do
+RSpec.describe Idp::UserAuthenticationSource, type: :model do
   let(:user) { create(:user) }
 
   describe 'validations' do
