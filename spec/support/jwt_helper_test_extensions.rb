@@ -9,7 +9,7 @@
 # Plumbing for future JWT system/request test support.
 # Not yet wired up — will be used when spec/support/jwt_authentication_helper.rb is implemented.
 #
-# Prepended to JwtHelper only when running tests, keeping production code
+# Prepended to Idp::JwtHelper only when running tests, keeping production code
 # free of test-specific logic.
 # See also: config/initializers/test_jwt_middleware.rb (cookie-to-header transport)
 #
@@ -62,4 +62,4 @@ module JwtHelperTestExtensions
 end
 
 # Prepend test extensions when running any tests (controller specs, request specs, system tests)
-JwtHelper.prepend(JwtHelperTestExtensions) if Rails.env.test?
+Idp::JwtHelper.prepend(JwtHelperTestExtensions) if Rails.env.test?

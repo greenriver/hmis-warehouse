@@ -9,7 +9,7 @@
 module Idp
   # Stub. The no-op Idp::Service used when no connector is known; the real
   # implementation lands in L1.4 (idp-l1-service-layer). Present here only so
-  # IdpSupport's references resolve to a defined constant.
+  # Idp::Support's references resolve to a defined constant.
   class NullService
     def supports_user_management?
       raise NotImplementedError, 'Idp::NullService is a stub; implemented in L1.4 (service-layer)'

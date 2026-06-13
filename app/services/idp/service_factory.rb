@@ -9,7 +9,7 @@
 module Idp
   # Stub. Resolves a connector_id to an Idp::Service instance; the real
   # implementation lands in L1.4 (idp-l1-service-layer). Present here only so
-  # IdpSupport's references resolve to a defined constant. Contract for L1.4:
+  # Idp::Support's references resolve to a defined constant. Contract for L1.4:
   # for_connector must never raise for an unknown connector (return a
   # NullService-equivalent instead).
   class ServiceFactory

@@ -6,7 +6,7 @@
 
 # frozen_string_literal: true
 
-module IdpSupport
+module Idp::Support
   extend ActiveSupport::Concern
 
   def idp_supports_user_management?
