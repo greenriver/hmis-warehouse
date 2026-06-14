@@ -7,14 +7,68 @@
 # frozen_string_literal: true
 
 module Idp
-  # Stub. Resolves a connector_id to an Idp::Service instance; the real
-  # implementation lands in L1.4 (idp-l1-service-layer). Present here only so
-  # Idp::Support's references resolve to a defined constant. Contract for L1.4:
-  # for_connector must never raise for an unknown connector (return a
-  # NullService-equivalent instead).
+  # Registry mapping a connector_id to its Idp::Service implementation.
+  #
+  # for_connector is fail-soft: a blank connector returns a NullService, and a
+  # DB-backed Idp::ServiceConfig is preferred over a registered class so ops can
+  # manage credentials in the UI. Only a registered-but-unknown id raises.
   class ServiceFactory
-    def self.for_connector(_connector_id)
-      raise NotImplementedError, 'Idp::ServiceFactory is a stub; implemented in L1.4 (service-layer)'
+    class << self
+      # Registry mapping connector_id to service class.
+      def services
+        @services ||= {}
+      end
+
+      # Register an IDP service class for a connector_id.
+      # @raise [ArgumentError] unless service_class inherits from Idp::Service
+      def register_idp_service(connector_id, service_class)
+        raise ArgumentError, "#{service_class.name} must inherit from Idp::Service" unless service_class < Idp::Service
+
+        services[connector_id.to_s] = service_class
+      end
+
+      # Get an IDP service instance for the given connector_id. Prefers an active
+      # Idp::ServiceConfig record, then falls back to a registered service class.
+      # @raise [Idp::ServiceError] only for a registered-but-unknown connector_id
+      def for_connector(connector_id)
+        return Idp::NullService.new(connector_id) unless connector_id.present?
+
+        # Prefer DB-managed credentials. Guarded so the factory is usable before
+        # the idp_service_configs table exists (e.g. during its own migration).
+        config_record = Idp::ServiceConfig.active.find_by(connector_id: connector_id) if defined?(Idp::ServiceConfig)
+        return config_record.to_service if config_record
+
+        service_class = services[connector_id.to_s]
+        raise Idp::ServiceError.new("Unknown connector: #{connector_id}", operation: :for_connector) unless service_class
+
+        service_class.new
+      end
+
+      # @return [Array<String>] registered connector IDs
+      def supported_idps
+        services.keys
+      end
+
+      # @param feature [Symbol] :user_management or :profile_updates
+      def idp_supports_feature?(connector_id, feature)
+        service = for_connector(connector_id)
+        case feature
+        when :user_management
+          service.supports_user_management?
+        when :profile_updates
+          service.supports_profile_updates?
+        else
+          false
+        end
+      rescue Idp::ServiceError
+        false
+      end
+
+      # Window used to determine recent user activity (consumed by L4.1).
+      # Session timeout is handled by JWT expiration, not by this value.
+      def recent_activity_period
+        30.minutes
+      end
     end
   end
 end
