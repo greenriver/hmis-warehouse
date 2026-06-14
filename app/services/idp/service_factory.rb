@@ -14,7 +14,6 @@ module Idp
   # manage credentials in the UI. Only a registered-but-unknown id raises.
   class ServiceFactory
     class << self
-      # Registry mapping provider (IDP type) to service class.
       def services
         @services ||= {}
       end
@@ -52,8 +51,8 @@ module Idp
         services.keys
       end
 
-      # Window used to determine recent user activity (consumed by L4.1).
-      # Session timeout is handled by JWT expiration, not by this value.
+      # How recent a user's activity must be to count as "recently active". Note
+      # this is not a session timeout — those are handled by JWT expiration.
       def recent_activity_period
         30.minutes
       end

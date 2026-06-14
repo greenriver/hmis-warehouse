@@ -27,7 +27,6 @@ module Idp
       @token_expires_at = nil
     end
 
-    # Reads only the columns Keycloak needs, renaming them to its OIDC config keys.
     def self.from_config(config)
       new(config: {
         api_url: config.api_url,
@@ -95,7 +94,6 @@ module Idp
       end
     end
 
-    # Reactivate a user by enabling them in Keycloak.
     def reactivate_user(user_id:)
       response = make_request(
         :put,
@@ -181,7 +179,6 @@ module Idp
       }
     end
 
-    # OIDC RP-Initiated Logout URL for Keycloak.
     def logout_url(post_logout_redirect_uri:, client_id: nil)
       return post_logout_redirect_uri unless api_url.present?
 
@@ -191,9 +188,7 @@ module Idp
       "#{api_url}/realms/#{realm}/protocol/openid-connect/logout?#{params.to_query}"
     end
 
-    # Push a Keycloak partialImport payload via the Admin API and return the raw
-    # response. The seam used by Idp::Keycloak::UserImporter (migration tooling);
-    # remove once Devise account data has been fully migrated.
+    # Used by the migration tooling; remove once Devise account data has been migrated.
     def partial_import(import_data)
       make_request(:post, "/admin/realms/#{realm}/partialImport", body: import_data)
     end
@@ -238,7 +233,6 @@ module Idp
       @cached_token
     end
 
-    # Build an HTTP client for the given URI with TLS and timeouts applied.
     def build_http(uri)
       http = Net::HTTP.new(uri.host, uri.port)
       http.use_ssl = uri.scheme == 'https'
@@ -247,7 +241,6 @@ module Idp
       http
     end
 
-    # Fetch a new access token via client_credentials grant.
     def fetch_token
       uri = URI("#{api_url}/realms/#{realm}/protocol/openid-connect/token")
       http = build_http(uri)

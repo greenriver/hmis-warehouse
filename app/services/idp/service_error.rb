@@ -7,7 +7,6 @@
 # frozen_string_literal: true
 
 module Idp
-  # Custom error class for IDP service operations.
   class ServiceError < StandardError
     attr_reader :idp_name, :operation
 
