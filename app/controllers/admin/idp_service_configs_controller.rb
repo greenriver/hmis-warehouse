@@ -12,7 +12,7 @@ module Admin
     before_action :set_idp_service_config, only: [:edit, :update, :destroy, :test]
 
     def index
-      @idp_service_configs = idp_service_config_scope.order(:name)
+      @idp_service_configs = idp_service_config_scope.order(:name, :id)
     end
 
     def new
@@ -59,7 +59,7 @@ module Admin
     private
 
     def set_idp_service_config
-      @idp_service_config = idp_service_config_scope.find(params[:id].to_i)
+      @idp_service_config = idp_service_config_scope.find(params[:id])
     end
 
     def idp_service_config_params
@@ -77,7 +77,7 @@ module Admin
     end
 
     def idp_service_config_scope
-      Idp::ServiceConfig.order(:name)
+      Idp::ServiceConfig.all
     end
 
     def flash_interpolation_options

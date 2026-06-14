@@ -52,21 +52,6 @@ module Idp
         services.keys
       end
 
-      # @param feature [Symbol] :user_management or :profile_updates
-      def idp_supports_feature?(connector_id, feature)
-        service = for_connector(connector_id)
-        case feature
-        when :user_management
-          service.supports_user_management?
-        when :profile_updates
-          service.supports_profile_updates?
-        else
-          false
-        end
-      rescue Idp::ServiceError
-        false
-      end
-
       # Window used to determine recent user activity (consumed by L4.1).
       # Session timeout is handled by JWT expiration, not by this value.
       def recent_activity_period

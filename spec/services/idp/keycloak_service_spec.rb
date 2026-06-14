@@ -63,6 +63,29 @@ RSpec.describe Idp::KeycloakService, type: :model do
         expect(result[:success]).to be true
         expect(result[:connector_user_id]).to eq('new-user-id')
       end
+
+      it 'sends the Keycloak user payload with the expected field mapping' do
+        service.create_user(
+          email: user_email,
+          first_name: 'John',
+          last_name: 'Doe',
+        )
+
+        expect(
+          a_request(:post, "#{api_url}/admin/realms/#{realm}/users").
+            with(
+              headers: { 'Authorization' => 'Bearer test-token' },
+              body: {
+                username: user_email,
+                email: user_email,
+                firstName: 'John',
+                lastName: 'Doe',
+                enabled: true,
+                emailVerified: false,
+              },
+            ),
+        ).to have_been_made
+      end
     end
 
     context 'with API error response' do
@@ -95,13 +118,29 @@ RSpec.describe Idp::KeycloakService, type: :model do
           to_return(status: 204)
       end
 
-      it 'does not raise an error' do
-        expect do
-          service.update_user(
-            user_id: user_id,
-            attributes: { first_name: 'Jane' },
-          )
-        end.not_to raise_error
+      it 'returns true and sends the mapped attributes' do
+        result = service.update_user(
+          user_id: user_id,
+          attributes: { first_name: 'Jane' },
+        )
+
+        expect(result).to be true
+        expect(
+          a_request(:put, "#{api_url}/admin/realms/#{realm}/users/#{user_id}").
+            with(body: { firstName: 'Jane' }),
+        ).to have_been_made
+      end
+
+      it 'sets emailVerified to false when the email changes' do
+        service.update_user(
+          user_id: user_id,
+          attributes: { email: 'new@example.com' },
+        )
+
+        expect(
+          a_request(:put, "#{api_url}/admin/realms/#{realm}/users/#{user_id}").
+            with(body: { email: 'new@example.com', emailVerified: false }),
+        ).to have_been_made
       end
     end
 
@@ -187,10 +226,14 @@ RSpec.describe Idp::KeycloakService, type: :model do
           to_return(status: 204)
       end
 
-      it 'returns true' do
+      it 'returns true and enables the user' do
         result = service.reactivate_user(user_id: user_id)
 
         expect(result).to be true
+        expect(
+          a_request(:put, "#{api_url}/admin/realms/#{realm}/users/#{user_id}").
+            with(body: { enabled: true }),
+        ).to have_been_made
       end
     end
 
@@ -340,6 +383,31 @@ RSpec.describe Idp::KeycloakService, type: :model do
       expect do
         described_class.new(config: {})
       end.to raise_error(Idp::ServiceError, /api_url, realm, client_id, client_secret/)
+    end
+  end
+
+  describe '.from_config' do
+    # Mirrors the Idp::ServiceConfig reader surface that .from_config consumes
+    # (api_url, client_id, service_token, keycloak_realm) without needing the DB
+    # or encryption key. ServiceConfig's own columns are covered by its spec.
+    let(:persisted_config) do
+      Struct.new(:api_url, :client_id, :service_token, :keycloak_realm, keyword_init: true).new(
+        api_url: 'http://kc.from-config:8080',
+        client_id: 'config-client',
+        service_token: 'config-secret',
+        keycloak_realm: 'config-realm',
+      )
+    end
+
+    it 'translates persisted storage columns into the service config keys' do
+      service = described_class.from_config(persisted_config)
+
+      expect(service.config).to include(
+        api_url: 'http://kc.from-config:8080',
+        client_id: 'config-client',
+        client_secret: 'config-secret',
+        realm: 'config-realm',
+      )
     end
   end
 

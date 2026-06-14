@@ -27,7 +27,8 @@ RSpec.describe Idp::ServiceFactory, type: :model do
       end
 
       it 'uses database config over ENV variables' do
-        allow(ENV).to receive(:fetch).with('KEYCLOAK_API_URL', anything).
+        allow(ENV).to receive(:[]).and_call_original
+        allow(ENV).to receive(:[]).with('KEYCLOAK_API_URL').
           and_return('http://env.keycloak:9090')
 
         service = described_class.for_connector('keycloak')
@@ -116,42 +117,6 @@ RSpec.describe Idp::ServiceFactory, type: :model do
         service = described_class.for_connector('keycloak')
 
         expect(service).to be_a(Idp::KeycloakService)
-      end
-    end
-  end
-
-  describe '.idp_supports_feature?' do
-    context 'with Keycloak connector' do
-      before do
-        create(
-          :idp_service_config,
-          connector_id: 'keycloak',
-          api_url: 'http://test.keycloak:8080',
-          service_token: 'test-secret',
-          client_id: 'test-client',
-        )
-      end
-
-      it 'supports user_management feature' do
-        result = described_class.idp_supports_feature?('keycloak', :user_management)
-        expect(result).to be true
-      end
-
-      it 'supports profile_updates feature' do
-        result = described_class.idp_supports_feature?('keycloak', :profile_updates)
-        expect(result).to be true
-      end
-
-      it 'does not support unknown feature' do
-        result = described_class.idp_supports_feature?('keycloak', :unknown_feature)
-        expect(result).to be false
-      end
-    end
-
-    context 'with unknown connector' do
-      it 'returns false for any feature' do
-        result = described_class.idp_supports_feature?('unknown', :user_management)
-        expect(result).to be false
       end
     end
   end

@@ -111,7 +111,7 @@ module Idp
     end
 
     def supports_user_management?
-      api_url.present? && client_id.present? && client_secret.present?
+      true
     end
 
     def supports_profile_updates?
