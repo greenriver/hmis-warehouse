@@ -49,6 +49,7 @@ RSpec.describe Idp::ServiceFactory, type: :model do
           to receive(:default_config).
           and_return({
                        api_url: 'http://env.keycloak:8080',
+                       realm: 'env-realm',
                        client_id: 'env-client',
                        client_secret: 'env-secret',
                        org_id: 'env-org',
@@ -77,7 +78,7 @@ RSpec.describe Idp::ServiceFactory, type: :model do
 
     context 'with soft-deleted config' do
       let(:env_config) do
-        { api_url: 'http://env.keycloak:8080', client_id: 'env-client', client_secret: 'env-secret' }
+        { api_url: 'http://env.keycloak:8080', realm: 'env-realm', client_id: 'env-client', client_secret: 'env-secret' }
       end
 
       let!(:deleted_config) do
@@ -100,7 +101,7 @@ RSpec.describe Idp::ServiceFactory, type: :model do
 
     context 'with inactive config' do
       let(:env_config) do
-        { api_url: 'http://env.keycloak:8080', client_id: 'env-client', client_secret: 'env-secret' }
+        { api_url: 'http://env.keycloak:8080', realm: 'env-realm', client_id: 'env-client', client_secret: 'env-secret' }
       end
 
       let!(:inactive_config) do

@@ -27,7 +27,7 @@ module Idp
   #   service_token  → :client_secret  — encrypted service-account secret
   #
   # Provider-specific fields — namespaced; only apply for their connector:
-  #   keycloak_realm → :realm          — (Keycloak) realm; service defaults to 'openpath' if blank
+  #   keycloak_realm → :realm          — (Keycloak) realm; required — the service raises if blank
   #   okta_org_id    → :org_id         — (Okta) org identifier (optional)
   class ServiceConfig < GrdaWarehouseBase
     self.table_name = 'idp_service_configs'

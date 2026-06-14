@@ -318,22 +318,28 @@ RSpec.describe Idp::KeycloakService, type: :model do
       end.to raise_error(Idp::ServiceError, /api_url/)
     end
 
+    it 'raises on missing realm (no default)' do
+      expect do
+        described_class.new(config: { api_url: 'http://kc:8080', client_id: 'x', client_secret: 'y' })
+      end.to raise_error(Idp::ServiceError, /realm/)
+    end
+
     it 'raises on missing client_id' do
       expect do
-        described_class.new(config: { api_url: 'http://kc:8080', client_secret: 'y' })
+        described_class.new(config: { api_url: 'http://kc:8080', realm: 'r', client_secret: 'y' })
       end.to raise_error(Idp::ServiceError, /client_id/)
     end
 
     it 'raises on missing client_secret' do
       expect do
-        described_class.new(config: { api_url: 'http://kc:8080', client_id: 'x' })
+        described_class.new(config: { api_url: 'http://kc:8080', realm: 'r', client_id: 'x' })
       end.to raise_error(Idp::ServiceError, /client_secret/)
     end
 
     it 'lists all missing keys' do
       expect do
         described_class.new(config: {})
-      end.to raise_error(Idp::ServiceError, /api_url, client_id, client_secret/)
+      end.to raise_error(Idp::ServiceError, /api_url, realm, client_id, client_secret/)
     end
   end
 

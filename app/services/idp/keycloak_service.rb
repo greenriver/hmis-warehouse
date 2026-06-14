@@ -14,8 +14,9 @@ module Idp
   # Keycloak IDP service over the Admin REST API.
   #
   # Authenticates via OAuth2 client_credentials. Initialized with a config hash
-  # (from Idp::ServiceConfig) or falls back to ENV. Config keys: api_url, realm
-  # (default 'openpath'), client_id, client_secret.
+  # (from Idp::ServiceConfig) or falls back to ENV. Required config keys: api_url,
+  # realm, client_id, client_secret. There is no realm default — a blank realm
+  # raises, so it must be configured explicitly (DB config or KEYCLOAK_REALM).
   class KeycloakService < Service
     UPDATABLE_ATTRIBUTES = [:first_name, :last_name, :email].freeze
 
@@ -190,7 +191,7 @@ module Idp
     private
 
     def validate_config!
-      missing = [:api_url, :client_id, :client_secret].select { |key| config[key].blank? }
+      missing = [:api_url, :realm, :client_id, :client_secret].select { |key| config[key].blank? }
       return if missing.empty?
 
       raise ServiceError.new(
@@ -205,7 +206,7 @@ module Idp
     end
 
     def realm
-      config[:realm].presence || 'openpath'
+      config[:realm]
     end
 
     def client_id
@@ -326,7 +327,7 @@ module Idp
     def default_config
       {
         api_url: ENV['KEYCLOAK_API_URL'],
-        realm: ENV.fetch('KEYCLOAK_REALM', 'openpath'),
+        realm: ENV['KEYCLOAK_REALM'],
         client_id: ENV['KEYCLOAK_SERVICE_CLIENT_ID'],
         client_secret: ENV['KEYCLOAK_SERVICE_CLIENT_SECRET'],
       }

@@ -22,7 +22,7 @@ class DecoupleProviderFromConnectorIdOnIdpServiceConfigs < ActiveRecord::Migrati
       add_column :idp_service_configs, :provider, :string
 
       # Until now connector_id *was* the provider type, so it's the correct seed.
-      execute("UPDATE idp_service_configs SET provider = connector_id WHERE provider IS NULL")
+      execute('UPDATE idp_service_configs SET provider = connector_id WHERE provider IS NULL')
 
       change_column_null :idp_service_configs, :provider, false
     end
