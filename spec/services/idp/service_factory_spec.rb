@@ -15,7 +15,6 @@ RSpec.describe Idp::ServiceFactory, type: :model do
           connector_id: 'keycloak',
           api_url: 'http://test.keycloak:8080',
           service_token: 'test-token',
-          okta_org_id: 'test-org',
         )
       end
 
@@ -25,7 +24,6 @@ RSpec.describe Idp::ServiceFactory, type: :model do
         expect(service).to be_a(Idp::KeycloakService)
         expect(service.send(:api_url)).to eq('http://test.keycloak:8080')
         expect(service.send(:client_secret)).to eq('test-token')
-        expect(service.config[:org_id]).to eq('test-org')
       end
 
       it 'uses database config over ENV variables' do

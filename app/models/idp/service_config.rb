@@ -19,7 +19,9 @@ module Idp
   #                  (same provider, different connector_id). UserAuthenticationSource
   #                  joins back here on connector_id to reach the realm + credentials.
   #
-  # Column mapping (columns → config keys passed to the service).
+  # Column mapping (columns → config keys passed to the service). Each provider's
+  # service owns this translation in its .from_config; the reference below is the
+  # union across providers.
   #
   # Shared OIDC fields — meaningful for every provider:
   #   api_url        → :api_url        — base URL of the IDP (e.g. http://keycloak:8080)
@@ -29,7 +31,7 @@ module Idp
   # Provider-specific fields — namespaced; only apply for their connector:
   #   keycloak_realm → :realm          — (Keycloak) realm; required — the service raises if blank
   #   okta_org_id    → :org_id         — (Okta) org identifier (optional)
-  class ServiceConfig < GrdaWarehouseBase
+  class ServiceConfig < ApplicationRecord
     self.table_name = 'idp_service_configs'
     acts_as_paranoid
 
@@ -53,15 +55,7 @@ module Idp
 
     # @return [Idp::Service] service instance configured with stored credentials
     def to_service
-      config_hash = {
-        api_url: api_url,
-        client_secret: service_token,
-        org_id: okta_org_id,
-        client_id: client_id,
-        realm: keycloak_realm,
-      }
-
-      service_class.new(config: config_hash)
+      service_class.from_config(self)
     end
 
     private

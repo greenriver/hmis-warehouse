@@ -96,7 +96,6 @@ RSpec.describe Idp::ServiceConfig, type: :model do
         connector_id: 'keycloak',
         api_url: 'http://test.keycloak:8080',
         service_token: 'test-token',
-        okta_org_id: 'test-org',
         client_id: 'my-service-account',
         keycloak_realm: 'test-realm',
       )
@@ -107,7 +106,6 @@ RSpec.describe Idp::ServiceConfig, type: :model do
       expect(service.send(:client_secret)).to eq('test-token')
       expect(service.send(:client_id)).to eq('my-service-account')
       expect(service.send(:realm)).to eq('test-realm')
-      expect(service.config[:org_id]).to eq('test-org')
     end
 
     it 'raises ServiceError for an unregistered provider' do

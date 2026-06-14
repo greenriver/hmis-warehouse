@@ -27,6 +27,16 @@ module Idp
       @token_expires_at = nil
     end
 
+    # Reads only the columns Keycloak needs, renaming them to its OIDC config keys.
+    def self.from_config(config)
+      new(config: {
+        api_url: config.api_url,
+        client_id: config.client_id,
+        client_secret: config.service_token,
+        realm: config.keycloak_realm,
+      })
+    end
+
     # @return [Hash] { success: Boolean, connector_user_id: String|nil }
     def create_user(email:, first_name:, last_name:, phone: nil) # rubocop:disable Lint/UnusedMethodArgument
       user_data = {

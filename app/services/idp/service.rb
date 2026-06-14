@@ -17,6 +17,13 @@ module Idp
       @config = config || default_config
     end
 
+    # Build a service from a persisted Idp::ServiceConfig, translating its storage
+    # columns into this service's config keys. The seam Idp::ServiceConfig#to_service
+    # delegates to; every registered provider implements it.
+    def self.from_config(config) # rubocop:disable Lint/UnusedMethodArgument
+      raise NotImplementedError, "#{name} must implement .from_config"
+    end
+
     # @return [Hash] { success: Boolean, connector_user_id: String|nil }
     def create_user(email:, first_name:, last_name:, phone: nil)
       raise NotImplementedError, "#{self.class.name} must implement #create_user"
