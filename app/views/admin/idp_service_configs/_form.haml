@@ -4,13 +4,13 @@
       = f.error_notification
       .form-inputs
         = f.input :name, hint: 'Friendly name for this configuration'
-        = f.input :connector_id, collection: Idp::ServiceFactory.supported_idps, as: :select_two, prompt: 'Select IDP', hint: 'The IDP connector identifier'
-        = f.input :api_url, hint: 'Base URL for the IDP API (e.g., http://keycloak.dev.test:8080)'
-        = f.input :client_id, as: :string, input_html: { name: 'idp_service_config[additional_config][client_id]' }, hint: 'Service-account client ID (Keycloak)'
-        = f.input :realm, as: :string, input_html: { name: 'idp_service_config[additional_config][realm]' }, hint: 'IDP realm (Keycloak; defaults to "openpath" if blank)'
+        = f.input :provider, collection: Idp::ServiceFactory.supported_providers, as: :select_two, prompt: 'Select IDP type', hint: 'Which IDP integration to use'
+        = f.input :connector_id, as: :string, hint: 'Routing key from the auth proxy — must match the JWT connector_id (Dex connector name)'
+        = f.input :api_url, label: 'API URL', hint: 'Base URL for the IDP API'
+        = f.input :client_id, as: :string, hint: 'Service-account client ID (Keycloak)'
+        = f.input :keycloak_realm, as: :string, hint: 'Keycloak realm'
         = f.input :service_token, as: :password, input_html: { value: @idp_service_config.service_token }, hint: 'Service account token/password.'
-        = f.input :org_id, label: 'Organization ID', hint: 'Organization ID in the IDP (optional)'
-        = f.input :project_id, label: 'Project ID', hint: 'Project ID in the IDP (optional)'
+        = f.input :okta_org_id, label: 'Okta Org ID', hint: 'Org identifier in Okta (optional)'
         = f.input :active, label: 'Active', hint: 'Only active configurations will be used'
 
       .form_actions

@@ -64,14 +64,15 @@ module Admin
 
     def idp_service_config_params
       params.require(:idp_service_config).permit(
+        :provider,
         :connector_id,
         :name,
         :api_url,
         :service_token,
-        :org_id,
-        :project_id,
+        :client_id,
+        :keycloak_realm,
+        :okta_org_id,
         :active,
-        additional_config: {},
       )
     end
 

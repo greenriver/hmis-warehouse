@@ -14,22 +14,24 @@ module Idp
   # manage credentials in the UI. Only a registered-but-unknown id raises.
   class ServiceFactory
     class << self
-      # Registry mapping connector_id to service class.
+      # Registry mapping provider (IDP type) to service class.
       def services
         @services ||= {}
       end
 
-      # Register an IDP service class for a connector_id.
+      # Register an IDP service class for a provider (IDP type, e.g. 'keycloak').
       # @raise [ArgumentError] unless service_class inherits from Idp::Service
-      def register_idp_service(connector_id, service_class)
+      def register_idp_service(provider, service_class)
         raise ArgumentError, "#{service_class.name} must inherit from Idp::Service" unless service_class < Idp::Service
 
-        services[connector_id.to_s] = service_class
+        services[provider.to_s] = service_class
       end
 
-      # Get an IDP service instance for the given connector_id. Prefers an active
-      # Idp::ServiceConfig record, then falls back to a registered service class.
-      # @raise [Idp::ServiceError] only for a registered-but-unknown connector_id
+      # Get an IDP service instance for the given connector_id (the auth-proxy
+      # routing key). Prefers an active Idp::ServiceConfig record; with no config,
+      # falls back to a registered service class — which only resolves when the
+      # connector_id happens to equal a provider key (the single-realm/ENV path).
+      # @raise [Idp::ServiceError] when no config exists and connector_id isn't a known provider
       def for_connector(connector_id)
         return Idp::NullService.new(connector_id) unless connector_id.present?
 
@@ -38,14 +40,15 @@ module Idp
         config_record = Idp::ServiceConfig.active.find_by(connector_id: connector_id) if defined?(Idp::ServiceConfig)
         return config_record.to_service if config_record
 
+        # No managed config: treat connector_id as a provider key for ENV defaults.
         service_class = services[connector_id.to_s]
-        raise Idp::ServiceError.new("Unknown connector: #{connector_id}", operation: :for_connector) unless service_class
+        raise Idp::ServiceError.new("No IDP config for connector: #{connector_id}", operation: :for_connector) unless service_class
 
         service_class.new
       end
 
-      # @return [Array<String>] registered connector IDs
-      def supported_idps
+      # @return [Array<String>] registered provider keys (IDP types)
+      def supported_providers
         services.keys
       end
 

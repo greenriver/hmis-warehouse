@@ -10,16 +10,22 @@ RSpec.describe Idp::ServiceConfig, type: :model do
   describe 'validations' do
     subject { build(:idp_service_config) }
 
+    it { is_expected.to validate_presence_of(:provider) }
     it { is_expected.to validate_presence_of(:connector_id) }
     it { is_expected.to validate_presence_of(:name) }
     it { is_expected.to validate_presence_of(:api_url) }
     it { is_expected.to validate_presence_of(:service_token) }
 
-    describe 'connector_id validation' do
-      it 'rejects unknown connector_id' do
-        config = build(:idp_service_config, connector_id: 'unknown_provider')
+    describe 'provider validation' do
+      it 'rejects an unregistered provider' do
+        config = build(:idp_service_config, provider: 'unknown_provider')
         expect(config).not_to be_valid
-        expect(config.errors[:connector_id].first).to include('unknown provider')
+        expect(config.errors[:provider].first).to include('unknown provider')
+      end
+
+      it 'accepts a free-form connector_id (the auth-proxy routing key)' do
+        config = build(:idp_service_config, provider: 'keycloak', connector_id: 'keycloak-staff')
+        expect(config).to be_valid
       end
     end
 
@@ -72,14 +78,14 @@ RSpec.describe Idp::ServiceConfig, type: :model do
   end
 
   describe '#service_class' do
-    it 'returns KeycloakService class for keycloak connector' do
-      config = create(:idp_service_config, connector_id: 'keycloak')
+    it 'returns KeycloakService class for the keycloak provider' do
+      config = create(:idp_service_config, provider: 'keycloak')
       expect(config.service_class).to eq(Idp::KeycloakService)
     end
 
-    it 'raises ServiceError for unknown connector' do
-      config = build(:idp_service_config, connector_id: 'unknown_idp')
-      expect { config.service_class }.to raise_error(Idp::ServiceError, /Unknown connector/)
+    it 'raises ServiceError for an unregistered provider' do
+      config = build(:idp_service_config, provider: 'unknown_idp')
+      expect { config.service_class }.to raise_error(Idp::ServiceError, /Unknown provider/)
     end
   end
 
@@ -90,9 +96,9 @@ RSpec.describe Idp::ServiceConfig, type: :model do
         connector_id: 'keycloak',
         api_url: 'http://test.keycloak:8080',
         service_token: 'test-token',
-        org_id: 'test-org',
-        project_id: 'test-proj',
-        additional_config: { client_id: 'my-service-account', realm: 'test-realm' },
+        okta_org_id: 'test-org',
+        client_id: 'my-service-account',
+        keycloak_realm: 'test-realm',
       )
 
       service = config.to_service
@@ -102,22 +108,11 @@ RSpec.describe Idp::ServiceConfig, type: :model do
       expect(service.send(:client_id)).to eq('my-service-account')
       expect(service.send(:realm)).to eq('test-realm')
       expect(service.config[:org_id]).to eq('test-org')
-      expect(service.config[:project_id]).to eq('test-proj')
     end
 
-    it 'raises ServiceError for unknown connector' do
-      config = build(:idp_service_config, connector_id: 'unknown')
-      expect { config.to_service }.to raise_error(Idp::ServiceError, /Unknown connector/)
-    end
-
-    it 'merges additional_config into service config' do
-      config = create(
-        :idp_service_config,
-        additional_config: { client_id: 'test-client', realm: 'openpath', timeout: 30 },
-      )
-
-      service = config.to_service
-      expect(service.config[:timeout]).to eq(30)
+    it 'raises ServiceError for an unregistered provider' do
+      config = build(:idp_service_config, provider: 'unknown')
+      expect { config.to_service }.to raise_error(Idp::ServiceError, /Unknown provider/)
     end
   end
 

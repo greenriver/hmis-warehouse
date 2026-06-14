@@ -15,7 +15,7 @@ RSpec.describe Idp::ServiceFactory, type: :model do
           connector_id: 'keycloak',
           api_url: 'http://test.keycloak:8080',
           service_token: 'test-token',
-          org_id: 'test-org',
+          okta_org_id: 'test-org',
         )
       end
 
@@ -52,7 +52,6 @@ RSpec.describe Idp::ServiceFactory, type: :model do
                        client_id: 'env-client',
                        client_secret: 'env-secret',
                        org_id: 'env-org',
-                       project_id: 'env-proj',
                      })
 
         service = described_class.for_connector('keycloak')
@@ -65,7 +64,7 @@ RSpec.describe Idp::ServiceFactory, type: :model do
       it 'raises ServiceError' do
         expect do
           described_class.for_connector('unknown_idp')
-        end.to raise_error(Idp::ServiceError, /Unknown connector/)
+        end.to raise_error(Idp::ServiceError, /No IDP config for connector/)
       end
     end
 
@@ -130,7 +129,7 @@ RSpec.describe Idp::ServiceFactory, type: :model do
           connector_id: 'keycloak',
           api_url: 'http://test.keycloak:8080',
           service_token: 'test-secret',
-          additional_config: { client_id: 'test-client' },
+          client_id: 'test-client',
         )
       end
 

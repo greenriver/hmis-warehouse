@@ -3,6 +3,7 @@
     %thead
       %tr
         %th Name
+        %th Provider
         %th Connector ID
         %th API URL
         %th Active
@@ -12,6 +13,7 @@
         %tr
           %td
             = link_to config.name, edit_admin_idp_service_config_path(config)
+          %td= config.provider
           %td= config.connector_id
           %td= truncate(config.api_url, length: 50)
           %td= checkmark(config.active)
