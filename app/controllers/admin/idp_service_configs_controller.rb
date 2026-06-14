@@ -7,8 +7,8 @@
 # frozen_string_literal: true
 
 module Admin
-  class IdpServiceConfigsController < ApplicationController
-    before_action :require_can_manage_config!
+  class IdpServiceConfigsController < ApplicationControllerV2
+    authorize_with { current_user.can_manage_config? }
     before_action :set_idp_service_config, only: [:edit, :update, :destroy, :test]
 
     def index
