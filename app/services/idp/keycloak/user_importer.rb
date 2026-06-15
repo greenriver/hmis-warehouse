@@ -10,33 +10,23 @@ require 'json'
 
 module Idp
   module Keycloak
-    # TEMPORARY migration tooling.
+    # Temporary migration tooling: builds Keycloak partialImport payloads from
+    # legacy Devise/warehouse User records (password hashes, TOTP secrets, group
+    # membership) and pushes them through KeycloakService#partial_import. The one
+    # place that couples Keycloak provisioning to the warehouse User model.
     #
-    # Builds Keycloak partialImport payloads from the legacy Devise/warehouse
-    # User records (password hashes, TOTP secrets, group membership) and pushes
-    # them through Idp::KeycloakService#partial_import. This is the one place
-    # that couples Keycloak provisioning to the warehouse User model; the live
-    # KeycloakService deliberately knows nothing about it.
-    #
-    # Delete this class (and KeycloakService#partial_import) once all Devise
-    # account data has been migrated into Keycloak.
+    # Delete this class, and KeycloakService#partial_import, once all account
+    # data has been migrated.
     class UserImporter
-      # The set of warehouse users this tooling migrates: confirmed + active.
+      # Users to migrate: confirmed and active.
       #
-      # The `confirmed_at` filter is doing double duty here. The warehouse runs
-      # Devise :invitable AND :confirmable together, so *accepting* an invitation
-      # is what sets `confirmed_at` — an invited-but-not-accepted user has
-      # `confirmed_at: nil` and is excluded by `where.not(confirmed_at: nil)`.
-      # That is intentional: such users have no real credential to migrate and
-      # are provisioned the normal way (JWT first-login) after the flip. Don't
-      # drop this filter thinking it only means "real account".
+      # confirmed_at also gates out invited-but-not-accepted users: :invitable
+      # and :confirmable run together, so confirmed_at is only set once an
+      # invitation is accepted. Those users have no credential to carry and are
+      # provisioned on first JWT login instead — keep this filter.
       #
-      # `active: true` is the proven minimal set, not an access boundary —
-      # post-flip the IdP gates access, not `users.active`. No `enabled:` mapping.
-      #
-      # @param since [Time, nil] when present, a delta export — only users whose
-      #   `updated_at` is newer (so the migration can be re-run cheaply as the
-      #   last step before the flip). Pass nil for the full base population.
+      # @param since [Time, nil] limit to users changed since this time, for a
+      #   cheap re-run that catches edits made during migration; nil exports all.
       def self.migration_scope(since:)
         scope = User.where.not(confirmed_at: nil).where(active: true)
         scope = scope.where('users.updated_at > ?', since) if since
@@ -48,8 +38,8 @@ module Idp
         @service = service
       end
 
-      # Build user data for Keycloak partialImport, including password and TOTP
-      # credentials in Keycloak's credential format.
+      # Build one user's Keycloak partialImport entry, with password and TOTP
+      # credentials in Keycloak's format.
       def build_import_user_data(user)
         {
           username: user.email,
@@ -67,21 +57,22 @@ module Idp
       end
 
       # Bulk import users via the partialImport API.
-      # @param policy [String] conflict policy: 'SKIP', 'OVERWRITE', or 'FAIL'
-      def bulk_import_users(users, policy: 'SKIP')
-        import_data = {
-          ifResourceExists: policy,
-          users: users.map { |user| build_import_user_data(user) },
-        }
+      # @param policy [String] conflict policy: 'OVERWRITE', 'SKIP', or 'FAIL'.
+      #   Defaults to OVERWRITE at the caller so re-runs carry over edits.
+      def bulk_import_users(users, policy:)
+        response = service.partial_import(import_payload(users, policy: policy))
+        body = parse_body(response)
 
-        response = service.partial_import(import_data)
-
-        case response.code.to_i
-        when 200..299
+        if (200..299).cover?(response.code.to_i)
+          # Keycloak reports what it actually did; an attempted count would
+          # overstate re-runs where most users are skipped or unchanged.
           {
             success: true,
-            imported_count: users.size,
-            response: JSON.parse(response.body),
+            attempted: users.size,
+            added: body['added'],
+            skipped: body['skipped'],
+            overwritten: body['overwritten'],
+            response: body,
           }
         else
           {
@@ -99,11 +90,8 @@ module Idp
       end
 
       # Build the partialImport JSON structure without making an API call.
-      def export_users_to_import_format(users)
-        {
-          ifResourceExists: 'SKIP',
-          users: users.map { |user| build_import_user_data(user) },
-        }
+      def export_users_to_import_format(users, policy:)
+        import_payload(users, policy: policy)
       end
 
       # Import users from a JSON file via the partialImport API.
@@ -111,27 +99,27 @@ module Idp
         raise Idp::ServiceError, "File not found: #{file_path}" unless File.exist?(file_path)
 
         import_data = JSON.parse(File.read(file_path))
-
         response = service.partial_import(import_data)
 
-        case response.code.to_i
-        when 200..299
-          {
-            success: true,
-            response: JSON.parse(response.body),
-          }
-        else
-          raise Idp::ServiceError.new(
-            "Import failed (#{response.code}): #{error_message_from(response)}",
-            idp_name: service.idp_name,
-            operation: :import_from_file,
-          )
-        end
+        return { success: true, response: parse_body(response) } if (200..299).cover?(response.code.to_i)
+
+        raise Idp::ServiceError.new(
+          "Import failed (#{response.code}): #{error_message_from(response)}",
+          idp_name: service.idp_name,
+          operation: :import_from_file,
+        )
       end
 
       private
 
       attr_reader :service
+
+      def import_payload(users, policy:)
+        {
+          ifResourceExists: policy,
+          users: users.map { |user| build_import_user_data(user) },
+        }
+      end
 
       def keycloak_groups_for(user)
         return [] if user.system_user?
@@ -150,19 +138,23 @@ module Idp
         {
           type: 'password',
           secretData: { value: user.encrypted_password, salt: '' }.to_json,
-          credentialData: { hashIterations: 10, algorithm: 'bcrypt' }.to_json,
+          credentialData: { hashIterations: bcrypt_cost(user.encrypted_password), algorithm: 'bcrypt' }.to_json,
           temporary: false,
         }
       end
 
+      # bcrypt embeds its cost factor in the hash ($2a$<cost>$<salt+digest>), and
+      # Keycloak's credentialData must report that same cost. A hardcoded value
+      # would misreport credentials hashed at a different cost (Devise here uses
+      # 12) and prompt Keycloak to flag them for needless rehashing.
+      def bcrypt_cost(encrypted_password)
+        encrypted_password.split('$')[2].to_i
+      end
+
       # Build a Keycloak TOTP credential from the user's decrypted OTP secret.
-      #
-      # Migrates the TOTP secret only — NOT the user's `otp_backup_codes`.
-      # Keycloak's recovery-code format differs and there is no clean
-      # partialImport mapping, so backup codes are intentionally dropped. A user
-      # who relied on them at first post-cutover login must use their
-      # authenticator app, or have an admin reset 2FA in Keycloak. See
-      # docs/developer/keycloak-idp.md.
+      # The TOTP secret migrates but otp_backup_codes do not — Keycloak's
+      # recovery-code format has no clean partialImport mapping. Affected users
+      # fall back to their authenticator app or an admin 2FA reset.
       def build_otp_credential(user)
         return nil unless user.encrypted_otp_secret.present? && user.otp_required_for_login?
 
@@ -178,15 +170,21 @@ module Idp
         {
           type: 'otp',
           secretData: { value: otp_secret }.to_json,
-          # secretEncoding: 'BASE32' tells Keycloak to Base32-decode the stored value before
-          # using it as the HMAC key. Without this, Keycloak uses raw UTF-8 bytes of the string,
-          # which does not match what authenticator apps produce (they Base32-decode the secret
-          # from the QR code). Devise stores secrets as Base32 strings, so this is required.
+          # Devise stores the secret as a Base32 string; secretEncoding tells Keycloak to
+          # Base32-decode it before use as the HMAC key (otherwise it hashes the raw bytes).
           credentialData: {
             subType: 'totp', digits: 6, counter: 0, period: 30, algorithm: 'HmacSHA1',
             secretEncoding: 'BASE32'
           }.to_json,
         }
+      end
+
+      # partialImport returns a JSON body with added/skipped/overwritten counts;
+      # tolerate a missing or non-JSON body rather than raising on the 2xx path.
+      def parse_body(response)
+        JSON.parse(response.body)
+      rescue JSON::ParserError, TypeError
+        {}
       end
 
       def error_message_from(response)

@@ -1,55 +1,46 @@
 # frozen_string_literal: true
 
+require 'progress_bar'
+
 ###
-# Rake tasks for the one-time Devise -> Keycloak user migration.
+# One-time Devise -> Keycloak user migration. Temporary, human-run, console-only
+# tooling — run per Deployment before that Deployment switches to JWT auth.
+# Nothing here runs on boot or in a request. Delete alongside
+# Idp::Keycloak::UserImporter once all account data has been migrated.
 #
-# TEMPORARY ops tooling. Human-run, console-only, per Deployment, in the
-# migrate -> flip window. Nothing here runs on boot or in a request. Delete
-# alongside Idp::Keycloak::UserImporter once all account data has been migrated.
+# Drives Idp::Keycloak::UserImporter over Idp::KeycloakService#partial_import.
+# Scope, credential handling, and the otp_backup_codes omission are documented on
+# the importer and in docs/developer/keycloak-user-migration.md.
 #
-# Drives Idp::Keycloak::UserImporter, reaching Keycloak through
-# Idp::KeycloakService#partial_import (the partialImport Admin API).
-#
-# Migration scope (Idp::Keycloak::UserImporter.migration_scope): confirmed +
-# active users. The confirmed_at filter also excludes invited-but-not-accepted
-# users — they have no credential to carry and are provisioned on first JWT
-# login after the flip.
-#
-# NOT migrated: otp_backup_codes. Keycloak's recovery-code format differs and
-# there is no clean partialImport mapping, so backup codes are dropped. A user
-# who relied on them at first post-cutover login must use their authenticator
-# app, or have an admin reset 2FA in Keycloak. (See docs/developer/keycloak-idp.md.)
-#
-# Configuration:
-#   - Via database: Create Idp::ServiceConfig record with connector_id: 'keycloak'
-#   - Via ENV: Set KEYCLOAK_API_URL, KEYCLOAK_REALM, KEYCLOAK_SERVICE_CLIENT_ID, KEYCLOAK_SERVICE_CLIENT_SECRET
+# Configuration (either source):
+#   - DB:  an Idp::ServiceConfig record with connector_id: 'keycloak'
+#   - ENV: KEYCLOAK_API_URL, KEYCLOAK_REALM, KEYCLOAK_SERVICE_CLIENT_ID, KEYCLOAK_SERVICE_CLIENT_SECRET
 #
 # Usage:
-#   rails keycloak:migrate_users                    # Migrate all users in batches of 50 (SKIP existing)
-#   rails keycloak:migrate_users[100]               # Migrate first 100 users
-#   rails keycloak:migrate_users[,25]               # Migrate all users in batches of 25
-#   rails keycloak:migrate_users[,,OVERWRITE]       # Re-migrate all users, overwriting existing records
-#   rails keycloak:migrate_users[,,OVERWRITE,2026-06-14T00:00] # Delta re-run: only users changed since the timestamp
-#   rails keycloak:export_users                     # Export users to JSON file
-#   rails keycloak:export_users[100]                # Export first 100 users
-#   rails keycloak:export_users[,2026-06-14T00:00]  # Export only users changed since the timestamp
-#   rails keycloak:import_users[tmp/file.json]      # Import users from JSON file
-#   rails keycloak:import_single_user[test@example.com] # Import single user
-#   rails keycloak:test_connection                  # Test Keycloak connection
+#   rails keycloak:migrate_users                     # all users, batches of 50, OVERWRITE existing
+#   rails keycloak:migrate_users[100]                # first 100 users
+#   rails keycloak:migrate_users[,25]                # batches of 25
+#   rails keycloak:migrate_users[,,SKIP]             # leave users that already exist untouched
+#   rails keycloak:migrate_users[,,OVERWRITE,2026-06-14T00:00]  # re-import only users changed since
+#   rails keycloak:export_users[100,2026-06-14T00:00]  # write JSON instead of importing
+#   rails keycloak:import_users[tmp/file.json]       # import a previously exported file
+#   rails keycloak:import_single_user[a@example.com] # import one user (testing)
+#   rails keycloak:test_connection
 #
-# Pre-flip step: run a last migrate_users delta (pass a `since` timestamp, or
-# OVERWRITE) in a brief low-traffic window immediately before the flip, so the
-# migrate -> flip gap is minutes and any changes made during migration carry over.
-#
+# OVERWRITE is the default so a re-run carries over edits (e.g. a password the
+# user changed after the first pass) instead of silently skipping them. The
+# intended pre-flip step is a final pass — optionally with a `since` timestamp —
+# in a low-traffic window, keeping the switchover gap to minutes.
+###
 
-# @see docs/developer/keycloak-idp.md
+# @see docs/developer/keycloak-user-migration.md
 namespace :keycloak do
   # Build the importer, exiting unless a real Keycloak service is configured.
   def keycloak_importer
     service = Idp::ServiceFactory.for_connector('keycloak')
 
     unless service.is_a?(Idp::KeycloakService)
-      puts 'Error: Keycloak service not configured'
+      warn 'Error: Keycloak service not configured'
       exit 1
     end
 
@@ -60,14 +51,14 @@ namespace :keycloak do
   def keycloak_since(raw)
     return nil if raw.blank?
 
-    Time.zone.parse(raw) || (puts("Error: could not parse since: #{raw}") || exit(1))
+    Time.zone.parse(raw) || (warn("Error: could not parse since: #{raw}") || exit(1))
   end
 
   desc 'Migrate users from Devise to Keycloak in batches'
   task :migrate_users, [:limit, :batch_size, :policy, :since] => :environment do |_t, args|
     limit = args[:limit]&.to_i
     batch_size = args[:batch_size]&.to_i || 50
-    policy = args[:policy] || 'SKIP'
+    policy = args[:policy] || 'OVERWRITE'
     since = keycloak_since(args[:since])
 
     importer = keycloak_importer
@@ -76,33 +67,39 @@ namespace :keycloak do
     users_scope = users_scope.limit(limit) if limit
 
     total = users_scope.count
-    processed = 0
+    added = 0
+    overwritten = 0
+    skipped = 0
     failed = 0
+    batch_num = 0
 
-    puts "Migrating #{total} users to Keycloak in batches of #{batch_size} (policy: #{policy})..."
-    puts "Delta: only users changed since #{since}" if since
-    puts '-' * 80
+    bar = ProgressBar.new(total, :counter, :bar, :percentage, :rate, :eta)
+    bar.puts "Migrating #{total} users to Keycloak in batches of #{batch_size} (policy: #{policy})..."
+    bar.puts "Delta: only users changed since #{since}" if since
 
     users_scope.find_in_batches(batch_size: batch_size) do |batch|
-      batch_num = (processed / batch_size) + 1
-      print "[Batch #{batch_num}] Processing #{batch.size} users... "
-
+      batch_num += 1
       result = importer.bulk_import_users(batch, policy: policy)
 
       if result[:success]
-        processed += batch.size
-        puts "OK (#{processed}/#{total})"
+        added += result[:added].to_i
+        overwritten += result[:overwritten].to_i
+        skipped += result[:skipped].to_i
+        bar.puts "[Batch #{batch_num}] OK (added #{result[:added].to_i}, overwritten #{result[:overwritten].to_i}, skipped #{result[:skipped].to_i})"
       else
         failed += batch.size
-        puts "FAILED: #{result[:error]}"
+        bar.puts "[Batch #{batch_num}] FAILED: #{result[:error]}"
       end
+      bar.increment!(batch.size)
     end
 
-    puts '-' * 80
-    puts 'Migration complete!'
-    puts "  Total: #{total}"
-    puts "  Processed: #{processed}"
-    puts "  Failed: #{failed}"
+    bar.puts 'Migration complete!'
+    bar.puts "  In scope:    #{total}"
+    bar.puts "  Added:       #{added}"
+    bar.puts "  Overwritten: #{overwritten}"
+    bar.puts "  Skipped:     #{skipped}"
+    bar.puts "  Failed:      #{failed}"
+    exit 1 if failed.positive?
   end
 
   desc 'Export users from Devise to Keycloak partialImport format'
@@ -116,22 +113,26 @@ namespace :keycloak do
     users_scope = users_scope.limit(limit) if limit
     users = users_scope.to_a
 
-    puts "Exporting #{users.size} users..."
-    puts "Delta: only users changed since #{since}" if since
-    puts '-' * 80
+    bar = ProgressBar.new(2, :counter, :bar, :percentage)
+    bar.puts "Exporting #{users.size} users..."
+    bar.puts "Delta: only users changed since #{since}" if since
 
-    import_data = importer.export_users_to_import_format(users)
+    # OVERWRITE matches migrate_users; edit the file before importing to change it.
+    import_data = importer.export_users_to_import_format(users, policy: 'OVERWRITE')
+    bar.increment!
+
     output_file = 'tmp/keycloak_users_export.json'
     File.write(output_file, JSON.pretty_generate(import_data))
+    bar.increment!
 
-    puts 'Export complete!'
-    puts "  Total users: #{users.size}"
-    puts "  Output file: #{output_file}"
-    puts ''
-    puts 'Next steps:'
-    puts "  1. Review the exported file: #{output_file}"
-    puts "  2. Import users: rails keycloak:import_users[#{output_file}]"
-    puts "  3. Cleanup the tmp file: rm #{output_file}"
+    bar.puts 'Export complete!'
+    bar.puts "  Total users: #{users.size}"
+    bar.puts "  Output file: #{output_file}"
+    bar.puts ''
+    bar.puts 'Next steps:'
+    bar.puts "  1. Review the exported file: #{output_file}"
+    bar.puts "  2. Import users: rails keycloak:import_users[#{output_file}]"
+    bar.puts "  3. Cleanup the tmp file: rm #{output_file}"
   end
 
   desc 'Import users to Keycloak using partialImport API'
@@ -139,29 +140,24 @@ namespace :keycloak do
     file = args[:file] || 'tmp/keycloak_users_export.json'
 
     unless File.exist?(file)
-      puts "Error: File not found: #{file}"
+      warn "Error: File not found: #{file}"
       exit 1
     end
 
     importer = keycloak_importer
 
-    puts "Importing users from #{file}..."
-    puts '-' * 80
+    bar = ProgressBar.new(1, :counter, :bar, :percentage)
+    bar.puts "Importing users from #{file}..."
 
+    # import_from_file returns on success and raises Idp::ServiceError otherwise.
     result = importer.import_from_file(file)
+    bar.increment!
 
-    if result[:success]
-      puts 'Import successful!'
-      puts "Response: #{result[:response]}"
-    else
-      puts "Import failed: #{result[:error]}"
-      exit 1
-    end
-
-    puts '-' * 80
-    puts 'Import complete!'
+    bar.puts 'Import successful!'
+    bar.puts "Response: #{result[:response]}"
+    bar.puts 'Import complete!'
   rescue Idp::ServiceError => e
-    puts "Error: #{e.message}"
+    bar.puts "Error: #{e.message}"
     exit 1
   end
 
@@ -169,30 +165,30 @@ namespace :keycloak do
   task :import_single_user, [:email] => :environment do |_t, args|
     email = args[:email]
     unless email
-      puts 'Usage: rails keycloak:import_single_user[user@example.com]'
+      warn 'Usage: rails keycloak:import_single_user[user@example.com]'
       exit 1
     end
 
     user = User.find_by(email: email)
     unless user
-      puts "User not found: #{email}"
+      warn "User not found: #{email}"
       exit 1
     end
 
     importer = keycloak_importer
 
-    puts "Importing user: #{user.email}"
-    puts "  Name: #{user.first_name} #{user.last_name}"
-    puts "  Confirmed: #{user.confirmed_at.present?}"
-    puts '-' * 80
+    bar = ProgressBar.new(1, :counter, :bar, :percentage)
+    bar.puts "Importing user: #{user.email}"
+    bar.puts "  Name: #{user.first_name} #{user.last_name}"
+    bar.puts "  Confirmed: #{user.confirmed_at.present?}"
 
-    result = importer.bulk_import_users([user])
+    result = importer.bulk_import_users([user], policy: 'OVERWRITE')
+    bar.increment!
 
     if result[:success]
-      puts 'SUCCESS!'
-      puts 'User imported successfully!'
+      bar.puts 'SUCCESS! User imported successfully!'
     else
-      puts "FAILED: #{result[:error]}"
+      bar.puts "FAILED: #{result[:error]}"
       exit 1
     end
   end
@@ -202,25 +198,24 @@ namespace :keycloak do
     service = Idp::ServiceFactory.for_connector('keycloak')
 
     unless service.is_a?(Idp::KeycloakService)
-      puts 'Error: Keycloak service not configured'
+      warn 'Error: Keycloak service not configured'
       exit 1
     end
 
-    puts 'Testing Keycloak connection...'
-    puts "API URL: #{ENV['KEYCLOAK_API_URL']}"
-    puts '-' * 80
+    bar = ProgressBar.new(1, :counter, :bar, :percentage)
+    bar.puts 'Testing Keycloak connection...'
+    bar.puts "API URL: #{ENV['KEYCLOAK_API_URL']}"
 
     result = service.test_connection
+    bar.increment!
 
     if result[:success]
-      puts 'Connection successful!'
-      puts "Message: #{result[:message]}"
+      bar.puts 'Connection successful!'
+      bar.puts "Message: #{result[:message]}"
     else
-      puts 'Connection failed!'
-      puts "Message: #{result[:message]}"
+      bar.puts 'Connection failed!'
+      bar.puts "Message: #{result[:message]}"
       exit 1
     end
-
-    puts '-' * 80
   end
 end

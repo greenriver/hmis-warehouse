@@ -135,6 +135,14 @@ RSpec.describe Idp::Keycloak::UserImporter, type: :model do
       expect(result[:groups]).not_to include('/warehouse-users')
     end
 
+    it 'includes warehouse group for an ACL user who has warehouse UserGroup membership' do
+      acl_user = create(:acl_user)
+      acl_user.user_group_members.create!(user_group: create(:user_group))
+      result = importer.build_import_user_data(acl_user)
+
+      expect(result[:groups]).to include('/warehouse-users')
+    end
+
     it 'returns no groups for a system user' do
       system_user = User.setup_system_user
       result = importer.build_import_user_data(system_user)
@@ -154,44 +162,67 @@ RSpec.describe Idp::Keycloak::UserImporter, type: :model do
         user.update(encrypted_password: '$2a$12$test_hash_value')
       end
 
-      it 'includes hashed password as bcrypt credential' do
+      it 'includes hashed password as a non-temporary bcrypt credential' do
         result = importer.build_import_user_data(user)
 
         password_cred = result[:credentials].find { |c| c[:type] == 'password' }
         expect(password_cred).to be_present
+        # A migrated hash is final, not a one-time password Keycloak forces the
+        # user to reset.
+        expect(password_cred[:temporary]).to be false
+
         secret_data = JSON.parse(password_cred[:secretData])
         expect(secret_data['value']).to eq('$2a$12$test_hash_value')
+
         cred_data = JSON.parse(password_cred[:credentialData])
         expect(cred_data['algorithm']).to eq('bcrypt')
+        # Cost is read from the hash ($2a$12$...), not hardcoded, so Keycloak
+        # records the real work factor and does not force a rehash.
+        expect(cred_data['hashIterations']).to eq(12)
+      end
+
+      it 'reports the actual bcrypt cost when it differs from the common case' do
+        user.update(encrypted_password: '$2a$10$some_other_hash_value')
+        result = importer.build_import_user_data(user)
+
+        password_cred = result[:credentials].find { |c| c[:type] == 'password' }
+        cred_data = JSON.parse(password_cred[:credentialData])
+        expect(cred_data['hashIterations']).to eq(10)
       end
     end
 
     context 'with 2FA enabled' do
-      let(:otp_secret) { 'JBSWY3DPEHPK3PXP' }
+      # A real Base32 secret stored through devise-two-factor's encryption, so
+      # the importer must actually decrypt encrypted_otp_secret to recover it.
+      let(:real_otp_secret) { User.generate_otp_secret }
 
       before do
-        user.update(encrypted_otp_secret: 'encrypted_value', otp_required_for_login: true)
-        allow(user).to receive(:otp_secret).and_return(otp_secret)
+        user.update(otp_secret: real_otp_secret, otp_required_for_login: true)
+        # Drop the in-memory plaintext so the importer reads it back via a real
+        # decrypt from the DB column, not a cached value.
+        user.reload
       end
 
-      it 'includes OTP credential with correct type and format' do
+      it 'includes OTP credential with the real decrypted secret and correct format' do
         result = importer.build_import_user_data(user)
 
         otp_cred = result[:credentials].find { |c| c[:type] == 'otp' }
         expect(otp_cred).to be_present
         secret_data = JSON.parse(otp_cred[:secretData])
-        expect(secret_data['value']).to eq(otp_secret)
+        # Proves the encrypt -> DB -> decrypt round-trip yields the original
+        # Base32 secret Keycloak will Base32-decode; a broken decrypt path or a
+        # source change reading encrypted_otp_secret instead fails here.
+        expect(secret_data['value']).to eq(real_otp_secret)
         expect(secret_data.keys).to eq(['value'])
         cred_data = JSON.parse(otp_cred[:credentialData])
         expect(cred_data['subType']).to eq('totp')
         expect(cred_data['digits']).to eq(6)
         expect(cred_data['period']).to eq(30)
         expect(cred_data['algorithm']).to eq('HmacSHA1')
-        # secretEncoding: BASE32 tells Keycloak to Base32-decode the value before use as HMAC key
         expect(cred_data['secretEncoding']).to eq('BASE32')
       end
 
-      it 'does not migrate otp_backup_codes (intentionally dropped — see Task 4)' do
+      it 'does not migrate otp_backup_codes' do
         user.update(otp_backup_codes: ['code1', 'code2', 'code3'])
         result = importer.build_import_user_data(user)
 
@@ -232,12 +263,37 @@ RSpec.describe Idp::Keycloak::UserImporter, type: :model do
           )
       end
 
-      it 'returns success with imported count' do
-        result = importer.bulk_import_users(users)
+      it 'reports the counts Keycloak returned, not the attempted size' do
+        result = importer.bulk_import_users(users, policy: 'OVERWRITE')
 
         expect(result[:success]).to be true
-        expect(result[:imported_count]).to eq(3)
+        expect(result[:added]).to eq(3)
+        expect(result[:skipped]).to eq(0)
+        expect(result[:attempted]).to eq(3)
         expect(result[:response]).to be_a(Hash)
+      end
+
+      it 'sends every user and the conflict policy in the request body' do
+        importer.bulk_import_users(users, policy: 'OVERWRITE')
+
+        expect(WebMock).to(
+          have_requested(:post, "#{api_url}/admin/realms/#{realm}/partialImport").
+            with do |request|
+              payload = JSON.parse(request.body)
+              payload['ifResourceExists'] == 'OVERWRITE' &&
+                payload['users'].map { |u| u['username'] }.sort == users.map(&:email).sort
+            end,
+        )
+      end
+
+      it 'tolerates a non-JSON success body' do
+        stub_request(:post, "#{api_url}/admin/realms/#{realm}/partialImport").
+          to_return(status: 204, body: '')
+
+        result = importer.bulk_import_users(users, policy: 'OVERWRITE')
+
+        expect(result[:success]).to be true
+        expect(result[:response]).to eq({})
       end
     end
 
@@ -251,7 +307,7 @@ RSpec.describe Idp::Keycloak::UserImporter, type: :model do
       end
 
       it 'returns failure result with error message' do
-        result = importer.bulk_import_users(users)
+        result = importer.bulk_import_users(users, policy: 'OVERWRITE')
 
         expect(result[:success]).to be false
         expect(result[:error]).to include('500')
@@ -266,7 +322,7 @@ RSpec.describe Idp::Keycloak::UserImporter, type: :model do
       end
 
       it 'handles timeout gracefully' do
-        result = importer.bulk_import_users(users)
+        result = importer.bulk_import_users(users, policy: 'OVERWRITE')
 
         expect(result[:success]).to be false
         expect(result[:error]).to be_present
@@ -283,10 +339,10 @@ RSpec.describe Idp::Keycloak::UserImporter, type: :model do
       end
 
       it 'imports all users in single request' do
-        result = importer.bulk_import_users(large_batch)
+        result = importer.bulk_import_users(large_batch, policy: 'OVERWRITE')
 
         expect(result[:success]).to be true
-        expect(result[:imported_count]).to eq(100)
+        expect(result[:added]).to eq(100)
       end
     end
   end
@@ -295,32 +351,31 @@ RSpec.describe Idp::Keycloak::UserImporter, type: :model do
     let(:users) { create_list(:user, 3, confirmed_at: 1.day.ago) }
 
     it 'builds correct export structure without making API call' do
-      result = importer.export_users_to_import_format(users)
+      result = importer.export_users_to_import_format(users, policy: 'OVERWRITE')
 
-      expect(result).to include(
-        ifResourceExists: 'SKIP',
-        users: array_including(
-          hash_including(username: users.first.email),
-        ),
+      expect(result[:ifResourceExists]).to eq('OVERWRITE')
+      expect(result[:users].length).to eq(3)
+      expect(result[:users].map { |u| u[:username] }).to match_array(users.map(&:email))
+      expect(result[:users].first.keys).to include(
+        :username, :email, :firstName, :lastName, :enabled, :emailVerified, :groups, :credentials
       )
     end
 
     it 'does not make any HTTP requests' do
-      expect(WebMock).not_to have_requested(:post, /#{Regexp.escape(api_url)}/)
-      importer.export_users_to_import_format(users)
+      importer.export_users_to_import_format(users, policy: 'OVERWRITE')
       expect(WebMock).not_to have_requested(:post, /#{Regexp.escape(api_url)}/)
     end
 
     it 'handles single user' do
       user = create(:user, confirmed_at: 1.day.ago)
-      result = importer.export_users_to_import_format([user])
+      result = importer.export_users_to_import_format([user], policy: 'OVERWRITE')
 
       expect(result[:users].length).to eq(1)
       expect(result[:users].first[:username]).to eq(user.email)
     end
 
     it 'handles empty user list' do
-      result = importer.export_users_to_import_format([])
+      result = importer.export_users_to_import_format([], policy: 'OVERWRITE')
 
       expect(result[:users]).to be_empty
     end
@@ -351,11 +406,19 @@ RSpec.describe Idp::Keycloak::UserImporter, type: :model do
           to_return(status: 200, body: { added: 1, skipped: 0 }.to_json)
       end
 
-      it 'reads file and imports users' do
+      it 'posts the parsed file contents to Keycloak and returns its response' do
         result = importer.import_from_file(file_path)
 
         expect(result[:success]).to be true
-        expect(result[:response]).to be_a(Hash)
+        expect(result[:response]).to eq('added' => 1, 'skipped' => 0)
+        expect(WebMock).to(
+          have_requested(:post, "#{api_url}/admin/realms/#{realm}/partialImport").
+            with do |request|
+              payload = JSON.parse(request.body)
+              payload['ifResourceExists'] == 'SKIP' &&
+                payload['users'].map { |u| u['username'] } == ['test1@example.com']
+            end,
+        )
       end
     end
 

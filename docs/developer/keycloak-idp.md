@@ -67,20 +67,7 @@ Then log into the Keycloak admin console at `https://op-keycloak.dev.test` (`adm
   provides `KEYCLOAK_API_URL`, `KEYCLOAK_REALM`, and the `dex-connector` / `rails-service-account`
   client IDs and secrets.
 
-## User migration (`rails keycloak:*`)
+## Related
 
-`lib/tasks/keycloak.rake` seeds Keycloak from the legacy Devise/warehouse `User` records before a
-Deployment flips to JWT auth. It is **temporary, human-run, console-only** ops tooling — run by hand,
-per Deployment, in the migrate → flip window; never on boot or in a request. It drives
-`Idp::Keycloak::UserImporter` over `Idp::KeycloakService#partial_import`. Run `rails -T keycloak` for
-the full task list and the rake header for usage.
-
-- **Scope.** `Idp::Keycloak::UserImporter.migration_scope` migrates confirmed + active users. The
-  `confirmed_at` filter also excludes invited-but-not-accepted users (they have no credential to carry
-  and are provisioned on first JWT login after the flip).
-- **Delta re-run.** Both `migrate_users` and `export_users` accept a `since` timestamp so the last
-  pre-flip run only re-imports users changed during migration, keeping the migrate → flip gap to minutes.
-- **2FA backup codes are NOT migrated.** The importer carries the TOTP secret but drops
-  `otp_backup_codes` — Keycloak's recovery-code format differs and there is no clean `partialImport`
-  mapping. A user who relied on backup codes at first post-cutover login must use their authenticator
-  app, or have an admin reset 2FA in Keycloak.
+- [User migration (`rails keycloak:*`)](./keycloak-user-migration.md) — seeding Keycloak from legacy
+  Devise/warehouse accounts before a Deployment switches to JWT auth.
