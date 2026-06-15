@@ -19,7 +19,7 @@ module Idp
 
     # Build a service from a persisted Idp::ServiceConfig, translating its storage
     # columns into this service's config keys. Every registered provider implements it.
-    def self.from_config(config) # rubocop:disable Lint/UnusedMethodArgument
+    def self.from_config(config)
       raise NotImplementedError, "#{name} must implement .from_config"
     end
 
