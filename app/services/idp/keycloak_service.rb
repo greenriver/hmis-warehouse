@@ -29,11 +29,11 @@ module Idp
 
     def self.from_config(config)
       new(config: {
-        api_url: config.api_url,
-        client_id: config.client_id,
-        client_secret: config.service_token,
-        realm: config.keycloak_realm,
-      })
+            api_url: config.api_url,
+            client_id: config.client_id,
+            client_secret: config.service_token,
+            realm: config.keycloak_realm,
+          })
     end
 
     # @return [Hash] { success: Boolean, connector_user_id: String|nil }
@@ -224,11 +224,12 @@ module Idp
 
     # Return a valid access token, fetching a new one if expired or not yet obtained.
     def access_token
-      if @cached_token.nil? || Time.now >= @token_expires_at
+      now = Time.current
+      if @cached_token.nil? || Time.current >= @token_expires_at
         token_response = fetch_token
         @cached_token = token_response['access_token']
         expires_in = token_response['expires_in'].to_i
-        @token_expires_at = Time.now + expires_in - 30
+        @token_expires_at = now + expires_in - 30
       end
       @cached_token
     end

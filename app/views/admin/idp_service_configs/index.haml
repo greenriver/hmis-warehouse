@@ -9,4 +9,6 @@
         %span.icon-plus
         Add IDP Service Config
 
+  = render 'description'
+
   = render_paginated_list(scope: @idp_service_configs, item_name: 'IDP service config', list_partial: 'list')

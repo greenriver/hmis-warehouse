@@ -61,10 +61,15 @@ RSpec.describe Idp::ServiceFactory, type: :model do
     end
 
     context 'with unknown connector' do
-      it 'raises ServiceError' do
-        expect do
-          described_class.for_connector('unknown_idp')
-        end.to raise_error(Idp::ServiceError, /No IDP config for connector/)
+      # Fail-soft: a valid JWT from a connector with no config still authenticates
+      # (UserProvisioner never calls this), so capability checks must degrade to a
+      # NullService rather than raising and crashing the request.
+      it 'returns a NullService carrying the connector_id, without raising' do
+        service = described_class.for_connector('unknown_idp')
+
+        expect(service).to be_a(Idp::NullService)
+        expect(service.connector_id).to eq('unknown_idp')
+        expect(service.supports_user_management?).to be(false)
       end
     end
 

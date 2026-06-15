@@ -8,7 +8,7 @@
 
 module Idp
   # Null object for IDPs that only authenticate and expose no manageable admin
-  # API (Okta) or for an unknown/blank connector. All management operations
+  # API or for an unknown/blank connector. All management operations
   # raise; all capability predicates are false.
   class NullService < Service
     attr_reader :connector_id
@@ -36,18 +36,6 @@ module Idp
 
     def idp_name
       connector_id&.humanize || 'Unknown IDP'
-    end
-
-    def supports_user_management?
-      false
-    end
-
-    def supports_profile_updates?
-      false
-    end
-
-    def account_console_url
-      nil
     end
   end
 end

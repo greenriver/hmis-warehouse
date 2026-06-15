@@ -30,7 +30,12 @@ module Idp
       # routing key). Prefers an active Idp::ServiceConfig record; with no config,
       # falls back to a registered service class — which only resolves when the
       # connector_id happens to equal a provider key (the single-realm/ENV path).
-      # @raise [Idp::ServiceError] when no config exists and connector_id isn't a known provider
+      #
+      # Fail-soft: an unknown connector returns a NullService rather than raising.
+      # Authentication never consults this method (UserProvisioner works off the
+      # JWT alone), so a valid token from a connector with no config must still
+      # degrade to "no management" on capability checks instead of crashing the
+      # request — see Idp::Support#idp_service.
       def for_connector(connector_id)
         return Idp::NullService.new(connector_id) unless connector_id.present?
 
@@ -41,9 +46,10 @@ module Idp
 
         # No managed config: treat connector_id as a provider key for ENV defaults.
         service_class = services[connector_id.to_s]
-        raise Idp::ServiceError.new("No IDP config for connector: #{connector_id}", operation: :for_connector) unless service_class
+        return service_class.new if service_class
 
-        service_class.new
+        # Unknown connector: authenticated but unconfigured. Degrade gracefully.
+        Idp::NullService.new(connector_id)
       end
 
       # @return [Array<String>] registered provider keys (IDP types)

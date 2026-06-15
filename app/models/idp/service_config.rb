@@ -36,9 +36,10 @@ module Idp
 
     # @return [Class] the service class for this provider (e.g. Idp::KeycloakService)
     def service_class
-      Idp::ServiceFactory.services[provider.to_s] || raise(
-        Idp::ServiceError.new("Unknown provider: #{provider}", operation: :service_class),
-      )
+      klass = Idp::ServiceFactory.services[provider.to_s]
+      raise(Idp::ServiceError.new("Unknown provider: #{provider}", operation: :service_class)) unless klass
+
+      klass
     end
 
     # @return [Idp::Service] service instance configured with stored credentials
