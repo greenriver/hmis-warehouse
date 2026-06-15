@@ -1133,6 +1133,47 @@ ALTER SEQUENCE public.hmis_user_groups_id_seq OWNED BY public.hmis_user_groups.i
 
 
 --
+-- Name: idp_service_configs; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.idp_service_configs (
+    id bigint NOT NULL,
+    provider character varying NOT NULL,
+    connector_id character varying NOT NULL,
+    name character varying NOT NULL,
+    api_url character varying NOT NULL,
+    encrypted_service_token character varying NOT NULL,
+    encrypted_service_token_iv character varying,
+    client_id character varying,
+    keycloak_realm character varying,
+    okta_org_id character varying,
+    active boolean DEFAULT true NOT NULL,
+    deleted_at timestamp(6) without time zone,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: idp_service_configs_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.idp_service_configs_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: idp_service_configs_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.idp_service_configs_id_seq OWNED BY public.idp_service_configs.id;
+
+
+--
 -- Name: imports; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -2306,6 +2347,40 @@ ALTER SEQUENCE public.uploads_id_seq OWNED BY public.uploads.id;
 
 
 --
+-- Name: user_authentication_sources; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.user_authentication_sources (
+    id bigint NOT NULL,
+    user_id bigint NOT NULL,
+    connector_id character varying NOT NULL,
+    connector_user_id character varying NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp without time zone
+);
+
+
+--
+-- Name: user_authentication_sources_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.user_authentication_sources_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: user_authentication_sources_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.user_authentication_sources_id_seq OWNED BY public.user_authentication_sources.id;
+
+
+--
 -- Name: user_group_members; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -2482,7 +2557,8 @@ CREATE TABLE public.users (
     talent_lms_email character varying,
     training_courses jsonb,
     custom_session_invalidator character varying,
-    theme character varying DEFAULT 'legacy'::character varying
+    theme character varying DEFAULT 'legacy'::character varying,
+    last_connector_id character varying
 );
 
 
@@ -2757,6 +2833,13 @@ ALTER TABLE ONLY public.hmis_user_groups ALTER COLUMN id SET DEFAULT nextval('pu
 
 
 --
+-- Name: idp_service_configs id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.idp_service_configs ALTER COLUMN id SET DEFAULT nextval('public.idp_service_configs_id_seq'::regclass);
+
+
+--
 -- Name: imports id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -2943,6 +3026,13 @@ ALTER TABLE ONLY public.unique_names ALTER COLUMN id SET DEFAULT nextval('public
 --
 
 ALTER TABLE ONLY public.uploads ALTER COLUMN id SET DEFAULT nextval('public.uploads_id_seq'::regclass);
+
+
+--
+-- Name: user_authentication_sources id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.user_authentication_sources ALTER COLUMN id SET DEFAULT nextval('public.user_authentication_sources_id_seq'::regclass);
 
 
 --
@@ -3188,6 +3278,14 @@ ALTER TABLE ONLY public.hmis_user_groups
 
 
 --
+-- Name: idp_service_configs idp_service_configs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.idp_service_configs
+    ADD CONSTRAINT idp_service_configs_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: imports imports_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3412,6 +3510,14 @@ ALTER TABLE ONLY public.uploads
 
 
 --
+-- Name: user_authentication_sources user_authentication_sources_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.user_authentication_sources
+    ADD CONSTRAINT user_authentication_sources_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: user_group_members user_group_members_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3471,6 +3577,13 @@ CREATE INDEX delayed_jobs_priority ON public.delayed_jobs USING btree (priority,
 --
 
 CREATE UNIQUE INDEX idx_oauth_on_provider_and_uid ON public.oauth_identities USING btree (provider, uid);
+
+
+--
+-- Name: idx_on_connector_user_id_connector_id_2c69cda92c; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX idx_on_connector_user_id_connector_id_2c69cda92c ON public.user_authentication_sources USING btree (connector_user_id, connector_id) WHERE (deleted_at IS NULL);
 
 
 --
@@ -3754,6 +3867,13 @@ CREATE INDEX index_hmis_user_group_members_on_user_id ON public.hmis_user_group_
 
 
 --
+-- Name: index_idp_service_configs_on_connector_active_deleted; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_idp_service_configs_on_connector_active_deleted ON public.idp_service_configs USING btree (connector_id, active, deleted_at) WHERE ((active = true) AND (deleted_at IS NULL));
+
+
+--
 -- Name: index_imports_on_deleted_at; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -4006,6 +4126,13 @@ CREATE INDEX index_uploads_on_deleted_at ON public.uploads USING btree (deleted_
 
 
 --
+-- Name: index_user_authentication_sources_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_user_authentication_sources_on_user_id ON public.user_authentication_sources USING btree (user_id);
+
+
+--
 -- Name: index_user_group_members_on_user_group_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -4234,11 +4361,15 @@ ALTER TABLE ONLY public.oauth_access_tokens
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260614130000'),
+('20260611120000'),
 ('20260520213800'),
 ('20260207120000'),
 ('20251215205826'),
 ('20251120143000'),
 ('20251106020333'),
+('20251102194520'),
+('20251102033229'),
 ('20251016194806'),
 ('20251001174258'),
 ('20250918155525'),

@@ -76,6 +76,37 @@ RSpec.describe GrdaWarehouse::Tasks::GenerateClientRoiAuthorizationsTask, type: 
         end
       end
     end
+
+    context 'when client loses roi status and has a consent file' do
+      let!(:client_losing_roi) { destination_clients.last }
+
+      before do
+        allow(task).to receive(:roi_status) do |client|
+          client.id == client_losing_roi.id ? nil : 'full_status'
+        end
+        create(:client_file_expanded_consent, client: client_losing_roi)
+      end
+
+      it 'clears consent fields for client that lost ROI status' do
+        expect { task.perform(batch_size: batch_size) }.
+          to change { client_losing_roi.reload.consent_form_id }.to(nil)
+      end
+    end
+
+    context 'when a client has an expired ROI auth record' do
+      let!(:client_with_expired_roi) { create(:hud_client, consent_form_signed_on: 2.years.ago) }
+
+      before do
+        allow(task).to receive(:roi_status).and_return(GrdaWarehouse::ClientRoiAuthorization::FULL_STATUS)
+        allow(task).to receive(:roi_expiry_date).and_return(1.year.ago.to_date)
+        create(:client_file_expanded_consent, client: client_with_expired_roi)
+      end
+
+      it 'clears consent fields for the expired client' do
+        expect { task.perform(batch_size: batch_size) }.
+          to change { client_with_expired_roi.reload.consent_form_id }.to(nil)
+      end
+    end
   end
 
   describe '#process_client' do

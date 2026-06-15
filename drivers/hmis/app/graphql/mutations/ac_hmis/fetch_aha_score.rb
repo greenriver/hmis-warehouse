@@ -35,10 +35,18 @@ module Mutations
 
       aha = HmisExternalApis::AcHmis::Aha.new
       begin
-        result = aha.fetch_score(client, lookup_catalyst: lookup_catalyst, lookup_reason: lookup_reason)
+        results = aha.fetch_score(
+          client,
+          lookup_catalyst: lookup_catalyst,
+          lookup_reason: lookup_reason,
+          requested_generators: [:aha],
+        )
+        result = results[:aha]
       rescue HmisExternalApis::AcHmis::Aha::NoMciUniqueIdError => _e
         return { score: -1, aha_failed_reason: 'NO_MCI_UNIQUE_ID' }
       end
+
+      raise HmisExternalApis::AcHmis::Aha::Error, 'Response does not contain AHA score' unless result
 
       {
         score: result.score,
