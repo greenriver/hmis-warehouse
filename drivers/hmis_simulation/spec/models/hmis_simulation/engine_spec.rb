@@ -815,8 +815,6 @@ RSpec.describe HmisSimulation::Engine do
             lifecycle_enrollment,
             run_date,
             reason: 'disengagement',
-            data_source: engine.send(:data_source),
-            user_id: engine.send(:current_user_id),
           )
         end.not_to raise_error
 
