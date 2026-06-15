@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'dentaku'
+require_relative 'null_safe_order_comparators'
 
 module Hmis::Ce::Match::Expression
   module CalculatorFactory
