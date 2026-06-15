@@ -65,12 +65,15 @@ Five `hmis_simulation_*` tables track simulation progress so the engine can resu
 `HmisSimulation::Engine#run(date:)` processes one calendar day per call, in this order:
 
 1. Spawn new clients (looped over all primary tracks)
-2. Primary exits and entries (transitions, gap between programs)
-3. Periodic CLS records (SO: every ~30 days; CE: every ~90 days)
-4. Annual assessment collection (IncomeBenefits + EmploymentEducation with jitter + miss rate)
-5. Concurrent enrollment tick (looped over all concurrent tracks)
-6. Lifecycle enrollment tick (CE trigger, close conditions, mid-enrollment events)
-7. Write `RunLog`
+2. Primary exits and entries (transitions, gap between programs), plus NBN bed nights for open ES NBN enrollments
+3. Housing move-in — set `MoveInDate` on open PH enrollments whose configured delay has elapsed (see below)
+4. Periodic CLS records (SO: every ~30 days; CE: every ~90 days)
+5. Annual assessment collection (IncomeBenefits + EmploymentEducation with jitter + miss rate)
+6. Concurrent enrollment tick (looped over all concurrent tracks)
+7. Lifecycle enrollment tick (CE trigger, close conditions, mid-enrollment events)
+8. Write `RunLog`
+
+`MoveInDate` is **not** set at enrollment entry. It is deferred to step 3 so that some PH clients exit without ever being housed (they left before move-in), which mirrors real HMIS data. The roll is stable per enrollment (seeded by `EnrollmentID`), so a client's move-in date is determined at the first tick after entry and never changes. Configured under a primary track's `enrollment_config.ph_move_in`: `probability` (share of clients who ever receive a `MoveInDate`) and `delay_days` (distribution of days from `EntryDate` to `MoveInDate`).
 
 Each daily run is idempotent — re-running the same date is a no-op.
 
@@ -159,15 +162,17 @@ bundle exec rake driver:hmis_simulation:run_all
 
 ### Warehouse sync
 
-After all simulation days complete, `RunnerJob` runs the warehouse pipeline so simulated clients appear in reports:
+After all simulation days complete, `RunnerJob` runs `HmisSimulation::WarehouseSyncer` so simulated clients appear in reports. The first three steps run **synchronously**; the last two are **deferred** to a background `HmisSimulation::RefreshWarehouseViewsJob` so the rake task / job returns promptly — data appears in reports once that job completes (eventual consistency).
 
-| Step | What it does |
-|---|---|
-| `GrdaWarehouse::Tasks::IdentifyDuplicates.run!` | Creates `GrdaWarehouse::WarehouseClient` and destination `GrdaWarehouse::Hud::Client` records for each simulated source client |
-| `GrdaWarehouse::Tasks::IdentifyDuplicates.match_existing!` | Links any orphaned source clients to their destination |
-| `GrdaWarehouse::Tasks::ServiceHistory::Enrollment.batch_process_unprocessed!` | Builds `ServiceHistoryEnrollment` and `ServiceHistoryService` rows that warehouse reports read |
-| `GrdaWarehouse::ServiceHistoryServiceMaterialized.refresh!` | Updates the materialized view used by client search and most report queries |
-| `GrdaWarehouse::WarehouseClientsProcessed.update_cached_counts` | Updates dashboard summary counts |
+| Step | What it does | When |
+|---|---|---|
+| `GrdaWarehouse::Tasks::IdentifyDuplicates.run!` | Creates `GrdaWarehouse::WarehouseClient` and destination `GrdaWarehouse::Hud::Client` records for each simulated source client | Synchronous |
+| `GrdaWarehouse::Tasks::IdentifyDuplicates.match_existing!` | Links any orphaned source clients to their destination | Synchronous |
+| `GrdaWarehouse::Tasks::ServiceHistory::Enrollment.batch_process_unprocessed!` | Builds `ServiceHistoryEnrollment` and `ServiceHistoryService` rows that warehouse reports read | Synchronous |
+| `GrdaWarehouse::ServiceHistoryServiceMaterialized.refresh!` | Updates the materialized view used by client search and most report queries | Deferred (`RefreshWarehouseViewsJob`) |
+| `GrdaWarehouse::WarehouseClientsProcessed.update_cached_counts(client_ids:)` | Updates cached counts, scoped to the affected destination clients | Deferred (`RefreshWarehouseViewsJob`) |
+
+`IdentifyDuplicates` and `batch_process_unprocessed!` are system-wide (they process all unlinked clients / unprocessed enrollments, not just the simulation data source); the deferred view refresh is scoped to the simulation's destination clients. The whole sync is skipped in the test environment.
 
 Steps intentionally omitted for performance: `ProjectCleanup`, `ClientCleanup`, `SanityCheckServiceHistory`, `EarliestResidentialService`, and `ReportingSetupJob`. These will all run on the next nightly run.
 
@@ -185,6 +190,8 @@ The simulation generates a complete set of HUD 2026 HMIS records for each projec
 | `CeParticipation` | CE (type 14) | Bootstrap |
 | `ProjectCoC.Zip`, `.GeographyType` | All | Bootstrap |
 | `Inventory.ESBedType`, sub-bed counts | Residential (0,1,2,3,8,9,10,13) | Bootstrap |
+| `Service` (bed night) | ES NBN (type 1) | Daily, per open enrollment |
+| `MoveInDate` | PH (3,9,10,13) | Deferred after entry (see Architecture → Engine) |
 | `LivingSituation` + full 3.917 suite | All | Enrollment entry |
 | `DateOfEngagement` | SO (type 4) | Enrollment entry |
 | `ReferralSource` | All | Enrollment entry |
@@ -215,7 +222,7 @@ The simulation generates a complete set of HUD 2026 HMIS records for each projec
 
 ### Data quality and deliberate violations
 
-`data_quality.record_miss_rate` (default `0.0025`) introduces a 0.25% chance that any required per-enrollment record is skipped. This simulates real-world gaps where a staff member forgets to complete an assessment, or a system import drops a record. The same seeded RNG is used for each record slot, so a given enrollment always produces the same miss result for a given simulation seed.
+`data_quality.record_miss_rate` (default `0.0`; the sample config sets `0.0025`) introduces a small chance that any required per-enrollment record is skipped. This simulates real-world gaps where a staff member forgets to complete an assessment, or a system import drops a record. The same seeded RNG is used for each record slot, so a given enrollment always produces the same miss result for a given simulation seed.
 
 Field-level data quality (missing DOB, approximate DOB, missing SSN, missing name) is controlled separately by the existing `missing_dob_rate`, `approximate_dob_rate`, `missing_ssn_rate`, and `missing_name_rate` keys.
 
@@ -274,7 +281,7 @@ The full annotated config with all options is in `drivers/hmis_simulation/config
 | `household_templates` | Demographic distributions for adult-only, adult+child, and child-only households. |
 | `populations` | Named stages in the housing journey; `entry_point` and `exit_point` are relative weights. Each population may have a `prior_living_situation` distribution (see below). |
 | `transitions` | How clients move between populations; each has a `timing` distribution, optional `gap_before_entry`, and `exit_destinations`. |
-| `enrollment_config` | Disability probabilities, income sources, health/DV rates, annual collection jitter. |
+| `enrollment_config` | Disability probabilities, income sources, health/DV rates, annual collection jitter, and `ph_move_in` (`probability` + `delay_days`) controlling deferred PH move-in dates. |
 | `data_quality` | Per-track override; deep-merged with the top-level `data_quality`. |
 
 #### Population `prior_living_situation`

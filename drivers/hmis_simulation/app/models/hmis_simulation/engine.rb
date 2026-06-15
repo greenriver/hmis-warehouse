@@ -13,12 +13,13 @@ module HmisSimulation
   #
   # Each call to #run(date:) processes exactly one simulated day:
   #   1. Spawn new clients (looped over all primary tracks)
-  #   2. Process primary enrollment exits and entries (per primary track)
-  #   3. Periodic CLS records (SO: every ~30 days; CE: every ~90 days)
-  #   4. Annual record collection (IncomeBenefits, per client's track config)
-  #   5. Concurrent enrollment tick (looped over all concurrent tracks)
-  #   6. Lifecycle enrollment tick (looped over all lifecycle tracks)
-  #   7. Write RunLog
+  #   2. Process primary enrollment exits and entries (per primary track), plus NBN bed nights
+  #   3. Housing move-in (defer MoveInDate onto open PH enrollments whose delay has elapsed)
+  #   4. Periodic CLS records (SO: every ~30 days; CE: every ~90 days)
+  #   5. Annual record collection (IncomeBenefits + EmploymentEducation, per client's track config)
+  #   6. Concurrent enrollment tick (looped over all concurrent tracks)
+  #   7. Lifecycle enrollment tick (looped over all lifecycle tracks)
+  #   8. Write RunLog
   #
   # Idempotent: re-running the same date is a no-op (detected via RunLog).
   # Recoverable: a previously failed date's RunLog is overwritten on retry.
