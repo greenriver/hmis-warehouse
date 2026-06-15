@@ -97,7 +97,7 @@ module Clients
       else
         not_authorized!
       end
-      @client.invalidate_consent! if attrs[:consent_revoked_at].present? && @client.consent_form_id == @file.id
+      @client.invalidate_consent!(hr_status: GrdaWarehouse::Config.active_consent_class.revoked_consent_string) if attrs[:consent_revoked_at].present? && @client.consent_form_id == @file.id
       # Remove any view caches for this client since permissions may have changed
       @client.clear_view_cache
 

@@ -264,6 +264,47 @@ RSpec.describe HopwaCaper::Generators::Fy2026::Sheets::StrmuSheet, type: :model 
     end
   end
 
+  context 'with a STRMU service that has no fa_amount' do
+    let!(:enrollment) do
+      create_hiv_positive_enrollment(
+        client: create(:hud_client, data_source: data_source),
+        project: project,
+        entry_date: report_start_date + 1.day,
+        household_id: Hmis::Hud::Base.generate_uuid,
+      )
+    end
+
+    before do
+      # One rental service with an amount, and one with a nil fa_amount. The nil
+      # amount must not break the expenditures sum.
+      create(
+        :hud_service,
+        enrollment: enrollment,
+        record_type: hopwa_financial_assistance,
+        type_provided: rental_assistance,
+        fa_amount: 250,
+        date_provided: enrollment.entry_date,
+        data_source: data_source,
+      )
+      create(
+        :hud_service,
+        enrollment: enrollment,
+        record_type: hopwa_financial_assistance,
+        type_provided: rental_assistance,
+        fa_amount: nil,
+        date_provided: enrollment.entry_date,
+        data_source: data_source,
+      )
+    end
+
+    it 'treats a nil fa_amount as zero when totaling expenditures' do
+      _, rows = run_and_extract_rows([project], 'Q3')
+
+      expect(rows.fetch('STRMU rental assistance').to_f).to eq(250)
+      expect(rows.fetch('Total STRMU Expenditures').to_f).to eq(250)
+    end
+  end
+
   context 'with household overlapping report but no services in period' do
     let(:household_with_services_id) { Hmis::Hud::Base.generate_uuid }
     let(:household_no_services_id) { Hmis::Hud::Base.generate_uuid }
