@@ -10,7 +10,7 @@
 #
 # Provides a warden-like interface for code that expects warden.user to be available,
 # so existing callers keep working without a real Warden session. Only the :user scope
-# carries a user under JWT; :hmis_user ceases to exist at cutover seam 6.
+# carries a user under JWT.
 #
 # Non-:user scopes answer falsey (matching real Warden) rather than raising: Devise's
 # scope-iterating helpers (e.g. signed_in?) probe authenticate?(scope: :hmis_user) on
@@ -22,10 +22,10 @@ class Idp::WardenProxy
     @session = session
   end
 
-  # All public methods mirror Warden::Proxy's positional scope / trailing-options-hash
-  # convention rather than keyword args: Devise and Warden call these positionally (and via
-  # splatted `[strategies..., opts]`), so a `*args` signature is what keeps them compatible.
-  # A bare `*args` also absorbs the keyword `scope:` form Devise uses elsewhere.
+  # The scope-accepting methods take `*args` rather than a keyword `scope:`, mirroring
+  # Warden::Proxy: Devise and Warden call these positionally and via splatted
+  # `[strategies..., opts]`, and `*args` (parsed by _scope) absorbs all those forms plus the
+  # keyword `scope:` form Devise uses elsewhere.
 
   def user(*args)
     @user if user_scope?(_scope(args))
@@ -43,7 +43,8 @@ class Idp::WardenProxy
     result
   end
 
-  # No-op for JWT-based auth; authentication is handled via the token.
+  # Real Warden runs strategies here; under JWT the token already authenticated us, so there's
+  # nothing to run — just hand back the resolved user (identical to #user).
   def authenticate(*args)
     @user if user_scope?(_scope(args))
   end
@@ -60,6 +61,10 @@ class Idp::WardenProxy
     user
   end
 
+  # Devise's sign_in routes here, so the method must exist. Like logout, it cannot actually
+  # establish a session: the user is established by the JWT upstream (oauth2-proxy / okta), and
+  # current_user is resolved from the token, not from @user. We still set the local copy so
+  # warden.user is consistent within the request when the :user scope is targeted.
   def set_user(user, *args)
     @user = user if user_scope?(_scope(args))
   end
@@ -69,15 +74,19 @@ class Idp::WardenProxy
     @session
   end
 
-  # Devise's sign_out(scope) routes here as logout(scope); only clear when the :user scope
-  # (or no scope) is targeted, so signing out a non-:user mapping leaves the real user intact.
+  # Devise's sign_out / sign_out_all_scopes route here, so the method must exist. But it cannot
+  # actually log anyone out: the JWT lives in the X-Forwarded-Access-Token request header (the
+  # source of truth), not in this proxy, and current_user is resolved from that token, not from
+  # @user. Real sign-out is the redirect to oauth2-proxy's sign-out endpoint in
+  # Users::SessionsController#respond_to_on_destroy. We still clear the local copy so warden.user
+  # is consistent within the request when the :user scope (or no scope) is targeted.
   def logout(*scopes)
     @user = nil if scopes.empty? || scopes.map(&:to_sym).include?(:user)
   end
 
-  # Strategy-related machinery has no meaning under JWT (there are no Warden strategies to run
-  # or cache), but Devise's sign_in / sign_out / failure paths still call these on the proxy.
-  # No-ops / nil keep those paths working.
+  # Warden strategy machinery — with no strategies under JWT there's nothing to cache or lock.
+  # Devise's sign-out path still calls these (sign_out clears the cache, sign_out_all_scopes
+  # locks), so keep them as no-ops.
   def clear_strategies_cache!(*_args)
   end
 
@@ -91,6 +100,8 @@ class Idp::WardenProxy
     @session_serializer ||= NullSessionSerializer.new
   end
 
+  # Also strategy machinery: with no strategies there's no winning strategy and no auth-failure
+  # message. Devise's CSRF-cleanup and failure-app paths read these; nil is the honest answer.
   def winning_strategy
     nil
   end
