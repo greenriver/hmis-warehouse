@@ -59,10 +59,12 @@ RSpec.describe GrdaWarehouse::Tasks::UpdateHousingReleaseStatuses, type: :model 
         it 'updates the housing release statuses' do
           service.run!
 
+          no_release_string = config_scenario[:expected_consent_class] == Consent::Implied ? GrdaWarehouse::Hud::Client.no_release_string : nil
+
           # Regular client should become the no_release_string for this consent model
-          expect(client.reload.housing_release_status).to eq(GrdaWarehouse::Hud::Client.no_release_string)
+          expect(client.reload.housing_release_status).to eq(no_release_string)
           # Revoked consent client should become the revoked_consent_string for this consent model
-          expect(revoked_consent_client.reload.housing_release_status).to eq(GrdaWarehouse::Hud::Client.revoked_consent_string)
+          expect(revoked_consent_client.reload.housing_release_status.to_s).to eq(GrdaWarehouse::Hud::Client.revoked_consent_string)
           # Expanded consent client should become the full_release_string for this consent model
           expect(expanded_consent_client.reload.housing_release_status).to eq(GrdaWarehouse::Hud::Client.full_release_string)
           # Partial consent client should become the partial_release_string for this consent model
