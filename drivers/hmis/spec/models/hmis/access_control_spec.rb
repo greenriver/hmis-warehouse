@@ -87,6 +87,14 @@ RSpec.describe Hmis::AccessControl, type: :model do
     end
   end
 
+  describe 'associations' do
+    it 'has many user_access_controls' do
+      acl = create(:hmis_access_control)
+      uac = create(:hmis_user_access_control, access_control: acl)
+      expect(acl.user_access_controls).to include(uac)
+    end
+  end
+
   describe 'can_access_hmis_data_source? checker' do
     let!(:ds2) { create :hmis_data_source } # add a second data source
     let!(:ds2_organization) { create :hmis_hud_organization, data_source: ds2 }

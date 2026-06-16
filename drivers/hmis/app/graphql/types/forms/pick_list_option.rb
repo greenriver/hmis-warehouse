@@ -61,6 +61,8 @@ module Types
           map(&:to_pick_list_option)
       when 'CE_ACCESS_POINT_PROJECT_NAMES'
         ce_access_point_project_names_picklist(user)
+      when 'OPEN_ORGANIZATION_NAMES'
+        open_organization_names_picklist(user)
       when 'ORGANIZATION'
         Hmis::Hud::Organization.viewable_by(user).sort_by_option(:name).map(&:to_pick_list_option)
       when 'AVAILABLE_SERVICE_TYPES'
@@ -156,7 +158,7 @@ module Types
       when 'FORM_TYPES'
         # Used in the dropdown of form roles when creating/editing a form. We need a permission check here because
         # not all users can access all form types:
-        form_types = if user.can_administrate_config?
+        form_types = if user.policy_for(Hmis::Form::Definition, policy_type: :form_definition).can_administrate_config?
           # Super-admins should be able to select any form type when creating a form
           Hmis::Form::Definition.form_role_enum_map.members
         else
@@ -275,14 +277,7 @@ module Types
     end
 
     def self.user_picklist(current_user)
-      return [] unless current_user
-
-      # User picklist is currently used:
-      # - when filtering audit events
-      # - when filtering client merge history
-      # - when selecting users in the form builder
-      # (Most other user picklists in the app use a more restricted list of users, such as eligible_staff_assignment_users, eligible_referral_step_assignment_users, etc.)
-      return [] unless current_user.permissions?(:can_administrate_config, :can_audit_enrollments, :can_audit_clients, :can_merge_clients, mode: :any)
+      return [] unless current_user&.policy_for(Hmis::User, policy_type: :hmis_user)&.can_view_user_picklist?
 
       Hmis::User.with_deleted.map do |user|
         {
@@ -650,6 +645,8 @@ module Types
       Hmis::StaffAssignmentRelationship.all.map(&:to_pick_list_option)
     end
 
+    # Added to use for CE Assessment AssessmentLocation picklist for a particular customer.
+    # Codes are "Project Name (ID)" so that stored values are human-readable but still unique.
     def self.ce_access_point_project_names_picklist(user)
       project_ids = Hmis::Hud::Project.viewable_by(user).
         open_on_date. # Projects that are currently active
@@ -663,9 +660,20 @@ module Types
         preload(:organization).
         sort_by_option(:organization_and_name).
         map do |project|
-          # Codes are "Project Name (ID)" so that stored values are human-readable but still unique.
-          # Use case: collecting CE Assessment Location
           project.to_pick_list_option.merge(code: "#{project.project_name} (#{project.id})")
+        end
+    end
+
+    # Added to use for CE Assessment AssessmentLocation picklist for a particular customer.
+    # Codes are "Organization Name (ID)" so that stored values are human-readable but still unique.
+    def self.open_organization_names_picklist(user)
+      Hmis::Hud::Organization.viewable_by(user).
+        joins(:projects).
+        merge(Hmis::Hud::Project.open_on_date).
+        distinct.
+        sort_by_option(:name).
+        map do |organization|
+          organization.to_pick_list_option.merge(code: "#{organization.organization_name} (#{organization.id})")
         end
     end
 

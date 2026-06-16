@@ -19,6 +19,7 @@ ENV['RAILS_DISABLE_DEPRECATED_TO_S_CONVERSION'] = 'true'
 # you've limited to :test, :development, or :production.
 Bundler.require(*Rails.groups)
 
+require_relative '../lib/auth_method'
 require_relative '../lib/util/id_protector'
 require_relative '../lib/util/rails_trusted_proxies_config'
 
