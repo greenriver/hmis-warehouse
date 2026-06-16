@@ -529,10 +529,10 @@ module HudLsa::Generators::Fy2026
           ReportEnd: filter.end,
           LookbackDate: lookback_stop_date,
           ReportCoC: filter.coc_code,
-          SoftwareVendor: 'Green River Data Analysis',
-          SoftwareName: 'OpenPath HMIS Data Warehouse',
-          VendorContact: 'Elliot Anders',
-          VendorEmail: 'elliot@greenriver.org',
+          SoftwareVendor: 'Green River',
+          SoftwareName: 'Open Path HMIS Data Warehouse',
+          VendorContact: 'Open Path',
+          VendorEmail: 'openpath@greenriver.com',
           LSAScope: lsa_scope,
         )
       end

@@ -57,7 +57,7 @@ module HudCodeGen
     skipped = []
     filename = "lib/util/concerns/hud_lists_#{year}.rb"
     arr = []
-    arr.push ::Code.copywright_header
+    arr.push ::Code.copyright_header
     arr.push "
       # frozen_string_literal: true
       #{CODEGEN_FILE_HEADER}
@@ -109,7 +109,7 @@ module HudCodeGen
 
     seen = []
     arr = []
-    arr.push ::Code.copywright_header
+    arr.push ::Code.copyright_header
     arr.push "
       # frozen_string_literal: true
       #{CODEGEN_FILE_HEADER}
