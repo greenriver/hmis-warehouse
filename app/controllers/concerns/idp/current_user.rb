@@ -17,7 +17,7 @@ module Idp::CurrentUser
 
   included do
     def current_user
-      @current_user ||= authenticated_user_from_jwt(user_class: User)
+      @current_user ||= idp_authenticated_user_from_jwt(user_class: User)
     end
     helper_method :current_user
 
@@ -27,7 +27,7 @@ module Idp::CurrentUser
 
     def authenticate_user!
       # use current_user for memoized resolution to avoid a multiple calls to find_or_create_from_jwt
-      handle_unauthenticated unless current_user
+      idp_handle_unauthenticated unless current_user
     end
 
     def user_signed_in?
@@ -62,7 +62,7 @@ module Idp::CurrentUser
 
     # Absolute expiration timestamp of the current token, for the session-expiry modal.
     def jwt_expires_at
-      jwt_helper = jwt_helper_for_request
+      jwt_helper = idp_jwt_helper_for_request
       return nil unless jwt_helper&.token? && jwt_helper.valid?
 
       jwt_helper.expiration_time
@@ -73,15 +73,15 @@ module Idp::CurrentUser
 
     # In production/development, reads the JWT from the X-Forwarded-Access-Token header
     # (set by oauth2-proxy). In system tests, TestJwtMiddleware promotes a cookie to this header.
-    def jwt_helper_for_request
-      @jwt_helper_for_request ||= begin
+    def idp_jwt_helper_for_request
+      @idp_jwt_helper_for_request ||= begin
         token = request.headers['HTTP_X_FORWARDED_ACCESS_TOKEN']
 
         Idp::JwtHelper.new(access_token: token)
       end
     end
 
-    def validate_impersonation_permissions(true_user, impersonated_user)
+    def idp_validate_impersonation_permissions(true_user, impersonated_user)
       return false unless true_user&.can_impersonate_users?
       return false unless impersonated_user&.impersonateable_by?(true_user)
 
@@ -90,8 +90,8 @@ module Idp::CurrentUser
 
     # Resolve the authenticated user from the JWT, applying impersonation. Generic over
     # user_class so both warehouse (User) and HMIS (Hmis::User) controllers can use it.
-    def authenticated_user_from_jwt(user_class: User)
-      jwt_helper = jwt_helper_for_request
+    def idp_authenticated_user_from_jwt(user_class: User)
+      jwt_helper = idp_jwt_helper_for_request
       return nil unless jwt_helper&.token? && jwt_helper.valid?
 
       # learn: true path — self-gates JIT creation on idp/auto_create_user and learns the
@@ -124,7 +124,7 @@ module Idp::CurrentUser
         true_user = user_class.find_by(id: impersonation_data[:true_user_id])
         impersonated_user = user_class.find_by(id: impersonation_data[:impersonated_user_id])
 
-        return impersonated_user if true_user && impersonated_user && validate_impersonation_permissions(true_user, impersonated_user)
+        return impersonated_user if true_user && impersonated_user && idp_validate_impersonation_permissions(true_user, impersonated_user)
 
         # Clear invalid impersonation
         impersonation_manager.clear
@@ -136,7 +136,7 @@ module Idp::CurrentUser
 
     # Capture the original request URL and redirect to OAuth2-proxy sign-in, preserving the
     # URL via the `rd` query parameter. Override in subclasses for custom behavior (e.g. JSON).
-    def handle_unauthenticated
+    def idp_handle_unauthenticated
       original_url = Idp::PostAuthRedirect.new(
         request: request,
         cookies: cookies,
