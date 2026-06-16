@@ -634,7 +634,6 @@ module HmisCsvImporter::Importer
         klass.after_ingest!(
           data_source: data_source,
           project_ids: involved_project_ids,
-          date_range: date_range,
         )
       end
     end

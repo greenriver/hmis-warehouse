@@ -62,7 +62,7 @@ module HmisCsvTwentyTwentySix::Importer
       ]
     end
 
-    def self.after_ingest!(data_source:, project_ids:, date_range:) # rubocop:disable Lint/UnusedMethodArgument
+    def self.after_ingest!(data_source:, project_ids:)
       return unless data_source.hmis?
 
       populate_project_pk!(data_source_id: data_source.id, project_ids: project_ids)
@@ -75,6 +75,7 @@ module HmisCsvTwentyTwentySix::Importer
       return if project_ids.blank?
 
       e_t = warehouse_class.arel_table
+      # Note: If performance becomes an issue, this could be changed to raw SQL to avoid batching by project (eg '"Enrollment".project_pk = "Project".id')
       project_ids.each_slice(250) do |project_ids_slice|
         GrdaWarehouse::Hud::Project.
           where(data_source_id: data_source_id, ProjectID: project_ids_slice).
