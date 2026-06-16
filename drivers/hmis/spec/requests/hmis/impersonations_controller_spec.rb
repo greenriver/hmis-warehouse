@@ -46,6 +46,17 @@ RSpec.describe Hmis::ImpersonationsController, type: :request do
       end
     end
 
+    context 'when trying to impersonate yourself' do
+      before do
+        hmis_login admin_user
+      end
+
+      it 'returns a bad request' do
+        post hmis_impersonations_path, params: { user_id: admin_user.id }, headers: headers
+        expect(response).to have_http_status(:bad_request)
+      end
+    end
+
     context 'when user is not authorized to impersonate' do
       before do
         hmis_login regular_user

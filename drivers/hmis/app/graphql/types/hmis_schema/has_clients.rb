@@ -18,6 +18,7 @@ module Types
             null: false,
             description: description,
             after_paginate: ->(nodes, ctx) {
+              # Preload client dependencies to avoid N+1 queries when invoking HmisClientPolicy
               ctx[:current_user].policy_context.preload_client_dependencies(nodes.map(&:id))
             },
           }

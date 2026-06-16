@@ -17,6 +17,39 @@ class Hmis::AccessControl < ApplicationRecord
   belongs_to :role, class_name: 'Hmis::Role'
   belongs_to :user_group, class_name: '::Hmis::UserGroup', required: false, inverse_of: :access_controls
   has_many :users, through: :user_group
+  has_many :user_access_controls, class_name: 'Hmis::UserAccessControl', inverse_of: :access_control, dependent: :destroy
+
+  def entity_name
+    "#{role&.name || 'missing role'} x #{access_group&.name || 'missing collection'} x #{user_group&.name || 'missing user group'}"
+  end
+
+  def self.describe_changes(version, changes, excluded_fields = [])
+    case version.event
+    when 'create'
+      ['Created access control']
+    when 'destroy'
+      ['Deleted access control']
+    else
+      filtered = (changes || {}).reject { |field, _| excluded_fields.include?(field.to_s) }
+      filtered.map do |field, (from_id, to_id)|
+        from_name = resolve_fk_name(field, from_id)
+        to_name = resolve_fk_name(field, to_id)
+        "Changed #{field.humanize.titleize}: from #{from_name} to #{to_name}"
+      end.presence || ['Updated access control']
+    end
+  end
+
+  def self.resolve_fk_name(field, id)
+    return 'none' if id.nil?
+
+    klass = case field.to_s
+    when 'role_id' then Hmis::Role
+    when 'user_group_id' then Hmis::UserGroup
+    when 'access_group_id' then Hmis::AccessGroup
+    end
+    klass ? (klass.with_deleted.find_by(id: id)&.name || "ID #{id}") : id.to_s
+  end
+  private_class_method :resolve_fk_name
 
   scope :ordered, -> do
     joins(:user_group, :role, :access_group).
