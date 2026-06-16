@@ -31,16 +31,20 @@ namespace :code do
     exec("bundle exec rubocop -A --format simple #{filenames.join(' ')} > /dev/null")
   end
 
-  # Intentionally excludes spec/, config/, bin/ — those must be updated manually
-  # or via a targeted one-liner when the copyright format changes.
   def files
     Dir.glob("#{Rails.root}/app/{**/}*.rb") +
       Dir.glob("#{Rails.root}/drivers/{**/}*.rb") +
-      Dir.glob("#{Rails.root}/lib/{**/}*.rb")
+      Dir.glob("#{Rails.root}/lib/{**/}*.rb") +
+      Dir.glob("#{Rails.root}/spec/{**/}*.rb") +
+      Dir.glob("#{Rails.root}/config/{**/}*.rb") +
+      Dir.glob("#{Rails.root}/bin/*.rb")
   end
 
   def add_copyright_to_file(path)
     content = File.read(path)
+
+    # Shebang lines must stay on line 1 — extract before any other processing.
+    shebang = content.slice!(/\A#![^\n]*\n/)
 
     return if content.start_with?(::Code.copyright_header)
 
@@ -52,6 +56,7 @@ namespace :code do
     content = ::Code.strip_old_copyright(content)
 
     tempfile = Tempfile.new('with_copyright')
+    tempfile.write(shebang) if shebang
     tempfile.write(::Code.copyright_header)
     tempfile.write(content)
     tempfile.flush

@@ -6,12 +6,6 @@
 
 # frozen_string_literal: true
 
-####
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
-#
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
-##
-
 # Factory to resolve the user access loader for a given entity. It also resolves
 # the entity that should be passed to the loader. A resolver block is used to
 # traverse associations as, in the case of graphql, another data loader would be

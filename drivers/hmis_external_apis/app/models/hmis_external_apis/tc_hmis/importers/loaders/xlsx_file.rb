@@ -6,12 +6,6 @@
 
 # frozen_string_literal: true
 
-###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
-#
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
-###
-
 require 'roo'
 
 # Streaming xls reader for ETO touch points. These files have two headers rows. One row has the optional element id and one row with the label. The element ids are unique, the labels are not.

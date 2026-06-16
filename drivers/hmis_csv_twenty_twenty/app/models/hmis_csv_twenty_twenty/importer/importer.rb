@@ -6,12 +6,6 @@
 
 # frozen_string_literal: true
 
-###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
-#
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
-###
-
 # Assumptions:
 # The import is authoritative for the date range specified in the Export.csv file
 # The import is authoritative for the projects specified in the Project.csv file

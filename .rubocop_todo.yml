@@ -45,7 +45,6 @@ Layout/DefEndAlignment:
 # SupportedStyles: leading, trailing
 Layout/DotPosition:
   Exclude:
-    - 'spec/models/omniauth_user_provisioner_spec.rb'
 
 # Offense count: 23
 # This cop supports safe autocorrection (--autocorrect).
@@ -204,7 +203,6 @@ Layout/SpaceAroundEqualsInParameterDefault:
 # This cop supports safe autocorrection (--autocorrect).
 Layout/SpaceAroundKeyword:
   Exclude:
-    - 'config/deploy/docker/lib/aws_sdk_helpers.rb'
 
 # Offense count: 15
 # This cop supports safe autocorrection (--autocorrect).
@@ -253,8 +251,6 @@ Layout/SpaceInsideBlockBraces:
 Layout/SpaceInsideHashLiteralBraces:
   Exclude:
     - 'db/health/migrate/20240710141900_add_polymorphic_metadata_to_qualifying_activity.rb'
-    - 'spec/models/filters/filter_base_legacy_spec.rb'
-    - 'spec/models/logging_spec.rb'
 
 # Offense count: 120
 # This cop supports safe autocorrection (--autocorrect).
@@ -331,7 +327,6 @@ Lint/RedundantSafeNavigation:
 # Configuration parameters: AllowPercentLiteralArrayArgument.
 Lint/RedundantSplatExpansion:
   Exclude:
-    - 'spec/models/logging_spec.rb'
 
 # Offense count: 1
 # This cop supports safe autocorrection (--autocorrect).
@@ -376,7 +371,6 @@ Lint/UselessAssignment:
 # Configuration parameters: CheckForMethodsWithNoSideEffects.
 Lint/Void:
   Exclude:
-    - 'config/deploy/docker/lib/ecs_tools.rb'
 
 # Offense count: 4
 # Configuration parameters: AllowedMethods, AllowedPatterns, CountRepeatedAttributes, Max.
@@ -615,7 +609,6 @@ Style/RedundantCondition:
 # This cop supports safe autocorrection (--autocorrect).
 Style/RedundantFreeze:
   Exclude:
-    - 'config/deploy/docker/lib/memory_analyzer.rb'
     - 'drivers/hmis/lib/hmis_util/custom_assessment_form_definition_builder.rb'
     - 'drivers/hmis_external_apis/app/models/hmis_external_apis/ac_hmis/importers/projects_import_attempt.rb'
     - 'drivers/hmis_external_apis/app/models/hmis_external_apis/ac_hmis/importers/projects_importer.rb'
@@ -639,7 +632,6 @@ Style/RedundantFreeze:
     - 'drivers/hud_spm_report/app/models/hud_spm_report/generators/fy2024/measure_seven.rb'
     - 'drivers/hud_spm_report/app/models/hud_spm_report/generators/fy2024/measure_six.rb'
     - 'drivers/hud_spm_report/app/models/hud_spm_report/generators/fy2024/measure_three.rb'
-    - 'spec/models/talentlms/facade_spec.rb'
 
 # Offense count: 1
 # This cop supports unsafe autocorrection (--autocorrect-all).
@@ -650,7 +642,6 @@ Style/RedundantInterpolation:
 # This cop supports safe autocorrection (--autocorrect).
 Style/RedundantParentheses:
   Exclude:
-    - 'spec/models/grda_warehouse/cas_project_client_calculator/mdha_spec.rb'
 
 # Offense count: 23
 # This cop supports safe autocorrection (--autocorrect).
@@ -712,7 +703,6 @@ Style/StringLiterals:
     - 'bin/spring'
     - 'bin/test-bg'
     - 'bin/yarn'
-    - 'spec/models/logging_spec.rb'
 
 # Offense count: 12
 # This cop supports unsafe autocorrection (--autocorrect-all).

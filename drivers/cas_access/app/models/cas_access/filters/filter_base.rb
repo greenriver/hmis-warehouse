@@ -6,12 +6,6 @@
 
 # frozen_string_literal: true
 
-###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
-#
-# License detail: https://github.com/greenriver/boston-cas/blob/production/LICENSE.md
-###
-
 module CasAccess::Filters
   class FilterBase < ::ModelForm
     include CasAccess::Reporting::FilterScopes
