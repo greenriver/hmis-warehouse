@@ -1,8 +1,24 @@
 # frozen_string_literal: true
 
 namespace :code do
-  # NOTE, you can check a PR for this with
+  # NOTE, before you commit, you can check a PR for this with
   # git diff -U0 --minimal HEAD~1 | grep -v '^+#.*2024' | grep -v '^+#.*LICENSE.md' | grep -v '^+###$' | grep -v '^+#$' | grep -v '^diff --git' | grep -v '^index' | grep '^--- a' | grep '^+++ b' | more
+  #
+  # To review a branch vs main, skipping files where the only changes
+  # are the copyright notice and/or frozen_string_literal, write to a diff file:
+  #   branch=dg-copyright-update; \
+  #   git diff -w main...$branch --name-only | while read f; do \
+  #     extra=$(git diff -U0 -w main...$branch -- "$f" | grep '^[+-]' | \
+  #       grep -v '^---' | grep -v '^+++' | \
+  #       grep -v '^[-+]$' | \
+  #       grep -v '^[-+]###$' | \
+  #       grep -v '^[-+]#$' | \
+  #       grep -v '^[-+]# License detail:' | \
+  #       grep -vE '^-# Copyright [0-9]{4} - [0-9]{4} Green River Data Analysis, LLC' | \
+  #       grep -v '^+# Copyright Green River Data Group, Inc.' | \
+  #       grep -v '^[-+]# frozen_string_literal: true'); \
+  #     [ -n "$extra" ] && git diff -w main...$branch -- "$f"; \
+  #   done > tmp/changes.diff
   desc 'Ensure the copyright is included in all ruby files'
   task :maintain_copyright, [] => [:environment, 'log:info_to_stdout'] do
     puts 'Adding license text in all .rb files that don\'t already have it'
