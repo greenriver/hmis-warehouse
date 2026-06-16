@@ -6,7 +6,7 @@ namespace :code do
   #
   # To review a branch vs main, skipping files where the only changes
   # are the copyright notice and/or frozen_string_literal, write to a diff file:
-  #   branch=dg-copyright-update; \
+  #   branch=branch-with-changes; \
   #   git diff -w main...$branch --name-only | while read f; do \
   #     extra=$(git diff -U0 -w main...$branch -- "$f" | grep '^[+-]' | \
   #       grep -v '^---' | grep -v '^+++' | \
