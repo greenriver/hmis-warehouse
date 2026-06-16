@@ -7,16 +7,35 @@
 # frozen_string_literal: true
 
 module Idp
-  # Stub. The no-op Idp::Service used when no connector is known; the real
-  # implementation lands in L1.4 (idp-l1-service-layer). Present here only so
-  # Idp::Support's references resolve to a defined constant.
-  class NullService
-    def supports_user_management?
-      raise NotImplementedError, 'Idp::NullService is a stub; implemented in L1.4 (service-layer)'
+  # Null object for IDPs that only authenticate and expose no manageable admin
+  # API or for an unknown/blank connector. All management operations
+  # raise; all capability predicates are false.
+  class NullService < Service
+    attr_reader :connector_id
+
+    def initialize(connector_id = nil)
+      @connector_id = connector_id
+      super(config: {})
     end
 
-    def supports_profile_updates?
-      raise NotImplementedError, 'Idp::NullService is a stub; implemented in L1.4 (service-layer)'
+    def create_user(**)
+      raise ServiceError.new('User management not supported', idp_name: idp_name, operation: :create_user)
+    end
+
+    def update_user(**)
+      raise ServiceError.new('Profile updates not supported', idp_name: idp_name, operation: :update_user)
+    end
+
+    def get_user(**)
+      raise ServiceError.new('User lookup not supported', idp_name: idp_name, operation: :get_user)
+    end
+
+    def reactivate_user(**)
+      raise ServiceError.new('User reactivation not supported', idp_name: idp_name, operation: :reactivate_user)
+    end
+
+    def idp_name
+      connector_id&.humanize || 'Unknown IDP'
     end
   end
 end
