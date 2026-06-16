@@ -36,7 +36,7 @@ module Types
     end
 
     def can_view_enrollment
-      current_permission?(permission: :can_view_enrollment_details, entity: object)
+      current_user.policy_for(object, policy_type: :hmis_enrollment).can_view_details?
     end
 
     def project

@@ -9,7 +9,8 @@
 require 'net/http'
 require 'memery'
 
-class JwtHelper
+# Checks that an incoming login token is genuine and reads the user details out of it.
+class Idp::JwtHelper
   include Memery
   attr_reader :access_token
 
@@ -23,7 +24,7 @@ class JwtHelper
     access_token.present?
   end
 
-  def validate!
+  def valid?
     return false unless token?
 
     unless public_key
@@ -69,32 +70,31 @@ class JwtHelper
     ENV.fetch('IDP_AUD').split(',').map(&:strip)
   end
 
-  def email(forwarded_email)
-    return nil unless payload_email == forwarded_email.to_s.downcase
-
-    payload_email
+  # JWT.decode returns [claims, header]; this is the claims half.
+  private def claims
+    payload.first
   end
 
   def connector_user_id
-    payload.first.dig('federated_claims', 'user_id')
+    claims.dig('federated_claims', 'user_id')
   end
   alias_method :idp_user, :connector_user_id
 
   def connector_id
-    payload.first.dig('federated_claims', 'connector_id')
+    claims.dig('federated_claims', 'connector_id')
   end
   alias_method :idp, :connector_id
 
-  memoize def payload_email
-    payload.first['email'].to_s.downcase
+  def payload_email
+    claims['email'].to_s.strip.downcase.presence
   end
 
   def last_login_at
-    payload.first['iat']
+    claims['iat']
   end
 
   def expiration_time
-    exp = payload.first['exp']
+    exp = claims['exp']
     return nil unless exp
 
     Time.zone.at(exp)
@@ -103,14 +103,14 @@ class JwtHelper
   # Returns the at_hash claim — stable per token, changes on reissue.
   # Not all IdPs include at_hash in access tokens; callers must handle nil.
   def session_id
-    payload.first['at_hash']
+    claims['at_hash']
   end
 
   def self.authenticated?(access_token)
     return false unless access_token.present?
 
     helper = new(access_token: access_token)
-    helper.token? && helper.validate!
+    helper.token? && helper.valid?
   end
 
   # User.find_from_jwt is provided by L1.2 (idp-l1-identity-resolution); inert until then.
@@ -118,7 +118,7 @@ class JwtHelper
     return nil unless access_token.present?
 
     helper = new(access_token: access_token)
-    return nil unless helper.token? && helper.validate!
+    return nil unless helper.token? && helper.valid?
 
     User.find_from_jwt(helper)&.id
   end
@@ -130,16 +130,16 @@ class JwtHelper
 
   # TODO: this is inconsistent based on the IDP
   def first_name
-    payload.first['given_name'].presence || payload.first['name'].to_s.strip.split.first&.titleize
+    claims['given_name'].to_s.strip.presence || claims['name'].to_s.strip.split.first&.titleize
   end
 
   # TODO: this is inconsistent based on the IDP
   def last_name
-    raw = payload.first['name'].to_s.strip
-    return '' if raw.blank?
+    raw = claims['name'].to_s.strip
+    return nil if raw.blank?
 
     parts = raw.split
-    return '' if parts.size <= 1
+    return nil if parts.size <= 1
 
     parts.last.titleize
   end
