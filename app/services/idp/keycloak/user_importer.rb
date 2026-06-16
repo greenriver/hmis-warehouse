@@ -27,7 +27,7 @@ module Idp
       #
       # @param since [Time, nil] limit to users changed since this time, for a
       #   cheap re-run that catches edits made during migration; nil exports all.
-      def self.migration_scope(since:)
+      def self.migration_scope(since: nil)
         scope = User.where.not(confirmed_at: nil).where(active: true)
         scope = scope.where('users.updated_at > ?', since) if since
         scope
@@ -90,8 +90,8 @@ module Idp
       end
 
       # Build the partialImport JSON structure without making an API call.
-      def export_users_to_import_format(users, policy:)
-        import_payload(users, policy: policy)
+      def export_users_to_import_format(users, policy:, progress: nil)
+        import_payload(users, policy: policy, progress: progress)
       end
 
       # Import users from a JSON file via the partialImport API.
@@ -114,10 +114,14 @@ module Idp
 
       attr_reader :service
 
-      def import_payload(users, policy:)
+      def import_payload(users, policy:, progress: nil)
+        data = users.map do |user|
+          progress&.increment!
+          build_import_user_data(user)
+        end
         {
           ifResourceExists: policy,
-          users: users.map { |user| build_import_user_data(user) },
+          users: data,
         }
       end
 

@@ -113,17 +113,15 @@ namespace :keycloak do
     users_scope = users_scope.limit(limit) if limit
     users = users_scope.to_a
 
-    bar = ProgressBar.new(2, :counter, :bar, :percentage)
+    bar = ProgressBar.new(users.count, :counter, :bar, :percentage)
     bar.puts "Exporting #{users.size} users..."
     bar.puts "Delta: only users changed since #{since}" if since
 
     # OVERWRITE matches migrate_users; edit the file before importing to change it.
-    import_data = importer.export_users_to_import_format(users, policy: 'OVERWRITE')
-    bar.increment!
+    import_data = importer.export_users_to_import_format(users, policy: 'OVERWRITE', progress: bar)
 
     output_file = 'tmp/keycloak_users_export.json'
-    File.write(output_file, JSON.pretty_generate(import_data))
-    bar.increment!
+    File.open(output_file, 'w', 0o600) { |f| f.write(JSON.pretty_generate(import_data)) }
 
     bar.puts 'Export complete!'
     bar.puts "  Total users: #{users.size}"
@@ -146,18 +144,16 @@ namespace :keycloak do
 
     importer = keycloak_importer
 
-    bar = ProgressBar.new(1, :counter, :bar, :percentage)
-    bar.puts "Importing users from #{file}..."
+    puts "Importing users from #{file}..."
 
     # import_from_file returns on success and raises Idp::ServiceError otherwise.
     result = importer.import_from_file(file)
-    bar.increment!
 
-    bar.puts 'Import successful!'
-    bar.puts "Response: #{result[:response]}"
-    bar.puts 'Import complete!'
+    puts 'Import successful!'
+    puts "Response: #{result[:response]}"
+    puts 'Import complete!'
   rescue Idp::ServiceError => e
-    bar.puts "Error: #{e.message}"
+    puts "Error: #{e.message}"
     exit 1
   end
 
@@ -177,18 +173,16 @@ namespace :keycloak do
 
     importer = keycloak_importer
 
-    bar = ProgressBar.new(1, :counter, :bar, :percentage)
-    bar.puts "Importing user: #{user.email}"
-    bar.puts "  Name: #{user.first_name} #{user.last_name}"
-    bar.puts "  Confirmed: #{user.confirmed_at.present?}"
+    puts "Importing user: #{user.email}"
+    puts "  Name: #{user.first_name} #{user.last_name}"
+    puts "  Confirmed: #{user.confirmed_at.present?}"
 
     result = importer.bulk_import_users([user], policy: 'OVERWRITE')
-    bar.increment!
 
     if result[:success]
-      bar.puts 'SUCCESS! User imported successfully!'
+      puts 'SUCCESS! User imported successfully!'
     else
-      bar.puts "FAILED: #{result[:error]}"
+      puts "FAILED: #{result[:error]}"
       exit 1
     end
   end
@@ -202,19 +196,17 @@ namespace :keycloak do
       exit 1
     end
 
-    bar = ProgressBar.new(1, :counter, :bar, :percentage)
-    bar.puts 'Testing Keycloak connection...'
-    bar.puts "API URL: #{ENV['KEYCLOAK_API_URL']}"
+    puts 'Testing Keycloak connection...'
+    puts "API URL: #{ENV['KEYCLOAK_API_URL']}"
 
     result = service.test_connection
-    bar.increment!
 
     if result[:success]
-      bar.puts 'Connection successful!'
-      bar.puts "Message: #{result[:message]}"
+      puts 'Connection successful!'
+      puts "Message: #{result[:message]}"
     else
-      bar.puts 'Connection failed!'
-      bar.puts "Message: #{result[:message]}"
+      puts 'Connection failed!'
+      puts "Message: #{result[:message]}"
       exit 1
     end
   end
