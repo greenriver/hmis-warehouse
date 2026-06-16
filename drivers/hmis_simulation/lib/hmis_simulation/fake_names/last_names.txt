@@ -1,197 +1,187 @@
 Abies Alba
-Abies Balsamea
-Abies Concolor
-Abies Grandis
-Abies Lasiocarpa
-Abies Magnifica
-Abies Procera
+Balsamea
+Concolor
+Grandis
+Lasiocarpa
+Magnifica
+Procera
 Acer Campestre
-Acer Macrophyllum
-Acer Negundo
-Acer Palmatum
-Acer Pensylvanicum
-Acer Platanoides
-Acer Pseudoplatanus
-Acer Rubrum
-Acer Saccharinum
-Acer Saccharum
+Macrophyllum
+Negundo
+Palmatum
+Pensylvanicum
+Platanoides
+Pseudoplatanus
+Rubrum
+Saccharinum
+Saccharum
 Achillea Millefolium
-Achillea Ptarmica
+Ptarmica
 Aconitum Napellus
-Aconitum Uncinatum
+Uncinatum
 Acorus Calamus
 Actaea Pachypoda
-Actaea Racemosa
-Actaea Rubra
+Racemosa
+Rubra
 Adiantum Capillus Veneris
-Adiantum Pedatum
+Pedatum
 Aegopodium Podagraria
 Aesculus Glabra
-Aesculus Hippocastanum
-Aesculus Pavia
+Hippocastanum
+Pavia
 Agrostis Capillaris
-Agrostis Stolonifera
+Stolonifera
 Ailanthus Altissima
 Ajuga Reptans
 Alcea Rosea
 Alchemilla Vulgaris
 Alisma Plantago Aquatica
 Allium Ampeloprasum
-Allium Cepa
-Allium Sativum
-Allium Schoenoprasum
-Allium Tricoccum
-Allium Ursinum
+Cepa
+Sativum
+Schoenoprasum
+Tricoccum
+Ursinum
 Alnus Glutinosa
-Alnus Incana
-Alnus Rhombifolia
-Alnus Rubra
-Alnus Serrulata
+Incana
+Rhombifolia
+Serrulata
 Alopecurus Pratensis
 Althaea Officinalis
 Amelanchier Arborea
-Amelanchier Canadensis
-Amelanchier Laevis
-Amelanchier Lamarckii
+Canadensis
+Laevis
+Lamarckii
 Amorpha Fruticosa
 Anaphalis Margaritacea
 Andromeda Polifolia
 Anemone Canadensis
-Anemone Hepatica
-Anemone Nemorosa
-Anemone Pulsatilla
-Anemone Sylvestris
+Hepatica
+Nemorosa
+Pulsatilla
+Sylvestris
 Angelica Archangelica
-Angelica Sylvestris
 Antennaria Dioica
 Anthoxanthum Odoratum
 Anthriscus Sylvestris
 Apium Graveolens
 Aquilegia Canadensis
-Aquilegia Vulgaris
+Vulgaris
 Arabidopsis Thaliana
 Aralia Nudicaulis
-Aralia Racemosa
 Arbutus Menziesii
-Arbutus Unedo
+Unedo
 Arctium Lappa
-Arctium Minus
+Minus
 Arctostaphylos Manzanita
-Arctostaphylos Uva Ursi
+Uva Ursi
 Arisaema Triphyllum
 Armeria Maritima
 Arnica Montana
 Artemisia Absinthium
-Artemisia Campestris
-Artemisia Dracunculus
-Artemisia Ludoviciana
-Artemisia Tridentata
-Artemisia Vulgaris
+Campestris
+Dracunculus
+Ludoviciana
+Tridentata
 Arum Italicum
-Arum Maculatum
+Maculatum
 Aruncus Dioicus
 Asarum Canadense
-Asarum Europaeum
+Europaeum
 Asclepias Incarnata
-Asclepias Syriaca
-Asclepias Tuberosa
+Syriaca
+Tuberosa
 Asimina Triloba
 Asparagus Officinalis
 Asplenium Scolopendrium
-Asplenium Trichomanes
+Trichomanes
 Aster Alpinus
-Aster Amellus
-Aster Novi Belgii
+Amellus
+Novi Belgii
 Astilbe Chinensis
 Astragalus Canadensis
-Astragalus Glycyphyllos
+Glycyphyllos
 Athyrium Filix Femina
 Atriplex Halimus
-Atriplex Hortensis
+Hortensis
 Atropa Belladonna
 Avena Fatua
-Avena Sativa
+Sativa
 Baptisia Australis
-Baptisia Tinctoria
+Tinctoria
 Berberis Thunbergii
-Berberis Vulgaris
 Betula Alleghaniensis
-Betula Lenta
-Betula Nigra
-Betula Occidentalis
-Betula Papyrifera
-Betula Pendula
-Betula Populifolia
-Betula Pubescens
+Lenta
+Nigra
+Occidentalis
+Papyrifera
+Pendula
+Populifolia
+Pubescens
 Bidens Frondosa
-Bidens Pilosa
+Pilosa
 Borago Officinalis
 Brassica Napus
-Brassica Nigra
-Brassica Oleracea
-Brassica Rapa
+Oleracea
+Rapa
 Bromus Inermis
-Bromus Japonicus
-Bromus Sterilis
+Japonicus
+Sterilis
 Calamint Nepeta
-Calamint Sylvatica
+Sylvatica
 Calendula Arvensis
-Calendula Officinalis
+Officinalis
 Caltha Palustris
 Calystegia Sepium
 Campanula Rotundifolia
-Campanula Trachelium
+Trachelium
 Cannabis Sativa
 Cardamine Hirsuta
-Cardamine Pratensis
+Pratensis
 Carduus Nutans
 Carex Acuta
-Carex Aquatilis
-Carex Flacca
-Carex Hirta
-Carex Pendula
-Carex Sylvatica
+Aquatilis
+Flacca
+Hirta
 Carlina Acaulis
 Carpinus Betulus
-Carpinus Caroliniana
+Caroliniana
 Carum Carvi
 Castanea Dentata
-Castanea Mollissima
-Castanea Sativa
+Mollissima
 Catalpa Bignonioides
-Catalpa Speciosa
+Speciosa
 Caulophyllum Thalictroides
 Ceanothus Americanus
 Celastrus Scandens
 Celtis Occidentalis
 Centaurea Cyanus
-Centaurea Jacea
-Centaurea Nigra
-Centaurea Scabiosa
+Jacea
+Scabiosa
 Cerastium Fontanum
 Cercis Canadensis
-Cercis Chinensis
+Chinensis
 Chamaecyparis Lawsoniana
-Chamaecyparis Nootkatensis
-Chamaecyparis Thyoides
+Nootkatensis
+Thyoides
 Chamerion Angustifolium
 Chenopodium Album
-Chenopodium Bonus Henricus
+Bonus Henricus
 Chrysanthemum Leucanthemum
 Chrysosplenium Alternifolium
 Cichorium Intybus
 Cicuta Maculata
-Cicuta Virosa
+Virosa
 Circaea Lutetiana
 Cirsium Arvense
-Cirsium Oleraceum
-Cirsium Palustre
-Cirsium Vulgare
+Oleraceum
+Palustre
+Vulgare
 Claytonia Perfoliata
-Claytonia Virginica
+Virginica
 Clematis Alpina
-Clematis Tangutica
-Clematis Vitalba
+Tangutica
+Vitalba
 Clinopodium Vulgare
 Coeloglossum Viride
 Colchicum Autumnale
@@ -202,277 +192,246 @@ Convallaria Majalis
 Convolvulus Arvensis
 Conyza Canadensis
 Cornus Alternifolia
-Cornus Amomum
-Cornus Canadensis
-Cornus Florida
-Cornus Kousa
-Cornus Mas
-Cornus Nuttallii
-Cornus Sericea
-Cornus Stolonifera
+Amomum
+Florida
+Kousa
+Mas
+Nuttallii
+Sericea
 Corylus Americana
-Corylus Avellana
-Corylus Cornuta
-Corylus Maxima
+Avellana
+Cornuta
+Maxima
 Crataegus Crus Galli
-Crataegus Laevigata
-Crataegus Mollis
-Crataegus Monogyna
-Crataegus Oxyacantha
-Crataegus Pedicellata
-Crataegus Punctata
+Laevigata
+Mollis
+Monogyna
+Oxyacantha
+Pedicellata
+Punctata
 Crepis Biennis
-Crepis Capillaris
+Capillaris
 Cryptomeria Japonica
 Cupressus Macrocarpa
 Cuscuta Campestris
 Dactylis Glomerata
 Dactylorhiza Fuchsii
-Dactylorhiza Maculata
-Dactylorhiza Majalis
+Maculata
+Majalis
 Daphne Laureola
-Daphne Mezereum
+Mezereum
 Datura Stramonium
 Daucus Carota
 Delphinium Consolida
-Delphinium Elatum
+Elatum
 Dentaria Bulbifera
-Dentaria Diphylla
+Diphylla
 Deschampsia Cespitosa
-Deschampsia Flexuosa
+Flexuosa
 Dianthus Armeria
-Dianthus Barbatus
-Dianthus Carthusianorum
-Dianthus Deltoides
-Dianthus Plumarius
+Barbatus
+Carthusianorum
+Deltoides
+Plumarius
 Dictamnus Albus
 Digitalis Grandiflora
-Digitalis Lutea
-Digitalis Purpurea
+Lutea
+Purpurea
 Dioscorea Villosa
 Diospyros Virginiana
 Dipsacus Fullonum
-Dipsacus Laciniatus
+Laciniatus
 Doronicum Pardalianches
 Draba Verna
 Dryopteris Affinis
-Dryopteris Carthusiana
-Dryopteris Dilatata
-Dryopteris Filix Mas
+Carthusiana
+Dilatata
+Filix Mas
 Echinacea Angustifolia
-Echinacea Pallida
-Echinacea Purpurea
+Pallida
 Echium Vulgare
 Elytrigia Repens
 Empetrum Nigrum
 Epilobium Hirsutum
-Epilobium Montanum
-Epilobium Palustre
+Montanum
 Epimedium Alpinum
 Epipactis Helleborine
-Epipactis Palustris
+Palustris
 Equisetum Arvense
-Equisetum Hyemale
-Equisetum Palustre
-Equisetum Sylvaticum
+Hyemale
+Sylvaticum
 Eragrostis Minor
 Erica Carnea
-Erica Cinerea
-Erica Tetralix
-Erica Vagans
+Cinerea
+Tetralix
+Vagans
 Eriophorum Angustifolium
 Erodium Cicutarium
 Eryngium Campestre
-Eryngium Maritimum
-Eryngium Planum
+Maritimum
+Planum
 Euonymus Europaeus
 Eupatorium Cannabinum
-Eupatorium Perfoliatum
+Perfoliatum
 Euphorbia Amygdaloides
-Euphorbia Cyparissias
-Euphorbia Helioscopia
-Euphorbia Lathyris
-Euphorbia Peplus
-Euphorbia Platyphyllos
+Cyparissias
+Helioscopia
+Lathyris
+Peplus
+Platyphyllos
 Euphrasia Rostkoviana
 Fagus Grandifolia
-Fagus Sylvatica
 Festuca Altissima
-Festuca Ovina
-Festuca Pratensis
-Festuca Rubra
+Ovina
 Filipendula Ulmaria
-Filipendula Vulgaris
 Foeniculum Vulgare
 Fragaria Vesca
-Fragaria Virginiana
+Virginiana
 Frangula Alnus
-Frangula Purshiana
+Purshiana
 Fraxinus Americana
-Fraxinus Excelsior
-Fraxinus Nigra
-Fraxinus Pennsylvanica
-Fraxinus Profunda
+Excelsior
+Pennsylvanica
+Profunda
 Fumaria Officinalis
 Galeopsis Tetrahit
 Galium Aparine
-Galium Mollugo
-Galium Odoratum
-Galium Saxatile
-Galium Verum
+Mollugo
+Odoratum
+Saxatile
+Verum
 Geranium Molle
-Geranium Pratense
-Geranium Robertianum
-Geranium Sanguineum
-Geranium Sylvaticum
+Pratense
+Robertianum
+Sanguineum
 Geum Rivale
-Geum Urbanum
+Urbanum
 Gleditsia Triacanthos
 Glyceria Fluitans
-Glyceria Maxima
 Glycine Max
 Gymnocarpium Dryopteris
 Hamamelis Virginiana
 Hedera Helix
 Helianthus Annuus
-Helianthus Tuberosus
+Tuberosus
 Helictochloa Pratensis
 Helleborus Foetidus
-Helleborus Niger
-Helleborus Viridis
+Niger
+Viridis
 Hepatica Nobilis
 Heracleum Lanatum
-Heracleum Sphondylium
+Sphondylium
 Hesperis Matronalis
 Hieracium Aurantiacum
-Hieracium Pilosella
-Hieracium Umbellatum
+Pilosella
+Umbellatum
 Holcus Lanatus
-Holcus Mollis
 Hordeum Jubatum
-Hordeum Murinum
-Hordeum Vulgare
+Murinum
 Hosta Plantaginea
 Humulus Lupulus
 Hyacinthoides Non Scripta
 Hydrangea Arborescens
-Hydrangea Paniculata
+Paniculata
 Hydrophyllum Virginianum
 Hypericum Calycinum
-Hypericum Perforatum
-Hypericum Prolificum
-Hypericum Punctatum
+Perforatum
+Prolificum
+Punctatum
 Impatiens Capensis
-Impatiens Noli Tangere
+Noli Tangere
 Inula Helenium
 Iris Germanica
-Iris Pallida
-Iris Pseudacorus
-Iris Sibirica
-Iris Versicolor
+Pseudacorus
+Sibirica
+Versicolor
 Juncus Bufonius
-Juncus Effusus
-Juncus Inflexus
+Effusus
+Inflexus
 Juniperus Communis
-Juniperus Horizontalis
-Juniperus Scopulorum
-Juniperus Virginiana
+Horizontalis
+Scopulorum
 Kalmia Angustifolia
-Kalmia Latifolia
+Latifolia
 Knautia Arvensis
 Laburnum Anagyroides
 Lactuca Serriola
-Lactuca Virosa
 Lamium Album
-Lamium Galeobdolon
-Lamium Maculatum
-Lamium Purpureum
+Galeobdolon
+Purpureum
 Larix Decidua
-Larix Kaempferi
-Larix Laricina
-Larix Occidentalis
+Kaempferi
+Laricina
 Lathraea Squamaria
 Lathyrus Japonicus
-Lathyrus Latifolius
-Lathyrus Niger
-Lathyrus Odoratus
-Lathyrus Pratensis
-Lathyrus Sylvestris
+Latifolius
+Odoratus
 Lavandula Angustifolia
 Lemna Gibba
-Lemna Minor
+Minor
 Leonurus Cardiaca
 Leucanthemum Vulgare
 Ligustrum Vulgare
 Lilium Bulbiferum
-Lilium Candidum
-Lilium Martagon
-Lilium Philadelphicum
+Candidum
+Martagon
+Philadelphicum
 Linaria Vulgaris
 Linum Catharticum
-Linum Usitatissimum
+Usitatissimum
 Liriodendron Tulipifera
 Listera Ovata
 Lobelia Cardinalis
-Lobelia Inflata
-Lobelia Siphilitica
+Inflata
+Siphilitica
 Lonicera Caprifolium
-Lonicera Japonica
-Lonicera Periclymenum
-Lonicera Xylosteum
+Japonica
+Periclymenum
+Xylosteum
 Lotus Corniculatus
 Lupinus Angustifolius
-Lupinus Luteus
-Lupinus Perennis
-Lupinus Polyphyllus
+Luteus
+Perennis
+Polyphyllus
 Luzula Campestris
-Luzula Sylvatica
 Lychnis Flos Cuculi
 Lycopus Europaeus
 Lysimachia Nummularia
-Lysimachia Thyrsiflora
-Lysimachia Vulgaris
+Thyrsiflora
 Lythrum Salicaria
 Magnolia Acuminata
-Magnolia Grandiflora
-Magnolia Tripetala
-Magnolia Virginiana
+Grandiflora
+Tripetala
 Mahonia Aquifolium
 Malus Baccata
-Malus Domestica
-Malus Sylvestris
+Domestica
 Malva Moschata
-Malva Neglecta
-Malva Sylvestris
+Neglecta
 Marrubium Vulgare
 Matricaria Chamomilla
 Medicago Lupulina
-Medicago Sativa
 Melampyrum Pratense
 Melilotus Albus
-Melilotus Officinalis
 Melissa Officinalis
 Mentha Aquatica
-Mentha Arvensis
-Mentha Longifolia
-Mentha Piperita
-Mentha Pulegium
-Mentha Spicata
+Arvensis
+Longifolia
+Piperita
+Pulegium
+Spicata
 Mercurialis Annua
-Mercurialis Perennis
 Moehringia Trinervia
 Molinia Caerulea
 Monarda Didyma
-Monarda Fistulosa
+Fistulosa
 Muscari Armeniacum
 Myosotis Arvensis
-Myosotis Scorpioides
-Myosotis Sylvatica
+Scorpioides
 Myrica Gale
-Myrica Pensylvanica
+Pensylvanica
 Narcissus Cyclamineus
-Narcissus Poeticus
-Narcissus Pseudonarcissus
+Poeticus
+Pseudonarcissus
 Nardus Stricta
 Nasturtium Officinale
 Neottia Ovata
@@ -481,520 +440,427 @@ Nicotiana Tabacum
 Nigella Damascena
 Nuphar Lutea
 Nymphaea Alba
-Nymphaea Odorata
-Nymphaea Tetragona
+Odorata
+Tetragona
 Nyssa Sylvatica
 Oenanthe Aquatica
-Oenanthe Crocata
+Crocata
 Oenothera Biennis
-Oenothera Fruticosa
+Fruticosa
 Ophrys Apifera
-Ophrys Insectifera
+Insectifera
 Orchis Mascula
-Orchis Militaris
-Orchis Morio
-Orchis Purpurea
-Orchis Simia
+Militaris
+Morio
+Simia
 Origanum Vulgare
 Osmunda Cinnamomea
-Osmunda Claytoniana
-Osmunda Regalis
+Claytoniana
+Regalis
 Oxalis Acetosella
-Oxalis Stricta
+Stricta
 Oxyria Digyna
 Paeonia Lactiflora
-Paeonia Mascula
-Paeonia Officinalis
+Mascula
 Panicum Virgatum
 Papaver Rhoeas
-Papaver Somniferum
+Somniferum
 Parietaria Officinalis
 Parthenocissus Quinquefolia
 Petasites Hybridus
 Petroselinum Crispum
 Phaseolus Coccineus
-Phaseolus Vulgaris
 Phleum Pratense
 Phlox Divaricata
-Phlox Maculata
-Phlox Paniculata
 Physalis Alkekengi
 Picea Abies
-Picea Glauca
-Picea Mariana
-Picea Pungens
-Picea Rubens
-Picea Sitchensis
+Glauca
+Mariana
+Pungens
+Rubens
+Sitchensis
 Pieris Floribunda
 Pimpinella Major
-Pimpinella Saxifraga
+Saxifraga
 Pinus Banksiana
-Pinus Cembra
-Pinus Contorta
-Pinus Echinata
-Pinus Jeffreyi
-Pinus Lambertiana
-Pinus Monticola
-Pinus Muricata
-Pinus Palustris
-Pinus Pinaster
-Pinus Pinea
-Pinus Ponderosa
-Pinus Radiata
-Pinus Resinosa
-Pinus Rigida
-Pinus Serotina
-Pinus Strobus
-Pinus Sylvestris
-Pinus Taeda
-Pinus Virginiana
+Cembra
+Contorta
+Echinata
+Jeffreyi
+Lambertiana
+Monticola
+Muricata
+Pinaster
+Pinea
+Ponderosa
+Radiata
+Resinosa
+Rigida
+Serotina
+Strobus
+Taeda
 Platanthera Bifolia
-Platanthera Chlorantha
-Platanthera Ciliaris
-Platanthera Dilatata
+Chlorantha
+Ciliaris
 Platanus Occidentalis
-Platanus Orientalis
+Orientalis
 Poa Annua
-Poa Nemoralis
-Poa Pratensis
-Poa Trivialis
+Nemoralis
+Trivialis
 Podophyllum Peltatum
 Polygala Vulgaris
 Polygonatum Multiflorum
-Polygonatum Odoratum
 Polygonum Amphibium
-Polygonum Aviculare
-Polygonum Bistorta
+Aviculare
+Bistorta
 Polypodium Glycyrrhiza
-Polypodium Vulgare
 Polystichum Aculeatum
-Polystichum Munitum
-Polystichum Setiferum
+Munitum
+Setiferum
 Populus Alba
-Populus Balsamifera
-Populus Deltoides
-Populus Grandidentata
-Populus Nigra
-Populus Tremula
-Populus Tremuloides
-Populus Trichocarpa
+Balsamifera
+Grandidentata
+Tremula
+Tremuloides
+Trichocarpa
 Potamogeton Crispus
-Potamogeton Natans
+Natans
 Potentilla Anserina
-Potentilla Erecta
-Potentilla Fruticosa
-Potentilla Reptans
+Erecta
+Reptans
 Primula Elatior
-Primula Farinosa
-Primula Veris
-Primula Vulgaris
+Farinosa
+Veris
 Prunus Americana
-Prunus Armeniaca
-Prunus Avium
-Prunus Cerasus
-Prunus Domestica
-Prunus Laurocerasus
-Prunus Mahaleb
-Prunus Padus
-Prunus Pensylvanica
-Prunus Persica
-Prunus Serotina
-Prunus Serrulata
-Prunus Spinosa
-Prunus Virginiana
+Armeniaca
+Avium
+Cerasus
+Laurocerasus
+Mahaleb
+Padus
+Persica
+Spinosa
 Pseudotsuga Menziesii
 Pteridium Aquilinum
 Pulmonaria Officinalis
 Quercus Alba
-Quercus Bicolor
-Quercus Coccinea
-Quercus Ellipsoidalis
-Quercus Falcata
-Quercus Imbricaria
-Quercus Lyrata
-Quercus Macrocarpa
-Quercus Marilandica
-Quercus Michauxii
-Quercus Muehlenbergii
-Quercus Palustris
-Quercus Petraea
-Quercus Prinus
-Quercus Robur
-Quercus Rubra
-Quercus Stellata
-Quercus Velutina
+Bicolor
+Coccinea
+Ellipsoidalis
+Falcata
+Imbricaria
+Lyrata
+Macrocarpa
+Marilandica
+Michauxii
+Muehlenbergii
+Petraea
+Prinus
+Robur
+Stellata
+Velutina
 Ranunculus Acris
-Ranunculus Aquatilis
-Ranunculus Ficaria
-Ranunculus Flammula
-Ranunculus Repens
-Ranunculus Sceleratus
+Ficaria
+Flammula
+Repens
+Sceleratus
 Raphanus Raphanistrum
-Raphanus Sativus
+Sativus
 Rhinanthus Minor
 Rhodiola Rosea
 Rhododendron Catawbiense
-Rhododendron Ferrugineum
-Rhododendron Maximum
-Rhododendron Ponticum
+Ferrugineum
+Maximum
+Ponticum
 Rhus Aromatica
-Rhus Glabra
-Rhus Typhina
+Glabra
+Typhina
 Ribes Alpinum
-Ribes Americanum
-Ribes Glandulosum
-Ribes Nigrum
-Ribes Rubrum
-Ribes Sanguineum
-Ribes Uva Crispa
+Americanum
+Glandulosum
+Nigrum
+Uva Crispa
 Robinia Pseudoacacia
 Rosa Arvensis
-Rosa Canina
-Rosa Carolina
-Rosa Damascena
-Rosa Eglanteria
-Rosa Gallica
-Rosa Palustris
-Rosa Rugosa
-Rosa Spinosissima
+Canina
+Carolina
+Damascena
+Eglanteria
+Gallica
+Rugosa
+Spinosissima
 Rubus Allegheniensis
-Rubus Arcticus
-Rubus Chamaemorus
-Rubus Flagellaris
-Rubus Idaeus
-Rubus Laciniatus
-Rubus Occidentalis
-Rubus Parviflorus
-Rubus Pubescens
-Rubus Spectabilis
-Rubus Ursinus
+Arcticus
+Chamaemorus
+Flagellaris
+Idaeus
+Parviflorus
+Spectabilis
+Ursinus
 Rumex Acetosa
-Rumex Acetosella
-Rumex Crispus
-Rumex Obtusifolius
+Acetosella
+Crispus
+Obtusifolius
 Sagittaria Latifolia
-Sagittaria Sagittifolia
+Sagittifolia
 Salix Alba
-Salix Babylonica
-Salix Caprea
-Salix Cinerea
-Salix Exigua
-Salix Fragilis
-Salix Interior
-Salix Lucida
-Salix Nigra
-Salix Pentandra
-Salix Purpurea
-Salix Viminalis
+Babylonica
+Caprea
+Exigua
+Fragilis
+Interior
+Lucida
+Pentandra
+Viminalis
 Sambucus Canadensis
-Sambucus Ebulus
-Sambucus Nigra
-Sambucus Racemosa
+Ebulus
 Sanguinaria Canadensis
 Sanguisorba Minor
-Sanguisorba Officinalis
 Scirpus Lacustris
 Scrophularia Nodosa
-Scrophularia Umbrosa
+Umbrosa
 Securigera Varia
 Sedum Acre
-Sedum Album
-Sedum Rosea
-Sedum Telephium
+Album
+Rosea
+Telephium
 Selaginella Selaginoides
 Senecio Aquaticus
-Senecio Jacobaea
-Senecio Sylvaticus
-Senecio Vulgaris
+Jacobaea
+Sylvaticus
 Silene Dioica
-Silene Flos Cuculi
-Silene Latifolia
-Silene Nutans
-Silene Uniflora
-Silene Vulgaris
+Flos Cuculi
+Nutans
+Uniflora
 Sinapis Arvensis
-Sinapis Alba
+Alba
 Sisymbrium Officinale
 Sium Latifolium
 Solanum Dulcamara
-Solanum Lycopersicum
-Solanum Nigrum
-Solanum Tuberosum
+Lycopersicum
+Tuberosum
 Solidago Canadensis
-Solidago Nemoralis
-Solidago Rugosa
-Solidago Virgaurea
+Virgaurea
 Sorbus Americana
-Sorbus Aria
-Sorbus Aucuparia
-Sorbus Domestica
-Sorbus Intermedia
-Sorbus Torminalis
+Aria
+Aucuparia
+Intermedia
+Torminalis
 Sparganium Erectum
 Spartina Alternifolia
-Spartina Pectinata
+Pectinata
 Spergula Arvensis
 Stachys Betonica
-Stachys Byzantina
-Stachys Officinalis
-Stachys Palustris
-Stachys Sylvatica
+Byzantina
 Stellaria Graminea
-Stellaria Holostea
-Stellaria Media
+Holostea
+Media
 Streptopus Amplexifolius
 Succisa Pratensis
 Symphoricarpos Albus
-Symphoricarpos Orbiculatus
+Orbiculatus
 Symphytum Officinale
 Syringa Vulgaris
 Tanacetum Parthenium
-Tanacetum Vulgare
 Taraxacum Officinale
 Taxus Baccata
-Taxus Brevifolia
-Taxus Canadensis
+Brevifolia
 Thalictrum Aquilegiifolium
-Thalictrum Dioicum
-Thalictrum Flavum
-Thalictrum Minus
+Dioicum
+Flavum
 Thuja Occidentalis
-Thuja Plicata
+Plicata
 Thymus Praecox
-Thymus Pulegioides
-Thymus Serpyllum
-Thymus Vulgaris
+Pulegioides
+Serpyllum
 Tilia Americana
-Tilia Cordata
-Tilia Platyphyllos
+Cordata
 Trifolium Hybridum
-Trifolium Medium
-Trifolium Pratense
-Trifolium Repens
+Medium
 Trillium Erectum
-Trillium Grandiflorum
-Trillium Ovatum
+Grandiflorum
+Ovatum
 Tsuga Canadensis
-Tsuga Heterophylla
-Tsuga Mertensiana
+Heterophylla
+Mertensiana
 Tussilago Farfara
 Typha Angustifolia
-Typha Latifolia
 Ulmus Americana
-Ulmus Glabra
-Ulmus Minor
-Ulmus Pumila
-Ulmus Rubra
-Ulmus Thomasii
+Pumila
+Thomasii
 Urtica Dioica
 Vaccinium Angustifolium
-Vaccinium Corymbosum
-Vaccinium Macrocarpon
-Vaccinium Myrtillus
-Vaccinium Oxycoccos
-Vaccinium Uliginosum
-Vaccinium Vitis Idaea
+Corymbosum
+Macrocarpon
+Myrtillus
+Oxycoccos
+Uliginosum
+Vitis Idaea
 Valeriana Dioica
-Valeriana Officinalis
 Verbascum Nigrum
-Verbascum Thapsus
+Thapsus
 Verbena Hastata
-Verbena Officinalis
 Veronica Beccabunga
-Veronica Chamaedrys
-Veronica Officinalis
-Veronica Serpyllifolia
+Chamaedrys
+Serpyllifolia
 Viburnum Acerifolium
-Viburnum Dentatum
-Viburnum Lantana
-Viburnum Lentago
-Viburnum Opulus
-Viburnum Prunifolium
-Viburnum Recognitum
+Dentatum
+Lantana
+Lentago
+Opulus
+Prunifolium
+Recognitum
 Vicia Cracca
-Vicia Faba
-Vicia Sativa
-Vicia Sepium
+Faba
+Sepium
 Vinca Minor
 Viola Arvensis
-Viola Canina
-Viola Hirta
-Viola Odorata
-Viola Palustris
-Viola Reichenbachiana
-Viola Riviniana
-Viola Tricolor
+Reichenbachiana
+Riviniana
+Tricolor
 Waldsteinia Fragarioides
-Waldsteinia Geoides
+Geoides
 Weigela Florida
 Xanthium Strumarium
 Zea Mays
 Zigadenus Elegans
-Zigadenus Venenosus
-Agrostis Canina
+Venenosus
 Aira Caryophyllea
-Aira Praecox
-Alopecurus Geniculatus
-Alopecurus Myosuroides
-Anthoxanthum Aristatum
+Praecox
+Geniculatus
+Myosuroides
+Aristatum
 Apera Spica Venti
 Brachypodium Pinnatum
-Brachypodium Sylvaticum
 Briza Media
-Bromus Erectus
-Bromus Hordeaceus
-Bromus Ramosus
+Erectus
+Hordeaceus
+Ramosus
 Calamagrostis Canescens
-Calamagrostis Epigejos
-Carex Acutiformis
-Carex Arenaria
-Carex Bigelowii
-Carex Binervis
-Carex Capillaris
-Carex Caryophyllea
-Carex Diandra
-Carex Dioica
-Carex Distans
-Carex Echinata
-Carex Elata
-Carex Elongata
-Carex Flava
-Carex Hostiana
-Carex Lachenalii
-Carex Lasiocarpa
-Carex Laevigata
-Carex Limosa
-Carex Maritima
-Carex Nigra
-Carex Ovalis
-Carex Panicea
-Carex Paniculata
-Carex Pilulifera
-Carex Pseudocyperus
-Carex Pulicaris
-Carex Remota
-Carex Riparia
-Carex Rostrata
-Carex Strigosa
-Carex Vesicaria
-Carex Viridula
-Carex Vulpina
+Epigejos
+Acutiformis
+Arenaria
+Bigelowii
+Binervis
+Caryophyllea
+Diandra
+Dioica
+Distans
+Elata
+Elongata
+Flava
+Hostiana
+Lachenalii
+Limosa
+Maritima
+Ovalis
+Panicea
+Pilulifera
+Pseudocyperus
+Pulicaris
+Remota
+Riparia
+Rostrata
+Strigosa
+Vesicaria
+Viridula
+Vulpina
 Cynosurus Cristatus
 Danthonia Decumbens
 Digitaria Sanguinalis
 Elymus Caninus
-Elymus Repens
-Glyceria Declinata
-Glyceria Notata
-Juncus Acutiflorus
-Juncus Articulatus
-Juncus Compressus
-Juncus Conglomeratus
-Juncus Gerardii
-Juncus Maritimus
-Juncus Squarrosus
-Juncus Subnodulosus
+Declinata
+Notata
+Acutiflorus
+Articulatus
+Compressus
+Conglomeratus
+Gerardii
+Maritimus
+Squarrosus
+Subnodulosus
 Koeleria Macrantha
 Lolium Multiflorum
-Lolium Perenne
+Perenne
 Melica Nutans
-Melica Uniflora
 Milium Effusum
-Molinia Arundinacea
-Nardus Stricta
+Arundinacea
 Phalaris Arundinacea
 Phragmites Australis
-Poa Bulbosa
-Poa Compressa
-Poa Palustris
-Scirpus Cespitosus
-Scirpus Fluitans
-Scirpus Sylvaticus
+Bulbosa
+Compressa
+Cespitosus
+Fluitans
 Setaria Pumila
-Setaria Viridis
-Spartina Anglica
+Anglica
 Trisetum Flavescens
-Acer Spicatum
-Amelanchier Bartramiana
+Spicatum
+Bartramiana
 Aronia Arbutifolia
-Aronia Melanocarpa
+Melanocarpa
 Chaenomeles Speciosa
 Cotoneaster Horizontalis
-Cotoneaster Lacteus
-Crataegus Chrysocarpa
-Crataegus Douglasii
-Crataegus Flabellata
-Crataegus Succulenta
-Geum Canadense
-Geum Laciniatum
-Geum Macrophyllum
-Geum Rossii
-Malus Floribunda
+Lacteus
+Chrysocarpa
+Douglasii
+Flabellata
+Succulenta
+Canadense
+Laciniatum
+Rossii
+Floribunda
 Physocarpus Capitatus
-Physocarpus Opulifolius
-Potentilla Arguta
-Potentilla Canadensis
-Potentilla Norvegica
-Potentilla Palustris
-Prunus Alleghaniensis
-Prunus Angustifolia
-Prunus Besseyi
-Prunus Mexicana
-Prunus Munsoniana
-Prunus Nigra
-Rosa Acicularis
-Rosa Blanda
-Rosa Californica
-Rosa Majalis
-Rosa Nutkana
-Rosa Palustris
-Rosa Stellata
-Rosa Woodsii
-Rubus Acaulis
-Rubus Canadensis
-Rubus Hispidus
-Rubus Odoratus
-Rubus Setosus
-Rubus Strigosus
-Sorbus Scopulina
+Opulifolius
+Arguta
+Norvegica
+Alleghaniensis
+Angustifolia
+Besseyi
+Mexicana
+Munsoniana
+Acicularis
+Blanda
+Californica
+Nutkana
+Woodsii
+Acaulis
+Hispidus
+Setosus
+Strigosus
+Scopulina
 Spiraea Alba
-Spiraea Latifolia
-Spiraea Tomentosa
+Tomentosa
 Arachis Hypogaea
-Astragalus Cicer
-Astragalus Danicus
+Cicer
+Danicus
 Caragana Arborescens
-Caragana Frutex
+Frutex
 Colutea Arborescens
 Coronilla Emerus
-Coronilla Varia
+Varia
 Galega Officinalis
-Gleditsia Aquatica
+Aquatica
 Gymnocladus Dioicus
 Hippocrepis Comosa
-Lathyrus Palustris
-Lathyrus Tuberosus
-Lathyrus Vernus
-Lotus Uliginosus
-Medicago Falcata
-Medicago Minima
+Vernus
+Uliginosus
+Minima
 Onobrychis Viciifolia
 Ornithopus Perpusillus
-Phaseolus Lunatus
+Lunatus
 Pisum Sativum
-Robinia Viscosa
-Securigera Montana
-Trifolium Aureum
-Trifolium Campestre
-Trifolium Dubium
-Trifolium Fragiferum
+Viscosa
+Montana
+Aureum
+Campestre
+Dubium
+Fragiferum
 Trigonella Foenum Graecum
 Ulex Europaeus
-Vicia Hirsuta
-Vicia Sylvatica
-Vicia Tenuifolia
-Vicia Tetrasperma
-Vicia Villosa
+Hirsuta
+Tenuifolia
+Tetrasperma
+Villosa
 Wisteria Frutescens
-Wisteria Sinensis
+Sinensis
 Zanthoxylum Americanum
