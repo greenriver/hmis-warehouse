@@ -12,8 +12,8 @@ module HmisSimulation
     # Called at enrollment entry for street/shelter populations, and
     # periodically for ongoing enrollments (future enhancement).
     class ClsBuilder < BaseBuilder
-      def initialize(enrollment:, date:, situation_code:, data_source:, user_id:)
-        super(data_source: data_source, user_id: user_id)
+      def initialize(enrollment:, date:, situation_code:, data_source:, user_id:, id_generator: FakeIdentifier)
+        super(data_source: data_source, user_id: user_id, id_generator: id_generator)
         @enrollment      = enrollment
         @date            = date
         @situation_code  = situation_code
@@ -22,7 +22,7 @@ module HmisSimulation
       def build!
         Hmis::Hud::CurrentLivingSituation.create!(
           **audit_attrs(@date),
-          CurrentLivingSitID: FakeIdentifier.uuid,
+          CurrentLivingSitID: @id_gen.uuid,
           EnrollmentID: @enrollment.EnrollmentID,
           PersonalID: @enrollment.PersonalID,
           InformationDate: @date,

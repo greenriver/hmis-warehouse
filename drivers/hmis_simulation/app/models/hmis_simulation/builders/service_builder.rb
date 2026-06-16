@@ -15,8 +15,8 @@ module HmisSimulation
     class ServiceBuilder < BaseBuilder
       BED_NIGHT = 200
 
-      def initialize(enrollment:, date:, data_source:, user_id:)
-        super(data_source: data_source, user_id: user_id)
+      def initialize(enrollment:, date:, data_source:, user_id:, id_generator: FakeIdentifier)
+        super(data_source: data_source, user_id: user_id, id_generator: id_generator)
         @enrollment = enrollment
         @date       = date
       end
@@ -24,7 +24,7 @@ module HmisSimulation
       def build_bed_night!
         Hmis::Hud::Service.create!(
           **audit_attrs(@date),
-          ServicesID: FakeIdentifier.uuid,
+          ServicesID: @id_gen.uuid,
           EnrollmentID: @enrollment.EnrollmentID,
           PersonalID: @enrollment.PersonalID,
           DateProvided: @date,

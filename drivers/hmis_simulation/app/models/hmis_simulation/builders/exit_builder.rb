@@ -11,8 +11,8 @@ module HmisSimulation
     # Creates an Exit record for a single Enrollment.
     # Samples the Destination field from the weighted exit_destinations map.
     class ExitBuilder < BaseBuilder
-      def initialize(enrollment:, exit_date:, exit_destinations:, data_source:, user_id:, seed:, context_prefix:)
-        super(data_source: data_source, user_id: user_id)
+      def initialize(enrollment:, exit_date:, exit_destinations:, data_source:, user_id:, seed:, context_prefix:, id_generator: FakeIdentifier)
+        super(data_source: data_source, user_id: user_id, id_generator: id_generator)
         @enrollment        = enrollment
         @exit_date         = exit_date
         @exit_destinations = exit_destinations
@@ -25,7 +25,7 @@ module HmisSimulation
 
         Hmis::Hud::Exit.create!(
           **audit_attrs(@exit_date),
-          ExitID: FakeIdentifier.uuid,
+          ExitID: @id_gen.uuid,
           EnrollmentID: @enrollment.EnrollmentID,
           PersonalID: @enrollment.PersonalID,
           ExitDate: @exit_date,

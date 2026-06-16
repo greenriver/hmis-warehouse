@@ -30,9 +30,10 @@ module HmisSimulation
         user_id:,
         date:,
         seed:,
-        context_prefix:
+        context_prefix:,
+        id_generator: FakeIdentifier
       )
-        super(data_source: data_source, user_id: user_id)
+        super(data_source: data_source, user_id: user_id, id_generator: id_generator)
         @template      = (household_template || {}).deep_stringify_keys
         @template_name = household_template_name
         @dq            = (data_quality_config || {}).deep_stringify_keys
@@ -42,7 +43,7 @@ module HmisSimulation
       end
 
       def build!
-        hud_household_id = FakeIdentifier.uuid
+        hud_household_id = @id_gen.uuid
         member_relationships = []
 
         # Build HoH
@@ -89,6 +90,7 @@ module HmisSimulation
           date: @date,
           seed: @seed,
           context_prefix: context,
+          id_generator: @id_gen,
         ).build!
       end
 

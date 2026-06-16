@@ -55,8 +55,8 @@ module HmisSimulation
         'mid_east_n_african' => :MidEastNAfrican,
       }.freeze
 
-      def initialize(client_config:, data_quality_config:, data_source:, user_id:, date:, seed:, context_prefix:)
-        super(data_source: data_source, user_id: user_id)
+      def initialize(client_config:, data_quality_config:, data_source:, user_id:, date:, seed:, context_prefix:, id_generator: FakeIdentifier)
+        super(data_source: data_source, user_id: user_id, id_generator: id_generator)
         @cfg    = (client_config || {}).deep_stringify_keys
         @dq     = (data_quality_config || {}).deep_stringify_keys
         @date   = date
@@ -66,7 +66,7 @@ module HmisSimulation
 
       def build!
         @sampled_age = sample_age
-        personal_id = FakeIdentifier.uuid
+        personal_id = @id_gen.uuid
         first_name, last_name, name_dq = build_name
         ssn, ssn_dq                   = build_ssn
         dob, dob_dq                   = build_dob
@@ -89,7 +89,7 @@ module HmisSimulation
 
         custom_name = Hmis::Hud::CustomClientName.new(
           **audit_attrs(@date).except(:ExportID),
-          CustomClientNameID: FakeIdentifier.uuid,
+          CustomClientNameID: @id_gen.uuid,
           PersonalID: personal_id,
           first: first_name,
           last: last_name,
@@ -114,7 +114,7 @@ module HmisSimulation
         if roll_rate('missing_name_rate', 'name_missing')
           [nil, nil, 99]
         else
-          [FakeIdentifier.first_name(rng: rng('first_name')), FakeIdentifier.last_name(rng: rng('last_name')), 1]
+          [@id_gen.first_name(rng: rng('first_name')), @id_gen.last_name(rng: rng('last_name')), 1]
         end
       end
 
@@ -124,7 +124,7 @@ module HmisSimulation
         if roll_rate('missing_ssn_rate', 'ssn_missing')
           [nil, 99]
         else
-          [FakeIdentifier.ssn(rng: rng('ssn')), 1]
+          [@id_gen.ssn(rng: rng('ssn')), 1]
         end
       end
 

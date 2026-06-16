@@ -23,15 +23,17 @@ module HmisSimulation
       PLACE_NOT_MEANT_FOR_HABITATION = 116
       DATA_COLLECTION_STAGES = { entry: 1, update: 2, exit: 3, annual: 5 }.freeze
 
-      def initialize(data_source:, user_id:)
-        @ds  = data_source
-        @uid = user_id
+      def initialize(data_source:, user_id:, id_generator: FakeIdentifier)
+        @ds     = data_source
+        @uid    = user_id
+        @id_gen = id_generator
       end
 
       # Creates a minimal solo (single-person, no household) HUD enrollment.
       # Used by ConcurrentEnrollmentBuilder, LifecycleEnrollmentBuilder, and Engine.
       def self.create_solo_enrollment(
         client:, project:, date:, coc_code:, data_source:, user_id:,
+        id_generator: FakeIdentifier,
         living_situation: PLACE_NOT_MEANT_FOR_HABITATION, date_of_engagement: nil
       )
         Hmis::Hud::Enrollment.create!(
@@ -40,11 +42,11 @@ module HmisSimulation
           ExportID: EXPORT_ID,
           DateCreated: date.to_datetime,
           DateUpdated: date.to_datetime,
-          EnrollmentID: FakeIdentifier.uuid,
+          EnrollmentID: id_generator.uuid,
           PersonalID: client.PersonalID,
           project_pk: project.id,
           ProjectID: project.ProjectID,
-          HouseholdID: FakeIdentifier.uuid,
+          HouseholdID: id_generator.uuid,
           EntryDate: date,
           RelationshipToHoH: 1,
           DisablingCondition: 99,
@@ -74,6 +76,7 @@ module HmisSimulation
           coc_code: coc_code,
           data_source: @ds,
           user_id: @uid,
+          id_generator: @id_gen,
           **opts,
         )
       end

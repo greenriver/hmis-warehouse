@@ -25,8 +25,8 @@ module HmisSimulation
         'unemployment' => { field: :Unemployment, amount_field: :UnemploymentAmount, typical_amount: 800 },
       }.freeze
 
-      def initialize(enrollment:, date:, stage:, income_config:, data_source:, user_id:, rng_seed:)
-        super(data_source: data_source, user_id: user_id)
+      def initialize(enrollment:, date:, stage:, income_config:, data_source:, user_id:, rng_seed:, id_generator: FakeIdentifier)
+        super(data_source: data_source, user_id: user_id, id_generator: id_generator)
         @enrollment    = enrollment
         @date          = date
         @stage         = stage
@@ -40,7 +40,7 @@ module HmisSimulation
 
         Hmis::Hud::IncomeBenefit.create!(
           **audit_attrs(@date),
-          IncomeBenefitsID: FakeIdentifier.uuid,
+          IncomeBenefitsID: @id_gen.uuid,
           EnrollmentID: @enrollment.EnrollmentID,
           PersonalID: @enrollment.PersonalID,
           InformationDate: @date,
