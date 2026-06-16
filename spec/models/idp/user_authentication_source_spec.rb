@@ -8,7 +8,7 @@
 
 require 'rails_helper'
 
-RSpec.describe UserAuthenticationSource, type: :model do
+RSpec.describe Idp::UserAuthenticationSource, type: :model do
   let(:user) { create(:user) }
 
   describe 'validations' do
@@ -35,6 +35,21 @@ RSpec.describe UserAuthenticationSource, type: :model do
       described_class.create!(user: user, connector_id: 'idp-1', connector_user_id: 'uid-1')
       other = described_class.new(user: create(:user), connector_id: 'idp-1', connector_user_id: 'uid-2')
       expect(other).to be_valid
+    end
+  end
+
+  describe '#service_config' do
+    it 'resolves the active config sharing its connector_id' do
+      config = create(:idp_service_config, provider: 'keycloak', connector_id: 'keycloak-staff', keycloak_realm: 'staff')
+      source = described_class.create!(user: user, connector_id: 'keycloak-staff', connector_user_id: 'uid-1')
+
+      expect(source.service_config).to eq(config)
+      expect(source.service_config.keycloak_realm).to eq('staff')
+    end
+
+    it 'is nil when no managed config matches the connector_id' do
+      source = described_class.create!(user: user, connector_id: 'okta', connector_user_id: 'uid-1')
+      expect(source.service_config).to be_nil
     end
   end
 

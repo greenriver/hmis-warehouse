@@ -12,7 +12,7 @@ module JwtAuthenticationHelper
     mock_session_id = "mock-session-id-#{user.id}-#{SecureRandom.hex(4)}"
 
     jwt_helper = instance_double(
-      JwtHelper,
+      Idp::JwtHelper,
       token?: true,
       valid?: true,
       connector_id: 'test',
@@ -22,15 +22,15 @@ module JwtAuthenticationHelper
       session_id: mock_session_id,
     )
 
-    allow(JwtHelper).to receive(:authenticated?).and_wrap_original do |original_method, token|
+    allow(Idp::JwtHelper).to receive(:authenticated?).and_wrap_original do |original_method, token|
       token == mock_token ? true : original_method.call(token)
     end
 
-    allow(JwtHelper).to receive(:user_id_from_token).and_wrap_original do |original_method, token|
+    allow(Idp::JwtHelper).to receive(:user_id_from_token).and_wrap_original do |original_method, token|
       token == mock_token ? user.id : original_method.call(token)
     end
 
-    allow(JwtHelper).to receive(:new).and_wrap_original do |original_method, **kwargs|
+    allow(Idp::JwtHelper).to receive(:new).and_wrap_original do |original_method, **kwargs|
       kwargs[:access_token] == mock_token ? jwt_helper : original_method.call(**kwargs)
     end
 

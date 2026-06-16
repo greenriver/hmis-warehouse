@@ -1133,6 +1133,47 @@ ALTER SEQUENCE public.hmis_user_groups_id_seq OWNED BY public.hmis_user_groups.i
 
 
 --
+-- Name: idp_service_configs; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.idp_service_configs (
+    id bigint NOT NULL,
+    provider character varying NOT NULL,
+    connector_id character varying NOT NULL,
+    name character varying NOT NULL,
+    api_url character varying NOT NULL,
+    encrypted_service_token character varying NOT NULL,
+    encrypted_service_token_iv character varying,
+    client_id character varying,
+    keycloak_realm character varying,
+    okta_org_id character varying,
+    active boolean DEFAULT true NOT NULL,
+    deleted_at timestamp(6) without time zone,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: idp_service_configs_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.idp_service_configs_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: idp_service_configs_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.idp_service_configs_id_seq OWNED BY public.idp_service_configs.id;
+
+
+--
 -- Name: imports; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -2792,6 +2833,13 @@ ALTER TABLE ONLY public.hmis_user_groups ALTER COLUMN id SET DEFAULT nextval('pu
 
 
 --
+-- Name: idp_service_configs id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.idp_service_configs ALTER COLUMN id SET DEFAULT nextval('public.idp_service_configs_id_seq'::regclass);
+
+
+--
 -- Name: imports id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -3227,6 +3275,14 @@ ALTER TABLE ONLY public.hmis_user_group_members
 
 ALTER TABLE ONLY public.hmis_user_groups
     ADD CONSTRAINT hmis_user_groups_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: idp_service_configs idp_service_configs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.idp_service_configs
+    ADD CONSTRAINT idp_service_configs_pkey PRIMARY KEY (id);
 
 
 --
@@ -3811,6 +3867,13 @@ CREATE INDEX index_hmis_user_group_members_on_user_id ON public.hmis_user_group_
 
 
 --
+-- Name: index_idp_service_configs_on_connector_active_deleted; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_idp_service_configs_on_connector_active_deleted ON public.idp_service_configs USING btree (connector_id, active, deleted_at) WHERE ((active = true) AND (deleted_at IS NULL));
+
+
+--
 -- Name: index_imports_on_deleted_at; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -4298,6 +4361,7 @@ ALTER TABLE ONLY public.oauth_access_tokens
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260614130000'),
 ('20260611120000'),
 ('20260520213800'),
 ('20260207120000'),
