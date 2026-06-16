@@ -1,21 +1,25 @@
 # frozen_string_literal: true
 
 module Hmis::Ce::Match::Expression
+  # needs header comment - what is this class for? discussed maybe moving to gql layer
   class FieldMetadataResolver
-    def client_fields
-      ClientFieldMap.new.ce_match_fields.map do |attrs|
-        key = attrs.fetch('key')
+    # skip fields that we dont support yet in the expression builder. plan to add support for these fields, link ticket
+    def client_fields(excluded: [ClientFieldMap::Fields::DAYS_SINCE_LAST_EXIT.key, ClientFieldMap::Fields::OPEN_ENROLLMENT_PROJECT_TYPES.key])
+      field_map = ClientFieldMap.new
+
+      ClientFieldMap::Fields::ALL.reject { |field| excluded.include?(field.key) }.map do |field|
+        key = field.key.to_s
 
         FieldMetadata.new(
           id: key,
           key: key,
-          label: attrs['label'].presence || key.humanize,
-          item_type: attrs.fetch('item_type'),
-          repeats: attrs.fetch('repeats', false),
+          label: field_map.label_for(field.key),
+          item_type: graphql_item_type_for(field),
+          repeats: false, # we should get this from the field information. "open enrollment project types" for example is an array. (if that's what "repeats" means. maybe "repeats" indicates whether you can select multiple values for matching, which is a different concept than whether the field itself resolves to an array.)
           expression_field: key,
           form_definition_identifier: nil,
-          pick_list_options: attrs['pick_list_options'] || [],
-          pick_list_reference: attrs['pick_list_reference'],
+          pick_list_options: [],
+          pick_list_reference: field.pick_list,
         )
       end
     end
@@ -41,9 +45,9 @@ module Hmis::Ce::Match::Expression
         FieldMetadata.new(
           id: cded.id,
           key: cded.key,
-          label: metadata.fetch(:label),
-          item_type: metadata.fetch(:item_type),
-          repeats: metadata.fetch(:repeats, false),
+          label: cded.label,
+          item_type: metadata.fetch(:item_type), # use form item type instead of cded.field_type
+          repeats: cded.repeats,
           expression_field: CdeFieldMap.field_key_for(FieldMap::CUSTOM_ASSESSMENT, cded.key),
           form_definition_identifier: cded.form_definition_identifier,
           pick_list_options: metadata[:pick_list_reference].present? ? [] : metadata[:pick_list_options] || [],
@@ -53,6 +57,18 @@ module Hmis::Ce::Match::Expression
     end
 
     private
+
+    def graphql_item_type_for(field)
+      case field.value_type
+      when ValueType::NUMERIC then 'INTEGER'
+      when ValueType::LOGICAL then 'BOOLEAN'
+      when ValueType::DATETIME then 'DATE'
+      when ValueType::STRING
+        field.pick_list.present? ? 'CHOICE' : 'STRING'
+      else
+        raise ArgumentError, "unsupported value type for expression builder field #{field.key}"
+      end
+    end
 
     def form_versions_for(data_source_id, form_definition_identifier)
       Hmis::Form::Definition.
@@ -81,9 +97,7 @@ module Hmis::Ce::Match::Expression
           next unless key.present?
 
           metadata = metadata_by_key[key] ||= { pick_list_options: [] }
-          metadata[:label] ||= item['brief_text'].presence || item['text'].presence
           metadata[:item_type] ||= item['type']
-          metadata[:repeats] = item['repeats'] if !metadata.key?(:repeats) && item.key?('repeats')
           # Form versions are newest-first, so the newest item decides whether
           # this field is reference-backed. If historical versions used a
           # different reference, leave unusual legacy values to the free-text

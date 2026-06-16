@@ -4,6 +4,56 @@ module Hmis::Ce::Match::Expression
   # FieldMap implementation for GrdaWarehouse::Hud::Client fields
   # This class resolves fields that are columns on the `Client` table or one of its associations.
   class ClientFieldMap
+    # Catalog of client fields usable in CE Match Rule expressions.
+    module Fields
+      DAYS_SINCE_LAST_EXIT = ClientField.new(
+        key: :days_since_last_exit,
+        value_type: ValueType::NUMERIC,
+        description: 'Number of days since the client last exited an enrollment. If the client still has one ore more open enrollments, this field evaluates to 0.'
+      )
+
+      VETERAN_STATUS = ClientField.new(
+        key: :veteran_status,
+        value_type: ValueType::STRING, # isn't it numeric? not sure
+        pick_list: 'NoYesReasonsForMissingData',
+        # description: clients veteran status
+      )
+
+      CURRENT_AGE = ClientField.new(
+        key: :current_age,
+        value_type: ValueType::NUMERIC,
+        # description: clients current age in years
+      )
+
+      # Expression engine only; not yet available in the structured expression builder.
+      OPEN_ENROLLMENT_PROJECT_TYPES = ClientField.new(
+        key: :open_enrollment_project_types,
+        value_type: ValueType::NUMERIC, # integer array? or strings? unsure
+        # description: project types for which the client currently has an open enrollment (including incomplete enrollments)
+      )
+
+      OPEN_ENROLLMENT_PROJECT_TYPES_EXCLUDING_INCOMPLETE = ClientField.new(
+        key: :open_enrollment_project_types_excluding_incomplete,
+        value_type: ValueType::NUMERIC, # integer array? or strings? unsure
+        # description: project types for which the client currently has an open enrollment (excluding incomplete enrollments)
+      )
+
+      OPEN_REFERRAL_PROJECT_TYPES = ClientField.new(
+        key: :open_referral_project_types,
+        value_type: ValueType::NUMERIC, # integer array? or strings? unsure
+        # description: project types for which the client currently has an open referral
+      )
+
+      ALL = [
+        DAYS_SINCE_LAST_EXIT,
+        VETERAN_STATUS,
+        CURRENT_AGE,
+        OPEN_ENROLLMENT_PROJECT_TYPES,
+        OPEN_ENROLLMENT_PROJECT_TYPES_EXCLUDING_INCOMPLETE,
+        OPEN_REFERRAL_PROJECT_TYPES,
+      ].freeze
+    end
+
     attr_reader :current_date
 
     def initialize(current_date: Date.current)
@@ -27,7 +77,7 @@ module Hmis::Ce::Match::Expression
 
     # Label for user-facing display of resolved field
     def label_for(field)
-      field.humanize
+      field.to_s.humanize
     end
 
     # Value for user-facing display of resolved field
@@ -38,16 +88,6 @@ module Hmis::Ce::Match::Expression
       formatted
     end
 
-    # Returns client fields supported in the CE Match Rule structured builder, with display metadata.
-    def ce_match_fields
-      all.filter_map do |link_id, field_def|
-        attrs = field_def[:display_metadata]
-        next unless attrs
-
-        attrs.merge('key' => link_id.to_s)
-      end
-    end
-
     private
 
     def arel
@@ -56,12 +96,12 @@ module Hmis::Ce::Match::Expression
 
     def all
       @all ||= {
-        days_since_last_exit: days_since_last_exit_field,
-        veteran_status: veteran_status_field,
-        current_age: current_age_field,
-        open_enrollment_project_types: open_enrollment_project_types_field,
-        open_enrollment_project_types_excluding_incomplete: open_enrollment_project_types_excluding_incomplete_field,
-        open_referral_project_types: open_referral_project_types_field,
+        Fields::DAYS_SINCE_LAST_EXIT.key => days_since_last_exit_field,
+        Fields::VETERAN_STATUS.key => veteran_status_field,
+        Fields::CURRENT_AGE.key => current_age_field,
+        Fields::OPEN_ENROLLMENT_PROJECT_TYPES.key => open_enrollment_project_types_field,
+        Fields::OPEN_ENROLLMENT_PROJECT_TYPES_EXCLUDING_INCOMPLETE.key => open_enrollment_project_types_excluding_incomplete_field,
+        Fields::OPEN_REFERRAL_PROJECT_TYPES.key => open_referral_project_types_field,
       }
     end
 
@@ -72,7 +112,6 @@ module Hmis::Ce::Match::Expression
         joins: [{ hmis_source_clients: { enrollments: :exit } }],
         arel_field: calculator.arel_expression,
         format_for_display: method(:format_days),
-        display_metadata: { 'item_type' => 'INTEGER', 'label' => 'Days since last exit' },
       }
     end
 
@@ -81,7 +120,6 @@ module Hmis::Ce::Match::Expression
         query: ->(clients) { clients.pluck(:id, :veteran_status).to_h },
         format_for_display: ->(v) { HudHelper.util.veteran_status(v) },
         arel_field: arel.c_t['VeteranStatus'],
-        display_metadata: { 'item_type' => 'CHOICE', 'label' => 'Veteran status', 'pick_list_reference' => 'NoYesReasonsForMissingData' },
       }
     end
 
@@ -90,7 +128,6 @@ module Hmis::Ce::Match::Expression
       {
         query: ->(clients) { calculator.call(clients) },
         arel_field: calculator.arel_expression,
-        display_metadata: { 'item_type' => 'INTEGER', 'label' => 'Current age' },
       }
     end
 
