@@ -244,15 +244,22 @@ module HmisExternalApis::AcHmis
     end
 
     def unit_export
-      export = HmisExternalApis::AcHmis::Exporters::UnitExport.new
-      export.run!
+      unit_export = HmisExternalApis::AcHmis::Exporters::UnitExport.new
+      unit_export.run!
+
+      unit_occupancy_export = HmisExternalApis::AcHmis::Exporters::UnitOccupancyExport.new
+      unit_occupancy_export.run!
 
       uploader = Exporters::DataWarehouseUploader.new(
         filename_format: '%Y-%m-%d-units.zip',
         io_streams: [
           OpenStruct.new(
             name: 'Units.csv',
-            io: export.output,
+            io: unit_export.output,
+          ),
+          OpenStruct.new(
+            name: 'UnitOccupancies.csv',
+            io: unit_occupancy_export.output,
           ),
         ],
       )
