@@ -43,17 +43,10 @@ RSpec.describe HmisExternalApis::AcHmis::Aha, type: :model do
       'score' => score,
       'generator' => generator,
       'metadata' => metadata || {
-        'row_id' => '1',
-        'run_id' => 'rental_assistance_abcde',
         'is_eligible_ra' => false,
-        'currently_unhoused' => false,
-        'is_eligible_cc' => true,
-        'mci_uniq_id' => '100000022',
-        'homeless_risk' => 0,
         'section_8' => 0,
-        'city_of_pittsburgh' => 0,
         'subsidized_housing' => 0,
-        'recent_erap_use' => 0,
+        'recent_eviction_case' => 0,
       },
     }
   end
@@ -302,6 +295,21 @@ RSpec.describe HmisExternalApis::AcHmis::Aha, type: :model do
     end
   end
 
+  describe '#normalize_generator' do
+    {
+      'AHA' => :aha,
+      'MH-AHA' => :mh_aha,
+      'mh-aha' => :mh_aha,
+      'VisionLink' => :visionlink,
+      'VISIONLINK' => :visionlink,
+      'VisionLink 2.0' => :visionlink,
+    }.each do |value, expected|
+      it "normalizes #{value.inspect} to #{expected}" do
+        expect(aha.send(:normalize_generator, value)).to eq(expected)
+      end
+    end
+  end
+
   context 'when generators are case-insensitive' do
     let!(:mci_unique_id) { create(:mci_unique_id_external_id, source: client, remote_credential: remote_credential) }
 
@@ -423,9 +431,62 @@ RSpec.describe HmisExternalApis::AcHmis::Aha, type: :model do
       result = aha.fetch_score(client, requested_generators: [:visionlink])[:visionlink]
       expect(result.score).to eq(4.25)
       expect(result.is_eligible_ra).to eq(false)
-      expect(result.is_eligible_cc).to eq(true)
-      expect(result.homeless_risk).to eq(0)
+      expect(result.section_8).to eq(false)
+      expect(result.subsidized_housing).to eq(false)
+      expect(result.recent_eviction_case).to eq(false)
       expect(result).to be_a(HmisExternalApis::AcHmis::AhaScores::VisionLinkResult)
+    end
+
+    it 'normalizes VisionLink flags from API values' do
+      response = mock_api_response(
+        client_data(
+          dw_client_id: mci_unique_id.value,
+          scores: [
+            visionlink_score_hash(
+              score: 2,
+              metadata: {
+                'is_eligible_ra' => true,
+                'section_8' => 1,
+                'subsidized_housing' => 1,
+                'recent_eviction_case' => 0,
+              },
+            ),
+          ],
+        ),
+      )
+      setup_api_expectation(mci_unique_ids: mci_unique_id.value, response: response)
+
+      result = aha.fetch_score(client, requested_generators: [:visionlink])[:visionlink]
+      expect(result.is_eligible_ra).to eq(true)
+      expect(result.section_8).to eq(true)
+      expect(result.subsidized_housing).to eq(true)
+      expect(result.recent_eviction_case).to eq(false)
+    end
+
+    it 'logs to Sentry when metadata is missing required keys' do
+      allow(Sentry).to receive(:capture_message)
+      response = mock_api_response(
+        client_data(
+          dw_client_id: mci_unique_id.value,
+          scores: [
+            visionlink_score_hash(
+              score: 1,
+              metadata: {
+                'is_eligible_ra' => false,
+                'section_8' => 0,
+                'subsidized_housing' => 0,
+                'recent_eviction_case' => 0,
+                'row_id' => '123',
+                'mci_uniq_id' => mci_unique_id.value,
+              },
+            ),
+          ],
+        ),
+      )
+      setup_api_expectation(mci_unique_ids: mci_unique_id.value, response: response)
+
+      aha.fetch_score(client, requested_generators: [:visionlink])
+      expect(Sentry).to have_received(:capture_message).with('VisionLink metadata missing fields: city_of_pittsburgh')
     end
 
     it 'returns -999 score with flags when no real score exists' do
@@ -440,7 +501,7 @@ RSpec.describe HmisExternalApis::AcHmis::Aha, type: :model do
       result = aha.fetch_score(client, requested_generators: [:visionlink])[:visionlink]
       expect(result.score).to eq(-999)
       expect(result.is_eligible_ra).to eq(false)
-      expect(result.is_eligible_cc).to eq(true)
+      expect(result.section_8).to eq(false)
     end
 
     it 'prefers the highest score when both -999 and a real score are present' do
