@@ -493,7 +493,15 @@ RSpec.describe HmisExternalApis::AcHmis::Aha, type: :model do
       response = mock_api_response(
         client_data(
           dw_client_id: mci_unique_id.value,
-          scores: [visionlink_score_hash(score: -999)],
+          scores: [
+            visionlink_score_hash(
+              score: -999,
+              metadata: {
+                'is_eligible_ra' => false,
+                'section_8' => 1,
+              },
+            ),
+          ],
         ),
       )
       setup_api_expectation(mci_unique_ids: mci_unique_id.value, response: response)
@@ -501,7 +509,7 @@ RSpec.describe HmisExternalApis::AcHmis::Aha, type: :model do
       result = aha.fetch_score(client, requested_generators: [:visionlink])[:visionlink]
       expect(result.score).to eq(-999)
       expect(result.is_eligible_ra).to eq(false)
-      expect(result.section_8).to eq(false)
+      expect(result.section_8).to eq(true)
     end
 
     it 'prefers the highest score when both -999 and a real score are present' do
