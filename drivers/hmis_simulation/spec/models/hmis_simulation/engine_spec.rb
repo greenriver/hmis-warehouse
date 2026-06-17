@@ -98,14 +98,6 @@ RSpec.describe HmisSimulation::Engine do
       expect(sim_clients.where.not(pending_enrollment_on: run_date).count).to eq(0)
     end
 
-    it 'assigns each spawned client a current_population matching a defined population' do
-      engine.run(date: run_date)
-      population_names = primary_populations.map { |p| p['name'] }
-      sim_clients.pluck(:current_population).each do |pop|
-        expect(population_names).to include(pop)
-      end
-    end
-
     it 'only assigns entry_point populations (street has entry_point > 0, psh does not)' do
       engine.run(date: run_date)
       populations = sim_clients.pluck(:current_population).uniq
@@ -439,7 +431,7 @@ RSpec.describe HmisSimulation::Engine do
         expect(ce_enrollments.count).to be > 0
       end
 
-      it 'closes CE enrollment once MoveInDate is set on primary PH enrollment (housing_move_in condition)' do
+      it 'closes CE enrollment and emits a closing Event once MoveInDate is set on primary PH enrollment (housing_move_in condition)' do
         config = lifecycle_config.deep_dup
         config['tracks'].find { |t| t['name'] == 'coordinated_entry' }['close_conditions'] = { 'housing_move_in' => 1.0 }
         config['tracks'].find { |t| t['type'] == 'primary' }.tap do |track|
@@ -465,6 +457,10 @@ RSpec.describe HmisSimulation::Engine do
           data_source_id: data_source.id, status: 'closed', close_reason: 'housing_move_in',
         )
         expect(closed.count).to be > 0
+
+        # housing_move_in close → closing Event code 14 (PSH referral), ReferralResult 1 (successful)
+        closing_events = Hmis::Hud::Event.where(data_source: data_source, Event: 14, ReferralResult: 1)
+        expect(closing_events.count).to be > 0
       end
 
       it 'closes CE enrollment after disengagement timeout' do
@@ -514,33 +510,6 @@ RSpec.describe HmisSimulation::Engine do
           ).count
           expect(result_count).to be_between(3, 5)
         end
-      end
-
-      it 'creates a closing Event when CE enrollment closes with housing_move_in' do
-        config = lifecycle_config.deep_dup
-        config['tracks'].find { |t| t['name'] == 'coordinated_entry' }['close_conditions'] = { 'housing_move_in' => 1.0 }
-        config['tracks'].find { |t| t['type'] == 'primary' }.tap do |track|
-          track['transitions'] = [
-            { 'from' => 'street', 'to' => 'psh', 'weight' => 1,
-              'timing' => { 'distribution' => 'constant', 'value' => 1 },
-              'gap_before_entry' => { 'distribution' => 'constant', 'value' => 0 },
-              'exit_destinations' => { '435' => 1 } },
-          ]
-          track['enrollment_config']['ph_move_in'] = {
-            'probability' => 1.0,
-            'delay_days' => { 'distribution' => 'constant', 'value' => 0 },
-          }
-        end
-        cfg = HmisSimulation::ConfigLoader.send(:normalize, config)
-        HmisSimulation::Bootstrapper.new(cfg).run!
-        engine_instance = described_class.new(cfg)
-
-        engine_instance.run(date: run_date)
-        engine_instance.run(date: run_date + 1)
-
-        # housing_move_in close → code 14 (PSH referral, successful)
-        closing_events = Hmis::Hud::Event.where(data_source: data_source, Event: 14, ReferralResult: 1)
-        expect(closing_events.count).to be > 0
       end
     end
 
@@ -787,8 +756,11 @@ RSpec.describe HmisSimulation::Engine do
 
         sim_client.update!(next_population: nil, next_transition_on: run_date + 1)
 
-        # Ensure we take the transition branch rather than the system-exit branch
-        allow(engine).to receive(:roll_exit_point).and_return(false)
+        # Force the transition branch rather than the system-exit branch by stubbing the
+        # real seam. process_primary_exit branches on Schedule#exit_point?; the engine has
+        # no #roll_exit_point, so the previous stub was a silent no-op and the branch was
+        # actually decided by the seeded RNG.
+        allow(engine.instance_variable_get(:@schedule)).to receive(:exit_point?).and_return(false)
 
         expect { engine.run(date: run_date + 1) }.not_to raise_error
 
