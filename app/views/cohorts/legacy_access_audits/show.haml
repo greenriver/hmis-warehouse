@@ -1,0 +1,5 @@
+-# START_ACL remove this view when the legacy permission model is removed
+= render 'cohorts/access_audits/audit',
+    audit: @audit,
+    active_tab: 'legacy_access_audit',
+    export_path: export_cohort_legacy_access_audit_path(@cohort)

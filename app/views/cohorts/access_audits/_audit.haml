@@ -1,0 +1,23 @@
+- content_for :title, "#{@cohort.name} Audit Access"
+= content_for :crumbs do
+  = link_to edit_cohort_path(@cohort) do
+    &laquo; Edit Cohort
+%h1= content_for :title
+
+.alert.alert-info= Audit::CohortAccess::Base::PERMISSIONS_NOTE
+.card.mb-3
+  .card-body
+    %h2.card-title.h5 Current access
+    %p
+      Currently
+      %strong= audit.current_access.user_count
+      = "#{'user'.pluralize(audit.current_access.user_count)} can access this cohort via"
+      %strong= audit.current_access.path_count
+      = "#{'path'.pluralize(audit.current_access.path_count)}."
+    - if audit.current_access.users.any?
+      %ul.mb-0
+        - audit.current_access.users.sort_by { |u| u.name.to_s }.each do |access_user|
+          %li= access_user.name
+.text-right.mb-3
+  = link_to 'Export CSV', export_path, class: 'btn btn-outline-primary btn-sm'
+= render_paginated_list(scope: audit.events, item_name: 'access change', list_partial: 'cohorts/access_audits/list')
