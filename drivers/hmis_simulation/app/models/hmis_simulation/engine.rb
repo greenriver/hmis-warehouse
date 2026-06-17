@@ -74,15 +74,17 @@ module HmisSimulation
           tick_annual_collections(date: date)
           tick_concurrent(date: date)
           tick_lifecycle(date: date)
-        end
 
-        log.update!(
-          clients_created: @clients_created,
-          enrollments_opened: @enrollments_opened,
-          enrollments_closed: @enrollments_closed,
-          services_created: @services_created,
-          finished_at: Time.current,
-        )
+          # Finalize inside the transaction so the success flag commits atomically
+          # with the day's HUD/state writes.
+          log.update!(
+            clients_created: @clients_created,
+            enrollments_opened: @enrollments_opened,
+            enrollments_closed: @enrollments_closed,
+            services_created: @services_created,
+            finished_at: Time.current,
+          )
+        end
       rescue StandardError => e
         log.update!(error_message: e.message, finished_at: Time.current)
         raise
