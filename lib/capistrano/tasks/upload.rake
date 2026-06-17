@@ -1,3 +1,9 @@
+###
+# Copyright Green River Data Group, Inc.
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 namespace :deploy do
   task :upload do
     files = (ENV["FILES"] || "").split(",").map { |f| Dir[f.strip] }.flatten

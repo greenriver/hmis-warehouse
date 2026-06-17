@@ -1,3 +1,9 @@
+###
+# Copyright Green River Data Group, Inc.
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 # frozen_string_literal: true
 
 namespace :code do
@@ -50,8 +56,11 @@ namespace :code do
   def files
     [
       '/app/{**/}*.rb',
+      '/app/{**/}*.axlsx',
       '/drivers/{**/}*.rb',
+      '/drivers/{**/}*.axlsx',
       '/lib/{**/}*.rb',
+      '/lib/{**/}*.rake',
       '/spec/{**/}*.rb',
       '/config/{**/}*.rb',
       '/bin/*.rb',
