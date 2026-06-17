@@ -48,13 +48,15 @@ namespace :code do
   end
 
   def files
-    Dir.glob("#{Rails.root}/app/{**/}*.rb") +
-    Dir.glob("#{Rails.root}/drivers/{**/}*.rb") +
-    Dir.glob("#{Rails.root}/lib/{**/}*.rb") +
-    Dir.glob("#{Rails.root}/spec/{**/}*.rb") +
-    Dir.glob("#{Rails.root}/config/{**/}*.rb") +
-    Dir.glob("#{Rails.root}/bin/*.rb") +
-    Dir.glob("#{Rails.root}/db/{**/}*.rb")
+    [
+      '/app/{**/}*.rb',
+      '/drivers/{**/}*.rb',
+      '/lib/{**/}*.rb',
+      '/spec/{**/}*.rb',
+      '/config/{**/}*.rb',
+      '/bin/*.rb',
+      '/db/{**/}*.rb',
+    ].flat_map { |pattern| Dir.glob("#{Rails.root}/#{pattern}") }
   end
 
   def add_copyright_to_file(path)
