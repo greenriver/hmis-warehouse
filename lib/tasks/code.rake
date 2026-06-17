@@ -1,12 +1,28 @@
 # frozen_string_literal: true
 
 namespace :code do
-  # NOTE, you can check a PR for this with
+  # NOTE, before you commit, you can check a PR for this with
   # git diff -U0 --minimal HEAD~1 | grep -v '^+#.*2024' | grep -v '^+#.*LICENSE.md' | grep -v '^+###$' | grep -v '^+#$' | grep -v '^diff --git' | grep -v '^index' | grep '^--- a' | grep '^+++ b' | more
+  #
+  # To review a branch vs main, skipping files where the only changes
+  # are the copyright notice and/or frozen_string_literal, write to a diff file:
+  #   branch=branch-with-changes; \
+  #   git diff -w main...$branch --name-only | while read f; do \
+  #     extra=$(git diff -U0 -w main...$branch -- "$f" | grep '^[+-]' | \
+  #       grep -v '^---' | grep -v '^+++' | \
+  #       grep -v '^[-+]$' | \
+  #       grep -v '^[-+]###$' | \
+  #       grep -v '^[-+]#$' | \
+  #       grep -v '^[-+]# License detail:' | \
+  #       grep -vE '^-# Copyright [0-9]{4} - [0-9]{4} Green River Data Analysis, LLC' | \
+  #       grep -v '^+# Copyright Green River Data Group, Inc.' | \
+  #       grep -v '^[-+]# frozen_string_literal: true'); \
+  #     [ -n "$extra" ] && git diff -w main...$branch -- "$f"; \
+  #   done > tmp/changes.diff
   desc 'Ensure the copyright is included in all ruby files'
   task :maintain_copyright, [] => [:environment, 'log:info_to_stdout'] do
     puts 'Adding license text in all .rb files that don\'t already have it'
-    puts ::Code.copywright_header
+    puts ::Code.copyright_header
     @modified = 0
     files.each do |path|
       add_copyright_to_file(path)
@@ -32,25 +48,35 @@ namespace :code do
   end
 
   def files
-    Dir.glob("#{Rails.root}/app/{**/}*.rb") + Dir.glob("#{Rails.root}/drivers/{**/}*.rb")
+    Dir.glob("#{Rails.root}/app/{**/}*.rb") +
+      Dir.glob("#{Rails.root}/drivers/{**/}*.rb") +
+      Dir.glob("#{Rails.root}/lib/{**/}*.rb") +
+      Dir.glob("#{Rails.root}/spec/{**/}*.rb") +
+      Dir.glob("#{Rails.root}/config/{**/}*.rb") +
+      Dir.glob("#{Rails.root}/bin/*.rb")
   end
 
-  def add_copyright_to_file path
-    puts ">>> Prepending copyright to #{path}"
+  def add_copyright_to_file(path)
+    content = File.read(path)
+
+    # Shebang lines must stay on line 1 — extract before any other processing.
+    shebang = content.slice!(/\A#![^\n]*\n/)
+
+    return if content.start_with?(::Code.copyright_header)
+
+    puts ">>> Updating copyright in #{path}"
     @modified += 1
-    lines = File.open(path).readlines
-    if lines.slice(0, ::Code.copywright_header.lines.count).join == ::Code.copywright_header
-      puts 'Found existing copyright, ignoring'
-      @modified -= 1
-    else
-      tempfile = Tempfile.new('with_copyright')
-      line = ''
-      tempfile.write(::Code.copywright_header)
-      tempfile.write(line)
-      tempfile.write(lines.join)
-      tempfile.flush
-      tempfile.close
-      FileUtils.cp(tempfile.path, path)
-    end
+
+    # Strip old-format header before prepending — otherwise files that already
+    # have a copyright block end up with two headers stacked at the top.
+    content = ::Code.strip_old_copyright(content)
+
+    tempfile = Tempfile.new('with_copyright')
+    tempfile.write(shebang) if shebang
+    tempfile.write(::Code.copyright_header)
+    tempfile.write(content)
+    tempfile.flush
+    tempfile.close
+    FileUtils.cp(tempfile.path, path)
   end
 end
