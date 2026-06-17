@@ -81,6 +81,14 @@ module BostonProjectScorecard
       user_id == user.id
     end
 
+    def rrh?
+      project_type == 13
+    end
+
+    def psh?
+      project_type.in?([3, 9, 10])
+    end
+
     def field_input_options(field, user)
       if locked?(field, user)
         { readonly: true }

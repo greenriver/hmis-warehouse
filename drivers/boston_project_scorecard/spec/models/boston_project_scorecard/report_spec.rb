@@ -188,7 +188,7 @@ RSpec.describe BostonProjectScorecard::Report, type: :model do
       expect(report.income_and_housing_error_rate).to eq(7.5)
     end
 
-    # Financial Performance Metrics
+    # Policy alignment Q18 (utilization rate)
     it 'calculates average_utilization_rate correctly' do
       # (0.85 + 0.90 + 0.88 + 0.92) / 4 = 0.8875
       expect(report.average_utilization_rate).to eq(0.8875)
@@ -266,6 +266,161 @@ RSpec.describe BostonProjectScorecard::Report, type: :model do
       expect { report.run_and_save! }.not_to raise_error
       expect(report.increased_employment_income).to eq(0.0)
       expect(report.increased_other_income).to eq(0.0)
+    end
+  end
+
+  describe 'score availability by project type' do
+    subject(:report) do
+      project = create(
+        :hud_project,
+        data_source: data_source,
+        organization: organization,
+        project_type: project_type,
+      )
+      create(
+        :hud_project_coc,
+        data_source: data_source,
+        project_id: project.project_id,
+      )
+      described_class.create!(
+        user: user,
+        project: project,
+        start_date: Date.new(2024, 10, 1),
+        end_date: Date.new(2025, 9, 30),
+        period_start_date: Date.new(2024, 10, 1),
+        period_end_date: Date.new(2025, 9, 30),
+        project_type: project_type,
+      )
+    end
+
+    shared_examples 'scorecard category weights' do
+      it 'uses the expected category weights' do
+        expect(report.project_performance_weight).to eq(50)
+        expect(report.data_quality_weight).to eq(5)
+        expect(report.financial_performance_weight).to eq(20)
+        expect(report.policy_alignment_weight).to eq(25)
+        expect(report.total_score_weight).to eq(100)
+      end
+    end
+
+    context 'when non-RRH/PSH' do
+      let(:project_type) { 1 } # Emergency Shelter
+
+      include_examples 'scorecard category weights'
+
+      it 'uses the non-housing maximum points' do
+        expect(report.project_performance_available).to eq(48)
+        expect(report.data_quality_available).to eq(15)
+        expect(report.financial_performance_available).to eq(18)
+        expect(report.policy_alignment_available).to eq(31)
+        expect(report.total_score_available).to eq(112)
+      end
+    end
+
+    context 'when RRH' do
+      let(:project_type) { 13 }
+
+      include_examples 'scorecard category weights'
+
+      it 'uses the RRH maximum points' do
+        expect(report.project_performance_available).to eq(60)
+        expect(report.data_quality_available).to eq(15)
+        expect(report.financial_performance_available).to eq(20)
+        expect(report.policy_alignment_available).to eq(34)
+        expect(report.total_score_available).to eq(129)
+      end
+    end
+
+    context 'when PSH' do
+      let(:project_type) { 3 }
+
+      include_examples 'scorecard category weights'
+
+      it 'uses the PSH maximum points' do
+        expect(report.project_performance_available).to eq(60)
+        expect(report.data_quality_available).to eq(15)
+        expect(report.financial_performance_available).to eq(20)
+        expect(report.policy_alignment_available).to eq(37)
+        expect(report.total_score_available).to eq(132)
+      end
+    end
+  end
+
+  describe 'section scoring' do
+    let(:report) do
+      described_class.create!(
+        user: user,
+        project: project,
+        start_date: Date.new(2024, 10, 1),
+        end_date: Date.new(2025, 9, 30),
+        period_start_date: Date.new(2024, 10, 1),
+        period_end_date: Date.new(2025, 9, 30),
+        project_type: 13,
+      )
+    end
+
+    before { project_coc }
+
+    before do
+      report.update!(days_to_lease_up: 100)
+    end
+
+    it 'scores monitoring criteria in policy alignment, not project performance' do
+      report.update!(project_type: 1, no_concern: 2)
+
+      expect(report.project_performance_score).to eq(0)
+      expect(report.policy_alignment_score).to eq(2)
+    end
+
+    it 'scores utilization in policy alignment when households served are present' do
+      report.update!(project_type: 1, average_utilization_rate: 90.0, actual_households_served: 100)
+
+      expect(report.utilization_rate_score).to eq(6)
+      expect(report.project_performance_score).to eq(0)
+      expect(report.policy_alignment_score).to eq(6)
+    end
+
+    it 'awards only one monitoring score when both Q19a and Q19b are set' do
+      report.update!(no_concern: 2, materials_concern: 3)
+
+      expect(report.policy_alignment_score).to eq(5) # Q14 RRH (3) + Q19a (2)
+    end
+
+    it 'excludes not-applicable monitoring responses from scoring' do
+      report.update!(no_concern: -1, materials_concern: -1)
+
+      expect(report.policy_alignment_score).to eq(3) # Q14 RRH only
+    end
+
+    it 'awards 2 points for RRH cost efficiency when under the threshold' do
+      report.update!(amount_agency_spent: 10_000, actual_households_served: 10)
+
+      expect(report.efficiency_score).to eq(2)
+    end
+
+    it 'does not award cost efficiency points for non-housing project types' do
+      report.update!(
+        project_type: 1,
+        amount_agency_spent: 10_000,
+        actual_households_served: 10,
+      )
+
+      expect(report.efficiency_score).to eq(0)
+      expect(report.financial_performance_available).to eq(18)
+    end
+
+    it 'does not exceed the category weight at maximum policy alignment score' do
+      report.update!(
+        subpopulations_served: report.subpopulations_served_options.values,
+        substance_use_treatment_service: report.substance_use_treatment_service_options.values,
+        supportive_services: true,
+        no_concern: 3,
+        average_utilization_rate: 90.0,
+        actual_households_served: 100,
+      )
+
+      expect(report.policy_alignment_score).to eq(report.policy_alignment_available)
+      expect(report.policy_alignment_weighted_score).to eq(report.policy_alignment_weight)
     end
   end
 end
