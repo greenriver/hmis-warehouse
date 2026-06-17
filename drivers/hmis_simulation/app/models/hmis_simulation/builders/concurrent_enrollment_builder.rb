@@ -18,8 +18,8 @@ module HmisSimulation
     #   - Samples the duration distribution → sets exit_on on the state record
     #   - Creates HmisSimulation::ConcurrentEnrollment state record
     class ConcurrentEnrollmentBuilder < BaseBuilder
-      def initialize(client:, date:, projects_config:, count:, coc_code:, data_source:, user_id:, rng_seed:, track_name: nil)
-        super(data_source: data_source, user_id: user_id)
+      def initialize(client:, date:, projects_config:, count:, coc_code:, data_source:, user_id:, rng_seed:, track_name: nil, id_generator: FakeIdentifier)
+        super(data_source: data_source, user_id: user_id, id_generator: id_generator)
         @client     = client
         @date       = date
         @projects   = (projects_config || []).map(&:deep_stringify_keys)
