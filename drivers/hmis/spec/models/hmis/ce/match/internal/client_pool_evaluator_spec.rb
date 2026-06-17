@@ -64,6 +64,7 @@ RSpec.describe Hmis::Ce::Match::Internal::ClientPoolEvaluator, type: :model do
 
       it 'returns a failed result when a comparator operand is NULL' do
         destination_client1.update!(dob: nil)
+        # 'current_age > 65' expected to be false if current_age is nil
         result = evaluator.call(destination_client1)
 
         expect(result).to be_failed
