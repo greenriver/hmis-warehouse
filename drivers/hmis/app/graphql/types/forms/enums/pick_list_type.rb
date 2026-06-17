@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -19,6 +19,7 @@ module Types
     value 'PROJECTS_RECEIVING_DIRECT_CE_REFERRALS', 'Projects that can receive CE referrals'
     value 'UNIT_GROUPS_FOR_PROJECT_DIRECT_CE_REFERRAL', 'Unit groups for the given project that can receive CE referrals'
     value 'ORGANIZATION', 'All Organizations that the User can see'
+    value 'OPEN_ORGANIZATION_NAMES', 'Names of organizations with open projects'
     value 'OTHER_FUNDERS', 'OtherFunder values for all Funders across the installation'
     value 'ASSESSMENT_NAMES', 'Assessment names, including custom assessments and assessments that are inactive. If a project is specified, the list is limited to assessments that exist in the project (both active and inactive).'
     value 'GEOCODE'
