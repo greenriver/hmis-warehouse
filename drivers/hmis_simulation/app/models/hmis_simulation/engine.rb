@@ -38,12 +38,30 @@ module HmisSimulation
     end
 
     def run(date:)
+      HmisSimulation.ensure_not_production!
       RunLog.with_advisory_lock("hmis_simulation:#{@data_source_id}", timeout_seconds: 0) do
+        ensure_bootstrapped!
         run_locked(date: date)
       end
     end
 
     private
+
+    # Lazily create the structural HUD scaffolding (orgs, projects, ProjectCoc,
+    # Inventory, Funders, etc.) that the simulation writes into. Idempotent and
+    # memoized so a multi-day run only checks once. Making this the Engine's
+    # responsibility means no caller can advance the simulation without it.
+    def ensure_bootstrapped!
+      return if @bootstrapped
+
+      unless Hmis::Hud::Project.where(
+        data_source_id: @data_source_id,
+        ExportID: Bootstrapper::EXPORT_ID,
+      ).exists?
+        Bootstrapper.new(@config).run!
+      end
+      @bootstrapped = true
+    end
 
     def run_locked(date:)
       return if already_run?(date)

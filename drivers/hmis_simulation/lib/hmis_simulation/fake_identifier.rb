@@ -11,7 +11,7 @@ require 'securerandom'
 module HmisSimulation
   # Generates obviously-fake identifiers for simulated HUD records.
   #
-  # Conventions (all identifiers are recognisably fake at a glance):
+  # Conventions (all identifiers are recognizably fake at a glance):
   #   - UUIDs:       FAKExxxx...  (32 chars, no dashes)
   #   - SSNs:        999XXXXXX  (999 prefix is never valid)
   #   - First names: city or water body name + "_"  (e.g. "Portland_", "Tahoe_")

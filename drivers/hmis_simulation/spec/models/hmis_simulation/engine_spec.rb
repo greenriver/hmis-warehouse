@@ -834,4 +834,48 @@ RSpec.describe HmisSimulation::Engine do
       end
     end
   end
+
+  # Bootstrapping is the Engine's responsibility (moved off the rake/job layer),
+  # so #run must create the HUD scaffolding itself when it is missing. The global
+  # `before` only bootstraps the primary data_source, so these examples use a
+  # fresh, un-bootstrapped data source to exercise the lazy path.
+  describe 'bootstrap-on-run' do
+    let!(:fresh_data_source) { create(:hmis_data_source) }
+    let(:fresh_config) do
+      HmisSimulation::ConfigLoader.send(
+        :normalize,
+        base_config.merge('data_source_id' => fresh_data_source.id),
+      )
+    end
+
+    def fresh_projects
+      Hmis::Hud::Project.where(
+        data_source_id: fresh_data_source.id,
+        ExportID: HmisSimulation::Bootstrapper::EXPORT_ID,
+      )
+    end
+
+    it 'bootstraps the HUD scaffolding and still spawns clients on the first run' do
+      engine_instance = described_class.new(fresh_config)
+      expect { engine_instance.run(date: run_date) }.
+        to change { fresh_projects.count }.from(0)
+      expect(HmisSimulation::Client.where(data_source_id: fresh_data_source.id).count).to be > 0
+    end
+
+    it 'bootstraps at most once across a multi-day run' do
+      engine_instance = described_class.new(fresh_config)
+      expect(HmisSimulation::Bootstrapper).to receive(:new).once.and_call_original
+      engine_instance.run(date: run_date)
+      engine_instance.run(date: run_date + 1)
+      engine_instance.run(date: run_date + 2)
+    end
+  end
+
+  describe 'production guard' do
+    it 'refuses to advance the simulation in production and writes nothing' do
+      allow(Rails).to receive(:env).and_return(ActiveSupport::StringInquirer.new('production'))
+      expect { engine.run(date: run_date) }.to raise_error(/production/)
+      expect(HmisSimulation::RunLog.where(data_source_id: data_source.id, run_date: run_date)).to be_empty
+    end
+  end
 end

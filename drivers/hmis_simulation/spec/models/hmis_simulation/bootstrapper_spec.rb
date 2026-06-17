@@ -227,5 +227,14 @@ RSpec.describe HmisSimulation::Bootstrapper do
           and(not_change { ds_scope(Hmis::Hud::Organization).count })
       end
     end
+
+    context 'in production' do
+      it 'refuses to write any records' do
+        allow(Rails).to receive(:env).and_return(ActiveSupport::StringInquirer.new('production'))
+        expect { bootstrapper.run! }.
+          to raise_error(/production/).
+          and(not_change { ds_scope(Hmis::Hud::Organization).count })
+      end
+    end
   end
 end
