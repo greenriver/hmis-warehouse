@@ -27,8 +27,8 @@ module HmisSimulation
       # Types for which IndefiniteAndImpairs is not applicable (HUD spec)
       NO_INDEFINITE_TYPES = [6, 8].freeze
 
-      def initialize(enrollment:, date:, disability_config:, data_source:, user_id:, rng_seed:)
-        super(data_source: data_source, user_id: user_id)
+      def initialize(enrollment:, date:, disability_config:, data_source:, user_id:, rng_seed:, id_generator: FakeIdentifier)
+        super(data_source: data_source, user_id: user_id, id_generator: id_generator)
         @enrollment   = enrollment
         @date         = date
         @cfg          = (disability_config || {}).deep_stringify_keys
@@ -53,7 +53,7 @@ module HmisSimulation
 
           Hmis::Hud::Disability.create!(
             **audit_attrs(@date),
-            DisabilitiesID: FakeIdentifier.uuid,
+            DisabilitiesID: @id_gen.uuid,
             EnrollmentID: @enrollment.EnrollmentID,
             PersonalID: @enrollment.PersonalID,
             InformationDate: @date,

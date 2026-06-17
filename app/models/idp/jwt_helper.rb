@@ -10,7 +10,7 @@ require 'net/http'
 require 'memery'
 
 # Checks that an incoming login token is genuine and reads the user details out of it.
-class JwtHelper
+class Idp::JwtHelper
   include Memery
   attr_reader :access_token
 

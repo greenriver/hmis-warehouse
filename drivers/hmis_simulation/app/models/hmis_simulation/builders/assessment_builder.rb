@@ -23,8 +23,8 @@ module HmisSimulation
         ['Crisis Needs Score',    0..20],
       ].freeze
 
-      def initialize(enrollment:, date:, data_source:, user_id:, rng_seed:)
-        super(data_source: data_source, user_id: user_id)
+      def initialize(enrollment:, date:, data_source:, user_id:, rng_seed:, id_generator: FakeIdentifier)
+        super(data_source: data_source, user_id: user_id, id_generator: id_generator)
         @enrollment = enrollment
         @date       = date
         @rng        = Random.new(rng_seed)
@@ -33,7 +33,7 @@ module HmisSimulation
       def build!
         assessment = Hmis::Hud::Assessment.create!(
           **audit_attrs(@date),
-          AssessmentID: FakeIdentifier.uuid,
+          AssessmentID: @id_gen.uuid,
           EnrollmentID: @enrollment.EnrollmentID,
           PersonalID: @enrollment.PersonalID,
           AssessmentDate: @date,
@@ -47,7 +47,7 @@ module HmisSimulation
         RESULT_TYPES.sample(result_count, random: @rng).each do |type_label, value_range|
           Hmis::Hud::AssessmentResult.create!(
             **audit_attrs(@date),
-            AssessmentResultID: FakeIdentifier.uuid,
+            AssessmentResultID: @id_gen.uuid,
             AssessmentID: assessment.AssessmentID,
             EnrollmentID: @enrollment.EnrollmentID,
             PersonalID: @enrollment.PersonalID,

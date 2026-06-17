@@ -23,9 +23,10 @@ module HmisSimulation
         data_source:,
         user_id:,
         referral_result: nil,
-        result_date: nil
+        result_date: nil,
+        id_generator: FakeIdentifier
       )
-        super(data_source: data_source, user_id: user_id)
+        super(data_source: data_source, user_id: user_id, id_generator: id_generator)
         @enrollment      = enrollment
         @date            = date
         @event_code      = event_code
@@ -36,7 +37,7 @@ module HmisSimulation
       def build!
         Hmis::Hud::Event.create!(
           **audit_attrs(@date),
-          EventID: FakeIdentifier.uuid,
+          EventID: @id_gen.uuid,
           EnrollmentID: @enrollment.EnrollmentID,
           PersonalID: @enrollment.PersonalID,
           EventDate: @date,

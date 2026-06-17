@@ -43,9 +43,10 @@ module HmisSimulation
         population_config: {},
         data_source:,
         user_id:,
-        rng_seed:
+        rng_seed:,
+        id_generator: FakeIdentifier
       )
-        super(data_source: data_source, user_id: user_id)
+        super(data_source: data_source, user_id: user_id, id_generator: id_generator)
         @project       = project
         @household_id  = hud_household_id
         @entry_date    = entry_date
@@ -79,7 +80,7 @@ module HmisSimulation
 
         Hmis::Hud::Enrollment.create!(
           **audit_attrs(@entry_date),
-          EnrollmentID: FakeIdentifier.uuid,
+          EnrollmentID: @id_gen.uuid,
           PersonalID: client.PersonalID,
           project_pk: @project.id,
           ProjectID: @project.ProjectID,

@@ -279,6 +279,17 @@ module GrdaWarehouse
       client.consent_form_id == id
     end
 
+    def calculated_expiration_date
+      case GrdaWarehouse::Hud::Client.release_duration
+      when 'One Year', 'Two Years'
+        consent_form_signed_on && consent_form_signed_on + GrdaWarehouse::Hud::Client.consent_validity_period
+      when 'Use Expiration Date'
+        expiration_date
+      when 'Indefinite'
+        nil
+      end
+    end
+
     def consent_form?
       self.class.consent_forms.where(id: id).exists?
     end

@@ -8,11 +8,11 @@
 
 require 'rails_helper'
 
-RSpec.describe JwtUser, type: :model do
+RSpec.describe Idp::JwtUser, type: :model do
   let(:user) { create(:user) }
   let(:jwt_helper) do
     instance_double(
-      JwtHelper,
+      Idp::JwtHelper,
       token?: true,
       valid?: true,
       connector_id: 'test-idp',
@@ -88,7 +88,7 @@ RSpec.describe JwtUser, type: :model do
 
       it 'creates a user with agency_id: 0 when no user matches' do
         helper = instance_double(
-          JwtHelper,
+          Idp::JwtHelper,
           token?: true,
           valid?: true,
           connector_id: 'test-idp',
@@ -150,7 +150,7 @@ RSpec.describe JwtUser, type: :model do
 
         # the old record is untouched (still owned by other_user, still deleted),
         # and the new link is a fresh row rather than a restore of it
-        deleted = UserAuthenticationSource.only_deleted.find_by(connector_id: 'test-idp', connector_user_id: 'ext-user-1')
+        deleted = Idp::UserAuthenticationSource.only_deleted.find_by(connector_id: 'test-idp', connector_user_id: 'ext-user-1')
         expect(deleted.user_id).to eq(other_user.id)
         expect(deleted.deleted_at).to be_present
         expect(live.id).not_to eq(deleted.id)

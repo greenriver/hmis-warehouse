@@ -15,8 +15,8 @@ module HmisSimulation
     # Each field uses an independent Random derived from rng_seed + a fixed offset,
     # so adding new fields in the future does not shift existing field values.
     class EmploymentEducationBuilder < BaseBuilder
-      def initialize(enrollment:, date:, stage:, data_source:, user_id:, rng_seed:)
-        super(data_source: data_source, user_id: user_id)
+      def initialize(enrollment:, date:, stage:, data_source:, user_id:, rng_seed:, id_generator: FakeIdentifier)
+        super(data_source: data_source, user_id: user_id, id_generator: id_generator)
         @enrollment = enrollment
         @date       = date
         @stage      = stage
@@ -29,7 +29,7 @@ module HmisSimulation
 
         Hmis::Hud::EmploymentEducation.create!(
           **audit_attrs(@date),
-          EmploymentEducationID: FakeIdentifier.uuid,
+          EmploymentEducationID: @id_gen.uuid,
           EnrollmentID: @enrollment.EnrollmentID,
           PersonalID: @enrollment.PersonalID,
           InformationDate: @date,

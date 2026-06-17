@@ -924,6 +924,12 @@ Rails.application.routes.draw do
     end
 
     resources :system_maintenance_tasks, only: [:index]
+
+    resources :idp_service_configs, except: [:show] do
+      member do
+        post :test
+      end
+    end
   end
 
   resource :account, only: [:edit, :update] do

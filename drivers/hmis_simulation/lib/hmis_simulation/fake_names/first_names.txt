@@ -11,20 +11,20 @@ Detroit
 Houston
 Indianapolis
 Jacksonville
-Kansas City
+Kansas
 Louisville
 Memphis
 Milwaukee
 Minneapolis
 New Orleans
-Oklahoma City
+Oklahoma
 Omaha
 Philadelphia
 Pittsburgh
 Raleigh
 Richmond
 Sacramento
-Salt Lake City
+Salt Lake
 San Antonio
 San Jose
 Spokane
@@ -50,7 +50,7 @@ Fort Worth
 Fresno
 Greensboro
 Honolulu
-Jersey City
+Jersey
 Las Vegas
 Lexington
 Lincoln

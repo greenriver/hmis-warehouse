@@ -7,5 +7,5 @@
 # frozen_string_literal: true
 
 Rails.application.config.after_initialize do
-  JwtHelper.assert_boot_config! if AuthMethod.jwt?
+  Idp::JwtHelper.assert_boot_config! if AuthMethod.jwt?
 end

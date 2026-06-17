@@ -13,8 +13,8 @@ module HmisSimulation
       # HUD GeneralHealthStatus values
       GENERAL_HEALTH = { 'excellent' => 1, 'good' => 2, 'fair' => 3, 'poor' => 4 }.freeze
 
-      def initialize(enrollment:, date:, hdv_config:, data_source:, user_id:, rng_seed:, stage: :entry)
-        super(data_source: data_source, user_id: user_id)
+      def initialize(enrollment:, date:, hdv_config:, data_source:, user_id:, rng_seed:, stage: :entry, id_generator: FakeIdentifier)
+        super(data_source: data_source, user_id: user_id, id_generator: id_generator)
         @enrollment = enrollment
         @date       = date
         @cfg        = (hdv_config || {}).deep_stringify_keys
@@ -30,7 +30,7 @@ module HmisSimulation
 
         Hmis::Hud::HealthAndDv.create!(
           **audit_attrs(@date),
-          HealthAndDVID: FakeIdentifier.uuid,
+          HealthAndDVID: @id_gen.uuid,
           EnrollmentID: @enrollment.EnrollmentID,
           PersonalID: @enrollment.PersonalID,
           InformationDate: @date,
