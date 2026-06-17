@@ -13,8 +13,14 @@ namespace :reports do
       puts "Archiving (if needed) and purging database data for eligible SimpleReports (grace period expired)#{dry_run ? ' (DRY RUN)' : ''}..."
       puts ''
 
-      # Ensure models are loaded so report types are registered
-      Rails.application.eager_load! unless Rails.application.config.eager_load
+      # Driver model paths are on autoload_paths only (not eager_load_paths), so
+      # eager_load! does not load them. We scan only SimpleReport models that include
+      # ReportArchival, which is where report_archival_types registrations live.
+      # Matches: `include ReportArchival` — the line present in each SimpleReport model
+      # that registers it with Rails.application.config.report_archival_types.
+      Dir[Rails.root.join('drivers', '*', 'app', 'models', '**', '*.rb')].sort.each do |f|
+        require f if File.read(f).include?('include ReportArchival')
+      end
 
       now = Time.current
       grace_period_days = Reports.archival_grace_period_days
@@ -94,6 +100,8 @@ namespace :reports do
             },
           )
           puts "SimpleReport ##{report.id} - Error: #{error_msg}"
+        ensure
+          GC.start # release report objects between iterations to reduce peak memory
         end
 
         puts ''
@@ -118,8 +126,15 @@ namespace :reports do
       puts "Archiving and purging eligible HUD Reports#{dry_run ? ' (DRY RUN)' : ''}..."
       puts ''
 
-      # Ensure models are loaded so report types are registered
-      Rails.application.eager_load! unless Rails.application.config.eager_load
+      # Driver model paths are on autoload_paths only (not eager_load_paths), so
+      # eager_load! does not load them. We load HUD generator files that include a
+      # driver-specific Archival concern, which is where generator_registry registrations live.
+      # Matches: `include HudApr::Archival`, `include HudLsa::Archival`, etc. —
+      # the line present in each HUD generator class that registers it with
+      # HudReportArchival.generator_registry via the concern's included do block.
+      Dir[Rails.root.join('drivers', '*', 'app', 'models', '**', '*.rb')].sort.each do |f|
+        require f if File.read(f).match?(/include \S+::Archival/)
+      end
 
       now = Time.current
       grace_period_days = Reports.archival_grace_period_days
@@ -198,6 +213,8 @@ namespace :reports do
             },
           )
           puts "HUD Report ##{report.id} - Error: #{error_msg}"
+        ensure
+          GC.start # release report objects between iterations to reduce peak memory
         end
 
         puts ''
