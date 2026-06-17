@@ -998,7 +998,7 @@ module HmisSimulation
 
       close_conditions = lc_cfg['close_conditions'] || {}
 
-      if check_housing_move_in?(lifecycle_enrollment, close_conditions)
+      if check_housing_move_in?(lifecycle_enrollment, date, close_conditions)
         close_lifecycle_enrollment(lifecycle_enrollment, date, reason: 'housing_move_in')
         return
       end
@@ -1013,7 +1013,7 @@ module HmisSimulation
       close_lifecycle_enrollment(lifecycle_enrollment, date, reason: 'pre_entry_exit')
     end
 
-    def check_housing_move_in?(lifecycle_enrollment, close_conditions)
+    def check_housing_move_in?(lifecycle_enrollment, date, close_conditions)
       return false unless close_conditions.key?('housing_move_in')
       return false unless @schedule.housing_move_in_cohort?(
         id: lifecycle_enrollment.id,
@@ -1024,9 +1024,24 @@ module HmisSimulation
         where(id: lifecycle_enrollment.hud_client_id).
         select(:PersonalID)
 
+      # Only close the CE on housing if the person is *currently* in a housing
+      # placement that belongs to this CE episode. Without these guards, the CE
+      # would close on any stale, already-ended move-in from an earlier journey
+      # segment (e.g. rrh -> street re-entry opens a new CE that instantly matches
+      # the old rrh placement's MoveInDate).
+      #   - open_on_date(date): the placement must still be open today. A stale
+      #     placement is always exited (the client left it before re-entering the
+      #     trigger population), so this excludes it regardless of how far
+      #     days_before_trigger backdates opens_on.
+      #   - MoveInDate >= opens_on: the housing must have begun on/after this CE
+      #     opened. Defense-in-depth for configs where an active placement could
+      #     predate the episode (e.g. overlapping multi-track populations).
+      e_t = Hmis::Hud::Enrollment.arel_table
       Hmis::Hud::Enrollment.
+        open_on_date(date).
         where(data_source_id: @data_source_id, PersonalID: personal_id_subquery).
         where.not(MoveInDate: nil).
+        where(e_t[:MoveInDate].gteq(lifecycle_enrollment.opens_on)).
         exists?
     end
 

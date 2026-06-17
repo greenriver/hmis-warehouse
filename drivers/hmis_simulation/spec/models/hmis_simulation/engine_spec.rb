@@ -463,6 +463,71 @@ RSpec.describe HmisSimulation::Engine do
         expect(closing_events.count).to be > 0
       end
 
+      # The housing_move_in close condition must only fire on housing that belongs
+      # to *this* CE episode — not on any old, already-ended placement the person
+      # has ever had. (e.g. rrh -> street re-entry opening a new CE that instantly
+      # matched the prior rrh placement's MoveInDate.)
+      context 'housing_move_in close condition (current-episode housing only)' do
+        let(:hud_client) { create(:hmis_hud_client, data_source: data_source) }
+        let(:always_close) { { 'housing_move_in' => 1.0 } }
+
+        def open_lifecycle_enrollment(opens_on:)
+          HmisSimulation::LifecycleEnrollment.create!(
+            data_source_id: data_source.id,
+            hud_client_id: hud_client.id,
+            hud_enrollment_id: nil,
+            lifecycle_name: 'coordinated_entry',
+            status: 'open',
+            opens_on: opens_on,
+          )
+        end
+
+        def housing_enrollment(entry_date:, move_in_date:, exit_date: nil)
+          create(
+            :hmis_hud_enrollment,
+            data_source: data_source,
+            client: hud_client,
+            EntryDate: entry_date,
+            MoveInDate: move_in_date,
+            exit_date: exit_date,
+          )
+        end
+
+        it 'does NOT close on a stale, already-exited placement that predates the CE' do
+          housing_enrollment(entry_date: run_date - 100, move_in_date: run_date - 80, exit_date: run_date - 10)
+          lc = open_lifecycle_enrollment(opens_on: run_date - 5)
+
+          expect(engine.send(:check_housing_move_in?, lc, run_date, always_close)).to be(false)
+        end
+
+        it 'does NOT close on an exited placement even when its MoveInDate falls inside a backdated opens_on window' do
+          # A large days_before_trigger can backdate opens_on before an old move-in,
+          # so the MoveInDate >= opens_on guard alone would wrongly admit it. The
+          # open_on_date guard still excludes it because the placement has exited.
+          housing_enrollment(entry_date: run_date - 100, move_in_date: run_date - 50, exit_date: run_date - 10)
+          lc = open_lifecycle_enrollment(opens_on: run_date - 60)
+
+          expect(engine.send(:check_housing_move_in?, lc, run_date, always_close)).to be(false)
+        end
+
+        it 'DOES close on a currently-open placement whose move-in began during the CE episode' do
+          housing_enrollment(entry_date: run_date - 5, move_in_date: run_date - 3)
+          lc = open_lifecycle_enrollment(opens_on: run_date - 10)
+
+          expect(engine.send(:check_housing_move_in?, lc, run_date, always_close)).to be(true)
+        end
+
+        it 'treats opens_on as an inclusive lower bound for an open placement move-in' do
+          lc = open_lifecycle_enrollment(opens_on: run_date - 2)
+          enrollment = housing_enrollment(entry_date: run_date - 5, move_in_date: run_date - 2)
+
+          expect(engine.send(:check_housing_move_in?, lc, run_date, always_close)).to be(true)
+
+          enrollment.update!(MoveInDate: run_date - 3)
+          expect(engine.send(:check_housing_move_in?, lc, run_date, always_close)).to be(false)
+        end
+      end
+
       it 'closes CE enrollment after disengagement timeout' do
         config = lifecycle_config.deep_dup
         config['tracks'].find { |t| t['name'] == 'coordinated_entry' }['close_conditions'] = {
