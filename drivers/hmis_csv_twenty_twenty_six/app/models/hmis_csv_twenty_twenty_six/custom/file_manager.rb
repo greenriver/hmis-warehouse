@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -63,7 +63,7 @@ module HmisCsvTwentyTwentySix::Custom
       file_path = Rails.root.join("drivers/hmis_csv_twenty_twenty_six/app/models/hmis_csv_twenty_twenty_six/loader/custom/#{definition.class_name.underscore}.rb")
       table_name = "hmis_csv_2026_#{definition.class_name.underscore.pluralize}"
 
-      content = ::Code.copywright_header
+      content = ::Code.copyright_header
       content += <<~RUBY
         # frozen_string_literal: true
 
@@ -94,7 +94,7 @@ module HmisCsvTwentyTwentySix::Custom
       validations_code = generate_validations_code(definition)
       hmis_configuration_code = generate_hmis_configuration_code(definition)
 
-      content = ::Code.copywright_header
+      content = ::Code.copyright_header
       content += <<~RUBY
         # frozen_string_literal: true
 
@@ -134,7 +134,7 @@ module HmisCsvTwentyTwentySix::Custom
       owner_class_mapping_code = generate_owner_class_mapping_code(definition)
       warehouse_class_for_export_code = generate_warehouse_class_for_export_code(definition)
 
-      content = ::Code.copywright_header
+      content = ::Code.copyright_header
       # Build optional method blocks with consistent 2-space indentation level inside the class (4 spaces)
       indent = '    '
       adjust_keys_block = if adjust_keys_code.present?

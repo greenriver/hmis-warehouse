@@ -1,10 +1,10 @@
-# frozen_string_literal: true
-
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 require 'roo'
 module HudCodeGen
@@ -57,7 +57,7 @@ module HudCodeGen
     skipped = []
     filename = "lib/util/concerns/hud_lists_#{year}.rb"
     arr = []
-    arr.push ::Code.copywright_header
+    arr.push ::Code.copyright_header
     arr.push "
       # frozen_string_literal: true
       #{CODEGEN_FILE_HEADER}
@@ -109,7 +109,7 @@ module HudCodeGen
 
     seen = []
     arr = []
-    arr.push ::Code.copywright_header
+    arr.push ::Code.copyright_header
     arr.push "
       # frozen_string_literal: true
       #{CODEGEN_FILE_HEADER}
