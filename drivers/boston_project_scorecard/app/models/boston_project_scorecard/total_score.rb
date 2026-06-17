@@ -65,7 +65,7 @@ module BostonProjectScorecard
       end
 
       def financial_performance_available
-        # Q9 + Q10 + Q12 + Q13; Q11 adds 2 for RRH/PSH only
+        # Q9 (3) + Q10 (3) + Q12 (6) + Q13 (6); Q11 adds 2 for RRH/PSH only
         max = 18
         max += 2 if rrh? || psh?
 
