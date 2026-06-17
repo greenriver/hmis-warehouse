@@ -49,11 +49,12 @@ namespace :code do
 
   def files
     Dir.glob("#{Rails.root}/app/{**/}*.rb") +
-      Dir.glob("#{Rails.root}/drivers/{**/}*.rb") +
-      Dir.glob("#{Rails.root}/lib/{**/}*.rb") +
-      Dir.glob("#{Rails.root}/spec/{**/}*.rb") +
-      Dir.glob("#{Rails.root}/config/{**/}*.rb") +
-      Dir.glob("#{Rails.root}/bin/*.rb")
+    Dir.glob("#{Rails.root}/drivers/{**/}*.rb") +
+    Dir.glob("#{Rails.root}/lib/{**/}*.rb") +
+    Dir.glob("#{Rails.root}/spec/{**/}*.rb") +
+    Dir.glob("#{Rails.root}/config/{**/}*.rb") +
+    Dir.glob("#{Rails.root}/bin/*.rb") +
+    Dir.glob("#{Rails.root}/db/{**/}*.rb")
   end
 
   def add_copyright_to_file(path)
