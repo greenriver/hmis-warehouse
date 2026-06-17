@@ -1,10 +1,10 @@
-# frozen_string_literal: true
-
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 # run manually with
 # Reporting::Hud::RunReportJob.new.perform(HopwaCaper::Generators::Fy2026::Generator.name, HudReports::ReportInstance.last, email:false)

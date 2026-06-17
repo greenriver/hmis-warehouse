@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -622,6 +622,20 @@ module HmisCsvImporter::Importer
 
       # Update the effective export end date of the export
       log_timing :set_effective_export_end_date
+
+      # Run any after_ingest hooks
+      log_timing :after_ingest
+    end
+
+    def after_ingest
+      importable_files.each_value do |klass|
+        next unless klass.respond_to?(:after_ingest!)
+
+        klass.after_ingest!(
+          data_source: data_source,
+          project_ids: involved_project_ids,
+        )
+      end
     end
 
     def set_effective_export_end_date

@@ -15,7 +15,7 @@ The HMIS Warehouse project was initiated by the City of Boston's Department of N
 At its core the Warehouse ingests standard HUD HMIS CSV files, de duplicates clients across HMIS data sources, and aggregates data associated with HMIS clients from additional sources.
 
 ```a
-Copyright © 2017 Green River Data Analysis, LLC
+Copyright © 2017 Green River Data Group, Inc.
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
