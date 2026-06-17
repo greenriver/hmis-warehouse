@@ -383,7 +383,6 @@ module HmisSimulation
     # -- Linked record builders (called at enrollment entry/exit) --
 
     def create_entry_records(enrollment, date, sim_client:, project_type: nil)
-      seed           = @schedule.seed_for("linked:#{enrollment.EnrollmentID}")
       enrollment_cfg = enrollment_config_for(sim_client)
       disability_cfg = enrollment_cfg['disabilities'] || {}
       income_cfg     = enrollment_cfg['income_at_entry'] || {}
@@ -395,7 +394,7 @@ module HmisSimulation
         disability_config: disability_cfg,
         data_source: data_source,
         user_id: current_user_id,
-        rng_seed: seed,
+        rng_seed: @schedule.seed_for("disability_entry:#{enrollment.EnrollmentID}"),
       ).build!
       enrollment.update!(DisablingCondition: disability_result[:disabling_condition])
 
@@ -406,7 +405,7 @@ module HmisSimulation
         income_config: income_cfg,
         data_source: data_source,
         user_id: current_user_id,
-        rng_seed: seed + 1,
+        rng_seed: @schedule.seed_for("income_entry:#{enrollment.EnrollmentID}"),
       ).build!
 
       Builders::HealthAndDvBuilder.new(
@@ -415,7 +414,7 @@ module HmisSimulation
         hdv_config: hdv_cfg,
         data_source: data_source,
         user_id: current_user_id,
-        rng_seed: seed + 2,
+        rng_seed: @schedule.seed_for("hdv_entry:#{enrollment.EnrollmentID}"),
       ).build!
 
       cls_code = cls_situation_code_for(enrollment)
@@ -439,7 +438,7 @@ module HmisSimulation
         stage: :entry,
         data_source: data_source,
         user_id: current_user_id,
-        rng_seed: seed + 10,
+        rng_seed: @schedule.seed_for("ee_entry:#{enrollment.EnrollmentID}"),
       ).build!
     end
 
