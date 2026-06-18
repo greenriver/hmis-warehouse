@@ -42,7 +42,7 @@ class SecureFilesController < ApplicationControllerV2
     # Prevent create if user forgot to include file
     unless file_params[:file]
       @secure_file = file_source.new
-      flash[:alert] = Translation.translate('You must attach a file in the form.')
+      flash.now[:alert] = Translation.translate('You must attach a file in the form.')
       render(:index)
       return
     end
@@ -50,7 +50,7 @@ class SecureFilesController < ApplicationControllerV2
     recipients = file_params[:recipients]&.select(&:present?)&.map(&:to_i)
     if recipients.blank?
       @secure_file = file_source.new
-      flash[:alert] = Translation.translate('Upload failed, did you attach a file and choose a recipient?')
+      flash.now[:alert] = Translation.translate('Upload failed, did you attach a file and choose a recipient?')
       render(:index)
       return
     end
@@ -70,7 +70,7 @@ class SecureFilesController < ApplicationControllerV2
         end
       end
     rescue ActiveRecord::RecordInvalid, ActiveStorage::IntegrityError
-      flash[:alert] = Translation.translate('Upload failed, did you attach a file and choose a recipient?')
+      flash.now[:alert] = Translation.translate('Upload failed, did you attach a file and choose a recipient?')
       render :index
       return
     end
