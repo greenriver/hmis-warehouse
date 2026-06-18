@@ -8,12 +8,9 @@
 
 class Hmis::AuthPolicies::ServiceTypePolicy < Hmis::AuthPolicies::ResourcePolicy
   class Instance < Hmis::AuthPolicies::BasePolicy
-    def can_delete?
-      # HUD-linked types are not deletable through the custom service type editor
-      return false if resource.hud_service?
+    def can_delete? = can_manage?
 
-      in_data_source? && can_manage?
-    end
+    def can_edit? = can_manage?
 
     protected
 
@@ -22,9 +19,24 @@ class Hmis::AuthPolicies::ServiceTypePolicy < Hmis::AuthPolicies::ResourcePolicy
     end
 
     def can_manage?
-      global_permissions.include?(:can_configure_data_collection)
+      # HUD-linked types are not manageable through the custom service type editor
+      return false if resource.hud_service?
+
+      in_data_source? && global_permissions.include?(:can_configure_data_collection)
     end
 
     def validate_resource!(arg) = ensure_arg_type!(arg, Hmis::Hud::CustomServiceType)
+  end
+
+  class Global < Hmis::AuthPolicies::BasePolicy
+    def can_manage?
+      global_permissions.include?(:can_configure_data_collection)
+    end
+
+    def can_create? = can_manage?
+
+    protected
+
+    def validate_resource!(arg) = ensure_arg_class!(arg, Hmis::Hud::CustomServiceType)
   end
 end

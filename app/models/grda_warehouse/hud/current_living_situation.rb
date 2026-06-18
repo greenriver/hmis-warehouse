@@ -11,7 +11,11 @@ module GrdaWarehouse::Hud
     include HudSharedScopes
     include ::HmisStructure::CurrentLivingSituation
     include ::HmisStructure::Shared
-    include RailsDrivers::Extensions
+    # Extensions from drivers — see ADR 0007
+    include HmisCsvImporter::GrdaWarehouse::Hud::CurrentLivingSituationExtension
+    include HmisCsvTwentyTwenty::GrdaWarehouse::Hud::CurrentLivingSituationExtension
+    include HmisCsvTwentyTwentyFour::GrdaWarehouse::Hud::CurrentLivingSituationExtension
+    include HmisCsvTwentyTwentySix::GrdaWarehouse::Hud::CurrentLivingSituationExtension
 
     attr_accessor :source_id
 

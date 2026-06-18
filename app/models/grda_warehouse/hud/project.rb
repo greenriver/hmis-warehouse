@@ -79,7 +79,15 @@ module GrdaWarehouse::Hud
     belongs_to :project_cocs_with_deleted, class_name: 'GrdaWarehouse::Hud::WithDeleted::ProjectCoc', primary_key: [:ProjectID, :data_source_id], foreign_key: [:ProjectID, :data_source_id], optional: true
 
     # Needs to come after has_many :enrollments, bc one extension uses a has_many through: :enrollments relation
-    include RailsDrivers::Extensions
+    # Extensions from drivers — see ADR 0007
+    include ClientAccessControl::GrdaWarehouse::Hud::ProjectExtension
+    include ClientLocationHistory::GrdaWarehouse::Hud::ProjectExtension
+    include HmisCsvImporter::GrdaWarehouse::Hud::ProjectExtension
+    include HmisCsvTwentyTwenty::GrdaWarehouse::Hud::ProjectExtension
+    include HmisCsvTwentyTwentyFour::GrdaWarehouse::Hud::ProjectExtension
+    include HmisCsvTwentyTwentySix::GrdaWarehouse::Hud::ProjectExtension
+    include ServiceScanning::GrdaWarehouse::Hud::ProjectExtension
+    include SyntheticCeAssessment::GrdaWarehouse::Hud::ProjectExtension
 
     # A scope to return any projects that are residential (provide housing or indicate where someone was living).
     # Generally, and completely before the FY2024 data standards, this is based on project type.  In FY2024

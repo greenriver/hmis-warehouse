@@ -10,7 +10,9 @@ require 'memery'
 class User < ApplicationRecord
   include Memery
   include UserConcern
-  include RailsDrivers::Extensions
+  # Extensions from drivers — see ADR 0007
+  include CasAccess::UserExtension
+  include Hmis::UserExtension
   include DeviseUserPatch
 
   validates :talent_lms_email, format: { with: URI::MailTo::EMAIL_REGEXP }, unless: -> { talent_lms_email.blank? }

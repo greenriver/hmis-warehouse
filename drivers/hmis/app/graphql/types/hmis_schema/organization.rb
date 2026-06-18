@@ -33,6 +33,7 @@ module Types
 
       bool_field(:can_delete_organization) { policy.can_delete? }
       bool_field(:can_edit_organization) { policy.can_edit? }
+      bool_field(:can_create_projects) { policy.can_create_project? }
     end
 
     def projects(**args)

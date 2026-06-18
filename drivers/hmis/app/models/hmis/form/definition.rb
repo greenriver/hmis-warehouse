@@ -242,6 +242,15 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     where(data_source_id: data_source_id)
   end
 
+  # Forms which this user can resolve and configure in the form editor.
+  scope :configurable_by, ->(user) do
+    # Must be in the user's data source
+    scope = in_data_source(user.hmis_data_source_id)
+    # Must be a non-admin form role, unless the user is a super-admin
+    scope = scope.with_role(Hmis::Form::Definition::NON_ADMIN_FORM_ROLES) unless user.policy_for(Hmis::Form::Definition, policy_type: :form_definition).can_administrate_config?
+    scope
+  end
+
   before_destroy :can_be_destroyed, prepend: true
   private def can_be_destroyed
     return if draft?

@@ -34,6 +34,7 @@ module Hmis
       { code: id&.to_s, label: description }
     end
 
-    include RailsDrivers::Extensions
+    # Extensions from drivers — see ADR 0007
+    include HmisExternalApis::Hmis::UnitTypeExtension
   end
 end

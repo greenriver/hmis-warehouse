@@ -70,7 +70,10 @@
               - if stall_date
                 .label.label-warning
                   same file since: #{stall_date}
-            - if data_source.import_paused
+            - if data_source.disable_imports
+              .label.label-info
+                import disabled
+            - elsif data_source.import_paused
               .label.label-info
                 import paused
           %td

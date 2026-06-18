@@ -19,7 +19,11 @@ module GrdaWarehouse::Hud
     include ::HmisStructure::Inventory
     include ::HmisStructure::Shared
     include ArelHelper
-    include RailsDrivers::Extensions
+    # Extensions from drivers — see ADR 0007
+    include HmisCsvImporter::GrdaWarehouse::Hud::InventoryExtension
+    include HmisCsvTwentyTwenty::GrdaWarehouse::Hud::InventoryExtension
+    include HmisCsvTwentyTwentyFour::GrdaWarehouse::Hud::InventoryExtension
+    include HmisCsvTwentyTwentySix::GrdaWarehouse::Hud::InventoryExtension
     require 'csv'
 
     attr_accessor :source_id

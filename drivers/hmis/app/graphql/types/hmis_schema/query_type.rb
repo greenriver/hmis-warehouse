@@ -326,20 +326,9 @@ module Types
       current_user
     end
 
-    access_field do
-      # TODO(#8995) - Update access fields to match the new pattern (see below) and remove any that are unused by the frontend
-      Hmis::Role.permissions_with_descriptions.keys.each do |perm|
-        root_can perm
-      end
-      field :can_edit_users_in_warehouse, Boolean, null: false # warehouse permission
-
-      bool_field(:can_index_referrals) { policy_for(Hmis::Ce::Referral, policy_type: :ce_referral).can_index? }
-    end
-
+    field :access, Types::HmisSchema::RootQueryAccess, null: false
     def access
-      {
-        can_edit_users_in_warehouse: User.find(current_user.id).can_edit_users?,
-      }
+      {}
     end
 
     field :referral_posting, Types::HmisSchema::ReferralPosting, null: true do
@@ -382,7 +371,8 @@ module Types
 
     application_users_field :application_users
     def application_users(**args)
-      raise 'Access denied' unless current_user.can_audit_users? || current_user.can_impersonate_users?
+      user_policy = policy_for(Hmis::User, policy_type: :hmis_user)
+      access_denied! unless user_policy.can_index_application_users?
 
       user_scope = Hmis::User.active.with_hmis_access_in_data_source(current_user.hmis_data_source_id)
       resolve_application_users(user_scope, **args)
@@ -392,10 +382,11 @@ module Types
       argument :id, ID, required: true
     end
     def user(id:)
-      raise 'Access denied' unless id == current_user.id.to_s || current_user.can_audit_users? || current_user.can_impersonate_users?
-
       user_scope = Hmis::User.with_hmis_access_in_data_source(current_user.hmis_data_source_id)
-      load_ar_scope(scope: user_scope, id: id)
+      user = load_ar_scope(scope: user_scope, id: id)
+      access_denied! unless user && policy_for(user, policy_type: :hmis_user).can_view?
+
+      user
     end
 
     field :merge_audit_history, Types::HmisSchema::MergeAuditEvent.page_type, null: false do
@@ -435,7 +426,7 @@ module Types
       filters_argument HmisSchema::ServiceType
     end
     def service_types(filters: nil)
-      raise 'Access denied' unless current_user.can_configure_data_collection?
+      access_denied! unless policy_for(Hmis::Hud::CustomServiceType, policy_type: :service_type).can_manage?
 
       scope = Hmis::Hud::CustomServiceType.all
       scope = scope.apply_filters(filters) if filters
@@ -449,9 +440,10 @@ module Types
       # NOTE: this query is only used for form management. It probably should
       # not be used for the application, because there is no project context passed
       # to the definition.
-      access_denied! unless current_user.can_configure_data_collection?
+      definition = Hmis::Form::Definition.in_data_source(current_user.hmis_data_source_id).find(id)
+      access_denied! unless policy_for(definition, policy_type: :form_definition).can_configure_form?
 
-      Hmis::Form::Definition.in_data_source(current_user.hmis_data_source_id).find(id)
+      definition
     end
 
     field :external_form_submission, Types::HmisSchema::ExternalFormSubmission, null: true do
@@ -467,25 +459,25 @@ module Types
       argument :identifier, String, required: true
     end
     def form_identifier(identifier:)
-      access_denied! unless current_user.can_configure_data_collection?
+      # return early if the user has no permission to configure forms at all
+      access_denied! unless policy_for(Hmis::Form::Definition, policy_type: :form_definition).can_configure_forms?
 
-      scope = Hmis::Form::Definition.
-        in_data_source(current_user.hmis_data_source_id).
-        non_static.latest_versions.where(identifier: identifier)
+      definition = Hmis::Form::Definition.configurable_by(current_user).
+        non_static.latest_versions.where(identifier: identifier).first
 
-      # Return nil (Not Found in the UI) if the user doesn't have can_administrate_config permission and is trying to access a non-admin form
-      scope = scope.with_role(Hmis::Form::Definition::NON_ADMIN_FORM_ROLES) unless current_user.can_administrate_config?
-      scope.first
+      # Return nil (Not Found in the UI) if the user doesn't have permission to access this form
+      return nil unless definition && policy_for(definition, policy_type: :form_definition).can_configure_form?
+
+      definition
     end
 
     field :form_identifiers, Types::Forms::FormIdentifier.page_type, null: false do
       filters_argument Forms::FormIdentifier
     end
     def form_identifiers(filters: nil)
-      access_denied! unless current_user.can_configure_data_collection?
+      access_denied! unless policy_for(Hmis::Form::Definition, policy_type: :form_definition).can_configure_forms?
 
-      scope = Hmis::Form::Definition.in_data_source(current_user.hmis_data_source_id).non_static.valid.latest_versions
-      scope = scope.with_role(Hmis::Form::Definition::NON_ADMIN_FORM_ROLES) unless current_user.can_administrate_config?
+      scope = Hmis::Form::Definition.configurable_by(current_user).non_static.valid.latest_versions
       scope = scope.apply_filters(filters) if filters
       # Sort system-managed forms last, because they aren't edited through the config tool. Then sort by most recently updated.
       scope.order(managed_in_version_control: :asc, updated_at: :desc, id: :desc)

@@ -11,14 +11,6 @@ module HudHic
     extend ActiveSupport::Concern
 
     included do
-      ::HudReports::ReportInstance.class_eval do
-        has_one_attached :hic_projects_csv
-        has_one_attached :hic_project_cocs_csv
-        has_one_attached :hic_inventories_csv
-        has_one_attached :hic_organizations_csv
-        has_one_attached :hic_funders_csv
-      end
-
       ::HudReportArchival.register_archival_generator(title, self)
     end
 

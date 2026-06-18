@@ -26,7 +26,7 @@ module Admin
     private
 
     def set_variables
-      @access_control = AccessControl.find(params[:access_control_id].to_i)
+      @access_control = AccessControl.with_deleted.find(params[:access_control_id].to_i)
       @history = Audit::Versions.new(@access_control, access_control_component_config)
       @versions = @history.version_array.sort_by(&:created_at).reverse
     end
