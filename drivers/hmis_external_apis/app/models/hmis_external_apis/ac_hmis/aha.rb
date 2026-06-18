@@ -116,15 +116,15 @@ module HmisExternalApis::AcHmis
       @conn ||= HmisExternalApis::ApiKeyConnection.new(creds, connection_timeout: CONNECTION_TIMEOUT_SECONDS)
     end
 
+    # The generator field from the API may vary in casing or include version suffixes
+    # (e.g. 'VisionLink 2.0'). Slugify and match against our canonical generator labels.
     def normalize_generator(raw)
       slug = slugify_generator(raw)
-      GENERATORS.find do |key, label|
-        slugify_generator(key) == slug || slugify_generator(label) == slug
-      end&.first
+      GENERATORS.find { |_key, label| slugify_generator(label) == slug }&.first
     end
 
     def slugify_generator(value)
-      value.to_s.downcase.strip.tr('_', '-').delete('0-9').gsub(/[^a-z-]/, '')
+      value.to_s.downcase.strip.tr('_', '-').gsub(/[^a-z-]/, '')
     end
 
     # Walks the API `data` array (one element per matching client) and collects valid parsed
