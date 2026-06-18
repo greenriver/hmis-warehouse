@@ -16,21 +16,11 @@ class SecureFilesController < ApplicationControllerV2
 
   def show
     secure_file = @secure_file.secure_file
-    # Use ActiveStorage version if we have it
-    if secure_file.present?
-      send_data(
-        secure_file.download,
-        type: secure_file.content_type,
-        filename: secure_file.filename.to_s,
-      )
-    else
-      filename = 'secure_file'
-      send_data(
-        @secure_file.content,
-        type: @secure_file.content_type,
-        filename: File.basename(filename),
-      )
-    end
+    send_data(
+      secure_file.download,
+      type: secure_file.content_type,
+      filename: secure_file.filename.to_s,
+    )
   end
 
   def destroy
@@ -101,12 +91,12 @@ class SecureFilesController < ApplicationControllerV2
   end
 
   def received_secure_files
-    file_scope.received_by(current_user).order(created_at: :desc).diet_select
+    file_scope.received_by(current_user).order(created_at: :desc)
   end
   helper_method :received_secure_files
 
   def sent_secure_files
-    file_scope.where(sender_id: current_user.id).order(created_at: :desc).diet_select
+    file_scope.where(sender_id: current_user.id).order(created_at: :desc)
   end
   helper_method :sent_secure_files
 

@@ -47,7 +47,7 @@ RSpec.describe SecureFilesController, type: :request do
         # their own upload. Retaining the role grants access to files you sent.
         get secure_file_path(file)
         expect(response).to have_http_status(:ok)
-        expect(response.body).to eq(file.content)
+        expect(response.body).to eq(file.secure_file.download)
       end
     end
 
@@ -57,7 +57,7 @@ RSpec.describe SecureFilesController, type: :request do
       it 'downloads the received file' do
         get secure_file_path(file)
         expect(response).to have_http_status(:ok)
-        expect(response.body).to eq(file.content)
+        expect(response.body).to eq(file.secure_file.download)
       end
     end
 
@@ -90,11 +90,9 @@ RSpec.describe SecureFilesController, type: :request do
       end
     end
 
-    # Production files are attached via ActiveStorage (see #create), so the show
-    # action serves them through the `secure_file.present?` branch. The plain
-    # factory only populates the legacy `content` column, which exercises the
-    # fallback branch instead — attach a blob here to cover the real path.
-    context 'with an ActiveStorage-backed file (the production path)' do
+    # show streams the attachment straight from ActiveStorage; this pins that the
+    # stored content type and bytes round-trip for a non-default payload.
+    context 'with a non-default content type' do
       let(:attached_content) { 'secure activestorage payload' }
 
       before do
@@ -108,11 +106,9 @@ RSpec.describe SecureFilesController, type: :request do
       context 'as the recipient' do
         before { sign_in recipient }
 
-        it 'serves the ActiveStorage content, not the legacy column' do
+        it 'serves the stored content and content type' do
           get secure_file_path(file)
           expect(response).to have_http_status(:ok)
-          # Distinct from file.content (the jpg bytes), proving the ActiveStorage
-          # branch served the response rather than the legacy fallback.
           expect(response.body).to eq(attached_content)
           expect(response.media_type).to eq('text/plain')
         end
