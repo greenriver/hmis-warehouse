@@ -1,5 +1,5 @@
 %h2 Received
-- if received_files.present?
+- if received_secure_files.present?
   .card
     %table.table.table-striped
       %thead
@@ -17,7 +17,7 @@
           %th
             Remove
       %tbody
-        - received_files.each do |file|
+        - received_secure_files.each do |file|
           %tr
             %td
               = link_to secure_file_path(file) do

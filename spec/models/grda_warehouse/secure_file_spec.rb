@@ -54,24 +54,18 @@ RSpec.describe GrdaWarehouse::SecureFile, type: :model do
     end
 
     # viewable_by is scoped .unexpired; files older than 1 month must drop out for
-    # everyone, including the view-all admin. Mutation guard: deleting .unexpired
-    # leaves this red.
+    # everyone, including the view-all admin.
     it 'hides expired files even from a view-all admin' do
       expired = create :secure_file, recipient_id: recipient.id, sender_id: sender.id, created_at: 2.months.ago
       expect(GrdaWarehouse::SecureFile.viewable_by(admin)).not_to include(expired)
     end
   end
 
-  # User.can_receive_secure_files backs the recipients dropdown in the upload
-  # form. It must union *both* secure-upload permissions; a prior `||` between
-  # the two scopes silently dropped the view-all permission, hiding admins.
   describe 'User.can_receive_secure_files' do
     it 'includes a user with only assigned-uploads access' do
       expect(User.can_receive_secure_files).to include(recipient)
     end
     it 'includes a user with only view-all access' do
-      # Regression: `||` returned just the assigned-uploads scope, so this
-      # admin (view-all only) was excluded and could not be sent files.
       expect(User.can_receive_secure_files).to include(admin)
     end
     it 'excludes a user with neither permission' do
@@ -79,11 +73,6 @@ RSpec.describe GrdaWarehouse::SecureFile, type: :model do
     end
   end
 
-  # received_by backs the "Received" list. Unlike viewable_by, the view-all branch
-  # was deliberately NOT carried over: it returns only files where you're the
-  # recipient, for everyone. These tests pin that contract at the model level so a
-  # mutation back to `all` (re-leaking every file into admins' Received list) goes
-  # red here, not just in the request spec.
   describe '.received_by' do
     it 'returns only the files sent to an assigned recipient' do
       expect(GrdaWarehouse::SecureFile.received_by(recipient)).to contain_exactly(file)
@@ -95,6 +84,7 @@ RSpec.describe GrdaWarehouse::SecureFile, type: :model do
     end
 
     it 'returns nothing for a user without any secure-file permission' do
+      create :secure_file, recipient_id: sender.id, sender_id: recipient.id
       expect(GrdaWarehouse::SecureFile.received_by(sender)).to be_empty
     end
 

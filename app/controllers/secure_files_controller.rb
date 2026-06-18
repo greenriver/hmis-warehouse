@@ -97,30 +97,15 @@ class SecureFilesController < ApplicationControllerV2
   end
 
   private def set_file
-    # viewable_by already covers recipients, admins, and senders who still hold
-    # the role, so the same scope gates both downloading and removal. Out-of-scope
-    # ids fall out of the scoped .find, which Rails renders as a 404.
     @secure_file = file_scope.find(params[:id].to_i)
   end
 
-  def received_files
-    # The "Received" list shows files sent to you — never files you sent, and not
-    # every file in the system even for admins ("Received" means you're the
-    # recipient). A permission-gated subset of viewable_by; see
-    # SecureFile.received_by.
-    #
-    # Layered on file_scope (viewable_by) rather than the bare model so the
-    # visibility gate is always the outer bound: redundant today since received_by
-    # is already a subset, but it guarantees the list can never escape the
-    # visibility scope even if received_by later drifts.
+  def received_secure_files
     file_scope.received_by(current_user).order(created_at: :desc).diet_select
   end
-  helper_method :received_files
+  helper_method :received_secure_files
 
   def sent_secure_files
-    # Narrow file_scope (viewable_by) to the files this user sent, rather than
-    # querying the model directly, so the Sent list can never escape the
-    # visibility gate: a user who has lost the role sees nothing here either.
     file_scope.where(sender_id: current_user.id).order(created_at: :desc).diet_select
   end
   helper_method :sent_secure_files

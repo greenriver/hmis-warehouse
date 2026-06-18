@@ -36,10 +36,6 @@ module GrdaWarehouse
       visible_scope.unexpired
     end
 
-    # The "Received" list: files where you're the recipient. Unlike viewable_by,
-    # full-access users do NOT see every file here — only their own received
-    # files (the all-access branch was deliberately not carried over). viewable_by
-    # still authorizes admins for download/removal; this only governs the list.
     scope :received_by, ->(user) do
       scope = user.can_view_some_secure_files? ? where(recipient_id: user.id) : none
       scope.unexpired
