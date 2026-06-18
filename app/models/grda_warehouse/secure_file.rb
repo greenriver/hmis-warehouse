@@ -52,5 +52,9 @@ module GrdaWarehouse
     def self.clean_expired
       expired.update_all(deleted_at: Time.now)
     end
+
+    def expires_at
+      created_at.to_date + 1.month
+    end
   end
 end

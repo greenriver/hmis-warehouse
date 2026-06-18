@@ -188,18 +188,18 @@ RSpec.describe SecureFilesController, type: :request do
     end
   end
 
-  # viewable_by was broadened so senders can reach their own uploads for
-  # download/removal, but those uploads must still render only under "Sent",
-  # never "Received". Guards against the broadened auth scope leaking into the
+  # index is now the Received tab only: it lists files where you are the
+  # recipient. A sender's own upload must NOT leak in here (it belongs under
+  # Sent) — guards against the broadened viewable_by auth scope reaching the
   # recipient-facing list.
-  describe 'GET #index (Received vs. Sent lists)' do
+  describe 'GET #index (Received tab)' do
     context 'as an assigned sender who received nothing' do
       before { sign_in sender }
 
-      it 'lists its upload under Sent and shows an empty Received list' do
+      it 'shows an empty Received list (its upload belongs under Sent, not here)' do
         get secure_files_path
         expect(response).to have_http_status(:ok)
-        expect(response.body).to include('test file')
+        expect(response.body).not_to include('test file')
         expect(response.body).to include('You have not received any secure files')
       end
     end
@@ -207,17 +207,16 @@ RSpec.describe SecureFilesController, type: :request do
     context 'as the recipient' do
       before { sign_in recipient }
 
-      it 'lists the file under Received and shows an empty Sent list' do
+      it 'lists the file under Received' do
         get secure_files_path
         expect(response).to have_http_status(:ok)
         expect(response.body).to include('test file')
-        expect(response.body).to include('You have not sent any secure files')
       end
     end
 
     # index is gated by the same permission as show/destroy/create, so a user who
     # lost the role can no longer reach it at all: the authorization gate redirects
-    # away before either list is rendered.
+    # away before the list is rendered.
     context 'as a sender who has lost the role' do
       before { sign_in former_sender }
 
@@ -228,8 +227,8 @@ RSpec.describe SecureFilesController, type: :request do
     end
 
     # "Received" means you're the recipient, for everyone. An admin can still
-    # download/remove any file by id (viewable_by), but the list is not a
-    # system-wide view — it shows only files sent to the admin.
+    # download/remove any file by id (viewable_by), and see everything under
+    # All Files, but Received shows only files sent to the admin.
     context 'as an admin who neither sent nor received the file' do
       before { sign_in admin }
 
@@ -237,6 +236,69 @@ RSpec.describe SecureFilesController, type: :request do
         get secure_files_path
         expect(response).to have_http_status(:ok)
         expect(response.body).to include('You have not received any secure files')
+      end
+    end
+  end
+
+  describe 'GET #sent (Sent tab)' do
+    context 'as the assigned sender' do
+      before { sign_in sender }
+
+      it 'lists its own upload under Sent' do
+        get sent_secure_files_path
+        expect(response).to have_http_status(:ok)
+        expect(response.body).to include('test file')
+      end
+    end
+
+    context 'as a user who has sent nothing' do
+      before { sign_in bystander }
+
+      it 'shows an empty Sent list' do
+        get sent_secure_files_path
+        expect(response).to have_http_status(:ok)
+        expect(response.body).to include('You have not sent any secure files')
+      end
+    end
+
+    context 'as a sender who has lost the role' do
+      before { sign_in former_sender }
+
+      it 'cannot reach Sent once access is revoked' do
+        get sent_secure_files_path
+        expect(response).to have_http_status(:redirect)
+      end
+    end
+  end
+
+  describe 'GET #all_files (All Files tab, admin-only)' do
+    context 'as an admin' do
+      before { sign_in admin }
+
+      it 'lists files the admin neither sent nor received' do
+        get all_files_secure_files_path
+        expect(response).to have_http_status(:ok)
+        expect(response.body).to include('test file')
+      end
+    end
+
+    # The only: :all_files gate requires can_view_all_secure_uploads?; an
+    # assigned-only (non-admin) user is redirected away.
+    context 'as an assigned-only (non-admin) user' do
+      before { sign_in sender }
+
+      it 'cannot reach All Files' do
+        get all_files_secure_files_path
+        expect(response).to have_http_status(:redirect)
+      end
+    end
+
+    context 'as a sender who has lost the role' do
+      before { sign_in former_sender }
+
+      it 'cannot reach All Files once access is revoked' do
+        get all_files_secure_files_path
+        expect(response).to have_http_status(:redirect)
       end
     end
   end
@@ -285,7 +347,7 @@ RSpec.describe SecureFilesController, type: :request do
           )
         end.to have_enqueued_mail(NotifyUser, :secure_file_received).twice
 
-        expect(response).to redirect_to(secure_files_path)
+        expect(response).to redirect_to(sent_secure_files_path)
         created = GrdaWarehouse::SecureFile.where(sender_id: sender.id, recipient_id: [first_recipient.id, second_recipient.id])
         expect(created.count).to eq(2)
         expect(created.map { |f| f.secure_file.attached? }).to all(be(true))
