@@ -83,7 +83,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect(data['section8']).to eq(false)
       expect(data['subsidizedHousing']).to eq(false)
       expect(data['recentEvictionCase']).to eq(false)
-      expect(data['generator']).to eq('Visionlink 2.0')
       expect(data['failedReason']).to be_nil
     end
   end

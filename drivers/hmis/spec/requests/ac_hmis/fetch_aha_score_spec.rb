@@ -109,6 +109,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           expect(errors).to be_empty
           expect(data['score']).to eq(8)
           expect(data['mhScore']).to eq(6)
+          expect(data['generator']).to eq('AHA')
         end
       end
 
