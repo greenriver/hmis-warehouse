@@ -36,6 +36,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       mutation FetchAhaScore($clientId: ID!, $lookupCatalyst: String, $lookupReason: [String!]) {
         fetchAhaScore(clientId: $clientId, lookupCatalyst: $lookupCatalyst, lookupReason: $lookupReason) {
           score
+          mhScore
           mciQualityIndicator
           dwClientId
           generator
@@ -77,16 +78,57 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           c1,
           lookup_catalyst: 'OCS Staff',
           lookup_reason: ['Other'],
-          requested_generators: [:aha],
-        ).and_return({ aha: aha_result })
+          requested_generators: [:aha, :mh_aha],
+        ).and_return({ aha: aha_result, mh_aha: nil })
 
         perform_mutation(client_id: c1.id, lookup_catalyst: 'OCS Staff', lookup_reason: ['Other']) do |data, errors|
           expect(errors).to be_empty
           expect(data['score']).to eq(8)
+          expect(data['mhScore']).to eq(-1)
           expect(data['mciQualityIndicator']).to eq(0)
           expect(data['dwClientId']).to eq(mci_unique_id.value)
           expect(data['generator']).to eq('AHA')
           expect(data['ahaFailedReason']).to be_nil
+        end
+      end
+
+      it 'returns MH-AHA score when present' do
+        mh_aha_result = HmisExternalApis::AcHmis::AhaScores::MhAhaResult.new(
+          score: 6,
+          dw_client_id: mci_unique_id.value,
+          generator: 'MH-AHA',
+        )
+        allow(stub_aha).to receive(:fetch_score).with(
+          c1,
+          lookup_catalyst: nil,
+          lookup_reason: nil,
+          requested_generators: [:aha, :mh_aha],
+        ).and_return({ aha: aha_result, mh_aha: mh_aha_result })
+
+        perform_mutation(client_id: c1.id) do |data, errors|
+          expect(errors).to be_empty
+          expect(data['score']).to eq(8)
+          expect(data['mhScore']).to eq(6)
+        end
+      end
+
+      it 'returns MH-AHA score of -1 when present' do
+        mh_aha_result = HmisExternalApis::AcHmis::AhaScores::MhAhaResult.new(
+          score: -1,
+          dw_client_id: mci_unique_id.value,
+          generator: 'MH-AHA',
+        )
+        allow(stub_aha).to receive(:fetch_score).with(
+          c1,
+          lookup_catalyst: nil,
+          lookup_reason: nil,
+          requested_generators: [:aha, :mh_aha],
+        ).and_return({ aha: aha_result, mh_aha: mh_aha_result })
+
+        perform_mutation(client_id: c1.id) do |data, errors|
+          expect(errors).to be_empty
+          expect(data['score']).to eq(8)
+          expect(data['mhScore']).to eq(-1)
         end
       end
 
@@ -101,12 +143,13 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           c1,
           lookup_catalyst: nil,
           lookup_reason: nil,
-          requested_generators: [:aha],
-        ).and_return({ aha: aha_result_neg_one })
+          requested_generators: [:aha, :mh_aha],
+        ).and_return({ aha: aha_result_neg_one, mh_aha: nil })
 
         perform_mutation(client_id: c1.id) do |data, errors|
           expect(errors).to be_empty
           expect(data['score']).to eq(-1)
+          expect(data['mhScore']).to eq(-1)
           expect(data['mciQualityIndicator']).to eq(1)
           expect(data['ahaFailedReason']).to be_nil
         end
@@ -119,8 +162,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           c1,
           lookup_catalyst: nil,
           lookup_reason: nil,
-          requested_generators: [:aha],
-        ).and_return({ aha: nil })
+          requested_generators: [:aha, :mh_aha],
+        ).and_return({ aha: nil, mh_aha: nil })
 
         expect_gql_error(
           post_graphql(client_id: c1.id) { mutation },
@@ -137,12 +180,13 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           client_without_mci,
           lookup_catalyst: nil,
           lookup_reason: nil,
-          requested_generators: [:aha],
+          requested_generators: [:aha, :mh_aha],
         ).and_raise(HmisExternalApis::AcHmis::Aha::NoMciUniqueIdError)
 
         perform_mutation(client_id: client_without_mci.id) do |data, errors|
           expect(errors).to be_empty
           expect(data['score']).to eq(-1)
+          expect(data['mhScore']).to eq(-1)
           expect(data['ahaFailedReason']).to eq('NO_MCI_UNIQUE_ID')
           expect(data['mciQualityIndicator']).to be_nil
           expect(data['dwClientId']).to be_nil
