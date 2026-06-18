@@ -318,6 +318,29 @@ RSpec.describe 'ceMatchCustomAssessmentForms query', type: :request do
     expect(item['expressionField']).to eq('cde.custom_assessment.retired_field')
   end
 
+  it 'falls back to CDED field type when form item metadata is missing' do
+    create(
+      :hmis_custom_data_element_definition,
+      owner_type: 'Hmis::Hud::CustomAssessment',
+      key: 'missing_form_item',
+      label: 'Missing Form Item',
+      field_type: :integer,
+      form_definition: published_form,
+      data_source: ds1,
+    )
+
+    item = query_custom_assessment_fields('score_assessment').find { |field| field['key'] == 'missing_form_item' }
+
+    expect(item).to include(
+      'label' => 'Missing Form Item',
+      'itemType' => 'INTEGER',
+      'multiple' => false,
+      'expressionField' => 'cde.custom_assessment.missing_form_item',
+      'pickListReference' => nil,
+      'pickListOptions' => nil,
+    )
+  end
+
   it 'unions pick list options from published and retired form versions but not drafts' do
     score_field = query_custom_assessment_fields('score_assessment').find { |field| field['key'] == 'score' }
 

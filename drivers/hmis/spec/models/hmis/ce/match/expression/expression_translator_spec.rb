@@ -66,6 +66,45 @@ RSpec.describe Hmis::Ce::Match::Expression::ExpressionTranslator do
       expect(structured.clauses.first).to have_attributes(field: 'veteran_status', comparator: :EQ, value: 'YES')
     end
 
+    it 'recovers CDED pick list metadata from the CDED form context' do
+      data_source = create(:hmis_data_source)
+      form_definition = create(
+        :hmis_form_definition,
+        identifier: 'ce_picklist_assessment',
+        role: :CUSTOM_ASSESSMENT,
+        status: :published,
+        data_source: data_source,
+        definition: {
+          'item' => [
+            {
+              'type' => 'CHOICE',
+              'link_id' => 'ce_veteran_status',
+              'text' => 'CE Veteran Status',
+              'pick_list_reference' => 'NoYesReasonsForMissingData',
+              'mapping' => { 'custom_field_key' => 'ce_veteran_status' },
+            },
+          ],
+        },
+      )
+      create(
+        :hmis_custom_data_element_definition,
+        owner_type: 'Hmis::Hud::CustomAssessment',
+        key: 'ce_veteran_status',
+        label: 'CE Veteran Status',
+        field_type: :integer,
+        form_definition: form_definition,
+        data_source: data_source,
+      )
+
+      structured = described_class.to_structured('`cde.custom_assessment.ce_veteran_status` = 1')
+
+      expect(structured.clauses.first).to have_attributes(
+        field: 'cde.custom_assessment.ce_veteran_status',
+        comparator: :EQ,
+        value: 'YES',
+      )
+    end
+
     it 'leaves parsed literals unchanged for unknown fields' do
       structured = described_class.to_structured('unknown_field = 1')
 

@@ -1,54 +1,99 @@
 # frozen_string_literal: true
 
 module Hmis::Ce::Match::Expression
-  # FieldMap implementation for GrdaWarehouse::Hud::Client fields
-  # This class resolves fields that are columns on the `Client` table or one of its associations.
+  # FieldMap implementation for GrdaWarehouse::Hud::Client fields.
+  # The Fields module defines expression-field metadata; the methods below resolve
+  # client values and provide SQL/engine details for those fields.
   class ClientFieldMap
-    # todo @martha - maybe get this to match Gig's implementation a bit more closely, or revert many of the changes to reduce the diff/churn.
+    module Fields
+      DAYS_SINCE_LAST_EXIT = ClientField.new(
+        key: :days_since_last_exit,
+        value_type: ValueType::NUMERIC,
+        multiple: false,
+        description: 'Number of days since the client last exited an enrollment.',
+      )
+
+      VETERAN_STATUS = ClientField.new(
+        key: :veteran_status,
+        value_type: ValueType::NUMERIC,
+        multiple: false,
+        description: "The client's veteran status.",
+      )
+
+      CURRENT_AGE = ClientField.new(
+        key: :current_age,
+        value_type: ValueType::NUMERIC,
+        multiple: false,
+        description: "The client's current age in years.",
+      )
+
+      OPEN_ENROLLMENT_PROJECT_TYPES = ClientField.new(
+        key: :open_enrollment_project_types,
+        value_type: ValueType::NUMERIC,
+        multiple: true,
+        description: 'Project types for which the client currently has an open enrollment (including incomplete enrollments).',
+      )
+
+      OPEN_ENROLLMENT_PROJECT_TYPES_EXCLUDING_INCOMPLETE = ClientField.new(
+        key: :open_enrollment_project_types_excluding_incomplete,
+        value_type: ValueType::NUMERIC,
+        multiple: true,
+        description: 'Project types for which the client currently has an open enrollment (excluding incomplete enrollments).',
+      )
+
+      OPEN_REFERRAL_PROJECT_TYPES = ClientField.new(
+        key: :open_referral_project_types,
+        value_type: ValueType::NUMERIC,
+        multiple: true,
+        description: 'Project types for which the client currently has an open referral.',
+      )
+
+      ALL = [
+        DAYS_SINCE_LAST_EXIT,
+        VETERAN_STATUS,
+        CURRENT_AGE,
+        OPEN_ENROLLMENT_PROJECT_TYPES,
+        OPEN_ENROLLMENT_PROJECT_TYPES_EXCLUDING_INCOMPLETE,
+        OPEN_REFERRAL_PROJECT_TYPES,
+      ].freeze
+    end
+
     attr_reader :current_date
 
     def initialize(current_date: Date.current)
       @current_date = current_date
     end
 
-    # todo @martha - labels in this file should get replaced with using label_for, see gig's comment: https://github.com/greenriver/hmis-warehouse/pull/6590#discussion_r3415657883
     def client_query(clients, field)
-      client_field = field_by_key[field.to_sym]
-      raise ArgumentError, "Field \"#{field}\" is not supported" unless client_field
+      field_config = field_config_by_key[field.to_sym]
+      raise ArgumentError, "Field \"#{field}\" is not supported" unless field_config
 
-      client_field.query.call(clients)
+      field_config.fetch(:query).call(clients)
     end
 
     def arel_field(field)
-      field_by_key.dig(field.to_sym)&.arel_field
+      field_config_by_key.dig(field.to_sym, :arel_field)
     end
 
     def joins(field)
-      field_by_key.dig(field.to_sym)&.joins
+      field_config_by_key.dig(field.to_sym, :joins)
     end
 
     # Label for user-facing display of resolved field
     def label_for(field)
-      field_by_key.dig(field.to_sym)&.label || field.humanize
+      field.to_s.humanize
     end
 
     # Value for user-facing display of resolved field
     def format_for_display(field, value)
-      formatted = field_by_key.dig(field.to_sym)&.format_for_display&.call(value)
+      formatted = field_config_by_key.dig(field.to_sym, :format_for_display)&.call(value)
       return value if formatted.nil?
 
       formatted
     end
 
     def fields
-      @fields ||= [
-        days_since_last_exit_field,
-        veteran_status_field,
-        current_age_field,
-        open_enrollment_project_types_field,
-        open_enrollment_project_types_excluding_incomplete_field,
-        open_referral_project_types_field,
-      ].freeze
+      Fields::ALL
     end
 
     private
@@ -57,89 +102,72 @@ module Hmis::Ce::Match::Expression
       Hmis::ArelHelper
     end
 
-    def field_by_key
-      @field_by_key ||= fields.index_by(&:key).freeze
+    def field_config_by_key
+      @field_config_by_key ||= {
+        Fields::DAYS_SINCE_LAST_EXIT.key => days_since_last_exit_field,
+        Fields::VETERAN_STATUS.key => veteran_status_field,
+        Fields::CURRENT_AGE.key => current_age_field,
+        Fields::OPEN_ENROLLMENT_PROJECT_TYPES.key => open_enrollment_project_types_field,
+        Fields::OPEN_ENROLLMENT_PROJECT_TYPES_EXCLUDING_INCOMPLETE.key => open_enrollment_project_types_excluding_incomplete_field,
+        Fields::OPEN_REFERRAL_PROJECT_TYPES.key => open_referral_project_types_field,
+      }
     end
 
     def days_since_last_exit_field
       calculator = LastEnrolledDaysCalculator.new(@current_date)
-      ClientField.new(
-        key: :days_since_last_exit,
-        value_type: ValueType::NUMERIC,
+      {
         label: 'Days since last exit',
-        description: nil,
-        pick_list: nil,
         query: ->(clients) { calculator.call(clients) },
         joins: [{ hmis_source_clients: { enrollments: :exit } }],
         arel_field: calculator.arel_expression,
         format_for_display: method(:format_days),
-      )
+      }
     end
 
     def veteran_status_field
-      ClientField.new(
-        key: :veteran_status,
-        value_type: ValueType::NUMERIC,
+      {
         label: 'Veteran status',
-        description: nil,
-        pick_list: 'NoYesReasonsForMissingData',
         query: ->(clients) { clients.pluck(:id, :veteran_status).to_h },
         format_for_display: ->(v) { HudHelper.util.veteran_status(v) },
         arel_field: arel.c_t['VeteranStatus'],
         joins: nil,
-      )
+      }
     end
 
     def current_age_field
       calculator = AgeCalculator.new(@current_date)
-      ClientField.new(
-        key: :current_age,
-        value_type: ValueType::NUMERIC,
+      {
         label: 'Current age',
-        description: nil,
-        pick_list: nil,
         query: ->(clients) { calculator.call(clients) },
         arel_field: calculator.arel_expression,
         joins: nil,
         format_for_display: nil,
-      )
+      }
     end
 
     def open_enrollment_project_types_field
-      ClientField.new(
-        key: :open_enrollment_project_types,
-        value_type: ValueType::NUMERIC_ARRAY,
+      {
         label: 'Open enrollment project types',
-        description: nil,
-        pick_list: 'ProjectType',
         query: ->(clients) { project_types_query(clients, Hmis::Hud::Enrollment.open_including_wip, :project) },
         format_for_display: method(:format_project_types),
         arel_field: nil,
         joins: nil,
-      )
+      }
     end
 
     def open_enrollment_project_types_excluding_incomplete_field
-      ClientField.new(
-        key: :open_enrollment_project_types_excluding_incomplete,
-        value_type: ValueType::NUMERIC_ARRAY,
+      {
         label: 'Open enrollment project types excluding incomplete enrollments',
-        description: nil,
-        pick_list: 'ProjectType',
         query: ->(clients) { project_types_query(clients, Hmis::Hud::Enrollment.open_excluding_wip, :project) },
         format_for_display: method(:format_project_types),
         arel_field: nil,
         joins: nil,
-      )
+      }
     end
 
     def open_referral_project_types_field
-      ClientField.new(
-        key: :open_referral_project_types,
-        value_type: ValueType::NUMERIC_ARRAY,
+      {
         label: 'Open referral project types',
-        description: nil,
-        pick_list: 'ProjectType',
         query: ->(clients) do
           # Get project types from CE referrals
           ce_referrals_result = project_types_query(clients, Hmis::Ce::Referral.active, :target_project)
@@ -155,7 +183,7 @@ module Hmis::Ce::Match::Expression
         format_for_display: method(:format_project_types),
         arel_field: nil,
         joins: nil,
-      )
+      }
     end
 
     # Returns a hash mapping client IDs to arrays of project type IDs
