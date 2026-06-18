@@ -4869,7 +4869,6 @@ type FetchVisionLinkFlagsPayload {
   dwClientId: String
   errors: [ValidationError!]!
   failedReason: AhaFailedReason
-  generator: String
   isEligibleRa: Boolean
   recentEvictionCase: Boolean
   section8: Boolean
