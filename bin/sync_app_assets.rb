@@ -1,4 +1,10 @@
 #!/usr/bin/env ruby
+###
+# Copyright Green River Data Group, Inc.
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 
 # awscli adds too much weight
 # api doesn't have s3 sync

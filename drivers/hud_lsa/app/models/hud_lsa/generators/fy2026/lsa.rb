@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -529,10 +529,10 @@ module HudLsa::Generators::Fy2026
           ReportEnd: filter.end,
           LookbackDate: lookback_stop_date,
           ReportCoC: filter.coc_code,
-          SoftwareVendor: 'Green River Data Analysis',
-          SoftwareName: 'OpenPath HMIS Data Warehouse',
-          VendorContact: 'Elliot Anders',
-          VendorEmail: 'elliot@greenriver.org',
+          SoftwareVendor: 'Green River',
+          SoftwareName: 'Open Path HMIS Data Warehouse',
+          VendorContact: 'Open Path',
+          VendorEmail: 'openpath@greenriver.com',
           LSAScope: lsa_scope,
         )
       end

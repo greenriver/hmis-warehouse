@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -8,7 +8,7 @@
 
 require 'rails_helper'
 
-RSpec.describe JwtHelper do
+RSpec.describe Idp::JwtHelper do
   let(:jwks_url) { 'http://example.com/jwks' }
   let(:kid) { 'test_kid' }
   let(:rsa_key) { OpenSSL::PKey::RSA.generate(2048) }
@@ -31,7 +31,7 @@ RSpec.describe JwtHelper do
   let(:helper) { described_class.new(access_token: access_token) }
 
   before do
-    JwtHelper.memory_cache.clear
+    Idp::JwtHelper.memory_cache.clear
     allow(ENV).to receive(:fetch).and_call_original
     allow(ENV).to receive(:fetch).with('JWKS_URL').and_return(jwks_url)
     allow(ENV).to receive(:fetch).with('IDP_AUD').and_return('test_aud')
@@ -52,36 +52,36 @@ RSpec.describe JwtHelper do
     end
   end
 
-  describe '#validate!' do
+  describe '#valid?' do
     it 'returns true if token is valid' do
-      expect(helper.validate!).to be true
+      expect(helper.valid?).to be true
     end
 
     it 'returns false if public key is missing' do
       bad_token = JWT.encode(payload, rsa_key, 'RS256', { kid: 'wrong_kid' })
       bad_helper = described_class.new(access_token: bad_token)
-      expect(bad_helper.validate!).to be false
+      expect(bad_helper.valid?).to be false
     end
 
     it 'returns false if token is expired' do
       expired_payload = payload.merge('exp' => Time.now.to_i - 3600)
       expired_token = JWT.encode(expired_payload, rsa_key, 'RS256', { kid: kid })
       expired_helper = described_class.new(access_token: expired_token)
-      expect(expired_helper.validate!).to be false
+      expect(expired_helper.valid?).to be false
     end
 
     it 'returns false if issuer is invalid' do
       bad_iss_payload = payload.merge('iss' => 'wrong_iss')
       bad_iss_token = JWT.encode(bad_iss_payload, rsa_key, 'RS256', { kid: kid })
       bad_iss_helper = described_class.new(access_token: bad_iss_token)
-      expect(bad_iss_helper.validate!).to be false
+      expect(bad_iss_helper.valid?).to be false
     end
 
     it 'returns false if audience is invalid' do
       bad_aud_payload = payload.merge('aud' => 'wrong_aud')
       bad_aud_token = JWT.encode(bad_aud_payload, rsa_key, 'RS256', { kid: kid })
       bad_aud_helper = described_class.new(access_token: bad_aud_token)
-      expect(bad_aud_helper.validate!).to be false
+      expect(bad_aud_helper.valid?).to be false
     end
 
     it 'rejects a mismatched audience when IDP_AUD is blank (fail-closed)' do
@@ -89,7 +89,7 @@ RSpec.describe JwtHelper do
       bad_aud_payload = payload.merge('aud' => 'wrong_aud')
       bad_aud_token = JWT.encode(bad_aud_payload, rsa_key, 'RS256', { kid: kid })
       bad_aud_helper = described_class.new(access_token: bad_aud_token)
-      expect(bad_aud_helper.validate!).to be false
+      expect(bad_aud_helper.valid?).to be false
     end
   end
 
@@ -104,17 +104,6 @@ RSpec.describe JwtHelper do
   describe '#payload_email' do
     it 'returns downcased email from payload' do
       expect(helper.payload_email).to eq('test@example.com')
-    end
-  end
-
-  describe '#email' do
-    it 'returns the email if it matches the forwarded email (case insensitive)' do
-      expect(helper.email('test@example.com')).to eq('test@example.com')
-      expect(helper.email('TEST@EXAMPLE.COM')).to eq('test@example.com')
-    end
-
-    it 'returns nil if it does not match' do
-      expect(helper.email('wrong@example.com')).to be_nil
     end
   end
 
@@ -153,11 +142,11 @@ RSpec.describe JwtHelper do
       expect(helper.last_name).to eq('Adams')
     end
 
-    it '#last_name returns empty string if only one name exists' do
+    it '#last_name returns nil if only one name exists' do
       single_name_payload = payload.merge('name' => 'Cher')
       single_name_token = JWT.encode(single_name_payload, rsa_key, 'RS256', { kid: kid })
       single_name_helper = described_class.new(access_token: single_name_token)
-      expect(single_name_helper.last_name).to eq('')
+      expect(single_name_helper.last_name).to be_nil
     end
   end
 
@@ -198,11 +187,11 @@ RSpec.describe JwtHelper do
       end
 
       # Warm the cache with the original keyset (missing the rotated kid)
-      described_class.new(access_token: access_token).validate!
+      described_class.new(access_token: access_token).valid?
 
       # Now validate a token signed with the rotated key
       rotated_helper = described_class.new(access_token: rotated_token)
-      expect(rotated_helper.validate!).to be true
+      expect(rotated_helper.valid?).to be true
       expect(call_count).to eq(2)
     end
 
@@ -212,7 +201,7 @@ RSpec.describe JwtHelper do
       unknown_helper = described_class.new(access_token: unknown_token)
 
       expect(described_class).to receive(:fetch_jwks).twice.and_return(jwks_hash)
-      expect(unknown_helper.validate!).to be false
+      expect(unknown_helper.valid?).to be false
     end
   end
 end

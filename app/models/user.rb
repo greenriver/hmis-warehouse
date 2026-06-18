@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -10,6 +10,8 @@ require 'memery'
 class User < ApplicationRecord
   include Memery
   include UserConcern
+  include Idp::JwtUser
+  include Idp::Support if AuthMethod.jwt?
   # Extensions from drivers — see ADR 0007
   include CasAccess::UserExtension
   include Hmis::UserExtension
