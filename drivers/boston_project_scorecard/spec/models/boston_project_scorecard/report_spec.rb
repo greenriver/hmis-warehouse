@@ -390,6 +390,7 @@ RSpec.describe BostonProjectScorecard::Report, type: :model do
       report.update!(no_concern: -1, materials_concern: -1)
 
       expect(report.policy_alignment_score).to eq(3) # Q14 RRH only
+      expect(report.policy_alignment_available).to eq(31) # 34 - 3 for Q19a/Q19b N/A
     end
 
     it 'awards 2 points for RRH cost efficiency when under the threshold' do
@@ -421,6 +422,20 @@ RSpec.describe BostonProjectScorecard::Report, type: :model do
 
       expect(report.policy_alignment_score).to eq(report.policy_alignment_available)
       expect(report.policy_alignment_weighted_score).to eq(report.policy_alignment_weight)
+    end
+
+    it 'reduces policy alignment available when both monitoring questions are not applicable' do
+      report.update!(no_concern: -1, materials_concern: -1)
+
+      expect(report.policy_alignment_available).to eq(31)
+      expect(report.total_score_available).to eq(126)
+    end
+
+    it 'does not reduce policy alignment available for non-housing projects' do
+      report.update!(project_type: 1, no_concern: -1, materials_concern: -1)
+
+      expect(report.policy_alignment_available).to eq(31)
+      expect(report.total_score_available).to eq(112)
     end
   end
 end

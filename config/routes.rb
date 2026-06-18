@@ -594,6 +594,14 @@ Rails.application.routes.draw do
     end
     resource :report, on: :member, only: [:show], controller: 'cohorts/reports'
     resource :copy, only: [:new, :create], controller: 'cohorts/copy'
+    resource :acl_access_audit, only: [:show], controller: 'cohorts/acl_access_audits' do
+      get :export, on: :member
+    end
+    # START_ACL remove this route when the legacy permission model is removed
+    resource :legacy_access_audit, only: [:show], controller: 'cohorts/legacy_access_audits' do
+      get :export, on: :member
+    end
+    # END_ACL
 
     # Client search queries
     resources :client_searches, only: [:create], controller: 'cohorts/clients/search_queries', as: :client_search_queries

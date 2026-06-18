@@ -132,6 +132,10 @@ module BostonProjectScorecard
 
         materials_concern
       end
+
+      def monitoring_not_applicable?
+        no_concern == -1 && materials_concern == -1
+      end
     end
   end
 end
