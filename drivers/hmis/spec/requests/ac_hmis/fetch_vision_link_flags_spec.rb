@@ -42,7 +42,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           subsidizedHousing
           recentEvictionCase
           dwClientId
-          generator
           failedReason
           #{error_fields}
         }
