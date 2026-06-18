@@ -219,17 +219,15 @@ RSpec.describe SecureFilesController, type: :request do
       end
     end
 
-    # The index action has no permission gate (only show/destroy do), so a user
-    # who lost the role can still reach it. Both lists run through the visibility
-    # gate, so they must reveal nothing — not even metadata for files they sent.
+    # index is gated by the same permission as show/destroy/create, so a user who
+    # lost the role can no longer reach it at all: the authorization gate redirects
+    # away before either list is rendered.
     context 'as a sender who has lost the role' do
       before { sign_in former_sender }
 
-      it 'shows empty Received and Sent lists' do
+      it 'cannot reach the index once access is revoked' do
         get secure_files_path
-        expect(response).to have_http_status(:ok)
-        expect(response.body).to include('You have not received any secure files')
-        expect(response.body).to include('You have not sent any secure files')
+        expect(response).to have_http_status(:redirect)
       end
     end
 

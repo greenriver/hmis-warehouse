@@ -6,8 +6,8 @@
 
 # frozen_string_literal: true
 
-class SecureFilesController < ApplicationController
-  before_action :require_can_view_some_secure_files!, only: [:show, :destroy, :create]
+class SecureFilesController < ApplicationControllerV2
+  authorize_with { current_user.can_view_some_secure_files? }
   before_action :set_file, only: [:show, :destroy]
 
   def index
