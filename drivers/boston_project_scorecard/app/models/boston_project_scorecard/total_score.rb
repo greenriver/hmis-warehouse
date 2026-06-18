@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -18,16 +18,12 @@ module BostonProjectScorecard
           increased_employment_income_score, # max 12
           increased_other_income_score, # max 12
           days_to_lease_up_score, # max 12
-          utilization_rate_score, # max 6
-          no_concern_score, # max 3
         ].compact.sum
       end
 
       def project_performance_available
-        max = 69
-        max -= 24 unless rrh? || psh?
-
-        max
+        # Q2–Q5 are 12 points each; Q1a or Q1b adds 12 but only for RRH/PSH
+        (4 + (rrh? || psh? ? 1 : 0)) * 12
       end
 
       def project_performance_weight
@@ -47,7 +43,7 @@ module BostonProjectScorecard
       end
 
       def data_quality_available
-        15
+        15 # Q6–Q8, 5 points each
       end
 
       def data_quality_weight
@@ -69,7 +65,11 @@ module BostonProjectScorecard
       end
 
       def financial_performance_available
-        24
+        # Q9 (3) + Q10 (3) + Q12 (6) + Q13 (6); Q11 adds 2 for RRH/PSH only
+        max = 18
+        max += 2 if rrh? || psh?
+
+        max
       end
 
       def financial_performance_weight
@@ -86,11 +86,20 @@ module BostonProjectScorecard
           subpopulations_served_score,
           substance_use_treatment_service_score,
           supportive_services_score,
+          utilization_rate_score, # max 6
+          no_concern_score, # max 3
+          materials_concern_score, # max 3
         ].compact.sum
       end
 
       def policy_alignment_available
-        28
+        # Q15–Q17, Q18, and one of Q19a/Q19b (not both): 6 + 6 + 10 + 6 + 3
+        max = 31
+        max += 3 if rrh? # Q14
+        max += 6 if psh? # Q14
+        max -= 3 if (rrh? || psh?) && monitoring_not_applicable?
+
+        max
       end
 
       def policy_alignment_weight

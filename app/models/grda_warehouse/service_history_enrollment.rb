@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -14,7 +14,16 @@
 #
 # @see docs/features/service_history.md
 class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
-  include RailsDrivers::Extensions
+  # Extensions from drivers — see ADR 0007
+  include AdultOnlyHouseholdsSubPop::GrdaWarehouse::ServiceHistoryEnrollmentExtension
+  include AdultsWithChildrenSubPop::GrdaWarehouse::ServiceHistoryEnrollmentExtension
+  include AdultsWithChildrenTwentyfivePlusHohSubPop::GrdaWarehouse::ServiceHistoryEnrollmentExtension
+  include AdultsWithChildrenYouthHohSubPop::GrdaWarehouse::ServiceHistoryEnrollmentExtension
+  include ChildOnlyHouseholdsSubPop::GrdaWarehouse::ServiceHistoryEnrollmentExtension
+  include ClientAccessControl::GrdaWarehouse::ServiceHistoryEnrollmentExtension
+  include ClientsSubPop::GrdaWarehouse::ServiceHistoryEnrollmentExtension
+  include NonVeteransSubPop::GrdaWarehouse::ServiceHistoryEnrollmentExtension
+  include VeteransSubPop::GrdaWarehouse::ServiceHistoryEnrollmentExtension
   include ClientRaceAndEthnicityMixin
   include ArelHelper
 

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -73,6 +73,18 @@ class Hmis::AuthPolicies::HmisClientPolicy < Hmis::AuthPolicies::ResourcePolicy
 
     def can_merge_clients?
       global_permissions.include?(:can_merge_clients)
+    end
+
+    # Whether the user can view DOB for *some* clients in the data source.
+    # This global permission is used on the frontend to determine whether to show the column title as "DOB" or "Age" in Client Search.
+    def can_view_dob?
+      global_permissions.include?(:can_view_dob)
+    end
+
+    # Whether the user can view client alerts for *some* clients in the data source.
+    # The global permission is used mainly as an optimization on the frontend to skip the query if the user doesn't have any access.
+    def can_view_client_alerts?
+      global_permissions.include?(:can_view_client_alerts)
     end
 
     protected

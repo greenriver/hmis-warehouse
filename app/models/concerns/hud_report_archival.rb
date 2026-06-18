@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -42,6 +42,40 @@ module HudReportArchival
   included do
     has_one_attached :report_cells_csv
     has_one_attached :universe_members_csv
+
+    # APR / CAPER / CE-APR
+    has_one_attached :apr_clients_csv
+    has_one_attached :apr_living_situations_csv
+    has_one_attached :apr_ce_assessments_csv
+    has_one_attached :apr_ce_events_csv
+
+    # DQ
+    has_one_attached :dq_clients_csv
+    has_one_attached :dq_living_situations_csv
+
+    # HIC
+    has_one_attached :hic_projects_csv
+    has_one_attached :hic_project_cocs_csv
+    has_one_attached :hic_inventories_csv
+    has_one_attached :hic_organizations_csv
+    has_one_attached :hic_funders_csv
+
+    # LSA
+    has_one_attached :lsa_summary_results_csv
+
+    # PATH
+    has_one_attached :path_clients_csv
+
+    # PIT
+    has_one_attached :pit_clients_csv
+
+    # SPM
+    has_one_attached :spm_clients_csv
+    has_one_attached :spm_enrollments_csv
+    has_one_attached :spm_enrollment_links_csv
+    has_one_attached :spm_episodes_csv
+    has_one_attached :spm_returns_csv
+    has_one_attached :spm_bed_nights_csv
 
     scope :purge_eligible, ->(grace_period_days, now = Time.current) do
       sanitized_days = grace_period_days.to_i

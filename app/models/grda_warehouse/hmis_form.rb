@@ -1,16 +1,18 @@
-# frozen_string_literal: true
-
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 class GrdaWarehouse::HmisForm < GrdaWarehouseBase
   include ActionView::Helpers
   include Eto::PathwaysAnswers
   include Eto::CovidAnswers
-  include RailsDrivers::Extensions
+  # Extensions from drivers — see ADR 0007
+  include ClientLocationHistory::GrdaWarehouse::HmisFormExtension
+  include MaYyaReport::GrdaWarehouse::HmisFormExtension
   belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client', optional: true
   has_one :destination_client, through: :client
   belongs_to :hmis_assessment, class_name: 'GrdaWarehouse::Hmis::Assessment', primary_key: [:assessment_id, :site_id, :data_source_id], foreign_key: [:assessment_id, :site_id, :data_source_id], optional: true
@@ -582,7 +584,7 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
     Health::QualifyingActivity.where(source_type: self.class.name, source_id: id)
   end
 
-  def has_eto_qualifying_activities?
+  def has_eto_qualifying_activities? # rubocop:disable Naming/PredicatePrefix
     name.in?(['Case Management Daily Note']) && eto_qualifying_activities.any?
   end
 

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -42,7 +42,7 @@ module Types
     end
 
     def form_definitions
-      raise 'unauthorized' unless current_user.can_configure_data_collection?
+      access_denied! unless policy_for(Hmis::Form::Definition, policy_type: :form_definition).can_manage_form_rules?
 
       definitions_for_type = load_ar_association(object, :definitions).select(&:published?)
       definitions_for_category = load_ar_association(service_category, :definitions).select(&:published?)

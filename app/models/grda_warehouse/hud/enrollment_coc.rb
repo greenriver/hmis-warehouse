@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -16,7 +16,9 @@ module GrdaWarehouse::Hud
     include HudSharedScopes
     include ::HmisStructure::EnrollmentCoc
     include ::HmisStructure::Shared
-    include RailsDrivers::Extensions
+    # Extensions from drivers — see ADR 0007
+    include HmisCsvImporter::GrdaWarehouse::Hud::EnrollmentCocExtension
+    include HmisCsvTwentyTwenty::GrdaWarehouse::Hud::EnrollmentCocExtension
     attr_accessor :source_id
 
     self.table_name = 'EnrollmentCoC'

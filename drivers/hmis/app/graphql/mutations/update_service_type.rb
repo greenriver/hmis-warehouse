@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -16,9 +16,8 @@ module Mutations
     field :service_type, Types::HmisSchema::ServiceType, null: true
 
     def resolve(id:, input:)
-      access_denied! unless current_user.can_configure_data_collection?
-
       service_type = Hmis::Hud::CustomServiceType.find(id)
+      access_denied! unless service_type && policy_for(service_type, policy_type: :service_type).can_edit?
 
       # Prevent users from unknowingly renaming/reusing HUD services for another purpose
       # while the service continues to collect HUD records for the original type.

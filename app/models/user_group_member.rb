@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -18,11 +18,14 @@ class UserGroupMember < ApplicationRecord
     user_name = if version.item
       version.item.user&.name || "User ID #{version.item.user_id}"
     else
-      # Parse object_changes if it's a YAML string
-      object_changes = if version.object_changes.is_a?(String)
-        YAML.safe_load(version.object_changes, permitted_classes: [Time, Date, DateTime])
-      else
-        version.object_changes
+      # The destroyed row is gone, so derive the user from the (already parsed) changeset, falling back
+      # to the raw object_changes YAML. PaperTrail serializes timestamps with aliases, so allow them.
+      object_changes = changes.presence || begin
+        if version.object_changes.is_a?(String)
+          YAML.safe_load(version.object_changes, permitted_classes: [Time, Date, DateTime, ActiveSupport::TimeWithZone], aliases: true)
+        else
+          version.object_changes
+        end
       end
       user_id = object_changes&.dig('user_id', 1) || object_changes&.dig('user_id', 0)
 

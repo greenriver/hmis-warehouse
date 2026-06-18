@@ -1,0 +1,26 @@
+.card.overflow-visible
+  %table.table.table-striped
+    %thead
+      %tr
+        %th Name
+        %th Provider
+        %th Connector ID
+        %th API URL
+        %th Active
+        %th
+    %tbody
+      - list.each do |config|
+        %tr
+          %td
+            = link_to config.name, edit_admin_idp_service_config_path(config)
+          %td= config.provider
+          %td= config.connector_id
+          %td= truncate(config.api_url, length: 50)
+          %td= checkmark(config.active)
+          %td
+            :ruby
+              items = []
+              items << { link_to: { path: edit_admin_idp_service_config_path(config) }, icon: 'pencil', label: 'Edit' }
+              items << { link_to: { path: test_admin_idp_service_config_path(config), method: :post }, icon: 'check', label: 'Test' }
+              items << { link_to: { path: admin_idp_service_config_path(config), method: :delete, class: ['label-danger'], data: { confirm: "Would you really like to delete the IDP service config #{config.name}?" } }, icon: 'cross', label: 'Delete' }
+            = action_menu_or_button(items: items)

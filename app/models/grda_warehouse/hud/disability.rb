@@ -1,17 +1,21 @@
-# frozen_string_literal: true
-
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 module GrdaWarehouse::Hud
   class Disability < Base
     include HudSharedScopes
     include ::HmisStructure::Disability
     include ::HmisStructure::Shared
-    include RailsDrivers::Extensions
+    # Extensions from drivers — see ADR 0007
+    include HmisCsvImporter::GrdaWarehouse::Hud::DisabilityExtension
+    include HmisCsvTwentyTwenty::GrdaWarehouse::Hud::DisabilityExtension
+    include HmisCsvTwentyTwentyFour::GrdaWarehouse::Hud::DisabilityExtension
+    include HmisCsvTwentyTwentySix::GrdaWarehouse::Hud::DisabilityExtension
 
     self.table_name = 'Disabilities'
     self.sequence_name = "public.\"#{table_name}_id_seq\""

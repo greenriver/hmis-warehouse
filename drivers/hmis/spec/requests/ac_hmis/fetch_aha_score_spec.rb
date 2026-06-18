@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -64,7 +64,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
     context 'when client has MCI unique ID' do
       let(:aha_result) do
-        OpenStruct.new(
+        HmisExternalApis::AcHmis::AhaScores::AhaResult.new(
           score: 8,
           mci_quality_indicator: 0,
           dw_client_id: mci_unique_id.value,
@@ -73,7 +73,12 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       end
 
       it 'returns AHA score successfully' do
-        allow(stub_aha).to receive(:fetch_score).with(c1, lookup_catalyst: 'OCS Staff', lookup_reason: ['Other']).and_return(aha_result)
+        allow(stub_aha).to receive(:fetch_score).with(
+          c1,
+          lookup_catalyst: 'OCS Staff',
+          lookup_reason: ['Other'],
+          requested_generators: [:aha],
+        ).and_return({ aha: aha_result })
 
         perform_mutation(client_id: c1.id, lookup_catalyst: 'OCS Staff', lookup_reason: ['Other']) do |data, errors|
           expect(errors).to be_empty
@@ -86,13 +91,18 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       end
 
       it 'handles AHA score of -1' do
-        aha_result_neg_one = OpenStruct.new(
+        aha_result_neg_one = HmisExternalApis::AcHmis::AhaScores::AhaResult.new(
           score: -1,
           mci_quality_indicator: 1,
           dw_client_id: mci_unique_id.value,
           generator: 'AHA',
         )
-        allow(stub_aha).to receive(:fetch_score).with(c1, lookup_catalyst: nil, lookup_reason: nil).and_return(aha_result_neg_one)
+        allow(stub_aha).to receive(:fetch_score).with(
+          c1,
+          lookup_catalyst: nil,
+          lookup_reason: nil,
+          requested_generators: [:aha],
+        ).and_return({ aha: aha_result_neg_one })
 
         perform_mutation(client_id: c1.id) do |data, errors|
           expect(errors).to be_empty
@@ -103,12 +113,32 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       end
     end
 
+    context 'when response does not contain AHA score' do
+      it 'returns server error' do
+        allow(stub_aha).to receive(:fetch_score).with(
+          c1,
+          lookup_catalyst: nil,
+          lookup_reason: nil,
+          requested_generators: [:aha],
+        ).and_return({ aha: nil })
+
+        expect_gql_error(
+          post_graphql(client_id: c1.id) { mutation },
+          message: 'Response does not contain AHA score',
+        )
+      end
+    end
+
     context 'when client has no MCI unique ID' do
       let!(:client_without_mci) { create(:hmis_hud_client, data_source: ds1, user: u1) }
 
       it 'returns score -1 with NO_MCI_UNIQUE_ID reason' do
-        allow(stub_aha).to receive(:fetch_score).with(client_without_mci, lookup_catalyst: nil, lookup_reason: nil).
-          and_raise(HmisExternalApis::AcHmis::Aha::NoMciUniqueIdError)
+        allow(stub_aha).to receive(:fetch_score).with(
+          client_without_mci,
+          lookup_catalyst: nil,
+          lookup_reason: nil,
+          requested_generators: [:aha],
+        ).and_raise(HmisExternalApis::AcHmis::Aha::NoMciUniqueIdError)
 
         perform_mutation(client_id: client_without_mci.id) do |data, errors|
           expect(errors).to be_empty

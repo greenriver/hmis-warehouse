@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -19,5 +19,9 @@ class HmisEnforcement
     # Return true if the user can administer any HMIS data source.
     hmis_user = Hmis::User.find_by(id: user.id)
     hmis_user&.can_administer_hmis?
+  end
+
+  def self.configured_hmis_hostnames
+    ENV.fetch('HMIS_HOSTNAME', '').split(',').map { |h| h.strip.downcase }.compact_blank.uniq
   end
 end

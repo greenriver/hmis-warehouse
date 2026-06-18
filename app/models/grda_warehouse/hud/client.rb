@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -1119,20 +1119,36 @@ module GrdaWarehouse::Hud
       client_files.consent_forms.order(updated_at: :desc)&.first
     end
 
-    def invalidate_consent!
-      hr_status = nil
-      # If using implied consent, we need to set the housing release status to the current consent type ("Implied Consent")
-      hr_status = GrdaWarehouse::Config.active_consent_class.new(client: self).current_consent_type if GrdaWarehouse::Config.implied_consent?
+    # Clear this client's consent fields and invalidate any cached views.
+    # This should never be run if there is an active client file indicating a valid consent.
+    # If it does run in this scenario, it will clear out the client data for this consent
+    # and it won't be restored automatically.
+    # @param hr_status [String] the housing release status to set, if overriding the default
+    def invalidate_consent!(hr_status: nil)
+      self.class.invalidate_consent!(id, hr_status: hr_status)
+    end
 
-      update_columns(
+    # Clear consent fields for one or more clients and invalidate their view caches.
+    # Accepts a single id or an array of ids.
+    # @param ids [Integer, Array<Integer>] client id(s) to invalidate
+    # @param hr_status [String] the housing release status to set, if overriding the default
+    def self.invalidate_consent!(ids, hr_status: nil)
+      ids = Array.wrap(ids)
+      return if ids.blank?
+
+      # Normalize blank to nil; under implied consent, default to the no-consent string
+      hr_status = hr_status.presence
+      hr_status ||= GrdaWarehouse::Config.active_consent_class.no_release_string if GrdaWarehouse::Config.implied_consent?
+
+      where(id: ids).update_all(
         consent_form_id: nil,
         housing_release_status: hr_status,
         consent_form_signed_on: nil,
         consent_expires_on: nil,
         consented_coc_codes: [],
       )
-      # Remove any view caches for this client since permissions may have changed
-      clear_view_cache
+      # Remove any view caches since permissions may have changed
+      ids.each { |id| clear_view_cache(id) }
     end
 
     def apply_housing_release_status
@@ -2832,6 +2848,27 @@ module GrdaWarehouse::Hud
     end
 
     # Include extensions at the end so they can override default behavior
-    include RailsDrivers::Extensions
+    # Extensions from drivers — see ADR 0007
+    include AdultOnlyHouseholdsSubPop::GrdaWarehouse::Hud::ClientExtension
+    include AdultsWithChildrenSubPop::GrdaWarehouse::Hud::ClientExtension
+    include AdultsWithChildrenTwentyfivePlusHohSubPop::GrdaWarehouse::Hud::ClientExtension
+    include AdultsWithChildrenYouthHohSubPop::GrdaWarehouse::Hud::ClientExtension
+    include ChildOnlyHouseholdsSubPop::GrdaWarehouse::Hud::ClientExtension
+    include ClientAccessControl::GrdaWarehouse::Hud::ClientExtension
+    include ClientLocationHistory::GrdaWarehouse::Hud::ClientExtension
+    include ClientsSubPop::GrdaWarehouse::Hud::ClientExtension
+    include CustomImportsBostonService::GrdaWarehouse::Hud::ClientExtension
+    include EccoviaData::GrdaWarehouse::Hud::ClientExtension
+    include Financial::GrdaWarehouse::Hud::ClientExtension
+    include HealthFlexibleService::GrdaWarehouse::Hud::ClientExtension
+    include Hmis::GrdaWarehouse::Hud::ClientExtension
+    include HmisCsvImporter::GrdaWarehouse::Hud::ClientExtension
+    include HmisCsvTwentyTwenty::GrdaWarehouse::Hud::ClientExtension
+    include HmisCsvTwentyTwentyFour::GrdaWarehouse::Hud::ClientExtension
+    include HmisCsvTwentyTwentySix::GrdaWarehouse::Hud::ClientExtension
+    include MedicaidHmisInterchange::GrdaWarehouse::Hud::ClientExtension
+    include NonVeteransSubPop::GrdaWarehouse::Hud::ClientExtension
+    include ServiceScanning::GrdaWarehouse::Hud::ClientExtension
+    include VeteransSubPop::GrdaWarehouse::Hud::ClientExtension
   end
 end
