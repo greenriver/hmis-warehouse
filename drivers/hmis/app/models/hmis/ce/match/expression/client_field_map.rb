@@ -122,7 +122,6 @@ module Hmis::Ce::Match::Expression
     def days_since_last_exit_field
       calculator = LastEnrolledDaysCalculator.new(@current_date)
       {
-        label: 'Days since last exit',
         query: ->(clients) { calculator.call(clients) },
         joins: [{ hmis_source_clients: { enrollments: :exit } }],
         arel_field: calculator.arel_expression,
@@ -132,7 +131,6 @@ module Hmis::Ce::Match::Expression
 
     def veteran_status_field
       {
-        label: 'Veteran status',
         query: ->(clients) { clients.pluck(:id, :veteran_status).to_h },
         format_for_display: ->(v) { HudHelper.util.veteran_status(v) },
         arel_field: arel.c_t['VeteranStatus'],
@@ -143,7 +141,6 @@ module Hmis::Ce::Match::Expression
     def current_age_field
       calculator = AgeCalculator.new(@current_date)
       {
-        label: 'Current age',
         query: ->(clients) { calculator.call(clients) },
         arel_field: calculator.arel_expression,
         joins: nil,
@@ -153,7 +150,6 @@ module Hmis::Ce::Match::Expression
 
     def open_enrollment_project_types_field
       {
-        label: 'Open enrollment project types',
         query: ->(clients) { project_types_query(clients, Hmis::Hud::Enrollment.open_including_wip, :project) },
         format_for_display: method(:format_project_types),
         arel_field: nil,
@@ -163,7 +159,6 @@ module Hmis::Ce::Match::Expression
 
     def open_enrollment_project_types_excluding_incomplete_field
       {
-        label: 'Open enrollment project types excluding incomplete enrollments',
         query: ->(clients) { project_types_query(clients, Hmis::Hud::Enrollment.open_excluding_wip, :project) },
         format_for_display: method(:format_project_types),
         arel_field: nil,
@@ -173,7 +168,6 @@ module Hmis::Ce::Match::Expression
 
     def open_referral_project_types_field
       {
-        label: 'Open referral project types',
         query: ->(clients) do
           # Get project types from CE referrals
           ce_referrals_result = project_types_query(clients, Hmis::Ce::Referral.active, :target_project)
