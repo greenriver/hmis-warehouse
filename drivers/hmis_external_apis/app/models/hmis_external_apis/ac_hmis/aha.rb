@@ -116,11 +116,15 @@ module HmisExternalApis::AcHmis
       @conn ||= HmisExternalApis::ApiKeyConnection.new(creds, connection_timeout: CONNECTION_TIMEOUT_SECONDS)
     end
 
+    # The generator field from the API may vary in casing or include version suffixes
+    # (e.g. 'VisionLink 2.0'). Slugify and match against our canonical generator labels.
     def normalize_generator(raw)
-      normalized = raw.to_s.downcase.strip.tr('_', '-')
-      GENERATORS.find do |key, label|
-        key.to_s.tr('_', '-') == normalized || label.downcase == normalized
-      end&.first
+      slug = slugify_generator(raw)
+      GENERATORS.find { |_key, label| slugify_generator(label) == slug }&.first
+    end
+
+    def slugify_generator(value)
+      value.to_s.downcase.strip.tr('_', '-').gsub(/[^a-z-]/, '')
     end
 
     # Walks the API `data` array (one element per matching client) and collects valid parsed
@@ -230,9 +234,7 @@ module HmisExternalApis::AcHmis
     #     'score' => -999,
     #     'generator' => 'VisionLink',
     #     'metadata' => {
-    #       'is_eligible_ra' => false, 'currently_unhoused' => false, 'is_eligible_cc' => true,
-    #       'homeless_risk' => 0, 'section_8' => 0, 'city_of_pittsburgh' => 0,
-    #       'subsidized_housing' => 0, 'recent_erap_use' => 0,
+    #       'is_eligible_ra' => false, 'section_8' => 0, 'city_of_pittsburgh' => 0
     #     },
     #   }
     #   dw_client_id: '100000022'
@@ -244,18 +246,19 @@ module HmisExternalApis::AcHmis
 
       metadata = score_obj['metadata'] || {}
 
+      # send a message to sentry if any of the expected flags are missing
+      missing_fields = ['is_eligible_ra', 'section_8', 'city_of_pittsburgh', 'subsidized_housing', 'recent_eviction_case'] - metadata.keys
+      Sentry.capture_message("VisionLink metadata missing fields: #{missing_fields.join(', ')}") if missing_fields.any?
+
       AhaScores::VisionLinkResult.new(
         score: score_value,
         dw_client_id: dw_client_id,
         generator: score_obj['generator'],
-        is_eligible_ra: metadata['is_eligible_ra'],
-        currently_unhoused: metadata['currently_unhoused'],
-        is_eligible_cc: metadata['is_eligible_cc'],
-        homeless_risk: metadata['homeless_risk'],
-        section_8: metadata['section_8'],
-        city_of_pittsburgh: metadata['city_of_pittsburgh'],
-        subsidized_housing: metadata['subsidized_housing'],
-        recent_erap_use: metadata['recent_erap_use'],
+        is_eligible_ra: metadata['is_eligible_ra'] == true,          # 'Risk of Homelessness Flag'
+        section_8: metadata['section_8'] == 1,                       # 'Section 8 Housing Flag'
+        city_of_pittsburgh: metadata['city_of_pittsburgh'] == 1,     # 'City of Pittsburgh Flag'
+        subsidized_housing: metadata['subsidized_housing'] == 1,     # 'Subsidized Housing Flag'
+        recent_eviction_case: metadata['recent_eviction_case'] == 1, # 'Recent Eviction Case Flag'
       )
     end
 
