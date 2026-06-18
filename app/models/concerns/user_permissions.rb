@@ -56,8 +56,8 @@ module UserPermissions
       ].freeze
     end
 
-    def self.can_receive_secure_files?
-      can_view_assigned_secure_uploads || can_view_all_secure_uploads
+    def self.can_receive_secure_files
+      can_view_assigned_secure_uploads.or(can_view_all_secure_uploads)
     end
 
     def can_see_admin_menu

@@ -20,18 +20,29 @@ module GrdaWarehouse
     # and we allow notifications, but don't log those, just need to know if we should send them or not
     attr_accessor :send_notifications, :recipients
 
-    scope :visible_by?, ->(user) do
+    scope :viewable_by, ->(user) do
       # If you can see all client files, show everything
       visible_scope = if user.can_view_all_secure_uploads?
         all
-      # You can only see files you were sent
+      # Otherwise you can see files sent to you or that you uploaded yourself.
+      # Access follows the role: lose the permission and you lose access to your
+      # own past uploads too.
       elsif user.can_view_assigned_secure_uploads?
-        where(recipient_id: user.id)
+        where(recipient_id: user.id).or(where(sender_id: user.id))
       else
         none
       end
       # all secure files expire after 1.month
       visible_scope.unexpired
+    end
+
+    # The "Received" list: files where you're the recipient. Unlike viewable_by,
+    # full-access users do NOT see every file here — only their own received
+    # files (the all-access branch was deliberately not carried over). viewable_by
+    # still authorizes admins for download/removal; this only governs the list.
+    scope :received_by, ->(user) do
+      scope = user.can_view_some_secure_files? ? where(recipient_id: user.id) : none
+      scope.unexpired
     end
 
     scope :expired, -> do
@@ -77,6 +88,5 @@ module GrdaWarehouse
       self.content = nil
       save!(validate: false)
     end
-    # END for file migration
   end
 end
