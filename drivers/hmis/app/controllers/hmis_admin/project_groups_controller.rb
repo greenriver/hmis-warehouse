@@ -104,6 +104,7 @@ module HmisAdmin
           project_ids: [],
           organization_ids: [],
           project_type_numbers: [],
+          coc_codes: [],
         },
       ]
 

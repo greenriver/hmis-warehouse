@@ -99,5 +99,35 @@ RSpec.describe Hmis::ProjectGroupCriteria, type: :model do
         expect(criteria.effective_project_ids).to include(p3_o2.id) # from project_type_numbers
       end
     end
+
+    context 'when coc_codes are specified' do
+      let!(:p1_coc) { create(:hmis_hud_project_coc, data_source: hmis_ds, project: p1_o1, CoCCode: 'MA-500') }
+      let!(:p2_coc) { create(:hmis_hud_project_coc, data_source: hmis_ds, project: p2_o2, CoCCode: 'MA-501') }
+
+      let(:criteria) do
+        Hmis::ProjectGroupCriteria.new(
+          { coc_codes: ['MA-500'] },
+          data_source_id: hmis_ds.id,
+        )
+      end
+
+      it 'includes projects with a matching ProjectCoC record' do
+        expect(criteria.effective_project_ids).to contain_exactly(p1_o1.id)
+      end
+
+      it 'does not include projects when the matching ProjectCoC record is soft-deleted' do
+        p1_coc.destroy
+
+        expect(criteria.effective_project_ids).to be_empty
+      end
+
+      it 'does not include projects from another data source, even if specified' do
+        other_ds = create(:hmis_data_source)
+        other_project = create(:hmis_hud_project, data_source: other_ds)
+        create(:hmis_hud_project_coc, data_source: other_ds, project: other_project, CoCCode: 'MA-500')
+
+        expect(criteria.effective_project_ids).to contain_exactly(p1_o1.id)
+      end
+    end
   end
 end
