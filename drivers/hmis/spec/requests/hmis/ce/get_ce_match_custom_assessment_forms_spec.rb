@@ -184,18 +184,6 @@ RSpec.describe 'ceMatchCustomAssessmentForms query', type: :request do
     )
   end
 
-  let!(:form_without_cdeds) do
-    create(
-      :hmis_form_definition,
-      identifier: 'empty_assessment',
-      title: 'Empty Assessment',
-      role: :CUSTOM_ASSESSMENT,
-      status: :published,
-      version: 1,
-      data_source: ds1,
-    )
-  end
-
   let!(:draft_only_form) do
     create(
       :hmis_form_definition,
@@ -252,11 +240,11 @@ RSpec.describe 'ceMatchCustomAssessmentForms query', type: :request do
     ).tap { |cded| cded.update!(label: 'CDED Score Label', repeats: true) }
   end
 
-  it 'returns published and retired custom assessment forms with usable CDEDs in the user data source' do
+  it 'returns published and retired custom assessment forms in the user data source' do
     forms = query_custom_assessment_forms
 
-    expect(forms.pluck('identifier')).to eq(['retired_assessment', 'score_assessment'])
-    expect(forms.pluck('title')).to eq(['Retired Assessment', 'Score Assessment'])
+    # JsonForms.seed_all loads `ce_event_assessment` and `cls_assessment` in the test env, so expect those alongside the 2 we created in fixtures
+    expect(forms.pluck('identifier').sort).to eq(['ce_event_assessment', 'cls_assessment', 'retired_assessment', 'score_assessment'].sort)
   end
 
   it 'does not resolve fields for every form in the form list query' do

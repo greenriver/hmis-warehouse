@@ -688,19 +688,10 @@ module Types
     def ce_match_custom_assessment_forms
       access_denied! unless policy_for(Hmis::Form::Definition, policy_type: :form_definition).can_administrate_config?
 
-      ds_id = current_user.hmis_data_source_id
-
-      # Only include forms that have at least one usable CDED.
-      identifiers_with_cdeds = Hmis::Hud::CustomDataElementDefinition.
-        for_ce_match_conditions.
-        where(data_source_id: ds_id).
-        where.not(form_definition_identifier: nil).
-        distinct.pluck(:form_definition_identifier)
-
       Hmis::Form::Definition.
         with_role(:CUSTOM_ASSESSMENT).
         published_or_retired.
-        where(data_source_id: ds_id, identifier: identifiers_with_cdeds).
+        where(data_source_id: current_user.hmis_data_source_id).
         latest_versions.
         order(:title)
     end
