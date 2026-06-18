@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -64,8 +64,8 @@ module BostonProjectScorecard
       def efficiency_score
         return unless cost_efficiency_value.present?
 
-        return 6 if project_type.in?([3, 9, 10]) && cost_efficiency_value.round <= 19_497 # PSH, PH - housing only, PH - with services
-        return 6 if project_type.in?([13]) && cost_efficiency_value.round <= 14_022 # RRH
+        return 2 if project_type.in?([3, 9, 10]) && cost_efficiency_value.round <= 19_497 # PSH, PH - housing only, PH - with services
+        return 2 if project_type.in?([13]) && cost_efficiency_value.round <= 14_022 # RRH
 
         0
       end

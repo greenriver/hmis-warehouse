@@ -1,3 +1,9 @@
+###
+# Copyright Green River Data Group, Inc.
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 # frozen_string_literal: true
 
 require_relative '../../lib/util/git'
@@ -12,6 +18,9 @@ if sentry_dsn
     config.breadcrumbs_logger = [:active_support_logger, :http_logger]
     # sending all the gems isn't that helpful in practice, it just adds noise
     config.send_modules = false
+    # don't report on errors due to operational events (a pod being told to shut down)
+    # resulting in SIGTERM, SIGINT, etc.
+    config.excluded_exceptions += ['SignalException']
 
     ENV['SENTRY_PERFORMANCE_TRACE_RATE'].presence.yield_self do |base_trace_rate|
       # enable performance monitoring on QA

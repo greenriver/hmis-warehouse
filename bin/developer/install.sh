@@ -92,10 +92,18 @@ echo "========================================"
 echo ""
 
 # Validate system environment before proceeding
-if ! "$SCRIPT_DIR/system_check.sh"; then
-    echo ""
-    echo -e "${RED}Installation aborted due to validation failures.${NC}"
-    exit 1
+if "$SCRIPT_DIR/system_check.sh"; then
+    :
+else
+    validation_status=$?
+    if [ "$validation_status" -eq 2 ]; then
+        echo ""
+        echo -e "${YELLOW}Continuing despite environment warnings.${NC}"
+    else
+        echo ""
+        echo -e "${RED}Installation aborted due to validation failures.${NC}"
+        exit 1
+    fi
 fi
 
 echo ""

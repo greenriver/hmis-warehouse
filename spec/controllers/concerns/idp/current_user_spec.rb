@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -32,7 +32,7 @@ RSpec.describe Idp::CurrentUser, type: :controller do
       get 'auth' => 'anonymous#auth'
       get 'who' => 'anonymous#who'
     end
-    allow(controller).to receive(:jwt_helper_for_request).and_return(jwt_helper)
+    allow(controller).to receive(:idp_jwt_helper_for_request).and_return(jwt_helper)
   end
 
   let(:jwt_helper) do
@@ -72,7 +72,7 @@ RSpec.describe Idp::CurrentUser, type: :controller do
     end
   end
 
-  describe '#authenticated_user_from_jwt' do
+  describe '#idp_authenticated_user_from_jwt' do
     it 'resolves via find_or_create_from_jwt (the learning call), not find_from_jwt' do
       user = double('User', id: 7)
       expect(User).to receive(:find_or_create_from_jwt).with(jwt_helper).and_return(user)
@@ -103,13 +103,13 @@ RSpec.describe Idp::CurrentUser, type: :controller do
       expect(response.body).to eq('authenticated:5')
     end
 
-    it 'calls handle_unauthenticated when no user resolves' do
+    it 'calls idp_handle_unauthenticated when no user resolves' do
       allow(User).to receive(:find_or_create_from_jwt).and_return(nil)
-      allow(controller).to receive(:handle_unauthenticated)
+      allow(controller).to receive(:idp_handle_unauthenticated)
 
       get :auth
 
-      expect(controller).to have_received(:handle_unauthenticated)
+      expect(controller).to have_received(:idp_handle_unauthenticated)
     end
 
     it 'does not consult active_for_authentication? (access is the IdP decision)' do
@@ -121,7 +121,7 @@ RSpec.describe Idp::CurrentUser, type: :controller do
       expect(response.body).to eq('authenticated:9')
     end
 
-    # Exercises the real handle_unauthenticated wiring (capture + redirect), including the
+    # Exercises the real idp_handle_unauthenticated wiring (capture + redirect), including the
     # real Idp::Oauth2ProxySignInPath builder. No last_connector_id cookie is set here, so
     # only the rd parameter appears.
     it 'captures the original URL and redirects to the oauth2 sign-in path when unauthenticated' do

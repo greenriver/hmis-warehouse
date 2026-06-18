@@ -1,3 +1,9 @@
+###
+# Copyright Green River Data Group, Inc.
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 # frozen_string_literal: true
 
 class CreateHealthComprehensiveAssessments < ActiveRecord::Migration[6.1]
@@ -35,16 +41,20 @@ class CreateHealthComprehensiveAssessments < ActiveRecord::Migration[6.1]
 
       t.jsonb :funders
 
-      [:pcp, :hh, :psych, :therapist, :case_manager, :specialist, :guardian, :rep_payee, :social_support, :cbfs,
-        :housing, :day, :job, :peer_support, :dta, :va, :probation, :other_provider].each do |type_key|
+      [
+        :pcp, :hh, :psych, :therapist, :case_manager, :specialist, :guardian, :rep_payee, :social_support, :cbfs,
+        :housing, :day, :job, :peer_support, :dta, :va, :probation, :other_provider
+      ].each do |type_key|
         [:provider, :address, :phone, :notes].each do |col_name|
           t.string "#{type_key}_#{col_name}"
         end
       end
 
-      [:hip_fracture, :other_fracture, :chronic_pain, :alzheimers, :dementia, :stroke, :parkinsons, :hypertension,
+      [
+        :hip_fracture, :other_fracture, :chronic_pain, :alzheimers, :dementia, :stroke, :parkinsons, :hypertension,
         :cad, :chf, :copd, :asthma, :apnea, :anxiety, :bipolar, :depression, :schizophrenia, :cancer, :diabetes,
-        :arthritis, :ckd, :liver, :transplant, :weight, :other_condition].each do |condition|
+        :arthritis, :ckd, :liver, :transplant, :weight, :other_condition
+      ].each do |condition|
         t.string "#{condition}_status"
         t.string "#{condition}_notes"
       end

@@ -1,9 +1,11 @@
 #!/bin/bash
+
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
 set -euo pipefail
 
 DB_HOST=${DB_HOST:-db}
