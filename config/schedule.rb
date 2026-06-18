@@ -174,12 +174,13 @@ tasks = [
     at: '11:00am',
     interruptable: true,
   },
-  {
-    task: 'dba:unbloat',
-    frequency: :sunday,
-    at: '2:00 am',
-    interruptable: true,
-  },
+  # Disable this task so it doesn't run on production while we adjust it to better handle extremely large tables.
+  # {
+  #   task: 'dba:unbloat',
+  #   frequency: :sunday,
+  #   at: '2:00 am',
+  #   interruptable: true,
+  # },
   {
     task: 'driver:hmis_csv_importer:cleanup:expire_and_delete',
     frequency: 1.day,
