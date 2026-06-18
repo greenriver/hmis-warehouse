@@ -43,7 +43,7 @@ class SecureFilesController < ApplicationControllerV2
 
   def destroy
     success = @secure_file.destroy
-    flash[:notice] = Translation.translate("Secure File Removed") if success
+    flash[:notice] = Translation.translate('Secure File Removed') if success
     # Return to whichever tab the user removed the file from (falls back to Received).
     redirect_back(fallback_location: secure_files_path)
   end
