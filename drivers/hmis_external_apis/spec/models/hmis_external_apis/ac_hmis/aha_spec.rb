@@ -522,4 +522,27 @@ RSpec.describe HmisExternalApis::AcHmis::Aha, type: :model do
       expect(Sentry).not_to have_received(:capture_message)
     end
   end
+
+  context 'when response contains unrequested generators' do
+    let!(:mci_unique_id) { create(:mci_unique_id_external_id, source: client, remote_credential: remote_credential) }
+
+    it 'does not parse or log Sentry for unrequested generators' do
+      allow(Sentry).to receive(:capture_message)
+      response = mock_api_response(
+        client_data(
+          dw_client_id: mci_unique_id.value,
+          scores: [
+            aha_score_hash(score: 100, alt_aha_flag: 0), # invalid AHA score
+            mh_aha_score_hash(score: 6),
+          ],
+        ),
+      )
+      setup_api_expectation(mci_unique_ids: mci_unique_id.value, response: response)
+
+      results = aha.fetch_score(client, requested_generators: [:mh_aha])
+
+      expect(results[:mh_aha].score).to eq(6)
+      expect(Sentry).not_to have_received(:capture_message)
+    end
+  end
 end

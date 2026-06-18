@@ -98,7 +98,7 @@ module HmisExternalApis::AcHmis
       data = result.parsed_body&.dig('data')
       raise(Error, "Scores API response missing `data` key. Response body: `#{result.parsed_body}`") unless data
 
-      parsed_by_generator = parse_response_scores(data)
+      parsed_by_generator = parse_response_scores(data, requested_generators)
       build_results(parsed_by_generator, requested_generators)
     end
 
@@ -129,6 +129,9 @@ module HmisExternalApis::AcHmis
     # skipped after logging to Sentry (see parse_score_entry). The highest score per generator is
     # chosen later in build_results.
     #
+    # Only entries for requested generators are parsed, so unrelated score shapes in the response
+    # do not trigger validation errors or Sentry noise.
+    #
     # Example API shape:
     #   data: [
     #     { 'dw_client_id' => '100000001', 'scores' => [
@@ -142,7 +145,7 @@ module HmisExternalApis::AcHmis
     #
     # Example return value:
     #   { aha: [AhaResult(score: 7, ...), AhaResult(score: 9, ...)], mh_aha: [MhAhaResult(score: 5, ...)] }
-    def parse_response_scores(data)
+    def parse_response_scores(data, requested_generators)
       parsed_by_generator = Hash.new { |hash, key| hash[key] = [] }
 
       data.each do |response_client|
@@ -153,6 +156,7 @@ module HmisExternalApis::AcHmis
         response_client.dig('scores')&.each do |score_obj|
           generator_key = normalize_generator(score_obj['generator'])
           next unless generator_key
+          next unless requested_generators.include?(generator_key) # skip parsing unrequested generator
 
           parsed = parse_score_entry(score_obj, dw_client_id, generator_key)
           parsed_by_generator[generator_key] << parsed if parsed
