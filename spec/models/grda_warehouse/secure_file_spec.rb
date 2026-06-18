@@ -104,6 +104,8 @@ RSpec.describe GrdaWarehouse::SecureFile, type: :model do
       GrdaWarehouse::SecureFile.clean_expired
 
       expect(GrdaWarehouse::SecureFile.find_by(id: expired.id)).to be_nil
+      soft_deleted = GrdaWarehouse::SecureFile.with_deleted.find_by(id: expired.id)
+      expect(soft_deleted).to be_present
       expect(GrdaWarehouse::SecureFile.find_by(id: file.id)).to be_present
     end
   end
