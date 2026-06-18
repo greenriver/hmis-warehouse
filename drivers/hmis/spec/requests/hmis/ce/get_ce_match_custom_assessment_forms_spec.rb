@@ -25,9 +25,8 @@ RSpec.describe 'ceMatchCustomAssessmentForms query', type: :request do
           key
           label
           itemType
-          repeats
+          multiple
           expressionField
-          formDefinitionIdentifier
           pickListReference
           pickListOptions {
             code
@@ -244,6 +243,15 @@ RSpec.describe 'ceMatchCustomAssessmentForms query', type: :request do
     )
   end
 
+  # CDED is the source of truth, in case it differs from the form item JSON
+  let!(:score_cded_override) do
+    Hmis::Hud::CustomDataElementDefinition.find_by!(
+      data_source: ds1,
+      form_definition_identifier: 'score_assessment',
+      key: 'score',
+    ).tap { |cded| cded.update!(label: 'CDED Score Label', repeats: true) }
+  end
+
   it 'returns published and retired custom assessment forms with usable CDEDs in the user data source' do
     forms = query_custom_assessment_forms
 
@@ -287,14 +295,19 @@ RSpec.describe 'ceMatchCustomAssessmentForms query', type: :request do
     expect(fields).to contain_exactly(
       hash_including(
         'key' => 'score',
+        'label' => 'CDED Score Label',
         'itemType' => 'CHOICE',
+        'multiple' => true,
         'expressionField' => 'cde.custom_assessment.score',
-        'formDefinitionIdentifier' => 'score_assessment',
+        'pickListReference' => nil,
       ),
       hash_including(
         'key' => 'nested_field',
         'itemType' => 'BOOLEAN',
+        'multiple' => false,
         'expressionField' => 'cde.custom_assessment.nested_field',
+        'pickListReference' => nil,
+        'pickListOptions' => nil,
       ),
     )
   end

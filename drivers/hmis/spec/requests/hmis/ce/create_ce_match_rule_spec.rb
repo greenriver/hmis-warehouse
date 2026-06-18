@@ -108,6 +108,21 @@ RSpec.describe 'createCeMatchRule mutation', type: :request do
     expect(result.dig('data', 'createCeMatchRule', 'rule', 'expression')).to eq('current_age >= 18')
   end
 
+  it 'coerces enum-backed structured expression values' do
+    input = base_input.except(:expression).merge(
+      structuredExpression: {
+        operator: 'AND',
+        clauses: [
+          { field: 'veteran_status', comparator: 'EQ', value: 'YES' },
+        ],
+      },
+    )
+
+    response, result = post_graphql(input: input) { mutation }
+    expect(response.status).to eq(200), result.inspect
+    expect(result.dig('data', 'createCeMatchRule', 'rule', 'expression')).to eq('veteran_status = 1')
+  end
+
   it 'returns validation errors without saving' do
     # Validation is tested more thoroughly in the spec for Hmis::Ce::Match::Expression::Validator
     expect do

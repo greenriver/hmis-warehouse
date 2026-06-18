@@ -673,7 +673,6 @@ module Types
       Hmis::Unit.viewable_by(current_user).find_by(id: id)
     end
 
-    # Client fields (from ClientFieldMap) available in CE Match Rule expressions.
     field :ce_match_client_fields, [HmisSchema::CeMatchField], null: false, description: 'Client fields available for CE Match Rule expressions.'
     def ce_match_client_fields
       access_denied! unless policy_for(Hmis::Form::Definition, policy_type: :form_definition).can_administrate_config?
@@ -681,7 +680,7 @@ module Types
       # access_denied! unless policy_for(Hmis::Ce::Match::Rule, policy_type: :ce_match_rule).can_manage?
       # and do the same in the next two queries.
 
-      Hmis::Ce::Match::Expression::FieldMetadataResolver.new.client_fields
+      Hmis::Ce::Match::FieldCatalog.new.client_fields
     end
 
     # Custom-assessment form definitions in the user's data source that have at least one CDED usable for CE Match Rules.
@@ -712,7 +711,7 @@ module Types
     def ce_match_custom_assessment_fields(form_definition_identifier:)
       access_denied! unless policy_for(Hmis::Form::Definition, policy_type: :form_definition).can_administrate_config?
 
-      Hmis::Ce::Match::Expression::FieldMetadataResolver.new.custom_assessment_fields_for(
+      Hmis::Ce::Match::FieldCatalog.new.custom_assessment_fields_for(
         data_source_id: current_user.hmis_data_source_id,
         form_definition_identifier: form_definition_identifier,
       )

@@ -60,6 +60,24 @@ RSpec.describe Hmis::Ce::Match::Expression::ExpressionTranslator do
       expect(structured.clauses.first).to have_attributes(field: 'foo', comparator: :EQ, value: nil)
     end
 
+    it 'coerces enum-backed Dentaku literals to frontend enum keys' do
+      structured = described_class.to_structured('veteran_status = 1')
+
+      expect(structured.clauses.first).to have_attributes(field: 'veteran_status', comparator: :EQ, value: 'YES')
+    end
+
+    it 'leaves parsed literals unchanged for unknown fields' do
+      structured = described_class.to_structured('unknown_field = 1')
+
+      expect(structured.clauses.first).to have_attributes(field: 'unknown_field', comparator: :EQ, value: 1)
+    end
+
+    it 'leaves unrecognized enum-backed Dentaku literals unchanged' do
+      structured = described_class.to_structured('veteran_status = 12345')
+
+      expect(structured.clauses.first).to have_attributes(field: 'veteran_status', comparator: :EQ, value: 12_345)
+    end
+
     it 'returns nil for INCLUDES with arguments in wrong order' do
       expect(described_class.to_structured('INCLUDES("1 Bed", foo)')).to be_nil
     end
@@ -119,6 +137,43 @@ RSpec.describe Hmis::Ce::Match::Expression::ExpressionTranslator do
       structured = described_class.to_structured(original)
       round = described_class.to_structured(described_class.from_structured(structured))
       expect(round).to eq(structured)
+    end
+  end
+
+  describe '.from_structured' do
+    it 'coerces enum-backed UI values before serializing Dentaku expressions' do
+      structured = Hmis::Ce::Match::Expression::StructuredExpression.new(
+        operator: :AND,
+        clauses: [
+          Hmis::Ce::Match::Expression::StructuredExpression::Clause.new(field: 'veteran_status', comparator: :EQ, value: 'YES'),
+        ],
+      )
+
+      expect(described_class.from_structured(structured)).to eq('veteran_status = 1')
+    end
+
+    it 'coerces enum-backed UI values generically using the field pick list reference' do
+      emergency_shelter_key = Types::HmisSchema::Enums::ProjectType.key_for(1)
+      structured = Hmis::Ce::Match::Expression::StructuredExpression.new(
+        operator: :AND,
+        clauses: [
+          Hmis::Ce::Match::Expression::StructuredExpression::Clause.new(field: 'open_referral_project_types', comparator: :INCLUDES, value: emergency_shelter_key),
+        ],
+      )
+
+      expect(described_class.from_structured(structured)).to eq('INCLUDES(open_referral_project_types, 1)')
+    end
+
+    it 'leaves unknown fields and unrecognized enum keys unchanged' do
+      structured = Hmis::Ce::Match::Expression::StructuredExpression.new(
+        operator: :AND,
+        clauses: [
+          Hmis::Ce::Match::Expression::StructuredExpression::Clause.new(field: 'unknown_field', comparator: :EQ, value: 'YES'),
+          Hmis::Ce::Match::Expression::StructuredExpression::Clause.new(field: 'veteran_status', comparator: :EQ, value: 'NOT_A_REAL_KEY'),
+        ],
+      )
+
+      expect(described_class.from_structured(structured)).to eq("unknown_field = 'YES' AND veteran_status = 'NOT_A_REAL_KEY'")
     end
   end
 end

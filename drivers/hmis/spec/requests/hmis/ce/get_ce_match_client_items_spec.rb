@@ -14,9 +14,8 @@ RSpec.describe 'ceMatchClientFields query', type: :request do
           key
           label
           itemType
-          repeats
+          multiple
           expressionField
-          formDefinitionIdentifier
           pickListReference
           pickListOptions {
             code
@@ -41,16 +40,19 @@ RSpec.describe 'ceMatchClientFields query', type: :request do
     items = query_client_items
 
     expect(items).to contain_exactly(
-      hash_including('key' => 'current_age', 'itemType' => 'INTEGER', 'expressionField' => 'current_age', 'formDefinitionIdentifier' => nil),
+      hash_including('key' => 'current_age', 'itemType' => 'INTEGER', 'multiple' => false, 'expressionField' => 'current_age'),
       hash_including(
         'key' => 'veteran_status',
         'itemType' => 'CHOICE',
+        'multiple' => false,
         'expressionField' => 'veteran_status',
-        'formDefinitionIdentifier' => nil,
         'pickListReference' => 'NoYesReasonsForMissingData',
-        'pickListOptions' => [],
+        'pickListOptions' => nil,
       ),
-      hash_including('key' => 'days_since_last_exit', 'itemType' => 'INTEGER', 'expressionField' => 'days_since_last_exit', 'formDefinitionIdentifier' => nil),
+      hash_including('key' => 'days_since_last_exit', 'itemType' => 'INTEGER', 'multiple' => false, 'expressionField' => 'days_since_last_exit'),
+      hash_including('key' => 'open_enrollment_project_types', 'itemType' => 'CHOICE', 'multiple' => true, 'expressionField' => 'open_enrollment_project_types', 'pickListReference' => 'ProjectType', 'pickListOptions' => nil),
+      hash_including('key' => 'open_enrollment_project_types_excluding_incomplete', 'itemType' => 'CHOICE', 'multiple' => true, 'expressionField' => 'open_enrollment_project_types_excluding_incomplete', 'pickListReference' => 'ProjectType', 'pickListOptions' => nil),
+      hash_including('key' => 'open_referral_project_types', 'itemType' => 'CHOICE', 'multiple' => true, 'expressionField' => 'open_referral_project_types', 'pickListReference' => 'ProjectType', 'pickListOptions' => nil),
     )
   end
 
