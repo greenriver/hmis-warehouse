@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -88,24 +88,39 @@ module GrdaWarehouse
         'Unknown Entity'
       end
 
-      # Get the collection name
-      collection_name = if version.item
-        version.item.collection&.name || "Collection ID #{version.item.collection_id}"
+      # Get the collection/access_group name (GVEs use collection_id for ACL or access_group_id for legacy)
+      changes = version.object_changes || {}
+      path_name = if version.item
+        if version.item.collection_id.present?
+          version.item.collection&.name || "Collection ID #{version.item.collection_id}"
+        elsif version.item.access_group_id.present?
+          version.item.access_group&.name || "Access Group ID #{version.item.access_group_id}"
+        else
+          'Unknown Collection or Group'
+        end
       elsif ['create', 'destroy'].include?(version.event)
-        collection_id = version.object_changes['collection_id'][index]
-        collection = Collection.with_deleted.find_by(id: collection_id)
-        collection&.name || "Collection ID #{collection_id}"
+        if changes['collection_id']
+          collection_id = changes['collection_id'][index]
+          collection = Collection.with_deleted.find_by(id: collection_id)
+          collection&.name || "Collection ID #{collection_id}"
+        elsif changes['access_group_id']
+          access_group_id = changes['access_group_id'][index]
+          access_group = AccessGroup.with_deleted.find_by(id: access_group_id)
+          access_group&.name || "Access Group ID #{access_group_id}"
+        else
+          'Unknown Collection or Group'
+        end
       else
-        'Unknown Collection'
+        'Unknown Collection or Group'
       end
 
       case version.event
       when 'create'
-        ["Added \"#{entity_name}\" to \"#{collection_name}\""]
+        ["Added \"#{entity_name}\" to \"#{path_name}\""]
       when 'update'
-        ["Modified \"#{entity_name}\" in \"#{collection_name}\""]
+        ["Modified \"#{entity_name}\" in \"#{path_name}\""]
       when 'destroy'
-        ["Removed \"#{entity_name}\" from \"#{collection_name}\""]
+        ["Removed \"#{entity_name}\" from \"#{path_name}\""]
       else
         ['Modified collection entity']
       end
