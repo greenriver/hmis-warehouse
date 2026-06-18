@@ -20,4 +20,5 @@
   %h3 Exclusion Criteria
   = f.simple_fields_for :exclusion_criteria, @project_group.parsed_exclusion_criteria do |ec|
     = ec.input :project_ids, collection: [], as: :select_two, input_html: { multiple: true, data: { 'collection-path' => api_projects_path(selected_project_ids: @project_group.parsed_exclusion_criteria.project_ids, data_source_ids: [ds.id]) }, placeholder: 'Choose Projects'}, label: 'Projects to Exclude', required: false
+    = ec.input :organization_ids, collection: organization_options, as: :grouped_select_two, group_method: :last, input_html: {multiple: true, placeholder: 'Choose Organizations' }, label: 'Organizations to Exclude', required: false
     = ec.input :project_type_numbers, collection: Hmis::ProjectGroupCriteria.available_project_type_numbers, input_html: { multiple: true, placeholder: 'Choose Project Types' }, label: 'Project Types to Exclude', as: :select_two, required: false
