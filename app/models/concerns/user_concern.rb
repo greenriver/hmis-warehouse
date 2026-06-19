@@ -26,27 +26,31 @@ module UserConcern
 
     attr_accessor :remember_device, :device_name, :client_access_arbiter, :copy_form_id
 
-    # Include default devise modules. Others available are:
-    devise :invitable,
-           :recoverable,
-           :rememberable,
-           :trackable,
-           # :validatable,
-           :secure_validatable,
-           :lockable,
-           :timeoutable,
-           :confirmable,
-           :session_limitable,
-           :pwned_password,
-           :expirable,
-           :password_expirable,
-           :password_archivable,
-           :two_factor_authenticatable,
-           :two_factor_backupable,
-           password_length: 10..128,
-           otp_secret_encryption_key: ENV['ENCRYPTION_KEY'],
-           otp_secret_length: 26, # 128 bits keys, per RFC 4226. See GHSA-qjxf-mc72-wjr2
-           otp_number_of_backup_codes: 10
+    # Devise provides the warehouse's authentication machinery under AUTH_METHOD=devise (the default).
+    # Under AUTH_METHOD=jwt the IdP owns authentication so skip the macro
+    if AuthMethod.devise?
+      # Include default devise modules. Others available are:
+      devise :invitable,
+             :recoverable,
+             :rememberable,
+             :trackable,
+             # :validatable,
+             :secure_validatable,
+             :lockable,
+             :timeoutable,
+             :confirmable,
+             :session_limitable,
+             :pwned_password,
+             :expirable,
+             :password_expirable,
+             :password_archivable,
+             :two_factor_authenticatable,
+             :two_factor_backupable,
+             password_length: 10..128,
+             otp_secret_encryption_key: ENV['ENCRYPTION_KEY'],
+             otp_secret_length: 26, # 128 bits keys, per RFC 4226. See GHSA-qjxf-mc72-wjr2
+             otp_number_of_backup_codes: 10
+    end
 
     include OmniauthSupport
 
@@ -137,23 +141,32 @@ module UserConcern
     end
 
     scope :active, -> do
-      where(
-        arel_table[:active].eq(true).and(
-          arel_table[:expired_at].eq(nil).
-          or(arel_table[:expired_at].gt(Time.current)),
-        ).and(
-          arel_table[:last_activity_at].eq(nil).
-          or(arel_table[:last_activity_at].gt(expire_after.ago)),
-        ),
-      )
+      if AuthMethod.jwt?
+        # JWT: the IdP owns expiry/inactivity
+        where(active: true)
+      else
+        where(
+          arel_table[:active].eq(true).and(
+            arel_table[:expired_at].eq(nil).
+            or(arel_table[:expired_at].gt(Time.current)),
+          ).and(
+            arel_table[:last_activity_at].eq(nil).
+            or(arel_table[:last_activity_at].gt(expire_after.ago)),
+          ),
+        )
+      end
     end
 
     scope :inactive, -> do
-      where(
-        arel_table[:active].eq(false).
-        or(arel_table[:expired_at].lteq(Time.current)).
-        or(arel_table[:last_activity_at].lteq(expire_after.ago)),
-      )
+      if AuthMethod.jwt?
+        where(active: false)
+      else
+        where(
+          arel_table[:active].eq(false).
+          or(arel_table[:expired_at].lteq(Time.current)).
+          or(arel_table[:last_activity_at].lteq(expire_after.ago)),
+        )
+      end
     end
 
     scope :care_coordinators, -> do
@@ -173,6 +186,9 @@ module UserConcern
 
     # users that have currently active sessions (either in the warehouse or in HMIS)
     scope :has_recent_activity, -> do
+      # JWT: there is no warehouse session concept that can be managed in the warehouse
+      return none if AuthMethod.jwt?
+
       where(last_activity_at: timeout_in.ago..Time.current).
         where.not(unique_session_id: nil, hmis_unique_session_id: nil)
     end
@@ -223,16 +239,26 @@ module UserConcern
     end
 
     def active_for_authentication?
+      return active? if AuthMethod.jwt?
+
       super && active
     end
 
     # Allow logins to be case insensitive at login time
     def self.find_for_authentication(conditions)
+      # JWT: this is Devise's login-lookup hook — it only runs for Devise's athn machinery
+      # and should be unreachable under JWT:
+      raise 'find_for_authentication called under AUTH_METHOD=jwt — Devise login should never run' if AuthMethod.jwt?
+
       conditions[:email].downcase!
       super(conditions)
     end
 
     def timeout_time(session)
+      # JWT: sessions are managed by the IdP, so a warehouse-side timeout is not knowable here. This only
+      # feeds a view helper (common/_logout_timing), so return nil rather than surface a misleading value.
+      return nil if AuthMethod.jwt?
+
       Time.current + (Devise.timeout_in - (Time.now.utc - (session['last_request_at'].presence || 0)).to_i)
     end
 
@@ -249,6 +275,9 @@ module UserConcern
     end
 
     def stale_account?
+      # JWT: current_sign_in_at is a Devise :trackable column, stale under JWT;
+      return false if AuthMethod.jwt?
+
       current_sign_in_at < self.class.stale_account_threshold
     end
 
@@ -372,6 +401,8 @@ module UserConcern
     end
 
     def two_factor_enabled?
+      return false if AuthMethod.jwt? # JWT: 2FA is IdP-managed; the otp_secret accessor is absent
+
       otp_secret.present? && otp_required_for_login? && passed_2fa_confirmation?
     end
 
@@ -408,6 +439,8 @@ module UserConcern
     end
 
     def invitation_status
+      return nil if AuthMethod.jwt?
+
       if invitation_accepted_at.present? || invitation_sent_at.blank?
         :active
       elsif invitation_due_at > Time.now
@@ -543,6 +576,22 @@ module UserConcern
       user = only_deleted.find_by(email: 'noreply@greenriver.com')
       user&.restore
       return user if user.present?
+
+      # Don't call `invite!` for JWT, it's a devise macro that is not included.
+      # Devise lifecycle columns (confirmed_at, invitation_*, etc.) are irrelevant under JWT — the IdP owns
+      # the account lifecycle and only `active` gates the warehouse — so build the record with just the
+      # non-Devise fields.
+      if AuthMethod.jwt?
+        user = new(
+          email: 'noreply@greenriver.com',
+          first_name: 'System',
+          last_name: 'User',
+          agency_id: 0,
+          active: true,
+        )
+        user.save!
+        return user
+      end
 
       invite!(email: 'noreply@greenriver.com', first_name: 'System', last_name: 'User', agency_id: 0) do |u|
         u.skip_invitation = true
