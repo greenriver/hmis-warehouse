@@ -113,11 +113,25 @@ RSpec.describe Idp::Keycloak::UserImporter, type: :model do
       expect(result).not_to have_key(:phone)
     end
 
-    it 'includes warehouse group for a role-based user without ACLs' do
+    it 'includes warehouse group for a legacy user with a legacy role' do
+      user.user_roles.create!(role: create(:role))
       result = importer.build_import_user_data(user)
 
       expect(result[:groups]).to include('/warehouse-users')
       expect(result[:groups]).not_to include('/hmis-users')
+    end
+
+    it 'includes warehouse group for a legacy user with access-group membership' do
+      create(:access_group_member, user: user)
+      result = importer.build_import_user_data(user)
+
+      expect(result[:groups]).to include('/warehouse-users')
+    end
+
+    it 'excludes warehouse group for a legacy user with no warehouse access' do
+      result = importer.build_import_user_data(user)
+
+      expect(result[:groups]).not_to include('/warehouse-users')
     end
 
     it 'includes hmis group when user is in an HMIS UserGroup' do
@@ -126,6 +140,18 @@ RSpec.describe Idp::Keycloak::UserImporter, type: :model do
       result = importer.build_import_user_data(user)
 
       expect(result[:groups]).to include('/hmis-users')
+    end
+
+    # Regression: a legacy (non-ACL) user whose only access is HMIS must not be
+    # tagged /warehouse-users just for being legacy. The legacy branch used to
+    # return true unconditionally and over-assigned the warehouse group.
+    it 'excludes warehouse group for an HMIS-only legacy user' do
+      hmis_user_group = create(:hmis_user_group)
+      hmis_user_group.add(user)
+      result = importer.build_import_user_data(user)
+
+      expect(result[:groups]).to include('/hmis-users')
+      expect(result[:groups]).not_to include('/warehouse-users')
     end
 
     it 'excludes warehouse group for an ACL user with no warehouse UserGroup membership' do

@@ -29,7 +29,7 @@ module Idp
       #   cheap re-run that catches edits made during migration; nil exports all.
       def self.migration_scope(since: nil)
         scope = User.where.not(confirmed_at: nil).where(active: true)
-        scope = scope.where('users.updated_at > ?', since) if since
+        scope = scope.where(updated_at: since..) if since
         scope
       end
 
@@ -129,10 +129,23 @@ module Idp
         return [] if user.system_user?
 
         groups = []
-        acl_user_without_groups = user.using_acls? && !user.user_group_members.exists?
-        groups << '/warehouse-users' unless acl_user_without_groups
+        groups << '/warehouse-users' if warehouse_user?(user)
         groups << '/hmis-users' if Hmis::UserGroupMember.exists?(user_id: user.id)
         groups
+      end
+
+      # A user belongs in /warehouse-users only if they have actual warehouse
+      # access. ACL users express that as warehouse UserGroup membership; legacy
+      # users express it as a legacy role (UserRole) or membership in a general
+      # (shared) access group. The per-user personal access group every user
+      # gets on save (AccessGroup#user_id == their own id) grants nothing on its
+      # own, so it is excluded via the `general` scope. HMIS-only accounts have
+      # none of these — their access lives entirely in the Hmis:: namespace —
+      # and are correctly left out.
+      def warehouse_user?(user)
+        return user.user_group_members.exists? if user.using_acls?
+
+        user.user_roles.exists? || user.access_groups.general.exists?
       end
 
       # Build a Keycloak password credential from the user's bcrypt hash.
