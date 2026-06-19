@@ -29,6 +29,7 @@ module HmisSimulation
     end
 
     def run!
+      HmisSimulation.ensure_not_production!
       validate!
 
       data_source = GrdaWarehouse::DataSource.find(@config['data_source_id'])

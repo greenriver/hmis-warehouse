@@ -98,14 +98,6 @@ RSpec.describe HmisSimulation::Engine do
       expect(sim_clients.where.not(pending_enrollment_on: run_date).count).to eq(0)
     end
 
-    it 'assigns each spawned client a current_population matching a defined population' do
-      engine.run(date: run_date)
-      population_names = primary_populations.map { |p| p['name'] }
-      sim_clients.pluck(:current_population).each do |pop|
-        expect(population_names).to include(pop)
-      end
-    end
-
     it 'only assigns entry_point populations (street has entry_point > 0, psh does not)' do
       engine.run(date: run_date)
       populations = sim_clients.pluck(:current_population).uniq
@@ -439,7 +431,7 @@ RSpec.describe HmisSimulation::Engine do
         expect(ce_enrollments.count).to be > 0
       end
 
-      it 'closes CE enrollment once MoveInDate is set on primary PH enrollment (housing_move_in condition)' do
+      it 'closes CE enrollment and emits a closing Event once MoveInDate is set on primary PH enrollment (housing_move_in condition)' do
         config = lifecycle_config.deep_dup
         config['tracks'].find { |t| t['name'] == 'coordinated_entry' }['close_conditions'] = { 'housing_move_in' => 1.0 }
         config['tracks'].find { |t| t['type'] == 'primary' }.tap do |track|
@@ -465,6 +457,75 @@ RSpec.describe HmisSimulation::Engine do
           data_source_id: data_source.id, status: 'closed', close_reason: 'housing_move_in',
         )
         expect(closed.count).to be > 0
+
+        # housing_move_in close → closing Event code 14 (PSH referral), ReferralResult 1 (successful)
+        closing_events = Hmis::Hud::Event.where(data_source: data_source, Event: 14, ReferralResult: 1)
+        expect(closing_events.count).to be > 0
+      end
+
+      # The housing_move_in close condition must only fire on housing that belongs
+      # to *this* CE episode — not on any old, already-ended placement the person
+      # has ever had. (e.g. rrh -> street re-entry opening a new CE that instantly
+      # matched the prior rrh placement's MoveInDate.)
+      context 'housing_move_in close condition (current-episode housing only)' do
+        let(:hud_client) { create(:hmis_hud_client, data_source: data_source) }
+        let(:always_close) { { 'housing_move_in' => 1.0 } }
+
+        def open_lifecycle_enrollment(opens_on:)
+          HmisSimulation::LifecycleEnrollment.create!(
+            data_source_id: data_source.id,
+            hud_client_id: hud_client.id,
+            hud_enrollment_id: nil,
+            lifecycle_name: 'coordinated_entry',
+            status: 'open',
+            opens_on: opens_on,
+          )
+        end
+
+        def housing_enrollment(entry_date:, move_in_date:, exit_date: nil)
+          create(
+            :hmis_hud_enrollment,
+            data_source: data_source,
+            client: hud_client,
+            EntryDate: entry_date,
+            MoveInDate: move_in_date,
+            exit_date: exit_date,
+          )
+        end
+
+        it 'does NOT close on a stale, already-exited placement that predates the CE' do
+          housing_enrollment(entry_date: run_date - 100, move_in_date: run_date - 80, exit_date: run_date - 10)
+          lc = open_lifecycle_enrollment(opens_on: run_date - 5)
+
+          expect(engine.send(:check_housing_move_in?, lc, run_date, always_close)).to be(false)
+        end
+
+        it 'does NOT close on an exited placement even when its MoveInDate falls inside a backdated opens_on window' do
+          # A large days_before_trigger can backdate opens_on before an old move-in,
+          # so the MoveInDate >= opens_on guard alone would wrongly admit it. The
+          # open_on_date guard still excludes it because the placement has exited.
+          housing_enrollment(entry_date: run_date - 100, move_in_date: run_date - 50, exit_date: run_date - 10)
+          lc = open_lifecycle_enrollment(opens_on: run_date - 60)
+
+          expect(engine.send(:check_housing_move_in?, lc, run_date, always_close)).to be(false)
+        end
+
+        it 'DOES close on a currently-open placement whose move-in began during the CE episode' do
+          housing_enrollment(entry_date: run_date - 5, move_in_date: run_date - 3)
+          lc = open_lifecycle_enrollment(opens_on: run_date - 10)
+
+          expect(engine.send(:check_housing_move_in?, lc, run_date, always_close)).to be(true)
+        end
+
+        it 'treats opens_on as an inclusive lower bound for an open placement move-in' do
+          lc = open_lifecycle_enrollment(opens_on: run_date - 2)
+          enrollment = housing_enrollment(entry_date: run_date - 5, move_in_date: run_date - 2)
+
+          expect(engine.send(:check_housing_move_in?, lc, run_date, always_close)).to be(true)
+
+          enrollment.update!(MoveInDate: run_date - 3)
+          expect(engine.send(:check_housing_move_in?, lc, run_date, always_close)).to be(false)
+        end
       end
 
       it 'closes CE enrollment after disengagement timeout' do
@@ -514,33 +575,6 @@ RSpec.describe HmisSimulation::Engine do
           ).count
           expect(result_count).to be_between(3, 5)
         end
-      end
-
-      it 'creates a closing Event when CE enrollment closes with housing_move_in' do
-        config = lifecycle_config.deep_dup
-        config['tracks'].find { |t| t['name'] == 'coordinated_entry' }['close_conditions'] = { 'housing_move_in' => 1.0 }
-        config['tracks'].find { |t| t['type'] == 'primary' }.tap do |track|
-          track['transitions'] = [
-            { 'from' => 'street', 'to' => 'psh', 'weight' => 1,
-              'timing' => { 'distribution' => 'constant', 'value' => 1 },
-              'gap_before_entry' => { 'distribution' => 'constant', 'value' => 0 },
-              'exit_destinations' => { '435' => 1 } },
-          ]
-          track['enrollment_config']['ph_move_in'] = {
-            'probability' => 1.0,
-            'delay_days' => { 'distribution' => 'constant', 'value' => 0 },
-          }
-        end
-        cfg = HmisSimulation::ConfigLoader.send(:normalize, config)
-        HmisSimulation::Bootstrapper.new(cfg).run!
-        engine_instance = described_class.new(cfg)
-
-        engine_instance.run(date: run_date)
-        engine_instance.run(date: run_date + 1)
-
-        # housing_move_in close → code 14 (PSH referral, successful)
-        closing_events = Hmis::Hud::Event.where(data_source: data_source, Event: 14, ReferralResult: 1)
-        expect(closing_events.count).to be > 0
       end
     end
 
@@ -787,8 +821,11 @@ RSpec.describe HmisSimulation::Engine do
 
         sim_client.update!(next_population: nil, next_transition_on: run_date + 1)
 
-        # Ensure we take the transition branch rather than the system-exit branch
-        allow(engine).to receive(:roll_exit_point).and_return(false)
+        # Force the transition branch rather than the system-exit branch by stubbing the
+        # real seam. process_primary_exit branches on Schedule#exit_point?; the engine has
+        # no #roll_exit_point, so the previous stub was a silent no-op and the branch was
+        # actually decided by the seeded RNG.
+        allow(engine.instance_variable_get(:@schedule)).to receive(:exit_point?).and_return(false)
 
         expect { engine.run(date: run_date + 1) }.not_to raise_error
 
@@ -815,8 +852,6 @@ RSpec.describe HmisSimulation::Engine do
             lifecycle_enrollment,
             run_date,
             reason: 'disengagement',
-            data_source: engine.send(:data_source),
-            user_id: engine.send(:current_user_id),
           )
         end.not_to raise_error
 
@@ -862,6 +897,50 @@ RSpec.describe HmisSimulation::Engine do
         )
         expect(member_enrollments.count).to eq(0)
       end
+    end
+  end
+
+  # Bootstrapping is the Engine's responsibility (moved off the rake/job layer),
+  # so #run must create the HUD scaffolding itself when it is missing. The global
+  # `before` only bootstraps the primary data_source, so these examples use a
+  # fresh, un-bootstrapped data source to exercise the lazy path.
+  describe 'bootstrap-on-run' do
+    let!(:fresh_data_source) { create(:hmis_data_source) }
+    let(:fresh_config) do
+      HmisSimulation::ConfigLoader.send(
+        :normalize,
+        base_config.merge('data_source_id' => fresh_data_source.id),
+      )
+    end
+
+    def fresh_projects
+      Hmis::Hud::Project.where(
+        data_source_id: fresh_data_source.id,
+        ExportID: HmisSimulation::Bootstrapper::EXPORT_ID,
+      )
+    end
+
+    it 'bootstraps the HUD scaffolding and still spawns clients on the first run' do
+      engine_instance = described_class.new(fresh_config)
+      expect { engine_instance.run(date: run_date) }.
+        to change { fresh_projects.count }.from(0)
+      expect(HmisSimulation::Client.where(data_source_id: fresh_data_source.id).count).to be > 0
+    end
+
+    it 'bootstraps at most once across a multi-day run' do
+      engine_instance = described_class.new(fresh_config)
+      expect(HmisSimulation::Bootstrapper).to receive(:new).once.and_call_original
+      engine_instance.run(date: run_date)
+      engine_instance.run(date: run_date + 1)
+      engine_instance.run(date: run_date + 2)
+    end
+  end
+
+  describe 'production guard' do
+    it 'refuses to advance the simulation in production and writes nothing' do
+      allow(Rails).to receive(:env).and_return(ActiveSupport::StringInquirer.new('production'))
+      expect { engine.run(date: run_date) }.to raise_error(/production/)
+      expect(HmisSimulation::RunLog.where(data_source_id: data_source.id, run_date: run_date)).to be_empty
     end
   end
 end

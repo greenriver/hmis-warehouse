@@ -131,6 +131,7 @@ module HmisSimulation
         project_filter: ->(pt) { ComplianceRules.employment_education_required?(pt) },
         hud_class: Hmis::Hud::EmploymentEducation,
         stage_scope: { DataCollectionStage: 1 },
+        adult_hoh_only: true,
         violation_type: :missing_employment_education,
         message_builder: ->(id, name, type) {
           "Enrollment #{id.inspect} in #{name.inspect} (type #{type}) is missing an entry EmploymentEducation record"
@@ -169,6 +170,7 @@ module HmisSimulation
         hud_class: Hmis::Hud::HealthAndDv,
         stage_scope: { DataCollectionStage: 3 },
         enrollment_condition: ->(scope) { scope.joins(:exit) },
+        adult_hoh_only: true,
         violation_type: :missing_health_and_dv_at_exit,
         message_builder: ->(id, name, type) {
           "Exited enrollment #{id.inspect} in #{name.inspect} (type #{type}) is missing an exit HealthAndDv record"
@@ -180,10 +182,11 @@ module HmisSimulation
       project_info:,
       project_filter:,
       hud_class:,
+      violation_type:,
+      message_builder:,
       stage_scope: nil,
       enrollment_condition: nil,
-      violation_type:,
-      message_builder:
+      adult_hoh_only: false
     )
       matching_pks = project_info.select { |_, info| project_filter.call(info[:type]) }.keys
       return if matching_pks.empty?
@@ -196,7 +199,25 @@ module HmisSimulation
         where(data_source_id: @data_source_id, project_pk: matching_pks)
       enrollment_scope = enrollment_condition.call(enrollment_scope) if enrollment_condition
 
-      enrollment_scope.pluck(:project_pk, :EnrollmentID).each do |project_pk, enrollment_id|
+      columns = [:project_pk, :EnrollmentID]
+      columns += [:PersonalID, :RelationshipToHoH, :EntryDate] if adult_hoh_only
+      rows = enrollment_scope.pluck(*columns)
+      dob_by_personal_id = adult_hoh_only ? load_dob_by_personal_id(rows.map { |r| r[2] }) : {}
+
+      rows.each do |row|
+        project_pk, enrollment_id = row
+
+        # Income/EmploymentEducation/Health-and-DV are required for adults and HoH only;
+        # child members legitimately lack them, so don't flag those enrollments.
+        if adult_hoh_only
+          _pk, _id, personal_id, relationship_to_hoh, entry_date = row
+          next unless ComplianceRules.adult_or_hoh?(
+            relationship_to_hoh: relationship_to_hoh,
+            dob: dob_by_personal_id[personal_id],
+            date: entry_date,
+          )
+        end
+
         next if existing_ids.include?(enrollment_id)
 
         info = project_info[project_pk]
@@ -207,6 +228,13 @@ module HmisSimulation
           message: message_builder.call(enrollment_id, info[:name], info[:type]),
         )
       end
+    end
+
+    def load_dob_by_personal_id(personal_ids)
+      Hmis::Hud::Client.
+        where(data_source_id: @data_source_id, PersonalID: personal_ids.compact.uniq).
+        pluck(:PersonalID, :DOB).
+        to_h
     end
 
     def project_info_by_pk

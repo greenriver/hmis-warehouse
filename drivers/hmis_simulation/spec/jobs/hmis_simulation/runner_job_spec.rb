@@ -80,6 +80,40 @@ RSpec.describe HmisSimulation::RunnerJob, type: :job do
       end
     end
 
+    # The job no longer bootstraps; it relies on Engine#run to lazily create the
+    # HUD scaffolding. This config is loaded but deliberately NOT pre-bootstrapped.
+    context 'when a configured simulation has not been bootstrapped' do
+      let(:unbootstrapped_key) { 'hmis_simulation/unbootstrapped-coc' }
+      let!(:unbootstrapped_data_source) { create(:hmis_data_source) }
+      let(:unbootstrapped_config) do
+        HmisSimulation::ConfigLoader.send(
+          :normalize,
+          base_config.merge('name' => 'Unbootstrapped CoC', 'data_source_id' => unbootstrapped_data_source.id),
+        )
+      end
+
+      before do
+        HmisSimulation::ConfigLoader.upsert_app_config(unbootstrapped_key, unbootstrapped_config)
+      end
+
+      after do
+        AppConfigProperty.where(key: unbootstrapped_key).delete_all
+      end
+
+      it 'bootstraps the HUD scaffolding via the engine before running' do
+        travel_to(run_date) do
+          expect { described_class.perform_now(end_date: run_date) }.
+            to change {
+              Hmis::Hud::Project.where(
+                data_source_id: unbootstrapped_data_source.id,
+                ExportID: HmisSimulation::Bootstrapper::EXPORT_ID,
+              ).count
+            }.from(0)
+          expect(HmisSimulation::RunLog.where(data_source_id: unbootstrapped_data_source.id, run_date: run_date).count).to eq(1)
+        end
+      end
+    end
+
     context 'catch-up across missed days' do
       it 'processes all days between last successful run and today' do
         # Seed a run log for 3 days ago

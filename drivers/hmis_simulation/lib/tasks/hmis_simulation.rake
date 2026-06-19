@@ -19,22 +19,6 @@
 #   bundle exec rake driver:hmis_simulation:bootstrap[hmis_simulation/demo-coc-small]
 
 module HmisSimulationRake
-  def self.ensure_not_production!
-    raise 'Refusing to run hmis_simulation tasks in production' if Rails.env.production?
-  end
-
-  def self.ensure_simulation_bootstrapped(config)
-    data_source_id = config['data_source_id'].to_i
-    return if Hmis::Hud::Project.where(
-      data_source_id: data_source_id,
-      ExportID: HmisSimulation::Bootstrapper::EXPORT_ID,
-    ).exists?
-
-    puts "No projects found for '#{config['name']}' — bootstrapping now..."
-    HmisSimulation::Bootstrapper.new(config).run!
-    puts "Bootstrap complete for '#{config['name']}'"
-  end
-
   def self.print_simulation_summary(data_source_id)
     puts '— Data source totals ————————————————'
     {
@@ -82,28 +66,25 @@ task :validate, [:path_or_key] => :environment do |_t, args|
   if validator.valid?
     puts "✓ Config is valid: #{config['name'].inspect} (data_source_id: #{config['data_source_id']})"
   else
-    warn "✗ Config has #{validator.errors.size} error(s):"
-    validator.errors.each { |e| warn "  - #{e}" }
+    puts "✗ Config has #{validator.errors.size} error(s):"
+    validator.errors.each { |e| puts "  - #{e}" }
     exit 1
   end
 end
 
 desc 'Enqueue RunnerJob to advance all active simulations (called by cron via schedule.rb)'
 task run_all: :environment do
-  HmisSimulationRake.ensure_not_production!
   HmisSimulation::RunnerJob.perform_later
   puts 'HmisSimulation::RunnerJob enqueued'
 end
 
 desc 'Run simulation for a single date (YYYY-MM-DD)'
 task :run, [:key, :date] => :environment do |_t, args|
-  HmisSimulationRake.ensure_not_production!
   key = args[:key]
   raise ArgumentError, 'Usage: rake driver:hmis_simulation:run[hmis_simulation/key,2026-01-15]' if key.blank?
 
   date   = Date.parse(args[:date])
   config = HmisSimulation::ConfigLoader.from_app_config(key)
-  HmisSimulationRake.ensure_simulation_bootstrapped(config)
   batch_start = Time.current
   HmisSimulation::Engine.new(config).run(date: date)
   HmisSimulationRake.sync_simulation_warehouse(config['data_source_id'].to_i, updated_since: batch_start)
@@ -112,14 +93,12 @@ end
 
 desc 'Run simulation for a date range (YYYY-MM-DD)'
 task :run_range, [:key, :start_date, :end_date] => :environment do |_t, args|
-  HmisSimulationRake.ensure_not_production!
   key        = args[:key]
   start_date = Date.parse(args[:start_date])
   end_date   = Date.parse(args[:end_date])
   raise ArgumentError, 'Usage: rake driver:hmis_simulation:run_range[key,2026-01-01,2026-01-31]' if key.blank? || start_date.blank? || end_date.blank?
 
   config = HmisSimulation::ConfigLoader.from_app_config(key)
-  HmisSimulationRake.ensure_simulation_bootstrapped(config)
   engine = HmisSimulation::Engine.new(config)
   batch_start = Time.current
   (start_date..end_date).each do |date|
@@ -134,7 +113,6 @@ end
 
 desc 'Bootstrap HUD records (orgs, projects, ProjectCoc, Inventory, Funders) from an AppConfigProperty key'
 task :bootstrap, [:key] => :environment do |_t, args|
-  HmisSimulationRake.ensure_not_production!
   key = args[:key]
   raise ArgumentError, 'Usage: rake driver:hmis_simulation:bootstrap[hmis_simulation/key]' if key.blank?
 
@@ -145,7 +123,6 @@ end
 
 desc 'Audit generated data for a simulation against HUD compliance rules'
 task :validate_data, [:key] => :environment do |_t, args|
-  HmisSimulationRake.ensure_not_production!
   key = args[:key]
   raise ArgumentError, 'Usage: rake driver:hmis_simulation:validate_data[hmis_simulation/key]' if key.blank?
 
@@ -158,11 +135,11 @@ task :validate_data, [:key] => :environment do |_t, args|
   if violations.empty?
     puts "✓ No compliance violations found for data_source_id #{data_source_id}"
   else
-    warn "✗ #{violations.size} compliance violation(s) found:"
+    puts "✗ #{violations.size} compliance violation(s) found:"
     violations.group_by { |v| v[:type] }.each do |type, group|
-      warn "  #{type} (#{group.size}):"
-      group.first(5).each { |v| warn "    - #{v[:message]}" }
-      warn "    ... and #{group.size - 5} more" if group.size > 5
+      puts "  #{type} (#{group.size}):"
+      group.first(5).each { |v| puts "    - #{v[:message]}" }
+      puts "    ... and #{group.size - 5} more" if group.size > 5
     end
     exit 1
   end
@@ -170,15 +147,14 @@ end
 
 desc 'Load a simulation config JSON file into AppConfigProperty and validate it'
 task :setup_from_file, [:path] => :environment do |_t, args|
-  HmisSimulationRake.ensure_not_production!
   path = args[:path]
   raise ArgumentError, 'Usage: rake driver:hmis_simulation:setup_from_file[path/to/config.json]' if path.blank?
 
   raw = HmisSimulation::ConfigLoader.from_file(path)
   validator = HmisSimulation::ConfigValidator.new(raw)
   unless validator.valid?
-    warn 'Config has errors — fix before loading:'
-    validator.errors.each { |e| warn "  - #{e}" }
+    puts 'Config has errors — fix before loading:'
+    validator.errors.each { |e| puts "  - #{e}" }
     exit 1
   end
 

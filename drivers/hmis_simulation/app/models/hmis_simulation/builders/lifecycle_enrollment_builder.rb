@@ -19,8 +19,8 @@ module HmisSimulation
       # HUD codes that are valid literally-homeless current living situations for CE entry.
       CE_LIVING_SITUATIONS = [116, 101, 118].freeze
 
-      def initialize(client:, lifecycle_name:, ce_project:, opens_on:, coc_code:, data_source:, user_id:, rng_seed: nil)
-        super(data_source: data_source, user_id: user_id)
+      def initialize(client:, lifecycle_name:, ce_project:, opens_on:, coc_code:, data_source:, user_id:, rng_seed: nil, id_generator: FakeIdentifier)
+        super(data_source: data_source, user_id: user_id, id_generator: id_generator)
         @client         = client
         @lifecycle_name = lifecycle_name
         @project        = ce_project

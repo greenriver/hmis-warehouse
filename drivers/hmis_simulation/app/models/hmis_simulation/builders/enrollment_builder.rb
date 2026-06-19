@@ -96,8 +96,8 @@ module HmisSimulation
           LOSUnderThreshold: derive_los_under_threshold(ls),
           PreviousStreetESSH: prev_ss,
           DateToStreetESSH: (prev_ss == 1 ? sample_date_to_street_essh : nil),
-          TimesHomelessPastThreeYears: (prev_ss == 1 ? sample_from_keys(util.times_homeless_options, rng_offset: 7) : nil),
-          MonthsHomelessPastThreeYears: (prev_ss == 1 ? sample_from_keys(util.month_categories, rng_offset: 8) : nil),
+          TimesHomelessPastThreeYears: (prev_ss == 1 ? sample_from_keys(util.times_homeless_options, rng_offset: 7, client: client) : nil),
+          MonthsHomelessPastThreeYears: (prev_ss == 1 ? sample_from_keys(util.month_categories, rng_offset: 8, client: client) : nil),
           ReferralSource: sample_referral_source,
         )
       end
@@ -148,15 +148,21 @@ module HmisSimulation
         ).to_i
       end
 
-      def sample_from_keys(hash, rng_offset: 0)
-        hash.keys.sample(random: Random.new(@rng_seed + rng_offset))
+      # The 3.917 prior-living-situation suite is intentionally shared across a
+      # household (members entered from the same place). The two exceptions are
+      # TimesHomelessPastThreeYears / MonthsHomelessPastThreeYears, which are
+      # individual histories: pass `client:` to mix the PersonalID into the seed
+      # so household members can diverge on those fields.
+      def sample_from_keys(hash, rng_offset: 0, client: nil)
+        client_term = client ? HmisSimulation::Hashing.stable_hash(client.PersonalID) : 0
+        hash.keys.sample(random: Random.new(@rng_seed + rng_offset + client_term))
       end
 
       def include_member?(index)
         return true if @cohesion_prob >= 1.0
         return false if @cohesion_prob <= 0.0
 
-        # Offset by 1000 to avoid seed collision with field-sampler offsets (0–6).
+        # Offset by 1000 to avoid seed collision with field-sampler offsets (0–8).
         Random.new(@rng_seed + 1000 + index).rand < @cohesion_prob
       end
     end

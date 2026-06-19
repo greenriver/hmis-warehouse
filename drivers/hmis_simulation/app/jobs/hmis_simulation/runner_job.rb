@@ -60,8 +60,8 @@ module HmisSimulation
       config = HmisSimulation::ConfigLoader.from_app_config(key)
       data_source_id = config['data_source_id'].to_i
 
-      ensure_bootstrapped(config, data_source_id: data_source_id)
-
+      # Engine#run bootstraps the HUD scaffolding on first run, so no separate
+      # bootstrap step is needed here.
       last_run = HmisSimulation::RunLog.last_successful_run_date(data_source_id)
       start_date = last_run ? last_run + 1 : end_date
 
@@ -84,17 +84,6 @@ module HmisSimulation
     rescue StandardError => e
       record_simulation_error(config, data_source_id, end_date, e)
       nil
-    end
-
-    def ensure_bootstrapped(config, data_source_id:)
-      return if Hmis::Hud::Project.where(
-        data_source_id: data_source_id,
-        ExportID: HmisSimulation::Bootstrapper::EXPORT_ID,
-      ).exists?
-
-      log("No projects found for '#{config['name']}' — bootstrapping now")
-      HmisSimulation::Bootstrapper.new(config).run!
-      log("Bootstrap complete for '#{config['name']}'")
     end
 
     def record_simulation_error(config, data_source_id, date, error)

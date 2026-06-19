@@ -29,8 +29,24 @@ module HmisSimulation
     CE_PROJECT_TYPE = 14
     SO_PROJECT_TYPE = 4
     ES_PROJECT_TYPES = [0, 1].freeze
+    # HUD RelationshipToHoH code for "Self (head of household)"
+    HEAD_OF_HOUSEHOLD = 1
+    ADULT_AGE = 18
 
     module_function
+
+    # Income (4.02), Health & DV (4.11), and Employment/Education are collected for
+    # adults and heads of household only — never for child household members. Used by
+    # both the engine (when generating these records) and the ComplianceValidator (when
+    # auditing their presence), so the two stay in lockstep. Age is evaluated at the
+    # enrollment EntryDate, the standard HUD reference point. A member with an unknown
+    # DOB who is not the HoH is treated as a child (records not required).
+    def adult_or_hoh?(relationship_to_hoh:, dob:, date:)
+      return true if relationship_to_hoh.to_i == HEAD_OF_HOUSEHOLD
+      return false if dob.blank? || date.blank?
+
+      GrdaWarehouse::Hud::Client.age(date: date.to_date, dob: dob.to_date).to_i >= ADULT_AGE
+    end
 
     def rules_for(project_type)
       all_rules[project_type.to_s]
