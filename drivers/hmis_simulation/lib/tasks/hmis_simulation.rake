@@ -66,8 +66,8 @@ task :validate, [:path_or_key] => :environment do |_t, args|
   if validator.valid?
     puts "✓ Config is valid: #{config['name'].inspect} (data_source_id: #{config['data_source_id']})"
   else
-    warn "✗ Config has #{validator.errors.size} error(s):"
-    validator.errors.each { |e| warn "  - #{e}" }
+    puts "✗ Config has #{validator.errors.size} error(s):"
+    validator.errors.each { |e| puts "  - #{e}" }
     exit 1
   end
 end
@@ -135,11 +135,11 @@ task :validate_data, [:key] => :environment do |_t, args|
   if violations.empty?
     puts "✓ No compliance violations found for data_source_id #{data_source_id}"
   else
-    warn "✗ #{violations.size} compliance violation(s) found:"
+    puts "✗ #{violations.size} compliance violation(s) found:"
     violations.group_by { |v| v[:type] }.each do |type, group|
-      warn "  #{type} (#{group.size}):"
-      group.first(5).each { |v| warn "    - #{v[:message]}" }
-      warn "    ... and #{group.size - 5} more" if group.size > 5
+      puts "  #{type} (#{group.size}):"
+      group.first(5).each { |v| puts "    - #{v[:message]}" }
+      puts "    ... and #{group.size - 5} more" if group.size > 5
     end
     exit 1
   end
@@ -153,8 +153,8 @@ task :setup_from_file, [:path] => :environment do |_t, args|
   raw = HmisSimulation::ConfigLoader.from_file(path)
   validator = HmisSimulation::ConfigValidator.new(raw)
   unless validator.valid?
-    warn 'Config has errors — fix before loading:'
-    validator.errors.each { |e| warn "  - #{e}" }
+    puts 'Config has errors — fix before loading:'
+    validator.errors.each { |e| puts "  - #{e}" }
     exit 1
   end
 

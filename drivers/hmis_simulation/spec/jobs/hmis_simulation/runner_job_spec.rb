@@ -83,7 +83,7 @@ RSpec.describe HmisSimulation::RunnerJob, type: :job do
     # The job no longer bootstraps; it relies on Engine#run to lazily create the
     # HUD scaffolding. This config is loaded but deliberately NOT pre-bootstrapped.
     context 'when a configured simulation has not been bootstrapped' do
-      let(:unbootstrapped_key)         { 'hmis_simulation/unbootstrapped-coc' }
+      let(:unbootstrapped_key) { 'hmis_simulation/unbootstrapped-coc' }
       let!(:unbootstrapped_data_source) { create(:hmis_data_source) }
       let(:unbootstrapped_config) do
         HmisSimulation::ConfigLoader.send(

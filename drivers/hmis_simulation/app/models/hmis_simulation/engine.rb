@@ -232,22 +232,15 @@ module HmisSimulation
       enrollment = Hmis::Hud::Enrollment.find_by(id: sim_client.hud_enrollment_id)
       return unless enrollment
 
-      # DateOfEngagement can be up to 7 days after entry; clamp so it never exceeds exit date.
-      enrollment.update!(DateOfEngagement: date) if enrollment.DateOfEngagement.present? && enrollment.DateOfEngagement > date
-
       transition = find_transition(sim_client.current_population, sim_client.next_population)
       exit_dests = transition&.dig('exit_destinations') || { '17' => 1.0 }
 
-      Builders::ExitBuilder.new(
-        enrollment: enrollment,
-        exit_date: date,
-        exit_destinations: exit_dests,
-        data_source: data_source,
-        user_id: current_user_id,
-        seed: @seed,
-        context_prefix: "exit:#{date}:#{sim_client.id}",
-      ).build!
-      create_linked_exit_records(enrollment, date, sim_client: sim_client)
+      # The whole household exits together. HouseholdID is unique per entry episode,
+      # so this is exactly the HoH + member enrollments opened at this entry that are
+      # still open. Without this, member enrollments would stay open forever.
+      household_enrollments_pending_exit(enrollment).each do |household_enrollment|
+        exit_household_enrollment(household_enrollment, date, exit_dests, sim_client)
+      end
 
       @enrollments_closed += 1
 
@@ -276,6 +269,33 @@ module HmisSimulation
           pending_enrollment_on: date + gap,
         )
       end
+    end
+
+    # All still-open enrollments in the HoH enrollment's household episode (HoH +
+    # members). HouseholdID is freshly generated per entry, so it scopes to exactly
+    # this episode; `where.missing(:exit)` skips any already exited.
+    def household_enrollments_pending_exit(hoh_enrollment)
+      Hmis::Hud::Enrollment.
+        where(data_source_id: @data_source_id, HouseholdID: hoh_enrollment.HouseholdID).
+        where.missing(:exit)
+    end
+
+    def exit_household_enrollment(enrollment, date, exit_dests, sim_client)
+      # DateOfEngagement can be up to 7 days after entry; clamp so it never exceeds exit date.
+      enrollment.update!(DateOfEngagement: date) if enrollment.DateOfEngagement.present? && enrollment.DateOfEngagement > date
+
+      # Same context_prefix for every household member: the household exits to the
+      # same destination, and it preserves the HoH's existing seeded behavior.
+      Builders::ExitBuilder.new(
+        enrollment: enrollment,
+        exit_date: date,
+        exit_destinations: exit_dests,
+        data_source: data_source,
+        user_id: current_user_id,
+        seed: @seed,
+        context_prefix: "exit:#{date}:#{sim_client.id}",
+      ).build!
+      create_linked_exit_records(enrollment, date, sim_client: sim_client)
     end
 
     def process_primary_entry(sim_client, date)
@@ -313,12 +333,17 @@ module HmisSimulation
       ).build!
 
       @enrollments_opened += 1
-      create_entry_records(
-        result[:hoh_enrollment],
-        date,
-        sim_client: sim_client,
-        project_type: project.ProjectType,
-      )
+      # The HoH and every included household member each get their own enrollment;
+      # all of them need entry-linked records (gated per-record by age/relationship
+      # inside create_entry_records), not just the HoH.
+      [result[:hoh_enrollment], *result[:member_enrollments]].each do |household_enrollment|
+        create_entry_records(
+          household_enrollment,
+          date,
+          sim_client: sim_client,
+          project_type: project.ProjectType,
+        )
+      end
       assign_concurrent_enrollments(sim_client, date)
       trigger_lifecycle_enrollments(sim_client, date)
 
@@ -400,12 +425,26 @@ module HmisSimulation
 
     # -- Linked record builders (called at enrollment entry/exit) --
 
+    # Whether income/health-and-dv/employment-education records should be generated
+    # for this enrollment. HUD collects these for adults and heads of household only,
+    # never for child members. Evaluated at EntryDate (the HUD reference point) so the
+    # decision is stable across entry, annual, and exit for a given enrollment.
+    def collect_adult_data?(enrollment)
+      ComplianceRules.adult_or_hoh?(
+        relationship_to_hoh: enrollment.RelationshipToHoH,
+        dob: enrollment.client&.DOB,
+        date: enrollment.EntryDate,
+      )
+    end
+
     def create_entry_records(enrollment, date, sim_client:, project_type: nil)
       enrollment_cfg = enrollment_config_for(sim_client)
       disability_cfg = enrollment_cfg['disabilities'] || {}
       income_cfg     = enrollment_cfg['income_at_entry'] || {}
       hdv_cfg        = enrollment_cfg['health_and_dv'] || {}
 
+      # Disabling Condition (HUD 3.08) is collected for every household member,
+      # including children.
       disability_result = Builders::DisabilityBuilder.new(
         enrollment: enrollment,
         date: date,
@@ -416,24 +455,28 @@ module HmisSimulation
       ).build!
       enrollment.update!(DisablingCondition: disability_result[:disabling_condition])
 
-      Builders::IncomeBenefitBuilder.new(
-        enrollment: enrollment,
-        date: date,
-        stage: :entry,
-        income_config: income_cfg,
-        data_source: data_source,
-        user_id: current_user_id,
-        rng_seed: @schedule.seed_for("income_entry:#{enrollment.EnrollmentID}"),
-      ).build!
+      collect_adult = collect_adult_data?(enrollment)
 
-      Builders::HealthAndDvBuilder.new(
-        enrollment: enrollment,
-        date: date,
-        hdv_config: hdv_cfg,
-        data_source: data_source,
-        user_id: current_user_id,
-        rng_seed: @schedule.seed_for("hdv_entry:#{enrollment.EnrollmentID}"),
-      ).build!
+      if collect_adult
+        Builders::IncomeBenefitBuilder.new(
+          enrollment: enrollment,
+          date: date,
+          stage: :entry,
+          income_config: income_cfg,
+          data_source: data_source,
+          user_id: current_user_id,
+          rng_seed: @schedule.seed_for("income_entry:#{enrollment.EnrollmentID}"),
+        ).build!
+
+        Builders::HealthAndDvBuilder.new(
+          enrollment: enrollment,
+          date: date,
+          hdv_config: hdv_cfg,
+          data_source: data_source,
+          user_id: current_user_id,
+          rng_seed: @schedule.seed_for("hdv_entry:#{enrollment.EnrollmentID}"),
+        ).build!
+      end
 
       cls_code = cls_situation_code_for(enrollment)
       if cls_code
@@ -445,6 +488,8 @@ module HmisSimulation
           user_id: current_user_id,
         ).build!
       end
+
+      return unless collect_adult
 
       pt = (project_type || enrollment.project&.ProjectType).to_i
       return unless ComplianceRules.employment_education_required?(pt)
@@ -461,6 +506,10 @@ module HmisSimulation
     end
 
     def create_linked_exit_records(enrollment, exit_date, sim_client:, project_type: nil)
+      # IncomeBenefit, Health & DV, and Employment/Education at exit are all adult/HoH
+      # data elements; child members receive only the Exit record itself.
+      return unless collect_adult_data?(enrollment)
+
       enrollment_cfg = enrollment_config_for(sim_client)
       income_cfg = enrollment_cfg['income_at_entry'] || {}
       Builders::IncomeBenefitBuilder.new(
@@ -513,12 +562,14 @@ module HmisSimulation
         where(data_source_id: @data_source_id).
         open_on_date(date).
         in_batches do |batch|
-          enrollment_ids = batch.pluck(:id)
+          # Preload :client so collect_adult_data? (which reads enrollment.client.DOB)
+          enrollments = batch.preload(:client).to_a
+          enrollment_ids = enrollments.map(&:id)
           sim_clients_by_enrollment = Client.
             where(data_source_id: @data_source_id, hud_enrollment_id: enrollment_ids).
             index_by(&:hud_enrollment_id)
 
-          batch.each do |enrollment|
+          enrollments.each do |enrollment|
             sim_client = sim_clients_by_enrollment[enrollment.id]
             enrollment_cfg = sim_client ? enrollment_config_for(sim_client) : default_enrollment_config
             annual_cfg    = enrollment_cfg['annual_collection'] || {}
@@ -526,6 +577,8 @@ module HmisSimulation
             jitter_cfg    = annual_cfg['timing_jitter'] || default_jitter_cfg
             income_cfg    = enrollment_cfg['income_at_entry'] || {}
 
+            # Annual IncomeBenefit and EmploymentEducation are adult/HoH data elements.
+            next unless collect_adult_data?(enrollment)
             next unless @schedule.annual_collection_due?(
               entry_date: enrollment.EntryDate,
               on_date: date,
