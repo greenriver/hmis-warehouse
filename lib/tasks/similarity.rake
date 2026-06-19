@@ -1,3 +1,9 @@
+###
+# Copyright Green River Data Group, Inc.
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 namespace :similarity do
 
   desc "BATCH_SIZE=10000 destination clients to try; THRESHOLD=-1.45 lower numbers are stronger matches"

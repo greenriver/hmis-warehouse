@@ -40,7 +40,13 @@ command_exists() {
 # Function to check if a port is in use
 port_in_use() {
     local port="$1"
-    lsof -i ":$port" >/dev/null 2>&1
+    lsof -nP -iTCP:"$port" -sTCP:LISTEN >/dev/null 2>&1
+}
+
+# Function to describe the local process listening on a port
+port_listener() {
+    local port="$1"
+    lsof -nP -iTCP:"$port" -sTCP:LISTEN | awk 'NR==2 {print $1, $2}'
 }
 
 # Function to get available memory in GB
@@ -126,7 +132,7 @@ validate_environment() {
         echo "   Conflicting ports: ${conflicting_ports[*]}"
         echo "   Port usage:"
         for port in "${conflicting_ports[@]}"; do
-            echo "     Port $port: $(lsof -i ":$port" | head -2 | tail -1 | awk '{print $1, $2}')"
+            echo "     Port $port: $(port_listener "$port")"
         done
         echo ""
         echo "   Required ports:"
@@ -163,7 +169,7 @@ validate_environment() {
     fi
 
     # Check for existing traefik processes
-    if pgrep -f "traefik" >/dev/null; then
+    if pgrep -x "traefik" >/dev/null; then
         echo -e "${YELLOW}⚠️  Warning: Traefik process already running${NC}"
         echo "   This may conflict with the traefik installation"
         echo "   Consider stopping existing traefik before proceeding"

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -61,6 +61,8 @@ module Types
           map(&:to_pick_list_option)
       when 'CE_ACCESS_POINT_PROJECT_NAMES'
         ce_access_point_project_names_picklist(user)
+      when 'OPEN_ORGANIZATION_NAMES'
+        open_organization_names_picklist(user)
       when 'ORGANIZATION'
         Hmis::Hud::Organization.viewable_by(user).sort_by_option(:name).map(&:to_pick_list_option)
       when 'AVAILABLE_SERVICE_TYPES'
@@ -643,6 +645,8 @@ module Types
       Hmis::StaffAssignmentRelationship.all.map(&:to_pick_list_option)
     end
 
+    # Added to use for CE Assessment AssessmentLocation picklist for a particular customer.
+    # Codes are "Project Name (ID)" so that stored values are human-readable but still unique.
     def self.ce_access_point_project_names_picklist(user)
       project_ids = Hmis::Hud::Project.viewable_by(user).
         open_on_date. # Projects that are currently active
@@ -656,9 +660,20 @@ module Types
         preload(:organization).
         sort_by_option(:organization_and_name).
         map do |project|
-          # Codes are "Project Name (ID)" so that stored values are human-readable but still unique.
-          # Use case: collecting CE Assessment Location
           project.to_pick_list_option.merge(code: "#{project.project_name} (#{project.id})")
+        end
+    end
+
+    # Added to use for CE Assessment AssessmentLocation picklist for a particular customer.
+    # Codes are "Organization Name (ID)" so that stored values are human-readable but still unique.
+    def self.open_organization_names_picklist(user)
+      Hmis::Hud::Organization.viewable_by(user).
+        joins(:projects).
+        merge(Hmis::Hud::Project.open_on_date).
+        distinct.
+        sort_by_option(:name).
+        map do |organization|
+          organization.to_pick_list_option.merge(code: "#{organization.organization_name} (#{organization.id})")
         end
     end
 

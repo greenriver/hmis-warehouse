@@ -1,10 +1,10 @@
-# frozen_string_literal: true
-
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 # Links an enrollment to a unit with a date range, tracking when a client/household member occupies a unit.
 #

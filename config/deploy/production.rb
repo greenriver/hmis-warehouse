@@ -1,3 +1,9 @@
+###
+# Copyright Green River Data Group, Inc.
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 set :deploy_to, "/var/www/#{fetch(:client)}-hmis-production"
 set :rails_env, "production"
 

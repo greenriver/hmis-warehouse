@@ -7813,6 +7813,11 @@ enum PickListType {
   OPEN_HOH_ENROLLMENTS_FOR_PROJECT
 
   """
+  Names of organizations with open projects
+  """
+  OPEN_ORGANIZATION_NAMES
+
+  """
   Open Projects that the user can see
   """
   OPEN_PROJECTS
