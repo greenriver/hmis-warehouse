@@ -143,7 +143,12 @@ Rails.application.routes.draw do
     end
   end
 
-  resources :secure_files, only: [:show, :create, :index, :destroy]
+  resources :secure_files, only: [:show, :create, :index, :destroy] do
+    collection do
+      get :sent
+      get :all_files
+    end
+  end
   resources :help
   resources :maintenance, only: [:index]
   resources :maintenance_saver, only: [:index], controller: 'maintenance'
