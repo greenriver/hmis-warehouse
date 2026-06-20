@@ -1,6 +1,8 @@
 - title = "Edit Project Group: #{@project_group.name}"
 = content_for(:title, title)
-= render 'breadcrumbs'
+= content_for :crumbs do
+  = link_to hmis_admin_project_group_path(@project_group) do
+    &laquo; Back to #{@project_group.name}
 - associated_collections = Hmis::AccessGroup.contains(@project_group).map(&:name).sort
 - associated_workspaces = @project_group.workspaces.order(:applies_to, :sort_order, :name).map(&:name)
 - confirm_delete_msg = associated_collections.any? ? "The project group will be removed from the following HMIS Collections: #{associated_collections.join(', ')}. Users may lose access to HMIS data." : ''
