@@ -3,7 +3,7 @@
 -# Project Group must have data source specified. Only allow selecting inclusion criteria for the given data source
 - ds = @project_group.data_source
 - organization_options = GrdaWarehouse::Hud::Organization.where(data_source_id: ds.id).options_for_select(user: current_user)
-- coc_code_options = ::HudHelper.util.cocs_in_state(GrdaWarehouse::Config.relevant_state_codes).keys # should this come from Shapes::Coc?
+- coc_code_options = ::HudHelper.util.cocs_in_state(GrdaWarehouse::Config.relevant_state_codes).keys
 
 %h3 Project Group Name
 .form-inputs.well
