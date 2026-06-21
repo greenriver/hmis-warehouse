@@ -152,5 +152,52 @@ RSpec.describe Hmis::ProjectGroup, type: :model do
         expect(project_group.parsed_exclusion_criteria.effective_project_ids).to contain_exactly(p2_o2.id)
       end
     end
+
+    context 'when exclusion criteria exclude closed projects' do
+      let!(:closed_project) do
+        create(:hmis_hud_project, data_source: hmis_ds, organization: o2, OperatingEndDate: 1.day.ago)
+      end
+      let(:project_group) do
+        create(:hmis_project_group,
+               data_source: hmis_ds,
+               inclusion_criteria: {
+                 all_projects_in_data_source: true,
+               }.to_json,
+               exclusion_criteria: {
+                 closed_projects: true,
+               }.to_json)
+      end
+
+      it 'excludes projects that are not currently open' do
+        expect(project_group.effective_project_ids).not_to include(closed_project.id)
+        expect(project_group.parsed_exclusion_criteria.effective_project_ids).to include(closed_project.id)
+      end
+
+      it 'maintains projects correctly' do
+        project_group.maintain_projects!
+        expect(project_group.projects.map(&:id)).not_to include(closed_project.id)
+      end
+    end
+  end
+
+  describe '#markdown_notes' do
+    subject(:group) { build(:hmis_project_group, data_source: hmis_ds) }
+
+    it 'renders markdown to html' do
+      group.notes = '**bold**'
+      expect(group.markdown_notes).to include('<strong>bold</strong>')
+    end
+
+    it 'returns empty string for blank notes' do
+      group.notes = nil
+      expect(group.markdown_notes).to eq('')
+      group.notes = ''
+      expect(group.markdown_notes).to eq('')
+    end
+
+    it 'strips script tags to prevent XSS' do
+      group.notes = '<script>alert("xss")</script>'
+      expect(group.markdown_notes).not_to include('<script>')
+    end
   end
 end

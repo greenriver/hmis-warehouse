@@ -22,6 +22,7 @@ module Hmis
     attribute :all_projects_in_data_source, Boolean, default: false
     attribute :project_type_numbers, Array, default: [].freeze
     attribute :coc_codes, Array, default: [].freeze
+    attribute :closed_projects, Boolean, default: false
     # TODO: add more filtering capabilities:
     # attribute :hmis_participation_status, Integer, default: nil
     # attribute :ce_participation_access_point, Boolean, default: nil
@@ -36,6 +37,7 @@ module Hmis
       :all_projects_in_data_source,
       :project_type_numbers,
       :coc_codes,
+      :closed_projects,
       # :hmis_participation_status,
       # :project_status,
     ].freeze
@@ -89,13 +91,15 @@ module Hmis
       ids << project_scope.where(project_type: project_type_numbers).pluck(:id) if project_type_numbers.any?
       # Add projects selected by CoC code
       ids << project_scope.in_coc(coc_code: coc_codes).pluck(:id) if coc_codes.any?
+      # Add projects that are not currently open
+      ids << closed_projects_scope.pluck(:id) if closed_projects
       # Flatten and remove duplicates
       ids.flatten.uniq
     end
 
     # Describe criteria as HTML
     def describe_criteria_as_html
-      return ''.html_safe if project_ids.blank? && organization_ids.blank? && !all_projects_in_data_source && project_type_numbers.blank? && coc_codes.blank?
+      return ''.html_safe if project_ids.blank? && organization_ids.blank? && !all_projects_in_data_source && project_type_numbers.blank? && coc_codes.blank? && !closed_projects
 
       criteria = []
 
@@ -121,6 +125,8 @@ module Hmis
       end
 
       criteria << { label: 'CoC Codes', values: coc_codes.uniq.sort } if coc_codes.any?
+
+      criteria << { label: 'Closed Projects', values: ['Yes'] } if closed_projects
 
       # Generate HTML. This is based on Filter::FilterBase#describe_criteria_as_html
       criteria_inner = criteria.map do |criterion|
@@ -157,6 +163,10 @@ module Hmis
 
     def organization_scope
       ::GrdaWarehouse::Hud::Organization.where(data_source_id: data_source_id)
+    end
+
+    def closed_projects_scope
+      project_scope.merge(Hmis::Hud::Project.closed_on_date)
     end
 
     def data_source
