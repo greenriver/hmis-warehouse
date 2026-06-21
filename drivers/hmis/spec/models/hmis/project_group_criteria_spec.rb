@@ -129,5 +129,33 @@ RSpec.describe Hmis::ProjectGroupCriteria, type: :model do
         expect(criteria.effective_project_ids).to contain_exactly(p1_o1.id)
       end
     end
+
+    context 'when a project serves multiple CoCs' do
+      let!(:multi_coc_project) { create(:hmis_hud_project, data_source: hmis_ds, organization: o1) }
+
+      before do
+        create(:hmis_hud_project_coc, data_source: hmis_ds, project: multi_coc_project, CoCCode: 'MA-500')
+        create(:hmis_hud_project_coc, data_source: hmis_ds, project: multi_coc_project, CoCCode: 'MA-501')
+      end
+
+      it 'includes the project when criteria include MA-500' do
+        criteria = described_class.new({ coc_codes: ['MA-500'] }, data_source_id: hmis_ds.id)
+
+        expect(criteria.effective_project_ids).to include(multi_coc_project.id)
+      end
+
+      it 'includes the project when criteria include MA-500 and MA-501' do
+        criteria = described_class.new({ coc_codes: ['MA-500', 'MA-501'] }, data_source_id: hmis_ds.id)
+
+        expect(criteria.effective_project_ids).to include(multi_coc_project.id)
+      end
+
+      it 'does not include the project when inclusion includes MA-500 and exclusion includes MA-501' do
+        inclusion = described_class.new({ coc_codes: ['MA-500'] }, data_source_id: hmis_ds.id)
+        exclusion = described_class.new({ coc_codes: ['MA-501'] }, data_source_id: hmis_ds.id)
+
+        expect(inclusion.effective_project_ids - exclusion.effective_project_ids).not_to include(multi_coc_project.id)
+      end
+    end
   end
 end
