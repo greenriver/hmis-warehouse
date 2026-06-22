@@ -58,6 +58,20 @@ RSpec.describe 'Organization CE Match Rules queries', type: :request do
     GRAPHQL
   end
 
+  let(:organization_selector_counts_query) do
+    <<~GRAPHQL
+      query GetOrganizationCeMatchRuleCounts {
+        organizations {
+          nodes {
+            id
+            localCeMatchRuleCount
+            effectiveCeMatchRuleCount
+          }
+        }
+      }
+    GRAPHQL
+  end
+
   it 'returns effective CE match rule groups for an organization' do
     response, result = post_graphql(id: o1.id) { organization_rules_query }
     expect(response.status).to eq(200), result.inspect
@@ -87,5 +101,44 @@ RSpec.describe 'Organization CE Match Rules queries', type: :request do
         ),
       ),
     )
+  end
+
+  it 'does not make N+1 queries for rule counts across multiple organizations' do
+    organizations = create_list(:hmis_hud_organization, 10, data_source: ds1, user: u1)
+    organizations.each do |organization|
+      project = create(:hmis_hud_project, data_source: ds1, organization: organization, user: u1)
+      create(:hmis_project_ce_config, project: project, supports_waitlist_referrals: true)
+      Hmis::Ce::Match::Rule.create!(
+        owner: organization,
+        name: "Local rule for #{organization.name}",
+        rule_type: Hmis::Ce::Match::Rule::ELIGIBILITY_REQUIREMENT,
+        expression: 'current_age >= 18',
+        applicability_config: {},
+      )
+    end
+
+    expect do
+      response, result = post_graphql { organization_selector_counts_query }
+      expect(response.status).to eq(200), result.inspect
+      expect(result.dig('data', 'organizations', 'nodes').size).to eq(11)
+    end.to make_database_queries(count: 12..20)
+  end
+
+  it 'does not make N+1 queries for effective rule groups on a single organization with multiple rules' do
+    10.times do |i|
+      Hmis::Ce::Match::Rule.create!(
+        owner: o1,
+        name: "Additional organization rule #{i}",
+        rule_type: Hmis::Ce::Match::Rule::ELIGIBILITY_REQUIREMENT,
+        expression: 'current_age >= 18',
+        applicability_config: {},
+      )
+    end
+
+    expect do
+      response, result = post_graphql(id: o1.id) { organization_rules_query }
+      expect(response.status).to eq(200), result.inspect
+      expect(result.dig('data', 'organization', 'effectiveCeMatchRuleGroups').sum { |group| group.dig('rules', 'nodesCount') }).to eq(12)
+    end.to make_database_queries(count: 20..28)
   end
 end

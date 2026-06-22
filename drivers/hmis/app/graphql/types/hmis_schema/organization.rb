@@ -47,13 +47,13 @@ module Types
     def local_ce_match_rule_count
       access_denied! unless ce_match_rule_policy.can_manage?
 
-      object.ce_match_rules.count
+      dataloader.with(Sources::CeMatchRuleOwnerCountSource, owner_type: Hmis::Hud::Organization.sti_name).load(object.id)
     end
 
     def effective_ce_match_rule_count
       access_denied! unless ce_match_rule_policy.can_manage?
 
-      effective_ce_match_rules.count
+      dataloader.with(Sources::CeMatchRuleEffectiveCountSource, owner_class: Hmis::Hud::Organization).load(object)
     end
 
     # Not for batch
