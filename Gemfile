@@ -34,7 +34,6 @@ gem 'pg'
 gem 'activerecord-sqlserver-adapter', '~> 7.2.0' # tied to the rails version
 gem 'activerecord-import'
 gem 'order_as_specified'
-gem 'pghero'
 
 gem 'activerecord', '>= 6.1.7.3' # for CVE-2023-22796
 gem 'active_record_extended'
