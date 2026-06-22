@@ -678,7 +678,7 @@ module Types
     end
     def ce_match_rule(id:)
       rule = Hmis::Ce::Match::Rule.find_by(id: id)
-      access_denied! unless rule && policy_for(rule, policy_type: :ce_match_rule).can_update?
+      access_denied! unless rule && policy_for(rule, policy_type: :ce_match_rule).can_view?
 
       rule
     end
