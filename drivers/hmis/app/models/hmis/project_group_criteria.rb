@@ -126,7 +126,7 @@ module Hmis
 
       criteria << { label: 'CoC Codes', values: coc_codes.uniq.sort } if coc_codes.any?
 
-      criteria << { label: 'Closed Projects', values: ['Yes'] } if closed_projects
+      criteria << { label: 'Project Status', values: ['Closed'] } if closed_projects
 
       # Generate HTML. This is based on Filter::FilterBase#describe_criteria_as_html
       criteria_inner = criteria.map do |criterion|
@@ -143,7 +143,7 @@ module Hmis
 
         content_tag(:div, class: wrapper_classes) do
           label = content_tag(:label, label_text, class: 'label label-default parameter-label pl-0')
-          value = content_tag(:label, values.to_sentence, class: ['label', 'label-primary', 'parameter-value', 'pl-0', 'mb-0'])
+          value = content_tag(:label, values.to_sentence(two_words_connector: ' or ', last_word_connector: ', or '), class: ['label', 'label-primary', 'parameter-value', 'pl-0', 'mb-0'])
           label.concat(value)
         end
       end.join.html_safe
