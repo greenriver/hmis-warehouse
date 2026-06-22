@@ -243,8 +243,7 @@ RSpec.describe 'ceMatchCustomAssessmentForms query', type: :request do
   it 'returns published and retired custom assessment forms in the user data source' do
     forms = query_custom_assessment_forms
 
-    # JsonForms.seed_all loads `ce_event_assessment` and `cls_assessment` in the test env, so expect those alongside the 2 we created in fixtures
-    expect(forms.pluck('identifier').sort).to eq(['ce_event_assessment', 'cls_assessment', 'retired_assessment', 'score_assessment'].sort)
+    expect(forms.pluck('identifier').sort).to eq(['retired_assessment', 'score_assessment'].sort)
   end
 
   it 'does not resolve fields for every form in the form list query' do
