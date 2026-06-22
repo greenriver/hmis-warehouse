@@ -706,7 +706,7 @@ module Types
     # Custom-assessment form definitions in the user's data source that have at least one CDED usable for CE Match Rules.
     field :ce_match_custom_assessment_forms, [Forms::FormDefinition], null: false, description: 'Published and retired custom assessment form definitions in the user\'s data source that have CE Match fields.'
     def ce_match_custom_assessment_forms
-      access_denied! unless policy_for(Hmis::Form::Definition, policy_type: :form_definition).can_administrate_config?
+      access_denied! unless policy_for(Hmis::Ce::Match::Rule, policy_type: :ce_match_rule).can_manage?
 
       Hmis::Form::Definition.
         with_role(:CUSTOM_ASSESSMENT).
