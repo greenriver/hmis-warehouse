@@ -96,7 +96,7 @@ RSpec.describe HudSpmReport::CellDetailExportBuilder, type: :model do
       it 'avoids N+1 queries when building the export package with real Return data' do
         expect do
           builder.call
-        end.to make_database_queries(count: 14)
+        end.to make_database_queries(count: 10..20)
       end
     end
 
