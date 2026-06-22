@@ -19,7 +19,7 @@
         %h3 Project Inclusion Rules
         - if @project_group.any_inclusion_criteria?
           %p
-            Projects matching the following criteria are included in the group.
+            A project is included if it matches any of the following:
           = @project_group.parsed_inclusion_criteria.describe_criteria_as_html
         - else
           %p
@@ -28,7 +28,7 @@
         %h3 Project Exclusion Rules
         - if @project_group.any_exclusion_criteria?
           %p
-            Projects matching the following criteria are excluded from the group.
+            A project is excluded if it matches any of the following:
           = @project_group.parsed_exclusion_criteria.describe_criteria_as_html
         - else
           %p
