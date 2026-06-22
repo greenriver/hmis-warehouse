@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -695,31 +695,23 @@ module Types
     end
 
     # Client fields (from ClientFieldMap) available in CE Match Rule expressions.
+
     field :ce_match_client_fields, [HmisSchema::CeMatchField], null: false, description: 'Client fields available for CE Match Rule expressions.'
     def ce_match_client_fields
       access_denied! unless policy_for(Hmis::Ce::Match::Rule, policy_type: :ce_match_rule).can_manage?
 
-      Hmis::Ce::Match::Expression::FieldMetadataResolver.new.client_fields
+      Hmis::Ce::Match::FieldCatalog.new.client_fields
     end
 
     # Custom-assessment form definitions in the user's data source that have at least one CDED usable for CE Match Rules.
     field :ce_match_custom_assessment_forms, [Forms::FormDefinition], null: false, description: 'Published and retired custom assessment form definitions in the user\'s data source that have CE Match fields.'
     def ce_match_custom_assessment_forms
-      access_denied! unless policy_for(Hmis::Ce::Match::Rule, policy_type: :ce_match_rule).can_manage?
-
-      ds_id = current_user.hmis_data_source_id
-
-      # Only include forms that have at least one usable CDED.
-      identifiers_with_cdeds = Hmis::Hud::CustomDataElementDefinition.
-        for_ce_match_conditions.
-        where(data_source_id: ds_id).
-        where.not(form_definition_identifier: nil).
-        distinct.pluck(:form_definition_identifier)
+      access_denied! unless policy_for(Hmis::Form::Definition, policy_type: :form_definition).can_administrate_config?
 
       Hmis::Form::Definition.
         with_role(:CUSTOM_ASSESSMENT).
         published_or_retired.
-        where(data_source_id: ds_id, identifier: identifiers_with_cdeds).
+        where(data_source_id: current_user.hmis_data_source_id).
         latest_versions.
         order(:title)
     end
@@ -730,7 +722,7 @@ module Types
     def ce_match_custom_assessment_fields(form_definition_identifier:)
       access_denied! unless policy_for(Hmis::Ce::Match::Rule, policy_type: :ce_match_rule).can_manage?
 
-      Hmis::Ce::Match::Expression::FieldMetadataResolver.new.custom_assessment_fields_for(
+      Hmis::Ce::Match::FieldCatalog.new.custom_assessment_fields_for(
         data_source_id: current_user.hmis_data_source_id,
         form_definition_identifier: form_definition_identifier,
       )

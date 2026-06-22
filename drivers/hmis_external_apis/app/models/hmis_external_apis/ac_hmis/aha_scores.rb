@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -15,13 +15,10 @@ module HmisExternalApis::AcHmis
       :dw_client_id,
       :generator,
       :is_eligible_ra,
-      :currently_unhoused,
-      :is_eligible_cc,
-      :homeless_risk,
       :section_8,
       :city_of_pittsburgh,
       :subsidized_housing,
-      :recent_erap_use,
+      :recent_eviction_case,
     )
   end
 end

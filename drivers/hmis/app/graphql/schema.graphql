@@ -938,21 +938,41 @@ Field metadata for CE Match Rule expressions
 """
 type CeMatchField {
   """
-  The identifier used in CE Match Rule expressions
+  The full-length identifier used in CE Match Rule expressions, such as
+  "client.current_age" or "custom_assessment.my_assessment.my_score".
   """
   expressionField: String!
-  formDefinitionIdentifier: String
   id: ID!
+
+  """
+  The type of the field, used for determining the possible values it can match against.
+  """
   itemType: ItemType!
 
   """
   The CDED key for this field, or the client field key for a client field
   """
   key: String!
+
+  """
+  Human-readable label for this field
+  """
   label: String!
+
+  """
+  Whether a client can have more than one value for the field.
+  """
+  multiple: Boolean!
+
+  """
+  The field's pick list options, if applicable.
+  """
   pickListOptions: [PickListOption!]
+
+  """
+  The field's reference pick list, if applicable, such as `NoYesReasonsForMissingData`.
+  """
   pickListReference: String
-  repeats: Boolean!
 }
 
 type CeMatchRule {
@@ -7859,6 +7879,11 @@ enum PickListType {
   Open HoH enrollments at the project.
   """
   OPEN_HOH_ENROLLMENTS_FOR_PROJECT
+
+  """
+  Names of organizations with open projects
+  """
+  OPEN_ORGANIZATION_NAMES
 
   """
   Open Projects that the user can see

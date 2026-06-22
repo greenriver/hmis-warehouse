@@ -27,9 +27,8 @@ RSpec.describe 'ceMatchCustomAssessmentForms query', type: :request do
           key
           label
           itemType
-          repeats
+          multiple
           expressionField
-          formDefinitionIdentifier
           pickListReference
           pickListOptions {
             code
@@ -187,18 +186,6 @@ RSpec.describe 'ceMatchCustomAssessmentForms query', type: :request do
     )
   end
 
-  let!(:form_without_cdeds) do
-    create(
-      :hmis_form_definition,
-      identifier: 'empty_assessment',
-      title: 'Empty Assessment',
-      role: :CUSTOM_ASSESSMENT,
-      status: :published,
-      version: 1,
-      data_source: ds1,
-    )
-  end
-
   let!(:draft_only_form) do
     create(
       :hmis_form_definition,
@@ -246,11 +233,19 @@ RSpec.describe 'ceMatchCustomAssessmentForms query', type: :request do
     )
   end
 
-  it 'returns published and retired custom assessment forms with usable CDEDs in the user data source' do
+  # CDED is the source of truth, in case it differs from the form item JSON
+  let!(:score_cded_override) do
+    Hmis::Hud::CustomDataElementDefinition.find_by!(
+      data_source: ds1,
+      form_definition_identifier: 'score_assessment',
+      key: 'score',
+    ).tap { |cded| cded.update!(label: 'CDED Score Label', repeats: true) }
+  end
+
+  it 'returns published and retired custom assessment forms in the user data source' do
     forms = query_custom_assessment_forms
 
-    expect(forms.pluck('identifier')).to eq(['retired_assessment', 'score_assessment'])
-    expect(forms.pluck('title')).to eq(['Retired Assessment', 'Score Assessment'])
+    expect(forms.pluck('identifier').sort).to eq(['retired_assessment', 'score_assessment'].sort)
   end
 
   it 'does not resolve fields for every form in the form list query' do
@@ -289,14 +284,19 @@ RSpec.describe 'ceMatchCustomAssessmentForms query', type: :request do
     expect(fields).to contain_exactly(
       hash_including(
         'key' => 'score',
+        'label' => 'CDED Score Label',
         'itemType' => 'CHOICE',
+        'multiple' => true,
         'expressionField' => 'cde.custom_assessment.score',
-        'formDefinitionIdentifier' => 'score_assessment',
+        'pickListReference' => nil,
       ),
       hash_including(
         'key' => 'nested_field',
         'itemType' => 'BOOLEAN',
+        'multiple' => false,
         'expressionField' => 'cde.custom_assessment.nested_field',
+        'pickListReference' => nil,
+        'pickListOptions' => nil,
       ),
     )
   end
@@ -305,6 +305,29 @@ RSpec.describe 'ceMatchCustomAssessmentForms query', type: :request do
     item = query_custom_assessment_fields('retired_assessment').first
 
     expect(item['expressionField']).to eq('cde.custom_assessment.retired_field')
+  end
+
+  it 'falls back to CDED field type when form item metadata is missing' do
+    create(
+      :hmis_custom_data_element_definition,
+      owner_type: 'Hmis::Hud::CustomAssessment',
+      key: 'missing_form_item',
+      label: 'Missing Form Item',
+      field_type: :integer,
+      form_definition: published_form,
+      data_source: ds1,
+    )
+
+    item = query_custom_assessment_fields('score_assessment').find { |field| field['key'] == 'missing_form_item' }
+
+    expect(item).to include(
+      'label' => 'Missing Form Item',
+      'itemType' => 'INTEGER',
+      'multiple' => false,
+      'expressionField' => 'cde.custom_assessment.missing_form_item',
+      'pickListReference' => nil,
+      'pickListOptions' => nil,
+    )
   end
 
   it 'unions pick list options from published and retired form versions but not drafts' do

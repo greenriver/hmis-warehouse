@@ -1,3 +1,9 @@
+###
+# Copyright Green River Data Group, Inc.
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 # frozen_string_literal: true
 
 require 'rails_helper'
@@ -114,6 +120,21 @@ RSpec.describe 'createCeMatchRule mutation', type: :request do
     response, result = post_graphql(input: input) { mutation }
     expect(response.status).to eq(200), result.inspect
     expect(result.dig('data', 'createCeMatchRule', 'rule', 'expression')).to eq('current_age >= 18')
+  end
+
+  it 'coerces enum-backed structured expression values' do
+    input = base_input.except(:expression).merge(
+      structuredExpression: {
+        operator: 'AND',
+        clauses: [
+          { field: 'veteran_status', comparator: 'EQ', value: 'YES' },
+        ],
+      },
+    )
+
+    response, result = post_graphql(input: input) { mutation }
+    expect(response.status).to eq(200), result.inspect
+    expect(result.dig('data', 'createCeMatchRule', 'rule', 'expression')).to eq('veteran_status = 1')
   end
 
   it 'returns validation errors without saving' do
