@@ -113,6 +113,26 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         end
       end
 
+      it 'returns MH-AHA score of 0 when present' do
+        mh_aha_result = HmisExternalApis::AcHmis::AhaScores::MhAhaResult.new(
+          score: 0,
+          dw_client_id: mci_unique_id.value,
+          generator: 'MH-AHA',
+        )
+        allow(stub_aha).to receive(:fetch_score).with(
+          c1,
+          lookup_catalyst: nil,
+          lookup_reason: nil,
+          requested_generators: [:aha, :mh_aha],
+        ).and_return({ aha: aha_result, mh_aha: mh_aha_result })
+
+        perform_mutation(client_id: c1.id) do |data, errors|
+          expect(errors).to be_empty
+          expect(data['score']).to eq(8)
+          expect(data['mhScore']).to eq(0)
+        end
+      end
+
       it 'returns MH-AHA score of -1 when present' do
         mh_aha_result = HmisExternalApis::AcHmis::AhaScores::MhAhaResult.new(
           score: -1,

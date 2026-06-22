@@ -50,7 +50,7 @@ module Mutations
 
       {
         score: result[:aha].score,
-        mh_score: result[:mh_aha]&.score || -1,
+        mh_score: result[:mh_aha].nil? ? -1 : result[:mh_aha].score,
         mci_quality_indicator: result[:aha].mci_quality_indicator,
         dw_client_id: result[:aha].dw_client_id || client.ac_hmis_mci_unique_id&.value,
         generator: result[:aha].generator,
