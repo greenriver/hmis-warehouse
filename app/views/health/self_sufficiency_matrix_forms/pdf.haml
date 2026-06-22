@@ -1,0 +1,45 @@
+%h1 Self-Sufficiency Matrix
+
+.mb-3
+  %dt.d-inline Name:
+  %dd.d-inline= @client.name
+  %br
+  %dt.d-inline Date Completed:
+  %dd.d-inline= @form.completed_at&.to_date || 'In Progress'
+  %br
+  - if @form.user.present?
+    %dt.d-inline Completed By:
+    %dd.d-inline= @form.user.name
+    %br
+  - if @form.point_completed.present?
+    %dt.d-inline Point at Which Completed:
+    %dd.d-inline= @form.point_completed
+  - if @form.collection_location.present?
+    %br
+    %dt.d-inline Collection Location:
+    %dd.d-inline= @form.collection_location
+
+%table.table.table-sm.table-bordered.mt-4
+  %thead
+    %tr
+      %th Domain
+      %th Score
+      %th Description
+      %th Notes
+  %tbody
+    - Health::SelfSufficiencyMatrixForm::SECTIONS.keys.each do |section_key|
+      - score = @form.send(:"#{section_key}_score")
+      - next unless score.present?
+      - notes = @form.send(:"#{section_key}_notes")
+      %tr
+        %td.font-weight-bold= Health::SelfSufficiencyMatrixForm::SECTION_TITLES[section_key]
+        %td.text-center= score
+        %td= Health::SelfSufficiencyMatrixForm::SECTIONS[section_key][score]
+        %td= notes
+
+.mt-3
+  %strong Total Score:
+  = @form.total_score
+  %br
+  %strong Average Score:
+  = @form.average_score

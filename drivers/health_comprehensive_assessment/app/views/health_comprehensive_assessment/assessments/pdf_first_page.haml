@@ -30,7 +30,6 @@
       %tr
         %th{style: 'width:40%;'} Race
         %td
-          - display_values = @assessment.race_responses.select{|k, v| @assessment.race.include?(v)}.keys
-          = display_values.join(', ')
+          - display_values = @assessmen.race_responses&.select{|k, v| @assessment.race&.include?(v)}.keys
+          = display_values&.join(', ')
       = render 'pdf_field_section', fields: @assessment.demographic_information
-
