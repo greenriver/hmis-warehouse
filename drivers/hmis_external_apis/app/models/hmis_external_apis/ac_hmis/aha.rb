@@ -57,7 +57,8 @@ module HmisExternalApis::AcHmis
       mh_aha: 'MH-AHA',
       visionlink: 'VisionLink',
     }.freeze
-    VALID_SCORES = [-1, *(1..10)].freeze # AHA and MH-AHA can be -1 or 1..10, but not zero.
+    AHA_VALID_SCORES = [-1, *(1..10)].freeze # AHA can be -1 or 1..10, but not zero.
+    MH_AHA_VALID_SCORES = [-1, 0, *(1..10)].freeze # MH-AHA can be -1, 0, or 1..10.
     CONNECTION_TIMEOUT_SECONDS = Rails.env.staging? ? 15 : 10
 
     Error = HmisErrors::ApiError.new(display_message: 'Failed to connect to AHA')
@@ -98,7 +99,7 @@ module HmisExternalApis::AcHmis
       data = result.parsed_body&.dig('data')
       raise(Error, "Scores API response missing `data` key. Response body: `#{result.parsed_body}`") unless data
 
-      parsed_by_generator = parse_response_scores(data)
+      parsed_by_generator = parse_response_scores(data, requested_generators)
       build_results(parsed_by_generator, requested_generators)
     end
 
@@ -133,6 +134,9 @@ module HmisExternalApis::AcHmis
     # skipped after logging to Sentry (see parse_score_entry). The highest score per generator is
     # chosen later in build_results.
     #
+    # Only entries for requested generators are parsed, so unrelated score shapes in the response
+    # do not trigger validation errors or Sentry noise.
+    #
     # Example API shape:
     #   data: [
     #     { 'dw_client_id' => '100000001', 'scores' => [
@@ -146,7 +150,7 @@ module HmisExternalApis::AcHmis
     #
     # Example return value:
     #   { aha: [AhaResult(score: 7, ...), AhaResult(score: 9, ...)], mh_aha: [MhAhaResult(score: 5, ...)] }
-    def parse_response_scores(data)
+    def parse_response_scores(data, requested_generators)
       parsed_by_generator = Hash.new { |hash, key| hash[key] = [] }
 
       data.each do |response_client|
@@ -157,6 +161,7 @@ module HmisExternalApis::AcHmis
         response_client.dig('scores')&.each do |score_obj|
           generator_key = normalize_generator(score_obj['generator'])
           next unless generator_key
+          next unless requested_generators.include?(generator_key) # skip parsing unrequested generator
 
           parsed = parse_score_entry(score_obj, dw_client_id, generator_key)
           parsed_by_generator[generator_key] << parsed if parsed
@@ -198,7 +203,7 @@ module HmisExternalApis::AcHmis
     #   dw_client_id: '100000001'
     #   => AhaScores::AhaResult(score: 8, mci_quality_indicator: 0, dw_client_id: '100000001', generator: 'AHA')
     def parse_aha_entry(score_obj, dw_client_id)
-      score = parse_standard_score(score_obj.dig('score'))
+      score = parse_aha_score(score_obj.dig('score'))
 
       AhaScores::AhaResult.new(
         score: score,
@@ -209,14 +214,14 @@ module HmisExternalApis::AcHmis
       )
     end
 
-    # Parses an MH-AHA generator entry. Uses the same score validation as AHA ([-1, 1..10]).
+    # Parses an MH-AHA generator entry. Score must be an integer in [-1, 0, 1..10].
     #
     # Example:
     #   score_obj: { 'score' => 5, 'generator' => 'MH-AHA', 'metadata' => { 'row_id' => '123', 'run_id' => 'aha_abc' } }
     #   dw_client_id: '100000022'
     #   => AhaScores::MhAhaResult(score: 5, dw_client_id: '100000022', generator: 'MH-AHA')
     def parse_mh_aha_entry(score_obj, dw_client_id)
-      score = parse_standard_score(score_obj.dig('score'))
+      score = parse_mh_aha_score(score_obj.dig('score'))
 
       AhaScores::MhAhaResult.new(
         score: score,
@@ -262,10 +267,16 @@ module HmisExternalApis::AcHmis
       )
     end
 
-    # Parse "standard" scores (AHA and MH-AHA) that are integers in [-1, 1..10]
-    def parse_standard_score(score_value)
+    def parse_aha_score(score_value)
       raise ArgumentError, 'Received blank score' if score_value.blank?
-      raise ArgumentError, "Received invalid score: #{score_value.inspect}" unless score_value.is_a?(Numeric) && score_value % 1 == 0 && VALID_SCORES.include?(score_value.to_i)
+      raise ArgumentError, "Received invalid score: #{score_value.inspect}" unless score_value.is_a?(Numeric) && score_value % 1 == 0 && AHA_VALID_SCORES.include?(score_value.to_i)
+
+      score_value.to_i
+    end
+
+    def parse_mh_aha_score(score_value)
+      raise ArgumentError, 'Received blank score' if score_value.blank?
+      raise ArgumentError, "Received invalid score: #{score_value.inspect}" unless score_value.is_a?(Numeric) && score_value % 1 == 0 && MH_AHA_VALID_SCORES.include?(score_value.to_i)
 
       score_value.to_i
     end
