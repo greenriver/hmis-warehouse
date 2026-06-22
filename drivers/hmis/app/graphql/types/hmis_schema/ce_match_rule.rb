@@ -11,7 +11,7 @@ module Types
     # object is a Hmis::Ce::Match::Rule
 
     available_filter_options do
-      arg :owner_type, Types::HmisSchema::Enums::CeMatchRuleOwner
+      arg :owner_type, Types::HmisSchema::Enums::CeMatchRuleOwnerType
       arg :owner_id, ID
     end
 
@@ -23,7 +23,7 @@ module Types
     field :name, String, null: false
     field :owner_id, ID, null: false
     field :owner_name, String, null: false
-    field :owner_type, Types::HmisSchema::Enums::CeMatchRuleOwner, null: false, description: 'Rule applies to projects within this related entity (eg a Data Source, Project, Organization), possibly limited by project type or funder'
+    field :owner_type, Types::HmisSchema::Enums::CeMatchRuleOwnerType, null: false, description: 'Rule applies to projects within this related entity (eg a Data Source, Project, Organization), possibly limited by project type or funder'
     field :priority_rank, Integer, null: true
     field :rule_type, Types::HmisSchema::Enums::CeMatchRuleType, null: false
     field :expression, String, null: false

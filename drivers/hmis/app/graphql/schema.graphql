@@ -991,7 +991,7 @@ type CeMatchRule {
   Rule applies to projects within this related entity (eg a Data Source,
   Project, Organization), possibly limited by project type or funder
   """
-  ownerType: CeMatchRuleOwner!
+  ownerType: CeMatchRuleOwnerType!
   priorityRank: Int
 
   """
@@ -1048,20 +1048,20 @@ enum CeMatchRuleComparator {
 
 input CeMatchRuleFilterOptions {
   ownerId: ID
-  ownerType: CeMatchRuleOwner
+  ownerType: CeMatchRuleOwnerType
 }
 
 input CeMatchRuleInput {
   expression: String
   name: String
   ownerId: ID
-  ownerType: CeMatchRuleOwner
+  ownerType: CeMatchRuleOwnerType
   priorityRank: Int
   ruleType: CeMatchRuleType
   structuredExpression: CeMatchRuleStructuredExpressionInput
 }
 
-enum CeMatchRuleOwner {
+enum CeMatchRuleOwnerType {
   """
   Global
   """
