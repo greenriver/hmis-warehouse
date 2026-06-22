@@ -7638,15 +7638,19 @@ type Organization {
   description: String
 
   """
-  Number of rules that apply to this organization, including inherited rules.
+  Number of CE match rules that apply to this record, including inherited rules.
   """
   effectiveCeMatchRuleCount: Int!
+
+  """
+  All CE match rules that apply to this record, including inherited rules, grouped by their owner.
+  """
   effectiveCeMatchRuleGroups: [CeMatchRuleGroup!]!
   hudId: ID!
   id: ID!
 
   """
-  Number of rules owned directly by this organization.
+  Number of CE match rules owned directly by this record.
   """
   localCeMatchRuleCount: Int!
   organizationName: String!
