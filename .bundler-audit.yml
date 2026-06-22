@@ -10,3 +10,5 @@ ignore:
   - GHSA-57hq-95w6-v4fc
   - CVE-2026-40295
   - CVE-2026-44587
+  # not exploitable, no patch yet available. See #9324
+  - CVE-2026-54171
