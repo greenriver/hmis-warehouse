@@ -732,8 +732,6 @@ GEM
     pdfunite (0.6.0)
     pg (1.6.2)
     pg (1.6.2-arm64-darwin)
-    pghero (3.7.0)
-      activerecord (>= 7.1)
     popper_js (2.11.8)
     pp (0.6.2)
       prettyprint
@@ -1269,7 +1267,6 @@ DEPENDENCIES
   pdfunite
   pg
   pg_fixtures!
-  pghero
   premailer
   pretender
   progress_bar
@@ -1625,7 +1622,6 @@ CHECKSUMS
   pg (1.6.2) sha256=58614afd405cc9c2c9e15bffe8432e0d6cfc58b722344ad4a47c73a85189c875
   pg (1.6.2-arm64-darwin) sha256=4d44500b28d5193b26674583d199a6484f80f1f2ea9cf54f7d7d06a1b7e316b6
   pg_fixtures (0.1.0)
-  pghero (3.7.0) sha256=a8d8497095dbe168bb03fe50a11309ab068cd1c1ef4c88d9bbeb97be4809f522
   popper_js (2.11.8) sha256=f4b0be717fc0d50bdb3dbbc55788525a9e0e8f640b76c9971fc34ee609eadbd2
   pp (0.6.2) sha256=947ec3120c6f92195f8ee8aa25a7b2c5297bb106d83b41baa02983686577b6ff
   premailer (1.27.0) sha256=0fe2348cd82738855c482b31c915a06ecb1d3ad004578c19042905196ddbd1e7

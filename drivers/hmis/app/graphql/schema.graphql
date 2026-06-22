@@ -939,7 +939,7 @@ Field metadata for CE Match Rule expressions
 type CeMatchField {
   """
   The full-length identifier used in CE Match Rule expressions, such as
-  "client.current_age" or "custom_assessment.my_assessment.my_score".
+  "current_age" or "cde.custom_assessment.my_field_key".
   """
   expressionField: String!
   id: ID!
@@ -10235,7 +10235,7 @@ type Query {
   ceMatchCustomAssessmentFields(formDefinitionIdentifier: String!): [CeMatchField!]!
 
   """
-  Published and retired custom assessment form definitions in the user's data source that have CE Match fields.
+  Custom assessment form definitions for use in CE match rule management.
   """
   ceMatchCustomAssessmentForms: [FormDefinition!]!
   ceMatchRule(id: ID!): CeMatchRule!
