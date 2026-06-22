@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -83,6 +83,7 @@ module ClientLocationHistory
       markers
     end
 
-    include RailsDrivers::Extensions
+    # Extensions from drivers — see ADR 0007
+    include ::Hmis::ClientLocationHistory::LocationExtension
   end
 end

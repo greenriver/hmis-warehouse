@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -11,7 +11,6 @@ module SimpleReports
   class UniverseMember < GrdaWarehouseBase
     acts_as_paranoid
     self.table_name = 'simple_report_universe_members'
-    include RailsDrivers::Extensions
 
     include HasPiiAttributes
     pii_attr :first_name

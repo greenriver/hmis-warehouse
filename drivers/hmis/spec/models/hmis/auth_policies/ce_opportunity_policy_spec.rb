@@ -1,3 +1,9 @@
+###
+# Copyright Green River Data Group, Inc.
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 # frozen_string_literal: true
 
 require 'rails_helper'
@@ -49,6 +55,52 @@ RSpec.describe Hmis::AuthPolicies::CeOpportunityPolicy, type: :model do
     context 'when user does not have :can_view_prioritized_client_lists permission' do
       it 'returns false' do
         expect(policy.can_view_candidates?).to be false
+      end
+    end
+  end
+
+  describe 'Global' do
+    let(:policy) { user.policy_for(Hmis::Ce::Opportunity, policy_type: :ce_opportunity) }
+
+    describe '#can_index_opportunities?' do
+      it 'returns false when user does not have can_administrate_coordinated_entry permission' do
+        expect(policy.can_index_opportunities?).to be false
+      end
+
+      context 'when user has can_administrate_coordinated_entry permission' do
+        let!(:access_control) { create_access_control(user, data_source, with_permission: [:can_administrate_coordinated_entry]) }
+
+        it 'returns true' do
+          expect(policy.can_index_opportunities?).to be true
+        end
+      end
+    end
+
+    describe '#can_index_eligible_clients?' do
+      it 'returns false when user does not have can_administrate_coordinated_entry permission' do
+        expect(policy.can_index_eligible_clients?).to be false
+      end
+
+      context 'when user has can_administrate_coordinated_entry permission' do
+        let!(:access_control) { create_access_control(user, data_source, with_permission: [:can_administrate_coordinated_entry]) }
+
+        it 'returns true' do
+          expect(policy.can_index_eligible_clients?).to be true
+        end
+      end
+    end
+
+    describe '#can_manage_ce_match_rules?' do
+      it 'returns false when user does not have can_administrate_coordinated_entry permission' do
+        expect(policy.can_manage_ce_match_rules?).to be false
+      end
+
+      context 'when user has can_administrate_coordinated_entry permission' do
+        let!(:access_control) { create_access_control(user, data_source, with_permission: [:can_administrate_coordinated_entry]) }
+
+        it 'returns true' do
+          expect(policy.can_manage_ce_match_rules?).to be true
+        end
       end
     end
   end

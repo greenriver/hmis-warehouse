@@ -1,0 +1,381 @@
+{
+  "_comment": "Machine-readable compliance rules per HUD project type for the HMIS Simulation engine. Keys are project type integers as strings. Inventory/sub-bed flags mirror HudUtility2026#project_types_without_inventory.",
+
+  "0": {
+    "label": "ES Entry-Exit",
+    "bootstrap": {
+      "inventory": true,
+      "hmis_participation": true,
+      "ce_participation": false,
+      "es_bed_type": false,
+      "track_vet_beds": true,
+      "track_youth_beds": true,
+      "track_ch_beds": true
+    },
+    "enrollment_entry": {
+      "date_of_engagement_required": false,
+      "employment_education_required": true,
+      "health_and_dv_required": true
+    },
+    "during_enrollment": {
+      "cls_required": false,
+      "cls_frequency_days": null,
+      "cls_jitter_stddev": null
+    },
+    "ce": {
+      "events_required": false,
+      "assessment_required": false
+    }
+  },
+
+  "1": {
+    "label": "ES Night-by-Night",
+    "bootstrap": {
+      "inventory": true,
+      "hmis_participation": true,
+      "ce_participation": false,
+      "es_bed_type": true,
+      "track_vet_beds": true,
+      "track_youth_beds": true,
+      "track_ch_beds": true
+    },
+    "enrollment_entry": {
+      "date_of_engagement_required": false,
+      "employment_education_required": true,
+      "health_and_dv_required": true
+    },
+    "during_enrollment": {
+      "cls_required": false,
+      "cls_frequency_days": null,
+      "cls_jitter_stddev": null
+    },
+    "ce": {
+      "events_required": false,
+      "assessment_required": false
+    }
+  },
+
+  "2": {
+    "label": "Transitional Housing",
+    "bootstrap": {
+      "inventory": true,
+      "hmis_participation": true,
+      "ce_participation": false,
+      "es_bed_type": false,
+      "track_vet_beds": true,
+      "track_youth_beds": true,
+      "track_ch_beds": true
+    },
+    "enrollment_entry": {
+      "date_of_engagement_required": false,
+      "employment_education_required": true,
+      "health_and_dv_required": true
+    },
+    "during_enrollment": {
+      "cls_required": false,
+      "cls_frequency_days": null,
+      "cls_jitter_stddev": null
+    },
+    "ce": {
+      "events_required": false,
+      "assessment_required": false
+    }
+  },
+
+  "3": {
+    "label": "Permanent Supportive Housing",
+    "bootstrap": {
+      "inventory": true,
+      "hmis_participation": true,
+      "ce_participation": false,
+      "es_bed_type": false,
+      "track_vet_beds": true,
+      "track_youth_beds": true,
+      "track_ch_beds": true
+    },
+    "enrollment_entry": {
+      "date_of_engagement_required": false,
+      "employment_education_required": true,
+      "health_and_dv_required": true
+    },
+    "during_enrollment": {
+      "cls_required": false,
+      "cls_frequency_days": null,
+      "cls_jitter_stddev": null
+    },
+    "ce": {
+      "events_required": false,
+      "assessment_required": false
+    }
+  },
+
+  "4": {
+    "label": "Street Outreach",
+    "bootstrap": {
+      "inventory": false,
+      "hmis_participation": true,
+      "ce_participation": false,
+      "es_bed_type": false,
+      "track_vet_beds": false,
+      "track_youth_beds": false,
+      "track_ch_beds": false
+    },
+    "enrollment_entry": {
+      "date_of_engagement_required": true,
+      "employment_education_required": false,
+      "health_and_dv_required": true
+    },
+    "during_enrollment": {
+      "cls_required": true,
+      "cls_frequency_days": 30,
+      "cls_jitter_stddev": 15
+    },
+    "ce": {
+      "events_required": false,
+      "assessment_required": false
+    }
+  },
+
+  "6": {
+    "label": "Services Only",
+    "bootstrap": {
+      "inventory": false,
+      "hmis_participation": true,
+      "ce_participation": false,
+      "es_bed_type": false,
+      "track_vet_beds": false,
+      "track_youth_beds": false,
+      "track_ch_beds": false
+    },
+    "enrollment_entry": {
+      "date_of_engagement_required": false,
+      "employment_education_required": false,
+      "health_and_dv_required": false
+    },
+    "during_enrollment": {
+      "cls_required": false,
+      "cls_frequency_days": null,
+      "cls_jitter_stddev": null
+    },
+    "ce": {
+      "events_required": false,
+      "assessment_required": false
+    }
+  },
+
+  "7": {
+    "label": "Other",
+    "bootstrap": {
+      "inventory": false,
+      "hmis_participation": true,
+      "ce_participation": false,
+      "es_bed_type": false,
+      "track_vet_beds": false,
+      "track_youth_beds": false,
+      "track_ch_beds": false
+    },
+    "enrollment_entry": {
+      "date_of_engagement_required": false,
+      "employment_education_required": false,
+      "health_and_dv_required": false
+    },
+    "during_enrollment": {
+      "cls_required": false,
+      "cls_frequency_days": null,
+      "cls_jitter_stddev": null
+    },
+    "ce": {
+      "events_required": false,
+      "assessment_required": false
+    }
+  },
+
+  "8": {
+    "label": "Safe Haven",
+    "bootstrap": {
+      "inventory": true,
+      "hmis_participation": true,
+      "ce_participation": false,
+      "es_bed_type": false,
+      "track_vet_beds": true,
+      "track_youth_beds": true,
+      "track_ch_beds": true
+    },
+    "enrollment_entry": {
+      "date_of_engagement_required": false,
+      "employment_education_required": true,
+      "health_and_dv_required": true
+    },
+    "during_enrollment": {
+      "cls_required": false,
+      "cls_frequency_days": null,
+      "cls_jitter_stddev": null
+    },
+    "ce": {
+      "events_required": false,
+      "assessment_required": false
+    }
+  },
+
+  "9": {
+    "label": "PH - Housing Only",
+    "bootstrap": {
+      "inventory": true,
+      "hmis_participation": true,
+      "ce_participation": false,
+      "es_bed_type": false,
+      "track_vet_beds": true,
+      "track_youth_beds": true,
+      "track_ch_beds": true
+    },
+    "enrollment_entry": {
+      "date_of_engagement_required": false,
+      "employment_education_required": true,
+      "health_and_dv_required": true
+    },
+    "during_enrollment": {
+      "cls_required": false,
+      "cls_frequency_days": null,
+      "cls_jitter_stddev": null
+    },
+    "ce": {
+      "events_required": false,
+      "assessment_required": false
+    }
+  },
+
+  "10": {
+    "label": "PH - Housing with Services (OPH)",
+    "bootstrap": {
+      "inventory": true,
+      "hmis_participation": true,
+      "ce_participation": false,
+      "es_bed_type": false,
+      "track_vet_beds": true,
+      "track_youth_beds": true,
+      "track_ch_beds": true
+    },
+    "enrollment_entry": {
+      "date_of_engagement_required": false,
+      "employment_education_required": true,
+      "health_and_dv_required": true
+    },
+    "during_enrollment": {
+      "cls_required": false,
+      "cls_frequency_days": null,
+      "cls_jitter_stddev": null
+    },
+    "ce": {
+      "events_required": false,
+      "assessment_required": false
+    }
+  },
+
+  "11": {
+    "label": "Day Shelter",
+    "bootstrap": {
+      "inventory": false,
+      "hmis_participation": true,
+      "ce_participation": false,
+      "es_bed_type": false,
+      "track_vet_beds": false,
+      "track_youth_beds": false,
+      "track_ch_beds": false
+    },
+    "enrollment_entry": {
+      "date_of_engagement_required": false,
+      "employment_education_required": false,
+      "health_and_dv_required": false
+    },
+    "during_enrollment": {
+      "cls_required": false,
+      "cls_frequency_days": null,
+      "cls_jitter_stddev": null
+    },
+    "ce": {
+      "events_required": false,
+      "assessment_required": false
+    }
+  },
+
+  "12": {
+    "label": "Homelessness Prevention",
+    "bootstrap": {
+      "inventory": false,
+      "hmis_participation": true,
+      "ce_participation": false,
+      "es_bed_type": false,
+      "track_vet_beds": false,
+      "track_youth_beds": false,
+      "track_ch_beds": false
+    },
+    "enrollment_entry": {
+      "date_of_engagement_required": false,
+      "employment_education_required": false,
+      "health_and_dv_required": false
+    },
+    "during_enrollment": {
+      "cls_required": false,
+      "cls_frequency_days": null,
+      "cls_jitter_stddev": null
+    },
+    "ce": {
+      "events_required": false,
+      "assessment_required": false
+    }
+  },
+
+  "13": {
+    "label": "Rapid Rehousing",
+    "bootstrap": {
+      "inventory": true,
+      "hmis_participation": true,
+      "ce_participation": false,
+      "es_bed_type": false,
+      "track_vet_beds": false,
+      "track_youth_beds": false,
+      "track_ch_beds": false
+    },
+    "enrollment_entry": {
+      "date_of_engagement_required": false,
+      "employment_education_required": true,
+      "health_and_dv_required": true
+    },
+    "during_enrollment": {
+      "cls_required": false,
+      "cls_frequency_days": null,
+      "cls_jitter_stddev": null
+    },
+    "ce": {
+      "events_required": false,
+      "assessment_required": false
+    }
+  },
+
+  "14": {
+    "label": "Coordinated Entry",
+    "bootstrap": {
+      "inventory": false,
+      "hmis_participation": true,
+      "ce_participation": true,
+      "es_bed_type": false,
+      "track_vet_beds": false,
+      "track_youth_beds": false,
+      "track_ch_beds": false
+    },
+    "enrollment_entry": {
+      "date_of_engagement_required": false,
+      "employment_education_required": false,
+      "health_and_dv_required": false
+    },
+    "during_enrollment": {
+      "cls_required": true,
+      "cls_frequency_days": 90,
+      "cls_jitter_stddev": 30
+    },
+    "ce": {
+      "events_required": true,
+      "assessment_required": true
+    }
+  }
+}

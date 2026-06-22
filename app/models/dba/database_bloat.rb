@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -188,6 +188,7 @@ class Dba::DatabaseBloat
   SUPPORTED_VERSIONS = {
     '1.5.1' => 'pg_repack-1.5.1',
     '1.5.2' => 'pg_repack-1.5.2',
+    '1.5.3' => 'pg_repack-1.5.3',
   }.freeze
 
   # Ensure the pg_repack extension is installed in the database and the version of the pg_repack extension matches the version of the pg_repack binary.
@@ -199,7 +200,7 @@ class Dba::DatabaseBloat
     end
 
     db_version = pg_repack_db_version
-    raise "pg_repack extension is not installed in this database (#{ar_base_class}). Run CREATE EXTENSION pg_repack;" if db_version.nil?
+    raise "pg_repack extension is not installed in this database (#{ar_base_class})." if db_version.nil?
 
     binary = pg_repack_binary(db_version)
     raise "No pg_repack binary available for version #{db_version}" if binary.nil?
@@ -230,13 +231,17 @@ class Dba::DatabaseBloat
     system("which #{escaped_binary} > /dev/null 2>&1")
   end
 
-  # Get the version of the pg_repack extension in the database
-  # @return [String] The version of the pg_repack extension (e.g. '1.5.2')
+  # pg_repack client version must match the loaded server library, not pg_extension.extversion.
+  # After a Postgres image upgrade, extversion (catalog) can lag (e.g. 1.5.1) while pg_repack.so is newer (e.g. 1.5.3).
+  # repack.version() reads the library version — the same check pg_repack uses at connect time.
+  # @return [String, nil] The library version (e.g. '1.5.3')
   def pg_repack_db_version
-    sql = "SELECT extversion FROM pg_extension WHERE extname = 'pg_repack'"
-    result = always_run(sql)
-    row = result.first
-    row && row['extversion']
+    sql = 'SELECT repack.version() AS version'
+    row = always_run(sql).first
+    raw = row && row['version']
+    # repack.version() returns a label like "pg_repack 1.5.3"; strip non-version text.
+    # [^\d.] = any character that is NOT (\d) a digit or (.) a period
+    raw&.gsub(/[^\d.]/, '')&.presence
   end
 
   # Quote PostgreSQL identifiers that need it (mixed case, special characters, etc.)

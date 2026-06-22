@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -10,8 +10,8 @@
 # Hmis::Ce::ProcessPoolsJob
 #
 # Processes dirty CE candidate pools by running the match engine against all destination clients.
-# It may re-enqueue itself if more dirty pools are found after processing a batch or after an
-# early exit. Uses pool-level advisory locks to coordinate with ProcessClientsJob.
+# It may re-enqueue itself if more dirty pools are found after processing a batch.
+# Uses pool-level advisory locks to coordinate with ProcessClientsJob.
 #
 # See drivers/hmis/app/models/hmis/ce/README_FOR_CE_PROCESSING.md
 #
@@ -125,12 +125,6 @@ module Hmis::Ce
         end
 
         log_warning("Failed to acquire lock for pool #{pool.id} within timeout") unless acquired_lock
-
-        # YIELDING LOGIC: If clients are dirty, exit to let the client job run.
-        if Hmis::Ce::ChangeMarker.dirty.clients.exists?
-          log_info('Dirty clients detected. Yielding to client processor.')
-          break
-        end
       end
 
       max_processed_trackable_id ? max_processed_trackable_id + 1 : 0

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -28,6 +28,22 @@ RSpec.describe HmisCsvTwentyTwentySix::Exporter::Client::Overrides, type: :model
       described_class.enforce_required_fields(client)
       expect(client[:HispanicLatinaeo]).to eq(1)
       expect(client[:White]).to eq(0)
+    end
+
+    it 'HispanicLatinao (FY2026 name) reflects HispanicLatinaeo (DB column) via alias' do
+      # alias_attribute bridges the DB column name to the FY2026 spec name so the CSV
+      # export can read the value without a separate rename step.
+      expect(client[:HispanicLatinao]).to be nil
+      expect(client[:HispanicLatinaeo]).to be nil
+      client[:HispanicLatinaeo] = 0
+      expect(client[:HispanicLatinao]).to eq(0)
+      expect(client[:HispanicLatinaeo]).to eq(0)
+      client[:HispanicLatinaeo] = 1
+      expect(client[:HispanicLatinao]).to eq(1)
+      expect(client[:HispanicLatinaeo]).to eq(1)
+      client[:HispanicLatinaeo] = nil
+      expect(client[:HispanicLatinao]).to be nil
+      expect(client[:HispanicLatinaeo]).to be nil
     end
   end
 
@@ -62,6 +78,14 @@ RSpec.describe HmisCsvTwentyTwentySix::Exporter::Client::Overrides, type: :model
       described_class.apply_overrides(client, export: export)
       expect(client[:HispanicLatinaeo]).to eq(1)
       expect(client.RaceNone).to be_nil
+    end
+
+    it 'defaults nil HispanicLatinaeo to 0, readable via both column names' do
+      # If HispanicLatinaeo is nil, both column names read as 0 after overrides are applied.
+      client[:HispanicLatinaeo] = nil
+      described_class.apply_overrides(client, export: export)
+      expect(client[:HispanicLatinaeo]).to eq(0)
+      expect(client[:HispanicLatinao]).to eq(0)
     end
   end
 end

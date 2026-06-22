@@ -76,6 +76,8 @@ Ingestion reconciles staged data with the warehouse in four passes:
 
 **Pass 3 — Remove pending deletes.** Anything still carrying `pending_date_deleted` existed in the warehouse within scope but was absent from the import — it's soft-deleted. Clients are a special case: they are never hard-deleted, only flagged for re-evaluation.
 
+**After ingest — Post-ingest hooks.** Staging models may implement `after_ingest!`; the importer calls them for all data sources. Hooks receive `data_source`, and `project_ids` (from `Project.csv`). The FY2026 enrollment importer populates `project_pk` when the data source is an Open Path HMIS installation, setting it on all enrollments in the imported projects regardless of export date range.
+
 ## Validation
 
 Data quality is enforced via `HmisCsvValidation`. Two severity tiers:

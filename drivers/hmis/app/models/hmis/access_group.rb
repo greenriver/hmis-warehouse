@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -11,8 +11,8 @@
 
 class Hmis::AccessGroup < ApplicationRecord
   self.table_name = :hmis_access_groups
-  include RailsDrivers::Extensions
   include HmisEnabled
+  include HistoryDescriptions
 
   acts_as_paranoid
   has_paper_trail

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -25,7 +25,7 @@ module GrdaWarehouse
         status_groups = {}
 
         clients.each do |client|
-          consent_class = GrdaWarehouse::Config.active_consent_class.new(client: client)
+          consent_class ||= GrdaWarehouse::Config.active_consent_class.new(client: client)
 
           old_status = client.housing_release_status
           new_status = consent_class.current_consent_type

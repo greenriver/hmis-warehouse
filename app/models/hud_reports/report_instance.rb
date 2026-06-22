@@ -1,10 +1,10 @@
-# frozen_string_literal: true
-
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 # A HUD Report instance
 # @see docs/features/hud-report-framework.md
@@ -19,7 +19,9 @@ module HudReports
     acts_as_paranoid
     include ActionView::Helpers::DateHelper
     include SafeInspectable
-    include RailsDrivers::Extensions
+    # Extensions from drivers — see ADR 0007
+    include HopwaCaper::HudReports::ReportInstanceExtension
+    include HudSpmReport::HudReports::ReportInstanceExtension
     include HudReportArchival
 
     self.table_name = 'hud_report_instances'

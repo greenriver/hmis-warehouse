@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -410,7 +410,9 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     (saved_changes.keys & ['FirstName', 'LastName', 'DOB', 'SSN', 'DateDeleted']).any?
   end
 
-  include RailsDrivers::Extensions
+  # Extensions from drivers — see ADR 0007
+  include ::ClientLocationHistory::Hmis::Hud::ClientExtension
+  include HmisExternalApis::Hmis::Hud::ClientExtension
 
   # The warehouse uses the source hash to determine if the record has changed and to maintain the
   # associated warehouse record for reporting.

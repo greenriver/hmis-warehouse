@@ -1,0 +1,23 @@
+###
+# Copyright Green River Data Group, Inc.
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
+# frozen_string_literal: true
+
+module VeteransSubPop::GrdaWarehouse::Hud
+  module EnrollmentExtension
+    extend ActiveSupport::Concern
+
+    included do
+      scope :veterans, -> do
+        joins(:client).merge(GrdaWarehouse::Hud::Client.veterans)
+      end
+
+      scope :veteran, -> do
+        veterans
+      end
+    end
+  end
+end

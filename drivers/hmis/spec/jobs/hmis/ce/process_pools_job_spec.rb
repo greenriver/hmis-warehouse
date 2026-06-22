@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -43,6 +43,20 @@ RSpec.describe Hmis::Ce::ProcessPoolsJob, type: :job do
     # Both pools should be marked as processed
     expect(Hmis::Ce::ChangeMarker.find_by(trackable: pool).processed_version).to eq(1)
     expect(Hmis::Ce::ChangeMarker.find_by(trackable: pool2).processed_version).to eq(1)
+  end
+
+  it 'continues processing dirty pools when clients are dirty' do
+    pool2 = create(:hmis_ce_match_candidate_pool_active_with_unit_group, data_source: ce_data_source)
+
+    create(:hmis_ce_change_marker, trackable: pool, current_version: 1, processed_version: 0)
+    create(:hmis_ce_change_marker, trackable: pool2, current_version: 1, processed_version: 0)
+    create(:hmis_ce_change_marker, trackable: client1, current_version: 1, processed_version: 0)
+
+    described_class.perform_now
+
+    expect(Hmis::Ce::ChangeMarker.find_by(trackable: pool).processed_version).to eq(1)
+    expect(Hmis::Ce::ChangeMarker.find_by(trackable: pool2).processed_version).to eq(1)
+    expect(Hmis::Ce::ChangeMarker.find_by(trackable: client1)).to be_dirty
   end
 
   it 'handles missing pools gracefully' do

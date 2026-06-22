@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -9,12 +9,13 @@
 module GrdaWarehouse::HealthEmergency
   class Vaccination < GrdaWarehouseBase
     include ::HealthEmergency
-    include RailsDrivers::Extensions
+    # Extensions from drivers — see ADR 0007
+    include TextMessage::GrdaWarehouse::HealthEmergency::VaccinationExtension
 
-    MODERNA = 'ModernaTX, Inc.'.freeze
-    PFIZER = 'Pfizer, Inc., and BioNTech'.freeze
-    JANSSEN = 'Janssen'.freeze
-    VACCINATED = 'Vaccinated'.freeze
+    MODERNA = 'ModernaTX, Inc.'
+    PFIZER = 'Pfizer, Inc., and BioNTech'
+    JANSSEN = 'Janssen'
+    VACCINATED = 'Vaccinated'
 
     validates_presence_of :vaccinated_on, :vaccination_type, on: :create
     scope :visible_to, ->(user) do
@@ -34,7 +35,7 @@ module GrdaWarehouse::HealthEmergency
       where(created_at: range)
     end
 
-    scope :vaccinated_within_range, -> (range=Date.current..Date.current) do
+    scope :vaccinated_within_range, ->(range = Date.current..Date.current) do
       where(vaccinated_on: range)
     end
 

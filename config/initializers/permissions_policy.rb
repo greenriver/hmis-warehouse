@@ -1,3 +1,9 @@
+###
+# Copyright Green River Data Group, Inc.
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 # Define an application-wide HTTP permissions policy. For further
 # information see https://developers.google.com/web/updates/2018/06/feature-policy
 #

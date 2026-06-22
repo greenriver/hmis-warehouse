@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -277,6 +277,17 @@ module GrdaWarehouse
 
     def active_consent_form?
       client.consent_form_id == id
+    end
+
+    def calculated_expiration_date
+      case GrdaWarehouse::Hud::Client.release_duration
+      when 'One Year', 'Two Years'
+        consent_form_signed_on && consent_form_signed_on + GrdaWarehouse::Hud::Client.consent_validity_period
+      when 'Use Expiration Date'
+        expiration_date
+      when 'Indefinite'
+        nil
+      end
     end
 
     def consent_form?

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -102,6 +102,9 @@ module Types
     field :assign_referral_participants, mutation: Mutations::Ce::AssignReferralParticipants
     field :create_ce_referral_note, mutation: Mutations::Ce::CreateCeReferralNote
     field :assign_ce_default_contacts, mutation: Mutations::Ce::AssignCeDefaultContacts
+    field :create_ce_match_rule, mutation: Mutations::Ce::CreateCeMatchRule
+    field :update_ce_match_rule, mutation: Mutations::Ce::UpdateCeMatchRule
+    field :delete_ce_match_rule, mutation: Mutations::Ce::DeleteCeMatchRule
 
     # CE Unit management
     field :mark_units_available, mutation: Mutations::Ce::MarkUnitsAvailable

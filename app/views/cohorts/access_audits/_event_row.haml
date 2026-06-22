@@ -1,0 +1,27 @@
+- item = event.display_item
+%tr
+  %td= event.occurred_at&.to_fs
+  %td
+    - if item&.username
+      = item.username
+      - if item.impersonating
+        .small= "Impersonating #{item.impersonating}"
+    - else
+      %span.light System
+  %td= event.path_label
+  %td= event.affected_user&.name
+  %td
+    - badge_class = case event.effect.to_s when 'granted' then 'badge-success text-bg-success' when 'revoked' then 'badge-danger text-bg-danger' else 'badge-secondary text-bg-secondary' end
+    %span.badge{class: badge_class}
+      = event.version.event.titleize
+  %td
+    - badge_class = case event.effect.to_s when 'granted' then 'badge-success text-bg-success' when 'revoked' then 'badge-danger text-bg-danger' else 'badge-secondary text-bg-secondary' end
+    %span.badge{class: badge_class}
+      = event.effect.to_s.titleize
+  %td
+    - if item&.changes.present?
+      %ul.list-unstyled.mb-0
+        - item.changes.each do |change|
+          %li= change
+    - else
+      %span.light N/A

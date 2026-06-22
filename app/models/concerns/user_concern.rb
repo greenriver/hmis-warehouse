@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -81,6 +81,8 @@ module UserConcern
     has_many :document_exports, dependent: :destroy, class_name: 'GrdaWarehouse::DocumentExport'
     has_many :health_document_exports, dependent: :destroy, class_name: 'Health::DocumentExport'
     has_many :activity_logs
+
+    has_many :user_authentication_sources, class_name: 'Idp::UserAuthenticationSource', dependent: :destroy
 
     has_many :two_factors_memorized_devices
     has_many :oauth_identities, dependent: :destroy

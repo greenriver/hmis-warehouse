@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -37,5 +37,7 @@ class GrdaWarehouse::ImportLog < GrdaWarehouseBase
     end
   end
   # Overrides some methods, so must be included at the end
-  include RailsDrivers::Extensions
+  # Extensions from drivers — see ADR 0007
+  include HmisCsvImporter::GrdaWarehouse::ImportLogExtension
+  include HmisCsvTwentyTwenty::GrdaWarehouse::ImportLogExtension
 end
