@@ -27,6 +27,7 @@ module Mutations
 
       client = Hmis::Hud::Client.viewable_by(current_user).find_by(id: client_id)
       access_denied! unless client.present?
+      access_denied! unless policy_for(client, policy_type: :hmis_client).can_edit_some_enrollments?
 
       aha = HmisExternalApis::AcHmis::Aha.new
       begin
