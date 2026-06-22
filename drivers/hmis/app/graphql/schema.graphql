@@ -1051,6 +1051,17 @@ input CeMatchRuleFilterOptions {
   ownerType: CeMatchRuleOwnerType
 }
 
+type CeMatchRuleGroup {
+  """
+  True if rules are owned at the current hierarchy level; false if inherited.
+  """
+  local: Boolean!
+  ownerId: ID!
+  ownerName: String!
+  ownerType: CeMatchRuleOwnerType!
+  rules(limit: Int, offset: Int): CeMatchRulesPaginated!
+}
+
 input CeMatchRuleInput {
   expression: String
   name: String
@@ -7625,8 +7636,19 @@ type Organization {
   dateDeleted: ISO8601DateTime
   dateUpdated: ISO8601DateTime
   description: String
+
+  """
+  Number of rules that apply to this organization, including inherited rules.
+  """
+  effectiveCeMatchRuleCount: Int!
+  effectiveCeMatchRuleGroups: [CeMatchRuleGroup!]!
   hudId: ID!
   id: ID!
+
+  """
+  Number of rules owned directly by this organization.
+  """
+  localCeMatchRuleCount: Int!
   organizationName: String!
   projects(filters: ProjectsForEnrollmentFilterOptions, limit: Int, offset: Int, sortOrder: ProjectSortOption): ProjectsPaginated!
   user: ApplicationUser
@@ -7641,6 +7663,7 @@ type OrganizationAccess {
 }
 
 input OrganizationFilterOptions {
+  ceWaitlistsEnabled: Boolean
   searchTerm: String
 }
 

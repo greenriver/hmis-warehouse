@@ -71,6 +71,15 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect(orgs.length).to eq(0)
     end
 
+    it 'filters to organizations with CE waitlists enabled' do
+      create(:hmis_project_ce_config, project: o1.projects.first, supports_waitlist_referrals: true)
+
+      response, result = post_graphql(filters: { ce_waitlists_enabled: true }) { query }
+      expect(response.status).to eq 200
+      orgs = result.dig('data', 'organizations', 'nodes')
+      expect(orgs).to contain_exactly(include('id' => o1.id.to_s))
+    end
+
     context 'when there are multiple HMIS data sources' do
       let!(:ds2) { create :hmis_data_source }
       let!(:o5) { create :hmis_hud_organization, data_source: ds2, OrganizationName: 'Pineapples' }

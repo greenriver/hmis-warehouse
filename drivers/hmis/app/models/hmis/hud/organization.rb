@@ -52,6 +52,10 @@ class Hmis::Hud::Organization < Hmis::Hud::Base
     )
   end
 
+  scope :with_ce_waitlists_enabled, -> do
+    joins(:projects).merge(Hmis::Hud::Project.with_ce_waitlists_enabled).distinct
+  end
+
   SORT_OPTIONS = [:name].freeze
 
   def self.sort_by_option(option)
