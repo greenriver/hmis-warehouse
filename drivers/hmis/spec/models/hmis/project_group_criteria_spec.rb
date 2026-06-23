@@ -157,5 +157,25 @@ RSpec.describe Hmis::ProjectGroupCriteria, type: :model do
         expect(inclusion.effective_project_ids - exclusion.effective_project_ids).not_to include(multi_coc_project.id)
       end
     end
+
+    context 'when closed_projects is true' do
+      let!(:closed_project) do
+        create(:hmis_hud_project, data_source: hmis_ds, organization: o1, OperatingEndDate: 1.day.ago)
+      end
+      let!(:future_project) do
+        create(:hmis_hud_project, data_source: hmis_ds, organization: o1, OperatingStartDate: 1.day.from_now)
+      end
+      let(:criteria) do
+        described_class.new(
+          { closed_projects: true },
+          data_source_id: hmis_ds.id,
+        )
+      end
+
+      it 'includes projects that are not currently open' do
+        expect(criteria.effective_project_ids).to include(closed_project.id, future_project.id)
+        expect(criteria.effective_project_ids).not_to include(p1_o1.id, p2_o2.id)
+      end
+    end
   end
 end

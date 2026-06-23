@@ -8,6 +8,7 @@
 %h3 Project Group Name
 .form-inputs.well
   = f.input :name, required: true
+  = f.input :notes, as: :text
 
 %h3 Inclusion Criteria
 .form-inputs.well
@@ -29,3 +30,4 @@
     = ec.input :organization_ids, collection: organization_options, as: :grouped_select_two, group_method: :last, input_html: {multiple: true, placeholder: 'Choose Organizations' }, label: 'Organizations to Exclude', required: false
     = ec.input :project_type_numbers, collection: Hmis::ProjectGroupCriteria.available_project_type_numbers, input_html: { multiple: true, placeholder: 'Choose Project Types' }, label: 'Project Types to Exclude', as: :select_two, required: false
     = ec.input :coc_codes, collection: coc_code_options, input_html: { multiple: true, placeholder: 'Choose CoC Codes' }, label: 'CoC Codes to Exclude', as: :select_two, required: false
+    = ec.input :closed_projects, as: :boolean, label: 'Exclude closed projects', hint: 'Exclude projects that are not currently open based on operating start and end dates.', required: false
