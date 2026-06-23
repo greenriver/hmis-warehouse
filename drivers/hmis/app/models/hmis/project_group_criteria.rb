@@ -21,13 +21,12 @@ module Hmis
     attribute :organization_ids, Array, default: [].freeze
     attribute :all_projects_in_data_source, Boolean, default: false
     attribute :project_type_numbers, Array, default: [].freeze
+    attribute :coc_codes, Array, default: [].freeze
     # TODO: add more filtering capabilities:
     # attribute :hmis_participation_status, Integer, default: nil
     # attribute :ce_participation_access_point, Boolean, default: nil
     # attribute :funder_ids, Array, default: []
-    # attribute :coc_codes, Array, default: []
     # attribute :project_group_ids, Array, default: []
-    # attribute :coc_codes, Array, default: []
     # attribute :project_status, String, default: 'all'
 
     # Allowed attributes for validation and updates
@@ -36,6 +35,7 @@ module Hmis
       :organization_ids,
       :all_projects_in_data_source,
       :project_type_numbers,
+      :coc_codes,
       # :hmis_participation_status,
       # :project_status,
     ].freeze
@@ -87,13 +87,15 @@ module Hmis
       ids << organization_scope.joins(:projects).where(id: organization_ids).pluck(p_t[:id]) if organization_ids.any?
       # Add projects selected by project type
       ids << project_scope.where(project_type: project_type_numbers).pluck(:id) if project_type_numbers.any?
+      # Add projects selected by CoC code
+      ids << project_scope.in_coc(coc_code: coc_codes).pluck(:id) if coc_codes.any?
       # Flatten and remove duplicates
       ids.flatten.uniq
     end
 
     # Describe criteria as HTML
     def describe_criteria_as_html
-      return ''.html_safe if project_ids.blank? && organization_ids.blank? && !all_projects_in_data_source && project_type_numbers.blank?
+      return ''.html_safe if project_ids.blank? && organization_ids.blank? && !all_projects_in_data_source && project_type_numbers.blank? && coc_codes.blank?
 
       criteria = []
 
@@ -117,6 +119,8 @@ module Hmis
         project_type_names = project_type_numbers.uniq.map { |pt| HudHelper.util.project_type(pt.to_i) }
         criteria << { label: 'Project Types', values: project_type_names }
       end
+
+      criteria << { label: 'CoC Codes', values: coc_codes.uniq.sort } if coc_codes.any?
 
       # Generate HTML. This is based on Filter::FilterBase#describe_criteria_as_html
       criteria_inner = criteria.map do |criterion|
