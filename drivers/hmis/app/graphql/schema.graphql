@@ -7629,6 +7629,11 @@ union OmnisearchResult = Client | Project
 
 type Organization {
   access: OrganizationAccess!
+
+  """
+  Number of unit groups under this organization in projects that have waitlist referrals enabled.
+  """
+  ceWaitlistUnitGroupCount: Int!
   contactInformation: String
   createdBy: ApplicationUser
   customDataElements: [CustomDataElement!]!
@@ -10071,6 +10076,7 @@ enum ProjectFilterOptionStatus {
 
 input ProjectFilterOptions {
   ceEnabled: Boolean
+  ceWaitlistsEnabled: Boolean
   funder: [FundingSource!]
   organization: [ID!]
   projectType: [ProjectType!]
@@ -10182,6 +10188,7 @@ enum ProjectType {
 }
 
 input ProjectsForEnrollmentFilterOptions {
+  ceWaitlistsEnabled: Boolean
   funder: [FundingSource!]
   projectType: [ProjectType!]
   searchTerm: String

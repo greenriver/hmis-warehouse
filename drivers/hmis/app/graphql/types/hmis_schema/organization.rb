@@ -25,6 +25,7 @@ module Types
     field :id, ID, null: false
     field :hud_id, ID, null: false, method: :organization_id
     field :organization_name, String, null: false
+    field :ce_waitlist_unit_group_count, Integer, null: false, description: 'Number of unit groups under this organization in projects that have waitlist referrals enabled.'
     projects_field :projects, filter_args: { omit: [:organization, :ce_enabled], type_name: 'ProjectsForEnrollment' }
     field :victim_service_provider, HmisSchema::Enums::Hud::NoYesMissing, null: false, default_value: 99
     field :description, String, null: true
@@ -40,6 +41,10 @@ module Types
 
     def projects(**args)
       resolve_projects(object.projects, **args)
+    end
+
+    def ce_waitlist_unit_group_count
+      load_ar_association(object, :ce_waitlist_unit_groups).size
     end
 
     def self.organizations(scope = Hmis::Hud::Organization.all, user:)

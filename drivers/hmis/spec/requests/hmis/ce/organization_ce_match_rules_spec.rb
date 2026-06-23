@@ -39,6 +39,7 @@ RSpec.describe 'Organization CE Match Rules queries', type: :request do
           id
           effectiveCeMatchRuleCount
           localCeMatchRuleCount
+          ceWaitlistUnitGroupCount
           effectiveCeMatchRuleGroups {
             ownerId
             ownerName
@@ -66,6 +67,7 @@ RSpec.describe 'Organization CE Match Rules queries', type: :request do
             id
             localCeMatchRuleCount
             effectiveCeMatchRuleCount
+            ceWaitlistUnitGroupCount
           }
         }
       }
@@ -73,6 +75,11 @@ RSpec.describe 'Organization CE Match Rules queries', type: :request do
   end
 
   it 'returns effective CE match rule groups for an organization' do
+    create(:hmis_project_ce_config, project: p1, supports_waitlist_referrals: true)
+    create_list(:hmis_unit_group, 2, project: p1)
+    project_without_ce_waitlist = create(:hmis_hud_project, data_source: ds1, organization: o1, user: u1)
+    create(:hmis_unit_group, project: project_without_ce_waitlist)
+
     response, result = post_graphql(id: o1.id) { organization_rules_query }
     expect(response.status).to eq(200), result.inspect
 
@@ -80,6 +87,7 @@ RSpec.describe 'Organization CE Match Rules queries', type: :request do
     expect(organization).to include(
       'effectiveCeMatchRuleCount' => 2,
       'localCeMatchRuleCount' => 1,
+      'ceWaitlistUnitGroupCount' => 2,
     )
     expect(organization['effectiveCeMatchRuleGroups']).to contain_exactly(
       include(
@@ -108,6 +116,7 @@ RSpec.describe 'Organization CE Match Rules queries', type: :request do
     organizations.each do |organization|
       project = create(:hmis_hud_project, data_source: ds1, organization: organization, user: u1)
       create(:hmis_project_ce_config, project: project, supports_waitlist_referrals: true)
+      create(:hmis_unit_group, project: project)
       Hmis::Ce::Match::Rule.create!(
         owner: organization,
         name: "Local rule for #{organization.name}",
@@ -121,7 +130,7 @@ RSpec.describe 'Organization CE Match Rules queries', type: :request do
       response, result = post_graphql { organization_selector_counts_query }
       expect(response.status).to eq(200), result.inspect
       expect(result.dig('data', 'organizations', 'nodes').size).to eq(11)
-    end.to make_database_queries(count: 12..20)
+    end.to make_database_queries(count: 15..25)
   end
 
   it 'does not make N+1 queries for effective rule groups on a single organization with multiple rules' do

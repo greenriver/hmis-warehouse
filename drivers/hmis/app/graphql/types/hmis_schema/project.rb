@@ -50,6 +50,7 @@ module Types
       arg :organization, [ID]
       arg :search_term, String
       arg :ce_enabled, Boolean
+      arg :ce_waitlists_enabled, Boolean
     end
 
     hud_field :id, ID, null: false
