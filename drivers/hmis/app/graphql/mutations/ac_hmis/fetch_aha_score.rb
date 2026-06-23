@@ -19,6 +19,7 @@ module Mutations
     argument :lookup_reason, [String], required: false
 
     field :score, Integer, null: true
+    field :mh_score, Integer, null: true
     field :mci_quality_indicator, Integer, null: true
     field :dw_client_id, String, null: true
     field :generator, String, null: true
@@ -35,24 +36,24 @@ module Mutations
 
       aha = HmisExternalApis::AcHmis::Aha.new
       begin
-        results = aha.fetch_score(
+        result = aha.fetch_score(
           client,
           lookup_catalyst: lookup_catalyst,
           lookup_reason: lookup_reason,
-          requested_generators: [:aha],
+          requested_generators: [:aha, :mh_aha],
         )
-        result = results[:aha]
       rescue HmisExternalApis::AcHmis::Aha::NoMciUniqueIdError => _e
-        return { score: -1, aha_failed_reason: 'NO_MCI_UNIQUE_ID' }
+        return { score: -1, mh_score: -1, aha_failed_reason: 'NO_MCI_UNIQUE_ID' }
       end
 
-      raise HmisExternalApis::AcHmis::Aha::Error, 'Response does not contain AHA score' unless result
+      raise HmisExternalApis::AcHmis::Aha::Error, 'Response does not contain AHA score' unless result[:aha].present?
 
       {
-        score: result.score,
-        mci_quality_indicator: result.mci_quality_indicator,
-        dw_client_id: result.dw_client_id,
-        generator: result.generator,
+        score: result[:aha].score,
+        mh_score: result[:mh_aha].nil? ? -1 : result[:mh_aha].score,
+        mci_quality_indicator: result[:aha].mci_quality_indicator,
+        dw_client_id: result[:aha].dw_client_id || client.ac_hmis_mci_unique_id&.value,
+        generator: result[:aha].generator,
         aha_failed_reason: nil,
       }
     end
