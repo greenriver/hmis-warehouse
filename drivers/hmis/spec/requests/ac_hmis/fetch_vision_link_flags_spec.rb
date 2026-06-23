@@ -24,7 +24,14 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     )
   end
   let!(:mci_unique_id) { create(:mci_unique_id_external_id, source: c1) }
-  let!(:access_control) { create_access_control(hmis_user, ds1, with_permission: [:can_view_clients]) }
+  let!(:e1) { create(:hmis_hud_enrollment, data_source: ds1, project: p1, client: c1) }
+  let!(:access_control) do
+    create_access_control(
+      hmis_user,
+      p1,
+      with_permission: [:can_view_clients, :can_view_project, :can_view_enrollment_details, :can_edit_enrollments],
+    )
+  end
 
   before(:each) do
     hmis_login(user)
@@ -102,6 +109,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   it 'returns failedReason when client has no MCI unique ID' do
     client_without_mci = create(:hmis_hud_client, data_source: ds1, user: u1)
+    create(:hmis_hud_enrollment, data_source: ds1, project: p1, client: client_without_mci)
     allow(stub_aha).to receive(:fetch_score).with(
       client_without_mci,
       requested_generators: [:visionlink],
@@ -111,6 +119,20 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect(errors).to be_empty
       expect(data['failedReason']).to eq('NO_MCI_UNIQUE_ID')
       expect(data['isEligibleRa']).to be_nil
+    end
+  end
+
+  context 'when user cannot edit enrollments' do
+    let!(:access_control) do
+      create_access_control(
+        hmis_user,
+        p1,
+        with_permission: [:can_view_clients, :can_view_project, :can_view_enrollment_details],
+      )
+    end
+
+    it 'returns access denied error' do
+      expect_access_denied(post_graphql(client_id: c1.id) { mutation })
     end
   end
 end
