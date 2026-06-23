@@ -72,7 +72,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     end
 
     it 'filters to organizations with CE waitlists enabled' do
-      create(:hmis_project_ce_config, project: o1.projects.first, supports_waitlist_referrals: true)
+      # p1 is a project created under o1 in the hmis base setup
+      create(:hmis_project_ce_config, project: p1, supports_waitlist_referrals: true)
 
       response, result = post_graphql(filters: { ce_waitlists_enabled: true }) { query }
       expect(response.status).to eq 200

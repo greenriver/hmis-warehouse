@@ -44,6 +44,8 @@ module Types
     end
 
     def ce_waitlist_unit_group_count
+      # Doesn't need to be separately authorized with ce_match_rule_policy.can_manage?
+      # because the unit group count isn't sensitive. If you can see the org, you can request this field
       load_ar_association(object, :ce_waitlist_unit_groups).size
     end
 

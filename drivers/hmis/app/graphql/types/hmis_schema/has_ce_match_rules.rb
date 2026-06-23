@@ -23,7 +23,8 @@ module Types
         dataloader.with(Sources::CeMatchRuleEffectiveCountSource, owner_class: object.class).load(object)
       end
 
-      # Not for batch
+      # Not for batch. As a future improvement, we could reuse the data loader approach (see CeMatchRuleEffectiveCountSource)
+      # but since this is only loaded on 1 org at a time, use the existing eligibility_and_priority_rules_for_entity helper.
       def effective_ce_match_rule_groups
         access_denied! unless ce_match_rule_policy.can_manage?
 
