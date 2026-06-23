@@ -30,19 +30,10 @@
         - else
           %p
             None
-  .col-sm-6
     .well
-      %h3.mb-4= "Included Projects (#{@project_group.warehouse_projects.count})"
-      - if @project_group.warehouse_projects.count > 0
-        - @project_group.warehouse_projects.preload(:organization).map { |p| p.organization_and_name(current_user) }.sort.each do |name|
-          = name
-          %br
-      - else
-        There are no projects in this group.
-
       - if HmisEnforcement.hmis_admin_visible?(current_user)
         - collections = Hmis::AccessGroup.contains(@project_group)
-        %h3.mt-6.mb-4= "Related Collections (#{collections.count})"
+        %h3.mt-2.mb-4= "Related Access Collections (#{collections.count})"
         - if collections.count > 0
           - collections.sort_by { |g| g.name }.sort.each do |group|
             = link_to group.name, hmis_admin_group_path(group)
@@ -58,3 +49,12 @@
             %br
         - else
           There are no workspaces associated with this project group.
+  .col-sm-6
+    .well
+      %h3.mb-4= "Included Projects (#{@project_group.warehouse_projects.count})"
+      - if @project_group.warehouse_projects.count > 0
+        - @project_group.warehouse_projects.preload(:organization).map { |p| p.organization_and_name(current_user) }.sort.each do |name|
+          = name
+          %br
+      - else
+        There are no projects in this group.

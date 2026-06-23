@@ -91,5 +91,66 @@ RSpec.describe Hmis::ProjectGroup, type: :model do
         expect(project_group.projects.map(&:id)).to contain_exactly(*expected)
       end
     end
+
+    context 'when exclusion criteria include organization_ids' do
+      let(:project_group) do
+        create(:hmis_project_group,
+               data_source: hmis_ds,
+               inclusion_criteria: {
+                 all_projects_in_data_source: true,
+               }.to_json,
+               exclusion_criteria: {
+                 organization_ids: [o2.id],
+               }.to_json)
+      end
+
+      it 'excludes all projects belonging to the specified organizations' do
+        expected = [p1_o1.id]
+
+        expect(project_group.effective_project_ids).to contain_exactly(*expected)
+        expect(project_group.parsed_exclusion_criteria.effective_project_ids).to contain_exactly(p2_o2.id, p3_o2.id, p4_o2.id)
+      end
+    end
+
+    context 'when inclusion criteria include coc_codes' do
+      let!(:p1_coc) { create(:hmis_hud_project_coc, data_source: hmis_ds, project: p1_o1, CoCCode: 'MA-500') }
+      let!(:p2_coc) { create(:hmis_hud_project_coc, data_source: hmis_ds, project: p2_o2, CoCCode: 'MA-501') }
+      let(:project_group) do
+        create(:hmis_project_group,
+               data_source: hmis_ds,
+               inclusion_criteria: {
+                 coc_codes: ['MA-500'],
+               }.to_json)
+      end
+
+      it 'includes projects with a matching ProjectCoC record' do
+        expect(project_group.effective_project_ids).to contain_exactly(p1_o1.id)
+      end
+
+      it 'maintains projects correctly' do
+        project_group.maintain_projects!
+        expect(project_group.projects.map(&:id)).to contain_exactly(p1_o1.id)
+      end
+    end
+
+    context 'when exclusion criteria include coc_codes' do
+      let!(:p1_coc) { create(:hmis_hud_project_coc, data_source: hmis_ds, project: p1_o1, CoCCode: 'MA-500') }
+      let!(:p2_coc) { create(:hmis_hud_project_coc, data_source: hmis_ds, project: p2_o2, CoCCode: 'MA-501') }
+      let(:project_group) do
+        create(:hmis_project_group,
+               data_source: hmis_ds,
+               inclusion_criteria: {
+                 all_projects_in_data_source: true,
+               }.to_json,
+               exclusion_criteria: {
+                 coc_codes: ['MA-501'],
+               }.to_json)
+      end
+
+      it 'excludes projects with a matching ProjectCoC record' do
+        expect(project_group.effective_project_ids).to contain_exactly(p1_o1.id, p3_o2.id, p4_o2.id)
+        expect(project_group.parsed_exclusion_criteria.effective_project_ids).to contain_exactly(p2_o2.id)
+      end
+    end
   end
 end
