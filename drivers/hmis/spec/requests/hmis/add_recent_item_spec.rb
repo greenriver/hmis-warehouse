@@ -40,11 +40,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     it 'records a viewable client in recent items' do
       response, result = perform_mutation(item_id: client.id, item_type: 'Client')
 
-      aggregate_failures do
-        expect(response.status).to eq(200), result.inspect
-        expect(result.dig('data', 'addRecentItem', 'id')).to eq(hmis_user.id.to_s)
-        expect(hmis_user.recent_item_links.find_by(item: client)).to be_present
-      end
+      expect(response.status).to eq(200), result.inspect
+      expect(result.dig('data', 'addRecentItem', 'id')).to eq(hmis_user.id.to_s)
+      expect(hmis_user.recent_item_links.find_by(item: client)).to be_present
     end
 
     it 'rejects a client the user cannot view' do
@@ -65,11 +63,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     it 'records a viewable project in recent items' do
       response, result = perform_mutation(item_id: p1.id, item_type: 'Project')
 
-      aggregate_failures do
-        expect(response.status).to eq(200), result.inspect
-        expect(result.dig('data', 'addRecentItem', 'id')).to eq(hmis_user.id.to_s)
-        expect(hmis_user.recent_item_links.find_by(item: p1)).to be_present
-      end
+      expect(response.status).to eq(200), result.inspect
+      expect(result.dig('data', 'addRecentItem', 'id')).to eq(hmis_user.id.to_s)
+      expect(hmis_user.recent_item_links.find_by(item: p1)).to be_present
     end
 
     it 'rejects a project the user cannot view' do
