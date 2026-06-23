@@ -34,6 +34,9 @@ class Dba::DatabaseBloat
   # minimum percentage of non-analyzed rows to trigger adjusting autovaccuum
   MIN_PCT_NOT_ANALYZED = ENV.fetch('DBA_MIN_PCT_NOT_ANALYZED', 4).to_i
 
+  # skip pg_repack on tables larger than this (pg_repack needs roughly table_size of free space)
+  MAX_REPACK_TABLE_SIZE = ENV.fetch('DBA_MAX_REPACK_TABLE_SIZE', 100 * 1024**3).to_i
+
   def initialize(ar_base_class:, dry_run: false)
     self.ar_base_class = ar_base_class
     self.dry_run = dry_run
@@ -140,7 +143,10 @@ class Dba::DatabaseBloat
       # password should be in your .pgpass file
 
       bloated_tables.each.with_index do |row, i|
-        # puts row
+        if row['real_size_bytes'].to_i > MAX_REPACK_TABLE_SIZE
+          Rails.logger.warn("Skipping pg_repack for #{row['tblname']} (#{row['real_size']}): exceeds DBA_MAX_REPACK_TABLE_SIZE limit")
+          next
+        end
 
         # Get the appropriate pg_repack binary for this database version
         db_version = pg_repack_db_version
@@ -171,9 +177,7 @@ class Dba::DatabaseBloat
         cmd = ['bash', '-c', bash_cmd]
 
         Rails.logger.info("Repacking #{row['tblname']} with binary: #{binary}")
-        system(*cmd)
-
-        raise 'running repack failed.' if $?.exitstatus != 0 # rubocop:disable Style/SpecialGlobalVars
+        raise 'running repack failed.' unless run_system_command(*cmd)
 
         adjust_autovacuum_for(row)
 
@@ -256,6 +260,12 @@ class Dba::DatabaseBloat
     else
       identifier
     end
+  end
+
+  # Wraps system() so tests can stub it without hitting the frozen $? object
+  def run_system_command(*cmd)
+    system(*cmd)
+    $?.exitstatus == 0 # rubocop:disable Style/SpecialGlobalVars
   end
 
   # for finding bloat, etc. Harmless things only
@@ -370,6 +380,7 @@ class Dba::DatabaseBloat
         r.schemaname,
         r.tblname,
         pg_size_pretty(r.real_size::bigint) as real_size,
+        r.real_size::bigint as real_size_bytes,
         pg_size_pretty(r.extra_size::bigint) as extra_size,
         round(r.extra_pct) as extra_pct,
         round(r.bloat_pct) as bloat_pct,
