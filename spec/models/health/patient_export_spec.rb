@@ -11,6 +11,7 @@ require 'rails_helper'
 RSpec.describe Health::ExportPatient, type: :model do
   let(:user) { create(:acl_user) }
   let(:patient) { create(:patient) }
+  let(:exporter) { described_class.new(patient: patient, user: user) }
   let(:fake_pdf) { '%PDF-1.4 fake content' }
 
   let!(:careplan) { create(:careplan, patient: patient, user: user) }
@@ -52,7 +53,7 @@ RSpec.describe Health::ExportPatient, type: :model do
   describe '#export' do
     it 'creates subdirectories and writes one PDF file per association record' do
       Dir.mktmpdir do |tmpdir|
-        result = described_class.new(patient: patient, user: user).export(path: tmpdir)
+        result = exporter.export(path: tmpdir)
 
         expect(result).to have_key(:exported)
         expect(result).to have_key(:skipped)
@@ -60,22 +61,23 @@ RSpec.describe Health::ExportPatient, type: :model do
         expect(result[:skipped]).to be_empty
 
         Health::ExportPatient::EXPORT_CONFIGS.each do |config|
-          subdir = File.join(tmpdir, config[:subdir])
+          subdir = exporter.export_subdir(tmpdir, config[:subdir])
           expect(Dir.exist?(subdir)).to be(true), "expected subdir #{config[:subdir]} to exist"
         end
 
-        expect(Dir[File.join(tmpdir, 'health_careplans', '*.pdf')].count).to eq(1)
-        expect(Dir[File.join(tmpdir, 'health_pctp_careplans', '*.pdf')].count).to eq(1)
-        expect(Dir[File.join(tmpdir, 'health_comprehensive_health_assessments', '*.pdf')].count).to eq(1)
-        expect(Dir[File.join(tmpdir, 'health_comprehensive_assessments', '*.pdf')].count).to eq(1)
-        expect(Dir[File.join(tmpdir, 'health_ssm_forms', '*.pdf')].count).to eq(1)
-        expect(Dir[File.join(tmpdir, 'health_thrive_assessments', '*.pdf')].count).to eq(1)
-        expect(Dir[File.join(tmpdir, 'health_participation_forms', '*.pdf')].count).to eq(1)
-        expect(Dir[File.join(tmpdir, 'health_release_forms', '*.pdf')].count).to eq(1)
-        expect(Dir[File.join(tmpdir, 'health_sdh_case_management_notes', '*.pdf')].count).to eq(1)
+        folder = exporter.export_folder
+        expect(Dir[File.join(tmpdir, folder, 'health_careplans', '*.pdf')].count).to eq(1)
+        expect(Dir[File.join(tmpdir, folder, 'health_pctp_careplans', '*.pdf')].count).to eq(1)
+        expect(Dir[File.join(tmpdir, folder, 'health_comprehensive_health_assessments', '*.pdf')].count).to eq(1)
+        expect(Dir[File.join(tmpdir, folder, 'health_comprehensive_assessments', '*.pdf')].count).to eq(1)
+        expect(Dir[File.join(tmpdir, folder, 'health_ssm_forms', '*.pdf')].count).to eq(1)
+        expect(Dir[File.join(tmpdir, folder, 'health_thrive_assessments', '*.pdf')].count).to eq(1)
+        expect(Dir[File.join(tmpdir, folder, 'health_participation_forms', '*.pdf')].count).to eq(1)
+        expect(Dir[File.join(tmpdir, folder, 'health_release_forms', '*.pdf')].count).to eq(1)
+        expect(Dir[File.join(tmpdir, folder, 'health_sdh_case_management_notes', '*.pdf')].count).to eq(1)
 
-        careplan_file = Dir[File.join(tmpdir, 'health_careplans', '*.pdf')].first
-        expect(File.basename(careplan_file)).to eq("#{careplan.id}-careplan.pdf")
+        careplan_file = Dir[File.join(tmpdir, folder, 'health_careplans', '*.pdf')].first
+        expect(File.basename(careplan_file)).to eq(exporter.export_filename(careplan, label: 'careplan'))
         expect(File.binread(careplan_file)).to eq(fake_pdf)
 
         expect(result[:exported].count).to eq(9)
@@ -88,11 +90,72 @@ RSpec.describe Health::ExportPatient, type: :model do
       )
 
       Dir.mktmpdir do |tmpdir|
-        result = described_class.new(patient: patient, user: user).export(path: tmpdir)
+        result = exporter.export(path: tmpdir)
 
         expect(result[:skipped]).to include("careplan##{careplan.id}")
         expect(result[:exported].count).to eq(8)
-        expect(Dir[File.join(tmpdir, 'health_careplans', '*.pdf')]).to be_empty
+        expect(Dir[File.join(tmpdir, exporter.export_folder, 'health_careplans', '*.pdf')]).to be_empty
+      end
+    end
+
+    it 'skips records when the generator returns blank content' do
+      allow(Health::DocumentExports::CareplanPdfExport).to(
+        receive(:generate).and_return(''),
+      )
+
+      Dir.mktmpdir do |tmpdir|
+        result = exporter.export(path: tmpdir)
+
+        expect(result[:skipped]).to include("careplan##{careplan.id}")
+        expect(result[:exported].count).to eq(8)
+      end
+    end
+
+    it 'returns full file paths under the export root' do
+      Dir.mktmpdir do |tmpdir|
+        result = exporter.export(path: tmpdir)
+
+        careplan_path = result[:exported].find { |path| path.include?('health_careplans') }
+        expect(careplan_path).to eq(
+          File.join(
+            exporter.export_subdir(tmpdir, 'health_careplans'),
+            exporter.export_filename(careplan, label: 'careplan'),
+          ),
+        )
+      end
+    end
+
+    it 'includes an empty errors array on success' do
+      Dir.mktmpdir do |tmpdir|
+        result = exporter.export(path: tmpdir)
+
+        expect(result[:errors]).to eq([])
+      end
+    end
+
+    it 'uses patient id when medicaid_id is blank' do
+      allow(patient).to receive(:medicaid_id).and_return(nil)
+
+      Dir.mktmpdir do |tmpdir|
+        result = exporter.export(path: tmpdir)
+
+        subdir = exporter.export_subdir(tmpdir, 'health_careplans')
+        expect(Dir.exist?(subdir)).to be(true)
+        expect(result[:exported].count).to eq(9)
+      end
+    end
+
+    it 'records generator failures in errors and continues exporting' do
+      allow(Health::DocumentExports::CareplanPdfExport).to(
+        receive(:generate).and_raise(StandardError, 'pdf failed'),
+      )
+
+      Dir.mktmpdir do |tmpdir|
+        result = exporter.export(path: tmpdir)
+
+        expect(result[:errors].map { |e| e[:ref] }).to include("careplan##{careplan.id}")
+        expect(result[:errors].first[:message]).to eq('pdf failed')
+        expect(result[:exported].count).to eq(8)
       end
     end
   end

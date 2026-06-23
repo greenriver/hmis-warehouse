@@ -73,7 +73,7 @@ module Health
     # Export PDFs for all configured health document types belonging to the patient.
     #
     # Creates one subdirectory per document type under +path+, writes each generated PDF as
-    # +{record_id}-{label}.pdf+, and continues when individual records fail or have no content.
+    # +{record_id}--{date}-{label}.pdf+, and continues when individual records fail or have no content.
     #
     # @param path [String] base directory for the export (subdirectories are created as needed)
     # @return [Hash{Symbol=>Array}] +:exported+ file paths written, +:skipped+ record refs with blank
@@ -84,7 +84,7 @@ module Health
       errors = []
 
       EXPORT_CONFIGS.each do |config|
-        subdir = File.join(path, patient_id, config[:subdir])
+        subdir = export_subdir(path, config[:subdir])
         FileUtils.mkdir_p(subdir)
 
         @patient.send(config[:association]).each do |record|
@@ -96,8 +96,7 @@ module Health
               next
             end
 
-            filename = "#{record.id}-#{config[:label]}.pdf"
-            file_path = File.join(subdir, filename)
+            file_path = File.join(subdir, export_filename(record, label: config[:label]))
             File.binwrite(file_path, pdf_bytes)
             exported << file_path
           rescue StandardError => e
@@ -109,8 +108,32 @@ module Health
       { exported: exported, skipped: skipped, errors: errors }
     end
 
-    private def patient_id
+    # Patient folder name under the export root (medicaid_id, or patient id as fallback).
+    def export_folder
       (@patient.medicaid_id.presence || @patient.id).to_s
+    end
+
+    def export_subdir(path, subdir_name)
+      File.join(path, export_folder, subdir_name)
+    end
+
+    def export_filename(record, label:)
+      "#{record.id}--#{record_export_date(record)}-#{label}.pdf"
+    end
+
+    private
+
+    # Most files have created_at
+    # participation and release forms don't have created_at, but do have a signature_on date
+    # If we can't find a date, use an empty string
+    def record_export_date(record)
+      if record.respond_to?(:created_at) && record.created_at
+        record.created_at.strftime('%Y-%m-%d')
+      elsif record.respond_to?(:signature_on) && record.signature_on
+        record.signature_on.strftime('%Y-%m-%d')
+      else
+        ''
+      end
     end
   end
 end

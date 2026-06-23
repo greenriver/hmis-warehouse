@@ -263,8 +263,13 @@ module Sftp
 
       # Converts a glob pattern (e.g., "*.csv") to a regex for matching filenames.
       def glob_to_regex(pattern)
-        escaped = Regexp.escape(pattern)
-        regex_str = escaped.gsub('.', '\.').gsub('*', '.*').gsub('?', '.')
+        regex_str = pattern.each_char.map do |char|
+          case char
+          when '*' then '.*'
+          when '?' then '.'
+          else Regexp.escape(char)
+          end
+        end.join
         Regexp.new("^#{regex_str}$", Regexp::IGNORECASE)
       end
     end

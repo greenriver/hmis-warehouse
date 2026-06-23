@@ -199,7 +199,7 @@ jobs:
         id: container-setup
         uses: ./.github/workflows/container_setup
         with:
-          additional_packages: libpq-dev chromium chromium-common
+          additional_packages: libpq-dev chromium chromium-common openssh-client sshpass
 
       - name: "App setup"
         run: |
@@ -283,6 +283,11 @@ jobs:
           TODO_OR_DIE_LOG_ONLY: true
           TESTKIT_CHECK_ALL_TABLE_RESULTS: ${{ needs.determine_matrix.outputs.testkit_check_all_table_results }}
           FOCUS_PATH: ${{ matrix.test_group.test_path }}
+          SFTP_HOST: hmis-warehouse-sftp
+          SFTP_PORT: '22'
+          SFTP_USERNAME: user
+          SFTP_PASSWORD: password
+          SFTP_PATH: /sftp
         run: |
           if [ -n "$FOCUS_PATH" ]; then
             echo "Running focused tests: $FOCUS_PATH"
