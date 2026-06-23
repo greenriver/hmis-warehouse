@@ -143,7 +143,12 @@ Rails.application.routes.draw do
     end
   end
 
-  resources :secure_files, only: [:show, :create, :index, :destroy]
+  resources :secure_files, only: [:show, :create, :index, :destroy] do
+    collection do
+      get :sent
+      get :all_files
+    end
+  end
   resources :help
   resources :maintenance, only: [:index]
   resources :maintenance_saver, only: [:index], controller: 'maintenance'
@@ -594,6 +599,14 @@ Rails.application.routes.draw do
     end
     resource :report, on: :member, only: [:show], controller: 'cohorts/reports'
     resource :copy, only: [:new, :create], controller: 'cohorts/copy'
+    resource :acl_access_audit, only: [:show], controller: 'cohorts/acl_access_audits' do
+      get :export, on: :member
+    end
+    # START_ACL remove this route when the legacy permission model is removed
+    resource :legacy_access_audit, only: [:show], controller: 'cohorts/legacy_access_audits' do
+      get :export, on: :member
+    end
+    # END_ACL
 
     # Client search queries
     resources :client_searches, only: [:create], controller: 'cohorts/clients/search_queries', as: :client_search_queries
@@ -980,11 +993,6 @@ Rails.application.routes.draw do
       get :tags
       get :js_example
       get :system_colors
-    end
-    authenticate :user, lambda(&:can_manage_config?) do
-      # not quite sure why but we get double-prefixed routes in this engine
-      get '/pghero/pghero(/*path)', to: redirect { |params, _| "/pghero/#{params[:path]}" }
-      mount PgHero::Engine, at: '/pghero'
     end
   end
 

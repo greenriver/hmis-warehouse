@@ -1,3 +1,9 @@
+###
+# Copyright Green River Data Group, Inc.
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 # frozen_string_literal: true
 
 namespace :code do
@@ -48,12 +54,18 @@ namespace :code do
   end
 
   def files
-    Dir.glob("#{Rails.root}/app/{**/}*.rb") +
-      Dir.glob("#{Rails.root}/drivers/{**/}*.rb") +
-      Dir.glob("#{Rails.root}/lib/{**/}*.rb") +
-      Dir.glob("#{Rails.root}/spec/{**/}*.rb") +
-      Dir.glob("#{Rails.root}/config/{**/}*.rb") +
-      Dir.glob("#{Rails.root}/bin/*.rb")
+    [
+      '/app/{**/}*.rb',
+      '/app/{**/}*.axlsx',
+      '/drivers/{**/}*.rb',
+      '/drivers/{**/}*.axlsx',
+      '/lib/{**/}*.rb',
+      '/lib/{**/}*.rake',
+      '/spec/{**/}*.rb',
+      '/config/{**/}*.rb',
+      '/bin/*.rb',
+      '/db/{**/}*.rb',
+    ].flat_map { |pattern| Dir.glob("#{Rails.root}/#{pattern}") }
   end
 
   def add_copyright_to_file(path)

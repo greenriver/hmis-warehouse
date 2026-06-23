@@ -1,3 +1,9 @@
+###
+# Copyright Green River Data Group, Inc.
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 wb = xlsx_package.workbook
 ws_title = "#{@result.class.title} #{@report.clients_title(sub_population_title: @sub_population_title, vispdat_range: @vispdat_range)}"
 

@@ -28,7 +28,12 @@ connectors:
     id: keycloak
     name: Open Path Account
     config:
-      issuer: http://op-keycloak.dev.test:8080/realms/openpath
+      # Reach Keycloak through Traefik (https, port 443) — NOT the internal :8080.
+      # Dex requires its configured issuer to match what Keycloak advertises and
+      # reuses these absolute discovery URLs for the browser redirect, so this must
+      # be the same externally reachable URL the browser uses. The dex service routes
+      # op-keycloak.dev.test to Traefik via extra_hosts:host-gateway.
+      issuer: https://op-keycloak.dev.test/realms/openpath
       clientID: ${KEYCLOAK_IDP_CLIENT_ID}
       clientSecret: ${KEYCLOAK_IDP_CLIENT_SECRET}
       redirectURI: https://dex.dev.test/dex/callback
@@ -38,6 +43,8 @@ connectors:
         - profile
       getUserInfo: true
       insecureSkipEmailVerified: true
+      # Traefik serves a self-signed dev cert
+      insecureSkipVerify: true
 staticClients:
   - id: hmis-warehouse
     name: "HMIS Warehouse"

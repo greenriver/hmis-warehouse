@@ -7,6 +7,9 @@
 # frozen_string_literal: true
 
 require 'dentaku'
+# Patches Dentaku's >, >=, <, <= comparators so a NULL operand returns false instead of
+# raising. Loaded here so all CE match expression evaluation gets null-safe order comparisons.
+require_relative 'null_safe_order_comparators'
 
 module Hmis::Ce::Match::Expression
   module CalculatorFactory

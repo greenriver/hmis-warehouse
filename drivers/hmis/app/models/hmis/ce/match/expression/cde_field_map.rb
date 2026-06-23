@@ -63,6 +63,10 @@ module Hmis::Ce::Match::Expression
       nil
     end
 
+    def self.field_key_for(entity_type, cde_key)
+      "#{FieldMap::CDE}.#{entity_type}.#{cde_key}"
+    end
+
     def cdeds_for(fields)
       fields.map do |field|
         parse_entity_type(field)
