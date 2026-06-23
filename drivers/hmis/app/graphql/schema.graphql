@@ -933,6 +933,48 @@ type CeEligibleUnitGroupsPaginated {
   pagesCount: Int!
 }
 
+"""
+Field metadata for CE Match Rule expressions
+"""
+type CeMatchField {
+  """
+  The full-length identifier used in CE Match Rule expressions, such as
+  "current_age" or "cde.custom_assessment.my_field_key".
+  """
+  expressionField: String!
+  id: ID!
+
+  """
+  The type of the field, used for determining the possible values it can match against.
+  """
+  itemType: ItemType!
+
+  """
+  The CDED key for this field, or the client field key for a client field
+  """
+  key: String!
+
+  """
+  Human-readable label for this field
+  """
+  label: String!
+
+  """
+  Whether a client can have more than one value for the field.
+  """
+  multiple: Boolean!
+
+  """
+  The field's pick list options, if applicable.
+  """
+  pickListOptions: [PickListOption!]
+
+  """
+  The field's reference pick list, if applicable, such as `NoYesReasonsForMissingData`.
+  """
+  pickListReference: String
+}
+
 type CeMatchRule {
   expression: String!
 
@@ -10155,6 +10197,21 @@ type Query {
   Clients who belong to at least one CE candidate pool
   """
   ceClients(filters: CeClientFilterOptions, limit: Int, offset: Int): CeClientsPaginated!
+
+  """
+  Client fields available for CE Match Rule expressions.
+  """
+  ceMatchClientFields: [CeMatchField!]!
+
+  """
+  Fields on the form that are usable as CE Match Rule condition fields.
+  """
+  ceMatchCustomAssessmentFields(formDefinitionIdentifier: String!): [CeMatchField!]!
+
+  """
+  Custom assessment form definitions for use in CE match rule management.
+  """
+  ceMatchCustomAssessmentForms: [FormDefinition!]!
   ceOpportunities(filters: CeOpportunityFilterOptions, limit: Int, offset: Int, sortOrder: CeOpportunitySortOption): CeOpportunitiesPaginated!
   ceOpportunity(id: ID!): CeOpportunity
   ceReferral(id: ID!): CeReferral
