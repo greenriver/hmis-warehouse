@@ -70,28 +70,47 @@ module Health
       @user = user
     end
 
+    # Export PDFs for all configured health document types belonging to the patient.
+    #
+    # Creates one subdirectory per document type under +path+, writes each generated PDF as
+    # +{record_id}-{label}.pdf+, and continues when individual records fail or have no content.
+    #
+    # @param path [String] base directory for the export (subdirectories are created as needed)
+    # @return [Hash{Symbol=>Array}] +:exported+ file paths written, +:skipped+ record refs with blank
+    #   content, +:errors+ hashes with +:ref+, +:message+, and +:backtrace+ for failures
     def export(path:)
       exported = []
       skipped = []
+      errors = []
 
       EXPORT_CONFIGS.each do |config|
-        subdir = File.join(path, config[:subdir])
+        subdir = File.join(path, patient_id, config[:subdir])
         FileUtils.mkdir_p(subdir)
 
         @patient.send(config[:association]).each do |record|
-          pdf_bytes = config[:generator].call(@user, record)
-          if pdf_bytes.blank?
-            skipped << "#{config[:label]}##{record.id}"
-            next
-          end
+          ref = "#{config[:label]}##{record.id}"
+          begin
+            pdf_bytes = config[:generator].call(@user, record)
+            if pdf_bytes.blank?
+              skipped << ref
+              next
+            end
 
-          filename = "#{record.id}-#{config[:label]}.pdf"
-          File.binwrite(File.join(subdir, filename), pdf_bytes)
-          exported << filename
+            filename = "#{record.id}-#{config[:label]}.pdf"
+            file_path = File.join(subdir, filename)
+            File.binwrite(file_path, pdf_bytes)
+            exported << file_path
+          rescue StandardError => e
+            errors << { ref: ref, message: e.message, backtrace: e.backtrace.first(5) }
+          end
         end
       end
 
-      { exported: exported, skipped: skipped }
+      { exported: exported, skipped: skipped, errors: errors }
+    end
+
+    private def patient_id
+      (@patient.medicaid_id.presence || @patient.id).to_s
     end
   end
 end

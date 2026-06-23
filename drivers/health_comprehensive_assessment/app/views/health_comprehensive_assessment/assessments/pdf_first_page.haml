@@ -10,7 +10,7 @@
     %tr
       %td.pctc-print__detail-value.pr-8= @assessment.created_at.to_date
       - if @assessment.reviewed_by.present?
-        %td.pctc-print__detail-value.pr-8= @assessment.reviewed_at.to_date
+        %td.pctc-print__detail-value.pr-8= @assessment.reviewed_on.to_date
       - elsif @assessment.completed_at.present?
         %td.pctc-print__detail-value.pr-8= @assessment.completed_at.to_date
 
@@ -30,6 +30,6 @@
       %tr
         %th{style: 'width:40%;'} Race
         %td
-          - display_values = @assessmen.race_responses&.select{|k, v| @assessment.race&.include?(v)}.keys
+          - display_values = @assessment.race_responses.select{|k, v| @assessment.race&.include?(v)}.keys
           = display_values&.join(', ')
       = render 'pdf_field_section', fields: @assessment.demographic_information

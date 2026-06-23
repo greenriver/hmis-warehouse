@@ -3,7 +3,7 @@
   %p
     (including but not limited to any Care Coordination or management activities and any services being provided by state agencies)
   %h2 Current Services
-  - funders = @assessment.service_funders.select{|k, v| @assessment.funders.include?(v)}.keys
+  - funders = @assessment.service_funders.select{|k, v| @assessment.funders&.include?(v)}.keys
   - unless funders.empty?
     %h3 
       Member receives Care Coordination or Management Services funded by (check all that apply):
@@ -126,7 +126,7 @@
         %tr
           %th{width: '40%'} Does the Enrollee have the ability to communicate: (check all that apply):
           %td
-            = @assessment.can_communicate_about_responses.select{|k, v| @assessment.can_communicate_about.include?(v)}.keys.join(', ')
+            = @assessment.can_communicate_about_responses.select{|k, v| @assessment.can_communicate_about&.include?(v)}.keys.join(', ')
         %tr
           %th Notes/Comments
           %td
@@ -144,7 +144,7 @@
             %ul
               - @assessment.assessed_needs_responses.each do |label, value|
                 %li
-                  - if @assessment.assessed_needs.include?(value)
+                  - if @assessment.assessed_needs&.include?(value)
                     %i.icon-checkbox-checked
                   - else
                     %i.icon-checkbox-unchecked
@@ -270,8 +270,8 @@
         %tr
           %th{width: '40%'} Sources of Information
           %td
-            = @assessment.sud_treatment_sources_responses.select{|k, v| @assessment.sud_treatment_sources.include?(v)}.keys.join(', ')
-            - if @assessment.sud_treatment_sources.include?('other')
+            = @assessment.sud_treatment_sources_responses.select{|k, v| @assessment.sud_treatment_sources&.include?(v)}.keys.join(', ')
+            - if @assessment.sud_treatment_sources&.include?('other')
               %div= @assessment.sud_treatment_sources_other
 
 .page-break-after
@@ -297,7 +297,7 @@
             Accessibility equipment
           %td
             %ul.pb-0
-              - equipment = @assessment.accessibility_equipment_responses.select{|k, v| @assessment.accessibility_equipment.include?(v)}.keys.each do |equip|
+              - equipment = @assessment.accessibility_equipment_responses.select{|k, v| @assessment.accessibility_equipment&.include?(v)}.keys.each do |equip|
                 %li= equip
         %tr
           %th{width: '40%'} Comments
@@ -321,7 +321,7 @@
             = @assessment.yes_no.select{|k, v| v == @assessment.has_supports}.keys.first
         %tr
           %th{width: '40%'} If Yes, please specify
-          %td= @assessment.supports_responses.select{|k, v| @assessment.supports.include?(v)}.keys.join(', ')
+          %td= @assessment.supports_responses.select{|k, v| @assessment.supports&.include?(v)}.keys.join(', ')
         %tr
           %th{width: '40%'} 
             Social Supports
@@ -388,7 +388,7 @@
       %tbody
         %tr
           %th{width: '40%'} Do you receive any sources of financial assistance?
-          %td= @assessment.financial_support_responses.select{|k, v| @assessment.financial_supports.include?(v)}.keys.join(', ')
+          %td= @assessment.financial_support_responses.select{|k, v| @assessment.financial_supports&.include?(v)}.keys.join(', ')
         %tr
           %th{width: '40%'} If other, please specify
           %td

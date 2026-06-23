@@ -22,10 +22,10 @@
           - next if value.nil?
           %tr
             %td= label
-            - if source.present?
-              %td= source.invert[value.to_sym]
-            - elsif value.in?([true, false])
+            - if value.in?([true, false])
               %td= value ? 'Yes' : 'No'
+            - elsif source.present?
+              %td= source.invert[value.to_sym]
             - else
               %td= value.humanize
 
