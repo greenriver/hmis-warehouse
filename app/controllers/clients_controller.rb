@@ -23,9 +23,9 @@ class ClientsController < ApplicationController
   before_action :require_can_view_some_client_dashboard!, only: [:show, :service_range, :rollup, :image]
   before_action :require_can_view_enrollment_details!, only: [:enrollment_details]
   before_action :require_can_see_this_client_demographics!, except: [:new, :create, :simple, :appropriate, :assessment, :health_assessment]
-  before_action :require_can_edit_clients!, only: [:edit, :merge, :unmerge]
+  before_action :require_can_edit_clients!, only: [:edit, :merge, :unmerge, :update_external_sharing_flag]
   before_action :require_can_create_clients!, only: [:new, :create]
-  before_action :set_client, only: [:show, :edit, :merge, :unmerge, :service_range, :rollup, :image, :chronic_days, :enrollment_details]
+  before_action :set_client, only: [:show, :edit, :merge, :unmerge, :service_range, :rollup, :image, :chronic_days, :enrollment_details, :update_external_sharing_flag]
   before_action :set_search_client, only: [:simple, :appropriate]
   before_action :set_client_start_date, only: [:show, :edit, :rollup]
   before_action :set_potential_matches, only: [:edit]
@@ -92,6 +92,10 @@ class ClientsController < ApplicationController
           data_source_id: @client.data_source_id,
         )
         if @client.persisted? && destination_client.persisted? && warehouse_client.persisted?
+          if GrdaWarehouse::Config.get(:enable_external_data_sharing_exclusion) &&
+             params[:exclude_from_external_data_sharing] == '1'
+            destination_client.set_external_data_sharing_exclusion!(value: true, user: current_user)
+          end
           flash[:notice] = "Client #{@client.full_name} created."
           after_create_path = client_path_generator
           if @client.data_source.after_create_path.present?
@@ -303,6 +307,26 @@ class ClientsController < ApplicationController
     datepart table, part, date
   end
   helper_method :dp
+
+  def update_external_sharing_flag
+    return unless GrdaWarehouse::Config.get(:enable_external_data_sharing_exclusion)
+
+    @client.set_external_data_sharing_exclusion!(
+      value: params[:exclude_from_external_data_sharing] == '1',
+      user: current_user,
+    )
+    respond_to do |format|
+      format.json do
+        render json: { last_updated: @client.external_data_sharing_last_update_text || '' }
+      end
+      format.html do
+        redirect_back(
+          fallback_location: polymorphic_path(client_path_generator, id: @client.id),
+          notice: 'External data sharing preference saved.',
+        )
+      end
+    end
+  end
 
   protected def handle_unused_search
     # We keep this old action because we may need it some day

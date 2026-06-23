@@ -62,6 +62,16 @@
       - if GrdaWarehouse::DataSource.available_for_new_clients.count > 1
         .col-sm-3
           = f.input :data_source_id, collection: GrdaWarehouse::DataSource.authoritative.not_hmis, include_blank: false, label: 'Create client in Data Source', as: :select_two
+    - if GrdaWarehouse::Config.get(:enable_external_data_sharing_exclusion)
+      .row.mt-3
+        .col-sm-12
+          .form-check
+            = check_box_tag :exclude_from_external_data_sharing, '1', false,
+                class: 'form-check-input',
+                id: 'exclude_from_external_data_sharing'
+            = label_tag :exclude_from_external_data_sharing,
+                'Exclude from External Data Sharing',
+                class: 'form-check-label'
     .form-actions
       - if @bypass_search
         = f.input :bypass_search, as: :hidden, input_html: {value: 1}

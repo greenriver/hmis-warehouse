@@ -31,6 +31,7 @@ module GrdaWarehouse::Hud
     include VeteranStatusCalculator
     include ClientRaceAndEthnicityMixin
     include NotifierConfig
+    include ClientExternalDataSharing
     has_paper_trail
 
     attr_accessor :source_id
@@ -2376,6 +2377,9 @@ module GrdaWarehouse::Hud
             if prev_destination_client.source_clients.empty?
               # Create a client_merge_history record so we can keep links working
               GrdaWarehouse::ClientMergeHistory.create(merged_into: id, merged_from: prev_destination_client.id)
+              # Conservative CDE carry-forward: if the client being merged away was excluded
+              # from external data sharing, ensure the surviving client is also excluded.
+              set_external_data_sharing_exclusion!(value: true) if prev_destination_client.excluded_from_external_data_sharing?
               prev_destination_client.destroy
             end
 

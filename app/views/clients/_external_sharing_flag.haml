@@ -1,0 +1,20 @@
+- if GrdaWarehouse::Config.get(:enable_external_data_sharing_exclusion)
+  - editable = can_edit_clients?
+  - if editable
+    - content_for :page_js do
+      = javascript_include_tag 'external_sharing_flag'
+  .external-sharing-flag.mb-3{ data: editable ? { controller: 'external-sharing-flag', external_sharing_flag_url_value: update_external_sharing_flag_client_path(client) } : {} }
+    .form-check
+      = check_box_tag :exclude_from_external_data_sharing,
+          '1',
+          client.excluded_from_external_data_sharing?,
+          class: 'form-check-input',
+          id: 'exclude_from_external_data_sharing',
+          disabled: !editable,
+          data: editable ? { action: 'change->external-sharing-flag#toggle' } : {}
+      = label_tag :exclude_from_external_data_sharing,
+          'Exclude from External Data Sharing',
+          class: 'form-check-label'
+    %p.text-muted.small.mt-1{ data: { external_sharing_flag_target: 'lastUpdate' } }
+      - if client.external_data_sharing_last_update_text
+        = client.external_data_sharing_last_update_text
