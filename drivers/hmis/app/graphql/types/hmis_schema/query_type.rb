@@ -672,5 +672,39 @@ module Types
     def unit(id:)
       Hmis::Unit.viewable_by(current_user).find_by(id: id)
     end
+
+    field :ce_match_client_fields, [HmisSchema::CeMatchField], null: false, description: 'Client fields available for CE Match Rule expressions.'
+    def ce_match_client_fields
+      access_denied! unless policy_for(Hmis::Form::Definition, policy_type: :form_definition).can_administrate_config?
+      # TODO: when UI is ready for non-GR users, replace with:
+      # access_denied! unless policy_for(Hmis::Ce::Match::Rule, policy_type: :ce_match_rule).can_manage?
+      # and do the same in the next two queries.
+
+      Hmis::Ce::Match::FieldCatalog.new.client_fields
+    end
+
+    field :ce_match_custom_assessment_forms, [Forms::FormDefinition], null: false, description: 'Custom assessment form definitions for use in CE match rule management.'
+    def ce_match_custom_assessment_forms
+      access_denied! unless policy_for(Hmis::Form::Definition, policy_type: :form_definition).can_administrate_config?
+
+      Hmis::Form::Definition.
+        with_role(:CUSTOM_ASSESSMENT).
+        published_or_retired.
+        where(data_source_id: current_user.hmis_data_source_id).
+        latest_versions.
+        order(:title)
+    end
+
+    field :ce_match_custom_assessment_fields, [HmisSchema::CeMatchField], null: false, description: 'Fields on the form that are usable as CE Match Rule condition fields.' do
+      argument :form_definition_identifier, String, required: true
+    end
+    def ce_match_custom_assessment_fields(form_definition_identifier:)
+      access_denied! unless policy_for(Hmis::Form::Definition, policy_type: :form_definition).can_administrate_config?
+
+      Hmis::Ce::Match::FieldCatalog.new.custom_assessment_fields_for(
+        data_source_id: current_user.hmis_data_source_id,
+        form_definition_identifier: form_definition_identifier,
+      )
+    end
   end
 end
