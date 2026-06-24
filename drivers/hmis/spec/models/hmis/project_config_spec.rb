@@ -50,6 +50,14 @@ RSpec.describe Hmis::ProjectConfig, type: :model do
     expect(config).to be_nil
   end
 
+  it 'does not allow config type to change once set' do
+    config = create(:hmis_project_auto_enter_config, project: p1, data_source: ds1)
+    config.type = Hmis::ProjectConfig::AUTO_EXIT_CONFIG
+
+    expect(config).not_to be_valid
+    expect(config.errors[:config_type]).to include('cannot be changed once set')
+  end
+
   describe '.viewable_by' do
     let!(:ds1) { create(:hmis_data_source) }
     let!(:ds2) { create(:hmis_data_source) }
