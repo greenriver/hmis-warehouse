@@ -124,153 +124,153 @@ module DeviseUser
         super
       end
     end
-  end
 
-  def timeout_time(session)
-    # FIXME: move to helper. This doesn't belong on the model
-    Time.current + (Devise.timeout_in - (Time.now.utc - (session['last_request_at'].presence || 0)).to_i)
-  end
-
-  def stale_account?
-    current_sign_in_at < self.class.stale_account_threshold
-  end
-
-  def future_expiration?
-    expired_at.present? && expired_at > Time.current
-  end
-
-  def two_factor_enabled?
-    otp_secret.present? && otp_required_for_login? && passed_2fa_confirmation?
-  end
-
-  def invitation_status
-    if invitation_accepted_at.present? || invitation_sent_at.blank?
-      :active
-    elsif invitation_due_at > Time.now
-      :pending_confirmation
-    else
-      :invitation_expired
+    def timeout_time(session)
+      # FIXME: move to helper. This doesn't belong on the model
+      Time.current + (Devise.timeout_in - (Time.now.utc - (session['last_request_at'].presence || 0)).to_i)
     end
-  end
 
-  def two_factor_label
-    label = Translation.translate('Open Path HMIS Warehouse')
-    Rails.env.production? ? label : "#{label} [#{Rails.env}]"
-  end
+    def stale_account?
+      current_sign_in_at < self.class.stale_account_threshold
+    end
 
-  def two_factor_issuer
-    "#{two_factor_label} #{email}"
-  end
+    def future_expiration?
+      expired_at.present? && expired_at > Time.current
+    end
 
-  # clears all otp secrets
-  def reset_two_factor_model_attrs
-    self.encrypted_otp_secret = nil
-    self.encrypted_otp_secret_iv = nil
-    self.encrypted_otp_secret_salt = nil
-    self.otp_backup_codes = nil
-    self.otp_secret = nil
-    self.confirmed_2fa = 0
-    self.otp_required_for_login = false
-  end
+    def two_factor_enabled?
+      otp_secret.present? && otp_required_for_login? && passed_2fa_confirmation?
+    end
 
-  # ensure we have a secret
-  def set_initial_two_factor_secret!
-    return if otp_secret.present?
-
-    update(otp_secret: User.generate_otp_secret)
-  end
-
-  def confirmation_step
-    (confirmed_2fa + 1).ordinalize
-  end
-
-  def passed_2fa_confirmation?
-    confirmed_2fa.positive?
-  end
-
-  def disable_2fa!
-    update(
-      confirmed_2fa: 0,
-      otp_required_for_login: false,
-      otp_backup_codes: nil,
-    )
-  end
-
-  def record_failure_and_lock_access_if_exceeded!
-    # Due to a bug, failed PWs double increment failed attempts. To
-    # compensate, we double the lockout threshold. To match the PW
-    # behavior, double up on failures due to OTP
-    # https://github.com/tinfoil/devise-two-factor/issues/28
-    transaction do
-      2.times do # intentional double increment
-        increment_failed_attempts
+    def invitation_status
+      if invitation_accepted_at.present? || invitation_sent_at.blank?
+        :active
+      elsif invitation_due_at > Time.now
+        :pending_confirmation
+      else
+        :invitation_expired
       end
     end
-    # outside of transaction since this method sends email
-    return unless attempts_exceeded?
 
-    lock_access! unless access_locked?
-  end
-
-  def force_logout!
-    update_attribute(:custom_session_invalidator, SecureRandom.hex)
-  end
-
-  # Dependent on devise expire_password_after being set to a value other than false
-  def force_password_reset!
-    return false unless password_expiration_enabled?
-
-    # Immediately logout the user
-    self.custom_session_invalidator = SecureRandom.hex
-    # Force a password change on next login
-    need_change_password! # calls save internally
-
-    # Return true to indicate success
-    true
-  end
-
-  def skip_session_limitable?
-    ENV.fetch('SKIP_SESSION_LIMITABLE', false) == 'true'
-  end
-
-  def inactive?
-    return true unless active?
-
-    expired?
-  end
-
-  # supports admin user management
-  # @return [Array] an array of text that describes the status of the account
-  def overall_status(current_user)
-    return ['Active'] if active_for_authentication?
-    return ['Pending invitation confirmation'] if invitation_status == :pending_confirmation
-
-    text = []
-    text << 'Invitation expired' if invitation_status == :invitation_expired
-    if expired_at?
-      text << "Account expired on #{expired_at}"
-    elsif expired?
-      text << "Account expired due to inactivity. Last activity on #{last_activity_at}"
-    else
-      text << deactivation_status(current_user)
+    def two_factor_label
+      label = Translation.translate('Open Path HMIS Warehouse')
+      Rails.env.production? ? label : "#{label} [#{Rails.env}]"
     end
-    text
-  end
 
-  private def deactivation_status(user)
-    return unless inactive?
+    def two_factor_issuer
+      "#{two_factor_label} #{email}"
+    end
 
-    # The PaperTrail versions association has a fixed order with newest last
-    version = versions.where(event: 'deactivate').last
+    # clears all otp secrets
+    def reset_two_factor_model_attrs
+      self.encrypted_otp_secret = nil
+      self.encrypted_otp_secret_iv = nil
+      self.encrypted_otp_secret_salt = nil
+      self.otp_backup_codes = nil
+      self.otp_secret = nil
+      self.confirmed_2fa = 0
+      self.otp_required_for_login = false
+    end
 
-    return 'Account deactivated' unless version
-    return "Account deactivated on #{version.created_at}" unless user.can_audit_users? || version.whodunnit.blank?
+    # ensure we have a secret
+    def set_initial_two_factor_secret!
+      return if otp_secret.present?
 
-    name = nil
-    name = User.find_by(id: version.whodunnit)&.name if version.whodunnit&.to_i&.to_s == version.whodunnit
+      update(otp_secret: User.generate_otp_secret)
+    end
 
-    return "Account deactivated on #{version.created_at}" unless name
+    def confirmation_step
+      (confirmed_2fa + 1).ordinalize
+    end
 
-    "Account deactivated by #{name} on #{version.created_at}"
+    def passed_2fa_confirmation?
+      confirmed_2fa.positive?
+    end
+
+    def disable_2fa!
+      update(
+        confirmed_2fa: 0,
+        otp_required_for_login: false,
+        otp_backup_codes: nil,
+      )
+    end
+
+    def record_failure_and_lock_access_if_exceeded!
+      # Due to a bug, failed PWs double increment failed attempts. To
+      # compensate, we double the lockout threshold. To match the PW
+      # behavior, double up on failures due to OTP
+      # https://github.com/tinfoil/devise-two-factor/issues/28
+      transaction do
+        2.times do # intentional double increment
+          increment_failed_attempts
+        end
+      end
+      # outside of transaction since this method sends email
+      return unless attempts_exceeded?
+
+      lock_access! unless access_locked?
+    end
+
+    def force_logout!
+      update_attribute(:custom_session_invalidator, SecureRandom.hex)
+    end
+
+    # Dependent on devise expire_password_after being set to a value other than false
+    def force_password_reset!
+      return false unless password_expiration_enabled?
+
+      # Immediately logout the user
+      self.custom_session_invalidator = SecureRandom.hex
+      # Force a password change on next login
+      need_change_password! # calls save internally
+
+      # Return true to indicate success
+      true
+    end
+
+    def skip_session_limitable?
+      ENV.fetch('SKIP_SESSION_LIMITABLE', false) == 'true'
+    end
+
+    def inactive?
+      return true unless active?
+
+      expired?
+    end
+
+    # supports admin user management
+    # @return [Array] an array of text that describes the status of the account
+    def overall_status(current_user)
+      return ['Active'] if active_for_authentication?
+      return ['Pending invitation confirmation'] if invitation_status == :pending_confirmation
+
+      text = []
+      text << 'Invitation expired' if invitation_status == :invitation_expired
+      if expired_at?
+        text << "Account expired on #{expired_at}"
+      elsif expired?
+        text << "Account expired due to inactivity. Last activity on #{last_activity_at}"
+      else
+        text << deactivation_status(current_user)
+      end
+      text
+    end
+
+    private def deactivation_status(user)
+      return unless inactive?
+
+      # The PaperTrail versions association has a fixed order with newest last
+      version = versions.where(event: 'deactivate').last
+
+      return 'Account deactivated' unless version
+      return "Account deactivated on #{version.created_at}" unless user.can_audit_users? || version.whodunnit.blank?
+
+      name = nil
+      name = User.find_by(id: version.whodunnit)&.name if version.whodunnit&.to_i&.to_s == version.whodunnit
+
+      return "Account deactivated on #{version.created_at}" unless name
+
+      "Account deactivated by #{name} on #{version.created_at}"
+    end
   end
 end

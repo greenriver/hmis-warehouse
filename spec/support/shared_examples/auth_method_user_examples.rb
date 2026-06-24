@@ -19,6 +19,7 @@ RSpec.shared_examples 'an auth-method-aware user' do |factory, model|
   describe 'default (Devise) mode', if: AuthMethod.devise? do
     it 'includes the Devise auth concern and applies the macro and its injected accessors' do
       expect(model.include?(DeviseUser)).to be true
+      expect(model.include?(Idp::JwtUser)).to be false
       expect(model.devise_modules).to be_present
       expect(model.devise_modules).to include(:two_factor_authenticatable)
       expect(model.new).to respond_to(:otp_secret)
@@ -265,6 +266,7 @@ RSpec.shared_examples 'an auth-method-aware user' do |factory, model|
   describe 'JWT-boot (AUTH_METHOD=jwt process)', if: AuthMethod.jwt? do
     it 'omits the Devise auth concern, the macro, and its injected accessors' do
       expect(model.include?(DeviseUser)).to be false
+      expect(model.include?(Idp::JwtUser)).to be true
       expect(model.respond_to?(:devise_modules)).to be false
       expect(model.new.respond_to?(:otp_secret)).to be false
     end
