@@ -6,36 +6,78 @@
 
 # frozen_string_literal: true
 
+# Manual/support tool to undo a single HMIS client merge performed by MergeClientsJob.
+# May later be exposed in the UI.
+#
+# Usage:
+#   Hmis::UndoMergeClientsJob.perform_now(retained_client_id:, deleted_client_id:, dry_run: false)
+#
+# Limitations:
+# - Only undoes one deleted client from a specific merge; chain merges require the current
+#   retained_client_id from ClientMergeHistory.
+# - Does not revert attribute changes on the retained client (it may have been edited post-merge).
+# - Does not recreate records destroyed during merge dedup (names, contact points, addresses, CDEs).
+# - Does not restore legacy ReferralHouseholdMember rows
+# - Does not manually restore WarehouseClient links; warehouse_identify_duplicate_clients (queued below)
+#   re-establishes destination client assignments.
+# - Destroys the ClientMergeHistory row on success so clients no longer appear linked in search;
+#   the ClientMergeAudit is retained for audit purposes.
 module Hmis
-  # intentionally doesn't restore attributes on retained client from pre_merge_state because
-  # the retained client may have been updated since the merge, and we don't want to overwrite those changes.
-  # FIXME: should delete merge history after so clients don't show up in search together
   class UndoMergeClientsJob < BaseJob
-    attr_accessor :retained_client, :deleted_client, :merge_audit, :merge_history
+    CLIENT_ID_FOREIGN_KEY_CANDIDATES = [
+      [Hmis::File, 'files'],
+      [Hmis::ScanCardCode, 'scan_cards', { with_deleted: true, restore_if_deleted: true }],
+      [::ClientLocationHistory::Location, 'client_locations'],
+      [Hmis::Ce::Referral, 'ce_referrals'],
+    ].freeze
 
-    def perform(retained_client_id:, deleted_client_id:)
+    PERSONAL_ID_FOREIGN_KEY_CANDIDATES = [
+      [Hmis::Hud::CustomClientName, 'names'],
+      [Hmis::Hud::CustomClientAddress, 'addresses'],
+      [Hmis::Hud::CustomClientContactPoint, 'contact_points'],
+    ].freeze
+
+    attr_accessor :retained_client, :deleted_client, :merge_audit, :merge_history, :dry_run
+
+    def perform(retained_client_id:, deleted_client_id:, dry_run: false)
+      self.dry_run = dry_run
       self.retained_client = Hmis::Hud::Client.find(retained_client_id)
       self.deleted_client = Hmis::Hud::Client.with_deleted.find(deleted_client_id)
-      self.merge_history = find_merge_history
+      self.merge_history = Hmis::ClientMergeHistory.find_by(retained_client_id: retained_client_id, deleted_client_id: deleted_client_id)
       self.merge_audit = merge_history&.client_merge_audit
 
       validate!
 
-      Rails.logger.info "Undoing merge: Restoring client #{deleted_client_id} from merge with client #{retained_client_id}"
+      Rails.logger.info "Undoing merge#{' (dry run)' if dry_run}: Restoring client #{deleted_client_id} from merge with client #{retained_client_id}"
+
+      # Store ID for the destination client of the retained client, for post-processing cleanup
+      destination_id = retained_client.destination_client&.id
 
       Hmis::Hud::Client.transaction do
         restore_deleted_client
         restore_enrollments
         restore_associated_records
+        destroy_merge_history
       end
-      # queue identify duplicates to run in the background. should we also run match_existing here?
-      Hmis::Hud::Client.warehouse_identify_duplicate_clients
-      # queue service history processing to reprocess the enrollments
-      Hmis::Hud::Enrollment.queue_service_history_processing!
+
+      return if dry_run
+
+      # Ensures that deleted service history enrollments get removed from the retained client destination
+      ::GrdaWarehouse::Tasks::SanityCheckServiceHistory.new(client_ids: [destination_id]).run!
+
+      # If CE is enabled, mark the destination client as dirty for reprocessing
+      Hmis::Ce::ChangeMarker.upsert_or_bump_version('GrdaWarehouse::Hud::Client', trackable_ids: [destination_id]) if Hmis::Ce.configuration.enabled?
+
+      # Run identify-duplicates to re-establish destination links
+      ::GrdaWarehouse::Tasks::IdentifyDuplicates.new.run!
+
+      # Queue service history processing
+      ::GrdaWarehouse::Tasks::ServiceHistory::Enrollment.queue_batch_process_unprocessed!
     end
 
     private
 
+    # Ensure required clients, merge history, and audit data are present before undoing.
     def validate!
       raise ArgumentError, 'Retained client must be provided' unless retained_client
       raise ArgumentError, 'Deleted client must be provided' unless deleted_client
@@ -45,30 +87,24 @@ module Hmis
       raise ArgumentError, 'Pre-merge mappings are missing' unless merge_audit.pre_merge_mappings.present?
     end
 
-    def find_merge_history
-      Hmis::ClientMergeHistory.find_by(
-        retained_client_id: retained_client.id,
-        deleted_client_id: deleted_client.id,
-      )
-    end
-
+    # Clear DateDeleted on the merged-away client so it is active again.
     def restore_deleted_client
       Rails.logger.info "Restoring deleted client #{deleted_client.id}"
+      return if dry_run
+
       deleted_client.update_column(:DateDeleted, nil)
       deleted_client.reload
     end
 
+    # Move enrollments and enrollment-related PersonalID references back to the restored client.
     def restore_enrollments
-      mappings = merge_audit.pre_merge_mappings || {}
-      enrollment_mappings = mappings['enrollments'] || {}
-
+      enrollment_mappings = merge_audit.mappings_for('enrollments')
       return if enrollment_mappings.empty?
 
       Rails.logger.info "Restoring #{enrollment_mappings.size} enrollments to client #{deleted_client.id}"
 
       updated_enrollment_ids = []
-      enrollment_mappings.each do |enrollment_id_str, mapping_data|
-        enrollment_id = enrollment_id_str.to_i
+      enrollment_mappings.each do |enrollment_id, mapping_data|
         enrollment = Hmis::Hud::Enrollment.find_by(id: enrollment_id)
         original_personal_id = mapping_data['PersonalID'] || mapping_data['personal_id']
 
@@ -76,144 +112,100 @@ module Hmis
         next unless enrollment.personal_id == retained_client.personal_id
         next unless original_personal_id == deleted_client.personal_id
 
-        # update Enrollment to point to deleted client
-        enrollment.update_columns(PersonalID: deleted_client.personal_id)
+        apply_or_log_update(record: enrollment, column: :PersonalID, value: deleted_client.personal_id, label: "enrollment #{enrollment_id}")
         updated_enrollment_ids << enrollment.id
       end
 
-      # fix PersonalID on other Enrollment-related references (assessments, services, disabilities, etc.)
+      return if updated_enrollment_ids.empty?
+
       updated_enrollment_scope = Hmis::Hud::Enrollment.where(id: updated_enrollment_ids)
-      HmisDataCleanup::Util.fix_incorrect_personal_id_references!(enrollment_scope: updated_enrollment_scope, dry_run: false)
+      HmisDataCleanup::Util.fix_incorrect_personal_id_references!(
+        enrollment_scope: updated_enrollment_scope,
+        dry_run: dry_run,
+      )
 
-      # invalidate processing so service history gets reprocessed (queued later)
-      updated_enrollment_scope.each(&:invalidate_processing!)
+      updated_enrollment_scope.each(&:invalidate_processing!) unless dry_run
     end
 
+    # Restore all non-enrollment records tracked in pre_merge_mappings.
     def restore_associated_records
-      mappings = merge_audit.pre_merge_mappings || {}
+      # Restore records whose foreign key is PersonalID (names, addresses, contact points).
+      PERSONAL_ID_FOREIGN_KEY_CANDIDATES.each do |model, mapping_key|
+        restore_personal_id_mappings(model: model, mapping_key: mapping_key)
+      end
 
-      restore_names(mappings['names'])
-      restore_addresses(mappings['addresses'])
-      restore_contact_points(mappings['contact_points'])
-      restore_custom_data_elements(mappings['custom_data_elements'])
-      restore_files(mappings['files'])
-      restore_mci_ids(mappings['mci_ids'])
-      restore_mci_unique_ids(mappings['mci_unique_ids'])
-      restore_scan_cards(mappings['scan_cards'])
-      restore_client_locations(mappings['client_locations'])
-      restore_ce_referrals(mappings['ce_referrals'])
+      # Restore records whose foreign key is client_id (files, scan cards, locations, CE referrals).
+      CLIENT_ID_FOREIGN_KEY_CANDIDATES.each do |model, mapping_key, options = {}|
+        restore_client_id_mappings(model: model, mapping_key: mapping_key, **options)
+      end
 
-      # Note: Enrollment-related records (assessments, services, disabilities, etc.) are automatically
-      # updated when enrollments are transferred via TransferEnrollment, so no need to restore them separately.
+      # Restore Client-owned custom data elements moved to the retained client during merge.
+      restore_custom_data_elements
+
+      # Restore MCI external IDs moved to the retained client during merge.
+      restore_mci_ids
+
+      # Restore MCI Unique ID moved to the retained client during merge.
+      restore_mci_unique_ids
     end
 
-    def restore_names(mappings)
-      return unless mappings
+    # Shared helper: restore PersonalID-based records from audit mappings.
+    def restore_personal_id_mappings(model:, mapping_key:)
+      mappings = merge_audit.mappings_for(mapping_key)
+      return if mappings.empty?
 
-      mappings.each do |name_id_str, mapping_data|
-        name_id = name_id_str.to_i
-        name = Hmis::Hud::CustomClientName.find_by(id: name_id)
+      mappings.each do |record_id, mapping_data|
+        record = model.find_by(id: record_id)
         original_personal_id = mapping_data['PersonalID'] || mapping_data['personal_id']
 
-        next unless name
-        next unless name.PersonalID == retained_client.personal_id
+        next unless record
+        next unless record.PersonalID == retained_client.personal_id
         next unless original_personal_id == deleted_client.personal_id
 
-        name.update_column(:PersonalID, deleted_client.personal_id)
-        Rails.logger.info "Restored name #{name_id} to client #{deleted_client.id}"
+        apply_or_log_update(record: record, column: :PersonalID, value: deleted_client.personal_id, label: "#{model.name} #{record_id}")
       end
     end
 
-    def restore_addresses(mappings)
-      return unless mappings
+    # Shared helper: restore client_id-based records from audit mappings.
+    def restore_client_id_mappings(model:, mapping_key:, with_deleted: false, restore_if_deleted: false)
+      mappings = merge_audit.mappings_for(mapping_key)
+      return if mappings.empty?
 
-      mappings.each do |address_id_str, mapping_data|
-        address_id = address_id_str.to_i
-        address = Hmis::Hud::CustomClientAddress.find_by(id: address_id)
-        original_personal_id = mapping_data['PersonalID'] || mapping_data['personal_id']
+      scope = with_deleted ? model.with_deleted : model
+      mappings.each do |record_id, mapping_data|
+        record = scope.find_by(id: record_id)
+        original_client_id = mapping_data['client_id']&.to_i
 
-        next unless address
-        next unless address.PersonalID == retained_client.personal_id
-        next unless original_personal_id == deleted_client.personal_id
+        next unless record
+        next unless record.client_id == retained_client.id
+        next unless original_client_id == deleted_client.id
 
-        address.update_column(:PersonalID, deleted_client.personal_id)
-        Rails.logger.info "Restored address #{address_id} to client #{deleted_client.id}"
+        apply_or_log_update(record: record, column: :client_id, value: deleted_client.id, label: "#{model.name} #{record_id}")
+        record.restore if restore_if_deleted && !dry_run && record.respond_to?(:deleted?) && record.deleted?
       end
     end
 
-    def restore_contact_points(mappings)
-      return unless mappings
+    def restore_custom_data_elements
+      mappings = merge_audit.mappings_for('custom_data_elements')
+      return if mappings.empty?
 
-      mappings.each do |contact_point_id_str, mapping_data|
-        contact_point_id = contact_point_id_str.to_i
-        contact_point = Hmis::Hud::CustomClientContactPoint.find_by(id: contact_point_id)
-        original_personal_id = mapping_data['PersonalID'] || mapping_data['personal_id']
-
-        next unless contact_point
-        next unless contact_point.PersonalID == retained_client.personal_id
-        next unless original_personal_id == deleted_client.personal_id
-
-        contact_point.update_column(:PersonalID, deleted_client.personal_id)
-        Rails.logger.info "Restored contact point #{contact_point_id} to client #{deleted_client.id}"
-      end
-    end
-
-    def restore_custom_data_elements(mappings)
-      return unless mappings
-
-      mappings.each do |cde_id_str, mapping_data|
-        cde_id = cde_id_str.to_i
+      mappings.each do |cde_id, mapping_data|
         cde = Hmis::Hud::CustomDataElement.find_by(id: cde_id)
         original_owner_id = mapping_data['owner_id']
 
-        # Skip if CDE was destroyed during merge (it won't exist)
         next unless cde
-
         next unless cde.owner_id == retained_client.id
         next unless original_owner_id == deleted_client.id
 
-        cde.update_column(:owner_id, deleted_client.id)
-        Rails.logger.info "Restored custom data element #{cde_id} to client #{deleted_client.id}"
+        apply_or_log_update(record: cde, column: :owner_id, value: deleted_client.id, label: "custom data element #{cde_id}")
       end
     end
 
-    def restore_files(mappings)
-      return unless mappings
+    def restore_mci_ids
+      mappings = merge_audit.mappings_for('mci_ids')
+      return if mappings.empty?
 
-      # Restore GrdaWarehouse::ClientFile records
-      mappings.each do |file_id_str, mapping_data|
-        file_id = file_id_str.to_i
-        file = ::GrdaWarehouse::ClientFile.find_by(id: file_id)
-        original_client_id = mapping_data['client_id']
-
-        next unless file
-        next unless file.client_id == retained_client.id
-        next unless original_client_id == deleted_client.id
-
-        file.update_column(:client_id, deleted_client.id)
-        Rails.logger.info "Restored file #{file_id} to client #{deleted_client.id}"
-      end
-
-      # Restore Hmis::File records
-      mappings.each do |file_id_str, mapping_data|
-        file_id = file_id_str.to_i
-        file = Hmis::File.find_by(id: file_id)
-        original_client_id = mapping_data['client_id']
-
-        next unless file
-        next unless file.client_id == retained_client.id
-        next unless original_client_id == deleted_client.id
-
-        file.update_column(:client_id, deleted_client.id)
-        Rails.logger.info "Restored HMIS file #{file_id} to client #{deleted_client.id}"
-      end
-    end
-
-    def restore_mci_ids(mappings)
-      return unless mappings
-
-      mappings.each do |external_id_str, mapping_data|
-        external_id = external_id_str.to_i
+      mappings.each do |external_id, mapping_data|
         external_id_record = HmisExternalApis::AcHmis::Mci.external_ids.find_by(id: external_id)
         original_source_id = mapping_data['source_id']
 
@@ -221,16 +213,15 @@ module Hmis
         next unless external_id_record.source_id == retained_client.id
         next unless original_source_id == deleted_client.id
 
-        external_id_record.update!(source_id: deleted_client.id)
-        Rails.logger.info "Restored MCI ID #{external_id} to client #{deleted_client.id}"
+        apply_or_log_update(record: external_id_record, column: :source_id, value: deleted_client.id, label: "MCI ID #{external_id}")
       end
     end
 
-    def restore_mci_unique_ids(mappings)
-      return unless mappings
+    def restore_mci_unique_ids
+      mappings = merge_audit.mappings_for('mci_unique_ids')
+      return if mappings.empty?
 
-      mappings.each do |external_id_str, mapping_data|
-        external_id = external_id_str.to_i
+      mappings.each do |external_id, mapping_data|
         external_id_record = HmisExternalApis::ExternalId.mci_unique_ids.find_by(id: external_id)
         original_source_id = mapping_data['source_id']
 
@@ -238,61 +229,24 @@ module Hmis
         next unless external_id_record.source_id == retained_client.id
         next unless original_source_id == deleted_client.id
 
-        external_id_record.update!(source: deleted_client)
-        Rails.logger.info "Restored MCI Unique ID #{external_id} to client #{deleted_client.id}"
+        apply_or_log_update(record: external_id_record, column: :source_id, value: deleted_client.id, label: "MCI Unique ID #{external_id}")
       end
     end
 
-    def restore_scan_cards(mappings)
-      return unless mappings
+    # Apply a column update or log what would change in dry-run mode.
+    def apply_or_log_update(record:, column:, value:, label:)
+      Rails.logger.info "Restored #{label} to client #{deleted_client.id}"
+      return if dry_run
 
-      mappings.each do |scan_card_id_str, mapping_data|
-        scan_card_id = scan_card_id_str.to_i
-        scan_card = Hmis::ScanCardCode.with_deleted.find_by(id: scan_card_id)
-        original_client_id = mapping_data['client_id']
-
-        next unless scan_card
-        next unless scan_card.client_id == retained_client.id
-        next unless original_client_id == deleted_client.id
-
-        scan_card.update_column(:client_id, deleted_client.id)
-        scan_card.restore if scan_card.deleted?
-        Rails.logger.info "Restored scan card #{scan_card_id} to client #{deleted_client.id}"
-      end
+      record.update_column(column, value)
     end
 
-    def restore_client_locations(mappings)
-      return unless mappings
+    # Remove merge history so clients no longer appear linked in search; audit remains on ClientMergeAudit.
+    def destroy_merge_history
+      Rails.logger.info "Destroying merge history #{merge_history.id}"
+      return if dry_run
 
-      mappings.each do |location_id_str, mapping_data|
-        location_id = location_id_str.to_i
-        location = ::ClientLocationHistory::Location.find_by(id: location_id)
-        original_client_id = mapping_data['client_id']
-
-        next unless location
-        next unless location.client_id == retained_client.id
-        next unless original_client_id == deleted_client.id
-
-        location.update_column(:client_id, deleted_client.id)
-        Rails.logger.info "Restored client location #{location_id} to client #{deleted_client.id}"
-      end
-    end
-
-    def restore_ce_referrals(mappings)
-      return unless mappings
-
-      mappings.each do |referral_id_str, mapping_data|
-        referral_id = referral_id_str.to_i
-        referral = Hmis::Ce::Referral.find_by(id: referral_id)
-        original_client_id = mapping_data['client_id']
-
-        next unless referral
-        next unless referral.client_id == retained_client.id
-        next unless original_client_id.to_i == deleted_client.id
-
-        referral.update_column(:client_id, deleted_client.id)
-        Rails.logger.info "Restored CE referral #{referral_id} to client #{deleted_client.id}"
-      end
+      merge_history.destroy!
     end
   end
 end
