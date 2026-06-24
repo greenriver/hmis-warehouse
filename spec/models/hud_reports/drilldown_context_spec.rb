@@ -143,6 +143,36 @@ RSpec.describe HudReports::DrilldownContext, type: :model do
     end
   end
 
+  describe 'HudReports::GeneratorBase validation delegation' do
+    describe '.valid_cell_name' do
+      it 'delegates to DrilldownContext and strips safe characters' do
+        expect(TestGenerator.valid_cell_name('A1')).to eq('A1')
+      end
+
+      it 'strips injection characters' do
+        expect(TestGenerator.valid_cell_name('A1; DROP TABLE users')).to eq('A1')
+      end
+
+      it 'returns empty string for nil' do
+        expect(TestGenerator.valid_cell_name(nil)).to eq('')
+      end
+    end
+
+    describe '.valid_table_name' do
+      it 'delegates to DrilldownContext and strips safe characters' do
+        expect(TestGenerator.valid_table_name('5a')).to eq('5a')
+      end
+
+      it 'strips injection characters' do
+        expect(TestGenerator.valid_table_name('5a!')).to eq('5a')
+      end
+
+      it 'returns empty string for nil' do
+        expect(TestGenerator.valid_table_name(nil)).to eq('')
+      end
+    end
+  end
+
   describe '#base_scope' do
     let(:client_scope) { double('ClientScope') }
     let(:report_cell_scope) { double('ReportCellScope') }
