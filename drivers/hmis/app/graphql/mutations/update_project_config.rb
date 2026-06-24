@@ -19,9 +19,8 @@ module Mutations
       access_denied! unless policy_for(record, policy_type: :project_config).can_update?
 
       errors = HmisErrors::Errors.new
-      # config_type is intentionally excluded from to_params, so this would not change the persisted STI class.
-      # But changing the config type enables other dependent fields in the form, which are invalid for this config type.
-      # Reject the change outright so the user sees a validation error on config_type instead of hitting a raise.
+      # Config type cannot be changed once set. Frontend prevents it, but return a validation
+      # instead of raising for backwards compatability.
       if input.config_type.present? && input.config_type != record.config_type
         errors.add(:config_type, :invalid, message: 'cannot be changed once set')
         return { project_config: nil, errors: errors.errors }
