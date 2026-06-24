@@ -178,17 +178,22 @@ RSpec.describe Hmis::UndoMergeClientsJob, type: :job do
       Hmis::Ce::ChangeMarker.mark_processed(Hmis::Ce::ChangeMarker.all)
     end
 
-    it 'marks the retained client destination as dirty after undo' do
+    it 'marks destination clients as dirty after undo' do
       expect(Hmis::Ce::ChangeMarker.dirty.count).to eq(0)
+      retained_destination = retained_client.destination_client.as_warehouse
 
       expect do
         described_class.perform_now(
           retained_client_id: retained_client.id,
           deleted_client_id: deleted_client.id,
         )
-      end.to change { Hmis::Ce::ChangeMarker.dirty.count }.by(1)
+        deleted_client.reload
+      end.to change { Hmis::Ce::ChangeMarker.dirty.count }.by(2)
 
-      expect(Hmis::Ce::ChangeMarker.sole.trackable).to eq(retained_client.destination_client.as_warehouse)
+      dirty_trackables = Hmis::Ce::ChangeMarker.dirty.map(&:trackable)
+      expect(dirty_trackables).to include(retained_destination)
+      # the restored client destination is dirty too because IdentifyDuplicates ran
+      expect(dirty_trackables).to include(deleted_client.destination_client.as_warehouse)
     end
   end
 end
