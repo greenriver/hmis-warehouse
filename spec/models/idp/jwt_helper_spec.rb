@@ -8,7 +8,7 @@
 
 require 'rails_helper'
 
-RSpec.describe Idp::JwtHelper do
+RSpec.describe Idp::JwtHelper, if: AuthMethod.jwt? do
   let(:jwks_url) { 'http://example.com/jwks' }
   let(:kid) { 'test_kid' }
   let(:rsa_key) { OpenSSL::PKey::RSA.generate(2048) }
