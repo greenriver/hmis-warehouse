@@ -1047,8 +1047,10 @@ enum CeMatchRuleComparator {
 }
 
 input CeMatchRuleFilterOptions {
-  ownerId: ID
-  ownerType: CeMatchRuleOwnerType
+  """
+  Rules that are owned at the global level
+  """
+  global: Boolean
 }
 
 input CeMatchRuleInput {

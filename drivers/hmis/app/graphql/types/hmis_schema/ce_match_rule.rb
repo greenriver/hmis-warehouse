@@ -11,8 +11,7 @@ module Types
     # object is a Hmis::Ce::Match::Rule
 
     available_filter_options do
-      arg :owner_type, Types::HmisSchema::Enums::CeMatchRuleOwnerType
-      arg :owner_id, ID
+      arg :global, Boolean, description: 'Rules that are owned at the global level'
     end
 
     field :id, ID, null: false

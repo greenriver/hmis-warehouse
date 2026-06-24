@@ -14,12 +14,22 @@ RSpec.describe 'CE Match Rules queries', type: :request do
 
   let!(:access_control) { create_access_control(hmis_user, ds1, with_permission: [:can_view_project, :can_administrate_coordinated_entry]) }
   let(:other_data_source) { create(:hmis_data_source) }
+  let!(:project) { create(:hmis_hud_project, data_source: ds1) }
   let!(:global_rule) do
     Hmis::Ce::Match::Rule.create!(
       owner: ds1,
       name: 'Must be 18 or older',
       rule_type: Hmis::Ce::Match::Rule::ELIGIBILITY_REQUIREMENT,
       expression: 'current_age >= 18',
+      applicability_config: {},
+    )
+  end
+  let!(:project_rule) do
+    Hmis::Ce::Match::Rule.create!(
+      owner: project,
+      name: 'Project rule',
+      rule_type: Hmis::Ce::Match::Rule::ELIGIBILITY_REQUIREMENT,
+      expression: 'current_age >= 24',
       applicability_config: {},
     )
   end
@@ -73,7 +83,7 @@ RSpec.describe 'CE Match Rules queries', type: :request do
   end
 
   it 'returns global rules for the current data source' do
-    response, result = post_graphql(filters: { ownerType: 'DATA_SOURCE' }) { rules_query }
+    response, result = post_graphql(filters: { global: true }) { rules_query }
     expect(response.status).to eq(200), result.inspect
 
     expect(result.dig('data', 'ceMatchRules', 'nodesCount')).to eq(1)
@@ -106,7 +116,7 @@ RSpec.describe 'CE Match Rules queries', type: :request do
   it 'denies access without can_administrate_coordinated_entry' do
     remove_permissions(access_control, :can_administrate_coordinated_entry)
 
-    expect_access_denied(post_graphql(filters: { ownerType: 'DATA_SOURCE' }) { rules_query })
+    expect_access_denied(post_graphql(filters: { global: true }) { rules_query })
     expect_access_denied(post_graphql(id: global_rule.id) { rule_query })
   end
 end
