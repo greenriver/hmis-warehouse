@@ -2,21 +2,24 @@
 = content_for(:title, title)
 = render 'breadcrumbs'
 
-%h1= "HMIS Project Group: #{@project_group.name}"
+.d-flex.align-items-center.mb-6
+  %h1.mr-4= "HMIS Project Group: #{@project_group.name}"
+  = link_to edit_hmis_admin_project_group_path(@project_group), class: 'btn btn-sm btn-primary' do
+    %i.icon-pencil.mr-2
+    Edit
 
 .row
   .col-sm-6
     .well
-      -# %h3.mb-4 Project Group Rules
+      - if @project_group.notes.present?
+        %div.mb-6
+          %h3 Notes
+          = @project_group.markdown_notes
       %div.mb-6
-        %h3.d-flex.justify-content-between.align-items-center
-          = 'Project Inclusion Rules'
-          = link_to edit_hmis_admin_project_group_path(@project_group), class: 'btn btn-sm btn-primary' do
-            %i.icon-pencil.mr-2
-            Edit
+        %h3 Project Inclusion Rules
         - if @project_group.any_inclusion_criteria?
           %p
-            Projects matching the following criteria are included in the group.
+            A project is included if it matches any of the following:
           = @project_group.parsed_inclusion_criteria.describe_criteria_as_html
         - else
           %p
@@ -25,24 +28,15 @@
         %h3 Project Exclusion Rules
         - if @project_group.any_exclusion_criteria?
           %p
-            Projects matching the following criteria are excluded from the group.
+            A project is excluded if it matches any of the following:
           = @project_group.parsed_exclusion_criteria.describe_criteria_as_html
         - else
           %p
             None
-  .col-sm-6
     .well
-      %h3.mb-4= "Included Projects (#{@project_group.warehouse_projects.count})"
-      - if @project_group.warehouse_projects.count > 0
-        - @project_group.warehouse_projects.preload(:organization).map { |p| p.organization_and_name(current_user) }.sort.each do |name|
-          = name
-          %br
-      - else
-        There are no projects in this group.
-
       - if HmisEnforcement.hmis_admin_visible?(current_user)
         - collections = Hmis::AccessGroup.contains(@project_group)
-        %h3.mt-6.mb-4= "Related Collections (#{collections.count})"
+        %h3.mt-2.mb-4= "Related Access Collections (#{collections.count})"
         - if collections.count > 0
           - collections.sort_by { |g| g.name }.sort.each do |group|
             = link_to group.name, hmis_admin_group_path(group)
@@ -58,3 +52,12 @@
             %br
         - else
           There are no workspaces associated with this project group.
+  .col-sm-6
+    .well
+      %h3.mb-4= "Included Projects (#{@project_group.warehouse_projects.count})"
+      - if @project_group.warehouse_projects.count > 0
+        - @project_group.warehouse_projects.preload(:organization).map { |p| p.organization_and_name(current_user) }.sort.each do |name|
+          = name
+          %br
+      - else
+        There are no projects in this group.

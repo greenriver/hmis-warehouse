@@ -877,7 +877,8 @@
                 "TABLE",
                 "SIGNATURE_GROUP",
                 "SIGNATURE",
-                "AHA"
+                "AHA",
+                "VISIONLINK"
               ]
             },
             "item": {

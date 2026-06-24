@@ -168,5 +168,26 @@ RSpec.describe Hmis::AuthPolicies::HmisFilePolicy, type: :model do
         expect(policy.can_index?).to be false
       end
     end
+
+    describe '#can_upload_files?' do
+      it 'returns false without file upload permissions' do
+        expect(policy.can_upload_files?).to be false
+      end
+
+      it 'returns true when the user has can_manage_own_client_files anywhere in the data source' do
+        create_access_control(user, project, with_permission: [:can_manage_own_client_files])
+        expect(policy.can_upload_files?).to be true
+      end
+
+      it 'returns true when the user has can_manage_any_client_files anywhere in the data source' do
+        create_access_control(user, project, with_permission: [:can_manage_any_client_files])
+        expect(policy.can_upload_files?).to be true
+      end
+
+      it 'returns false when the user can only view files' do
+        create_access_control(user, project, with_permission: [:can_view_clients, :can_view_any_nonconfidential_client_files])
+        expect(policy.can_upload_files?).to be false
+      end
+    end
   end
 end
