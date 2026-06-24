@@ -148,5 +148,23 @@ module Idp::CurrentUser
         redirect_to: original_url,
       )
     end
+
+    def info_for_paper_trail
+      {
+        user_id: current_user&.id,
+        true_user_id: true_user&.id,
+        session_id: session&.id&.to_s,
+        request_id: request.uuid,
+      }
+    end
+
+    def skip_timeout
+      nil # no-op for jwt
+    end
+
+    def user_session_expires_at
+      idp_jwt_helper_for_request.expiration_time
+    end
+    helper_method :user_session_expires_at
   end
 end

@@ -16,12 +16,13 @@ module UserConcern
   else
     include DeviseUser
     include OmniauthSupport
+    include PasswordRules
+    include DeviseUserPatch
   end
 
   included do
     include Rails.application.routes.url_helpers
     include UserPermissions
-    include PasswordRules
     include ArelHelper
     has_paper_trail ignore: [:provider_raw_info]
     acts_as_paranoid

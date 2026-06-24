@@ -12,7 +12,17 @@ require_relative '../../lib/util/git'
 class ApplicationController < ActionController::Base
   self.responder = ApplicationResponder
   respond_to :html, :js, :json, :csv
-  impersonates :user
+
+  # AUTH_METHOD seam: under JWT, current_user / authenticate_user! / true_user / warden are
+  # provided by Idp::CurrentUser (off a validated forwarded JWT); under Devise they come from
+  # the pretender macro + Warden. before_action :authenticate_user! (below) is satisfied either
+  # way.
+  if AuthMethod.jwt?
+    include Idp::CurrentUser
+  else
+    impersonates :user
+    include DeviseCurrentUser
+  end
 
   include ActivityLogger
   include LogRagePayloadBehavior
@@ -41,13 +51,10 @@ class ApplicationController < ActionController::Base
   after_action :log_activity, except: [:poll, :active, :rollup, :image] # , only: [:show, :index, :merge, :unmerge, :edit, :destroy, :create, :new]
 
   helper_method :locale
-  before_action :enforce_2fa!
   before_action :require_compliance_agreement!
   before_action :require_training!
 
   before_action :prepare_exception_notifier
-
-  prepend_before_action :skip_timeout
 
   before_action :set_anti_caching_headers, if: :user_signed_in?
 
@@ -77,11 +84,6 @@ class ApplicationController < ActionController::Base
     @user = User.new
   end
   helper_method :resource
-
-  def devise_mapping
-    @devise_mapping ||= Devise.mappings[:user]
-  end
-  helper_method :devise_mapping
 
   # Send any exceptions on production to slack
   def set_notification
@@ -115,11 +117,6 @@ class ApplicationController < ActionController::Base
 
   private
 
-  # don't extend the user's session if its an ajax request.
-  def skip_timeout
-    request.env['devise.skip_trackable'] = true if request.xhr?
-  end
-
   def _basic_auth
     authenticate_or_request_with_http_basic do |user, password|
       user == Rails.application.secrets.basic_auth_user && \
@@ -127,19 +124,11 @@ class ApplicationController < ActionController::Base
     end
   end
 
-  before_action :configure_permitted_parameters, if: :devise_controller?
+  before_action :configure_permitted_parameters, if: :devise_controller? if AuthMethod.devise?
 
   def append_info_to_payload(payload)
     super
     payload[:user_id] = current_user&.id
-  end
-
-  def info_for_paper_trail
-    {
-      user_id: warden&.user&.id,
-      session_id: session&.id&.to_s,
-      request_id: request.uuid,
-    }
   end
 
   # Sets whodunnit
@@ -158,20 +147,6 @@ class ApplicationController < ActionController::Base
   end
   helper_method :colorize
 
-  # the identity authenticated for the current session
-  # @example get the okta user id
-  #   current_user_identity&.uid
-  # @return [OauthIdentity, nil]
-  def current_user_identity
-    return nil unless current_user
-
-    provider = cookies.signed[:active_provider]
-    return nil unless provider
-
-    @current_user_identity ||= OauthIdentity.for_user(current_user).where(provider: provider).first
-  end
-  helper_method :current_user_identity
-
   def sentry_frontend_config
     {
       dsn: ENV['WAREHOUSE_SENTRY_DSN'],
@@ -184,44 +159,6 @@ class ApplicationController < ActionController::Base
   helper_method :sentry_frontend_config
 
   protected
-
-  def configure_permitted_parameters
-    devise_parameter_sanitizer.permit(:sign_in, keys: [:otp_attempt, :remember_device, :device_name])
-  end
-
-  # Redirect to window page after signin if you have
-  # no where else to go (and you can see it)
-  def after_sign_in_path_for(resource)
-    # alert users if their password has been compromised
-    set_flash_message! :alert, :warn_pwned if resource.respond_to?(:pwned?) && resource.pwned?
-
-    last_url = session['user_return_to']
-    if last_url.present?
-      last_url
-    else
-      current_user&.my_root_path || root_path
-    end
-  end
-
-  def after_sign_out_path_for(_scope)
-    user = request.env['last_user']
-    if user
-      provider = cookies.signed[:active_provider]
-      if provider
-        # If a provider exists, user is from Okta, due to the complexity of single log-out, we'll
-        # just log you out of okta in this case
-        identity = OauthIdentity.for_user(user).where(provider: provider).first
-        identity&.idp_signout_url(post_logout_redirect_uri: root_url) || root_url
-      else
-        # If no provider exists, attempt to log the user out of superset (if they have access)
-        # this will redirect back to the warehouse
-        superset_logout = "#{Superset.superset_base_url}/logout/?next=#{CGI.escape(root_url)}" if RailsDrivers.loaded.include?(:superset) && Superset.available_to_user?(user)
-        superset_logout || root_url
-      end
-    else
-      root_url
-    end
-  end
 
   def allowed_setup_controllers
     controller_path.in?(
@@ -236,18 +173,6 @@ class ApplicationController < ActionController::Base
         'content_pages',
       ],
     ) || controller_path == 'admin/users' && action_name == 'stop_impersonating'
-  end
-
-  # If a user must have Two-factor authentication turned on, only let them go
-  # to their 2FA page and their account page
-  def enforce_2fa!
-    return unless current_user
-    return unless current_user.enforced_2fa?
-    return if current_user.two_factor_enabled?
-    return if allowed_setup_controllers
-
-    flash[:alert] = 'Two factor authentication must be enabled for this account.'
-    redirect_to edit_account_two_factor_path
   end
 
   def require_training!
@@ -298,11 +223,6 @@ class ApplicationController < ActionController::Base
     false
   end
   helper_method :ajax_modal_request?
-
-  def bypass_2fa_enabled?
-    GrdaWarehouse::Config.get(:bypass_2fa_duration)&.positive?
-  end
-  helper_method :bypass_2fa_enabled?
 
   def set_hostname
     @op_hostname ||= begin # rubocop:disable Naming/MemoizedInstanceVariableName

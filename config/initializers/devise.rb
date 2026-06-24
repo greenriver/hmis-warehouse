@@ -8,6 +8,15 @@
 
 # Rails.logger.debug "Running initializer in #{__FILE__}"
 
+# AUTH_METHOD seam: under JWT we skip the app's Devise customization below. Devise is still
+# require'd (the gem can't be unloaded while AccountMailer / Users::InvitationsController /
+# CustomAuthFailure / the HMIS Devise controllers all subclass Devise::* and eager-load), so it
+# boots with gem defaults and Warden middleware is still inserted — but it's inert: no Devise
+# route is mounted and the `devise` model macro is gated off, so no warden strategy ever fires.
+# Truly not-loading Devise (Gemfile require: false) is post-cutover cleanup, once those subclasses
+# are gated too.
+return unless AuthMethod.devise?
+
 # Use this hook to configure devise mailer, warden hooks and so forth.
 # Many of these configuration options can be set straight in your model.
 Devise.setup do |config|
