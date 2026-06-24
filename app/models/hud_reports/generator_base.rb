@@ -158,6 +158,14 @@ module HudReports
       )
     end
 
+    def self.valid_cell_name(cell_name)
+      ::HudReports::DrilldownContext.valid_cell_name(cell_name)
+    end
+
+    def self.valid_table_name(table_name)
+      ::HudReports::DrilldownContext.valid_table_name(table_name)
+    end
+
     def self.allowed_options(_)
       [
         :start,
