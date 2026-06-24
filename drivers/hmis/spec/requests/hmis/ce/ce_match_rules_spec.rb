@@ -24,6 +24,16 @@ RSpec.describe 'CE Match Rules queries', type: :request do
       applicability_config: {},
     )
   end
+  let!(:global_priority_scheme) do
+    Hmis::Ce::Match::Rule.create!(
+      owner: ds1,
+      name: 'Prioritize older clients',
+      rule_type: Hmis::Ce::Match::Rule::PRIORITY_SCHEME,
+      expression: 'current_age',
+      priority_rank: 1,
+      applicability_config: {},
+    )
+  end
   let!(:project_rule) do
     Hmis::Ce::Match::Rule.create!(
       owner: project,
