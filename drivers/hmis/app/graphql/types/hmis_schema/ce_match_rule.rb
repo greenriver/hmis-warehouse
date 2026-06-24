@@ -32,9 +32,9 @@ module Types
     field :funders, [Types::HmisSchema::Enums::Hud::FundingSource], null: true, description: 'Rule applicability is limited to projects with these active funders'
 
     def owner_name
-      return 'Global' if object.owner.is_a?(GrdaWarehouse::DataSource)
+      return 'Global' if object.owner_type == 'GrdaWarehouse::DataSource'
 
-      object.owner.name
+      load_ar_association(object, :owner).name
     end
 
     def project_types
