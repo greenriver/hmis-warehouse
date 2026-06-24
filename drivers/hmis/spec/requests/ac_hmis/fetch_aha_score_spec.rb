@@ -24,7 +24,14 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     )
   end
   let!(:mci_unique_id) { create(:mci_unique_id_external_id, source: c1) }
-  let!(:access_control) { create_access_control(hmis_user, ds1, with_permission: [:can_view_clients]) }
+  let!(:e1) { create(:hmis_hud_enrollment, data_source: ds1, project: p1, client: c1) }
+  let!(:access_control) do
+    create_access_control(
+      hmis_user,
+      p1,
+      with_permission: [:can_view_clients, :can_view_project, :can_view_enrollment_details, :can_edit_enrollments],
+    )
+  end
 
   before(:each) do
     hmis_login(user)
@@ -36,6 +43,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       mutation FetchAhaScore($clientId: ID!, $lookupCatalyst: String, $lookupReason: [String!]) {
         fetchAhaScore(clientId: $clientId, lookupCatalyst: $lookupCatalyst, lookupReason: $lookupReason) {
           score
+          mhScore
           mciQualityIndicator
           dwClientId
           generator
@@ -77,16 +85,78 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           c1,
           lookup_catalyst: 'OCS Staff',
           lookup_reason: ['Other'],
-          requested_generators: [:aha],
-        ).and_return({ aha: aha_result })
+          requested_generators: [:aha, :mh_aha],
+        ).and_return({ aha: aha_result, mh_aha: nil })
 
         perform_mutation(client_id: c1.id, lookup_catalyst: 'OCS Staff', lookup_reason: ['Other']) do |data, errors|
           expect(errors).to be_empty
           expect(data['score']).to eq(8)
+          expect(data['mhScore']).to eq(-1)
           expect(data['mciQualityIndicator']).to eq(0)
           expect(data['dwClientId']).to eq(mci_unique_id.value)
           expect(data['generator']).to eq('AHA')
           expect(data['ahaFailedReason']).to be_nil
+        end
+      end
+
+      it 'returns MH-AHA score when present' do
+        mh_aha_result = HmisExternalApis::AcHmis::AhaScores::MhAhaResult.new(
+          score: 6,
+          dw_client_id: mci_unique_id.value,
+          generator: 'MH-AHA',
+        )
+        allow(stub_aha).to receive(:fetch_score).with(
+          c1,
+          lookup_catalyst: nil,
+          lookup_reason: nil,
+          requested_generators: [:aha, :mh_aha],
+        ).and_return({ aha: aha_result, mh_aha: mh_aha_result })
+
+        perform_mutation(client_id: c1.id) do |data, errors|
+          expect(errors).to be_empty
+          expect(data['score']).to eq(8)
+          expect(data['mhScore']).to eq(6)
+          expect(data['generator']).to eq('AHA')
+        end
+      end
+
+      it 'returns MH-AHA score of 0 when present' do
+        mh_aha_result = HmisExternalApis::AcHmis::AhaScores::MhAhaResult.new(
+          score: 0,
+          dw_client_id: mci_unique_id.value,
+          generator: 'MH-AHA',
+        )
+        allow(stub_aha).to receive(:fetch_score).with(
+          c1,
+          lookup_catalyst: nil,
+          lookup_reason: nil,
+          requested_generators: [:aha, :mh_aha],
+        ).and_return({ aha: aha_result, mh_aha: mh_aha_result })
+
+        perform_mutation(client_id: c1.id) do |data, errors|
+          expect(errors).to be_empty
+          expect(data['score']).to eq(8)
+          expect(data['mhScore']).to eq(0)
+        end
+      end
+
+      it 'returns MH-AHA score of -1 when present' do
+        mh_aha_result = HmisExternalApis::AcHmis::AhaScores::MhAhaResult.new(
+          score: -1,
+          dw_client_id: mci_unique_id.value,
+          generator: 'MH-AHA',
+        )
+        allow(stub_aha).to receive(:fetch_score).with(
+          c1,
+          lookup_catalyst: nil,
+          lookup_reason: nil,
+          requested_generators: [:aha, :mh_aha],
+        ).and_return({ aha: aha_result, mh_aha: mh_aha_result })
+
+        perform_mutation(client_id: c1.id) do |data, errors|
+          expect(errors).to be_empty
+          expect(data['score']).to eq(8)
+          expect(data['mhScore']).to eq(-1)
         end
       end
 
@@ -101,12 +171,13 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           c1,
           lookup_catalyst: nil,
           lookup_reason: nil,
-          requested_generators: [:aha],
-        ).and_return({ aha: aha_result_neg_one })
+          requested_generators: [:aha, :mh_aha],
+        ).and_return({ aha: aha_result_neg_one, mh_aha: nil })
 
         perform_mutation(client_id: c1.id) do |data, errors|
           expect(errors).to be_empty
           expect(data['score']).to eq(-1)
+          expect(data['mhScore']).to eq(-1)
           expect(data['mciQualityIndicator']).to eq(1)
           expect(data['ahaFailedReason']).to be_nil
         end
@@ -119,8 +190,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           c1,
           lookup_catalyst: nil,
           lookup_reason: nil,
-          requested_generators: [:aha],
-        ).and_return({ aha: nil })
+          requested_generators: [:aha, :mh_aha],
+        ).and_return({ aha: nil, mh_aha: nil })
 
         expect_gql_error(
           post_graphql(client_id: c1.id) { mutation },
@@ -131,18 +202,20 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
     context 'when client has no MCI unique ID' do
       let!(:client_without_mci) { create(:hmis_hud_client, data_source: ds1, user: u1) }
+      let!(:enrollment_without_mci) { create(:hmis_hud_enrollment, data_source: ds1, project: p1, client: client_without_mci) }
 
       it 'returns score -1 with NO_MCI_UNIQUE_ID reason' do
         allow(stub_aha).to receive(:fetch_score).with(
           client_without_mci,
           lookup_catalyst: nil,
           lookup_reason: nil,
-          requested_generators: [:aha],
+          requested_generators: [:aha, :mh_aha],
         ).and_raise(HmisExternalApis::AcHmis::Aha::NoMciUniqueIdError)
 
         perform_mutation(client_id: client_without_mci.id) do |data, errors|
           expect(errors).to be_empty
           expect(data['score']).to eq(-1)
+          expect(data['mhScore']).to eq(-1)
           expect(data['ahaFailedReason']).to eq('NO_MCI_UNIQUE_ID')
           expect(data['mciQualityIndicator']).to be_nil
           expect(data['dwClientId']).to be_nil
@@ -152,7 +225,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     end
 
     context 'when client is not viewable' do
-      let!(:access_control) { create_access_control(hmis_user, ds1, without_permission: [:can_view_clients]) }
+      let!(:access_control) { create_access_control(hmis_user, p1, without_permission: [:can_view_clients]) }
       it 'returns access denied error' do
         expect_access_denied(post_graphql(client_id: c1.id) { mutation })
       end
@@ -161,6 +234,20 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     context 'when client does not exist' do
       it 'returns access denied error' do
         expect_access_denied(post_graphql(client_id: '999999') { mutation })
+      end
+    end
+
+    context 'when user cannot edit enrollments' do
+      let!(:access_control) do
+        create_access_control(
+          hmis_user,
+          p1,
+          with_permission: [:can_view_clients, :can_view_project, :can_view_enrollment_details],
+        )
+      end
+
+      it 'returns access denied error' do
+        expect_access_denied(post_graphql(client_id: c1.id) { mutation })
       end
     end
   end

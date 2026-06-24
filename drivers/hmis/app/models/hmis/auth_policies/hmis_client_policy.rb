@@ -32,6 +32,13 @@ class Hmis::AuthPolicies::HmisClientPolicy < Hmis::AuthPolicies::ResourcePolicy
       client_permissions.include?(:can_manage_scan_cards)
     end
 
+    # Whether the user can edit at least one of this client's enrollments.
+    # Delegates to client_permissions: unions permissions from enrolled projects, or global
+    # permissions when the client has no enrollments.
+    def can_edit_some_enrollments?
+      client_permissions.include?(:can_edit_enrollments)
+    end
+
     def can_index_files?
       # User can index files if they can manage own files (global perm),
       # or can view nonconfidential or confidential files for this client
