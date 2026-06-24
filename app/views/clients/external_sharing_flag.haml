@@ -1,0 +1,25 @@
+= content_for :modal_title, 'External Data Sharing'
+
+- exclusion = ClientExternalDataSharing.new(@client)
+
+%p
+  When checked, this client's data will be excluded from any external data sharing exports. 
+  Use this when a client has requested that their information not be shared outside of this system.
+%p
+  Unchecking restores the client's data to external exports at the next scheduled export run.
+
+= form_with url: update_external_sharing_flag_client_path(@client), method: :patch, local: true, html: form_html_options do |f|
+  .form-check.mb-3
+    = check_box_tag :exclude_from_external_data_sharing,
+        '1',
+        exclusion.excluded?,
+        class: 'form-check-input',
+        id: 'exclude_from_external_data_sharing'
+    = label_tag :exclude_from_external_data_sharing,
+        'Exclude from External Data Sharing',
+        class: 'form-check-label'
+  = f.submit 'Save', class: 'btn btn-primary'
+
+- if exclusion.last_update_text
+  %p.text-muted.small.mt-3
+    = exclusion.last_update_text

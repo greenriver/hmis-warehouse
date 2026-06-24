@@ -458,6 +458,7 @@ Rails.application.routes.draw do
       get :chronic_days
       patch :merge
       patch :unmerge
+      get :external_sharing_flag
       patch :update_external_sharing_flag
       resource :cas_active, only: :update
       resources :enrollment_history, only: :index, controller: 'clients/enrollment_history'

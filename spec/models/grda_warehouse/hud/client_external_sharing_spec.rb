@@ -8,7 +8,7 @@
 
 require 'rails_helper'
 
-RSpec.describe GrdaWarehouse::Hud::Client, '#merge_from external data sharing', type: :model do
+RSpec.describe GrdaWarehouse::Hud::Client, '#merge_from and #split external data sharing', type: :model do
   let(:source_ds) { create(:source_data_source) }
   let(:dest_ds)   { create(:destination_data_source) }
   let!(:cde_definition) do
@@ -21,7 +21,10 @@ RSpec.describe GrdaWarehouse::Hud::Client, '#merge_from external data sharing', 
     )
   end
 
-  before { GrdaWarehouse::Hud::Client.instance_variable_set(:@external_data_sharing_cde_definition, nil) }
+  let(:source_a) { create(:hud_client, data_source: source_ds) }
+  let(:source_b) { create(:hud_client, data_source: source_ds) }
+  let!(:dest_a)  { make_destination(source_a) }
+  let!(:dest_b)  { make_destination(source_b) }
 
   def make_destination(source_client)
     dest = GrdaWarehouse::Hud::Client.create!(
@@ -36,64 +39,113 @@ RSpec.describe GrdaWarehouse::Hud::Client, '#merge_from external data sharing', 
     dest
   end
 
-  context 'when the merged-away client was excluded' do
-    let(:source_a) { create(:hud_client, data_source: source_ds) }
-    let(:source_b) { create(:hud_client, data_source: source_ds) }
-    let!(:dest_a)  { make_destination(source_a) }
-    let!(:dest_b)  { make_destination(source_b) }
+  # merge_from contexts
 
-    before { dest_a.set_external_data_sharing_exclusion!(value: true) }
+  context 'when the merged-away client was excluded' do
+    before { ClientExternalDataSharing.new(dest_a).set_exclusion!(value: true) }
 
     it 'marks the surviving client as excluded after merging dest_a into dest_b' do
       reviewer = create(:user)
       dest_b.merge_from(dest_a, reviewed_by: reviewer, reviewed_at: Time.current)
-      expect(dest_b.excluded_from_external_data_sharing?).to be true
+      expect(ClientExternalDataSharing.new(dest_b).excluded?).to be true
     end
   end
 
   context 'when neither client was excluded' do
-    let(:source_a) { create(:hud_client, data_source: source_ds) }
-    let(:source_b) { create(:hud_client, data_source: source_ds) }
-    let!(:dest_a)  { make_destination(source_a) }
-    let!(:dest_b)  { make_destination(source_b) }
-
-    it 'does not mark the surviving client as excluded' do
+    it 'does not mark the surviving client as excluded and writes no CDE row' do
       reviewer = create(:user)
       dest_b.merge_from(dest_a, reviewed_by: reviewer, reviewed_at: Time.current)
-      expect(dest_b.excluded_from_external_data_sharing?).to be false
+      expect(ClientExternalDataSharing.new(dest_b).excluded?).to be false
+      # Verify the merge did not write a spurious CDE; excluded? only checks value_boolean: true
+      # so a false-valued CDE row would still pass the assertion above.
+      expect(Hmis::Hud::CustomDataElement.count).to eq(0)
     end
   end
 
   context 'when the surviving client was already excluded and the merged-away client was not' do
-    let(:source_a) { create(:hud_client, data_source: source_ds) }
-    let(:source_b) { create(:hud_client, data_source: source_ds) }
-    let!(:dest_a)  { make_destination(source_a) }
-    let!(:dest_b)  { make_destination(source_b) }
-
-    before { dest_b.set_external_data_sharing_exclusion!(value: true) }
+    before { ClientExternalDataSharing.new(dest_b).set_exclusion!(value: true) }
 
     it 'preserves the surviving client exclusion after merge' do
       reviewer = create(:user)
       dest_b.merge_from(dest_a, reviewed_by: reviewer, reviewed_at: Time.current)
-      expect(dest_b.excluded_from_external_data_sharing?).to be true
+      expect(ClientExternalDataSharing.new(dest_b).excluded?).to be true
     end
   end
 
   context 'when both clients were excluded' do
-    let(:source_a) { create(:hud_client, data_source: source_ds) }
-    let(:source_b) { create(:hud_client, data_source: source_ds) }
-    let!(:dest_a)  { make_destination(source_a) }
-    let!(:dest_b)  { make_destination(source_b) }
-
     before do
-      dest_a.set_external_data_sharing_exclusion!(value: true)
-      dest_b.set_external_data_sharing_exclusion!(value: true)
+      ClientExternalDataSharing.new(dest_a).set_exclusion!(value: true)
+      ClientExternalDataSharing.new(dest_b).set_exclusion!(value: true)
     end
 
-    it 'surviving client remains excluded without error' do
+    it 'surviving client remains excluded without error (idempotent set_exclusion!)' do
       reviewer = create(:user)
       expect { dest_b.merge_from(dest_a, reviewed_by: reviewer, reviewed_at: Time.current) }.not_to raise_error
-      expect(dest_b.excluded_from_external_data_sharing?).to be true
+      expect(ClientExternalDataSharing.new(dest_b).excluded?).to be true
+    end
+  end
+
+  context 'when the CDE definition does not exist at merge time' do
+    before { cde_definition.destroy }
+
+    it 'completes the merge without error and writes no CDE row' do
+      reviewer = create(:user)
+      expect { dest_b.merge_from(dest_a, reviewed_by: reviewer, reviewed_at: Time.current) }.not_to raise_error
+      expect(Hmis::Hud::CustomDataElement.count).to eq(0)
+    end
+  end
+
+  # split contexts
+  #
+  # The split method dups the source client and saves it into the destination data source.
+  # If the destination was created by copying the source's PersonalID (as make_destination does),
+  # the dup would conflict on (PersonalID, data_source_id). These contexts use a fresh source
+  # client and a destination created with an independent factory PersonalID to avoid that conflict.
+
+  describe '#split external data sharing carry-forward' do
+    # ClientCleanupJob runs after split and removes destinations whose source clients have no
+    # enrollments (which is the case here). We only want to test the carry-forward logic that
+    # runs synchronously inside split, so we check the new destination before the cleanup job
+    # fires by not using perform_enqueued_jobs.
+
+    let(:split_source) { create(:hud_client, data_source: source_ds) }
+    # dest created with its own factory-generated PersonalID so split can dup split_source
+    # into dest_ds without conflicting on the (PersonalID, data_source_id) unique index.
+    let!(:split_dest) do
+      dest = create(:hud_client, data_source: dest_ds)
+      GrdaWarehouse::WarehouseClient.create!(
+        id_in_source: split_source.PersonalID,
+        data_source_id: split_source.data_source_id,
+        source_id: split_source.id,
+        destination_id: dest.id,
+      )
+      dest
+    end
+
+    def new_dest_after_split(reviewer)
+      split_dest.split([split_source.id], nil, nil, reviewer)
+      new_wc = GrdaWarehouse::WarehouseClient.where(source_id: split_source.id).first
+      GrdaWarehouse::Hud::Client.find_by(id: new_wc&.destination_id)
+    end
+
+    context 'when the original destination was excluded' do
+      before { ClientExternalDataSharing.new(split_dest).set_exclusion!(value: true) }
+
+      it 'marks the split-off destination as excluded' do
+        reviewer = create(:user)
+        new_dest = new_dest_after_split(reviewer)
+        expect(new_dest).to be_present
+        expect(ClientExternalDataSharing.new(new_dest).excluded?).to be true
+      end
+    end
+
+    context 'when the original destination was not excluded' do
+      it 'does not mark the split-off destination as excluded' do
+        reviewer = create(:user)
+        new_dest = new_dest_after_split(reviewer)
+        expect(new_dest).to be_present
+        expect(ClientExternalDataSharing.new(new_dest).excluded?).to be false
+      end
     end
   end
 end

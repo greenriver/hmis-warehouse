@@ -22,7 +22,7 @@ module GrdaWarehouse::Tasks
 
     def _perform
       # data_source is not semantically meaningful here, but Hmis::Hud::CustomDataElementDefinition requires it via belongs_to.
-      data_source = GrdaWarehouse::DataSource.find_by(short_name: 'Warehouse')
+      data_source = GrdaWarehouse::DataSource.destination.first
       return false unless data_source
 
       Hmis::Hud::CustomDataElementDefinition.find_or_create_by!(
@@ -33,7 +33,7 @@ module GrdaWarehouse::Tasks
         d.field_type = 'boolean'
         d.repeats = false
         d.data_source = data_source
-        d.UserID = 'system'
+        d.UserID = User.system_user.id.to_s
       end
 
       true
