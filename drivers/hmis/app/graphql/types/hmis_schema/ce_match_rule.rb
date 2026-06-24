@@ -11,8 +11,7 @@ module Types
     # object is a Hmis::Ce::Match::Rule
 
     available_filter_options do
-      arg :owner_type, Types::HmisSchema::Enums::CeMatchRuleOwnerType
-      arg :owner_id, ID
+      arg :global, Boolean, description: 'Rules that are owned at the global level'
     end
 
     field :id, ID, null: false
@@ -32,9 +31,9 @@ module Types
     field :funders, [Types::HmisSchema::Enums::Hud::FundingSource], null: true, description: 'Rule applicability is limited to projects with these active funders'
 
     def owner_name
-      return 'Global' if object.owner.is_a?(GrdaWarehouse::DataSource)
+      return 'Global' if object.owner_type == 'GrdaWarehouse::DataSource'
 
-      object.owner.name
+      load_ar_association(object, :owner).name
     end
 
     def project_types
