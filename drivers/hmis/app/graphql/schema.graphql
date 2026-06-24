@@ -309,9 +309,13 @@ type Assessment {
 }
 
 type AssessmentAccess {
-  canDeleteAssessments: Boolean!
-  canDeleteEnrollments: Boolean!
-  canEditEnrollments: Boolean!
+  """
+  Whether the user can delete this assessment
+  """
+  canDeleteAssessment: Boolean!
+  canDeleteAssessments: Boolean! @deprecated(reason: "Use assessment.access.canDeleteAssessment")
+  canDeleteEnrollments: Boolean! @deprecated(reason: "Use assessment.access.canDeleteAssessment")
+  canEditEnrollments: Boolean! @deprecated(reason: "Use enrollment.access.canEditEnrollments for enrollment edit checks")
   id: ID!
 }
 
@@ -760,9 +764,14 @@ type CeAssessmentsPaginated {
 
 type CeCandidate {
   """
-  Most recent snapshot of client attributes
+  Current values for the given expression keys
   """
-  clientAttributes: JSON!
+  clientAttributes(
+    """
+    Keys whose values should be returned. Same format as TableColumnConfig keys.
+    """
+    keys: [String!]
+  ): JSON!
 
   """
   Masked as "Candidate 123" unless the user has permission to view
@@ -790,9 +799,14 @@ ClientProxy. Underlying client record is Destination Client.
 """
 type CeClient {
   """
-  Aggregation of most recent snapshots from all candidate pools this client belongs to
+  Current values for the given expression keys
   """
-  clientAttributes: JSON!
+  clientAttributes(
+    """
+    Keys whose values should be returned. Same format as TableColumnConfig keys.
+    """
+    keys: [String!]
+  ): JSON!
   clientName: String!
   destinationClientId: ID!
 
@@ -816,6 +830,11 @@ type CeClient {
 
 input CeClientFilterOptions {
   dynamicFilters: [TableFilterValue!]
+
+  """
+  Filter to Clients that are eligible for projects in the specified Project Group
+  """
+  projectGroupId: ID
 
   """
   Filter to Clients that are eligible for the specified Project Types
@@ -914,6 +933,48 @@ type CeEligibleUnitGroupsPaginated {
   pagesCount: Int!
 }
 
+"""
+Field metadata for CE Match Rule expressions
+"""
+type CeMatchField {
+  """
+  The full-length identifier used in CE Match Rule expressions, such as
+  "current_age" or "cde.custom_assessment.my_field_key".
+  """
+  expressionField: String!
+  id: ID!
+
+  """
+  The type of the field, used for determining the possible values it can match against.
+  """
+  itemType: ItemType!
+
+  """
+  The CDED key for this field, or the client field key for a client field
+  """
+  key: String!
+
+  """
+  Human-readable label for this field
+  """
+  label: String!
+
+  """
+  Whether a client can have more than one value for the field.
+  """
+  multiple: Boolean!
+
+  """
+  The field's pick list options, if applicable.
+  """
+  pickListOptions: [PickListOption!]
+
+  """
+  The field's reference pick list, if applicable, such as `NoYesReasonsForMissingData`.
+  """
+  pickListReference: String
+}
+
 type CeMatchRule {
   expression: String!
 
@@ -934,6 +995,61 @@ type CeMatchRule {
   Rule applicability is limited to projects with these types
   """
   projectTypes: [ProjectType!]!
+
+  """
+  Expression translated into a structured clause list; null if the expression is too complex to translate
+  """
+  structuredExpression: CeMatchRuleStructuredExpression
+}
+
+enum CeMatchRuleBooleanOperator {
+  AND
+  OR
+}
+
+type CeMatchRuleClause {
+  """
+  The comparison operator to apply to the field and value, such as EQ
+  """
+  comparator: CeMatchRuleComparator!
+
+  """
+  The name of the field for comparison, such as client_age or cde.custom_assessment.my_score
+  """
+  field: String!
+
+  """
+  The value to compare the field against, such as 18 or "1 Bed". JSON scalar
+  (e.g. integer, float, string, boolean, or null). Not a list or nested object.
+  """
+  value: JSON
+}
+
+input CeMatchRuleClauseInput {
+  comparator: CeMatchRuleComparator!
+  field: String!
+  value: JSON
+}
+
+enum CeMatchRuleComparator {
+  EQ
+  EXCLUDES
+  GT
+  GTE
+  INCLUDES
+  LT
+  LTE
+  NOT_EQ
+}
+
+input CeMatchRuleInput {
+  expression: String
+  name: String
+  ownerId: ID
+  ownerType: CeMatchRuleOwner
+  priorityRank: Int
+  ruleType: String
+  structuredExpression: CeMatchRuleStructuredExpressionInput
 }
 
 enum CeMatchRuleOwner {
@@ -961,6 +1077,16 @@ enum CeMatchRuleOwner {
   Unit Group
   """
   UNIT_GROUP
+}
+
+type CeMatchRuleStructuredExpression {
+  clauses: [CeMatchRuleClause!]!
+  operator: CeMatchRuleBooleanOperator!
+}
+
+input CeMatchRuleStructuredExpressionInput {
+  clauses: [CeMatchRuleClauseInput!]!
+  operator: CeMatchRuleBooleanOperator!
 }
 
 type CeMatchValue {
@@ -995,12 +1121,10 @@ type CeOpportunity {
   candidatesGeneratedAt: ISO8601DateTime
   categories: [String!]!
   dateAvailable: ISO8601Date!
-  eligibilityRequirements: [CeMatchRule!]
   expiresAt: ISO8601DateTime
   id: ID!
   name: String!
   organizationName: String!
-  prioritySchemes: [CeMatchRule!]
   projectId: ID!
   projectName: String!
   projectType: ProjectType!
@@ -1009,7 +1133,6 @@ type CeOpportunity {
   Active or accepted referral
   """
   referral: CeReferral
-  stale: Boolean!
   status: CeOpportunityStatus!
   unit: Unit
 }
@@ -1023,6 +1146,7 @@ input CeOpportunityFilterOptions {
   availableOnDate: ISO8601Date
   organization: [ID!]
   project: [ID!]
+  projectGroupId: ID
   projectType: [ProjectType!]
   status: [CeOpportunityStatus!]
   workflowTemplate: [String!]
@@ -1066,14 +1190,10 @@ type CeParticipation {
   ceParticipationStatusEndDate: ISO8601Date
   ceParticipationStatusStartDate: ISO8601Date
   createdBy: ApplicationUser
-  crisisAssessment: NoYes @deprecated(reason: "Use ceParticipationServices instead")
   dateCreated: ISO8601DateTime
   dateDeleted: ISO8601DateTime
   dateUpdated: ISO8601DateTime
-  directServices: NoYes @deprecated(reason: "Use ceParticipationServices instead")
-  housingAssessment: NoYes @deprecated(reason: "Use ceParticipationServices instead")
   id: ID!
-  preventionAssessment: NoYes @deprecated(reason: "Use ceParticipationServices instead")
   receivesReferrals: NoYes
   user: ApplicationUser
 }
@@ -1141,10 +1261,21 @@ type CeReferral {
   currentSteps: [CeReferralStep!]
   customStatus: CeCustomReferralStatus
   daysOnCurrentSteps: Int
+
+  """
+  Eligibility requirements at the time the referral was created. May differ from
+  the unit group's current eligibility requirements.
+  """
+  eligibilityRequirements: [CeMatchRule!]
   id: ID!
   notes(limit: Int, offset: Int): CeReferralNotesPaginated
   opportunity: CeOpportunity
   origin: CeReferralOrigin!
+
+  """
+  Priority schemes at the time the referral was created. May differ from the unit group's current priority schemes.
+  """
+  prioritySchemes: [CeMatchRule!]
   referredBy: ApplicationUser
 
   """
@@ -1223,10 +1354,16 @@ type CeReferralAuditEventsPaginated {
 }
 
 input CeReferralFilterOptions {
+  assignedToYou: Boolean
   onCurrentTaskSince: ISO8601Date
   organization: [ID!]
   origin: [CeReferralOrigin!]
   project: [ID!]
+
+  """
+  Filter to referrals where the target project belongs to the specified project group
+  """
+  projectGroupId: ID
   projectType: [ProjectType!]
   referralStatus: [String!]
   searchTerm: String
@@ -1424,8 +1561,24 @@ type CeReferralStepsPaginated {
 }
 
 type CeReferralSwimlane {
+  """
+  Referral-scoped key for Apollo cache to avoid collisions across referrals
+  """
+  cacheKey: ID!
+
+  """
+  Swimlane id; client should pass this as assignReferralParticipants.swimlaneId
+  """
   id: ID!
+
+  """
+  Swimlane name
+  """
   name: String!
+
+  """
+  Assigned users for this swimlane on this referral
+  """
   participants: [ApplicationUser!]!
 }
 
@@ -1519,20 +1672,17 @@ type Client {
   dateUpdated: ISO8601DateTime
   desertStorm: NoYesReasonsForMissingData
   differentIdentityText: String
-  disabilities(limit: Int, offset: Int): DisabilitiesPaginated!
   dischargeStatus: DischargeStatus
   dob: ISO8601Date
   dobDataQuality: DOBDataQuality!
   eligibleCeOpportunities(filters: ClientEligibleCeOpportunityFilterOptions, limit: Int, offset: Int, sortOrder: CeOpportunitySortOption): CeOpportunitiesPaginated!
   emailAddresses: [ClientContactPoint!]!
-  employmentEducations(limit: Int, offset: Int): EmploymentEducationsPaginated!
   enabledFeatures: [ClientDashboardFeature!]!
   enrollments(filters: EnrollmentsForClientFilterOptions, includeEnrollmentsWithLimitedAccess: Boolean, limit: Int, offset: Int, sortOrder: EnrollmentSortOption): EnrollmentsPaginated!
   externalIds: [ExternalIdentifier!]!
   files(limit: Int, offset: Int, sortOrder: FileSortOption): FilesPaginated!
   firstName: String
   gender: [Gender!]!
-  healthAndDvs(limit: Int, offset: Int): HealthAndDvsPaginated!
 
   """
   Meets the definition for HUD chronically homeless as of today (time of API request)
@@ -1540,7 +1690,6 @@ type Client {
   hudChronic: Boolean
   id: ID!
   image: ClientImage
-  incomeBenefits(limit: Int, offset: Int): IncomeBenefitsPaginated!
   iraqOif: NoYesReasonsForMissingData
   iraqOnd: NoYesReasonsForMissingData
   koreanWar: NoYesReasonsForMissingData
@@ -1568,26 +1717,21 @@ type Client {
   worldWarIi: NoYesReasonsForMissingData
   yearEnteredService: Int
   yearSeparated: Int
-  youthEducationStatuses(limit: Int, offset: Int): YouthEducationStatusesPaginated!
 }
 
 type ClientAccess {
   canAuditClients: Boolean!
-  canDeleteAssessments: Boolean!
   canDeleteClient: Boolean!
-  canDeleteEnrollments: Boolean!
   canEditClient: Boolean!
-  canEditEnrollments: Boolean!
-  canManageAnyClientFiles: Boolean!
+  canIndexFiles: Boolean!
+  canManageAnyClientFiles: Boolean! @deprecated(reason: "Resolve canManage on individual file access field instead")
   canManageClientAlerts: Boolean!
-  canManageOwnClientFiles: Boolean!
+  canManageOwnClientFiles: Boolean! @deprecated(reason: "Resolve canManage on individual file access field instead")
   canManageScanCards: Boolean!
   canMergeClients: Boolean!
   canPrintClientCaseNotes: Boolean!
   canUploadClientFiles: Boolean!
-  canViewAnyConfidentialClientFiles: Boolean!
-  canViewAnyFiles: Boolean!
-  canViewAnyNonconfidentialClientFiles: Boolean!
+  canViewAnyFiles: Boolean! @deprecated(reason: "Use canIndexFiles")
   canViewClientAlerts: Boolean!
   canViewClientEligibleOpportunities: Boolean!
   canViewClientName: Boolean!
@@ -1777,6 +1921,11 @@ input ClientCeReferralFilterOptions {
   organization: [ID!]
   origin: [CeReferralOrigin!]
   project: [ID!]
+
+  """
+  Filter to referrals where the target project belongs to the specified project group
+  """
+  projectGroupId: ID
   projectType: [ProjectType!]
   referralStatus: [String!]
 }
@@ -1858,6 +2007,7 @@ enum ClientDashboardFeature {
 input ClientEligibleCeOpportunityFilterOptions {
   organization: [ID!]
   project: [ID!]
+  projectGroupId: ID
   projectType: [ProjectType!]
 }
 
@@ -1973,9 +2123,7 @@ input ClientSearchInput {
   """
   id: ID
   lastName: String
-  organizations: [ID!]
   personalId: String
-  projects: [ID!]
 
   """
   Last 4 digits of SSN
@@ -1986,7 +2134,16 @@ input ClientSearchInput {
   Omnisearch string
   """
   textSearch: String
-  warehouseId: String
+}
+
+type ClientSearchParams {
+  dob: String
+  firstName: String
+  id: ID!
+  lastName: String
+  personalId: String
+  ssnSerial: String
+  textSearch: String
 }
 
 """
@@ -2042,6 +2199,7 @@ type ClientsPaginated {
   nodesCount: Int!
   offset: Int!
   pagesCount: Int!
+  searchQueryId: String
 }
 
 """
@@ -2119,53 +2277,6 @@ enum CmExitReason {
   VETERAN_TOO_ILL_TO_PARTICIPATE_AT_THIS_TIME
 }
 
-enum CompleteDisabilityResponse {
-  """
-  Alcohol use disorder
-  """
-  ALCOHOL_USE_DISORDER
-
-  """
-  Both alcohol and drug use disorders
-  """
-  BOTH_ALCOHOL_AND_DRUG_USE_DISORDERS
-
-  """
-  Client doesn't know
-  """
-  CLIENT_DOESN_T_KNOW
-
-  """
-  Client prefers not to answer
-  """
-  CLIENT_PREFERS_NOT_TO_ANSWER
-
-  """
-  Data not collected
-  """
-  DATA_NOT_COLLECTED
-
-  """
-  Drug use disorder
-  """
-  DRUG_USE_DISORDER
-
-  """
-  Invalid Value
-  """
-  INVALID
-
-  """
-  No
-  """
-  NO
-
-  """
-  Yes
-  """
-  YES
-}
-
 enum Component {
   """
   Client Address input
@@ -2173,7 +2284,7 @@ enum Component {
   ADDRESS
 
   """
-  AHA component
+  Fetch AHA scores via external API
   """
   AHA
 
@@ -2198,7 +2309,7 @@ enum Component {
   ALERT_WARNING
 
   """
-  Alt AHA component
+  Calculate Alt AHA score
   """
   ALT_AHA
 
@@ -2243,7 +2354,7 @@ enum Component {
   INPUT_GROUP
 
   """
-  MCI linking component
+  Perform MCI clearance via external API
   """
   MCI
 
@@ -2291,6 +2402,11 @@ enum Component {
   Render group as a table. Each child item should be a group representing 1 table row.
   """
   TABLE
+
+  """
+  Fetch VisionLink eligibility flags via external API
+  """
+  VISIONLINK
 }
 
 enum CounselingMethod {
@@ -2353,6 +2469,14 @@ enum CountExchangeForSex {
   (3) 8-11
   """
   NUM_8_11
+}
+
+"""
+Autogenerated return type of CreateCeMatchRule.
+"""
+type CreateCeMatchRulePayload {
+  errors: [ValidationError!]!
+  rule: CeMatchRule
 }
 
 """
@@ -3088,6 +3212,14 @@ type DeleteCeEventPayload {
 }
 
 """
+Autogenerated return type of DeleteCeMatchRule.
+"""
+type DeleteCeMatchRulePayload {
+  errors: [ValidationError!]!
+  rule: CeMatchRule
+}
+
+"""
 Autogenerated input type of DeleteCeParticipation
 """
 input DeleteCeParticipationInput {
@@ -3725,38 +3857,6 @@ input DirectUploadInput {
   filename: String!
 }
 
-type DisabilitiesPaginated {
-  hasMoreAfter: Boolean!
-  hasMoreBefore: Boolean!
-  limit: Int!
-  nodes: [Disability!]!
-  nodesCount: Int!
-  offset: Int!
-  pagesCount: Int!
-}
-
-type Disability {
-  antiRetroviral: NoYesReasonsForMissingData
-  client: Client!
-  createdBy: ApplicationUser
-  dataCollectionStage: DataCollectionStage!
-  dateCreated: ISO8601DateTime
-  dateDeleted: ISO8601DateTime
-  dateUpdated: ISO8601DateTime
-  disabilityResponse: CompleteDisabilityResponse!
-  disabilityType: DisabilityType!
-  enrollment: Enrollment!
-  id: ID!
-  indefiniteAndImpairs: NoYesReasonsForMissingData
-  informationDate: ISO8601Date
-  tCellCount: Int
-  tCellCountAvailable: NoYesReasonsForMissingData
-  tCellSource: TCellSourceViralLoadSource
-  user: ApplicationUser
-  viralLoad: Int
-  viralLoadAvailable: ViralLoadAvailable
-}
-
 """
 Group of disability records that were collected at the same time
 """
@@ -3839,46 +3939,6 @@ enum DisabilityResponse {
   (0) No
   """
   NO
-}
-
-"""
-HUD DisabilityType (1.3)
-"""
-enum DisabilityType {
-  """
-  (7) Chronic health condition
-  """
-  CHRONIC_HEALTH_CONDITION
-
-  """
-  (6) Developmental disability
-  """
-  DEVELOPMENTAL_DISABILITY
-
-  """
-  (8) HIV/AIDS
-  """
-  HIV_AIDS
-
-  """
-  Invalid Value
-  """
-  INVALID
-
-  """
-  (9) Mental health disorder
-  """
-  MENTAL_HEALTH_DISORDER
-
-  """
-  (5) Physical disability
-  """
-  PHYSICAL_DISABILITY
-
-  """
-  (10) Substance use disorder
-  """
-  SUBSTANCE_USE_DISORDER
 }
 
 enum DisabledDisplay {
@@ -3971,16 +4031,6 @@ type EmploymentEducation {
   notEmployedReason: NotEmployedReason
   schoolStatus: SchoolStatus
   user: ApplicationUser
-}
-
-type EmploymentEducationsPaginated {
-  hasMoreAfter: Boolean!
-  hasMoreBefore: Boolean!
-  limit: Int!
-  nodes: [EmploymentEducation!]!
-  nodesCount: Int!
-  offset: Int!
-  pagesCount: Int!
 }
 
 """
@@ -4142,11 +4192,9 @@ type Enrollment {
   dateToStreetEssh: ISO8601Date
   dateUpdated: ISO8601DateTime
   dependentUnder6: DependentUnder6
-  disabilities(limit: Int, offset: Int): DisabilitiesPaginated!
   disabledHoh: NoYesMissing
   disablingCondition: NoYesReasonsForMissingData
   eligibleForRhy: NoYesMissing
-  employmentEducations(limit: Int, offset: Int): EmploymentEducationsPaginated!
   enrollmentCoc: String
   entryDate: ISO8601Date!
   events(limit: Int, offset: Int, sortOrder: EventSortOption): EventsPaginated!
@@ -4162,7 +4210,6 @@ type Enrollment {
   Client Locations that have been collected during this Enrollment
   """
   geolocations: [Geolocation!]!
-  healthAndDvs(limit: Int, offset: Int): HealthAndDvsPaginated!
   hh5Plus: NoYesMissing
   hohLeaseholder: NoYesMissing
   household: Household!
@@ -4174,14 +4221,12 @@ type Enrollment {
   inProgress: Boolean!
   incarceratedAdult: IncarceratedAdult
   incarceratedParent: NoYesReasonsForMissingData
-  incomeBenefits(limit: Int, offset: Int): IncomeBenefitsPaginated!
   insufficientIncome: NoYesReasonsForMissingData
   intakeAssessment: Assessment
   juvenileJusticeMonths: Int
   juvenileJusticeYears: RHYNumberofYears
   lastBedNightDate: ISO8601Date
   lastContact: LastContact
-  lastCurrentLivingSituation: CurrentLivingSituation
   lastServiceDate(serviceTypeId: ID!): ISO8601Date
   lengthOfStay: ResidencePriorLengthOfStay
   literalHomelessHistory: LiteralHomelessHistory
@@ -4243,7 +4288,6 @@ type Enrollment {
   unemploymentFam: NoYesReasonsForMissingData
   user: ApplicationUser
   vamcStation: VamcStationNumber
-  youthEducationStatuses(limit: Int, offset: Int): YouthEducationStatusesPaginated!
 }
 
 type EnrollmentAccess {
@@ -4855,7 +4899,22 @@ type FetchAhaScorePayload {
   errors: [ValidationError!]!
   generator: String
   mciQualityIndicator: Int
+  mhScore: Int
   score: Int
+}
+
+"""
+Autogenerated return type of FetchVisionLinkFlags.
+"""
+type FetchVisionLinkFlagsPayload {
+  cityOfPittsburgh: Boolean
+  dwClientId: String
+  errors: [ValidationError!]!
+  failedReason: AhaFailedReason
+  isEligibleRa: Boolean
+  recentEvictionCase: Boolean
+  section8: Boolean
+  subsidizedHousing: Boolean
 }
 
 type FieldMapping {
@@ -4879,6 +4938,7 @@ type FieldMapping {
 File
 """
 type File {
+  access: FileAccess!
   confidential: Boolean
   contentType: String
   dateCreated: ISO8601DateTime
@@ -4896,6 +4956,12 @@ type File {
   uploadedBy: ApplicationUser
   url: String
   user: ApplicationUser
+}
+
+type FileAccess {
+  canDeleteFile: Boolean!
+  canEditFile: Boolean!
+  id: ID!
 }
 
 """
@@ -5208,11 +5274,6 @@ enum FormRole {
   ANNUAL
 
   """
-  Auto exit config
-  """
-  AUTO_EXIT_CONFIG
-
-  """
   Case note
   """
   CASE_NOTE
@@ -5394,8 +5455,6 @@ type FormRule {
 input FormRuleFilterOptions {
   activeStatus: [ActiveStatus!]
   appliedToProject: ID
-  definition: ID
-  formType: [FormRole!]
   projectType: [ProjectType!]
   systemForm: [SystemStatus!]
 }
@@ -5967,16 +6026,6 @@ type HealthAndDv {
   whenOccurred: WhenDVOccurred
 }
 
-type HealthAndDvsPaginated {
-  hasMoreAfter: Boolean!
-  hasMoreBefore: Boolean!
-  limit: Int!
-  nodes: [HealthAndDv!]!
-  nodesCount: Int!
-  offset: Int!
-  pagesCount: Int!
-}
-
 """
 HUD HealthStatus (R7.1)
 """
@@ -6364,16 +6413,6 @@ type IncomeBenefit {
   wic: NoYesMissing
   workersComp: NoYesMissing
   workersCompAmount: Float
-}
-
-type IncomeBenefitsPaginated {
-  hasMoreAfter: Boolean!
-  hasMoreBefore: Boolean!
-  limit: Int!
-  nodes: [IncomeBenefit!]!
-  nodesCount: Int!
-  offset: Int!
-  pagesCount: Int!
 }
 
 enum InitialBehavior {
@@ -7121,6 +7160,7 @@ type Mutation {
     """
     input: ClearRecentItemsInput!
   ): ApplicationUser
+  createCeMatchRule(confirmed: Boolean, input: CeMatchRuleInput!): CreateCeMatchRulePayload
   createCeReferral(clientId: ID, opportunityId: ID!, sourceEnrollmentId: ID): CreateCeReferralPayload
   createCeReferralNote(
     note: String!
@@ -7176,6 +7216,7 @@ type Mutation {
     """
     input: DeleteCeEventInput!
   ): DeleteCeEventPayload
+  deleteCeMatchRule(id: ID!): DeleteCeMatchRulePayload
   deleteCeParticipation(
     """
     Parameters for DeleteCeParticipation
@@ -7274,6 +7315,11 @@ type Mutation {
   Return AHA score for client
   """
   fetchAhaScore(clientId: ID!, lookupCatalyst: String, lookupReason: [String!]): FetchAhaScorePayload
+
+  """
+  Return VisionLink eligibility flags for client
+  """
+  fetchVisionLinkFlags(clientId: ID!): FetchVisionLinkFlagsPayload
   joinHousehold(joiningEnrollmentInputs: [EnrollmentRelationshipInput!]!, receivingHouseholdId: ID!): JoinHouseholdPayload
   markUnitsAvailable(unitIds: [ID!]!): MarkUnitsAvailablePayload
   markUnitsUnavailable(unitIds: [ID!]!): MarkUnitsUnavailablePayload
@@ -7330,6 +7376,14 @@ type Mutation {
     input: SubmitHouseholdAssessmentsInput!
   ): SubmitHouseholdAssessmentsPayload
   unassignStaff(id: ID!): UnassignStaffPayload
+  updateCeMatchRule(
+    """
+    Whether warnings have been confirmed
+    """
+    confirmed: Boolean
+    id: ID!
+    input: CeMatchRuleInput!
+  ): UpdateCeMatchRulePayload
   updateClientImage(
     """
     Parameters for UpdateClientImage
@@ -7343,7 +7397,7 @@ type Mutation {
   """
   Update a referral posting
   """
-  updateReferralPosting(id: ID!, input: ReferralPostingInput): UpdateReferralPostingPayload
+  updateReferralPosting(id: ID!, input: ReferralPostingInput): UpdateReferralPostingPayload @deprecated(reason: "Deprecated in favor of CE Referrals")
   updateRelationshipToHoH(
     """
     Parameters for UpdateRelationshipToHoH
@@ -7579,6 +7633,7 @@ type Organization {
 }
 
 type OrganizationAccess {
+  canCreateProjects: Boolean!
   canDeleteOrganization: Boolean!
   canEditOrganization: Boolean!
   id: ID!
@@ -7737,7 +7792,7 @@ enum PickListType {
   """
   Current and historical user accounts
   """
-  AUDITABLE_USERS
+  AUDITABLE_USERS @deprecated(reason: "No longer used")
   AVAILABLE_BULK_SERVICE_TYPES
   AVAILABLE_FILE_TYPES
   AVAILABLE_SERVICE_TYPES
@@ -7752,6 +7807,11 @@ enum PickListType {
   Unit types that have unoccupied units in the specified project
   """
   AVAILABLE_UNIT_TYPES
+
+  """
+  Projects with an active CE Participation record with Access Point = Yes
+  """
+  CE_ACCESS_POINT_PROJECT_NAMES
 
   """
   Grouped HUD CE Event types
@@ -7820,6 +7880,11 @@ enum PickListType {
   OPEN_HOH_ENROLLMENTS_FOR_PROJECT
 
   """
+  Names of organizations with open projects
+  """
+  OPEN_ORGANIZATION_NAMES
+
+  """
   Open Projects that the user can see
   """
   OPEN_PROJECTS
@@ -7877,7 +7942,7 @@ enum PickListType {
   UNIT_GROUPS_FOR_PROJECT_DIRECT_CE_REFERRAL
 
   """
-  User accounts. Deprecated in favor of AUDITABLE_USERS
+  User accounts. Returns all users, for use when filtering audit events
   """
   USERS
 }
@@ -9692,7 +9757,6 @@ type Project {
   HOPWAMedAssistedLivingFac: HOPWAMedAssistedLivingFac
   access: ProjectAccess!
   active: Boolean!
-  affiliatedProjects: [Project!]!
   assessments(filters: AssessmentsForProjectFilterOptions, inProgress: Boolean, limit: Int, offset: Int, sortOrder: AssessmentSortOption): AssessmentsPaginated!
 
   """
@@ -9765,10 +9829,8 @@ type Project {
   projectCocs(limit: Int, offset: Int): ProjectCocsPaginated!
   projectName: String!
   projectType: ProjectType
-  referralRequests(limit: Int, offset: Int): ReferralRequestsPaginated!
   residentialAffiliation: NoYes
   residentialAffiliationProjectIds: [ID!]!
-  residentialAffiliationProjects: [Project!]!
   rrhSubType: RRHSubType
 
   """
@@ -9789,30 +9851,21 @@ type Project {
 }
 
 type ProjectAccess {
-  canAssignReferralTasks: Boolean!
-  canDeleteAssessments: Boolean!
-  canDeleteEnrollments: Boolean!
   canDeleteProject: Boolean!
   canEditEnrollments: Boolean!
   canEditProjectDetails: Boolean!
   canEnrollClients: Boolean!
-  canManageDeniedReferrals: Boolean!
   canManageExternalFormSubmissions: Boolean!
   canManageIncomingReferrals: Boolean!
   canManageOutgoingReferrals: Boolean!
   canManageUnits: Boolean!
-  canPerformAnyReferralTasks: Boolean!
-  canPerformOwnReferralTasks: Boolean!
   canSplitHouseholds: Boolean!
   canStartReferrals: Boolean!
   canUpdateUnitAvailability: Boolean!
-  canViewDob: Boolean!
   canViewEnrollmentDetails: Boolean!
-  canViewFullSsn: Boolean!
   canViewOutgoingReferralDetails: Boolean!
   canViewOutgoingReferralSummaries: Boolean!
   canViewOwnReferrals: Boolean!
-  canViewPartialSsn: Boolean!
   canViewPrioritizedClientLists: Boolean!
   canViewReferrals: Boolean!
   canViewUnits: Boolean!
@@ -10169,6 +10222,21 @@ type Query {
   Clients who belong to at least one CE candidate pool
   """
   ceClients(filters: CeClientFilterOptions, limit: Int, offset: Int): CeClientsPaginated!
+
+  """
+  Client fields available for CE Match Rule expressions.
+  """
+  ceMatchClientFields: [CeMatchField!]!
+
+  """
+  Fields on the form that are usable as CE Match Rule condition fields.
+  """
+  ceMatchCustomAssessmentFields(formDefinitionIdentifier: String!): [CeMatchField!]!
+
+  """
+  Custom assessment form definitions for use in CE match rule management.
+  """
+  ceMatchCustomAssessmentForms: [FormDefinition!]!
   ceOpportunities(filters: CeOpportunityFilterOptions, limit: Int, offset: Int, sortOrder: CeOpportunitySortOption): CeOpportunitiesPaginated!
   ceOpportunity(id: ID!): CeOpportunity
   ceReferral(id: ID!): CeReferral
@@ -10223,8 +10291,6 @@ type Query {
   formDefinition(id: ID!): FormDefinition
   formIdentifier(identifier: String!): FormIdentifier
   formIdentifiers(filters: FormIdentifierFilterOptions, limit: Int, offset: Int): FormIdentifiersPaginated!
-  formRule(id: ID!): FormRule
-  formRules(filters: FormRuleFilterOptions, limit: Int, offset: Int, sortOrder: FormRuleSortOption): FormRulesPaginated!
 
   """
   Funder lookup
@@ -10260,6 +10326,11 @@ type Query {
   organization(id: ID!): Organization
   organizations(filters: OrganizationFilterOptions, limit: Int, offset: Int, sortOrder: OrganizationSortOption): OrganizationsPaginated!
   parsedFormDefinition(input: String!): FormDefinitionForJsonResult
+
+  """
+  Persisted search params lookup
+  """
+  persistedClientSearchParams(id: ID!): ClientSearchParams
 
   """
   Get list of options for pick list
@@ -10305,8 +10376,6 @@ type Query {
   Service lookup
   """
   service(id: ID!): Service
-  serviceCategories(limit: Int, offset: Int): ServiceCategoriesPaginated!
-  serviceCategory(id: ID!): ServiceCategory
 
   """
   Get most relevant form definition for the specified service type
@@ -10335,69 +10404,37 @@ type Query {
   """
   user(id: ID!): ApplicationUser
   userDashboard: UserDashboard!
+  workspaces(appliesTo: WorkspaceAppliesTo!): [Workspace!]!
 }
 
 type QueryAccess {
-  canAdministerHmis: Boolean!
+  canAdministerHmis: Boolean! @deprecated(reason: "Unused in the frontend")
   canAdministrateConfig: Boolean!
-  canAdministrateCoordinatedEntry: Boolean!
-  canAssignReferralTasks: Boolean!
-  canAuditClients: Boolean!
-  canAuditEnrollments: Boolean!
+  canAdministrateCoordinatedEntry: Boolean! @deprecated(reason: "Use policy permission specific to the need, such as canManageCeDefaultContacts or canIndexOpportunities")
   canAuditUsers: Boolean!
-  canConfigureDataCollection: Boolean!
-  canDeleteAssessments: Boolean!
-  canDeleteClients: Boolean!
-  canDeleteEnrollments: Boolean!
-  canDeleteOrganization: Boolean!
-  canDeleteProject: Boolean!
-  canEditClients: Boolean!
-  canEditEnrollments: Boolean!
-  canEditOrganization: Boolean!
-  canEditProjectDetails: Boolean!
+  canConfigureDataCollection: Boolean! @deprecated(reason: "Use policy permission specific to the need, such as canManageFormRules or canManageServices")
+  canCreateClients: Boolean!
+  canCreateOrganizations: Boolean!
+  canEditClients: Boolean! @deprecated(reason: "Use canCreateClients when checking for creation permission. Use client access object when checking for ability to edit a specific client.")
+  canEditOrganization: Boolean! @deprecated(reason: "Use canCreateOrganizations when checking for creation permission. Use organization access object when checking for ability to edit a specific organization.")
+  canEditProjectDetails: Boolean! @deprecated(reason: "Use canCreateProjects on the organization access object")
   canEditUsersInWarehouse: Boolean!
-  canEnrollClients: Boolean!
   canImpersonateUsers: Boolean!
-  canManageAnyClientFiles: Boolean!
-  canManageClientAlerts: Boolean!
+  canIndexEligibleClients: Boolean!
+  canIndexOpportunities: Boolean!
+  canIndexReferrals: Boolean!
+  canManageCeDefaultContacts: Boolean!
+  canManageCeMatchRules: Boolean!
   canManageDeniedReferrals: Boolean!
-  canManageExternalFormSubmissions: Boolean!
+  canManageFormRules: Boolean!
   canManageForms: Boolean!
-  canManageIncomingReferrals: Boolean!
-  canManageOutgoingReferrals: Boolean!
-  canManageOwnClientFiles: Boolean!
-  canManageScanCards: Boolean!
-  canManageUnits: Boolean!
+  canManageProjectConfigs: Boolean!
+  canManageServices: Boolean!
   canMergeClients: Boolean!
-  canPerformAnyReferralTasks: Boolean!
-  canPerformOwnReferralTasks: Boolean!
-  canPrintClientCaseNotes: Boolean!
-  canSplitHouseholds: Boolean!
-  canStartReferrals: Boolean!
-  canTransferEnrollments: Boolean!
-  canUpdateUnitAvailability: Boolean!
-  canViewAnyConfidentialClientFiles: Boolean!
-  canViewAnyNonconfidentialClientFiles: Boolean!
+  canTransferEnrollments: Boolean! @deprecated(reason: "Unused in the frontend")
   canViewClientAlerts: Boolean!
-  canViewClientContactInfo: Boolean!
-  canViewClientEligibleOpportunities: Boolean!
-  canViewClientName: Boolean!
-  canViewClientPhoto: Boolean!
   canViewClients: Boolean!
   canViewDob: Boolean!
-  canViewEnrollmentDetails: Boolean!
-  canViewEnrollmentLocationMap: Boolean!
-  canViewFullSsn: Boolean!
-  canViewHudChronicStatus: Boolean!
-  canViewLimitedEnrollmentDetails: Boolean!
-  canViewOpenEnrollmentSummary: Boolean!
-  canViewOutgoingReferralDetails: Boolean!
-  canViewOwnReferrals: Boolean!
-  canViewPartialSsn: Boolean!
-  canViewPrioritizedClientLists: Boolean!
-  canViewProject: Boolean!
-  canViewReferrals: Boolean!
-  canViewUnits: Boolean!
   id: ID!
 }
 
@@ -10982,23 +11019,6 @@ type ReferralPostingsPaginated {
 
 type ReferralRequest {
   id: ID!
-  identifier: ID!
-  neededBy: ISO8601Date!
-  requestedOn: ISO8601DateTime!
-  requestorEmail: String!
-  requestorName: String!
-  requestorPhone: String!
-  unitType: UnitTypeObject!
-}
-
-type ReferralRequestsPaginated {
-  hasMoreAfter: Boolean!
-  hasMoreBefore: Boolean!
-  limit: Int!
-  nodes: [ReferralRequest!]!
-  nodesCount: Int!
-  offset: Int!
-  pagesCount: Int!
 }
 
 """
@@ -11548,16 +11568,6 @@ type Service {
   subTypeProvided: ServiceSubTypeProvided
   typeProvided: ServiceTypeProvided
   user: ApplicationUser
-}
-
-type ServiceCategoriesPaginated {
-  hasMoreAfter: Boolean!
-  hasMoreBefore: Boolean!
-  limit: Int!
-  nodes: [ServiceCategory!]!
-  nodesCount: Int!
-  offset: Int!
-  pagesCount: Int!
 }
 
 type ServiceCategory {
@@ -12500,11 +12510,6 @@ Form Roles that are used for non-configurable forms. These types of forms are su
 """
 enum StaticFormRole {
   """
-  Auto exit config
-  """
-  AUTO_EXIT_CONFIG
-
-  """
   Client alert
   """
   CLIENT_ALERT
@@ -13052,6 +13057,14 @@ type UnitsPaginated {
   nodesCount: Int!
   offset: Int!
   pagesCount: Int!
+}
+
+"""
+Autogenerated return type of UpdateCeMatchRule.
+"""
+type UpdateCeMatchRulePayload {
+  errors: [ValidationError!]!
+  rule: CeMatchRule
 }
 
 """
@@ -14119,6 +14132,20 @@ enum WorkerResponse {
   YES
 }
 
+type Workspace {
+  id: ID!
+  name: String!
+  projectGroupId: ID!
+  slug: String!
+}
+
+enum WorkspaceAppliesTo {
+  """
+  CE referrals workspace switcher
+  """
+  CE_REFERRALS
+}
+
 """
 HUD Youth Education Status
 """
@@ -14136,14 +14163,4 @@ type YouthEducationStatus {
   informationDate: ISO8601Date
   mostRecentEdStatus: MostRecentEdStatus
   user: ApplicationUser
-}
-
-type YouthEducationStatusesPaginated {
-  hasMoreAfter: Boolean!
-  hasMoreBefore: Boolean!
-  limit: Int!
-  nodes: [YouthEducationStatus!]!
-  nodesCount: Int!
-  offset: Int!
-  pagesCount: Int!
 }

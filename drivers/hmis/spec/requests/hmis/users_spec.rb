@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -25,6 +25,14 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     hmis_user2 = create(:user).related_hmis_user(ds1)
     # put them in an HMIS user group
     create_access_control(hmis_user2, ds1)
+    hmis_user2
+  end
+
+  # user in a different data source
+  let!(:other_data_source) { create(:hmis_data_source) }
+  let!(:other_data_source_hmis_user) do
+    hmis_user2 = create(:user).related_hmis_user(other_data_source)
+    create_access_control(hmis_user2, other_data_source)
     hmis_user2
   end
 
@@ -66,13 +74,14 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect(response.status).to eq(200)
     end
 
-    it 'does not resolve Warehouse-only users' do
+    it 'does not resolve Warehouse-only users or users from another data source' do
       add_permissions(access_control, :can_audit_users)
       response, result = post_graphql { query }
       expect(response.status).to eq(200)
 
       returned_user_ids = result.dig('data', 'applicationUsers', 'nodes').map { |e| e['id'] }
       expect(returned_user_ids).to contain_exactly(user.id.to_s, other_hmis_user.id.to_s)
+      expect(returned_user_ids).not_to include(other_data_source_hmis_user.id.to_s)
     end
   end
 
@@ -102,6 +111,56 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       add_permissions(access_control, :can_audit_users)
       response, = post_graphql(id: other_hmis_user.id) { query }
       expect(response.status).to eq(200)
+    end
+
+    it 'does not resolve users from another data source' do
+      add_permissions(access_control, :can_audit_users)
+      expect_access_denied post_graphql(id: other_data_source_hmis_user.id) { query }
+    end
+  end
+
+  describe 'audit fields' do
+    let(:query) do
+      <<~GRAPHQL
+        query UserLookupWithAuditFields($id: ID!) {
+          user(id: $id) {
+            id
+            auditHistory {
+              nodes {
+                id
+              }
+            }
+            clientAccessSummaries {
+              nodes {
+                id
+              }
+            }
+            enrollmentAccessSummaries {
+              nodes {
+                id
+              }
+            }
+            loginActivities {
+              nodes {
+                id
+              }
+            }
+          }
+        }
+      GRAPHQL
+    end
+
+    it 'allows lookup with permission' do
+      add_permissions(access_control, :can_audit_users)
+      response, = post_graphql(id: other_hmis_user.id) { query }
+      expect(response.status).to eq(200)
+    end
+
+    it 'raises if user lacks access to audit fields, even if they can otherwise resolve the user' do
+      add_permissions(access_control, :can_impersonate_users)
+      remove_permissions(access_control, :can_audit_users)
+      response, = post_graphql(id: other_hmis_user.id) { query }
+      expect(response.status).to eq(500)
     end
   end
 end

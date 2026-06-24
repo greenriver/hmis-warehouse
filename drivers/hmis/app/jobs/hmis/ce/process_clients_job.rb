@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -96,7 +96,7 @@ module Hmis::Ce
 
       log_info("Processing #{markers.count} dirty clients against active pools")
       client_scope = ::GrdaWarehouse::Hud::Client.destination.where(id: markers.map(&:trackable_id))
-      candidate_pool_scope = ::Hmis::Ce::Match::CandidatePool.active_for_maintenance
+      candidate_pool_scope = ::Hmis::Ce::Match::CandidatePool.active
 
       pools_processed = 0
       pools_skipped = 0

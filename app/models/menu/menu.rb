@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -503,6 +503,14 @@ class Menu::Menu
         visible: ->(user) { user.can_manage_config? }, # rubocop:disable Style/SymbolProc
         path: oauth_applications_path,
         title: 'Oauth',
+      ),
+    )
+    menu.add_child(
+      Menu::Item.new(
+        user: user,
+        visible: ->(user) { user.can_manage_config? }, # rubocop:disable Style/SymbolProc
+        path: admin_idp_service_configs_path,
+        title: 'IDP Configuration',
       ),
     )
     menu

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -16,10 +16,14 @@ module SystemPathways
     include ArelHelper
     include ApplicationHelper
     include HudReports::Households
+    include ReportArchival
 
     belongs_to :user, optional: true
     has_many :clients
     has_many :enrollments
+
+    has_many_attached :clients_csv
+    has_many_attached :enrollments_csv
 
     after_initialize :filter
 
@@ -304,8 +308,8 @@ module SystemPathways
     end
 
     private def create_universe
-      clients.delete_all
-      enrollments.delete_all
+      hard_delete_archival_relation(clients)
+      hard_delete_archival_relation(enrollments)
       client_ids.each_slice(1_000) do |ids|
         enrollment_batch = enrollment_scope.where(client_id: ids)
 
@@ -529,6 +533,20 @@ module SystemPathways
         joins(:project, :enrollment).
         open_between(start_date: filter.start_date, end_date: filter.end_date)
       filter.apply(scope, except: [:filter_for_enrollment_cocs])
+    end
+
+    def archival_csv_config
+      report_type = self.class.name.gsub('::', '-').underscore
+      {
+        clients_csv: {
+          association: :clients,
+          filename: -> { "#{report_type}-clients-#{id}.csv" },
+        },
+        enrollments_csv: {
+          association: :enrollments,
+          filename: -> { "#{report_type}-enrollments-#{id}.csv" },
+        },
+      }
     end
   end
 end

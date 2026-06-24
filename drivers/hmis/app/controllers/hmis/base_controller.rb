@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -9,6 +9,7 @@
 class Hmis::BaseController < ActionController::Base
   include BaseApplicationControllerBehavior
   include LogRagePayloadBehavior
+  include ControllerCacheBehavior
 
   before_action :authenticate_hmis_user!
   impersonates :hmis_user, with: ->(id) { Hmis::User.find_by(id: id) }
@@ -18,6 +19,7 @@ class Hmis::BaseController < ActionController::Base
   before_action :set_csrf_cookie
   before_action :set_app_user_header
   before_action :set_git_revision_header
+  before_action :set_anti_caching_headers, if: :hmis_user_signed_in?
 
   private def set_csrf_cookie
     cookies['CSRF-Token'] = form_authenticity_token
@@ -30,23 +32,32 @@ class Hmis::BaseController < ActionController::Base
     render_json_error(401, :unverified_request)
   end
 
+  # HMIS domain for this request; used to resolve the data source (DataSource.hmis).
+  # @see docs/architecture/multi-hmis-support.md
   def current_hmis_host
+    # In development, use untrusted header X-Hmis-Dev-Host.
+    # Trusted header 'request.host' cannot be used because the dev server setup makes it appear to come from the backend host.
+    return request.headers['X-Hmis-Dev-Host'].presence || raise('X-Hmis-Dev-Host header required in development') if Rails.env.development?
+
     # Trust Rack/Rails host resolution (respects trusted proxies and allowed hosts)
     return request.host if request.host.present?
 
     raise 'cannot determine HMIS host'
   end
 
+  def current_data_source
+    data_source = GrdaWarehouse::DataSource.hmis.find_by(hmis: current_hmis_host)
+    raise "HMIS data source not configured: #{current_hmis_host}" unless data_source.present?
+
+    data_source
+  end
+
+  # Binds the current request to an HMIS data source using the request host
+  # @see docs/architecture/multi-hmis-support.md
   def attach_data_source_id
-    domain = current_hmis_host
-
-    # In development: treat requests from GraphiQL as if they are coming from the local frontend
-    domain = ENV['HMIS_HOSTNAME'] if Rails.env.development? && domain == ENV['HOSTNAME'] && ENV['HMIS_HOSTNAME'].present?
-
-    data_source_id = GrdaWarehouse::DataSource.hmis.find_by(hmis: domain)&.id
-    raise "HMIS data source not configured: #{domain}" unless data_source_id.present?
-
+    data_source_id = current_data_source.id
     current_hmis_user.hmis_data_source_id = data_source_id
+    true_hmis_user.hmis_data_source_id = data_source_id if true_hmis_user.present?
   end
 
   # PaperTrail whodunnit (set in ApplicationController) uses this method to determine the label to be stored

@@ -1,10 +1,10 @@
-# frozen_string_literal: true
-
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 require 'rails_helper'
 require_relative 'login_and_permissions'
@@ -112,14 +112,10 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             canViewDob
             canViewFullSsn
             canViewPartialSsn
-            canEditEnrollments
-            canDeleteEnrollments
             canViewEnrollmentDetails
-            canDeleteAssessments
             canManageAnyClientFiles
             canManageOwnClientFiles
-            canViewAnyConfidentialClientFiles
-            canViewAnyNonconfidentialClientFiles
+            canViewAnyFiles
           }
         }
       }
@@ -292,10 +288,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       create_access_control(hmis_user, ds1, with_permission: [:can_view_clients, :can_view_dob, :can_view_project, :can_view_enrollment_details])
     end
 
-    def expected_hash_from_role(role)
-      role.attributes.entries.select { |k, _v| k.match(/^can_/) }.map { |k, v| [k.camelize(:lower), v] }.to_h
-    end
-
     def check_client_access_with_role(hash, role)
       expect(hash).to include(
         'canEditClient' => role.can_edit_clients,
@@ -303,14 +295,12 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         'canViewDob' => role.can_view_dob,
         'canViewFullSsn' => role.can_view_full_ssn,
         'canViewPartialSsn' => role.can_view_partial_ssn,
-        'canEditEnrollments' => role.can_edit_enrollments,
-        'canDeleteEnrollments' => role.can_delete_enrollments,
         'canViewEnrollmentDetails' => role.can_view_enrollment_details,
-        'canDeleteAssessments' => role.can_delete_assessments,
         'canManageAnyClientFiles' => role.can_manage_any_client_files,
         'canManageOwnClientFiles' => role.can_manage_own_client_files,
-        'canViewAnyConfidentialClientFiles' => role.can_view_any_confidential_client_files,
-        'canViewAnyNonconfidentialClientFiles' => role.can_view_any_nonconfidential_client_files,
+        'canViewAnyFiles' => role.can_manage_own_client_files ||
+          role.can_view_any_nonconfidential_client_files ||
+          role.can_view_any_confidential_client_files,
       )
     end
 

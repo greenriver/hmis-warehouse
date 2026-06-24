@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -51,6 +51,36 @@ class Hmis::TableConfiguration < Hmis::HmisBase
   validate :validate_filters_shape
 
   scope :for_ce_clients_table, -> { where(table_key: CE_CLIENTS) }
+
+  def column_keys
+    Array.wrap(columns).filter_map { |col| col['key'] || col[:key] }.map(&:to_s)
+  end
+
+  # Detect config to use for CE Eligible Clients table for a given data source
+  def self.detect_ce_clients_global_config(data_source_id:)
+    Hmis::TableConfiguration.for_ce_clients_table.find_by(data_source_id: data_source_id, owner: nil)
+  end
+
+  # Detect config to use for CE Eligible Clients table for a given unit group
+  def self.detect_ce_clients_unit_group_config(data_source_id:, unit_group_id:)
+    unit_group = Hmis::UnitGroup.find_by(id: unit_group_id)
+    return unless unit_group
+
+    # find applicable configuration for this unit group, preferring more specific owners
+    [
+      unit_group,
+      unit_group.project,
+      unit_group.project&.organization,
+      nil,
+    ].each do |owner|
+      found = Hmis::TableConfiguration.for_ce_clients_table.
+        where(data_source_id: data_source_id).
+        find_by(owner: owner)
+      return found if found.present?
+    end
+
+    nil # no config found
+  end
 
   private
 

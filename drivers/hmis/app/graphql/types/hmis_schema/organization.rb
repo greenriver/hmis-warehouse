@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -29,8 +29,11 @@ module Types
     field :contact_information, String, null: true
     custom_data_elements_field
     access_field do
-      can :delete_organization
-      can :edit_organization
+      define_method(:policy) { @policy ||= policy_for(object, policy_type: :hmis_organization) }
+
+      bool_field(:can_delete_organization) { policy.can_delete? }
+      bool_field(:can_edit_organization) { policy.can_edit? }
+      bool_field(:can_create_projects) { policy.can_create_project? }
     end
 
     def projects(**args)

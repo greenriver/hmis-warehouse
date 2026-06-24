@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -32,6 +32,17 @@ module HudSpmReport::Generators::Fy2026
 
     def url
       hud_reports_spm_url(report, { host: ENV['FQDN'], protocol: 'https' })
+    end
+
+    def prepare_report
+      super
+
+      HudReports::HouseholdContextBuilder.call(
+        self,
+        report,
+        enrollment_scope: spm_enrollment_scope,
+        lookback_years: 7,
+      )
     end
 
     def self.questions
@@ -75,6 +86,53 @@ module HudSpmReport::Generators::Fy2026
 
     def self.uploadable_version?
       true
+    end
+
+    def self.archival_csv_config(report_instance)
+      enrollment_ids = HudSpmReport::Fy2026::SpmEnrollment.where(report_instance_id: report_instance.id).select(:id)
+      episode_ids = HudReports::UniverseMember.where(
+        report_cell_id: report_instance.report_cells.select(:id),
+        universe_membership_type: 'HudSpmReport::Fy2026::Episode',
+      ).pluck(:universe_membership_id)
+
+      HudReportArchival.shared_archival_entries(report_instance, prefix: 'spm').merge(
+        spm_bed_nights_csv: {
+          scope: -> { HudSpmReport::Fy2026::BedNight.where(enrollment_id: enrollment_ids) },
+          filename: -> { "hud-spm-fy2026-#{report_instance.id}-spm-bed-nights.csv" },
+          delete_order: 2,
+        },
+        spm_enrollment_links_csv: {
+          scope: -> { HudSpmReport::Fy2026::EnrollmentLink.where(enrollment_id: enrollment_ids) },
+          filename: -> { "hud-spm-fy2026-#{report_instance.id}-spm-enrollment-links.csv" },
+          delete_order: 3,
+        },
+        spm_returns_csv: {
+          scope: -> { HudSpmReport::Fy2026::Return.where(report_instance_id: report_instance.id) },
+          filename: -> { "hud-spm-fy2026-#{report_instance.id}-spm-returns.csv" },
+          delete_order: 4,
+        },
+        spm_episodes_csv: {
+          scope: -> { HudSpmReport::Fy2026::Episode.where(id: episode_ids) },
+          filename: -> { "hud-spm-fy2026-#{report_instance.id}-spm-episodes.csv" },
+          delete_order: 5,
+        },
+        spm_enrollments_csv: {
+          scope: -> { HudSpmReport::Fy2026::SpmEnrollment.where(report_instance_id: report_instance.id) },
+          filename: -> { "hud-spm-fy2026-#{report_instance.id}-spm-enrollments.csv" },
+          delete_order: 6,
+        },
+      )
+    end
+
+    # HudReportArchival.register_archival_generator(self.title, self) runs when this
+    # concern is included. Include at the end of the class to ensure all required fields
+    # are loaded for registration
+    include HudSpmReport::Archival
+
+    private
+
+    def spm_enrollment_scope
+      HudSpmReport::Fy2026::SpmEnrollment.she_scope(report)
     end
   end
 end

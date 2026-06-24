@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -14,6 +14,19 @@ end
 
 # from user factory
 DEFAULT_USER_PASSWORD = Digest::SHA256.hexdigest('abcd1234abcd1234')
+
+# Suite-level HMIS JSON form seeding
+module E2eSystemSuite
+  def self.seed_hmis_json_forms!
+    data_source = GrdaWarehouse::DataSource.find_or_create_by!(
+      hmis: 'localhost',
+      name: 'HMIS',
+      short_name: 'HMIS',
+      authoritative: true,
+    )
+    ::HmisUtil::JsonForms.seed_all(data_source_id: data_source.id)
+  end
+end
 
 # test helper methods
 RSpec.shared_context 'SystemSpecHelper' do

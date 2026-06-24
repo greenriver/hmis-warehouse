@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -35,12 +35,16 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     GRAPHQL
   end
 
+  let(:identifier) { 'a_new_service' }
+  # Cruft: there's an existing form with this identifier in a different DS, which should be ignored
+  let!(:cruft_form) { create(:hmis_form_definition, identifier: identifier) }
+
   it 'should successfully create a new form' do
     input = {
       definition: '',
       role: 'SERVICE',
       title: 'A new service',
-      identifier: 'a_new_service',
+      identifier: identifier,
     }
     response, result = post_graphql(input: input) { mutation }
     expect(response.status).to eq(200), result.inspect
@@ -83,5 +87,20 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     expect(result.dig('data', 'createFormDefinition', 'errors')).not_to be_empty
     error_message = result.dig('data', 'createFormDefinition', 'errors', 0, 'message')
     expect(error_message).to match(/must contain only alphanumeric characters, underscores, and dashes/i)
+  end
+
+  it 'should fail to create a new form with a non-unique identifier' do
+    create(:hmis_form_definition, identifier: identifier, data_source: ds1)
+    input = {
+      definition: '',
+      role: 'SERVICE',
+      title: 'A new service',
+      identifier: identifier,
+    }
+    response, result = post_graphql(input: input) { mutation }
+    expect(response.status).to eq(200), result.inspect
+    errors = result.dig('data', 'createFormDefinition', 'errors')
+    expect(errors).not_to be_empty
+    expect(errors.first['fullMessage']).to eq('Identifier is not unique. Please choose another identifier.')
   end
 end

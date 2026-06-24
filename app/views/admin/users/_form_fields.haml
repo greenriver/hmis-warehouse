@@ -62,8 +62,11 @@
                 input_html: { multiple: true, checked: @user.system_contact&.alert_definition_ids&.include?(alert.id) },
                 checked_value: alert.id,
                 unchecked_value: nil
+        - if current_user.can_audit_users? && !@user.new_record?
+          .mt-2.mb-2
+            = link_to 'View threshold notification history', admin_user_threshold_notification_logs_path(@user)
     - unless @user.new_record?
-      = render 'contact_relationships'
+      = render 'admin/users/contact_relationships'
     .form--expiration
       %h3 Account Life-cycle
       .well

@@ -1,3 +1,9 @@
+###
+# Copyright Green River Data Group, Inc.
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 # frozen_string_literal: true
 
 require 'rails_helper'
@@ -304,6 +310,19 @@ RSpec.describe GrdaWarehouse::Cohort, type: :model do
         expect do
           cohort.maintain
         end.to change { cohort.reload.automation_updated_at }.from(nil)
+      end
+    end
+
+    describe '#with_client_update_lock' do
+      let(:cohort) { create(:cohort) }
+
+      it 'returns true when the lock is acquired' do
+        expect(cohort.with_client_update_lock { 'anything' }).to eq(true)
+      end
+
+      it 'returns false when the lock is already held' do
+        allow(GrdaWarehouseBase).to receive(:with_advisory_lock).and_return(false)
+        expect(cohort.with_client_update_lock { raise 'should not execute' }).to eq(false)
       end
     end
 

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -84,12 +84,9 @@ module HmisExternalApis::AcHmis::Exporters
         group_by(&:candidate_pool_id)
     end
 
-    # Only include candidate pools that are referenced by unit groups with CE waitlists enabled ('active_for_current_eligibility' scope).
-    # Note: This almost matches the ceClients query that backs the global eligible clients list, but not exactly.
-    # The difference is here we only include candidate pools that are referenced by unit groups, and not those referenced by stale opportunities.
+    # Only include candidate pools that are referenced by unit groups with CE waitlists enabled ('active' scope).
     def candidate_pool_ids_for_data_source
-      @candidate_pool_ids_for_data_source ||= Hmis::Ce::Match::CandidatePool.
-        active_for_current_eligibility.
+      @candidate_pool_ids_for_data_source ||= Hmis::Ce::Match::CandidatePool.active.
         joins(unit_groups: :project).
         where(Hmis::Hud::Project.arel_table[:data_source_id].eq(data_source.id)).
         distinct.

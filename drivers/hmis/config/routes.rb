@@ -1,12 +1,12 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 # frozen_string_literal: true
 
-BostonHmis::Application.routes.draw do
+OpenPath::Application.routes.draw do
   get 'hmis/system_status/operational', to: 'system_status#operational'
   get 'hmis/system_status/cache_status', to: 'system_status#cache_status'
   get 'hmis/system_status/details', to: 'system_status#details'
@@ -59,16 +59,31 @@ BostonHmis::Application.routes.draw do
     namespace :hmis_admin do
       resources :access_overviews, only: [:index]
       resources :roles do
+        resource :audit, only: :show, controller: 'role_audits' do
+          get :export, on: :member
+        end
         patch :batch_update, on: :collection
       end
       resources :groups do
+        resource :audit, only: :show, controller: 'group_audits' do
+          get :export, on: :member
+        end
         get :entities, on: :member
         patch :bulk_entities, on: :member
       end
       resources :user_groups do
+        resource :audit, only: :show, controller: 'user_group_audits' do
+          get :export, on: :member
+        end
         resources :users, only: [:create, :destroy], controller: 'user_groups/users'
       end
-      resources :access_controls
+      resources :access_controls do
+        resource :audit, only: :show, controller: 'access_control_audits' do
+          get :export, on: :member
+        end
+        get :audits, on: :collection
+        post :render_audits, on: :collection
+      end
       resources :users, only: [:index, :edit, :update]
       resources :project_groups, only: [:index, :new, :create, :edit, :update, :show, :destroy]
     end

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -9,7 +9,8 @@
 FactoryBot.define do
   factory :hmis_form_instance, class: 'Hmis::Form::Instance' do
     entity { association :hmis_hud_project }
-    definition { association :hmis_form_definition }
+    data_source { association :hmis_data_source }
+    definition { association :hmis_form_definition, data_source: data_source }
     active { true }
     system { false }
     transient do
@@ -19,6 +20,9 @@ FactoryBot.define do
     after(:create) do |instance, evaluator|
       instance.definition.update(role: evaluator.role) if evaluator.role.present?
       instance.definition.update(status: evaluator.definition_status) if evaluator.definition_status.present?
+
+      # re-validate here after updating definition role, since some validations are role-specific
+      raise instance.errors.full_messages.join(', ') unless instance.valid?
     end
   end
 end

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -177,8 +177,12 @@ RSpec.describe MaYyaReport::UniverseCalculator do
           client = OpenStruct.new(gender_multi: [9], GenderNone: nil)
           expect(calculator.send(:gender, client)).to eq(6)
 
-          # Other cases use GenderNone
+          # Other cases use GenderNone when present
           client = OpenStruct.new(gender_multi: [2], GenderNone: 99)
+          expect(calculator.send(:gender, client)).to eq(99)
+
+          # GenderNone nil (no gender collected) falls back to 99 (not collected)
+          client = OpenStruct.new(gender_multi: [2], GenderNone: nil)
           expect(calculator.send(:gender, client)).to eq(99)
         end
       end

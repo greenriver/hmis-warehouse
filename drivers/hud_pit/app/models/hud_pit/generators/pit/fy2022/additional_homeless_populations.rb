@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -8,7 +8,8 @@
 
 module HudPit::Generators::Pit::Fy2022
   class AdditionalHomelessPopulations < Base
-    QUESTION_NUMBER = 'Additional Homeless Populations'.freeze
+    QUESTION_NUMBER = 'Additional Homeless Populations'
+    HIV_AIDS_ROW = 6
 
     # Only relevant to adults
     def self.filter_pending_associations(pending_associations)

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -32,7 +32,10 @@ class Dba::DatabaseBloat
   MIN_ROWS = ENV.fetch('DBA_MIN_ROWS', 1_000).to_i
 
   # minimum percentage of non-analyzed rows to trigger adjusting autovaccuum
-  MIN_PCT_NOT_ANALZYED = ENV.fetch('DBA_MIN_PCT_NOT_ANALYZED', 4).to_i
+  MIN_PCT_NOT_ANALYZED = ENV.fetch('DBA_MIN_PCT_NOT_ANALYZED', 4).to_i
+
+  # skip pg_repack on tables larger than this (pg_repack needs roughly table_size of free space)
+  MAX_REPACK_TABLE_SIZE = ENV.fetch('DBA_MAX_REPACK_TABLE_SIZE', 100 * 1024**3).to_i
 
   def initialize(ar_base_class:, dry_run: false)
     self.ar_base_class = ar_base_class
@@ -99,7 +102,7 @@ class Dba::DatabaseBloat
 
   # Autovacuum is tied to autoanalyze
   def adjust_autovacuum_for(row)
-    return unless row['percent_unanalyzed'] > MIN_PCT_NOT_ANALZYED
+    return unless row['percent_unanalyzed'] > MIN_PCT_NOT_ANALYZED
 
     autovacuum_analyze_threshold = (row['autovacuum_analyze_threshold'] / 2).to_i
     autovacuum_analyze_scale_factor = (row['autovacuum_analyze_scale_factor'] / 2).round(2)
@@ -140,7 +143,10 @@ class Dba::DatabaseBloat
       # password should be in your .pgpass file
 
       bloated_tables.each.with_index do |row, i|
-        # puts row
+        if row['real_size_bytes'].to_i > MAX_REPACK_TABLE_SIZE
+          Rails.logger.warn("Skipping pg_repack for #{row['tblname']} (#{row['real_size']}): exceeds DBA_MAX_REPACK_TABLE_SIZE limit")
+          next
+        end
 
         # Get the appropriate pg_repack binary for this database version
         db_version = pg_repack_db_version
@@ -171,9 +177,7 @@ class Dba::DatabaseBloat
         cmd = ['bash', '-c', bash_cmd]
 
         Rails.logger.info("Repacking #{row['tblname']} with binary: #{binary}")
-        system(*cmd)
-
-        raise 'running repack failed.' if $?.exitstatus != 0 # rubocop:disable Style/SpecialGlobalVars
+        raise 'running repack failed.' unless run_system_command(*cmd)
 
         adjust_autovacuum_for(row)
 
@@ -188,6 +192,7 @@ class Dba::DatabaseBloat
   SUPPORTED_VERSIONS = {
     '1.5.1' => 'pg_repack-1.5.1',
     '1.5.2' => 'pg_repack-1.5.2',
+    '1.5.3' => 'pg_repack-1.5.3',
   }.freeze
 
   # Ensure the pg_repack extension is installed in the database and the version of the pg_repack extension matches the version of the pg_repack binary.
@@ -199,7 +204,7 @@ class Dba::DatabaseBloat
     end
 
     db_version = pg_repack_db_version
-    raise "pg_repack extension is not installed in this database (#{ar_base_class}). Run CREATE EXTENSION pg_repack;" if db_version.nil?
+    raise "pg_repack extension is not installed in this database (#{ar_base_class})." if db_version.nil?
 
     binary = pg_repack_binary(db_version)
     raise "No pg_repack binary available for version #{db_version}" if binary.nil?
@@ -230,13 +235,17 @@ class Dba::DatabaseBloat
     system("which #{escaped_binary} > /dev/null 2>&1")
   end
 
-  # Get the version of the pg_repack extension in the database
-  # @return [String] The version of the pg_repack extension (e.g. '1.5.2')
+  # pg_repack client version must match the loaded server library, not pg_extension.extversion.
+  # After a Postgres image upgrade, extversion (catalog) can lag (e.g. 1.5.1) while pg_repack.so is newer (e.g. 1.5.3).
+  # repack.version() reads the library version — the same check pg_repack uses at connect time.
+  # @return [String, nil] The library version (e.g. '1.5.3')
   def pg_repack_db_version
-    sql = "SELECT extversion FROM pg_extension WHERE extname = 'pg_repack'"
-    result = always_run(sql)
-    row = result.first
-    row && row['extversion']
+    sql = 'SELECT repack.version() AS version'
+    row = always_run(sql).first
+    raw = row && row['version']
+    # repack.version() returns a label like "pg_repack 1.5.3"; strip non-version text.
+    # [^\d.] = any character that is NOT (\d) a digit or (.) a period
+    raw&.gsub(/[^\d.]/, '')&.presence
   end
 
   # Quote PostgreSQL identifiers that need it (mixed case, special characters, etc.)
@@ -251,6 +260,12 @@ class Dba::DatabaseBloat
     else
       identifier
     end
+  end
+
+  # Wraps system() so tests can stub it without hitting the frozen $? object
+  def run_system_command(*cmd)
+    system(*cmd)
+    $?.exitstatus == 0 # rubocop:disable Style/SpecialGlobalVars
   end
 
   # for finding bloat, etc. Harmless things only
@@ -365,6 +380,7 @@ class Dba::DatabaseBloat
         r.schemaname,
         r.tblname,
         pg_size_pretty(r.real_size::bigint) as real_size,
+        r.real_size::bigint as real_size_bytes,
         pg_size_pretty(r.extra_size::bigint) as extra_size,
         round(r.extra_pct) as extra_pct,
         round(r.bloat_pct) as bloat_pct,
@@ -483,7 +499,12 @@ class Dba::DatabaseBloat
                                 FROM pg_catalog.pg_index i
                                 JOIN pg_catalog.pg_class ci ON ci.oid = i.indexrelid
                                 WHERE ci.relam=(SELECT oid FROM pg_am WHERE amname = 'btree')
-                                AND ci.relpages > 0
+                                -- relpages is the number of 8KB disk pages the index occupies. An index's maximum possible
+                                -- bloat equals its total size (relpages * 8192 bytes), so any index below this threshold
+                                -- can never exceed SIZE_CUTOFF bytes of bloat and will never appear in final results.
+                                -- This avoids running expensive per-index statistics for thousands of small indexes
+                                -- (e.g. child partition indexes from hmis_2022_* tables).
+                                AND ci.relpages > #{(SIZE_CUTOFF / 8192.0).ceil}
                             ) AS idx_data
                         ) AS ic
                         JOIN pg_catalog.pg_class ct ON ct.oid = ic.tbloid

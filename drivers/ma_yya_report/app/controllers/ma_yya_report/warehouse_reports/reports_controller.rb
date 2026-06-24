@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -9,7 +9,7 @@
 module MaYyaReport::WarehouseReports
   class ReportsController < ApplicationController
     include WarehouseReportAuthorization
-    before_action :set_report, only: [:show, :destroy, :details]
+    before_action :set_report, only: [:show, :destroy, :details, :reload_from_csv]
 
     def index
       if params[:filter].present?

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -151,13 +151,15 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
     age_oldest_to_youngest: 'Age: Oldest to Youngest',
   }.freeze
 
-  # Enrollments at Projects where the user has the specified permission(s).
-  # WARNING UNSAFE! This does not check for can_view_project or can_view_enrollment_details.
-  # This scope should almost always be used in conjunction with viewable_by.
-  scope :with_access, ->(user, *permissions, **kwargs) do
-    return none unless user.permissions?(*permissions)
+  # Enrollments that the user has full enrollment details access to (e.g. they can see the full Enrollment Dashboard)
+  scope :enrollment_details_viewable_by, ->(user) do
+    project_ids = Hmis::Hud::Project.with_access(user, :can_view_enrollment_details, :can_view_project, mode: :all).select(:id)
+    where(project_pk: project_ids)
+  end
 
-    project_ids = Hmis::Hud::Project.with_access(user, *permissions, **kwargs).order(:id).pluck(:id)
+  # Enrollments that the user has limited enrollment details access to (e.g. they can see that the Enrollments exist on the Client dashboard)
+  scope :limited_enrollment_details_viewable_by, ->(user) do
+    project_ids = Hmis::Hud::Project.with_access(user, :can_view_limited_enrollment_details).select(:id)
     where(project_pk: project_ids)
   end
 
@@ -166,15 +168,29 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   #
   # Note: use "replace_scope" hide previous declaration of :viewable_by
   replace_scope :viewable_by, ->(user, include_limited_access_enrollments: false) do
-    return with_access(user, :can_view_enrollment_details, :can_view_project, mode: :all) unless include_limited_access_enrollments
-    return none unless user.permissions?(:can_view_enrollment_details, :can_view_limited_enrollment_details, mode: :any)
+    return enrollment_details_viewable_by(user) unless include_limited_access_enrollments
 
-    # Projects where the user has full enrollment access
-    full_access_project_ids = Hmis::Hud::Project.with_access(user, :can_view_enrollment_details, :can_view_project, mode: :all).pluck(:id)
-    # Projects where the user has limited enrollment access
-    limited_access_project_ids = Hmis::Hud::Project.with_access(user, :can_view_limited_enrollment_details).pluck(:id)
+    # optimization: return early if the user has NO access to enrollments in this data source
+    global_policy = user.policy_for(Hmis::Hud::Enrollment, policy_type: :hmis_enrollment)
+    return none unless global_policy.can_view? || global_policy.can_view_limited?
 
-    where(project_pk: (full_access_project_ids + limited_access_project_ids).uniq.sort)
+    enrollment_details_viewable_by(user).
+      or(limited_enrollment_details_viewable_by(user))
+  end
+
+  # Includes enrollments that are viewable by the user AND the user has some access to the enrollment's files
+  # (regardless if any files exist; regardless if the user has access to confidential or nonconfidential files).
+  # Does not include viewable enrollments where the user can only see their "own" files (can_manage_own_client_files),
+  # which is checked for separately by the File#viewable_by scope.
+  scope :files_viewable_by, ->(user) do
+    project_ids = Hmis::Hud::Project.
+      # Projects where the user can see enrollment details
+      with_access(user, :can_view_enrollment_details, :can_view_project, mode: :all).
+      # Projects where the user has one of the listed file perms
+      with_access(user, :can_view_any_nonconfidential_client_files, :can_view_any_confidential_client_files, mode: :any).
+      select(:id)
+
+    where(project_pk: project_ids)
   end
 
   # Free-text search for Enrollment
@@ -395,6 +411,9 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
     Hmis::Form::OccurrencePointFormCollection.new.for_enrollment(self)
   end
 
+  # Save a new Enrollment.
+  # If auto-enter is enabled for the project, save as non-WIP and generate an empty intake assessment.
+  # Otherwise, save as WIP.
   def save_new_enrollment!
     raise 'Unexpected: save_new_enrollment called on a persisted enrollment' if persisted?
 
@@ -409,12 +428,13 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
     project.should_auto_enter?
   end
 
+  # Save as non-WIP and generate an empty intake assessment.
+  #
+  # Note: Prefer save_new_enrollment! when starting a new enrollment from ordinary HMIS flows.
+  # This method is exposed for special cases where you need auto-enter outside of those guards
+  # (e.g. external form review where Client+Enrollment are already saved, or one-off imports that
+  # auto-enter in a project without auto-enter enabled).
   def save_and_auto_enter!
-    # If auto-enter is configured for this project, save as non-WIP and generate an empty intake.
-    # In general, use save_new_enrollment! above to guard against duplicating synthetic assessments for an enrollment
-    # that is already persisted. This is a special case used by the external form submission mutations; since the
-    # Location table is related to both Client and Enrollment, by the time Client is saved, the Enrollment has also
-    # already been persisted, but it's still guaranteed to be a new enrollment.
     save_not_in_progress!
     build_synthetic_intake_assessment.save!
   end
@@ -568,5 +588,6 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
     ]).any?
   end
 
-  include RailsDrivers::Extensions
+  # Extensions from drivers — see ADR 0007
+  include HmisExternalApis::Hmis::Hud::EnrollmentExtension
 end

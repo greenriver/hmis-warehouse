@@ -1,14 +1,14 @@
-# frozen_string_literal: true
-
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module HopwaCaper::Generators::Fy2026::Sheets
   class SupportiveServicesSheet < Base
-    QUESTION_NUMBER = 'Q6: Supportive Services'
+    QUESTION_NUMBER = 'Supportive Services'
     QUESTION_NUMBERS = ['Q6'].freeze
     SHEET_TITLE = 'Complete for all households served with HOPWA funded Supportive Services by your organization in the reporting year.'
 
@@ -95,7 +95,7 @@ module HopwaCaper::Generators::Fy2026::Sheets
       hoh_client_ids = HopwaCaper::Enrollment.
         head_of_household.
         where(report_instance_id: @report.id, report_household_id: services.select(:report_household_id)).
-        select(:destination_client_id)
+        pluck(:destination_client_id)
 
       # Return the latest enrollment for each of those HOHs
       HopwaCaper::Enrollment.head_of_household.

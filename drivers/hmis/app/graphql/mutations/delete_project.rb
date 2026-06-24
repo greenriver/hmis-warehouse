@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -14,7 +14,7 @@ module Mutations
 
     def resolve(id:)
       record = Hmis::Hud::Project.viewable_by(current_user).find_by(id: id)
-      access_denied! unless record && policy_for(record, policy_type: :hmis_project).can_destroy?
+      access_denied! unless record && policy_for(record, policy_type: :hmis_project).can_delete?
 
       record.destroy!
       {

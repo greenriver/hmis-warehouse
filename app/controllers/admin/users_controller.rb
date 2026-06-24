@@ -1,10 +1,10 @@
-# frozen_string_literal: true
-
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 module Admin
   class UsersController < ApplicationController
@@ -49,6 +49,12 @@ module Admin
         with_active_entities.
         includes(:entity, :alert_definitions).
         order(type: :asc).
+        to_a
+
+      # Import CSV Monitor notifications (user_id is cross-DB)
+      @import_csv_monitor_configs = GrdaWarehouse::NotificationConfiguration.
+        where(user_id: @user.id, source_type: 'GrdaWarehouse::ImportCsvMonitor', active: true).
+        includes(source: :data_source).
         to_a
     end
 
@@ -102,6 +108,8 @@ module Admin
       end
 
       existing_health_roles = @user.health_roles.to_a
+      email_before = @user.email
+
       begin
         User.transaction do
           @user.skip_reconfirmation!
@@ -147,8 +155,20 @@ module Admin
         render :edit
         return
       end
+
       # Queue recomputation of external report access
       @user.delay(queue: ENV.fetch('DJ_SHORT_QUEUE_NAME', :short_running)).populate_external_reporting_permissions!
+
+      if HmisEnforcement.hmis_enabled?
+        begin
+          @user.sync_to_hud_users(previous_email: email_before)
+        rescue StandardError => e
+          Rails.logger.error("[HMIS] HUD user sync failed (user #{@user.id}): #{e.class}: #{e.message}")
+          redirect_to edit_admin_user_path(@user), alert: 'User updated, but HMIS sync failed. Your changes were saved.'
+          return
+        end
+      end
+
       respond_with(@user, location: edit_admin_user_path(@user)) unless @redirecting
     end
 

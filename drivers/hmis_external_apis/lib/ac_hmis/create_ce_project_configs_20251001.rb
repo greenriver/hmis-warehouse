@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -96,7 +96,7 @@ module AcHmis
 
       # Create or update ProjectCeConfig for the projects in scope
       scope.each do |project|
-        record = Hmis::ProjectCeConfig.find_or_initialize_by(project_id: project.id)
+        record = Hmis::ProjectCeConfig.find_or_initialize_by(project_id: project.id, data_source: project.data_source)
         record.supports_waitlist_referrals = waitlists
         record.receives_direct_referrals = direct_referrals
         record.receives_direct_referrals_from = [ce_project.id]

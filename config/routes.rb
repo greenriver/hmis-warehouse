@@ -1,3 +1,9 @@
+###
+# Copyright Green River Data Group, Inc.
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 # frozen_string_literal: true
 
 Rails.application.routes.draw do
@@ -137,7 +143,12 @@ Rails.application.routes.draw do
     end
   end
 
-  resources :secure_files, only: [:show, :create, :index, :destroy]
+  resources :secure_files, only: [:show, :create, :index, :destroy] do
+    collection do
+      get :sent
+      get :all_files
+    end
+  end
   resources :help
   resources :maintenance, only: [:index]
   resources :maintenance_saver, only: [:index], controller: 'maintenance'
@@ -588,6 +599,14 @@ Rails.application.routes.draw do
     end
     resource :report, on: :member, only: [:show], controller: 'cohorts/reports'
     resource :copy, only: [:new, :create], controller: 'cohorts/copy'
+    resource :acl_access_audit, only: [:show], controller: 'cohorts/acl_access_audits' do
+      get :export, on: :member
+    end
+    # START_ACL remove this route when the legacy permission model is removed
+    resource :legacy_access_audit, only: [:show], controller: 'cohorts/legacy_access_audits' do
+      get :export, on: :member
+    end
+    # END_ACL
 
     # Client search queries
     resources :client_searches, only: [:create], controller: 'cohorts/clients/search_queries', as: :client_search_queries
@@ -604,13 +623,18 @@ Rails.application.routes.draw do
   resources :data_sources do
     resources :uploads, except: [:update, :destroy, :edit]
     resources :non_hmis_uploads, except: [:update, :destroy, :edit]
-    resources :custom_imports, controller: 'data_sources/custom_imports'
+    resources :custom_imports, controller: 'data_sources/custom_imports' do
+      get :download, on: :member
+    end
     resource :api_config
     resource :hmis_import_config do
       get :download
     end
     resource :import_threshold, only: [:show, :update] do
       resources :notification_configurations, only: [:new, :edit, :create, :update, :destroy]
+    end
+    resources :import_csv_monitors, only: [:index, :new, :create, :edit, :update, :destroy] do
+      resources :notification_configurations, only: [:new, :edit, :create, :update, :destroy], controller: 'import_csv_monitors/notification_configurations'
     end
     resource :external_hmis_configuration, only: [:show, :update]
   end
@@ -770,6 +794,7 @@ Rails.application.routes.draw do
         post :impersonate
         patch :expire_password
       end
+      resources :threshold_notification_logs, only: [:index, :show]
     end
 
     resources :inbound_api_configurations, only: [:index, :new, :create, :destroy]
@@ -918,6 +943,12 @@ Rails.application.routes.draw do
     end
 
     resources :system_maintenance_tasks, only: [:index]
+
+    resources :idp_service_configs, except: [:show] do
+      member do
+        post :test
+      end
+    end
   end
 
   resource :account, only: [:edit, :update] do
@@ -962,11 +993,6 @@ Rails.application.routes.draw do
       get :tags
       get :js_example
       get :system_colors
-    end
-    authenticate :user, lambda(&:can_manage_config?) do
-      # not quite sure why but we get double-prefixed routes in this engine
-      get '/pghero/pghero(/*path)', to: redirect { |params, _| "/pghero/#{params[:path]}" }
-      mount PgHero::Engine, at: '/pghero'
     end
   end
 

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -50,7 +50,7 @@ module Mutations
 
     def build_overrides(values_by_link_id, form_definition_id)
       # Get the form definition to map from link_id to custom_field_key
-      form_definition = Hmis::Form::Definition.find(form_definition_id)
+      form_definition = Hmis::Form::Definition.in_data_source(current_user.hmis_data_source_id).find(form_definition_id)
 
       # Build overrides hash. Note that values_by_link_id does not include hidden fields.
       overrides = values_by_link_id.filter_map do |link_id, value|
@@ -75,7 +75,7 @@ module Mutations
       eligible_pools = []
       clients = GrdaWarehouse::Hud::Client.where(id: client.id)
 
-      Hmis::Ce::Match::CandidatePool.active_for_current_eligibility.find_each do |pool|
+      Hmis::Ce::Match::CandidatePool.active.find_each do |pool|
         evaluator = Hmis::Ce::Match::Internal::ClientPoolEvaluator.new(clients, pool, field_map)
         result = evaluator.call(client, field_value_overrides: field_value_overrides)
 

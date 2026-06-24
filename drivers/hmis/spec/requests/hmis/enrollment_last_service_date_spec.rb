@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -58,7 +58,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   let!(:s6_custom) { create(:hmis_custom_service, date_provided: 3.month.ago, custom_service_type: cst1, data_source: ds1, client: c1, enrollment: e1) }
   let!(:s7_custom) { create(:hmis_custom_service, date_provided: 1.week.ago, data_source: ds1, client: c1, enrollment: e1) }
 
-  let(:bed_night_cst) { Hmis::Hud::CustomServiceType.find_by(hud_record_type: 200) }
+  let(:bed_night_cst) { ds1.custom_service_types.find_by(hud_record_type: 200) }
 
   describe 'resolving lastServiceDate' do
     it 'works when asking for most recent Bed Night date (HUD service type)' do

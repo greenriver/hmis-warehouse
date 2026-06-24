@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -199,12 +199,23 @@ module GrdaWarehouse
       save_filter!
     end
 
+    def markdown_notes
+      return '' if notes.blank?
+
+      # Notes are user-entered content, so filter_html: true is required to strip raw HTML
+      # tags and prevent XSS. Do not switch to TranslatedHtml or remove filter_html — those
+      # are only safe for developer/admin-authored content.
+      renderer = Redcarpet::Render::HTML.new(filter_html: true)
+      Redcarpet::Markdown.new(renderer).render(notes).html_safe
+    end
+
     def any_contacts?
       contacts.any? || organization_contacts.any?
     end
 
     def used_for_cas_sync?
-      return unless GrdaWarehouse::Config.get(:cas_available_method).to_sym == :project_group
+      method = GrdaWarehouse::Config.get(:cas_available_method).to_sym
+      return false unless method.in?([:project_group, :boston, :active_clients])
 
       GrdaWarehouse::Config.get(:cas_sync_project_group_id) == id
     end

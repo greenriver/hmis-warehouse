@@ -1,3 +1,9 @@
+###
+# Copyright Green River Data Group, Inc.
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 namespace :import_schema do
   desc "Convert DB Schema file from XSD to migration"
   task :from_xsd => [:environment, "log:info_to_stdout"] do

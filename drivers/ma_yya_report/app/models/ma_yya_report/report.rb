@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -10,6 +10,20 @@ module MaYyaReport
   class Report < SimpleReports::ReportInstance
     include Rails.application.routes.url_helpers
     include Reporting::Status
+    include ReportArchival
+
+    has_many :clients
+    has_many_attached :clients_csv
+
+    def archival_csv_config
+      report_type = self.class.name.gsub('::', '-').underscore
+      {
+        clients_csv: {
+          association: :clients,
+          filename: -> { "#{report_type}-clients-#{id}.csv" },
+        },
+      }
+    end
 
     def run_and_save!
       start
@@ -161,14 +175,14 @@ module MaYyaReport
     ].freeze
 
     DETAIL_CELL_DESCRIPTIONS = {
-      A1a: 'Enrolled in Street Outreach or had a referral source of Outreach Project (7) and a homeless Current Living Situation (116, 101, 118, 302, 336, or 335).',
-      A1b: 'Referral source Outreach Project (7) and a non-homeless Current Living Situation (not: 116, 101, 118, 302, 336, or 335).',
-      A2a: 'Initial contacts (no entry into a homeless project in prior 24 months) who had a referral source (1, 2, 11, 18, 28, 30, 34, 35, 37, 38, or 39) and who had a homeless Current Living Situation (116, 101, 118, 302, 336, or 335).',
-      A2b: 'Initial contacts (no entry into a homeless project in prior 24 months) who had a referral source (1, 2, 11, 18, 28, 30, 34, 35, 37, 38, or 39) and who had a non-homeless Current Living Situation (not: 116, 101, 118, 302, 336, or 335).',
-      A3a: 'YYA with a entry date during the reporting period and a non-homeless Current Living Situation (not: 116, 101, 118, 302, 336, or 335) collected on the entry date.',
-      A3b: 'YYA with a entry date prior to the reporting period and a non-homeless Current Living Situation (not: 116, 101, 118, 302, 336, or 335) collected within the reporting period and after the entry date.',
-      A4a: 'YYA with a entry date during the reporting period and a homeless Current Living Situation (116, 101, 118, 302, 336, or 335) collected on the entry date or enrolled in a homeless project (ES, SH, SO, or TH).',
-      A4b: 'YYA with a entry date prior to the reporting period and a homeless Current Living Situation (116, 101, 118, 302, 336, or 335) collected within the reporting period and after the entry date, or enrolled in a homeless project (ES, SH, SO, or TH).',
+      A1a: 'Enrolled in Street Outreach or had a referral source of Outreach Project (7) and a homeless Current Living Situation (116, 101, 118, 302, 336, or 335) collected on the entry date.',
+      A1b: 'Referral source Outreach Project (7) and a non-homeless Current Living Situation (not: 116, 101, 118, 302, 336, or 335) collected on the entry date.',
+      A2a: 'Initial contacts (no entry into a homeless project in prior 24 months) who had a referral source (1, 2, 11, 18, 28, 30, 34, 35, 37, 38, or 39) and who had a homeless Current Living Situation (116, 101, 118, 302, 336, or 335) collected on the entry date.',
+      A2b: 'Initial contacts (no entry into a homeless project in prior 24 months) who had a referral source (1, 2, 11, 18, 28, 30, 34, 35, 37, 38, or 39) and who had a non-homeless Current Living Situation (not: 116, 101, 118, 302, 336, or 335) collected on the entry date.',
+      A3a: 'YYA with an entry date during the reporting period and a non-homeless Current Living Situation (not: 116, 101, 118, 302, 336, or 335) collected on the entry date.',
+      A3b: 'YYA with an entry date prior to the reporting period and a non-homeless Current Living Situation (not: 116, 101, 118, 302, 336, or 335) collected within the reporting period and after the entry date.',
+      A4a: 'YYA with an entry date during the reporting period and a homeless Current Living Situation (116, 101, 118, 302, 336, or 335) collected on the entry date or enrolled in a homeless project (ES, SH, SO, or TH).',
+      A4b: 'YYA with an entry date prior to the reporting period and a homeless Current Living Situation (116, 101, 118, 302, 336, or 335) collected on the entry date, and a subsequent homeless Current Living Situation (116, 101, 118, 302, 336, or 335) collected within the reporting period and after the entry date, or enrolled in a homeless project (ES, SH, SO, or TH).',
       TotalYYAServedPrevention: 'Unduplicated of YYA in A1b, A2b, A3a, or A3b.',
       TotalYYAServedHomeless: 'Unduplicated of YYA in A1a, A2a, A4a, or A4b.',
       D1a: 'Of the Total YYA Served in Prevention, those who were under 18.',
@@ -354,7 +368,7 @@ module MaYyaReport
     end
 
     private def prevention_clause
-      a_t[:at_risk_of_homelessness].eq(true)
+      a1b_clause.or(a2b_clause).or(a3a_clause).or(a3b_clause)
     end
 
     # A1b: Outreach referral + at-risk
@@ -391,7 +405,10 @@ module MaYyaReport
 
     # This is the value for F1a and the universe for G
     private def prevention_remained_housed_clause
-      prevention_clause.and(a_t[:entry_date].gt(a_t[:latest_homeless_cls_in_range]))
+      prevention_clause.and(
+        a_t[:entry_date].gt(a_t[:latest_homeless_cls_in_range]).
+        or(a_t[:latest_homeless_cls_in_range].eq(nil)),
+      )
     end
 
     # This is the value for F2a and the universe for H
@@ -410,7 +427,7 @@ module MaYyaReport
           section_label: 'A. Core Services',
           subsections: {
             'A1' => {
-              subsection_label: '1. Street Outreach/Colaboration',
+              subsection_label: '1. Street Outreach/Collaboration',
               cells: section_a1_cells,
             },
             'A2' => {
@@ -587,7 +604,7 @@ module MaYyaReport
       {
         TotalYYAServedPrevention: {
           # Explicit union of A1b, A2b, A3a, and A3b as per tooltip description
-          calculation: a1b_clause.or(a2b_clause).or(a3a_clause).or(a3b_clause),
+          calculation: prevention_clause,
           label: 'Number of unduplicated YYA served (update each quarter)',
         },
         TotalYYAServedHomeless: {

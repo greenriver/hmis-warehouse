@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -81,20 +81,20 @@ module Types
     end
 
     def activity_logs
-      access_denied! unless current_user.can_audit_users?
+      access_denied! unless policy_for(object, policy_type: :hmis_user).can_audit?
 
       object.activity_logs
     end
 
     def client_access_summaries(filters: nil)
-      access_denied! unless current_user.can_audit_users?
+      access_denied! unless policy_for(object, policy_type: :hmis_user).can_audit?
 
       Hmis::ClientAccessSummary.order(last_accessed_at: :desc, client_id: :desc).
         apply_filter(user: object, starts_on: filters&.on_or_after, search_term: filters&.search_term)
     end
 
     def enrollment_access_summaries(filters: nil)
-      access_denied! unless current_user.can_audit_users?
+      access_denied! unless policy_for(object, policy_type: :hmis_user).can_audit?
 
       Hmis::EnrollmentAccessSummary.order(last_accessed_at: :desc, enrollment_id: :desc).
         apply_filter(
@@ -118,7 +118,7 @@ module Types
     end
 
     def login_activities
-      access_denied! unless current_user.can_audit_users?
+      access_denied! unless policy_for(object, policy_type: :hmis_user).can_audit?
 
       object.login_activities.hmis_logins.
         successful.

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -14,7 +14,7 @@ module CePerformance::WarehouseReports
     include BaseFilters
 
     before_action :require_can_access_some_version_of_clients!, only: [:details, :clients]
-    before_action :set_report, only: [:show, :destroy, :details, :clients]
+    before_action :set_report, only: [:show, :destroy, :details, :clients, :reload_from_csv]
     # before_action :set_pdf_export, only: [:show]
 
     def index

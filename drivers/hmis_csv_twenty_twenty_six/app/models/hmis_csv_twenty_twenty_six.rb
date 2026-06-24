@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -14,6 +14,8 @@
 # See README.md for details.
 
 module HmisCsvTwentyTwentySix
+  def self.utf8_export? = true
+
   def self.table_name_prefix
     'hmis_csv_twenty_twenty_six_'
   end

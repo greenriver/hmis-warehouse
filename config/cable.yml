@@ -1,6 +1,6 @@
 development:
   adapter: redis
-  url: <%= "redis://#{ENV['CACHE_HOST']}:#{ENV['CACHE_PORT']}/#{ENV['CACHE_DB']}" %>
+  url: <%= "redis://" + (ENV['CACHE_AUTH_TOKEN'].present? ? ":#{ENV['CACHE_AUTH_TOKEN']}@" : '') + "#{ENV['CACHE_HOST']}:#{ENV['CACHE_PORT']}/#{ENV['CACHE_DB']}" %>
   channel_prefix: hmis_development
 
 test:
@@ -8,10 +8,10 @@ test:
 
 staging:
   adapter: redis
-  url: <%= "rediss://#{ENV['CACHE_HOST']}:#{ENV['CACHE_PORT']}/#{ENV['CACHE_DB']}" %>
+  url: <%= "rediss://" + (ENV['CACHE_AUTH_TOKEN'].present? ? ":#{ENV['CACHE_AUTH_TOKEN']}@" : '') + "#{ENV['CACHE_HOST']}:#{ENV['CACHE_PORT']}/#{ENV['CACHE_DB']}" %>
   channel_prefix: hmis_staging
 
 production:
   adapter: redis
-  url: <%= "rediss://#{ENV['CACHE_HOST']}:#{ENV['CACHE_PORT']}/#{ENV['CACHE_DB']}" %>
+  url: <%= "rediss://" + (ENV['CACHE_AUTH_TOKEN'].present? ? ":#{ENV['CACHE_AUTH_TOKEN']}@" : '') + "#{ENV['CACHE_HOST']}:#{ENV['CACHE_PORT']}/#{ENV['CACHE_DB']}" %>
   channel_prefix: hmis_production

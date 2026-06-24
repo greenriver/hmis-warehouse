@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -14,11 +14,11 @@ class Hmis::Form::InstanceEnrollmentMatch
   attr_accessor :enrollment, :instance
 
   MATCHES = [
-    ALL_MATCH = 'ALL_CLIENTS'.freeze,
-    HOH_AND_ADULTS_MATCH = 'HOH_AND_ADULTS'.freeze,
-    HOH_MATCH = 'HOH'.freeze,
-    ALL_VETERANS_MATCH = 'ALL_VETERANS'.freeze,
-    VETERAN_HOH_MATCH = 'VETERAN_HOH'.freeze,
+    ALL_MATCH = 'ALL_CLIENTS',
+    HOH_AND_ADULTS_MATCH = 'HOH_AND_ADULTS',
+    HOH_MATCH = 'HOH',
+    ALL_VETERANS_MATCH = 'ALL_VETERANS',
+    VETERAN_HOH_MATCH = 'VETERAN_HOH',
   ].freeze
 
   def initialize(instance:, enrollment:)
@@ -28,6 +28,8 @@ class Hmis::Form::InstanceEnrollmentMatch
 
   # enrollment match is binary but we may want ranks
   memoize def valid?
+    raise 'Unexpected: InstanceEnrollmentMatch called on an instance and enrollment that are from different data sources' unless instance.data_source_id == enrollment.data_source_id
+
     case data_collected_about
     when ALL_MATCH
       true

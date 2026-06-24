@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -44,22 +44,47 @@ module GrdaWarehouse::Monitoring::Tasks
       # Uses find_or_create_by! so this is idempotent and preserves user changes
       GrdaWarehouse::Monitoring::MetricDefinition.maintain!
 
-      run_record = create_run_record
+      # Trigger alert notifications for threshold crossings from the previous day.
+      # This ensures all metrics are collected prior to sending notifications and is independent
+      # of the time it takes to run the collector.
+      NotifyMetricThresholdCrossingsJob.perform_later(@calculation_date - 1.days)
 
-      metrics = load_metrics
+      run_record = create_run_record
+      all_metrics = load_metrics
       entities = load_entities
 
-      Rails.logger.info "Collecting #{metrics.count} metrics for #{entities.count} #{@entity_type} records"
+      # Check every metric's stability consecutively, then open the transaction
+      # immediately after. The window between the last check and the snapshot is
+      # minimal. Once inside REPEATABLE READ, any write that starts during
+      # collection is invisible to all metrics' reads — all share the same snapshot.
+      stable_metrics, skipped_metrics = all_metrics.partition do |metric|
+        metric.calculator_class.constantize.data_stable?
+      end
 
-      entities.find_in_batches(batch_size: BATCH_SIZE) do |entity_batch|
-        collect_batch(entity_batch, metrics)
+      skipped_metric_names = skipped_metrics.map(&:name)
+
+      if skipped_metric_names.any?
+        Rails.logger.warn(
+          "MetricSnapshotCollector: deferring #{skipped_metric_names.join(', ')} — " \
+          'data source not stable, will retry',
+        )
+      end
+
+      Rails.logger.info "Collecting #{stable_metrics.count} metrics for #{@entity_type} records"
+
+      if stable_metrics.any?
+        GrdaWarehouseBase.transaction(isolation: :repeatable_read) do
+          entities.find_in_batches(batch_size: BATCH_SIZE) do |entity_batch|
+            collect_batch(entity_batch, stable_metrics)
+          end
+        end
       end
 
       cleanup_old_snapshots
       complete_run_record(run_record, 'completed')
 
-      # Trigger alert notifications for threshold crossings
-      NotifyMetricThresholdCrossingsJob.perform_later(@calculation_date)
+      # Return skipped metric names so the caller can schedule targeted retries
+      skipped_metric_names
     end
 
     private
@@ -155,11 +180,15 @@ module GrdaWarehouse::Monitoring::Tasks
       entity_ids = entities.map(&:id)
       metric_ids = metrics.map(&:id)
 
-      # Find most recent snapshot for each entity/metric
+      # Find the most recent snapshot updated on or before yesterday for each entity/metric.
+      # Upper bound (..yesterday) ensures we never pick up a snapshot already written by
+      # today's run (same-day re-run safety), while still finding stale baselines from
+      # weeks or months ago so they are compared against rather than treated as "first time"
+      # (which would create a spurious crossing notification against the old baseline).
       GrdaWarehouse::Monitoring::MetricSnapshot.
         where(entity_type: @entity_type, entity_id: entity_ids).
         where(metric_definition_id: metric_ids).
-        where(current_observation_date: @calculation_date - 1.day..).
+        where(current_observation_date: ..@calculation_date - 1.day).
         order(id: :desc).
         group_by { |s| [s.entity_id, s.metric_definition_id] }.
         transform_values(&:first)
@@ -169,7 +198,7 @@ module GrdaWarehouse::Monitoring::Tasks
       calculator_class = metric.calculator_class.constantize
 
       # Use batch calculation
-      calculated_values = calculator_class.calculate_batch(entities, @calculation_date)
+      calculated_values = calculator_class.calculate_batch(entities, @calculation_date, metric: metric)
 
       calculated_values.each do |entity_id, calculated_value|
         # Skip nil values (no data available)

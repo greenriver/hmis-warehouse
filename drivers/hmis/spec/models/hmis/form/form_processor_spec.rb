@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -12,6 +12,7 @@ require_relative '../../../support/hmis_base_setup'
 
 RSpec.describe Hmis::Form::FormProcessor, type: :model do
   include_context 'hmis base setup'
+  include_context 'hmis json forms seed'
 
   let(:fd) { Hmis::Form::Definition.find_by!(role: :INTAKE) }
   let(:fd_exit) { Hmis::Form::Definition.find_by!(role: :EXIT) }
@@ -21,14 +22,6 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
 
   HIDDEN = Hmis::Hud::Processors::Base::HIDDEN_FIELD_VALUE
   INVALID = 'INVALID' # Invalid enum representation
-
-  before(:all) do
-    cleanup_test_environment
-    ::HmisUtil::JsonForms.seed_all
-  end
-  after(:all) do
-    cleanup_test_environment
-  end
 
   describe 'IncomeBenefit processor' do
     it 'succeeds if overall is YES and sources are specified (income)' do
@@ -670,8 +663,9 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       assessment.save_not_in_progress
 
       old_entry_date = assessment.enrollment.entry_date
-      new_entry_date = 1.week.ago.strftime('%Y-%m-%d')
       expect(old_entry_date).not_to be_nil
+      # Must differ from factory EntryDate sequence (which includes 1.week.ago)
+      new_entry_date = (old_entry_date - 2.weeks).strftime('%Y-%m-%d')
 
       assessment.reload.form_processor.hud_values = {
         'Enrollment.entryDate' => new_entry_date,
@@ -967,7 +961,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
     end
     let(:complete_hud_values) do
       {
-        "names": [primary_name.stringify_keys, secondary_name.stringify_keys],
+        'names' => [primary_name.stringify_keys, secondary_name.stringify_keys],
         'dob' => '2000-03-29',
         'dobDataQuality' => 'FULL_DOB_REPORTED',
         'ssn' => 'XXXXX1234',
@@ -1070,7 +1064,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       existing_client = c1
       new_client = Hmis::Hud::Client.new(data_source: ds1, user: u1)
       [existing_client, new_client].each do |client|
-        hud_values = empty_hud_values.merge({ 'veteranStatus': HIDDEN })
+        hud_values = empty_hud_values.merge({ 'veteranStatus' => HIDDEN })
         process_record(record: client, hud_values: hud_values, user: hmis_user, definition: definition)
         expect(client.veteran_status).to eq(99)
       end
@@ -2098,7 +2092,6 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
 
   describe 'Form processing for Service' do
     let(:definition) { Hmis::Form::Definition.find_by(role: :SERVICE) }
-    include_context 'hmis service setup'
     # HUD Service: SSVF Financial Assistance (152), Child Care (10)
     let!(:hud_service) { create :hmis_hud_service, data_source: ds1, client: c1, enrollment: e1, record_type: 152, type_provided: 10 }
     # Custom Service

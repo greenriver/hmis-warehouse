@@ -1,17 +1,21 @@
-# frozen_string_literal: true
-
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 module GrdaWarehouse::Hud
   class Event < Base
     include HudSharedScopes
     include ::HmisStructure::Event
     include ::HmisStructure::Shared
-    include RailsDrivers::Extensions
+    # Extensions from drivers — see ADR 0007
+    include HmisCsvImporter::GrdaWarehouse::Hud::EventExtension
+    include HmisCsvTwentyTwenty::GrdaWarehouse::Hud::EventExtension
+    include HmisCsvTwentyTwentyFour::GrdaWarehouse::Hud::EventExtension
+    include HmisCsvTwentyTwentySix::GrdaWarehouse::Hud::EventExtension
 
     attr_accessor :source_id
 

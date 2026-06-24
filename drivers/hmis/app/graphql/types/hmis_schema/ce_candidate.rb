@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -14,7 +14,10 @@ module Types
     field :client_name, String, null: false, description: 'Masked as "Candidate 123" unless the user has permission to view'
     field :priority_scores, [Integer], null: false, default_value: [0]
     field :enrollments, HmisSchema::CeReferralSourceEnrollment.array_page_type, null: false
-    field :client_attributes, GraphQL::Types::JSON, null: false, description: 'Most recent snapshot of client attributes', default_value: {}
+    field :client_attributes, GraphQL::Types::JSON, null: false, description: 'Current values for the given expression keys' do
+      # TODO: make `keys` required once every client passes it explicitly; then remove inference from table configuration.
+      argument :keys, [String], required: false, description: 'Keys whose values should be returned. Same format as TableColumnConfig keys.'
+    end
 
     def destination_client_id
       destination_client.id
@@ -24,13 +27,15 @@ module Types
       load_destination_client_name(destination_client: destination_client).presence || "Candidate #{object.id}"
     end
 
-    # Find most recent snapshot of this candidate's eligibility/prioritization attributes from Candidate Events table.
-    # Efficiency could be improved here, maybe by creating a Candidate Event resolver or adding a multi key relation from Candidate to CandidateEvent
-    def client_attributes
-      client_proxy = load_ar_scope(scope: Hmis::Ce::ClientProxy, id: object.client_proxy_id)
-      load_ar_association(client_proxy, :ce_match_candidate_events).
-        filter { |event| event.candidate_pool_id == object.candidate_pool_id }.
-        max_by(&:created_at)&.snapshot
+    # Resolve provided keys on the destination client. Keys are in FieldMap format, e.g. 'cde.custom_assessment.my_score'
+    # If keys are not provided, infer set of possible keys from the CE clients table column configs (for backwards compatibility).
+    # Once frontend always passes keys, we can adjust this to require keys, remove inference, and return empty if keys are blank.
+    def client_attributes(keys: nil)
+      keys = keys.presence || inferred_all_possible_ce_candidate_column_keys
+      return {} if keys.blank?
+
+      client_proxy = load_ar_association(object, :client_proxy)
+      dataloader.with(Sources::CeExpressionFieldValuesSource, keys: keys).load(client_proxy.client_id)
     end
 
     def enrollments # not for batch
@@ -78,6 +83,15 @@ module Types
     end
 
     private
+
+    def inferred_all_possible_ce_candidate_column_keys
+      cache_key = "inferred_ce_candidate_column_keys:#{current_user.hmis_data_source_id}"
+      return context[cache_key] if context.key?(cache_key)
+
+      context[cache_key] = Hmis::TableConfiguration.for_ce_clients_table.
+        where(data_source_id: current_user.hmis_data_source_id).
+        map(&:column_keys).flatten.uniq
+    end
 
     def destination_client
       client_proxy = load_ar_association(object, :client_proxy)

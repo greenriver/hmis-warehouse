@@ -1,3 +1,9 @@
+###
+# Copyright Green River Data Group, Inc.
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 # frozen_string_literal: true
 
 FactoryBot.define do
@@ -10,6 +16,10 @@ FactoryBot.define do
 
     trait :record_count_change_notification_event do
       notification_slug { 'count_threshold_exceeded' }
+    end
+
+    trait :csv_import_notification_event do
+      notification_slug { 'csv_import_threshold_exceeded' }
     end
   end
 end

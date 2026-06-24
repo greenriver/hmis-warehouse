@@ -1,3 +1,9 @@
+###
+# Copyright Green River Data Group, Inc.
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 # frozen_string_literal: true
 
 # This file is copied to spec/ when you run 'rails generate rspec:install'
@@ -108,12 +114,10 @@ RSpec.configure do |config|
       GrdaWarehouse::WarehouseReports::ReportDefinition.maintain_report_definitions
     end
 
-    # load hmis forms if we're testing the driver
-    # This is an overall performance improvement to our test suite, since many tests depend on these forms.
-    # However, it does mean that if individual tests modify the seeded forms, they are responsible for cleaning up
-    # by restoring all forms to their original seeded state, *not* by using Hmis::Form::Definition.delete_all.
-    if example_file_paths.grep(%r{/drivers/hmis/}).any? # rubocop:disable Style/RegexpLiteral
-      ::HmisUtil::JsonForms.seed_all if ENV['ENABLE_HMIS_API'] == 'true'
+    # Load HMIS form definitions and system form instances if we're testing the HMIS system tests.
+    # This is an overall performance improvement to our system test suite, since all system tests depend on these forms.
+    if example_file_paths.grep(%r{/drivers/hmis/spec/system/hmis/}).any? # rubocop:disable Style/RegexpLiteral
+      E2eSystemSuite.seed_hmis_json_forms! if ENV['ENABLE_HMIS_API'] == 'true' && ENV['RUN_SYSTEM_TESTS'] == 'true'
     end
 
     AccessGroup.maintain_system_groups

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -10,9 +10,10 @@ require 'rails_helper'
 
 RSpec.describe HmisExternalApis::AcHmis::Exporters::ClientExport, type: :model do
   let(:today) { Date.current }
-  let!(:ds) { create(:hmis_data_source) }
+  let!(:ds) { create(:hmis_primary_data_source) }
   let!(:client) { create(:hmis_hud_client_with_warehouse_client, data_source: ds, DateCreated: today) }
   let(:subject) { HmisExternalApis::AcHmis::Exporters::ClientExport.new }
+  let!(:mci_cred) { create(:ac_hmis_mci_credential) }
   let(:output) do
     subject.output.rewind
     subject.output.read
@@ -31,18 +32,28 @@ RSpec.describe HmisExternalApis::AcHmis::Exporters::ClientExport, type: :model d
   end
 
   it 'includes most recently updated address' do
-    not_found = create(:hmis_hud_custom_client_address, client: client)
-    found = create(:hmis_hud_custom_client_address, client: client)
+    not_found = create(:hmis_hud_custom_client_address, client: client, data_source: ds)
+    found = create(:hmis_hud_custom_client_address, client: client, data_source: ds)
     subject.run!
     expect(output).to include(found.line1)
     expect(output).to_not include(not_found.line1)
   end
 
   it 'includes MCIID' do
-    mci = create(:mci_external_id, source: client)
+    mci = create(:mci_external_id, source: client, remote_credential: mci_cred)
     irrelevant = create(:mci_unique_id_external_id, source: client)
     subject.run!
     expect(output).to include(mci.value)
     expect(output).to_not include(irrelevant.value)
+  end
+
+  it 'includes most recently updated MCI ID when client has multiple' do
+    older_mci = create(:mci_external_id, source: client, remote_credential: mci_cred)
+    newer_mci = create(:mci_external_id, source: client, remote_credential: mci_cred)
+    older_mci.update_column(:updated_at, 2.days.ago)
+    newer_mci.update_column(:updated_at, 1.day.ago)
+    subject.run!
+    expect(output).to include(newer_mci.value)
+    expect(output).to_not include(older_mci.value)
   end
 end

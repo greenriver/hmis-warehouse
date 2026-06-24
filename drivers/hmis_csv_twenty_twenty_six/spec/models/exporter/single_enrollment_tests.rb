@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -61,6 +61,15 @@ RSpec.shared_context '2026 single-enrollment tests', shared_context: :metadata d
     it 'PersonalID from CSV file match the id of first client' do
       csv = CSV.read(ExportHelper2026.csv_file_path(ExportHelper2026.client_class), headers: true)
       expect(csv.first['PersonalID']).to eq ExportHelper2026.clients.first.destination_client.id.to_s
+    end
+    it 'exports HispanicLatinao as 0 when source data is nil' do
+      # HUD renamed HispanicLatinaeo -> HispanicLatinao in FY2026. The DB column keeps the old name
+      # but alias_attribute on the AR model makes row[:HispanicLatinao] transparently read it.
+      # enforce_required_fields defaults nil race fields to 0.
+      # A blank here causes a NOT NULL violation in the LSA SQL Server import.
+      csv = CSV.read(ExportHelper2026.csv_file_path(ExportHelper2026.client_class), headers: true)
+      expect(csv.headers).to include('HispanicLatinao')
+      expect(csv.first['HispanicLatinao']).to eq('0')
     end
   end
   ExportHelper2026.enrollment_related_items.each do |items, klass|

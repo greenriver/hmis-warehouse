@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -17,13 +17,15 @@ module HopwaCaper
              inverse_of: :universe_membership,
              class_name: 'HudReports::UniverseMember',
              foreign_key: :universe_membership_id
-    has_many :services, class_name: 'HopwaCaper::Service', primary_key: :enrollment_id
+    has_many :services, class_name: 'HopwaCaper::Service',
+                        foreign_key: [:enrollment_id, :report_instance_id],
+                        primary_key: [:enrollment_id, :report_instance_id]
+    # source enrollment
+    has_many :funders, class_name: 'HopwaCaper::Funder',
+                       foreign_key: [:project_id, :report_instance_id],
+                       primary_key: [:project_id, :report_instance_id]
     # source enrollment
     belongs_to :enrollment, -> { with_deleted }, class_name: 'GrdaWarehouse::Hud::Enrollment'
-
-    def project_id
-      enrollment.project.id
-    end
 
     def self.as_report_members
       current_scope.map do |record|
@@ -34,13 +36,12 @@ module HopwaCaper
       end
     end
 
-    scope :overlapping_range, ->(start_date:, end_date:) {
-      table = arel_table
-      where(
-        table[:entry_date].lteq(end_date).and(
-          table[:exit_date].gteq(start_date).or(table[:exit_date].eq(nil)),
-        ),
-      )
+    scope :within_range, ->(range) {
+      a_t = arel_table
+      scope = current_scope
+      scope = scope.where(a_t[:exit_date].eq(nil).or(a_t[:exit_date].gteq(range.first))) if range.begin
+      scope = scope.where(a_t[:entry_date].eq(nil).or(a_t[:entry_date].lteq(range.last))) if range.end
+      scope
     }
 
     # HUD guidance for CAPER/APR reports specifies that unduplicated household counts
@@ -78,7 +79,7 @@ module HopwaCaper
       :OtherIncomeSource
     ].freeze
 
-    def self.from_hud_record(enrollment:, report:, client:)
+    def self.from_hud_record(enrollment:, report:, client:, cost_calculator:)
       project = enrollment.project
       # get deterministic order
       hiv_disabilities = enrollment.disabilities.
@@ -103,6 +104,13 @@ module HopwaCaper
         medical_insurance_types << 'NoInsuranceSource' if latest_income_benefit.InsuranceFromAnySource == 0 && medical_insurance_types.empty?
       end
 
+      # calculate the total cost from the schedule. Only for HoH
+      if enrollment.relationship_to_hoh == 1
+        last_enrolled_day = enrollment.exit&.exit_date&.-(1)
+        enrolled_range = [enrollment.entry_date, report.start_date].max..[last_enrolled_day, report.end_date].compact.min
+        total_cost = cost_calculator.call(project, enrolled_range).round(2)
+      end
+
       exit = enrollment.exit if enrollment.exit&.exit_date&.<= report.end_date
       new(
         report_instance_id: report.id,
@@ -123,7 +131,7 @@ module HopwaCaper
         percent_ami: enrollment.percent_ami,
 
         relationship_to_hoh: enrollment.relationship_to_hoh || 99,
-        project_funders: project.funders.map(&:funder).compact.uniq.sort,
+        project_id: project.id,
         project_type: project.project_type,
         entry_date: enrollment.entry_date,
         exit_destination: exit&.destination,
@@ -138,11 +146,16 @@ module HopwaCaper
         rental_subsidy_type: enrollment.rental_subsidy_type,
         viral_load_suppression: hiv_disabilities.any? { |d| d.measured_viral_load&.< 200 },
         ever_prescribed_anti_retroviral_therapy: hiv_disabilities.any? { |d| d.anti_retroviral == 1 },
+        total_project_cost: total_cost || 0,
       )
     end
 
     def hmis_enrollment_id
       enrollment.enrollment_id
+    end
+
+    def to_range
+      entry_date..exit_date
     end
   end
 end

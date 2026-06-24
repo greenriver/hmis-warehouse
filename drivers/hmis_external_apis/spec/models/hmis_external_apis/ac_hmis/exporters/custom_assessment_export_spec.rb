@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -17,7 +17,7 @@ RSpec.describe HmisExternalApis::AcHmis::Exporters::CustomAssessmentExport, type
   let!(:hud_user) { create(:hmis_hud_user, data_source: ds) }
 
   # Create a custom assessment definition (role: CUSTOM_ASSESSMENT)
-  let!(:form_definition) { create(:custom_assessment_with_custom_fields) }
+  let!(:form_definition) { create(:custom_assessment_with_custom_fields, data_source: ds) }
 
   let!(:assessment) do
     create(

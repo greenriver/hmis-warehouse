@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -13,31 +13,42 @@ RSpec.feature 'AC CE Referral Workflows', type: :system do
   include_context 'ce system test helper'
 
   before(:all) do
-    ds1 = GrdaWarehouse::DataSource.find_or_create_by!(hmis: 'localhost', name: 'HMIS', short_name: 'HMIS', authoritative: true)
+    # A somewhat surprising system test gotcha: since rspec runs before(:all) before before(:each),
+    # and we skip system tests using a before(:each) in e2e_setup.rb,
+    # this code in the before(:all) will still execute during a regular, non-system test run on CI.
+    # To prevent errors because ds1 doesn't exist yet, re-check for RUN_SYSTEM_TESTS and don't do anything if not set.
+    if ENV['RUN_SYSTEM_TESTS'] == 'true'
+      ds1 = GrdaWarehouse::DataSource.find_by!(hmis: 'localhost')
 
-    HmisUtil::JsonForms.new(env_key: 'allegheny', enable_cded_generation_in_test: true).seed_record_form_definitions(roles: [:CE_REFERRAL_STEP, :ENROLLMENT]) # Seed enrollment form so it collects units
-    CeWorkflows::Shared::CeBuilderUtils.create_state_machine_custom_statuses(ds1)
-    workflow_builder = CeWorkflows::Ac::WorkflowBuilder.new(ds1)
-    workflow_builder.build_housing_workflow
-    workflow_builder.build_admin_assign_workflow
+      # Seed client-specific Referral Step forms, and Enrollment form so it collects units
+      HmisUtil::JsonForms.new(data_source_id: ds1.id, env_key: 'allegheny', generate_cdeds: true).
+        seed_record_form_definitions(roles: [:CE_REFERRAL_STEP, :ENROLLMENT])
+      CeWorkflows::Shared::CeBuilderUtils.create_state_machine_custom_statuses(ds1)
+      workflow_builder = CeWorkflows::Ac::WorkflowBuilder.new(ds1)
+      workflow_builder.build_housing_workflow
+      workflow_builder.build_admin_assign_workflow
+    end
   end
 
   after(:all) do
-    # Clean up data source and workflow definition related records, since they were created in before(:all) and not in fixtures.
-    # This helps avoid downstream issues in later tests.
-    ['housing_workflow_v1', 'admin_assign_workflow'].each do |identifier|
-      CeWorkflows::Shared::CeBuilderUtils.delete_template_and_associated_data(identifier)
+    if ENV['RUN_SYSTEM_TESTS'] == 'true'
+      ds1 = GrdaWarehouse::DataSource.find_by!(hmis: 'localhost')
+
+      # Clean up workflow definition related records, since they were created in before(:all) and not in fixtures.
+      # This helps avoid downstream issues in later tests.
+      ['housing_workflow_v1', 'admin_assign_workflow'].each do |identifier|
+        CeWorkflows::Shared::CeBuilderUtils.delete_template_and_associated_data(identifier, data_source: ds1)
+      end
+      Hmis::Ce::CustomReferralStatus.delete_all
+
+      # Cleanup seeded referral step forms that were created in before(:all)
+      forms = Hmis::Form::Definition.where(role: :CE_REFERRAL_STEP)
+      forms.each { |form| form.custom_data_element_definitions.delete_all }
+      forms.delete_all
+
+      # Return enrollment form to normal.
+      HmisUtil::JsonForms.new(data_source_id: ds1.id).seed_record_form_definitions(roles: [:ENROLLMENT])
     end
-    Hmis::Ce::CustomReferralStatus.delete_all
-    GrdaWarehouse::DataSource.hmis.find_by(hmis: 'localhost').delete
-
-    # Cleanup seeded referral step forms that were created in before(:all)
-    forms = Hmis::Form::Definition.where(role: :CE_REFERRAL_STEP)
-    forms.each { |form| form.custom_data_element_definitions.delete_all }
-    forms.delete_all
-
-    # Return enrollment form to normal. (See comment about form cleanup in rails_helper.rb)
-    HmisUtil::JsonForms.new.seed_record_form_definitions(roles: [:ENROLLMENT])
   end
 
   # consistent time for avoid failures when run across day boundaries
@@ -284,8 +295,8 @@ RSpec.feature 'AC CE Referral Workflows', type: :system do
     let!(:workflow_template) { Hmis::WorkflowDefinition::Template.find_by(identifier: 'housing_workflow_v1') } # created already
 
     let!(:unit) { create(:hmis_unit, project: target_project, unit_group: unit_group, unit_type: sro_type) }
-    let!(:opportunity) { create(:hmis_ce_opportunity, unit: unit, candidate_pool: score_pool, assignment_rules: [eligibility_rule, priority_rule].map(&:attributes), name: unit.name) }
-    let!(:referral) { create(:hmis_ce_referral, opportunity: opportunity, client: client1, workflow_template: workflow_template, source_enrollment: source_enrollment) }
+    let!(:opportunity) { create(:hmis_ce_opportunity, unit: unit, name: unit.name) }
+    let!(:referral) { create(:hmis_ce_referral, opportunity: opportunity, client: client1, workflow_template: workflow_template, source_enrollment: source_enrollment, assignment_rules: [eligibility_rule, priority_rule].map(&:attributes)) }
 
     before do
       referral.workflow_engine.start_workflow!(user: admin)
@@ -293,8 +304,8 @@ RSpec.feature 'AC CE Referral Workflows', type: :system do
 
     # Shared method for progressing the referral through the initial steps and assigning the provider
     def ce_staff_complete_initial_steps
-      # Navigate to admin referrals page and click into the referral
-      visit '/admin/referrals/'
+      # Navigate to referrals page and click into the referral
+      visit '/referrals/'
       expect(page).to have_content('Alice A')
       expect(page).to have_content('Matching In Progress')
       click_link 'Alice A'

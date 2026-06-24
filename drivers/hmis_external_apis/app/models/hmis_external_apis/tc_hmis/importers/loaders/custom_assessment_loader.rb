@@ -1,22 +1,16 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 # frozen_string_literal: true
 
-###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
-#
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
-###
-
 #  Abstract class
 module HmisExternalApis::TcHmis::Importers::Loaders
   class CustomAssessmentLoader < BaseLoader
-    ENROLLMENT_ID_COL = 'Unique Enrollment Identifier'.freeze
-    RESPONSE_ID_COL = 'Response ID'.freeze
+    ENROLLMENT_ID_COL = 'Unique Enrollment Identifier'
+    RESPONSE_ID_COL = 'Response ID'
 
     def perform
       validate_cde_configs
@@ -195,7 +189,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
     end
 
     def form_definition
-      @form_definition ||= Hmis::Form::Definition.where(identifier: form_definition_identifier).first_or_create! do |definition|
+      @form_definition ||= Hmis::Form::Definition.in_data_source(data_source.id).where(identifier: form_definition_identifier).first_or_create! do |definition|
         definition.title = form_definition_identifier.humanize
         definition.status = Hmis::Form::Definition::DRAFT
         definition.version = 0

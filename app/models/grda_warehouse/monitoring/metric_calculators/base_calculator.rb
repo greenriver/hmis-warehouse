@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -25,7 +25,7 @@ module GrdaWarehouse::Monitoring::MetricCalculators
     # Class method - calculate for batch of entities
     # Returns hash of { entity_id => value }
     # Subclasses should override this for efficient batch processing
-    def self.calculate_batch(entities, calculation_date)
+    def self.calculate_batch(entities, calculation_date, **_kwargs)
       entities.to_h do |entity|
         [entity.id, new(entity, calculation_date).calculate]
       end
@@ -34,6 +34,13 @@ module GrdaWarehouse::Monitoring::MetricCalculators
     # Return calculation version
     def version
       '1.0.0'
+    end
+
+    # Returns true if the calculator's data source is currently stable enough to snapshot.
+    # Subclasses override this when their source table has a known concurrent writer.
+    # Called by MetricSnapshotCollector before opening the REPEATABLE READ transaction.
+    def self.data_stable?
+      true
     end
 
     # Helper: get lookback window

@@ -1,3 +1,9 @@
+###
+# Copyright Green River Data Group, Inc.
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 # frozen_string_literal: true
 
 require 'rails_helper'
@@ -139,6 +145,28 @@ RSpec.describe Admin::UsersController, type: :request do
         expect(acl_user.reload.user_group_ids).to eq([user_group.id])
         expect(acl_user.reload.legacy_role_ids).to eq([role.id])
         expect(acl_user.reload.access_group_ids.include?(access_group.id)).to be true
+      end
+    end
+
+    context 'when HMIS is enabled' do
+      before do
+        allow(HmisEnforcement).to receive(:hmis_enabled?).and_return(true)
+      end
+
+      it 'syncs HUD users with the previous email after a successful update' do
+        updated_user = create(:acl_user, email: 'old@example.com')
+        expect_any_instance_of(User).to receive(:sync_to_hud_users).with(previous_email: 'old@example.com')
+
+        patch admin_user_path(updated_user), params: { user: { email: 'new@example.com' } }
+      end
+
+      it 'does not sync HUD users when the update fails' do
+        updated_user = create(:acl_user, email: 'old@example.com')
+        expect_any_instance_of(User).not_to receive(:sync_to_hud_users)
+        allow_any_instance_of(User).to receive(:update!).and_raise(ActiveRecord::RecordInvalid.new(updated_user))
+        allow_any_instance_of(Admin::UsersController).to receive(:render)
+
+        patch admin_user_path(updated_user), params: { user: { email: 'invalid-email' } }
       end
     end
   end

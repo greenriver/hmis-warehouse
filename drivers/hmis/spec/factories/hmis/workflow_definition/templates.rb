@@ -1,3 +1,9 @@
+###
+# Copyright Green River Data Group, Inc.
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 # frozen_string_literal: true
 
 FactoryBot.define do
@@ -22,12 +28,14 @@ FactoryBot.define do
           :hmis_workflow_definition_user_task,
           template: template,
           name: 'Review Application',
+          data_source: template.data_source,
         )
 
         task_2 = create(
           :hmis_workflow_definition_user_task,
           template: template,
           name: 'Provider Accepts',
+          data_source: template.data_source,
         )
 
         end_event = create(

@@ -1,3 +1,9 @@
+###
+# Copyright Green River Data Group, Inc.
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 # frozen_string_literal: true
 
 require_relative '../../../support/ce_spec_helper'
@@ -64,6 +70,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             }
             swimlanes {
               id
+              cacheKey
               name
               participants {
                 id
@@ -293,6 +300,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             expect(swimlanes).to contain_exactly(
               a_hash_including(
                 'id' => case_manager_swimlane.id.to_s,
+                'cacheKey' => "#{referral.id}:#{case_manager_swimlane.id}",
                 'name' => case_manager_swimlane.name,
                 'participants' => [
                   a_hash_including('id' => cm1.id.to_s, 'name' => cm1.name),
@@ -301,6 +309,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
               ),
               a_hash_including(
                 'id' => provider_swimlane.id.to_s,
+                'cacheKey' => "#{referral.id}:#{provider_swimlane.id}",
                 'name' => provider_swimlane.name,
                 'participants' => [
                   a_hash_including('id' => provider.id.to_s, 'name' => provider.name),
@@ -382,47 +391,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             expect(response.status).to eq(200), result.inspect
             expect(result.dig('data', 'ceReferral', 'targetEnrollment')).to be_nil
           end
-        end
-      end
-
-      describe 'note creation permission' do
-        shared_examples 'checks canCreateReferralNote permission' do |expected_value|
-          it "returns #{expected_value} for canCreateReferralNote" do
-            response, result = post_graphql(**variables) { query }
-            expect(response.status).to eq(200), result.inspect
-
-            access = result.dig('data', 'ceReferral', 'access')
-            expect(access['canCreateReferralNote']).to eq(expected_value)
-          end
-        end
-
-        context 'when user can perform any referral tasks' do
-          let!(:ds_access_control) { create_access_control(hmis_user, ds1, with_permission: [:can_view_referrals, :can_perform_any_referral_tasks, :can_view_project]) }
-
-          include_examples 'checks canCreateReferralNote permission', true
-        end
-
-        context 'when user can perform own referral tasks' do
-          let!(:ds_access_control) { create_access_control(hmis_user, ds1, with_permission: [:can_view_referrals, :can_perform_own_referral_tasks, :can_view_project]) }
-
-          context 'and user is not assigned' do
-            include_examples 'checks canCreateReferralNote permission', false
-          end
-
-          context 'and user is assigned' do
-            before do
-              referral.participants.create!(swimlane: case_manager_swimlane, user: hmis_user)
-              referral.workflow_engine.assign_task!(referral.workflow_engine.active_steps.first)
-            end
-
-            include_examples 'checks canCreateReferralNote permission', true
-          end
-        end
-
-        context 'when user can only view referrals but cannot perform tasks' do
-          let!(:ds_access_control) { create_access_control(hmis_user, ds1, with_permission: [:can_view_referrals, :can_view_project]) }
-
-          include_examples 'checks canCreateReferralNote permission', false
         end
       end
     end

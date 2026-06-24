@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -44,6 +44,8 @@ module GrdaWarehouse::Tasks
     include NotifierConfig
     include ArelHelper
     include VeteranStatusCalculator
+
+    INVALIDATION_BATCH_SIZE = 1_000
 
     def initialize(
       max_allowed = 1_000,
@@ -324,22 +326,24 @@ module GrdaWarehouse::Tasks
         [project_id, data_source_id]
       end.each do |(project_id, data_source_id), batch|
         household_ids = batch.map(&:first)
-        # This is a bit convoluted, but the usual joins weren't working
-        service_history_query = GrdaWarehouse::ServiceHistoryEnrollment.
-          entry.
-          joins(:enrollment).
-          where(data_source_id: data_source_id, project_id: project_id, household_id: household_ids)
-        query = GrdaWarehouse::Hud::Enrollment.where(
-          EnrollmentID: service_history_query.
-            select(:enrollment_group_id),
-          data_source_id: data_source_id,
-          ProjectID: project_id,
-        )
+        household_ids.each_slice(INVALIDATION_BATCH_SIZE) do |household_id_batch|
+          # This is a bit convoluted, but the usual joins weren't working
+          service_history_query = GrdaWarehouse::ServiceHistoryEnrollment.
+            entry.
+            joins(:enrollment).
+            where(data_source_id: data_source_id, project_id: project_id, household_id: household_id_batch)
+          query = GrdaWarehouse::Hud::Enrollment.where(
+            EnrollmentID: service_history_query.
+              select(:enrollment_group_id),
+            data_source_id: data_source_id,
+            ProjectID: project_id,
+          )
 
-        if @dry_run
-          notes << "Invalidating #{query.count} in ds_id: #{data_source_id} project_id: #{project_id}\n\t#{household_ids.inspect}\n"
-        else
-          query.invalidate_processing!
+          if @dry_run
+            notes << "Invalidating #{query.count} in ds_id: #{data_source_id} project_id: #{project_id}\n\t#{household_id_batch.inspect}\n"
+          else
+            query.invalidate_processing!
+          end
         end
       end
 
@@ -348,12 +352,14 @@ module GrdaWarehouse::Tasks
         [project_id, data_source_id]
       end.each do |(project_id, data_source_id), batch|
         household_ids = batch.map(&:first)
-        query = GrdaWarehouse::Hud::Enrollment.
-          where(data_source_id: data_source_id, ProjectID: project_id, HouseholdID: household_ids)
-        if @dry_run
-          notes << "Invalidating #{query.count} in ds_id: #{data_source_id} project_id: #{project_id}\n\t#{household_ids.inspect}"
-        else
-          query.invalidate_processing!
+        household_ids.each_slice(INVALIDATION_BATCH_SIZE) do |household_id_batch|
+          query = GrdaWarehouse::Hud::Enrollment.
+            where(data_source_id: data_source_id, ProjectID: project_id, HouseholdID: household_id_batch)
+          if @dry_run
+            notes << "Invalidating #{query.count} in ds_id: #{data_source_id} project_id: #{project_id}\n\t#{household_id_batch.inspect}"
+          else
+            query.invalidate_processing!
+          end
         end
       end
 

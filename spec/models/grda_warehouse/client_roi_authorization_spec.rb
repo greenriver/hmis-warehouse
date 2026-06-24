@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -104,6 +104,18 @@ RSpec.describe GrdaWarehouse::ClientRoiAuthorization, type: :model do
 
       it 'returns false when there is no intersection' do
         expect(authorization.matches_coc_codes?(['CODE3', 'CODE4'])).to be false
+      end
+    end
+
+    context 'when coc_codes include All CoCs' do
+      before { authorization.coc_codes = ['All CoCs'] }
+
+      it 'returns true when user coc codes are specific HUD codes (no literal overlap with All CoCs)' do
+        expect(authorization.matches_coc_codes?(['PA-501', 'PA-502'])).to be true
+      end
+
+      it 'returns true when user has no coc_codes' do
+        expect(authorization.matches_coc_codes?([])).to be true
       end
     end
   end

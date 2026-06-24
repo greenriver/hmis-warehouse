@@ -1,3 +1,9 @@
+###
+# Copyright Green River Data Group, Inc.
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 # frozen_string_literal: true
 
 require 'rails_helper'
@@ -77,7 +83,7 @@ RSpec.describe Hmis::UnitGroup, type: :model do
       unit_group.direct_referral_workflow_template = direct_referral_workflow_template
 
       start_event = create(:hmis_workflow_definition_start_event, template: direct_referral_workflow_template)
-      user_task = create(:hmis_workflow_definition_user_task, template: direct_referral_workflow_template)
+      user_task = create(:hmis_workflow_definition_user_task, template: direct_referral_workflow_template, data_source: project.data_source)
       start_event.connect_to!(user_task)
       expect(unit_group).to be_valid
     end

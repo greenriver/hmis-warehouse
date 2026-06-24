@@ -1,3 +1,9 @@
+###
+# Copyright Green River Data Group, Inc.
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 # frozen_string_literal: true
 
 require 'rails_helper'
@@ -66,7 +72,7 @@ RSpec.shared_context 'ce spec helper' do
   let!(:case_manager_swimlane) { workflow_template.swimlanes.create!(name: 'Case Managers') }
   let!(:provider_swimlane) { workflow_template.swimlanes.create!(name: 'Providers') }
 
-  let!(:ce_step_definition) { create(:ce_referral_step_form_definition, data_source: ds1) }
+  let!(:ce_step_definition) { create(:ce_referral_step_form_definition, data_source: ds1, generate_cdeds: true) }
 
   let!(:client_acceptance_task) do
     create(

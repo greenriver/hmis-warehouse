@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -10,7 +10,7 @@
 # stored in S3 and copies the data to S3.
 # Usage looks like this:
 # 1. Add a scope to your model `unprocessed_s3_migration` to identify which records have not been moved
-# 2. Add a `has_one_attached` call to your model to hold your date in the ActiveStorage format
+# 2. Add a `has_one_attached` call to your model to hold your data in the ActiveStorage format
 # 3. Add a method `copy_to_s3!` to your model that will download the existing attachment and re-attach using ActiveStorage
 # 4. Adjust your save and view routines to save the new attachment, and show the
 #    new attachment if available, but fallback on the old
@@ -28,7 +28,6 @@ namespace :storage do
     GrdaWarehouse::Tasks::TaskInstrumentation.call('storage:move_to_s3', alert_threshold: 36.hours) do |run|
       {
         GrdaWarehouse::HmisExport => :with_attached_hmis_zip,
-        GrdaWarehouse::SecureFile => :with_attached_secure_file,
         GrdaWarehouse::AdHocBatch => :with_attached_batch_file,
 
         # The following are classes that remain to be moved
@@ -45,10 +44,11 @@ namespace :storage do
         # Health::PremiumPayment
         # Health::TransactionAcknowledgement
         # Health::CpMembers::FileBase
-        # TxClientReports::ResearchExports::Export      #
+        # TxClientReports::ResearchExports::Export
 
         # The following were previously moved, leaving here to make adding
         # future files easier.
+        # GrdaWarehouse::SecureFile => :with_attached_secure_file,
         # GrdaWarehouse::Upload => :with_attached_hmis_zip,
         # GrdaWarehouse::ClientFile => :with_attached_client_file,
       }.each do |klass, preload|

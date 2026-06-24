@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -11,9 +11,7 @@ require_relative 'login_and_permissions'
 require_relative '../../support/hmis_base_setup'
 
 RSpec.describe Hmis::ImpersonationsController, type: :request do
-  include_context 'hmis base setup'
-
-  let(:ds) { create :hmis_data_source }
+  let(:ds) { create :hmis_primary_data_source }
   let(:headers) do
     {
       'HOST' => ds.hmis,
@@ -48,6 +46,17 @@ RSpec.describe Hmis::ImpersonationsController, type: :request do
       end
     end
 
+    context 'when trying to impersonate yourself' do
+      before do
+        hmis_login admin_user
+      end
+
+      it 'returns a bad request' do
+        post hmis_impersonations_path, params: { user_id: admin_user.id }, headers: headers
+        expect(response).to have_http_status(:bad_request)
+      end
+    end
+
     context 'when user is not authorized to impersonate' do
       before do
         hmis_login regular_user
@@ -56,6 +65,20 @@ RSpec.describe Hmis::ImpersonationsController, type: :request do
 
       it 'returns unauthorized status' do
         expect(response).to have_http_status(:unauthorized)
+      end
+    end
+
+    context 'when user is in another data source' do
+      let!(:other_data_source) { create :hmis_data_source }
+      let!(:other_data_source_user) { create :hmis_user }
+      let!(:other_ds_access_control) { create_access_control(other_data_source_user, other_data_source) }
+
+      it 'cannot impersonate a user from another data source' do
+        hmis_login admin_user
+
+        post hmis_impersonations_path, params: { user_id: other_data_source_user.id }, headers: headers
+
+        expect(response).to have_http_status(:not_found)
       end
     end
   end

@@ -1,3 +1,9 @@
+###
+# Copyright Green River Data Group, Inc.
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 # frozen_string_literal: true
 
 require_relative '../../../support/ce_spec_helper'
@@ -26,7 +32,12 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   describe 'ce_clients query' do
     let(:query) do
       <<~GRAPHQL
-        query GetCeClients($limit: Int = 25, $offset: Int = 0, $filters: CeClientFilterOptions = null) {
+        query GetCeClients(
+          $limit: Int = 25
+          $offset: Int = 0
+          $filters: CeClientFilterOptions = null
+          $clientAttributeKeys: [String!] = null
+        ) {
           ceClients(limit: $limit, offset: $offset, filters: $filters) {
             offset
             limit
@@ -36,7 +47,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
               destinationClientId
               viewableSourceClientIds
               clientName
-              clientAttributes
+              clientAttributes(keys: $clientAttributeKeys)
               externalIds {
                 id
                 identifier
@@ -74,31 +85,26 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         create(:hmis_ce_client_proxy, client: source_client.destination_client)
       end
 
-      # Pool 1 is active because it's tied to a unit group
+      # Pool 1 is active because it has an active unit group. (And it has an open opportunity)
       let!(:pool_1) { create :hmis_ce_match_candidate_pool_with_candidates, client_proxies: [client_proxy_in_pool_1, client_proxy_in_pool_1_and_2] }
       let!(:pool_1_unit_group) { create :hmis_unit_group, project: p1, candidate_pool: pool_1 }
+      let!(:pool_1_unit) { create :hmis_unit, project: p1, unit_group: pool_1_unit_group }
+      let!(:pool_1_opportunity) { create :hmis_ce_opportunity, unit: pool_1_unit }
 
-      # Pool 2 is active because it's tied to an open opportunity, even though the unit has been deleted and isn't tied to an active unit group
+      # Pool 2 is active because it has an active unit group, even though it contains only locked opportunities
       let!(:pool_2) { create :hmis_ce_match_candidate_pool_with_candidates, client_proxies: [client_proxy_in_pool_1_and_2] }
-      let!(:pool_2_unit) { create :hmis_unit, project: p1, unit_group: nil, deleted_at: Time.current - 3.days }
-      let!(:pool_2_opportunity) { create :hmis_ce_opportunity, unit: pool_2_unit, candidate_pool: pool_2, status: 'open' }
+      let!(:p2) { create :hmis_hud_project, data_source: ds1, organization: o1, user: u1 }
+      let!(:p2_config) { create(:hmis_project_ce_config, supports_waitlist_referrals: true, project: p2) }
+      let!(:pool_2_unit_group) { create :hmis_unit_group, project: p2, candidate_pool: pool_2 }
+      let!(:pool_2_unit) { create :hmis_unit, project: p2, unit_group: pool_2_unit_group }
+      let!(:pool_2_opportunity) { create :hmis_ce_opportunity, unit: pool_2_unit, status: 'locked' }
 
-      # cruft: Pool 3 is not active, candidate membership should be disregarded
+      # cruft: Pool 3 is not active because it has no unit group. Candidate membership should be disregarded
       let!(:pool_3) { create :hmis_ce_match_candidate_pool_with_candidates, client_proxies: [client_proxy_inactive_pools, client_proxy_in_pool_1] }
 
-      # cruft: Pool 4 is not active, candidate membership should be disregarded
+      # cruft: Pool 4 is not active because it is only associated with a deleted unit group. Candidate membership should be disregarded
       let!(:pool_4) { create :hmis_ce_match_candidate_pool_with_candidates, client_proxies: [client_proxy_inactive_pools, client_proxy_in_pool_1] }
-      let!(:pool_4_unit) { create :hmis_unit, project: p1, unit_group: nil, deleted_at: Time.current - 3.days }
-      let!(:pool_4_opportunity) { create :hmis_ce_opportunity, unit: pool_4_unit, candidate_pool: pool_4, status: 'closed' }
-
-      # cruft: Pool 5 has only locked opportunities (no open opportunities), so it should not be receiving referrals
-      let!(:client_proxy_eligible_for_pool_5_only) do
-        source_client = create(:hmis_hud_client_with_warehouse_client, data_source: ds1, first_name: 'Locked', last_name: 'Only')
-        create(:hmis_ce_client_proxy, client: source_client.destination_client)
-      end
-      let!(:pool_5) { create :hmis_ce_match_candidate_pool_with_candidates, client_proxies: [client_proxy_eligible_for_pool_5_only] }
-      let!(:pool_5_unit) { create :hmis_unit, project: p1 }
-      let!(:pool_5_opportunity) { create :hmis_ce_opportunity, unit: pool_5_unit, candidate_pool: pool_5, status: 'locked' }
+      let!(:pool_4_unit_group) { create :hmis_unit_group, project: p1, candidate_pool: pool_4, deleted_at: Time.current - 3.days }
 
       it 'raises if the user does not have permission' do
         remove_permissions(ds_access_control, :can_administrate_coordinated_entry)
@@ -125,16 +131,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect(ce_clients).not_to include(a_hash_including('id' => client_proxy_inactive_pools.id.to_s))
       end
 
-      it 'excludes clients belonging to pools with only locked opportunities (regression #8626)' do
-        response, result = post_graphql(**variables) { query }
-        expect(response.status).to eq(200), result.inspect
-
-        ce_clients = result.dig('data', 'ceClients', 'nodes')
-
-        # Client Proxy that belongs to a pool with only locked opportunities is excluded
-        expect(ce_clients).not_to include(a_hash_including('id' => client_proxy_eligible_for_pool_5_only.id.to_s))
-      end
-
       it 'includes clients belonging to active candidate pools' do
         response, result = post_graphql(**variables) { query }
         expect(response.status).to eq(200), result.inspect
@@ -158,7 +154,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         before(:each) { ce_project_config.update!(supports_waitlist_referrals: false) }
 
         it 'excludes clients belonging to inactive pool due to project not being configured for waitlists' do
-          expect(pool_1.active_for_maintenance?).to be false # confirm setup
+          expect(pool_1.active?).to be false # confirm setup
 
           response, result = post_graphql(**variables) { query }
           expect(response.status).to eq(200), result.inspect
@@ -172,29 +168,181 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         end
       end
 
-      context 'with event snapshots' do
-        # events for `client_proxy_in_pool_1`
-        let!(:event_add_client1_to_pool_1) { create :hmis_ce_match_candidate_event, candidate_pool: pool_1, client_proxy: client_proxy_in_pool_1, snapshot: { 'current_age' => 19 } }
-        let!(:event_remove_client1_from_pool_2) { create :hmis_ce_match_candidate_event, candidate_pool: pool_2, client_proxy: client_proxy_in_pool_1, event_name: 'remove', snapshot: { 'current_age' => 18, 'other_removal_attribute' => 'foo' } }
+      context 'when resolving clientAttributes' do
+        # Set up a custom data element definition 'my_household_type'
+        let!(:custom_assessment_form) { create(:custom_assessment_with_custom_fields, data_source: ds1) }
+        let!(:cded_my_household_type) do
+          create(:hmis_custom_data_element_definition, owner_type: 'Hmis::Hud::CustomAssessment', key: 'my_household_type', field_type: :string, data_source: ds1, form_definition_identifier: custom_assessment_form.identifier)
+        end
+        let(:cde_expression_key) { "cde.custom_assessment.#{cded_my_household_type.key}" }
+        # Set up a value for this CDE on a client
+        let!(:custom_assessment) { create(:hmis_custom_assessment, client: client_proxy_in_pool_1.client.source_clients.sole.as_hmis, definition: custom_assessment_form, data_source: ds1) }
+        let!(:custom_data_element) do
+          create(:hmis_custom_data_element, value_string: 'Household without children', owner: custom_assessment, data_element_definition: cded_my_household_type, data_source: ds1)
+        end
 
-        # events for `client_proxy_in_pool_1_and_2`
-        let!(:event_update_client2_in_pool_1) { create :hmis_ce_match_candidate_event, candidate_pool: pool_1, client_proxy: client_proxy_in_pool_1_and_2, event_name: 'update', snapshot: { 'current_age' => 23, 'pool_1_attr' => '1' } }
-        let!(:event_add_client2_to_pool_1) { create :hmis_ce_match_candidate_event, candidate_pool: pool_1, client_proxy: client_proxy_in_pool_1_and_2, snapshot: { 'current_age' => 22 }, created_at: Time.current - 1.month }
-        let!(:event_add_client2_to_pool_2) { create :hmis_ce_match_candidate_event, candidate_pool: pool_2, client_proxy: client_proxy_in_pool_1_and_2, snapshot: { 'current_age' => 22, 'pool_2_attr' => '2' }, created_at: Time.current - 1.month }
+        context 'with no keys provided (backwards compatibility)' do
+          it 'returns an empty object' do
+            response, result = post_graphql({ client_attribute_keys: nil }) { query }
+            expect(response.status).to eq(200), result.inspect
 
-        it 'resolves clientAttributes based on most recent event snapshots' do
-          response, result = post_graphql(**variables) { query }
-          expect(response.status).to eq(200), result.inspect
+            ce_clients = result.dig('data', 'ceClients', 'nodes')
 
-          ce_clients = result.dig('data', 'ceClients', 'nodes')
+            expect(ce_clients).to contain_exactly(
+              a_hash_including('id' => client_proxy_in_pool_1.id.to_s, 'clientAttributes' => {}),
+              a_hash_including('id' => client_proxy_in_pool_1_and_2.id.to_s, 'clientAttributes' => {}),
+            )
+          end
 
-          # Client Proxies belonging to pools are included (and not duplicated if belonging to multiple pools)
-          expect(ce_clients).to contain_exactly(
-            a_hash_including('id' => client_proxy_in_pool_1.id.to_s,
-                             'clientAttributes' => { 'current_age' => 19 }), # attributes from being added to pool1, does not include irrelevant attribute from being removed from pool2
-            a_hash_including('id' => client_proxy_in_pool_1_and_2.id.to_s,
-                             'clientAttributes' => { 'current_age' => 23, 'pool_1_attr' => '1', 'pool_2_attr' => '2' }), # latest attributes for both pool1 and pool2 merged
-          )
+          context 'when a global CE clients table configuration defines columns' do
+            let!(:ce_clients_global_table_config) do
+              create(:hmis_table_configuration_ce_clients, data_source: ds1, owner: nil, columns: [{ key: cde_expression_key, type: 'string', label: 'Household Type' }])
+            end
+
+            it 'returns fields based on TableConfiguration columns' do
+              response, result = post_graphql({ client_attribute_keys: nil }) { query }
+              expect(response.status).to eq(200), result.inspect
+
+              ce_clients = result.dig('data', 'ceClients', 'nodes')
+
+              expect(ce_clients).to contain_exactly(
+                a_hash_including(
+                  'id' => client_proxy_in_pool_1.id.to_s,
+                  'clientAttributes' => hash_including(cde_expression_key => 'Household without children'),
+                ),
+                a_hash_including(
+                  'id' => client_proxy_in_pool_1_and_2.id.to_s,
+                  'clientAttributes' => hash_including(cde_expression_key => nil),
+                ),
+              )
+            end
+          end
+        end
+
+        context 'with explicit keys' do
+          it 'returns fields for the specified keys' do
+            response, result = post_graphql({ client_attribute_keys: [cde_expression_key] }) { query }
+            expect(response.status).to eq(200), result.inspect
+
+            ce_clients = result.dig('data', 'ceClients', 'nodes')
+
+            expect(ce_clients).to contain_exactly(
+              a_hash_including(
+                'id' => client_proxy_in_pool_1.id.to_s,
+                'clientAttributes' => { cde_expression_key => 'Household without children' },
+              ),
+              a_hash_including(
+                'id' => client_proxy_in_pool_1_and_2.id.to_s,
+                'clientAttributes' => { cde_expression_key => nil },
+              ),
+            )
+          end
+
+          it 'raises if the specified key is not a valid CE expression key' do
+            response, result = post_graphql({ client_attribute_keys: ['cde.custom_assessment.not_a_real_cde_key_xyz'] }) { query }
+            expect(response.status).to eq(500)
+            expect(result.dig('errors', 0, 'message')).to include('Unknown CDE')
+          end
+        end
+
+        context 'with many custom data element definitions and values' do
+          # Setup:
+          # - 10 Clients (all belonging to the same candidate pool)
+          # - 10 Custom Assessments per client, each with 10 Custom Data Elements (for different definitions)
+          # - Query resolves all 10 clients and requests all 10 CDEDs as clientAttributes to resolve
+          let!(:cdeds) { create_list(:hmis_custom_data_element_definition, 10, owner_type: 'Hmis::Hud::CustomAssessment', data_source: ds1, form_definition_identifier: custom_assessment_form.identifier) }
+          let!(:clients) { create_list(:hmis_hud_client_with_warehouse_client, 10, data_source: ds1) }
+          let!(:client_proxies) { clients.map { |client| create(:hmis_ce_client_proxy, client: client.destination_client) } }
+          let!(:custom_assessments) do
+            clients.each do |client|
+              10.times do |i|
+                custom_assessment = create(:hmis_custom_assessment, client: client, definition: custom_assessment_form, data_source: ds1)
+                cdeds.each do |cded|
+                  create(:hmis_custom_data_element, value_string: "Value #{i}", owner: custom_assessment, data_element_definition: cded, data_source: ds1)
+                end
+              end
+            end
+          end
+          # add clients to pool_1 so they show up in the results
+          let!(:pool_1) { create :hmis_ce_match_candidate_pool_with_candidates, client_proxies: client_proxies }
+          let(:keys) { cdeds.map(&:key).map { |key| "cde.custom_assessment.#{key}" } }
+
+          it 'returns all custom data elements in a reasonable number of queries' do
+            expect do
+              response, result = post_graphql({ client_attribute_keys: keys }) { query }
+              expect(response.status).to eq(200), result.inspect
+
+              # ensure large amount of CDE values were returned
+              ce_clients = result.dig('data', 'ceClients', 'nodes')
+              expect(ce_clients.count).to be > 10
+              expect(ce_clients.map { |client| client['clientAttributes'] }.map(&:values).flatten.compact_blank.count).to eq(100)
+            end.to make_database_queries(count: 25..40)
+          end
+        end
+
+        context 'with dynamicFilters' do
+          it 'filters ce clients by live CDE value on latest assessment' do
+            # cruft: give client 2 a matching value on an old assessment, and a non-matching value on a newer assessment
+            c2 = client_proxy_in_pool_1_and_2.client.source_clients.sole.as_hmis
+            old_assessment = create(:hmis_custom_assessment, client: c2, definition: custom_assessment_form, data_source: ds1)
+            new_assessment = create(:hmis_custom_assessment, client: c2, definition: custom_assessment_form, data_source: ds1)
+            create(:hmis_custom_data_element, value_string: 'Household without children', owner: old_assessment, data_element_definition: cded_my_household_type, data_source: ds1)
+            create(:hmis_custom_data_element, value_string: 'Newer value that doesn\'t match', owner: new_assessment, data_element_definition: cded_my_household_type, data_source: ds1)
+
+            variables = {
+              client_attribute_keys: [cde_expression_key],
+              filters: {
+                dynamicFilters: [
+                  { key: cde_expression_key, values: ['Household without children', 'Some other value'] },
+                ],
+              },
+            }
+            response, result = post_graphql(**variables) { query }
+            expect(response.status).to eq(200), result.inspect
+
+            ce_clients = result.dig('data', 'ceClients', 'nodes')
+            # second client is excluded because it does not have a value for the CDE
+            expect(ce_clients).to contain_exactly(
+              a_hash_including('id' => client_proxy_in_pool_1.id.to_s, 'clientAttributes' => hash_including(cde_expression_key => 'Household without children')),
+            )
+          end
+
+          it 'returns no clients when no values match' do
+            variables = {
+              client_attribute_keys: [cde_expression_key],
+              filters: {
+                dynamicFilters: [
+                  { key: cde_expression_key, values: ['Individuals'] },
+                ],
+              },
+            }
+            response, result = post_graphql(**variables) { query }
+            expect(response.status).to eq(200), result.inspect
+
+            ce_clients = result.dig('data', 'ceClients', 'nodes')
+            expect(ce_clients).to be_empty
+          end
+
+          it 'rejects non-CDE filter keys (not currently supported)' do
+            filter_variables = {
+              filters: {
+                dynamicFilters: [
+                  { key: 'client.current_age', values: ['20'] },
+                ],
+              },
+            }
+            expect_gql_error post_graphql(**filter_variables) { query }, message: /CE client dynamic filters only support `cde.*` expression keys/
+          end
+          it 'rejects unrecognized filter keys' do
+            filter_variables = {
+              filters: {
+                dynamicFilters: [
+                  { key: 'cde.custom_assessment.not_a_known_key_xyz', values: ['20'] },
+                ],
+              },
+            }
+            expect_gql_error post_graphql(**filter_variables) { query }, message: /Unknown CDE in field/
+          end
         end
       end
 

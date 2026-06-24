@@ -1,10 +1,10 @@
-# frozen_string_literal: true
-
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 # run manually with
 # Reporting::Hud::RunReportJob.new.perform(HopwaCaper::Generators::Fy2026::Generator.name, HudReports::ReportInstance.last, email:false)
@@ -44,6 +44,7 @@ module HopwaCaper::Generators::Fy2026
       # Rails.logger.level = 1
       report.hopwa_caper_enrollments.delete_all
       report.hopwa_caper_services.delete_all
+      report.hopwa_caper_funders.delete_all
       report.report_cells.with_deleted.destroy_all
       # report.update! state: 'Waiting'
     end
@@ -54,19 +55,17 @@ module HopwaCaper::Generators::Fy2026
 
     def self.questions
       sheets = [
-        HopwaCaper::Generators::Fy2026::Sheets::DemographicsAndPriorLivingSituationSheet,
-        HopwaCaper::Generators::Fy2026::Sheets::TbraSheet,
-        HopwaCaper::Generators::Fy2026::Sheets::StrmuSheet,
-        HopwaCaper::Generators::Fy2026::Sheets::PhpSheet,
-        HopwaCaper::Generators::Fy2026::Sheets::HousingInfoSheet,
-        HopwaCaper::Generators::Fy2026::Sheets::SupportiveServicesSheet,
+        Sheets::DemographicsAndPriorLivingSituationSheet,
+        Sheets::TbraSheet,
+        Sheets::PFbhSheet,
+        Sheets::StTfbhSheet,
+        Sheets::StrmuSheet,
+        Sheets::PhpSheet,
+        Sheets::HousingInfoSheet,
+        Sheets::SupportiveServicesSheet,
       ]
-
-      sheets << HopwaCaper::Generators::Fy2026::Sheets::AccessToCareSheet if HopwaCaper::Configuration.new.atc_tab_enabled?
-
-      sheets.map do |q|
-        [q.question_number, q]
-      end.to_h.freeze
+      sheets << Sheets::AccessToCareSheet if HopwaCaper::Configuration.new.atc_tab_enabled?
+      sheets.map { |q| [q.question_number, q] }.to_h.freeze
     end
 
     def self.valid_question_number(question_number)
@@ -88,6 +87,8 @@ module HopwaCaper::Generators::Fy2026
         :project_group_ids,
       ]
     end
+
+    # def self.supports_idempotent_retry? = true
 
     protected
 
@@ -111,7 +112,13 @@ module HopwaCaper::Generators::Fy2026
     end
 
     def build_hopwa_caper_models
-      scope = service_history_enrollments.preload(enrollment: [:income_benefits, { client: :destination_client }, :disabilities, { project: :funders }, :services])
+      scope = service_history_enrollments.preload(enrollment: [:income_benefits, { client: :destination_client }, :disabilities, :project, :services])
+      project_ids = Set.new
+      config = HopwaCaper::Configuration.new
+      cost_calculator = HopwaCaper::ProjectCostCalculator.new(
+        report: report,
+        cded_key: config.funder_daily_rate_field_name,
+      )
       scope.in_batches(of: 100, order: :desc) do |batch|
         enrollment_rows = []
         service_rows = []
@@ -125,7 +132,13 @@ module HopwaCaper::Generators::Fy2026
           client = hud_enrollment&.client&.destination_client
           next unless client
 
-          enrollment_rows << HopwaCaper::Enrollment.from_hud_record(report: report, client: client, enrollment: hud_enrollment)
+          enrollment_rows << HopwaCaper::Enrollment.from_hud_record(
+            report: report,
+            client: client,
+            enrollment: hud_enrollment,
+            cost_calculator: cost_calculator,
+          )
+          project_ids.add hud_enrollment.project.id
 
           # Store enrollment context for later custom service lookup
           context_key = [hud_enrollment.data_source_id, hud_enrollment.EnrollmentID]
@@ -150,6 +163,18 @@ module HopwaCaper::Generators::Fy2026
         import_rows(HopwaCaper::Enrollment, enrollment_rows)
         import_rows(HopwaCaper::Service, service_rows)
       end
+
+      funder_rows = []
+      GrdaWarehouse::Hud::Project.where(id: project_ids).preload(:funders).each do |project|
+        project.funders.each do |funder|
+          funder_rows << HopwaCaper::Funder.from_hud_record(
+            funder: funder,
+            project: project,
+            report: report,
+          )
+        end
+      end
+      HopwaCaper::Funder.import(funder_rows)
 
       report.hopwa_caper_enrollments.distinct.pluck(:destination_client_id).in_groups_of(100, false) do |client_ids|
         enrollments = report.hopwa_caper_enrollments.where(destination_client_id: client_ids).order(:id)
@@ -204,11 +229,18 @@ module HopwaCaper::Generators::Fy2026
     end
 
     def find_hopwa_eligible_enrollment(enrollments)
-      hohs = enrollments.filter { |e| e.relationship_to_hoh == 1 }.sort_by(&:id)
-      return hohs.first if hohs.one? && hohs.first.hiv_positive
+      # Sort enrollments so that those active within the report period come first,
+      # then by most recent entry date, then by id.
+      sorted = enrollments.sort_by do |e|
+        is_active = (e.exit_date.nil? || e.exit_date >= report.start_date) && e.entry_date <= report.end_date
+        [is_active ? 0 : 1, -e.entry_date.to_time.to_i, e.id]
+      end
 
-      hiv = enrollments.filter(&:hiv_positive).sort_by(&:id)
-      return hiv.first if hiv.one?
+      hohs = sorted.filter { |e| e.relationship_to_hoh == 1 }
+      hiv_positive_hoh = hohs.detect(&:hiv_positive)
+      return hiv_positive_hoh if hiv_positive_hoh
+
+      hiv = sorted.filter(&:hiv_positive)
       return hiv.first if hiv.any?
 
       hohs.first

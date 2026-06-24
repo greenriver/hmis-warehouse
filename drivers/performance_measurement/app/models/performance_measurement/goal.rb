@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -87,6 +87,11 @@ module PerformanceMeasurement
           new_count = p.dup
           new_count.goal_id = new_goal.id
           new_count.save!
+        end
+        static_spms.each do |s|
+          new_spm = s.dup
+          new_spm.goal_id = new_goal.id
+          new_spm.save!
         end
       end
       new_goal

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -18,7 +18,7 @@ module GrdaWarehouse::Monitoring::MetricCalculators
 
     # Batch calculation for multiple clients
     # Returns hash of { client_id => min_size }
-    def self.calculate_batch(entities, _calculation_date)
+    def self.calculate_batch(entities, _calculation_date, **_kwargs)
       entity_ids = entities.map(&:id)
 
       # First, get count of members for each [data_source_id, HouseholdID] combination
@@ -42,6 +42,12 @@ module GrdaWarehouse::Monitoring::MetricCalculators
           sizes.empty? ? nil : sizes.min
         end.
         compact
+    end
+
+    # hud_enrollments is written by HmisAutoMigrateJob while an import is running.
+    # Delayed::Job.running? checks locked_at IS NOT NULL AND failed_at IS NULL.
+    def self.data_stable?
+      !Delayed::Job.running?('HmisAutoMigrateJob')
     end
 
     def self.metric_definition_attributes

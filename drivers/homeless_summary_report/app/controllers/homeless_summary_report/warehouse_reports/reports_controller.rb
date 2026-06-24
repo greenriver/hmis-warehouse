@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -65,20 +65,6 @@ module HomelessSummaryReport::WarehouseReports
     def destroy
       @report.destroy
       respond_with(@report, location: homeless_summary_report_warehouse_reports_reports_path)
-    end
-
-    def reload_from_csv
-      require_can_view_any_reports!
-      service = Reports::ReloadReportFromCsvService.new(@report)
-      result = service.reload!
-
-      if result[:success]
-        flash[:notice] = "Report data reloaded successfully. #{result[:reloaded_counts].values.sum} records restored."
-      else
-        flash[:error] = "Failed to reload report data: #{result[:errors].join(', ')}"
-      end
-
-      redirect_to homeless_summary_report_warehouse_reports_report_path(@report)
     end
 
     def details

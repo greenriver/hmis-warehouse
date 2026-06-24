@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -40,5 +40,13 @@ FactoryBot.define do
     snapshots_created_count { 0 }
     snapshots_updated_count { 0 }
     calculation_errors_count { 0 }
+  end
+
+  factory :grda_warehouse_monitoring_threshold_notification_log, class: 'GrdaWarehouse::Monitoring::ThresholdNotificationLog' do
+    association :user
+    email_type { 'metric_threshold_crossed' }
+    sent_at { Time.current }
+    delivery_failed { false }
+    details { { 'crossings' => [] } }
   end
 end

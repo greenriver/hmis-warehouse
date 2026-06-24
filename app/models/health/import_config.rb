@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -38,11 +38,11 @@ module Health
       GPGME::Key.import(secret_key) unless GPGME::Key.find(encryption_key_name).present?
     end
 
-    private def host_name
+    def host_name
       host.split(':').first
     end
 
-    private def port_number
+    def port_number
       _, port = host.split(':')
 
       if port.present?

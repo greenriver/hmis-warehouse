@@ -187,3 +187,4 @@ etc-localtime
 # Zitadel authentication files
 docker/auth/*.pat
 docker/auth/zitadel-credentials.env
+docs/research/*

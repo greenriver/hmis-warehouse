@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -16,6 +16,7 @@ module Mutations
 
     def resolve(identifier:)
       definitions = Hmis::Form::Definition.
+        in_data_source(current_user.hmis_data_source_id).
         exclude_definition_from_select.
         order(version: :desc).
         where(identifier: identifier)

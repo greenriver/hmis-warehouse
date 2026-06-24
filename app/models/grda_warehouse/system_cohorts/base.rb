@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -31,22 +31,27 @@ module GrdaWarehouse::SystemCohorts
 
       config_key = cohort_classes.invert[self]
       raise 'Unknown System Cohort Class' unless config_key
+      return unless GrdaWarehouse::Config.get(config_key)
 
-      transaction do
-        range.each do |date|
-          next unless GrdaWarehouse::Config.get(config_key)
+      cohort_id = transaction { ensure_system_cohort(self) }.id
 
-          system_cohort = ensure_system_cohort(self)
-
+      # Each date gets its own transaction to keep lock duration short on cohort_clients
+      # and avoid deadlocks with concurrent writers (e.g. parallel background jobs).
+      # A fresh instance is loaded per date so that memoized per-date state (e.g. candidate
+      # enrollments) does not leak across iterations.
+      range.each do |date|
+        transaction do
           # remove any known changes that were added by the system
           GrdaWarehouse::CohortClientChange.where(
-            cohort_id: system_cohort.id,
+            cohort_id: cohort_id,
             user_id: User.system_user.id,
             reason: known_reasons,
             changed_at: date.to_time .. (date + 1.days).to_time,
           ).delete_all
 
-          system_cohort.sync(processing_date: date, date_window: date_window)
+          # sync returns false when it can't acquire the cohort write lock;
+          # rolling back preserves the CohortClientChange rows deleted above.
+          raise ActiveRecord::Rollback unless find(cohort_id).sync(processing_date: date, date_window: date_window)
         end
       end
     end

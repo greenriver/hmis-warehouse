@@ -1,10 +1,10 @@
-# frozen_string_literal: true
-
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 require 'rails_helper'
 require 'shared_contexts/visibility_test_context'
@@ -20,12 +20,19 @@ end
 RSpec.describe ClientAccessControl::ClientsController, type: :request, vcr: true do
   include_context 'visibility test context'
 
+  before(:all) do
+    GrdaWarehouse::WarehouseReports::ReportDefinition.maintain_report_definitions
+    AccessGroup.maintain_system_groups
+  end
+
+  after(:all) do
+    GrdaWarehouse::Utility.clear!
+  end
+
   configs_variations = []
   GrdaWarehouse::Config.available_cas_methods.values.product( # cas available method
     [true, false], # consent visible to all
     [true, false], # expose coc code
-    GrdaWarehouse::Config.available_health_emergencies.values, # health emergency
-    GrdaWarehouse::Config.available_health_emergency_tracings.values, # health emergency tracing
     [0, 20, 65], # health priority age
     [true, false], # multi coc installation
   ) do |combination|
@@ -34,8 +41,6 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request, vcr: true
         :cas_available_method,
         :consent_visible_to_all,
         :expose_coc_code,
-        :health_emergency,
-        :health_emergency_tracing,
         :health_priority_age,
         :multi_coc_installation,
       ], combination
@@ -59,8 +64,6 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request, vcr: true
       before do
         GrdaWarehouse::Config.delete_all
         GrdaWarehouse::Config.invalidate_cache
-        GrdaWarehouse::WarehouseReports::ReportDefinition.maintain_report_definitions
-        AccessGroup.maintain_system_groups
       end
       let!(:config) { create :config_b, variation }
       let!(:user) { create :user }

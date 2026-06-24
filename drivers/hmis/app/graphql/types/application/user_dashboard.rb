@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -27,7 +27,7 @@ module Types
       {
         id: object.id,
         show_staff_assignment: policy_for(Hmis::StaffAssignment, policy_type: :staff_assignment).can_index?,
-        show_referrals: policy_for(Hmis::Ce::Referral, policy_type: :ce_referral).can_index?,
+        show_referrals: show_referrals?,
       }
     end
 
@@ -41,7 +41,7 @@ module Types
     end
 
     def ce_referral_steps
-      return Hmis::WorkflowExecution::Step.none unless policy_for(Hmis::Ce::Referral, policy_type: :ce_referral).can_index?
+      return Hmis::WorkflowExecution::Step.none unless show_referrals?
 
       # Scope open steps that are assigned to the current user
       step_scope = Hmis::WorkflowExecution::Step.open.
@@ -59,6 +59,15 @@ module Types
       steps = step_scope.order(available_at: :desc, id: :desc)
 
       steps
+    end
+
+    private
+
+    def show_referrals?
+      return @show_referrals if defined?(@show_referrals)
+
+      policy = policy_for(Hmis::Ce::Referral, policy_type: :ce_referral)
+      @show_referrals = policy.can_index? && policy.can_perform_some_referral_tasks?
     end
   end
 end

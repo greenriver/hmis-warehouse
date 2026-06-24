@@ -2,6 +2,11 @@
 
 This module generates HUD LSA (Longitudinal System Analysis) reports by exporting data to an external MSSQL Server, using the HUD [Sample Code](https://github.com/HMIS/LSASampleCode), and importing results into the common HUD Report structure.
 
+## Active and Retired Generators
+
+- **FY2026** — the active generator. This is the only version that can run new reports.
+- **FY2022, FY2023, FY2024** — read-only stubs. Historical reports are still viewable and downloadable, but these versions can no longer generate new reports. The generation concerns, SQL wrappers, and HUD sample code for these years have been removed.
+
 ## Architecture
 
 The LSA report generation process runs as a background job using Delayed Job. Each report run:
@@ -16,7 +21,7 @@ The LSA report generation process runs as a background job using Delayed Job. Ea
 
 ### Key Components
 
-- `HudLsa::Generators::Fy2024::Lsa`: Main report generator class
+- `HudLsa::Generators::Fy2026::Lsa`: Main report generator class
 - `HudLsa::RunReportJob`: Background job handler
 - `RdsConcern`: Manages RDS instance lifecycle
 - `SqlServerBase`: Handles SQL Server connections
@@ -50,6 +55,10 @@ The system supports two modes of operation:
    - Uses a pre-configured RDS instance
    - Configured via `LSA_DB_HOST` environment variable
    - Database is dropped after report completion
+
+### Public accessibility
+
+Dynamic RDS instances are created with **`PubliclyAccessible` set to `false`** in `lib/rds_sql_server/rds.rb` (see `create_db_on_aws`). That should stay that way: the SQL Server must only be reachable from trusted network paths (for example the same VPC, VPN, or peering as the app workers), not from the public internet. For developers running the LSA locally, this should be accessible through Tailscale and assuming the correct role for AWS.
 
 ### S3 Integration
 
@@ -128,24 +137,24 @@ aws-vault exec openpath -- docker compose up -d
 
 Sample source and result files for the LSA are provided by HUD as part of the [LSA Sample Code](https://github.com/HMIS/LSASampleCode).
 
-For FY2024, you can download:
+For FY2026, you can download:
 - [Sample Output](https://github.com/HMIS/LSASampleCode/blob/master/Sample%20Data/Sample%20LSA%20Output.zip)
 - [Sample Input](https://github.com/HMIS/LSASampleCode/blob/master/Sample%20Data/Sample%20HMIS%20Data.zip)
 
 ### Setting Up Sample Data
 
-1. Expand the input into `drivers/hud_lsa/spec/fixtures/files/lsa/fy2024/sample_hmis_export`
-2. Expand the output into `drivers/hud_lsa/spec/fixtures/files/lsa/fy2024/sample_results`
+1. Expand the input into `drivers/hud_lsa/spec/fixtures/files/lsa/fy2026/sample_hmis_export`
+2. Expand the output into `drivers/hud_lsa/spec/fixtures/files/lsa/fy2026/sample_results`
 
 ### Running Tests
 
 Tests can be run by re-using a previous run:
 
 ```ruby
-report = HudLsa::Generators::Fy2024::Lsa.last
+report = HudLsa::Generators::Fy2026::Lsa.last
 report.test = true
-# r.test_type = :hic # to test the HIC version
-# r.destroy_rds = false # uncomment to keep the RDS server alive after completion
+# report.test_type = :hic # to test the HIC version
+# report.destroy_rds = false # uncomment to keep the RDS server alive after completion
 report.run!
 ```
 
@@ -158,8 +167,8 @@ You can compare the test results to the sample results with the provided LSA Com
 1. Download and expand the results from the test run to `var/lsa/generated`
 2. Run the comparison:
 ```ruby
-checker = HudLsa::Generators::Fy2024::LsaComparisonTool.new(
-  'drivers/hud_lsa/spec/fixtures/files/lsa/fy2024/sample_results',
+checker = HudLsa::Generators::Fy2026::LsaComparisonTool.new(
+  'drivers/hud_lsa/spec/fixtures/files/lsa/fy2026/sample_results',
   'var/lsa/generated'
 )
 checker.compare

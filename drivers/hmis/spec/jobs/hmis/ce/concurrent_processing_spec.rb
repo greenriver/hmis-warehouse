@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -13,8 +13,7 @@ RSpec.describe 'Concurrent CE Processing', type: :job do
   include ActiveJob::TestHelper
   include_context 'with ce processing setup'
 
-  let!(:pool2) { create(:hmis_ce_match_candidate_pool) }
-  let!(:opportunity2) { create(:hmis_ce_opportunity, candidate_pool: pool2) }
+  let!(:pool2) { create(:hmis_ce_match_candidate_pool_active_with_unit_group, data_source: ce_data_source) }
 
   before do
     Hmis::Ce::ChangeMarker.delete_all

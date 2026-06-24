@@ -1,14 +1,14 @@
-# frozen_string_literal: true
-
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module HopwaCaper::Generators::Fy2026::Sheets
   class HousingInfoSheet < BaseProgramSheet
-    QUESTION_NUMBER = 'Q5: Housing Information Services'
+    QUESTION_NUMBER = 'Housing Information Services'
     QUESTION_NUMBERS = ['Q5'].freeze
     SHEET_TITLE = 'Complete for all households served with HOPWA-funded Housing Information Services by your organization in the reporting year.'
     HOUSING_INFO_CATEGORY_NAME = 'HOPWA Housing Information'

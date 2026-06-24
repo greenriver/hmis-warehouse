@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -8,6 +8,8 @@
 
 module Mutations
   class DeleteEnrollment < BaseMutation
+    include DeletesHouseholdEnrollments
+
     argument :id, ID, required: true
 
     field :enrollment, Types::HmisSchema::Enrollment, null: true
@@ -26,9 +28,14 @@ module Mutations
       end
 
       # WIP Enrollments, and enrollments missing intakes (such as migrated-in data), can be deleted
-      raise HmisErrors::ApiError, 'Access denied' unless policy.can_delete?
+      access_denied! unless policy.can_delete?
 
-      enrollment.destroy!
+      # If this is the HoH, delete all household enrollments to avoid leaving behind a household with no HoH
+      if enrollment.head_of_household?
+        destroy_household!(hoh_enrollment: enrollment)
+      else
+        enrollment.destroy!
+      end
 
       {
         enrollment: enrollment,

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -20,7 +20,10 @@ module CeWorkflows::Ph
       @data_source = data_source
 
       # Validate required forms exist
-      missing = FORMS.values - Hmis::Form::Definition.where(role: 'CE_REFERRAL_STEP', identifier: FORMS.values).pluck(:identifier)
+      missing = FORMS.values - Hmis::Form::Definition.
+        in_data_source(@data_source.id).
+        where(role: 'CE_REFERRAL_STEP', identifier: FORMS.values).
+        pluck(:identifier)
       raise "Missing CE_REFERRAL_STEP forms: #{missing.join(', ')}" if missing.any?
     end
 

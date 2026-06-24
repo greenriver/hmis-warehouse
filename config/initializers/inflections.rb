@@ -1,3 +1,11 @@
+###
+# Copyright Green River Data Group, Inc.
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
+# frozen_string_literal: true
+
 # Be sure to restart your server when you modify this file.
 
 # Add new inflection rules using the following format. Inflections
@@ -36,6 +44,7 @@ Rails.autoloaders.main.inflector.inflect('lgbtq' => 'Lgbtq')
 Rails.autoloaders.main.inflector.inflect('lgbtq_from_hmis' => 'LgbtqFromHmis')
 Rails.autoloaders.main.inflector.inflect('ssn' => 'Ssn')
 Rails.autoloaders.main.inflector.inflect('coc' => 'Coc')
+Rails.autoloaders.main.inflector.inflect('coc_buckets' => 'CocBuckets')
 Rails.autoloaders.main.inflector.inflect('overlapping_coc' => 'OverlappingCoc')
 Rails.autoloaders.main.inflector.inflect('overlapping_coc_by_project_type' => 'OverlappingCocByProjectType')
 Rails.autoloaders.main.inflector.inflect('project_coc' => 'ProjectCoc')

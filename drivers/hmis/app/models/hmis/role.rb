@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -13,6 +13,7 @@ class Hmis::Role < ::ApplicationRecord
   self.table_name = :hmis_roles
   acts_as_paranoid
   has_paper_trail
+  include HistoryDescriptions
 
   has_many :access_controls, class_name: '::Hmis::AccessControl', inverse_of: :role
   has_many :users, through: :access_controls
@@ -386,6 +387,7 @@ class Hmis::Role < ::ApplicationRecord
       can_view_enrollment_details: {
         description: 'When granted in conjunction with "Can View Project," grants access to view the full Enrollment Dashboard. Includes all related records such as Assessments, Services, Current Living Situations, and more.',
         administrative: false,
+        requirements: [:can_view_project],
         access: [:viewable],
         category: 'Enrollment Access',
         sub_category: 'Access',
@@ -509,6 +511,8 @@ class Hmis::Role < ::ApplicationRecord
         access: [:editable],
         category: 'Administration',
         sub_category: 'Admin Tools',
+        # Requires can_configure_data_collection permission, which governs viewability of forms
+        requirements: [:can_configure_data_collection],
       },
       can_configure_data_collection: {
         description: 'Ability to configure data collection rules for assessments, services, auto-exit, and more.',
@@ -523,6 +527,7 @@ class Hmis::Role < ::ApplicationRecord
         access: [:editable],
         category: 'Administration',
         sub_category: 'Admin Tools',
+        requirements: [:can_manage_forms],
       },
       can_manage_scan_cards: {
         description: 'Ability to create and deactivate Scan Cards',

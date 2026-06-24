@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -17,7 +17,10 @@ module Mutations
       errors.add(:role, :required) if input.role.blank?
       errors.add(:title, :required) if input.title.blank?
       errors.add(:identifier, :required) if input.identifier.blank?
-      non_unique_identifier = Hmis::Form::Definition.with_role(input.role).where(identifier: input.identifier).exists?
+      non_unique_identifier = Hmis::Form::Definition.
+        in_data_source(current_user.hmis_data_source_id).
+        where(identifier: input.identifier).
+        exists?
       errors.add(:identifier, :invalid, message: 'is not unique. Please choose another identifier.') if non_unique_identifier
       return { errors: errors } if errors.any?
 
@@ -31,6 +34,7 @@ module Mutations
       definition = Hmis::Form::Definition.new(
         version: 0,
         status: Hmis::Form::Definition::DRAFT,
+        data_source_id: current_user.hmis_data_source_id,
         **attrs,
       )
 

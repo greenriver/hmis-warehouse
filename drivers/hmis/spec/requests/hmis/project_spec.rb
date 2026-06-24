@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -30,9 +30,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   let!(:f2) { create :hmis_hud_funder, data_source: ds1, project: p1 }
   let!(:cep1) { create :hmis_hud_ce_participation, data_source: ds1, project: p1 }
   let!(:hp1) { create :hmis_hud_hmis_participation, data_source: ds1, project: p1 }
-  let!(:referral_request) do
-    create(:hmis_external_api_ac_hmis_referral_request, project: p1)
-  end
 
   # both WIP and non-WIP assessments on a non-WIP enrollment
   let!(:e1) { create(:hmis_hud_enrollment, project: p1, data_source: p1.data_source) }
@@ -87,17 +84,12 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             access {
               #{scalar_fields(Types::HmisSchema::Project.fields['access'])}
             }
-            referralRequests {
-              nodes  {
-                #{scalar_fields(Types::HmisSchema::ReferralRequest)}
-              }
-            }
           }
         }
       GRAPHQL
     end
 
-    it 'resolves funders, project cocs, referral requests, and inventories' do
+    it 'resolves funders, project cocs, and inventories' do
       response, result = post_graphql(id: p1.id) { query }
 
       aggregate_failures 'checking response' do
@@ -112,7 +104,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect(record.dig('funders', 'nodesCount').to_i).to eq(2)
         expect(record.dig('funders', 'nodes').map(&to_id)).to contain_exactly(f1.id, f2.id)
         expect(record.dig('organization', 'id').to_i).to eq(o1.id)
-        expect(record.dig('referralRequests', 'nodes', 0, 'id')).to eq(referral_request.id&.to_s)
         expect(record.dig('ceParticipations', 'nodes', 0, 'id')).to eq(cep1.id&.to_s)
         expect(record.dig('hmisParticipations', 'nodes', 0, 'id')).to eq(hp1.id&.to_s)
       end

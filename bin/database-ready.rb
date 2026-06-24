@@ -1,4 +1,10 @@
 #!/usr/bin/env ruby
+###
+# Copyright Green River Data Group, Inc.
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 # frozen_string_literal: true
 
 # This script is used to prevent booting of kubernetes pods before the database
@@ -6,6 +12,13 @@
 
 # The script seems to be freezing with no output. This might help debug it.
 $stdout.sync = true
+
+# Kubernetes sends SIGTERM when scaling down or restarting pods. Exit cleanly
+# rather than letting Ruby raise SignalException (which Sentry reports as an error).
+Signal.trap('TERM') do
+  puts 'Received SIGTERM, exiting.'
+  exit(0)
+end
 
 require 'timeout'
 

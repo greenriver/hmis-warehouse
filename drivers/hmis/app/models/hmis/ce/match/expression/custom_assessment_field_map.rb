@@ -1,3 +1,9 @@
+###
+# Copyright Green River Data Group, Inc.
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 # frozen_string_literal: true
 
 module Hmis::Ce::Match::Expression
@@ -13,10 +19,15 @@ module Hmis::Ce::Match::Expression
       column = column_for_field(field_name)
       client_ids = clients.pluck(:id)
 
+      # TODO(#9095): DestinationClientLatestAssessment returns one row per (destination_client, form_identifier, data_source).
+      # But based on the `field`, at this point we don't know what data source we are interested in.
+      # For now, just order by recency and keep the single most recent assessment with that identifier across data sources.
       result = Hmis::DestinationClientLatestAssessment.
         where(destination_client_id: client_ids).
         where(form_identifier: form_definition_identifier).
         joins(:custom_assessment).
+        # order oldest-first so the most recent row wins when collapsed with to_h
+        order(arel.cas_t[:AssessmentDate].asc, arel.cas_t[:id].asc).
         pluck(:destination_client_id, column).
         to_h
 

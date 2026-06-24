@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -35,7 +35,9 @@ module HopwaCaper
              class_name: 'HudReports::UniverseMember',
              foreign_key: :universe_membership_id
 
-    belongs_to :enrollment, class_name: 'HopwaCaper::Enrollment', primary_key: :enrollment_id
+    belongs_to :enrollment, class_name: 'HopwaCaper::Enrollment',
+                            foreign_key: [:enrollment_id, :report_instance_id],
+                            primary_key: [:enrollment_id, :report_instance_id]
 
     scope :hud_services, -> { where(service_source: HUD_SERVICE_SOURCE) }
     scope :custom_services, -> { where(service_source: CUSTOM_SERVICE_SOURCE) }

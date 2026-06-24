@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -11,8 +11,8 @@ require 'rails_helper'
 RSpec.describe Hmis::Ce::Referral, type: :model do
   include_context 'ce spec helper'
 
-  let(:opportunity) { create(:hmis_ce_opportunity, unit: unit, assignment_rules: [rule].map(&:attributes)) }
-  let(:referral) { create(:hmis_ce_referral, client: client, opportunity: opportunity, data_source: ds1) }
+  let(:opportunity) { create(:hmis_ce_opportunity, unit: unit) }
+  let(:referral) { create(:hmis_ce_referral, client: client, opportunity: opportunity, data_source: ds1, assignment_rules: [rule].map(&:attributes)) }
   let(:client) { create(:hmis_hud_client_with_warehouse_client, data_source: ds1, dob: 22.years.ago, veteran_status: 8) }
   let!(:rule) { create(:hmis_ce_eligibility_requirement, expression: requirement_expression, owner: project) }
 
@@ -21,11 +21,12 @@ RSpec.describe Hmis::Ce::Referral, type: :model do
 
   describe 'resolve_match_rule_fields' do
     context 'when resolving custom data element field' do
+      let(:form_definition) { create(:hmis_form_definition, identifier: 'test_form', data_source: ds1) }
+      let(:cded) { create(:hmis_custom_data_element_definition, data_source: ds1, key: 'housing_preference', label: 'Preferred Housing', owner_type: 'Hmis::Hud::CustomAssessment', form_definition_identifier: form_definition.identifier) }
+
       let(:requirement_expression) { '`cde.custom_assessment.housing_preference` = "apartment"' }
       let(:enrollment) { create(:hmis_hud_enrollment, client: client, data_source: ds1) }
-      let(:assessment) { create(:hmis_custom_assessment, enrollment: enrollment, data_source: ds1) }
-
-      let(:cded) { create(:hmis_custom_data_element_definition, data_source: ds1, key: 'housing_preference', label: 'Preferred Housing', owner_type: 'Hmis::Hud::CustomAssessment', form_definition_identifier: assessment.definition.identifier) }
+      let(:assessment) { create(:hmis_custom_assessment, enrollment: enrollment, data_source: ds1, definition: form_definition) }
       let!(:cde) { create(:hmis_custom_data_element, data_element_definition: cded, owner: assessment, value_string: 'house') }
 
       it 'resolves fields for custom data elements correctly' do

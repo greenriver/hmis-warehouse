@@ -1,10 +1,10 @@
-# frozen_string_literal: true
-
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 module GrdaWarehouse::Hud
   class Enrollment < Base
@@ -426,6 +426,23 @@ module GrdaWarehouse::Hud
     end
 
     # NOTE: this must be included at the end of the class so that scopes can override correctly
-    include RailsDrivers::Extensions
+    # Extensions from drivers — see ADR 0007
+    include AdultOnlyHouseholdsSubPop::GrdaWarehouse::Hud::EnrollmentExtension
+    include AdultsWithChildrenSubPop::GrdaWarehouse::Hud::EnrollmentExtension
+    include AdultsWithChildrenTwentyfivePlusHohSubPop::GrdaWarehouse::Hud::EnrollmentExtension
+    include AdultsWithChildrenYouthHohSubPop::GrdaWarehouse::Hud::EnrollmentExtension
+    include ChildOnlyHouseholdsSubPop::GrdaWarehouse::Hud::EnrollmentExtension
+    include ClientAccessControl::GrdaWarehouse::Hud::EnrollmentExtension
+    include ClientLocationHistory::GrdaWarehouse::Hud::EnrollmentExtension
+    include ClientsSubPop::GrdaWarehouse::Hud::EnrollmentExtension
+    include CustomImportsBostonCommunityOfOrigin::GrdaWarehouse::Hud::EnrollmentExtension
+    include Hmis::GrdaWarehouse::Hud::EnrollmentExtension
+    include HmisCsvImporter::GrdaWarehouse::Hud::EnrollmentExtension
+    include HmisCsvTwentyTwenty::GrdaWarehouse::Hud::EnrollmentExtension
+    include HmisCsvTwentyTwentyFour::GrdaWarehouse::Hud::EnrollmentExtension
+    include HmisCsvTwentyTwentySix::GrdaWarehouse::Hud::EnrollmentExtension
+    include NonVeteransSubPop::GrdaWarehouse::Hud::EnrollmentExtension
+    include SupplementalEnrollmentData::GrdaWarehouse::Hud::EnrollmentExtension
+    include VeteransSubPop::GrdaWarehouse::Hud::EnrollmentExtension
   end # End Enrollment
 end

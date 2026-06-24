@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -20,6 +20,8 @@
 #   end
 module ReportArchival
   extend ActiveSupport::Concern
+
+  ARCHIVAL_HARD_DELETE_BATCH_SIZE = 1_000
 
   def self.register_report_type(klass)
     Rails.application.config.report_archival_types << klass.name unless Rails.application.config.report_archival_types.include?(klass.name)
@@ -128,6 +130,41 @@ module ReportArchival
   # ============================================================================
   # Archival Actions
   # ============================================================================
+
+  # Permanently removes rows from the database, bypassing acts_as_paranoid soft-delete
+  # and has_many association delete_all nullify behavior.
+  def hard_delete_archival_relation(relation)
+    model_class = relation.klass
+    table = model_class.quoted_table_name
+    scoped = model_class.respond_to?(:with_deleted) ? relation.with_deleted : relation
+    deleted_count = 0
+
+    scoped.unscope(:order).in_batches(of: ARCHIVAL_HARD_DELETE_BATCH_SIZE, load: false) do |batch|
+      subquery_sql = batch.select(:id).to_sql
+      sql = ActiveRecord::Base.sanitize_sql_array(["DELETE FROM #{table} WHERE id IN (#{subquery_sql})"])
+      deleted_count += model_class.connection.exec_delete(sql, 'ReportArchival Hard Delete', []).to_i
+    end
+
+    deleted_count
+  end
+
+  def hard_delete_archival_association(association_name)
+    hard_delete_archival_relation(send(association_name))
+  end
+
+  # Scope of rows an archived CSV replaces (purge, reload, and verification).
+  def archival_relation_scope(csv_config, association_name, model_class = nil)
+    model_class ||= self.class.reflect_on_association(association_name)&.klass
+    raise "Could not determine model class for association #{association_name}" unless model_class
+
+    if csv_config[:reload_scope]
+      csv_config[:reload_scope].call(self)
+    elsif model_class.column_names.include?('report_id')
+      model_class.where(report_id: id)
+    else
+      send(association_name)
+    end
+  end
 
   def archive_and_purge!(force: false)
     # Archive if needed

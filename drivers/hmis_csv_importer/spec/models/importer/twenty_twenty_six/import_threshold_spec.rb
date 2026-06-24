@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -42,9 +42,8 @@ RSpec.describe GrdaWarehouse::ImportThreshold, type: :model do
         expect(@loader.importer_log.status).to eq('paused')
       end
 
-      it 'enqueues a message' do
-        expect(ActiveJob::Base.queue_adapter.enqueued_jobs.size).to be >= 1
-        expect(ActiveJob::Base.queue_adapter.enqueued_jobs.map { |j| j[:job] }).to include(ActionMailer::MailDeliveryJob)
+      it 'sends a notification' do
+        expect(GrdaWarehouse::Monitoring::ThresholdNotificationLog.where(email_type: 'import_processing').count).to be >= 1
       end
     end
 

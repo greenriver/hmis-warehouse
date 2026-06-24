@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -25,7 +25,8 @@ module HmisExternalApis::AcHmis::Migration
     # This works because the HUD CSV export we get from the AC Warehouse
     # contains MCI Unique IDs in the Personal ID column.
     def create_mci_unique_ids_from_personal_ids
-      data_source_id = GrdaWarehouse::DataSource.hmis.first&.id
+      # Expect a single HMIS data source. `sole` raises if there are >1
+      data_source_id = GrdaWarehouse::DataSource.hmis.sole&.id
       raise 'No HMIS Data Source' unless data_source_id.present?
 
       ac_warehouse_cred = ::GrdaWarehouse::RemoteCredential.active.

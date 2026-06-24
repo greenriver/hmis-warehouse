@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -19,6 +19,7 @@ module Types
     value 'PROJECTS_RECEIVING_DIRECT_CE_REFERRALS', 'Projects that can receive CE referrals'
     value 'UNIT_GROUPS_FOR_PROJECT_DIRECT_CE_REFERRAL', 'Unit groups for the given project that can receive CE referrals'
     value 'ORGANIZATION', 'All Organizations that the User can see'
+    value 'OPEN_ORGANIZATION_NAMES', 'Names of organizations with open projects'
     value 'OTHER_FUNDERS', 'OtherFunder values for all Funders across the installation'
     value 'ASSESSMENT_NAMES', 'Assessment names, including custom assessments and assessments that are inactive. If a project is specified, the list is limited to assessments that exist in the project (both active and inactive).'
     value 'GEOCODE'
@@ -52,11 +53,12 @@ module Types
     value 'CLIENT_AUDIT_EVENT_RECORD_TYPES'
     value 'FORM_TYPES', 'Form Types'
     value 'STAFF_ASSIGNMENT_RELATIONSHIPS', 'Staff Assignment Relationships'
-    value 'USERS', 'User accounts. Deprecated in favor of AUDITABLE_USERS'
+    value 'USERS', 'User accounts. Returns all users, for use when filtering audit events'
     value 'ELIGIBLE_STAFF_ASSIGNMENT_USERS', 'Users who are eligible for staff assignment'
     value 'ELIGIBLE_REFERRAL_STEP_ASSIGNMENT_USERS', 'Users who can be assigned to referral steps in the specified project'
-    value 'AUDITABLE_USERS', 'Current and historical user accounts'
+    value 'AUDITABLE_USERS', 'Current and historical user accounts', deprecation_reason: 'No longer used'
     value 'CONTINUUM_PROJECTS', 'Continuum Projects'
+    value 'CE_ACCESS_POINT_PROJECT_NAMES', 'Projects with an active CE Participation record with Access Point = Yes'
     value 'CE_WORKFLOW_TEMPLATE_IDENTIFIERS', 'Templates for CE workflow definitions'
     value 'CE_WORKFLOW_TEMPLATE_IDENTIFIERS_INCLUDING_RETIRED', 'Templates for CE workflow definitions, including fully retired workflows'
     value 'CE_REFERRAL_STATUSES'

@@ -1,5 +1,7 @@
 ## CoreDemographicsReport README
 
+> Feature documentation: `docs/features/core-demographics-report.md`
+
 ### Report Logic:
 * Run by Entire Data Set, CoC Code, Provider or Reporting Group of Providers
 * A user defined date range.

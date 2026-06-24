@@ -1,10 +1,10 @@
-# frozen_string_literal: true
-
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 module GrdaWarehouse::Tasks
   # Maintenance task to remove old client search queries
@@ -22,8 +22,9 @@ module GrdaWarehouse::Tasks
     def perform
       instrument_as_maintenance_task do |run|
         with_lock do
-          GrdaWarehouse::ClientSearchQuery.transaction do
-            cleanup_old_queries
+          GrdaWarehouseBase.transaction do
+            cleanup_old_queries(GrdaWarehouse::ClientSearchQuery)
+            cleanup_old_queries(Hmis::ClientSearchQuery)
             run.complete!
           end
         end
@@ -32,9 +33,9 @@ module GrdaWarehouse::Tasks
 
     protected
 
-    def cleanup_old_queries
+    def cleanup_old_queries(klass)
       cutoff_date = Time.current - RETENTION_PERIOD
-      GrdaWarehouse::ClientSearchQuery.where(updated_at: ..cutoff_date).delete_all
+      klass.where(updated_at: ..cutoff_date).delete_all
     end
 
     def with_lock(&block)

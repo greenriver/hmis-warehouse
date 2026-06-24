@@ -1,3 +1,9 @@
+###
+# Copyright Green River Data Group, Inc.
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 # frozen_string_literal: true
 
 # SourceClientNameSet aggregates client names from multiple data sources, including
@@ -41,6 +47,7 @@ module GrdaWarehouse
           value: patient.pii_provider(user: user).full_name,
         )
       end
+      @names.reject! { |n| n.value.blank? }
       @names.uniq!
     end
 

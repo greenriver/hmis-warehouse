@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -100,6 +100,11 @@ class TaskQueue < ApplicationRecord
     config.queued_tasks[:service_history_services_materialized_rebuild_and_process] = -> do
       GrdaWarehouse::ServiceHistoryServiceMaterialized.rebuild!
       GrdaWarehouse::WarehouseClientsProcessed.update_cached_counts
+    end
+
+    # Green River staff account report for tech-ops (Slack notification)
+    config.queued_tasks[:gr_staff_report_q1_2026] = -> do
+      GrdaWarehouse::Tasks::GrStaffReport.run!
     end
   end
 end

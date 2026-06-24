@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -30,7 +30,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   before(:each) do
     hmis_login(user)
-    Hmis::ProjectStaffAssignmentConfig.new(project_id: p1.id).save!
+    Hmis::ProjectStaffAssignmentConfig.new(project_id: p1.id, data_source: ds1).save!
   end
 
   describe 'household staff assignment query' do

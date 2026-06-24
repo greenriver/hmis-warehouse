@@ -58,6 +58,29 @@
       "note": ""
     },
     {
+      "warning_type": "HTTP Verb Confusion",
+      "warning_code": 118,
+      "fingerprint": "05a3960f7236c0da86510f0fb7338b584ba226de1b321eaefe4ef493408c38dc",
+      "check_name": "VerbConfusion",
+      "message": "Potential HTTP verb confusion. `HEAD` is routed like `GET` but `request.get?` will return `false`",
+      "file": "app/services/idp/post_auth_redirect.rb",
+      "line": 56,
+      "link": "https://brakemanscanner.org/docs/warning_types/http_verb_confusion/",
+      "code": "return nil unless request.get?",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "Idp::PostAuthRedirect",
+        "method": "capture"
+      },
+      "user_input": "request.get?",
+      "confidence": "Weak",
+      "cwe_id": [
+        352
+      ],
+      "note": ""
+    },
+    {
       "warning_type": "Remote Code Execution",
       "warning_code": 24,
       "fingerprint": "06eff86f0a73fd1a0cc90cc176d98e66603033413a90c5fc3d116a14faaea079",
@@ -110,7 +133,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/grda_warehouse/hud/project.rb",
-      "line": 375,
+      "line": 383,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "where(\"#{access_to_project_through_viewable_entities(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{access_to_project_through_organization(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{access_to_project_through_data_source(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{access_to_project_through_coc_codes(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{access_to_project_through_project_access_groups(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)}\")",
       "render_path": null,
@@ -202,7 +225,7 @@
       "check_name": "CrossSiteScripting",
       "message": "Unescaped model attribute",
       "file": "app/views/project_groups/_form.haml",
-      "line": 36,
+      "line": 37,
       "link": "https://brakemanscanner.org/docs/warning_types/cross_site_scripting",
       "code": "::Haml::AttributeBuilder.build_class(true, ((not User.anyone_using_acls?) and \"d-none\"))",
       "render_path": null,
@@ -272,29 +295,6 @@
       "confidence": "Weak",
       "cwe_id": [
         79
-      ],
-      "note": ""
-    },
-    {
-      "warning_type": "SQL Injection",
-      "warning_code": 0,
-      "fingerprint": "150ecb715f71e17ac9457b3b0a5a938f6c8023af3e2199132fce57d1e6c60309",
-      "check_name": "SQL",
-      "message": "Possible SQL injection",
-      "file": "lib/rds_sql_server/lsa_summary.rb",
-      "line": 477,
-      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
-      "code": "SqlServerBase.connection.exec_query(\"dbo.sp_lsaPersonDemographics #{pop[:pop_id]}, #{(hh_type or \"NULL\")}, '#{param}'\")",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "LsaSqlServer::LSAReportSummary",
-        "method": "fetch_demographics"
-      },
-      "user_input": "pop[:pop_id]",
-      "confidence": "Medium",
-      "cwe_id": [
-        89
       ],
       "note": ""
     },
@@ -437,6 +437,25 @@
       "note": ""
     },
     {
+      "warning_type": "Unmaintained Dependency",
+      "warning_code": 122,
+      "fingerprint": "21ab0fe00fdd5899ffc405cff75aadb91b805ee996a614f7e27b08a287e9062d",
+      "check_name": "EOLRails",
+      "message": "Support for Rails 7.2.3.1 ends on 2026-08-09",
+      "file": "Gemfile.lock",
+      "line": 1652,
+      "link": "https://brakemanscanner.org/docs/warning_types/unmaintained_dependency/",
+      "code": null,
+      "render_path": null,
+      "location": null,
+      "user_input": null,
+      "confidence": "Weak",
+      "cwe_id": [
+        1104
+      ],
+      "note": ""
+    },
+    {
       "warning_type": "Command Injection",
       "warning_code": 14,
       "fingerprint": "272bd9135442f395012a87ac47a02fe2dcaa8bf8f7db7b78b079036a4279e439",
@@ -571,29 +590,6 @@
       "confidence": "High",
       "cwe_id": [
         89
-      ],
-      "note": ""
-    },
-    {
-      "warning_type": "Command Injection",
-      "warning_code": 14,
-      "fingerprint": "342d35ee429ab461a9054be831be9ebc311521f286eba079af4e89e55a6221ef",
-      "check_name": "Execute",
-      "message": "Possible command injection",
-      "file": "drivers/hmis/app/models/hmis/form/definition.rb",
-      "line": 374,
-      "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
-      "code": "`No Definition found for System form #{role}`",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "Hmis::Form::Definition",
-        "method": "Hmis::Form::Definition.find_definition_for_role"
-      },
-      "user_input": "role",
-      "confidence": "Medium",
-      "cwe_id": [
-        77
       ],
       "note": ""
     },
@@ -1104,29 +1100,6 @@
       "note": ""
     },
     {
-      "warning_type": "Command Injection",
-      "warning_code": 14,
-      "fingerprint": "5f29070f834e4bef599dfa0165a10347dae5a8a2b965980ad3d6d60e8fcdd417",
-      "check_name": "Execute",
-      "message": "Possible command injection",
-      "file": "config/deploy/docker/lib/deployer.rb",
-      "line": 150,
-      "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
-      "code": "`echo #{revision} > #{_assets_path}/REVISION`",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "Deployer",
-        "method": "_set_revision!"
-      },
-      "user_input": "revision",
-      "confidence": "Medium",
-      "cwe_id": [
-        77
-      ],
-      "note": ""
-    },
-    {
       "warning_type": "Remote Code Execution",
       "warning_code": 24,
       "fingerprint": "5f663e1330e1986e8d398745960c0bc7d3b81ecec41fbb3da180f7eed7495c70",
@@ -1179,7 +1152,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "lib/rds_sql_server/rds.rb",
-      "line": 265,
+      "line": 270,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "SqlServerBootstrapModel.connection.execute(\"if not exists(select * from sys.databases where name = '#{database}')\\n  select 0;\\nelse\\n  select 1;\\n\")",
       "render_path": null,
@@ -1202,7 +1175,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/grda_warehouse/monitoring/tasks/metric_snapshot_collector.rb",
-      "line": 369,
+      "line": 398,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "GrdaWarehouseBase.connection.execute(\"UPDATE #{GrdaWarehouse::Monitoring::MetricSnapshot.quoted_table_name}\\nSET\\n  current_value = v.new_current_value::integer,\\n  current_observation_date = v.new_current_observation_date::date,\\n  updated_at = #{GrdaWarehouseBase.connection.quote(Time.current.strftime(\"%Y-%m-%d %H:%M:%S\"))}\\nFROM (VALUES #{snapshots.map do\n original_date = s.instance_variable_get(:@original_current_observation_date)\noriginal_date_str = s.instance_variable_get(:@original_current_observation_date).strftime(\"%Y-%m-%d\")\nentity_type = GrdaWarehouseBase.connection.quote(s.entity_type)\nentity_id = s.entity_id.to_i\nmetric_definition_id = s.metric_definition_id.to_i\ninitial_observation_date = GrdaWarehouseBase.connection.quote(s.initial_observation_date.strftime(\"%Y-%m-%d\"))\nold_current_observation_date = GrdaWarehouseBase.connection.quote(s.instance_variable_get(:@original_current_observation_date).strftime(\"%Y-%m-%d\"))\nnew_current_value = s.current_value.to_i\nnew_current_observation_date = GrdaWarehouseBase.connection.quote(s.current_observation_date.strftime(\"%Y-%m-%d\"))\n end.join(\",\")}) AS v(\\n  entity_type, entity_id, metric_definition_id, initial_observation_date,\\n  old_current_observation_date, new_current_value, new_current_observation_date\\n)\\nWHERE #{GrdaWarehouse::Monitoring::MetricSnapshot.quoted_table_name}.entity_type = v.entity_type\\n  AND #{GrdaWarehouse::Monitoring::MetricSnapshot.quoted_table_name}.entity_id = v.entity_id\\n  AND #{GrdaWarehouse::Monitoring::MetricSnapshot.quoted_table_name}.metric_definition_id = v.metric_definition_id\\n  AND #{GrdaWarehouse::Monitoring::MetricSnapshot.quoted_table_name}.initial_observation_date = v.initial_observation_date::date\\n  AND #{GrdaWarehouse::Monitoring::MetricSnapshot.quoted_table_name}.current_observation_date = v.old_current_observation_date::date\\n\")",
       "render_path": null,
@@ -1645,7 +1618,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/grda_warehouse/hud/organization.rb",
-      "line": 93,
+      "line": 97,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "where(\"#{has_access_to_organization_through_viewable_entities(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{has_access_to_organization_through_data_source(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)}\")",
       "render_path": null,
@@ -1691,7 +1664,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/grda_warehouse/hud/organization.rb",
-      "line": 68,
+      "line": 72,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "where(\"#{has_access_to_organization_through_viewable_entities(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{has_access_to_organization_through_data_source(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{has_access_to_organization_through_projects(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)}\")",
       "render_path": null,
@@ -1759,7 +1732,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/grda_warehouse/data_source.rb",
-      "line": 94,
+      "line": 123,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "where(\"#{has_access_to_data_source_through_viewable_entities(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{has_access_to_data_source_through_organizations(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{has_access_to_data_source_through_projects(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)}\")",
       "render_path": null,
@@ -1789,7 +1762,7 @@
         {
           "type": "template",
           "name": "cohorts/show",
-          "line": 46,
+          "line": 65,
           "file": "app/views/cohorts/show.haml",
           "rendered": {
             "name": "cohorts/_client_table",
@@ -1895,7 +1868,7 @@
       "check_name": "CrossSiteScripting",
       "message": "Unescaped model attribute",
       "file": "app/views/cohorts/edit.haml",
-      "line": 32,
+      "line": 34,
       "link": "https://brakemanscanner.org/docs/warning_types/cross_site_scripting",
       "code": "::Haml::AttributeBuilder.build_class(true, ((not User.anyone_using_acls?) and \"d-none\"))",
       "render_path": [
@@ -1994,31 +1967,31 @@
     {
       "warning_type": "Cross-Site Scripting",
       "warning_code": 2,
-      "fingerprint": "ad643b5cc0525dc24944b965b530e1b65e3c3d7524efb0526565ec3f3f0df4a3",
+      "fingerprint": "afd7f9ce76e93b3977595dd02b19aac9e72bc4512363958f23494aa064f1e3d6",
       "check_name": "CrossSiteScripting",
       "message": "Unescaped model attribute",
-      "file": "app/views/messages/show.haml",
-      "line": 7,
+      "file": "app/views/import_csv_monitors/edit.haml",
+      "line": 13,
       "link": "https://brakemanscanner.org/docs/warning_types/cross_site_scripting",
-      "code": "simple_format(current_user.messages.find(params.require(:id)).body_html).gsub(URI.regexp([\"http\", \"https\"]), \"<a href=\\\"\\\\0\\\">\\\\0</a>\")",
+      "code": "::Haml::AttributeBuilder.build_class(true, GrdaWarehouse::ImportCsvMonitor::NOTIFICATION_SLUG.parameterize)",
       "render_path": [
         {
           "type": "controller",
-          "class": "MessagesController",
-          "method": "show",
-          "line": 36,
-          "file": "app/controllers/messages_controller.rb",
+          "class": "ImportCsvMonitorsController",
+          "method": "edit",
+          "line": 35,
+          "file": "app/controllers/import_csv_monitors_controller.rb",
           "rendered": {
-            "name": "messages/show",
-            "file": "app/views/messages/show.haml"
+            "name": "import_csv_monitors/edit",
+            "file": "app/views/import_csv_monitors/edit.haml"
           }
         }
       ],
       "location": {
         "type": "template",
-        "template": "messages/show"
+        "template": "import_csv_monitors/edit"
       },
-      "user_input": "current_user.messages.find(params.require(:id))",
+      "user_input": "GrdaWarehouse::ImportCsvMonitor::NOTIFICATION_SLUG.parameterize",
       "confidence": "Weak",
       "cwe_id": [
         79
@@ -2495,7 +2468,7 @@
       "check_name": "MassAssignment",
       "message": "Specify exact keys allowed for mass assignment instead of using `permit!` which allows any keys",
       "file": "app/controllers/application_controller.rb",
-      "line": 91,
+      "line": 93,
       "link": "https://brakemanscanner.org/docs/warning_types/mass_assignment/",
       "code": "params.permit!",
       "render_path": null,
@@ -2564,7 +2537,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/access_group.rb",
-      "line": 77,
+      "line": 79,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "where(\"#{quoted_table_name}.coc_codes @> #{SqlHelper.quote_sql_array(coc_codes, :type => :varchar)}\")",
       "render_path": null,
@@ -2610,7 +2583,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "lib/rds_sql_server/rds.rb",
-      "line": 279,
+      "line": 284,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "SqlServerBootstrapModel.connection.execute(\"if not exists(select * from sys.databases where name = '#{database}')\\n  create database #{database}\\n\")",
       "render_path": null,
@@ -2857,5 +2830,5 @@
       "note": ""
     }
   ],
-  "brakeman_version": "8.0.2"
+  "brakeman_version": "8.0.5"
 }

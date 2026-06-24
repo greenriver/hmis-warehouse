@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -8,13 +8,14 @@
 
 module Types
   class PaginatedScope
-    attr_reader :offset, :limit
+    attr_reader :offset, :limit, :search_query_id
 
-    def initialize(all_nodes, offset: 0, limit: 50, nodes_count_proc: nil)
+    def initialize(all_nodes, offset: 0, limit: 50, nodes_count_proc: nil, search_query_id: nil)
       @all_nodes = all_nodes
       @offset = offset
       @limit = limit
       @nodes_count_proc = nodes_count_proc
+      @search_query_id = search_query_id&.to_s
     end
 
     def nodes

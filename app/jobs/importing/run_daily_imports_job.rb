@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -175,6 +175,11 @@ module Importing
           @notifier.ping('Updating dashboards')
           Reporting::PopulationDashboardPopulateJob.set(priority: BaseJob::BULK_PROCESSING_PRIORITY_10).perform_later(sub_population: 'all')
         end
+      end
+
+      run_maintenance_task('Prune HUD report data') do
+        HudReports::HouseholdContext.prune!
+        @notifier.ping('Pruned old household contexts')
       end
 
       run_maintenance_task('System maintenance') do

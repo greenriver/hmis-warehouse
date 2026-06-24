@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -33,11 +33,10 @@ RSpec.describe 'Bulk Review External Submission', type: :request do
     hmis_login(user)
   end
 
-  let!(:definition) { create(:hmis_external_form_definition) }
-  let!(:rule) { create :hmis_form_instance, definition_identifier: definition.identifier, entity: p1, active: true }
+  let!(:definition) { create(:hmis_external_form_definition, data_source: ds1, generate_cdeds: true) } # creates cded for field `your_name`
+  let!(:rule) { create :hmis_form_instance, definition_identifier: definition.identifier, entity: p1, active: true, data_source: ds1 }
   let!(:s1) { create(:hmis_external_form_submission, definition: definition, raw_data: { 'your_name' => 'Abigail' }) }
   let!(:s2) { create(:hmis_external_form_submission, definition: definition, raw_data: { 'your_name' => 'Cedric' }) }
-  let!(:cded) { create(:hmis_custom_data_element_definition, owner_type: s1.class.sti_name, key: 'your_name', data_source: ds1, user: u1) }
 
   def perform_mutation(ids: [s1.id, s2.id])
     post_graphql(ids: ids) { mutation }
@@ -68,7 +67,7 @@ RSpec.describe 'Bulk Review External Submission', type: :request do
   end
 
   it 'throws an error when submissions are from different forms' do
-    other_definition = create(:hmis_external_form_definition)
+    other_definition = create(:hmis_external_form_definition, data_source: ds1)
     other_submission = create(:hmis_external_form_submission, definition: other_definition)
     expect_gql_error perform_mutation(ids: [s1.id, s2.id, other_submission.id])
   end
@@ -107,7 +106,7 @@ RSpec.describe 'Bulk Review External Submission', type: :request do
   end
 
   context 'when the form updates client and enrollment info' do
-    let!(:definition) { create(:hmis_external_form_definition_updates_client) }
+    let!(:definition) { create(:hmis_external_form_definition_updates_client, data_source: ds1) }
 
     let!(:s1) do
       create(:hmis_external_form_submission, raw_data: { 'Client.firstName': 'Oranges' }.stringify_keys, definition: definition)

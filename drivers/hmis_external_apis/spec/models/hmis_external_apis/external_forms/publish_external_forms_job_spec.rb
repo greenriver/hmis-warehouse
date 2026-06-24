@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -90,7 +90,7 @@ RSpec.describe 'HmisExternalApis::PublishExternalFormsJob', type: :model do
   end
 
   let(:form_definition) do
-    create(:hmis_external_form_definition, definition: JSON.parse(json_definition))
+    create(:hmis_external_form_definition, definition: JSON.parse(json_definition), data_source: data_source)
   end
 
   before(:each) do

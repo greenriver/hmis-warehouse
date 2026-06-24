@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -13,6 +13,7 @@ class Users::InvitationsController < Devise::InvitationsController
   # GET /resource/invitation/new
   def new
     @agencies = Agency.order(:name)
+    @system_alerts = GrdaWarehouse::AlertDefinition.system_alerts.active.order(:name)
     user_options = {}
     user_options[:permission_context] = 'acls' if User.anyone_using_acls?
     @user = User.new(user_options)
@@ -47,6 +48,7 @@ class Users::InvitationsController < Devise::InvitationsController
       redirect_to edit_admin_user_path(@user)
     else
       @agencies = Agency.order(:name)
+      @system_alerts = GrdaWarehouse::AlertDefinition.system_alerts.active.order(:name)
       render :new
     end
   end

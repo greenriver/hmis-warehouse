@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -12,7 +12,7 @@ RSpec.describe HmisExternalApis::AcHmis::Exporters::CurrentWaitlistsExport, type
   let!(:ds) { create(:hmis_data_source) }
   let!(:project) { create(:hmis_hud_project, data_source: ds) }
   let!(:unit_group) { create(:hmis_unit_group, project: project) }
-  let!(:ce_project_config) { create(:hmis_project_ce_config, supports_waitlist_referrals: true, project: project) }
+  let!(:ce_project_config) { create(:hmis_project_ce_config, supports_waitlist_referrals: true, project: project, data_source: ds) }
 
   let!(:destination_client) { create(:grda_warehouse_hud_client) }
   let!(:client_proxy) { create(:hmis_ce_client_proxy, client: destination_client) }

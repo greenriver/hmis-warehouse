@@ -6,7 +6,9 @@ on:
   push:
     branches:
       - stable
-      - "release-*"
+      - main
+      - staging
+      - production
   pull_request:
     branches:
       - "*"
@@ -98,7 +100,7 @@ env:
 jobs:
   determine_matrix:
     runs-on: ubuntu-24.04
-    container: ruby:3.4.5-slim-bookworm
+    container: ruby:3.4.9-slim-bookworm
 
     outputs:
       unit_matrix: ${{ steps.set-matrix.outputs.unit_matrix }}
@@ -147,7 +149,7 @@ jobs:
 
     # Containers must run in Linux based operating systems
     runs-on: ubuntu-24.04
-    container: ruby:3.4.5-slim-bookworm
+    container: ruby:3.4.9-slim-bookworm
 
     # Docker Hub image that the job executes in
     # $RUBY_VERSION
@@ -307,6 +309,15 @@ jobs:
         run: |
           OKTA_DOMAIN=localhost OKTA_CLIENT_ID=x OKTA_CLIENT_SECRET=x bundle exec rspec --fail-fast=$MAX_FAILURES --color -fd spec/requests/omniauth_spec.rb spec/requests/sessions_controller_spec.rb
 
+      - name: Run AUTH_METHOD=jwt tests
+        if: matrix.test_group.jwt
+        env:
+          MAX_FAILURES: 60
+          AWS_ACCESS_KEY_ID: local_access_key
+          AWS_SECRET_ACCESS_KEY: local_secret_key
+        run: |
+          AUTH_METHOD=jwt IDP_AUD=test-aud ISS_URL=https://idp.example.test JWKS_URL=https://idp.example.test/jwks JWT_ALGORITHM=RS256 bundle exec rspec --fail-fast=$MAX_FAILURES --color -fd spec/models/user_auth_method_spec.rb drivers/hmis/spec/models/hmis/user_auth_method_spec.rb spec/models/idp/jwt_helper_spec.rb spec/models/concerns/idp/jwt_user_spec.rb spec/controllers/concerns/idp/current_user_spec.rb
+
       - name: Run logging tests
         if: matrix.test_group.logging || needs.determine_matrix.outputs.logging == 'true'
         env:
@@ -340,7 +351,7 @@ jobs:
       id-token: write
       pull-requests: read
     runs-on: ubuntu-24.04
-    container: ruby:3.4.5-slim-bookworm
+    container: ruby:3.4.9-slim-bookworm
 
     services:
       postgres: *postgres
@@ -390,7 +401,7 @@ jobs:
           MAX_FAILURES: 60
           LOG_LEVEL: INFO
           RUN_SYSTEM_TESTS: true
-          BRANCH_NAME: "${{ github.head_ref || github.ref_name }}:${{ github.base_ref || 'stable' }}:stable"
+          BRANCH_NAME: "${{ github.head_ref || github.ref_name }}:${{ github.base_ref || 'production' }}:production"
           CHROMIUM_PATH: /usr/bin/chromium
           TARGET_SPECS: ${{ needs.determine_matrix.outputs.focused_path }}
           TESTKIT_CHECK_ALL_TABLE_RESULTS: ${{ needs.determine_matrix.outputs.testkit_check_all_table_results }}
@@ -416,7 +427,7 @@ jobs:
       id-token: write
       pull-requests: read
     runs-on: ubuntu-24.04
-    container: ruby:3.4.5-slim-bookworm
+    container: ruby:3.4.9-slim-bookworm
 
     services:
       postgres: *postgres

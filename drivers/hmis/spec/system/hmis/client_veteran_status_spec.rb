@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -31,7 +31,7 @@ require_relative '../../support/hmis_base_setup'
 # ensuring the form behaves correctly across different contexts and project types.
 
 RSpec.feature 'Client form Veteran Status logic', type: :system do
-  let!(:ds1) { create :hmis_primary_data_source, hmis: 'localhost' }
+  let!(:ds1) { GrdaWarehouse::DataSource.hmis.find_by(hmis: 'localhost') }
   let!(:hmis_user) { create(:user).related_hmis_user(ds1) }
   let!(:access_control) { create_access_control(hmis_user, p1) }
 

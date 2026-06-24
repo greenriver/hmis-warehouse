@@ -40,19 +40,8 @@
               %td.text-center= f.input :utilization_proposed, label: false, **@report.field_input_options(:utilization_proposed, current_user)
       %td.text-center= @report.utilization_percentage
       %th.text-nowrap
-        .mb-4
-          Points: 10
-          %br
-          90% +
-        .mb-4
-          Points: 5
-          %br
-          80% - 89%
-        .mb-4
-          Points: 0
-          %br
-          <= 79%
-      %td.text-center= @report.utilization_score
+        N/A
+      %td.text-center N/A
 
     %tr
       %th
@@ -82,11 +71,13 @@
       %td.text-center= @report.exit_to_ph_percentage
       %th.text-nowrap
         .mb-4
+          Points: 5
+          %br
           PSH: >= 98%
           %br
           RRH: >= 95%
         .mb-4
-          Points: 5
+          Points: 3
           %br
           PSH: 90-97%
           %br
@@ -109,14 +100,15 @@
         - unless @report.key_project.rrh?
           N/A (RRH Only)
       %td.text-center
-        = pluralize(@report.los_months, 'month')
+        - if @report.los_months.present?
+          = pluralize(@report.los_months, 'month')
       %th.text-nowrap
         .mb-4
-          Points: 10
+          Points: 5
           %br
           RRH: >=3-18 months
         .mb-4
-          Points: 5
+          Points: 3
           %br
           RRH: 19-24 months
         .mb-4
@@ -140,13 +132,13 @@
       %td.text-center= f.input :percent_increased_employment_income_at_exit, label: false, as: :read_only
       %th
         .mb-4
-          Points: 10
+          Points: 15
           %br
           PSH: >= 15%
           %br
           RRH: >= 56%
         .mb-4
-          Points: 5
+          Points: 10
           %br
           PSH: 9% - 14%
           %br
@@ -207,11 +199,11 @@
       %td.text-center= f.input :percent_returns_to_homelessness, label: false, as: :read_only
       %th
         .mb-4
-          Points: 10
+          Points: 15
           %br
           <= 5%
         .mb-4
-          Points: 5
+          Points: 10
           %br
           6% - 15%
         .mb-4

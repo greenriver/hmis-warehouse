@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -16,7 +16,7 @@ class Hmis::Hud::ClientAccessLoader < Hmis::BaseAccessLoader
     client_ids = items.map { |i| i.first.id }.compact.uniq
 
     group_view_t = Hmis::GroupViewableEntity.arel_table
-    # Note: joins `projects` instead of `enrollments` to match the behavior of Client.with_access scope
+    # Note: joins `projects` instead of `enrollments` to match the behavior of Client.viewable_by scope
     orphan_client_ids = Hmis::Hud::Client.
       left_outer_joins(:projects).
       where(id: client_ids).

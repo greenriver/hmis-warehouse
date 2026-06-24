@@ -1,10 +1,10 @@
-# frozen_string_literal: true
-
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 # See @docs/features/coc-performance-measurement-dashboard.md
 require 'memery'
@@ -271,8 +271,8 @@ module PerformanceMeasurement
     end
 
     private def create_universe
-      clients.delete_all
-      projects.delete_all
+      hard_delete_archival_relation(clients)
+      hard_delete_archival_relation(projects)
       report_clients = {}
       add_clients(report_clients)
     end

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -12,11 +12,11 @@ require_relative '../../support/hmis_base_setup'
 
 RSpec.feature 'Hmis Form behavior', type: :system do
   include_context 'hmis base setup'
-  let!(:ds1) { create(:hmis_data_source, hmis: 'localhost') }
+  let!(:ds1) { GrdaWarehouse::DataSource.hmis.find_by(hmis: 'localhost') }
 
   let!(:c1) { create :hmis_hud_client, data_source: ds1, user: u1 }
   let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1 }
-  let!(:definition) { create :hmis_form_definition, title: 'A special assessment', role: 'CUSTOM_ASSESSMENT', data_source: ds1 }
+  let!(:definition) { create :hmis_form_definition, title: 'A special assessment', role: 'CUSTOM_ASSESSMENT', data_source: ds1, generate_cdeds: true }
   let!(:access_control) { create_access_control(hmis_user, p1) }
 
   let(:today) { Date.current }
@@ -54,7 +54,7 @@ RSpec.feature 'Hmis Form behavior', type: :system do
   end
 
   describe 'bounds' do
-    let!(:definition) { create :custom_assessment_with_bounds, data_source: ds1 }
+    let!(:definition) { create :custom_assessment_with_bounds, data_source: ds1, generate_cdeds: true }
 
     it 'enforces error-level date bound' do
       mui_date_select 'Date with Bounds', date: (today + 3.days).to_date
@@ -105,7 +105,7 @@ RSpec.feature 'Hmis Form behavior', type: :system do
   end
 
   describe 'behavior of conditionals (enable_when)' do
-    let!(:definition) { create :custom_assessment_with_conditionals, data_source: ds1 }
+    let!(:definition) { create :custom_assessment_with_conditionals, data_source: ds1, generate_cdeds: true }
 
     it 'hides when boolean condition is not met, and shows when met' do
       assert_no_text 'Conditional on boolean'
@@ -188,7 +188,7 @@ RSpec.feature 'Hmis Form behavior', type: :system do
   end
 
   describe 'autofill' do
-    let!(:definition) { create :custom_assessment_with_field_rules_and_autofill, data_source: ds1 }
+    let!(:definition) { create :custom_assessment_with_field_rules_and_autofill, data_source: ds1, generate_cdeds: true }
 
     it 'autofills when condition is met' do
       autofilled_field = find('#conditionally_autofilled')
@@ -216,7 +216,7 @@ RSpec.feature 'Hmis Form behavior', type: :system do
   end
 
   describe 'behavior of initial' do
-    let!(:definition) { create :custom_assessment_with_initial_values, data_source: ds1 }
+    let!(:definition) { create :custom_assessment_with_initial_values, data_source: ds1, generate_cdeds: true }
 
     it 'fills in initial value' do
       expect(find('#how_many').value).to eq('22')

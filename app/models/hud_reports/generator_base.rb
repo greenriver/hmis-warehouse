@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -66,6 +66,15 @@ module HudReports
       @report.manual = manual
       @report.save!
       Reporting::Hud::RunReportJob.perform_now(self.class.name, @report.id, email: email)
+    end
+
+    def base_enrollment_scope(start_date: @report.start_date, end_date: @report.end_date)
+      report_scope_source.
+        where(client_id: client_scope(start_date: start_date, end_date: end_date)).
+        merge(report_scope_source.open_between(
+                start_date: start_date,
+                end_date: end_date,
+              ))
     end
 
     # This selects just ids for the clients, to ensure uniqueness, but uses select instead of pluck
@@ -147,6 +156,14 @@ module HudReports
         table_id: table_id,
         report_type: report_type,
       )
+    end
+
+    def self.valid_cell_name(cell_name)
+      ::HudReports::DrilldownContext.valid_cell_name(cell_name)
+    end
+
+    def self.valid_table_name(table_name)
+      ::HudReports::DrilldownContext.valid_table_name(table_name)
     end
 
     def self.allowed_options(_)

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -10,11 +10,6 @@ module Types
   class HmisSchema::Client < Types::BaseObject
     include Types::HmisSchema::HasEnrollments
     include Types::HmisSchema::HasServices
-    include Types::HmisSchema::HasIncomeBenefits
-    include Types::HmisSchema::HasDisabilities
-    include Types::HmisSchema::HasHealthAndDvs
-    include Types::HmisSchema::HasYouthEducationStatuses
-    include Types::HmisSchema::HasEmploymentEducations
     include Types::HmisSchema::HasCurrentLivingSituations
     include Types::HmisSchema::HasAssessments
     include Types::HmisSchema::HasCustomCaseNotes
@@ -93,7 +88,7 @@ module Types
     )
     ce_referrals_field(
       :ce_referrals,
-      filter_args: { omit: [:workflow_template, :on_current_task_since, :search_term], type_name: 'ClientCeReferral' },
+      filter_args: { omit: [:workflow_template, :on_current_task_since, :search_term, :assigned_to_you, :assigned_to_user], type_name: 'ClientCeReferral' },
     )
 
     field :active_enrollment, Types::HmisSchema::Enrollment, null: true do
@@ -105,11 +100,6 @@ module Types
       # Option to include enrollments that the user has "limited" access to
       argument :include_enrollments_with_limited_access, Boolean, required: false
     end
-    income_benefits_field
-    disabilities_field
-    health_and_dvs_field
-    youth_education_statuses_field
-    employment_educations_field
     current_living_situations_field
     assessments_field
     services_field
@@ -157,32 +147,44 @@ module Types
 
     field :image, HmisSchema::ClientImage, null: true
     field :enabled_features, [Types::Forms::Enums::ClientDashboardFeature], null: false
+
+    # TODO(#9004) Migrating the access field to use policies is in-progress, see ADR 0006.
     access_field do
+      define_method(:policy) { @policy ||= policy_for(object, policy_type: :hmis_client) }
+      define_method(:global_policy) { @global_policy ||= policy_for(object.class, policy_type: :hmis_client) }
+      define_method(:ce_referral_policy) { @ce_referral_policy ||= policy_for(Hmis::Ce::Referral, policy_type: :ce_referral) }
+
+      # Instance policy; resource is the loaded record
+      bool_field(:can_view_client_name) { policy.can_view_name? }
+
+      # Global policy; resource is the class
+      bool_field(:can_merge_clients) { global_policy.can_merge_clients? }
+
+      # Different policy type; these permissions defer to the global CeReferralPolicy
+      bool_field(:can_view_referrals)     { ce_referral_policy.can_view_referrals? }
+      bool_field(:can_view_own_referrals) { ce_referral_policy.can_view_own_referrals? }
+
       can :view_partial_ssn
       can :view_full_ssn
-      can :view_client_name
       can :view_client_photo
       can :view_dob
       can :view_enrollment_details
-      can :edit_enrollments
-      can :delete_enrollments
-      can :delete_assessments
       can :delete_clients, field_name: :can_delete_client
       can :edit_clients, field_name: :can_edit_client
-      can :manage_any_client_files
-      can :manage_own_client_files
-      can :view_any_nonconfidential_client_files
-      can :view_any_confidential_client_files
-      composite_perm :can_upload_client_files, permissions: [:manage_any_client_files, :manage_own_client_files], mode: :any
-      composite_perm :can_view_any_files, permissions: [:manage_own_client_files, :view_any_nonconfidential_client_files, :view_any_confidential_client_files], mode: :any
+
+      bool_field(:can_index_files) { policy.can_index_files? }
+      bool_field(:can_upload_client_files) { policy.can_create_file? }
+
+      # Deprecated
+      can :manage_any_client_files, deprecation_reason: 'Resolve canManage on individual file access field instead'
+      can :manage_own_client_files, deprecation_reason: 'Resolve canManage on individual file access field instead'
+      composite_perm :can_view_any_files, permissions: [:manage_own_client_files, :view_any_nonconfidential_client_files, :view_any_confidential_client_files], mode: :any, deprecation_reason: 'Use canIndexFiles'
+
       can :audit_clients
       can :manage_scan_cards
-      root_can :can_merge_clients # "Root" permission, resolved on Client for convenience
       can :view_client_alerts
       can :manage_client_alerts
       root_can :can_view_client_eligible_opportunities
-      root_can :can_view_referrals
-      root_can :can_view_own_referrals
       can :print_client_case_notes
     end
 
@@ -214,22 +216,6 @@ module Types
         project_id: project_id,
         open_on_date: open_on_date,
       )
-    end
-
-    def income_benefits(**args)
-      resolve_income_benefits(**args)
-    end
-
-    def disabilities(**args)
-      resolve_disabilities(**args)
-    end
-
-    def disability_groups(**args)
-      resolve_disability_groups(**args)
-    end
-
-    def health_and_dvs(**args)
-      resolve_health_and_dvs(**args)
     end
 
     def assessments(**args)
@@ -417,6 +403,7 @@ module Types
       # Just checks if there are ANY active Instances for each role.
       # It's possible there could be instances that exist but don't apply to any projects, but we don't bother checking for that.
       Hmis::Form::Instance.active.
+        where(data_source_id: current_user.hmis_data_source_id).
         joins(:definition).
         where(Hmis::Form::Definition.arel_table[:role].in(client_dashboard_feature_roles)).
         pluck(:role).uniq

@@ -1,10 +1,10 @@
-# frozen_string_literal: true
-
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 require 'rails_helper'
 
@@ -17,7 +17,7 @@ RSpec.describe HopwaCaper::Generators::Fy2026::Sheets::TbraSheet, type: :model d
   end
 
   let(:project) do
-    create_hopwa_project(funder: funder)
+    create_hopwa_project(funder: funder).tap { |p| p.update!(HousingType: 3) }
   end
 
   context 'With one multi-member household served with rental assistance' do
@@ -167,7 +167,7 @@ RSpec.describe HopwaCaper::Generators::Fy2026::Sheets::TbraSheet, type: :model d
       end
     end
 
-    context 'with aggregated household income and medical insurance arrays' do
+    context 'with aggregated household income and medical insurance' do
       it 'aggregates medical insurance across any household member' do
         create(
           :hud_income_benefit,
@@ -179,13 +179,12 @@ RSpec.describe HopwaCaper::Generators::Fy2026::Sheets::TbraSheet, type: :model d
           personal_id: beneficiary_client.PersonalID,
         )
 
-        report, rows = run_and_extract_rows([project], 'Q2')
+        _, rows = run_and_extract_rows([project], 'Q2')
 
         expect(rows.fetch('MEDICAID Health Program or local program equivalent')).to eq(1)
-        expect(report.hopwa_caper_enrollments.pluck(:household_medical_insurance_types).flatten.uniq).to include('Medicaid', 'InsuranceFromAnySource')
       end
 
-      it 'sets household income and medical insurance arrays to markers when explicit No is present' do
+      it 'sets household income and medical insurance markers when explicit No is present' do
         [hoh_enrollment, beneficiary_enrollment].each do |enrollment|
           create(
             :hud_income_benefit,
@@ -198,35 +197,9 @@ RSpec.describe HopwaCaper::Generators::Fy2026::Sheets::TbraSheet, type: :model d
           )
         end
 
-        report, rows = run_and_extract_rows([project], 'Q2')
+        _, rows = run_and_extract_rows([project], 'Q2')
 
         expect(rows.fetch('How many households maintained no sources of income?')).to eq(1)
-        expect(report.hopwa_caper_enrollments.pluck(:household_income_benefit_source_types).uniq).to eq([['NoIncomeSource']])
-        expect(report.hopwa_caper_enrollments.pluck(:household_medical_insurance_types).uniq).to eq([['NoInsuranceSource']])
-      end
-    end
-
-    context 'with a prior enrollments' do
-      before do
-        previous_enrollment = create_enrollment(
-          client: hoh_client,
-          project: project,
-          entry_date: report_start_date - 1.year,
-          household_id: Hmis::Hud::Base.generate_uuid,
-          relationship_to_ho_h: 1,
-        )
-        create(
-          :hud_exit,
-          enrollment: previous_enrollment,
-          exit_date: previous_enrollment.entry_date,
-          data_source: data_source,
-        )
-      end
-
-      it 'counts longevity' do
-        _, rows = run_and_extract_rows([project], 'Q2')
-        expect(rows.fetch('How many households have been served with TBRA for less than one year?')).to eq(0)
-        expect(rows.fetch('How many households have been served with TBRA for more than one year, but less than five years?')).to eq(1)
       end
     end
   end
@@ -234,10 +207,10 @@ RSpec.describe HopwaCaper::Generators::Fy2026::Sheets::TbraSheet, type: :model d
   context 'with same household re-enrolling in different projects' do
     let(:hoh_client) { create(:hud_client, data_source: data_source) }
     let(:project_a) do
-      create_hopwa_project(funder: funder)
+      create_hopwa_project(funder: funder).tap { |p| p.update!(HousingType: 3) }
     end
     let(:project_b) do
-      create_hopwa_project(funder: funder)
+      create_hopwa_project(funder: funder).tap { |p| p.update!(HousingType: 3) }
     end
 
     let!(:first_enrollment) do
@@ -333,6 +306,130 @@ RSpec.describe HopwaCaper::Generators::Fy2026::Sheets::TbraSheet, type: :model d
       # - exit_on_last_day_enrollment (exit_date = report.end_date)
       # - exit_before_end_enrollment (exit_date < report.end_date)
       expect(rows.fetch('How many households continued receiving this type of HOPWA assistance into the next year?')).to eq(2)
+    end
+  end
+
+  context 'with date-limited project funding' do
+    let(:hoh_client) { create(:hud_client, data_source: data_source) }
+    let(:household_id) { Hmis::Hud::Base.generate_uuid }
+    let!(:hoh_enrollment) do
+      create_hiv_positive_enrollment(
+        client: hoh_client,
+        project: project,
+        entry_date: report_start_date + 1.day,
+        household_id: household_id,
+        relationship_to_ho_h: 1,
+      )
+    end
+
+    it 'excludes enrollments that do not overlap with the funding period' do
+      # Project has TBRA funding but it ended before the report started
+      hud_funder = project.funders.first
+      hud_funder.update!(
+        start_date: report_start_date - 2.years,
+        end_date: report_start_date - 1.day,
+      )
+
+      _, rows = run_and_extract_rows([project], 'Q2')
+      expect(rows.fetch('How many households were served with HOPWA TBRA assistance?')).to eq(0)
+    end
+
+    it 'calculates longevity starting from the funding start date, not the enrollment date' do
+      # Client enrolled 10 years ago, but project only got HOPWA funding 2 years ago
+      hoh_enrollment.update!(entry_date: report_start_date - 10.years)
+      hud_funder = project.funders.first
+      hud_funder.update!(start_date: report_start_date - 2.years)
+
+      _, rows = run_and_extract_rows([project], 'Q2')
+
+      # Should be in '1-5 years' bucket because of the funding start date,
+      # despite being enrolled for 10 years.
+      expect(rows.fetch('How many households have been served with TBRA for more than one year, but less than five years?')).to eq(1)
+      expect(rows.fetch('How many households have been served with TBRA for more than 10 years, but less than 15 years?')).to eq(0)
+    end
+  end
+
+  context 'with projects sharing the same HOPWA funder but different HousingType' do
+    let(:shared_funder) do
+      HudHelper.util('2026').funding_sources.invert.fetch('HUD: HOPWA - Permanent Housing (facility based or TBRA)')
+    end
+    let(:facility_project) do
+      create_hopwa_project(funder: shared_funder).tap { |p| p.update!(HousingType: 1) }
+    end
+    let(:null_housing_type_project) do
+      create_hopwa_project(funder: shared_funder).tap { |p| p.update!(HousingType: nil) }
+    end
+
+    it 'excludes facility-based projects (HousingType 1) from the TBRA tab' do
+      create_hiv_positive_enrollment(
+        client: create(:hud_client, data_source: data_source),
+        project: facility_project,
+        entry_date: report_start_date + 1.day,
+        household_id: Hmis::Hud::Base.generate_uuid,
+      )
+      _, rows = run_and_extract_rows([facility_project], 'Q2')
+      expect(rows.fetch('How many households were served with HOPWA TBRA assistance?')).to eq(0)
+    end
+
+    it 'includes projects where HousingType is NULL (field not populated in HMIS)' do
+      create_hiv_positive_enrollment(
+        client: create(:hud_client, data_source: data_source),
+        project: null_housing_type_project,
+        entry_date: report_start_date + 1.day,
+        household_id: Hmis::Hud::Base.generate_uuid,
+      )
+      _, rows = run_and_extract_rows([null_housing_type_project], 'Q2')
+      expect(rows.fetch('How many households were served with HOPWA TBRA assistance?')).to eq(1)
+    end
+
+    it 'includes projects where HousingType is 3 (Tenant-based – scattered site)' do
+      tbra_project = create_hopwa_project(funder: shared_funder).tap { |p| p.update!(HousingType: 3) }
+      create_hiv_positive_enrollment(
+        client: create(:hud_client, data_source: data_source),
+        project: tbra_project,
+        entry_date: report_start_date + 1.day,
+        household_id: Hmis::Hud::Base.generate_uuid,
+      )
+      _, rows = run_and_extract_rows([tbra_project], 'Q2')
+      expect(rows.fetch('How many households were served with HOPWA TBRA assistance?')).to eq(1)
+    end
+  end
+
+  context 'Longevity boundary conditions' do
+    let(:hoh_client) { create(:hud_client, data_source: data_source) }
+    let(:household_id) { Hmis::Hud::Base.generate_uuid }
+
+    it 'assigns "less than one year" for 364 days of tenure' do
+      # Exactly 364 days before the end of the report
+      entry_date = report_end_date - 364.days
+      create_hiv_positive_enrollment(
+        client: hoh_client,
+        project: project,
+        entry_date: entry_date,
+        household_id: household_id,
+        relationship_to_ho_h: 1,
+      )
+
+      _, rows = run_and_extract_rows([project], 'Q2')
+      expect(rows.fetch('How many households have been served with TBRA for less than one year?')).to eq(1)
+      expect(rows.fetch('How many households have been served with TBRA for more than one year, but less than five years?')).to eq(0)
+    end
+
+    it 'assigns "more than one year, but less than five years" for exactly 365 days of tenure' do
+      # Exactly 365 days before the end of the report
+      entry_date = report_end_date - 365.days
+      create_hiv_positive_enrollment(
+        client: hoh_client,
+        project: project,
+        entry_date: entry_date,
+        household_id: household_id,
+        relationship_to_ho_h: 1,
+      )
+
+      _, rows = run_and_extract_rows([project], 'Q2')
+      # Note: 365 days is exactly one year. The bucket is "more than one year" (which usually means >= 1 in these reports)
+      expect(rows.fetch('How many households have been served with TBRA for less than one year?')).to eq(0)
+      expect(rows.fetch('How many households have been served with TBRA for more than one year, but less than five years?')).to eq(1)
     end
   end
 end

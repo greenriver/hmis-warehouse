@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -243,53 +243,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           expect(priority_schemes.count).to eq(1)
           expect(priority_schemes.first['name']).to eq('Homeless Priority')
           expect(priority_schemes.first['expression']).to eq('days_homeless')
-        end
-      end
-
-      context 'when unit has a stale opportunity with historical rules' do
-        let!(:eligibility_rule) { create(:hmis_ce_eligibility_requirement, owner: unit_group, expression: 'current_age >= 18', name: 'Age Requirement') }
-        let!(:priority_rule) { create(:hmis_ce_priority_scheme, owner: unit_group, expression: 'days_homeless', name: 'Homeless Priority') }
-
-        let!(:opportunity) do
-          create(:hmis_ce_opportunity,
-                 unit: unit,
-                 status: :open,
-                 stale: true,
-                 assignment_rules: [
-                   {
-                     'id' => 999,
-                     'name' => 'Historical Age Rule',
-                     'rule_type' => 'eligibility_requirement',
-                     'expression' => 'current_age >= 21',
-                   },
-                   {
-                     'id' => 998,
-                     'name' => 'Historical Priority Rule',
-                     'rule_type' => 'priority_scheme',
-                     'expression' => 'chronic_days',
-                   },
-                 ])
-        end
-
-        it 'returns historical rules from the stale opportunity' do
-          _, result = post_graphql(id: project.id) { query }
-          unit_node = result.dig('data', 'project', 'units', 'nodes', 0)
-
-          eligibility_requirements = unit_node['eligibilityRequirements']
-          expect(eligibility_requirements).to be_an(Array)
-          expect(eligibility_requirements.size).to eq(1)
-          expect(eligibility_requirements[0]).to include(
-            'name' => 'Historical Age Rule',
-            'expression' => 'current_age >= 21',
-          )
-          # Ensure the GraphQL ID is modified to prevent cache conflicts
-          expect(eligibility_requirements[0]['id']).to match(/^#{unit.id}\.999$/)
-
-          priority_schemes = unit_node['prioritySchemes']
-          expect(priority_schemes.count).to eq(1)
-          expect(priority_schemes.first['name']).to eq('Historical Priority Rule')
-          expect(priority_schemes.first['expression']).to eq('chronic_days')
-          expect(priority_schemes.first['id']).to match(/^#{unit.id}\.998$/)
         end
       end
 

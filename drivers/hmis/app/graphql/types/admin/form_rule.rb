@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -12,12 +12,10 @@ module Types
     graphql_name 'FormRule'
 
     available_filter_options do
-      arg :form_type, [Types::Forms::Enums::FormRole] # FIXME: static roles should be excluded
       arg :active_status, [Types::HmisSchema::Enums::ActiveStatus]
       arg :system_form, [Types::HmisSchema::Enums::SystemStatus]
       arg :project_type, [Types::HmisSchema::Enums::ProjectType]
       arg :applied_to_project, ID
-      arg :definition, ID
     end
 
     field :id, ID, null: false

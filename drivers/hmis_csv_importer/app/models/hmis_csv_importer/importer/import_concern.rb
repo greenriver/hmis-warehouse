@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -106,17 +106,6 @@ module HmisCsvImporter::Importer::ImportConcern
         date_range: date_range,
       ).with_deleted.
         update_all(pending_date_deleted: pending_date_deleted)
-    end
-
-    def self.new_data(data_source_id:, project_ids:, date_range:, importer_log_id:)
-      existing_keys = involved_warehouse_scope(
-        data_source_id: data_source_id,
-        project_ids: project_ids,
-        date_range: date_range,
-      ).select(hud_key)
-      existing_keys = existing_keys.with_deleted if paranoid?
-
-      where(importer_log_id: importer_log_id).should_import.where.not(hud_key => existing_keys)
     end
 
     def self.existing_data(data_source_id:, project_ids:, date_range:)

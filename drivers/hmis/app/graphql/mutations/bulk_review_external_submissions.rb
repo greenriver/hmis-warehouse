@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -13,7 +13,7 @@ module Mutations
 
     def resolve(external_submission_ids:)
       submissions = HmisExternalApis::ExternalForms::FormSubmission.where(id: external_submission_ids)
-      definitions = Hmis::Form::Definition.where(id: submissions.pluck(:definition_id))
+      definitions = Hmis::Form::Definition.in_data_source(current_user.hmis_data_source_id).where(id: submissions.pluck(:definition_id))
 
       # Submissions could come from different definitions (versions), but should be all the same form identifier
       identifiers = definitions.pluck(:identifier).uniq
@@ -53,6 +53,7 @@ module Mutations
           end
 
           record.enrollment.client.save!
+          # Enrollment is persisted once Client saves (shared associations), so we cannot use save_new_enrollment! here.
           should_auto_enter ? record.enrollment.save_and_auto_enter! : record.enrollment.save_in_progress!
         end
 

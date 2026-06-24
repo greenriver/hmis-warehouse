@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -56,14 +56,14 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       ],
     }
   end
-  let!(:fd1) { create :hmis_form_definition, definition: definition_json, status: Hmis::Form::Definition::DRAFT, role: :CUSTOM_ASSESSMENT }
-  let!(:fd2) { create :hmis_form_definition }
+  let!(:fd1) { create :hmis_form_definition, definition: definition_json, status: Hmis::Form::Definition::DRAFT, role: :CUSTOM_ASSESSMENT, data_source: ds1 }
+  let!(:fd2) { create :hmis_form_definition, data_source: ds1 }
 
-  let!(:fd3_v0) { create :hmis_form_definition, identifier: 'fd3', version: 0, status: Hmis::Form::Definition::RETIRED, role: :CUSTOM_ASSESSMENT }
-  let!(:fd3_v1) { create :hmis_form_definition, identifier: 'fd3', version: 1, status: Hmis::Form::Definition::PUBLISHED, role: :CUSTOM_ASSESSMENT }
-  let!(:fd3_v2) { create :hmis_form_definition, identifier: 'fd3', version: 2, status: Hmis::Form::Definition::DRAFT, role: :CUSTOM_ASSESSMENT }
+  let!(:fd3_v0) { create :hmis_form_definition, identifier: 'fd3', version: 0, status: Hmis::Form::Definition::RETIRED, role: :CUSTOM_ASSESSMENT, data_source: ds1 }
+  let!(:fd3_v1) { create :hmis_form_definition, identifier: 'fd3', version: 1, status: Hmis::Form::Definition::PUBLISHED, role: :CUSTOM_ASSESSMENT, data_source: ds1 }
+  let!(:fd3_v2) { create :hmis_form_definition, identifier: 'fd3', version: 2, status: Hmis::Form::Definition::DRAFT, role: :CUSTOM_ASSESSMENT, data_source: ds1 }
 
-  let!(:non_assessment_form) { create :hmis_form_definition, status: Hmis::Form::Definition::DRAFT }
+  let!(:non_assessment_form) { create :hmis_form_definition, status: Hmis::Form::Definition::DRAFT, data_source: ds1 }
 
   before(:each) do
     hmis_login(user)
@@ -127,7 +127,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     expect(new_cded).to be_present
     expect(new_cded.attributes).to include(
       'field_type' => 'integer',
-      'key' => "#{fd1.identifier}_linkid_num",
+      'key' => 'linkid_num',
+      'reporting_key' => 'linkid_num',
       'label' => 'Ranking',
       'repeats' => false,
       'show_in_summary' => false,
@@ -139,7 +140,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   end
 
   it 'should ensure that the CustomDataElementDefinition key is unique' do
-    conflicting_cded = create(:hmis_custom_data_element_definition, owner_type: 'Hmis::Hud::CustomAssessment', key: "#{fd1.identifier}_linkid_num", data_source: ds1)
+    conflicting_cded = create(:hmis_custom_data_element_definition, owner_type: 'Hmis::Hud::CustomAssessment', key: 'linkid_num', data_source: ds1)
 
     expect do
       response, result = post_graphql(id: fd1.id) { mutation }

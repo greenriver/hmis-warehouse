@@ -1,3 +1,9 @@
+###
+# Copyright Green River Data Group, Inc.
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 # frozen_string_literal: true
 
 require 'rails_helper'
@@ -22,7 +28,8 @@ RSpec.shared_context 'HUD enrollment builders', shared_context: :metadata do
 
     create(
       :hud_project_coc,
-      project_id: project.project_id,
+      project: project,
+      ProjectID: project.ProjectID,
       data_source: data_source,
       coc_code: coc_code,
     )
@@ -96,6 +103,7 @@ RSpec.shared_context 'HUD enrollment builders', shared_context: :metadata do
       :hud_enrollment,
       client: client,
       project: project,
+      ProjectID: project.ProjectID,
       data_source: data_source,
       entry_date: entry_date,
       date_to_street_essh: date_to_street_essh,
@@ -103,7 +111,7 @@ RSpec.shared_context 'HUD enrollment builders', shared_context: :metadata do
       household_id: household_id,
       living_situation: living_situation,
       move_in_date: move_in_date,
-      enrollment_coc: project.project_cocs.min_by(&:id).coc_code,
+      enrollment_coc: project.project_cocs.reload.min_by(&:id)&.coc_code,
       **options,
     )
 

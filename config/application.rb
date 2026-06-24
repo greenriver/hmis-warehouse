@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -19,14 +19,17 @@ ENV['RAILS_DISABLE_DEPRECATED_TO_S_CONVERSION'] = 'true'
 # you've limited to :test, :development, or :production.
 Bundler.require(*Rails.groups)
 
+require_relative '../lib/auth_method'
 require_relative '../lib/util/id_protector'
 require_relative '../lib/util/rails_trusted_proxies_config'
 
 # common route concerns, included here to avoid class loader issues due to "drivers" load order in dev mode
 require_relative '../lib/hud_reports/route_concerns'
 
-module BostonHmis
+module OpenPath
   class Application < Rails::Application
+    require_relative '../lib/rails_drivers'
+
     # Initialize configuration defaults for originally generated Rails version.
     config.load_defaults 7.1
 
@@ -122,6 +125,29 @@ module BostonHmis
     config.eager_load_paths << Rails.root.join('lib', 'util')
     config.eager_load_paths << Rails.root.join('lib', 'devise')
 
+    # Replace rails_drivers gem autoloading — mirrors what the gem's Railtie did
+    driver_app_components = ['models', 'controllers', 'mailers', 'helpers', 'jobs', 'graphql'].freeze
+
+    Dir[root.join('drivers', '*', 'app')].each do |driver_app|
+      driver_app_components.each do |component|
+        component_dir = File.join(driver_app, component)
+        next unless File.directory?(component_dir)
+
+        # autoload_paths: the catalog of where things can be found (lazy-load)
+        config.autoload_paths << component_dir
+        # eager_load_paths: the subset Rails loads proactively at boot time
+        config.eager_load_paths << component_dir
+      end
+    end
+
+    Dir[root.join('drivers', '*', 'lib')].each do |driver_lib|
+      next unless File.directory?(driver_lib)
+
+      config.autoload_paths << driver_lib
+      tasks_dir = File.join(driver_lib, 'tasks')
+      Rails.autoloaders.main.ignore(tasks_dir) if File.directory?(tasks_dir)
+    end
+
     # serve error pages from the Rails app itself
     # rather than using static error pages in public/.
     config.exceptions_app = routes
@@ -152,5 +178,17 @@ module BostonHmis
     config.location_processors = []
     config.queued_tasks = {}
     config.report_archival_types = []
+
+    initializer 'load_driver_routes', before: :add_routing_paths, after: :bootstrap_hook do |app|
+      Dir[root.join('drivers', '*', 'config', 'routes.rb')].sort.each do |route_path|
+        app.routes_reloader.paths.unshift(route_path)
+      end
+    end
+
+    initializer 'load_driver_feature_initializers', after: :load_config_initializers do
+      Dir[root.join('drivers', '**', 'config', 'initializers', '**', '*.rb')].sort.each do |path|
+        load path
+      end
+    end
   end
 end

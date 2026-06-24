@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -46,7 +46,7 @@ RSpec.describe 'External Referral Form Submissions', type: :request do
   end
 
   let!(:definition) do
-    fd = create(:hmis_external_form_definition)
+    fd = create(:hmis_external_form_definition, data_source: ds1)
     Hmis::Form::Instance.create!(definition: fd, entity: p1, active: true)
     fd
   end
@@ -94,9 +94,33 @@ RSpec.describe 'External Referral Form Submissions', type: :request do
     expect(results).to be_empty
   end
 
+  context 'when another data source has an external form with the same identifier' do
+    let!(:ds2) { create(:hmis_data_source) }
+    let!(:p2) { create(:hmis_hud_project, data_source: ds2) }
+
+    let!(:definition) do
+      fd = create(:hmis_external_form_definition, data_source: ds1, identifier: 'same_identifier_two_sources')
+      Hmis::Form::Instance.create!(definition: fd, entity: p1, active: true)
+      fd
+    end
+
+    let!(:other_data_source_definition) do
+      fd = create(:hmis_external_form_definition, data_source: ds2, identifier: 'same_identifier_two_sources')
+      Hmis::Form::Instance.create!(definition: fd, entity: p2, active: true)
+      fd
+    end
+
+    let!(:submission) { create(:hmis_external_form_submission, definition: other_data_source_definition) }
+
+    it 'does not resolve submissions that belong to the other data source' do
+      results = perform_query
+      expect(results).to be_empty
+    end
+  end
+
   context 'when there are several external forms' do
     let!(:definition_2) do
-      fd = create(:hmis_external_form_definition)
+      fd = create(:hmis_external_form_definition, data_source: ds1)
       Hmis::Form::Instance.create!(definition: fd, entity: p1, active: true)
       fd
     end

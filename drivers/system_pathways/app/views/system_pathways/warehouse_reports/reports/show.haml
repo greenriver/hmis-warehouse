@@ -3,19 +3,24 @@
     = "« #{@report.title} Reports"
 - content_for :title, @report.title
 
-.d-flex.mb-2
-  %h1= content_for :title
-  .ml-auto= render 'report_downloads/report_download', export: @pdf_export, excel_export: nil, excel_download_path: nil
-.well.mb-4
-  .report-parameters
-    = @report.describe_filter_as_html(@report.known_params)
-    - opts = @report.filter.to_h
-    - opts[:default_project_type_codes] = @report.default_project_type_codes
-    .ml-auto.nobr
-      = render 'filters/view_filter_details', filter_hash: opts, selected_keys: @report.known_params
-.mb-8.well
-  = render 'live_filter'
-= render 'pathways_chart'
-.mb-8
-  = render 'node_details', pathways: @pathways_chart
-= render 'equity_and_time'
+- if @report.purged?
+  .d-flex.mb-2
+    %h1= content_for :title
+  = render 'warehouse_reports/reload_archived_report', report: @report, reload_url: reload_from_csv_system_pathways_warehouse_reports_report_path(@report)
+- else
+  .d-flex.mb-2
+    %h1= content_for :title
+    .ml-auto= render 'report_downloads/report_download', export: @pdf_export, excel_export: nil, excel_download_path: nil
+  .well.mb-4
+    .report-parameters
+      = @report.describe_filter_as_html(@report.known_params)
+      - opts = @report.filter.to_h
+      - opts[:default_project_type_codes] = @report.default_project_type_codes
+      .ml-auto.nobr
+        = render 'filters/view_filter_details', filter_hash: opts, selected_keys: @report.known_params
+  .mb-8.well
+    = render 'live_filter'
+  = render 'pathways_chart'
+  .mb-8
+    = render 'node_details', pathways: @pathways_chart
+  = render 'equity_and_time'

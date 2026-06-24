@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -122,10 +122,8 @@ RSpec.describe HmisExternalApis::AcHmis::ReferralsController, type: :request do
       create(:hmis_hud_project, data_source: ds1)
     end
 
-    let(:headers) do
-      conf = create(:inbound_api_configuration, internal_system: create(:internal_system, :referrals))
-      { 'Authorization' => "Bearer #{conf.plain_text_api_key}" }
-    end
+    let(:api_key_conf) { create(:inbound_api_configuration, internal_system: create(:internal_system, :referrals)) }
+    let(:headers) { { 'Authorization' => "Bearer #{api_key_conf.plain_text_api_key}" } }
 
     # Turn off the MPER integration before testing to ensure that all actions work
     # as expected even if the MPER credential is inactive. MPER integration is being deprecated
@@ -144,6 +142,22 @@ RSpec.describe HmisExternalApis::AcHmis::ReferralsController, type: :request do
             relationship_to_hoh: idx.zero? ? 'self_head_of_household' : 'other_relative',
           }
         end
+      end
+
+      it 'logs the request' do
+        params = referral_params(household).
+          merge({ referral_request_id: referral_request.identifier })
+        post hmis_external_apis_referrals_path, params: params, headers: headers, as: :json
+        check_response_okay
+
+        expect(HmisExternalApis::ExternalRequestLog.count).to eq(1)
+        logged = HmisExternalApis::ExternalRequestLog.first
+        expect(logged.request).to eq(params.to_json)
+        expect(logged.request_headers.to_json).not_to include(api_key_conf.plain_text_api_key)
+        expect(logged.http_method).to eq('POST')
+        expect(logged.initiator).to eq(api_key_conf.internal_system)
+        expect(logged.ip).to be_present
+        expect(logged.url).to include(hmis_external_apis_referrals_path)
       end
 
       it 'receives referral for referral request' do
@@ -189,7 +203,7 @@ RSpec.describe HmisExternalApis::AcHmis::ReferralsController, type: :request do
       end
 
       context 'posting already exists' do
-        let(:existing_posting) { create(:hmis_external_api_ac_hmis_referral_posting, project: project) }
+        let(:existing_posting) { create(:hmis_external_api_ac_hmis_referral_posting, project: project, data_source: ds1) }
 
         it 'returns success if referral posting already exists' do
           # Endpoint is idempotent on the posting ID
@@ -236,7 +250,7 @@ RSpec.describe HmisExternalApis::AcHmis::ReferralsController, type: :request do
 
       context 'posting to existing closed referral' do
         let(:referral) do
-          current_posting = create(:hmis_external_api_ac_hmis_referral_posting)
+          current_posting = create(:hmis_external_api_ac_hmis_referral_posting, data_source: ds1)
           current_posting.closed_status!
           referral = current_posting.referral
           household.each do |record|

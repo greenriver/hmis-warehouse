@@ -1,3 +1,9 @@
+###
+# Copyright Green River Data Group, Inc.
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 # frozen_string_literal: true
 
 FactoryBot.define do
@@ -6,10 +12,18 @@ FactoryBot.define do
     trigger_config { [] }
     association(:template, factory: :hmis_workflow_definition_template)
     transient do
-      form_definition { association(:hmis_form_definition) }
+      form_definition { nil }
     end
     after(:build) do |task, evaluator|
-      task.form_definition_identifier = evaluator.form_definition.identifier
+      # If form_definition_identifier was explicitly passed in to the factory, don't overwrite it
+      next if evaluator.form_definition_identifier.present?
+
+      # If form_definition was passed to the factory, use that to set the task's form_definition_identifier.
+      form_def = evaluator.form_definition
+
+      # Otherwise, generate a form definition in this task's data source
+      form_def ||= create(:ce_referral_step_form_definition, data_source: task.template.data_source)
+      task.form_definition_identifier = form_def.identifier
     end
   end
 

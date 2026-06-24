@@ -1,10 +1,10 @@
-# frozen_string_literal: true
-
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 class GrdaWarehouse::AuthPolicies::SourceClientPolicy < GrdaWarehouse::AuthPolicies::BasePolicy
   # expose role permissions. Optionally rename the permission
@@ -63,7 +63,7 @@ class GrdaWarehouse::AuthPolicies::SourceClientPolicy < GrdaWarehouse::AuthPolic
   # An ROI confers some level of visibility to the client under the following circumstances:
   # - the source client must be in a data source with `obeys_consent=true`
   # - the ROI has a valid status (not revoked). ROI fields are stored on the destination client record (for now)
-  # - if the ROI is restricted to certain COCs then the user's COCs must match
+  # - if the ROI is restricted to certain COCs then the user's COCs must match (ROI may include "All CoCs", which matches like legacy consent)
   # - the user has a role granting permission on source client project as follows:
   #   - if the user has `can_search_client_with_roi`, we grant `can_search_own_clients` and `can_search_all_clients`
   #   - if the user has `can_view_client_enrollments_with_roi`, we grant `can_view_clients`
@@ -119,7 +119,7 @@ class GrdaWarehouse::AuthPolicies::SourceClientPolicy < GrdaWarehouse::AuthPolic
       #
       # Notes
       # - The client search controller (ClientAccessControl::ClientsController) also requires can_search_window || can_use_strict_search. We aren't enforcing that here.
-      # - See the searchable_to method in the Client extension (drivers/client_access_control/extensions/grda_warehouse/hud/client_extension.rb) which includes all clients in the search scope if the user has the can_search_all_clients permission
+      # - See the searchable_to method in the Client extension (drivers/client_access_control/app/models/client_access_control/extensions/grda_warehouse/hud/client_extension.rb) which includes all clients in the search scope if the user has the can_search_all_clients permission
       results.merge(legacy_permissions & BASIC_CLIENT_PII_PERMS)
     end
 

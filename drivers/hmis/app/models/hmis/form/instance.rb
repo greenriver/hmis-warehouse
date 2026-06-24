@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -42,15 +42,22 @@ class Hmis::Form::Instance < ::GrdaWarehouseBase
   has_paper_trail
 
   belongs_to :entity, polymorphic: true, optional: true
+  belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
 
   # This belongs_to relationship is a bit confusing since now form identifiers can have multiple versions.
   # We should aim to gradually replace usages of :definition with the has_many :definitions relationship below,
   # so that we're explicit about which statuses of definition (draft, published, retired) we accept in a given situation.
   belongs_to :definition,
              -> { order(Arel.sql("CASE WHEN status = 'published' THEN 0 WHEN status = 'draft' THEN 1 ELSE 2 END")) },
-             foreign_key: :definition_identifier, primary_key: :identifier, class_name: 'Hmis::Form::Definition'
+             foreign_key: [:definition_identifier, :data_source_id],
+             primary_key: [:identifier, :data_source_id],
+             class_name: 'Hmis::Form::Definition',
+             inverse_of: :instances
 
-  has_many :definitions, primary_key: :definition_identifier, foreign_key: :identifier, class_name: 'Hmis::Form::Definition'
+  has_many :definitions,
+           primary_key: [:definition_identifier, :data_source_id],
+           foreign_key: [:identifier, :data_source_id],
+           class_name: 'Hmis::Form::Definition'
 
   belongs_to :custom_service_category, optional: true, class_name: 'Hmis::Hud::CustomServiceCategory'
   belongs_to :custom_service_type, optional: true, class_name: 'Hmis::Hud::CustomServiceType'
@@ -112,11 +119,16 @@ class Hmis::Form::Instance < ::GrdaWarehouseBase
   end
 
   scope :for_project_through_entities, ->(project) do
-    ids = all.map { |i| i.project_match(project) ? i.id : nil }.compact
+    ids = in_data_source(project.data_source_id).
+      map { |i| i.project_match(project) ? i.id : nil }.compact
     where(id: ids)
   end
 
   SORT_OPTIONS = [:form_title, :form_type, :date_updated].freeze
+
+  scope :in_data_source, ->(data_source_id) do
+    where(data_source_id: data_source_id)
+  end
 
   def self.sort_by_option(option)
     raise NotImplementedError unless SORT_OPTIONS.include?(option)
@@ -144,9 +156,21 @@ class Hmis::Form::Instance < ::GrdaWarehouseBase
 
   def validate_service_form_restrictions
     return unless definition.role.to_s == 'SERVICE'
-    return unless custom_service_category_id.blank? && custom_service_type_id.blank?
 
-    errors.add(:base, :invalid, full_message: 'Service form rules must specify either a service category or service type, to indicate which service(s) the form can collect')
+    # rubocop:disable Style/IfUnlessModifier, Style/GuardClause
+    if custom_service_category_id.blank? && custom_service_type_id.blank?
+      errors.add(:base, :invalid, full_message: 'Service form rules must specify either a service category or service type, to indicate which service(s) the form can collect')
+      return
+    end
+
+    if custom_service_category_id.present? && custom_service_category.data_source_id != data_source_id
+      errors.add(:custom_service_category_id, :invalid, full_message: 'Service category must be in the same data source as the instance')
+    end
+
+    if custom_service_type_id.present? && custom_service_type.data_source_id != data_source_id
+      errors.add(:custom_service_type_id, :invalid, full_message: 'Service type must be in the same data source as the instance')
+    end
+    # rubocop:enable Style/IfUnlessModifier, Style/GuardClause
   end
 
   def project_matches(project_scope)
@@ -158,13 +182,15 @@ class Hmis::Form::Instance < ::GrdaWarehouseBase
   end
 
   def self.detect_best_instance_for_project(project:)
-    matches = all.map { |i| i.project_match(project) }.compact
+    matches = in_data_source(project.data_source_id).
+      map { |i| i.project_match(project) }.compact
     # with_index for stable sort
     matches.sort_by.with_index { |match, idx| [match.rank, idx] }.first&.instance
   end
 
   def self.detect_best_instance_for_enrollment(enrollment:)
-    matches = all.map { |i| i.project_and_enrollment_match(project: enrollment.project, enrollment: enrollment) }.compact
+    matches = in_data_source(enrollment.data_source_id).
+      map { |i| i.project_and_enrollment_match(project: enrollment.project, enrollment: enrollment) }.compact
     # with_index for stable sort
     matches.sort_by.with_index { |match, idx| [match.rank, idx] }.first&.instance
   end

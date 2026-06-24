@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -29,6 +29,7 @@ module SimpleReports
       # Sanitize grace_period_days to prevent SQL injection
       sanitized_days = grace_period_days.to_i
       where(Arel.sql("archival_metadata->>'purged_at' IS NULL")).
+        where(Arel.sql("archival_metadata->>'purge_failed_at' IS NULL")).
         where(
           Arel.sql(
             "((archival_metadata->>'purge_eligible_at' IS NOT NULL AND (archival_metadata->>'purge_eligible_at')::timestamp <= ?) OR " \

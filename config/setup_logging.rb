@@ -1,3 +1,9 @@
+###
+# Copyright Green River Data Group, Inc.
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 # frozen_string_literal: true
 
 require 'logging/sanitizer'
@@ -87,7 +93,7 @@ class SetupLogging
         message: message,
         rails_env: Rails.env,
         request_time: time,
-        # application: 'BostonHmis::Application',
+        # application: 'OpenPath::Application',
       }.merge(STANDARD_TAGS).reverse_merge(@tags).to_json + "\r\n"
     end
   end

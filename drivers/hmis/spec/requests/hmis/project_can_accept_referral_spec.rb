@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -22,7 +22,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   let!(:source_enrollment) { create :hmis_hud_enrollment, client: c1, project: source_project, data_source: ds1 }
 
   let!(:destination_project) { create :hmis_hud_project, data_source: ds1, organization: o1, user: u1 }
-  let!(:referral_instance) { create :hmis_form_instance, role: :REFERRAL, entity: destination_project }
+  let!(:referral_instance) { create :hmis_form_instance, role: :REFERRAL, entity: destination_project, data_source: ds1 }
 
   shared_examples 'returns true for project can accept referral' do
     it 'returns true' do
@@ -61,8 +61,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     end
 
     it 'raises an error when the referral form instance exists, but definition is a draft' do
-      create(:hmis_form_definition, role: :REFERRAL, identifier: 'bad-referral-form', status: :draft)
-      create(:hmis_form_instance, role: :REFERRAL, entity: source_project, definition_identifier: 'bad-referral-form')
+      create(:hmis_form_definition, role: :REFERRAL, identifier: 'bad-referral-form', status: :draft, data_source: ds1)
+      create(:hmis_form_instance, role: :REFERRAL, entity: source_project, definition_identifier: 'bad-referral-form', data_source: ds1)
 
       expect_access_denied post_graphql(**variables.merge(destination_project_id: source_project.id)) { query }
     end

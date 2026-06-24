@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -13,6 +13,7 @@ FactoryBot.define do
     role { 'UPDATE' }
     status { Hmis::Form::Definition::PUBLISHED }
     title { 'Form' }
+    data_source { association :hmis_data_source }
     definition do
       {
         'item': [
@@ -53,7 +54,7 @@ FactoryBot.define do
       }
     end
     transient do
-      data_source { nil } # Data source needed to create CDEDs
+      generate_cdeds { false }
       append_items { nil } # Items to append to FormDefinition content
     end
     after(:create) do |instance, evaluator|
@@ -64,13 +65,13 @@ FactoryBot.define do
         instance.save!
       end
 
-      next unless instance.published? && evaluator.data_source
+      next unless instance.published? && evaluator.generate_cdeds
 
       # Create CDEDs for items that have { mapping: { custom_field_key: '...' } }
       Hmis::Form::CustomDataElementGenerator.new(
         definition: instance,
         create_missing_mappings: false,
-        data_source: evaluator.data_source,
+        data_source: instance.data_source,
       ).run.each(&:save!)
     end
   end

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -16,8 +16,7 @@ module Mutations
 
     def resolve(id:, input:)
       record = Hmis::ProjectConfig.find(id)
-      access_denied! unless current_user.can_configure_data_collection?
-
+      access_denied! unless policy_for(record, policy_type: :project_config).can_update?
       record.assign_attributes(**input.to_params)
 
       if record.valid?
@@ -28,7 +27,7 @@ module Mutations
       end
 
       {
-        record: record,
+        project_config: record,
         errors: errors,
       }
     end

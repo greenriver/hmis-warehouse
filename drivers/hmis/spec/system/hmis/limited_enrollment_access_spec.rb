@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -13,7 +13,7 @@ require_relative '../../support/hmis_base_setup'
 RSpec.feature 'Enrollment/household management', type: :system do
   include_context 'hmis base setup'
 
-  let!(:ds1) { create(:hmis_data_source, hmis: 'localhost') }
+  let!(:ds1) { GrdaWarehouse::DataSource.hmis.find_by(hmis: 'localhost') }
   let!(:p1) { create :hmis_hud_project, project_name: 'Full Access Project', data_source: ds1, organization: o1 }
   let!(:p2) { create :hmis_hud_project, project_name: 'Limited Access Project', data_source: ds1, organization: o1 }
 

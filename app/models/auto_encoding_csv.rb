@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -29,7 +29,7 @@ class AutoEncodingCsv < CSV
       # no BOM we have to try for a statistical match
       unless guessed_encoding
         File.open(filename, mode: 'rb') do |io|
-          res = CharlockHolmes::EncodingDetector.detect(io.read)
+          res = CharlockHolmes::EncodingDetector.detect(io.read(1_048_576))
           guessed_encoding = res[:ruby_encoding] if res
         end
       end

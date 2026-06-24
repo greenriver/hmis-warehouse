@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -16,7 +16,7 @@ class Hmis::AuthPolicies::HmisProjectPolicy < Hmis::AuthPolicies::ResourcePolicy
       project_permissions.include?(:can_edit_project_details)
     end
 
-    def can_destroy?
+    def can_delete?
       project_permissions.include?(:can_delete_project)
     end
 
@@ -48,6 +48,20 @@ class Hmis::AuthPolicies::HmisProjectPolicy < Hmis::AuthPolicies::ResourcePolicy
     # For determining whether a user can perform a specific task, see CeReferralPolicy.can_perform?
     def can_perform_referral_tasks?
       project_permissions.include?(:can_perform_any_referral_tasks) || project_permissions.include?(:can_perform_own_referral_tasks)
+    end
+
+    # Whether the user can create a new Enrollment in the project by submitting the ENROLLMENT form.
+    # TODO(#7475) - This should be updated to take permission 'can_enroll_clients' into account,
+    # but leaving the legacy behavior in place for now.
+    def can_create_enrollments?
+      project_permissions.include?(:can_edit_enrollments)
+    end
+
+    # Whether the user can create a new Client and Enrollment in the project by submitting
+    # the NEW_CLIENT_ENROLLMENT form.
+    # TODO(#7475) - Similarly should be updated to take permission 'can_enroll_clients' into account
+    def can_create_and_enroll_new_clients?
+      can_create_enrollments? && project_permissions.include?(:can_edit_clients)
     end
 
     protected

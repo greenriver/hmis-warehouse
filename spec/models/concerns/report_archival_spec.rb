@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -421,6 +421,109 @@ RSpec.describe ReportArchival, type: :model do
       expect(result[:errors].first).to include('Failed to archive report before purge')
       expect(Rails.logger).to have_received(:error).with(match(/Failed to archive report/))
       expect(Reports::PurgeArchivedReportDataService).not_to have_received(:new)
+    end
+  end
+
+  describe '#hard_delete_archival_relation' do
+    before(:all) do
+      connection = GrdaWarehouseBase.connection
+      unless connection.table_exists?(:test_report_archival_hard_delete_rows)
+        connection.create_table :test_report_archival_hard_delete_rows, force: true do |t|
+          t.integer :report_id, null: false
+          t.datetime :deleted_at
+          t.timestamps
+        end
+      end
+    end
+
+    after(:all) do
+      connection = GrdaWarehouseBase.connection
+      connection.drop_table :test_report_archival_hard_delete_rows if connection.table_exists?(:test_report_archival_hard_delete_rows)
+    end
+
+    let(:row_class) do
+      klass = Class.new(GrdaWarehouseBase) do
+        self.table_name = 'test_report_archival_hard_delete_rows'
+        acts_as_paranoid
+      end
+      class_name = "TestReportArchivalHardDeleteRow#{SecureRandom.hex(8)}"
+      Object.const_set(class_name, klass)
+      klass
+    end
+
+    it 'permanently removes acts_as_paranoid rows' do
+      row = row_class.create!(report_id: report.id)
+
+      deleted_count = report.hard_delete_archival_relation(row_class.where(report_id: report.id))
+
+      expect(deleted_count).to eq(1)
+      expect(row_class.where(report_id: report.id).count).to eq(0)
+      expect(row_class.with_deleted.where(id: row.id).count).to eq(0)
+    end
+
+    it 'deletes large relations in batches without loading all ids into one statement' do
+      3.times { row_class.create!(report_id: report.id) }
+      relation = row_class.where(report_id: report.id)
+      stub_const('ReportArchival::ARCHIVAL_HARD_DELETE_BATCH_SIZE', 2)
+
+      deleted_count = report.hard_delete_archival_relation(relation)
+
+      expect(deleted_count).to eq(3)
+      expect(row_class.where(report_id: report.id).count).to eq(0)
+    end
+  end
+
+  describe 'purge_eligible scope' do
+    let!(:eligible_report) do
+      SimpleReports::ReportInstance.create!(
+        user_id: User.system_user.id,
+        completed_at: 61.days.ago,
+      )
+    end
+
+    let!(:ineligible_purged) do
+      r = SimpleReports::ReportInstance.create!(
+        user_id: User.system_user.id,
+        completed_at: 61.days.ago,
+      )
+      r.update_column(:archival_metadata, { 'purged_at' => Time.current.iso8601 })
+      r
+    end
+
+    let!(:ineligible_recent) do
+      SimpleReports::ReportInstance.create!(
+        user_id: User.system_user.id,
+        completed_at: 30.days.ago,
+      )
+    end
+
+    let!(:ineligible_failed) do
+      r = SimpleReports::ReportInstance.create!(
+        user_id: User.system_user.id,
+        completed_at: 61.days.ago,
+      )
+      r.update_column(:archival_metadata, { 'purge_failed_at' => Time.current.iso8601 })
+      r
+    end
+
+    it 'includes reports past their grace period that have not been purged or failed' do
+      results = SimpleReports::ReportInstance.purge_eligible(60, Time.current)
+      expect(results).to include(eligible_report)
+    end
+
+    it 'excludes already-purged reports' do
+      results = SimpleReports::ReportInstance.purge_eligible(60, Time.current)
+      expect(results).not_to include(ineligible_purged)
+    end
+
+    it 'excludes reports still within the grace period' do
+      results = SimpleReports::ReportInstance.purge_eligible(60, Time.current)
+      expect(results).not_to include(ineligible_recent)
+    end
+
+    it 'excludes reports that have a recorded purge failure' do
+      results = SimpleReports::ReportInstance.purge_eligible(60, Time.current)
+      expect(results).not_to include(ineligible_failed)
     end
   end
 

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -34,9 +34,6 @@ module Types
     value 'ALERT_SUCCESS', 'Display text as a success alert'
 
     # Specialized input components
-    value 'MCI', 'MCI linking component'
-    value 'AHA', 'AHA component'
-    value 'ALT_AHA', 'Alt AHA component'
     value 'NAME', 'Client Name input'
     value 'ADDRESS', 'Client Address input'
     value 'PHONE', 'Phone number input for ContactPoint'
@@ -44,5 +41,11 @@ module Types
     value 'SIGNATURE_GROUP', 'Signature input component'
     value 'SIGNATURE', 'Signature input component'
     value 'CLIENT_CE_ELIGIBILITY', 'Button to fetch information about client eligibility, based on current form values'
+
+    # AC HMIS — community-specific form components backed by external APIs
+    value 'MCI', 'Perform MCI clearance via external API'
+    value 'AHA', 'Fetch AHA scores via external API'
+    value 'ALT_AHA', 'Calculate Alt AHA score'
+    value 'VISIONLINK', 'Fetch VisionLink eligibility flags via external API'
   end
 end

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -12,12 +12,13 @@ module Types
       extend ActiveSupport::Concern
 
       class_methods do
-        def clients_field(name = :clients, description = nil, type: Types::HmisSchema::Client.page_type, filter_args: {}, **override_options, &block)
+        def clients_field(name = :clients, description = nil, type: Types::HmisSchema::Client.page_type(include_search_query_id: true), filter_args: {}, **override_options, &block)
           default_field_options = {
             type: type,
             null: false,
             description: description,
             after_paginate: ->(nodes, ctx) {
+              # Preload client dependencies to avoid N+1 queries when invoking HmisClientPolicy
               ctx[:current_user].policy_context.preload_client_dependencies(nodes.map(&:id))
             },
           }

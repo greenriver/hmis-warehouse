@@ -1,17 +1,24 @@
+###
+# Copyright Green River Data Group, Inc.
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 # frozen_string_literal: true
 
 require 'rails_helper'
 
 RSpec.describe Hmis::Ce::Match::Expression::CdeFieldMap, type: :model do
   let!(:destination_data_source) { create :destination_data_source }
+  let!(:hmis_data_source) { create(:hmis_data_source) }
   let(:current_date) { Date.new(2024, 12, 26) }
   let(:field_map) { described_class.new(current_date: current_date) }
 
-  let(:client1) { create(:hmis_hud_client_with_warehouse_client) }
+  let(:client1) { create(:hmis_hud_client_with_warehouse_client, data_source: hmis_data_source) }
   let(:destination_client1) { client1.destination_client }
-  let(:client2) { create(:hmis_hud_client_with_warehouse_client) }
+  let(:client2) { create(:hmis_hud_client_with_warehouse_client, data_source: hmis_data_source) }
   let(:destination_client2) { client2.destination_client }
-  let(:client3_no_assessment) { create(:hmis_hud_client_with_warehouse_client) }
+  let(:client3_no_assessment) { create(:hmis_hud_client_with_warehouse_client, data_source: hmis_data_source) }
   let(:destination_client3) { client3_no_assessment.destination_client }
 
   let(:all_destination_clients) { GrdaWarehouse::Hud::Client.where(id: [destination_client1.id, destination_client2.id, destination_client3.id]) }
@@ -22,13 +29,14 @@ RSpec.describe Hmis::Ce::Match::Expression::CdeFieldMap, type: :model do
   let(:allergies_field) { 'custom_assessment.allergies' }
   let(:invalid_field) { 'custom_assessment.nonexistent_field' }
 
-  let(:form_definition) { create(:hmis_form_definition, identifier: 'test_form') }
+  let(:form_definition) { create(:hmis_form_definition, identifier: 'test_form', data_source: hmis_data_source) }
   let(:string_cded) do
     create(:hmis_custom_data_element_definition,
            owner_type: 'Hmis::Hud::CustomAssessment',
            key: 'language_preference',
            field_type: 'string',
-           form_definition_identifier: 'test_form')
+           form_definition_identifier: 'test_form',
+           data_source: hmis_data_source)
   end
   let(:repeating_cded) do
     create(:hmis_custom_data_element_definition,
@@ -36,7 +44,8 @@ RSpec.describe Hmis::Ce::Match::Expression::CdeFieldMap, type: :model do
            key: 'allergies',
            field_type: 'string',
            repeats: true,
-           form_definition_identifier: 'test_form')
+           form_definition_identifier: 'test_form',
+           data_source: hmis_data_source)
   end
 
   # Helper method to create assessment with custom data elements
@@ -113,6 +122,23 @@ RSpec.describe Hmis::Ce::Match::Expression::CdeFieldMap, type: :model do
       expect do
         field_map.client_query(all_destination_clients, invalid_field)
       end.to raise_error(ArgumentError, /Unknown CDE in field/)
+    end
+
+    context 'with form definitions that have the same identifier across data sources' do
+      let!(:ds2) { create(:hmis_data_source) }
+      let!(:form_definition2) { create(:hmis_form_definition, identifier: 'test_form', data_source: ds2) }
+      let!(:ds2_client) { create(:hmis_hud_client, data_source: ds2) }
+      let!(:warehouse_client) { create(:warehouse_client, destination_id: destination_client1.id, source_id: ds2_client.id) }
+
+      it 'selects values from the most recent assessment in the correct data source' do
+        # This is the correct form that defines the language_field CDED. It should be returned even though it's less recent.
+        create_assessment_for_client(client1, assessment_date: current_date - 2.days, language_preference: 'English')
+        # This assessment is recent, but the form in ds2 doesn't have a language_field CDED and should be ignored.
+        create(:hmis_custom_assessment, client: ds2_client, data_source: ds2, assessment_date: current_date, definition: form_definition2)
+
+        result = field_map.client_query(GrdaWarehouse::Hud::Client.where(id: destination_client1.id), language_field)
+        expect(result[destination_client1.id]).to eq('English')
+      end
     end
   end
 end

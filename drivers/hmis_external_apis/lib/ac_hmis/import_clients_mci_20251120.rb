@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -324,7 +324,8 @@ module AcHmis
     end
 
     def data_source
-      @data_source ||= GrdaWarehouse::DataSource.hmis.first!
+      # Expect exactly one HMIS data source
+      @data_source ||= GrdaWarehouse::DataSource.hmis.sole
     end
 
     def system_user

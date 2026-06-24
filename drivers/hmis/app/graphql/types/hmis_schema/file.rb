@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -8,6 +8,7 @@
 
 module Types
   class HmisSchema::File < Types::BaseObject
+    # Object is a Hmis::File
     description 'File'
     field :id, ID, null: false
     field :content_type, String, null: true
@@ -28,7 +29,12 @@ module Types
     field :date_created, GraphQL::Types::ISO8601DateTime, null: true
     hud_field :user, Application::User, null: true
 
-    # Object is a Hmis::File
+    access_field do
+      define_method(:policy) { @policy ||= policy_for(object, policy_type: :hmis_file) }
+
+      bool_field(:can_edit_file) { policy.can_edit? }
+      bool_field(:can_delete_file) { policy.can_delete? }
+    end
 
     def name
       unless_redacted('Confidential File') { object.name || "File #{object.id}" }
@@ -103,10 +109,7 @@ module Types
     end
 
     def redacted?
-      return false unless object.confidential
-      return false if own_file && current_user.can_manage_own_client_files_for?(object)
-
-      !current_user.can_view_any_confidential_client_files_for?(object)
+      !current_user.policy_for(object, policy_type: :hmis_file).can_view_unredacted?
     end
   end
 end

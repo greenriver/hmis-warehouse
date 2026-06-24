@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -63,5 +63,10 @@ module HudApr::Generators::Apr::Fy2020
     def self.valid_question_number(question_number)
       questions.keys.detect { |q| q == question_number } || 'Question 4'
     end
+
+    # HudReportArchival.register_archival_generator(self.title, self) runs when this
+    # concern is included. Include at the end of the class to ensure all required fields
+    # are loaded for registration
+    include HudApr::Archival
   end
 end

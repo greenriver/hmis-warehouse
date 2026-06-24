@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -47,6 +47,10 @@ module GrdaWarehouse
     def matches_coc_codes?(any_coc_codes)
       # if there are no codes, assume visibility not limited by COC
       return true if coc_codes.blank?
+
+      # Mirror valid_in_coc in drivers/client_access_control/app/models/client_access_control/extensions/grda_warehouse/hud/client_extension.rb:
+      # an ROI that includes "All CoCs" applies to all CoCs and must not require a literal code intersection
+      return true if coc_codes.include?('All CoCs')
 
       (any_coc_codes & coc_codes).present?
     end

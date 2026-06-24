@@ -1,10 +1,10 @@
-# frozen_string_literal: true
-
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 # frozen_string_literal: true
 
@@ -104,7 +104,7 @@ module
         ]
         available_coc_codes.each do |coc_code|
           rows["_Household Types_data_#{title}"] += [
-            household_type_hoh_count(id, coc_code.to_sym),
+            household_type_client_count(id, coc_code.to_sym),
             household_type_hoh_count(id, coc_code.to_sym),
             household_type_hoh_percentage(id, coc_code.to_sym) / 100,
           ]

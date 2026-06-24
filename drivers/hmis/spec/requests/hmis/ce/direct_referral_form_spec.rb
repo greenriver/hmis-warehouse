@@ -1,3 +1,9 @@
+###
+# Copyright Green River Data Group, Inc.
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 # frozen_string_literal: true
 
 require 'rails_helper'
@@ -26,7 +32,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     let!(:source_project) { create(:hmis_hud_project, data_source: ds1, organization: o1, user: u1) }
     let!(:target_project) { create(:hmis_hud_project, data_source: ds1, organization: o1, user: u1) }
     let!(:workflow_template) { create(:hmis_workflow_definition_template, data_source: ds1, template_type: 'ce_referral', status: 'published') }
-    let!(:form_definition) { create(:hmis_form_definition) }
+    let!(:form_definition) { create(:hmis_form_definition, data_source: ds1) }
 
     let!(:start_event) { create(:hmis_workflow_definition_start_event, template: workflow_template) }
     let!(:sending_project_task) { create(:hmis_workflow_definition_user_task, template: workflow_template, form_definition: form_definition) }

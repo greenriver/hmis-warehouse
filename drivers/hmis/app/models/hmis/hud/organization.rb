@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -23,6 +23,7 @@ class Hmis::Hud::Organization < Hmis::Hud::Base
 
   has_many :ce_match_rules, class_name: 'Hmis::Ce::Match::Rule', as: :owner, dependent: :destroy
   has_many :ce_default_swimlane_assignments, class_name: 'Hmis::Ce::DefaultSwimlaneAssignment', as: :owner, dependent: :destroy
+  has_many :unit_groups, through: :projects, class_name: 'Hmis::UnitGroup'
 
   validates_with Hmis::Hud::Validators::OrganizationValidator
 

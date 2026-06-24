@@ -1,3 +1,9 @@
+###
+# Copyright Green River Data Group, Inc.
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 # frozen_string_literal: true
 
 # munged out of https://gist.github.com/d11wtq/1176236
@@ -5,6 +11,11 @@ module Mail
   class DatabaseDelivery
     def initialize(parameters)
       @parameters = {}.merge(parameters)
+    end
+
+    # mail gem calls delivery_method.settings[:return_response] after deliver! completes
+    def settings
+      @parameters
     end
 
     def deliver!(mail)

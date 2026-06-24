@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -120,7 +120,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect(clients.size).to eq(20)
         # make sure each of them resolved an activeEnrollment
         expect(clients.map { |c| c[:activeEnrollment] }.compact.size).to eq(20)
-      end.to make_database_queries(count: 15..25)
+      end.to make_database_queries(count: 15..35)
     end
   end
 

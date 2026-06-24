@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -141,6 +141,69 @@ RSpec.describe GrdaWarehouse::Cohort, type: :model do
       expect(updated_editable_user_group.id).to eq(original_editable_user_group.id)
       # Confirm the collection's name has been updated to match the new Cohort name
       expect(updated_collection.name).to eq('New Name')
+    end
+  end
+
+  describe '#owner_name' do
+    context 'when no owner is assigned' do
+      it 'returns Unassigned by default' do
+        expect(cohort.owner_name).to eq('Unassigned')
+      end
+
+      it 'returns nil when include_unassigned is false' do
+        expect(cohort.owner_name(include_unassigned: false)).to be_nil
+      end
+    end
+
+    context 'when an owner is assigned' do
+      before { cohort.update!(owner_id: user.id) }
+
+      it 'returns the owner name' do
+        expect(cohort.owner_name).to eq(user.name)
+      end
+    end
+  end
+
+  describe '#available_owners' do
+    let!(:non_system_user) { create :acl_user }
+
+    context 'via ACL path' do
+      before do
+        cohort_collection.set_viewables({ cohorts: [cohort.id] })
+        setup_access_control(non_system_user, cohort_viewer, cohort_collection)
+      end
+
+      it 'includes users with ACL-based access to the cohort' do
+        expect(cohort.available_owners).to include(non_system_user)
+      end
+
+      it 'does not include users with no access' do
+        other_user = create(:acl_user)
+        expect(cohort.available_owners).not_to include(other_user)
+      end
+    end
+
+    context 'via legacy access group path' do
+      let!(:access_group) { create :access_group }
+
+      before do
+        access_group.set_viewables({ cohorts: [cohort.id] })
+        access_group.add(non_system_user)
+      end
+
+      it 'includes users with legacy access-group-based access to the cohort' do
+        expect(cohort.available_owners).to include(non_system_user)
+      end
+    end
+
+    context 'when current owner has no access to the cohort' do
+      let!(:owner_without_access) { create :acl_user }
+
+      before { cohort.update!(owner_id: owner_without_access.id) }
+
+      it 'still includes the current owner' do
+        expect(cohort.available_owners).to include(owner_without_access)
+      end
     end
   end
 

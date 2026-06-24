@@ -10,6 +10,8 @@
       .well
         = f.input :name, disabled: @cohort.system_cohort
         = f.input :short_name, input_html: {maxlength: 8, style: 'width: 8em;'}
+        = f.input :description, as: :text, input_html: {rows: 3}
+        = f.input :owner_id, collection: @cohort.available_owners, as: :select_two, selected: @cohort.owner_id, label: 'Owner', include_blank: 'Unassigned'
         = f.input :effective_date, as: :date_picker
         = f.input :only_window, as: :pretty_boolean, label: 'Limit client selection to window only', hint: 'Clients must have at least one source client that is visible in the window to be eligible for inclusion on this cohort.'
         = f.input :enforce_project_visibility_on_cells, as: :pretty_boolean, label: 'Enforce project visibility', hint: 'For cells that show project details, limit to projects each user can see.  If disabled, all projects are visible, confidential projects will not be exposed.'
@@ -24,6 +26,9 @@
         - hint_text += ' This method of access is being deprecated, to be replaced with the fields below.' if User.anyone_using_acls?
         %div{ class: (User.all_using_acls? && 'd-none') }
           = f.input :user_ids, collection: @groups, as: :grouped_select_two, group_method: :last, selected: @group_ids, input_html: {multiple: :multiple, style: 'width: 100%;'}, label: 'Grant access to users and groups', hint: hint_text
+          - if can_configure_cohorts? && can_audit_users?
+            .mb-4= link_to 'Audit Access (Legacy)', cohort_legacy_access_audit_path(@cohort)
+            %hr
         - if User.anyone_using_acls? && ! User.all_using_acls?
           %p The following are the new mechanism for adding access to cohorts.  During the transition period, please assign both methods of access.
         -# END_ACL
@@ -44,6 +49,8 @@
               - users.each do |u|
                 %li= u.name_with_email
           = f.input :viewer_ids, collection: @users, as: :select_two, selected: @viewer_ids, input_html: {multiple: :multiple, style: 'width: 100%;'}, label: 'Grant read-only-level access to users', hint: 'Specified user will have access to view, but not change clients on this cohort.'
+          - if can_configure_cohorts? && can_audit_users?
+            .mt-2= link_to 'Audit Access', cohort_acl_access_audit_path(@cohort)
 
       %h3 Automation
       .well

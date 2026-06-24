@@ -8,7 +8,9 @@ export default class extends Controller {
     data: Array,
     metricName: String,
     entityLabel: String,
-    metricId: Number
+    metricId: Number,
+    entityId: Number,
+    detailsHelpText: String
   }
 
   connect() {
@@ -25,6 +27,18 @@ export default class extends Controller {
     const dates = data.map(d => d[0]);
     const counts = data.map(d => d[1]);
     const entityLabel = this.entityLabelValue || 'Entities';
+
+    const yAxisConfig = {
+      label: {
+        text: `Number of ${entityLabel}`,
+        position: 'outer-middle'
+      },
+      tick: {
+        format: (x) => { return Math.floor(x).toLocaleString('en-US'); }
+      }
+    };
+    const yMax = this.calculateYAxisCap(counts);
+    if (yMax !== null) yAxisConfig.max = yMax;
 
     const chartConfig = {
       bindto: this.chartTarget,
@@ -48,6 +62,8 @@ export default class extends Controller {
       },
       axis: {
         x: {
+          clipPath: false,
+          padding: 100,
           type: 'timeseries',
           tick: {
             format: '%Y-%m-%d',
@@ -58,15 +74,7 @@ export default class extends Controller {
             }
           }
         },
-        y: {
-          label: {
-            text: `Number of ${entityLabel}`,
-            position: 'outer-middle'
-          },
-          tick: {
-            format: (x) => { return Math.floor(x).toLocaleString('en-US'); }
-          }
-        }
+        y: yAxisConfig
       },
       legend: {
         show: false
@@ -87,11 +95,27 @@ export default class extends Controller {
         pattern: ['#288be4']
       },
       padding: {
-        bottom: 20
+        bottom: 40
       }
     };
 
     this.chart = bb.generate(chartConfig);
+    const svg = this.chartTarget.querySelector('svg');
+    if (svg) svg.style.overflow = 'visible';
+  }
+
+  calculateYAxisCap(counts) {
+    const nonZero = counts.filter(v => v > 0).sort((a, b) => a - b);
+    if (nonZero.length < 4) return null;
+
+    const max = nonZero[nonZero.length - 1];
+    const q1 = nonZero[Math.floor(nonZero.length * 0.25)];
+    const q3 = nonZero[Math.floor(nonZero.length * 0.75)];
+    const iqr = q3 - q1;
+    const upperFence = q3 + 1.5 * iqr;
+
+    if (max > upperFence) return upperFence * 1.2;
+    return null;
   }
 
   async handleBarClick(d) {
@@ -107,7 +131,10 @@ export default class extends Controller {
     }
 
     try {
-      const url = `/admin/metric_definitions/${this.metricIdValue}/crossings_for_date?date=${dateString}`;
+      let url = `/admin/metric_definitions/${this.metricIdValue}/crossings_for_date?date=${dateString}`;
+      if (this.hasEntityIdValue && this.entityIdValue) {
+        url += `&entity_id=${this.entityIdValue}`;
+      }
       const response = await fetch(url);
       const jsonData = await response.json();
 
@@ -129,8 +156,10 @@ export default class extends Controller {
     }
 
     const entityLabel = this.entityLabelValue || 'Client';
+    const helpText = this.hasDetailsHelpTextValue ? this.detailsHelpTextValue : '';
     const tableHTML = `
       <h4>Threshold Crossings on ${data.date}</h4>
+      ${helpText ? `<p>${helpText}</p>` : ''}
       <table class="table table-striped">
         <thead>
           <tr>
@@ -150,7 +179,7 @@ export default class extends Controller {
       return `
               <tr>
                 <td>${linkHTML}</td>
-                <td>${crossing.previous_value || 'N/A'}</td>
+                <td>${crossing.previous_value != null ? crossing.previous_value : 'N/A'}</td>
                 <td>${crossing.current_value}</td>
                 <td>${sign}${change}</td>
               </tr>

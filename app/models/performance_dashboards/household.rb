@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -13,7 +13,7 @@ class PerformanceDashboards::Household < PerformanceDashboards::Base
   include PerformanceDashboard::Household::Exiting
   include PerformanceDashboard::Household::Enrolled
   include PerformanceDashboard::Household::ProjectType
-  include PerformanceDashboard::Household::Coc
+  include PerformanceDashboard::CocBuckets
 
   def self.url
     'performance_dashboards/household'

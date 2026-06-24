@@ -1,3 +1,9 @@
+###
+# Copyright Green River Data Group, Inc.
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 # frozen_string_literal: true
 
 require 'rails_helper'
@@ -35,6 +41,7 @@ RSpec.describe Importing::RunDailyImportsJob, type: :job do
     allow(ReportingSetupJob).to receive(:set).and_return(double(perform_later: true))
     allow(Delayed::Job).to receive(:queued?).and_return(false)
     allow(GrdaWarehouse::Report::Base).to receive(:update_fake_materialized_views)
+    allow(HudReports::HouseholdContext).to receive(:prune!)
     allow(Reporting::PopulationDashboardPopulateJob).to receive(:set).and_return(double(perform_later: true))
     allow(PruneDocumentExportsJob).to receive(:perform_later)
     allow(Health::PruneDocumentExportsJob).to receive(:perform_later)

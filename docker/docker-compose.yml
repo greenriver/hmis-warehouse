@@ -5,11 +5,11 @@ x-app: &app
     dockerfile: docker/app/Dockerfile
     target: dev-build
     args:
-      RUBY_VERSION: 3.4.5
+      RUBY_VERSION: 3.4.9
       BUNDLER_VERSION: "2.7.2"
       USER_ID: ${USER_ID:-1001}
       GROUP_ID: ${GROUP_ID:-1001}
-      BUILD_TAG: 3.4.5-slim-bookworm
+      BUILD_TAG: 3.4.9-slim-bookworm
   environment: &env
     AWS_REGION: ${AWS_REGION:-us-east-1}
     AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-}
@@ -246,6 +246,17 @@ services:
   redis:
     container_name: hmis-warehouse-redis
     image: redis:alpine
+    env_file:
+      - .env.development.local
+      - .env.local
+    command: >
+      sh -c '
+      if [ -n "$$CACHE_AUTH_TOKEN" ]; then
+        exec redis-server --requirepass "$$CACHE_AUTH_TOKEN";
+      else
+        exec redis-server;
+      fi
+      '
     volumes:
       - redis:/data
     expose:

@@ -1,14 +1,14 @@
-# frozen_string_literal: true
-
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module HopwaCaper::Generators::Fy2026::Sheets
   class TbraSheet < BaseProgramSheet
-    QUESTION_NUMBER = 'Q2: TBRA'
+    QUESTION_NUMBER = 'TBRA'
     QUESTION_NUMBERS = ['Q2'].freeze
     SHEET_TITLE = 'Complete this section for all Households served with HOPWA Tenant-Based Rental Assistance (TBRA) by your organization in the reporting year.'
     CONTENTS = [
@@ -25,8 +25,13 @@ module HopwaCaper::Generators::Fy2026::Sheets
     protected
 
     def relevant_enrollments
-      program_filter = HopwaCaper::Generators::Fy2026::EnrollmentFilters::ProjectFunderFilter.tbra_hopwa
-      overlapping_enrollments(program_filter.apply(@report.hopwa_caper_enrollments))
+      tbra_project_ids = GrdaWarehouse::Hud::Project.
+        where(arel.p_t[:HousingType].eq(3).or(arel.p_t[:HousingType].eq(nil))).select(:id)
+
+      HopwaCaper::Generators::Fy2026::EnrollmentFilters::ProjectFunderFilter.
+        tbra_hopwa(range: @report.report_range).
+        apply(@report.hopwa_caper_enrollments).
+        where(project_id: tbra_project_ids)
     end
 
     def households_served_sheet(sheet)
@@ -59,12 +64,18 @@ module HopwaCaper::Generators::Fy2026::Sheets
     end
 
     def longevity_sheet(sheet)
-      filters = HopwaCaper::Generators::Fy2026::EnrollmentFilters::TbraLongevityFilter.for_report(@report)
+      all_time = @report.hopwa_caper_enrollments.where(project_id: relevant_enrollments.select(:project_id))
+      filters = HopwaCaper::Generators::Fy2026::EnrollmentFilters::EnrollmentLongevityFilter.all(
+        activity_label: 'TBRA',
+        end_date: @report.end_date,
+        reference_scope: all_time,
+        funder_codes: HopwaCaper::Generators::Fy2026::EnrollmentFilters::ProjectFunderFilter.tbra_hopwa.codes,
+      )
       filters.each do |filter|
         add_household_enrollments_row(
           sheet,
           label: filter.label,
-          enrollments: filter.apply(relevant_enrollments),
+          enrollments: filter.apply(relevant_enrollments.where(hopwa_eligible: true)),
         )
       end
     end

@@ -1,18 +1,19 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 # frozen_string_literal: true
 
-BostonHmis::Application.routes.draw do
+OpenPath::Application.routes.draw do
   scope module: :hud_pit, path: :hud_reports, as: :hud_reports do
     resources :pits do
       get :running, on: :collection
       get :running_all_questions, on: :collection
       get :history, on: :collection
       get :download, on: :member
+      post :restore, on: :member
       resources :questions, only: [:show, :create] do
         get :result, on: :member
         get :running, on: :member

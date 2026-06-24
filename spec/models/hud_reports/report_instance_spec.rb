@@ -1,3 +1,9 @@
+###
+# Copyright Green River Data Group, Inc.
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 # frozen_string_literal: true
 
 require 'rails_helper'
@@ -168,6 +174,21 @@ RSpec.describe HudReports::ReportInstance, type: :model do
         # Only counts completed checkpoint: 10 minutes
         expect(report.total_duration_in_words).to eq('10 minutes')
       end
+    end
+  end
+
+  describe '#current_status' do
+    it 'returns Archived when purged (matches Reporting::Status / SimpleReports history)' do
+      report = described_class.create!(
+        report_name: 'Test Report',
+        state: 'Completed',
+        started_at: 1.hour.ago,
+        completed_at: Time.current,
+        question_names: ['test'],
+        archival_metadata: { 'purged_at' => Time.current.iso8601 },
+      )
+
+      expect(report.current_status(include_error_details: false)).to eq('Archived')
     end
   end
 end

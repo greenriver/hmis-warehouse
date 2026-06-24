@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -12,7 +12,7 @@ require_relative '../../support/hmis_base_setup'
 
 RSpec.feature 'Split Households', type: :system do
   include_context 'hmis base setup'
-  let!(:ds1) { create(:hmis_data_source, hmis: 'localhost') }
+  let!(:ds1) { GrdaWarehouse::DataSource.hmis.find_by(hmis: 'localhost') }
   let!(:access_control) { create_access_control(hmis_user, p1) }
 
   let!(:donor_household_id) { Hmis::Hud::Base.generate_uuid }

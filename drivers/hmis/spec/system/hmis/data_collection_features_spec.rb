@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -13,7 +13,7 @@ require_relative '../../support/hmis_base_setup'
 RSpec.feature 'Data collection features', type: :system do
   include_context 'hmis base setup'
 
-  let!(:ds1) { create(:hmis_data_source, hmis: 'localhost') }
+  let!(:ds1) { GrdaWarehouse::DataSource.hmis.find_by(hmis: 'localhost') }
   let!(:p1) { create :hmis_hud_project, data_source: ds1, organization: o1, project_type: 4 }
   let!(:access_control) { create_access_control(hmis_user, p1) }
 
@@ -32,6 +32,15 @@ RSpec.feature 'Data collection features', type: :system do
   end
 
   context 'when no CLS is enabled in the project' do
+    before(:all) do
+      ds = GrdaWarehouse::DataSource.hmis.find_by(hmis: 'localhost')
+      Hmis::Form::Instance.with_role(:CURRENT_LIVING_SITUATION).in_data_source(ds.id).each(&:destroy!) if ENV['RUN_SYSTEM_TESTS'] == 'true'
+    end
+    after(:all) do
+      # re-seed CLS form instances to restore default behavior
+      ds = GrdaWarehouse::DataSource.hmis.find_by(hmis: 'localhost')
+      HmisUtil::HudComplianceFormInstanceMaintainer.new(data_source_id: ds.id).ensure_all_system_instances_exist! if ENV['RUN_SYSTEM_TESTS'] == 'true'
+    end
     it 'should not show CLS in the project side nav' do
       visit "/projects/#{p1.id}/overview"
       expect(side_nav_elements).not_to include('Current Living Situations')
@@ -160,7 +169,7 @@ RSpec.feature 'Data collection features', type: :system do
   end
 
   context 'when CLS is enabled in the project for HoH only' do
-    let!(:instance) { create :hmis_form_instance, role: 'CURRENT_LIVING_SITUATION', entity: p1, definition_identifier: 'current_living_situation', data_collected_about: 'HOH' }
+    let!(:instance) { create :hmis_form_instance, role: 'CURRENT_LIVING_SITUATION', entity: p1, definition_identifier: 'current_living_situation', data_collected_about: 'HOH', data_source: ds1 }
 
     it 'should show CLS in project nav' do
       visit "/projects/#{p1.id}/overview"

@@ -1,10 +1,10 @@
-# frozen_string_literal: true
-
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 # frozen_string_literal: true
 
@@ -30,19 +30,7 @@ module PerformanceDashboard::Overview::Exiting::Coc
   end
 
   def exiting_by_coc_data_for_chart
-    @exiting_by_coc_data_for_chart ||= begin
-      columns = [@filter.date_range_words]
-      columns += exiting_by_coc.values.map(&:count)
-      categories = exiting_by_coc.keys
-      filter_selected_data_for_chart(
-        {
-          labels: categories.map { |s| [s, HudHelper.util.coc_name(s)] }.to_h,
-          chosen: @coc_codes,
-          columns: columns,
-          categories: categories,
-        },
-      )
-    end
+    @exiting_by_coc_data_for_chart ||= coc_data_for_chart(exiting_by_coc)
   end
 
   private def exiting_by_coc_details(options)

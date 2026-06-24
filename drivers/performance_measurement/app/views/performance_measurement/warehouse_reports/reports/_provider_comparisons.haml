@@ -1,4 +1,9 @@
-- markdown = Redcarpet::Markdown.new(::InlineHtml)
+:ruby
+  markdown = Redcarpet::Markdown.new(::InlineHtml)
+  category_tables = @provider_comparison.included_categories.each_key.filter_map do |category_name|
+    table = @provider_comparison.table(category_name)
+    table[:projects].any? ? [category_name, table] : nil
+  end.to_h
 = render 'chosen_universe'
 = render 'report_tabs'
 
@@ -13,7 +18,7 @@
         %h5.card-title.mt-4 Jump to Category
         %nav
           %ul.nav.nav-pills.flex-column
-            - @provider_comparison.included_categories.each_key do |category_name|
+            - category_tables.each_key do |category_name|
               %li.nav-item
                 = link_to category_name, "##{category_name.parameterize}", class: 'nav-link'
 
@@ -31,10 +36,11 @@
           .c-color-key__title Failed
 
   .col-sm-9
-    - @provider_comparison.included_categories.each_key do |category_name|
+    - if category_tables.empty?
+      .none-found No projects are available to display for the selected project list.
+    - category_tables.each do |category_name, table|
       .page-break-after.mb-6{id: category_name.parameterize}
         %h2.mb-0.pb-6= category_name
-        - table = @provider_comparison.table(category_name)
         .card
           %table.table
             %thead

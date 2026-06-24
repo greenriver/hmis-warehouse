@@ -1,3 +1,9 @@
+###
+# Copyright Green River Data Group, Inc.
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 # frozen_string_literal: true
 
 # requirement configuration for opportunities
@@ -26,6 +32,8 @@ module Hmis::Ce::Match
     acts_as_paranoid
     has_paper_trail
 
+    EXPRESSION_MAX_LENGTH = 2_000
+
     # lower numbers have a higher priority
     OWNER_PRECEDENCE = {
       'Hmis::UnitGroup' => 1,
@@ -40,6 +48,7 @@ module Hmis::Ce::Match
     validate :rule_type_is_not_changed, on: :update
 
     validates :name, presence: true
+    validates :expression, length: { maximum: EXPRESSION_MAX_LENGTH }
     validates :priority_rank, uniqueness: { scope: [:owner_type, :owner_id], allow_nil: true }
 
     ELIGIBILITY_REQUIREMENT = 'eligibility_requirement'
@@ -97,9 +106,12 @@ module Hmis::Ce::Match
       applicability.call(entity)
     end
 
+    # Primarily used as a helper internally in this file.
+    # Outside of this file, we usually want eligibility_and_priority_rules_for_entity instead; see below.
     # Returns all rules applicable to the given entity (UnitGroup/Project/Organization),
     # considering owner lineage and applicability_config (project_types, project_funders).
     # Loads all rules and filters in Ruby to respect polymorphic owner lineage and config.
+    # Does not filter priority schemes by rank/owner, so this may contain a superset of the priority schemes that are effectively used by the entity.
     def self.for_entity(entity)
       all_rules = by_owner_precedence.preload(:owner).to_a
       all_rules.filter { |rule| rule.applies_to_entity?(entity) }
@@ -108,6 +120,11 @@ module Hmis::Ce::Match
     # Returns only the most specific owner level priority schemes from a provided rule set,
     # ordered by [priority_rank, id]. If ranks are nil (e.g., during transitional states), they are
     # treated as lowest priority for stable ordering.
+    # Example:
+    # - Rule A is a priority scheme with priority rank 1 and owner type Hmis::UnitGroup
+    # - Rule B is a priority scheme with priority rank 2 and owner type Hmis::UnitGroup
+    # - Rule C is a priority scheme with priority rank 1 and owner type Hmis::Hud::Project
+    # - most_specific_priority_schemes_from([Rule A, Rule B, Rule C]) returns Rule A and Rule B.
     def self.most_specific_priority_schemes_from(rules)
       priority_rules = rules.select(&:priority_scheme?).sort_by { |r| [r.priority_rank || Float::INFINITY, r.id] }
       return [] if priority_rules.empty?
@@ -121,9 +138,42 @@ module Hmis::Ce::Match
       for_entity(entity).select(&:eligibility_requirement?)
     end
 
-    # Helper for GraphQL resolvers: return most specific, rank-ordered priority schemes
+    # Helper for GraphQL resolvers: return most specific, rank-ordered priority schemes.
     def self.priority_schemes_for_entity(entity)
       most_specific_priority_schemes_from(for_entity(entity))
+    end
+
+    # Return all rules applicable to this entity, with priority schemes filtered to the most specific rank per owner.
+    # This is the method to use if you want this entity's effective ruleset that is actually used for prioritization, NOT simply for_entity.
+    def self.eligibility_and_priority_rules_for_entity(entity)
+      eligibility_requirements_for_entity(entity) + priority_schemes_for_entity(entity)
+    end
+
+    # Returns Hmis::UnitGroups that a rule with the given `owner` + `applicability_config`
+    # apply to. Performs the lineage + applicability filtering at the SQL level for performance.
+    #
+    # IMPORTANT: keep this in sync with `MatchApplicability`, the in-Ruby evaluator.
+    def self.unit_groups_for_owner(owner, applicability_config: {})
+      p_t = Hmis::Hud::Project.arel_table
+      f_t = GrdaWarehouse::Hud::Funder.arel_table
+
+      scope = case owner
+      when Hmis::UnitGroup
+        Hmis::UnitGroup.where(id: owner.id)
+      when Hmis::Hud::Project, Hmis::Hud::Organization, GrdaWarehouse::DataSource
+        owner.unit_groups
+      else
+        raise ArgumentError, "Unsupported owner type for rule applicability: #{owner.class}"
+      end
+
+      # Only include unit groups that have CE waitlists enabled
+      scope = scope.with_ce_waitlists_enabled.joins(:project)
+
+      config = (applicability_config || {}).symbolize_keys
+      scope = scope.where(p_t[:ProjectType].in(config[:project_types])) if config[:project_types].present?
+      scope = scope.joins(project: :funders).where(f_t[:Funder].in(config[:project_funders])).distinct if config[:project_funders].present?
+
+      scope.preload(project: [:organization, :data_source, :funders])
     end
 
     private

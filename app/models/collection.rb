@@ -1,11 +1,13 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 # frozen_string_literal: true
 
+# @see docs/features/warehouse-permissions.md
+#
 # Part of the "new" permissions system
 #
 # A Collection is a set of entities that are the target of an AccessControl. It is analogous to the "AccessGroup" in the

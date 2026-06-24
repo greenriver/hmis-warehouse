@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -35,6 +35,7 @@ module GrdaWarehouse::Tasks
         raise 'invalid version'
       end
 
+      csv_encoding = klass.utf8_export? ? 'utf-8' : 'iso-8859-1:utf-8'
       klass.importable_files_map.each do |filename, klass_name|
         next if filename.include?('Custom')
 
@@ -45,14 +46,13 @@ module GrdaWarehouse::Tasks
         export_ids = Set.new
         klass = "GrdaWarehouse::Hud::#{klass_name}".constantize
         if File.exist?(file_path)
-          ::CSV.foreach(file_path, headers: true, header_converters: downcase_converter, liberal_parsing: true, encoding: 'iso-8859-1:utf-8').each do |row|
+          ::CSV.foreach(file_path, headers: true, header_converters: downcase_converter, liberal_parsing: true, encoding: csv_encoding).each do |row|
             unique_keys << row[klass.hud_key.to_s.downcase]
             export_ids << row['exportid']
             self.export_id ||= row['exportid'] if filename == 'Export.csv'
             validate(filename, klass, row)
           end
         else
-          puts "File not found: #{file_path}"
           Rails.logger.error "File not found: #{file_path}"
         end
 

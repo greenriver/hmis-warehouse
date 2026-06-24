@@ -1,8 +1,15 @@
+###
+# Copyright Green River Data Group, Inc.
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 # frozen_string_literal: true
 
 FactoryBot.define do
   # puts Message.new.attributes
   factory :message do
+    association :user
     from    { ['macbeth@scotland.gov.uk'] }
     subject { 'futility' }
     body { <<-MESSAGE.strip_heredoc }

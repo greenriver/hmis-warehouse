@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -17,6 +17,14 @@ RSpec.describe HmisExternalApis::AcHmis::InvolvementsController, type: :request 
 
   it 'fails with invalid api key' do
     headers = { 'Authorization' => 'Bearer 12345' }
+
+    get hmis_external_apis_client_involvements_path, params: {}, headers: headers, as: :json
+
+    expect(response.status).to eq 401
+  end
+
+  it 'fails with a non-Bearer Authorization header' do
+    headers = { 'Authorization' => 'Basic abc' }
 
     get hmis_external_apis_client_involvements_path, params: {}, headers: headers, as: :json
 

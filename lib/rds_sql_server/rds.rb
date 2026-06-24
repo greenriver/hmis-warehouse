@@ -1,9 +1,14 @@
+###
+# Copyright Green River Data Group, Inc.
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 # frozen_string_literal: true
 
 # https://docs.aws.amazon.com/sdkforruby/api/index.html
 # https://docs.aws.amazon.com/sdkforruby/api/Aws/RDS.html
-
-# frozen_string_literal: true
+# Hud LSA temporary RDS: drivers/hud_lsa/README.md
 
 require 'aws-sdk-glacier'
 
@@ -186,8 +191,8 @@ class Rds
       auto_minor_version_upgrade: true,
       preferred_backup_window: '06:14-06:44',
       preferred_maintenance_window: 'fri:08:13-fri:08:43',
-      # RDS being publicly available allows us to reach the database when running locally. This should always be false in deployed environments.
-      publicly_accessible: Rails.env.development? || Rails.env.test?,
+      # This should always be false - see drivers/hud_lsa/README.md#public-accessibility
+      publicly_accessible: false,
       vpc_security_group_ids: SECURITY_GROUP_IDS,
       db_subnet_group_name: DB_SUBNET_GROUP,
       db_parameter_group_name: 'sqlserver-web-16-custom-parameter-group-lsa',
@@ -246,7 +251,7 @@ class Rds
       can_create_table = false
       while can_create_table == false
         begin
-          load 'lib/rds_sql_server/lsa/fy2021/lsa_sql_server.rb'
+          load 'lib/rds_sql_server/db_up.rb'
           ::LsaSqlServer::DbUp.hmis_table_create!(version: '2022')
           ::LsaSqlServer::DbUp.create!(status: 'up')
           can_create_table = true

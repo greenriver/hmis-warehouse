@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -11,17 +11,6 @@ require 'tempfile'
 require 'stringio'
 
 module Reports
-  # Get the archival grace period in days from AppConfigProperty, defaulting to 60
-  def self.archival_grace_period_days
-    property = AppConfigProperty.find_by(key: 'reports/archival_grace_period_days')
-    return 60 if property.nil?
-
-    value = property.value
-    # AppConfigProperty stores values as JSON, so numbers are already parsed
-    # Handle both numeric values and string representations
-    value.to_i
-  end
-
   class ArchiveReportService
     attr_reader :report, :errors
 
@@ -148,18 +137,19 @@ module Reports
     end
 
     def generate_csv_to_file(association, _attachment_name, file_path)
-      # Get column names from the association's model class
       model_class = association.klass
       column_names = model_class.column_names
+      jsonb_columns = model_class.columns.select { |c| c.sql_type == 'jsonb' }.map(&:name).to_set
 
-      # Stream CSV directly to file
       CSV.open(file_path, 'wb') do |csv|
         csv << column_names
 
-        # Process in batches to avoid memory issues
         association.find_in_batches(batch_size: 1000) do |batch|
           batch.each do |record|
-            values = column_names.map { |col| record.send(col) }
+            values = column_names.map do |col|
+              value = record.send(col)
+              jsonb_columns.include?(col) && !value.nil? ? value.to_json : value
+            end
             csv << values
           end
         end

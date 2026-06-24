@@ -1,3 +1,9 @@
+###
+# Copyright Green River Data Group, Inc.
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 # frozen_string_literal: true
 
 require 'rubyXL'
@@ -315,10 +321,12 @@ class HmisExternalApis::AcHmis::Importers::HousingAssessmentImporter
   end
 
   def hmis_data_source
+    # Expect exactly one HMIS data source
     @hmis_data_source ||= GrdaWarehouse::DataSource.hmis.sole
   end
 
   def form_definition
+    # We expect exactly one HMIS data source, so no need to scope definitions by data source here
     @form_definition ||= Hmis::Form::Definition.published.where(identifier: @form_definition_identifier).first!
   end
 

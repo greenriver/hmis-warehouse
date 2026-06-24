@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -23,7 +23,7 @@ module HudSpmReport
     private
 
     def report_version
-      (@report.options&.dig('report_version').presence || 'fy2024').to_sym
+      (@report.options&.dig('report_version').presence || 'fy2026').to_sym
     end
 
     def possible_generator_classes

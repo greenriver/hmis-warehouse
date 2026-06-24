@@ -1,0 +1,49 @@
+###
+# Copyright Green River Data Group, Inc.
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
+# frozen_string_literal: true
+
+module HudHic
+  module Archival
+    extend ActiveSupport::Concern
+
+    included do
+      ::HudReportArchival.register_archival_generator(title, self)
+    end
+
+    module ClassMethods
+      def archival_csv_config(report_instance)
+        HudReportArchival.shared_archival_entries(report_instance, prefix: 'hic').merge(
+          hic_funders_csv: {
+            scope: -> { HudHic::Fy2022::Funder.where(report_instance_id: report_instance.id) },
+            filename: -> { "hud-hic-#{report_instance.id}-funders.csv" },
+            delete_order: 2,
+          },
+          hic_inventories_csv: {
+            scope: -> { HudHic::Fy2022::Inventory.where(report_instance_id: report_instance.id) },
+            filename: -> { "hud-hic-#{report_instance.id}-inventories.csv" },
+            delete_order: 3,
+          },
+          hic_project_cocs_csv: {
+            scope: -> { HudHic::Fy2022::ProjectCoc.where(report_instance_id: report_instance.id) },
+            filename: -> { "hud-hic-#{report_instance.id}-project-cocs.csv" },
+            delete_order: 4,
+          },
+          hic_organizations_csv: {
+            scope: -> { HudHic::Fy2022::Organization.where(report_instance_id: report_instance.id) },
+            filename: -> { "hud-hic-#{report_instance.id}-organizations.csv" },
+            delete_order: 5,
+          },
+          hic_projects_csv: {
+            scope: -> { HudHic::Fy2022::Project.where(report_instance_id: report_instance.id) },
+            filename: -> { "hud-hic-#{report_instance.id}-projects.csv" },
+            delete_order: 6,
+          },
+        )
+      end
+    end
+  end
+end

@@ -1,10 +1,10 @@
-# frozen_string_literal: true
-
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 require 'rails_helper'
 require_relative '../login_and_permissions'
@@ -25,7 +25,7 @@ RSpec.describe Mutations::AcHmis::CalculateAltAhaScore, type: :request do
         { "link_id": 'optional_q', "type": 'STRING' },
       ],
     }
-    create(:hmis_form_definition, role: :CUSTOM_ASSESSMENT, definition: definition, identifier: 'test_aha_form', status: :published)
+    create(:hmis_form_definition, role: :CUSTOM_ASSESSMENT, definition: definition, identifier: 'test_aha_form', status: :published, data_source: ds1)
   end
 
   before(:each) do
@@ -68,7 +68,7 @@ RSpec.describe Mutations::AcHmis::CalculateAltAhaScore, type: :request do
       before do
         allow(HmisExternalApis::AcHmis::AltAhaCalculator).to receive(:new).and_return(mock_calculator)
         allow(mock_calculator).to receive(:required_link_ids).and_return(['required_q1', 'required_q2'])
-        allow(Hmis::Form::Definition).to receive_message_chain(:published, :find_by).and_return(form_definition)
+        allow(Hmis::Form::Definition).to receive_message_chain(:published, :in_data_source, :find_by).and_return(form_definition)
       end
 
       it 'returns error message when not all required responses are provided' do

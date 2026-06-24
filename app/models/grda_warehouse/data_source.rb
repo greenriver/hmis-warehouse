@@ -1,15 +1,17 @@
-# frozen_string_literal: true
-
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
+
 #
 require 'memery'
 
 class GrdaWarehouse::DataSource < GrdaWarehouseBase
-  include RailsDrivers::Extensions
+  # Extensions from drivers — see ADR 0007
+  include Hmis::GrdaWarehouse::DataSourceExtension
   include EntityAccess
   include ArelHelper
   include Memery
@@ -17,8 +19,20 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
   self.primary_key = :id
 
   acts_as_paranoid
+  has_paper_trail ignore: [:last_imported_at, :updated_at]
+
   validates :name, presence: true
   validates :short_name, presence: true
+
+  normalizes :hmis, with: lambda(&:presence) # normalize empty string/blank into nil
+  validates :hmis, uniqueness: { allow_nil: true, conditions: -> { where(deleted_at: nil) } }
+  validates :hmis,
+            inclusion: { in: ->(_) { HmisEnforcement.configured_hmis_hostnames } },
+            allow_nil: true,
+            unless: -> { Rails.env.test? } # Skip validation in test environment, too cumbersome to enforce
+  validate :hmis_hostname_immutable, if: :persisted?
+
+  before_validation :enforce_op_hmis_defaults, if: :hmis?
 
   after_create :maintain_system_group
   after_create :clear_ds_id_cache
@@ -40,15 +54,16 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
 
   has_one :hmis_import_config
   has_one :import_threshold
+  has_many :import_csv_monitors, class_name: 'GrdaWarehouse::ImportCsvMonitor'
   has_one :external_hmis_configuration
 
   accepts_nested_attributes_for :organizations
   accepts_nested_attributes_for :projects
 
   scope :importable, -> do
-    # Authoritative data sources are not importable. There is a temporary exception for HMIS data sources,
-    # since they need to continue to accept imports during the migration phase. (PT #185835773)
-    source.where(arel_table[:authoritative].eq(false).or(arel_table[:hmis].not_eq(nil)))
+    source.
+      where(disable_imports: false).
+      where(arel_table[:authoritative].eq(false).or(arel_table[:hmis].not_eq(nil)))
   end
 
   scope :source, -> do
@@ -164,6 +179,9 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     where(authoritative: true)
   end
 
+  # Data sources that are OP HMIS installations ('hmis' attribute = domain).
+  # If 'user' provided, limits to the HMIS user's current HMIS data source.
+  # @see docs/architecture/multi-hmis-support.md
   scope :hmis, ->(user = nil) do
     scope = where.not(hmis: nil)
     scope = scope.where(id: user.hmis_data_source_id) if user.present?
@@ -709,8 +727,33 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     projects.joins(:organization).count
   end
 
+  # True when this data source is an Open Path HMIS installation
+  # @see docs/architecture/multi-hmis-support.md
   def hmis?
     hmis.present?
+  end
+
+  def importable?
+    self.class.importable.where(id: id).exists?
+  end
+
+  # whether the user can upload HUD CSV files to this data source
+  def importable_by?(user)
+    return false unless importable?
+    return false unless user.can_upload_hud_zips?
+    return false unless directly_viewable_by?(user, permission: :can_upload_hud_zips)
+
+    true
+  end
+
+  def self.available_hmis_hostnames(exclude_data_source_id: nil)
+    assigned = where.not(hmis: nil)
+    assigned = assigned.where.not(id: exclude_data_source_id) if exclude_data_source_id
+    HmisEnforcement.configured_hmis_hostnames - assigned.pluck(:hmis).map(&:downcase)
+  end
+
+  def hmis_name
+    name if hmis?
   end
 
   def hmis_link_available?
@@ -725,6 +768,20 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     return open_path_hmis_url(entity, user: user) if hmis? && HmisEnforcement.hmis_enabled?
 
     external_hmis_configuration&.url(entity)
+  end
+
+  # Validate that the HMIS hostname was not changed
+  private def hmis_hostname_immutable
+    errors.add(:hmis, 'cannot be changed once set') if hmis_changed? && hmis_was.present?
+  end
+
+  private def enforce_op_hmis_defaults
+    self.authoritative = true        # OP HMIS is the system of record
+    self.authoritative_type = nil    # not needed for OP HMIS
+    self.source_type = nil           # not needed for OP HMIS
+    self.munged_personal_id = false  # do not inject dashes into Personal ID UUIDs
+    self.after_create_path = nil     # not applicable, clients are not created in the warehouse for OP HMIS
+    self.service_scannable = false   # not applicable, clients are not created in the warehouse for OP HMIS
   end
 
   private def open_path_hmis_url(entity, user: nil)
@@ -832,6 +889,4 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     end
     memoize :warehouse_id
   end
-
-  include RailsDrivers::Extensions
 end

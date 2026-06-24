@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -22,7 +22,7 @@ module GrdaWarehouse::Monitoring::MetricCalculators
     # Clients not found are omitted (no snapshot will be created)
     # Note: calculation_date not used since warehouse_clients_processed
     # maintains a rolling 3-year window
-    def self.calculate_batch(entities, _calculation_date)
+    def self.calculate_batch(entities, _calculation_date, **_kwargs)
       entity_ids = entities.map(&:id)
 
       GrdaWarehouse::WarehouseClientsProcessed.
@@ -30,6 +30,17 @@ module GrdaWarehouse::Monitoring::MetricCalculators
         where(client_id: entity_ids).
         pluck(:client_id, :days_homeless_last_three_years).
         to_h
+    end
+
+    # warehouse_clients_processed is written by UpdateWarehouseClientsCachesJob.
+    # Try to acquire its advisory lock non-blocking; if we get it, no batch is
+    # actively writing right now and we release immediately.
+    def self.data_stable?
+      stable = false
+      GrdaWarehouseBase.with_advisory_lock(UpdateWarehouseClientsCachesJob::ADVISORY_LOCK_NAME, timeout_seconds: 0) do
+        stable = true
+      end
+      stable
     end
 
     # Return metric definition attributes for this calculator

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -22,11 +22,12 @@ module ProjectScorecard
       end
 
       def project_performance_max
-        if returns_to_homelessness_score.blank?
-          40
-        else
-          50
-        end
+        base = key_project.rrh? ? 50 : 45
+        # The SPM is always run during pre-fill, but Measure 2 can return nil for a given
+        # project if there are no qualifying exits in the reporting period. In that case we
+        # lower the denominator to reflect the points actually achievable.
+        base -= 15 if returns_to_homelessness_score.blank?
+        base
       end
 
       def project_performance_percentage
@@ -69,6 +70,7 @@ module ProjectScorecard
           spend_down_score,
           cost_efficiency_score,
           recaptured_score,
+          supportive_services_score,
           pit_participation_score,
           meetings_attended_score,
         ].compact.sum

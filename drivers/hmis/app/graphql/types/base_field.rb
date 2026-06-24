@@ -1,10 +1,10 @@
-# frozen_string_literal: true
-
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 module Types
   # Custom base field class that provides common functionality for all fields in the schema.
@@ -79,6 +79,9 @@ module Types
         end
 
         resolved_object = yield(object, cleaned_arguments)
+
+        search_query_id = context.delete(:search_query_id)
+        pagination_arguments[:search_query_id] = search_query_id
 
         if options[:is_array]
           result = Types::PaginatedArray.new(resolved_object, **pagination_arguments)

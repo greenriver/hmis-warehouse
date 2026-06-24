@@ -1,3 +1,9 @@
+###
+# Copyright Green River Data Group, Inc.
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 wb = xlsx_package.workbook
 wb.add_worksheet(name: 'Users') do |sheet|
   sheet.add_row(['First Name', 'Last Name', 'Email', 'Agency', 'Role', 'Account Created', 'Last Login', 'Active'])

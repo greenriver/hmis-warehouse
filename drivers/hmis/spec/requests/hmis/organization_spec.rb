@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -11,13 +11,6 @@ require_relative 'login_and_permissions'
 require_relative '../../support/hmis_base_setup'
 
 RSpec.describe Hmis::GraphqlController, type: :request do
-  before(:all) do
-    cleanup_test_environment
-  end
-  after(:all) do
-    cleanup_test_environment
-  end
-
   include_context 'hmis base setup'
 
   let!(:o1) { create :hmis_hud_organization, data_source: ds1, user: u1, OrganizationName: 'Strawberries' }
@@ -25,11 +18,10 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   let!(:o3) { create :hmis_hud_organization, data_source: ds1, user: u1, OrganizationName: 'Blueberries' }
   let!(:o4) { create :hmis_hud_organization, data_source: ds1, user: u1, OrganizationName: 'Cherries' }
 
+  before(:each) { hmis_login(user) }
+
   describe 'organization query' do
-    before(:each) do
-      create_access_control(hmis_user, ds1)
-      hmis_login(user)
-    end
+    let!(:access_control) { create_access_control(hmis_user, ds1) }
 
     let(:query) do
       <<~GRAPHQL
@@ -98,4 +90,62 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       end
     end
   end
+
+  describe 'organization access' do
+    let(:access_query) do
+      <<~GRAPHQL
+        query OrganizationAccess($id: ID!) {
+          organization(id: $id) {
+            id
+            access {
+              id
+              canEditOrganization
+              canDeleteOrganization
+            }
+          }
+        }
+      GRAPHQL
+    end
+
+    def expect_organization_access!(organization:, can_edit:, can_delete:)
+      response, result = post_graphql(id: organization.id.to_s) { access_query }
+      expect(response.status).to eq 200
+      expect(result.dig('data', 'organization', 'access')).to include(
+        'id' => organization.id.to_s,
+        'canEditOrganization' => can_edit,
+        'canDeleteOrganization' => can_delete,
+      )
+    end
+
+    context 'with full permissions via data source access' do
+      let!(:access_control) { create_access_control(hmis_user, ds1) }
+
+      it 'returns true for edit and delete' do
+        expect_organization_access!(organization: o1, can_edit: true, can_delete: true)
+      end
+    end
+
+    context 'with view and edit but not delete' do
+      let!(:access_control) { create_access_control(hmis_user, ds1, with_permission: [:can_view_project, :can_edit_organization]) }
+
+      it 'returns true for edit and false for delete' do
+        expect_organization_access!(organization: o1, can_edit: true, can_delete: false)
+      end
+    end
+
+    context 'with view-only on this data source' do
+      # cruft: even if the user has full edit permissions in a different data source
+      let!(:other_data_source) { create :hmis_data_source }
+      let!(:access_control) { create_access_control(hmis_user, ds1, with_permission: [:can_view_project]) }
+      let!(:full_access_other_data_source) { create_access_control(hmis_user, other_data_source) }
+
+      it 'returns false for edit and delete' do
+        expect_organization_access!(organization: o1, can_edit: false, can_delete: false)
+      end
+    end
+  end
+end
+
+RSpec.configure do |c|
+  c.include GraphqlHelpers
 end

@@ -1,17 +1,18 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 # frozen_string_literal: true
 
-BostonHmis::Application.routes.draw do
+OpenPath::Application.routes.draw do
   namespace :ce_performance do
     namespace :warehouse_reports do
       resources :reports, only: [:index, :create, :show, :destroy] do
         get :details, on: :member
         get :clients, on: :member
+        post 'reload_from_csv', to: 'reports#reload_from_csv', as: :reload_from_csv, on: :member
       end
       resources :goal_configs, except: [:show]
     end

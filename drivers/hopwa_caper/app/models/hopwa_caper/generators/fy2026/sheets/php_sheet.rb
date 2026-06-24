@@ -1,14 +1,14 @@
-# frozen_string_literal: true
-
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module HopwaCaper::Generators::Fy2026::Sheets
   class PhpSheet < BaseProgramSheet
-    QUESTION_NUMBER = 'Q4: PHP'
+    QUESTION_NUMBER = 'PHP'
     QUESTION_NUMBERS = ['Q4'].freeze
     SHEET_TITLE = 'Complete this section for all Households served with HOPWA Permanent Housing Placement (PHP) assistance by your organization in the reporting year.'
     CONTENTS = [
@@ -22,8 +22,9 @@ module HopwaCaper::Generators::Fy2026::Sheets
     protected
 
     def relevant_enrollments
-      program_filter = HopwaCaper::Generators::Fy2026::EnrollmentFilters::ProjectFunderFilter.php_hopwa
-      overlapping_enrollments(program_filter.apply(@report.hopwa_caper_enrollments))
+      HopwaCaper::Generators::Fy2026::EnrollmentFilters::ProjectFunderFilter.
+        php_hopwa(range: @report.report_range).
+        apply(@report.hopwa_caper_enrollments)
     end
 
     def expenditures_sheet(sheet)

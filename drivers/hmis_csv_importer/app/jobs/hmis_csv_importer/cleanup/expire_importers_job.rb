@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -18,11 +18,12 @@ module HmisCsvImporter::Cleanup
       ::HmisCsvImporter::Importer::ImporterLog
     end
 
-    # Depending on your installation cleanup needs, you may also want to expire older versions
-    # ::HmisCsvTwentyTwentyTwo.expiring_importer_classes
-    # ::HmisCsvTwentyTwenty.expiring_importer_classes
     def models
-      (::HmisCsvTwentyTwentyFour.expiring_importer_classes + [])
+      active_data_lake_modules.flat_map do |mod|
+        raise "#{mod.name} registered in hmis_data_lakes but does not implement expiring_importer_classes" unless mod.respond_to?(:expiring_importer_classes)
+
+        mod.expiring_importer_classes
+      end
     end
   end
 end

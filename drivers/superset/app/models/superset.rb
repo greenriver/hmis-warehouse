@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -34,15 +34,17 @@ module Superset
   # NOTE: this needs to be kept in sync with
   # https://github.com/greenriver/superset-sync/blob/main/docker/superset/superset_config.py
   def self.available_superset_roles
+    api = Superset::Api.new
+    return default_roles unless api.available?
+
     begin
-      roles = Superset::Api.new.roles['result']&.map { |role| role['name'] } || []
+      roles = api.roles['result']&.map { |role| role['name'] } || []
       roles.reject! { |role| ignored_roles.include?(role) }
-      return roles.presence || default_roles if Superset::Api.new.available?
+      roles.presence || default_roles
     rescue Curl::Err::HostResolutionError, JSON::ParserError => e
-      Rails.logger.error("Error fetching Superset roles: #{e.message}, using default roles")
+      UnifiedErrorReporter.call(e, "Error fetching Superset roles: #{e.message}, using default roles")
+      default_roles
     end
-    # Fallback to the default roles if the API is not available
-    default_roles
   end
 
   def self.default_roles

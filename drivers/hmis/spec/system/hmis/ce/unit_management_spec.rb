@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -75,6 +75,7 @@ RSpec.feature 'CE Unit Management', type: :system do
     fill_in 'Number of Units to Add', with: '2'
     all('button', text: 'Add Units').last.click
 
+    expect(page).to have_content('Displaying 2 of 2 units')
     table = find('table')
     rows = table.first('tbody').all('tr')
     expect(rows.count).to eq(2)

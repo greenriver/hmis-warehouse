@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -114,6 +114,14 @@ module GrdaWarehouse
               name: ['min_household_size', 'max_household_size'],
             ).exists?
           end,
+        },
+        {
+          code: 'csv_import_threshold_exceeded',
+          name: 'CSV Import Threshold Exceeded',
+          email_subject: 'Import threshold monitoring alert',
+          category: 'system',
+          description: 'Notification when per-CSV import monitors detect threshold crossings (e.g. min additions, max removals, delta change)',
+          visibility_check: ->(_user) { defined?(GrdaWarehouse::ImportCsvMonitor) && GrdaWarehouse::ImportCsvMonitor.exists? },
         },
         # Data Quality Category (Project/Org-level)
         {

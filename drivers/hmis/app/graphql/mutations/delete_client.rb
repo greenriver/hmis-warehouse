@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -20,7 +20,7 @@ module Mutations
 
     def resolve(id:, client_lock_version: nil, confirmed: false)
       client = Hmis::Hud::Client.viewable_by(current_user).find_by(id: id)
-      access_denied! unless client && policy_for(client, policy_type: :hmis_client).can_destroy?
+      access_denied! unless client && policy_for(client, policy_type: :hmis_client).can_delete?
 
       client.lock_version = client_lock_version if client_lock_version
       warnings, resolvable_enrollments = check_enrollments(client, ignore_warnings: confirmed)

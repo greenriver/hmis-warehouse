@@ -1,17 +1,18 @@
-# frozen_string_literal: true
-
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 module GrdaWarehouse::Hmis
   class Assessment < Base
     dub 'assessments'
     has_paper_trail
 
-    include RailsDrivers::Extensions
+    # Extensions from drivers — see ADR 0007
+    include ClientLocationHistory::GrdaWarehouse::Hmis::AssessmentExtension
 
     belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource', foreign_key: :data_source_id, primary_key: GrdaWarehouse::DataSource.primary_key
 

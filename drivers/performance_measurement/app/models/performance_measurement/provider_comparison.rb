@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -163,7 +163,7 @@ module PerformanceMeasurement
       ]
       contributions = {}
       sub_fields.each do |sub_field|
-        report.project_details(user, sub_field).each do |project_id, sub_result|
+        project_list(user, sub_field).each do |project_id, sub_result|
           next unless sub_result.hud_project.project_type.in?(definition[:project_types])
 
           # Take the first contributing sub-result per project (projects should only appear once)

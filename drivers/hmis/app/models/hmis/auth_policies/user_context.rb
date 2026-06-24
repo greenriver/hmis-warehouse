@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -13,6 +13,9 @@ require 'memery'
 #
 # This context is shared across all policy objects for a single user/request,
 # enabling efficient bulk data loading and caching.
+#
+# Authorization is scoped to the user's current HMIS data source (user.hmis_data_source_id).
+# @see docs/architecture/multi-hmis-support.md
 class Hmis::AuthPolicies::UserContext
   include Memery
 
@@ -32,6 +35,11 @@ class Hmis::AuthPolicies::UserContext
   # Examples:
   # - User has can_view_project for a Project in this data source => global_permissions includes can_view_project
   # - User has can_view_project for a Project in another data source => global_permissions does not include can_view_project
+  # Permission requirements are enforced here globally, but caution, this can be misleading. For example:
+  # If a user has only `can_edit_enrollments` at p1 and only `can_view_enrollment_details` at p2,
+  # then this method would return `can_edit_enrollments`, even though in practice,
+  # the user can't actually edit enrollments in any project.
+  # This is acceptable because we're not gating any actual resource authorization on global policy evaluation.
   memoize def global_permissions
     data_source = GrdaWarehouse::DataSource.find(@data_source_id)
 
@@ -42,12 +50,27 @@ class Hmis::AuthPolicies::UserContext
     permission_loader.for_access_group_ids(access_group_ids)
   end
 
-  # Set of permissions that the user has for the given project
+  # Set of permissions that the user has for the given project.
+  # Permission requirements are correctly enforced here in a project-specific way. For example:
+  # If a user has only `can_edit_enrollments` at p1 and only `can_view_enrollment_details` at p2,
+  # then this method would correctly NOT return `can_edit_enrollments` for p1, because of the unmet requirement.
   def project_permissions(project_id)
     return EMPTY_SET if project_id.blank?
     return EMPTY_SET unless project_belongs_to_current_data_source?(project_id)
 
     access_group_ids = project_access_group_loader.get(project_id)
+    permission_loader.for_access_group_ids(access_group_ids)
+  end
+
+  # Set of permissions that the user has for the given organization.
+  # Unlike for Project, where we built loaders to ensure efficient queries against multiple projects,
+  # we can just load all permissions for the given organization directly,
+  # because the organization policy methods are only ever checked against one organization at a time.
+  # We can update this internally without changing the HmisOrganizationPolicy's interface if that changes.
+  def organization_permissions(organization)
+    return EMPTY_SET unless organization_belongs_to_current_data_source?(organization)
+
+    access_group_ids = Hmis::GroupViewableEntity.includes_organization(organization).pluck(:collection_id).to_set
     permission_loader.for_access_group_ids(access_group_ids)
   end
 
@@ -121,6 +144,17 @@ class Hmis::AuthPolicies::UserContext
       "HMIS Data Source Mismatch: User #{user.id} (DS: #{user.hmis_data_source_id}) " \
       "attempted to access Project #{project_id} (DS: #{project_data_source_id})",
     )
+    false
+  end
+
+  def organization_belongs_to_current_data_source?(organization)
+    return true if organization.data_source_id == user.hmis_data_source_id
+
+    Sentry.capture_message(
+      "HMIS Data Source Mismatch: User #{user.id} (DS: #{user.hmis_data_source_id}) " \
+      "attempted to access Organization #{organization.id} (DS: #{organization.data_source_id})",
+    )
+
     false
   end
 

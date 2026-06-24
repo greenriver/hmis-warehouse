@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -12,7 +12,6 @@
 # - A user can also view a referral if they have `:can_view_own_referrals` and are assigned to one of its steps.
 # - A user can also view a referral if they have `:can_view_own_referrals` and are a participant in a swimlane
 #   that has a completed step in the referral.
-# - Indexing (e.g., for a dashboard) requires a combination of view and perform permissions.
 class Hmis::AuthPolicies::CeReferralPolicy < Hmis::AuthPolicies::ResourcePolicy
   class Instance < Hmis::AuthPolicies::BasePolicy
     def can_view?
@@ -94,17 +93,27 @@ class Hmis::AuthPolicies::CeReferralPolicy < Hmis::AuthPolicies::ResourcePolicy
   end
 
   class Global < Hmis::AuthPolicies::BasePolicy
+    # Whether the user can resolve a list of CE referrals.
+    # Returns true if the user has either broad or own view permission anywhere in the data source.
+    # The actual list resolved by the consumer must still be filtered via Hmis::Ce::Referral.viewable_by.
     def can_index?
       return false unless Hmis::Ce.configuration.enabled?
 
-      # require that a user could both view referrals and act on them
-      return false unless (global_permissions & [:can_view_referrals, :can_view_own_referrals]).any?
-      return false unless (global_permissions & [:can_perform_any_referral_tasks, :can_perform_own_referral_tasks]).any?
-
-      true
+      (global_permissions & [:can_view_referrals, :can_view_own_referrals, :can_view_outgoing_referral_details]).any?
     end
 
-    def can_perform_referral_tasks?
+    # Whether the user has any referral task perform permission (broad or own) somewhere in the data source.
+    # Use in combination with `can_index?` requiring the user to be able to both view and act on some referrals.
+    def can_perform_some_referral_tasks?
+      return false unless Hmis::Ce.configuration.enabled?
+
+      (global_permissions & [:can_perform_any_referral_tasks, :can_perform_own_referral_tasks]).any?
+    end
+
+    # Whether the user is eligible to be assigned as a *data-source-wide* CE default contact.
+    # Restricted to users who have `can_perform_any_referral_tasks` somewhere in the data source.
+    # Users who only have `can_perform_own_referral_tasks` are not "admin-like" and should not be global default contacts.
+    def can_be_global_default_contact?
       global_permissions.include?(:can_perform_any_referral_tasks)
     end
 
@@ -112,6 +121,22 @@ class Hmis::AuthPolicies::CeReferralPolicy < Hmis::AuthPolicies::ResourcePolicy
     # If we end up with a lot of default-contact-related permission checks, it might make sense to create a separate DefaultContactPolicy.
     def can_manage_ce_default_contacts?
       global_permissions.include?(:can_administrate_coordinated_entry)
+    end
+
+    # TODO(#9004): can_view_referrals? and can_view_own_referrals? are currently resolved
+    # on the Client.access schema object, but the frontend always checks them both together.
+    # Instead, we should deprecate these and resolve and use `can_index?` instead.
+    #
+    # Whether the user has permission to view SOME Referrals in the current DataSource
+    # WARNING: use Instance policy to authorize access to a specific referral, not this method.
+    def can_view_referrals?
+      global_permissions.include?(:can_view_referrals)
+    end
+
+    # Whether the user has permission to view SOME of their own referrals in the Data Source.
+    # WARNING: use Instance policy to authorize access to a specific referral, not this method.
+    def can_view_own_referrals?
+      global_permissions.include?(:can_view_own_referrals)
     end
 
     protected

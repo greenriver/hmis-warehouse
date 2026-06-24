@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -24,10 +24,14 @@ module HmisDataQualityTool
     HOMELESS_LIVING_SITUATIONS = HudHelper.util.homeless_situations(as: :prior)
     INSTITUTIONAL_LIVING_SITUATIONS = HudHelper.util.institutional_situations(as: :prior)
     HOUSED_LIVING_SITUATIONS = HudHelper.util.temporary_situations(as: :prior) + HudHelper.util.permanent_situations(as: :prior)
-    REQUIRED_EMPLOYMENT_STAGES = [
-      HudHelper.util.data_collection_stage('Project entry', true),
-      HudHelper.util.data_collection_stage('Project exit', true),
-    ].freeze
+    # HUD data collection stages at which employment data is required (entry and exit).
+    # Keys are stage integers used to filter EmploymentEducation records.
+    # Values are lambdas that extract the corresponding event date from an enrollment,
+    # used to determine whether that event falls within the report range.
+    REQUIRED_EMPLOYMENT_STAGES = {
+      HudHelper.util.data_collection_stage('Project entry', true) => lambda(&:EntryDate),
+      HudHelper.util.data_collection_stage('Project exit', true) => ->(enrollment) { enrollment.exit&.ExitDate },
+    }.freeze
 
     attr_accessor :report_end_date, :entry_threshold, :exit_threshold, :project_coc_codes
 
@@ -124,9 +128,10 @@ module HmisDataQualityTool
         iraq_ond: { title: 'Iraq (Operation New Dawn)', translator: ->(v) { "#{HudHelper.util.no_yes_reasons_for_missing_data(v)} (#{v})" } },
         military_branch: { title: 'Military Branch', translator: ->(v) { "#{HudHelper.util.military_branch(v)} (#{v})" } },
         discharge_status: { title: 'Discharge Status', translator: ->(v) { "#{HudHelper.util.discharge_status(v)} (#{v})" } },
-        employed: { title: 'Employed', translator: ->(v) { "#{HudHelper.util.no_yes_reasons_for_missing_data(v)} (#{v})" } },
-        employment_type: { title: 'Employment Type', translator: ->(v) { "#{HudHelper.util.employment_type(v)} (#{v})" } },
-        not_employed_reason: { title: 'Reason Not Employed', translator: ->(v) { "#{HudHelper.util.not_employed_reason(v)} (#{v})" } },
+        employment_event_expected: { title: 'Employment event in report range?' },
+        employed: { title: 'Employed', translator: ->(v) { v.nil? ? '' : "#{HudHelper.util.no_yes_reasons_for_missing_data(v)} (#{v})" } },
+        employment_type: { title: 'Employment Type', translator: ->(v) { v.nil? ? '' : "#{HudHelper.util.employment_type(v)} (#{v})" } },
+        not_employed_reason: { title: 'Reason Not Employed', translator: ->(v) { v.nil? ? '' : "#{HudHelper.util.not_employed_reason(v)} (#{v})" } },
       }.freeze
     end
 
@@ -224,6 +229,7 @@ module HmisDataQualityTool
       # To make the HudReport includes work
       @report = report
       self.report_end_date = report.filter.end_date
+      range = report.filter.start..report.filter.end
 
       client = enrollment.client
       report_item = self.class.new(
@@ -271,10 +277,14 @@ module HmisDataQualityTool
       report_item.iraq_ond = client.IraqOND
       report_item.military_branch = client.MilitaryBranch
       report_item.discharge_status = client.DischargeStatus
-      employment_education = required_employment_education_in_range(enrollment, report.filter.start..report.filter.end)
+      employment_education = required_employment_education_in_range(enrollment, range)
       report_item.employed = employment_education&.Employed
       report_item.employment_type = employment_education&.EmploymentType
       report_item.not_employed_reason = employment_education&.NotEmployedReason
+      report_item.employment_event_expected = REQUIRED_EMPLOYMENT_STAGES.any? do |_stage, date_for|
+        date = date_for.call(enrollment)
+        date.present? && range.cover?(date)
+      end
 
       # HP Targeting Criteria
       report_item.target_screen_required = enrollment.TargetScreenReqd
@@ -425,7 +435,7 @@ module HmisDataQualityTool
     # Pull most recent entry or exit record within range.
     private def required_employment_education_in_range(enrollment, range)
       enrollment.employment_educations.select do |ee|
-        REQUIRED_EMPLOYMENT_STAGES.include?(ee.DataCollectionStage) &&
+        REQUIRED_EMPLOYMENT_STAGES.key?(ee.DataCollectionStage) &&
           ee.InformationDate.present? &&
           range.cover?(ee.InformationDate)
       end.max_by(&:InformationDate)
@@ -1897,8 +1907,9 @@ module HmisDataQualityTool
         employed: {
           title: 'Employed',
           description: 'Employed Status is "Data not collected" (99) or blank',
-          required_for: 'Adults',
+          required_for: 'Adults with an entry or exit in the report range',
           detail_columns: default_detail_columns + [
+            :employment_event_expected,
             :employed,
           ],
           denominator: ->(item) {
@@ -1920,10 +1931,11 @@ module HmisDataQualityTool
               HudHelper.util.performance_reporting[:rrh],
             ].flatten.include?(item.project_type)
 
-            # Only adults that include the above funder(s) and project type(s)
-            adult?(item) && in_project_types && (funding_sources & item.funders).any?
+            # Only adults that include the above funder(s) and project type(s), with an in-range entry or exit
+            adult?(item) && in_project_types && (funding_sources & item.funders).any? && item.employment_event_expected != false
           },
           limiter: ->(item) {
+            return false if item.employment_event_expected == false
             return false unless adult?(item)
 
             # Limit to items with intersecting funders below
@@ -1953,8 +1965,9 @@ module HmisDataQualityTool
         employment_type_matches_status: {
           title: 'Employment Type Matches Employment Status',
           description: 'Employment status and employment type do not match expected results',
-          required_for: 'Adults',
+          required_for: 'Adults with an entry or exit in the report range',
           detail_columns: default_detail_columns + [
+            :employment_event_expected,
             :employed,
             :employment_type,
           ],
@@ -1977,10 +1990,11 @@ module HmisDataQualityTool
               HudHelper.util.performance_reporting[:rrh],
             ].flatten.include?(item.project_type)
 
-            # Only adults that include the above funder(s) and project type(s)
-            adult?(item) && in_project_types && (funding_sources & item.funders).any?
+            # Only adults that include the above funder(s) and project type(s), with an in-range entry or exit
+            adult?(item) && in_project_types && (funding_sources & item.funders).any? && item.employment_event_expected != false
           },
           limiter: ->(item) {
+            return false if item.employment_event_expected == false
             return false unless adult?(item)
 
             # Limit to items with intersecting funders below
@@ -2013,8 +2027,9 @@ module HmisDataQualityTool
         not_employed_reason_matches_status: {
           title: 'Reason Not Employed Matches Employment Status',
           description: 'Employment status and reason not employed do not match expected results',
-          required_for: 'Adults',
+          required_for: 'Adults with an entry or exit in the report range',
           detail_columns: default_detail_columns + [
+            :employment_event_expected,
             :employed,
             :not_employed_reason,
           ],
@@ -2037,10 +2052,11 @@ module HmisDataQualityTool
               HudHelper.util.performance_reporting[:rrh],
             ].flatten.include?(item.project_type)
 
-            # Only adults that include the above funder(s) and project type(s)
-            adult?(item) && in_project_types && (funding_sources & item.funders).any?
+            # Only adults that include the above funder(s) and project type(s), with an in-range entry or exit
+            adult?(item) && in_project_types && (funding_sources & item.funders).any? && item.employment_event_expected != false
           },
           limiter: ->(item) {
+            return false if item.employment_event_expected == false
             return false unless adult?(item)
 
             # Limit to items with intersecting funders below

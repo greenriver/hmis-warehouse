@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -361,6 +361,7 @@ class SeedMaker
     Health::AgencyUserSaver.new(user_id: u.id, agency_ids: Health::Agency.pluck(:id)).save
   end
 
+  # For local development only: set up initial HMIS data source and administrator access
   def setup_hmis_admin_access
     return unless ENV['HMIS_HOSTNAME'].present?
     return unless Rails.env.development?
@@ -405,13 +406,11 @@ class SeedMaker
 
   def load_hmis_data
     return unless ENV['ENABLE_HMIS_API'] == 'true'
+    return unless GrdaWarehouse::DataSource.hmis.exists? # data source must be added in the warehouse UI
 
-    builder = ::HmisUtil::JsonForms.new
-    builder.seed_all
-    builder.create_default_occurrence_point_instances! if Rails.env.development?
-
-    # Ensure service type and category records exist for each HUD service type
+    # For each HMIS data source, seed JSON form definitions, HUD form instances, and HUD service type and category records
     GrdaWarehouse::DataSource.hmis.pluck(:id).each do |data_source_id|
+      ::HmisUtil::JsonForms.seed_all(data_source_id: data_source_id)
       ::HmisUtil::ServiceTypes.seed_hud_service_types(data_source_id)
     end
   end

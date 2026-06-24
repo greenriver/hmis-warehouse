@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -15,7 +15,7 @@ RSpec.describe 'Create Form Rule Mutation', type: :request do
 
   let!(:access_control) { create_access_control(hmis_user, ds1, with_permission: [:can_configure_data_collection, :can_view_project]) }
 
-  let!(:form_definition) { create(:hmis_form_definition, identifier: 'test-custom-assessment', role: :CUSTOM_ASSESSMENT, status: :published) }
+  let!(:form_definition) { create(:hmis_form_definition, identifier: 'test-custom-assessment', role: :CUSTOM_ASSESSMENT, status: :published, data_source: ds1) }
 
   before(:each) do
     hmis_login(user)
@@ -51,6 +51,7 @@ RSpec.describe 'Create Form Rule Mutation', type: :request do
     end
 
     it 'creates the form rule' do
+      id = nil
       expect do
         response, result = post_graphql(input) { mutation }
         expect(response.status).to eq(200), result.inspect
@@ -60,7 +61,12 @@ RSpec.describe 'Create Form Rule Mutation', type: :request do
         expect(form_rule['definitionId']).to eq(form_definition.id.to_s)
         expect(form_rule['projectId']).to eq(p1.id.to_s)
         expect(form_rule['active']).to eq(true)
+        id = form_rule['id']
       end.to change(Hmis::Form::Instance, :count).by(1)
+
+      form_rule = Hmis::Form::Instance.find(id)
+      expect(form_rule.definition).to eq(form_definition)
+      expect(form_rule.data_source_id).to eq(ds1.id)
     end
   end
 
@@ -90,8 +96,8 @@ RSpec.describe 'Create Form Rule Mutation', type: :request do
   end
 
   context 'when creating a SERVICE role rule' do
-    let!(:service_definition) { create(:hmis_form_definition, identifier: 'test-service', role: :SERVICE, status: :published) }
-    let!(:service_category) { create(:hmis_custom_service_category, name: 'Test Category') }
+    let!(:service_definition) { create(:hmis_form_definition, identifier: 'test-service', role: :SERVICE, status: :published, data_source: ds1) }
+    let!(:service_category) { create(:hmis_custom_service_category, name: 'Test Category', data_source: ds1) }
 
     let(:input) do
       {

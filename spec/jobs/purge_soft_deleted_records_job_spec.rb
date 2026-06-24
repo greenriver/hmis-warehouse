@@ -1,3 +1,9 @@
+###
+# Copyright Green River Data Group, Inc.
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 # frozen_string_literal: true
 
 require 'rails_helper'
@@ -46,6 +52,10 @@ RSpec.describe PurgeSoftDeletedRecordsJob, type: :job do
 
   let!(:referral_member_active) do
     create(:hmis_external_api_ac_hmis_referral_household_member, client_id: client_active.id)
+  end
+
+  before do
+    AppConfigProperty.create!(key: 'purge_soft_deleted_records/enabled', value: '1')
   end
 
   describe '#perform' do

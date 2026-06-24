@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -39,25 +39,27 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
 
   include Hmis::Hud::Concerns::HasEnums
 
+  belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
+
   # convenience attr for passing graphql args
   attr_accessor :filter_context
 
   validates :identifier, format: { with: /\A[a-zA-Z][a-zA-Z0-9_-]*\z/, message: 'must contain only alphanumeric characters, underscores, and dashes, and must start with a letter' }
   # Forms that are managed in version control cannot have more than 1 version. To enforce this, we ensure that the identifier is unique.
-  validates_uniqueness_of :identifier, if: :managed_in_version_control?
+  validates_uniqueness_of :identifier, if: :managed_in_version_control?, scope: :data_source_id
 
   # --- Relations by id ----
   has_many :form_processors, dependent: :restrict_with_exception
   has_many :external_form_submissions, class_name: 'HmisExternalApis::ExternalForms::FormSubmission', dependent: :restrict_with_exception
   has_many :external_form_publications, class_name: 'HmisExternalApis::ExternalForms::FormPublication', dependent: :destroy
 
-  # --- Relations by identifier ----
-  has_many :instances, foreign_key: 'definition_identifier', primary_key: 'identifier'
+  # --- Relations by identifier (scoped per HMIS data source) ----
+  has_many :instances, foreign_key: [:definition_identifier, :data_source_id], primary_key: [:identifier, :data_source_id], inverse_of: :definition
   has_many :custom_service_types, through: :instances, foreign_key: 'identifier', primary_key: 'form_definition_identifier'
-  has_many :custom_data_element_definitions, class_name: 'Hmis::Hud::CustomDataElementDefinition', primary_key: 'identifier', foreign_key: 'form_definition_identifier'
-  has_one :published_version, -> { order(version: :desc).published }, class_name: 'Hmis::Form::Definition', primary_key: 'identifier', foreign_key: 'identifier'
-  has_one :draft_version, -> { order(version: :desc).draft }, class_name: 'Hmis::Form::Definition', primary_key: 'identifier', foreign_key: 'identifier'
-  has_many :all_versions, class_name: 'Hmis::Form::Definition', primary_key: 'identifier', foreign_key: 'identifier'
+  has_many :custom_data_element_definitions, class_name: 'Hmis::Hud::CustomDataElementDefinition', foreign_key: [:form_definition_identifier, :data_source_id], primary_key: [:identifier, :data_source_id]
+  has_one :published_version, -> { order(version: :desc).published }, class_name: 'Hmis::Form::Definition', foreign_key: [:identifier, :data_source_id], primary_key: [:identifier, :data_source_id]
+  has_one :draft_version, -> { order(version: :desc).draft }, class_name: 'Hmis::Form::Definition', foreign_key: [:identifier, :data_source_id], primary_key: [:identifier, :data_source_id]
+  has_many :all_versions, class_name: 'Hmis::Form::Definition', foreign_key: [:identifier, :data_source_id], primary_key: [:identifier, :data_source_id]
 
   # Forms that are used for Assessments. These are submitted using SubmitAssessment mutation.
   ASSESSMENT_FORM_ROLES = [:INTAKE, :UPDATE, :ANNUAL, :EXIT, :POST_EXIT, :CUSTOM_ASSESSMENT].freeze
@@ -99,7 +101,6 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   # Non-configurable forms. These are submitted using custom mutations.
   STATIC_FORM_ROLES = [
     :FORM_RULE,
-    :AUTO_EXIT_CONFIG,
     :PROJECT_CONFIG,
     :CLIENT_ALERT,
     :FORM_DEFINITION,
@@ -120,100 +121,80 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
 
   validates :role, inclusion: { in: FORM_ROLES.map(&:to_s) }
 
-  ENROLLMENT_CONFIG = {
-    owner_class: 'Hmis::Hud::Enrollment',
-    permission: :can_edit_enrollments,
-  }.freeze
+  EDIT = 'edit'
+  CREATE = 'create'
+  FORM_RECORD_ACTIONS = [EDIT, CREATE].freeze
 
-  # Configuration for SubmitForm
+  # Configuration for forms by role
   FORM_ROLE_CONFIG = {
     SERVICE: {
       owner_class: 'Hmis::Hud::HmisService',
-      permission: :can_edit_enrollments,
     },
     PROJECT: {
       owner_class: 'Hmis::Hud::Project',
-      permission: :can_edit_project_details,
     },
     ORGANIZATION: {
       owner_class: 'Hmis::Hud::Organization',
-      permission: :can_edit_organization,
     },
     CLIENT: {
       owner_class: 'Hmis::Hud::Client',
-      permission: :can_edit_clients,
     },
     FUNDER: {
       owner_class: 'Hmis::Hud::Funder',
-      permission: :can_edit_project_details,
     },
     INVENTORY: {
       owner_class: 'Hmis::Hud::Inventory',
-      permission: :can_edit_project_details,
     },
     PROJECT_COC: {
       owner_class: 'Hmis::Hud::ProjectCoc',
-      permission: :can_edit_project_details,
     },
     HMIS_PARTICIPATION: {
       owner_class: 'Hmis::Hud::HmisParticipation',
-      permission: :can_edit_project_details,
     },
     CE_PARTICIPATION: {
       owner_class: 'Hmis::Hud::CeParticipation',
-      permission: :can_edit_project_details,
     },
     CE_ASSESSMENT: {
       owner_class: 'Hmis::Hud::Assessment',
-      permission: :can_edit_enrollments,
     },
     CE_EVENT: {
       owner_class: 'Hmis::Hud::Event',
-      permission: :can_edit_enrollments,
     },
     CASE_NOTE: {
       owner_class: 'Hmis::Hud::CustomCaseNote',
-      permission: :can_edit_enrollments,
     },
     FILE: {
       owner_class: 'Hmis::File',
-      permission: [:can_manage_any_client_files, :can_manage_own_client_files],
-      authorize: ->(entity_base, user) { Hmis::File.authorize_proc.call(entity_base, user) },
     },
     # Deprecated: was used to send Referral Requests to external Link system.
     REFERRAL_REQUEST: {
       owner_class: 'HmisExternalApis::AcHmis::ReferralRequest',
-      permission: :can_manage_incoming_referrals,
     },
     # Deprecated: used to update status of external ReferralPostings (still in use while legacy referrals are worked through)
     REFERRAL: {
       owner_class: 'HmisExternalApis::AcHmis::ReferralPosting',
-      # Note: this permission should be checked against the project that is _sending_ the referral,
-      # not the project that is receiving it.
-      permission: :can_manage_outgoing_referrals,
     },
     CURRENT_LIVING_SITUATION: {
       owner_class: 'Hmis::Hud::CurrentLivingSituation',
-      permission: :can_edit_enrollments,
     },
-    OCCURRENCE_POINT: ENROLLMENT_CONFIG,
-    ENROLLMENT: ENROLLMENT_CONFIG,
-    # This form creates an enrollment, but it ALSO creates a client, so it requires an additional permission
+    OCCURRENCE_POINT: {
+      owner_class: 'Hmis::Hud::Enrollment',
+    },
+    ENROLLMENT: {
+      owner_class: 'Hmis::Hud::Enrollment',
+    },
     NEW_CLIENT_ENROLLMENT: {
-      **ENROLLMENT_CONFIG,
-      permission: [:can_edit_clients, :can_edit_enrollments],
+      owner_class: 'Hmis::Hud::Enrollment',
+      allowed_form_record_actions: [CREATE],
     },
     CLIENT_DETAIL: {
       owner_class: 'Hmis::Hud::Client',
-      permission: :can_edit_clients,
     },
     EXTERNAL_FORM: {
       owner_class: 'HmisExternalApis::ExternalForms::FormSubmission',
-      permission: :can_manage_external_form_submissions,
     },
     CE_REFERRAL_STEP: {
       owner_class: 'Hmis::WorkflowExecution::Step',
-      authorize: -> { raise 'not expected to be submitted via submit form' },
     },
   }.freeze
 
@@ -255,6 +236,21 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
 
   scope :with_role, ->(role) { where(role: role) }
 
+  scope :managed_in_version_control, -> { where(managed_in_version_control: true) }
+
+  scope :in_data_source, ->(data_source_id) do
+    where(data_source_id: data_source_id)
+  end
+
+  # Forms which this user can resolve and configure in the form editor.
+  scope :configurable_by, ->(user) do
+    # Must be in the user's data source
+    scope = in_data_source(user.hmis_data_source_id)
+    # Must be a non-admin form role, unless the user is a super-admin
+    scope = scope.with_role(Hmis::Form::Definition::NON_ADMIN_FORM_ROLES) unless user.policy_for(Hmis::Form::Definition, policy_type: :form_definition).can_administrate_config?
+    scope
+  end
+
   before_destroy :can_be_destroyed, prepend: true
   private def can_be_destroyed
     return if draft?
@@ -270,6 +266,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   def self.for_project(project:, role:, service_type: nil)
     # Consider all Active, Published Forms for this Role
     definition_scope = Hmis::Form::Definition.with_role(role).
+      in_data_source(project.data_source_id).
       active. # Drop definitions that have no active rules
       published
 
@@ -283,8 +280,8 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     return unless selected_instance # No match found. This is OK for non-system roles, like CurrentLivingSituation.
 
     # Safe to use `find_by` because definition_scope is already restricted to published versions,
-    # and there can be at most 1 published FormDefinition per identifier.
-    definition_scope.find_by(identifier: selected_instance.definition_identifier)
+    # and there can be at most 1 published FormDefinition per identifier/data source.
+    definition_scope.find_by(identifier: selected_instance.definition_identifier, data_source_id: project.data_source_id)
   end
 
   # Helper scope to drop forms that are not valid, because their role is outside of FORM_ROLES.
@@ -294,11 +291,12 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   scope :non_static, -> { where.not(role: STATIC_FORM_ROLES) }
 
   scope :active, -> do
-    where(identifier: Hmis::Form::Instance.active.select(:definition_identifier))
+    joins(:instances).merge(Hmis::Form::Instance.active).distinct
   end
 
   scope :for_service_type, ->(service_type) do
-    base_scope = Hmis::Form::Instance.joins(:definition)
+    base_scope = Hmis::Form::Instance.joins(:definition).
+      where(data_source_id: service_type.data_source_id)
 
     instance_scope = [
       base_scope.for_service_type(service_type.id),
@@ -310,7 +308,8 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   end
 
   scope :latest_versions, -> do
-    # Returns the latest version per identifier
+    # Returns the latest version per identifier.
+    # Should be used in combination with `in_data_source`, since `identifier+version` is only guaranteed to be unique within a data source.
     one_for_column([:version], source_arel_table: Hmis::Form::Definition.arel_table, group_on: :identifier)
   end
 
@@ -353,13 +352,15 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     Hmis::Filter::FormDefinitionFilter.new(input).filter_scope(self)
   end
 
-  def self.find_definition_for_role(role, project: nil)
+  def self.find_definition_for_role(role, project: nil, data_source_id: nil)
     selected_definition = if project.present?
       # Chooses the published FormDefinition that is "most relevant" for the Project (via an active FormInstance)
       Hmis::Form::Definition.for_project(project: project, role: role)
     else
+      raise ArgumentError, 'data_source_id is required when project is not specified' unless data_source_id.present?
+
       # Project was not specified, so return the "default" FormDefinition for the role (if any)
-      scope = Hmis::Form::Definition.with_role(role).published
+      scope = Hmis::Form::Definition.with_role(role).published.in_data_source(data_source_id)
       # Only consider forms that have an active "default" rule, meaning there is no project criteria on the rule
       scope = scope.joins(:instances).merge(Hmis::Form::Instance.defaults.active)
 
@@ -371,7 +372,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
 
     # Raise an error if no definition was found for a system role (like CLIENT, PROJECT, etc).
     # System role forms are required for the HMIS to function. There should be system Instances that prevent this from happening.
-    raise `No Definition found for System form #{role}` if role.to_sym.in?(SYSTEM_FORM_ROLES) && selected_definition.nil?
+    raise "No Definition found for System form #{role}" if role.to_sym.in?(SYSTEM_FORM_ROLES) && selected_definition.nil?
 
     selected_definition
   end
@@ -384,7 +385,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   # Returns an array of HmisErrors::Error objects
   def validate_json_form
     # Skip validation of CustomDataElementDefinitions on draft form, because new CDEDs won't be created yet
-    Hmis::Form::DefinitionValidator.perform(definition, role, skip_cded_validation: draft?)
+    Hmis::Form::DefinitionValidator.perform(definition, role, skip_cded_validation: draft?, data_source_id: data_source_id)
   end
 
   def self.validate_schema(json)
@@ -443,16 +444,20 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     self.class.owner_class_for_role(role)
   end
 
+  def allowed_form_record_actions
+    return [] unless FORM_ROLE_CONFIG[role.to_sym].present?
+
+    if FORM_ROLE_CONFIG[role.to_sym][:allowed_form_record_actions].present?
+      Array.wrap(FORM_ROLE_CONFIG[role.to_sym][:allowed_form_record_actions])
+    else
+      FORM_RECORD_ACTIONS # If no actions are specified on the form config, both edit and create are allowed
+    end
+  end
+
   def record_editing_permissions
     return [] unless FORM_ROLE_CONFIG[role.to_sym].present?
 
     Array.wrap(FORM_ROLE_CONFIG[role.to_sym][:permission])
-  end
-
-  def allowed_proc
-    return unless FORM_ROLE_CONFIG[role.to_sym].present?
-
-    FORM_ROLE_CONFIG[role.to_sym][:authorize]
   end
 
   def assessment_date_item

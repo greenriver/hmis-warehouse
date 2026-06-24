@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -9,12 +9,12 @@
 require 'rails_helper'
 
 RSpec.describe HmisExternalApis::AcHmis::InvolvementsController, type: :request do
-  let(:headers) do
+  let(:api_key_conf) do
     internal_system = HmisExternalApis::InternalSystem.find_by(name: 'Involvements')
     internal_system ||= create(:internal_system, :involvements)
-    conf = create(:inbound_api_configuration, internal_system: internal_system)
-    { 'Authorization' => "Bearer #{conf.plain_text_api_key}" }
+    create(:inbound_api_configuration, internal_system: internal_system)
   end
+  let(:headers) { { 'Authorization' => "Bearer #{api_key_conf.plain_text_api_key}" } }
 
   def api_get(endpoint, params)
     case endpoint
@@ -41,6 +41,11 @@ RSpec.describe HmisExternalApis::AcHmis::InvolvementsController, type: :request 
       logged = HmisExternalApis::ExternalRequestLog.first
       expect(logged.response).to match(/involvements/)
       expect(logged.http_status).to match(200)
+      expect(logged.initiator).to eq(api_key_conf.internal_system)
+      expect(logged.ip).to be_present
+      expect(logged.url).to include(hmis_external_apis_client_involvements_path)
+      expect(logged.request).to eq({ 'start_date' => '2000-01-01', 'end_date' => '2000-01-10', 'mci_ids' => [12345] }.to_json)
+      expect(logged.request_headers.to_json).not_to include(api_key_conf.plain_text_api_key)
     end
   end
 

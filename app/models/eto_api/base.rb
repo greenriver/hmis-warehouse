@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -104,21 +104,9 @@ module EtoApi
       debug_log "=> GET #{url}"
       begin
         body = RestClient.get(url, headers).body
-      rescue RestClient::Unauthorized => e
+      rescue RestClient::Unauthorized, RestClient::InternalServerError, RestClient::BadGateway, RestClient::BadRequest => e
         @failures += 1
-        @notifier.ping "Failed to fetch #{url}: #{e.inspect}"
-        sleep(@failures * 10)
-      rescue RestClient::InternalServerError => e
-        @failures += 1
-        @notifier.ping "Failed to fetch #{url}: #{e.inspect}"
-        sleep(@failures * 10)
-      rescue RestClient::BadGateway => e
-        @failures += 1
-        @notifier.ping "Failed to fetch #{url}: #{e.inspect}"
-        sleep(@failures * 10)
-      rescue RestClient::BadRequest => e
-        @failures += 1
-        @notifier.ping "Failed to fetch #{url}: #{e.inspect}"
+        UnifiedErrorReporter.call(e, "Failed to fetch #{url}: #{e.inspect}", slack_notifier: @notifier)
         sleep(@failures * 10)
       end
       debug_log "<= #{body}"
@@ -136,8 +124,9 @@ module EtoApi
       debug_log "   #{body_text}"
       begin
         r = RestClient.post(url, body_text, headers.merge('Content-type' => 'application/json'))
-      rescue Exception => e
+      rescue StandardError => e
         debug_log "<= FAILED - ERROR #{e.message}"
+        UnifiedErrorReporter.call(e, "ETO API POST failed for #{url}: #{e.message}", slack_notifier: @notifier)
         return false
       end
       debug_log "<= #{r.body}"
@@ -150,7 +139,8 @@ module EtoApi
       debug_log "   #{body_text}"
       r = begin
             RestClient.post(url, body_text, headers.merge('Content-type' => 'application/x-www-form-urlencoded'))
-          rescue StandardError
+          rescue StandardError => e
+            UnifiedErrorReporter.call(e, "ETO API url-encoded POST failed for #{url}: #{e.message}", slack_notifier: @notifier)
             '[]'
           end
       debug_log "<= #{r.body}"

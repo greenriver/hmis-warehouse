@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -13,7 +13,7 @@ require_relative '../../support/hmis_base_setup'
 RSpec.feature 'Assessment definition selection', type: :system do
   include_context 'hmis base setup'
 
-  let!(:ds1) { create(:hmis_data_source, hmis: 'localhost') }
+  let!(:ds1) { GrdaWarehouse::DataSource.hmis.find_by(hmis: 'localhost') }
   let!(:access_control) { create_access_control(hmis_user, p1) }
 
   let!(:p1) { create :hmis_hud_project, data_source: ds1, organization: o1, project_type: 4 }
@@ -29,7 +29,15 @@ RSpec.feature 'Assessment definition selection', type: :system do
         'link_id': 'old_message',
         'text': 'Text on old form',
       }
-      create(:custom_assessment_with_custom_fields, title: 'Old Custom Assessment', append_items: old_item, data_source: ds1, version: 0, status: :retired)
+      create(
+        :custom_assessment_with_custom_fields,
+        title: 'Old Custom Assessment',
+        append_items: old_item,
+        data_source: ds1,
+        generate_cdeds: true,
+        version: 0,
+        status: :retired,
+      )
     end
 
     let!(:definition) do
@@ -39,11 +47,18 @@ RSpec.feature 'Assessment definition selection', type: :system do
         'text': 'New question',
         'mapping': { 'custom_field_key': 'new_question_key' },
       }
-      create(:custom_assessment_with_custom_fields, identifier: old_definition.identifier, title: 'New Custom Assessment', append_items: new_item, data_source: ds1)
+      create(
+        :custom_assessment_with_custom_fields,
+        identifier: old_definition.identifier,
+        title: 'New Custom Assessment',
+        append_items: new_item,
+        data_source: ds1,
+        generate_cdeds: true,
+      )
     end
 
     before(:each) do
-      create(:hmis_form_instance, definition: definition, entity: p1) # enable the form in p1
+      create(:hmis_form_instance, definition: definition, entity: p1, data_source: ds1) # enable the form in p1
       sign_in(hmis_user)
 
       visit "/client/#{c1.id}/enrollments/#{e1.id}/assessments"
@@ -141,7 +156,15 @@ RSpec.feature 'Assessment definition selection', type: :system do
         'text': 'Old question',
         'mapping': { 'custom_field_key': 'old_question_key' },
       }
-      create(:hmis_intake_assessment_definition, title: 'Old Special Intake', append_items: old_item, data_source: ds1, version: 0, status: :retired)
+      create(
+        :hmis_intake_assessment_definition,
+        title: 'Old Special Intake',
+        append_items: old_item,
+        data_source: ds1,
+        generate_cdeds: true,
+        version: 0,
+        status: :retired,
+      )
     end
 
     let!(:definition) do
@@ -151,7 +174,14 @@ RSpec.feature 'Assessment definition selection', type: :system do
         'text': 'New question',
         'mapping': { 'custom_field_key': 'new_question_key' },
       }
-      create(:hmis_intake_assessment_definition, identifier: old_definition.identifier, title: 'New Special Intake', append_items: new_item, data_source: ds1)
+      create(
+        :hmis_intake_assessment_definition,
+        identifier: old_definition.identifier,
+        title: 'New Special Intake',
+        append_items: new_item,
+        data_source: ds1,
+        generate_cdeds: true,
+      )
     end
 
     # e1 (HoH): Intake was Submitted with old form

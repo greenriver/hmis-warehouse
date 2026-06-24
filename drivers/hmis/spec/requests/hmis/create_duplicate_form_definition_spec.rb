@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -20,12 +20,40 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       { 'link_id': 'clientDob', 'text': 'dob?', 'type': 'DATE', 'mapping': { 'record_type': 'CLIENT', 'field_name': 'dob' } },
       { 'link_id': 'question', 'text': 'what is your name?', 'type': 'STRING', 'mapping': { 'custom_field_key': 'custom_name_field' } },
     ]
-    create :hmis_form_definition, status: Hmis::Form::Definition::PUBLISHED, version: 2, definition: { 'item': items }
+    create :hmis_form_definition, status: Hmis::Form::Definition::PUBLISHED, version: 2, definition: { 'item': items }, data_source: ds1
   end
 
   # cruft: retired and draft versions of the form, which we expect to be ignored
-  let!(:retired_form) { create :hmis_form_definition, status: Hmis::Form::Definition::RETIRED, version: 1, identifier: published_form.identifier, definition: { 'item': [{ 'link_id': 'foo', 'text': 'not the published form', 'type': 'DISPLAY' }] } }
-  let!(:draft_form) { create :hmis_form_definition, status: Hmis::Form::Definition::DRAFT, version: 3, identifier: retired_form.identifier, definition: retired_form.definition }
+  let!(:retired_form) do
+    create(
+      :hmis_form_definition,
+      status: Hmis::Form::Definition::RETIRED,
+      version: 1,
+      identifier: published_form.identifier,
+      definition: { 'item': [{ 'link_id': 'foo', 'text': 'not the published form', 'type': 'DISPLAY' }] },
+      data_source: ds1,
+    )
+  end
+  let!(:draft_form) do
+    create(
+      :hmis_form_definition,
+      status: Hmis::Form::Definition::DRAFT,
+      version: 3,
+      identifier: retired_form.identifier,
+      definition: retired_form.definition,
+      data_source: ds1,
+    )
+  end
+
+  # cruft: form with the same identifier in a different data source, which should also be ignored
+  let!(:other_data_source_form) do
+    create(
+      :hmis_form_definition,
+      identifier: published_form.identifier,
+      version: 3, # give it a higher version number because the mutation orders forms descending by version
+      definition: { 'item': [{ 'link_id': 'foo', 'text': 'wrong DS!', 'type': 'DISPLAY' }] },
+    )
+  end
 
   before(:each) do
     hmis_login(user)
@@ -56,7 +84,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
     # return form that was created
     identifier = result.dig('data', 'createDuplicateFormDefinition', 'formIdentifier', 'identifier')
-    Hmis::Form::Definition.where(identifier: identifier).sole
+    Hmis::Form::Definition.where(identifier: identifier, data_source_id: ds1.id).sole
   end
 
   it 'should successfully create a new draft version' do
@@ -83,7 +111,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   it 'should create unique identifier when there is a conflict' do
     # create dup of expected identifier
-    create(:hmis_form_definition, identifier: "#{published_form.identifier}_copy")
+    create(:hmis_form_definition, identifier: "#{published_form.identifier}_copy", data_source: ds1)
 
     new_fd = nil
     expect do
@@ -98,5 +126,13 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   it 'should error if the user lacks permission' do
     remove_permissions(access_control, :can_manage_forms)
     expect_access_denied post_graphql(identifier: published_form.identifier) { mutation }
+  end
+
+  it 'should error if the form identifier does not exist in this data source' do
+    bad_identifier = 'wrong_data_source_identifier'
+    # form identifier exists in a different data source
+    create(:hmis_form_definition, identifier: bad_identifier)
+    # trying to duplicate it in this data source returns 'not found'
+    expect_gql_error post_graphql(identifier: bad_identifier) { mutation }, message: 'not found'
   end
 end

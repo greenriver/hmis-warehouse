@@ -1,10 +1,10 @@
-# frozen_string_literal: true
-
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 module HopwaCaper::Generators::Fy2026::Sheets
   class Base < ::HudReports::QuestionBase
@@ -14,6 +14,10 @@ module HopwaCaper::Generators::Fy2026::Sheets
     end
 
     protected
+
+    def arel
+      Hmis::ArelHelper.instance
+    end
 
     def question_sheet(question:)
       sheet = HudReports::QuestionSheet.new(report: @report, question: question)
@@ -27,10 +31,6 @@ module HopwaCaper::Generators::Fy2026::Sheets
 
     def report_enrollment_universe
       HopwaCaper::Enrollment
-    end
-
-    def overlapping_enrollments(scope)
-      scope.overlapping_range(start_date: @report.start_date, end_date: @report.end_date)
     end
 
     def heads_of_household_for(scope)

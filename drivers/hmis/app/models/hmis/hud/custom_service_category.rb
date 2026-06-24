@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -19,6 +19,8 @@ class Hmis::Hud::CustomServiceCategory < Hmis::Hud::Base
   has_many :definitions, through: :form_instances, source: :definitions
 
   validates_presence_of :name, allow_blank: false
+
+  scope :in_data_source, ->(data_source_id) { where(data_source_id: data_source_id) }
 
   # Helper scope: non-empty categories that have at least one HUD service type (non-null hud_record_type)
   scope :with_hud_types, -> do

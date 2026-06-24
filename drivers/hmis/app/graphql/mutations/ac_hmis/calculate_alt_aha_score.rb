@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -38,7 +38,9 @@ module Mutations
       # Use form validation to validate that the required link IDs were provided in the form submission.
       # This lets us reuse the form validator's logic for skipping questions that weren't shown to the user
       # (such as dependent questions whose conditions were not met).
-      definition = Hmis::Form::Definition.published.find_by(identifier: form_definition_identifier)
+      definition = Hmis::Form::Definition.
+        published.in_data_source(enrollment.data_source_id).
+        find_by(identifier: form_definition_identifier)
       validations = definition.validate_form_values(values_by_link_id, link_ids: required_link_ids)
 
       if validations.reject(&:warning?).any?

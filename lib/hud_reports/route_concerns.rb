@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -21,6 +21,7 @@ module HudReports
           get :running_all_questions, on: :collection
           get :history, on: :collection
           get :download, on: :member
+          post :restore, on: :member
         end
 
         # Nested routes for drilling down into report data via questions/measures and cells

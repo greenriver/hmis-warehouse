@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -7,6 +7,7 @@
 # frozen_string_literal: true
 
 require 'rails_helper'
+require_relative '../../../shared_contexts/hud_enrollment_builders'
 
 DEFAULT_DEST_ATTR = {
   FirstName: 'Blair',
@@ -1171,5 +1172,175 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
 
   def cleanup_columns
     @cleanup.client_columns.values.map { |c| Arel.sql(c) }
+  end
+
+  describe 'invalidate_incorrect_family_enrollments (infer_from_household_id)' do
+    include_context 'HUD enrollment builders'
+
+    let!(:config) { create(:config_3c) } # infer_family_from_household_id: true
+    let(:cleanup) { described_class.new }
+    let!(:project) { create_project(project_type: 1) }
+
+    before do
+      GrdaWarehouse::Config.invalidate_cache
+      Rails.cache.clear
+    end
+
+    context 'when enrollment data has families but service history says individual' do
+      let(:household_ids) { 3.times.map { Hmis::Hud::Base.generate_uuid } }
+      let!(:enrollments) do
+        household_ids.flat_map do |hh_id|
+          client_a = create_client_with_warehouse_link
+          client_b = create_client_with_warehouse_link
+          [
+            create_enrollment(client: client_a, project: project, entry_date: 1.month.ago, household_id: hh_id),
+            create_enrollment(client: client_b, project: project, entry_date: 1.month.ago, household_id: hh_id),
+          ]
+        end
+      end
+
+      before do
+        GrdaWarehouse::Tasks::ServiceHistory::Enrollment.find_each(&:rebuild_service_history!)
+        # Flip SH to individual, creating a mismatch with the multi-person enrollment data
+        GrdaWarehouse::ServiceHistoryEnrollment.entry.update_all(presented_as_individual: true)
+        enrollments.each { |e| e.update_columns(processed_as: 'stale', processed_hash: 'stale') }
+      end
+
+      it 'invalidates all mismatched enrollments' do
+        cleanup.invalidate_incorrect_family_enrollments
+
+        enrollments.each do |e|
+          e.reload
+          expect(e.processed_as).to be_nil
+          expect(e.processed_hash).to be_nil
+        end
+      end
+
+      it 'invalidates across batch boundaries' do
+        # Batching is over household_ids (3), not enrollments (6); size 2 splits into [2, 1]
+        stub_const('GrdaWarehouse::Tasks::ClientCleanup::INVALIDATION_BATCH_SIZE', 2)
+        cleanup.invalidate_incorrect_family_enrollments
+
+        enrollments.each do |e|
+          e.reload
+          expect(e.processed_as).to be_nil
+          expect(e.processed_hash).to be_nil
+        end
+      end
+    end
+
+    context 'when service history says family but enrollment data says individual' do
+      let(:household_ids) { 3.times.map { Hmis::Hud::Base.generate_uuid } }
+      let!(:enrollments) do
+        household_ids.map do |hh_id|
+          client = create_client_with_warehouse_link
+          create_enrollment(client: client, project: project, entry_date: 1.month.ago, household_id: hh_id)
+        end
+      end
+
+      before do
+        GrdaWarehouse::Tasks::ServiceHistory::Enrollment.find_each(&:rebuild_service_history!)
+        # Flip SH to family, creating a mismatch with the single-person enrollment data
+        GrdaWarehouse::ServiceHistoryEnrollment.entry.update_all(presented_as_individual: false)
+        enrollments.each { |e| e.update_columns(processed_as: 'stale', processed_hash: 'stale') }
+      end
+
+      it 'invalidates all mismatched enrollments' do
+        cleanup.invalidate_incorrect_family_enrollments
+
+        enrollments.each do |e|
+          e.reload
+          expect(e.processed_as).to be_nil
+          expect(e.processed_hash).to be_nil
+        end
+      end
+
+      it 'invalidates across batch boundaries' do
+        # Batching is over household_ids (3), each single-member; size 2 splits into [2, 1]
+        stub_const('GrdaWarehouse::Tasks::ClientCleanup::INVALIDATION_BATCH_SIZE', 2)
+        cleanup.invalidate_incorrect_family_enrollments
+
+        enrollments.each do |e|
+          e.reload
+          expect(e.processed_as).to be_nil
+          expect(e.processed_hash).to be_nil
+        end
+      end
+    end
+
+    context 'when enrollment data matches service history' do
+      let(:hh_id) { Hmis::Hud::Base.generate_uuid }
+      let!(:enrollments) do
+        client_a = create_client_with_warehouse_link
+        client_b = create_client_with_warehouse_link
+        [
+          create_enrollment(client: client_a, project: project, entry_date: 1.month.ago, household_id: hh_id),
+          create_enrollment(client: client_b, project: project, entry_date: 1.month.ago, household_id: hh_id),
+        ]
+      end
+
+      before do
+        GrdaWarehouse::Tasks::ServiceHistory::Enrollment.find_each(&:rebuild_service_history!)
+        # SH already correct: rebuild sets presented_as_individual: false for the 2-person household,
+        # so cleanup should leave these enrollments untouched.
+        enrollments.each { |e| e.update_columns(processed_as: 'current', processed_hash: 'current') }
+      end
+
+      it 'does not invalidate correctly classified enrollments' do
+        cleanup.invalidate_incorrect_family_enrollments
+
+        enrollments.each do |e|
+          e.reload
+          expect(e.processed_as).to eq('current')
+          expect(e.processed_hash).to eq('current')
+        end
+      end
+    end
+
+    context 'when mismatched and correctly classified enrollments exist in different projects' do
+      let!(:project_b) { create_project(project_type: 1) }
+
+      let(:mismatched_hh_id) { Hmis::Hud::Base.generate_uuid }
+      let(:clean_hh_id) { Hmis::Hud::Base.generate_uuid }
+
+      # project (project_a): 2-person household that SH will misclassify as individual
+      let!(:mismatched_enrollments) do
+        [create_client_with_warehouse_link, create_client_with_warehouse_link].map do |client|
+          create_enrollment(client: client, project: project, entry_date: 1.month.ago, household_id: mismatched_hh_id)
+        end
+      end
+
+      # project_b: 2-person household that SH correctly classifies as family
+      let!(:clean_enrollments) do
+        [create_client_with_warehouse_link, create_client_with_warehouse_link].map do |client|
+          create_enrollment(client: client, project: project_b, entry_date: 1.month.ago, household_id: clean_hh_id)
+        end
+      end
+
+      before do
+        GrdaWarehouse::Tasks::ServiceHistory::Enrollment.find_each(&:rebuild_service_history!)
+        # Only flip project_a's SH entries to individual, leaving project_b correct
+        GrdaWarehouse::ServiceHistoryEnrollment.entry.where(project_id: project.ProjectID).
+          update_all(presented_as_individual: true)
+        mismatched_enrollments.each { |e| e.update_columns(processed_as: 'stale', processed_hash: 'stale') }
+        clean_enrollments.each { |e| e.update_columns(processed_as: 'current', processed_hash: 'current') }
+      end
+
+      it 'invalidates only the mismatched project enrollments' do
+        cleanup.invalidate_incorrect_family_enrollments
+
+        mismatched_enrollments.each do |e|
+          e.reload
+          expect(e.processed_as).to be_nil
+          expect(e.processed_hash).to be_nil
+        end
+
+        clean_enrollments.each do |e|
+          e.reload
+          expect(e.processed_as).to eq('current')
+          expect(e.processed_hash).to eq('current')
+        end
+      end
+    end
   end
 end

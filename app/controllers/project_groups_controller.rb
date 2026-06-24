@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -37,7 +37,7 @@ class ProjectGroupsController < ApplicationController
     begin
       @project_group = project_group_source.new
       project_group_source.transaction do
-        @project_group.assign_attributes(name: group_params[:name])
+        @project_group.assign_attributes(name: group_params[:name], notes: group_params[:notes])
         filter = ::Filters::HudFilterBase.new(user_id: current_user.id, project_type_numbers: []).update(filter_params.merge(coc_codes: []))
         filter.coc_codes = []
         @project_group.options = filter.to_h
@@ -75,7 +75,7 @@ class ProjectGroupsController < ApplicationController
   def update
     begin
       project_group_source.transaction do
-        @project_group.assign_attributes(name: group_params[:name])
+        @project_group.assign_attributes(name: group_params[:name], notes: group_params[:notes])
         filter = ::Filters::HudFilterBase.new(user_id: current_user.id, project_type_numbers: []).update(filter_params)
         filter.coc_codes = []
         @project_group.options = filter.to_h
@@ -156,6 +156,7 @@ class ProjectGroupsController < ApplicationController
     params.require(:filters).
       permit(
         :name,
+        :notes,
       )
   end
 

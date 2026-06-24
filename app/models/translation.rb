@@ -1,14 +1,16 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 # frozen_string_literal: true
 
+# @see docs/features/translation.md
 class Translation < ApplicationRecord
   include NotifierConfig
 
+  # @return [String] the translation if it exists, otherwise the original text
   def self.translate(text)
     # The cache is updated via BuildTranslationCacheJob, but without an expiration is uses the default
     # expiration of 5 minutes in development, 8 hours in production
@@ -20,6 +22,13 @@ class Translation < ApplicationRecord
       translation.text
     end
     translated.presence || text
+  end
+
+  # @return [String, nil] the translation if it exists, otherwise nil
+  def self.translate_if_present(text)
+    Rails.cache.fetch(cache_key(text), expires_in: 8.hours) do
+      where(key: text).order(:id).first&.text
+    end
   end
 
   def self.cache_key(text)
@@ -54,7 +63,7 @@ class Translation < ApplicationRecord
   # Translation.maintain_keys
   def self.known_translations
     [
-      '1) For scored elements that received 0 or 5 points, please explain how your agency plans to improve the performance over time.',
+      '1) For scored elements that received less than the maximum amount of points, please explain how your agency plans to improve performance over time.',
       '2) If your grant recaptured more than 10%, please explain how you intend to spend project funds in the coming year OR if you plan to voluntarily reallocate the excess budget.',
       '24 CFR 578.(a)(8) states that CoCs must establish and operate a Coordinated Entry System to allocate assistance as effectivley as possible, prioritizing services to those that need it the most.',
       'A claim was submitted for this CHA; it is no longer editable.',
@@ -67,6 +76,7 @@ class Translation < ApplicationRecord
       "Achieving project outcomes provides a benchmark for how well projects help to end homelessness. Assessing & monitoring project outcomes is necessary to understand a project's rate of success and contribution to CoC-wide performance goals.",
       'Active',
       'Active CAS Match',
+      'Active participation in conducting the PIT count',
       'Actual Expenditures in eLOCCS',
       'Ad-Hoc Data Sources',
       'Add a PIT Count',
@@ -1236,6 +1246,7 @@ class Translation < ApplicationRecord
       'Care Plan / Patient-Centered Treatment Plan',
       'Care Plan Form',
       'Careplan Logo',
+      'Case Conferencing Attendance',
       'Case Management Note Form',
       'Case Manager',
       'Census Tracking Worksheets',
@@ -1271,6 +1282,7 @@ class Translation < ApplicationRecord
       'Configure Performance Measurement Goal',
       'Consent Confirmed',
       'Consent form confirmed',
+      'Consistent and ongoing participant engagement in supportive services is verified during project monitoring.',
       'Contact Support',
       'Contact Tracing',
       'Coordinated Entry Assessment',
@@ -1478,7 +1490,6 @@ class Translation < ApplicationRecord
       'Other city or town:',
       'Override CAS Match Date',
       'PIT Count Participation',
-      'PIT Registration or PIT Data',
       'Part of a family',
       'Participation Form (SPANISH) [Unused]',
       'Participation Form [Unused]',
@@ -1567,6 +1578,7 @@ class Translation < ApplicationRecord
       'Set ETO API Configuration',
       'Sexual Orientation (from HMIS)',
       'Shelter Agency Contacts',
+      'Sign-In Sheets',
       'Sleeping Location',
       'Spanish Patient Signature Form',
       'Spanish Verbal (Directed) Signature Form',
@@ -1584,9 +1596,9 @@ class Translation < ApplicationRecord
       'Strengths',
       'Subpopulation',
       'Successful housing outcomes are one of the most important measures of project success.',
+      'Supportive Services',
       'System Pathways',
       'System Performance Measures by Sub-Population',
-      'TCHC Sign-In Sheets',
       'TX-601 established Community-wide performance expectations in 2016 and identified that well-functioning Housing Crisis Response System moves households from homelessness to permanent housing in less than 30 days.',
       'TX-601 established Community-wide performance expectations in 2016 to allocate assistance as effectively as possible, prioritizing services to those that need it the most.',
       'TX-601 established Community-wide performance expectations in 2016 to allocate assistance as effectively as possible, prioritizing services to those that need it the most. Projects are allowed to reject up to 10% of  CES referrals for reasons stated in the CES Operation Manual.',

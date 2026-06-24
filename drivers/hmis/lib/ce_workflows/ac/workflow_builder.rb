@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -42,7 +42,10 @@ module CeWorkflows::Ac
       @unsafe_run_in_production = unsafe_run_in_production # flag to allow running in prod ONLY for initial setup
 
       # validate forms exist
-      missing_identifiers = CE_STEP_FORMS.values - Hmis::Form::Definition.where(role: 'CE_REFERRAL_STEP', identifier: CE_STEP_FORMS.values).pluck(:identifier)
+      missing_identifiers = CE_STEP_FORMS.values - Hmis::Form::Definition.
+        in_data_source(@data_source.id).
+        where(role: 'CE_REFERRAL_STEP', identifier: CE_STEP_FORMS.values).
+        pluck(:identifier)
       raise "Some form definitions are missing. Did you run 'rails driver:hmis:seed_definitions'? #{missing_identifiers.join(', ')}" if missing_identifiers.any?
 
       raise 'This class destroys data and should not be run in production' if Rails.env.production? && !@unsafe_run_in_production
@@ -53,7 +56,7 @@ module CeWorkflows::Ac
     def build_housing_workflow
       identifier = 'housing_workflow_v1'
       template_name = 'Housing Referral Workflow V1'
-      CeWorkflows::Shared::CeBuilderUtils.delete_template_and_associated_data(identifier) unless @unsafe_run_in_production
+      CeWorkflows::Shared::CeBuilderUtils.delete_template_and_associated_data(identifier, data_source: @data_source) unless @unsafe_run_in_production
 
       puts "Creating workflow definition template '#{identifier}'"
       template = CeWorkflows::Shared::CeBuilderUtils.create_template(identifier, template_name, @data_source)
@@ -148,7 +151,7 @@ module CeWorkflows::Ac
     def build_admin_assign_workflow
       identifier = 'admin_assign_workflow'
       template_name = 'Admin Assign Workflow'
-      CeWorkflows::Shared::CeBuilderUtils.delete_template_and_associated_data(identifier) unless @unsafe_run_in_production
+      CeWorkflows::Shared::CeBuilderUtils.delete_template_and_associated_data(identifier, data_source: @data_source) unless @unsafe_run_in_production
 
       puts "Creating workflow definition template '#{identifier}'"
       template = CeWorkflows::Shared::CeBuilderUtils.create_template(identifier, template_name, @data_source)

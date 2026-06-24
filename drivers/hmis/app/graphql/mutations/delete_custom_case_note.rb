@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -14,7 +14,13 @@ module Mutations
 
     def resolve(id:)
       record = Hmis::Hud::CustomCaseNote.viewable_by(current_user).find_by(id: id)
-      default_delete_record(record: record, field_name: :custom_case_note, permissions: [:can_edit_enrollments])
+      access_denied! unless record && policy_for(record.enrollment, policy_type: :hmis_enrollment).can_edit?
+
+      record.destroy!
+      {
+        custom_case_note: record,
+        errors: [],
+      }
     end
   end
 end

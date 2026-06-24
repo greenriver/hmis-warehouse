@@ -1,3 +1,11 @@
+###
+# Copyright Green River Data Group, Inc.
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
+# frozen_string_literal: true
+
 # Add a bunch a reports
 # NOTE: these are now usually injected by drivers, if you aren't seeing the report
 # in your development environment, make sure you restart your webserver.
@@ -52,7 +60,6 @@ namespace :reports do
       'Reports::DataQuality::Fy2017::Q5',
       'Reports::DataQuality::Fy2017::Q6',
       'Reports::DataQuality::Fy2017::Q7',
-      # 'Reports::Lsa::Fy2018::All',
     ]
     # SPM 2018 should be removed after 10/1/2020 to allow for comparisons
     # If we've never run it, go ahead and remove it.
@@ -92,21 +99,6 @@ namespace :reports do
     rs.update(weight: 0)
 
     r = Reports::Hic::Fy2019::Base.where(name: 'HIC').first_or_create
-    r.update(weight: 1, report_results_summary: rs, enabled: true)
-
-    rs = ReportResultsSummaries::Lsa::Fy2018.where(name: 'LSA 2018').first_or_create
-    rs.update(weight: 0)
-    r = Reports::Lsa::Fy2018::All.where(name: 'Longitudinal System Analysis FY 2018').first_or_create
-    r.update(weight: 1, report_results_summary: rs, enabled: true)
-
-    rs = ReportResultsSummaries::Lsa::Fy2019.where(name: 'LSA 2019').first_or_create
-    rs.update(weight: 0)
-    r = Reports::Lsa::Fy2019::All.where(name: 'Longitudinal System Analysis FY 2019').first_or_create
-    r.update(weight: 1, report_results_summary: rs, enabled: true)
-
-    rs = ReportResultsSummaries::Lsa::Fy2021.where(name: 'LSA 2021').first_or_create
-    rs.update(weight: 0)
-    r = Reports::Lsa::Fy2021::All.where(name: 'Longitudinal System Analysis FY 2021').first_or_create
     r.update(weight: 1, report_results_summary: rs, enabled: true)
   end
 

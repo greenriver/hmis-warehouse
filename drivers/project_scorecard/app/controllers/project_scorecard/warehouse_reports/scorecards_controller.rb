@@ -1,11 +1,12 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 # frozen_string_literal: true
 
+# @see docs/features/project-scorecard.md
 module ProjectScorecard::WarehouseReports
   class ScorecardsController < ApplicationController
     include WarehouseReportAuthorization

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -642,16 +642,9 @@ module Filters
 
     def apply_criteria(scope, tags:, except: [], **opts)
       except = Array.wrap(except)
-      # default configuration options.
-      defaults = {
-        project_types: @project_types,
-        all_project_types: nil,
-        include_date_range: true,
-        chronic_at_entry: true,
-        report_scope_source: nil,
-        join_clients_method: :client,
-      }
-      config = ::Filters::Criteria::Configuration.new(**defaults.merge(opts))
+      # Only inject filter-specific state that Configuration cannot default on its own.
+      # All other defaults (report_scope_source, include_date_range, etc.) are owned by Configuration.
+      config = ::Filters::Criteria::Configuration.new(project_types: @project_types, **opts)
 
       # instantiate criteria
       criteria = ::Filters::Criteria.classes_for_tags(tags).map do |criteria_class|

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -17,6 +17,7 @@ class ApplicationController < ActionController::Base
   include ActivityLogger
   include LogRagePayloadBehavior
   include Pagy::Backend
+  include ControllerCacheBehavior
 
   # conditional includes support the migration away from deprecated authorization methods.
   # New controllers should inherit from ApplicationControllerV2 which replaces older auth
@@ -43,11 +44,12 @@ class ApplicationController < ActionController::Base
   before_action :enforce_2fa!
   before_action :require_compliance_agreement!
   before_action :require_training!
-  before_action :health_emergency?
 
   before_action :prepare_exception_notifier
 
   prepend_before_action :skip_timeout
+
+  before_action :set_anti_caching_headers, if: :user_signed_in?
 
   # raise NotAuthorizedError which we can rescue from. This stops flow on a failed authorization check
   protected def not_authorized!(message = nil)
