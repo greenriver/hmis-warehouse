@@ -44,6 +44,7 @@ module Types
     summary_field :client_id, ID, null: false
     summary_field :client_name, String, null: true, description: 'The name of the referred client. Always available to those who can view the full referral, even without full client record access.'
     summary_field :created_at, GraphQL::Types::ISO8601DateTime, null: false
+    summary_field :updated_at, GraphQL::Types::ISO8601DateTime, null: false
     summary_field :source_enrollment_id, ID, null: true
     # source_project_name is resolved separately from source_enrollment as a summary field to minimize data exposure
     summary_field :source_project_name, String, null: true

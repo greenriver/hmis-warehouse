@@ -8,6 +8,9 @@
 
 module Types
   class HmisSchema::Unit < Types::BaseObject
+
+    include Types::HmisSchema::HasCeReferrals
+
     available_filter_options do
       arg :unit_type, [ID]
       arg :unit_group, [ID]
@@ -38,6 +41,12 @@ module Types
     field :priority_schemes, [HmisSchema::CeMatchRule], null: true
     field :latest_opportunity, HmisSchema::CeOpportunity, null: true, description: "The unit's most recent opportunity, which could be currently active or already closed"
     field :accepting_ce_referrals, Boolean, null: false
+
+    ce_referrals_field :ce_referrals, null: false, description: 'The CE referrals for the unit', filter_args: { type_name: 'UnitCeReferral' }
+
+    def ce_referrals(**args)
+      resolve_ce_referrals(object.referrals, sort_order: :created_at, **args)
+    end
 
     def user
       user = load_ar_association(object, :user)

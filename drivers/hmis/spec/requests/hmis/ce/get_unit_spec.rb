@@ -30,7 +30,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   describe 'GetUnit query' do
     let(:query) do
       <<~GRAPHQL
-        query GetUnit($id: ID!) {
+        query GetUnit($id: ID!, $limit: Int = 25, $offset: Int = 0) {
           unit(id: $id) {
             id
             name
@@ -62,7 +62,23 @@ RSpec.describe Hmis::GraphqlController, type: :request do
                 }
               }
             }
-            # later: opportunities (history of all opportunities (and referrals) for this unit)
+            ceReferrals(limit: $limit, offset: $offset) {
+              offset
+              limit
+              nodesCount
+              nodes {
+                id
+                clientName
+                status
+                origin
+                createdAt
+                updatedAt
+                referredBy {
+                  id
+                  name
+                }
+              }
+            }
           }
         }
 
@@ -172,6 +188,69 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           expect(response.status).to eq(200), result.inspect
           referral_data = result.dig('data', 'unit', 'latestOpportunity', 'referral')
           expect(referral_data).to include('id' => referral.id.to_s, 'status' => status)
+        end
+      end
+    end
+
+    describe 'ceReferrals' do
+      let!(:other_unit) { create(:hmis_unit, project: project, unit_group: unit_group) }
+      let!(:other_opportunity) { create(:hmis_ce_opportunity, unit: other_unit, status: 'closed') }
+      let!(:other_unit_referral) { create(:hmis_ce_referral, opportunity: other_opportunity, data_source: ds1, status: 'accepted') }
+
+      let!(:past_opportunity) { create(:hmis_ce_opportunity, unit: unit, status: 'closed') }
+      let!(:accepted_referral) { create(:hmis_ce_referral, opportunity: past_opportunity, data_source: ds1, status: 'accepted', created_at: 2.days.ago) }
+      let!(:rejected_referral) { create(:hmis_ce_referral, opportunity: opportunity, data_source: ds1, status: 'rejected', created_at: 1.day.ago) }
+
+      it 'returns referrals for all opportunities associated with the unit' do
+        response, result = post_graphql(**variables) { query }
+        expect(response.status).to eq(200), result.inspect
+
+        referral_data = result.dig('data', 'unit', 'ceReferrals')
+        expect(referral_data['nodesCount']).to eq(2)
+        expect(referral_data['nodes']).to contain_exactly(
+          a_hash_including(
+            'id' => accepted_referral.id.to_s,
+            'clientName' => be_present,
+            'status' => 'accepted',
+            'origin' => 'waitlist',
+            'createdAt' => be_present,
+            'updatedAt' => be_present,
+            'referredBy' => a_hash_including('id' => accepted_referral.referred_by.id.to_s),
+          ),
+          a_hash_including(
+            'id' => rejected_referral.id.to_s,
+            'clientName' => be_present,
+            'status' => 'rejected',
+            'origin' => 'waitlist',
+            'createdAt' => be_present,
+            'updatedAt' => be_present,
+            'referredBy' => a_hash_including('id' => rejected_referral.referred_by.id.to_s),
+          ),
+        )
+        expect(referral_data['nodes'].map { |r| r['id'] }).not_to include(other_unit_referral.id.to_s)
+        expect(referral_data['nodes'].map { |r| r['id'] }).to eq([rejected_referral.id.to_s, accepted_referral.id.to_s])
+      end
+
+      it 'supports pagination' do
+        response, result = post_graphql(**variables.merge(limit: 1, offset: 1)) { query }
+        expect(response.status).to eq(200), result.inspect
+
+        referral_data = result.dig('data', 'unit', 'ceReferrals')
+        expect(referral_data).to include('limit' => 1, 'offset' => 1, 'nodesCount' => 2)
+        expect(referral_data['nodes'].size).to eq(1)
+      end
+
+      context 'without referral permission' do
+        before do
+          remove_permissions(access_control, :can_view_referrals)
+        end
+
+        it 'returns the unit without referral nodes' do
+          response, result = post_graphql(**variables) { query }
+          expect(response.status).to eq(200), result.inspect
+
+          expect(result.dig('data', 'unit', 'id')).to eq(unit.id.to_s)
+          expect(result.dig('data', 'unit', 'ceReferrals', 'nodes')).to be_empty
         end
       end
     end

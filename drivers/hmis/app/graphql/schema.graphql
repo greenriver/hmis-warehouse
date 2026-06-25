@@ -1254,6 +1254,7 @@ type CeReferral {
   targetProjectId: ID!
   targetProjectName: String!
   targetProjectType: ProjectType!
+  updatedAt: ISO8601DateTime!
   updatedBy: ApplicationUser
   workflowTemplateName: String
 }
@@ -12855,6 +12856,11 @@ type Unit {
   """
   canBeMarkedAvailableToday: Boolean!
   canBeMarkedUnavailable: Boolean!
+
+  """
+  The CE referrals for the unit
+  """
+  ceReferrals(filters: UnitCeReferralFilterOptions, limit: Int, offset: Int): CeReferralsPaginated!
   dateCreated: ISO8601DateTime!
   dateUpdated: ISO8601DateTime!
   deletable: Boolean!
@@ -12874,6 +12880,24 @@ type Unit {
   unitSize: Int
   unitType: UnitTypeObject
   user: ApplicationUser
+}
+
+input UnitCeReferralFilterOptions {
+  assignedToUser: ID
+  assignedToYou: Boolean
+  onCurrentTaskSince: ISO8601Date
+  organization: [ID!]
+  origin: [CeReferralOrigin!]
+  project: [ID!]
+
+  """
+  Filter to referrals where the target project belongs to the specified project group
+  """
+  projectGroupId: ID
+  projectType: [ProjectType!]
+  referralStatus: [String!]
+  searchTerm: String
+  workflowTemplate: [String!]
 }
 
 input UnitFilterOptions {
