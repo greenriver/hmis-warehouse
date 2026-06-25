@@ -7,13 +7,13 @@
 # frozen_string_literal: true
 
 module Types
-  class HmisSchema::Enums::CeMatchRuleOwner < Types::BaseEnum
-    graphql_name 'CeMatchRuleOwner'
+  class HmisSchema::Enums::CeMatchRuleOwnerType < Types::BaseEnum
+    graphql_name 'CeMatchRuleOwnerType'
 
-    value 'UNIT', 'Unit', value: 'Hmis::Unit'
     value 'UNIT_GROUP', 'Unit Group', value: 'Hmis::UnitGroup'
     value 'PROJECT', 'Project', value: 'Hmis::Hud::Project'
     value 'ORGANIZATION', 'Organization', value: 'Hmis::Hud::Organization'
-    value 'DATA_SOURCE', 'Data Source', value: 'GrdaWarehouse::DataSource'
+    # For clarity, the human-readable label for data-source-owned rules is "Global"
+    value 'DATA_SOURCE', 'Global', value: 'GrdaWarehouse::DataSource'
   end
 end

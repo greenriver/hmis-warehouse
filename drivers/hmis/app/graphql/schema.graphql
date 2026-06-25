@@ -984,17 +984,21 @@ type CeMatchRule {
   funders: [FundingSource!]
   id: ID!
   name: String!
+  ownerId: ID!
+  ownerName: String!
 
   """
   Rule applies to projects within this related entity (eg a Data Source,
   Project, Organization), possibly limited by project type or funder
   """
-  ownerType: CeMatchRuleOwner!
+  ownerType: CeMatchRuleOwnerType!
+  priorityRank: Int
 
   """
   Rule applicability is limited to projects with these types
   """
   projectTypes: [ProjectType!]!
+  ruleType: CeMatchRuleType!
 
   """
   Expression translated into a structured clause list; null if the expression is too complex to translate
@@ -1042,19 +1046,26 @@ enum CeMatchRuleComparator {
   NOT_EQ
 }
 
+input CeMatchRuleFilterOptions {
+  """
+  Rules that are owned at the global level
+  """
+  global: Boolean
+}
+
 input CeMatchRuleInput {
   expression: String
   name: String
   ownerId: ID
-  ownerType: CeMatchRuleOwner
+  ownerType: CeMatchRuleOwnerType
   priorityRank: Int
-  ruleType: String
+  ruleType: CeMatchRuleType
   structuredExpression: CeMatchRuleStructuredExpressionInput
 }
 
-enum CeMatchRuleOwner {
+enum CeMatchRuleOwnerType {
   """
-  Data Source
+  Global
   """
   DATA_SOURCE
 
@@ -1067,11 +1078,6 @@ enum CeMatchRuleOwner {
   Project
   """
   PROJECT
-
-  """
-  Unit
-  """
-  UNIT
 
   """
   Unit Group
@@ -1087,6 +1093,28 @@ type CeMatchRuleStructuredExpression {
 input CeMatchRuleStructuredExpressionInput {
   clauses: [CeMatchRuleClauseInput!]!
   operator: CeMatchRuleBooleanOperator!
+}
+
+enum CeMatchRuleType {
+  """
+  Eligibility requirement
+  """
+  ELIGIBILITY_REQUIREMENT
+
+  """
+  Priority scheme
+  """
+  PRIORITY_SCHEME
+}
+
+type CeMatchRulesPaginated {
+  hasMoreAfter: Boolean!
+  hasMoreBefore: Boolean!
+  limit: Int!
+  nodes: [CeMatchRule!]!
+  nodesCount: Int!
+  offset: Int!
+  pagesCount: Int!
 }
 
 type CeMatchValue {
@@ -10237,6 +10265,12 @@ type Query {
   Custom assessment form definitions for use in CE match rule management.
   """
   ceMatchCustomAssessmentForms: [FormDefinition!]!
+  ceMatchRule(id: ID!): CeMatchRule!
+
+  """
+  Coordinated Entry Match Rules in the current data source.
+  """
+  ceMatchRules(filters: CeMatchRuleFilterOptions, limit: Int, offset: Int): CeMatchRulesPaginated!
   ceOpportunities(filters: CeOpportunityFilterOptions, limit: Int, offset: Int, sortOrder: CeOpportunitySortOption): CeOpportunitiesPaginated!
   ceOpportunity(id: ID!): CeOpportunity
   ceReferral(id: ID!): CeReferral

@@ -79,6 +79,21 @@ module Hmis::Ce::Match
       where(rule_type: PRIORITY_SCHEME)
     end
 
+    scope :in_data_source, ->(data_source_id) do
+      hmis_projects = Hmis::Hud::Project.where(data_source_id: data_source_id)
+      hmis_organizations = Hmis::Hud::Organization.where(data_source_id: data_source_id)
+      hmis_unit_groups = Hmis::UnitGroup.joins(:project).merge(hmis_projects)
+
+      where(owner_type: 'GrdaWarehouse::DataSource', owner_id: data_source_id).
+        or(where(owner_type: 'Hmis::Hud::Organization', owner_id: hmis_organizations.select(:id))).
+        or(where(owner_type: 'Hmis::Hud::Project', owner_id: hmis_projects.select(:id))).
+        or(where(owner_type: 'Hmis::UnitGroup', owner_id: hmis_unit_groups.select(:id)))
+    end
+
+    def self.apply_filters(input)
+      Hmis::Filter::CeMatchRuleFilter.new(input).filter_scope(self)
+    end
+
     # Order rules by owner precedence (UnitGroup > Project > Organization) then by id
     # This ordering ensures deterministic rule resolution for consistent key generation
     scope :by_owner_precedence, -> do

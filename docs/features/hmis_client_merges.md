@@ -32,6 +32,11 @@ When clients are merged:
   - Links merge audits to the affected clients
   - Each merge creates one `ClientMergeAudit`, and one or more `ClientMergeHistory` (one per deleted client).
   - **Chain Handling**: When a previously-retained client is later merged into another client, all related `ClientMergeHistory` records are updated to point to the new retained client, preserving the complete merge chain.
+- **Hmis::UndoMergeClientsJob:** `drivers/hmis/app/jobs/hmis/undo_merge_clients_job.rb`
+  - Manual/support tool (Rails console) to undo a single merge when requested by a customer
+  - Not exposed in the UI; may be added later
+  - Uses `ClientMergeAudit#pre_merge_mappings` to restore associated records and re-activate the soft-deleted client
+  - See the job file header for usage, `dry_run` mode, and limitations
 
 ### Related Records involved
 
