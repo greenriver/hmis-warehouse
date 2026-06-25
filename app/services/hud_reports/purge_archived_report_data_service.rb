@@ -169,7 +169,7 @@ module HudReports
       scoped.unscope(:order).in_batches(of: 1_000, load: false) do |batch|
         subquery_sql = batch.select(:id).to_sql
         sql = ActiveRecord::Base.sanitize_sql_array(["DELETE FROM #{table} WHERE id IN (#{subquery_sql})"])
-        deleted_count += model_class.connection.exec_delete(sql, 'HudReports Hard Delete', []).to_i
+        deleted_count += model_class.connection.execute(sql).cmd_tuples
       end
 
       deleted_count
