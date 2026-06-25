@@ -1,7 +1,9 @@
 # frozen_string_literal: true
 
 module Sources
-  # Performantly resolves CE match rule counts per owner.
+  # Performantly resolves effective CE eligibility rule counts for the given owner.
+  # "Effective" means the rules are applicable to the owner, not necessarily just rules owned by this owner.
+  # For example, for a project, this returns the count of all rules owned by that project, its organization, and its data source.
   class CeMatchRuleEffectiveCountSource < GraphQL::Dataloader::Source
     # Mapping of owner classes to the lineage/associations needed to resolve their rule count.
     OWNER_LINEAGE_CONFIG = {
@@ -33,12 +35,16 @@ module Sources
       owners.map do |owner|
         # Check applies_to_entity? to filter rules by project type and funder applicability
         applicable_rules = rules.select { |rule| rule.applies_to_entity?(owner) }
+
+        # Only count eligibility rules, since those are the only rules that are returned in the UI for now.
         eligibility_rule_count = applicable_rules.count(&:eligibility_requirement?)
+
+        # TODO(#9337) - incorporate priority rules in the count when they are added to the UI
         # Filter priority rules by owner precedence, so that this data loader has
         # functional parity with Hmis::Ce::Match::Rule.eligibility_and_priority_rules_for_entity
-        priority_rule_count = Hmis::Ce::Match::Rule.most_specific_priority_schemes_from(applicable_rules).count
+        # priority_rule_count = Hmis::Ce::Match::Rule.most_specific_priority_schemes_from(applicable_rules).count
 
-        eligibility_rule_count + priority_rule_count
+        eligibility_rule_count
       end
     end
 

@@ -24,11 +24,12 @@ module Types
       end
 
       # Not for batch. As a future improvement, we could reuse the data loader approach (see CeMatchRuleEffectiveCountSource)
-      # but since this is only loaded on 1 org at a time, use the existing eligibility_and_priority_rules_for_entity helper.
+      # but since this is only loaded on 1 entity at a time, use the existing helper.
       def effective_ce_match_rule_groups
         access_denied! unless ce_match_rule_policy.can_manage?
 
-        rules_by_owner = Hmis::Ce::Match::Rule.eligibility_and_priority_rules_for_entity(object).
+        # TODO(#9337) - incorporate priority rules
+        rules_by_owner = Hmis::Ce::Match::Rule.eligibility_requirements_for_entity(object).
           group_by { |rule| [rule.owner_type, rule.owner_id] }
 
         ce_match_rule_group_owners.map do |owner|
