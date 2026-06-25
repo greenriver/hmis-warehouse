@@ -162,6 +162,10 @@ module Idp::CurrentUser
       nil # no-op for jwt
     end
 
+    def enforce_2fa!
+      nil # no-op for jwt: L2/MFA assurance is gated upstream by the IdP, not the warehouse
+    end
+
     def user_session_expires_at
       idp_jwt_helper_for_request.expiration_time
     end

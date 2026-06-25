@@ -51,10 +51,18 @@ class ApplicationController < ActionController::Base
   after_action :log_activity, except: [:poll, :active, :rollup, :image] # , only: [:show, :index, :merge, :unmerge, :edit, :destroy, :create, :new]
 
   helper_method :locale
+  # Both auth strategies respond to enforce_2fa! (Devise enforces; JWT no-ops since the IdP gates
+  # MFA). Registered here, not in an auth concern's `included` block, to preserve filter order: an
+  # `included` block registers at the top of the class body, ahead of authenticate_user! and the
+  # chain above.
+  before_action :enforce_2fa!
   before_action :require_compliance_agreement!
   before_action :require_training!
 
   before_action :prepare_exception_notifier
+
+  # Both auth strategies respond to skip_timeout (JWT no-ops); see enforce_2fa! note above re: position.
+  prepend_before_action :skip_timeout
 
   before_action :set_anti_caching_headers, if: :user_signed_in?
 
@@ -124,7 +132,9 @@ class ApplicationController < ActionController::Base
     end
   end
 
-  before_action :configure_permitted_parameters, if: :devise_controller? if AuthMethod.devise?
+  # No AuthMethod guard needed: `devise_controller?` is false under JWT (no Devise controllers are
+  # routed), so this never fires there even though configure_permitted_parameters is Devise-only.
+  before_action :configure_permitted_parameters, if: :devise_controller?
 
   def append_info_to_payload(payload)
     super
