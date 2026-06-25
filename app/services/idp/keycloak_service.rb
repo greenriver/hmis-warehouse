@@ -179,26 +179,13 @@ module Idp
       }
     end
 
-    # Browser-facing OIDC RP-initiated logout (end_session) URL. Sending the browser here
-    # tears down Keycloak's SSO session, so a subsequent login is prompted for credentials
-    # instead of silently re-authenticating off a surviving session.
-    #
-    # Built from browser_url, NOT api_url: this is a redirect the browser follows, and the
-    # SSO cookie is Secure/host-scoped, so it must target the externally reachable Keycloak
-    # host (in dev that's the https Traefik URL, not the internal :8080 Admin API address).
-    #
-    # client_id defaults to the IdP/connector client (idp_client_id). Without an id_token_hint
-    # (the app only ever holds Dex-issued tokens, never a Keycloak one) Keycloak validates
-    # post_logout_redirect_uri against this client's registered post-logout URIs, so the URI
-    # passed here must match one of them (see docker/keycloak/realm-import.json).
     def logout_url(post_logout_redirect_uri:, client_id: nil)
-      return post_logout_redirect_uri unless browser_url.present?
+      return post_logout_redirect_uri unless api_url.present?
 
-      client_id = client_id.presence || idp_client_id
       params = { post_logout_redirect_uri: post_logout_redirect_uri }
       params[:client_id] = client_id if client_id.present?
 
-      "#{browser_url}/realms/#{realm}/protocol/openid-connect/logout?#{params.to_query}"
+      "#{api_url}/realms/#{realm}/protocol/openid-connect/logout?#{params.to_query}"
     end
 
     # Used by the migration tooling; remove once Devise account data has been migrated.
@@ -221,21 +208,6 @@ module Idp
 
     def api_url
       config[:api_url]
-    end
-
-    # Externally reachable Keycloak base URL for browser redirects (end_session). Falls back
-    # to api_url, which the codebase otherwise treats as browser-reachable (see
-    # account_console_url). In dev they differ — api_url is the internal http://…:8080 Admin
-    # API, while the browser must use the https Traefik host — so KEYCLOAK_BROWSER_URL is set.
-    def browser_url
-      config[:browser_url].presence || api_url
-    end
-
-    # The IdP/connector client (e.g. dex-connector) that the browser session belongs to and
-    # that carries the registered post-logout redirect URIs — distinct from the service-account
-    # client (client_id) used for Admin API calls.
-    def idp_client_id
-      config[:idp_client_id]
     end
 
     def realm
@@ -359,11 +331,9 @@ module Idp
     def default_config
       {
         api_url: ENV['KEYCLOAK_API_URL'],
-        browser_url: ENV['KEYCLOAK_BROWSER_URL'],
         realm: ENV['KEYCLOAK_REALM'],
         client_id: ENV['KEYCLOAK_SERVICE_CLIENT_ID'],
         client_secret: ENV['KEYCLOAK_SERVICE_CLIENT_SECRET'],
-        idp_client_id: ENV['KEYCLOAK_IDP_CLIENT_ID'],
       }
     end
   end

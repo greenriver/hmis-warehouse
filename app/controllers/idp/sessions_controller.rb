@@ -28,25 +28,15 @@ module Idp
     end
     alias_method :create, :new
 
-    # DELETE users/sign_out (and GET logout_talentlms) — tear down the full session, not just
-    # the proxy cookie. Redirect the browser to the IdP's RP-initiated logout, which clears the
-    # upstream Keycloak SSO session and then redirects back through oauth2-proxy's
-    # /oauth2/sign_out to clear the proxy cookie. (Dex brokers Keycloak but does not propagate
-    # logout to it, so we go straight to Keycloak's end_session endpoint.) For a non-Keycloak or
-    # unconfigured connector this degrades to the bare /oauth2/sign_out URL — see
-    # Idp::KeycloakService#logout_url.
-    #
-    # The post-logout URI must exactly match a value registered on the IdP client (see
-    # docker/keycloak/realm-import.json), so it can't carry an `rd` param; oauth2-proxy returns
-    # to root after clearing the cookie.
+    # DELETE users/sign_out (and GET logout_talentlms) — clear the proxy session and return to
+    # root_url via the rd parameter.
     def destroy
       request.env['last_user'] = current_user
 
-      idp_logout_url = Idp::ServiceFactory.for_connector(cookies[:last_connector_id]).logout_url(
-        post_logout_redirect_uri: "#{request.base_url}/oauth2/sign_out",
+      redirect_to(
+        "#{request.base_url}/oauth2/sign_out?rd=#{CGI.escape(root_url)}",
+        allow_other_host: true,
       )
-
-      redirect_to(idp_logout_url, allow_other_host: true)
     end
 
     # GET/POST session_keepalive — report the forwarded token's expiry so the frontend countdown
