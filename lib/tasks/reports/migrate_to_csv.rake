@@ -94,6 +94,8 @@ namespace :reports do
             },
           )
           puts "SimpleReport ##{report.id} - Error: #{error_msg}"
+        ensure
+          GC.start # release report objects between iterations to reduce peak memory
         end
 
         puts ''
@@ -198,6 +200,8 @@ namespace :reports do
             },
           )
           puts "HUD Report ##{report.id} - Error: #{error_msg}"
+        ensure
+          GC.start # release report objects between iterations to reduce peak memory
         end
 
         puts ''
