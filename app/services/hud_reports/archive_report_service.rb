@@ -92,9 +92,9 @@ module HudReports
       Tempfile.create(['hud_archive', '.csv']) do |temp_file|
         CSV.open(temp_file.path, 'wb') do |csv|
           csv << column_names
-          relation.find_in_batches(batch_size: 1_000) do |batch|
-            batch.each do |record|
-              csv << column_names.map { |col| csv_value(record[col], json: json_column_names.include?(col)) }
+          relation.unscope(:order).in_batches(of: 1_000, load: false) do |batch_scope|
+            batch_scope.pluck(*column_names).each do |row|
+              csv << column_names.zip(row).map { |col, value| csv_value(value, json: json_column_names.include?(col)) }
             end
           end
         end
