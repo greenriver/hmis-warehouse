@@ -48,10 +48,10 @@ module Importing
             allow(SignalHandlerPlugin).to receive(:stop_current_worker!)
           end
 
-          it 'reschedules a fresh attempt and stops the worker instead of failing the job' do
-            expect do
-              expect(job._perform(klass: importer_class_name, options: options)).to eq(true)
-            end.to change(Delayed::Job, :count).by(1)
+          it 'handles the credential failure gracefully instead of failing the job' do
+            # The reschedule mechanics (clone, counter, attempt budget) are owned by
+            # spec/jobs/aws_credential_rescue_spec.rb. Here we only prove the wiring
+            expect(job._perform(klass: importer_class_name, options: options)).to eq(true)
             expect(SignalHandlerPlugin).to have_received(:stop_current_worker!)
           end
 
