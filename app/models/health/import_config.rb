@@ -64,6 +64,14 @@ module Health
       end
     end
 
+    # Place a file in a nested directory structure, creating the directories as needed.
+    def put_with_mkdir_p(local, remote)
+      connect do |connection|
+        connection.mkdir_p!(File.dirname(remote))
+        connection.upload!(local, remote)
+      end
+    end
+
     def ls(remote)
       connect do |connection|
         connection.dir.foreach(remote) do |entry|

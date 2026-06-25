@@ -57,10 +57,11 @@ class PdfGenerator
     end
   end
 
-  def self.html(controller:, user:, template: nil, layout: false, assigns:, partial: nil)
+  def self.html(controller:, user:, template: nil, layout: false, assigns:, partial: nil, env: {})
     ActionController::Renderer::RACK_KEY_TRANSLATION['warden'] ||= 'warden'
     renderer = controller.renderer.new(
       'warden' => warden_proxy(user),
+      **env,
     )
     if partial.present?
       renderer.render(

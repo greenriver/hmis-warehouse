@@ -79,6 +79,22 @@ module Sftp
       execute_sftp_command("put #{escape_path(local_path)} #{escape_path(remote_path)}")
     end
 
+    # Creates each path segment on the remote server, like FileUtils.mkdir_p.
+    # Existing directories are ignored; other failures still raise.
+    def mkdir_p!(remote_path)
+      commands = mkdir_p_commands(remote_path)
+      return if commands.empty?
+
+      stdin_data = "#{commands.join("\n")}\nquit\n"
+      output, status = Open3.capture2e(*build_command_parts, stdin_data: stdin_data)
+      errors = output.lines.grep(/error|failed|denied|refused|dest open/i)
+      errors.reject! { |line| line.match?(/remote mkdir .* Failure/i) }
+      return if status.success? && errors.empty?
+
+      error_msg = errors.join.presence || output
+      raise StatusException, "SFTP mkdir_p failed:\n#{error_msg}"
+    end
+
     # Removes a file from the remote server using sftp 'rm' command.
     def remove(remote_path)
       execute_sftp_command("rm #{escape_path(remote_path)}")
@@ -106,6 +122,19 @@ module Sftp
       error_msg = output.lines.grep(/error|failed|denied|refused/i).join("\n")
       error_msg = output if error_msg.empty?
       raise StatusException, "SFTP command failed: #{command}\n#{error_msg}"
+    end
+
+    def mkdir_p_commands(remote_path)
+      return [] if remote_path.blank? || remote_path == '/' || remote_path == '.'
+
+      parts = remote_path.split('/').reject(&:empty?)
+      return [] if parts.empty?
+
+      absolute = remote_path.start_with?('/')
+      parts.each_index.map do |index|
+        segment_path = absolute ? "/#{parts[0..index].join('/')}" : parts[0..index].join('/')
+        "mkdir #{escape_path(segment_path)}"
+      end
     end
 
     # Executes an sftp command and returns the output.
@@ -234,8 +263,13 @@ module Sftp
 
       # Converts a glob pattern (e.g., "*.csv") to a regex for matching filenames.
       def glob_to_regex(pattern)
-        escaped = Regexp.escape(pattern)
-        regex_str = escaped.gsub('.', '\.').gsub('*', '.*').gsub('?', '.')
+        regex_str = pattern.each_char.map do |char|
+          case char
+          when '*' then '.*'
+          when '?' then '.'
+          else Regexp.escape(char)
+          end
+        end.join
         Regexp.new("^#{regex_str}$", Regexp::IGNORECASE)
       end
     end

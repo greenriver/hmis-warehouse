@@ -1,0 +1,29 @@
+%h1 Comprehensive Health Assessment
+
+.mb-3
+  %dt.d-inline Name:
+  %dd.d-inline= @client.name
+  %br
+  %dt.d-inline Date Completed:
+  %dd.d-inline= @cha.completed_at&.to_date || 'In Progress'
+  %br
+  - if @cha.user.present?
+    %dt.d-inline Completed By:
+    %dd.d-inline= @cha.user.name
+    %br
+  - if @cha.reviewed_by.present?
+    %dt.d-inline Reviewed By:
+    %dd.d-inline= @cha.reviewer
+
+- @cha.answers.each do |section, section_hash|
+  - answers = section_hash['answers']
+  - next if answers.blank? || answers.values.all? { |qa| qa['answer'].blank? }
+  .mt-4
+    %h3= section_hash['title']
+    %table.table.table-sm.table-bordered
+      %tbody
+        - answers.each do |_code, qa|
+          - next if qa['answer'].blank?
+          %tr
+            %td.font-weight-bold= qa['question']
+            %td= Array(qa['answer']).join(', ')
