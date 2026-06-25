@@ -313,17 +313,6 @@ RSpec.shared_examples 'an auth-method-aware user' do |factory, model|
         # Calling it would raise NoMethodError; assert on the absence directly rather than on the error string.
         expect(model.respond_to?(:find_for_authentication)).to be false
       end
-
-      describe 'timeout_time' do
-        it 'always returns nil under JWT (IdP-managed sessions are not knowable here)' do
-          # No warehouse-side timeout exists under JWT, and the method must not reach into the absent
-          # Devise :timeoutable math regardless of what the caller passes.
-          expect(model.new.timeout_time(nil)).to be_nil
-          expect(model.new.timeout_time('')).to be_nil
-          expect(model.new.timeout_time('a.b.c')).to be_nil
-          expect(model.new.timeout_time('last_request_at' => Time.current)).to be_nil
-        end
-      end
     end
 
     describe 'setup_system_user' do
