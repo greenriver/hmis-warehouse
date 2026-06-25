@@ -6,6 +6,20 @@
 
 # frozen_string_literal: true
 
+# Service that controls whether a destination client is excluded from exports
+# shared with external parties. Exclusion state is stored in
+# GrdaWarehouse::ClientAttribute#external_data_sharing_exclusion_flag.
+#
+# Usage:
+#   svc = ClientExternalDataSharing.new(client)
+#   svc.excluded?                           # => true/false
+#   svc.set_exclusion!(value: true, user:)  # persist the flag + audit trail
+#   svc.last_update                         # => { updated_at:, updated_by: } or nil
+#   svc.last_update_text                    # => human-readable string or nil
+#
+# The feature is gated by the :enable_external_data_sharing_exclusion config
+# flag. When the flag is disabled, Export::Scopes skips the exclusion query
+# entirely — this service does not check the config itself.
 class ClientExternalDataSharing
   def initialize(client)
     @client = client
