@@ -59,8 +59,8 @@ Then log into the Keycloak admin console at `https://op-keycloak.dev.test` (`adm
 
 `Idp::KeycloakService` (`app/services/idp/keycloak_service.rb`) talks to the Keycloak **Admin
 REST API** — creating/updating users, profile edits, the migration tooling. It authenticates with
-the OAuth2 `client_credentials` grant using the **`rails-service-account`** client (a _service
-account_, not the `dex-connector` browser client). That client needs the `realm-management` roles
+the OAuth2 `client_credentials` grant using the **`rails-service-account`** client (a *service
+account*, not the `dex-connector` browser client). That client needs the `realm-management` roles
 (`manage-users`, `view-users`, `query-users`, `manage-realm`); `realm-import.json` grants them on
 first import.
 
@@ -74,15 +74,15 @@ Credentials live in the `idp_service_configs` table and are managed in the admin
 **`/admin/idp_service_configs`** (New → provider `keycloak`). One row per realm. The columns map to
 the service's config keys in `KeycloakService.from_config`:
 
-| `Idp::ServiceConfig` column | Maps to service key                                                                    | Dev value                          |
-| --------------------------- | -------------------------------------------------------------------------------------- | ---------------------------------- |
-| `provider`                  | (selects the service class)                                                            | `keycloak`                         |
-| `connector_id`              | the auth-proxy routing key in the JWT — must match the connector that issued the token | `keycloak`                         |
-| `name`                      | display label only                                                                     | e.g. `Keycloak (dev)`              |
-| `api_url`                   | `api_url`                                                                              | `http://op-keycloak.dev.test:8080` |
-| `keycloak_realm`            | `realm`                                                                                | `openpath`                         |
-| `client_id`                 | `client_id`                                                                            | `rails-service-account`            |
-| `service_token` (encrypted) | `client_secret`                                                                        | `rails-service-account-secret-dev` |
+| `Idp::ServiceConfig` column | Maps to service key | Dev value |
+| --- | --- | --- |
+| `provider` | (selects the service class) | `keycloak` |
+| `connector_id` | the auth-proxy routing key in the JWT — must match the connector that issued the token | `keycloak` |
+| `name` | display label only | e.g. `Keycloak (dev)` |
+| `api_url` | `api_url` | `http://op-keycloak.dev.test:8080` |
+| `keycloak_realm` | `realm` | `openpath` |
+| `client_id` | `client_id` | `rails-service-account` |
+| `service_token` (encrypted) | `client_secret` | `rails-service-account-secret-dev` |
 
 `service_token` is stored `attr_encrypted` (needs `ENCRYPTION_KEY` set). To create one from the
 console instead of the UI:
@@ -101,7 +101,7 @@ Idp::ServiceConfig.create!(
 ```
 
 Verify it end-to-end with the row's `#test` action (the **Test** button in the UI) or
-`config.to_service.test_connection` — a green result means the secret is valid _and_ the service
+`config.to_service.test_connection` — a green result means the secret is valid *and* the service
 account has the Admin-API roles.
 
 ### Option B — ENV fallback (single realm)
@@ -126,7 +126,7 @@ out of the box — no `.env.development.local` edits needed. This path only reso
 > grant 401s or the Admin API 403s. Confirm the live client with
 > `kcadm.sh get clients -r openpath -q clientId=rails-service-account --fields clientId,secret,serviceAccountsEnabled`
 > (after `kcadm.sh config credentials --server http://localhost:8080 --realm master --user admin
---password 'AdminPassword1!'`), and reset the secret in the admin console or recreate the realm
+> --password 'AdminPassword1!'`), and reset the secret in the admin console or recreate the realm
 > from a clean DB if it drifted.
 
 ## Notes
