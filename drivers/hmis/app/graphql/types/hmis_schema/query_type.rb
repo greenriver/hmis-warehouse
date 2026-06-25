@@ -689,7 +689,8 @@ module Types
     def ce_match_rules(filters: nil)
       access_denied! unless policy_for(Hmis::Ce::Match::Rule, policy_type: :ce_match_rule).can_manage?
 
-      scope = Hmis::Ce::Match::Rule.in_data_source(current_user.hmis_data_source_id)
+      # TODO(#9337) Support viewing and editing priority schemes
+      scope = Hmis::Ce::Match::Rule.in_data_source(current_user.hmis_data_source_id).eligibility_requirement
       scope = scope.apply_filters(filters) if filters.present?
       scope.order(:id)
     end
