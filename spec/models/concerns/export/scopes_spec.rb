@@ -12,15 +12,6 @@ RSpec.describe Export::Scopes do
   let(:source_ds) { create(:source_data_source) }
   let(:dest_ds)   { create(:destination_data_source) }
   let(:user)      { create(:user) }
-  let!(:cde_definition) do
-    create(
-      :hud_custom_data_element_definition,
-      key: ClientExternalDataSharing::EXTERNAL_DATA_SHARING_CDE_KEY,
-      owner_type: 'GrdaWarehouse::Hud::Client',
-      field_type: 'boolean',
-      data_source_id: dest_ds.id,
-    )
-  end
 
   def make_destination(source_client, warehouse_created_at: 30.days.ago)
     dest = GrdaWarehouse::Hud::Client.create!(
@@ -67,7 +58,7 @@ RSpec.describe Export::Scopes do
     context 'when config is enabled' do
       before { allow(GrdaWarehouse::Config).to receive(:get).with(:enable_external_data_sharing_exclusion).and_return(true) }
 
-      it 'excludes a client flagged via CDE' do
+      it 'excludes a client flagged for exclusion' do
         ClientExternalDataSharing.new(dest_client).set_exclusion!(value: true)
         expect(exporter.client_scope.pluck(:id)).not_to include(dest_client.id)
       end
@@ -81,27 +72,23 @@ RSpec.describe Export::Scopes do
         expect(ids).to include(dest_client.id)
       end
 
-      it 'includes a non-excluded client whose warehouse_client is older than 1 week' do
-        expect(exporter.client_scope.pluck(:id)).to include(dest_client.id)
-      end
-
-      it 'includes a client whose exclusion CDE was set to false (uncheck scenario)' do
-        # Set true then false so a CDE row exists with value_boolean: false.
-        # A client with no row at all would also pass — this ensures the value_boolean: true
+      it 'includes a client whose exclusion flag was set to false (uncheck scenario)' do
+        # Set true then false so a ClientAttribute row exists with flag: false.
+        # A client with no row at all would also pass — this ensures the flag: true
         # filter in externally_excluded_client_ids is load-bearing.
         ClientExternalDataSharing.new(dest_client).set_exclusion!(value: true)
         ClientExternalDataSharing.new(dest_client).set_exclusion!(value: false)
         expect(exporter.client_scope.pluck(:id)).to include(dest_client.id)
       end
 
-      it 'includes a client whose warehouse_client is exactly 8 days old (outside embargo window)' do
+      it 'includes a client whose warehouse_client is exactly at the 1-week embargo boundary (boundary is exclusive)' do
         new_source = create(:hud_client, data_source: source_ds)
         create(:hud_enrollment, data_source: source_ds, ProjectID: project.ProjectID, PersonalID: new_source.PersonalID)
-        non_embargoed_dest = make_destination(new_source, warehouse_created_at: 8.days.ago)
+        non_embargoed_dest = make_destination(new_source, warehouse_created_at: 7.days.ago)
         expect(exporter.client_scope.pluck(:id)).to include(non_embargoed_dest.id)
       end
 
-      it 'excludes a client that is both CDE-excluded and embargoed, without affecting other clients' do
+      it 'excludes a client that is both flagged and embargoed, without affecting other clients' do
         new_source = create(:hud_client, data_source: source_ds)
         create(:hud_enrollment, data_source: source_ds, ProjectID: project.ProjectID, PersonalID: new_source.PersonalID)
         double_restricted = make_destination(new_source, warehouse_created_at: 2.days.ago)
@@ -109,33 +96,6 @@ RSpec.describe Export::Scopes do
         ids = exporter.client_scope.pluck(:id)
         expect(ids).not_to include(double_restricted.id)
         expect(ids).to include(dest_client.id)
-      end
-    end
-
-    context 'when CDE definition does not exist' do
-      before do
-        # Simulate the seed task not having run yet.
-        cde_definition.destroy
-        # Config must be stubbed to true so the code reaches the definition lookup.
-        # Without this, the config gate returns [] early and the definition-absent
-        # guard is never exercised.
-        allow(GrdaWarehouse::Config).to receive(:get).with(:enable_external_data_sharing_exclusion).and_return(true)
-      end
-
-      it 'includes all clients without error' do
-        expect(exporter.client_scope.pluck(:id)).to include(dest_client.id)
-      end
-    end
-
-    context 'when CDE definition is destroyed after exclusion was set (orphaned CDEs)' do
-      before do
-        ClientExternalDataSharing.new(dest_client).set_exclusion!(value: true)
-        cde_definition.destroy
-        allow(GrdaWarehouse::Config).to receive(:get).with(:enable_external_data_sharing_exclusion).and_return(true)
-      end
-
-      it 'includes the client (orphaned CDEs without a definition are not treated as active exclusions)' do
-        expect(exporter.client_scope.pluck(:id)).to include(dest_client.id)
       end
     end
   end
@@ -161,7 +121,7 @@ RSpec.describe Export::Scopes do
     context 'when config is enabled' do
       before { allow(GrdaWarehouse::Config).to receive(:get).with(:enable_external_data_sharing_exclusion).and_return(true) }
 
-      it 'excludes enrollments for a client flagged via CDE' do
+      it 'excludes enrollments for a client flagged for exclusion' do
         ClientExternalDataSharing.new(dest_client).set_exclusion!(value: true)
         expect(exporter.enrollment_scope.pluck(:id)).not_to include(enrollment.id)
       end
@@ -175,27 +135,23 @@ RSpec.describe Export::Scopes do
         expect(ids).to include(enrollment.id)
       end
 
-      it 'includes enrollments for a non-excluded client whose warehouse_client is older than 1 week' do
-        expect(exporter.enrollment_scope.pluck(:id)).to include(enrollment.id)
-      end
-
-      it 'includes enrollments for a client whose exclusion CDE was set to false (uncheck scenario)' do
-        # Set true then false so a CDE row exists with value_boolean: false.
-        # A client with no row at all would also pass — this ensures the value_boolean: true
+      it 'includes enrollments for a client whose exclusion flag was set to false (uncheck scenario)' do
+        # Set true then false so a ClientAttribute row exists with flag: false.
+        # A client with no row at all would also pass — this ensures the flag: true
         # filter in externally_excluded_client_ids is load-bearing.
         ClientExternalDataSharing.new(dest_client).set_exclusion!(value: true)
         ClientExternalDataSharing.new(dest_client).set_exclusion!(value: false)
         expect(exporter.enrollment_scope.pluck(:id)).to include(enrollment.id)
       end
 
-      it 'includes enrollments for a client whose warehouse_client is exactly 8 days old (outside embargo window)' do
+      it 'includes enrollments for a client whose warehouse_client is exactly at the 1-week embargo boundary (boundary is exclusive)' do
         new_source = create(:hud_client, data_source: source_ds)
         new_enrollment = create(:hud_enrollment, data_source: source_ds, ProjectID: project.ProjectID, PersonalID: new_source.PersonalID)
-        make_destination(new_source, warehouse_created_at: 8.days.ago)
+        make_destination(new_source, warehouse_created_at: 7.days.ago)
         expect(exporter.enrollment_scope.pluck(:id)).to include(new_enrollment.id)
       end
 
-      it 'excludes enrollments for a client that is both CDE-excluded and embargoed, without affecting other clients' do
+      it 'excludes enrollments for a client that is both flagged and embargoed, without affecting other clients' do
         new_source = create(:hud_client, data_source: source_ds)
         new_enrollment = create(:hud_enrollment, data_source: source_ds, ProjectID: project.ProjectID, PersonalID: new_source.PersonalID)
         double_restricted = make_destination(new_source, warehouse_created_at: 2.days.ago)
@@ -203,33 +159,6 @@ RSpec.describe Export::Scopes do
         ids = exporter.enrollment_scope.pluck(:id)
         expect(ids).not_to include(new_enrollment.id)
         expect(ids).to include(enrollment.id)
-      end
-    end
-
-    context 'when CDE definition does not exist' do
-      before do
-        # Simulate the seed task not having run yet.
-        cde_definition.destroy
-        # Config must be stubbed to true so the code reaches the definition lookup.
-        # Without this, the config gate returns [] early and the definition-absent
-        # guard is never exercised.
-        allow(GrdaWarehouse::Config).to receive(:get).with(:enable_external_data_sharing_exclusion).and_return(true)
-      end
-
-      it 'includes all enrollments without error' do
-        expect(exporter.enrollment_scope.pluck(:id)).to include(enrollment.id)
-      end
-    end
-
-    context 'when CDE definition is destroyed after exclusion was set (orphaned CDEs)' do
-      before do
-        ClientExternalDataSharing.new(dest_client).set_exclusion!(value: true)
-        cde_definition.destroy
-        allow(GrdaWarehouse::Config).to receive(:get).with(:enable_external_data_sharing_exclusion).and_return(true)
-      end
-
-      it 'includes enrollments for the client (orphaned CDEs without a definition are not treated as active exclusions)' do
-        expect(exporter.enrollment_scope.pluck(:id)).to include(enrollment.id)
       end
     end
   end

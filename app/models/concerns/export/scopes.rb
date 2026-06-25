@@ -163,15 +163,9 @@ module Export::Scopes
     end
 
     def externally_excluded_client_ids
-      defn = Hmis::Hud::CustomDataElementDefinition.find_by(
-        key: ClientExternalDataSharing::EXTERNAL_DATA_SHARING_CDE_KEY,
-        owner_type: GrdaWarehouse::Hud::Client.name,
-      )
-      return [] unless defn
-
-      Hmis::Hud::CustomDataElement.
-        where(data_element_definition: defn, value_boolean: true).
-        pluck(:owner_id)
+      GrdaWarehouse::ClientAttribute.
+        where(external_data_sharing_exclusion_flag: true).
+        pluck(:client_id)
     end
 
     def embargoed_client_ids

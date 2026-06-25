@@ -106,10 +106,5 @@ class TaskQueue < ApplicationRecord
     config.queued_tasks[:gr_staff_report_q1_2026] = -> do
       GrdaWarehouse::Tasks::GrStaffReport.run!
     end
-
-    # Create the CDE definition used to flag clients for external data sharing exclusion
-    config.queued_tasks[:seed_external_data_sharing_cde_definition] = -> do
-      GrdaWarehouse::Tasks::SeedExternalDataSharingCdeDefinition.new._perform
-    end
   end
 end

@@ -11,16 +11,6 @@ require 'rails_helper'
 RSpec.describe GrdaWarehouse::Hud::Client, '#merge_from and #split external data sharing', type: :model do
   let(:source_ds) { create(:source_data_source) }
   let(:dest_ds)   { create(:destination_data_source) }
-  let!(:cde_definition) do
-    create(
-      :hud_custom_data_element_definition,
-      key: ClientExternalDataSharing::EXTERNAL_DATA_SHARING_CDE_KEY,
-      owner_type: 'GrdaWarehouse::Hud::Client',
-      field_type: 'boolean',
-      data_source_id: dest_ds.id,
-    )
-  end
-
   let(:source_a) { create(:hud_client, data_source: source_ds) }
   let(:source_b) { create(:hud_client, data_source: source_ds) }
   let!(:dest_a)  { make_destination(source_a) }
@@ -52,13 +42,12 @@ RSpec.describe GrdaWarehouse::Hud::Client, '#merge_from and #split external data
   end
 
   context 'when neither client was excluded' do
-    it 'does not mark the surviving client as excluded and writes no CDE row' do
+    it 'does not mark the surviving client as excluded' do
       reviewer = create(:user)
       dest_b.merge_from(dest_a, reviewed_by: reviewer, reviewed_at: Time.current)
       expect(ClientExternalDataSharing.new(dest_b).excluded?).to be false
-      # Verify the merge did not write a spurious CDE; excluded? only checks value_boolean: true
-      # so a false-valued CDE row would still pass the assertion above.
-      expect(Hmis::Hud::CustomDataElement.count).to eq(0)
+      # Verify no ClientAttribute row at all was written for dest_b.
+      expect(GrdaWarehouse::ClientAttribute.where(client_id: dest_b.id).count).to eq(0)
     end
   end
 
@@ -85,13 +74,16 @@ RSpec.describe GrdaWarehouse::Hud::Client, '#merge_from and #split external data
     end
   end
 
-  context 'when the CDE definition does not exist at merge time' do
-    before { cde_definition.destroy }
+  context 'when the merged-away client had exclusion explicitly unchecked' do
+    before do
+      ClientExternalDataSharing.new(dest_a).set_exclusion!(value: true)
+      ClientExternalDataSharing.new(dest_a).set_exclusion!(value: false)
+    end
 
-    it 'completes the merge without error and writes no CDE row' do
+    it 'does not mark the surviving client as excluded' do
       reviewer = create(:user)
-      expect { dest_b.merge_from(dest_a, reviewed_by: reviewer, reviewed_at: Time.current) }.not_to raise_error
-      expect(Hmis::Hud::CustomDataElement.count).to eq(0)
+      dest_b.merge_from(dest_a, reviewed_by: reviewer, reviewed_at: Time.current)
+      expect(ClientExternalDataSharing.new(dest_b).excluded?).to be false
     end
   end
 
@@ -140,6 +132,20 @@ RSpec.describe GrdaWarehouse::Hud::Client, '#merge_from and #split external data
     end
 
     context 'when the original destination was not excluded' do
+      it 'does not mark the split-off destination as excluded' do
+        reviewer = create(:user)
+        new_dest = new_dest_after_split(reviewer)
+        expect(new_dest).to be_present
+        expect(ClientExternalDataSharing.new(new_dest).excluded?).to be false
+      end
+    end
+
+    context 'when the original destination had exclusion explicitly unchecked' do
+      before do
+        ClientExternalDataSharing.new(split_dest).set_exclusion!(value: true)
+        ClientExternalDataSharing.new(split_dest).set_exclusion!(value: false)
+      end
+
       it 'does not mark the split-off destination as excluded' do
         reviewer = create(:user)
         new_dest = new_dest_after_split(reviewer)

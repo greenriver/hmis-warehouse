@@ -7,54 +7,33 @@
 # frozen_string_literal: true
 
 class ClientExternalDataSharing
-  EXTERNAL_DATA_SHARING_CDE_KEY = 'exclude_from_external_data_sharing'
-
   def initialize(client)
     @client = client
   end
 
   def excluded?
-    defn = cde_definition
-    return false unless defn
-
-    Hmis::Hud::CustomDataElement.exists?(
-      data_element_definition: defn,
-      owner_type: @client.class.name,
-      owner_id: @client.id,
-      value_boolean: true,
+    GrdaWarehouse::ClientAttribute.exists?(
+      client_id: @client.id,
+      external_data_sharing_exclusion_flag: true,
     )
   end
 
   def set_exclusion!(value:, user: nil)
-    defn = cde_definition
-    return unless defn
-
-    cde = Hmis::Hud::CustomDataElement.find_or_initialize_by(
-      owner_type: @client.class.name,
-      owner_id: @client.id,
-      data_element_definition: defn,
+    record = GrdaWarehouse::ClientAttribute.find_or_initialize_by(client_id: @client.id)
+    record.assign_attributes(
+      external_data_sharing_exclusion_flag: value,
+      external_data_sharing_updated_by: user&.id || User.system_user.id,
+      external_data_sharing_updated_at: Time.current,
     )
-    cde.assign_attributes(
-      value_boolean: value,
-      data_source: defn.data_source,
-      UserID: user&.id&.to_s || User.system_user.id.to_s,
-    )
-    cde.save!
+    record.save!
   end
 
   def last_update
-    defn = cde_definition
-    return unless defn
+    record = GrdaWarehouse::ClientAttribute.find_by(client_id: @client.id)
+    return if record.nil? || record.external_data_sharing_exclusion_flag.nil?
 
-    cde = Hmis::Hud::CustomDataElement.find_by(
-      data_element_definition: defn,
-      owner_type: @client.class.name,
-      owner_id: @client.id,
-    )
-    return unless cde
-
-    user_name = User.find_by(id: cde.UserID)&.name || 'System'
-    { updated_at: cde.DateUpdated, updated_by: user_name }
+    user_name = User.find_by(id: record.external_data_sharing_updated_by)&.name || 'System'
+    { updated_at: record.external_data_sharing_updated_at, updated_by: user_name }
   end
 
   def last_update_text
@@ -62,19 +41,5 @@ class ClientExternalDataSharing
     return unless info
 
     "Last updated #{I18n.l(info[:updated_at], format: :table_compact)} by #{info[:updated_by]}"
-  end
-
-  def self.cde_definition
-    Hmis::Hud::CustomDataElementDefinition.find_by(
-      key: EXTERNAL_DATA_SHARING_CDE_KEY,
-      owner_type: GrdaWarehouse::Hud::Client.name,
-    )
-  end
-
-  private
-
-  # Memoized per instance (request-scoped), not at class level.
-  def cde_definition
-    @cde_definition ||= self.class.cde_definition
   end
 end
