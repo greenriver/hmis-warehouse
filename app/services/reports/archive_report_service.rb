@@ -144,13 +144,11 @@ module Reports
       CSV.open(file_path, 'wb') do |csv|
         csv << column_names
 
-        association.find_in_batches(batch_size: 1000) do |batch|
-          batch.each do |record|
-            values = column_names.map do |col|
-              value = record.send(col)
+        association.unscope(:order).in_batches(of: 1_000, load: false) do |batch_scope|
+          batch_scope.pluck(*column_names).each do |row|
+            csv << column_names.zip(row).map do |col, value|
               jsonb_columns.include?(col) && !value.nil? ? value.to_json : value
             end
-            csv << values
           end
         end
       end
