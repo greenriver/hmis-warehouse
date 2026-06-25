@@ -127,6 +127,21 @@ RSpec.describe Idp::CurrentUser, type: :controller, if: AuthMethod.jwt? do
       expect(controller).not_to have_received(:idp_handle_unauthenticated)
     end
 
+    # Exercises the REAL idp_handle_deactivated (handler not stubbed): it must be a terminal 403
+    # rendering the deactivated template, NOT a redirect to sign-in (that loops via the still-valid
+    # IdP token). render_template asserts the chosen template without needing render_views, so the
+    # view's Translation.translate calls don't run here.
+    it 'renders a terminal 403 deactivated page (not a sign-in redirect) for a deactivated user' do
+      inactive_user = double('User', id: 9, active?: false)
+      allow(User).to receive(:find_or_create_from_jwt).and_return(inactive_user)
+
+      get :auth
+
+      expect(response).to have_http_status(:forbidden)
+      expect(response).to render_template('errors/account_deactivated')
+      expect(response).not_to have_http_status(:redirect)
+    end
+
     it 'current_user is nil for a deactivated user' do
       inactive_user = double('User', id: 9, active?: false)
       allow(User).to receive(:find_or_create_from_jwt).and_return(inactive_user)
@@ -192,8 +207,20 @@ RSpec.describe Idp::CurrentUser, type: :controller, if: AuthMethod.jwt? do
       expect(response.body).to eq('10/true')
     end
 
-    it 'clears impersonation and returns the true user when permissions fail' do
+    it 'clears impersonation and returns the true user when the target is not impersonateable_by? the true_user' do
       allow(impersonated_user).to receive(:impersonateable_by?).with(true_user).and_return(false)
+
+      get :index
+
+      expect(response.body).to eq('10')
+    end
+
+    # Guards the can_impersonate_users? gate independently of impersonateable_by?: a true_user who
+    # lost (or never had) impersonation privilege must fall back to themselves even though the target
+    # would otherwise admit them. Without this, deleting the can_impersonate_users? check in
+    # idp_validate_impersonation_permissions still passes the suite (impersonateable_by? alone admits).
+    it 'clears impersonation and returns the true user when the true_user cannot impersonate' do
+      allow(true_user).to receive(:can_impersonate_users?).and_return(false)
 
       get :index
 

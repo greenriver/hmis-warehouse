@@ -68,15 +68,6 @@ module Idp::CurrentUser
     end
     helper_method :impersonating?
 
-    # Absolute expiration timestamp of the current token, for the session-expiry modal.
-    def jwt_expires_at
-      jwt_helper = idp_jwt_helper_for_request
-      return nil unless jwt_helper&.token? && jwt_helper.valid?
-
-      jwt_helper.expiration_time
-    end
-    helper_method :jwt_expires_at
-
     private
 
     # In production/development, reads the JWT from the X-Forwarded-Access-Token header
