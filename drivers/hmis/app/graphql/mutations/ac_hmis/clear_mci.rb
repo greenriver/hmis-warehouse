@@ -19,6 +19,9 @@ module Mutations
     AUTO_CLEAR_THRESHOLD = 97
 
     def resolve(input:)
+      # MCI Clearance is only permitted for users who can create new client records
+      access_denied! unless policy_for(Hmis::Hud::Client, policy_type: :hmis_client).can_create?
+
       errors = HmisErrors::Errors.new
       errors.add :base, :server_error, full_message: 'MCI connection is not configured' unless HmisExternalApis::AcHmis::Mci.enabled?
       return { errors: errors } if errors.any?

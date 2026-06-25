@@ -11,7 +11,7 @@ module HmisExternalApis::AcHmis::Exporters
   # Join keys: UnitID (UnitExport), EnrollmentID (HMIS CSV export, including deleted enrollments).
   # It includes full unit information (UnitTypeName, ProjectID, and ProjectName) because the UnitExport currently does not include deleted units.
   #
-  # Note: this was created as a one-off export (Issue#9037), it's not currently part of the daily export process (DataWarehouseUploadJob).
+  # Included in the daily units.zip upload alongside Units.csv
   class UnitOccupancyExport
     include ::HmisExternalApis::AcHmis::Exporters::CsvExporter
 

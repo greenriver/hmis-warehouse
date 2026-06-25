@@ -62,10 +62,13 @@ RSpec.describe Hmis::Ce::Match::Internal::ClientPoolEvaluator, type: :model do
         expect(result.priority_scores).to be_nil
       end
 
-      it 'raises if expression is unable to evaluate' do
+      it 'returns a failed result when a comparator operand is NULL' do
         destination_client1.update!(dob: nil)
-        # 'current_age > 65' expected to raise if current_age is nil
-        expect { evaluator.call(destination_client1) }.to raise_error(Dentaku::ArgumentError, /Error evaluating expression.*Dentaku::AST::GreaterThan/)
+        # 'current_age > 65' expected to be false if current_age is nil
+        result = evaluator.call(destination_client1)
+
+        expect(result).to be_failed
+        expect(result.priority_scores).to be_nil
       end
     end
 

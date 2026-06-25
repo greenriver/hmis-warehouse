@@ -38,3 +38,6 @@ CVE-2026-41316
 
 # carrierwave's content_type_denylist is not used in our codebase
 CVE-2026-44587
+
+# not exploitable, no patch yet available. See #9324
+CVE-2026-54171
