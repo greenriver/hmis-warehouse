@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -424,6 +424,77 @@ RSpec.describe GrdaWarehouse::ClientFile, type: :model do
         file.save
 
         expect(file.active_storage_url).to be_nil
+      end
+    end
+  end
+
+  describe '#calculated_expiration_date' do
+    let!(:consent_tag) { create :available_file_tag, consent_form: true, name: 'ROI Calc Test' }
+    let!(:file) { create :client_file, effective_date: Date.current }
+
+    before(:each) do
+      file.tag_list.add(consent_tag.name)
+      file.consent_form_signed_on = 1.month.ago.to_date
+      file.save!
+    end
+
+    context 'when release_duration is Indefinite' do
+      before { allow(GrdaWarehouse::Config).to receive(:get).with(:release_duration).and_return('Indefinite') }
+
+      it 'returns nil' do
+        expect(file.calculated_expiration_date).to be_nil
+      end
+    end
+
+    context 'when release_duration is One Year' do
+      before { allow(GrdaWarehouse::Config).to receive(:get).with(:release_duration).and_return('One Year') }
+
+      it 'returns consent_form_signed_on + 1 year' do
+        expect(file.calculated_expiration_date).to eq(file.consent_form_signed_on + 1.year)
+      end
+
+      context 'when consent_form_signed_on is nil' do
+        before { file.update_column(:consent_form_signed_on, nil) }
+
+        it 'returns nil' do
+          expect(file.calculated_expiration_date).to be_nil
+        end
+      end
+    end
+
+    context 'when release_duration is Two Years' do
+      before { allow(GrdaWarehouse::Config).to receive(:get).with(:release_duration).and_return('Two Years') }
+
+      it 'returns consent_form_signed_on + 2 years' do
+        expect(file.calculated_expiration_date).to eq(file.consent_form_signed_on + 2.years)
+      end
+
+      context 'when consent_form_signed_on is nil' do
+        before { file.update_column(:consent_form_signed_on, nil) }
+
+        it 'returns nil' do
+          expect(file.calculated_expiration_date).to be_nil
+        end
+      end
+    end
+
+    context 'when release_duration is Use Expiration Date' do
+      before { allow(GrdaWarehouse::Config).to receive(:get).with(:release_duration).and_return('Use Expiration Date') }
+
+      context 'when expiration_date is set' do
+        before { file.update_column(:expiration_date, 6.months.from_now.to_date) }
+
+        it "returns the file's expiration_date" do
+          expect(file.calculated_expiration_date).to eq(file.expiration_date)
+        end
+      end
+
+      context 'when expiration_date is nil' do
+        before { file.update_column(:expiration_date, nil) }
+
+        it 'returns nil' do
+          expect(file.calculated_expiration_date).to be_nil
+        end
       end
     end
   end

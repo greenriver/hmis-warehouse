@@ -26,6 +26,9 @@
         - hint_text += ' This method of access is being deprecated, to be replaced with the fields below.' if User.anyone_using_acls?
         %div{ class: (User.all_using_acls? && 'd-none') }
           = f.input :user_ids, collection: @groups, as: :grouped_select_two, group_method: :last, selected: @group_ids, input_html: {multiple: :multiple, style: 'width: 100%;'}, label: 'Grant access to users and groups', hint: hint_text
+          - if can_configure_cohorts? && can_audit_users?
+            .mb-4= link_to 'Audit Access (Legacy)', cohort_legacy_access_audit_path(@cohort)
+            %hr
         - if User.anyone_using_acls? && ! User.all_using_acls?
           %p The following are the new mechanism for adding access to cohorts.  During the transition period, please assign both methods of access.
         -# END_ACL
@@ -46,6 +49,8 @@
               - users.each do |u|
                 %li= u.name_with_email
           = f.input :viewer_ids, collection: @users, as: :select_two, selected: @viewer_ids, input_html: {multiple: :multiple, style: 'width: 100%;'}, label: 'Grant read-only-level access to users', hint: 'Specified user will have access to view, but not change clients on this cohort.'
+          - if can_configure_cohorts? && can_audit_users?
+            .mt-2= link_to 'Audit Access', cohort_acl_access_audit_path(@cohort)
 
       %h3 Automation
       .well

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -9,14 +9,14 @@
 # Plumbing for future JWT system/request test support.
 # Not yet wired up — will be used when spec/support/jwt_authentication_helper.rb is implemented.
 #
-# Prepended to JwtHelper only when running tests, keeping production code
+# Prepended to Idp::JwtHelper only when running tests, keeping production code
 # free of test-specific logic.
 # See also: config/initializers/test_jwt_middleware.rb (cookie-to-header transport)
 #
 # Mock tokens follow the format: "mock-jwt-token-{user_id}-{random_hex}"
 module JwtHelperTestExtensions
-  # Override validate! to bypass cryptographic validation for mock tokens
-  def validate!
+  # Override valid? to bypass cryptographic validation for mock tokens
+  def valid?
     return false unless token?
 
     # In system tests, allow mock tokens to bypass validation
@@ -62,4 +62,4 @@ module JwtHelperTestExtensions
 end
 
 # Prepend test extensions when running any tests (controller specs, request specs, system tests)
-JwtHelper.prepend(JwtHelperTestExtensions) if Rails.env.test?
+Idp::JwtHelper.prepend(JwtHelperTestExtensions) if Rails.env.test?

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -139,6 +139,36 @@ RSpec.describe HudReports::DrilldownContext, type: :model do
         search_query = double('SearchQuery', query_params: { q: 'Jane' })
         context.apply_search_query!(search_query)
         expect(context.search_term).to eq('Jane')
+      end
+    end
+  end
+
+  describe 'HudReports::GeneratorBase validation delegation' do
+    describe '.valid_cell_name' do
+      it 'delegates to DrilldownContext and strips safe characters' do
+        expect(TestGenerator.valid_cell_name('A1')).to eq('A1')
+      end
+
+      it 'strips injection characters' do
+        expect(TestGenerator.valid_cell_name('A1; DROP TABLE users')).to eq('A1')
+      end
+
+      it 'returns empty string for nil' do
+        expect(TestGenerator.valid_cell_name(nil)).to eq('')
+      end
+    end
+
+    describe '.valid_table_name' do
+      it 'delegates to DrilldownContext and strips safe characters' do
+        expect(TestGenerator.valid_table_name('5a')).to eq('5a')
+      end
+
+      it 'strips injection characters' do
+        expect(TestGenerator.valid_table_name('5a!')).to eq('5a')
+      end
+
+      it 'returns empty string for nil' do
+        expect(TestGenerator.valid_table_name(nil)).to eq('')
       end
     end
   end

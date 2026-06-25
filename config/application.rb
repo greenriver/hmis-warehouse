@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -131,7 +131,12 @@ module OpenPath
     Dir[root.join('drivers', '*', 'app')].each do |driver_app|
       driver_app_components.each do |component|
         component_dir = File.join(driver_app, component)
-        config.autoload_paths << component_dir if File.directory?(component_dir)
+        next unless File.directory?(component_dir)
+
+        # autoload_paths: the catalog of where things can be found (lazy-load)
+        config.autoload_paths << component_dir
+        # eager_load_paths: the subset Rails loads proactively at boot time
+        config.eager_load_paths << component_dir
       end
     end
 

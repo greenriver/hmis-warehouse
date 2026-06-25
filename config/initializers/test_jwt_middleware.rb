@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -11,7 +11,7 @@
 #
 # Promotes test_jwt_token cookie to HTTP_X_FORWARDED_ACCESS_TOKEN header,
 # allowing tests to inject JWT tokens via cookies that are read by
-# CurrentUser as if they came from oauth2-proxy.
+# Idp::CurrentUser as if they came from oauth2-proxy.
 # See also: spec/support/jwt_helper_test_extensions.rb (validation bypass for mock tokens)
 if Rails.env.test?
   class TestJwtMiddleware

@@ -1,3 +1,9 @@
+###
+# Copyright Green River Data Group, Inc.
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 project_id = params[:project_id]
 wb = xlsx_package.workbook
 wb.add_worksheet(name: @report.detail_title_for(@key).slice(0, 30).gsub(':', ' ')) do |sheet|

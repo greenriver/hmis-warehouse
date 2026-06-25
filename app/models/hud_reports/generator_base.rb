@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -156,6 +156,14 @@ module HudReports
         table_id: table_id,
         report_type: report_type,
       )
+    end
+
+    def self.valid_cell_name(cell_name)
+      ::HudReports::DrilldownContext.valid_cell_name(cell_name)
+    end
+
+    def self.valid_table_name(table_name)
+      ::HudReports::DrilldownContext.valid_table_name(table_name)
     end
 
     def self.allowed_options(_)
