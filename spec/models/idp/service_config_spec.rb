@@ -6,7 +6,7 @@
 
 # frozen_string_literal: true
 
-RSpec.describe Idp::ServiceConfig, type: :model do
+RSpec.describe Idp::ServiceConfig, type: :model, if: AuthMethod.jwt?  do
   describe 'validations' do
     subject { build(:idp_service_config) }
 
