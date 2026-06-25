@@ -260,6 +260,48 @@ RSpec.shared_examples 'an auth-method-aware user' do |factory, model|
         expect(model.has_recent_activity).not_to include(stale)
       end
     end
+
+    # PasswordRules moved out of an unconditional UserConcern `included do` into the Devise-only branch, and
+    # its `validate :password_cannot_be_sequential, on: :update` macro moved with it into PasswordRules' own
+    # `included do`. Because PasswordRules is now mixed into the host through a *conditional branch* of one
+    # concern rather than an `included do`, its macro only reaches the model via ActiveSupport::Concern's
+    # dependency replay. Exercising the validation and the public helper — rather than asserting `include?`
+    # alone — proves the replay still lands the callback and the instance methods on the macro-backed model.
+    describe 'PasswordRules applies under Devise' do
+      it 'mixes PasswordRules into the host' do
+        expect(model.include?(PasswordRules)).to be true
+      end
+
+      it 'exposes password_rules guidance built from the Devise config' do
+        # password_rules is rendered by the password/invitation views, so it must resolve against the host.
+        rules = build(factory).password_rules
+        expect(rules).to be_an(Array)
+        expect(rules).to include(a_string_matching(/at least .* characters/))
+      end
+
+      it 'rejects a sequential password on update when sequential enforcement is on' do
+        user = create(factory)
+        # Enforcement is env-driven (PASSWORD_SEQUENTIAL_CHARACTERS_ENFORCED); stub the predicate so the test
+        # pins the validation logic, not the deployment's env. Setting `password` marks encrypted_password
+        # dirty, which is what `changing_password?` keys off of, so the :update-context validate fires.
+        allow(user).to receive(:password_sequential_characters_enforced?).and_return(true)
+        user.password = user.password_confirmation = 'Abcd1234!'
+
+        expect(user.valid?(:update)).to be false
+        expect(user.errors[:password]).to include('has a sequential set of characters or digits')
+      end
+
+      it 'allows a non-sequential password on update (isolates the sequential check)' do
+        user = create(factory)
+        allow(user).to receive(:password_sequential_characters_enforced?).and_return(true)
+        user.password = user.password_confirmation = 'Tr0ub4d:Kx7w'
+
+        user.valid?(:update)
+        # Other rules may add their own :password errors; assert only that the sequential check — the behavior
+        # that moved — does not fire for a non-sequential value, so this stays decoupled from the rest.
+        expect(user.errors[:password]).not_to include('has a sequential set of characters or digits')
+      end
+    end
   end
 
   # These assertions require the class to have *loaded* under AUTH_METHOD=jwt
@@ -312,6 +354,16 @@ RSpec.shared_examples 'an auth-method-aware user' do |factory, model|
         # The override lives in DeviseUser, which is not included under JWT, and nothing else defines it.
         # Calling it would raise NoMethodError; assert on the absence directly rather than on the error string.
         expect(model.respond_to?(:find_for_authentication)).to be false
+      end
+    end
+
+    describe 'PasswordRules' do
+      it 'is not mixed in (password management is IdP-owned under JWT)' do
+        # PasswordRules now lives only in the Devise branch of UserConcern, so neither the concern nor its
+        # public helper is present under JWT. The password/invitation views that call password_rules are
+        # behind the AuthMethod.devise? route guard, so the helper has no caller here.
+        expect(model.include?(PasswordRules)).to be false
+        expect(model.new.respond_to?(:password_rules)).to be false
       end
     end
 
