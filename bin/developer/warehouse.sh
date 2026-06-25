@@ -24,11 +24,11 @@ cd "$PROJECT_ROOT"
 
 # Copy sample environment file
 echo "Copying sample.env to .env.development.local..."
-cp sample.env .env.development.local
+cp sample.env.development.local .env.development.local
 
 # Create .env.local file
 echo "Creating .env.local..."
-touch .env.local
+cp sample.env.local .env.local
 
 # Copy and configure .envrc file
 echo "Setting up .envrc file..."
