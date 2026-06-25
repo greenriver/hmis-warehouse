@@ -26,8 +26,16 @@ module Idp::CurrentUser
     end
 
     def authenticate_user!
-      # use current_user for memoized resolution to avoid a multiple calls to find_or_create_from_jwt
-      idp_handle_unauthenticated unless current_user
+      # Resolve current_user first (memoized, one find_or_create_from_jwt call); this also lets
+      # idp_authenticated_user_from_jwt flag a deactivated account so we can branch on the reason.
+      return if current_user
+
+      # A deactivated user still holds a valid IdP token, so idp_handle_unauthenticated (a redirect
+      # to oauth2-proxy sign-in) would loop: the IdP re-issues a token and bounces them straight
+      # back. Show a terminal "contact your administrator" page instead.
+      return idp_handle_deactivated if @idp_account_deactivated
+
+      idp_handle_unauthenticated
     end
 
     def user_signed_in?
@@ -99,6 +107,16 @@ module Idp::CurrentUser
       authenticated_user = User.find_or_create_from_jwt(jwt_helper)
       return nil unless authenticated_user
 
+      # Kill-switch: a warehouse User deactivated locally (active = false) is denied access even
+      # with a valid IdP token. This mirrors the ActionCable resolver (ApplicationCable::Connection,
+      # which already gates on active?) and the legacy Devise active_for_authentication? check, so
+      # deactivating an account in the warehouse remains an effective lockout under JWT. The flag
+      # lets authenticate_user! render the deactivated page instead of redirect-looping to sign-in.
+      unless authenticated_user.active?
+        @idp_account_deactivated = true
+        return nil
+      end
+
       # Set the cookie so the sign-in page can route a logged-out user back to the right
       # Connector (the DB last_connector_id is unreadable when there's no current_user).
       cookies.permanent[:last_connector_id] = jwt_helper.connector_id if jwt_helper.connector_id.present?
@@ -124,6 +142,11 @@ module Idp::CurrentUser
         true_user = user_class.find_by(id: impersonation_data[:true_user_id])
         impersonated_user = user_class.find_by(id: impersonation_data[:impersonated_user_id])
 
+        # NOTE: the active? kill-switch above gates the true_user (the human holding the token).
+        # We intentionally do NOT also gate on impersonated_user.active? here — an admin may need
+        # to impersonate a deactivated account to investigate it. We COULD add
+        # `&& impersonated_user.active?` (or route the deactivated page) if we later decide
+        # deactivation should also block being impersonated. Revisit when that's settled.
         return impersonated_user if true_user && impersonated_user && idp_validate_impersonation_permissions(true_user, impersonated_user)
 
         # Clear invalid impersonation
@@ -147,6 +170,15 @@ module Idp::CurrentUser
         connector_id: cookies[:last_connector_id],
         redirect_to: original_url,
       )
+    end
+
+    # Terminal page for a user whose warehouse account has been deactivated (active = false) while
+    # they still hold a valid IdP token. Deliberately does NOT redirect to sign-in (that loops via
+    # the IdP) — renders a 403 with guidance to contact an administrator. Uses the no-auth
+    # 'maintenance' layout because there's no current_user. Override in subclasses for non-HTML
+    # responses (e.g. a JSON 403 for API/HMIS controllers), mirroring idp_handle_unauthenticated.
+    def idp_handle_deactivated
+      render(template: 'errors/account_deactivated', status: :forbidden)
     end
 
     def info_for_paper_trail

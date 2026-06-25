@@ -47,7 +47,7 @@ RSpec.describe Idp::CurrentUser, type: :controller, if: AuthMethod.jwt? do
 
   describe '#current_user' do
     it 'returns the resolved user' do
-      user = double('User', id: 42)
+      user = double('User', id: 42, active?: true)
       allow(User).to receive(:find_or_create_from_jwt).with(jwt_helper).and_return(user)
 
       get :index
@@ -74,7 +74,7 @@ RSpec.describe Idp::CurrentUser, type: :controller, if: AuthMethod.jwt? do
 
   describe '#idp_authenticated_user_from_jwt' do
     it 'resolves via find_or_create_from_jwt (the learning call), not find_from_jwt' do
-      user = double('User', id: 7)
+      user = double('User', id: 7, active?: true)
       expect(User).to receive(:find_or_create_from_jwt).with(jwt_helper).and_return(user)
       expect(User).not_to receive(:find_from_jwt)
 
@@ -84,7 +84,7 @@ RSpec.describe Idp::CurrentUser, type: :controller, if: AuthMethod.jwt? do
     end
 
     it 'sets the last_connector_id cookie from the token' do
-      user = double('User', id: 7)
+      user = double('User', id: 7, active?: true)
       allow(User).to receive(:find_or_create_from_jwt).and_return(user)
 
       get :index
@@ -95,7 +95,7 @@ RSpec.describe Idp::CurrentUser, type: :controller, if: AuthMethod.jwt? do
 
   describe '#authenticate_user!' do
     it 'sets current_user when a user is present' do
-      user = double('User', id: 5)
+      user = double('User', id: 5, active?: true)
       allow(User).to receive(:find_or_create_from_jwt).and_return(user)
 
       get :auth
@@ -112,13 +112,28 @@ RSpec.describe Idp::CurrentUser, type: :controller, if: AuthMethod.jwt? do
       expect(controller).to have_received(:idp_handle_unauthenticated)
     end
 
-    it 'does not consult active_for_authentication? (access is the IdP decision)' do
-      # A double with no active_for_authentication? would raise if the method tried to call it.
-      inactive_user = double('User', id: 9)
+    # Kill-switch: a locally-deactivated user (active? == false) is denied even with a valid token.
+    # We must NOT treat them as merely unauthenticated — a redirect to sign-in would loop off the
+    # still-valid IdP token — so authenticate_user! routes to the terminal deactivated page instead.
+    it 'renders the deactivated page (not the sign-in redirect) for a deactivated user' do
+      inactive_user = double('User', id: 9, active?: false)
+      allow(User).to receive(:find_or_create_from_jwt).and_return(inactive_user)
+      allow(controller).to receive(:idp_handle_deactivated)
+      allow(controller).to receive(:idp_handle_unauthenticated)
+
+      get :auth
+
+      expect(controller).to have_received(:idp_handle_deactivated)
+      expect(controller).not_to have_received(:idp_handle_unauthenticated)
+    end
+
+    it 'current_user is nil for a deactivated user' do
+      inactive_user = double('User', id: 9, active?: false)
       allow(User).to receive(:find_or_create_from_jwt).and_return(inactive_user)
 
-      expect { get :auth }.not_to raise_error
-      expect(response.body).to eq('authenticated:9')
+      get :index
+
+      expect(response.body).to eq('')
     end
 
     # Exercises the real idp_handle_unauthenticated wiring (capture + redirect), including the
@@ -141,6 +156,7 @@ RSpec.describe Idp::CurrentUser, type: :controller, if: AuthMethod.jwt? do
       User.new.tap do |u|
         allow(u).to receive(:id).and_return(10)
         allow(u).to receive(:can_impersonate_users?).and_return(true)
+        allow(u).to receive(:active?).and_return(true)
       end
     end
     let(:impersonated_user) do
@@ -187,7 +203,7 @@ RSpec.describe Idp::CurrentUser, type: :controller, if: AuthMethod.jwt? do
     it 'ignores impersonation when the JWT principal is not the stored true_user' do
       # Leftover session: the token now logs in a different user (77) than the one who
       # started impersonating (10), so the impersonation should be ignored.
-      other_principal = double('User', id: 77)
+      other_principal = double('User', id: 77, active?: true)
       allow(User).to receive(:find_or_create_from_jwt).and_return(other_principal)
 
       get :index
