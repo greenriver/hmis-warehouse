@@ -22,7 +22,7 @@ OUTPUT_DIR="$REPO_ROOT/dev/auth"
 ENV_FILE="$REPO_ROOT/.env.development.local"
 
 if [[ ! -f "$ENV_FILE" ]]; then
-  echo "Error: $ENV_FILE not found. Copy sample.env and set required values." >&2
+  echo "Error: $ENV_FILE not found. Copy sample.env.development.local and set required values." >&2
   exit 1
 fi
 
