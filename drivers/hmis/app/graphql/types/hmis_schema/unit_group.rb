@@ -10,9 +10,16 @@ module Types
   class HmisSchema::UnitGroup < Types::BaseObject
     # object is a Hmis::UnitGroup
     include Types::HmisSchema::HasUnits
+    include Types::HmisSchema::HasCeMatchRules
+
+    available_filter_options do
+      arg :search_term, String
+      arg :ce_waitlists_enabled, Boolean
+    end
 
     field :id, ID, null: false
     field :name, String, null: false
+    field :project, HmisSchema::Project, null: false
     field :capacity, Integer, null: false, description: 'Total number of units in the group'
     field :availability, Integer, null: false, description: 'Number of units in this group that are currently unoccupied'
     field :unit_types, [Types::HmisSchema::UnitTypeCapacity], null: false # TODO(#8157) - Unit Group should have exactly 1 Unit Type
@@ -31,6 +38,10 @@ module Types
 
     def unit_type
       load_ar_association(object, :unit_type)
+    end
+
+    def project
+      load_ar_association(object, :project)
     end
 
     def priority_schemes
@@ -75,6 +86,11 @@ module Types
 
     def availability
       object.units.unoccupied_on.count
+    end
+
+    private def ce_match_rule_group_owners
+      # Used by the HasCeMatchRules concern
+      [object.project.data_source, object.project.organization, object.project, object]
     end
   end
 end

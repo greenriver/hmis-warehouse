@@ -666,6 +666,19 @@ module Types
       Hmis::UnitGroup.viewable_by(current_user).find_by(id: id)
     end
 
+    field :unit_groups, HmisSchema::UnitGroup.page_type, null: false, after_paginate: ->(nodes, ctx) {
+      # todo @martha - is this necessary?
+      project_ids = nodes.map(&:project_id)
+      ctx[:current_user].policy_context.preload_project_dependencies(project_ids)
+    } do
+      filters_argument HmisSchema::UnitGroup
+    end
+    def unit_groups(filters: nil)
+      scope = Hmis::UnitGroup.viewable_by(current_user)
+      scope = scope.apply_filters(filters) if filters.present?
+      scope.order(:name, :id)
+    end
+
     field :unit, HmisSchema::Unit, null: true do
       argument :id, ID, required: true
     end

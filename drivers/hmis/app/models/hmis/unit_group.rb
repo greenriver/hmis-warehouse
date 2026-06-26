@@ -67,6 +67,20 @@ module Hmis
       joins(:project).merge(Hmis::Hud::Project.with_ce_waitlists_enabled)
     end
 
+    scope :matching_search_term, ->(search_term) do
+      # todo @martha - search by project, or project ID?
+      return none unless search_term.present?
+
+      search_term.strip!
+      query = "%#{search_term.split(/\W+/).join('%')}%"
+
+      where(arel_table[:name].matches(query))
+    end
+
+    def self.apply_filters(input)
+      Hmis::Filter::UnitGroupFilter.new(input).filter_scope(self)
+    end
+
     def eligibility_requirements
       Hmis::Ce::Match::Rule.eligibility_requirements_for_entity(self)
     end
