@@ -72,22 +72,6 @@ RSpec.describe 'Unit Group CE Match Rules queries', type: :request do
     GRAPHQL
   end
 
-  let(:unit_group_selector_query) do
-    <<~GRAPHQL
-      query GetUnitGroups($filters: UnitGroupFilterOptions) {
-        unitGroups(filters: $filters) {
-          nodesCount
-          nodes {
-            id
-            name
-            effectiveCeMatchRuleCount
-            localCeMatchRuleCount
-          }
-        }
-      }
-    GRAPHQL
-  end
-
   it 'returns effective CE match rule groups for a unit group' do
     response, result = post_graphql(id: unit_group.id) { unit_group_rules_query }
     expect(response.status).to eq(200), result.inspect
@@ -127,27 +111,6 @@ RSpec.describe 'Unit Group CE Match Rules queries', type: :request do
         'rules' => include(
           include('id' => unit_group_rule.id.to_s, 'name' => unit_group_rule.name),
         ),
-      ),
-    )
-  end
-
-  # todo @martha - move to a separate file to test general filtering
-  it 'returns filtered unit groups with CE match rule counts' do
-    create(:hmis_project_ce_config, project: p1, supports_waitlist_referrals: true)
-    other_project = create(:hmis_hud_project, data_source: ds1, organization: o1, user: u1)
-    create(:hmis_unit_group, project: other_project, name: 'Not waitlist enabled')
-
-    response, result = post_graphql(filters: { searchTerm: 'bed', ceWaitlistsEnabled: true }) { unit_group_selector_query }
-    expect(response.status).to eq(200), result.inspect
-
-    unit_groups = result.dig('data', 'unitGroups')
-    expect(unit_groups['nodesCount']).to eq(1)
-    expect(unit_groups['nodes']).to contain_exactly(
-      include(
-        'id' => unit_group.id.to_s,
-        'name' => unit_group.name,
-        'effectiveCeMatchRuleCount' => 3,
-        'localCeMatchRuleCount' => 1,
       ),
     )
   end

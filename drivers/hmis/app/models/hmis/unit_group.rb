@@ -67,14 +67,21 @@ module Hmis
       joins(:project).merge(Hmis::Hud::Project.with_ce_waitlists_enabled)
     end
 
+    # Match unit groups by name or project name
     scope :matching_search_term, ->(search_term) do
-      # todo @martha - search by project, or project ID?
       return none unless search_term.present?
 
-      search_term.strip!
+      search_term = search_term.strip
       query = "%#{search_term.split(/\W+/).join('%')}%"
+      p_t = Hmis::Hud::Project.arel_table
 
-      where(arel_table[:name].matches(query))
+      joins(:project).where(
+        [
+          arel_table[:name].matches(query),
+          p_t[:ProjectName].matches(query),
+          possibly_pk?(search_term) ? arel_table[:id].eq(search_term) : nil,
+        ].compact.inject(&:or),
+      )
     end
 
     def self.apply_filters(input)
