@@ -9,7 +9,18 @@
 class Hmis::AuthPolicies::HmisClientPolicy < Hmis::AuthPolicies::ResourcePolicy
   class Instance < Hmis::AuthPolicies::BasePolicy
     def can_view?
-      client_permissions.include?(:can_view_clients)
+      return false unless client_permissions.include?(:can_view_clients)
+      return true unless resource.restricted?
+
+      client_permissions.include?(:can_view_restricted_clients)
+    end
+
+    def can_mark_restricted?
+      client_permissions.include?(:can_mark_clients_as_restricted)
+    end
+
+    def can_view_restricted_status?
+      resource.restricted? && can_view?
     end
 
     def can_edit?

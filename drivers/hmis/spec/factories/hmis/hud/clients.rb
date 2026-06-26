@@ -23,9 +23,11 @@ FactoryBot.define do
     DOB { (Date.current - 24.years).to_fs(:db) }
     transient do
       with_enrollment_at { nil }
+      restricted { false }
     end
     after(:create) do |client, evaluator|
       create(:hmis_hud_enrollment, client: client, data_source: client.data_source, project: evaluator.with_enrollment_at) if evaluator.with_enrollment_at.present?
+      create(:hmis_restricted_record, restrictable: client, data_source: client.data_source) if evaluator.restricted
       client.reload
     end
   end

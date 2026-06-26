@@ -981,7 +981,9 @@ CREATE TABLE public.hmis_roles (
     can_assign_referral_tasks boolean DEFAULT false,
     can_print_client_case_notes boolean DEFAULT false,
     can_update_unit_availability boolean DEFAULT false,
-    can_view_outgoing_referral_details boolean DEFAULT false
+    can_view_outgoing_referral_details boolean DEFAULT false,
+    can_view_restricted_clients boolean DEFAULT false,
+    can_mark_clients_as_restricted boolean DEFAULT false
 );
 
 
@@ -4249,6 +4251,7 @@ ALTER TABLE ONLY public.oauth_access_tokens
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260623120001'),
 ('20260620000000'),
 ('20260614130000'),
 ('20260611120000'),

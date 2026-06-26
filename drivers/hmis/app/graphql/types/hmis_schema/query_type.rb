@@ -366,6 +366,7 @@ module Types
         pluck(:destination_id)
 
       # Resolve each destination client as a ClientMergeCandidate
+      # TODO? Hmis::Hud::Client.visible_to(current_user).where(id: destination_ids_with_multiple_sources)
       Hmis::Hud::Client.where(id: destination_ids_with_multiple_sources)
     end
 
@@ -623,6 +624,7 @@ module Types
     def ce_clients(filters: nil)
       access_denied! unless current_user.can_administrate_coordinated_entry?
 
+      # TODO: restricted client visibility for CE — CE uses destination warehouse clients
       scope = Hmis::Ce::ClientProxy.for_warehouse_clients.
         joins(ce_match_candidates: :candidate_pool).
         merge(Hmis::Ce::Match::CandidatePool.active).

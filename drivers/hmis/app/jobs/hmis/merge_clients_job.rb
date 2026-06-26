@@ -131,6 +131,7 @@ module Hmis
       Rails.logger.info "Saving merged values to client #{client_to_retain.id}"
 
       client_to_retain.attributes = merged_attributes
+      client_to_retain.mark_as_restricted!(user: Hmis::User.find(actor.id)) if clients.any?(&:restricted?) && !client_to_retain.restricted?
       client_to_retain.save!(validate: false)
     end
 

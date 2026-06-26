@@ -37,6 +37,7 @@ module Types
     end
 
     def household_clients
+      # TODO: check visibility of clients?
       enrollments.map do |enrollment|
         {
           relationship_to_ho_h: enrollment.relationship_to_ho_h,

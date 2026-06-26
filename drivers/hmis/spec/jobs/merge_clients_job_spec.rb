@@ -29,6 +29,14 @@ RSpec.describe Hmis::MergeClientsJob, type: :model do
       expect(client2.reload.deleted?).to be_truthy
     end
 
+    it 'retains restricted flag if any source client is restricted' do
+      create(:hmis_restricted_record, restrictable: client2, data_source: data_source)
+
+      Hmis::MergeClientsJob.perform_now(client_ids: client_ids, actor_id: actor.id)
+
+      expect(client1.reload.restricted?).to be true
+    end
+
     it 'saves an audit trail' do
       expect do
         Hmis::MergeClientsJob.perform_now(client_ids: client_ids, actor_id: actor.id)
