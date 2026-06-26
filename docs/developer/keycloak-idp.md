@@ -24,7 +24,7 @@ usually already present; add if not):
 ```
 
 **2. Cookie secret + config.** The stack needs one secret. Set `OAUTH2_PROXY_COOKIE_SECRET` in
-`.env.development.local` (copy the line from `sample.env`), then generate the oauth2-proxy
+`.env.development.local` (copy the line from `sample.env.development.local`), then generate the oauth2-proxy
 alpha-config into the gitignored `dev/auth/`:
 
 ```bash

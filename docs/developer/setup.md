@@ -5,6 +5,7 @@ This document provides instructions for setting up the Open Path Warehouse for l
 Once you have the application running, you may find the [developer data guide](data.md) and [developer FAQ](faq.md) useful in gaining more familiarity with the application.
 
 The warehouse application consists of three main parts:
+
 1. The Rails Application Code
 2. The Rails Application Database
 3. The Warehouse Database
@@ -14,17 +15,20 @@ The warehouse application consists of three main parts:
 For macOS users, we provide a comprehensive installation script that handles all setup automatically:
 
 1. Clone the git repository
+
 ```bash
 git clone git@github.com:greenriver/hmis-warehouse.git
 cd hmis-warehouse
 ```
 
 2. Run the automated installer
+
 ```bash
 bin/developer/install.sh
 ```
 
 The installer will:
+
 - Validate your system environment
 - Install prerequisites (Homebrew, Colima, etc.)
 - Set up DNS resolution for development domains
@@ -33,6 +37,7 @@ The installer will:
 - Initialize the HMIS Warehouse application
 
 3. Start the application
+
 ```bash
 docker compose run --rm web
 ```
@@ -54,9 +59,9 @@ Once the infrastructure is set up (see [prerequisites.md](prerequisites.md)), co
 cd /path/to/hmis-warehouse
 
 # Copy environment files
-cp sample.env .env.development.local
+cp sample.env.development.local .env.development.local
 cp docs/sample_files/envrc.sample .envrc
-touch .env.local
+cp sample.env.local .env.local
 
 # Configure direnv
 direnv allow .
@@ -142,6 +147,7 @@ bin/developer/uninstall.sh
 ```
 
 This will:
+
 - Stop all Docker services
 - Clean up DNS configuration
 - Remove SSL certificates
