@@ -9,11 +9,9 @@
 # All Devise/Warden-path controller behavior, isolated here so the Devise teardown is a single-file
 # delete. Included into ApplicationController only under AuthMethod.devise?.
 #
-# NOTE: the before_action registrations that drive enforce_2fa! / skip_timeout / configure_permitted_parameters
-# live in ApplicationController, not in this concern's `included` block, on purpose: an `included` block
-# registers at the top of the class body, ahead of authenticate_user! and the rest of the chain, which
-# would silently reorder the filters. They are registered unconditionally there — Idp::CurrentUser provides
-# parallel (no-op) implementations under JWT — so no AuthMethod guard is needed. `impersonates :user` stays
+# NOTE: the before_action registrations that drive enforce_2fa! / skip_timeout /
+# configure_permitted_parameters deliberately live in ApplicationController, not in this concern's
+# `included` block — see the filter-order rationale there. `impersonates :user` likewise stays
 # Devise-only in ApplicationController's auth-strategy branch.
 module DeviseCurrentUser
   extend ActiveSupport::Concern

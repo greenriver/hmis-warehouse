@@ -31,8 +31,6 @@ module Idp
     # DELETE users/sign_out (and GET logout_talentlms) — clear the proxy session and return to
     # root_url via the rd parameter.
     def destroy
-      request.env['last_user'] = current_user
-
       redirect_to(
         "#{request.base_url}/oauth2/sign_out?rd=#{CGI.escape(root_url)}",
         allow_other_host: true,

@@ -8,12 +8,12 @@
 
 require 'rails_helper'
 
-# Phase 08 (L2.2) — proves the warehouse request layer wires the JWT auth path correctly when a
-# Deployment boots with AUTH_METHOD=jwt, while the Devise path is unchanged. The JWT examples run
-# only under the AUTH_METHOD=jwt CI process (they lean on the phase-07 JwtAuthenticationHelper, which
-# is included only when AuthMethod.jwt?). This includes the paper-trail whodunnit regression: it
-# asserts the JWT arm's current_user/true_user behavior, while the Devise arm keeps its warden.user
-# whodunnit verbatim. The route-surface and forced-logout examples are mode-agnostic.
+# Proves the warehouse request layer wires the JWT auth path correctly when a Deployment boots with
+# AUTH_METHOD=jwt, while the Devise path is unchanged. The JWT examples run only under the
+# AUTH_METHOD=jwt CI process (they lean on the JwtAuthenticationHelper, which is included only when
+# AuthMethod.jwt?). This includes the paper-trail whodunnit regression: it asserts the JWT arm's
+# current_user/true_user behavior, while the Devise arm keeps its warden.user whodunnit verbatim. The
+# route-surface and forced-logout examples are mode-agnostic.
 RSpec.describe 'Warehouse JWT wiring', type: :request do
   describe 'authentication via a forwarded JWT', if: AuthMethod.jwt? do
     let(:user) { create :user }
@@ -133,7 +133,7 @@ RSpec.describe 'Warehouse JWT wiring', type: :request do
   end
 
   describe 'route surface' do
-    it 'mounts /oauth/user-data only under Devise (A4)' do
+    it 'mounts /oauth/user-data only under Devise' do
       if AuthMethod.jwt?
         expect { Rails.application.routes.recognize_path('/oauth/user-data') }.
           to raise_error(ActionController::RoutingError)
@@ -145,8 +145,9 @@ RSpec.describe 'Warehouse JWT wiring', type: :request do
 
     it 'resolves the shared session route names to the right controller in each mode' do
       helpers = Rails.application.routes.url_helpers
-      # Calling the helper proves it exists (the ~900 *_path callers); recognize_path proves the name
-      # actually resolves to a live action — respond_to? alone would pass even if the path 404'd.
+      # Calling the helper proves it exists (the many *_path callers across the app depend on it);
+      # recognize_path proves the name actually resolves to a live action — respond_to? alone would
+      # pass even if the path 404'd.
       recognize = ->(path, method) { Rails.application.routes.recognize_path(path, method: method) }
       keepalive = recognize.call(helpers.session_keepalive_path, :post)
       logout = recognize.call(helpers.destroy_user_session_path, :delete)
@@ -161,7 +162,7 @@ RSpec.describe 'Warehouse JWT wiring', type: :request do
     end
   end
 
-  # Forced-logout machinery was dropped (2026-06-08) and built nowhere — guard against it creeping back.
+  # Forced-logout machinery (a JWT token denylist) was never built — guard against it creeping back.
   describe 'forced-logout is absent' do
     it 'registers no check_token_denylist! before-action' do
       filters = ApplicationController._process_action_callbacks.map(&:filter)

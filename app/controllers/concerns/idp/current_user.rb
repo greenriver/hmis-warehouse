@@ -26,14 +26,10 @@ module Idp::CurrentUser
     end
 
     def authenticate_user!
-      # Resolve current_user first (memoized, one find_or_create_from_jwt call); this also lets
-      # idp_authenticated_user_from_jwt flag a deactivated account so we can branch on the reason.
       return if current_user
 
-      # A deactivated user still holds a valid IdP token, so idp_handle_unauthenticated (a redirect
-      # to oauth2-proxy sign-in) would loop: the IdP re-issues a token and bounces them straight
-      # back. Show a terminal "contact your administrator" page instead.
-      return idp_handle_deactivated if @idp_account_deactivated
+      # A deactivated user holds a valid IdP token
+      return idp_handle_deactivated if idp_token_holder && !idp_token_holder.active?
 
       idp_handle_unauthenticated
     end
@@ -70,6 +66,19 @@ module Idp::CurrentUser
 
     private
 
+    # The human who holds the JWT — resolved once, regardless of active state or impersonation.
+    # current_user is nil for a deactivated account, so this is how authenticate_user! recovers
+    # the reason it's nil. active? lives on the base User and the row is shared with Hmis::User,
+    # so a plain User is sufficient for the deactivation check.
+    def idp_token_holder
+      return @idp_token_holder if defined?(@idp_token_holder)
+
+      @idp_token_holder = begin
+        jwt_helper = idp_jwt_helper_for_request
+        jwt_helper&.token? && jwt_helper.valid? ? User.find_or_create_from_jwt(jwt_helper) : nil
+      end
+    end
+
     # In production/development, reads the JWT from the X-Forwarded-Access-Token header
     # (set by oauth2-proxy). In system tests, TestJwtMiddleware promotes a cookie to this header.
     def idp_jwt_helper_for_request
@@ -90,27 +99,23 @@ module Idp::CurrentUser
     # Resolve the authenticated user from the JWT, applying impersonation. Generic over
     # user_class so both warehouse (User) and HMIS (Hmis::User) controllers can use it.
     def idp_authenticated_user_from_jwt(user_class: User)
-      jwt_helper = idp_jwt_helper_for_request
-      return nil unless jwt_helper&.token? && jwt_helper.valid?
-
-      # learn: true path — self-gates JIT creation on idp/auto_create_user and learns the
-      # Authentication Source link on every request (via Idp::UserProvisioner).
-      authenticated_user = User.find_or_create_from_jwt(jwt_helper)
+      # learn: true path — find_or_create_from_jwt self-gates JIT creation on idp/auto_create_user
+      # and learns the Authentication Source link on every request (via Idp::UserProvisioner).
+      # idp_token_holder memoizes that resolution so it runs once per request.
+      authenticated_user = idp_token_holder
       return nil unless authenticated_user
 
       # Kill-switch: a warehouse User deactivated locally (active = false) is denied access even
       # with a valid IdP token. This mirrors the ActionCable resolver (ApplicationCable::Connection,
       # which already gates on active?) and the legacy Devise active_for_authentication? check, so
-      # deactivating an account in the warehouse remains an effective lockout under JWT. The flag
-      # lets authenticate_user! render the deactivated page instead of redirect-looping to sign-in.
-      unless authenticated_user.active?
-        @idp_account_deactivated = true
-        return nil
-      end
+      # deactivating an account in the warehouse remains an effective lockout under JWT.
+      # authenticate_user! re-derives the deactivated reason from idp_token_holder.active?.
+      return nil unless authenticated_user.active?
 
       # Set the cookie so the sign-in page can route a logged-out user back to the right
       # Connector (the DB last_connector_id is unreadable when there's no current_user).
-      cookies.permanent[:last_connector_id] = jwt_helper.connector_id if jwt_helper.connector_id.present?
+      connector_id = idp_jwt_helper_for_request.connector_id
+      cookies.permanent[:last_connector_id] = connector_id if connector_id.present?
 
       # find_or_create_from_jwt can hand back a plain User even when the caller wants an
       # Hmis::User, so re-fetch by id as the requested class. Both use the users table — same row.

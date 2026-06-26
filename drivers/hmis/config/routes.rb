@@ -16,10 +16,10 @@ OpenPath::Application.routes.draw do
   # Routes for the HMIS API
   if ENV['ENABLE_HMIS_API'] == 'true'
     namespace :hmis, defaults: { format: :json } do
-      # AUTH_METHOD seam (minimal, phase-08 scope expansion): Hmis::User's `devise` macro is gated
-      # off under JWT (phase 07), so an ungated devise_for/devise_scope raises at route-draw and
-      # aborts the whole JWT boot. Gate the HMIS Devise auth surface so the app boots; full HMIS
-      # JWT wiring (oauth2-proxy login, the replacement session routes) is phase 09 (L2.3).
+      # AUTH_METHOD seam: Hmis::User's `devise` macro is gated off under JWT, so an ungated
+      # devise_for/devise_scope raises at route-draw and aborts the whole JWT boot. Gate the HMIS
+      # Devise auth surface so the app boots. Full HMIS JWT wiring (oauth2-proxy login, the
+      # replacement session routes) is not wired yet.
       if AuthMethod.devise?
         devise_for :users, class_name: 'Hmis::User',
                            skip: [:registrations, :invitations, :passwords, :confirmations, :unlocks, :password_expired],

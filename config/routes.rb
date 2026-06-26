@@ -7,7 +7,7 @@
 # frozen_string_literal: true
 
 Rails.application.routes.draw do
-  # A4: Doorkeeper's /oauth routes are Devise-path only; under JWT the IdP owns OAuth.
+  # Doorkeeper's /oauth routes are Devise-path only; under JWT the IdP owns OAuth.
   if AuthMethod.devise?
     use_doorkeeper
     get 'oauth/user-data', to: 'oauth#user'
@@ -24,8 +24,7 @@ Rails.application.routes.draw do
     end
   end
   # AUTH_METHOD seam: Devise mounts its session/invitation routes; under JWT the same route
-  # names are served by flat routes pointing at the oauth2-proxy-aware sessions controller, so
-  # the ~900 *_path callers resolve identically in both modes.
+  # names are served by flat routes pointing at the oauth2-proxy-aware sessions controller
   if AuthMethod.devise?
     devise_for :users, controllers: {
       invitations: 'users/invitations',
@@ -41,9 +40,7 @@ Rails.application.routes.draw do
       end
     end
   else
-    # Same route names as the Devise arm, served by Idp::SessionsController (oauth2-proxy aware),
-    # so the ~900 *_path callers resolve identically. session_keepalive accepts GET and POST: the
-    # inactivity modal's renew button POSTs to it (the Devise arm is via: :post).
+    # Same route names Devise, served by Idp::SessionsController
     get    'users/sign_in',     to: 'idp/sessions#new',       as: :new_user_session
     post   'users/sign_in',     to: 'idp/sessions#create',    as: :user_session
     delete 'users/sign_out',    to: 'idp/sessions#destroy',   as: :destroy_user_session
