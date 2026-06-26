@@ -1053,6 +1053,17 @@ input CeMatchRuleFilterOptions {
   global: Boolean
 }
 
+type CeMatchRuleGroup {
+  """
+  True if rules are owned at the current hierarchy level; false if inherited.
+  """
+  local: Boolean!
+  ownerId: ID!
+  ownerName: String!
+  ownerType: CeMatchRuleOwnerType!
+  rules: [CeMatchRule!]!
+}
+
 input CeMatchRuleInput {
   expression: String
   name: String
@@ -7645,6 +7656,11 @@ union OmnisearchResult = Client | Project
 
 type Organization {
   access: OrganizationAccess!
+
+  """
+  Number of unit groups under this organization in projects that have waitlist referrals enabled.
+  """
+  ceWaitlistUnitGroupCount: Int!
   contactInformation: String
   createdBy: ApplicationUser
   customDataElements: [CustomDataElement!]!
@@ -7652,8 +7668,23 @@ type Organization {
   dateDeleted: ISO8601DateTime
   dateUpdated: ISO8601DateTime
   description: String
+
+  """
+  Number of CE match rules that apply to this record, including inherited rules.
+  """
+  effectiveCeMatchRuleCount: Int!
+
+  """
+  All CE match rules that apply to this record, including inherited rules, grouped by their owner.
+  """
+  effectiveCeMatchRuleGroups: [CeMatchRuleGroup!]!
   hudId: ID!
   id: ID!
+
+  """
+  Number of CE match rules owned directly by this record.
+  """
+  localCeMatchRuleCount: Int!
   organizationName: String!
   projects(filters: ProjectsForEnrollmentFilterOptions, limit: Int, offset: Int, sortOrder: ProjectSortOption): ProjectsPaginated!
   user: ApplicationUser
@@ -7668,6 +7699,7 @@ type OrganizationAccess {
 }
 
 input OrganizationFilterOptions {
+  ceWaitlistsEnabled: Boolean
   searchTerm: String
 }
 
@@ -10071,6 +10103,7 @@ enum ProjectFilterOptionStatus {
 
 input ProjectFilterOptions {
   ceEnabled: Boolean
+  ceWaitlistsEnabled: Boolean
   funder: [FundingSource!]
   organization: [ID!]
   projectType: [ProjectType!]
@@ -10182,6 +10215,7 @@ enum ProjectType {
 }
 
 input ProjectsForEnrollmentFilterOptions {
+  ceWaitlistsEnabled: Boolean
   funder: [FundingSource!]
   projectType: [ProjectType!]
   searchTerm: String
