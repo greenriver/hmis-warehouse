@@ -1061,7 +1061,7 @@ type CeMatchRuleGroup {
   ownerId: ID!
   ownerName: String!
   ownerType: CeMatchRuleOwnerType!
-  rules(limit: Int, offset: Int): CeMatchRulesPaginated!
+  rules: [CeMatchRule!]!
 }
 
 input CeMatchRuleInput {
