@@ -17,7 +17,7 @@ module Types
     field :owner_name, String, null: false
     field :owner_type, Types::HmisSchema::Enums::CeMatchRuleOwnerType, null: false
     field :local, Boolean, null: false, description: 'True if rules are owned at the current hierarchy level; false if inherited.'
-    field :rules, HmisSchema::CeMatchRule.page_type, null: false
+    field :rules, [HmisSchema::CeMatchRule], null: false # Not paginated, since the expected number of rules per owner is small and already loaded into memory.
 
     def owner_id
       object.owner.id
@@ -34,7 +34,7 @@ module Types
     end
 
     def rules
-      Hmis::Ce::Match::Rule.where(id: object.rules.map(&:id)).order(:id)
+      object.rules.sort_by(&:id)
     end
   end
 end

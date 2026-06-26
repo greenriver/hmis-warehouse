@@ -46,12 +46,9 @@ RSpec.describe 'Organization CE Match Rules queries', type: :request do
             ownerType
             local
             rules {
-              nodesCount
-              nodes {
-                id
-                name
-                ownerType
-              }
+              id
+              name
+              ownerType
             }
           }
         }
@@ -95,8 +92,7 @@ RSpec.describe 'Organization CE Match Rules queries', type: :request do
         'ownerType' => 'DATA_SOURCE',
         'local' => false,
         'rules' => include(
-          'nodesCount' => 1,
-          'nodes' => [include('id' => global_rule.id.to_s, 'name' => global_rule.name)],
+          include('id' => global_rule.id.to_s, 'name' => global_rule.name),
         ),
       ),
       include(
@@ -104,8 +100,7 @@ RSpec.describe 'Organization CE Match Rules queries', type: :request do
         'ownerType' => 'ORGANIZATION',
         'local' => true,
         'rules' => include(
-          'nodesCount' => 1,
-          'nodes' => [include('id' => organization_rule.id.to_s, 'name' => organization_rule.name)],
+          include('id' => organization_rule.id.to_s, 'name' => organization_rule.name),
         ),
       ),
     )
@@ -147,7 +142,7 @@ RSpec.describe 'Organization CE Match Rules queries', type: :request do
     expect do
       response, result = post_graphql(id: o1.id) { organization_rules_query }
       expect(response.status).to eq(200), result.inspect
-      expect(result.dig('data', 'organization', 'effectiveCeMatchRuleGroups').sum { |group| group.dig('rules', 'nodesCount') }).to eq(12)
+      expect(result.dig('data', 'organization', 'effectiveCeMatchRuleGroups').sum { |group| group['rules'].size }).to eq(12)
     end.to make_database_queries(count: 20..28)
   end
 end
