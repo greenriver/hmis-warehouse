@@ -54,11 +54,8 @@ RSpec.describe 'Project CE Match Rules queries', type: :request do
             ownerType
             local
             rules {
-              nodesCount
-              nodes {
-                id
-                name
-              }
+              id
+              name
             }
           }
         }
@@ -81,8 +78,7 @@ RSpec.describe 'Project CE Match Rules queries', type: :request do
         'ownerType' => 'DATA_SOURCE',
         'local' => false,
         'rules' => include(
-          'nodesCount' => 1,
-          'nodes' => [include('id' => global_rule.id.to_s, 'name' => global_rule.name)],
+          include('id' => global_rule.id.to_s, 'name' => global_rule.name),
         ),
       ),
       include(
@@ -90,8 +86,7 @@ RSpec.describe 'Project CE Match Rules queries', type: :request do
         'ownerType' => 'ORGANIZATION',
         'local' => false,
         'rules' => include(
-          'nodesCount' => 1,
-          'nodes' => [include('id' => organization_rule.id.to_s, 'name' => organization_rule.name)],
+          include('id' => organization_rule.id.to_s, 'name' => organization_rule.name),
         ),
       ),
       include(
@@ -99,8 +94,7 @@ RSpec.describe 'Project CE Match Rules queries', type: :request do
         'ownerType' => 'PROJECT',
         'local' => true,
         'rules' => include(
-          'nodesCount' => 1,
-          'nodes' => [include('id' => project_rule.id.to_s, 'name' => project_rule.name)],
+          include('id' => project_rule.id.to_s, 'name' => project_rule.name),
         ),
       ),
     )
