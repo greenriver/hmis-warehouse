@@ -34,7 +34,7 @@ RSpec.describe 'Project CE Match Rules queries', type: :request do
   let!(:project_rule) do
     Hmis::Ce::Match::Rule.create!(
       owner: p1,
-      name: 'Must be living with a disability',
+      name: 'Must not be enrolled in PSH',
       rule_type: Hmis::Ce::Match::Rule::ELIGIBILITY_REQUIREMENT,
       expression: 'EXCLUDES(open_enrollment_project_types, PROJECT_TYPE("PH_PSH"))',
       applicability_config: {},
@@ -58,7 +58,6 @@ RSpec.describe 'Project CE Match Rules queries', type: :request do
               nodes {
                 id
                 name
-                ownerType
               }
             }
           }
