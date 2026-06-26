@@ -29,7 +29,7 @@ RSpec.describe 'Warehouse JWT wiring', type: :request do
     # These exercise the JWT filter-chain *wiring*, not token validation: the resolution chain is
     # stubbed (find_or_create_from_jwt + JwtHelper.new via sign_in), so they prove the before-action
     # chain admits a resolved user and reaches the action. Token→user resolution correctness (valid?
-    # false, find_or_create vs find_from_jwt, impersonation) lives in Idp::CurrentUser's spec. The
+    # false, find_or_create vs find_from_jwt, impersonation) lives in Idp::JwtCurrentUser's spec. The
     # deny side of the gate is the unauthenticated example below: it asserts a redirect rather than
     # keepalive's own head(:unauthorized), which is what proves authenticate_user! actually guards it.
     it 'admits an authenticated JWT request through the filter chain and reports token expiry (GET → 200)' do

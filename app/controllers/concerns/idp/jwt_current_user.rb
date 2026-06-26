@@ -12,7 +12,7 @@
 # impersonating? / warden on top of a validated JWT instead of a Devise/Warden session, so
 # existing call sites keep working unchanged once a Deployment flips to JWT. The token is read
 # from X-Forwarded-Access-Token, validated via Idp::JwtHelper, and resolved via User.find_or_create_from_jwt.
-module Idp::CurrentUser
+module Idp::JwtCurrentUser
   extend ActiveSupport::Concern
 
   included do

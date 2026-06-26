@@ -8,9 +8,9 @@
 
 require 'rails_helper'
 
-RSpec.describe Idp::CurrentUser, type: :controller, if: AuthMethod.jwt? do
+RSpec.describe Idp::JwtCurrentUser, type: :controller, if: AuthMethod.jwt? do
   controller(ActionController::Base) do
-    include Idp::CurrentUser
+    include Idp::JwtCurrentUser
 
     def index
       render plain: current_user&.id.to_s

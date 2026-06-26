@@ -14,11 +14,11 @@ class ApplicationController < ActionController::Base
   respond_to :html, :js, :json, :csv
 
   # AUTH_METHOD seam: under JWT, current_user / authenticate_user! / true_user / warden are
-  # provided by Idp::CurrentUser (off a validated forwarded JWT); under Devise they come from
+  # provided by Idp::JwtCurrentUser (off a validated forwarded JWT); under Devise they come from
   # the pretender macro + Warden. before_action :authenticate_user! (below) is satisfied either
   # way.
   if AuthMethod.jwt?
-    include Idp::CurrentUser
+    include Idp::JwtCurrentUser
   else
     impersonates :user
     include DeviseCurrentUser

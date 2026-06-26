@@ -12,7 +12,7 @@ module Idp
   # oauth2-proxy sidecar + the IdP, so these actions only bridge the legacy routes to proxy
   # redirects (sign-in/out) and report the forwarded token's expiry for the inactivity countdown
   # (keepalive). No Devise/Warden machinery is involved — current_user / authenticate_user! come
-  # from Idp::CurrentUser, which ApplicationController includes under JWT.
+  # from Idp::JwtCurrentUser, which ApplicationController includes under JWT.
   #
   # Only mounted by the AuthMethod.jwt? arm of config/routes.rb; the Devise arm routes the same
   # names to Users::SessionsController instead.
@@ -20,7 +20,7 @@ module Idp
     # sign-in is a redirect to the proxy, so these must not bounce off authenticate_user! first.
     skip_before_action :authenticate_user!, only: [:new, :create]
 
-    # GET/POST users/sign_in — nothing in the JWT flow routes here (Idp::CurrentUser redirects
+    # GET/POST users/sign_in — nothing in the JWT flow routes here (Idp::JwtCurrentUser redirects
     # straight to the proxy on an unauthenticated request); this only catches stray hits on the
     # legacy login route and forwards them to the proxy.
     def new
@@ -56,7 +56,7 @@ module Idp
 
     private
 
-    # Reuses the same sign-in path builder Idp::CurrentUser#idp_handle_unauthenticated uses:
+    # Reuses the same sign-in path builder Idp::JwtCurrentUser#idp_handle_unauthenticated uses:
     # connector from the last_connector_id cookie, original URL captured for post-auth return.
     def oauth2_proxy_sign_in_path
       Idp::Oauth2ProxySignInPath.call(
