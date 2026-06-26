@@ -64,7 +64,13 @@ module Hmis
     end
 
     scope :with_ce_waitlists_enabled, -> do
-      joins(:project).merge(Hmis::Hud::Project.with_ce_waitlists_enabled)
+      joins(:project).
+        # CE waitlists must be enabled in this unit group's project
+        merge(Hmis::Hud::Project.with_ce_waitlists_enabled).
+        # This unit group must have a workflow template specified.
+        # If it only has a direct_workflow_template_identifier, then it only accepts direct referrals
+        # (even if it is in a project with waitlists enabled)
+        where.not(workflow_template_identifier: nil)
     end
 
     # Match unit groups by name or project name

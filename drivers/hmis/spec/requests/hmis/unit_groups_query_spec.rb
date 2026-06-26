@@ -85,6 +85,8 @@ RSpec.describe 'Unit groups query', type: :request do
     create(:hmis_project_ce_config, project: p1, supports_waitlist_referrals: true)
     other_project = create(:hmis_hud_project, data_source: ds1, organization: o1, user: u1)
     create(:hmis_unit_group, project: other_project, name: 'Not waitlist enabled')
+    direct_referral_template = create(:hmis_workflow_definition_template, :with_basic_tasks, data_source: ds1)
+    create(:hmis_unit_group, project: p1, name: 'Direct referral only', workflow_template: nil, direct_referral_workflow_template: direct_referral_template)
 
     response, result = post_graphql(filters: { ceWaitlistsEnabled: true }) { query }
     expect(response.status).to eq(200), result.inspect
