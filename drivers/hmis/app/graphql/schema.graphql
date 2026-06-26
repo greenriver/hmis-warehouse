@@ -9865,6 +9865,16 @@ type Project {
   dateDeleted: ISO8601DateTime
   dateUpdated: ISO8601DateTime
   description: String
+
+  """
+  Number of CE match rules that apply to this record, including inherited rules.
+  """
+  effectiveCeMatchRuleCount: Int!
+
+  """
+  All CE match rules that apply to this record, including inherited rules, grouped by their owner.
+  """
+  effectiveCeMatchRuleGroups: [CeMatchRuleGroup!]!
   enrollments(filters: EnrollmentsForProjectFilterOptions, limit: Int, offset: Int, sortOrder: EnrollmentSortOption): EnrollmentsPaginated!
   externalFormSubmissions(filters: ExternalFormSubmissionFilterOptions, formDefinitionIdentifier: ID!, limit: Int, offset: Int): ExternalFormSubmissionsPaginated!
   funders(limit: Int, offset: Int, sortOrder: FunderSortOption): FundersPaginated!
@@ -9876,6 +9886,11 @@ type Project {
   id: ID!
   incomingReferralPostings(filters: ReferralPostingFilterOptions, limit: Int, offset: Int): ReferralPostingsPaginated!
   inventories(limit: Int, offset: Int, sortOrder: InventorySortOption): InventoriesPaginated!
+
+  """
+  Number of CE match rules owned directly by this record.
+  """
+  localCeMatchRuleCount: Int!
 
   """
   Forms for individual data elements that are collected at occurrence for this Project (e.g. Move-In Date)
