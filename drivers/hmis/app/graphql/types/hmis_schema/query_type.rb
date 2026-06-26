@@ -667,7 +667,7 @@ module Types
     end
 
     field :unit_groups, HmisSchema::UnitGroup.page_type, null: false, after_paginate: ->(nodes, ctx) {
-      # todo @martha - is this necessary?
+      # Preload project dependencies to avoid n+1s in the Project.authorized? check
       project_ids = nodes.map(&:project_id)
       ctx[:current_user].policy_context.preload_project_dependencies(project_ids)
     } do

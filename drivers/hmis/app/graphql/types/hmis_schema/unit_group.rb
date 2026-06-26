@@ -41,6 +41,8 @@ module Types
     end
 
     def project
+      # Since the project schema object has its own `authorized?` method using a policy,
+      # queries that return UnitGroup.project should preload project dependencies to avoid n+1s.
       load_ar_association(object, :project)
     end
 
