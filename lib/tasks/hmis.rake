@@ -13,14 +13,49 @@ namespace :hmis do
   end
 
   namespace :dev do
-    desc 'Create local data for issue 7430 unit referral history development'
+    # Creates a reusable local fixture for developing and manually testing Unit referral history.
+    #
+    # Optional env vars:
+    # - DATA_SOURCE_ID=<id>: HMIS data source to create records in. Required if multiple HMIS data sources exist.
+    # - AGENCY_ID=<id>: Agency for the generated application user. Defaults to the first agency.
+    #
+    # The fixture creates a waitlist-enabled target project, a direct-referral source project,
+    # one unit group, one physical unit, and referrals across historical waitlist, direct-send,
+    # accepted, rejected, and currently open opportunity scenarios.
+    desc 'Create local HMIS data for developing unit referral history workflows'
     task create_unit_referral_history_fixture: [:environment] do
       abort 'This task is only available in development.' unless Rails.env.development?
 
-      token = "issue-7430-#{Time.current.to_i}"
+      # Keep generated HUD identifiers under common 32-character limits.
+      token = "urh-#{Time.current.to_i}"
       password = Digest::SHA256.hexdigest(SecureRandom.hex)
 
-      create_app_user = lambda do |name:, email:|
+      select_data_source = lambda do
+        if ENV['DATA_SOURCE_ID'].present?
+          GrdaWarehouse::DataSource.hmis.find(ENV.fetch('DATA_SOURCE_ID'))
+        else
+          hmis_data_sources = GrdaWarehouse::DataSource.hmis
+          if hmis_data_sources.none?
+            abort 'No HMIS data sources found. Create one or re-run with DATA_SOURCE_ID=<id>.'
+          end
+          if hmis_data_sources.many?
+            abort 'Multiple HMIS data sources found. Re-run with DATA_SOURCE_ID=<id>.'
+          end
+
+          hmis_data_sources.sole
+        end
+      end
+
+      select_agency = lambda do
+        if ENV['AGENCY_ID'].present?
+          Agency.find(ENV.fetch('AGENCY_ID'))
+        else
+          Agency.order(:id).first ||
+            abort('No agencies found. Create an Agency or re-run with AGENCY_ID=<id>.')
+        end
+      end
+
+      create_app_user = lambda do |name:, email:, agency:|
         first_name, last_name = name.split(' ', 2)
         User.create!(
           first_name: first_name,
@@ -30,7 +65,7 @@ namespace :hmis do
           password_confirmation: password,
           confirmed_at: Time.current,
           notify_on_vispdat_completed: false,
-          agency_id: 1,
+          agency: agency,
         )
       end
 
@@ -101,30 +136,35 @@ namespace :hmis do
           referral_origin: origin,
           source_enrollment: source_enrollment,
           target_enrollment: target_enrollment,
-          custom_status: Hmis::Ce::CustomReferralStatus.find_by!(data_source: workflow_template.data_source, key: status),
+          custom_status: Hmis::Ce::CustomReferralStatus.find_by!(
+            data_source: workflow_template.data_source,
+            key: status,
+          ),
         )
         referral.update_columns(created_at: created_at, updated_at: created_at + 2.days)
         referral
       end
 
-      # data_source = GrdaWarehouse::DataSource.create!(
-      #   name: "HMIS Issue 7430 #{token}",
-      #   short_name: "HMIS 7430 #{Time.current.to_i}",
-      #   source_type: :sftp,
-      #   hmis: token,
-      # )
-      data_source = GrdaWarehouse::DataSource.hmis.sole
+      data_source = select_data_source.call
+      agency = select_agency.call
       CeWorkflows::Shared::CeBuilderUtils.create_state_machine_custom_statuses(data_source)
 
-      app_user = create_app_user.call(name: 'Issue 7430 Referrer', email: "#{token}@example.com")
+      app_user = create_app_user.call(
+        name: 'Referral History Referrer',
+        email: "#{token}@example.com",
+        agency: agency,
+      )
       hmis_referrer = Hmis::User.find(app_user.id)
-      hud_user = create_hud_user.call(data_source: data_source, user_id: "hud-user-#{token}")
+      hud_user = create_hud_user.call(
+        data_source: data_source,
+        user_id: "hud-user-#{token}",
+      )
 
       organization = Hmis::Hud::Organization.create!(
         data_source: data_source,
         user: hud_user,
         organization_id: "org-#{token}",
-        organization_name: 'Issue 7430 Organization',
+        organization_name: 'Referral History Fixture Organization',
         victim_service_provider: false,
         date_created: Time.current,
         date_updated: Time.current,
@@ -134,13 +174,13 @@ namespace :hmis do
         data_source: data_source,
         hud_user: hud_user,
         organization: organization,
-        name: 'Issue 7430 Target Housing Project',
+        name: 'Referral History Target Housing Project',
       )
       source_project = create_project.call(
         data_source: data_source,
         hud_user: hud_user,
         organization: organization,
-        name: 'Issue 7430 Source Outreach Project',
+        name: 'Referral History Source Outreach Project',
       )
 
       Hmis::ProjectCeConfig.create!(
@@ -160,8 +200,8 @@ namespace :hmis do
 
       workflow_template = Hmis::WorkflowDefinition::Template.create!(
         data_source: data_source,
-        identifier: "issue_7430_referral_workflow_#{token}",
-        name: 'Issue 7430 Referral Workflow',
+        identifier: "unit_referral_history_workflow_#{token}",
+        name: 'Referral History Fixture Workflow',
         template_type: 'ce_referral',
         version: 0,
         status: 'published',
@@ -169,21 +209,45 @@ namespace :hmis do
 
       unit_group = Hmis::UnitGroup.create!(
         project: target_project,
-        name: 'Issue 7430 Unit Group',
+        name: 'Referral History Fixture Unit Group',
         workflow_template_identifier: workflow_template.identifier,
       )
       unit = Hmis::Unit.create!(
         project: target_project,
         unit_group: unit_group,
         user: app_user,
-        name: 'Issue 7430 Physical Unit',
+        name: 'Referral History Fixture Physical Unit',
       )
 
       clients = [
-        create_client.call(data_source: data_source, hud_user: hud_user, personal_id: "client-accepted-#{token}", first_name: 'Alex', last_name: 'Accepted'),
-        create_client.call(data_source: data_source, hud_user: hud_user, personal_id: "client-declined-#{token}", first_name: 'Blair', last_name: 'Declined'),
-        create_client.call(data_source: data_source, hud_user: hud_user, personal_id: "client-direct-#{token}", first_name: 'Casey', last_name: 'Direct'),
-        create_client.call(data_source: data_source, hud_user: hud_user, personal_id: "client-current-#{token}", first_name: 'Devon', last_name: 'Current'),
+        create_client.call(
+          data_source: data_source,
+          hud_user: hud_user,
+          personal_id: "client-accepted-#{token}",
+          first_name: 'Alex',
+          last_name: 'Accepted',
+        ),
+        create_client.call(
+          data_source: data_source,
+          hud_user: hud_user,
+          personal_id: "client-declined-#{token}",
+          first_name: 'Blair',
+          last_name: 'Declined',
+        ),
+        create_client.call(
+          data_source: data_source,
+          hud_user: hud_user,
+          personal_id: "client-direct-#{token}",
+          first_name: 'Casey',
+          last_name: 'Direct',
+        ),
+        create_client.call(
+          data_source: data_source,
+          hud_user: hud_user,
+          personal_id: "client-recent-#{token}",
+          first_name: 'Devon',
+          last_name: 'Recent',
+        ),
       ]
 
       source_enrollment = create_enrollment.call(
@@ -202,10 +266,26 @@ namespace :hmis do
       )
 
       opportunities = [
-        Hmis::Ce::Opportunity.create!(unit: unit, name: 'Issue 7430 Accepted Opportunity', status: 'closed'),
-        Hmis::Ce::Opportunity.create!(unit: unit, name: 'Issue 7430 Declined Opportunity', status: 'closed'),
-        Hmis::Ce::Opportunity.create!(unit: unit, name: 'Issue 7430 Direct Opportunity', status: 'closed'),
-        Hmis::Ce::Opportunity.create!(unit: unit, name: 'Issue 7430 Open Opportunity', status: 'open'),
+        Hmis::Ce::Opportunity.create!(
+          unit: unit,
+          name: 'Referral History Accepted Opportunity',
+          status: 'closed',
+        ),
+        Hmis::Ce::Opportunity.create!(
+          unit: unit,
+          name: 'Referral History Declined Opportunity',
+          status: 'closed',
+        ),
+        Hmis::Ce::Opportunity.create!(
+          unit: unit,
+          name: 'Referral History Direct Opportunity',
+          status: 'closed',
+        ),
+        Hmis::Ce::Opportunity.create!(
+          unit: unit,
+          name: 'Referral History Open Opportunity',
+          status: 'open',
+        ),
       ]
 
       referrals = [
@@ -249,11 +329,14 @@ namespace :hmis do
         ),
       ]
 
-      puts 'Created issue 7430 unit referral history fixture.'
+      puts 'Created unit referral history fixture.'
+      puts 'Fixture includes accepted, rejected, direct-send, and recent waitlist referrals for one physical unit.'
       puts "Data Source ID: #{data_source.id}"
+      puts "Agency ID: #{agency.id}"
       puts "Target Project ID: #{target_project.id}"
       puts "Source Project ID: #{source_project.id}"
       puts "Unit ID: #{unit.id}"
+      puts "Frontend unit path: /projects/#{target_project.id}/unit/#{unit.id}"
       puts "Latest Opportunity ID: #{unit.reload.latest_opportunity.id}"
       puts "Opportunity IDs: #{opportunities.map { |opportunity| "#{opportunity.id} (#{opportunity.status})" }.join(', ')}"
       puts "Referral IDs: #{referrals.map(&:id).join(', ')}"
