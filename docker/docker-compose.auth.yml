@@ -140,6 +140,11 @@ services:
           /dex.yaml.template > /tmp/dex.yaml
         exec dex serve /tmp/dex.yaml
     hostname: dex
+    # Resolve Keycloak to Traefik (host-gateway) so Dex's OIDC connector reaches it
+    # over https://op-keycloak.dev.test (port 443), not the internal container :8080.
+    # Same pattern oauth2-proxy uses to reach dex.dev.test.
+    extra_hosts:
+      - "op-keycloak.dev.test:host-gateway"
     volumes:
       - "./docker/auth/dev.dex.yaml.template:/dex.yaml.template:ro"
       - "./docker/auth:/auth:ro"

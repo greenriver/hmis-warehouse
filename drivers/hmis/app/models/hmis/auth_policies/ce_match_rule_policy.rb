@@ -8,7 +8,8 @@
 
 class Hmis::AuthPolicies::CeMatchRulePolicy < Hmis::AuthPolicies::ResourcePolicy
   class Instance < Hmis::AuthPolicies::BasePolicy
-    def can_create? = can_manage?
+    def can_create? = can_manage? # Called on built-but-unpersisted rules, to confirm the user can create a rule for this owner
+    def can_view? = can_manage?
     def can_update? = can_manage?
     def can_delete? = can_manage?
 
@@ -40,11 +41,13 @@ class Hmis::AuthPolicies::CeMatchRulePolicy < Hmis::AuthPolicies::ResourcePolicy
   end
 
   class Global < Hmis::AuthPolicies::BasePolicy
-    def can_create?
+    def can_manage?
       return false unless Hmis::Ce.configuration.enabled?
 
       global_permissions.include?(:can_administrate_coordinated_entry)
     end
+
+    def can_create? = can_manage?
 
     protected
 

@@ -28,7 +28,6 @@ namespace :storage do
     GrdaWarehouse::Tasks::TaskInstrumentation.call('storage:move_to_s3', alert_threshold: 36.hours) do |run|
       {
         GrdaWarehouse::HmisExport => :with_attached_hmis_zip,
-        GrdaWarehouse::SecureFile => :with_attached_secure_file,
         GrdaWarehouse::AdHocBatch => :with_attached_batch_file,
 
         # The following are classes that remain to be moved
@@ -49,6 +48,7 @@ namespace :storage do
 
         # The following were previously moved, leaving here to make adding
         # future files easier.
+        # GrdaWarehouse::SecureFile => :with_attached_secure_file,
         # GrdaWarehouse::Upload => :with_attached_hmis_zip,
         # GrdaWarehouse::ClientFile => :with_attached_client_file,
       }.each do |klass, preload|

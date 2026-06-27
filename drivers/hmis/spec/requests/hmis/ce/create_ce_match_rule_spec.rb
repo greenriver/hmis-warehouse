@@ -42,7 +42,7 @@ RSpec.describe 'createCeMatchRule mutation', type: :request do
       name: 'Must be 18 or older',
       ownerId: ds1.id,
       ownerType: 'DATA_SOURCE',
-      ruleType: 'eligibility_requirement',
+      ruleType: 'ELIGIBILITY_REQUIREMENT',
       expression: 'current_age >= 18',
     }
   end
@@ -83,9 +83,17 @@ RSpec.describe 'createCeMatchRule mutation', type: :request do
     end.to change(Hmis::Ce::Match::Rule, :count).by(1)
   end
 
+  it 'defaults omitted owner to a global rule in the current data source' do
+    response, result = post_graphql(input: base_input.except(:ownerId, :ownerType)) { mutation }
+    expect(response.status).to eq(200), result.inspect
+
+    rule = Hmis::Ce::Match::Rule.find(result.dig('data', 'createCeMatchRule', 'rule', 'id'))
+    expect(rule.owner).to eq(ds1)
+  end
+
   it 'creates a priority scheme' do
     input = base_input.merge(
-      ruleType: 'priority_scheme',
+      ruleType: 'PRIORITY_SCHEME',
       expression: 'current_age',
       priorityRank: 1,
     )
@@ -114,6 +122,21 @@ RSpec.describe 'createCeMatchRule mutation', type: :request do
     expect(result.dig('data', 'createCeMatchRule', 'rule', 'expression')).to eq('current_age >= 18')
   end
 
+  it 'coerces enum-backed structured expression values' do
+    input = base_input.except(:expression).merge(
+      structuredExpression: {
+        operator: 'AND',
+        clauses: [
+          { field: 'veteran_status', comparator: 'EQ', value: 'YES' },
+        ],
+      },
+    )
+
+    response, result = post_graphql(input: input) { mutation }
+    expect(response.status).to eq(200), result.inspect
+    expect(result.dig('data', 'createCeMatchRule', 'rule', 'expression')).to eq('veteran_status = 1')
+  end
+
   it 'returns validation errors without saving' do
     # Validation is tested more thoroughly in the spec for Hmis::Ce::Match::Expression::Validator
     expect do
@@ -135,7 +158,10 @@ RSpec.describe 'createCeMatchRule mutation', type: :request do
       errors = result.dig('data', 'createCeMatchRule', 'errors')
       expect(errors.first).to include('severity' => 'warning')
       expect(errors.first.dig('data', 'affectedUnitGroups').first).to include(
-        'unitGroupId' => unit_group.id.to_s,
+        'id' => unit_group.id.to_s,
+        'unitGroupName' => unit_group.name,
+        'projectId' => p1.id.to_s,
+        'projectName' => p1.name,
         'currentCandidateCount' => 4,
         'removedCandidateCount' => 1,
       )

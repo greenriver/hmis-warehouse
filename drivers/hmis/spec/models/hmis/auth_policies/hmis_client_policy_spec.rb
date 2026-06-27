@@ -157,6 +157,51 @@ RSpec.describe Hmis::AuthPolicies::HmisClientPolicy, type: :model do
         end
       end
     end
+
+    describe '#can_edit_some_enrollments?' do
+      context 'when user can edit enrollments at an enrolled project' do
+        let!(:access_control) do
+          create_access_control(
+            user,
+            project,
+            with_permission: [:can_view_clients, :can_view_project, :can_view_enrollment_details, :can_edit_enrollments],
+          )
+        end
+
+        it 'returns true' do
+          expect(policy.can_edit_some_enrollments?).to be true
+        end
+      end
+
+      context 'when user can view but not edit enrollments at an enrolled project' do
+        let!(:access_control) do
+          create_access_control(
+            user,
+            project,
+            with_permission: [:can_view_clients, :can_view_project, :can_view_enrollment_details],
+          )
+        end
+
+        it 'returns false' do
+          expect(policy.can_edit_some_enrollments?).to be false
+        end
+      end
+
+      context 'when user can edit enrollments only at a different project' do
+        let!(:other_project) { create(:hmis_hud_project, organization: organization, data_source: data_source) }
+        let!(:access_control) do
+          create_access_control(
+            user,
+            other_project,
+            with_permission: [:can_view_clients, :can_view_project, :can_view_enrollment_details, :can_edit_enrollments],
+          )
+        end
+
+        it 'returns false' do
+          expect(policy.can_edit_some_enrollments?).to be false
+        end
+      end
+    end
   end
 
   context 'when client has no enrollments' do
@@ -168,6 +213,20 @@ RSpec.describe Hmis::AuthPolicies::HmisClientPolicy, type: :model do
 
     context 'without any permissions' do
       include_examples 'permission checks without access'
+    end
+
+    describe '#can_edit_some_enrollments?' do
+      let!(:access_control) do
+        create_access_control(
+          user,
+          project,
+          with_permission: [:can_view_clients, :can_view_project, :can_view_enrollment_details, :can_edit_enrollments],
+        )
+      end
+
+      it 'returns true if user has enrollment edit permission anywhere' do
+        expect(policy.can_edit_some_enrollments?).to be true
+      end
     end
   end
 

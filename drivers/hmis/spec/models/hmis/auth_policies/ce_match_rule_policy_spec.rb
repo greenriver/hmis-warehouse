@@ -18,11 +18,12 @@ RSpec.describe Hmis::AuthPolicies::CeMatchRulePolicy, type: :model do
   let(:other_data_source) { create(:hmis_data_source) }
   let(:user) { create(:hmis_user, data_source: data_source) }
 
-  describe 'Global#can_create?' do
+  describe 'Global#can_create? and #can_manage?' do
     let(:policy) { user.policy_for(Hmis::Ce::Match::Rule, policy_type: :ce_match_rule) }
 
     it 'returns false without can_administrate_coordinated_entry' do
       expect(policy.can_create?).to be false
+      expect(policy.can_manage?).to be false
     end
 
     context 'when user has can_administrate_coordinated_entry' do
@@ -30,6 +31,7 @@ RSpec.describe Hmis::AuthPolicies::CeMatchRulePolicy, type: :model do
 
       it 'returns true' do
         expect(policy.can_create?).to be true
+        expect(policy.can_manage?).to be true
       end
     end
   end
@@ -40,6 +42,7 @@ RSpec.describe Hmis::AuthPolicies::CeMatchRulePolicy, type: :model do
 
     it 'returns false without can_administrate_coordinated_entry' do
       expect(policy.can_create?).to be false
+      expect(policy.can_view?).to be false
       expect(policy.can_update?).to be false
       expect(policy.can_delete?).to be false
     end
@@ -49,6 +52,7 @@ RSpec.describe Hmis::AuthPolicies::CeMatchRulePolicy, type: :model do
 
       it 'returns true for a rule in the current data source' do
         expect(policy.can_create?).to be true
+        expect(policy.can_view?).to be true
         expect(policy.can_update?).to be true
         expect(policy.can_delete?).to be true
       end
@@ -58,6 +62,7 @@ RSpec.describe Hmis::AuthPolicies::CeMatchRulePolicy, type: :model do
 
         it 'returns false' do
           expect(policy.can_create?).to be false
+          expect(policy.can_view?).to be false
           expect(policy.can_update?).to be false
           expect(policy.can_delete?).to be false
         end
@@ -69,6 +74,7 @@ RSpec.describe Hmis::AuthPolicies::CeMatchRulePolicy, type: :model do
 
         it 'returns true' do
           expect(policy.can_create?).to be true
+          expect(policy.can_view?).to be true
           expect(policy.can_update?).to be true
           expect(policy.can_delete?).to be true
         end
@@ -78,6 +84,7 @@ RSpec.describe Hmis::AuthPolicies::CeMatchRulePolicy, type: :model do
 
           it 'returns false' do
             expect(policy.can_create?).to be false
+            expect(policy.can_view?).to be false
             expect(policy.can_update?).to be false
             expect(policy.can_delete?).to be false
           end

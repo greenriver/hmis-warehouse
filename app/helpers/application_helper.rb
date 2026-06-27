@@ -481,6 +481,7 @@ module ApplicationHelper
   # @param [String] list_partial The path to the partial used to render the list items.
   # @param [Hash] list_locals Optional additional local variables to pass to the list partial.
   # @param [String, nil] url Optional URL to use for pagination links. If not provided, uses current request path.
+  # @param [String, nil] empty_message Optional message shown when the scope is empty; replaces the default "No #{item_name.pluralize} found".
   #
   # @return [String] HTML markup for the paginated list with controls.
   #
@@ -488,10 +489,10 @@ module ApplicationHelper
   #   render_paginated_list(scope: users, item_name: 'user', list_partial: 'users/card')
   #   render_paginated_list(scope: users, item_name: 'user', list_partial: 'users/card', list_locals: { headers: headers })
   #
-  def render_paginated_list(scope:, item_name:, list_partial:, list_locals: {}.freeze, url: nil)
+  def render_paginated_list(scope:, item_name:, list_partial:, list_locals: {}.freeze, url: nil, empty_message: nil)
     pagy_sym = scope.is_a?(Array) ? :pagy_array : :pagy
     pagy, list = controller.send(pagy_sym, scope)
-    render_paginated_list_with_explicit_pagy(pagy: pagy, list: list, item_name: item_name, list_partial: list_partial, list_locals: list_locals, url: url)
+    render_paginated_list_with_explicit_pagy(pagy: pagy, list: list, item_name: item_name, list_partial: list_partial, list_locals: list_locals, url: url, empty_message: empty_message)
   end
 
   # Renders a paginated list of the items in `list` with pagination controls at the top and bottom based
@@ -504,14 +505,15 @@ module ApplicationHelper
   # @param [String] list_partial The path to the partial used to render the list items.
   # @param [Hash] list_locals Optional additional local variables to pass to the list partial.
   # @param [String, nil] url Optional URL to use for pagination links. If not provided, uses current request path.
+  # @param [String, nil] empty_message Optional message shown when the list is empty; replaces the default "No #{item_name.pluralize} found".
   # @return [String] HTML markup for the paginated list with controls.
   #
   # @example Usage:
   #   render_paginated_list_with_explicit_pagy(pagy: @pagy, scope: @user_array, item_name: 'user', list_partial: 'users/card')
   #   render_paginated_list_with_explicit_pagy(pagy: @pagy, list: @users, item_name: 'user', list_partial: 'users/card', list_locals: { show_actions: true })
   #
-  def render_paginated_list_with_explicit_pagy(pagy:, list:, item_name:, list_partial:, list_locals: {}.freeze, url: nil)
-    return content_tag(:div, "No #{item_name.pluralize} found", class: 'none-found') if pagy.count.zero?
+  def render_paginated_list_with_explicit_pagy(pagy:, list:, item_name:, list_partial:, list_locals: {}.freeze, url: nil, empty_message: nil)
+    return content_tag(:div, empty_message || "No #{item_name.pluralize} found", class: 'none-found') if pagy.count.zero?
 
     pagy.vars[:custom_url] = url if url.present?
 

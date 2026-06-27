@@ -57,7 +57,8 @@ module HmisExternalApis::AcHmis
       mh_aha: 'MH-AHA',
       visionlink: 'VisionLink',
     }.freeze
-    VALID_SCORES = [-1, *(1..10)].freeze # AHA and MH-AHA can be -1 or 1..10, but not zero.
+    AHA_VALID_SCORES = [-1, *(1..10)].freeze # AHA can be -1 or 1..10, but not zero.
+    MH_AHA_VALID_SCORES = [-1, 0, *(1..10)].freeze # MH-AHA can be -1, 0, or 1..10.
     CONNECTION_TIMEOUT_SECONDS = Rails.env.staging? ? 15 : 10
 
     Error = HmisErrors::ApiError.new(display_message: 'Failed to connect to AHA')
@@ -98,7 +99,7 @@ module HmisExternalApis::AcHmis
       data = result.parsed_body&.dig('data')
       raise(Error, "Scores API response missing `data` key. Response body: `#{result.parsed_body}`") unless data
 
-      parsed_by_generator = parse_response_scores(data)
+      parsed_by_generator = parse_response_scores(data, requested_generators)
       build_results(parsed_by_generator, requested_generators)
     end
 
@@ -116,11 +117,15 @@ module HmisExternalApis::AcHmis
       @conn ||= HmisExternalApis::ApiKeyConnection.new(creds, connection_timeout: CONNECTION_TIMEOUT_SECONDS)
     end
 
+    # The generator field from the API may vary in casing or include version suffixes
+    # (e.g. 'VisionLink 2.0'). Slugify and match against our canonical generator labels.
     def normalize_generator(raw)
-      normalized = raw.to_s.downcase.strip.tr('_', '-')
-      GENERATORS.find do |key, label|
-        key.to_s.tr('_', '-') == normalized || label.downcase == normalized
-      end&.first
+      slug = slugify_generator(raw)
+      GENERATORS.find { |_key, label| slugify_generator(label) == slug }&.first
+    end
+
+    def slugify_generator(value)
+      value.to_s.downcase.strip.tr('_', '-').gsub(/[^a-z-]/, '')
     end
 
     # Walks the API `data` array (one element per matching client) and collects valid parsed
@@ -128,6 +133,9 @@ module HmisExternalApis::AcHmis
     # may each appear as separate clients. Unknown generators are skipped. Invalid entries are
     # skipped after logging to Sentry (see parse_score_entry). The highest score per generator is
     # chosen later in build_results.
+    #
+    # Only entries for requested generators are parsed, so unrelated score shapes in the response
+    # do not trigger validation errors or Sentry noise.
     #
     # Example API shape:
     #   data: [
@@ -142,7 +150,7 @@ module HmisExternalApis::AcHmis
     #
     # Example return value:
     #   { aha: [AhaResult(score: 7, ...), AhaResult(score: 9, ...)], mh_aha: [MhAhaResult(score: 5, ...)] }
-    def parse_response_scores(data)
+    def parse_response_scores(data, requested_generators)
       parsed_by_generator = Hash.new { |hash, key| hash[key] = [] }
 
       data.each do |response_client|
@@ -153,6 +161,7 @@ module HmisExternalApis::AcHmis
         response_client.dig('scores')&.each do |score_obj|
           generator_key = normalize_generator(score_obj['generator'])
           next unless generator_key
+          next unless requested_generators.include?(generator_key) # skip parsing unrequested generator
 
           parsed = parse_score_entry(score_obj, dw_client_id, generator_key)
           parsed_by_generator[generator_key] << parsed if parsed
@@ -194,7 +203,7 @@ module HmisExternalApis::AcHmis
     #   dw_client_id: '100000001'
     #   => AhaScores::AhaResult(score: 8, mci_quality_indicator: 0, dw_client_id: '100000001', generator: 'AHA')
     def parse_aha_entry(score_obj, dw_client_id)
-      score = parse_standard_score(score_obj.dig('score'))
+      score = parse_aha_score(score_obj.dig('score'))
 
       AhaScores::AhaResult.new(
         score: score,
@@ -205,14 +214,14 @@ module HmisExternalApis::AcHmis
       )
     end
 
-    # Parses an MH-AHA generator entry. Uses the same score validation as AHA ([-1, 1..10]).
+    # Parses an MH-AHA generator entry. Score must be an integer in [-1, 0, 1..10].
     #
     # Example:
     #   score_obj: { 'score' => 5, 'generator' => 'MH-AHA', 'metadata' => { 'row_id' => '123', 'run_id' => 'aha_abc' } }
     #   dw_client_id: '100000022'
     #   => AhaScores::MhAhaResult(score: 5, dw_client_id: '100000022', generator: 'MH-AHA')
     def parse_mh_aha_entry(score_obj, dw_client_id)
-      score = parse_standard_score(score_obj.dig('score'))
+      score = parse_mh_aha_score(score_obj.dig('score'))
 
       AhaScores::MhAhaResult.new(
         score: score,
@@ -230,9 +239,7 @@ module HmisExternalApis::AcHmis
     #     'score' => -999,
     #     'generator' => 'VisionLink',
     #     'metadata' => {
-    #       'is_eligible_ra' => false, 'currently_unhoused' => false, 'is_eligible_cc' => true,
-    #       'homeless_risk' => 0, 'section_8' => 0, 'city_of_pittsburgh' => 0,
-    #       'subsidized_housing' => 0, 'recent_erap_use' => 0,
+    #       'is_eligible_ra' => false, 'section_8' => 0, 'city_of_pittsburgh' => 0
     #     },
     #   }
     #   dw_client_id: '100000022'
@@ -244,25 +251,32 @@ module HmisExternalApis::AcHmis
 
       metadata = score_obj['metadata'] || {}
 
+      # send a message to sentry if any of the expected flags are missing
+      missing_fields = ['is_eligible_ra', 'section_8', 'city_of_pittsburgh', 'subsidized_housing', 'recent_eviction_case'] - metadata.keys
+      Sentry.capture_message("VisionLink metadata missing fields: #{missing_fields.join(', ')}") if missing_fields.any?
+
       AhaScores::VisionLinkResult.new(
         score: score_value,
         dw_client_id: dw_client_id,
         generator: score_obj['generator'],
-        is_eligible_ra: metadata['is_eligible_ra'],
-        currently_unhoused: metadata['currently_unhoused'],
-        is_eligible_cc: metadata['is_eligible_cc'],
-        homeless_risk: metadata['homeless_risk'],
-        section_8: metadata['section_8'],
-        city_of_pittsburgh: metadata['city_of_pittsburgh'],
-        subsidized_housing: metadata['subsidized_housing'],
-        recent_erap_use: metadata['recent_erap_use'],
+        is_eligible_ra: metadata['is_eligible_ra'] == true,          # 'Risk of Homelessness Flag'
+        section_8: metadata['section_8'] == 1,                       # 'Section 8 Housing Flag'
+        city_of_pittsburgh: metadata['city_of_pittsburgh'] == 1,     # 'City of Pittsburgh Flag'
+        subsidized_housing: metadata['subsidized_housing'] == 1,     # 'Subsidized Housing Flag'
+        recent_eviction_case: metadata['recent_eviction_case'] == 1, # 'Recent Eviction Case Flag'
       )
     end
 
-    # Parse "standard" scores (AHA and MH-AHA) that are integers in [-1, 1..10]
-    def parse_standard_score(score_value)
+    def parse_aha_score(score_value)
       raise ArgumentError, 'Received blank score' if score_value.blank?
-      raise ArgumentError, "Received invalid score: #{score_value.inspect}" unless score_value.is_a?(Numeric) && score_value % 1 == 0 && VALID_SCORES.include?(score_value.to_i)
+      raise ArgumentError, "Received invalid score: #{score_value.inspect}" unless score_value.is_a?(Numeric) && score_value % 1 == 0 && AHA_VALID_SCORES.include?(score_value.to_i)
+
+      score_value.to_i
+    end
+
+    def parse_mh_aha_score(score_value)
+      raise ArgumentError, 'Received blank score' if score_value.blank?
+      raise ArgumentError, "Received invalid score: #{score_value.inspect}" unless score_value.is_a?(Numeric) && score_value % 1 == 0 && MH_AHA_VALID_SCORES.include?(score_value.to_i)
 
       score_value.to_i
     end
