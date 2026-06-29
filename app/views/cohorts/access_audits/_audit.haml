@@ -11,13 +11,21 @@
     %p
       Currently
       %strong= audit.current_access.user_count
-      = "#{'user'.pluralize(audit.current_access.user_count)} can access this cohort via"
+      = "active #{'user'.pluralize(audit.current_access.user_count)} can access this cohort via"
       %strong= audit.current_access.path_count
       = "#{'path'.pluralize(audit.current_access.path_count)}."
-    - if audit.current_access.users.any?
-      %ul.mb-0
-        - audit.current_access.users.sort_by { |u| u.name.to_s }.each do |access_user|
-          %li= access_user.name
+    - if audit.current_access.user_accesses.any?
+      .table-responsive
+        %table.table.table-sm.mb-0
+          %thead
+            %tr
+              %th User
+              %th Access via
+          %tbody
+            - audit.current_access.user_accesses.each do |ua|
+              %tr
+                %td= ua.user.name
+                %td= ua.path_labels.join(', ')
 .text-right.mb-3
   = link_to 'Export CSV', export_path, class: 'btn btn-outline-primary btn-sm'
 = render_paginated_list(scope: audit.events, item_name: 'access change', list_partial: 'cohorts/access_audits/list')
