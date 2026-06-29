@@ -146,11 +146,11 @@ class RollOut
 
     run_deploy_tasks!
 
-    deploy_web!
-
-    dj_options.each do |dj_options|
-      deploy_dj!(dj_options)
-    end
+    # deploy_web!
+    #
+    # dj_options.each do |dj_options|
+    #   deploy_dj!(dj_options)
+    # end
   end
 
   def check_ram!
@@ -171,7 +171,7 @@ class RollOut
       image: image_base,
       name: name,
       cpu_shares: args.dig(:cpu_shares, :deploy),
-      command: ['bin/deploy_tasks.sh'],
+      command: ['sleep', 'infinity'],
       variant: 'deploy',
     )
 
@@ -571,51 +571,11 @@ class RollOut
   # If you can construct or query for the log stream name, you can use this to
   # tail any tasks, even those that are part of a service.
   def _tail_logs
-    begin
-      _resp = cwl.get_log_events(
-        {
-          log_group_name: target_group_name,
-          log_stream_name: log_stream_name,
-          start_from_head: true,
-        },
-      )
-    rescue Aws::CloudWatchLogs::Errors::ResourceNotFoundException
-      puts "[FATAL] The log stream #{log_stream_name} does not exist. At least not yet. Waiting 30 seconds...#{target_group_name}"
-      sleep 30
-      _tail_logs
-    end
-    begin
-      chars_written = 0
-      cmd = "docker run \
-        -e AWS_REGION=#{ENV['AWS_REGION']} \
-        -e AWS_ACCESS_KEY_ID=#{ENV['AWS_ACCESS_KEY_ID']} \
-        -e AWS_SECRET_ACCESS_KEY=#{ENV['AWS_SECRET_ACCESS_KEY']} \
-        -e AWS_SECURITY_TOKEN=#{ENV['AWS_SECURITY_TOKEN']} \
-        -e AWS_SESSION_TOKEN=#{ENV['AWS_SESSION_TOKEN']} \
-        --rm -it amazon/aws-cli logs tail #{target_group_name} --follow --log-stream-names=#{log_stream_name}"
-
-      PTY.spawn(cmd) do |stdout, _stdin, _pid|
-        stdout.each do |line|
-          chars_written += line.length
-          print line
-          if line.match?(/---DONE---/)
-            puts 'found ---DONE---, exiting'
-            return true
-          end
-        end
-      rescue Errno::EIO
-        raise '[FATAL] Errno:EIO error. Too few lines output from logs before it was done tailing' unless chars_written > 500
-
-        puts '[WARN] Errno:EIO error, but this probably just means that the process has finished giving output'
-        return false
-      end
-    rescue Errno::ENOENT => e
-      puts "[FATAL] Run this manually: aws logs tail #{target_group_name} --follow --log-stream-names=#{log_stream_name}"
-      raise e
-    rescue PTY::ChildExited
-      puts '[WARN] The child process exited!'
-      return false
-    end
+    results = `./bin/containers/ssh`.split(/\n/).grep(/bos/)
+    puts 'Exiting the shell will kill the task'
+    system(results[0])
+    _stop_task!
+    exit!
   end
 
   def _start_service!(capacity_provider:, load_balancers: [], desired_count: 1, name:, maximum_percent: 100, minimum_healthy_percent: 0, service_registries: [])
