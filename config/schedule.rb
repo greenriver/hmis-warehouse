@@ -198,7 +198,7 @@ tasks = [
     task: 'driver:hmis_simulation:run_all',
     frequency: 1.day,
     at: '4:30 am',
-    trigger: ENV['ENABLE_HMIS_SIMULATION'] == 'true' || Rails.env.staging?,
+    trigger: ENV['ENABLE_HMIS_SIMULATION'] == 'true' || ENV['RAILS_ENV'] == 'staging',
     interruptable: false,
   },
 ]
