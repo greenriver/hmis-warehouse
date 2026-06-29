@@ -28,22 +28,22 @@ class CommandArgs
     remote_config = YAML.safe_load(remote_config_text, permitted_classes: [Symbol], aliases: true)
 
     if !local_config.nil? && local_config != remote_config
-      puts 'Local secrets.yml differs from remote config, would you like to pull down the remote version? This will overwrite your local file. [y/N]'
-      unsure = $stdin.readline
-      if unsure.chomp.downcase.match?(/y(es)?/)
-        File.write(path, remote_config_text)
-        config = remote_config
-      else
-        tmppath = "/tmp/remote-secrets-#{Time.now.to_i}.yml"
-        File.write(tmppath, remote_config_text)
-        puts "Okay. Remote config saved to #{tmppath} for your convenience. (Local is at #{path})"
-        pp `diff #{path} #{tmppath}`
-        puts 'continue anyway? [y/N]'
-        unsure = $stdin.readline
-        exit unless unsure.chomp.downcase.match?(/y(es)?/)
-        config = local_config
-        puts "[WARN] ❗ Using local config: #{path}"
-      end
+      puts 'Local secrets.yml differs from remote config. Using it (did you re-add the environment you neede?)'
+      # unsure = $stdin.readline
+      # if unsure.chomp.downcase.match?(/y(es)?/)
+      #   File.write(path, remote_config_text)
+      #   config = remote_config
+      # else
+      #   tmppath = "/tmp/remote-secrets-#{Time.now.to_i}.yml"
+      #   File.write(tmppath, remote_config_text)
+      #   puts "Okay. Remote config saved to #{tmppath} for your convenience. (Local is at #{path})"
+      #   pp `diff #{path} #{tmppath}`
+      #   puts 'continue anyway? [y/N]'
+      #   unsure = $stdin.readline
+      #   exit unless unsure.chomp.downcase.match?(/y(es)?/)
+      config = local_config
+      #   puts "[WARN] ❗ Using local config: #{path}"
+      # end
     elsif remote_config.nil?
       config = local_config
       puts "[WARN] ❗ Remote secrets.yml not found, using local: #{path}"
