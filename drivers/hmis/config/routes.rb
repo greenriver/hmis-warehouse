@@ -18,8 +18,10 @@ OpenPath::Application.routes.draw do
     namespace :hmis, defaults: { format: :json } do
       # AUTH_METHOD seam: Hmis::User's `devise` macro is gated off under JWT, so an ungated
       # devise_for/devise_scope raises at route-draw and aborts the whole JWT boot. Gate the HMIS
-      # Devise auth surface so the app boots. Full HMIS JWT wiring (oauth2-proxy login, the
-      # replacement session routes) is not wired yet.
+      # Devise auth surface so the app boots. Under JWT the always-on HMIS routes below (resource
+      # :user, session_keepalive, hmis-gql, impersonations) authenticate off the forwarded JWT via
+      # Hmis::Concerns::JwtHmisUser; the oauth2-proxy login/logout endpoints the SPA needs are served
+      # by oauth2-proxy itself (external IdP contract), so no replacement Devise session routes here.
       if AuthMethod.devise?
         devise_for :users, class_name: 'Hmis::User',
                            skip: [:registrations, :invitations, :passwords, :confirmations, :unlocks, :password_expired],

@@ -9,9 +9,27 @@
 require 'rails_helper'
 
 RSpec.describe Idp::ImpersonationManager do
+  # A hash-backed stand-in for the Rails session. Crucially, session.id is nil — under JWT the
+  # cookie-store session.id is unavailable during the request that first writes the session, so the
+  # manager must NOT depend on it. It self-manages session[:impersonation_session_token] instead.
+  def fake_session(initial = {})
+    data = initial.dup
+    instance_double('ActionDispatch::Request::Session').tap do |session|
+      allow(session).to receive(:present?).and_return(true)
+      allow(session).to receive(:id).and_return(nil)
+      allow(session).to receive(:[]) { |key| data[key] }
+      allow(session).to receive(:[]=) { |key, value| data[key] = value }
+      allow(session).to receive(:delete) { |key| data.delete(key) }
+      allow(session).to receive(:to_h).and_return(data)
+    end
+  end
+
+  let(:true_user_id) { 1 }
+  let(:impersonated_user_id) { 2 }
+
   describe '#initialize' do
     it 'stores session object when passed a session object' do
-      session = double(id: 'test-123')
+      session = fake_session
       manager = described_class.new(session)
       expect(manager.session).to eq(session)
     end
@@ -23,94 +41,90 @@ RSpec.describe Idp::ImpersonationManager do
   end
 
   describe '#store' do
-    let(:true_user_id) { 1 }
-    let(:impersonated_user_id) { 2 }
-    let(:session_id) { 'test-session-123' }
-
-    it 'stores impersonation data in session and returns true' do
-      session_data = {}
-      session = double(id: session_id, present?: true, '[]': nil, '[]=': nil)
-      allow(session).to receive(:[]=) do |key, value|
-        session_data[key] = value
-      end
-      allow(session).to receive(:[]) { |key| session_data[key] }
-
+    it 'stores impersonation data stamped with a self-managed token and returns true' do
+      session = fake_session
       manager = described_class.new(session)
+
       result = manager.store(true_user_id, impersonated_user_id)
 
       expect(result).to be true
-      expect(session_data[:impersonation]).to include(
+      token = session[:impersonation_session_token]
+      expect(token).to be_present
+      expect(session[:impersonation]).to include(
         true_user_id: true_user_id,
         impersonated_user_id: impersonated_user_id,
-        session_id: session_id,
+        session_id: token,
       )
     end
 
-    it 'returns false when session_id is nil' do
+    it 'reuses an existing token rather than minting a new one' do
+      session = fake_session(impersonation_session_token: 'existing-token')
+      manager = described_class.new(session)
+
+      manager.store(true_user_id, impersonated_user_id)
+
+      expect(session[:impersonation_session_token]).to eq('existing-token')
+      expect(session[:impersonation][:session_id]).to eq('existing-token')
+    end
+
+    it 'returns false when there is no session' do
       manager = described_class.new(nil)
-      result = manager.store(true_user_id, impersonated_user_id)
-      expect(result).to be false
+      expect(manager.store(true_user_id, impersonated_user_id)).to be false
     end
   end
 
   describe '#get' do
-    let(:true_user_id) { 1 }
-    let(:impersonated_user_id) { 2 }
-    let(:session_id) { 'test-session-123' }
-
-    it 'returns impersonation data hash with symbol keys' do
-      impersonation_data = {
-        true_user_id: true_user_id,
-        impersonated_user_id: impersonated_user_id,
-        session_id: session_id,
-      }
-      session = double(id: session_id, present?: true, '[]': impersonation_data)
-
+    it 'returns impersonation data hash with symbol keys when the token matches' do
+      session = fake_session(
+        impersonation_session_token: 'tok-1',
+        impersonation: {
+          true_user_id: true_user_id,
+          impersonated_user_id: impersonated_user_id,
+          session_id: 'tok-1',
+        },
+      )
       manager = described_class.new(session)
 
       data = manager.get
       expect(data).to be_a(Hash)
       expect(data[:true_user_id]).to eq(true_user_id)
       expect(data[:impersonated_user_id]).to eq(impersonated_user_id)
-      expect(data[:session_id]).to eq(session_id)
+      expect(data[:session_id]).to eq('tok-1')
     end
 
     it 'handles string keys from session' do
-      impersonation_data = {
-        'true_user_id' => true_user_id,
-        'impersonated_user_id' => impersonated_user_id,
-        'session_id' => session_id,
-      }
-      session = double(id: session_id, present?: true)
-      allow(session).to receive(:[]).with(:impersonation).and_return(impersonation_data)
-
+      session = fake_session(
+        impersonation_session_token: 'tok-1',
+        impersonation: {
+          'true_user_id' => true_user_id,
+          'impersonated_user_id' => impersonated_user_id,
+          'session_id' => 'tok-1',
+        },
+      )
       manager = described_class.new(session)
 
       data = manager.get
       expect(data[:true_user_id]).to eq(true_user_id)
       expect(data[:impersonated_user_id]).to eq(impersonated_user_id)
-      expect(data[:session_id]).to eq(session_id)
+      expect(data[:session_id]).to eq('tok-1')
     end
 
-    it 'returns nil when session_id does not match stored session_id' do
-      impersonation_data = {
-        true_user_id: true_user_id,
-        impersonated_user_id: impersonated_user_id,
-        session_id: 'old-session-id',
-      }
-      session = double(id: session_id, present?: true)
-      allow(session).to receive(:[]).with(:impersonation).and_return(impersonation_data)
-
+    it 'returns nil when the stored token does not match the session token' do
+      session = fake_session(
+        impersonation_session_token: 'tok-1',
+        impersonation: {
+          true_user_id: true_user_id,
+          impersonated_user_id: impersonated_user_id,
+          session_id: 'a-different-token',
+        },
+      )
       manager = described_class.new(session)
 
-      data = manager.get
-      expect(data).to be_nil
+      expect(manager.get).to be_nil
     end
 
     it 'returns nil when impersonation does not exist' do
-      session = double(id: session_id, present?: true)
-      allow(session).to receive(:[]).with(:impersonation).and_return(nil)
-
+      session = fake_session(impersonation_session_token: 'tok-1')
       manager = described_class.new(session)
 
       expect(manager.get).to be_nil
@@ -122,22 +136,28 @@ RSpec.describe Idp::ImpersonationManager do
     end
   end
 
+  describe 'store/get round-trip' do
+    it 'honors impersonation written earlier in the same session (the JWT cross-request path)' do
+      session = fake_session
+      described_class.new(session).store(true_user_id, impersonated_user_id)
+
+      # A fresh manager over the same session (mirrors the next request re-reading the cookie).
+      data = described_class.new(session).get
+      expect(data).to include(
+        true_user_id: true_user_id,
+        impersonated_user_id: impersonated_user_id,
+      )
+    end
+  end
+
   describe '#clear' do
-    let(:true_user_id) { 1 }
-    let(:impersonated_user_id) { 2 }
-    let(:session_id) { 'test-session-123' }
-
     it 'removes impersonation data from session' do
-      session_data = {}
-      session = double(id: session_id, present?: true, delete: nil)
-      allow(session).to receive(:delete) do |key|
-        session_data.delete(key)
-      end
-
+      session = fake_session(impersonation: { true_user_id: true_user_id })
       manager = described_class.new(session)
+
       manager.clear
 
-      expect(session).to have_received(:delete).with(:impersonation)
+      expect(session[:impersonation]).to be_nil
     end
 
     it 'does nothing when session is not present' do
