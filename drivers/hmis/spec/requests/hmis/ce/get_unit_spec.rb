@@ -117,7 +117,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       end
 
       it 'resolves structuredExpression for a flat AND rule' do
-        rule1.update!(expression: 'current_age >= 18 AND veteran = TRUE')
+        rule1.update!(expression: 'current_age >= 18 AND veteran_status = 1')
         response, result = post_graphql(**variables) { query }
         expect(response.status).to eq(200), result.inspect
 
@@ -127,7 +127,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           'operator' => 'AND',
           'clauses' => [
             { 'field' => 'current_age', 'comparator' => 'GTE', 'value' => 18 },
-            { 'field' => 'veteran', 'comparator' => 'EQ', 'value' => true },
+            { 'field' => 'veteran_status', 'comparator' => 'EQ', 'value' => 'YES' },
           ],
         )
       end
