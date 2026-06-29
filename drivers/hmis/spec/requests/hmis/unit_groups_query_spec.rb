@@ -7,10 +7,11 @@ RSpec.describe 'Unit groups query', type: :request do
   include_context 'hmis base setup'
 
   before(:each) do
+    allow_any_instance_of(Hmis::Ce::Configuration).to receive(:enabled?).and_return(true)
     hmis_login(user)
   end
 
-  let!(:access_control) { create_access_control(hmis_user, ds1, with_permission: [:can_view_project, :can_view_units]) }
+  let!(:access_control) { create_access_control(hmis_user, ds1, with_permission: [:can_view_project, :can_view_units, :can_administrate_coordinated_entry]) }
   let!(:beds_group) { create(:hmis_unit_group, project: p1, name: 'Beds') }
   let!(:vouchers_group) { create(:hmis_unit_group, project: p1, name: 'Vouchers') }
 
@@ -26,6 +27,8 @@ RSpec.describe 'Unit groups query', type: :request do
               id
               projectName
             }
+            effectiveCeMatchRuleCount
+            localCeMatchRuleCount
           }
         }
       }

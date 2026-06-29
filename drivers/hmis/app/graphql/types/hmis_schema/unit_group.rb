@@ -92,7 +92,10 @@ module Types
 
     private def ce_match_rule_group_owners
       # Used by the HasCeMatchRules concern
-      [object.project.data_source, object.project.organization, object.project, object]
+      project = load_ar_association(object, :project)
+      data_source = load_ar_association(project, :data_source)
+      organization = load_ar_association(project, :organization)
+      [data_source, organization, project, object]
     end
   end
 end
