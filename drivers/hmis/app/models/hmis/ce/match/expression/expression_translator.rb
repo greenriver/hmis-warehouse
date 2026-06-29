@@ -110,7 +110,10 @@ module Hmis::Ce::Match::Expression
         return unless literal_ast?(args.last)
 
         field = args.first.identifier
-        value = structured_value_for_expression_value(args.last.value, field_catalog.field_for(field))
+        field_metadata = field_catalog.field_for(field)
+        return unless field_metadata
+
+        value = structured_value_for_expression_value(args.last.value, field_metadata)
 
         StructuredExpression::Clause.new(
           field: field,
@@ -126,7 +129,10 @@ module Hmis::Ce::Match::Expression
         return unless literal_ast?(node.right)
 
         field = node.left.identifier
-        value = structured_value_for_expression_value(node.right.value, field_catalog.field_for(field))
+        field_metadata = field_catalog.field_for(field)
+        return unless field_metadata
+
+        value = structured_value_for_expression_value(node.right.value, field_metadata)
 
         StructuredExpression::Clause.new(
           field: field,

@@ -9,6 +9,39 @@
 require 'rails_helper'
 
 RSpec.describe Hmis::Ce::Match::Expression::ExpressionTranslator do
+  let!(:custom_assessment_form) do
+    create(
+      :hmis_form_definition,
+      identifier: 'score_assessment',
+      title: 'Score Assessment',
+      role: :CUSTOM_ASSESSMENT,
+      status: :published,
+    )
+  end
+  let!(:score_cded) do
+    create(
+      :hmis_custom_data_element_definition,
+      owner_type: 'Hmis::Hud::CustomAssessment',
+      key: 'score',
+      label: 'Score',
+      field_type: :integer,
+      form_definition: custom_assessment_form,
+      data_source: custom_assessment_form.data_source,
+    )
+  end
+  let!(:preferred_bedroom_size_cded) do
+    create(
+      :hmis_custom_data_element_definition,
+      owner_type: 'Hmis::Hud::CustomAssessment',
+      key: 'housing_needs_preferred_bedroom_size',
+      label: 'Preferred Bedroom Size',
+      field_type: :string,
+      repeats: true,
+      form_definition: custom_assessment_form,
+      data_source: custom_assessment_form.data_source,
+    )
+  end
+
   describe '.to_structured' do
     it 'returns nil for blank expression' do
       expect(described_class.to_structured(nil)).to be_nil
@@ -29,15 +62,15 @@ RSpec.describe Hmis::Ce::Match::Expression::ExpressionTranslator do
     end
 
     it 'parses flat AND' do
-      expr = 'current_age >= 18 AND veteran = TRUE AND score = 10'
+      expr = 'current_age >= 18 AND veteran_status = 1 AND days_since_last_exit = 10'
       structured = described_class.to_structured(expr)
       expect(structured.operator).to eq(:AND)
       expect(structured.clauses.map(&:comparator)).to eq([:GTE, :EQ, :EQ])
-      expect(structured.clauses.map(&:field)).to eq(['current_age', 'veteran', 'score'])
+      expect(structured.clauses.map(&:field)).to eq(['current_age', 'veteran_status', 'days_since_last_exit'])
     end
 
     it 'parses flat OR' do
-      expr = 'a = 1 OR b = 2 OR c = 3'
+      expr = 'current_age = 1 OR veteran_status = 2 OR days_since_last_exit = 3'
       structured = described_class.to_structured(expr)
       expect(structured.operator).to eq(:OR)
       expect(structured.clauses.size).to eq(3)
@@ -55,15 +88,15 @@ RSpec.describe Hmis::Ce::Match::Expression::ExpressionTranslator do
     end
 
     it 'parses EXCLUDES' do
-      structured = described_class.to_structured('EXCLUDES(foo, 1)')
+      structured = described_class.to_structured('EXCLUDES(open_referral_project_types, 1)')
       expect(structured.clauses.size).to eq(1)
-      expect(structured.clauses.first).to have_attributes(field: 'foo', comparator: :EXCLUDES, value: 1)
+      expect(structured.clauses.first).to have_attributes(field: 'open_referral_project_types', comparator: :EXCLUDES, value: Types::HmisSchema::Enums::ProjectType.key_for(1))
     end
 
     it 'parses EQ with NULL RHS' do
-      structured = described_class.to_structured('foo = NULL')
+      structured = described_class.to_structured('current_age = NULL')
       expect(structured.clauses.size).to eq(1)
-      expect(structured.clauses.first).to have_attributes(field: 'foo', comparator: :EQ, value: nil)
+      expect(structured.clauses.first).to have_attributes(field: 'current_age', comparator: :EQ, value: nil)
     end
 
     it 'coerces enum-backed Dentaku literals to frontend enum keys' do
@@ -111,10 +144,8 @@ RSpec.describe Hmis::Ce::Match::Expression::ExpressionTranslator do
       )
     end
 
-    it 'leaves parsed literals unchanged for unknown fields' do
-      structured = described_class.to_structured('unknown_field = 1')
-
-      expect(structured.clauses.first).to have_attributes(field: 'unknown_field', comparator: :EQ, value: 1)
+    it 'returns nil for unknown fields' do
+      expect(described_class.to_structured('unknown_field = 1')).to be_nil
     end
 
     it 'leaves unrecognized enum-backed Dentaku literals unchanged' do
@@ -124,15 +155,15 @@ RSpec.describe Hmis::Ce::Match::Expression::ExpressionTranslator do
     end
 
     it 'returns nil for INCLUDES with arguments in wrong order' do
-      expect(described_class.to_structured('INCLUDES("1 Bed", foo)')).to be_nil
+      expect(described_class.to_structured('INCLUDES("1 Bed", open_referral_project_types)')).to be_nil
     end
 
     it 'returns nil when AND and OR are mixed at the same level' do
-      expect(described_class.to_structured('a = 1 OR b = 2 AND c = 3')).to be_nil
+      expect(described_class.to_structured('current_age = 1 OR veteran_status = 2 AND days_since_last_exit = 3')).to be_nil
     end
 
     it 'returns nil for nested boolean under a flat combinator' do
-      expect(described_class.to_structured('a = 1 OR (b = 2 AND c = 3)')).to be_nil
+      expect(described_class.to_structured('current_age = 1 OR (veteran_status = 2 AND days_since_last_exit = 3)')).to be_nil
     end
 
     it 'returns nil for disallowed functions' do
@@ -140,45 +171,45 @@ RSpec.describe Hmis::Ce::Match::Expression::ExpressionTranslator do
     end
 
     it 'returns nil when comparing two identifiers' do
-      expect(described_class.to_structured('a = b')).to be_nil
+      expect(described_class.to_structured('current_age = veteran_status')).to be_nil
     end
 
     it 'returns nil for arithmetic' do
-      expect(described_class.to_structured('a + 1 = 2')).to be_nil
+      expect(described_class.to_structured('current_age + 1 = 2')).to be_nil
     end
   end
 
   describe 'round-trip' do
     it 'preserves structured form for AND expressions' do
-      original = 'current_age >= 18 AND veteran = TRUE'
+      original = 'current_age >= 18 AND veteran_status = 1'
       structured = described_class.to_structured(original)
       round = described_class.to_structured(described_class.from_structured(structured))
       expect(round).to eq(structured)
     end
 
     it 'preserves structured form for OR expressions' do
-      original = 'x = 1 OR y = 2'
+      original = 'current_age = 1 OR veteran_status = 2'
       structured = described_class.to_structured(original)
       round = described_class.to_structured(described_class.from_structured(structured))
       expect(round).to eq(structured)
     end
 
     it 'preserves structured form for INCLUDES in an AND chain' do
-      original = 'INCLUDES(`cde.custom_assessment.k`, "v") AND a = 1'
+      original = 'INCLUDES(open_referral_project_types, 1) AND current_age = 1'
       structured = described_class.to_structured(original)
       round = described_class.to_structured(described_class.from_structured(structured))
       expect(round).to eq(structured)
     end
 
     it 'preserves structured form for EXCLUDES in an OR chain' do
-      original = 'EXCLUDES(foo, 2) OR a = NULL'
+      original = 'EXCLUDES(open_referral_project_types, 2) OR current_age = NULL'
       structured = described_class.to_structured(original)
       round = described_class.to_structured(described_class.from_structured(structured))
       expect(round).to eq(structured)
     end
 
     it 'preserves structured form when clause value is NULL' do
-      original = 'x = NULL'
+      original = 'current_age = NULL'
       structured = described_class.to_structured(original)
       round = described_class.to_structured(described_class.from_structured(structured))
       expect(round).to eq(structured)
