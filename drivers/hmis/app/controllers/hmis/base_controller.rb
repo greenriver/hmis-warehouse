@@ -12,7 +12,17 @@ class Hmis::BaseController < ActionController::Base
   include ControllerCacheBehavior
 
   before_action :authenticate_hmis_user!
-  impersonates :hmis_user, with: ->(id) { Hmis::User.find_by(id: id) }
+
+  # AUTH_METHOD seam: under JWT, current_hmis_user / authenticate_hmis_user! / true_hmis_user / the
+  # impersonation write-side are provided by Hmis::Concerns::JwtHmisUser (off a validated forwarded
+  # JWT); under Devise they come from the pretender macro + the devise :hmis_user scope. The
+  # before_action :authenticate_hmis_user! (above) and the set_anti_caching_headers
+  # hmis_user_signed_in? guard (below) are satisfied either way.
+  if AuthMethod.jwt?
+    include Hmis::Concerns::JwtHmisUser
+  else
+    impersonates :hmis_user, with: ->(id) { Hmis::User.find_by(id: id) }
+  end
 
   include Hmis::Concerns::JsonErrors
   respond_to :json
