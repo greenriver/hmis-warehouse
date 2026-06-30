@@ -316,6 +316,107 @@ RSpec.describe GrdaWarehouse::Monitoring::Tasks::MetricSnapshotCollector, type: 
     end
   end
 
+  describe 'per-run (rate) change detection' do
+    # days_homeless is a rolling-window metric: its value drifts ~1/day. A crossing
+    # should only fire when a single run moves the value past the threshold, NOT when
+    # gradual day-over-day drift accumulates past it relative to the original baseline.
+    def run_collection
+      described_class.run_daily_collection(
+        entity_type: entity_type,
+        calculation_date: calculation_date,
+        entity_ids: [client1.id],
+        metric_names: ['test_metric'],
+      )
+    end
+
+    context 'when the value drifts gradually past the cumulative threshold' do
+      # Reproduces the production bug (Previous 247, New 246, Change -1): a baseline set
+      # weeks ago whose current_value has drifted ~1/day. The cumulative move from
+      # initial_value (212 -> 247 = 35) crosses the threshold, but the day-over-day change
+      # is only +1 and must NOT trigger a crossing.
+      before do
+        create(
+          :grda_warehouse_monitoring_metric_snapshot,
+          entity: client1,
+          metric_definition: metric_definition,
+          initial_observation_date: 35.days.ago,
+          current_observation_date: 1.day.ago,
+          initial_value: 212,
+          current_value: 246,
+        )
+        processed1.update!(days_homeless_last_three_years: 247)
+      end
+
+      it 'does not create a new crossing snapshot' do
+        expect { run_collection }.
+          not_to change(GrdaWarehouse::Monitoring::MetricSnapshot, :count)
+      end
+
+      it 'updates the existing snapshot in place, preserving the baseline' do
+        run_collection
+
+        snapshot = GrdaWarehouse::Monitoring::MetricSnapshot.
+          for_entity(client1).
+          for_metric(metric_definition).
+          first
+
+        expect(snapshot.current_value).to eq(247)
+        expect(snapshot.initial_value).to eq(212)
+        expect(snapshot.current_observation_date).to eq(calculation_date)
+      end
+    end
+
+    context 'when a single run jumps past the threshold' do
+      before do
+        create(
+          :grda_warehouse_monitoring_metric_snapshot,
+          entity: client1,
+          metric_definition: metric_definition,
+          initial_observation_date: 35.days.ago,
+          current_observation_date: 1.day.ago,
+          initial_value: 500,
+          current_value: 200,
+        )
+        processed1.update!(days_homeless_last_three_years: 235) # +35 vs the previous run (200)
+      end
+
+      it 'creates a new crossing snapshot measured against the previous run value' do
+        expect { run_collection }.
+          to change(GrdaWarehouse::Monitoring::MetricSnapshot, :count).by(1)
+
+        new_snapshot = GrdaWarehouse::Monitoring::MetricSnapshot.
+          for_entity(client1).
+          for_metric(metric_definition).
+          where(initial_observation_date: calculation_date).
+          first
+
+        expect(new_snapshot.initial_value).to eq(235)
+      end
+    end
+
+    context 'when a multi-day gap accumulates past the threshold but per-day stays small' do
+      # Runs were missed for 10 days; the value moved +45 total (4.5/day). Normalizing by
+      # elapsed days keeps this below the 30/day threshold, so no crossing fires.
+      before do
+        create(
+          :grda_warehouse_monitoring_metric_snapshot,
+          entity: client1,
+          metric_definition: metric_definition,
+          initial_observation_date: 40.days.ago,
+          current_observation_date: 10.days.ago,
+          initial_value: 200,
+          current_value: 200,
+        )
+        processed1.update!(days_homeless_last_three_years: 245)
+      end
+
+      it 'does not create a crossing snapshot' do
+        expect { run_collection }.
+          not_to change(GrdaWarehouse::Monitoring::MetricSnapshot, :count)
+      end
+    end
+  end
+
   describe 'transaction isolation' do
     it 'wraps all stable metrics in a single repeatable read transaction' do
       allow(GrdaWarehouseBase).to receive(:transaction).and_call_original

@@ -14,6 +14,28 @@ RSpec.describe GrdaWarehouse::Monitoring::MetricCalculators::BaseCalculator do
       expect(described_class.data_stable?).to be true
     end
   end
+
+  describe '.change_metrics' do
+    let(:snapshot) do
+      Struct.new(:initial_value, :current_value, :current_observation_date, keyword_init: true).new(
+        initial_value: 100,
+        current_value: 130,
+        current_observation_date: Date.current - 5,
+      )
+    end
+
+    it 'measures absolute change from the snapshot initial baseline' do
+      result = described_class.change_metrics(
+        previous_snapshot: snapshot,
+        calculated_value: 150,
+        calculation_date: Date.current,
+      )
+
+      # 150 - 100 (initial_value); ignores current_value drift and elapsed days
+      expect(result[:count_change]).to eq(50)
+      expect(result[:reference_value]).to eq(100)
+    end
+  end
 end
 
 RSpec.describe GrdaWarehouse::Monitoring::MetricCalculators::HomelessDaysLastThreeYearsCalculator do

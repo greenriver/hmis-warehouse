@@ -32,6 +32,22 @@ module GrdaWarehouse::Monitoring::MetricCalculators
         to_h
     end
 
+    # days_homeless_last_three_years is a rolling-window total that drifts a little each
+    # day. Measure the change against the previous run's value (current_value) rather than
+    # the original baseline, and normalize by the number of days since that run, so a
+    # crossing reflects a real per-day jump rather than gradual accumulation (or a
+    # multi-day catch-up after a missed run).
+    def self.change_metrics(previous_snapshot:, calculated_value:, calculation_date:)
+      days_elapsed = (calculation_date - previous_snapshot.current_observation_date).to_i
+      days_elapsed = 1 if days_elapsed < 1
+
+      baseline = previous_snapshot.current_value
+      {
+        count_change: (calculated_value - baseline).abs.to_f / days_elapsed,
+        reference_value: baseline,
+      }
+    end
+
     # warehouse_clients_processed is written by UpdateWarehouseClientsCachesJob.
     # Try to acquire its advisory lock non-blocking; if we get it, no batch is
     # actively writing right now and we release immediately.

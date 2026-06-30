@@ -104,6 +104,52 @@ RSpec.describe GrdaWarehouse::Monitoring::MetricCalculators::HomelessDaysLastThr
     end
   end
 
+  describe '.change_metrics' do
+    let(:snapshot) do
+      Struct.new(:initial_value, :current_value, :current_observation_date, keyword_init: true).new(
+        initial_value: 100,
+        current_value: 130,
+        current_observation_date: Date.current - 1,
+      )
+    end
+
+    it 'measures change from the previous run value, not the original baseline' do
+      result = described_class.change_metrics(
+        previous_snapshot: snapshot,
+        calculated_value: 131,
+        calculation_date: Date.current,
+      )
+
+      # 131 - 130 (current_value / previous run), NOT 131 - 100 (initial_value)
+      expect(result[:count_change]).to eq(1)
+      expect(result[:reference_value]).to eq(130)
+    end
+
+    it 'normalizes the change to a per-day rate across elapsed days' do
+      snapshot.current_observation_date = Date.current - 10
+
+      result = described_class.change_metrics(
+        previous_snapshot: snapshot,
+        calculated_value: 175, # +45 over a 10-day gap
+        calculation_date: Date.current,
+      )
+
+      expect(result[:count_change]).to eq(4.5) # 45 / 10 days
+    end
+
+    it 'treats a zero or negative day gap as a single day' do
+      snapshot.current_observation_date = Date.current
+
+      result = described_class.change_metrics(
+        previous_snapshot: snapshot,
+        calculated_value: 160, # +30 vs current 130
+        calculation_date: Date.current,
+      )
+
+      expect(result[:count_change]).to eq(30) # divided by 1, not 0
+    end
+  end
+
   describe '.metric_definition_attributes' do
     let(:attrs) { described_class.metric_definition_attributes }
 

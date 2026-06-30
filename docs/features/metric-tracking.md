@@ -15,7 +15,7 @@ This document outlines the design for a flexible, performant threshold monitorin
 
 ## Use Cases
 
-- **Change Detection**: Identify when client metrics change significantly (e.g., days homeless increases by 30+)
+- **Change Detection**: Identify when a client metric makes a significant move in a single collection run (e.g., days homeless jumps by 30+ since the previous run)
 - **Trend Analysis**: Chart how metrics evolve over time for individuals or cohorts
 - **Alerting**: Trigger notifications when metrics cross thresholds
 - **Reporting**: Aggregate metrics across populations for analytics
@@ -83,13 +83,41 @@ Each snapshot represents a time range where a metric stayed within threshold:
 
 #### Change Detection Logic
 
-Each metric definition specifies threshold(s):
-- **`count_change_threshold`**: Create new snapshot if value changed by at least N (e.g., 30 days)
-- **`percent_change_threshold`**: Create new snapshot if value changed by at least N% (e.g., 10%)
+Change detection has two halves, split between the calculator and the collector:
+
+1. **How much did it change?** — computed by the calculator's
+   `change_metrics(previous_snapshot:, calculated_value:, calculation_date:)` class method,
+   which returns `{ count_change:, reference_value: }`. The calculator owns this because the
+   correct comparison depends on the nature of the metric (see strategies below).
+2. **Is that change significant?** — decided by the collector, comparing `count_change`
+   (and a percent derived from `reference_value`) against the thresholds configured on the
+   metric definition.
+
+**Detection strategies** (the `change_metrics` half):
+
+- **Absolute (default, `BaseCalculator`)**: `count_change = |calculated_value − initial_value|`,
+  measured from the snapshot's original baseline. Used for static or discrete metrics where any
+  deviation from the established value is meaningful (household sizes, CSV row counts). For these
+  metrics `initial_value` and `current_value` stay equal, so there is no difference between
+  "since baseline" and "since last run".
+- **Per-run, gap-normalized (`HomelessDaysLastThreeYearsCalculator`)**: measures the change
+  against the **previous run's** value (`current_value`) and divides by the days since that run:
+  `count_change = |calculated_value − current_value| / days_elapsed` (with `days_elapsed`
+  floored at 1). This suits a rolling-window total that drifts a little each day — a crossing
+  fires only on a genuine per-day jump, not on gradual drift accumulating past the threshold,
+  and a multi-day catch-up after a missed run is averaged rather than mistaken for a spike.
+
+**Thresholds** (the collector half), configured per metric definition:
+- **`count_change_threshold`**: Create new snapshot if `count_change` is at least N (e.g., 30 —
+  for `days_homeless` this means 30+ days *per day*)
+- **`percent_change_threshold`**: Create new snapshot if the change is at least N% of
+  `reference_value` (e.g., 10%)
 - **Both specified**: Requires **both** thresholds met (AND logic) to prevent false positives
 - **Neither specified**: Create new snapshot on any change (dense storage)
 
-Implementation: See `GrdaWarehouse::Monitoring::Tasks::MetricSnapshotCollector#should_create_new_snapshot?`
+Implementation: `GrdaWarehouse::Monitoring::Tasks::MetricSnapshotCollector#should_create_new_snapshot?`
+performs the threshold comparison and delegates the change calculation to
+`BaseCalculator.change_metrics` (and its per-calculator overrides).
 
 #### Storage Efficiency
 
@@ -116,19 +144,24 @@ Implementation: See `GrdaWarehouse::Monitoring::MetricSnapshot` model scopes.
 
 #### Example Metric Configurations
 
-**Days Homeless** (significant changes only):
+**Days Homeless** (per-run, gap-normalized detection):
 ```ruby
-count_change_threshold: 30
+count_change_threshold: 30  # seeded default; editable on the admin Edit Metric page
 percent_change_threshold: nil
-# Only creates new snapshot when days change by 30+
+# New snapshot only when the value moves 30+ days vs the previous run, per elapsed day.
+# Uses the per-run detection strategy (see Change Detection Logic).
 ```
 
-**Household Size** (any change):
+**Household Size** (absolute detection, any change):
 ```ruby
 count_change_threshold: 1
 percent_change_threshold: nil
-# Creates new snapshot on any household size change
+# Creates new snapshot on any household size change vs the established value
 ```
+
+> Threshold values shown are the seeded defaults from each calculator's
+> `metric_definition_attributes`. They are editable in the admin UI (Change Detection
+> Thresholds), so a running deployment may use different values.
 
 ### Calculator Pattern
 
@@ -143,13 +176,16 @@ Metrics are calculated by pluggable calculator classes that follow a standard in
 - **Separation of Concerns**: Calculation logic isolated from storage
 
 **Implemented Calculators:**
-- `HomelessDaysLastThreeYearsCalculator` - Uses `GrdaWarehouse::WarehouseClientsProcessed` table
-- `MinHouseholdSizeCalculator` - Analyzes enrollments across data sources
-- `MaxHouseholdSizeCalculator` - Analyzes enrollments across data sources
+- `HomelessDaysLastThreeYearsCalculator` - Uses `GrdaWarehouse::WarehouseClientsProcessed` table; overrides `change_metrics` for per-run, gap-normalized detection
+- `MinHouseholdSizeCalculator` - Analyzes enrollments across data sources (absolute detection)
+- `MaxHouseholdSizeCalculator` - Analyzes enrollments across data sources (absolute detection)
+
+A calculator that needs detection other than the default absolute-from-baseline comparison
+overrides `change_metrics` (see Change Detection Logic). Most calculators inherit the default.
 
 **Benefits:**
 - Easy to unit test calculators independently
-- Add new metrics by creating calculator class and adding to `MetricDefinition::AVAILABLE_CALCULATORS`
+- Add new metrics by creating calculator class and adding to `MetricDefinition.available_calculators`
 - Efficient batch processing handles 5,000+ entities per batch with single queries
 
 ## Data Collection Strategy
@@ -171,7 +207,7 @@ Only calculate metrics for entities with recent activity:
 
 ### Scheduled Execution
 
-Runs hourly via rake task at 2:00 AM (configured via `MetricDefinition::COLLECTION_HOUR`)
+Collection runs once per day at 2:00 AM. The hourly maintenance rake task (`lib/tasks/grda_warehouse.rake`) enqueues `CollectClientMetricsJob` only when the current hour matches `MetricDefinition::COLLECTION_HOUR` (`2`).
 
 Integrated with TaskQueue for initialization: `MetricDefinition.maintain!` creates/updates metric definitions on startup
 
@@ -248,9 +284,11 @@ See `app/models/grda_warehouse/monitoring/metric_snapshot.rb` for implementation
 
 | Metric Name | Display Name | Calculator | Threshold | Description |
 |-------------|--------------|------------|-----------|-------------|
-| `days_homeless_last_three_years` | Days Homeless (Last 3 Years) | `HomelessDaysLastThreeYearsCalculator` | 30 days | Total days homeless from service history |
-| `max_household_size` | Maximum Household Size | `MaxHouseholdSizeCalculator` | 1 | Largest household client has been part of |
-| `min_household_size` | Minimum Household Size | `MinHouseholdSizeCalculator` | 1 | Smallest household client has been part of |
+| `days_homeless_last_three_years` | Days Homeless (Last 3 Years) | `HomelessDaysLastThreeYearsCalculator` | 30 days/run* | Total days homeless from service history (per-run detection) |
+| `max_household_size` | Maximum Household Size | `MaxHouseholdSizeCalculator` | 1* | Largest household client has been part of (absolute detection) |
+| `min_household_size` | Minimum Household Size | `MinHouseholdSizeCalculator` | 1* | Smallest household client has been part of (absolute detection) |
+
+\* Seeded default; editable per metric in the admin UI.
 
 **Data Sources:**
 - Days homeless: `GrdaWarehouse::WarehouseClientsProcessed` table
@@ -377,7 +415,7 @@ Metrics can drive alerts through change detection.  Alerts for system-level thre
 - `initial_observation_date`: When value range started
 - `current_observation_date`: Updated daily while value stays within threshold
 - `initial_value` and `current_value`: Track value drift
-- New snapshot created when threshold exceeded
+- New snapshot created when the calculator-reported change exceeds the threshold (see Change Detection Logic for the absolute vs per-run strategies)
 
 ### 2. Single Integer Value Column
 
@@ -451,3 +489,31 @@ Metrics can drive alerts through change detection.  Alerts for system-level thre
 - 5,000+ entities processed per batch
 - Sub-minute calculation times
 - Scalable to large datasets
+
+### 7. Calculator-Owned Change Detection (`change_metrics`)
+
+**Decision**: The calculator decides *how much* a value changed; the collector decides whether
+that change is *significant* against the metric definition's thresholds.
+
+**Rationale**:
+- The correct comparison depends on the metric. A discrete attribute (household size) should
+  alert on any deviation from its established value, while a rolling-window total (days homeless)
+  drifts ~1/day — comparing it against a fixed baseline would eventually trip the threshold from
+  accumulated drift alone, producing crossings whose day-over-day change is only ±1.
+- Putting the comparison in the calculator keeps `should_create_new_snapshot?` generic (it only
+  knows about thresholds, which live on the editable metric definition) and lets each metric opt
+  into the strategy that fits without special-casing it in the shared collector.
+
+**Strategies**:
+- **Absolute (default)**: `|calculated_value − initial_value|`. Inherited by household-size and
+  CSV row-count metrics, whose behavior is unchanged by this design.
+- **Per-run, gap-normalized**: `|calculated_value − current_value| / days_elapsed`. Used by
+  `HomelessDaysLastThreeYearsCalculator` so a crossing reflects a real per-day jump, not gradual
+  accumulation or a multi-day catch-up after a missed run.
+
+**Trade-offs**:
+- Adds a small interface (`change_metrics` returning `{ count_change:, reference_value: }`) that
+  every calculator inherits but few override.
+- The displayed "Previous Value / New Value / Change" already reads the prior snapshot's
+  `current_value` and the new snapshot's `initial_value`, which is consistent with per-run
+  detection — no display changes were needed.
