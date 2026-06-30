@@ -58,6 +58,9 @@ module Hmis
     validate :unit_type_is_stable, on: :update
 
     after_create :rebuild_candidate_pool
+    # If the unit group previously didn't have a workflow template and now does,
+    # trigger CandidatePoolBuilder so the unit group gets associated with a candidate pool
+    after_update :rebuild_candidate_pool, if: :saved_change_to_workflow_template_identifier?
 
     scope :viewable_by, ->(user) do
       joins(:project).merge(Hmis::Hud::Project.viewable_by(user).with_access(user, :can_view_units))
