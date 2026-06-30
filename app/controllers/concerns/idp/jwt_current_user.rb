@@ -179,8 +179,7 @@ module Idp::JwtCurrentUser
 
     def info_for_paper_trail
       {
-        user_id: current_user&.id,
-        true_user_id: true_user&.id,
+        user_id: true_user&.id, # under devise, we use warden&.user&.id which is true_user_id
         session_id: session&.id&.to_s,
         request_id: request.uuid,
       }
