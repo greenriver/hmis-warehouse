@@ -177,6 +177,15 @@ module Idp::JwtCurrentUser
       render(template: 'errors/account_deactivated', status: :forbidden)
     end
 
+    def info_for_paper_trail
+      {
+        user_id: current_user&.id,
+        true_user_id: true_user&.id,
+        session_id: session&.id&.to_s,
+        request_id: request.uuid,
+      }
+    end
+
     def skip_timeout
       nil # no-op for jwt
     end

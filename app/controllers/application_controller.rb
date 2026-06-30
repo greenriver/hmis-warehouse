@@ -141,14 +141,6 @@ class ApplicationController < ActionController::Base
     payload[:user_id] = current_user&.id
   end
 
-  def info_for_paper_trail
-    {
-      user_id: current_user&.id,
-      session_id: session&.id&.to_s,
-      request_id: request.uuid,
-    }
-  end
-
   # Sets whodunnit
   def user_for_paper_trail
     return 'unauthenticated' unless current_user.present?
