@@ -233,7 +233,7 @@ module HmisDataQualityTool
 
     def pivot_details
       @pivot_details ||= OpenStruct.new.tap do |struct|
-        struct.groups = result_groups.except('Inventory')
+        struct.groups = filtered_result_groups.except('Inventory')
         struct.lookup = (
           # NOTE: anything added here must have personal_id and data_source_id columns
           # or some views will break
@@ -645,6 +645,27 @@ module HmisDataQualityTool
           dedicated_bed_issues: Inventory,
         },
       }
+    end
+
+    # Applies goal config exclusions to result_groups so that pivot_details and results
+    # both honour the same disabled sections (timeliness, CH calculations, annual assessments,
+    # and stay-length filtering). Without this, pivot_details would expose columns for sections
+    # the goal config has disabled.
+    private def filtered_result_groups
+      result_groups.transform_values do |slugs|
+        slugs.reject do |slug, item_class|
+          stay_length_category, stay_length_limit = item_class.stay_length_limit(slug, self)
+          (stay_length_category.present? &&
+            goal_config.stay_lengths.present? &&
+            goal_config.stay_lengths.detect { |k, _| k == stay_length_category }.present? &&
+            !goal_config.stay_lengths.include?([stay_length_category, stay_length_limit])) ||
+            (slug == :entry_date_entry_issues && goal_config.entry_date_entered_length == -1) ||
+            (slug == :exit_date_entry_issues && goal_config.exit_date_entered_length == -1) ||
+            (slug.in?([:date_to_street_issues, :times_homeless_issues, :months_homeless_issues]) &&
+              !goal_config.expose_ch_calculations) ||
+            (slug == :annual_assessment_issues && !goal_config.show_annual_assessments)
+        end
+      end
     end
 
     def uncache!
