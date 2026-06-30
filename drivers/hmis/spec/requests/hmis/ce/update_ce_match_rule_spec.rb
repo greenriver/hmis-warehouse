@@ -94,6 +94,29 @@ RSpec.describe 'updateCeMatchRule mutation', type: :request do
     expect(result.dig('data', 'updateCeMatchRule', 'rule', 'expression')).to eq('current_age >= 65')
   end
 
+  it 'rejects attempts to change immutable owner and type fields' do
+    input = {
+      ownerId: other_data_source.id,
+      ownerType: 'PROJECT',
+      ruleType: 'PRIORITY_SCHEME',
+    }
+
+    response, result = post_graphql(id: rule.id, input: input) { mutation }
+    expect(response.status).to eq(200), result.inspect
+
+    expect(result.dig('data', 'updateCeMatchRule', 'rule')).to be_nil
+    expect(result.dig('data', 'updateCeMatchRule', 'errors')).to contain_exactly(
+      a_hash_including('attribute' => 'ownerId', 'message' => 'cannot be changed once set'),
+      a_hash_including('attribute' => 'ownerType', 'message' => 'cannot be changed once set'),
+      a_hash_including('attribute' => 'ruleType', 'message' => 'cannot be changed once set'),
+    )
+    expect(rule.reload).to have_attributes(
+      owner_id: ds1.id,
+      owner_type: 'GrdaWarehouse::DataSource',
+      rule_type: 'eligibility_requirement',
+    )
+  end
+
   context 'when the user lacks can_administrate_coordinated_entry' do
     let!(:access_control) { create_access_control(hmis_user, ds1, without_permission: :can_administrate_coordinated_entry) }
 

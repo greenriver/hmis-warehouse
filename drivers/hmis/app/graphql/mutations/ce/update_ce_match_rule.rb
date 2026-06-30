@@ -24,6 +24,11 @@ module Mutations
         errors = validate_input(input, expression_required: false)
         return { rule: nil, errors: errors } if errors.any?
 
+        errors.add(:owner_id, :invalid, message: 'cannot be changed once set') if input.owner_id.present? && input.owner_id.to_s != rule.owner_id.to_s
+        errors.add(:owner_type, :invalid, message: 'cannot be changed once set') if input.owner_type.present? && input.owner_type != rule.owner_type
+        errors.add(:rule_type, :invalid, message: 'cannot be changed once set') if input.rule_type.present? && input.rule_type != rule.rule_type
+        return { rule: nil, errors: errors } if errors.any?
+
         rule.assign_attributes(input.to_rule_attributes)
 
         errors = validate_expression(rule)
