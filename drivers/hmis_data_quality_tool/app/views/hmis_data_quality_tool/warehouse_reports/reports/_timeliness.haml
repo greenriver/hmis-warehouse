@@ -2,20 +2,20 @@
   %h2.mt-2 Timeliness
   .well.overflow-scroll
     .row
-      - unless @report.timeliness_entry_goal == -1
+      - if @report.show_entry_timeliness?
         .col-sm-6
           %h3.text-center Time to Enter
           %h4.text-center Goal: #{pluralize(@report.timeliness_entry_goal, 'day')} or less
           .time-to-enter-chart.jChart
             %p.jLoading Loading
-      - unless @report.timeliness_exit_goal == -1
+      - if @report.show_exit_timeliness?
         .col-sm-6
           %h3.text-center Time to Exit
           %h4.text-center Goal: #{pluralize(@report.timeliness_exit_goal, 'day')} or less
           .time-to-exit-chart.jChart
             %p.jLoading Loading
 
-- unless @report.timeliness_entry_goal == -1
+- if @report.show_entry_timeliness?
   = content_for :page_js do
     :javascript
       $(function() {
@@ -26,7 +26,7 @@
           );
         time_to_enter.build_chart();
       });
-- unless @report.timeliness_exit_goal == -1
+- if @report.show_exit_timeliness?
   = content_for :page_js do
     :javascript
       $(function() {

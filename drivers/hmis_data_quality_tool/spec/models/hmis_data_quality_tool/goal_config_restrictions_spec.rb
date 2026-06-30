@@ -40,6 +40,10 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
         slugs = @report.results.map(&:slug)
         expect(slugs).not_to include('entry_date_entry_issues')
       end
+
+      it 'show_entry_timeliness? returns false' do
+        expect(@report.show_entry_timeliness?).to be false
+      end
     end
 
     context 'when entry_date_entered_length is enabled' do
@@ -56,6 +60,10 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
       it 'includes entry_date_entry_issues in results' do
         slugs = @report.results.map(&:slug)
         expect(slugs).to include('entry_date_entry_issues')
+      end
+
+      it 'show_entry_timeliness? returns true' do
+        expect(@report.show_entry_timeliness?).to be true
       end
     end
 
@@ -74,6 +82,10 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
         slugs = @report.results.map(&:slug)
         expect(slugs).not_to include('exit_date_entry_issues')
       end
+
+      it 'show_exit_timeliness? returns false' do
+        expect(@report.show_exit_timeliness?).to be false
+      end
     end
 
     context 'when exit_date_entered_length is enabled' do
@@ -85,6 +97,10 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
       it 'includes exit_date_entry_issues in pivot_details groups' do
         slugs = @report.pivot_details.groups.values.flat_map(&:keys)
         expect(slugs).to include(:exit_date_entry_issues)
+      end
+
+      it 'show_exit_timeliness? returns true' do
+        expect(@report.show_exit_timeliness?).to be true
       end
     end
 
@@ -123,6 +139,42 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
       it 'excludes annual_assessment_issues from results' do
         slugs = @report.results.map(&:slug)
         expect(slugs).not_to include('annual_assessment_issues')
+      end
+    end
+
+    context 'when goal config changes after the report is run' do
+      context 'entry timeliness was enabled at run time, then disabled' do
+        before do
+          HmisDataQualityTool::Goal.create!(coc_code: 'MA-500', entry_date_entered_length: 3)
+          @report = setup_report([project.id])
+          HmisDataQualityTool::Goal.find_by(coc_code: 'MA-500').update!(entry_date_entered_length: -1)
+        end
+
+        it 'still includes entry_date_entry_issues in pivot_details groups' do
+          slugs = @report.pivot_details.groups.values.flat_map(&:keys)
+          expect(slugs).to include(:entry_date_entry_issues)
+        end
+
+        it 'show_entry_timeliness? still returns true' do
+          expect(@report.show_entry_timeliness?).to be true
+        end
+      end
+
+      context 'entry timeliness was disabled at run time, then enabled' do
+        before do
+          HmisDataQualityTool::Goal.create!(coc_code: 'MA-500', entry_date_entered_length: -1)
+          @report = setup_report([project.id])
+          HmisDataQualityTool::Goal.find_by(coc_code: 'MA-500').update!(entry_date_entered_length: 3)
+        end
+
+        it 'still excludes entry_date_entry_issues from pivot_details groups' do
+          slugs = @report.pivot_details.groups.values.flat_map(&:keys)
+          expect(slugs).not_to include(:entry_date_entry_issues)
+        end
+
+        it 'show_entry_timeliness? still returns false' do
+          expect(@report.show_entry_timeliness?).to be false
+        end
       end
     end
   end
