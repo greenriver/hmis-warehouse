@@ -20,14 +20,6 @@ module DeviseCurrentUser
   included do
     protected
 
-    def info_for_paper_trail
-      {
-        user_id: warden&.user&.id,
-        session_id: session&.id&.to_s,
-        request_id: request.uuid,
-      }
-    end
-
     def configure_permitted_parameters
       devise_parameter_sanitizer.permit(:sign_in, keys: [:otp_attempt, :remember_device, :device_name])
     end
