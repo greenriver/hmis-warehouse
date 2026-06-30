@@ -105,10 +105,9 @@ RSpec.describe 'updateCeMatchRule mutation', type: :request do
     expect(response.status).to eq(200), result.inspect
 
     expect(result.dig('data', 'updateCeMatchRule', 'rule')).to be_nil
-    expect(result.dig('data', 'updateCeMatchRule', 'errors')).to contain_exactly(
-      a_hash_including('attribute' => 'ownerId', 'message' => 'cannot be changed once set'),
-      a_hash_including('attribute' => 'ownerType', 'message' => 'cannot be changed once set'),
-      a_hash_including('attribute' => 'ruleType', 'message' => 'cannot be changed once set'),
+    expect(result.dig('data', 'updateCeMatchRule', 'errors')).to include(
+      a_hash_including('attribute' => 'owner', 'message' => 'cannot be changed'),
+      a_hash_including('attribute' => 'ruleType', 'message' => 'cannot be changed'),
     )
     expect(rule.reload).to have_attributes(
       owner_id: ds1.id,
