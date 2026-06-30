@@ -666,11 +666,7 @@ module Types
       Hmis::UnitGroup.viewable_by(current_user).find_by(id: id)
     end
 
-    field :unit_groups, HmisSchema::UnitGroup.page_type, null: false, after_paginate: ->(nodes, ctx) {
-      # Preload project dependencies to avoid n+1s in the Project.authorized? check
-      project_ids = nodes.map(&:project_id)
-      ctx[:current_user].policy_context.preload_project_dependencies(project_ids)
-    } do
+    field :unit_groups, HmisSchema::UnitGroup.page_type, null: false do
       filters_argument HmisSchema::UnitGroup
     end
     def unit_groups(filters: nil)
