@@ -51,15 +51,11 @@ module GrPaperTrailVersionBehavior
   end
 
   def clean_true_user_id
-    # Derive from whodunnit, the one cross-era source of truth, exactly as clean_user_id does — never
-    # from the user_id/true_user_id columns, whose meaning depends on the auth era that wrote the row.
-    # (The app/health versions tables have no true_user_id column at all.)
+    return user_id if user_id
     return if whodunnit.blank?
 
     match = WHODUNNIT_IMPERSONATOR_PATTERN.match(whodunnit)
-    return match[1] if match # impersonation: "<true> as <acting>" -> the true user
-
-    whodunnit if whodunnit.match?(/\A\d+\z/) # no impersonation: whodunnit is the (true == acting) user
+    match[1] if match
   end
 
   protected

@@ -39,12 +39,11 @@ module GrdaWarehouse
 
     def clean_user_id
       [
-        # Prefer whodunnit: it records the acting (impersonated) user identically across auth eras,
-        # whereas the user_id column means the acting user under JWT but the *true* user under Devise.
+        # User user_id if available
+        user_id,
+        # Otherwise use whodunnit
         whodunnit&.match?(/^\d+$/) ? whodunnit : nil,
         whodunnit&.match?(whodunnit_impersonator_pattern) ? whodunnit.sub(whodunnit_impersonator_pattern, '\2') : nil,
-        # Fall back to the column only for rows without a usable whodunnit.
-        user_id,
       ].find(&:present?)
     end
 
