@@ -57,7 +57,7 @@ RSpec.describe Hmis::Ce::Match::Expression::ExpressionTranslator do
       expect(structured.operator).to eq(:AND)
       expect(structured.clauses.size).to eq(1)
       expect(structured.clauses.first).to eq(
-        Hmis::Ce::Match::Expression::StructuredExpression::Clause.new(field: 'current_age', comparator: :GTE, value: 18),
+        Hmis::Ce::Match::Expression::StructuredExpression::Clause.new(field: 'current_age', comparator: :GTE, value: 18, field_source: :CLIENT, form_definition_identifier: nil),
       )
     end
 
@@ -141,6 +141,8 @@ RSpec.describe Hmis::Ce::Match::Expression::ExpressionTranslator do
         field: 'cde.custom_assessment.ce_veteran_status',
         comparator: :EQ,
         value: 'YES',
+        field_source: :CUSTOM_DATA_ELEMENT,
+        form_definition_identifier: form_definition.identifier,
       )
     end
 
@@ -221,7 +223,7 @@ RSpec.describe Hmis::Ce::Match::Expression::ExpressionTranslator do
       structured = Hmis::Ce::Match::Expression::StructuredExpression.new(
         operator: :AND,
         clauses: [
-          Hmis::Ce::Match::Expression::StructuredExpression::Clause.new(field: 'veteran_status', comparator: :EQ, value: 'YES'),
+          Hmis::Ce::Match::Expression::StructuredExpression::Clause.new(field: 'veteran_status', comparator: :EQ, value: 'YES', field_source: nil, form_definition_identifier: nil),
         ],
       )
 
@@ -233,7 +235,7 @@ RSpec.describe Hmis::Ce::Match::Expression::ExpressionTranslator do
       structured = Hmis::Ce::Match::Expression::StructuredExpression.new(
         operator: :AND,
         clauses: [
-          Hmis::Ce::Match::Expression::StructuredExpression::Clause.new(field: 'open_referral_project_types', comparator: :INCLUDES, value: emergency_shelter_key),
+          Hmis::Ce::Match::Expression::StructuredExpression::Clause.new(field: 'open_referral_project_types', comparator: :INCLUDES, value: emergency_shelter_key, field_source: nil, form_definition_identifier: nil),
         ],
       )
 
@@ -244,8 +246,8 @@ RSpec.describe Hmis::Ce::Match::Expression::ExpressionTranslator do
       structured = Hmis::Ce::Match::Expression::StructuredExpression.new(
         operator: :AND,
         clauses: [
-          Hmis::Ce::Match::Expression::StructuredExpression::Clause.new(field: 'unknown_field', comparator: :EQ, value: 'YES'),
-          Hmis::Ce::Match::Expression::StructuredExpression::Clause.new(field: 'veteran_status', comparator: :EQ, value: 'NOT_A_REAL_KEY'),
+          Hmis::Ce::Match::Expression::StructuredExpression::Clause.new(field: 'unknown_field', comparator: :EQ, value: 'YES', field_source: nil, form_definition_identifier: nil),
+          Hmis::Ce::Match::Expression::StructuredExpression::Clause.new(field: 'veteran_status', comparator: :EQ, value: 'NOT_A_REAL_KEY', field_source: nil, form_definition_identifier: nil),
         ],
       )
 

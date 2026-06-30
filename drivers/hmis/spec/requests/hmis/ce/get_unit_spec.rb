@@ -75,6 +75,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             operator
             clauses {
               field
+              fieldSource
+              formDefinitionIdentifier
               comparator
               value
             }
@@ -126,8 +128,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect(rule_json['structuredExpression']).to eq(
           'operator' => 'AND',
           'clauses' => [
-            { 'field' => 'current_age', 'comparator' => 'GTE', 'value' => 18 },
-            { 'field' => 'veteran_status', 'comparator' => 'EQ', 'value' => 'YES' },
+            { 'field' => 'current_age', 'fieldSource' => 'CLIENT', 'formDefinitionIdentifier' => nil, 'comparator' => 'GTE', 'value' => 18 },
+            { 'field' => 'veteran_status', 'fieldSource' => 'CLIENT', 'formDefinitionIdentifier' => nil, 'comparator' => 'EQ', 'value' => 'YES' },
           ],
         )
       end

@@ -119,6 +119,8 @@ module Hmis::Ce::Match::Expression
           field: field,
           comparator: comparator,
           value: value,
+          field_source: field_metadata.source,
+          form_definition_identifier: field_metadata.form_definition_identifier,
         )
       end
 
@@ -138,6 +140,10 @@ module Hmis::Ce::Match::Expression
           field: field,
           comparator: COMPARATORS.fetch(node.class),
           value: value,
+          # Return field_source and form_definition_identifier as helpers to the frontend
+          # for filling in the related dropdowns when editing existing clauses.
+          field_source: field_metadata.source,
+          form_definition_identifier: field_metadata.form_definition_identifier,
         )
       end
 

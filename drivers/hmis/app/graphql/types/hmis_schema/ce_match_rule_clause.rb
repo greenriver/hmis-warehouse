@@ -21,17 +21,11 @@ module Types
     end
 
     def field_source
-      field_metadata.source.to_s
+      object.field_source.to_s
     end
 
     def form_definition_identifier
-      field_metadata.form_definition_identifier
-    end
-
-    private
-
-    def field_metadata
-      @field_metadata ||= Hmis::Ce::Match::FieldCatalog.new.field_for(object.field)
+      object.form_definition_identifier
     end
   end
 end
