@@ -65,9 +65,10 @@ module Health
       },
     ].freeze
 
-    def initialize(patient:, user:)
+    def initialize(patient:, user:, min_modification_date: nil)
       @patient = patient
       @user = user
+      @min_modification_date = min_modification_date
     end
 
     # Export PDFs for all configured health document types belonging to the patient.
@@ -88,6 +89,11 @@ module Health
         FileUtils.mkdir_p(subdir)
 
         @patient.send(config[:association]).each do |record|
+          # If we can determine a date, and we specified a min modification date
+          # and the date is strictly before the min modification date, skip the record
+          modification_date = record_export_date(record)
+          next if modification_date.present? && @min_modification_date.present? && modification_date < @min_modification_date
+
           ref = "#{config[:label]}##{record.id}"
           begin
             pdf_bytes = config[:generator].call(@user, record)

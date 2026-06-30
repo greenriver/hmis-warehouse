@@ -158,5 +158,62 @@ RSpec.describe Health::ExportPatient, type: :model do
         expect(result[:exported].count).to eq(8)
       end
     end
+
+    context 'with min_modification_date' do
+      let!(:old_careplan) do
+        create(:careplan, patient: patient, user: user, created_at: 1.year.ago)
+      end
+      let(:min_modification_date) { 6.months.ago.strftime('%Y-%m-%d') }
+      let(:exporter) do
+        described_class.new(patient: patient, user: user, min_modification_date: min_modification_date)
+      end
+
+      it 'skips records modified strictly before min_modification_date' do
+        Dir.mktmpdir do |tmpdir|
+          result = exporter.export(path: tmpdir)
+
+          exported_careplan_ids = result[:exported].
+            grep(/health_careplans/).
+            map { |path| File.basename(path).split('--').first.to_i }
+
+          expect(exported_careplan_ids).to include(careplan.id)
+          expect(exported_careplan_ids).not_to include(old_careplan.id)
+          expect(result[:skipped]).not_to include("careplan##{old_careplan.id}")
+          expect(result[:exported].count).to eq(9)
+        end
+      end
+
+      it 'exports records modified on min_modification_date' do
+        careplan.update!(created_at: Date.parse(min_modification_date))
+
+        Dir.mktmpdir do |tmpdir|
+          result = exporter.export(path: tmpdir)
+
+          exported_careplan_ids = result[:exported].
+            grep(/health_careplans/).
+            map { |path| File.basename(path).split('--').first.to_i }
+
+          expect(exported_careplan_ids).to include(careplan.id)
+        end
+      end
+
+      it 'exports records when no modification date can be determined' do
+        allow_any_instance_of(Health::ParticipationForm).to receive(:signature_on).and_return(nil)
+
+        Dir.mktmpdir do |tmpdir|
+          result = exporter.export(path: tmpdir)
+
+          expect(result[:exported].grep(/health_participation_forms/)).not_to be_empty
+        end
+      end
+
+      it 'does not call the generator for filtered records' do
+        Dir.mktmpdir do |tmpdir|
+          exporter.export(path: tmpdir)
+
+          expect(Health::DocumentExports::CareplanPdfExport).to have_received(:generate).once
+        end
+      end
+    end
   end
 end

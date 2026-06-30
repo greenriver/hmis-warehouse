@@ -15,7 +15,8 @@ module Health
       configs: nil,
       path: 'tmp/health_export',
       destination: 'carehub_export',
-      user: User.system_user
+      user: User.system_user,
+      min_modification_date: nil
     )
       @patients = patients
       @config = configs.presence&.first || Health::ImportConfig.epic_data.first
@@ -25,6 +26,7 @@ module Health
       @destination = File.join(@config.path, destination, Date.current.strftime('%Y-%m-%d'))
 
       @user = user
+      @min_modification_date = min_modification_date
       @uploaded = []
       @upload_errors = []
       @exported = []
@@ -36,7 +38,7 @@ module Health
 
       @patients.find_in_batches(batch_size: 100) do |batch|
         batch.each do |patient|
-          result = Health::ExportPatient.new(patient: patient, user: @user).export(path: @path)
+          result = Health::ExportPatient.new(patient: patient, user: @user, min_modification_date: @min_modification_date).export(path: @path)
           @exported << result
           upload_to_sftp(result[:exported])
           cleanup_local_files(result[:exported])

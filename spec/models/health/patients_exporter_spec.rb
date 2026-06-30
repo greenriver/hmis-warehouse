@@ -209,5 +209,26 @@ RSpec.describe Health::PatientsExporter, type: :model do
       expect(second_result[:uploaded]).to eq([local_file.delete_prefix("#{export_path}/")])
       expect(second_result[:upload_errors]).to be_empty
     end
+
+    it 'passes min_modification_date through to ExportPatient' do
+      min_modification_date = '2024-06-01'
+
+      exporter = described_class.new(
+        patients: Health::Patient.where(id: patient.id),
+        configs: [config],
+        path: export_path,
+        user: user,
+        min_modification_date: min_modification_date,
+      )
+      exporter.export
+
+      expect(Health::ExportPatient).to have_received(:new).with(
+        hash_including(
+          patient: patient,
+          user: user,
+          min_modification_date: min_modification_date,
+        ),
+      )
+    end
   end
 end
