@@ -23,10 +23,10 @@ RSpec.describe 'Unit groups query', type: :request do
           nodes {
             id
             name
-            project {
-              id
-              projectName
-            }
+            projectId
+            projectName
+            organizationId
+            organizationName
             effectiveCeMatchRuleCount
             localCeMatchRuleCount
           }
@@ -42,8 +42,22 @@ RSpec.describe 'Unit groups query', type: :request do
     unit_groups = result.dig('data', 'unitGroups')
     expect(unit_groups['nodesCount']).to eq(2)
     expect(unit_groups['nodes']).to contain_exactly(
-      include('id' => beds_group.id.to_s, 'name' => beds_group.name),
-      include('id' => vouchers_group.id.to_s, 'name' => vouchers_group.name),
+      include(
+        'id' => beds_group.id.to_s,
+        'name' => beds_group.name,
+        'projectId' => p1.id.to_s,
+        'projectName' => p1.name,
+        'organizationId' => o1.id.to_s,
+        'organizationName' => o1.name,
+      ),
+      include(
+        'id' => vouchers_group.id.to_s,
+        'name' => vouchers_group.name,
+        'projectId' => p1.id.to_s,
+        'projectName' => p1.name,
+        'organizationId' => o1.id.to_s,
+        'organizationName' => o1.name,
+      ),
     )
   end
 

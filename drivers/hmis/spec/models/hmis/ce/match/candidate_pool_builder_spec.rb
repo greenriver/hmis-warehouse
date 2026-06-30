@@ -16,12 +16,15 @@ RSpec.describe Hmis::Ce::Match::CandidatePoolBuilder do
 
   before do
     allow_any_instance_of(Hmis::Ce::Match::Rule).to receive(:rebuild_candidate_pools) # prevent automatic rebuilds
-    allow_any_instance_of(Hmis::UnitGroup).to receive(:rebuild_candidate_pool) # prevent automatic rebuilds
     allow_any_instance_of(Hmis::Ce::Configuration).to receive(:enabled?).and_return(true)
     allow(HmisEnforcement).to receive(:hmis_enabled?).and_return(true)
   end
 
   describe '#call' do
+    before do
+      allow_any_instance_of(Hmis::UnitGroup).to receive(:rebuild_candidate_pool) # prevent automatic rebuilds
+    end
+
     context 'with unit groups' do
       let!(:unit_group_1) { create(:hmis_unit_group, project: project) }
       let!(:unit_group_2) { create(:hmis_unit_group, project: project) }
@@ -180,6 +183,23 @@ RSpec.describe Hmis::Ce::Match::CandidatePoolBuilder do
     end
   end
 
+  describe 'waitlist template timing' do
+    it 'assigns a pool when waitlist template is set after project waitlists are enabled' do
+      project = create(:hmis_hud_project, organization: organization)
+      unit_group = create(:hmis_unit_group, project: project, workflow_template: nil)
+      create(:hmis_project_ce_config, project: project, supports_waitlist_referrals: true)
+      create(:hmis_ce_eligibility_requirement, owner: project, expression: 'eligible = 1')
+      create(:hmis_ce_priority_scheme, owner: project, expression: 'score')
+
+      expect(unit_group.reload.candidate_pool_id).to be_nil
+
+      template = create(:hmis_workflow_definition_template, :with_basic_tasks, data_source: project.data_source)
+      unit_group.update!(workflow_template: template)
+
+      expect(unit_group.reload.candidate_pool_id).to be_present
+    end
+  end
+
   describe 'locking behavior' do
     it 'defers locking to callers (no direct advisory lock held by builder)' do
       expect(GrdaWarehouseBase).not_to receive(:with_advisory_lock)
@@ -193,6 +213,10 @@ RSpec.describe Hmis::Ce::Match::CandidatePoolBuilder do
   end
 
   describe 'rule specificity and ranking' do
+    before do
+      allow_any_instance_of(Hmis::UnitGroup).to receive(:rebuild_candidate_pool) # prevent automatic rebuilds
+    end
+
     let!(:data_source) { project.data_source }
     let!(:unit_group_1) { create(:hmis_unit_group, project: project) }
     # we must have at least one eligibility rule to generate pools

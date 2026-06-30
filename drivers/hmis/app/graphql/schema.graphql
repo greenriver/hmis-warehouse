@@ -13093,8 +13093,11 @@ type UnitGroup {
   """
   localCeMatchRuleCount: Int!
   name: String!
+  organizationId: ID!
+  organizationName: String!
   prioritySchemes: [CeMatchRule!]
-  project: Project!
+  projectId: ID!
+  projectName: String!
   unitType: UnitTypeObject
   unitTypes: [UnitTypeCapacity!]!
   units(filters: UnitFilterOptions, limit: Int, offset: Int): UnitsPaginated!
