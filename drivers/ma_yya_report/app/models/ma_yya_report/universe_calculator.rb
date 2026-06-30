@@ -52,6 +52,7 @@ module MaYyaReport
       end
     end
 
+    # rubocop:disable Metrics/AbcSize
     private def for_batch(batch)
       enrollments_by_client_id = clients_with_enrollments(batch)
       {}.tap do |clients|
@@ -160,7 +161,7 @@ module MaYyaReport
             # rehoused_on: rehoused_on(enrollment.enrollment), # Legacy column no longer in use
             subsequent_current_living_situations: subsequent_current_living_situations(enrollment.enrollment),
             zip_codes: zip_codes(client),
-            # flex_funds: flex_funds(enrollments_by_client_id[client_id]), # Legacy column no longer in use
+            flex_funds: flex_funds(enrollments_by_client_id[client_id]),
             language: language(enrollment.enrollment),
             employed: employment_status&.Employed == 1,
             former_foster_ward: enrollment.enrollment.FormerWardChildWelfare == 1,
@@ -181,6 +182,7 @@ module MaYyaReport
         end
       end
     end
+    # rubocop:enable Metrics/AbcSize
 
     # Any client with an enrollment that overlaps the universe
     private def client_scope

@@ -377,6 +377,22 @@ RSpec.describe MaYyaReport::Report do
         columns = report.detail_columns_for(:F2d)
         expect(columns).to include(:zip_codes)
       end
+
+      context 'when show_flex_funds? is false' do
+        before { allow(report).to receive(:show_flex_funds?).and_return(false) }
+
+        it 'excludes the flex_funds column' do
+          expect(report.detail_columns_for(:A1a)).not_to include(:flex_funds)
+        end
+      end
+
+      context 'when show_flex_funds? is true' do
+        before { allow(report).to receive(:show_flex_funds?).and_return(true) }
+
+        it 'includes the flex_funds column' do
+          expect(report.detail_columns_for(:A1a)).to include(:flex_funds)
+        end
+      end
     end
 
     describe '#member_level_column?' do
@@ -389,6 +405,38 @@ RSpec.describe MaYyaReport::Report do
     describe '#detail_header_for' do
       it 'humanizes column names' do
         expect(report.detail_header_for(:project_type_at_entry)).to eq('Project type at entry')
+      end
+    end
+  end
+
+  describe '#show_flex_funds?' do
+    context 'when Flex Funds service type does not exist' do
+      before { allow(Hmis::Hud::CustomServiceType).to receive(:find_by).with(name: 'Flex Funds').and_return(nil) }
+
+      it 'returns false' do
+        expect(report.show_flex_funds?).to be false
+      end
+    end
+
+    context 'when Flex Funds service type exists but flex_funds_types CDED does not' do
+      before do
+        allow(Hmis::Hud::CustomServiceType).to receive(:find_by).with(name: 'Flex Funds').and_return(double('service_type'))
+        allow(Hmis::Hud::CustomDataElementDefinition).to receive(:find_by).with(key: :flex_funds_types).and_return(nil)
+      end
+
+      it 'returns false' do
+        expect(report.show_flex_funds?).to be false
+      end
+    end
+
+    context 'when both service type and flex_funds_types CDED exist' do
+      before do
+        allow(Hmis::Hud::CustomServiceType).to receive(:find_by).with(name: 'Flex Funds').and_return(double('service_type'))
+        allow(Hmis::Hud::CustomDataElementDefinition).to receive(:find_by).with(key: :flex_funds_types).and_return(double('cded'))
+      end
+
+      it 'returns true' do
+        expect(report.show_flex_funds?).to be true
       end
     end
   end

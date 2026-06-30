@@ -306,7 +306,15 @@ module MaYyaReport
       columns = DETAIL_BASE_COLUMNS.dup
       columns.concat(DETAIL_COLUMN_GROUPS.fetch(detail_column_group_for(cell), []))
       columns.concat(DETAIL_CELL_OVERRIDES.fetch(cell, []))
+      columns << :flex_funds if show_flex_funds?
       columns.uniq
+    end
+
+    def show_flex_funds?
+      return @show_flex_funds unless @show_flex_funds.nil?
+
+      @show_flex_funds = Hmis::Hud::CustomServiceType.find_by(name: 'Flex Funds').present? &&
+        Hmis::Hud::CustomDataElementDefinition.find_by(key: :flex_funds_types).present?
     end
 
     def detail_header_for(column)
