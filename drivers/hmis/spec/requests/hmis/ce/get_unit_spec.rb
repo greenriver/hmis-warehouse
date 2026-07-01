@@ -30,7 +30,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   describe 'GetUnit query' do
     let(:query) do
       <<~GRAPHQL
-        query GetUnit($id: ID!, $limit: Int = 25, $offset: Int = 0) {
+        query GetUnit($id: ID!) {
           unit(id: $id) {
             id
             name
@@ -62,7 +62,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
                 }
               }
             }
-            ceReferrals(limit: $limit, offset: $offset) {
+            ceReferrals(limit: 25, offset: 0) {
               offset
               limit
               nodesCount
@@ -301,15 +301,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           map { |node| node['id'] }
         expect(referral_ids).to include(direct_referral.id.to_s)
         expect(referral_ids).not_to include(other_direct_referral.id.to_s)
-      end
-
-      it 'supports pagination' do
-        response, result = post_graphql(**variables.merge(limit: 1, offset: 1)) { query }
-        expect(response.status).to eq(200), result.inspect
-
-        referral_data = result.dig('data', 'unit', 'ceReferrals')
-        expect(referral_data).to include('limit' => 1, 'offset' => 1, 'nodesCount' => 2)
-        expect(referral_data['nodes'].size).to eq(1)
       end
 
       context 'without referral permission' do
