@@ -8,7 +8,6 @@
 
 module Types
   class HmisSchema::Unit < Types::BaseObject
-
     include Types::HmisSchema::HasCeReferrals
 
     available_filter_options do
