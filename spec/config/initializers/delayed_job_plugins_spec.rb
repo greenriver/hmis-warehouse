@@ -14,14 +14,11 @@ RSpec.describe SignalHandlerPlugin do
   let(:lifecycle) { Delayed::Lifecycle.new }
 
   before do
-    # Clear thread-local storage before each test
     Thread.current[:delayed_job_worker] = nil
-    # Apply the plugin callbacks to our test lifecycle
     SignalHandlerPlugin.callback_block.call(lifecycle)
   end
 
   after do
-    # Clean up thread-local storage after each test to prevent leakage
     Thread.current[:delayed_job_worker] = nil
   end
 
@@ -360,9 +357,9 @@ RSpec.describe AwsCredentialFailurePlugin do
       expect(Rails.logger).to have_received(:error).with(/AWS credential failure/)
     end
 
-    it 'pushes attempts to the limit so a mid-flight credential failure is not retried' do
+    it 'leaves attempts untouched so delayed_job retries per the job record\'s remaining budget' do
       allow(Rails.logger).to receive(:error)
-      job.attempts = 0
+      job.attempts = 2
 
       expect do
         lifecycle.run_callbacks(:perform, worker, job) do
@@ -370,7 +367,10 @@ RSpec.describe AwsCredentialFailurePlugin do
         end
       end.to raise_error(credential_error_class)
 
-      expect(job.attempts).to eq(Delayed::Worker.max_attempts)
+      # The plugin must not consume or inflate the retry budget: delayed_job's own reschedule
+      # (attempts vs max_attempts) is what decides retry-in-a-fresh-worker vs permanent fail.
+      # A job that must never retry is enqueued with its attempts already exhausted instead.
+      expect(job.attempts).to eq(2)
     end
 
     it 're-raises non-credential errors without stopping the worker or touching attempts' do

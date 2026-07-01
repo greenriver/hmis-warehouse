@@ -9,8 +9,6 @@
 class SignalHandlerPlugin < Delayed::Plugin
   class << self
     def current_worker_stopping?
-      # Use thread-local storage directly. This is safer and more idiomatic
-      # than a custom registry.
       worker = Thread.current[:delayed_job_worker]
       worker&.stop? || false
     end
@@ -97,8 +95,8 @@ class AwsCredentialPreflightPlugin < Delayed::Plugin
       Rails.cache.read(preflight_cache_key(job)).to_i
     end
 
-    # Reschedule this same job row a few minutes out with the safety counter
-    # incremented, and release its lock so another worker can pick it up.
+    # Release the lock and push run_at out so a fresh worker picks the job up later,
+    # recording the incremented safety counter in the cache.
     def reschedule!(job, next_count)
       Rails.cache.write(preflight_cache_key(job), next_count, expires_in: PREFLIGHT_RESCHEDULE_CACHE_TTL)
 
@@ -164,14 +162,16 @@ class AwsCredentialPreflightPlugin < Delayed::Plugin
   end
 end
 
-# When the worker's *ambient* AWS credentials go bad mid-job (rather than being caught by
-# the preflight check beforehand), every job this worker reserves will fail identically and
-# poison the queue. Detect that class of error and stop the worker so the pod is recycled.
+# When the worker's *ambient* AWS credentials go bad mid-job (rather than being caught by the
+# preflight check beforehand), every job this worker reserves will fail identically and poison
+# the queue. Detect that class of error and stop the worker so Kubernetes recycles the pod with
+# a freshly-rotated token.
 #
-# Unlike a preflight-detected failure, the job here already started running and may have
-# partial side effects, so it isn't safe to let delayed_job silently retry it -- only a
-# credential failure caught *before* the job ever ran is safe to reschedule. So this forces
-# the job straight to permanent failure instead of DJ's normal attempts-based retry.
+# We leave the job's retry budget alone: re-raising lets delayed_job reschedule normally, so a
+# job with attempts remaining retries in the fresh worker and one whose budget is exhausted
+# fails permanently. A job that must never retry after a credential failure is enqueued with
+# its attempts already spent (e.g. max_attempts 1) -- that's an enqueue-time decision, not this
+# plugin's job to enforce.
 class AwsCredentialFailurePlugin < Delayed::Plugin
   # Match by name + walk the cause chain so we catch wrapped errors and don't
   # depend on AWS constants being autoloaded at initializer-load time.
@@ -196,12 +196,9 @@ class AwsCredentialFailurePlugin < Delayed::Plugin
       block.call
     rescue StandardError => e
       if AwsCredentialFailurePlugin.credential_failure?(e)
-        SignalHandlerPlugin.stop_current_worker!("AWS credential failure (#{e.class})")
-        # Push attempts to (at least) the limit so DJ's reschedule sees the budget as
-        # exhausted and fails the job permanently instead of retrying it.
-        job.attempts = [job.attempts, job.max_attempts || Delayed::Worker.max_attempts].max
+        SignalHandlerPlugin.stop_current_worker!("AWS credential failure on job ##{job.id} (#{e.class})")
       end
-      raise # let delayed_job record the failure (permanently, per the attempts bump above)
+      raise # delayed_job reschedules or fails per the job's own attempts budget
     end
   end
 end
@@ -209,11 +206,10 @@ end
 class DelayedJobJobIdProvider < Delayed::Plugin
   callbacks do |lifecycle|
     lifecycle.before(:invoke_job) do |job|
-      # job.id is the ID of the Delayed::Job record in the database.
-      # We only inject this into ActiveJob-style payloads that have a job_data hash.
+      # Expose the Delayed::Job row id to ActiveJob payloads as provider_job_id.
       payload = job.payload_object
       if payload.respond_to?(:job_data) && payload.job_data.is_a?(Hash)
-        # avoid mutation of job_date due as it crashes if frozen
+        # merge (not mutate) -- job_data may be frozen
         payload.job_data = payload.job_data.merge(
           'provider_job_id' => job.id,
         )
