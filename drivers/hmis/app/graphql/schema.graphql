@@ -13022,7 +13022,7 @@ type Unit {
   canBeMarkedUnavailable: Boolean!
 
   """
-  The CE referrals for the unit
+  All current and historical CE referrals for the unit
   """
   ceReferrals(filters: UnitCeReferralFilterOptions, limit: Int, offset: Int): CeReferralsPaginated!
   dateCreated: ISO8601DateTime!
