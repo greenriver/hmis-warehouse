@@ -42,7 +42,7 @@ module Types
     field :latest_opportunity, HmisSchema::CeOpportunity, null: true, description: "The unit's most recent opportunity, which could be currently active or already closed"
     field :accepting_ce_referrals, Boolean, null: false
 
-    ce_referrals_field :ce_referrals, null: false, description: 'The CE referrals for the unit', filter_args: { type_name: 'UnitCeReferral' }
+    ce_referrals_field :ce_referrals, null: false, description: 'All current and historical CE referrals for the unit', filter_args: { type_name: 'UnitCeReferral' }
 
     def ce_referrals(**args)
       resolve_ce_referrals(object.referrals, sort_order: :created_at, **args)
