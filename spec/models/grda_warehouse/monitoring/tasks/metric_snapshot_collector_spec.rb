@@ -56,17 +56,6 @@ RSpec.describe GrdaWarehouse::Monitoring::Tasks::MetricSnapshotCollector, type: 
   end
 
   describe '.run_daily_collection' do
-    it 'creates metric calculation run record' do
-      expect do
-        described_class.run_daily_collection(
-          entity_type: entity_type,
-          calculation_date: calculation_date,
-          entity_ids: [client1.id, client2.id],
-          metric_names: ['test_metric'],
-        )
-      end.to change(GrdaWarehouse::Monitoring::MetricCalculationRun, :count).by(1)
-    end
-
     it 'creates snapshots for entities with data' do
       expect do
         described_class.run_daily_collection(
@@ -76,6 +65,30 @@ RSpec.describe GrdaWarehouse::Monitoring::Tasks::MetricSnapshotCollector, type: 
           metric_names: ['test_metric'],
         )
       end.to change(GrdaWarehouse::Monitoring::MetricSnapshot, :count).by(2)
+    end
+
+    it 'discovers entities via the default scope when entity_ids is not provided' do
+      # client1/client2 are destination clients with processed service history records
+      # (processed1/processed2), so they must be discoverable without an explicit entity_ids
+      # list — this is the path the real nightly job (CollectClientMetricsJob) exercises.
+      expect do
+        described_class.run_daily_collection(
+          entity_type: entity_type,
+          calculation_date: calculation_date,
+          metric_names: ['test_metric'],
+        )
+      end.to change(GrdaWarehouse::Monitoring::MetricSnapshot, :count).by(2)
+    end
+
+    it 'enqueues the threshold crossing notification job for the previous day' do
+      expect do
+        described_class.run_daily_collection(
+          entity_type: entity_type,
+          calculation_date: calculation_date,
+          entity_ids: [client1.id, client2.id],
+          metric_names: ['test_metric'],
+        )
+      end.to have_enqueued_job(NotifyMetricThresholdCrossingsJob).with(calculation_date - 1.day)
     end
 
     it 'records statistics in calculation run' do
@@ -417,6 +430,192 @@ RSpec.describe GrdaWarehouse::Monitoring::Tasks::MetricSnapshotCollector, type: 
     end
   end
 
+  describe 'change detection across threshold configurations' do
+    # Count and percent thresholds are user-configurable in the admin UI, so the shared
+    # detection logic must behave for arbitrary configurations, not just the seeded defaults.
+    # MinHouseholdSizeCalculator uses the default strategy (absolute change since the last
+    # value, not gap-normalized).
+    min_calc = 'GrdaWarehouse::Monitoring::MetricCalculators::MinHouseholdSizeCalculator'
+
+    def run_for(metric_name)
+      described_class.run_daily_collection(
+        entity_type: entity_type,
+        calculation_date: calculation_date,
+        entity_ids: [client1.id],
+        metric_names: [metric_name],
+      )
+    end
+
+    def stub_min_value(value)
+      allow(GrdaWarehouse::Monitoring::MetricCalculators::MinHouseholdSizeCalculator).
+        to receive(:calculate_batch).and_return({ client1.id => value })
+    end
+
+    before do
+      allow(GrdaWarehouse::Monitoring::MetricCalculators::MinHouseholdSizeCalculator).
+        to receive(:data_stable?).and_return(true)
+    end
+
+    context 'default strategy with a count threshold above 1' do
+      let!(:metric) do
+        create(
+          :grda_warehouse_monitoring_metric_definition,
+          name: 'hh_count',
+          entity_type: entity_type,
+          calculator_class: min_calc,
+          count_change_threshold: 3,
+          active: true,
+        )
+      end
+
+      before do
+        create(
+          :grda_warehouse_monitoring_metric_snapshot,
+          entity: client1,
+          metric_definition: metric,
+          initial_observation_date: 20.days.ago,
+          current_observation_date: 1.day.ago,
+          initial_value: 4,
+          current_value: 10, # drifted from the initial baseline over time
+        )
+      end
+
+      it 'does not cross on a small per-run change even when far from the initial baseline' do
+        # |12 - 10| = 2 (< 3) since the last run. |12 - 4| = 8 from the initial baseline would
+        # have crossed under the old cumulative-from-initial comparison.
+        stub_min_value(12)
+
+        expect { run_for('hh_count') }.
+          not_to change(GrdaWarehouse::Monitoring::MetricSnapshot, :count)
+      end
+
+      it 'crosses on a single-run jump past the threshold' do
+        stub_min_value(14) # |14 - 10| = 4 (>= 3)
+
+        expect { run_for('hh_count') }.
+          to change(GrdaWarehouse::Monitoring::MetricSnapshot, :count).by(1)
+      end
+    end
+
+    context 'default strategy with a percent threshold' do
+      let!(:metric) do
+        create(
+          :grda_warehouse_monitoring_metric_definition,
+          name: 'hh_percent',
+          entity_type: entity_type,
+          calculator_class: min_calc,
+          count_change_threshold: nil,
+          percent_change_threshold: 20.0,
+          active: true,
+        )
+      end
+
+      before do
+        create(
+          :grda_warehouse_monitoring_metric_snapshot,
+          entity: client1,
+          metric_definition: metric,
+          initial_observation_date: 1.day.ago,
+          current_observation_date: 1.day.ago,
+          initial_value: 100,
+          current_value: 100,
+        )
+      end
+
+      it 'crosses when the change since the last value exceeds the percent threshold' do
+        stub_min_value(130) # +30%
+
+        expect { run_for('hh_percent') }.
+          to change(GrdaWarehouse::Monitoring::MetricSnapshot, :count).by(1)
+      end
+
+      it 'does not cross when the percent change is below the threshold' do
+        stub_min_value(110) # +10%
+
+        expect { run_for('hh_percent') }.
+          not_to change(GrdaWarehouse::Monitoring::MetricSnapshot, :count)
+      end
+    end
+
+    context 'default strategy with both count and percent thresholds (AND logic)' do
+      let!(:metric) do
+        create(
+          :grda_warehouse_monitoring_metric_definition,
+          name: 'hh_both',
+          entity_type: entity_type,
+          calculator_class: min_calc,
+          count_change_threshold: 3,
+          percent_change_threshold: 20.0,
+          active: true,
+        )
+      end
+
+      before do
+        create(
+          :grda_warehouse_monitoring_metric_snapshot,
+          entity: client1,
+          metric_definition: metric,
+          initial_observation_date: 1.day.ago,
+          current_observation_date: 1.day.ago,
+          initial_value: 100,
+          current_value: 100,
+        )
+      end
+
+      it 'crosses only when both thresholds are met' do
+        stub_min_value(130) # +30 count and +30%
+
+        expect { run_for('hh_both') }.
+          to change(GrdaWarehouse::Monitoring::MetricSnapshot, :count).by(1)
+      end
+
+      it 'does not cross when only the count threshold is met' do
+        stub_min_value(105) # +5 count (>= 3) but only +5% (< 20)
+
+        expect { run_for('hh_both') }.
+          not_to change(GrdaWarehouse::Monitoring::MetricSnapshot, :count)
+      end
+    end
+
+    context 'rate strategy with a percent threshold across a multi-day gap' do
+      # days_homeless normalizes both count and percent by elapsed days, so a large total
+      # change spread across a gap is evaluated as a per-day rate.
+      let!(:metric) do
+        create(
+          :grda_warehouse_monitoring_metric_definition,
+          name: 'homeless_percent',
+          entity_type: entity_type,
+          calculator_class: 'GrdaWarehouse::Monitoring::MetricCalculators::HomelessDaysLastThreeYearsCalculator',
+          count_change_threshold: nil,
+          percent_change_threshold: 10.0,
+          active: true,
+        )
+      end
+
+      before do
+        allow(GrdaWarehouse::Monitoring::MetricCalculators::HomelessDaysLastThreeYearsCalculator).
+          to receive(:data_stable?).and_return(true)
+        create(
+          :grda_warehouse_monitoring_metric_snapshot,
+          entity: client1,
+          metric_definition: metric,
+          initial_observation_date: 20.days.ago,
+          current_observation_date: 10.days.ago,
+          initial_value: 100,
+          current_value: 100,
+        )
+      end
+
+      it 'does not cross when the per-day percent stays below the threshold' do
+        # +45 over 10 days = 4.5/day = 4.5% per day (< 10%), though the raw total is 45%.
+        processed1.update!(days_homeless_last_three_years: 145)
+
+        expect { run_for('homeless_percent') }.
+          not_to change(GrdaWarehouse::Monitoring::MetricSnapshot, :count)
+      end
+    end
+  end
+
   describe 'transaction isolation' do
     it 'wraps all stable metrics in a single repeatable read transaction' do
       allow(GrdaWarehouseBase).to receive(:transaction).and_call_original
@@ -494,13 +693,6 @@ RSpec.describe GrdaWarehouse::Monitoring::Tasks::MetricSnapshotCollector, type: 
           to receive(:data_stable?).and_return(true)
         allow(GrdaWarehouse::Monitoring::MetricCalculators::MinHouseholdSizeCalculator).
           to receive(:calculate_batch).and_return({ client1.id => 2 })
-        # The test suite runs inside a transaction, so REPEATABLE READ isolation
-        # cannot be set in a nested transaction. Stub the outer transaction to
-        # simply yield so the inner database writes are visible to assertions.
-        allow(GrdaWarehouseBase).to receive(:transaction).and_call_original
-        allow(GrdaWarehouseBase).to receive(:transaction).
-          with(isolation: :repeatable_read).
-          and_yield
       end
 
       it 'collects the stable metric and skips the unstable one' do
@@ -512,6 +704,49 @@ RSpec.describe GrdaWarehouse::Monitoring::Tasks::MetricSnapshotCollector, type: 
         expect(skipped).to eq(['test_metric'])
         expect(GrdaWarehouse::Monitoring::MetricSnapshot.count).to eq(1)
       end
+    end
+  end
+
+  describe 'error handling for a single metric' do
+    let!(:second_metric_definition) do
+      create(
+        :grda_warehouse_monitoring_metric_definition,
+        name: 'second_metric',
+        entity_type: entity_type,
+        calculator_class: 'GrdaWarehouse::Monitoring::MetricCalculators::MinHouseholdSizeCalculator',
+        count_change_threshold: 1,
+        active: true,
+      )
+    end
+
+    before do
+      allow(GrdaWarehouse::Monitoring::MetricCalculators::HomelessDaysLastThreeYearsCalculator).
+        to receive(:data_stable?).and_return(true)
+      allow(GrdaWarehouse::Monitoring::MetricCalculators::HomelessDaysLastThreeYearsCalculator).
+        to receive(:calculate_batch).and_raise(StandardError, 'boom')
+      allow(GrdaWarehouse::Monitoring::MetricCalculators::MinHouseholdSizeCalculator).
+        to receive(:data_stable?).and_return(true)
+      allow(GrdaWarehouse::Monitoring::MetricCalculators::MinHouseholdSizeCalculator).
+        to receive(:calculate_batch).and_return({ client1.id => 2 })
+    end
+
+    it 'still processes the other metric and records the failure on the run' do
+      described_class.run_daily_collection(
+        entity_type: entity_type,
+        calculation_date: calculation_date,
+        entity_ids: [client1.id, client2.id],
+      )
+
+      run = GrdaWarehouse::Monitoring::MetricCalculationRun.last
+      expect(run.calculation_errors_count).to eq(2) # size of the batch that raised
+      expect(run.status).to eq('completed') # errors do not currently mark the run failed
+
+      expect(
+        GrdaWarehouse::Monitoring::MetricSnapshot.for_entity(client1).for_metric(second_metric_definition),
+      ).to exist
+      expect(
+        GrdaWarehouse::Monitoring::MetricSnapshot.for_entity(client1).for_metric(metric_definition),
+      ).not_to exist
     end
   end
 

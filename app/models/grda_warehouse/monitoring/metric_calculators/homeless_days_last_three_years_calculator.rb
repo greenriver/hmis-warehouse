@@ -42,9 +42,10 @@ module GrdaWarehouse::Monitoring::MetricCalculators
       days_elapsed = 1 if days_elapsed < 1
 
       baseline = previous_snapshot.current_value
+      count_change = (calculated_value - baseline).abs.to_f / days_elapsed
       {
-        count_change: (calculated_value - baseline).abs.to_f / days_elapsed,
-        reference_value: baseline,
+        count_change: count_change,
+        percent_change: baseline.zero? ? nil : (count_change / baseline.abs * 100),
       }
     end
 

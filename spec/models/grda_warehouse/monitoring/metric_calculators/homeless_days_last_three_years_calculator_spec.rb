@@ -122,10 +122,9 @@ RSpec.describe GrdaWarehouse::Monitoring::MetricCalculators::HomelessDaysLastThr
 
       # 131 - 130 (current_value / previous run), NOT 131 - 100 (initial_value)
       expect(result[:count_change]).to eq(1)
-      expect(result[:reference_value]).to eq(130)
     end
 
-    it 'normalizes the change to a per-day rate across elapsed days' do
+    it 'normalizes count and percent to a per-day rate across elapsed days' do
       snapshot.current_observation_date = Date.current - 10
 
       result = described_class.change_metrics(
@@ -135,6 +134,8 @@ RSpec.describe GrdaWarehouse::Monitoring::MetricCalculators::HomelessDaysLastThr
       )
 
       expect(result[:count_change]).to eq(4.5) # 45 / 10 days
+      # percent aligns with the per-day count: (45 / 10) as a percent of the previous value
+      expect(result[:percent_change]).to be_within(0.001).of(4.5 / 130 * 100)
     end
 
     it 'treats a zero or negative day gap as a single day' do

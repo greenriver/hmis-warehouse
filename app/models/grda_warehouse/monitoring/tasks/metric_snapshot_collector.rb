@@ -244,39 +244,37 @@ module GrdaWarehouse::Monitoring::Tasks
       # No current snapshot = first time, create new
       return false unless current_snapshot
 
-      # Handle nil values
-      return true if calculated_value.nil? != current_snapshot.initial_value.nil?
-      return false if calculated_value.nil? && current_snapshot.initial_value.nil?
+      # Handle nil values (compared against the last observed value)
+      return true if calculated_value.nil? != current_snapshot.current_value.nil?
+      return false if calculated_value.nil? && current_snapshot.current_value.nil?
 
       count_threshold = metric.count_change_threshold
       percent_threshold = metric.percent_change_threshold
 
-      # The calculator owns how raw change becomes a comparable change: which value to
-      # measure from (original baseline vs. previous run) and any per-elapsed-day
-      # normalization. The thresholds it is compared against live on the metric definition.
+      # The calculator owns how raw change becomes comparable change magnitudes: which value
+      # to measure from (previous run vs. drift) and any per-elapsed-day normalization. It
+      # returns both count_change and a consistently-derived percent_change; the collector
+      # only compares them against the thresholds configured on the metric definition.
       metrics = calculator_class.change_metrics(
         previous_snapshot: current_snapshot,
         calculated_value: calculated_value,
         calculation_date: @calculation_date,
       )
-      change = metrics[:count_change]
-      reference_value = metrics[:reference_value]
+      count_change = metrics[:count_change]
+      percent_change = metrics[:percent_change]
 
       # If no thresholds specified, create new snapshot on any change
-      return change != 0 if count_threshold.nil? && percent_threshold.nil?
+      return count_change != 0 if count_threshold.nil? && percent_threshold.nil?
 
       # Check thresholds
       count_met = false
       percent_met = false
 
       # Check count threshold
-      count_met = change >= count_threshold if count_threshold
+      count_met = count_change >= count_threshold if count_threshold
 
-      # Check percent threshold
-      if percent_threshold && reference_value != 0
-        percent_change = (change.to_f / reference_value.abs * 100)
-        percent_met = percent_change >= percent_threshold
-      end
+      # Check percent threshold (percent_change is nil when the previous value was zero)
+      percent_met = percent_change >= percent_threshold if percent_threshold && percent_change
 
       # Both thresholds must be met if both are specified
       if count_threshold && percent_threshold

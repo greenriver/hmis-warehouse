@@ -24,16 +24,29 @@ RSpec.describe GrdaWarehouse::Monitoring::MetricCalculators::BaseCalculator do
       )
     end
 
-    it 'measures absolute change from the snapshot initial baseline' do
+    it 'measures change since the last observed value, not the initial baseline' do
       result = described_class.change_metrics(
         previous_snapshot: snapshot,
         calculated_value: 150,
         calculation_date: Date.current,
       )
 
-      # 150 - 100 (initial_value); ignores current_value drift and elapsed days
-      expect(result[:count_change]).to eq(50)
-      expect(result[:reference_value]).to eq(100)
+      # 150 - 130 (current_value), NOT 150 - 100 (initial_value); no elapsed-day normalization
+      expect(result[:count_change]).to eq(20)
+      expect(result[:percent_change]).to be_within(0.001).of(20.0 / 130 * 100)
+    end
+
+    it 'returns a nil percent_change when the previous value is zero' do
+      snapshot.current_value = 0
+
+      result = described_class.change_metrics(
+        previous_snapshot: snapshot,
+        calculated_value: 5,
+        calculation_date: Date.current,
+      )
+
+      expect(result[:count_change]).to eq(5)
+      expect(result[:percent_change]).to be_nil
     end
   end
 end

@@ -36,18 +36,19 @@ module GrdaWarehouse::Monitoring::MetricCalculators
       '1.0.0'
     end
 
-    # Returns the change magnitudes the collector compares against a metric's thresholds.
-    # Default strategy: absolute change measured from the snapshot's initial baseline,
-    # appropriate for static or discrete-change metrics (e.g. household size, row counts).
-    # Calculators whose value drifts over time (rolling windows, running totals) override
-    # this to measure change against the previous run and/or normalize by elapsed days.
-    # Returns { count_change:, reference_value: } where reference_value is the basis for
-    # the metric definition's percent_change_threshold.
+    # Returns the change magnitudes the collector compares against a metric's thresholds:
+    # { count_change:, percent_change: }. Both are measured since the last observed value
+    # (the snapshot's current_value), so a crossing reflects a genuine per-run change rather
+    # than gradual drift accumulating away from the original baseline. percent_change is nil
+    # when the previous value is zero (percent undefined). Calculators whose value drifts
+    # over time (rolling windows, running totals) override this to additionally normalize by
+    # elapsed days.
     def self.change_metrics(previous_snapshot:, calculated_value:, **_kwargs)
-      baseline = previous_snapshot.initial_value
+      baseline = previous_snapshot.current_value
+      count_change = (calculated_value - baseline).abs
       {
-        count_change: (calculated_value - baseline).abs,
-        reference_value: baseline,
+        count_change: count_change,
+        percent_change: baseline.zero? ? nil : (count_change.to_f / baseline.abs * 100),
       }
     end
 
