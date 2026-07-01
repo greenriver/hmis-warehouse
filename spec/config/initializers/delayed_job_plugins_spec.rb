@@ -253,7 +253,7 @@ RSpec.describe AwsCredentialPreflightPlugin do
     end
 
     it 'lets the job run anyway once the safety counter is tripped, without recycling the pod or deferring further' do
-      allow(Rails.logger).to receive(:error)
+      allow(Sentry).to receive(:capture_message)
       AwsCredentialPreflightPlugin.reschedule!(dj_record, AwsCredentialPreflightPlugin::MAX_PREFLIGHT_RESCHEDULES)
       allow(sts_client).to receive(:get_caller_identity).and_raise(StandardError, 'bad creds')
       allow(AwsCredentialFailurePlugin).to receive(:credential_failure?).and_return(true)
@@ -267,7 +267,11 @@ RSpec.describe AwsCredentialPreflightPlugin do
       # and needlessly recycle the pod on every job while credentials stay broken.
       expect(worker.stop?).to be false
       expect(AwsCredentialPreflightPlugin.preflight_reschedule_count(dj_record)).to eq(AwsCredentialPreflightPlugin::MAX_PREFLIGHT_RESCHEDULES)
-      expect(Rails.logger).to have_received(:error).with(/still unhealthy/)
+      # A tripped safety valve is a persistent-misconfiguration alert, not just a log line.
+      expect(Sentry).to have_received(:capture_message).with(
+        /still unhealthy after preflight reschedule limit/,
+        hash_including(level: :error),
+      )
     end
 
     it 'defers a plain (non-ActiveJob) payload the same as an ActiveJob one, and still trips the safety limit' do

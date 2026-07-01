@@ -148,7 +148,17 @@ class AwsCredentialPreflightPlugin < Delayed::Plugin
       else
         count = AwsCredentialPreflightPlugin.preflight_reschedule_count(job)
         if count >= MAX_PREFLIGHT_RESCHEDULES
-          Rails.logger.error("[delayed_job] AWS credentials still unhealthy after #{count} preflight reschedules; running job ##{job.id} anyway")
+          # Still bad after MAX deferrals (each spanning a pod recycle) -- this looks like a
+          # misconfigured role/policy, not a rotating token, so alert an engineer and let the
+          # job run normally instead of deferring forever.
+          Sentry.capture_message(
+            'AWS credentials still unhealthy after preflight reschedule limit; running job anyway',
+            level: :error,
+            extra: {
+              job_id: job.id,
+              preflight_reschedules: count,
+            },
+          )
           block.call(worker, job)
         else
           AwsCredentialPreflightPlugin.reschedule!(job, count + 1)
@@ -195,9 +205,7 @@ class AwsCredentialFailurePlugin < Delayed::Plugin
     lifecycle.around(:invoke_job) do |job, &block|
       block.call
     rescue StandardError => e
-      if AwsCredentialFailurePlugin.credential_failure?(e)
-        SignalHandlerPlugin.stop_current_worker!("AWS credential failure on job ##{job.id} (#{e.class})")
-      end
+      SignalHandlerPlugin.stop_current_worker!("AWS credential failure on job ##{job.id} (#{e.class})") if AwsCredentialFailurePlugin.credential_failure?(e)
       raise # delayed_job reschedules or fails per the job's own attempts budget
     end
   end
