@@ -92,7 +92,7 @@ module Health
           # If we can determine a date, and we specified a min modification date
           # and the date is strictly before the min modification date, skip the record
           modification_date = record_export_date(record)
-          next if modification_date.present? && @min_modification_date.present? && modification_date < @min_modification_date
+          next if modification_date.present? && @min_modification_date.present? && modification_date.to_date < @min_modification_date
 
           ref = "#{config[:label]}##{record.id}"
           begin
