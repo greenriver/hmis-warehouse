@@ -1021,6 +1021,8 @@ type CeMatchRuleClause {
   The name of the field for comparison, such as client_age or cde.custom_assessment.my_score
   """
   field: String!
+  fieldSource: CeMatchRuleFieldSource!
+  formDefinitionIdentifier: String
 
   """
   The value to compare the field against, such as 18 or "1 Bed". JSON scalar
@@ -1044,6 +1046,18 @@ enum CeMatchRuleComparator {
   LT
   LTE
   NOT_EQ
+}
+
+enum CeMatchRuleFieldSource {
+  """
+  A client field, such as current_age
+  """
+  CLIENT
+
+  """
+  A custom data element, such as cde.custom_assessment.my_score
+  """
+  CUSTOM_DATA_ELEMENT
 }
 
 input CeMatchRuleFilterOptions {

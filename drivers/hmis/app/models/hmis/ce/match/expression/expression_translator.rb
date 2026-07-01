@@ -110,12 +110,19 @@ module Hmis::Ce::Match::Expression
         return unless literal_ast?(args.last)
 
         field = args.first.identifier
-        value = structured_value_for_expression_value(args.last.value, field_catalog.field_for(field))
+        field_metadata = field_catalog.field_for(field)
+        return unless field_metadata
+
+        value = structured_value_for_expression_value(args.last.value, field_metadata)
 
         StructuredExpression::Clause.new(
           field: field,
           comparator: comparator,
           value: value,
+          # Return field_source and form_definition_identifier as helpers to the frontend
+          # for filling in the related dropdowns when editing existing clauses.
+          field_source: field_metadata.source,
+          form_definition_identifier: field_metadata.form_definition_identifier,
         )
       end
 
@@ -126,12 +133,19 @@ module Hmis::Ce::Match::Expression
         return unless literal_ast?(node.right)
 
         field = node.left.identifier
-        value = structured_value_for_expression_value(node.right.value, field_catalog.field_for(field))
+        field_metadata = field_catalog.field_for(field)
+        return unless field_metadata
+
+        value = structured_value_for_expression_value(node.right.value, field_metadata)
 
         StructuredExpression::Clause.new(
           field: field,
           comparator: COMPARATORS.fetch(node.class),
           value: value,
+          # Return field_source and form_definition_identifier as helpers to the frontend
+          # for filling in the related dropdowns when editing existing clauses.
+          field_source: field_metadata.source,
+          form_definition_identifier: field_metadata.form_definition_identifier,
         )
       end
 
