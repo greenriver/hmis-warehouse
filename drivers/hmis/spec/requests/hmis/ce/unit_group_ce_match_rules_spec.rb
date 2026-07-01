@@ -49,14 +49,6 @@ RSpec.describe 'Unit Group CE Match Rules queries', type: :request do
           id
           effectiveCeMatchRuleCount
           localCeMatchRuleCount
-          project {
-            id
-            projectName
-            organization {
-              id
-              organizationName
-            }
-          }
           effectiveCeMatchRuleGroups {
             ownerId
             ownerName
