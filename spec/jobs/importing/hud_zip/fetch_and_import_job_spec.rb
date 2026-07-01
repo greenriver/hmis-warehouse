@@ -27,42 +27,6 @@ module Importing
           described_class.new._perform(klass: importer_class_name, options: options)
           expect(importer_instance).to have_received(:import!)
         end
-
-        # The import is wrapped in AwsCredentialRescue#with_aws_credential_rescue; the bounded
-        # reschedule logic itself is covered in spec/jobs/aws_credential_rescue_spec.rb. Here we
-        # only assert that this job wires it up: a credential failure is handled gracefully while
-        # any other error still propagates.
-        context 'when the importer hits an AWS credential failure' do
-          # Match the plugin's detection (by class name) without depending on the AWS
-          # SDK being loaded: a StandardError subclass named like an STS credential error.
-          let(:credential_error_class) do
-            stub_const('Aws::STS::Errors::ExpiredTokenException', Class.new(StandardError))
-          end
-          let(:credential_error) { credential_error_class.new('token expired') }
-          let!(:dj_record) { Delayed::Job.create!(handler: 'dummy') }
-          let(:job) { described_class.new }
-
-          before do
-            allow(job).to receive(:provider_job_id).and_return(dj_record.id)
-            allow(importer_instance).to receive(:import!).and_raise(credential_error)
-            allow(SignalHandlerPlugin).to receive(:stop_current_worker!)
-          end
-
-          it 'handles the credential failure gracefully instead of failing the job' do
-            # The reschedule mechanics (clone, counter, attempt budget) are owned by
-            # spec/jobs/aws_credential_rescue_spec.rb. Here we only prove the wiring
-            expect(job._perform(klass: importer_class_name, options: options)).to eq(true)
-            expect(SignalHandlerPlugin).to have_received(:stop_current_worker!)
-          end
-
-          it 'lets non-credential errors propagate (and does not stop the worker)' do
-            allow(importer_instance).to receive(:import!).and_raise(StandardError, 'boom')
-            expect do
-              job._perform(klass: importer_class_name, options: options)
-            end.to raise_error('boom')
-            expect(SignalHandlerPlugin).not_to have_received(:stop_current_worker!)
-          end
-        end
       end
     end
   end

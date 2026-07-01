@@ -9,10 +9,6 @@
 module Importing::HudZip
   # @see docs/features/hmis-csv-importer.md
   class FetchAndImportJob < BaseJob
-    # Gracefully handle a worker whose ambient AWS creds are dead: requeue once for a
-    # healthy worker (no burned attempt) and recycle the pod, then surface if persistent.
-    include AwsCredentialRescue
-
     queue_as ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
     WAIT_MINUTES = 15
 
@@ -34,14 +30,8 @@ module Importing::HudZip
       lock_obtained = nil
 
       GrdaWarehouse::DataSource.with_advisory_lock(advisory_lock_name(data_source_id), timeout_seconds: 60) do
-        # If the worker's ambient AWS creds are dead, with_aws_credential_rescue requeues a
-        # fresh attempt (bounded) and stops the worker rather than failing this job.
-        with_aws_credential_rescue(wait: WAIT_MINUTES.minutes, context: "data source #{data_source_id}") do
-          safe_klass.constantize.new(**options).import!
-        end
-        # To prevent re-running when called against the same files if run more than once in a day, yield true.
-        # In the credential-failure case this also lets the original job row complete cleanly (instead of
-        # failing/retrying) while exactly one fresh attempt stays scheduled — same contract as a lock collision.
+        safe_klass.constantize.new(**options).import!
+        # To prevent re-running when called against the same files if run more than once in a day, yield true
         lock_obtained = true
       end
 
