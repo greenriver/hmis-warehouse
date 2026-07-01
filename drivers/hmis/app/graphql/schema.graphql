@@ -1335,7 +1335,6 @@ type CeReferral {
   targetProjectId: ID!
   targetProjectName: String!
   targetProjectType: ProjectType!
-  updatedAt: ISO8601DateTime!
   updatedBy: ApplicationUser
   workflowTemplateName: String
 }

@@ -72,7 +72,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
                 status
                 origin
                 createdAt
-                updatedAt
                 referredBy {
                   id
                   name
@@ -214,7 +213,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             'status' => 'accepted',
             'origin' => 'waitlist',
             'createdAt' => be_present,
-            'updatedAt' => be_present,
             'referredBy' => a_hash_including('id' => accepted_referral.referred_by.id.to_s),
           ),
           a_hash_including(
@@ -223,7 +221,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             'status' => 'rejected',
             'origin' => 'waitlist',
             'createdAt' => be_present,
-            'updatedAt' => be_present,
             'referredBy' => a_hash_including('id' => rejected_referral.referred_by.id.to_s),
           ),
         )
