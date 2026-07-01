@@ -113,9 +113,9 @@ RSpec.describe AwsCredentialPreflightPlugin do
     # "Signal then Preflight") so that if the initializer's registration order ever regresses --
     # e.g. the two `Delayed::Worker.plugins <<` lines get swapped -- these specs feel it too,
     # instead of only the explicit order assertion below catching it.
-    [SignalHandlerPlugin, AwsCredentialPreflightPlugin]
-      .sort_by { |plugin| Delayed::Worker.plugins.index(plugin) }
-      .each { |plugin| plugin.callback_block.call(lifecycle) }
+    [SignalHandlerPlugin, AwsCredentialPreflightPlugin].
+      sort_by { |plugin| Delayed::Worker.plugins.index(plugin) }.
+      each { |plugin| plugin.callback_block.call(lifecycle) }
   end
 
   after do
