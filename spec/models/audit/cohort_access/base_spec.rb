@@ -48,4 +48,32 @@ RSpec.describe Audit::CohortAccess::Base do
       expect(csv).to match(/Granted/)
     end
   end
+
+  describe '#current_access' do
+    it 'returns user_accesses with path labels for each active user' do
+      ua = audit.current_access.user_accesses.find { |a| a.user.id == user.id }
+      expect(ua).to be_present
+      expect(ua.path_labels).to all(be_a(String))
+    end
+
+    it 'excludes soft-deleted users' do
+      user.update_column(:deleted_at, Time.current)
+      expect(audit.current_access.users.map(&:id)).not_to include(user.id)
+    end
+
+    it 'excludes the system user from current access' do
+      system_user = User.system_user
+      travel_to(Time.zone.parse('2025-01-01 12:00:00')) { group.add(system_user) }
+      expect(audit.current_access.users.map(&:id)).not_to include(system_user.id)
+    end
+  end
+
+  describe '#events' do
+    it 'excludes events where the only affected user is the system user' do
+      system_user = User.system_user
+      travel_to(Time.zone.parse('2025-01-01 13:00:00')) { group.add(system_user) }
+      system_events = audit.events.select { |e| e.affected_user&.id == system_user.id }
+      expect(system_events).to be_empty
+    end
+  end
 end
