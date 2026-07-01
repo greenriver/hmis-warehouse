@@ -25,6 +25,7 @@ module WarehouseReports
             joins(:warehouse_client_source, enrollments: :project).
             merge(GrdaWarehouse::Hud::Enrollment.open_during_range(@start_date .. @end_date)).
             merge(GrdaWarehouse::Hud::Project.where(id: @project_ids)).
+            merge(project_source).
             distinct.
             order(wc_t[:destination_id].asc, LastName: :asc, FirstName: :asc).
             pluck(wc_t[:destination_id], :PersonalID, :FirstName, :LastName)
@@ -42,9 +43,9 @@ module WarehouseReports
     private def client_source
       GrdaWarehouse::Hud::Client.source
     end
-  end
 
-  private def project_source
-    GrdaWarehouse::Hud::Project.viewable_by(current_user, permission: :can_view_assigned_reports)
+    private def project_source
+      GrdaWarehouse::Hud::Project.viewable_by(current_user, permission: :can_view_assigned_reports)
+    end
   end
 end
