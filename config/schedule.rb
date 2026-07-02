@@ -40,8 +40,6 @@ import_prefetch_schedule = (Time.parse(import_schedule) - 4.hours).strftime('%I:
 monthly_schedule = (Time.parse(import_schedule) - 5.hours).strftime('%I:%M %P')
 import_cleanup_time = Time.parse(import_schedule) + 9.hours
 
-health_trigger = ENV['HEALTH_SFTP_HOST'].to_s != '' && ENV['HEALTH_SFTP_HOST'] != 'hostname' && ENV['RAILS_ENV'] == 'production'
-
 tasks = [
   # temporary task to move files to S3 and ActiveStorage
   {
@@ -139,20 +137,6 @@ tasks = [
     task: 'grda_warehouse:monthly',
     frequency: 1.month,
     at: monthly_schedule,
-    interruptable: false,
-  },
-  {
-    task: 'health:daily',
-    frequency: 1.day,
-    at: '11:03 am',
-    trigger: health_trigger,
-    interruptable: false,
-  },
-  {
-    task: 'health:enrollments_and_eligibility',
-    frequency: 1.day,
-    at: '6:01 am',
-    trigger: health_trigger,
     interruptable: false,
   },
   {
