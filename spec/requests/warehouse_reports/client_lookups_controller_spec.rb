@@ -131,7 +131,7 @@ RSpec.describe WarehouseReports::ClientLookupsController, type: :request do
   # LastName, ...]; pull out just the warehouse (destination) ids so we can assert
   # which clients were included.
   def reported_destination_ids
-    assigns(:report).rows.map { |row| row[2] }
+    assigns(:rows).map { |row| row[2] }
   end
 
   # Parse the actual rendered XLSX response body (not the controller's @rows ivar) so
@@ -160,7 +160,7 @@ RSpec.describe WarehouseReports::ClientLookupsController, type: :request do
 
       expect(response).to have_http_status(:success)
       expect(reported_destination_ids).to include(destination_id)
-      expect(assigns(:report).rows).to include([source_ds.name, 'PID-VIEWABLE', destination_id, 'Ada', 'Lovelace'])
+      expect(assigns(:rows)).to include([source_ds.name, 'PID-VIEWABLE', destination_id, 'Ada', 'Lovelace'])
     end
   end
 
@@ -402,8 +402,8 @@ RSpec.describe WarehouseReports::ClientLookupsController, type: :request do
 
       expect(response).to have_http_status(:success)
       expect(destination_id_a).not_to eq(destination_id_b)
-      expect(assigns(:report).rows).to include([source_ds.name, 'DUPLICATE-PID', destination_id_a, 'Ada', 'Lovelace'])
-      expect(assigns(:report).rows).to include([other_source_ds.name, 'DUPLICATE-PID', destination_id_b, 'Grace', 'Hopper'])
+      expect(assigns(:rows)).to include([source_ds.name, 'DUPLICATE-PID', destination_id_a, 'Ada', 'Lovelace'])
+      expect(assigns(:rows)).to include([other_source_ds.name, 'DUPLICATE-PID', destination_id_b, 'Grace', 'Hopper'])
     end
   end
 
@@ -433,7 +433,7 @@ RSpec.describe WarehouseReports::ClientLookupsController, type: :request do
     it 'emits one row per PersonalID (not per enrollment) when two source records in the same data source share a warehouse client and name' do
       # Two source client records in the SAME data source, deduplicated to a SINGLE
       # warehouse (destination) client, sharing first/last name but differing only by
-      # PersonalID. Grouping in Report#build_rows relies on rows sharing a display_key
+      # PersonalID. Grouping in Report#rows relies on rows sharing a display_key
       # sorting contiguously; if PersonalID is missing from the query's ORDER BY, these
       # rows interleave by enrollment id and the client is emitted as duplicate rows.
       destination_client = create(:grda_warehouse_hud_client, data_source: destination_ds)
@@ -471,7 +471,7 @@ RSpec.describe WarehouseReports::ClientLookupsController, type: :request do
       get_report(project_ids: [viewable_project.id])
 
       expect(response).to have_http_status(:success)
-      dedup_rows = assigns(:report).rows.select { |row| row[2] == destination_client.id }
+      dedup_rows = assigns(:rows).select { |row| row[2] == destination_client.id }
       expect(dedup_rows.length).to eq(2)
       expect(dedup_rows.map { |row| row[1] }).to contain_exactly('PID-DEDUP-A', 'PID-DEDUP-B')
     end
@@ -487,7 +487,7 @@ RSpec.describe WarehouseReports::ClientLookupsController, type: :request do
       expect(assigns(:report).headers).to eq(
         ['Data Source', 'Personal ID (from HMIS)', 'Warehouse Client ID', 'First Name (from HMIS)', 'Last Name (from HMIS)'],
       )
-      expect(assigns(:report).rows.first.length).to eq(5)
+      expect(assigns(:rows).first.length).to eq(5)
     end
 
     it 'adds the Enrollment ID and Warehouse Enrollment ID columns when requested, one row per enrollment' do
@@ -513,7 +513,7 @@ RSpec.describe WarehouseReports::ClientLookupsController, type: :request do
           'Enrollment ID (from HMIS)', 'Warehouse Enrollment ID'
         ],
       )
-      rows = assigns(:report).rows
+      rows = assigns(:rows)
       expect(rows).to include(
         [
           source_ds.name, 'PID-VIEWABLE', crosswalk.fetch(:destination_id), 'Ada', 'Lovelace',
@@ -559,7 +559,7 @@ RSpec.describe WarehouseReports::ClientLookupsController, type: :request do
       get_report(project_ids: [viewable_project.id])
 
       expect(response).to have_http_status(:success)
-      row = assigns(:report).rows.find { |r| r[2] == destination_id }
+      row = assigns(:rows).find { |r| r[2] == destination_id }
       expect(row[3]).to eq(GrdaWarehouse::PiiProvider::REDACTED)
       expect(row[4]).to eq(GrdaWarehouse::PiiProvider::REDACTED)
     end
@@ -584,7 +584,7 @@ RSpec.describe WarehouseReports::ClientLookupsController, type: :request do
       get_report(project_ids: [viewable_project.id, second_viewable_project.id])
 
       expect(response).to have_http_status(:success)
-      row = assigns(:report).rows.find { |r| r[2] == destination_id }
+      row = assigns(:rows).find { |r| r[2] == destination_id }
       expect(row[3]).to eq('Ada')
       expect(row[4]).to eq('Lovelace')
     end
@@ -603,7 +603,7 @@ RSpec.describe WarehouseReports::ClientLookupsController, type: :request do
         get_report(project_ids: [viewable_project.id])
 
         expect(response).to have_http_status(:success)
-        row = assigns(:report).rows.find { |r| r[2] == destination_id }
+        row = assigns(:rows).find { |r| r[2] == destination_id }
         expect(row[3]).to eq(GrdaWarehouse::PiiProvider::REDACTED)
         expect(row[4]).to eq(GrdaWarehouse::PiiProvider::REDACTED)
       end
@@ -632,7 +632,7 @@ RSpec.describe WarehouseReports::ClientLookupsController, type: :request do
       get_report(project_ids: [viewable_project.id, second_viewable_project.id], map_enrollments: true)
 
       expect(response).to have_http_status(:success)
-      rows = assigns(:report).rows
+      rows = assigns(:rows)
       denied_row = rows.find { |r| r[5] == crosswalk.fetch(:enrollment).EnrollmentID }
       allowed_row = rows.find { |r| r[5] == second_enrollment.EnrollmentID }
       expect(denied_row[3]).to eq(GrdaWarehouse::PiiProvider::REDACTED)

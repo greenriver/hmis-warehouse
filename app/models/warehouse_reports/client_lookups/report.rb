@@ -35,11 +35,43 @@ module WarehouseReports
         client_headers + enrollment_headers
       end
 
+      # Rows are plucked in batches (rather than all at once) to bound memory use
+      # on large exports.
+      #
+      # When not mapping enrollments, a client's row aggregates across every project
+      # they were enrolled in during the range, so the name is shown if the user's
+      # policy allows viewing it via any one of those projects. Since batches are
+      # plucked in the query's sort order, a client's rows are always contiguous, so
+      # a group is only known to be complete once a differing row is seen (possibly
+      # in a later batch) — `pending_key`/`pending_group` carry an in-progress group
+      # across that boundary.
       def rows
-        @rows ||= build_rows
+        preload_policies
+
+        result = []
+        pending_key = nil
+        pending_group = []
+
+        each_batch do |batch|
+          if map_enrollments?
+            batch.each { |row| result << redact_row(row, policy_for_project(row.project_id)) }
+          else
+            batch.each do |row|
+              if pending_key && row.display_key != pending_key
+                result << flush_group(pending_group)
+                pending_group = []
+              end
+              pending_key = row.display_key
+              pending_group << row
+            end
+          end
+        end
+        result << flush_group(pending_group) if pending_group.any?
+
+        result
       end
 
-      def to_xlsx
+      def to_xlsx(rows)
         Axlsx::Package.new do |package|
           package.workbook.add_worksheet(name: 'Client Lookup') do |sheet|
             title = sheet.styles.add_style(sz: 12, b: true, alignment: { horizontal: :center })
@@ -64,42 +96,6 @@ module WarehouseReports
 
       def map_enrollments?
         @map_enrollments
-      end
-
-      # Rows are plucked in batches (rather than all at once) to bound memory use
-      # on large exports.
-      #
-      # When not mapping enrollments, a client's row aggregates across every project
-      # they were enrolled in during the range, so the name is shown if the user's
-      # policy allows viewing it via any one of those projects. Since batches are
-      # plucked in the query's sort order, a client's rows are always contiguous, so
-      # a group is only known to be complete once a differing row is seen (possibly
-      # in a later batch) — `pending_key`/`pending_group` carry an in-progress group
-      # across that boundary.
-      def build_rows
-        preload_policies
-
-        rows = []
-        pending_key = nil
-        pending_group = []
-
-        each_batch do |batch|
-          if map_enrollments?
-            batch.each { |row| rows << redact_row(row, policy_for_project(row.project_id)) }
-          else
-            batch.each do |row|
-              if pending_key && row.display_key != pending_key
-                rows << flush_group(pending_group)
-                pending_group = []
-              end
-              pending_key = row.display_key
-              pending_group << row
-            end
-          end
-        end
-        rows << flush_group(pending_group) if pending_group.any?
-
-        rows
       end
 
       # `order_columns` ends with the enrollment id, a unique, non-null column, so the
@@ -215,7 +211,7 @@ module WarehouseReports
       end
 
       # Must cover every column in `PluckedRow#display_key` before the `enrollment_id`
-      # tie-breaker. `build_rows` groups a client's rows by contiguous equal `display_key`,
+      # tie-breaker. `rows` groups a client's rows by contiguous equal `display_key`,
       # which only holds if rows sharing a `display_key` sort adjacently. `PersonalID` is
       # part of the key but not otherwise implied by the other sort columns (two source
       # clients in the same data source can share a warehouse `destination_id` and name

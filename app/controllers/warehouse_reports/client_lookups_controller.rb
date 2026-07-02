@@ -34,7 +34,8 @@ module WarehouseReports
             next
           end
 
-          send_data @report.to_xlsx, filename: 'client_lookups.xlsx', type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+          @rows = @report.rows
+          send_data @report.to_xlsx(@rows), filename: 'client_lookups.xlsx', type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
         end
       end
     end
