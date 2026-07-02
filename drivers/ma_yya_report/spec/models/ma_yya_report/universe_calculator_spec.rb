@@ -368,6 +368,54 @@ RSpec.describe MaYyaReport::UniverseCalculator do
       end
     end
 
+    describe '#flex_funds' do
+      let(:service_type) { OpenStruct.new(id: 42) }
+      let(:cded) { OpenStruct.new(id: 99) }
+
+      context 'when Flex Funds service type is not configured' do
+        it 'returns an empty array regardless of enrollments' do
+          expect(calculator.send(:flex_funds, [])).to eq([])
+        end
+      end
+
+      context 'when service type and CDED are configured' do
+        let(:cde) { OpenStruct.new(data_element_definition_id: 99, value_string: 'Rent (Direct Financial Assistance)') }
+        let(:service) { OpenStruct.new(custom_data_elements: [cde]) }
+        let(:enrollment) { OpenStruct.new }
+
+        before do
+          allow(calculator).to receive(:flex_funds_service_type).and_return(service_type)
+          allow(calculator).to receive(:flex_funds_types_cded).and_return(cded)
+          allow(calculator).to receive(:flex_funds_services_in_range).and_return([service])
+        end
+
+        it 'extracts flex fund types and strips parenthesized text' do
+          expect(calculator.send(:flex_funds, [enrollment])).to eq(['Rent'])
+        end
+
+        it 'deduplicates types across multiple enrollments' do
+          enrollment2 = OpenStruct.new
+          expect(calculator.send(:flex_funds, [enrollment, enrollment2])).to eq(['Rent'])
+        end
+
+        it 'returns multiple distinct types from a service' do
+          cde2 = OpenStruct.new(data_element_definition_id: 99, value_string: 'Transportation')
+          multi_service = OpenStruct.new(custom_data_elements: [cde, cde2])
+          allow(calculator).to receive(:flex_funds_services_in_range).and_return([multi_service])
+
+          expect(calculator.send(:flex_funds, [enrollment])).to contain_exactly('Rent', 'Transportation')
+        end
+
+        it 'excludes CDEs from other definitions' do
+          unrelated_cde = OpenStruct.new(data_element_definition_id: 55, value_string: 'Should not appear')
+          mixed_service = OpenStruct.new(custom_data_elements: [cde, unrelated_cde])
+          allow(calculator).to receive(:flex_funds_services_in_range).and_return([mixed_service])
+
+          expect(calculator.send(:flex_funds, [enrollment])).to eq(['Rent'])
+        end
+      end
+    end
+
     describe '#language' do
       it 'determines language correctly' do
         aggregate_failures 'language determination' do
