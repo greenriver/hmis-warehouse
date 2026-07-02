@@ -13,6 +13,16 @@ module WarehouseReports
 
       BATCH_SIZE = 5_000
 
+      # One plucked row. `project_id` and `enrollment_id` are always fetched (even when
+      # not mapping enrollments) because they're needed internally: `enrollment_id` is a
+      # unique, non-null tie-breaker in the query's ORDER BY (see `order_columns`), and
+      # `project_id` drives the per-row PII policy lookup.
+      PluckedRow = Struct.new(:ds_name, :personal_id, :destination_id, :first_name, :last_name, :enrollment_hud_id, :enrollment_id, :project_id) do
+        def display_key
+          [ds_name, personal_id, destination_id, first_name, last_name]
+        end
+      end
+
       def initialize(filter:, user:, map_enrollments: false)
         @filter = filter
         @user = user
@@ -38,10 +48,7 @@ module WarehouseReports
       end
 
       # Rows are plucked in batches (rather than all at once) to bound memory use
-      # on large exports. Each row is plucked with the enrollment's project id
-      # appended so we can check whether the user's PII policy for that project
-      # allows viewing the client's name; the project id is stripped back out
-      # before the row is returned.
+      # on large exports.
       #
       # When not mapping enrollments, a client's row aggregates across every project
       # they were enrolled in during the range, so the name is shown if the user's
@@ -59,28 +66,35 @@ module WarehouseReports
 
         each_batch do |batch|
           if map_enrollments?
-            batch.each { |row| rows << redact_row(row[0..-2], policy_for_project(row.last)) }
+            batch.each { |row| rows << redact_row(row, policy_for_project(row.project_id)) }
           else
             batch.each do |row|
-              key = row[0..-2]
-              if pending_key && key != pending_key
-                rows << flush_group(pending_key, pending_group)
+              if pending_key && row.display_key != pending_key
+                rows << flush_group(pending_group)
                 pending_group = []
               end
-              pending_key = key
+              pending_key = row.display_key
               pending_group << row
             end
           end
         end
-        rows << flush_group(pending_key, pending_group) if pending_key
+        rows << flush_group(pending_group) if pending_group.any?
 
         rows
       end
 
+      # `order_columns` ends with the enrollment id, a unique, non-null column, so the
+      # query's ORDER BY is a strict total order with no ties. That matters here: each
+      # call below is a separate query execution, and without a unique tie-breaker
+      # Postgres offers no guarantee that rows tied on the other sort columns come back
+      # in the same relative order on every execution. If they didn't, a client's rows
+      # could be split differently across the OFFSET boundary between two calls, and a
+      # row could be silently skipped or duplicated — corrupting both the PII redaction
+      # decision in `flush_group` and the exported row count.
       def each_batch
         offset = 0
         loop do
-          batch = query.limit(BATCH_SIZE).offset(offset).pluck(*pluck_columns)
+          batch = query.limit(BATCH_SIZE).offset(offset).pluck(*pluck_columns).map { |values| PluckedRow.new(*values) }
           break if batch.empty?
 
           yield batch
@@ -90,9 +104,9 @@ module WarehouseReports
         end
       end
 
-      def flush_group(display_row, group)
-        policy = group.any? { |row| policy_for_project(row.last).can_view_name? } ? allow_pii_policy : deny_pii_policy
-        redact_row(display_row, policy)
+      def flush_group(group)
+        policy = group.any? { |row| policy_for_project(row.project_id).can_view_name? } ? allow_pii_policy : deny_pii_policy
+        redact_row(group.first, policy)
       end
 
       # The candidate project ids are bounded by the filter's selection (data
@@ -115,16 +129,17 @@ module WarehouseReports
         GrdaWarehouse::AuthPolicies::DenyPiiPolicy.instance
       end
 
-      def redact_row(display_row, policy)
-        ds_name, personal_id, destination_id, first_name, last_name, *rest = display_row
-        [
-          ds_name,
-          personal_id,
-          destination_id,
-          GrdaWarehouse::PiiProvider.viewable_name(first_name, policy: policy),
-          GrdaWarehouse::PiiProvider.viewable_name(last_name, policy: policy),
-          *rest,
+      def redact_row(row, policy)
+        display_row = [
+          row.ds_name,
+          row.personal_id,
+          row.destination_id,
+          GrdaWarehouse::PiiProvider.viewable_name(row.first_name, policy: policy),
+          GrdaWarehouse::PiiProvider.viewable_name(row.last_name, policy: policy),
         ]
+        return display_row unless map_enrollments?
+
+        display_row + [row.enrollment_hud_id, row.enrollment_id]
       end
 
       def client_headers
@@ -163,21 +178,14 @@ module WarehouseReports
         GrdaWarehouse::Hud::Project.viewable_by(user, permission: :can_view_assigned_reports)
       end
 
-      def select_columns
-        client_columns = [ds_t[:name], :PersonalID, wc_t[:destination_id], :FirstName, :LastName]
-        return client_columns unless map_enrollments?
-
-        client_columns + [e_t[:EnrollmentID], e_t[:id]]
-      end
-
-      # select_columns plus the enrollment's project id, used to look up the user's
-      # PII policy for the row; stripped back out before rows are returned.
+      # Matches `PluckedRow`'s field order. Always includes the enrollment and project
+      # columns — see the comments on `PluckedRow` and `each_batch` for why.
       def pluck_columns
-        select_columns + [p_t[:id]]
+        [ds_t[:name], :PersonalID, wc_t[:destination_id], :FirstName, :LastName, e_t[:EnrollmentID], e_t[:id], p_t[:id]]
       end
 
       def order_columns
-        [ds_t[:name].asc, wc_t[:destination_id].asc, c_t[:LastName].asc, c_t[:FirstName].asc]
+        [ds_t[:name].asc, wc_t[:destination_id].asc, c_t[:LastName].asc, c_t[:FirstName].asc, e_t[:id].asc]
       end
     end
   end

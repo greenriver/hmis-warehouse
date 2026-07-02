@@ -17,7 +17,7 @@ module WarehouseReports
       respond_to do |format|
         format.html {}
         format.xlsx do
-          if @filter.data_source_ids.blank? && @filter.organization_ids.blank? && @filter.project_ids.blank?
+          unless @filter.any_effective_project_ids?
             message = 'must have at least one Data Source, Organization, or Project selected'
             redirect_to warehouse_reports_client_lookups_path(report: report_params), alert: message
             next
