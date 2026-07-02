@@ -5,7 +5,7 @@
     %h1= title
 
 = render '/warehouse_reports/breadcrumbs'
-%p Use the form below to export a lookup table for cross-walks with HMIS.  The exported file will include Data Source, Personal ID (from HMIS), Warehouse Client ID, first name, and last name, for any client with an open enrollment within the date range and project set chosen. Optionally, check "Map enrollments" to also include each enrollment's HMIS Enrollment ID and Warehouse Enrollment ID.
+%p Use the form below to export a lookup table for cross-walks with HMIS.  The exported file will include Data Source, Personal ID (from HMIS), Warehouse Client ID, first name, and last name, for any client with an open enrollment within the date range and project set chosen.
 
 = simple_form_for @filter, as: :report, url: warehouse_reports_client_lookups_path(format: :xlsx), html: {method: :get} do |f|
   - content_for :filters_col_full do
@@ -26,7 +26,8 @@
         .form-group
           %label
             = check_box_tag 'report[map_enrollments]', '1', @map_enrollments
-            Map enrollments
+            Map Enrollment IDs
+          %span.hint Include HMIS "Enrollment ID" and "Warehouse Enrollment ID", one row per enrollment instead of one row per client.
 
   - content_for :filter_actions do
     .row

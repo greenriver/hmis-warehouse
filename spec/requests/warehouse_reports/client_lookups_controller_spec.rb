@@ -180,14 +180,31 @@ RSpec.describe WarehouseReports::ClientLookupsController, type: :request do
       expect(reported_destination_ids).to include(destination_id)
       expect(assigns(:report).rows).to include([source_ds.name, 'PID-VIEWABLE', destination_id, 'Ada', 'Lovelace'])
     end
+  end
 
-    it 'excludes a client whose only enrollment starts after the reporting range' do
+  describe 'date range boundary (regression guard)' do
+    it 'includes an enrollment whose EntryDate falls exactly on the end of the range' do
       destination_id = create_crosswalk(
         project: viewable_project,
-        personal_id: 'PID-FUTURE',
-        first_name: 'Grace',
-        last_name: 'Hopper',
-        entry_date: end_date + 30.days,
+        personal_id: 'PID-ENTRY-ON-END',
+        first_name: 'Rosalind',
+        last_name: 'Franklin',
+        entry_date: end_date,
+      ).fetch(:destination_id)
+
+      get_report(project_ids: [viewable_project.id])
+
+      expect(response).to have_http_status(:success)
+      expect(reported_destination_ids).to include(destination_id)
+    end
+
+    it 'excludes an enrollment whose EntryDate falls one day after the end of the range' do
+      destination_id = create_crosswalk(
+        project: viewable_project,
+        personal_id: 'PID-ENTRY-AFTER-END',
+        first_name: 'Marie',
+        last_name: 'Curie',
+        entry_date: end_date + 1.day,
       ).fetch(:destination_id)
 
       get_report(project_ids: [viewable_project.id])
@@ -196,18 +213,48 @@ RSpec.describe WarehouseReports::ClientLookupsController, type: :request do
       expect(reported_destination_ids).not_to include(destination_id)
     end
 
-    it 'excludes a client enrolled only in a project that was not selected in the filter' do
-      destination_id = create_crosswalk(
-        project: unauthorized_project,
-        personal_id: 'PID-UNSELECTED',
-        first_name: 'Katherine',
-        last_name: 'Johnson',
-      ).fetch(:destination_id)
+    it 'includes an enrollment that exited exactly on the start of the range' do
+      crosswalk = create_crosswalk(
+        project: viewable_project,
+        personal_id: 'PID-EXIT-ON-START',
+        first_name: 'Rosalind',
+        last_name: 'Franklin',
+        entry_date: start_date - 30.days,
+      )
+      create(
+        :hud_exit,
+        data_source: source_ds,
+        EnrollmentID: crosswalk.fetch(:enrollment).EnrollmentID,
+        PersonalID: 'PID-EXIT-ON-START',
+        ExitDate: start_date,
+      )
 
       get_report(project_ids: [viewable_project.id])
 
       expect(response).to have_http_status(:success)
-      expect(reported_destination_ids).not_to include(destination_id)
+      expect(reported_destination_ids).to include(crosswalk.fetch(:destination_id))
+    end
+
+    it 'excludes an enrollment that exited one day before the start of the range' do
+      crosswalk = create_crosswalk(
+        project: viewable_project,
+        personal_id: 'PID-EXIT-BEFORE-START',
+        first_name: 'Marie',
+        last_name: 'Curie',
+        entry_date: start_date - 30.days,
+      )
+      create(
+        :hud_exit,
+        data_source: source_ds,
+        EnrollmentID: crosswalk.fetch(:enrollment).EnrollmentID,
+        PersonalID: 'PID-EXIT-BEFORE-START',
+        ExitDate: start_date - 1.day,
+      )
+
+      get_report(project_ids: [viewable_project.id])
+
+      expect(response).to have_http_status(:success)
+      expect(reported_destination_ids).not_to include(crosswalk.fetch(:destination_id))
     end
   end
 
@@ -617,6 +664,76 @@ RSpec.describe WarehouseReports::ClientLookupsController, type: :request do
       row = assigns(:report).rows.find { |r| r[2] == destination_id }
       expect(row[3]).to eq('Ada')
       expect(row[4]).to eq('Lovelace')
+    end
+
+    context 'when the org has disabled PII in detail downloads' do
+      # can_view_client_name alone is not sufficient for a "download"-mode PII policy
+      # (see User#reporting_policy_for_project): the org-wide include_pii_in_detail_downloads
+      # config must also be enabled, or every project's policy denies the name regardless of role.
+      let(:role) { create(:role, can_view_assigned_reports: true, can_view_client_name: true) }
+
+      before { GrdaWarehouse::Config.first_or_create.update!(include_pii_in_detail_downloads: false) }
+
+      it 'redacts the name even though the role otherwise allows viewing it' do
+        destination_id = create_crosswalk(
+          project: viewable_project,
+          personal_id: 'PID-VIEWABLE',
+          first_name: 'Ada',
+          last_name: 'Lovelace',
+        ).fetch(:destination_id)
+
+        get_report(project_ids: [viewable_project.id])
+
+        expect(response).to have_http_status(:success)
+        row = assigns(:report).rows.find { |r| r[2] == destination_id }
+        expect(row[3]).to eq(GrdaWarehouse::PiiProvider::REDACTED)
+        expect(row[4]).to eq(GrdaWarehouse::PiiProvider::REDACTED)
+      end
+    end
+
+    it 'redacts each row independently by its own enrollment\'s project when "Map enrollments" is requested' do
+      # Unlike the map_enrollments-off case above (which aggregates "can view via any
+      # project"), each mapped row is redacted using that specific enrollment's project
+      # policy, so the same client can have one visible and one redacted row.
+      second_viewable_project = create(
+        :hud_project,
+        data_source_id: source_ds.id,
+        OrganizationID: organization.OrganizationID,
+        confidential: false,
+      )
+      collection.set_viewables(
+        reports: [report_definition.id],
+        projects: [viewable_project.id, confidential_project.id, second_viewable_project.id],
+      )
+      permissive_role = create(:role, can_view_assigned_reports: true, can_view_client_name: true)
+      permissive_collection = create(:collection)
+      permissive_collection.set_viewables(projects: [second_viewable_project.id])
+      setup_access_control(user, permissive_role, permissive_collection)
+
+      crosswalk = create_crosswalk(
+        project: viewable_project,
+        personal_id: 'PID-MIXED',
+        first_name: 'Ada',
+        last_name: 'Lovelace',
+      )
+      second_enrollment = create(
+        :grda_warehouse_hud_enrollment,
+        data_source_id: source_ds.id,
+        PersonalID: 'PID-MIXED',
+        ProjectID: second_viewable_project.ProjectID,
+        EntryDate: start_date + 1.day,
+      )
+
+      get_report(project_ids: [viewable_project.id, second_viewable_project.id], map_enrollments: true)
+
+      expect(response).to have_http_status(:success)
+      rows = assigns(:report).rows
+      denied_row = rows.find { |r| r[5] == crosswalk.fetch(:enrollment).EnrollmentID }
+      allowed_row = rows.find { |r| r[5] == second_enrollment.EnrollmentID }
+      expect(denied_row[3]).to eq(GrdaWarehouse::PiiProvider::REDACTED)
+      expect(denied_row[4]).to eq(GrdaWarehouse::PiiProvider::REDACTED)
+      expect(allowed_row[3]).to eq('Ada')
+      expect(allowed_row[4]).to eq('Lovelace')
     end
   end
 end
