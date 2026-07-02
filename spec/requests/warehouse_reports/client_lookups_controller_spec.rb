@@ -11,19 +11,21 @@ require 'roo'
 
 # Baseline coverage for the Client PersonalID Lookup (Client Lookups) crosswalk report.
 #
-# This report renders a 4-column XLSX (warehouse destination Client ID, PersonalID,
-# FirstName, LastName) for source clients enrolled in a selected set of projects during
-# a date range. See
-# app/controllers/warehouse_reports/client_lookups_controller.rb.
+# This report renders a 5-column XLSX (Data Source, PersonalID, warehouse destination
+# Client ID, FirstName, LastName) for source clients enrolled in a selected set of
+# projects during a date range, with two additional columns (Enrollment ID, Warehouse
+# Enrollment ID) when "Map enrollments" is checked. See
+# app/controllers/warehouse_reports/client_lookups_controller.rb and
+# app/models/warehouse_reports/client_lookups/report.rb.
 #
-# The controller scopes its project filter through `Project.viewable_by(current_user,
-# permission: :can_view_assigned_reports)` (see `project_source`), the way sibling
-# reports (e.g. EntryExitServiceController) do. The "project-level authorization" and
-# "confidential project" groups below are regression guards for that scoping: they
-# submit project ids the user was never granted, or that are confidential, and assert
-# the resulting rows exclude them. All groups in this file are expected to stay green;
-# a regression in `project_source` or its `merge` into the report query should turn
-# one of these red.
+# The report scopes its project filter through `Project.viewable_by(current_user,
+# permission: :can_view_assigned_reports)` (see `Report#project_source`), the way
+# sibling reports (e.g. EntryExitServiceController) do. The "project-level
+# authorization" and "confidential project" groups below are regression guards for that
+# scoping: they submit project ids the user was never granted, or that are
+# confidential, and assert the resulting rows exclude them. All groups in this file are
+# expected to stay green; a regression in `project_source` or its `merge` into the
+# report query should turn one of these red.
 RSpec.describe WarehouseReports::ClientLookupsController, type: :request do
   include AccessControlSetup
 
@@ -95,7 +97,7 @@ RSpec.describe WarehouseReports::ClientLookupsController, type: :request do
 
   # Build the full crosswalk graph (source client -> warehouse client -> destination
   # client, plus an enrollment in `project`) and return the destination (warehouse) id
-  # that the report is expected to output for this client.
+  # and the created enrollment, since some tests need the enrollment's HUD/DB ids too.
   def create_crosswalk(project:, personal_id:, first_name:, last_name:, entry_date: start_date + 1.day, data_source: source_ds)
     source_client = create(
       :grda_warehouse_hud_client,
@@ -111,17 +113,17 @@ RSpec.describe WarehouseReports::ClientLookupsController, type: :request do
       destination: destination_client,
       data_source: data_source,
     )
-    create(
+    enrollment = create(
       :grda_warehouse_hud_enrollment,
       data_source_id: data_source.id,
       PersonalID: personal_id,
       ProjectID: project.ProjectID,
       EntryDate: entry_date,
     )
-    destination_client.id
+    { destination_id: destination_client.id, enrollment: enrollment }
   end
 
-  def get_report(project_ids:)
+  def get_report(project_ids:, map_enrollments: false)
     get(
       warehouse_reports_client_lookups_path(format: :xlsx),
       params: {
@@ -129,15 +131,17 @@ RSpec.describe WarehouseReports::ClientLookupsController, type: :request do
           start: start_date,
           end: end_date,
           project_ids: project_ids,
+          map_enrollments: map_enrollments ? '1' : '0',
         },
       },
     )
   end
 
-  # The report plucks [destination_id, PersonalID, FirstName, LastName]; pull out just
-  # the warehouse (destination) ids so we can assert which clients were included.
+  # The report plucks [Data Source name, PersonalID, destination_id, FirstName,
+  # LastName, ...]; pull out just the warehouse (destination) ids so we can assert
+  # which clients were included.
   def reported_destination_ids
-    assigns(:rows).map(&:first)
+    assigns(:report).rows.map { |row| row[2] }
   end
 
   # Parse the actual rendered XLSX response body (not the controller's @rows ivar) so
@@ -166,13 +170,13 @@ RSpec.describe WarehouseReports::ClientLookupsController, type: :request do
         personal_id: 'PID-VIEWABLE',
         first_name: 'Ada',
         last_name: 'Lovelace',
-      )
+      ).fetch(:destination_id)
 
       get_report(project_ids: [viewable_project.id])
 
       expect(response).to have_http_status(:success)
       expect(reported_destination_ids).to include(destination_id)
-      expect(assigns(:rows)).to include([destination_id, 'PID-VIEWABLE', 'Ada', 'Lovelace'])
+      expect(assigns(:report).rows).to include([source_ds.name, 'PID-VIEWABLE', destination_id, 'Ada', 'Lovelace'])
     end
 
     it 'excludes a client whose only enrollment starts after the reporting range' do
@@ -182,7 +186,7 @@ RSpec.describe WarehouseReports::ClientLookupsController, type: :request do
         first_name: 'Grace',
         last_name: 'Hopper',
         entry_date: end_date + 30.days,
-      )
+      ).fetch(:destination_id)
 
       get_report(project_ids: [viewable_project.id])
 
@@ -196,7 +200,7 @@ RSpec.describe WarehouseReports::ClientLookupsController, type: :request do
         personal_id: 'PID-UNSELECTED',
         first_name: 'Katherine',
         last_name: 'Johnson',
-      )
+      ).fetch(:destination_id)
 
       get_report(project_ids: [viewable_project.id])
 
@@ -212,15 +216,42 @@ RSpec.describe WarehouseReports::ClientLookupsController, type: :request do
         personal_id: 'PID-VIEWABLE',
         first_name: 'Ada',
         last_name: 'Lovelace',
-      )
+      ).fetch(:destination_id)
 
       get_report(project_ids: [viewable_project.id])
 
       rows = rendered_workbook_rows
       expect(rows.first).to eq(
-        ['Warehouse Client ID', 'Personal ID (from HMIS)', 'First Name (from HMIS)', 'Last Name (from HMIS)'],
+        ['Data Source', 'Personal ID (from HMIS)', 'Warehouse Client ID', 'First Name (from HMIS)', 'Last Name (from HMIS)'],
       )
-      expect(rows[1..]).to include([destination_id, 'PID-VIEWABLE', 'Ada', 'Lovelace'])
+      expect(rows[1..]).to include([source_ds.name, 'PID-VIEWABLE', destination_id, 'Ada', 'Lovelace'])
+    end
+
+    it 'writes the additional enrollment columns when "Map enrollments" is requested' do
+      crosswalk = create_crosswalk(
+        project: viewable_project,
+        personal_id: 'PID-VIEWABLE',
+        first_name: 'Ada',
+        last_name: 'Lovelace',
+      )
+
+      get_report(project_ids: [viewable_project.id], map_enrollments: true)
+
+      rows = rendered_workbook_rows
+      expect(rows.first).to eq(
+        [
+          'Data Source', 'Personal ID (from HMIS)', 'Warehouse Client ID', 'First Name (from HMIS)', 'Last Name (from HMIS)',
+          'Enrollment ID (from HMIS)', 'Warehouse Enrollment ID'
+        ],
+      )
+      # Roo reads a numeric-looking string cell (EnrollmentID) back as a Numeric, not a
+      # String, so compare it numerically rather than against the pluck'd String value.
+      expect(rows[1..]).to include(
+        [
+          source_ds.name, 'PID-VIEWABLE', crosswalk.fetch(:destination_id), 'Ada', 'Lovelace',
+          crosswalk.fetch(:enrollment).EnrollmentID.to_i, crosswalk.fetch(:enrollment).id
+        ],
+      )
     end
   end
 
@@ -241,13 +272,13 @@ RSpec.describe WarehouseReports::ClientLookupsController, type: :request do
         personal_id: 'PID-ALLOWED',
         first_name: 'Ada',
         last_name: 'Lovelace',
-      )
+      ).fetch(:destination_id)
       forbidden_destination_id = create_crosswalk(
         project: unauthorized_project,
         personal_id: 'PID-FORBIDDEN',
         first_name: 'Mallory',
         last_name: 'Malicious',
-      )
+      ).fetch(:destination_id)
 
       # A user can hand-craft the params and submit a project id they were never granted.
       get_report(project_ids: [viewable_project.id, unauthorized_project.id])
@@ -265,13 +296,13 @@ RSpec.describe WarehouseReports::ClientLookupsController, type: :request do
         personal_id: 'PID-ALLOWED',
         first_name: 'Ada',
         last_name: 'Lovelace',
-      )
+      ).fetch(:destination_id)
       confidential_destination_id = create_crosswalk(
         project: confidential_project,
         personal_id: 'PID-CONFIDENTIAL',
         first_name: 'Secret',
         last_name: 'Client',
-      )
+      ).fetch(:destination_id)
 
       get_report(project_ids: [viewable_project.id, confidential_project.id])
 
@@ -298,13 +329,13 @@ RSpec.describe WarehouseReports::ClientLookupsController, type: :request do
         personal_id: 'PID-ALLOWED',
         first_name: 'Ada',
         last_name: 'Lovelace',
-      )
+      ).fetch(:destination_id)
       org_confidential_destination_id = create_crosswalk(
         project: org_confidential_project,
         personal_id: 'PID-ORG-CONFIDENTIAL',
         first_name: 'Org',
         last_name: 'Secret',
-      )
+      ).fetch(:destination_id)
 
       get_report(project_ids: [viewable_project.id, org_confidential_project.id])
 
@@ -316,7 +347,7 @@ RSpec.describe WarehouseReports::ClientLookupsController, type: :request do
 
   describe 'source data source disambiguation (regression guard)' do
     it 'does not conflate clients with the same PersonalID from different source data sources' do
-      other_source_ds = create(:source_data_source)
+      other_source_ds = create(:source_data_source, name: 'Other HMIS Vendor')
       other_organization = create(:hud_organization, data_source_id: other_source_ds.id)
       other_project = create(
         :hud_project,
@@ -330,27 +361,28 @@ RSpec.describe WarehouseReports::ClientLookupsController, type: :request do
       )
 
       # HUD PersonalID is only unique within a data source; the same PersonalID here
-      # identifies two different people in two different source data sources.
+      # identifies two different people in two different source data sources. The Data
+      # Source column is what lets the export disambiguate them.
       destination_id_a = create_crosswalk(
         project: viewable_project,
         personal_id: 'DUPLICATE-PID',
         first_name: 'Ada',
         last_name: 'Lovelace',
-      )
+      ).fetch(:destination_id)
       destination_id_b = create_crosswalk(
         project: other_project,
         personal_id: 'DUPLICATE-PID',
         first_name: 'Grace',
         last_name: 'Hopper',
         data_source: other_source_ds,
-      )
+      ).fetch(:destination_id)
 
       get_report(project_ids: [viewable_project.id, other_project.id])
 
       expect(response).to have_http_status(:success)
       expect(destination_id_a).not_to eq(destination_id_b)
-      expect(assigns(:rows)).to include([destination_id_a, 'DUPLICATE-PID', 'Ada', 'Lovelace'])
-      expect(assigns(:rows)).to include([destination_id_b, 'DUPLICATE-PID', 'Grace', 'Hopper'])
+      expect(assigns(:report).rows).to include([source_ds.name, 'DUPLICATE-PID', destination_id_a, 'Ada', 'Lovelace'])
+      expect(assigns(:report).rows).to include([other_source_ds.name, 'DUPLICATE-PID', destination_id_b, 'Grace', 'Hopper'])
     end
   end
 
@@ -372,7 +404,7 @@ RSpec.describe WarehouseReports::ClientLookupsController, type: :request do
         personal_id: 'PID-DOUBLE-ENROLLED',
         first_name: 'Ada',
         last_name: 'Lovelace',
-      )
+      ).fetch(:destination_id)
       # A second enrollment for the same source client, in the other allowed project.
       create(
         :grda_warehouse_hud_enrollment,
@@ -386,6 +418,77 @@ RSpec.describe WarehouseReports::ClientLookupsController, type: :request do
 
       expect(response).to have_http_status(:success)
       expect(reported_destination_ids.count { |id| id == destination_id }).to eq(1)
+    end
+  end
+
+  describe 'map enrollments (regression guard)' do
+    it 'omits the enrollment columns by default' do
+      create_crosswalk(
+        project: viewable_project,
+        personal_id: 'PID-VIEWABLE',
+        first_name: 'Ada',
+        last_name: 'Lovelace',
+      )
+
+      get_report(project_ids: [viewable_project.id])
+
+      expect(response).to have_http_status(:success)
+      expect(assigns(:report).headers).to eq(
+        ['Data Source', 'Personal ID (from HMIS)', 'Warehouse Client ID', 'First Name (from HMIS)', 'Last Name (from HMIS)'],
+      )
+      expect(assigns(:report).rows.first.length).to eq(5)
+    end
+
+    it 'adds the Enrollment ID and Warehouse Enrollment ID columns when requested, one row per enrollment' do
+      crosswalk = create_crosswalk(
+        project: viewable_project,
+        personal_id: 'PID-VIEWABLE',
+        first_name: 'Ada',
+        last_name: 'Lovelace',
+      )
+      second_viewable_project = create(
+        :hud_project,
+        data_source_id: source_ds.id,
+        OrganizationID: organization.OrganizationID,
+        confidential: false,
+      )
+      collection.set_viewables(
+        reports: [report_definition.id],
+        projects: [viewable_project.id, confidential_project.id, second_viewable_project.id],
+      )
+      # A second enrollment for the same source client, in another allowed project;
+      # "no dedup" means this must yield a second row, not collapse into one.
+      second_enrollment = create(
+        :grda_warehouse_hud_enrollment,
+        data_source_id: source_ds.id,
+        PersonalID: 'PID-VIEWABLE',
+        ProjectID: second_viewable_project.ProjectID,
+        EntryDate: start_date + 1.day,
+      )
+
+      get_report(project_ids: [viewable_project.id, second_viewable_project.id], map_enrollments: true)
+
+      expect(response).to have_http_status(:success)
+      expect(assigns(:report).headers).to eq(
+        [
+          'Data Source', 'Personal ID (from HMIS)', 'Warehouse Client ID', 'First Name (from HMIS)', 'Last Name (from HMIS)',
+          'Enrollment ID (from HMIS)', 'Warehouse Enrollment ID'
+        ],
+      )
+      rows = assigns(:report).rows
+      expect(rows).to include(
+        [
+          source_ds.name, 'PID-VIEWABLE', crosswalk.fetch(:destination_id), 'Ada', 'Lovelace',
+          crosswalk.fetch(:enrollment).EnrollmentID, crosswalk.fetch(:enrollment).id
+        ],
+      )
+      expect(rows).to include(
+        [
+          source_ds.name, 'PID-VIEWABLE', crosswalk.fetch(:destination_id), 'Ada', 'Lovelace',
+          second_enrollment.EnrollmentID, second_enrollment.id
+        ],
+      )
+      expect(rows.count { |row| row[2] == crosswalk.fetch(:destination_id) }).to eq(2)
     end
   end
 end
