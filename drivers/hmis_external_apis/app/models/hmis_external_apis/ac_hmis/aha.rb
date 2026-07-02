@@ -251,8 +251,14 @@ module HmisExternalApis::AcHmis
 
       metadata = score_obj['metadata'] || {}
 
-      # send a message to sentry if any of the expected flags are missing
-      missing_fields = ['is_eligible_ra', 'section_8', 'city_of_pittsburgh', 'subsidized_housing', 'recent_eviction_case'] - metadata.keys
+      expected_fields = ['is_eligible_ra', 'section_8', 'city_of_pittsburgh', 'subsidized_housing', 'recent_eviction_case']
+      missing_fields = expected_fields - metadata.keys
+
+      # Return nil if ALL expected flags are missing, indicating no eligibility data is available.
+      # This is an expected response (accompanied by a score of -1)
+      return nil if missing_fields.size == expected_fields.size
+
+      # If some flags were missing but not all, log to Sentry so we can investigate (unexpected behavior)
       Sentry.capture_message("VisionLink metadata missing fields: #{missing_fields.join(', ')}") if missing_fields.any?
 
       AhaScores::VisionLinkResult.new(
