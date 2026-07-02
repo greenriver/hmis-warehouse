@@ -497,14 +497,17 @@ class Menu::Menu
         title: 'Inbound APIs',
       ),
     )
-    menu.add_child(
-      Menu::Item.new(
-        user: user,
-        visible: ->(user) { user.can_manage_config? }, # rubocop:disable Style/SymbolProc
-        path: oauth_applications_path,
-        title: 'Oauth',
-      ),
-    )
+    if AuthMethod.devise?
+      # legacy oauth integration
+      menu.add_child(
+        Menu::Item.new(
+          user: user,
+          visible: ->(user) { user.can_manage_config? }, # rubocop:disable Style/SymbolProc
+          path: oauth_applications_path,
+          title: 'Oauth',
+        ),
+      )
+    end
     menu.add_child(
       Menu::Item.new(
         user: user,

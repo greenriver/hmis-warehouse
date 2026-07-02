@@ -8,6 +8,6 @@
     .col-sm-7
       %p.home-intro
         = Translation.translate('Open Path HMIS Warehouse')
-    - if !user_signed_in?
+    - if AuthMethod.devise? && !user_signed_in?
       .col-sm-5
         = render '/root/sign_in_form'

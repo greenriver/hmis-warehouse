@@ -51,7 +51,7 @@ class Idp::WardenProxy
 
   # Real Warden throws :warden on failure so its failure app can redirect to login. There is no
   # Warden failure app under JWT, and the cutover invariant is that an unauthenticated request
-  # never reaches a proxy-backed gate (the :user gate is handled upstream in Idp::CurrentUser).
+  # never reaches a proxy-backed gate (the :user gate is handled upstream in Idp::JwtCurrentUser).
   # So reaching here without a resolved user means a scope is leaning on the proxy as its sole
   # gate: fail loudly rather than silently authorize. Dial back to returning nil if too aggressive.
   def authenticate!(*args)

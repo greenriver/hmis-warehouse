@@ -69,8 +69,13 @@ RSpec.configure do |config|
   # arbitrary gems may also be filtered via:
   # config.filter_gems_from_backtrace("gem name")
 
-  config.include Devise::Test::ControllerHelpers, type: :controller
-  config.include Devise::Test::IntegrationHelpers, type: :request
+  # Devise's test helpers are meaningless under AUTH_METHOD=jwt (no Devise mapping/Warden session) and
+  # their #sign_in would otherwise shadow JwtAuthenticationHelper#sign_in in the request-spec ancestor
+  # chain. Gate them off under jwt, mirroring the production AuthMethod seams — a no-op under devise.
+  unless AuthMethod.jwt?
+    config.include Devise::Test::ControllerHelpers, type: :controller
+    config.include Devise::Test::IntegrationHelpers, type: :request
+  end
   config.include FactoryBot::Syntax::Methods
   config.include HmisCsvFixtures
   config.include AccessControlSetup

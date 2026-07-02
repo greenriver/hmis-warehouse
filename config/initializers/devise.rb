@@ -8,6 +8,13 @@
 
 # Rails.logger.debug "Running initializer in #{__FILE__}"
 
+# AUTH_METHOD seam: under JWT, skip the app's `Devise.setup` block. We skip rather than run it
+# dormant because it wires CustomAuthFailure as the global Warden failure app, which redirects to
+# Devise routes that don't exist under JWT — a latent 500 if anything threw :warden. Skipping
+# leaves Devise on safe gem defaults. (The Warden middleware can't be gated here; it's inserted at
+# gem-require time, but stays inert since no warden consumer is reachable under JWT.)
+return unless AuthMethod.devise?
+
 # Use this hook to configure devise mailer, warden hooks and so forth.
 # Many of these configuration options can be set straight in your model.
 Devise.setup do |config|
