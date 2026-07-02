@@ -125,6 +125,27 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
       end
     end
 
+    context 'when expose_ch_calculations is true' do
+      before do
+        HmisDataQualityTool::Goal.create!(coc_code: 'MA-500', expose_ch_calculations: true)
+        @report = setup_report([project.id])
+      end
+
+      it 'includes CH slugs in pivot_details groups' do
+        slugs = @report.pivot_details.groups.values.flat_map(&:keys)
+        expect(slugs).to include(:date_to_street_issues)
+        expect(slugs).to include(:times_homeless_issues)
+        expect(slugs).to include(:months_homeless_issues)
+      end
+
+      it 'includes CH slugs in results' do
+        slugs = @report.results.map(&:slug)
+        expect(slugs).to include('date_to_street_issues')
+        expect(slugs).to include('times_homeless_issues')
+        expect(slugs).to include('months_homeless_issues')
+      end
+    end
+
     context 'when show_annual_assessments is false' do
       before do
         HmisDataQualityTool::Goal.create!(coc_code: 'MA-500', show_annual_assessments: false)
@@ -139,6 +160,23 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
       it 'excludes annual_assessment_issues from results' do
         slugs = @report.results.map(&:slug)
         expect(slugs).not_to include('annual_assessment_issues')
+      end
+    end
+
+    context 'when show_annual_assessments is true' do
+      before do
+        HmisDataQualityTool::Goal.create!(coc_code: 'MA-500', show_annual_assessments: true)
+        @report = setup_report([project.id])
+      end
+
+      it 'includes annual_assessment_issues in pivot_details groups' do
+        slugs = @report.pivot_details.groups.values.flat_map(&:keys)
+        expect(slugs).to include(:annual_assessment_issues)
+      end
+
+      it 'includes annual_assessment_issues in results' do
+        slugs = @report.results.map(&:slug)
+        expect(slugs).to include('annual_assessment_issues')
       end
     end
 

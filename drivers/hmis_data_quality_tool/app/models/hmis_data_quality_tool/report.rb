@@ -465,7 +465,7 @@ module HmisDataQualityTool
     def show_entry_timeliness?
       return @show_entry_timeliness if instance_variable_defined?(:@show_entry_timeliness)
 
-      @show_entry_timeliness = results.any? { |r| r.slug == 'entry_date_entry_issues' }
+      @show_entry_timeliness = results.any? { |r| r.slug.to_s == 'entry_date_entry_issues' }
     end
 
     def show_exit_timeliness?
