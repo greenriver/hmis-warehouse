@@ -112,7 +112,17 @@ A daily `ProjectCleanup` task automatically detects and fixes several types of p
 
 The cleanup task runs on all projects daily and then processes the invalidated enrollments.
 
+### Automatic Rebuild via HMIS Edits
+
+The operational HMIS is a third rebuild trigger, alongside the CSV importer and the daily `ProjectCleanup` task. When records are saved through the HMIS app, model callbacks automatically clear the enrollment's processed state and queue the same batch rebuild job.
+
+Four models carry this behavior: `Hmis::Hud::Enrollment`, `Hmis::Hud::Exit`, `Hmis::Hud::Service`, and `Hmis::Hud::CurrentLivingSituation`. Each checks whether the fields relevant to a service history rebuild actually changed before doing anything — saves that touch unrelated fields are ignored. Exit, Service, and CLS records invalidate their **parent enrollment** rather than themselves, since service history is keyed by enrollment.
+
+The callbacks use `after_save` rather than `after_commit` deliberately: `after_save` gives reliable access to `saved_changes` within a transaction, at the cost of occasionally queuing a redundant rebuild if the transaction is later rolled back. The queue is de-duplicated so rapid edits do not pile up jobs. Shared queuing logic lives in `Hmis::Hud::Concerns::ServiceHistoryQueuer` (`drivers/hmis/app/models/hmis/hud/concerns/service_history_queuer.rb`).
+
 ### Manual Rebuild Process
+
+The steps below are required in two situations: targeted developer intervention, and **any console-level data fix**. When records are corrected directly via `update_columns`, `update_all`, raw SQL, or bulk import, the model callbacks do not fire — neither the processed-state clear nor the job enqueue happens automatically. The operator must perform both steps explicitly.
 
 To manually trigger a service history rebuild for specific enrollments:
 
