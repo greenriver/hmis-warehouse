@@ -36,6 +36,22 @@ module GrdaWarehouse::Monitoring::MetricCalculators
       '1.0.0'
     end
 
+    # Returns the change magnitudes the collector compares against a metric's thresholds:
+    # { count_change:, percent_change: }. Both are measured since the last observed value
+    # (the snapshot's current_value), so a crossing reflects a genuine per-run change rather
+    # than gradual drift accumulating away from the original baseline. percent_change is nil
+    # when the previous value is zero (percent undefined). Calculators whose value drifts
+    # over time (rolling windows, running totals) override this to additionally normalize by
+    # elapsed days.
+    def self.change_metrics(previous_snapshot:, calculated_value:, **_kwargs)
+      baseline = previous_snapshot.current_value
+      count_change = (calculated_value - baseline).abs
+      {
+        count_change: count_change,
+        percent_change: baseline.zero? ? nil : (count_change.to_f / baseline.abs * 100),
+      }
+    end
+
     # Returns true if the calculator's data source is currently stable enough to snapshot.
     # Subclasses override this when their source table has a known concurrent writer.
     # Called by MetricSnapshotCollector before opening the REPEATABLE READ transaction.

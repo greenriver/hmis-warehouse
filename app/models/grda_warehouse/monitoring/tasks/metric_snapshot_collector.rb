@@ -206,7 +206,7 @@ module GrdaWarehouse::Monitoring::Tasks
 
         current_snapshot = current_snapshots[[entity_id, metric.id]]
 
-        if should_create_new_snapshot?(metric, current_snapshot, calculated_value)
+        if should_create_new_snapshot?(metric, calculator_class, current_snapshot, calculated_value)
           # Significant change detected - create new snapshot
           entity = entities.find { |e| e.id == entity_id }
           snapshot = build_new_snapshot(
@@ -240,49 +240,53 @@ module GrdaWarehouse::Monitoring::Tasks
       end
     end
 
-    def should_create_new_snapshot?(metric, current_snapshot, calculated_value)
+    def should_create_new_snapshot?(metric, calculator_class, current_snapshot, calculated_value)
       # No current snapshot = first time, create new
       return false unless current_snapshot
 
-      # Compare calculated value to initial_value (baseline)
-      baseline_value = current_snapshot.initial_value
+      # Handle nil values (compared against the last observed value)
+      return true if calculated_value.nil? != current_snapshot.current_value.nil?
+      return false if calculated_value.nil? && current_snapshot.current_value.nil?
 
-      # Handle nil values
-      return true if calculated_value.nil? != baseline_value.nil?
-      return false if calculated_value.nil? && baseline_value.nil?
-
-      # If no thresholds specified, create new snapshot on any change
       count_threshold = metric.count_change_threshold
       percent_threshold = metric.percent_change_threshold
-      return calculated_value != baseline_value if count_threshold.nil? && percent_threshold.nil?
 
-      # Calculate change from baseline
-      change = (calculated_value - baseline_value).abs
+      # The calculator owns how raw change becomes comparable change magnitudes: which value
+      # to measure from (previous run vs. drift) and any per-elapsed-day normalization. It
+      # returns both count_change and a consistently-derived percent_change; the collector
+      # only compares them against the thresholds configured on the metric definition.
+      metrics = calculator_class.change_metrics(
+        previous_snapshot: current_snapshot,
+        calculated_value: calculated_value,
+        calculation_date: @calculation_date,
+      )
+      count_change = metrics[:count_change]
+      percent_change = metrics[:percent_change]
+
+      # If no thresholds specified, create new snapshot on any change
+      return count_change != 0 if count_threshold.nil? && percent_threshold.nil?
 
       # Check thresholds
       count_met = false
       percent_met = false
 
       # Check count threshold
-      count_met = change >= count_threshold if count_threshold
+      count_met = count_change >= count_threshold if count_threshold
 
-      # Check percent threshold
-      if percent_threshold && baseline_value != 0
-        percent_change = (change.to_f / baseline_value.abs * 100)
-        percent_met = percent_change >= percent_threshold
-      end
+      # Check percent threshold (percent_change is nil when the previous value was zero)
+      percent_met = percent_change >= percent_threshold if percent_threshold && percent_change
 
       # Both thresholds must be met if both are specified
       if count_threshold && percent_threshold
-        return count_met && percent_met
+        count_met && percent_met
       elsif count_threshold
-        return count_met
+        count_met
       elsif percent_threshold
-        return percent_met
+        percent_met
+      else
+        # No thresholds crossed
+        false
       end
-
-      # No thresholds crossed
-      false
     end
 
     def build_new_snapshot(entity, metric, value, calculation_version)
