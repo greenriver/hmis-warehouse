@@ -49,7 +49,6 @@ RSpec.describe WarehouseReports::ClientLookupsController, type: :request do
 
   let(:organization) { create(:hud_organization, data_source_id: source_ds.id) }
 
-  # Project the user is explicitly allowed to see via their collection.
   let!(:viewable_project) do
     create(
       :hud_project,
@@ -59,7 +58,6 @@ RSpec.describe WarehouseReports::ClientLookupsController, type: :request do
     )
   end
 
-  # Project the user has NOT been granted access to.
   let!(:unauthorized_project) do
     create(
       :hud_project,
@@ -147,9 +145,8 @@ RSpec.describe WarehouseReports::ClientLookupsController, type: :request do
   end
 
   # Parse the actual rendered XLSX response body (not the controller's @rows ivar) so
-  # tests can catch bugs in the view template itself (report.xlsx.axlsx), e.g. a wrong
-  # header, dropped column, or reordered fields that assigns(:rows)-only assertions
-  # would miss entirely.
+  # tests can catch bugs in Report#to_xlsx itself, e.g. a wrong header, dropped column,
+  # or reordered fields that assigns(:rows)-only assertions would miss entirely.
   def rendered_workbook_rows
     excel_file = Tempfile.new(['client_lookups', '.xlsx'])
     begin
@@ -337,6 +334,17 @@ RSpec.describe WarehouseReports::ClientLookupsController, type: :request do
       expect(reported_destination_ids).not_to include(forbidden_destination_id)
     end
 
+    it 'redirects with a clear message instead of silently exporting nothing when the only selected project is unauthorized' do
+      # Regression guard: previously a single unauthorized (but hand-craftable) project
+      # id would pass `any_effective_project_ids?` (which doesn't check authorization)
+      # and then silently produce a zero-row export via the `project_source` merge.
+      get_report(project_ids: [unauthorized_project.id], data_source_ids: [])
+
+      expect(response).to have_http_status(:redirect)
+      expect(response.location).to include("project_ids%5D%5B%5D=#{unauthorized_project.id}")
+      expect(flash[:alert]).to eq('you do not have permission to view the selected project(s) for this report')
+    end
+
     it 'excludes clients from a project the user can view but did not select in the filter' do
       # A second non-confidential project the user is granted access to via their
       # collection, distinct from viewable_project (which is the only one selected below).
@@ -505,6 +513,54 @@ RSpec.describe WarehouseReports::ClientLookupsController, type: :request do
 
       expect(response).to have_http_status(:success)
       expect(reported_destination_ids.count { |id| id == destination_id }).to eq(1)
+    end
+  end
+
+  describe 'deduplicated identity with multiple PersonalIDs (regression guard)' do
+    it 'emits one row per PersonalID (not per enrollment) when two source records in the same data source share a warehouse client and name' do
+      # Two source client records in the SAME data source, deduplicated to a SINGLE
+      # warehouse (destination) client, sharing first/last name but differing only by
+      # PersonalID. Grouping in Report#build_rows relies on rows sharing a display_key
+      # sorting contiguously; if PersonalID is missing from the query's ORDER BY, these
+      # rows interleave by enrollment id and the client is emitted as duplicate rows.
+      destination_client = create(:grda_warehouse_hud_client, data_source: destination_ds)
+
+      source_client_a = create(
+        :grda_warehouse_hud_client,
+        data_source: source_ds,
+        PersonalID: 'PID-DEDUP-A',
+        FirstName: 'Ada',
+        LastName: 'Lovelace',
+      )
+      source_client_b = create(
+        :grda_warehouse_hud_client,
+        data_source: source_ds,
+        PersonalID: 'PID-DEDUP-B',
+        FirstName: 'Ada',
+        LastName: 'Lovelace',
+      )
+      create(:warehouse_client, source: source_client_a, destination: destination_client, data_source: source_ds)
+      create(:warehouse_client, source: source_client_b, destination: destination_client, data_source: source_ds)
+
+      # Interleave enrollment creation so their (auto-incrementing) warehouse enrollment
+      # ids alternate between the two PersonalIDs. Without PersonalID in the ORDER BY the
+      # rows come back A, B, A, B — non-contiguous groups that flush as four rows.
+      ['PID-DEDUP-A', 'PID-DEDUP-B', 'PID-DEDUP-A', 'PID-DEDUP-B'].each do |personal_id|
+        create(
+          :grda_warehouse_hud_enrollment,
+          data_source_id: source_ds.id,
+          PersonalID: personal_id,
+          ProjectID: viewable_project.ProjectID,
+          EntryDate: start_date + 1.day,
+        )
+      end
+
+      get_report(project_ids: [viewable_project.id])
+
+      expect(response).to have_http_status(:success)
+      dedup_rows = assigns(:report).rows.select { |row| row[2] == destination_client.id }
+      expect(dedup_rows.length).to eq(2)
+      expect(dedup_rows.map { |row| row[1] }).to contain_exactly('PID-DEDUP-A', 'PID-DEDUP-B')
     end
   end
 

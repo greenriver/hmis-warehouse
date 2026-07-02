@@ -39,6 +39,25 @@ module WarehouseReports
         @rows ||= build_rows
       end
 
+      def to_xlsx
+        Axlsx::Package.new do |package|
+          package.workbook.add_worksheet(name: 'Client Lookup') do |sheet|
+            title = sheet.styles.add_style(sz: 12, b: true, alignment: { horizontal: :center })
+            sheet.add_row(headers, style: title)
+            rows.each { |row| sheet.add_row(row) }
+          end
+        end.to_stream.read
+      end
+
+      # The Project picker is scoped to `:can_view_assigned_reports` (see
+      # `project_source`), but a project id can still reach here via hand-crafted
+      # params. Lets the controller distinguish "nothing selected" from "selected,
+      # but none of it is authorized" so it can show a clear message instead of
+      # silently exporting an empty file.
+      def any_authorized_projects?
+        authorized_project_ids.present?
+      end
+
       private
 
       attr_reader :filter, :user
@@ -112,9 +131,20 @@ module WarehouseReports
       # The candidate project ids are bounded by the filter's selection (data
       # sources/orgs/project groups/etc), not by row or enrollment count, so this
       # is preloaded once up front rather than derived per-batch from plucked rows.
+      # We preload only the *authorized* subset, since that's exactly the set of
+      # project ids the query can surface (and thus the only ids `policy_for_project`
+      # is ever asked about).
       def preload_policies
-        project_ids = filter.effective_project_ids
+        project_ids = authorized_project_ids
         user.policy_context.preload_project_dependencies(project_ids) if project_ids.present?
+      end
+
+      # The filter's selected project ids, narrowed to those the user is actually
+      # authorized to view for this report (see `project_source`). Memoized because
+      # it's consumed both by the controller's pre-export authorization check and by
+      # `preload_policies`.
+      def authorized_project_ids
+        @authorized_project_ids ||= project_source.where(id: filter.effective_project_ids).pluck(:id)
       end
 
       def policy_for_project(project_id)
@@ -184,8 +214,15 @@ module WarehouseReports
         [ds_t[:name], :PersonalID, wc_t[:destination_id], :FirstName, :LastName, e_t[:EnrollmentID], e_t[:id], p_t[:id]]
       end
 
+      # Must cover every column in `PluckedRow#display_key` before the `enrollment_id`
+      # tie-breaker. `build_rows` groups a client's rows by contiguous equal `display_key`,
+      # which only holds if rows sharing a `display_key` sort adjacently. `PersonalID` is
+      # part of the key but not otherwise implied by the other sort columns (two source
+      # clients in the same data source can share a warehouse `destination_id` and name
+      # while differing only by `PersonalID`), so it must appear here — otherwise those
+      # rows interleave by `enrollment_id` and a single client is emitted as duplicate rows.
       def order_columns
-        [ds_t[:name].asc, wc_t[:destination_id].asc, c_t[:LastName].asc, c_t[:FirstName].asc, e_t[:id].asc]
+        [ds_t[:name].asc, wc_t[:destination_id].asc, c_t[:PersonalID].asc, c_t[:LastName].asc, c_t[:FirstName].asc, e_t[:id].asc]
       end
     end
   end

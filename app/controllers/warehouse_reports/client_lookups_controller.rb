@@ -19,7 +19,7 @@ module WarehouseReports
         format.xlsx do
           unless @filter.any_effective_project_ids?
             message = 'must have at least one Data Source, Organization, or Project selected'
-            redirect_to warehouse_reports_client_lookups_path(report: report_params), alert: message
+            redirect_to warehouse_reports_client_lookups_path(report: redirect_report_params), alert: message
             next
           end
 
@@ -28,7 +28,13 @@ module WarehouseReports
             user: current_user,
             map_enrollments: @map_enrollments,
           )
-          render xlsx: 'report', filename: 'client_lookups.xlsx'
+          unless @report.any_authorized_projects?
+            message = 'you do not have permission to view the selected project(s) for this report'
+            redirect_to warehouse_reports_client_lookups_path(report: redirect_report_params), alert: message
+            next
+          end
+
+          send_data @report.to_xlsx, filename: 'client_lookups.xlsx', type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
         end
       end
     end
@@ -41,6 +47,13 @@ module WarehouseReports
 
     private def map_enrollments?
       ActiveModel::Type::Boolean.new.cast(params.dig(:report, :map_enrollments))
+    end
+
+    # `map_enrollments` isn't part of `@filter.known_params`, so `report_params` drops it.
+    # Carry it through the guard-clause redirects so the checkbox re-renders in the state
+    # the user submitted instead of silently reverting to unchecked.
+    private def redirect_report_params
+      report_params.to_h.merge(map_enrollments: @map_enrollments)
     end
   end
 end
