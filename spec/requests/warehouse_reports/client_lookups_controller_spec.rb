@@ -49,46 +49,36 @@ RSpec.describe WarehouseReports::ClientLookupsController, type: :request do
 
   let(:organization) { create(:hud_organization, data_source_id: source_ds.id) }
 
-  let!(:viewable_project) do
+  # Defaults to `organization`/`source_ds`; pass `organization:`/`data_source:` for a
+  # project in a different org or data source (e.g. a confidential org).
+  def create_project(confidential:, organization: self.organization, data_source: source_ds)
     create(
       :hud_project,
-      data_source_id: source_ds.id,
+      data_source_id: data_source.id,
       OrganizationID: organization.OrganizationID,
-      confidential: false,
+      confidential: confidential,
     )
   end
 
-  let!(:unauthorized_project) do
-    create(
-      :hud_project,
-      data_source_id: source_ds.id,
-      OrganizationID: organization.OrganizationID,
-      confidential: false,
-    )
-  end
-
+  let!(:viewable_project) { create_project(confidential: false) }
+  let!(:unauthorized_project) { create_project(confidential: false) }
   # Project the user is allowed to see, but which is flagged confidential.
-  let!(:confidential_project) do
-    create(
-      :hud_project,
-      data_source_id: source_ds.id,
-      OrganizationID: organization.OrganizationID,
-      confidential: true,
-    )
-  end
+  let!(:confidential_project) { create_project(confidential: true) }
 
   let(:user) { create(:acl_user) }
   let(:role) { create(:role, can_view_assigned_reports: true, can_view_client_name: true) }
   let(:collection) { create(:collection) }
   let!(:report_definition) { create(:client_lookups_report) }
 
+  # Grants report visibility plus access to the given projects via `collection`.
+  def grant_projects(*projects)
+    collection.set_viewables(reports: [report_definition.id], projects: projects.map(&:id))
+  end
+
   before do
     # Grant report visibility and access to the two "authorized" projects
     # (viewable_project + confidential_project), but NOT unauthorized_project.
-    collection.set_viewables(
-      reports: [report_definition.id],
-      projects: [viewable_project.id, confidential_project.id],
-    )
+    grant_projects(viewable_project, confidential_project)
     setup_access_control(user, role, collection)
     sign_in(user)
   end
@@ -96,7 +86,7 @@ RSpec.describe WarehouseReports::ClientLookupsController, type: :request do
   # Build the full crosswalk graph (source client -> warehouse client -> destination
   # client, plus an enrollment in `project`) and return the destination (warehouse) id
   # and the created enrollment, since some tests need the enrollment's HUD/DB ids too.
-  def create_crosswalk(project:, personal_id:, first_name:, last_name:, entry_date: start_date + 1.day, data_source: source_ds)
+  def create_crosswalk(project: viewable_project, personal_id: 'PID-VIEWABLE', first_name: 'Ada', last_name: 'Lovelace', entry_date: start_date + 1.day, data_source: source_ds)
     source_client = create(
       :grda_warehouse_hud_client,
       data_source: data_source,
@@ -164,12 +154,7 @@ RSpec.describe WarehouseReports::ClientLookupsController, type: :request do
 
   describe 'current behavior (should remain green)' do
     it 'includes a client enrolled in an allowed project during the range' do
-      destination_id = create_crosswalk(
-        project: viewable_project,
-        personal_id: 'PID-VIEWABLE',
-        first_name: 'Ada',
-        last_name: 'Lovelace',
-      ).fetch(:destination_id)
+      destination_id = create_crosswalk.fetch(:destination_id)
 
       get_report(project_ids: [viewable_project.id])
 
@@ -257,12 +242,7 @@ RSpec.describe WarehouseReports::ClientLookupsController, type: :request do
 
   describe 'rendered file (regression guard)' do
     it 'writes the header row and client data into the actual XLSX output' do
-      destination_id = create_crosswalk(
-        project: viewable_project,
-        personal_id: 'PID-VIEWABLE',
-        first_name: 'Ada',
-        last_name: 'Lovelace',
-      ).fetch(:destination_id)
+      destination_id = create_crosswalk.fetch(:destination_id)
 
       get_report(project_ids: [viewable_project.id])
 
@@ -274,12 +254,7 @@ RSpec.describe WarehouseReports::ClientLookupsController, type: :request do
     end
 
     it 'writes the additional enrollment columns when "Map enrollments" is requested' do
-      crosswalk = create_crosswalk(
-        project: viewable_project,
-        personal_id: 'PID-VIEWABLE',
-        first_name: 'Ada',
-        last_name: 'Lovelace',
-      )
+      crosswalk = create_crosswalk
 
       get_report(project_ids: [viewable_project.id], map_enrollments: true)
 
@@ -313,12 +288,7 @@ RSpec.describe WarehouseReports::ClientLookupsController, type: :request do
 
   describe 'project-level authorization (regression guard)' do
     it 'excludes clients whose only enrollment is in a project the user cannot view, even when its id is submitted' do
-      allowed_destination_id = create_crosswalk(
-        project: viewable_project,
-        personal_id: 'PID-ALLOWED',
-        first_name: 'Ada',
-        last_name: 'Lovelace',
-      ).fetch(:destination_id)
+      allowed_destination_id = create_crosswalk(personal_id: 'PID-ALLOWED').fetch(:destination_id)
       forbidden_destination_id = create_crosswalk(
         project: unauthorized_project,
         personal_id: 'PID-FORBIDDEN',
@@ -348,23 +318,10 @@ RSpec.describe WarehouseReports::ClientLookupsController, type: :request do
     it 'excludes clients from a project the user can view but did not select in the filter' do
       # A second non-confidential project the user is granted access to via their
       # collection, distinct from viewable_project (which is the only one selected below).
-      other_viewable_project = create(
-        :hud_project,
-        data_source_id: source_ds.id,
-        OrganizationID: organization.OrganizationID,
-        confidential: false,
-      )
-      collection.set_viewables(
-        reports: [report_definition.id],
-        projects: [viewable_project.id, confidential_project.id, other_viewable_project.id],
-      )
+      other_viewable_project = create_project(confidential: false)
+      grant_projects(viewable_project, confidential_project, other_viewable_project)
 
-      selected_destination_id = create_crosswalk(
-        project: viewable_project,
-        personal_id: 'PID-SELECTED',
-        first_name: 'Ada',
-        last_name: 'Lovelace',
-      ).fetch(:destination_id)
+      selected_destination_id = create_crosswalk(personal_id: 'PID-SELECTED').fetch(:destination_id)
       unselected_destination_id = create_crosswalk(
         project: other_viewable_project,
         personal_id: 'PID-UNSELECTED-BUT-VIEWABLE',
@@ -386,12 +343,7 @@ RSpec.describe WarehouseReports::ClientLookupsController, type: :request do
 
   describe 'confidential project exclusion (regression guard)' do
     it 'excludes clients whose only enrollment is in a confidential project' do
-      allowed_destination_id = create_crosswalk(
-        project: viewable_project,
-        personal_id: 'PID-ALLOWED',
-        first_name: 'Ada',
-        last_name: 'Lovelace',
-      ).fetch(:destination_id)
+      allowed_destination_id = create_crosswalk(personal_id: 'PID-ALLOWED').fetch(:destination_id)
       confidential_destination_id = create_crosswalk(
         project: confidential_project,
         personal_id: 'PID-CONFIDENTIAL',
@@ -408,23 +360,10 @@ RSpec.describe WarehouseReports::ClientLookupsController, type: :request do
 
     it 'excludes clients whose only enrollment is in a non-confidential project of a confidential organization' do
       confidential_org = create(:hud_organization, data_source_id: source_ds.id, confidential: true)
-      org_confidential_project = create(
-        :hud_project,
-        data_source_id: source_ds.id,
-        OrganizationID: confidential_org.OrganizationID,
-        confidential: false,
-      )
-      collection.set_viewables(
-        reports: [report_definition.id],
-        projects: [viewable_project.id, confidential_project.id, org_confidential_project.id],
-      )
+      org_confidential_project = create_project(confidential: false, organization: confidential_org)
+      grant_projects(viewable_project, confidential_project, org_confidential_project)
 
-      allowed_destination_id = create_crosswalk(
-        project: viewable_project,
-        personal_id: 'PID-ALLOWED',
-        first_name: 'Ada',
-        last_name: 'Lovelace',
-      ).fetch(:destination_id)
+      allowed_destination_id = create_crosswalk(personal_id: 'PID-ALLOWED').fetch(:destination_id)
       org_confidential_destination_id = create_crosswalk(
         project: org_confidential_project,
         personal_id: 'PID-ORG-CONFIDENTIAL',
@@ -444,26 +383,13 @@ RSpec.describe WarehouseReports::ClientLookupsController, type: :request do
     it 'does not conflate clients with the same PersonalID from different source data sources' do
       other_source_ds = create(:source_data_source, name: 'Other HMIS Vendor')
       other_organization = create(:hud_organization, data_source_id: other_source_ds.id)
-      other_project = create(
-        :hud_project,
-        data_source_id: other_source_ds.id,
-        OrganizationID: other_organization.OrganizationID,
-        confidential: false,
-      )
-      collection.set_viewables(
-        reports: [report_definition.id],
-        projects: [viewable_project.id, confidential_project.id, other_project.id],
-      )
+      other_project = create_project(confidential: false, organization: other_organization, data_source: other_source_ds)
+      grant_projects(viewable_project, confidential_project, other_project)
 
       # HUD PersonalID is only unique within a data source; the same PersonalID here
       # identifies two different people in two different source data sources. The Data
       # Source column is what lets the export disambiguate them.
-      destination_id_a = create_crosswalk(
-        project: viewable_project,
-        personal_id: 'DUPLICATE-PID',
-        first_name: 'Ada',
-        last_name: 'Lovelace',
-      ).fetch(:destination_id)
+      destination_id_a = create_crosswalk(personal_id: 'DUPLICATE-PID').fetch(:destination_id)
       destination_id_b = create_crosswalk(
         project: other_project,
         personal_id: 'DUPLICATE-PID',
@@ -483,23 +409,10 @@ RSpec.describe WarehouseReports::ClientLookupsController, type: :request do
 
   describe 'duplicate enrollments (regression guard)' do
     it 'includes a client only once when they have overlapping enrollments in two allowed projects' do
-      second_viewable_project = create(
-        :hud_project,
-        data_source_id: source_ds.id,
-        OrganizationID: organization.OrganizationID,
-        confidential: false,
-      )
-      collection.set_viewables(
-        reports: [report_definition.id],
-        projects: [viewable_project.id, confidential_project.id, second_viewable_project.id],
-      )
+      second_viewable_project = create_project(confidential: false)
+      grant_projects(viewable_project, confidential_project, second_viewable_project)
 
-      destination_id = create_crosswalk(
-        project: viewable_project,
-        personal_id: 'PID-DOUBLE-ENROLLED',
-        first_name: 'Ada',
-        last_name: 'Lovelace',
-      ).fetch(:destination_id)
+      destination_id = create_crosswalk(personal_id: 'PID-DOUBLE-ENROLLED').fetch(:destination_id)
       # A second enrollment for the same source client, in the other allowed project.
       create(
         :grda_warehouse_hud_enrollment,
@@ -566,12 +479,7 @@ RSpec.describe WarehouseReports::ClientLookupsController, type: :request do
 
   describe 'map enrollments (regression guard)' do
     it 'omits the enrollment columns by default' do
-      create_crosswalk(
-        project: viewable_project,
-        personal_id: 'PID-VIEWABLE',
-        first_name: 'Ada',
-        last_name: 'Lovelace',
-      )
+      create_crosswalk
 
       get_report(project_ids: [viewable_project.id])
 
@@ -583,22 +491,9 @@ RSpec.describe WarehouseReports::ClientLookupsController, type: :request do
     end
 
     it 'adds the Enrollment ID and Warehouse Enrollment ID columns when requested, one row per enrollment' do
-      crosswalk = create_crosswalk(
-        project: viewable_project,
-        personal_id: 'PID-VIEWABLE',
-        first_name: 'Ada',
-        last_name: 'Lovelace',
-      )
-      second_viewable_project = create(
-        :hud_project,
-        data_source_id: source_ds.id,
-        OrganizationID: organization.OrganizationID,
-        confidential: false,
-      )
-      collection.set_viewables(
-        reports: [report_definition.id],
-        projects: [viewable_project.id, confidential_project.id, second_viewable_project.id],
-      )
+      crosswalk = create_crosswalk
+      second_viewable_project = create_project(confidential: false)
+      grant_projects(viewable_project, confidential_project, second_viewable_project)
       # A second enrollment for the same source client, in another allowed project;
       # "no dedup" means this must yield a second row, not collapse into one.
       second_enrollment = create(
@@ -637,12 +532,7 @@ RSpec.describe WarehouseReports::ClientLookupsController, type: :request do
 
   describe 'filter requirement (regression guard)' do
     it 'refuses to render the xlsx when no project, organization, or data source is selected' do
-      create_crosswalk(
-        project: viewable_project,
-        personal_id: 'PID-VIEWABLE',
-        first_name: 'Ada',
-        last_name: 'Lovelace',
-      )
+      create_crosswalk
 
       get_report(project_ids: [], data_source_ids: [], organization_ids: [])
 
@@ -652,12 +542,7 @@ RSpec.describe WarehouseReports::ClientLookupsController, type: :request do
     end
 
     it 'renders the xlsx when a project is selected without a data source' do
-      create_crosswalk(
-        project: viewable_project,
-        personal_id: 'PID-VIEWABLE',
-        first_name: 'Ada',
-        last_name: 'Lovelace',
-      )
+      create_crosswalk
 
       get_report(project_ids: [viewable_project.id], data_source_ids: [])
 
@@ -669,12 +554,7 @@ RSpec.describe WarehouseReports::ClientLookupsController, type: :request do
     let(:role) { create(:role, can_view_assigned_reports: true, can_view_client_name: false) }
 
     it 'redacts first and last name when the user cannot view client names for the project' do
-      destination_id = create_crosswalk(
-        project: viewable_project,
-        personal_id: 'PID-VIEWABLE',
-        first_name: 'Ada',
-        last_name: 'Lovelace',
-      ).fetch(:destination_id)
+      destination_id = create_crosswalk.fetch(:destination_id)
 
       get_report(project_ids: [viewable_project.id])
 
@@ -685,27 +565,14 @@ RSpec.describe WarehouseReports::ClientLookupsController, type: :request do
     end
 
     it 'shows the name when at least one of the client\'s projects allows it, with map_enrollments off' do
-      second_viewable_project = create(
-        :hud_project,
-        data_source_id: source_ds.id,
-        OrganizationID: organization.OrganizationID,
-        confidential: false,
-      )
-      collection.set_viewables(
-        reports: [report_definition.id],
-        projects: [viewable_project.id, confidential_project.id, second_viewable_project.id],
-      )
+      second_viewable_project = create_project(confidential: false)
+      grant_projects(viewable_project, confidential_project, second_viewable_project)
       permissive_role = create(:role, can_view_assigned_reports: true, can_view_client_name: true)
       permissive_collection = create(:collection)
       permissive_collection.set_viewables(projects: [second_viewable_project.id])
       setup_access_control(user, permissive_role, permissive_collection)
 
-      destination_id = create_crosswalk(
-        project: viewable_project,
-        personal_id: 'PID-MULTI',
-        first_name: 'Ada',
-        last_name: 'Lovelace',
-      ).fetch(:destination_id)
+      destination_id = create_crosswalk(personal_id: 'PID-MULTI').fetch(:destination_id)
       create(
         :grda_warehouse_hud_enrollment,
         data_source_id: source_ds.id,
@@ -731,12 +598,7 @@ RSpec.describe WarehouseReports::ClientLookupsController, type: :request do
       before { GrdaWarehouse::Config.first_or_create.update!(include_pii_in_detail_downloads: false) }
 
       it 'redacts the name even though the role otherwise allows viewing it' do
-        destination_id = create_crosswalk(
-          project: viewable_project,
-          personal_id: 'PID-VIEWABLE',
-          first_name: 'Ada',
-          last_name: 'Lovelace',
-        ).fetch(:destination_id)
+        destination_id = create_crosswalk.fetch(:destination_id)
 
         get_report(project_ids: [viewable_project.id])
 
@@ -751,27 +613,14 @@ RSpec.describe WarehouseReports::ClientLookupsController, type: :request do
       # Unlike the map_enrollments-off case above (which aggregates "can view via any
       # project"), each mapped row is redacted using that specific enrollment's project
       # policy, so the same client can have one visible and one redacted row.
-      second_viewable_project = create(
-        :hud_project,
-        data_source_id: source_ds.id,
-        OrganizationID: organization.OrganizationID,
-        confidential: false,
-      )
-      collection.set_viewables(
-        reports: [report_definition.id],
-        projects: [viewable_project.id, confidential_project.id, second_viewable_project.id],
-      )
+      second_viewable_project = create_project(confidential: false)
+      grant_projects(viewable_project, confidential_project, second_viewable_project)
       permissive_role = create(:role, can_view_assigned_reports: true, can_view_client_name: true)
       permissive_collection = create(:collection)
       permissive_collection.set_viewables(projects: [second_viewable_project.id])
       setup_access_control(user, permissive_role, permissive_collection)
 
-      crosswalk = create_crosswalk(
-        project: viewable_project,
-        personal_id: 'PID-MIXED',
-        first_name: 'Ada',
-        last_name: 'Lovelace',
-      )
+      crosswalk = create_crosswalk(personal_id: 'PID-MIXED')
       second_enrollment = create(
         :grda_warehouse_hud_enrollment,
         data_source_id: source_ds.id,
