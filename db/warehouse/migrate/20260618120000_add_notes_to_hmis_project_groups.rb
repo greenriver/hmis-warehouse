@@ -8,6 +8,6 @@
 
 class AddNotesToHmisProjectGroups < ActiveRecord::Migration[7.2]
   def change
-    add_column :hmis_project_groups, :notes, :text
+    add_column :hmis_project_groups, :notes, :text unless column_exists?(:hmis_project_groups, :notes)
   end
 end
