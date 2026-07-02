@@ -5,6 +5,7 @@
     = f.input :filter_date_span_years, as: :select_two, label: 'Maximum range for Live Reports', hint: 'This controls the maximum duration of the universe for live reports such as the core demographics report.', collection: GrdaWarehouse::Config.available_filter_date_span_years
     = f.input :require_service_for_reporting_default, label: 'Should we require service during the reporting range by default?', hint: 'This is not implemented on all reports'
     = f.input :include_pii_in_detail_downloads, label: 'Include PII in detail download files', hint: 'If unchecked, name, SSN, and DOB will be excluded from downloads on some reports.'
+    = f.input :enable_external_data_sharing_exclusion, label: 'Enable External Data Sharing Exclusion', hint: 'When enabled, staff can flag individual clients to be excluded from external data exports, and newly imported clients are subject to a 1-week embargo.'
     %h4 Project Data Quality Report
     = f.input :completeness_goal, label: 'Completeness Goal', hint: 'Percent'
     = f.input :excess_goal, label: 'Excess Goal', hint: 'Percent'

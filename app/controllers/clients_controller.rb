@@ -23,9 +23,9 @@ class ClientsController < ApplicationController
   before_action :require_can_view_some_client_dashboard!, only: [:show, :service_range, :rollup, :image]
   before_action :require_can_view_enrollment_details!, only: [:enrollment_details]
   before_action :require_can_see_this_client_demographics!, except: [:new, :create, :simple, :appropriate, :assessment, :health_assessment]
-  before_action :require_can_edit_clients!, only: [:edit, :merge, :unmerge]
+  before_action :require_can_edit_clients!, only: [:edit, :merge, :unmerge, :external_sharing_flag, :update_external_sharing_flag]
   before_action :require_can_create_clients!, only: [:new, :create]
-  before_action :set_client, only: [:show, :edit, :merge, :unmerge, :service_range, :rollup, :image, :chronic_days, :enrollment_details]
+  before_action :set_client, only: [:show, :edit, :merge, :unmerge, :service_range, :rollup, :image, :chronic_days, :enrollment_details, :external_sharing_flag, :update_external_sharing_flag]
   before_action :set_search_client, only: [:simple, :appropriate]
   before_action :set_client_start_date, only: [:show, :edit, :rollup]
   before_action :set_potential_matches, only: [:edit]
@@ -52,6 +52,8 @@ class ClientsController < ApplicationController
       clean_params[gender_column] = 1
     end
     clean_params.delete(:Gender)
+    @exclude_from_external_data_sharing = clean_params[:exclude_from_external_data_sharing] == '1'
+    clean_params.delete(:exclude_from_external_data_sharing)
     @client = client_source.new(clean_params.merge(PersonalID: SecureRandom.uuid.gsub(/-/, '')))
 
     params_valid = validate_new_client_params(clean_params)
@@ -92,6 +94,7 @@ class ClientsController < ApplicationController
           data_source_id: @client.data_source_id,
         )
         if @client.persisted? && destination_client.persisted? && warehouse_client.persisted?
+          ClientExternalDataSharing.new(destination_client).set_exclusion!(value: true, user: current_user) if @exclude_from_external_data_sharing && GrdaWarehouse::Config.get(:enable_external_data_sharing_exclusion)
           flash[:notice] = "Client #{@client.full_name} created."
           after_create_path = client_path_generator
           if @client.data_source.after_create_path.present?
@@ -303,6 +306,21 @@ class ClientsController < ApplicationController
     datepart table, part, date
   end
   helper_method :dp
+
+  def external_sharing_flag
+    redirect_to(polymorphic_path(client_path_generator, id: @client.id)) unless GrdaWarehouse::Config.get(:enable_external_data_sharing_exclusion)
+  end
+
+  def update_external_sharing_flag
+    return unless GrdaWarehouse::Config.get(:enable_external_data_sharing_exclusion)
+
+    ClientExternalDataSharing.new(@client).set_exclusion!(
+      value: params[:exclude_from_external_data_sharing] == '1',
+      user: current_user,
+    )
+    flash[:notice] = 'External data sharing preference saved.'
+    render_close_modal_and_reload_page
+  end
 
   protected def handle_unused_search
     # We keep this old action because we may need it some day

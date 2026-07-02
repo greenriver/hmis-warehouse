@@ -2307,6 +2307,10 @@ module GrdaWarehouse::Hud
             destination_client.move_dependent_health_items(id, destination_client.id)
           end
 
+          # Conservative carry-forward: if the original destination was excluded from
+          # external data sharing, all split-off destinations inherit that exclusion.
+          ClientExternalDataSharing.new(destination_client).set_exclusion!(value: true) if ClientExternalDataSharing.new(self).excluded?
+
           to_clean << destination_client.id
           to_clean << client_id
 
@@ -2376,6 +2380,9 @@ module GrdaWarehouse::Hud
             if prev_destination_client.source_clients.empty?
               # Create a client_merge_history record so we can keep links working
               GrdaWarehouse::ClientMergeHistory.create(merged_into: id, merged_from: prev_destination_client.id)
+              # Conservative CDE carry-forward: if the client being merged away was excluded
+              # from external data sharing, ensure the surviving client is also excluded.
+              ClientExternalDataSharing.new(self).set_exclusion!(value: true) if ClientExternalDataSharing.new(prev_destination_client).excluded?
               prev_destination_client.destroy
             end
 
