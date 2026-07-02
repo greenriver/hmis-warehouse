@@ -59,9 +59,12 @@ module ManagesCeMatchRules
       data: {
         affectedUnitGroups: warn_unit_groups.map do |unit_group_info|
           unit_group = unit_group_info.unit_group
+          project = unit_group.project
           {
-            unitGroupId: unit_group.id.to_s,
+            id: unit_group.id.to_s,
             unitGroupName: unit_group.name,
+            projectId: project.id.to_s,
+            projectName: project.name,
             currentCandidateCount: unit_group_info.current_candidate_count,
             removedCandidateCount: unit_group_info.removed_candidate_count,
           }

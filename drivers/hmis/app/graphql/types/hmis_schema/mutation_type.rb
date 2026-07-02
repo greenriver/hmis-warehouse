@@ -51,13 +51,7 @@ module Types
     field :add_recent_item, mutation: Mutations::AddRecentItem
     field :clear_recent_items, mutation: Mutations::ClearRecentItems
     field :submit_form, mutation: Mutations::SubmitForm
-
-    field :clear_mci, mutation: Mutations::AcHmis::ClearMci
-    field :update_referral_posting, mutation: Mutations::AcHmis::UpdateReferralPosting
     field :delete_custom_case_note, mutation: Mutations::DeleteCustomCaseNote
-    field :fetch_aha_score, mutation: Mutations::AcHmis::FetchAhaScore
-    field :calculate_alt_aha_score, mutation: Mutations::AcHmis::CalculateAltAhaScore
-    field :calculate_client_ce_eligibility, mutation: Mutations::Ce::CalculateClientCeEligibility
 
     field :merge_clients, mutation: Mutations::MergeClients
     field :bulk_merge_clients, mutation: Mutations::BulkMergeClients
@@ -95,6 +89,7 @@ module Types
     field :unassign_staff, mutation: Mutations::UnassignStaff
 
     # CE
+    field :calculate_client_ce_eligibility, mutation: Mutations::Ce::CalculateClientCeEligibility
     field :create_ce_referral, mutation: Mutations::Ce::CreateCeReferral
     field :create_direct_ce_referral, mutation: Mutations::Ce::CreateDirectCeReferral
     field :start_ce_referral_step, mutation: Mutations::Ce::StartCeReferralStep
@@ -109,5 +104,12 @@ module Types
     # CE Unit management
     field :mark_units_available, mutation: Mutations::Ce::MarkUnitsAvailable
     field :mark_units_unavailable, mutation: Mutations::Ce::MarkUnitsUnavailable
+
+    # AC HMIS — community-specific mutations
+    field :clear_mci, mutation: Mutations::AcHmis::ClearMci
+    field :update_referral_posting, mutation: Mutations::AcHmis::UpdateReferralPosting, deprecation_reason: 'Deprecated in favor of CE Referrals'
+    field :fetch_aha_score, mutation: Mutations::AcHmis::FetchAhaScore
+    field :fetch_vision_link_flags, mutation: Mutations::AcHmis::FetchVisionLinkFlags
+    field :calculate_alt_aha_score, mutation: Mutations::AcHmis::CalculateAltAhaScore
   end
 end

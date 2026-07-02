@@ -177,6 +177,14 @@ tasks = [
     at: '2:00 am',
     interruptable: true,
   },
+  # HMIS simulation — only runs on servers where ENABLE_HMIS_SIMULATION=true (demo/staging)
+  {
+    task: 'driver:hmis_simulation:run_all',
+    frequency: 1.day,
+    at: '4:30 am',
+    trigger: ENV['ENABLE_HMIS_SIMULATION'] == 'true',
+    interruptable: false,
+  },
 ]
 
 job_type :rake_short, 'cd :path && :environment_variable=:environment bundle exec rake :task --silent #capacity_provider:short-term'

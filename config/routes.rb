@@ -143,7 +143,12 @@ Rails.application.routes.draw do
     end
   end
 
-  resources :secure_files, only: [:show, :create, :index, :destroy]
+  resources :secure_files, only: [:show, :create, :index, :destroy] do
+    collection do
+      get :sent
+      get :all_files
+    end
+  end
   resources :help
   resources :maintenance, only: [:index]
   resources :maintenance_saver, only: [:index], controller: 'maintenance'
@@ -988,11 +993,6 @@ Rails.application.routes.draw do
       get :tags
       get :js_example
       get :system_colors
-    end
-    authenticate :user, lambda(&:can_manage_config?) do
-      # not quite sure why but we get double-prefixed routes in this engine
-      get '/pghero/pghero(/*path)', to: redirect { |params, _| "/pghero/#{params[:path]}" }
-      mount PgHero::Engine, at: '/pghero'
     end
   end
 
