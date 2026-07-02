@@ -7,6 +7,8 @@ require_relative '../../../support/hmis_base_setup'
 RSpec.describe 'ceMatchClientFields query', type: :request do
   include_context 'hmis base setup'
 
+  before { allow_any_instance_of(Hmis::Ce::Configuration).to receive(:enabled?).and_return(true) }
+
   let(:query) do
     <<~GRAPHQL
       query GetCeMatchClientFields {
@@ -26,7 +28,7 @@ RSpec.describe 'ceMatchClientFields query', type: :request do
     GRAPHQL
   end
 
-  let!(:access_control) { create_access_control(hmis_user, ds1, with_permission: [:can_administrate_config, :can_manage_forms, :can_configure_data_collection]) }
+  let!(:access_control) { create_access_control(hmis_user, ds1, with_permission: [:can_administrate_coordinated_entry]) }
 
   before(:each) { hmis_login(user) }
 
@@ -57,7 +59,7 @@ RSpec.describe 'ceMatchClientFields query', type: :request do
   end
 
   context 'without can_administrate_config permission' do
-    let!(:access_control) { create_access_control(hmis_user, ds1, without_permission: :can_administrate_config) }
+    let!(:access_control) { create_access_control(hmis_user, ds1, without_permission: :can_administrate_coordinated_entry) }
 
     it 'returns an error' do
       expect_gql_error(post_graphql { query }, message: 'access denied')
