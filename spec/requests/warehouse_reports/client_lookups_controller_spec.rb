@@ -80,7 +80,7 @@ RSpec.describe WarehouseReports::ClientLookupsController, type: :request do
   end
 
   let(:user) { create(:acl_user) }
-  let(:role) { create(:role, can_view_assigned_reports: true) }
+  let(:role) { create(:role, can_view_assigned_reports: true, can_view_client_name: true) }
   let(:collection) { create(:collection) }
   let!(:report_definition) { create(:client_lookups_report) }
 
@@ -123,7 +123,7 @@ RSpec.describe WarehouseReports::ClientLookupsController, type: :request do
     { destination_id: destination_client.id, enrollment: enrollment }
   end
 
-  def get_report(project_ids:, map_enrollments: false)
+  def get_report(project_ids:, map_enrollments: false, data_source_ids: [source_ds.id], organization_ids: [])
     get(
       warehouse_reports_client_lookups_path(format: :xlsx),
       params: {
@@ -131,6 +131,8 @@ RSpec.describe WarehouseReports::ClientLookupsController, type: :request do
           start: start_date,
           end: end_date,
           project_ids: project_ids,
+          organization_ids: organization_ids,
+          data_source_ids: data_source_ids,
           map_enrollments: map_enrollments ? '1' : '0',
         },
       },
@@ -286,6 +288,44 @@ RSpec.describe WarehouseReports::ClientLookupsController, type: :request do
       expect(response).to have_http_status(:success)
       expect(reported_destination_ids).to include(allowed_destination_id)
       expect(reported_destination_ids).not_to include(forbidden_destination_id)
+    end
+
+    it 'excludes clients from a project the user can view but did not select in the filter' do
+      # A second non-confidential project the user is granted access to via their
+      # collection, distinct from viewable_project (which is the only one selected below).
+      other_viewable_project = create(
+        :hud_project,
+        data_source_id: source_ds.id,
+        OrganizationID: organization.OrganizationID,
+        confidential: false,
+      )
+      collection.set_viewables(
+        reports: [report_definition.id],
+        projects: [viewable_project.id, confidential_project.id, other_viewable_project.id],
+      )
+
+      selected_destination_id = create_crosswalk(
+        project: viewable_project,
+        personal_id: 'PID-SELECTED',
+        first_name: 'Ada',
+        last_name: 'Lovelace',
+      ).fetch(:destination_id)
+      unselected_destination_id = create_crosswalk(
+        project: other_viewable_project,
+        personal_id: 'PID-UNSELECTED-BUT-VIEWABLE',
+        first_name: 'Not',
+        last_name: 'Selected',
+      ).fetch(:destination_id)
+
+      # Only viewable_project is selected in the filter (data_source_ids/organization_ids
+      # are cleared so effective_project_ids comes purely from project_ids), even though
+      # other_viewable_project is also granted to the user. The project_source (viewable_by)
+      # merge must not silently widen the query back out to every project the user can view.
+      get_report(project_ids: [viewable_project.id], data_source_ids: [])
+
+      expect(response).to have_http_status(:success)
+      expect(reported_destination_ids).to include(selected_destination_id)
+      expect(reported_destination_ids).not_to include(unselected_destination_id)
     end
   end
 
@@ -489,6 +529,94 @@ RSpec.describe WarehouseReports::ClientLookupsController, type: :request do
         ],
       )
       expect(rows.count { |row| row[2] == crosswalk.fetch(:destination_id) }).to eq(2)
+    end
+  end
+
+  describe 'filter requirement (regression guard)' do
+    it 'refuses to render the xlsx when no project, organization, or data source is selected' do
+      create_crosswalk(
+        project: viewable_project,
+        personal_id: 'PID-VIEWABLE',
+        first_name: 'Ada',
+        last_name: 'Lovelace',
+      )
+
+      get_report(project_ids: [], data_source_ids: [], organization_ids: [])
+
+      expect(response).to have_http_status(:redirect)
+      follow_redirect!
+      expect(response.body).to include('Data Source')
+    end
+
+    it 'renders the xlsx when a project is selected without a data source' do
+      create_crosswalk(
+        project: viewable_project,
+        personal_id: 'PID-VIEWABLE',
+        first_name: 'Ada',
+        last_name: 'Lovelace',
+      )
+
+      get_report(project_ids: [viewable_project.id], data_source_ids: [])
+
+      expect(response).to have_http_status(:success)
+    end
+  end
+
+  describe 'client name PII policy (regression guard)' do
+    let(:role) { create(:role, can_view_assigned_reports: true, can_view_client_name: false) }
+
+    it 'redacts first and last name when the user cannot view client names for the project' do
+      destination_id = create_crosswalk(
+        project: viewable_project,
+        personal_id: 'PID-VIEWABLE',
+        first_name: 'Ada',
+        last_name: 'Lovelace',
+      ).fetch(:destination_id)
+
+      get_report(project_ids: [viewable_project.id])
+
+      expect(response).to have_http_status(:success)
+      row = assigns(:report).rows.find { |r| r[2] == destination_id }
+      expect(row[3]).to eq(GrdaWarehouse::PiiProvider::REDACTED)
+      expect(row[4]).to eq(GrdaWarehouse::PiiProvider::REDACTED)
+    end
+
+    it 'shows the name when at least one of the client\'s projects allows it, with map_enrollments off' do
+      second_viewable_project = create(
+        :hud_project,
+        data_source_id: source_ds.id,
+        OrganizationID: organization.OrganizationID,
+        confidential: false,
+      )
+      collection.set_viewables(
+        reports: [report_definition.id],
+        projects: [viewable_project.id, confidential_project.id, second_viewable_project.id],
+      )
+      permissive_role = create(:role, can_view_assigned_reports: true, can_view_client_name: true)
+      permissive_collection = create(:collection)
+      permissive_collection.set_viewables(projects: [second_viewable_project.id])
+      setup_access_control(user, permissive_role, permissive_collection)
+
+      destination_id = create_crosswalk(
+        project: viewable_project,
+        personal_id: 'PID-MULTI',
+        first_name: 'Ada',
+        last_name: 'Lovelace',
+      ).fetch(:destination_id)
+      create(
+        :grda_warehouse_hud_enrollment,
+        data_source_id: source_ds.id,
+        PersonalID: 'PID-MULTI',
+        ProjectID: second_viewable_project.ProjectID,
+        EntryDate: start_date + 1.day,
+      )
+
+      get_report(project_ids: [viewable_project.id, second_viewable_project.id])
+
+      expect(response).to have_http_status(:success)
+      row = assigns(:report).rows.find { |r| r[2] == destination_id }
+      expect(row[3]).to eq('Ada')
+      expect(row[4]).to eq('Lovelace')
     end
   end
 end
