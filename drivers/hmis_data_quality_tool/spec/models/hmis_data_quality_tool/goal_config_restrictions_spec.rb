@@ -180,6 +180,62 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
       end
     end
 
+    context 'when no stay length goal is configured' do
+      before do
+        HmisDataQualityTool::Goal.create!(coc_code: 'MA-500')
+        @report = setup_report([project.id])
+      end
+
+      it 'includes all es stay length slugs in results' do
+        slugs = @report.results.map(&:slug)
+        expect(slugs).to include('lot_es_90_issues')
+        expect(slugs).to include('lot_es_180_issues')
+        expect(slugs).to include('lot_es_365_issues')
+      end
+    end
+
+    context 'when es_stay_length goal restricts to 180 days' do
+      before do
+        HmisDataQualityTool::Goal.create!(coc_code: 'MA-500', es_stay_length: 180)
+        @report = setup_report([project.id])
+      end
+
+      it 'includes only the matching es stay length slug in results' do
+        slugs = @report.results.map(&:slug)
+        expect(slugs).to include('lot_es_180_issues')
+        expect(slugs).not_to include('lot_es_90_issues')
+        expect(slugs).not_to include('lot_es_365_issues')
+      end
+
+      it 'includes only the matching es stay length slug in pivot_details groups' do
+        slugs = @report.pivot_details.groups.values.flat_map(&:keys)
+        expect(slugs).to include(:lot_es_180_issues)
+        expect(slugs).not_to include(:lot_es_90_issues)
+        expect(slugs).not_to include(:lot_es_365_issues)
+      end
+    end
+
+    context 'when so_missed_exit_length goal restricts a different stay length category' do
+      before do
+        HmisDataQualityTool::Goal.create!(coc_code: 'MA-500', so_missed_exit_length: 90)
+        @report = setup_report([project.id])
+      end
+
+      it 'restricts only the configured category' do
+        slugs = @report.results.map(&:slug)
+        expect(slugs).to include('days_since_last_service_so_90_issues')
+        expect(slugs).not_to include('days_since_last_service_so_180_issues')
+        expect(slugs).not_to include('days_since_last_service_so_365_issues')
+      end
+
+      it 'leaves an unconfigured stay length category unrestricted' do
+        slugs = @report.results.map(&:slug)
+        expect(slugs).to include('lot_es_90_issues')
+        expect(slugs).to include('lot_es_180_issues')
+        expect(slugs).to include('lot_es_365_issues')
+      end
+    end
+
     context 'when goal config changes after the report is run' do
       context 'entry timeliness was enabled at run time, then disabled' do
         before do
