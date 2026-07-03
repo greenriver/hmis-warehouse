@@ -8,7 +8,7 @@
 
 require 'rails_helper'
 
-RSpec.describe Idp::CurrentUser, type: :controller do
+RSpec.describe Idp::CurrentUser, type: :controller, if: AuthMethod.jwt? do
   controller(ActionController::Base) do
     include Idp::CurrentUser
 

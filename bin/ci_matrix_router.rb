@@ -128,7 +128,7 @@ class CiMatrixRouter
         }
       end
     end
-    groups << { id: 'ci_default', tag: '~ci_bucket', okta: true, logging: true }
+    groups << { id: 'ci_default', tag: '~ci_bucket', okta: true, logging: true, jwt: true }
     groups
   end
 
