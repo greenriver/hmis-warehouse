@@ -64,11 +64,6 @@ module Idp::JwtUser
     ['Account deactivated']
   end
 
-  def timeout_time(_session)
-    # FIXME: move to helper. This doesn't belong on the model
-    nil
-  end
-
   def stale_account?
     # JWT: current_sign_in_at is a Devise :trackable column, stale under JWT;
     false

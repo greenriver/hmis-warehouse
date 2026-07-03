@@ -6,7 +6,7 @@
 
 # frozen_string_literal: true
 
-RSpec.describe Idp::ServiceFactory, type: :model do
+RSpec.describe Idp::ServiceFactory, type: :model, if: AuthMethod.jwt? do
   describe '.for_connector' do
     context 'with database config present' do
       let!(:config) do

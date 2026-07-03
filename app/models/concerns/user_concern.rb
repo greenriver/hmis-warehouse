@@ -16,12 +16,13 @@ module UserConcern
   else
     include DeviseUser
     include OmniauthSupport
+    include PasswordRules
+    include DeviseUserPatch
   end
 
   included do
     include Rails.application.routes.url_helpers
     include UserPermissions
-    include PasswordRules
     include ArelHelper
     has_paper_trail ignore: [:provider_raw_info]
     acts_as_paranoid
@@ -52,7 +53,6 @@ module UserConcern
 
     # No longer validating MX record, just validate email format (MX check requires a network connection)
     validates :email, presence: true, uniqueness: true, email_format: { check_mx: false }, length: { maximum: 250 }
-    validate :password_cannot_be_sequential, on: :update
     validates :last_name, presence: true, length: { maximum: 40 }
     validates :first_name, presence: true, length: { maximum: 40 }
     validates :email_schedule, inclusion: { in: Message::SCHEDULES }, allow_blank: false
