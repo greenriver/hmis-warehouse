@@ -73,7 +73,7 @@ module Audit
           next if system_user_ids.include?(user_id)
 
           user = users_by_id[user_id]
-          next unless user&.deleted_at.nil?
+          next if user.nil? || user.deleted_at.present?
 
           labels = segs.map { |s| path_label(s.via) }.uniq.sort
           UserAccess.new(user: user, path_labels: labels)
