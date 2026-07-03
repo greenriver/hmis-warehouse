@@ -20,7 +20,6 @@ class Hmis::User < ApplicationRecord
 
   include UserConcern
   include HasRecentItems
-  include DeviseUserPatch
 
   self.table_name = :users
 

@@ -59,9 +59,12 @@ module Idp
     end
 
     def find_existing_user
-      auth_source = UserAuthenticationSource.
+      # hot path, called on every authenticated request.
+      # use eager_load for one query
+      auth_source = Idp::UserAuthenticationSource.
         where(connector_identity).
-        order(:id).
+        eager_load(:user).
+        order(Idp::UserAuthenticationSource.arel_table[:id]).
         first
 
       return auth_source.user if auth_source

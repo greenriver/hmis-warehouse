@@ -8,9 +8,9 @@
 
 require 'rails_helper'
 
-RSpec.describe Idp::CurrentUser, type: :controller, if: AuthMethod.jwt? do
+RSpec.describe Idp::JwtCurrentUser, type: :controller, if: AuthMethod.jwt? do
   controller(ActionController::Base) do
-    include Idp::CurrentUser
+    include Idp::JwtCurrentUser
 
     def index
       render plain: current_user&.id.to_s
@@ -36,8 +36,8 @@ RSpec.describe Idp::CurrentUser, type: :controller, if: AuthMethod.jwt? do
   end
 
   let(:jwt_helper) do
-    double(
-      'Idp::JwtHelper',
+    instance_double(
+      Idp::JwtHelper,
       token?: true,
       valid?: true,
       connector_id: 'keycloak',
@@ -46,15 +46,6 @@ RSpec.describe Idp::CurrentUser, type: :controller, if: AuthMethod.jwt? do
   end
 
   describe '#current_user' do
-    it 'returns the resolved user' do
-      user = double('User', id: 42)
-      allow(User).to receive(:find_or_create_from_jwt).with(jwt_helper).and_return(user)
-
-      get :index
-
-      expect(response.body).to eq('42')
-    end
-
     it 'is nil when the token is invalid' do
       allow(jwt_helper).to receive(:valid?).and_return(false)
 
@@ -74,7 +65,7 @@ RSpec.describe Idp::CurrentUser, type: :controller, if: AuthMethod.jwt? do
 
   describe '#idp_authenticated_user_from_jwt' do
     it 'resolves via find_or_create_from_jwt (the learning call), not find_from_jwt' do
-      user = double('User', id: 7)
+      user = double('User', id: 7, active?: true)
       expect(User).to receive(:find_or_create_from_jwt).with(jwt_helper).and_return(user)
       expect(User).not_to receive(:find_from_jwt)
 
@@ -84,7 +75,7 @@ RSpec.describe Idp::CurrentUser, type: :controller, if: AuthMethod.jwt? do
     end
 
     it 'sets the last_connector_id cookie from the token' do
-      user = double('User', id: 7)
+      user = double('User', id: 7, active?: true)
       allow(User).to receive(:find_or_create_from_jwt).and_return(user)
 
       get :index
@@ -95,7 +86,7 @@ RSpec.describe Idp::CurrentUser, type: :controller, if: AuthMethod.jwt? do
 
   describe '#authenticate_user!' do
     it 'sets current_user when a user is present' do
-      user = double('User', id: 5)
+      user = double('User', id: 5, active?: true)
       allow(User).to receive(:find_or_create_from_jwt).and_return(user)
 
       get :auth
@@ -103,22 +94,30 @@ RSpec.describe Idp::CurrentUser, type: :controller, if: AuthMethod.jwt? do
       expect(response.body).to eq('authenticated:5')
     end
 
-    it 'calls idp_handle_unauthenticated when no user resolves' do
-      allow(User).to receive(:find_or_create_from_jwt).and_return(nil)
-      allow(controller).to receive(:idp_handle_unauthenticated)
+    # Kill-switch: a locally-deactivated user (active? == false) is denied even with a valid token.
+    # We must NOT treat them as merely unauthenticated — a redirect to sign-in would loop off the
+    # still-valid IdP token — so authenticate_user! routes to the terminal deactivated page instead.
+    # This exercises the REAL idp_handle_deactivated (handler not stubbed): the 403 + deactivated
+    # template prove it ran, and `not redirect` proves it did NOT fall through to the unauthenticated
+    # sign-in redirect. render_template asserts the chosen template without needing render_views, so
+    # the view's Translation.translate calls don't run here.
+    it 'renders a terminal 403 deactivated page (not a sign-in redirect) for a deactivated user' do
+      inactive_user = double('User', id: 9, active?: false)
+      allow(User).to receive(:find_or_create_from_jwt).and_return(inactive_user)
 
       get :auth
 
-      expect(controller).to have_received(:idp_handle_unauthenticated)
+      expect(response).to have_http_status(:forbidden)
+      expect(response).to render_template('errors/account_deactivated')
     end
 
-    it 'does not consult active_for_authentication? (access is the IdP decision)' do
-      # A double with no active_for_authentication? would raise if the method tried to call it.
-      inactive_user = double('User', id: 9)
+    it 'current_user is nil for a deactivated user' do
+      inactive_user = double('User', id: 9, active?: false)
       allow(User).to receive(:find_or_create_from_jwt).and_return(inactive_user)
 
-      expect { get :auth }.not_to raise_error
-      expect(response.body).to eq('authenticated:9')
+      get :index
+
+      expect(response.body).to eq('')
     end
 
     # Exercises the real idp_handle_unauthenticated wiring (capture + redirect), including the
@@ -141,6 +140,7 @@ RSpec.describe Idp::CurrentUser, type: :controller, if: AuthMethod.jwt? do
       User.new.tap do |u|
         allow(u).to receive(:id).and_return(10)
         allow(u).to receive(:can_impersonate_users?).and_return(true)
+        allow(u).to receive(:active?).and_return(true)
       end
     end
     let(:impersonated_user) do
@@ -176,8 +176,20 @@ RSpec.describe Idp::CurrentUser, type: :controller, if: AuthMethod.jwt? do
       expect(response.body).to eq('10/true')
     end
 
-    it 'clears impersonation and returns the true user when permissions fail' do
+    it 'clears impersonation and returns the true user when the target is not impersonateable_by? the true_user' do
       allow(impersonated_user).to receive(:impersonateable_by?).with(true_user).and_return(false)
+
+      get :index
+
+      expect(response.body).to eq('10')
+    end
+
+    # Guards the can_impersonate_users? gate independently of impersonateable_by?: a true_user who
+    # lost (or never had) impersonation privilege must fall back to themselves even though the target
+    # would otherwise admit them. Without this, deleting the can_impersonate_users? check in
+    # idp_validate_impersonation_permissions still passes the suite (impersonateable_by? alone admits).
+    it 'clears impersonation and returns the true user when the true_user cannot impersonate' do
+      allow(true_user).to receive(:can_impersonate_users?).and_return(false)
 
       get :index
 
@@ -187,7 +199,7 @@ RSpec.describe Idp::CurrentUser, type: :controller, if: AuthMethod.jwt? do
     it 'ignores impersonation when the JWT principal is not the stored true_user' do
       # Leftover session: the token now logs in a different user (77) than the one who
       # started impersonating (10), so the impersonation should be ignored.
-      other_principal = double('User', id: 77)
+      other_principal = double('User', id: 77, active?: true)
       allow(User).to receive(:find_or_create_from_jwt).and_return(other_principal)
 
       get :index

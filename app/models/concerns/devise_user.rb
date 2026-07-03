@@ -125,11 +125,6 @@ module DeviseUser
       end
     end
 
-    def timeout_time(session)
-      # FIXME: move to helper. This doesn't belong on the model
-      Time.current + (Devise.timeout_in - (Time.now.utc - (session['last_request_at'].presence || 0)).to_i)
-    end
-
     def stale_account?
       current_sign_in_at < self.class.stale_account_threshold
     end
