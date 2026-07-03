@@ -10,7 +10,8 @@ require 'memery'
 class User < ApplicationRecord
   include Memery
   include UserConcern
-
+  include Idp::JwtUser
+  include Idp::Support if AuthMethod.jwt?
   # Extensions from drivers — see ADR 0007
   include CasAccess::UserExtension
   include Hmis::UserExtension

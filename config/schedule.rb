@@ -40,8 +40,6 @@ import_prefetch_schedule = (Time.parse(import_schedule) - 4.hours).strftime('%I:
 monthly_schedule = (Time.parse(import_schedule) - 5.hours).strftime('%I:%M %P')
 import_cleanup_time = Time.parse(import_schedule) + 9.hours
 
-health_trigger = ENV['HEALTH_SFTP_HOST'].to_s != '' && ENV['HEALTH_SFTP_HOST'] != 'hostname' && ENV['RAILS_ENV'] == 'production'
-
 tasks = [
   # temporary task to move files to S3 and ActiveStorage
   {
@@ -142,20 +140,6 @@ tasks = [
     interruptable: false,
   },
   {
-    task: 'health:daily',
-    frequency: 1.day,
-    at: '11:03 am',
-    trigger: health_trigger,
-    interruptable: false,
-  },
-  {
-    task: 'health:enrollments_and_eligibility',
-    frequency: 1.day,
-    at: '6:01 am',
-    trigger: health_trigger,
-    interruptable: false,
-  },
-  {
     task: 'driver:medicaid_hmis_interchange:medicaid_hmis_transfer',
     frequency: :sunday,
     at: '5:01am',
@@ -193,12 +177,12 @@ tasks = [
     at: '2:00 am',
     interruptable: true,
   },
-  # HMIS simulation — only runs on servers where ENABLE_HMIS_SIMULATION=true (demo/staging)
+  # HMIS simulation — only runs on servers where ENABLE_HMIS_SIMULATION=true (for demo) or any staging environment
   {
     task: 'driver:hmis_simulation:run_all',
     frequency: 1.day,
     at: '4:30 am',
-    trigger: ENV['ENABLE_HMIS_SIMULATION'] == 'true',
+    trigger: ENV['ENABLE_HMIS_SIMULATION'] == 'true' || ENV['RAILS_ENV'] == 'staging',
     interruptable: false,
   },
 ]

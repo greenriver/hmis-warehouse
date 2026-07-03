@@ -431,11 +431,11 @@ RSpec.describe BostonProjectScorecard::Report, type: :model do
       expect(report.total_score_available).to eq(126)
     end
 
-    it 'does not reduce policy alignment available for non-housing projects' do
+    it 'reduces policy alignment available for non-housing projects when both monitoring questions are not applicable' do
       report.update!(project_type: 1, no_concern: -1, materials_concern: -1)
 
-      expect(report.policy_alignment_available).to eq(31)
-      expect(report.total_score_available).to eq(112)
+      expect(report.policy_alignment_available).to eq(28)
+      expect(report.total_score_available).to eq(109)
     end
   end
 end
