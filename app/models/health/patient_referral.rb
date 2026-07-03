@@ -500,7 +500,7 @@ module Health
         last, first = text.split(',').map(&:strip)
         where = pr_t[:first_name].lower.matches("#{first.downcase}%").
           and(pr_t[:last_name].lower.matches("#{last.downcase}%"))
-        # Explicity search for "first last"
+        # Explicitly search for "first last"
       elsif text.include?(' ')
         first, last = text.split(' ').map(&:strip)
         where = pr_t[:first_name].lower.matches("#{first.downcase}%").

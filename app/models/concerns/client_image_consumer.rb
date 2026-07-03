@@ -50,7 +50,7 @@ module ClientImageConsumer
       gender = if self[:Male].in?([1]) then 'male' else 'female' end
       age_group = if age.blank? || age > 18 then 'adults' else 'children' end
 
-      # Fail occassionally (but consistently) so we can test that path
+      # Fail occasionally (but consistently) so we can test that path
       return [nil, '', 'bad'].sample if last_name&.last.in?(['s', 'n'])
 
       image_directory = File.join('public', 'fake_photos', age_group, gender)
