@@ -8,7 +8,7 @@
 
 # Generic, user-class-agnostic JWT authentication machinery, shared by the warehouse request
 # layer (Idp::JwtCurrentUser, user_class: User) and the HMIS request layer
-# (Hmis::Concerns::JwtHmisUser, user_class: Hmis::User). Reads the token from
+# (Hmis::Concerns::JwtHmisCurrentUser, user_class: Hmis::User). Reads the token from
 # X-Forwarded-Access-Token, validates it via Idp::JwtHelper, resolves the holder via
 # User.find_or_create_from_jwt, applies the local `active` kill-switch, and honors/validates
 # session-stored impersonation.
@@ -55,6 +55,12 @@ module Idp::JwtAuthentication
     true
   end
 
+  # Memoized per-request; the manager itself holds no cached state (it re-reads the session on
+  # every #get), so reusing one instance across store/get/clear within a request is safe.
+  def impersonation_manager
+    @impersonation_manager ||= Idp::ImpersonationManager.new(session)
+  end
+
   # Resolve the authenticated user from the JWT, applying impersonation. Generic over
   # user_class so both warehouse (User) and HMIS (Hmis::User) controllers can use it.
   def idp_authenticated_user_from_jwt(user_class: User)
@@ -81,7 +87,6 @@ module Idp::JwtAuthentication
     user = user_class == User ? authenticated_user : user_class.find_by(id: authenticated_user.id)
     return nil unless user
 
-    impersonation_manager = Idp::ImpersonationManager.new(session)
     impersonation_data = impersonation_manager.get
     if impersonation_data && impersonation_data[:impersonated_user_id].present?
       # Only honor impersonation for the person who started it. If the logged-in user

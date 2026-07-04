@@ -6,14 +6,7 @@
 
 # frozen_string_literal: true
 
-# Concern providing JWT-based current_user functionality for warehouse controllers.
-#
-# Re-implements Devise's current_user / authenticate_user! / user_signed_in? / true_user /
-# impersonating? / warden on top of a validated JWT instead of a Devise/Warden session, so
-# existing call sites keep working unchanged once a Deployment flips to JWT. The generic,
-# user-class-agnostic resolution machinery (token holder, active? kill-switch, impersonation
-# honoring, failure hooks) lives in Idp::JwtAuthentication and is shared with the HMIS arm
-# (Hmis::Concerns::JwtHmisUser); this module is the warehouse-named (:user) facet.
+# JWT for warehouse controllers. Provides devise-compatible methods
 module Idp::JwtCurrentUser
   extend ActiveSupport::Concern
   include Idp::JwtAuthentication
@@ -46,7 +39,6 @@ module Idp::JwtCurrentUser
     def true_user
       return nil unless current_user
 
-      impersonation_manager = Idp::ImpersonationManager.new(session)
       impersonation_data = impersonation_manager.get
       return current_user unless impersonation_data && impersonation_data[:true_user_id].present?
 
@@ -59,7 +51,6 @@ module Idp::JwtCurrentUser
     def impersonating?
       return false unless current_user
 
-      impersonation_manager = Idp::ImpersonationManager.new(session)
       impersonation_data = impersonation_manager.get
       return false unless impersonation_data && impersonation_data[:impersonated_user_id].present?
 

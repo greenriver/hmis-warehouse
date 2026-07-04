@@ -6,14 +6,8 @@
 
 # frozen_string_literal: true
 
-# The JWT arm for HMIS controllers — the :hmis_user-named contract that the Devise/Pretender
-# macros generate today (current_hmis_user / true_hmis_user / authenticate_hmis_user! /
-# hmis_user_signed_in? and the impersonation write methods), re-implemented on top of a validated
-# forwarded JWT. Included into Hmis::BaseController only when AuthMethod.jwt? (the Devise arm keeps
-# the pretender macro). The generic resolution machinery is shared with the warehouse arm via
-# Idp::JwtAuthentication, here driven with user_class: Hmis::User (the same users row, re-fetched as
-# its Hmis::User facet). Failure responses are JSON (the HMIS SPA contract), not HTML redirects.
-module Hmis::Concerns::JwtHmisUser
+# JWT for HMIS controllers. Provides devise-compatible methods
+module Hmis::Concerns::JwtHmisCurrentUser
   extend ActiveSupport::Concern
   include Idp::JwtAuthentication
 
@@ -37,15 +31,11 @@ module Hmis::Concerns::JwtHmisUser
     end
     helper_method :hmis_user_signed_in?
 
-    # The actual authenticated user from the JWT, not the impersonated user. Memoized to match the
-    # Devise/pretender arm: before_actions mutate this object in place (e.g. attach_data_source_id
-    # sets hmis_data_source_id), so every call within a request must return the SAME instance or the
-    # mutation is lost on the throwaway find_by result and downstream policy_for raises.
+    # The actual authenticated user from the JWT, not the impersonated user.
     def true_hmis_user
       return nil unless current_hmis_user
 
       @true_hmis_user ||= begin
-        impersonation_manager = Idp::ImpersonationManager.new(session)
         impersonation_data = impersonation_manager.get
         if impersonation_data && impersonation_data[:true_user_id].present?
           Hmis::User.find_by(id: impersonation_data[:true_user_id]) || current_hmis_user
@@ -63,13 +53,13 @@ module Hmis::Concerns::JwtHmisUser
     # authoritative authorization check is the controller's HMIS policy; subsequent requests
     # re-resolve from the session via idp_authenticated_user_from_jwt, which re-validates permissions.
     def impersonate_hmis_user(user)
-      Idp::ImpersonationManager.new(session).store(true_hmis_user.id, user.id)
+      impersonation_manager.store(true_hmis_user.id, user.id)
       @current_hmis_user = user
     end
 
     def stop_impersonating_hmis_user
       real_user = true_hmis_user
-      Idp::ImpersonationManager.new(session).clear
+      impersonation_manager.clear
       @current_hmis_user = real_user
     end
 
