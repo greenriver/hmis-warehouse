@@ -62,11 +62,11 @@ RSpec.describe 'Warehouse JWT wiring', type: :request do
     end
 
     describe '#info_for_paper_trail' do
-      # Use distinct current_user/true_user so the whodunnit's audit-under-impersonation behavior is
-      # actually exercised: user_id must follow the impersonated user, true_user_id the real one. With
-      # a single user for both, a `true_user_id: current_user&.id` swap (the impersonation-audit bug)
-      # would pass unnoticed.
-      it 'records the impersonated user as user_id and the real user as true_user_id' do
+      # Use distinct current_user/true_user so the impersonation-audit behavior is actually
+      # exercised: user_id must follow the true user (matching Devise's existing warden&.user&.id
+      # semantics), not the impersonated user. With a single user for both, a
+      # `user_id: current_user&.id` swap (the impersonation-audit bug) would pass unnoticed.
+      it 'records the true user as user_id, not the impersonated user' do
         impersonated_user = create :user
         true_user = create :user
         controller = ApplicationController.new
@@ -77,10 +77,7 @@ RSpec.describe 'Warehouse JWT wiring', type: :request do
 
         info = controller.send(:info_for_paper_trail)
 
-        # Distinct ids: user_id must follow the impersonated user, true_user_id the real one. A
-        # `true_user_id: current_user&.id` swap reds the second assertion.
-        expect(info[:user_id]).to eq(impersonated_user.id)
-        expect(info[:true_user_id]).to eq(true_user.id)
+        expect(info[:user_id]).to eq(true_user.id)
       end
     end
   end
