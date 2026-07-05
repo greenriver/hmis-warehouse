@@ -121,7 +121,9 @@ must hold for any configuration, not just the seeded defaults.
 - **`percent_change_threshold`**: Create new snapshot if `percent_change` is at least N% (e.g.,
   10%). For per-run-normalized calculators this is a *per-day* percent, consistent with the
   count threshold.
-- **Both specified**: Requires **both** thresholds met (AND logic) to prevent false positives
+- **Both specified**: Requires **both** thresholds met (AND logic) to prevent false positives —
+  e.g. with a 30-day AND 10% threshold, a 100 → 115 change (15 days, 15%) does not cross because
+  the count threshold isn't met, but a 100 → 135 change (35 days, 35%) crosses because both are.
 - **Neither specified**: Create new snapshot on any change (dense storage)
 
 Implementation: `GrdaWarehouse::Monitoring::Tasks::MetricSnapshotCollector#should_create_new_snapshot?`
@@ -264,12 +266,9 @@ current: Dec 31, 2021
 
 ### Storage Efficiency
 
-Storage scales with: (entities × metrics × change_rate × retention_period)
-
-With range-based sparse storage:
-- **Stable clients** (few changes): Minimal snapshots, cheap to track
-- **Volatile clients** (frequent changes): More snapshots, but captures important change history
-- **Overall**: 98%+ reduction compared to dense daily storage
+Storage scales with: (entities × metrics × change_rate × retention_period). See "Storage
+Efficiency" under Sparse Storage Strategy above for the concrete row/GB estimate — the same
+98%+ reduction applies here since retention only prunes snapshots that are already sparse.
 
 ## Query Patterns & API
 
@@ -285,6 +284,8 @@ The model includes scopes for common query patterns:
 - `active_as_of(date)` - Snapshots active on a given date
 - `current` - Snapshots still being updated (not stale)
 - `stale` - Snapshots that haven't been updated recently
+- `crossed_threshold_on_date(date)` - Snapshots created (i.e. crossed a threshold) on a given date
+- `for_date_range(start_date, end_date)` - Snapshots overlapping a date range
 
 See `app/models/grda_warehouse/monitoring/metric_snapshot.rb` for implementation.
 
@@ -333,6 +334,9 @@ Additional metrics to implement based on usage patterns:
 ## Performance Characteristics
 
 ### Expected Runtime (200,000 clients, 3 metrics)
+
+*Design-time estimate, not a measured benchmark — treat as directional until validated against
+a production-scale run.*
 
 ```
 Operation                           Time
@@ -401,106 +405,12 @@ Metrics can drive alerts through change detection.  Alerts for system-level thre
 
 ## Key Design Decisions
 
-### 1. Range-Based Sparse Storage
+Rationale for range-based sparse storage, the single-integer-value schema, quarterly table
+partitioning, self-configuring calculators, and single-query batch processing is covered inline
+above (see Schema, Change Detection Logic, Calculator Pattern, and Batch Processing). The one
+decision not already covered elsewhere:
 
-**Decision**: Each snapshot represents a time range where value stayed within threshold
-
-**Rationale**:
-- Most metrics are stable day-to-day (stable clients have minimal changes)
-- Recording every value every day wastes 98%+ of storage
-- Focus on tracking actual changes (the interesting data)
-- Can detect spikes by analyzing snapshot duration
-
-**Benefits**:
-- **98%+ storage reduction** for typical workloads
-- Naturally captures metric stability vs volatility
-- Efficient for both stable and changing metrics
-
-**Trade-offs**:
-- Query logic must handle date ranges (between `initial_observation_date` and `current_observation_date`)
-- More complex collection logic (update existing vs create new)
-- Time series visualizations need to interpolate
-
-**Implementation**:
-- `initial_observation_date`: When value range started
-- `current_observation_date`: Updated daily while value stays within threshold
-- `initial_value` and `current_value`: Track value drift
-- New snapshot created when the calculator-reported change exceeds the threshold (see Change Detection Logic for the default vs gap-normalized strategies)
-
-### 2. Single Integer Value Column
-
-**Decision**: All metrics store integer values, no polymorphic value columns
-
-**Rationale**:
-- All current and planned metrics are count-based (days, enrollments, household sizes)
-- Simplifies schema and eliminates NULL columns
-- Database enforces type safety
-- Easy to query and aggregate
-
-**Trade-offs**:
-- If non-integer metrics needed in future, would require schema change
-- Acceptable given current requirements
-
-### 3. Table Partitioning
-
-**Decision**: Partition by `initial_observation_date` with quarterly partitions
-
-**Rationale**:
-- Enables efficient archival and deletion of old data
-- Improves query performance for date-range queries
-- Pre-create partitions (3 years past + 10 years future) to avoid maintenance
-
-**Trade-offs**:
-- Unique constraints must include partition key
-- Requires PostgreSQL 10+
-- More complex migration
-
-### 4. AND Logic for Dual Thresholds
-
-**Decision**: When both count and percent thresholds configured, require BOTH to be met
-
-**Rationale**:
-- Prevents false positives where small absolute changes in large values would trigger percent threshold
-- More conservative approach ensures significant changes only
-
-**Example**: If threshold is 30 days AND 10%:
-- Value 100 → 115: Change is 15 days (< 30), 15% → No new snapshot (count not met)
-- Value 100 → 135: Change is 35 days (> 30), 35% → New snapshot (both met)
-
-### 5. Self-Configuring Calculators
-
-**Decision**: Calculators define their own metric definitions via class methods
-
-**Rationale**:
-- Single source of truth for metric configuration
-- No separate seed files or manual database updates
-- Automatic registration via `MetricDefinition.maintain!`
-- Easy to add new metrics (create calculator + register)
-
-**Benefits**:
-- Eliminates configuration drift
-- Simplifies deployment (no seed step)
-- Clear documentation in calculator class
-
-### 6. Batch Processing with Single Queries
-
-**Decision**: Calculators implement `calculate_batch` that processes 5,000 entities with single query
-
-**Rationale**:
-- Dramatically faster than per-entity queries
-- Reduces database load
-- Enables collection to complete in minutes, not hours
-
-**Example**: Household size calculators use two queries for entire batch:
-1. Count members per `[data_source_id, HouseholdID]`
-2. Lookup households per client
-
-**Benefits**:
-- 5,000+ entities processed per batch
-- Sub-minute calculation times
-- Scalable to large datasets
-
-### 7. Calculator-Owned Change Detection (`change_metrics`)
+### Calculator-Owned Change Detection (`change_metrics`)
 
 **Decision**: The calculator decides *how much* a value changed; the collector decides whether
 that change is *significant* against the metric definition's thresholds.
