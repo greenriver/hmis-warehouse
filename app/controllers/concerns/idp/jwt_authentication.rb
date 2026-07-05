@@ -64,9 +64,9 @@ module Idp::JwtAuthentication
   # Resolve the authenticated user from the JWT, applying impersonation. Generic over
   # user_class so both warehouse (User) and HMIS (Hmis::User) controllers can use it.
   def idp_authenticated_user_from_jwt(user_class: User)
-    # learn: true path — find_or_create_from_jwt self-gates JIT creation on idp/auto_create_user
-    # and learns the Authentication Source link on every request (via Idp::UserProvisioner).
-    # idp_token_holder memoizes that resolution so it runs once per request.
+    # find_or_create_from_jwt self-gates JIT creation on idp/auto_create_user and links the
+    # Authentication Source on every request (via Idp::UserProvisioner). idp_token_holder
+    # memoizes that resolution so it runs once per request.
     authenticated_user = idp_token_holder
     return nil unless authenticated_user
 
@@ -102,11 +102,9 @@ module Idp::JwtAuthentication
       true_user = user_class.find_by(id: impersonation_data[:true_user_id])
       impersonated_user = user_class.find_by(id: impersonation_data[:impersonated_user_id])
 
-      # NOTE: the active? kill-switch above gates the true_user (the human holding the token).
-      # We intentionally do NOT also gate on impersonated_user.active? here — an admin may need
-      # to impersonate a deactivated account to investigate it. We COULD add
-      # `&& impersonated_user.active?` (or route the deactivated page) if we later decide
-      # deactivation should also block being impersonated. Revisit when that's settled.
+      # The active? kill-switch above gates the true_user (the human holding the token). It is
+      # deliberately NOT also applied to impersonated_user here — an admin may need to
+      # impersonate a deactivated account to investigate it.
       return impersonated_user if true_user && impersonated_user && idp_validate_impersonation_permissions(true_user, impersonated_user)
 
       # Clear invalid impersonation
@@ -134,9 +132,10 @@ module Idp::JwtAuthentication
 
   # Terminal page for a user whose warehouse account has been deactivated (active = false) while
   # they still hold a valid IdP token. Deliberately does NOT redirect to sign-in (that loops via
-  # the IdP) — renders a 403 with guidance to contact an administrator. Uses the no-auth
-  # 'maintenance' layout because there's no current_user. Override in subclasses for non-HTML
-  # responses (e.g. a JSON 403 for API/HMIS controllers), mirroring idp_handle_unauthenticated.
+  # the IdP) — renders a 403 with guidance to contact an administrator, under the default
+  # application layout (there's no layout override, and no current_user for it to key off).
+  # Override in subclasses for non-HTML responses (e.g. a JSON 403 for API/HMIS controllers),
+  # mirroring idp_handle_unauthenticated.
   def idp_handle_deactivated
     render(template: 'errors/account_deactivated', status: :forbidden)
   end

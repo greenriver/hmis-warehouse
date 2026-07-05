@@ -29,8 +29,8 @@ module Idp
     alias_method :create, :new
 
     # DELETE users/sign_out (and GET logout_talentlms) — clear the proxy session and return to
-    # root_path via the rd parameter. Deliberately use a relative path as oauth2-proxy is
-    # same-origin. Absolute URL might be vulnerable to spoofing via Host header
+    # root_path via the rd parameter. Deliberately uses a relative path since oauth2-proxy is
+    # same-origin; an absolute URL built from request.base_url could be spoofed via the Host header.
     def destroy
       redirect_to("/oauth2/sign_out?rd=#{CGI.escape(root_path)}")
     end

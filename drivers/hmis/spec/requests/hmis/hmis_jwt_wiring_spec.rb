@@ -10,10 +10,10 @@ require 'rails_helper'
 require_relative 'login_and_permissions'
 
 # Proves the HMIS request layer wires the JWT auth path correctly when a Deployment boots with
-# AUTH_METHOD=jwt, the HMIS half of phase 08's warehouse wiring. Mirrors
-# spec/requests/idp/warehouse_jwt_wiring_spec.rb, but every auth-failure path returns JSON (the SPA
-# contract) rather than an HTML redirect/render. The JWT examples run only under the AUTH_METHOD=jwt
-# CI process (they lean on the JwtAuthenticationHelper sign_in, included only when AuthMethod.jwt?).
+# AUTH_METHOD=jwt. Mirrors spec/requests/idp/warehouse_jwt_wiring_spec.rb, but every auth-failure
+# path returns JSON (the SPA contract) rather than an HTML redirect/render. The JWT examples run
+# only under the AUTH_METHOD=jwt CI process (they lean on the JwtAuthenticationHelper sign_in,
+# included only when AuthMethod.jwt?).
 RSpec.describe 'HMIS JWT wiring', type: :request, if: AuthMethod.jwt? do
   let(:ds) { create :hmis_primary_data_source }
   let(:headers) { { 'HOST' => ds.hmis } }
@@ -51,8 +51,7 @@ RSpec.describe 'HMIS JWT wiring', type: :request, if: AuthMethod.jwt? do
     end
   end
 
-  # The impersonation write-side is the one live A5 touchpoint and the first JWT impersonation writer
-  # in the codebase. Mirrors the Devise impersonations_controller_spec setup, but drives the JWT arm:
+  # Mirrors the Devise impersonations_controller_spec setup, but drives the JWT arm:
   # impersonate_hmis_user / stop_impersonating_hmis_user back the Rails session via
   # Idp::ImpersonationManager, and the next request re-resolves (and re-validates) it.
   describe 'impersonation under JWT' do

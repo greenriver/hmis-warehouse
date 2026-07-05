@@ -31,7 +31,10 @@ module Hmis::Concerns::JwtHmisCurrentUser
     end
     helper_method :hmis_user_signed_in?
 
-    # The actual authenticated user from the JWT, not the impersonated user.
+    # The actual authenticated user from the JWT, not the impersonated user. Memoized to match the
+    # Devise/pretender arm: before_actions mutate this object in place (e.g. attach_data_source_id
+    # sets hmis_data_source_id), so every call within a request must return the SAME instance or the
+    # mutation is lost on the throwaway find_by result and downstream policy_for raises.
     def true_hmis_user
       return nil unless current_hmis_user
 
@@ -46,8 +49,7 @@ module Hmis::Concerns::JwtHmisCurrentUser
     end
     helper_method :true_hmis_user
 
-    # Impersonation write-side under JWT (replaces pretender's impersonate_hmis_user). This is the
-    # first JWT impersonation writer in the codebase — phase 08 built only the read side. Backs the
+    # Impersonation write-side under JWT (replaces pretender's impersonate_hmis_user). Backs the
     # session via Idp::ImpersonationManager and updates the memoized current user so the remainder of
     # *this* request reflects the impersonation (mirroring pretender's in-request behavior). The
     # authoritative authorization check is the controller's HMIS policy; subsequent requests
