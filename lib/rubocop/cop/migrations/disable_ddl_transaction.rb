@@ -23,7 +23,8 @@ module RuboCop
               'through (e.g. a lock timeout on a concurrent index build) leaves earlier statements committed ' \
               'without the migration being recorded, breaking retries on the next deploy. Prefer a plain, ' \
               'transactional add_index when the table is new/small. If concurrent index creation is genuinely ' \
-              'needed, isolate it in its own migration and disable this cop with a comment explaining why.'
+              'transactional add_index when the table is new/small. If concurrent index creation is genuinely ' \
+              'needed, isolate it in its own migration and add `rubocop:disable Migrations/DisableDdlTransaction` with a comment explaining why.'
 
         def on_send(node)
           return unless node.method?(:disable_ddl_transaction!)
