@@ -49,7 +49,7 @@ end
 # to 60 seconds.
 persistent_timeout ENV.fetch('PUMA_PERSISTENT_TIMEOUT') { 70 }.to_i
 
-# Increase timeout during development to allow debugging
+# Increase timeout during develpoment to allow debugging
 if ENV.fetch("RAILS_ENV") == "development"
   ENV.fetch('WORKER_TIMEOUT', 3600).to_i
 end
