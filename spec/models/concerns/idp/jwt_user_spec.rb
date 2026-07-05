@@ -8,7 +8,7 @@
 
 require 'rails_helper'
 
-RSpec.describe Idp::JwtUser, type: :model, if: AuthMethod.jwt? do
+RSpec.describe Idp::JwtUser, type: :model do
   let(:user) { create(:user) }
   let(:jwt_helper) do
     instance_double(
