@@ -66,6 +66,18 @@ RSpec.describe Audit::CohortAccess::Base do
       travel_to(Time.zone.parse('2025-01-01 12:00:00')) { group.add(system_user) }
       expect(audit.current_access.users.map(&:id)).not_to include(system_user.id)
     end
+
+    it 'excludes and does not raise for a user id with no matching row (e.g. hard-deleted via retention purge)' do
+      purged_user_id = user.id
+      # Hard-delete via delete_all to bypass the model's dependent: :destroy callbacks, so the
+      # AccessGroupMember row (and its active membership) survives, the way a retention purge that
+      # only targets `users` would. (really_destroy! would cascade and remove the membership too.)
+      User.where(id: purged_user_id).delete_all
+
+      expect { audit.current_access }.not_to raise_error
+      expect(audit.current_access.user_accesses.map(&:user)).to all(be_present)
+      expect(audit.current_access.users.map(&:id)).not_to include(purged_user_id)
+    end
   end
 
   describe '#events' do

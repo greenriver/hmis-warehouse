@@ -71,17 +71,9 @@ module GrdaWarehouse
       # For update events: use index 1 (new value)
       index = version.event == 'destroy' ? 0 : 1
 
-      # Guard against YAML deserialization failures on old records.
-      obj = begin
-        version.object
-      rescue StandardError
-        nil
-      end
-      obj_changes = begin
-        version.object_changes
-      rescue StandardError
-        nil
-      end
+      # Guard against YAML deserialization failures on old records (see Version#safe_object).
+      obj = version.safe_object
+      obj_changes = version.safe_object_changes
 
       # Get the entity name from the version's item or version data
       entity_name = if version.item
@@ -116,11 +108,12 @@ module GrdaWarehouse
           access_group_id = changes['access_group_id'][index]
           access_group = AccessGroup.with_deleted.find_by(id: access_group_id)
           access_group&.name || "Access Group ID #{access_group_id}"
-        elsif obj&.key?('collection_id')
-          # Fall back to object column if object_changes has no path data
+        elsif obj&.dig('collection_id').present?
+          # Fall back to object column if object_changes has no path data. A GVE's object snapshot
+          # always carries both columns with one nil, so key off the populated value, not the key.
           collection = Collection.with_deleted.find_by(id: obj['collection_id'])
           collection&.name || "Collection ID #{obj['collection_id']}"
-        elsif obj&.key?('access_group_id')
+        elsif obj&.dig('access_group_id').present?
           access_group = AccessGroup.with_deleted.find_by(id: obj['access_group_id'])
           access_group&.name || "Access Group ID #{obj['access_group_id']}"
         else
@@ -152,6 +145,11 @@ module GrdaWarehouse
         else
           klass.find_by(id: entity_id)
         end
+      rescue NameError => e
+        # The stored entity_type references a class that no longer exists; degrade to the id
+        # rather than raising out of the audit render.
+        Rails.logger.warn("GroupViewableEntity.get_entity_display_name: unknown entity_type #{entity_type.inspect}: #{e.message}")
+        return "Entity ID #{entity_id}"
       end
       entity&.name
     end
