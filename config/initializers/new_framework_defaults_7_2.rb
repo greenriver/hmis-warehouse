@@ -34,7 +34,7 @@
 # topic in the database.
 #
 # If `enqueue_after_transaction_commit` is set to `:default`, the queue adapter
-# will define the behaviour.
+# will define the behavior.
 #
 # Note: Active Job backends can disable this feature. This is generally done by
 # backends that use the same database as Active Record as a queue, hence they

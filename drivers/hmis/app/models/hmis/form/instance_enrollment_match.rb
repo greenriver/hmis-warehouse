@@ -6,7 +6,7 @@
 
 # frozen_string_literal: true
 
-# determine if enrollment is a valid match for a form intance
+# determine if enrollment is a valid match for a form instance
 #
 require 'memery'
 class Hmis::Form::InstanceEnrollmentMatch

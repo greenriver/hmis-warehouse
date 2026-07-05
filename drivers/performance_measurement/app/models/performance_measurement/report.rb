@@ -635,7 +635,7 @@ module PerformanceMeasurement
                 # where(shs_t[:date].eq(filter.pit_date)). # removed to become yearly to match SPM M3 3.2
                 so.distinct.
                 pluck(*cols.values)
-              # NOTE: even though we're pullin for the full year, we're using age on the PIT date for now.
+              # NOTE: even though we're pulling for the full year, we're using age on the PIT date for now.
               calculate_households_for_extra(rows, cols.keys, filter.pit_date)
               rows.each do |row|
                 row = cols.keys.zip(row).to_h

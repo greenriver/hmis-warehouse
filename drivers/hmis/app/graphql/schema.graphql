@@ -657,7 +657,7 @@ input BulkAssignServiceInput {
   clientIds: [ID!]!
 
   """
-  CoC code to store as EnrollmentCoC when enrolling a new client. Only needed if Project operaties in multiple CoCs.
+  CoC code to store as EnrollmentCoC when enrolling a new client. Only needed if Project operates in multiple CoCs.
   """
   cocCode: String
   dateProvided: ISO8601Date!

@@ -140,7 +140,7 @@ module HmisDataQualityTool
       @goal_config ||= HmisDataQualityTool::Goal.for_coc(coc_code)
     end
 
-    # for compatability with HudReport Logic
+    # for compatibility with HudReport Logic
     def start_date
       @start_date ||= filter.start
     end
