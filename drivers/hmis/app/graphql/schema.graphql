@@ -13048,21 +13048,11 @@ type Unit {
 }
 
 input UnitCeReferralFilterOptions {
-  assignedToUser: ID
   assignedToYou: Boolean
   onCurrentTaskSince: ISO8601Date
-  organization: [ID!]
   origin: [CeReferralOrigin!]
-  project: [ID!]
-
-  """
-  Filter to referrals where the target project belongs to the specified project group
-  """
-  projectGroupId: ID
-  projectType: [ProjectType!]
   referralStatus: [String!]
   searchTerm: String
-  workflowTemplate: [String!]
 }
 
 input UnitFilterOptions {
