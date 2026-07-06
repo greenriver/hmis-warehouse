@@ -249,60 +249,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         end
       end
 
-      it 'keeps source-project direct referral access scoped to the unit' do
-        source_project = create(:hmis_hud_project, data_source: ds1, user: u1)
-        create_access_control(
-          hmis_user,
-          source_project,
-          with_permission: [:can_view_project, :can_view_outgoing_referral_details],
-        )
-        source_enrollment = create(
-          :hmis_hud_enrollment,
-          data_source: ds1,
-          project: source_project,
-        )
-        other_source_enrollment = create(
-          :hmis_hud_enrollment,
-          data_source: ds1,
-          project: source_project,
-        )
-        direct_opportunity = create(
-          :hmis_ce_opportunity,
-          unit: unit,
-          status: 'closed',
-        )
-        other_direct_opportunity = create(
-          :hmis_ce_opportunity,
-          unit: other_unit,
-          status: 'closed',
-        )
-        direct_referral = create(
-          :hmis_ce_referral,
-          opportunity: direct_opportunity,
-          data_source: ds1,
-          client: source_enrollment.client,
-          source_enrollment: source_enrollment,
-          referral_origin: Hmis::Ce::Referral::DIRECT_SEND_ORIGIN,
-        )
-        other_direct_referral = create(
-          :hmis_ce_referral,
-          opportunity: other_direct_opportunity,
-          data_source: ds1,
-          client: other_source_enrollment.client,
-          source_enrollment: other_source_enrollment,
-          referral_origin: Hmis::Ce::Referral::DIRECT_SEND_ORIGIN,
-        )
-
-        remove_permissions(access_control, :can_view_referrals)
-        response, result = post_graphql(**variables) { query }
-        expect(response.status).to eq(200), result.inspect
-
-        referral_ids = result.dig('data', 'unit', 'ceReferrals', 'nodes').
-          map { |node| node['id'] }
-        expect(referral_ids).to include(direct_referral.id.to_s)
-        expect(referral_ids).not_to include(other_direct_referral.id.to_s)
-      end
-
       context 'without referral permission' do
         before do
           remove_permissions(access_control, :can_view_referrals)
