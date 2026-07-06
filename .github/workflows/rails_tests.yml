@@ -201,6 +201,13 @@ jobs:
         with:
           additional_packages: libpq-dev chromium chromium-common
 
+      - name: Browser diagnostics
+        run: |
+          chromium --version
+          apt-cache policy chromium chromium-common
+          ruby -e "require 'ferrum'; puts \"Ferrum #{Gem.loaded_specs.fetch('ferrum').version}\""
+          ruby -e "require 'capybara/cuprite'; puts \"Cuprite #{Gem.loaded_specs.fetch('cuprite').version}\""
+
       - name: "App setup"
         run: |
           cp config/secrets.yml.sample config/secrets.yml
@@ -359,6 +366,13 @@ jobs:
         with:
           additional_packages: libpq-dev chromium chromium-common
 
+      - name: Browser diagnostics
+        run: |
+          chromium --version
+          apt-cache policy chromium chromium-common
+          ruby -e "require 'ferrum'; puts \"Ferrum #{Gem.loaded_specs.fetch('ferrum').version}\""
+          ruby -e "require 'capybara/cuprite'; puts \"Cuprite #{Gem.loaded_specs.fetch('cuprite').version}\""
+
       - name: "App setup"
         run: |
           cp config/secrets.yml.sample config/secrets.yml
@@ -434,6 +448,13 @@ jobs:
         uses: ./.github/workflows/container_setup
         with:
           additional_packages: libpq-dev chromium chromium-common
+
+      - name: Browser diagnostics
+        run: |
+          chromium --version
+          apt-cache policy chromium chromium-common
+          ruby -e "require 'ferrum'; puts \"Ferrum #{Gem.loaded_specs.fetch('ferrum').version}\""
+          ruby -e "require 'capybara/cuprite'; puts \"Cuprite #{Gem.loaded_specs.fetch('cuprite').version}\""
 
       - name: "App setup"
         run: |
