@@ -54,6 +54,13 @@ runs:
         . /etc/os-release
         sh -c "echo 'deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt $VERSION_CODENAME-pgdg main' > /etc/apt/sources.list.d/pgdg.list"
 
+        # Temporary rollback for Chromium 150 CI timeouts. The 149 packages are no longer
+        # guaranteed to be present in the current Debian security apt index.
+        if [[ "${{ inputs.additional_packages }}" == *"chromium=149.0.7827.155-1~deb12u1"* ]]; then
+          echo 'Acquire::Check-Valid-Until "false";' > /etc/apt/apt.conf.d/99snapshot-check-valid-until
+          echo 'deb [check-valid-until=no] https://snapshot.debian.org/archive/debian-security/20260618T222000Z bookworm-security main' > /etc/apt/sources.list.d/debian-snapshot.list
+        fi
+
         # Install NodeJS repository
         retry curl -fsSL https://deb.nodesource.com/setup_24.x | bash -s -- -y
 
