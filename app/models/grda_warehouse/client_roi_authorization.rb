@@ -9,7 +9,7 @@
 # Currently this is 1:1 with client records; it is automatically generated from canonical ROIs attrs the client
 # However in the future we plan to support multiple ROIs and this will likely become the canonical source for ROI
 module GrdaWarehouse
-  class ClientRoiAuthorization < GrdaWarehouseBase # automatically generate from restricted flag?
+  class ClientRoiAuthorization < GrdaWarehouseBase
     belongs_to :destination_client, class_name: 'GrdaWarehouse::Hud::Client'
 
     REVOKED_STATUS = 'revoked'
