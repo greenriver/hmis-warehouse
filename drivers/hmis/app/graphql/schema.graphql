@@ -1050,12 +1050,12 @@ enum CeMatchRuleComparator {
 
 enum CeMatchRuleFieldSource {
   """
-  A client field, such as current_age
+  Client
   """
   CLIENT
 
   """
-  A custom data element, such as cde.custom_assessment.my_score
+  Custom
   """
   CUSTOM_DATA_ELEMENT
 }
