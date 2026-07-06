@@ -7,7 +7,7 @@
 # frozen_string_literal: true
 
 class Hmis::BaseController < ActionController::Base
-  include BaseApplicationControllerBehavior
+  include HmisBaseApplicationControllerBehavior
   include LogRagePayloadBehavior
   include ControllerCacheBehavior
 
