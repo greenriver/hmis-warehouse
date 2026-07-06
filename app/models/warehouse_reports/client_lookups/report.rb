@@ -107,15 +107,8 @@ module WarehouseReports
       # row could be silently skipped or duplicated — corrupting both the PII redaction
       # decision in `flush_group` and the exported row count.
       def each_batch
-        offset = 0
-        loop do
-          batch = query.limit(BATCH_SIZE).offset(offset).pluck(*pluck_columns).map { |values| PluckedRow.new(*values) }
-          break if batch.empty?
-
-          yield batch
-          break if batch.size < BATCH_SIZE
-
-          offset += BATCH_SIZE
+        query.pluck_in_batches(pluck_columns, batch_size: BATCH_SIZE) do |batch|
+          yield batch.map { |values| PluckedRow.new(*values) }
         end
       end
 
