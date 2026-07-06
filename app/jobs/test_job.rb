@@ -29,7 +29,7 @@ class TestJob < BaseJob
     end
     Rails.logger.info 'NOT tagged'
 
-    raise 'Whoops. A test failure just occured' if simulate_failure
+    raise 'Whoops. A test failure just occurred' if simulate_failure
 
     setup_notifier('TestJob')
     @notifier.ping('Testing!') if @send_notifications

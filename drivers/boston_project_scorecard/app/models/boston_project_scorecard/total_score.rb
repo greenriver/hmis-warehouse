@@ -97,7 +97,7 @@ module BostonProjectScorecard
         max = 31
         max += 3 if rrh? # Q14
         max += 6 if psh? # Q14
-        max -= 3 if (rrh? || psh?) && monitoring_not_applicable?
+        max -= 3 if monitoring_not_applicable?
 
         max
       end

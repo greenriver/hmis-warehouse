@@ -30,7 +30,7 @@ class WarehouseReport::ExportEnrollmentCalculator < OpenStruct
       open_during_range(filter)
   end
 
-  # Find the first exit to a permanent destination for this client that occured within the range.
+  # Find the first exit to a permanent destination for this client that occurred within the range.
   # If no permanent destination just use the first exit
   # used to determine if the client returned after exiting
   def exit_for_client(client)

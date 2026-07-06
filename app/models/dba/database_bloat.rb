@@ -31,7 +31,7 @@ class Dba::DatabaseBloat
   # minimum number of rows or dead tuples in a table to consider it worthy of vacuuming
   MIN_ROWS = ENV.fetch('DBA_MIN_ROWS', 1_000).to_i
 
-  # minimum percentage of non-analyzed rows to trigger adjusting autovaccuum
+  # minimum percentage of non-analyzed rows to trigger adjusting autovacuum
   MIN_PCT_NOT_ANALYZED = ENV.fetch('DBA_MIN_PCT_NOT_ANALYZED', 4).to_i
 
   # skip pg_repack on tables larger than this (pg_repack needs roughly table_size of free space)
@@ -71,7 +71,7 @@ class Dba::DatabaseBloat
     end
   end
 
-  # Runs in the background and doesn't get an aggresive lock on anything.
+  # Runs in the background and doesn't get an aggressive lock on anything.
   # Should be safe unless we're low on I/O burst credits
   def reindex!
     catch(:enough) do
@@ -474,7 +474,7 @@ class Dba::DatabaseBloat
                             THEN 2 -- IndexTupleData size
                             ELSE 2 + (( 32 + 8 - 1 ) / 8) -- IndexTupleData size + IndexAttributeBitMapData size ( max num filed per index + 8 - 1 /8)
                         END AS index_tuple_hdr_bm,
-                        /* data len: we remove null values save space using it fractionnal part from stats */
+                        /* data len: we remove null values save space using it fractional part from stats */
                         sum( (1-coalesce(s.null_frac, 0)) * coalesce(s.avg_width, 1024)) AS nulldatawidth,
                         max( CASE WHEN i.atttypid = 'pg_catalog.name'::regtype THEN 1 ELSE 0 END ) > 0 AS is_na
                     FROM (
@@ -632,7 +632,7 @@ class Dba::DatabaseBloat
       -- but may not in the future as the table grows
 
       -- New indexes might not have been used yet. Reindexing zeros out the
-      -- stats too (it's technially a new index)
+      -- stats too (it's technically a new index)
       WITH recent_indexes AS (
         SELECT
           a.indexrelid, a.relname, a.indexrelname

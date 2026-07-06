@@ -657,7 +657,7 @@ input BulkAssignServiceInput {
   clientIds: [ID!]!
 
   """
-  CoC code to store as EnrollmentCoC when enrolling a new client. Only needed if Project operaties in multiple CoCs.
+  CoC code to store as EnrollmentCoC when enrolling a new client. Only needed if Project operates in multiple CoCs.
   """
   cocCode: String
   dateProvided: ISO8601Date!
@@ -10481,6 +10481,7 @@ type Query {
   tableConfigLookup: TableConfigLookup!
   unit(id: ID!): Unit
   unitGroup(id: ID!): UnitGroup
+  unitGroups(filters: UnitGroupFilterOptions, limit: Int, offset: Int): UnitGroupsPaginated!
 
   """
   User lookup
@@ -13083,15 +13084,39 @@ type UnitGroup {
   ceEventType: EventType
   directReferralWorkflowTemplateIdentifier: String
   directReferralWorkflowTemplateName: String
+
+  """
+  Number of CE match rules that apply to this record, including inherited rules.
+  """
+  effectiveCeMatchRuleCount: Int!
+
+  """
+  All CE match rules that apply to this record, including inherited rules, grouped by their owner.
+  """
+  effectiveCeMatchRuleGroups: [CeMatchRuleGroup!]!
   eligibilityRequirements: [CeMatchRule!]
   id: ID!
+
+  """
+  Number of CE match rules owned directly by this record.
+  """
+  localCeMatchRuleCount: Int!
   name: String!
+  organizationId: ID!
+  organizationName: String!
   prioritySchemes: [CeMatchRule!]
+  projectId: ID!
+  projectName: String!
   unitType: UnitTypeObject
   unitTypes: [UnitTypeCapacity!]!
   units(filters: UnitFilterOptions, limit: Int, offset: Int): UnitsPaginated!
   workflowTemplateIdentifier: String
   workflowTemplateName: String
+}
+
+input UnitGroupFilterOptions {
+  ceWaitlistsEnabled: Boolean
+  searchTerm: String
 }
 
 input UnitGroupInput {

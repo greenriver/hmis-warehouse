@@ -123,7 +123,7 @@ module MedicaidHmisInterchange::Health
       [file_path, count]
     end
 
-    # Retreive and preload for enrollments for the clients in question
+    # Retrieve and preload for enrollments for the clients in question
     # NOTE: this is not limited by date range, we're looking for any homeless enrollment
     # for the client that contained at least one service
     private def client_batch(medicaid_ids)
@@ -214,7 +214,7 @@ module MedicaidHmisInterchange::Health
     private def generate_metadata(record_count)
       file_path = File.join(@file_path, metadata_filename)
       File.open(file_path, 'w') do |file|
-        file << "Date_Created = \"#{@timestamp.strftime(TIMESTAMP_FORMAT)}\"\n" # NOTE: this timestamp is used in the genration of the filename for the error file, we need it to match the filename
+        file << "Date_Created = \"#{@timestamp.strftime(TIMESTAMP_FORMAT)}\"\n" # NOTE: this timestamp is used in the generation of the filename for the error file, we need it to match the filename
         file << "RDC_Homeless_File_Name = \"#{submission_filename}\"\n"
         file << "Total_Records = \"#{record_count}\"\n"
         file << "Return_To = \"#{@contact_email}\"\n"
