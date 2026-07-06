@@ -8,13 +8,6 @@ deleted along with the importer once every Deployment has migrated.
 
 Run `rails -T keycloak` for the task list and the rake header (`lib/tasks/keycloak.rake`) for usage.
 
-## Requirements
-
-The credential tasks (`migrate_users`, `export_users`, `import_single_user`) must run with
-`AUTH_METHOD=devise` (the default). Building a TOTP credential reads `User#otp_secret`, an accessor the
-`:two_factor_authenticatable` Devise macro provides only in devise mode. For a catch-up migration
-after transition to JWT mode, run: `AUTH_METHOD=devise bin/rails keycloak:migrate_users`
-
 ## Scope
 
 `Idp::Keycloak::UserImporter.migration_scope` migrates **confirmed, active** users. The `confirmed_at`

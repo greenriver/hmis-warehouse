@@ -54,7 +54,7 @@ module HudReports
           end
 
           # reset_sequences uses DDL (setval). In PostgreSQL DDL *is* transactional,
-          # so a rollback will undo the sequence reset — the correct behaviour here.
+          # so a rollback will undo the sequence reset — the correct behavior here.
           reset_sequences(config)
           clear_purged_at
         end

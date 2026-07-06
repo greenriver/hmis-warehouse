@@ -1,5 +1,6 @@
 = render 'chart_targets'
 = render 'client_completeness'
 = render 'enrollment_completeness'
-= render 'timeliness'
+- if @report.show_entry_timeliness? || @report.show_exit_timeliness?
+  = render 'timeliness'
 = render 'time_in_enrollment'

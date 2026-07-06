@@ -86,7 +86,7 @@ class TestResultsUploader < CarrierWave::Uploader::Base
 
   # Extracts the file metadata into the model fields
   # size and mime_type are forced to the
-  # actual data, name defaults to thethe original_filename
+  # actual data, name defaults to the original_filename
   # if its not already set in the model
   def extract_file_metadata!
     model.name ||= file&.filename

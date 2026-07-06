@@ -1171,7 +1171,7 @@ module HmisCsvImporter::Importer
       batch_clear_pending_deletion(klass, matched_scope, file_name)
     end
 
-    # Creates a session-scoped temp table of IDs materialised from `scope`, builds
+    # Creates a session-scoped temp table of IDs materialized from `scope`, builds
     # an index on it, yields the quoted temp-table name for the caller to drive its
     # own batched UPDATE, then drops the table in ensure.
     private def with_temp_id_table(conn, name, scope)
