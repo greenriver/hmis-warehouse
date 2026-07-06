@@ -369,7 +369,7 @@ module Admin
         # TODO: START_ACL remove when ACL transition complete
         if @user.using_acls?
           existing_roles = @user.roles
-          # If we don't already have a role granting an admin permission, and we're assinging some
+          # If we don't already have a role granting an admin permission, and we're assigning some
           # ACLs (with associated roles)
           if existing_roles.map(&:has_super_admin_permissions?).none? && assigned_user_group_ids.present?
             assigned_roles = AccessControl.where(user_group_id: assigned_user_group_ids).joins(:role).distinct.pluck(Role.arel_table[:id])

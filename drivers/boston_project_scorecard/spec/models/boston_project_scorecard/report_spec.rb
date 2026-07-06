@@ -9,6 +9,8 @@
 require 'rails_helper'
 
 RSpec.describe BostonProjectScorecard::Report, type: :model do
+  include ActiveJob::TestHelper
+
   before(:all) do
     cleanup_test_environment
   end
@@ -36,6 +38,7 @@ RSpec.describe BostonProjectScorecard::Report, type: :model do
     )
   end
 
+  let(:secondary_reviewer) { nil }
   let(:report) do
     described_class.create!(
       user: user,
@@ -44,6 +47,7 @@ RSpec.describe BostonProjectScorecard::Report, type: :model do
       end_date: Date.new(2025, 9, 30),
       period_start_date: Date.new(2024, 10, 1),
       period_end_date: Date.new(2025, 9, 30),
+      secondary_reviewer: secondary_reviewer,
     )
   end
 
@@ -95,7 +99,7 @@ RSpec.describe BostonProjectScorecard::Report, type: :model do
       allow(report).to receive(:answer).with(comparison_apr_report, 'Q22c', 'B11').and_return(52.3)
 
       # Mock answers for data quality - PII error rate
-      allow(report).to receive(:answer).with(apr_report, 'Q6a', anything).and_return(0.05)
+      allow(report).to receive(:answer).with(apr_report, 'Q6a', report.pii_error_cell).and_return(0.05)
 
       # UDE errors - 5 unique clients with errors out of 100 total served
       allow(report).to receive(:answer_client_ids).with(apr_report, 'Q6b', 'B2').and_return([1, 2])
@@ -224,7 +228,7 @@ RSpec.describe BostonProjectScorecard::Report, type: :model do
       allow(report).to receive(:answer).with(apr_report, 'Q23c', 'B6').and_return(8)
       allow(report).to receive(:answer).with(apr_report, 'Q22c', 'B11').and_return(45.7)
       allow(report).to receive(:answer).with(comparison_apr_report, 'Q22c', 'B11').and_return(52.3)
-      allow(report).to receive(:answer).with(apr_report, 'Q6a', anything).and_return(0.03)
+      allow(report).to receive(:answer).with(apr_report, 'Q6a', report.pii_error_cell).and_return(0.03)
       allow(report).to receive(:answer_client_ids).with(apr_report, 'Q6b', 'B2').and_return([])
       allow(report).to receive(:answer_client_ids).with(apr_report, 'Q6b', 'B3').and_return([])
       allow(report).to receive(:answer_client_ids).with(apr_report, 'Q6b', 'B4').and_return([])
@@ -431,11 +435,211 @@ RSpec.describe BostonProjectScorecard::Report, type: :model do
       expect(report.total_score_available).to eq(126)
     end
 
-    it 'does not reduce policy alignment available for non-housing projects' do
+    it 'reduces policy alignment available for non-housing projects when both monitoring questions are not applicable' do
       report.update!(project_type: 1, no_concern: -1, materials_concern: -1)
 
-      expect(report.policy_alignment_available).to eq(31)
-      expect(report.total_score_available).to eq(112)
+      expect(report.policy_alignment_available).to eq(28)
+      expect(report.total_score_available).to eq(109)
+    end
+
+    it 'awards rrh_exits_to_ph_score at each point threshold' do
+      report.update!(rrh_exits_to_ph: 75)
+      expect(report.rrh_exits_to_ph_score).to eq(12)
+
+      report.update!(rrh_exits_to_ph: 55)
+      expect(report.rrh_exits_to_ph_score).to eq(6)
+
+      report.update!(rrh_exits_to_ph: 25)
+      expect(report.rrh_exits_to_ph_score).to eq(4)
+
+      report.update!(rrh_exits_to_ph: 24)
+      expect(report.rrh_exits_to_ph_score).to eq(0)
+    end
+
+    it 'awards psh_stayers_or_to_ph_score at each point threshold for PSH projects' do
+      report.update!(project_type: 3, psh_stayers_or_to_ph: 75)
+      expect(report.psh_stayers_or_to_ph_score).to eq(12)
+
+      report.update!(psh_stayers_or_to_ph: 55)
+      expect(report.psh_stayers_or_to_ph_score).to eq(6)
+
+      report.update!(psh_stayers_or_to_ph: 25)
+      expect(report.psh_stayers_or_to_ph_score).to eq(4)
+
+      report.update!(psh_stayers_or_to_ph: 24)
+      expect(report.psh_stayers_or_to_ph_score).to eq(0)
+    end
+
+    it 'awards returns_to_homelessness_score at each point threshold (lower is better)' do
+      report.update!(returns_to_homelessness: 5)
+      expect(report.returns_to_homelessness_score).to eq(12)
+
+      report.update!(returns_to_homelessness: 25)
+      expect(report.returns_to_homelessness_score).to eq(6)
+
+      report.update!(returns_to_homelessness: 50)
+      expect(report.returns_to_homelessness_score).to eq(4)
+
+      report.update!(returns_to_homelessness: 51)
+      expect(report.returns_to_homelessness_score).to eq(0)
+    end
+
+    it 'awards increased_employment_income_score at each point threshold' do
+      report.update!(increased_employment_income: 20)
+      expect(report.increased_employment_income_score).to eq(12)
+
+      report.update!(increased_employment_income: 15)
+      expect(report.increased_employment_income_score).to eq(6)
+
+      report.update!(increased_employment_income: 7)
+      expect(report.increased_employment_income_score).to eq(4)
+
+      report.update!(increased_employment_income: 6)
+      expect(report.increased_employment_income_score).to eq(0)
+    end
+
+    it 'awards increased_other_income_score at each point threshold' do
+      report.update!(increased_other_income: 50)
+      expect(report.increased_other_income_score).to eq(12)
+
+      report.update!(increased_other_income: 37)
+      expect(report.increased_other_income_score).to eq(6)
+
+      report.update!(increased_other_income: 17)
+      expect(report.increased_other_income_score).to eq(4)
+
+      report.update!(increased_other_income: 16)
+      expect(report.increased_other_income_score).to eq(0)
+    end
+
+    it 'awards days_to_lease_up_score based on absolute days when there is no comparison' do
+      report.update!(days_to_lease_up: 89, days_to_lease_up_comparison: nil)
+      expect(report.days_to_lease_up_score).to eq(12)
+
+      report.update!(days_to_lease_up: 90, days_to_lease_up_comparison: nil)
+      expect(report.days_to_lease_up_score).to eq(0)
+    end
+
+    it 'awards days_to_lease_up_score based on year-over-year improvement once over 90 days' do
+      report.update!(days_to_lease_up: 100, days_to_lease_up_comparison: 200) # -50% change
+      expect(report.days_to_lease_up_score).to eq(12)
+
+      report.update!(days_to_lease_up: 100, days_to_lease_up_comparison: 105) # ~-4.8% change
+      expect(report.days_to_lease_up_score).to eq(6)
+
+      report.update!(days_to_lease_up: 100, days_to_lease_up_comparison: 100) # no change
+      expect(report.days_to_lease_up_score).to eq(0)
+    end
+
+    it 'awards data quality scores at the 20% error threshold, per metric' do
+      report.update!(pii_error_rate: 20)
+      expect(report.pii_error_rate_score).to eq(5)
+
+      report.update!(pii_error_rate: 21)
+      expect(report.pii_error_rate_score).to eq(0)
+
+      # ude and income/housing error rates share the same threshold logic;
+      # confirm each reads its own field rather than pii_error_rate
+      report.update!(ude_error_rate: 20, income_and_housing_error_rate: 21)
+      expect(report.ude_error_rate_score).to eq(5)
+      expect(report.income_and_housing_error_rate_score).to eq(0)
+    end
+  end
+
+  describe '#send_email_to_secondary_reviewer' do
+    after { clear_enqueued_jobs }
+
+    context 'when secondary_reviewer is not set' do
+      it 'does not enqueue an email, and does not raise when the queue is worked off' do
+        expect(report.secondary_reviewer).to be_nil
+
+        expect { report.send_email_to_secondary_reviewer }.not_to have_enqueued_job
+
+        expect { perform_enqueued_jobs }.not_to raise_error
+      end
+    end
+
+    context 'when secondary_reviewer is set' do
+      let(:secondary_reviewer) { create :user }
+
+      it 'enqueues and delivers an email to the secondary reviewer' do
+        expect do
+          perform_enqueued_jobs { report.send_email_to_secondary_reviewer }
+        end.to change(Message, :count).by(1)
+
+        expect(Message.last.user_id).to eq(secondary_reviewer.id)
+      end
+    end
+  end
+
+  describe '#include_gender_data? and #pii_error_cell' do
+    it 'includes gender data, and reads the PII error rate from F7, for pre-FY2026 generators' do
+      allow(report).to receive(:apr_generator).and_return(HudApr::Generators::Apr::Fy2024::Generator)
+
+      expect(report.include_gender_data?).to eq(true)
+      expect(report.pii_error_cell).to eq('F7')
+    end
+
+    it 'excludes gender data, and reads the PII error rate from F6, once gender data is removed from the APR (FY2026+)' do
+      allow(report).to receive(:apr_generator).and_return(HudApr::Generators::Apr::Fy2026::Generator)
+
+      expect(report.include_gender_data?).to eq(false)
+      expect(report.pii_error_cell).to eq('F6')
+    end
+  end
+
+  describe '#locked?' do
+    before { report.update!(status: 'pending') }
+
+    it 'leaves header fields editable while pending, but locks everything else' do
+      expect(report.locked?(:period_start_date, user)).to eq(false)
+      expect(report.locked?(:secondary_reviewer_id, user)).to eq(false)
+      expect(report.locked?(:no_concern, user)).to eq(true)
+    end
+
+    it 'unlocks the entire form once pre-filled' do
+      report.update!(status: 'pre-filled')
+
+      expect(report.locked?(:period_start_date, user)).to eq(false)
+      expect(report.locked?(:no_concern, user)).to eq(false)
+    end
+
+    it 'locks header fields once ready, leaving the rest editable' do
+      report.update!(status: 'ready')
+
+      expect(report.locked?(:period_start_date, user)).to eq(true)
+      expect(report.locked?(:no_concern, user)).to eq(false)
+    end
+
+    it 'locks every field for any other status' do
+      report.update!(status: 'completed')
+
+      expect(report.locked?(:period_start_date, user)).to eq(true)
+      expect(report.locked?(:no_concern, user)).to eq(true)
+    end
+  end
+
+  describe '#field_input_options' do
+    it 'marks locked fields readonly, and leaves unlocked fields alone' do
+      report.update!(status: 'ready')
+
+      expect(report.field_input_options(:project_type, user)).to eq(readonly: true)
+      expect(report.field_input_options(:no_concern, user)).to eq({})
+    end
+  end
+
+  describe '#apr_report' do
+    before { project_coc }
+
+    it 'scopes the real APR filter to the report project, independent of the mocked answer data used elsewhere in this file' do
+      allow(Reporting::Hud::RunReportJob).to receive(:perform_now) do |_class_name, report_id, **_kwargs|
+        HudReports::ReportInstance.find(report_id).update!(state: 'Completed', completed_at: Time.current)
+      end
+
+      apr = report.send(:apr_report)
+
+      expect(apr.project_ids).to eq([project.id])
+      expect(apr).to be_completed
     end
   end
 end

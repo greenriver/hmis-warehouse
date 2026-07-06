@@ -150,7 +150,7 @@ module ReportGenerators::SystemPerformance::Fy2018
           order(first_date_in_program: :asc).
           minimum(:first_date_in_program)
       end
-      # See if the client was active wthin the two years prior to their start date
+      # See if the client was active within the two years prior to their start date
       # Specifically, see if we started a program before the first start within the report range
       # and that program is either ongoing or ended within the two years before (not prior)
       # This should encompass all project types (same as 5.2)

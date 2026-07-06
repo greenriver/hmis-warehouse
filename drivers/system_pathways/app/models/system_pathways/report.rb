@@ -524,7 +524,7 @@ module SystemPathways
     end
 
     def enrollment_scope
-      # For compatability with filter_scopes
+      # For compatibility with filter_scopes
       filter.project_ids = filter.effective_project_ids
       scope = GrdaWarehouse::ServiceHistoryEnrollment.
         entry.
