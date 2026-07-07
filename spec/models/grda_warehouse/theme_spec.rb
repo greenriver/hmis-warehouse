@@ -81,4 +81,132 @@ RSpec.describe GrdaWarehouse::Theme, type: :model do
       end
     end
   end
+
+  describe '#sanitize_css' do
+    let(:theme) { build(:theme) }
+
+    shared_examples 'blocks script injection vectors' do
+      it 'does not pass through javascript: URLs' do
+        expect(theme.sanitize_css(raw_css)).not_to match(/javascript:/i)
+      end
+
+      it 'does not pass through expression(...)' do
+        expect(theme.sanitize_css(raw_css)).not_to match(/expression\s*\(/i)
+      end
+
+      it 'does not pass through HTML script tags' do
+        expect(theme.sanitize_css(raw_css)).not_to match(/<script/i)
+      end
+
+      it 'does not pass through @import rules' do
+        expect(theme.sanitize_css(raw_css)).not_to match(/@import/i)
+      end
+    end
+
+    context 'with legitimate theme CSS' do
+      let(:raw_css) { ':root { --op-accent: #41596B; }' }
+
+      it 'preserves the CSS unchanged' do
+        expect(theme.sanitize_css(raw_css)).to eq(':root { --op-accent: #41596B; }')
+      end
+    end
+
+    context 'with url(javascript:...) in a property value' do
+      let(:raw_css) { ':root { --op-accent: red; } body { background: url(javascript:alert(1)); }' }
+
+      include_examples 'blocks script injection vectors'
+    end
+
+    context 'with a closing-brace breakout and javascript: URL' do
+      let(:raw_css) { ':root { --op-accent: red; } } body { background: url(javascript:alert(1)) } /*' }
+
+      include_examples 'blocks script injection vectors'
+    end
+
+    context 'with expression(...)' do
+      let(:raw_css) { 'body { width: expression(alert(1)); }' }
+
+      include_examples 'blocks script injection vectors'
+    end
+
+    context 'with @import javascript:' do
+      let(:raw_css) { '@import url(javascript:alert(1)); :root { --op-accent: red; }' }
+
+      include_examples 'blocks script injection vectors'
+    end
+
+    context 'with legacy IE behavior and -moz-binding properties' do
+      let(:raw_css) { 'body { behavior: url(evil.htc); -moz-binding: url(evil.xml#xss); }' }
+
+      include_examples 'blocks script injection vectors'
+    end
+
+    context 'with a data: URI carrying HTML script markup' do
+      let(:raw_css) { ':root { --op-accent: url(data:text/html,<script>alert(1)</script>); }' }
+
+      include_examples 'blocks script injection vectors'
+    end
+
+    context 'with a </style><script> HTML breakout attempt' do
+      let(:raw_css) { '</style><script>alert(1)</script><style> :root { --op-accent: red; }' }
+
+      include_examples 'blocks script injection vectors'
+
+      it 'still preserves the legitimate custom property' do
+        expect(theme.sanitize_css(raw_css)).to include('--op-accent: red')
+      end
+    end
+  end
+
+  describe '.idp_theme_css' do
+    before(:all) do
+      ENV['CLIENT'] = 'test'
+    end
+
+    context 'when the theme has a configured accent color' do
+      let!(:theme) { create(:hmis_theme, hmis_value: { 'palette' => { 'primary' => { 'main' => '#41596B' } } }) }
+
+      it 'renders it as a CSS custom property' do
+        expect(GrdaWarehouse::Theme.idp_theme_css).to eq(':root { --op-accent: #41596B; }')
+      end
+    end
+
+    context 'when the theme has no palette configured' do
+      let!(:theme) { create(:theme) }
+
+      it 'returns an empty string' do
+        expect(GrdaWarehouse::Theme.idp_theme_css).to eq('')
+      end
+    end
+
+    context 'when hmis_value is an empty string (treated as "not an HMIS theme")' do
+      let!(:theme) { create(:theme, hmis_value: '') }
+
+      it 'returns an empty string rather than raising' do
+        expect(GrdaWarehouse::Theme.idp_theme_css).to eq('')
+      end
+    end
+
+    context 'when the configured value contains a CSS injection attempt' do
+      let!(:theme) do
+        create(
+          :hmis_theme,
+          hmis_value: {
+            'palette' => {
+              'primary' => {
+                'main' => 'red; } body { background: url(javascript:alert(1)) } /*',
+              },
+            },
+          },
+        )
+      end
+
+      it 'strips the dangerous content rather than passing it through verbatim' do
+        result = GrdaWarehouse::Theme.idp_theme_css
+
+        expect(result).not_to include('javascript:')
+        expect(result).not_to include('alert(')
+      end
+    end
+  end
 end

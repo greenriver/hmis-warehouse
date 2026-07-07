@@ -6,6 +6,8 @@
 
 # frozen_string_literal: true
 
+require 'sanitize'
+
 # Example for testing:
 # GrdaWarehouse::Theme.create!(
 #   client: 'myclient', # should match ENV['CLIENT']
@@ -50,7 +52,7 @@ module GrdaWarehouse
 
       theme.set_theme_default_css!
       theme.save!
-      theme.css_file_contents
+      theme.sanitize_css(theme.css_file_contents)
     end
 
     def self.logo
@@ -92,6 +94,30 @@ module GrdaWarehouse
 
     def self.active_theme
       where(client: ENV.fetch('CLIENT')).first_or_create
+    end
+
+    CSS_PROPERTY_NAME_PATTERN = /\A-{0,2}[a-zA-Z_][a-zA-Z0-9_-]*\z/
+
+    # This method provides CSS to the IdP.
+    # If you add any of the supported CSS properties to the Warehouse Theme input,
+    # they will be used on the IdP login screens.
+    # Supported CSS properties are:
+    # --op-accent
+    def self.idp_theme_css
+      active_theme.css_file_contents
+    end
+
+    # Sanitize CSS entered by the user.  The allowlist is derived from whatever
+    # property-name-shaped tokens are present in the input, keeping only ones that look like real CSS
+    # identifiers (covers standard names, vendor-prefixed names, and
+    # --custom-properties). Sanitize::CSS itself filters property *values* (url(javascript:...),
+    # expression(), etc.)
+    def sanitize_css(raw_css)
+      candidate_names = raw_css.scan(/([-a-zA-Z_][-a-zA-Z0-9_]*)\s*:/).flatten
+      allowed_properties = candidate_names.select { |name| name.match?(CSS_PROPERTY_NAME_PATTERN) }.to_set
+
+      sanitized = Sanitize::CSS.stylesheet(raw_css, css: Sanitize::Config::DEFAULT[:css].merge(properties: allowed_properties))
+      sanitized.gsub(/<[^>]*>/i, '')
     end
 
     def set_theme_default_logo!
