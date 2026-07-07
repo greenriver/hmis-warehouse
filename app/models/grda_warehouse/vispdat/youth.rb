@@ -101,7 +101,7 @@ module GrdaWarehouse::Vispdat
       ran_away: "Because you ran away from your family home, a group home or a foster home?",
       religious_beliefs: "Because of a difference in religious or cultural beliefs from your parents, guardians or caregivers?",
       homeless_due_to_family: "Because your family or friends caused you to become homeless?",
-      gender_identity: "Because of conficts around gender identity or sexual orientation?",
+      gender_identity: "Because of conflicts around gender identity or sexual orientation?",
       due_to_violence: "Because of violence at home between family members?",
       due_to_abuse: "Because of an unhealthy or abusive relationship, either at home or elsewhere?",
       currently_pregnant: "Are you currently pregnant, have you ever been pregnant, or have you ever gotten someone pregnant?",

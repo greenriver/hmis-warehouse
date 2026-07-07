@@ -54,18 +54,6 @@ namespace :keycloak do
     Time.zone.parse(raw) || (warn("Error: could not parse since: #{raw}") || exit(1))
   end
 
-  # Refuse to build credentials under AUTH_METHOD=jwt. Building a TOTP credential
-  # reads User#otp_secret, an accessor the :two_factor_authenticatable Devise
-  # macro provides only in devise mode (UserConcern gates the macro behind
-  # AuthMethod.devise?).
-  #
-  def keycloak_assert_devise!
-    return if AuthMethod.devise?
-
-    warn 'Error: keycloak user migration requires AUTH_METHOD=devise (Devise credential accessors such as User#otp_secret are disabled under jwt). Re-run prefixed with AUTH_METHOD=devise, e.g. AUTH_METHOD=devise bin/rails keycloak:migrate_users'
-    exit 1
-  end
-
   desc 'Migrate users from Devise to Keycloak in batches'
   task :migrate_users, [:limit, :batch_size, :policy, :since] => :environment do |_t, args|
     limit = args[:limit]&.to_i
@@ -73,7 +61,6 @@ namespace :keycloak do
     policy = args[:policy] || 'OVERWRITE'
     since = keycloak_since(args[:since])
 
-    keycloak_assert_devise!
     importer = keycloak_importer
 
     users_scope = Idp::Keycloak::UserImporter.migration_scope(since: since)
@@ -120,7 +107,6 @@ namespace :keycloak do
     limit = args[:limit]&.to_i
     since = keycloak_since(args[:since])
 
-    keycloak_assert_devise!
     importer = keycloak_importer
 
     users_scope = Idp::Keycloak::UserImporter.migration_scope(since: since)
@@ -173,8 +159,6 @@ namespace :keycloak do
 
   desc 'Import a single user to Keycloak (for testing)'
   task :import_single_user, [:email] => :environment do |_t, args|
-    keycloak_assert_devise!
-
     email = args[:email]
     unless email
       warn 'Usage: rails keycloak:import_single_user[user@example.com]'

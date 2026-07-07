@@ -10,14 +10,6 @@ module UserConcern
   extend ActiveSupport::Concern
   include HasPiiAttributes
 
-  if AuthMethod.jwt?
-    include Idp::JwtUser
-    include Idp::Support
-  else
-    include DeviseUser
-    include OmniauthSupport
-  end
-
   included do
     include Rails.application.routes.url_helpers
     include UserPermissions
@@ -33,6 +25,30 @@ module UserConcern
     pii_attr :phone
 
     attr_accessor :remember_device, :device_name, :client_access_arbiter, :copy_form_id
+
+    # Include default devise modules. Others available are:
+    devise :invitable,
+           :recoverable,
+           :rememberable,
+           :trackable,
+           # :validatable,
+           :secure_validatable,
+           :lockable,
+           :timeoutable,
+           :confirmable,
+           :session_limitable,
+           :pwned_password,
+           :expirable,
+           :password_expirable,
+           :password_archivable,
+           :two_factor_authenticatable,
+           :two_factor_backupable,
+           password_length: 10..128,
+           otp_secret_encryption_key: ENV['ENCRYPTION_KEY'],
+           otp_secret_length: 26, # 128 bits keys, per RFC 4226. See GHSA-qjxf-mc72-wjr2
+           otp_number_of_backup_codes: 10
+
+    include OmniauthSupport
 
     # Doorkeeper
     has_many :access_grants, class_name: 'Doorkeeper::AccessGrant', foreign_key: :resource_owner_id, dependent: :delete_all # or :destroy if you need callbacks
@@ -120,6 +136,26 @@ module UserConcern
       where(id: subscribed_user_ids)
     end
 
+    scope :active, -> do
+      where(
+        arel_table[:active].eq(true).and(
+          arel_table[:expired_at].eq(nil).
+          or(arel_table[:expired_at].gt(Time.current)),
+        ).and(
+          arel_table[:last_activity_at].eq(nil).
+          or(arel_table[:last_activity_at].gt(expire_after.ago)),
+        ),
+      )
+    end
+
+    scope :inactive, -> do
+      where(
+        arel_table[:active].eq(false).
+        or(arel_table[:expired_at].lteq(Time.current)).
+        or(arel_table[:last_activity_at].lteq(expire_after.ago)),
+      )
+    end
+
     scope :care_coordinators, -> do
       care_coordinator_ids = Health::Patient.pluck(:care_coordinator_id)
       where(id: care_coordinator_ids)
@@ -133,6 +169,12 @@ module UserConcern
 
     scope :in_directory, -> do
       active.not_system.where(exclude_from_directory: false)
+    end
+
+    # users that have currently active sessions (either in the warehouse or in HMIS)
+    scope :has_recent_activity, -> do
+      where(last_activity_at: timeout_in.ago..Time.current).
+        where.not(unique_session_id: nil, hmis_unique_session_id: nil)
     end
 
     scope :using_acls, -> do
@@ -180,12 +222,34 @@ module UserConcern
       GrdaWarehouse::WarehouseReports::ReportDefinition.viewable_by(self).where(url: 'censuses').exists?
     end
 
+    def active_for_authentication?
+      super && active
+    end
+
+    # Allow logins to be case insensitive at login time
+    def self.find_for_authentication(conditions)
+      conditions[:email].downcase!
+      super(conditions)
+    end
+
+    def timeout_time(session)
+      Time.current + (Devise.timeout_in - (Time.now.utc - (session['last_request_at'].presence || 0)).to_i)
+    end
+
+    def future_expiration?
+      expired_at.present? && expired_at > Time.current
+    end
+
     def limited_client_view?
       ! can_view_clients?
     end
 
     def self.stale_account_threshold
       30.days.ago
+    end
+
+    def stale_account?
+      current_sign_in_at < self.class.stale_account_threshold
     end
 
     def impersonateable_by?(user)
@@ -272,12 +336,167 @@ module UserConcern
       @credential_options ||= User.pluck(:credentials).compact.uniq.sort
     end
 
+    def two_factor_label
+      label = Translation.translate('Open Path HMIS Warehouse')
+      Rails.env.production? ? label : "#{label} [#{Rails.env}]"
+    end
+
+    def two_factor_issuer
+      "#{two_factor_label} #{email}"
+    end
+
+    # clears all otp secrets
+    def reset_two_factor_model_attrs
+      self.encrypted_otp_secret = nil
+      self.encrypted_otp_secret_iv = nil
+      self.encrypted_otp_secret_salt = nil
+      self.otp_backup_codes = nil
+      self.otp_secret = nil
+      self.confirmed_2fa = 0
+      self.otp_required_for_login = false
+    end
+
     def my_root_path
       return clients_path if GrdaWarehouse::Config.client_search_available? && can_search_own_clients?
       return warehouse_reports_path if can_view_any_reports?
       return censuses_path if can_view_censuses?
 
       root_path
+    end
+
+    # ensure we have a secret
+    def set_initial_two_factor_secret!
+      return if otp_secret.present?
+
+      update(otp_secret: User.generate_otp_secret)
+    end
+
+    def two_factor_enabled?
+      otp_secret.present? && otp_required_for_login? && passed_2fa_confirmation?
+    end
+
+    def confirmation_step
+      (confirmed_2fa + 1).ordinalize
+    end
+
+    def passed_2fa_confirmation?
+      confirmed_2fa.positive?
+    end
+
+    def disable_2fa!
+      update(
+        confirmed_2fa: 0,
+        otp_required_for_login: false,
+        otp_backup_codes: nil,
+      )
+    end
+
+    def record_failure_and_lock_access_if_exceeded!
+      # Due to a bug, failed PWs double increment failed attempts. To
+      # compensate, we double the lockout threshold. To match the PW
+      # behavior, double up on failures due to OTP
+      # https://github.com/tinfoil/devise-two-factor/issues/28
+      transaction do
+        2.times do # intentional double increment
+          increment_failed_attempts
+        end
+      end
+      # outside of transaction since this method sends email
+      return unless attempts_exceeded?
+
+      lock_access! unless access_locked?
+    end
+
+    def invitation_status
+      if invitation_accepted_at.present? || invitation_sent_at.blank?
+        :active
+      elsif invitation_due_at > Time.now
+        :pending_confirmation
+      else
+        :invitation_expired
+      end
+    end
+
+    # Enforce a known value is included in the devise salt
+    # this allows us to invalidate sessions even though they are stored in redis
+    def authenticatable_salt
+      base_salt = super
+      return base_salt if custom_session_invalidator.blank?
+
+      # Poison the salt to force the user to re-login by changing custom_session_invalidator
+      # Make sure the salt isn't changing length
+      Digest::SHA256.base64digest("#{base_salt}#{custom_session_invalidator}")[0, base_salt.length]
+    end
+
+    def force_logout!
+      update_attribute(:custom_session_invalidator, SecureRandom.hex)
+    end
+
+    # Dependent on devise expire_password_after being set to a value other than false
+    def force_password_reset!
+      return false unless password_expiration_enabled?
+
+      # Immediately logout the user
+      self.custom_session_invalidator = SecureRandom.hex
+      # Force a password change on next login
+      need_change_password! # calls save internally
+
+      # Return true to indicate success
+      true
+    end
+
+    # Prevent sending confirmation emails if the user has an open invitation
+    def send_reset_password_instructions
+      if invitation_token.present?
+        errors.add :email, 'There is an open invitation for this account.'
+        false
+      else
+        super
+      end
+    end
+
+    # Prevent confirming accounts if the user has an open invitation
+    def pending_any_confirmation
+      if invitation_token.present?
+        errors.add :email, 'There is an open invitation for this account.'
+        false
+      else
+        super
+      end
+    end
+
+    # @return [Array] an array of text that describes the status of the account
+    def overall_status(current_user)
+      return ['Active'] if active_for_authentication?
+      return ['Pending invitation confirmation'] if invitation_status == :pending_confirmation
+
+      text = []
+      text << 'Invitation expired' if invitation_status == :invitation_expired
+      if expired_at?
+        text << "Account expired on #{expired_at}"
+      elsif expired?
+        text << "Account expired due to inactivity. Last activity on #{last_activity_at}"
+      else
+        text << deactivation_status(current_user)
+      end
+      text
+    end
+
+    def deactivation_status(user)
+      return unless inactive?
+
+      # The PaperTrail versions association has a fixed order with newest last
+      version = versions.where(event: 'deactivate').last
+
+      return 'Account deactivated' unless version
+      return "Account deactivated on #{version.created_at}" unless user.can_audit_users? || version.whodunnit.blank?
+
+      name = nil
+      name = User.find_by(id: version.whodunnit)&.name if version.whodunnit&.to_i&.to_s == version.whodunnit
+
+      return "Account deactivated on #{version.created_at}" unless name
+
+      "Account deactivated by #{name} on #{version.created_at}"
     end
 
     # Search for users by name (prefix) or email (substring, e.g. domain).
@@ -317,6 +536,19 @@ module UserConcern
       end
     end
 
+    def self.setup_system_user
+      user = find_by(email: 'noreply@greenriver.com')
+      return user if user.present?
+
+      user = only_deleted.find_by(email: 'noreply@greenriver.com')
+      user&.restore
+      return user if user.present?
+
+      invite!(email: 'noreply@greenriver.com', first_name: 'System', last_name: 'User', agency_id: 0) do |u|
+        u.skip_invitation = true
+      end
+    end
+
     def self.system_user
       # Test environments really don't like caching this
       return setup_system_user if Rails.env.test?
@@ -332,6 +564,12 @@ module UserConcern
       return true if system_user?
 
       can_report_on_confidential_projects
+    end
+
+    def inactive?
+      return true unless active?
+
+      expired?
     end
 
     # TODO: START_ACL remove when ACL transition complete
@@ -603,6 +841,10 @@ module UserConcern
           entity_type: model.sti_name,
         ).select(:entity_id),
       )
+    end
+
+    def skip_session_limitable?
+      ENV.fetch('SKIP_SESSION_LIMITABLE', false) == 'true'
     end
 
     # Returns an array of hashes of access group name => [item names]

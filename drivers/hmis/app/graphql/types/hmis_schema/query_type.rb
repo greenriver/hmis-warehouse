@@ -666,6 +666,15 @@ module Types
       Hmis::UnitGroup.viewable_by(current_user).find_by(id: id)
     end
 
+    field :unit_groups, HmisSchema::UnitGroup.page_type, null: false do
+      filters_argument HmisSchema::UnitGroup
+    end
+    def unit_groups(filters: nil)
+      scope = Hmis::UnitGroup.viewable_by(current_user)
+      scope = scope.apply_filters(filters) if filters.present?
+      scope.order(:name, :id)
+    end
+
     field :unit, HmisSchema::Unit, null: true do
       argument :id, ID, required: true
     end
@@ -673,19 +682,40 @@ module Types
       Hmis::Unit.viewable_by(current_user).find_by(id: id)
     end
 
+    field :ce_match_rule, HmisSchema::CeMatchRule, null: false do
+      argument :id, ID, required: true
+    end
+    def ce_match_rule(id:)
+      rule = Hmis::Ce::Match::Rule.find_by(id: id)
+      access_denied! unless rule && policy_for(rule, policy_type: :ce_match_rule).can_view?
+
+      rule
+    end
+
+    field :ce_match_rules, HmisSchema::CeMatchRule.page_type, null: false, description: 'Coordinated Entry Match Rules in the current data source.' do
+      filters_argument HmisSchema::CeMatchRule
+    end
+    def ce_match_rules(filters: nil)
+      access_denied! unless policy_for(Hmis::Ce::Match::Rule, policy_type: :ce_match_rule).can_manage?
+
+      # TODO(#9337) Support viewing and editing priority schemes
+      scope = Hmis::Ce::Match::Rule.in_data_source(current_user.hmis_data_source_id).eligibility_requirement
+      scope = scope.apply_filters(filters) if filters.present?
+      scope.order(:id)
+    end
+
+    # Client fields (from ClientFieldMap) available in CE Match Rule expressions.
+
     field :ce_match_client_fields, [HmisSchema::CeMatchField], null: false, description: 'Client fields available for CE Match Rule expressions.'
     def ce_match_client_fields
-      access_denied! unless policy_for(Hmis::Form::Definition, policy_type: :form_definition).can_administrate_config?
-      # TODO: when UI is ready for non-GR users, replace with:
-      # access_denied! unless policy_for(Hmis::Ce::Match::Rule, policy_type: :ce_match_rule).can_manage?
-      # and do the same in the next two queries.
+      access_denied! unless policy_for(Hmis::Ce::Match::Rule, policy_type: :ce_match_rule).can_manage?
 
       Hmis::Ce::Match::FieldCatalog.new.client_fields
     end
 
     field :ce_match_custom_assessment_forms, [Forms::FormDefinition], null: false, description: 'Custom assessment form definitions for use in CE match rule management.'
     def ce_match_custom_assessment_forms
-      access_denied! unless policy_for(Hmis::Form::Definition, policy_type: :form_definition).can_administrate_config?
+      access_denied! unless policy_for(Hmis::Ce::Match::Rule, policy_type: :ce_match_rule).can_manage?
 
       Hmis::Form::Definition.
         with_role(:CUSTOM_ASSESSMENT).
@@ -699,7 +729,7 @@ module Types
       argument :form_definition_identifier, String, required: true
     end
     def ce_match_custom_assessment_fields(form_definition_identifier:)
-      access_denied! unless policy_for(Hmis::Form::Definition, policy_type: :form_definition).can_administrate_config?
+      access_denied! unless policy_for(Hmis::Ce::Match::Rule, policy_type: :ce_match_rule).can_manage?
 
       Hmis::Ce::Match::FieldCatalog.new.custom_assessment_fields_for(
         data_source_id: current_user.hmis_data_source_id,
