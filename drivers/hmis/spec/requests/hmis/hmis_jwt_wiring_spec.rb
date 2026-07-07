@@ -32,6 +32,17 @@ RSpec.describe 'HMIS JWT wiring', type: :request, if: AuthMethod.jwt? do
       expect(JSON.parse(response.body)).to include('success' => true)
     end
 
+    it 'admits the frontend\'s plain credentialed GET session_keepalive (no CSRF header)' do
+      user = create(:hmis_user)
+      allow(User).to receive(:find_or_create_from_jwt).and_return(User.find(user.id))
+      sign_in(user)
+
+      get hmis_session_keepalive_path, headers: headers
+
+      expect(response).to have_http_status(:ok)
+      expect(JSON.parse(response.body)).to include('success' => true)
+    end
+
     it 'returns a JSON 401 for an unauthenticated request (no forwarded token), not an HTML redirect' do
       post hmis_session_keepalive_path, headers: headers
 
@@ -94,6 +105,9 @@ RSpec.describe 'HMIS JWT wiring', type: :request, if: AuthMethod.jwt? do
         user_id: target_user.id,
         true_user_id: admin_user.id,
       )
+      parsed = JSON.parse(response.body)
+      expect(parsed['trueUser']).to eq('id' => admin_user.id.to_s, 'name' => admin_user.name)
+      expect(parsed).to have_key('primaryIdp')
 
       delete hmis_impersonations_path, headers: headers
       expect(response).to have_http_status(:ok)
@@ -114,6 +128,18 @@ RSpec.describe 'HMIS JWT wiring', type: :request, if: AuthMethod.jwt? do
       redirect_url = JSON.parse(response.body)['redirect_url']
       expect(redirect_url).to start_with('/oauth2/sign_out?rd=')
       expect(CGI.unescape(redirect_url.split('rd=').last)).to eq(root_path)
+    end
+  end
+
+  describe '#valid_request_origin?' do
+    it 'skips the Origin/base_url match (oauth2-proxy injects the trusted access-token header off its own session; there is no ambient auth cookie for a forged cross-site request to ride)' do
+      controller = Hmis::BaseController.new
+      # Reproduces the reported bug: Origin arrives with a trailing slash somewhere in the local
+      # oauth2-proxy/vite proxy chain and would never equal request.base_url.
+      request = double(origin: 'https://hmis-warehouse.dev.test/', base_url: 'https://hmis-warehouse.dev.test')
+      allow(controller).to receive(:request).and_return(request)
+
+      expect(controller.send(:valid_request_origin?)).to eq(true)
     end
   end
 

@@ -40,9 +40,7 @@ class Hmis::ImpersonationsController < Hmis::BaseController
   end
 
   def render_success
-    payload = current_hmis_user&.current_user_api_values || {}
-    payload[:impersonating] = impersonating?
-    render json: payload
+    render json: current_user_payload
   end
 
   def render_error(message)

@@ -33,7 +33,9 @@ OpenPath::Application.routes.draw do
       end
 
       resource :user, only: [:show]
-      resource :session_keepalive, only: [:create]
+      # :show (GET) is what the frontend actually polls with, since it sends credentials: 'include'
+      # with no CSRF header; :create (POST) is kept for any existing caller expecting the old verb.
+      resource :session_keepalive, only: [:create, :show]
 
       if AuthMethod.devise?
         devise_scope :hmis_user do

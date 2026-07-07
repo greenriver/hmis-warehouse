@@ -35,6 +35,20 @@ class Hmis::BaseController < ActionController::Base
     cookies['CSRF-Token'] = form_authenticity_token
   end
 
+  # Under AUTH_METHOD=jwt, Rails doesn't trust any ambient cookie for authentication -- the
+  # access token arrives via X-Forwarded-Access-Token, a header injected server-side by
+  # oauth2-proxy off its own session, not something a forged cross-site request can set. So the
+  # Origin-vs-base_url check (meant to stop a forged request riding an ambient session cookie)
+  # isn't guarding a credential Rails relies on here. It also breaks in practice: Origin arrives
+  # with a trailing slash somewhere in the local oauth2-proxy/vite proxy chain and will never
+  # equal request.base_url. Authenticity-token validation still runs (the SPA round-trips the
+  # CSRF-Token cookie set above), so this only relaxes the same-origin half of the check.
+  private def valid_request_origin?
+    return true if AuthMethod.jwt?
+
+    super
+  end
+
   # Override the devise implementation to reset the session
   # and return 401, instead of raising InvalidAuthenticityToken
   def handle_unverified_request
@@ -97,6 +111,14 @@ class Hmis::BaseController < ActionController::Base
 
   def impersonating?
     true_hmis_user != current_hmis_user
+  end
+
+  # Shared shape for any endpoint that reports the signed-in HMIS user (user.json, impersonations).
+  def current_user_payload
+    payload = current_hmis_user&.current_user_api_values || {}
+    payload[:impersonating] = impersonating?
+    payload[:trueUser] = { id: true_hmis_user.id.to_s, name: true_hmis_user.name } if true_hmis_user.present?
+    payload
   end
 
   # for mixins
