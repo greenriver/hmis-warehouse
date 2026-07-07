@@ -6,9 +6,9 @@
 
 # frozen_string_literal: true
 
-# Service that controls whether a destination client is excluded from exports
-# shared with external parties. Exclusion state is stored in
-# GrdaWarehouse::ClientAttribute#external_data_sharing_exclusion_flag.
+# Agencies can mark individual clients to be excluded from exports. When a client
+# is flagged, they are omitted from both the client and enrollment rows of every
+# affected HMIS CSV export.
 #
 # Usage:
 #   svc = ClientExternalDataSharing.new(client)
@@ -21,6 +21,10 @@
 # flag. When the flag is disabled, Export::Scopes skips the exclusion query
 # entirely — this service does not check the config itself.
 class ClientExternalDataSharing
+  def self.enabled?
+    GrdaWarehouse::Config.get(:enable_external_data_sharing_exclusion)
+  end
+
   def initialize(client)
     @client = client
   end
@@ -34,12 +38,11 @@ class ClientExternalDataSharing
 
   def set_exclusion!(value:, user: nil)
     record = GrdaWarehouse::ClientAttribute.find_or_initialize_by(client_id: @client.id)
-    record.assign_attributes(
+    record.update!(
       external_data_sharing_exclusion_flag: value,
       external_data_sharing_updated_by: user&.id || User.system_user.id,
       external_data_sharing_updated_at: Time.current,
     )
-    record.save!
   end
 
   def last_update

@@ -6,8 +6,7 @@
     - else
       %span.badge.text-bg-secondary Included in External Data Sharing
     - if can_edit_clients?
-      = link_to external_sharing_flag_client_path(client),
+      = link_to client_external_data_sharing_path(client),
           class: 'text-muted',
-          title: 'Edit external data sharing preference',
-          data: { loads_in_ajax_modal: true } do
+          title: 'Edit external data sharing preference' do
         %i.icon-pencil

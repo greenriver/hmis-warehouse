@@ -23,9 +23,9 @@ class ClientsController < ApplicationController
   before_action :require_can_view_some_client_dashboard!, only: [:show, :service_range, :rollup, :image]
   before_action :require_can_view_enrollment_details!, only: [:enrollment_details]
   before_action :require_can_see_this_client_demographics!, except: [:new, :create, :simple, :appropriate, :assessment, :health_assessment]
-  before_action :require_can_edit_clients!, only: [:edit, :merge, :unmerge, :external_sharing_flag, :update_external_sharing_flag]
+  before_action :require_can_edit_clients!, only: [:edit, :merge, :unmerge]
   before_action :require_can_create_clients!, only: [:new, :create]
-  before_action :set_client, only: [:show, :edit, :merge, :unmerge, :service_range, :rollup, :image, :chronic_days, :enrollment_details, :external_sharing_flag, :update_external_sharing_flag]
+  before_action :set_client, only: [:show, :edit, :merge, :unmerge, :service_range, :rollup, :image, :chronic_days, :enrollment_details]
   before_action :set_search_client, only: [:simple, :appropriate]
   before_action :set_client_start_date, only: [:show, :edit, :rollup]
   before_action :set_potential_matches, only: [:edit]
@@ -74,6 +74,7 @@ class ClientsController < ApplicationController
     elsif clean_params[:bypass_search].present? || existing_matches.empty?
       # Create a new source and destination client
       # and redirect to the new client show page
+      created_dest = nil
       client_source.transaction do
         destination_ds_id = GrdaWarehouse::DataSource.destination.first.id
         @client.save
@@ -94,7 +95,7 @@ class ClientsController < ApplicationController
           data_source_id: @client.data_source_id,
         )
         if @client.persisted? && destination_client.persisted? && warehouse_client.persisted?
-          ClientExternalDataSharing.new(destination_client).set_exclusion!(value: true, user: current_user) if @exclude_from_external_data_sharing && GrdaWarehouse::Config.get(:enable_external_data_sharing_exclusion)
+          created_dest = destination_client
           flash[:notice] = "Client #{@client.full_name} created."
           after_create_path = client_path_generator
           if @client.data_source.after_create_path.present?
@@ -108,6 +109,7 @@ class ClientsController < ApplicationController
           render action: :new
         end
       end
+      ClientExternalDataSharing.new(created_dest).set_exclusion!(value: true, user: current_user) if created_dest && @exclude_from_external_data_sharing && ClientExternalDataSharing.enabled?
     end
   end
 
@@ -306,21 +308,6 @@ class ClientsController < ApplicationController
     datepart table, part, date
   end
   helper_method :dp
-
-  def external_sharing_flag
-    redirect_to(polymorphic_path(client_path_generator, id: @client.id)) unless GrdaWarehouse::Config.get(:enable_external_data_sharing_exclusion)
-  end
-
-  def update_external_sharing_flag
-    return unless GrdaWarehouse::Config.get(:enable_external_data_sharing_exclusion)
-
-    ClientExternalDataSharing.new(@client).set_exclusion!(
-      value: params[:exclude_from_external_data_sharing] == '1',
-      user: current_user,
-    )
-    flash[:notice] = 'External data sharing preference saved.'
-    render_close_modal_and_reload_page
-  end
 
   protected def handle_unused_search
     # We keep this old action because we may need it some day

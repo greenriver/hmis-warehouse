@@ -97,6 +97,32 @@ RSpec.describe Export::Scopes do
         expect(ids).not_to include(double_restricted.id)
         expect(ids).to include(dest_client.id)
       end
+
+      it 'does not issue more queries as the number of excluded clients grows (no N+1)' do
+        3.times do
+          src = create(:hud_client, data_source: source_ds)
+          create(:hud_enrollment, data_source: source_ds, ProjectID: project.ProjectID, PersonalID: src.PersonalID)
+          ClientExternalDataSharing.new(make_destination(src)).set_exclusion!(value: true)
+        end
+        exporter_3 = build_exporter([project.id])
+        count_3 = 0
+        ActiveSupport::Notifications.subscribed(->(*) { count_3 += 1 }, 'sql.active_record') do
+          exporter_3.client_scope.to_a
+        end
+
+        3.times do
+          src = create(:hud_client, data_source: source_ds)
+          create(:hud_enrollment, data_source: source_ds, ProjectID: project.ProjectID, PersonalID: src.PersonalID)
+          ClientExternalDataSharing.new(make_destination(src)).set_exclusion!(value: true)
+        end
+        exporter_6 = build_exporter([project.id])
+        count_6 = 0
+        ActiveSupport::Notifications.subscribed(->(*) { count_6 += 1 }, 'sql.active_record') do
+          exporter_6.client_scope.to_a
+        end
+
+        expect(count_6).to be <= count_3
+      end
     end
   end
 
@@ -159,6 +185,32 @@ RSpec.describe Export::Scopes do
         ids = exporter.enrollment_scope.pluck(:id)
         expect(ids).not_to include(new_enrollment.id)
         expect(ids).to include(enrollment.id)
+      end
+
+      it 'does not issue more queries as the number of excluded clients grows (no N+1)' do
+        3.times do
+          src = create(:hud_client, data_source: source_ds)
+          create(:hud_enrollment, data_source: source_ds, ProjectID: project.ProjectID, PersonalID: src.PersonalID)
+          ClientExternalDataSharing.new(make_destination(src)).set_exclusion!(value: true)
+        end
+        exporter_3 = build_exporter([project.id])
+        count_3 = 0
+        ActiveSupport::Notifications.subscribed(->(*) { count_3 += 1 }, 'sql.active_record') do
+          exporter_3.enrollment_scope.to_a
+        end
+
+        3.times do
+          src = create(:hud_client, data_source: source_ds)
+          create(:hud_enrollment, data_source: source_ds, ProjectID: project.ProjectID, PersonalID: src.PersonalID)
+          ClientExternalDataSharing.new(make_destination(src)).set_exclusion!(value: true)
+        end
+        exporter_6 = build_exporter([project.id])
+        count_6 = 0
+        ActiveSupport::Notifications.subscribed(->(*) { count_6 += 1 }, 'sql.active_record') do
+          exporter_6.enrollment_scope.to_a
+        end
+
+        expect(count_6).to be <= count_3
       end
     end
   end

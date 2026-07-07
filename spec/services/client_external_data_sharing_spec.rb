@@ -12,6 +12,22 @@ RSpec.describe ClientExternalDataSharing, type: :model do
   let(:data_source) { create(:grda_warehouse_data_source) }
   let(:client) { create(:hud_client, data_source: data_source) }
 
+  describe '.enabled?' do
+    it 'returns true when the config flag is enabled' do
+      allow(GrdaWarehouse::Config).to receive(:get).
+        with(:enable_external_data_sharing_exclusion).
+        and_return(true)
+      expect(ClientExternalDataSharing.enabled?).to be true
+    end
+
+    it 'returns false when the config flag is disabled' do
+      allow(GrdaWarehouse::Config).to receive(:get).
+        with(:enable_external_data_sharing_exclusion).
+        and_return(false)
+      expect(ClientExternalDataSharing.enabled?).to be false
+    end
+  end
+
   describe '#excluded?' do
     it 'returns false when no ClientAttribute row exists' do
       expect(ClientExternalDataSharing.new(client).excluded?).to be false

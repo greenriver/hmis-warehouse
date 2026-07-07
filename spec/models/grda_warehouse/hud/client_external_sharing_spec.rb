@@ -154,4 +154,27 @@ RSpec.describe GrdaWarehouse::Hud::Client, '#merge_from and #split external data
       end
     end
   end
+
+  describe 'associations' do
+    it 'exposes client_attribute via has_one' do
+      expect(dest_a.client_attribute).to be_nil # none created yet
+      ClientExternalDataSharing.new(dest_a).set_exclusion!(value: true)
+      dest_a.reload
+      expect(dest_a.client_attribute).to be_a(GrdaWarehouse::ClientAttribute)
+      expect(dest_a.client_attribute.client_id).to eq(dest_a.id)
+    end
+
+    it 'destroys the client_attribute when the destination client is destroyed' do
+      ClientExternalDataSharing.new(dest_a).set_exclusion!(value: true)
+      attr_id = dest_a.client_attribute.reload.id
+      dest_a.destroy
+      expect(GrdaWarehouse::ClientAttribute.where(id: attr_id)).to be_empty
+    end
+
+    it 'exposes the client via belongs_to :client on ClientAttribute' do
+      ClientExternalDataSharing.new(dest_a).set_exclusion!(value: true)
+      attr = GrdaWarehouse::ClientAttribute.find_by(client_id: dest_a.id)
+      expect(attr.client).to eq(dest_a)
+    end
+  end
 end

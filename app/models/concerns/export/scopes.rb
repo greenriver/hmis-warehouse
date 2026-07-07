@@ -140,39 +140,33 @@ module Export::Scopes
     private
 
     def exclude_external_data_sharing_restricted_clients(scope)
-      restricted_ids = external_data_sharing_restricted_destination_ids
-      return scope if restricted_ids.empty?
+      return scope unless ClientExternalDataSharing.enabled?
 
-      scope.where.not(id: restricted_ids)
+      scope.
+        where.not(id: externally_excluded_client_ids).
+        where.not(id: embargoed_client_ids)
     end
 
     def exclude_external_data_sharing_restricted_enrollments(scope)
-      restricted_ids = external_data_sharing_restricted_destination_ids
-      return scope if restricted_ids.empty?
+      return scope unless ClientExternalDataSharing.enabled?
 
       scope.
         joins(client: :warehouse_client_source).
-        where(wc_t[:destination_id].not_in(restricted_ids))
-    end
-
-    def external_data_sharing_restricted_destination_ids
-      return [] unless GrdaWarehouse::Config.get(:enable_external_data_sharing_exclusion)
-
-      @external_data_sharing_restricted_destination_ids ||=
-        externally_excluded_client_ids + embargoed_client_ids
+        where(wc_t[:destination_id].not_in(externally_excluded_client_ids.arel)).
+        where(wc_t[:destination_id].not_in(embargoed_client_ids.arel))
     end
 
     def externally_excluded_client_ids
       GrdaWarehouse::ClientAttribute.
         where(external_data_sharing_exclusion_flag: true).
-        pluck(:client_id)
+        select(:client_id)
     end
 
     def embargoed_client_ids
       GrdaWarehouse::WarehouseClient.
         group(:destination_id).
         having('MIN(created_at) > ?', 1.week.ago).
-        pluck(:destination_id)
+        select(:destination_id)
     end
   end
 end
