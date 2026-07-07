@@ -102,6 +102,21 @@ RSpec.describe 'HMIS JWT wiring', type: :request, if: AuthMethod.jwt? do
     end
   end
 
+  describe 'logout' do
+    it 'returns the oauth2-proxy sign-out URL as a JSON redirect_url, not an HTTP redirect' do
+      user = create(:hmis_user)
+      allow(User).to receive(:find_or_create_from_jwt).and_return(User.find(user.id))
+      sign_in(user)
+
+      delete destroy_hmis_user_session_path, headers: headers
+
+      expect(response).to have_http_status(:ok)
+      redirect_url = JSON.parse(response.body)['redirect_url']
+      expect(redirect_url).to start_with('/oauth2/sign_out?rd=')
+      expect(CGI.unescape(redirect_url.split('rd=').last)).to eq(root_path)
+    end
+  end
+
   describe '#info_for_paper_trail' do
     # Distinct current/true users so the whodunnit's audit-under-impersonation behavior is actually
     # exercised: user_id must follow the impersonated user, true_user_id the real one.
