@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -71,41 +71,65 @@ module GrdaWarehouse
       # For update events: use index 1 (new value)
       index = version.event == 'destroy' ? 0 : 1
 
-      # Get the entity name from the version's item or object_changes
+      # Guard against YAML deserialization failures on old records (see Version#safe_object).
+      obj = version.safe_object
+      obj_changes = version.safe_object_changes
+
+      # Get the entity name from the version's item or version data
       entity_name = if version.item
         get_entity_display_name(version.item.entity_type, version.item.entity_id, version.item.entity)
       elsif ['create', 'destroy', 'update'].include?(version.event)
-        # if object is present, use it to get the entity data otherwise use object_changes
-        if version.object.present?
-          entity_id = version.object['entity_id']
-          entity_type = version.object['entity_type']
-        else
-          entity_id = version.object_changes['entity_id'][index]
-          entity_type = version.object_changes['entity_type'][index]
+        if obj.present?
+          get_entity_display_name(obj['entity_type'], obj['entity_id'])
+        elsif obj_changes.present?
+          entity_id = obj_changes['entity_id']&.[](index)
+          entity_type = obj_changes['entity_type']&.[](index)
+          get_entity_display_name(entity_type, entity_id)
         end
-        get_entity_display_name(entity_type, entity_id)
-      else
-        'Unknown Entity'
       end
+      entity_name ||= 'Unknown Entity'
 
-      # Get the collection name
-      collection_name = if version.item
-        version.item.collection&.name || "Collection ID #{version.item.collection_id}"
+      # Get the collection/access_group name (GVEs use collection_id for ACL or access_group_id for legacy)
+      changes = obj_changes || {}
+      path_name = if version.item
+        if version.item.collection_id.present?
+          version.item.collection&.name || "Collection ID #{version.item.collection_id}"
+        elsif version.item.access_group_id.present?
+          version.item.access_group&.name || "Access Group ID #{version.item.access_group_id}"
+        else
+          'Unknown Collection or Group'
+        end
       elsif ['create', 'destroy'].include?(version.event)
-        collection_id = version.object_changes['collection_id'][index]
-        collection = Collection.with_deleted.find_by(id: collection_id)
-        collection&.name || "Collection ID #{collection_id}"
+        if changes['collection_id']
+          collection_id = changes['collection_id'][index]
+          collection = Collection.with_deleted.find_by(id: collection_id)
+          collection&.name || "Collection ID #{collection_id}"
+        elsif changes['access_group_id']
+          access_group_id = changes['access_group_id'][index]
+          access_group = AccessGroup.with_deleted.find_by(id: access_group_id)
+          access_group&.name || "Access Group ID #{access_group_id}"
+        elsif obj&.dig('collection_id').present?
+          # Fall back to object column if object_changes has no path data. A GVE's object snapshot
+          # always carries both columns with one nil, so key off the populated value, not the key.
+          collection = Collection.with_deleted.find_by(id: obj['collection_id'])
+          collection&.name || "Collection ID #{obj['collection_id']}"
+        elsif obj&.dig('access_group_id').present?
+          access_group = AccessGroup.with_deleted.find_by(id: obj['access_group_id'])
+          access_group&.name || "Access Group ID #{obj['access_group_id']}"
+        else
+          'Unknown Collection or Group'
+        end
       else
-        'Unknown Collection'
+        'Unknown Collection or Group'
       end
 
       case version.event
       when 'create'
-        ["Added \"#{entity_name}\" to \"#{collection_name}\""]
+        ["Added \"#{entity_name}\" to \"#{path_name}\""]
       when 'update'
-        ["Modified \"#{entity_name}\" in \"#{collection_name}\""]
+        ["Modified \"#{entity_name}\" in \"#{path_name}\""]
       when 'destroy'
-        ["Removed \"#{entity_name}\" from \"#{collection_name}\""]
+        ["Removed \"#{entity_name}\" from \"#{path_name}\""]
       else
         ['Modified collection entity']
       end
@@ -121,6 +145,11 @@ module GrdaWarehouse
         else
           klass.find_by(id: entity_id)
         end
+      rescue NameError => e
+        # The stored entity_type references a class that no longer exists; degrade to the id
+        # rather than raising out of the audit render.
+        Rails.logger.warn("GroupViewableEntity.get_entity_display_name: unknown entity_type #{entity_type.inspect}: #{e.message}")
+        return "Entity ID #{entity_id}"
       end
       entity&.name
     end

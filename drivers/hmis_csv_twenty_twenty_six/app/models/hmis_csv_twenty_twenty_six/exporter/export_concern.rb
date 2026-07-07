@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -50,9 +50,9 @@ module HmisCsvTwentyTwentySix::Exporter::ExportConcern
       when :money
         rounded = row[hud_field].to_f.round(2)
         if positive
-          rounded.positive? ? rounded : nil
+          rounded.positive? ? format('%.2f', rounded) : nil
         else
-          rounded
+          format('%.2f', rounded)
         end
       when :integer
         row[hud_field].to_f.round(0) # Use to_f to round .9 to 1
@@ -136,6 +136,9 @@ module HmisCsvTwentyTwentySix::Exporter::ExportConcern
       keys
     end
 
+    # At this point row is an active record model, if you need to format things that are
+    # incompatible with the native datastructure (Active Record) you need to make the changes
+    # in the csv_destination file ./csv_destination.rb
     def process(row)
       row = assign_export_id(row)
       row = self.class.adjust_keys(row, @options[:export])

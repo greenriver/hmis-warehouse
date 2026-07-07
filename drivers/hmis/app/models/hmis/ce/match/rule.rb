@@ -1,3 +1,9 @@
+###
+# Copyright Green River Data Group, Inc.
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 # frozen_string_literal: true
 
 # requirement configuration for opportunities
@@ -26,6 +32,8 @@ module Hmis::Ce::Match
     acts_as_paranoid
     has_paper_trail
 
+    EXPRESSION_MAX_LENGTH = 2_000
+
     # lower numbers have a higher priority
     OWNER_PRECEDENCE = {
       'Hmis::UnitGroup' => 1,
@@ -40,6 +48,7 @@ module Hmis::Ce::Match
     validate :rule_type_is_not_changed, on: :update
 
     validates :name, presence: true
+    validates :expression, length: { maximum: EXPRESSION_MAX_LENGTH }
     validates :priority_rank, uniqueness: { scope: [:owner_type, :owner_id], allow_nil: true }
 
     ELIGIBILITY_REQUIREMENT = 'eligibility_requirement'
@@ -68,6 +77,21 @@ module Hmis::Ce::Match
 
     scope :priority_scheme, -> do
       where(rule_type: PRIORITY_SCHEME)
+    end
+
+    scope :in_data_source, ->(data_source_id) do
+      hmis_projects = Hmis::Hud::Project.where(data_source_id: data_source_id)
+      hmis_organizations = Hmis::Hud::Organization.where(data_source_id: data_source_id)
+      hmis_unit_groups = Hmis::UnitGroup.joins(:project).merge(hmis_projects)
+
+      where(owner_type: 'GrdaWarehouse::DataSource', owner_id: data_source_id).
+        or(where(owner_type: 'Hmis::Hud::Organization', owner_id: hmis_organizations.select(:id))).
+        or(where(owner_type: 'Hmis::Hud::Project', owner_id: hmis_projects.select(:id))).
+        or(where(owner_type: 'Hmis::UnitGroup', owner_id: hmis_unit_groups.select(:id)))
+    end
+
+    def self.apply_filters(input)
+      Hmis::Filter::CeMatchRuleFilter.new(input).filter_scope(self)
     end
 
     # Order rules by owner precedence (UnitGroup > Project > Organization) then by id
@@ -138,6 +162,33 @@ module Hmis::Ce::Match
     # This is the method to use if you want this entity's effective ruleset that is actually used for prioritization, NOT simply for_entity.
     def self.eligibility_and_priority_rules_for_entity(entity)
       eligibility_requirements_for_entity(entity) + priority_schemes_for_entity(entity)
+    end
+
+    # Returns Hmis::UnitGroups that a rule with the given `owner` + `applicability_config`
+    # apply to. Performs the lineage + applicability filtering at the SQL level for performance.
+    #
+    # IMPORTANT: keep this in sync with `MatchApplicability`, the in-Ruby evaluator.
+    def self.unit_groups_for_owner(owner, applicability_config: {})
+      p_t = Hmis::Hud::Project.arel_table
+      f_t = GrdaWarehouse::Hud::Funder.arel_table
+
+      scope = case owner
+      when Hmis::UnitGroup
+        Hmis::UnitGroup.where(id: owner.id)
+      when Hmis::Hud::Project, Hmis::Hud::Organization, GrdaWarehouse::DataSource
+        owner.unit_groups
+      else
+        raise ArgumentError, "Unsupported owner type for rule applicability: #{owner.class}"
+      end
+
+      # Only include unit groups that have CE waitlists enabled
+      scope = scope.with_ce_waitlists_enabled.joins(:project)
+
+      config = (applicability_config || {}).symbolize_keys
+      scope = scope.where(p_t[:ProjectType].in(config[:project_types])) if config[:project_types].present?
+      scope = scope.joins(project: :funders).where(f_t[:Funder].in(config[:project_funders])).distinct if config[:project_funders].present?
+
+      scope.preload(project: [:organization, :data_source, :funders])
     end
 
     private

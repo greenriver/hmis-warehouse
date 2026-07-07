@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -169,7 +169,7 @@ module GrdaWarehouse
             binding.irb if value.is_a?(String) # rubocop:disable Lint/Debugger
 
             # We don't harvest any value that could be negative.
-            # -666666666 shows up as a sentinal sometimes
+            # -666666666 shows up as a sentinel sometimes
             if value.present? && value >= 0
               values << [full_geoid, current_census_level, value, current_vars[variable], now]
             else

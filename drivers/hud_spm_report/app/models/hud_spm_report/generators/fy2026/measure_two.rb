@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -37,9 +37,11 @@ module HudSpmReport::Generators::Fy2026
       HudSpmReport::Fy2026::Return.where(report_instance_id: report_instance.id).delete_all
     end
 
+    TABLE_NAME = '2a and 2b'
+
     def run_question!
       tables = [
-        ['2a and 2b', :run_2a_and_b],
+        [TABLE_NAME, :run_2a_and_b],
       ]
 
       @report.start(self.class.question_number, tables.map(&:first))

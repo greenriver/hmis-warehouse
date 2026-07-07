@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -19,6 +19,7 @@ module Types
     available_filter_options do
       arg :search_term, String, required: false
       arg :project_type, [Types::HmisSchema::Enums::ProjectType], required: false, description: 'Filter to Clients that are eligible for the specified Project Types'
+      arg :project_group_id, ID, required: false, description: 'Filter to Clients that are eligible for projects in the specified Project Group'
       arg :dynamic_filters, [Types::TableFilterValue], required: false
     end
 

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -50,10 +50,14 @@ class Hmis::Form::SubmitFormRecordInitializer
   attr_reader :owner_class, :user
 
   def resolve_associations(input)
+    enrollment_id = input.enrollment_id
+    # File: enrollment is often supplied as a form value, not a top-level input arg; top-level wins when present.
+    enrollment_id ||= input.hud_values&.dig('enrollmentId') if owner_class == Hmis::File
+
     {
       project: find_viewable(Hmis::Hud::Project, input.project_id),
       client: find_viewable(Hmis::Hud::Client, input.client_id),
-      enrollment: find_viewable(Hmis::Hud::Enrollment, input.enrollment_id),
+      enrollment: find_viewable(Hmis::Hud::Enrollment, enrollment_id),
       organization: find_viewable(Hmis::Hud::Organization, input.organization_id),
       custom_service_type: input.service_type_id.present? ? Hmis::Hud::CustomServiceType.find_by(id: input.service_type_id) : nil,
     }

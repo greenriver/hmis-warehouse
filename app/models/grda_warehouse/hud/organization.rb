@@ -1,10 +1,10 @@
-# frozen_string_literal: true
-
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 # these are also sometimes called agencies
 module GrdaWarehouse::Hud
@@ -13,7 +13,11 @@ module GrdaWarehouse::Hud
     include HudSharedScopes
     include ::HmisStructure::Organization
     include ::HmisStructure::Shared
-    include RailsDrivers::Extensions
+    # Extensions from drivers — see ADR 0007
+    include HmisCsvImporter::GrdaWarehouse::Hud::OrganizationExtension
+    include HmisCsvTwentyTwenty::GrdaWarehouse::Hud::OrganizationExtension
+    include HmisCsvTwentyTwentyFour::GrdaWarehouse::Hud::OrganizationExtension
+    include HmisCsvTwentyTwentySix::GrdaWarehouse::Hud::OrganizationExtension
 
     attr_accessor :source_id
 

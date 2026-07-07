@@ -1,3 +1,9 @@
+###
+# Copyright Green River Data Group, Inc.
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 # frozen_string_literal: true
 
 require 'rails_helper'
@@ -34,6 +40,12 @@ RSpec.describe ProjectGroupsController, type: :request do
       expect(assigns(:project_groups)).to include(project_group)
       expect(assigns(:project_groups)).not_to include(project_group_2)
     end
+
+    it 'displays notes in the response' do
+      create(:project_group, name: 'Notes Group', notes: 'Visible note text')
+      get project_groups_path
+      expect(response.body).to include('Visible note text')
+    end
   end
 
   describe 'POST #create' do
@@ -42,6 +54,7 @@ RSpec.describe ProjectGroupsController, type: :request do
         {
           filters: { # expectation that we end up with only projects 1 and 3
             name: 'Test Project Group',
+            notes: 'Some notes',
             project_ids: [project1.id, project2.id, project3.id].map(&:to_s),
             organization_ids: [organization1.id].map(&:to_s), # projects 1 and 2
             project_type_numbers: ['1', '2'], # projects 1, 2, and 3
@@ -63,6 +76,7 @@ RSpec.describe ProjectGroupsController, type: :request do
 
         # Test that the basic attributes are saved
         expect(project_group.name).to eq('Test Project Group')
+        expect(project_group.notes).to eq('Some notes')
 
         # Test inclusion criteria are saved in the filter
         expect(project_group.filter.project_ids).to match_array([project1.id, project2.id, project3.id])
@@ -89,6 +103,7 @@ RSpec.describe ProjectGroupsController, type: :request do
         {
           filters: {
             name: 'Updated Project Group', # expectation that we end up with only project 4
+            notes: 'Updated notes',
             project_ids: [project1.id, project4.id].map(&:to_s), # projects 1 and 4
             organization_ids: [organization2.id].map(&:to_s), # projects 3 and 4
             project_type_numbers: ['3'], # project 4
@@ -108,6 +123,7 @@ RSpec.describe ProjectGroupsController, type: :request do
 
         # Test that basic attributes are updated
         expect(project_group.name).to eq('Updated Project Group')
+        expect(project_group.notes).to eq('Updated notes')
 
         # Test inclusion criteria are updated in the filter
         expect(project_group.filter.project_ids).to match_array([project1.id, project4.id])

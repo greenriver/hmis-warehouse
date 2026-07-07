@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -65,7 +65,7 @@ class Translation < ApplicationRecord
     [
       '1) For scored elements that received less than the maximum amount of points, please explain how your agency plans to improve performance over time.',
       '2) If your grant recaptured more than 10%, please explain how you intend to spend project funds in the coming year OR if you plan to voluntarily reallocate the excess budget.',
-      '24 CFR 578.(a)(8) states that CoCs must establish and operate a Coordinated Entry System to allocate assistance as effectivley as possible, prioritizing services to those that need it the most.',
+      '24 CFR 578.(a)(8) states that CoCs must establish and operate a Coordinated Entry System to allocate assistance as effectively as possible, prioritizing services to those that need it the most.',
       'A claim was submitted for this CHA; it is no longer editable.',
       'A claim was submitted for this SSM; it is no longer editable.',
       'A summary of SPMs 1, 2, and 7 with sub-population and demographic details',
@@ -1293,7 +1293,7 @@ class Translation < ApplicationRecord
       'Coordinated Entry Performance Goal',
       'Coordinated Entry Performance Goal Configurator',
       'Coordinated Entry Performance Goal Goal Configurator',
-      'Coordinated Entry System Particpation 20%',
+      'Coordinated Entry System Participation 20%',
       'Core Demographics',
       'Criminal Record Status',
       'Current open case',

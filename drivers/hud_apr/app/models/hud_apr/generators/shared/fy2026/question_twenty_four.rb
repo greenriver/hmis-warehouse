@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -12,7 +12,7 @@ module HudApr::Generators::Shared::Fy2026
 
     def self.table_descriptions
       {
-        'Question 24' => '',
+        'Question 24' => 'Targeted Questions',
         'Q24a' => 'Homelessness Prevention Housing Assessment at Exit',
         'Q24b' => 'Moving On Assistance Provided to Households in PSH',
         'Q24e' => 'Sex',

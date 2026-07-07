@@ -1,10 +1,10 @@
-# frozen_string_literal: true
-
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 require 'rails_helper'
 require_relative 'login_and_permissions'
@@ -119,6 +119,36 @@ RSpec.describe 'SubmitForm for File', type: :request do
           submit_form(input.merge(record_id: file_owned_by_other.id, hud_values: hud_values.merge('enrollmentId' => e1.id)))
           file_owned_by_other.reload
         end.to change(file_owned_by_other, :enrollment_id).to(e1.id)
+      end
+    end
+
+    context 'when user has can_manage_any_client_files for the client, but not the enrollment' do
+      # user can manage and view files at p1
+      let!(:access_control) { create_access_control(hmis_user, p1, with_permission: [:can_manage_any_client_files, :can_view_clients, :can_view_any_nonconfidential_client_files, :can_view_enrollment_details, :can_view_project]) }
+
+      # user can only view clients and enrollments at p2, and can view files but not manage them
+      let!(:p2) { create :hmis_hud_project, data_source: ds1 }
+      let!(:access_control_2) { create_access_control(hmis_user, p2, with_permission: [:can_view_clients, :can_view_any_nonconfidential_client_files, :can_view_enrollment_details, :can_view_project]) }
+      let!(:e2) { create :hmis_hud_enrollment, client: c1, project: p2, data_source: ds1 }
+
+      # file is associated with enrollment at p2
+      let!(:file1) { create :file, client: c1, enrollment: e2, blob: blob, tags: [tag] }
+
+      let(:hud_values) do
+        {
+          'confidential' => false,
+          'enrollmentId' => e2.id,
+          'tags' => [tag.id.to_s],
+          'fileBlobId' => blob.signed_id,
+        }
+      end
+
+      it 'does not allow creating a file' do
+        expect_gql_error submit_form(input, expect_raise: true), message: /not authorized/
+      end
+
+      it 'does not allow updating a file' do
+        expect_gql_error submit_form(input.merge(record_id: file1.id), expect_raise: true), message: /not authorized/
       end
     end
   end

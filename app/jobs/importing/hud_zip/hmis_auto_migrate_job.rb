@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -17,6 +17,9 @@ module Importing::HudZip
     end
 
     def perform(upload_id:, data_source_id:, deidentified: false, allowed_projects: false, stop_version: nil, dry_run: false)
+      data_source = GrdaWarehouse::DataSource.find(data_source_id)
+      raise "Data source #{data_source_id} is not importable" unless data_source.importable?
+
       lock_obtained = nil
       GrdaWarehouse::DataSource.with_advisory_lock(advisory_lock_name(data_source_id), timeout_seconds: 60) do
         importer = Importers::HmisAutoMigrate::UploadedZip.new(

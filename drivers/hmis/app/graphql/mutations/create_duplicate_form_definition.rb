@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -43,7 +43,7 @@ module Mutations
       { form_identifier: definition }
     end
 
-    # Remove any cutom fields mappings `{mapping: {custom_field_key: '...'}}` when duplicating.
+    # Remove any custom fields mappings `{mapping: {custom_field_key: '...'}}` when duplicating.
     # When this form is published, new custom field keys will be re-generated for these questions.
     # Mappings for standard HUD fields are retained.
     def remove_custom_field_mappings(definition)

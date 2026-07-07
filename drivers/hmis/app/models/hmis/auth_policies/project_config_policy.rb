@@ -1,10 +1,10 @@
-# frozen_string_literal: true
-
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 class Hmis::AuthPolicies::ProjectConfigPolicy < Hmis::AuthPolicies::ResourcePolicy
   class Instance < Hmis::AuthPolicies::BasePolicy
@@ -34,11 +34,11 @@ class Hmis::AuthPolicies::ProjectConfigPolicy < Hmis::AuthPolicies::ResourcePoli
 
     def can_view? = can_manage?
 
-    protected
-
     def can_manage?
       global_permissions.include?(:can_configure_data_collection)
     end
+
+    protected
 
     def validate_resource!(arg) = ensure_arg_class!(arg, Hmis::ProjectConfig)
   end

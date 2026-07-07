@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -165,7 +165,7 @@ class Users::InvitationsController < Devise::InvitationsController
   private def creating_admin?
     @creating_admin ||= begin
       adming_admin = false
-      # If we don't already have a role granting an admin permission, and we're assinging some
+      # If we don't already have a role granting an admin permission, and we're assigning some
       # ACLs (with associated roles)
       if assigned_acl_ids.present?
         assigned_roles = AccessControl.where(id: assigned_acl_ids).joins(:role).distinct.pluck(Role.arel_table[:id])

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -16,6 +16,7 @@ class Hmis::Filter::ProjectFilter < Hmis::Filter::BaseFilter
       yield_self(&method(:with_search_term)).
       yield_self(&method(:with_organizations)).
       yield_self(&method(:with_ce_enabled)).
+      yield_self(&method(:with_ce_waitlists_enabled)).
       yield_self(&method(:clean_scope))
   end
 
@@ -43,5 +44,9 @@ class Hmis::Filter::ProjectFilter < Hmis::Filter::BaseFilter
 
   def with_ce_enabled(scope)
     with_filter(scope, :ce_enabled) { input.ce_enabled == true ? scope.with_ce_enabled : scope }
+  end
+
+  def with_ce_waitlists_enabled(scope)
+    with_filter(scope, :ce_waitlists_enabled) { input.ce_waitlists_enabled == true ? scope.with_ce_waitlists_enabled : scope }
   end
 end

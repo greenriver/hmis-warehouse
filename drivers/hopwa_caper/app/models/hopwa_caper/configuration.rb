@@ -1,10 +1,10 @@
-# frozen_string_literal: true
-
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 module HopwaCaper
   class Configuration
@@ -29,6 +29,11 @@ module HopwaCaper
       value_for(:atc_primary_health_contact_field_name)
     end
 
+    # name of the custom data element on funder, for example "funder_daily_rate"
+    def funder_daily_rate_field_name
+      value_for(:funder_daily_rate_field_name)
+    end
+
     protected
 
     PROPERTIES = [
@@ -36,6 +41,7 @@ module HopwaCaper
       :atc_maintained_contact_field_name,
       :atc_housing_plan_field_name,
       :atc_primary_health_contact_field_name,
+      :funder_daily_rate_field_name,
     ].freeze
 
     def values

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -26,6 +26,7 @@ module Types
     include Types::HmisSchema::HasCeOpportunities
     include Types::HmisSchema::HasCeReferrals
     include Types::HmisSchema::HasCeDefaultContacts
+    include Types::HmisSchema::HasCeMatchRules
 
     def self.configuration
       Hmis::Hud::Project.hmis_configuration(version: '2024')
@@ -50,6 +51,7 @@ module Types
       arg :organization, [ID]
       arg :search_term, String
       arg :ce_enabled, Boolean
+      arg :ce_waitlists_enabled, Boolean
     end
 
     hud_field :id, ID, null: false
@@ -122,9 +124,9 @@ module Types
     field :service_types, [Types::HmisSchema::ServiceType], null: false, method: :available_service_types, description: 'Service types that are collected for this Project'
     field :unit_groups, Types::HmisSchema::UnitGroup.page_type, null: false
 
-    ce_opportunities_field(:ce_opportunities, filter_args: { omit: [:project, :project_type, :organization, :available_on_date, :workflow_template], type_name: 'ProjectCeOpportunity' })
-    ce_referrals_field(:ce_referrals, filter_args: { omit: [:project, :project_type, :organization, :on_current_task_since, :workflow_template], type_name: 'ProjectCeReferral' })
-    ce_referrals_field(:outgoing_direct_ce_referrals, filter_args: { omit: [:on_current_task_since, :workflow_template, :origin], type_name: 'ProjectOutgoingCeReferral' })
+    ce_opportunities_field(:ce_opportunities, filter_args: { omit: [:project, :project_group_id, :project_type, :organization, :available_on_date, :workflow_template], type_name: 'ProjectCeOpportunity' })
+    ce_referrals_field(:ce_referrals, filter_args: { omit: [:project, :project_group_id, :project_type, :organization, :on_current_task_since, :workflow_template, :assigned_to_you, :assigned_to_user], type_name: 'ProjectCeReferral' })
+    ce_referrals_field(:outgoing_direct_ce_referrals, filter_args: { omit: [:project_group_id, :on_current_task_since, :workflow_template, :origin, :assigned_to_you, :assigned_to_user], type_name: 'ProjectOutgoingCeReferral' })
 
     def hud_id
       object.project_id
@@ -310,6 +312,11 @@ module Types
       # performance reasons, and so that we throw an error instead of returning an empty list.
       # After this check it's OK to use `dangerous_skip_permission_check`
       raise 'access denied' unless current_user.can_view_enrollment_details_for?(object)
+    end
+
+    private def ce_match_rule_group_owners
+      # Used by the HasCeMatchRules concern
+      [object.data_source, object.organization, object]
     end
   end
 end

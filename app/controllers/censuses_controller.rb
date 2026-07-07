@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -21,7 +21,11 @@ class CensusesController < ApplicationController
   end
 
   def details
-    @date = params[:date].to_date
+    @date = parse_date(params[:date])
+    if @date.nil?
+      flash[:alert] = 'You must specify a valid date.'
+      return redirect_back(fallback_location: censuses_path)
+    end
 
     population = :clients
     if @filter.aggregation_type.to_sym == :veteran
@@ -84,6 +88,12 @@ class CensusesController < ApplicationController
 
   private def set_report
     @report = Censuses::CensusReport.new(@filter)
+  end
+
+  private def parse_date(str)
+    str&.to_date
+  rescue ArgumentError
+    nil
   end
 
   private def set_filter

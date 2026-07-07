@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -377,7 +377,7 @@ module Reporting::MonthlyReports::MonthlyReportCharts
       end
     end
 
-    # for backwards compatability provide months in format [[year, month]]
+    # for backwards compatibility provide months in format [[year, month]]
     def months
       @months ||= [].tap do |months|
         date = filter.start_date

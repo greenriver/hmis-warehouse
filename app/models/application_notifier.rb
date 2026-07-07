@@ -1,10 +1,10 @@
-# frozen_string_literal: true
-
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 # Manual testing routine
 # reload!; include NotifierConfig; setup_notifier('test_user')
@@ -199,7 +199,7 @@ class ApplicationNotifier < Slack::Notifier
   end
 
   def self.encode_key(url, channel, username)
-    # url and username can contain slaskes so we need to encode them
+    # url and username can contain slashes so we need to encode them
     [namespace_prefix, Base64.urlsafe_encode64(url.to_s), channel, Base64.urlsafe_encode64(username.to_s)].join('/')
   end
 

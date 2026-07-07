@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -84,7 +84,7 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
           routine: :service_history,
         ).first_or_initialize
 
-        # TODO: convert hash lookpus to method arguments (move into methods)
+        # TODO: convert hash lookups to method arguments (move into methods)
         processed.assign_attributes(
           last_service_updated_at: Date.current,
           first_homeless_date: calcs.first_homeless_dates[client_id],
@@ -146,7 +146,7 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
           routine: :service_history,
         ).first_or_initialize
 
-        # TODO: convert hash lookpus to method arguments (move into methods)
+        # TODO: convert hash lookups to method arguments (move into methods)
         processed.assign_attributes(
           last_service_updated_at: Date.current,
           first_homeless_date: calcs.first_homeless_dates[client_id],

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -188,7 +188,7 @@ module ClientAccessControl
           select(c_t[:id]).to_sql,
         ),
       ) # 1
-      # The can_search_own_clients permission limits search results regardles of ROI status
+      # The can_search_own_clients permission limits search results regardless of ROI status
       unless user.can_search_own_clients?
         where_clause = where_clause.or(
           c_t[:id].in(

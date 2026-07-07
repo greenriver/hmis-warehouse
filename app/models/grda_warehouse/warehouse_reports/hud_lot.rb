@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -186,7 +186,7 @@ module GrdaWarehouse::WarehouseReports
       entries.find_each do |en|
         enrollment = en.enrollment
         project = en.project
-        # If we didn't claim to have pre-enrtry homelessness ignore it
+        # If we didn't claim to have pre-entry homelessness ignore it
         next unless enrollment.DateToStreetESSH.present?
         # Or if the dates don't work
         next unless enrollment.DateToStreetESSH < en.first_date_in_program

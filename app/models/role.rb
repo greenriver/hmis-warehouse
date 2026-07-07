@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -416,7 +416,7 @@ class Role < ApplicationRecord
         sub_category: 'Importing',
       },
       can_edit_translations: {
-        description: 'Ability to translate strings from the default OpenPath language to community specific langauge',
+        description: 'Ability to translate strings from the default OpenPath language to community specific language',
         administrative: true,
         category: 'Administration',
         sub_category: 'Site Configuration',

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -37,6 +37,7 @@ class Hmis::ProjectConfig < Hmis::HmisBase
 
   validates :type, inclusion: { in: CONFIG_TYPE_FACTORIES.values }
 
+  validate :validate_config_type_stable_once_set
   validate :validate_config_options_json
   validate :validate_consistent_data_source
 
@@ -125,6 +126,14 @@ class Hmis::ProjectConfig < Hmis::HmisBase
   end
 
   private
+
+  def validate_config_type_stable_once_set
+    # GraphQL update ignores changes to config_type, so this is just an extra guard against other callers.
+    return unless will_save_change_to_type?
+    return if type_was.nil?
+
+    errors.add(:config_type, 'cannot be changed once set')
+  end
 
   def validate_consistent_data_source
     errors.add(:base, 'Data source must be the same as project') if project.present? && data_source != project.data_source

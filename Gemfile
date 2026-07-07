@@ -1,7 +1,6 @@
 source 'https://rubygems.org'
 
 gem 'rails', '7.2.3.1'
-gem 'rails_drivers', github: 'greenriver/rails_drivers', branch: 'rails-7'
 gem 'rack', '< 3.2' # pinning to the same max version as is required by rails 7.2
 
 gem 'openssl', '>=3.3.1' # override the default ruby version of openssl https://github.com/ruby/openssl/issues/949#issuecomment-3370358680
@@ -35,7 +34,6 @@ gem 'pg'
 gem 'activerecord-sqlserver-adapter', '~> 7.2.0' # tied to the rails version
 gem 'activerecord-import'
 gem 'order_as_specified'
-gem 'pghero'
 
 gem 'activerecord', '>= 6.1.7.3' # for CVE-2023-22796
 gem 'active_record_extended'
@@ -102,11 +100,12 @@ gem 'devise-two-factor', '~> 4.1.1'
 gem 'rack-cors'
 gem 'doorkeeper'
 
+gem 'jwt', '~> 3.1' # Validates IdP-issued JWT access tokens
 gem 'omniauth', '~> 2.1'
 gem 'omniauth-oauth2', '~> 1.7.3'
 gem 'omniauth-rails_csrf_protection', '~> 1.0.1'
 gem 'faraday', '~> 2.2'
-gem 'oauth2'
+gem 'oauth2', '>= 2.0.22'
 
 gem 'pretender'
 gem 'rqrcode'
@@ -160,7 +159,7 @@ gem 'htmlentities'
 # ETO API related
 gem 'rest-client', '~> 2.0'
 gem 'curb', '~> 1.0.9', require: false # pinning to 1.0.9 to keep webmock happy
-gem 'gmail', require: false
+# gem 'gmail', require: false
 # gem 'savon'
 # gem 'qaaws', require: false, git: 'https://github.com/greenriver/eis-ruby-qaaws.git', branch: 'master'
 
@@ -189,7 +188,7 @@ gem 'progress_bar', require: false
 
 gem 'slack-notifier'
 
-gem 'puma', '~> 6'
+gem 'puma', '~> 7'
 
 gem 'dotenv-rails'
 

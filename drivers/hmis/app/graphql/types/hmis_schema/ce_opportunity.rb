@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2024 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -35,6 +35,7 @@ module Types
     available_filter_options do
       arg :status, [HmisSchema::Enums::CeOpportunityStatus]
       arg :project, [ID]
+      arg :project_group_id, ID
       arg :project_type, [HmisSchema::Enums::ProjectType]
       arg :organization, [ID]
       arg :available_on_date, GraphQL::Types::ISO8601Date

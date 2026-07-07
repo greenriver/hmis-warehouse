@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -7,10 +7,19 @@
 # frozen_string_literal: true
 
 module HudApr
-  # Centralized dispatcher for building Excel exports across the APR family (APR, CAPER, CeAPR, DQ).
-  #
-  # This class consolidates the mapping logic for report types and HUD specification versions
   class CellDetailExportBuilder < ::HudReports::CellDetailExportBuilderBase
+    def call
+      scope = drilldown.base_scope
+      presenter = presenter_class.new(scope, drilldown.report, @user, question: drilldown.measure, format: :xlsx)
+      package = build_presenter_package(scope, presenter, drilldown.name)
+
+      Result.new(
+        name: drilldown.name,
+        filename: "#{drilldown.name} Cell Detail.xlsx",
+        data: package.to_stream.read,
+      )
+    end
+
     def generator_for_report
       concern_class = case report_type
       when 'apr' then HudApr::Apr::AprConcern
@@ -26,13 +35,42 @@ module HudApr
       generator_classes = concern_class.possible_generator_classes
       klass = generator_classes[report_version]
 
-      # Fallback to direct lookup if slug doesn't match
       klass ||= generator_classes[options_version.to_sym]
       klass ||= generator_classes[options_version.to_s]
 
       raise ArgumentError, "Unsupported version #{options_version} for #{report_type}" unless klass
 
       klass
+    end
+
+    private
+
+    def presenter_class
+      case report_type
+      when 'ce_apr' then HudApr::CeAprDrilldownPresenter
+      else HudApr::DrilldownPresenter
+      end
+    end
+
+    def build_presenter_package(clients, presenter, name)
+      headers = presenter.headers
+
+      Axlsx::Package.new do |package|
+        wb = package.workbook
+        wb.add_worksheet(name: worksheet_name(name)) do |sheet|
+          title = sheet.styles.add_style(sz: 12, b: true, alignment: { horizontal: :center })
+          sheet.add_row(headers.values, style: title)
+
+          clients.find_in_batches do |batch|
+            preload_batch_policies(batch)
+
+            batch.each do |record|
+              row = headers.keys.map { |k| presenter.display_value(record, k) }
+              sheet.add_row(row)
+            end
+          end
+        end
+      end
     end
   end
 end

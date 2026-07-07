@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -84,6 +84,14 @@ RSpec.describe Hmis::AccessControl, type: :model do
       expect(hmis_user.can_view_full_ssn_for?(o1)).to eq(false)
       expect(hmis_user.can_view_full_ssn_for?(p1)).to eq(true)
       expect(hmis_user.can_view_full_ssn_for?(p2)).to eq(false)
+    end
+  end
+
+  describe 'associations' do
+    it 'has many user_access_controls' do
+      acl = create(:hmis_access_control)
+      uac = create(:hmis_user_access_control, access_control: acl)
+      expect(acl.user_access_controls).to include(uac)
     end
   end
 

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -41,7 +41,7 @@ module Types
         raise unless Hmis::Ce.configuration.enabled?
 
         scope = scope.viewable_by(user) unless dangerous_skip_permission_check
-        scope = scope.apply_filters(filters) if filters.present?
+        scope = scope.apply_filters(filters, user: user) if filters.present?
         scope = scope.sort_by_option(sort_order) if sort_order.present?
 
         scope

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -118,7 +118,7 @@ class StyleGuidesController < ApplicationController
         description: lorem,
       },
       {
-        title: 'Non-Recuring',
+        title: 'Non-Recurring',
         indicators: [[indicator], [indicator], [indicator]],
         description: lorem,
       },

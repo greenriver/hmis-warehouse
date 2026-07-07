@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -121,9 +121,8 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   # Does not include viewable clients where the user can only see their "own" files (can_manage_own_client_files),
   # which is checked for separately by the File#viewable_by scope.
   scope :files_viewable_by, ->(user) do
-    # optimization: return early if the user has NO access to view clients and files in the current data source
-    global_policy = user.policy_for(Hmis::Hud::Client, policy_type: :hmis_client)
-    return none unless global_policy.can_view? && global_policy.can_view_some_files?
+    # optimization: return early if the user has NO access to view files in the current data source
+    return none unless user.policy_for(Hmis::File, policy_type: :hmis_file).can_index?
 
     project_ids = Hmis::Hud::Project.
       # User must be able to view clients at the project
@@ -356,7 +355,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   end
 
   def delete_image
-    client_files&.client_photos&.newest_first&.first&.destroy!
+    client_files&.client_photos&.newest_first&.first&.soft_delete!
     @image = nil
   end
 
@@ -411,7 +410,9 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     (saved_changes.keys & ['FirstName', 'LastName', 'DOB', 'SSN', 'DateDeleted']).any?
   end
 
-  include RailsDrivers::Extensions
+  # Extensions from drivers — see ADR 0007
+  include ::ClientLocationHistory::Hmis::Hud::ClientExtension
+  include HmisExternalApis::Hmis::Hud::ClientExtension
 
   # The warehouse uses the source hash to determine if the record has changed and to maintain the
   # associated warehouse record for reporting.

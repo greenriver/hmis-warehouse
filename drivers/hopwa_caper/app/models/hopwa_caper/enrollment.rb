@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -79,7 +79,7 @@ module HopwaCaper
       :OtherIncomeSource
     ].freeze
 
-    def self.from_hud_record(enrollment:, report:, client:)
+    def self.from_hud_record(enrollment:, report:, client:, cost_calculator:)
       project = enrollment.project
       # get deterministic order
       hiv_disabilities = enrollment.disabilities.
@@ -102,6 +102,13 @@ module HopwaCaper
         # Only add if no other specific sources are present to maintain logical consistency
         income_benefit_source_types << 'NoIncomeSource' if latest_income_benefit.IncomeFromAnySource == 0 && income_benefit_source_types.empty?
         medical_insurance_types << 'NoInsuranceSource' if latest_income_benefit.InsuranceFromAnySource == 0 && medical_insurance_types.empty?
+      end
+
+      # calculate the total cost from the schedule. Only for HoH
+      if enrollment.relationship_to_hoh == 1
+        last_enrolled_day = enrollment.exit&.exit_date&.-(1)
+        enrolled_range = [enrollment.entry_date, report.start_date].max..[last_enrolled_day, report.end_date].compact.min
+        total_cost = cost_calculator.call(project, enrolled_range).round(2)
       end
 
       exit = enrollment.exit if enrollment.exit&.exit_date&.<= report.end_date
@@ -139,6 +146,7 @@ module HopwaCaper
         rental_subsidy_type: enrollment.rental_subsidy_type,
         viral_load_suppression: hiv_disabilities.any? { |d| d.measured_viral_load&.< 200 },
         ever_prescribed_anti_retroviral_therapy: hiv_disabilities.any? { |d| d.anti_retroviral == 1 },
+        total_project_cost: total_cost || 0,
       )
     end
 

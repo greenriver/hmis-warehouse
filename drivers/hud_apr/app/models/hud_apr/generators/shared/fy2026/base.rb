@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -800,7 +800,7 @@ module HudApr::Generators::Shared::Fy2026
         # because we are using a preload, we don't filter earlier events in the SQL, make sure they all occur
         # on or after the report start
         next false if event.EventDate <= @report.start_date
-        # Everyone _should_ have a CE Assessment, but occassionally we get someone who doesn't have one
+        # Everyone _should_ have a CE Assessment, but occasionally we get someone who doesn't have one
         next false if latest_ce_assessment.blank? || latest_ce_assessment.AssessmentDate.blank?
 
         # 2.a [Date of event] >= [date of assessment] from step 1

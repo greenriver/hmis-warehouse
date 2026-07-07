@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -48,7 +48,7 @@ class UserTrainingController < ApplicationController
           # Ensure the user is enrolled in the course
           lms.enroll(config, course_id)
 
-          # reset progress if course is expired (check against API competion date)
+          # reset progress if course is expired (check against API completion date)
           lms.reset_user_progress(config, course_id) if lms.training_expired?(config, course_id)
 
           completed_on = lms.complete?(config, course_id)

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -138,7 +138,7 @@ module BuiltForZeroReport
       filtered_source_data.select { |_, v| v[:change] == 'create' && v[:reason].downcase == 'returned from inactive' }
     end
 
-    # Limit the source data to only changes that ocurred during the reporting period
+    # Limit the source data to only changes that occurred during the reporting period
     private def filtered_source_data
       @filtered_source_data ||= source_data.select { |_, v| v[:changed_at] > @start_date }
     end

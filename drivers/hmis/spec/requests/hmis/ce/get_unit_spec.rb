@@ -1,3 +1,9 @@
+###
+# Copyright Green River Data Group, Inc.
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 # frozen_string_literal: true
 
 require 'rails_helper'
@@ -65,6 +71,14 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           name
           ownerType
           expression
+          structuredExpression {
+            operator
+            clauses {
+              field
+              comparator
+              value
+            }
+          }
           projectTypes
           funders
         }
@@ -100,6 +114,32 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           a_hash_including('id' => rule3.id.to_s, 'ownerType' => 'ORGANIZATION', 'projectTypes' => ['ES_NBN']),
           a_hash_including('id' => rule4.id.to_s, 'ownerType' => 'ORGANIZATION', 'funders' => ['HUD_HUD_VASH']),
         )
+      end
+
+      it 'resolves structuredExpression for a flat AND rule' do
+        rule1.update!(expression: 'current_age >= 18 AND veteran = TRUE')
+        response, result = post_graphql(**variables) { query }
+        expect(response.status).to eq(200), result.inspect
+
+        rules = result.dig('data', 'unit', 'eligibilityRequirements')
+        rule_json = rules.find { |r| r['id'] == rule1.id.to_s }
+        expect(rule_json['structuredExpression']).to eq(
+          'operator' => 'AND',
+          'clauses' => [
+            { 'field' => 'current_age', 'comparator' => 'GTE', 'value' => 18 },
+            { 'field' => 'veteran', 'comparator' => 'EQ', 'value' => true },
+          ],
+        )
+      end
+
+      it 'returns null structuredExpression when the expression is not translatable' do
+        rule1.update!(expression: 'a = 1 OR (b = 2 AND c = 3)')
+        response, result = post_graphql(**variables) { query }
+        expect(response.status).to eq(200), result.inspect
+
+        rules = result.dig('data', 'unit', 'eligibilityRequirements')
+        rule_json = rules.find { |r| r['id'] == rule1.id.to_s }
+        expect(rule_json['structuredExpression']).to be_nil
       end
 
       it 'returns most-specific priority schemes ordered by rank, then id' do

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -37,7 +37,7 @@ module OmniauthSupport
     ENV['OKTA_DOMAIN'].present? && OauthIdentity.for_user(self).any?
   end
 
-  # Remove the IDP present, reseting the password and
+  # Remove the IDP present, resetting the password and
   # reactivating by default.
   #
   # @returns true if the external_idp? was previously true

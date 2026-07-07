@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -194,6 +194,45 @@ RSpec.describe HudReportArchival, type: :model do
     end
   end
 
+  describe 'attachment declarations' do
+    # These must exist without loading any driver generator — they are declared in HudReportArchival
+    # itself, not via each driver's class_eval. This prevents the class-loading-order bug where
+    # subclasses that snapshot _reflections before a generator is loaded would get AssociationNotFoundError
+    # on destroy.
+    expected_attachments = [
+      :report_cells_csv, :universe_members_csv,
+      :apr_clients_csv, :apr_living_situations_csv, :apr_ce_assessments_csv, :apr_ce_events_csv,
+      :dq_clients_csv, :dq_living_situations_csv,
+      :hic_projects_csv, :hic_project_cocs_csv, :hic_inventories_csv, :hic_organizations_csv, :hic_funders_csv,
+      :lsa_summary_results_csv,
+      :path_clients_csv,
+      :pit_clients_csv,
+      :spm_clients_csv, :spm_enrollments_csv, :spm_enrollment_links_csv, :spm_episodes_csv, :spm_returns_csv, :spm_bed_nights_csv
+    ]
+
+    expected_attachments.each do |name|
+      it "declares #{name} on HudReports::ReportInstance without loading any driver generator" do
+        expect(HudReports::ReportInstance.new).to respond_to(name)
+      end
+    end
+  end
+
+  describe 'destroy regression — subclass with own _reflections' do
+    # Regression for the bug where HmisDataQualityTool::Report (a subclass that defines its own
+    # has_many associations, causing it to snapshot _reflections before driver class_eval calls ran)
+    # raised AssociationNotFoundError on destroy because inherited before_destroy callbacks tried to
+    # look up driver-specific attachment associations not present in the subclass's snapshot.
+    it 'HmisDataQualityTool::Report can be destroyed after APR generators are loaded' do
+      report = HmisDataQualityTool::Report.create!(
+        report_name: 'HMIS Data Quality Tool',
+        user_id: User.system_user.id,
+        question_names: [],
+      )
+      _ = HudApr::Generators::Apr::Fy2026::Generator
+      expect { report.destroy! }.not_to raise_error
+    end
+  end
+
   describe 'purge_eligible scope' do
     let!(:eligible_report) do
       HudReports::ReportInstance.create!(
@@ -240,6 +279,20 @@ RSpec.describe HudReportArchival, type: :model do
     it 'excludes reports still within the grace period' do
       results = HudReports::ReportInstance.purge_eligible(60, Time.current)
       expect(results).not_to include(ineligible_recent)
+    end
+
+    it 'excludes reports that have a recorded purge failure' do
+      failed_report = HudReports::ReportInstance.create!(
+        report_name: 'Test',
+        user_id: User.system_user.id,
+        state: 'Completed',
+        completed_at: 61.days.ago,
+        question_names: [],
+      )
+      failed_report.update_column(:archival_metadata, { 'purge_failed_at' => Time.current.iso8601 })
+
+      results = HudReports::ReportInstance.purge_eligible(60, Time.current)
+      expect(results).not_to include(failed_report)
     end
   end
 end

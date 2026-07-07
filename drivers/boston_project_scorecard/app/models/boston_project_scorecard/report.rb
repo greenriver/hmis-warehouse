@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -79,6 +79,14 @@ module BostonProjectScorecard
     def admin?(user)
       # The user that created the report is the admin
       user_id == user.id
+    end
+
+    def rrh?
+      project_type == 13
+    end
+
+    def psh?
+      project_type.in?([3, 9, 10])
     end
 
     def field_input_options(field, user)
@@ -267,6 +275,8 @@ module BostonProjectScorecard
     end
 
     def send_email_to_secondary_reviewer
+      return unless secondary_reviewer.present?
+
       BostonProjectScorecard::ScorecardMailer.scorecard_ready(self).deliver_later
     end
 

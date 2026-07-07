@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -48,6 +48,14 @@ RSpec.describe Hmis::ProjectConfig, type: :model do
     auto_enter_config.save!
     config = Hmis::ProjectAutoEnterConfig.detect_best_config_for_project(p1)
     expect(config).to be_nil
+  end
+
+  it 'does not allow config type to change once set' do
+    config = create(:hmis_project_auto_enter_config, project: p1, data_source: ds1)
+    config.type = Hmis::ProjectConfig::AUTO_EXIT_CONFIG
+
+    expect(config).not_to be_valid
+    expect(config.errors[:config_type]).to include('cannot be changed once set')
   end
 
   describe '.viewable_by' do

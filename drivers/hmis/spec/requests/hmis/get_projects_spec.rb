@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -81,6 +81,18 @@ RSpec.describe 'GetProjects query', type: :request do
       expect(projects).to include(
         'nodesCount' => 1,
         'nodes' => contain_exactly(include('id' => p3.id.to_s)),
+      )
+    end
+  end
+
+  it 'filters by projects with CE waitlists enabled' do
+    create(:hmis_project_ce_config, project: p1, supports_waitlist_referrals: true)
+    create(:hmis_project_ce_config, project: p3, supports_waitlist_referrals: false, receives_direct_referrals: true)
+
+    perform_query(filters: { ce_waitlists_enabled: true, status: ['OPEN'] }) do |projects|
+      expect(projects).to include(
+        'nodesCount' => 1,
+        'nodes' => contain_exactly(include('id' => p1.id.to_s)),
       )
     end
   end

@@ -1,3 +1,9 @@
+###
+# Copyright Green River Data Group, Inc.
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 namespace :similarity do
 
   desc "BATCH_SIZE=10000 destination clients to try; THRESHOLD=-1.45 lower numbers are stronger matches"
@@ -21,7 +27,7 @@ namespace :similarity do
     SimilarityMetric::Initializer.new( sample: sample, verbose: verbose ).run!
   end
 
-  desc "list initialized metrics used in scoring; metrics are ranked by likelihood of applicabilty and name"
+  desc "list initialized metrics used in scoring; metrics are ranked by likelihood of applicability and name"
   task :list => [:environment] do
     SimilarityMetric::Base.all.reject(&:bogus?).select(&:initialized?).sort do |a,b|
       c = a.n - b.n

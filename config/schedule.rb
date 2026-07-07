@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -39,8 +39,6 @@ file_cleaning_schedule = (Time.parse(daily_schedule) - 5.minutes).strftime('%I:%
 import_prefetch_schedule = (Time.parse(import_schedule) - 4.hours).strftime('%I:%M %P')
 monthly_schedule = (Time.parse(import_schedule) - 5.hours).strftime('%I:%M %P')
 import_cleanup_time = Time.parse(import_schedule) + 9.hours
-
-health_trigger = ENV['HEALTH_SFTP_HOST'].to_s != '' && ENV['HEALTH_SFTP_HOST'] != 'hostname' && ENV['RAILS_ENV'] == 'production'
 
 tasks = [
   # temporary task to move files to S3 and ActiveStorage
@@ -142,20 +140,6 @@ tasks = [
     interruptable: false,
   },
   {
-    task: 'health:daily',
-    frequency: 1.day,
-    at: '11:03 am',
-    trigger: health_trigger,
-    interruptable: false,
-  },
-  {
-    task: 'health:enrollments_and_eligibility',
-    frequency: 1.day,
-    at: '6:01 am',
-    trigger: health_trigger,
-    interruptable: false,
-  },
-  {
     task: 'driver:medicaid_hmis_interchange:medicaid_hmis_transfer',
     frequency: :sunday,
     at: '5:01am',
@@ -174,32 +158,32 @@ tasks = [
     at: '11:00am',
     interruptable: true,
   },
-  {
-    task: 'dba:unbloat',
-    frequency: :sunday,
-    at: '2:00 am',
-    interruptable: true,
-  },
+  # Disable this task so it doesn't run on production while we adjust it to better handle extremely large tables.
+  # {
+  #   task: 'dba:unbloat',
+  #   frequency: :sunday,
+  #   at: '2:00 am',
+  #   interruptable: true,
+  # },
   {
     task: 'driver:hmis_csv_importer:cleanup:expire_and_delete',
     frequency: 1.day,
     at: import_cleanup_time,
     interruptable: false,
   },
-  # Archive and purge SimpleReports and HUD Reports
-  # Once both are enabled on production, we can remove the individual tasks and use the archive_and_purge_eligible task instead.
   {
-    task: 'reports:csv:archive_and_purge_simple_reports',
+    task: 'reports:csv:archive_and_purge_eligible',
     frequency: 1.day,
     at: '2:00 am',
     interruptable: true,
   },
+  # HMIS simulation — only runs on servers where ENABLE_HMIS_SIMULATION=true (for demo) or any staging environment
   {
-    task: 'reports:csv:archive_and_purge_hud_reports',
+    task: 'driver:hmis_simulation:run_all',
     frequency: 1.day,
-    at: '3:00 am',
-    trigger: ENV['RAILS_ENV'] != 'production',
-    interruptable: true,
+    at: '4:30 am',
+    trigger: ENV['ENABLE_HMIS_SIMULATION'] == 'true' || ENV['RAILS_ENV'] == 'staging',
+    interruptable: false,
   },
 ]
 

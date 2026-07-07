@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -19,9 +19,11 @@ RSpec.describe Reports::ArchiveReportService, type: :service do
         t.integer :report_id, null: false
         t.string :name
         t.integer :age
+        t.jsonb :metadata
         t.timestamps
       end
     end
+    connection.add_column :test_archive_clients, :metadata, :jsonb unless connection.column_exists?(:test_archive_clients, :metadata)
 
     # Create test projects table
     unless connection.table_exists?(:test_archive_projects)
@@ -359,6 +361,23 @@ RSpec.describe Reports::ArchiveReportService, type: :service do
         # Verify age column is included
         expect(parsed.headers).to include('age')
         expect(parsed.map { |r| r['age'] }).to include('25', '30')
+      end
+    end
+
+    context 'with jsonb columns' do
+      before do
+        test_client_class.where(report_id: report.id).first.update!(metadata: [20, 30])
+      end
+
+      it 'serializes jsonb values as JSON strings in the CSV' do
+        service.archive!
+
+        csv_content = report.clients_csv.first.download
+        parsed = CSV.parse(csv_content, headers: true)
+        row = parsed.find { |r| r['metadata'].present? }
+        expect(row['metadata']).to eq('[20,30]')
+        expect { JSON.parse(row['metadata']) }.not_to raise_error
+        expect(JSON.parse(row['metadata'])).to eq([20, 30])
       end
     end
 

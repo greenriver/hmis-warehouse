@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -442,7 +442,7 @@ module GrdaWarehouse::WarehouseReports
           },
           {
             url: 'warehouse_reports/cas/chronic_reconciliation',
-            name: 'Chronic Reconcilliation',
+            name: 'Chronic Reconciliation',
             description: 'See who is available in CAS but not on the chronic list, and who is not available in CAS, but is on the chronic list.',
             limitable: false,
             health: false,
@@ -848,7 +848,7 @@ module GrdaWarehouse::WarehouseReports
         r_list['Operational'] << {
           url: 'core_demographics_report/warehouse_reports/demographic_summary',
           name: 'Demographic Summary',
-          description: 'Summary data for client demographics across an arbitrary universe with basic outcome and recidivisim sections.',
+          description: 'Summary data for client demographics across an arbitrary universe with basic outcome and recidivism sections.',
           limitable: true,
           health: false,
         }

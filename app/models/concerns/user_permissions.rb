@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -56,9 +56,9 @@ module UserPermissions
       ].freeze
     end
 
-    def self.can_receive_secure_files?
-      can_view_assigned_secure_uploads || can_view_all_secure_uploads
-    end
+    scope :can_receive_secure_files, -> {
+      can_view_assigned_secure_uploads.or(can_view_all_secure_uploads)
+    }
 
     def can_see_admin_menu
       can_edit_users? || can_edit_translations? || can_administer_health? || can_manage_config?

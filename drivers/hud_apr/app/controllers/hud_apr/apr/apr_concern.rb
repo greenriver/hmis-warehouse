@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -21,6 +21,7 @@ module HudApr::Apr::AprConcern
     private def path_for_question_result(question, report: nil)
       result_hud_reports_apr_question_path(apr_id: report&.id || 0, id: question)
     end
+    helper_method :path_for_question_result
 
     private def path_for_report(*options)
       hud_reports_apr_path(options)

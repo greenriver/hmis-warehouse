@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -13,6 +13,8 @@ class ClientAccessControl::ClientsController < ApplicationController
   include ClientShowPages
   include ArelHelper
   include ClientPathGenerator
+
+  skip_before_action :set_anti_caching_headers, only: [:image]
 
   helper ClientHelper
 

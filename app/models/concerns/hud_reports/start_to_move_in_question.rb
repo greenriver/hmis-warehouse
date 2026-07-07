@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -12,6 +12,10 @@
 
 module HudReports::StartToMoveInQuestion
   extend ActiveSupport::Concern
+
+  # Upper bound matches the largest bucket row in the spec ("366 to 730 days (1-2 Yrs)").
+  # Totals and the average use this same cap so all rows cover the same universe.
+  MAX_DAYS_TO_MOVE_IN = 730
 
   def start_to_move_in_question(question:, members:, populations: sub_populations)
     # PSH/RRH w/ move in date
@@ -37,10 +41,12 @@ module HudReports::StartToMoveInQuestion
             case row_cond
             when :average
               value = 0
-              scope = relevant_members.where(col_cond).where(a_t[:hoh_move_in_date].between(@report.start_date..@report.end_date))
-              # treat null values as having 0 time in this case
-              stay_lengths = scope.pluck(a_t[:time_to_move_in]).map { |len| len || 0 }
-              value = (stay_lengths.sum(0.0) / stay_lengths.count).round if stay_lengths.any? # using round since this is an average number of days
+              # Make sure totals only include time to move in dates within the ranges being reported on
+              scope = relevant_members.where(col_cond).
+                where(a_t[:hoh_move_in_date].between(@report.start_date..@report.end_date)).
+                where(a_t[:time_to_move_in].between(0..MAX_DAYS_TO_MOVE_IN))
+              stay_lengths = scope.pluck(a_t[:time_to_move_in])
+              value = (stay_lengths.sum(0.0) / stay_lengths.count).round if stay_lengths.any?
               row.append_cell_value(value: value)
             else
               scope = relevant_members.where(col_cond).where(row_cond)
@@ -69,15 +75,12 @@ module HudReports::StartToMoveInQuestion
       cond = lengths.fetch(label).and(a_t[:hoh_move_in_date].between(@report.start_date..@report.end_date))
       [label, cond]
     end
-    # This is the largest amount of days being reported on so we can set a limit in the total.
-    max_days_in_query = 730
-
     # Make sure totals only include time to move in dates within the ranges being reported on
     ret.merge(
-      'Total (persons moved into housing)' => a_t[:hoh_move_in_date].between(@report.start_date..@report.end_date).and(a_t[:time_to_move_in].between(0..max_days_in_query)),
+      'Total (persons moved into housing)' => a_t[:hoh_move_in_date].between(@report.start_date..@report.end_date).and(a_t[:time_to_move_in].between(0..MAX_DAYS_TO_MOVE_IN)),
       'Average length of time to housing' => :average,
       'Persons who were exited without move-in' => a_t[:hoh_move_in_date].eq(nil),
-      'Total persons' => a_t[:time_to_move_in].between(0..max_days_in_query).or(a_t[:hoh_move_in_date].eq(nil)),
+      'Total persons' => a_t[:time_to_move_in].between(0..MAX_DAYS_TO_MOVE_IN).or(a_t[:hoh_move_in_date].eq(nil)),
     ).freeze
   end
 end

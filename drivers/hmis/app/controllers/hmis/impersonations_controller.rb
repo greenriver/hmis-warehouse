@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -17,6 +17,11 @@ class Hmis::ImpersonationsController < Hmis::BaseController
 
     return render_error('Cannot impersonate current user') if user.id == current_hmis_user.id
 
+    # Use the instance policy to confirm authorization for impersonating *this* user.
+    # In practice this is a redundant check, since we already checked global permission (in the authorize_action),
+    # confirmed the user to be impersonated is in the current data source, and confirmed it isn't the current user.
+    return not_authorized! unless current_hmis_user.policy_for(user, policy_type: :hmis_user).can_impersonate?
+
     impersonate_hmis_user(user)
     render_success
   end
@@ -31,7 +36,7 @@ class Hmis::ImpersonationsController < Hmis::BaseController
   protected
 
   def authorize_action
-    return not_authorized! unless true_hmis_user.can_impersonate_users?
+    return not_authorized! unless true_hmis_user.policy_for(Hmis::User, policy_type: :hmis_user).can_impersonate_users?
   end
 
   def render_success

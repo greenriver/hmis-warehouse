@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -12,7 +12,7 @@ module HudLsa
     include ArelHelper
 
     private def report_scope
-      report_source.hic.where(report_name: possible_titles)
+      hic_scope.where(report_name: possible_titles)
     end
 
     # Last Wednesday of January

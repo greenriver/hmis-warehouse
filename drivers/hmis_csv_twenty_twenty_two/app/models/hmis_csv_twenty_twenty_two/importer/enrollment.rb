@@ -1,10 +1,10 @@
-# frozen_string_literal: true
-
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 module HmisCsvTwentyTwentyTwo::Importer
   class Enrollment < GrdaWarehouse::Hud::Base
@@ -25,7 +25,7 @@ module HmisCsvTwentyTwentyTwo::Importer
     scope :open_during_range, ->(range) do
       e_t = arel_table
       ex_t = HmisCsvTwentyTwentyTwo::Importer::Exit.arel_table
-      # convert the range into a standard range for backwards compatability
+      # convert the range into a standard range for backwards compatibility
       range = (range.start..range.end) if range.is_a?(::Filters::DateRange)
       d_1_start = range.first
       d_1_end = range.last

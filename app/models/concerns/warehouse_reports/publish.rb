@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -42,7 +42,7 @@ module WarehouseReports::Publish
 
     # Your report is required to define public_s3_directory
     # private def public_s3_directory
-    #   # This should return a string that represends the unique path for aLl reports of this type
+    #   # This should return a string that represents the unique path for aLl reports of this type
     #   'path-to-report'
     # end
 

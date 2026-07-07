@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -56,7 +56,7 @@ module Talentlms
       "#{lms_username}@#{ENV['FQDN']}"
     end
 
-    # The Local login record for the user. If no record exists, one will by created/syncronized from the api.
+    # The Local login record for the user. If no record exists, one will by created/synchronized from the api.
     #
     # @param api [Integer] Config ID for the record that contains information about the subdomain.
     # @return [Login] Local login record for the user, nil if local data cannot be created/retrieved
@@ -88,7 +88,7 @@ module Talentlms
     # Get the account data for the user from the API
     #
     # @param api [Integer] Config ID for the config record that contains information about the subdomain where the user's account will be synced with the local data
-    # @param login [Integer] Nullable ID for the Login record that contains local information about the user we are syncronizing.
+    # @param login [Integer] Nullable ID for the Login record that contains local information about the user we are synchronizing.
     # @return [JSON] Account data returned from the API, nil if no account data is available
     def get_lms_account_data(api, login)
       username = lms_username
@@ -97,7 +97,7 @@ module Talentlms
       # If we have a local login record, we have a talent account id. Check here first for the talent record
       result = lms_find_user_by_id(api, login.lms_user_id) if login.present?
       # The local login record does not exist OR Talent does not have an account for this id.
-      # Check for a Talent account with the assocaited email address
+      # Check for a Talent account with the associated email address
       result ||= lms_find_user_by_email(api, email_address)
       # Talent does not have a record associated with this email address, check the default username. If we generated an
       # account for this user prior to allowing emails to be set, we should be able to find it this way.
@@ -106,10 +106,10 @@ module Talentlms
       result
     end
 
-    # Syncronize the user's local data with taht found in the config (subdomain)
+    # Synchronize the user's local data with that found in the config (subdomain)
     #
     # @param api [Integer] Config ID for the config record that contains information about the subdomain where the user's account will be synced with the local data
-    # @param login [Integer] Nullable ID for the Login record that contains local information about the user we are syncronizing.
+    # @param login [Integer] Nullable ID for the Login record that contains local information about the user we are synchronizing.
     # @return [JSON] Account data returned from the API, nil if no account data is available or account is inactive
     def sync_lms_account(api, login)
       result = get_lms_account_data(api, login)
@@ -139,7 +139,7 @@ module Talentlms
     # Return whether or not a user is active in a config
     #
     # @param api [Integer] Config ID for the config record that contains information about the subdomain where the user's account will be synced with the local data
-    # @param login [Integer] Nullable ID for the Login record that contains local information about the user we are syncronizing.
+    # @param login [Integer] Nullable ID for the Login record that contains local information about the user we are synchronizing.
     # @param api_resonse [JSON] include JSON data here to bypass API lookup. Including this data will prevent additional API calls.
     # @return [JSON] Account data returned from the API, nil if no account data is available or account is inactive
     def active_user?(api, login = nil, api_response = nil)
@@ -333,7 +333,7 @@ module Talentlms
       "#{p}#{lower_letter}#{upper_letter}#{number}#{special}".chars.shuffle.join
     end
 
-    # Check if the user requires training in any of thier required_training_courses
+    # Check if the user requires training in any of their required_training_courses
     #
     # @return [Boolean] True it the user has any course in that requires them to complete training
     def any_training_required?

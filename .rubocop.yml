@@ -4,6 +4,9 @@ inherit_mode:
   merge:
     - Exclude
 
+require:
+  - ./lib/rubocop/cop/migrations/disable_ddl_transaction
+
 AllCops:
   SuggestExtensions: false
   Exclude:
@@ -176,10 +179,6 @@ Style/RegexpLiteral:
   EnforcedStyle: slashes
   AllowInnerSlashes: true
 
-Lint/UnusedMethodArgument:
-  Exclude:
-    - "lib/rds_sql_server/hmis_sql_server.rb"
-
 Style/DoubleNegation:
   Enabled: false
 
@@ -276,3 +275,8 @@ Style/ExplicitBlockArgument:
   Enabled: false
 Style/HashSyntax:
   EnforcedShorthandSyntax: never
+
+Migrations/DisableDdlTransaction:
+  Enabled: true
+  Include:
+    - "db/**/migrate/*.rb"

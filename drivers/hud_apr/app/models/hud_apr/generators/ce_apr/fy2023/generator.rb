@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -9,7 +9,6 @@
 module HudApr::Generators::CeApr::Fy2023
   class Generator < ::HudReports::GeneratorBase
     include HudApr::CellDetailsConcern
-    include HudApr::CeAprCellDetailsConcern
 
     def self.fiscal_year
       'FY 2023'

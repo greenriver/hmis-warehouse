@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -25,24 +25,13 @@ module Types
       Hmis::Hud::Enrollment.hmis_configuration(version: '2024')
     end
 
-    # check for the most minimal permission needed to resolve this object
-    # (can_view_project AND can_view_enrollment_details) OR can_view_limited_enrollment_details
+    # Check for the most minimal permission needed to resolve this object (full-access or limited-access)
+    # This is a secondary guard against data source leakage, the viewable_by scope is our primary defense.
     def self.authorized?(object, ctx)
       return false unless super
 
-      # current_permission_for_context? checks to prevent data source leakage, but it is a secondary guard;
-      # the viewable_by scope is our primary defense against this.
-      return true if GraphqlPermissionChecker.current_permission_for_context?(ctx, permission: :can_view_limited_enrollment_details, entity: object)
-
-      return false unless GraphqlPermissionChecker.current_permission_for_context?(ctx, permission: :can_view_enrollment_details, entity: object)
-
-      project = if object.association(:project).loaded?
-        object.project
-      else
-        ctx.dataloader.with(Sources::ActiveRecordAssociation, :project).load(object)
-      end
-
-      GraphqlPermissionChecker.current_permission_for_context?(ctx, permission: :can_view_project, entity: project)
+      policy = ctx[:current_user].policy_for(object, policy_type: :hmis_enrollment)
+      policy.can_view_limited? || policy.can_view_details?
     end
 
     # Override the "field" function to perform field-level authorization.
@@ -100,12 +89,14 @@ module Types
     # Override permission requirement for the access object. This is necessary so the frontend
     # knows whether its safe to link to the full enrollment dashboard for a given enrollment.
     access_field permissions: nil do
-      can :view_enrollment_details
-      can :edit_enrollments
-      can :delete_enrollments
-      can :split_households
-      can :audit_enrollments
-      can :view_enrollment_location_map
+      define_method(:policy) { @policy ||= policy_for(object, policy_type: :hmis_enrollment) }
+
+      bool_field(:can_view_enrollment_details) { policy.can_view_details? }
+      bool_field(:can_edit_enrollments) { policy.can_edit? }
+      bool_field(:can_delete_enrollments) { policy.can_delete? }
+      bool_field(:can_split_households) { policy.can_split_household? }
+      bool_field(:can_audit_enrollments) { policy.can_audit? }
+      bool_field(:can_view_enrollment_location_map) { policy.can_view_location_map? }
     end
 
     # FULL ACCESS FIELDS. All fields below this line require `can_view_enrollment_details` perm, because they use the overridden 'field' class method.
@@ -267,7 +258,7 @@ module Types
 
     # N+1, not performant for queries on collections
     def geolocations
-      return [] unless current_permission?(permission: :can_view_enrollment_location_map, entity: project)
+      return [] unless enrollment_policy.can_view_location_map?
 
       # Must map to warehouse record because locations use polymorphic source with GrdaWarehouse::Hud::Enrollment type
       object.as_warehouse.enrollment_location_histories.valid
@@ -286,12 +277,18 @@ module Types
     # This is different from the "summary_fields" which are governed by a different
     # permission ('can_view_limited_enrollment_details').
     def open_enrollment_summary
-      return [] unless current_permission?(permission: :can_view_open_enrollment_summary, entity: object)
+      return [] unless enrollment_policy.can_view_open_enrollment_summary?
 
       client = load_ar_client_association(object)
       # There is no "viewable_by" check on the enrollments, because this permission
       # grants full access regardless of enrollment/project visibility.
-      load_ar_association(client, :enrollments).where.not(id: object.id).open_including_wip
+      open_enrollments = client.enrollments.where.not(id: object.id).open_including_wip
+
+      # Perf optimization: preload project dependencies for open enrollments, to avoid N+1
+      # when resolving HmisSchema::EnrollmentSummary#can_view_enrollment
+      current_user.policy_context.preload_project_dependencies(open_enrollments.pluck(:project_pk))
+
+      open_enrollments
     end
 
     def reminders
@@ -328,7 +325,7 @@ module Types
 
     # Needed because limited access viewers cannot resolve the project
     def project_name
-      return Hmis::Hud::Project::CONFIDENTIAL_PROJECT_NAME if project&.confidential && !current_permission?(permission: :can_view_enrollment_details, entity: object)
+      return Hmis::Hud::Project::CONFIDENTIAL_PROJECT_NAME if project&.confidential && !enrollment_policy.can_view_details?
 
       project&.project_name
     end
@@ -475,6 +472,12 @@ module Types
       assignments = load_ar_association(object, :staff_assignments)
       # Sort in-memory to avoid n+1. Equivalent of: order(created_at: :desc, id: :desc)
       assignments.to_a.sort_by { |sa| [-sa.created_at.to_i, -sa.id] }
+    end
+
+    private
+
+    def enrollment_policy
+      @enrollment_policy ||= current_user.policy_for(object, policy_type: :hmis_enrollment)
     end
   end
 end

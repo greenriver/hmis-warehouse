@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -129,7 +129,7 @@ module ClaimsReporting::Calculators
       # 6. Sum all weights associated with the IHS (i.e., observation
       # stay, presence of surgery, primary discharge diagnosis,
       # comorbidities, age and gender) and use the formula below to
-      # calculate th𝑒𝑒e Estimated Readmission Risk for each IHS.
+      # calculate the Estimated Readmission Risk for each IHS.
       sum_of_weights = ([
         observation_weight,
         surg_weight,

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -140,7 +140,7 @@ module HmisDataQualityTool
       @goal_config ||= HmisDataQualityTool::Goal.for_coc(coc_code)
     end
 
-    # for compatability with HudReport Logic
+    # for compatibility with HudReport Logic
     def start_date
       @start_date ||= filter.start
     end
@@ -233,7 +233,13 @@ module HmisDataQualityTool
 
     def pivot_details
       @pivot_details ||= OpenStruct.new.tap do |struct|
-        struct.groups = result_groups.except('Inventory')
+        struct.groups = results.each_with_object({}) do |result, groups|
+          next if result.category == 'Inventory'
+
+          item_class = result.item_class.constantize
+          groups[result.category] ||= {}
+          groups[result.category][result.slug.to_sym] = item_class
+        end
         struct.lookup = (
           # NOTE: anything added here must have personal_id and data_source_id columns
           # or some views will break
@@ -454,6 +460,18 @@ module HmisDataQualityTool
 
     def timeliness_exit_goal
       goal_config.exit_date_entered_length # days
+    end
+
+    def show_entry_timeliness?
+      return @show_entry_timeliness if instance_variable_defined?(:@show_entry_timeliness)
+
+      @show_entry_timeliness = results.any? { |r| r.slug.to_s == 'entry_date_entry_issues' }
+    end
+
+    def show_exit_timeliness?
+      return @show_exit_timeliness if instance_variable_defined?(:@show_exit_timeliness)
+
+      @show_exit_timeliness = results.any? { |r| r.slug == 'exit_date_entry_issues' }
     end
 
     def time_in_enrollment_chart

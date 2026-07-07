@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -53,7 +53,7 @@ module SimpleReports
 
     private def new_member(warehouse_client:, universe_client:)
       # Support keying on client_id for efficiency
-      # but maintain backwards compatability with using client record for HAP report
+      # but maintain backwards compatibility with using client record for HAP report
       if warehouse_client.is_a?(Integer)
         UniverseMember.new(
           report_cell: self,

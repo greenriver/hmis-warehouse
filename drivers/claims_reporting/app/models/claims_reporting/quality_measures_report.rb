@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -147,14 +147,14 @@ module ClaimsReporting
         desc: <<~MD,
           The percentage of Behavioral Health Community Partner (BH CP) enrollees 18 to 64 years of age who had at least one comprehensive well-care visit with a PCP or an OB/GYN practitioner during the measurement year.
 
-          Continous Enrollment requirements:
+          Continuous Enrollment requirements:
 
           * BH CP enrollees without a CP disenrollment during the measurement year must be continuously enrolled in MassHealth during the measurement year.
           * BH CP enrollees with a CP disenrollment during the measurement year must be continuously enrolled in MassHealth for one year prior to the disenrollment date.
           * BH CP enrollees must be continuously enrolled in a BH CP for at least 122 calendar days during the measurement year.
           * A gap of no more than 45 calendar days during periods of continuous MassHealth enrollment.
 
-          Excludes enrollees in Hospice durring the measurement year.
+          Excludes enrollees in Hospice during the measurement year.
         MD
         numerator: 'BH CP enrollees 18 to 64 years of age who received a comprehensive well-care visit at least one time during the measurement year.',
         denominator: 'BH CP enrollees 18 to 64 years of age as of December 31 of the measurement year.',
@@ -573,7 +573,7 @@ module ClaimsReporting
       # find a enrollment with a Community Partner enrollment covering the end of the date_range
       latest_enrollment = enrollments.reverse.detect { |e| e.cp_enrolled_date_range&.cover?(date_range.max) }
 
-      # none? -- then they arent continuous
+      # none? -- then they aren't continuous
       return false unless latest_enrollment
 
       # if it must be a minimum number of days than just look for that
@@ -723,8 +723,8 @@ module ClaimsReporting
       rows
     end
 
-    private def assert(explaination, condition)
-      raise explaination unless condition
+    private def assert(explanation, condition)
+      raise explanation unless condition
     end
 
     # hook to log exclusions
@@ -872,7 +872,7 @@ module ClaimsReporting
       end
 
       # **Note**: The exclusion logic below is done as close to the English spec as possible
-      # to make it possible to connect the two.  It feels like it could be further optomized
+      # to make it possible to connect the two.  It feels like it could be further optimized
       # since the readmit/transfer to (*) logic seems to be redundant
 
       # > If the readmission/direct transfer to the acute inpatient care setting was for a
@@ -880,7 +880,7 @@ module ClaimsReporting
       # > (Mental Health Diagnosis Value count only the last discharge.
       #
       # i.e. remove all but the last mental_health_hospitalization if
-      # re-admitted/transfered within the 7 day follow-up period
+      # re-admitted/transferred within the 7 day follow-up period
       mh_final_discharges = []
       mh_discharges.each_with_index do |d, idx|
         d_next = d[idx + 1]
@@ -1416,7 +1416,7 @@ module ClaimsReporting
 
           # > Expected Readmission Rate:
           # > The Count of Expected 30-Day Readmissions divided by the Count of Index Stays
-          # The spec says devided by the math only makes sense if you multiply
+          # The spec says divided by the math only makes sense if you multiply
           expected_value = expected_count / denominator
 
           # > O/E Ratio: The Count of Observed 30-Day Readmissions

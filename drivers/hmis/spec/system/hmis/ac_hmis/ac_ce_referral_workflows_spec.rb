@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -32,14 +32,14 @@ RSpec.feature 'AC CE Referral Workflows', type: :system do
 
   after(:all) do
     if ENV['RUN_SYSTEM_TESTS'] == 'true'
+      ds1 = GrdaWarehouse::DataSource.find_by!(hmis: 'localhost')
+
       # Clean up workflow definition related records, since they were created in before(:all) and not in fixtures.
       # This helps avoid downstream issues in later tests.
       ['housing_workflow_v1', 'admin_assign_workflow'].each do |identifier|
-        CeWorkflows::Shared::CeBuilderUtils.delete_template_and_associated_data(identifier)
+        CeWorkflows::Shared::CeBuilderUtils.delete_template_and_associated_data(identifier, data_source: ds1)
       end
       Hmis::Ce::CustomReferralStatus.delete_all
-
-      ds1 = GrdaWarehouse::DataSource.find_by!(hmis: 'localhost')
 
       # Cleanup seeded referral step forms that were created in before(:all)
       forms = Hmis::Form::Definition.where(role: :CE_REFERRAL_STEP)
@@ -304,8 +304,8 @@ RSpec.feature 'AC CE Referral Workflows', type: :system do
 
     # Shared method for progressing the referral through the initial steps and assigning the provider
     def ce_staff_complete_initial_steps
-      # Navigate to admin referrals page and click into the referral
-      visit '/admin/referrals/'
+      # Navigate to referrals page and click into the referral
+      visit '/referrals/'
       expect(page).to have_content('Alice A')
       expect(page).to have_content('Matching In Progress')
       click_link 'Alice A'

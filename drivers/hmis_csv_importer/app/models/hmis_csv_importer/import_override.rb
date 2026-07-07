@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -83,7 +83,7 @@ class HmisCsvImporter::ImportOverride < GrdaWarehouseBase
   end
 
   # Accepts either an object based on GrdaWarehouse::Hud::Base, or a has of attributes with string keys
-  # Returns same object with overides applied
+  # Returns same object with overrides applied
   # NOTE: this does not save the object
   def apply(row)
     return row unless applies?(row)

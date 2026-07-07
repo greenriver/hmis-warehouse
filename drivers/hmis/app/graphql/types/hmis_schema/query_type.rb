@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -326,20 +326,9 @@ module Types
       current_user
     end
 
-    access_field do
-      # TODO(#8995) - Update access fields to match the new pattern (see below) and remove any that are unused by the frontend
-      Hmis::Role.permissions_with_descriptions.keys.each do |perm|
-        root_can perm
-      end
-      field :can_edit_users_in_warehouse, Boolean, null: false # warehouse permission
-
-      bool_field(:can_index_referrals) { policy_for(Hmis::Ce::Referral, policy_type: :ce_referral).can_index? }
-    end
-
+    field :access, Types::HmisSchema::RootQueryAccess, null: false
     def access
-      {
-        can_edit_users_in_warehouse: User.find(current_user.id).can_edit_users?,
-      }
+      {}
     end
 
     field :referral_posting, Types::HmisSchema::ReferralPosting, null: true do
@@ -382,7 +371,8 @@ module Types
 
     application_users_field :application_users
     def application_users(**args)
-      raise 'Access denied' unless current_user.can_audit_users? || current_user.can_impersonate_users?
+      user_policy = policy_for(Hmis::User, policy_type: :hmis_user)
+      access_denied! unless user_policy.can_index_application_users?
 
       user_scope = Hmis::User.active.with_hmis_access_in_data_source(current_user.hmis_data_source_id)
       resolve_application_users(user_scope, **args)
@@ -392,10 +382,11 @@ module Types
       argument :id, ID, required: true
     end
     def user(id:)
-      raise 'Access denied' unless id == current_user.id.to_s || current_user.can_audit_users? || current_user.can_impersonate_users?
-
       user_scope = Hmis::User.with_hmis_access_in_data_source(current_user.hmis_data_source_id)
-      load_ar_scope(scope: user_scope, id: id)
+      user = load_ar_scope(scope: user_scope, id: id)
+      access_denied! unless user && policy_for(user, policy_type: :hmis_user).can_view?
+
+      user
     end
 
     field :merge_audit_history, Types::HmisSchema::MergeAuditEvent.page_type, null: false do
@@ -435,7 +426,7 @@ module Types
       filters_argument HmisSchema::ServiceType
     end
     def service_types(filters: nil)
-      raise 'Access denied' unless current_user.can_configure_data_collection?
+      access_denied! unless policy_for(Hmis::Hud::CustomServiceType, policy_type: :service_type).can_manage?
 
       scope = Hmis::Hud::CustomServiceType.all
       scope = scope.apply_filters(filters) if filters
@@ -449,9 +440,10 @@ module Types
       # NOTE: this query is only used for form management. It probably should
       # not be used for the application, because there is no project context passed
       # to the definition.
-      access_denied! unless current_user.can_configure_data_collection?
+      definition = Hmis::Form::Definition.in_data_source(current_user.hmis_data_source_id).find(id)
+      access_denied! unless policy_for(definition, policy_type: :form_definition).can_configure_form?
 
-      Hmis::Form::Definition.in_data_source(current_user.hmis_data_source_id).find(id)
+      definition
     end
 
     field :external_form_submission, Types::HmisSchema::ExternalFormSubmission, null: true do
@@ -467,25 +459,25 @@ module Types
       argument :identifier, String, required: true
     end
     def form_identifier(identifier:)
-      access_denied! unless current_user.can_configure_data_collection?
+      # return early if the user has no permission to configure forms at all
+      access_denied! unless policy_for(Hmis::Form::Definition, policy_type: :form_definition).can_configure_forms?
 
-      scope = Hmis::Form::Definition.
-        in_data_source(current_user.hmis_data_source_id).
-        non_static.latest_versions.where(identifier: identifier)
+      definition = Hmis::Form::Definition.configurable_by(current_user).
+        non_static.latest_versions.where(identifier: identifier).first
 
-      # Return nil (Not Found in the UI) if the user doesn't have can_administrate_config permission and is trying to access a non-admin form
-      scope = scope.with_role(Hmis::Form::Definition::NON_ADMIN_FORM_ROLES) unless current_user.can_administrate_config?
-      scope.first
+      # Return nil (Not Found in the UI) if the user doesn't have permission to access this form
+      return nil unless definition && policy_for(definition, policy_type: :form_definition).can_configure_form?
+
+      definition
     end
 
     field :form_identifiers, Types::Forms::FormIdentifier.page_type, null: false do
       filters_argument Forms::FormIdentifier
     end
     def form_identifiers(filters: nil)
-      access_denied! unless current_user.can_configure_data_collection?
+      access_denied! unless policy_for(Hmis::Form::Definition, policy_type: :form_definition).can_configure_forms?
 
-      scope = Hmis::Form::Definition.in_data_source(current_user.hmis_data_source_id).non_static.valid.latest_versions
-      scope = scope.with_role(Hmis::Form::Definition::NON_ADMIN_FORM_ROLES) unless current_user.can_administrate_config?
+      scope = Hmis::Form::Definition.configurable_by(current_user).non_static.valid.latest_versions
       scope = scope.apply_filters(filters) if filters
       # Sort system-managed forms last, because they aren't edited through the config tool. Then sort by most recently updated.
       scope.order(managed_in_version_control: :asc, updated_at: :desc, id: :desc)
@@ -607,9 +599,17 @@ module Types
       resolve_ce_opportunities(Hmis::Ce::Opportunity.viewable_by(current_user), **args)
     end
 
-    ce_referrals_field
+    # Omit assigned_to_user for now. Enabling it will require a frontend change to map the filter to a user picklist
+    ce_referrals_field(filter_args: { omit: [:assigned_to_user], type_name: 'CeReferral' })
     def ce_referrals(**args)
       resolve_ce_referrals(Hmis::Ce::Referral.viewable_by(current_user), **args)
+    end
+
+    field :workspaces, [HmisSchema::Workspace], null: false do
+      argument :applies_to, HmisSchema::Enums::WorkspaceAppliesTo, required: true
+    end
+    def workspaces(applies_to:)
+      Hmis::Workspace.active.viewable_by(current_user, for_usage: applies_to).ordered
     end
 
     field :table_config_lookup, Types::TableConfigLookup, null: false
@@ -626,9 +626,10 @@ module Types
       scope = Hmis::Ce::ClientProxy.for_warehouse_clients.
         joins(ce_match_candidates: :candidate_pool).
         merge(Hmis::Ce::Match::CandidatePool.active).
-        distinct.order(:id)
+        distinct
 
       scope = scope.apply_filters(filters) if filters
+      scope = scope.order(:id)
       scope
     end
 
@@ -665,11 +666,75 @@ module Types
       Hmis::UnitGroup.viewable_by(current_user).find_by(id: id)
     end
 
+    field :unit_groups, HmisSchema::UnitGroup.page_type, null: false do
+      filters_argument HmisSchema::UnitGroup
+    end
+    def unit_groups(filters: nil)
+      scope = Hmis::UnitGroup.viewable_by(current_user)
+      scope = scope.apply_filters(filters) if filters.present?
+      scope.order(:name, :id)
+    end
+
     field :unit, HmisSchema::Unit, null: true do
       argument :id, ID, required: true
     end
     def unit(id:)
       Hmis::Unit.viewable_by(current_user).find_by(id: id)
+    end
+
+    field :ce_match_rule, HmisSchema::CeMatchRule, null: false do
+      argument :id, ID, required: true
+    end
+    def ce_match_rule(id:)
+      rule = Hmis::Ce::Match::Rule.find_by(id: id)
+      access_denied! unless rule && policy_for(rule, policy_type: :ce_match_rule).can_view?
+
+      rule
+    end
+
+    field :ce_match_rules, HmisSchema::CeMatchRule.page_type, null: false, description: 'Coordinated Entry Match Rules in the current data source.' do
+      filters_argument HmisSchema::CeMatchRule
+    end
+    def ce_match_rules(filters: nil)
+      access_denied! unless policy_for(Hmis::Ce::Match::Rule, policy_type: :ce_match_rule).can_manage?
+
+      # TODO(#9337) Support viewing and editing priority schemes
+      scope = Hmis::Ce::Match::Rule.in_data_source(current_user.hmis_data_source_id).eligibility_requirement
+      scope = scope.apply_filters(filters) if filters.present?
+      scope.order(:id)
+    end
+
+    # Client fields (from ClientFieldMap) available in CE Match Rule expressions.
+
+    field :ce_match_client_fields, [HmisSchema::CeMatchField], null: false, description: 'Client fields available for CE Match Rule expressions.'
+    def ce_match_client_fields
+      access_denied! unless policy_for(Hmis::Ce::Match::Rule, policy_type: :ce_match_rule).can_manage?
+
+      Hmis::Ce::Match::FieldCatalog.new.client_fields
+    end
+
+    field :ce_match_custom_assessment_forms, [Forms::FormDefinition], null: false, description: 'Custom assessment form definitions for use in CE match rule management.'
+    def ce_match_custom_assessment_forms
+      access_denied! unless policy_for(Hmis::Ce::Match::Rule, policy_type: :ce_match_rule).can_manage?
+
+      Hmis::Form::Definition.
+        with_role(:CUSTOM_ASSESSMENT).
+        published_or_retired.
+        where(data_source_id: current_user.hmis_data_source_id).
+        latest_versions.
+        order(:title)
+    end
+
+    field :ce_match_custom_assessment_fields, [HmisSchema::CeMatchField], null: false, description: 'Fields on the form that are usable as CE Match Rule condition fields.' do
+      argument :form_definition_identifier, String, required: true
+    end
+    def ce_match_custom_assessment_fields(form_definition_identifier:)
+      access_denied! unless policy_for(Hmis::Ce::Match::Rule, policy_type: :ce_match_rule).can_manage?
+
+      Hmis::Ce::Match::FieldCatalog.new.custom_assessment_fields_for(
+        data_source_id: current_user.hmis_data_source_id,
+        form_definition_identifier: form_definition_identifier,
+      )
     end
   end
 end

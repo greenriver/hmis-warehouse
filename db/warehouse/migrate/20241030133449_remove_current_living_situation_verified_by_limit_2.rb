@@ -1,3 +1,9 @@
+###
+# Copyright Green River Data Group, Inc.
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 # frozen_string_literal: true
 
 class RemoveCurrentLivingSituationVerifiedByLimit2 < ActiveRecord::Migration[7.0]
@@ -11,7 +17,7 @@ class RemoveCurrentLivingSituationVerifiedByLimit2 < ActiveRecord::Migration[7.0
   end
 
   def down
-    # Including the revese steps for rollbacks
+    # Including the reverse steps for rollbacks
     change_column :CurrentLivingSituation, :VerifiedBy, :string, limit: 100
   end
 end

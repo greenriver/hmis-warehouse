@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -118,7 +118,7 @@ module Clients
     def destroy_file
       set_vispdat
       @file = @vispdat.files.find params[:file_id]
-      @file.destroy
+      @file.soft_delete!
       respond_with @vispdat
     end
 

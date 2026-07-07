@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -30,7 +30,7 @@ class WarehouseReport::ExportEnrollmentCalculator < OpenStruct
       open_during_range(filter)
   end
 
-  # Find the first exit to a permanent destination for this client that occured within the range.
+  # Find the first exit to a permanent destination for this client that occurred within the range.
   # If no permanent destination just use the first exit
   # used to determine if the client returned after exiting
   def exit_for_client(client)

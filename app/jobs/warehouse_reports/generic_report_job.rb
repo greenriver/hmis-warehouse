@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -45,7 +45,7 @@ module WarehouseReports
       end
 
       report = klass.find_by(id: report_id)
-      # Occassionally people delete the report before it actually runs
+      # occasionally people delete the report before it actually runs
       return false unless report.present?
 
       completed = report.run_and_save!

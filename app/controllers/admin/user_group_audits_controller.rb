@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -26,7 +26,7 @@ module Admin
     private
 
     def set_variables
-      @user_group = UserGroup.find(params[:user_group_id].to_i)
+      @user_group = UserGroup.with_deleted.find(params[:user_group_id].to_i)
       @history = Audit::Versions.new(@user_group, user_group_audit_config)
       @versions = @history.version_array.sort_by(&:created_at).reverse
     end

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -113,8 +113,8 @@ module ClaimsReporting
     # pcc: Primary Care Clinician (PCC)
     # cp: Community Partners (CP) Program OR Care Plan (check context)
     # ltss: Long-Term Services and Supports
-    # bh: Behavioural Health
-    # bh cp: Behavioural Health *Community Partner*
+    # bh: Behavioral Health
+    # bh cp: Behavioral Health *Community Partner*
     # ltss cp: Long-Term Services and Supports *Community Partner*
     # dds:  Department of Development Services
     # dms:  Department of Mental Health

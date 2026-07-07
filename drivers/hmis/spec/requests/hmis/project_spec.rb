@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -14,6 +14,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   before(:each) do
     hmis_login(user)
   end
+
+  before { allow_any_instance_of(Hmis::Ce::Configuration).to receive(:enabled?).and_return(true) }
 
   let!(:access_control) { create_access_control(hmis_user, p1) }
   let!(:ds1) { create :hmis_primary_data_source }
@@ -93,7 +95,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       response, result = post_graphql(id: p1.id) { query }
 
       aggregate_failures 'checking response' do
-        expect(response.status).to eq 200
+        expect(response.status).to eq(200), result.inspect
         record = result.dig('data', 'project')
         expect(record['id']).to be_present
         to_id = proc { |x| x['id'].to_i }
@@ -156,7 +158,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
     it 'resolves both WIP and non-WIP assessments on the project' do
       response, result = post_graphql(id: p1.id) { project_assessments_query }
-      expect(response.status).to eq 200
+      expect(response.status).to eq(200), result.inspect
       records = result.dig('data', 'project', 'assessments', 'nodes')
       expect(records.size).to eq(4)
       expect(records.pluck('id')).to contain_exactly(a1.id.to_s, a2.id.to_s, a3.id.to_s, a4.id.to_s)

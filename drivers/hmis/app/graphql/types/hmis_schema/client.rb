@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -88,7 +88,7 @@ module Types
     )
     ce_referrals_field(
       :ce_referrals,
-      filter_args: { omit: [:workflow_template, :on_current_task_since, :search_term], type_name: 'ClientCeReferral' },
+      filter_args: { omit: [:workflow_template, :on_current_task_since, :search_term, :assigned_to_you, :assigned_to_user], type_name: 'ClientCeReferral' },
     )
 
     field :active_enrollment, Types::HmisSchema::Enrollment, null: true do
@@ -171,10 +171,15 @@ module Types
       can :view_enrollment_details
       can :delete_clients, field_name: :can_delete_client
       can :edit_clients, field_name: :can_edit_client
-      can :manage_any_client_files
-      can :manage_own_client_files
-      composite_perm :can_upload_client_files, permissions: [:manage_any_client_files, :manage_own_client_files], mode: :any
-      composite_perm :can_view_any_files, permissions: [:manage_own_client_files, :view_any_nonconfidential_client_files, :view_any_confidential_client_files], mode: :any
+
+      bool_field(:can_index_files) { policy.can_index_files? }
+      bool_field(:can_upload_client_files) { policy.can_create_file? }
+
+      # Deprecated
+      can :manage_any_client_files, deprecation_reason: 'Resolve canManage on individual file access field instead'
+      can :manage_own_client_files, deprecation_reason: 'Resolve canManage on individual file access field instead'
+      composite_perm :can_view_any_files, permissions: [:manage_own_client_files, :view_any_nonconfidential_client_files, :view_any_confidential_client_files], mode: :any, deprecation_reason: 'Use canIndexFiles'
+
       can :audit_clients
       can :manage_scan_cards
       can :view_client_alerts
@@ -391,7 +396,7 @@ module Types
     #
     # This first version is global. In other words it resolves the same thing for every client.
     # In the future this will probably be client-specific, either based on some configuration, or based on the projects that the client is enrolled at.
-    # Specifically for indicating whether certain "Enrollment-optional records" (File, Case Note) should be collectable on the Client Dashbord vs on the Enrollment Dashboard (in the future).
+    # Specifically for indicating whether certain "Enrollment-optional records" (File, Case Note) should be collectable on the Client Dashboard vs on the Enrollment Dashboard (in the future).
     def enabled_features
       client_dashboard_feature_roles = Types::Forms::Enums::ClientDashboardFeature.values.keys
 

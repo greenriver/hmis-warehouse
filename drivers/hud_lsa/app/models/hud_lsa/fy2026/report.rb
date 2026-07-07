@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -40,8 +40,6 @@ module HudLsa::Fy2026
     def self.available_projects(user:)
       # Project types are integral to LSA business logic; only ES, SH, TH, PSH projects should be available to select as parameters.
       # Section 2.1 requires that the projects available to a user for selection when entering report parameters must be limited to ProjectTypes ES (1), SH (8), TH (2), RRH (13), and PSH (3), so records for other project types are never included when LSAScope = 2.
-      # NOTE: app/models/report_generators/lsa/fy2022/base.rb will define a different set for system-wide LSAScope = 1
-
       project_scope = GrdaWarehouse::Hud::Project.coc_funded.with_hud_project_type([0, 1, 2, 3, 8, 9, 10, 13])
       GrdaWarehouse::Hud::Project.options_for_select(user: user, scope: project_scope)
     end

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -622,6 +622,20 @@ module HmisCsvImporter::Importer
 
       # Update the effective export end date of the export
       log_timing :set_effective_export_end_date
+
+      # Run any after_ingest hooks
+      log_timing :after_ingest
+    end
+
+    def after_ingest
+      importable_files.each_value do |klass|
+        next unless klass.respond_to?(:after_ingest!)
+
+        klass.after_ingest!(
+          data_source: data_source,
+          project_ids: involved_project_ids,
+        )
+      end
     end
 
     def set_effective_export_end_date
@@ -1157,7 +1171,7 @@ module HmisCsvImporter::Importer
       batch_clear_pending_deletion(klass, matched_scope, file_name)
     end
 
-    # Creates a session-scoped temp table of IDs materialised from `scope`, builds
+    # Creates a session-scoped temp table of IDs materialized from `scope`, builds
     # an index on it, yields the quoted temp-table name for the caller to drive its
     # own batched UPDATE, then drops the table in ensure.
     private def with_temp_id_table(conn, name, scope)

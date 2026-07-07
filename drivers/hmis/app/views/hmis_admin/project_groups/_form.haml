@@ -3,21 +3,31 @@
 -# Project Group must have data source specified. Only allow selecting inclusion criteria for the given data source
 - ds = @project_group.data_source
 - organization_options = GrdaWarehouse::Hud::Organization.where(data_source_id: ds.id).options_for_select(user: current_user)
+- coc_code_options = ::HudHelper.util.cocs_in_state(GrdaWarehouse::Config.relevant_state_codes).keys
 
-%div.mb-4
-  %h3 Project Group Name
+%h3 Project Group Name
+.form-inputs.well
   = f.input :name, required: true
+  = f.input :notes, as: :text
 
-%div.mb-4
-  %h3 Inclusion Criteria
-  = f.simple_fields_for :inclusion_criteria do |ic|
+%h3 Inclusion Criteria
+.form-inputs.well
+  %p Choices below will add to the selection of projects. For instance, if you choose a single project and the project type Street Outreach, you will end up with a project group with all street outreach projects and the single chosen project.
+
+  = f.simple_fields_for :inclusion_criteria, @project_group.parsed_inclusion_criteria do |ic|
     = ic.input :project_ids, collection: [], as: :select_two, input_html: { multiple: true, data: { 'collection-path' => api_projects_path(selected_project_ids: @project_group.parsed_inclusion_criteria.project_ids, data_source_ids: [ds.id]) }, placeholder: 'Choose Projects'}, label: 'Projects', required: false
-    = ic.input :organization_ids, collection: organization_options, selected: @project_group.parsed_inclusion_criteria.organization_ids, as: :grouped_select_two, group_method: :last, input_html: {multiple: true, placeholder: 'Choose Organizations' }, label: 'Organizations', required: false
-    = ic.input :project_type_numbers, collection: Hmis::ProjectGroupCriteria.available_project_type_numbers, selected: @project_group.parsed_inclusion_criteria.project_type_numbers, input_html: { multiple: true, placeholder: 'Choose Project Types' }, label: 'Project Types', as: :select_two, required: false
+    = ic.input :organization_ids, collection: organization_options, as: :grouped_select_two, group_method: :last, input_html: {multiple: true, placeholder: 'Choose Organizations' }, label: 'Organizations', required: false
+    = ic.input :project_type_numbers, collection: Hmis::ProjectGroupCriteria.available_project_type_numbers, input_html: { multiple: true, placeholder: 'Choose Project Types' }, label: 'Project Types', as: :select_two, required: false
+    = ic.input :coc_codes, collection: coc_code_options, input_html: { multiple: true, placeholder: 'Choose CoC Codes' }, label: 'CoC Codes', as: :select_two, required: false
     = ic.input :all_projects_in_data_source, as: :boolean, label: 'Include all projects in data source', required: false
 
-%div.mb-4
-  %h3 Exclusion Criteria
-  = f.simple_fields_for :exclusion_criteria do |ec|
+%h3 Exclusion Criteria
+.form-inputs.well
+  %p Choices below will remove from the selection of included projects.
+
+  = f.simple_fields_for :exclusion_criteria, @project_group.parsed_exclusion_criteria do |ec|
     = ec.input :project_ids, collection: [], as: :select_two, input_html: { multiple: true, data: { 'collection-path' => api_projects_path(selected_project_ids: @project_group.parsed_exclusion_criteria.project_ids, data_source_ids: [ds.id]) }, placeholder: 'Choose Projects'}, label: 'Projects to Exclude', required: false
-    = ec.input :project_type_numbers, collection: Hmis::ProjectGroupCriteria.available_project_type_numbers, selected: @project_group.parsed_exclusion_criteria.project_type_numbers, input_html: { multiple: true, placeholder: 'Choose Project Types' }, label: 'Project Types to Exclude', as: :select_two, required: false
+    = ec.input :organization_ids, collection: organization_options, as: :grouped_select_two, group_method: :last, input_html: {multiple: true, placeholder: 'Choose Organizations' }, label: 'Organizations to Exclude', required: false
+    = ec.input :project_type_numbers, collection: Hmis::ProjectGroupCriteria.available_project_type_numbers, input_html: { multiple: true, placeholder: 'Choose Project Types' }, label: 'Project Types to Exclude', as: :select_two, required: false
+    = ec.input :coc_codes, collection: coc_code_options, input_html: { multiple: true, placeholder: 'Choose CoC Codes' }, label: 'CoC Codes to Exclude', as: :select_two, required: false
+    = ec.input :closed_projects, as: :boolean, label: 'Exclude closed projects', hint: 'Exclude projects that are not currently open based on operating start and end dates.', required: false

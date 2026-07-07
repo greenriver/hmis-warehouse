@@ -1,10 +1,10 @@
-# frozen_string_literal: true
-
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 require 'rails_helper'
 
@@ -55,6 +55,7 @@ RSpec.describe HopwaCaper::Generators::Fy2026::Sheets::AccessToCareSheet, type: 
       atc_maintained_contact_field_name: maintained_key,
       atc_housing_plan_field_name: housing_plan_key,
       atc_primary_health_contact_field_name: primary_health_key,
+      funder_daily_rate_field_name: nil,
     )
   end
 

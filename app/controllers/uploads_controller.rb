@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -27,6 +27,12 @@ class UploadsController < ApplicationController
   end
 
   def create
+    unless @data_source.importable?
+      flash[:alert] = Translation.translate('Imports are disabled for this data source.')
+      redirect_to data_source_uploads_path(@data_source)
+      return
+    end
+
     run_import = false
     # Prevent create if user forgot to include file
     unless upload_params[:hmis_zip]
@@ -83,7 +89,7 @@ class UploadsController < ApplicationController
   end
 
   private def data_source_scope
-    data_source_source.importable.directly_viewable_by(current_user)
+    data_source_source.directly_viewable_by(current_user)
   end
 
   private def set_data_source

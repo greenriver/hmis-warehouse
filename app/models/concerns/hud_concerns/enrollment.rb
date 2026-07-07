@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -14,7 +14,7 @@ module HudConcerns::Enrollment
     # probably want to pluck ids and batch fetch by id batches if you are running it more
     # than a handful of times
     scope :open_during_range, ->(range) do
-      # convert the range into a standard range for backwards compatability
+      # convert the range into a standard range for backwards compatibility
       range = (range.start..range.end) if range.is_a?(::Filters::DateRange)
       d_1_start = range.first
       d_1_end = range.last

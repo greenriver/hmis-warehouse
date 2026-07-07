@@ -1,10 +1,10 @@
-# frozen_string_literal: true
-
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 # "CustomDataElementDefinition" is NOT a HUD defined record type. Although it uses CamelCase conventions, this model is particular to Open Path. CamelCase is used for compatibility with "Appendix C - Custom file transfer template"in the HUD HMIS CSV spec. This specifies optional additional CSV files with the naming convention of Custom*.csv
 
@@ -52,6 +52,11 @@ class Hmis::Hud::CustomDataElementDefinition < Hmis::Hud::Base
   end
 
   scope :for_custom_assessments, -> { for_type(Hmis::Hud::CustomAssessment.sti_name) }
+
+  # Custom assessment CDEDs that can be used as CE Match Rule condition fields.
+  # Excludes file and json types.
+  # In the future, we may restrict this list further with a new flag in the FormBuilder to specify items that can be used for CE matching.
+  scope :for_ce_match_conditions, -> { for_custom_assessments.where.not(field_type: ['file', 'json']) }
   scope :for_hud_services, -> { for_type(Hmis::Hud::Service.sti_name) }
   scope :for_custom_services, -> { for_type(Hmis::Hud::CustomService.sti_name) }
   scope :for_hud_or_custom_services, -> { for_type([Hmis::Hud::Service.sti_name, Hmis::Hud::CustomService.sti_name]) }

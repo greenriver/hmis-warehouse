@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -10,6 +10,21 @@ module Types
   class HmisSchema::Assessment < Types::BaseObject
     include Types::HmisSchema::HasCustomDataElements
     include Types::HmisSchema::HasHudMetadata
+
+    # Override HasHudMetadata's helpers to use updated_by_hud_user_id and created_by_hud_user_id, which are more accurate than papertrail
+    def user
+      hud_user = load_ar_association(object, :updated_by_hud_user)
+      app_user = dataloader.with(Sources::HmisUserByEmail).load(hud_user.user_email) if hud_user&.user_email.present?
+
+      app_user || load_last_user_from_versions(object)
+    end
+
+    def created_by
+      hud_user = load_ar_association(object, :created_by_hud_user)
+      app_user = dataloader.with(Sources::HmisUserByEmail).load(hud_user.user_email) if hud_user&.user_email.present?
+
+      app_user || load_created_by_user_from_versions(object)
+    end
 
     available_filter_options do
       arg :assessment_name, [String]
@@ -27,9 +42,13 @@ module Types
     field :client, HmisSchema::Client, null: false
     field :in_progress, Boolean, null: false
     access_field do
-      can :edit_enrollments
-      can :delete_enrollments
-      can :delete_assessments
+      define_method(:assessment_policy) { @assessment_policy ||= policy_for(object, policy_type: :hmis_custom_assessment) }
+
+      bool_field(:can_delete_assessment, description: 'Whether the user can delete this assessment') { assessment_policy.can_delete? }
+
+      can :edit_enrollments, deprecation_reason: 'Use enrollment.access.canEditEnrollments for enrollment edit checks'
+      can :delete_enrollments, deprecation_reason: 'Use assessment.access.canDeleteAssessment'
+      can :delete_assessments, deprecation_reason: 'Use assessment.access.canDeleteAssessment'
     end
     # Related records that were created by this Assessment, if applicable
     field :ce_assessment, Types::HmisSchema::CeAssessment, null: true
@@ -75,7 +94,7 @@ module Types
       return unless form_processor.definition_id # tiny optimization: avoid calling 'definition' if it will invoke find_definition_for_role twice
 
       previous_definition = definition
-      # If original form is not retired, then we should stil use it for editing.
+      # If original form is not retired, then we should still use it for editing.
       return unless previous_definition.retired?
 
       # Find the published version of the previous definition. If this resolves nil, then the original form will be used.

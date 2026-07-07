@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -24,7 +24,7 @@ module Types
     end
 
     def form_rules(**args)
-      raise 'not allowed' unless current_user.can_configure_data_collection?
+      access_denied! unless policy_for(Hmis::Form::Definition, policy_type: :form_definition).can_manage_form_rules?
 
       scope = Hmis::Form::Instance.for_service_category_by_entities(object.id)
       resolve_form_rules(scope, **args)

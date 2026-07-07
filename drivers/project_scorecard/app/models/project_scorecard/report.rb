@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -391,8 +391,9 @@ module ProjectScorecard
         '7'
       end
 
-      number_of_exits = answer(spm_report(project_ids), '2', 'B' + project_row)
-      number_of_returns = answer(spm_report(project_ids), '2', 'I' + project_row)
+      spm_table = HudSpmReport::Generators::Fy2026::MeasureTwo::TABLE_NAME
+      number_of_exits = answer(spm_report(project_ids), spm_table, 'B' + project_row)
+      number_of_returns = answer(spm_report(project_ids), spm_table, 'I' + project_row)
 
       return nil if number_of_exits.blank? || number_of_exits.zero?
 

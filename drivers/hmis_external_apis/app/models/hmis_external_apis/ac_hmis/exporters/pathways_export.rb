@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -33,7 +33,7 @@ module HmisExternalApis::AcHmis::Exporters
       # Iterate through each Destination Client that has Source Client(s) with any Pathway values
       pathway_client_warehouse_id_to_client_ids.each do |warehouse_id, client_ids|
         # Find the pathway CDE that was most recently updated for this destination client
-        most_recent_pathway_cde = client_ids.map { |id| pathways_by_client_id[id] }.flatten.max_by(&:date_updated)
+        most_recent_pathway_cde = client_ids.map { |id| pathways_by_client_id[id] }.flatten.max_by { |cde| [cde.date_updated, cde.id] }
 
         # Collect all pathways for the source client that most recently had any pathway updated.
         # This makes it so that we don't mix-and-match pathways values from different source clients.

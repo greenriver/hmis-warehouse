@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -47,5 +47,12 @@ FactoryBot.define do
     url { 'warehouse_reports/hmis_exports' }
     name { 'HUD HMIS CSV Exports' }
     description { 'Export data in the HUD standard CSV format.' }
+  end
+
+  factory :client_lookups_report, class: 'GrdaWarehouse::WarehouseReports::ReportDefinition' do
+    report_group { 'Operational Reports' }
+    url { 'warehouse_reports/client_lookups' }
+    name { 'Client PersonalID Lookup' }
+    description { 'Mapping table to translate warehouse IDs to HMIS Personal IDs' }
   end
 end

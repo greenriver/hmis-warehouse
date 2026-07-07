@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -69,6 +69,16 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect(response.status).to eq 200
       orgs = result.dig('data', 'organizations', 'nodes')
       expect(orgs.length).to eq(0)
+    end
+
+    it 'filters to organizations with CE waitlists enabled' do
+      # p1 is a project created under o1 in the hmis base setup
+      create(:hmis_project_ce_config, project: p1, supports_waitlist_referrals: true)
+
+      response, result = post_graphql(filters: { ce_waitlists_enabled: true }) { query }
+      expect(response.status).to eq 200
+      orgs = result.dig('data', 'organizations', 'nodes')
+      expect(orgs).to contain_exactly(include('id' => o1.id.to_s))
     end
 
     context 'when there are multiple HMIS data sources' do

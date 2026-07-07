@@ -1,0 +1,27 @@
+{
+  "item": [
+    {
+      "text": "Notes",
+      "type": "TEXT",
+      "link_id": "notes",
+      "mapping": {
+        "custom_field_key": "standard_review_decline_notes"
+      },
+      "required": false
+    },
+    {
+      "text": "Decision",
+      "type": "CHOICE",
+      "link_id": "decision",
+      "mapping": {
+        "custom_field_key": "standard_review_decline_decision"
+      },
+      "required": true,
+      "component": "RADIO_BUTTONS",
+      "pick_list_options": [
+        { "code": "approve_decline", "label": "Approve Decline" },
+        { "code": "return_to_provider", "label": "Return to Provider Decision" }
+      ]
+    }
+  ]
+}

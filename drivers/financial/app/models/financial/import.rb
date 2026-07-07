@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -16,7 +16,7 @@ require 'zip'
 #
 # GrdaWarehouse::CustomImports::Config.create(s3_prefix: "#{Rails.env}/#{Financial::ClientImport.import_prefix}", data_source_id: 2, s3_region: 'us-east-1', s3_bucket: 'financial-bucket', active: true, import_type: 'Financial::ClientImport', user: User.system_user, import_hour: 7, s3_access_key_id: 'local_access_key', s3_secret_access_key: 'local_secret_key', description: 'Client information for financial transactions')
 #
-# GrdaWarehouse::CustomImports::Config.create(s3_prefix: "#{Rails.env}/#{Financial::ProviderImport.import_prefix}", data_source_id: 2, s3_region: 'us-east-1', s3_bucket: 'financial-bucket', active: true, import_type: 'Financial::ProviderImport', user: User.system_user, import_hour: 7, s3_access_key_id: 'local_access_key', s3_secret_access_key: 'local_secret_key', description: 'Provider information for financial transations')
+# GrdaWarehouse::CustomImports::Config.create(s3_prefix: "#{Rails.env}/#{Financial::ProviderImport.import_prefix}", data_source_id: 2, s3_region: 'us-east-1', s3_bucket: 'financial-bucket', active: true, import_type: 'Financial::ProviderImport', user: User.system_user, import_hour: 7, s3_access_key_id: 'local_access_key', s3_secret_access_key: 'local_secret_key', description: 'Provider information for financial transactions')
 #
 # # Put the zip file into s3
 # config = GrdaWarehouse::CustomImports::Config.find_by(import_type: 'Financial::Import')

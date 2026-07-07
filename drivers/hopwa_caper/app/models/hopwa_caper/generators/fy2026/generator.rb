@@ -1,10 +1,10 @@
-# frozen_string_literal: true
-
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 # run manually with
 # Reporting::Hud::RunReportJob.new.perform(HopwaCaper::Generators::Fy2026::Generator.name, HudReports::ReportInstance.last, email:false)
@@ -114,6 +114,11 @@ module HopwaCaper::Generators::Fy2026
     def build_hopwa_caper_models
       scope = service_history_enrollments.preload(enrollment: [:income_benefits, { client: :destination_client }, :disabilities, :project, :services])
       project_ids = Set.new
+      config = HopwaCaper::Configuration.new
+      cost_calculator = HopwaCaper::ProjectCostCalculator.new(
+        report: report,
+        cded_key: config.funder_daily_rate_field_name,
+      )
       scope.in_batches(of: 100, order: :desc) do |batch|
         enrollment_rows = []
         service_rows = []
@@ -127,7 +132,12 @@ module HopwaCaper::Generators::Fy2026
           client = hud_enrollment&.client&.destination_client
           next unless client
 
-          enrollment_rows << HopwaCaper::Enrollment.from_hud_record(report: report, client: client, enrollment: hud_enrollment)
+          enrollment_rows << HopwaCaper::Enrollment.from_hud_record(
+            report: report,
+            client: client,
+            enrollment: hud_enrollment,
+            cost_calculator: cost_calculator,
+          )
           project_ids.add hud_enrollment.project.id
 
           # Store enrollment context for later custom service lookup

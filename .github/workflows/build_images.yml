@@ -57,6 +57,9 @@ jobs:
 
       - name: Checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+        with:
+          fetch-depth: 50
+          fetch-tags: true
 
       - name: Dockerfile Lint
         shell: bash
@@ -93,6 +96,7 @@ jobs:
         run: |
           echo $SHA > docker/app/REVISION
           echo $BRANCH > docker/app/GIT_BRANCH
+          git describe --tags --always > docker/app/GIT_RELEASE
           bin/error_if_githash_is_latest.rb base
 
       # https://github.com/docker/metadata-action#images-input

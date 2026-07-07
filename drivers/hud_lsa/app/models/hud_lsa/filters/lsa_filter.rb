@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -25,13 +25,13 @@ module HudLsa::Filters
       filters[:coc_code] = filters[:coc_code].reject(&:blank?).first if filters[:coc_code].is_a?(Array)
       super
 
-      # don't use deafault project type codes, we need them for the form select, but don't want to enforce
+      # don't use default project type codes, we need them for the form select, but don't want to enforce
       # any defaults
       self.project_type_codes = normalize_input_array(filters[:project_type_codes], &:to_s)
       filters = filters.to_h.with_indifferent_access
 
       # Support the HIC
-      if filters.dig(:lsa_scope) == HudLsa::Fy2024::Report.available_lsa_scopes['HIC'].to_s
+      if filters.dig(:lsa_scope) == HudLsa::Fy2026::Report.available_lsa_scopes['HIC'].to_s
         pit_date = filters.dig(:on)&.to_date
         self.start = pit_date
         self.end = pit_date

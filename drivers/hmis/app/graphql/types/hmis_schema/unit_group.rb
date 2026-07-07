@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -10,9 +10,19 @@ module Types
   class HmisSchema::UnitGroup < Types::BaseObject
     # object is a Hmis::UnitGroup
     include Types::HmisSchema::HasUnits
+    include Types::HmisSchema::HasCeMatchRules
+
+    available_filter_options do
+      arg :search_term, String
+      arg :ce_waitlists_enabled, Boolean
+    end
 
     field :id, ID, null: false
     field :name, String, null: false
+    field :project_id, ID, null: false
+    field :project_name, String, null: false
+    field :organization_id, ID, null: false
+    field :organization_name, String, null: false
     field :capacity, Integer, null: false, description: 'Total number of units in the group'
     field :availability, Integer, null: false, description: 'Number of units in this group that are currently unoccupied'
     field :unit_types, [Types::HmisSchema::UnitTypeCapacity], null: false # TODO(#8157) - Unit Group should have exactly 1 Unit Type
@@ -31,6 +41,22 @@ module Types
 
     def unit_type
       load_ar_association(object, :unit_type)
+    end
+
+    def project_id
+      project&.id
+    end
+
+    def project_name
+      project&.name
+    end
+
+    def organization_id
+      organization&.id
+    end
+
+    def organization_name
+      organization&.name
     end
 
     def priority_schemes
@@ -75,6 +101,24 @@ module Types
 
     def availability
       object.units.unoccupied_on.count
+    end
+
+    private
+
+    def ce_match_rule_group_owners
+      # Used by the HasCeMatchRules concern
+      project = load_ar_association(object, :project)
+      data_source = load_ar_association(project, :data_source)
+      organization = load_ar_association(project, :organization)
+      [data_source, organization, project, object]
+    end
+
+    def project
+      @project ||= load_ar_association(object, :project)
+    end
+
+    def organization
+      @organization ||= load_ar_association(project, :organization)
     end
   end
 end

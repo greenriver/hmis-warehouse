@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -306,7 +306,7 @@ module Importing
       # and `sync_with_cas` is true at time of success, there's a potential
       # timing issue around when the warehouse knows of success.  If that happens
       # after this is called, the client will be made available for matching again and
-      # all unavilable fors will be removed
+      # all unavailable_for records will be removed
       GrdaWarehouse::CasHoused.inactivate_clients
 
       GrdaWarehouse::Tasks::PushClientsToCas.new.sync!

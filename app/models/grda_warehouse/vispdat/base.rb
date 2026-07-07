@@ -1,10 +1,10 @@
-# frozen_string_literal: true
-
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 module GrdaWarehouse::Vispdat
   class Base < GrdaWarehouseBase
@@ -623,7 +623,7 @@ module GrdaWarehouse::Vispdat
       # Wellness
       leave_due_to_health: 'Have you ever had to leave an apartment, shelter program, or other place you were staying because of your physical health?',
       chronic_health_issues: 'Do you have any chronic health issues with your liver, kidneys, stomach, lungs or heart?',
-      space_interest: 'If there was space available in a program that specically assists people that live with HIV or AIDS, would that be of interest to you?',
+      space_interest: 'If there was space available in a program that specifically assists people that live with HIV or AIDS, would that be of interest to you?',
       physical_disabilities: 'Do you have any physical disabilities that would limit the type of housing you could access, or would make it hard to live independently because you’d need help?',
       avoid_help: 'When you are sick or not feeling well, do you avoid getting help?',
       currently_pregnant: 'FOR FEMALE RESPONDENTS ONLY:  Are you currently pregnant?',

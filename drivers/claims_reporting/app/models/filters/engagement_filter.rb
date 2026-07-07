@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -27,7 +27,7 @@ module Filters
     def available_cohort_types
       {
         'Patients engaged for time period' => :engaged_history,
-        'Longitudinal, claims occuring within time period' => :selected_period,
+        'Longitudinal, claims occurring within time period' => :selected_period,
       }
     end
 

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -235,7 +235,7 @@ module Hl7
     codes_by_system = value_set_lookups.fetch(vs_name)
 
     # TODO: RxNorm, CVX might also show up lookup code but we dont have any claims data with that info, nor a crosswalk handy
-    # TODO: raise/warn on an unrecognised code_system_name?
+    # TODO: raise/warn on an unrecognized code_system_name?
 
     if (ndc_codes = codes_by_system['NDC']).present? # rubocop:disable Style/GuardClause
       return trace_set_match!(vs_name, claim, :NDC) if ndc_codes.include?(claim.ndc_code)

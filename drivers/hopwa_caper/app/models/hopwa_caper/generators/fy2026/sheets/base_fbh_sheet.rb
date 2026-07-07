@@ -1,10 +1,10 @@
-# frozen_string_literal: true
-
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 module HopwaCaper::Generators::Fy2026::Sheets
   class BaseFbhSheet < Base
@@ -103,7 +103,14 @@ module HopwaCaper::Generators::Fy2026::Sheets
         row.append_cell_members(members: members)
       end
 
-      empty_row(sheet, label: "What were the HOPWA funds expended for #{fbh_activity_label} Facility-Based Housing Leasing Costs for each facility?")
+      facility_row(
+        sheet,
+        label: "What were the HOPWA funds expended for #{fbh_activity_label} Facility-Based Housing Leasing Costs for each facility?",
+      ) do |fac, row|
+        filtered = relevant_enrollments.head_of_household.where(project_id: fac.id)
+        value = filtered.sum { |e| e.total_project_cost.to_i }
+        row.append_cell_members(value: value, members: filtered.as_report_members)
+      end
     end
 
     def facility_operating_expenditures(sheet, fbh_activity_label:)

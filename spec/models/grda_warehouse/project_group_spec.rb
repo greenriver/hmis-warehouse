@@ -1,3 +1,9 @@
+###
+# Copyright Green River Data Group, Inc.
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 # frozen_string_literal: true
 
 require 'rails_helper'
@@ -72,6 +78,33 @@ RSpec.describe GrdaWarehouse::ProjectGroup, type: :model do
       expect(updated_editable_user_group.id).to eq(original_editable_user_group.id)
       # Confirm the collection's name has been updated to match the new ProjectGroup name
       expect(updated_collection.name).to eq('New Name')
+    end
+  end
+
+  describe '#markdown_notes' do
+    subject(:group) { build(:project_group, skip_maintain_system_group: true) }
+
+    it 'renders markdown to html' do
+      group.notes = '**bold**'
+      expect(group.markdown_notes).to include('<strong>bold</strong>')
+    end
+
+    it 'returns empty string for blank notes' do
+      group.notes = nil
+      expect(group.markdown_notes).to eq('')
+      group.notes = ''
+      expect(group.markdown_notes).to eq('')
+    end
+
+    it 'strips script tags to prevent XSS' do
+      group.notes = '<script>alert("xss")</script>'
+      # filter_html removes the tag; text content remains as harmless plain text
+      expect(group.markdown_notes).not_to include('<script>')
+    end
+
+    it 'strips raw html tags' do
+      group.notes = '<b>bold</b>'
+      expect(group.markdown_notes).not_to include('<b>')
     end
   end
 end

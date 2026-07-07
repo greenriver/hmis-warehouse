@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -84,7 +84,7 @@ module HudApr::Generators::Shared::Fy2024
           next if intentionally_blank.include?(cell)
 
           answer = @report.answer(question: table_name, cell: cell)
-          # limit members only to heads of households. If there is a data issue where ther are more than one HoH for the household,
+          # limit members only to heads of households. If there is a data issue where there are more than one HoH for the household,
           # we want both heads of the household to be included.
           members = universe.members.where(hoh_clause.and(a_t[:household_type].not_eq('children_only'))).
             where.not(a_t[:age].eq(nil).and(a_t[:household_type].eq('unknown'))). # Special case from Datalab test?

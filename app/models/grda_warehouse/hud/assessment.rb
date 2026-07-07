@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -11,7 +11,11 @@ module GrdaWarehouse::Hud
     include HudSharedScopes
     include ::HmisStructure::Assessment
     include ::HmisStructure::Shared
-    include RailsDrivers::Extensions
+    # Extensions from drivers — see ADR 0007
+    include HmisCsvImporter::GrdaWarehouse::Hud::AssessmentExtension
+    include HmisCsvTwentyTwenty::GrdaWarehouse::Hud::AssessmentExtension
+    include HmisCsvTwentyTwentyFour::GrdaWarehouse::Hud::AssessmentExtension
+    include HmisCsvTwentyTwentySix::GrdaWarehouse::Hud::AssessmentExtension
 
     attr_accessor :source_id
 
@@ -31,7 +35,7 @@ module GrdaWarehouse::Hud
     has_many :assessment_results, **hud_assoc(:AssessmentID, 'AssessmentResult')
 
     scope :within_range, ->(range) do
-      # convert the range into a standard range for backwards compatability
+      # convert the range into a standard range for backwards compatibility
       range = (range.start..range.end) if range.is_a?(::Filters::DateRange)
       where(AssessmentDate: range)
     end

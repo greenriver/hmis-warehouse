@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -291,7 +291,7 @@ module HudApr::Generators::Shared::Fy2024
 
     private def pit_universe(month:)
       pit_date = pit_date(month: month, before: @report.end_date)
-      # Logic for step 4 is enforced when addding PIT dates to the client record
+      # Logic for step 4 is enforced when adding PIT dates to the client record
       # If a client doesn't have any overlapping enrollments that qualify, they won't
       # have a record for the PIT date
       universe.members.where("pit_enrollments ? '#{pit_date}'")

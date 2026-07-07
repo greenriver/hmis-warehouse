@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -13,16 +13,6 @@
 #
 # use with caution!
 RailsDrivers.loaded << :hud_lsa
-
-Rails.application.config.hud_reports['HudLsa::Generators::Fy2023::Lsa'] = {
-  title: 'Longitudinal System Analysis',
-  helper: 'hud_reports_lsas_path',
-}
-
-Rails.application.config.hud_reports['HudLsa::Generators::Fy2024::Lsa'] = {
-  title: 'Longitudinal System Analysis',
-  helper: 'hud_reports_lsas_path',
-}
 
 Rails.application.config.hud_reports['HudLsa::Generators::Fy2026::Lsa'] = {
   title: 'Longitudinal System Analysis',

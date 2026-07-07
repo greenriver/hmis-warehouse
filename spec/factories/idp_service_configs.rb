@@ -1,0 +1,21 @@
+###
+# Copyright Green River Data Group, Inc.
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
+# frozen_string_literal: true
+
+FactoryBot.define do
+  factory :idp_service_config, class: 'Idp::ServiceConfig' do
+    provider { 'keycloak' }
+    connector_id { 'keycloak' }
+    name { 'Keycloak Development' }
+    api_url { 'http://keycloak.test:8080' }
+    service_token { 'test-token-secret-key' }
+    okta_org_id { 'org-123456' }
+    client_id { 'rails-service-account' }
+    keycloak_realm { 'openpath' }
+    active { true }
+  end
+end

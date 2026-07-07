@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -240,6 +240,15 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
 
   scope :in_data_source, ->(data_source_id) do
     where(data_source_id: data_source_id)
+  end
+
+  # Forms which this user can resolve and configure in the form editor.
+  scope :configurable_by, ->(user) do
+    # Must be in the user's data source
+    scope = in_data_source(user.hmis_data_source_id)
+    # Must be a non-admin form role, unless the user is a super-admin
+    scope = scope.with_role(Hmis::Form::Definition::NON_ADMIN_FORM_ROLES) unless user.policy_for(Hmis::Form::Definition, policy_type: :form_definition).can_administrate_config?
+    scope
   end
 
   before_destroy :can_be_destroyed, prepend: true

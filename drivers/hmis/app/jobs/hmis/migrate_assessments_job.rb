@@ -1,10 +1,10 @@
-# frozen_string_literal: true
-
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 # == Hmis::MigrateAssessmentsJob
 #
@@ -266,7 +266,7 @@ module Hmis
 
       # For INTAKE assessments:
       # If generate_empty_intakes option is set, then generate empty intake assessments for any enrollment in the batch
-      # that is missing an intake. This wouild occur if the enrollment didn't have any related records with DataCollectionStage:1.
+      # that is missing an intake. This would occur if the enrollment didn't have any related records with DataCollectionStage:1.
       enrollments_missing_intakes = enrollment_batch.left_outer_joins(:intake_assessment).
         where(intake_assessment: { id: nil }).
         where.not(enrollment_id: skipped_intake_enrollment_ids) # enrollment_ids with intake assessments that were skipped because they were invalid
@@ -390,14 +390,14 @@ module Hmis
       end
     end
 
-    def summarize(numer, denom, msg: nil)
+    def summarize(number, denom, msg: nil)
       pct = if denom.positive?
-        ((numer.to_f / denom) * 100).to_i
+        ((number.to_f / denom) * 100).to_i
       else
         0
       end
 
-      "#{pct}% #{msg} (#{numer}/#{denom})"
+      "#{pct}% #{msg} (#{number}/#{denom})"
     end
 
     def log_assessment_summary

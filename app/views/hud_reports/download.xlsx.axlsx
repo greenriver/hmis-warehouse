@@ -1,3 +1,9 @@
+###
+# Copyright Green River Data Group, Inc.
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 filter = Filters::FilterBase.new(user_id: @report.user_id).update(@report.options.with_indifferent_access)
 wb = xlsx_package.workbook
 wb.add_worksheet(name: 'Summary') do |sheet|

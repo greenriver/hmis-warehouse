@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -718,12 +718,7 @@ module HudUtility2026
     codes = coc_codes_options
     return codes.freeze if Rails.env.production?
 
-    test_codes = {
-      'XX-500' => 'Test CoC',
-      'XX-501' => '2nd Test CoC',
-      'XX-502' => '3rd Test CoC', # testkit
-      'XX-518' => '4th Test CoC', # testkit
-    }
+    test_codes = {}
     # Some legacy test CoCs
     if Rails.env.test?
       test_codes['AA-000'] = 'Test CoC AA-000'
@@ -734,10 +729,16 @@ module HudUtility2026
       # full test suite. That factory uses a global FactoryBot sequence for CoCCode
       # (XX-001, XX-002, …) that never resets, so lookup_coc associations return nil
       # once the sequence passes the upper bound here.
-      (0..500).to_a.each do |n|
+      # Stop at 499 to avoid overwriting the hardcoded test_codes above beginning at XX-500
+      (0..499).to_a.each do |n|
         test_codes["XX-#{n.to_s.rjust(3, '0')}"] = "Test CoC XX-#{n.to_s.rjust(3, '0')}"
       end
     end
+    # Named test CoCs override the range above so their friendly names are preserved
+    test_codes['XX-500'] = 'Test CoC'
+    test_codes['XX-501'] = '2nd Test CoC'
+    test_codes['XX-502'] = '3rd Test CoC' # testkit
+    test_codes['XX-518'] = '4th Test CoC' # testkit
     invalid_codes = ENV['INVALID_COC_CODES'].to_s.split(',')
     test_codes.delete_if { |k, _| invalid_codes&.include?(k) }
 
@@ -751,7 +752,7 @@ module HudUtility2026
     cocs.select { |code, _| code.first(2).upcase.in?(states) }
   end
 
-  # tranform up hud list for use as an enum
+  # transform up hud list for use as an enum
   # {1 => 'Test (this)'} => {'test_this' => 1}
   # @param name [Symbol] method on HudLists
   def hud_list_map_as_enumerable(name)

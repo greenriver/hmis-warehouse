@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -524,7 +524,7 @@ module SystemPathways
     end
 
     def enrollment_scope
-      # For compatability with filter_scopes
+      # For compatibility with filter_scopes
       filter.project_ids = filter.effective_project_ids
       scope = GrdaWarehouse::ServiceHistoryEnrollment.
         entry.
