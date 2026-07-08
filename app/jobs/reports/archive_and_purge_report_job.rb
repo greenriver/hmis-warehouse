@@ -28,13 +28,21 @@ module Reports
         return
       end
 
-      result = report.archive_and_purge!
-      unless result[:success]
-        report.update_archival_metadata('purge_failed_at', Time.current.iso8601)
-        raise "#{self.class.name}: failed for #{report_class} ##{report_id}: #{result[:errors].inspect}"
+      lock_name = "#{self.class.name}-#{report_class}-#{report_id}"
+      acquired = false
+      GrdaWarehouseBase.with_advisory_lock(lock_name, timeout_seconds: 0) do
+        acquired = true
+        result = report.archive_and_purge!
+        unless result[:success]
+          report.update_archival_metadata('purge_failed_at', Time.current.iso8601)
+          report.update_archival_metadata('purge_failure_reason', result[:errors].join(', '))
+          raise "#{self.class.name}: failed for #{report_class} ##{report_id}: #{result[:errors].inspect}"
+        end
+
+        Rails.logger.info("#{self.class.name}: completed for #{report_class} ##{report_id}: #{result.inspect}")
       end
 
-      Rails.logger.info("#{self.class.name}: completed for #{report_class} ##{report_id}: #{result.inspect}")
+      Rails.logger.warn("#{self.class.name}: skipping #{report_class} ##{report_id} — lock already held by another worker") unless acquired
     end
   end
 end

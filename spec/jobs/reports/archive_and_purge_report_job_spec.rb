@@ -13,6 +13,12 @@ RSpec.describe Reports::ArchiveAndPurgeReportJob, type: :job do
   before do
     allow(Rails.application).to receive(:eager_load!)
     allow(Rails.application.config).to receive(:eager_load).and_return(false)
+    # Mirror the gem's real semantics: when the lock is acquired, with_advisory_lock returns the block's
+    # return value (not necessarily true). Returning the block result here guards against relying on that
+    # value to detect lock contention.
+    allow(GrdaWarehouseBase).to receive(:with_advisory_lock) do |_lock_name, _options = {}, &block|
+      block&.call
+    end
   end
 
   describe '#perform' do
@@ -61,6 +67,29 @@ RSpec.describe Reports::ArchiveAndPurgeReportJob, type: :job do
       end
     end
 
+    context 'when the advisory lock is already held' do
+      let(:report) { double('report', id: 42) }
+
+      before do
+        allow(SimpleReports::ReportInstance).to receive(:find_by).with(id: 42).and_return(report)
+        allow(report).to receive(:archive_and_purge!)
+        allow(GrdaWarehouseBase).to receive(:with_advisory_lock).and_return(false)
+        allow(Rails.logger).to receive(:warn)
+      end
+
+      it 'does not call archive_and_purge!' do
+        described_class.new.perform(report_class: 'SimpleReports::ReportInstance', report_id: 42)
+
+        expect(report).not_to have_received(:archive_and_purge!)
+      end
+
+      it 'logs a warning and returns without raising' do
+        expect { described_class.new.perform(report_class: 'SimpleReports::ReportInstance', report_id: 42) }.not_to raise_error
+
+        expect(Rails.logger).to have_received(:warn).with(match(/lock already held/))
+      end
+    end
+
     context 'with a SimpleReport' do
       let(:report) { double('report', id: 42) }
 
@@ -79,6 +108,14 @@ RSpec.describe Reports::ArchiveAndPurgeReportJob, type: :job do
 
           expect(report).to have_received(:archive_and_purge!)
         end
+
+        it 'does not log a lock-contention warning when the lock was acquired' do
+          allow(Rails.logger).to receive(:warn)
+
+          described_class.new.perform(report_class: 'SimpleReports::ReportInstance', report_id: 42)
+
+          expect(Rails.logger).not_to have_received(:warn).with(match(/lock already held/))
+        end
       end
 
       context 'when archive_and_purge! fails' do
@@ -95,6 +132,14 @@ RSpec.describe Reports::ArchiveAndPurgeReportJob, type: :job do
 
           expect(report).to have_received(:update_archival_metadata).
             with('purge_failed_at', match(/\A\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/))
+        end
+
+        it 'stamps purge_failure_reason with the error message' do
+          expect { described_class.new.perform(report_class: 'SimpleReports::ReportInstance', report_id: 42) }.
+            to raise_error(RuntimeError)
+
+          expect(report).to have_received(:update_archival_metadata).
+            with('purge_failure_reason', 'Failed to archive before purge: S3 upload timeout')
         end
 
         it 'raises with the report class, id, and error details' do
@@ -136,6 +181,14 @@ RSpec.describe Reports::ArchiveAndPurgeReportJob, type: :job do
 
           expect(report).to have_received(:update_archival_metadata).
             with('purge_failed_at', match(/\A\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/))
+        end
+
+        it 'stamps purge_failure_reason with the error message' do
+          expect { described_class.new.perform(report_class: 'HudReports::ReportInstance', report_id: 7) }.
+            to raise_error(RuntimeError)
+
+          expect(report).to have_received(:update_archival_metadata).
+            with('purge_failure_reason', 'Archive failed')
         end
       end
     end

@@ -25,20 +25,22 @@ namespace :reports do
         next
       end
 
-      reports_to_process = SimpleReports::ReportInstance.
+      eligible_scope = SimpleReports::ReportInstance.
         of_types(archival_types).
         completed.
         purge_eligible(grace_period_days, now).
-        order(updated_at: :asc).
-        limit(20)
+        order(updated_at: :asc)
 
-      count = reports_to_process.count
-      puts "Found #{count} SimpleReports eligible for archival and purging (grace period expired)"
+      total_count = eligible_scope.count
+      reports_to_process = eligible_scope.limit(20)
+
+      puts "Found #{total_count} SimpleReports eligible for archival and purging (grace period expired)"
       puts ''
 
-      if count.zero?
+      if total_count.zero?
         puts 'No SimpleReports eligible for archival and purging at this time.'
       else
+        enqueued = 0
         reports_to_process.each do |report|
           if dry_run
             puts "DRY RUN: Would enqueue archival for SimpleReport ##{report.id} (#{report.class.name})"
@@ -48,11 +50,12 @@ namespace :reports do
               report_id: report.id,
             )
             puts "Enqueued SimpleReport ##{report.id} (#{report.class.name})"
+            enqueued += 1
           end
         end
 
         puts ''
-        puts "SimpleReports#{dry_run ? ' (DRY RUN)' : ''}: #{dry_run ? 'would enqueue' : 'enqueued'} #{count} jobs"
+        puts "SimpleReports#{dry_run ? ' (DRY RUN)' : ''}: #{dry_run ? 'would enqueue' : 'enqueued'} #{dry_run ? reports_to_process.size : enqueued} jobs"
       end
     end
 
@@ -75,19 +78,21 @@ namespace :reports do
         next
       end
 
-      reports_to_process = HudReports::ReportInstance.
+      eligible_scope = HudReports::ReportInstance.
         where(report_name: registered_names).
         purge_eligible(grace_period_days, now).
-        order(completed_at: :asc).
-        limit(20)
+        order(completed_at: :asc)
 
-      count = reports_to_process.count
-      puts "Found #{count} HUD Reports eligible for archival and purging (grace period expired)"
+      total_count = eligible_scope.count
+      reports_to_process = eligible_scope.limit(20)
+
+      puts "Found #{total_count} HUD Reports eligible for archival and purging (grace period expired)"
       puts ''
 
-      if count.zero?
+      if total_count.zero?
         puts 'No HUD Reports eligible for archival and purging at this time.'
       else
+        enqueued = 0
         reports_to_process.each do |report|
           if dry_run
             puts "DRY RUN: Would enqueue archival for HUD Report ##{report.id} (#{report.report_name})"
@@ -97,11 +102,12 @@ namespace :reports do
               report_id: report.id,
             )
             puts "Enqueued HUD Report ##{report.id} (#{report.report_name})"
+            enqueued += 1
           end
         end
 
         puts ''
-        puts "HUD Reports#{dry_run ? ' (DRY RUN)' : ''}: #{dry_run ? 'would enqueue' : 'enqueued'} #{count} jobs"
+        puts "HUD Reports#{dry_run ? ' (DRY RUN)' : ''}: #{dry_run ? 'would enqueue' : 'enqueued'} #{dry_run ? reports_to_process.size : enqueued} jobs"
       end
     end
 
