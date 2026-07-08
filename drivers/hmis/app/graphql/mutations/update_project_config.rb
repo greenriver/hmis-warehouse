@@ -20,7 +20,7 @@ module Mutations
 
       errors = HmisErrors::Errors.new
       # Config type cannot be changed once set. Frontend prevents it, but return a validation
-      # instead of raising for backwards compatability.
+      # instead of raising for backwards compatibility.
       if input.config_type.present? && input.config_type != record.config_type
         errors.add(:config_type, :invalid, message: 'cannot be changed once set')
         return { project_config: nil, errors: errors.errors }

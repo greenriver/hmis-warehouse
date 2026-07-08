@@ -41,7 +41,7 @@ module HmisCsvTwentyTwentyFour::Importer
       warehouse_class.importable.where(data_source_id: data_source_id, ProjectID: project_ids)
     end
 
-    # Projects are inherantly not being deleted due to how the import is filtering to only use projects included in the import file.
+    # Projects are inherently not being deleted due to how the import is filtering to only use projects included in the import file.
     # This override is added as a redundancy and also to make it easier to identify import file types disallowing deletions.
     def self.prevent_import_deletions?
       true

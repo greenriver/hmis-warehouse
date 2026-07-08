@@ -21,7 +21,7 @@ class RemoveCurrentLivingSituationVerifiedByLimit1 < ActiveRecord::Migration[7.0
   end
 
   def down
-    # Including the revese steps for rollbacks
+    # Including the reverse steps for rollbacks
     # Bi::ViewMaintainer.new.safe_create_role
     # Bi::ViewMaintainer.new.non_client_view(GrdaWarehouse::Hud::CurrentLivingSituation)
   end

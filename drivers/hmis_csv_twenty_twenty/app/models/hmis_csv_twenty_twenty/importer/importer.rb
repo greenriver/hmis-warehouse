@@ -72,7 +72,7 @@ module HmisCsvTwentyTwenty::Importer
 
     # Needs to return an import_log instance
     def import!(import_log = nil) # rubocop:disable Lint/UnusedMethodArgument
-      raise 'HmisCsvTwentyTwenty::Importer::Importer should no longer be used to import data, it has been superceded'
+      raise 'HmisCsvTwentyTwenty::Importer::Importer should no longer be used to import data, it has been superseded'
       # log that we're waiting, but then continue on.
       # already_running_for_data_source?
 

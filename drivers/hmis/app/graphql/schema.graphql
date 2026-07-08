@@ -657,7 +657,7 @@ input BulkAssignServiceInput {
   clientIds: [ID!]!
 
   """
-  CoC code to store as EnrollmentCoC when enrolling a new client. Only needed if Project operaties in multiple CoCs.
+  CoC code to store as EnrollmentCoC when enrolling a new client. Only needed if Project operates in multiple CoCs.
   """
   cocCode: String
   dateProvided: ISO8601Date!
@@ -1021,6 +1021,8 @@ type CeMatchRuleClause {
   The name of the field for comparison, such as client_age or cde.custom_assessment.my_score
   """
   field: String!
+  fieldSource: CeMatchRuleFieldSource!
+  formDefinitionIdentifier: String
 
   """
   The value to compare the field against, such as 18 or "1 Bed". JSON scalar
@@ -1044,6 +1046,18 @@ enum CeMatchRuleComparator {
   LT
   LTE
   NOT_EQ
+}
+
+enum CeMatchRuleFieldSource {
+  """
+  Client
+  """
+  CLIENT
+
+  """
+  Custom
+  """
+  CUSTOM_DATA_ELEMENT
 }
 
 input CeMatchRuleFilterOptions {
@@ -10481,6 +10495,7 @@ type Query {
   tableConfigLookup: TableConfigLookup!
   unit(id: ID!): Unit
   unitGroup(id: ID!): UnitGroup
+  unitGroups(filters: UnitGroupFilterOptions, limit: Int, offset: Int): UnitGroupsPaginated!
 
   """
   User lookup
@@ -13020,6 +13035,11 @@ type Unit {
   """
   canBeMarkedAvailableToday: Boolean!
   canBeMarkedUnavailable: Boolean!
+
+  """
+  All current and historical CE referrals for the unit
+  """
+  ceReferrals(filters: UnitCeReferralFilterOptions, limit: Int, offset: Int): CeReferralsPaginated!
   dateCreated: ISO8601DateTime!
   dateUpdated: ISO8601DateTime!
   deletable: Boolean!
@@ -13041,6 +13061,14 @@ type Unit {
   user: ApplicationUser
 }
 
+input UnitCeReferralFilterOptions {
+  assignedToYou: Boolean
+  onCurrentTaskSince: ISO8601Date
+  origin: [CeReferralOrigin!]
+  referralStatus: [String!]
+  searchTerm: String
+}
+
 input UnitFilterOptions {
   occupancyStatus: UnitOccupancyStatus
   unitGroup: [ID!]
@@ -13060,15 +13088,39 @@ type UnitGroup {
   ceEventType: EventType
   directReferralWorkflowTemplateIdentifier: String
   directReferralWorkflowTemplateName: String
+
+  """
+  Number of CE match rules that apply to this record, including inherited rules.
+  """
+  effectiveCeMatchRuleCount: Int!
+
+  """
+  All CE match rules that apply to this record, including inherited rules, grouped by their owner.
+  """
+  effectiveCeMatchRuleGroups: [CeMatchRuleGroup!]!
   eligibilityRequirements: [CeMatchRule!]
   id: ID!
+
+  """
+  Number of CE match rules owned directly by this record.
+  """
+  localCeMatchRuleCount: Int!
   name: String!
+  organizationId: ID!
+  organizationName: String!
   prioritySchemes: [CeMatchRule!]
+  projectId: ID!
+  projectName: String!
   unitType: UnitTypeObject
   unitTypes: [UnitTypeCapacity!]!
   units(filters: UnitFilterOptions, limit: Int, offset: Int): UnitsPaginated!
   workflowTemplateIdentifier: String
   workflowTemplateName: String
+}
+
+input UnitGroupFilterOptions {
+  ceWaitlistsEnabled: Boolean
+  searchTerm: String
 }
 
 input UnitGroupInput {

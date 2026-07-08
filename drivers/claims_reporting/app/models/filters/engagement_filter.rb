@@ -27,7 +27,7 @@ module Filters
     def available_cohort_types
       {
         'Patients engaged for time period' => :engaged_history,
-        'Longitudinal, claims occuring within time period' => :selected_period,
+        'Longitudinal, claims occurring within time period' => :selected_period,
       }
     end
 

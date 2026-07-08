@@ -12,3 +12,5 @@ ignore:
   - CVE-2026-44587
   # not exploitable, no patch yet available. See #9324
   - CVE-2026-54171
+  # webrick is only used internally, no patch available yet
+  - CVE-2026-38969

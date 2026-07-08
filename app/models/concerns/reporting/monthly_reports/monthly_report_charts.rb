@@ -377,7 +377,7 @@ module Reporting::MonthlyReports::MonthlyReportCharts
       end
     end
 
-    # for backwards compatability provide months in format [[year, month]]
+    # for backwards compatibility provide months in format [[year, month]]
     def months
       @months ||= [].tap do |months|
         date = filter.start_date

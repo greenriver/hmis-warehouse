@@ -367,7 +367,7 @@ module CasClientData
         housing_release_status: { title: Translation.translate('Housing Release Status'), description: 'Release status is governed by uploaded files' },
         full_housing_release: { title: Translation.translate('Full HAN Release on File'), description: 'Does the client have a full release on file?' },
         limited_cas_release: { title: Translation.translate('Limited CAS Release on File'), description: 'Does the client have a partial release on file?' },
-        sync_with_cas: { title: Translation.translate('Available for matching in CAS'), description: "Based on the chosen method for sending clients to CAS. Curently: #{GrdaWarehouse::Config.available_cas_methods.invert[GrdaWarehouse::Config.get(:cas_available_method).to_sym]}" },
+        sync_with_cas: { title: Translation.translate('Available for matching in CAS'), description: "Based on the chosen method for sending clients to CAS. Currently: #{GrdaWarehouse::Config.available_cas_methods.invert[GrdaWarehouse::Config.get(:cas_available_method).to_sym]}" },
         dmh_eligible: { title: Translation.translate('DMH Eligible'), description: 'Unused' },
         va_eligible: { title: Translation.translate('VA Eligible'), description: 'Unused' },
         hues_eligible: { title: Translation.translate('HUES Eligible'), description: 'Unused' },
