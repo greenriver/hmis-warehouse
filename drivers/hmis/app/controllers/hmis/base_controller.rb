@@ -35,20 +35,6 @@ class Hmis::BaseController < ActionController::Base
     cookies['CSRF-Token'] = form_authenticity_token
   end
 
-  # Under AUTH_METHOD=jwt, Rails doesn't trust any ambient cookie for authentication -- the
-  # access token arrives via X-Forwarded-Access-Token, a header injected server-side by
-  # oauth2-proxy off its own session, not something a forged cross-site request can set. So the
-  # Origin-vs-base_url check (meant to stop a forged request riding an ambient session cookie)
-  # isn't guarding a credential Rails relies on here. It also breaks in practice: Origin arrives
-  # with a trailing slash somewhere in the local oauth2-proxy/vite proxy chain and will never
-  # equal request.base_url. Authenticity-token validation still runs (the SPA round-trips the
-  # CSRF-Token cookie set above), so this only relaxes the same-origin half of the check.
-  private def valid_request_origin?
-    return true if AuthMethod.jwt?
-
-    super
-  end
-
   # Override the devise implementation to reset the session
   # and return 401, instead of raising InvalidAuthenticityToken
   def handle_unverified_request
