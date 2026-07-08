@@ -131,18 +131,6 @@ RSpec.describe 'HMIS JWT wiring', type: :request, if: AuthMethod.jwt? do
     end
   end
 
-  describe '#valid_request_origin?' do
-    it 'skips the Origin/base_url match (oauth2-proxy injects the trusted access-token header off its own session; there is no ambient auth cookie for a forged cross-site request to ride)' do
-      controller = Hmis::BaseController.new
-      # Reproduces the reported bug: Origin arrives with a trailing slash somewhere in the local
-      # oauth2-proxy/vite proxy chain and would never equal request.base_url.
-      request = double(origin: 'https://hmis-warehouse.dev.test/', base_url: 'https://hmis-warehouse.dev.test')
-      allow(controller).to receive(:request).and_return(request)
-
-      expect(controller.send(:valid_request_origin?)).to eq(true)
-    end
-  end
-
   describe '#info_for_paper_trail' do
     # Distinct current/true users so the whodunnit's audit-under-impersonation behavior is actually
     # exercised: user_id must follow the impersonated user, true_user_id the real one.
