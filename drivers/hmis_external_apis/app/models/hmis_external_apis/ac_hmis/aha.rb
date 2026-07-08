@@ -178,7 +178,7 @@ module HmisExternalApis::AcHmis
 
         unless dw_client_id
           Sentry.capture_message(
-            "AHA score API response received no dw_client_id or dw_client_id_dw_client_id. HmisExternalApis::ExternalRequestLog #{external_request_log_id}",
+            "AHA score API response received no dw_client_id or dw_client_id_dw_client_id. HmisExternalApis::ExternalRequestLog #{external_request_log_id || 'unknown'}",
           )
         end
 
