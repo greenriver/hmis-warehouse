@@ -206,7 +206,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           end
         end
 
-        it "should exlude enrollments that have annuals during the due period (local date #{local_time.strftime('%Y-%m-%d')})" do
+        it "should exclude enrollments that have annuals during the due period (local date #{local_time.strftime('%Y-%m-%d')})" do
           travel_to local_time do
             # Entered ~2 years ago
             e1 = create(:hmis_hud_enrollment, entry_date: 18.months.ago, data_source: ds1, project: p1)
