@@ -41,7 +41,15 @@ class Audit::DisplayItem
       @error = true
     end
 
-    @changes = if @error
+    @changes = if @error && klass.respond_to?(:describe_changes)
+      # Changeset deserialization failed, but the model may still produce a description
+      # without the changeset (e.g. using PaperTrail metadata or object column).
+      begin
+        klass.describe_changes(version, nil, @excluded_fields)
+      rescue StandardError
+        ['Error loading changes']
+      end
+    elsif @error
       ['Error loading changes']
     elsif klass.respond_to?(:describe_changes)
       klass.describe_changes(version, changeset, @excluded_fields)

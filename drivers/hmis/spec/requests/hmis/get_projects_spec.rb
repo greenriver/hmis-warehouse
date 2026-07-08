@@ -85,6 +85,18 @@ RSpec.describe 'GetProjects query', type: :request do
     end
   end
 
+  it 'filters by projects with CE waitlists enabled' do
+    create(:hmis_project_ce_config, project: p1, supports_waitlist_referrals: true)
+    create(:hmis_project_ce_config, project: p3, supports_waitlist_referrals: false, receives_direct_referrals: true)
+
+    perform_query(filters: { ce_waitlists_enabled: true, status: ['OPEN'] }) do |projects|
+      expect(projects).to include(
+        'nodesCount' => 1,
+        'nodes' => contain_exactly(include('id' => p1.id.to_s)),
+      )
+    end
+  end
+
   it 'responds with 401 if not authenticated' do
     delete destroy_hmis_user_session_path
     aggregate_failures 'checking response' do

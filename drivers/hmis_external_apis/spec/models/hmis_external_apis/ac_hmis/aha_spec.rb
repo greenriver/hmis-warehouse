@@ -476,7 +476,27 @@ RSpec.describe HmisExternalApis::AcHmis::Aha, type: :model do
       expect(result.recent_eviction_case).to eq(false)
     end
 
-    it 'logs to Sentry when metadata is missing required keys' do
+    it 'returns nil when all eligibility metadata fields are missing' do
+      allow(Sentry).to receive(:capture_message)
+      response = mock_api_response(
+        client_data(
+          dw_client_id: mci_unique_id.value,
+          scores: [
+            visionlink_score_hash(
+              score: -1,
+              metadata: { 'row_id' => '123', 'mci_uniq_id' => mci_unique_id.value },
+            ),
+          ],
+        ),
+      )
+      setup_api_expectation(mci_unique_ids: mci_unique_id.value, response: response)
+
+      result = aha.fetch_score(client, requested_generators: [:visionlink])[:visionlink]
+      expect(result).to be_nil
+      expect(Sentry).not_to have_received(:capture_message)
+    end
+
+    it 'logs to Sentry when some but not all eligibility metadata fields are missing' do
       allow(Sentry).to receive(:capture_message)
       response = mock_api_response(
         client_data(

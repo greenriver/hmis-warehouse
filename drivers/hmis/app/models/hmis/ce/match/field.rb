@@ -7,6 +7,8 @@ module Hmis::Ce::Match
     :label,
     :multiple,
     :field_key,
+    :source,
+    :form_definition_identifier,
 
     # Intentionally uses form-builder vocabulary for item type and picklist fields,
     # even though this is situated in the CE module.

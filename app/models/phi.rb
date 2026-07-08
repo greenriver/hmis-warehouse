@@ -13,7 +13,7 @@ module Phi
     end
   end
 
-  # blog or attachment contains serialzied bulk PHI
+  # blog or attachment contains serialized bulk PHI
   class Bulk < Category;
   end
 
@@ -44,7 +44,7 @@ module Phi
   class FreeText < NeedsReview; end
 
   # This categorical field might result in
-  # small populations that can be corrilated
+  # small populations that can be correlated
   # with public data to re-identify the user
   class SmallPopulation < NeedsReview; end
 

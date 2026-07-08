@@ -8,7 +8,7 @@
 
 # Represents a task that needs to be performed by a user in an execution step
 # Tasks require form completion to proceed which is tracked corresponding execution steps
-# Tasks may include a swimline which can be used to determine which user is assigned to the corresponding step
+# Tasks may include a swimlane which can be used to determine which user is assigned to the corresponding step
 module Hmis::WorkflowDefinition
   class UserTask < Node
     has_one :data_source, through: :template
