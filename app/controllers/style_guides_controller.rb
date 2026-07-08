@@ -118,7 +118,7 @@ class StyleGuidesController < ApplicationController
         description: lorem,
       },
       {
-        title: 'Non-Recuring',
+        title: 'Non-Recurring',
         indicators: [[indicator], [indicator], [indicator]],
         description: lorem,
       },

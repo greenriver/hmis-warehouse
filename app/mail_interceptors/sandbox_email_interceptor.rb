@@ -11,7 +11,7 @@ class SandboxEmailInterceptor
   RECIPIENTS = ENV['SANDBOX_RECIPIENTS']&.split(',') || []
 
   # TODO: list allowlisted email addresses here -- any other emails will only be BCC'd to the above
-  # when this intercepter is in place
+  # when this interceptor is in place
   ENV_WHITELIST = ENV['SANDBOX_WHITELIST']&.split(',') || []
   WHITELIST = (ENV_WHITELIST + RECIPIENTS).compact.map!(&:downcase)
 

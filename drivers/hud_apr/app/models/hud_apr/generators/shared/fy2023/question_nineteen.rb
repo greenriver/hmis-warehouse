@@ -397,7 +397,7 @@ module HudApr::Generators::Shared::Fy2023
         'Did Not Have the Income Category at Start or at Annual Assessment' => { column: 'G', amount_at_start: :zero },
         'Total Adults (including those with No Income)' => { column: 'H', amount_at_start: :any },
         'Performance Measure: Adults who Gained or Increased Income from Start to Annual Assessment, Average Gain' => { column: 'I', amount_at_start: :any },
-        'Performance measure: Percent of persons who accomplishe d this measure' => { column: 'J', amount_at_start: :any },
+        'Performance measure: Percent of persons who accomplished this measure' => { column: 'J', amount_at_start: :any },
       }
     end
 

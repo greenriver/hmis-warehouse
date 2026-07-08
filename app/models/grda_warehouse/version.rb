@@ -9,6 +9,7 @@
 module GrdaWarehouse
   class Version < GrdaWarehouseBase
     include PaperTrail::VersionConcern
+    include PaperTrailSafeColumns
 
     belongs_to :hmis_client, class_name: 'Hmis::Hud::Client', foreign_key: :client_id, optional: true
     belongs_to :hmis_project, class_name: 'Hmis::Hud::Project', foreign_key: :project_id, optional: true

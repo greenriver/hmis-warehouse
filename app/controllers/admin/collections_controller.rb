@@ -42,7 +42,7 @@ module Admin
 
     def update
       @collection.update(collection_params)
-      # Only update viewbles on legacy collections
+      # Only update viewables on legacy collections
       @collection.set_viewables(viewable_params) if @collection.legacy?
       @collection.save
 

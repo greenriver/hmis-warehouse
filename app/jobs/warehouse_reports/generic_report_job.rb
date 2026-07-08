@@ -45,7 +45,7 @@ module WarehouseReports
       end
 
       report = klass.find_by(id: report_id)
-      # Occassionally people delete the report before it actually runs
+      # occasionally people delete the report before it actually runs
       return false unless report.present?
 
       completed = report.run_and_save!

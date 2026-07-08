@@ -255,7 +255,7 @@ module HmisUtil
       fragment_items = fragment['item'] || [] # child items of the fragment
       additional_items = item['item'] || [] # any items that should be appended
 
-      # Reverse merge so that any keys specified in 'item' overried the fragment values.
+      # Reverse merge so that any keys specified in 'item' overrides the fragment values.
       # This can be useful in changing the link id, text, etc.
       # This is a shallow merge.
       item.reverse_merge!(fragment)

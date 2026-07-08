@@ -34,11 +34,11 @@ The classes within this module are organized into several subdirectories to grou
 - **Candidate Pool Key**: `[priority_expression, requirement_expression]` (Strings). Default/no‑specific‑rules returns `nil` (no pool is created; associations remain `NULL`).
 - **Rule Precedence**: Priority scheme selection is by owner precedence `UnitGroup > Project > Organization`; tie-breaker by rule `id`. Eligibility requirements from all applicable owners are combined with logical AND in deterministic order.
 - **Idempotent Creation**: Pools are uniquely identified by `(priority_expression, requirement_expression)` at the DB level; bulk creation uses upserts that ignore duplicates.
-- **Unit group → candidate pool**: Each waitlist-enabled Unit Group gets assigned a single candidate pool derived from its inherited ruleset. All opportunities within that unit group use this unit-group-level pool. (Note: old opportunity-candidate pool association and "stale" opportunity concept has been removed.)
+- **Unit group → candidate pool**: Each Unit Group in a waitlist-enabled project with a waitlist workflow template gets assigned a single candidate pool derived from its inherited ruleset. All opportunities within that unit group use this unit-group-level pool. (Note: old opportunity-candidate pool association and "stale" opportunity concept has been removed.)
 - **Caching Scope**: `UnitGroupRuleResolver` may memoize within process for performance. Pool caching is encapsulated in `CandidatePoolRepository`.
 - **Per-Unit Rules**: To implement rules that apply to individual units, place each unit in its own separate unit group.
 
 ## Unit Group–Driven Maintenance
 
-- The `CandidatePoolBuilder` is the primary tool for maintaining pools. It can be invoked for all unit groups to ensure all waitlists are up-to-date, or it can be scoped to a specific set of `unit_group_ids` for more targeted updates. It only maintains pools for Unit Groups that belong to projects where Waitlist-based CE Referrals are enabled, as configured by `Hmis::ProjectCeConfig`.
-- This process is triggered automatically by callbacks on `Hmis::Ce::Match::Rule`, `Hmis::UnitGroup`, and `Hmis::ProjectCeConfig` models, and as a full refresh by a daily Rake task.
+- The `CandidatePoolBuilder` is the primary tool for maintaining pools. It can be invoked for all unit groups to ensure all waitlists are up-to-date, or it can be scoped to a specific set of `unit_group_ids` for more targeted updates. It only maintains pools for Unit Groups that belong to projects where Waitlist-based CE Referrals are enabled, as configured by `Hmis::ProjectCeConfig`, and that have a waitlist workflow template.
+- This process is triggered automatically by callbacks on `Hmis::Ce::Match::Rule`, `Hmis::UnitGroup`, and `Hmis::ProjectCeConfig` models, and as a full refresh by a daily Rake task. Unit group callbacks rebuild after creation and when the waitlist workflow template is assigned.

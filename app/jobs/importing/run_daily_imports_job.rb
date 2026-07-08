@@ -306,7 +306,7 @@ module Importing
       # and `sync_with_cas` is true at time of success, there's a potential
       # timing issue around when the warehouse knows of success.  If that happens
       # after this is called, the client will be made available for matching again and
-      # all unavilable fors will be removed
+      # all unavailable_for records will be removed
       GrdaWarehouse::CasHoused.inactivate_clients
 
       GrdaWarehouse::Tasks::PushClientsToCas.new.sync!

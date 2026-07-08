@@ -752,7 +752,7 @@ module HudUtility2026
     cocs.select { |code, _| code.first(2).upcase.in?(states) }
   end
 
-  # tranform up hud list for use as an enum
+  # transform up hud list for use as an enum
   # {1 => 'Test (this)'} => {'test_this' => 1}
   # @param name [Symbol] method on HudLists
   def hud_list_map_as_enumerable(name)

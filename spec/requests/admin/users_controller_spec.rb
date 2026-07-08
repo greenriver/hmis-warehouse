@@ -105,7 +105,7 @@ RSpec.describe Admin::UsersController, type: :request do
         legacy_user.legacy_roles << role
         legacy_user.access_groups << access_group
         legacy_user.save!
-        # Ensure the orignal user is using role-based permissions and is assigned the user group
+        # Ensure the original user is using role-based permissions and is assigned the user group
         expect(legacy_user.permission_context).to eq('role_based')
         expect(legacy_user.user_group_ids).to eq([user_group.id])
         expect(legacy_user.legacy_role_ids).to eq([role.id])
@@ -132,7 +132,7 @@ RSpec.describe Admin::UsersController, type: :request do
         acl_user.legacy_roles << role
         acl_user.access_groups << access_group
         acl_user.save!
-        # Ensure the orignal user is using role-based permissions and is assigned the user group
+        # Ensure the original user is using role-based permissions and is assigned the user group
         expect(acl_user.permission_context).to eq('acls')
         expect(acl_user.user_group_ids).to eq([user_group.id])
         expect(acl_user.legacy_role_ids).to eq([role.id])

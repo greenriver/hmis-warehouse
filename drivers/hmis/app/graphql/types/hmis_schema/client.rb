@@ -396,7 +396,7 @@ module Types
     #
     # This first version is global. In other words it resolves the same thing for every client.
     # In the future this will probably be client-specific, either based on some configuration, or based on the projects that the client is enrolled at.
-    # Specifically for indicating whether certain "Enrollment-optional records" (File, Case Note) should be collectable on the Client Dashbord vs on the Enrollment Dashboard (in the future).
+    # Specifically for indicating whether certain "Enrollment-optional records" (File, Case Note) should be collectable on the Client Dashboard vs on the Enrollment Dashboard (in the future).
     def enabled_features
       client_dashboard_feature_roles = Types::Forms::Enums::ClientDashboardFeature.values.keys
 

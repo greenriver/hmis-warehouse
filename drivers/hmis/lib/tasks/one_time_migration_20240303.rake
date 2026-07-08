@@ -43,7 +43,7 @@ class OneTimeMigration20230303
     end
   end
 
-  # on_error allows customization of error handling incase we want to collect them instead of raising
+  # on_error allows customization of error handling in case we want to collect them instead of raising
   def validate_definition(...)
     # NOTE: validate_definition no longer exists, use DefinitionValidator for validation. Not fixing since this is one-time code
     # HmisUtil::JsonForms.new.validate_definition(...)

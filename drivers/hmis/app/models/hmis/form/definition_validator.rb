@@ -36,7 +36,7 @@ class Hmis::Form::DefinitionValidator
 
     # Check conditions like enable_when and autofill_when.
     # First initialize a FormDefinition to use the logic for generating an item hash, but don't persist it.
-    # item_hash's limitiation is that it does not include groups. While the referenced question could be a group
+    # item_hash's limitation is that it does not include groups. While the referenced question could be a group
     # (with an EXISTS condition, for instance), for now we are only validating against pick_list_options and
     # pick_list_reference (which groups won't have).
     item_hash = Hmis::Form::Definition.new(definition: document).link_id_item_hash

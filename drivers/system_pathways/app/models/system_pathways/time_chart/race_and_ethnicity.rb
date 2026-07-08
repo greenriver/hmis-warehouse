@@ -123,7 +123,7 @@ module SystemPathways::TimeChart::RaceAndEthnicity
       white: ->(race_data, stay_length_col) { single_race(race_data, 'white', stay_length_col) },
       white_hispanic_latinaeo: ->(race_data, stay_length_col) { single_race_latinaeo(race_data, 'white', stay_length_col) },
 
-      # For interdependent race information, counting is u sed to determinethe number of true values
+      # For interdependent race information, counting is u sed to determine the number of true values
       # recorded in a client's race hash.
       # The hash is keyed using Arel here because the stay_length_col is in a joined table
       hispanic_latinaeo: ->(race_data, stay_length_col) do

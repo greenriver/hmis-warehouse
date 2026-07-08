@@ -50,7 +50,7 @@ module ClientImageConsumer
       gender = if self[:Male].in?([1]) then 'male' else 'female' end
       age_group = if age.blank? || age > 18 then 'adults' else 'children' end
 
-      # Fail occassionally (but consistently) so we can test that path
+      # Fail occasionally (but consistently) so we can test that path
       return [nil, '', 'bad'].sample if last_name&.last.in?(['s', 'n'])
 
       image_directory = File.join('public', 'fake_photos', age_group, gender)
@@ -95,22 +95,27 @@ module ClientImageConsumer
       return unless (image_data || '').length > 100
 
       user = ::User.setup_system_user
-      self.class.transaction do
-        # Hard-delete ephemeral cache records (no reason to soft-delete or restore).
-        # Purge blobs first so S3 objects aren't orphaned.
-        client_files.window.where(name: 'Client Headshot Cache').with_attached_client_file.each do |f|
-          f.client_file.purge if f.client_file.attached?
-          f.really_destroy!
-        end
+      # Concurrent refreshes (e.g. two requests rendering this client's photo at once)
+      # would otherwise race: one purges the other's just-created cache blob before its
+      # AnalyzeJob runs, raising Aws::S3::Errors::NoSuchKey.
+      self.class.with_advisory_lock("client_headshot_cache_#{id}", timeout_seconds: 0) do
+        self.class.transaction do
+          # Hard-delete ephemeral cache records (no reason to soft-delete or restore).
+          # Purge blobs first so S3 objects aren't orphaned.
+          client_files.window.where(name: 'Client Headshot Cache').with_attached_client_file.each do |f|
+            f.client_file.purge if f.client_file.attached?
+            f.really_destroy!
+          end
 
-        file = GrdaWarehouse::ClientFile.create(
-          client_id: id,
-          user_id: user.id,
-          name: 'Client Headshot Cache',
-          visible_in_window: true,
-        )
-        file.client_file.attach(io: StringIO.open(image_data), filename: "client_headshot_cache_#{id}")
-        file.save!
+          file = GrdaWarehouse::ClientFile.create(
+            client_id: id,
+            user_id: user.id,
+            name: 'Client Headshot Cache',
+            visible_in_window: true,
+          )
+          file.client_file.attach(io: StringIO.open(image_data), filename: "client_headshot_cache_#{id}")
+          file.save!
+        end
       end
     end
 

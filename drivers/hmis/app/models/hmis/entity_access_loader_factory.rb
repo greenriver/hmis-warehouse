@@ -37,7 +37,7 @@ class Hmis::EntityAccessLoaderFactory
   # @yieldreturn [#resolved, nil] the association (record.association)
   # @return [Array<Hmis::BaseLoader, #entity>]
   def perform(entity, &block)
-    raise "Cannot resolve assocation for unpersisted record of type #{entity.class.name}" unless entity.persisted?
+    raise "Cannot resolve association for unpersisted record of type #{entity.class.name}" unless entity.persisted?
 
     resolve_entity(entity, safety: 0, &block)
   end
@@ -83,7 +83,7 @@ class Hmis::EntityAccessLoaderFactory
 
     return nil unless resolved
 
-    raise "Cannot resolve assocation for unpersisted record of type #{resolved.class.name}" unless resolved.persisted?
+    raise "Cannot resolve association for unpersisted record of type #{resolved.class.name}" unless resolved.persisted?
 
     resolve_entity(resolved, safety: safety + 1, &block)
   end
