@@ -10,7 +10,7 @@ namespace :reports do
     task :archive_and_purge_simple_reports, [:dry_run] => :environment do |_t, args|
       dry_run = ['true', '1'].include?(args[:dry_run])
 
-      puts "Archiving (if needed) and purging database data for eligible SimpleReports (grace period expired)#{dry_run ? ' (DRY RUN)' : ''}..."
+      puts "Enqueueing archival and purge jobs for eligible SimpleReports (grace period expired)#{dry_run ? ' (DRY RUN)' : ''}..."
       puts ''
 
       # Ensure models are loaded so report types are registered
@@ -25,91 +25,37 @@ namespace :reports do
         next
       end
 
-      # Filter at database level:
-      # - Must be one of the configured archival types
-      # - Must have completed_at
-      # - Must not be purged yet (purged_at is null) and must have purge_eligible_at <= now OR (purge_eligible_at doesn't exist AND completed_at + grace_period_days <= now)
-      reports_to_process = SimpleReports::ReportInstance.
+      eligible_scope = SimpleReports::ReportInstance.
         of_types(archival_types).
         completed.
         purge_eligible(grace_period_days, now).
         order(updated_at: :asc)
 
-      puts "Found #{reports_to_process.count} SimpleReports eligible for archival and purging (grace period expired)"
+      total_count = eligible_scope.count
+      reports_to_process = eligible_scope.limit(20)
+
+      puts "Found #{total_count} SimpleReports eligible for archival and purging (grace period expired)"
       puts ''
 
-      if reports_to_process.empty?
+      if total_count.zero?
         puts 'No SimpleReports eligible for archival and purging at this time.'
       else
-        reports_to_process = reports_to_process.limit(20)
-        puts "Processing #{reports_to_process.count} reports"
-
-        success_count = 0
-        failure_count = 0
-        errors = []
-
+        enqueued = 0
         reports_to_process.each do |report|
           if dry_run
-            puts "DRY RUN: Would archive and purge SimpleReport ##{report.id} (#{report.class.name})"
-            success_count += 1
+            puts "DRY RUN: Would enqueue archival for SimpleReport ##{report.id} (#{report.class.name})"
           else
-            result = report.archive_and_purge!
-
-            if result[:success]
-              success_count += 1
-              puts "SimpleReport ##{report.id} (#{report.class.name}) - Archived and purged:"
-              result[:deleted_counts]&.each do |model, count|
-                puts "  #{model}: #{count} records"
-              end
-            else
-              failure_count += 1
-              error_msg = "SimpleReport #{report.class.name} ##{report.id}: #{result[:errors].join(', ')}"
-              errors << error_msg
-              Rails.logger.error(error_msg)
-              report.update_archival_metadata('purge_failed_at', Time.current.iso8601)
-              report.update_archival_metadata('purge_failure_reason', result[:errors].join(', '))
-              Sentry.capture_exception_with_info(
-                StandardError.new(error_msg),
-                "Failed to archive and purge SimpleReport #{report.class.name} ##{report.id}",
-                {
-                  report_id: report.id,
-                  report_class: report.class.name,
-                  errors: result[:errors],
-                },
-              )
-              puts "SimpleReport ##{report.id} - Failed: #{error_msg}"
-            end
-          end
-        rescue StandardError => e
-          failure_count += 1
-          error_msg = "Error processing SimpleReport ##{report.id}: #{e.message}"
-          errors << error_msg
-          Rails.logger.error("#{error_msg}\n#{e.backtrace.first(5).join("\n")}")
-          Sentry.capture_exception_with_info(
-            e,
-            "Error processing archival and purge task for SimpleReport ##{report.id}",
-            {
-              report_id: report.id,
+            Reports::ArchiveAndPurgeReportJob.perform_later(
               report_class: report.class.name,
-            },
-          )
-          puts "SimpleReport ##{report.id} - Error: #{error_msg}"
-        ensure
-          GC.start # release report objects between iterations to reduce peak memory
+              report_id: report.id,
+            )
+            puts "Enqueued SimpleReport ##{report.id} (#{report.class.name})"
+            enqueued += 1
+          end
         end
 
         puts ''
-        puts "SimpleReports archive and purge#{dry_run ? ' (DRY RUN)' : ''} complete:"
-        puts "  Success: #{success_count}"
-        puts "  Failures: #{failure_count}"
-
-        if errors.any?
-          puts ''
-          puts 'Errors:'
-          errors.each do |error|
-            puts "  - #{error}"
-          end
-        end
+        puts "SimpleReports#{dry_run ? ' (DRY RUN)' : ''}: #{dry_run ? 'would enqueue' : 'enqueued'} #{dry_run ? reports_to_process.size : enqueued} jobs"
       end
     end
 
@@ -117,7 +63,7 @@ namespace :reports do
     task :archive_and_purge_hud_reports, [:dry_run] => :environment do |_t, args|
       dry_run = ['true', '1'].include?(args[:dry_run])
 
-      puts "Archiving and purging eligible HUD Reports#{dry_run ? ' (DRY RUN)' : ''}..."
+      puts "Enqueueing archival and purge jobs for eligible HUD Reports#{dry_run ? ' (DRY RUN)' : ''}..."
       puts ''
 
       # Ensure models are loaded so report types are registered
@@ -132,90 +78,36 @@ namespace :reports do
         next
       end
 
-      # Filter at database level:
-      # - Must be one of the configured archival types
-      # - Must have completed_at
-      # - Must not be purged yet (purged_at is null) and must have purge_eligible_at <= now OR (purge_eligible_at doesn't exist AND completed_at + grace_period_days <= now)
-      reports_to_process = HudReports::ReportInstance.
+      eligible_scope = HudReports::ReportInstance.
         where(report_name: registered_names).
         purge_eligible(grace_period_days, now).
         order(completed_at: :asc)
 
-      success_count = 0
-      failure_count = 0
-      errors = []
+      total_count = eligible_scope.count
+      reports_to_process = eligible_scope.limit(20)
 
-      puts "Found #{reports_to_process.count} HUD Reports eligible for archival and purging (grace period expired)"
+      puts "Found #{total_count} HUD Reports eligible for archival and purging (grace period expired)"
       puts ''
 
-      if reports_to_process.empty?
+      if total_count.zero?
         puts 'No HUD Reports eligible for archival and purging at this time.'
       else
-        reports_to_process = reports_to_process.limit(20)
-        puts "Processing #{reports_to_process.count} reports"
-
+        enqueued = 0
         reports_to_process.each do |report|
           if dry_run
-            puts "DRY RUN: Would archive and purge HUD Report ##{report.id} (#{report.report_name})"
-            success_count += 1
+            puts "DRY RUN: Would enqueue archival for HUD Report ##{report.id} (#{report.report_name})"
           else
-            result = report.archive_and_purge!
-
-            if result[:success]
-              success_count += 1
-              puts "HUD Report ##{report.id} (#{report.report_name}) - Archived and purged:"
-              result[:deleted_counts]&.each do |model, count|
-                puts "  #{model}: #{count} records"
-              end
-            else
-              failure_count += 1
-              error_msg = "HUD Report #{report.report_name} ##{report.id}: #{result[:errors].join(', ')}"
-              errors << error_msg
-              Rails.logger.error(error_msg)
-              report.update_archival_metadata('purge_failed_at', Time.current.iso8601)
-              report.update_archival_metadata('purge_failure_reason', result[:errors].join(', '))
-              Sentry.capture_exception_with_info(
-                StandardError.new(error_msg),
-                "Failed to archive and purge HUD Report #{report.report_name} ##{report.id}",
-                {
-                  report_id: report.id,
-                  report_name: report.report_name,
-                  errors: result[:errors],
-                },
-              )
-              puts "HUD Report ##{report.id} - Failed: #{error_msg}"
-            end
-          end
-        rescue StandardError => e
-          failure_count += 1
-          error_msg = "Error processing HUD Report #{report.report_name} ##{report.id}: #{e.message}"
-          errors << error_msg
-          Rails.logger.error("#{error_msg}\n#{e.backtrace.first(5).join("\n")}")
-          Sentry.capture_exception_with_info(
-            e,
-            "Error processing archival and purge task for HUD Report ##{report.id}",
-            {
+            Reports::ArchiveAndPurgeReportJob.perform_later(
+              report_class: report.class.name,
               report_id: report.id,
-              report_name: report.report_name,
-            },
-          )
-          puts "HUD Report ##{report.id} - Error: #{error_msg}"
-        ensure
-          GC.start # release report objects between iterations to reduce peak memory
+            )
+            puts "Enqueued HUD Report ##{report.id} (#{report.report_name})"
+            enqueued += 1
+          end
         end
 
         puts ''
-        puts "HUD Reports archive and purge#{dry_run ? ' (DRY RUN)' : ''} complete:"
-        puts "  Success: #{success_count}"
-        puts "  Failures: #{failure_count}"
-
-        if errors.any?
-          puts ''
-          puts 'Errors:'
-          errors.each do |error|
-            puts "  - #{error}"
-          end
-        end
+        puts "HUD Reports#{dry_run ? ' (DRY RUN)' : ''}: #{dry_run ? 'would enqueue' : 'enqueued'} #{dry_run ? reports_to_process.size : enqueued} jobs"
       end
     end
 
