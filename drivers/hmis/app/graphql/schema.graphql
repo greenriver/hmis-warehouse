@@ -13035,6 +13035,11 @@ type Unit {
   """
   canBeMarkedAvailableToday: Boolean!
   canBeMarkedUnavailable: Boolean!
+
+  """
+  All current and historical CE referrals for the unit
+  """
+  ceReferrals(filters: UnitCeReferralFilterOptions, limit: Int, offset: Int): CeReferralsPaginated!
   dateCreated: ISO8601DateTime!
   dateUpdated: ISO8601DateTime!
   deletable: Boolean!
@@ -13054,6 +13059,14 @@ type Unit {
   unitSize: Int
   unitType: UnitTypeObject
   user: ApplicationUser
+}
+
+input UnitCeReferralFilterOptions {
+  assignedToYou: Boolean
+  onCurrentTaskSince: ISO8601Date
+  origin: [CeReferralOrigin!]
+  referralStatus: [String!]
+  searchTerm: String
 }
 
 input UnitFilterOptions {
