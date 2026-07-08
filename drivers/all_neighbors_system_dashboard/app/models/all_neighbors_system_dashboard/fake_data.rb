@@ -234,7 +234,7 @@ module AllNeighborsSystemDashboard
     def count_types
       [
         'Enrollments',
-        'Pacements',
+        'Placements',
       ]
     end
 

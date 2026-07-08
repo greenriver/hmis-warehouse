@@ -24,6 +24,10 @@ class Hmis::Hud::Organization < Hmis::Hud::Base
   has_many :ce_match_rules, class_name: 'Hmis::Ce::Match::Rule', as: :owner, dependent: :destroy
   has_many :ce_default_swimlane_assignments, class_name: 'Hmis::Ce::DefaultSwimlaneAssignment', as: :owner, dependent: :destroy
   has_many :unit_groups, through: :projects, class_name: 'Hmis::UnitGroup'
+  has_many :ce_waitlist_projects, -> { with_ce_waitlists_enabled }, **hmis_relation(:OrganizationID, 'Project'), class_name: 'Hmis::Hud::Project'
+  has_many :ce_waitlist_unit_groups,
+           through: :ce_waitlist_projects,
+           source: :unit_groups
 
   validates_with Hmis::Hud::Validators::OrganizationValidator
 
@@ -50,6 +54,10 @@ class Hmis::Hud::Organization < Hmis::Hud::Base
         possibly_pk?(search_term) ? o_t[:id].eq(search_term) : nil,
       ].compact.inject(&:or),
     )
+  end
+
+  scope :with_ce_waitlists_enabled, -> do
+    joins(:projects).merge(Hmis::Hud::Project.with_ce_waitlists_enabled).distinct
   end
 
   SORT_OPTIONS = [:name].freeze

@@ -75,12 +75,18 @@ module Idp
       # create!, not upsert: upsert skips the callbacks/validations a User needs
       # (create_access_group, paper_trail, presence checks). Rescue handles the
       # rare concurrent-provision race on the unique email.
+      # password only satisfies Devise :secure_validatable; drop when devise is gone
+      TodoOrDie('Remove devise password behavior', if: !defined?(Devise))
+      password = SecureRandom.base64(32)
       @user_class.create!(
         email: @email,
         first_name: @jwt_helper.first_name || 'User',
         last_name: @jwt_helper.last_name || '',
+        confirmed_at: Time.current,
         active: true,
         agency_id: 0,
+        password: password,
+        password_confirmation: password,
       )
     rescue ActiveRecord::RecordNotUnique
       @user_class.find_by!(email: @email)

@@ -23,10 +23,9 @@ module Hmis
     belongs_to :project, class_name: 'Hmis::Hud::Project'
 
     # Candidate Pool assigned by CandidatePoolBuilder. Non-null when the project has CE waitlists enabled via ProjectCeConfig,
-    # and the unit group has applicable rules.
+    # and the unit group has a workflow template and applicable rules.
     # Note: the candidate pool may be specified even when the unit group does not _really_ use waitlists, if:
-    # 1. The project has waitlists enabled but this unit group does not (e.g. no referral workflow template specified). Or,
-    # 2. The project previously used waitlists but no longer does (TODO #8555: clean up stale references).
+    # The project previously used waitlists but no longer does (TODO #8555: clean up stale references).
     belongs_to :candidate_pool, class_name: 'Hmis::Ce::Match::CandidatePool', optional: true
     belongs_to :unit_type, class_name: 'Hmis::UnitType', optional: true
     has_many :units, class_name: 'Hmis::Unit', dependent: :destroy, foreign_key: :hmis_unit_group_id
@@ -58,13 +57,43 @@ module Hmis
     validate :unit_type_is_stable, on: :update
 
     after_create :rebuild_candidate_pool
+    # If the unit group previously didn't have a workflow template and now does,
+    # trigger CandidatePoolBuilder so the unit group gets associated with a candidate pool
+    after_update :rebuild_candidate_pool, if: :saved_change_to_workflow_template_identifier?
 
     scope :viewable_by, ->(user) do
       joins(:project).merge(Hmis::Hud::Project.viewable_by(user).with_access(user, :can_view_units))
     end
 
     scope :with_ce_waitlists_enabled, -> do
-      joins(:project).merge(Hmis::Hud::Project.with_ce_waitlists_enabled)
+      joins(:project).
+        # CE waitlists must be enabled in this unit group's project
+        merge(Hmis::Hud::Project.with_ce_waitlists_enabled).
+        # This unit group must have a workflow template specified.
+        # If it only has a direct_workflow_template_identifier, then it only accepts direct referrals
+        # (even if it is in a project with waitlists enabled)
+        where.not(workflow_template_identifier: nil)
+    end
+
+    # Match unit groups by name or project name
+    scope :matching_search_term, ->(search_term) do
+      return none unless search_term.present?
+
+      search_term = search_term.strip
+      query = "%#{search_term.split(/\W+/).join('%')}%"
+      p_t = Hmis::Hud::Project.arel_table
+
+      joins(:project).where(
+        [
+          arel_table[:name].matches(query),
+          p_t[:ProjectName].matches(query),
+          possibly_pk?(search_term) ? arel_table[:id].eq(search_term) : nil,
+        ].compact.inject(&:or),
+      )
+    end
+
+    def self.apply_filters(input)
+      Hmis::Filter::UnitGroupFilter.new(input).filter_scope(self)
     end
 
     def eligibility_requirements
