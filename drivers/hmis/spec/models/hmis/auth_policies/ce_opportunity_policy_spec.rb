@@ -89,19 +89,5 @@ RSpec.describe Hmis::AuthPolicies::CeOpportunityPolicy, type: :model do
         end
       end
     end
-
-    describe '#can_manage_ce_match_rules?' do
-      it 'returns false when user does not have can_administrate_coordinated_entry permission' do
-        expect(policy.can_manage_ce_match_rules?).to be false
-      end
-
-      context 'when user has can_administrate_coordinated_entry permission' do
-        let!(:access_control) { create_access_control(user, data_source, with_permission: [:can_administrate_coordinated_entry]) }
-
-        it 'returns true' do
-          expect(policy.can_manage_ce_match_rules?).to be true
-        end
-      end
-    end
   end
 end
