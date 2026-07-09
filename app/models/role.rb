@@ -416,7 +416,7 @@ class Role < ApplicationRecord
         sub_category: 'Importing',
       },
       can_edit_translations: {
-        description: 'Ability to translate strings from the default OpenPath language to community specific langauge',
+        description: 'Ability to translate strings from the default OpenPath language to community specific language',
         administrative: true,
         category: 'Administration',
         sub_category: 'Site Configuration',

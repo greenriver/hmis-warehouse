@@ -43,6 +43,36 @@ RSpec.describe 'CE Match Rules queries', type: :request do
       applicability_config: {},
     )
   end
+  let!(:custom_assessment_form) do
+    create(
+      :hmis_form_definition,
+      identifier: 'score_assessment',
+      title: 'Score Assessment',
+      role: :CUSTOM_ASSESSMENT,
+      status: :published,
+      data_source: ds1,
+    )
+  end
+  let!(:score_cded) do
+    create(
+      :hmis_custom_data_element_definition,
+      owner_type: 'Hmis::Hud::CustomAssessment',
+      key: 'score',
+      label: 'Score',
+      field_type: :integer,
+      form_definition: custom_assessment_form,
+      data_source: ds1,
+    )
+  end
+  let!(:custom_data_element_rule) do
+    Hmis::Ce::Match::Rule.create!(
+      owner: project,
+      name: 'Assessment score required',
+      rule_type: Hmis::Ce::Match::Rule::ELIGIBILITY_REQUIREMENT,
+      expression: '`cde.custom_assessment.score` >= 10',
+      applicability_config: {},
+    )
+  end
   let!(:other_rule) do
     Hmis::Ce::Match::Rule.create!(
       owner: other_data_source,
@@ -83,6 +113,8 @@ RSpec.describe 'CE Match Rules queries', type: :request do
             operator
             clauses {
               field
+              fieldSource
+              formDefinitionIdentifier
               comparator
               value
             }
@@ -111,15 +143,36 @@ RSpec.describe 'CE Match Rules queries', type: :request do
     )
   end
 
-  it 'returns structured expression details for a rule' do
+  it 'returns structured expression details for a client field rule' do
     response, result = post_graphql(id: global_rule.id) { rule_query }
     expect(response.status).to eq(200), result.inspect
 
     expect(result.dig('data', 'ceMatchRule', 'structuredExpression')).to include(
       'operator' => 'AND',
       'clauses' => [
-        include('field' => 'current_age', 'comparator' => 'GTE', 'value' => 18),
+        include(
+          'field' => 'current_age',
+          'fieldSource' => 'CLIENT',
+          'formDefinitionIdentifier' => nil,
+          'comparator' => 'GTE',
+          'value' => 18,
+        ),
       ],
+    )
+  end
+
+  it 'returns structured expression details for a custom data element rule' do
+    response, result = post_graphql(id: custom_data_element_rule.id) { rule_query }
+    expect(response.status).to eq(200), result.inspect
+
+    expect(result.dig('data', 'ceMatchRule', 'structuredExpression', 'clauses')).to contain_exactly(
+      include(
+        'field' => 'cde.custom_assessment.score',
+        'fieldSource' => 'CUSTOM_DATA_ELEMENT',
+        'formDefinitionIdentifier' => 'score_assessment',
+        'comparator' => 'GTE',
+        'value' => 10,
+      ),
     )
   end
 

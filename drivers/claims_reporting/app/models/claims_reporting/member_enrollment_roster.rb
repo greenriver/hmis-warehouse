@@ -113,8 +113,8 @@ module ClaimsReporting
     # pcc: Primary Care Clinician (PCC)
     # cp: Community Partners (CP) Program OR Care Plan (check context)
     # ltss: Long-Term Services and Supports
-    # bh: Behavioural Health
-    # bh cp: Behavioural Health *Community Partner*
+    # bh: Behavioral Health
+    # bh cp: Behavioral Health *Community Partner*
     # ltss cp: Long-Term Services and Supports *Community Partner*
     # dds:  Department of Development Services
     # dms:  Department of Mental Health

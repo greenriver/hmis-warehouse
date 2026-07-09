@@ -10,7 +10,7 @@ namespace :paper_trail do
   desc 'De-duplicate paper trail version records for models affected by double has_paper_trail bug'
   task :deduplicate_versions, [:dry_run] => :environment do |_task, args|
     # A dry run is the default. To do a live run, pass `false`.
-    # Example: railse "paper_trail:deduplicate_versions[false]"
+    # Example: rails "paper_trail:deduplicate_versions[false]"
     dry_run = args[:dry_run] != 'false'
 
     puts '=' * 80

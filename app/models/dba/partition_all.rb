@@ -63,15 +63,4 @@ class Dba::PartitionAll
       end
     end
   end
-
-  # Use this with great care
-  def remove_saved_tables!
-    raise 'Aborting. You must set DELETE_THEM=true in your environment' unless ENV['DELETE_THEM'] == 'true'
-
-    tables.each_value do |table|
-      GrdaWarehouseBase.connection.execute(<<~SQL)
-        DROP TABLE IF EXSITS "#{table}_saved"
-      SQL
-    end
-  end
 end

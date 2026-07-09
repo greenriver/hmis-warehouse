@@ -275,6 +275,8 @@ module BostonProjectScorecard
     end
 
     def send_email_to_secondary_reviewer
+      return unless secondary_reviewer.present?
+
       BostonProjectScorecard::ScorecardMailer.scorecard_ready(self).deliver_later
     end
 

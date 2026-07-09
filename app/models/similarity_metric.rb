@@ -26,7 +26,7 @@ module SimilarityMetric
   # for a particular candidate return a map from candidate mergees to scores
   #    client     -- target destination client for which merge candidates are sought
   #    limit      -- number of coarsely selected candidates to re-rank sought per source client of target
-  #    threshold  -- score above which candidates will be rejected; -1 means roughly one standard deviation more similar than typical for randomly chosen inviduals
+  #    threshold  -- score above which candidates will be rejected; -1 means roughly one standard deviation more similar than typical for randomly chosen individuals
   #    metrics    -- list of similarity metrics to use
   #    minimum    -- minimum number of candidates to return -- this determines application of use_zero_crossing
   #    just_score -- we are only interested in the final score, not the elements it was composed from; if false, you get back a hash rather than a float
@@ -58,7 +58,7 @@ module SimilarityMetric
     score_map
   end
 
-  # like candidates but it returns both a map from merge candideates to scores
+  # like candidates but it returns both a map from merge candidates to scores
   # and a map from source clients to maps from merge candidates to scores or score hashes, depending on the value of just_score
   #
   #  returns:
