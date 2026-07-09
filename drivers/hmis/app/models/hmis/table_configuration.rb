@@ -88,8 +88,9 @@ class Hmis::TableConfiguration < Hmis::HmisBase
       unit_group.project&.organization,
     ].reject(&:blank?)
 
-    # Global fallback config (nil owner) should only be checked last
-    # (avoids prematurely returning the global config early if no project group config exists)
+    # Global fallback config (nil owner) should only be checked last.
+    # (Appending here after filtering out blanks above avoids prematurely
+    # returning the global config early if no owner exists at that level, e.g. project group)
     owners << nil
 
     owners.each do |owner|
