@@ -11,14 +11,14 @@ module WarehouseReports
     include WarehouseReportAuthorization
 
     def index
-      @filter = ::Filters::FilterBase.new(user_id: current_user.id, enforce_one_year_range: false)
+      @filter = ::Filters::ClientLookup.new(user_id: current_user.id, enforce_one_year_range: false)
       @filter.update(report_params)
       @map_enrollments = map_enrollments?
       respond_to do |format|
         format.html {}
         format.xlsx do
           unless @filter.any_effective_project_ids?
-            message = 'must have at least one Data Source, Organization, or Project selected'
+            message = 'At least one Data Source, Organization, or Project must be selected'
             redirect_to warehouse_reports_client_lookups_path(report: redirect_report_params), alert: message
             next
           end
