@@ -102,11 +102,11 @@ RSpec.describe Hmis::TableConfiguration, type: :model do
       organization_config = create(:hmis_table_configuration_ce_clients, data_source: data_source, owner: organization)
       create(:hmis_table_configuration_ce_clients, data_source: data_source, owner: project_group)
       create(:hmis_table_configuration_ce_clients, data_source: data_source, owner: other_project_group)
+      create(:hmis_table_configuration_ce_clients, data_source: data_source, owner: nil)
 
       expect(described_class.detect_ce_clients_unit_group_config(data_source_id: data_source.id, unit_group_id: unit_group.id)).to eq(organization_config)
     end
 
-    # todo @martha - this is the bug mentioned in comments on the table config file
     it 'falls back to organization config when no matching project group config exists' do
       create(:hmis_project_group, data_source: data_source, with_projects: [project])
       organization_config = create(:hmis_table_configuration_ce_clients, data_source: data_source, owner: organization)

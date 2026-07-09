@@ -81,16 +81,18 @@ class Hmis::TableConfiguration < Hmis::HmisBase
     return unless unit_group
 
     # find applicable configuration for this unit group, preferring more specific owners
-    [
+    owners = [
       unit_group,
       unit_group.project,
       detect_unambiguous_project_group_config_owner(data_source_id: data_source_id, project: unit_group.project),
       unit_group.project&.organization,
-      nil,
-    ].each do |owner|
-      # Keep nil so the global fallback config is checked.
-      next if owner.blank? && !owner.nil?
+    ].reject(&:blank?)
 
+    # Global fallback config (nil owner) should only be checked last
+    # (avoids prematurely returning the global config early if no project group config exists)
+    owners << nil
+
+    owners.each do |owner|
       found = Hmis::TableConfiguration.for_ce_clients_table.
         where(data_source_id: data_source_id).
         find_by(owner: owner)
@@ -108,8 +110,6 @@ class Hmis::TableConfiguration < Hmis::HmisBase
       merge(Hmis::TableConfiguration.for_ce_clients_table.where(data_source_id: data_source_id)).
       distinct
 
-    # todo @martha - this returns nil and then the above loop will return the global config, skipping org config.
-    # test for that and fix the bug
     configured_project_groups.one? ? configured_project_groups.first : nil
   end
 
