@@ -368,6 +368,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
 
       assessment.reload.form_processor.hud_values = {
         'IncomeBenefit.incomeFromAnySource' => nil,
+        'IncomeBenefit.unemploymentAmount' => nil,
       }
 
       assessment.form_processor.run!(user: hmis_user)
