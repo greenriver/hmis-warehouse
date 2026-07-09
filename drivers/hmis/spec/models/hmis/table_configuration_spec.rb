@@ -50,7 +50,18 @@ RSpec.describe Hmis::TableConfiguration, type: :model do
   describe '.detect_ce_clients_config' do
     it 'prefers project group configuration when provided' do
       global = create(:hmis_table_configuration_ce_clients, data_source: data_source, columns: [])
-      project_group_config = create(:hmis_table_configuration_ce_clients, data_source: data_source, owner: project_group, columns: [{ 'key' => 'cde.custom_assessment.score', 'type' => 'string', 'label' => 'Score' }])
+      project_group_config = create(
+        :hmis_table_configuration_ce_clients,
+        data_source: data_source,
+        owner: project_group,
+        columns: [
+          {
+            'key' => 'cde.custom_assessment.score',
+            'type' => 'string',
+            'label' => 'Score',
+          },
+        ],
+      )
 
       expect(described_class.detect_ce_clients_config(data_source_id: data_source.id, project_group_id: project_group.id)).to eq(project_group_config)
       expect(described_class.detect_ce_clients_config(data_source_id: data_source.id)).to eq(global)

@@ -71,24 +71,24 @@ class Hmis::TableConfiguration < Hmis::HmisBase
       return config if config.present?
     end
 
+    # Fallback to global config (no owner) if project group is not provided, or project group config does not exist.
     Hmis::TableConfiguration.for_ce_clients_table.find_by(data_source_id: data_source_id, owner: nil)
   end
 
   # Detect config to use for CE Eligible Clients table for a given unit group
-  def self.detect_ce_clients_unit_group_config(data_source_id:, unit_group_id:, project_group_id: nil)
+  def self.detect_ce_clients_unit_group_config(data_source_id:, unit_group_id:)
     unit_group = Hmis::UnitGroup.find_by(id: unit_group_id)
     return unless unit_group
-
-    project_group = Hmis::ProjectGroup.find_by(id: project_group_id, data_source_id: data_source_id) if project_group_id.present?
 
     # find applicable configuration for this unit group, preferring more specific owners
     [
       unit_group,
       unit_group.project,
-      project_group || detect_unambiguous_project_group_config_owner(data_source_id: data_source_id, project: unit_group.project),
+      detect_unambiguous_project_group_config_owner(data_source_id: data_source_id, project: unit_group.project),
       unit_group.project&.organization,
       nil,
     ].each do |owner|
+      # Keep nil so the global fallback config is checked.
       next if owner.blank? && !owner.nil?
 
       found = Hmis::TableConfiguration.for_ce_clients_table.
@@ -108,6 +108,8 @@ class Hmis::TableConfiguration < Hmis::HmisBase
       merge(Hmis::TableConfiguration.for_ce_clients_table.where(data_source_id: data_source_id)).
       distinct
 
+    # todo @martha - this returns nil and then the above loop will return the global config, skipping org config.
+    # test for that and fix the bug
     configured_project_groups.one? ? configured_project_groups.first : nil
   end
 
