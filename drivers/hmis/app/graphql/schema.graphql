@@ -984,17 +984,21 @@ type CeMatchRule {
   funders: [FundingSource!]
   id: ID!
   name: String!
+  ownerId: ID!
+  ownerName: String!
 
   """
   Rule applies to projects within this related entity (eg a Data Source,
   Project, Organization), possibly limited by project type or funder
   """
-  ownerType: CeMatchRuleOwner!
+  ownerType: CeMatchRuleOwnerType!
+  priorityRank: Int
 
   """
   Rule applicability is limited to projects with these types
   """
   projectTypes: [ProjectType!]!
+  ruleType: CeMatchRuleType!
 
   """
   Expression translated into a structured clause list; null if the expression is too complex to translate
@@ -1042,19 +1046,37 @@ enum CeMatchRuleComparator {
   NOT_EQ
 }
 
+input CeMatchRuleFilterOptions {
+  """
+  Rules that are owned at the global level
+  """
+  global: Boolean
+}
+
+type CeMatchRuleGroup {
+  """
+  True if rules are owned at the current hierarchy level; false if inherited.
+  """
+  local: Boolean!
+  ownerId: ID!
+  ownerName: String!
+  ownerType: CeMatchRuleOwnerType!
+  rules: [CeMatchRule!]!
+}
+
 input CeMatchRuleInput {
   expression: String
   name: String
   ownerId: ID
-  ownerType: CeMatchRuleOwner
+  ownerType: CeMatchRuleOwnerType
   priorityRank: Int
-  ruleType: String
+  ruleType: CeMatchRuleType
   structuredExpression: CeMatchRuleStructuredExpressionInput
 }
 
-enum CeMatchRuleOwner {
+enum CeMatchRuleOwnerType {
   """
-  Data Source
+  Global
   """
   DATA_SOURCE
 
@@ -1067,11 +1089,6 @@ enum CeMatchRuleOwner {
   Project
   """
   PROJECT
-
-  """
-  Unit
-  """
-  UNIT
 
   """
   Unit Group
@@ -1087,6 +1104,28 @@ type CeMatchRuleStructuredExpression {
 input CeMatchRuleStructuredExpressionInput {
   clauses: [CeMatchRuleClauseInput!]!
   operator: CeMatchRuleBooleanOperator!
+}
+
+enum CeMatchRuleType {
+  """
+  Eligibility requirement
+  """
+  ELIGIBILITY_REQUIREMENT
+
+  """
+  Priority scheme
+  """
+  PRIORITY_SCHEME
+}
+
+type CeMatchRulesPaginated {
+  hasMoreAfter: Boolean!
+  hasMoreBefore: Boolean!
+  limit: Int!
+  nodes: [CeMatchRule!]!
+  nodesCount: Int!
+  offset: Int!
+  pagesCount: Int!
 }
 
 type CeMatchValue {
@@ -7617,6 +7656,11 @@ union OmnisearchResult = Client | Project
 
 type Organization {
   access: OrganizationAccess!
+
+  """
+  Number of unit groups under this organization in projects that have waitlist referrals enabled.
+  """
+  ceWaitlistUnitGroupCount: Int!
   contactInformation: String
   createdBy: ApplicationUser
   customDataElements: [CustomDataElement!]!
@@ -7624,8 +7668,23 @@ type Organization {
   dateDeleted: ISO8601DateTime
   dateUpdated: ISO8601DateTime
   description: String
+
+  """
+  Number of CE match rules that apply to this record, including inherited rules.
+  """
+  effectiveCeMatchRuleCount: Int!
+
+  """
+  All CE match rules that apply to this record, including inherited rules, grouped by their owner.
+  """
+  effectiveCeMatchRuleGroups: [CeMatchRuleGroup!]!
   hudId: ID!
   id: ID!
+
+  """
+  Number of CE match rules owned directly by this record.
+  """
+  localCeMatchRuleCount: Int!
   organizationName: String!
   projects(filters: ProjectsForEnrollmentFilterOptions, limit: Int, offset: Int, sortOrder: ProjectSortOption): ProjectsPaginated!
   user: ApplicationUser
@@ -7640,6 +7699,7 @@ type OrganizationAccess {
 }
 
 input OrganizationFilterOptions {
+  ceWaitlistsEnabled: Boolean
   searchTerm: String
 }
 
@@ -9805,6 +9865,16 @@ type Project {
   dateDeleted: ISO8601DateTime
   dateUpdated: ISO8601DateTime
   description: String
+
+  """
+  Number of CE match rules that apply to this record, including inherited rules.
+  """
+  effectiveCeMatchRuleCount: Int!
+
+  """
+  All CE match rules that apply to this record, including inherited rules, grouped by their owner.
+  """
+  effectiveCeMatchRuleGroups: [CeMatchRuleGroup!]!
   enrollments(filters: EnrollmentsForProjectFilterOptions, limit: Int, offset: Int, sortOrder: EnrollmentSortOption): EnrollmentsPaginated!
   externalFormSubmissions(filters: ExternalFormSubmissionFilterOptions, formDefinitionIdentifier: ID!, limit: Int, offset: Int): ExternalFormSubmissionsPaginated!
   funders(limit: Int, offset: Int, sortOrder: FunderSortOption): FundersPaginated!
@@ -9816,6 +9886,11 @@ type Project {
   id: ID!
   incomingReferralPostings(filters: ReferralPostingFilterOptions, limit: Int, offset: Int): ReferralPostingsPaginated!
   inventories(limit: Int, offset: Int, sortOrder: InventorySortOption): InventoriesPaginated!
+
+  """
+  Number of CE match rules owned directly by this record.
+  """
+  localCeMatchRuleCount: Int!
 
   """
   Forms for individual data elements that are collected at occurrence for this Project (e.g. Move-In Date)
@@ -10043,6 +10118,7 @@ enum ProjectFilterOptionStatus {
 
 input ProjectFilterOptions {
   ceEnabled: Boolean
+  ceWaitlistsEnabled: Boolean
   funder: [FundingSource!]
   organization: [ID!]
   projectType: [ProjectType!]
@@ -10154,6 +10230,7 @@ enum ProjectType {
 }
 
 input ProjectsForEnrollmentFilterOptions {
+  ceWaitlistsEnabled: Boolean
   funder: [FundingSource!]
   projectType: [ProjectType!]
   searchTerm: String
@@ -10237,6 +10314,12 @@ type Query {
   Custom assessment form definitions for use in CE match rule management.
   """
   ceMatchCustomAssessmentForms: [FormDefinition!]!
+  ceMatchRule(id: ID!): CeMatchRule!
+
+  """
+  Coordinated Entry Match Rules in the current data source.
+  """
+  ceMatchRules(filters: CeMatchRuleFilterOptions, limit: Int, offset: Int): CeMatchRulesPaginated!
   ceOpportunities(filters: CeOpportunityFilterOptions, limit: Int, offset: Int, sortOrder: CeOpportunitySortOption): CeOpportunitiesPaginated!
   ceOpportunity(id: ID!): CeOpportunity
   ceReferral(id: ID!): CeReferral

@@ -42,7 +42,7 @@ RSpec.describe 'createCeMatchRule mutation', type: :request do
       name: 'Must be 18 or older',
       ownerId: ds1.id,
       ownerType: 'DATA_SOURCE',
-      ruleType: 'eligibility_requirement',
+      ruleType: 'ELIGIBILITY_REQUIREMENT',
       expression: 'current_age >= 18',
     }
   end
@@ -83,9 +83,17 @@ RSpec.describe 'createCeMatchRule mutation', type: :request do
     end.to change(Hmis::Ce::Match::Rule, :count).by(1)
   end
 
+  it 'defaults omitted owner to a global rule in the current data source' do
+    response, result = post_graphql(input: base_input.except(:ownerId, :ownerType)) { mutation }
+    expect(response.status).to eq(200), result.inspect
+
+    rule = Hmis::Ce::Match::Rule.find(result.dig('data', 'createCeMatchRule', 'rule', 'id'))
+    expect(rule.owner).to eq(ds1)
+  end
+
   it 'creates a priority scheme' do
     input = base_input.merge(
-      ruleType: 'priority_scheme',
+      ruleType: 'PRIORITY_SCHEME',
       expression: 'current_age',
       priorityRank: 1,
     )

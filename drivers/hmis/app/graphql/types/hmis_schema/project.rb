@@ -26,6 +26,7 @@ module Types
     include Types::HmisSchema::HasCeOpportunities
     include Types::HmisSchema::HasCeReferrals
     include Types::HmisSchema::HasCeDefaultContacts
+    include Types::HmisSchema::HasCeMatchRules
 
     def self.configuration
       Hmis::Hud::Project.hmis_configuration(version: '2024')
@@ -50,6 +51,7 @@ module Types
       arg :organization, [ID]
       arg :search_term, String
       arg :ce_enabled, Boolean
+      arg :ce_waitlists_enabled, Boolean
     end
 
     hud_field :id, ID, null: false
@@ -310,6 +312,11 @@ module Types
       # performance reasons, and so that we throw an error instead of returning an empty list.
       # After this check it's OK to use `dangerous_skip_permission_check`
       raise 'access denied' unless current_user.can_view_enrollment_details_for?(object)
+    end
+
+    private def ce_match_rule_group_owners
+      # Used by the HasCeMatchRules concern
+      [object.data_source, object.organization, object]
     end
   end
 end
