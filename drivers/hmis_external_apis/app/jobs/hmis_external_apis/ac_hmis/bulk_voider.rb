@@ -17,7 +17,7 @@
 #
 # destination_client_ids: a list of destination client IDs to void
 # ce_project_id: the ID of the Coordinated Entry project. If absent, expects a single open CE project.
-# initiated_by: the Hmis::User who kicked off the run, for logging and PaperTrail metadata. Optional; if not provided, uses the System User.
+# initiated_by_id: the Hmis::User ID that kicked off the run, for logging and PaperTrail metadata. Optional; if not provided, uses the System User.
 # dry_run: if true, logs the enrollments that would be processed, without taking action
 #
 # Notes:
@@ -33,7 +33,7 @@ module HmisExternalApis::AcHmis
     VOID_CDED_KEY = 'void_assessment_void_all_referrals'
     VOID_REASON_CDED_KEY = 'void_assessment_void_reason'
 
-    def perform(destination_client_ids:, ce_project_id: nil, initiated_by: nil, dry_run: false)
+    def perform(destination_client_ids:, ce_project_id: nil, initiated_by_id: nil, dry_run: false)
       bulk_void_run_id = SecureRandom.uuid
 
       # Expect the project to be open on the current date, and to be a Coordinated Entry project (14)
@@ -48,7 +48,7 @@ module HmisExternalApis::AcHmis
 
       @data_source_id = project.data_source_id
       @hud_system_user = Hmis::Hud::User.system_user(data_source_id: @data_source_id)
-      initiated_by ||= Hmis::User.system_user
+      initiated_by_id ||= Hmis::User.system_user.id
       @current_date = Date.current
 
       # Find the Void Assessment and validate the expected CDEDs exist
@@ -107,10 +107,10 @@ module HmisExternalApis::AcHmis
       # Wrap the write-changes in a PaperTrail request that manually sets the user and request ID.
       # This enables us to more easily trace the changes and rollback a bulk void operation if needed.
       PaperTrail.request(
-        whodunnit: initiated_by.id,
+        whodunnit: initiated_by_id,
         controller_info: {
-          user_id: initiated_by.id,
-          true_user_id: initiated_by.id,
+          user_id: initiated_by_id,
+          true_user_id: initiated_by_id,
           request_id: bulk_void_run_id,
         },
       ) do

@@ -32,11 +32,11 @@ RSpec.describe HmisExternalApis::AcHmis::BulkVoider, type: :job do
   let(:void_cded) { Hmis::Hud::CustomDataElementDefinition.find_by(key: 'void_assessment_void_all_referrals') }
   let(:void_reason_cded) { Hmis::Hud::CustomDataElementDefinition.find_by(key: 'void_assessment_void_reason') }
 
-  def perform_bulk_void(destination_client_ids, ce_project_id: ce_project.id, initiated_by: nil)
+  def perform_bulk_void(destination_client_ids, ce_project_id: ce_project.id, initiated_by_id: nil)
     described_class.new.perform(
       destination_client_ids: destination_client_ids,
       ce_project_id: ce_project_id,
-      initiated_by: initiated_by,
+      initiated_by_id: initiated_by_id,
       dry_run: false,
     )
   end
@@ -102,7 +102,7 @@ RSpec.describe HmisExternalApis::AcHmis::BulkVoider, type: :job do
       allow(SecureRandom).to receive(:uuid).and_return(run_id)
 
       PaperTrailHelper.with_paper_trail do
-        perform_bulk_void([client.warehouse_id], initiated_by: initiated_by)
+        perform_bulk_void([client.warehouse_id], initiated_by_id: initiated_by.id)
       end
 
       versions = GrdaWarehouse.paper_trail_versions.where(request_id: run_id)
