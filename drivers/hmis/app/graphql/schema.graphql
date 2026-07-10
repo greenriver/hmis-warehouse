@@ -10524,10 +10524,9 @@ type Query {
 }
 
 type QueryAccess {
-  canAdministerHmis: Boolean! @deprecated(reason: "Unused in the frontend")
   canAdministrateConfig: Boolean!
-  canAdministrateCoordinatedEntry: Boolean! @deprecated(reason: "Use policy permission specific to the need, such as canManageCeDefaultContacts or canIndexOpportunities")
   canAuditUsers: Boolean!
+  canBulkVoidCeClients: Boolean!
   canConfigureDataCollection: Boolean! @deprecated(reason: "Use policy permission specific to the need, such as canManageFormRules or canManageServices")
   canCreateClients: Boolean!
   canCreateOrganizations: Boolean!
@@ -10547,7 +10546,6 @@ type QueryAccess {
   canManageProjectConfigs: Boolean!
   canManageServices: Boolean!
   canMergeClients: Boolean!
-  canTransferEnrollments: Boolean! @deprecated(reason: "Unused in the frontend")
   canViewClientAlerts: Boolean!
   canViewClients: Boolean!
   canViewDob: Boolean!
