@@ -21,7 +21,7 @@ class Hmis::Hud::Validators::IncomeBenefitValidator < Hmis::Hud::Validators::Bas
   INCOME_SOURCES_UNSPECIFIED = 'At least one income source must be selected.'
   BENEFIT_SOURCES_UNSPECIFIED = 'At least one benefit must be selected.'
   INSURANCE_SOURCES_UNSPECIFIED = 'At least one insurance provider must be selected.'
-  INCOME_SOURE_WITHOUT_SUMMARY = 'All income sources must be blank or zero unless Income from Any Source is Yes.'
+  INCOME_SOURCE_WITHOUT_SUMMARY = 'All income sources must be blank or zero unless Income from Any Source is Yes.'
   BENEFIT_SOURCE_WITHOUT_SUMMARY = 'All benefits must be unchecked unless Non-Cash Benefits from Any Source is Yes.'
   INSURANCE_SOURCE_WITHOUT_SUMMARY = 'All insurance providers must be unchecked unless Covered by Health Insurance is Yes.'
 
@@ -86,19 +86,13 @@ class Hmis::Hud::Validators::IncomeBenefitValidator < Hmis::Hud::Validators::Bas
       end
 
       if record.income_from_any_source != 1
-        # Income from Any Source is not Yes, but total monthly income is positive
-        if record.total_monthly_income.to_f.positive?
+        # Income from Any Source is not Yes, but
+        # - total monthly income is positive OR
+        # - at least one source amount is positive (IncomeBenefitProcessor overrides these amounts, so this won't happen in practice)
+        if record.total_monthly_income.to_f.positive? || INCOME_SOURCE_AMOUNT_FIELDS.any? { |field| record.public_send(field).to_f.positive? }
           record.errors.add :income_from_any_source,
                             :invalid,
-                            full_message: INCOME_SOURE_WITHOUT_SUMMARY
-        end
-
-        # Income from Any Source is not Yes, but at least one source amount is positive.
-        # (IncomeBenefitProcessor overrides these amounts, so this won't happen in practice)
-        if INCOME_SOURCE_AMOUNT_FIELDS.any? { |field| record.public_send(field).to_f.positive? }
-          record.errors.add :income_from_any_source,
-                            :invalid,
-                            full_message: INCOME_SOURE_WITHOUT_SUMMARY
+                            full_message: INCOME_SOURCE_WITHOUT_SUMMARY
         end
       end
 

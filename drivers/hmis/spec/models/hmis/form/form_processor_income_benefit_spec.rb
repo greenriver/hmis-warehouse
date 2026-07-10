@@ -83,7 +83,7 @@ RSpec.describe 'IncomeBenefit processor', type: :model do
 
     expect(assessment.form_processor.valid?(:form_submission)).to be false
     expect(assessment.form_processor.errors.where(:income_from_any_source).first.options[:full_message]).
-      to eq(Hmis::Hud::Validators::IncomeBenefitValidator::INCOME_SOURE_WITHOUT_SUMMARY)
+      to eq(Hmis::Hud::Validators::IncomeBenefitValidator::INCOME_SOURCE_WITHOUT_SUMMARY)
   end
 
   it 'succeeds if Non-Cash Benefits from Any Source is NO' do
