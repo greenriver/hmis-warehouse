@@ -94,6 +94,8 @@ namespace :reports do
             },
           )
           puts "SimpleReport ##{report.id} - Error: #{error_msg}"
+        ensure
+          GC.start # release report objects between iterations to reduce peak memory
         end
 
         puts ''
@@ -198,6 +200,8 @@ namespace :reports do
             },
           )
           puts "HUD Report ##{report.id} - Error: #{error_msg}"
+        ensure
+          GC.start # release report objects between iterations to reduce peak memory
         end
 
         puts ''
@@ -218,8 +222,11 @@ namespace :reports do
     desc 'Archive (if needed) and purge database data for reports where grace period has expired'
     task :archive_and_purge_eligible, [:dry_run] => :environment do |_t, args|
       dry_run = args[:dry_run]
-      Rake::Task['reports:csv:archive_and_purge_simple_reports'].invoke(dry_run)
-      Rake::Task['reports:csv:archive_and_purge_hud_reports'].invoke(dry_run)
+      GrdaWarehouse::Tasks::TaskInstrumentation.call('reports:csv:archive_and_purge_eligible', alert_threshold: 36.hours) do |run|
+        Rake::Task['reports:csv:archive_and_purge_simple_reports'].invoke(dry_run)
+        Rake::Task['reports:csv:archive_and_purge_hud_reports'].invoke(dry_run)
+        run.complete!
+      end
     end
   end
 end
