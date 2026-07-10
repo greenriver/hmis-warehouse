@@ -17,6 +17,7 @@
 #
 # destination_client_ids: a list of destination client IDs to void
 # ce_project_id: the ID of the Coordinated Entry project. If absent, expects a single open CE project.
+# initiated_by: the Hmis::User who kicked off the run, for logging and PaperTrail metadata. Optional; if not provided, uses the System User.
 # dry_run: if true, logs the enrollments that would be processed, without taking action
 #
 # Notes:
@@ -32,7 +33,9 @@ module HmisExternalApis::AcHmis
     VOID_CDED_KEY = 'void_assessment_void_all_referrals'
     VOID_REASON_CDED_KEY = 'void_assessment_void_reason'
 
-    def perform(destination_client_ids:, ce_project_id: nil, dry_run: false)
+    def perform(destination_client_ids:, ce_project_id: nil, initiated_by: nil, dry_run: false)
+      bulk_void_run_id = SecureRandom.uuid
+
       # Expect the project to be open on the current date, and to be a Coordinated Entry project (14)
       ce_projects = Hmis::Hud::Project.hmis.open_on_date.where(project_type: 14)
       project = if ce_project_id
@@ -45,6 +48,7 @@ module HmisExternalApis::AcHmis
 
       @data_source_id = project.data_source_id
       @hud_system_user = Hmis::Hud::User.system_user(data_source_id: @data_source_id)
+      initiated_by ||= Hmis::User.system_user
       @current_date = Date.current
 
       # Find the Void Assessment and validate the expected CDEDs exist
@@ -100,32 +104,43 @@ module HmisExternalApis::AcHmis
 
       skipped = []
 
-      Hmis::Hud::Base.transaction do
-        open_enrollments.preload(household: :enrollments).each do |enrollment|
-          # Can't auto-exit incomplete members. Skip entirely and log that we skipped
-          if enrollment.household.any_wip?
-            skipped << [enrollment.enrollment_id, enrollment.client.warehouse_id]
-            next
+      # Wrap the write-changes in a PaperTrail request that manually sets the user and request ID.
+      # This enables us to more easily trace the changes and rollback a bulk void operation if needed.
+      PaperTrail.request(
+        whodunnit: initiated_by.id,
+        controller_info: {
+          user_id: initiated_by.id,
+          true_user_id: initiated_by.id,
+          request_id: bulk_void_run_id,
+        },
+      ) do
+        Hmis::Hud::Base.transaction do
+          open_enrollments.preload(household: :enrollments).each do |enrollment|
+            # Can't auto-exit incomplete members. Skip entirely and log that we skipped
+            if enrollment.household.any_wip?
+              skipped << [enrollment.enrollment_id, enrollment.client.warehouse_id]
+              next
+            end
+
+            enrollment.household.enrollments.open_excluding_wip.each do |e|
+              # Create a void assessment only if the client was in the provided list
+              create_void_assessment(e) if open_enrollment_ids_to_void.include?(e.id)
+              Rails.logger.info e.enrollment_id + (open_enrollment_ids_to_void.include?(e.id) ? '' : " (household member of #{enrollment.enrollment_id})")
+            end
+
+            # Exit all household members via shared service (creates exit assessment, releases unit, closes referral)
+            Hmis::EnrollmentExitCreator.call(
+              enrollment_id: enrollment.id,
+              exit_date: @current_date,
+              exit_household_members: true,
+            )
           end
 
-          enrollment.household.enrollments.open_excluding_wip.each do |e|
-            # Create a void assessment only if the client was in the provided list
-            create_void_assessment(e) if open_enrollment_ids_to_void.include?(e.id)
-            Rails.logger.info e.enrollment_id + (open_enrollment_ids_to_void.include?(e.id) ? '' : " (household member of #{enrollment.enrollment_id})")
+          exited_enrollments.each do |enrollment|
+            # Just create a void assessment for this enrollment (no need to touch its household members)
+            create_void_assessment(enrollment)
+            Rails.logger.info enrollment.enrollment_id + ' (already exited)'
           end
-
-          # Exit all household members via shared service (creates exit assessment, releases unit, closes referral)
-          Hmis::EnrollmentExitCreator.call(
-            enrollment_id: enrollment.id,
-            exit_date: @current_date,
-            exit_household_members: true,
-          )
-        end
-
-        exited_enrollments.each do |enrollment|
-          # Just create a void assessment for this enrollment (no need to touch its household members)
-          create_void_assessment(enrollment)
-          Rails.logger.info enrollment.enrollment_id + ' (already exited)'
         end
       end
 

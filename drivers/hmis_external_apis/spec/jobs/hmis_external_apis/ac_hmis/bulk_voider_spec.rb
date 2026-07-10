@@ -32,10 +32,11 @@ RSpec.describe HmisExternalApis::AcHmis::BulkVoider, type: :job do
   let(:void_cded) { Hmis::Hud::CustomDataElementDefinition.find_by(key: 'void_assessment_void_all_referrals') }
   let(:void_reason_cded) { Hmis::Hud::CustomDataElementDefinition.find_by(key: 'void_assessment_void_reason') }
 
-  def perform_bulk_void(destination_client_ids, ce_project_id: ce_project.id)
+  def perform_bulk_void(destination_client_ids, ce_project_id: ce_project.id, initiated_by: nil)
     described_class.new.perform(
       destination_client_ids: destination_client_ids,
       ce_project_id: ce_project_id,
+      initiated_by: initiated_by,
       dry_run: false,
     )
   end
@@ -43,6 +44,7 @@ RSpec.describe HmisExternalApis::AcHmis::BulkVoider, type: :job do
   describe '#perform' do
     let!(:client) { create(:hmis_hud_client_with_warehouse_client, data_source: data_source) }
     let!(:enrollment) { create(:hmis_hud_enrollment, data_source: data_source, project: ce_project, client: client) }
+    let(:initiated_by) { create(:hmis_user, data_source: data_source) }
 
     it 'auto-detects the CE project when none is provided' do
       expect do
@@ -92,6 +94,24 @@ RSpec.describe HmisExternalApis::AcHmis::BulkVoider, type: :job do
         expect(older_exited_enrollment.reload.custom_assessments.where(data_collection_stage: 99).count).to eq(0)
         expect(exited_enrollment.exit.exit_date).to eq(exit_date)
       end
+    end
+
+    it 'tracks PaperTrail metadata for created records' do
+      run_id = '00000000-0000-0000-0000-000000000001'
+
+      allow(SecureRandom).to receive(:uuid).and_return(run_id)
+
+      PaperTrailHelper.with_paper_trail do
+        perform_bulk_void([client.warehouse_id], initiated_by: initiated_by)
+      end
+
+      versions = GrdaWarehouse.paper_trail_versions.where(request_id: run_id)
+      expect(versions).not_to be_empty
+      expect(versions.pluck(:whodunnit).uniq).to eq([initiated_by.id.to_s])
+      expect(versions.pluck(:user_id).uniq).to eq([initiated_by.id])
+      expect(versions.pluck(:true_user_id).uniq).to eq([initiated_by.id])
+      expect(versions.where(item_type: 'Hmis::Hud::CustomAssessment', enrollment_id: enrollment.id)).to exist
+      expect(versions.where(item_type: 'Hmis::Hud::Exit', enrollment_id: enrollment.id)).to exist
     end
 
     context 'when there are multiple household members' do
