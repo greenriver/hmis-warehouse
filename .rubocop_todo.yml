@@ -1232,7 +1232,6 @@ Style/RedundantFreeze:
     - 'drivers/hmis/app/models/hmis/client_alert.rb'
     - 'drivers/hmis/app/models/hmis/enrollment_assessment_eligibility_list.rb'
     - 'drivers/hmis/app/models/hmis/hud/custom_client_address.rb'
-    - 'drivers/hmis/app/models/hmis/hud/validators/income_benefit_validator.rb'
     - 'drivers/hmis/app/models/hmis/reminders.rb'
     - 'drivers/hmis/lib/hmis_errors/api_error.rb'
     - 'drivers/hmis/lib/hmis_util/custom_assessment_form_definition_builder.rb'
