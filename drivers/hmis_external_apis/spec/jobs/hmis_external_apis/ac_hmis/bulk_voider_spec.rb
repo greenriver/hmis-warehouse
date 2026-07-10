@@ -32,10 +32,10 @@ RSpec.describe HmisExternalApis::AcHmis::BulkVoider, type: :job do
   let(:void_cded) { Hmis::Hud::CustomDataElementDefinition.find_by(key: 'void_assessment_void_all_referrals') }
   let(:void_reason_cded) { Hmis::Hud::CustomDataElementDefinition.find_by(key: 'void_assessment_void_reason') }
 
-  def perform_bulk_void(destination_client_ids)
+  def perform_bulk_void(destination_client_ids, ce_project_id: ce_project.id)
     described_class.new.perform(
       destination_client_ids: destination_client_ids,
-      ce_project_id: ce_project.id,
+      ce_project_id: ce_project_id,
       dry_run: false,
     )
   end
@@ -43,6 +43,13 @@ RSpec.describe HmisExternalApis::AcHmis::BulkVoider, type: :job do
   describe '#perform' do
     let!(:client) { create(:hmis_hud_client_with_warehouse_client, data_source: data_source) }
     let!(:enrollment) { create(:hmis_hud_enrollment, data_source: data_source, project: ce_project, client: client) }
+
+    it 'auto-detects the CE project when none is provided' do
+      expect do
+        perform_bulk_void([client.warehouse_id], ce_project_id: nil)
+      end.to change(Hmis::Hud::Exit, :count).by(1).
+        and change(Hmis::Hud::CustomAssessment.where(data_collection_stage: 99), :count).by(1)
+    end
 
     it 'creates exit and void assessment for client with open CE enrollment' do
       expect do
@@ -70,16 +77,20 @@ RSpec.describe HmisExternalApis::AcHmis::BulkVoider, type: :job do
 
     context 'when client is already exited' do
       let!(:exited_client) { create(:hmis_hud_client_with_warehouse_client, data_source: data_source) }
-      let!(:exited_enrollment) { create(:hmis_hud_enrollment, data_source: data_source, project: ce_project, client: exited_client, exit_date: Date.current) }
+      let(:exit_date) { 1.week.ago.to_date }
+      let!(:older_exited_enrollment) { create(:hmis_hud_enrollment, data_source: data_source, project: ce_project, client: exited_client, exit_date: 2.weeks.ago) }
+      let!(:exited_enrollment) { create(:hmis_hud_enrollment, data_source: data_source, project: ce_project, client: exited_client, exit_date: exit_date) }
 
-      it 'does not create void assessment for the exited client' do
+      it 'creates void assessment for the most recently exited enrollment without creating a new exit' do
         expect do
           perform_bulk_void([client.warehouse_id, exited_client.warehouse_id])
         end.to change(Hmis::Hud::Exit, :count).by(1).
-          and change(Hmis::Hud::CustomAssessment.where(data_collection_stage: 99), :count).by(1)
+          and change(Hmis::Hud::CustomAssessment.where(data_collection_stage: 99), :count).by(2).
+          and(not_change { Hmis::Hud::Exit.where(enrollment_id: exited_enrollment.enrollment_id, data_source_id: data_source.id).count })
 
-        # No void assessment was created for the already exited client
-        expect(exited_enrollment.reload.custom_assessments.where(data_collection_stage: 99).count).to eq(0)
+        expect(exited_enrollment.reload.custom_assessments.where(data_collection_stage: 99).count).to eq(1)
+        expect(older_exited_enrollment.reload.custom_assessments.where(data_collection_stage: 99).count).to eq(0)
+        expect(exited_enrollment.exit.exit_date).to eq(exit_date)
       end
     end
 
