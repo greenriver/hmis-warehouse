@@ -56,6 +56,11 @@ module HudReports::HudPdfExportConcern
 
     def perform
       with_status_progression do
+        if report.blank?
+          Rails.logger.warn("[#{self.class.name}] report #{params['id']} not found for export id #{id}, skipping")
+          next false
+        end
+
         template_file = 'hud_reports/download'
         layout = 'layouts/hud_report_export'
 
