@@ -99,7 +99,7 @@ module HmisExternalApis::AcHmis
       data = result.parsed_body&.dig('data')
       raise(Error, "Scores API response missing `data` key. Response body: `#{result.parsed_body}`") unless data
 
-      parsed_by_generator = parse_response_scores(data, requested_generators)
+      parsed_by_generator = parse_response_scores(data, requested_generators, external_request_log_id: result.request_log&.id)
       build_results(parsed_by_generator, requested_generators)
     end
 
@@ -138,25 +138,49 @@ module HmisExternalApis::AcHmis
     # do not trigger validation errors or Sentry noise.
     #
     # Example API shape:
-    #   data: [
-    #     { 'dw_client_id' => '100000001', 'scores' => [
-    #       { 'score' => 7, 'generator' => 'AHA', 'metadata' => { 'alt_aha_flag' => '1' } },
-    #       { 'score' => 5, 'generator' => 'MH-AHA', 'metadata' => { ... } },
-    #     ]},
-    #     { 'dw_client_id' => '100000002', 'scores' => [
-    #       { 'score' => 9, 'generator' => 'AHA', 'metadata' => { 'alt_aha_flag' => '0' } },
-    #     ]},
+    # {
+    #   "result": "success",
+    #   "message": "Returning client with score.",
+    #   "data": [
+    #     {
+    #       "public_id": "...",
+    #       "id": ...,
+    #       "dw_client_id_dw_client_id": ["100000001"],
+    #       "scores": [
+    #         {
+    #           "score": 7.0,
+    #           "generator": "AHA",
+    #           "metadata": {"alt_aha_flag": "0"},
+    #           ...
+    #         },
+    #         {
+    #           "score": 5.0,
+    #           "generator": "MH-AHA",
+    #           "metadata": {},
+    #           ...
+    #         }
+    #       ]
+    #     }
     #   ]
+    # }
     #
     # Example return value:
     #   { aha: [AhaResult(score: 7, ...), AhaResult(score: 9, ...)], mh_aha: [MhAhaResult(score: 5, ...)] }
-    def parse_response_scores(data, requested_generators)
+    #
+    # accepts external_request_log_id for logging to Sentry
+    def parse_response_scores(data, requested_generators, external_request_log_id: nil)
       parsed_by_generator = Hash.new { |hash, key| hash[key] = [] }
 
       data.each do |response_client|
         dw_client_id = Array.wrap(
           response_client.dig('dw_client_id') || response_client.dig('dw_client_id_dw_client_id'),
         ).first
+
+        unless dw_client_id
+          Sentry.capture_message(
+            "AHA score API response received no dw_client_id or dw_client_id_dw_client_id. HmisExternalApis::ExternalRequestLog #{external_request_log_id || 'unknown'}",
+          )
+        end
 
         response_client.dig('scores')&.each do |score_obj|
           generator_key = normalize_generator(score_obj['generator'])

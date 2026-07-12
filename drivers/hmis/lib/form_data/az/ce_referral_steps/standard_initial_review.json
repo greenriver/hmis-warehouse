@@ -1,0 +1,54 @@
+{
+  "item": [
+    {
+      "text": "Decision",
+      "type": "CHOICE",
+      "link_id": "decision",
+      "mapping": {
+        "custom_field_key": "standard_initial_review_decision"
+      },
+      "required": true,
+      "component": "RADIO_BUTTONS",
+      "pick_list_options": [
+        { "code": "continue", "label": "Continue" },
+        { "code": "decline", "label": "Decline" }
+      ]
+    },
+    {
+      "text": "Decline Reason",
+      "type": "CHOICE",
+      "link_id": "decline_reason",
+      "mapping": {
+        "custom_field_key": "standard_initial_review_decline_reason"
+      },
+      "required": true,
+      "component": "RADIO_BUTTONS",
+      "pick_list_options": [
+        { "code": "hmis_user_error", "label": "HMIS user error" },
+        { "code": "inability_to_complete_intake", "label": "Inability to complete intake" },
+        { "code": "ineligible", "label": "Does not meet eligibility criteria" },
+        { "code": "client_not_interested", "label": "No longer interested in this program" },
+        { "code": "not_experiencing_homelessness", "label": "No longer experiencing homelessness" },
+        { "code": "vacancy_no_longer_available", "label": "Estimated vacancy no longer available" },
+        { "code": "enrolled_declined_hmis_data_entry", "label": "Enrolled, but declined HMIS data entry" }
+      ],
+      "enable_when": [
+        {
+          "operator": "EQUAL",
+          "question": "decision",
+          "answer_code": "decline"
+        }
+      ],
+      "enable_behavior": "ALL"
+    },
+    {
+      "text": "Notes",
+      "type": "TEXT",
+      "link_id": "notes",
+      "mapping": {
+        "custom_field_key": "standard_initial_review_notes"
+      },
+      "required": false
+    }
+  ]
+}
