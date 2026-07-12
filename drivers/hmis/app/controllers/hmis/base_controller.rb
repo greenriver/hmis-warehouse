@@ -103,7 +103,6 @@ class Hmis::BaseController < ActionController::Base
   def current_user_payload
     payload = current_hmis_user&.current_user_api_values || {}
     payload[:impersonating] = impersonating?
-    payload[:trueUser] = { id: true_hmis_user.id.to_s, name: true_hmis_user.name } if true_hmis_user.present?
     payload
   end
 

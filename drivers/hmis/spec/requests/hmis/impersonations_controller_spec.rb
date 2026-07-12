@@ -44,11 +44,6 @@ RSpec.describe Hmis::ImpersonationsController, type: :request do
         expect(parsed['id']).to eq(target_user.id.to_s)
         expect(controller.current_hmis_user).to eq(target_user)
       end
-
-      it 'reports trueUser as the real (impersonating) user, not the impersonated one' do
-        parsed = JSON.parse response.body
-        expect(parsed['trueUser']).to eq('id' => admin_user.id.to_s, 'name' => admin_user.name)
-      end
     end
 
     context 'when trying to impersonate yourself' do

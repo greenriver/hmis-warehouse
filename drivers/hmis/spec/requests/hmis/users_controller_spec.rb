@@ -20,11 +20,6 @@ RSpec.describe Hmis::UsersController, type: :request do
         get hmis_user_path
       end
 
-      it 'includes trueUser matching the signed-in user' do
-        parsed = JSON.parse(response.body)
-        expect(parsed['trueUser']).to eq('id' => hmis_user.id.to_s, 'name' => hmis_user.name)
-      end
-
       it 'includes a primaryIdp key (nil under Devise, since there is no connector)' do
         parsed = JSON.parse(response.body)
         expect(parsed).to have_key('primaryIdp')
@@ -33,11 +28,10 @@ RSpec.describe Hmis::UsersController, type: :request do
     end
 
     context 'when not authenticated' do
-      it 'omits trueUser and primaryIdp' do
+      it 'omits primaryIdp' do
         get hmis_user_path
 
         parsed = JSON.parse(response.body)
-        expect(parsed['trueUser']).to be_nil
         expect(parsed).not_to have_key('primaryIdp')
       end
     end

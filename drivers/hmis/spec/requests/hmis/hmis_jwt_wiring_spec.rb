@@ -106,7 +106,6 @@ RSpec.describe 'HMIS JWT wiring', type: :request, if: AuthMethod.jwt? do
         true_user_id: admin_user.id,
       )
       parsed = JSON.parse(response.body)
-      expect(parsed['trueUser']).to eq('id' => admin_user.id.to_s, 'name' => admin_user.name)
       expect(parsed).to have_key('primaryIdp')
 
       delete hmis_impersonations_path, headers: headers
