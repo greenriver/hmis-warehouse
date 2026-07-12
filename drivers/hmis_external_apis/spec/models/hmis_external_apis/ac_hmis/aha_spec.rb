@@ -58,12 +58,13 @@ RSpec.describe HmisExternalApis::AcHmis::Aha, type: :model do
     }
   end
 
-  def mock_api_response(*client_data_hashes)
+  def mock_api_response(*client_data_hashes, request_log: nil)
     double(
       'response',
       error: false,
       http_status: 200,
       parsed_body: { 'data' => client_data_hashes },
+      request_log: request_log,
     )
   end
 
@@ -622,6 +623,36 @@ RSpec.describe HmisExternalApis::AcHmis::Aha, type: :model do
       result = aha.fetch_score(client)[:aha]
       expect(result.score).to eq(8)
       expect(Sentry).not_to have_received(:capture_message)
+    end
+  end
+
+  context 'when response is missing dw_client_id' do
+    let!(:mci_unique_id) { create(:mci_unique_id_external_id, source: client, remote_credential: remote_credential) }
+
+    it 'logs the external request log ID to Sentry' do
+      allow(Sentry).to receive(:capture_message)
+      request_log = instance_double(HmisExternalApis::ExternalRequestLog, id: 123)
+      response = mock_api_response(
+        {
+          'id' => 456,
+          'scores' => [
+            {
+              'score' => 10.0,
+              'generator' => 'AHA',
+              'metadata' => {
+                'alt_aha_flag' => '0',
+              },
+            },
+          ],
+        },
+        request_log: request_log,
+      )
+      setup_api_expectation(mci_unique_ids: mci_unique_id.value, response: response)
+
+      aha.fetch_score(client)
+
+      expect(Sentry).to have_received(:capture_message).
+        with(/AHA score API response received no dw_client_id or dw_client_id_dw_client_id. HmisExternalApis::ExternalRequestLog 123/)
     end
   end
 

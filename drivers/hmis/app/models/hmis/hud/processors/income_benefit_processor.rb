@@ -12,6 +12,8 @@ module Hmis::Hud::Processors
       attribute_name = ar_attribute_name(field)
       attribute_value = attribute_value_for_enum(graphql_enum(field), value)
 
+      # Manipulate the submitted attributes to match the overarching "from any source" field.
+      # Note that this does not manipulate the total_monthly_income amount.
       attributes = if field.end_with?('Amount')
         income_source_attributes(field, attribute_value)
       else
@@ -49,7 +51,10 @@ module Hmis::Hud::Processors
       false
     end
 
-    # For specific income fields, set Yes/No value base on income amount.
+    # Sets specific income fields:
+    # - set amount fields (e.g. "unemployment_amount") based on overarching "Income from Any Source" field
+    # - set Yes/No fields (e.g. "unemployment") based on income amount for that field
+    # Does not touch the overarching total_monthly_income amount.
     def income_source_attributes(amount_field, value)
       # Attribute for dollar amount (eg "unemployment_amount")
       amount_attribute_name = ar_attribute_name(amount_field)
@@ -66,7 +71,7 @@ module Hmis::Hud::Processors
         when Integer, Float, nil
           bool_attribute_value = amount_attribute_value&.positive? ? 1 : 0
         else
-          # The frontend input is not expected to send numeric values here
+          # The frontend input is not expected to send non-numeric values here
           Sentry.capture_message("Unexpected value \"#{amount_attribute_value}\" received for #{amount_attribute_name}")
           bool_attribute_value = 0
         end

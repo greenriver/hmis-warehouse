@@ -41,6 +41,9 @@ class Hmis::Ce::ChangeMarker < GrdaWarehouseBase
         processed_version: mark.current_version,
       }
     end
+    # Sort by the conflict target so concurrent bulk upserts against this table always
+    # acquire row locks in the same order, avoiding deadlocks between overlapping batches.
+    records.sort_by! { |record| [record[:trackable_id], record[:trackable_type]] }
     import!(
       records,
       validate: false,
@@ -59,7 +62,7 @@ class Hmis::Ce::ChangeMarker < GrdaWarehouseBase
     raise ArgumentError, "Trackable type not supported \"#{trackable_type}\"" unless trackable_type.in?(KNOWN_TRACKABLE_TYPES)
     return if trackable_ids.empty?
 
-    records = trackable_ids.uniq.map do |trackable_id|
+    records = trackable_ids.uniq.sort.map do |trackable_id|
       {
         trackable_id: trackable_id,
         trackable_type: trackable_type,
