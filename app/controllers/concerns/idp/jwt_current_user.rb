@@ -58,6 +58,23 @@ module Idp::JwtCurrentUser
     end
     helper_method :impersonating?
 
+    # Impersonation write-side under JWT (replaces pretender's impersonate_user). Backs the
+    # session via Idp::ImpersonationManager and updates the memoized current user so the
+    # remainder of *this* request reflects the impersonation (mirroring pretender's in-request
+    # behavior). The authoritative authorization check is the controller's before_action; subsequent
+    # requests re-resolve from the session via idp_authenticated_user_from_jwt, which re-validates
+    # permissions.
+    def impersonate_user(user)
+      impersonation_manager.store(true_user.id, user.id)
+      @current_user = user
+    end
+
+    def stop_impersonating_user
+      real_user = true_user
+      impersonation_manager.clear
+      @current_user = real_user
+    end
+
     private
 
     def info_for_paper_trail
