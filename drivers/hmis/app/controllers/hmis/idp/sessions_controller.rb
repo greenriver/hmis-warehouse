@@ -15,13 +15,17 @@ module Hmis
     # via fetch + response.json() rather than following a browser redirect, so the oauth2-proxy
     # sign-out URL comes back as a JSON field instead of an HTTP redirect.
     class SessionsController < Hmis::BaseController
-      # Skipped defensively rather than because it's unneeded: this action has no stateful side
-      # effect (no reset_session/sign_out) - it only computes a URL, and the actual sign-out
-      # happens at oauth2-proxy after the browser follows the returned redirect_url. So an absent
-      # or invalid CSRF token here couldn't cause harm even if the SPA failed to attach one.
+      # Skipped defensively: the only stateful side effect here is reset_session (below), and a
+      # forged cross-site request triggering that is a forced-logout nuisance at worst, not a
+      # meaningful escalation - the actual credential (the oauth2-proxy/IdP session) is untouched
+      # here regardless and only ends when the browser follows the returned redirect_url.
       skip_before_action :verify_authenticity_token, only: :destroy
 
       def destroy
+        # wipes session so it doesn't outlive this login. Not a substitute for oauth2-proxy/IdP
+        # sign-out the browser performs next via this redirect.
+        reset_session
+
         # Deliberately a relative path since oauth2-proxy is same-origin; an absolute URL built from
         # request.base_url could be spoofed via the Host header.
         render json: { redirect_url: "/oauth2/sign_out?rd=#{CGI.escape(root_path)}" }

@@ -61,6 +61,27 @@ RSpec.describe 'Warehouse JWT wiring', type: :request do
       expect(response.location).to include('/oauth2/sign_in')
     end
 
+    describe 'logout' do
+      it 'resets the session (clearing any session-stored impersonation), separate from the oauth2-proxy/IdP sign-out that follows the redirect' do
+        sign_in(user)
+        # session is only available once an integration request has happened, so establish one
+        # before poking it directly.
+        get session_keepalive_path
+        expect(response).to have_http_status(:ok)
+
+        # Simulate a leftover impersonation entry (Idp::ImpersonationManager stores this under
+        # session[:impersonation]); reset_session in Idp::SessionsController#destroy should wipe it,
+        # mirroring Devise's sign_out, so it can't silently resume on the next sign-in.
+        session[:impersonation] = { true_user_id: user.id, impersonated_user_id: user.id }
+
+        delete destroy_user_session_path
+
+        expect(response).to have_http_status(:redirect)
+        expect(response.location).to include('/oauth2/sign_out')
+        expect(session[:impersonation]).to be_nil
+      end
+    end
+
     describe '#info_for_paper_trail' do
       # Use distinct current_user/true_user so the impersonation-audit behavior is actually
       # exercised: user_id must follow the true user (matching Devise's existing warden&.user&.id

@@ -62,6 +62,25 @@ RSpec.describe 'HMIS JWT wiring', type: :request, if: AuthMethod.jwt? do
     end
   end
 
+  describe 'GET /hmis/user.json' do
+    it 'reflects the actual primaryIdp connector value, not just its presence' do
+      user = create(:hmis_user)
+      allow(User).to receive(:find_or_create_from_jwt).and_return(User.find(user.id))
+      sign_in(user)
+      # sign_in (JwtAuthenticationHelper) provisions a real Authentication Source and sets
+      # last_connector_id on the user; assert against that value rather than a hardcoded
+      # literal, so this proves current_user_api_values surfaces the actual DB-backed
+      # connector id (and would fail if it started always returning nil).
+      expected_connector_id = user.reload.last_connector_id
+      expect(expected_connector_id).to be_present
+
+      get hmis_user_path, headers: headers
+
+      expect(response).to have_http_status(:ok)
+      expect(JSON.parse(response.body)['primaryIdp']).to eq(expected_connector_id)
+    end
+  end
+
   # Mirrors the Devise impersonations_controller_spec setup, but drives the JWT arm:
   # impersonate_hmis_user / stop_impersonating_hmis_user back the Rails session via
   # Idp::ImpersonationManager, and the next request re-resolves (and re-validates) it.
@@ -127,6 +146,29 @@ RSpec.describe 'HMIS JWT wiring', type: :request, if: AuthMethod.jwt? do
       redirect_url = JSON.parse(response.body)['redirect_url']
       expect(redirect_url).to start_with('/oauth2/sign_out?rd=')
       expect(CGI.unescape(redirect_url.split('rd=').last)).to eq(root_path)
+    end
+
+    it 'clears session-stored impersonation, mirroring Devise sign_out, even though the JWT/oauth2-proxy credential is untouched' do
+      user_group = create(:hmis_user_group)
+      admin_user = create(:hmis_user, data_source: ds)
+      create_access_control(admin_user, ds, with_permission: [:can_impersonate_users], user_group: user_group)
+      target_user = create(:hmis_user, data_source: ds).tap { |u| user_group.add(u) }
+
+      allow(User).to receive(:find_or_create_from_jwt).and_return(User.find(admin_user.id))
+      sign_in(admin_user)
+
+      post hmis_impersonations_path, params: { user_id: target_user.id }, headers: headers
+      expect(response).to have_http_status(:ok)
+
+      delete destroy_hmis_user_session_path, headers: headers
+      expect(response).to have_http_status(:ok)
+
+      # Same JWT holder (admin_user) signs back in on what the server sees as the same
+      # session/cookie jar; if logout hadn't cleared the impersonation, it would silently resume.
+      get hmis_user_path, headers: headers
+      expect(response).to have_http_status(:ok)
+      expect(controller.current_hmis_user).to eq(admin_user)
+      expect(controller.impersonating?).to eq(false)
     end
   end
 

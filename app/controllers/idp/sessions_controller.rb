@@ -32,6 +32,10 @@ module Idp
     # root_path via the rd parameter. Deliberately uses a relative path since oauth2-proxy is
     # same-origin; an absolute URL built from request.base_url could be spoofed via the Host header.
     def destroy
+      # wipes session so it doesn't outlive this login. Not a substitute for oauth2-proxy/IdP
+      # sign-out the browser performs next via this redirect.
+      reset_session
+
       redirect_to("/oauth2/sign_out?rd=#{CGI.escape(root_path)}")
     end
 
