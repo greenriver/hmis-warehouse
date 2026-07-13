@@ -102,6 +102,7 @@ RSpec.describe HmisExternalApis::AcHmis::BulkVoider, type: :job do
       allow(SecureRandom).to receive(:uuid).and_return(run_id)
 
       PaperTrailHelper.with_paper_trail do
+        PaperTrail.request.enabled = true
         perform_bulk_void([client.warehouse_id], initiated_by_id: initiated_by.id)
       end
 
