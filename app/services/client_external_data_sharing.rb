@@ -36,11 +36,14 @@ class ClientExternalDataSharing
   # Keys and labels for every export mechanism that honours the exclusion flag.
   # Add a new entry here whenever a new export type starts enforcing exclusion.
   EXCLUSION_TARGETS = {
-    hmis_csv_export: 'HMIS CSV Export',
+    hmis_csv_export: 'warehouse_reports/hmis_exports',
+    hashed_hmis_csv_export: 'warehouse_reports/hashed_only_hmis_exports',
   }.freeze
 
   def self.exclusion_target_labels
-    EXCLUSION_TARGETS.values
+    GrdaWarehouse::WarehouseReports::ReportDefinition.
+      where(url: EXCLUSION_TARGETS.values).
+      pluck(:name)
   end
 
   def self.enabled?
