@@ -253,6 +253,8 @@ class Hmis::User < ApplicationRecord
       email: email,
       phone: phone,
       sessionDuration: Devise.timeout_in.in_seconds,
+      # primary_idp is only defined under AuthMethod.jwt?
+      primaryIdp: AuthMethod.jwt? ? primary_idp : nil,
     }
   end
 

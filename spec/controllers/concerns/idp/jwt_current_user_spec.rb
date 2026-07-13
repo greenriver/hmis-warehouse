@@ -24,6 +24,16 @@ RSpec.describe Idp::JwtCurrentUser, type: :controller, if: AuthMethod.jwt? do
     def who
       render plain: "#{true_user&.id}/#{impersonating?}"
     end
+
+    def become
+      impersonate_user(User.find(params[:id].to_i))
+      render plain: "#{true_user&.id}/#{current_user&.id}"
+    end
+
+    def unbecome
+      stop_impersonating_user
+      render plain: "#{true_user&.id}/#{current_user&.id}"
+    end
   end
 
   before do
@@ -31,6 +41,8 @@ RSpec.describe Idp::JwtCurrentUser, type: :controller, if: AuthMethod.jwt? do
       get 'index' => 'anonymous#index'
       get 'auth' => 'anonymous#auth'
       get 'who' => 'anonymous#who'
+      get 'become' => 'anonymous#become'
+      get 'unbecome' => 'anonymous#unbecome'
     end
     allow(controller).to receive(:idp_jwt_helper_for_request).and_return(jwt_helper)
   end
@@ -205,6 +217,48 @@ RSpec.describe Idp::JwtCurrentUser, type: :controller, if: AuthMethod.jwt? do
       get :index
 
       expect(response.body).to eq('77')
+    end
+  end
+
+  # Uses the real Idp::ImpersonationManager (not the double from the describe block above) so the
+  # session round-trip is exercised end to end, mirroring pretender's impersonate_user/
+  # stop_impersonating_user.
+  describe 'write-side (#impersonate_user / #stop_impersonating_user)' do
+    let(:true_user) do
+      User.new.tap do |u|
+        allow(u).to receive(:id).and_return(10)
+        allow(u).to receive(:active?).and_return(true)
+        allow(u).to receive(:can_impersonate_users?).and_return(true)
+      end
+    end
+    let(:impersonated_user) do
+      User.new.tap do |u|
+        allow(u).to receive(:id).and_return(20)
+        allow(u).to receive(:impersonateable_by?).with(true_user).and_return(true)
+      end
+    end
+
+    before do
+      allow(User).to receive(:find_or_create_from_jwt).and_return(true_user)
+      allow(User).to receive(:find).with(20).and_return(impersonated_user)
+      allow(User).to receive(:find_by).with(id: 10).and_return(true_user)
+      allow(User).to receive(:find_by).with(id: 20).and_return(impersonated_user)
+    end
+
+    it 'stores the impersonation in session and swaps current_user for the rest of the request' do
+      get :become, params: { id: 20 }
+
+      expect(response.body).to eq('10/20')
+      expect(session[:impersonation]).to eq(true_user_id: 10, impersonated_user_id: 20)
+    end
+
+    it 'clears the session and restores current_user to the true user' do
+      session[:impersonation] = { true_user_id: 10, impersonated_user_id: 20 }
+
+      get :unbecome
+
+      expect(response.body).to eq('10/10')
+      expect(session[:impersonation]).to be_nil
     end
   end
 

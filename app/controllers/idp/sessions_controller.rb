@@ -29,12 +29,14 @@ module Idp
     alias_method :create, :new
 
     # DELETE users/sign_out (and GET logout_talentlms) — clear the proxy session and return to
-    # root_url via the rd parameter.
+    # root_path via the rd parameter. Deliberately uses a relative path since oauth2-proxy is
+    # same-origin; an absolute URL built from request.base_url could be spoofed via the Host header.
     def destroy
-      redirect_to(
-        "#{request.base_url}/oauth2/sign_out?rd=#{CGI.escape(root_url)}",
-        allow_other_host: true,
-      )
+      # wipes session so it doesn't outlive this login. Not a substitute for oauth2-proxy/IdP
+      # sign-out the browser performs next via this redirect.
+      reset_session
+
+      redirect_to("/oauth2/sign_out?rd=#{CGI.escape(root_path)}")
     end
 
     # GET/POST session_keepalive — report the forwarded token's expiry so the frontend countdown
