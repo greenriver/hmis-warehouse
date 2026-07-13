@@ -50,7 +50,7 @@ module HmisExternalApis::AcHmis
       @void_cded = cded_scope.find_by!(key: VOID_CDED_KEY)
       @void_reason_cded = cded_scope.find_by!(key: VOID_REASON_CDED_KEY)
 
-      Rails.logger.info "Bulk voiding #{destination_client_ids.count} destination clients for CE project #{project.id}"
+      Rails.logger.info "Bulk voiding #{destination_client_ids.count} destination clients for CE project #{ce_project_id}"
 
       source_client_ids = Hmis::WarehouseClient.
         where(data_source_id: @data_source_id, destination_id: destination_client_ids).
@@ -132,7 +132,7 @@ module HmisExternalApis::AcHmis
           end
 
           exited_enrollments.each do |enrollment|
-            # Just create a void assessment for this enrollment (no need to touch its household members)
+            # Just create a void assessment for exited enrollments (no need to touch household members)
             create_void_assessment(enrollment)
             Rails.logger.info enrollment.enrollment_id + ' (already exited)'
           end
