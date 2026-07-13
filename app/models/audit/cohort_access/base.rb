@@ -27,13 +27,20 @@ module Audit
       # Small fuzz used to evaluate effective access just-before / just-after an event timestamp.
       EVENT_EPSILON = 1.second
 
-      CurrentAccess = Struct.new(:users, :paths) do
+      UserAccess = Struct.new(:user, :path_labels, keyword_init: true)
+
+      CurrentAccess = Struct.new(:user_accesses, :path_labels) do
         def user_count
-          users.size
+          user_accesses.size
         end
 
         def path_count
-          paths.size
+          path_labels.size
+        end
+
+        # Convenience: flat list of User objects, sorted by name.
+        def users
+          user_accesses.map(&:user)
         end
       end
 
@@ -61,9 +68,19 @@ module Audit
       def current_access
         active = effective_intervals.transform_values { |segs| segs.select { |s| s.end_at.nil? } }
         active.reject! { |_, segs| segs.empty? }
-        users = users_by_id.values_at(*active.keys).compact
-        paths = active.values.flatten.flat_map(&:via).uniq
-        CurrentAccess.new(users, paths)
+
+        user_accesses = active.filter_map do |user_id, segs|
+          next if system_user_ids.include?(user_id)
+
+          user = users_by_id[user_id]
+          next if user.nil? || user.deleted_at.present?
+
+          labels = segs.map { |s| path_label(s.via) }.uniq.sort
+          UserAccess.new(user: user, path_labels: labels)
+        end.sort_by { |ua| ua.user.name.to_s }
+
+        all_labels = user_accesses.flat_map(&:path_labels).uniq.sort
+        CurrentAccess.new(user_accesses, all_labels)
       end
 
       # The annotated change log, newest first.
@@ -155,7 +172,7 @@ module Audit
         display_by_version = versions.zip(display_items).to_h
 
         events = versions.flat_map do |version|
-          affected_user_ids_for(version).map do |user_id|
+          affected_user_ids_for(version).reject { |uid| system_user_ids.include?(uid) }.map do |user_id|
             Event.new(
               version: version,
               display_item: display_by_version[version],
@@ -197,6 +214,10 @@ module Audit
         return 'System' unless item&.username
 
         item.impersonating ? "#{item.username} (Impersonating #{item.impersonating})" : item.username
+      end
+
+      def system_user_ids
+        @system_user_ids ||= [User.system_user.id]
       end
 
       def users_by_id

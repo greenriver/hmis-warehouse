@@ -135,8 +135,7 @@ module HudApr::Generators::Shared::Fy2026
     private def income_counts(suffix)
       {
         'No Sources' => a_t["non_cash_benefits_from_any_source_at_#{suffix}"].eq(0).
-          and(benefit_jsonb_clause(1, a_t["income_sources_at_#{suffix}"].to_sql, negation: true, coalesce_value: 0)).
-          and(benefit_jsonb_clause(99, a_t["income_sources_at_#{suffix}"].to_sql, negation: true, coalesce_value: 0)),
+          and(benefit_jsonb_clause(1, a_t["income_sources_at_#{suffix}"].to_sql, negation: true, coalesce_value: 0)),
         '1 + Source(s)' => a_t["non_cash_benefits_from_any_source_at_#{suffix}"].eq(1).
           or(benefit_jsonb_clause(1, a_t["income_sources_at_#{suffix}"].to_sql)),
         label_for(:dkptr) => a_t["non_cash_benefits_from_any_source_at_#{suffix}"].in([8, 9]),

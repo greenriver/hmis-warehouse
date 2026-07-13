@@ -21,10 +21,10 @@ graph TD
 `BostonProjectScorecard::Report` is the central model, composed of the following concern modules:
 
 - **Header**: Project identification and reviewer assignment
-- **ProjectPerformance**: Housing placements, income increases, utilization rates
+- **ProjectPerformance**: Housing placements, income increases, days to lease-up
 - **DataQuality**: PII, UDE, and income/housing error rates from APR
-- **FinancialPerformance**: Invoicing practices, cost efficiency, budget utilization
-- **PolicyAlignment**: Subpopulation targeting and housing first practices
+- **FinancialPerformance**: Invoicing practices, cost efficiency, budget utilization; also defines `project_type_score` (Q14) used in policy alignment scoring
+- **PolicyAlignment**: Subpopulation targeting, substance use treatment services, supportive services requirements, utilization rate, and monitoring outcomes
 - **TotalScore**: Weighted score calculation across all categories
 
 Each concern module defines scoring methods that return point values based on configured thresholds.
@@ -55,10 +55,12 @@ Metrics are extracted from APR cells using `answer(report, table, cell)` and sto
 
 - **Q5a**: Total clients served
 - **Q6a/b/c**: Data quality error rates
-- **Q8b**: Utilization rates
-- **Q19a1/a2**: Income increases
+- **Q8b**: Utilization rates (quarterly average across B2–B5)
+- **Q19a1/a2**: Income increases (stayers and leavers)
 - **Q22c**: Days to lease-up
 - **Q23c**: Housing outcomes
+
+The PII error rate cell varies by APR generator year. In FY2026+, gender data was removed from the APR, causing the total PII error percentage to shift from cell F7 to F6. The `pii_error_cell` method handles this via `include_gender_data?`.
 
 ### Manual Assessments
 
@@ -74,12 +76,32 @@ Each concern module provides value and score methods. Score methods return point
 
 `TotalScore` aggregates scores from all categories and applies weights:
 
-- Project Performance: 69 points (45 for non-RRH/PSH)
-- Data Quality: 15 points
-- Financial Performance: 24 points
-- Policy Alignment: 28 points
+### Point Totals by Project Type
+
+| Section | RRH (type 13) | PSH (types 3, 9, 10) | Other |
+|---|---|---|---|
+| Project System Performance Measures | 60 | 60 | 48 |
+| HMIS Data Quality | 15 | 15 | 15 |
+| Project Financial Performance | 20 | 20 | 18 |
+| Alignment with CoC/HUD Policy Priorities | 34 | 37 | 31 |
+| **Total** | **129** | **132** | **112** |
+
+When both Q19a and Q19b are marked "Not Applicable", the Policy Alignment available is reduced by 3 for all project types (e.g. 31 → 28 for Other, 34 → 31 for RRH).
+
+### Section Weights
+
+- Project System Performance Measures: 50%
+- HMIS Data Quality: 5%
+- Project Financial Performance: 20%
+- Alignment with CoC/HUD Policy Priorities: 25%
 
 The `total_score_weighted_score` method calculates the final score as a percentage of available points multiplied by category weights per category and then sums the categories.
+
+### Policy Alignment Notes
+
+- **Q14** (`project_type_score`): 6 pts for PSH, 3 pts for RRH, 0 for other types
+- **Q19a/Q19b** (`no_concern_score`/`materials_concern_score`): Mutually exclusive; Q19a takes priority if both are set to a non-N/A value. Both return `nil` (excluded from score) when marked "Not Applicable".
+- `practices_housing_first_score` and `vulnerable_subpopulations_served_score` are defined on the model for form display purposes but are not included in the aggregate policy alignment score.
 
 ## Controller
 
@@ -104,8 +126,8 @@ Report generation runs via `WarehouseReports::GenericReportJob` which invokes `r
 
 Scoring logic differs by project type:
 
-- **RRH (type 13)**: Uses exits to permanent housing metric
-- **PSH (types 3, 9, 10)**: Uses stayers or exits to permanent housing metric
-- **Other types**: Some metrics are not applicable and return `nil`
+- **RRH (type 13)**: Uses exits to permanent housing metric (Q1a); +3 pts Q14; +2 pts financial efficiency threshold
+- **PSH (types 3, 9, 10)**: Uses stayers or exits to permanent housing metric (Q1b); +6 pts Q14; +2 pts financial efficiency threshold
+- **Other types**: Q1a/Q1b and efficiency (Q11) not applicable and return `nil`
 
 Project type is automatically detected from the project or project group during `run_and_save!`.

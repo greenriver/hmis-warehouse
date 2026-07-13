@@ -20,7 +20,7 @@ module OmniAuth
       option :full_host, nil
       option :after_failure, nil
 
-      # These are defaults that need to be overriden on an implementation
+      # These are defaults that need to be overridden on an implementation
       option :client_options, {
         site: 'https://your-org.okta.com',
         authorize_url: 'https://your-org.okta.com/oauth2/default/v1/authorize',
