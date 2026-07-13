@@ -7901,6 +7901,11 @@ enum PickListType {
   AVAILABLE_UNIT_TYPES
 
   """
+  Projects where the Bulk Void operation can take place
+  """
+  BULK_VOID_CE_PROJECTS
+
+  """
   Projects with an active CE Participation record with Access Point = Yes
   """
   CE_ACCESS_POINT_PROJECT_NAMES
