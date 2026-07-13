@@ -14,16 +14,14 @@ RSpec.describe GrdaWarehouse::Theme, type: :model do
     let!(:wh_theme1) { create(:theme) }
     let!(:wh_theme2) { create(:theme, hmis_value: '') } # should be treated as non-HMIS theme
 
-    before(:all) do
-      # active_theme keys off ENV['CLIENT']; set it per-example and restore the
-      # original afterward so we don't leak process state into other spec files.
-      around do |example|
-        original_client = ENV['CLIENT']
-        ENV['CLIENT'] = 'test'
-        example.run
-      ensure
-        ENV['CLIENT'] = original_client
-      end
+    # active_theme keys off ENV['CLIENT']; set it per-example and restore the
+    # original afterward so we don't leak process state into other spec files.
+    around do |example|
+      original_client = ENV['CLIENT']
+      ENV['CLIENT'] = 'test'
+      example.run
+    ensure
+      ENV['CLIENT'] = original_client
     end
 
     context 'when there are multiple HMIS themes with nil origin' do
@@ -221,16 +219,14 @@ RSpec.describe GrdaWarehouse::Theme, type: :model do
   end
 
   describe '.idp_theme_css' do
-    before(:all) do
-      # active_theme keys off ENV['CLIENT']; set it per-example and restore the
-      # original afterward so we don't leak process state into other spec files.
-      around do |example|
-        original_client = ENV['CLIENT']
-        ENV['CLIENT'] = 'test'
-        example.run
-      ensure
-        ENV['CLIENT'] = original_client
-      end
+    # active_theme keys off ENV['CLIENT']; set it per-example and restore the
+    # original afterward so we don't leak process state into other spec files.
+    around do |example|
+      original_client = ENV['CLIENT']
+      ENV['CLIENT'] = 'test'
+      example.run
+    ensure
+      ENV['CLIENT'] = original_client
     end
 
     context 'when the theme has custom CSS configured' do

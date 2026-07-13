@@ -9,14 +9,12 @@
 require 'rails_helper'
 
 RSpec.describe Theme::LogoController, type: :request do
-  before(:all) do
-    around do |example|
-      original_client = ENV['CLIENT']
-      ENV['CLIENT'] = 'test'
-      example.run
-    ensure
-      ENV['CLIENT'] = original_client
-    end
+  around do |example|
+    original_client = ENV['CLIENT']
+    ENV['CLIENT'] = 'test'
+    example.run
+  ensure
+    ENV['CLIENT'] = original_client
   end
 
   describe 'GET /theme/logo/:logo' do

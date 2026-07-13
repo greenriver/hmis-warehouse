@@ -9,16 +9,14 @@
 require 'rails_helper'
 
 RSpec.describe Theme::CssController, type: :request do
-  before(:all) do
-    # active_theme keys off ENV['CLIENT']; set it per-example and restore the
-    # original afterward so we don't leak process state into other spec files.
-    around do |example|
-      original_client = ENV['CLIENT']
-      ENV['CLIENT'] = 'test'
-      example.run
-    ensure
-      ENV['CLIENT'] = original_client
-    end
+  # active_theme keys off ENV['CLIENT']; set it per-example and restore the
+  # original afterward so we don't leak process state into other spec files.
+  around do |example|
+    original_client = ENV['CLIENT']
+    ENV['CLIENT'] = 'test'
+    example.run
+  ensure
+    ENV['CLIENT'] = original_client
   end
 
   describe 'GET /theme/css' do
