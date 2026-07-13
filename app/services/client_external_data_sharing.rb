@@ -33,6 +33,16 @@
 class ClientExternalDataSharing
   EMBARGO_PERIOD = 1.week
 
+  # Keys and labels for every export mechanism that honours the exclusion flag.
+  # Add a new entry here whenever a new export type starts enforcing exclusion.
+  EXCLUSION_TARGETS = {
+    hmis_csv_export: 'HMIS CSV Export',
+  }.freeze
+
+  def self.exclusion_target_labels
+    EXCLUSION_TARGETS.values
+  end
+
   def self.enabled?
     GrdaWarehouse::Config.get(:enable_external_data_sharing_exclusion)
   end

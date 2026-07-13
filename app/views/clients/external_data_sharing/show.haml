@@ -4,11 +4,13 @@
   %header
     %h1 External Data Sharing
     = render 'clients/breadcrumbs'
-  %p
-    When checked, this client will be excluded from all external HMIS CSV exports.
-    Both their client record and enrollment records will be omitted.
-  %p
-    Unchecking restores them to exports at the next scheduled export run.
+    %p
+      When checked, this client will be excluded from the following data exchange mechanisms. 
+      Both their client record and enrollment records will be omitted.
+    %ul
+      - ClientExternalDataSharing.exclusion_target_labels.each do |label|
+        %li= label
+    %p Unchecking restores them to exports at the next scheduled export run.
   = form_with url: client_external_data_sharing_path(@client), method: :patch do |f|
     .form-check.mb-3
       = f.check_box :exclude_from_external_data_sharing,
