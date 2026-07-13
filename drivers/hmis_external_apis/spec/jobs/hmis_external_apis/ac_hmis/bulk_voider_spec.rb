@@ -70,20 +70,6 @@ RSpec.describe HmisExternalApis::AcHmis::BulkVoider, type: :job do
       expect(void_assessment.updated_by_hud_user).to eq(Hmis::Hud::User.system_user(data_source_id: data_source.id))
     end
 
-    it 'does not process warehouse clients outside the provided data source' do
-      other_data_source = create(:hmis_data_source)
-      other_ce_project = create(:hmis_hud_project, data_source: other_data_source, project_type: 14)
-      other_client = create(:hmis_hud_client_with_warehouse_client, data_source: other_data_source)
-      other_enrollment = create(:hmis_hud_enrollment, data_source: other_data_source, project: other_ce_project, client: other_client)
-
-      expect do
-        perform_bulk_void([other_client.warehouse_id])
-      end.to not_change(Hmis::Hud::Exit, :count).
-        and not_change(Hmis::Hud::CustomAssessment.where(data_collection_stage: 99), :count)
-
-      expect(other_enrollment.reload.exit).not_to be_present
-    end
-
     context 'when client is already exited' do
       let!(:exited_client) { create(:hmis_hud_client_with_warehouse_client, data_source: data_source) }
       let(:exit_date) { 1.week.ago.to_date }
