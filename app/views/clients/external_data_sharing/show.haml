@@ -4,6 +4,9 @@
   %header
     %h1 External Data Sharing
     = render 'clients/breadcrumbs'
+    = content_for :crumbs do
+      = link_to polymorphic_path(client_path_generator, id: @client.id) do
+        &laquo; Client
     - if exclusion.embargoed?
       %p.mt-2
         %span.badge.text-bg-warning
