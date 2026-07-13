@@ -18,8 +18,13 @@ OpenPath::Application.routes.draw do
     namespace :hmis, defaults: { format: :json } do
       # AUTH_METHOD seam: Hmis::User's `devise` macro is gated off under JWT, so an ungated
       # devise_for/devise_scope raises at route-draw and aborts the whole JWT boot. Gate the HMIS
-      # Devise auth surface so the app boots. Full HMIS JWT wiring (oauth2-proxy login, the
-      # replacement session routes) is not wired yet.
+      # Devise auth surface so the app boots. Under JWT the always-on HMIS routes below (resource
+      # :user, session_keepalive, hmis-gql, impersonations) authenticate off the forwarded JWT via
+      # Hmis::Concerns::JwtHmisCurrentUser; login is served by oauth2-proxy itself (external IdP
+      # contract), so there's no replacement Devise login route. Logout still needs a same-origin
+      # endpoint for the SPA's fetch-based logoutUser() to hit — see the AuthMethod.jwt? route below,
+      # defined outside this namespace (like devise_for, it needs to escape the enclosing
+      # `namespace :hmis`'s automatic route-name prefixing to share Devise's exact helper name).
       if AuthMethod.devise?
         devise_for :users, class_name: 'Hmis::User',
                            skip: [:registrations, :invitations, :passwords, :confirmations, :unlocks, :password_expired],
@@ -28,7 +33,9 @@ OpenPath::Application.routes.draw do
       end
 
       resource :user, only: [:show]
-      resource :session_keepalive, only: [:create]
+      # :show (GET) is what the frontend actually polls with, since it sends credentials: 'include'
+      # with no CSRF header; :create (POST) is kept for any existing caller expecting the old verb.
+      resource :session_keepalive, only: [:create, :show]
 
       if AuthMethod.devise?
         devise_scope :hmis_user do
@@ -63,6 +70,11 @@ OpenPath::Application.routes.draw do
       # Note: in a development environment, this ends up redirecting to the warehouse.
       get '*other', to: redirect { |_, req| req.origin || '404' }
     end
+
+    # Defined outside the `namespace :hmis` block (like Idp::SessionsController's routes at the top
+    # of this file) so it shares Devise's exact `destroy_hmis_user_session_path` helper name rather
+    # than being auto-prefixed to `hmis_destroy_hmis_user_session_path` by the enclosing namespace.
+    delete 'hmis/logout', to: 'hmis/idp/sessions#destroy', as: 'destroy_hmis_user_session', defaults: { format: :json } unless AuthMethod.devise?
 
     namespace :hmis_admin do
       resources :access_overviews, only: [:index]
