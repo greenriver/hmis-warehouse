@@ -17,12 +17,75 @@
 #   svc.last_update                         # => { updated_at:, updated_by: } or nil
 #   svc.last_update_text                    # => human-readable string or nil
 #
+# Scope filtering (used by Export::Scopes):
+#   ClientExternalDataSharing.remove_excluded_clients(scope)     # applies both exclusions
+#   ClientExternalDataSharing.remove_excluded_enrollments(scope) # applies both exclusions
+#
+# Granular scope filtering (apply a single exclusion type):
+#   ClientExternalDataSharing.exclude_from_external(scope)             # clients: explicit flag
+#   ClientExternalDataSharing.exclude_for_embargo(scope)               # clients: newly added
+#   ClientExternalDataSharing.exclude_enrollments_from_external(scope) # enrollments: explicit flag
+#   ClientExternalDataSharing.exclude_enrollments_for_embargo(scope)   # enrollments: newly added
+#
 # The feature is gated by the :enable_external_data_sharing_exclusion config
-# flag. When the flag is disabled, Export::Scopes skips the exclusion query
-# entirely — this service does not check the config itself.
+# flag. When disabled, the remove_excluded_* methods return the scope unchanged.
+# The granular methods do NOT check the flag — callers are responsible for gating.
 class ClientExternalDataSharing
+  EMBARGO_PERIOD = 1.week
+
   def self.enabled?
     GrdaWarehouse::Config.get(:enable_external_data_sharing_exclusion)
+  end
+
+  def self.remove_excluded_clients(scope)
+    return scope unless enabled?
+
+    scope = exclude_from_external(scope)
+    scope = exclude_for_embargo(scope)
+    scope
+  end
+
+  def self.remove_excluded_enrollments(scope)
+    return scope unless enabled?
+
+    scope = exclude_enrollments_from_external(scope)
+    scope = exclude_enrollments_for_embargo(scope)
+    scope
+  end
+
+  def self.exclude_from_external(scope)
+    scope.where.not(id: externally_excluded_client_ids)
+  end
+
+  def self.exclude_for_embargo(scope)
+    scope.where.not(id: embargoed_client_ids)
+  end
+
+  def self.exclude_enrollments_from_external(scope)
+    wc_t = GrdaWarehouse::WarehouseClient.arel_table
+    scope.
+      joins(client: :warehouse_client_source).
+      where(wc_t[:destination_id].not_in(externally_excluded_client_ids.arel))
+  end
+
+  def self.exclude_enrollments_for_embargo(scope)
+    wc_t = GrdaWarehouse::WarehouseClient.arel_table
+    scope.
+      joins(client: :warehouse_client_source).
+      where(wc_t[:destination_id].not_in(embargoed_client_ids.arel))
+  end
+
+  def self.externally_excluded_client_ids
+    GrdaWarehouse::ClientAttribute.
+      where(external_data_sharing_exclusion_flag: true).
+      select(:client_id)
+  end
+
+  def self.embargoed_client_ids
+    GrdaWarehouse::WarehouseClient.
+      group(:destination_id).
+      having('MIN(created_at) > ?', EMBARGO_PERIOD.ago).
+      select(:destination_id)
   end
 
   def initialize(client)

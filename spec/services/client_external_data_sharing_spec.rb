@@ -142,4 +142,148 @@ RSpec.describe ClientExternalDataSharing, type: :model do
       end
     end
   end
+
+  describe 'class-level scope methods' do
+    let(:source_ds)     { create(:source_data_source) }
+    let(:dest_ds)       { create(:destination_data_source) }
+    let(:source_client) { create(:hud_client, data_source: source_ds) }
+    let!(:dest_client)  { make_dest(source_client) }
+    let(:client_scope)  { GrdaWarehouse::Hud::Client.where(id: dest_client.id) }
+
+    def make_dest(src, warehouse_created_at: 30.days.ago)
+      dest = GrdaWarehouse::Hud::Client.create!(
+        src.attributes.except('id').merge('data_source_id' => dest_ds.id),
+      )
+      wc = GrdaWarehouse::WarehouseClient.create!(
+        id_in_source: src.PersonalID,
+        data_source_id: src.data_source_id,
+        source_id: src.id,
+        destination_id: dest.id,
+      )
+      wc.update_column(:created_at, warehouse_created_at)
+      dest
+    end
+
+    describe '.externally_excluded_client_ids' do
+      it 'includes the id of a client with flag: true' do
+        ClientExternalDataSharing.new(dest_client).set_exclusion!(value: true)
+        expect(ClientExternalDataSharing.externally_excluded_client_ids.pluck(:client_id)).to include(dest_client.id)
+      end
+
+      it 'excludes the id of a client with flag: false' do
+        ClientExternalDataSharing.new(dest_client).set_exclusion!(value: false)
+        expect(ClientExternalDataSharing.externally_excluded_client_ids.pluck(:client_id)).not_to include(dest_client.id)
+      end
+
+      it 'excludes the id of a client with no ClientAttribute row' do
+        expect(ClientExternalDataSharing.externally_excluded_client_ids.pluck(:client_id)).not_to include(dest_client.id)
+      end
+    end
+
+    describe '.embargoed_client_ids' do
+      it 'includes a destination id whose warehouse_client was added within the embargo period' do
+        src = create(:hud_client, data_source: source_ds)
+        embargoed = make_dest(src, warehouse_created_at: 2.days.ago)
+        expect(ClientExternalDataSharing.embargoed_client_ids.pluck(:destination_id)).to include(embargoed.id)
+      end
+
+      it 'excludes a destination id whose warehouse_client is older than the embargo period' do
+        expect(ClientExternalDataSharing.embargoed_client_ids.pluck(:destination_id)).not_to include(dest_client.id)
+      end
+
+      it 'excludes a destination id at exactly the embargo boundary (boundary is exclusive)' do
+        src = create(:hud_client, data_source: source_ds)
+        boundary = make_dest(src, warehouse_created_at: ClientExternalDataSharing::EMBARGO_PERIOD.ago)
+        expect(ClientExternalDataSharing.embargoed_client_ids.pluck(:destination_id)).not_to include(boundary.id)
+      end
+    end
+
+    describe '.exclude_from_external' do
+      it 'removes a flagged client from the scope' do
+        ClientExternalDataSharing.new(dest_client).set_exclusion!(value: true)
+        expect(ClientExternalDataSharing.exclude_from_external(client_scope).pluck(:id)).not_to include(dest_client.id)
+      end
+
+      it 'retains a client with no exclusion flag' do
+        expect(ClientExternalDataSharing.exclude_from_external(client_scope).pluck(:id)).to include(dest_client.id)
+      end
+    end
+
+    describe '.exclude_for_embargo' do
+      it 'removes an embargoed client from the scope' do
+        src = create(:hud_client, data_source: source_ds)
+        embargoed = make_dest(src, warehouse_created_at: 2.days.ago)
+        scope = GrdaWarehouse::Hud::Client.where(id: embargoed.id)
+        expect(ClientExternalDataSharing.exclude_for_embargo(scope).pluck(:id)).not_to include(embargoed.id)
+      end
+
+      it 'retains a non-embargoed client' do
+        expect(ClientExternalDataSharing.exclude_for_embargo(client_scope).pluck(:id)).to include(dest_client.id)
+      end
+    end
+
+    describe '.remove_excluded_clients' do
+      context 'when feature is disabled' do
+        before { allow(GrdaWarehouse::Config).to receive(:get).with(:enable_external_data_sharing_exclusion).and_return(false) }
+
+        it 'returns the scope unchanged even when a client is flagged' do
+          ClientExternalDataSharing.new(dest_client).set_exclusion!(value: true)
+          expect(ClientExternalDataSharing.remove_excluded_clients(client_scope).pluck(:id)).to include(dest_client.id)
+        end
+      end
+
+      context 'when feature is enabled' do
+        before { allow(GrdaWarehouse::Config).to receive(:get).with(:enable_external_data_sharing_exclusion).and_return(true) }
+
+        it 'removes a flagged client' do
+          ClientExternalDataSharing.new(dest_client).set_exclusion!(value: true)
+          expect(ClientExternalDataSharing.remove_excluded_clients(client_scope).pluck(:id)).not_to include(dest_client.id)
+        end
+
+        it 'removes an embargoed client' do
+          src = create(:hud_client, data_source: source_ds)
+          embargoed = make_dest(src, warehouse_created_at: 2.days.ago)
+          scope = GrdaWarehouse::Hud::Client.where(id: embargoed.id)
+          expect(ClientExternalDataSharing.remove_excluded_clients(scope).pluck(:id)).not_to include(embargoed.id)
+        end
+
+        it 'retains an unflagged, non-embargoed client' do
+          expect(ClientExternalDataSharing.remove_excluded_clients(client_scope).pluck(:id)).to include(dest_client.id)
+        end
+      end
+    end
+
+    describe '.remove_excluded_enrollments' do
+      let(:project) { create(:hud_project, data_source: source_ds) }
+      let!(:enrollment) do
+        create(:hud_enrollment,
+               data_source: source_ds,
+               ProjectID: project.ProjectID,
+               PersonalID: source_client.PersonalID)
+      end
+      let(:base_scope) { GrdaWarehouse::Hud::Enrollment.where(id: enrollment.id) }
+
+      context 'when feature is disabled' do
+        before { allow(GrdaWarehouse::Config).to receive(:get).with(:enable_external_data_sharing_exclusion).and_return(false) }
+
+        it 'returns the scope unchanged even when a client is flagged' do
+          ClientExternalDataSharing.new(dest_client).set_exclusion!(value: true)
+          expect(ClientExternalDataSharing.remove_excluded_enrollments(base_scope).pluck(:id)).to include(enrollment.id)
+        end
+      end
+
+      context 'when feature is enabled' do
+        before { allow(GrdaWarehouse::Config).to receive(:get).with(:enable_external_data_sharing_exclusion).and_return(true) }
+
+        it 'removes enrollments for a flagged client' do
+          ClientExternalDataSharing.new(dest_client).set_exclusion!(value: true)
+          expect(ClientExternalDataSharing.remove_excluded_enrollments(base_scope).pluck(:id)).not_to include(enrollment.id)
+        end
+
+        it 'retains enrollments for an unflagged, non-embargoed client' do
+          expect(ClientExternalDataSharing.remove_excluded_enrollments(base_scope).pluck(:id)).to include(enrollment.id)
+        end
+      end
+    end
+  end
 end

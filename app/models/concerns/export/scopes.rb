@@ -22,7 +22,7 @@ module Export::Scopes
         c_scope = c_scope.destination.where(id: c_scope.joins(:warehouse_client_source).
           where(enrollment_exists_for_client).select(wc_t[:destination_id]))
 
-        c_scope = exclude_external_data_sharing_restricted_clients(c_scope)
+        c_scope = ClientExternalDataSharing.remove_excluded_clients(c_scope)
 
         c_scope.preload(:source_clients)
       end
@@ -55,7 +55,7 @@ module Export::Scopes
         # - For non-HoH with HoH present: uses HoH's CoC
         # - For non-HoH without HoH: falls back to their own CoC
         e_scope = apply_hoh_coc_filter(e_scope) if @coc_codes.present?
-        e_scope = exclude_external_data_sharing_restricted_enrollments(e_scope)
+        e_scope = ClientExternalDataSharing.remove_excluded_enrollments(e_scope)
         e_scope.distinct.preload(:project, :client)
       end
     end
@@ -135,38 +135,6 @@ module Export::Scopes
       coalesced_coc_node.in(@coc_codes).
         or(coalesced_coc_node.eq(nil)).
         or(coalesced_coc_node.not_in(HudHelper.util.cocs.keys))
-    end
-
-    private
-
-    def exclude_external_data_sharing_restricted_clients(scope)
-      return scope unless ClientExternalDataSharing.enabled?
-
-      scope.
-        where.not(id: externally_excluded_client_ids).
-        where.not(id: embargoed_client_ids)
-    end
-
-    def exclude_external_data_sharing_restricted_enrollments(scope)
-      return scope unless ClientExternalDataSharing.enabled?
-
-      scope.
-        joins(client: :warehouse_client_source).
-        where(wc_t[:destination_id].not_in(externally_excluded_client_ids.arel)).
-        where(wc_t[:destination_id].not_in(embargoed_client_ids.arel))
-    end
-
-    def externally_excluded_client_ids
-      GrdaWarehouse::ClientAttribute.
-        where(external_data_sharing_exclusion_flag: true).
-        select(:client_id)
-    end
-
-    def embargoed_client_ids
-      GrdaWarehouse::WarehouseClient.
-        group(:destination_id).
-        having('MIN(created_at) > ?', 1.week.ago).
-        select(:destination_id)
     end
   end
 end

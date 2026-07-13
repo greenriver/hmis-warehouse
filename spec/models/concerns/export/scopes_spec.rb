@@ -84,7 +84,7 @@ RSpec.describe Export::Scopes do
       it 'includes a client whose warehouse_client is exactly at the 1-week embargo boundary (boundary is exclusive)' do
         new_source = create(:hud_client, data_source: source_ds)
         create(:hud_enrollment, data_source: source_ds, ProjectID: project.ProjectID, PersonalID: new_source.PersonalID)
-        non_embargoed_dest = make_destination(new_source, warehouse_created_at: 7.days.ago)
+        non_embargoed_dest = make_destination(new_source, warehouse_created_at: ClientExternalDataSharing::EMBARGO_PERIOD.ago)
         expect(exporter.client_scope.pluck(:id)).to include(non_embargoed_dest.id)
       end
 
@@ -173,7 +173,7 @@ RSpec.describe Export::Scopes do
       it 'includes enrollments for a client whose warehouse_client is exactly at the 1-week embargo boundary (boundary is exclusive)' do
         new_source = create(:hud_client, data_source: source_ds)
         new_enrollment = create(:hud_enrollment, data_source: source_ds, ProjectID: project.ProjectID, PersonalID: new_source.PersonalID)
-        make_destination(new_source, warehouse_created_at: 7.days.ago)
+        make_destination(new_source, warehouse_created_at: ClientExternalDataSharing::EMBARGO_PERIOD.ago)
         expect(exporter.enrollment_scope.pluck(:id)).to include(new_enrollment.id)
       end
 
