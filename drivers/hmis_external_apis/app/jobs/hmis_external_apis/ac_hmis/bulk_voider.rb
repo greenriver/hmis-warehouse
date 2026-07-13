@@ -8,15 +8,16 @@
 
 # Bulk void a list of destination clients from the waitlist and exit them from the Coordinated Entry project.
 #
-# Usage: HmisExternalApis::AcHmis::BulkVoider.new.perform(destination_client_ids: [1637, 39094], dry_run: true)
+# Usage: HmisExternalApis::AcHmis::BulkVoider.new.perform(destination_client_ids: [1637, 39094], data_source_id: 1, dry_run: true)
 #
 # For more useful log output, set the log level to INFO rather than DEBUG, so that we can easily copy and paste the list of enrollment IDs that are processed.
 # Rails.logger.level = Logger::INFO
-# HmisExternalApis::AcHmis::BulkVoider.new.perform(destination_client_ids: [1637, 39094], dry_run: true)
+# HmisExternalApis::AcHmis::BulkVoider.new.perform(destination_client_ids: [1637, 39094], data_source_id: 1, dry_run: true)
 # Rails.logger.level = Logger::DEBUG
 #
 # destination_client_ids: a list of destination client IDs to void
-# ce_project_id: the ID of the Coordinated Entry project. If absent, expects a single open CE project.
+# data_source_id: the HMIS data source to bulk void within.
+# ce_project_id: the ID of the Coordinated Entry project. If absent, expects a single open CE project in the data source.
 # initiated_by_id: the Hmis::User ID that kicked off the run, for logging and PaperTrail metadata. Optional; if not provided, uses the System User.
 # dry_run: if true, logs the enrollments that would be processed, without taking action
 #
@@ -33,11 +34,11 @@ module HmisExternalApis::AcHmis
     VOID_CDED_KEY = 'void_assessment_void_all_referrals'
     VOID_REASON_CDED_KEY = 'void_assessment_void_reason'
 
-    def perform(destination_client_ids:, ce_project_id: nil, initiated_by_id: nil, dry_run: false)
+    def perform(destination_client_ids:, data_source_id:, ce_project_id: nil, initiated_by_id: nil, dry_run: false)
       bulk_void_run_id = SecureRandom.uuid
 
       # Expect the project to be open on the current date, and to be a Coordinated Entry project (14)
-      ce_projects = Hmis::Hud::Project.hmis.open_on_date.where(project_type: 14)
+      ce_projects = Hmis::Hud::Project.hmis.open_on_date.where(project_type: 14, data_source_id: data_source_id)
       project = if ce_project_id
         ce_projects.find(ce_project_id)
       else
@@ -52,14 +53,16 @@ module HmisExternalApis::AcHmis
       @current_date = Date.current
 
       # Find the Void Assessment and validate the expected CDEDs exist
-      @void_definition = Hmis::Form::Definition.published.find_by!(identifier: VOID_FORM_IDENTIFIER)
+      @void_definition = Hmis::Form::Definition.published.where(data_source_id: @data_source_id).find_by!(identifier: VOID_FORM_IDENTIFIER)
       cded_scope = Hmis::Hud::CustomDataElementDefinition.for_type(Hmis::Hud::CustomAssessment.sti_name).where(data_source_id: @data_source_id)
       @void_cded = cded_scope.find_by!(key: VOID_CDED_KEY)
       @void_reason_cded = cded_scope.find_by!(key: VOID_REASON_CDED_KEY)
 
       Rails.logger.info "Bulk voiding #{destination_client_ids.count} destination clients for CE project #{project.id}"
 
-      source_client_ids = Hmis::WarehouseClient.where(destination_id: destination_client_ids).pluck(:source_id)
+      source_client_ids = Hmis::WarehouseClient.
+        where(data_source_id: @data_source_id, destination_id: destination_client_ids).
+        pluck(:source_id)
 
       # Find open enrollments for the given clients in the CE project
       open_enrollments = Hmis::Hud::Enrollment.
@@ -83,7 +86,7 @@ module HmisExternalApis::AcHmis
       # Log client IDs that we won't process because they don't have an open or exited enrollment in the CE project
       source_ids_with_enrollment = source_ids_with_open_enrollment + exited_enrollments.map { |enrollment| enrollment.client.id }
       destination_ids_with_enrollment = Hmis::WarehouseClient.
-        where(source_id: source_ids_with_enrollment, destination_id: destination_client_ids).
+        where(data_source_id: @data_source_id, source_id: source_ids_with_enrollment, destination_id: destination_client_ids).
         pluck(:destination_id)
       destination_ids_without_enrollment = destination_client_ids.map(&:to_s) - destination_ids_with_enrollment.map(&:to_s)
 

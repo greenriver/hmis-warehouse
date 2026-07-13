@@ -51,6 +51,15 @@ RSpec.describe 'bulkVoidCeClients mutation', type: :request do
     expect(enqueued_jobs).to be_empty
   end
 
+  it 'denies access when can_administrate_coordinated_entry is only granted in another data source' do
+    remove_permissions(access_control, :can_administrate_coordinated_entry)
+    other_data_source = create(:hmis_data_source)
+    create_access_control(hmis_user, other_data_source, with_permission: [:can_administrate_coordinated_entry])
+
+    expect_access_denied perform_mutation
+    expect(enqueued_jobs).to be_empty
+  end
+
   it 'denies access when any destination client is not found' do
     destination_client_ids << '0'
 
@@ -72,6 +81,7 @@ RSpec.describe 'bulkVoidCeClients mutation', type: :request do
     expect(enqueued_job[:priority]).to eq(BaseJob::UI_IMMEDIATE_PRIORITY_NEG5)
     expect(enqueued_job[:args].first).to include(
       'destination_client_ids' => destination_client_ids,
+      'data_source_id' => ds1.id,
       'initiated_by_id' => hmis_user.id,
     )
   end
