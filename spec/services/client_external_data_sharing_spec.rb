@@ -143,6 +143,69 @@ RSpec.describe ClientExternalDataSharing, type: :model do
     end
   end
 
+  describe '#embargo_expires_at and #embargoed?' do
+    let(:source_ds)    { create(:source_data_source) }
+    let(:dest_ds)      { create(:destination_data_source) }
+    let(:source_client) { create(:hud_client, data_source: source_ds) }
+
+    def make_wc_dest(src, warehouse_created_at: 30.days.ago)
+      dest = GrdaWarehouse::Hud::Client.create!(
+        src.attributes.except('id').merge('data_source_id' => dest_ds.id),
+      )
+      wc = GrdaWarehouse::WarehouseClient.create!(
+        id_in_source: src.PersonalID,
+        data_source_id: src.data_source_id,
+        source_id: src.id,
+        destination_id: dest.id,
+      )
+      wc.update_column(:created_at, warehouse_created_at)
+      dest
+    end
+
+    describe '#embargo_expires_at' do
+      it 'returns nil when no warehouse client exists' do
+        orphan = GrdaWarehouse::Hud::Client.create!(
+          source_client.attributes.except('id').merge('data_source_id' => dest_ds.id),
+        )
+        expect(ClientExternalDataSharing.new(orphan).embargo_expires_at).to be_nil
+      end
+
+      it 'returns the earliest warehouse_client created_at plus EMBARGO_PERIOD' do
+        freeze_time do
+          wc_created_at = 2.days.ago
+          dest = make_wc_dest(source_client, warehouse_created_at: wc_created_at)
+          expect(ClientExternalDataSharing.new(dest).embargo_expires_at).to eq(wc_created_at + ClientExternalDataSharing::EMBARGO_PERIOD)
+        end
+      end
+    end
+
+    describe '#embargoed?' do
+      it 'returns true when the warehouse_client was created within the embargo period' do
+        dest = make_wc_dest(source_client, warehouse_created_at: 2.days.ago)
+        expect(ClientExternalDataSharing.new(dest).embargoed?).to be true
+      end
+
+      it 'returns false when the warehouse_client is older than the embargo period' do
+        dest = make_wc_dest(source_client, warehouse_created_at: 30.days.ago)
+        expect(ClientExternalDataSharing.new(dest).embargoed?).to be false
+      end
+
+      it 'returns false when no warehouse client exists' do
+        orphan = GrdaWarehouse::Hud::Client.create!(
+          source_client.attributes.except('id').merge('data_source_id' => dest_ds.id),
+        )
+        expect(ClientExternalDataSharing.new(orphan).embargoed?).to be false
+      end
+
+      it 'returns false when the warehouse_client is at exactly the embargo boundary' do
+        freeze_time do
+          dest = make_wc_dest(source_client, warehouse_created_at: ClientExternalDataSharing::EMBARGO_PERIOD.ago)
+          expect(ClientExternalDataSharing.new(dest).embargoed?).to be false
+        end
+      end
+    end
+  end
+
   describe 'class-level scope methods' do
     let(:source_ds)     { create(:source_data_source) }
     let(:dest_ds)       { create(:destination_data_source) }

@@ -109,6 +109,20 @@ class ClientExternalDataSharing
     )
   end
 
+  def embargo_expires_at
+    earliest = GrdaWarehouse::WarehouseClient.
+      where(destination_id: @client.id).
+      minimum(:created_at)
+    return unless earliest
+
+    earliest + EMBARGO_PERIOD
+  end
+
+  def embargoed?
+    expires = embargo_expires_at
+    expires.present? && expires > Time.current
+  end
+
   def set_exclusion!(value:, user: nil)
     record = GrdaWarehouse::ClientAttribute.find_or_initialize_by(client_id: @client.id)
     record.update!(

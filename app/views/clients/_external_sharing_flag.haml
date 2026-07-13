@@ -3,7 +3,11 @@
   .d-inline-flex.align-items-center.gap-2.mb-2
     - if exclusion.excluded?
       %span.badge.text-bg-danger Excluded from External Data Sharing
-    - else
+    - elsif exclusion.embargoed?
+      %span.badge.text-bg-warning
+        Excluded from External Data Sharing until
+        = l(exclusion.embargo_expires_at.to_date, format: :long)
+    - unless exclusion.excluded? || exclusion.embargoed?
       %span.badge.text-bg-secondary Included in External Data Sharing
     - if can_edit_clients?
       = link_to client_external_data_sharing_path(client),
