@@ -14,15 +14,16 @@ RSpec.describe 'bulkVoidCeClients mutation', type: :request do
 
   subject(:mutation) do
     <<~GRAPHQL
-      mutation BulkVoidCeClients($destinationClientIds: [ID!]!) {
-        bulkVoidCeClients(destinationClientIds: $destinationClientIds) {
+      mutation BulkVoidCeClients($destinationClientIds: [ID!]!, $projectId: ID!) {
+        bulkVoidCeClients(destinationClientIds: $destinationClientIds, projectId: $projectId) {
           success
         }
       }
     GRAPHQL
   end
 
-  let!(:access_control) { create_access_control(hmis_user, ds1, with_permission: [:can_administrate_coordinated_entry]) }
+  let!(:ce_project) { create(:hmis_hud_project, data_source: ds1, organization: o1, user: u1, project_type: 14) }
+  let!(:access_control) { create_access_control(hmis_user, ce_project, with_permission: [:can_administrate_coordinated_entry, :can_view_enrollment_details, :can_view_project, :can_view_clients, :can_edit_enrollments]) }
   let!(:client_1) { create(:hmis_hud_client_with_warehouse_client, data_source: ds1) }
   let!(:client_2) { create(:hmis_hud_client_with_warehouse_client, data_source: ds1) }
   let(:destination_client_ids) { [client_1.warehouse_id.to_s, client_2.warehouse_id.to_s] }
@@ -33,8 +34,8 @@ RSpec.describe 'bulkVoidCeClients mutation', type: :request do
     clear_enqueued_jobs
   end
 
-  def perform_mutation
-    post_graphql(destination_client_ids: destination_client_ids) { mutation }
+  def perform_mutation(destination_client_ids: self.destination_client_ids, project_id: ce_project.id)
+    post_graphql(destination_client_ids: destination_client_ids, project_id: project_id) { mutation }
   end
 
   it 'denies access when the feature flag is disabled' do
@@ -60,8 +61,31 @@ RSpec.describe 'bulkVoidCeClients mutation', type: :request do
     expect(enqueued_jobs).to be_empty
   end
 
+  it 'denies access without can_edit_enrollments in the selected CE project' do
+    remove_permissions(access_control, :can_edit_enrollments)
+
+    expect_access_denied perform_mutation
+    expect(enqueued_jobs).to be_empty
+  end
+
+  it 'denies access when the selected project is not a CE project' do
+    non_ce_project = create(:hmis_hud_project, data_source: ds1, organization: o1, user: u1, project_type: 1)
+    create_access_control(hmis_user, non_ce_project, with_permission: [:can_view_enrollment_details, :can_view_project, :can_view_clients, :can_edit_enrollments])
+
+    expect_access_denied perform_mutation(project_id: non_ce_project.id)
+    expect(enqueued_jobs).to be_empty
+  end
+
   it 'denies access when any destination client is not found' do
     destination_client_ids << '0'
+
+    expect_access_denied perform_mutation
+    expect(enqueued_jobs).to be_empty
+  end
+
+  it 'denies access when any destination client is not viewable' do
+    inaccessible_project = create(:hmis_hud_project, data_source: ds1, organization: o1, user: u1)
+    create(:hmis_hud_enrollment, data_source: ds1, project: inaccessible_project, client: client_2)
 
     expect_access_denied perform_mutation
     expect(enqueued_jobs).to be_empty
@@ -81,7 +105,7 @@ RSpec.describe 'bulkVoidCeClients mutation', type: :request do
     expect(enqueued_job[:priority]).to eq(BaseJob::UI_IMMEDIATE_PRIORITY_NEG5)
     expect(enqueued_job[:args].first).to include(
       'destination_client_ids' => destination_client_ids,
-      'data_source_id' => ds1.id,
+      'ce_project_id' => ce_project.id,
       'initiated_by_id' => hmis_user.id,
     )
   end

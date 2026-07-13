@@ -7204,7 +7204,7 @@ type Mutation {
     serviceIds: [ID!]!
   ): BulkRemoveServicePayload
   bulkReviewExternalSubmissions(externalSubmissionIds: [ID!]!): BulkReviewExternalSubmissionsPayload
-  bulkVoidCeClients(destinationClientIds: [ID!]!): BulkVoidCeClientsPayload
+  bulkVoidCeClients(destinationClientIds: [ID!]!, projectId: ID!): BulkVoidCeClientsPayload
 
   """
   Calculate alternative AHA score based on provided assessment values
