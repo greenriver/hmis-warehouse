@@ -1021,6 +1021,8 @@ type CeMatchRuleClause {
   The name of the field for comparison, such as client_age or cde.custom_assessment.my_score
   """
   field: String!
+  fieldSource: CeMatchRuleFieldSource!
+  formDefinitionIdentifier: String
 
   """
   The value to compare the field against, such as 18 or "1 Bed". JSON scalar
@@ -1044,6 +1046,18 @@ enum CeMatchRuleComparator {
   LT
   LTE
   NOT_EQ
+}
+
+enum CeMatchRuleFieldSource {
+  """
+  Client
+  """
+  CLIENT
+
+  """
+  Custom
+  """
+  CUSTOM_DATA_ELEMENT
 }
 
 input CeMatchRuleFilterOptions {
@@ -12856,6 +12870,13 @@ type TableConfig {
 }
 
 type TableConfigLookup {
+  ceClientsConfig(
+    """
+    Optional project group ID to use for detecting the best config. Falls back
+    to global config if not provided, or if no project group config exists.
+    """
+    projectGroupId: ID
+  ): TableConfig
   ceClientsGlobalConfig: TableConfig
   ceClientsUnitGroupConfig(unitGroupId: ID!): TableConfig
 }
@@ -13021,6 +13042,11 @@ type Unit {
   """
   canBeMarkedAvailableToday: Boolean!
   canBeMarkedUnavailable: Boolean!
+
+  """
+  All current and historical CE referrals for the unit
+  """
+  ceReferrals(filters: UnitCeReferralFilterOptions, limit: Int, offset: Int): CeReferralsPaginated!
   dateCreated: ISO8601DateTime!
   dateUpdated: ISO8601DateTime!
   deletable: Boolean!
@@ -13040,6 +13066,14 @@ type Unit {
   unitSize: Int
   unitType: UnitTypeObject
   user: ApplicationUser
+}
+
+input UnitCeReferralFilterOptions {
+  assignedToYou: Boolean
+  onCurrentTaskSince: ISO8601Date
+  origin: [CeReferralOrigin!]
+  referralStatus: [String!]
+  searchTerm: String
 }
 
 input UnitFilterOptions {

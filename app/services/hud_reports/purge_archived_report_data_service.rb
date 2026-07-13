@@ -157,16 +157,22 @@ module HudReports
     # Data is already safely archived to CSV, so hard deletion is wanted here.
     # For paranoid models, include soft-deleted rows so records soft-deleted during
     # report retries (via reset_question) are fully removed — not just the live ones.
+    #
+    # Uses in_batches with a subquery DELETE to avoid loading all IDs into Ruby memory,
+    # which matters for large tables like universe_members and report_cells.
     def hard_delete(relation)
       model_class = relation.klass
       table = model_class.quoted_table_name
       scoped = model_class.respond_to?(:with_deleted) ? relation.with_deleted : relation
-      ids = scoped.pluck(:id)
-      return 0 if ids.empty?
+      deleted_count = 0
 
-      sql = ActiveRecord::Base.sanitize_sql(["DELETE FROM #{table} WHERE id IN (?)", ids])
-      model_class.connection.execute(sql)
-      ids.size
+      scoped.unscope(:order).in_batches(of: 1_000, load: false) do |batch|
+        subquery_sql = batch.select(:id).to_sql
+        sql = ActiveRecord::Base.sanitize_sql_array(["DELETE FROM #{table} WHERE id IN (#{subquery_sql})"])
+        deleted_count += model_class.connection.execute(sql).cmd_tuples
+      end
+
+      deleted_count
     end
 
     def deletion_summary
