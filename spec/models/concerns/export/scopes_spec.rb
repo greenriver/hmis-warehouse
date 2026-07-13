@@ -110,6 +110,7 @@ RSpec.describe Export::Scopes do
           exporter_3.client_scope.to_a
         end
 
+        # Add three more clients, for a total of 6
         3.times do
           src = create(:hud_client, data_source: source_ds)
           create(:hud_enrollment, data_source: source_ds, ProjectID: project.ProjectID, PersonalID: src.PersonalID)
@@ -199,6 +200,7 @@ RSpec.describe Export::Scopes do
           exporter_3.enrollment_scope.to_a
         end
 
+        # Add three more clients, for a total of 6
         3.times do
           src = create(:hud_client, data_source: source_ds)
           create(:hud_enrollment, data_source: source_ds, ProjectID: project.ProjectID, PersonalID: src.PersonalID)
