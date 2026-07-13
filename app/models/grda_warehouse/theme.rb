@@ -94,9 +94,7 @@ module GrdaWarehouse
       where(client: ENV.fetch('CLIENT')).first_or_create
     end
 
-    CSS_PROPERTY_NAME_PATTERN = /\A-{0,2}[a-zA-Z_][a-zA-Z0-9_-]*\z/
-
-    # Exposes the sanitized theme CSS to the IdP login screens (see IdpThemeCssController).
+    # Exposes the sanitized theme CSS to the IdP login screens (see Theme::CssController).
     # Currently just wraps `.css_file_contents`; kept as its own method so IdP-specific
     # CSS handling can diverge from the main site theme later without touching the
     # controller. If the configured CSS doesn't set `--op-accent`, the IdP falls back
@@ -105,20 +103,25 @@ module GrdaWarehouse
       css_file_contents
     end
 
-    # Sanitize CSS entered by the user.  The allowlist is derived from whatever
-    # property-name-shaped tokens are present in the input, keeping only ones that look like real CSS
-    # identifiers (covers standard names, vendor-prefixed names, and
-    # --custom-properties). Sanitize::CSS itself filters property *values* (url(javascript:...),
-    # expression(), etc.). The final `.delete('<')` guards against this CSS being embedded
-    # inside an HTML <style> block (see application.html.haml) -- e.g. a "</style" breakout.
-    # It removes every "<" unconditionally rather than matching a complete tag/sequence, so it
-    # can't suffer the classic incomplete-sanitization bypass (CodeQL rb/incomplete-multi-character-sanitization)
+    # Sanitize CSS entered by the user. The allowlist is the standard properties from
+    # Sanitize::Config::RELAXED, plus any --custom-properties present in the input (their names
+    # can't be known in advance, and they're inert without a matching var() consumer).
+    # Sanitize::CSS itself filters property *values* (url(javascript:...), expression(), etc.).
+    # The final `.delete('<')` guards against this CSS being embedded inside an HTML <style>
+    # block (see application.html.haml) -- e.g. a "</style" breakout. It removes every "<"
+    # unconditionally rather than matching a complete tag/sequence, so it can't suffer the
+    # classic incomplete-sanitization bypass (CodeQL rb/incomplete-multi-character-sanitization)
     # where removing a nested match splices the surrounding text back into the original sequence.
     def sanitize_css(raw_css)
-      candidate_names = raw_css.scan(/([-a-zA-Z_][-a-zA-Z0-9_]*)\s*:/).flatten
-      allowed_properties = candidate_names.select { |name| name.match?(CSS_PROPERTY_NAME_PATTERN) }.to_set
+      return '' if raw_css.blank?
 
-      sanitized = Sanitize::CSS.stylesheet(raw_css, css: Sanitize::Config::DEFAULT[:css].merge(properties: allowed_properties))
+      custom_properties = raw_css.scan(/(--[a-zA-Z_][a-zA-Z0-9_-]*)\s*:/).flatten
+      allowed_properties = (Sanitize::Config::RELAXED[:css][:properties] + custom_properties).to_set
+
+      sanitized = Sanitize::CSS.stylesheet(
+        raw_css,
+        css: Sanitize::Config::DEFAULT[:css].merge(properties: allowed_properties),
+      )
       sanitized.delete('<')
     end
 
