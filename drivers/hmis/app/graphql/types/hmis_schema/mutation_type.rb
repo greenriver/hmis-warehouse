@@ -100,7 +100,6 @@ module Types
     field :create_ce_match_rule, mutation: Mutations::Ce::CreateCeMatchRule
     field :update_ce_match_rule, mutation: Mutations::Ce::UpdateCeMatchRule
     field :delete_ce_match_rule, mutation: Mutations::Ce::DeleteCeMatchRule
-    field :bulk_void_ce_clients, mutation: Mutations::BulkVoidCeClients
 
     # CE Unit management
     field :mark_units_available, mutation: Mutations::Ce::MarkUnitsAvailable
@@ -112,5 +111,6 @@ module Types
     field :fetch_aha_score, mutation: Mutations::AcHmis::FetchAhaScore
     field :fetch_vision_link_flags, mutation: Mutations::AcHmis::FetchVisionLinkFlags
     field :calculate_alt_aha_score, mutation: Mutations::AcHmis::CalculateAltAhaScore
+    field :bulk_void_ce_clients, mutation: Mutations::AcHmis::BulkVoidCeClients
   end
 end

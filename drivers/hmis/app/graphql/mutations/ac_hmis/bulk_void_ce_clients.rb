@@ -7,7 +7,7 @@
 # frozen_string_literal: true
 
 module Mutations
-  class BulkVoidCeClients < CleanBaseMutation
+  class AcHmis::BulkVoidCeClients < CleanBaseMutation
     argument :destination_client_ids, [ID], required: true
     argument :project_id, ID, required: true
 
@@ -16,11 +16,8 @@ module Mutations
     def resolve(destination_client_ids:, project_id:)
       access_denied! unless policy_for(Hmis::Ce::Opportunity, policy_type: :ce_opportunity).can_bulk_void_ce_clients?
 
-      project = Hmis::Hud::Project.viewable_by(current_user).
-        open_on_date.where(project_type: 14). # CE projects only
-        find_by(id: project_id)
+      project = Hmis::Hud::Project.ce_bulk_voidable_by(current_user).find_by(id: project_id)
       access_denied! unless project
-      access_denied! unless policy_for(project, policy_type: :hmis_project).can_edit_enrollments?
 
       return { success: true } if destination_client_ids.empty?
 

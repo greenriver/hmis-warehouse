@@ -9,7 +9,7 @@
 require 'rails_helper'
 require_relative '../../../support/hmis_base_setup'
 
-RSpec.describe 'bulkVoidCeClients mutation', type: :request do
+RSpec.describe Mutations::AcHmis::BulkVoidCeClients, type: :request do
   include_context 'hmis base setup'
 
   subject(:mutation) do
