@@ -17,6 +17,21 @@ class Idp::JwtHelper
   REQUIRED_ENV_KEYS = ['IDP_AUD', 'ISS_URL', 'JWKS_URL', 'JWT_ALGORITHM'].freeze
   VALID_AUTH_METHODS = [nil, 'devise', 'jwt'].freeze
 
+  # Transport-level failures reaching JWKS_URL. We can't verify the token when the IdP is
+  # unreachable, so we fail closed (treat it as invalid) rather than letting a 500 escape to the
+  # caller. SocketError covers Socket::ResolutionError (a subclass).
+  NETWORK_ERRORS = [
+    SocketError,
+    Errno::ECONNREFUSED,
+    Errno::ECONNRESET,
+    Errno::EHOSTUNREACH,
+    Errno::ETIMEDOUT,
+    Net::OpenTimeout,
+    Net::ReadTimeout,
+    OpenSSL::SSL::SSLError,
+    Timeout::Error,
+  ].freeze
+
   def initialize(access_token:)
     @access_token = access_token
   end
@@ -49,6 +64,12 @@ class Idp::JwtHelper
     false
   rescue JSON::ParserError => e
     Rails.logger.error "JSON verification failed: #{e.message}"
+    false
+  rescue *NETWORK_ERRORS => e
+    # Couldn't reach JWKS_URL to fetch the signing key. Fail closed (401), but surface it to Sentry:
+    # unlike a bad token, this is an infrastructure problem the caller can't fix.
+    Rails.logger.error "JWT verification could not reach JWKS endpoint: #{e.message}"
+    Sentry.capture_exception_with_info(e, 'JWT verification could not reach the JWKS endpoint; treating token as invalid')
     false
   end
 

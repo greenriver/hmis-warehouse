@@ -17,6 +17,62 @@ RSpec.describe Superset do
     allow(Sentry).to receive(:capture_exception_with_info)
   end
 
+  describe '.available?' do
+    context 'under AuthMethod.jwt?' do
+      before { allow(AuthMethod).to receive(:jwt?).and_return(true) }
+
+      it 'is unavailable when SUPERSET_ADMIN_PASS is unset' do
+        allow(ENV).to receive(:[]).and_call_original
+        allow(ENV).to receive(:[]).with('SUPERSET_ADMIN_PASS').and_return(nil)
+
+        expect(described_class.available?).to eq(false)
+      end
+
+      it 'is available in development as soon as a password is set, even the insecure default' do
+        allow(Rails.env).to receive(:development?).and_return(true)
+        allow(ENV).to receive(:[]).and_call_original
+        allow(ENV).to receive(:[]).with('SUPERSET_ADMIN_PASS').and_return('admin')
+
+        expect(described_class.available?).to eq(true)
+      end
+
+      it 'is unavailable outside development when the password is still the insecure default' do
+        allow(Rails.env).to receive(:development?).and_return(false)
+        allow(ENV).to receive(:[]).and_call_original
+        allow(ENV).to receive(:[]).with('SUPERSET_ADMIN_PASS').and_return('admin')
+
+        expect(described_class.available?).to eq(false)
+      end
+
+      it 'is available outside development when a non-default password is set' do
+        allow(Rails.env).to receive(:development?).and_return(false)
+        allow(ENV).to receive(:[]).and_call_original
+        allow(ENV).to receive(:[]).with('SUPERSET_ADMIN_PASS').and_return('a-real-password')
+
+        expect(described_class.available?).to eq(true)
+      end
+    end
+
+    context 'under AuthMethod.devise?' do
+      before { allow(AuthMethod).to receive(:jwt?).and_return(false) }
+
+      it 'checks for a Doorkeeper::Application configured for the Superset redirect URI' do
+        a_t = Doorkeeper::Application.arel_table
+        relation = instance_double(ActiveRecord::Relation, exists?: true)
+        allow(Doorkeeper::Application).to receive(:where).with(a_t[:redirect_uri].matches("%#{described_class.superset_base_url}%")).and_return(relation)
+
+        expect(described_class.available?).to eq(true)
+      end
+
+      it 'is unavailable with no matching Doorkeeper::Application' do
+        relation = instance_double(ActiveRecord::Relation, exists?: false)
+        allow(Doorkeeper::Application).to receive(:where).and_return(relation)
+
+        expect(described_class.available?).to eq(false)
+      end
+    end
+  end
+
   describe '.available_superset_roles' do
     context 'when Superset is not configured' do
       before { allow(api).to receive(:available?).and_return(false) }

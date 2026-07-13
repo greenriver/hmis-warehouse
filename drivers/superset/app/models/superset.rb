@@ -23,8 +23,15 @@ module Superset
   end
 
   def self.available?
-    a_t = Doorkeeper::Application.arel_table
-    Doorkeeper::Application.where(a_t[:redirect_uri].matches("%#{superset_base_url}%")).exists?
+    if AuthMethod.jwt?
+      password_set = ENV['SUPERSET_ADMIN_PASS'].present?
+      return password_set if Rails.env.development?
+
+      password_set && ENV['SUPERSET_ADMIN_PASS'] != 'admin'
+    else
+      a_t = Doorkeeper::Application.arel_table
+      Doorkeeper::Application.where(a_t[:redirect_uri].matches("%#{superset_base_url}%")).exists?
+    end
   end
 
   def self.available_to_user?(user)
