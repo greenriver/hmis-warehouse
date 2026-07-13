@@ -109,13 +109,17 @@ module GrdaWarehouse
     # property-name-shaped tokens are present in the input, keeping only ones that look like real CSS
     # identifiers (covers standard names, vendor-prefixed names, and
     # --custom-properties). Sanitize::CSS itself filters property *values* (url(javascript:...),
-    # expression(), etc.)
+    # expression(), etc.). The final `.delete('<')` guards against this CSS being embedded
+    # inside an HTML <style> block (see application.html.haml) -- e.g. a "</style" breakout.
+    # It removes every "<" unconditionally rather than matching a complete tag/sequence, so it
+    # can't suffer the classic incomplete-sanitization bypass (CodeQL rb/incomplete-multi-character-sanitization)
+    # where removing a nested match splices the surrounding text back into the original sequence.
     def sanitize_css(raw_css)
       candidate_names = raw_css.scan(/([-a-zA-Z_][-a-zA-Z0-9_]*)\s*:/).flatten
       allowed_properties = candidate_names.select { |name| name.match?(CSS_PROPERTY_NAME_PATTERN) }.to_set
 
       sanitized = Sanitize::CSS.stylesheet(raw_css, css: Sanitize::Config::DEFAULT[:css].merge(properties: allowed_properties))
-      sanitized.gsub(/<\/?style\b[^>]*>?/i, '').gsub('<', '')
+      sanitized.delete('<')
     end
 
     def set_theme_default_logo!
