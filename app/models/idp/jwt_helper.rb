@@ -15,6 +15,7 @@ class Idp::JwtHelper
   attr_reader :access_token
 
   REQUIRED_ENV_KEYS = ['IDP_AUD', 'ISS_URL', 'JWKS_URL', 'JWT_ALGORITHM'].freeze
+  VALID_AUTH_METHODS = [nil, 'devise', 'jwt'].freeze
 
   def initialize(access_token:)
     @access_token = access_token
@@ -124,6 +125,9 @@ class Idp::JwtHelper
   end
 
   def self.assert_boot_config!
+    auth_method = ENV['AUTH_METHOD']
+    raise "Invalid AUTH_METHOD: #{auth_method.inspect}" unless VALID_AUTH_METHODS.include?(auth_method)
+
     missing = REQUIRED_ENV_KEYS.select { |key| ENV.fetch(key, '').blank? }
     raise "Missing JWT configuration: #{missing.join(', ')}" if missing.any?
   end
