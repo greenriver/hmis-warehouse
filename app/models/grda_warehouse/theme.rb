@@ -6,8 +6,6 @@
 
 # frozen_string_literal: true
 
-require 'sanitize'
-
 # Example for testing:
 # GrdaWarehouse::Theme.create!(
 #   client: 'myclient', # should match ENV['CLIENT']
@@ -48,7 +46,7 @@ module GrdaWarehouse
     # If the theme is not set, set it to the default and save it for the future
     def self.css_file_contents
       theme = active_theme
-      return theme.css_file_contents if theme.css_file_contents.present?
+      return theme.sanitize_css(theme.css_file_contents) if theme.css_file_contents.present?
 
       theme.set_theme_default_css!
       theme.save!
@@ -98,13 +96,13 @@ module GrdaWarehouse
 
     CSS_PROPERTY_NAME_PATTERN = /\A-{0,2}[a-zA-Z_][a-zA-Z0-9_-]*\z/
 
-    # This method provides CSS to the IdP.
-    # If you add any of the supported CSS properties to the Warehouse Theme input,
-    # they will be used on the IdP login screens.
-    # Supported CSS properties are:
-    # --op-accent
+    # Exposes the sanitized theme CSS to the IdP login screens (see IdpThemeCssController).
+    # Currently just wraps `.css_file_contents`; kept as its own method so IdP-specific
+    # CSS handling can diverge from the main site theme later without touching the
+    # controller. If the configured CSS doesn't set `--op-accent`, the IdP falls back
+    # to its own default accent color -- Rails doesn't need to supply one.
     def self.idp_theme_css
-      active_theme.css_file_contents
+      css_file_contents
     end
 
     # Sanitize CSS entered by the user.  The allowlist is derived from whatever
@@ -117,7 +115,7 @@ module GrdaWarehouse
       allowed_properties = candidate_names.select { |name| name.match?(CSS_PROPERTY_NAME_PATTERN) }.to_set
 
       sanitized = Sanitize::CSS.stylesheet(raw_css, css: Sanitize::Config::DEFAULT[:css].merge(properties: allowed_properties))
-      sanitized.gsub(/<[^>]*>/i, '')
+      sanitized.gsub(/<\/?style\b[^>]*>?/i, '').gsub('<', '')
     end
 
     def set_theme_default_logo!

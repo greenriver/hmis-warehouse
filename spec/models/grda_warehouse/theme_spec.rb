@@ -101,6 +101,10 @@ RSpec.describe GrdaWarehouse::Theme, type: :model do
       it 'does not pass through @import rules' do
         expect(theme.sanitize_css(raw_css)).not_to match(/@import/i)
       end
+
+      it 'does not leave a literal "<" character anywhere in the output' do
+        expect(theme.sanitize_css(raw_css)).not_to include('<')
+      end
     end
 
     context 'with legitimate theme CSS' do
@@ -156,6 +160,56 @@ RSpec.describe GrdaWarehouse::Theme, type: :model do
         expect(theme.sanitize_css(raw_css)).to include('--op-accent: red')
       end
     end
+
+    context 'with an unterminated "</style" breakout (no ">" anywhere in the input)' do
+      # HTML5's tokenizer ends a RAWTEXT <style> element as soon as it sees "</style"
+      # followed by a tag-name-terminating character (whitespace, "/", ">", or EOF) --
+      # a closing ">" is not required to trigger the state transition. A regex that
+      # requires a literal ">" to complete a match (like the original `/<[^>]*>/`)
+      # never matches, and therefore never strips, a "</style" with no ">" anywhere
+      # later in the string.
+      let(:raw_css) { ':root { --op-accent: red; } body { content: "</style"; }' }
+
+      include_examples 'blocks script injection vectors'
+
+      it 'strips the unterminated "</style" sequence' do
+        expect(theme.sanitize_css(raw_css)).not_to match(/<\/style/i)
+      end
+    end
+
+    context 'with a nested-bracket reconstruction attempt (classic incomplete multi-character sanitization bypass)' do
+      # A single-pass regex that removes one multi-character sequence can be defeated
+      # by nesting: removing the inner match splices the surrounding fragments back
+      # together into the original dangerous sequence. This is CodeQL's
+      # rb/incomplete-multi-character-sanitization example almost verbatim. Our
+      # trailing `.gsub('<', '')` sidesteps the whole class of bug, since it removes
+      # every "<" unconditionally rather than trying to match a complete sequence.
+      let(:raw_css) { ':root { --op-accent: red; } body { content: "<scrip<script>is removed</script>t>alert(123)</script>"; } ' }
+
+      include_examples 'blocks script injection vectors'
+    end
+
+    context 'with a legitimate child-combinator selector' do
+      let(:raw_css) { ':root { --op-accent: red; } div > p { --op-accent: blue; }' }
+
+      it 'preserves the ">" combinator (only "<" is stripped, not ">")' do
+        expect(theme.sanitize_css(raw_css)).to match(/div\s*>\s*p/)
+      end
+    end
+
+    context 'with HTML-entity-encoded angle brackets in a value' do
+      # Entities are never decoded downstream: `render plain:` serves this as a
+      # standalone text/css response, and Haml's `:plain` filter inlines it inside a
+      # <style> element, which the HTML5 tokenizer parses in RAWTEXT mode (no
+      # character-reference decoding there). CSS itself doesn't decode HTML entities
+      # either, so "&lt;"/"&gt;" can never become a literal "<"/">" in the browser --
+      # this is inert text, not a sanitization gap.
+      let(:raw_css) { ':root { --op-accent: "&lt;script&gt;"; }' }
+
+      it 'leaves the entity-encoded text untouched' do
+        expect(theme.sanitize_css(raw_css)).to include('&lt;script&gt;')
+      end
+    end
   end
 
   describe '.idp_theme_css' do
@@ -163,43 +217,24 @@ RSpec.describe GrdaWarehouse::Theme, type: :model do
       ENV['CLIENT'] = 'test'
     end
 
-    context 'when the theme has a configured accent color' do
-      let!(:theme) { create(:hmis_theme, hmis_value: { 'palette' => { 'primary' => { 'main' => '#41596B' } } }) }
+    context 'when the theme has custom CSS configured' do
+      let!(:theme) { create(:theme, css_file_contents: ':root { --op-accent: #41596B; }') }
 
-      it 'renders it as a CSS custom property' do
+      it 'returns the sanitized CSS' do
         expect(GrdaWarehouse::Theme.idp_theme_css).to eq(':root { --op-accent: #41596B; }')
       end
     end
 
-    context 'when the theme has no palette configured' do
+    context 'when the theme has no custom CSS configured' do
       let!(:theme) { create(:theme) }
 
-      it 'returns an empty string' do
-        expect(GrdaWarehouse::Theme.idp_theme_css).to eq('')
+      it 'matches Theme.css_file_contents (falls back to the default stylesheet, same as the main app)' do
+        expect(GrdaWarehouse::Theme.idp_theme_css).to eq(GrdaWarehouse::Theme.css_file_contents)
       end
     end
 
-    context 'when hmis_value is an empty string (treated as "not an HMIS theme")' do
-      let!(:theme) { create(:theme, hmis_value: '') }
-
-      it 'returns an empty string rather than raising' do
-        expect(GrdaWarehouse::Theme.idp_theme_css).to eq('')
-      end
-    end
-
-    context 'when the configured value contains a CSS injection attempt' do
-      let!(:theme) do
-        create(
-          :hmis_theme,
-          hmis_value: {
-            'palette' => {
-              'primary' => {
-                'main' => 'red; } body { background: url(javascript:alert(1)) } /*',
-              },
-            },
-          },
-        )
-      end
+    context 'when the configured CSS contains an injection attempt' do
+      let!(:theme) { create(:theme, css_file_contents: ':root { --op-accent: red; } } body { background: url(javascript:alert(1)) } /*') }
 
       it 'strips the dangerous content rather than passing it through verbatim' do
         result = GrdaWarehouse::Theme.idp_theme_css
