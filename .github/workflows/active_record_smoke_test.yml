@@ -74,6 +74,9 @@ jobs:
 
     env:
       CLIENT: test
+      # Boot the whole app eagerly (like production) so the zeitwerk:check + spec below
+      # catch load-time errors app-wide once. Other CI jobs stay lazy to save memory.
+      EAGER_LOAD: true
       DATABASE_ADAPTER: postgresql
       DATABASE_APP_DB_TEST: warehouse_app_test
       DATABASE_DB_TEST: warehouse_test
