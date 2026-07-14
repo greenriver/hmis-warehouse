@@ -57,11 +57,6 @@ class Hmis::AuthPolicies::HmisProjectPolicy < Hmis::AuthPolicies::ResourcePolicy
       project_permissions.include?(:can_edit_enrollments)
     end
 
-    # Whether the user can edit enrollments in the project
-    def can_edit_enrollments?
-      project_permissions.include?(:can_edit_enrollments)
-    end
-
     # Whether the user can create a new Client and Enrollment in the project by submitting
     # the NEW_CLIENT_ENROLLMENT form.
     # TODO(#7475) - Similarly should be updated to take permission 'can_enroll_clients' into account

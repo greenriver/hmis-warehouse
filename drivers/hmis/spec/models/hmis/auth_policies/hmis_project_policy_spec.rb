@@ -114,25 +114,6 @@ RSpec.describe Hmis::AuthPolicies::HmisProjectPolicy, type: :model do
     end
   end
 
-  describe '#can_edit_enrollments?' do
-    context 'with can_edit_enrollments permission' do
-      let!(:access_control) { create_access_control(user, project, with_permission: [:can_view_enrollment_details, :can_view_project, :can_edit_enrollments]) }
-
-      it 'returns true' do
-        expect(policy.can_edit_enrollments?).to be true
-      end
-    end
-
-    context 'without can_edit_enrollments permission (even if it is granted at another project)' do
-      let!(:other_project) { create(:hmis_hud_project, organization: organization, data_source: data_source) }
-      let!(:access_control) { create_access_control(user, other_project, with_permission: [:can_view_enrollment_details, :can_view_project, :can_edit_enrollments]) }
-
-      it 'returns false' do
-        expect(policy.can_edit_enrollments?).to be false
-      end
-    end
-  end
-
   describe '#can_create_and_enroll_new_clients?' do
     it 'returns true when user can create and enroll new clients' do
       create_access_control(user, project, with_permission: [:can_view_project, :can_view_clients, :can_edit_clients, :can_view_enrollment_details, :can_edit_enrollments])
