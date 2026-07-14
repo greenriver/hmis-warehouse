@@ -23,4 +23,5 @@
 - [ ] I added spec tests (or not applicable)
 - [ ] I provided testing instructions in this PR or the related issue (or not applicable)
 
-[//]: # NOTE: system tests may fail if there is no branch on the hmis-frontend that matches the Source  or Target branch of this PR. This is expected
+[//]: # (NOTE: system tests may fail if there is no branch on the hmis-frontend that matches the Source  or Target branch of this PR. This is expected)
+
