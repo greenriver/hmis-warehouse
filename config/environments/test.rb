@@ -27,10 +27,11 @@ Rails.application.configure do
   # Eager loading loads your entire application. When running a single test locally,
   # this is usually not necessary, and can slow down your test suite. However, it's
   # recommended that you enable it in continuous integration systems to ensure eager
-  # loading is working properly before deploying your code.
-  # config.eager_load = ENV['CI'].present?
-  # disabling this in an attempt to reduce memory usage in CI
-  config.eager_load = false
+  # loading is working properly before deploying your code. CI (GitHub Actions sets
+  # CI=true) eager loads to catch autoload/load-order/deprecation problems before
+  # deploy; local runs stay lazy for speed but can force it with EAGER_LOAD=true.
+  # (Re-enabling this in CI reintroduces a memory-usage tradeoff tracked separately.)
+  config.eager_load = ENV['CI'].present? || ENV.fetch('EAGER_LOAD', 'false') == 'true'
 
   config.action_view.cache_template_loading = true
 

@@ -151,6 +151,9 @@ jobs:
       - name: Precompile assets
         run: bundle exec rails assets:precompile
 
+      - name: Verify eager loading (zeitwerk:check)
+        run: bundle exec rails zeitwerk:check
+
       - name: Run ActiveRecord smoke test
         env:
           AWS_ACCESS_KEY_ID: local_access_key
