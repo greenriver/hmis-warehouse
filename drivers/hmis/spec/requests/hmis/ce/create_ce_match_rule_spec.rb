@@ -8,9 +8,11 @@
 
 require 'rails_helper'
 require_relative '../../../support/hmis_base_setup'
+require_relative '../../../support/shared_examples/ce_match_rule_applicability'
 
 RSpec.describe 'createCeMatchRule mutation', type: :request do
   include_context 'hmis base setup'
+  include_context 'ce match rule applicability helpers'
 
   before(:each) do
     allow_any_instance_of(Hmis::Ce::Configuration).to receive(:enabled?).and_return(true)
@@ -22,10 +24,6 @@ RSpec.describe 'createCeMatchRule mutation', type: :request do
   let!(:access_control) { create_access_control(hmis_user, ds1, with_permission: [:can_view_project, :can_administrate_coordinated_entry]) }
   let(:unit_group) { create(:hmis_unit_group, project: p1, name: 'Housing Match Group') }
   let(:other_data_source) { create(:hmis_data_source) }
-  let(:project_type) { p1.project_type }
-  let(:project_type_key) { Types::HmisSchema::Enums::ProjectType.key_for(project_type) }
-  let(:funder_code) { HudHelper.util.funding_source('HUD: CoC - Rapid Re-Housing', true, raise_on_missing: true) }
-  let(:funder_key) { Types::HmisSchema::Enums::Hud::FundingSource.key_for(funder_code) }
 
   let(:no_impact) { Hmis::Ce::Match::RuleChangeImpactCalculator::Result.new(affected_unit_groups: []) }
 

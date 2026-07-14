@@ -42,6 +42,7 @@ module Types
       # config, so omitted or empty dimensions are cleared.
       config = {}
       config[:project_types] = input[:project_types] if input[:project_types].present?
+      # Input uses :funders; model stores :project_funders to match HUD terminology
       config[:project_funders] = input[:funders] if input[:funders].present?
       config
     end
