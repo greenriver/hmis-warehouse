@@ -89,6 +89,38 @@ RSpec.describe HmisExternalApis::AcHmis::BulkVoider, type: :job do
       end
     end
 
+    context 'when client already has a void assessment with Void All Referrals checked' do
+      let!(:void_assessment) { create(:hmis_custom_assessment, enrollment: enrollment, data_collection_stage: 99, definition: void_definition) }
+      let!(:void_cde) { create(:hmis_custom_data_element, owner: void_assessment, data_element_definition: void_cded, data_source: data_source, value_boolean: true) }
+
+      it 'does not create a new void assessment' do
+        expect do
+          perform_bulk_void([client.warehouse_id])
+        end.to change(Hmis::Hud::Exit, :count).by(1). # creates an exit record
+          and change(Hmis::Hud::CustomAssessment.where(data_collection_stage: 3), :count).by(1). # creates an exit assessment
+          and not_change(Hmis::Hud::CustomAssessment.where(data_collection_stage: 99), :count) # does not create a duplicate void assessment
+      end
+    end
+
+    context 'when client already has a void assessment, but Void All Referrals is not checked (unexpected)' do
+      let!(:void_assessment) { create(:hmis_custom_assessment, enrollment: enrollment, data_collection_stage: 99, definition: void_definition) }
+      let!(:void_cde) { create(:hmis_custom_data_element, owner: void_assessment, data_element_definition: void_cded, data_source: data_source, value_boolean: false) }
+
+      it 'creates a new void assessment with Void All Referrals checked' do
+        expect do
+          perform_bulk_void([client.warehouse_id])
+        end.to change(Hmis::Hud::Exit, :count).by(1).
+          and change(Hmis::Hud::CustomAssessment.where(data_collection_stage: 3), :count).by(1).
+          and change(Hmis::Hud::CustomAssessment.where(data_collection_stage: 99), :count).by(1)
+
+        void_assessments = Hmis::Hud::CustomAssessment.where(enrollment_id: enrollment.enrollment_id, data_collection_stage: 99)
+        expect(void_assessments.count).to eq(2)
+        expect(void_assessments.joins(:custom_data_elements).
+          merge(Hmis::Hud::CustomDataElement.of_type(void_cded).where(value_boolean: true)).
+          count).to eq(1)
+      end
+    end
+
     it 'tracks PaperTrail metadata for created records' do
       run_id = '00000000-0000-0000-0000-000000000001'
 
