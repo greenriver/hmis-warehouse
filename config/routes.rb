@@ -463,6 +463,7 @@ Rails.application.routes.draw do
       get :chronic_days
       patch :merge
       patch :unmerge
+
       resource :cas_active, only: :update
       resources :enrollment_history, only: :index, controller: 'clients/enrollment_history'
       # get :enrollment_details
@@ -472,6 +473,7 @@ Rails.application.routes.draw do
     #   get :pdf, on: :collection
     #   post :queue, on: :collection
     # end
+    resource :external_data_sharing, only: [:show, :update], controller: 'clients/external_data_sharing'
     resource :cas_readiness, only: [:edit, :update], controller: 'clients/cas_readiness' do
       post :render_content, on: :member
       get :render_content, on: :member if Rails.env.development?
