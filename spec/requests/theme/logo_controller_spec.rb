@@ -19,6 +19,13 @@ RSpec.describe Theme::LogoController, type: :request do
 
   describe 'GET /theme/logo/:logo' do
     context 'when unauthenticated' do
+      before do
+        # Attach a real blob directly rather than relying on GrdaWarehouse::Theme's
+        # on-disk default-logo fallback, which reads from app/assets/images/theme/logo/ --
+        # a client-specific, .gitignore'd directory that isn't present in CI checkouts.
+        GrdaWarehouse::Theme.active_theme.logo.attach(io: StringIO.new('fake logo content'), filename: 'logo.svg', content_type: 'image/svg+xml')
+      end
+
       it 'does not redirect to sign in' do
         get theme_logo_path(logo: 'logo')
 
