@@ -151,11 +151,6 @@ module HmisExternalApis::AcHmis
     private
 
     def create_void_assessment(enrollment)
-      if void_assessment_exists?(enrollment)
-        Rails.logger.info "Skipped creating a Void Assessment for #{enrollment.enrollment_id} because it is already voided"
-        return
-      end
-
       assessment = Hmis::Hud::CustomAssessment.new(
         user: @hud_system_user,
         assessment_date: @current_date,
@@ -184,14 +179,6 @@ module HmisExternalApis::AcHmis
         data_source_id: assessment.data_source_id,
         value_string: VOID_REASON_TEXT,
       )
-    end
-
-    def void_assessment_exists?(enrollment)
-      enrollment.custom_assessments.
-        with_form_definition_identifier(VOID_FORM_IDENTIFIER).
-        joins(:custom_data_elements).
-        merge(Hmis::Hud::CustomDataElement.of_type(@void_cded).where(value_boolean: true)).
-        exists?
     end
   end
 end
