@@ -21,12 +21,19 @@ module Mutations
 
       return { success: true } if destination_client_ids.empty?
 
-      # Confirm all clients in the input exist and are viewable by the user before kicking off the job
-      source_client_ids = Hmis::WarehouseClient.
-        where(data_source_id: current_user.hmis_data_source_id, destination_id: destination_client_ids).
-        select(:source_id)
-      clients_count = Hmis::Hud::Client.viewable_by(current_user).where(data_source_id: current_user.hmis_data_source_id, id: source_client_ids).count
-      access_denied! if destination_client_ids.count != clients_count
+      # Confirm all clients in the input exist and are viewable by the user before kicking off the job.
+      # A destination (warehouse) client can map to more than one source client in the data source
+      # (e.g. after a merge), so check that every requested destination id resolves to at least one
+      # viewable source client rather than comparing raw counts.
+      viewable_source_ids = Hmis::Hud::Client.viewable_by(current_user).
+        where(data_source_id: current_user.hmis_data_source_id).
+        select(:id)
+      viewable_destination_ids = Hmis::WarehouseClient.
+        where(data_source_id: current_user.hmis_data_source_id, source_id: viewable_source_ids, destination_id: destination_client_ids).
+        distinct.
+        pluck(:destination_id)
+      missing_destination_ids = destination_client_ids.map(&:to_i).uniq - viewable_destination_ids
+      access_denied! if missing_destination_ids.any?
 
       queue = ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
       HmisExternalApis::AcHmis::BulkVoidCeClientsJob.
