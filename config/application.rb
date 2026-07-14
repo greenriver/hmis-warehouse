@@ -31,7 +31,7 @@ module OpenPath
     require_relative '../lib/rails_drivers'
 
     # Initialize configuration defaults for originally generated Rails version.
-    config.load_defaults 7.1
+    config.load_defaults 7.2
 
     # Continue to use config/secrets.yml. This is deprecated in rails > 7.0 but we don't want to move to
     # encrypted credentials, it's not appropriate for an open-source project
@@ -158,6 +158,12 @@ module OpenPath
     # Maintain Rails 7.0 behavior for specific settings
     config.active_record.before_committed_on_all_records = false # Keep due to uploader test issues
     config.active_record.default_column_serializer = YAML # Keep historic behavior
+
+    # load_defaults 7.2 would flip this to true, making raw SQL date/timestamp columns
+    # decode to Date/Time objects instead of Strings. We have a lot of raw SQL that
+    # assumes Strings, so keep the pre-7.2 behavior; adopting the new default is tracked
+    # separately as future work.
+    config.active_record.postgresql_adapter_decode_dates = false
 
     # Extension points
     config.sub_populations = {}
