@@ -24,7 +24,7 @@ module Mutations
       # Confirm all clients in the input exist and are viewable by the user before kicking off the job.
       # A destination (warehouse) client can map to more than one source client in the data source
       # (e.g. after a merge), so check that every requested destination id resolves to at least one
-      # viewable source client rather than comparing raw counts.
+      # viewable source client.
       viewable_source_ids = Hmis::Hud::Client.viewable_by(current_user).
         where(data_source_id: current_user.hmis_data_source_id).
         select(:id)

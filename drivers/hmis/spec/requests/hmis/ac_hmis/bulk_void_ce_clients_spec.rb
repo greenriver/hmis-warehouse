@@ -91,6 +91,14 @@ RSpec.describe Mutations::AcHmis::BulkVoidCeClients, type: :request do
     expect(enqueued_jobs).to be_empty
   end
 
+  it 'enqueues (does not raise) when a destination client maps to multiple source clients' do
+    # Simulate a merge: a second source client in the same data source resolves to client_1's destination.
+    merged_source = create(:hmis_hud_client, data_source: ds1)
+    create(:hmis_warehouse_client, data_source: ds1, source: merged_source, destination: client_1.destination_client)
+
+    expect { perform_mutation }.to change(enqueued_jobs, :count).by(1)
+  end
+
   it 'enqueues the job and returns success when allowed' do
     expect do
       response, result = perform_mutation
