@@ -84,7 +84,7 @@ module BostonProjectScorecard
       # scenario where the previous FY average is 10 and the current FY average is 85. In this
       # scenario even if it is an increase, it is still under 90 days and should score 12.
       # IF current FY is less than 1 day, score 0 pts.
-      # 6pts would only be scored IF decrease from previous to current FY is less than 5% AND average is above 90 days
+      # 6pts would only be scored IF decrease from previous to current FY is less than 5% AND average is 90 days or more
       def days_to_lease_up_score
         return 0 if days_to_lease_up < 1
         return 12 if days_to_lease_up < 90
