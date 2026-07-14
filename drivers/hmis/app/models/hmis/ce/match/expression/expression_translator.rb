@@ -200,7 +200,7 @@ module Hmis::Ce::Match::Expression
       end
 
       def format_value_for_expression(value, field:, comparator:)
-        return 'NULL' if [:IS_NULL, :IS_NOT_NULL].include?(comparator)
+        return 'NULL' if NULL_COMPARATORS.values.include?(comparator)
 
         value = expression_value_for_structured_value(value, field)
 

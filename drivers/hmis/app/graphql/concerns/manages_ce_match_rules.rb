@@ -12,8 +12,10 @@ module ManagesCeMatchRules
   # If the rule change will remove more than 25% of the current candidates, warn the user
   IMPACT_WARNING_RATIO = 0.25
 
-  # value must be present for every comparator except these two
-  NULL_COMPARATORS = ['IS_NULL', 'IS_NOT_NULL'].freeze
+  # value must be present for every comparator except these two.
+  # Derived from the translator's mapping (which stores symbols) so the two stay in sync;
+  # structured expression input arrives as string enum keys, so compare as strings.
+  NULL_COMPARATORS = Hmis::Ce::Match::Expression::ExpressionTranslator::NULL_COMPARATORS.values.map(&:to_s).freeze
 
   private
 
