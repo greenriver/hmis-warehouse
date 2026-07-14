@@ -9,11 +9,7 @@
 class HmisExternalApis::AcHmis::BulkVoidCeClientsJob < BaseJob
   queue_as ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
 
-  def perform(destination_client_ids:, ce_project_id:, initiated_by_id:)
-    HmisExternalApis::AcHmis::BulkVoider.new.perform(
-      destination_client_ids: destination_client_ids,
-      ce_project_id: ce_project_id,
-      initiated_by_id: initiated_by_id,
-    )
+  def perform(...)
+    HmisExternalApis::AcHmis::BulkVoider.new.perform(...)
   end
 end
