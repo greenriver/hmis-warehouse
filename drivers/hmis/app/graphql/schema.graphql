@@ -1080,10 +1080,12 @@ type CeMatchRuleGroup {
 
 input CeMatchRuleInput {
   expression: String
+  funders: [FundingSource!]
   name: String
   ownerId: ID
   ownerType: CeMatchRuleOwnerType
   priorityRank: Int
+  projectTypes: [ProjectType!]
   ruleType: CeMatchRuleType
   structuredExpression: CeMatchRuleStructuredExpressionInput
 }

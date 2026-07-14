@@ -22,6 +22,10 @@ RSpec.describe 'createCeMatchRule mutation', type: :request do
   let!(:access_control) { create_access_control(hmis_user, ds1, with_permission: [:can_view_project, :can_administrate_coordinated_entry]) }
   let(:unit_group) { create(:hmis_unit_group, project: p1, name: 'Housing Match Group') }
   let(:other_data_source) { create(:hmis_data_source) }
+  let(:project_type) { p1.project_type }
+  let(:project_type_key) { Types::HmisSchema::Enums::ProjectType.key_for(project_type) }
+  let(:funder_code) { HudHelper.util.funding_source('HUD: CoC - Rapid Re-Housing', true, raise_on_missing: true) }
+  let(:funder_key) { Types::HmisSchema::Enums::Hud::FundingSource.key_for(funder_code) }
 
   let(:no_impact) { Hmis::Ce::Match::RuleChangeImpactCalculator::Result.new(affected_unit_groups: []) }
 
@@ -55,6 +59,8 @@ RSpec.describe 'createCeMatchRule mutation', type: :request do
             id
             name
             expression
+            projectTypes
+            funders
             structuredExpression {
               operator
               clauses {
@@ -89,6 +95,40 @@ RSpec.describe 'createCeMatchRule mutation', type: :request do
 
     rule = Hmis::Ce::Match::Rule.find(result.dig('data', 'createCeMatchRule', 'rule', 'id'))
     expect(rule.owner).to eq(ds1)
+  end
+
+  it 'creates a rule with project type applicability' do
+    response, result = post_graphql(input: base_input.merge(projectTypes: [project_type_key]), confirmed: true) { mutation }
+    expect(response.status).to eq(200), result.inspect
+
+    rule = Hmis::Ce::Match::Rule.find(result.dig('data', 'createCeMatchRule', 'rule', 'id'))
+    expect(result.dig('data', 'createCeMatchRule', 'rule', 'projectTypes')).to contain_exactly(project_type_key)
+    expect(rule.applicability_config.symbolize_keys).to eq(project_types: [project_type])
+  end
+
+  it 'creates a rule with funder applicability' do
+    response, result = post_graphql(input: base_input.merge(funders: [funder_key]), confirmed: true) { mutation }
+    expect(response.status).to eq(200), result.inspect
+
+    rule = Hmis::Ce::Match::Rule.find(result.dig('data', 'createCeMatchRule', 'rule', 'id'))
+    expect(result.dig('data', 'createCeMatchRule', 'rule', 'funders')).to contain_exactly(funder_key)
+    expect(rule.applicability_config.symbolize_keys).to eq(project_funders: [funder_code])
+  end
+
+  it 'creates a rule with project type and funder applicability' do
+    input = base_input.merge(
+      projectTypes: [project_type_key],
+      funders: [funder_key],
+    )
+
+    response, result = post_graphql(input: input, confirmed: true) { mutation }
+    expect(response.status).to eq(200), result.inspect
+
+    rule = Hmis::Ce::Match::Rule.find(result.dig('data', 'createCeMatchRule', 'rule', 'id'))
+    expect(rule.applicability_config.symbolize_keys).to eq(
+      project_types: [project_type],
+      project_funders: [funder_code],
+    )
   end
 
   it 'creates a priority scheme' do
