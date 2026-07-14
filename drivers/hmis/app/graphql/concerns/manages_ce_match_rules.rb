@@ -12,16 +12,27 @@ module ManagesCeMatchRules
   # If the rule change will remove more than 25% of the current candidates, warn the user
   IMPACT_WARNING_RATIO = 0.25
 
+  # value must be present for every comparator except these two
+  NULL_COMPARATORS = ['IS_NULL', 'IS_NOT_NULL'].freeze
+
   private
 
   def validate_input(input, expression_required:)
     errors = HmisErrors::Errors.new
-    # If expression is required (create), it's invalid unless exactly one of [expression, structured_expression] is present
-    return errors if expression_required && input.expression.present? ^ input.structured_expression.present?
-    # If expression is not required (update), they can't both be present. Either could be provided, or both could be blank.
-    return errors if !expression_required && (input.expression.blank? || input.structured_expression.blank?)
 
-    errors.add(:expression, :invalid, message: 'Provide exactly one of expression or structuredExpression.')
+    if (input.expression.present? && input.structured_expression.present?) || # Both present - invalid
+      (expression_required && input.expression.blank? && input.structured_expression.blank?) # Neither present - invalid on create
+      errors.add(:expression, :invalid, message: 'Provide exactly one of expression or structuredExpression.')
+    end
+
+    if input.structured_expression.present?
+      input.structured_expression.clauses.each do |clause|
+        is_null_comparator = NULL_COMPARATORS.include?(clause.comparator)
+        errors.add(:expression, :invalid, message: "value must be omitted for #{clause.comparator}") if is_null_comparator && !clause.value.nil?
+        errors.add(:expression, :invalid, message: "value is required for #{clause.comparator}") if !is_null_comparator && clause.value.nil?
+      end
+    end
+
     errors
   end
 

@@ -1043,6 +1043,8 @@ enum CeMatchRuleComparator {
   GT
   GTE
   INCLUDES
+  IS_NOT_NULL
+  IS_NULL
   LT
   LTE
   NOT_EQ
