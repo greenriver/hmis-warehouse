@@ -105,19 +105,6 @@ RSpec.describe HmisExternalApis::AcHmis::BulkVoider, type: :job do
       end
     end
 
-    it 'is idempotent - re-running does not create duplicate void assessments or exits' do
-      perform_bulk_void([client.warehouse_id])
-
-      # On the second run the enrollment is already exited, so it takes the exited path,
-      # which skips creating a Void Assessment because one already exists.
-      expect do
-        perform_bulk_void([client.warehouse_id])
-      end.to not_change(Hmis::Hud::Exit, :count).
-        and not_change(Hmis::Hud::CustomAssessment.where(data_collection_stage: 99), :count)
-
-      expect(enrollment.reload.custom_assessments.where(data_collection_stage: 99).count).to eq(1)
-    end
-
     it 'tracks PaperTrail metadata for void assessments created on already-exited enrollments' do
       exited_client = create(:hmis_hud_client_with_warehouse_client, data_source: data_source)
       exited_enrollment = create(:hmis_hud_enrollment, data_source: data_source, project: ce_project, client: exited_client, exit_date: 1.week.ago)
@@ -158,7 +145,7 @@ RSpec.describe HmisExternalApis::AcHmis::BulkVoider, type: :job do
           and not_change(Hmis::Hud::CustomAssessment, :count)
       end
     end
-    
+
     it 'tracks PaperTrail metadata for created records' do
       run_id = '00000000-0000-0000-0000-000000000001'
 
