@@ -970,6 +970,10 @@ Rails.application.routes.draw do
   resources :public_files, only: [:show]
   resources :public_agencies, only: [:index]
   get 'logo/:logo', to: 'public_logos#show', as: :logo
+  namespace :theme do
+    get 'css', to: 'css#show', as: :css
+    get 'logo/:logo', to: 'logo#show', as: :logo
+  end
 
   unless Rails.env.production?
     resource :style_guide, only: :none do
