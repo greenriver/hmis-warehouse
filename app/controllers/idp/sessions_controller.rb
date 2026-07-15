@@ -47,7 +47,7 @@ module Idp
       return head(:unauthorized) unless access_token.present?
 
       jwt_helper = Idp::JwtHelper.new(access_token: access_token)
-      # valid? already returns false for a blank token, so it subsumes the token? check.
+      # valid? returns false for a blank token
       return head(:unauthorized) unless jwt_helper.valid?
 
       expiration_time = jwt_helper.expiration_time

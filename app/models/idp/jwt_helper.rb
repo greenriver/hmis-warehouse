@@ -145,7 +145,7 @@ class Idp::JwtHelper
     User.find_from_jwt(helper)&.id
   end
 
-  # Resolves the active User a token identifies, without provisioning or any other side effect
+  # Resolves an active user from a token, without provisioning or any other side effect
   # (find_from_jwt, not find_or_create_from_jwt). Used by callers that must not mutate state while
   # authenticating — the ActionCable resolver (a WebSocket frame must not provision) and the
   # machine-to-machine bearer API (an identity query, not a login). Returns nil for a missing,

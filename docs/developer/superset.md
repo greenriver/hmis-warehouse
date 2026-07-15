@@ -1,25 +1,35 @@
 # Developer Setup for Superset
-Superset has become an external dependency for Open Path rather than integrated in the application's docker compose.  The following instructions may help get it running, but are no longer fully accurate, but left here temporarily until updated documentation can be developed.
+Superset is an external dependency for Open Path, not part of this application's docker compose.
+It lives in its own repository, [greenriver/superset-sync](https://github.com/greenriver/superset-sync),
+which owns the Superset image, the `docker-compose.yaml`, and the auth config
+(`docker/superset/superset_config.py`). Run Superset from a checkout of that repo, not from
+`hmis-warehouse`.
 
-If you are running on Apple M1 architecture, this may help get superset up and running. Run the following in your `hmis-warehouse` directory.  This will install an abstraction layer that will allow the amd64 version of superset to run on arm64.
+## Running Superset locally
+
+Follow the "Development Quick Start" in the superset-sync `README.md`; the short version is:
+
+1. In your superset-sync checkout, seed the local env and compose override:
+   ```sh
+   cp .env.local.sample .env.local
+   cp docker-compose.override.sample.yaml docker-compose.override.yaml
+   ```
+2. Point `.env.local` at your warehouse: make sure the shared docker network in the override
+   matches your warehouse's (`nginx-proxy` or `traefik`), and that `WAREHOUSE_DB_URI` has the
+   right warehouse db host/name/creds.
+3. Choose an auth method in `.env.local` (see "Logging in to superset" below): either
+   `SUPERSET_USE_OAUTH2_PROXY=true` (jwt) or `SUPERSET_USE_OAUTH=true` (Doorkeeper/devise).
+4. Load data from the warehouse into dbt/superset, then start it:
+   ```sh
+   bin/local_development.sh init
+   bin/local_development.sh start
+   ```
+
+If you are on Apple silicon, the DBT/Superset images are amd64. Installing binfmt lets them run
+under emulation:
 ```bash
 docker run --privileged --rm tonistiigi/binfmt --install amd64
 ```
-In one terminal start up the Superset container.  It is set to start in the background by default, so you may need to `docker compose down` first
-```sh
-docker compose up superset
-```
-If all goes well, it'll run through the config and you'll end up with a new
-`superset` db on your postgres container.  If it looks like there were any
-errors, open a second terminal and run the following:
-```sh
-docker compose run superset_init_2
-```
-There's an `init.sh` script in `superset/op/` that only runs if
-`superset/op/.did.db.init` doesn't exist. Removing that file will let the
-script run again.
-
-At this point the usual `docker compose up -d` should bring up a functional superset installation at http://superset.hmis-warehouse.dev.test.
 
 ## Logging in to superset
 
@@ -29,8 +39,9 @@ How Superset resolves a warehouse user depends on the warehouse's `AUTH_METHOD`:
   Doorkeeper application as described below. `Superset.available?` reports true once a
   `Doorkeeper::Application` is registered for the Superset host.
 - **`jwt`** — the warehouse sits behind oauth2-proxy/dex, so there is no Doorkeeper application.
-  Superset instead calls `GET /api/superset/user_roles` with the user's bearer JWT
-  (`Authorization: Bearer <token>`); the warehouse validates the token and returns the user's
+  Superset instead calls `GET /api/superset/user_roles`, authenticating with the user's access
+  token that oauth2-proxy forwards as `X-Forwarded-Access-Token` (sent on as
+  `Authorization: Bearer <token>`); the warehouse validates the token and returns the user's
   roles. That route is exposed only under `AUTH_METHOD=jwt` and is listed in
   `skip_auth_routes` in `docker/auth/dev.oauth2-proxy-warehouse.cfg` because the backend does its
   own validation. `Superset.available?` reports true once `SUPERSET_ADMIN_PASS` is configured
@@ -39,8 +50,11 @@ How Superset resolves a warehouse user depends on the warehouse's `AUTH_METHOD`:
 
 ### Devise / Doorkeeper setup
 
-We use oauth2 with the warehouse as the provider. In a pinch, you can just find `AUTH_TYPE` in
-`docker/superset/op/superset_config.py` and comment that line out.
+We use oauth2 with the warehouse as the provider. Which auth path Superset takes is driven by env
+flags in `docker/superset/superset_config.py` (in the superset-sync repo): `SUPERSET_USE_OAUTH=true`
+selects the Doorkeeper provider, and `SUPERSET_USE_OAUTH2_PROXY=true` takes precedence for jwt.
+`AUTH_TYPE` is assigned inside those conditional blocks, so switch methods by setting the flags
+rather than editing `AUTH_TYPE` directly.
 
 The proper way to get things set up is to set up a doorkeeper application and update your environment variables in superset
 
