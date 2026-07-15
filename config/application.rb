@@ -74,6 +74,25 @@ module OpenPath
     # config.active_record.yaml_column_permitted_classes = [Symbol, Date, Time]
     config.active_record.use_yaml_unsafe_load = true
 
+    # ActiveRecord encryption backs devise-two-factor 6.x's `otp_secret` column (new and
+    # re-enrolled 2FA secrets). Existing secrets remain in encrypted_otp_secret* and are
+    # read via User#legacy_otp_secret. Keys are derived from the existing ENCRYPTION_KEY so
+    # no new secrets need provisioning; set the AR_ENCRYPTION_* env vars to override.
+    if (encryption_root = ENV['ENCRYPTION_KEY']).present?
+      derive_ar_encryption_key = lambda do |label, override_env|
+        ENV[override_env].presence || OpenSSL::KDF.pbkdf2_hmac(
+          encryption_root,
+          salt: "ar-encryption:#{label}",
+          iterations: 2**16,
+          length: 32,
+          hash: 'sha256',
+        ).unpack1('H*')
+      end
+      config.active_record.encryption.primary_key = derive_ar_encryption_key.call('primary_key', 'AR_ENCRYPTION_PRIMARY_KEY')
+      config.active_record.encryption.deterministic_key = derive_ar_encryption_key.call('deterministic_key', 'AR_ENCRYPTION_DETERMINISTIC_KEY')
+      config.active_record.encryption.key_derivation_salt = derive_ar_encryption_key.call('key_derivation_salt', 'AR_ENCRYPTION_KEY_DERIVATION_SALT')
+    end
+
     # Use the responders controller from the responders gem
     config.app_generators.scaffold_controller :responders_controller
 
