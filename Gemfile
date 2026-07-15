@@ -28,6 +28,7 @@ gem 'nokogiri'
 gem 'loofah'
 gem 'rubyzip'
 gem 'rails-html-sanitizer'
+gem 'sanitize' # used to sanitize user-entered theme CSS
 gem 'sshkit'
 gem 'paranoia'
 gem 'pg'

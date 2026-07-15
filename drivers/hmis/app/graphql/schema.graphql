@@ -12872,6 +12872,13 @@ type TableConfig {
 }
 
 type TableConfigLookup {
+  ceClientsConfig(
+    """
+    Optional project group ID to use for detecting the best config. Falls back
+    to global config if not provided, or if no project group config exists.
+    """
+    projectGroupId: ID
+  ): TableConfig
   ceClientsGlobalConfig: TableConfig
   ceClientsUnitGroupConfig(unitGroupId: ID!): TableConfig
 }
