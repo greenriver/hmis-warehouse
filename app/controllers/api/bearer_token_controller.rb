@@ -15,8 +15,7 @@ module Api
   # compose_activity/log_activity, 2FA, ...). Those filters key off current_user, and several of
   # them redirect_to a setup page when the user has outstanding onboarding. A server-to-server
   # caller carrying a live end-user token would then receive a 302 to an HTML page instead of the
-  # JSON it asked for (and the redirect-follower would silently fall back to default behavior), and
-  # every call would write an activity-log row. Riding a clean ActionController::Base — the same
+  # JSON it asked for, and every call would write an activity-log row. Riding a clean ActionController::Base — the same
   # choice Hmis::BaseController and SystemStatusController make — keeps this path to just the token
   # check below. See Api::SupersetController.
   class BearerTokenController < ActionController::Base

@@ -23,6 +23,22 @@ At this point the usual `docker compose up -d` should bring up a functional supe
 
 ## Logging in to superset
 
+How Superset resolves a warehouse user depends on the warehouse's `AUTH_METHOD`:
+
+- **`devise`** — Superset uses OAuth2 with the warehouse as the provider (Doorkeeper). Set up a
+  Doorkeeper application as described below. `Superset.available?` reports true once a
+  `Doorkeeper::Application` is registered for the Superset host.
+- **`jwt`** — the warehouse sits behind oauth2-proxy/dex, so there is no Doorkeeper application.
+  Superset instead calls `GET /api/superset/user_roles` with the user's bearer JWT
+  (`Authorization: Bearer <token>`); the warehouse validates the token and returns the user's
+  roles. That route is exposed only under `AUTH_METHOD=jwt` and is listed in
+  `skip_auth_routes` in `docker/auth/dev.oauth2-proxy-warehouse.cfg` because the backend does its
+  own validation. `Superset.available?` reports true once `SUPERSET_ADMIN_PASS` is configured
+  (any non-blank value in development; anything other than the insecure `admin` default elsewhere),
+  which is the credential `Superset::Api` uses for the warehouse→Superset REST calls.
+
+### Devise / Doorkeeper setup
+
 We use oauth2 with the warehouse as the provider. In a pinch, you can just find `AUTH_TYPE` in
 `docker/superset/op/superset_config.py` and comment that line out.
 

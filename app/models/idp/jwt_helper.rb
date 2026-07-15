@@ -66,8 +66,8 @@ class Idp::JwtHelper
     Rails.logger.error "JSON verification failed: #{e.message}"
     false
   rescue *NETWORK_ERRORS => e
-    # Couldn't reach JWKS_URL to fetch the signing key. Fail closed (401), but surface it to Sentry:
-    # unlike a bad token, this is an infrastructure problem the caller can't fix.
+    # Couldn't reach JWKS_URL to fetch the signing key. Unlike a bad token, this is an
+    # infrastructure problem the caller can't fix, so surface it to Sentry (we still fail closed).
     Rails.logger.error "JWT verification could not reach JWKS endpoint: #{e.message}"
     Sentry.capture_exception_with_info(e, 'JWT verification could not reach the JWKS endpoint; treating token as invalid')
     false

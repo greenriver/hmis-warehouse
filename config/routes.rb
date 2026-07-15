@@ -784,8 +784,9 @@ Rails.application.routes.draw do
     end
     resources :clients, only: [:show]
 
-    # Superset (the M2M caller, not oauth2-proxy) presents a bearer JWT directly; the mirror image
-    # of the Doorkeeper-gated 'oauth/user-data' route above.
+    # Superset (the M2M caller, not oauth2-proxy) presents a bearer JWT directly; the JWT-side
+    # mirror of the Doorkeeper-gated 'oauth/user-data' route declared under AuthMethod.devise? at
+    # the top of this file.
     get 'superset/user_roles', to: 'superset#user_roles' if AuthMethod.jwt?
   end
 
