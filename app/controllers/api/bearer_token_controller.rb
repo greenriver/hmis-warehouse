@@ -33,16 +33,13 @@ module Api
       token = extract_bearer_token
       return head :unauthorized unless token.present?
 
-      jwt_helper = Idp::JwtHelper.new(access_token: token)
-      unless jwt_helper.valid?
-        Rails.logger.warn "#{self.class.name}: invalid or expired JWT token"
-        return head :unauthorized
-      end
-
       # Read-only lookup: this is a machine-to-machine identity query, not a login, so it must not
       # provision a user or learn an Authentication Source (see connection.rb#find_verified_user).
-      @current_user = User.find_from_jwt(jwt_helper)
-      return head(:unauthorized) unless @current_user&.active?
+      @current_user = Idp::JwtHelper.active_user_from_token(token)
+      unless @current_user
+        Rails.logger.warn "#{self.class.name}: invalid/expired JWT token or inactive user"
+        return head :unauthorized
+      end
     end
 
     def extract_bearer_token

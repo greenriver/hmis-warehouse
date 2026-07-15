@@ -145,6 +145,19 @@ class Idp::JwtHelper
     User.find_from_jwt(helper)&.id
   end
 
+  # Resolves the active User a token identifies, without provisioning or any other side effect
+  # (find_from_jwt, not find_or_create_from_jwt). Used by callers that must not mutate state while
+  # authenticating — the ActionCable resolver (a WebSocket frame must not provision) and the
+  # machine-to-machine bearer API (an identity query, not a login). Returns nil for a missing,
+  # invalid, or expired token, an unknown user, or a locally deactivated account.
+  def self.active_user_from_token(access_token)
+    helper = new(access_token: access_token)
+    return nil unless helper.valid?
+
+    user = User.find_from_jwt(helper)
+    user if user&.active?
+  end
+
   def self.assert_boot_config!
     auth_method = ENV['AUTH_METHOD']
     raise "Invalid AUTH_METHOD: #{auth_method.inspect}" unless VALID_AUTH_METHODS.include?(auth_method)
