@@ -6,9 +6,11 @@
 
 # frozen_string_literal: true
 
-module Api
-  # Lean base for machine-to-machine JSON endpoints that authenticate with a bearer JWT
-  # (`Authorization: Bearer <token>`), such as Superset's role lookup.
+module Idp
+  # Lean base for machine-to-machine JSON endpoints that authenticate with an IdP-issued bearer JWT
+  # (`Authorization: Bearer <token>`), such as Superset's role lookup. It lives in the Idp:: seam
+  # alongside its collaborators (Idp::JwtHelper, Idp::JwtAuthentication, Idp::JwtCurrentUser) rather
+  # than under Api:: because its whole behavior is IdP-JWT specific, not transport-generic.
   #
   # It deliberately does NOT inherit from ApplicationController. That controller's filter chain is
   # built for an interactive browser session (require_training!, require_compliance_agreement!,
@@ -18,7 +20,7 @@ module Api
   # JSON it asked for, and every call would write an activity-log row. Riding a clean ActionController::Base — the same
   # choice Hmis::BaseController and SystemStatusController make — keeps this path to just the token
   # check below. See Api::SupersetController.
-  class BearerTokenController < ActionController::Base
+  class JwtApiController < ActionController::Base
     include LogRagePayloadBehavior
 
     # Token-authenticated, session-less API: there is no form or cookie to forge against.

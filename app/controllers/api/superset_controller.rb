@@ -9,10 +9,10 @@
 # Provides user role information for Superset authentication via JWT.
 # This endpoint is used by Superset when configured with oauth2-proxy/dex authentication.
 # Unlike the Doorkeeper-based /oauth/user-data endpoint, this validates JWT tokens from dex.
-# Authentication (bearer token -> read-only user resolution) lives in Api::BearerTokenController;
+# Authentication (bearer token -> read-only user resolution) lives in Idp::JwtApiController;
 # this M2M endpoint must not ride ApplicationController's interactive filter chain.
 module Api
-  class SupersetController < BearerTokenController
+  class SupersetController < Idp::JwtApiController
     def user_roles
       payload = {
         id: current_user.id,
