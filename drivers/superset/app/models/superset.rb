@@ -27,8 +27,6 @@ module Superset
   # it as unavailable rather than exposing it with the insecure default.
   INSECURE_DEFAULT_ADMIN_PASS = 'admin'
 
-  # "Available" means two different things depending on how the app authenticates, so split on the
-  # AuthMethod seam and let each side say what it needs.
   def self.available?
     AuthMethod.jwt? ? admin_password_configured? : doorkeeper_app_registered?
   end

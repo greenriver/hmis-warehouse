@@ -18,8 +18,7 @@ class Idp::JwtHelper
   VALID_AUTH_METHODS = [nil, 'devise', 'jwt'].freeze
 
   # Transport-level failures reaching JWKS_URL. We can't verify the token when the IdP is
-  # unreachable, so we fail closed (treat it as invalid) rather than letting a 500 escape to the
-  # caller. SocketError covers Socket::ResolutionError (a subclass).
+  # unreachable, so we fail closed
   NETWORK_ERRORS = [
     SocketError,
     Errno::ECONNREFUSED,
@@ -66,8 +65,6 @@ class Idp::JwtHelper
     Rails.logger.error "JSON verification failed: #{e.message}"
     false
   rescue *NETWORK_ERRORS => e
-    # Couldn't reach JWKS_URL to fetch the signing key. Unlike a bad token, this is an
-    # infrastructure problem the caller can't fix, so surface it to Sentry (we still fail closed).
     Rails.logger.error "JWT verification could not reach JWKS endpoint: #{e.message}"
     Sentry.capture_exception_with_info(e, 'JWT verification could not reach the JWKS endpoint; treating token as invalid')
     false
@@ -146,10 +143,6 @@ class Idp::JwtHelper
   end
 
   # Resolves an active user from a token, without provisioning or any other side effect
-  # (find_from_jwt, not find_or_create_from_jwt). Used by callers that must not mutate state while
-  # authenticating — the ActionCable resolver (a WebSocket frame must not provision) and the
-  # machine-to-machine bearer API (an identity query, not a login). Returns nil for a missing,
-  # invalid, or expired token, an unknown user, or a locally deactivated account.
   def self.active_user_from_token(access_token)
     helper = new(access_token: access_token)
     return nil unless helper.valid?
