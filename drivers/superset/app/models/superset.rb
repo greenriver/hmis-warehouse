@@ -22,16 +22,32 @@ module Superset
     "#{superset_base_url}/login/The%20Warehouse"
   end
 
-  def self.available?
-    if AuthMethod.jwt?
-      password_set = ENV['SUPERSET_ADMIN_PASS'].present?
-      return password_set if Rails.env.development?
+  # The value SUPERSET_ADMIN_PASS is seeded with in the local/dev images. Outside development a
+  # password still set to this placeholder means Superset was never really configured, so we treat
+  # it as unavailable rather than exposing it with the insecure default.
+  INSECURE_DEFAULT_ADMIN_PASS = 'admin'
 
-      password_set && ENV['SUPERSET_ADMIN_PASS'] != 'admin'
-    else
-      a_t = Doorkeeper::Application.arel_table
-      Doorkeeper::Application.where(a_t[:redirect_uri].matches("%#{superset_base_url}%")).exists?
-    end
+  # "Available" means two different things depending on how the app authenticates, so split on the
+  # AuthMethod seam and let each side say what it needs.
+  def self.available?
+    AuthMethod.jwt? ? admin_password_configured? : doorkeeper_app_registered?
+  end
+
+  # Under JWT, Superset rides the shared admin credential (see Superset::Api), so it's usable only
+  # once that credential is really set: any non-blank value in development, and anything other than
+  # the insecure placeholder everywhere else.
+  def self.admin_password_configured?
+    password = ENV['SUPERSET_ADMIN_PASS']
+    return false if password.blank?
+    return true if Rails.env.development?
+
+    password != INSECURE_DEFAULT_ADMIN_PASS
+  end
+
+  # Under Devise, availability means a Doorkeeper OAuth app is registered for the Superset host.
+  def self.doorkeeper_app_registered?
+    a_t = Doorkeeper::Application.arel_table
+    Doorkeeper::Application.where(a_t[:redirect_uri].matches("%#{superset_base_url}%")).exists?
   end
 
   def self.available_to_user?(user)
