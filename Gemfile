@@ -1,7 +1,7 @@
 source 'https://rubygems.org'
 
-gem 'rails', '7.2.3.1'
-gem 'rack', '< 3.2' # pinning to the same max version as is required by rails 7.2
+gem 'rails', '8.0.5'
+gem 'rack', '< 3.2' # kept on the rack 3.1.x line; rails 8.0 resolves fine under this cap
 
 gem 'openssl', '>=3.3.1' # override the default ruby version of openssl https://github.com/ruby/openssl/issues/949#issuecomment-3370358680
 
@@ -32,7 +32,7 @@ gem 'sanitize' # used to sanitize user-entered theme CSS
 gem 'sshkit'
 gem 'paranoia'
 gem 'pg'
-gem 'activerecord-sqlserver-adapter', '~> 7.2.0' # tied to the rails version
+gem 'activerecord-sqlserver-adapter', '~> 8.0.0' # tied to the rails version
 gem 'activerecord-import'
 gem 'order_as_specified'
 
@@ -50,7 +50,7 @@ gem 'premailer'
 gem 'census_api', github: 'greenriver/census_api'
 
 # spatial manipulations
-gem 'activerecord-postgis-adapter', '~> 10.0'
+gem 'activerecord-postgis-adapter', '~> 11.0.0' # tied to the rails version (11.0.x -> AR 8.0)
 gem 'ffi'
 gem 'ffi-geos'
 gem 'rgeo'
@@ -97,7 +97,7 @@ gem 'devise', '~> 4.9'
 gem 'devise_invitable', '~> 2.0.9'
 gem 'devise-pwned_password'
 gem 'devise-security'
-gem 'devise-two-factor', '~> 4.1.1'
+gem 'devise-two-factor', '~> 6.4' # PROBE: rails 8 needs >= 6.1 (requires 2fa data migration)
 gem 'rack-cors'
 gem 'doorkeeper'
 
@@ -174,7 +174,7 @@ gem 'kiba-common'
 
 # For exporting
 gem 'caxlsx'
-gem 'caxlsx_rails'
+gem 'caxlsx_rails', '>= 0.7.1' # 0.6.x breaks `render xlsx:` template resolution on rails 8
 gem 'roo', require: false
 gem 'roo-xls', require: false
 gem 'rubyXL', require: false
