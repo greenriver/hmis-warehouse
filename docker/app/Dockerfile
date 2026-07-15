@@ -41,14 +41,23 @@ ARG PG_MAJOR=17
 # launch headless in this image family (see .github/workflows/container_setup
 # for the same issue/fix in CI). Pin to the last known-good build via
 # snapshot.debian.org, since the old .deb is no longer in the live apt index.
+# TARGETARCH is populated automatically by BuildKit (amd64, arm64, ...) and
+# matches the Debian .deb architecture suffix used below.
+ARG TARGETARCH
 ARG CHROMIUM_VERSION=149.0.7827.196-1~deb12u1
 ARG CHROMIUM_SNAPSHOT_BASE=https://snapshot.debian.org/archive/debian-security/20260626T014759Z/pool/updates/main/c/chromium
 # snapshot.debian.org addresses every archived file by its SHA1 (see the
 # "hash" field at https://snapshot.debian.org/mr/package/chromium/<version>/allfiles),
 # so this is the checksum to verify each download against, not a SHA256.
-ARG CHROMIUM_SHA1=b7b0674e68b94af0158bfa8c305a46fc07f6f7c5
-ARG CHROMIUM_COMMON_SHA1=098ec4a8fe2e76c66f942ad2e2133f75fbd2a13d
-ARG CHROMIUM_SANDBOX_SHA1=48701ce3ed3bd9cf6008862fb67d6decc3cc6569
+# Per-architecture checksums: the build downloads the .deb matching the build
+# platform (TARGETARCH, supplied automatically by BuildKit) so image builds work
+# on both amd64 (production/ECR) and arm64 (Apple Silicon dev machines).
+ARG CHROMIUM_SHA1_AMD64=b7b0674e68b94af0158bfa8c305a46fc07f6f7c5
+ARG CHROMIUM_COMMON_SHA1_AMD64=098ec4a8fe2e76c66f942ad2e2133f75fbd2a13d
+ARG CHROMIUM_SANDBOX_SHA1_AMD64=48701ce3ed3bd9cf6008862fb67d6decc3cc6569
+ARG CHROMIUM_SHA1_ARM64=4efecfdc1ee9bf336a00d54eef14edb758cc4707
+ARG CHROMIUM_COMMON_SHA1_ARM64=117f067b4202829708beac06b294dba37430ee5d
+ARG CHROMIUM_SANDBOX_SHA1_ARM64=b1a90ca0c4ac453c77a166ab25ac53727267d86b
 
 LABEL "app"=open-path-warehouse
 LABEL "ruby-version"=3.4.9
@@ -176,13 +185,24 @@ RUN apt-get update && apt-get upgrade -y \
 # generation via grover — see the CHROMIUM_* ARGs above for why this can't
 # just be `apt-get install chromium chromium-common`.
 RUN apt-get update \
+  && case "$TARGETARCH" in \
+       amd64) deb_arch=amd64; \
+              chromium_sha1="$CHROMIUM_SHA1_AMD64"; \
+              chromium_common_sha1="$CHROMIUM_COMMON_SHA1_AMD64"; \
+              chromium_sandbox_sha1="$CHROMIUM_SANDBOX_SHA1_AMD64";; \
+       arm64) deb_arch=arm64; \
+              chromium_sha1="$CHROMIUM_SHA1_ARM64"; \
+              chromium_common_sha1="$CHROMIUM_COMMON_SHA1_ARM64"; \
+              chromium_sandbox_sha1="$CHROMIUM_SANDBOX_SHA1_ARM64";; \
+       *) echo "Unsupported TARGETARCH: $TARGETARCH" >&2; exit 1;; \
+     esac \
   && tmp_dir=$(mktemp -d) \
   && for pkg in chromium chromium-common chromium-sandbox; do \
-       curl -sL --fail -o "$tmp_dir/${pkg}.deb" "$CHROMIUM_SNAPSHOT_BASE/${pkg}_${CHROMIUM_VERSION}_amd64.deb"; \
+       curl -sL --fail -o "$tmp_dir/${pkg}.deb" "$CHROMIUM_SNAPSHOT_BASE/${pkg}_${CHROMIUM_VERSION}_${deb_arch}.deb"; \
      done \
-  && echo "${CHROMIUM_SHA1}  $tmp_dir/chromium.deb" | sha1sum -c - \
-  && echo "${CHROMIUM_COMMON_SHA1}  $tmp_dir/chromium-common.deb" | sha1sum -c - \
-  && echo "${CHROMIUM_SANDBOX_SHA1}  $tmp_dir/chromium-sandbox.deb" | sha1sum -c - \
+  && echo "${chromium_sha1}  $tmp_dir/chromium.deb" | sha1sum -c - \
+  && echo "${chromium_common_sha1}  $tmp_dir/chromium-common.deb" | sha1sum -c - \
+  && echo "${chromium_sandbox_sha1}  $tmp_dir/chromium-sandbox.deb" | sha1sum -c - \
   && apt-get install -y --no-install-recommends "$tmp_dir"/*.deb \
   && apt-mark hold chromium chromium-common chromium-sandbox \
   && rm -rf "$tmp_dir" /var/lib/apt/lists/*
