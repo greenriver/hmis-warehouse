@@ -12,7 +12,9 @@ module CustomApplicationRecord
   included do
     include Efind
     include ArelHelper
-    self.filter_attributes = Rails.application.config.filter_parameters
+    # NOTE: filter_attributes is set once on ActiveRecord::Base in
+    # config/initializers/filter_parameter_logging.rb (not per-model here) to avoid
+    # Rails 8.1's filter_attributes= repeatedly appending to config.filter_parameters.
   end
 
   class_methods do
