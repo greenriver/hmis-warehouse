@@ -41,7 +41,9 @@ RSpec.describe 'Superset JWT wiring', type: :request do
       # Stub at the Idp::JwtHelper boundary (as the connection.rb/wiring specs do) rather than
       # handing the real class a malformed string: WebMock.allow_net_connect! is on globally, so an
       # unstubbed token would try a real JWKS fetch instead of exercising this controller's 401 path.
-      invalid_helper = instance_double(Idp::JwtHelper, token?: true, valid?: false)
+      # active_user_from_token gates on valid? before touching find_from_jwt, so valid?: false is the
+      # only stub this path exercises.
+      invalid_helper = instance_double(Idp::JwtHelper, valid?: false)
       allow(Idp::JwtHelper).to receive(:new).with(access_token: 'not-a-real-token').and_return(invalid_helper)
 
       get '/api/superset/user_roles', headers: { 'Authorization' => 'Bearer not-a-real-token' }
@@ -49,15 +51,15 @@ RSpec.describe 'Superset JWT wiring', type: :request do
       expect(response).to have_http_status(:unauthorized)
     end
 
-    it 'returns 401 for an expired (no longer valid) token' do
-      token = sign_in(user)
-      # sign_in stubs Idp::JwtHelper.new to return a single shared double for this token, so the
-      # instance below IS the one the controller resolves. Re-stubbing valid? on it to false makes
-      # an otherwise-good token read as expired.
-      controller_helper = Idp::JwtHelper.new(access_token: token)
-      allow(controller_helper).to receive(:valid?).and_return(false)
+    it 'returns 401 when a valid token resolves to no user' do
+      # Distinct from the invalid-token path: here valid? is true, so active_user_from_token proceeds
+      # to find_from_jwt, which finds nothing. Proves the unresolved-user branch fails closed (401)
+      # rather than crashing on current_user.id (500) or authenticating a nil user.
+      resolvable_helper = instance_double(Idp::JwtHelper, valid?: true)
+      allow(Idp::JwtHelper).to receive(:new).with(access_token: 'orphan-token').and_return(resolvable_helper)
+      allow(User).to receive(:find_from_jwt).with(resolvable_helper).and_return(nil)
 
-      get '/api/superset/user_roles', headers: { 'Authorization' => "Bearer #{token}" }
+      get '/api/superset/user_roles', headers: { 'Authorization' => 'Bearer orphan-token' }
 
       expect(response).to have_http_status(:unauthorized)
     end
@@ -77,8 +79,10 @@ RSpec.describe 'Superset JWT wiring', type: :request do
     # JSON. Prove those filters are not in the chain, so a user with a pending compliance
     # requirement still gets 200 + JSON.
     it 'still returns the JSON payload when the resolved user has outstanding onboarding' do
-      allow_any_instance_of(User).to receive(:pending_compliance_requirements).and_return([double('requirement')])
       token = sign_in(user)
+      # find_from_jwt resolves current_user to this exact `user` object (see the sign_in helper), so
+      # stub the instance the controller actually holds rather than reaching for allow_any_instance_of.
+      allow(user).to receive(:pending_compliance_requirements).and_return([double('requirement')])
 
       get '/api/superset/user_roles', headers: { 'Authorization' => "Bearer #{token}" }
 
