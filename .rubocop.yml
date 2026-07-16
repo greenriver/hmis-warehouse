@@ -4,6 +4,9 @@ inherit_mode:
   merge:
     - Exclude
 
+require:
+  - ./lib/rubocop/cop/migrations/disable_ddl_transaction
+
 AllCops:
   SuggestExtensions: false
   Exclude:
@@ -272,3 +275,8 @@ Style/ExplicitBlockArgument:
   Enabled: false
 Style/HashSyntax:
   EnforcedShorthandSyntax: never
+
+Migrations/DisableDdlTransaction:
+  Enabled: true
+  Include:
+    - "db/**/migrate/*.rb"

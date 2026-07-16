@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright Green River Data Group, Inc.
 #
@@ -14,7 +16,7 @@ SimpleForm.setup do |config|
   # stack. The options given below are used to wrap the
   # whole input.
   config.wrappers :default, class: :input,
-    hint_class: :field_with_hint, error_class: :field_with_errors do |b|
+                            hint_class: :field_with_hint, error_class: :field_with_errors do |b|
     ## Extensions enabled by default
     # Any of these extensions can be disabled for a
     # given input by passing: `f.input EXTENSION_NAME => false`.
@@ -110,7 +112,7 @@ SimpleForm.setup do |config|
   # You can define the class to use on all labels. Default is nil.
   # config.label_class = nil
 
-  # You can define the default class to be used on forms. Can be overriden
+  # You can define the default class to be used on forms. Can be overridden
   # with `html: { :class }`. Defaulting to none.
   # config.default_form_class = nil
 
