@@ -24,30 +24,43 @@ class GrdaWarehouseBase < ActiveRecord::Base
     Dba::PartitionMaker.new(table_name: table_name).done?
   end
 
-  # default colocated versions table for warehouse records
+  # Warehouse records colocate their versions in the warehouse database via
+  # GrdaWarehouse::Version. paper_trail 16+ forbids calling has_paper_trail more
+  # than once (the inclusion it checks is inherited), so a subclass that
+  # re-declares it -- e.g. an abstract base plus a concrete subclass -- would
+  # raise. We override the class method to force the correct version class and,
+  # on a second call, merge the new options into the already-configured options
+  # instead of re-running setup (which would stack callbacks and write duplicate
+  # version records).
+  FORCED_VERSIONS = { class_name: 'GrdaWarehouse::Version' }.freeze
+
   def self.has_paper_trail(options = {}) # rubocop:disable Naming/PredicatePrefix
-    # Detect duplicate has_paper_trail calls to prevent double version creation
-    # Check if paper_trail callbacks are already defined
     if respond_to?(:paper_trail_options) && paper_trail_options.present?
-      message = "PaperTrail already enabled on #{name}. This will cause duplicate version records."
-      backtrace = caller.select { |line| line.include?(Rails.root.to_s) }.first(5)
-
-      raise StandardError, "#{message}\nCalled from:\n#{backtrace.join("\n")}" unless Rails.env.production?
-
-      # In production, log to Sentry but allow it to continue
-      Sentry.capture_message(
-        message,
-        level: :warning,
-        extra: {
-          model: name,
-          backtrace: backtrace,
-        },
-      )
+      self.paper_trail_options = merge_paper_trail_options(options)
+      return
     end
 
-    versions = options.fetch(:versions, {}).merge(class_name: 'GrdaWarehouse::Version')
+    versions = options.fetch(:versions, {}).merge(FORCED_VERSIONS)
     skip = options.fetch(:skip, [:lock_version])
     super(options.merge(versions: versions, skip: skip))
+  end
+
+  # Merge a subclass's paper_trail options into the already-configured options,
+  # normalizing ignore/skip/only to the stringified form paper_trail expects at
+  # event time (see PaperTrail::ModelConfig#event_attribute_option). Does not
+  # re-run setup, so no duplicate callbacks/versions, and leaves version_class_name
+  # untouched so every warehouse model keeps versioning into GrdaWarehouse::Version.
+  def self.merge_paper_trail_options(options)
+    merged = paper_trail_options.dup
+    [:ignore, :skip, :only].each do |key|
+      next unless options.key?(key)
+
+      merged[key] = Array(options[key]).flatten.compact.map do |attr|
+        attr.is_a?(Hash) ? attr.stringify_keys : attr.to_s
+      end
+    end
+    merged[:meta] = merged[:meta].to_h.merge(options[:meta]) if options[:meta]
+    merged
   end
 
   # allows delegation of paper trail metadata
