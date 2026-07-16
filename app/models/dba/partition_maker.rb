@@ -182,7 +182,7 @@ class Dba::PartitionMaker
   def _compare
     [partitioned_table, old_table].each do |_schema|
       p(<<~SQL)
-        EXPLAIN (ANALZYE, BUFFERS, COSTS, VERBOSE)
+        EXPLAIN (ANALYZE, BUFFERS, COSTS, VERBOSE)
         select * from ...
       SQL
     end

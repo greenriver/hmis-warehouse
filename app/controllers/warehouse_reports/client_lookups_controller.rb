@@ -9,26 +9,33 @@
 module WarehouseReports
   class ClientLookupsController < ApplicationController
     include WarehouseReportAuthorization
-    include ArelHelper
 
     def index
-      @filter = ::Filters::FilterBase.new(user_id: current_user.id, enforce_one_year_range: false)
+      @filter = ::Filters::ClientLookup.new(user_id: current_user.id, enforce_one_year_range: false)
       @filter.update(report_params)
+      @map_enrollments = map_enrollments?
       respond_to do |format|
         format.html {}
         format.xlsx do
-          @start_date = @filter.start
-          @end_date = @filter.end
-          @project_ids = @filter.effective_project_ids
+          unless @filter.any_effective_project_ids?
+            message = 'At least one Data Source, Organization, or Project must be selected'
+            redirect_to warehouse_reports_client_lookups_path(report: redirect_report_params), alert: message
+            next
+          end
 
-          @rows = client_source.
-            joins(:warehouse_client_source, enrollments: :project).
-            merge(GrdaWarehouse::Hud::Enrollment.open_during_range(@start_date .. @end_date)).
-            merge(GrdaWarehouse::Hud::Project.where(id: @project_ids)).
-            distinct.
-            order(wc_t[:destination_id].asc, LastName: :asc, FirstName: :asc).
-            pluck(wc_t[:destination_id], :PersonalID, :FirstName, :LastName)
-          render xlsx: 'report', filename: 'client_lookups.xlsx'
+          @report = WarehouseReports::ClientLookups::Report.new(
+            filter: @filter,
+            user: current_user,
+            map_enrollments: @map_enrollments,
+          )
+          unless @report.any_authorized_projects?
+            message = 'you do not have permission to view the selected project(s) for this report'
+            redirect_to warehouse_reports_client_lookups_path(report: redirect_report_params), alert: message
+            next
+          end
+
+          @rows = @report.rows
+          send_data @report.to_xlsx(@rows), filename: 'client_lookups.xlsx', type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
         end
       end
     end
@@ -39,12 +46,15 @@ module WarehouseReports
       params.require(:report).permit(@filter.known_params)
     end
 
-    private def client_source
-      GrdaWarehouse::Hud::Client.source
+    private def map_enrollments?
+      ActiveModel::Type::Boolean.new.cast(params.dig(:report, :map_enrollments))
     end
-  end
 
-  private def project_source
-    GrdaWarehouse::Hud::Project.viewable_by(current_user, permission: :can_view_assigned_reports)
+    # `map_enrollments` isn't part of `@filter.known_params`, so `report_params` drops it.
+    # Carry it through the guard-clause redirects so the checkbox re-renders in the state
+    # the user submitted instead of silently reverting to unchecked.
+    private def redirect_report_params
+      report_params.to_h.merge(map_enrollments: @map_enrollments)
+    end
   end
 end

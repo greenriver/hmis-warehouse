@@ -356,7 +356,7 @@ module HudPit::Generators::Pit::Fy2023
           query: a_t[:pit_race].eq('Asian'),
         },
         native_ak: {
-          title: 'American Indian, Alaska Native, or Indigenouse',
+          title: 'American Indian, Alaska Native, or Indigenous',
           query: a_t[:pit_race].eq('AmIndAKNative'),
         },
         native_pi: {
