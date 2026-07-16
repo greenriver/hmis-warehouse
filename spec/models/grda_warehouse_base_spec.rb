@@ -44,6 +44,16 @@ RSpec.describe 'GrdaWarehouseBase PaperTrail configuration', type: :model do
       has_paper_trail ignore: [:description, :updated_at]
     end
 
+    # Regression fixture for the reported bug: two has_paper_trail declarations
+    # on a single class. The first call hits the super path; the second must
+    # merge in place rather than re-run setup (which historically wrote a
+    # duplicate version into the primary database's default versions table).
+    class TestDoubleDeclareModel < GrdaWarehouseBase
+      self.table_name = 'test_paper_trail_models'
+      has_paper_trail
+      has_paper_trail
+    end
+
     # Merge-semantics fixtures: a parent that already configures an option and a
     # child that re-declares the same option. The contract is per-key overwrite:
     # the child inherits keys it does not set and replaces any key it does set
@@ -94,6 +104,7 @@ RSpec.describe 'GrdaWarehouseBase PaperTrail configuration', type: :model do
     GrdaWarehouseBase.connection.execute('DROP TABLE IF EXISTS test_paper_trail_models CASCADE')
     [
       :TestPaperTrailChild, :TestPaperTrailParent, :TestPaperTrailModel,
+      :TestDoubleDeclareModel,
       :TestMergeChild, :TestMergeParent,
       :TestMetaChild, :TestMetaParent,
       :TestOnlyChild, :TestOnlyParent,
@@ -133,6 +144,17 @@ RSpec.describe 'GrdaWarehouseBase PaperTrail configuration', type: :model do
       expect do
         record.destroy
       end.to change(GrdaWarehouse::Version, :count).by(1)
+    end
+
+    it 'records exactly one version when a class declares has_paper_trail twice in its own body' do
+      # The reported bug: a duplicate has_paper_trail declaration on a single
+      # class produced two version records (the extra one landing in the primary
+      # database's default versions table). The second call must merge in place,
+      # not re-run setup -- so a create still writes exactly one version, and
+      # nothing lands in PaperTrail::Version.
+      expect do
+        TestDoubleDeclareModel.create!(name: 'Test', description: 'x')
+      end.to change(GrdaWarehouse::Version, :count).by(1).and change(PaperTrail::Version, :count).by(0)
     end
 
     it 'stores versions via GrdaWarehouse::Version' do
@@ -257,10 +279,22 @@ RSpec.describe 'GrdaWarehouseBase PaperTrail configuration', type: :model do
 
     describe 'skip' do
       it 'replaces the parent skip list rather than unioning it' do
-        skip = TestSkipChild.paper_trail_options[:skip].map(&:to_s)
+        # Parent skipped :description; child re-declares skip: [:name]. After the
+        # merge the child skips name (not description), so an update that changes
+        # both records description but not name. Asserting on the recorded
+        # changeset (rather than paper_trail_options directly) also proves the
+        # merge stringifies skip: symbol entries would silently stop filtering at
+        # event time because PaperTrail subtracts skip from the string-keyed list
+        # of changed attributes.
+        record = TestSkipChild.create!(name: 'A', description: 'original')
 
-        expect(skip).to include('name') # child's value
-        expect(skip).not_to include('description') # parent's value was dropped
+        record.update!(name: 'B', description: 'changed')
+        changed_keys = record.versions.reload.last.changeset.keys.map(&:to_s)
+
+        # child's own skip still applies
+        expect(changed_keys).not_to include('name')
+        # parent's :description skip was dropped -> description is now tracked
+        expect(changed_keys).to include('description')
       end
     end
   end
