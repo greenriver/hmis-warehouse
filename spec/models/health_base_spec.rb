@@ -125,6 +125,21 @@ RSpec.describe 'HealthBase PaperTrail configuration', type: :model do
       end.to change(Health::HealthVersion, :count).by(1)
     end
 
+    it 'leaves the parent ignore list untouched when the child re-declares' do
+      # Defining TestHealthMergeChild must not mutate TestHealthMergeParent's
+      # config (the merge dups before mutating). The parent must still ignore
+      # name and track secret_col.
+      record = TestHealthMergeParent.create!(name: 'A', secret_col: 'B')
+
+      expect do
+        record.update!(name: 'C')
+      end.not_to change(Health::HealthVersion, :count)
+
+      expect do
+        record.update!(secret_col: 'D')
+      end.to change(Health::HealthVersion, :count).by(1)
+    end
+
     it 'does not apply a default lock_version skip (unlike GrdaWarehouseBase)' do
       # HealthBase intentionally omits the lock_version skip default that
       # GrdaWarehouseBase supplies; health tables need not carry lock_version.

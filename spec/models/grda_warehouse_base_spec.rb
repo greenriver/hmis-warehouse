@@ -74,7 +74,12 @@ RSpec.describe 'GrdaWarehouseBase PaperTrail configuration', type: :model do
     # version columns).
     class TestMetaParent < GrdaWarehouseBase
       self.table_name = 'test_paper_trail_models'
-      has_paper_trail meta: { parent_key: :name, shared: :name }
+      has_paper_trail meta: {
+        parent_key: :name,
+        shared: :name,
+        proc_key: ->(record) { "proc:#{record.name}" },
+        literal_key: 'literal value',
+      }
     end
 
     class TestMetaChild < TestMetaParent
@@ -241,6 +246,21 @@ RSpec.describe 'GrdaWarehouseBase PaperTrail configuration', type: :model do
         # child's own ignore still applies
         expect(changed_keys).not_to include('name')
       end
+
+      it 'leaves the parent ignore list untouched when the child re-declares' do
+        # Defining TestMergeChild must not mutate TestMergeParent's config (the
+        # merge dups before mutating). The parent must still ignore description
+        # and track name.
+        record = TestMergeParent.create!(name: 'A', description: 'original')
+
+        expect do
+          record.update!(description: 'changed')
+        end.not_to change(GrdaWarehouse::Version, :count)
+
+        expect do
+          record.update!(name: 'B')
+        end.to change(GrdaWarehouse::Version, :count).by(1)
+      end
     end
 
     describe 'meta' do
@@ -258,6 +278,36 @@ RSpec.describe 'GrdaWarehouseBase PaperTrail configuration', type: :model do
         expect(record.paper_trail_meta_value(:child_key)).to eq('B')  # added by child
         expect(record.paper_trail_meta_value(:shared)).to eq('B')     # child overrode parent
       end
+
+      it 'resolves a callable meta value by calling it with the instance' do
+        # The proc branch of paper_trail_meta_value -- the common paper_trail meta
+        # idiom -- survives the merge and is invoked with the record.
+        record = TestMetaChild.new(name: 'A', description: 'B')
+
+        expect(record.paper_trail_meta_value(:proc_key)).to eq('proc:A')
+      end
+
+      it 'returns a non-callable, non-symbol meta value verbatim' do
+        record = TestMetaChild.new(name: 'A', description: 'B')
+
+        expect(record.paper_trail_meta_value(:literal_key)).to eq('literal value')
+      end
+
+      it 'returns nil for a meta key that was never configured' do
+        record = TestMetaChild.new(name: 'A', description: 'B')
+
+        expect(record.paper_trail_meta_value(:never_configured)).to be_nil
+      end
+
+      it 'leaves the parent meta untouched when the child re-declares' do
+        # Defining TestMetaChild must not mutate TestMetaParent's meta: the
+        # parent's :shared must still resolve to its own value (:name), and the
+        # child's key must not leak upward into the parent's config.
+        record = TestMetaParent.new(name: 'A', description: 'B')
+
+        expect(record.paper_trail_meta_value(:shared)).to eq('A')
+        expect(TestMetaParent.paper_trail_options[:meta]).not_to have_key(:child_key)
+      end
     end
 
     describe 'only' do
@@ -273,6 +323,19 @@ RSpec.describe 'GrdaWarehouseBase PaperTrail configuration', type: :model do
         # description is the child's only-list -> changing it records a version
         expect do
           record.update!(description: 'changed')
+        end.to change(GrdaWarehouse::Version, :count).by(1)
+      end
+
+      it 'leaves the parent only list untouched when the child re-declares' do
+        # The parent must still track only :name after the child re-declares only.
+        record = TestOnlyParent.create!(name: 'A', description: 'original')
+
+        expect do
+          record.update!(description: 'changed')
+        end.not_to change(GrdaWarehouse::Version, :count)
+
+        expect do
+          record.update!(name: 'B')
         end.to change(GrdaWarehouse::Version, :count).by(1)
       end
     end
@@ -295,6 +358,18 @@ RSpec.describe 'GrdaWarehouseBase PaperTrail configuration', type: :model do
         expect(changed_keys).not_to include('name')
         # parent's :description skip was dropped -> description is now tracked
         expect(changed_keys).to include('description')
+      end
+
+      it 'leaves the parent skip list untouched when the child re-declares' do
+        # The parent must still skip description and track name after the child
+        # re-declares skip.
+        record = TestSkipParent.create!(name: 'A', description: 'original')
+
+        record.update!(name: 'B', description: 'changed')
+        changed_keys = record.versions.reload.last.changeset.keys.map(&:to_s)
+
+        expect(changed_keys).not_to include('description')
+        expect(changed_keys).to include('name')
       end
     end
   end
