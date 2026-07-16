@@ -347,7 +347,7 @@ namespace :grda_warehouse do
       end
     end
 
-    if DateTime.current.hour == 5 && HmisEnforcement.hmis_enabled? && GrdaWarehouse::DataSource.hmis.exists? && Hmis::Ce.configuration.enabled?
+    if DateTime.current.hour == 23 && HmisEnforcement.hmis_enabled? && GrdaWarehouse::DataSource.hmis.exists? && Hmis::Ce.configuration.enabled?
       # Catch-all CE reprocessing. Ensures we don't miss changes that could impact eligibility
       safely_execute do
         Hmis::Ce::Match::CandidatePool.transaction do

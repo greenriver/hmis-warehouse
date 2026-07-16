@@ -795,6 +795,23 @@ type CeCandidate {
   priorityScores: [Int!]!
 }
 
+type CeCandidatePoolSummary {
+  """
+  Active pools that have never completed generation
+  """
+  neverGeneratedCount: Int!
+
+  """
+  Active pools whose pool-level change marker is dirty
+  """
+  pendingRefreshCount: Int!
+
+  """
+  Number of active CE candidate pools
+  """
+  totalCount: Int!
+}
+
 type CeCandidatesPaginated {
   hasMoreAfter: Boolean!
   hasMoreBefore: Boolean!
@@ -1184,6 +1201,12 @@ type CeOpportunity {
   candidateLookup(id: ID!): CeCandidate
   candidates(filters: CeOpportunityCandidatesFilterOptions, limit: Int, offset: Int): CeCandidatesPaginated!
   candidatesGeneratedAt: ISO8601DateTime
+
+  """
+  Whether the eligible client list for this unit is currently being
+  (re)processed and may be temporarily incomplete or out of date
+  """
+  candidatesGenerating: Boolean!
   categories: [String!]!
   dateAvailable: ISO8601Date!
   expiresAt: ISO8601DateTime
@@ -10325,6 +10348,11 @@ type Query {
     """
     role: AssessmentRole
   ): FormDefinition
+
+  """
+  Generation and refresh status for active CE candidate pools
+  """
+  ceCandidatePoolSummary(projectGroupId: ID): CeCandidatePoolSummary!
   ceClient(
     """
     Client Proxy ID

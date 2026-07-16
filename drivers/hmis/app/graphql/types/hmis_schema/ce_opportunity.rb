@@ -29,6 +29,7 @@ module Types
     field :categories, [String], null: false
     field :active, Boolean, null: false, method: :active?
     field :candidates_generated_at, GraphQL::Types::ISO8601DateTime, null: true
+    field :candidates_generating, Boolean, null: false, description: 'Whether the eligible client list for this unit is currently being (re)processed and may be temporarily incomplete'
     field :date_available, GraphQL::Types::ISO8601Date, null: false
     field :unit, HmisSchema::Unit, null: true
 
@@ -104,6 +105,17 @@ module Types
 
     def candidates_generated_at
       load_ar_association(object, :candidate_pool)&.candidates_generated_at
+    end
+
+    def candidates_generating
+      pool = load_ar_association(object, :candidate_pool)
+      # todo @martha - I'm still suspicious of returning false here.
+      # if the user is requesting a unit that queries candidatesGenerating, then it SHOULD have a waitlist.
+      # but that's specific to the UI, not the api/contract
+      return false unless pool # no waitlist pool exists, so nothing is processing
+
+      marker = load_ar_association(pool, :change_marker)
+      marker.nil? || marker.dirty? # nil marker is unexpected. Guard by returning true, indicating that *something* is in-progress
     end
   end
 end
