@@ -29,12 +29,27 @@ RSpec.describe 'HealthBase PaperTrail configuration', type: :model do
     class TestHealthInheritedModel < HealthBase
       self.table_name = 'test_health_paper_trail_models'
     end
+
+    # Merge-semantics fixtures. HealthBase self-declares has_paper_trail, so both
+    # of these hit the merge branch. The contract is per-key overwrite: the child
+    # replaces the parent's value for a key it re-declares. (meta is not exercised
+    # here -- no Health model uses it and HealthBase has no paper_trail_meta_value;
+    # the meta merge is covered against GrdaWarehouseBase.)
+    class TestHealthMergeParent < HealthBase
+      self.table_name = 'test_health_paper_trail_models'
+      has_paper_trail ignore: [:name]
+    end
+
+    class TestHealthMergeChild < TestHealthMergeParent
+      has_paper_trail ignore: [:secret_col]
+    end
   end
 
   after(:all) do
     HealthBase.connection.execute('DROP TABLE IF EXISTS test_health_paper_trail_models CASCADE')
-    Object.send(:remove_const, :TestHealthPaperTrailModel) if defined?(TestHealthPaperTrailModel)
-    Object.send(:remove_const, :TestHealthInheritedModel) if defined?(TestHealthInheritedModel)
+    [:TestHealthPaperTrailModel, :TestHealthInheritedModel, :TestHealthMergeChild, :TestHealthMergeParent].each do |const|
+      Object.send(:remove_const, const) if Object.const_defined?(const)
+    end
   end
 
   around(:example) do |ex|
@@ -89,6 +104,33 @@ RSpec.describe 'HealthBase PaperTrail configuration', type: :model do
       expect do
         record.update!(name: 'B')
       end.to change(Health::HealthVersion, :count).by(1)
+    end
+  end
+
+  describe 'merge overwrite semantics (child config replaces parent per key)' do
+    it 'replaces the parent ignore list rather than unioning it' do
+      # Parent ignored :name; child re-declares ignore: [:secret_col]. After the
+      # merge the child ignores secret_col (not name).
+      record = TestHealthMergeChild.create!(name: 'A', secret_col: 'B')
+
+      # child's own ignore still applies -> a secret_col-only change records nothing
+      expect do
+        record.update!(secret_col: 'D')
+      end.not_to change(Health::HealthVersion, :count)
+
+      # parent's :name ignore was dropped (overwritten, not unioned) -> name is
+      # tracked again; if the lists had been unioned this would record nothing.
+      expect do
+        record.update!(name: 'C')
+      end.to change(Health::HealthVersion, :count).by(1)
+    end
+
+    it 'does not apply a default lock_version skip (unlike GrdaWarehouseBase)' do
+      # HealthBase intentionally omits the lock_version skip default that
+      # GrdaWarehouseBase supplies; health tables need not carry lock_version.
+      skip = Array(TestHealthInheritedModel.paper_trail_options[:skip]).map(&:to_s)
+
+      expect(skip).not_to include('lock_version')
     end
   end
 

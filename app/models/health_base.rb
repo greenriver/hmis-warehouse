@@ -37,9 +37,12 @@ class HealthBase < HealthDbBase
 
   # Merge a subclass's paper_trail options into the already-configured options,
   # normalizing ignore/skip/only to the stringified form paper_trail expects at
-  # event time (see PaperTrail::ModelConfig#event_attribute_option). Does not
-  # re-run setup, so no duplicate callbacks/versions, and leaves version_class_name
-  # untouched so every Health model keeps versioning into Health::HealthVersion.
+  # event time (see PaperTrail::ModelConfig#event_attribute_option). The subclass
+  # inherits every key it does not set; ignore/skip/only that it does set replace
+  # the parent's value for that key wholesale, while meta is merged at the sub-key
+  # level (the subclass wins on a shared key). Does not re-run setup, so no
+  # duplicate callbacks/versions, and leaves version_class_name untouched so every
+  # Health model keeps versioning into Health::HealthVersion.
   def self.merge_paper_trail_options(options)
     merged = paper_trail_options.dup
     [:ignore, :skip, :only].each do |key|
