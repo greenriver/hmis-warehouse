@@ -122,6 +122,76 @@ RSpec.describe MaYyaReport::Report, 'integration' do
       end
     end
 
+    describe 'A5 Direct Financial Assistance (Flex Funds) section' do
+      context 'when show_flex_funds? is false (service type or CDED absent)' do
+        before { allow(report).to receive(:show_flex_funds?).and_return(false) }
+
+        it 'excludes A5 from section_a_subsections' do
+          expect(report.send(:section_a_subsections).keys).not_to include('A5')
+        end
+
+        it 'section A has 10 cells without A5' do
+          nested = report.send(:nested_cell_definitions)
+          section_a_cells = nested['A'][:subsections].values.sum { |sub| sub[:cells].keys.count }
+          expect(section_a_cells).to eq(10)
+        end
+      end
+
+      context 'when show_flex_funds? is true (CustomServiceType "Flex Funds" and flex_funds_types CDED exist)' do
+        before { allow(report).to receive(:show_flex_funds?).and_return(true) }
+
+        it 'includes A5 in section_a_subsections' do
+          expect(report.send(:section_a_subsections).keys).to include('A5')
+        end
+
+        it 'A5 has 14 cells (A5a through A5n)' do
+          cells = report.send(:section_a5_cells)
+          expect(cells.keys).to eq([:A5a, :A5b, :A5c, :A5d, :A5e, :A5f, :A5g, :A5h, :A5i, :A5j, :A5k, :A5l, :A5m, :A5n])
+        end
+
+        it 'section A has 24 cells when A5 is present' do
+          nested = report.send(:nested_cell_definitions)
+          section_a_cells = nested['A'][:subsections].values.sum { |sub| sub[:cells].keys.count }
+          expect(section_a_cells).to eq(24)
+        end
+
+        it 'A5a counts clients where direct_assistance = true' do
+          sql = report.send(:section_a5_cells)[:A5a][:calculation].to_sql
+          expect(sql).to include('"direct_assistance" = TRUE')
+        end
+
+        it 'A5f (Transportation) uses a case-insensitive JSON array match on the stripped type name' do
+          # The universe calculator strips parenthesized text, so "Transportation (bus pass)" → "Transportation".
+          # json_contains_text lower-cases both sides so "Transportation" is matched as "transportation".
+          sql = report.send(:section_a5_cells)[:A5f][:calculation].to_sql
+          expect(sql).to include('lower(flex_funds')
+          expect(sql).to include("? 'transportation'")
+        end
+
+        it 'A5i (Child care) matches the exact stripped type string' do
+          sql = report.send(:section_a5_cells)[:A5i][:calculation].to_sql
+          expect(sql).to include("? 'child care'")
+        end
+
+        it 'A5c (Rent) matches the stripped type — "Rent (Direct Financial Assistance)" strips to "Rent"' do
+          sql = report.send(:section_a5_cells)[:A5c][:calculation].to_sql
+          # Must match "rent" (the stripped, lowercased value), not "rent (direct financial assistance)"
+          expect(sql).to include("? 'rent'")
+          expect(sql).not_to include('direct financial assistance')
+        end
+
+        it 'all A5b–A5n cells also require direct_assistance = true' do
+          cells = report.send(:section_a5_cells)
+          cells.except(:A5a).each do |key, defn|
+            expect(defn[:calculation].to_sql).to(
+              include('"direct_assistance" = TRUE'),
+              "Expected #{key} to require direct_assistance = true",
+            )
+          end
+        end
+      end
+    end
+
     describe 'data consistency across refactor' do
       it 'maintains the expected cell keys structure' do
         # This test ensures the cell structure is as expected after updates
