@@ -1,6 +1,7 @@
 !!!
 %html
   %head
+    %meta{:content => "text/html; charset=UTF-8", "http-equiv" => "Content-Type"}/
     = inline_stylesheet_link_tag 'dashboard_pdf'
     = inline_javascript_include_tag 'pdf'
     = inline_javascript_include_tag 'application'
@@ -19,6 +20,24 @@
 
     = svg 'symbol-defs'
     = yield :page_js
+    -# Shrink any table that overflows its container down to fit, rather than letting it clip.
+    -# Relies on PdfGenerator::MEASUREMENT_VIEWPORT. (see HudReports::HudPdfExportConcern#perform)
+    :javascript
+      window.addEventListener('load', function () {
+        document.querySelectorAll('.summary-tables .table-responsive').forEach(function (container) {
+          var table = container.querySelector('table');
+          if (!table) return;
+          var naturalWidth = table.scrollWidth;
+          var naturalHeight = table.scrollHeight;
+          var availableWidth = container.clientWidth;
+          if (naturalWidth > availableWidth) {
+            var scale = availableWidth / naturalWidth;
+            table.style.transformOrigin = 'top left';
+            table.style.transform = 'scale(' + scale + ')';
+            container.style.height = (naturalHeight * scale) + 'px';
+          }
+        });
+      });
     :css
       p {
         font-size: 16px !important;

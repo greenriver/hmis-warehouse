@@ -78,6 +78,7 @@ module HudReports::HudPdfExportConcern
         PdfGenerator.new.perform(
           html: html,
           file_name: "#{report_generator_class.file_prefix}-#{DateTime.current.to_fs(:db)}",
+          options: { viewport: PdfGenerator::MEASUREMENT_VIEWPORT },
         ) do |io|
           self.pdf_file = io
         end
