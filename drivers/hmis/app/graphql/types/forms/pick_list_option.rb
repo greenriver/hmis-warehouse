@@ -45,6 +45,13 @@ module Types
           sort_by_option(:organization_and_name).
           preload(:organization).
           map(&:to_pick_list_option)
+      when 'BULK_VOID_CE_PROJECTS'
+        return [] unless user.policy_for(Hmis::Ce::Opportunity, policy_type: :ce_opportunity).can_bulk_void_ce_clients?
+
+        Hmis::Hud::Project.ce_bulk_voidable_by(user).
+          preload(:organization).
+          sort_by_option(:organization_and_name).
+          map(&:to_pick_list_option)
       when 'RESIDENTIAL_PROJECTS'
         Hmis::Hud::Project.viewable_by(user).
           # TODO: replace with call to HudUtility once project type groupings are moved there.

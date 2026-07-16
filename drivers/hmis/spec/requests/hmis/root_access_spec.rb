@@ -16,6 +16,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   before(:each) do
     hmis_login(user)
     allow_any_instance_of(Hmis::Ce::Configuration).to receive(:enabled?).and_return(true)
+    allow_any_instance_of(Hmis::Ce::Configuration).to receive(:bulk_void_enabled?).and_return(true)
   end
 
   describe 'root access query' do
