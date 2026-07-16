@@ -46,6 +46,8 @@ RSpec.describe 'createCeMatchRule mutation', type: :request do
       ownerType: 'DATA_SOURCE',
       ruleType: 'ELIGIBILITY_REQUIREMENT',
       expression: 'current_age >= 18',
+      projectTypes: [],
+      funders: [],
     }
   end
 

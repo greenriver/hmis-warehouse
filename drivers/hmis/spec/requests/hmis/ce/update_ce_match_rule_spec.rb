@@ -26,6 +26,7 @@ RSpec.describe 'updateCeMatchRule mutation', type: :request do
   let!(:rule) { create(:hmis_ce_eligibility_requirement, owner: ds1, name: 'Original', expression: 'current_age >= 18') }
   let(:unit_group) { create(:hmis_unit_group, project: p1, name: 'Housing Match Group') }
   let(:other_data_source) { create(:hmis_data_source) }
+  let(:base_input) { { projectTypes: [], funders: [] } }
 
   let(:no_impact) { Hmis::Ce::Match::RuleChangeImpactCalculator::Result.new(affected_unit_groups: []) }
 
@@ -59,7 +60,7 @@ RSpec.describe 'updateCeMatchRule mutation', type: :request do
   end
 
   it 'updates basic attributes without running impact preview when rule logic is unchanged' do
-    response, result = post_graphql(id: rule.id, input: { name: 'Renamed rule' }) { mutation }
+    response, result = post_graphql(id: rule.id, input: base_input.merge(name: 'Renamed rule')) { mutation }
     expect(response.status).to eq(200), result.inspect
 
     expect(result.dig('data', 'updateCeMatchRule', 'rule')).to include(
@@ -101,10 +102,15 @@ RSpec.describe 'updateCeMatchRule mutation', type: :request do
     expect(rule.reload.applicability_config).to eq({})
   end
 
-  it 'preserves applicability config when applicability fields are omitted' do
+  it 'preserves applicability config when unchanged applicability values are submitted' do
     rule.update!(applicability_config: { project_types: [project_type], project_funders: [funder_code] })
 
-    response, result = post_graphql(id: rule.id, input: { name: 'Renamed rule' }) { mutation }
+    input = {
+      name: 'Renamed rule',
+      projectTypes: [project_type_key],
+      funders: [funder_key],
+    }
+    response, result = post_graphql(id: rule.id, input: input) { mutation }
     expect(response.status).to eq(200), result.inspect
 
     expect(result.dig('data', 'updateCeMatchRule', 'rule', 'name')).to eq('Renamed rule')
@@ -114,28 +120,15 @@ RSpec.describe 'updateCeMatchRule mutation', type: :request do
     )
   end
 
-  it 'replaces applicability config when only one applicability field is provided' do
-    rule.update!(applicability_config: { project_types: [project_type], project_funders: [funder_code] })
-
-    response, result = post_graphql(id: rule.id, input: { projectTypes: [] }, confirmed: true) { mutation }
-    expect(response.status).to eq(200), result.inspect
-
-    expect(result.dig('data', 'updateCeMatchRule', 'rule')).to include(
-      'projectTypes' => [],
-      'funders' => [],
-    )
-    expect(rule.reload.applicability_config).to eq({})
-  end
-
   it 'updates from structured expression input' do
-    input = {
+    input = base_input.merge(
       structuredExpression: {
         operator: 'OR',
         clauses: [
           { field: 'current_age', comparator: 'LT', value: 18 },
         ],
       },
-    }
+    )
 
     response, result = post_graphql(id: rule.id, input: input) { mutation }
     expect(response.status).to eq(200), result.inspect
@@ -146,12 +139,16 @@ RSpec.describe 'updateCeMatchRule mutation', type: :request do
     allow(Hmis::Ce::Match::RuleChangeImpactCalculator).to receive(:for_rule).and_return(warning_impact)
 
     expect do
-      response, result = post_graphql(id: rule.id, input: { expression: 'current_age >= 65' }) { mutation }
+      response, result = post_graphql(id: rule.id, input: base_input.merge(expression: 'current_age >= 65')) { mutation }
       expect(response.status).to eq(200), result.inspect
       expect(result.dig('data', 'updateCeMatchRule', 'errors').first).to include('severity' => 'warning')
     end.not_to(change { rule.reload.expression })
 
-    response, result = post_graphql(id: rule.id, input: { expression: 'current_age >= 65' }, confirmed: true) { mutation }
+    response, result = post_graphql(
+      id: rule.id,
+      input: base_input.merge(expression: 'current_age >= 65'),
+      confirmed: true,
+    ) { mutation }
     expect(response.status).to eq(200), result.inspect
     expect(result.dig('data', 'updateCeMatchRule', 'rule', 'expression')).to eq('current_age >= 65')
   end
@@ -159,7 +156,10 @@ RSpec.describe 'updateCeMatchRule mutation', type: :request do
   it 'returns impact warnings without saving until confirmed when applicability config changes' do
     allow(Hmis::Ce::Match::RuleChangeImpactCalculator).to receive(:for_rule).and_return(warning_impact)
 
-    input = { projectTypes: [project_type_key] }
+    input = {
+      projectTypes: [project_type_key],
+      funders: [],
+    }
 
     expect do
       response, result = post_graphql(id: rule.id, input: input) { mutation }
@@ -174,11 +174,11 @@ RSpec.describe 'updateCeMatchRule mutation', type: :request do
   end
 
   it 'rejects attempts to change immutable owner and type fields' do
-    input = {
+    input = base_input.merge(
       ownerId: other_data_source.id,
       ownerType: 'PROJECT',
       ruleType: 'PRIORITY_SCHEME',
-    }
+    )
 
     response, result = post_graphql(id: rule.id, input: input) { mutation }
     expect(response.status).to eq(200), result.inspect
@@ -199,7 +199,7 @@ RSpec.describe 'updateCeMatchRule mutation', type: :request do
     let!(:access_control) { create_access_control(hmis_user, ds1, without_permission: :can_administrate_coordinated_entry) }
 
     it 'denies access' do
-      expect_access_denied post_graphql(id: rule.id, input: { name: 'Should not update' }) { mutation }
+      expect_access_denied post_graphql(id: rule.id, input: base_input.merge(name: 'Should not update')) { mutation }
     end
   end
 
@@ -207,7 +207,7 @@ RSpec.describe 'updateCeMatchRule mutation', type: :request do
     let!(:rule) { create(:hmis_ce_eligibility_requirement, owner: other_data_source, name: 'Other DS') }
 
     it 'denies access' do
-      expect_access_denied post_graphql(id: rule.id, input: { name: 'Should not update' }) { mutation }
+      expect_access_denied post_graphql(id: rule.id, input: base_input.merge(name: 'Should not update')) { mutation }
     end
   end
 end
