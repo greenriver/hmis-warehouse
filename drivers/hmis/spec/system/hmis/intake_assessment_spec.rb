@@ -139,8 +139,12 @@ RSpec.feature 'Intake Assessment for Household', type: :system do
         # tab. That needs to be fixed on the frontend. This test uses the below assertion
         # to wait for submission to complete (rather than asserting on the Summary Tab
         # showing submitted status) to get around that bug.
-        page.driver.wait_for_network_idle
-        expect(page).not_to have_button('Submit (2) Intake Assessments')
+        # Confirm all intakes are submitted
+        [1, 2].each do |row|
+          within(:xpath, "//table/tbody/tr[#{row}]") do
+            assert_text('Submitted')
+          end
+        end
 
         # HoH enrollment entry date is updated
         expect(hoh_enrollment.reload.entry_date).to eq(new_entry_date.to_date)
