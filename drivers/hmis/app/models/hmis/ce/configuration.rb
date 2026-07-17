@@ -14,11 +14,16 @@ module Hmis::Ce
       !!value_for(:enabled)
     end
 
+    def bulk_void_enabled?
+      !!value_for(:bulk_void_enabled)
+    end
+
     protected
 
     # read all configuration values from the db
     PROPERTIES = [
       :enabled,
+      :bulk_void_enabled,
     ].freeze
     def values
       @values ||= AppConfigProperty.

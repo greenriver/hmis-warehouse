@@ -32,10 +32,11 @@ RSpec.describe HmisExternalApis::AcHmis::BulkVoider, type: :job do
   let(:void_cded) { Hmis::Hud::CustomDataElementDefinition.find_by(key: 'void_assessment_void_all_referrals') }
   let(:void_reason_cded) { Hmis::Hud::CustomDataElementDefinition.find_by(key: 'void_assessment_void_reason') }
 
-  def perform_bulk_void(destination_client_ids)
+  def perform_bulk_void(destination_client_ids, ce_project_id: ce_project.id, initiated_by_id: nil)
     described_class.new.perform(
       destination_client_ids: destination_client_ids,
-      ce_project_id: ce_project.id,
+      ce_project_id: ce_project_id,
+      initiated_by_id: initiated_by_id,
       dry_run: false,
     )
   end
@@ -43,6 +44,7 @@ RSpec.describe HmisExternalApis::AcHmis::BulkVoider, type: :job do
   describe '#perform' do
     let!(:client) { create(:hmis_hud_client_with_warehouse_client, data_source: data_source) }
     let!(:enrollment) { create(:hmis_hud_enrollment, data_source: data_source, project: ce_project, client: client) }
+    let(:initiated_by) { create(:hmis_user, data_source: data_source) }
 
     it 'creates exit and void assessment for client with open CE enrollment' do
       expect do
@@ -70,17 +72,97 @@ RSpec.describe HmisExternalApis::AcHmis::BulkVoider, type: :job do
 
     context 'when client is already exited' do
       let!(:exited_client) { create(:hmis_hud_client_with_warehouse_client, data_source: data_source) }
-      let!(:exited_enrollment) { create(:hmis_hud_enrollment, data_source: data_source, project: ce_project, client: exited_client, exit_date: Date.current) }
+      let(:exit_date) { 1.week.ago.to_date }
+      let!(:older_exited_enrollment) { create(:hmis_hud_enrollment, data_source: data_source, project: ce_project, client: exited_client, exit_date: 2.weeks.ago) }
+      let!(:exited_enrollment) { create(:hmis_hud_enrollment, data_source: data_source, project: ce_project, client: exited_client, exit_date: exit_date) }
 
-      it 'does not create void assessment for the exited client' do
+      it 'creates void assessment for the most recently exited enrollment without creating a new exit' do
         expect do
           perform_bulk_void([client.warehouse_id, exited_client.warehouse_id])
         end.to change(Hmis::Hud::Exit, :count).by(1).
+          and change(Hmis::Hud::CustomAssessment.where(data_collection_stage: 99), :count).by(2).
+          and(not_change { Hmis::Hud::Exit.where(enrollment_id: exited_enrollment.enrollment_id, data_source_id: data_source.id).count })
+
+        expect(exited_enrollment.reload.custom_assessments.where(data_collection_stage: 99).count).to eq(1)
+        expect(older_exited_enrollment.reload.custom_assessments.where(data_collection_stage: 99).count).to eq(0)
+        expect(exited_enrollment.exit.exit_date).to eq(exit_date)
+      end
+    end
+
+    context 'when a client has both an open and an exited CE enrollment' do
+      let!(:exited_enrollment) { create(:hmis_hud_enrollment, data_source: data_source, project: ce_project, client: client, exit_date: 1.week.ago) }
+
+      it 'processes only the open enrollment and leaves the exited one untouched' do
+        expect do
+          perform_bulk_void([client.warehouse_id])
+        end.to change(Hmis::Hud::Exit, :count).by(1). # only the open enrollment gets a new exit
           and change(Hmis::Hud::CustomAssessment.where(data_collection_stage: 99), :count).by(1)
 
-        # No void assessment was created for the already exited client
+        expect(enrollment.reload.exit).to be_present
+        expect(enrollment.custom_assessments.where(data_collection_stage: 99).count).to eq(1)
+        # The already-exited enrollment is not double-processed, since the client is handled via the open path
         expect(exited_enrollment.reload.custom_assessments.where(data_collection_stage: 99).count).to eq(0)
       end
+    end
+
+    it 'tracks PaperTrail metadata for void assessments created on already-exited enrollments' do
+      exited_client = create(:hmis_hud_client_with_warehouse_client, data_source: data_source)
+      exited_enrollment = create(:hmis_hud_enrollment, data_source: data_source, project: ce_project, client: exited_client, exit_date: 1.week.ago)
+
+      run_id = '00000000-0000-0000-0000-000000000002'
+      allow(SecureRandom).to receive(:uuid).and_return(run_id)
+
+      PaperTrailHelper.with_paper_trail do
+        PaperTrail.request.enabled = true
+        perform_bulk_void([exited_client.warehouse_id], initiated_by_id: initiated_by.id)
+      end
+
+      versions = GrdaWarehouse.paper_trail_versions.where(request_id: run_id)
+      expect(versions.where(item_type: 'Hmis::Hud::CustomAssessment', enrollment_id: exited_enrollment.id)).to exist
+      expect(versions.pluck(:whodunnit).uniq).to eq([initiated_by.id.to_s])
+    end
+
+    describe 'project validation guard' do
+      it 'refuses to process a non-Coordinated-Entry project and makes no changes' do
+        non_ce_project = create(:hmis_hud_project, data_source: data_source, project_type: 1)
+
+        expect do
+          expect do
+            perform_bulk_void([client.warehouse_id], ce_project_id: non_ce_project.id)
+          end.to raise_error(ActiveRecord::RecordNotFound)
+        end.to not_change(Hmis::Hud::Exit, :count).
+          and not_change(Hmis::Hud::CustomAssessment, :count)
+      end
+
+      it 'refuses to process a closed CE project and makes no changes' do
+        closed_ce_project = create(:hmis_hud_project, data_source: data_source, project_type: 14, operating_end_date: 1.week.ago.to_date)
+
+        expect do
+          expect do
+            perform_bulk_void([client.warehouse_id], ce_project_id: closed_ce_project.id)
+          end.to raise_error(ActiveRecord::RecordNotFound)
+        end.to not_change(Hmis::Hud::Exit, :count).
+          and not_change(Hmis::Hud::CustomAssessment, :count)
+      end
+    end
+
+    it 'tracks PaperTrail metadata for created records' do
+      run_id = '00000000-0000-0000-0000-000000000001'
+
+      allow(SecureRandom).to receive(:uuid).and_return(run_id)
+
+      PaperTrailHelper.with_paper_trail do
+        PaperTrail.request.enabled = true
+        perform_bulk_void([client.warehouse_id], initiated_by_id: initiated_by.id)
+      end
+
+      versions = GrdaWarehouse.paper_trail_versions.where(request_id: run_id)
+      expect(versions).not_to be_empty
+      expect(versions.pluck(:whodunnit).uniq).to eq([initiated_by.id.to_s])
+      expect(versions.pluck(:user_id).uniq).to eq([initiated_by.id])
+      expect(versions.pluck(:true_user_id).uniq).to eq([initiated_by.id])
+      expect(versions.where(item_type: 'Hmis::Hud::CustomAssessment', enrollment_id: enrollment.id)).to exist
+      expect(versions.where(item_type: 'Hmis::Hud::Exit', enrollment_id: enrollment.id)).to exist
     end
 
     context 'when there are multiple household members' do
