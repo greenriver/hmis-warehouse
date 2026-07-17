@@ -331,28 +331,6 @@ RSpec.describe Hmis::Hud::Project, type: :model do
     end
   end
 
-  describe '#supports_waitlist_referrals?' do
-    it 'returns false when there is no CE config' do
-      expect(project.supports_waitlist_referrals?).to eq(false)
-    end
-
-    context 'with config that supports waitlist referrals' do
-      let!(:config) { create(:hmis_project_ce_config, project: project, supports_waitlist_referrals: true) }
-
-      it 'returns true' do
-        expect(project.supports_waitlist_referrals?).to eq(true)
-      end
-    end
-
-    context 'with config that does not support waitlist referrals' do
-      let!(:config) { create(:hmis_project_ce_config, project: project, supports_waitlist_referrals: false, receives_direct_referrals: true) }
-
-      it 'returns false' do
-        expect(project.supports_waitlist_referrals?).to eq(false)
-      end
-    end
-  end
-
   describe '.with_ce_waitlists_enabled' do
     context 'with config that supports waitlist referrals' do
       let!(:config) { create(:hmis_project_ce_config, project: project, supports_waitlist_referrals: true) }
