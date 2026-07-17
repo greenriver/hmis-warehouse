@@ -146,7 +146,10 @@ module Hmis::Ce::Match
         end
       end
 
-      @pool.update!(candidates_generated_at: Time.current)
+      now = Time.current
+      @pool.candidates_generated_at = now
+      @pool.candidates_fully_generated_at = now if is_full_refresh
+      @pool.save!
       log_info { "Finished for pool_id=#{@pool.id}" }
     end
 

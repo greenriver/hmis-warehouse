@@ -11,22 +11,14 @@ module Types
     skip_activity_log
 
     field :total_count, Integer, null: false, description: 'Number of active CE candidate pools'
-    field :never_generated_count, Integer, null: false, description: 'Active pools that have never completed generation'
-    field :pending_refresh_count, Integer, null: false, description: 'Active pools whose pool-level change marker is dirty'
+    field :never_fully_generated_count, Integer, null: false, description: 'Active pools that have never completed a full generation'
 
     def total_count
       scoped_active_pools.count
     end
 
-    def never_generated_count
-      scoped_active_pools.where(candidates_generated_at: nil).count
-    end
-
-    def pending_refresh_count
-      scoped_active_pools.
-        joins(:change_marker).
-        merge(Hmis::Ce::ChangeMarker.dirty.pools).
-        count
+    def never_fully_generated_count
+      scoped_active_pools.where(candidates_fully_generated_at: nil).count
     end
 
     private

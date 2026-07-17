@@ -797,14 +797,9 @@ type CeCandidate {
 
 type CeCandidatePoolSummary {
   """
-  Active pools that have never completed generation
+  Active pools that have never completed a full generation
   """
-  neverGeneratedCount: Int!
-
-  """
-  Active pools whose pool-level change marker is dirty
-  """
-  pendingRefreshCount: Int!
+  neverFullyGeneratedCount: Int!
 
   """
   Number of active CE candidate pools
@@ -1200,13 +1195,17 @@ type CeOpportunity {
   active: Boolean!
   candidateLookup(id: ID!): CeCandidate
   candidates(filters: CeOpportunityCandidatesFilterOptions, limit: Int, offset: Int): CeCandidatesPaginated!
-  candidatesGeneratedAt: ISO8601DateTime
 
   """
-  Whether the eligible client list for this unit is currently being
-  (re)processed and may be temporarily incomplete or out of date
+  When this unit's eligible client list last completed a full generation against
+  all destination clients. Null means it has never finished first-time setup.
   """
-  candidatesGenerating: Boolean!
+  candidatesFullyGeneratedAt: ISO8601DateTime
+
+  """
+  When this unit's eligible client list was last updated by any processing (full refresh or individual client)
+  """
+  candidatesGeneratedAt: ISO8601DateTime
   categories: [String!]!
   dateAvailable: ISO8601Date!
   expiresAt: ISO8601DateTime

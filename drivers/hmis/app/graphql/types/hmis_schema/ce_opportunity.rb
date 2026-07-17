@@ -28,8 +28,14 @@ module Types
 
     field :categories, [String], null: false
     field :active, Boolean, null: false, method: :active?
-    field :candidates_generated_at, GraphQL::Types::ISO8601DateTime, null: true
-    field :candidates_generating, Boolean, null: false, description: 'Whether the eligible client list for this unit is currently being (re)processed and may be temporarily incomplete'
+    field :candidates_generated_at,
+          GraphQL::Types::ISO8601DateTime,
+          null: true,
+          description: 'When this unit\'s eligible client list was last updated by any processing (full refresh or individual client)'
+    field :candidates_fully_generated_at,
+          GraphQL::Types::ISO8601DateTime,
+          null: true,
+          description: 'When this unit\'s eligible client list last completed a full generation against all destination clients. Null means it has never finished first-time setup.'
     field :date_available, GraphQL::Types::ISO8601Date, null: false
     field :unit, HmisSchema::Unit, null: true
 
@@ -104,22 +110,17 @@ module Types
     end
 
     def candidates_generated_at
-      load_ar_association(object, :candidate_pool)&.candidates_generated_at
+      candidate_pool&.candidates_generated_at
     end
 
-    def candidates_generating # not for batch; queries the project's "best" ProjectConfig, which is expensive
-      pool = load_ar_association(object, :candidate_pool)
-      unless pool
-        unit_group = load_ar_association(object, :unit_group)
-        # If the unit group expects to have a waitlist, but isn't connected to a pool yet, treat it as generating.
-        # Getting associated with a candidate pool *should* happen instantaneously when a unit group is changed
-        # (see rebuild_candidate_pools hooks), but this guards against bugs
-        return unit_group&.ce_waitlists_enabled? || false
-      end
+    def candidates_fully_generated_at
+      candidate_pool&.candidates_fully_generated_at
+    end
 
-      marker = load_ar_association(pool, :change_marker)
-      # nil marker is unexpected. Guard by returning true, indicating that *something* is in-progress
-      marker.nil? || marker.dirty?
+    private
+
+    def candidate_pool
+      @candidate_pool ||= load_ar_association(object, :candidate_pool)
     end
   end
 end

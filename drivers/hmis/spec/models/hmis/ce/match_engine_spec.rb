@@ -179,11 +179,12 @@ RSpec.describe Hmis::Ce::Match::Engine, type: :model do
     describe 'policy that always matches' do
       let(:requirement_expression) { '1=1' }
 
-      it 'returns all candidates and updates the generation timestamp' do
+      it 'returns all candidates and updates the generation timestamps' do
         freeze_time do
           results = generate_candidates(pool)
           expect(results).to eq(destination_clients.map(&:id).sort)
           expect(pool.candidates_generated_at).to eq(Time.current)
+          expect(pool.candidates_fully_generated_at).to eq(Time.current)
         end
       end
     end
@@ -422,6 +423,40 @@ RSpec.describe Hmis::Ce::Match::Engine, type: :model do
       results = generate_candidates(pool)
       expect(results.size).to eq(1)
       expect(results.sole).to eq(destination_clients.sole.id)
+    end
+  end
+
+  describe 'generation timestamps' do
+    include_context 'with demographic test clients'
+
+    it 'sets both timestamps on full refresh' do
+      expect do
+        generate_candidates(pool)
+        pool.reload
+      end.to change { pool.candidates_generated_at }.from(nil).
+        and change { pool.candidates_fully_generated_at }.from(nil)
+    end
+
+    it 'updates candidates_generated_at but not candidates_fully_generated_at on incremental run' do
+      expect do
+        generate_candidates(pool, clients: destination_clients)
+        pool.reload
+      end.to change { pool.candidates_generated_at }.from(nil).
+        and(not_change { pool.candidates_fully_generated_at })
+    end
+
+    it 'sets candidates_fully_generated_at on a subsequent full refresh' do
+      generate_candidates(pool, clients: destination_clients)
+      pool.reload
+      expect(pool.candidates_generated_at).to be_present
+      expect(pool.candidates_fully_generated_at).to be_nil
+
+      travel 1.hour do
+        expect do
+          generate_candidates(pool)
+          pool.reload
+        end.to change { pool.candidates_fully_generated_at }.from(nil)
+      end
     end
   end
 

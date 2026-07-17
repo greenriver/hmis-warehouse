@@ -33,8 +33,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         query GetCeCandidatePoolSummary($projectGroupId: ID) {
           ceCandidatePoolSummary(projectGroupId: $projectGroupId) {
             totalCount
-            neverGeneratedCount
-            pendingRefreshCount
+            neverFullyGeneratedCount
           }
         }
       GRAPHQL
@@ -42,38 +41,34 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
     let!(:ce_project_config) { create(:hmis_project_ce_config, supports_waitlist_referrals: true, project: p1) }
 
-    # Active pool with completed generation and clean marker
-    let!(:pool_generated) { create(:hmis_ce_match_candidate_pool, candidates_generated_at: 1.day.ago) }
+    # Active pool with completed full generation
+    let!(:pool_generated) { create(:hmis_ce_match_candidate_pool, candidates_generated_at: 1.day.ago, candidates_fully_generated_at: 1.day.ago) }
     let!(:pool_generated_unit_group) { create(:hmis_unit_group, project: p1, candidate_pool: pool_generated) }
-    let!(:pool_generated_marker) { create(:hmis_ce_change_marker, trackable: pool_generated, current_version: 1, processed_version: 1) }
 
-    # Active pool that has never completed generation (dirty marker)
-    let!(:pool_never_generated) { create(:hmis_ce_match_candidate_pool, candidates_generated_at: nil) }
+    # Active pool that has never completed generation
+    let!(:pool_never_generated) { create(:hmis_ce_match_candidate_pool, candidates_generated_at: nil, candidates_fully_generated_at: nil) }
     let!(:pool_never_generated_unit_group) { create(:hmis_unit_group, project: p1, candidate_pool: pool_never_generated) }
-    let!(:pool_never_generated_marker) { create(:hmis_ce_change_marker, trackable: pool_never_generated, current_version: 1, processed_version: 0) }
 
-    # Active pool with prior generation but dirty marker (nightly reprocessing or pool change)
-    let!(:pool_pending_refresh) { create(:hmis_ce_match_candidate_pool, candidates_generated_at: 2.days.ago) }
-    let!(:pool_pending_refresh_unit_group) { create(:hmis_unit_group, project: p1, candidate_pool: pool_pending_refresh) }
-    let!(:pool_pending_refresh_marker) { create(:hmis_ce_change_marker, trackable: pool_pending_refresh, current_version: 2, processed_version: 1) }
+    # Active pool touched by incremental processing but never fully generated (ProcessClientsJob early-touch)
+    let!(:pool_partially_generated) { create(:hmis_ce_match_candidate_pool, candidates_generated_at: 2.days.ago, candidates_fully_generated_at: nil) }
+    let!(:pool_partially_generated_unit_group) { create(:hmis_unit_group, project: p1, candidate_pool: pool_partially_generated) }
 
     # Inactive pool (deleted unit group) — excluded
-    let!(:pool_inactive) { create(:hmis_ce_match_candidate_pool, candidates_generated_at: 1.day.ago) }
+    let!(:pool_inactive) { create(:hmis_ce_match_candidate_pool, candidates_generated_at: 1.day.ago, candidates_fully_generated_at: 1.day.ago) }
     let!(:pool_inactive_unit_group) { create(:hmis_unit_group, project: p1, candidate_pool: pool_inactive, deleted_at: 3.days.ago) }
 
     # Pool in another data source — excluded
     let!(:other_ds) { create(:hmis_data_source) }
     let!(:other_project) { create(:hmis_hud_project, data_source: other_ds, organization: create(:hmis_hud_organization, data_source: other_ds)) }
     let!(:other_project_config) { create(:hmis_project_ce_config, supports_waitlist_referrals: true, project: other_project) }
-    let!(:pool_other_ds) { create(:hmis_ce_match_candidate_pool, candidates_generated_at: nil) }
+    let!(:pool_other_ds) { create(:hmis_ce_match_candidate_pool, candidates_generated_at: nil, candidates_fully_generated_at: nil) }
     let!(:pool_other_ds_unit_group) { create(:hmis_unit_group, project: other_project, candidate_pool: pool_other_ds) }
 
     # Pool outside project group when scoped
     let!(:p2) { create(:hmis_hud_project, data_source: ds1, organization: o1, user: u1) }
     let!(:p2_config) { create(:hmis_project_ce_config, supports_waitlist_referrals: true, project: p2) }
-    let!(:pool_outside_group) { create(:hmis_ce_match_candidate_pool, candidates_generated_at: nil) }
+    let!(:pool_outside_group) { create(:hmis_ce_match_candidate_pool, candidates_generated_at: nil, candidates_fully_generated_at: nil) }
     let!(:pool_outside_group_unit_group) { create(:hmis_unit_group, project: p2, candidate_pool: pool_outside_group) }
-    let!(:pool_outside_group_marker) { create(:hmis_ce_change_marker, trackable: pool_outside_group, current_version: 1, processed_version: 0) }
 
     let!(:project_group) { create(:hmis_project_group, data_source: ds1, with_projects: [p1]) }
 
@@ -87,10 +82,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       summary = result.dig('data', 'ceCandidatePoolSummary')
 
       aggregate_failures do
-        # generated, never_generated, pending_refresh, outside_group (4 active pools in ds1)
+        # generated, never_generated, partially_generated, outside_group (4 active pools in ds1)
         expect(summary['totalCount']).to eq(4)
-        expect(summary['neverGeneratedCount']).to eq(2)
-        expect(summary['pendingRefreshCount']).to eq(3)
+        expect(summary['neverFullyGeneratedCount']).to eq(3)
       end
     end
 
@@ -100,8 +94,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
       aggregate_failures do
         expect(summary['totalCount']).to eq(3)
-        expect(summary['neverGeneratedCount']).to eq(1)
-        expect(summary['pendingRefreshCount']).to eq(2)
+        expect(summary['neverFullyGeneratedCount']).to eq(2)
       end
     end
   end
