@@ -97,7 +97,7 @@ gem 'devise', '~> 4.9'
 gem 'devise_invitable', '~> 2.0.9'
 gem 'devise-pwned_password'
 gem 'devise-security'
-gem 'devise-two-factor', '~> 4.1.1'
+gem 'devise-two-factor', '~> 6.4' # 6.x is rails-8-compatible; legacy otp secrets read via User#legacy_otp_secret
 gem 'rack-cors'
 gem 'doorkeeper'
 

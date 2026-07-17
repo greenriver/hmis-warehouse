@@ -275,6 +275,20 @@ RSpec.describe Idp::Keycloak::UserImporter, type: :model do
           with(/Failed to decrypt OTP secret/)
       end
     end
+
+    context 'when 2FA is required but no secret is configured' do
+      before { user.update(otp_required_for_login: true) }
+
+      it 'excludes the OTP credential when neither the new nor legacy secret is set' do
+        # otp_secret bridges both storage locations; nil means 2FA was never set up
+        # despite the requirement flag, so we must not emit an (empty) OTP credential.
+        expect(user.otp_secret).to be_nil
+
+        result = importer.build_import_user_data(user)
+
+        expect(result[:credentials].find { |c| c[:type] == 'otp' }).to be_nil
+      end
+    end
   end
 
   describe '#bulk_import_users' do
