@@ -61,6 +61,15 @@ RSpec.describe PdfGenerator, type: :model do
     end
   end
 
+  describe 'MEASUREMENT_VIEWPORT' do
+    it 'pairs PRINTABLE_WIDTH_PX with PRINTABLE_HEIGHT_PX (not load-bearing, just tall)' do
+      expect(PdfGenerator::MEASUREMENT_VIEWPORT).to eq(
+        width: PdfGenerator::PRINTABLE_WIDTH_PX,
+        height: PdfGenerator::PRINTABLE_HEIGHT_PX,
+      )
+    end
+  end
+
   describe '.merge_inline_pdfs' do
     it 'merges multiple PDF strings into one' do
       html1 = '<html><body><h1>Doc 1</h1></body></html>'

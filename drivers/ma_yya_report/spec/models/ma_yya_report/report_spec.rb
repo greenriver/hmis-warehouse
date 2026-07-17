@@ -143,6 +143,16 @@ RSpec.describe MaYyaReport::Report do
         expect(keys.first(5)).to eq([:A1a, :A1b, :A2a, :A2b, :A3a])
         expect(keys).to include(:F1a, :F1b, :F1c, :F1d, :F1e) # F1 cells
       end
+
+      context 'when show_flex_funds? is true' do
+        before { allow(report).to receive(:show_flex_funds?).and_return(true) }
+
+        it 'contains the restored A5 direct assistance labels' do
+          expect(cell_labels[:A5a]).to eq('Total number of YYA who received direct financial assistance/flex funds')
+          expect(cell_labels[:A5b]).to eq('Number of YYA who received assistance with Move-in costs')
+          expect(cell_labels[:A5n]).to eq('Number of YYA who received assistance with Other costs')
+        end
+      end
     end
 
     describe '#labels' do
@@ -230,6 +240,33 @@ RSpec.describe MaYyaReport::Report do
 
       it 'contains expected cells in A_Total subsection' do
         expect(section_a[:subsections]['A_Total'][:cells].keys).to contain_exactly(:TotalYYAServedPrevention, :TotalYYAServedHomeless)
+      end
+
+      describe 'A5 subsection (Direct Financial Assistance)' do
+        context 'when show_flex_funds? is true' do
+          before { allow(report).to receive(:show_flex_funds?).and_return(true) }
+
+          it 'is included in section A subsections' do
+            expect(section_a[:subsections].keys).to include('A5')
+          end
+
+          it 'contains the expected A5a-A5n cells in order' do
+            expected = [:A5a, :A5b, :A5c, :A5d, :A5e, :A5f, :A5g, :A5h, :A5i, :A5j, :A5k, :A5l, :A5m, :A5n]
+            expect(section_a[:subsections]['A5'][:cells].keys).to eq(expected)
+          end
+
+          it 'has the correct subsection label' do
+            expect(section_a[:subsections]['A5'][:subsection_label]).to eq('5. Direct Financial Assistance (Flex Funds)')
+          end
+        end
+
+        context 'when show_flex_funds? is false' do
+          before { allow(report).to receive(:show_flex_funds?).and_return(false) }
+
+          it 'is not included in section A subsections' do
+            expect(section_a[:subsections].keys).not_to include('A5')
+          end
+        end
       end
     end
 
@@ -377,6 +414,26 @@ RSpec.describe MaYyaReport::Report do
         columns = report.detail_columns_for(:F2d)
         expect(columns).to include(:zip_codes)
       end
+
+      context 'when show_flex_funds? is false' do
+        before { allow(report).to receive(:show_flex_funds?).and_return(false) }
+
+        it 'excludes the flex_funds column' do
+          expect(report.detail_columns_for(:A1a)).not_to include(:flex_funds)
+        end
+      end
+
+      context 'when show_flex_funds? is true' do
+        before { allow(report).to receive(:show_flex_funds?).and_return(true) }
+
+        it 'includes the flex_funds column' do
+          expect(report.detail_columns_for(:A1a)).to include(:flex_funds)
+        end
+
+        it 'includes direct_assistance and flex_funds for A5 cells' do
+          expect(report.detail_columns_for(:A5a)).to include(:direct_assistance, :flex_funds)
+        end
+      end
     end
 
     describe '#member_level_column?' do
@@ -389,6 +446,38 @@ RSpec.describe MaYyaReport::Report do
     describe '#detail_header_for' do
       it 'humanizes column names' do
         expect(report.detail_header_for(:project_type_at_entry)).to eq('Project type at entry')
+      end
+    end
+  end
+
+  describe '#show_flex_funds?' do
+    context 'when Flex Funds service type does not exist' do
+      before { allow(Hmis::Hud::CustomServiceType).to receive(:find_by).with(name: 'Flex Funds').and_return(nil) }
+
+      it 'returns false' do
+        expect(report.show_flex_funds?).to be false
+      end
+    end
+
+    context 'when Flex Funds service type exists but flex_funds_types CDED does not' do
+      before do
+        allow(Hmis::Hud::CustomServiceType).to receive(:find_by).with(name: 'Flex Funds').and_return(double('service_type'))
+        allow(Hmis::Hud::CustomDataElementDefinition).to receive(:find_by).with(key: :flex_funds_types).and_return(nil)
+      end
+
+      it 'returns false' do
+        expect(report.show_flex_funds?).to be false
+      end
+    end
+
+    context 'when both service type and flex_funds_types CDED exist' do
+      before do
+        allow(Hmis::Hud::CustomServiceType).to receive(:find_by).with(name: 'Flex Funds').and_return(double('service_type'))
+        allow(Hmis::Hud::CustomDataElementDefinition).to receive(:find_by).with(key: :flex_funds_types).and_return(double('cded'))
+      end
+
+      it 'returns true' do
+        expect(report.show_flex_funds?).to be true
       end
     end
   end
@@ -438,6 +527,10 @@ RSpec.describe MaYyaReport::Report do
 
     it 'returns nil when no description exists' do
       expect(report.detail_description(:NonexistentCell)).to be_nil
+    end
+
+    it 'returns a description for the restored A5a direct assistance cell' do
+      expect(report.detail_description(:A5a)).to be_present
     end
   end
 

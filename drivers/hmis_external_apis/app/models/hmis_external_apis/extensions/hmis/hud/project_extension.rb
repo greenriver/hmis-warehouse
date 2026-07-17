@@ -18,6 +18,10 @@ module HmisExternalApis
           # Legacy External "incoming" ReferralPostings for this project.
           # They may be incoming from another HMIS project, or incoming from the external LINK system.
           has_many :external_referral_postings, class_name: 'HmisExternalApis::AcHmis::ReferralPosting', dependent: :destroy
+
+          scope :ce_bulk_voidable_by, ->(user) do
+            viewable_by(user).with_access(user, :can_edit_enrollments).open_on_date.with_project_type(14)
+          end
         end
       end
     end
