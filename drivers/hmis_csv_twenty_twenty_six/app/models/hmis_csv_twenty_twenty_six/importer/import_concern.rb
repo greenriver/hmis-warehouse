@@ -56,6 +56,14 @@ module HmisCsvTwentyTwentySix::Importer::ImportConcern
       '2026'
     end
 
+    # `source_hash` is computed in PostgreSQL by a BEFORE INSERT OR UPDATE trigger
+    # (see HmisCsvTwentyTwentySix::SourceHash::TriggerGenerator), so pre_process
+    # skips the per-row Ruby `calculate_source_hash`. Only the 2026 base staging
+    # tables have the trigger;
+    def self.source_hash_computed_in_db?
+      true
+    end
+
     # Override as necessary
     def self.clean_row_for_import(row, deidentified:) # rubocop:disable Lint/UnusedMethodArgument
       row
