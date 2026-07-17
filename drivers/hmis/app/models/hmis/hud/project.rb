@@ -225,18 +225,25 @@ class Hmis::Hud::Project < Hmis::Hud::Base
     Hmis::Form::Instance.in_data_source(data_source_id).active.published.with_role(:REFERRAL).any? { |instance| instance.project_match(self) }
   end
 
-  def receives_direct_ce_referrals?
-    config = Hmis::ProjectCeConfig.detect_best_config_for_project(self)
+  def ce_config
+    return @ce_config if defined?(@ce_config)
 
-    config&.receives_direct_referrals?
+    @ce_config = Hmis::ProjectCeConfig.detect_best_config_for_project(self)
+  end
+
+  def receives_direct_ce_referrals?
+    ce_config&.receives_direct_referrals? || false
+  end
+
+  def supports_waitlist_referrals?
+    ce_config&.supports_waitlist_referrals? || false
   end
 
   def receives_direct_ce_referrals_from?(source_project)
-    config = Hmis::ProjectCeConfig.detect_best_config_for_project(self)
-    return false unless config&.receives_direct_referrals?
-    return true unless config.receives_direct_referrals_from.present? # no projects specified, so accept from all
+    return false unless ce_config&.receives_direct_referrals?
+    return true unless ce_config.receives_direct_referrals_from.present? # no projects specified, so accept from all
 
-    config.receives_direct_referrals_from.include?(source_project.id)
+    ce_config.receives_direct_referrals_from.include?(source_project.id)
   end
 
   def services_only_rrh?

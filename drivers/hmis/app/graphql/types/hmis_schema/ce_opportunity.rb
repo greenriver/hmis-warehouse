@@ -107,15 +107,19 @@ module Types
       load_ar_association(object, :candidate_pool)&.candidates_generated_at
     end
 
-    def candidates_generating
+    def candidates_generating # not for batch; queries the project's "best" ProjectConfig, which is expensive
       pool = load_ar_association(object, :candidate_pool)
-      # todo @martha - I'm still suspicious of returning false here.
-      # if the user is requesting a unit that queries candidatesGenerating, then it SHOULD have a waitlist.
-      # but that's specific to the UI, not the api/contract
-      return false unless pool # no waitlist pool exists, so nothing is processing
+      unless pool
+        unit_group = load_ar_association(object, :unit_group)
+        # If the unit group expects to have a waitlist, but isn't connected to a pool yet, treat it as generating.
+        # Getting associated with a candidate pool *should* happen instantaneously when a unit group is changed
+        # (see rebuild_candidate_pools hooks), but this guards against bugs
+        return unit_group&.ce_waitlists_enabled? || false
+      end
 
       marker = load_ar_association(pool, :change_marker)
-      marker.nil? || marker.dirty? # nil marker is unexpected. Guard by returning true, indicating that *something* is in-progress
+      # nil marker is unexpected. Guard by returning true, indicating that *something* is in-progress
+      marker.nil? || marker.dirty?
     end
   end
 end

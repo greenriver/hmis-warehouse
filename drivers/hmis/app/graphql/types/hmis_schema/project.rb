@@ -141,20 +141,18 @@ module Types
     def coordinated_entry_features # Not for batch
       return nil unless Hmis::Ce.configuration.enabled?
 
-      ce_config = Hmis::ProjectCeConfig.detect_best_config_for_project(object)
-      sends_referrals_config = Hmis::ProjectSendsDirectCeReferralsConfig.detect_best_config_for_project(object)
+      supports_waitlist_referrals = object.supports_waitlist_referrals?
+      receives_direct_referrals = object.receives_direct_ce_referrals?
+      sends_direct_referrals = Hmis::ProjectSendsDirectCeReferralsConfig.detect_best_config_for_project(object).present?
 
-      return nil unless ce_config.present? || sends_referrals_config.present?
-
-      supports_waitlist_referrals = ce_config&.supports_waitlist_referrals? || false
-      receives_direct_referrals = ce_config&.receives_direct_referrals? || false
+      return nil unless supports_waitlist_referrals || receives_direct_referrals || sends_direct_referrals
 
       OpenStruct.new(
         id: object.id,
         supports_referrals: supports_waitlist_referrals || receives_direct_referrals,
         supports_waitlist_referrals: supports_waitlist_referrals,
         receives_direct_referrals: receives_direct_referrals,
-        sends_direct_referrals: sends_referrals_config.present?,
+        sends_direct_referrals: sends_direct_referrals,
       )
     end
 
