@@ -6,6 +6,7 @@ inherit_mode:
 
 require:
   - ./lib/rubocop/cop/migrations/disable_ddl_transaction
+  - ./lib/rubocop/cop/queries/unsafe_bulk_update_sql
 
 AllCops:
   SuggestExtensions: false
@@ -280,3 +281,6 @@ Migrations/DisableDdlTransaction:
   Enabled: true
   Include:
     - "db/**/migrate/*.rb"
+
+Queries/UnsafeBulkUpdateSql:
+  Enabled: true

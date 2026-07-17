@@ -140,13 +140,19 @@ module HmisDataCleanup
         map { |field| clients.where(field => 99) }.
         reduce { |memo, scope| memo.or(scope) }
 
-      # Construct SQL to update fields: set to 0 if it's 99, otherwise leave it unchanged
-      update_sql = fields.map do |field|
-        quoted_field = "\"#{field}\""
-        "#{quoted_field} = CASE WHEN #{quoted_field} = 99 THEN 0 ELSE #{quoted_field} END"
-      end.join(', ')
+      # Count the distinct affected clients before updating, for logging.
+      rows_affected = clients_with_bad_99s.count
 
-      rows_affected = clients_with_bad_99s.update_all(update_sql)
+      # Set each field to 0 wherever it currently holds 99. We update per-field
+      # with the Hash form so ActiveRecord qualifies the column names. A raw SQL
+      # string would break here: `clients` is a joined scope (`.hmis`), and under
+      # Rails 8.1 a joined update_all aliases the target table, making bare column
+      # references in a raw string ambiguous (PG::AmbiguousColumn).
+      # See docs/active-record-arel-and-queries.md.
+      fields.each do |field|
+        clients.where(field => 99).update_all(field => 0)
+      end
+
       Rails.logger.info "Set #{category} fields 99=>0 on #{rows_affected} Clients"
 
       # Build a scope that matches clients where ALL of the <Race|Gender> fields are 0

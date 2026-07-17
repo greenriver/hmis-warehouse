@@ -115,6 +115,8 @@ GrdaWarehouse::Hud::Enrollment.joins(:client).where(c_t[:VeteranStatus].eq(1))
 
 Rely on ActiveRecord relationships over manual table joins.
 
+Avoid passing raw SQL strings to `update_all` / `delete_all` / `update_counters`; on joined relations (e.g. the `.hmis` scope) Rails 8.1 aliases the table and bare columns become ambiguous. See [ActiveRecord, Arel, and Query Best Practices](active-record-arel-and-queries.md) for the full rationale, the range-syntax preference, and the `Queries/UnsafeBulkUpdateSql` cop.
+
 ## Background Async Jobs
 
 All jobs should inherit from BaseJob.
