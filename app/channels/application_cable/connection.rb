@@ -16,13 +16,12 @@ module ApplicationCable
 
     protected def find_verified_user
       if AuthMethod.jwt?
+        # Resolves without provisioning: a WebSocket frame must not cause side effects
+        # (see Idp::JwtHelper.active_user_from_token).
         access_token = request.headers['HTTP_X_FORWARDED_ACCESS_TOKEN']
-        jwt_helper = Idp::JwtHelper.new(access_token: access_token)
-        if jwt_helper.valid?
-          # Do not provision a new user (find_from_jwt). A WebSocket frame must not cause side effects.
-          user = User.find_from_jwt(jwt_helper)
-          return user if user&.active?
-        end
+        user = Idp::JwtHelper.active_user_from_token(access_token)
+        return user if user
+
         reject_unauthorized_connection
       elsif (verified_user = env["warden"].user)
         verified_user
