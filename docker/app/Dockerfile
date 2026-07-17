@@ -35,35 +35,6 @@ ARG GROUP_ID=10000
 ARG BUNDLER_VERSION=2.7.2
 ARG PG_MAJOR=17
 
-# Debian's bookworm-security chromium package is a rolling apt install with no
-# version pin, so it silently picks up whatever build is currently published.
-# DSA-6378-1 (2026-07-05) bumped it to 150.0.7871.46-1~deb12u1, which crashed on
-# every launch (headless or not) with a Trace/breakpoint trap — Debian Bug
-# #1141488 (https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=1141488): an
-# incomplete patch left the {google:searchSource} token-replacement template
-# in place after removing its handler, hitting an unhandled switch default
-# case. Fixed upstream in 150.0.7871.100-1~deb12u1, superseded again by
-# 150.0.7871.124-1~deb12u1 (current as of 2026-07-16). Pinned via
-# snapshot.debian.org (rather than plain apt-get) so this stays reproducible
-# and immune to Debian superseding it again before we choose to re-bump.
-# TARGETARCH is populated automatically by BuildKit (amd64, arm64, ...) and
-# matches the Debian .deb architecture suffix used below.
-ARG TARGETARCH
-ARG CHROMIUM_VERSION=150.0.7871.124-1~deb12u1
-ARG CHROMIUM_SNAPSHOT_BASE=https://snapshot.debian.org/archive/debian-security/20260716T114414Z/pool/updates/main/c/chromium
-# snapshot.debian.org addresses every archived file by its SHA1 (see the
-# "hash" field at https://snapshot.debian.org/mr/package/chromium/<version>/allfiles),
-# so this is the checksum to verify each download against, not a SHA256.
-# Per-architecture checksums: the build downloads the .deb matching the build
-# platform (TARGETARCH, supplied automatically by BuildKit) so image builds work
-# on both amd64 (production/ECR) and arm64 (Apple Silicon dev machines).
-ARG CHROMIUM_SHA1_AMD64=ba4f545dce13c3e483643e3439dd32cd56ca2347
-ARG CHROMIUM_COMMON_SHA1_AMD64=040b6c14b08d6e721683918e0a551b2128f9055d
-ARG CHROMIUM_SANDBOX_SHA1_AMD64=aaa0a8c256e5e064667dd7b4ac7c93c5f7460819
-ARG CHROMIUM_SHA1_ARM64=04e324f7a81f97e1417e33371650b8d5baef721b
-ARG CHROMIUM_COMMON_SHA1_ARM64=a5ed856b7f84a2989f81c21c0d6beb5573b06f49
-ARG CHROMIUM_SANDBOX_SHA1_ARM64=3098df473dc81f7b414eff83050ca2a9f58c4e27
-
 LABEL "app"=open-path-warehouse
 LABEL "ruby-version"=3.4.9
 
@@ -115,6 +86,8 @@ RUN apt-get update && apt-get upgrade -y \
   awscli \
   bash \
   build-essential \
+  chromium \
+  chromium-common \
   dbus \
   dbus-user-session \
   expect \
@@ -185,32 +158,6 @@ RUN apt-get update && apt-get upgrade -y \
        ln -s /usr/lib/x86_64-linux-gnu/libproj.so /usr/lib/libproj.so.20; \
      fi \
   && npm install -g yarn@1.22.22
-
-# Install a version-pinned Chromium/chromium-common/chromium-sandbox for PDF
-# generation via grover — see the CHROMIUM_* ARGs above for why this can't
-# just be `apt-get install chromium chromium-common`.
-RUN apt-get update \
-  && case "$TARGETARCH" in \
-       amd64) deb_arch=amd64; \
-              chromium_sha1="$CHROMIUM_SHA1_AMD64"; \
-              chromium_common_sha1="$CHROMIUM_COMMON_SHA1_AMD64"; \
-              chromium_sandbox_sha1="$CHROMIUM_SANDBOX_SHA1_AMD64";; \
-       arm64) deb_arch=arm64; \
-              chromium_sha1="$CHROMIUM_SHA1_ARM64"; \
-              chromium_common_sha1="$CHROMIUM_COMMON_SHA1_ARM64"; \
-              chromium_sandbox_sha1="$CHROMIUM_SANDBOX_SHA1_ARM64";; \
-       *) echo "Unsupported TARGETARCH: $TARGETARCH" >&2; exit 1;; \
-     esac \
-  && tmp_dir=$(mktemp -d) \
-  && for pkg in chromium chromium-common chromium-sandbox; do \
-       curl -sL --fail -o "$tmp_dir/${pkg}.deb" "$CHROMIUM_SNAPSHOT_BASE/${pkg}_${CHROMIUM_VERSION}_${deb_arch}.deb"; \
-     done \
-  && echo "${chromium_sha1}  $tmp_dir/chromium.deb" | sha1sum -c - \
-  && echo "${chromium_common_sha1}  $tmp_dir/chromium-common.deb" | sha1sum -c - \
-  && echo "${chromium_sandbox_sha1}  $tmp_dir/chromium-sandbox.deb" | sha1sum -c - \
-  && apt-get install -y --no-install-recommends "$tmp_dir"/*.deb \
-  && apt-mark hold chromium chromium-common chromium-sandbox \
-  && rm -rf "$tmp_dir" /var/lib/apt/lists/*
 
 # Install custom pg_repack versions
 COPY docker/app/install_pg_repack.sh /usr/local/bin/install_pg_repack.sh
