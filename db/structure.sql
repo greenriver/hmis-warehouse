@@ -2490,7 +2490,8 @@ CREATE TABLE public.users (
     training_courses jsonb,
     custom_session_invalidator character varying,
     theme character varying DEFAULT 'legacy'::character varying,
-    last_connector_id character varying
+    last_connector_id character varying,
+    otp_secret character varying
 );
 
 
@@ -4249,6 +4250,7 @@ ALTER TABLE ONLY public.oauth_access_tokens
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260715120000'),
 ('20260620000000'),
 ('20260614130000'),
 ('20260611120000'),
