@@ -108,27 +108,6 @@ RSpec.describe Hmis::UnitGroup, type: :model do
     end
   end
 
-  describe '#ce_waitlists_enabled?' do
-    let!(:workflow_template) { create(:hmis_workflow_definition_template, :with_basic_tasks, data_source: project.data_source) }
-
-    it 'returns false without a waitlist workflow template' do
-      create(:hmis_project_ce_config, project: project, supports_waitlist_referrals: true)
-      expect(unit_group.ce_waitlists_enabled?).to eq(false)
-    end
-
-    it 'returns false when the project does not support waitlist referrals' do
-      unit_group.update!(workflow_template: workflow_template)
-      create(:hmis_project_ce_config, project: project, supports_waitlist_referrals: false, receives_direct_referrals: true)
-      expect(unit_group.ce_waitlists_enabled?).to eq(false)
-    end
-
-    it 'returns true when waitlists are enabled and a workflow template is present' do
-      unit_group.update!(workflow_template: workflow_template)
-      create(:hmis_project_ce_config, project: project, supports_waitlist_referrals: true)
-      expect(unit_group.ce_waitlists_enabled?).to eq(true)
-    end
-  end
-
   describe 'callbacks' do
     before do
       allow(Hmis::Ce::Match::CandidatePoolBuilder).to receive(:call)

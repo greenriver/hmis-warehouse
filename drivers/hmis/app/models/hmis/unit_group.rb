@@ -104,12 +104,6 @@ module Hmis
       Hmis::Ce::Match::Rule.priority_schemes_for_entity(self)
     end
 
-    # Whether this unit group participates in CE waitlist referrals.
-    # Mirrors the conditions of `.with_ce_waitlists_enabled`
-    def ce_waitlists_enabled?
-      workflow_template_identifier.present? && project.supports_waitlist_referrals?
-    end
-
     def available_unit_count
       units.receiving_referrals.count
     end
