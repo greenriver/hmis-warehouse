@@ -27,10 +27,10 @@ module Idp
 
       # Read-only lookup: this is a machine-to-machine query; does not provision users
       @current_user = Idp::JwtHelper.active_user_from_token(token)
-      unless @current_user
-        Rails.logger.warn "#{self.class.name}: invalid/expired JWT token or inactive user"
-        return head :unauthorized
-      end
+      return if @current_user
+
+      Rails.logger.warn "#{self.class.name}: invalid/expired JWT token or inactive user"
+      return head :unauthorized
     end
 
     def extract_bearer_token
