@@ -9,44 +9,34 @@
 require 'rails_helper'
 
 RSpec.feature 'HUD report PDF auto-scale script', type: :rails_system do
-  let(:user) { create(:user) }
-  let(:report_name) { HudApr::Generators::Apr::Fy2024::Generator.title }
-  let(:report) { create(:hud_reports_report_instance, user: user, report_name: report_name, options: {}) }
-  let(:rendered_html) do
-    ActionController::Renderer::RACK_KEY_TRANSLATION['warden'] ||= 'warden'
-    renderer = HudApr::AprsController.renderer.new(
-      'warden' => PdfGenerator.warden_proxy(user),
-    )
-    renderer.render(
-      'hud_reports/download',
-      layout: 'layouts/hud_report_export',
-      assigns: { report: report, generator: HudApr::Generators::Apr::Fy2024::Generator },
-      formats: [:html],
-    )
-  end
+  include_context 'RailsSystemHelper'
 
-  # Extracted from the real rendered layout (not hand-copied) so this test can never
-  # drift from what layouts/hud_report_export.haml actually ships.
-  let(:script) do
-    match = rendered_html.match(/<script>\s*(window\.addEventListener\('load'.*?)<\/script>/m)
-    raise "couldn't find auto-scale script in rendered HTML — did layouts/hud_report_export.haml change?" unless match
+  # Read directly from the real asset file (not hand-copied) so this test can never
+  # drift from what app/assets/javascripts/hud_report_pdf_autoscale.js actually ships.
+  let(:script) { Rails.root.join('app/assets/javascripts/hud_report_pdf_autoscale.js').read }
 
-    match[1]
-  end
+  it 'shrinks an over-wide table to fit its container and leaves a narrow table alone', js: true do
+    # Container is the real printable width (PdfGenerator::PRINTABLE_WIDTH_PX), not an
+    # arbitrary placeholder. The "wide" table is 5x that and tall enough for many rows —
+    # comparable to a real report table significantly exceeding the printable width, not
+    # a token amount of overflow.
+    container_width = PdfGenerator::PRINTABLE_WIDTH_PX
+    wide_table_width = container_width * 5
+    wide_table_height = 1500 # e.g. several dozen data rows
+    narrow_table_width = 400 # comfortably narrower than the container
 
-  it 'shrinks an over-wide table to fit its container, compresses the reserved space, and leaves a narrow table alone', js: true do
     fixture_html = <<~HTML
       <!DOCTYPE html>
       <html>
         <body>
           <div class="summary-tables">
-            <div class="table-responsive" style="width: 200px; overflow: auto;">
-              <table style="width: 600px; height: 300px; border-collapse: collapse; border-spacing: 0;">
-                <tr><td style="height: 300px; padding: 0; border: 0;">wide</td></tr>
+            <div class="table-responsive" style="width: #{container_width}px; overflow: auto;">
+              <table style="width: #{wide_table_width}px; height: #{wide_table_height}px; border-collapse: collapse; border-spacing: 0;">
+                <tr><td style="height: #{wide_table_height}px; padding: 0; border: 0;">wide</td></tr>
               </table>
             </div>
-            <div class="table-responsive" style="width: 200px; overflow: auto;">
-              <table style="width: 100px; border-collapse: collapse; border-spacing: 0;">
+            <div class="table-responsive" style="width: #{container_width}px; overflow: auto;">
+              <table style="width: #{narrow_table_width}px; border-collapse: collapse; border-spacing: 0;">
                 <tr><td style="padding: 0; border: 0;">narrow</td></tr>
               </table>
             </div>
@@ -73,14 +63,13 @@ RSpec.feature 'HUD report PDF auto-scale script', type: :rails_system do
         "document.querySelectorAll('.table-responsive')[0].getBoundingClientRect().height",
       )
 
-      # Wide table (600px) shrinks to exactly fit its 200px container.
-      expect(wide_width).to eq(200.0)
-      # Narrow table (100px) is left at its natural size.
-      expect(narrow_width).to eq(100.0)
-      # Container height is set to naturalHeight * scale — the wide table is 300px
-      # tall and scale is 200/600 (container width / table width) — so it should
-      # land at exactly 300 * (200.0 / 600) = 100px.
-      expect(wide_container_height).to eq(100.0)
+      # Wide table shrinks to exactly fit its container.
+      expect(wide_width).to eq(container_width.to_f)
+      # Narrow table is left at its natural size.
+      expect(narrow_width).to eq(narrow_table_width.to_f)
+      # Wide table container height is reduced to match the zoomed table's height
+      # (scale factor is container_width / wide_table_width = 1/5).
+      expect(wide_container_height).to eq(wide_table_height / 5.0)
     ensure
       file.unlink
     end
