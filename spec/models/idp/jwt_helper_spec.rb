@@ -91,6 +91,13 @@ RSpec.describe Idp::JwtHelper, if: AuthMethod.jwt? do
       bad_aud_helper = described_class.new(access_token: bad_aud_token)
       expect(bad_aud_helper.valid?).to be false
     end
+
+    it 'fails closed (and reports to Sentry) when the JWKS endpoint is unreachable' do
+      allow(described_class).to receive(:fetch_jwks).and_raise(SocketError.new('getaddrinfo: Name or service not known'))
+      expect(Sentry).to receive(:capture_exception_with_info).with(instance_of(SocketError), anything)
+
+      expect(helper.valid?).to be false
+    end
   end
 
   describe '#payload' do

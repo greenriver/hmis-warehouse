@@ -17,6 +17,20 @@ class Idp::JwtHelper
   REQUIRED_ENV_KEYS = ['IDP_AUD', 'ISS_URL', 'JWKS_URL', 'JWT_ALGORITHM'].freeze
   VALID_AUTH_METHODS = [nil, 'devise', 'jwt'].freeze
 
+  # Transport-level failures reaching JWKS_URL. We can't verify the token when the IdP is
+  # unreachable, so we fail closed
+  NETWORK_ERRORS = [
+    SocketError,
+    Errno::ECONNREFUSED,
+    Errno::ECONNRESET,
+    Errno::EHOSTUNREACH,
+    Errno::ETIMEDOUT,
+    Net::OpenTimeout,
+    Net::ReadTimeout,
+    OpenSSL::SSL::SSLError,
+    Timeout::Error,
+  ].freeze
+
   def initialize(access_token:)
     @access_token = access_token
   end
@@ -49,6 +63,10 @@ class Idp::JwtHelper
     false
   rescue JSON::ParserError => e
     Rails.logger.error "JSON verification failed: #{e.message}"
+    false
+  rescue *NETWORK_ERRORS => e
+    Rails.logger.error "JWT verification could not reach JWKS endpoint: #{e.message}"
+    Sentry.capture_exception_with_info(e, 'JWT verification could not reach the JWKS endpoint; treating token as invalid')
     false
   end
 
@@ -122,6 +140,15 @@ class Idp::JwtHelper
     return nil unless helper.token? && helper.valid?
 
     User.find_from_jwt(helper)&.id
+  end
+
+  # Resolves an active user from a token, without provisioning or any other side effect
+  def self.active_user_from_token(access_token)
+    helper = new(access_token: access_token)
+    return nil unless helper.valid?
+
+    user = User.find_from_jwt(helper)
+    user if user&.active?
   end
 
   def self.assert_boot_config!
