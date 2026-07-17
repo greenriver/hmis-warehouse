@@ -13,6 +13,7 @@ module Types
     value 'COC'
     value 'PROJECT', 'All Projects that the User can see'
     value 'ENROLLABLE_PROJECTS', 'Projects that the User can enroll Clients in'
+    value 'BULK_VOID_CE_PROJECTS', 'Projects where the Bulk Void operation can take place'
     value 'RESIDENTIAL_PROJECTS', 'Residential Projects'
     value 'OPEN_PROJECTS', 'Open Projects that the user can see'
     value 'PROJECTS_RECEIVING_REFERRALS', 'Open Projects that can receive referrals'

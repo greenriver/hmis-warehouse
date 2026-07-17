@@ -100,6 +100,7 @@ module MaYyaReport
         :homeless_enrollment_project_type,
         :entry_current_living_situation_code,
       ],
+      direct_assistance: [:direct_assistance, :flex_funds],
       demographics_age_gender: [:gender],
       demographics_race_language: [:race, :language],
       demographics_disability: [:mental_health_disorder, :substance_use_disorder, :physical_disability, :developmental_disability],
@@ -137,6 +138,7 @@ module MaYyaReport
       'A2' => :initial_contact,
       'A3' => :prevention_case_management,
       'A4' => :rehousing_case_management,
+      'A5' => :direct_assistance,
       'A_Total' => :core_totals,
       'D1' => :demographics_age_gender,
       'D2' => :demographics_race_language,
@@ -183,6 +185,20 @@ module MaYyaReport
       A3b: 'YYA with an entry date prior to the reporting period and a non-homeless Current Living Situation (not: 116, 101, 118, 302, 336, or 335) collected within the reporting period and after the entry date.',
       A4a: 'YYA with an entry date during the reporting period and a homeless Current Living Situation (116, 101, 118, 302, 336, or 335) collected on the entry date or enrolled in a homeless project (ES, SH, SO, or TH).',
       A4b: 'YYA with an entry date prior to the reporting period and a homeless Current Living Situation (116, 101, 118, 302, 336, or 335) collected on the entry date, and a subsequent homeless Current Living Situation (116, 101, 118, 302, 336, or 335) collected within the reporting period and after the entry date, or enrolled in a homeless project (ES, SH, SO, or TH).',
+      A5a: 'YYA who were referred to emergency assistance/flex fund/furniture assistance (CE Event 16) or who received a Flex Funds custom service during the reporting period.',
+      A5b: 'Of A5a, those whose Flex Funds custom service recorded a type of Move-in.',
+      A5c: 'Of A5a, those whose Flex Funds custom service recorded a type of Rent.',
+      A5d: 'Of A5a, those whose Flex Funds custom service recorded a type of Rent arrears.',
+      A5e: 'Of A5a, those whose Flex Funds custom service recorded a type of Utilities.',
+      A5f: 'Of A5a, those whose Flex Funds custom service recorded a type of Transportation.',
+      A5g: 'Of A5a, those whose Flex Funds custom service recorded a type of Education.',
+      A5h: 'Of A5a, those whose Flex Funds custom service recorded a type of Legal.',
+      A5i: 'Of A5a, those whose Flex Funds custom service recorded a type of Child care.',
+      A5j: 'Of A5a, those whose Flex Funds custom service recorded a type of Work.',
+      A5k: 'Of A5a, those whose Flex Funds custom service recorded a type of Medical.',
+      A5l: 'Of A5a, those whose Flex Funds custom service recorded a type of Cell phone.',
+      A5m: 'Of A5a, those whose Flex Funds custom service recorded a type of Food/Groceries.',
+      A5n: 'Of A5a, those whose Flex Funds custom service recorded a type of Other.',
       TotalYYAServedPrevention: 'Unduplicated of YYA in A1b, A2b, A3a, or A3b.',
       TotalYYAServedHomeless: 'Unduplicated of YYA in A1a, A2a, A4a, or A4b.',
       D1a: 'Of the Total YYA Served in Prevention, those who were under 18.',
@@ -306,7 +322,15 @@ module MaYyaReport
       columns = DETAIL_BASE_COLUMNS.dup
       columns.concat(DETAIL_COLUMN_GROUPS.fetch(detail_column_group_for(cell), []))
       columns.concat(DETAIL_CELL_OVERRIDES.fetch(cell, []))
+      columns << :flex_funds if show_flex_funds?
       columns.uniq
+    end
+
+    def show_flex_funds?
+      return @show_flex_funds unless @show_flex_funds.nil?
+
+      @show_flex_funds = Hmis::Hud::CustomServiceType.find_by(name: 'Flex Funds').present? &&
+        Hmis::Hud::CustomDataElementDefinition.find_by(key: :flex_funds_types).present?
     end
 
     def detail_header_for(column)
@@ -421,32 +445,43 @@ module MaYyaReport
         )
     end
 
+    private def section_a_subsections
+      subsections = {
+        'A1' => {
+          subsection_label: '1. Street Outreach/Collaboration',
+          cells: section_a1_cells,
+        },
+        'A2' => {
+          subsection_label: '2. Referrals Received',
+          cells: section_a2_cells,
+        },
+        'A3' => {
+          subsection_label: '3. Assessment/Case Management/Case Coordination - Prevention',
+          cells: section_a3_cells,
+        },
+        'A4' => {
+          subsection_label: '4. Assessment/Case Management/Case Coordination - Rehousing',
+          cells: section_a4_cells,
+        },
+      }
+      if show_flex_funds?
+        subsections['A5'] = {
+          subsection_label: '5. Direct Financial Assistance (Flex Funds)',
+          cells: section_a5_cells,
+        }
+      end
+      subsections['A_Total'] = {
+        subsection_label: 'Totals',
+        cells: section_a_total_cells,
+      }
+      subsections
+    end
+
     private def nested_cell_definitions
       @nested_cell_definitions ||= {
         'A' => {
           section_label: 'A. Core Services',
-          subsections: {
-            'A1' => {
-              subsection_label: '1. Street Outreach/Collaboration',
-              cells: section_a1_cells,
-            },
-            'A2' => {
-              subsection_label: '2. Referrals Received',
-              cells: section_a2_cells,
-            },
-            'A3' => {
-              subsection_label: '3. Assessment/Case Management/Case Coordination - Prevention',
-              cells: section_a3_cells,
-            },
-            'A4' => {
-              subsection_label: '4. Assessment/Case Management/Case Coordination - Rehousing',
-              cells: section_a4_cells,
-            },
-            'A_Total' => {
-              subsection_label: 'Totals',
-              cells: section_a_total_cells,
-            },
-          },
+          subsections: section_a_subsections,
         },
         'D' => {
           section_label: 'D. Prevention Demographics',
@@ -598,6 +633,85 @@ module MaYyaReport
           label: 'Number of YYA continuing in case management',
         },
       }
+    end
+
+    private def section_a5_cells
+      {
+        A5a: {
+          calculation: a_t[:direct_assistance].eq(true),
+          label: 'Total number of YYA who received direct financial assistance/flex funds',
+        },
+        A5b: {
+          calculation: a_t[:direct_assistance].eq(true).
+            and(Arel.sql(json_contains_text(:flex_funds, 'Move-in'))),
+          label: 'Number of YYA who received assistance with Move-in costs',
+        },
+        A5c: {
+          calculation: a_t[:direct_assistance].eq(true).
+            and(Arel.sql(json_contains_text(:flex_funds, 'Rent'))),
+          label: 'Number of YYA who received assistance with Rent',
+        },
+        A5d: {
+          calculation: a_t[:direct_assistance].eq(true).
+            and(Arel.sql(json_contains_text(:flex_funds, 'Rent arrears'))),
+          label: 'Number of YYA who received assistance with Rent arrears',
+        },
+        A5e: {
+          calculation: a_t[:direct_assistance].eq(true).
+            and(Arel.sql(json_contains_text(:flex_funds, 'Utilities'))),
+          label: 'Number of YYA who received assistance with Utilities',
+        },
+        A5f: {
+          calculation: a_t[:direct_assistance].eq(true).
+            and(Arel.sql(json_contains_text(:flex_funds, 'Transportation'))),
+          label: 'Number of YYA who received assistance with Transportation-related costs',
+        },
+        A5g: {
+          calculation: a_t[:direct_assistance].eq(true).
+            and(Arel.sql(json_contains_text(:flex_funds, 'Education'))),
+          label: 'Number of YYA who received assistance with Education-related costs',
+        },
+        A5h: {
+          calculation: a_t[:direct_assistance].eq(true).
+            and(Arel.sql(json_contains_text(:flex_funds, 'Legal'))),
+          label: 'Number of YYA who received assistance with Legal costs',
+        },
+        A5i: {
+          calculation: a_t[:direct_assistance].eq(true).
+            and(Arel.sql(json_contains_text(:flex_funds, 'Child care'))),
+          label: 'Number of YYA who received assistance with Child care',
+        },
+        A5j: {
+          calculation: a_t[:direct_assistance].eq(true).
+            and(Arel.sql(json_contains_text(:flex_funds, 'Work'))),
+          label: 'Number of YYA who received assistance with Work-related costs',
+        },
+        A5k: {
+          calculation: a_t[:direct_assistance].eq(true).
+            and(Arel.sql(json_contains_text(:flex_funds, 'Medical'))),
+          label: 'Number of YYA who received assistance with Medical costs',
+        },
+        A5l: {
+          calculation: a_t[:direct_assistance].eq(true).
+            and(Arel.sql(json_contains_text(:flex_funds, 'Cell phone'))),
+          label: 'Number of YYA who received assistance with Cell phone costs',
+        },
+        A5m: {
+          calculation: a_t[:direct_assistance].eq(true).
+            and(Arel.sql(json_contains_text(:flex_funds, 'Food/Groceries'))),
+          label: 'Number of YYA who received assistance with Food/groceries',
+        },
+        A5n: {
+          calculation: a_t[:direct_assistance].eq(true).
+            and(Arel.sql(json_contains_text(:flex_funds, 'Other'))),
+          label: 'Number of YYA who received assistance with Other costs',
+        },
+      }
+    end
+
+    # Check whether a jsonb array column contains a given text value (case insensitive)
+    private def json_contains_text(field, text)
+      "lower(#{field}::text)::jsonb ? '#{text.downcase}'"
     end
 
     private def section_a_total_cells

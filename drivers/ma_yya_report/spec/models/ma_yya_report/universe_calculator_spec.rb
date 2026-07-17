@@ -368,6 +368,118 @@ RSpec.describe MaYyaReport::UniverseCalculator do
       end
     end
 
+    describe '#flex_funds' do
+      let(:service_type) { OpenStruct.new(id: 42) }
+      let(:cded) { OpenStruct.new(id: 99) }
+
+      context 'when Flex Funds service type is not configured' do
+        it 'returns an empty array regardless of enrollments' do
+          expect(calculator.send(:flex_funds, [])).to eq([])
+        end
+      end
+
+      context 'when service type and CDED are configured' do
+        let(:cde) { OpenStruct.new(data_element_definition_id: 99, value_string: 'Rent (Direct Financial Assistance)') }
+        let(:service) { OpenStruct.new(custom_data_elements: [cde]) }
+        let(:enrollment) { OpenStruct.new }
+
+        before do
+          allow(calculator).to receive(:flex_funds_service_type).and_return(service_type)
+          allow(calculator).to receive(:flex_funds_types_cded).and_return(cded)
+          allow(calculator).to receive(:flex_funds_services_in_range).and_return([service])
+        end
+
+        it 'extracts flex fund types and strips parenthesized text' do
+          expect(calculator.send(:flex_funds, [enrollment])).to eq(['Rent'])
+        end
+
+        it 'deduplicates types across multiple enrollments' do
+          enrollment2 = OpenStruct.new
+          expect(calculator.send(:flex_funds, [enrollment, enrollment2])).to eq(['Rent'])
+        end
+
+        it 'returns multiple distinct types from a service' do
+          cde2 = OpenStruct.new(data_element_definition_id: 99, value_string: 'Transportation')
+          multi_service = OpenStruct.new(custom_data_elements: [cde, cde2])
+          allow(calculator).to receive(:flex_funds_services_in_range).and_return([multi_service])
+
+          expect(calculator.send(:flex_funds, [enrollment])).to contain_exactly('Rent', 'Transportation')
+        end
+
+        it 'excludes CDEs from other definitions' do
+          unrelated_cde = OpenStruct.new(data_element_definition_id: 55, value_string: 'Should not appear')
+          mixed_service = OpenStruct.new(custom_data_elements: [cde, unrelated_cde])
+          allow(calculator).to receive(:flex_funds_services_in_range).and_return([mixed_service])
+
+          expect(calculator.send(:flex_funds, [enrollment])).to eq(['Rent'])
+        end
+      end
+    end
+
+    describe '#direct_assistance?' do
+      context 'when Flex Funds service type or CDED is not configured' do
+        it 'returns false regardless of enrollments' do
+          # Both memoized methods return nil by default (no DB records)
+          expect(calculator.send(:direct_assistance?, [OpenStruct.new])).to be false
+        end
+      end
+
+      context 'when service type and CDED are configured' do
+        let(:service_type) { OpenStruct.new(id: 42) }
+        let(:cded) { OpenStruct.new(id: 99) }
+
+        before do
+          allow(calculator).to receive(:flex_funds_service_type).and_return(service_type)
+          allow(calculator).to receive(:flex_funds_types_cded).and_return(cded)
+        end
+
+        it 'returns true for a client with a CE Event 16 (direct referral) within the report range' do
+          # Event 16 = Referral to emergency assistance/flex fund/furniture assistance
+          event = OpenStruct.new(Event: 16, EventDate: filter.start + 1.month)
+          hud_enrollment = OpenStruct.new(events: [event])
+          enrollment = OpenStruct.new(enrollment: hud_enrollment)
+          allow(calculator).to receive(:flex_funds_services_in_range).and_return([])
+
+          expect(calculator.send(:direct_assistance?, [enrollment])).to be true
+        end
+
+        it 'returns false for a CE Event 16 outside the report range' do
+          event = OpenStruct.new(Event: 16, EventDate: filter.start - 1.day)
+          hud_enrollment = OpenStruct.new(events: [event])
+          enrollment = OpenStruct.new(enrollment: hud_enrollment)
+          allow(calculator).to receive(:flex_funds_services_in_range).and_return([])
+
+          expect(calculator.send(:direct_assistance?, [enrollment])).to be false
+        end
+
+        it 'returns true for a client with a Flex Funds custom service in range' do
+          hud_enrollment = OpenStruct.new(events: [])
+          enrollment = OpenStruct.new(enrollment: hud_enrollment)
+          service = OpenStruct.new
+          allow(calculator).to receive(:flex_funds_services_in_range).with(enrollment).and_return([service])
+
+          expect(calculator.send(:direct_assistance?, [enrollment])).to be true
+        end
+
+        it 'returns false when no CE event and no flex fund services exist' do
+          hud_enrollment = OpenStruct.new(events: [])
+          enrollment = OpenStruct.new(enrollment: hud_enrollment)
+          allow(calculator).to receive(:flex_funds_services_in_range).with(enrollment).and_return([])
+
+          expect(calculator.send(:direct_assistance?, [enrollment])).to be false
+        end
+
+        it 'returns false for a non-16 CE event within range' do
+          event = OpenStruct.new(Event: 1, EventDate: filter.start + 1.month)
+          hud_enrollment = OpenStruct.new(events: [event])
+          enrollment = OpenStruct.new(enrollment: hud_enrollment)
+          allow(calculator).to receive(:flex_funds_services_in_range).and_return([])
+
+          expect(calculator.send(:direct_assistance?, [enrollment])).to be false
+        end
+      end
+    end
+
     describe '#language' do
       it 'determines language correctly' do
         aggregate_failures 'language determination' do
