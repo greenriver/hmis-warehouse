@@ -12,7 +12,7 @@
     {
       "text": "Decision",
       "type": "CHOICE",
-      "link_id": "decision",
+      "link_id": "admin_decision",
       "mapping": {
         "custom_field_key": "standard_review_decline_decision"
       },
