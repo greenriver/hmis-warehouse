@@ -115,10 +115,7 @@ gem 'authtrail' # for logging login attempts
 gem 'maxminddb' # for local geocoding of login attempts
 gem 'geocoder'
 
-# 16 breaks models with inherited has_paper_trail, need to update significant code
-# https://github.com/paper-trail-gem/paper_trail/blob/master/CHANGELOG.md
-# We'll be upgading to 17 in a separate PR
-gem 'paper_trail', '~> 15'
+gem 'paper_trail', '~> 17'
 gem 'validate_url'
 gem 'validates_email_format_of'
 gem 'ruby-mailchecker'
