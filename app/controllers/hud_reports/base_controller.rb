@@ -160,8 +160,13 @@ module HudReports
 
       # use the 'history' action for relative URLs in pagination. This keeps our
       # crude status polling from breaking pagination links (app/views/hud_reports/_list_refresher.haml)
+      #
+      # NB: use path_for_history rather than url_for(action: :history). The history
+      # action only exists on the reports controller (as a collection route), so
+      # url_for would raise ActionController::UrlGenerationError when set_reports runs
+      # under the questions controller, which has no :history route.
       pagy_opts = {}
-      pagy_opts[:request_path] = url_for(action: :history) if request.xhr?
+      pagy_opts[:request_path] = path_for_history if request.xhr?
       @pagy, @reports = pagy(@reports, **pagy_opts)
     end
 

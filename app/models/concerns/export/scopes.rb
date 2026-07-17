@@ -19,9 +19,12 @@ module Export::Scopes
         else
           c_scope = client_source
         end
-        c_scope.destination.where(id: c_scope.joins(:warehouse_client_source).
-          where(enrollment_exists_for_client).select(wc_t[:destination_id])).
-          preload(:source_clients)
+        c_scope = c_scope.destination.where(id: c_scope.joins(:warehouse_client_source).
+          where(enrollment_exists_for_client).select(wc_t[:destination_id]))
+
+        c_scope = ClientExternalDataSharing.remove_excluded_clients(c_scope)
+
+        c_scope.preload(:source_clients)
       end
     end
 
@@ -52,6 +55,7 @@ module Export::Scopes
         # - For non-HoH with HoH present: uses HoH's CoC
         # - For non-HoH without HoH: falls back to their own CoC
         e_scope = apply_hoh_coc_filter(e_scope) if @coc_codes.present?
+        e_scope = ClientExternalDataSharing.remove_excluded_enrollments(e_scope)
         e_scope.distinct.preload(:project, :client)
       end
     end

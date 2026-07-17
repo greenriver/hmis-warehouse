@@ -26,6 +26,7 @@
       %em.text-muted
         Client ID:
         %strong= @client.id
+    = render 'clients/external_sharing_flag', client: @client
   - if show_second_column
     .col-sm-3
       = render 'clients/header_actions'

@@ -52,6 +52,8 @@ class ClientsController < ApplicationController
       clean_params[gender_column] = 1
     end
     clean_params.delete(:Gender)
+    @exclude_from_external_data_sharing = clean_params[:exclude_from_external_data_sharing] == '1'
+    clean_params.delete(:exclude_from_external_data_sharing)
     @client = client_source.new(clean_params.merge(PersonalID: SecureRandom.uuid.gsub(/-/, '')))
 
     params_valid = validate_new_client_params(clean_params)
@@ -72,6 +74,7 @@ class ClientsController < ApplicationController
     elsif clean_params[:bypass_search].present? || existing_matches.empty?
       # Create a new source and destination client
       # and redirect to the new client show page
+      created_dest = nil
       client_source.transaction do
         destination_ds_id = GrdaWarehouse::DataSource.destination.first.id
         @client.save
@@ -92,6 +95,7 @@ class ClientsController < ApplicationController
           data_source_id: @client.data_source_id,
         )
         if @client.persisted? && destination_client.persisted? && warehouse_client.persisted?
+          created_dest = destination_client
           flash[:notice] = "Client #{@client.full_name} created."
           after_create_path = client_path_generator
           if @client.data_source.after_create_path.present?
@@ -105,6 +109,7 @@ class ClientsController < ApplicationController
           render action: :new
         end
       end
+      ClientExternalDataSharing.new(created_dest).set_exclusion!(value: true, user: current_user) if created_dest && @exclude_from_external_data_sharing && ClientExternalDataSharing.enabled?
     end
   end
 

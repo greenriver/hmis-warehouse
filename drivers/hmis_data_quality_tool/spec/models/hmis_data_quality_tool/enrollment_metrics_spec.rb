@@ -1495,5 +1495,86 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
         end
       end
     end
+
+    describe 'VAMC Station Number' do
+      # Project type 13 = RRH; Funder 33 = VA: SSVF — both required to enter denominator
+      context 'HoH with missing VAMC station' do
+        before do
+          @project = create_project(project_type: 13) # RRH
+          create(:hud_funder, data_source: data_source, ProjectID: @project.ProjectID, Funder: 33)
+          @client = create_client_with_warehouse_link
+          @enrollment = create_enrollment(
+            client: @client,
+            project: @project,
+            relationship_to_ho_h: 1, # HoH
+          )
+          @enrollment.update(VAMCStation: nil)
+          @report = setup_report([@project.id])
+        end
+
+        it 'flags the enrollment' do
+          expect_result(key: :vamc_station, total: 1, invalid_count: 1)
+        end
+      end
+
+      context 'HoH with valid VAMC station' do
+        before do
+          @project = create_project(project_type: 13) # RRH
+          create(:hud_funder, data_source: data_source, ProjectID: @project.ProjectID, Funder: 33)
+          @client = create_client_with_warehouse_link
+          @enrollment = create_enrollment(
+            client: @client,
+            project: @project,
+            relationship_to_ho_h: 1, # HoH
+          )
+          # 402 is a valid VAMC station number
+          @enrollment.update(VAMCStation: 402)
+          @report = setup_report([@project.id])
+        end
+
+        it 'does not flag the enrollment' do
+          expect_result(key: :vamc_station, total: 1, invalid_count: 0)
+        end
+      end
+
+      context 'non-HoH veteran with missing VAMC station' do
+        before do
+          @project = create_project(project_type: 13) # RRH
+          create(:hud_funder, data_source: data_source, ProjectID: @project.ProjectID, Funder: 33)
+          @client = create_client_with_warehouse_link(veteran_status: 1) # veteran
+          @enrollment = create_enrollment(
+            client: @client,
+            project: @project,
+            relationship_to_ho_h: 99, # non-HoH
+          )
+          @enrollment.update(VAMCStation: nil)
+          @report = setup_report([@project.id])
+        end
+
+        it 'does not flag the enrollment' do
+          # total: 0 because non-HoH should not be in the denominator at all
+          expect_result(key: :vamc_station, total: 0, invalid_count: 0)
+        end
+      end
+
+      context 'non-HoH non-veteran with missing VAMC station' do
+        before do
+          @project = create_project(project_type: 13) # RRH
+          create(:hud_funder, data_source: data_source, ProjectID: @project.ProjectID, Funder: 33)
+          @client = create_client_with_warehouse_link
+          @enrollment = create_enrollment(
+            client: @client,
+            project: @project,
+            relationship_to_ho_h: 99, # non-HoH
+          )
+          @enrollment.update(VAMCStation: nil)
+          @report = setup_report([@project.id])
+        end
+
+        it 'does not flag the enrollment' do
+          expect_result(key: :vamc_station, total: 0, invalid_count: 0)
+        end
+      end
+    end
   end
 end

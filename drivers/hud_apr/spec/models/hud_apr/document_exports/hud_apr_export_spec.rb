@@ -67,7 +67,11 @@ RSpec.describe HudApr::DocumentExports::HudAprExport, type: :model do
         pdf_double = instance_double(PdfGenerator)
         expect(PdfGenerator).to receive(:new).and_return(pdf_double)
         expect(pdf_double).to receive(:perform).
-          with(html: '<html></html>', file_name: a_string_matching(/\Av1\.2 APR FY 2024-/)).
+          with(
+            html: '<html></html>',
+            file_name: a_string_matching(/\Av1\.2 APR FY 2024-/),
+            options: { viewport: PdfGenerator::MEASUREMENT_VIEWPORT },
+          ).
           and_yield(pdf_tempfile).
           and_return(true)
 
@@ -76,6 +80,26 @@ RSpec.describe HudApr::DocumentExports::HudAprExport, type: :model do
         expect(export.status).to eq(DocumentExportBehavior::COMPLETED_STATUS)
         expect(export.file_data).to eq('%PDF-fake')
       end
+    end
+  end
+
+  describe 'the rendered PDF HTML' do
+    let(:report) { create(:hud_reports_report_instance, user: user, report_name: report_name, options: {}) }
+    let(:rendered_html) do
+      ActionController::Renderer::RACK_KEY_TRANSLATION['warden'] ||= 'warden'
+      renderer = HudApr::AprsController.renderer.new(
+        'warden' => PdfGenerator.warden_proxy(user),
+      )
+      renderer.render(
+        'hud_reports/download',
+        layout: 'layouts/hud_report_export',
+        assigns: { report: report, generator: HudApr::Generators::Apr::Fy2024::Generator },
+        formats: [:html],
+      )
+    end
+
+    it 'declares a UTF-8 charset so Grover/Chromium does not mis-decode special characters' do
+      expect(rendered_html).to include("<meta content='text/html; charset=UTF-8' http-equiv='Content-Type'>")
     end
   end
 

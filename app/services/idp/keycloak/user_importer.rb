@@ -173,16 +173,18 @@ module Idp
       # recovery-code format has no clean partialImport mapping. Affected users
       # fall back to their authenticator app or an admin 2FA reset.
       def build_otp_credential(user)
-        return nil unless user.encrypted_otp_secret.present? && user.otp_required_for_login?
+        return nil unless user.otp_required_for_login?
 
         begin
+          # user.otp_secret bridges both storage locations: the Rails-encrypted otp_secret
+          # column (devise-two-factor 6.x) and the legacy encrypted_otp_secret* columns.
           otp_secret = user.otp_secret
         rescue StandardError => e
           Rails.logger.warn "Failed to decrypt OTP secret for #{user.email}: #{e.message}"
           return nil
         end
 
-        return nil unless otp_secret
+        return nil unless otp_secret.present?
 
         {
           type: 'otp',

@@ -26254,6 +26254,40 @@ ALTER SEQUENCE public.clh_locations_id_seq OWNED BY public.clh_locations.id;
 
 
 --
+-- Name: client_attributes; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.client_attributes (
+    id bigint NOT NULL,
+    client_id bigint NOT NULL,
+    external_data_sharing_exclusion_flag boolean,
+    external_data_sharing_updated_by bigint,
+    external_data_sharing_updated_at timestamp(6) without time zone,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: client_attributes_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.client_attributes_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: client_attributes_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.client_attributes_id_seq OWNED BY public.client_attributes.id;
+
+
+--
 -- Name: client_contacts; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -27061,7 +27095,8 @@ CREATE TABLE public.configs (
     number_lms_courses_required integer DEFAULT '-1'::integer,
     rds_s3_integration_role_arn character varying,
     default_lms_email_to_warehouse_email boolean,
-    relevant_state_codes character varying DEFAULT 'MA'::character varying NOT NULL
+    relevant_state_codes character varying DEFAULT 'MA'::character varying NOT NULL,
+    enable_external_data_sharing_exclusion boolean DEFAULT false NOT NULL
 );
 
 
@@ -57007,6 +57042,13 @@ ALTER TABLE ONLY public.clh_locations ALTER COLUMN id SET DEFAULT nextval('publi
 
 
 --
+-- Name: client_attributes id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.client_attributes ALTER COLUMN id SET DEFAULT nextval('public.client_attributes_id_seq'::regclass);
+
+
+--
 -- Name: client_contacts id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -63646,6 +63688,14 @@ ALTER TABLE ONLY public.chronics
 
 ALTER TABLE ONLY public.clh_locations
     ADD CONSTRAINT clh_locations_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: client_attributes client_attributes_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.client_attributes
+    ADD CONSTRAINT client_attributes_pkey PRIMARY KEY (id);
 
 
 --
@@ -215830,6 +215880,13 @@ CREATE INDEX index_clh_locations_on_source_type_and_source_id ON public.clh_loca
 
 
 --
+-- Name: index_client_attributes_on_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_client_attributes_on_client_id ON public.client_attributes USING btree (client_id);
+
+
+--
 -- Name: index_client_contacts_on_client_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -359792,6 +359849,8 @@ ALTER TABLE ONLY public.import_logs
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260624000001'),
+('20260622120000'),
 ('20260618120000'),
 ('20260614130000'),
 ('20260608120622'),

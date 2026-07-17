@@ -572,6 +572,90 @@ RSpec.describe 'MaYyaReport Client Classification', type: :model do
         end
       end
     end
+
+    describe 'Section A5: Direct Financial Assistance (Flex Funds)' do
+      context 'A5a: Received direct assistance' do
+        it 'includes clients with direct_assistance true and excludes those without' do
+          matching_client = MaYyaReport::Client.create!(
+            client_id: 501,
+            service_history_enrollment_id: 501,
+            entry_date: Date.new(2024, 6, 1),
+            direct_assistance: true,
+            age: 19,
+            gender: 0,
+          )
+          non_matching_client = MaYyaReport::Client.create!(
+            client_id: 502,
+            service_history_enrollment_id: 502,
+            entry_date: Date.new(2024, 6, 1),
+            direct_assistance: false,
+            age: 19,
+            gender: 0,
+          )
+
+          calculation = report.send(:section_a5_cells)[:A5a][:calculation]
+          matching_clients = MaYyaReport::Client.where(calculation)
+          expect(matching_clients).to include(matching_client)
+          expect(matching_clients).not_to include(non_matching_client)
+        end
+      end
+
+      context 'A5c: Received Rent assistance' do
+        it 'matches clients whose flex_funds array contains Rent, case-insensitively' do
+          rent_client = MaYyaReport::Client.create!(
+            client_id: 503,
+            service_history_enrollment_id: 503,
+            entry_date: Date.new(2024, 6, 1),
+            direct_assistance: true,
+            flex_funds: ['rent'],
+            age: 19,
+            gender: 0,
+          )
+          other_type_client = MaYyaReport::Client.create!(
+            client_id: 504,
+            service_history_enrollment_id: 504,
+            entry_date: Date.new(2024, 6, 1),
+            direct_assistance: true,
+            flex_funds: ['Utilities'],
+            age: 19,
+            gender: 0,
+          )
+
+          calculation = report.send(:section_a5_cells)[:A5c][:calculation]
+          matching_clients = MaYyaReport::Client.where(calculation)
+          expect(matching_clients).to include(rent_client)
+          expect(matching_clients).not_to include(other_type_client)
+        end
+      end
+
+      context 'A5n: Received Other assistance' do
+        it 'matches clients whose flex_funds array contains Other' do
+          other_client = MaYyaReport::Client.create!(
+            client_id: 505,
+            service_history_enrollment_id: 505,
+            entry_date: Date.new(2024, 6, 1),
+            direct_assistance: true,
+            flex_funds: ['Other'],
+            age: 19,
+            gender: 0,
+          )
+          non_matching_client = MaYyaReport::Client.create!(
+            client_id: 506,
+            service_history_enrollment_id: 506,
+            entry_date: Date.new(2024, 6, 1),
+            direct_assistance: true,
+            flex_funds: ['Rent'],
+            age: 19,
+            gender: 0,
+          )
+
+          calculation = report.send(:section_a5_cells)[:A5n][:calculation]
+          matching_clients = MaYyaReport::Client.where(calculation)
+          expect(matching_clients).to include(other_client)
+          expect(matching_clients).not_to include(non_matching_client)
+        end
+      end
+    end
   end
 
   describe 'complex client scenarios' do

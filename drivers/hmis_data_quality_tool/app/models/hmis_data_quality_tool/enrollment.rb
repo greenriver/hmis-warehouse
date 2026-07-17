@@ -845,10 +845,14 @@ module HmisDataQualityTool
             !item.target_screen_completed
           },
         },
+        # V6 VAMC Station Number — FY2026 VA Data Guide
+        # Required (R) for: SSVF RRH, SSVF HP, all HCHV, all GPD projects.
+        # Applies to HoH only: "VAMCStation Should not be null when RelationshipToHoH = 1"
+        # Note: HP project type is currently excluded from this check — see follow-up issue.
         vamc_station: {
           title: 'VAMC Station Number is Missing',
           description: 'VAMC Station Number is missing or not collected',
-          required_for: 'HoH and Veteran in ES (E/E), TH, PSH, SO, SH, PH-Housing Only, and RRH',
+          required_for: 'HoH in ES (E/E), TH, PSH, SO, SH, PH-Housing Only, and RRH',
           detail_columns: default_detail_columns + [
             :vamc_station,
           ],
@@ -870,12 +874,13 @@ module HmisDataQualityTool
               HudHelper.util.performance_reporting[:rrh],
             ].flatten.include?(item.project_type)
 
-            # Only hohs or veterans that include the above funder(s) and project type(s)
-            (hoh?(item) || item.veteran == 1) && in_project_types && (funding_sources & item.funders).any?
+            # VA Data Guide: "VAMCStation Should not be null when RelationshipToHoH = 1"
+            # Non-HoH household members (including veterans) are not required to have a VAMC station.
+            hoh?(item) && in_project_types && (funding_sources & item.funders).any?
           },
           limiter: ->(item) {
-            # HoHs or Veterans
-            return false unless hoh?(item) || item.veteran == 1
+            # HoHs
+            return false unless hoh?(item)
 
             # Limit to items with intersecting funders below
             funding_sources = [
