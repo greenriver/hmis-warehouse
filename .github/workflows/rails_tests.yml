@@ -317,7 +317,7 @@ jobs:
           AWS_ACCESS_KEY_ID: local_access_key
           AWS_SECRET_ACCESS_KEY: local_secret_key
         run: |
-          AUTH_METHOD=jwt IDP_AUD=test-aud ISS_URL=https://idp.example.test JWKS_URL=https://idp.example.test/jwks JWT_ALGORITHM=RS256 bundle exec rspec --fail-fast=$MAX_FAILURES --color -fd spec/models/user_auth_method_spec.rb drivers/hmis/spec/models/hmis/user_auth_method_spec.rb spec/models/idp/jwt_helper_spec.rb spec/models/concerns/idp/jwt_user_spec.rb spec/controllers/concerns/idp/jwt_current_user_spec.rb spec/requests/idp/warehouse_jwt_wiring_spec.rb spec/services/idp/service_factory_spec.rb spec/models/idp/service_config_spec.rb drivers/hmis/spec/requests/hmis/hmis_jwt_wiring_spec.rb spec/requests/api/superset_jwt_wiring_spec.rb
+          AUTH_METHOD=jwt IDP_AUD=test-aud ISS_URL=https://idp.example.test JWKS_URL=https://idp.example.test/jwks JWT_ALGORITHM=RS256 bundle exec rspec --fail-fast=$MAX_FAILURES --color -fd spec/models/user_auth_method_spec.rb drivers/hmis/spec/models/hmis/user_auth_method_spec.rb spec/models/idp/jwt_helper_spec.rb spec/models/concerns/idp/jwt_user_spec.rb spec/controllers/concerns/idp/jwt_current_user_spec.rb spec/requests/idp/warehouse_jwt_wiring_spec.rb spec/services/idp/service_factory_spec.rb spec/models/idp/service_config_spec.rb drivers/hmis/spec/requests/hmis/hmis_jwt_wiring_spec.rb spec/requests/api/superset_jwt_wiring_spec.rb spec/requests/admin/idp/users_controller_spec.rb spec/requests/admin/idp/inactive_users_controller_spec.rb
 
       - name: Run logging tests
         if: matrix.test_group.logging || needs.determine_matrix.outputs.logging == 'true'

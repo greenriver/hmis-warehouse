@@ -1,0 +1,17 @@
+-# JWT-arm inactive-user list. Omits the shared view's Devise re-invite branch; reactivation
+-# restores local access and re-enables the account in the IdP without setting a password or
+-# sending a reset email (credentials are IdP-managed).
+- content_for :title, t('.title')
+%h1= content_for :title
+= render partial: 'menus/admin_tabs'
+.o-page
+  .o-page__header
+    - @prompt = t('admin.users.index.search_prompt')
+
+    .o-page__controls
+      .o-page__search
+        = render_generic_search_form(admin_inactive_user_search_queries_path, prompt: @prompt, initial_value: @query, method: :post)
+
+= render 'admin/users/tabs', selected_path: admin_inactive_users_path
+
+= render_paginated_list_with_explicit_pagy(pagy: @pagy, list: @users, item_name: 'user account', list_partial: 'list', empty_message: 'No users found.')

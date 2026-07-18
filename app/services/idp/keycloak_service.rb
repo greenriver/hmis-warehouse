@@ -104,6 +104,30 @@ module Idp
       handle_response(response, operation: :reactivate_user, failure: 'Failed to reactivate user') { true }
     end
 
+    # Disable the account in Keycloak. Mirror of #reactivate_user; stops new token
+    # issuance (the local `active` gate denies the current session out-of-band).
+    def deactivate_user(user_id:)
+      response = make_request(
+        :put,
+        "/admin/realms/#{realm}/users/#{user_id}",
+        body: { enabled: false },
+      )
+
+      handle_response(response, operation: :deactivate_user, failure: 'Failed to deactivate user') { true }
+    end
+
+    # Set Keycloak required actions the user must complete at next login (e.g.
+    # ['UPDATE_PASSWORD'] to force a password change).
+    def set_required_action(user_id:, actions:)
+      response = make_request(
+        :put,
+        "/admin/realms/#{realm}/users/#{user_id}",
+        body: { requiredActions: actions },
+      )
+
+      handle_response(response, operation: :set_required_action, failure: 'Failed to set required actions') { true }
+    end
+
     def idp_name
       'Keycloak'
     end

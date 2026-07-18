@@ -254,6 +254,80 @@ RSpec.describe Idp::KeycloakService, type: :model do
     end
   end
 
+  describe '#deactivate_user' do
+    let(:user_id) { 'keycloak-user-id' }
+
+    context 'with successful deactivation' do
+      before do
+        stub_request(:put, "#{api_url}/admin/realms/#{realm}/users/#{user_id}").
+          to_return(status: 204)
+      end
+
+      it 'returns true and disables the user' do
+        result = service.deactivate_user(user_id: user_id)
+
+        expect(result).to be true
+        expect(
+          a_request(:put, "#{api_url}/admin/realms/#{realm}/users/#{user_id}").
+            with(body: { enabled: false }),
+        ).to have_been_made
+      end
+    end
+
+    context 'with API error' do
+      before do
+        stub_request(:put, "#{api_url}/admin/realms/#{realm}/users/#{user_id}").
+          to_return(
+            status: 404,
+            body: { error: 'User not found' }.to_json,
+          )
+      end
+
+      it 'raises ServiceError' do
+        expect do
+          service.deactivate_user(user_id: user_id)
+        end.to raise_error(Idp::ServiceError)
+      end
+    end
+  end
+
+  describe '#set_required_action' do
+    let(:user_id) { 'keycloak-user-id' }
+
+    context 'with a successful update' do
+      before do
+        stub_request(:put, "#{api_url}/admin/realms/#{realm}/users/#{user_id}").
+          to_return(status: 204)
+      end
+
+      it 'returns true and sets the required actions' do
+        result = service.set_required_action(user_id: user_id, actions: ['UPDATE_PASSWORD'])
+
+        expect(result).to be true
+        expect(
+          a_request(:put, "#{api_url}/admin/realms/#{realm}/users/#{user_id}").
+            with(body: { requiredActions: ['UPDATE_PASSWORD'] }),
+        ).to have_been_made
+      end
+    end
+
+    context 'with API error' do
+      before do
+        stub_request(:put, "#{api_url}/admin/realms/#{realm}/users/#{user_id}").
+          to_return(
+            status: 404,
+            body: { error: 'User not found' }.to_json,
+          )
+      end
+
+      it 'raises ServiceError' do
+        expect do
+          service.set_required_action(user_id: user_id, actions: ['UPDATE_PASSWORD'])
+        end.to raise_error(Idp::ServiceError)
+      end
+    end
+  end
+
   describe '#test_connection' do
     context 'with successful connection' do
       before do

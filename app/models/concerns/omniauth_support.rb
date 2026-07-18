@@ -76,9 +76,24 @@ module OmniauthSupport
     !external_idp?
   end
 
+  # An external IdP (Okta) owns the identity fields of omniauth-linked users, so the admin
+  # surface renders name/email read-only for them, consistent with email_change_enabled?.
+  # Plain local accounts own their own fields and stay editable. (The JWT arm's Idp::Support
+  # overrides this to a flat true — Keycloak owns every user there.)
+  def profile_managed_by_idp?
+    external_idp?
+  end
+
   # Users who don't have a local password cannot be asked to change it
   def password_change_enabled?
     !external_idp?
+  end
+
+  # Devise enforces `expired_at`-based account expiry at authentication (for local and Okta
+  # accounts alike), so admins can set it here. (The JWT arm's Idp::Support overrides this to
+  # false — the IdP does not honor local account expiry.)
+  def account_expiry_enabled?
+    true
   end
 
   def send_reset_password_instructions

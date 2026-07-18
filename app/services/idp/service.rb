@@ -40,6 +40,14 @@ module Idp
       raise NotImplementedError, "#{self.class.name} must implement #reactivate_user"
     end
 
+    def deactivate_user(user_id:)
+      raise NotImplementedError, "#{self.class.name} must implement #deactivate_user"
+    end
+
+    def set_required_action(user_id:, actions:)
+      raise NotImplementedError, "#{self.class.name} must implement #set_required_action"
+    end
+
     # @return [String] human-readable IDP name (e.g. "Keycloak")
     def idp_name
       raise NotImplementedError, "#{self.class.name} must implement #idp_name"

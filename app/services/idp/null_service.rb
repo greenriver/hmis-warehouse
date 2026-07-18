@@ -34,6 +34,14 @@ module Idp
       raise ServiceError.new('User reactivation not supported', idp_name: idp_name, operation: :reactivate_user)
     end
 
+    def deactivate_user(**)
+      raise ServiceError.new('User deactivation not supported', idp_name: idp_name, operation: :deactivate_user)
+    end
+
+    def set_required_action(**)
+      raise ServiceError.new('Required actions not supported', idp_name: idp_name, operation: :set_required_action)
+    end
+
     def idp_name
       connector_id&.humanize || 'Unknown IDP'
     end

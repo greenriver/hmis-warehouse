@@ -1,0 +1,23 @@
+-# JWT-arm user list. Omits the shared view's "Add a User Account" button: account creation is
+-# IdP-managed and the Devise invitation route does not exist under JWT.
+- content_for :title, t('.title')
+%h1= content_for :title
+= render 'menus/admin_tabs'
+= render 'login_chart'
+.o-page
+  .o-page__header
+    - @prompt = t('admin.users.index.search_prompt')
+
+    .o-page__controls
+      .o-page__search
+        = render_generic_search_form(admin_user_search_queries_path, prompt: @prompt, initial_value: @query, method: :post)
+
+= render 'admin/users/tabs', selected_path: admin_users_path
+
+:ruby
+  columns = ['last_name', 'first_name', 'email']
+  directions = current_sort_order(Hash[columns.map {|x| [x, nil]}])
+  titles = {}
+  directions.each {| k,v | titles[k] = @users.human_attribute_name(k)}
+
+= render_paginated_list_with_explicit_pagy(pagy: @pagy, list: @users, item_name: 'user account', list_partial: 'list', list_locals: { titles: titles, directions: directions }, empty_message: 'No users found.')

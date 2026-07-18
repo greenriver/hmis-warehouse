@@ -267,6 +267,52 @@ RSpec.shared_examples 'an auth-method-aware user' do |factory, model|
     # concern rather than an `included do`, its macro only reaches the model via ActiveSupport::Concern's
     # dependency replay. Exercising the validation and the public helper — rather than asserting `include?`
     # alone — proves the replay still lands the callback and the instance methods on the macro-backed model.
+    describe 'confirm_password_for_admin_actions?' do
+      it 'follows OmniauthSupport (!external_idp?): local-password users re-confirm, external-IdP users do not' do
+        user = build(factory)
+        allow(user).to receive(:external_idp?).and_return(false)
+        expect(user.confirm_password_for_admin_actions?).to be true
+
+        allow(user).to receive(:external_idp?).and_return(true)
+        expect(user.confirm_password_for_admin_actions?).to be false
+      end
+    end
+
+    describe 'profile_managed_by_idp?' do
+      it 'follows external_idp?: Okta-linked users are IdP-managed (read-only), local accounts are not' do
+        user = build(factory)
+        allow(user).to receive(:external_idp?).and_return(false)
+        expect(user.profile_managed_by_idp?).to be false
+
+        allow(user).to receive(:external_idp?).and_return(true)
+        expect(user.profile_managed_by_idp?).to be true
+      end
+    end
+
+    describe 'email_change_enabled?' do
+      it 'is the inverse of profile_managed_by_idp?: local accounts may change email, IdP-managed ones may not' do
+        user = build(factory)
+        allow(user).to receive(:external_idp?).and_return(false)
+        expect(user.email_change_enabled?).to be true
+        expect(user.email_change_enabled?).to eq(!user.profile_managed_by_idp?)
+
+        allow(user).to receive(:external_idp?).and_return(true)
+        expect(user.email_change_enabled?).to be false
+        expect(user.email_change_enabled?).to eq(!user.profile_managed_by_idp?)
+      end
+    end
+
+    describe 'account_expiry_enabled?' do
+      it 'is true regardless of external_idp? (Devise enforces expired_at for local and Okta accounts)' do
+        user = build(factory)
+        allow(user).to receive(:external_idp?).and_return(false)
+        expect(user.account_expiry_enabled?).to be true
+
+        allow(user).to receive(:external_idp?).and_return(true)
+        expect(user.account_expiry_enabled?).to be true
+      end
+    end
+
     describe 'PasswordRules applies under Devise' do
       it 'mixes PasswordRules into the host' do
         expect(model.include?(PasswordRules)).to be true
@@ -310,7 +356,11 @@ RSpec.shared_examples 'an auth-method-aware user' do |factory, model|
       expect(model.include?(DeviseUser)).to be false
       expect(model.include?(Idp::JwtUser)).to be true
       expect(model.respond_to?(:devise_modules)).to be false
-      expect(model.new.respond_to?(:otp_secret)).to be false
+      # `otp_secret` is a plain DB column since the devise-two-factor upgrade (migration
+      # 20260715120000_add_otp_secret_to_users), so ActiveRecord defines the accessor on
+      # every user regardless of arm — it no longer discriminates. Assert instead on a
+      # method the :two_factor_authenticatable macro injects (absent under JWT).
+      expect(model.new.respond_to?(:validate_and_consume_otp!)).to be false
     end
 
     describe 'two_factor_enabled?' do
@@ -354,6 +404,35 @@ RSpec.shared_examples 'an auth-method-aware user' do |factory, model|
         # The override lives in DeviseUser, which is not included under JWT, and nothing else defines it.
         # Calling it would raise NoMethodError; assert on the absence directly rather than on the error string.
         expect(model.respond_to?(:find_for_authentication)).to be false
+      end
+    end
+
+    describe 'confirm_password_for_admin_actions?' do
+      it 'is always false (credentials are IdP-managed; the admin surface never renders the field)' do
+        # Idp::Support defines the predicate as a flat false so any both-mode-reachable caller
+        # resolves it, and the JWT admin surface never prompts for a local password.
+        expect(model.new.confirm_password_for_admin_actions?).to be false
+      end
+    end
+
+    describe 'profile_managed_by_idp?' do
+      it 'is true (name/email are provisioned from the JWT; the admin form renders them read-only)' do
+        expect(model.new.profile_managed_by_idp?).to be true
+      end
+    end
+
+    describe 'email_change_enabled?' do
+      it 'is false, the inverse of profile_managed_by_idp? (the IdP owns email; self-service change is blocked)' do
+        # A local email edit would not reach the IdP and would be overwritten from the JWT on next login.
+        user = model.new
+        expect(user.email_change_enabled?).to be false
+        expect(user.email_change_enabled?).to eq(!user.profile_managed_by_idp?)
+      end
+    end
+
+    describe 'account_expiry_enabled?' do
+      it 'is false (the IdP does not honor local expired_at; the admin form hides the field)' do
+        expect(model.new.account_expiry_enabled?).to be false
       end
     end
 

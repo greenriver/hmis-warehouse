@@ -793,41 +793,78 @@ Rails.application.routes.draw do
   end
 
   namespace :admin do
-    # resolves route clash w/ devise
-    resources :users, except: [:show, :new, :create] do
-      resource :resend_invitation, only: :create
-      resource :recreate_invitation, only: :create
-      resource :audit, only: :show
-      resource :edit_history, only: :show
-      resource :locations, only: :show
-      patch :reactivate, on: :member
-      collection do
-        # User search queries
-        resources :searches, only: [:create], controller: 'users/search_queries', as: :user_search_queries
-        get '/searches/:id', to: 'users#search', as: 'user_search_query'
-        get :load_select_options
-        post :stop_impersonating
+    # Auth-method seam: one boot-time gate selects each arm's controllers. Only one block is
+    # declared per boot, so there is no route-name clash; and because the helper names derive
+    # from the resource name (not the controller), they stay identical across both arms.
+    if AuthMethod.jwt?
+      # JWT arm: IdP-backed user management. Devise-only routes are omitted — omitting the route
+      # is how the action is hidden: invitations (IdP-managed), unlock (the realm auto-unlocks),
+      # locations (sign-in history is IdP-managed), and un_expire.
+      resources :users, except: [:show, :new, :create], controller: 'idp/users' do
+        resource :audit, only: :show
+        resource :edit_history, only: :show
+        patch :reactivate, on: :member
+        collection do
+          # Search is auth-agnostic, so both arms point it at the shared Admin::UsersController /
+          # Admin::Users::SearchQueries (helpers still generate from this `resources :users` block).
+          resources :searches, only: [:create], controller: 'users/search_queries', as: :user_search_queries
+          get '/searches/:id', to: 'users#search', as: 'user_search_query'
+          get :load_select_options
+          post :stop_impersonating
+        end
+        member do
+          post :confirm
+          post :impersonate
+          patch :expire_password
+        end
+        resources :threshold_notification_logs, only: [:index, :show]
       end
-      member do
-        post :unlock
-        post :un_expire
-        post :confirm
-        post :impersonate
-        patch :expire_password
+
+      resources :inactive_users, except: [:show, :new, :create], controller: 'idp/inactive_users' do
+        patch :reactivate, on: :member
+        collection do
+          resources :searches, only: [:create], controller: 'inactive_users/search_queries', as: :inactive_user_search_queries
+          get '/searches/:id', to: 'inactive_users#search', as: 'inactive_user_search_query'
+        end
       end
-      resources :threshold_notification_logs, only: [:index, :show]
+    else
+      # Devise arm: existing local-account management (unchanged).
+      # resolves route clash w/ devise
+      resources :users, except: [:show, :new, :create] do
+        resource :resend_invitation, only: :create
+        resource :recreate_invitation, only: :create
+        resource :audit, only: :show
+        resource :edit_history, only: :show
+        resource :locations, only: :show
+        patch :reactivate, on: :member
+        collection do
+          # User search queries
+          resources :searches, only: [:create], controller: 'users/search_queries', as: :user_search_queries
+          get '/searches/:id', to: 'users#search', as: 'user_search_query'
+          get :load_select_options
+          post :stop_impersonating
+        end
+        member do
+          post :unlock
+          post :un_expire
+          post :confirm
+          post :impersonate
+          patch :expire_password
+        end
+        resources :threshold_notification_logs, only: [:index, :show]
+      end
+
+      resources :inactive_users, except: [:show, :new, :create] do
+        patch :reactivate, on: :member
+        collection do
+          # Inactive user search queries
+          resources :searches, only: [:create], controller: 'inactive_users/search_queries', as: :inactive_user_search_queries
+          get '/searches/:id', to: 'inactive_users#search', as: 'inactive_user_search_query'
+        end
+      end
     end
 
     resources :inbound_api_configurations, only: [:index, :new, :create, :destroy]
-
-    resources :inactive_users, except: [:show, :new, :create] do
-      patch :reactivate, on: :member
-      collection do
-        # Inactive user search queries
-        resources :searches, only: [:create], controller: 'inactive_users/search_queries', as: :inactive_user_search_queries
-        get '/searches/:id', to: 'inactive_users#search', as: 'inactive_user_search_query'
-      end
-    end
     resources :account_requests, only: [:index, :edit, :update, :destroy] do
       post :confirm
     end
