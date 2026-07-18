@@ -43,11 +43,18 @@ RSpec.describe 'HealthBase PaperTrail configuration', type: :model do
     class TestHealthMergeChild < TestHealthMergeParent
       has_paper_trail ignore: [:secret_col]
     end
+
+    # :if/:unless are read at event time (PaperTrail::RecordTrail#save_version?),
+    # so the merge must carry them through. unless -> true means "never version".
+    class TestHealthConditionalModel < HealthBase
+      self.table_name = 'test_health_paper_trail_models'
+      has_paper_trail unless: ->(_record) { true }
+    end
   end
 
   after(:all) do
     HealthBase.connection.execute('DROP TABLE IF EXISTS test_health_paper_trail_models CASCADE')
-    [:TestHealthPaperTrailModel, :TestHealthInheritedModel, :TestHealthMergeChild, :TestHealthMergeParent].each do |const|
+    [:TestHealthPaperTrailModel, :TestHealthInheritedModel, :TestHealthMergeChild, :TestHealthMergeParent, :TestHealthConditionalModel].each do |const|
       Object.send(:remove_const, const) if Object.const_defined?(const)
     end
   end
@@ -167,6 +174,26 @@ RSpec.describe 'HealthBase PaperTrail configuration', type: :model do
 
     it 'keeps Health::Tracing::Contact on Health::HealthVersion' do
       expect(Health::Tracing::Contact.version_class_name).to eq('Health::HealthVersion')
+    end
+  end
+
+  describe 'event-time conditions and the setup-only guard' do
+    it 'carries an :unless condition through the merge (records nothing when it returns true)' do
+      expect do
+        TestHealthConditionalModel.create!(name: 'A')
+      end.not_to change(Health::HealthVersion, :count)
+    end
+
+    it 'raises when a subclass re-declares a setup-only option (e.g. versions)' do
+      # Options consumed at setup time (versions/class_name/on/version) cannot take
+      # effect on the merge path -- accepting them silently would hide a no-op
+      # override, so we raise instead.
+      expect do
+        Class.new(HealthBase) do
+          self.table_name = 'test_health_paper_trail_models'
+          has_paper_trail versions: { class_name: 'PaperTrail::Version' }
+        end
+      end.to raise_error(ArgumentError, /versions/)
     end
   end
 end
