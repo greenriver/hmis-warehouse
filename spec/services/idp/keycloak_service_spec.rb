@@ -354,6 +354,28 @@ RSpec.describe Idp::KeycloakService, type: :model do
     end
   end
 
+  describe '#supports_account_backfill?' do
+    it 'returns true (the backfill runs against Keycloak)' do
+      expect(service.supports_account_backfill?).to be true
+    end
+
+    it 'defaults to false on a service without a manageable admin API' do
+      expect(Idp::NullService.new('keycloak').supports_account_backfill?).to be false
+    end
+  end
+
+  describe '#user_scope' do
+    it 'is the importer migration scope (the set the backfill links)' do
+      allow(Idp::Keycloak::UserImporter).to receive(:migration_scope).and_return(:migration_scope)
+
+      expect(service.user_scope).to eq(:migration_scope)
+    end
+
+    it 'defaults to User.none on a service with no manageable users' do
+      expect(Idp::NullService.new('keycloak').user_scope).to eq(User.none)
+    end
+  end
+
   describe 'config validation' do
     it 'raises on missing api_url' do
       expect do
@@ -464,6 +486,44 @@ RSpec.describe Idp::KeycloakService, type: :model do
 
         expect(url).to eq('http://example.com/logout')
       end
+    end
+  end
+
+  describe '#each_user' do
+    let(:users_url) { "#{api_url}/admin/realms/#{realm}/users" }
+
+    def stub_page(first, max, users)
+      stub_request(:get, users_url).
+        with(query: { first: first.to_s, max: max.to_s }).
+        to_return(
+          status: 200,
+          body: users.to_json,
+          headers: { 'Content-Type' => 'application/json' },
+        )
+    end
+
+    it 'pages past the first full page and stops on the final short page' do
+      page1 = Array.new(2) { |i| { 'id' => "id-#{i}", 'email' => "u#{i}@example.com" } }
+      page2 = [{ 'id' => 'id-2', 'email' => 'u2@example.com' }]
+      stub_page(0, 2, page1)
+      stub_page(2, 2, page2)
+
+      collected = service.each_user(page: 2).to_a
+
+      expect(collected).to eq(
+        [
+          { email: 'u0@example.com', id: 'id-0' },
+          { email: 'u1@example.com', id: 'id-1' },
+          { email: 'u2@example.com', id: 'id-2' },
+        ],
+      )
+    end
+
+    it 'stops when a full page is followed by an empty page' do
+      stub_page(0, 2, [{ 'id' => 'a', 'email' => 'a@x.com' }, { 'id' => 'b', 'email' => 'b@x.com' }])
+      stub_page(2, 2, [])
+
+      expect(service.each_user(page: 2).to_a.size).to eq(2)
     end
   end
 end
