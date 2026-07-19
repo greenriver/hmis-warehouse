@@ -43,8 +43,10 @@ RSpec.describe HudReportArchival, type: :model do
     it 'returns false when listed files are not attached' do
       report.update_column(
         :archival_metadata,
-        'archived_at' => Time.current.iso8601,
-        'expected_files' => ['report_cells_csv'],
+        {
+          'archived_at' => Time.current.iso8601,
+          'expected_files' => ['report_cells_csv'],
+        },
       )
       expect(report.archived?).to be false
     end
@@ -52,8 +54,10 @@ RSpec.describe HudReportArchival, type: :model do
     it 'returns true when all expected files are attached' do
       report.update_column(
         :archival_metadata,
-        'archived_at' => Time.current.iso8601,
-        'expected_files' => ['report_cells_csv'],
+        {
+          'archived_at' => Time.current.iso8601,
+          'expected_files' => ['report_cells_csv'],
+        },
       )
       report.report_cells_csv.attach(io: StringIO.new("col\nval"), filename: 'cells.csv', content_type: 'text/csv')
       expect(report.archived?).to be true
@@ -75,8 +79,10 @@ RSpec.describe HudReportArchival, type: :model do
     it 'returns false when already purged' do
       report.update_column(
         :archival_metadata,
-        'purged_at' => Time.current.iso8601,
-        'purge_eligible_at' => 1.day.ago.iso8601,
+        {
+          'purged_at' => Time.current.iso8601,
+          'purge_eligible_at' => 1.day.ago.iso8601,
+        },
       )
       expect(report.purge_eligible?).to be false
     end
@@ -165,10 +171,12 @@ RSpec.describe HudReportArchival, type: :model do
     it 'returns a hash with expected keys when archived' do
       report.update_column(
         :archival_metadata,
-        'archived_at' => Time.current.iso8601,
-        'purge_eligible_at' => 1.day.from_now.iso8601,
-        'expected_files' => ['report_cells_csv'],
-        'expected_file_count' => 1,
+        {
+          'archived_at' => Time.current.iso8601,
+          'purge_eligible_at' => 1.day.from_now.iso8601,
+          'expected_files' => ['report_cells_csv'],
+          'expected_file_count' => 1,
+        },
       )
       status = report.archival_status
       expect(status).to include(

@@ -62,6 +62,38 @@ scope.where(effective_date: start..finish)   # BETWEEN start AND finish
 scope.where('updated_at >= ?', old_date)
 ```
 
+## Never interpolate a Date/Time into a SQL string
+
+This app deliberately renders `Date#to_s` / `Time#to_s` in a human format
+(e.g. `"Jan 29, 2025"`) — see `config/initializers/legacy_rails_conversions.rb`,
+which prepends a `to_s` that delegates to `to_fs` (`Date::DATE_FORMATS[:default]`).
+That format does **not** match ISO date literals, JSONB keys, or string
+comparisons, so interpolating a bare date into SQL silently produces wrong
+results.
+
+This actually happened: the APR/CAPER Q7b/Q8b Point-in-Time counts query a
+`jsonb` column whose keys are ISO date strings (`"2025-01-29"`, written via
+`as_json`). The query interpolated `'#{pit_date}'`, which is `Date#to_s` →
+`"Jan 29, 2025"`, so the key lookup never matched and every PIT count came back
+`0`.
+
+```ruby
+# bad — Date#to_s is "Jan 29, 2025", never matches the ISO jsonb key
+universe.members.where("pit_enrollments ? '#{pit_date}'")
+
+# good — explicit machine format
+universe.members.where("pit_enrollments ? '#{pit_date.iso8601}'")
+
+# good — bind parameter for a value comparison (Postgres casts it)
+scope.where('EntryDate <= ?', report_end_date)
+```
+
+Use `.iso8601`, `.to_fs(:db)`, or `.strftime('%Y-%m-%d')` whenever a date must
+appear inside a SQL string, and prefer bind parameters or the range/Hash forms
+over interpolation entirely. The `Queries/DateInterpolationInSql` cop
+(`lib/rubocop/cop/queries/date_interpolation_in_sql.rb`) flags bare date/time
+interpolation in `where` / `Arel.sql` / `execute` strings.
+
 ## Bulk updates: never pass raw SQL to `update_all`
 
 `update_all("col = ...")` embeds the string verbatim as the UPDATE statement's
