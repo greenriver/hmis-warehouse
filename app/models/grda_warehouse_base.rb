@@ -45,15 +45,28 @@ class GrdaWarehouseBase < ActiveRecord::Base
     super(options.merge(versions: versions, skip: skip))
   end
 
+  # paper_trail options consumed once during setup -- they install callbacks,
+  # associations, and class attributes, so a subclass re-declaring one on the
+  # merge path would be a silent no-op. We raise instead of ignoring them.
+  MERGE_UNSUPPORTED_OPTIONS = [:versions, :class_name, :on, :version].freeze
+
   # Merge a subclass's paper_trail options into the already-configured options,
   # normalizing ignore/skip/only to the stringified form paper_trail expects at
   # event time (see PaperTrail::ModelConfig#event_attribute_option). The subclass
   # inherits every key it does not set; ignore/skip/only that it does set replace
-  # the parent's value for that key wholesale, while meta is merged at the sub-key
-  # level (the subclass wins on a shared key). Does not re-run setup, so no
-  # duplicate callbacks/versions, and leaves version_class_name untouched so every
-  # warehouse model keeps versioning into GrdaWarehouse::Version.
+  # the parent's value for that key wholesale, :if/:unless are carried through as
+  # given, and meta is merged at the sub-key level (the subclass wins on a shared
+  # key). Does not re-run setup, so no duplicate callbacks/versions, and leaves
+  # version_class_name untouched so every warehouse model keeps versioning into
+  # GrdaWarehouse::Version.
   def self.merge_paper_trail_options(options)
+    unsupported = options.keys & MERGE_UNSUPPORTED_OPTIONS
+    if unsupported.any?
+      raise ArgumentError, "has_paper_trail options #{unsupported} cannot be overridden on " \
+        "#{name}; they are consumed when paper_trail is first set up and have no effect on a " \
+        'subclass re-declaration.'
+    end
+
     merged = paper_trail_options.dup
     [:ignore, :skip, :only].each do |key|
       next unless options.key?(key)
@@ -61,6 +74,9 @@ class GrdaWarehouseBase < ActiveRecord::Base
       merged[key] = Array(options[key]).flatten.compact.map do |attr|
         attr.is_a?(Hash) ? attr.stringify_keys : attr.to_s
       end
+    end
+    [:if, :unless].each do |key|
+      merged[key] = options[key] if options.key?(key)
     end
     merged[:meta] = merged[:meta].to_h.merge(options[:meta]) if options[:meta]
     merged

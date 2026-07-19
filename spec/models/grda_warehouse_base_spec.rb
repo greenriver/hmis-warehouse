@@ -103,6 +103,12 @@ RSpec.describe 'GrdaWarehouseBase PaperTrail configuration', type: :model do
     class TestSkipChild < TestSkipParent
       has_paper_trail skip: [:name]
     end
+
+    # :if/:unless are read at event time (save_version?), so the merge must carry
+    # them through. unless -> true means "never version".
+    class TestUnlessChild < TestPaperTrailParent
+      has_paper_trail unless: ->(_record) { true }
+    end
   end
 
   after(:all) do
@@ -113,7 +119,8 @@ RSpec.describe 'GrdaWarehouseBase PaperTrail configuration', type: :model do
       :TestMergeChild, :TestMergeParent,
       :TestMetaChild, :TestMetaParent,
       :TestOnlyChild, :TestOnlyParent,
-      :TestSkipChild, :TestSkipParent
+      :TestSkipChild, :TestSkipParent,
+      :TestUnlessChild
     ].each do |const|
       Object.send(:remove_const, const) if Object.const_defined?(const)
     end
@@ -371,6 +378,25 @@ RSpec.describe 'GrdaWarehouseBase PaperTrail configuration', type: :model do
         expect(changed_keys).not_to include('description')
         expect(changed_keys).to include('name')
       end
+    end
+  end
+
+  describe 'event-time conditions and the setup-only guard' do
+    it 'carries an :unless condition through the merge (records nothing when it returns true)' do
+      expect do
+        TestUnlessChild.create!(name: 'A', description: 'x')
+      end.not_to change(GrdaWarehouse::Version, :count)
+    end
+
+    it 'raises when a subclass re-declares a setup-only option (e.g. versions)' do
+      # Options consumed at setup time (versions/class_name/on/version) cannot take
+      # effect on the merge path -- accepting them silently would hide a no-op
+      # override, so we raise instead.
+      expect do
+        Class.new(TestPaperTrailModel) do
+          has_paper_trail versions: { class_name: 'PaperTrail::Version' }
+        end
+      end.to raise_error(ArgumentError, /versions/)
     end
   end
 end
