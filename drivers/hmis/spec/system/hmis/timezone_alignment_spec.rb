@@ -17,7 +17,9 @@ RSpec.feature 'System test timezone alignment', type: :system do
     page.evaluate_script('Intl.DateTimeFormat().resolvedOptions().timeZone')
   end
 
-  # Read the browser's current local date as an ISO 'YYYY-MM-DD' string.
+  # Read the browser's current local date as an ISO 'YYYY-MM-DD' string. The 'en-CA' locale is a
+  # deliberate idiom for ISO formatting (YYYY-MM-DD) so it matches Ruby's Date#iso8601 below; it is
+  # not about Canada. ('en-US' would give M/D/YYYY and never match.)
   def browser_current_date
     page.evaluate_script("new Date().toLocaleDateString('en-CA')")
   end
