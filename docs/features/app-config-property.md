@@ -45,6 +45,6 @@ Properties are not seeded automatically; set them manually per environment throu
 |-----|-----------------|-----------|
 | `hmis_ce/enabled` | Boolean | Feature flag for CE processing. |
 | `hmis_ce/eligibility_lookback_months` | Integer `0`–`12` | **0** = open enrollments on the evaluation date only. **N > 0** = enrollments overlapping `[current_date - N months, current_date]`. Defaults to **0** when unset. |
-| `hmis_ce/eligibility_project_group_id` | Integer (`Hmis::ProjectGroup` id) | Limit PSDE resolution to enrollments at projects in the group (via `Hmis::ProjectGroup#effective_project_ids`). Blank/unset = all projects within the pool's HMIS data source. Misconfiguration (missing or soft-deleted group) raises at read time. |
+| `hmis_ce/eligibility_project_group_id` | Integer (`Hmis::ProjectGroup` id) | Limits enrollment-field resolution to enrollments at projects in the group (via `Hmis::ProjectGroup#effective_project_ids`). Blank/unset = all projects |
 
 Enrollment filtering during PSDE resolution also applies the candidate pool's HMIS `data_source_id`; that scoping is independent of these global config keys.

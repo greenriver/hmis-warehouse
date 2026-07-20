@@ -38,6 +38,8 @@ module Hmis::Ce
       raise Misconfiguration, "hmis_ce/eligibility_lookback_months must be an integer between 0 and 12, got #{raw.inspect}"
     end
 
+    # Project group ID to use for eligibility from enrollment-related CE match fields.
+    # If specified, enrollment-related fields are only resolved for enrollments at projects in the group.
     def eligibility_project_group_id
       raw = value_for(:eligibility_project_group_id)
       return nil if raw.blank?

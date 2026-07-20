@@ -30,8 +30,10 @@ module Hmis::Ce::Match::Expression
       # Scope enrollments to the destination clients
       scope = Hmis::Hud::Enrollment.joins(client: :warehouse_client_source).
         where(wc_t[:destination_id].in(client_ids))
+
       # Filter down enrollments to the project group, if specified
       scope = apply_project_group_filter(scope)
+
       # Filter down enrollments to those overlapping the lookback window, if specified
       scope = apply_lookback_filter(scope)
 

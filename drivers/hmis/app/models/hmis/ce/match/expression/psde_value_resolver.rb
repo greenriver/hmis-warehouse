@@ -8,9 +8,6 @@
 
 module Hmis::Ce::Match::Expression
   # Resolves PSDE field values for destination clients in batch.
-  #
-  # Unlike CAS +max_current_total_monthly_income+, which takes the max across open enrollments,
-  # this resolver selects the single latest valid IncomeBenefits row across all scoped enrollments.
   class PsdeValueResolver
     include Hmis::Concerns::HmisArelHelper
 
@@ -33,6 +30,8 @@ module Hmis::Ce::Match::Expression
 
     private
 
+    # Unlike CAS +max_current_total_monthly_income+, which takes the max across open enrollments,
+    # this resolver selects the single latest valid IncomeBenefits row across all scoped enrollments.
     def resolve_monthly_total_income(clients)
       client_ids = extract_client_ids(clients)
       return {} if client_ids.empty?
