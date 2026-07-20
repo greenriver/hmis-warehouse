@@ -12,7 +12,8 @@
 module Health
   class Goal::Base < HealthBase
     self.table_name = 'health_goals'
-    has_paper_trail versions: { class_name: 'Health::HealthVersion' }
+    # HealthBase already forces versions into Health::HealthVersion.
+    has_paper_trail
     acts_as_paranoid
 
     phi_patient :patient_id
