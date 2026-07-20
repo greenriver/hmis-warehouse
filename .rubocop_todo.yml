@@ -694,7 +694,6 @@ Lint/ParenthesesAsGroupedExpression:
 Lint/RedundantCopDisableDirective:
   Exclude:
     - 'app/controllers/warehouse_reports/missing_values_controller.rb'
-    - 'app/models/grda_warehouse/public_file.rb'
     - 'drivers/claims_reporting/app/models/hl7.rb'
     - 'drivers/hmis_csv_twenty_twenty/app/models/hmis_csv_twenty_twenty/hmis_csv_cleanup/enforce_relationship_to_hoh.rb'
     - 'drivers/hud_twenty_twenty_to_twenty_twenty_two/app/models/hud_twenty_twenty_to_twenty_twenty_two/aggregated_enrollment/update_r7_columns.rb'

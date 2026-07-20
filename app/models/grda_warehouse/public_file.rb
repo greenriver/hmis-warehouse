@@ -9,15 +9,34 @@
 module GrdaWarehouse
   class PublicFile < GrdaWarehouse::File
     include ArelHelper
-    mount_uploader :file, FileUploader
     acts_as_taggable
+
+    CONTENT_TYPE_WHITELIST = IceNine.deep_freeze(
+      [
+        'image/jpeg',
+        'image/png',
+        'image/gif',
+        'application/pdf',
+        'application/msword',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'text/csv',
+        'application/vnd.ms-excel',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'application/octet-stream',
+      ],
+    )
 
     validates_presence_of :name
     validate :file_exists_and_not_too_large
+    validate :content_type_allowed
 
     def file_exists_and_not_too_large
       errors.add :file, 'No uploaded file found' if (content&.size || 0) < 100
       errors.add :file, 'File size should be less than 4 MB' if (content&.size || 0) > 4.megabytes
+    end
+
+    def content_type_allowed
+      errors.add :file, 'File type not allowed' unless CONTENT_TYPE_WHITELIST.include?(content_type)
     end
 
     def self.known_locations
@@ -50,7 +69,7 @@ module GrdaWarehouse
     end
 
     def self.url_for_location location
-      if (id = order(id: :desc).where(name: location).pluck(:id)&.first) # rubocop:disable Style/GuardClause:
+      if (id = order(id: :desc).where(name: location).pluck(:id)&.first)
         Rails.application.routes.url_helpers.public_file_path(id: id)
       end
     end

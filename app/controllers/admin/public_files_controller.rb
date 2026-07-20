@@ -19,7 +19,9 @@ module Admin
 
     def create
       file = file_params[:file]
-      @file = file_source.create(file_params.merge(user_id: current_user.id, content: file&.read))
+      content = file&.read
+      content_type = Marcel::MimeType.for(content, name: file&.original_filename) if file
+      @file = file_source.create(file_params.merge(user_id: current_user.id, content: content, content_type: content_type, size: file&.size, file: file&.original_filename))
       if @file.invalid?
         flash[:error] = @file.errors.full_messages.join('; ') + params.inspect.to_s
         redirect_to admin_public_files_path
