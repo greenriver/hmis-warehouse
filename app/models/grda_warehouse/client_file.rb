@@ -16,7 +16,6 @@ module GrdaWarehouse
 
     CONSENT_FORM_TAG_CACHE_KEY = 'consent_form_tagging_ids/tag_ids'
 
-    mount_uploader :file, FileUploader # This is probably no necessary, but added to be safe
     has_paper_trail
     acts_as_taggable
 

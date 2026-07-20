@@ -139,7 +139,6 @@ Layout/EmptyLinesAroundClassBody:
     - 'app/models/grda_warehouse/cas_vacancy.rb'
     - 'app/models/grda_warehouse/client_merge_history.rb'
     - 'app/models/grda_warehouse/cohort_copier.rb'
-    - 'app/models/grda_warehouse/dashboard_export_file.rb'
     - 'app/models/grda_warehouse/eto_qaaws/subject_response_lookup.rb'
     - 'app/models/grda_warehouse/federal_census_breakdowns/base.rb'
     - 'app/models/grda_warehouse/generate_service_history_batch_log.rb'
@@ -205,7 +204,6 @@ Layout/EmptyLinesAroundClassBody:
     - 'app/models/health/team/pcp_designee.rb'
     - 'app/models/health/team/provider.rb'
     - 'app/models/health/team/representative.rb'
-    - 'app/models/import.rb'
     - 'app/models/program.rb'
     - 'app/models/report_generators/data_quality/fy2017/base.rb'
     - 'app/models/report_results_summaries/ahar/base.rb'
@@ -492,7 +490,6 @@ Layout/SpaceAroundOperators:
     - 'app/models/grda_warehouse/warehouse_reports/confidential_touch_point.rb'
     - 'app/models/grda_warehouse/warehouse_reports/touch_point.rb'
     - 'app/models/health/transaction_acknowledgement.rb'
-    - 'app/models/import.rb'
     - 'app/models/report_result.rb'
     - 'app/models/similarity_metric/experiment/metric_score_histogram.rb'
     - 'app/models/similarity_metric/experiment/score_histogram.rb'
@@ -1045,7 +1042,6 @@ Style/HashSyntax:
 # Configuration parameters: AllowIfModifier.
 Style/IfInsideElse:
   Exclude:
-    - 'app/models/import.rb'
 
 # Offense count: 32
 # This cop supports safe autocorrection (--autocorrect).

@@ -16,9 +16,6 @@ module GrdaWarehouse
     attr_accessor :enforce_project_date_scope
     # attr_accessor :zip_password
 
-    # attachment via CarrierWave
-    mount_uploader :file, HmisExportUploader
-
     # attachment via ActiveStorage
     has_one_attached :hmis_zip
 
