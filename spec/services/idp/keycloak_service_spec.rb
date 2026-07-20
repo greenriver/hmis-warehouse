@@ -315,6 +315,81 @@ RSpec.describe Idp::KeycloakService, type: :model do
     end
   end
 
+  describe 'TLS certificate verification' do
+    let(:https_uri) { URI("https://keycloak.test:8443/realms/#{realm}") }
+
+    context 'when skip_ssl_verification is not configured' do
+      it 'verifies certificates on HTTPS connections' do
+        http = service.send(:build_http, https_uri)
+
+        # build_http leaves verify_mode untouched, so Net::HTTP applies its
+        # secure default (VERIFY_PEER) when the connection is started.
+        expect(http.use_ssl?).to be true
+        expect(http.verify_mode).not_to eq(OpenSSL::SSL::VERIFY_NONE)
+      end
+    end
+
+    context 'when skip_ssl_verification is true' do
+      let(:service) do
+        described_class.new(
+          config: {
+            api_url: api_url,
+            realm: realm,
+            client_id: client_id,
+            client_secret: client_secret,
+            skip_ssl_verification: true,
+          },
+        )
+      end
+
+      it 'disables certificate verification on HTTPS connections' do
+        http = service.send(:build_http, https_uri)
+
+        expect(http.verify_mode).to eq(OpenSSL::SSL::VERIFY_NONE)
+      end
+    end
+
+    context 'when skip_ssl_verification is the string "true"' do
+      let(:service) do
+        described_class.new(
+          config: {
+            api_url: api_url,
+            realm: realm,
+            client_id: client_id,
+            client_secret: client_secret,
+            skip_ssl_verification: 'true',
+          },
+        )
+      end
+
+      it 'casts the value and disables certificate verification' do
+        http = service.send(:build_http, https_uri)
+
+        expect(http.verify_mode).to eq(OpenSSL::SSL::VERIFY_NONE)
+      end
+    end
+
+    context 'for a plain HTTP connection' do
+      let(:service) do
+        described_class.new(
+          config: {
+            api_url: api_url,
+            realm: realm,
+            client_id: client_id,
+            client_secret: client_secret,
+            skip_ssl_verification: true,
+          },
+        )
+      end
+
+      it 'does not enable SSL even when verification is skipped' do
+        http = service.send(:build_http, URI("#{api_url}/realms/#{realm}"))
+
+        expect(http.use_ssl?).to be false
+      end
+    end
+  end
+
   describe 'token retry on 401' do
     let(:user_id) { 'keycloak-user-id' }
 
@@ -391,11 +466,12 @@ RSpec.describe Idp::KeycloakService, type: :model do
     # (api_url, client_id, service_token, keycloak_realm) without needing the DB
     # or encryption key. ServiceConfig's own columns are covered by its spec.
     let(:persisted_config) do
-      Struct.new(:api_url, :client_id, :service_token, :keycloak_realm, keyword_init: true).new(
+      Struct.new(:api_url, :client_id, :service_token, :keycloak_realm, :skip_ssl_verification, keyword_init: true).new(
         api_url: 'http://kc.from-config:8080',
         client_id: 'config-client',
         service_token: 'config-secret',
         keycloak_realm: 'config-realm',
+        skip_ssl_verification: true,
       )
     end
 
@@ -407,6 +483,7 @@ RSpec.describe Idp::KeycloakService, type: :model do
         client_id: 'config-client',
         client_secret: 'config-secret',
         realm: 'config-realm',
+        skip_ssl_verification: true,
       )
     end
   end
