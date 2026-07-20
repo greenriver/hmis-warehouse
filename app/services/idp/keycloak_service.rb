@@ -33,6 +33,7 @@ module Idp
             client_id: config.client_id,
             client_secret: config.service_token,
             realm: config.keycloak_realm,
+            skip_ssl_verification: config.skip_ssl_verification,
           })
     end
 
@@ -237,9 +238,18 @@ module Idp
     def build_http(uri)
       http = Net::HTTP.new(uri.host, uri.port)
       http.use_ssl = uri.scheme == 'https'
+      # Some non-production Keycloak instances use self-signed certificates.
+      # Opt out of verification only when the config explicitly requests it.
+      http.verify_mode = OpenSSL::SSL::VERIFY_NONE if http.use_ssl? && skip_ssl_verification?
       http.open_timeout = 10
       http.read_timeout = 30
       http
+    end
+
+    # When true, TLS certificate verification is disabled for Keycloak requests.
+    # Intended for staging/dev environments with self-signed certificates only.
+    def skip_ssl_verification?
+      ActiveModel::Type::Boolean.new.cast(config[:skip_ssl_verification])
     end
 
     def fetch_token
