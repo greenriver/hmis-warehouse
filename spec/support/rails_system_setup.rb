@@ -37,6 +37,11 @@ if rails_system_enabled
       timeout: ENV.fetch('FERRUM_DEFAULT_TIMEOUT', 30).to_i,           # Configurable timeout for slow asset loading
       process_timeout: ENV.fetch('FERRUM_PROCESS_TIMEOUT', 60).to_i,   # Configurable process timeout
       pending_connection_errors: false, # Ignore pending connection errors
+      # Match the browser's timezone to Rails so date defaults/comparisons don't drift by a day
+      # when CI runs near the UTC date boundary. Chromium reads TZ from its process env; without
+      # this it falls back to the container's system zone (UTC in CI) while Rails uses
+      # config.time_zone (America/New_York).
+      env: { 'TZ' => Time.zone.tzinfo.identifier },
       browser_options: {
         'no-sandbox' => nil,
         'disable-gpu' => nil,
