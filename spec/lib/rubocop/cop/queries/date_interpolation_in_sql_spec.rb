@@ -67,6 +67,73 @@ RSpec.describe RuboCop::Cop::Queries::DateInterpolationInSql, :config do
         end
       RUBY
     end
+
+    it 'flags an explicit .to_s (the canonical human-format bug)' do
+      expect_offense(<<~'RUBY', msg: described_class::MSG)
+        scope.where("d = '#{report_date.to_s}'")
+                          ^^^^^^^^^^^^^^^^^^^ %{msg}
+      RUBY
+    end
+
+    it 'flags a bare .to_fs (renders the app human format, not a machine format)' do
+      expect_offense(<<~'RUBY', msg: described_class::MSG)
+        scope.where("d = '#{report_date.to_fs}'")
+                          ^^^^^^^^^^^^^^^^^^^^ %{msg}
+      RUBY
+    end
+
+    it 'flags .to_fs with a human format key' do
+      expect_offense(<<~'RUBY', msg: described_class::MSG)
+        scope.where("d = '#{report_date.to_fs(:long)}'")
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^ %{msg}
+      RUBY
+    end
+
+    it 'flags find_by_sql with an interpolated date' do
+      expect_offense(<<~'RUBY', msg: described_class::MSG)
+        scope.find_by_sql("d = '#{pit_date}'")
+                                ^^^^^^^^^^^ %{msg}
+      RUBY
+    end
+
+    it 'flags sanitize_sql_for_assignment with an interpolated date' do
+      expect_offense(<<~'RUBY', msg: described_class::MSG)
+        sanitize_sql_for_assignment("d = '#{pit_date}'")
+                                          ^^^^^^^^^^^ %{msg}
+      RUBY
+    end
+
+    it 'flags a _timestamp column value' do
+      expect_offense(<<~'RUBY', msg: described_class::MSG)
+        scope.where("t = '#{created_timestamp}'")
+                          ^^^^^^^^^^^^^^^^^^^^ %{msg}
+      RUBY
+    end
+
+    it 'flags a bare today' do
+      expect_offense(<<~'RUBY', msg: described_class::MSG)
+        scope.where("t = '#{today}'")
+                          ^^^^^^^^ %{msg}
+      RUBY
+    end
+
+    it 'flags a _on column value' do
+      expect_offense(<<~'RUBY', msg: described_class::MSG)
+        scope.where("d = '#{signed_on}'")
+                          ^^^^^^^^^^^^ %{msg}
+      RUBY
+    end
+
+    it 'flags a date-named lvar when any reaching assignment is a raw Date (wrong assignment must not win)' do
+      expect_offense(<<~'RUBY', msg: described_class::MSG)
+        def q(cond)
+          filter_date = Date.current
+          filter_date = conn.quote(filter_date) if cond
+          scope.where("d = '#{filter_date}'")
+                            ^^^^^^^^^^^^^^ %{msg}
+        end
+      RUBY
+    end
   end
 
   context 'when the date is explicitly formatted (safe)' do
@@ -85,6 +152,12 @@ RSpec.describe RuboCop::Cop::Queries::DateInterpolationInSql, :config do
     it 'does not flag .to_fs(:db)' do
       expect_no_offenses(<<~'RUBY')
         scope.where("d = '#{report_date.to_fs(:db)}'")
+      RUBY
+    end
+
+    it 'does not flag .to_fs(:number)' do
+      expect_no_offenses(<<~'RUBY')
+        scope.where("d = '#{report_date.to_fs(:number)}'")
       RUBY
     end
   end

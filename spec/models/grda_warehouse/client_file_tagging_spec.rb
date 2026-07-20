@@ -55,5 +55,21 @@ RSpec.describe GrdaWarehouse::ClientFile, 'acts-as-taggable-on tagging', type: :
       expect(client.client_files.tagged_with('Other Tag', any: true).exists?).to be(true)
       expect(client.client_files.tagged_with('Never Applied', any: true).exists?).to be(false)
     end
+
+    # The `files` table is shared (STI) with other GrdaWarehouse::File subclasses, and
+    # taggings.taggable_type is the base 'GrdaWarehouse::File' for all of them, so the only
+    # thing isolating ClientFile results is the STI `type` condition. Pin that a differently
+    # typed file carrying the SAME tag name is not returned (previously every negative here
+    # was a same-class row, so a broken STI/taggable_type join would have shipped green).
+    it 'excludes a differently-typed file (PublicFile) that carries the same tag name' do
+      foreign = GrdaWarehouse::PublicFile.new(name: 'Public thing')
+      foreign.tag_list = ['BHA Eligibility']
+      foreign.save!(validate: false)
+
+      result = described_class.tagged_with('BHA Eligibility')
+
+      expect(result.map(&:id)).to include(bha_file.id)
+      expect(result.map(&:id)).not_to include(foreign.id)
+    end
   end
 end

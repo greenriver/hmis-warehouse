@@ -19,7 +19,9 @@ module RuboCop
       #
       # Use an explicit, machine format instead: `.iso8601`, `.to_fs(:db)`, or
       # `.strftime(...)`. For values, prefer bind parameters (`where("x = ?", date)`)
-      # or the Hash form.
+      # or the Hash form. A *bare* `.to_fs`/`.to_formatted_s` (or a human format key such
+      # as `:long`/`:default`) renders the human format and is NOT safe; only machine
+      # format keys (`:db`, `:number`) are.
       #
       # @example
       #   # bad
@@ -40,7 +42,13 @@ module RuboCop
         # Methods whose result is a machine-formatted string or SQL fragment
         # (safe to interpolate): explicit date formatters, adapter quoting, and
         # Arel `to_sql` (which emits a column/expression reference, not a date).
-        SAFE_FORMATTERS = [:iso8601, :to_fs, :to_formatted_s, :strftime, :xmlschema, :rfc3339, :httpdate, :to_sql, :quote, :quoted_date, :to_json].freeze
+        SAFE_FORMATTERS = [:iso8601, :strftime, :xmlschema, :rfc3339, :httpdate, :to_sql, :quote, :quoted_date, :to_json].freeze
+
+        # `to_fs`/`to_formatted_s` are safe ONLY with a machine format argument. With no
+        # argument (or a human key like :default/:long) they render the app's human format
+        # (config/initializers/legacy_rails_conversions.rb + time.rb) and are unsafe.
+        EXPLICIT_FORMAT_METHODS = [:to_fs, :to_formatted_s].freeze
+        MACHINE_FORMAT_ARGS = [:db, :number].freeze
 
         # Interpolated expression source that looks like a date/time value.
         # Keyword must sit on a token boundary so "update"/"updates" (which
@@ -96,7 +104,17 @@ module RuboCop
         end
 
         def safely_formatted?(expr)
-          expr.send_type? && SAFE_FORMATTERS.include?(expr.method_name)
+          return false unless expr.send_type?
+          return machine_formatted?(expr) if EXPLICIT_FORMAT_METHODS.include?(expr.method_name)
+
+          SAFE_FORMATTERS.include?(expr.method_name)
+        end
+
+        # `to_fs(:db)` / `to_formatted_s(:number)` are safe; a bare call or a human
+        # format key renders the app's human format and must still be flagged.
+        def machine_formatted?(expr)
+          arg = expr.first_argument
+          arg&.sym_type? && MACHINE_FORMAT_ARGS.include?(arg.value)
         end
 
         # A date-ish *name* whose value is actually safe: a SQL string fragment
@@ -109,9 +127,12 @@ module RuboCop
           scope = enclosing_scope(expr)
           return false unless scope
 
-          scope.each_descendant(:lvasgn).any? do |asgn|
-            next false unless asgn.children.first == name
-
+          assigns = scope.each_descendant(:lvasgn).select { |asgn| asgn.children.first == name }
+          # Only safe if the var is actually assigned in scope AND *every* reaching
+          # assignment is itself safe. A single raw-date assignment anywhere on the path
+          # must block the allow-list, otherwise "wrong assignment wins" and a genuinely
+          # dangerous interpolation slips through.
+          assigns.any? && assigns.all? do |asgn|
             rhs = asgn.children.last
             sql_string_node?(rhs) || safely_formatted?(rhs)
           end

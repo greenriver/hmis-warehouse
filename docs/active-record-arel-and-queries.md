@@ -94,6 +94,11 @@ over interpolation entirely. The `Queries/DateInterpolationInSql` cop
 (`lib/rubocop/cop/queries/date_interpolation_in_sql.rb`) flags bare date/time
 interpolation in `where` / `Arel.sql` / `execute` strings.
 
+Note that `.to_fs` / `.to_formatted_s` are only safe with an explicit **machine**
+format key (`:db`, `:number`). A **bare** `.to_fs` — or a human key such as
+`:long` / `:default` — renders the app's human format (the same string a bare
+date would) and is flagged.
+
 ## Bulk updates: never pass raw SQL to `update_all`
 
 `update_all("col = ...")` embeds the string verbatim as the UPDATE statement's
@@ -155,7 +160,12 @@ A custom cop (`lib/rubocop/cop/queries/unsafe_bulk_update_sql.rb`) enforces the
 rule above. It flags `update_all`, `delete_all`, and `update_counters` when the
 argument is (or resolves to) a raw SQL string — including strings built by
 interpolation, concatenation, `Arel.sql`, `.to_s`, `format`, or `.join`, and the
-common case of a string assigned to a local variable and then passed in.
+common case of a string assigned to a local variable, instance variable, class
+variable, global variable, or constant and then passed in.
+
+**Limitation:** a raw SQL string reaching a bulk method through a *method
+parameter* (`def fix!(sql); rel.update_all(sql); end`) cannot be resolved
+statically and is a known, accepted false-negative — review those by hand.
 
 Hash arguments never trip the cop. Run it on its own with:
 

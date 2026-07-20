@@ -23,7 +23,7 @@ RSpec.describe Hmis::File, type: :model do
   let!(:ssn_file) { create :file, client: c1, blob: blob, user: hmis_user, tags: [tag2] }
   let!(:untagged_file) { create :file, client: c1, blob: blob, user: hmis_user }
 
-  describe 'tag assignment + #tags resolution (the GraphQL File.tags path)' do
+  describe 'tag assignment + #tags resolution (Hmis::File#tags / tag_list)' do
     it 'stores the AvailableFileTag id in tag_list and resolves it back via #tags' do
       expect(birth_cert_file.reload.tag_list).to include(tag.id.to_s)
       expect(birth_cert_file.tags).to include(tag)
@@ -51,6 +51,22 @@ RSpec.describe Hmis::File, type: :model do
       expect(result).to include(birth_cert_file)
       expect(result).to include(ssn_file)
       expect(result).not_to include(untagged_file)
+    end
+
+    # Hmis::File shares the `files` table (STI) with warehouse File subclasses, and
+    # taggings.taggable_type is the base 'GrdaWarehouse::File' for all of them. HMIS tags by
+    # AvailableFileTag id while warehouse tags by name, so a warehouse file could carry a
+    # name string equal to an HMIS tag's id. Pin that STI `type` still isolates the results
+    # (every other negative in this file is a same-class Hmis::File row).
+    it 'excludes a differently-typed warehouse file carrying the same tag value' do
+      foreign = GrdaWarehouse::PublicFile.new(name: 'Public thing')
+      foreign.tag_list = [tag.id.to_s]
+      foreign.save!(validate: false)
+
+      result = described_class.tagged_with(tag.id.to_s)
+
+      expect(result.map(&:id)).to include(birth_cert_file.id)
+      expect(result.map(&:id)).not_to include(foreign.id)
     end
   end
 end

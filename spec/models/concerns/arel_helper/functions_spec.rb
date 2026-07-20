@@ -51,6 +51,21 @@ RSpec.describe 'ArelHelper named functions' do
       attr = t[:name]
       expect(klass.qt(attr)).to be(attr)
     end
+
+    # qt's output is interpolated raw into SQL by acase/datepart, so escaping is its
+    # whole safety purpose — a value with an embedded quote must be doubled, not break out.
+    it 'escapes an embedded single quote' do
+      expect(klass.qt("a'b").to_sql).to eq("'a''b'")
+    end
+  end
+
+  # cast applies .as to the *argument* expression (a different alias site than nf's own
+  # alias), so it exercises the Rails 8 NamedFunction/`.as` arity change independently.
+  describe '.cast' do
+    it 'wraps an expression in CAST(... AS <type>)' do
+      expect(klass.cast(t[:amount], 'integer').to_sql).
+        to eq('CAST("arel_helper_fn_specs"."amount" AS integer)')
+    end
   end
 
   describe '.nf' do

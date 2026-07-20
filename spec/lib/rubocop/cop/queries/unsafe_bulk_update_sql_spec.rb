@@ -74,7 +74,51 @@ RSpec.describe RuboCop::Cop::Queries::UnsafeBulkUpdateSql, :config do
     end
   end
 
-  context 'when a string is assigned to a local variable then passed in (the metaprogrammed case)' do
+  context 'with a string-producing method call argument' do
+    it 'flags sanitize_sql_for_assignment' do
+      expect_offense(<<~RUBY)
+        clients.update_all(sanitize_sql_for_assignment(["col = ?", v]))
+                ^^^^^^^^^^ #{msg}
+      RUBY
+    end
+
+    it 'flags sanitize_sql' do
+      expect_offense(<<~RUBY)
+        clients.update_all(sanitize_sql("col = 1"))
+                ^^^^^^^^^^ #{msg}
+      RUBY
+    end
+
+    it 'flags format' do
+      expect_offense(<<~RUBY)
+        clients.update_all(format("col = %s", v))
+                ^^^^^^^^^^ #{msg}
+      RUBY
+    end
+
+    it 'flags sprintf' do
+      expect_offense(<<~RUBY)
+        clients.update_all(sprintf("col = %s", v))
+                ^^^^^^^^^^ #{msg}
+      RUBY
+    end
+
+    it 'flags String#% (format operator)' do
+      expect_offense(<<~RUBY)
+        clients.update_all(template % values)
+                ^^^^^^^^^^ #{msg}
+      RUBY
+    end
+
+    it 'flags String#<< (append)' do
+      expect_offense(<<~RUBY)
+        clients.update_all(buffer << part)
+                ^^^^^^^^^^ #{msg}
+      RUBY
+    end
+  end
+
+  context 'when a string is assigned to a variable/constant then passed in (the metaprogrammed case)' do
     it 'flags it' do
       expect_offense(<<~RUBY)
         def fix!
@@ -82,6 +126,24 @@ RSpec.describe RuboCop::Cop::Queries::UnsafeBulkUpdateSql, :config do
           clients.hmis.update_all(update_sql)
                        ^^^^^^^^^^ #{msg}
         end
+      RUBY
+    end
+
+    it 'flags a string held in an instance variable' do
+      expect_offense(<<~RUBY)
+        def fix!
+          @update_sql = "RaceNone = 99"
+          clients.hmis.update_all(@update_sql)
+                       ^^^^^^^^^^ #{msg}
+        end
+      RUBY
+    end
+
+    it 'flags a string held in a constant' do
+      expect_offense(<<~RUBY)
+        UPDATE_SQL = "RaceNone = 99"
+        clients.update_all(UPDATE_SQL)
+                ^^^^^^^^^^ #{msg}
       RUBY
     end
 
@@ -141,6 +203,22 @@ RSpec.describe RuboCop::Cop::Queries::UnsafeBulkUpdateSql, :config do
     it 'does not flag update_all-like names on other receivers' do
       expect_no_offenses(<<~RUBY)
         logger.update_all
+      RUBY
+    end
+
+    it 'does not flag a no-argument delete_all (the common safe form)' do
+      expect_no_offenses(<<~RUBY)
+        clients.delete_all
+      RUBY
+    end
+  end
+
+  context 'with a raw SQL string reaching the method through a parameter (documented limitation)' do
+    it 'does not flag it (method params cannot be resolved statically)' do
+      expect_no_offenses(<<~RUBY)
+        def fix!(sql)
+          clients.update_all(sql)
+        end
       RUBY
     end
   end

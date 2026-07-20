@@ -302,5 +302,37 @@ RSpec.describe HudReportArchival, type: :model do
       results = HudReports::ReportInstance.purge_eligible(60, Time.current)
       expect(results).not_to include(failed_report)
     end
+
+    # Branch 1 of the scope (by_explicit_date). completed_at is INSIDE the grace period,
+    # so the grace-period branch would NOT include it — only the explicit past date does.
+    it 'includes reports whose explicit purge_eligible_at is in the past' do
+      report = HudReports::ReportInstance.create!(
+        report_name: 'Test',
+        user_id: User.system_user.id,
+        state: 'Completed',
+        completed_at: 10.days.ago,
+        question_names: [],
+      )
+      report.update_column(:archival_metadata, { 'purge_eligible_at' => 2.days.ago.iso8601 })
+
+      results = HudReports::ReportInstance.purge_eligible(60, Time.current)
+      expect(results).to include(report)
+    end
+
+    # completed_at is PAST the grace period (would be grace-eligible if the explicit date
+    # were ignored), so exclusion here proves the explicit future date is what holds it out.
+    it 'excludes reports whose explicit purge_eligible_at is in the future' do
+      report = HudReports::ReportInstance.create!(
+        report_name: 'Test',
+        user_id: User.system_user.id,
+        state: 'Completed',
+        completed_at: 61.days.ago,
+        question_names: [],
+      )
+      report.update_column(:archival_metadata, { 'purge_eligible_at' => 2.days.from_now.iso8601 })
+
+      results = HudReports::ReportInstance.purge_eligible(60, Time.current)
+      expect(results).not_to include(report)
+    end
   end
 end
