@@ -56,6 +56,11 @@ module HudReports::HudPdfExportConcern
 
     def perform
       with_status_progression do
+        if report.blank?
+          Rails.logger.warn("[#{self.class.name}] report #{params['id']} not found for export id #{id}, skipping")
+          next false
+        end
+
         template_file = 'hud_reports/download'
         layout = 'layouts/hud_report_export'
 
@@ -73,6 +78,7 @@ module HudReports::HudPdfExportConcern
         PdfGenerator.new.perform(
           html: html,
           file_name: "#{report_generator_class.file_prefix}-#{DateTime.current.to_fs(:db)}",
+          options: { viewport: PdfGenerator::MEASUREMENT_VIEWPORT },
         ) do |io|
           self.pdf_file = io
         end

@@ -17,7 +17,7 @@ module Hmis::Ce
   class Configuration
     class Misconfiguration < StandardError; end
 
-    ELIGIBILITY_LOOKBACK_RANGE = (0..12).freeze
+    ELIGIBILITY_LOOKBACK_RANGE = (0..12)
 
     # feature flag for CE
     def enabled?
@@ -31,9 +31,7 @@ module Hmis::Ce
       return 0 if raw.nil?
 
       months = Integer(raw)
-      unless ELIGIBILITY_LOOKBACK_RANGE.cover?(months)
-        raise Misconfiguration, "hmis_ce/eligibility_lookback_months must be between 0 and 12, got #{months.inspect}"
-      end
+      raise Misconfiguration, "hmis_ce/eligibility_lookback_months must be between 0 and 12, got #{months.inspect}" unless ELIGIBILITY_LOOKBACK_RANGE.cover?(months)
 
       months
     rescue ArgumentError, TypeError
@@ -61,6 +59,10 @@ module Hmis::Ce
       group
     end
 
+    def bulk_void_enabled?
+      !!value_for(:bulk_void_enabled)
+    end
+
     protected
 
     # read all configuration values from the db
@@ -68,6 +70,7 @@ module Hmis::Ce
       :enabled,
       :eligibility_lookback_months,
       :eligibility_project_group_id,
+      :bulk_void_enabled,
     ].freeze
     def values
       @values ||= AppConfigProperty.

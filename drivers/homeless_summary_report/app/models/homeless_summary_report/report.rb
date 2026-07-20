@@ -504,7 +504,7 @@ module HomelessSummaryReport
       universe.add_universe_members(report_clients)
     end
 
-    # Identify members who have remainied housed in Meaasure 7b
+    # Identify members who have remained housed in Measure 7b
     private def measure_7b_remained_housed?(spm_field, spm_member)
       # We only want to calculate this for measure 7b
       return unless spm_field == :m7b2_destination
@@ -513,7 +513,7 @@ module HomelessSummaryReport
       valid_move_in = spm_member.move_in_date.present?
       valid_exit = spm_member.exit_date.blank? || spm_member.exit_date > @filter.end
 
-      # this must be for a PH project, exluding RRH
+      # this must be for a PH project, excluding RRH
       valid_project_types = HudHelper.util.permanent_housing_project_types - [HudHelper.util.project_type_number('PH - RRH')]
       valid_project = valid_project_types.include?(spm_member.enrollment&.project&.project_type)
 

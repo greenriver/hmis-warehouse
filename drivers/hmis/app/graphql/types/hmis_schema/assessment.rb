@@ -94,7 +94,7 @@ module Types
       return unless form_processor.definition_id # tiny optimization: avoid calling 'definition' if it will invoke find_definition_for_role twice
 
       previous_definition = definition
-      # If original form is not retired, then we should stil use it for editing.
+      # If original form is not retired, then we should still use it for editing.
       return unless previous_definition.retired?
 
       # Find the published version of the previous definition. If this resolves nil, then the original form will be used.

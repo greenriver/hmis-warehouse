@@ -12,11 +12,9 @@ FactoryBot.define do
     last_name { 'River' }
     sequence(:email) { |n| "user#{n}@greenriver.com" }
     # email 'green.river@mailinator.com'
-    if AuthMethod.devise?
-      password { Digest::SHA256.hexdigest('abcd1234abcd1234') }
-      password_confirmation { Digest::SHA256.hexdigest('abcd1234abcd1234') }
-      confirmed_at { Date.yesterday }
-    end
+    password { Digest::SHA256.hexdigest('abcd1234abcd1234') }
+    password_confirmation { Digest::SHA256.hexdigest('abcd1234abcd1234') }
+    confirmed_at { Date.yesterday }
     notify_on_vispdat_completed { false }
     agency_id { 1 }
 
@@ -74,11 +72,9 @@ FactoryBot.define do
     last_name { 'River' }
     sequence(:email) { |n| "acl_user#{n}@greenriver.com" }
     # email 'green.river@mailinator.com'
-    if AuthMethod.devise?
-      password { Digest::SHA256.hexdigest('abcd1234abcd1234') }
-      password_confirmation { Digest::SHA256.hexdigest('abcd1234abcd1234') }
-      confirmed_at { Date.yesterday }
-    end
+    password { Digest::SHA256.hexdigest('abcd1234abcd1234') }
+    password_confirmation { Digest::SHA256.hexdigest('abcd1234abcd1234') }
+    confirmed_at { Date.yesterday }
     notify_on_vispdat_completed { false }
     agency_id { 1 }
     permission_context { 'acls' }
@@ -89,17 +85,13 @@ FactoryBot.define do
     last_name { 'River' }
     sequence(:email) { |n| "user#{n}@greenriver.com" }
     # email 'green.river@mailinator.com'
+    password { Digest::SHA256.hexdigest('abcd1234abcd1234') }
+    password_confirmation { Digest::SHA256.hexdigest('abcd1234abcd1234') }
+    confirmed_at { Date.yesterday }
     notify_on_vispdat_completed { false }
     agency_id { 1 }
-    # 2FA is Devise-only: `password`/`confirmed_at` and the otp_* accessors (incl. User.generate_otp_secret)
-    # come from the :two_factor_authenticatable macro, which is gated off under AUTH_METHOD=jwt.
-    if AuthMethod.devise?
-      password { Digest::SHA256.hexdigest('abcd1234abcd1234') }
-      password_confirmation { Digest::SHA256.hexdigest('abcd1234abcd1234') }
-      confirmed_at { Date.yesterday }
-      otp_required_for_login { true }
-      otp_secret { User.generate_otp_secret }
-      confirmed_2fa { 2 }
-    end
+    otp_required_for_login { true }
+    otp_secret { User.generate_otp_secret }
+    confirmed_2fa { 2 }
   end
 end
