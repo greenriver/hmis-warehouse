@@ -201,7 +201,10 @@ RSpec.describe Idp::KeycloakService, type: :model do
         ).to have_been_made
       end
 
-      it 'sets emailVerified to false when the email changes, without clearing other fields' do
+      it 'sets emailVerified to false and syncs username when the email changes, without clearing other fields' do
+        actions_url = "#{api_url}/admin/realms/#{realm}/users/#{user_id}/execute-actions-email"
+        stub_request(:put, actions_url).to_return(status: 204)
+
         service.update_user(
           user_id: user_id,
           attributes: { email: 'new@example.com' },
@@ -209,8 +212,31 @@ RSpec.describe Idp::KeycloakService, type: :model do
 
         expect(
           a_request(:put, "#{api_url}/admin/realms/#{realm}/users/#{user_id}").
-            with(body: current_representation.merge(email: 'new@example.com', emailVerified: false)),
+            with(body: current_representation.merge(email: 'new@example.com', username: 'new@example.com', emailVerified: false)),
         ).to have_been_made
+      end
+
+      it 'sends a verification email when the email changes' do
+        actions_url = "#{api_url}/admin/realms/#{realm}/users/#{user_id}/execute-actions-email"
+        stub_request(:put, actions_url).to_return(status: 204)
+
+        service.update_user(
+          user_id: user_id,
+          attributes: { email: 'new@example.com' },
+        )
+
+        expect(
+          a_request(:put, actions_url).with(body: ['VERIFY_EMAIL'].to_json),
+        ).to have_been_made
+      end
+
+      it 'does not send a verification email or touch username when email is unchanged' do
+        service.update_user(
+          user_id: user_id,
+          attributes: { first_name: 'Jane' },
+        )
+
+        expect(WebMock).not_to have_requested(:put, "#{api_url}/admin/realms/#{realm}/users/#{user_id}/execute-actions-email")
       end
 
       it 'carries fields the patch never references (custom attributes, requiredActions) through the merge' do
@@ -449,7 +475,7 @@ RSpec.describe Idp::KeycloakService, type: :model do
   describe '#test_connection' do
     context 'with successful connection' do
       before do
-        stub_request(:get, "#{api_url}/admin/realms/#{realm}").
+        stub_request(:get, "#{api_url}/admin/realms/#{realm}/users?max=1").
           to_return(
             status: 200,
             body: { realm: realm }.to_json,
@@ -466,7 +492,7 @@ RSpec.describe Idp::KeycloakService, type: :model do
 
     context 'with authentication failure' do
       before do
-        stub_request(:get, "#{api_url}/admin/realms/#{realm}").
+        stub_request(:get, "#{api_url}/admin/realms/#{realm}/users?max=1").
           to_return(status: 401)
       end
 
@@ -480,7 +506,7 @@ RSpec.describe Idp::KeycloakService, type: :model do
 
     context 'with endpoint not found' do
       before do
-        stub_request(:get, "#{api_url}/admin/realms/#{realm}").
+        stub_request(:get, "#{api_url}/admin/realms/#{realm}/users?max=1").
           to_return(status: 404)
       end
 
@@ -494,7 +520,7 @@ RSpec.describe Idp::KeycloakService, type: :model do
 
     context 'with a Keycloak server error' do
       before do
-        stub_request(:get, "#{api_url}/admin/realms/#{realm}").
+        stub_request(:get, "#{api_url}/admin/realms/#{realm}/users?max=1").
           to_return(status: 500)
       end
 
@@ -508,7 +534,7 @@ RSpec.describe Idp::KeycloakService, type: :model do
 
     context 'with connection refused' do
       before do
-        stub_request(:get, "#{api_url}/admin/realms/#{realm}").
+        stub_request(:get, "#{api_url}/admin/realms/#{realm}/users?max=1").
           to_raise(Errno::ECONNREFUSED)
       end
 
@@ -522,7 +548,7 @@ RSpec.describe Idp::KeycloakService, type: :model do
 
     context 'with host unreachable' do
       before do
-        stub_request(:get, "#{api_url}/admin/realms/#{realm}").
+        stub_request(:get, "#{api_url}/admin/realms/#{realm}/users?max=1").
           to_raise(Errno::EHOSTUNREACH)
       end
 
@@ -536,7 +562,7 @@ RSpec.describe Idp::KeycloakService, type: :model do
 
     context 'with timeout' do
       before do
-        stub_request(:get, "#{api_url}/admin/realms/#{realm}").
+        stub_request(:get, "#{api_url}/admin/realms/#{realm}/users?max=1").
           to_timeout
       end
 

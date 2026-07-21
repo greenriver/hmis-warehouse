@@ -39,6 +39,11 @@ module Idp::Support
     false
   end
 
+  # The JWT arm never runs Devise/Warden, so nothing populates login_activities.
+  def login_locations_enabled?
+    false
+  end
+
   # Whether the JWT-arm admin surface should offer the "Force Password Reset" action
   def idp_password_management_enabled?
     primary_idp.present?

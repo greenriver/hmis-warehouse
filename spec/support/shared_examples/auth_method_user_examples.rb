@@ -353,6 +353,17 @@ RSpec.shared_examples 'an auth-method-aware user' do |factory, model|
       end
     end
 
+    describe 'login_locations_enabled?' do
+      it 'is true regardless of external_idp? (Devise :trackable records logins for local and Okta accounts)' do
+        user = build(factory)
+        allow(user).to receive(:external_idp?).and_return(false)
+        expect(user.login_locations_enabled?).to be true
+
+        allow(user).to receive(:external_idp?).and_return(true)
+        expect(user.login_locations_enabled?).to be true
+      end
+    end
+
     describe 'PasswordRules applies under Devise' do
       it 'mixes PasswordRules into the host' do
         expect(model.include?(PasswordRules)).to be true
@@ -482,6 +493,12 @@ RSpec.shared_examples 'an auth-method-aware user' do |factory, model|
     describe 'account_expiry_enabled?' do
       it 'is false (the IdP does not honor local expired_at; the admin form hides the field)' do
         expect(model.new.account_expiry_enabled?).to be false
+      end
+    end
+
+    describe 'login_locations_enabled?' do
+      it 'is false (the JWT arm never runs Devise/Warden, so login_activities is never populated)' do
+        expect(model.new.login_locations_enabled?).to be false
       end
     end
 

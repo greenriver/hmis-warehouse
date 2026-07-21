@@ -4,6 +4,6 @@
   %li.nav-item{role: "presentation", class: ('active' if current_page?(admin_user_edit_history_path()))}
     = link_to 'Edit History', admin_user_edit_history_path(@user), class: 'nav-link'
   -# Login Locations is a Devise-only route; the JWT arm omits it (sign-in history is IdP-managed).
-  - if @user.profile_managed_by_idp?
+  - if @user.login_locations_enabled?
     %li.nav-item{role: "presentation", class: ('active' if current_page?(admin_user_locations_path()))}
       = link_to 'Login Locations', admin_user_locations_path(@user), class: 'nav-link'

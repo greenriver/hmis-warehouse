@@ -96,6 +96,11 @@ module OmniauthSupport
     true
   end
 
+  # Devise's :trackable module records login_activities for local and Okta sign-ins alike
+  def login_locations_enabled?
+    true
+  end
+
   def send_reset_password_instructions
     # doesn't make sense for users who cant use a local password
     return false if external_idp?

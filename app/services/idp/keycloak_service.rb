@@ -66,14 +66,20 @@ module Idp
       patch['firstName'] = attributes[:first_name] if attributes[:first_name]
       patch['lastName'] = attributes[:last_name] if attributes[:last_name]
 
-      if attributes[:email]
+      email_changed = attributes[:email].present?
+      if email_changed
+        # We treat username and email as one field even though Keycloak stores them
+        # separately; create_user seeds username from email, so keep them in lockstep here too.
         patch['email'] = attributes[:email]
+        patch['username'] = attributes[:email]
         patch['emailVerified'] = false
       end
 
       return true if patch.empty?
 
-      put_full_user(user_id: user_id, patch: patch, operation: :update_user, failure: 'Failed to update user')
+      result = put_full_user(user_id: user_id, patch: patch, operation: :update_user, failure: 'Failed to update user')
+      send_execute_actions_email(user_id: user_id, actions: ['VERIFY_EMAIL']) if email_changed
+      result
     end
 
     # @return [Hash, nil] the matching UserRepresentation, or nil if no user has this email.
@@ -161,10 +167,12 @@ module Idp
       "#{api_url}/realms/#{realm}/account"
     end
 
-    # Ping the Admin API to verify credentials and connectivity.
+    # Ping the Admin API to verify credentials and connectivity, using the same
+    # users endpoint the rest of the class relies on so this reflects the
+    # permissions the service account actually needs.
     # @return [Hash] { success: Boolean, message: String }
     def test_connection
-      response = make_request(:get, "/admin/realms/#{realm}")
+      response = make_request(:get, "/admin/realms/#{realm}/users?max=1")
 
       case response.code.to_i
       when 200..299
