@@ -122,6 +122,76 @@ RSpec.describe 'createCeMatchRule mutation', type: :request do
     expect(result.dig('data', 'createCeMatchRule', 'rule', 'expression')).to eq('current_age >= 18')
   end
 
+  it 'creates a rule from structured expression input with IS_NULL' do
+    input = base_input.except(:expression).merge(
+      structuredExpression: {
+        operator: 'AND',
+        clauses: [
+          { field: 'current_age', comparator: 'IS_NULL' },
+        ],
+      },
+    )
+
+    response, result = post_graphql(input: input) { mutation }
+    expect(response.status).to eq(200), result.inspect
+    expect(result.dig('data', 'createCeMatchRule', 'rule', 'expression')).to eq('current_age = NULL')
+  end
+
+  it 'creates a rule from structured expression input with IS_NOT_NULL' do
+    input = base_input.except(:expression).merge(
+      structuredExpression: {
+        operator: 'AND',
+        clauses: [
+          { field: 'current_age', comparator: 'IS_NOT_NULL' },
+        ],
+      },
+    )
+
+    response, result = post_graphql(input: input) { mutation }
+    expect(response.status).to eq(200), result.inspect
+    expect(result.dig('data', 'createCeMatchRule', 'rule', 'expression')).to eq('current_age != NULL')
+  end
+
+  it 'returns validation errors when value is provided for IS_NOT_NULL' do
+    input = base_input.except(:expression).merge(
+      structuredExpression: {
+        operator: 'AND',
+        clauses: [
+          { field: 'current_age', comparator: 'IS_NOT_NULL', value: 18 },
+        ],
+      },
+    )
+
+    expect do
+      response, result = post_graphql(input: input) { mutation }
+      expect(response.status).to eq(200), result.inspect
+
+      errors = result.dig('data', 'createCeMatchRule', 'errors')
+      expect(errors.first).to include('attribute' => 'expression', 'severity' => 'error')
+      expect(errors.first['message']).to include('value must be omitted for IS_NOT_NULL')
+    end.not_to change(Hmis::Ce::Match::Rule, :count)
+  end
+
+  it 'returns validation errors when value is omitted for a non-null comparator' do
+    input = base_input.except(:expression).merge(
+      structuredExpression: {
+        operator: 'AND',
+        clauses: [
+          { field: 'current_age', comparator: 'EQ' },
+        ],
+      },
+    )
+
+    expect do
+      response, result = post_graphql(input: input) { mutation }
+      expect(response.status).to eq(200), result.inspect
+
+      errors = result.dig('data', 'createCeMatchRule', 'errors')
+      expect(errors.first).to include('attribute' => 'expression', 'severity' => 'error')
+      expect(errors.first['message']).to include('value is required for EQ')
+    end.not_to change(Hmis::Ce::Match::Rule, :count)
+  end
+
   it 'coerces enum-backed structured expression values' do
     input = base_input.except(:expression).merge(
       structuredExpression: {
