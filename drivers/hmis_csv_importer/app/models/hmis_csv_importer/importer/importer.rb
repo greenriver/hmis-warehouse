@@ -63,6 +63,15 @@ module HmisCsvImporter::Importer
     SELECT_BATCH_SIZE = 10_000
     INSERT_BATCH_SIZE = 5_000
 
+    # Environment override (in milliseconds) for the slow-query capture
+    # threshold used by with_sql_log; benchmark runs set this low to capture
+    # more queries than the production default.
+    SQL_LOG_MIN_DURATION_ENV = 'HMIS_IMPORTER_SQL_LOG_MIN_DURATION_MS'
+
+    def self.sql_log_min_duration_ms
+      (ENV[SQL_LOG_MIN_DURATION_ENV].presence || 60_000).to_i
+    end
+
     def initialize(
       loader_id:,
       data_source_id:,
@@ -656,8 +665,8 @@ module HmisCsvImporter::Importer
     end
 
     # Capture executed sql for debugging. Also disable nested loops
-    # min_duration defaults to 1 minute
-    def with_sql_log(phase, klass, name: nil, min_duration: 60_000)
+    # min_duration defaults to 1 minute; override via SQL_LOG_MIN_DURATION_ENV
+    def with_sql_log(phase, klass, name: nil, min_duration: self.class.sql_log_min_duration_ms)
       queries = []
       callback = lambda { |event|
         payload_sql = event.payload[:sql].squish
