@@ -108,9 +108,21 @@ RSpec.describe Idp::ServiceConfig, type: :model do
       expect(service.send(:realm)).to eq('test-realm')
     end
 
+    it 'passes skip_ssl_verification through to the service config' do
+      config = create(:idp_service_config, provider: 'keycloak', skip_ssl_verification: true)
+
+      expect(config.to_service.config).to include(skip_ssl_verification: true)
+    end
+
     it 'raises ServiceError for an unregistered provider' do
       config = build(:idp_service_config, provider: 'unknown')
       expect { config.to_service }.to raise_error(Idp::ServiceError, /Unknown provider/)
+    end
+  end
+
+  describe 'skip_ssl_verification' do
+    it 'defaults to false so TLS verification stays on unless opted out' do
+      expect(create(:idp_service_config).skip_ssl_verification).to be false
     end
   end
 
