@@ -12,10 +12,6 @@ class HmisAdmin::UsersController < ApplicationController
   before_action :require_hmis_admin_access!
   before_action :set_user, only: [:edit, :update]
 
-  # Included after the admin gate so its new/create before_actions (connector availability,
-  # loading connectors) run only once access is confirmed.
-  include ::Admin::Idp::UserCreation
-
   def index
     @users = user_scope.order(last_name: :asc, first_name: :asc)
     @users = @users.text_search(params[:q]) if params[:q].present?
@@ -36,22 +32,6 @@ class HmisAdmin::UsersController < ApplicationController
 
   private def user_scope
     Hmis::User.active.not_system
-  end
-
-  private def creation_user_class
-    Hmis::User
-  end
-
-  private def after_user_creation_path(user)
-    edit_hmis_admin_user_path(user)
-  end
-
-  private def user_index_path
-    hmis_admin_users_path
-  end
-
-  private def creation_next_step_message
-    'Assign user groups below.'
   end
 
   private def copy_user_groups

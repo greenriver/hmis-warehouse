@@ -7,11 +7,8 @@
 # frozen_string_literal: true
 
 require 'rails_helper'
-require 'webmock/rspec'
 
 RSpec.describe HmisAdmin::UsersController, type: :request, if: AuthMethod.jwt? do
-  include_context 'with a creation-capable IdP connector'
-
   let!(:data_source) { create(:hmis_data_source) }
   let!(:admin_user) { create(:acl_user, first_name: 'Admin', last_name: 'User') }
 
@@ -19,17 +16,6 @@ RSpec.describe HmisAdmin::UsersController, type: :request, if: AuthMethod.jwt? d
     # Grant HMIS admin access to the same user record signed in on the warehouse side.
     create_access_control(Hmis::User.find(admin_user.id), [])
     sign_in admin_user
-  end
-
-  it_behaves_like 'admin IdP-backed user creation' do
-    let(:user_class) { Hmis::User }
-    let(:users_index_path) { hmis_admin_users_path }
-    let(:create_form_path) { new_hmis_admin_user_path }
-    let(:next_step_pattern) { /user groups/i }
-
-    def edit_path_for(user)
-      edit_hmis_admin_user_path(user)
-    end
   end
 
   describe 'GET edit' do
@@ -100,21 +86,6 @@ RSpec.describe HmisAdmin::UsersController, type: :request, if: AuthMethod.jwt? d
       get hmis_admin_users_path
 
       expect(response).to have_http_status(:redirect)
-    end
-
-    it 'refuses GET new' do
-      get new_hmis_admin_user_path
-
-      expect(response).to have_http_status(:redirect)
-    end
-
-    it 'refuses POST create and provisions nothing' do
-      expect do
-        post hmis_admin_users_path, params: { user: { first_name: 'New', last_name: 'Bie', email: 'newbie@example.com', connector_id: connector_id } }
-      end.not_to change(Hmis::User, :count)
-
-      expect(response).to have_http_status(:redirect)
-      expect(a_request(:post, users_url)).not_to have_been_made
     end
 
     it 'refuses GET edit' do

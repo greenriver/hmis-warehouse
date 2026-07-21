@@ -104,13 +104,7 @@ OpenPath::Application.routes.draw do
         get :audits, on: :collection
         post :render_audits, on: :collection
       end
-      # new/create are JWT-only: account provisioning goes through the IdP, and Idp::Support
-      # (idp_send_account_setup_email! et al.) is only mixed into Hmis::User under AuthMethod.jwt?
-      if AuthMethod.jwt?
-        resources :users, only: [:index, :edit, :update, :new, :create]
-      else
-        resources :users, only: [:index, :edit, :update]
-      end
+      resources :users, only: [:index, :edit, :update]
       resources :project_groups, only: [:index, :new, :create, :edit, :update, :show, :destroy]
     end
 
