@@ -56,18 +56,27 @@ class NotifyMetricThresholdCrossingsJob < BaseJob
         user = users_by_id[user_id]
         next unless user&.active?
 
+        # Skip metrics this user was already successfully notified about today. The job is
+        # enqueued once per collector run (including every retry), so without this guard the
+        # same crossing is re-sent on every run. See docs/features/metric-tracking.md.
+        already_notified = GrdaWarehouse::Monitoring::ThresholdNotificationLog.
+          notified_metric_ids_for(user_id: user.id, date: Date.current)
+
+        new_crossings = crossings.reject { |metric_id, _info| already_notified.include?(metric_id) }
+        next if new_crossings.empty?
+
         log = GrdaWarehouse::Monitoring::ThresholdNotificationLog.create!(
           user_id: user.id,
           email_type: 'metric_threshold_crossed',
           sent_at: Time.current,
           details: {
-            'crossings' => build_notification_details(crossings, notification_metric_defs_by_id, notification_data_sources_by_id),
+            'crossings' => build_notification_details(new_crossings, notification_metric_defs_by_id, notification_data_sources_by_id),
           },
         )
         begin
           NotifyUser.metric_threshold_crossed(
             user_id: user.id,
-            crossings: crossings,
+            crossings: new_crossings,
             calculation_date: calculation_date,
           ).deliver_now!
           message = Message.where(
