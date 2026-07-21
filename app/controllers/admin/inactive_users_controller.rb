@@ -10,8 +10,7 @@ module Admin
   class InactiveUsersController < ApplicationController
     include Admin::Concerns::InactiveUserManagementBehavior
 
-    def reactivate
-      @user = User.inactive.find(params[:id].to_i)
+    private def reactivate_user!
       pass = Devise.friendly_token(50)
       @user.update(
         active: true,
@@ -23,7 +22,6 @@ module Admin
 
       # FIXME(#186770279): shouldn't send for oauth-linked accounts
       @user.send_reset_password_instructions
-      redirect_to({ action: :index }, notice: "User #{@user.name} re-activated")
     end
   end
 end

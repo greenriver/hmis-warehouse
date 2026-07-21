@@ -31,8 +31,20 @@ module Admin
         perform_search(search_query.query_params)
       end
 
+      def reactivate
+        @user = user_scope.find(params[:id].to_i)
+        reactivate_user!
+        redirect_to({ action: :index }, notice: "User #{@user.name} re-activated")
+      end
+
       def title_for_index
         'User List'
+      end
+
+      # Persists the reactivation and performs any arm-specific follow-up. No sensible
+      # shared default (Devise resets the password locally; the JWT arm defers to the IdP).
+      private def reactivate_user!
+        raise NotImplementedError
       end
 
       private def user_scope

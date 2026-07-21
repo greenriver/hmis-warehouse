@@ -8,17 +8,7 @@
 
 module Admin
   module Concerns
-    # Auth-agnostic bulk of the admin user-management surface, shared by the Devise arm
-    # (Admin::UsersController) and the JWT arm (Admin::Idp::UsersController). The arm
-    # controllers carry only the auth-coupled seams, expressed as template hooks the shared
-    # code calls (boot-selected by which class includes this, not runtime AuthMethod branches):
-    #
-    #   - initialize_two_factor_secret_for_edit  (Devise: set the OTP secret; JWT: no-op)
-    #   - disable_two_factor_if_requested        (Devise: disable_2fa!;       JWT: no-op)
-    #   - push_deactivate_to_idp                 (Devise: no-op;              JWT: Keycloak disable)
-    #   - push_profile_update_to_idp             (Devise: no-op;              JWT: Keycloak profile sync)
-    #
-    # The defaults here are the IdP-safe no-op; the Devise arm overrides the first two.
+    # Auth-agnostic bulk of the admin user-management surface
     module UserManagementBehavior
       extend ActiveSupport::Concern
 
