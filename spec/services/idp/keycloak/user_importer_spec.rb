@@ -483,4 +483,34 @@ RSpec.describe Idp::Keycloak::UserImporter, type: :model do
       end
     end
   end
+
+  describe '#ensure_groups!' do
+    let(:groups_url) { "#{api_url}/admin/realms/#{realm}/groups" }
+
+    it 'creates both required groups and reports them as created' do
+      stub_request(:post, groups_url).
+        with(body: { name: 'warehouse-users' }.to_json).to_return(status: 201)
+      stub_request(:post, groups_url).
+        with(body: { name: 'hmis-users' }.to_json).to_return(status: 201)
+
+      expect(importer.ensure_groups!).to eq(created: ['warehouse-users', 'hmis-users'], existing: [])
+    end
+
+    it 'reports already-present groups as existing' do
+      stub_request(:post, groups_url).
+        with(body: { name: 'warehouse-users' }.to_json).to_return(status: 409)
+      stub_request(:post, groups_url).
+        with(body: { name: 'hmis-users' }.to_json).to_return(status: 201)
+
+      expect(importer.ensure_groups!).to eq(created: ['hmis-users'], existing: ['warehouse-users'])
+    end
+
+    it 'propagates a ServiceError when a group cannot be ensured' do
+      stub_request(:post, groups_url).
+        with(body: { name: 'warehouse-users' }.to_json).
+        to_return(status: 500, body: { errorMessage: 'boom' }.to_json)
+
+      expect { importer.ensure_groups! }.to raise_error(Idp::ServiceError, /boom/)
+    end
+  end
 end
