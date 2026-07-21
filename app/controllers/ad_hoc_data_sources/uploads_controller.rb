@@ -48,7 +48,7 @@ class AdHocDataSources::UploadsController < ApplicationController
         send_data(@upload.batch_file.download, filename: filename, type: @upload.batch_file.content_type)
       else
         filename = @upload.sanitized_name
-        send_data(@upload.file.read, filename: filename, type: @upload.file.content_type)
+        send_data(@upload.content, filename: filename, type: @upload.content_type)
       end
       return
     end
