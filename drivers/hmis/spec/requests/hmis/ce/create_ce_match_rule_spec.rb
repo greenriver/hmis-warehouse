@@ -8,9 +8,11 @@
 
 require 'rails_helper'
 require_relative '../../../support/hmis_base_setup'
+require_relative '../../../support/shared_examples/ce_match_rule_applicability'
 
 RSpec.describe 'createCeMatchRule mutation', type: :request do
   include_context 'hmis base setup'
+  include_context 'ce match rule applicability helpers'
 
   before(:each) do
     allow_any_instance_of(Hmis::Ce::Configuration).to receive(:enabled?).and_return(true)
@@ -44,6 +46,8 @@ RSpec.describe 'createCeMatchRule mutation', type: :request do
       ownerType: 'DATA_SOURCE',
       ruleType: 'ELIGIBILITY_REQUIREMENT',
       expression: 'current_age >= 18',
+      projectTypes: [],
+      funders: [],
     }
   end
 
@@ -55,6 +59,8 @@ RSpec.describe 'createCeMatchRule mutation', type: :request do
             id
             name
             expression
+            projectTypes
+            funders
             structuredExpression {
               operator
               clauses {
@@ -89,6 +95,40 @@ RSpec.describe 'createCeMatchRule mutation', type: :request do
 
     rule = Hmis::Ce::Match::Rule.find(result.dig('data', 'createCeMatchRule', 'rule', 'id'))
     expect(rule.owner).to eq(ds1)
+  end
+
+  it 'creates a rule with project type applicability' do
+    response, result = post_graphql(input: base_input.merge(projectTypes: [project_type_key]), confirmed: true) { mutation }
+    expect(response.status).to eq(200), result.inspect
+
+    rule = Hmis::Ce::Match::Rule.find(result.dig('data', 'createCeMatchRule', 'rule', 'id'))
+    expect(result.dig('data', 'createCeMatchRule', 'rule', 'projectTypes')).to contain_exactly(project_type_key)
+    expect(rule.applicability_config.symbolize_keys).to eq(project_types: [project_type])
+  end
+
+  it 'creates a rule with funder applicability' do
+    response, result = post_graphql(input: base_input.merge(funders: [funder_key]), confirmed: true) { mutation }
+    expect(response.status).to eq(200), result.inspect
+
+    rule = Hmis::Ce::Match::Rule.find(result.dig('data', 'createCeMatchRule', 'rule', 'id'))
+    expect(result.dig('data', 'createCeMatchRule', 'rule', 'funders')).to contain_exactly(funder_key)
+    expect(rule.applicability_config.symbolize_keys).to eq(project_funders: [funder_code])
+  end
+
+  it 'creates a rule with project type and funder applicability' do
+    input = base_input.merge(
+      projectTypes: [project_type_key],
+      funders: [funder_key],
+    )
+
+    response, result = post_graphql(input: input, confirmed: true) { mutation }
+    expect(response.status).to eq(200), result.inspect
+
+    rule = Hmis::Ce::Match::Rule.find(result.dig('data', 'createCeMatchRule', 'rule', 'id'))
+    expect(rule.applicability_config.symbolize_keys).to eq(
+      project_types: [project_type],
+      project_funders: [funder_code],
+    )
   end
 
   it 'creates a priority scheme' do
