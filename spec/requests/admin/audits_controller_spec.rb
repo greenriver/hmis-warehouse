@@ -13,13 +13,15 @@ require 'rails_helper'
 # OmniauthSupport), so it renders for the Devise arm and is omitted for the JWT arm, where the
 # admin_user_locations_path route helper isn't defined at all and would raise NoMethodError.
 # Runs under whichever AUTH_METHOD the suite is booted with; see the JWT CI step for the
-# AUTH_METHOD=jwt boot of this same file.
+# AUTH_METHOD=jwt boot of this same file. That CI step names this file explicitly in its rspec
+# invocation — if it's ever dropped from that list, the JWT-arm half of this guard silently stops
+# running (a Devise-arm run can't catch it: admin_user_locations_path exists either way there).
 RSpec.describe 'Admin::Audits', type: :request do
   let(:admin_user) { create(:user) }
   let(:target_user) { create(:user, first_name: 'Test', last_name: 'User') }
 
   before do
-    allow_any_instance_of(User).to receive(:can_audit_users?).and_return(true)
+    allow(admin_user).to receive(:can_audit_users?).and_return(true)
     sign_in admin_user
   end
 
@@ -29,8 +31,32 @@ RSpec.describe 'Admin::Audits', type: :request do
     expect(response).to have_http_status(:success)
     if AuthMethod.jwt?
       expect(response.body).not_to include('Login Locations')
+      expect { admin_user_locations_path(target_user) }.to raise_error(NoMethodError)
     else
       expect(response.body).to include('Login Locations')
+    end
+  end
+
+  it 'only lists activity for the requested user' do
+    ActivityLog.create!(user: target_user, controller_name: 'target-only-marker', action_name: 'show', ip_address: '127.0.0.1')
+    ActivityLog.create!(user: admin_user, controller_name: 'other-user-marker', action_name: 'show', ip_address: '127.0.0.1')
+
+    get admin_user_audit_path(target_user)
+
+    expect(response.body).to include('target-only-marker')
+    expect(response.body).not_to include('other-user-marker')
+  end
+
+  context 'when the signed-in user lacks can_audit_users?' do
+    let(:non_admin) { create(:user) }
+
+    before { sign_in non_admin }
+
+    it 'redirects instead of exposing the audit trail' do
+      get admin_user_audit_path(target_user)
+
+      expect(response).to have_http_status(:redirect)
+      expect(flash[:alert]).to eq('Sorry you are not authorized to do that.')
     end
   end
 end
