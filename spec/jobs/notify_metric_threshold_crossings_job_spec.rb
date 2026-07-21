@@ -374,6 +374,19 @@ RSpec.describe NotifyMetricThresholdCrossingsJob, type: :job do
       ActionMailer::Base.deliveries.find { |mail| mail.to.include?(user.email) }
     end
 
+    # Persist a real MetricSnapshot the production detection query reads.
+    def persist_csv_snapshot(observation_date:, value:)
+      GrdaWarehouse::Monitoring::MetricSnapshot.create!(
+        metric_definition: csv_metric,
+        entity: data_source,
+        initial_observation_date: observation_date,
+        current_observation_date: observation_date,
+        initial_value: value,
+        current_value: value,
+        calculation_version: '1.0.0',
+      )
+    end
+
     it '(a) does not re-send on a second identical run' do
       user = create(:user, active: true)
       subscribe_csv(user)
@@ -560,6 +573,31 @@ RSpec.describe NotifyMetricThresholdCrossingsJob, type: :job do
         described_class.new.perform(calculation_date)
       end.not_to(change { ActionMailer::Base.deliveries.count })
       expect(GrdaWarehouse::Monitoring::ThresholdNotificationLog.count).to eq(2)
+    end
+
+    it '(h) [integration] dedups against real crossing detection, no stub' do
+      # Exercises the real MetricDefinition.threshold_crossings_for_alerts path (no stub_crossings),
+      # proving the guard suppresses a genuine second run and that the detected crossing shape
+      # feeds build_notification_details / the mailer correctly.
+      user = create(:user, active: true)
+      subscribe_csv(user)
+
+      # A baseline snapshot plus a crossing dated on calculation_date is what the detection SQL
+      # looks for (a current snapshot with initial_observation_date == calculation_date and an
+      # earlier snapshot to compare against).
+      persist_csv_snapshot(observation_date: calculation_date - 7.days, value: 1000)
+      persist_csv_snapshot(observation_date: calculation_date, value: 1100)
+
+      described_class.new.perform(calculation_date)
+      expect(ActionMailer::Base.deliveries.count).to eq(1)
+      expect(ActionMailer::Base.deliveries.last.to).to include(user.email)
+      expect(metric_ids_for(user)).to contain_exactly(csv_metric.id)
+
+      # Second run recomputes the identical real crossing but must not re-send.
+      expect do
+        described_class.new.perform(calculation_date)
+      end.not_to(change { ActionMailer::Base.deliveries.count })
+      expect(GrdaWarehouse::Monitoring::ThresholdNotificationLog.count).to eq(1)
     end
   end
 end
