@@ -198,14 +198,53 @@ RSpec.shared_examples 'an auth-method-aware user' do |factory, model|
         expect(build(factory).skip_session_limitable?).to be false
       end
 
+      it 'stale_account? is true for an account that has never signed in (nil current_sign_in_at)' do
+        # current_sign_in_at is a nullable :trackable column; a bare `<' comparison against it would raise
+        # for a never-signed-in account. Never having logged in counts as stale, so a regression that drops
+        # the nil guard (or flips it to false) turns this red.
+        expect(create(factory, current_sign_in_at: nil).stale_account?).to be true
+      end
+
+      it 'stale_account? compares current_sign_in_at against the 30-day stale_account_threshold' do
+        expect(create(factory, current_sign_in_at: 1.day.ago).stale_account?).to be false
+        expect(create(factory, current_sign_in_at: 31.days.ago).stale_account?).to be true
+      end
+
       it 'overall_status reports Active via active_for_authentication? (super into Devise)' do
         expect(create(factory, active: true).overall_status(nil)).to eq(['Active'])
       end
 
-      it 'overall_status surfaces the deactivated state via the private deactivation_status' do
+      it 'overall_status surfaces a bare deactivated status when no deactivate event was recorded' do
         user = create(factory, active: false)
 
         expect(user.overall_status(user)).to include('Account deactivated')
+      end
+
+      it 'overall_status names the deactivating admin only when the viewer can_audit_users?' do
+        # deactivation_status gates whodunnit disclosure on the viewer's can_audit_users? permission.
+        # Stubbing that predicate (rather than wiring up a real role/ACL, which differs between the
+        # warehouse and HMIS access-control systems) isolates the disclosure gate itself; the PaperTrail
+        # version/whodunnit lookup runs for real, so a dropped or inverted gate still turns this red.
+        actor = create(:user)
+        target = create(factory, active: true)
+
+        PaperTrailHelper.with_paper_trail do
+          PaperTrail.request(whodunnit: actor.id.to_s) do
+            target.paper_trail_event = 'deactivate'
+            # matches Admin::Concerns::UserManagementBehavior#destroy: paper_trail.update_column, not the
+            # bare AR update_column, which bypasses PaperTrail's callbacks and would never record a version
+            target.paper_trail.update_column(:active, false)
+          end
+        end
+        created_at = target.versions.where(event: 'deactivate').last.created_at
+
+        auditor = build(factory)
+        allow(auditor).to receive(:can_audit_users?).and_return(true)
+        expect(target.overall_status(auditor)).to include("Account deactivated by #{actor.name} on #{created_at}")
+
+        non_auditor = build(factory)
+        allow(non_auditor).to receive(:can_audit_users?).and_return(false)
+        expect(target.overall_status(non_auditor)).to include("Account deactivated on #{created_at}")
       end
 
       it 'active / inactive scopes partition on the `active` flag' do
@@ -365,7 +404,6 @@ RSpec.shared_examples 'an auth-method-aware user' do |factory, model|
 
     describe 'two_factor_enabled?' do
       it 'returns false without raising (the macro accessors are absent)' do
-        expect { model.new.two_factor_enabled? }.not_to raise_error
         expect(model.new.two_factor_enabled?).to be false
       end
     end
@@ -388,7 +426,6 @@ RSpec.shared_examples 'an auth-method-aware user' do |factory, model|
         # invitation_status short-circuits to nil rather than reading the :invitable members the gated-off
         # macro would manage (the invitation_sent_at column and the computed invitation_due_at method).
         user = model.new(invitation_sent_at: 1.hour.ago)
-        expect { user.invitation_status }.not_to raise_error
         expect(user.invitation_status).to be_nil
       end
 
@@ -450,8 +487,7 @@ RSpec.shared_examples 'an auth-method-aware user' do |factory, model|
       it 'creates the system user without the macro-only invite! helper' do
         model.with_deleted.where(email: 'noreply@greenriver.com').delete_all
 
-        user = nil
-        expect { user = model.setup_system_user }.not_to raise_error
+        user = model.setup_system_user
         expect(user).to be_persisted
         expect(user.email).to eq('noreply@greenriver.com')
         # idempotent: a second call returns the same record rather than re-inviting

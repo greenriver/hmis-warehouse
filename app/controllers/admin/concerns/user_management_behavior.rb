@@ -345,8 +345,9 @@ module Admin
 
       def destroy
         @user.paper_trail_event = 'deactivate'
-        # update_column() allows us to update the user even if the record is invalid
-        @user.update_column(:active, false)
+        # paper_trail.update_column() allows us to update the user even if the record is invalid, while
+        # still recording a version (plain update_column bypasses PaperTrail's callbacks entirely)
+        @user.paper_trail.update_column(:active, false)
         push_deactivate_to_idp
         redirect_to({ action: :index }, notice: "User #{@user.name} deactivated")
       end

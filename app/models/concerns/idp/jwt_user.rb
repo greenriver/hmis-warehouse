@@ -65,7 +65,7 @@ module Idp::JwtUser
   end
 
   def stale_account?
-    # JWT: current_sign_in_at is a Devise :trackable column, stale under JWT;
+    # The IdP owns the session, so we can't judge staleness.
     false
   end
 
