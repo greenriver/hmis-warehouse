@@ -87,12 +87,12 @@ module Idp
     # a GET-per-user. Do NOT replace with an unpaginated GET /users: Keycloak
     # silently caps the response (default 100), so a single call quietly drops
     # every user past the first page.
-    def each_user(page: 100)
-      return enum_for(:each_user, page: page) unless block_given?
+    def each_user(page_size: 100)
+      return enum_for(:each_user, page_size: page_size) unless block_given?
 
       first = 0
       loop do
-        response = make_request(:get, "/admin/realms/#{realm}/users?first=#{first}&max=#{page}")
+        response = make_request(:get, "/admin/realms/#{realm}/users?first=#{first}&max=#{page_size}")
         users = handle_response(response, operation: :each_user, failure: 'Failed to list users') do |resp|
           JSON.parse(resp.body)
         end
@@ -100,9 +100,9 @@ module Idp
         users.each { |u| yield({ email: u['email'], id: u['id'] }) }
 
         # A short (or empty) page is the last one.
-        break if users.size < page
+        break if users.size < page_size
 
-        first += page
+        first += page_size
       end
     end
 

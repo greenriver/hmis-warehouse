@@ -508,7 +508,7 @@ RSpec.describe Idp::KeycloakService, type: :model do
       stub_page(0, 2, page1)
       stub_page(2, 2, page2)
 
-      collected = service.each_user(page: 2).to_a
+      collected = service.each_user(page_size: 2).to_a
 
       expect(collected).to eq(
         [
@@ -523,7 +523,7 @@ RSpec.describe Idp::KeycloakService, type: :model do
       stub_page(0, 2, [{ 'id' => 'a', 'email' => 'a@x.com' }, { 'id' => 'b', 'email' => 'b@x.com' }])
       stub_page(2, 2, [])
 
-      expect(service.each_user(page: 2).to_a.size).to eq(2)
+      expect(service.each_user(page_size: 2).to_a.size).to eq(2)
     end
   end
 end
