@@ -453,16 +453,27 @@ RSpec.shared_examples 'an auth-method-aware user' do |factory, model|
     end
 
     describe 'profile_managed_by_idp?' do
-      it 'is true (name/email are provisioned from the JWT; the admin form renders them read-only)' do
-        expect(model.new.profile_managed_by_idp?).to be true
+      it 'follows idp_service.supports_profile_updates?: locked when unlinked (NullService can\'t accept writes)' do
+        user = model.new
+        expect(user.idp_service.supports_profile_updates?).to be false
+        expect(user.profile_managed_by_idp?).to be true
+      end
+
+      it 'is false when the linked IdP service can accept profile writes (e.g. Keycloak)' do
+        user = model.new
+        allow(user).to receive(:idp_service).and_return(instance_double(Idp::KeycloakService, supports_profile_updates?: true))
+        expect(user.profile_managed_by_idp?).to be false
       end
     end
 
     describe 'email_change_enabled?' do
-      it 'is false, the inverse of profile_managed_by_idp? (the IdP owns email; self-service change is blocked)' do
-        # A local email edit would not reach the IdP and would be overwritten from the JWT on next login.
+      it 'is the inverse of profile_managed_by_idp?' do
         user = model.new
         expect(user.email_change_enabled?).to be false
+        expect(user.email_change_enabled?).to eq(!user.profile_managed_by_idp?)
+
+        allow(user).to receive(:idp_service).and_return(instance_double(Idp::KeycloakService, supports_profile_updates?: true))
+        expect(user.email_change_enabled?).to be true
         expect(user.email_change_enabled?).to eq(!user.profile_managed_by_idp?)
       end
     end

@@ -11,21 +11,26 @@ module Idp::Support
   extend ActiveSupport::Concern
 
   def idp_service
-    return Idp::ServiceFactory.for_connector(primary_idp) if primary_idp
+    return @idp_service if defined?(@idp_service)
 
-    Idp::NullService.new
+    @idp_service = primary_idp ? Idp::ServiceFactory.for_connector(primary_idp) : Idp::NullService.new
   end
 
   def primary_idp
     last_connector_id.presence || primary_auth_source&.connector_id
   end
 
-  # The IdP owns the user's identity fields
+  # The IdP owns the user's identity fields unless its service can push our edits back to it
   def email_change_enabled?
     !profile_managed_by_idp?
   end
 
+  # A service we can't even build (e.g. misconfigured Keycloak) is treated as locked — the safe
+  # default that keeps the admin form renderable; management actions surface the real config
+  # error through their own soft-failure handling.
   def profile_managed_by_idp?
+    !idp_service.supports_profile_updates?
+  rescue Idp::ServiceError
     true
   end
 
@@ -60,6 +65,15 @@ module Idp::Support
     return false unless primary_idp
 
     idp_service.set_required_action(user_id: idp_connector_user_id!, actions: ['UPDATE_PASSWORD'])
+  end
+
+  # Push admin-edited first_name/last_name/email to the IdP. No-ops unless the service can accept
+  # the write back (the same capability that unlocks the fields in the first place).
+  def idp_update_profile!(attributes)
+    return false unless primary_idp
+    return false unless idp_service.supports_profile_updates?
+
+    idp_service.update_user(user_id: idp_connector_user_id!, attributes: attributes)
   end
 
   private

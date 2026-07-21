@@ -58,7 +58,12 @@ RSpec.describe Admin::Idp::InactiveUsersController, type: :request, if: AuthMeth
   end
 
   describe 'PATCH reactivate' do
-    before { stub_request(:put, target_url).to_return(status: 204) }
+    let(:current_representation) { { id: target_connector_user_id, username: target.email } }
+
+    before do
+      stub_request(:get, target_url).to_return(status: 200, body: current_representation.to_json)
+      stub_request(:put, target_url).to_return(status: 204)
+    end
 
     it 'restores the local active flag and re-enables the account in Keycloak' do
       patch reactivate_admin_inactive_user_path(target)
@@ -66,7 +71,7 @@ RSpec.describe Admin::Idp::InactiveUsersController, type: :request, if: AuthMeth
       target.reload
       expect(target.active).to be true
       expect(target.expired_at).to be_nil
-      expect(a_request(:put, target_url).with(body: { enabled: true })).to have_been_made
+      expect(a_request(:put, target_url).with(body: current_representation.merge(enabled: true))).to have_been_made
       expect(response).to redirect_to(action: :index)
     end
 

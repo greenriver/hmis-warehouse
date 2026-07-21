@@ -16,6 +16,7 @@ module Admin
     #   - initialize_two_factor_secret_for_edit  (Devise: set the OTP secret; JWT: no-op)
     #   - disable_two_factor_if_requested        (Devise: disable_2fa!;       JWT: no-op)
     #   - push_deactivate_to_idp                 (Devise: no-op;              JWT: Keycloak disable)
+    #   - push_profile_update_to_idp             (Devise: no-op;              JWT: Keycloak profile sync)
     #
     # The defaults here are the IdP-safe no-op; the Devise arm overrides the first two.
     module UserManagementBehavior
@@ -147,6 +148,8 @@ module Admin
           return
         end
 
+        push_profile_update_to_idp
+
         # Queue recomputation of external report access
         @user.delay(queue: ENV.fetch('DJ_SHORT_QUEUE_NAME', :short_running)).populate_external_reporting_permissions!
 
@@ -224,6 +227,11 @@ module Admin
 
       # Devise deactivation is purely local; the JWT arm additionally pushes the disable to the IdP.
       private def push_deactivate_to_idp
+      end
+
+      # Devise identity fields have no separate remote store; the JWT arm additionally pushes
+      # first_name/last_name/email changes to the IdP once the local save commits.
+      private def push_profile_update_to_idp
       end
 
       # Devise :confirmable suppresses the reconfirmation email when an admin edits the record;

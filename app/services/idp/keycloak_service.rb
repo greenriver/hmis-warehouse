@@ -62,20 +62,18 @@ module Idp
       unknown = attributes.keys - UPDATABLE_ATTRIBUTES
       raise ArgumentError, "Unknown attributes: #{unknown.join(', ')}" if unknown.any?
 
-      updates = {}
-      updates[:firstName] = attributes[:first_name] if attributes[:first_name]
-      updates[:lastName] = attributes[:last_name] if attributes[:last_name]
+      patch = {}
+      patch['firstName'] = attributes[:first_name] if attributes[:first_name]
+      patch['lastName'] = attributes[:last_name] if attributes[:last_name]
 
       if attributes[:email]
-        updates[:email] = attributes[:email]
-        updates[:emailVerified] = false
+        patch['email'] = attributes[:email]
+        patch['emailVerified'] = false
       end
 
-      return true if updates.empty?
+      return true if patch.empty?
 
-      response = make_request(:put, "/admin/realms/#{realm}/users/#{user_id}", body: updates)
-
-      handle_response(response, operation: :update_user, failure: 'Failed to update user') { true }
+      put_full_user(user_id: user_id, patch: patch, operation: :update_user, failure: 'Failed to update user')
     end
 
     def get_user(user_id:)
@@ -95,36 +93,18 @@ module Idp
     end
 
     def reactivate_user(user_id:)
-      response = make_request(
-        :put,
-        "/admin/realms/#{realm}/users/#{user_id}",
-        body: { enabled: true },
-      )
-
-      handle_response(response, operation: :reactivate_user, failure: 'Failed to reactivate user') { true }
+      put_full_user(user_id: user_id, patch: { 'enabled' => true }, operation: :reactivate_user, failure: 'Failed to reactivate user')
     end
 
     # Disable the account in Keycloak. Mirror of #reactivate_user
     def deactivate_user(user_id:)
-      response = make_request(
-        :put,
-        "/admin/realms/#{realm}/users/#{user_id}",
-        body: { enabled: false },
-      )
-
-      handle_response(response, operation: :deactivate_user, failure: 'Failed to deactivate user') { true }
+      put_full_user(user_id: user_id, patch: { 'enabled' => false }, operation: :deactivate_user, failure: 'Failed to deactivate user')
     end
 
     # Set Keycloak required actions the user must complete at next login (e.g.
     # ['UPDATE_PASSWORD'] to force a password change).
     def set_required_action(user_id:, actions:)
-      response = make_request(
-        :put,
-        "/admin/realms/#{realm}/users/#{user_id}",
-        body: { requiredActions: actions },
-      )
-
-      handle_response(response, operation: :set_required_action, failure: 'Failed to set required actions') { true }
+      put_full_user(user_id: user_id, patch: { 'requiredActions' => actions }, operation: :set_required_action, failure: 'Failed to set required actions')
     end
 
     def idp_name
@@ -347,6 +327,21 @@ module Idp
       data['errorMessage'] || data['error_description'] || data['error'] || response.body
     rescue StandardError
       response.body
+    end
+
+    # Keycloak's PUT /users/{id} replaces the full representation (v24+ full-replace semantics) —
+    # any field left out of the body is cleared, not left alone. Fetch the current representation
+    # and merge the patch onto it so untouched fields (attributes, username, other requiredActions,
+    # etc.) survive the write.
+    #
+    # This is a read-modify-write with no optimistic locking (Keycloak's PUT has no If-Match), so
+    # a write that overlaps another can clobber it from a stale GET. The admin surface drives these
+    # sequentially per request, so overlap is not expected; revisit if a concurrent caller appears.
+    def put_full_user(user_id:, patch:, operation:, failure:)
+      current = get_user(user_id: user_id)
+      response = make_request(:put, "/admin/realms/#{realm}/users/#{user_id}", body: current.merge(patch))
+
+      handle_response(response, operation: operation, failure: failure) { true }
     end
 
     protected
