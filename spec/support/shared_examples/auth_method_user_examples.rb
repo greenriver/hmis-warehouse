@@ -229,7 +229,8 @@ RSpec.shared_examples 'an auth-method-aware user' do |factory, model|
         target = create(factory, active: true)
 
         PaperTrailHelper.with_paper_trail do
-          PaperTrail.request(whodunnit: actor.id.to_s) do
+          # enabled: true guards against leaky behavior from other tests
+          PaperTrail.request(whodunnit: actor.id.to_s, enabled: true) do
             target.paper_trail_event = 'deactivate'
             # matches Admin::Concerns::UserManagementBehavior#destroy: paper_trail.update_column, not the
             # bare AR update_column, which bypasses PaperTrail's callbacks and would never record a version

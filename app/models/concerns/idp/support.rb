@@ -90,10 +90,10 @@ module Idp::Support
     return @primary_auth_source if defined?(@primary_auth_source)
 
     @primary_auth_source = if last_connector_id.presence
-                              user_authentication_sources.where(connector_id: last_connector_id).order(:created_at).first
-                            else
-                              user_authentication_sources.order(:created_at).first
-                            end
+      user_authentication_sources.where(connector_id: last_connector_id).order(:created_at).first
+    else
+      user_authentication_sources.order(:created_at).first
+    end
   end
 
   # The user's stable id within the upstream IdP for its primary connector.
