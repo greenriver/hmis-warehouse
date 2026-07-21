@@ -138,7 +138,7 @@ module Admin
           return
         end
 
-        push_profile_update_to_idp
+        after_profile_update
 
         # Queue recomputation of external report access
         @user.delay(queue: ENV.fetch('DJ_SHORT_QUEUE_NAME', :short_running)).populate_external_reporting_permissions!
@@ -216,12 +216,12 @@ module Admin
       end
 
       # Devise deactivation is purely local; the JWT arm additionally pushes the disable to the IdP.
-      private def push_deactivate_to_idp
+      private def after_deactivate
       end
 
       # Devise identity fields have no separate remote store; the JWT arm additionally pushes
       # first_name/last_name/email changes to the IdP once the local save commits.
-      private def push_profile_update_to_idp
+      private def after_profile_update
       end
 
       # Devise :confirmable suppresses the reconfirmation email when an admin edits the record;
@@ -346,7 +346,7 @@ module Admin
         # paper_trail.update_column() allows us to update the user even if the record is invalid, while
         # still recording a version (plain update_column bypasses PaperTrail's callbacks entirely)
         @user.paper_trail.update_column(:active, false)
-        push_deactivate_to_idp
+        after_deactivate
         redirect_to({ action: :index }, notice: "User #{@user.name} deactivated")
       end
 
@@ -467,12 +467,13 @@ module Admin
             result[:user_group_ids] ||= []
             result[:user_group_ids] += @user.user_groups.system.pluck(:id)
           end.
-          except(*idp_managed_param_keys)
+          except(*externally_managed_param_keys)
       end
 
-      # IdP-owned identity fields the arm won't accept for update (belt-and-suspenders behind
-      # the read-only form inputs). Defaults to none (Devise arm); the JWT arm strips name/email.
-      private def idp_managed_param_keys
+      # Identity fields owned by an external system that the arm won't accept for update
+      # (belt-and-suspenders behind the read-only form inputs). Defaults to none (Devise arm);
+      # the JWT arm strips name/email when the IdP owns them.
+      private def externally_managed_param_keys
         []
       end
 

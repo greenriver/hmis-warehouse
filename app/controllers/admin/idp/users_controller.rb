@@ -60,14 +60,14 @@ module Admin
       # don't let users set these params from the form. expired_at has no IdP-side equivalent to
       # push, so it always stays local-only. Identity fields are stripped only when the profile is
       # locked (the IdP service can't accept writes); when it can, they flow through and get synced.
-      private def idp_managed_param_keys
+      private def externally_managed_param_keys
         keys = [:expired_at]
         keys += [:first_name, :last_name, :email] if @user&.profile_managed_by_idp?
         keys
       end
 
       # After the shared local `active: false` flip commits, disable the account in the IdP.
-      private def push_deactivate_to_idp
+      private def after_deactivate
         with_idp_soft_failure("Local access revoked, but couldn't disable #{@user.name} in the identity provider") do
           @user.idp_deactivate!
         end
@@ -76,7 +76,7 @@ module Admin
       # After the shared local save commits, push any first_name/last_name/email change to the IdP.
       # No-ops when the user's IdP service doesn't accept profile writes (form disables those
       # inputs in that case, so user_params wouldn't carry a change anyway).
-      private def push_profile_update_to_idp
+      private def after_profile_update
         changes = @user.saved_changes.slice('first_name', 'last_name', 'email')
         return if changes.empty?
 
