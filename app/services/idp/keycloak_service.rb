@@ -247,7 +247,7 @@ module Idp
     end
 
     # When true, TLS certificate verification is disabled for Keycloak requests.
-    # Intended for staging/dev environments with self-signed certificates only.
+    # Intended for environments where the backend communication is secured with a self-signed certificate.
     def skip_ssl_verification?
       ActiveModel::Type::Boolean.new.cast(config[:skip_ssl_verification])
     end
