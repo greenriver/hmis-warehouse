@@ -269,7 +269,7 @@ module Idp
     # Return a valid access token, fetching a new one if expired or not yet obtained.
     def access_token
       now = Time.current
-      if @cached_token.nil? || Time.current >= @token_expires_at
+      if @cached_token.nil? || now >= @token_expires_at
         token_response = fetch_token
         @cached_token = token_response['access_token']
         expires_in = token_response['expires_in'].to_i

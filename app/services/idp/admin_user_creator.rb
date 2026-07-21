@@ -37,17 +37,31 @@ module Idp
       service = Idp::ServiceFactory.for_connector(@connector_id)
       raise Idp::ServiceError.new("#{service.idp_name} does not support creating users", idp_name: service.idp_name, operation: :create_user) unless service.supports_user_creation?
 
-      # Validate the local record before provisioning remotely so the common duplicate-email
-      # case fails without leaving an orphaned account in the IdP.
+      # Claim the email locally first, via the users table's unique index, before making any
+      # (irreversible) remote IdP call. That keeps a race between concurrent admin submissions
+      # local and fast to resolve — the loser fails right here with a normal validation error —
+      # instead of both racing to provision remote accounts and risking an orphaned IdP account
+      # if the loser's local save fails only after it already created something remotely.
       user = build_user
-      raise ActiveRecord::RecordInvalid, user unless user.valid?
+      user.save!
 
-      connector_user_id = resolve_connector_user_id(service)
-
-      @user_class.transaction do
-        user.save!
-        user.user_authentication_sources.create!(connector_id: @connector_id, connector_user_id: connector_user_id)
-        user.update!(last_connector_id: @connector_id)
+      begin
+        connector_user_id = resolve_connector_user_id(service)
+        @user_class.transaction do
+          user.user_authentication_sources.create!(connector_id: @connector_id, connector_user_id: connector_user_id)
+          user.update!(last_connector_id: @connector_id)
+        end
+      rescue Idp::ServiceError, ActiveRecord::RecordInvalid, ActiveRecord::RecordNotUnique => e
+        begin
+          user.destroy!
+        rescue StandardError => cleanup_error
+          Sentry.capture_exception_with_info(
+            cleanup_error,
+            'AdminUserCreator: failed to roll back local user after provisioning failure',
+            { user_id: user.id, connector_id: @connector_id },
+          )
+        end
+        raise e
       end
 
       user
