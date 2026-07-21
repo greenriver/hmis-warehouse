@@ -6,6 +6,11 @@
 .o-page__controls
   .o-page__search
     = render_generic_search_form prompt: @prompt
+  - if idp_user_creation_available?
+    .o-page__action.o-page__action--stacked
+      = link_to new_hmis_admin_user_path, class: 'btn btn-primary pull-right mb-2' do
+        %span.icon-plus
+        Add a User Account
 - if @users.blank?
   %p No HMIS users present.
 - else

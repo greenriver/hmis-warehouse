@@ -71,4 +71,22 @@ RSpec.describe Idp::AdminUserCreator, if: AuthMethod.jwt? do
       expect(User.find_by(email: 'newbie@example.com')).to be_nil
     end
   end
+
+  # The HMIS admin arm provisions Hmis::User (same table, different mapping) through the same
+  # service by passing user_class:. Lock in that cross-model contract.
+  context 'with a custom user_class' do
+    before do
+      allow(service).to receive(:find_user_by_email).and_return(nil)
+      allow(service).to receive(:create_user).and_return(success: true, connector_user_id: 'kc-new')
+    end
+
+    it 'persists and links an instance of the given class' do
+      user = described_class.call(connector_id: connector_id, email: 'hmis@example.com', first_name: 'H', last_name: 'M', user_class: Hmis::User)
+
+      expect(user).to be_a(Hmis::User)
+      expect(user).to be_persisted
+      expect(user.last_connector_id).to eq(connector_id)
+      expect(user.user_authentication_sources.pluck(:connector_id, :connector_user_id)).to eq([[connector_id, 'kc-new']])
+    end
+  end
 end

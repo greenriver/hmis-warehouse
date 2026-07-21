@@ -11,45 +11,11 @@ module Admin
     class UsersController < ApplicationController
       include ::Admin::Concerns::UserManagementBehavior
       include ::Admin::Idp::SoftFailure
-
-      before_action :require_user_creation_available!, only: [:new, :create]
-      before_action :set_connectors, only: [:new, :create]
-      helper_method :idp_user_creation_available?
+      include ::Admin::Idp::UserCreation
 
       # Fall back to the shared admin/users templates for any views this arm doesn't override:
       def _prefixes
         @_prefixes ||= [self.class.controller_path, 'admin/users'] + ApplicationController._prefixes
-      end
-
-      def new
-        @user = User.new
-      end
-
-      def create
-        @user = ::Idp::AdminUserCreator.call(
-          connector_id: create_connector_id,
-          email: new_user_params[:email],
-          first_name: new_user_params[:first_name],
-          last_name: new_user_params[:last_name],
-        )
-      rescue ActiveRecord::RecordInvalid => e
-        @user = e.record
-        flash.now[:error] = 'Please review the form problems below'
-        render :new
-      rescue ::Idp::ServiceError => e
-        @user = User.new(new_user_params.except(:connector_id))
-        flash.now[:error] = "Couldn't create the account in the identity provider: #{e.message}"
-        render :new
-      else
-        emailed = with_idp_soft_failure("Account created, but the setup email couldn't be sent to #{@user.email}") do
-          @user.idp_send_account_setup_email!
-        end
-        notice = if emailed
-          "Account created for #{@user.email}. A setup email has been sent. Assign roles and access below."
-        else
-          "Account created for #{@user.email}. Assign roles and access below."
-        end
-        redirect_to edit_admin_user_path(@user), notice: notice
       end
 
       def expire_password
@@ -60,45 +26,6 @@ module Admin
         return redirect_to(action: :index) unless pushed
 
         redirect_to({ action: :index }, notice: "#{@user.email} will be required to choose a new password on next login.")
-      end
-
-      # Active configs whose IdP can provision new accounts. A deployment may have several
-      # (one per realm), so the create form lets the admin choose when there is more than one.
-      private def available_connectors
-        @available_connectors ||= ::Idp::ServiceConfig.active.order(:name, :id).select do |config|
-          config.to_service.supports_user_creation?
-        rescue ::Idp::ServiceError
-          false
-        end
-      end
-
-      private def idp_user_creation_available?
-        available_connectors.any?
-      end
-
-      private def require_user_creation_available!
-        return if idp_user_creation_available?
-
-        redirect_to admin_users_path, alert: 'Creating user accounts is not available for this identity provider.'
-      end
-
-      private def set_connectors
-        @connectors = available_connectors
-      end
-
-      # The connector to provision into: the admin's choice when offered, otherwise the sole
-      # available connector. Constrained to available connectors so the param can't target an
-      # arbitrary or creation-incapable config.
-      private def create_connector_id
-        chosen = new_user_params[:connector_id]
-        ids = available_connectors.map(&:connector_id)
-        return chosen if chosen.present? && ids.include?(chosen)
-
-        ids.first
-      end
-
-      private def new_user_params
-        params.require(:user).permit(:first_name, :last_name, :email, :connector_id)
       end
 
       # don't let users set these params from the form. expired_at has no IdP-side equivalent to
