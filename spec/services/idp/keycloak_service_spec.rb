@@ -88,6 +88,24 @@ RSpec.describe Idp::KeycloakService, type: :model do
       end
     end
 
+    context 'with a 201 response missing the Location header' do
+      before do
+        stub_request(:post, "#{api_url}/admin/realms/#{realm}/users").
+          to_return(status: 201)
+      end
+
+      it 'returns success with a nil connector_user_id rather than raising' do
+        result = service.create_user(
+          email: user_email,
+          first_name: 'John',
+          last_name: 'Doe',
+        )
+
+        expect(result[:success]).to be true
+        expect(result[:connector_user_id]).to be_nil
+      end
+    end
+
     context 'with API error response' do
       before do
         stub_request(:post, "#{api_url}/admin/realms/#{realm}/users").
@@ -104,7 +122,7 @@ RSpec.describe Idp::KeycloakService, type: :model do
             first_name: 'John',
             last_name: 'Doe',
           )
-        end.to raise_error(Idp::ServiceError)
+        end.to raise_error(Idp::ServiceError, /Failed to create user: User exists with same username/)
       end
     end
   end
@@ -179,7 +197,7 @@ RSpec.describe Idp::KeycloakService, type: :model do
             user_id: user_id,
             attributes: { first_name: 'Jane' },
           )
-        end.to raise_error(Idp::ServiceError)
+        end.to raise_error(Idp::ServiceError, /Failed to update user: Invalid attribute/)
       end
     end
   end
@@ -212,7 +230,7 @@ RSpec.describe Idp::KeycloakService, type: :model do
       it 'raises ServiceError' do
         expect do
           service.get_user(user_id: user_id)
-        end.to raise_error(Idp::ServiceError)
+        end.to raise_error(Idp::ServiceError, /User not found: #{user_id}/)
       end
     end
   end
@@ -249,7 +267,7 @@ RSpec.describe Idp::KeycloakService, type: :model do
       it 'raises ServiceError' do
         expect do
           service.reactivate_user(user_id: user_id)
-        end.to raise_error(Idp::ServiceError)
+        end.to raise_error(Idp::ServiceError, /Failed to reactivate user: User not found/)
       end
     end
   end
@@ -286,7 +304,7 @@ RSpec.describe Idp::KeycloakService, type: :model do
       it 'raises ServiceError' do
         expect do
           service.deactivate_user(user_id: user_id)
-        end.to raise_error(Idp::ServiceError)
+        end.to raise_error(Idp::ServiceError, /Failed to deactivate user: User not found/)
       end
     end
   end
@@ -323,7 +341,7 @@ RSpec.describe Idp::KeycloakService, type: :model do
       it 'raises ServiceError' do
         expect do
           service.set_required_action(user_id: user_id, actions: ['UPDATE_PASSWORD'])
-        end.to raise_error(Idp::ServiceError)
+        end.to raise_error(Idp::ServiceError, /Failed to set required actions: User not found/)
       end
     end
   end
@@ -360,6 +378,34 @@ RSpec.describe Idp::KeycloakService, type: :model do
       end
     end
 
+    context 'with endpoint not found' do
+      before do
+        stub_request(:get, "#{api_url}/admin/realms/#{realm}").
+          to_return(status: 404)
+      end
+
+      it 'returns failure with an endpoint-not-found message' do
+        result = service.test_connection
+
+        expect(result[:success]).to be false
+        expect(result[:message]).to include('API endpoint not found')
+      end
+    end
+
+    context 'with a Keycloak server error' do
+      before do
+        stub_request(:get, "#{api_url}/admin/realms/#{realm}").
+          to_return(status: 500)
+      end
+
+      it 'returns failure with the server error message' do
+        result = service.test_connection
+
+        expect(result[:success]).to be false
+        expect(result[:message]).to include('Keycloak server error: 500')
+      end
+    end
+
     context 'with connection refused' do
       before do
         stub_request(:get, "#{api_url}/admin/realms/#{realm}").
@@ -371,6 +417,20 @@ RSpec.describe Idp::KeycloakService, type: :model do
 
         expect(result[:success]).to be false
         expect(result[:message]).to include('Connection refused')
+      end
+    end
+
+    context 'with host unreachable' do
+      before do
+        stub_request(:get, "#{api_url}/admin/realms/#{realm}").
+          to_raise(Errno::EHOSTUNREACH)
+      end
+
+      it 'returns failure with a host-unreachable message' do
+        result = service.test_connection
+
+        expect(result[:success]).to be false
+        expect(result[:message]).to include('Host unreachable')
       end
     end
 
@@ -412,6 +472,32 @@ RSpec.describe Idp::KeycloakService, type: :model do
       expect do
         service.get_user(user_id: user_id)
       end.to raise_error(Idp::ServiceError, /Failed to get user/)
+      expect(a_request(:post, token_url)).to have_been_made.times(2)
+    end
+  end
+
+  describe 'token caching' do
+    let(:user_id) { 'keycloak-user-id' }
+
+    before do
+      stub_request(:get, "#{api_url}/admin/realms/#{realm}/users/#{user_id}").
+        to_return(status: 200, body: { id: user_id, username: 'test@example.com' }.to_json)
+    end
+
+    it 'reuses the cached token across requests instead of fetching a new one each time' do
+      service.get_user(user_id: user_id)
+      service.get_user(user_id: user_id)
+
+      expect(a_request(:post, token_url)).to have_been_made.once
+    end
+
+    it 'fetches a new token once the cached one has expired' do
+      service.get_user(user_id: user_id)
+
+      travel(6.minutes) do
+        service.get_user(user_id: user_id)
+      end
+
       expect(a_request(:post, token_url)).to have_been_made.times(2)
     end
   end

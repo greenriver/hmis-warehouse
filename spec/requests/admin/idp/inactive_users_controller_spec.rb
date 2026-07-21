@@ -8,6 +8,7 @@
 
 require 'rails_helper'
 require 'webmock/rspec'
+require 'nokogiri'
 
 # JWT-arm inactive-user (reactivation) management. Requires an AUTH_METHOD=jwt boot (CI step).
 RSpec.describe Admin::Idp::InactiveUsersController, type: :request, if: AuthMethod.jwt? do
@@ -74,17 +75,81 @@ RSpec.describe Admin::Idp::InactiveUsersController, type: :request, if: AuthMeth
         patch reactivate_admin_inactive_user_path(target)
       end.not_to(change { ActionMailer::Base.deliveries.size })
     end
+
+    context 'when the Keycloak push fails' do
+      before do
+        stub_request(:put, target_url).to_return(status: 500, body: { error: 'boom' }.to_json)
+        allow(Sentry).to receive(:capture_exception_with_info)
+      end
+
+      it 'still restores local access, pages Sentry, and warns beside the success notice' do
+        patch reactivate_admin_inactive_user_path(target)
+
+        target.reload
+        expect(target.active).to be true # authoritative local flip commits
+        expect(target.expired_at).to be_nil
+        expect(Sentry).to have_received(:capture_exception_with_info)
+        expect(flash[:alert]).to be_present
+        expect(flash[:notice]).to be_present
+        expect(response).to redirect_to(action: :index)
+      end
+    end
+
+    it 'refuses to reactivate a user who is not currently inactive' do
+      patch reactivate_admin_inactive_user_path(admin_user)
+
+      expect(response).to have_http_status(:not_found)
+      expect(admin_user.reload.active).to be true
+      expect(a_request(:put, /\/admin\/realms\/#{realm}\/users\//)).not_to have_been_made
+    end
   end
 
   describe 'GET index' do
-    before { target.legacy_roles << admin_role }
+    let!(:legacy_role) { create(:role, name: 'Case Manager Reviewer') }
+
+    before { target.legacy_roles << legacy_role }
 
     it 'lists inactive users with their legacy-role names' do
       get admin_inactive_users_path
 
       expect(response).to have_http_status(:ok)
-      expect(response.body).to include('Target')
-      expect(response.body).to include(admin_role.name)
+      target_row = Nokogiri::HTML(response.body).css('tbody tr').find { |row| row.text.include?(target.name) }
+      expect(target_row).not_to be_nil
+      expect(target_row.text).to include(legacy_role.name)
+    end
+
+    it 'excludes active users' do
+      get admin_inactive_users_path
+
+      rows = Nokogiri::HTML(response.body).css('tbody tr')
+      expect(rows.none? { |row| row.text.include?(admin_user.name) }).to be true
+    end
+  end
+
+  describe 'authorization (require_can_edit_users!)' do
+    # A signed-in user whose role grants no can_edit_users. The privileged reactivate action must
+    # be refused before any local change or IdP push, and the list itself must not render.
+    let!(:viewer_role) { create(:role) }
+    let!(:non_admin) { create(:acl_user, first_name: 'View', last_name: 'Only') }
+
+    before do
+      setup_access_control(non_admin, viewer_role, collection)
+      stub_request(:put, target_url).to_return(status: 204)
+      sign_in non_admin
+    end
+
+    it 'refuses to reactivate a user and pushes nothing to the IdP' do
+      patch reactivate_admin_inactive_user_path(target)
+
+      expect(target.reload.active).to be false
+      expect(a_request(:put, target_url)).not_to have_been_made
+      expect(response).to have_http_status(:redirect)
+    end
+
+    it 'refuses to list inactive users' do
+      get admin_inactive_users_path
+
+      expect(response).to have_http_status(:redirect)
     end
   end
 end

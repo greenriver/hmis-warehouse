@@ -212,25 +212,6 @@ module Admin
         end
       end
 
-      def destroy
-        @user.paper_trail_event = 'deactivate'
-        # update_column() allows us to update the user even if the record is invalid
-        @user.update_column(:active, false)
-        push_deactivate_to_idp
-        redirect_to({ action: :index }, notice: "User #{@user.name} deactivated")
-      end
-
-      def title_for_show
-        @user.name
-      end
-      alias_method :title_for_edit, :title_for_show
-      alias_method :title_for_destroy, :title_for_show
-      alias_method :title_for_update, :title_for_show
-
-      def title_for_index
-        'User List'
-      end
-
       # --- Template hooks: default to the IdP-safe no-op; the Devise arm overrides. ---
 
       # Devise seeds an OTP secret when rendering the edit form; the JWT arm leaves 2FA to the IdP.
@@ -360,6 +341,25 @@ module Admin
         source_user.user_groups.each do |group|
           group.add(@user)
         end
+      end
+
+      def destroy
+        @user.paper_trail_event = 'deactivate'
+        # update_column() allows us to update the user even if the record is invalid
+        @user.update_column(:active, false)
+        push_deactivate_to_idp
+        redirect_to({ action: :index }, notice: "User #{@user.name} deactivated")
+      end
+
+      def title_for_show
+        @user.name
+      end
+      alias_method :title_for_edit, :title_for_show
+      alias_method :title_for_destroy, :title_for_show
+      alias_method :title_for_update, :title_for_show
+
+      def title_for_index
+        'User List'
       end
 
       private def changing_to_acls?
