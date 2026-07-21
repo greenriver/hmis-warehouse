@@ -7,13 +7,6 @@
 # frozen_string_literal: true
 
 module Admin
-  # Devise-arm admin user management. The auth-agnostic bulk lives in the shared
-  # Admin::Concerns::UserManagementBehavior; this controller carries only the Devise-coupled
-  # seams — the template-hook implementations and the Devise-only actions whose routes the JWT
-  # arm omits (unlock, un_expire) or overrides (expire_password). At Devise sunset this class,
-  # its routes, and the Devise-coupled partials are deleted; the JWT arm needs no unwinding.
-  #
-  # This controller is namespaced to prevent route collision with Devise.
   class UsersController < ApplicationController
     include Admin::Concerns::UserManagementBehavior
 

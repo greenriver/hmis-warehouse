@@ -8,9 +8,7 @@
 
 module Admin
   module Concerns
-    # Auth-agnostic bulk of the inactive-user (reactivation) surface, shared by the Devise arm
-    # (Admin::InactiveUsersController) and the JWT arm (Admin::Idp::InactiveUsersController).
-    # Each arm defines its own #reactivate — the only auth-coupled action here.
+    # Auth-agnostic inactive-user (reactivation) behavior, shared by Devise and JWT arms
     module InactiveUserManagementBehavior
       extend ActiveSupport::Concern
 

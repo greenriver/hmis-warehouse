@@ -794,19 +794,15 @@ Rails.application.routes.draw do
 
   namespace :admin do
     # Auth-method seam: one boot-time gate selects each arm's controllers. Only one block is
-    # declared per boot, so there is no route-name clash; and because the helper names derive
-    # from the resource name (not the controller), they stay identical across both arms.
+    # ever valid so there is no route-name conflict and the helper names are constant
     if AuthMethod.jwt?
-      # JWT arm: IdP-backed user management. Devise-only routes are omitted — omitting the route
-      # is how the action is hidden: invitations (IdP-managed), unlock (the realm auto-unlocks),
-      # locations (sign-in history is IdP-managed), and un_expire.
+      # JWT arm: IdP-backed user management. Devise-only routes are omitted
       resources :users, except: [:show, :new, :create], controller: 'idp/users' do
         resource :audit, only: :show
         resource :edit_history, only: :show
         patch :reactivate, on: :member
         collection do
-          # Search is auth-agnostic, so both arms point it at the shared Admin::UsersController /
-          # Admin::Users::SearchQueries (helpers still generate from this `resources :users` block).
+          # Search is auth-agnostic, so both arms use the shared Admin::UsersController
           resources :searches, only: [:create], controller: 'users/search_queries', as: :user_search_queries
           get '/searches/:id', to: 'users#search', as: 'user_search_query'
           get :load_select_options
@@ -828,7 +824,7 @@ Rails.application.routes.draw do
         end
       end
     else
-      # Devise arm: existing local-account management (unchanged).
+      # Devise arm: existing local-account management
       # resolves route clash w/ devise
       resources :users, except: [:show, :new, :create] do
         resource :resend_invitation, only: :create

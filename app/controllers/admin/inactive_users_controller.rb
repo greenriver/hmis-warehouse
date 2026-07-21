@@ -7,11 +7,6 @@
 # frozen_string_literal: true
 
 module Admin
-  # Devise-arm inactive-user management. The auth-agnostic bulk lives in the shared
-  # Admin::Concerns::InactiveUserManagementBehavior; this controller carries only the
-  # Devise-coupled #reactivate (random password + reset-instructions email).
-  #
-  # This controller is namespaced to prevent route collision with Devise.
   class InactiveUsersController < ApplicationController
     include Admin::Concerns::InactiveUserManagementBehavior
 

@@ -174,17 +174,11 @@ RSpec.describe Admin::Idp::UsersController, type: :request, if: AuthMethod.jwt? 
   end
 
   describe 'GET edit' do
-    it 'renders without seeding an OTP secret (2FA is IdP-managed)' do
+    it 'renders the IdP-provisioned name/email fields read-only' do
       get edit_admin_user_path(target)
 
       expect(response).to have_http_status(:ok)
       expect(assigns(:user)).to eq(target)
-    end
-
-    it 'renders the IdP-provisioned name/email fields read-only' do
-      get edit_admin_user_path(target)
-
-      expect(assigns(:user).profile_managed_by_idp?).to be true
       # simple_form does not guarantee attribute order, so match either arrangement.
       ['first_name', 'last_name', 'email'].each do |field|
         disabled_input = /<input[^>]*name="user\[#{field}\]"[^>]*disabled|<input[^>]*disabled[^>]*name="user\[#{field}\]"/
@@ -214,6 +208,40 @@ RSpec.describe Admin::Idp::UsersController, type: :request, if: AuthMethod.jwt? 
       target.reload
       expect(target.expired_at).to be_nil
       expect(target.notify_on_client_added).to be true
+    end
+  end
+
+  describe 'authorization (require_can_edit_users!)' do
+    # A signed-in user whose role grants no can_edit_users. The privileged, destructive actions
+    # must be refused before any local change or IdP push, not merely hidden from the menu.
+    let!(:viewer_role) { create(:role) }
+    let!(:non_admin) { create(:acl_user, first_name: 'View', last_name: 'Only') }
+
+    before do
+      setup_access_control(non_admin, viewer_role, collection)
+      stub_request(:put, target_url).to_return(status: 204)
+      sign_in non_admin
+    end
+
+    it 'refuses to deactivate a user and pushes nothing to the IdP' do
+      delete admin_user_path(target)
+
+      expect(target.reload.active).to be true
+      expect(a_request(:put, target_url)).not_to have_been_made
+      expect(response).to have_http_status(:redirect)
+    end
+
+    it 'refuses to force a password change and pushes nothing to the IdP' do
+      patch expire_password_admin_user_path(target)
+
+      expect(a_request(:put, target_url)).not_to have_been_made
+      expect(response).to have_http_status(:redirect)
+    end
+
+    it 'refuses to render the edit form' do
+      get edit_admin_user_path(target)
+
+      expect(response).to have_http_status(:redirect)
     end
   end
 

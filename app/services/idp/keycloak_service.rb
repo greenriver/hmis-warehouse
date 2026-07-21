@@ -104,8 +104,7 @@ module Idp
       handle_response(response, operation: :reactivate_user, failure: 'Failed to reactivate user') { true }
     end
 
-    # Disable the account in Keycloak. Mirror of #reactivate_user; stops new token
-    # issuance (the local `active` gate denies the current session out-of-band).
+    # Disable the account in Keycloak. Mirror of #reactivate_user
     def deactivate_user(user_id:)
       response = make_request(
         :put,
