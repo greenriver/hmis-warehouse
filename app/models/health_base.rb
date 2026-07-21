@@ -11,16 +11,77 @@ class HealthBase < HealthDbBase
 
   self.abstract_class = true
   connects_to database: { writing: :health, reading: :health }
-  has_paper_trail versions: {class_name: 'Health::HealthVersion'}
+
+  # Version records for every Health model live in the health database via
+  # Health::HealthVersion. HealthBase enables paper_trail for the whole
+  # hierarchy here, so subclasses inherit versioning automatically.
+  #
+  # paper_trail 16+ forbids calling has_paper_trail more than once, and the
+  # inclusion it checks is inherited -- so any subclass that calls
+  # has_paper_trail again (e.g. to add an `ignore:`) would raise. We override
+  # the class method to force the correct version
+  # class and, on a second (subclass) call, merge the new options into the
+  # already-configured options instead of re-running setup (which would stack
+  # callbacks and write duplicate version records).
+  FORCED_VERSIONS = { class_name: 'Health::HealthVersion' }.freeze
+
+  def self.has_paper_trail(options = {}) # rubocop:disable Naming/PredicatePrefix
+    if respond_to?(:paper_trail_options) && paper_trail_options.present?
+      self.paper_trail_options = merge_paper_trail_options(options)
+      return
+    end
+
+    versions = options.fetch(:versions, {}).merge(FORCED_VERSIONS)
+    super(options.merge(versions: versions))
+  end
+
+  # paper_trail options consumed once during setup -- they install callbacks,
+  # associations, and class attributes, so a subclass re-declaring one on the
+  # merge path would be a silent no-op. We raise instead of ignoring them.
+  MERGE_UNSUPPORTED_OPTIONS = [:versions, :class_name, :on, :version].freeze
+
+  # Merge a subclass's paper_trail options into the already-configured options,
+  # normalizing ignore/skip/only to the stringified form paper_trail expects at
+  # event time (see PaperTrail::ModelConfig#event_attribute_option). The subclass
+  # inherits every key it does not set; ignore/skip/only that it does set replace
+  # the parent's value for that key wholesale, :if/:unless are carried through as
+  # given, and meta is merged at the sub-key level (the subclass wins on a shared
+  # key). Does not re-run setup, so no duplicate callbacks/versions, and leaves
+  # version_class_name untouched so every Health model keeps versioning into
+  # Health::HealthVersion.
+  def self.merge_paper_trail_options(options)
+    unsupported = options.keys & MERGE_UNSUPPORTED_OPTIONS
+    if unsupported.any?
+      raise ArgumentError, "has_paper_trail options #{unsupported} cannot be overridden on " \
+        "#{name}; they are consumed when paper_trail is first set up and have no effect on a " \
+        'subclass re-declaration.'
+    end
+
+    merged = paper_trail_options.dup
+    [:ignore, :skip, :only].each do |key|
+      next unless options.key?(key)
+
+      merged[key] = Array(options[key]).flatten.compact.map do |attr|
+        attr.is_a?(Hash) ? attr.stringify_keys : attr.to_s
+      end
+    end
+    [:if, :unless].each do |key|
+      merged[key] = options[key] if options.key?(key)
+    end
+    merged[:meta] = merged[:meta].to_h.merge(options[:meta]) if options[:meta]
+    merged
+  end
+
+  has_paper_trail
 
   class << self
     attr_accessor :phi_dictionary
 
     def phi_dictionary_entry
       self.phi_dictionary ||= {}
-      self.phi_dictionary[self.name] ||= {
+      self.phi_dictionary[name] ||= {
         patient_id: nil,
-        attrbutes: Set.new
+        attrbutes: Set.new,
       }
     end
 
@@ -28,8 +89,8 @@ class HealthBase < HealthDbBase
       raise ArgumentError, "category (#{category}) must be a ::Phi::Category" unless category < ::Phi::Category
       raise ArgumentError, "attr (#{attr})  must method name as a symbol" unless attribute.is_a?(::Symbol)
 
-      self.phi_dictionary_entry[:attrbutes] << ::Phi::Attribute.new(
-        self.name,
+      phi_dictionary_entry[:attrbutes] << ::Phi::Attribute.new(
+        name,
         attribute,
         category,
         description,
@@ -42,8 +103,8 @@ class HealthBase < HealthDbBase
         raise ArgumentError, "Cannot set more then one phi_patient per class: class:#{self} existing: #{existing}, new: #{attribute}"
       end
 
-      self.phi_dictionary_entry[:table_name] = table_name
-      self.phi_dictionary_entry[:patient_id] = attribute
+      phi_dictionary_entry[:table_name] = table_name
+      phi_dictionary_entry[:patient_id] = attribute
     end
   end
 end
