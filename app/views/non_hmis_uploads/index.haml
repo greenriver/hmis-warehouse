@@ -23,7 +23,7 @@
         - @uploads.each do |upload|
           %tr
             %td
-              = link_to File.basename(upload.file.to_s), data_source_non_hmis_upload_path(data_source_id: upload.data_source_id, id: upload.id)
+              = link_to upload.file || 'upload', data_source_non_hmis_upload_path(data_source_id: upload.data_source_id, id: upload.id)
             %td= upload.user&.name
             %td= upload.created_at
             %td

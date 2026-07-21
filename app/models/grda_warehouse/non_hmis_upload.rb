@@ -16,9 +16,13 @@ module GrdaWarehouse
 
     belongs_to :delayed_job, optional: true, class_name: '::Delayed::Job'
 
-    mount_uploader :file, ImportUploader
     validates :data_source, presence: true
     validates :file, presence: true, on: :create
+    validate :file_extension_allowed, on: :create
+
+    def file_extension_allowed
+      errors.add :file, 'must be a zip file' unless ::File.extname(file.to_s).downcase == '.zip'
+    end
 
     def status
       if percent_complete&.zero?

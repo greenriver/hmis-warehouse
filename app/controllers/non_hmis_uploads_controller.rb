@@ -24,7 +24,7 @@ class NonHmisUploadsController < ApplicationController
 
   def show
     @upload = upload_source.find(params[:id].to_i)
-    filename = @upload.file&.file&.filename&.to_s || 'upload'
+    filename = @upload.file || 'upload'
     send_data(@upload.content, type: @upload.content_type, filename: filename)
   end
 
@@ -45,6 +45,7 @@ class NonHmisUploadsController < ApplicationController
         user_id: current_user.id,
         content_type: file.content_type,
         content: file.read,
+        file: file.original_filename,
       ),
     )
     if @upload.save
@@ -65,7 +66,7 @@ class NonHmisUploadsController < ApplicationController
 
   def upload_params
     params.require(:grda_warehouse_non_hmis_upload).
-      permit(:file, :file_cache)
+      permit(:file)
   end
 
   def data_source_source
