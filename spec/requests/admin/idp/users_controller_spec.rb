@@ -71,6 +71,119 @@ RSpec.describe Admin::Idp::UsersController, type: :request, if: AuthMethod.jwt? 
       get admin_users_path
       expect(response.body).not_to include(expire_password_admin_user_path(unlinked))
     end
+
+    it 'offers an "Add a User Account" button linking to the IdP create form' do
+      get admin_users_path
+      expect(response.body).to include(new_admin_user_path)
+    end
+
+    it 'omits the create button when no connector can provision accounts' do
+      allow_any_instance_of(::Idp::KeycloakService).to receive(:supports_user_creation?).and_return(false)
+      get admin_users_path
+      expect(response.body).not_to include(new_admin_user_path)
+    end
+  end
+
+  describe 'GET new' do
+    it 'renders the create form' do
+      get new_admin_user_path
+      expect(response).to have_http_status(:ok)
+    end
+  end
+
+  describe 'POST create' do
+    let(:new_email) { 'newbie@example.com' }
+    let(:users_url) { "#{api_url}/admin/realms/#{realm}/users" }
+    let(:new_kc_id) { 'kc-new-id' }
+    let(:actions_url) { "#{api_url}/admin/realms/#{realm}/users/#{new_kc_id}/execute-actions-email" }
+    let(:params) { { user: { first_name: 'New', last_name: 'Bie', email: new_email, connector_id: connector_id } } }
+
+    context 'when the email is new to Keycloak' do
+      before do
+        stub_request(:get, users_url).with(query: { email: new_email, exact: 'true' }).to_return(status: 200, body: [].to_json)
+        stub_request(:post, users_url).to_return(status: 201, headers: { 'Location' => "#{users_url}/#{new_kc_id}" })
+        stub_request(:put, actions_url).to_return(status: 204)
+      end
+
+      it 'creates the local user, provisions and links Keycloak, and sends the setup email' do
+        expect { post admin_users_path, params: params }.to change(User, :count).by(1)
+
+        user = User.find_by(email: new_email)
+        expect(user.user_authentication_sources.pluck(:connector_id, :connector_user_id)).to include([connector_id, new_kc_id])
+        expect(user.last_connector_id).to eq(connector_id)
+        expect(a_request(:post, users_url)).to have_been_made
+        expect(a_request(:put, actions_url).with(body: ['UPDATE_PASSWORD', 'VERIFY_EMAIL'].to_json)).to have_been_made
+        expect(response).to redirect_to(edit_admin_user_path(user))
+        expect(flash[:notice]).to match(/setup email has been sent/)
+      end
+    end
+
+    context 'when the email already exists in Keycloak' do
+      let(:existing_kc_id) { 'kc-existing-id' }
+      let(:existing_actions_url) { "#{api_url}/admin/realms/#{realm}/users/#{existing_kc_id}/execute-actions-email" }
+
+      before do
+        stub_request(:get, users_url).with(query: { email: new_email, exact: 'true' }).
+          to_return(status: 200, body: [{ id: existing_kc_id, email: new_email }].to_json)
+        stub_request(:put, existing_actions_url).to_return(status: 204)
+      end
+
+      it 'links the existing remote account instead of creating a duplicate' do
+        expect { post admin_users_path, params: params }.to change(User, :count).by(1)
+
+        user = User.find_by(email: new_email)
+        expect(user.user_authentication_sources.pluck(:connector_user_id)).to include(existing_kc_id)
+        expect(a_request(:post, users_url)).not_to have_been_made
+        expect(a_request(:put, existing_actions_url)).to have_been_made
+        expect(response).to redirect_to(edit_admin_user_path(user))
+      end
+    end
+
+    context 'when the setup email fails to send' do
+      before do
+        stub_request(:get, users_url).with(query: { email: new_email, exact: 'true' }).to_return(status: 200, body: [].to_json)
+        stub_request(:post, users_url).to_return(status: 201, headers: { 'Location' => "#{users_url}/#{new_kc_id}" })
+        stub_request(:put, actions_url).to_return(status: 500, body: { errorMessage: 'SMTP down' }.to_json)
+        allow(Sentry).to receive(:capture_exception_with_info)
+      end
+
+      it 'still creates the account, pages Sentry, and warns the email did not send' do
+        post admin_users_path, params: params
+
+        user = User.find_by(email: new_email)
+        expect(user).to be_present
+        expect(Sentry).to have_received(:capture_exception_with_info)
+        expect(flash[:alert]).to be_present
+        expect(flash[:notice]).not_to match(/setup email has been sent/)
+        expect(response).to redirect_to(edit_admin_user_path(user))
+      end
+    end
+
+    context 'when the email already exists locally' do
+      let!(:dup) { create(:acl_user, email: new_email) }
+
+      it 're-renders the form and never provisions Keycloak' do
+        expect { post admin_users_path, params: params }.not_to change(User, :count)
+
+        expect(a_request(:get, users_url)).not_to have_been_made
+        expect(a_request(:post, users_url)).not_to have_been_made
+        expect(response).to have_http_status(:ok)
+      end
+    end
+
+    context 'when the Keycloak create fails' do
+      before do
+        stub_request(:get, users_url).with(query: { email: new_email, exact: 'true' }).to_return(status: 200, body: [].to_json)
+        stub_request(:post, users_url).to_return(status: 409, body: { errorMessage: 'User exists with same username' }.to_json)
+      end
+
+      it 'does not create the local user and re-renders the form' do
+        expect { post admin_users_path, params: params }.not_to change(User, :count)
+
+        expect(response).to have_http_status(:ok)
+        expect(a_request(:put, /execute-actions-email/)).not_to have_been_made
+      end
+    end
   end
 
   describe 'DELETE destroy (deactivate)' do

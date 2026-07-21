@@ -1,4 +1,4 @@
-- content_for :title, t('.title')
+- content_for :title, t('admin.users.index.title')
 %h1= content_for :title
 = render 'menus/admin_tabs'
 = render 'login_chart'
@@ -9,6 +9,11 @@
     .o-page__controls
       .o-page__search
         = render_generic_search_form(admin_user_search_queries_path, prompt: @prompt, initial_value: @query, method: :post)
+    - if idp_user_creation_available?
+      .o-page__action.o-page__action--stacked
+        = link_to new_admin_user_path, class: 'btn btn-primary pull-right mb-2' do
+          %span.icon-plus
+          Add a User Account
 
 = render 'admin/users/tabs', selected_path: admin_users_path
 

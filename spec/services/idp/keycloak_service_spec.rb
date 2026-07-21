@@ -127,6 +127,53 @@ RSpec.describe Idp::KeycloakService, type: :model do
     end
   end
 
+  describe '#find_user_by_email' do
+    let(:email) { 'jane@example.com' }
+    let(:search_url) { "#{api_url}/admin/realms/#{realm}/users" }
+
+    it 'queries by exact email and returns the matching representation' do
+      stub_request(:get, search_url).
+        with(query: { email: email, exact: 'true' }).
+        to_return(status: 200, body: [{ id: 'kc-1', email: email }].to_json)
+
+      result = service.find_user_by_email(email: email)
+
+      expect(result['id']).to eq('kc-1')
+    end
+
+    it 'returns nil when no user matches' do
+      stub_request(:get, search_url).
+        with(query: { email: email, exact: 'true' }).
+        to_return(status: 200, body: [].to_json)
+
+      expect(service.find_user_by_email(email: email)).to be_nil
+    end
+  end
+
+  describe '#send_execute_actions_email' do
+    let(:user_id) { 'kc-user-id' }
+    let(:actions_url) { "#{api_url}/admin/realms/#{realm}/users/#{user_id}/execute-actions-email" }
+
+    it 'PUTs the required actions and returns true on 204' do
+      stub_request(:put, actions_url).to_return(status: 204)
+
+      result = service.send_execute_actions_email(user_id: user_id, actions: ['UPDATE_PASSWORD', 'VERIFY_EMAIL'])
+
+      expect(result).to be true
+      expect(
+        a_request(:put, actions_url).with(body: ['UPDATE_PASSWORD', 'VERIFY_EMAIL'].to_json),
+      ).to have_been_made
+    end
+
+    it 'raises a delivery-focused ServiceError, not a raw status code, when Keycloak fails to send (e.g. bad address or SMTP not configured)' do
+      stub_request(:put, actions_url).to_return(status: 500, body: { errorMessage: 'Failed to send email' }.to_json)
+
+      expect do
+        service.send_execute_actions_email(user_id: user_id, actions: ['UPDATE_PASSWORD'])
+      end.to raise_error(Idp::ServiceError, /couldn't deliver it.*email address is valid/)
+    end
+  end
+
   describe '#update_user' do
     let(:user_id) { 'keycloak-user-id' }
     let(:current_representation) do

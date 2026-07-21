@@ -1,9 +1,9 @@
-- content_for :title, t('.title')
+- content_for :title, t('admin.inactive_users.index.title')
 %h1= content_for :title
 = render partial: 'menus/admin_tabs'
 .o-page
   .o-page__header
-    - @prompt = t('admin.users.index.search_prompt')
+    - @prompt = t('admin.inactive_users.index.search_prompt')
 
     .o-page__controls
       .o-page__search

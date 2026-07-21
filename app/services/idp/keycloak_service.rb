@@ -76,6 +76,35 @@ module Idp
       put_full_user(user_id: user_id, patch: patch, operation: :update_user, failure: 'Failed to update user')
     end
 
+    # @return [Hash, nil] the matching UserRepresentation, or nil if no user has this email.
+    def find_user_by_email(email:)
+      query = URI.encode_www_form(email: email, exact: true)
+      response = make_request(:get, "/admin/realms/#{realm}/users?#{query}")
+
+      handle_response(response, operation: :find_user_by_email, failure: 'Failed to look up user by email') do |resp|
+        Array(JSON.parse(resp.body)).first
+      end
+    end
+
+    # Trigger Keycloak's execute-actions email so the user completes `actions` (e.g.
+    # setting a password, verifying their email) via a link rather than the admin setting
+    # a credential. Requires SMTP configured on the realm; a mail failure surfaces as a
+    # ServiceError with a delivery-focused, user-facing message. Returns true on the 204.
+    def send_execute_actions_email(user_id:, actions:)
+      response = make_request(:put, "/admin/realms/#{realm}/users/#{user_id}/execute-actions-email", body: actions)
+      return true if (200..299).include?(response.code.to_i)
+
+      # This endpoint's only job is to send mail, so any non-2xx means delivery failed. Keycloak
+      # reports an undeliverable address and an unconfigured/failing SMTP setup alike as a 500, so
+      # skip handle_response's raw status code and give the admin something actionable
+      Rails.logger.warn("Keycloak execute-actions-email failed (#{response.code}): #{error_message_from(response)}")
+      raise ServiceError.new(
+        "we couldn't deliver it. Please check that email address is valid",
+        idp_name: idp_name,
+        operation: :send_execute_actions_email,
+      )
+    end
+
     def get_user(user_id:)
       response = make_request(:get, "/admin/realms/#{realm}/users/#{user_id}")
 
@@ -116,6 +145,10 @@ module Idp
     end
 
     def supports_profile_updates?
+      true
+    end
+
+    def supports_user_creation?
       true
     end
 

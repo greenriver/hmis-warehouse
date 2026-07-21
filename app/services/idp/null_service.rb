@@ -30,6 +30,14 @@ module Idp
       raise ServiceError.new('User lookup not supported', idp_name: idp_name, operation: :get_user)
     end
 
+    def find_user_by_email(**)
+      raise ServiceError.new('User lookup not supported', idp_name: idp_name, operation: :find_user_by_email)
+    end
+
+    def send_execute_actions_email(**)
+      raise ServiceError.new('Account setup email not supported', idp_name: idp_name, operation: :send_execute_actions_email)
+    end
+
     def reactivate_user(**)
       raise ServiceError.new('User reactivation not supported', idp_name: idp_name, operation: :reactivate_user)
     end

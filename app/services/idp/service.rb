@@ -36,6 +36,20 @@ module Idp
       raise NotImplementedError, "#{self.class.name} must implement #get_user"
     end
 
+    # Look up a user in the IdP by email. Returns the provider's user representation (a Hash)
+    # or nil when no account matches. Used to link an existing remote account instead of
+    # creating a duplicate.
+    def find_user_by_email(email:)
+      raise NotImplementedError, "#{self.class.name} must implement #find_user_by_email"
+    end
+
+    # Ask the IdP to email the user a link that walks them through the given required actions
+    # (e.g. ['UPDATE_PASSWORD', 'VERIFY_EMAIL']) — used to let an admin-provisioned account set
+    # its own credentials rather than the admin setting a password.
+    def send_execute_actions_email(user_id:, actions:)
+      raise NotImplementedError, "#{self.class.name} must implement #send_execute_actions_email"
+    end
+
     def reactivate_user(user_id:)
       raise NotImplementedError, "#{self.class.name} must implement #reactivate_user"
     end
@@ -54,6 +68,13 @@ module Idp
     end
 
     def supports_user_management?
+      false
+    end
+
+    # Whether an admin can provision brand-new accounts through this IdP (create + email a
+    # credential-setup link). Distinct from #supports_user_management?, which covers editing
+    # existing accounts.
+    def supports_user_creation?
       false
     end
 

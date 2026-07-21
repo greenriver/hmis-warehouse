@@ -796,8 +796,9 @@ Rails.application.routes.draw do
     # Auth-method seam: one boot-time gate selects each arm's controllers. Only one block is
     # ever valid so there is no route-name conflict and the helper names are constant
     if AuthMethod.jwt?
-      # JWT arm: IdP-backed user management. Devise-only routes are omitted
-      resources :users, except: [:show, :new, :create], controller: 'idp/users' do
+      # JWT arm: IdP-backed user management. Devise-only routes are omitted; new/create are
+      # supported here because the IdP (e.g. Keycloak) can provision the remote account.
+      resources :users, except: [:show], controller: 'idp/users' do
         resource :audit, only: :show
         resource :edit_history, only: :show
         patch :reactivate, on: :member
