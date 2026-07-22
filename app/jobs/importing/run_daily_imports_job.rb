@@ -191,6 +191,7 @@ module Importing
         SystemCohortsJob.set(priority: BaseJob::BULK_PROCESSING_PRIORITY_10).perform_later unless Delayed::Job.queued?('SystemCohortsJob')
         AccessGroup.delayed_system_group_maintenance
         Collection.delayed_system_group_maintenance
+        GrdaWarehouse::Tasks::CleanupOrphanedSystemCollections.new.delay.run!
         GrdaWarehouse::Cohort.delay.maintain_auto_maintained!
         SyncSyntheticDataJob.perform_later if CasBase.db_exists?
 

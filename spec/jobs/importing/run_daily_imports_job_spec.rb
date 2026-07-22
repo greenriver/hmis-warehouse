@@ -49,6 +49,7 @@ RSpec.describe Importing::RunDailyImportsJob, type: :job do
     allow(SystemCohortsJob).to receive(:set).and_return(double(perform_later: true))
     allow(AccessGroup).to receive(:delayed_system_group_maintenance)
     allow(Collection).to receive(:delayed_system_group_maintenance)
+    allow(GrdaWarehouse::Tasks::CleanupOrphanedSystemCollections).to receive(:new).and_return(double(delay: double(run!: true)))
     allow(GrdaWarehouse::Cohort).to receive(:delay).and_return(double(maintain_auto_maintained!: true))
     allow(SyncSyntheticDataJob).to receive(:perform_later)
     allow(CasBase).to receive(:db_exists?).and_return(false)
@@ -112,6 +113,16 @@ RSpec.describe Importing::RunDailyImportsJob, type: :job do
           expect(run.started_at).to be_present
           expect(run.completed_at).to be_present
         end
+      end
+
+      it 'runs the orphaned system collections cleanup as a delayed job' do
+        cleanup_task = double('CleanupOrphanedSystemCollections')
+        delayed_proxy = double('delayed_proxy')
+        expect(GrdaWarehouse::Tasks::CleanupOrphanedSystemCollections).to receive(:new).and_return(cleanup_task)
+        expect(cleanup_task).to receive(:delay).and_return(delayed_proxy)
+        expect(delayed_proxy).to receive(:run!)
+
+        job.perform
       end
 
       it 'sends completion notification' do
