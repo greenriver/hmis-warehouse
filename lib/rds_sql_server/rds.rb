@@ -94,6 +94,13 @@ class Rds
     ENV['RDS_IDENTIFIER'].present?
   end
 
+  # When pointed at a local/containerized SQL Server (e.g. the LSA CI integration
+  # test), there is no AWS RDS instance to describe/start/stop, so skip those API
+  # calls. See current_state.
+  def self.local_sql_server?
+    ENV['LSA_LOCAL_SQL_SERVER'].present?
+  end
+
   def self.database
     if @database.present?
       @database
@@ -298,6 +305,10 @@ class Rds
   end
 
   def current_state
+    # No AWS instance to query when using a local/containerized SQL Server; treat
+    # it as ready so start!/wait! and the create "deleting?" loop short-circuit.
+    return 'available' if Rds.local_sql_server?
+
     instance_data.db_instance_status
   end
 
@@ -316,6 +327,10 @@ class Rds
     resp.db_instances.first
   end
 
-  define_method(:_list)       { client&.describe_db_instances&.db_instances }
+  define_method(:_list) do
+    return [] if Rds.local_sql_server?
+
+    client&.describe_db_instances&.db_instances
+  end
   define_method(:_operations) { client&.operation_names }
 end
