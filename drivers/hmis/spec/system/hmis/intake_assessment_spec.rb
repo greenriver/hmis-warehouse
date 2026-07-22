@@ -89,7 +89,7 @@ RSpec.feature 'Intake Assessment for Household', type: :system do
       assert_no_text 'Ignore Warnings'
 
       # Confirm all intakes are submitted
-      [1, 2].each do |row|
+      row_numbers.each do |row|
         within(:xpath, "//table/tbody/tr[#{row}]") do
           assert_text('Submitted')
         end
