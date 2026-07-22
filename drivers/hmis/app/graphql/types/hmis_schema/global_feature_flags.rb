@@ -38,7 +38,7 @@ module Types
     end
 
     def esg_funding_report_enabled
-      HmisExternalApis::AcHmis::Configuration.esg_funding_report_enabled?
+      HmisExternalApis::AcHmis.configuration.esg_funding_report_enabled?
     end
   end
 end

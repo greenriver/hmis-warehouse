@@ -12,7 +12,7 @@ module HmisExternalApis::AcHmis
     # Feature flag for the ESG Funding Report, which intentionally exposes
     # services beyond a user's typical visibility. Off by default.
     def esg_funding_report_enabled?
-      !!value_for(:esg_funding_report_enabled)
+      value_for(:esg_funding_report_enabled) == true
     end
 
     protected
