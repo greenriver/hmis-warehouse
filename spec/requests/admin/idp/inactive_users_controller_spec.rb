@@ -75,6 +75,21 @@ RSpec.describe Admin::Idp::InactiveUsersController, type: :request, if: AuthMeth
       expect(response).to redirect_to(action: :index)
     end
 
+    it 'records a PaperTrail version for the reactivation, so it shows up in Edit History' do
+      PaperTrail.enabled = true
+      begin
+        expect do
+          patch reactivate_admin_inactive_user_path(target)
+        end.to change { target.versions.count }.by(1)
+      ensure
+        PaperTrail.enabled = false
+      end
+
+      version = target.versions.last
+      expect(version.event).to eq('update')
+      expect(version.changeset.symbolize_keys).to include(active: [false, true])
+    end
+
     it 'sends no Devise reset-password email (Keycloak owns credentials)' do
       expect do
         patch reactivate_admin_inactive_user_path(target)
