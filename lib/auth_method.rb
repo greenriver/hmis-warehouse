@@ -10,6 +10,10 @@ module AuthMethod
   module_function
 
   def jwt?
+    # Temporarily force jwt for staging
+    # FIXME: do not merge to the staging branch with this change
+    return ENV.fetch('AUTH_METHOD', 'jwt') == 'jwt' if ENV['RAILS_ENV'] == 'staging'
+
     ENV.fetch('AUTH_METHOD', 'devise') == 'jwt'
   end
 
