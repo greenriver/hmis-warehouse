@@ -7,9 +7,7 @@
       .alert.alert-info
         = "Sign-in provided by #{providers.to_sentence}. Changes made here to personal information may be overwritten on the user's next login."
     - profile_locked = user.profile_managed_by_idp?
-    - profile_synced_to_idp = !profile_locked && user.respond_to?(:primary_idp) && user.primary_idp.present?
     - idp_hint = 'Managed by your identity provider' if profile_locked
-    - idp_hint = 'Changes will be synced to your identity provider' if profile_synced_to_idp
     .form-inputs.well
       .row
         .col-sm-10
