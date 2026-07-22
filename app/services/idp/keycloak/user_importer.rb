@@ -18,6 +18,13 @@ module Idp
     # Delete this class, and KeycloakService#partial_import, once all account
     # data has been migrated.
     class UserImporter
+      # The Keycloak groups the import references, keyed by the access they map to;
+      # ensured to exist before import.
+      GROUPS = {
+        warehouse: 'warehouse-users',
+        hmis: 'hmis-users',
+      }.freeze
+
       # Users to migrate: confirmed and active.
       #
       # confirmed_at also gates out invited-but-not-accepted users: :invitable
@@ -89,6 +96,21 @@ module Idp
         }
       end
 
+      # Idempotently ensure the groups the import references exist, so partialImport
+      # can resolve each user's group paths. Safe to re-run. Raises Idp::ServiceError
+      # if a group can neither be found nor created.
+      # @return [Hash] { created: [String], existing: [String] }
+      def ensure_groups!
+        result = { created: [], existing: [] }
+        GROUPS.each_value do |name|
+          case service.ensure_group(name)
+          when :created then result[:created] << name
+          when :existing then result[:existing] << name
+          end
+        end
+        result
+      end
+
       # Build the partialImport JSON structure without making an API call.
       def export_users_to_import_format(users, policy:, progress: nil)
         import_payload(users, policy: policy, progress: progress)
@@ -129,8 +151,8 @@ module Idp
         return [] if user.system_user?
 
         groups = []
-        groups << '/warehouse-users' if warehouse_user?(user)
-        groups << '/hmis-users' if Hmis::UserGroupMember.exists?(user_id: user.id)
+        groups << "/#{GROUPS[:warehouse]}" if warehouse_user?(user)
+        groups << "/#{GROUPS[:hmis]}" if Hmis::UserGroupMember.exists?(user_id: user.id)
         groups
       end
 
