@@ -8,7 +8,6 @@ RSpec.describe Hmis::Ce::Match::Expression::PsdeValueResolver, type: :model do
   let(:current_date) { Date.new(2024, 12, 26) }
   let(:configuration) { Hmis::Ce::Configuration.new }
   let(:resolver) { described_class.new(current_date: current_date, configuration: configuration) }
-  let(:field) { Hmis::Ce::Match::Expression::PsdeFieldRegistry::TOTAL_MONTHLY_INCOME }
 
   let(:client) { create(:hmis_hud_client_with_warehouse_client, data_source: hmis_data_source) }
   let(:destination_client) { client.destination_client }
@@ -23,17 +22,19 @@ RSpec.describe Hmis::Ce::Match::Expression::PsdeValueResolver, type: :model do
     )
   end
 
-  def create_income_benefit(**attrs)
-    defaults = {
-      enrollment: enrollment,
-      client: client,
-      data_source: hmis_data_source,
-      data_collection_stage: 1,
-    }
-    create(:hmis_income_benefit, :skip_validate, defaults.merge(attrs))
-  end
+  describe 'total_monthly_income resolution' do
+    let(:field) { Hmis::Ce::Match::Expression::PsdeFieldRegistry::TOTAL_MONTHLY_INCOME }
 
-  describe '#call' do
+    def create_income_benefit(**attrs)
+      defaults = {
+        enrollment: enrollment,
+        client: client,
+        data_source: hmis_data_source,
+        data_collection_stage: 1,
+      }
+      create(:hmis_income_benefit, :skip_validate, defaults.merge(attrs))
+    end
+
     it 'returns nil for clients with no income benefits in scope' do
       expect(resolver.call(clients, field)).to eq({ destination_client.id => nil })
     end
@@ -215,6 +216,41 @@ RSpec.describe Hmis::Ce::Match::Expression::PsdeValueResolver, type: :model do
       )
 
       expect(resolver.call(clients, field)).to eq({ destination_client.id => 300.0 })
+    end
+
+    it 'includes income from a non-HMIS source data source linked to the destination client' do
+      create_income_benefit(
+        information_date: current_date - 2.weeks,
+        income_from_any_source: 1,
+        total_monthly_income: '100',
+      )
+
+      non_hmis_data_source = create(:source_data_source)
+      non_hmis_client = create(:hmis_hud_client, data_source: non_hmis_data_source)
+      create(
+        :hmis_warehouse_client,
+        data_source: non_hmis_data_source,
+        source: non_hmis_client,
+        destination: destination_client,
+      )
+      non_hmis_enrollment = create(
+        :hmis_hud_enrollment,
+        data_source: non_hmis_data_source,
+        client: non_hmis_client,
+        EntryDate: current_date - 1.month,
+      )
+      create(
+        :hmis_income_benefit,
+        :skip_validate,
+        enrollment: non_hmis_enrollment,
+        client: non_hmis_client,
+        data_source: non_hmis_data_source,
+        information_date: current_date - 1.week,
+        income_from_any_source: 1,
+        total_monthly_income: '400',
+      )
+
+      expect(resolver.call(clients, field)).to eq({ destination_client.id => 400.0 })
     end
   end
 end
