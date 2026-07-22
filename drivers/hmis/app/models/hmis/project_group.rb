@@ -35,6 +35,7 @@ module Hmis
     include ::Hmis::Concerns::HmisArelHelper
 
     validate :data_source_must_be_hmis
+    before_destroy :prevent_destroy_if_used_for_ce_eligibility
 
     belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
     has_and_belongs_to_many :projects, class_name: 'Hmis::Hud::Project', join_table: :hmis_project_project_groups, foreign_key: :hmis_project_group_id
@@ -135,6 +136,13 @@ module Hmis
       return if data_source&.hmis?
 
       errors.add(:data_source, 'must be an HMIS data source')
+    end
+
+    def prevent_destroy_if_used_for_ce_eligibility
+      return unless used_for_ce_eligibility?
+
+      errors.add(:base, 'Cannot delete project group configured as the CE eligibility project group')
+      throw(:abort)
     end
 
     ##
