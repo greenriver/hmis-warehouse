@@ -310,7 +310,10 @@ RSpec.shared_examples 'an auth-method-aware user' do |factory, model|
       expect(model.include?(DeviseUser)).to be false
       expect(model.include?(Idp::JwtUser)).to be true
       expect(model.respond_to?(:devise_modules)).to be false
-      expect(model.new.respond_to?(:otp_secret)).to be false
+      # current_otp is injected purely by the two_factor_authenticatable macro. otp_secret would be a false
+      # negative here — it is now a real users column (devise-two-factor 6.x), so ActiveRecord defines that
+      # accessor regardless of whether the macro is mixed in.
+      expect(model.new.respond_to?(:current_otp)).to be false
     end
 
     describe 'two_factor_enabled?' do
