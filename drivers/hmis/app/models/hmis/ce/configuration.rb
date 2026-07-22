@@ -6,13 +6,24 @@
 
 # frozen_string_literal: true
 
-# accessor API for CE configuration
+# Accessor API for CE configuration via AppConfigProperty.
 #
-# Eligibility scope keys (lookback months, project group) are deployment-wide global
-# settings stored in AppConfigProperty. Per–data-source HMIS configuration is deferred.
+# CE settings are deployment-wide global keys (not scoped by HMIS data source).
+# Per–data-source HMIS app config properties may be introduced later.
 #
-# TODO: When hmis_ce/eligibility_lookback_months or hmis_ce/eligibility_project_group_id
-# changes, mark CE candidate pools/clients dirty for reprocessing (see README_FOR_CE_PROCESSING.md).
+# Properties are not seeded automatically; they can be set manually per environment
+# through the Admin App Config Properties UI or a direct database insert.
+#
+# Keys (value type — semantics):
+# - hmis_ce/enabled (Boolean) — Feature flag for CE processing.
+# - hmis_ce/eligibility_lookback_months (Integer 0–12) — 0 = open enrollments on
+#   the evaluation date only. N > 0 = enrollments overlapping
+#   [current_date - N months, current_date]. Defaults to 0 when unset.
+# - hmis_ce/eligibility_project_group_id (Integer, Hmis::ProjectGroup id) — Limits
+#   enrollment-field resolution to enrollments at projects in the group (via
+#   Hmis::ProjectGroup#effective_project_ids). Blank/unset = all projects.
+# - hmis_ce/bulk_void_enabled (Boolean) — Feature flag for community-specific
+#   "bulk void" mutation.
 module Hmis::Ce
   class Configuration
     class Misconfiguration < StandardError; end
@@ -25,34 +36,32 @@ module Hmis::Ce
     end
 
     # Months of enrollment history to include when resolving enrollment-scoped CE match fields.
-    # 0 = open enrollments on current_date only.
+    #
+    # NOTE: When this value changes, Candidate Pools must be reprocessed. Currently we
+    # rely on nightly processing to update the Candidate Pools, rather than a trigger on change.
+    #
+    # @return [Integer]
     def eligibility_lookback_months
       raw = value_for(:eligibility_lookback_months)
-      return 0 if raw.nil?
+      return 0 if raw.nil? # Default to 0 if not set, which means only currently open enrollments are considered
 
-      months = Integer(raw)
+      months = parse_integer(raw)
       raise Misconfiguration, "hmis_ce/eligibility_lookback_months must be between 0 and 12, got #{months.inspect}" unless ELIGIBILITY_LOOKBACK_RANGE.cover?(months)
 
       months
-    rescue ArgumentError, TypeError
-      raise Misconfiguration, "hmis_ce/eligibility_lookback_months must be an integer between 0 and 12, got #{raw.inspect}"
     end
 
-    # Project group ID to use for eligibility from enrollment-related CE match fields.
-    # If specified, enrollment-related fields are only resolved for enrollments at projects in the group.
-    def eligibility_project_group_id
-      raw = value_for(:eligibility_project_group_id)
-      return nil if raw.blank?
-
-      Integer(raw)
-    rescue ArgumentError, TypeError
-      raise Misconfiguration, "hmis_ce/eligibility_project_group_id must be an integer, got #{raw.inspect}"
-    end
-
+    # HMIS ProjectGroup to use when resolving enrollment-related CE match fields.
+    #
+    # NOTE: When this value changes, Candidate Pools must be reprocessed. Currently we
+    # rely on nightly processing to update the Candidate Pools, rather than a trigger on change.
+    #
     # @return [Hmis::ProjectGroup, nil]
     def eligibility_project_group
-      id = eligibility_project_group_id
-      return nil if id.blank?
+      raw = value_for(:eligibility_project_group_id)
+      return nil if raw.blank? # Default to nil if not set, which means all projects are considered
+
+      id = parse_integer(raw)
 
       group = Hmis::ProjectGroup.with_deleted.find_by(id: id)
       raise Misconfiguration, "hmis_ce/eligibility_project_group_id #{id} does not exist" if group.nil?
@@ -87,6 +96,12 @@ module Hmis::Ce
 
     def key_for(attr)
       "hmis_ce/#{attr}"
+    end
+
+    def parse_integer(raw)
+      Integer(raw)
+    rescue ArgumentError, TypeError
+      raise Misconfiguration, "expected an integer, got #{raw.inspect}"
     end
   end
 end
