@@ -43,10 +43,10 @@ module Hmis::Ce::Match::Expression
     private
 
     def apply_project_group_filter(scope)
-      project_ids = @configuration.eligibility_project_group&.effective_project_ids
-      return scope if project_ids.blank?
+      project_group = @configuration.eligibility_project_group
+      return scope if project_group.nil?
 
-      scope.with_project(project_ids)
+      scope.with_project(project_group.effective_project_ids)
     end
 
     def apply_lookback_filter(scope)

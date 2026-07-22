@@ -49,6 +49,16 @@ RSpec.describe Hmis::Ce::Match::Expression::PsdeValueResolver, type: :model do
       expect(resolver.call(clients, field)).to eq({ destination_client.id => nil })
     end
 
+    it 'returns nil when IncomeFromAnySource is a non-HUD code (invalid)' do
+      create_income_benefit(
+        information_date: current_date - 1.week,
+        income_from_any_source: 5, # not a valid HUD code
+        total_monthly_income: '500',
+      )
+
+      expect(resolver.call(clients, field)).to eq({ destination_client.id => nil })
+    end
+
     context 'locked income scenarios' do
       it 'resolves 0 when latest valid row is IncomeFromAnySource: No after Yes/$500' do
         create_income_benefit(

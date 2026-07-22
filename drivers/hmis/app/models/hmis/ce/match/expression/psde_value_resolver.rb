@@ -28,8 +28,6 @@ module Hmis::Ce::Match::Expression
 
     private
 
-    IGNORED_RESPONSE_CODES = [8, 9, 99].freeze
-
     # Unlike CAS +max_current_total_monthly_income+, which takes the max across open enrollments,
     # this resolver selects the single latest valid IncomeBenefits row across all scoped enrollments.
     # (Ignoring 8/9/99/nil responses to IncomeFromAnySource.)
@@ -73,12 +71,10 @@ module Hmis::Ce::Match::Expression
       )
     end
 
-    # Accepts HUD 1.7 NoYesReasonsForMissingData response code (0/1/8/9/99/nil)
+    # Used to evaluate HUD 1.7 NoYesReasonsForMissingData response code (0/1/8/9/99/nil)
     # Returns true if the response is meaningful (0/1)
     def meaningful_yes_no_response?(value)
-      return false if value.nil?
-
-      !IGNORED_RESPONSE_CODES.include?(value)
+      value.in?([0, 1])
     end
 
     # Yes (1) with a blank MonthlyTotalIncome is invalid data and is skipped, same as 8/9/99/nil on IncomeFromAnySource.

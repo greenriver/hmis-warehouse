@@ -15,7 +15,7 @@
 #
 # Fields can be:
 # - Simple: 'veteran_status' (routed to client resolver)
-# - Namespaced: 'cde.custom_assessment.field_key' or 'client.dob' (routed to the cde or client resolver)
+# - Namespaced: 'cde.custom_assessment.field_key', 'psde.total_monthly_income', or 'client.dob' (routed to the cde, psde or client resolver)
 #
 # For namespaced fields, the resolver name is stripped off and the remaining
 # portion is passed to the resolver for further processing.
@@ -26,6 +26,7 @@ module Hmis::Ce::Match::Expression
       CDE = 'cde',
       CLIENT = 'client',
       CUSTOM_ASSESSMENT = 'custom_assessment',
+      PSDE = 'psde',
     ].freeze
 
     attr_reader :current_date
@@ -101,6 +102,7 @@ module Hmis::Ce::Match::Expression
         CDE => Hmis::Ce::Match::Expression::CdeFieldMap.new(current_date: @current_date),
         CLIENT => Hmis::Ce::Match::Expression::ClientFieldMap.new(current_date: @current_date),
         CUSTOM_ASSESSMENT => Hmis::Ce::Match::Expression::CustomAssessmentFieldMap.new(current_date: @current_date),
+        PSDE => Hmis::Ce::Match::Expression::PsdeFieldMap.new(current_date: @current_date),
       }
     end
   end
