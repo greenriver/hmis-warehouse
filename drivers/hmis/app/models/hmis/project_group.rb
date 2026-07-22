@@ -19,6 +19,9 @@ module Hmis
   #   can view or administer (via Collections)
   # - Workspaces, where project groups back high-level UI context switchers
   #   without changing access permissions
+  # - CE eligibility scope, where a single project group can
+  #   limit which enrollments contribute to enrollment-scoped CE match fields
+  #   (via hmis_ce/eligibility_project_group_id)
   #
   # Likely future uses include: reporting segmentation, form applicability,
   # and custom form-rule targeting.
@@ -73,6 +76,13 @@ module Hmis
 
     def any_exclusion_criteria?
       JSON.parse(exclusion_criteria || '{}').compact_blank.any?
+    end
+
+    # True when this group is the deployment-wide CE eligibility project group.
+    def used_for_ce_eligibility?
+      Hmis::Ce.configuration.eligibility_project_group_id == id
+    rescue Hmis::Ce::Configuration::Misconfiguration
+      false
     end
 
     def parsed_inclusion_criteria= criteria

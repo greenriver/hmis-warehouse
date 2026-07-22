@@ -51,17 +51,25 @@ module Hmis::Ce
       months
     end
 
-    # HMIS ProjectGroup to use when resolving enrollment-related CE match fields.
+    # Configured Hmis::ProjectGroup id for CE eligibility scoping, or nil when unset.
+    #
+    # @return [Integer, nil]
+    def eligibility_project_group_id
+      raw = value_for(:eligibility_project_group_id)
+      return nil if raw.blank? # Default to nil if not set, which means all projects are considered
+
+      parse_integer(raw)
+    end
+
+    # Hmis::ProjectGroup to use when resolving enrollment-related CE match fields.
     #
     # NOTE: When this value changes, Candidate Pools must be reprocessed. Currently we
     # rely on nightly processing to update the Candidate Pools, rather than a trigger on change.
     #
     # @return [Hmis::ProjectGroup, nil]
     def eligibility_project_group
-      raw = value_for(:eligibility_project_group_id)
-      return nil if raw.blank? # Default to nil if not set, which means all projects are considered
-
-      id = parse_integer(raw)
+      id = eligibility_project_group_id
+      return nil if id.nil?
 
       group = Hmis::ProjectGroup.with_deleted.find_by(id: id)
       raise Misconfiguration, "hmis_ce/eligibility_project_group_id #{id} does not exist" if group.nil?

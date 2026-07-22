@@ -52,6 +52,10 @@
             %br
         - else
           There are no workspaces associated with this project group.
+
+        - if @project_group.used_for_ce_eligibility?
+          %h3.mt-6.mb-4 CE Eligibility
+          This project group is configured as the Coordinated Entry eligibility project group. Enrollment-scoped eligibility fields only consider enrollments at projects in this group.
   .col-sm-6
     .well
       %h3.mb-4= "Included Projects (#{@project_group.warehouse_projects.count})"
