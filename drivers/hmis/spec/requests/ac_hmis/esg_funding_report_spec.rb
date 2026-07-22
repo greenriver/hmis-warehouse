@@ -98,7 +98,13 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   end
 
   before(:each) do
+    allow_any_instance_of(Hmis::Configuration).to receive(:esg_funding_report_enabled?).and_return(true)
     hmis_login(user)
+  end
+
+  it 'denies access when the feature flag is disabled' do
+    allow_any_instance_of(Hmis::Configuration).to receive(:esg_funding_report_enabled?).and_return(false)
+    expect_access_denied(post_graphql({ client_ids: [c1.id.to_s, c2.id.to_s] }) { query })
   end
 
   it 'should resolve funding report correctly' do
