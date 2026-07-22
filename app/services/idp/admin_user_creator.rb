@@ -46,7 +46,7 @@ module Idp
       user.save!
 
       begin
-        connector_user_id = resolve_connector_user_id(service)
+        connector_user_id = find_or_create_connector_user_id(service)
         @user_class.transaction do
           user.user_authentication_sources.create!(connector_id: @connector_id, connector_user_id: connector_user_id)
           user.update!(last_connector_id: @connector_id)
@@ -75,12 +75,12 @@ module Idp
         first_name: @first_name,
         last_name: @last_name,
         active: true,
-        agency_id: 0,
+        agency_id: 0, # agency_id is required, 0 passes validation, but will need to be updated on next user edit.
       )
     end
 
     # Link an existing remote account when the email already exists in the IdP; otherwise create one.
-    def resolve_connector_user_id(service)
+    def find_or_create_connector_user_id(service)
       existing = service.find_user_by_email(email: @email)
       return existing['id'] if existing && existing['id'].present?
 
