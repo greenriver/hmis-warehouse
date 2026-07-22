@@ -1150,7 +1150,8 @@ CREATE TABLE public.idp_service_configs (
     active boolean DEFAULT true NOT NULL,
     deleted_at timestamp(6) without time zone,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    skip_ssl_verification boolean DEFAULT false NOT NULL
 );
 
 
@@ -4250,6 +4251,7 @@ ALTER TABLE ONLY public.oauth_access_tokens
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260720000000'),
 ('20260715120000'),
 ('20260620000000'),
 ('20260614130000'),
