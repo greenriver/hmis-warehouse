@@ -84,6 +84,18 @@ class Admin::Idp::UsersController < ApplicationController
     end
   end
 
+  # IdP arm: 2FA is handled by the identity provider, not seeded locally.
+  private def initialize_two_factor_secret_for_edit
+  end
+
+  # IdP arm: the otp_required_for_login select self-gates; no local 2FA to disable.
+  private def disable_two_factor_if_requested
+  end
+
+  # IdP arm: no local email lifecycle (and no Devise :confirmable) to suppress.
+  private def skip_email_reconfirmation
+  end
+
   private def creation_notice(user, emailed:)
     parts = ["Account created for #{user.email}."]
     parts << 'A setup email has been sent.' if emailed

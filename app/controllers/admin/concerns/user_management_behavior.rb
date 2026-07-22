@@ -205,28 +205,28 @@ module Admin
         end
       end
 
-      # --- Template hooks: default to the IdP-safe no-op; the Devise arm overrides. ---
+      # --- Template hooks: Admin::UsersController (Devise) and Admin::Idp::UsersController (IdP) each
+      # redefine every hook below, even where their arm's behavior is a no-op, so a missing override
+      # raises here instead of silently doing nothing. See those controllers for what each arm does. ---
 
-      # Devise seeds an OTP secret when rendering the edit form; the JWT arm leaves 2FA to the IdP.
       private def initialize_two_factor_secret_for_edit
+        raise NotImplementedError
       end
 
-      # Devise clears 2FA when the admin unsets it in the form; under JWT the select self-gates.
       private def disable_two_factor_if_requested
+        raise NotImplementedError
       end
 
-      # Devise deactivation is purely local; the JWT arm additionally pushes the disable to the IdP.
       private def after_deactivate
+        raise NotImplementedError
       end
 
-      # Devise identity fields have no separate remote store; the JWT arm additionally pushes
-      # first_name/last_name/email changes to the IdP once the local save commits.
       private def after_profile_update
+        raise NotImplementedError
       end
 
-      # Devise :confirmable suppresses the reconfirmation email when an admin edits the record;
-      # the JWT arm has no local email lifecycle (and no Devise), so this is a no-op there.
       private def skip_email_reconfirmation
+        raise NotImplementedError
       end
 
       # Validates the entity_type parameter for load_select_options endpoint.
@@ -470,11 +470,8 @@ module Admin
           except(*externally_managed_param_keys)
       end
 
-      # Identity fields owned by an external system that the arm won't accept for update
-      # (belt-and-suspenders behind the read-only form inputs). Defaults to none (Devise arm);
-      # the JWT arm strips name/email when the IdP owns them.
       private def externally_managed_param_keys
-        []
+        raise NotImplementedError
       end
 
       private def confirmation_params

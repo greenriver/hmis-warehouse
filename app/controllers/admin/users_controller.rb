@@ -43,5 +43,18 @@ module Admin
     private def skip_email_reconfirmation
       @user.skip_reconfirmation!
     end
+
+    # Devise arm: deactivation is purely local, no IdP to notify.
+    private def after_deactivate
+    end
+
+    # Devise arm: identity fields have no separate remote store to push to.
+    private def after_profile_update
+    end
+
+    # Devise arm: no fields are externally managed.
+    private def externally_managed_param_keys
+      []
+    end
   end
 end
