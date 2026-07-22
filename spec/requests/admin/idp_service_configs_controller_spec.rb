@@ -108,7 +108,7 @@ RSpec.describe Admin::IdpServiceConfigsController, type: :request do
 
     describe 'POST test (connectivity check)' do
       let(:token_url) { "#{config.api_url}/realms/#{config.keycloak_realm}/protocol/openid-connect/token" }
-      let(:realm_url) { "#{config.api_url}/admin/realms/#{config.keycloak_realm}" }
+      let(:realm_url) { "#{config.api_url}/admin/realms/#{config.keycloak_realm}/users?max=1" }
 
       before do
         WebMock.disable_net_connect!
