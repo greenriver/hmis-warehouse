@@ -343,10 +343,12 @@ RSpec.describe Admin::Idp::UsersController, type: :request, if: AuthMethod.jwt? 
 
   describe 'PATCH update' do
     let(:current_representation) { { id: target_connector_user_id, username: target.email, firstName: 'Target', lastName: 'User', email: target.email } }
+    let(:target_actions_url) { "#{target_url}/execute-actions-email" }
 
     before do
       stub_request(:get, target_url).to_return(status: 200, body: current_representation.to_json)
       stub_request(:put, target_url).to_return(status: 204)
+      stub_request(:put, target_actions_url).to_return(status: 204)
     end
 
     it 'applies name/email changes locally and syncs them to Keycloak' do
@@ -361,8 +363,9 @@ RSpec.describe Admin::Idp::UsersController, type: :request, if: AuthMethod.jwt? 
       expect(target.notify_on_client_added).to be true
       expect(
         a_request(:put, target_url).
-          with(body: current_representation.merge(firstName: 'Changed', lastName: 'Name', email: 'changed@example.com', emailVerified: false)),
+          with(body: current_representation.merge(firstName: 'Changed', lastName: 'Name', email: 'changed@example.com', username: 'changed@example.com', emailVerified: false)),
       ).to have_been_made
+      expect(a_request(:put, target_actions_url).with(body: ['VERIFY_EMAIL'].to_json)).to have_been_made
     end
 
     it 'syncs a name change for a role-based (legacy) user, whose update writes associations after the save' do

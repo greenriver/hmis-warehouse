@@ -17,11 +17,16 @@ require 'rails_helper'
 # invocation — if it's ever dropped from that list, the JWT-arm half of this guard silently stops
 # running (a Devise-arm run can't catch it: admin_user_locations_path exists either way there).
 RSpec.describe 'Admin::Audits', type: :request do
-  let(:admin_user) { create(:user) }
+  let(:admin_user) { create(:acl_user) }
   let(:target_user) { create(:user, first_name: 'Test', last_name: 'User') }
+  let(:audit_role) { create(:role, can_audit_users: true) }
+  let(:collection) { create(:collection) }
 
+  # can_audit_users? is computed per-instance from the user's roles (User#load_effective_permissions),
+  # so it has to be granted for real: under JWT, current_user is re-fetched from the DB on every
+  # request (Idp::UserProvisioner), which loses a stub set on the `admin_user` object itself.
   before do
-    allow(admin_user).to receive(:can_audit_users?).and_return(true)
+    setup_access_control(admin_user, audit_role, collection)
     sign_in admin_user
   end
 
