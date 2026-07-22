@@ -203,6 +203,23 @@ namespace :keycloak do
     end
   end
 
+  # Backfill Keycloak authentication sources for imported users.
+  desc 'Backfill Keycloak authentication sources for imported users'
+  task :backfill_authentication_sources, [:progress] => :environment do |_t, args|
+    show_progress = ActiveModel::Type::Boolean.new.cast(args[:progress])
+
+    connector_id = 'keycloak'
+    service = Idp::ServiceFactory.for_connector(connector_id)
+    raise 'Error: Keycloak service not configured' unless service.is_a?(Idp::KeycloakService)
+
+    result = Idp::Keycloak::AuthenticationSourceBackfill.call(
+      service: service,
+      connector_id: connector_id,
+      progress: show_progress,
+    )
+    puts result.summary if show_progress && result.total.positive?
+  end
+
   desc 'Test Keycloak connection and get realm info'
   task test_connection: :environment do
     service = Idp::ServiceFactory.for_connector('keycloak')

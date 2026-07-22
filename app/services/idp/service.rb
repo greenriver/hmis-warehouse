@@ -53,6 +53,10 @@ module Idp
       false
     end
 
+    def supports_account_backfill?
+      false
+    end
+
     # @return [Hash] { success: Boolean, message: String }
     def test_connection
       {

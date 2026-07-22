@@ -78,6 +78,30 @@ module Idp
       handle_response(response, operation: :update_user, failure: 'Failed to update user') { true }
     end
 
+    # Yield every user in the realm as { email:, id: }, paging explicitly through
+    # the Admin API. Used by the backfill to build one email => id map instead of
+    # a GET-per-user. Do NOT replace with an unpaginated GET /users: Keycloak
+    # silently caps the response (default 100), so a single call quietly drops
+    # every user past the first page.
+    def each_user(page_size: 100)
+      return enum_for(:each_user, page_size: page_size) unless block_given?
+
+      first = 0
+      loop do
+        response = make_request(:get, "/admin/realms/#{realm}/users?first=#{first}&max=#{page_size}")
+        users = handle_response(response, operation: :each_user, failure: 'Failed to list users') do |resp|
+          JSON.parse(resp.body)
+        end
+
+        users.each { |u| yield({ email: u['email'], id: u['id'] }) }
+
+        # A short (or empty) page is the last one.
+        break if users.size < page_size
+
+        first += page_size
+      end
+    end
+
     def get_user(user_id:)
       response = make_request(:get, "/admin/realms/#{realm}/users/#{user_id}")
 
@@ -113,6 +137,10 @@ module Idp
     end
 
     def supports_profile_updates?
+      true
+    end
+
+    def supports_account_backfill?
       true
     end
 
