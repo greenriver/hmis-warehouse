@@ -23,6 +23,7 @@ module HmisSimulation
   #
   # Idempotent: re-running the same date is a no-op (detected via RunLog).
   # Recoverable: a previously failed date's RunLog is overwritten on retry.
+  # Deadlocks (e.g. CE change-marker contention) retry the rolled-back day a few times.
   #
   # Usage:
   #   config = HmisSimulation::ConfigLoader.from_app_config('hmis_simulation/demo-coc')
@@ -36,6 +37,10 @@ module HmisSimulation
       record_miss_rate = (@config.dig('data_quality', 'record_miss_rate') || 0).to_f
       @schedule = Schedule.new(seed: @seed, record_miss_rate: record_miss_rate)
     end
+
+    # CE dirty-marking during the day-long transaction can deadlock with
+    # ProcessClientsJob on hmis_ce_change_markers; retry the rolled-back day.
+    DEADLOCK_RETRIES = 3
 
     def run(date:)
       HmisSimulation.ensure_not_production!
@@ -78,7 +83,9 @@ module HmisSimulation
       )
       log.save!
 
+      attempts = 0
       begin
+        attempts += 1
         Hmis::Hud::Base.transaction do
           @clients_created     = 0
           @enrollments_opened  = 0
@@ -103,6 +110,17 @@ module HmisSimulation
             finished_at: Time.current,
           )
         end
+      rescue ActiveRecord::Deadlocked => e
+        if attempts < DEADLOCK_RETRIES
+          Rails.logger.warn(
+            "[HmisSimulation] Deadlock on #{date} (attempt #{attempts}/#{DEADLOCK_RETRIES}), retrying: #{e.message}",
+          )
+          sleep(0.25 * attempts)
+          retry
+        end
+
+        log.update!(error_message: e.message, finished_at: Time.current)
+        raise
       rescue StandardError => e
         log.update!(error_message: e.message, finished_at: Time.current)
         raise
