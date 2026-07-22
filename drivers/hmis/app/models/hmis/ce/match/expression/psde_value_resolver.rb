@@ -16,6 +16,7 @@ module Hmis::Ce::Match::Expression
       @configuration = configuration
     end
 
+    # Resolves the value for a PSDE field for a given set of destination clients.
     def call(clients, field)
       case field.key
       when PsdeFieldRegistry::MONTHLY_TOTAL_INCOME.key
@@ -38,6 +39,7 @@ module Hmis::Ce::Match::Expression
       client_ids = extract_client_ids(clients)
       return {} if client_ids.empty?
 
+      # Ensure all destination clients are in the hash. Clients with no valid IncomeBenefits rows will have a nil value.
       result = client_ids.index_with { nil }
 
       rows = Hmis::Hud::IncomeBenefit.
