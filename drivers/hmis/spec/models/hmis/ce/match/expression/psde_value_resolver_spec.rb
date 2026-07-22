@@ -8,7 +8,7 @@ RSpec.describe Hmis::Ce::Match::Expression::PsdeValueResolver, type: :model do
   let(:current_date) { Date.new(2024, 12, 26) }
   let(:configuration) { Hmis::Ce::Configuration.new }
   let(:resolver) { described_class.new(current_date: current_date, configuration: configuration) }
-  let(:field) { Hmis::Ce::Match::Expression::PsdeFieldRegistry::MONTHLY_TOTAL_INCOME }
+  let(:field) { Hmis::Ce::Match::Expression::PsdeFieldRegistry::TOTAL_MONTHLY_INCOME }
 
   let(:client) { create(:hmis_hud_client_with_warehouse_client, data_source: hmis_data_source) }
   let(:destination_client) { client.destination_client }

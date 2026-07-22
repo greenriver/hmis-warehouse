@@ -19,8 +19,8 @@ module Hmis::Ce::Match::Expression
     # Resolves the value for a PSDE field for a given set of destination clients.
     def call(clients, field)
       case field.key
-      when PsdeFieldRegistry::MONTHLY_TOTAL_INCOME.key
-        resolve_monthly_total_income(clients)
+      when PsdeFieldRegistry::TOTAL_MONTHLY_INCOME.key
+        resolve_total_monthly_income(clients)
       else
         raise ArgumentError, "Unknown PSDE field \"#{field.key}\""
       end
@@ -35,7 +35,7 @@ module Hmis::Ce::Match::Expression
     # (Ignoring 8/9/99/nil responses to IncomeFromAnySource.)
     #
     # @return [Hash{Integer => Numeric, nil}]
-    def resolve_monthly_total_income(clients)
+    def resolve_total_monthly_income(clients)
       client_ids = extract_client_ids(clients)
       return {} if client_ids.empty?
 
@@ -53,7 +53,7 @@ module Hmis::Ce::Match::Expression
         )
 
       rows.group_by(&:first).each do |client_id, client_rows|
-        selected = client_rows.find { |row| valid_monthly_total_income_row?(income_from_any_source: row[1], total_monthly_income: row[2]) }
+        selected = client_rows.find { |row| valid_total_monthly_income_row?(income_from_any_source: row[1], total_monthly_income: row[2]) }
         next unless selected
 
         income_from_any_source = selected[1]
@@ -82,7 +82,7 @@ module Hmis::Ce::Match::Expression
     end
 
     # Yes (1) with a blank MonthlyTotalIncome is invalid data and is skipped, same as 8/9/99/nil on IncomeFromAnySource.
-    def valid_monthly_total_income_row?(income_from_any_source:, total_monthly_income:)
+    def valid_total_monthly_income_row?(income_from_any_source:, total_monthly_income:)
       # 8/9/99/nil on IncomeFromAnySource = skip
       return false unless meaningful_yes_no_response?(income_from_any_source)
       # 1(Yes) on IncomeFromAnySource with no MonthlyTotalIncome = skip, invalid

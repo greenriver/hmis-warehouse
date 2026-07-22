@@ -7,7 +7,7 @@
 # frozen_string_literal: true
 
 module Hmis::Ce::Match::Expression
-  # FieldMap implementation for flat psde.* expression keys (e.g. psde.monthly_total_income).
+  # FieldMap implementation for flat psde.* expression keys (e.g. psde.total_monthly_income).
   class PsdeFieldMap
     NAMESPACE = 'psde'
 

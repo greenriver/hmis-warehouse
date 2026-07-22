@@ -7,7 +7,7 @@ RSpec.describe Hmis::Ce::Match::Expression::PsdeFieldMap, type: :model do
   let!(:hmis_data_source) { create(:hmis_data_source) }
   let(:current_date) { Date.new(2024, 12, 26) }
   let(:field_map) { described_class.new(current_date: current_date) }
-  let(:field_key) { 'monthly_total_income' }
+  let(:field_key) { 'total_monthly_income' }
 
   let(:client) { create(:hmis_hud_client_with_warehouse_client, data_source: hmis_data_source) }
   let(:destination_client) { client.destination_client }
@@ -45,14 +45,14 @@ RSpec.describe Hmis::Ce::Match::Expression::PsdeFieldMap, type: :model do
   end
 
   describe '#fields' do
-    it 'includes monthly total income' do
+    it 'includes total monthly income' do
       expect(field_map.fields.map(&:key)).to include(field_key)
     end
   end
 
   describe '#label_for' do
     it 'returns the registry label' do
-      expect(field_map.label_for(field_key)).to eq('Monthly Total Income')
+      expect(field_map.label_for(field_key)).to eq('Total Monthly Income')
     end
   end
 
