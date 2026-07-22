@@ -10,8 +10,6 @@ module Hmis::Ce::Match::Expression
   # Static registry of HUD table fields exposed as flat psde.* CE match expression keys
   # (e.g. psde.monthly_total_income). HUD table/column metadata lives on each PsdeField.
   class PsdeFieldRegistry
-    INVALID_INCOME_FROM_ANY_SOURCE = [8, 9, 99].freeze
-
     MONTHLY_TOTAL_INCOME = PsdeField.new(
       key: 'monthly_total_income',
       table: 'IncomeBenefits',

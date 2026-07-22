@@ -16,9 +16,6 @@ module Hmis::Ce::Match::Expression
       @configuration = configuration
     end
 
-    # @param clients [ActiveRecord::Relation, Array<GrdaWarehouse::Hud::Client>]
-    # @param field [PsdeField]
-    # @return [Hash{Integer => Numeric, nil}]
     def call(clients, field)
       case field.key
       when PsdeFieldRegistry::MONTHLY_TOTAL_INCOME.key
@@ -30,44 +27,41 @@ module Hmis::Ce::Match::Expression
 
     private
 
+    IGNORED_RESPONSE_CODES = [8, 9, 99].freeze
+
     # Unlike CAS +max_current_total_monthly_income+, which takes the max across open enrollments,
     # this resolver selects the single latest valid IncomeBenefits row across all scoped enrollments.
+    # (Ignoring 8/9/99/nil responses to IncomeFromAnySource.)
+    #
+    # @return [Hash{Integer => Numeric, nil}]
     def resolve_monthly_total_income(clients)
       client_ids = extract_client_ids(clients)
       return {} if client_ids.empty?
 
       result = client_ids.index_with { nil }
-      rows = income_benefit_rows(clients)
 
-      rows.group_by(&:first).each do |client_id, client_rows|
-        selected = client_rows.find { |row| valid_income_from_any_source?(row[4]) }
-        next unless selected
-
-        result[client_id] = resolve_monthly_total_income_from_row(selected[4], selected[5])
-      end
-
-      result
-    end
-
-    def income_benefit_rows(clients)
-      ib_t = Hmis::Hud::IncomeBenefit.arel_table
-
-      Hmis::Hud::IncomeBenefit.
+      rows = Hmis::Hud::IncomeBenefit.
         joins(enrollment: { client: :warehouse_client_source }).
         merge(eligibility_scope.call(clients)).
-        order(
-          ib_t[:InformationDate].desc,
-          ib_t[:DateUpdated].desc,
-          ib_t[:id].desc,
-        ).
+        order(information_date: :desc, date_updated: :desc, id: :desc).
         pluck(
           wc_t[:destination_id],
-          ib_t[:InformationDate],
-          ib_t[:DateUpdated],
-          ib_t[:id],
           ib_t[:IncomeFromAnySource],
           ib_t[:TotalMonthlyIncome],
         )
+
+      rows.group_by(&:first).each do |client_id, client_rows|
+        selected = client_rows.find { |row| valid_monthly_total_income_row?(income_from_any_source: row[1], total_monthly_income: row[2]) }
+        next unless selected
+
+        income_from_any_source = selected[1]
+        total_monthly_income = selected[2]
+        total_monthly_income = 0 if income_from_any_source.zero? # "No Income From Any Source" = $0 income
+
+        result[client_id] = total_monthly_income
+      end
+
+      result
     end
 
     def eligibility_scope
@@ -77,25 +71,22 @@ module Hmis::Ce::Match::Expression
       )
     end
 
-    def valid_income_from_any_source?(value)
+    # Accepts HUD 1.7 NoYesReasonsForMissingData response code (0/1/8/9/99/nil)
+    # Returns true if the response is meaningful (0/1)
+    def meaningful_yes_no_response?(value)
       return false if value.nil?
 
-      !PsdeFieldRegistry::INVALID_INCOME_FROM_ANY_SOURCE.include?(value.to_i)
+      !IGNORED_RESPONSE_CODES.include?(value)
     end
 
-    def resolve_monthly_total_income_from_row(income_from_any_source, monthly_total_income)
-      case income_from_any_source.to_i
-      when 0
-        0
-      when 1
-        numeric_monthly_total_income(monthly_total_income)
-      end
-    end
+    # Yes (1) with a blank MonthlyTotalIncome is invalid data and is skipped, same as 8/9/99/nil on IncomeFromAnySource.
+    def valid_monthly_total_income_row?(income_from_any_source:, total_monthly_income:)
+      # 8/9/99/nil on IncomeFromAnySource = skip
+      return false unless meaningful_yes_no_response?(income_from_any_source)
+      # 1(Yes) on IncomeFromAnySource with no MonthlyTotalIncome = skip, invalid
+      return false if income_from_any_source == 1 && total_monthly_income.nil?
 
-    def numeric_monthly_total_income(value)
-      return 0 if value.blank?
-
-      value.to_f
+      true
     end
 
     def extract_client_ids(clients)

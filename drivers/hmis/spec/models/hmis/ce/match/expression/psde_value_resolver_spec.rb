@@ -58,7 +58,7 @@ RSpec.describe Hmis::Ce::Match::Expression::PsdeValueResolver, type: :model do
         )
         create_income_benefit(
           information_date: current_date - 1.week,
-          income_from_any_source: 0,
+          income_from_any_source: 0, # No income
           total_monthly_income: nil,
           date_updated: current_date - 1.week,
         )
@@ -83,6 +83,23 @@ RSpec.describe Hmis::Ce::Match::Expression::PsdeValueResolver, type: :model do
         expect(resolver.call(clients, field)).to eq({ destination_client.id => 500.0 })
       end
 
+      it 'skips refused row and uses prior latest valid No/nil' do
+        create_income_benefit(
+          information_date: current_date - 2.weeks,
+          income_from_any_source: 0, # No income
+          total_monthly_income: nil,
+          date_updated: current_date - 2.weeks,
+        )
+        create_income_benefit(
+          information_date: current_date - 1.week,
+          income_from_any_source: 9,
+          total_monthly_income: nil,
+          date_updated: current_date - 1.week,
+        )
+
+        expect(resolver.call(clients, field)).to eq({ destination_client.id => 0 })
+      end
+
       it 'resolves 0 for Yes/$0 data quality edge case' do
         create_income_benefit(
           information_date: current_date - 1.week,
@@ -91,6 +108,33 @@ RSpec.describe Hmis::Ce::Match::Expression::PsdeValueResolver, type: :model do
         )
 
         expect(resolver.call(clients, field)).to eq({ destination_client.id => 0 })
+      end
+
+      it 'skips Yes with nil MonthlyTotalIncome as invalid and uses prior Yes/$500' do
+        create_income_benefit(
+          information_date: current_date - 2.weeks,
+          income_from_any_source: 1,
+          total_monthly_income: '500',
+          date_updated: current_date - 2.weeks,
+        )
+        create_income_benefit(
+          information_date: current_date - 1.week,
+          income_from_any_source: 1,
+          total_monthly_income: nil,
+          date_updated: current_date - 1.week,
+        )
+
+        expect(resolver.call(clients, field)).to eq({ destination_client.id => 500.0 })
+      end
+
+      it 'returns nil when only Yes with nil MonthlyTotalIncome is present' do
+        create_income_benefit(
+          information_date: current_date - 1.week,
+          income_from_any_source: 1,
+          total_monthly_income: nil,
+        )
+
+        expect(resolver.call(clients, field)).to eq({ destination_client.id => nil })
       end
     end
 
