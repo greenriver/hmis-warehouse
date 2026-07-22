@@ -308,7 +308,7 @@ RSpec.shared_examples 'an auth-method-aware user' do |factory, model|
     # dependency replay. Exercising the validation and the public helper — rather than asserting `include?`
     # alone — proves the replay still lands the callback and the instance methods on the macro-backed model.
     describe 'confirm_password_for_admin_actions?' do
-      it 'follows OmniauthSupport (!external_idp?): local-password users re-confirm, external-IdP users do not' do
+      it 'follows DeviseOktaSupport (!external_idp?): local-password users re-confirm, external-IdP users do not' do
         user = build(factory)
         allow(user).to receive(:external_idp?).and_return(false)
         expect(user.confirm_password_for_admin_actions?).to be true

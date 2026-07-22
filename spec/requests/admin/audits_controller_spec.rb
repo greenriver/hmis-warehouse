@@ -10,7 +10,7 @@ require 'rails_helper'
 
 # Regression guard for the Login Locations tab in admin/audits/_user_tabs: it's gated on
 # @user.login_locations_enabled? (true for Devise, false for JWT — see Idp::Support and
-# OmniauthSupport), so it renders for the Devise arm and is omitted for the JWT arm, where the
+# DeviseOktaSupport), so it renders for the Devise arm and is omitted for the JWT arm, where the
 # admin_user_locations_path route helper isn't defined at all and would raise NoMethodError.
 # Runs under whichever AUTH_METHOD the suite is booted with; see the JWT CI step for the
 # AUTH_METHOD=jwt boot of this same file. That CI step names this file explicitly in its rspec
