@@ -33,8 +33,8 @@ module Idp
         new(...).call
       end
 
-      # @param service [Idp::Service] transport whose #user_scope drives the set to
-      #   link and whose #each_user builds the email => id map.
+      # @param service [Idp::Service] transport whose #each_user builds the
+      #   email => id map to link local users against.
       # @param connector_id [String] the JWT routing key rows are keyed on, so a
       #   backfilled row matches what first-login writes from the token. Held by
       #   the caller (the ServiceConfig), passed in rather than resolved here.
@@ -49,15 +49,15 @@ module Idp
       def call
         ids_by_email = build_email_id_map
 
-        users = service.user_scope
+        users = User.not_system
         total = users.count
         linked = 0
         already = 0
         missing = 0
 
-        # A fresh deployment, or a re-run before any user is confirmed and active.
+        # A fresh deployment with no local users at all.
         if total.zero?
-          log 'No confirmed, active users in scope; nothing to backfill.'
+          log 'No local users in scope; nothing to backfill.'
           return Result.new(total: 0, linked: 0, already: 0, missing: 0)
         end
 
@@ -101,7 +101,7 @@ module Idp
       private
 
       def build_progress_bar
-        total = service.user_scope.count
+        total = User.not_system.count
         ProgressBar.new(total, :counter, :bar, :percentage, :eta) if total.positive?
       end
 

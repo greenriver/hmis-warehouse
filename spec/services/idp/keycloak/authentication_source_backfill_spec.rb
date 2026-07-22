@@ -10,9 +10,10 @@ require 'rails_helper'
 
 # The service both keycloak:backfill_authentication_sources and the nightly
 # Importing::RunDailyImportsJob drive. This spec owns the linking behavior —
-# tallying, idempotency, already-linked, missing, out-of-scope, duplicate, and
-# the first-login race. Service resolution and connector_id sourcing now live in
-# the callers (they pass both in); the rake and job specs cover that wiring.
+# tallying, idempotency, already-linked, missing, inactive/unconfirmed
+# accounts, duplicate, and the first-login race. Service resolution and
+# connector_id sourcing now live in the callers (they pass both in); the rake
+# and job specs cover that wiring.
 RSpec.describe Idp::Keycloak::AuthenticationSourceBackfill do
   # A real KeycloakService with the network boundary stubbed: each_user yields
   # whatever keycloak_users holds.
@@ -84,18 +85,50 @@ RSpec.describe Idp::Keycloak::AuthenticationSourceBackfill do
       end
     end
 
-    context 'a user out of the import scope' do
+    context 'a user who is inactive or unconfirmed locally' do
       let(:keycloak_users) { [{ email: 'inactive@example.com', id: 'kc-1' }] }
-      # Deactivated: excluded by migration_scope (active: true) even though
-      # Keycloak happens to have a matching account. With nothing in scope this
-      # also exercises the total.zero? early return.
-      let!(:user) { create(:user, email: 'inactive@example.com', confirmed_at: Time.current, active: false) }
+      # Linking does not depend on local account status: a deactivated or
+      # unconfirmed user can still hold a real Keycloak account (e.g. from
+      # before deactivation, or created outside the migration tooling), and
+      # first-login provisioning links regardless of local status too, so the
+      # backfill must not silently leave these out of scope.
+      let!(:user) { create(:user, email: 'inactive@example.com', confirmed_at: nil, active: false) }
 
-      it 'is skipped even though Keycloak has the account' do
+      it 'is linked despite being inactive and unconfirmed' do
+        result = backfill.call
+
+        expect(result).to have_attributes(total: 1, linked: 1)
+        expect(user.reload.user_authentication_sources.pluck(:connector_user_id)).to eq(['kc-1'])
+      end
+    end
+
+    context 'a user already linked to a different IdP' do
+      let(:keycloak_users) { [{ email: 'multi@example.com', id: 'kc-1' }] }
+      let!(:user) { create(:user, email: 'multi@example.com', confirmed_at: Time.current, active: true) }
+
+      before do
+        user.user_authentication_sources.create!(connector_id: 'okta-prod', connector_user_id: 'okta-1')
+      end
+
+      it 'links the Keycloak source alongside the existing one, without disturbing it' do
+        result = backfill.call
+
+        expect(result).to have_attributes(total: 1, linked: 1)
+        sources = user.reload.user_authentication_sources
+        expect(sources.count).to eq(2)
+        expect(sources.find_by(connector_id: 'okta-prod')).to have_attributes(connector_user_id: 'okta-1')
+        expect(sources.find_by(connector_id: connector_id)).to have_attributes(connector_user_id: 'kc-1')
+      end
+    end
+
+    context 'the system user' do
+      let(:keycloak_users) { [{ email: 'noreply@greenriver.com', id: 'kc-sys' }] }
+
+      it 'is excluded from scope even if Keycloak has a matching account' do
         result = backfill.call
 
         expect(result.total).to eq(0)
-        expect(user.reload.user_authentication_sources.count).to eq(0)
+        expect(User.system_user.reload.user_authentication_sources.count).to eq(0)
       end
     end
 
@@ -148,7 +181,6 @@ RSpec.describe Idp::Keycloak::AuthenticationSourceBackfill do
     # ProgressBar divides by its total, so a fresh deployment (empty scope) must
     # not get a bar even when progress output is requested, or it divides by zero.
     it 'is not built on an empty scope even when progress is requested' do
-      allow(service).to receive(:user_scope).and_return(User.none)
       expect(ProgressBar).not_to receive(:new)
 
       described_class.new(service: service, connector_id: connector_id, progress: true)

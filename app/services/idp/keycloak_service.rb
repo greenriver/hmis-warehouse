@@ -27,10 +27,6 @@ module Idp
       @token_expires_at = nil
     end
 
-    def user_scope
-      Idp::Keycloak::UserImporter.migration_scope
-    end
-
     def self.from_config(config)
       new(config: {
             api_url: config.api_url,

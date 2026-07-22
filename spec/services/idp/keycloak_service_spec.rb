@@ -364,18 +364,6 @@ RSpec.describe Idp::KeycloakService, type: :model do
     end
   end
 
-  describe '#user_scope' do
-    it 'is the importer migration scope (the set the backfill links)' do
-      allow(Idp::Keycloak::UserImporter).to receive(:migration_scope).and_return(:migration_scope)
-
-      expect(service.user_scope).to eq(:migration_scope)
-    end
-
-    it 'defaults to User.none on a service with no manageable users' do
-      expect(Idp::NullService.new('keycloak').user_scope).to eq(User.none)
-    end
-  end
-
   describe 'config validation' do
     it 'raises on missing api_url' do
       expect do
