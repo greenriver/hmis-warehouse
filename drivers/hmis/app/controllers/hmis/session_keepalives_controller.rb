@@ -10,4 +10,5 @@ class Hmis::SessionKeepalivesController < Hmis::BaseController
   def create
     render json: { success: true }
   end
+  alias_method :show, :create
 end

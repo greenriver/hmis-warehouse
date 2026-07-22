@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright Green River Data Group, Inc.
 #
@@ -10,7 +12,9 @@
 # https://stackoverflow.com/a/13591797
 # https://github.com/heartcombo/devise/wiki/OmniAuth-with-multiple-models
 
-if ENV['OKTA_DOMAIN'].present?
+# In-app Okta OmniAuth is a Devise-path flow; under JWT, Okta is an upstream Connector behind
+# the proxy, so the in-app middleware must not register.
+if ENV['OKTA_DOMAIN'].present? && AuthMethod.devise?
   require 'omni_auth/strategies/custom_okta'
 
   OmniAuth.config.logger = Rails.logger

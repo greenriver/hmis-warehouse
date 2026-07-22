@@ -10,6 +10,10 @@ module PasswordRules
   extend ActiveSupport::Concern
   include ActionView::Helpers::TextHelper
 
+  included do
+    validate :password_cannot_be_sequential, on: :update
+  end
+
   def password_rules
     @password_rules ||= begin
       rules = []

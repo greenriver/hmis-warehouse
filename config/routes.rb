@@ -7,8 +7,11 @@
 # frozen_string_literal: true
 
 Rails.application.routes.draw do
-  use_doorkeeper
-  get 'oauth/user-data', to: 'oauth#user'
+  # Doorkeeper's /oauth routes are Devise-path only; under JWT the IdP owns OAuth.
+  if AuthMethod.devise?
+    use_doorkeeper
+    get 'oauth/user-data', to: 'oauth#user'
+  end
 
   # For details on the DSL available within this file, see http://guides.rubyonrails.org/routing.html
   match '/404', to: 'errors#not_found', via: :all
@@ -20,18 +23,29 @@ Rails.application.routes.draw do
       request.xhr?
     end
   end
-  devise_for :users, controllers: {
-    invitations: 'users/invitations',
-    sessions: 'users/sessions',
-  }
+  # AUTH_METHOD seam: Devise mounts its session/invitation routes; under JWT the same route
+  # names are served by flat routes pointing at the oauth2-proxy-aware sessions controller
+  if AuthMethod.devise?
+    devise_for :users, controllers: {
+      invitations: 'users/invitations',
+      sessions: 'users/sessions',
+    }
 
-  devise_scope :user do
-    match 'session_keepalive' => 'users/sessions#keepalive', via: :post
-    match 'users/invitations/confirm', via: :post
-    match 'logout_talentlms' => 'users/sessions#destroy', via: :get
-    if ENV['OKTA_DOMAIN'].present?
-      get '/users/auth/okta/callback' => 'users/omniauth_callbacks#okta' if ENV['OKTA_CLIENT_ID']
+    devise_scope :user do
+      match 'session_keepalive' => 'users/sessions#keepalive', via: :post
+      match 'users/invitations/confirm', via: :post
+      match 'logout_talentlms' => 'users/sessions#destroy', via: :get
+      if ENV['OKTA_DOMAIN'].present?
+        get '/users/auth/okta/callback' => 'users/omniauth_callbacks#okta' if ENV['OKTA_CLIENT_ID']
+      end
     end
+  else
+    # Same route names Devise, served by Idp::SessionsController
+    get    'users/sign_in',     to: 'idp/sessions#new',       as: :new_user_session
+    post   'users/sign_in',     to: 'idp/sessions#create',    as: :user_session
+    delete 'users/sign_out',    to: 'idp/sessions#destroy',   as: :destroy_user_session
+    match  'session_keepalive', to: 'idp/sessions#keepalive', as: :session_keepalive, via: [:get, :post]
+    get    'logout_talentlms',  to: 'idp/sessions#destroy',   as: :logout_talentlms
   end
 
   namespace :users do
@@ -771,6 +785,11 @@ Rails.application.routes.draw do
       put :unfavorite, on: :member
     end
     resources :clients, only: [:show]
+
+    # Superset (the M2M caller, not oauth2-proxy) presents a bearer JWT directly; the JWT-side
+    # mirror of the Doorkeeper-gated 'oauth/user-data' route declared under AuthMethod.devise? at
+    # the top of this file.
+    get 'superset/user_roles', to: 'superset#user_roles' if AuthMethod.jwt?
   end
 
   namespace :admin do
