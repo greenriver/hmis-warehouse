@@ -24,13 +24,13 @@ Rails.application.configure do
     config.enable_reloading = true
   end
 
-  # Eager loading loads your entire application. When running a single test locally,
-  # this is usually not necessary, and can slow down your test suite. However, it's
-  # recommended that you enable it in continuous integration systems to ensure eager
-  # loading is working properly before deploying your code.
-  # config.eager_load = ENV['CI'].present?
-  # disabling this in an attempt to reduce memory usage in CI
-  config.eager_load = false
+  # Eager loading loads your entire application. Locally and across the parallel CI test
+  # buckets we keep this off (single-test speed + lower memory). A single dedicated CI
+  # job sets EAGER_LOAD=true to boot the whole app the way production does, which catches
+  # load-time errors (bad constants, class-body failures, zeitwerk naming) in code no
+  # test exercises — the kind that would otherwise only surface on deploy. Booting
+  # eagerly needs a database, so only enable it in a job that has one.
+  config.eager_load = ENV.fetch('EAGER_LOAD', 'false') == 'true'
 
   config.action_view.cache_template_loading = true
 

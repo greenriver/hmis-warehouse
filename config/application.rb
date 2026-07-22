@@ -15,6 +15,11 @@ require 'active_record_extended'
 #   * Note, we still use the deprecated behavior for date/time. It's preserved in config/initializers/legacy_rails_conversions.rb
 ENV['RAILS_DISABLE_DEPRECATED_TO_S_CONVERSION'] = 'true'
 
+# paper_trail 15 runs on Rails 8.1 but warns it is officially unsupported (AR >= 7.3).
+# Silence that advisory until the deferred paper_trail 17 upgrade. Must be set before
+# Bundler.require loads paper_trail.
+ENV['PT_SILENCE_AR_COMPAT_WARNING'] ||= 'true'
+
 # Require the gems listed in Gemfile, including any gems
 # you've limited to :test, :development, or :production.
 Bundler.require(*Rails.groups)
@@ -31,7 +36,7 @@ module OpenPath
     require_relative '../lib/rails_drivers'
 
     # Initialize configuration defaults for originally generated Rails version.
-    config.load_defaults 7.1
+    config.load_defaults 8.1
 
     # Continue to use config/secrets.yml. This is deprecated in rails > 7.0 but we don't want to move to
     # encrypted credentials, it's not appropriate for an open-source project
@@ -177,6 +182,12 @@ module OpenPath
     # Maintain Rails 7.0 behavior for specific settings
     config.active_record.before_committed_on_all_records = false # Keep due to uploader test issues
     config.active_record.default_column_serializer = YAML # Keep historic behavior
+
+    # load_defaults 7.2+ flips this to true, making raw SQL date/timestamp columns
+    # decode to Date/Time objects instead of Strings. We have a lot of raw SQL that
+    # assumes Strings, so keep the pre-7.2 behavior (must stay after load_defaults to
+    # win); adopting the new default is tracked separately as future work.
+    config.active_record.postgresql_adapter_decode_dates = false
 
     # Extension points
     config.sub_populations = {}

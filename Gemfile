@@ -1,7 +1,7 @@
 source 'https://rubygems.org'
 
-gem 'rails', '7.2.3.1'
-gem 'rack', '< 3.2' # pinning to the same max version as is required by rails 7.2
+gem 'rails', '8.1.3'
+gem 'rack', '< 3.2' # kept on the rack 3.1.x line; rails 8.x resolves fine under this cap
 
 gem 'openssl', '>=3.3.1' # override the default ruby version of openssl https://github.com/ruby/openssl/issues/949#issuecomment-3370358680
 
@@ -32,7 +32,7 @@ gem 'sanitize' # used to sanitize user-entered theme CSS
 gem 'sshkit'
 gem 'paranoia'
 gem 'pg'
-gem 'activerecord-sqlserver-adapter', '~> 7.2.0' # tied to the rails version
+gem 'activerecord-sqlserver-adapter', '~> 8.1.0' # tied to the rails version
 gem 'activerecord-import'
 gem 'order_as_specified'
 
@@ -50,14 +50,14 @@ gem 'premailer'
 gem 'census_api', github: 'greenriver/census_api'
 
 # spatial manipulations
-gem 'activerecord-postgis-adapter', '~> 10.0'
+gem 'activerecord-postgis-adapter', '~> 11.1' # tied to the rails version (11.1.x -> AR 8.1)
 gem 'ffi'
 gem 'ffi-geos'
 gem 'rgeo'
 gem 'rgeo-geojson'
 gem 'rgeo-proj4'
 
-gem 'active_record_distinct_on'
+gem 'active_record_distinct_on' # No significant changes in 1.10.0 https://github.com/alecdotninja/active_record_distinct_on/tags
 gem 'charlock_holmes', require: false
 gem 'bootsnap'
 gem 'bcrypt'
@@ -90,7 +90,7 @@ gem 'marcel'
 # there are no obvious breaking changes but
 # since there are no tests for this
 # it should be tested manually
-gem 'acts-as-taggable-on', '~>12.0'
+gem 'acts-as-taggable-on', '~> 13.0' # major bump for rails 8.1 (AR < 8.2); tagging behavior to verify manually (Release notes: https://github.com/mbleigh/acts-as-taggable-on/blob/master/CHANGELOG.md indicate no breaking changes)
 # gem 'seven_zip_ruby' unless ENV['NO_7ZIP'] == '1'
 
 gem 'devise', '~> 4.9'
@@ -104,7 +104,7 @@ gem 'doorkeeper'
 gem 'jwt', '~> 3.1' # Validates IdP-issued JWT access tokens
 gem 'omniauth', '~> 2.1'
 gem 'omniauth-oauth2', '~> 1.7.3'
-gem 'omniauth-rails_csrf_protection', '~> 1.0.1'
+gem 'omniauth-rails_csrf_protection', '~> 2.0' # 2.x drops ActiveSupport::Configurable (deprecated in rails 8.1, removed 8.2)
 gem 'faraday', '~> 2.2'
 gem 'oauth2', '>= 2.0.22'
 
@@ -174,7 +174,7 @@ gem 'kiba-common'
 
 # For exporting
 gem 'caxlsx'
-gem 'caxlsx_rails'
+gem 'caxlsx_rails', '>= 0.7.1' # 0.6.x breaks `render xlsx:` template resolution on rails 8
 gem 'roo', require: false
 gem 'roo-xls', require: false
 gem 'rubyXL', require: false

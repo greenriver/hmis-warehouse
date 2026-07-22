@@ -47,12 +47,22 @@ module GrdaWarehouse
           else
             where(simplified_geom: nil)
           end
+          # PostGIS expression with no Hash/ActiveRecord equivalent. Columns are
+          # unqualified but safe: this scope is single-table (no join), so Rails 8.1
+          # does not alias the target table. See docs/active-record-arel-and-queries.md.
+          # rubocop:disable Queries/UnsafeBulkUpdateSql
           scope.update_all(Arel.sql("simplified_geom = ST_MakeValid(ST_Simplify(geom, #{simplification_distance_in_degrees}))"))
+          # rubocop:enable Queries/UnsafeBulkUpdateSql
         end
 
         # This is the id the census returns
         def set_full_geoid!
+          # SQL string concatenation with no Hash equivalent. Columns are unqualified
+          # but safe: this scope is single-table (no join), so Rails 8.1 does not alias
+          # the target table. See docs/active-record-arel-and-queries.md.
+          # rubocop:disable Queries/UnsafeBulkUpdateSql
           where(full_geoid: nil).update_all("full_geoid = '#{Arel.sql(_full_geoid_prefix)}' || 'US' || #{_geoid_column}")
+          # rubocop:enable Queries/UnsafeBulkUpdateSql
         end
 
         def _full_geoid_prefix

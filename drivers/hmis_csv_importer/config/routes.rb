@@ -20,7 +20,7 @@ OpenPath::Application.routes.draw do
     resources :imported, only: [:show]
     resources :importer_restarts, only: [:update]
     resources :data_sources do
-      resources :import_overrides, only: [:index, :new, :create, :destroy, :apply] do
+      resources :import_overrides, only: [:index, :new, :create, :destroy] do
         member do
           patch :apply
         end

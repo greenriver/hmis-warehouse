@@ -43,8 +43,10 @@ RSpec.describe HudReportArchival, type: :model do
     it 'returns false when listed files are not attached' do
       report.update_column(
         :archival_metadata,
-        'archived_at' => Time.current.iso8601,
-        'expected_files' => ['report_cells_csv'],
+        {
+          'archived_at' => Time.current.iso8601,
+          'expected_files' => ['report_cells_csv'],
+        },
       )
       expect(report.archived?).to be false
     end
@@ -52,8 +54,10 @@ RSpec.describe HudReportArchival, type: :model do
     it 'returns true when all expected files are attached' do
       report.update_column(
         :archival_metadata,
-        'archived_at' => Time.current.iso8601,
-        'expected_files' => ['report_cells_csv'],
+        {
+          'archived_at' => Time.current.iso8601,
+          'expected_files' => ['report_cells_csv'],
+        },
       )
       report.report_cells_csv.attach(io: StringIO.new("col\nval"), filename: 'cells.csv', content_type: 'text/csv')
       expect(report.archived?).to be true
@@ -75,8 +79,10 @@ RSpec.describe HudReportArchival, type: :model do
     it 'returns false when already purged' do
       report.update_column(
         :archival_metadata,
-        'purged_at' => Time.current.iso8601,
-        'purge_eligible_at' => 1.day.ago.iso8601,
+        {
+          'purged_at' => Time.current.iso8601,
+          'purge_eligible_at' => 1.day.ago.iso8601,
+        },
       )
       expect(report.purge_eligible?).to be false
     end
@@ -165,10 +171,12 @@ RSpec.describe HudReportArchival, type: :model do
     it 'returns a hash with expected keys when archived' do
       report.update_column(
         :archival_metadata,
-        'archived_at' => Time.current.iso8601,
-        'purge_eligible_at' => 1.day.from_now.iso8601,
-        'expected_files' => ['report_cells_csv'],
-        'expected_file_count' => 1,
+        {
+          'archived_at' => Time.current.iso8601,
+          'purge_eligible_at' => 1.day.from_now.iso8601,
+          'expected_files' => ['report_cells_csv'],
+          'expected_file_count' => 1,
+        },
       )
       status = report.archival_status
       expect(status).to include(
@@ -293,6 +301,38 @@ RSpec.describe HudReportArchival, type: :model do
 
       results = HudReports::ReportInstance.purge_eligible(60, Time.current)
       expect(results).not_to include(failed_report)
+    end
+
+    # Branch 1 of the scope (by_explicit_date). completed_at is INSIDE the grace period,
+    # so the grace-period branch would NOT include it — only the explicit past date does.
+    it 'includes reports whose explicit purge_eligible_at is in the past' do
+      report = HudReports::ReportInstance.create!(
+        report_name: 'Test',
+        user_id: User.system_user.id,
+        state: 'Completed',
+        completed_at: 10.days.ago,
+        question_names: [],
+      )
+      report.update_column(:archival_metadata, { 'purge_eligible_at' => 2.days.ago.iso8601 })
+
+      results = HudReports::ReportInstance.purge_eligible(60, Time.current)
+      expect(results).to include(report)
+    end
+
+    # completed_at is PAST the grace period (would be grace-eligible if the explicit date
+    # were ignored), so exclusion here proves the explicit future date is what holds it out.
+    it 'excludes reports whose explicit purge_eligible_at is in the future' do
+      report = HudReports::ReportInstance.create!(
+        report_name: 'Test',
+        user_id: User.system_user.id,
+        state: 'Completed',
+        completed_at: 61.days.ago,
+        question_names: [],
+      )
+      report.update_column(:archival_metadata, { 'purge_eligible_at' => 2.days.from_now.iso8601 })
+
+      results = HudReports::ReportInstance.purge_eligible(60, Time.current)
+      expect(results).not_to include(report)
     end
   end
 end

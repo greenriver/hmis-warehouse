@@ -1129,29 +1129,6 @@
     {
       "warning_type": "SQL Injection",
       "warning_code": 0,
-      "fingerprint": "6463026c70cc0039bae21ca8e37fbd46172778b151ae4813a5a1e469a700b357",
-      "check_name": "SQL",
-      "message": "Possible SQL injection",
-      "file": "lib/rds_sql_server/rds.rb",
-      "line": 270,
-      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
-      "code": "SqlServerBootstrapModel.connection.execute(\"if not exists(select * from sys.databases where name = '#{database}')\\n  select 0;\\nelse\\n  select 1;\\n\")",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "Rds",
-        "method": "db_exists?"
-      },
-      "user_input": "database",
-      "confidence": "Medium",
-      "cwe_id": [
-        89
-      ],
-      "note": ""
-    },
-    {
-      "warning_type": "SQL Injection",
-      "warning_code": 0,
       "fingerprint": "659af602314ec66a28d68c9eeb34342778d965b8dec5a134cd57f343fd14f0c8",
       "check_name": "SQL",
       "message": "Possible SQL injection",
@@ -1537,6 +1514,29 @@
       "note": "Injection from internal sources"
     },
     {
+      "warning_type": "SQL Injection",
+      "warning_code": 0,
+      "fingerprint": "81f07f422194345a4f17b06a9a97c2d21b9e7252587090d27f1f9f22e7305aee",
+      "check_name": "SQL",
+      "message": "Possible SQL injection",
+      "file": "lib/rds_sql_server/rds.rb",
+      "line": 270,
+      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
+      "code": "SqlServerBootstrapModel.connection.select_value(\"if not exists(select * from sys.databases where name = '#{database}')\\n  select 0;\\nelse\\n  select 1;\\n\")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "Rds",
+        "method": "db_exists?"
+      },
+      "user_input": "database",
+      "confidence": "Medium",
+      "cwe_id": [
+        89
+      ],
+      "note": ""
+    },
+    {
       "warning_type": "Cross-Site Scripting",
       "warning_code": 2,
       "fingerprint": "828e7cacc1cddd03e143f7ac9a7a47c0493371ca16be327d284ec5a12d64b102",
@@ -1759,25 +1759,6 @@
       "confidence": "Weak",
       "cwe_id": [
         79
-      ],
-      "note": ""
-    },
-    {
-      "warning_type": "Unmaintained Dependency",
-      "warning_code": 122,
-      "fingerprint": "98b26f60d776fd41ee6f088c833725145be9aac2d7c5b33780241c273622db42",
-      "check_name": "EOLRails",
-      "message": "Support for Rails 7.2.3.1 ends on 2026-08-09",
-      "file": "Gemfile.lock",
-      "line": 1648,
-      "link": "https://brakemanscanner.org/docs/warning_types/unmaintained_dependency/",
-      "code": null,
-      "render_path": null,
-      "location": null,
-      "user_input": null,
-      "confidence": "Medium",
-      "cwe_id": [
-        1104
       ],
       "note": ""
     },
@@ -2468,7 +2449,7 @@
       "check_name": "MassAssignment",
       "message": "Specify exact keys allowed for mass assignment instead of using `permit!` which allows any keys",
       "file": "app/controllers/application_controller.rb",
-      "line": 103,
+      "line": 93,
       "link": "https://brakemanscanner.org/docs/warning_types/mass_assignment/",
       "code": "params.permit!",
       "render_path": null,

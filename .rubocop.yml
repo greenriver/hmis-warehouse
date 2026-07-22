@@ -6,6 +6,8 @@ inherit_mode:
 
 require:
   - ./lib/rubocop/cop/migrations/disable_ddl_transaction
+  - ./lib/rubocop/cop/queries/unsafe_bulk_update_sql
+  - ./lib/rubocop/cop/queries/date_interpolation_in_sql
 
 AllCops:
   SuggestExtensions: false
@@ -280,3 +282,9 @@ Migrations/DisableDdlTransaction:
   Enabled: true
   Include:
     - "db/**/migrate/*.rb"
+
+Queries/UnsafeBulkUpdateSql:
+  Enabled: true
+
+Queries/DateInterpolationInSql:
+  Enabled: true
