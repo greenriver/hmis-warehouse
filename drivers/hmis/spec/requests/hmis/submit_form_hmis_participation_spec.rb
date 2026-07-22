@@ -10,6 +10,7 @@ require 'rails_helper'
 require_relative 'login_and_permissions'
 require_relative '../../support/hmis_base_setup'
 require_relative '../../support/submit_form_spec_helpers'
+require_relative '../../support/shared_examples/participation_overlap_validation'
 require_relative '../../support/shared_examples/submit_form'
 
 RSpec.describe 'SubmitForm for HmisParticipation', type: :request do
@@ -17,7 +18,17 @@ RSpec.describe 'SubmitForm for HmisParticipation', type: :request do
   include_context 'hmis json forms seed'
 
   let!(:access_control) { create_access_control(hmis_user, ds1) }
-  let!(:hmis_particip1) { create :hmis_hud_hmis_participation, HMISParticipationType: 0, data_source: ds1, project: p1, user: u1 }
+  let!(:hmis_particip1) do
+    create(
+      :hmis_hud_hmis_participation,
+      HMISParticipationType: 0,
+      HMISParticipationStatusStartDate: '2020-01-01',
+      HMISParticipationStatusEndDate: '2020-07-18',
+      data_source: ds1,
+      project: p1,
+      user: u1,
+    )
+  end
 
   before(:each) { hmis_login(user) }
 
@@ -55,6 +66,15 @@ RSpec.describe 'SubmitForm for HmisParticipation', type: :request do
       hmis_particip1.reload
     end.to change(hmis_particip1, :hmis_participation_type).to(1) # HMIS_PARTICIPATING
   end
+
+  it_behaves_like(
+    'submit form validates participation overlaps',
+    factory_name: :hmis_hud_hmis_participation,
+    existing_record_name: :hmis_particip1,
+    start_attribute: :HMISParticipationStatusStartDate,
+    end_attribute: :HMISParticipationStatusEndDate,
+    unrelated_attribute: :HMISParticipationType,
+  )
 
   context 'when user lacks can_edit_project_details permission' do
     before { remove_permissions(access_control, :can_edit_project_details) }
