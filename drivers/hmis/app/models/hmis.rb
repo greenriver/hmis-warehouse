@@ -10,8 +10,4 @@ module Hmis
   def self.table_name_prefix
     'hmis_'
   end
-
-  def self.configuration
-    Hmis::Configuration.new
-  end
 end

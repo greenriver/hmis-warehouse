@@ -409,7 +409,7 @@ module Types
     end
 
     def esg_funding_report(client_ids:)
-      access_denied! unless Hmis.configuration.esg_funding_report_enabled?
+      access_denied! unless HmisExternalApis::AcHmis.configuration.esg_funding_report_enabled?
 
       cst = Hmis::Hud::CustomServiceType.where(name: 'ESG Funding Assistance').first!
       raise HmisErrors::ApiError, 'ESG Funding Assistance service not configured' unless cst.present?

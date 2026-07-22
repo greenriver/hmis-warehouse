@@ -7,7 +7,7 @@
 # frozen_string_literal: true
 
 # accessor API for general HMIS configuration
-module Hmis
+module HmisExternalApis::AcHmis
   class Configuration
     # Feature flag for the ESG Funding Report, which intentionally exposes
     # services beyond a user's typical visibility. Off by default.
@@ -33,7 +33,7 @@ module Hmis
     end
 
     def key_for(attr)
-      "hmis/#{attr}"
+      "hmis_external_apis/#{attr}"
     end
   end
 end

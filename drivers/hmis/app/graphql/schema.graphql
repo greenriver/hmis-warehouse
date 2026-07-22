@@ -6018,6 +6018,11 @@ type GlobalFeatureFlags {
   coordinatedEntryEnabled: Boolean!
 
   """
+  Whether the ESG Funding Report is enabled
+  """
+  esgFundingReportEnabled: Boolean!
+
+  """
   Whether an external referral integration is enabled
   """
   externalReferralsEnabled: Boolean!
