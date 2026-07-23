@@ -56,6 +56,8 @@ RSpec.describe HmisCsvImporter::Benchmarking::Results, type: :model do
       importer_log: importer_log,
       loader_log: loader_log,
       git: { sha: 'deadbeef', branch: 'a-branch', dirty: false },
+      pg_stats: { 'Disabilities' => { 'n_tup_upd' => 5_000 } },
+      other_active_connections: { start: 0, finish: 1 },
     )
   end
 
@@ -116,6 +118,12 @@ RSpec.describe HmisCsvImporter::Benchmarking::Results, type: :model do
       expect(hash[:loader_log_id]).to eq(43)
       expect(hash[:loader_summary]).to eq('Client.csv' => { 'secs' => 1.2 })
       expect(hash[:git]).to eq(sha: 'deadbeef', branch: 'a-branch', dirty: false)
+    end
+
+    it 'passes through database write counters and connection activity' do
+      hash = results.to_h
+      expect(hash[:pg_stats]).to eq('Disabilities' => { 'n_tup_upd' => 5_000 })
+      expect(hash[:other_active_connections]).to eq(start: 0, finish: 1)
     end
 
     it 'records the runtime environment versions' do

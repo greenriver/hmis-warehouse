@@ -30,10 +30,17 @@ module HmisCsvImporter::Benchmarking
       HmisCsvImporter::Benchmarking.ensure_not_production!
       git = HmisCsvImporter::Benchmarking.git_identity!
 
+      pg_stats = PgStats.new
+      connections_at_start = pg_stats.other_active_connections
+      stats_before = pg_stats.snapshot
+
       started_at = Time.current
       importer = with_work_dir { |work_dir| import!(work_dir) }
       finished_at = Time.current
       raise 'Import did not produce an importer log; check the loader log for load failures' if importer.importer_log.blank?
+
+      stats_after = pg_stats.snapshot
+      connections_at_finish = pg_stats.other_active_connections
 
       Results.new(
         label: label,
@@ -44,6 +51,8 @@ module HmisCsvImporter::Benchmarking
         importer_log: importer.importer_log,
         loader_log: importer.loader_log,
         git: git,
+        pg_stats: PgStats.delta(stats_before, stats_after),
+        other_active_connections: { start: connections_at_start, finish: connections_at_finish },
       ).write!(dir: results_dir)
     end
 

@@ -11,7 +11,8 @@ module HmisCsvImporter::Benchmarking
   # run identity (dataset, git state, environment) with the metrics the
   # importer already records (ImporterLog#phase_metrics and #summary).
   class Results
-    attr_reader :label, :dataset, :data_source_id, :started_at, :finished_at, :importer_log, :loader_log, :git
+    attr_reader :label, :dataset, :data_source_id, :started_at, :finished_at, :importer_log, :loader_log, :git,
+                :pg_stats, :other_active_connections
 
     def initialize(
       label:,
@@ -21,7 +22,9 @@ module HmisCsvImporter::Benchmarking
       finished_at:,
       importer_log:,
       loader_log: nil,
-      git: HmisCsvImporter::Benchmarking.git_info
+      git: HmisCsvImporter::Benchmarking.git_info,
+      pg_stats: nil,
+      other_active_connections: nil
     )
       @label = label
       @dataset = dataset
@@ -31,6 +34,8 @@ module HmisCsvImporter::Benchmarking
       @importer_log = importer_log
       @loader_log = loader_log
       @git = git
+      @pg_stats = pg_stats
+      @other_active_connections = other_active_connections
     end
 
     def run_id
@@ -65,6 +70,8 @@ module HmisCsvImporter::Benchmarking
         loader_summary: loader_log&.summary,
         phases: phases,
         per_file: importer_log&.summary,
+        pg_stats: pg_stats,
+        other_active_connections: other_active_connections,
       }
     end
 

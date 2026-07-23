@@ -126,6 +126,18 @@ RSpec.describe HmisCsvImporter::Benchmarking::Runner, type: :model do
       expect(@json['run_id']).to eq(File.basename(@result_path, '.json'))
     end
 
+    it 'records database write counters for warehouse and staging tables' do
+      client_added = @importer_log.summary['Client.csv']['added']
+      expect(client_added).to be > 0
+      expect(@json['pg_stats']['Client']['n_tup_ins']).to be >= client_added
+      expect(@json['pg_stats']['hmis_2026_clients']['n_tup_ins']).to be >= @importer_log.summary['Client.csv']['pre_processed']
+    end
+
+    it 'records concurrent connection activity' do
+      expect(@json['other_active_connections']['start']).to be_a(Integer)
+      expect(@json['other_active_connections']['finish']).to be_a(Integer)
+    end
+
     it 'links the loader and importer logs and mirrors the loader summary' do
       loader_log = HmisCsvImporter::Loader::LoaderLog.order(:id).last
       expect(@json['importer_log_id']).to eq(@importer_log.id)

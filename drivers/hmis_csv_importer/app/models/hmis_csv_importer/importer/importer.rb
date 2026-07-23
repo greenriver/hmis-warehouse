@@ -847,9 +847,11 @@ module HmisCsvImporter::Importer
         preload_custom_file_data(klass)
         with_sql_log(__method__, klass) do
           Rails.logger.info "  Marking unchanged records for #{file_name}..."
-          mark_unchanged(klass, file_name)
+          bmk = Benchmark.measure { mark_unchanged(klass, file_name) }
+          log_phase_stats(file_name, bmk, type: 'unchanged', destination_class: klass.warehouse_class)
           Rails.logger.info "  Marking incoming older records for #{file_name}..."
-          mark_incoming_older(klass, file_name)
+          bmk = Benchmark.measure { mark_incoming_older(klass, file_name) }
+          log_phase_stats(file_name, bmk, type: 'older', destination_class: klass.warehouse_class)
           Rails.logger.info "  Applying updates for #{file_name}..."
           apply_updates(klass, file_name)
           Rails.logger.info "  Completed processing #{file_name}"
