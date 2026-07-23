@@ -12,7 +12,7 @@ module Hmis::Ce::Match::Expression
   #
   # Lookback window and project group come from global +Hmis::Ce.configuration+.
   #
-  # Join path: destination client → hmis source clients → enrollments.
+  # Join path: destination client → source clients → enrollments.
   class EnrollmentEligibilityScope
     include Hmis::Concerns::HmisArelHelper
 
@@ -21,15 +21,15 @@ module Hmis::Ce::Match::Expression
       @configuration = configuration
     end
 
-    # @param clients [ActiveRecord::Relation, Array<GrdaWarehouse::Hud::Client>]
+    # @param destination_client_ids [Array<Integer>] destination client ids
     # @return [ActiveRecord::Relation<Hmis::Hud::Enrollment>]
-    def call(clients)
-      client_ids = extract_client_ids(clients)
-      return Hmis::Hud::Enrollment.none if client_ids.empty?
+    def call(destination_client_ids)
+      destination_client_ids = Array(destination_client_ids)
+      return Hmis::Hud::Enrollment.none if destination_client_ids.empty?
 
       # Scope enrollments to the destination clients
       scope = Hmis::Hud::Enrollment.joins(client: :warehouse_client_source).
-        where(wc_t[:destination_id].in(client_ids))
+        where(wc_t[:destination_id].in(destination_client_ids))
 
       # Filter down enrollments to the project group, if specified
       scope = apply_project_group_filter(scope)
@@ -57,15 +57,6 @@ module Hmis::Ce::Match::Expression
 
       window_start = @current_date - lookback_months.months
       scope.open_during_range(window_start..@current_date)
-    end
-
-    def extract_client_ids(clients)
-      case clients
-      when ActiveRecord::Relation
-        clients.pluck(:id)
-      else
-        Array(clients).map(&:id)
-      end
     end
   end
 end

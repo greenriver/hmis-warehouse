@@ -15,10 +15,21 @@
 #
 # Fields can be:
 # - Simple: 'veteran_status' (routed to client resolver)
-# - Namespaced: 'cde.custom_assessment.field_key', 'psde.total_monthly_income', or 'client.dob' (routed to the cde, psde or client resolver)
+# - Namespaced: 'cde.custom_assessment.field_key', 'psde.total_monthly_income', or 'client.dob'
 #
 # For namespaced fields, the resolver name is stripped off and the remaining
 # portion is passed to the resolver for further processing.
+#
+# == Preferred field-map pattern
+#
+# Newer namespaces (e.g. PSDE) split responsibilities across small collaborators:
+# - *Field — value object describing a field's metadata
+# - *FieldRegistry — static inventory of supported fields
+# - *ValueResolver — batch resolution of field values for destination clients
+# - *FieldMap — FieldMap-compatible adapter used by this dispatcher
+#
+# Existing maps (Client/CDE/CustomAssessment) predate this split; prefer the split
+# pattern for new namespaces, and migrate older maps when convenient.
 #
 module Hmis::Ce::Match::Expression
   class FieldMap

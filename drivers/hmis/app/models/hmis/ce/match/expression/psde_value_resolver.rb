@@ -41,8 +41,8 @@ module Hmis::Ce::Match::Expression
       result = client_ids.index_with { nil }
 
       rows = Hmis::Hud::IncomeBenefit.
-        joins(enrollment: { client: :warehouse_client_source }).
-        merge(eligibility_scope.call(clients)).
+        joins(:enrollment).
+        merge(eligibility_scope.call(client_ids)).
         order(information_date: :desc, date_updated: :desc, id: :desc).
         pluck(
           wc_t[:destination_id],

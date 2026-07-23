@@ -11,7 +11,7 @@ RSpec.describe Hmis::Ce::Match::Expression::EnrollmentEligibilityScope, type: :m
 
   let(:client) { create(:hmis_hud_client_with_warehouse_client, data_source: hmis_data_source) }
   let(:destination_client) { client.destination_client }
-  let(:clients) { GrdaWarehouse::Hud::Client.where(id: destination_client.id) }
+  let(:destination_client_ids) { [destination_client.id] }
 
   let!(:project_in_group) { create(:hmis_hud_project, data_source: hmis_data_source) }
   let!(:project_out_of_group) { create(:hmis_hud_project, data_source: hmis_data_source) }
@@ -22,7 +22,7 @@ RSpec.describe Hmis::Ce::Match::Expression::EnrollmentEligibilityScope, type: :m
   end
 
   describe '#call' do
-    it 'returns no enrollments when no clients are provided' do
+    it 'returns no enrollments when no client ids are provided' do
       expect(scope.call([]).to_a).to eq([])
     end
 
@@ -48,7 +48,7 @@ RSpec.describe Hmis::Ce::Match::Expression::EnrollmentEligibilityScope, type: :m
       end
 
       it 'includes open enrollments and excludes exited enrollments' do
-        expect(scope.call(clients)).to contain_exactly(open_enrollment)
+        expect(scope.call(destination_client_ids)).to contain_exactly(open_enrollment)
       end
     end
 
@@ -88,7 +88,7 @@ RSpec.describe Hmis::Ce::Match::Expression::EnrollmentEligibilityScope, type: :m
       end
 
       it 'includes enrollments overlapping the lookback window' do
-        expect(scope.call(clients)).to contain_exactly(open_enrollment, recently_exited_enrollment)
+        expect(scope.call(destination_client_ids)).to contain_exactly(open_enrollment, recently_exited_enrollment)
       end
     end
 
@@ -120,7 +120,7 @@ RSpec.describe Hmis::Ce::Match::Expression::EnrollmentEligibilityScope, type: :m
       end
 
       it 'limits enrollments to projects in the group' do
-        expect(scope.call(clients)).to contain_exactly(in_group_enrollment)
+        expect(scope.call(destination_client_ids)).to contain_exactly(in_group_enrollment)
       end
     end
 
@@ -141,7 +141,7 @@ RSpec.describe Hmis::Ce::Match::Expression::EnrollmentEligibilityScope, type: :m
       end
 
       it 'returns no enrollments' do
-        expect(scope.call(clients)).to be_empty
+        expect(scope.call(destination_client_ids)).to be_empty
         expect(open_enrollment).to be_present
       end
     end
