@@ -6,16 +6,18 @@
     - if providers.any?
       .alert.alert-info
         = "Sign-in provided by #{providers.to_sentence}. Changes made here to personal information may be overwritten on the user's next login."
+    - profile_locked = user.profile_managed_by_idp?
+    - idp_hint = 'Managed by your identity provider' if profile_locked
     .form-inputs.well
       .row
         .col-sm-10
-          = f.input :first_name, required: true
+          = f.input :first_name, required: !profile_locked, input_html: { disabled: profile_locked }, hint: idp_hint
       .row
         .col-sm-10
-          = f.input :last_name, required: true
+          = f.input :last_name, required: !profile_locked, input_html: { disabled: profile_locked }, hint: idp_hint
       .row
         .col-sm-8
-          = f.input :email, as: :email, required: true
+          = f.input :email, as: :email, required: !profile_locked, input_html: { disabled: profile_locked }, hint: idp_hint
       - if Talentlms::Config.any?
         .row
           .col-sm-8
@@ -67,10 +69,11 @@
             = link_to 'View threshold notification history', admin_user_threshold_notification_logs_path(@user)
     - unless @user.new_record?
       = render 'admin/users/contact_relationships'
-    .form--expiration
-      %h3 Account Life-cycle
-      .well
-        = f.input :expired_at, as: :date_picker, label: 'Account Expiration Date', hint: 'If an expiration date is present, the user will not be able to login after that date.  Active accounts should be blank.'
+    - if @user.account_expiry_enabled?
+      .form--expiration
+        %h3 Account Life-cycle
+        .well
+          = f.input :expired_at, as: :date_picker, label: 'Account Expiration Date', hint: 'If an expiration date is present, the user will not be able to login after that date.  Active accounts should be blank.'
     .form-access-control
       %h3 Permission Scheme
       .well
