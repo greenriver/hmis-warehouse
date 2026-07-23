@@ -106,6 +106,13 @@ module Idp
       nil
     end
 
+    # Deep-link that drops the current user straight into a single self-service action
+    # (e.g. UPDATE_PASSWORD, CONFIGURE_TOTP) and returns them to redirect_uri afterward.
+    # Defaults to nil for IDPs that don't support such deep-links.
+    def account_action_url(action:, redirect_uri:) # rubocop:disable Lint/UnusedMethodArgument
+      nil
+    end
+
     protected
 
     def default_config

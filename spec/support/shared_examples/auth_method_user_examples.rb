@@ -342,6 +342,17 @@ RSpec.shared_examples 'an auth-method-aware user' do |factory, model|
       end
     end
 
+    describe 'password_change_enabled?' do
+      it 'follows DeviseOktaSupport (!external_idp?): local-password users may change it, external-IdP users may not' do
+        user = build(factory)
+        allow(user).to receive(:external_idp?).and_return(false)
+        expect(user.password_change_enabled?).to be true
+
+        allow(user).to receive(:external_idp?).and_return(true)
+        expect(user.password_change_enabled?).to be false
+      end
+    end
+
     describe 'account_expiry_enabled?' do
       it 'is true regardless of external_idp? (Devise enforces expired_at for local and Okta accounts)' do
         user = build(factory)
@@ -487,6 +498,24 @@ RSpec.shared_examples 'an auth-method-aware user' do |factory, model|
         allow(user).to receive(:idp_service).and_return(instance_double(Idp::KeycloakService, supports_profile_updates?: true))
         expect(user.email_change_enabled?).to be true
         expect(user.email_change_enabled?).to eq(!user.profile_managed_by_idp?)
+      end
+    end
+
+    describe 'password_change_enabled?' do
+      it 'is always false (there is no in-app password; credentials are managed in the IdP account console)' do
+        expect(model.new.password_change_enabled?).to be false
+      end
+    end
+
+    describe 'account_console_url' do
+      it 'delegates to the IdP service, and is nil for an unlinked user (NullService has no console)' do
+        expect(model.new.account_console_url).to be_nil
+      end
+
+      it 'returns the linked service console URL when the service exposes one' do
+        user = model.new
+        allow(user).to receive(:idp_service).and_return(instance_double(Idp::KeycloakService, account_console_url: 'http://kc.test/realms/openpath/account'))
+        expect(user.account_console_url).to eq('http://kc.test/realms/openpath/account')
       end
     end
 

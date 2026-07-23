@@ -1,0 +1,8 @@
+.row
+  .col-sm-8
+    = simple_form_for @user, url: account_email_path do |f|
+      = f.error_notification
+      .form-inputs
+        = f.input :email, as: :email, required: true
+      .form-actions
+        = f.button :submit, value: 'Update Email', class: 'btn btn-primary'

@@ -1,0 +1,19 @@
+%ul.nav.nav-tabs{role: "presentation"}
+  %li.nav-item{role: "presentation", class: ('active' if current_page?(edit_account_path))}
+    = link_to 'Accounts Details', edit_account_path, class: 'nav-link'
+  - if @user.email_change_enabled?
+    %li.nav-item{role: "presentation", class: ('active' if current_page?(edit_account_email_path))}
+      = link_to 'Email', edit_account_email_path, class: 'nav-link'
+  %li.nav-item{role: "presentation", class: ('active' if current_page?(account_downloads_path))}
+    = link_to 'Recent Downloads', account_downloads_path, class: 'nav-link'
+  -# Password & 2FA are IdP-owned: deep-link the current user straight into the provider's
+  -# self-service action (one action per link), or say so when it has none.
+  - change_password_url = @user.account_action_url(action: 'UPDATE_PASSWORD', redirect_uri: edit_account_url)
+  - if change_password_url
+    %li.nav-item.ml-auto{role: "presentation"}
+      = link_to "Change password in #{@user.idp_service.idp_name}", change_password_url, class: 'nav-link'
+    %li.nav-item{role: "presentation"}
+      = link_to "Set up two-factor authentication", @user.account_action_url(action: 'CONFIGURE_TOTP', redirect_uri: edit_account_url), class: 'nav-link'
+  - else
+    %li.nav-item.ml-auto{role: "presentation"}
+      %span.nav-link.disabled Password & two-factor authentication are managed by your identity provider

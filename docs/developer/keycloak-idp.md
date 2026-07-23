@@ -131,6 +131,14 @@ out of the box — no `.env.development.local` edits needed. This path only reso
 
 ## Notes
 
+- **Email self-service requires email-as-username.** The realm runs with **Email as username**
+  (`registrationEmailAsUsername: true`), so Keycloak makes `username` track `email` — matching the
+  legacy Devise model where email *is* the login. Account email changes push to the IdP via
+  `Idp::KeycloakService#update_user`, which sends only the email and lets Keycloak update the
+  username itself. Without this flag, `username` is read-only and the update is rejected with
+  `error-user-attribute-read-only` (the user sees "we couldn't update it with your identity
+  provider"). `realm-import.json` sets it for fresh realms — enable it on any existing/production
+  realm (Realm settings → Login → Email as username) before relying on email edits.
 - **Warehouse-only?** `oauth2-proxy-hmis` upstreams to Vite on the host (`host.docker.internal:5173`)
   and only matters on `hmis.dev.test`. Skip it — bring up just
   `keycloak dex oauth2-proxy-warehouse web` and use `hmis-warehouse.dev.test`.

@@ -1006,15 +1006,25 @@ Rails.application.routes.draw do
     end
   end
 
-  resource :account, only: [:edit, :update] do
-    get :locations, on: :member
+  # Auth-method seam: the account self-service surface forks by boot-time arm. Under JWT the IdP
+  # owns credentials (password/2FA) and login history, so those routes are omitted entirely and
+  # the arm's own controllers/views render profile + email. account_downloads forks too — only so
+  # its shared tabs partial resolves to the JWT variant that drops the IdP-owned tabs.
+  if AuthMethod.jwt?
+    resource :account, only: [:edit, :update], controller: 'idp/accounts'
+    resource :account_email, only: [:edit, :update], controller: 'idp/account_emails'
+    resources :account_downloads, only: [:index], controller: 'idp/account_downloads'
+  else
+    resource :account, only: [:edit, :update] do
+      get :locations, on: :member
+    end
+    resource :account_email, only: [:edit, :update]
+    resource :account_password, only: [:edit, :update]
+    resource :account_two_factor, only: [:show, :edit, :update, :destroy] do
+      get :remove_device
+    end
+    resources :account_downloads, only: [:index]
   end
-  resource :account_email, only: [:edit, :update]
-  resource :account_password, only: [:edit, :update]
-  resource :account_two_factor, only: [:show, :edit, :update, :destroy] do
-    get :remove_device
-  end
-  resources :account_downloads, only: [:index]
 
   resources :document_exports, only: [:show, :create] do
     get :download, on: :member
