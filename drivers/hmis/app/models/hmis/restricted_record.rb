@@ -8,6 +8,8 @@
 
 # Marks HMIS records as restricted. An active (non-deleted) row indicates the restrictable is restricted.
 # Initially only Hmis::Hud::Client is supported; additional types will be added later.
+#
+# See docs/features/hmis-restricted-records.md for more details.
 class Hmis::RestrictedRecord < Hmis::HmisBase
   CLIENT_RESTRICTABLE_TYPE = 'Hmis::Hud::Client'
 
