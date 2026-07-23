@@ -10,7 +10,7 @@ require 'rails_helper'
 
 RSpec.describe Hmis::Hud::Concerns::WithStrictAttributes, type: :feature do
   describe 'decimal attributes' do
-    let(:income_benefit) { create(:hmis_income_benefit) }
+    let(:income_benefit) { create(:hmis_income_benefit, income_from_any_source: true, earned: true, earned_amount: 1000) }
 
     [
       ['123.45', 123.45],
