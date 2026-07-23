@@ -18,5 +18,7 @@ module Types
     value 'GTE'
     value 'INCLUDES'
     value 'EXCLUDES'
+    value 'IS_NULL'
+    value 'IS_NOT_NULL'
   end
 end

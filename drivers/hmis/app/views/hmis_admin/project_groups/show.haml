@@ -2,11 +2,16 @@
 = content_for(:title, title)
 = render 'breadcrumbs'
 
-.d-flex.align-items-center.mb-6
+.d-flex.align-items-center.mb-2
   %h1.mr-4= "HMIS Project Group: #{@project_group.name}"
   = link_to edit_hmis_admin_project_group_path(@project_group), class: 'btn btn-sm btn-primary' do
     %i.icon-pencil.mr-2
     Edit
+
+%div.mb-6
+  %em.text-muted
+    Project Group ID:
+    %strong= @project_group.id
 
 .row
   .col-sm-6
@@ -52,6 +57,10 @@
             %br
         - else
           There are no workspaces associated with this project group.
+
+        - if @project_group.used_for_ce_eligibility?
+          %h3.mt-6.mb-4 CE Eligibility
+          This project group is configured as the Coordinated Entry eligibility project group. Enrollment-scoped eligibility fields only consider enrollments at projects in this group.
   .col-sm-6
     .well
       %h3.mb-4= "Included Projects (#{@project_group.warehouse_projects.count})"

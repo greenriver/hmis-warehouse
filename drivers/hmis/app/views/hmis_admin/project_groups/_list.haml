@@ -10,6 +10,8 @@
         %tr
           %td
             = link_to group.name, hmis_admin_project_group_path(group)
+            - if @ce_eligibility_project_group_id == group.id
+              %span.badge.badge-success.text-bg-success.ml-3 CE Eligibility Group
           %td
             .ds{class: "ds-color-#{group.data_source_id}"}= group.data_source.short_name
           %td= group.projects.count
