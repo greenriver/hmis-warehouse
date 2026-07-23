@@ -123,7 +123,6 @@ RSpec.feature 'CE Unit Management', type: :system do
 
     # Call the prioritization engine, then reload
     Hmis::Ce::Match::Engine.call(score_pool)
-    score_pool.update!(candidates_generated_at: Time.current)
     visit current_path
     click_link 'Eligible Clients'
 

@@ -25,18 +25,13 @@ module Types
 
     def scoped_active_pools
       @scoped_active_pools ||= begin
-        scope = Hmis::Ce::Match::CandidatePool.
-          active.
-          joins(unit_groups: :project).
-          merge(Hmis::Hud::Project.where(data_source_id: current_user.hmis_data_source_id))
+        scope = Hmis::Ce::Match::CandidatePool.active.in_data_source(current_user.hmis_data_source_id)
 
+        # Filter to CandidatePools used by the project group, if provided
         project_group_id = object[:project_group_id]
-        if project_group_id.present?
-          project_ids = Hmis::ProjectGroup.project_ids_for(project_group_id)
-          scope = project_ids.any? ? scope.merge(Hmis::Hud::Project.where(id: project_ids)) : scope.none
-        end
+        scope = scope.in_project_group(project_group_id) if project_group_id.present?
 
-        scope.distinct
+        scope
       end
     end
   end

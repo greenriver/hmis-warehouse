@@ -65,6 +65,14 @@ module Hmis
       joins(:project).merge(Hmis::Hud::Project.viewable_by(user).with_access(user, :can_view_units))
     end
 
+    scope :in_data_source, ->(data_source_id) {
+      joins(:project).merge(Hmis::Hud::Project.where(data_source_id: data_source_id))
+    }
+
+    scope :in_project_group, ->(project_group_id) {
+      joins(:project).merge(Hmis::Hud::Project.in_project_group(project_group_id))
+    }
+
     scope :with_ce_waitlists_enabled, -> do
       joins(:project).
         # CE waitlists must be enabled in this unit group's project
