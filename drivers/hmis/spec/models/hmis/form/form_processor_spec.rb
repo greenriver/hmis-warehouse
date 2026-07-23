@@ -1552,6 +1552,8 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
   describe 'Form processing for CeParticipations' do
     let(:definition) { Hmis::Form::Definition.find_by(role: :CE_PARTICIPATION) }
     let!(:existing_record) { create :hmis_hud_ce_participation, data_source: ds1, project: p1, crisis_assessment: 1, receives_referrals: 1 }
+    # Use a separate project for the created record so it does not overlap the existing record's participation range.
+    let!(:p2) { create :hmis_hud_project, data_source: ds1, organization: o1, user: u1 }
     let(:complete_hud_values) do
       {
         'CeParticipation.accessPoint' => 'YES',
@@ -1562,7 +1564,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
     end
 
     it 'creates and updates all fields' do
-      new_record = Hmis::Hud::CeParticipation.new(data_source: ds1, user: u1, project: p1)
+      new_record = Hmis::Hud::CeParticipation.new(data_source: ds1, user: u1, project: p2)
       [existing_record, new_record].each do |record|
         process_record(record: record, hud_values: complete_hud_values, user: hmis_user, definition: definition)
 

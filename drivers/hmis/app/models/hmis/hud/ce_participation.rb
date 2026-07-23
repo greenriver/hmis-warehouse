@@ -18,6 +18,8 @@ class Hmis::Hud::CeParticipation < Hmis::Hud::Base
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
   belongs_to :user, **hmis_relation(:UserID, 'User'), inverse_of: :projects, optional: true
 
+  validates_with Hmis::Hud::Validators::CeParticipationValidator
+
   # CE Participation Status is active on the given date
   scope :active_on_date, ->(date = Date.current) do
     ce_t = arel_table
