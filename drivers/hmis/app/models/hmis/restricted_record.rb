@@ -40,13 +40,12 @@ class Hmis::RestrictedRecord < Hmis::HmisBase
   end
 
   def self.mark!(restrictable, user:)
-    raise ArgumentError, "unsupported restrictable type #{restrictable.class.name}" unless restrictable.is_a?(Hmis::Hud::Client)
+    raise ArgumentError, "unsupported restrictable type #{restrictable.class.name}" unless RESTRICTABLE_TYPES.include?(restrictable.class.name)
 
-    existing = with_deleted.find_by(restrictable: restrictable)
+    existing = with_deleted.find_by(restrictable: restrictable, data_source_id: restrictable.data_source_id)
     if existing
-      # TODO since we are restoring records, shouldn't we have uniqueness index be more strict? it excludes deleted records
       existing.restore if existing.deleted?
-      existing.update!(created_by: user, data_source_id: restrictable.data_source_id)
+      existing.update!(created_by: user)
       return existing
     end
 

@@ -357,6 +357,9 @@ module Types
     def merge_candidates
       raise 'Access denied' unless current_user.can_merge_clients?
 
+      # FIXME: explicitly require data-source-level client visibility for this feature (and restricted client visibility).
+      # The page will crash anyway if it tries to resolve a source Client that is not in the user's Viewable scope.
+
       # Find all destination clients that have more than 1 source client in the HMIS
       destination_ids_with_multiple_sources = GrdaWarehouse::WarehouseClient.
         where(data_source_id: current_user.hmis_data_source_id).
@@ -366,7 +369,6 @@ module Types
         pluck(:destination_id)
 
       # Resolve each destination client as a ClientMergeCandidate
-      # TODO? Hmis::Hud::Client.visible_to(current_user).where(id: destination_ids_with_multiple_sources)
       Hmis::Hud::Client.where(id: destination_ids_with_multiple_sources)
     end
 
