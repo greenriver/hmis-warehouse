@@ -111,6 +111,25 @@ The system provides two distinct operations that handle different deduplication 
 - Enables efficient batch processing of imports
 - Prevents performance degradation as the system scales
 
+### Relationship to `ClientCleanup`
+
+`identify_duplicates` step 1 and `GrdaWarehouse::Tasks::ClientCleanup` handle opposite failure modes over the same source-to-destination relationship:
+
+- **`identify_duplicates` step 1** restores destination clients that are *soft-deleted but still referenced* by an active source client, preventing dangling references and data loss.
+- **`ClientCleanup`** soft-deletes destination clients that have *no remaining source clients*, removing orphans that should no longer exist in the warehouse.
+
+These are not redundant — a destination can only satisfy one condition at a time. The daily import job runs `IdentifyDuplicates` before `ClientCleanup`, so within a single cycle the system first restores any destinations that belong and then removes any that don't.
+
+## HMIS-Specific Behavior
+
+In the operational HMIS, dedup processing is also triggered directly from client saves — not only from bulk imports or the daily job. When a client is created via the HMIS app, `identify_duplicates` is enqueued to link the new client to an existing destination (or create one). When an existing client's PII fields are updated, `match_existing!` is enqueued to re-evaluate whether any destination clients should now be merged.
+
+Both jobs run on the long-running background queue and are guarded against double-enqueuing, so dedup happens close to real-time after an edit rather than waiting for the next daily cycle.
+
+The `Hmis::Hud::Client` model also recomputes its `source_hash` fingerprint on every save. This is the change-detection hash used by the warehouse import process (see `docs/features/hmis-csv-importer.md`) — it is not itself a dedup trigger, but it ensures the warehouse can detect whether the record changed when it is next evaluated during import.
+
+These callbacks only fire on saves through the model layer. Console-level data corrections — via `update_columns`, `update_all`, or raw SQL — bypass them entirely. After correcting a client's PII fields at the console, `match_existing!` must be manually queued. The daily import job handles this automatically for importer-sourced data, but console fixes are not covered by that path.
+
 ## Matching Criteria
 
 The system requires **2 of 3** exact matches across these normalized fields:
