@@ -120,7 +120,7 @@ module Types
     private
 
     def candidate_pool
-      @candidate_pool ||= load_ar_association(object, :candidate_pool)
+      load_ar_association(object, :candidate_pool)
     end
   end
 end
