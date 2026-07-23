@@ -159,6 +159,9 @@ module DeviseUser
     end
 
     def stale_account?
+      # A never-signed-in account has never logged in, so it counts as stale.
+      return true if current_sign_in_at.nil?
+
       current_sign_in_at < self.class.stale_account_threshold
     end
 

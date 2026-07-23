@@ -198,14 +198,54 @@ RSpec.shared_examples 'an auth-method-aware user' do |factory, model|
         expect(build(factory).skip_session_limitable?).to be false
       end
 
+      it 'stale_account? is true for an account that has never signed in (nil current_sign_in_at)' do
+        # current_sign_in_at is a nullable :trackable column; a bare `<' comparison against it would raise
+        # for a never-signed-in account. Never having logged in counts as stale, so a regression that drops
+        # the nil guard (or flips it to false) turns this red.
+        expect(create(factory, current_sign_in_at: nil).stale_account?).to be true
+      end
+
+      it 'stale_account? compares current_sign_in_at against the 30-day stale_account_threshold' do
+        expect(create(factory, current_sign_in_at: 1.day.ago).stale_account?).to be false
+        expect(create(factory, current_sign_in_at: 31.days.ago).stale_account?).to be true
+      end
+
       it 'overall_status reports Active via active_for_authentication? (super into Devise)' do
         expect(create(factory, active: true).overall_status(nil)).to eq(['Active'])
       end
 
-      it 'overall_status surfaces the deactivated state via the private deactivation_status' do
+      it 'overall_status surfaces a bare deactivated status when no deactivate event was recorded' do
         user = create(factory, active: false)
 
         expect(user.overall_status(user)).to include('Account deactivated')
+      end
+
+      it 'overall_status names the deactivating admin only when the viewer can_audit_users?' do
+        # deactivation_status gates whodunnit disclosure on the viewer's can_audit_users? permission.
+        # Stubbing that predicate (rather than wiring up a real role/ACL, which differs between the
+        # warehouse and HMIS access-control systems) isolates the disclosure gate itself; the PaperTrail
+        # version/whodunnit lookup runs for real, so a dropped or inverted gate still turns this red.
+        actor = create(:user)
+        target = create(factory, active: true)
+
+        PaperTrailHelper.with_paper_trail do
+          # enabled: true guards against leaky behavior from other tests
+          PaperTrail.request(whodunnit: actor.id.to_s, enabled: true) do
+            target.paper_trail_event = 'deactivate'
+            # matches Admin::Concerns::UserManagementBehavior#destroy: paper_trail.update_column, not the
+            # bare AR update_column, which bypasses PaperTrail's callbacks and would never record a version
+            target.paper_trail.update_column(:active, false)
+          end
+        end
+        created_at = target.versions.where(event: 'deactivate').last.created_at
+
+        auditor = build(factory)
+        allow(auditor).to receive(:can_audit_users?).and_return(true)
+        expect(target.overall_status(auditor)).to include("Account deactivated by #{actor.name} on #{created_at}")
+
+        non_auditor = build(factory)
+        allow(non_auditor).to receive(:can_audit_users?).and_return(false)
+        expect(target.overall_status(non_auditor)).to include("Account deactivated on #{created_at}")
       end
 
       it 'active / inactive scopes partition on the `active` flag' do
@@ -267,6 +307,63 @@ RSpec.shared_examples 'an auth-method-aware user' do |factory, model|
     # concern rather than an `included do`, its macro only reaches the model via ActiveSupport::Concern's
     # dependency replay. Exercising the validation and the public helper — rather than asserting `include?`
     # alone — proves the replay still lands the callback and the instance methods on the macro-backed model.
+    describe 'confirm_password_for_admin_actions?' do
+      it 'follows DeviseOktaSupport (!external_idp?): local-password users re-confirm, external-IdP users do not' do
+        user = build(factory)
+        allow(user).to receive(:external_idp?).and_return(false)
+        expect(user.confirm_password_for_admin_actions?).to be true
+
+        allow(user).to receive(:external_idp?).and_return(true)
+        expect(user.confirm_password_for_admin_actions?).to be false
+      end
+    end
+
+    describe 'profile_managed_by_idp?' do
+      it 'follows external_idp?: Okta-linked users are IdP-managed (read-only), local accounts are not' do
+        user = build(factory)
+        allow(user).to receive(:external_idp?).and_return(false)
+        expect(user.profile_managed_by_idp?).to be false
+
+        allow(user).to receive(:external_idp?).and_return(true)
+        expect(user.profile_managed_by_idp?).to be true
+      end
+    end
+
+    describe 'email_change_enabled?' do
+      it 'is the inverse of profile_managed_by_idp?: local accounts may change email, IdP-managed ones may not' do
+        user = build(factory)
+        allow(user).to receive(:external_idp?).and_return(false)
+        expect(user.email_change_enabled?).to be true
+        expect(user.email_change_enabled?).to eq(!user.profile_managed_by_idp?)
+
+        allow(user).to receive(:external_idp?).and_return(true)
+        expect(user.email_change_enabled?).to be false
+        expect(user.email_change_enabled?).to eq(!user.profile_managed_by_idp?)
+      end
+    end
+
+    describe 'account_expiry_enabled?' do
+      it 'is true regardless of external_idp? (Devise enforces expired_at for local and Okta accounts)' do
+        user = build(factory)
+        allow(user).to receive(:external_idp?).and_return(false)
+        expect(user.account_expiry_enabled?).to be true
+
+        allow(user).to receive(:external_idp?).and_return(true)
+        expect(user.account_expiry_enabled?).to be true
+      end
+    end
+
+    describe 'login_locations_enabled?' do
+      it 'is true regardless of external_idp? (Devise :trackable records logins for local and Okta accounts)' do
+        user = build(factory)
+        allow(user).to receive(:external_idp?).and_return(false)
+        expect(user.login_locations_enabled?).to be true
+
+        allow(user).to receive(:external_idp?).and_return(true)
+        expect(user.login_locations_enabled?).to be true
+      end
+    end
+
     describe 'PasswordRules applies under Devise' do
       it 'mixes PasswordRules into the host' do
         expect(model.include?(PasswordRules)).to be true
@@ -310,15 +407,15 @@ RSpec.shared_examples 'an auth-method-aware user' do |factory, model|
       expect(model.include?(DeviseUser)).to be false
       expect(model.include?(Idp::JwtUser)).to be true
       expect(model.respond_to?(:devise_modules)).to be false
-      # current_otp is injected purely by the two_factor_authenticatable macro. otp_secret would be a false
-      # negative here — it is now a real users column (devise-two-factor 6.x), so ActiveRecord defines that
-      # accessor regardless of whether the macro is mixed in.
-      expect(model.new.respond_to?(:current_otp)).to be false
+      # `otp_secret` is a plain DB column since the devise-two-factor upgrade (migration
+      # 20260715120000_add_otp_secret_to_users), so ActiveRecord defines the accessor on
+      # every user regardless of arm — it no longer discriminates. Assert instead on a
+      # method the :two_factor_authenticatable macro injects (absent under JWT).
+      expect(model.new.respond_to?(:validate_and_consume_otp!)).to be false
     end
 
     describe 'two_factor_enabled?' do
       it 'returns false without raising (the macro accessors are absent)' do
-        expect { model.new.two_factor_enabled? }.not_to raise_error
         expect(model.new.two_factor_enabled?).to be false
       end
     end
@@ -341,7 +438,6 @@ RSpec.shared_examples 'an auth-method-aware user' do |factory, model|
         # invitation_status short-circuits to nil rather than reading the :invitable members the gated-off
         # macro would manage (the invitation_sent_at column and the computed invitation_due_at method).
         user = model.new(invitation_sent_at: 1.hour.ago)
-        expect { user.invitation_status }.not_to raise_error
         expect(user.invitation_status).to be_nil
       end
 
@@ -360,6 +456,52 @@ RSpec.shared_examples 'an auth-method-aware user' do |factory, model|
       end
     end
 
+    describe 'confirm_password_for_admin_actions?' do
+      it 'is always false (credentials are IdP-managed; the admin surface never renders the field)' do
+        # Idp::Support defines the predicate as a flat false so any both-mode-reachable caller
+        # resolves it, and the JWT admin surface never prompts for a local password.
+        expect(model.new.confirm_password_for_admin_actions?).to be false
+      end
+    end
+
+    describe 'profile_managed_by_idp?' do
+      it 'follows idp_service.supports_profile_updates?: locked when unlinked (NullService can\'t accept writes)' do
+        user = model.new
+        expect(user.idp_service.supports_profile_updates?).to be false
+        expect(user.profile_managed_by_idp?).to be true
+      end
+
+      it 'is false when the linked IdP service can accept profile writes (e.g. Keycloak)' do
+        user = model.new
+        allow(user).to receive(:idp_service).and_return(instance_double(Idp::KeycloakService, supports_profile_updates?: true))
+        expect(user.profile_managed_by_idp?).to be false
+      end
+    end
+
+    describe 'email_change_enabled?' do
+      it 'is the inverse of profile_managed_by_idp?' do
+        user = model.new
+        expect(user.email_change_enabled?).to be false
+        expect(user.email_change_enabled?).to eq(!user.profile_managed_by_idp?)
+
+        allow(user).to receive(:idp_service).and_return(instance_double(Idp::KeycloakService, supports_profile_updates?: true))
+        expect(user.email_change_enabled?).to be true
+        expect(user.email_change_enabled?).to eq(!user.profile_managed_by_idp?)
+      end
+    end
+
+    describe 'account_expiry_enabled?' do
+      it 'is false (the IdP does not honor local expired_at; the admin form hides the field)' do
+        expect(model.new.account_expiry_enabled?).to be false
+      end
+    end
+
+    describe 'login_locations_enabled?' do
+      it 'is false (the JWT arm never runs Devise/Warden, so login_activities is never populated)' do
+        expect(model.new.login_locations_enabled?).to be false
+      end
+    end
+
     describe 'PasswordRules' do
       it 'is not mixed in (password management is IdP-owned under JWT)' do
         # PasswordRules now lives only in the Devise branch of UserConcern, so neither the concern nor its
@@ -374,8 +516,7 @@ RSpec.shared_examples 'an auth-method-aware user' do |factory, model|
       it 'creates the system user without the macro-only invite! helper' do
         model.with_deleted.where(email: 'noreply@greenriver.com').delete_all
 
-        user = nil
-        expect { user = model.setup_system_user }.not_to raise_error
+        user = model.setup_system_user
         expect(user).to be_persisted
         expect(user.email).to eq('noreply@greenriver.com')
         # idempotent: a second call returns the same record rather than re-inviting
