@@ -2,11 +2,16 @@
 = content_for(:title, title)
 = render 'breadcrumbs'
 
-.d-flex.align-items-center.mb-6
+.d-flex.align-items-center.mb-2
   %h1.mr-4= "HMIS Project Group: #{@project_group.name}"
   = link_to edit_hmis_admin_project_group_path(@project_group), class: 'btn btn-sm btn-primary' do
     %i.icon-pencil.mr-2
     Edit
+
+%div.mb-6
+  %em.text-muted
+    Project Group ID:
+    %strong= @project_group.id
 
 .row
   .col-sm-6
