@@ -15,7 +15,7 @@ module UserConcern
     include Idp::Support
   else
     include DeviseUser
-    include OmniauthSupport
+    include DeviseOktaSupport
     include PasswordRules
     include DeviseUserPatch
   end

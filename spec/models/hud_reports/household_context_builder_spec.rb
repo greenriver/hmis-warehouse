@@ -470,9 +470,10 @@ RSpec.describe HudReports::HouseholdContextBuilder, type: :model do
         expect(target_report.reload.household_contexts.count).to be > 0
         expect(target_report.household_contexts.pluck(:report_instance_id).uniq).to eq([target_report.id])
 
-        # Verify context data matches source
-        source_ctx = source_report.reload.household_contexts.first
-        target_ctx = target_report.household_contexts.find_by(service_history_enrollment_id: source_ctx.service_history_enrollment_id)
+        # Verify context data matches source, for the one enrollment guaranteed to be in both
+        # reports (client_child's context isn't copied, since target's scope excludes them)
+        source_ctx = source_report.reload.household_contexts.find_by(service_history_enrollment_id: enrollment_hoh.id)
+        target_ctx = target_report.household_contexts.find_by(service_history_enrollment_id: enrollment_hoh.id)
         expect(target_ctx.inherited_chronic_status).to eq(source_ctx.inherited_chronic_status)
         expect(target_ctx.inherited_move_in_date).to eq(source_ctx.inherited_move_in_date)
       end

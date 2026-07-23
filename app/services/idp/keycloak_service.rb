@@ -62,20 +62,53 @@ module Idp
       unknown = attributes.keys - UPDATABLE_ATTRIBUTES
       raise ArgumentError, "Unknown attributes: #{unknown.join(', ')}" if unknown.any?
 
-      updates = {}
-      updates[:firstName] = attributes[:first_name] if attributes[:first_name]
-      updates[:lastName] = attributes[:last_name] if attributes[:last_name]
+      patch = {}
+      patch['firstName'] = attributes[:first_name] if attributes[:first_name]
+      patch['lastName'] = attributes[:last_name] if attributes[:last_name]
 
-      if attributes[:email]
-        updates[:email] = attributes[:email]
-        updates[:emailVerified] = false
+      email_changed = attributes[:email].present?
+      if email_changed
+        # We treat username and email as one field even though Keycloak stores them
+        # separately; create_user seeds username from email, so keep them in lockstep here too.
+        patch['email'] = attributes[:email]
+        patch['username'] = attributes[:email]
+        patch['emailVerified'] = false
       end
 
-      return true if updates.empty?
+      return true if patch.empty?
 
-      response = make_request(:put, "/admin/realms/#{realm}/users/#{user_id}", body: updates)
+      result = put_full_user(user_id: user_id, patch: patch, operation: :update_user, failure: 'Failed to update user')
+      send_execute_actions_email(user_id: user_id, actions: ['VERIFY_EMAIL']) if email_changed
+      result
+    end
 
-      handle_response(response, operation: :update_user, failure: 'Failed to update user') { true }
+    # @return [Hash, nil] the matching UserRepresentation, or nil if no user has this email.
+    def find_user_by_email(email:)
+      query = URI.encode_www_form(email: email, exact: true)
+      response = make_request(:get, "/admin/realms/#{realm}/users?#{query}")
+
+      handle_response(response, operation: :find_user_by_email, failure: 'Failed to look up user by email') do |resp|
+        Array(JSON.parse(resp.body)).first
+      end
+    end
+
+    # Trigger Keycloak's execute-actions email so the user completes `actions` (e.g.
+    # setting a password, verifying their email) via a link rather than the admin setting
+    # a credential. Requires SMTP configured on the realm; a mail failure surfaces as a
+    # ServiceError with a delivery-focused, user-facing message. Returns true on the 204.
+    def send_execute_actions_email(user_id:, actions:)
+      response = make_request(:put, "/admin/realms/#{realm}/users/#{user_id}/execute-actions-email", body: actions)
+      return true if (200..299).include?(response.code.to_i)
+
+      # This endpoint's only job is to send mail, so any non-2xx means delivery failed. Keycloak
+      # reports an undeliverable address and an unconfigured/failing SMTP setup alike as a 500, so
+      # skip handle_response's raw status code and give the admin something actionable
+      Rails.logger.warn("Keycloak execute-actions-email failed (#{response.code}): #{error_message_from(response)}")
+      raise ServiceError.new(
+        "we couldn't deliver it. Please check that email address is valid",
+        idp_name: idp_name,
+        operation: :send_execute_actions_email,
+      )
     end
 
     # Yield every user in the realm as { email:, id: }, paging explicitly through
@@ -119,13 +152,18 @@ module Idp
     end
 
     def reactivate_user(user_id:)
-      response = make_request(
-        :put,
-        "/admin/realms/#{realm}/users/#{user_id}",
-        body: { enabled: true },
-      )
+      put_full_user(user_id: user_id, patch: { 'enabled' => true }, operation: :reactivate_user, failure: 'Failed to reactivate user')
+    end
 
-      handle_response(response, operation: :reactivate_user, failure: 'Failed to reactivate user') { true }
+    # Disable the account in Keycloak. Mirror of #reactivate_user
+    def deactivate_user(user_id:)
+      put_full_user(user_id: user_id, patch: { 'enabled' => false }, operation: :deactivate_user, failure: 'Failed to deactivate user')
+    end
+
+    # Set Keycloak required actions the user must complete at next login (e.g.
+    # ['UPDATE_PASSWORD'] to force a password change).
+    def set_required_action(user_id:, actions:)
+      put_full_user(user_id: user_id, patch: { 'requiredActions' => actions }, operation: :set_required_action, failure: 'Failed to set required actions')
     end
 
     def idp_name
@@ -137,6 +175,10 @@ module Idp
     end
 
     def supports_profile_updates?
+      true
+    end
+
+    def supports_user_creation?
       true
     end
 
@@ -153,10 +195,12 @@ module Idp
       "#{api_url}/realms/#{realm}/account"
     end
 
-    # Ping the Admin API to verify credentials and connectivity.
+    # Ping the Admin API to verify credentials and connectivity, using the same
+    # users endpoint the rest of the class relies on so this reflects the
+    # permissions the service account actually needs.
     # @return [Hash] { success: Boolean, message: String }
     def test_connection
-      response = make_request(:get, "/admin/realms/#{realm}")
+      response = make_request(:get, "/admin/realms/#{realm}/users?max=1")
 
       case response.code.to_i
       when 200..299
@@ -253,7 +297,7 @@ module Idp
     # Return a valid access token, fetching a new one if expired or not yet obtained.
     def access_token
       now = Time.current
-      if @cached_token.nil? || Time.current >= @token_expires_at
+      if @cached_token.nil? || now >= @token_expires_at
         token_response = fetch_token
         @cached_token = token_response['access_token']
         expires_in = token_response['expires_in'].to_i
@@ -352,6 +396,21 @@ module Idp
       data['errorMessage'] || data['error_description'] || data['error'] || response.body
     rescue StandardError
       response.body
+    end
+
+    # Keycloak's PUT /users/{id} replaces the full representation (v24+ full-replace semantics) —
+    # any field left out of the body is cleared, not left alone. Fetch the current representation
+    # and merge the patch onto it so untouched fields (attributes, username, other requiredActions,
+    # etc.) survive the write.
+    #
+    # This is a read-modify-write with no optimistic locking (Keycloak's PUT has no If-Match), so
+    # a write that overlaps another can clobber it from a stale GET. The admin surface drives these
+    # sequentially per request, so overlap is not expected; revisit if a concurrent caller appears.
+    def put_full_user(user_id:, patch:, operation:, failure:)
+      current = get_user(user_id: user_id)
+      response = make_request(:put, "/admin/realms/#{realm}/users/#{user_id}", body: current.merge(patch))
+
+      handle_response(response, operation: operation, failure: failure) { true }
     end
 
     protected

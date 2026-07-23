@@ -16,11 +16,11 @@ module Admin
     end
 
     def new
-      @idp_service_config = Idp::ServiceConfig.new
+      @idp_service_config = ::Idp::ServiceConfig.new
     end
 
     def create
-      @idp_service_config = Idp::ServiceConfig.new(idp_service_config_params)
+      @idp_service_config = ::Idp::ServiceConfig.new(idp_service_config_params)
       @idp_service_config.save
       respond_with(@idp_service_config, location: admin_idp_service_configs_path)
     end
@@ -49,7 +49,7 @@ module Admin
       end
 
       redirect_to admin_idp_service_configs_path
-    rescue Idp::ServiceError => e
+    rescue ::Idp::ServiceError => e
       # A misconfigured record (e.g. missing client_id) raises while building the
       # service; surface it as a flash rather than a 500.
       flash[:error] = "Connection failed: #{e.message}"
@@ -77,7 +77,7 @@ module Admin
     end
 
     def idp_service_config_scope
-      Idp::ServiceConfig.all
+      ::Idp::ServiceConfig.all
     end
 
     def flash_interpolation_options
