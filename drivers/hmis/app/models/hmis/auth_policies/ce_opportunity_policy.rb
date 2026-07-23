@@ -42,8 +42,11 @@ class Hmis::AuthPolicies::CeOpportunityPolicy < Hmis::AuthPolicies::ResourcePoli
       global_permissions.include?(:can_administrate_coordinated_entry)
     end
 
-    # Whether the user can manage CE match rules in the data source.
-    def can_manage_ce_match_rules?
+    # Whether the user can bulk void CE clients in the data source.
+    # In addition to having permission, the feature flag must also be enabled.
+    def can_bulk_void_ce_clients?
+      return false unless Hmis::Ce.configuration.bulk_void_enabled?
+
       global_permissions.include?(:can_administrate_coordinated_entry)
     end
 

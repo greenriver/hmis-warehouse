@@ -58,6 +58,20 @@ class Hmis::TableConfiguration < Hmis::HmisBase
 
   # Detect config to use for CE Eligible Clients table for a given data source
   def self.detect_ce_clients_global_config(data_source_id:)
+    detect_ce_clients_config(data_source_id: data_source_id)
+  end
+
+  # Detect config to use for CE Eligible Clients table, optionally scoped to a Project Group
+  def self.detect_ce_clients_config(data_source_id:, project_group_id: nil)
+    project_group = Hmis::ProjectGroup.find_by(id: project_group_id, data_source_id: data_source_id) if project_group_id.present?
+    if project_group
+      config = Hmis::TableConfiguration.for_ce_clients_table.
+        where(data_source_id: data_source_id).
+        find_by(owner: project_group)
+      return config if config.present?
+    end
+
+    # Fallback to global config (no owner) if project group is not provided, or project group config does not exist.
     Hmis::TableConfiguration.for_ce_clients_table.find_by(data_source_id: data_source_id, owner: nil)
   end
 
@@ -67,12 +81,19 @@ class Hmis::TableConfiguration < Hmis::HmisBase
     return unless unit_group
 
     # find applicable configuration for this unit group, preferring more specific owners
-    [
+    owners = [
       unit_group,
       unit_group.project,
+      detect_unambiguous_project_group_config_owner(data_source_id: data_source_id, project: unit_group.project),
       unit_group.project&.organization,
-      nil,
-    ].each do |owner|
+    ].reject(&:blank?)
+
+    # Global fallback config (nil owner) should only be checked last.
+    # (Appending here after filtering out blanks above avoids prematurely
+    # returning the global config early if no owner exists at that level, e.g. project group)
+    owners << nil
+
+    owners.each do |owner|
       found = Hmis::TableConfiguration.for_ce_clients_table.
         where(data_source_id: data_source_id).
         find_by(owner: owner)
@@ -80,6 +101,17 @@ class Hmis::TableConfiguration < Hmis::HmisBase
     end
 
     nil # no config found
+  end
+
+  def self.detect_unambiguous_project_group_config_owner(data_source_id:, project:)
+    return unless project
+
+    configured_project_groups = project.project_groups.
+      joins("INNER JOIN #{quoted_table_name} ON #{quoted_table_name}.owner_type = 'Hmis::ProjectGroup' AND #{quoted_table_name}.owner_id = hmis_project_groups.id").
+      merge(Hmis::TableConfiguration.for_ce_clients_table.where(data_source_id: data_source_id)).
+      distinct
+
+    configured_project_groups.one? ? configured_project_groups.first : nil
   end
 
   private

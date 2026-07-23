@@ -5,8 +5,12 @@
     &laquo; Back to #{@project_group.name}
 - associated_collections = Hmis::AccessGroup.contains(@project_group).map(&:name).sort
 - associated_workspaces = @project_group.workspaces.order(:applies_to, :sort_order, :name).map(&:name)
+- used_for_ce_eligibility = @project_group.used_for_ce_eligibility?
 - confirm_delete_msg = associated_collections.any? ? "The project group will be removed from the following HMIS Collections: #{associated_collections.join(', ')}. Users may lose access to HMIS data." : ''
-- workspace_delete_msg = "This project group is used by the following HMIS Workspaces and cannot be deleted: #{associated_workspaces.join(', ')}. Remove those workspace associations before deleting this project group."
+- delete_blocked_reasons = []
+- delete_blocked_reasons << "HMIS Workspaces: #{associated_workspaces.join(', ')}" if associated_workspaces.any?
+- delete_blocked_reasons << 'CE eligibility (hmis_ce/eligibility_project_group_id)' if used_for_ce_eligibility
+- delete_blocked_msg = "This project group cannot be deleted because it is used by: #{delete_blocked_reasons.join('; ')}. Clear those associations before deleting this project group."
 .row
   .col-sm-10
     %h1.d-flex.justify-content-between.align-items-center
@@ -15,8 +19,8 @@
     = simple_form_for @project_group, as: :filters, url: hmis_admin_project_group_path(@project_group) do |f|
       = render 'form', f: f
       .form-actions.d-flex
-        - if associated_workspaces.any?
-          %span.d-inline-block{ data: { 'bs-toggle' => :tooltip, 'bs-title' => workspace_delete_msg } }
+        - if delete_blocked_reasons.any?
+          %span.d-inline-block{ data: { 'bs-toggle' => :tooltip, 'bs-title' => delete_blocked_msg } }
             %button.btn.btn-danger{ type: 'button', disabled: true }
               %i.icon-cross
               Delete Group

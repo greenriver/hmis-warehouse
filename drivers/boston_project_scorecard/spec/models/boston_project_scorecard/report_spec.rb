@@ -512,6 +512,17 @@ RSpec.describe BostonProjectScorecard::Report, type: :model do
       expect(report.increased_other_income_score).to eq(0)
     end
 
+    it 'awards 0 for days_to_lease_up_score when current year is less than 1 day' do
+      report.update!(days_to_lease_up: 0, days_to_lease_up_comparison: nil)
+      expect(report.days_to_lease_up_score).to eq(0)
+
+      report.update!(days_to_lease_up: 0, days_to_lease_up_comparison: 0)
+      expect(report.days_to_lease_up_score).to eq(0)
+
+      report.update!(days_to_lease_up: 0, days_to_lease_up_comparison: 100)
+      expect(report.days_to_lease_up_score).to eq(0)
+    end
+
     it 'awards days_to_lease_up_score based on absolute days when there is no comparison' do
       report.update!(days_to_lease_up: 89, days_to_lease_up_comparison: nil)
       expect(report.days_to_lease_up_score).to eq(12)
@@ -520,14 +531,28 @@ RSpec.describe BostonProjectScorecard::Report, type: :model do
       expect(report.days_to_lease_up_score).to eq(0)
     end
 
+    it 'awards 12 pts when current FY is under 90 days even if it is an increase from prior FY' do
+      report.update!(days_to_lease_up: 85, days_to_lease_up_comparison: 10)
+      expect(report.days_to_lease_up_score).to eq(12)
+    end
+
     it 'awards days_to_lease_up_score based on year-over-year improvement once over 90 days' do
       report.update!(days_to_lease_up: 100, days_to_lease_up_comparison: 200) # -50% change
       expect(report.days_to_lease_up_score).to eq(12)
 
-      report.update!(days_to_lease_up: 100, days_to_lease_up_comparison: 105) # ~-4.8% change
+      report.update!(days_to_lease_up: 100, days_to_lease_up_comparison: 105) # -5% change, exactly at threshold
+      expect(report.days_to_lease_up_score).to eq(12)
+
+      report.update!(days_to_lease_up: 100, days_to_lease_up_comparison: 104) # ~-3.8% change
+      expect(report.days_to_lease_up_score).to eq(6)
+
+      report.update!(days_to_lease_up: 100, days_to_lease_up_comparison: 101) # ~-1% change
       expect(report.days_to_lease_up_score).to eq(6)
 
       report.update!(days_to_lease_up: 100, days_to_lease_up_comparison: 100) # no change
+      expect(report.days_to_lease_up_score).to eq(0)
+
+      report.update!(days_to_lease_up: 100, days_to_lease_up_comparison: 90) # increase
       expect(report.days_to_lease_up_score).to eq(0)
     end
 

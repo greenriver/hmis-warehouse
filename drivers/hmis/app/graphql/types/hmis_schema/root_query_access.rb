@@ -43,12 +43,11 @@ module Types
     bool_field(:can_merge_clients) { hmis_client_policy.can_merge_clients? }
     bool_field(:can_edit_users_in_warehouse) { warehouse_user.can_edit_users? }
 
-    # can_administrate_coordinated_entry is deprecated, and usages should be replaced by more-specific permission checks that delegate to policies.
-    bool_field(:can_administrate_coordinated_entry, deprecation_reason: 'Use policy permission specific to the need, such as canManageCeDefaultContacts or canIndexOpportunities') { ce_referral_policy.can_manage_ce_default_contacts? }
     bool_field(:can_manage_ce_default_contacts) { ce_referral_policy.can_manage_ce_default_contacts? }
-    bool_field(:can_manage_ce_match_rules) { ce_opportunity_policy.can_manage_ce_match_rules? }
+    bool_field(:can_manage_ce_match_rules) { ce_match_rule_policy.can_manage? }
     bool_field(:can_index_opportunities) { ce_opportunity_policy.can_index_opportunities? }
     bool_field(:can_index_eligible_clients) { ce_opportunity_policy.can_index_eligible_clients? }
+    bool_field(:can_bulk_void_ce_clients) { ce_opportunity_policy.can_bulk_void_ce_clients? }
 
     bool_field(:can_view_clients) { hmis_client_policy.can_view? }
     bool_field(:can_edit_clients, deprecation_reason: 'Use canCreateClients when checking for creation permission. Use client access object when checking for ability to edit a specific client.') { hmis_client_policy.can_create? }
@@ -61,10 +60,6 @@ module Types
     bool_field(:can_edit_project_details, deprecation_reason: 'Use canCreateProjects on the organization access object') { current_user.can_edit_project_details? || false }
 
     bool_field(:can_index_referrals) { ce_referral_policy.can_index? }
-
-    # Deprecated permissions, unused in frontend
-    bool_field(:can_administer_hmis, deprecation_reason: 'Unused in the frontend') { false }
-    bool_field(:can_transfer_enrollments, deprecation_reason: 'Unused in the frontend') { false }
 
     private
 
@@ -98,6 +93,10 @@ module Types
 
     def hmis_organization_policy
       @hmis_organization_policy ||= policy_for(Hmis::Hud::Organization, policy_type: :hmis_organization)
+    end
+
+    def ce_match_rule_policy
+      @ce_match_rule_policy ||= policy_for(Hmis::Ce::Match::Rule, policy_type: :ce_match_rule)
     end
 
     def warehouse_user

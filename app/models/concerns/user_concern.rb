@@ -45,8 +45,41 @@ module UserConcern
            :two_factor_backupable,
            password_length: 10..128,
            otp_secret_encryption_key: ENV['ENCRYPTION_KEY'],
-           otp_secret_length: 26, # 128 bits keys, per RFC 4226. See GHSA-qjxf-mc72-wjr2
+           otp_secret_length: 26, # 26 random bytes (>= 128-bit key, per RFC 4226 / GHSA-qjxf-mc72-wjr2)
            otp_number_of_backup_codes: 10
+
+    # devise-two-factor 6.x reads the Rails-encrypted `otp_secret` column, falling back to
+    # this method when it is empty. Existing users' secrets live in the pre-6.x
+    # attr_encrypted columns (encrypted_otp_secret/_iv/_salt, aes-256-gcm, per-attribute
+    # iv+salt, PBKDF2-HMAC-SHA1); decrypt them here so 2FA keeps working with no data
+    # migration. Defined on the class so it overrides the gem's no-op default. See the
+    # gem's UPGRADING.md (4.x -> 5.x).
+    private def legacy_otp_secret
+      return nil unless self[:encrypted_otp_secret]
+      return nil unless self.class.otp_secret_encryption_key
+
+      key = self.class.otp_secret_encryption_key
+      salt = Base64.decode64(encrypted_otp_secret_salt)
+      iv = Base64.decode64(encrypted_otp_secret_iv)
+      raw_cipher_text = Base64.decode64(encrypted_otp_secret)
+      # aes-256-gcm appends the 16-byte auth tag to the ciphertext
+      cipher_text = raw_cipher_text[0..-17]
+      auth_tag = raw_cipher_text[-16..]
+
+      cipher = OpenSSL::Cipher.new('aes-256-gcm')
+      cipher.decrypt
+      cipher.key = OpenSSL::KDF.pbkdf2_hmac(
+        key,
+        salt: salt,
+        iterations: 2000, # the Encryptor gem's default
+        length: cipher.key_len,
+        hash: 'sha1',
+      )
+      cipher.iv = iv
+      cipher.auth_tag = auth_tag
+      cipher.auth_data = ''
+      cipher.update(cipher_text) + cipher.final
+    end
 
     include OmniauthSupport
 

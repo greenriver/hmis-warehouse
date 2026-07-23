@@ -2,9 +2,11 @@
   match = client_match
   client_a = match.destination_client
   client_b = match.source_client
-  pii_dest = client_a.pii_provider(user: current_user)
-  pii_source = client_b.pii_provider(user: current_user)
-- if client_a.destination_client && client_b.destination_client
+-# client_a/client_b can be nil when the referenced client has been merged away or soft-deleted (DateDeleted default scope), leaving an orphaned match row
+- if client_a && client_b && client_a.destination_client && client_b.destination_client
+  :ruby
+    pii_dest = client_a.pii_provider(user: current_user)
+    pii_source = client_b.pii_provider(user: current_user)
   .c-card--flush
     .client-match{data: {id: match.id}}
       %h6
