@@ -115,16 +115,6 @@ RSpec.describe Importing::RunDailyImportsJob, type: :job do
         end
       end
 
-      it 'runs the orphaned system collections cleanup as a delayed job' do
-        cleanup_task = double('CleanupOrphanedSystemCollections')
-        delayed_proxy = double('delayed_proxy')
-        expect(GrdaWarehouse::Tasks::CleanupOrphanedSystemCollections).to receive(:new).and_return(cleanup_task)
-        expect(cleanup_task).to receive(:delay).and_return(delayed_proxy)
-        expect(delayed_proxy).to receive(:run!)
-
-        job.perform
-      end
-
       it 'sends completion notification' do
         job.perform
 

@@ -77,8 +77,9 @@ module GrdaWarehouse::Tasks
       end
     end
 
-    # Collection is primary DB; group_viewable_entities/:entity are warehouse DB.
-    # Per-collection association access (no joins) keeps this cross-DB safe.
+    # Collection is primary DB; group_viewable_entities/:entity are warehouse DB -- separate
+    # connections, so a LEFT OUTER JOIN across them isn't possible. We load each candidate's
+    # entities per-collection instead (see #orphaned? below) and check in Ruby.
     private def orphaned_collections
       Collection.system.where(must_exist: false).select { |collection| orphaned?(collection) }
     end

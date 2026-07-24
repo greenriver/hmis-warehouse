@@ -560,9 +560,13 @@ class Collection < ApplicationRecord
     @associated_entity_set ||= group_viewable_entities.pluck(:entity_type, :entity_id).sort.to_set
   end
 
+  # UserGroups are matched by source_type/source_id, so we only run that query when both are
+  # present -- otherwise a sourceless Collection would run UserGroup.where(source_type: nil,
+  # source_id: nil), destroying every sourceless UserGroup rather than just this Collection's
+  # own. destroy_all/destroy! soft-delete (acts_as_paranoid), so all of this remains recoverable.
   def destroy_with_associated_records!
     access_controls.destroy_all
-    UserGroup.where(source_type: source_type, source_id: source_id).destroy_all if source_type.present?
+    UserGroup.where(source_type: source_type, source_id: source_id).destroy_all if source_type.present? && source_id.present?
     destroy!
   end
 
