@@ -440,7 +440,9 @@ module Types
       # NOTE: this query is only used for form management. It probably should
       # not be used for the application, because there is no project context passed
       # to the definition.
-      definition = Hmis::Form::Definition.in_data_source(current_user.hmis_data_source_id).find(id)
+      definition = Hmis::Form::Definition.in_data_source(current_user.hmis_data_source_id).find_by(id: id)
+      return nil unless definition # return nil (Not Found) if the definition is not found, e.g. this was a draft that got deleted
+
       access_denied! unless policy_for(definition, policy_type: :form_definition).can_configure_form?
 
       definition
