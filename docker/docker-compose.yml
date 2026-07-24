@@ -154,15 +154,18 @@ services:
     tty: true
     command: bin/rails server -b 0.0.0.0
     labels:
+      # Router name defaults to `op` (main). Worktrees set TRAEFIK_ROUTER_NAME=op-<name>
+      # in .envrc so concurrent worktree web containers get unique traefik routers
+      # (labels merge by append, so the name can't be overridden from the override file).
       - traefik.enable=${TRAEFIK_ENABLED:-false}
-      - traefik.http.routers.op.entrypoints=web
-      - traefik.http.routers.op.rule=Host(`${FQDN:-hmis-warehouse.dev.test}`)
-      - traefik.http.services.op_https.loadbalancer.server.port=3000
-      - traefik.http.routers.op_https.rule=Host(`${FQDN:-hmis-warehouse.dev.test}`)
-      - traefik.http.routers.op_https.tls=true
-      - traefik.http.routers.op_https.entrypoints=web-secure
-      - traefik.http.middlewares.op_https.redirectscheme.scheme=https
-      - traefik.http.routers.op.middlewares=op_https
+      - traefik.http.routers.${TRAEFIK_ROUTER_NAME:-op}.entrypoints=web
+      - traefik.http.routers.${TRAEFIK_ROUTER_NAME:-op}.rule=Host(`${FQDN:-hmis-warehouse.dev.test}`)
+      - traefik.http.services.${TRAEFIK_ROUTER_NAME:-op}_https.loadbalancer.server.port=3000
+      - traefik.http.routers.${TRAEFIK_ROUTER_NAME:-op}_https.rule=Host(`${FQDN:-hmis-warehouse.dev.test}`)
+      - traefik.http.routers.${TRAEFIK_ROUTER_NAME:-op}_https.tls=true
+      - traefik.http.routers.${TRAEFIK_ROUTER_NAME:-op}_https.entrypoints=web-secure
+      - traefik.http.middlewares.${TRAEFIK_ROUTER_NAME:-op}_https.redirectscheme.scheme=https
+      - traefik.http.routers.${TRAEFIK_ROUTER_NAME:-op}.middlewares=${TRAEFIK_ROUTER_NAME:-op}_https
     ports:
       - "3000"
       - "9394"

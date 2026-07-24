@@ -1,0 +1,15 @@
+# Worktrunk project config (https://worktrunk.dev). Wires worktree lifecycle
+# events to the scripts in lib/development/scripts/. Project hooks require a
+# one-time approval the first time they run (wt prompts "Allow and remember?");
+# the /worktree-setup skill runs `wt switch --create --yes` to auto-accept.
+#
+# See docs/worktrees.md for the full workflow.
+
+# Blocking. Copies the gitignored env/compose files a fresh worktree lacks from
+# the primary worktree, then rewrites them for isolated databases, a per-worktree
+# domain, compose project name, and traefik router.
+pre-start = "bash lib/development/scripts/worktree_pre_start.sh {{ worktree_path }} {{ branch }} {{ primary_worktree_path }}"
+
+# Blocking, runs in the worktree being removed. Removes the worktree's app
+# containers and drops its `_wt_`-suffixed databases from the shared db container.
+pre-remove = "bash lib/development/scripts/worktree_pre_remove.sh {{ worktree_path }} {{ branch }}"
