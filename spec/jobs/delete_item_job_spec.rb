@@ -22,5 +22,16 @@ RSpec.describe DeleteItemJob, type: :job do
       expect(Collection.find_by(id: collection.id)).to be_nil
       expect(AccessControl.find_by(id: access_control.id)).to be_nil
     end
+
+    it 'removes the system collection but leaves non-system collections that also reference the data source' do
+      system_collection = data_source.editable_access_control.collection
+      non_system_collection = create(:collection)
+      non_system_collection.set_viewables(data_sources: [data_source.id])
+
+      described_class.new.perform(item_class: 'GrdaWarehouse::DataSource', item_id: data_source.id)
+
+      expect(Collection.find_by(id: system_collection.id)).to be_nil
+      expect(Collection.find_by(id: non_system_collection.id)).to eq(non_system_collection)
+    end
   end
 end
