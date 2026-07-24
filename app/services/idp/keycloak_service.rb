@@ -68,10 +68,9 @@ module Idp
 
       email_changed = attributes[:email].present?
       if email_changed
-        # We treat username and email as one field even though Keycloak stores them
-        # separately; create_user seeds username from email, so keep them in lockstep here too.
+        # The realm runs email-as-username, so Keycloak keeps username in step with email
+        # on its own — we only send the email.
         patch['email'] = attributes[:email]
-        patch['username'] = attributes[:email]
         patch['emailVerified'] = false
       end
 
@@ -193,6 +192,27 @@ module Idp
       return nil unless api_url.present?
 
       "#{api_url}/realms/#{realm}/account"
+    end
+
+    # Keycloak Application-Initiated Action: sends the browser through the realm's OIDC
+    # authorize endpoint with kc_action set, so the user completes exactly one action
+    # (password change, TOTP setup, ...) against their existing Keycloak SSO session and
+    # is redirected back to redirect_uri. Only usable for the current user — it runs
+    # against whoever's browser session it is, not an arbitrary user_id.
+    #
+    # The redirect_uri must be registered under this client's Valid Redirect URIs in
+    # Keycloak, and the client must have the standard (authorization code) flow enabled.
+    def account_action_url(action:, redirect_uri:)
+      return nil unless api_url.present?
+
+      params = {
+        client_id: 'account',
+        redirect_uri: redirect_uri,
+        response_type: 'code',
+        scope: 'openid',
+        kc_action: action,
+      }
+      "#{api_url}/realms/#{realm}/protocol/openid-connect/auth?#{params.to_query}"
     end
 
     # Ping the Admin API to verify credentials and connectivity, using the same

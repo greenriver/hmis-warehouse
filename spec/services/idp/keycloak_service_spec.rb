@@ -201,7 +201,7 @@ RSpec.describe Idp::KeycloakService, type: :model do
         ).to have_been_made
       end
 
-      it 'sets emailVerified to false and syncs username when the email changes, without clearing other fields' do
+      it 'sets emailVerified to false when the email changes and leaves username for Keycloak to derive, without clearing other fields' do
         actions_url = "#{api_url}/admin/realms/#{realm}/users/#{user_id}/execute-actions-email"
         stub_request(:put, actions_url).to_return(status: 204)
 
@@ -212,7 +212,7 @@ RSpec.describe Idp::KeycloakService, type: :model do
 
         expect(
           a_request(:put, "#{api_url}/admin/realms/#{realm}/users/#{user_id}").
-            with(body: current_representation.merge(email: 'new@example.com', username: 'new@example.com', emailVerified: false)),
+            with(body: current_representation.merge(email: 'new@example.com', emailVerified: false)),
         ).to have_been_made
       end
 
@@ -725,6 +725,37 @@ RSpec.describe Idp::KeycloakService, type: :model do
 
       it 'returns nil' do
         expect(service.account_console_url).to be_nil
+      end
+    end
+  end
+
+  describe '#account_action_url' do
+    let(:redirect_uri) { 'https://warehouse.test/account/edit' }
+
+    subject(:url) { service.account_action_url(action: 'UPDATE_PASSWORD', redirect_uri: redirect_uri) }
+
+    it 'targets the realm authorize endpoint' do
+      expect(url).to start_with("#{api_url}/realms/#{realm}/protocol/openid-connect/auth?")
+    end
+
+    it 'carries the action, client, redirect, and OIDC params' do
+      query = Rack::Utils.parse_query(URI(url).query)
+      expect(query).to include(
+        'kc_action' => 'UPDATE_PASSWORD',
+        'client_id' => 'account',
+        'redirect_uri' => redirect_uri,
+        'response_type' => 'code',
+        'scope' => 'openid',
+      )
+    end
+
+    context 'when API URL is not configured' do
+      before do
+        service.config[:api_url] = nil
+      end
+
+      it 'returns nil' do
+        expect(url).to be_nil
       end
     end
   end

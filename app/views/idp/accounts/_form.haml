@@ -1,0 +1,20 @@
+= simple_form_for @user, url: account_path do |f|
+  = f.error_notification
+
+  .row
+    .col-sm-6
+      .form-inputs
+        - profile_locked = @user.profile_managed_by_idp?
+        - idp_hint = 'Managed by your identity provider' if profile_locked
+        = f.input :first_name, required: !profile_locked, input_html: { disabled: profile_locked }, hint: idp_hint
+        = f.input :last_name, required: !profile_locked, input_html: { disabled: profile_locked }, hint: idp_hint
+        = f.input :phone
+        - if @user.show_credentials?
+          = f.input :credentials, label: 'Credentials', collection: @user.credential_options, as: :select_two, input_html: { data: {tags: true} }, hint: 'Add a new credential type by typing the name and hitting enter.'
+        = f.association :agency, disabled: true, as: :select_two
+        = f.input :email_schedule, collection: Message::SCHEDULES.map{ |s| [ s.titleize, s ] }, include_blank: false, hint: 'Messages not sent on the "immediate" schedule are sent as a digest.', as: :select_two
+        - unless Rails.env.production?
+          = f.input :theme, collection: ['legacy', 'modern'], as: :select_two
+
+      .form-actions
+        = f.button :submit, value: 'Update Account', class: 'btn btn-primary'
