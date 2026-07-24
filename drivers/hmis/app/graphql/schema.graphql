@@ -795,6 +795,18 @@ type CeCandidate {
   priorityScores: [Int!]!
 }
 
+type CeCandidatePoolSummary {
+  """
+  Active pools that have never completed a full generation
+  """
+  neverFullyGeneratedCount: Int!
+
+  """
+  Number of active CE candidate pools
+  """
+  totalCount: Int!
+}
+
 type CeCandidatesPaginated {
   hasMoreAfter: Boolean!
   hasMoreBefore: Boolean!
@@ -1187,6 +1199,16 @@ type CeOpportunity {
   active: Boolean!
   candidateLookup(id: ID!): CeCandidate
   candidates(filters: CeOpportunityCandidatesFilterOptions, limit: Int, offset: Int): CeCandidatesPaginated!
+
+  """
+  When this unit's eligible client list last completed a full generation against
+  all destination clients. Null means it has never finished first-time setup.
+  """
+  candidatesFullyGeneratedAt: ISO8601DateTime
+
+  """
+  When this unit's eligible client list was last updated by any processing (full refresh or individual client)
+  """
   candidatesGeneratedAt: ISO8601DateTime
   categories: [String!]!
   dateAvailable: ISO8601Date!
@@ -10329,6 +10351,11 @@ type Query {
     """
     role: AssessmentRole
   ): FormDefinition
+
+  """
+  Generation and refresh status for active CE candidate pools
+  """
+  ceCandidatePoolSummary(projectGroupId: ID): CeCandidatePoolSummary!
   ceClient(
     """
     Client Proxy ID

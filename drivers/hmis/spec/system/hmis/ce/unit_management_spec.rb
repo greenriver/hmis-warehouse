@@ -119,11 +119,10 @@ RSpec.feature 'CE Unit Management', type: :system do
 
     # Admin can see the waitlist
     click_link 'Eligible Clients'
-    expect(page).to have_content('The eligible client list for this unit has not been generated yet.')
+    expect(page).to have_content('Eligible clients are still being calculated for this unit. Please check back later.')
 
     # Call the prioritization engine, then reload
     Hmis::Ce::Match::Engine.call(score_pool)
-    score_pool.update!(candidates_generated_at: Time.current)
     visit current_path
     click_link 'Eligible Clients'
 

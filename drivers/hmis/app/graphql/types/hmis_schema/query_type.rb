@@ -617,6 +617,16 @@ module Types
       {}
     end
 
+    field :ce_candidate_pool_summary, HmisSchema::CeCandidatePoolSummary, null: false,
+                                                                          description: 'Generation and refresh status for active CE candidate pools' do
+      argument :project_group_id, ID, required: false
+    end
+    def ce_candidate_pool_summary(project_group_id: nil)
+      access_denied! unless current_user.can_administrate_coordinated_entry?
+
+      { project_group_id: project_group_id }
+    end
+
     field :ce_clients, HmisSchema::CeClient.page_type, null: false, description: 'Clients who belong to at least one CE candidate pool', nodes_count: ->(all_nodes) { all_nodes.count(:id) } do
       filters_argument HmisSchema::CeClient
     end
