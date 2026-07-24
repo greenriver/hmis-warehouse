@@ -900,11 +900,15 @@ module HmisCsvImporter::Importer
           # for everyone who would have been included in this import, but didn't get
           # processed above, set their source hash to nil so future imports will fix them
           with_sql_log(__method__, klass, name: 'existing_destination_data_scope') do
-            existing.joins(enrollments: :project).
-              merge(GrdaWarehouse::Hud::Enrollment.open_during_range(date_range)).
-              merge(GrdaWarehouse::Hud::Project.where(id: involved_project_ids)).
-              update_all(source_hash: nil)
-            existing.update_all(pending_date_deleted: nil)
+            # Set-based UPDATEs over the multi-join involved_warehouse_scope;
+            # guard the planner as mark_tree_as_dead does.
+            GrdaWarehouseBase.disable_nestloop do
+              existing.joins(enrollments: :project).
+                merge(GrdaWarehouse::Hud::Enrollment.open_during_range(date_range)).
+                merge(GrdaWarehouse::Hud::Project.where(id: involved_project_ids)).
+                update_all(source_hash: nil)
+              existing.update_all(pending_date_deleted: nil)
+            end
           end
         else
           delete_count = klass.pending_deletions(data_source_id: data_source.id, project_ids: involved_project_ids, date_range: date_range).count
@@ -1280,7 +1284,7 @@ module HmisCsvImporter::Importer
       deleted_at = conn.quote(Time.current)
       tmp_name = tmp_table_name('pending_deletes', klass.warehouse_class)
 
-      with_temp_id_table(conn, tmp_name, scope) do |quoted_temp|
+      with_temp_id_table(conn, tmp_name, scope, disable_nestloop: true) do |quoted_temp|
         last_id = 0
         loop do
           result = conn.execute(<<~SQL)
