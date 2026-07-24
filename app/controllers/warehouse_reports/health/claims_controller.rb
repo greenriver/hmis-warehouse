@@ -178,11 +178,10 @@ module WarehouseReports::Health
     end
 
     def acknowledge
-      ta = Health::TransactionAcknowledgement.create(
-        user: current_user,
-        content: ta_params[:content].read,
-        original_filename: ta_params[:content].original_filename,
-      )
+      uploaded = ta_params[:content]
+      ta = Health::TransactionAcknowledgement.new(user: current_user, original_filename: uploaded.original_filename)
+      ta.acknowledgement_file.attach(io: uploaded.tempfile, filename: uploaded.original_filename, content_type: uploaded.content_type)
+      ta.save!
       sent_at = Time.now
       claim_result = ta.transaction_result
       if claim_result == 'error'
