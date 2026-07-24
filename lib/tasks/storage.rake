@@ -33,6 +33,7 @@ namespace :storage do
         GrdaWarehouse::PublicFile => :with_attached_public_file,
         GrdaWarehouse::DashboardExportFile => :with_attached_dashboard_export_file,
         GrdaWarehouse::ReportResultFile => :with_attached_report_result_file,
+        TxClientReports::ResearchExports::Export => :with_attached_research_export_file,
 
         # The following are classes that remain to be moved
         # GrdaWarehouse::DashboardExportFile => :with_attached_dashboard_export_file,
@@ -45,7 +46,6 @@ namespace :storage do
         # Health::PremiumPayment => :with_attached_premium_payment_file,
         # Health::TransactionAcknowledgement => :with_attached_acknowledgement_file,
         # Health::CpMembers::FileBase => :with_attached_member_file,
-        # TxClientReports::ResearchExports::Export => :with_attached_research_export_file,
 
         # The following were previously moved, leaving here to make adding
         # future files easier.
