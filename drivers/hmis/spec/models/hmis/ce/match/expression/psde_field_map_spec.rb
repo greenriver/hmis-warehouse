@@ -38,6 +38,23 @@ RSpec.describe Hmis::Ce::Match::Expression::PsdeFieldMap, type: :model do
       expect(field_map.client_query(clients, field_key)).to eq({ destination_client.id => 500.0 })
     end
 
+    it 'resolves a known disability value' do
+      create(
+        :hmis_disability,
+        :skip_validate,
+        enrollment: enrollment,
+        client: client,
+        data_source: hmis_data_source,
+        disability_type: 9,
+        disability_response: 1,
+        information_date: current_date - 1.week,
+        data_collection_stage: 1,
+      )
+
+      expect(field_map.client_query(clients, 'mental_health_disorder')).
+        to eq({ destination_client.id => true })
+    end
+
     it 'raises for unknown fields' do
       expect { field_map.client_query(clients, 'unknown_field') }.
         to raise_error(ArgumentError, /Unknown PSDE field/)
@@ -48,11 +65,27 @@ RSpec.describe Hmis::Ce::Match::Expression::PsdeFieldMap, type: :model do
     it 'includes total monthly income' do
       expect(field_map.fields.map(&:key)).to include(field_key)
     end
+
+    it 'includes the disability and health/DV fields' do
+      expect(field_map.fields.map(&:key)).to include(
+        'mental_health_disorder',
+        'substance_use_disorder',
+        'physical_disability',
+        'developmental_disability',
+        'chronic_health_condition',
+        'hiv_aids',
+        'domestic_violence_survivor',
+      )
+    end
   end
 
   describe '#label_for' do
     it 'returns the registry label' do
       expect(field_map.label_for(field_key)).to eq('Total Monthly Income')
+    end
+
+    it 'returns the registry label for a disability field' do
+      expect(field_map.label_for('mental_health_disorder')).to eq('Mental Health Disorder')
     end
   end
 
