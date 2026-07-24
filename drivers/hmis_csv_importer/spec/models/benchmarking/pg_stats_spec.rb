@@ -76,7 +76,10 @@ RSpec.describe HmisCsvImporter::Benchmarking::PgStats, type: :model do
         sleep 0.2
       end
 
-      expect(delta.dig('data_sources', 'n_tup_ins')).to eq(5)
+      # At least our 5 committed inserts; the counter is table-wide, so other
+      # examples' committed writes can also land inside the window. Exact
+      # delta arithmetic is covered by the synthetic .delta examples above.
+      expect(delta.dig('data_sources', 'n_tup_ins')).to be >= 5
     end
   end
 

@@ -62,4 +62,55 @@ RSpec.describe 'process_existing sub-step timing', type: :model do
       expect(@summary[file]).to have_key('older_secs'), "expected #{file} to record older_secs"
     end
   end
+
+  # mark_unchanged and mark_incoming_older both accumulate into the shared
+  # 'unchanged' summary count, so per-step rates cannot be read back from that
+  # key by type. Force a row through mark_incoming_older (incoming DateUpdated
+  # older than the warehouse copy, nil warehouse source_hash so the hash
+  # comparison cannot match, non-authoritative ExportDate) and assert the rate
+  # is attributed from that step's own row count.
+  describe 'attributing rates to the step that did the work' do
+    before(:all) do
+      HmisCsvImporter::Utility.clear!
+      GrdaWarehouse::Utility.clear!
+      @data_source = GrdaWarehouse::DataSource.create!(name: 'Green River', short_name: 'GR', source_type: :sftp)
+      import_hmis_csv_fixture(
+        'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_six/date_updated_initial',
+        data_source: @data_source,
+        version: 'AutoMigrate',
+        run_jobs: false,
+        stop_version: '2026',
+      )
+      # Warehouse copy newer than the incoming row, with a nil source_hash so
+      # mark_unchanged cannot match; the only path that can keep this row is
+      # mark_incoming_older.
+      GrdaWarehouse::Hud::Client.first.update_columns(DateUpdated: Time.zone.parse('2035-01-01 12:00').utc, source_hash: nil)
+      older_importer = import_hmis_csv_fixture(
+        'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_six/date_updated_older',
+        data_source: @data_source,
+        version: 'AutoMigrate',
+        run_jobs: false,
+        stop_version: '2026',
+      )
+      @older_summary = older_importer.importer_log.summary
+    end
+
+    after(:all) do
+      HmisCsvImporter::Utility.clear!
+      GrdaWarehouse::Utility.clear!
+    end
+
+    it 'records a positive older_rps from the rows mark_incoming_older kept' do
+      client_summary = @older_summary['Client.csv']
+      expect(client_summary['unchanged']).to eq(1) # the older step's row, in the shared tally
+      expect(client_summary['older_secs']).to be_a(Float)
+      expect(client_summary['older_rps']).to be_a(Float)
+      expect(client_summary['older_rps']).to be > 0
+    end
+
+    it 'does not attribute the shared tally to the step that did no work' do
+      client_summary = @older_summary['Client.csv']
+      expect(client_summary).not_to have_key('unchanged_rps')
+    end
+  end
 end

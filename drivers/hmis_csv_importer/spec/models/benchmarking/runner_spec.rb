@@ -73,6 +73,12 @@ RSpec.describe HmisCsvImporter::Benchmarking::Runner, type: :model do
 
   describe 'a full benchmark run' do
     before(:all) do
+      # Supply the code version through the env overrides (the QA path); CI
+      # spec containers cannot reliably resolve identity from the git binary.
+      @env_keys = [HmisCsvImporter::Benchmarking::GIT_SHA_ENV, HmisCsvImporter::Benchmarking::GIT_BRANCH_ENV]
+      @env_original = @env_keys.map { |key| ENV.fetch(key, nil) }
+      ENV[HmisCsvImporter::Benchmarking::GIT_SHA_ENV] = 'spec-sha'
+      ENV[HmisCsvImporter::Benchmarking::GIT_BRANCH_ENV] = 'spec-branch'
       HmisCsvImporter::Utility.clear!
       GrdaWarehouse::Utility.clear!
       @data_source = GrdaWarehouse::DataSource.create!(name: 'Green River', short_name: 'GR', source_type: :sftp)
@@ -89,9 +95,14 @@ RSpec.describe HmisCsvImporter::Benchmarking::Runner, type: :model do
     end
 
     after(:all) do
+      @env_keys.zip(@env_original).each { |key, value| value ? ENV[key] = value : ENV.delete(key) }
       FileUtils.rm_rf(@results_dir)
       HmisCsvImporter::Utility.clear!
       GrdaWarehouse::Utility.clear!
+    end
+
+    it 'records the env-provided git identity' do
+      expect(@json['git']).to eq('sha' => 'spec-sha', 'branch' => 'spec-branch', 'dirty' => nil)
     end
 
     it 'imports into the requested data source' do

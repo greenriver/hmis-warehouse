@@ -809,8 +809,12 @@ module HmisCsvImporter::Importer
     # Records benchmark timings for a completed ingest phase into the importer
     # log summary and emits a debug log line.
     # +type+ is the summary key prefix (e.g., 'added', 'updated').
-    private def log_phase_stats(file_name, bmk, type:, destination_class:)
-      records = summary_for(file_name, type) || 0
+    # +records+ is the row count attributable to this phase. Pass it when the
+    # phase does not record its own count under +type+ in the summary (e.g.
+    # mark_unchanged and mark_incoming_older both accumulate into the shared
+    # 'unchanged' summary key, so neither can be read back by type here).
+    private def log_phase_stats(file_name, bmk, type:, destination_class:, records: nil)
+      records ||= summary_for(file_name, type) || 0
       stat_prefix = type == 'added' ? 'add' : type
       stats = {
         "#{stat_prefix}_secs": bmk.real.round(3),
@@ -847,11 +851,13 @@ module HmisCsvImporter::Importer
         preload_custom_file_data(klass)
         with_sql_log(__method__, klass) do
           Rails.logger.info "  Marking unchanged records for #{file_name}..."
-          bmk = Benchmark.measure { mark_unchanged(klass, file_name) }
-          log_phase_stats(file_name, bmk, type: 'unchanged', destination_class: klass.warehouse_class)
+          unchanged_count = nil
+          bmk = Benchmark.measure { unchanged_count = mark_unchanged(klass, file_name) }
+          log_phase_stats(file_name, bmk, type: 'unchanged', destination_class: klass.warehouse_class, records: unchanged_count)
           Rails.logger.info "  Marking incoming older records for #{file_name}..."
-          bmk = Benchmark.measure { mark_incoming_older(klass, file_name) }
-          log_phase_stats(file_name, bmk, type: 'older', destination_class: klass.warehouse_class)
+          older_count = nil
+          bmk = Benchmark.measure { older_count = mark_incoming_older(klass, file_name) }
+          log_phase_stats(file_name, bmk, type: 'older', destination_class: klass.warehouse_class, records: older_count)
           Rails.logger.info "  Applying updates for #{file_name}..."
           apply_updates(klass, file_name)
           Rails.logger.info "  Completed processing #{file_name}"
@@ -1207,13 +1213,14 @@ module HmisCsvImporter::Importer
     end
 
     # Materialize matched IDs into a temp table so the expensive semi-join runs once,
-    # then batch UPDATE from the temp table.
+    # then batch UPDATE from the temp table. Returns the number of rows cleared.
     private def batch_clear_pending_deletion(klass, matched_scope, file_name)
       conn = klass.warehouse_class.connection
       update_base = klass.warehouse_class
       update_base = update_base.with_deleted if klass.warehouse_class.paranoid?
       tmp_name = tmp_table_name('unchanged', klass.warehouse_class)
 
+      cleared = 0
       with_temp_id_table(conn, tmp_name, matched_scope) do |quoted_temp|
         last_id = 0
         loop do
@@ -1230,9 +1237,11 @@ module HmisCsvImporter::Importer
           break if result.ntuples.zero?
 
           last_id = result.map { |r| r['id'].to_i }.max
+          cleared += result.ntuples
           note_processed(file_name, result.ntuples, 'unchanged')
         end
       end
+      cleared
     end
 
     # Materialize delete-pending IDs into a temp table, then batch soft-delete.
