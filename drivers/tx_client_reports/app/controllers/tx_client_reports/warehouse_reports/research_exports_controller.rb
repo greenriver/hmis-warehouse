@@ -38,7 +38,7 @@ module TxClientReports::WarehouseReports
       filename = "Research Export - #{Time.current.to_fs(:db)}.xlsx"
       headers['Content-Disposition'] = "attachment; filename=#{filename}"
       export = report.export
-      send_data(export.content, type: export.content_type, filename: filename)
+      send_data(export.file_data, type: export.content_type, filename: filename)
     end
 
     def create

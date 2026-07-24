@@ -960,7 +960,6 @@ Style/Alias:
     - 'app/models/grda_warehouse/synthetic/event.rb'
     - 'app/models/grda_warehouse/synthetic/youth_education_status.rb'
     - 'app/uploaders/file_uploader.rb'
-    - 'app/uploaders/test_results_uploader.rb'
     - 'app/uploaders/transaction_acknowledgement_file_uploader.rb'
     - 'drivers/built_for_zero_report/app/models/built_for_zero_report/adults.rb'
     - 'drivers/built_for_zero_report/app/models/built_for_zero_report/chronic.rb'

@@ -351,7 +351,7 @@ module HealthPctp
     end
 
     def careplan_logo
-      @careplan_logo ||= GrdaWarehouse::PublicFile.find_by(name: 'patient/careplan_logo')&.content
+      @careplan_logo ||= GrdaWarehouse::PublicFile.find_by(name: 'patient/careplan_logo')&.file_data
     end
 
     def self.encounter_report_details
