@@ -119,4 +119,34 @@ RSpec.describe CohortsController, type: :request do
       expect(flash[:alert]).to eq('This cohort is manually maintained.')
     end
   end
+
+  describe 'DELETE /cohorts/:id' do
+    let(:user) { create(:acl_user) }
+    let(:cohort) { create(:cohort) }
+    let(:cohort_role) { create(:cohort_manager) }
+    let(:all_cohorts_collection) { Collection.system_collection(:cohorts) }
+
+    before do
+      Collection.maintain_system_groups
+      setup_access_control(user, cohort_role, all_cohorts_collection)
+      sign_in user
+    end
+
+    it "removes the cohort's system collection when the cohort is deleted" do
+      collection = cohort.viewable_access_control.collection
+
+      delete cohort_path(cohort)
+
+      expect(GrdaWarehouse::Cohort.find_by(id: cohort.id)).to be_nil
+      expect(Collection.find_by(id: collection.id)).to be_nil
+    end
+
+    it 'does not delete a system cohort' do
+      system_cohort = create(:cohort, system_cohort: true)
+
+      delete cohort_path(system_cohort)
+
+      expect(GrdaWarehouse::Cohort.find_by(id: system_cohort.id)).to be_present
+    end
+  end
 end

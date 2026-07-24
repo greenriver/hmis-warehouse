@@ -141,6 +141,56 @@ RSpec.describe ProjectGroupsController, type: :request do
     end
   end
 
+  describe 'deleting project groups' do
+    it "DELETE #destroy removes the project group's system collection" do
+      collection = project_group.editable_access_control.collection # project groups support editable only
+
+      delete project_group_path(project_group)
+
+      expect(response).to redirect_to(project_groups_path)
+      expect(GrdaWarehouse::ProjectGroup.find_by(id: project_group.id)).to be_nil
+      expect(Collection.find_by(id: collection.id)).to be_nil
+    end
+
+    it "delete_multiple removes each project group's system collection" do
+      collection_1 = project_group.editable_access_control.collection
+      collection_2 = project_group_2.editable_access_control.collection
+
+      post delete_multiple_project_groups_path, params: { selections: { group: [project_group.id.to_s, project_group_2.id.to_s] } }
+
+      expect(response).to redirect_to(project_groups_path)
+      expect(GrdaWarehouse::ProjectGroup.find_by(id: project_group.id)).to be_nil
+      expect(GrdaWarehouse::ProjectGroup.find_by(id: project_group_2.id)).to be_nil
+      expect(Collection.find_by(id: collection_1.id)).to be_nil
+      expect(Collection.find_by(id: collection_2.id)).to be_nil
+    end
+
+    it 'delete_multiple does not delete project groups that were not selected' do
+      selected_collection = project_group.editable_access_control.collection
+      unselected = create(:project_group, name: 'Keep Me')
+      unselected_collection = unselected.editable_access_control.collection
+
+      post delete_multiple_project_groups_path, params: { selections: { group: [project_group.id.to_s] } }
+
+      # selected group is torn down...
+      expect(GrdaWarehouse::ProjectGroup.find_by(id: project_group.id)).to be_nil
+      expect(Collection.find_by(id: selected_collection.id)).to be_nil
+      # ...but an unselected group and its collection survive
+      expect(GrdaWarehouse::ProjectGroup.find_by(id: unselected.id)).to be_present
+      expect(Collection.find_by(id: unselected_collection.id)).to be_present
+    end
+
+    it 'delete_multiple with no selection redirects without deleting anything' do
+      collection = project_group.editable_access_control.collection
+
+      post delete_multiple_project_groups_path
+
+      expect(response).to redirect_to(project_groups_path)
+      expect(GrdaWarehouse::ProjectGroup.find_by(id: project_group.id)).to be_present
+      expect(Collection.find_by(id: collection.id)).to be_present
+    end
+  end
+
   describe 'integration with project filtering' do
     let!(:project_group) { create(:project_group, skip_maintain_system_group: true) }
 
