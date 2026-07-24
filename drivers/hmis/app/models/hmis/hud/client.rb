@@ -17,6 +17,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   include ::Hmis::Hud::Concerns::FormSubmittable
   include ::HudConcerns::Client
   include ClientSearch
+  include Hmis::Concerns::Restrictable
   # this may be invoked multiple times for the same record as IdentifyDuplicates may also mark clients as dirty
   include ::Hmis::MarkClientAsDirtyBehavior
 
@@ -99,6 +100,9 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   #     OR,
   #  2. The Client has NO enrollments AND the User can view clients at _any_ project
   #
+  # Restricted clients additionally require can_view_restricted_clients at an overlapping enrollment project.
+  # Unenrolled restricted clients are hidden from everyone.
+  #
   # NOTE: This could include clients that are enrolled at projects that the User can't necessarily see (e.g. they lack can_view_projects at that project).
   scope :visible_to, ->(user) do
     # Confirm that user has access to view clients *somewhere* in the current data source.
@@ -109,7 +113,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     project_ids = Hmis::Hud::Project.with_access(user, :can_view_clients).pluck(:id)
     client_ids = union_sql_for_clients_in_projects_or_unenrolled(project_ids: project_ids, data_source_id: user.hmis_data_source_id)
 
-    where(c_t[:id].in(client_ids))
+    apply_restricted_visibility(where(c_t[:id].in(client_ids)), user)
   end
 
   class << self
@@ -132,7 +136,39 @@ class Hmis::Hud::Client < Hmis::Hud::Base
       pluck(:id)
     client_ids = union_sql_for_clients_in_projects_or_unenrolled(project_ids: project_ids, data_source_id: user.hmis_data_source_id)
 
-    where(c_t[:id].in(client_ids))
+    apply_restricted_visibility(where(c_t[:id].in(client_ids)), user)
+  end
+
+  # Clients enrolled at any of the given projects (includes WIP and exited enrollments).
+  scope :with_enrollment_at_projects, ->(project_ids) do
+    project_ids = Array.wrap(project_ids)
+    return none if project_ids.empty?
+
+    joins(:enrollments).where(e_t[:project_pk].in(project_ids)).distinct
+  end
+
+  def self.apply_restricted_visibility(scope, user)
+    restricted_view_project_ids = Hmis::Hud::Project.with_access(
+      user,
+      :can_view_clients,
+      :can_view_restricted_clients,
+      mode: :all,
+    ).pluck(:id)
+
+    restricted_client_ids_sql = Hmis::RestrictedRecord.restricted_client_ids.to_sql
+
+    return scope.where(c_t[:id].not_in(Arel.sql("(#{restricted_client_ids_sql})"))) if restricted_view_project_ids.empty?
+
+    visible_restricted_client_ids_sql = scope.
+      where(c_t[:id].in(Arel.sql("(#{restricted_client_ids_sql})"))).
+      merge(with_enrollment_at_projects(restricted_view_project_ids)).
+      select(c_t[:id]).to_sql
+
+    scope.where(
+      c_t[:id].not_in(Arel.sql("(#{restricted_client_ids_sql})")).or(
+        c_t[:id].in(Arel.sql("(#{visible_restricted_client_ids_sql})")),
+      ),
+    )
   end
 
   # Shared helper that returns a raw SQL UNION subquery (as Arel.sql) containing client IDs for:

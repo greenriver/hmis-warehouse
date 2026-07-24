@@ -166,6 +166,8 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   # Enrollments that this user has access to. By default, only returns enrollments that the user has full
   # access to (can_view_enrollment_details).
   #
+  # This does not take into account client visibility - needs updating but leaving as-is for now due to performance concerns
+  #
   # Note: use "replace_scope" hide previous declaration of :viewable_by
   replace_scope :viewable_by, ->(user, include_limited_access_enrollments: false) do
     return enrollment_details_viewable_by(user) unless include_limited_access_enrollments

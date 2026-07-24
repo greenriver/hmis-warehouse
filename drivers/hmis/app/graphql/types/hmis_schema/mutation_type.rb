@@ -21,6 +21,7 @@ module Types
     field :delete_funder, mutation: Mutations::DeleteFunder
     field :delete_inventory, mutation: Mutations::DeleteInventory
     field :delete_client, mutation: Mutations::DeleteClient
+    field :set_client_restricted, mutation: Mutations::SetClientRestricted
     field :delete_ce_assessment, mutation: Mutations::DeleteCeAssessment
     field :delete_ce_event, mutation: Mutations::DeleteCeEvent
     field :delete_current_living_situation, mutation: Mutations::DeleteCurrentLivingSituation
