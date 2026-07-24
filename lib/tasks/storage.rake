@@ -32,10 +32,10 @@ namespace :storage do
         GrdaWarehouse::NonHmisUpload => :with_attached_upload_file,
         GrdaWarehouse::PublicFile => :with_attached_public_file,
         GrdaWarehouse::DashboardExportFile => :with_attached_dashboard_export_file,
+        GrdaWarehouse::ReportResultFile => :with_attached_report_result_file,
 
         # The following are classes that remain to be moved
         # GrdaWarehouse::DashboardExportFile => :with_attached_dashboard_export_file,
-        # GrdaWarehouse::ReportResultFile => :with_attached_report_result_file,
         # GrdaWarehouse::HealthEmergency::TestBatch => :with_attached_test_batch_file,
         # Health::EdIpVisitFile => :with_attached_ed_ip_visit_file,
         # Health::EligibilityResponse => :with_attached_eligibility_response_file,
