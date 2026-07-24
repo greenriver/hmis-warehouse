@@ -35,6 +35,10 @@ docker-compose.override.yml
 !/.rspec.sample
 !/.trivyignore
 !/.claude_config.json
+# Worktrunk project config (hooks) — track just this one file under .config/
+!/.config
+/.config/*
+!/.config/wt.toml
 
 # Ignore operational files
 package.box
