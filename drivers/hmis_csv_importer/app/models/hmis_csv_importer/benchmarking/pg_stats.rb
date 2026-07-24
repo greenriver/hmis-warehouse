@@ -46,6 +46,27 @@ module HmisCsvImporter::Benchmarking
       end
     end
 
+    # Each backend flushes its pending counters to the cumulative statistics
+    # system asynchronously (PGSTAT_MIN_INTERVAL, ~1s), so a snapshot taken the
+    # instant an import finishes can miss its final transactions. Poll until the
+    # counters stop moving, then return that settled snapshot. Assumes an
+    # otherwise-idle database (the benchmark precondition); a concurrent writer
+    # would keep the counters moving until +timeout+ elapses, at which point the
+    # most recent snapshot is returned regardless.
+    def settled_snapshot(interval: 0.5, timeout: 10.0)
+      deadline = Process.clock_gettime(Process::CLOCK_MONOTONIC) + timeout
+      previous = snapshot
+      loop do
+        sleep interval
+        current = snapshot
+        return current if current == previous
+
+        previous = current
+        break if Process.clock_gettime(Process::CLOCK_MONOTONIC) >= deadline
+      end
+      previous
+    end
+
     def other_active_connections
       @connection.select_value(<<~SQL).to_i
         SELECT count(*) FROM pg_stat_activity

@@ -39,8 +39,11 @@ module HmisCsvImporter::Benchmarking
       finished_at = Time.current
       raise 'Import did not produce an importer log; check the loader log for load failures' if importer.importer_log.blank?
 
-      stats_after = pg_stats.snapshot
       connections_at_finish = pg_stats.other_active_connections
+      # Wait for Postgres to flush the import's final transactions before the
+      # closing snapshot, otherwise the recorded write counters under-report the
+      # tail of the run; see PgStats#settled_snapshot.
+      stats_after = pg_stats.settled_snapshot
 
       Results.new(
         label: label,

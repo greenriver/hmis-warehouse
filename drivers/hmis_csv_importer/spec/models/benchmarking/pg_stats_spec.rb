@@ -83,6 +83,38 @@ RSpec.describe HmisCsvImporter::Benchmarking::PgStats, type: :model do
     end
   end
 
+  describe '#settled_snapshot' do
+    # The flush lag is external timing; the polling logic is asserted against a
+    # stubbed snapshot sequence so the behavior is deterministic rather than
+    # dependent on a real sleep. #snapshot itself is covered above with real
+    # writes.
+    it 'polls until two consecutive snapshots match and returns the settled one' do
+      pg_stats = described_class.new
+      allow(pg_stats).to receive(:sleep)
+      allow(pg_stats).to receive(:snapshot).and_return(
+        { 'data_sources' => { 'n_tup_ins' => 3 } },
+        { 'data_sources' => { 'n_tup_ins' => 5 } },
+        { 'data_sources' => { 'n_tup_ins' => 5 } },
+      )
+
+      expect(pg_stats.settled_snapshot).to eq('data_sources' => { 'n_tup_ins' => 5 })
+    end
+
+    it 'returns the most recent snapshot when the counters never settle before the timeout' do
+      pg_stats = described_class.new
+      allow(pg_stats).to receive(:sleep)
+      counter = 0
+      allow(pg_stats).to receive(:snapshot) do
+        counter += 1
+        { 'data_sources' => { 'n_tup_ins' => counter } }
+      end
+
+      # timeout: 0 permits exactly two snapshots (initial + one poll); the
+      # second, not the first, must be returned.
+      expect(pg_stats.settled_snapshot(timeout: 0)).to eq('data_sources' => { 'n_tup_ins' => 2 })
+    end
+  end
+
   describe '#other_active_connections' do
     it 'returns a non-negative count excluding this connection' do
       count = described_class.new.other_active_connections
