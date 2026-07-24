@@ -11,13 +11,6 @@ require_relative '../hmis/login_and_permissions'
 require_relative '../../support/hmis_base_setup'
 
 RSpec.describe Hmis::GraphqlController, type: :request do
-  before(:all) do
-    cleanup_test_environment
-  end
-  after(:all) do
-    cleanup_test_environment
-  end
-
   include_context 'hmis base setup'
 
   let!(:o2) { create :hmis_hud_organization, data_source: ds1, user: u1 }
@@ -98,7 +91,13 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   end
 
   before(:each) do
+    AppConfigProperty.create!(key: 'ac_hmis/esg_funding_report_enabled', value_input: 'true')
     hmis_login(user)
+  end
+
+  it 'denies access when the feature flag is disabled' do
+    allow_any_instance_of(HmisExternalApis::AcHmis::Configuration).to receive(:esg_funding_report_enabled?).and_return(false)
+    expect_access_denied(post_graphql({ client_ids: [c1.id.to_s, c2.id.to_s] }) { query })
   end
 
   it 'should resolve funding report correctly' do
