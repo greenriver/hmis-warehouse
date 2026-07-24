@@ -66,10 +66,30 @@ module HmisCsvImporter::Importer
     # Environment override (in milliseconds) for the slow-query capture
     # threshold used by with_sql_log; benchmark runs set this low to capture
     # more queries than the production default.
+    #
+    # with_sql_log records bind values alongside the SQL, and importer binds
+    # carry client identifiers, so an accidentally tiny threshold writes a large
+    # volume of client data into ImporterLog#phase_metrics. Values below the
+    # floor -- including the 0 that String#to_i yields for '1s' or 'true' -- are
+    # refused in favor of the default rather than capturing every query.
     SQL_LOG_MIN_DURATION_ENV = 'HMIS_IMPORTER_SQL_LOG_MIN_DURATION_MS'
+    DEFAULT_SQL_LOG_MIN_DURATION_MS = 60_000
+    MIN_SQL_LOG_MIN_DURATION_MS = 1
+
+    # Cap on the queries captured per with_sql_log block. They accumulate in
+    # memory before being merged into phase_metrics, so a low threshold on a
+    # large import is otherwise unbounded in both memory and stored payload.
+    SQL_LOG_MAX_QUERIES = 500
 
     def self.sql_log_min_duration_ms
-      (ENV[SQL_LOG_MIN_DURATION_ENV].presence || 60_000).to_i
+      override = ENV[SQL_LOG_MIN_DURATION_ENV].presence
+      return DEFAULT_SQL_LOG_MIN_DURATION_MS if override.nil?
+
+      duration = Integer(override, exception: false)
+      return duration if duration && duration >= MIN_SQL_LOG_MIN_DURATION_MS
+
+      Rails.logger.warn("Ignoring #{SQL_LOG_MIN_DURATION_ENV}=#{override.inspect}: expected an integer of at least #{MIN_SQL_LOG_MIN_DURATION_MS} ms, using #{DEFAULT_SQL_LOG_MIN_DURATION_MS} instead")
+      DEFAULT_SQL_LOG_MIN_DURATION_MS
     end
 
     def initialize(
@@ -666,12 +686,21 @@ module HmisCsvImporter::Importer
 
     # Capture executed sql for debugging. Also disable nested loops
     # min_duration defaults to 1 minute; override via SQL_LOG_MIN_DURATION_ENV
-    def with_sql_log(phase, klass, name: nil, min_duration: self.class.sql_log_min_duration_ms)
+    def with_sql_log(phase, klass, name: nil, min_duration: self.class.sql_log_min_duration_ms, max_queries: SQL_LOG_MAX_QUERIES)
       queries = []
+      capped = false
       callback = lambda { |event|
         payload_sql = event.payload[:sql].squish
         next if payload_sql =~ /ROLLBACK|COMMIT|BEGIN|SAVEPOINT/
         next if event.duration < min_duration
+
+        if queries.length >= max_queries
+          unless capped
+            capped = true
+            Rails.logger.warn("Captured #{max_queries} slow queries for #{phase}; dropping the remainder. Raise #{SQL_LOG_MIN_DURATION_ENV} to capture fewer.")
+          end
+          next
+        end
 
         binds = (event.payload[:binds] || []).map { |bind| { name: bind.name || '?', value: bind.value_for_database.inspect } }
         query_data = { sql: payload_sql.squish, binds: binds }
