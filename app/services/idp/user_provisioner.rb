@@ -95,13 +95,43 @@ module Idp
       # belongs to the resolved user — no cross-user case to handle here.)
       return if user.user_authentication_sources.where(connector_identity).exists?
 
-      # First JWT login (resolved by email): establish the link. Any prior
-      # soft-deleted row for this pair is left as inert history — the partial
-      # unique index ignores deleted rows, so a fresh live row inserts cleanly.
-      user.user_authentication_sources.create!(connector_identity)
+      # The validated token carries an id we have no live link for. Any live link
+      # this user holds for the same connector under a *different* id is now stale
+      # (e.g. the upstream account was deleted and recreated with a new subject)
+
+      superseded_ids = nil
+      Idp::UserAuthenticationSource.transaction do
+        stale_links = user.user_authentication_sources.
+          where(connector_id: @connector_id).
+          where.not(connector_user_id: @connector_user_id)
+
+        superseded_ids = stale_links.map(&:connector_user_id)
+        stale_links.destroy_all
+        user.user_authentication_sources.create!(connector_identity)
+      end
+
+      report_identity_disagreement(user, superseded_ids) if superseded_ids.present?
     rescue ActiveRecord::RecordNotUnique
-      # Lost a concurrent first-login race; a live row for this pair now exists.
+      # Lost a concurrent first-login/relink race; a live row for this pair now exists.
       nil
+    end
+
+    def report_identity_disagreement(user, superseded_ids)
+      Rails.logger.warn(
+        "IdP identity disagreement on connector #{@connector_id}: token subject #{@connector_user_id} " \
+        "superseded stale link(s) #{superseded_ids.inspect} for user_id=#{user.id}",
+      )
+
+      Sentry.capture_message(
+        'IdP identity disagreement: token subject did not match the stored authentication source',
+        level: :warning,
+        extra: {
+          user_id: user.id,
+          connector_id: @connector_id,
+          token_connector_user_id: @connector_user_id,
+          superseded_connector_user_ids: superseded_ids,
+        },
+      )
     end
 
     def update_last_connector(user)
