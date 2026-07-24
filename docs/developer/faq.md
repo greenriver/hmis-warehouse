@@ -27,7 +27,7 @@ The CSV specs have a "Custom file transfer template" indicating that HMIS system
 ## How are permissions checked on GraphQL queries and mutations?
 
 - Most HMIS records have a scope called `viewable_by`. Always use this scope when looking up a record. Most HMIS records' `viewable_by` scopes also perform a filter on `current_user.hmis_data_source_id`, ensuring that objects from other HMIS data sources are not included.
-- When checking permissions, 90% of the time we want to check against a specific entity. (E.g. "can the user edit THIS enrollment?", not just "can the user edit any enrollments?"). The preferred way to do this is using `current_permission?(permission:, entity:)` because it uses the Graphql data loader and also ensures that the entity belongs to the correct data source.
+- When checking permissions, 90% of the time we want to check against a specific entity. (E.g. "can the user edit THIS enrollment?", not just "can the user edit any enrollments?"). The preferred way to do this is using a Policy which checks access against a specific record (or record type) and also ensures the entity belongs to the correct data source. Policies share a per-request context that caches permission and related lookups (via memoization and context loaders) so repeated checks do not re-query. See [ADR 0006](../adr/0006-policy-based-graphql-access-fields.md). HMIS auth policies work similarly to [warehouse auth policies](../features/warehouse-auth-policies.md).
 - For nodes that are resolved from lots of places in the graph (and have PII), add object-level authorization to the object type (`def self.authorized?`). These are a secondary check to ensure the presence of the minimal permissions needed to resolve the object.
 
 # How to Create a New Report
