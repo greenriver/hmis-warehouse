@@ -49,6 +49,7 @@ RSpec.describe Importing::RunDailyImportsJob, type: :job do
     allow(SystemCohortsJob).to receive(:set).and_return(double(perform_later: true))
     allow(AccessGroup).to receive(:delayed_system_group_maintenance)
     allow(Collection).to receive(:delayed_system_group_maintenance)
+    allow(GrdaWarehouse::Tasks::CleanupOrphanedSystemCollections).to receive(:new).and_return(double(delay: double(run!: true)))
     allow(GrdaWarehouse::Cohort).to receive(:delay).and_return(double(maintain_auto_maintained!: true))
     allow(SyncSyntheticDataJob).to receive(:perform_later)
     allow(CasBase).to receive(:db_exists?).and_return(false)
