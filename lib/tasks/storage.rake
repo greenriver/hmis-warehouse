@@ -29,22 +29,22 @@ namespace :storage do
       {
         GrdaWarehouse::HmisExport => :with_attached_hmis_zip,
         GrdaWarehouse::AdHocBatch => :with_attached_batch_file,
+        GrdaWarehouse::NonHmisUpload => :with_attached_upload_file,
 
         # The following are classes that remain to be moved
-        # GrdaWarehouse::DashboardExportFile
-        # GrdaWarehouse::NonHmisUpload
-        # GrdaWarehouse::PublicFile
-        # GrdaWarehouse::ReportResultFile
-        # GrdaWarehouse::HealthEmergency::TestBatch
-        # Health::EdIpVisitFile
-        # Health::EligibilityResponse
-        # Health::EnrollmentReasons
-        # Health::Enrollment
-        # Health::HealthFile
-        # Health::PremiumPayment
-        # Health::TransactionAcknowledgement
-        # Health::CpMembers::FileBase
-        # TxClientReports::ResearchExports::Export
+        # GrdaWarehouse::DashboardExportFile => :with_attached_dashboard_export_file,
+        # GrdaWarehouse::PublicFile => :with_attached_public_file,
+        # GrdaWarehouse::ReportResultFile => :with_attached_report_result_file,
+        # GrdaWarehouse::HealthEmergency::TestBatch => :with_attached_test_batch_file,
+        # Health::EdIpVisitFile => :with_attached_ed_ip_visit_file,
+        # Health::EligibilityResponse => :with_attached_eligibility_response_file,
+        # Health::EnrollmentReasons => :with_attached_enrollment_reasons_file,
+        # Health::Enrollment => :with_attached_enrollment_file,
+        # Health::HealthFile => :with_attached_health_file,
+        # Health::PremiumPayment => :with_attached_premium_payment_file,
+        # Health::TransactionAcknowledgement => :with_attached_acknowledgement_file,
+        # Health::CpMembers::FileBase => :with_attached_member_file,
+        # TxClientReports::ResearchExports::Export => :with_attached_research_export_file,
 
         # The following were previously moved, leaving here to make adding
         # future files easier.

@@ -25,7 +25,7 @@ class NonHmisUploadsController < ApplicationController
   def show
     @upload = upload_source.find(params[:id].to_i)
     filename = @upload.file&.file&.filename&.to_s || 'upload'
-    send_data(@upload.content, type: @upload.content_type, filename: filename)
+    send_data(@upload.file_data, type: @upload.content_type, filename: filename)
   end
 
   def create
@@ -39,14 +39,17 @@ class NonHmisUploadsController < ApplicationController
     end
     file = upload_params[:file]
     @upload = upload_source.new(
-      upload_params.merge(
+      upload_params.except(:file).merge(
         percent_complete: 0.0,
         data_source_id: @data_source.id,
         user_id: current_user.id,
-        content_type: file.content_type,
-        content: file.read,
+        content_type: file&.content_type,
       ),
     )
+    @upload.upload_file.attach(file)
+    # Keep the legacy filename column populated without invoking CarrierWave's
+    # own storage (mount_uploader is a read-only fallback going forward).
+    @upload.write_attribute(:file, file.original_filename)
     if @upload.save
       run_import = true
       flash[:notice] = Translation.translate('Upload queued to start.')
