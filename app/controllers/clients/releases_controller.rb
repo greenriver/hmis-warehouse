@@ -128,7 +128,7 @@ module Clients
     end
 
     def pre_populated
-      @coc_map = GrdaWarehouse::PublicFile.find_by(name: 'client/releases/coc_map')&.content
+      @coc_map = GrdaWarehouse::PublicFile.find_by(name: 'client/releases/coc_map')&.file_data
       respond_to do |format|
         format.html do
           render layout: false

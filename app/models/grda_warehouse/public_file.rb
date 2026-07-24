@@ -10,14 +10,61 @@ module GrdaWarehouse
   class PublicFile < GrdaWarehouse::File
     include ArelHelper
     mount_uploader :file, FileUploader
+    has_one_attached :public_file, dependent: false
     acts_as_taggable
+
+    # CarrierWave's FileUploader#content_type_whitelist used to reject these on
+    # upload; new uploads go straight to ActiveStorage and bypass CarrierWave
+    # entirely, so validate the same whitelist here.
+    ALLOWED_CONTENT_TYPES = (FileUploader::WHITELIST + ['application/octet-stream']).freeze
 
     validates_presence_of :name
     validate :file_exists_and_not_too_large
+    validate :content_type_allowed, on: :create
+
+    def file_data
+      return public_file.download if public_file.attached?
+
+      content
+    end
+
+    scope :unprocessed_s3_migration, -> do
+      migrated = ActiveStorage::Attachment.where(record_type: 'GrdaWarehouse::File', name: 'public_file').pluck(:record_id)
+      all = pluck(:id)
+      unmigrated = all - migrated
+      return none if unmigrated.blank?
+
+      where(id: unmigrated)
+    end
+
+    def copy_to_s3!
+      return unless content.present?
+      return if public_file.attached?
+
+      Tempfile.create(binmode: true) do |tmp_file|
+        tmp_file.write(content)
+        tmp_file.rewind
+        self.content = nil
+        public_file.attach(io: tmp_file, content_type: content_type, filename: name.presence || 'file', identify: false)
+        save!(validate: false)
+      end
+    end
 
     def file_exists_and_not_too_large
-      errors.add :file, 'No uploaded file found' if (content&.size || 0) < 100
-      errors.add :file, 'File size should be less than 4 MB' if (content&.size || 0) > 4.megabytes
+      size = if public_file.attached?
+        public_file.byte_size
+      else
+        content&.size
+      end
+      errors.add :file, 'No uploaded file found' if (size || 0) < 100
+      errors.add :file, 'File size should be less than 4 MB' if (size || 0) > 4.megabytes
+    end
+
+    def content_type_allowed
+      return unless public_file.attached?
+      return if ALLOWED_CONTENT_TYPES.include?(content_type)
+
+      errors.add(:file, "You are not allowed to upload #{content_type} files")
     end
 
     def self.known_locations
@@ -50,7 +97,7 @@ module GrdaWarehouse
     end
 
     def self.url_for_location location
-      if (id = order(id: :desc).where(name: location).pluck(:id)&.first) # rubocop:disable Style/GuardClause:
+      if (id = order(id: :desc).where(name: location).pluck(:id)&.first)
         Rails.application.routes.url_helpers.public_file_path(id: id)
       end
     end

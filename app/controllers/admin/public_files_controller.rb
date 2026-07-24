@@ -19,7 +19,9 @@ module Admin
 
     def create
       file = file_params[:file]
-      @file = file_source.create(file_params.merge(user_id: current_user.id, content: file&.read))
+      @file = file_source.new(file_params.except(:file).merge(user_id: current_user.id, content_type: file&.content_type))
+      @file.public_file.attach(file) if file.present?
+      @file.save
       if @file.invalid?
         flash[:error] = @file.errors.full_messages.join('; ') + params.inspect.to_s
         redirect_to admin_public_files_path
