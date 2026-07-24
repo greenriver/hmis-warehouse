@@ -33,7 +33,7 @@ module HmisExternalApis::AcHmis
     end
 
     def key_for(attr)
-      "hmis_external_apis/#{attr}"
+      "ac_hmis/#{attr}"
     end
   end
 end

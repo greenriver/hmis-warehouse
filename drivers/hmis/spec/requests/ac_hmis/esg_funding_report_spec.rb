@@ -91,7 +91,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   end
 
   before(:each) do
-    AppConfigProperty.create!(key: 'hmis_external_apis/esg_funding_report_enabled', value_input: 'true')
+    AppConfigProperty.create!(key: 'ac_hmis/esg_funding_report_enabled', value_input: 'true')
     hmis_login(user)
   end
 
