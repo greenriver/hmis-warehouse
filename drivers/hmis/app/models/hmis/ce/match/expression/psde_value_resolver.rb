@@ -11,20 +11,23 @@ module Hmis::Ce::Match::Expression
   class PsdeValueResolver
     include Hmis::Concerns::HmisArelHelper
 
-    # Maps NoYes-disability field keys to their HUD DisabilityType code. Substance use (type 10)
-    # is deliberately excluded here — it has its own method because its meaningful-value set differs
-    # (see #resolve_substance_use_disorder).
+    # HUD DisabilityType codes, keyed by the names used across the warehouse (:physical, :substance, etc.)
+    DISABILITY_TYPE_CODES = GrdaWarehouse::Hud::Disability.disability_types.invert.freeze
+
+    # Maps NoYes-disability field keys to their HUD DisabilityType code. Substance use is deliberately
+    # excluded here — it is dispatched separately in #call because its meaningful-value set differs.
     NO_YES_DISABILITY_TYPES = {
-      PsdeFieldRegistry::PHYSICAL_DISABILITY.key => 5,
-      PsdeFieldRegistry::DEVELOPMENTAL_DISABILITY.key => 6,
-      PsdeFieldRegistry::CHRONIC_HEALTH_CONDITION.key => 7,
-      PsdeFieldRegistry::HIV_AIDS.key => 8,
-      PsdeFieldRegistry::MENTAL_HEALTH_DISORDER.key => 9,
+      PsdeFieldRegistry::PHYSICAL_DISABILITY.key => DISABILITY_TYPE_CODES.fetch(:physical),
+      PsdeFieldRegistry::DEVELOPMENTAL_DISABILITY.key => DISABILITY_TYPE_CODES.fetch(:developmental),
+      PsdeFieldRegistry::CHRONIC_HEALTH_CONDITION.key => DISABILITY_TYPE_CODES.fetch(:chronic),
+      PsdeFieldRegistry::HIV_AIDS.key => DISABILITY_TYPE_CODES.fetch(:hiv),
+      PsdeFieldRegistry::MENTAL_HEALTH_DISORDER.key => DISABILITY_TYPE_CODES.fetch(:mental),
     }.freeze
 
-    # Meaningful raw HUD response code. Anything else — 8/9/99/nil — is skipped as "not meaningful".
-    # 0 is always No for these response sets; #resolve_latest_boolean_response converts 0 => false and
-    # any other meaningful code => true.
+    SUBSTANCE_USE_DISABILITY_TYPE = DISABILITY_TYPE_CODES.fetch(:substance)
+
+    # Meaningful raw HUD response codes from NoYesReasonsForMissingData.
+    # Anything else — 8/9/99/nil — is skipped as "not meaningful".
     NO_YES_RESPONSES = [0, 1].freeze
     SUBSTANCE_RESPONSES = [0, 1, 2, 3].freeze # 1=Alcohol, 2=Drug, 3=Both; all collapse to true
 
@@ -41,7 +44,8 @@ module Hmis::Ce::Match::Expression
       when *NO_YES_DISABILITY_TYPES.keys
         resolve_disability(clients, disability_type: NO_YES_DISABILITY_TYPES.fetch(field.key))
       when PsdeFieldRegistry::SUBSTANCE_USE_DISORDER.key
-        resolve_substance_use_disorder(clients)
+        # Substance use has a distinct 4-value meaningful set: Alcohol (1), Drug (2), and Both (3) all collapse to true.
+        resolve_disability(clients, disability_type: SUBSTANCE_USE_DISABILITY_TYPE, meaningful_values: SUBSTANCE_RESPONSES)
       when PsdeFieldRegistry::DOMESTIC_VIOLENCE_SURVIVOR.key
         resolve_domestic_violence_survivor(clients)
       else
@@ -97,12 +101,6 @@ module Hmis::Ce::Match::Expression
         column: d_t[:DisabilityResponse],
         meaningful_values: meaningful_values,
       )
-    end
-
-    # Substance use (DisabilityType 10) has a distinct 4-value meaningful set.
-    # Alcohol (1), Drug (2), and Both (3) all collapse to true.
-    def resolve_substance_use_disorder(clients)
-      resolve_disability(clients, disability_type: 10, meaningful_values: SUBSTANCE_RESPONSES)
     end
 
     def resolve_domestic_violence_survivor(clients)

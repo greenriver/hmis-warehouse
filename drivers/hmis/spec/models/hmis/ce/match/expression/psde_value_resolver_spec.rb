@@ -306,6 +306,31 @@ RSpec.describe Hmis::Ce::Match::Expression::PsdeValueResolver, type: :model do
         expect(resolver.call(clients, field)).to eq({ destination_client.id => nil })
       end
 
+      # Substance use codes (2/3) are not valid for these types. Note this is stricter than the CAS
+      # path (GrdaWarehouse::Hud::Client#<type>_response), which accepts 0/1/2/3 for every type.
+      it 'returns nil when the only response is a non-HUD code for this disability type' do
+        create_disability(disability_type: disability_type, disability_response: 2, information_date: current_date - 1.week)
+
+        expect(resolver.call(clients, field)).to eq({ destination_client.id => nil })
+      end
+
+      it 'skips a non-HUD code and falls back to the prior meaningful row' do
+        create_disability(
+          disability_type: disability_type,
+          disability_response: 1,
+          information_date: current_date - 2.weeks,
+          date_updated: current_date - 2.weeks,
+        )
+        create_disability(
+          disability_type: disability_type,
+          disability_response: 2,
+          information_date: current_date - 1.week,
+          date_updated: current_date - 1.week,
+        )
+
+        expect(resolver.call(clients, field)).to eq({ destination_client.id => true })
+      end
+
       it 'skips 8/9/99/nil and falls back to the prior meaningful row' do
         create_disability(
           disability_type: disability_type,
@@ -468,9 +493,7 @@ RSpec.describe Hmis::Ce::Match::Expression::PsdeValueResolver, type: :model do
             information_date: current_date - 1.week,
           )
 
-          result = resolver.call(clients, field)
-          expect(result).to eq({ destination_client.id => true })
-          expect(result[destination_client.id]).to be(true)
+          expect(resolver.call(clients, field)).to eq({ destination_client.id => true })
         end
       end
 
@@ -541,9 +564,7 @@ RSpec.describe Hmis::Ce::Match::Expression::PsdeValueResolver, type: :model do
         information_date: current_date - 1.week,
       )
 
-      result = resolver.call(clients, field)
-      expect(result).to eq({ destination_client.id => true })
-      expect(result[destination_client.id]).to be(true)
+      expect(resolver.call(clients, field)).to eq({ destination_client.id => true })
     end
 
     it 'resolves the latest meaningful No (0) response to false' do
