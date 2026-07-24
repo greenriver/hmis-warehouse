@@ -36,9 +36,8 @@ namespace :storage do
         TxClientReports::ResearchExports::Export => :with_attached_research_export_file,
         Health::TransactionAcknowledgement => :with_attached_acknowledgement_file,
 
-        # The following are classes that remain to be moved
-        # GrdaWarehouse::DashboardExportFile => :with_attached_dashboard_export_file,
-        # GrdaWarehouse::HealthEmergency::TestBatch => :with_attached_test_batch_file,
+        # The following are classes are not being migrated
+
         # Health::EdIpVisitFile => :with_attached_ed_ip_visit_file,
         # Health::EligibilityResponse => :with_attached_eligibility_response_file,
         # Health::EnrollmentReasons => :with_attached_enrollment_reasons_file,
@@ -46,6 +45,7 @@ namespace :storage do
         # Health::HealthFile => :with_attached_health_file,
         # Health::PremiumPayment => :with_attached_premium_payment_file,
         # Health::CpMembers::FileBase => :with_attached_member_file,
+        # GrdaWarehouse::HealthEmergency::TestBatch => :with_attached_test_batch_file,
 
         # The following were previously moved, leaving here to make adding
         # future files easier.
