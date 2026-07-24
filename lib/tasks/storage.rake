@@ -31,6 +31,7 @@ namespace :storage do
         GrdaWarehouse::AdHocBatch => :with_attached_batch_file,
         GrdaWarehouse::NonHmisUpload => :with_attached_upload_file,
         GrdaWarehouse::PublicFile => :with_attached_public_file,
+        GrdaWarehouse::DashboardExportFile => :with_attached_dashboard_export_file,
 
         # The following are classes that remain to be moved
         # GrdaWarehouse::DashboardExportFile => :with_attached_dashboard_export_file,
