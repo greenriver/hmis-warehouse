@@ -42,24 +42,22 @@ RSpec.describe 'process_existing sub-step timing', type: :model do
     expect(@summary['Client.csv']['unchanged']).to be > 0
   end
 
-  it 'records mark_unchanged timing per file' do
-    client_summary = @summary['Client.csv']
-    expect(client_summary['unchanged_secs']).to be_a(Float)
-    expect(client_summary['unchanged_secs']).to be >= 0
+  # mark_unchanged is the step that reconciles on this pass, so its timing has to
+  # reflect real elapsed work. mark_incoming_older, by contrast, early-returns
+  # here: both imports carry the same ExportDate, so most_recent_export_for_ds?
+  # treats the incoming export as authoritative. Its timing is still recorded
+  # (the step ran, it just had nothing to do), which is why the mapping from step
+  # to summary key is proven separately below rather than by magnitude here.
+  it 'records elapsed time for the step that did the reconciling' do
+    expect(@summary['Client.csv']['unchanged_secs']).to be > 0
   end
 
-  it 'records mark_incoming_older timing per file' do
-    client_summary = @summary['Client.csv']
-    expect(client_summary['older_secs']).to be_a(Float)
-    expect(client_summary['older_secs']).to be >= 0
-  end
-
-  it 'records sub-step timings for every importable file with staged rows' do
+  it 'records both sub-step timings for every importable file with staged rows' do
     files_with_rows = @summary.select { |_file, info| info['pre_processed'].to_i.positive? }.keys
     expect(files_with_rows).to include('Client.csv', 'Enrollment.csv', 'Disabilities.csv')
     files_with_rows.each do |file|
-      expect(@summary[file]).to have_key('unchanged_secs'), "expected #{file} to record unchanged_secs"
-      expect(@summary[file]).to have_key('older_secs'), "expected #{file} to record older_secs"
+      expect(@summary[file]['unchanged_secs']).to be_a(Float), "expected #{file} to record unchanged_secs"
+      expect(@summary[file]['older_secs']).to be_a(Float), "expected #{file} to record older_secs"
     end
   end
 
@@ -111,6 +109,49 @@ RSpec.describe 'process_existing sub-step timing', type: :model do
     it 'does not attribute the shared tally to the step that did no work' do
       client_summary = @older_summary['Client.csv']
       expect(client_summary).not_to have_key('unchanged_rps')
+    end
+  end
+
+  # The real-import cases above prove the counts and rates, but not that each
+  # timing lands under its own key: both sub-steps finish in milliseconds on a
+  # fixture this size, so any assertion on their magnitude would be noise.
+  # Injecting a known delay into one step makes the step-to-key mapping
+  # falsifiable -- swapping the two Benchmark blocks in process_existing, or
+  # timing the wrong call, turns this red.
+  describe 'attributing elapsed time to the step that spent it' do
+    let(:delay) { 0.25 }
+
+    it 'records the delayed step under its own key and leaves the other step fast' do
+      # The incoming export has to be non-authoritative for mark_incoming_older
+      # to run at all, which needs a newer export already loaded for the data
+      # source. Whether the step matches any row is irrelevant here -- the rates
+      # cover that; this example only measures where the elapsed time is filed.
+      import_hmis_csv_fixture(
+        'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_six/date_updated_initial',
+        version: 'AutoMigrate',
+        run_jobs: false,
+        stop_version: '2026',
+      )
+
+      # There is no seam to inject a collaborator into the importer the loader
+      # builds, so the delay is added on the way through: the wrapped call still
+      # runs the real step, it just takes a known minimum.
+      allow_any_instance_of(HmisCsvImporter::Importer::Importer).
+        to receive(:mark_incoming_older).and_wrap_original do |original, klass, file_name|
+          sleep(delay) if file_name == 'Client.csv'
+          original.call(klass, file_name)
+        end
+
+      importer = import_hmis_csv_fixture(
+        'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_six/date_updated_older',
+        version: 'AutoMigrate',
+        run_jobs: false,
+        stop_version: '2026',
+      )
+
+      client_summary = importer.importer_log.summary['Client.csv']
+      expect(client_summary['older_secs']).to be >= delay
+      expect(client_summary['unchanged_secs']).to be < delay
     end
   end
 end

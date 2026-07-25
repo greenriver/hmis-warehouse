@@ -11,18 +11,20 @@ module HmisCsvImporter::Benchmarking
   # source through the standard auto-migrate pipeline, then writes a results
   # JSON document for later comparison.
   class Runner
-    attr_reader :dataset, :data_source_id, :label, :results_dir
+    attr_reader :dataset, :data_source_id, :label, :results_dir, :pg_stats
 
     def initialize(
       dataset_path:,
       data_source_id:,
       label: nil,
-      results_dir: HmisCsvImporter::Benchmarking.results_dir
+      results_dir: HmisCsvImporter::Benchmarking.results_dir,
+      pg_stats: PgStats.new
     )
       @dataset = Dataset.new(dataset_path)
       @data_source_id = data_source_id
       @label = label
       @results_dir = results_dir
+      @pg_stats = pg_stats
     end
 
     # Returns the path of the written results JSON.
@@ -30,9 +32,11 @@ module HmisCsvImporter::Benchmarking
       HmisCsvImporter::Benchmarking.ensure_not_production!
       git = HmisCsvImporter::Benchmarking.git_identity!
 
-      pg_stats = PgStats.new
       connections_at_start = pg_stats.other_active_connections
-      stats_before = pg_stats.snapshot
+      # Settle before the opening snapshot as well as the closing one. Counters
+      # still in flight from earlier activity would otherwise land inside this
+      # run's window and inflate every recorded delta.
+      stats_before = pg_stats.settled_snapshot
 
       started_at = Time.current
       importer = with_work_dir { |work_dir| import!(work_dir) }

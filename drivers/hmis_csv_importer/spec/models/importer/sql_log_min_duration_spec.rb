@@ -44,6 +44,30 @@ RSpec.describe HmisCsvImporter::Importer::Importer, type: :model do
       ENV[env_key] = ''
       expect(described_class.sql_log_min_duration_ms).to eq(60_000)
     end
+
+    # A malformed value used to reach String#to_i and become 0, which captures
+    # every query of the run -- binds included -- into phase_metrics.
+    it 'refuses a non-numeric override instead of capturing every query' do
+      ENV[env_key] = '1s'
+      expect(described_class.sql_log_min_duration_ms).to eq(60_000)
+    end
+
+    it 'refuses a zero override' do
+      ENV[env_key] = '0'
+      expect(described_class.sql_log_min_duration_ms).to eq(60_000)
+    end
+
+    it 'refuses a negative override' do
+      ENV[env_key] = '-5'
+      expect(described_class.sql_log_min_duration_ms).to eq(60_000)
+    end
+
+    # Boundary: the floor itself is a legitimate value, so the guard has to be
+    # >= rather than >.
+    it 'accepts an override at the floor' do
+      ENV[env_key] = described_class::MIN_SQL_LOG_MIN_DURATION_MS.to_s
+      expect(described_class.sql_log_min_duration_ms).to eq(described_class::MIN_SQL_LOG_MIN_DURATION_MS)
+    end
   end
 
   describe '#with_sql_log' do
@@ -76,6 +100,37 @@ RSpec.describe HmisCsvImporter::Importer::Importer, type: :model do
 
       phase_metrics = importer.importer_log.reload.phase_metrics
       expect(phase_metrics.to_h['bench_phase_quiet']).to be_nil
+    end
+
+    # Pins what a lowered threshold actually persists: bind values are recorded
+    # verbatim, so importer binds put client identifiers into phase_metrics.
+    # Any change to that (redaction, dropping binds) should be deliberate and
+    # turn this red rather than pass unnoticed.
+    it 'records bind values, including client identifiers, in the captured payload' do
+      ENV[env_key] = '10'
+      importer.with_sql_log(:bench_phase_binds, GrdaWarehouse::Hud::Client) do
+        GrdaWarehouseBase.connection.exec_query(
+          'SELECT pg_sleep(0.05) WHERE $1 = $1',
+          'spec',
+          [ActiveRecord::Relation::QueryAttribute.new('PersonalID', 'C-SECRET-1', ActiveRecord::Type::String.new)],
+        )
+      end
+
+      captured = importer.importer_log.reload.phase_metrics['bench_phase_binds']['Client']
+      payload = JSON.parse(Zlib::Inflate.inflate(Base64.decode64(captured.first['compressed_query'])))
+      expect(payload['binds']).to contain_exactly('name' => 'PersonalID', 'value' => '"C-SECRET-1"')
+    end
+
+    # Without a cap the captured array grows with the import, so a low threshold
+    # on a real dataset is unbounded in memory and in the stored payload.
+    it 'stops capturing once the per-block cap is reached' do
+      ENV[env_key] = '10'
+      importer.with_sql_log(:bench_phase_capped, GrdaWarehouse::Hud::Client, max_queries: 2) do
+        3.times { GrdaWarehouseBase.connection.execute('SELECT pg_sleep(0.05)') }
+      end
+
+      captured = importer.importer_log.reload.phase_metrics['bench_phase_capped']['Client']
+      expect(captured.length).to eq(2)
     end
   end
 end
