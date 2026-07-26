@@ -3,7 +3,7 @@
     {
       "text": "Decision",
       "type": "CHOICE",
-      "link_id": "decision",
+      "link_id": "initial_review_decision",
       "mapping": {
         "custom_field_key": "standard_initial_review_decision"
       },
@@ -35,7 +35,7 @@
       "enable_when": [
         {
           "operator": "EQUAL",
-          "question": "decision",
+          "question": "initial_review_decision",
           "answer_code": "decline"
         }
       ],

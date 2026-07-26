@@ -25316,7 +25316,8 @@ CREATE TABLE public.ce_match_candidate_pools (
     priority_expression character varying NOT NULL,
     candidates_generated_at timestamp(6) without time zone,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    candidates_fully_generated_at timestamp(6) without time zone
 );
 
 
@@ -359849,6 +359850,7 @@ ALTER TABLE ONLY public.import_logs
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260717132223'),
 ('20260624000001'),
 ('20260622120000'),
 ('20260618120000'),

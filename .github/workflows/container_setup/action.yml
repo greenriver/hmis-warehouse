@@ -13,10 +13,6 @@ inputs:
     description: 'Additional packages to install'
     required: false
     default: ''
-  install_chromium:
-    description: 'Install a version-pinned Chromium/chromium-common/chromium-sandbox for headless browser tests (see DSA-6378-1)'
-    required: false
-    default: 'false'
 
 runs:
   using: "composite"
@@ -98,72 +94,6 @@ runs:
           zlib1g-dev \
           ${{ inputs.additional_packages }}
         apt-get clean
-
-    - name: Install pinned Chromium
-      if: ${{ inputs.install_chromium == 'true' }}
-      shell: bash
-      env:
-        # Debian's bookworm-security chromium package is a rolling apt install with no
-        # version pin, so it silently picks up whatever build is currently published.
-        # DSA-6378-1 (2026-07-05) bumped it to 150.0.7871.46-1~deb12u1, which fails to
-        # launch headless in this container. Pin to the last known-good build via
-        # snapshot.debian.org, since the old .deb is no longer in the live apt index.
-        CHROMIUM_VERSION: 149.0.7827.196-1~deb12u1
-        CHROMIUM_SNAPSHOT_BASE: https://snapshot.debian.org/archive/debian-security/20260626T014759Z/pool/updates/main/c/chromium
-        # snapshot.debian.org addresses every archived file by its SHA1 (see the
-        # "hash" field at https://snapshot.debian.org/mr/package/chromium/<version>/allfiles),
-        # so this is the checksum to verify each download against, not a SHA256.
-        CHROMIUM_SHA1: b7b0674e68b94af0158bfa8c305a46fc07f6f7c5
-        CHROMIUM_COMMON_SHA1: 098ec4a8fe2e76c66f942ad2e2133f75fbd2a13d
-        CHROMIUM_SANDBOX_SHA1: 48701ce3ed3bd9cf6008862fb67d6decc3cc6569
-      run: |
-        retry() {
-          local max_attempts=3
-          local delay=5
-          local attempt=1
-          local exitcode=0
-
-          while (( attempt <= max_attempts ))
-          do
-            if "$@"
-            then
-              exitcode=0
-              break
-            else
-              exitcode=$?
-              echo "Command failed (attempt $attempt/$max_attempts). Retrying in $delay seconds..."
-              sleep $delay
-              attempt=$(( attempt + 1 ))
-              delay=$(( delay * 2 ))
-            fi
-          done
-
-          return $exitcode
-        }
-
-        tmp_dir=$(mktemp -d)
-        for pkg in chromium chromium-common chromium-sandbox; do
-          retry curl -sL --fail -o "$tmp_dir/${pkg}.deb" "$CHROMIUM_SNAPSHOT_BASE/${pkg}_${CHROMIUM_VERSION}_amd64.deb"
-        done
-
-        verify_sha1() {
-          local file=$1
-          local expected=$2
-          local actual
-          actual=$(sha1sum "$file" | cut -d' ' -f1)
-          if [[ "$actual" != "$expected" ]]; then
-            echo "::error::SHA1 mismatch for $file: expected $expected, got $actual"
-            exit 1
-          fi
-        }
-
-        verify_sha1 "$tmp_dir/chromium.deb" "$CHROMIUM_SHA1"
-        verify_sha1 "$tmp_dir/chromium-common.deb" "$CHROMIUM_COMMON_SHA1"
-        verify_sha1 "$tmp_dir/chromium-sandbox.deb" "$CHROMIUM_SANDBOX_SHA1"
-
-        retry apt-get install -y --no-install-recommends "$tmp_dir"/*.deb
-        apt-mark hold chromium chromium-common chromium-sandbox
-        rm -rf "$tmp_dir"
 
     - name: Install AWS CLI
       shell: bash
