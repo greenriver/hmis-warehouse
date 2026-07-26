@@ -82,6 +82,13 @@ module Idp
       false
     end
 
+    # Whether the user can change their own email address *at the IdP*, with the IdP owning
+    # collection and mailbox verification. Distinct from #supports_profile_updates?, which is
+    # about the Warehouse pushing an already-committed edit in.
+    def supports_email_self_service?
+      false
+    end
+
     def supports_account_backfill?
       false
     end

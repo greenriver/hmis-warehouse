@@ -1,0 +1,19 @@
+-# Read-only by design: the IdP collects and verifies a new address, so there is no local form here.
+-# Resolved as the `form` partial by idp/accounts/edit rendered from Idp::AccountEmailsController.
+
+- change_password_url = @user.account_action_url(action: 'UPDATE_PASSWORD', redirect_uri: edit_account_email_url)
+- change_email_url = @user.email_change_enabled? ? @user.account_action_url(action: 'UPDATE_EMAIL', redirect_uri: edit_account_email_url) : nil
+
+%p.lead
+  Your email is:
+  = @user.email
+
+%ul
+  - if change_email_url
+    %li.fw-bold
+      = link_to 'Change Email', change_email_url
+  - if change_password_url
+    %li.fw-bold
+      = link_to "Change password", change_password_url
+    %li.fw-bold
+      = link_to "Set up two-factor authentication", @user.account_action_url(action: 'CONFIGURE_TOTP', redirect_uri: edit_account_email_url)

@@ -713,6 +713,13 @@ RSpec.describe Idp::KeycloakService, type: :model do
     end
   end
 
+  describe '#supports_email_self_service?' do
+    it 'asserts true without probing the realm for the Update Email required action' do
+      expect(service.supports_email_self_service?).to be true
+      expect(a_request(:any, /#{Regexp.escape(api_url)}/)).not_to have_been_made
+    end
+  end
+
   describe '#account_console_url' do
     it 'builds the Account Console URL for the realm' do
       expect(service.account_console_url).to eq("#{api_url}/realms/#{realm}/account")

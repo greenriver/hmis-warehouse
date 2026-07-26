@@ -71,6 +71,12 @@ RSpec.describe Idp::NullService, type: :model do
     end
   end
 
+  describe '#supports_email_self_service?' do
+    it 'returns false' do
+      expect(service.supports_email_self_service?).to be false
+    end
+  end
+
   describe '#account_console_url' do
     it 'returns nil' do
       expect(service.account_console_url).to be_nil
@@ -93,6 +99,12 @@ RSpec.describe Idp::Service, type: :model do
   describe '#account_console_url' do
     it 'defaults to nil on the base contract' do
       expect(described_class.new.account_console_url).to be_nil
+    end
+  end
+
+  describe '#supports_email_self_service?' do
+    it 'defaults to false on the base contract' do
+      expect(described_class.new.supports_email_self_service?).to be false
     end
   end
 end

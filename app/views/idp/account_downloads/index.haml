@@ -1,7 +1,9 @@
-= content_for :title, 'Recent Downloads'
+= content_for :title, 'Edit Account'
 %h1= content_for :title
 %hr
-= render 'idp/accounts/account_info_tabs'
+.mb-5= render 'idp/accounts/account_info_tabs'
+
+%h3 Recent Downloads
 - if @items.any?
   = render 'list'
 - else

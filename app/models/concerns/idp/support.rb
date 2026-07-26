@@ -20,9 +20,14 @@ module Idp::Support
     last_connector_id.presence || primary_auth_source&.connector_id
   end
 
-  # The IdP owns the user's identity fields unless its service can push our edits back to it
+  # Whether the user can change their own email at the IdP, which collects the new address and
+  # verifies the mailbox before it becomes real. The Warehouse never edits email in this arm, so
+  # this gates the deep-link, not the Email tab. A service we can't build answers false, leaving
+  # the read-only tab with its explanatory copy.
   def email_change_enabled?
-    !profile_managed_by_idp?
+    idp_service.supports_email_self_service?
+  rescue Idp::ServiceError
+    false
   end
 
   # A service we can't even build (e.g. misconfigured Keycloak) is treated as locked — the safe
@@ -103,6 +108,42 @@ module Idp::Support
     return false unless primary_idp
 
     idp_service.send_execute_actions_email(user_id: idp_connector_user_id!, actions: ['UPDATE_PASSWORD', 'VERIFY_EMAIL'])
+  end
+
+  # Adopt the IdP's address after the user completed an Update Email action there — the IdP collected
+  # it and verified the mailbox, so it is authoritative. Returns the address we replaced when it
+  # moved, nil otherwise; callers need the old one to re-point HMIS user rows keyed on it. Compared
+  # case-insensitively, because a case-only difference isn't a change worth a write and an HMIS sync.
+  #
+  # The JWT claim can't serve here: oauth2-proxy still holds the pre-change token when the browser
+  # returns, so payload_email is the old address (and under email-as-username, the old username).
+  #
+  # @raise [Idp::ServiceError] the IdP holds the new address but hasn't verified the mailbox
+  # @raise [ActiveRecord::RecordInvalid] the new address can't be stored here (taken, or malformed)
+  def idp_reconcile_email!
+    return nil unless primary_idp
+
+    representation = idp_service.get_user(user_id: idp_connector_user_id!)
+    remote_email = representation['email'].presence
+    return nil if remote_email.blank? || remote_email.casecmp?(email)
+
+    # A verified mailbox is what makes the IdP authoritative. Enforced here rather than trusted from
+    # realm config: with Verify Email off, Keycloak applies a new address immediately, and adopting
+    # that would leave an unproven address in users.email — the thing routing the change through the
+    # IdP exists to prevent. Also covers the not-yet-clicked window, when the IdP has already
+    # recorded the pending address.
+    unless representation['emailVerified']
+      raise Idp::ServiceError.new(
+        "#{idp_service.idp_name} has not verified #{remote_email}",
+        idp_name: idp_service.idp_name,
+        operation: :get_user,
+      )
+    end
+
+    previous_email = email
+    update!(email: remote_email)
+
+    previous_email
   end
 
   # Push admin-edited first_name/last_name/email to the IdP. No-ops unless the service can accept

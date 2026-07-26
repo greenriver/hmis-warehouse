@@ -6,42 +6,52 @@
 
 # frozen_string_literal: true
 
-# JWT-arm email self-management. Email is a Warehouse profile field the IdP also owns, so a change
-# commits locally and pushes to the IdP. There is no local password to confirm (no update_with_password)
-# and no Devise confirmation mail. Reachable only when the connector accepts profile writes.
+# JWT-arm email self-management, read-only. Email is an identity field the IdP owns end to end: the
+# user changes it inside the IdP through an UPDATE_EMAIL deep-link, the IdP verifies the mailbox,
+# and the Warehouse adopts the result when the browser comes back. There is no local write path, so
+# nothing here can commit an address the IdP has not verified.
 class Idp::AccountEmailsController < ApplicationController
   include Idp::SoftFailure
 
   before_action :set_user
 
   def edit
-    render 'idp/accounts/edit'
+    reconcile_email_from_idp if reconcilable_return_trip?
   end
 
-  def update
-    email_before = @user.email
+  # Keycloak appends kc_action_status to redirect_uri after an application-initiated action, which is
+  # what separates a return trip from an ordinary visit to this tab. Only 'success' means something
+  # completed; 'cancelled' and 'error' leave users.email alone. The password and 2FA actions on this
+  # tab return here too, so their success lands in this branch as well — #idp_reconcile_email! reads
+  # the address back and no-ops when it hasn't moved, so that costs an Admin API read, not a wrong
+  # write. The capability check pairs with it: a status from an IdP that offers no Update Email action
+  # is noise, and an IdP whose service won't build answers false, so the read-only tab renders its
+  # copy instead of chasing a reconciliation.
+  private def reconcilable_return_trip?
+    params[:kc_action_status] == 'success' && @user.email_change_enabled?
+  end
 
-    if @user.update(account_params)
-      if @user.email != email_before
-        with_idp_soft_failure("Your email was saved, but we couldn't update it with your identity provider") do
-          @user.idp_update_profile!(email: @user.email)
-        end
-        @user.sync_to_hud_users(previous_email: email_before) if HmisEnforcement.hmis_enabled?
-        flash[:notice] = 'Account email was updated.'
-      end
-    else
-      flash[:alert] = 'Unable to change email address'
+  private def reconcile_email_from_idp
+    idp_name = @user.idp_service.idp_name
+    warning = "Your email was changed with #{idp_name}, but we couldn't adopt the new address"
+    previous_email = with_idp_soft_failure(warning, now: true) do
+      @user.idp_reconcile_email!
     end
-    redirect_to edit_account_email_path
-  end
+    return if previous_email.blank?
 
-  private def account_params
-    params.require(:user).permit(:email)
+    @user.sync_to_hud_users(previous_email: previous_email) if HmisEnforcement.hmis_enabled?
+    flash.now[:notice] = 'Account email was updated.'
+  rescue ActiveRecord::RecordInvalid => e
+    # The IdP moved the address but we can't store it — already taken here, or malformed. Reload to
+    # drop the rejected value so the tab shows what we actually hold, and page: reconciliation only
+    # runs on a return trip, so nothing retries and users.email stays stale until someone intervenes.
+    reason = e.record.errors.full_messages.join(', ')
+    @user.reload
+    Sentry.capture_exception_with_info(e, "Couldn't adopt #{idp_name} email for user #{@user.id}: #{reason}")
+    flash.now[:alert] = "Your email was changed with #{idp_name}, but we couldn't save the new address here. Please contact support."
   end
 
   private def set_user
     @user = current_user
-
-    return redirect_to edit_account_path, alert: 'Change email is not available.' unless @user.email_change_enabled?
   end
 end

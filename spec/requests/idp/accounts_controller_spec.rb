@@ -55,7 +55,7 @@ RSpec.describe Idp::AccountsController, type: :request, if: AuthMethod.jwt? do
     end
 
     describe 'GET edit' do
-      it 'renders the name fields editable and deep-links into the Keycloak self-service actions' do
+      it 'renders the name fields editable' do
         get edit_account_path
 
         expect(response).to have_http_status(:ok)
@@ -63,9 +63,15 @@ RSpec.describe Idp::AccountsController, type: :request, if: AuthMethod.jwt? do
           disabled_input = /<input[^>]*name="user\[#{field}\]"[^>]*disabled|<input[^>]*disabled[^>]*name="user\[#{field}\]"/
           expect(response.body).not_to match(disabled_input)
         end
-        expect(response.body).to include("#{api_url}/realms/#{realm}/protocol/openid-connect/auth")
-        expect(response.body).to match(/kc_action=UPDATE_PASSWORD/)
-        expect(response.body).to match(/kc_action=CONFIGURE_TOTP/)
+      end
+
+      # The credential deep-links live on the Login & Security tab, not here; see
+      # Idp::AccountEmailsController spec for their coverage.
+      it 'leaves the credential self-service links to the Login & Security tab' do
+        get edit_account_path
+
+        expect(response.body).not_to match(/kc_action=UPDATE_PASSWORD/)
+        expect(response.body).not_to match(/kc_action=CONFIGURE_TOTP/)
       end
     end
 

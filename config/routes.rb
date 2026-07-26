@@ -1012,7 +1012,9 @@ Rails.application.routes.draw do
   # its shared tabs partial resolves to the JWT variant that drops the IdP-owned tabs.
   if AuthMethod.jwt?
     resource :account, only: [:edit, :update], controller: 'idp/accounts'
-    resource :account_email, only: [:edit, :update], controller: 'idp/account_emails'
+    # No :update — the JWT arm never writes email locally; the IdP owns the change (see
+    # Idp::AccountEmailsController).
+    resource :account_email, only: [:edit], controller: 'idp/account_emails'
     resources :account_downloads, only: [:index], controller: 'idp/account_downloads'
   else
     resource :account, only: [:edit, :update] do

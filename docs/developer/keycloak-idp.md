@@ -129,16 +129,57 @@ out of the box — no `.env.development.local` edits needed. This path only reso
 > --password 'AdminPassword1!'`), and reset the secret in the admin console or recreate the realm
 > from a clean DB if it drifted.
 
+## Realm prerequisites for account email self-service
+
+Under the JWT arm a user changes their own email **inside Keycloak**, not in the Warehouse. The
+Email tab is read-only: it shows the current address and deep-links into Keycloak's `UPDATE_EMAIL`
+application-initiated action (`Idp::KeycloakService#account_action_url`), and the Warehouse adopts
+the new address only when the browser returns with `kc_action_status=success`
+(`Idp::AccountEmailsController#edit` → `Idp::Support#idp_reconcile_email!`), and only when the Admin
+API reports the mailbox as verified — `#idp_reconcile_email!` checks `emailVerified` on the
+representation it already fetched, so no self-service path can put an unproven address in
+`users.email`. (The **admin** path is separate and unchanged: `Admin::Idp::UsersController` still
+writes an admin-supplied address locally and pushes it with `emailVerified: false`, so an admin can
+still put an unverified address in `users.email`.)
+
+`Idp::KeycloakService#supports_email_self_service?` **asserts** the realm is set up for this rather
+than probing it, so the four items below are operator setup for every realm running the JWT arm.
+Miss one and the tab still renders and still offers the link, but the flow misbehaves in the ways
+noted.
+
+| Requirement | Where | If missing |
+| --- | --- | --- |
+| **Keycloak ≥ 26.4** | server version (`docker/keycloak/Dockerfile` pins 26.5.4 for dev) | Update Email is a preview feature needing `--features=update-email`; on older servers the action does not exist and Keycloak returns the user with an error status |
+| **Update Email** required action **enabled** | Authentication → Required actions | Keycloak rejects the `kc_action=UPDATE_EMAIL` link; the user gets no way to change their address |
+| Realm **Verify Email** on | Realm settings → Login → Verify email | Keycloak applies the new address **immediately, unverified**. The Warehouse then refuses to adopt it and warns the user, so Keycloak and `users.email` diverge until the realm is fixed — the change appears to fail rather than silently landing unverified |
+| Working **SMTP** on the realm | Realm settings → Email | The verification mail never sends, so a change can never complete |
+
+Two consequences worth knowing:
+
+- **Email is the login name.** The realm runs **Email as username**
+  (`registrationEmailAsUsername: true`), so Keycloak keeps `username` tracking `email` — matching the
+  legacy Devise model where email *is* the login. A completed Update Email therefore changes the
+  user's username too, which is why reconciliation reads the address back from the Admin API
+  (`#get_user`) rather than from the JWT: oauth2-proxy still holds the pre-change token when the
+  browser returns, so its `email` claim is the old address. `realm-import.json` sets the flag for
+  fresh dev realms — enable it on any existing/production realm before relying on email edits.
+  Without it, `username` is read-only and the **admin** path
+  (`Idp::KeycloakService#update_user`, still used by `Idp::AccountsController`-adjacent admin edits)
+  is rejected with `error-user-attribute-read-only`.
+- **Out-of-band edits do not reach the Warehouse.** An email changed directly in the Keycloak admin
+  console never produces a return trip, so `users.email` stays stale until the next user-initiated
+  change. Reconciliation is deliberately scoped to the return trip.
+
+> The dev `realm-import.json` does **not** yet enable the Update Email required action, realm
+> `verifyEmail`, or an `smtpServer`, and the auth compose stack has no mail sink — so the flow is
+> not exercisable end-to-end in the local dev stack yet. Configure those by hand in the admin
+> console, or see bead `app-0kk` for wiring them into the dev stack. Note that supplying a
+> top-level `requiredActions` array in a realm import **replaces** Keycloak's seeded defaults rather
+> than merging with them, so that array must re-list `UPDATE_PASSWORD`, `CONFIGURE_TOTP` and
+> `VERIFY_EMAIL` or the existing password/2FA deep-links regress.
+
 ## Notes
 
-- **Email self-service requires email-as-username.** The realm runs with **Email as username**
-  (`registrationEmailAsUsername: true`), so Keycloak makes `username` track `email` — matching the
-  legacy Devise model where email *is* the login. Account email changes push to the IdP via
-  `Idp::KeycloakService#update_user`, which sends only the email and lets Keycloak update the
-  username itself. Without this flag, `username` is read-only and the update is rejected with
-  `error-user-attribute-read-only` (the user sees "we couldn't update it with your identity
-  provider"). `realm-import.json` sets it for fresh realms — enable it on any existing/production
-  realm (Realm settings → Login → Email as username) before relying on email edits.
 - **Warehouse-only?** `oauth2-proxy-hmis` upstreams to Vite on the host (`host.docker.internal:5173`)
   and only matters on `hmis.dev.test`. Skip it — bring up just
   `keycloak dex oauth2-proxy-warehouse web` and use `hmis-warehouse.dev.test`.

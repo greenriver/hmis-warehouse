@@ -490,14 +490,22 @@ RSpec.shared_examples 'an auth-method-aware user' do |factory, model|
     end
 
     describe 'email_change_enabled?' do
-      it 'is the inverse of profile_managed_by_idp?' do
+      # Under JWT the Warehouse never writes email, so this asks whether the *IdP* offers the user a
+      # way to change it — not (as in the Devise arm) whether the Warehouse may. It is deliberately
+      # independent of supports_profile_updates?, which covers pushing an already-committed edit in.
+      it 'follows idp_service.supports_email_self_service?, not profile_managed_by_idp?' do
         user = model.new
+        expect(user.idp_service.supports_email_self_service?).to be false
         expect(user.email_change_enabled?).to be false
-        expect(user.email_change_enabled?).to eq(!user.profile_managed_by_idp?)
 
-        allow(user).to receive(:idp_service).and_return(instance_double(Idp::KeycloakService, supports_profile_updates?: true))
+        allow(user).to receive(:idp_service).and_return(instance_double(Idp::KeycloakService, supports_email_self_service?: true))
         expect(user.email_change_enabled?).to be true
-        expect(user.email_change_enabled?).to eq(!user.profile_managed_by_idp?)
+      end
+
+      it 'is false when the service cannot be built, so the read-only tab keeps its explanatory copy' do
+        user = model.new
+        allow(user).to receive(:idp_service).and_raise(Idp::ServiceError.new('Keycloak misconfigured'))
+        expect(user.email_change_enabled?).to be false
       end
     end
 

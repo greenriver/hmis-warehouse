@@ -177,6 +177,14 @@ module Idp
       true
     end
 
+    # Asserted, not probed: the Update Email required action and realm Verify Email are operator
+    # prerequisites documented in docs/developer/keycloak-idp.md, not something checked at render
+    # time. An Admin-API probe would only buy graceful degradation on realms Open Path does not
+    # administer; this predicate is where one would go.
+    def supports_email_self_service?
+      true
+    end
+
     def supports_user_creation?
       true
     end
@@ -212,7 +220,7 @@ module Idp
         scope: 'openid',
         kc_action: action,
       }
-      "#{api_url}/realms/#{realm}/protocol/openid-connect/auth?#{params.to_query}"
+      "#{api_url.sub(':8080', '')}/realms/#{realm}/protocol/openid-connect/auth?#{params.to_query}"
     end
 
     # Ping the Admin API to verify credentials and connectivity, using the same
