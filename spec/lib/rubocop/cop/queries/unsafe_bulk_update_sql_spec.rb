@@ -7,11 +7,20 @@
 # frozen_string_literal: true
 
 require 'rubocop'
-require 'rubocop/rspec/support'
+require 'rubocop/rspec/cop_helper'
+require 'rubocop/rspec/expect_offense'
+require 'rubocop/rspec/shared_contexts'
 require_relative '../../../../../lib/rubocop/cop/queries/unsafe_bulk_update_sql'
 
-RSpec.describe RuboCop::Cop::Queries::UnsafeBulkUpdateSql, :config do
+# NOTE: Deliberately does not require 'rubocop/rspec/support', which registers
+# `RSpec.configure { |c| c.include CopHelper }` globally with no metadata filter.
+# That pollutes every example group in the whole suite with a `configuration`
+# method, which can shadow same-named `let`/`subject` helpers in unrelated specs.
+# Including the helpers directly here scopes them to just this describe block.
+RSpec.describe RuboCop::Cop::Queries::UnsafeBulkUpdateSql do
+  include CopHelper
   include RuboCop::RSpec::ExpectOffense
+  include_context 'config'
 
   let(:msg) { described_class::MSG }
 
