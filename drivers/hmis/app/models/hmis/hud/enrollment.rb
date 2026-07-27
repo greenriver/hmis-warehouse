@@ -153,13 +153,13 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
 
   # Enrollments that the user has full enrollment details access to (e.g. they can see the full Enrollment Dashboard)
   scope :enrollment_details_viewable_by, ->(user) do
-    project_ids = Hmis::Hud::Project.with_access(user, :can_view_enrollment_details, :can_view_project, mode: :all).select(:id)
+    project_ids = Hmis::Hud::Project.with_access(user, :can_view_enrollment_details, :can_view_project, :can_view_clients, mode: :all).select(:id)
     where(project_pk: project_ids)
   end
 
   # Enrollments that the user has limited enrollment details access to (e.g. they can see that the Enrollments exist on the Client dashboard)
   scope :limited_enrollment_details_viewable_by, ->(user) do
-    project_ids = Hmis::Hud::Project.with_access(user, :can_view_limited_enrollment_details).select(:id)
+    project_ids = Hmis::Hud::Project.with_access(user, :can_view_limited_enrollment_details, :can_view_clients, mode: :all).select(:id)
     where(project_pk: project_ids)
   end
 
@@ -185,7 +185,7 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   scope :files_viewable_by, ->(user) do
     project_ids = Hmis::Hud::Project.
       # Projects where the user can see enrollment details
-      with_access(user, :can_view_enrollment_details, :can_view_project, mode: :all).
+      with_access(user, :can_view_enrollment_details, :can_view_project, :can_view_clients, mode: :all).
       # Projects where the user has one of the listed file perms
       with_access(user, :can_view_any_nonconfidential_client_files, :can_view_any_confidential_client_files, mode: :any).
       select(:id)

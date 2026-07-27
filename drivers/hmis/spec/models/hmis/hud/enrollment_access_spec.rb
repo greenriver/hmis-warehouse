@@ -48,7 +48,15 @@ RSpec.describe Hmis::Hud::Enrollment, type: :model do
 
   # Roles
   let!(:project_viewer) { create(:hmis_role_with_no_permissions, name: 'project viewer', can_view_project: true) }
-  let!(:enrollment_viewer) { create(:hmis_role_with_no_permissions, name: 'enrollment viewer', can_view_project: true, can_view_enrollment_details: true) }
+  let!(:enrollment_viewer) do
+    create(
+      :hmis_role_with_no_permissions,
+      name: 'enrollment viewer',
+      can_view_project: true,
+      can_view_enrollment_details: true,
+      can_view_clients: true,
+    )
+  end
   let!(:enrollment_viewer_without_project) { create(:hmis_role_with_no_permissions, name: 'only enrollment viewer', can_view_enrollment_details: true) }
   let!(:client_viewer) { create(:hmis_role_with_no_permissions, name: 'client viewer', can_view_clients: true) }
 
@@ -174,7 +182,9 @@ RSpec.describe Hmis::Hud::Enrollment, type: :model do
     end
 
     describe 'user has full enrollment access to p1' do
-      let!(:access_control) { create_access_control(user, p1, with_permission: [:can_view_enrollment_details, :can_view_project]) }
+      let!(:access_control) do
+        create_access_control(user, p1, with_permission: [:can_view_enrollment_details, :can_view_project, :can_view_clients])
+      end
 
       it 'includes enrollments at p1' do
         viewable_enrollments = Hmis::Hud::Enrollment.viewable_by(user, include_limited_access_enrollments: true)
@@ -183,7 +193,9 @@ RSpec.describe Hmis::Hud::Enrollment, type: :model do
     end
 
     describe 'user has limited enrollment access to p1' do
-      let!(:access_control) { create_access_control(user, p1, with_permission: [:can_view_limited_enrollment_details]) }
+      let!(:access_control) do
+        create_access_control(user, p1, with_permission: [:can_view_limited_enrollment_details, :can_view_clients])
+      end
 
       it 'includes enrollments at p1' do
         viewable_enrollments = Hmis::Hud::Enrollment.viewable_by(user, include_limited_access_enrollments: true)
@@ -195,7 +207,9 @@ RSpec.describe Hmis::Hud::Enrollment, type: :model do
       end
 
       describe 'and full access to p2' do
-        let!(:access_control2) { create_access_control(user, p2, with_permission: [:can_view_enrollment_details, :can_view_project]) }
+        let!(:access_control2) do
+          create_access_control(user, p2, with_permission: [:can_view_enrollment_details, :can_view_project, :can_view_clients])
+        end
 
         it 'includes enrollments at p1 (limited access) and p2 (full access)' do
           viewable_enrollments = Hmis::Hud::Enrollment.viewable_by(user, include_limited_access_enrollments: true)
@@ -208,7 +222,9 @@ RSpec.describe Hmis::Hud::Enrollment, type: :model do
     end
 
     describe 'user has access full enrollment access to another project' do
-      let!(:access_control) { create_access_control(user, p2, with_permission: [:can_view_enrollment_details, :can_view_project]) }
+      let!(:access_control) do
+        create_access_control(user, p2, with_permission: [:can_view_enrollment_details, :can_view_project, :can_view_clients])
+      end
 
       it 'does not contain p1 enrollments' do
         viewable_enrollments = Hmis::Hud::Enrollment.viewable_by(user, include_limited_access_enrollments: true)
