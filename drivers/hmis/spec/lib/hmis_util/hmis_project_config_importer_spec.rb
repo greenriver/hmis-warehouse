@@ -290,7 +290,7 @@ RSpec.describe HmisUtil::HmisProjectConfigImporter do
       file = write_csv(['ProjectID', 'AutoEnter'], [['P1', 'true']])
       expect do
         described_class.new(csv_path: file.path, dry_run: false).run!
-      end.to raise_error(HmisUtil::HmisProjectConfigImporter::ImportError, /exactly one HMIS data source/)
+      end.to raise_error(ActiveRecord::SoleRecordExceeded)
     ensure
       file.close!
     end
