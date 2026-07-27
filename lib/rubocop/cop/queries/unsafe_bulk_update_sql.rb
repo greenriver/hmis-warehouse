@@ -107,11 +107,12 @@ module RuboCop
           end
         end
 
-        # The bare name for a variable or constant *reference*. A `const` carries a
-        # namespace child first, so its name is the second element; simple vars carry it
-        # first. Assignment nodes expose the same thing as `#name`.
+        # The bare name for a variable or constant *reference*. `ConstNode` exposes only
+        # `#short_name` (`::Foo::BAR` => `:BAR`); the other reference nodes are `VarNode`s
+        # with `#name`. On the assignment side `#name` covers all five types, because
+        # `CasgnNode` aliases it to `short_name`.
         def variable_name(node)
-          node.const_type? ? node.short_name : node.children.first
+          node.const_type? ? node.short_name : node.name
         end
 
         def enclosing_scope(node)

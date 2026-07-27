@@ -123,7 +123,7 @@ module RuboCop
         def safe_date_ish_lvar?(expr)
           return false unless expr.lvar_type?
 
-          name = expr.children.first
+          name = expr.name
           scope = enclosing_scope(expr)
           return false unless scope
 
@@ -152,7 +152,7 @@ module RuboCop
         end
 
         def resolve_lvar_dstr(node, depth:, &block)
-          name = node.children.first
+          name = node.name
           scope = enclosing_scope(node)
           return unless scope
 
