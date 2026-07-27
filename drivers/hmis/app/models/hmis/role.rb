@@ -385,9 +385,9 @@ class Hmis::Role < ::ApplicationRecord
         sub_category: 'Expanded Access',
       },
       can_view_enrollment_details: {
-        description: 'When granted in conjunction with "Can View Project," grants access to view the full Enrollment Dashboard. Includes all related records such as Assessments, Services, Current Living Situations, and more.',
+        description: 'When granted in conjunction with "Can View Project" and "Can View Clients," grants access to view the full Enrollment Dashboard. Includes all related records such as Assessments, Services, Current Living Situations, and more.',
         administrative: false,
-        requirements: [:can_view_project],
+        requirements: [:can_view_project, :can_view_clients],
         access: [:viewable],
         category: 'Enrollment Access',
         sub_category: 'Access',
@@ -395,6 +395,7 @@ class Hmis::Role < ::ApplicationRecord
       can_view_limited_enrollment_details: {
         description: 'Access to view limited information about an enrollment, including: entry date, exit date, project name, project type, move-in date, and last bed night date.',
         administrative: false,
+        requirements: [:can_view_clients],
         access: [:viewable],
         category: 'Enrollment Access',
         sub_category: 'Access',
