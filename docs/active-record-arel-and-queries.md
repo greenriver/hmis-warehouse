@@ -16,12 +16,36 @@ the code patterns guide.
 
 When expressing a query, prefer the highest rung that cleanly does the job:
 
-1. **Standard ActiveRecord** — finders, scopes, hash conditions, and `merge`.
-   This is the default. It is the most readable, composable, and database
-   agnostic option.
+1. **Standard ActiveRecord** — finders, scopes, and hash conditions. This is
+   the default. It is the most readable, composable, and database agnostic
+   option.
+
+   Prefer `merge` when you need to apply a scope defined on another model to
+   a joined association — it keeps the condition next to the model that owns
+   it, instead of re-deriving the same `where` locally:
 
    ```ruby
    GrdaWarehouse::Hud::Enrollment.joins(:client).merge(GrdaWarehouse::Hud::Client.veteran)
+   ```
+
+   Be careful `merge`ing two scopes on the *same* model when they touch the
+   same column. Unlike chained `where` calls (which always AND), `merge`
+   removes any existing predicate on a column before adding the incoming
+   relation's predicate on that column — so the earlier condition is dropped,
+   not combined:
+
+   ```ruby
+   # bad — both sides constrain updated_at, so merge drops the first bound
+   # instead of ANDing it with the second
+   GrdaWarehouse::Hud::Client.where(updated_at: ..1.day.ago.to_date).
+     merge(GrdaWarehouse::Hud::Client.where(updated_at: 1.year.ago.to_date..))
+   # => WHERE "Client"."DateDeleted" IS NULL AND "Client"."updated_at" >= '2025-07-27'
+
+   # good — chained `where` (or `and`) ANDs same-column conditions instead
+   # of replacing them
+   GrdaWarehouse::Hud::Client.where(updated_at: ..1.day.ago.to_date).
+     where(updated_at: 1.year.ago.to_date..)
+   # => WHERE "Client"."DateDeleted" IS NULL AND "Client"."updated_at" <= '2026-07-26' AND "Client"."updated_at" >= '2025-07-27'
    ```
 
 2. **Arel** — for complex conditions that the hash form can't express cleanly
