@@ -53,12 +53,10 @@ module GrdaWarehouse
 
         # This is the id the census returns
         def set_full_geoid!
-          # SQL string concatenation with no Hash equivalent. Columns are unqualified
-          # but safe: this scope is single-table (no join), so Rails 8.1 does not alias
-          # the target table. See docs/active-record-arel-and-queries.md.
-          # rubocop:disable Queries/UnsafeBulkUpdateSql
-          where(full_geoid: nil).update_all("full_geoid = '#{Arel.sql(_full_geoid_prefix)}' || 'US' || #{_geoid_column}")
-          # rubocop:enable Queries/UnsafeBulkUpdateSql
+          # `||` rather than CONCAT so that a null geoid leaves full_geoid null (and thus
+          # still eligible) instead of writing a prefix-only value
+          geoid = Arel::Nodes::Concat.new(qt("#{_full_geoid_prefix}US"), arel_table[_geoid_column])
+          where(full_geoid: nil).update_all(full_geoid: geoid)
         end
 
         def _full_geoid_prefix
