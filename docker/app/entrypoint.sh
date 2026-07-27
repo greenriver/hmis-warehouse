@@ -53,6 +53,18 @@ echo 'Setting Timezone'
 cp /usr/share/zoneinfo/$TIMEZONE /app/etc-localtime
 echo $TIMEZONE >/etc/timezone
 
+# Skip setting the release tag on known non-web containers. We are settign in the catch-all
+# to ensure the web worker containers have the tag and not rely on CONTAINER_VARIANT being set.
+case "$CONTAINER_VARIANT" in
+  dj | cron | workoff | deploy)
+    echo "Skipping release tag resolution on $CONTAINER_VARIANT container"
+    ;;
+  *)
+    echo 'Resolving release tag from the deployed commit'
+    bundle exec ruby ./lib/util/git/release_resolver.rb || echo 'release resolution failed; continuing'
+    ;;
+esac
+
 if [ "$CONTAINER_VARIANT" = "dj" ]; then
   if [ "${ENABLE_DJ_METRICS}" = "true" ]; then
     echo "Starting metrics server"
