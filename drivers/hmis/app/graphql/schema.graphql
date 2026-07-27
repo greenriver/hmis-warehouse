@@ -10387,7 +10387,7 @@ type Query {
   Custom assessment form definitions for use in CE match rule management.
   """
   ceMatchCustomAssessmentForms: [FormDefinition!]!
-  ceMatchRule(id: ID!): CeMatchRule!
+  ceMatchRule(id: ID!): CeMatchRule
 
   """
   Coordinated Entry Match Rules in the current data source.

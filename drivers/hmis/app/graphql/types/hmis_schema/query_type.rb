@@ -696,12 +696,14 @@ module Types
       Hmis::Unit.viewable_by(current_user).find_by(id: id)
     end
 
-    field :ce_match_rule, HmisSchema::CeMatchRule, null: false do
+    field :ce_match_rule, HmisSchema::CeMatchRule, null: true do
       argument :id, ID, required: true
     end
     def ce_match_rule(id:)
       rule = Hmis::Ce::Match::Rule.find_by(id: id)
-      access_denied! unless rule && policy_for(rule, policy_type: :ce_match_rule).can_view?
+      return nil unless rule # not found (instead of raising)
+
+      access_denied! unless policy_for(rule, policy_type: :ce_match_rule).can_view?
 
       rule
     end
