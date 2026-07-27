@@ -47,12 +47,8 @@ module GrdaWarehouse
           else
             where(simplified_geom: nil)
           end
-          # PostGIS expression with no Hash/ActiveRecord equivalent. Columns are
-          # unqualified but safe: this scope is single-table (no join), so Rails 8.1
-          # does not alias the target table. See docs/active-record-arel-and-queries.md.
-          # rubocop:disable Queries/UnsafeBulkUpdateSql
-          scope.update_all(Arel.sql("simplified_geom = ST_MakeValid(ST_Simplify(geom, #{simplification_distance_in_degrees}))"))
-          # rubocop:enable Queries/UnsafeBulkUpdateSql
+          simplified = nf('ST_MakeValid', [nf('ST_Simplify', [arel_table[:geom], simplification_distance_in_degrees])])
+          scope.update_all(simplified_geom: simplified)
         end
 
         # This is the id the census returns
