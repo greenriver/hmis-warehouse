@@ -16,6 +16,11 @@ module HmisAdmin
     def index
       @project_groups = Hmis::ProjectGroup.all.preload(:data_source, :projects)
       @project_groups = @project_groups.text_search(params[:q]) if params[:q].present?
+      @ce_eligibility_project_group_id = begin
+        Hmis::Ce.configuration.eligibility_project_group_id
+      rescue Hmis::Ce::Configuration::Misconfiguration
+        nil
+      end
     end
 
     def new

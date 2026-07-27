@@ -19,6 +19,9 @@ module Hmis
   #   can view or administer (via Collections)
   # - Workspaces, where project groups back high-level UI context switchers
   #   without changing access permissions
+  # - CE eligibility scope, where a single project group can
+  #   limit which enrollments contribute to enrollment-scoped CE match fields
+  #   (via hmis_ce/eligibility_project_group_id)
   #
   # Likely future uses include: reporting segmentation, form applicability,
   # and custom form-rule targeting.
@@ -32,6 +35,7 @@ module Hmis
     include ::Hmis::Concerns::HmisArelHelper
 
     validate :data_source_must_be_hmis
+    before_destroy :prevent_destroy_if_used_for_ce_eligibility
 
     belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
     has_and_belongs_to_many :projects, class_name: 'Hmis::Hud::Project', join_table: :hmis_project_project_groups, foreign_key: :hmis_project_group_id
@@ -73,6 +77,13 @@ module Hmis
 
     def any_exclusion_criteria?
       JSON.parse(exclusion_criteria || '{}').compact_blank.any?
+    end
+
+    # True when this group is the deployment-wide CE eligibility project group.
+    def used_for_ce_eligibility?
+      Hmis::Ce.configuration.eligibility_project_group_id == id
+    rescue Hmis::Ce::Configuration::Misconfiguration
+      false
     end
 
     def parsed_inclusion_criteria= criteria
@@ -125,6 +136,13 @@ module Hmis
       return if data_source&.hmis?
 
       errors.add(:data_source, 'must be an HMIS data source')
+    end
+
+    def prevent_destroy_if_used_for_ce_eligibility
+      return unless used_for_ce_eligibility?
+
+      errors.add(:base, 'Cannot delete project group configured as the CE eligibility project group')
+      throw(:abort)
     end
 
     ##
