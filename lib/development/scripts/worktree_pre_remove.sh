@@ -33,7 +33,7 @@ fi
 if ! docker ps --format '{{.Names}}' | grep -qx "$db_container"; then
   echo "WARNING: $db_container is not running; cannot drop databases automatically."
   echo "Once it is up, drop them manually, e.g.:"
-  echo "  docker exec -i $db_container psql -U postgres -c 'DROP DATABASE IF EXISTS <name> WITH (FORCE);'"
+  echo "  docker exec $db_container psql -U postgres -c 'DROP DATABASE IF EXISTS <name> WITH (FORCE);'"
   exit 0
 fi
 
@@ -45,7 +45,12 @@ drop_db() {
     *) echo "  skip (not a _wt_ database): $dbname"; return 0 ;;
   esac
   echo "  dropping $dbname"
-  docker exec -i "$db_container" psql -U postgres -tc \
+  # No `-i`: this is a single non-interactive `-c` command, and `-i` would keep
+  # docker exec's stdin open. Since drop_db is called from a `while read` loop fed
+  # by process substitution (below), an `-i` docker exec inherits that same stdin
+  # and consumes the loop's remaining input after the first call, silently
+  # skipping every subsequent database.
+  docker exec "$db_container" psql -U postgres -tc \
     "DROP DATABASE IF EXISTS \"$dbname\" WITH (FORCE);" >/dev/null || \
     echo "  WARNING: failed to drop $dbname"
 }
