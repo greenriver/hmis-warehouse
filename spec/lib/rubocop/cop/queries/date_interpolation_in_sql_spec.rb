@@ -143,6 +143,65 @@ RSpec.describe RuboCop::Cop::Queries::DateInterpolationInSql do
         end
       RUBY
     end
+
+    it 'flags a date-named lvar that is op-assigned (still a raw Date, not resolvable)' do
+      expect_offense(<<~'RUBY', msg: described_class::MSG)
+        def q
+          filter_date = Date.current
+          filter_date += 1.day
+          scope.where("d = '#{filter_date}'")
+                            ^^^^^^^^^^^^^^ %{msg}
+        end
+      RUBY
+    end
+  end
+
+  # An lvasgn nested inside an op-assign (or a multiple assignment) has no value node of
+  # its own, so reading its "right-hand side" positionally yields the variable-name
+  # Symbol. Walking into that raised NoMethodError, which rubocop swallowed as a cop
+  # error while silently skipping the node it was meant to inspect. This bit real code:
+  # `where(a_t[:id].not_in(counted))` in a method that also does `counted += ...`
+  # (drivers/hud_apr/.../question_twenty.rb) crashed the cop.
+  context 'when the enclosing scope op-assigns a variable of the same name' do
+    it 'does not raise for a non-date lvar accumulated with +=' do
+      expect_no_offenses(<<~RUBY)
+        def q
+          counted = []
+          counted += members.pluck(:id)
+          members.where(a_t[:id].not_in(counted))
+        end
+      RUBY
+    end
+
+    it 'does not raise for an or-assigned lvar' do
+      expect_no_offenses(<<~RUBY)
+        def q
+          clause = nil
+          clause ||= build_clause
+          scope.where(clause)
+        end
+      RUBY
+    end
+
+    it 'does not raise for a multiple assignment' do
+      expect_no_offenses(<<~RUBY)
+        def q
+          clause, other = build
+          scope.where(clause)
+        end
+      RUBY
+    end
+
+    it 'still resolves a SQL string through a variable that is also op-assigned' do
+      expect_offense(<<~'RUBY', msg: described_class::MSG)
+        def q
+          query = "pit_enrollments ? '#{pit_date}'"
+                                      ^^^^^^^^^^^ %{msg}
+          query += " AND x = 1"
+          universe.members.where(query)
+        end
+      RUBY
+    end
   end
 
   context 'when the date is explicitly formatted (safe)' do

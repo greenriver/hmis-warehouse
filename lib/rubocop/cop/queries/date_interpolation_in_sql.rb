@@ -127,13 +127,18 @@ module RuboCop
           scope = enclosing_scope(expr)
           return false unless scope
 
-          assigns = scope.each_descendant(:lvasgn).select { |asgn| asgn.children.first == name }
+          assigns = scope.each_descendant(:lvasgn).select { |asgn| asgn.name == name }
           # Only safe if the var is actually assigned in scope AND *every* reaching
           # assignment is itself safe. A single raw-date assignment anywhere on the path
           # must block the allow-list, otherwise "wrong assignment wins" and a genuinely
           # dangerous interpolation slips through.
           assigns.any? && assigns.all? do |asgn|
-            rhs = asgn.children.last
+            rhs = asgn.expression
+            # `#expression` is nil for an lvasgn with no value node of its own — the
+            # forms nested in another assignment (`d += 1.day`, `a, d = ...`). Those are
+            # unresolvable, and `d += 1.day` yields a raw Date, so treat them as unsafe.
+            next false if rhs.nil?
+
             sql_string_node?(rhs) || safely_formatted?(rhs)
           end
         end
@@ -152,9 +157,12 @@ module RuboCop
           return unless scope
 
           scope.each_descendant(:lvasgn) do |asgn|
-            next unless asgn.children.first == name
+            next unless asgn.name == name
 
-            each_sql_dstr(asgn.children.last, depth: depth + 1, &block)
+            # `#expression` is nil for an lvasgn nested in another assignment
+            # (`x += ...`, `a, x = ...`); there is no value node to follow, and
+            # each_sql_dstr no-ops on nil.
+            each_sql_dstr(asgn.expression, depth: depth + 1, &block)
           end
         end
 
