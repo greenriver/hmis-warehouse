@@ -60,6 +60,15 @@ RSpec.describe Hmis::Ce::Match::CandidatePool do
         end
       end
 
+      context 'when pool is only referenced by unit group without a waitlist workflow template' do
+        let!(:pool_without_waitlist_template) { create :hmis_ce_match_candidate_pool }
+        let!(:unit_group_without_waitlist_template) { create :hmis_unit_group, project: p1, workflow_template: nil, candidate_pool: pool_without_waitlist_template }
+
+        it 'excludes the pool' do
+          expect(described_class.active).not_to include(pool_without_waitlist_template)
+        end
+      end
+
       context 'when pool is referenced by both active and inactive unit groups' do
         let!(:inactive_project) { create :hmis_hud_project, data_source: ds1, operating_end_date: 1.day.ago }
         let!(:inactive_project_config) { create :hmis_project_ce_config, supports_waitlist_referrals: true, project: inactive_project }

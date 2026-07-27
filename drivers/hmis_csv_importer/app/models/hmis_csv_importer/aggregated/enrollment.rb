@@ -21,7 +21,7 @@ module HmisCsvImporter::Aggregated
     scope :open_during_range, ->(range) do
       e_t = arel_table
       ex_t = HmisCsvImporter::Aggregated::Exit.arel_table
-      # convert the range into a standard range for backwards compatability
+      # convert the range into a standard range for backwards compatibility
       range = (range.start..range.end) if range.is_a?(::Filters::DateRange)
       d_1_start = range.first
       d_1_end = range.last

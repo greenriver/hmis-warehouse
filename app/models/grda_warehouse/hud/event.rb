@@ -34,7 +34,7 @@ module GrdaWarehouse::Hud
     has_one :client, through: :enrollment, inverse_of: :events
 
     scope :within_range, ->(range) do
-      # convert the range into a standard range for backwards compatability
+      # convert the range into a standard range for backwards compatibility
       range = (range.start..range.end) if range.is_a?(::Filters::DateRange)
       where(EventDate: range)
     end

@@ -315,7 +315,7 @@ module ReportGenerators::DataQuality::Fy2017
       @households ||= begin
         hh = {}
 
-        # Individuals (no household id avaialble)
+        # Individuals (no household id available)
         client_batch_scope.
           where(household_id: [nil, '']).
           order(first_date_in_program: :asc).

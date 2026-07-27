@@ -152,7 +152,7 @@ module PublicReports
     end
 
     private def report_scope
-      # for compatability with FilterScopes
+      # for compatibility with FilterScopes
       @filter = filter_object
       @project_types = @filter.project_type_numbers
       scope = GrdaWarehouse::ServiceHistoryEnrollment.entry

@@ -48,4 +48,11 @@ FactoryBot.define do
     name { 'HUD HMIS CSV Exports' }
     description { 'Export data in the HUD standard CSV format.' }
   end
+
+  factory :client_lookups_report, class: 'GrdaWarehouse::WarehouseReports::ReportDefinition' do
+    report_group { 'Operational Reports' }
+    url { 'warehouse_reports/client_lookups' }
+    name { 'Client PersonalID Lookup' }
+    description { 'Mapping table to translate warehouse IDs to HMIS Personal IDs' }
+  end
 end

@@ -202,7 +202,7 @@ module HudApr::Generators::Shared::Fy2024
 
       pit_date = pit_date(month: month, before: @report.end_date)
 
-      # Logic for step 4 is enforced when addding PIT dates to the client record
+      # Logic for step 4 is enforced when adding PIT dates to the client record
       # If a client doesn't have any overlapping enrollments that qualify, they won't
       # have a record for the PIT date
       # The client we return may not be an HoH in relation to the rest of the APR, but they

@@ -275,6 +275,20 @@ RSpec.describe Idp::Keycloak::UserImporter, type: :model do
           with(/Failed to decrypt OTP secret/)
       end
     end
+
+    context 'when 2FA is required but no secret is configured' do
+      before { user.update(otp_required_for_login: true) }
+
+      it 'excludes the OTP credential when neither the new nor legacy secret is set' do
+        # otp_secret bridges both storage locations; nil means 2FA was never set up
+        # despite the requirement flag, so we must not emit an (empty) OTP credential.
+        expect(user.otp_secret).to be_nil
+
+        result = importer.build_import_user_data(user)
+
+        expect(result[:credentials].find { |c| c[:type] == 'otp' }).to be_nil
+      end
+    end
   end
 
   describe '#bulk_import_users' do
@@ -467,6 +481,36 @@ RSpec.describe Idp::Keycloak::UserImporter, type: :model do
           importer.import_from_file(file_path)
         end.to raise_error(Idp::ServiceError)
       end
+    end
+  end
+
+  describe '#ensure_groups!' do
+    let(:groups_url) { "#{api_url}/admin/realms/#{realm}/groups" }
+
+    it 'creates both required groups and reports them as created' do
+      stub_request(:post, groups_url).
+        with(body: { name: 'warehouse-users' }.to_json).to_return(status: 201)
+      stub_request(:post, groups_url).
+        with(body: { name: 'hmis-users' }.to_json).to_return(status: 201)
+
+      expect(importer.ensure_groups!).to eq(created: ['warehouse-users', 'hmis-users'], existing: [])
+    end
+
+    it 'reports already-present groups as existing' do
+      stub_request(:post, groups_url).
+        with(body: { name: 'warehouse-users' }.to_json).to_return(status: 409)
+      stub_request(:post, groups_url).
+        with(body: { name: 'hmis-users' }.to_json).to_return(status: 201)
+
+      expect(importer.ensure_groups!).to eq(created: ['hmis-users'], existing: ['warehouse-users'])
+    end
+
+    it 'propagates a ServiceError when a group cannot be ensured' do
+      stub_request(:post, groups_url).
+        with(body: { name: 'warehouse-users' }.to_json).
+        to_return(status: 500, body: { errorMessage: 'boom' }.to_json)
+
+      expect { importer.ensure_groups! }.to raise_error(Idp::ServiceError, /boom/)
     end
   end
 end

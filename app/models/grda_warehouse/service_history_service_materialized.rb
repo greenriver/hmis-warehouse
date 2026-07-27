@@ -33,7 +33,7 @@ class GrdaWarehouse::ServiceHistoryServiceMaterialized < GrdaWarehouseBase
     incorrect_dates = materialized_dates.reject { |client_id, date| shs_dates[client_id] == date }
     return if incorrect_dates.blank?
 
-    msg = "Found a discrepency (#{incorrect_dates.count}) in SHS and Materialized View #{incorrect_dates.inspect}"
+    msg = "Found a discrepancy (#{incorrect_dates.count}) in SHS and Materialized View #{incorrect_dates.inspect}"
     @notifier.ping(
       msg,
       {

@@ -109,7 +109,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         query #{operation_name}{
           access {
             id
-            canAdministerHmis
             canEditClients
             __typename
           }

@@ -10,7 +10,7 @@ module GrdaWarehouse::Hud
   class Geography < Base
     include HudSharedScopes
     # Since this Geography is no longer included in the HMIS spec, we're not creating
-    # the struture file
+    # the structure file
     # include ::HmisStructure::Geography
     include ::HmisStructure::Base
 

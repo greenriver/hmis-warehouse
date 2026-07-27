@@ -35,7 +35,7 @@ module GrdaWarehouse
 
       # def test_uniform_names
       #  if UsCensusApi::CensusVariable.where.not(dataset: 'sf1').group(:internal_name).having('count(*) = 1').any?
-      #    # sf1 is excluded because the dicennial dataset has variables we don't
+      #    # sf1 is excluded because the decennial dataset has variables we don't
       #    # get elsewhere and we only have one year at the moment. After we have
       #    # 2020 data, we might be able to take that bit out.
       #    puts '[FAIL] There should be more than one of each variable since we have many years of data for the acs datasets'
@@ -193,7 +193,7 @@ module GrdaWarehouse
       #   z = stddev / mean
 
       #   if z > 0.1
-      #     puts "[FAIL] Year over year stability at state level for #{what}: stdev was #{stddev} and mean was #{mean} and z was #{z}. #{populations}"
+      #     puts "[FAIL] Year over year stability at state level for #{what}: stddev was #{stddev} and mean was #{mean} and z was #{z}. #{populations}"
       #   else
       #     puts "[OK] Year over year stability at state level for #{what}"
       #     end

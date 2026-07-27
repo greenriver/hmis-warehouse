@@ -146,6 +146,7 @@ module ClientController
           :VeteranStatus,
           :bypass_search,
           :data_source_id,
+          :exclude_from_external_data_sharing,
           Gender: [],
         )
     end

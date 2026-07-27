@@ -212,13 +212,14 @@ module GrdaWarehouse::Tasks
       end
     end
 
+    # dead code?
     def lpg(sheet)
       sheet.to_a[2..].each do |row|
         next if row.none?(&:present?)
 
         project_id_etc, group = row
         project_id = parse_project_id(project_id_etc)
-        GrdaWarehouse::Hud::Projec.where(ProjectID: project_id, data_source_id: @data_source_id).update_all local_planning_group: group
+        GrdaWarehouse::Hud::Project.where(ProjectID: project_id, data_source_id: @data_source_id).update_all local_planning_group: group
       end
     end
 

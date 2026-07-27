@@ -13,6 +13,9 @@ namespace :ce_define_standard_workflows do
   #   rails driver:hmis:ce_define_standard_workflows:create                   # expects sole HMIS data source
   # Creates/updates draft templates. Idempotent; if the template already exists as draft, it will be updated.
   # Optional: PUBLISH=true, FORCE_RECREATE=true (non-production only; destroys existing template/form data)
+  #
+  # NOTE: This task will fail if the installation's form directory does not contain the required forms.
+  # Copy the forms from drivers/hmis/lib/form_data/demo/ce_referral_steps/ to the installation's directory.
   task :create, [:data_source_id] => :environment do |_, args|
     raise unless HmisEnforcement.hmis_enabled?
     raise 'FORCE_RECREATE destroys data and should not be run in production' if ENV['FORCE_RECREATE'] && Rails.env.production?

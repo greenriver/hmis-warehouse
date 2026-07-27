@@ -119,7 +119,7 @@ module AssetHelper
   end
 
   # will prepend a http or default_protocol to a protocol relative URL
-  # or when no protcol is set.
+  # or when no protocol is set.
   def self.prepend_protocol(source)
     protocol = 'https'
     if source[0, 2] == '//'

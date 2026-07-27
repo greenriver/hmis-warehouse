@@ -52,6 +52,7 @@ module MaYyaReport
       end
     end
 
+    # rubocop:disable Metrics/AbcSize
     private def for_batch(batch)
       enrollments_by_client_id = clients_with_enrollments(batch)
       {}.tap do |clients|
@@ -138,7 +139,7 @@ module MaYyaReport
             latest_homeless_cls: latest_homeless_cls&.InformationDate,
             latest_homeless_cls_code: latest_homeless_cls&.CurrentLivingSituation,
 
-            # direct_assistance: direct_assistance?(enrollments_by_client_id[client_id]), # Legacy column no longer in use
+            direct_assistance: direct_assistance?(enrollments_by_client_id[client_id]), # Column only used if the HMIS collects flex funds
             education_status_date: education_status&.InformationDate,
             current_school_attendance: education_status&.CurrentSchoolAttend,
             current_educational_status: education_status&.CurrentEdStatus,
@@ -160,7 +161,7 @@ module MaYyaReport
             # rehoused_on: rehoused_on(enrollment.enrollment), # Legacy column no longer in use
             subsequent_current_living_situations: subsequent_current_living_situations(enrollment.enrollment),
             zip_codes: zip_codes(client),
-            # flex_funds: flex_funds(enrollments_by_client_id[client_id]), # Legacy column no longer in use
+            flex_funds: flex_funds(enrollments_by_client_id[client_id]), # Column only used if the HMIS collects flex funds
             language: language(enrollment.enrollment),
             employed: employment_status&.Employed == 1,
             former_foster_ward: enrollment.enrollment.FormerWardChildWelfare == 1,
@@ -181,6 +182,7 @@ module MaYyaReport
         end
       end
     end
+    # rubocop:enable Metrics/AbcSize
 
     # Any client with an enrollment that overlaps the universe
     private def client_scope
@@ -485,6 +487,8 @@ module MaYyaReport
 
     # True if client was referred to flex funds OR if they received flex funds
     private def direct_assistance?(enrollments)
+      return false unless flex_funds_service_type && flex_funds_types_cded
+
       # CE Event 16 = Referral to emergency assistance/flex fund/furniture assistance
       referred_to_direct_assistance = enrollments.any? do |enrollment|
         enrollment.enrollment.events.any? do |event|

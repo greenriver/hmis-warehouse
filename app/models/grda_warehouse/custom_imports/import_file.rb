@@ -96,7 +96,7 @@ module GrdaWarehouse::CustomImports
     # NOTE: at the moment, this doesn't check file names or etags, it just returns the most recent
     # eventually we should compare etags to make sure we aren't re-importing the same file repeatedly.
     # File name isn't sufficient because we receive some files that _always_ come with the same name.
-    # Also, we don't want to exlude a file because we previously saw the same etag if we've imported
+    # Also, we don't want to exclude a file because we previously saw the same etag if we've imported
     # something else in the meantime, since we might be trying to fix a previously bad import.
     def most_recent_on_s3
       files = []

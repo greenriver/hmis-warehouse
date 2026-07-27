@@ -222,6 +222,9 @@ module Hmis::WorkflowExecution
         # the workflow should not move forward.
         # This relies on the .merge behavior, which overwrites existing keys,
         # combined with the fact that we are walking through the graph sequentially.
+        # Caution that this may not work for cyclic workflows, such as the Standard Referral template,
+        # because graphs with loops are not represented sequentially in Graph#walk.
+        # In those cases, take care to use distinct form definitions and link IDs
         result.merge!(step.submitted_values) if step&.completed?
       end
     end

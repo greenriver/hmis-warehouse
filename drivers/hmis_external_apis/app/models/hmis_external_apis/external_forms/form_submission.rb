@@ -120,7 +120,7 @@ module HmisExternalApis::ExternalForms
         # set default relationship_to_hoh (1 for new household, 99 for existing household)
         relationship_to_hoh ||= project.enrollments.where(household_id: household_id).exists? ? 99 : 1
 
-        # No need to processs thes fields further, so remove them
+        # No need to process these fields further, so remove them
         values_to_process.delete('Enrollment.householdId')
         values_to_process.delete('Enrollment.relationshipToHoH')
 

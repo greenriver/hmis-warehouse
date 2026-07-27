@@ -17,6 +17,8 @@ module Types
         field: field,
         comparator: comparator,
         value: value,
+        field_source: nil,
+        form_definition_identifier: nil,
       )
     end
   end

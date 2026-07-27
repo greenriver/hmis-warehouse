@@ -11,6 +11,7 @@
 module GrPaperTrailVersionBehavior
   extend ActiveSupport::Concern
   include PaperTrail::VersionConcern
+  include PaperTrailSafeColumns
 
   included do
     scope :for_users, -> {

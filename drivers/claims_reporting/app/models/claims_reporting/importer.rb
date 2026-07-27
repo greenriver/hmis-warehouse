@@ -6,7 +6,7 @@
 
 # frozen_string_literal: true
 
-# Class to handle upsert style inserts from ZIPED CSVs (and potentially other flat file formats
+# Class to handle upsert style inserts from ZIPPED CSVs (and potentially other flat file formats
 # into ClaimsReporting::* data tables.
 
 require 'zip'
@@ -61,7 +61,7 @@ module ClaimsReporting
       end
     end
 
-    # returns an Array of Hashs describing
+    # returns an Array of Hashes describing
     # files sorted in ascending date order using the month and year found
     # in the file name. See naming_convention
     def check_sftp(

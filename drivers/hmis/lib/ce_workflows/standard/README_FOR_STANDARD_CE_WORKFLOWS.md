@@ -5,7 +5,7 @@ This directory contains utilities and workflow definitions for the Standard Refe
 
 This workflow is intended as an out-of-the-box baseline for QA, staging, demo, and new client onboarding. It can be customized per customer as needed. It includes CE team initial review, provider decision, enrollment, placement confirmation, and decline review.
 
-*Forms* associated with this workflow are seeded in all environments, since they live in the `default/ce_referral_steps/` form directory, due to the JSON form `seed_all` step. They are unused in environments where the  *workflow template* hasn't been seeded, which is manual.
+*Forms* associated with this workflow need to be added to the desired installation's form directory, e.g. `drivers/hmis/lib/form_data/{env}/ce_referral_steps/`. (They cannot be added to the `default` env because they will fail in multi-HMIS installations. See #9035)
 
 ### Usage
 These workflows are generated and updated using the `CeWorkflows::Standard::WorkflowBuilder` utility class and the `ce_define_standard_workflows` rake task. See usage comments on the rake task.
