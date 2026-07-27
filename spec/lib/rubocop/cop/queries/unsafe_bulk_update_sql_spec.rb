@@ -167,6 +167,51 @@ RSpec.describe RuboCop::Cop::Queries::UnsafeBulkUpdateSql do
     end
   end
 
+  # An lvasgn/ivasgn/casgn nested inside an op-assign (or a multiple assignment) has no
+  # value node of its own, so reading its "right-hand side" positionally yields the
+  # variable-name Symbol. Walking into that raised NoMethodError and rubocop swallowed it
+  # as a cop error, silently skipping the node it was meant to inspect.
+  context 'when the enclosing scope op-assigns a variable of the same name' do
+    it 'still flags a raw string reaching the method through that variable' do
+      expect_offense(<<~RUBY)
+        def fix!
+          update_sql = "RaceNone = 99"
+          update_sql += ", GenderNone = 99"
+          clients.update_all(update_sql)
+                  ^^^^^^^^^^ #{msg}
+        end
+      RUBY
+    end
+
+    it 'does not raise when the variable is only ever op-assigned' do
+      expect_no_offenses(<<~RUBY)
+        def fix!
+          total = 0
+          total += 1
+          clients.update_all(total)
+        end
+      RUBY
+    end
+
+    it 'does not raise for an or-assigned instance variable' do
+      expect_no_offenses(<<~RUBY)
+        def fix!
+          @count ||= 0
+          clients.update_all(@count)
+        end
+      RUBY
+    end
+
+    it 'does not raise for a multiple assignment' do
+      expect_no_offenses(<<~RUBY)
+        def fix!
+          sql, other = compute
+          clients.update_all(sql)
+        end
+      RUBY
+    end
+  end
+
   context 'with a Hash argument (the safe form)' do
     it 'does not flag a hash literal' do
       expect_no_offenses(<<~RUBY)

@@ -100,14 +100,19 @@ module RuboCop
           return false unless scope
 
           scope.each_descendant(asgn_type).any? do |asgn|
-            variable_name(asgn) == name && sql_string?(asgn.children.last, depth: depth + 1)
+            # `#expression` is nil for an assignment nested in another assignment
+            # (`x += ...`, `a, x = ...`); sql_string? treats nil as not-a-string, so an
+            # op-assign contributes no evidence while other assignments still can.
+            asgn.name == name && sql_string?(asgn.expression, depth: depth + 1)
           end
         end
 
-        # The bare name for a reference or an assignment. `const`/`casgn` carry a namespace
-        # child first, so the name is the second element; simple vars carry it first.
+        # The bare name for a variable or constant *reference*. `ConstNode` exposes only
+        # `#short_name` (`::Foo::BAR` => `:BAR`); the other reference nodes are `VarNode`s
+        # with `#name`. On the assignment side `#name` covers all five types, because
+        # `CasgnNode` aliases it to `short_name`.
         def variable_name(node)
-          node.const_type? || node.casgn_type? ? node.children[1] : node.children.first
+          node.const_type? ? node.short_name : node.name
         end
 
         def enclosing_scope(node)
