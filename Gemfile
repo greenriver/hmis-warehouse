@@ -246,9 +246,9 @@ gem 'dentaku', require: false
 gem 'business_time'
 gem 'cable_ready', '>= 5.0.0.rc2'
 gem 'graphql', '~> 2.5.4'
-gem 'sentry-rails', '~> 5.5'
-gem 'sentry-ruby'
-gem 'sentry-delayed_job'
+gem 'sentry-rails', '~> 6.6'
+gem 'sentry-ruby', '~> 6.6'
+gem 'sentry-delayed_job', '~> 6.6'
 gem 'warning'
 gem 'hashdiff'
 # Once 0.17 is released we should be able to unpin this
