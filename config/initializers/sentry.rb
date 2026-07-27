@@ -7,6 +7,7 @@
 # frozen_string_literal: true
 
 require_relative '../../lib/util/git'
+require_relative '../../lib/util/sentry_event_filter'
 
 # ENV['SENTRY_DSN'] is reserved by Sentry and its use seems to prevent this initializer from being recognized.
 # Hence, we use WAREHOUSE_SENTRY_DSN. Any other alternate key should also be fine.
