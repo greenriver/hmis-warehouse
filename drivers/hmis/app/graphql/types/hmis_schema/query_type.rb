@@ -409,6 +409,8 @@ module Types
     end
 
     def esg_funding_report(client_ids:)
+      access_denied! unless HmisExternalApis::AcHmis.configuration.esg_funding_report_enabled?
+
       cst = Hmis::Hud::CustomServiceType.where(name: 'ESG Funding Assistance').first!
       raise HmisErrors::ApiError, 'ESG Funding Assistance service not configured' unless cst.present?
 
@@ -617,6 +619,16 @@ module Types
     field :table_config_lookup, Types::TableConfigLookup, null: false
     def table_config_lookup
       {}
+    end
+
+    field :ce_candidate_pool_summary, HmisSchema::CeCandidatePoolSummary, null: false,
+                                                                          description: 'Generation and refresh status for active CE candidate pools' do
+      argument :project_group_id, ID, required: false
+    end
+    def ce_candidate_pool_summary(project_group_id: nil)
+      access_denied! unless current_user.can_administrate_coordinated_entry?
+
+      { project_group_id: project_group_id }
     end
 
     field :ce_clients, HmisSchema::CeClient.page_type, null: false, description: 'Clients who belong to at least one CE candidate pool', nodes_count: ->(all_nodes) { all_nodes.count(:id) } do
