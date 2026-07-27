@@ -701,7 +701,7 @@ module Types
     end
     def ce_match_rule(id:)
       rule = Hmis::Ce::Match::Rule.find_by(id: id)
-      return nil unless rule # not found (instead of raising)
+      return nil unless rule # return nil (Not Found) if rule is not found, e.g. this rule was deleted
 
       access_denied! unless policy_for(rule, policy_type: :ce_match_rule).can_view?
 
