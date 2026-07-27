@@ -179,6 +179,51 @@ RSpec.describe HmisUtil::HmisProjectConfigImporter do
     ensure
       file.close!
     end
+
+    it 'clears receives_direct_referrals_from when From header is blank' do
+      ce.receives_direct_referrals = true
+      ce.supports_waitlist_referrals = false
+      ce.receives_direct_referrals_from = [sending_project.id]
+      ce.save!
+
+      file = write_csv(
+        ['ProjectID', 'CE_ReceivesDirectReferrals', 'CE_ReceivesDirectReferralsFrom_ProjectIDs'],
+        [['P1', 'true', '']],
+      )
+
+      run_import!(file)
+      expect(ce.reload.receives_direct_referrals_from).to be_nil
+    ensure
+      file.close!
+    end
+  end
+
+  describe 'candidate pool rebuild' do
+    before do
+      allow(Hmis::Ce::Match::CandidatePool).to receive(:lock_for_maintenance!).and_yield
+      allow(Hmis::Ce::Match::CandidatePoolBuilder).to receive(:call)
+    end
+
+    it 'rebuilds candidate pools once after import when waitlist CE configs are saved' do
+      other = create(:hmis_hud_project, data_source: data_source, ProjectID: 'P2')
+      file = write_csv(
+        ['ProjectID', 'CE_SupportsWaitlists'],
+        [['P1', 'true'], [other.ProjectID.to_s, 'true']],
+      )
+
+      run_import!(file)
+      expect(Hmis::Ce::Match::CandidatePoolBuilder).to have_received(:call).once
+    ensure
+      file.close!
+    end
+
+    it 'does not rebuild candidate pools on dry run' do
+      file = write_csv(['ProjectID', 'CE_SupportsWaitlists'], [['P1', 'true']])
+      run_import!(file, dry_run: true)
+      expect(Hmis::Ce::Match::CandidatePoolBuilder).not_to have_received(:call)
+    ensure
+      file.close!
+    end
   end
 
   describe 'boolean parsing' do
@@ -290,7 +335,7 @@ RSpec.describe HmisUtil::HmisProjectConfigImporter do
       file = write_csv(['ProjectID', 'AutoEnter'], [['P1', 'true']])
       expect do
         described_class.new(csv_path: file.path, dry_run: false).run!
-      end.to raise_error(ActiveRecord::SoleRecordExceeded)
+      end.to raise_error(HmisUtil::HmisProjectConfigImporter::ImportError, /exactly one HMIS data source/)
     ensure
       file.close!
     end

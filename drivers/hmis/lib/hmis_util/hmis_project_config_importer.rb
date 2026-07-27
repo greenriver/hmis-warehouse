@@ -10,6 +10,8 @@ require 'csv'
 
 module HmisUtil
   # Imports project-level Hmis::ProjectConfig records from a CSV for initial customer setup.
+  # The CSV is based on this project configuration template which is provided to the customer:
+  # https://docs.google.com/spreadsheets/d/1yUk3IKed196JXVO1V1jCdGwFgEV6cwS_OjC7qQQCYgM/edit?gid=0#gid=0
   #
   # Prefer org-level or project-type-level rules when possible — project-level configs
   # multiply quickly and are harder to maintain. Use this importer only when projects
@@ -67,9 +69,17 @@ module HmisUtil
 
       @skipped_projects.each { |msg| puts "SKIPPED: #{msg}" }
 
-      Hmis::Hud::Base.transaction do
-        apply_rows(validated)
+      # Avoid N full candidate-pool rebuilds from ProjectCeConfig after_save; rebuild once after import if needed.
+      Hmis::ProjectCeConfig.skip_callback(:save, :after, :rebuild_candidate_pool)
+      begin
+        Hmis::Hud::Base.transaction do
+          apply_rows(validated)
+        end
+      ensure
+        Hmis::ProjectCeConfig.set_callback(:save, :after, :rebuild_candidate_pool, if: :supports_waitlist_referrals?)
       end
+
+      rebuild_candidate_pools_if_needed
 
       puts @dry_run ? 'Dry run complete. No changes were saved.' : 'Import complete.'
       puts "Skipped #{@skipped_projects.size} row(s) with ProjectID not found." if @skipped_projects.any?
@@ -85,7 +95,11 @@ module HmisUtil
 
         ds
       else
-        GrdaWarehouse::DataSource.hmis.sole
+        begin
+          GrdaWarehouse::DataSource.hmis.sole
+        rescue ActiveRecord::SoleRecordExceeded, ActiveRecord::RecordNotFound
+          raise ImportError, 'Expected exactly one HMIS data source; pass data_source_id explicitly'
+        end
       end
     end
 
@@ -181,9 +195,8 @@ module HmisUtil
       result[:ce_supports_waitlists] = parse_boolean(row['CE_SupportsWaitlists'], 'CE_SupportsWaitlists', row_num) if row.headers.include?('CE_SupportsWaitlists')
 
       if row.headers.include?('CE_ReceivesDirectReferralsFrom_ProjectIDs')
-        primary_keys = parse_from_project_ids(row['CE_ReceivesDirectReferralsFrom_ProjectIDs'], row_num, projects_by_hud_id)
-        result[:ce_from_project_ids] = primary_keys if primary_keys.present?
-        result[:ce_from_present] = primary_keys.present?
+        result[:ce_from_project_ids] = parse_from_project_ids(row['CE_ReceivesDirectReferralsFrom_ProjectIDs'], row_num, projects_by_hud_id)
+        result[:ce_from_present] = true
       end
 
       result
@@ -212,7 +225,7 @@ module HmisUtil
       when 'true', 'yes' then true
       when 'false', 'no', '' then false
       else
-        @errors << "Row #{row_num}: #{field} must be true or false, got #{raw.inspect}"
+        @errors << "Row #{row_num}: #{field} must be true/false/yes/no (or blank), got #{raw.inspect}"
         nil
       end
     end
@@ -293,6 +306,20 @@ module HmisUtil
       return if @dry_run
 
       record.save!
+    end
+
+    def rebuild_candidate_pools_if_needed
+      return if @dry_run
+
+      # If there are _any_ projects that support waitlist referrals in the data source, rebuild the candidate pools after import.
+      # This is relatively cheap so it's OK to do it even if this import didn't technically touch any waitlist CE configs.
+      any_waitlist_ce_configs = Hmis::ProjectCeConfig.where(data_source_id: data_source.id).any?(&:supports_waitlist_referrals?).present?
+      return unless any_waitlist_ce_configs
+
+      puts 'Rebuilding CE candidate pools...'
+      Hmis::Ce::Match::CandidatePool.lock_for_maintenance! do
+        Hmis::Ce::Match::CandidatePoolBuilder.call
+      end
     end
   end
 end
