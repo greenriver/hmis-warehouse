@@ -113,6 +113,23 @@ RSpec.describe HmisCsvImporter::Benchmarking::PgStats, type: :model do
       # second, not the first, must be returned.
       expect(pg_stats.settled_snapshot(timeout: 0)).to eq('data_sources' => { 'n_tup_ins' => 2 })
     end
+
+    it 'settles even while autovacuum/autoanalyze counters keep moving on an untouched table' do
+      pg_stats = described_class.new
+      allow(pg_stats).to receive(:sleep)
+      allow(pg_stats).to receive(:snapshot).and_return(
+        { 'data_sources' => { 'n_tup_ins' => 5 }, 'other_table' => { 'n_dead_tup' => 100, 'vacuum_count' => 1 } },
+        { 'data_sources' => { 'n_tup_ins' => 5 }, 'other_table' => { 'n_dead_tup' => 40, 'vacuum_count' => 2 } },
+        { 'data_sources' => { 'n_tup_ins' => 5 }, 'other_table' => { 'n_dead_tup' => 12, 'vacuum_count' => 3 } },
+      )
+
+      # Write counters (n_tup_ins et al) are identical across every snapshot;
+      # only vacuum-revised counters on an unrelated table are still moving.
+      # That churn must not keep the loop polling until the timeout.
+      expect(pg_stats.settled_snapshot).to eq(
+        'data_sources' => { 'n_tup_ins' => 5 }, 'other_table' => { 'n_dead_tup' => 40, 'vacuum_count' => 2 },
+      )
+    end
   end
 
   describe '#other_active_connections' do

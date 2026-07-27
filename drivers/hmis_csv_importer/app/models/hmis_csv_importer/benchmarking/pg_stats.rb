@@ -34,6 +34,20 @@ module HmisCsvImporter::Benchmarking
       'autoanalyze_count',
     ].freeze
 
+    # Subset of COUNTERS used to decide the statistics have settled. Only
+    # backend-reported write activity qualifies: n_live_tup/n_dead_tup are
+    # estimates that vacuum and analyze revise, and the four vacuum/analyze
+    # counts move as autovacuum works through the database on its own
+    # schedule. Comparing those means a warehouse-sized schema never sees two
+    # equal snapshots, so every settle would burn the full timeout and return
+    # an unsettled snapshot anyway.
+    SETTLE_COUNTERS = [
+      'n_tup_ins',
+      'n_tup_upd',
+      'n_tup_del',
+      'n_tup_hot_upd',
+    ].freeze
+
     def initialize(connection: GrdaWarehouseBase.connection)
       @connection = connection
     end
@@ -49,19 +63,23 @@ module HmisCsvImporter::Benchmarking
     # Each backend flushes its pending counters to the cumulative statistics
     # system asynchronously (PGSTAT_MIN_INTERVAL, ~1s), so a snapshot taken the
     # instant an import finishes can miss its final transactions. Poll until the
-    # counters stop moving, then return that settled snapshot. Assumes an
-    # otherwise-idle database (the benchmark precondition); a concurrent writer
-    # would keep the counters moving until +timeout+ elapses, at which point the
-    # most recent snapshot is returned regardless.
+    # write counters stop moving (see SETTLE_COUNTERS), then return that settled
+    # snapshot in full. Assumes an otherwise-idle database (the benchmark
+    # precondition); a concurrent writer would keep the counters moving until
+    # +timeout+ elapses, at which point the most recent snapshot is returned
+    # regardless.
     def settled_snapshot(interval: 0.5, timeout: 10.0)
       deadline = Process.clock_gettime(Process::CLOCK_MONOTONIC) + timeout
       previous = snapshot
+      previous_writes = write_counters(previous)
       loop do
         sleep interval
         current = snapshot
-        return current if current == previous
+        current_writes = write_counters(current)
+        return current if current_writes == previous_writes
 
         previous = current
+        previous_writes = current_writes
         break if Process.clock_gettime(Process::CLOCK_MONOTONIC) >= deadline
       end
       previous
@@ -88,6 +106,12 @@ module HmisCsvImporter::Benchmarking
         end
         result[table] = changes if changes.any?
       end
+    end
+
+    private
+
+    def write_counters(snapshot)
+      snapshot.transform_values { |counters| counters.slice(*SETTLE_COUNTERS) }
     end
   end
 end
