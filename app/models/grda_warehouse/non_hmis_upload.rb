@@ -82,10 +82,8 @@ module GrdaWarehouse
 
     private
 
-    # New uploads store the file in ActiveStorage (`upload_file`); the legacy
-    # CarrierWave `:file` mount is a read-only fallback that is no longer fed on
-    # create, so its uploader is blank. Validate create-time presence against the
-    # attachment instead.
+    # New uploads store the file in ActiveStorage (`upload_file`); ensure the attachment
+    # is present before creating a new record.
     def file_attached
       errors.add(:file, :blank) unless upload_file.attached?
     end
