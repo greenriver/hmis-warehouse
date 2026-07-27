@@ -16,6 +16,7 @@ RSpec.describe Hmis::Ce::Match::Expression::FieldMap, type: :model do
   let(:client_resolver) { instance_double(Hmis::Ce::Match::Expression::ClientFieldMap) }
   let(:cde_resolver) { instance_double(Hmis::Ce::Match::Expression::CdeFieldMap) }
   let(:custom_assessment_resolver) { instance_double(Hmis::Ce::Match::Expression::CustomAssessmentFieldMap) }
+  let(:psde_resolver) { instance_double(Hmis::Ce::Match::Expression::PsdeFieldMap) }
 
   let(:clients) { double('client_relation') }
 
@@ -25,6 +26,7 @@ RSpec.describe Hmis::Ce::Match::Expression::FieldMap, type: :model do
                                                                     described_class::CLIENT => client_resolver,
                                                                     described_class::CDE => cde_resolver,
                                                                     described_class::CUSTOM_ASSESSMENT => custom_assessment_resolver,
+                                                                    described_class::PSDE => psde_resolver,
                                                                   })
   end
 
@@ -53,6 +55,11 @@ RSpec.describe Hmis::Ce::Match::Expression::FieldMap, type: :model do
     it 'routes cde fields to the cde resolver' do
       expect(cde_resolver).to receive(:client_query).with(clients, 'form.field')
       field_map.client_query(clients, 'cde.form.field')
+    end
+
+    it 'routes psde fields to the psde resolver' do
+      expect(psde_resolver).to receive(:client_query).with(clients, 'total_monthly_income')
+      field_map.client_query(clients, 'psde.total_monthly_income')
     end
   end
 
