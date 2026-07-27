@@ -12,40 +12,34 @@
 require 'stupidedi'
 module Health
   class TransactionAcknowledgement < HealthBase
+    include FileContentValidator
     acts_as_paranoid
 
-    mount_uploader :file, TransactionAcknowledgementFileUploader
-
-    has_one_attached :acknowledgement_file, dependent: false
+    # Remove CarrierWave dependency
+    # mount_uploader :file, TransactionAcknowledgementFileUploader
 
     belongs_to :user, optional: true
 
-    def file_data
-      return acknowledgement_file.download if acknowledgement_file.attached?
+    validate :validate_file_content_if_present
 
-      content
-    end
+    # File contents are retained in the database (see the content column); they contain PHI and
+    # must not be moved to the warehouse S3 bucket.
+    def validate_file_content_if_present
+      return if content.blank?
 
-    scope :unprocessed_s3_migration, -> do
-      migrated = ActiveStorage::Attachment.where(record_type: 'Health::TransactionAcknowledgement', name: 'acknowledgement_file').pluck(:record_id)
-      all = pluck(:id)
-      unmigrated = all - migrated
-      return none if unmigrated.blank?
+      file_extension = '.txt'
+      allowed_types = ['text/plain', 'application/octet-stream']
 
-      where(id: unmigrated)
-    end
+      result = self.class.validate_file_content(
+        content,
+        nil,
+        allowed_types,
+        file_extension,
+      )
 
-    def copy_to_s3!
-      return unless content.present?
-      return if acknowledgement_file.attached?
+      return if result[:valid]
 
-      Tempfile.create(binmode: true) do |tmp_file|
-        tmp_file.write(content)
-        tmp_file.rewind
-        self.content = nil
-        acknowledgement_file.attach(io: tmp_file, content_type: 'text/plain', filename: original_filename.presence || 'transaction_acknowledgement.edi', identify: false)
-        save!(validate: false)
-      end
+      errors.add(:file, result[:error])
     end
 
     def transaction_result
@@ -107,7 +101,7 @@ module Health
     def parse_999
       config = Stupidedi::Config.hipaa
       parser = Stupidedi::Parser::StateMachine.build(config)
-      parsed, result = parser.read(Stupidedi::Reader.build(file_data))
+      parsed, result = parser.read(Stupidedi::Reader.build(content))
       result.explain { |reason| raise reason + " at #{result.position.inspect}" } if result.fatal?
       parsed
     end

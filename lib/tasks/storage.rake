@@ -34,7 +34,6 @@ namespace :storage do
         GrdaWarehouse::DashboardExportFile => :with_attached_dashboard_export_file,
         GrdaWarehouse::ReportResultFile => :with_attached_report_result_file,
         TxClientReports::ResearchExports::Export => :with_attached_research_export_file,
-        Health::TransactionAcknowledgement => :with_attached_acknowledgement_file,
 
         # The following are classes are not being migrated
 
@@ -44,6 +43,7 @@ namespace :storage do
         # Health::Enrollment => :with_attached_enrollment_file,
         # Health::HealthFile => :with_attached_health_file,
         # Health::PremiumPayment => :with_attached_premium_payment_file,
+        # Health::TransactionAcknowledgement => :with_attached_acknowledgement_file,
         # Health::CpMembers::FileBase => :with_attached_member_file,
         # GrdaWarehouse::HealthEmergency::TestBatch => :with_attached_test_batch_file,
 

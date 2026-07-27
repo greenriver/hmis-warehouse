@@ -9,47 +9,50 @@
 require 'rails_helper'
 
 RSpec.describe Health::TransactionAcknowledgement, type: :model do
-  let(:bytes) { "ISA*00* ... 999 payload ... ~\n" }
+  let(:edi) { "ISA*00*          *00*          *ZZ*SUBMITTERID    *ZZ*RECEIVERID     *200101*1200*^*00501*000000001*0*P*:~\n" }
 
-  def build_ack
-    described_class.new(original_filename: '999.edi', content: bytes)
+  def build_ack(content)
+    described_class.new(original_filename: '999.edi', content: content)
   end
 
-  describe '#file_data' do
-    it 'returns content, then attachment when migrated' do
-      ack = build_ack
-      expect(ack.file_data).to eq(bytes)
-      ack.content = nil
-      ack.save!(validate: false)
-      ack.acknowledgement_file.attach(io: StringIO.new(bytes), filename: '999.edi', content_type: 'text/plain')
-      expect(ack.file_data).to eq(bytes)
+  describe 'file content validation' do
+    it 'accepts EDI content' do
+      expect(build_ack(edi)).to be_valid
+    end
+
+    it 'rejects content that is not EDI' do
+      ack = build_ack("%PDF-1.4\nnot an EDI file\n")
+      expect(ack).not_to be_valid
+      expect(ack.errors[:file]).to be_present
+    end
+
+    it 'rejects content over the size limit' do
+      ack = build_ack('ISA' + ('x' * 26.megabytes))
+      expect(ack).not_to be_valid
+      expect(ack.errors[:file].join).to match(/too large/)
+    end
+
+    it 'is valid without content' do
+      expect(build_ack(nil)).to be_valid
     end
   end
 
-  describe '#copy_to_s3!' do
-    it 'attaches and nulls content' do
-      ack = build_ack
-      ack.save!(validate: false)
-      ack.copy_to_s3!
-      ack.reload
-      expect(ack.acknowledgement_file).to be_attached
-      expect(ack.acknowledgement_file.download).to eq(bytes)
-      expect(ack.content).to be_nil
+  describe 'storage' do
+    it 'keeps the file contents in the database' do
+      ack = build_ack(edi)
+      ack.save!
+      expect(ack.reload.content).to eq(edi)
     end
   end
 
-  describe '.unprocessed_s3_migration' do
-    it 'excludes already-attached records and includes pending content-only records' do
-      attached = build_ack
-      attached.save!(validate: false)
-      attached.acknowledgement_file.attach(io: StringIO.new(bytes), filename: '999.edi', content_type: 'text/plain')
+  describe 'parsing' do
+    it 'reads from the content column' do
+      ack = build_ack(edi)
+      expect(ack.parse_999).to be_present
+    end
 
-      pending = build_ack
-      pending.save!(validate: false)
-
-      ids = described_class.unprocessed_s3_migration.pluck(:id)
-      expect(ids).to include(pending.id)
-      expect(ids).not_to include(attached.id)
+    it 'returns an error result when the payload is not a complete 999' do
+      expect(build_ack(edi).transaction_result).to eq('error')
     end
   end
 end

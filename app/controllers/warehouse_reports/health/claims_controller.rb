@@ -179,9 +179,17 @@ module WarehouseReports::Health
 
     def acknowledge
       uploaded = ta_params[:content]
-      ta = Health::TransactionAcknowledgement.new(user: current_user, original_filename: uploaded.original_filename)
-      ta.acknowledgement_file.attach(io: uploaded.tempfile, filename: uploaded.original_filename, content_type: uploaded.content_type)
-      ta.save!
+      ta = Health::TransactionAcknowledgement.new(
+        user: current_user,
+        content: uploaded.read,
+        original_filename: uploaded.original_filename,
+      )
+      unless ta.save
+        flash[:error] = ta.errors.full_messages.join('; ').presence || 'Error reading file'
+        respond_with @report, location: warehouse_reports_health_claims_path
+        return
+      end
+
       sent_at = Time.now
       claim_result = ta.transaction_result
       if claim_result == 'error'
