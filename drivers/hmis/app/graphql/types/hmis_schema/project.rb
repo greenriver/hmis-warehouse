@@ -311,7 +311,7 @@ module Types
       # For resolving several associations, we want to skip permission checks that use the viewable_by scope, both for
       # performance reasons, and so that we throw an error instead of returning an empty list.
       # After this check it's OK to use `dangerous_skip_permission_check`
-      raise 'access denied' unless current_user.can_view_enrollment_details_for?(object)
+      raise 'access denied' unless current_user.can_view_enrollment_details_for?(object) # TODO replace with policy check so we get perm dependencies
     end
 
     private def ce_match_rule_group_owners
