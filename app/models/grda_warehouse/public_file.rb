@@ -13,9 +13,6 @@ module GrdaWarehouse
     has_one_attached :public_file, dependent: false
     acts_as_taggable
 
-    # CarrierWave's FileUploader#content_type_whitelist used to reject these on
-    # upload; new uploads go straight to ActiveStorage and bypass CarrierWave
-    # entirely, so validate the same whitelist here.
     ALLOWED_CONTENT_TYPES = (FileUploader::WHITELIST + ['application/octet-stream']).freeze
 
     validates_presence_of :name
