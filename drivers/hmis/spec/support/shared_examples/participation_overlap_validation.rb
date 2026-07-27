@@ -12,14 +12,11 @@ RSpec.shared_examples 'submit form validates participation overlaps' do |factory
   let(:participation_record) { public_send(existing_record_name) }
   let(:participation_start_field) { start_attribute.to_s.underscore.camelize(:lower) }
   let(:participation_end_field) { end_attribute.to_s.underscore.camelize(:lower) }
-  let(:overlap_message) { Hmis::Hud::Validators::ParticipationValidator::OVERLAP_MESSAGE }
+  let(:overlap_message) { Hmis::Hud::Validators::ParticipationDateRangeValidator::OVERLAP_MESSAGE }
 
-  def expect_date_range_overlap_errors(input, start_field:, end_field:, message:)
+  def expect_date_range_overlap_error(input, message:)
     _, errors = submit_form(input, expect_validation_errors: true)
-    expect(errors).to include(
-      include({ attribute: start_field, message: message }.stringify_keys),
-      include({ attribute: end_field, message: message }.stringify_keys),
-    )
+    expect(errors).to contain_exactly(include({ attribute: 'base', message: message }.stringify_keys))
   end
 
   # The submitted start date is the existing range's final included date.
@@ -32,10 +29,8 @@ RSpec.shared_examples 'submit form validates participation overlaps' do |factory
 
     it 'returns a validation error and does not persist the record' do
       expect do
-        expect_date_range_overlap_errors(
+        expect_date_range_overlap_error(
           input,
-          start_field: participation_start_field,
-          end_field: participation_end_field,
           message: overlap_message,
         )
       end.not_to change(participation_record.class, :count)
@@ -66,10 +61,8 @@ RSpec.shared_examples 'submit form validates participation overlaps' do |factory
       original_start_date = participation_record.public_send(start_attribute)
       original_end_date = participation_record.public_send(end_attribute)
 
-      expect_date_range_overlap_errors(
+      expect_date_range_overlap_error(
         input.merge(record_id: participation_record.id),
-        start_field: participation_start_field,
-        end_field: participation_end_field,
         message: overlap_message,
       )
 
@@ -102,10 +95,8 @@ RSpec.shared_examples 'submit form validates participation overlaps' do |factory
     it 'returns a validation error and does not persist the unrelated change' do
       original_value = participation_record.public_send(unrelated_attribute)
 
-      expect_date_range_overlap_errors(
+      expect_date_range_overlap_error(
         input.merge(record_id: participation_record.id),
-        start_field: participation_start_field,
-        end_field: participation_end_field,
         message: overlap_message,
       )
 

@@ -6,8 +6,8 @@
 
 # frozen_string_literal: true
 
-# Shared overlap validation for HMIS and CE Participation date ranges.
-class Hmis::Hud::Validators::ParticipationValidator < Hmis::Hud::Validators::BaseValidator
+# Shared date-range validation for HMIS and CE Participation records.
+class Hmis::Hud::Validators::ParticipationDateRangeValidator < Hmis::Hud::Validators::BaseValidator
   OVERLAP_MESSAGE = 'Participation date range overlaps another participation period.'
 
   class << self
@@ -35,11 +35,6 @@ class Hmis::Hud::Validators::ParticipationValidator < Hmis::Hud::Validators::Bas
         first
     end
 
-    # Mark both date fields so the form identifies the full invalid range.
-    def overlap_error_attributes
-      [start_date_attribute, end_date_attribute]
-    end
-
     # Each concrete validator supplies its model-specific date columns.
     def start_date_attribute
       const_get(:START_DATE_ATTRIBUTE)
@@ -55,13 +50,6 @@ class Hmis::Hud::Validators::ParticipationValidator < Hmis::Hud::Validators::Bas
     return if skip_all_validations?(record)
     return unless self.class.conflicting_record(record)
 
-    self.class.overlap_error_attributes.each do |attribute|
-      record.errors.add(
-        attribute,
-        :invalid,
-        message: OVERLAP_MESSAGE,
-        full_message: OVERLAP_MESSAGE,
-      )
-    end
+    record.errors.add(:base, :invalid, message: OVERLAP_MESSAGE)
   end
 end

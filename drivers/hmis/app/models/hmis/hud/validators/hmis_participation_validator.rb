@@ -6,7 +6,7 @@
 
 # frozen_string_literal: true
 
-class Hmis::Hud::Validators::HmisParticipationValidator < Hmis::Hud::Validators::ParticipationValidator
+class Hmis::Hud::Validators::HmisParticipationValidator < Hmis::Hud::Validators::ParticipationDateRangeValidator
   START_DATE_ATTRIBUTE = :HMISParticipationStatusStartDate
   END_DATE_ATTRIBUTE = :HMISParticipationStatusEndDate
 end

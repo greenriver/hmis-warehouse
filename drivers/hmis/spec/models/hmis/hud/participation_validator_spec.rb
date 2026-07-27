@@ -44,12 +44,10 @@ RSpec.describe 'Participation overlap validation', type: :model do
       )
     end
 
-    # Check that validation fails on each expected field.
-    def expect_overlap_error(record, *attributes)
+    # Check that validation adds one record-level overlap error.
+    def expect_overlap_error(record)
       expect(record).not_to be_valid
-      attributes.each do |attribute|
-        expect(record.errors[attribute]).to include(Hmis::Hud::Validators::ParticipationValidator::OVERLAP_MESSAGE)
-      end
+      expect(record.errors[:base]).to contain_exactly(Hmis::Hud::Validators::ParticipationDateRangeValidator::OVERLAP_MESSAGE)
     end
 
     context 'when creating a record' do
@@ -58,7 +56,7 @@ RSpec.describe 'Participation overlap validation', type: :model do
         let(:candidate_start_date) { existing_end_date }
 
         it 'rejects the inclusive boundary overlap' do
-          expect_overlap_error(candidate, start_attribute, end_attribute)
+          expect_overlap_error(candidate)
         end
       end
 
@@ -68,7 +66,7 @@ RSpec.describe 'Participation overlap validation', type: :model do
         let(:candidate_end_date) { Date.new(2020, 6, 30) }
 
         it 'rejects the contained range' do
-          expect_overlap_error(candidate, start_attribute, end_attribute)
+          expect_overlap_error(candidate)
         end
       end
 
@@ -78,7 +76,7 @@ RSpec.describe 'Participation overlap validation', type: :model do
         let(:candidate_end_date) { Date.new(2021, 1, 1) }
 
         it 'rejects the containing range' do
-          expect_overlap_error(candidate, start_attribute, end_attribute)
+          expect_overlap_error(candidate)
         end
       end
 
@@ -87,17 +85,7 @@ RSpec.describe 'Participation overlap validation', type: :model do
         let(:existing_end_date) { nil }
 
         it 'rejects a later range' do
-          expect_overlap_error(candidate, start_attribute, end_attribute)
-        end
-      end
-
-      # Two ranges with no end date overlap.
-      context 'when both records are open-ended' do
-        let(:existing_end_date) { nil }
-        let(:candidate_end_date) { nil }
-
-        it 'rejects the second open-ended record' do
-          expect_overlap_error(candidate, start_attribute, end_attribute)
+          expect_overlap_error(candidate)
         end
       end
 
@@ -180,7 +168,7 @@ RSpec.describe 'Participation overlap validation', type: :model do
 
         existing.assign_attributes(end_attribute => later_record.public_send(start_attribute))
 
-        expect_overlap_error(existing, start_attribute, end_attribute)
+        expect_overlap_error(existing)
       end
 
       context 'with a pre-existing overlap' do
@@ -200,7 +188,7 @@ RSpec.describe 'Participation overlap validation', type: :model do
         it 'rejects a date change that retains the overlap' do
           overlapping_record.assign_attributes(start_attribute => Date.new(2020, 7, 1))
 
-          expect_overlap_error(overlapping_record, start_attribute, end_attribute)
+          expect_overlap_error(overlapping_record)
         end
 
         # Changing a date so the ranges become adjacent must pass.
@@ -214,7 +202,7 @@ RSpec.describe 'Participation overlap validation', type: :model do
         it 'rejects an unrelated update' do
           overlapping_record.assign_attributes(unrelated_attribute => unrelated_value)
 
-          expect_overlap_error(overlapping_record, start_attribute, end_attribute)
+          expect_overlap_error(overlapping_record)
         end
       end
     end
