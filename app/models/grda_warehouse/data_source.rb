@@ -6,7 +6,6 @@
 
 # frozen_string_literal: true
 
-#
 require 'memery'
 
 class GrdaWarehouse::DataSource < GrdaWarehouseBase
@@ -717,6 +716,7 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
   def destroy_dependents!
     organizations.map(&:destroy_dependents!)
     organizations.update_all(DateDeleted: Time.current, source_hash: nil)
+    remove_system_collections!
   end
 
   def client_count

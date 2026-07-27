@@ -134,7 +134,8 @@ class CohortsController < ApplicationController
   end
 
   def destroy
-    @cohort.destroy unless @cohort.system_cohort
+    destroyed = @cohort.destroy unless @cohort.system_cohort
+    @cohort.remove_system_collections! if destroyed
     redirect_to cohorts_path
   end
 
