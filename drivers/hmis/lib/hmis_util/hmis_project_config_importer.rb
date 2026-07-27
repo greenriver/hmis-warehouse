@@ -25,7 +25,7 @@ module HmisUtil
   #   rails driver:hmis:import_project_configs[/path/to/file.csv,false,123]     # with data source id
   #   rails driver:hmis:import_project_configs[/path/to/file.csv,false,123,true] # skip missing projects
   #
-  #   HmisUtil::HmisProjectConfigImporter.new(csv_path: "var/project_settings_2.csv", dry_run: true, skip_projects_not_found: true).run!
+  #   HmisUtil::HmisProjectConfigImporter.new(csv_path: csv_path, dry_run: true).run!
   class HmisProjectConfigImporter
     REQUIRED_HEADER = 'ProjectID'
     KNOWN_HEADERS = [
