@@ -443,9 +443,7 @@ module Types
       # not be used for the application, because there is no project context passed
       # to the definition.
       definition = Hmis::Form::Definition.in_data_source(current_user.hmis_data_source_id).find_by(id: id)
-      return nil unless definition # return nil (Not Found) if the definition is not found, e.g. this was a draft that got deleted
-
-      access_denied! unless policy_for(definition, policy_type: :form_definition).can_configure_form?
+      return nil unless definition && policy_for(definition, policy_type: :form_definition).can_configure_form?
 
       definition
     end
@@ -701,9 +699,7 @@ module Types
     end
     def ce_match_rule(id:)
       rule = Hmis::Ce::Match::Rule.find_by(id: id)
-      return nil unless rule # return nil (Not Found) if rule is not found, e.g. this rule was deleted
-
-      access_denied! unless policy_for(rule, policy_type: :ce_match_rule).can_view?
+      return nil unless rule && policy_for(rule, policy_type: :ce_match_rule).can_view?
 
       rule
     end
