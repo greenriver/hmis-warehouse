@@ -17,8 +17,52 @@ module GrdaWarehouse
     belongs_to :delayed_job, optional: true, class_name: '::Delayed::Job'
 
     mount_uploader :file, ImportUploader
+    has_one_attached :upload_file, dependent: false
+
+    # Returns the file bytes from ActiveStorage when migrated, else the legacy DB column.
+    def file_data
+      return upload_file.download if upload_file.attached?
+
+      content
+    end
+
+    def filename
+      return upload_file.filename.to_s if upload_file.attached?
+
+      self[:file].to_s
+    end
+
+    # A client-supplied MIME type can be spoofed. ActiveStorage derives the blob's content type from the actual bytes.
+    def detected_content_type
+      return content_type unless upload_file.attached?
+
+      upload_file.blob&.content_type || content_type
+    end
+
+    scope :unprocessed_s3_migration, -> do
+      migrated = ActiveStorage::Attachment.where(record_type: 'GrdaWarehouse::NonHmisUpload', name: 'upload_file').pluck(:record_id)
+      all = pluck(:id)
+      unmigrated = all - migrated
+      return none if unmigrated.blank?
+
+      where(id: unmigrated)
+    end
+
+    def copy_to_s3!
+      return unless content.present?
+      return if upload_file.attached? # don't re-process
+
+      Tempfile.create(binmode: true) do |tmp_file|
+        tmp_file.write(content)
+        tmp_file.rewind
+        self.content = nil
+        upload_file.attach(io: tmp_file, content_type: content_type, filename: self[:file].presence || 'upload', identify: false)
+        save!(validate: false)
+      end
+    end
+
     validates :data_source, presence: true
-    validates :file, presence: true, on: :create
+    validate :file_attached, on: :create
 
     def status
       if percent_complete&.zero?
@@ -47,6 +91,14 @@ module GrdaWarehouse
       else
         'incomplete'
       end
+    end
+
+    private
+
+    # New uploads store the file in ActiveStorage (`upload_file`); ensure the attachment
+    # is present before creating a new record.
+    def file_attached
+      errors.add(:file, :blank) unless upload_file.attached?
     end
   end
 end
