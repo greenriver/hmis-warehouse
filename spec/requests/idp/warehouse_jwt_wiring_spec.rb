@@ -82,6 +82,40 @@ RSpec.describe 'Warehouse JWT wiring', type: :request do
       end
     end
 
+    # The concern spec covers the branches. This covers the bit only the real stack shows: against
+    # the live session store the session.id actually rotates, so two people's audit rows can't
+    # share one.
+    describe 'session boundary between IdP principals' do
+      let(:other_user) { create :user }
+
+      it 'starts a new Rails session when a different user authenticates on the same browser' do
+        allow(other_user).to receive(:training_required?).and_return(false)
+        allow(other_user).to receive(:pending_compliance_requirements).and_return([])
+        # Resolve off the forwarded token rather than the flat stub in the outer before block, so
+        # that signing in as someone else is what actually moves the principal.
+        allow(User).to receive(:find_or_create_from_jwt) do |helper|
+          helper.connector_user_id.to_i == other_user.id ? other_user : user
+        end
+
+        sign_in(user)
+        get session_keepalive_path
+        expect(response).to have_http_status(:ok)
+        expect(session[Idp::JwtAuthentication::SESSION_PRINCIPAL_KEY]).to eq(user.id)
+        first_session_id = session.id.to_s
+        expect(first_session_id).to be_present
+
+        # Someone else signs in on the same browser — the integration cookie jar carries the
+        # session cookie forward.
+        sign_in(other_user)
+
+        get session_keepalive_path
+
+        expect(response).to have_http_status(:ok)
+        expect(session[Idp::JwtAuthentication::SESSION_PRINCIPAL_KEY]).to eq(other_user.id)
+        expect(session.id.to_s).not_to eq(first_session_id)
+      end
+    end
+
     describe '#info_for_paper_trail' do
       # Use distinct current_user/true_user so the impersonation-audit behavior is actually
       # exercised: user_id must follow the true user (matching Devise's existing warden&.user&.id

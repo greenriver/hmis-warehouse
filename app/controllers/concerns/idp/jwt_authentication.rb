@@ -20,6 +20,8 @@
 module Idp::JwtAuthentication
   extend ActiveSupport::Concern
 
+  SESSION_PRINCIPAL_KEY = :idp_token_holder_id
+
   included do
     helper_method :user_session_expires_at
   end
@@ -57,11 +59,30 @@ module Idp::JwtAuthentication
     true
   end
 
-  # Memoized per request. The manager does not cache anything itself (it reads the session
-  # again on every call to #get), so it is fine to reuse one instance for store/get/clear
-  # within a single request.
+  # Deliberately not memoized: the manager holds the session object it was built with, and
+  # idp_sync_session_principal! can swap that out mid-request.
   def impersonation_manager
-    @impersonation_manager ||= Idp::ImpersonationManager.new(session)
+    Idp::ImpersonationManager.new(session)
+  end
+
+  # Nothing rotates the Rails session under JWT: there is no sign-in event, and oauth2-proxy can
+  # idle out without the app ever seeing a request. Left alone, the next person to sign in on this
+  # browser inherits the previous one's session, including the session.id that PaperTrail,
+  # Hmis::ActivityLog, lograge and Rack::Attack log against.
+  #
+  # Stamped with the user id rather than a token claim because oauth2-proxy refreshes the token
+  # mid-session, which would otherwise reset the session on every refresh.
+  def idp_sync_session_principal!(user_id)
+    stamped = session[SESSION_PRINCIPAL_KEY]
+    # Compared as strings so a store that stringifies the id can't mismatch on every request and
+    # reset continuously. redis_store Marshals, so today it comes back as an Integer.
+    return if stamped.to_s == user_id.to_s
+
+    # No stamp means nobody's session — an anonymous visitor on a page that skips
+    # authenticate_user!. Nothing to have changed.
+    reset_session if stamped.present?
+
+    session[SESSION_PRINCIPAL_KEY] = user_id
   end
 
   def idp_authenticated_user_from_jwt(user_class: User)
@@ -70,6 +91,10 @@ module Idp::JwtAuthentication
     # idp_token_holder memoizes this so it only happens once per request.
     authenticated_user = idp_token_holder
     return nil unless authenticated_user
+
+    # Ahead of the active? check on purpose: the principal is known either way, and the deactivated
+    # 403 should not render on the previous user's session.
+    idp_sync_session_principal!(authenticated_user.id)
 
     # A warehouse User that has been deactivated locally (active = false) is not allowed
     # to authenticate, even with a valid IdP token. This matches the check already done in
@@ -91,9 +116,8 @@ module Idp::JwtAuthentication
 
     impersonation_data = impersonation_manager.get
     if impersonation_data && impersonation_data[:impersonated_user_id].present?
-      # Only apply impersonation if the current token belongs to the user who started it.
-      # If it doesn't match the stored true_user, this is a leftover session from an
-      # earlier sign-in on this browser, so it is ignored.
+      # Belt and braces — idp_sync_session_principal! above already resets on a principal change.
+      # Kept because honoring someone else's impersonation is the one leak here that escalates.
       if impersonation_data[:true_user_id] != authenticated_user.id
         impersonation_manager.clear
         return user

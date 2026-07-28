@@ -96,6 +96,89 @@ RSpec.describe Idp::JwtCurrentUser, type: :controller, if: AuthMethod.jwt? do
     end
   end
 
+  # session[:scratch] stands in for ordinary session state. Unlike session[:impersonation] it has no
+  # guard of its own, so its disappearance is what proves reset_session ran.
+  describe 'session principal boundary (#idp_sync_session_principal!)' do
+    let(:principal_key) { Idp::JwtAuthentication::SESSION_PRINCIPAL_KEY }
+    let(:user) { double('User', id: 7, active?: true) }
+
+    before { allow(User).to receive(:find_or_create_from_jwt).and_return(user) }
+
+    it 'stamps the authenticated principal on the session' do
+      get :index
+
+      expect(session[principal_key]).to eq(7)
+    end
+
+    it 'discards session state left behind by a different principal' do
+      session[principal_key] = 99
+      session[:scratch] = 'previous user'
+      session[:impersonation] = { true_user_id: 99, impersonated_user_id: 20 }
+
+      get :index
+
+      expect(response.body).to eq('7')
+      expect(session[:scratch]).to be_nil
+      expect(session[:impersonation]).to be_nil
+      expect(session[principal_key]).to eq(7)
+    end
+
+    # oauth2-proxy refreshes the token mid-session, so this is the common case, not an edge one.
+    it 'keeps the session when the same principal returns' do
+      session[principal_key] = 7
+      session[:scratch] = 'same user'
+
+      get :index
+
+      expect(session[:scratch]).to eq('same user')
+      expect(session[principal_key]).to eq(7)
+    end
+
+    # An anonymous visitor's session, from a page that skips authenticate_user!.
+    it 'stamps an unstamped session without discarding it' do
+      session[:scratch] = 'no stamp yet'
+
+      get :index
+
+      expect(session[:scratch]).to eq('no stamp yet')
+      expect(session[principal_key]).to eq(7)
+    end
+
+    # redis_store hands back an Integer today; this covers a future store that stringifies, where
+    # the failure would be a reset on every request rather than a missed one.
+    it 'treats a stringified stamp as a match' do
+      session[principal_key] = '7'
+      session[:scratch] = 'same user'
+
+      get :index
+
+      expect(session[:scratch]).to eq('same user')
+    end
+
+    # The 403 is terminal, so it must not render on the previous user's session.
+    it 'discards a previous principal session even when the new principal is deactivated' do
+      allow(User).to receive(:find_or_create_from_jwt).and_return(double('User', id: 9, active?: false))
+      session[principal_key] = 99
+      session[:scratch] = 'previous user'
+
+      get :auth
+
+      expect(response).to have_http_status(:forbidden)
+      expect(session[:scratch]).to be_nil
+      expect(session[principal_key]).to eq(9)
+    end
+
+    it 'leaves the session alone when no token resolves a user' do
+      allow(User).to receive(:find_or_create_from_jwt).and_return(nil)
+      session[principal_key] = 99
+      session[:scratch] = 'previous user'
+
+      get :index
+
+      expect(session[:scratch]).to eq('previous user')
+    end
+  end
+
   describe '#authenticate_user!' do
     it 'sets current_user when a user is present' do
       user = double('User', id: 5, active?: true)
