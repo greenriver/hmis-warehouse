@@ -74,16 +74,18 @@ RSpec.describe WarehouseReports::InactiveYouthIntakesController, type: :request 
     end
 
     it 'defaults the filter range when none is submitted' do
-      # set_filter runs before the report is built; a regression here would silently
-      # change which youth appear, so pin the documented default (3 full months back
-      # through yesterday).
+      # set_filter computes its default range from the clock: the beginning of the month
+      # three months earlier, through the previous day. The request below runs with time
+      # frozen, so those resolve to the fixed dates asserted there.
       sign_in_with(create(:role, can_view_assigned_reports: true), grant_report: true)
 
-      get warehouse_reports_inactive_youth_intakes_path
+      travel_to Time.zone.local(2025, 6, 15, 12, 0, 0) do
+        get warehouse_reports_inactive_youth_intakes_path
 
-      aggregate_failures do
-        expect(assigns(:filter).start).to eq(3.months.ago.beginning_of_month.to_date)
-        expect(assigns(:filter).end).to eq(1.day.ago.to_date)
+        aggregate_failures do
+          expect(assigns(:filter).start).to eq(Date.new(2025, 3, 1))
+          expect(assigns(:filter).end).to eq(Date.new(2025, 6, 14))
+        end
       end
     end
   end

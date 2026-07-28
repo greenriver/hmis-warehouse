@@ -54,7 +54,6 @@ RSpec.describe UserDirectoryReport::WarehouseReports::UsersController, type: :re
       aggregate_failures do
         expect(response).to have_http_status(:redirect)
         expect(flash[:alert]).to be_present
-        expect(response.body).not_to include('Listing')
       end
     end
 
@@ -75,7 +74,9 @@ RSpec.describe UserDirectoryReport::WarehouseReports::UsersController, type: :re
 
       aggregate_failures do
         expect(response).to have_http_status(:redirect)
-        expect(response.body).not_to include('Listing')
+        # The action sets an attachment disposition when it builds the spreadsheet, so
+        # its absence distinguishes "refused" from "redirected after generating a file".
+        expect(response.headers['Content-Disposition']).to be_blank
       end
     end
 

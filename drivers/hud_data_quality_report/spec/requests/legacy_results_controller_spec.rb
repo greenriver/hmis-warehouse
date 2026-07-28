@@ -39,7 +39,7 @@ RSpec.describe HudDataQualityReport::LegacyResultsController, type: :request do
 
       aggregate_failures do
         expect(response).to have_http_status(:redirect)
-        expect(response.body).not_to include('Clients')
+        expect(flash[:alert]).to be_present
       end
     end
 
