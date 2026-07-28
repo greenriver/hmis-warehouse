@@ -42,18 +42,35 @@ RSpec.describe GrdaWarehouse::PublicFile, type: :model do
   describe 'content type validation' do
     # CarrierWave's FileUploader#content_type_whitelist used to reject these on
     # upload; new uploads bypass CarrierWave entirely, so this restores the check
-    # against the ActiveStorage attachment instead.
+    # against the ActiveStorage attachment instead. The check must look at the
+    # bytes, not the client-supplied content_type column, which can be spoofed.
+    let(:png_bytes) { "\x89PNG\r\n\x1a\n".b + bytes.b }
+    let(:html_bytes) { '<html><script>alert(1)</script></html>' + bytes }
+
     it 'rejects disallowed content types on create' do
-      file = described_class.new(name: 'test', content_type: 'application/x-msdownload')
-      file.public_file.attach(io: StringIO.new(bytes), filename: 'x.exe', content_type: 'application/x-msdownload')
+      file = described_class.new(name: 'test', content_type: 'text/html')
+      file.public_file.attach(io: StringIO.new(html_bytes), filename: 'x.html', content_type: 'text/html')
       expect(file).not_to be_valid
-      expect(file.errors[:file]).to include('You are not allowed to upload application/x-msdownload files')
+      expect(file.errors[:file]).to include('You are not allowed to upload text/html files')
+    end
+
+    it 'rejects bytes that disagree with an allowed claimed content type' do
+      file = described_class.new(name: 'test', content_type: 'image/png')
+      file.public_file.attach(io: StringIO.new(html_bytes), filename: 'x.png', content_type: 'image/png')
+      expect(file).not_to be_valid
+      expect(file.errors[:file]).to include('You are not allowed to upload text/html files')
     end
 
     it 'accepts an allowed content type on create' do
       file = described_class.new(name: 'test', content_type: 'image/png')
-      file.public_file.attach(io: StringIO.new(bytes), filename: 'x.png', content_type: 'image/png')
+      file.public_file.attach(io: StringIO.new(png_bytes), filename: 'x.png', content_type: 'image/png')
       expect(file).to be_valid
+    end
+
+    it 'reports the byte-derived content type, not the claimed one' do
+      file = described_class.new(name: 'test', content_type: 'image/png')
+      file.public_file.attach(io: StringIO.new(html_bytes), filename: 'x.png', content_type: 'image/png')
+      expect(file.detected_content_type).to eq('text/html')
     end
 
     it 'does not block copy_to_s3! migration of legacy rows with disallowed content types' do

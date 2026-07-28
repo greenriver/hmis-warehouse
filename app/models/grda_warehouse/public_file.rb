@@ -57,11 +57,21 @@ module GrdaWarehouse
       errors.add :file, 'File size should be less than 4 MB' if (size || 0) > 4.megabytes
     end
 
+    # A client-supplied MIME type can be spoofed. ActiveStorage derives the blob's
+    # content type from the actual bytes, so validate and store that instead.
+    def detected_content_type
+      return content_type unless public_file.attached?
+
+      public_file.blob&.content_type || content_type
+    end
+
     def content_type_allowed
       return unless public_file.attached?
-      return if ALLOWED_CONTENT_TYPES.include?(content_type)
 
-      errors.add(:file, "You are not allowed to upload #{content_type} files")
+      detected = detected_content_type
+      return if ALLOWED_CONTENT_TYPES.include?(detected)
+
+      errors.add(:file, "You are not allowed to upload #{detected} files")
     end
 
     def self.known_locations

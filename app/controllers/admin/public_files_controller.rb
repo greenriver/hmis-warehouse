@@ -19,8 +19,12 @@ module Admin
 
     def create
       file = file_params[:file]
-      @file = file_source.new(file_params.except(:file).merge(user_id: current_user.id, content_type: file&.content_type))
-      @file.public_file.attach(file) if file.present?
+      @file = file_source.new(file_params.except(:file).merge(user_id: current_user.id))
+      if file.present?
+        @file.public_file.attach(file)
+        # Use file type detected by Active Storage over the client-supplied one
+        @file.content_type = @file.detected_content_type
+      end
       @file.save
       if @file.invalid?
         flash[:error] = @file.errors.full_messages.join('; ') + params.inspect.to_s
