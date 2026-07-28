@@ -47921,7 +47921,7 @@ CREATE TABLE public.non_hmis_uploads (
     data_source_id bigint,
     user_id bigint,
     delayed_job_id bigint,
-    file character varying NOT NULL,
+    file character varying,
     percent_complete double precision,
     import_errors json,
     content_type character varying,
@@ -359850,6 +359850,7 @@ ALTER TABLE ONLY public.import_logs
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260728120000'),
 ('20260717132223'),
 ('20260624000001'),
 ('20260622120000'),

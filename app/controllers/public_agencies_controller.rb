@@ -9,7 +9,7 @@
 class PublicAgenciesController < ApplicationController
   skip_before_action :authenticate_user!
   def index
-    @coc_map = GrdaWarehouse::PublicFile.find_by(name: 'client/releases/coc_map')&.content
+    @coc_map = GrdaWarehouse::PublicFile.find_by(name: 'client/releases/coc_map')&.file_data
     @agencies = Agency.publically_available.preload(:consent_limits)
   end
 end
