@@ -8,12 +8,10 @@
 
 module Hmis::Ce::Match::Expression
   # Static registry of HUD table fields exposed as flat psde.* CE match expression keys
-  # (e.g. psde.total_monthly_income). HUD table/column metadata lives on each PsdeField.
+  # (e.g. psde.total_monthly_income).
   class PsdeFieldRegistry
     TOTAL_MONTHLY_INCOME = PsdeField.new(
       key: 'total_monthly_income',
-      table: 'IncomeBenefits',
-      column: 'TotalMonthlyIncome',
       value_type: :numeric,
       label: 'Total Monthly Income',
       description: 'Latest total monthly income from HUD IncomeBenefits within the configured eligibility scope. ' \
@@ -22,8 +20,6 @@ module Hmis::Ce::Match::Expression
 
     MENTAL_HEALTH_DISORDER = PsdeField.new(
       key: 'mental_health_disorder',
-      table: 'Disabilities',
-      column: 'DisabilityResponse',
       value_type: :logical,
       label: 'Mental Health Disorder',
       description: 'Latest response for HUD Mental Health Disorder (HUD Disabilities, DisabilityType 9) within the configured eligibility scope. ' \
@@ -32,8 +28,6 @@ module Hmis::Ce::Match::Expression
 
     SUBSTANCE_USE_DISORDER = PsdeField.new(
       key: 'substance_use_disorder',
-      table: 'Disabilities',
-      column: 'DisabilityResponse',
       value_type: :logical,
       label: 'Substance Use Disorder',
       description: 'Latest response for HUD Substance Use Disorder (HUD Disabilities, DisabilityType 10) within the configured eligibility scope. ' \
@@ -42,8 +36,6 @@ module Hmis::Ce::Match::Expression
 
     PHYSICAL_DISABILITY = PsdeField.new(
       key: 'physical_disability',
-      table: 'Disabilities',
-      column: 'DisabilityResponse',
       value_type: :logical,
       label: 'Physical Disability',
       description: 'Latest response for HUD Physical Disability (HUD Disabilities, DisabilityType 5) within the configured eligibility scope. ' \
@@ -52,8 +44,6 @@ module Hmis::Ce::Match::Expression
 
     DEVELOPMENTAL_DISABILITY = PsdeField.new(
       key: 'developmental_disability',
-      table: 'Disabilities',
-      column: 'DisabilityResponse',
       value_type: :logical,
       label: 'Developmental Disability',
       description: 'Latest response for HUD Developmental Disability (HUD Disabilities, DisabilityType 6) within the configured eligibility scope. ' \
@@ -62,8 +52,6 @@ module Hmis::Ce::Match::Expression
 
     CHRONIC_HEALTH_CONDITION = PsdeField.new(
       key: 'chronic_health_condition',
-      table: 'Disabilities',
-      column: 'DisabilityResponse',
       value_type: :logical,
       label: 'Chronic Health Condition',
       description: 'Latest response for HUD Chronic Health Condition (HUD Disabilities, DisabilityType 7) within the configured eligibility scope. ' \
@@ -72,8 +60,6 @@ module Hmis::Ce::Match::Expression
 
     HIV_AIDS = PsdeField.new(
       key: 'hiv_aids',
-      table: 'Disabilities',
-      column: 'DisabilityResponse',
       value_type: :logical,
       label: 'HIV/AIDS',
       description: 'Latest response for HUD HIV/AIDS (HUD Disabilities, DisabilityType 8) within the configured eligibility scope. ' \
@@ -82,8 +68,6 @@ module Hmis::Ce::Match::Expression
 
     DOMESTIC_VIOLENCE_SURVIVOR = PsdeField.new(
       key: 'domestic_violence_survivor',
-      table: 'HealthAndDV',
-      column: 'DomesticViolenceSurvivor',
       value_type: :logical,
       label: 'DV Survivor',
       description: 'Latest response for HUD Domestic Violence Survivor (HUD HealthAndDV) within the configured eligibility scope. ' \
