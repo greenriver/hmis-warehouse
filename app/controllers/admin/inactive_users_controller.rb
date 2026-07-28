@@ -10,15 +10,11 @@ module Admin
   class InactiveUsersController < ApplicationController
     include Admin::Concerns::InactiveUserManagementBehavior
 
-    private def reactivate_user!
+    # Devise arm: the account's old password is no good after deactivation, so scramble it and mail
+    # a reset link.
+    private def after_reactivate
       pass = Devise.friendly_token(50)
-      @user.update(
-        active: true,
-        last_activity_at: Time.current,
-        expired_at: nil,
-        password: pass,
-        password_confirmation: pass,
-      )
+      @user.update(password: pass, password_confirmation: pass)
 
       # FIXME(#186770279): shouldn't send for oauth-linked accounts
       @user.send_reset_password_instructions

@@ -11,8 +11,6 @@
 # and the Warehouse adopts the result when the browser comes back. There is no local write path, so
 # nothing here can commit an address the IdP has not verified.
 class Idp::AccountEmailsController < ApplicationController
-  include Idp::SoftFailure
-
   before_action :set_user
 
   def edit
@@ -33,14 +31,26 @@ class Idp::AccountEmailsController < ApplicationController
 
   private def reconcile_email_from_idp
     idp_name = @user.idp_service.idp_name
-    warning = "Your email was changed with #{idp_name}, but we couldn't adopt the new address"
-    previous_email = with_idp_soft_failure(warning, now: true) do
-      @user.idp_reconcile_email!
+    previous_email = nil
+
+    # Nested rather than atomic: users lives in the app db and Hmis::Hud::User in the warehouse db,
+    # so these are two connections with no shared commit. The nesting still means a failed HUD sync
+    # unwinds the adopted address instead of leaving HMIS rows keyed on an email we no longer hold.
+    GrdaWarehouseBase.transaction do
+      @user.transaction do
+        previous_email = @user.idp_reconcile_email!
+        @user.sync_to_hud_users(previous_email: previous_email) if previous_email.present? && HmisEnforcement.hmis_enabled?
+      end
     end
     return if previous_email.blank?
 
-    @user.sync_to_hud_users(previous_email: previous_email) if HmisEnforcement.hmis_enabled?
     flash.now[:notice] = 'Account email was updated.'
+  rescue Idp::ServiceError => e
+    # An unverified address or a failed Admin API read — either way nothing was written here, so
+    # there is no local state to unwind and no reason to fail the page. flash.now, because the
+    # warning belongs to this render and shouldn't scold the user again on their next visit.
+    Sentry.capture_exception_with_info(e, "Couldn't adopt #{idp_name} email for user #{@user.id}")
+    flash.now[:alert] = "Your email was changed with #{idp_name}, but we couldn't adopt the new address: #{e.message}"
   rescue ActiveRecord::RecordInvalid => e
     # The IdP moved the address but we can't store it — already taken here, or malformed. Reload to
     # drop the rejected value so the tab shows what we actually hold, and page: reconciliation only

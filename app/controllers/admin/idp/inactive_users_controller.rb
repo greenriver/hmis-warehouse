@@ -8,18 +8,23 @@
 
 class Admin::Idp::InactiveUsersController < ApplicationController
   include ::Admin::Concerns::InactiveUserManagementBehavior
-  include ::Admin::Idp::SoftFailure
 
   def _prefixes
     @_prefixes ||= [self.class.controller_path, 'admin/inactive_users'] + ApplicationController._prefixes
   end
 
-  private def reactivate_user!
-    # paper_trail.update_columns() allows us to update the user even if the record is invalid,
-    # while still recording a version (plain update_columns bypasses PaperTrail's callbacks entirely)
-    @user.paper_trail.update_columns(active: true, last_activity_at: Time.current, expired_at: nil)
-    with_idp_soft_failure("Local access restored, but couldn't re-enable #{@user.name} in the identity provider") do
-      @user.idp_reactivate!
-    end
+  # The shared local flip and the IdP push share a transaction, so a refused push arrives here with
+  # the local record untouched.
+  def reactivate
+    super
+  rescue ::Idp::ServiceError => e
+    Sentry.capture_exception_with_info(e, "Couldn't re-enable #{@user.name} in the identity provider")
+    redirect_to({ action: :index }, alert: "Couldn't re-activate #{@user.name}: #{e.message}. Nothing was changed.")
+  end
+
+  # Re-enable the account in the IdP from inside the transaction holding the local flip, so a
+  # refused write takes the flip with it.
+  private def after_reactivate
+    @user.idp_reactivate!
   end
 end

@@ -114,6 +114,19 @@ RSpec.describe Idp::AccountsController, type: :request, if: AuthMethod.jwt? do
           expect_any_instance_of(User).not_to receive(:sync_to_hud_users)
           patch account_path, params: { user: { first_name: 'Self', last_name: 'Serve', phone: '5085551000', credentials: 'old', email_schedule: 'daily' } }
         end
+
+        # The HUD sync shares the local save's transaction, so a rejected Hmis::Hud::User write takes
+        # the profile edit with it rather than leaving HMIS rows naming someone the app no longer does.
+        it 'rolls the local save back when the HUD sync is rejected, and never reaches Keycloak' do
+          allow_any_instance_of(User).to receive(:sync_to_hud_users).and_raise(ActiveRecord::RecordInvalid)
+
+          patch account_path, params: { user: { first_name: 'Renamed', last_name: 'Serve' } }
+
+          expect(user.reload.first_name).to eq('Self')
+          expect(a_request(:put, target_url)).not_to have_been_made
+          expect(response).to have_http_status(:ok)
+          expect(flash[:notice]).to be_blank
+        end
       end
 
       context 'when the Keycloak push fails' do
@@ -122,13 +135,15 @@ RSpec.describe Idp::AccountsController, type: :request, if: AuthMethod.jwt? do
           allow(Sentry).to receive(:capture_exception_with_info)
         end
 
-        it 'still saves the local change, pages Sentry, and warns beside the success' do
+        # The push shares a transaction with the local save, so a refused push takes the save with
+        # it — the user's profile can't drift from what their IdP holds.
+        it 'saves nothing, pages Sentry, and re-renders saying so' do
           patch account_path, params: { user: { first_name: 'Renamed', last_name: 'Serve' } }
 
-          expect(user.reload.first_name).to eq('Renamed')
+          expect(user.reload.first_name).to eq('Self')
           expect(Sentry).to have_received(:capture_exception_with_info)
-          expect(flash[:alert]).to be_present
-          expect(flash[:notice]).to be_present
+          expect(flash[:alert]).to match(/couldn't save your changes/)
+          expect(flash[:notice]).to be_blank
         end
       end
     end

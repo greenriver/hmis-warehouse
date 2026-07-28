@@ -11,8 +11,6 @@
 # (name) back to the IdP when the connector accepts writes. Selected at the route level under
 # AuthMethod.jwt?; the Devise AccountsController is untouched.
 class Idp::AccountsController < ApplicationController
-  include Idp::SoftFailure
-
   before_action :set_user
 
   def edit
@@ -28,25 +26,39 @@ class Idp::AccountsController < ApplicationController
     changed_notes << 'Phone number was updated.' if @user.phone != account_params[:phone]
 
     if changed_notes.present?
+      # Nested rather than atomic: users lives in the app db and Hmis::Hud::User in the warehouse
+      # db, so these are two connections with no shared commit. The nesting still means a failed
+      # HUD sync or IdP push unwinds the local edit, which is the divergence worth preventing.
+      GrdaWarehouseBase.transaction do
+        @user.transaction do
+          @user.update!(account_params)
+          @user.sync_to_hud_users if HmisEnforcement.hmis_enabled?
+          push_profile_to_idp
+        end
+      end
       flash[:notice] = changed_notes.join(' ')
-      @user.update(account_params)
-      push_profile_to_idp
-      @user.sync_to_hud_users if HmisEnforcement.hmis_enabled?
     end
     redirect_to edit_account_path
+  rescue ActiveRecord::RecordInvalid
+    render :edit
+  rescue Idp::ServiceError => e
+    # The push is inside the transaction, so nothing was saved. Tell the user rather than handing
+    # them a 500, and page — a self-service edit failing means the connector needs attention.
+    Sentry.capture_exception_with_info(e, "Couldn't sync user #{@user.id}'s profile to the identity provider")
+    flash.now[:alert] = "We couldn't save your changes: your identity provider didn't accept them (#{e.message})."
+    render :edit
   end
 
-  # Push a committed name change to the IdP. idp_update_profile! no-ops unless the service accepts
-  # writes; account_params already strips these keys when the profile is locked, so a locked user
-  # never reaches here with a change anyway.
+  # Push a name change to the IdP from inside the caller's transaction, so a refused write takes the
+  # local edit with it. idp_update_profile! no-ops unless the service accepts writes; account_params
+  # already strips these keys when the profile is locked, so a locked user never reaches here with a
+  # change anyway.
   private def push_profile_to_idp
     changes = @user.saved_changes.slice('first_name', 'last_name')
     return if changes.empty?
 
     attributes = changes.transform_values(&:last).symbolize_keys
-    with_idp_soft_failure("Your account was saved, but we couldn't update your profile with your identity provider") do
-      @user.idp_update_profile!(attributes)
-    end
+    @user.idp_update_profile!(attributes)
   end
 
   private def account_params

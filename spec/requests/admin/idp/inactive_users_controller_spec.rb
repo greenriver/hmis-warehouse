@@ -102,16 +102,35 @@ RSpec.describe Admin::Idp::InactiveUsersController, type: :request, if: AuthMeth
         allow(Sentry).to receive(:capture_exception_with_info)
       end
 
-      it 'still restores local access, pages Sentry, and warns beside the success notice' do
+      # The local flip and the push share a transaction, so a refused push takes the flip with it
+      # rather than admitting the user here while Keycloak still has them disabled.
+      it 'rolls the local flip back, pages Sentry, and reports nothing changed' do
         patch reactivate_admin_inactive_user_path(target)
 
         target.reload
-        expect(target.active).to be true # authoritative local flip commits
-        expect(target.expired_at).to be_nil
+        expect(target.active).to be false
         expect(Sentry).to have_received(:capture_exception_with_info)
-        expect(flash[:alert]).to be_present
-        expect(flash[:notice]).to be_present
+        expect(flash[:alert]).to match(/Nothing was changed/)
+        expect(flash[:notice]).to be_blank
         expect(response).to redirect_to(action: :index)
+      end
+    end
+
+    # Mirror of the deactivate case: a user pointed at a connector with no management API. The local
+    # `active` flag is what admits them to the Warehouse, so restoring it must not be held hostage to
+    # an IdP link that no longer exists.
+    context "when the user's connector config has been deactivated" do
+      before do
+        Idp::ServiceConfig.find_by(connector_id: connector_id).update_column(:active, false)
+      end
+
+      it 'still restores local access, with no IdP call' do
+        patch reactivate_admin_inactive_user_path(target)
+
+        expect(target.reload.active).to be true
+        expect(a_request(:put, target_url)).not_to have_been_made
+        expect(flash[:notice]).to be_present
+        expect(flash[:alert]).to be_blank
       end
     end
 

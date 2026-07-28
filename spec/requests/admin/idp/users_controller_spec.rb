@@ -173,10 +173,13 @@ RSpec.describe Admin::Idp::UsersController, type: :request, if: AuthMethod.jwt? 
           stub_request(:post, users_url).to_return(status: 409, body: { errorMessage: 'User exists with same username' }.to_json)
         end
 
-        it 'does not create the local user and re-renders the form' do
+        # A 409 means the realm already has that address on another account — a form problem, so it
+        # lands on the email field rather than reading as a broken connector.
+        it 'does not create the local user and reports the conflict on the email field' do
           expect { post admin_users_path, params: params }.not_to change(User, :count)
 
           expect(response).to have_http_status(:ok)
+          expect(response.body).to match(/already registered with Keycloak/)
           expect(a_request(:put, /execute-actions-email/)).not_to have_been_made
         end
       end
@@ -240,13 +243,52 @@ RSpec.describe Admin::Idp::UsersController, type: :request, if: AuthMethod.jwt? 
         allow(Sentry).to receive(:capture_exception_with_info)
       end
 
-      it 'still revokes local access, pages Sentry, and warns beside the success' do
+      # The local flip and the push share a transaction, so a refused push takes the flip with it
+      # rather than leaving the account disabled here and enabled in Keycloak.
+      it 'rolls the local flip back, pages Sentry, and says the user still has access' do
         delete admin_user_path(target)
 
-        expect(target.reload.active).to be false # authoritative local flip commits
+        expect(target.reload.active).to be true
         expect(Sentry).to have_received(:capture_exception_with_info)
-        expect(flash[:alert]).to be_present
+        expect(flash[:alert]).to match(/still has access/)
+        expect(flash[:notice]).to be_blank
+      end
+    end
+
+    # Deactivating the connector config leaves the user pointed at a connector with no management
+    # API. Local revocation is what cuts off access to the Warehouse, so it must not be held hostage
+    # to an IdP link that no longer exists.
+    context "when the user's connector config has been deactivated" do
+      before do
+        Idp::ServiceConfig.find_by(connector_id: connector_id).update_column(:active, false)
+      end
+
+      it 'still revokes local access, with no IdP call' do
+        delete admin_user_path(target)
+
+        expect(target.reload.active).to be false
+        expect(a_request(:put, target_url)).not_to have_been_made
         expect(flash[:notice]).to be_present
+      end
+    end
+
+    # A config that is still active but can't be turned into a service (client_id and keycloak_realm
+    # aren't validated on Idp::ServiceConfig) is not the same as a connector that was retired: there
+    # is an IdP holding this account that we are failing to reach. Revoking locally anyway would
+    # leave the account enabled there with nothing to say so.
+    context "when the user's connector config is active but unusable" do
+      before do
+        Idp::ServiceConfig.find_by(connector_id: connector_id).update_column(:client_id, nil)
+        allow(Sentry).to receive(:capture_exception_with_info)
+      end
+
+      it 'refuses to revoke local access, pages Sentry, and says the user still has access' do
+        delete admin_user_path(target)
+
+        expect(target.reload.active).to be true
+        expect(Sentry).to have_received(:capture_exception_with_info)
+        expect(flash[:alert]).to match(/still has access/)
+        expect(flash[:notice]).to be_blank
       end
     end
   end
@@ -308,6 +350,24 @@ RSpec.describe Admin::Idp::UsersController, type: :request, if: AuthMethod.jwt? 
       end
     end
 
+    # Same gate as deactivate/reactivate: a retired connector has no management API, so there is
+    # nothing to push and nothing to warn about.
+    context "when the user's connector config has been deactivated" do
+      before do
+        Idp::ServiceConfig.find_by(connector_id: connector_id).update_column(:active, false)
+        allow(Sentry).to receive(:capture_exception_with_info)
+      end
+
+      it 'silently no-ops: no HTTP, no Sentry, no warning, no success claim' do
+        patch expire_password_admin_user_path(target)
+
+        expect(Sentry).not_to have_received(:capture_exception_with_info)
+        expect(flash[:alert]).to be_blank
+        expect(flash[:notice]).to be_blank
+        expect(a_request(:put, target_url)).not_to have_been_made
+      end
+    end
+
     context 'when the user has no IdP link at all' do
       # No last_connector_id and no user_authentication_sources row: primary_idp is nil, so the
       # account was never IdP-managed and there is nothing to push. The push-only action no-ops
@@ -363,7 +423,7 @@ RSpec.describe Admin::Idp::UsersController, type: :request, if: AuthMethod.jwt? 
       expect(target.notify_on_client_added).to be true
       expect(
         a_request(:put, target_url).
-          with(body: current_representation.merge(firstName: 'Changed', lastName: 'Name', email: 'changed@example.com', username: 'changed@example.com', emailVerified: false)),
+          with(body: current_representation.merge(firstName: 'Changed', lastName: 'Name', email: 'changed@example.com', emailVerified: false)),
       ).to have_been_made
       expect(a_request(:put, target_actions_url).with(body: ['VERIFY_EMAIL'].to_json)).to have_been_made
     end
@@ -403,13 +463,33 @@ RSpec.describe Admin::Idp::UsersController, type: :request, if: AuthMethod.jwt? 
         allow(Sentry).to receive(:capture_exception_with_info)
       end
 
-      it 'still saves the local change, pages Sentry, and warns beside the success' do
+      # The local save and the push share a transaction, so a refused push takes the save with it.
+      it 'saves nothing locally, pages Sentry, and re-renders saying so' do
         patch admin_user_path(target), params: { user: { first_name: 'Changed' } }
 
-        target.reload
-        expect(target.first_name).to eq('Changed')
+        expect(target.reload.first_name).to eq('Target')
         expect(Sentry).to have_received(:capture_exception_with_info)
-        expect(flash[:alert]).to be_present
+        expect(response.body).to match(/Nothing was saved/)
+      end
+    end
+
+    # Keycloak answers 409 when the address belongs to another account in the realm. That is a form
+    # problem, not a broken connector: it names the field and never pages.
+    context 'when the email is already registered to a different account in the IdP' do
+      before do
+        stub_request(:put, target_url).to_return(
+          status: 409,
+          body: { errorMessage: 'User exists with same email' }.to_json,
+        )
+        allow(Sentry).to receive(:capture_exception_with_info)
+      end
+
+      it 'saves nothing locally and reports the conflict on the email field' do
+        patch admin_user_path(target), params: { user: { email: 'taken@example.com' } }
+
+        expect(target.reload.email).not_to eq('taken@example.com')
+        expect(response.body).to match(/already registered with Keycloak/)
+        expect(Sentry).not_to have_received(:capture_exception_with_info)
       end
     end
 

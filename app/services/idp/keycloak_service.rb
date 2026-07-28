@@ -77,7 +77,16 @@ module Idp
       return true if patch.empty?
 
       result = put_full_user(user_id: user_id, patch: patch, operation: :update_user, failure: 'Failed to update user')
-      send_execute_actions_email(user_id: user_id, actions: ['VERIFY_EMAIL']) if email_changed
+      if email_changed
+        # Keycloak already holds the new address, so a mail failure must not fail the update: the
+        # caller would roll its local write back and leave the two out of step in the other
+        # direction, with no retry that could close the gap.
+        begin
+          send_execute_actions_email(user_id: user_id, actions: ['VERIFY_EMAIL'])
+        rescue ServiceError => e
+          Sentry.capture_exception_with_info(e, "Updated #{user_id} in #{idp_name}, but couldn't send the address verification email")
+        end
+      end
       result
     end
 
@@ -399,11 +408,19 @@ module Idp
 
     # Interpret a Keycloak Admin API response: yield the response on 2xx and
     # return the block's value, otherwise raise a ServiceError tagged with the
-    # operation. `failure` is the verb used in the 4xx message.
+    # operation. `failure` is the verb used in the 4xx message. 409 gets the
+    # ConflictError subclass so callers can tell "this email is taken over there"
+    # from "the connector is broken".
     def handle_response(response, operation:, failure:)
       case response.code.to_i
       when 200..299
         yield(response)
+      when 409
+        raise ConflictError.new(
+          "#{failure}: #{error_message_from(response)}",
+          idp_name: idp_name,
+          operation: operation,
+        )
       when 400..499
         raise ServiceError.new(
           "#{failure}: #{error_message_from(response)}",

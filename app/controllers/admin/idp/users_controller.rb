@@ -8,7 +8,6 @@
 
 class Admin::Idp::UsersController < ApplicationController
   include ::Admin::Concerns::UserManagementBehavior
-  include ::Admin::Idp::SoftFailure
 
   before_action :require_user_creation_available!, only: [:new, :create]
   before_action :set_connectors, only: [:new, :create]
@@ -23,6 +22,31 @@ class Admin::Idp::UsersController < ApplicationController
     @user = User.new
   end
 
+  # The shared save and the IdP push share a transaction, so both of these arrive with the local
+  # write already unwound — there is nothing saved to announce, only a refusal to explain.
+  def update
+    super
+  rescue ::Idp::ConflictError => e
+    # The IdP holds this address on another account: a form problem, so name the field the way a
+    # local uniqueness failure would.
+    @user.errors.add(:email, "is already registered with #{e.idp_name}")
+    flash.now[:error] = 'Please review the form problems below'
+    render :edit
+  rescue ::Idp::ServiceError => e
+    # Misconfigured or unreachable IdP. The form has no problem to point at, so say what actually
+    # happened and page — this needs someone to look at the connector.
+    Sentry.capture_exception_with_info(e, "Couldn't sync #{@user.name}'s profile to the identity provider")
+    flash.now[:error] = "Couldn't reach the identity provider to save these changes (#{e.message}). Nothing was saved."
+    render :edit
+  end
+
+  def destroy
+    super
+  rescue ::Idp::ServiceError => e
+    Sentry.capture_exception_with_info(e, "Couldn't disable #{@user.name} in the identity provider")
+    redirect_to({ action: :index }, alert: "Couldn't deactivate #{@user.name}: #{e.message}. #{@user.name} still has access.")
+  end
+
   def create
     @user = ::Idp::AdminUserCreator.call(
       connector_id: create_connector_id,
@@ -34,25 +58,44 @@ class Admin::Idp::UsersController < ApplicationController
     @user = e.record
     flash.now[:error] = 'Please review the form problems below'
     render :new
+  rescue ::Idp::ConflictError => e
+    # The address is registered to a different account in the IdP. AdminUserCreator links to an
+    # existing account by email rather than colliding with it, so this is the narrower case of a
+    # username/email clash inside the realm — a form problem, not a broken connector.
+    @user = User.new(new_user_params.except(:connector_id))
+    @user.errors.add(:email, "is already registered with #{e.idp_name}")
+    flash.now[:error] = 'Please review the form problems below'
+    render :new
   rescue ::Idp::ServiceError => e
     @user = User.new(new_user_params.except(:connector_id))
     flash.now[:error] = "Couldn't create the account in the identity provider: #{e.message}"
     render :new
   else
-    emailed = with_idp_soft_failure("Account created, but the setup email couldn't be sent to #{@user.email}") do
+    # The account exists in both places by now, so a mail failure is not a sync problem — swallowing
+    # it keeps the admin on the edit form with the account they just made, and the setup email can be
+    # re-sent from there.
+    emailed = begin
       @user.idp_send_account_setup_email!
+    rescue ::Idp::ServiceError => e
+      Sentry.capture_exception_with_info(e, "Account created, but the setup email couldn't be sent to #{@user.email}")
+      flash[:alert] = "The setup email couldn't be sent to #{@user.email}: #{e.message}"
+      false
     end
     redirect_to edit_admin_user_path(@user), notice: creation_notice(@user, emailed: emailed)
   end
 
+  # Unlike deactivate/reactivate there is no local change here, so there is no transaction to abort
+  # and nothing to keep in sync — a failure is reported and that's the end of it.
   def expire_password
-    pushed = with_idp_soft_failure("Couldn't require a password change for #{@user.name} in the identity provider") do
-      @user.idp_force_password_change!
-    end
-    # Unlike deactivate/reactivate there is no local change here
+    pushed = @user.idp_force_password_change!
+    # An account that was never IdP-managed has nothing to push; say nothing rather than claim a
+    # password reset was scheduled.
     return redirect_to(action: :index) unless pushed
 
     redirect_to({ action: :index }, notice: "#{@user.email} will be required to choose a new password on next login.")
+  rescue ::Idp::ServiceError => e
+    Sentry.capture_exception_with_info(e, "Couldn't require a password change for #{@user.name} in the identity provider")
+    redirect_to({ action: :index }, alert: "Couldn't require a password change for #{@user.name}: #{e.message}")
   end
 
   # don't let users set these params from the form. expired_at has no IdP-side equivalent to
@@ -64,24 +107,23 @@ class Admin::Idp::UsersController < ApplicationController
     keys
   end
 
-  # After the shared local `active: false` flip commits, disable the account in the IdP.
+  # Disable the account in the IdP from inside the transaction holding the local `active: false`
+  # flip, so a refused write takes the local flip with it. No-ops for a connector with no management
+  # API, which keeps local deactivation available when the IdP link is gone.
   private def after_deactivate
-    with_idp_soft_failure("Local access revoked, but couldn't disable #{@user.name} in the identity provider") do
-      @user.idp_deactivate!
-    end
+    @user.idp_deactivate!
   end
 
-  # After the shared local save commits, push any first_name/last_name/email change to the IdP.
-  # No-ops when the user's IdP service doesn't accept profile writes (form disables those
-  # inputs in that case, so user_params wouldn't carry a change anyway).
+  # Push any first_name/last_name/email change to the IdP from inside the transaction holding the
+  # local save, so a refused write takes the local edit with it. No-ops when the user's IdP service
+  # doesn't accept profile writes (form disables those inputs in that case, so user_params wouldn't
+  # carry a change anyway).
   private def after_profile_update
     changes = @user.saved_changes.slice('first_name', 'last_name', 'email')
     return if changes.empty?
 
     attributes = changes.transform_values(&:last).symbolize_keys
-    with_idp_soft_failure("Local changes saved, but couldn't sync profile to #{@user.name}'s identity provider record") do
-      @user.idp_update_profile!(attributes)
-    end
+    @user.idp_update_profile!(attributes)
   end
 
   # IdP arm: 2FA is handled by the identity provider, not seeded locally.

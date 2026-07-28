@@ -801,7 +801,6 @@ Rails.application.routes.draw do
       resources :users, except: [:show], controller: 'idp/users' do
         resource :audit, only: :show
         resource :edit_history, only: :show
-        patch :reactivate, on: :member
         collection do
           # Search is auth-agnostic, so both arms use the shared Admin::UsersController
           resources :searches, only: [:create], controller: 'users/search_queries', as: :user_search_queries
@@ -833,7 +832,6 @@ Rails.application.routes.draw do
         resource :audit, only: :show
         resource :edit_history, only: :show
         resource :locations, only: :show
-        patch :reactivate, on: :member
         collection do
           # User search queries
           resources :searches, only: [:create], controller: 'users/search_queries', as: :user_search_queries

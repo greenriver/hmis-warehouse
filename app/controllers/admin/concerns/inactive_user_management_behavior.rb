@@ -33,7 +33,12 @@ module Admin
 
       def reactivate
         @user = user_scope.find(params[:id].to_i)
-        reactivate_user!
+        @user.transaction do
+          # paper_trail.update_columns() allows us to update the user even if the record is invalid,
+          # while still recording a version (plain update_columns bypasses PaperTrail's callbacks entirely)
+          @user.paper_trail.update_columns(active: true, last_activity_at: Time.current, expired_at: nil)
+          after_reactivate
+        end
         redirect_to({ action: :index }, notice: "User #{@user.name} re-activated")
       end
 
@@ -41,9 +46,10 @@ module Admin
         'User List'
       end
 
-      # Persists the reactivation and performs any arm-specific follow-up. No sensible
-      # shared default (Devise resets the password locally; the JWT arm defers to the IdP).
-      private def reactivate_user!
+      # Arm-specific follow-up, run inside the transaction holding the local flip so a refused write
+      # takes the flip with it. No sensible shared default (Devise resets the password locally; the
+      # JWT arm re-enables the account in the IdP).
+      private def after_reactivate
         raise NotImplementedError
       end
 

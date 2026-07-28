@@ -85,19 +85,19 @@ module Idp::Support
   end
 
   def idp_deactivate!
-    return false unless primary_idp
+    return false unless idp_user_management_available?
 
     idp_service.deactivate_user(user_id: idp_connector_user_id!)
   end
 
   def idp_reactivate!
-    return false unless primary_idp
+    return false unless idp_user_management_available?
 
     idp_service.reactivate_user(user_id: idp_connector_user_id!)
   end
 
   def idp_force_password_change!
-    return false unless primary_idp
+    return false unless idp_user_management_available?
 
     idp_service.set_required_action(user_id: idp_connector_user_id!, actions: ['UPDATE_PASSWORD'])
   end
@@ -156,6 +156,23 @@ module Idp::Support
   end
 
   private
+
+  # A connector whose config was deactivated or removed resolves to a NullService, which answers
+  # false. Activation changes still have to land locally in that case: the local `active` flag is
+  # what admits the user to the Warehouse, and withholding the flip because the IdP link is gone
+  # would leave them enabled here.
+  #
+  # A connector we can't build (blank client_id, unregistered provider) is a different animal and
+  # deliberately not rescued here: it means there is an IdP holding this account that we are failing
+  # to reach, so the raise aborts the local write instead of quietly diverging from it. Deactivating
+  # the Idp::ServiceConfig is the escape hatch that turns such an account back into the NullService
+  # case. Contrast the render-time predicates above, which do rescue — a form has to render, but a
+  # write does not have to commit.
+  def idp_user_management_available?
+    return false unless primary_idp
+
+    idp_service.supports_user_management?
+  end
 
   def primary_auth_source
     return @primary_auth_source if defined?(@primary_auth_source)
