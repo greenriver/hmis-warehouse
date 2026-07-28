@@ -42,12 +42,13 @@ class NonHmisUploadsController < ApplicationController
         percent_complete: 0.0,
         data_source_id: @data_source.id,
         user_id: current_user.id,
-        content_type: file&.content_type,
       ),
     )
     # New uploads live entirely in ActiveStorage; the legacy CarrierWave `file` column
     # is left null and read only for rows that predate the migration.
     @upload.upload_file.attach(file)
+    # Use the file type detected by Active Storage over the client-supplied one
+    @upload.content_type = @upload.detected_content_type
     if @upload.save
       run_import = true
       flash[:notice] = Translation.translate('Upload queued to start.')

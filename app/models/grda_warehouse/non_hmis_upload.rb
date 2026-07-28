@@ -32,6 +32,13 @@ module GrdaWarehouse
       self[:file].to_s
     end
 
+    # A client-supplied MIME type can be spoofed. ActiveStorage derives the blob's content type from the actual bytes.
+    def detected_content_type
+      return content_type unless upload_file.attached?
+
+      upload_file.blob&.content_type || content_type
+    end
+
     scope :unprocessed_s3_migration, -> do
       migrated = ActiveStorage::Attachment.where(record_type: 'GrdaWarehouse::NonHmisUpload', name: 'upload_file').pluck(:record_id)
       all = pluck(:id)

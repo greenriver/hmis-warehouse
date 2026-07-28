@@ -39,6 +39,18 @@ RSpec.describe GrdaWarehouse::NonHmisUpload, type: :model do
     end
   end
 
+  describe '#detected_content_type' do
+    it 'prefers the byte-derived type over the claimed one' do
+      upload = described_class.new(data_source: data_source, content_type: 'text/csv')
+      upload.upload_file.attach(io: StringIO.new("%PDF-1.4\nnot a csv\n"), filename: 'x.csv', content_type: 'text/csv')
+      expect(upload.detected_content_type).to eq('application/pdf')
+    end
+
+    it 'falls back to the column for un-migrated rows' do
+      expect(build_upload.detected_content_type).to eq('text/csv')
+    end
+  end
+
   describe '#filename' do
     it 'returns the legacy column for un-migrated rows' do
       expect(build_upload.filename).to eq('test.csv')
