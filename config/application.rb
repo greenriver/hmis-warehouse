@@ -71,8 +71,15 @@ module OpenPath
 
     Rails.application.config.active_record.belongs_to_required_by_default = true
     # https://discuss.rubyonrails.org/t/cve-2022-32224-possible-rce-escalation-bug-with-serialized-columns-in-active-record/81017
-    # config.active_record.yaml_column_permitted_classes = [Symbol, Date, Time]
-    config.active_record.use_yaml_unsafe_load = true
+    # Audited via `rails audit:yaml_permitted_classes` (lib/tasks/audit_yaml_permitted_classes.rake)
+    # against production data across multiple environments — re-run that task against
+    # production data before widening this list.
+    # GrdaWarehouse::Cohort#column_state has its own additional per-column allow-list on top of
+    # this — see app/models/grda_warehouse/cohort.rb.
+    config.active_record.yaml_column_permitted_classes = [
+      Symbol, Date, Time, DateTime, ActiveSupport::TimeWithZone, ActiveSupport::TimeZone,
+      ActiveModel::Type::Binary::Data, BigDecimal
+    ]
 
     # ActiveRecord encryption backs devise-two-factor 6.x's `otp_secret` column (new and
     # re-enrolled 2FA secrets). Existing secrets remain in encrypted_otp_secret* and are
