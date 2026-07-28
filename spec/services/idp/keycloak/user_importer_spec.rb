@@ -217,7 +217,9 @@ RSpec.describe Idp::Keycloak::UserImporter, type: :model do
       end
     end
 
-    context 'with 2FA enabled' do
+    # Devise arm only: devise-two-factor supplies the secret generation and the encrypted
+    # otp_secret accessor, and it's the only arm with 2FA to migrate in the first place.
+    context 'with 2FA enabled', if: AuthMethod.devise? do
       # A real Base32 secret stored through devise-two-factor's encryption, so
       # the importer must actually decrypt encrypted_otp_secret to recover it.
       let(:real_otp_secret) { User.generate_otp_secret }

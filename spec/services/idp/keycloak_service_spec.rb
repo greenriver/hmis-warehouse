@@ -801,6 +801,68 @@ RSpec.describe Idp::KeycloakService, type: :model do
     end
   end
 
+  # The dev stack reaches Keycloak on the container address while the browser goes through Traefik,
+  # so anything handed to a browser has to come off the public URL and everything else must not.
+  describe 'the browser-facing URL override' do
+    let(:public_url) { 'https://keycloak.public.test' }
+
+    shared_examples 'honors the browser URL' do
+      it 'builds the account console URL from it' do
+        expect(service.account_console_url).to eq("#{public_url}/realms/#{realm}/account")
+      end
+
+      it 'builds account action deep-links from it' do
+        url = service.account_action_url(action: 'UPDATE_PASSWORD', redirect_uri: 'https://warehouse.test/account/edit')
+
+        expect(url).to start_with("#{public_url}/realms/#{realm}/protocol/openid-connect/auth?")
+      end
+
+      it 'builds the logout URL from it' do
+        url = service.logout_url(post_logout_redirect_uri: 'http://example.com/logout')
+
+        expect(url).to start_with("#{public_url}/realms/#{realm}/protocol/openid-connect/logout")
+      end
+
+      it 'leaves Admin API calls on api_url' do
+        stub_request(:get, "#{api_url}/admin/realms/#{realm}/users/abc").
+          to_return(status: 200, body: { id: 'abc' }.to_json, headers: { 'Content-Type' => 'application/json' })
+
+        service.get_user(user_id: 'abc')
+
+        expect(a_request(:get, "#{api_url}/admin/realms/#{realm}/users/abc")).to have_been_made
+        expect(a_request(:any, /#{Regexp.escape(public_url)}/)).not_to have_been_made
+      end
+    end
+
+    context 'supplied by ENV' do
+      before { stub_const('ENV', ENV.to_h.merge('KEYCLOAK_PUBLIC_URL' => public_url)) }
+
+      include_examples 'honors the browser URL'
+    end
+
+    # No column supplies this yet; the key is what a per-realm one would set, and it wins over ENV.
+    context 'supplied in the config hash' do
+      before do
+        stub_const('ENV', ENV.to_h.merge('KEYCLOAK_PUBLIC_URL' => 'https://ignored.test'))
+        service.config[:browser_url] = public_url
+      end
+
+      include_examples 'honors the browser URL'
+    end
+
+    context 'when api_url is not configured' do
+      before do
+        stub_const('ENV', ENV.to_h.merge('KEYCLOAK_PUBLIC_URL' => public_url))
+        service.config[:api_url] = nil
+      end
+
+      it 'stays unconfigured rather than answering from the override alone' do
+        expect(service.account_console_url).to be_nil
+        expect(service.account_action_url(action: 'UPDATE_PASSWORD', redirect_uri: 'https://warehouse.test/x')).to be_nil
+      end
+    end
+  end
+
   describe '#each_user' do
     let(:users_url) { "#{api_url}/admin/realms/#{realm}/users" }
 

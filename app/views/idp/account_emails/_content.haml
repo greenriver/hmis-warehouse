@@ -8,12 +8,16 @@
   Your email is:
   = @user.email
 
-%ul
-  - if change_email_url
-    %li.fw-bold
-      = link_to 'Change Email', change_email_url
-  - if change_password_url
-    %li.fw-bold
-      = link_to "Change password", change_password_url
-    %li.fw-bold
-      = link_to "Set up two-factor authentication", @user.account_action_url(action: 'CONFIGURE_TOTP', redirect_uri: edit_account_email_url)
+- unless change_email_url
+  %p.text-muted Your email is managed by your identity provider.
+
+- if change_email_url || change_password_url
+  %ul
+    - if change_email_url
+      %li.fw-bold
+        = link_to 'Change Email', change_email_url
+    - if change_password_url
+      %li.fw-bold
+        = link_to "Change password", change_password_url
+      %li.fw-bold
+        = link_to "Set up two-factor authentication", @user.account_action_url(action: 'CONFIGURE_TOTP', redirect_uri: edit_account_email_url)

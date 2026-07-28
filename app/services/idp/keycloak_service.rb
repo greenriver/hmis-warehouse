@@ -203,12 +203,11 @@ module Idp
     end
 
     # Deep-link to the Keycloak Account Console for this realm, where end users
-    # manage their own password and 2FA. Built from the browser-reachable
-    # api_url, consistent with logout_url.
+    # manage their own password and 2FA.
     def account_console_url
-      return nil unless api_url.present?
+      return nil unless browser_url.present?
 
-      "#{api_url}/realms/#{realm}/account"
+      "#{browser_url}/realms/#{realm}/account"
     end
 
     # Keycloak Application-Initiated Action: sends the browser through the realm's OIDC
@@ -220,7 +219,7 @@ module Idp
     # The redirect_uri must be registered under this client's Valid Redirect URIs in
     # Keycloak, and the client must have the standard (authorization code) flow enabled.
     def account_action_url(action:, redirect_uri:)
-      return nil unless api_url.present?
+      return nil unless browser_url.present?
 
       params = {
         client_id: 'account',
@@ -229,7 +228,7 @@ module Idp
         scope: 'openid',
         kc_action: action,
       }
-      "#{api_url.sub(':8080', '')}/realms/#{realm}/protocol/openid-connect/auth?#{params.to_query}"
+      "#{browser_url}/realms/#{realm}/protocol/openid-connect/auth?#{params.to_query}"
     end
 
     # Ping the Admin API to verify credentials and connectivity, using the same
@@ -289,12 +288,12 @@ module Idp
     end
 
     def logout_url(post_logout_redirect_uri:, client_id: nil)
-      return post_logout_redirect_uri unless api_url.present?
+      return post_logout_redirect_uri unless browser_url.present?
 
       params = { post_logout_redirect_uri: post_logout_redirect_uri }
       params[:client_id] = client_id if client_id.present?
 
-      "#{api_url}/realms/#{realm}/protocol/openid-connect/logout?#{params.to_query}"
+      "#{browser_url}/realms/#{realm}/protocol/openid-connect/logout?#{params.to_query}"
     end
 
     # Used by the migration tooling; remove once Devise account data has been migrated.
@@ -317,6 +316,27 @@ module Idp
 
     def api_url
       config[:api_url]
+    end
+
+    # Base URL for anything we hand to a browser rather than fetch ourselves. Normally the same
+    # host we call the Admin API on, so it defaults to api_url.
+    #
+    # It differs in local development, where the containers reach Keycloak directly
+    # (http://op-keycloak.dev.test:8080) but the browser goes through Traefik
+    # (https://op-keycloak.dev.test) — and an application-initiated action has to land on the
+    # Keycloak SSO session, whose cookies belong to the Traefik origin. Routing the Admin API
+    # through Traefik instead isn't an option: it serves a per-developer self-signed cert that
+    # only the host keychain trusts.
+    #
+    # ENV rather than a column because the split describes a deployment's network, not a realm,
+    # and it applies to every connector — fine for the one dev stack, wrong for a multi-realm
+    # production. Give Idp::ServiceConfig a column if a deployment ever needs it per realm.
+    # A service with no api_url isn't configured at all, so it has no browser URL either — the
+    # override is a variant of api_url, not a way to have one without it.
+    def browser_url
+      return nil if api_url.blank?
+
+      config[:browser_url].presence || ENV['KEYCLOAK_PUBLIC_URL'].presence || api_url
     end
 
     def realm
@@ -463,6 +483,7 @@ module Idp
     def default_config
       {
         api_url: ENV['KEYCLOAK_API_URL'],
+        browser_url: ENV['KEYCLOAK_PUBLIC_URL'],
         realm: ENV['KEYCLOAK_REALM'],
         client_id: ENV['KEYCLOAK_SERVICE_CLIENT_ID'],
         client_secret: ENV['KEYCLOAK_SERVICE_CLIENT_SECRET'],

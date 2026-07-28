@@ -104,6 +104,10 @@ Verify it end-to-end with the row's `#test` action (the **Test** button in the U
 `config.to_service.test_connection` — a green result means the secret is valid *and* the service
 account has the Admin-API roles.
 
+`api_url` has no `browser_url` counterpart in the table on purpose — see
+[Browser URL vs Admin API URL](#browser-url-vs-admin-api-url) for the `KEYCLOAK_PUBLIC_URL`
+override, which applies to both config options.
+
 ### Option B — ENV fallback (single realm)
 
 With no matching active `ServiceConfig`, the factory falls back to the registered service class,
@@ -120,6 +124,28 @@ In the dev stack these are already provided to the `web` container via
 `docker/auth/keycloak-credentials.env` (loaded through `env_file`), so the service account works
 out of the box — no `.env.development.local` edits needed. This path only resolves when the JWT's
 `connector_id` equals the provider key `keycloak`.
+
+### Browser URL vs Admin API URL
+
+`api_url` is the address Rails calls the Admin API on. Everything the service hands to a *browser*
+instead — `#account_action_url`, `#account_console_url`, `#logout_url` — uses `#browser_url`, which
+is `api_url` unless `KEYCLOAK_PUBLIC_URL` is set.
+
+The two differ in the local dev stack, and only there. Rails reaches Keycloak on the compose network
+alias (`http://op-keycloak.dev.test:8080`), while the browser goes through Traefik
+(`https://op-keycloak.dev.test`) — and the deep-links have to land on the browser's existing Keycloak
+SSO session, whose cookies are `Secure` and belong to the Traefik origin. Pointing `api_url` at
+Traefik instead would fix the browser side and break the Admin API side: Traefik serves a
+per-developer self-signed `*.dev.test` cert that only the host keychain trusts
+(`bin/developer/certificates.sh`), so Rails can't verify it. `KEYCLOAK_PUBLIC_URL` is already set in
+`docker/auth/keycloak-credentials.env`, so both halves work with the DB-managed config in place.
+
+It's ENV rather than an `Idp::ServiceConfig` column because it describes a deployment's network
+rather than a realm, so it applies to every connector at once — fine for the single dev realm, wrong
+for a multi-realm production. A deployment that genuinely needs a per-realm frontend URL (Keycloak's
+own `KC_HOSTNAME` vs `KC_HOSTNAME_ADMIN` split) should get a column then; `#browser_url` already
+prefers a `:browser_url` config key over the ENV value, so wiring one up is a one-line change to
+`.from_config`.
 
 > Heads-up: `realm-import.json` is applied only on the **first** import into a fresh `keycloak`
 > database. If your volume predates the `rails-service-account` client (or its roles), the token
