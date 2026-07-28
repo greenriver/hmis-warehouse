@@ -18,7 +18,10 @@ module Hmis::Concerns::JwtHmisCurrentUser
     helper_method :current_hmis_user
 
     def authenticate_hmis_user!
-      return if current_hmis_user
+      if current_hmis_user
+        idp_schedule_user_sync
+        return
+      end
 
       # A deactivated user holds a valid IdP token
       return idp_handle_deactivated if idp_token_holder && !idp_token_holder.active?

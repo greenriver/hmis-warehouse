@@ -1,0 +1,92 @@
+###
+# Copyright Green River Data Group, Inc.
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
+# frozen_string_literal: true
+
+module Idp
+  # Adopt an IdP-side email change after the user authenticates. The JWT can't report one:
+  # oauth2-proxy still holds a token minted before the change (see Idp::Support#idp_reconcile_email!).
+  # Enqueued from Idp::JwtAuthentication#idp_schedule_user_sync.
+  class SyncUserFromIdpJob < BaseJob
+    queue_as ENV.fetch('DJ_SHORT_QUEUE_NAME', :short_running)
+
+    # Short enough that a resolved outage resumes syncing on its own.
+    CIRCUIT_TTL = 5.minutes
+
+    def perform(user_id:)
+      user = User.find_by(id: user_id)
+      return unless user
+      # Same gate as the Email tab's reconciliation; false for a service that won't build.
+      return unless user.email_change_enabled?
+
+      previous_email = reconcile(user)
+      return if previous_email.blank?
+
+      Rails.logger.info("Adopted IdP email for user #{user.id} (was #{previous_email})")
+    rescue Idp::ServiceError => e
+      # Keep a broken connector from collecting a failing job per sign-in. This user's retry still runs.
+      self.class.open_circuit!(user&.last_connector_id)
+      raise e
+    end
+
+    # One retry covers a blip. sentry-delayed_job reports every failure, so further attempts only
+    # duplicate the event.
+    def calculated_attempts
+      [0, Delayed::Worker.max_attempts - 2].max
+    end
+
+    # A re-run is a get_user that no-ops when the address hasn't moved.
+    def self.supports_idempotent_retry?
+      true
+    end
+
+    def self.circuit_open?(connector_id)
+      return false if connector_id.blank?
+
+      Rails.cache.exist?(circuit_key(connector_id))
+    end
+
+    def self.open_circuit!(connector_id)
+      return if connector_id.blank?
+
+      Rails.cache.write(circuit_key(connector_id), true, expires_in: CIRCUIT_TTL)
+    end
+
+    def self.circuit_key(connector_id)
+      "idp_sync_circuit:#{connector_id}"
+    end
+
+    private
+
+    # Two databases with no shared commit, so nested rather than atomic: a failed HUD sync unwinds
+    # the adopted address. Same shape as Idp::AccountEmailsController#reconcile_email_from_idp.
+    def reconcile(user)
+      previous_email = nil
+      GrdaWarehouseBase.transaction do
+        user.transaction do
+          previous_email = user.idp_reconcile_email!
+          user.sync_to_hud_users(previous_email: previous_email) if previous_email.present? && HmisEnforcement.hmis_enabled?
+        end
+      end
+      previous_email
+    rescue ActiveRecord::RecordInvalid => e
+      # The IdP moved the address but we can't store it — taken here, or malformed. No retry fixes
+      # that, so report it and stop.
+      Sentry.capture_exception_with_info(
+        e,
+        "Couldn't adopt IdP email for user #{user.id}",
+        {
+          user_id: user.id,
+          attempted_email: user.email, # rolled back, but still dirty in memory
+          retained_email: user.email_was,
+          invalid_record: e.record.class.name,
+          reason: e.record.errors.full_messages.join(', '),
+        },
+      )
+      nil
+    end
+  end
+end

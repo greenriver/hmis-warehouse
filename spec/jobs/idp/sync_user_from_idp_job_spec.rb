@@ -1,0 +1,146 @@
+###
+# Copyright Green River Data Group, Inc.
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
+# frozen_string_literal: true
+
+require 'rails_helper'
+
+# The reconciliation rules (emailVerified gate, case-insensitive no-op) are covered with
+# Idp::Support#idp_reconcile_email!. This covers what the job adds: the capability gate, the HMIS
+# re-point, bounded retries, and which failures retry.
+RSpec.describe Idp::SyncUserFromIdpJob, type: :job do
+  let!(:user) { create(:user, email: 'before@example.com', first_name: 'Self', last_name: 'Serve') }
+  let(:service) do
+    instance_double(
+      Idp::KeycloakService,
+      idp_name: 'Keycloak',
+      supports_email_self_service?: true,
+    )
+  end
+
+  before(:each) do
+    user.user_authentication_sources.create!(connector_id: 'test', connector_user_id: 'kc-1')
+    user.update_column(:last_connector_id, 'test')
+    allow(Idp::ServiceFactory).to receive(:for_connector).with('test').and_return(service)
+    # NullStore can't hold the circuit flag.
+    allow(Rails).to receive(:cache).and_return(ActiveSupport::Cache::MemoryStore.new)
+  end
+
+  def remote_user(email:, verified: true)
+    { 'id' => 'kc-1', 'email' => email, 'emailVerified' => verified }
+  end
+
+  it 'adopts an address the IdP has verified' do
+    allow(service).to receive(:get_user).with(user_id: 'kc-1').and_return(remote_user(email: 'after@example.com'))
+
+    described_class.new.perform(user_id: user.id)
+
+    expect(user.reload.email).to eq('after@example.com')
+  end
+
+  it 'leaves the local address alone when the IdP still holds it' do
+    allow(service).to receive(:get_user).and_return(remote_user(email: 'before@example.com'))
+
+    described_class.new.perform(user_id: user.id)
+
+    expect(user.reload.email).to eq('before@example.com')
+  end
+
+  # HUD user rows are keyed on the address, so adopting a new one without re-pointing them leaves
+  # those rows stale.
+  it 're-points HMIS HUD user rows from the previous address' do
+    allow(service).to receive(:get_user).and_return(remote_user(email: 'after@example.com'))
+    allow(HmisEnforcement).to receive(:hmis_enabled?).and_return(true)
+    allow(User).to receive(:find_by).with(id: user.id).and_return(user)
+    expect(user).to receive(:sync_to_hud_users).with(previous_email: 'before@example.com')
+
+    described_class.new.perform(user_id: user.id)
+  end
+
+  it 'does not re-point HMIS rows when the address has not moved' do
+    allow(service).to receive(:get_user).and_return(remote_user(email: 'before@example.com'))
+    allow(HmisEnforcement).to receive(:hmis_enabled?).and_return(true)
+    allow(User).to receive(:find_by).with(id: user.id).and_return(user)
+    expect(user).not_to receive(:sync_to_hud_users)
+
+    described_class.new.perform(user_id: user.id)
+  end
+
+  it 'never reaches the IdP when it offers no email self-service' do
+    allow(service).to receive(:supports_email_self_service?).and_return(false)
+    expect(service).not_to receive(:get_user)
+
+    described_class.new.perform(user_id: user.id)
+  end
+
+  it 'tolerates a user deleted between enqueue and run' do
+    expect(service).not_to receive(:get_user)
+
+    expect { described_class.new.perform(user_id: user.id + 1_000) }.not_to raise_error
+  end
+
+  describe 'a connector fault' do
+    let(:error) { Idp::ServiceError.new('Keycloak has not verified after@example.com', idp_name: 'Keycloak', operation: :get_user) }
+
+    before(:each) do
+      allow(service).to receive(:get_user).and_raise(error)
+    end
+
+    # Raising is the reporting path — sentry-delayed_job reports whatever escapes.
+    it 'raises so the failure retries and reaches Sentry' do
+      expect { described_class.new.perform(user_id: user.id) }.to raise_error(error)
+    end
+
+    it 'opens the connector circuit so a broken realm stops enqueueing a job per sign-in' do
+      expect { described_class.new.perform(user_id: user.id) }.to raise_error(Idp::ServiceError)
+
+      expect(described_class.circuit_open?('test')).to be true
+      expect(described_class.circuit_open?('other-connector')).to be false
+    end
+  end
+
+  # No retry resolves an address another user already holds, so report and stop.
+  describe 'an address we cannot store' do
+    before(:each) do
+      allow(service).to receive(:get_user).and_return(remote_user(email: 'after@example.com'))
+      allow(User).to receive(:find_by).with(id: user.id).and_return(user)
+      allow(user).to receive(:update!).and_raise(ActiveRecord::RecordInvalid.new(user))
+    end
+
+    it 'reports to Sentry rather than raising' do
+      expect(Sentry).to receive(:capture_exception_with_info).with(
+        kind_of(ActiveRecord::RecordInvalid),
+        /Couldn't adopt IdP email for user #{user.id}/,
+        hash_including(user_id: user.id),
+      )
+
+      expect { described_class.new.perform(user_id: user.id) }.not_to raise_error
+    end
+
+    it 'leaves the local address in place' do
+      allow(Sentry).to receive(:capture_exception_with_info)
+
+      described_class.new.perform(user_id: user.id)
+
+      expect(user.reload.email).to eq('before@example.com')
+    end
+
+    it 'does not open the circuit — the connector is fine' do
+      allow(Sentry).to receive(:capture_exception_with_info)
+
+      described_class.new.perform(user_id: user.id)
+
+      expect(described_class.circuit_open?('test')).to be false
+    end
+  end
+
+  it 'is bounded to two attempts' do
+    job = described_class.new
+    allow(job).to receive(:delayed_job).and_return(nil)
+
+    expect(Delayed::Worker.max_attempts - job.calculated_attempts).to eq(2)
+  end
+end

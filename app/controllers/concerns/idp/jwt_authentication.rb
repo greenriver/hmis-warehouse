@@ -22,6 +22,9 @@ module Idp::JwtAuthentication
 
   SESSION_PRINCIPAL_KEY = :idp_token_holder_id
 
+  # Bounds how long an IdP-side email change goes unnoticed here.
+  SYNC_INTERVAL = 30.minutes
+
   included do
     helper_method :user_session_expires_at
   end
@@ -136,6 +139,28 @@ module Idp::JwtAuthentication
     end
 
     user
+  end
+
+  # Enqueue an IdP read-back for the token holder, at most once per SYNC_INTERVAL. Called from
+  # authenticate_*_user! rather than a before_action: a concern's `included` block registers filters
+  # ahead of authenticate_user! (see the enforce_2fa! note in ApplicationController).
+  #
+  # The token holder, not current_user — an impersonated account's email isn't the admin's to
+  # reconcile.
+  def idp_schedule_user_sync
+    user = idp_token_holder
+    return unless user
+
+    connector_id = user.last_connector_id
+    return if connector_id.blank?
+
+    # unless_exist is atomic, so concurrent requests enqueue once. Ahead of the circuit check so the
+    # usual request costs one Redis call, not two; the tradeoff is a request arriving mid-outage
+    # spends this user's token and waits out the interval.
+    return unless Rails.cache.write("idp_sync:#{user.id}", true, unless_exist: true, expires_in: SYNC_INTERVAL)
+    return if Idp::SyncUserFromIdpJob.circuit_open?(connector_id)
+
+    Idp::SyncUserFromIdpJob.perform_later(user_id: user.id)
   end
 
   def idp_handle_unauthenticated

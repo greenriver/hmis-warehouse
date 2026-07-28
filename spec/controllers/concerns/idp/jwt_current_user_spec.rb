@@ -181,7 +181,8 @@ RSpec.describe Idp::JwtCurrentUser, type: :controller, if: AuthMethod.jwt? do
 
   describe '#authenticate_user!' do
     it 'sets current_user when a user is present' do
-      user = double('User', id: 5, active?: true)
+      # last_connector_id: the authenticated path also schedules the IdP read-back, which reads it.
+      user = double('User', id: 5, active?: true, last_connector_id: nil)
       allow(User).to receive(:find_or_create_from_jwt).and_return(user)
 
       get :auth
@@ -342,6 +343,64 @@ RSpec.describe Idp::JwtCurrentUser, type: :controller, if: AuthMethod.jwt? do
 
       expect(response.body).to eq('10/10')
       expect(session[:impersonation]).to be_nil
+    end
+  end
+
+  # When we ask the IdP; what the sync does with the answer is Idp::SyncUserFromIdpJob's spec.
+  describe 'scheduling the IdP read-back (#idp_schedule_user_sync)' do
+    let(:user) { double('User', id: 7, active?: true, last_connector_id: 'keycloak') }
+
+    before do
+      allow(User).to receive(:find_or_create_from_jwt).and_return(user)
+      # NullStore holds nothing, so the rate limit would never engage.
+      allow(Rails).to receive(:cache).and_return(ActiveSupport::Cache::MemoryStore.new)
+    end
+
+    it 'enqueues a sync once the request is authenticated' do
+      expect { get :auth }.to have_enqueued_job(Idp::SyncUserFromIdpJob).with(user_id: 7)
+    end
+
+    it 'does not enqueue a second sync within the interval' do
+      get :auth
+
+      expect { get :auth }.not_to have_enqueued_job(Idp::SyncUserFromIdpJob)
+    end
+
+    it 'enqueues again once the interval has passed' do
+      get :auth
+
+      travel(Idp::JwtAuthentication::SYNC_INTERVAL + 1.minute) do
+        expect { get :auth }.to have_enqueued_job(Idp::SyncUserFromIdpJob)
+      end
+    end
+
+    it 'does not enqueue for an unauthenticated request' do
+      allow(jwt_helper).to receive(:valid?).and_return(false)
+
+      expect { get :auth }.not_to have_enqueued_job(Idp::SyncUserFromIdpJob)
+    end
+
+    it 'does not enqueue while the connector circuit is open' do
+      Idp::SyncUserFromIdpJob.open_circuit!('keycloak')
+
+      expect { get :auth }.not_to have_enqueued_job(Idp::SyncUserFromIdpJob)
+    end
+
+    it 'does not enqueue for a user with no connector on file' do
+      allow(user).to receive(:last_connector_id).and_return(nil)
+
+      expect { get :auth }.not_to have_enqueued_job(Idp::SyncUserFromIdpJob)
+    end
+
+    it 'syncs the token holder, not the account being impersonated' do
+      impersonated_user = double('User', id: 20, active?: true, last_connector_id: 'keycloak')
+      allow(user).to receive(:can_impersonate_users?).and_return(true)
+      allow(impersonated_user).to receive(:impersonateable_by?).with(user).and_return(true)
+      allow(User).to receive(:find_by).with(id: 7).and_return(user)
+      allow(User).to receive(:find_by).with(id: 20).and_return(impersonated_user)
+      session[:impersonation] = { true_user_id: 7, impersonated_user_id: 20 }
+
+      expect { get :auth }.to have_enqueued_job(Idp::SyncUserFromIdpJob).with(user_id: 7)
     end
   end
 

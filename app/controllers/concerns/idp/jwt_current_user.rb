@@ -22,7 +22,10 @@ module Idp::JwtCurrentUser
     end
 
     def authenticate_user!
-      return if current_user
+      if current_user
+        idp_schedule_user_sync
+        return
+      end
 
       # A deactivated user holds a valid IdP token
       return idp_handle_deactivated if idp_token_holder && !idp_token_holder.active?
