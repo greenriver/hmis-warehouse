@@ -8,8 +8,17 @@
 
 module UserPermissionReport::WarehouseReports
   class UsersController < ApplicationController
+    include WarehouseReportAuthorization
     include AjaxModalRails::Controller
     before_action :set_group_associations
+
+    # This controller only serves the detail modal for the report index, so authorize
+    # against that report. The concern's default derives the url from this controller's
+    # own :index action, which doesn't exist here.
+    def related_report
+      GrdaWarehouse::WarehouseReports::ReportDefinition.
+        where(url: 'user_permission_report/warehouse_reports/reports')
+    end
 
     def show
       @modal_size = :xl
