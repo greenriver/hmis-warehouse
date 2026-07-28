@@ -89,6 +89,22 @@ RSpec.describe Hmis::Ce::Match::Expression::PsdeFieldMap, type: :model do
     end
   end
 
+  describe '#format_for_display' do
+    it 'formats logical fields as Yes/No' do
+      expect(field_map.format_for_display('mental_health_disorder', true)).to eq('Yes')
+      expect(field_map.format_for_display('mental_health_disorder', false)).to eq('No')
+    end
+
+    it 'returns nil without formatting' do
+      expect(field_map.format_for_display('mental_health_disorder', nil)).to be_nil
+      expect(field_map.format_for_display(field_key, nil)).to be_nil
+    end
+
+    it 'falls back to string formatting for unknown fields' do
+      expect(field_map.format_for_display('unknown_field', 5)).to eq('5')
+    end
+  end
+
   describe '#arel_field and #joins' do
     it 'returns nil for SQL prefiltering' do
       expect(field_map.arel_field(field_key)).to be_nil
