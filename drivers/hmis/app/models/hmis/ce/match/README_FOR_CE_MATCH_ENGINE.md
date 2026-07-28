@@ -17,6 +17,7 @@ The classes within this module are organized into several subdirectories to grou
 - **`expression/` (Expression Handling Subsystem)**
   - A self-contained subsystem for parsing, translating, and evaluating the custom expressions used in eligibility and prioritization rules.
   - This directory contains all the logic for handling `FieldMap`s, translating expressions to SQL (`SqlExpressionTranslator`), and the `CalculatorFactory` for evaluating expressions in Ruby.
+  - **Preferred field-map pattern** (used by PSDE; preferred for new namespaces): split `*Field` (metadata), `*FieldRegistry` (inventory), `*ValueResolver` (batch value resolution), and `*FieldMap` (dispatcher adapter). Older maps (Client/CDE/CustomAssessment) are more monolithic and can migrate toward this pattern over time.
 
 ## Core Workflow
 

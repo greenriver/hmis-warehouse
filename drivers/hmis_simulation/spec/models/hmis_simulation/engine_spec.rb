@@ -123,6 +123,32 @@ RSpec.describe HmisSimulation::Engine do
       expect(log.clients_created).to be > 0
     end
 
+    it 'retries the day when a deadlock occurs' do
+      calls = 0
+      allow(Kernel).to receive(:sleep)
+      allow(engine).to receive(:spawn_clients).and_wrap_original do |method, **kwargs|
+        calls += 1
+        raise ActiveRecord::Deadlocked, 'PG::TRDeadlockDetected: deadlock detected' if calls == 1
+
+        method.call(**kwargs)
+      end
+
+      engine.run(date: run_date)
+      expect(calls).to eq(2)
+      log = HmisSimulation::RunLog.find_by(data_source_id: data_source.id, run_date: run_date)
+      expect(log.error_message).to be_nil
+    end
+
+    it 'records the error after exhausting deadlock retries' do
+      allow(engine).to receive(:spawn_clients).
+        and_raise(ActiveRecord::Deadlocked, 'PG::TRDeadlockDetected: deadlock detected')
+      allow(Kernel).to receive(:sleep)
+
+      expect { engine.run(date: run_date) }.to raise_error(ActiveRecord::Deadlocked)
+      log = HmisSimulation::RunLog.find_by(data_source_id: data_source.id, run_date: run_date)
+      expect(log.error_message).to include('deadlock detected')
+    end
+
     context 'when run twice on the same date' do
       it 'is idempotent — no duplicate clients or log entries' do
         engine.run(date: run_date)
