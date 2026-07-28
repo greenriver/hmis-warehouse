@@ -28,7 +28,7 @@ module Importing
     private def with_local_file(&block)
       return @upload.upload_file.open(&block) if @upload.upload_file.attached?
 
-      Tempfile.create(['non_hmis_upload', File.extname(@upload.read_attribute(:file).to_s)], binmode: true) do |file|
+      Tempfile.create(['non_hmis_upload', File.extname(@upload.filename)], binmode: true) do |file|
         file.write(@upload.file_data)
         file.rewind
         block.call(file)

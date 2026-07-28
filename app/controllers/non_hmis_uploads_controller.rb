@@ -24,8 +24,7 @@ class NonHmisUploadsController < ApplicationController
 
   def show
     @upload = upload_source.find(params[:id].to_i)
-    filename = @upload.file&.file&.filename&.to_s || 'upload'
-    send_data(@upload.file_data, type: @upload.content_type, filename: filename)
+    send_data(@upload.file_data, type: @upload.content_type, filename: @upload.filename.presence || 'upload')
   end
 
   def create
@@ -46,10 +45,9 @@ class NonHmisUploadsController < ApplicationController
         content_type: file&.content_type,
       ),
     )
+    # New uploads live entirely in ActiveStorage; the legacy CarrierWave `file` column
+    # is left null and read only for rows that predate the migration.
     @upload.upload_file.attach(file)
-    # Keep the legacy filename column populated without invoking CarrierWave's
-    # own storage (mount_uploader is a read-only fallback going forward).
-    @upload.write_attribute(:file, file.original_filename)
     if @upload.save
       run_import = true
       flash[:notice] = Translation.translate('Upload queued to start.')
@@ -68,7 +66,7 @@ class NonHmisUploadsController < ApplicationController
 
   def upload_params
     params.require(:grda_warehouse_non_hmis_upload).
-      permit(:file, :file_cache)
+      permit(:file)
   end
 
   def data_source_source

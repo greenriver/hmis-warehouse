@@ -39,6 +39,33 @@ RSpec.describe GrdaWarehouse::NonHmisUpload, type: :model do
     end
   end
 
+  describe '#filename' do
+    it 'returns the legacy column for un-migrated rows' do
+      expect(build_upload.filename).to eq('test.csv')
+    end
+
+    it 'prefers the attachment name once migrated' do
+      upload = build_upload
+      upload.save!(validate: false)
+      upload.upload_file.attach(io: StringIO.new(bytes), filename: 'renamed.xlsx', content_type: 'text/csv')
+      expect(upload.filename).to eq('renamed.xlsx')
+    end
+
+    # Mirrors the controller create flow: the legacy `file` column is left null.
+    it 'saves and reports the attachment name with the legacy column null' do
+      upload = described_class.new(data_source: data_source, content_type: 'text/csv')
+      upload.upload_file.attach(io: StringIO.new(bytes), filename: 'new_style.xlsx', content_type: 'text/csv')
+      expect { upload.save! }.not_to raise_error
+      upload.reload
+      expect(upload[:file]).to be_nil
+      expect(upload.filename).to eq('new_style.xlsx')
+    end
+
+    it 'returns an empty string when neither is present' do
+      expect(described_class.new(data_source: data_source).filename).to eq('')
+    end
+  end
+
   describe '#copy_to_s3!' do
     it 'attaches content to S3 and nulls the content column' do
       upload = build_upload

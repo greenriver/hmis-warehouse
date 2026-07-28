@@ -26,6 +26,12 @@ module GrdaWarehouse
       content
     end
 
+    def filename
+      return upload_file.filename.to_s if upload_file.attached?
+
+      self[:file].to_s
+    end
+
     scope :unprocessed_s3_migration, -> do
       migrated = ActiveStorage::Attachment.where(record_type: 'GrdaWarehouse::NonHmisUpload', name: 'upload_file').pluck(:record_id)
       all = pluck(:id)
@@ -43,7 +49,7 @@ module GrdaWarehouse
         tmp_file.write(content)
         tmp_file.rewind
         self.content = nil
-        upload_file.attach(io: tmp_file, content_type: content_type, filename: read_attribute(:file).presence || 'upload', identify: false)
+        upload_file.attach(io: tmp_file, content_type: content_type, filename: self[:file].presence || 'upload', identify: false)
         save!(validate: false)
       end
     end
