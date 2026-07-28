@@ -31,7 +31,7 @@ module WarehouseReports::HealthEmergency
       file = upload_params[:file]
       # NOTE: TestBatch can't persist (required belongs_to :client, no client_id
       # column -- see HealthEmergency concern) so this create is inert.
-      @upload = upload_source.create(upload_params.except(:file).merge(user_id: current_user.id, name: file&.original_filename, content_type: file&.content_type, content: file.read))
+      @upload = upload_source.create(upload_params.except(:file).merge(user_id: current_user.id, name: file&.original_filename, content_type: file&.content_type, content: file&.read))
       Importing::TestBatchUploadJob.perform_later
       respond_with(@upload, location: warehouse_reports_health_emergency_uploaded_results_path)
     end
