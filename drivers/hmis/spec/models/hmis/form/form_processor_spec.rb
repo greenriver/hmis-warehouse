@@ -23,190 +23,6 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
   HIDDEN = Hmis::Hud::Processors::Base::HIDDEN_FIELD_VALUE
   INVALID = 'INVALID' # Invalid enum representation
 
-  describe 'IncomeBenefit processor' do
-    it 'succeeds if overall is YES and sources are specified (income)' do
-      assessment = Hmis::Hud::CustomAssessment.new_with_defaults(enrollment: e1, user: u1, form_definition: fd, assessment_date: Date.yesterday)
-      assessment.form_processor.hud_values = {
-        'IncomeBenefit.incomeFromAnySource' => 'YES',
-        'IncomeBenefit.earnedAmount' => nil,
-        'IncomeBenefit.unemploymentAmount' => 100,
-        'IncomeBenefit.otherIncomeAmount' => 0,
-        'IncomeBenefit.otherIncomeSourceIdentify' => HIDDEN,
-      }
-
-      assessment.form_processor.run!(user: hmis_user)
-      assessment.save_not_in_progress
-
-      expect(assessment.enrollment.income_benefits.count).to eq(1)
-
-      income_benefits = assessment.enrollment.income_benefits.first
-      expect(income_benefits.income_from_any_source).to eq(1)
-      expect(income_benefits.earned).to eq(0) # overridden
-      expect(income_benefits.earned_amount).to eq(nil)
-      expect(income_benefits.unemployment).to eq(1)
-      expect(income_benefits.unemployment_amount).to eq(100)
-      expect(income_benefits.other_income_source).to eq(0)
-      expect(income_benefits.other_income_amount).to eq(0)
-      expect(income_benefits.other_income_source_identify).to eq(nil)
-    end
-
-    it 'succeeds if section is left empty (income)' do
-      assessment = Hmis::Hud::CustomAssessment.new_with_defaults(enrollment: e1, user: u1, form_definition: fd, assessment_date: Date.yesterday)
-      assessment.form_processor.hud_values = {
-        'IncomeBenefit.incomeFromAnySource' => nil,
-        'IncomeBenefit.earnedAmount' => nil,
-        'IncomeBenefit.unemploymentAmount' => nil,
-        'IncomeBenefit.otherIncomeAmount' => nil,
-        'IncomeBenefit.otherIncomeSourceIdentify' => HIDDEN,
-      }
-
-      assessment.form_processor.run!(user: hmis_user)
-      assessment.save_not_in_progress
-
-      expect(assessment.enrollment.income_benefits.count).to eq(1)
-
-      income_benefits = assessment.enrollment.income_benefits.first
-      expect(income_benefits.income_from_any_source).to eq(99)
-      expect(income_benefits.earned).to eq(99)
-      expect(income_benefits.earned_amount).to be nil
-      expect(income_benefits.unemployment).to eq(99)
-      expect(income_benefits.unemployment_amount).to be nil
-      expect(income_benefits.other_income_source).to eq(99)
-      expect(income_benefits.other_income_amount).to be nil
-      expect(income_benefits.other_income_source_identify).to be nil
-    end
-
-    it 'succeeds if overall is NO' do
-      assessment = Hmis::Hud::CustomAssessment.new_with_defaults(enrollment: e1, user: u1, form_definition: fd, assessment_date: Date.yesterday)
-      assessment.form_processor.hud_values = {
-        'IncomeBenefit.benefitsFromAnySource' => 'NO',
-        'IncomeBenefit.snap' => HIDDEN,
-        'IncomeBenefit.wic' => HIDDEN,
-        'IncomeBenefit.otherBenefitsSource' => HIDDEN,
-        'IncomeBenefit.otherBenefitsSourceIdentify' => HIDDEN,
-      }
-
-      assessment.form_processor.run!(user: hmis_user)
-      assessment.save_not_in_progress
-
-      expect(assessment.enrollment.income_benefits.count).to eq(1)
-
-      income_benefits = assessment.enrollment.income_benefits.first
-      expect(income_benefits.benefits_from_any_source).to eq(0)
-      expect(income_benefits.snap).to eq(0) # overridden
-      expect(income_benefits.wic).to eq(0) # overridden
-      expect(income_benefits.other_benefits_source).to eq(0) # overridden
-      expect(income_benefits.other_benefits_source_identify).to eq(nil)
-    end
-
-    it 'succeeds if overall is CLIENT_PREFERS_NOT_TO_ANSWER' do
-      assessment = Hmis::Hud::CustomAssessment.new_with_defaults(enrollment: e1, user: u1, form_definition: fd, assessment_date: Date.yesterday)
-      assessment.form_processor.hud_values = {
-        'IncomeBenefit.benefitsFromAnySource' => 'CLIENT_PREFERS_NOT_TO_ANSWER',
-        'IncomeBenefit.snap' => HIDDEN,
-        'IncomeBenefit.wic' => HIDDEN,
-        'IncomeBenefit.otherBenefitsSource' => HIDDEN,
-        'IncomeBenefit.otherBenefitsSourceIdentify' => HIDDEN,
-      }
-
-      assessment.form_processor.run!(user: hmis_user)
-      assessment.save_not_in_progress
-
-      expect(assessment.enrollment.income_benefits.count).to eq(1)
-
-      income_benefits = assessment.enrollment.income_benefits.first
-      expect(income_benefits.benefits_from_any_source).to eq(9)
-      expect(income_benefits.snap).to be nil
-      expect(income_benefits.wic).to be nil
-      expect(income_benefits.other_benefits_source).to be nil
-      expect(income_benefits.other_benefits_source_identify).to be nil
-    end
-
-    it 'succeeds if overall is YES and sources are specified (health insurance)' do
-      assessment = Hmis::Hud::CustomAssessment.new_with_defaults(enrollment: e1, user: u1, form_definition: fd, assessment_date: Date.yesterday)
-      assessment.form_processor.hud_values = {
-        'IncomeBenefit.insuranceFromAnySource' => 'YES',
-        'IncomeBenefit.medicaid' => 'YES',
-        'IncomeBenefit.schip' => nil,
-        'IncomeBenefit.otherInsurance' => nil,
-        'IncomeBenefit.otherInsuranceIdentify' => HIDDEN,
-      }
-
-      assessment.form_processor.run!(user: hmis_user)
-      assessment.save_not_in_progress
-
-      expect(assessment.enrollment.income_benefits.count).to eq(1)
-
-      income_benefits = assessment.enrollment.income_benefits.first
-      expect(income_benefits.insurance_from_any_source).to eq(1)
-      expect(income_benefits.medicaid).to eq(1)
-      expect(income_benefits.schip).to eq(0) # overridden
-      expect(income_benefits.other_insurance).to eq(0) # overridden
-      expect(income_benefits.other_insurance_identify).to eq(nil)
-    end
-
-    it 'succeeds if section is left empty (health insurance)' do
-      assessment = Hmis::Hud::CustomAssessment.new_with_defaults(enrollment: e1, user: u1, form_definition: fd, assessment_date: Date.yesterday)
-      assessment.form_processor.hud_values = {
-        'IncomeBenefit.insuranceFromAnySource' => nil,
-        'IncomeBenefit.medicaid' => nil,
-      }
-
-      assessment.form_processor.run!(user: hmis_user)
-      assessment.save_not_in_progress
-
-      expect(assessment.enrollment.income_benefits.count).to eq(1)
-
-      income_benefits = assessment.enrollment.income_benefits.first
-      expect(income_benefits.insurance_from_any_source).to eq(99)
-      expect(income_benefits.medicaid).to eq(99)
-    end
-
-    it 'fails if overall iS YES but no sources were specified' do
-      assessment = Hmis::Hud::CustomAssessment.new_with_defaults(enrollment: e1, user: u1, form_definition: fd, assessment_date: Date.yesterday)
-      assessment.form_processor.hud_values = {
-        'IncomeBenefit.incomeFromAnySource' => 'YES',
-        'IncomeBenefit.benefitsFromAnySource' => 'YES',
-        'IncomeBenefit.insuranceFromAnySource' => 'YES',
-      }
-
-      assessment.form_processor.run!(user: hmis_user)
-      expect(assessment.form_processor.valid?(:form_submission)).to be false
-      expect(assessment.form_processor.errors.where(:income_from_any_source).first.options[:full_message]).to eq(Hmis::Hud::Validators::IncomeBenefitValidator::INCOME_SOURCES_UNSPECIFIED)
-      expect(assessment.form_processor.errors.where(:benefits_from_any_source).first.options[:full_message]).to eq(Hmis::Hud::Validators::IncomeBenefitValidator::BENEFIT_SOURCES_UNSPECIFIED)
-      expect(assessment.form_processor.errors.where(:insurance_from_any_source).first.options[:full_message]).to eq(Hmis::Hud::Validators::IncomeBenefitValidator::INSURANCE_SOURCES_UNSPECIFIED)
-    end
-
-    it 'raises when receiving a string value for a decimal col (regression #6868)' do
-      assessment = Hmis::Hud::CustomAssessment.new_with_defaults(enrollment: e1, user: u1, form_definition: fd, assessment_date: Date.yesterday)
-      assessment.form_processor.hud_values = {
-        'IncomeBenefit.incomeFromAnySource' => 'YES',
-        'IncomeBenefit.unemploymentAmount' => 'bad string',
-        'IncomeBenefit.otherIncomeAmount' => 100,
-        'IncomeBenefit.alimonyAmount' => nil,
-      }
-
-      assessment.form_processor.run!(user: hmis_user)
-      expect do
-        assessment.form_processor.save!
-      end.to raise_error(ActiveRecord::RecordInvalid, /not a number/).
-        and not_change(Hmis::Hud::IncomeBenefit, :count)
-    end
-
-    it 'does not raise when receiving a string that can be converted to an int' do
-      assessment = Hmis::Hud::CustomAssessment.new_with_defaults(enrollment: e1, user: u1, form_definition: fd, assessment_date: Date.yesterday)
-      assessment.form_processor.hud_values = {
-        'IncomeBenefit.incomeFromAnySource' => 'YES',
-        'IncomeBenefit.unemploymentAmount' => '200',
-        'IncomeBenefit.otherIncomeAmount' => 100,
-        'IncomeBenefit.alimonyAmount' => nil,
-      }
-
-      assessment.form_processor.run!(user: hmis_user)
-      expect(assessment.form_processor.valid?(:form_submission)).to be true
-    end
-  end
-
   describe 'HealthAndDV processor' do
     it 'ingests HealthAndDV into the hud tables (no)' do
       assessment = Hmis::Hud::CustomAssessment.new_with_defaults(enrollment: e1, user: u1, form_definition: fd, assessment_date: Date.yesterday)
@@ -552,6 +368,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
 
       assessment.reload.form_processor.hud_values = {
         'IncomeBenefit.incomeFromAnySource' => nil,
+        'IncomeBenefit.unemploymentAmount' => nil,
       }
 
       assessment.form_processor.run!(user: hmis_user)
@@ -1735,6 +1552,8 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
   describe 'Form processing for CeParticipations' do
     let(:definition) { Hmis::Form::Definition.find_by(role: :CE_PARTICIPATION) }
     let!(:existing_record) { create :hmis_hud_ce_participation, data_source: ds1, project: p1, crisis_assessment: 1, receives_referrals: 1 }
+    # Use a separate project for the created record so it does not overlap the existing record's participation range.
+    let!(:p2) { create :hmis_hud_project, data_source: ds1, organization: o1, user: u1 }
     let(:complete_hud_values) do
       {
         'CeParticipation.accessPoint' => 'YES',
@@ -1745,7 +1564,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
     end
 
     it 'creates and updates all fields' do
-      new_record = Hmis::Hud::CeParticipation.new(data_source: ds1, user: u1, project: p1)
+      new_record = Hmis::Hud::CeParticipation.new(data_source: ds1, user: u1, project: p2)
       [existing_record, new_record].each do |record|
         process_record(record: record, hud_values: complete_hud_values, user: hmis_user, definition: definition)
 

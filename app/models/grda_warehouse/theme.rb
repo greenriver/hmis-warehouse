@@ -46,11 +46,11 @@ module GrdaWarehouse
     # If the theme is not set, set it to the default and save it for the future
     def self.css_file_contents
       theme = active_theme
-      return theme.css_file_contents if theme.css_file_contents.present?
+      return theme.sanitize_css(theme.css_file_contents) if theme.css_file_contents.present?
 
       theme.set_theme_default_css!
       theme.save!
-      theme.css_file_contents
+      theme.sanitize_css(theme.css_file_contents)
     end
 
     def self.logo
@@ -92,6 +92,37 @@ module GrdaWarehouse
 
     def self.active_theme
       where(client: ENV.fetch('CLIENT')).first_or_create
+    end
+
+    # Exposes the sanitized theme CSS to the IdP login screens (see Theme::CssController).
+    # Currently just wraps `.css_file_contents`; kept as its own method so IdP-specific
+    # CSS handling can diverge from the main site theme later without touching the
+    # controller. If the configured CSS doesn't set `--op-accent`, the IdP falls back
+    # to its own default accent color -- Rails doesn't need to supply one.
+    def self.idp_theme_css
+      css_file_contents
+    end
+
+    # Sanitize CSS entered by the user. The allowlist is the standard properties from
+    # Sanitize::Config::RELAXED, plus any --custom-properties present in the input (their names
+    # can't be known in advance, and they're inert without a matching var() consumer).
+    # Sanitize::CSS itself filters property *values* (url(javascript:...), expression(), etc.).
+    # The final `.delete('<')` guards against this CSS being embedded inside an HTML <style>
+    # block (see application.html.haml) -- e.g. a "</style" breakout. It removes every "<"
+    # unconditionally rather than matching a complete tag/sequence, so it can't suffer the
+    # classic incomplete-sanitization bypass (CodeQL rb/incomplete-multi-character-sanitization)
+    # where removing a nested match splices the surrounding text back into the original sequence.
+    def sanitize_css(raw_css)
+      return '' if raw_css.blank?
+
+      custom_properties = raw_css.scan(/(--[a-zA-Z_][a-zA-Z0-9_-]*)\s*:/).flatten
+      allowed_properties = (Sanitize::Config::RELAXED[:css][:properties] + custom_properties).to_set
+
+      sanitized = Sanitize::CSS.stylesheet(
+        raw_css,
+        css: Sanitize::Config::DEFAULT[:css].merge(properties: allowed_properties),
+      )
+      sanitized.delete('<')
     end
 
     def set_theme_default_logo!

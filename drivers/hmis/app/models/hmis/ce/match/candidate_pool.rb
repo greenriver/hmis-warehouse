@@ -48,6 +48,14 @@ module Hmis::Ce::Match
       joins(:unit_groups).merge(Hmis::UnitGroup.with_ce_waitlists_enabled).distinct
     }
 
+    scope :in_data_source, ->(data_source_id) {
+      joins(:unit_groups).merge(Hmis::UnitGroup.in_data_source(data_source_id)).distinct
+    }
+
+    scope :in_project_group, ->(project_group_id) {
+      joins(:unit_groups).merge(Hmis::UnitGroup.in_project_group(project_group_id)).distinct
+    }
+
     def self.mark_all_dirty
       Hmis::Ce::ChangeMarker.upsert_or_bump_version(
         'Hmis::Ce::Match::CandidatePool',

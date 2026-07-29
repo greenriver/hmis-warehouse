@@ -317,6 +317,7 @@ module GrdaWarehouse
         :self_report_start_date,
         :chronic_adult_only_cohort,
         :enable_auto_deduplication,
+        :enable_external_data_sharing_exclusion,
         :rds_s3_integration_role_arn,
         :relevant_state_codes,
         client_details: [],

@@ -82,6 +82,10 @@ The exporter includes three main scoping methods:
 
 Scopes apply the configured filters (date range, project selection, deleted records) and enforce CoC restrictions when specified.
 
+`client_scope` and `enrollment_scope` also apply external data sharing exclusions when the
+`:enable_external_data_sharing_exclusion` config flag is enabled — see
+[external-data-sharing-exclusion.md](external-data-sharing-exclusion.md).
+
 ## Custom Files
 
 The 2026 exporter supports custom CSV files defined through the custom files configuration system. Custom files follow the HUD CSV template structure but include additional fields. They are configured via YAML and implement:

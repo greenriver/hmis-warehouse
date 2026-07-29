@@ -111,5 +111,6 @@ module Types
     field :fetch_aha_score, mutation: Mutations::AcHmis::FetchAhaScore
     field :fetch_vision_link_flags, mutation: Mutations::AcHmis::FetchVisionLinkFlags
     field :calculate_alt_aha_score, mutation: Mutations::AcHmis::CalculateAltAhaScore
+    field :bulk_void_ce_clients, mutation: Mutations::AcHmis::BulkVoidCeClients
   end
 end

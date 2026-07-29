@@ -95,7 +95,12 @@ module E2eTests
           logger: FerrumLogger.new,
           inspector: ENV.key?('CHROME_DEBUGGING_PORT'),
           browser_path: ENV.fetch('CHROMIUM_PATH', '/usr/bin/chromium'),
-          timezone_id: 'America/New_York', # Match Rails timezone to avoid date mismatches after midnight UTC
+          # Match the browser's timezone to Rails so date defaults/comparisons don't drift by a
+          # day when CI runs near the UTC date boundary. Ferrum ignores the `timezone_id` option,
+          # so we set TZ in the browser subprocess env (Chromium reads TZ). Without this the
+          # browser falls back to the container's system zone (UTC in CI) while Rails uses
+          # config.time_zone (America/New_York), so evening-Eastern runs render "tomorrow".
+          env: { 'TZ' => Time.zone.tzinfo.identifier },
         }
       end
 

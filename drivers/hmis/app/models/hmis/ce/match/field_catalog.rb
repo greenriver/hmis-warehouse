@@ -67,6 +67,8 @@ module Hmis::Ce::Match
         item_type: item_type_for_client_field(client_field),
         multiple: client_field.multiple,
         field_key: client_field.key.to_s,
+        source: :CLIENT,
+        form_definition_identifier: nil,
         pick_list_reference: client_pick_list_reference(client_field),
         pick_list_options: nil,
       )
@@ -79,6 +81,8 @@ module Hmis::Ce::Match
         item_type: item_type || item_type_for_cded(cded),
         multiple: cded.repeats || false,
         field_key: Hmis::Ce::Match::Expression::CdeFieldMap.field_key_for(Hmis::Ce::Match::Expression::FieldMap::CUSTOM_ASSESSMENT, cded.key),
+        source: :CUSTOM_DATA_ELEMENT,
+        form_definition_identifier: cded.form_definition_identifier,
         pick_list_reference: pick_list_reference,
         pick_list_options: pick_list_options,
       )

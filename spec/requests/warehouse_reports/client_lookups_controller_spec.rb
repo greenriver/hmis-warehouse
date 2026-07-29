@@ -548,6 +548,33 @@ RSpec.describe WarehouseReports::ClientLookupsController, type: :request do
 
       expect(response).to have_http_status(:success)
     end
+
+    # On a multi-CoC installation, FilterBase#update seeds coc_codes from the user's CoC
+    # codes when the form submits none. Filters::ClientLookup overrides
+    # effective_project_ids_from_coc_codes so those codes don't expand the project scope
+    # behind the guard. viewable_project is linked to the granted CoC so that, without the
+    # override, it would satisfy any_effective_project_ids? and skip the redirect.
+    it 'still redirects when the installation is multi-CoC and the user has CoC codes assigned' do
+      create(:config, multi_coc_installation: true)
+      coc = create(:lookup_coc)
+      create(
+        :hud_project_coc,
+        data_source_id: viewable_project.data_source_id,
+        ProjectID: viewable_project.ProjectID,
+        CoCCode: coc.coc_code,
+      )
+      collection.set_viewables(
+        reports: [report_definition.id],
+        projects: [viewable_project.id, confidential_project.id],
+        coc_codes: [coc.id],
+      )
+      create_crosswalk
+
+      get_report(project_ids: [], data_source_ids: [], organization_ids: [])
+
+      expect(response).to have_http_status(:redirect)
+      expect(flash[:alert]).to include('Data Source')
+    end
   end
 
   describe 'client name PII policy (regression guard)' do

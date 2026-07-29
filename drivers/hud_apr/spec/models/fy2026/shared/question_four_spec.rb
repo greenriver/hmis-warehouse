@@ -122,3 +122,55 @@ RSpec.describe HudApr::Generators::Shared::Fy2026::QuestionFour do
     end
   end
 end
+
+RSpec.describe HudApr::Generators::CeApr::Fy2026::QuestionFour do
+  let(:report) { create(:hud_reports_report_instance) }
+  let!(:data_source) { create(:source_data_source) }
+  let(:generator) { HudApr::Generators::CeApr::Fy2026::Generator.new(report) }
+  let(:question) { described_class.new(generator, report) }
+
+  describe '#q4_project_scope' do
+    context 'when active_project_ids is empty (fallback path)' do
+      before do
+        allow(generator).to receive(:active_project_ids).and_return([])
+      end
+
+      it 'excludes projects where ContinuumProject = 0' do
+        project = create(:grda_warehouse_hud_project, data_source: data_source, ContinuumProject: 0)
+        allow(report).to receive(:project_ids).and_return([project.id])
+
+        result = question.send(:q4_project_scope)
+        expect(result.pluck(:id)).not_to include(project.id)
+      end
+
+      it 'excludes projects where ContinuumProject is nil' do
+        project = create(:grda_warehouse_hud_project, data_source: data_source, ContinuumProject: nil)
+        allow(report).to receive(:project_ids).and_return([project.id])
+
+        result = question.send(:q4_project_scope)
+        expect(result.pluck(:id)).not_to include(project.id)
+      end
+
+      it 'includes projects where ContinuumProject = 1' do
+        project = create(:grda_warehouse_hud_project, data_source: data_source, ContinuumProject: 1)
+        allow(report).to receive(:project_ids).and_return([project.id])
+
+        result = question.send(:q4_project_scope)
+        expect(result.pluck(:id)).to include(project.id)
+      end
+    end
+
+    context 'when active_project_ids is non-empty (normal path)' do
+      it 'excludes projects where ContinuumProject = 0 even when returned by active_project_ids' do
+        non_continuum = create(:grda_warehouse_hud_project, data_source: data_source, ContinuumProject: 0)
+        continuum = create(:grda_warehouse_hud_project, data_source: data_source, ContinuumProject: 1)
+        allow(generator).to receive(:active_project_ids).and_return([non_continuum.id, continuum.id])
+        allow(report).to receive(:project_ids).and_return([non_continuum.id, continuum.id])
+
+        result = question.send(:q4_project_scope)
+        expect(result.pluck(:id)).not_to include(non_continuum.id)
+        expect(result.pluck(:id)).to include(continuum.id)
+      end
+    end
+  end
+end

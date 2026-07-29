@@ -16,12 +16,23 @@ module Importing
     end
 
     def perform
-      base_path = 'var/non_hmis_import'
-      path = "#{base_path}/#{@upload.id}"
-      FileUtils.mkdir_p(base_path) unless File.directory?(base_path)
-      file = File.open(path, 'w+b')
-      file.write(@upload.content)
-      GrdaWarehouse::Config.active_supplemental_enrollment_importer_class.run!(@data_source_id, file, @upload.id)
+      # The importers hand the file off to Roo, which needs something on disk, so
+      # stream the attachment to a tempfile that goes away when we're done.
+      with_local_file do |file|
+        GrdaWarehouse::Config.active_supplemental_enrollment_importer_class.run!(@data_source_id, file, @upload.id)
+      end
+    end
+
+    # ActiveStorage downloads the blob to a tempfile for us; legacy records that
+    # still hold their bytes in the database need one built by hand.
+    private def with_local_file(&block)
+      return @upload.upload_file.open(&block) if @upload.upload_file.attached?
+
+      Tempfile.create(['non_hmis_upload', File.extname(@upload.filename)], binmode: true) do |file|
+        file.write(@upload.file_data)
+        file.rewind
+        block.call(file)
+      end
     end
 
     def enqueue(job)

@@ -199,8 +199,7 @@ jobs:
         id: container-setup
         uses: ./.github/workflows/container_setup
         with:
-          additional_packages: libpq-dev
-          install_chromium: 'true'
+          additional_packages: libpq-dev chromium chromium-common
 
       - name: "App setup"
         run: |
@@ -357,8 +356,7 @@ jobs:
       - name: "Container Setup"
         uses: ./.github/workflows/container_setup
         with:
-          additional_packages: libpq-dev
-          install_chromium: 'true'
+          additional_packages: libpq-dev chromium chromium-common
 
       - name: "App setup"
         run: |
@@ -434,8 +432,7 @@ jobs:
       - name: "Container Setup"
         uses: ./.github/workflows/container_setup
         with:
-          additional_packages: libpq-dev
-          install_chromium: 'true'
+          additional_packages: libpq-dev chromium chromium-common
 
       - name: "App setup"
         run: |

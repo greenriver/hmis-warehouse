@@ -20,12 +20,12 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   end
 
   describe 'TableConfigLookup' do
-    describe 'ceClientsGlobalConfig' do
+    describe 'ceClientsConfig' do
       let(:query) do
         <<~GRAPHQL
-          query TableConfigLookup {
+          query TableConfigLookup($projectGroupId: ID) {
             tableConfigLookup {
-              ceClientsGlobalConfig {
+              ceClientsConfig(projectGroupId: $projectGroupId) {
                 columns {
                   key
                   label
@@ -50,7 +50,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
           aggregate_failures 'checking response' do
             expect(response.status).to eq(200), result.inspect
-            config = result.dig('data', 'tableConfigLookup', 'ceClientsGlobalConfig')
+            config = result.dig('data', 'tableConfigLookup', 'ceClientsConfig')
             expect(config).to be_nil
           end
         end
@@ -67,34 +67,86 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           )
         end
 
-        it 'returns the global configuration' do
-          response, result = post_graphql({}) { query }
+        context 'when no project group id is provided' do
+          it 'returns the global configuration' do
+            response, result = post_graphql({}) { query }
 
-          aggregate_failures 'checking response' do
-            expect(response.status).to eq(200), result.inspect
-            config = result.dig('data', 'tableConfigLookup', 'ceClientsGlobalConfig')
-            expect(config).to be_present
+            aggregate_failures 'checking response' do
+              expect(response.status).to eq(200), result.inspect
+              config = result.dig('data', 'tableConfigLookup', 'ceClientsConfig')
+              expect(config).to be_present
 
-            # Check columns
-            expect(config['columns']).to be_present
-            column = config['columns'].first
-            expect(column).to include(
-              'key' => 'cde.custom_assessment.my_household_type',
-              'type' => 'STRING',
-              'label' => 'Household Type',
-            )
+              # Check columns
+              expect(config['columns']).to be_present
+              column = config['columns'].first
+              expect(column).to include(
+                'key' => 'cde.custom_assessment.my_household_type',
+                'type' => 'STRING',
+                'label' => 'Household Type',
+              )
 
-            # Check filters
-            expect(config['filters']).to be_present
-            filter = config['filters'].first
-            expect(filter).to include(
-              'key' => 'cde.custom_assessment.my_household_type',
-              'label' => 'Household Type',
+              # Check filters
+              expect(config['filters']).to be_present
+              filter = config['filters'].first
+              expect(filter).to include(
+                'key' => 'cde.custom_assessment.my_household_type',
+                'label' => 'Household Type',
+              )
+              expect(filter['options']).to contain_exactly(
+                { 'code' => 'Household with children' },
+                { 'code' => 'Household without children' },
+              )
+            end
+          end
+        end
+
+        context 'when a project group config exists' do
+          let!(:project_group) { create(:hmis_project_group, data_source: ds1) }
+          let!(:project_group_config) do
+            create(
+              :hmis_table_configuration_ce_clients,
+              data_source: ds1,
+              owner: project_group,
+              columns: [
+                {
+                  'key' => 'cde.custom_assessment.project_group_score',
+                  'type' => 'string',
+                  'label' => 'Project Group Score',
+                },
+              ],
             )
-            expect(filter['options']).to contain_exactly(
-              { 'code' => 'Household with children' },
-              { 'code' => 'Household without children' },
-            )
+          end
+
+          it 'returns the project group configuration' do
+            response, result = post_graphql({ project_group_id: project_group.id }) { query }
+
+            aggregate_failures 'checking response' do
+              expect(response.status).to eq(200), result.inspect
+              config = result.dig('data', 'tableConfigLookup', 'ceClientsConfig')
+              expect(config['columns'].first).to include(
+                'key' => 'cde.custom_assessment.project_group_score',
+                'type' => 'STRING',
+                'label' => 'Project Group Score',
+              )
+            end
+          end
+        end
+
+        context 'when no project group config exists' do
+          let!(:project_group) { create(:hmis_project_group, data_source: ds1) }
+
+          it 'falls back to the global configuration' do
+            response, result = post_graphql({ project_group_id: project_group.id }) { query }
+
+            aggregate_failures 'checking response' do
+              expect(response.status).to eq(200), result.inspect
+              config = result.dig('data', 'tableConfigLookup', 'ceClientsConfig')
+              expect(config['columns'].first).to include(
+                'key' => 'cde.custom_assessment.my_household_type',
+                'type' => 'STRING',
+                'label' => 'Household Type',
+              )
+            end
           end
         end
       end

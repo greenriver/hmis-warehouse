@@ -11,5 +11,4 @@ namespace :hmis do
       table.delete_all
     end
   end
-
 end
