@@ -10,10 +10,8 @@ require 'rails_helper'
 
 RSpec.describe UserGroupMember, type: :model do
   describe '.describe_changes' do
-    # PaperTrail is globally disabled in tests for performance (spec/rails_helper.rb) — matches
-    # the existing pattern in spec/requests/admin/edit_histories_spec.rb.
-    before { PaperTrail.enabled = true }
-    after { PaperTrail.enabled = false }
+    # PaperTrail is globally disabled in tests for performance (spec/rails_helper.rb).
+    around(:example) { |ex| PaperTrailHelper.with_paper_trail { ex.run } }
 
     # No FactoryBot factory exists for UserGroupMember; build it directly (only
     # `:user_group` and `:user` factories exist).

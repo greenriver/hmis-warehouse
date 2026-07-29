@@ -46,10 +46,8 @@ RSpec.describe 'YAML-serialized column safety' do
   end
 
   describe 'a PaperTrail-tracked access-control model' do
-    # PaperTrail is globally disabled in tests for performance (spec/rails_helper.rb) — matches
-    # the existing pattern in spec/requests/admin/edit_histories_spec.rb.
-    before { PaperTrail.enabled = true }
-    after { PaperTrail.enabled = false }
+    # PaperTrail is globally disabled in tests for performance (spec/rails_helper.rb).
+    around(:example) { |ex| PaperTrailHelper.with_paper_trail { ex.run } }
 
     let(:user_group) { create(:user_group, name: 'original-name') }
 

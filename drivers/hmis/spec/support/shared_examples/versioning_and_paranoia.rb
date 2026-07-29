@@ -33,8 +33,6 @@ RSpec.shared_examples 'versioned model' do
     raise('define let(:build_record) to use versioned model shared examples') unless defined?(build_record)
 
     PaperTrailHelper.with_paper_trail do
-      PaperTrail.request.enabled = true
-
       record = instance_exec(&build_record)
       updater = update_attributes_for_versioning if defined?(update_attributes_for_versioning)
       raise('define let(:update_attributes_for_versioning) to specify an attribute change for versioning') unless updater.respond_to?(:call)
