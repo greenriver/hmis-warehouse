@@ -384,7 +384,7 @@ RSpec.describe Hmis::AuthPolicies::CeReferralPolicy, type: :model do
     end
 
     context 'when user can view enrollments at the target project' do
-      let!(:access_control) { create_access_control(user, project, with_permission: [:can_view_project, :can_view_enrollment_details]) }
+      let!(:access_control) { create_access_control(user, project, with_permission: [:can_view_project, :can_view_enrollment_details, :can_view_clients]) }
 
       it 'returns false when referral has no target enrollment' do
         expect(policy.can_view_summary?).to be false

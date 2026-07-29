@@ -16,6 +16,7 @@ RSpec.describe Hmis::AuthPolicies::HmisCustomAssessmentPolicy, type: :model do
   let(:other_project) { create(:hmis_hud_project, data_source: data_source) }
   let(:client) { create(:hmis_hud_client, data_source: data_source) }
   let(:enrollment) { create(:hmis_hud_enrollment, project: project, client: client, data_source: data_source) }
+  let(:enrollment_visibility_permissions) { [:can_view_enrollment_details, :can_view_project, :can_view_clients] }
 
   describe 'Instance#can_delete?' do
     describe 'when assessment is still in-progress (wip)' do
@@ -23,7 +24,7 @@ RSpec.describe Hmis::AuthPolicies::HmisCustomAssessmentPolicy, type: :model do
       let(:policy) { user.policy_for(assessment, policy_type: :hmis_custom_assessment) }
 
       it 'returns true if user has can_edit_enrollments with requirements' do
-        create_access_control(user, project, with_permission: [:can_edit_enrollments, :can_view_enrollment_details, :can_view_project])
+        create_access_control(user, project, with_permission: [:can_edit_enrollments, *enrollment_visibility_permissions])
         expect(policy.can_delete?).to be true
       end
 
@@ -31,13 +32,13 @@ RSpec.describe Hmis::AuthPolicies::HmisCustomAssessmentPolicy, type: :model do
         create_access_control(
           user,
           project,
-          with_permission: [:can_delete_assessments, :can_view_enrollment_details, :can_view_project],
+          with_permission: [:can_delete_assessments, *enrollment_visibility_permissions],
         )
         expect(policy.can_delete?).to be false
       end
 
       it 'returns false if user has permissions only on a different project' do
-        create_access_control(user, other_project, with_permission: [:can_edit_enrollments, :can_view_enrollment_details, :can_view_project])
+        create_access_control(user, other_project, with_permission: [:can_edit_enrollments, *enrollment_visibility_permissions])
         expect(policy.can_delete?).to be false
       end
 
@@ -58,13 +59,13 @@ RSpec.describe Hmis::AuthPolicies::HmisCustomAssessmentPolicy, type: :model do
         create_access_control(
           user,
           project,
-          with_permission: [:can_edit_enrollments, :can_view_enrollment_details, :can_view_project, :can_delete_enrollments],
+          with_permission: [:can_edit_enrollments, *enrollment_visibility_permissions, :can_delete_enrollments],
         )
         expect(policy.can_delete?).to be true
       end
 
       it 'returns false if user has can_edit but not can_delete_enrollments' do
-        create_access_control(user, project, with_permission: [:can_edit_enrollments, :can_view_enrollment_details, :can_view_project])
+        create_access_control(user, project, with_permission: [:can_edit_enrollments, *enrollment_visibility_permissions])
         expect(policy.can_delete?).to be false
       end
     end
@@ -86,18 +87,18 @@ RSpec.describe Hmis::AuthPolicies::HmisCustomAssessmentPolicy, type: :model do
         create_access_control(
           user,
           project,
-          with_permission: [:can_delete_assessments, :can_view_enrollment_details, :can_view_project],
+          with_permission: [:can_delete_assessments, *enrollment_visibility_permissions],
         )
         expect(policy.can_delete?).to be true
       end
 
       it 'returns false if user lacks can_delete_assessments' do
-        create_access_control(user, project, with_permission: [:can_edit_enrollments, :can_view_enrollment_details, :can_view_project])
+        create_access_control(user, project, with_permission: [:can_edit_enrollments, *enrollment_visibility_permissions])
         expect(policy.can_delete?).to be false
       end
 
       it 'returns false if user has permissions only on a different project' do
-        create_access_control(user, other_project, with_permission: [:can_delete_assessments, :can_view_enrollment_details, :can_view_project])
+        create_access_control(user, other_project, with_permission: [:can_delete_assessments, *enrollment_visibility_permissions])
         expect(policy.can_delete?).to be false
       end
     end

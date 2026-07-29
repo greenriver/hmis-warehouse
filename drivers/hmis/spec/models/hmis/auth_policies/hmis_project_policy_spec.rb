@@ -14,6 +14,7 @@ RSpec.describe Hmis::AuthPolicies::HmisProjectPolicy, type: :model do
   let(:project) { create(:hmis_hud_project, organization: organization, data_source: data_source) }
   let(:user) { create(:hmis_user, data_source: data_source) }
   let(:policy) { user.policy_for(project, policy_type: :hmis_project) }
+  let(:enrollment_visibility_permissions) { [:can_view_enrollment_details, :can_view_project, :can_view_clients] }
 
   shared_examples 'permission checks with access' do
     it 'grants configured permissions' do
@@ -97,7 +98,7 @@ RSpec.describe Hmis::AuthPolicies::HmisProjectPolicy, type: :model do
 
   describe '#can_create_enrollments?' do
     context 'with can_edit_enrollments permission' do
-      let!(:access_control) { create_access_control(user, project, with_permission: [:can_view_enrollment_details, :can_view_project, :can_edit_enrollments]) }
+      let!(:access_control) { create_access_control(user, project, with_permission: [*enrollment_visibility_permissions, :can_edit_enrollments]) }
 
       it 'returns true' do
         expect(policy.can_create_enrollments?).to be true
@@ -106,7 +107,7 @@ RSpec.describe Hmis::AuthPolicies::HmisProjectPolicy, type: :model do
 
     context 'without can_edit_enrollments permission (even if it is granted at another project)' do
       let!(:other_project) { create(:hmis_hud_project, organization: organization, data_source: data_source) }
-      let!(:access_control) { create_access_control(user, other_project, with_permission: [:can_view_enrollment_details, :can_view_project, :can_edit_enrollments]) }
+      let!(:access_control) { create_access_control(user, other_project, with_permission: [*enrollment_visibility_permissions, :can_edit_enrollments]) }
 
       it 'returns false' do
         expect(policy.can_create_enrollments?).to be false
@@ -116,24 +117,24 @@ RSpec.describe Hmis::AuthPolicies::HmisProjectPolicy, type: :model do
 
   describe '#can_create_and_enroll_new_clients?' do
     it 'returns true when user can create and enroll new clients' do
-      create_access_control(user, project, with_permission: [:can_view_project, :can_view_clients, :can_edit_clients, :can_view_enrollment_details, :can_edit_enrollments])
+      create_access_control(user, project, with_permission: [*enrollment_visibility_permissions, :can_edit_clients, :can_edit_enrollments])
       expect(policy.can_create_and_enroll_new_clients?).to be true
     end
 
     it 'returns false when user cannot create clients' do
-      create_access_control(user, project, with_permission: [:can_view_project, :can_view_clients, :can_view_enrollment_details, :can_edit_enrollments])
+      create_access_control(user, project, with_permission: [*enrollment_visibility_permissions, :can_edit_enrollments])
       expect(policy.can_create_and_enroll_new_clients?).to be false
     end
 
     it 'returns false when user cannot enroll clients' do
-      create_access_control(user, project, with_permission: [:can_view_project, :can_view_clients, :can_edit_clients, :can_view_enrollment_details])
+      create_access_control(user, project, with_permission: [*enrollment_visibility_permissions, :can_edit_clients])
       expect(policy.can_create_and_enroll_new_clients?).to be false
     end
 
     context 'when user can create clients in a different project, but not this one' do
       let(:p2) { create(:hmis_hud_project, organization: organization, data_source: data_source) }
       before(:each) do
-        create_access_control(user, project, with_permission: [:can_view_project, :can_view_clients, :can_view_enrollment_details, :can_edit_enrollments])
+        create_access_control(user, project, with_permission: [*enrollment_visibility_permissions, :can_edit_enrollments])
         create_access_control(user, p2, with_permission: [:can_view_project, :can_view_clients, :can_edit_clients])
       end
 

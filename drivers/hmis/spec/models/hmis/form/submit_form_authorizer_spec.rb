@@ -14,6 +14,8 @@ RSpec.describe Hmis::Form::SubmitFormAuthorizer, type: :model do
   let(:project) { create(:hmis_hud_project, organization: organization, data_source: data_source) }
   let(:client) { create(:hmis_hud_client, data_source: data_source) }
   let(:user) { create(:hmis_user, data_source: data_source) }
+  # Required together for enrollment visibility / edit permissions to take effect
+  let(:enrollment_visibility_permissions) { [:can_view_enrollment_details, :can_view_project, :can_view_clients] }
 
   def make_definition(owner_class:, role: 'FORM', allowed_form_record_actions: [Hmis::Form::Definition::CREATE, Hmis::Form::Definition::EDIT])
     instance_double('Hmis::Form::Definition', owner_class: owner_class, role: role, data_source_id: data_source.id, allowed_form_record_actions: allowed_form_record_actions)
@@ -86,7 +88,7 @@ RSpec.describe Hmis::Form::SubmitFormAuthorizer, type: :model do
       let(:record) { Hmis::Hud::Enrollment.new(project: project, client: client, data_source: data_source) }
 
       it 'returns true when user can enroll clients' do
-        create_access_control(user, data_source, with_permission: [:can_view_project, :can_view_enrollment_details, :can_edit_enrollments])
+        create_access_control(user, data_source, with_permission: [*enrollment_visibility_permissions, :can_edit_enrollments])
         expect(authorizer.authorized_to_create?(record)).to be true
       end
 
@@ -101,17 +103,17 @@ RSpec.describe Hmis::Form::SubmitFormAuthorizer, type: :model do
       let(:record) { Hmis::Hud::Enrollment.new(project: project, client: client, data_source: data_source) }
 
       it 'returns true when user can create and enroll new clients' do
-        create_access_control(user, project, with_permission: [:can_view_project, :can_view_clients, :can_edit_clients, :can_view_enrollment_details, :can_edit_enrollments])
+        create_access_control(user, project, with_permission: [*enrollment_visibility_permissions, :can_edit_clients, :can_edit_enrollments])
         expect(authorizer.authorized_to_create?(record)).to be true
       end
 
       it 'returns false when user cannot create clients' do
-        create_access_control(user, project, with_permission: [:can_view_project, :can_view_clients, :can_view_enrollment_details, :can_edit_enrollments])
+        create_access_control(user, project, with_permission: [*enrollment_visibility_permissions, :can_edit_enrollments])
         expect(authorizer.authorized_to_create?(record)).to be false
       end
 
       it 'returns false when user cannot enroll clients' do
-        create_access_control(user, project, with_permission: [:can_view_project, :can_view_clients, :can_edit_clients, :can_view_enrollment_details])
+        create_access_control(user, project, with_permission: [*enrollment_visibility_permissions, :can_edit_clients])
         expect(authorizer.authorized_to_create?(record)).to be false
       end
     end
@@ -122,12 +124,12 @@ RSpec.describe Hmis::Form::SubmitFormAuthorizer, type: :model do
       let(:record) { Hmis::Hud::CustomCaseNote.new(enrollment: enrollment, data_source: data_source) }
 
       it 'returns true when user can edit enrollments' do
-        create_access_control(user, data_source, with_permission: [:can_view_project, :can_view_enrollment_details, :can_edit_enrollments])
+        create_access_control(user, data_source, with_permission: [*enrollment_visibility_permissions, :can_edit_enrollments])
         expect(authorizer.authorized_to_create?(record)).to be true
       end
 
       it 'returns false when user cannot edit enrollments' do
-        create_access_control(user, data_source, with_permission: [:can_view_project, :can_view_enrollment_details])
+        create_access_control(user, data_source, with_permission: enrollment_visibility_permissions)
         expect(authorizer.authorized_to_create?(record)).to be false
       end
     end
@@ -138,12 +140,12 @@ RSpec.describe Hmis::Form::SubmitFormAuthorizer, type: :model do
       let(:record) { Hmis::Hud::Service.new(enrollment: enrollment, client: client, data_source: data_source) }
 
       it 'returns true when user can edit enrollments' do
-        create_access_control(user, data_source, with_permission: [:can_view_project, :can_view_enrollment_details, :can_edit_enrollments])
+        create_access_control(user, data_source, with_permission: [*enrollment_visibility_permissions, :can_edit_enrollments])
         expect(authorizer.authorized_to_create?(record)).to be true
       end
 
       it 'returns false when user cannot edit enrollments' do
-        create_access_control(user, data_source, with_permission: [:can_view_project, :can_view_enrollment_details])
+        create_access_control(user, data_source, with_permission: enrollment_visibility_permissions)
         expect(authorizer.authorized_to_create?(record)).to be false
       end
     end
@@ -154,12 +156,12 @@ RSpec.describe Hmis::Form::SubmitFormAuthorizer, type: :model do
       let(:record) { Hmis::Hud::CustomService.new(enrollment: enrollment, client: client, data_source: data_source) }
 
       it 'returns true when user can edit enrollments' do
-        create_access_control(user, data_source, with_permission: [:can_view_project, :can_view_enrollment_details, :can_edit_enrollments])
+        create_access_control(user, data_source, with_permission: [*enrollment_visibility_permissions, :can_edit_enrollments])
         expect(authorizer.authorized_to_create?(record)).to be true
       end
 
       it 'returns false when user cannot edit enrollments' do
-        create_access_control(user, data_source, with_permission: [:can_view_project, :can_view_enrollment_details])
+        create_access_control(user, data_source, with_permission: enrollment_visibility_permissions)
         expect(authorizer.authorized_to_create?(record)).to be false
       end
     end
@@ -250,12 +252,12 @@ RSpec.describe Hmis::Form::SubmitFormAuthorizer, type: :model do
       let(:record) { enrollment }
 
       it 'returns true when user can edit enrollments' do
-        create_access_control(user, data_source, with_permission: [:can_view_project, :can_view_enrollment_details, :can_edit_enrollments])
+        create_access_control(user, data_source, with_permission: [*enrollment_visibility_permissions, :can_edit_enrollments])
         expect(authorizer.authorized_to_edit?(record)).to be true
       end
 
       it 'returns false when user cannot edit enrollments' do
-        create_access_control(user, data_source, with_permission: [:can_view_project, :can_view_enrollment_details])
+        create_access_control(user, data_source, with_permission: enrollment_visibility_permissions)
         expect(authorizer.authorized_to_edit?(record)).to be false
       end
     end
@@ -266,7 +268,7 @@ RSpec.describe Hmis::Form::SubmitFormAuthorizer, type: :model do
       let(:record) { enrollment }
 
       it 'raises because edit is not supported for this form role' do
-        create_access_control(user, data_source, with_permission: [:can_view_project, :can_view_enrollment_details, :can_edit_enrollments])
+        create_access_control(user, data_source, with_permission: [*enrollment_visibility_permissions, :can_edit_enrollments])
         expect { authorizer.authorized_to_edit?(record) }.to raise_error(/form role NEW_CLIENT_ENROLLMENT cannot be used to edit existing records/)
       end
     end
@@ -278,12 +280,12 @@ RSpec.describe Hmis::Form::SubmitFormAuthorizer, type: :model do
       let(:record) { assessment }
 
       it 'returns true when user can edit enrollments' do
-        create_access_control(user, data_source, with_permission: [:can_view_project, :can_view_enrollment_details, :can_edit_enrollments])
+        create_access_control(user, data_source, with_permission: [*enrollment_visibility_permissions, :can_edit_enrollments])
         expect(authorizer.authorized_to_edit?(record)).to be true
       end
 
       it 'returns false when user cannot edit enrollments' do
-        create_access_control(user, data_source, with_permission: [:can_view_project, :can_view_enrollment_details])
+        create_access_control(user, data_source, with_permission: enrollment_visibility_permissions)
         expect(authorizer.authorized_to_edit?(record)).to be false
       end
     end
@@ -295,12 +297,12 @@ RSpec.describe Hmis::Form::SubmitFormAuthorizer, type: :model do
       let(:record) { service }
 
       it 'returns true when user can edit enrollments' do
-        create_access_control(user, data_source, with_permission: [:can_view_project, :can_view_enrollment_details, :can_edit_enrollments])
+        create_access_control(user, data_source, with_permission: [*enrollment_visibility_permissions, :can_edit_enrollments])
         expect(authorizer.authorized_to_edit?(record)).to be true
       end
 
       it 'returns false when user cannot edit enrollments' do
-        create_access_control(user, data_source, with_permission: [:can_view_project, :can_view_enrollment_details])
+        create_access_control(user, data_source, with_permission: enrollment_visibility_permissions)
         expect(authorizer.authorized_to_edit?(record)).to be false
       end
     end

@@ -56,8 +56,10 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   end
 
   describe 'enrollment sourceCeReferral query' do
+    let(:enrollment_visibility_permissions) { [:can_view_enrollment_details, :can_view_project, :can_view_clients] }
+
     context 'when user has enrollment access' do
-      let!(:access_control) { create_access_control(hmis_user, target_project, with_permission: [:can_view_project, :can_view_enrollment_details]) }
+      let!(:access_control) { create_access_control(hmis_user, target_project, with_permission: enrollment_visibility_permissions) }
 
       it 'resolves source CE referral' do
         response, result = post_graphql(id: target_enrollment.id) { query }
@@ -92,7 +94,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     end
 
     context 'when user has both enrollment and full referral access' do
-      let!(:access_control) { create_access_control(hmis_user, target_project, with_permission: [:can_view_project, :can_view_enrollment_details, :can_view_referrals]) }
+      let!(:access_control) { create_access_control(hmis_user, target_project, with_permission: [*enrollment_visibility_permissions, :can_view_referrals]) }
 
       it 'resolves source CE referral with full access' do
         response, result = post_graphql(id: target_enrollment.id) { query }

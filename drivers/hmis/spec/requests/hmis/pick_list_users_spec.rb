@@ -75,7 +75,13 @@ RSpec.describe 'PickList USERS', type: :request do
   end
 
   context 'with audit enrollments permission' do
-    let!(:access_control) { create_access_control(hmis_user, ds1, with_permission: [:can_audit_enrollments, :can_view_enrollment_details, :can_view_project]) }
+    let!(:access_control) do
+      create_access_control(
+        hmis_user,
+        ds1,
+        with_permission: [:can_audit_enrollments, :can_view_enrollment_details, :can_view_project, :can_view_clients],
+      )
+    end
     it_behaves_like 'returns users grouped by status'
   end
 
