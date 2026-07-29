@@ -194,6 +194,10 @@ RSpec.describe User, type: :model do
     end
   end
 
+  # Regression coverage for CVE-2026-32700: confirmation_token/unconfirmed_email desync.
+  # The app previously carried a monkey patch (DeviseUserPatch) working around this on
+  # Devise 4; Devise 5.0.4 fixes it natively, so the patch was removed. This spec confirms
+  # the native behavior still holds.
   describe 'CVE-2026-32700 - confirmation token/unconfirmed_email sync' do
     it 'prevents desync when a concurrent request modifies unconfirmed_email mid-flight' do
       attacker_email = 'attacker@example.com'
@@ -210,13 +214,13 @@ RSpec.describe User, type: :model do
         confirmation_token: 'injected_token',
       )
 
-      # Second update with the same email — without the patch, AR considers
+      # Second update with the same email — without the fix, AR would consider
       # unconfirmed_email unchanged (still 'attacker_email' in memory) and
-      # omits it from the UPDATE, leaving 'victim_email' in the DB
+      # omit it from the UPDATE, leaving 'victim_email' in the DB
       user.update!(email: attacker_email)
 
       user.reload
-      # The patch ensures unconfirmed_email is always written, correcting the DB
+      # Devise 5 ensures unconfirmed_email is always written, correcting the DB
       expect(user.unconfirmed_email).to eq(attacker_email)
       expect(user.confirmation_token).not_to eq('injected_token')
     end

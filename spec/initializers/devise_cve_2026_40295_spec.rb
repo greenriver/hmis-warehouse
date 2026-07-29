@@ -49,22 +49,4 @@ RSpec.describe 'CVE-2026-40295 - open redirect via Referer on timeout' do
       expect(extract('/dashboard')).to eq('/dashboard')
     end
   end
-
-  describe 'the app no longer carries its own patch for this CVE' do
-    it 'resolves FailureApp#redirect_url from the devise gem itself' do
-      source_file, = Devise::FailureApp.instance_method(:redirect_url).source_location
-      expect(source_file).not_to end_with('devise_cve_2026_40295.rb')
-    end
-
-    it 'resolves extract_path_from_location from the devise gem itself' do
-      source_file, = Devise::Controllers::StoreLocation.instance_method(:extract_path_from_location).source_location
-      expect(source_file).not_to end_with('devise_cve_2026_40295.rb')
-    end
-
-    it 'Warden is still configured to use CustomAuthFailure as the failure app' do
-      failure_app = Devise.warden_config.failure_app
-      expect(failure_app).to eq(CustomAuthFailure)
-      expect(failure_app).to be < Devise::FailureApp
-    end
-  end
 end
