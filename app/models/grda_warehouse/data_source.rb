@@ -593,9 +593,9 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     end
   end
 
-  def self.options_for_select(user:, ids: nil)
+  def self.options_for_select(user:, ids: nil, permission: :can_view_projects)
     # don't cache this, it's a class method
-    scope = viewable_by(user)
+    scope = viewable_by(user, permission: permission)
     scope = scope.where(id: ids) if ids.present?
     scope.distinct.
       order(name: :asc).
