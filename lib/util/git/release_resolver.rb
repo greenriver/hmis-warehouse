@@ -17,7 +17,7 @@ require 'json'
 class Git
   class ReleaseResolver
     REPO = ENV.fetch('GITHUB_REPO', 'greenriver/hmis-warehouse').freeze
-    CACHE_PATH = File.expand_path("#{__dir__}/../../../tmp/git_release.json").freeze
+    CACHE_PATH = '/app/tmp/git_release.json'
 
     # How many of the deployed commit's ancestors to search for a tag.
     # Note: Github's maximum page size is 100, so this is the maximum number of commits to search.
@@ -83,7 +83,7 @@ class Git
 
       # Reads a build stamp from the app root.
       def read_stamp(name)
-        path = File.expand_path("#{__dir__}/../../../#{name}")
+        path = "/app/#{name}"
         return nil unless File.exist?(path)
 
         value = File.read(path).chomp
