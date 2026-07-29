@@ -120,6 +120,13 @@ module Idp
       nil
     end
 
+    # Address the user asked for but hasn't confirmed yet, for IDPs that hold one alongside the live
+    # address. Display only. Defaults to nil, which also covers an IdP with no such concept.
+    # @return [String, nil]
+    def pending_email(user_id:) # rubocop:disable Lint/UnusedMethodArgument
+      nil
+    end
+
     protected
 
     def default_config

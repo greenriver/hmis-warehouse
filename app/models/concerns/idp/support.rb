@@ -137,6 +137,8 @@ module Idp::Support
         "#{idp_service.idp_name} has not verified #{remote_email}",
         idp_name: idp_service.idp_name,
         operation: :get_user,
+        # Realm configuration, not a fault — the same answer comes back until Verify Email is on.
+        transient: false,
       )
     end
 
@@ -144,6 +146,16 @@ module Idp::Support
     update!(email: remote_email)
 
     previous_email
+  end
+
+  # Unconfirmed address at the IdP, or nil. Display only — #idp_reconcile_email! still trusts nothing
+  # but a verified address.
+  #
+  # @raise [Idp::ServiceError] the IdP couldn't be reached
+  def idp_pending_email
+    return nil unless primary_idp
+
+    idp_service.pending_email(user_id: idp_connector_user_id!)
   end
 
   # Push admin-edited first_name/last_name/email to the IdP. No-ops unless the service can accept

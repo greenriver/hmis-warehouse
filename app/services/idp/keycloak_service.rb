@@ -20,6 +20,10 @@ module Idp
   class KeycloakService < Service
     UPDATABLE_ATTRIBUTES = [:first_name, :last_name, :email].freeze
 
+    # Where Keycloak parks an unconfirmed address (`UserModel.EMAIL_PENDING`). It clears the attribute
+    # on confirmation.
+    EMAIL_PENDING_ATTRIBUTE = 'kc.email.pending'
+
     def initialize(config: nil)
       super(config: config || default_config)
       validate_config!
@@ -159,6 +163,12 @@ module Idp
       end
     end
 
+    # Read only — Keycloak owns the attribute's lifecycle.
+    def pending_email(user_id:)
+      representation = get_user(user_id: user_id)
+      Array(representation.dig('attributes', EMAIL_PENDING_ATTRIBUTE)).first.presence
+    end
+
     def reactivate_user(user_id:)
       put_full_user(user_id: user_id, patch: { 'enabled' => true }, operation: :reactivate_user, failure: 'Failed to reactivate user')
     end
@@ -218,11 +228,15 @@ module Idp
     #
     # The redirect_uri must be registered under this client's Valid Redirect URIs in
     # Keycloak, and the client must have the standard (authorization code) flow enabled.
+    #
+    # redirect_uri only governs the return after the *form* is submitted. UPDATE_EMAIL has a second
+    # leg — the confirmation link mailed to the new address — which returns via the client's Base URL
+    # instead, so see #account_client_id too.
     def account_action_url(action:, redirect_uri:)
       return nil unless browser_url.present?
 
       params = {
-        client_id: 'account',
+        client_id: account_client_id,
         redirect_uri: redirect_uri,
         response_type: 'code',
         scope: 'openid',
@@ -337,6 +351,17 @@ module Idp
       return nil if api_url.blank?
 
       config[:browser_url].presence || ENV['KEYCLOAK_PUBLIC_URL'].presence || api_url
+    end
+
+    # The OIDC client an application-initiated action runs under. Its Base URL is where the "Back to
+    # Application" link goes after an UPDATE_EMAIL confirmation, since 26.5.4 stopped honoring the
+    # action token's redirect URI (keycloak#45744) — so this has to name a client whose Base URL is
+    # the Warehouse. See docs/developer/keycloak-idp.md.
+    #
+    # Defaults to Keycloak's built-in `account` client, which lands on the Keycloak account console —
+    # the wrong destination, but a working link. ENV rather than a column, as with #browser_url.
+    def account_client_id
+      config[:account_client_id].presence || ENV['KEYCLOAK_ACCOUNT_CLIENT_ID'].presence || 'account'
     end
 
     def realm
@@ -484,6 +509,7 @@ module Idp
       {
         api_url: ENV['KEYCLOAK_API_URL'],
         browser_url: ENV['KEYCLOAK_PUBLIC_URL'],
+        account_client_id: ENV['KEYCLOAK_ACCOUNT_CLIENT_ID'],
         realm: ENV['KEYCLOAK_REALM'],
         client_id: ENV['KEYCLOAK_SERVICE_CLIENT_ID'],
         client_secret: ENV['KEYCLOAK_SERVICE_CLIENT_SECRET'],

@@ -374,6 +374,26 @@ RSpec.describe Idp::JwtCurrentUser, type: :controller, if: AuthMethod.jwt? do
       end
     end
 
+    # A change the user started at the IdP can land anywhere — a different device, a Keycloak error
+    # page — so the read-back has to come round often enough to be the mechanism rather than a
+    # backstop.
+    it 'asks far more often while an email change is in flight' do
+      Idp::EmailChangePending.mark!(user)
+      get :auth
+
+      travel(Idp::JwtAuthentication::PENDING_SYNC_INTERVAL + 1.second) do
+        expect { get :auth }.to have_enqueued_job(Idp::SyncUserFromIdpJob)
+      end
+    end
+
+    it 'holds off for the full interval with no change in flight' do
+      get :auth
+
+      travel(Idp::JwtAuthentication::PENDING_SYNC_INTERVAL + 1.second) do
+        expect { get :auth }.not_to have_enqueued_job(Idp::SyncUserFromIdpJob)
+      end
+    end
+
     it 'does not enqueue for an unauthenticated request' do
       allow(jwt_helper).to receive(:valid?).and_return(false)
 

@@ -1011,8 +1011,11 @@ Rails.application.routes.draw do
   if AuthMethod.jwt?
     resource :account, only: [:edit, :update], controller: 'idp/accounts'
     # No :update — the JWT arm never writes email locally; the IdP owns the change (see
-    # Idp::AccountEmailsController).
-    resource :account_email, only: [:edit], controller: 'idp/account_emails'
+    # Idp::AccountEmailsController). begin_change hands the browser off to the IdP and writes nothing
+    # about the address.
+    resource :account_email, only: [:edit], controller: 'idp/account_emails' do
+      post :begin_change
+    end
     resources :account_downloads, only: [:index], controller: 'idp/account_downloads'
   else
     resource :account, only: [:edit, :update] do

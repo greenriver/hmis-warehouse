@@ -27,6 +27,8 @@ RSpec.describe Idp::AccountEmailsController, type: :request, if: AuthMethod.jwt?
       body: { access_token: 'test-token', expires_in: 300 }.to_json,
       headers: { 'Content-Type' => 'application/json' },
     )
+    # The pending-change marker lives in the cache, which the test env nulls out.
+    allow(Rails).to receive(:cache).and_return(ActiveSupport::Cache::MemoryStore.new)
     ActionMailer::Base.deliveries.clear
   end
 
@@ -51,20 +53,26 @@ RSpec.describe Idp::AccountEmailsController, type: :request, if: AuthMethod.jwt?
   end
 
   describe 'when the IdP offers email self-service (Keycloak)' do
+    # Every render reads the account back, so the baseline holds the address we already have.
+    # Contexts exercising a change override it.
+    let(:remote_representation) { { id: user.id.to_s, username: 'before@example.com', firstName: 'Self', lastName: 'Serve', email: 'before@example.com', emailVerified: true } }
+
     before(:each) do
       configure_keycloak!
+      stub_request(:get, target_url).to_return(status: 200, body: remote_representation.to_json)
       sign_in user
     end
 
     describe 'GET edit' do
-      it 'shows the current address read-only and deep-links into the IdP UPDATE_EMAIL action' do
+      it 'shows the current address read-only and offers a POST that starts the change' do
         get edit_account_email_path
 
         expect(response).to have_http_status(:ok)
         expect(response.body).to include('before@example.com')
         expect(response.body).not_to include('name="user[email]"')
-        expect(response.body).to include("#{api_url}/realms/#{realm}/protocol/openid-connect/auth")
-        expect(response.body).to match(/kc_action=UPDATE_EMAIL/)
+        expect(response.body).to include(begin_change_account_email_path)
+        # The deep-link is built when that POST is handled, so the tab no longer carries it.
+        expect(response.body).not_to match(/kc_action=UPDATE_EMAIL/)
       end
 
       it 'deep-links into the Keycloak password and 2FA actions' do
@@ -75,13 +83,13 @@ RSpec.describe Idp::AccountEmailsController, type: :request, if: AuthMethod.jwt?
         expect(response.body).to match(/kc_action=CONFIGURE_TOTP/)
       end
 
-      # Every action offered on this tab was launched from it, so every return trip comes back to it
-      # rather than dropping the user on account details.
-      it 'sends all three actions back to this tab' do
+      # Both actions offered as deep-links were launched from this tab, so their return trips come
+      # back to it rather than dropping the user on account details.
+      it 'sends both deep-linked actions back to this tab' do
         get edit_account_email_path
 
         links = response.body.scan(/\/realms\/#{realm}\/protocol\/openid-connect\/auth\?[^"]+/)
-        expect(links.count).to eq(3)
+        expect(links.count).to eq(2)
         expect(links).to all(match(/redirect_uri=[^&]*account_email/))
       end
 
@@ -91,19 +99,174 @@ RSpec.describe Idp::AccountEmailsController, type: :request, if: AuthMethod.jwt?
         expect(response.body).to include(edit_account_email_path)
       end
 
-      it 'does not touch the IdP on an ordinary visit' do
+      # Reconciliation is no longer scoped to a return trip: Keycloak decides where it drops the user
+      # after a confirmation link, and often that is not here.
+      it 'adopts a verified address on an ordinary visit, with no return-trip status' do
+        stub_request(:get, target_url).to_return(
+          status: 200,
+          body: remote_representation.merge(username: 'after@example.com', email: 'after@example.com').to_json,
+        )
+
         get edit_account_email_path
 
+        expect(user.reload.email).to eq('after@example.com')
+        expect(response.body).to include('after@example.com')
+        expect(flash[:notice]).to eq('Account email was updated.')
+      end
+
+      it 'says nothing on an ordinary visit when the address has not moved' do
+        get edit_account_email_path
+
+        expect(user.reload.email).to eq('before@example.com')
+        expect(flash[:notice]).to be_blank
+        expect(flash[:alert]).to be_blank
+      end
+    end
+
+    describe 'POST begin_change' do
+      it 'records that a change is expected and hands the browser to the IdP action' do
+        post begin_change_account_email_path
+
+        expect(Idp::EmailChangePending).to be_pending(user)
+        expect(response.location).to match(/kc_action=UPDATE_EMAIL/)
+      end
+
+      # The client the action runs under is what decides where Keycloak returns the user from the
+      # confirmation link it mails, so it has to be the one configured for this deployment.
+      it 'runs the action under the configured account client, and returns here from the form' do
+        allow(ENV).to receive(:[]).and_call_original
+        allow(ENV).to receive(:[]).with('KEYCLOAK_ACCOUNT_CLIENT_ID').and_return('warehouse-account')
+
+        post begin_change_account_email_path
+
+        query = Rack::Utils.parse_query(URI(response.location).query)
+        expect(query['client_id']).to eq('warehouse-account')
+        expect(query['kc_action']).to eq('UPDATE_EMAIL')
+        expect(query['redirect_uri']).to include('account_email')
+      end
+
+      # Starting a change is not a write path for the address itself — that stays the IdP's.
+      it 'writes nothing about the address, here or at the IdP' do
+        post begin_change_account_email_path
+
+        expect(user.reload.email).to eq('before@example.com')
+        expect(a_request(:put, target_url)).not_to have_been_made
+      end
+
+      # Otherwise a reservation taken out earlier in the session outlasts the change, and the
+      # read-back waits out the full interval anyway.
+      it 'drops any outstanding sync reservation' do
+        throttle_key = Idp::JwtAuthentication.sync_throttle_key(user.id)
+        Rails.cache.write(throttle_key, true, expires_in: Idp::JwtAuthentication::SYNC_INTERVAL)
+
+        post begin_change_account_email_path
+
+        expect(Rails.cache.exist?(throttle_key)).to be false
+      end
+    end
+
+    describe 'while a change is in flight' do
+      before(:each) { Idp::EmailChangePending.mark!(user) }
+
+      it 'clears the marker once the address is adopted' do
+        stub_request(:get, target_url).to_return(
+          status: 200,
+          body: remote_representation.merge(username: 'after@example.com', email: 'after@example.com').to_json,
+        )
+
+        get edit_account_email_path
+
+        expect(user.reload.email).to eq('after@example.com')
+        expect(Idp::EmailChangePending).not_to be_pending(user)
+      end
+
+      # Keycloak holds the unconfirmed address separately from the live one, so the tab can name the
+      # inbox to check.
+      it 'names the address the IdP is waiting on' do
+        stub_request(:get, target_url).to_return(
+          status: 200,
+          body: remote_representation.merge(attributes: { 'kc.email.pending' => ['after@example.com'] }).to_json,
+        )
+
+        get edit_account_email_path
+
+        expect(response.body).to match(/waiting for you to confirm/i)
+        expect(response.body).to include('after@example.com')
+      end
+
+      it 'says nothing about a pending address when the IdP holds none' do
+        get edit_account_email_path
+
+        expect(response.body).not_to match(/waiting for you to confirm/i)
+      end
+    end
+
+    # An address edited in the admin console lands unverified, so this tab raises on every visit by
+    # that user until someone fixes it. Ours to notice, not theirs.
+    describe 'an unverified address at the IdP' do
+      before(:each) do
+        allow(Sentry).to receive(:capture_exception_with_info)
+        stub_request(:get, target_url).to_return(
+          status: 200,
+          body: remote_representation.merge(email: 'after@example.com', emailVerified: false).to_json,
+        )
+      end
+
+      it 'tells a casual visitor nothing, and pages Sentry' do
+        get edit_account_email_path
+
+        expect(response).to have_http_status(:ok)
+        expect(user.reload.email).to eq('before@example.com')
+        expect(response.body).to include('before@example.com')
+        expect(flash[:alert]).to be_blank
+        expect(Sentry).to have_received(:capture_exception_with_info)
+      end
+
+      it 'warns the user who is waiting on a change of their own' do
+        Idp::EmailChangePending.mark!(user)
+
+        get edit_account_email_path
+
+        expect(flash[:alert]).to match(/not verified after@example.com/)
+      end
+
+      # Nothing but a realm setting makes that address verified, so a read-back every minute would
+      # just repeat the same answer.
+      it 'warns, then drops the marker' do
+        Idp::EmailChangePending.mark!(user)
+
+        get edit_account_email_path
+
+        expect(flash[:alert]).to be_present
+        expect(Idp::EmailChangePending).not_to be_pending(user)
+      end
+    end
+
+    # This is a page people refresh, and each refresh would otherwise be another Admin API call into
+    # the same failure.
+    describe 'while the connector circuit is open' do
+      before(:each) do
+        Idp::SyncUserFromIdpJob.open_circuit!(connector_id)
+      end
+
+      it 'renders the address we hold without reading the IdP back' do
+        get edit_account_email_path
+
+        expect(response).to have_http_status(:ok)
+        expect(response.body).to include('before@example.com')
         expect(a_request(:get, target_url)).not_to have_been_made
+      end
+
+      # The circuit is about reaching the connector, not about what the user is entitled to do.
+      it 'still offers the change' do
+        get edit_account_email_path
+
+        expect(response.body).to include(begin_change_account_email_path)
       end
     end
 
     describe 'returning from the IdP action' do
       let(:remote_representation) { { id: user.id.to_s, username: 'after@example.com', firstName: 'Self', lastName: 'Serve', email: 'after@example.com', emailVerified: true } }
-
-      before(:each) do
-        stub_request(:get, target_url).to_return(status: 200, body: remote_representation.to_json)
-      end
 
       it 'adopts the verified address from the Admin API on kc_action_status=success' do
         get edit_account_email_path(kc_action_status: 'success')
@@ -121,11 +284,17 @@ RSpec.describe Idp::AccountEmailsController, type: :request, if: AuthMethod.jwt?
         get edit_account_email_path(kc_action_status: 'success')
       end
 
+      # A cancelled action leaves the IdP holding the old address, and that is what keeps us off it —
+      # not the status, which is only a hint about intent.
       it 'leaves the address alone when the user cancelled' do
+        stub_request(:get, target_url).to_return(
+          status: 200,
+          body: remote_representation.merge(username: 'before@example.com', email: 'before@example.com').to_json,
+        )
+
         get edit_account_email_path(kc_action_status: 'cancelled')
 
         expect(user.reload.email).to eq('before@example.com')
-        expect(a_request(:get, target_url)).not_to have_been_made
         expect(flash[:notice]).to be_blank
       end
 
@@ -159,10 +328,11 @@ RSpec.describe Idp::AccountEmailsController, type: :request, if: AuthMethod.jwt?
         expect(Sentry).to have_received(:capture_exception_with_info)
       end
 
-      # Nothing retries reconciliation, so a rejected write means Keycloak and users.email diverge
-      # for good. It has to be loud rather than silent.
+      # A rejected write leaves Keycloak and users.email diverged until support intervenes — no
+      # retry closes it — so it has to be loud rather than silent.
       it 'warns and pages Sentry when the new address is already taken in the Warehouse' do
         allow(Sentry).to receive(:capture_exception_with_info)
+        Idp::EmailChangePending.mark!(user)
         create(:acl_user, first_name: 'Some', last_name: 'Body', email: 'after@example.com')
 
         get edit_account_email_path(kc_action_status: 'success')
@@ -174,6 +344,7 @@ RSpec.describe Idp::AccountEmailsController, type: :request, if: AuthMethod.jwt?
         expect(response.body).not_to include('after@example.com')
         expect(flash[:alert]).to match(/couldn't save the new address/)
         expect(Sentry).to have_received(:capture_exception_with_info)
+        expect(Idp::EmailChangePending).not_to be_pending(user)
       end
 
       context 'when the Admin API read fails' do
@@ -189,6 +360,15 @@ RSpec.describe Idp::AccountEmailsController, type: :request, if: AuthMethod.jwt?
           expect(user.reload.email).to eq('before@example.com')
           expect(Sentry).to have_received(:capture_exception_with_info)
           expect(flash[:alert]).to be_present
+        end
+
+        # A connector that failed to answer may answer next time, so the faster read-back stays on.
+        it 'keeps the pending marker' do
+          Idp::EmailChangePending.mark!(user)
+
+          get edit_account_email_path
+
+          expect(Idp::EmailChangePending).to be_pending(user)
         end
 
         # The warning belongs to the request that renders it (flash.now); leaking it forward would

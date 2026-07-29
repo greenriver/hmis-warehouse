@@ -7,8 +7,9 @@ The opt-in local Docker Compose stack that reproduces the production auth chain.
 User → OAuth2-Proxy → Dex (OIDC broker) → Keycloak → Rails (JWT headers)
 ```
 
-The `openpath` realm is auto-imported on first boot with two clients — `dex-connector` (OIDC auth
-code flow for Dex) and `rails-service-account` (client credentials for the Rails admin API) — plus the
+The `openpath` realm is auto-imported on first boot with three clients — `dex-connector` (OIDC auth
+code flow for Dex), `rails-service-account` (client credentials for the Rails admin API) and
+`warehouse-account` (the browser client account self-service deep-links run under) — plus the
 `warehouse-users` and `hmis-users` groups.
 
 ## Setup
@@ -147,9 +148,16 @@ own `KC_HOSTNAME` vs `KC_HOSTNAME_ADMIN` split) should get a column then; `#brow
 prefers a `:browser_url` config key over the ENV value, so wiring one up is a one-line change to
 `.from_config`.
 
+`KEYCLOAK_ACCOUNT_CLIENT_ID` is the other browser-facing setting, read the same way (config key, then
+ENV, then a default of Keycloak's built-in `account` client). It names the client account deep-links
+run under, which is what decides where Keycloak returns a user who has confirmed a new address — see
+[Where Keycloak sends the user back](#where-keycloak-sends-the-user-back).
+
 > Heads-up: `realm-import.json` is applied only on the **first** import into a fresh `keycloak`
 > database. If your volume predates the `rails-service-account` client (or its roles), the token
-> grant 401s or the Admin API 403s. Confirm the live client with
+> grant 401s or the Admin API 403s. The same goes for `warehouse-account`, which is newer still: on an
+> older volume, add it by hand (public, standard flow, Base URL `https://hmis-warehouse.dev.test/account_email/edit`)
+> or the email-change return trip lands on the Keycloak account console. Confirm the live client with
 > `kcadm.sh get clients -r openpath -q clientId=rails-service-account --fields clientId,secret,serviceAccountsEnabled`
 > (after `kcadm.sh config credentials --server http://localhost:8080 --realm master --user admin
 > --password 'AdminPassword1!'`), and reset the secret in the admin console or recreate the realm
@@ -157,30 +165,83 @@ prefers a `:browser_url` config key over the ENV value, so wiring one up is a on
 
 ## Realm prerequisites for account email self-service
 
-Under the JWT arm a user changes their own email **inside Keycloak**, not in the Warehouse. The
-Email tab is read-only: it shows the current address and deep-links into Keycloak's `UPDATE_EMAIL`
-application-initiated action (`Idp::KeycloakService#account_action_url`), and the Warehouse adopts
-the new address only when the browser returns with `kc_action_status=success`
-(`Idp::AccountEmailsController#edit` → `Idp::Support#idp_reconcile_email!`), and only when the Admin
-API reports the mailbox as verified — `#idp_reconcile_email!` checks `emailVerified` on the
-representation it already fetched, so no self-service path can put an unproven address in
-`users.email`. (The **admin** path is separate and unchanged: `Admin::Idp::UsersController` still
-writes an admin-supplied address locally and pushes it with `emailVerified: false`, so an admin can
-still put an unverified address in `users.email`.)
+Under the JWT arm a user changes their own email **inside Keycloak**, not in the Warehouse. The Email
+tab is read-only: it shows the current address, and its Change Email button POSTs to
+`Idp::AccountEmailsController#begin_change`, which hands the browser to Keycloak's `UPDATE_EMAIL`
+application-initiated action (`Idp::KeycloakService#account_action_url`). Keycloak collects the new
+address, mails a confirmation link to it, and applies it only once that link is clicked.
+
+The Warehouse adopts the result the next time it reads the account back, and only when the Admin API
+reports the mailbox as verified — `#idp_reconcile_email!` checks `emailVerified` on the representation
+it already fetched, so no self-service path can put an unproven address in `users.email`. Two things
+read it back: every render of the Email tab, and `Idp::SyncUserFromIdpJob`, enqueued on an
+authenticated request at most once per `SYNC_INTERVAL` (30 minutes) — or once per
+`PENDING_SYNC_INTERVAL` (1 minute) while `Idp::EmailChangePending` records a change the user started.
+So adoption does not depend on the user landing back on the tab, which matters because we do not
+control where Keycloak drops them; see [Where Keycloak sends the user back](#where-keycloak-sends-the-user-back).
+
+Both back off from a connector the job has found broken: it opens a per-connector circuit for
+`CIRCUIT_TTL`, and the tab skips its read while that holds. Both also drop the marker early when the
+read-back returns something no retry will change — an address Keycloak applied without verifying, or
+one that collides with another Warehouse account. Those need an operator, so there is no point
+repeating them every minute for a day.
+
+(The **admin** path is separate and unchanged: `Admin::Idp::UsersController` still writes an
+admin-supplied address locally and pushes it with `emailVerified: false`, so an admin can still put an
+unverified address in `users.email`.)
 
 `Idp::KeycloakService#supports_email_self_service?` **asserts** the realm is set up for this rather
-than probing it, so the four items below are operator setup for every realm running the JWT arm.
-Miss one and the tab still renders and still offers the link, but the flow misbehaves in the ways
-noted.
+than probing it, so the items below are operator setup for every realm running the JWT arm. Miss one
+and the tab still renders and still offers the button, but the flow misbehaves in the ways noted.
 
 | Requirement | Where | If missing |
 | --- | --- | --- |
 | **Keycloak ≥ 26.4** | server version (`docker/keycloak/Dockerfile` pins 26.5.4 for dev) | Update Email is a preview feature needing `--features=update-email`; on older servers the action does not exist and Keycloak returns the user with an error status |
 | **Update Email** required action **enabled** | Authentication → Required actions | Keycloak rejects the `kc_action=UPDATE_EMAIL` link; the user gets no way to change their address |
-| Realm **Verify Email** on | Realm settings → Login → Verify email | Keycloak applies the new address **immediately, unverified**. The Warehouse then refuses to adopt it and warns the user, so Keycloak and `users.email` diverge until the realm is fixed — the change appears to fail rather than silently landing unverified |
+| Email verification **in effect for this action** | Realm settings → Login → **Verify email**, or Authentication → Required actions → Update Email → **Force Email Verification** | Keycloak applies the new address **immediately, unverified**. The Warehouse then refuses to adopt it, so Keycloak and `users.email` diverge until the realm is fixed — the change appears to fail rather than silently landing unverified |
+| A browser client whose **Base URL** is the Email tab | Clients → `warehouse-account`, named to the app by `KEYCLOAK_ACCOUNT_CLIENT_ID` | The user ends up on the Keycloak account console after confirming, with no way back. The address still lands here |
 | Working **SMTP** on the realm | Realm settings → Email | The verification mail never sends, so a change can never complete |
 
-Two consequences worth knowing:
+Two levers supply the verification requirement, and either is enough: the realm-wide **Verify email**
+setting, or **Force Email Verification** (`verifyEmail`, off by default) on the Update Email required
+action, which turns it on for this action regardless of the realm setting. What the Warehouse depends
+on is the effect, not which lever produced it — `#idp_reconcile_email!` trusts `emailVerified` and
+nothing else. The per-action setting is the more precise one to reach for, since it leaves password
+resets and admin-provisioned accounts on the realm default.
+
+### Where Keycloak sends the user back
+
+An Update Email has two legs back to the application, and only one of them is ours to steer:
+
+| Leg | Return target |
+| --- | --- |
+| after the form is submitted | the `redirect_uri` on the AIA link — the Email tab |
+| after the confirmation link in the new mailbox | the **Base URL** of the client the action ran under |
+
+The second is fixed per client, not per request: `themes/base/login/info.ftl` renders "Back to
+Application" as `${client.baseUrl}`, and 26.5.4 removed the handler code that honored the action
+token's own redirect URI ([keycloak#45744](https://github.com/keycloak/keycloak/pull/45744), the fix
+for [#44488](https://github.com/keycloak/keycloak/issues/44488)). Registering redirect URIs cannot
+change it. The only control is which client the action runs under, so `KEYCLOAK_ACCOUNT_CLIENT_ID`
+names one whose Base URL is the Email tab (`warehouse-account` in `realm-import.json`; public, since
+the authorization code that comes back is never exchanged). Unset, the action runs under Keycloak's
+built-in `account` client, whose Base URL is the Keycloak account console — a working link to the
+wrong application.
+
+The confirmation link is also **single-use**. `UpdateEmailActionTokenHandler` clears
+`kc.email.pending` on success and rejects a token that no longer matches it, so a second hit changes
+nothing and renders an error page; 26.6.2 hardens this further, making required actions one-time by
+default. A mail client that prefetches links can therefore burn the link before the user clicks it.
+Neither case loses a change that already completed, and in neither case is "click the link again" a
+recovery step — send the user back to the Email tab, which reads the address back on every render.
+
+While the link is outstanding, Keycloak parks the unconfirmed address in that same `kc.email.pending`
+attribute, and the tab reads it (`Idp::KeycloakService#pending_email`) to name the inbox the user
+should be looking in. Internal `kc.` attributes do come back on the Admin API representation as of
+26.5.4, even with the realm's unmanaged attribute policy disabled — but this is display only, and
+adoption still trusts `email` and `emailVerified` alone.
+
+Three consequences worth knowing:
 
 - **Email is the login name.** The realm runs **Email as username**
   (`registrationEmailAsUsername: true`), so Keycloak keeps `username` tracking `email` — matching the
@@ -192,14 +253,23 @@ Two consequences worth knowing:
   Without it, `username` is read-only and the **admin** path
   (`Idp::KeycloakService#update_user`, still used by `Idp::AccountsController`-adjacent admin edits)
   is rejected with `error-user-attribute-read-only`.
-- **Out-of-band edits do not reach the Warehouse.** An email changed directly in the Keycloak admin
-  console never produces a return trip, so `users.email` stays stale until the next user-initiated
-  change. Reconciliation is deliberately scoped to the return trip.
+- **Starting a change can ask for a password.** The Update Email required action carries a **Maximum
+  Age of Authentication** (`max_auth_age`, default **300** seconds). If the browser's Keycloak session
+  last authenticated longer ago than that, Keycloak re-authenticates the user before showing the form.
+  That is the flow working, not a fault — worth knowing when someone reports being asked to log in
+  again halfway through changing their email.
+- **Out-of-band edits do reach the Warehouse.** An email changed directly in the Keycloak admin
+  console produces no return trip, but reconciliation is no longer scoped to one: the Email tab reads
+  the account back on every render, and `Idp::SyncUserFromIdpJob` does so within `SYNC_INTERVAL` of an
+  authenticated request. The catch is verification — the admin console leaves the new address
+  unverified unless whoever made the edit says otherwise, and an unverified address is refused. That
+  refusal goes to Sentry rather than to the user, who did not ask for the change.
 
 > The dev `realm-import.json` does **not** yet enable the Update Email required action, realm
-> `verifyEmail`, or an `smtpServer`, and the auth compose stack has no mail sink — so the flow is
-> not exercisable end-to-end in the local dev stack yet. Configure those by hand in the admin
-> console, or see bead `app-0kk` for wiring them into the dev stack. Note that supplying a
+> `verifyEmail`, or an `smtpServer`, and the auth compose stack carries no mail sink of its own — so
+> the flow is not exercisable end-to-end straight out of the import. Configure those by hand in the
+> admin console (MailHog, [set up separately](../sample_files/mailhog/developer-mail.md), works as the
+> `smtpServer` host), or see bead `app-0kk` for wiring them into the dev stack. Note that supplying a
 > top-level `requiredActions` array in a realm import **replaces** Keycloak's seeded defaults rather
 > than merging with them, so that array must re-list `UPDATE_PASSWORD`, `CONFIGURE_TOTP` and
 > `VERIFY_EMAIL` or the existing password/2FA deep-links regress.
@@ -213,8 +283,8 @@ Two consequences worth knowing:
   out of the box on Docker Desktop).
 - **Credentials:** `docker/auth/keycloak-credentials.env` is committed because its values are
   pre-defined in `realm-import.json` (chosen, not generated). Dev-only — never used in production. It
-  provides `KEYCLOAK_API_URL`, `KEYCLOAK_REALM`, and the `dex-connector` / `rails-service-account`
-  client IDs and secrets.
+  provides `KEYCLOAK_API_URL`, `KEYCLOAK_REALM`, `KEYCLOAK_ACCOUNT_CLIENT_ID`, and the
+  `dex-connector` / `rails-service-account` client IDs and secrets.
 
 ## Related
 

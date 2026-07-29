@@ -346,6 +346,36 @@ RSpec.describe Idp::KeycloakService, type: :model do
     end
   end
 
+  # Keycloak parks the unconfirmed address in an internal user attribute, verified against 26.5.4:
+  # `kc.` attributes come back on the Admin API representation even with the realm's unmanaged
+  # attribute policy disabled.
+  describe '#pending_email' do
+    let(:user_id) { 'keycloak-user-id' }
+
+    def stub_representation(attributes)
+      stub_request(:get, "#{api_url}/admin/realms/#{realm}/users/#{user_id}").
+        to_return(status: 200, body: { id: user_id, email: 'before@example.com' }.merge(attributes).to_json)
+    end
+
+    it 'returns the address awaiting confirmation' do
+      stub_representation(attributes: { 'kc.email.pending' => ['after@example.com'] })
+
+      expect(service.pending_email(user_id: user_id)).to eq('after@example.com')
+    end
+
+    it 'returns nil when no change is in flight' do
+      stub_representation(attributes: { 'someOther' => ['x'] })
+
+      expect(service.pending_email(user_id: user_id)).to be_nil
+    end
+
+    it 'returns nil for a user with no attributes at all' do
+      stub_representation({})
+
+      expect(service.pending_email(user_id: user_id)).to be_nil
+    end
+  end
+
   describe '#reactivate_user' do
     let(:user_id) { 'keycloak-user-id' }
     let(:current_representation) { { id: user_id, username: 'test@example.com', firstName: 'Jane' } }
@@ -754,6 +784,36 @@ RSpec.describe Idp::KeycloakService, type: :model do
         'response_type' => 'code',
         'scope' => 'openid',
       )
+    end
+
+    # The client's Base URL is where Keycloak sends the user back from an out-of-band confirmation
+    # link, so which client the action runs under decides where an email change lands.
+    describe 'the client the action runs under' do
+      def client_id_in(url)
+        Rack::Utils.parse_query(URI(url).query)['client_id']
+      end
+
+      it 'runs under the configured account client' do
+        allow(ENV).to receive(:[]).and_call_original
+        allow(ENV).to receive(:[]).with('KEYCLOAK_ACCOUNT_CLIENT_ID').and_return('warehouse-account')
+
+        expect(client_id_in(url)).to eq('warehouse-account')
+      end
+
+      # No column supplies this yet; the key is what a per-realm one would set, and it wins over ENV.
+      it 'prefers a config key over the ENV value' do
+        allow(ENV).to receive(:[]).and_call_original
+        allow(ENV).to receive(:[]).with('KEYCLOAK_ACCOUNT_CLIENT_ID').and_return('ignored')
+        service.config[:account_client_id] = 'from-config'
+
+        expect(client_id_in(url)).to eq('from-config')
+      end
+
+      # Keycloak's own account client returns the user to the Keycloak account console rather than
+      # here, but it exists on every realm — a wrong destination beats a dead link.
+      it 'falls back to the built-in account client when nothing is configured' do
+        expect(client_id_in(url)).to eq('account')
+      end
     end
 
     context 'when API URL is not configured' do

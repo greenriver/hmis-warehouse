@@ -25,6 +25,14 @@ module Idp::JwtAuthentication
   # Bounds how long an IdP-side email change goes unnoticed here.
   SYNC_INTERVAL = 30.minutes
 
+  # Used while a change is in flight, so the new address lands on about the next page load.
+  PENDING_SYNC_INTERVAL = 1.minute
+
+  # Public so a controller that just started a change can drop the reservation.
+  def self.sync_throttle_key(user_id)
+    "idp_sync:#{user_id}"
+  end
+
   included do
     helper_method :user_session_expires_at
   end
@@ -141,7 +149,7 @@ module Idp::JwtAuthentication
     user
   end
 
-  # Enqueue an IdP read-back for the token holder, at most once per SYNC_INTERVAL. Called from
+  # Enqueue an IdP read-back for the token holder, at most once per interval. Called from
   # authenticate_*_user! rather than a before_action: a concern's `included` block registers filters
   # ahead of authenticate_user! (see the enforce_2fa! note in ApplicationController).
   #
@@ -154,10 +162,11 @@ module Idp::JwtAuthentication
     connector_id = user.last_connector_id
     return if connector_id.blank?
 
-    # unless_exist is atomic, so concurrent requests enqueue once. Ahead of the circuit check so the
-    # usual request costs one Redis call, not two; the tradeoff is a request arriving mid-outage
-    # spends this user's token and waits out the interval.
-    return unless Rails.cache.write("idp_sync:#{user.id}", true, unless_exist: true, expires_in: SYNC_INTERVAL)
+    interval = Idp::EmailChangePending.pending?(user) ? PENDING_SYNC_INTERVAL : SYNC_INTERVAL
+
+    # unless_exist is atomic, so concurrent requests enqueue once. Ahead of the circuit check so a
+    # throttled request skips that read too — a request arriving mid-outage spends its reservation.
+    return unless Rails.cache.write(Idp::JwtAuthentication.sync_throttle_key(user.id), true, unless_exist: true, expires_in: interval)
     return if Idp::SyncUserFromIdpJob.circuit_open?(connector_id)
 
     Idp::SyncUserFromIdpJob.perform_later(user_id: user.id)

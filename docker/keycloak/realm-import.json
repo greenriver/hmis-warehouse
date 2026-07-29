@@ -27,6 +27,22 @@
       }
     },
     {
+      "clientId": "warehouse-account",
+      "protocol": "openid-connect",
+      "enabled": true,
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "baseUrl": "https://hmis-warehouse.dev.test/account_email/edit",
+      "redirectUris": [
+        "https://hmis-warehouse.dev.test/account_email/edit",
+        "https://hmis-warehouse.dev.test/account/edit"
+      ],
+      "webOrigins": ["https://hmis-warehouse.dev.test"]
+    },
+    {
       "clientId": "rails-service-account",
       "secret": "rails-service-account-secret-dev",
       "protocol": "openid-connect",
