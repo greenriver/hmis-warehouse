@@ -21,6 +21,7 @@ module Idp::JwtAuthentication
   extend ActiveSupport::Concern
 
   SESSION_PRINCIPAL_KEY = :idp_token_holder_id
+  SESSION_SYNC_KEY = :idp_user_synced
 
   included do
     helper_method :user_session_expires_at
@@ -138,22 +139,19 @@ module Idp::JwtAuthentication
     user
   end
 
-  # Enqueue an IdP read-back for the token holder, at most once per interval. Called from
-  # authenticate_*_user! rather than a before_action: a concern's `included` block registers filters
-  # ahead of authenticate_user! (see the enforce_2fa! note in ApplicationController).
-  #
-  # The token holder, not current_user — an impersonated account's email isn't the admin's to
-  # reconcile.
+  # Enqueue an IdP read-back for the token holder, once per session.
   def idp_schedule_user_sync
+    return if session[SESSION_SYNC_KEY]
+
     user = idp_token_holder
     return unless user
 
     connector_id = user.last_connector_id
     return if connector_id.blank?
 
-    # Claiming ahead of the cooldown check means a throttled request skips that read too — a request
-    # arriving mid-outage spends its reservation.
-    return unless Idp::SyncThrottle.claim!(user, pending: Idp::EmailChangePending.pending?(user))
+    # Marked ahead of the cooldown check, so a session that starts mid-outage spends its one
+    # attempt rather than retrying on every request until the pause lifts.
+    session[SESSION_SYNC_KEY] = true
     return if Idp::SyncUserFromIdpJob.connector_paused?(connector_id)
 
     Idp::SyncUserFromIdpJob.perform_later(user_id: user.id)

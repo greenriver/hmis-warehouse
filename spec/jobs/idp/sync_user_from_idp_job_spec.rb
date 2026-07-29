@@ -69,26 +69,6 @@ RSpec.describe Idp::SyncUserFromIdpJob, type: :job do
     described_class.new.perform(user_id: user.id)
   end
 
-  # The marker only exists to make this job run more often, so leaving it set once it has done its
-  # work keeps the user on the accelerated interval for nothing.
-  it 'clears the pending marker once it adopts the address' do
-    Idp::EmailChangePending.mark!(user)
-    allow(service).to receive(:get_user).and_return(remote_user(email: 'after@example.com'))
-
-    described_class.new.perform(user_id: user.id)
-
-    expect(Idp::EmailChangePending).not_to be_pending(user)
-  end
-
-  it 'leaves the marker in place while the IdP still holds the old address' do
-    Idp::EmailChangePending.mark!(user)
-    allow(service).to receive(:get_user).and_return(remote_user(email: 'before@example.com'))
-
-    described_class.new.perform(user_id: user.id)
-
-    expect(Idp::EmailChangePending).to be_pending(user)
-  end
-
   it 'never reaches the IdP when it offers no email self-service' do
     allow(service).to receive(:supports_email_self_service?).and_return(false)
     expect(service).not_to receive(:get_user)
@@ -120,15 +100,6 @@ RSpec.describe Idp::SyncUserFromIdpJob, type: :job do
       expect(described_class.connector_paused?('test')).to be true
       expect(described_class.connector_paused?('other-connector')).to be false
     end
-
-    # It may answer next time, and the marker is what gets us back here in a minute.
-    it 'keeps the pending marker' do
-      Idp::EmailChangePending.mark!(user)
-
-      expect { described_class.new.perform(user_id: user.id) }.to raise_error(Idp::ServiceError)
-
-      expect(Idp::EmailChangePending).to be_pending(user)
-    end
   end
 
   # A realm with email verification off applies a new address unverified and we refuse it. Nothing to
@@ -143,7 +114,6 @@ RSpec.describe Idp::SyncUserFromIdpJob, type: :job do
       expect(Sentry).to receive(:capture_exception_with_info).with(
         kind_of(Idp::ServiceError),
         /Couldn't adopt IdP email for user #{user.id}/,
-        {},
       )
 
       expect { described_class.new.perform(user_id: user.id) }.not_to raise_error
@@ -160,14 +130,6 @@ RSpec.describe Idp::SyncUserFromIdpJob, type: :job do
       described_class.new.perform(user_id: user.id)
 
       expect(described_class.connector_paused?('test')).to be false
-    end
-
-    it 'drops the pending marker, so the accelerated read-back stops repeating it' do
-      Idp::EmailChangePending.mark!(user)
-
-      described_class.new.perform(user_id: user.id)
-
-      expect(Idp::EmailChangePending).not_to be_pending(user)
     end
   end
 
@@ -203,16 +165,6 @@ RSpec.describe Idp::SyncUserFromIdpJob, type: :job do
       described_class.new.perform(user_id: user.id)
 
       expect(described_class.connector_paused?('test')).to be false
-    end
-
-    # Only support can close a collision, and a faster read-back won't find anything until it does.
-    it 'drops the pending marker' do
-      allow(Sentry).to receive(:capture_exception_with_info)
-      Idp::EmailChangePending.mark!(user)
-
-      described_class.new.perform(user_id: user.id)
-
-      expect(Idp::EmailChangePending).not_to be_pending(user)
     end
   end
 

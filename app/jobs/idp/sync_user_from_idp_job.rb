@@ -23,7 +23,6 @@ module Idp
       previous_email = reconcile(user)
       return if previous_email.blank?
 
-      Idp::EmailChangePending.clear!(user)
       Rails.logger.info("Adopted IdP email for user #{user.id} (was #{previous_email})")
     rescue Idp::ServiceError => e
       # Stops a broken connector collecting a job per sign-in. This user's retry still runs.
@@ -72,8 +71,7 @@ module Idp
       previous_email
     rescue ActiveRecord::RecordInvalid => e
       # The new address is taken here, or malformed. No retry fixes that.
-      stand_down(
-        user,
+      Sentry.capture_exception_with_info(
         e,
         "Couldn't adopt IdP email for user #{user.id}",
         {
@@ -84,18 +82,12 @@ module Idp
           reason: e.record.errors.full_messages.join(', '),
         },
       )
+      nil
     rescue Idp::ServiceError => e
       # #perform owns the cooldown. Non-transient means the same answer comes back, so don't retry.
       raise e if e.transient?
 
-      stand_down(user, e, "Couldn't adopt IdP email for user #{user.id}: #{e.message}")
-    end
-
-    # Nothing here resolves on its own, so drop the marker or the accelerated read-back repeats this
-    # every minute for the day it holds.
-    def stand_down(user, error, message, context = {})
-      Idp::EmailChangePending.clear!(user)
-      Sentry.capture_exception_with_info(error, message, context)
+      Sentry.capture_exception_with_info(e, "Couldn't adopt IdP email for user #{user.id}: #{e.message}")
       nil
     end
   end

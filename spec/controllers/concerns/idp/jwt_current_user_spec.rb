@@ -352,7 +352,7 @@ RSpec.describe Idp::JwtCurrentUser, type: :controller, if: AuthMethod.jwt? do
 
     before do
       allow(User).to receive(:find_or_create_from_jwt).and_return(user)
-      # NullStore holds nothing, so the rate limit would never engage.
+      # NullStore holds nothing, so the connector pause would never engage.
       allow(Rails).to receive(:cache).and_return(ActiveSupport::Cache::MemoryStore.new)
     end
 
@@ -360,38 +360,34 @@ RSpec.describe Idp::JwtCurrentUser, type: :controller, if: AuthMethod.jwt? do
       expect { get :auth }.to have_enqueued_job(Idp::SyncUserFromIdpJob).with(user_id: 7)
     end
 
-    it 'does not enqueue a second sync within the interval' do
+    it 'does not enqueue a second sync in the same session' do
       get :auth
 
       expect { get :auth }.not_to have_enqueued_job(Idp::SyncUserFromIdpJob)
     end
 
-    it 'enqueues again once the interval has passed' do
+    it 'does not enqueue again however long the session lasts' do
       get :auth
 
-      travel(Idp::SyncThrottle::INTERVAL + 1.minute) do
-        expect { get :auth }.to have_enqueued_job(Idp::SyncUserFromIdpJob)
-      end
-    end
-
-    # A change the user started at the IdP can land anywhere — a different device, a Keycloak error
-    # page — so the read-back has to come round often enough to be the mechanism rather than a
-    # backstop.
-    it 'asks far more often while an email change is in flight' do
-      Idp::EmailChangePending.mark!(user)
-      get :auth
-
-      travel(Idp::SyncThrottle::PENDING_INTERVAL + 1.second) do
-        expect { get :auth }.to have_enqueued_job(Idp::SyncUserFromIdpJob)
-      end
-    end
-
-    it 'holds off for the full interval with no change in flight' do
-      get :auth
-
-      travel(Idp::SyncThrottle::PENDING_INTERVAL + 1.second) do
+      travel(3.days) do
         expect { get :auth }.not_to have_enqueued_job(Idp::SyncUserFromIdpJob)
       end
+    end
+
+    it 'enqueues again for a new session' do
+      get :auth
+      session.delete(Idp::JwtAuthentication::SESSION_SYNC_KEY)
+
+      expect { get :auth }.to have_enqueued_job(Idp::SyncUserFromIdpJob).with(user_id: 7)
+    end
+
+    # idp_sync_session_principal! resets the session when the principal changes, which takes the
+    # guard with it.
+    it 'enqueues for a user who inherits a browser from someone else' do
+      session[Idp::JwtAuthentication::SESSION_PRINCIPAL_KEY] = 99
+      session[Idp::JwtAuthentication::SESSION_SYNC_KEY] = true
+
+      expect { get :auth }.to have_enqueued_job(Idp::SyncUserFromIdpJob).with(user_id: 7)
     end
 
     it 'does not enqueue for an unauthenticated request' do
@@ -404,6 +400,16 @@ RSpec.describe Idp::JwtCurrentUser, type: :controller, if: AuthMethod.jwt? do
       Idp::SyncUserFromIdpJob.pause_connector!('keycloak')
 
       expect { get :auth }.not_to have_enqueued_job(Idp::SyncUserFromIdpJob)
+    end
+
+    # Otherwise every request in a session that started mid-outage retries until the pause lifts.
+    it 'spends the session attempt even when the connector is paused' do
+      Idp::SyncUserFromIdpJob.pause_connector!('keycloak')
+      get :auth
+
+      travel(Idp::SyncUserFromIdpJob::COOLDOWN_TTL + 1.minute) do
+        expect { get :auth }.not_to have_enqueued_job(Idp::SyncUserFromIdpJob)
+      end
     end
 
     it 'does not enqueue for a user with no connector on file' do

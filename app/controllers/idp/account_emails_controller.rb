@@ -20,22 +20,17 @@ class Idp::AccountEmailsController < ApplicationController
     @pending_email = pending_email_from_idp
   end
 
-  # Records that a change is expected before handing the browser over, since the user may never come
-  # back here — see Idp::KeycloakService#account_client_id.
   def begin_change
     action_url = @user.email_change_enabled? && @user.account_action_url(action: 'UPDATE_EMAIL', redirect_uri: edit_account_email_url)
     raise 'Attempt to change email but when feature is not enabled' if action_url.blank?
 
-    Idp::EmailChangePending.mark!(@user)
-    # An earlier request may hold a full-interval reservation, which would outlast the change.
-    Idp::SyncThrottle.release!(@user)
     Rails.logger.info("User #{@user.id} started an email change at #{@user.idp_service.idp_name}")
 
     redirect_to action_url, allow_other_host: true
   end
 
   # On every render, not just a return trip: Keycloak picks where the user lands, and after a mailbox
-  # confirmation that isn't here at all. Costs one Admin API read on a rarely visited tab.
+  # confirmation that isn't here at all. Costs an Admin API read on a rarely visited tab.
   private def reconcile_email_from_idp
     idp_name = @user.idp_service.idp_name
 
@@ -50,32 +45,26 @@ class Idp::AccountEmailsController < ApplicationController
     end
     return if @previous_email.blank?
 
-    Idp::EmailChangePending.clear!(@user)
     flash.now[:notice] = 'Account email was updated.'
   rescue Idp::ServiceError => e
     # Nothing was written, so there's no state to unwind and no reason to fail the page. flash.now,
     # so the warning doesn't come back on the next visit.
     Sentry.capture_exception_with_info(e, "Couldn't adopt #{idp_name} email for user #{@user.id}")
     flash.now[:alert] = "Your email was changed with #{idp_name}, but we couldn't adopt the new address: #{e.message}" if change_expected?
-    # A non-transient failure won't resolve on its own, so stop hurrying the read-back along. After
-    # the copy above, which reads the marker.
-    Idp::EmailChangePending.clear!(@user) unless e.transient?
   rescue ActiveRecord::RecordInvalid => e
     # The IdP moved the address but we can't store it — taken here, or malformed. Reload to drop the
-    # rejected value. Alerted either way, and the marker goes: the records have diverged and only
-    # support can close it.
+    # rejected value. Alerted either way: the records have diverged and only support can close it.
     reason = e.record.errors.full_messages.join(', ')
     @user.reload
     Sentry.capture_exception_with_info(e, "Couldn't adopt #{idp_name} email for user #{@user.id}: #{reason}")
     flash.now[:alert] = "Your email was changed with #{idp_name}, but we couldn't save the new address here. Please contact support."
-    Idp::EmailChangePending.clear!(@user)
   end
 
-  # Only asked for while a change is in flight — an abandoned one can leave an address behind at the
-  # IdP indefinitely.
+  # Asked for whenever nothing was adopted, since the IdP is the only thing that knows a change is
+  # in flight. An abandoned change keeps showing here until the user replaces or confirms it, which
+  # is what the IdP holds either way.
   private def pending_email_from_idp
     return nil if @previous_email.present?
-    return nil unless Idp::EmailChangePending.pending?(@user)
 
     @user.idp_pending_email
   rescue Idp::ServiceError
@@ -85,8 +74,9 @@ class Idp::AccountEmailsController < ApplicationController
 
   # Gates the apology copy, not the reconciliation. An admin-side edit to an unverified address makes
   # this tab raise on every visit, and a user shouldn't be told we failed at a change they never made.
+  # Set by Keycloak on the return trip from the UPDATE_EMAIL action.
   private def change_expected?
-    params[:kc_action_status] == 'success' || Idp::EmailChangePending.pending?(@user)
+    params[:kc_action_status] == 'success'
   end
 
   private def set_user

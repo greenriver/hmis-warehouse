@@ -27,7 +27,7 @@ RSpec.describe Idp::AccountEmailsController, type: :request, if: AuthMethod.jwt?
       body: { access_token: 'test-token', expires_in: 300 }.to_json,
       headers: { 'Content-Type' => 'application/json' },
     )
-    # The pending-change marker lives in the cache, which the test env nulls out.
+    # The connector pause lives in the cache, which the test env nulls out.
     allow(Rails).to receive(:cache).and_return(ActiveSupport::Cache::MemoryStore.new)
     ActionMailer::Base.deliveries.clear
   end
@@ -124,10 +124,9 @@ RSpec.describe Idp::AccountEmailsController, type: :request, if: AuthMethod.jwt?
     end
 
     describe 'POST begin_change' do
-      it 'records that a change is expected and hands the browser to the IdP action' do
+      it 'hands the browser to the IdP action' do
         post begin_change_account_email_path
 
-        expect(Idp::EmailChangePending).to be_pending(user)
         expect(response.location).to match(/kc_action=UPDATE_EMAIL/)
       end
 
@@ -152,33 +151,11 @@ RSpec.describe Idp::AccountEmailsController, type: :request, if: AuthMethod.jwt?
         expect(user.reload.email).to eq('before@example.com')
         expect(a_request(:put, target_url)).not_to have_been_made
       end
-
-      # Otherwise a reservation taken out earlier in the session outlasts the change, and the
-      # read-back waits out the full interval anyway.
-      it 'drops any outstanding sync reservation' do
-        Idp::SyncThrottle.claim!(user, pending: false)
-
-        post begin_change_account_email_path
-
-        expect(Idp::SyncThrottle).not_to be_held(user)
-      end
     end
 
+    # The IdP is the only thing that knows a change is in flight — nothing here records that one was
+    # started.
     describe 'while a change is in flight' do
-      before(:each) { Idp::EmailChangePending.mark!(user) }
-
-      it 'clears the marker once the address is adopted' do
-        stub_request(:get, target_url).to_return(
-          status: 200,
-          body: remote_representation.merge(username: 'after@example.com', email: 'after@example.com').to_json,
-        )
-
-        get edit_account_email_path
-
-        expect(user.reload.email).to eq('after@example.com')
-        expect(Idp::EmailChangePending).not_to be_pending(user)
-      end
-
       # Keycloak holds the unconfirmed address separately from the live one, so the tab can name the
       # inbox to check.
       it 'names the address the IdP is waiting on' do
@@ -221,23 +198,10 @@ RSpec.describe Idp::AccountEmailsController, type: :request, if: AuthMethod.jwt?
         expect(Sentry).to have_received(:capture_exception_with_info)
       end
 
-      it 'warns the user who is waiting on a change of their own' do
-        Idp::EmailChangePending.mark!(user)
-
-        get edit_account_email_path
+      it 'warns the user who just came back from a change of their own' do
+        get edit_account_email_path(kc_action_status: 'success')
 
         expect(flash[:alert]).to match(/not verified after@example.com/)
-      end
-
-      # Nothing but a realm setting makes that address verified, so a read-back every minute would
-      # just repeat the same answer.
-      it 'warns, then drops the marker' do
-        Idp::EmailChangePending.mark!(user)
-
-        get edit_account_email_path
-
-        expect(flash[:alert]).to be_present
-        expect(Idp::EmailChangePending).not_to be_pending(user)
       end
     end
 
@@ -331,7 +295,6 @@ RSpec.describe Idp::AccountEmailsController, type: :request, if: AuthMethod.jwt?
       # retry closes it — so it has to be loud rather than silent.
       it 'warns and pages Sentry when the new address is already taken in the Warehouse' do
         allow(Sentry).to receive(:capture_exception_with_info)
-        Idp::EmailChangePending.mark!(user)
         create(:acl_user, first_name: 'Some', last_name: 'Body', email: 'after@example.com')
 
         get edit_account_email_path(kc_action_status: 'success')
@@ -343,7 +306,6 @@ RSpec.describe Idp::AccountEmailsController, type: :request, if: AuthMethod.jwt?
         expect(response.body).not_to include('after@example.com')
         expect(flash[:alert]).to match(/couldn't save the new address/)
         expect(Sentry).to have_received(:capture_exception_with_info)
-        expect(Idp::EmailChangePending).not_to be_pending(user)
       end
 
       context 'when the Admin API read fails' do
@@ -359,15 +321,6 @@ RSpec.describe Idp::AccountEmailsController, type: :request, if: AuthMethod.jwt?
           expect(user.reload.email).to eq('before@example.com')
           expect(Sentry).to have_received(:capture_exception_with_info)
           expect(flash[:alert]).to be_present
-        end
-
-        # A connector that failed to answer may answer next time, so the faster read-back stays on.
-        it 'keeps the pending marker' do
-          Idp::EmailChangePending.mark!(user)
-
-          get edit_account_email_path
-
-          expect(Idp::EmailChangePending).to be_pending(user)
         end
 
         # The warning belongs to the request that renders it (flash.now); leaking it forward would
