@@ -29,7 +29,7 @@ module Idp
     end
     alias_method :create, :new
 
-    # DELETE users/sign_out (and GET logout_talentlms) — end the IdP session, clear the Rails
+    # DELETE users/sign_out — end the IdP session, clear the Rails
     # session, then hand off to the proxy, which returns to root_path via the rd parameter.
     # Deliberately uses a relative path since oauth2-proxy is same-origin; an absolute URL built
     # from request.base_url could be spoofed via the Host header.
@@ -52,6 +52,15 @@ module Idp
       reset_session
 
       redirect_to("/oauth2/sign_out?rd=#{CGI.escape(root_path)}")
+    end
+
+    # GET logout_talentlms — TalentLMS redirects here when the user logs out of the LMS. Renders a
+    # page whose button does the sign-out; must not sign out itself. It's a cross-site GET with no
+    # CSRF token, so a forged one looks identical, and #destroy ends every session in the realm.
+    #
+    # Don't redirect to /oauth2/sign_out first: that drops the forwarded token the button's DELETE
+    # authenticates with.
+    def logout_talentlms
     end
 
     # GET/POST session_keepalive — report the forwarded token's expiry so the frontend countdown

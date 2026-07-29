@@ -112,13 +112,29 @@ RSpec.describe 'Warehouse JWT wiring', type: :request do
           expect(response).to redirect_to("/oauth2/sign_out?rd=#{CGI.escape(root_path)}")
         end
 
-        it 'covers GET logout_talentlms, which routes to the same action' do
+        # Cross-site GET with no CSRF token, so it renders instead of acting — otherwise any page
+        # could end every session the user holds in the realm. The 200 also rules out a hop to
+        # /oauth2/sign_out, which would strip the token the button's DELETE needs.
+        it 'renders a confirmation page on GET logout_talentlms without ending any session' do
           start_session
 
           get logout_talentlms_path
 
+          expect(response).to have_http_status(:ok)
+          expect(idp_service).not_to have_received(:logout_user_sessions)
+          expect(session[Idp::JwtAuthentication::SESSION_PRINCIPAL_KEY]).to eq(user.id)
+          expect(response.body).to include("href=\"#{destroy_user_session_path}\"", 'data-method="delete"')
+        end
+
+        it 'ends the IdP session when the interstitial\'s control is used' do
+          start_session
+          get logout_talentlms_path
+          expect(response).to have_http_status(:ok)
+
+          delete destroy_user_session_path
+
           expect(idp_service).to have_received(:logout_user_sessions).with(user_id: jwt_connector_user_id(user))
-          expect(response).to have_http_status(:redirect)
+          expect(response).to redirect_to("/oauth2/sign_out?rd=#{CGI.escape(root_path)}")
         end
 
         # The whole reason the id comes off the token: under impersonation current_user is the
