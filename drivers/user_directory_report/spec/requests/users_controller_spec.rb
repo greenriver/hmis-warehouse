@@ -11,13 +11,6 @@ require 'rails_helper'
 # User Directory Report: name, email, phone and agency for every user in the directory,
 # in HTML and as an xlsx download, for both the warehouse and (where configured) CAS.
 #
-# This controller was not in the original ts-013 report; it was found by sweeping every
-# controller for a missing gate. It declared no authorization at all, so any signed-in
-# user could read and export the full user directory.
-#
-# Unlike the youth report, there is no second layer here: `_users` scopes only by
-# User.in_directory (active, non-system, not excluded from the directory) and never by
-# current_user. The gate below is the only thing restricting access.
 RSpec.describe UserDirectoryReport::WarehouseReports::UsersController, type: :request do
   include AccessControlSetup
 
