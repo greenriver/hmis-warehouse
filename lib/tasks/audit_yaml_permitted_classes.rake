@@ -11,11 +11,11 @@ namespace :audit do
        'config.active_record.yaml_column_permitted_classes. Run against a production/staging copy before ' \
        'and after changing that setting. Read-only: never modifies data.'
   task yaml_permitted_classes: :environment do
-    # Keep in sync with config/application.rb's yaml_column_permitted_classes.
-    candidate_permitted_classes = [
-      Symbol, Date, Time, DateTime, ActiveSupport::TimeWithZone, ActiveSupport::TimeZone,
-      ActiveModel::Type::Binary::Data, BigDecimal
-    ].freeze
+    # Reads the actual live setting rather than a separately hand-maintained copy, so this
+    # audit can't silently drift from what's really enforced. To preview a candidate change
+    # before committing it, temporarily edit config.active_record.yaml_column_permitted_classes
+    # in config/application.rb and re-run this task against a production/staging copy.
+    candidate_permitted_classes = ActiveRecord.yaml_column_permitted_classes
 
     # Some of these tables (PaperTrail::Version especially) can hold millions of rows in
     # production — page through by primary key instead of loading the whole table at once.
