@@ -11,7 +11,7 @@ class PublicFilesController < ApplicationController
 
   def show
     filename = @file.file&.file&.filename&.to_s || 'file'
-    send_data(@file.content, type: @file.content_type, filename: filename)
+    send_data(@file.file_data, type: @file.content_type, filename: filename)
   end
 
   def load_file
