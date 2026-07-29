@@ -11,7 +11,8 @@ require 'rails_helper'
 # First back-end coverage for the project-picker endpoint shared by HUD report
 # filter forms. viewable_by's permission arg is a hard gate for ACL users but
 # ignored for legacy role-based users; these specs pin both behaviors plus the
-# param filters the PATH report form relies on (funder_codes, project_types).
+# param filters the PATH report form relies on (funder_codes, project_types) and
+# the confidentiality exclusion project_scope applies alongside permission.
 RSpec.describe Api::ProjectsController, type: :request do
   include AccessControlSetup
 
@@ -180,6 +181,78 @@ RSpec.describe Api::ProjectsController, type: :request do
       post_projects
       expect(returned_project_ids).to match_array(granted_project_ids)
       expect(returned_project_ids).not_to include(ungranted_project.id)
+    end
+  end
+
+  context 'confidentiality filtering' do
+    let(:user) { create(:acl_user) }
+    let(:collection) { create(:collection) }
+    # Granted alongside the non-confidential projects, so its absence below is
+    # attributable only to the confidentiality guard, not to a missing grant.
+    let!(:confidential_project) do
+      create(
+        :hud_project,
+        data_source_id: data_source.id,
+        OrganizationID: organization.OrganizationID,
+        ProjectType: 4,
+        confidential: true,
+      )
+    end
+
+    before do
+      collection.set_viewables(projects: granted_project_ids + [confidential_project.id])
+      setup_access_control(user, role, collection)
+      sign_in(user)
+    end
+
+    context 'user lacks can_view_confidential_project_names' do
+      let(:role) { create(:role, can_view_assigned_reports: true, can_view_confidential_project_names: false) }
+
+      it 'excludes the confidential project despite it being granted' do
+        post_projects(permission: 'can_view_assigned_reports')
+        expect(returned_project_ids).to match_array(granted_project_ids)
+        expect(returned_project_ids).not_to include(confidential_project.id)
+      end
+    end
+
+    context 'user has can_report_on_confidential_projects but not can_view_confidential_project_names' do
+      # project_scope applies its own non_confidential merge unless
+      # can_view_confidential_project_names? is true, independently of
+      # viewable_by's internal can_report_on_confidential_projects check.
+      let(:role) do
+        create(
+          :role,
+          can_view_assigned_reports: true,
+          can_view_confidential_project_names: false,
+          can_report_on_confidential_projects: true,
+        )
+      end
+
+      it 'still excludes the confidential project' do
+        post_projects(permission: 'can_view_assigned_reports')
+        expect(returned_project_ids).to match_array(granted_project_ids)
+        expect(returned_project_ids).not_to include(confidential_project.id)
+      end
+    end
+
+    context 'user has can_view_confidential_project_names and can_report_on_confidential_projects' do
+      # viewable_by's own non_confidential filter is independently gated on
+      # can_report_on_confidential_projects (project.rb's viewable_by scope);
+      # both permissions must be granted for a confidential project to surface
+      # through this endpoint.
+      let(:role) do
+        create(
+          :role,
+          can_view_assigned_reports: true,
+          can_view_confidential_project_names: true,
+          can_report_on_confidential_projects: true,
+        )
+      end
+
+      it 'includes the confidential project' do
+        post_projects(permission: 'can_view_assigned_reports')
+        expect(returned_project_ids).to match_array(granted_project_ids + [confidential_project.id])
+      end
     end
   end
 end

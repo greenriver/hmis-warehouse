@@ -114,5 +114,15 @@ RSpec.describe 'HudPathReport paths#new project picker', type: :request, exclude
     end
 
     include_examples 'PATH picker wiring'
+
+    it 'still returns the PATH-eligible projects once the role loses can_view_assigned_reports, proving the embedded permission is ignored for legacy users' do
+      role.update!(can_view_assigned_reports: false)
+      query = picker_query
+      expect(query['permission']).to eq('can_view_assigned_reports')
+
+      post api_projects_path(format: :json), params: query
+      ids = JSON.parse(response.body)['results'].flat_map { |group| group['children'] }.map { |child| child['id'] }
+      expect(ids).to contain_exactly(so_path_project.id)
+    end
   end
 end
