@@ -11,7 +11,7 @@ module Idp
     attr_reader :idp_name, :operation
 
     # transient: false when the IdP answered fine and will keep giving the same answer until someone
-    # changes a setting there. Retries and the sync job's circuit breaker only make sense for a
+    # changes a setting there. Retries and the sync job's connector cooldown only make sense for a
     # connector that might answer differently in a moment, so neither applies to those.
     def initialize(message, idp_name: nil, operation: nil, transient: true)
       super(message)

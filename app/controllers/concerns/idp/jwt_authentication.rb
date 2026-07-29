@@ -22,17 +22,6 @@ module Idp::JwtAuthentication
 
   SESSION_PRINCIPAL_KEY = :idp_token_holder_id
 
-  # Bounds how long an IdP-side email change goes unnoticed here.
-  SYNC_INTERVAL = 30.minutes
-
-  # Used while a change is in flight, so the new address lands on about the next page load.
-  PENDING_SYNC_INTERVAL = 1.minute
-
-  # Public so a controller that just started a change can drop the reservation.
-  def self.sync_throttle_key(user_id)
-    "idp_sync:#{user_id}"
-  end
-
   included do
     helper_method :user_session_expires_at
   end
@@ -162,12 +151,10 @@ module Idp::JwtAuthentication
     connector_id = user.last_connector_id
     return if connector_id.blank?
 
-    interval = Idp::EmailChangePending.pending?(user) ? PENDING_SYNC_INTERVAL : SYNC_INTERVAL
-
-    # unless_exist is atomic, so concurrent requests enqueue once. Ahead of the circuit check so a
-    # throttled request skips that read too — a request arriving mid-outage spends its reservation.
-    return unless Rails.cache.write(Idp::JwtAuthentication.sync_throttle_key(user.id), true, unless_exist: true, expires_in: interval)
-    return if Idp::SyncUserFromIdpJob.circuit_open?(connector_id)
+    # Claiming ahead of the cooldown check means a throttled request skips that read too — a request
+    # arriving mid-outage spends its reservation.
+    return unless Idp::SyncThrottle.claim!(user, pending: Idp::EmailChangePending.pending?(user))
+    return if Idp::SyncUserFromIdpJob.connector_paused?(connector_id)
 
     Idp::SyncUserFromIdpJob.perform_later(user_id: user.id)
   end

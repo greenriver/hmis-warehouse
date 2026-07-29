@@ -369,7 +369,7 @@ RSpec.describe Idp::JwtCurrentUser, type: :controller, if: AuthMethod.jwt? do
     it 'enqueues again once the interval has passed' do
       get :auth
 
-      travel(Idp::JwtAuthentication::SYNC_INTERVAL + 1.minute) do
+      travel(Idp::SyncThrottle::INTERVAL + 1.minute) do
         expect { get :auth }.to have_enqueued_job(Idp::SyncUserFromIdpJob)
       end
     end
@@ -381,7 +381,7 @@ RSpec.describe Idp::JwtCurrentUser, type: :controller, if: AuthMethod.jwt? do
       Idp::EmailChangePending.mark!(user)
       get :auth
 
-      travel(Idp::JwtAuthentication::PENDING_SYNC_INTERVAL + 1.second) do
+      travel(Idp::SyncThrottle::PENDING_INTERVAL + 1.second) do
         expect { get :auth }.to have_enqueued_job(Idp::SyncUserFromIdpJob)
       end
     end
@@ -389,7 +389,7 @@ RSpec.describe Idp::JwtCurrentUser, type: :controller, if: AuthMethod.jwt? do
     it 'holds off for the full interval with no change in flight' do
       get :auth
 
-      travel(Idp::JwtAuthentication::PENDING_SYNC_INTERVAL + 1.second) do
+      travel(Idp::SyncThrottle::PENDING_INTERVAL + 1.second) do
         expect { get :auth }.not_to have_enqueued_job(Idp::SyncUserFromIdpJob)
       end
     end
@@ -400,8 +400,8 @@ RSpec.describe Idp::JwtCurrentUser, type: :controller, if: AuthMethod.jwt? do
       expect { get :auth }.not_to have_enqueued_job(Idp::SyncUserFromIdpJob)
     end
 
-    it 'does not enqueue while the connector circuit is open' do
-      Idp::SyncUserFromIdpJob.open_circuit!('keycloak')
+    it 'does not enqueue while the connector is paused' do
+      Idp::SyncUserFromIdpJob.pause_connector!('keycloak')
 
       expect { get :auth }.not_to have_enqueued_job(Idp::SyncUserFromIdpJob)
     end

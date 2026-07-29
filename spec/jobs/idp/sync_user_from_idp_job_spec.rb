@@ -25,7 +25,7 @@ RSpec.describe Idp::SyncUserFromIdpJob, type: :job do
     user.user_authentication_sources.create!(connector_id: 'test', connector_user_id: 'kc-1')
     user.update_column(:last_connector_id, 'test')
     allow(Idp::ServiceFactory).to receive(:for_connector).with('test').and_return(service)
-    # NullStore can't hold the circuit flag.
+    # NullStore can't hold the cooldown flag.
     allow(Rails).to receive(:cache).and_return(ActiveSupport::Cache::MemoryStore.new)
   end
 
@@ -114,11 +114,11 @@ RSpec.describe Idp::SyncUserFromIdpJob, type: :job do
       expect { described_class.new.perform(user_id: user.id) }.to raise_error(error)
     end
 
-    it 'opens the connector circuit so a broken connector stops enqueueing a job per sign-in' do
+    it 'starts the connector cooldown so a broken connector stops enqueueing a job per sign-in' do
       expect { described_class.new.perform(user_id: user.id) }.to raise_error(Idp::ServiceError)
 
-      expect(described_class.circuit_open?('test')).to be true
-      expect(described_class.circuit_open?('other-connector')).to be false
+      expect(described_class.connector_paused?('test')).to be true
+      expect(described_class.connector_paused?('other-connector')).to be false
     end
 
     # It may answer next time, and the marker is what gets us back here in a minute.
@@ -132,7 +132,7 @@ RSpec.describe Idp::SyncUserFromIdpJob, type: :job do
   end
 
   # A realm with email verification off applies a new address unverified and we refuse it. Nothing to
-  # retry or break the circuit over: the same answer comes back until an operator fixes the realm.
+  # retry or start a cooldown over: the same answer comes back until an operator fixes the realm.
   describe 'an address the IdP never verified' do
     before(:each) do
       allow(service).to receive(:get_user).and_return(remote_user(email: 'after@example.com', verified: false))
@@ -155,11 +155,11 @@ RSpec.describe Idp::SyncUserFromIdpJob, type: :job do
       expect(user.reload.email).to eq('before@example.com')
     end
 
-    # Otherwise one misconfigured realm holds the circuit open and nobody else on the connector syncs.
-    it 'does not open the circuit' do
+    # Otherwise one misconfigured realm pauses the connector and nobody else on the connector syncs.
+    it 'does not pause the connector' do
       described_class.new.perform(user_id: user.id)
 
-      expect(described_class.circuit_open?('test')).to be false
+      expect(described_class.connector_paused?('test')).to be false
     end
 
     it 'drops the pending marker, so the accelerated read-back stops repeating it' do
@@ -197,12 +197,12 @@ RSpec.describe Idp::SyncUserFromIdpJob, type: :job do
       expect(user.reload.email).to eq('before@example.com')
     end
 
-    it 'does not open the circuit — the connector is fine' do
+    it 'does not pause the connector — the connector is fine' do
       allow(Sentry).to receive(:capture_exception_with_info)
 
       described_class.new.perform(user_id: user.id)
 
-      expect(described_class.circuit_open?('test')).to be false
+      expect(described_class.connector_paused?('test')).to be false
     end
 
     # Only support can close a collision, and a faster read-back won't find anything until it does.

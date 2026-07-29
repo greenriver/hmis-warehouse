@@ -156,12 +156,11 @@ RSpec.describe Idp::AccountEmailsController, type: :request, if: AuthMethod.jwt?
       # Otherwise a reservation taken out earlier in the session outlasts the change, and the
       # read-back waits out the full interval anyway.
       it 'drops any outstanding sync reservation' do
-        throttle_key = Idp::JwtAuthentication.sync_throttle_key(user.id)
-        Rails.cache.write(throttle_key, true, expires_in: Idp::JwtAuthentication::SYNC_INTERVAL)
+        Idp::SyncThrottle.claim!(user, pending: false)
 
         post begin_change_account_email_path
 
-        expect(Rails.cache.exist?(throttle_key)).to be false
+        expect(Idp::SyncThrottle).not_to be_held(user)
       end
     end
 
@@ -244,9 +243,9 @@ RSpec.describe Idp::AccountEmailsController, type: :request, if: AuthMethod.jwt?
 
     # This is a page people refresh, and each refresh would otherwise be another Admin API call into
     # the same failure.
-    describe 'while the connector circuit is open' do
+    describe 'while the connector is paused' do
       before(:each) do
-        Idp::SyncUserFromIdpJob.open_circuit!(connector_id)
+        Idp::SyncUserFromIdpJob.pause_connector!(connector_id)
       end
 
       it 'renders the address we hold without reading the IdP back' do
@@ -257,7 +256,7 @@ RSpec.describe Idp::AccountEmailsController, type: :request, if: AuthMethod.jwt?
         expect(a_request(:get, target_url)).not_to have_been_made
       end
 
-      # The circuit is about reaching the connector, not about what the user is entitled to do.
+      # The cooldown is about reaching the connector, not about what the user is entitled to do.
       it 'still offers the change' do
         get edit_account_email_path
 

@@ -14,7 +14,7 @@ class Idp::AccountEmailsController < ApplicationController
   def edit
     return unless @user.email_change_enabled?
     # The sync job already found this connector broken, and this is a page people refresh.
-    return if Idp::SyncUserFromIdpJob.circuit_open?(@user.last_connector_id)
+    return if Idp::SyncUserFromIdpJob.connector_paused?(@user.last_connector_id)
 
     reconcile_email_from_idp
     @pending_email = pending_email_from_idp
@@ -24,12 +24,11 @@ class Idp::AccountEmailsController < ApplicationController
   # back here — see Idp::KeycloakService#account_client_id.
   def begin_change
     action_url = @user.email_change_enabled? && @user.account_action_url(action: 'UPDATE_EMAIL', redirect_uri: edit_account_email_url)
-    # No deep-link to offer, so the tab isn't showing the button either — a stale form.
-    return redirect_to(edit_account_email_path) if action_url.blank?
+    raise 'Attempt to change email but when feature is not enabled' if action_url.blank?
 
     Idp::EmailChangePending.mark!(@user)
     # An earlier request may hold a full-interval reservation, which would outlast the change.
-    Rails.cache.delete(Idp::JwtAuthentication.sync_throttle_key(@user.id))
+    Idp::SyncThrottle.release!(@user)
     Rails.logger.info("User #{@user.id} started an email change at #{@user.idp_service.idp_name}")
 
     redirect_to action_url, allow_other_host: true

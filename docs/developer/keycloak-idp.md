@@ -1,7 +1,6 @@
 # Keycloak IDP Integration (dev stack)
 
-The opt-in local Docker Compose stack that reproduces the production auth chain. Application wiring
-(JWT validation, identity resolution, `Idp::Service`, user-migration tasks) lands in later branches.
+The opt-in local Docker Compose stack that reproduces the production auth chain.
 
 ```
 User → OAuth2-Proxy → Dex (OIDC broker) → Keycloak → Rails (JWT headers)
@@ -58,61 +57,34 @@ Then log into the Keycloak admin console at `https://op-keycloak.dev.test` (`adm
 
 ## Service config (Admin API credentials)
 
-`Idp::KeycloakService` (`app/services/idp/keycloak_service.rb`) talks to the Keycloak **Admin
-REST API** — creating/updating users, profile edits, the migration tooling. It authenticates with
-the OAuth2 `client_credentials` grant using the **`rails-service-account`** client (a *service
-account*, not the `dex-connector` browser client). That client needs the `realm-management` roles
-(`manage-users`, `view-users`, `query-users`, `manage-realm`); `realm-import.json` grants them on
-first import.
+`Idp::KeycloakService` talks to the Keycloak **Admin REST API** using the OAuth2
+`client_credentials` grant on the **`rails-service-account`** client (a *service account*, not the
+`dex-connector` browser client). That client needs the `realm-management` roles `manage-users`,
+`view-users`, `query-users` and `manage-realm`; `realm-import.json` grants them on first import.
 
-`Idp::KeycloakService` needs four values — `api_url`, `realm`, `client_id`, `client_secret`. There
-are two ways to supply them; the DB-managed config wins when both are present (see
-`Idp::ServiceFactory.for_connector`).
+Credentials come either from the DB or from ENV; the DB row wins when both are present.
 
 ### Option A — DB-managed `Idp::ServiceConfig` (preferred)
 
-Credentials live in the `idp_service_configs` table and are managed in the admin UI at
-**`/admin/idp_service_configs`** (New → provider `keycloak`). One row per realm. The columns map to
-the service's config keys in `KeycloakService.from_config`:
+Managed in the admin UI at **`/admin/idp_service_configs`** (New → provider `keycloak`), one row per
+realm. Dev values:
 
-| `Idp::ServiceConfig` column | Maps to service key | Dev value |
-| --- | --- | --- |
-| `provider` | (selects the service class) | `keycloak` |
-| `connector_id` | the auth-proxy routing key in the JWT — must match the connector that issued the token | `keycloak` |
-| `name` | display label only | e.g. `Keycloak (dev)` |
-| `api_url` | `api_url` | `http://op-keycloak.dev.test:8080` |
-| `keycloak_realm` | `realm` | `openpath` |
-| `client_id` | `client_id` | `rails-service-account` |
-| `service_token` (encrypted) | `client_secret` | `rails-service-account-secret-dev` |
+| Column | Dev value |
+| --- | --- |
+| `provider` | `keycloak` |
+| `connector_id` | `keycloak` — the auth-proxy routing key in the JWT; must match the connector that issued the token |
+| `name` | e.g. `Keycloak (dev)` (display only) |
+| `api_url` | `http://op-keycloak.dev.test:8080` |
+| `keycloak_realm` | `openpath` |
+| `client_id` | `rails-service-account` |
+| `service_token` (encrypted, needs `ENCRYPTION_KEY`) | `rails-service-account-secret-dev` |
 
-`service_token` is stored `attr_encrypted` (needs `ENCRYPTION_KEY` set). To create one from the
-console instead of the UI:
-
-```ruby
-Idp::ServiceConfig.create!(
-  provider:       'keycloak',
-  connector_id:   'keycloak',
-  name:           'Keycloak (dev)',
-  api_url:        'http://op-keycloak.dev.test:8080',
-  keycloak_realm: 'openpath',
-  client_id:      'rails-service-account',
-  service_token:  'rails-service-account-secret-dev',
-  active:         true,
-)
-```
-
-Verify it end-to-end with the row's `#test` action (the **Test** button in the UI) or
-`config.to_service.test_connection` — a green result means the secret is valid *and* the service
+Verify with the row's **Test** button — a green result means the secret is valid *and* the service
 account has the Admin-API roles.
-
-`api_url` has no `browser_url` counterpart in the table on purpose — see
-[Browser URL vs Admin API URL](#browser-url-vs-admin-api-url) for the `KEYCLOAK_PUBLIC_URL`
-override, which applies to both config options.
 
 ### Option B — ENV fallback (single realm)
 
-With no matching active `ServiceConfig`, the factory falls back to the registered service class,
-which reads ENV (`KeycloakService#default_config`):
+With no matching active `ServiceConfig`, the service reads ENV:
 
 ```
 KEYCLOAK_API_URL=http://op-keycloak.dev.test:8080
@@ -121,33 +93,27 @@ KEYCLOAK_SERVICE_CLIENT_ID=rails-service-account
 KEYCLOAK_SERVICE_CLIENT_SECRET=rails-service-account-secret-dev
 ```
 
-In the dev stack these are already provided to the `web` container via
-`docker/auth/keycloak-credentials.env` (loaded through `env_file`), so the service account works
-out of the box — no `.env.development.local` edits needed. This path only resolves when the JWT's
-`connector_id` equals the provider key `keycloak`.
+The dev stack already provides these to the `web` container via
+`docker/auth/keycloak-credentials.env`, so the service account works out of the box. This path only
+resolves when the JWT's `connector_id` equals the provider key `keycloak`.
 
 ### Browser URL vs Admin API URL
 
-`api_url` is the address Rails calls the Admin API on. Everything the service hands to a *browser*
-instead — `#account_action_url`, `#account_console_url`, `#logout_url` — uses `#browser_url`, which
-is `api_url` unless `KEYCLOAK_PUBLIC_URL` is set.
+`api_url` is where Rails calls the Admin API. Anything handed to a *browser* instead uses
+`KEYCLOAK_PUBLIC_URL` when set, falling back to `api_url`.
 
-The two only differ in the dev stack. Rails uses the compose network alias
-(`http://op-keycloak.dev.test:8080`); the browser goes through Traefik
-(`https://op-keycloak.dev.test`), and the deep-links need that origin because the SSO session
-cookies are `Secure` and belong to it. Pointing `api_url` at Traefik instead breaks the Admin API,
-since Traefik serves a per-developer self-signed `*.dev.test` cert that only the host keychain
-trusts (`bin/developer/certificates.sh`). `KEYCLOAK_PUBLIC_URL` is already set in
-`docker/auth/keycloak-credentials.env`, so both halves work.
+The two only differ in the dev stack: Rails uses the compose network alias
+(`http://op-keycloak.dev.test:8080`), and the browser has to go through Traefik
+(`https://op-keycloak.dev.test`) because the SSO session cookies are `Secure` and belong to that
+origin. Pointing `api_url` at Traefik instead breaks the Admin API, since Traefik serves a
+per-developer self-signed `*.dev.test` cert that only the host keychain trusts
+(`bin/developer/certificates.sh`). Both are set in `docker/auth/keycloak-credentials.env`.
 
-It's ENV rather than an `Idp::ServiceConfig` column because it describes a deployment's network
-rather than a realm, so it applies to every connector at once — fine for one dev realm, wrong for a
-multi-realm production. If a deployment needs it per realm, add a column: `#browser_url` already
-prefers a `:browser_url` config key over the ENV value.
+It's ENV rather than a `ServiceConfig` column because it describes a deployment's network rather than
+a realm — fine for one dev realm, wrong for multi-realm production.
 
-`KEYCLOAK_ACCOUNT_CLIENT_ID` is the other browser-facing setting, read the same way (config key, then
-ENV, then a default of Keycloak's built-in `account` client). It names the client account deep-links
-run under, which is what decides where Keycloak returns a user who has confirmed a new address — see
+`KEYCLOAK_ACCOUNT_CLIENT_ID` names the client account deep-links run under, which decides where
+Keycloak returns a user who confirmed a new address — see
 [Where Keycloak sends the user back](#where-keycloak-sends-the-user-back).
 
 > Heads-up: `realm-import.json` is applied only on the **first** import into a fresh `keycloak`
@@ -163,113 +129,42 @@ run under, which is what decides where Keycloak returns a user who has confirmed
 ## Realm prerequisites for account email self-service
 
 Under the JWT arm a user changes their own email **inside Keycloak**, not in the Warehouse. The Email
-tab is read-only: it shows the current address, and its Change Email button POSTs to
-`Idp::AccountEmailsController#begin_change`, which hands the browser to Keycloak's `UPDATE_EMAIL`
-application-initiated action (`Idp::KeycloakService#account_action_url`). Keycloak collects the new
-address, mails a confirmation link to it, and applies it only once that link is clicked.
+tab is read-only and hands the browser to Keycloak's `UPDATE_EMAIL` application-initiated action.
+Keycloak collects the new address, mails a confirmation link to it, and applies it only once that
+link is clicked.
 
-The Warehouse adopts the result the next time it reads the account back, and only when the Admin API
-reports the mailbox as verified — `#idp_reconcile_email!` checks `emailVerified` on the representation
-it already fetched, so no self-service path can put an unproven address in `users.email`. Two things
-read it back: every render of the Email tab, and `Idp::SyncUserFromIdpJob`, enqueued on an
-authenticated request at most once per `SYNC_INTERVAL` (30 minutes) — or once per
-`PENDING_SYNC_INTERVAL` (1 minute) while `Idp::EmailChangePending` records a change the user started.
-So adoption does not depend on the user landing back on the tab, which matters because we do not
-control where Keycloak drops them; see [Where Keycloak sends the user back](#where-keycloak-sends-the-user-back).
+The Warehouse adopts the result the next time it reads the account back from the Admin API, and only
+when Keycloak reports the mailbox verified — so no self-service path can put an unproven address in
+`users.email`. Two things read it back: every render of the Email tab, and a background sync job on
+authenticated requests. Adoption therefore does not depend on the user landing back on the tab, which
+matters because we do not control where Keycloak drops them.
 
-Both back off from a connector the job has found broken: it opens a per-connector circuit for
-`CIRCUIT_TTL`, and the tab skips its read while that holds. Both also drop the marker early when the
-read-back returns something no retry will change — an address Keycloak applied without verifying, or
-one that collides with another Warehouse account. Those need an operator, so there is no point
-repeating them every minute for a day.
+(The **admin** path is separate and unchanged: an admin-supplied address is written locally and
+pushed with `emailVerified: false`, so an admin can still put an unverified address in `users.email`.)
 
-(The **admin** path is separate and unchanged: `Admin::Idp::UsersController` still writes an
-admin-supplied address locally and pushes it with `emailVerified: false`, so an admin can still put an
-unverified address in `users.email`.)
-
-`Idp::KeycloakService#supports_email_self_service?` **asserts** the realm is set up for this rather
-than probing it, so the items below are operator setup for every realm running the JWT arm. Miss one
-and the tab still renders and still offers the button, but the flow misbehaves in the ways noted.
+The service **asserts** the realm is set up for this rather than probing it, so the items below are
+operator setup for every realm running the JWT arm. Miss one and the tab still renders and still
+offers the button, but the flow misbehaves in the ways noted.
 
 | Requirement | Where | If missing |
 | --- | --- | --- |
-| **Keycloak ≥ 26.4** | server version (`docker/keycloak/Dockerfile` pins 26.5.4 for dev) | Update Email is a preview feature needing `--features=update-email`; on older servers the action does not exist and Keycloak returns the user with an error status |
 | **Update Email** required action **enabled** | Authentication → Required actions | Keycloak rejects the `kc_action=UPDATE_EMAIL` link; the user gets no way to change their address |
-| Email verification **in effect for this action** | Realm settings → Login → **Verify email**, or Authentication → Required actions → Update Email → **Force Email Verification** | Keycloak applies the new address **immediately, unverified**. The Warehouse then refuses to adopt it, so Keycloak and `users.email` diverge until the realm is fixed — the change appears to fail rather than silently landing unverified |
-| A browser client whose **Base URL** is the Email tab | Clients → `warehouse-account`, named to the app by `KEYCLOAK_ACCOUNT_CLIENT_ID` | The user ends up on the Keycloak account console after confirming, with no way back. The address still lands here |
+| Email verification **in effect for this action** | Realm settings → Login → **Verify email**, or Authentication → Required actions → Update Email → **Force Email Verification** | Keycloak applies the new address **immediately, unverified**. The Warehouse refuses to adopt it, so Keycloak and `users.email` diverge until the realm is fixed |
 | Working **SMTP** on the realm | Realm settings → Email | The verification mail never sends, so a change can never complete |
 
-Two levers supply the verification requirement, and either is enough: the realm-wide **Verify email**
-setting, or **Force Email Verification** (`verifyEmail`, off by default) on the Update Email required
-action, which turns it on for this action regardless of the realm setting. What the Warehouse depends
-on is the effect, not which lever produced it — `#idp_reconcile_email!` trusts `emailVerified` and
-nothing else. The per-action setting is the more precise one to reach for, since it leaves password
+Either verification lever is enough — the realm-wide **Verify email** setting, or **Force Email
+Verification** on the Update Email required action (off by default), which turns it on for this
+action regardless of the realm setting. The per-action one is more precise, since it leaves password
 resets and admin-provisioned accounts on the realm default.
 
-### Where Keycloak sends the user back
-
-An Update Email has two legs back to the application, and only one of them is ours to steer:
-
-| Leg | Return target |
-| --- | --- |
-| after the form is submitted | the `redirect_uri` on the AIA link — the Email tab |
-| after the confirmation link in the new mailbox | the **Base URL** of the client the action ran under |
-
-The second is fixed per client, not per request: `themes/base/login/info.ftl` renders "Back to
-Application" as `${client.baseUrl}`, and 26.5.4 removed the handler code that honored the action
-token's own redirect URI ([keycloak#45744](https://github.com/keycloak/keycloak/pull/45744), the fix
-for [#44488](https://github.com/keycloak/keycloak/issues/44488)). Registering redirect URIs cannot
-change it. The only control is which client the action runs under, so `KEYCLOAK_ACCOUNT_CLIENT_ID`
-names one whose Base URL is the Email tab (`warehouse-account` in `realm-import.json`; public, since
-the authorization code that comes back is never exchanged). Unset, the action runs under Keycloak's
-built-in `account` client, whose Base URL is the Keycloak account console — a working link to the
-wrong application.
-
-The confirmation link is also **single-use**. `UpdateEmailActionTokenHandler` clears
-`kc.email.pending` on success and rejects a token that no longer matches it, so a second hit changes
-nothing and renders an error page; 26.6.2 hardens this further, making required actions one-time by
-default. A mail client that prefetches links can therefore burn the link before the user clicks it.
-Neither case loses a change that already completed, and in neither case is "click the link again" a
-recovery step — send the user back to the Email tab, which reads the address back on every render.
-
-While the link is outstanding, Keycloak parks the unconfirmed address in that same `kc.email.pending`
-attribute, and the tab reads it (`Idp::KeycloakService#pending_email`) to name the inbox the user
-should be looking in. Internal `kc.` attributes do come back on the Admin API representation as of
-26.5.4, even with the realm's unmanaged attribute policy disabled — but this is display only, and
-adoption still trusts `email` and `emailVerified` alone.
-
-Three consequences worth knowing:
+Additional notes
 
 - **Email is the login name.** The realm runs **Email as username**
   (`registrationEmailAsUsername: true`), so Keycloak keeps `username` tracking `email` — matching the
-  legacy Devise model where email *is* the login. A completed Update Email therefore changes the
-  user's username too, which is why reconciliation reads the address back from the Admin API
-  (`#get_user`) rather than from the JWT: oauth2-proxy still holds the pre-change token when the
-  browser returns, so its `email` claim is the old address. `realm-import.json` sets the flag for
-  fresh dev realms — enable it on any existing/production realm before relying on email edits.
-  Without it, `username` is read-only and the **admin** path
-  (`Idp::KeycloakService#update_user`, still used by `Idp::AccountsController`-adjacent admin edits)
-  is rejected with `error-user-attribute-read-only`.
+  legacy Devise model where email *is* the login.
 - **Starting a change can ask for a password.** The Update Email required action carries a **Maximum
   Age of Authentication** (`max_auth_age`, default **300** seconds). If the browser's Keycloak session
   last authenticated longer ago than that, Keycloak re-authenticates the user before showing the form.
-  That is the flow working, not a fault — worth knowing when someone reports being asked to log in
-  again halfway through changing their email.
-- **Out-of-band edits do reach the Warehouse.** An email changed directly in the Keycloak admin
-  console produces no return trip, but reconciliation is no longer scoped to one: the Email tab reads
-  the account back on every render, and `Idp::SyncUserFromIdpJob` does so within `SYNC_INTERVAL` of an
-  authenticated request. The catch is verification — the admin console leaves the new address
-  unverified unless whoever made the edit says otherwise, and an unverified address is refused. That
-  refusal goes to Sentry rather than to the user, who did not ask for the change.
-
-> The dev `realm-import.json` does **not** yet enable the Update Email required action, realm
-> `verifyEmail`, or an `smtpServer`, and the auth compose stack carries no mail sink of its own — so
-> the flow is not exercisable end-to-end straight out of the import. Configure those by hand in the
-> admin console (MailHog, [set up separately](../sample_files/mailhog/developer-mail.md), works as the
-> `smtpServer` host), or see bead `app-0kk` for wiring them into the dev stack. Note that supplying a
-> top-level `requiredActions` array in a realm import **replaces** Keycloak's seeded defaults rather
-> than merging with them, so that array must re-list `UPDATE_PASSWORD`, `CONFIGURE_TOTP` and
-> `VERIFY_EMAIL` or the existing password/2FA deep-links regress.
 
 ## Notes
 
@@ -279,9 +174,7 @@ Three consequences worth knowing:
 - **Linux:** the proxies use `extra_hosts: …:host-gateway`; needs a recent Docker Engine (it resolves
   out of the box on Docker Desktop).
 - **Credentials:** `docker/auth/keycloak-credentials.env` is committed because its values are
-  pre-defined in `realm-import.json` (chosen, not generated). Dev-only — never used in production. It
-  provides `KEYCLOAK_API_URL`, `KEYCLOAK_REALM`, `KEYCLOAK_ACCOUNT_CLIENT_ID`, and the
-  `dex-connector` / `rails-service-account` client IDs and secrets.
+  pre-defined in `realm-import.json` (chosen, not generated). Dev-only — never used in production.
 
 ## Related
 

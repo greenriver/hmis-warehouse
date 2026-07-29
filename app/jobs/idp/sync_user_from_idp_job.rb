@@ -13,8 +13,7 @@ module Idp
   class SyncUserFromIdpJob < BaseJob
     queue_as ENV.fetch('DJ_SHORT_QUEUE_NAME', :short_running)
 
-    # Short enough that a resolved outage resumes syncing on its own.
-    CIRCUIT_TTL = 5.minutes
+    COOLDOWN_TTL = 5.minutes
 
     def perform(user_id:)
       user = User.find_by(id: user_id)
@@ -29,7 +28,7 @@ module Idp
       Rails.logger.info("Adopted IdP email for user #{user.id} (was #{previous_email})")
     rescue Idp::ServiceError => e
       # Keep a broken connector from collecting a failing job per sign-in. This user's retry still runs.
-      self.class.open_circuit!(user&.last_connector_id)
+      self.class.pause_connector!(user&.last_connector_id)
       raise e
     end
 
@@ -44,20 +43,20 @@ module Idp
       true
     end
 
-    def self.circuit_open?(connector_id)
+    def self.connector_paused?(connector_id)
       return false if connector_id.blank?
 
-      Rails.cache.exist?(circuit_key(connector_id))
+      Rails.cache.exist?(cooldown_key(connector_id))
     end
 
-    def self.open_circuit!(connector_id)
+    def self.pause_connector!(connector_id)
       return if connector_id.blank?
 
-      Rails.cache.write(circuit_key(connector_id), true, expires_in: CIRCUIT_TTL)
+      Rails.cache.write(cooldown_key(connector_id), true, expires_in: COOLDOWN_TTL)
     end
 
-    def self.circuit_key(connector_id)
-      "idp_sync_circuit:#{connector_id}"
+    def self.cooldown_key(connector_id)
+      "idp_sync_cooldown:#{connector_id}"
     end
 
     private
@@ -89,7 +88,7 @@ module Idp
         },
       )
     rescue Idp::ServiceError => e
-      # A connector fault is #perform's to break the circuit on. Non-transient means the IdP answered
+      # A connector fault is #perform's to start the cooldown on. Non-transient means the IdP answered
       # fine and will keep saying the same thing, so there's nothing to retry.
       raise e if e.transient?
 
