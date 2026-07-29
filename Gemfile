@@ -93,7 +93,7 @@ gem 'marcel'
 gem 'acts-as-taggable-on', '~> 13.0' # major bump for rails 8.1 (AR < 8.2); tagging behavior to verify manually (Release notes: https://github.com/mbleigh/acts-as-taggable-on/blob/master/CHANGELOG.md indicate no breaking changes)
 # gem 'seven_zip_ruby' unless ENV['NO_7ZIP'] == '1'
 
-gem 'devise', '~> 4.9'
+gem 'devise', '~> 5.0'
 gem 'devise_invitable', '~> 2.0.9'
 gem 'devise-pwned_password'
 gem 'devise-security'
