@@ -339,4 +339,36 @@ RSpec.describe Hmis::Ce::ReferralCeEventManager, type: :model do
       end
     end
   end
+
+  # Matches workflows that create a CE Event and set its result on the same complete_step
+  describe 'create and set result on the same step' do
+    let!(:ce_creation_task) do
+      create(
+        :hmis_workflow_definition_user_task,
+        template: workflow_template,
+        name: 'Create CE event with provider rejected result',
+        swimlane: case_manager_swimlane,
+        trigger_config: [
+          {
+            event: 'complete_step',
+            message: 'create_ce_event',
+          },
+          {
+            event: 'complete_step',
+            message: 'set_ce_event_result',
+            params: { referral_result: '3' },
+          },
+        ],
+      )
+    end
+
+    it 'creates the CE event and sets referral result without error' do
+      expect { submit_current_step }.to change(Hmis::Hud::Event, :count).by(1)
+
+      event = referral.ce_event
+      expect(event).to be_present
+      expect(event.referral_result).to eq(3)
+      expect(event.result_date).to be_present
+    end
+  end
 end
