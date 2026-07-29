@@ -121,6 +121,25 @@ RSpec.describe Idp::Keycloak::AuthenticationSourceBackfill do
       end
     end
 
+    context 'a user with a live link for this connector under a different id' do
+      # e.g. the Keycloak account was recreated with a new subject
+      let(:keycloak_users) { [{ email: 'recreated@example.com', id: 'kc-new' }] }
+      let!(:user) { create(:user, email: 'recreated@example.com', confirmed_at: Time.current, active: true) }
+
+      before do
+        user.user_authentication_sources.create!(connector_id: connector_id, connector_user_id: 'kc-old')
+      end
+
+      it 'does not crash and leaves the existing link in place' do
+        result = nil
+        expect { result = backfill.call }.not_to raise_error
+
+        expect(result).to have_attributes(total: 1, linked: 0, already: 1)
+        sources = user.reload.user_authentication_sources
+        expect(sources.pluck(:connector_user_id)).to eq(['kc-old'])
+      end
+    end
+
     context 'the system user' do
       let(:keycloak_users) { [{ email: 'noreply@greenriver.com', id: 'kc-sys' }] }
 
