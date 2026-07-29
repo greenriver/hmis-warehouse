@@ -345,13 +345,7 @@ module Idp
       config[:browser_url].presence || ENV['KEYCLOAK_PUBLIC_URL'].presence || api_url
     end
 
-    # The OIDC client an application-initiated action runs under. Its Base URL is where the "Back to
-    # Application" link goes after an UPDATE_EMAIL confirmation, since 26.5.4 stopped honoring the
-    # action token's redirect URI (keycloak#45744) — so this has to name a client whose Base URL is
-    # the Warehouse. See docs/developer/keycloak-idp.md.
-    #
-    # Defaults to Keycloak's built-in `account` client, which lands on the Keycloak account console —
-    # the wrong destination, but a working link. ENV rather than a column, as with #browser_url.
+    # The OIDC client an application-initiated action (AIA) runs under
     def account_client_id
       config[:account_client_id].presence || ENV['KEYCLOAK_ACCOUNT_CLIENT_ID'].presence || 'account'
     end

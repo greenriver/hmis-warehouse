@@ -346,9 +346,7 @@ RSpec.describe Idp::KeycloakService, type: :model do
     end
   end
 
-  # Keycloak parks the unconfirmed address in an internal user attribute, verified against 26.5.4:
-  # `kc.` attributes come back on the Admin API representation even with the realm's unmanaged
-  # attribute policy disabled.
+  # Keycloak parks the unconfirmed address in an internal user attribute
   describe '#pending_email' do
     let(:user_id) { 'keycloak-user-id' }
 
