@@ -44,6 +44,7 @@ RSpec.describe Idp::Keycloak::UserImporter, type: :model do
   end
 
   describe '.migration_scope' do
+    let(:connector_id) { 'keycloak' }
     let!(:confirmed_active) { create(:user, confirmed_at: 1.day.ago, active: true) }
     let!(:inactive) { create(:user, confirmed_at: 1.day.ago, active: false) }
     let!(:invited_not_accepted) do
@@ -51,28 +52,47 @@ RSpec.describe Idp::Keycloak::UserImporter, type: :model do
     end
 
     it 'includes confirmed, active users' do
-      expect(described_class.migration_scope(since: nil)).to include(confirmed_active)
+      expect(described_class.migration_scope(connector_id: connector_id, since: nil)).to include(confirmed_active)
     end
 
     it 'excludes inactive users' do
-      expect(described_class.migration_scope(since: nil)).not_to include(inactive)
+      expect(described_class.migration_scope(connector_id: connector_id, since: nil)).not_to include(inactive)
     end
 
     it 'excludes invited-but-not-accepted users (confirmed_at is nil)' do
-      expect(described_class.migration_scope(since: nil)).not_to include(invited_not_accepted)
+      expect(described_class.migration_scope(connector_id: connector_id, since: nil)).not_to include(invited_not_accepted)
+    end
+
+    it 'excludes users already linked to the connector' do
+      confirmed_active.user_authentication_sources.create!(connector_id: connector_id, connector_user_id: 'kc-uuid-1')
+
+      expect(described_class.migration_scope(connector_id: connector_id, since: nil)).not_to include(confirmed_active)
+    end
+
+    it 'includes users whose only link is to a different connector' do
+      confirmed_active.user_authentication_sources.create!(connector_id: 'other-idp', connector_user_id: 'other-uuid-1')
+
+      expect(described_class.migration_scope(connector_id: connector_id, since: nil)).to include(confirmed_active)
+    end
+
+    it 'includes users whose link to the connector was deleted' do
+      source = confirmed_active.user_authentication_sources.create!(connector_id: connector_id, connector_user_id: 'kc-uuid-1')
+      source.destroy!
+
+      expect(described_class.migration_scope(connector_id: connector_id, since: nil)).to include(confirmed_active)
     end
 
     it 'with since: nil returns the full base population' do
       old_user = create(:user, confirmed_at: 1.day.ago, active: true, updated_at: 1.year.ago)
 
-      expect(described_class.migration_scope(since: nil)).to include(confirmed_active, old_user)
+      expect(described_class.migration_scope(connector_id: connector_id, since: nil)).to include(confirmed_active, old_user)
     end
 
     it 'with a since value excludes users whose updated_at is older' do
       old_user = create(:user, confirmed_at: 1.day.ago, active: true, updated_at: 10.days.ago)
       recent_user = create(:user, confirmed_at: 1.day.ago, active: true, updated_at: 1.hour.ago)
 
-      scope = described_class.migration_scope(since: 1.day.ago)
+      scope = described_class.migration_scope(connector_id: connector_id, since: 1.day.ago)
 
       expect(scope).to include(recent_user)
       expect(scope).not_to include(old_user)

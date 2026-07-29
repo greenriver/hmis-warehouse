@@ -7,9 +7,8 @@
 # frozen_string_literal: true
 
 module Idp
-  # Adopt an IdP-side email change after the user authenticates. The JWT can't report one:
-  # oauth2-proxy still holds a token minted before the change (see Idp::Support#idp_reconcile_email!).
-  # Enqueued from Idp::JwtAuthentication#idp_schedule_user_sync.
+  # Adopts an IdP-side email change after login. The JWT can't report one — oauth2-proxy still holds a
+  # token minted before the change.
   class SyncUserFromIdpJob < BaseJob
     queue_as ENV.fetch('DJ_SHORT_QUEUE_NAME', :short_running)
 
@@ -18,7 +17,7 @@ module Idp
     def perform(user_id:)
       user = User.find_by(id: user_id)
       return unless user
-      # Same gate as the Email tab's reconciliation; false for a service that won't build.
+      # same gate as the Email tab
       return unless user.email_change_enabled?
 
       previous_email = reconcile(user)
@@ -27,13 +26,12 @@ module Idp
       Idp::EmailChangePending.clear!(user)
       Rails.logger.info("Adopted IdP email for user #{user.id} (was #{previous_email})")
     rescue Idp::ServiceError => e
-      # Keep a broken connector from collecting a failing job per sign-in. This user's retry still runs.
+      # Stops a broken connector collecting a job per sign-in. This user's retry still runs.
       self.class.pause_connector!(user&.last_connector_id)
       raise e
     end
 
-    # One retry covers a blip. sentry-delayed_job reports every failure, so further attempts only
-    # duplicate the event.
+    # One retry covers a blip. Further attempts just duplicate the Sentry event.
     def calculated_attempts
       [0, Delayed::Worker.max_attempts - 2].max
     end
@@ -61,8 +59,8 @@ module Idp
 
     private
 
-    # Two databases with no shared commit, so nested rather than atomic: a failed HUD sync unwinds
-    # the adopted address. Same shape as Idp::AccountEmailsController#reconcile_email_from_idp.
+    # Two databases, no shared commit, so nested rather than atomic: a failed HUD sync unwinds the
+    # adopted address.
     def reconcile(user)
       previous_email = nil
       GrdaWarehouseBase.transaction do
@@ -73,8 +71,7 @@ module Idp
       end
       previous_email
     rescue ActiveRecord::RecordInvalid => e
-      # The IdP moved the address but we can't store it — taken here, or malformed. No retry fixes
-      # that, so report it and stop.
+      # The new address is taken here, or malformed. No retry fixes that.
       stand_down(
         user,
         e,
@@ -88,15 +85,14 @@ module Idp
         },
       )
     rescue Idp::ServiceError => e
-      # A connector fault is #perform's to start the cooldown on. Non-transient means the IdP answered
-      # fine and will keep saying the same thing, so there's nothing to retry.
+      # #perform owns the cooldown. Non-transient means the same answer comes back, so don't retry.
       raise e if e.transient?
 
       stand_down(user, e, "Couldn't adopt IdP email for user #{user.id}: #{e.message}")
     end
 
-    # Report once and drop the pending marker. Nothing here resolves on its own, so leaving the marker
-    # set would just repeat it every minute for the day it holds.
+    # Nothing here resolves on its own, so drop the marker or the accelerated read-back repeats this
+    # every minute for the day it holds.
     def stand_down(user, error, message, context = {})
       Idp::EmailChangePending.clear!(user)
       Sentry.capture_exception_with_info(error, message, context)
