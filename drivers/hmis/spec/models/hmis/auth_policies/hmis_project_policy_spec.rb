@@ -127,6 +127,18 @@ RSpec.describe Hmis::AuthPolicies::HmisProjectPolicy, type: :model do
       create_access_control(user, project, with_permission: [:can_view_enrollment_details, :can_view_project])
       expect(policy.can_edit_enrollments?).to be false
     end
+
+    # Permission requirements are enforced per-project via UserContext#project_permissions.
+    # Edit at p1 + details at p2 must not combine into edit-at-p1.
+    it 'returns false when edit and its requirements are split across projects' do
+      other_project = create(:hmis_hud_project, organization: organization, data_source: data_source)
+      create_access_control(user, project, with_permission: [:can_edit_enrollments])
+      create_access_control(user, other_project, with_permission: [:can_view_enrollment_details, :can_view_project])
+
+      expect(policy.can_edit_enrollments?).to be false
+      expect(policy.can_view_enrollment_details?).to be false
+      expect(user.policy_for(other_project, policy_type: :hmis_project).can_view_enrollment_details?).to be true
+    end
   end
 
   describe '#can_create_enrollments?' do
