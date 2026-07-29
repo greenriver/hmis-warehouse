@@ -1,0 +1,43 @@
+{
+  "item": [
+    {
+      "text": "Date",
+      "type": "DATE",
+      "link_id": "initial_review_date",
+      "required": true,
+      "initial": [
+        {
+          "initial_behavior": "IF_EMPTY",
+          "value_local_constant": "$today"
+        }
+      ],
+      "mapping": {
+        "custom_field_key": "mc_direct_referral_initial_review_date"
+      }
+    },
+    {
+      "text": "Notes",
+      "type": "TEXT",
+      "link_id": "initial_review_notes",
+      "required": true,
+      "mapping": {
+        "custom_field_key": "mc_direct_referral_initial_review_notes"
+      }
+    },
+    {
+      "text": "Decision",
+      "type": "CHOICE",
+      "link_id": "initial_review_decision",
+      "required": true,
+      "component": "RADIO_BUTTONS",
+      "mapping": {
+        "custom_field_key": "mc_direct_referral_initial_review_decision"
+      },
+      "pick_list_options": [
+        { "code": "approve", "label": "Approve (Continue to Offer)" },
+        { "code": "provider_rejected", "label": "Decline (Provider Rejected)" },
+        { "code": "canceled", "label": "Cancel" }
+      ]
+    }
+  ]
+}
