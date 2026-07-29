@@ -79,6 +79,12 @@ module HmisUtil
         Hmis::ProjectCeConfig.set_callback(:save, :after, :rebuild_candidate_pool, if: :supports_waitlist_referrals?)
       end
 
+      # Dry-run model validation errors are collected during apply_rows
+      if @errors.any?
+        @errors.each { |msg| puts "ERROR: #{msg}" }
+        raise ImportError, "Import aborted with #{@errors.size} error(s). No changes were made."
+      end
+
       rebuild_candidate_pools_if_needed
 
       puts @dry_run ? 'Dry run complete. No changes were saved.' : 'Import complete.'
@@ -180,8 +186,8 @@ module HmisUtil
         elsif days_raw !~ /\A\d+\z/
           @errors << "Row #{row_num}: AutoExitDays must be an integer, got #{days_raw.inspect}"
         else
+          # Model validates length_of_absence_days >= 30; dry-run uses record.valid? so we don't duplicate that here.
           days = days_raw.to_i
-          @errors << "Row #{row_num}: AutoExitDays must be >= 30, got #{days}" if days < 30
         end
       end
 
@@ -245,8 +251,8 @@ module HmisUtil
       record = Hmis::ProjectAutoExitConfig.find_or_initialize_by(
         project_id: row[:project].id,
         data_source_id: data_source.id,
+        enabled: true,
       )
-      record.enabled = true
       record.length_of_absence_days = row[:auto_exit_days]
       save_config(record, row, 'AutoExit')
     end
@@ -257,8 +263,8 @@ module HmisUtil
       record = Hmis::ProjectAutoEnterConfig.find_or_initialize_by(
         project_id: row[:project].id,
         data_source_id: data_source.id,
+        enabled: true,
       )
-      record.enabled = true
       save_config(record, row, 'AutoEnter')
     end
 
@@ -268,8 +274,8 @@ module HmisUtil
       record = Hmis::ProjectSendsDirectCeReferralsConfig.find_or_initialize_by(
         project_id: row[:project].id,
         data_source_id: data_source.id,
+        enabled: true,
       )
-      record.enabled = true
       save_config(record, row, 'CE_SendsReferrals')
     end
 
@@ -281,6 +287,7 @@ module HmisUtil
       record = Hmis::ProjectCeConfig.find_or_initialize_by(
         project_id: row[:project].id,
         data_source_id: data_source.id,
+        enabled: true,
       )
       record.enabled = true
       record.receives_direct_referrals = receives unless receives.nil?
@@ -303,7 +310,14 @@ module HmisUtil
         return
       end
 
-      return if @dry_run
+      if @dry_run
+        unless record.valid?
+          record.errors.full_messages.each do |message|
+            @errors << "Row #{row[:row_num]}: #{label}: #{message}"
+          end
+        end
+        return
+      end
 
       record.save!
     end
@@ -311,10 +325,9 @@ module HmisUtil
     def rebuild_candidate_pools_if_needed
       return if @dry_run
 
-      # If there are _any_ projects that support waitlist referrals in the data source, rebuild the candidate pools after import.
-      # This is relatively cheap so it's OK to do it even if this import didn't technically touch any waitlist CE configs.
-      any_waitlist_ce_configs = Hmis::ProjectCeConfig.where(data_source_id: data_source.id).any?(&:supports_waitlist_referrals?).present?
-      return unless any_waitlist_ce_configs
+      # If there are any active projects that support waitlist referrals in the data source, rebuild pools after import.
+      # Relatively cheap, so OK even if this import didn't touch waitlist CE configs.
+      return unless Hmis::ProjectCeConfig.active.where(data_source_id: data_source.id).any?(&:supports_waitlist_referrals?)
 
       puts 'Rebuilding CE candidate pools...'
       Hmis::Ce::Match::CandidatePool.lock_for_maintenance! do

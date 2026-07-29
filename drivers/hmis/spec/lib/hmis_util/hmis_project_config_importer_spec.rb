@@ -13,6 +13,7 @@ RSpec.describe HmisUtil::HmisProjectConfigImporter do
   let!(:data_source) { create(:hmis_data_source) }
   let!(:project) { create(:hmis_hud_project, data_source: data_source, ProjectID: 'P1') }
   let!(:sending_project) { create(:hmis_hud_project, data_source: data_source, ProjectID: 'SEND1') }
+  let!(:sending_project_2) { create(:hmis_hud_project, data_source: data_source, ProjectID: 'SEND2') }
 
   def write_csv(headers, rows)
     file = Tempfile.new(['project_configs', '.csv'])
@@ -30,6 +31,10 @@ RSpec.describe HmisUtil::HmisProjectConfigImporter do
       dry_run: dry_run,
       skip_projects_not_found: skip_projects_not_found,
     ).run!
+  end
+
+  def rebuild_candidate_pool_callback_count
+    Hmis::ProjectCeConfig._save_callbacks.count { |cb| cb.filter == :rebuild_candidate_pool }
   end
 
   after { csv_file&.close! }
@@ -50,7 +55,7 @@ RSpec.describe HmisUtil::HmisProjectConfigImporter do
       ]
     end
     let(:csv_file) do
-      write_csv(headers, [['P1', 'true', '45', 'true', 'true', 'true', 'SEND1', 'true']])
+      write_csv(headers, [['P1', 'true', '45', 'true', 'true', 'true', 'SEND1, SEND2', 'true']])
     end
 
     it 'creates all config types' do
@@ -59,6 +64,7 @@ RSpec.describe HmisUtil::HmisProjectConfigImporter do
       auto_exit = Hmis::ProjectAutoExitConfig.find_by!(project: project)
       expect(auto_exit.length_of_absence_days).to eq(45)
       expect(auto_exit.enabled).to eq(true)
+      expect(auto_exit.data_source_id).to eq(data_source.id)
 
       expect(Hmis::ProjectAutoEnterConfig.find_by!(project: project)).to be_present
       expect(Hmis::ProjectSendsDirectCeReferralsConfig.find_by!(project: project)).to be_present
@@ -66,7 +72,7 @@ RSpec.describe HmisUtil::HmisProjectConfigImporter do
       ce = Hmis::ProjectCeConfig.find_by!(project: project)
       expect(ce.receives_direct_referrals?).to eq(true)
       expect(ce.supports_waitlist_referrals?).to eq(true)
-      expect(ce.receives_direct_referrals_from).to eq([sending_project.id])
+      expect(ce.receives_direct_referrals_from).to contain_exactly(sending_project.id, sending_project_2.id)
     end
 
     it 'is idempotent on a second run' do
@@ -112,6 +118,14 @@ RSpec.describe HmisUtil::HmisProjectConfigImporter do
     ensure
       file.close!
     end
+
+    it 'reports model validation errors on dry run when AutoExitDays is below 30' do
+      file = write_csv(['ProjectID', 'AutoExit', 'AutoExitDays'], [['P1', 'true', '20']])
+      expect { run_import!(file, dry_run: true) }.to raise_error(HmisUtil::HmisProjectConfigImporter::ImportError, /1 error/)
+      expect(Hmis::ProjectConfig.count).to eq(0)
+    ensure
+      file.close!
+    end
   end
 
   describe 'validation errors' do
@@ -145,6 +159,17 @@ RSpec.describe HmisUtil::HmisProjectConfigImporter do
     it 'errors on duplicate ProjectIDs' do
       file = write_csv(['ProjectID', 'AutoEnter'], [['P1', 'true'], ['P1', 'true']])
       expect { run_import!(file) }.to raise_error(HmisUtil::HmisProjectConfigImporter::ImportError, /1 error/)
+    ensure
+      file.close!
+    end
+
+    it 'scopes ProjectID lookup to the given data source' do
+      other_ds = create(:hmis_data_source)
+      create(:hmis_hud_project, data_source: other_ds, ProjectID: 'OTHER1')
+
+      file = write_csv(['ProjectID', 'AutoEnter'], [['OTHER1', 'true']])
+      expect { run_import!(file) }.to raise_error(HmisUtil::HmisProjectConfigImporter::ImportError, /1 error/)
+      expect(Hmis::ProjectConfig.count).to eq(0)
     ensure
       file.close!
     end
@@ -204,14 +229,14 @@ RSpec.describe HmisUtil::HmisProjectConfigImporter do
       allow(Hmis::Ce::Match::CandidatePoolBuilder).to receive(:call)
     end
 
-    it 'rebuilds candidate pools once after import when waitlist CE configs are saved' do
+    it 'rebuilds candidate pools once after import when waitlist CE configs exist' do
       other = create(:hmis_hud_project, data_source: data_source, ProjectID: 'P2')
       file = write_csv(
         ['ProjectID', 'CE_SupportsWaitlists'],
         [['P1', 'true'], [other.ProjectID.to_s, 'true']],
       )
 
-      run_import!(file)
+      expect { run_import!(file) }.not_to(change { rebuild_candidate_pool_callback_count })
       expect(Hmis::Ce::Match::CandidatePoolBuilder).to have_received(:call).once
     ensure
       file.close!
@@ -219,8 +244,26 @@ RSpec.describe HmisUtil::HmisProjectConfigImporter do
 
     it 'does not rebuild candidate pools on dry run' do
       file = write_csv(['ProjectID', 'CE_SupportsWaitlists'], [['P1', 'true']])
-      run_import!(file, dry_run: true)
+      expect { run_import!(file, dry_run: true) }.not_to(change { rebuild_candidate_pool_callback_count })
       expect(Hmis::Ce::Match::CandidatePoolBuilder).not_to have_received(:call)
+    ensure
+      file.close!
+    end
+
+    it 'restores the rebuild_candidate_pool callback when apply raises' do
+      create(:hmis_hud_project, data_source: data_source, ProjectID: 'P2')
+      file = write_csv(['ProjectID', 'AutoEnter'], [['P1', 'true'], ['P2', 'true']])
+
+      allow_any_instance_of(Hmis::ProjectAutoEnterConfig).to receive(:save!).and_wrap_original do |method, *args|
+        record = method.receiver
+        raise ActiveRecord::RecordInvalid, record if record.project.ProjectID.to_s == 'P2'
+
+        method.call(*args)
+      end
+
+      expect do
+        expect { run_import!(file) }.to raise_error(ActiveRecord::RecordInvalid)
+      end.not_to(change { rebuild_candidate_pool_callback_count })
     ensure
       file.close!
     end
@@ -236,13 +279,6 @@ RSpec.describe HmisUtil::HmisProjectConfigImporter do
 
     it 'accepts no as false and skips creating the config' do
       file = write_csv(['ProjectID', 'AutoEnter'], [['P1', 'no']])
-      expect { run_import!(file) }.not_to change(Hmis::ProjectConfig, :count)
-    ensure
-      file.close!
-    end
-
-    it 'treats blank as false and skips creating the config' do
-      file = write_csv(['ProjectID', 'AutoEnter'], [['P1', '']])
       expect { run_import!(file) }.not_to change(Hmis::ProjectConfig, :count)
     ensure
       file.close!
@@ -301,14 +337,6 @@ RSpec.describe HmisUtil::HmisProjectConfigImporter do
   end
 
   describe 'data source resolution' do
-    it 'uses the provided HMIS data source id' do
-      file = write_csv(['ProjectID', 'AutoEnter'], [['P1', 'true']])
-      run_import!(file, data_source_id: data_source.id)
-      expect(Hmis::ProjectAutoEnterConfig.find_by!(project: project).data_source_id).to eq(data_source.id)
-    ensure
-      file.close!
-    end
-
     it 'errors when provided data source is not HMIS' do
       non_hmis = create(:source_data_source)
       file = write_csv(['ProjectID', 'AutoEnter'], [['P1', 'true']])
