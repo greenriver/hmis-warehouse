@@ -442,8 +442,8 @@ module Types
       # NOTE: this query is only used for form management. It probably should
       # not be used for the application, because there is no project context passed
       # to the definition.
-      definition = Hmis::Form::Definition.in_data_source(current_user.hmis_data_source_id).find(id)
-      access_denied! unless policy_for(definition, policy_type: :form_definition).can_configure_form?
+      definition = Hmis::Form::Definition.in_data_source(current_user.hmis_data_source_id).find_by(id: id)
+      return nil unless definition && policy_for(definition, policy_type: :form_definition).can_configure_form?
 
       definition
     end
@@ -694,12 +694,12 @@ module Types
       Hmis::Unit.viewable_by(current_user).find_by(id: id)
     end
 
-    field :ce_match_rule, HmisSchema::CeMatchRule, null: false do
+    field :ce_match_rule, HmisSchema::CeMatchRule, null: true do
       argument :id, ID, required: true
     end
     def ce_match_rule(id:)
       rule = Hmis::Ce::Match::Rule.find_by(id: id)
-      access_denied! unless rule && policy_for(rule, policy_type: :ce_match_rule).can_view?
+      return nil unless rule && policy_for(rule, policy_type: :ce_match_rule).can_view?
 
       rule
     end

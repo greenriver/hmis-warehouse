@@ -14,6 +14,13 @@ $header-height: 60px !default;
 $nav-side-width: 185px !default;
 $nav-side-collapsed-width: 65px !default;
 
+// Breakpoint at and above which the side menu sits on-canvas; below it the menu
+// is a drawer. One per body layout class (ApplicationHelper#body_classes).
+// Used with media-breakpoint-down() in objects/_menu.scss and
+// media-breakpoint-up() in layouts/_main.scss and modules/_header.scss.
+$nav-side-on-canvas-md: lg !default;
+$nav-side-on-canvas-lg: xl !default;
+
 // Footer
 $footer-logo-height: 85px !default;
 $footer-logo-padding: 15px !default;

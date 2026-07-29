@@ -180,6 +180,9 @@ RSpec.describe 'CE Match Rules queries', type: :request do
     remove_permissions(access_control, :can_administrate_coordinated_entry)
 
     expect_access_denied(post_graphql(filters: { global: true }) { rules_query })
-    expect_access_denied(post_graphql(id: global_rule.id) { rule_query })
+
+    # not access denied; returns nil (showing not found in the UI)
+    _, result = post_graphql(id: global_rule.id) { rule_query }
+    expect(result.dig('data', 'ceMatchRule')).to be_nil
   end
 end
