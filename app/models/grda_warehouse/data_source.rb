@@ -817,6 +817,7 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
       entity
     end
     hmis_user = user.related_hmis_user(self)
+    return url unless hmis_user.present?
 
     # If we can't determine access for this entity type, show the link and let HMIS handle it.
     # If we can determine the user lacks access, don't bother linking.
