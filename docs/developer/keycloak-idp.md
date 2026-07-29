@@ -132,21 +132,18 @@ out of the box — no `.env.development.local` edits needed. This path only reso
 instead — `#account_action_url`, `#account_console_url`, `#logout_url` — uses `#browser_url`, which
 is `api_url` unless `KEYCLOAK_PUBLIC_URL` is set.
 
-The two differ in the local dev stack, and only there. Rails reaches Keycloak on the compose network
-alias (`http://op-keycloak.dev.test:8080`), while the browser goes through Traefik
-(`https://op-keycloak.dev.test`) — and the deep-links have to land on the browser's existing Keycloak
-SSO session, whose cookies are `Secure` and belong to the Traefik origin. Pointing `api_url` at
-Traefik instead would fix the browser side and break the Admin API side: Traefik serves a
-per-developer self-signed `*.dev.test` cert that only the host keychain trusts
-(`bin/developer/certificates.sh`), so Rails can't verify it. `KEYCLOAK_PUBLIC_URL` is already set in
-`docker/auth/keycloak-credentials.env`, so both halves work with the DB-managed config in place.
+The two only differ in the dev stack. Rails uses the compose network alias
+(`http://op-keycloak.dev.test:8080`); the browser goes through Traefik
+(`https://op-keycloak.dev.test`), and the deep-links need that origin because the SSO session
+cookies are `Secure` and belong to it. Pointing `api_url` at Traefik instead breaks the Admin API,
+since Traefik serves a per-developer self-signed `*.dev.test` cert that only the host keychain
+trusts (`bin/developer/certificates.sh`). `KEYCLOAK_PUBLIC_URL` is already set in
+`docker/auth/keycloak-credentials.env`, so both halves work.
 
 It's ENV rather than an `Idp::ServiceConfig` column because it describes a deployment's network
-rather than a realm, so it applies to every connector at once — fine for the single dev realm, wrong
-for a multi-realm production. A deployment that genuinely needs a per-realm frontend URL (Keycloak's
-own `KC_HOSTNAME` vs `KC_HOSTNAME_ADMIN` split) should get a column then; `#browser_url` already
-prefers a `:browser_url` config key over the ENV value, so wiring one up is a one-line change to
-`.from_config`.
+rather than a realm, so it applies to every connector at once — fine for one dev realm, wrong for a
+multi-realm production. If a deployment needs it per realm, add a column: `#browser_url` already
+prefers a `:browser_url` config key over the ENV value.
 
 `KEYCLOAK_ACCOUNT_CLIENT_ID` is the other browser-facing setting, read the same way (config key, then
 ENV, then a default of Keycloak's built-in `account` client). It names the client account deep-links

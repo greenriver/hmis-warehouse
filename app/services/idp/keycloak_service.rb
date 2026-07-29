@@ -332,22 +332,14 @@ module Idp
       config[:api_url]
     end
 
-    # Base URL for anything we hand to a browser rather than fetch ourselves. Normally the same
-    # host we call the Admin API on, so it defaults to api_url.
+    # Base URL for links we hand to a browser instead of fetching ourselves. Same host as the
+    # Admin API except in dev, where containers talk to Keycloak directly but the browser goes
+    # through Traefik, and the deep-links need the origin that owns the SSO session cookies.
     #
-    # It differs in local development, where the containers reach Keycloak directly
-    # (http://op-keycloak.dev.test:8080) but the browser goes through Traefik
-    # (https://op-keycloak.dev.test) — and an application-initiated action has to land on the
-    # Keycloak SSO session, whose cookies belong to the Traefik origin. Routing the Admin API
-    # through Traefik instead isn't an option: it serves a per-developer self-signed cert that
-    # only the host keychain trusts.
-    #
-    # ENV rather than a column because the split describes a deployment's network, not a realm,
-    # and it applies to every connector — fine for the one dev stack, wrong for a multi-realm
-    # production. Give Idp::ServiceConfig a column if a deployment ever needs it per realm.
-    # A service with no api_url isn't configured at all, so it has no browser URL either — the
-    # override is a variant of api_url, not a way to have one without it.
+    # ENV because it describes a deployment's network rather than a realm; add an
+    # Idp::ServiceConfig column if some deployment needs it per realm.
     def browser_url
+      # no api_url means the service isn't configured, so there's nothing browser-facing either
       return nil if api_url.blank?
 
       config[:browser_url].presence || ENV['KEYCLOAK_PUBLIC_URL'].presence || api_url

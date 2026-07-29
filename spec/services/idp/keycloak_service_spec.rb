@@ -800,7 +800,7 @@ RSpec.describe Idp::KeycloakService, type: :model do
         expect(client_id_in(url)).to eq('warehouse-account')
       end
 
-      # No column supplies this yet; the key is what a per-realm one would set, and it wins over ENV.
+      # Nothing sets this key yet; a per-realm column would, and it beats ENV.
       it 'prefers a config key over the ENV value' do
         allow(ENV).to receive(:[]).and_call_original
         allow(ENV).to receive(:[]).with('KEYCLOAK_ACCOUNT_CLIENT_ID').and_return('ignored')
@@ -861,8 +861,7 @@ RSpec.describe Idp::KeycloakService, type: :model do
     end
   end
 
-  # The dev stack reaches Keycloak on the container address while the browser goes through Traefik,
-  # so anything handed to a browser has to come off the public URL and everything else must not.
+  # Browser links come off the public URL; Admin API calls must not.
   describe 'the browser-facing URL override' do
     let(:public_url) { 'https://keycloak.public.test' }
 
@@ -900,7 +899,7 @@ RSpec.describe Idp::KeycloakService, type: :model do
       include_examples 'honors the browser URL'
     end
 
-    # No column supplies this yet; the key is what a per-realm one would set, and it wins over ENV.
+    # Nothing sets this key yet; a per-realm column would, and it beats ENV.
     context 'supplied in the config hash' do
       before do
         stub_const('ENV', ENV.to_h.merge('KEYCLOAK_PUBLIC_URL' => 'https://ignored.test'))
