@@ -8,10 +8,6 @@
 
 require 'rails_helper'
 
-# "Inactive Youth" report: youth with an open intake and no case management activity in
-# the date range. Until core ts-013 this controller declared no authorization, so any
-# signed-in user could open a report they had never been granted.
-#
 # Row-level youth data is separately scoped: every source the report reads goes through
 # GrdaWarehouse::YouthIntake::Entry.visible_by?(filter.user) and its siblings (see
 # GrdaWarehouse::WarehouseReports::Youth::InactiveIntake#intake_source and friends), which
