@@ -12,9 +12,6 @@ require 'rails_helper'
 # Permission Report index (reports/index.haml:52). It renders that user's complete
 # access control configuration -- every role, collection, and user group.
 #
-# Until core ts-013 this controller declared no authorization, so any signed-in user
-# could read any other user's permission configuration by id, without ever being granted
-# the report the modal belongs to.
 #
 # The report definition must exist and be granted through the user's collection: that is
 # what WarehouseReportAuthorization#report_visible? checks, and this controller overrides
