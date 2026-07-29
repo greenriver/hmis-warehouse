@@ -825,37 +825,54 @@ RSpec.describe Idp::KeycloakService, type: :model do
     end
   end
 
-  describe '#logout_url' do
-    it 'generates logout URL with post_logout_redirect_uri' do
-      url = service.logout_url(
-        post_logout_redirect_uri: 'http://example.com/logout',
-      )
+  # Back channel rather than an RP-initiated logout redirect: the app is handed Dex's id_token, not
+  # Keycloak's, so there's no id_token_hint to send. The Admin API doesn't need one.
+  describe '#logout_user_sessions' do
+    let(:logout_path) { "#{api_url}/admin/realms/#{realm}/users/abc/logout" }
 
-      expect(url).to include("#{api_url}/realms/#{realm}/protocol/openid-connect/logout")
-      expect(url).to include('post_logout_redirect_uri=http')
+    it 'POSTs to the user logout endpoint with the service-account token' do
+      stub_request(:post, logout_path).to_return(status: 204)
+
+      expect(service.logout_user_sessions(user_id: 'abc')).to eq(true)
+      expect(a_request(:post, logout_path).with(headers: { 'Authorization' => 'Bearer test-token' })).to have_been_made
     end
 
-    it 'includes client_id when provided' do
-      url = service.logout_url(
-        post_logout_redirect_uri: 'http://example.com/logout',
-        client_id: 'test-client-123',
+    # The service account can hold manage-users for reads/writes and still be refused here.
+    it 'raises when the service account is not authorized for it' do
+      stub_request(:post, logout_path).to_return(
+        status: 403,
+        body: { errorMessage: 'Forbidden' }.to_json,
+        headers: { 'Content-Type' => 'application/json' },
       )
 
-      expect(url).to include('client_id=test-client-123')
+      expect { service.logout_user_sessions(user_id: 'abc') }.
+        to raise_error(Idp::ServiceError, /Failed to end IDP sessions/)
     end
 
-    context 'when API URL is not configured' do
-      before do
-        service.config[:api_url] = nil
-      end
+    it 'raises when the user id is unknown to the realm' do
+      stub_request(:post, logout_path).to_return(status: 404, body: '')
 
-      it 'returns the redirect URI as-is' do
-        url = service.logout_url(
-          post_logout_redirect_uri: 'http://example.com/logout',
-        )
+      expect { service.logout_user_sessions(user_id: 'abc') }.
+        to raise_error(Idp::ServiceError, /Failed to end IDP sessions/)
+    end
 
-        expect(url).to eq('http://example.com/logout')
-      end
+    it 'raises rather than returning quietly when Keycloak is unreachable' do
+      stub_request(:post, logout_path).to_timeout
+
+      expect { service.logout_user_sessions(user_id: 'abc') }.to raise_error(StandardError)
+    end
+
+    it 'is advertised by the capability predicate' do
+      expect(service.supports_session_logout?).to eq(true)
+    end
+
+    # Sign-out fails closed on a false-y capability meaning "nothing to attempt", so an
+    # unconfigured connector has to answer false rather than true-then-raise. Otherwise a blank
+    # api_url stops everyone on the connector from signing out at all.
+    it 'is not advertised when the service has no api_url to reach' do
+      service.config[:api_url] = nil
+
+      expect(service.supports_session_logout?).to eq(false)
     end
   end
 
@@ -872,12 +889,6 @@ RSpec.describe Idp::KeycloakService, type: :model do
         url = service.account_action_url(action: 'UPDATE_PASSWORD', redirect_uri: 'https://warehouse.test/account/edit')
 
         expect(url).to start_with("#{public_url}/realms/#{realm}/protocol/openid-connect/auth?")
-      end
-
-      it 'builds the logout URL from it' do
-        url = service.logout_url(post_logout_redirect_uri: 'http://example.com/logout')
-
-        expect(url).to start_with("#{public_url}/realms/#{realm}/protocol/openid-connect/logout")
       end
 
       it 'leaves Admin API calls on api_url' do

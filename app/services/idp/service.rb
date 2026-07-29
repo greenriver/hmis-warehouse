@@ -62,6 +62,11 @@ module Idp
       raise NotImplementedError, "#{self.class.name} must implement #set_required_action"
     end
 
+    # Guarded by #supports_session_logout?.
+    def logout_user_sessions(user_id:)
+      raise NotImplementedError, "#{self.class.name} must implement #logout_user_sessions"
+    end
+
     # @return [String] human-readable IDP name (e.g. "Keycloak")
     def idp_name
       raise NotImplementedError, "#{self.class.name} must implement #idp_name"
@@ -93,18 +98,18 @@ module Idp
       false
     end
 
+    # Whether this IDP can end a user's sessions through its admin API. Sign-out gates on it: an
+    # IDP that only authenticates has no session for us to end.
+    def supports_session_logout?
+      false
+    end
+
     # @return [Hash] { success: Boolean, message: String }
     def test_connection
       {
         success: false,
         message: 'Connection testing not supported for this IDP',
       }
-    end
-
-    # OIDC RP-Initiated Logout URL. Defaults to the post-logout redirect; IDPs
-    # that support OIDC logout override this.
-    def logout_url(post_logout_redirect_uri:, client_id: nil) # rubocop:disable Lint/UnusedMethodArgument
-      post_logout_redirect_uri
     end
 
     # Deep-link to the IDP's self-service credential console (password/2FA).

@@ -17,8 +17,9 @@ RSpec.describe Idp::AccountEmailsController, type: :request, if: AuthMethod.jwt?
   let(:token_url) { "#{api_url}/realms/#{realm}/protocol/openid-connect/token" }
 
   let!(:user) { create(:acl_user, first_name: 'Self', last_name: 'Serve', email: 'before@example.com') }
-  # sign_in links this user to the 'test' connector at connector_user_id == user.id.
-  let(:target_url) { "#{api_url}/admin/realms/#{realm}/users/#{user.id}" }
+  # sign_in links this user to the 'test' connector at jwt_connector_user_id, which is deliberately
+  # not the warehouse user id — the Admin API is addressed by the IdP's id.
+  let(:target_url) { "#{api_url}/admin/realms/#{realm}/users/#{jwt_connector_user_id(user)}" }
 
   before(:each) do
     WebMock.disable_net_connect!
@@ -55,7 +56,7 @@ RSpec.describe Idp::AccountEmailsController, type: :request, if: AuthMethod.jwt?
   describe 'when the IdP offers email self-service (Keycloak)' do
     # Every render reads the account back, so the baseline holds the address we already have.
     # Contexts exercising a change override it.
-    let(:remote_representation) { { id: user.id.to_s, username: 'before@example.com', firstName: 'Self', lastName: 'Serve', email: 'before@example.com', emailVerified: true } }
+    let(:remote_representation) { { id: jwt_connector_user_id(user), username: 'before@example.com', firstName: 'Self', lastName: 'Serve', email: 'before@example.com', emailVerified: true } }
 
     before(:each) do
       configure_keycloak!
@@ -229,7 +230,7 @@ RSpec.describe Idp::AccountEmailsController, type: :request, if: AuthMethod.jwt?
     end
 
     describe 'returning from the IdP action' do
-      let(:remote_representation) { { id: user.id.to_s, username: 'after@example.com', firstName: 'Self', lastName: 'Serve', email: 'after@example.com', emailVerified: true } }
+      let(:remote_representation) { { id: jwt_connector_user_id(user), username: 'after@example.com', firstName: 'Self', lastName: 'Serve', email: 'after@example.com', emailVerified: true } }
 
       it 'adopts the verified address from the Admin API on kc_action_status=success' do
         get edit_account_email_path(kc_action_status: 'success')

@@ -178,6 +178,16 @@ module Idp
       put_full_user(user_id: user_id, patch: { 'enabled' => false }, operation: :deactivate_user, failure: 'Failed to deactivate user')
     end
 
+    # Ends every session this user has in the realm, other browsers and devices included. Their SSO
+    # cookie stays in the browser but is dead, so the next request re-prompts.
+    # Back channel because Dex won't propagate a logout upstream — see
+    # Idp::JwtAuthentication#idp_end_token_holder_sessions.
+    def logout_user_sessions(user_id:)
+      response = make_request(:post, "/admin/realms/#{realm}/users/#{user_id}/logout")
+
+      handle_response(response, operation: :logout_user_sessions, failure: 'Failed to end IDP sessions') { true }
+    end
+
     # Set Keycloak required actions the user must complete at next login (e.g.
     # ['UPDATE_PASSWORD'] to force a password change).
     def set_required_action(user_id:, actions:)
@@ -210,6 +220,16 @@ module Idp
 
     def supports_account_backfill?
       true
+    end
+
+    # The endpoint exists on every realm, so the only question is whether this service points at
+    # one — same reading of a blank api_url as browser_url. Unlike the other predicates here, this
+    # one gates sign-out, and the caller fails closed: answering true for a connector we can't
+    # reach would refuse sign-out for everyone on it, over a session we were never holding. Whether
+    # the service account may call it (manage-users, granted separately from the user read/write
+    # calls) is ops config and still shows up as a failure.
+    def supports_session_logout?
+      api_url.present?
     end
 
     # Deep-link to the Keycloak Account Console for this realm, where end users
@@ -299,15 +319,6 @@ module Idp
         success: false,
         message: "Connection error: #{e.message}",
       }
-    end
-
-    def logout_url(post_logout_redirect_uri:, client_id: nil)
-      return post_logout_redirect_uri unless browser_url.present?
-
-      params = { post_logout_redirect_uri: post_logout_redirect_uri }
-      params[:client_id] = client_id if client_id.present?
-
-      "#{browser_url}/realms/#{realm}/protocol/openid-connect/logout?#{params.to_query}"
     end
 
     # Used by the migration tooling; remove once Devise account data has been migrated.

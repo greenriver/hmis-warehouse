@@ -8,11 +8,12 @@
 
 module Idp
   # Serves the shared session route names (new_user_session / user_session / destroy_user_session /
-  # session_keepalive / logout_talentlms) under AUTH_METHOD=jwt. Login and logout are owned by the
-  # oauth2-proxy sidecar + the IdP, so these actions only bridge the legacy routes to proxy
-  # redirects (sign-in/out) and report the forwarded token's expiry for the inactivity countdown
-  # (keepalive). No Devise/Warden machinery is involved — current_user / authenticate_user! come
-  # from Idp::JwtCurrentUser, which ApplicationController includes under JWT.
+  # session_keepalive / logout_talentlms) under AUTH_METHOD=jwt. Login is owned by the oauth2-proxy
+  # sidecar + the IdP, so these actions mostly bridge the legacy routes to proxy redirects and
+  # report the forwarded token's expiry for the inactivity countdown (keepalive). #destroy is the
+  # exception — it ends the IdP session itself, since the proxy hop doesn't reach Keycloak. No
+  # Devise/Warden machinery is involved — current_user / authenticate_user! come from
+  # Idp::JwtCurrentUser, which ApplicationController includes under JWT.
   #
   # Only mounted by the AuthMethod.jwt? arm of config/routes.rb; the Devise arm routes the same
   # names to Users::SessionsController instead.
@@ -28,12 +29,26 @@ module Idp
     end
     alias_method :create, :new
 
-    # DELETE users/sign_out (and GET logout_talentlms) — clear the proxy session and return to
-    # root_path via the rd parameter. Deliberately uses a relative path since oauth2-proxy is
-    # same-origin; an absolute URL built from request.base_url could be spoofed via the Host header.
+    # DELETE users/sign_out (and GET logout_talentlms) — end the IdP session, clear the Rails
+    # session, then hand off to the proxy, which returns to root_path via the rd parameter.
+    # Deliberately uses a relative path since oauth2-proxy is same-origin; an absolute URL built
+    # from request.base_url could be spoofed via the Host header.
     def destroy
-      # wipes session so it doesn't outlive this login. Not a substitute for oauth2-proxy/IdP
-      # sign-out the browser performs next via this redirect.
+      # Fail closed, on purpose: a failed call means the SSO session is still live, so tear nothing
+      # down. Better than a user who thinks they signed out — on a shared machine the next person
+      # inherits the account. Cost accepted: while the IdP is unreachable nobody can sign out.
+      # Don't turn this into a best-effort rescue.
+      unless idp_end_token_holder_sessions
+        # A real template rather than render(plain:), matching idp_handle_deactivated's
+        # errors/account_deactivated: every sign-out entry point is a link_to method: :delete, so
+        # rails-ujs does a full page load and the user lands here. They need the app's layout and a
+        # way to retry, not bare text. Still signed in, so the layout has a current_user to work
+        # with.
+        render(template: 'errors/sign_out_failed', status: :internal_server_error)
+        return
+      end
+
+      # Second, because idp_end_token_holder_sessions reads the token rather than the session.
       reset_session
 
       redirect_to("/oauth2/sign_out?rd=#{CGI.escape(root_path)}")

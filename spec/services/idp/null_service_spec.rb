@@ -77,6 +77,22 @@ RSpec.describe Idp::NullService, type: :model do
     end
   end
 
+  describe '#supports_session_logout?' do
+    it 'returns false' do
+      expect(service.supports_session_logout?).to be false
+    end
+  end
+
+  # The predicate above means nothing should reach this. If something does it must be loud, not a
+  # silent no-op that reads as "the IdP session was ended".
+  describe '#logout_user_sessions' do
+    it 'raises ServiceError' do
+      expect do
+        service.logout_user_sessions(user_id: 'user-123')
+      end.to raise_error(Idp::ServiceError, /Session logout not supported/)
+    end
+  end
+
   describe '#account_console_url' do
     it 'returns nil' do
       expect(service.account_console_url).to be_nil
@@ -105,6 +121,20 @@ RSpec.describe Idp::Service, type: :model do
   describe '#supports_email_self_service?' do
     it 'defaults to false on the base contract' do
       expect(described_class.new.supports_email_self_service?).to be false
+    end
+  end
+
+  describe '#supports_session_logout?' do
+    it 'defaults to false on the base contract' do
+      expect(described_class.new.supports_session_logout?).to be false
+    end
+  end
+
+  describe '#logout_user_sessions' do
+    it 'raises NotImplementedError on the base contract' do
+      expect do
+        described_class.new.logout_user_sessions(user_id: 'user-123')
+      end.to raise_error(NotImplementedError, /must implement #logout_user_sessions/)
     end
   end
 end

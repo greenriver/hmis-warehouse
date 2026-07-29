@@ -80,6 +80,153 @@ RSpec.describe 'Warehouse JWT wiring', type: :request do
         expect(response.location).to include('/oauth2/sign_out')
         expect(session[:impersonation]).to be_nil
       end
+
+      describe 'ending the IdP session' do
+        # The token's connector is 'test' (see JwtAuthenticationHelper), which ServiceFactory
+        # resolves to a NullService, so a service has to be stubbed in to get past the predicate.
+        let(:idp_service) do
+          instance_double(
+            Idp::KeycloakService,
+            supports_session_logout?: true,
+            logout_user_sessions: true,
+          )
+        end
+
+        before do
+          allow(Idp::ServiceFactory).to receive(:for_connector).and_call_original
+          allow(Idp::ServiceFactory).to receive(:for_connector).with('test').and_return(idp_service)
+        end
+
+        def start_session
+          sign_in(user)
+          get session_keepalive_path
+          expect(response).to have_http_status(:ok)
+        end
+
+        it 'ends the token holder\'s IdP sessions, then resets and redirects' do
+          start_session
+
+          delete destroy_user_session_path
+
+          expect(idp_service).to have_received(:logout_user_sessions).with(user_id: jwt_connector_user_id(user))
+          expect(response).to redirect_to("/oauth2/sign_out?rd=#{CGI.escape(root_path)}")
+        end
+
+        it 'covers GET logout_talentlms, which routes to the same action' do
+          start_session
+
+          get logout_talentlms_path
+
+          expect(idp_service).to have_received(:logout_user_sessions).with(user_id: jwt_connector_user_id(user))
+          expect(response).to have_http_status(:redirect)
+        end
+
+        # The whole reason the id comes off the token: under impersonation current_user is the
+        # impersonated user, so sourcing it there signs out a third party and not the admin.
+        it 'ends the token holder\'s sessions, not the impersonated user\'s, while impersonating' do
+          impersonated_user = create :user
+          allow(user).to receive(:can_impersonate_users?).and_return(true)
+          allow(impersonated_user).to receive(:impersonateable_by?).with(user).and_return(true)
+          allow(User).to receive(:find_by).and_call_original
+          allow(User).to receive(:find_by).with(id: user.id).and_return(user)
+          allow(User).to receive(:find_by).with(id: impersonated_user.id).and_return(impersonated_user)
+
+          start_session
+          session[:impersonation] = { true_user_id: user.id, impersonated_user_id: impersonated_user.id }
+
+          delete destroy_user_session_path
+
+          # The claim value, and exactly one call: rules out the impersonated user, and rules out
+          # current_user.id / the token holder's warehouse id, which are a different string again.
+          expect(idp_service).to have_received(:logout_user_sessions).
+            with(user_id: jwt_connector_user_id(user)).once
+        end
+
+        # Fail closed: a failed IdP call aborts sign-out rather than reporting success it didn't
+        # achieve. Deliberate, not an oversight.
+        it 'aborts sign-out and leaves the session intact when the IdP call raises' do
+          start_session
+          allow(idp_service).to receive(:logout_user_sessions).
+            and_raise(Idp::ServiceError.new('boom', idp_name: 'Keycloak', operation: :logout_user_sessions))
+          expect(Sentry).to receive(:capture_exception_with_info)
+
+          delete destroy_user_session_path
+
+          expect(response).to have_http_status(:internal_server_error)
+          # A rendered page in the app's layout, not bare text: the user arrives here on a full page
+          # load and needs the retry link on it.
+          expect(response).to render_template('errors/sign_out_failed')
+          # The app writes this during start_session, so it's real session state — a value the spec
+          # assigned directly wouldn't survive the request boundary. reset_session clears it.
+          expect(session[Idp::JwtAuthentication::SESSION_PRINCIPAL_KEY]).to eq(user.id)
+        end
+
+        # Not knowing whether there's a session to end is not the same as knowing there isn't, so
+        # this fails closed too — but with its own alert, since the fix is our config, not the IdP.
+        it 'aborts sign-out when the connector\'s service can\'t be resolved' do
+          start_session
+          allow(Idp::ServiceFactory).to receive(:for_connector).with('test').and_raise(StandardError.new('bad config'))
+          expect(Sentry).to receive(:capture_exception_with_info).
+            with(anything, /Couldn't resolve the IDP service for connector test/)
+
+          delete destroy_user_session_path
+
+          expect(response).to have_http_status(:internal_server_error)
+          expect(session[Idp::JwtAuthentication::SESSION_PRINCIPAL_KEY]).to eq(user.id)
+        end
+
+        it 'aborts sign-out within the deadline when the IdP call hangs' do
+          start_session
+          stub_const('Idp::JwtAuthentication::SESSION_LOGOUT_TIMEOUT_SECONDS', 0.2)
+          allow(idp_service).to receive(:logout_user_sessions) { sleep 5 }
+          allow(Sentry).to receive(:capture_exception_with_info)
+
+          started_at = Time.current
+          delete destroy_user_session_path
+          elapsed = Time.current - started_at
+
+          expect(response).to have_http_status(:internal_server_error)
+          expect(session[Idp::JwtAuthentication::SESSION_PRINCIPAL_KEY]).to eq(user.id)
+          # Proves the deadline is what ended the wait, not the stubbed sleep finishing.
+          expect(elapsed).to be < 5
+          expect(Sentry).to have_received(:capture_exception_with_info)
+        end
+
+        it 'signs out normally, without attempting a call, when the connector has no admin API' do
+          allow(idp_service).to receive(:supports_session_logout?).and_return(false)
+          start_session
+
+          delete destroy_user_session_path
+
+          expect(idp_service).not_to have_received(:logout_user_sessions)
+          expect(response).to have_http_status(:redirect)
+          expect(response.location).to include('/oauth2/sign_out')
+        end
+
+        it 'signs out normally, without attempting a call, for an unknown connector (NullService)' do
+          allow(Idp::ServiceFactory).to receive(:for_connector).with('test').and_call_original
+          start_session
+
+          delete destroy_user_session_path
+
+          expect(idp_service).not_to have_received(:logout_user_sessions)
+          expect(response).to have_http_status(:redirect)
+          expect(response.location).to include('/oauth2/sign_out')
+        end
+
+        it 'signs out normally, without attempting a call, when the token carries no connector claim' do
+          start_session
+          # sign_in memoizes one JwtHelper double per token, so this hands back the same object the
+          # request will read.
+          allow(Idp::JwtHelper.new(access_token: jwt_token)).to receive(:connector_id).and_return(nil)
+
+          delete destroy_user_session_path
+
+          expect(idp_service).not_to have_received(:logout_user_sessions)
+          expect(response).to have_http_status(:redirect)
+          expect(response.location).to include('/oauth2/sign_out')
+        end
+      end
     end
 
     # The concern spec covers the branches. This covers the bit only the real stack shows: against
@@ -94,7 +241,7 @@ RSpec.describe 'Warehouse JWT wiring', type: :request do
         # Resolve off the forwarded token rather than the flat stub in the outer before block, so
         # that signing in as someone else is what actually moves the principal.
         allow(User).to receive(:find_or_create_from_jwt) do |helper|
-          helper.connector_user_id.to_i == other_user.id ? other_user : user
+          helper.connector_user_id == jwt_connector_user_id(other_user) ? other_user : user
         end
 
         sign_in(user)

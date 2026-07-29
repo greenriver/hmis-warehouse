@@ -50,6 +50,10 @@ module Idp
       raise ServiceError.new('Required actions not supported', idp_name: idp_name, operation: :set_required_action)
     end
 
+    def logout_user_sessions(**)
+      raise ServiceError.new('Session logout not supported', idp_name: idp_name, operation: :logout_user_sessions)
+    end
+
     def idp_name
       connector_id&.humanize || 'Unknown IDP'
     end

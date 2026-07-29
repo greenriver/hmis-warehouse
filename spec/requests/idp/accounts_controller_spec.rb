@@ -19,8 +19,9 @@ RSpec.describe Idp::AccountsController, type: :request, if: AuthMethod.jwt? do
   let(:token_url) { "#{api_url}/realms/#{realm}/protocol/openid-connect/token" }
 
   let!(:user) { create(:acl_user, first_name: 'Self', last_name: 'Serve', phone: '5085551000', email_schedule: 'daily', credentials: 'old') }
-  # sign_in links this user to the 'test' connector at connector_user_id == user.id.
-  let(:target_url) { "#{api_url}/admin/realms/#{realm}/users/#{user.id}" }
+  # sign_in links this user to the 'test' connector at jwt_connector_user_id, which is deliberately
+  # not the warehouse user id — the Admin API is addressed by the IdP's id.
+  let(:target_url) { "#{api_url}/admin/realms/#{realm}/users/#{jwt_connector_user_id(user)}" }
 
   before(:each) do
     WebMock.disable_net_connect!
@@ -76,7 +77,7 @@ RSpec.describe Idp::AccountsController, type: :request, if: AuthMethod.jwt? do
     end
 
     describe 'PATCH update' do
-      let(:current_representation) { { id: user.id.to_s, username: user.email, firstName: 'Self', lastName: 'Serve', email: user.email } }
+      let(:current_representation) { { id: jwt_connector_user_id(user), username: user.email, firstName: 'Self', lastName: 'Serve', email: user.email } }
 
       before(:each) do
         stub_request(:get, target_url).to_return(status: 200, body: current_representation.to_json)

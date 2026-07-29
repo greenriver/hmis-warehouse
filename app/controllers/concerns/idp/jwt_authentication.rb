@@ -23,6 +23,10 @@ module Idp::JwtAuthentication
   SESSION_PRINCIPAL_KEY = :idp_token_holder_id
   SESSION_SYNC_KEY = :idp_user_synced
 
+  # Much shorter than Idp::KeycloakService#build_http (10s/30s, and a sign-out may hit fetch_token
+  # first). Admin screens can afford that wait; someone clicking sign out can't.
+  SESSION_LOGOUT_TIMEOUT_SECONDS = 5
+
   included do
     helper_method :user_session_expires_at
   end
@@ -51,6 +55,69 @@ module Idp::JwtAuthentication
 
       Idp::JwtHelper.new(access_token: token)
     end
+  end
+
+  # Ends the token holder's sessions at the IDP, which is the one session /oauth2/sign_out doesn't
+  # reach: the proxy ends Dex, but Dex doesn't propagate logout upstream. Called by both arms'
+  # sign-out actions.
+  #
+  # The admin API rather than an RP-initiated logout redirect because the token is Dex's, so we have
+  # no id_token_hint for Keycloak and no client of our own to name.
+  #
+  # Not single logout: other apps' proxy cookies carry Dex refresh tokens that Dex renews without
+  # re-checking Keycloak, so their sessions outlive this call.
+  #
+  # The id comes off the token, not current_user: under impersonation current_user is the
+  # impersonated user (see idp_authenticated_user_from_jwt), and the impersonation-aware accessors
+  # are session-backed, so they'd be order-dependent against reset_session. Reading the token is
+  # also what lets this run before it.
+  #
+  # @return [Boolean] false when we either failed the call or couldn't work out whether to make one
+  #   — either way an IDP session may still be live, so the caller must fail closed. Only a
+  #   definite "nothing to attempt" returns true.
+  def idp_end_token_holder_sessions
+    jwt_helper = idp_jwt_helper_for_request
+    # A token we can't read is nothing to attempt, not a failure.
+    return true unless jwt_helper&.token? && jwt_helper.valid?
+
+    connector_id = jwt_helper.connector_id
+    connector_user_id = jwt_helper.connector_user_id
+    return true if connector_id.blank? || connector_user_id.blank?
+
+    service = idp_session_logout_service(connector_id)
+    # nil is "couldn't resolve", already alerted. false-y capability is "no admin API to call".
+    return false if service.nil?
+    return true unless service.supports_session_logout?
+
+    Timeout.timeout(SESSION_LOGOUT_TIMEOUT_SECONDS) do
+      service.logout_user_sessions(user_id: connector_user_id)
+    end
+
+    true
+  rescue StandardError => e
+    # Alerted, not swallowed — swallowing it is the bug this method exists to fix. Scoped to the
+    # call itself, so connector_id and connector_user_id are always populated in this message.
+    Sentry.capture_exception_with_info(
+      e,
+      "Couldn't end IDP sessions for #{connector_id} user #{connector_user_id}; sign-out was refused",
+    )
+    false
+  end
+
+  # Split out so a failure to resolve the service is alerted on its own terms: the message above
+  # would name a connector whose service we never got, and the fix is ours (connector config,
+  # credentials) rather than the IDP's. Still fails closed — an unresolvable connector tells us
+  # nothing about whether a session is live, and assuming there isn't one is the bug being fixed.
+  #
+  # @return [Idp::Service, nil] nil when resolution raised.
+  def idp_session_logout_service(connector_id)
+    Idp::ServiceFactory.for_connector(connector_id)
+  rescue StandardError => e
+    Sentry.capture_exception_with_info(
+      e,
+      "Couldn't resolve the IDP service for connector #{connector_id}; sign-out was refused",
+    )
+    nil
   end
 
   def idp_validate_impersonation_permissions(true_user, impersonated_user)
