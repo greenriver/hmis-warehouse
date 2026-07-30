@@ -45,24 +45,16 @@ module Idp
     # Deliberately uses a relative path since oauth2-proxy is same-origin; an absolute URL built
     # from request.base_url could be spoofed via the Host header.
     def destroy
-      # Fail closed, on purpose: a failed call means the SSO session is still live, so tear nothing
-      # down. Better than a user who thinks they signed out — on a shared machine the next person
-      # inherits the account. Cost accepted: while the IdP is unreachable nobody can sign out.
-      # Don't turn this into a best-effort rescue.
-      unless idp_end_token_holder_sessions
-        # A real template rather than render(plain:), matching idp_handle_deactivated's
-        # errors/account_deactivated: every sign-out entry point is a link_to method: :delete, so
-        # rails-ujs does a full page load and the user lands here. They need the app's layout and a
-        # way to retry, not bare text. The layout handles a nil current_user (it drops the site
-        # menu), which is what a deactivated or account-less user arriving from those pages has.
-        render(template: 'errors/sign_out_failed', status: :internal_server_error)
-        return
-      end
+      # First: reads the token, not the session, and fails closed — a refusal means the SSO session is
+      # still live, so nothing below runs. Cost accepted: while the IdP is unreachable nobody can sign
+      # out. Don't make this best-effort. Hmis::Idp::SessionsController#destroy is the same sequence.
+      idp_end_token_holder_sessions
 
-      # Second, because idp_end_token_holder_sessions reads the token rather than the session.
       reset_session
 
       redirect_to("/oauth2/sign_out?rd=#{CGI.escape(root_path)}")
+    rescue Idp::SessionLogoutRefused
+      idp_handle_session_logout_failure
     end
 
     # GET logout_talentlms — TalentLMS redirects here when the user logs out of the LMS. Renders a

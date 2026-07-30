@@ -89,40 +89,41 @@ module Idp::JwtAuthentication
   # are session-backed, so they'd be order-dependent against reset_session. Reading the token is
   # also what lets this run before it.
   #
-  # @return [Boolean] false when we either failed the call or couldn't work out whether to make one
-  #   — either way an IDP session may still be live, so the caller must fail closed. Only a
-  #   definite "nothing to attempt" returns true.
+  # @raise [Idp::SessionLogoutRefused] the call failed, or we couldn't tell whether to make one.
+  #   Either way a session may still be live, so callers fail closed. Returning means nothing to end.
   def idp_end_token_holder_sessions
     jwt_helper = idp_jwt_helper_for_request
     reason = jwt_helper.invalid_reason
-    # No token is nothing to attempt. Any other refusal already raised in idp_token_holder, before
-    # the action ran — but a refused token is not "nothing to attempt" (the proxy vouched for it, so
-    # there's probably a session to end and we can't tell whose), so fail closed if that changes.
-    return true if reason == :missing
-    return false if reason
+    # No token, nothing to end. Any other refusal already raised in idp_token_holder, but the proxy
+    # vouched for the token, so assume there's a session to end and we can't tell whose.
+    return if reason == :missing
+    raise Idp::SessionLogoutRefused, "Sign-out refused: oauth2-proxy forwarded a token we refused (#{reason})" if reason
 
     connector_id = jwt_helper.connector_id
     connector_user_id = jwt_helper.connector_user_id
-    return true if connector_id.blank? || connector_user_id.blank?
+    return if connector_id.blank? || connector_user_id.blank?
 
     service = idp_session_logout_service(connector_id)
-    # nil is "couldn't resolve", already alerted. false-y capability is "no admin API to call".
-    return false if service.nil?
-    return true unless service.supports_session_logout?
+    # nil is "couldn't resolve", already alerted. No admin API is nothing to end.
+    raise Idp::SessionLogoutRefused, "Sign-out refused: no IDP service for connector #{connector_id}" if service.nil?
+    return unless service.supports_session_logout?
 
-    Timeout.timeout(SESSION_LOGOUT_TIMEOUT_SECONDS) do
-      service.logout_user_sessions(user_id: connector_user_id)
+    begin
+      Timeout.timeout(SESSION_LOGOUT_TIMEOUT_SECONDS) do
+        service.logout_user_sessions(user_id: connector_user_id)
+      end
+    rescue StandardError => e
+      # Alerted, not swallowed — swallowing it is the bug this method exists to fix. Wrapped around
+      # the call only, so both ids are set here and the raises above aren't reported twice.
+      Sentry.capture_exception_with_info(
+        e,
+        "Couldn't end IDP sessions for #{connector_id} user #{connector_user_id}; sign-out was refused",
+      )
+      raise Idp::SessionLogoutRefused, "Sign-out refused: #{e.class} ending IDP sessions for #{connector_id} user #{connector_user_id}"
     end
 
-    true
-  rescue StandardError => e
-    # Alerted, not swallowed — swallowing it is the bug this method exists to fix. Scoped to the
-    # call itself, so connector_id and connector_user_id are always populated in this message.
-    Sentry.capture_exception_with_info(
-      e,
-      "Couldn't end IDP sessions for #{connector_id} user #{connector_user_id}; sign-out was refused",
-    )
-    false
+    # Not the block's value — a truthy return reads like the boolean contract this no longer has.
+    nil
   end
 
   # Split out so a failure to resolve the service is alerted on its own terms: the message above
@@ -268,6 +269,13 @@ module Idp::JwtAuthentication
   # as a JSON 403 for API/HMIS controllers, the same way as idp_handle_unauthenticated.
   def idp_handle_deactivated
     render(template: 'errors/account_deactivated', status: :forbidden)
+  end
+
+  # Idp::SessionLogoutRefused, rescued by both sign-out actions. A template rather than
+  # render(plain:) because sign-out is a link_to method: :delete, so the user lands here on a full
+  # page load and needs the layout and a retry link. Overridden by HMIS for JSON.
+  def idp_handle_session_logout_failure
+    render(template: 'errors/sign_out_failed', status: :internal_server_error)
   end
 
   def user_session_expires_at

@@ -201,6 +201,150 @@ RSpec.describe 'HMIS JWT wiring', type: :request, if: AuthMethod.jwt? do
       expect(controller.current_hmis_user).to eq(admin_user)
       expect(controller.impersonating?).to eq(false)
     end
+
+    # The session /oauth2/sign_out never reaches, since Dex doesn't propagate logout to Keycloak.
+    # Mirrors spec/requests/idp/warehouse_jwt_wiring_spec.rb's set, JSON instead of HTML.
+    describe 'ending the IdP session' do
+      let(:user) { create(:hmis_user) }
+      # The token's connector is 'test' (see JwtAuthenticationHelper), which resolves to a
+      # NullService, so a service has to be stubbed in to get past the predicate.
+      let(:idp_service) do
+        instance_double(
+          Idp::KeycloakService,
+          supports_session_logout?: true,
+          logout_user_sessions: true,
+        )
+      end
+
+      before do
+        allow(Idp::ServiceFactory).to receive(:for_connector).and_call_original
+        allow(Idp::ServiceFactory).to receive(:for_connector).with('test').and_return(idp_service)
+      end
+
+      def start_session(as: user)
+        allow(User).to receive(:find_or_create_from_jwt).and_return(User.find(as.id))
+        sign_in(as)
+        get hmis_session_keepalive_path, headers: headers
+        expect(response).to have_http_status(:ok)
+      end
+
+      def expect_signed_out_normally
+        expect(response).to have_http_status(:ok)
+        expect(JSON.parse(response.body)['redirect_url']).to start_with('/oauth2/sign_out?rd=')
+      end
+
+      # The body is the whole contract with the SPA — throwMaybeHmisError reads the type, and no
+      # redirect_url, since the SPA must not be handed a sign-out URL for a sign-out that didn't
+      # happen.
+      def expect_refused_sign_out
+        expect(response).to have_http_status(:internal_server_error)
+        expect(JSON.parse(response.body)).to eq('error' => { 'type' => 'sign_out_failed' })
+        # Real session state, written by the app during start_session. reset_session clears it, and
+        # fail-closed means reset_session never ran.
+        expect(session[Idp::JwtAuthentication::SESSION_PRINCIPAL_KEY]).to eq(user.id)
+      end
+
+      it 'ends the token holder\'s IdP sessions, then resets and renders the sign-out URL' do
+        start_session
+
+        delete destroy_hmis_user_session_path, headers: headers
+
+        expect(idp_service).to have_received(:logout_user_sessions).with(user_id: jwt_connector_user_id(user))
+        expect_signed_out_normally
+      end
+
+      # Fail closed, deliberately: better than reporting a sign-out that didn't happen.
+      it 'aborts sign-out and leaves the session intact when the IdP call raises' do
+        start_session
+        allow(idp_service).to receive(:logout_user_sessions).
+          and_raise(Idp::ServiceError.new('boom', idp_name: 'Keycloak', operation: :logout_user_sessions))
+        expect(Sentry).to receive(:capture_exception_with_info)
+
+        delete destroy_hmis_user_session_path, headers: headers
+
+        expect_refused_sign_out
+      end
+
+      it 'aborts sign-out within the deadline when the IdP call hangs' do
+        start_session
+        stub_const('Idp::JwtAuthentication::SESSION_LOGOUT_TIMEOUT_SECONDS', 0.2)
+        allow(idp_service).to receive(:logout_user_sessions) { sleep 5 }
+        allow(Sentry).to receive(:capture_exception_with_info)
+
+        started_at = Time.current
+        delete destroy_hmis_user_session_path, headers: headers
+        elapsed = Time.current - started_at
+
+        expect_refused_sign_out
+        # Proves the deadline is what ended the wait, not the stubbed sleep finishing.
+        expect(elapsed).to be < 5
+        expect(Sentry).to have_received(:capture_exception_with_info)
+      end
+
+      # Can't tell whether a session is live, so this fails closed too, with its own alert.
+      it 'aborts sign-out when the connector\'s service can\'t be resolved' do
+        start_session
+        allow(Idp::ServiceFactory).to receive(:for_connector).with('test').and_raise(StandardError.new('bad config'))
+        expect(Sentry).to receive(:capture_exception_with_info).
+          with(anything, /Couldn't resolve the IDP service for connector test/)
+
+        delete destroy_hmis_user_session_path, headers: headers
+
+        expect_refused_sign_out
+      end
+
+      it 'signs out normally, without attempting a call, when the connector has no admin API' do
+        allow(idp_service).to receive(:supports_session_logout?).and_return(false)
+        start_session
+
+        delete destroy_hmis_user_session_path, headers: headers
+
+        expect(idp_service).not_to have_received(:logout_user_sessions)
+        expect_signed_out_normally
+      end
+
+      it 'signs out normally, without attempting a call, for an unknown connector (NullService)' do
+        allow(Idp::ServiceFactory).to receive(:for_connector).with('test').and_call_original
+        start_session
+
+        delete destroy_hmis_user_session_path, headers: headers
+
+        expect(idp_service).not_to have_received(:logout_user_sessions)
+        expect_signed_out_normally
+      end
+
+      it 'signs out normally, without attempting a call, when the token carries no connector claim' do
+        start_session
+        # sign_in memoizes one JwtHelper double per token, so this is the object the request reads.
+        allow(Idp::JwtHelper.new(access_token: jwt_token)).to receive(:connector_id).and_return(nil)
+
+        delete destroy_hmis_user_session_path, headers: headers
+
+        expect(idp_service).not_to have_received(:logout_user_sessions)
+        expect_signed_out_normally
+      end
+
+      # The whole reason the id comes off the token: current_hmis_user is the impersonated user here,
+      # so sourcing it there ends a third party's sessions and not the admin's.
+      it 'ends the token holder\'s sessions, not the impersonated user\'s, while impersonating' do
+        user_group = create(:hmis_user_group)
+        admin_user = create(:hmis_user, data_source: ds)
+        create_access_control(admin_user, ds, with_permission: [:can_impersonate_users], user_group: user_group)
+        target_user = create(:hmis_user, data_source: ds).tap { |u| user_group.add(u) }
+
+        start_session(as: admin_user)
+        post hmis_impersonations_path, params: { user_id: target_user.id }, headers: headers
+        expect(response).to have_http_status(:ok)
+
+        delete destroy_hmis_user_session_path, headers: headers
+
+        expect(response).to have_http_status(:ok)
+        # The claim value, and exactly one call: rules out the impersonated user and both warehouse
+        # ids, which are a different string again.
+        expect(idp_service).to have_received(:logout_user_sessions).
+          with(user_id: jwt_connector_user_id(admin_user)).once
+      end
+    end
   end
 
   describe '#info_for_paper_trail' do
