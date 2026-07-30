@@ -89,8 +89,20 @@ RSpec.describe SourceDataController, type: :request do
           it 'assigns hmis variables' do
             get source_datum_path(id: hmis_item.id, type: 'Client')
             expect(assigns(:hmis)).to be true
-            expect(assigns(:hmis_url)).to be_present
+            expect(assigns(:hmis_url)).to be_nil # user lacks access to view client in HMIS
             expect(assigns(:importers)).to be_nil
+          end
+
+          context 'and user has permission to view the client in OP HMIS' do
+            before do
+              hmis_user = user.related_hmis_user(hmis_data_source)
+              create_access_control(hmis_user, hmis_data_source, with_permission: [:can_view_clients])
+            end
+            it 'shows a link to the client profile in OP HMIS' do
+              get source_datum_path(id: hmis_item.id, type: 'Client')
+              expect(assigns(:hmis)).to be true
+              expect(assigns(:hmis_url)).to be_present
+            end
           end
         end
 
