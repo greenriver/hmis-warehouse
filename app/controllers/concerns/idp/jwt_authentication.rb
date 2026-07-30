@@ -23,10 +23,6 @@ module Idp::JwtAuthentication
   SESSION_PRINCIPAL_KEY = :idp_token_holder_id
   SESSION_SYNC_KEY = :idp_user_synced
 
-  # Much shorter than Idp::KeycloakService#build_http (10s/30s, and a sign-out may hit fetch_token
-  # first). Admin screens can afford that wait; someone clicking sign out can't.
-  SESSION_LOGOUT_TIMEOUT_SECONDS = 5
-
   included do
     helper_method :user_session_expires_at
   end
@@ -109,9 +105,9 @@ module Idp::JwtAuthentication
     return unless service.supports_session_logout?
 
     begin
-      Timeout.timeout(SESSION_LOGOUT_TIMEOUT_SECONDS) do
-        service.logout_user_sessions(user_id: connector_user_id)
-      end
+      # No deadline here: the service's own socket timeouts bound this, and Timeout.timeout would
+      # raise at an arbitrary point in the thread — including after Keycloak ended the sessions.
+      service.logout_user_sessions(user_id: connector_user_id)
     rescue StandardError => e
       # Alerted, not swallowed — swallowing it is the bug this method exists to fix. Wrapped around
       # the call only, so both ids are set here and the raises above aren't reported twice.

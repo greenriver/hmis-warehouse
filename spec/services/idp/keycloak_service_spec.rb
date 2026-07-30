@@ -968,4 +968,70 @@ RSpec.describe Idp::KeycloakService, type: :model do
       expect(service.each_user(page_size: 2).to_a.size).to eq(2)
     end
   end
+
+  describe 'HTTP timeouts' do
+    # build_http is private and WebMock stands in for the socket, so record what the service had set
+    # on the connection each request went out on. Keyed by path because a call also fetches a token,
+    # on its own connection with its own budget.
+    let(:sent) { {} }
+
+    before do
+      recorded = sent
+      allow_any_instance_of(Net::HTTP).to receive(:request).and_wrap_original do |original, *args|
+        http = original.receiver
+        (recorded[args.first.path] ||= []) << [http.open_timeout, http.read_timeout, http.write_timeout]
+        original.call(*args)
+      end
+    end
+
+    # One entry per request sent to `path`, oldest first, each [open, read, write].
+    def timeouts_of(path)
+      sent.fetch(path)
+    end
+
+    let(:default_timeouts) do
+      [described_class::OPEN_TIMEOUT_SECONDS, described_class::IO_TIMEOUT_SECONDS, described_class::IO_TIMEOUT_SECONDS]
+    end
+
+    let(:bulk_timeouts) do
+      [described_class::OPEN_TIMEOUT_SECONDS, described_class::BULK_IO_TIMEOUT_SECONDS, described_class::BULK_IO_TIMEOUT_SECONDS]
+    end
+
+    it 'gives an ordinary call the short defaults' do
+      stub_request(:post, "#{api_url}/admin/realms/#{realm}/users/user-1/logout").to_return(status: 204)
+
+      service.logout_user_sessions(user_id: 'user-1')
+
+      expect(timeouts_of("/admin/realms/#{realm}/users/user-1/logout")).to eq([default_timeouts])
+      # The token round trip a call makes on the way is on the default budget too.
+      expect(timeouts_of("/realms/#{realm}/protocol/openid-connect/token")).to eq([default_timeouts])
+    end
+
+    it 'gives a bulk call a longer read and write budget' do
+      stub_request(:post, "#{api_url}/admin/realms/#{realm}/partialImport").to_return(status: 200, body: '{}')
+
+      service.partial_import({ users: [] })
+
+      expect(timeouts_of("/admin/realms/#{realm}/partialImport")).to eq([bulk_timeouts])
+    end
+
+    it 'keeps the longer budget on the 401 token retry' do
+      stub_request(:post, "#{api_url}/admin/realms/#{realm}/partialImport").
+        to_return({ status: 401 }, { status: 200, body: '{}' })
+
+      service.partial_import({ users: [] })
+
+      expect(timeouts_of("/admin/realms/#{realm}/partialImport")).to eq([bulk_timeouts, bulk_timeouts])
+    end
+
+    it 'gives the paginated user listing the longer budget' do
+      stub_request(:get, "#{api_url}/admin/realms/#{realm}/users").
+        with(query: { first: '0', max: '100' }).
+        to_return(status: 200, body: '[]', headers: { 'Content-Type' => 'application/json' })
+
+      service.each_user.to_a
+
+      expect(timeouts_of("/admin/realms/#{realm}/users?first=0&max=100")).to eq([bulk_timeouts])
+    end
+  end
 end

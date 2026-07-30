@@ -265,20 +265,18 @@ RSpec.describe 'HMIS JWT wiring', type: :request, if: AuthMethod.jwt? do
         expect_refused_sign_out
       end
 
-      it 'aborts sign-out within the deadline when the IdP call hangs' do
+      # A hung IdP reaches the controller as the socket timeout the service didn't convert, so this
+      # covers an exception that isn't an Idp::ServiceError taking the same fail-closed path.
+      it 'aborts sign-out when the IdP call times out' do
         start_session
-        stub_const('Idp::JwtAuthentication::SESSION_LOGOUT_TIMEOUT_SECONDS', 0.2)
-        allow(idp_service).to receive(:logout_user_sessions) { sleep 5 }
+        allow(idp_service).to receive(:logout_user_sessions).and_raise(Net::ReadTimeout)
         allow(Sentry).to receive(:capture_exception_with_info)
 
-        started_at = Time.current
         delete destroy_hmis_user_session_path, headers: headers
-        elapsed = Time.current - started_at
 
         expect_refused_sign_out
-        # Proves the deadline is what ended the wait, not the stubbed sleep finishing.
-        expect(elapsed).to be < 5
-        expect(Sentry).to have_received(:capture_exception_with_info)
+        # One report, not one per rescue on the way out.
+        expect(Sentry).to have_received(:capture_exception_with_info).once
       end
 
       # Can't tell whether a session is live, so this fails closed too, with its own alert.

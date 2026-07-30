@@ -24,6 +24,16 @@ module Idp
     # on confirmation.
     EMAIL_PENDING_ATTRIBUTE = 'kc.email.pending'
 
+    # Most calls are on a request path, so the default budget is short enough that a hung Keycloak
+    # fails the request rather than holding the thread. Opening the socket doesn't get slower with a
+    # bigger body, so there's one open timeout for everyone.
+    OPEN_TIMEOUT_SECONDS = 2
+    IO_TIMEOUT_SECONDS = 3
+
+    # For the two calls that move more than a status code: the paginated user listing (#each_user)
+    # and the bulk user import (#partial_import). Requested at the call site.
+    BULK_IO_TIMEOUT_SECONDS = 30
+
     def initialize(config: nil)
       super(config: config || default_config)
       validate_config!
@@ -133,7 +143,7 @@ module Idp
 
       first = 0
       loop do
-        response = make_request(:get, "/admin/realms/#{realm}/users?first=#{first}&max=#{page_size}")
+        response = make_request(:get, "/admin/realms/#{realm}/users?first=#{first}&max=#{page_size}", io_timeout: BULK_IO_TIMEOUT_SECONDS)
         users = handle_response(response, operation: :each_user, failure: 'Failed to list users') do |resp|
           JSON.parse(resp.body)
         end
@@ -323,7 +333,7 @@ module Idp
 
     # Used by the migration tooling; remove once Devise account data has been migrated.
     def partial_import(import_data)
-      make_request(:post, "/admin/realms/#{realm}/partialImport", body: import_data)
+      make_request(:post, "/admin/realms/#{realm}/partialImport", body: import_data, io_timeout: BULK_IO_TIMEOUT_SECONDS)
     end
 
     private
@@ -385,11 +395,14 @@ module Idp
       @cached_token
     end
 
-    def build_http(uri)
+    # `io_timeout` overrides the read and write budget for a caller that needs longer than the
+    # default — see BULK_IO_TIMEOUT_SECONDS.
+    def build_http(uri, io_timeout: IO_TIMEOUT_SECONDS)
       http = Net::HTTP.new(uri.host, uri.port)
       http.use_ssl = uri.scheme == 'https'
-      http.open_timeout = 10
-      http.read_timeout = 30
+      http.open_timeout = OPEN_TIMEOUT_SECONDS
+      http.read_timeout = io_timeout
+      http.write_timeout = io_timeout
       http
     end
 
@@ -419,9 +432,9 @@ module Idp
     end
 
     # Make an authenticated request to the Keycloak Admin API, retrying once on 401.
-    def make_request(method, path, body: nil, token_retried: false)
+    def make_request(method, path, body: nil, io_timeout: IO_TIMEOUT_SECONDS, token_retried: false)
       uri = URI("#{api_url}#{path}")
-      http = build_http(uri)
+      http = build_http(uri, io_timeout: io_timeout)
 
       request_class =
         case method
@@ -442,7 +455,7 @@ module Idp
       if response.code.to_i == 401 && !token_retried
         @cached_token = nil
         @token_expires_at = nil
-        return make_request(method, path, body: body, token_retried: true)
+        return make_request(method, path, body: body, io_timeout: io_timeout, token_retried: true)
       end
 
       response
