@@ -10,7 +10,7 @@
       "required": true,
       "component": "RADIO_BUTTONS",
       "pick_list_options": [
-        { "code": "continue", "label": "Accept match" },
+        { "code": "continue", "label": "Continue referral" },
         { "code": "decline", "label": "Decline" }
       ]
     },
@@ -28,7 +28,7 @@
         { "code": "ineligible_funding_source", "label": "Client won't be eligible based on funding source" },
         { "code": "ineligible_housing_type", "label": "Client won't be eligible based on housing type" },
         { "code": "ineligible_services", "label": "Client won't be eligible for services" },
-        { "code": "other", "label": "Other (detail in Notes)" }
+        { "code": "other", "label": "Other (specify in Notes)" }
       ],
       "enable_when": [
         {

@@ -11,12 +11,12 @@
       "component": "RADIO_BUTTONS",
       "pick_list_options": [
         { "code": "approve_decline", "label": "Approve decline" },
-        { "code": "go_back", "label": "Send back to the previous step" },
-        { "code": "send_forward", "label": "Override decline and advance the referral to the next step" }
+        { "code": "go_back", "label": "Send back to previous step" },
+        { "code": "send_forward", "label": "Override decline and continue referral" }
       ]
     },
     {
-      "text": "Approving the decline will return the client to the eligible pool and make the unit available for new referrals.",
+      "text": "Approving the decline will close the referral, return the client to the Eligible Clients list, and make the unit available for new referrals.",
       "type": "DISPLAY",
       "link_id": "review_decline_message",
       "component": "ALERT_WARNING",
@@ -25,6 +25,34 @@
           "operator": "EQUAL",
           "question": "review_decline_decision",
           "answer_code": "approve_decline"
+        }
+      ],
+      "enable_behavior": "ALL"
+    },
+    {
+      "text": "The referral will return to the previous step. If it is declined again, it can no longer be sent back.",
+      "type": "DISPLAY",
+      "link_id": "review_decline_go_back_message",
+      "component": "ALERT_INFO",
+      "enable_when": [
+        {
+          "operator": "EQUAL",
+          "question": "review_decline_decision",
+          "answer_code": "go_back"
+        }
+      ],
+      "enable_behavior": "ALL"
+    },
+    {
+      "text": "The referral will advance to the next step.",
+      "type": "DISPLAY",
+      "link_id": "review_decline_send_forward_message",
+      "component": "ALERT_INFO",
+      "enable_when": [
+        {
+          "operator": "EQUAL",
+          "question": "review_decline_decision",
+          "answer_code": "send_forward"
         }
       ],
       "enable_behavior": "ALL"

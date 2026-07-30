@@ -1,10 +1,10 @@
 {
   "item": [
     {
-      "text": "This referral has already been returned once after a decline review, so it can no longer be sent back. You can approve the decline or override it and advance the referral to the next step.",
+      "text": "This referral has already been sent back once, so it can no longer be sent back. You can approve the decline or override it and continue the referral.",
       "type": "DISPLAY",
       "link_id": "review_decline_final_message",
-      "component": "ALERT_WARNING"
+      "component": "ALERT_INFO"
     },
     {
       "text": "Decision",
@@ -17,8 +17,22 @@
       "component": "RADIO_BUTTONS",
       "pick_list_options": [
         { "code": "approve_decline", "label": "Approve decline" },
-        { "code": "send_forward", "label": "Override decline and advance the referral" }
+        { "code": "send_forward", "label": "Override decline and continue referral" }
       ]
+    },
+    {
+      "text": "Approving the decline will close the referral, return the client to the Eligible Clients list, and make the unit available for new referrals.",
+      "type": "DISPLAY",
+      "link_id": "review_decline_final_approve_message",
+      "component": "ALERT_WARNING",
+      "enable_when": [
+        {
+          "operator": "EQUAL",
+          "question": "review_decline_final_decision",
+          "answer_code": "approve_decline"
+        }
+      ],
+      "enable_behavior": "ALL"
     },
     {
       "text": "Referral Result",

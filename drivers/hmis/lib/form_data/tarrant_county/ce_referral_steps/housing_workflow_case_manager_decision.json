@@ -15,7 +15,7 @@
       ]
     },
     {
-      "text": "Is a criminal background hearing needed?",
+      "text": "Is a CORI hearing needed?",
       "type": "CHOICE",
       "link_id": "cori_hearing_needed",
       "mapping": {
@@ -37,13 +37,29 @@
       "enable_behavior": "ALL"
     },
     {
-      "text": "Date of criminal background hearing",
-      "type": "DATE",
-      "link_id": "cori_hearing_date",
-      "mapping": {
-        "custom_field_key": "housing_workflow_case_manager_decision_cori_hearing_date"
-      },
-      "required": true,
+      "item": [
+        {
+          "text": "CORI Hearing Date",
+          "type": "DATE",
+          "link_id": "cori_hearing_date",
+          "mapping": {
+            "custom_field_key": "housing_workflow_case_manager_decision_cori_hearing_date"
+          },
+          "required": true
+        },
+        {
+          "text": "CORI Hearing Time",
+          "type": "TIME_OF_DAY",
+          "link_id": "cori_hearing_time",
+          "mapping": {
+            "custom_field_key": "housing_workflow_case_manager_decision_cori_hearing_time"
+          },
+          "required": true
+        }
+      ],
+      "text": "CORI Hearing",
+      "type": "GROUP",
+      "link_id": "cori_hearing_group",
       "enable_when": [
         {
           "operator": "EQUAL",
@@ -54,27 +70,10 @@
       "enable_behavior": "ALL"
     },
     {
-      "text": "Time of criminal background hearing",
-      "type": "TIME_OF_DAY",
-      "link_id": "cori_hearing_time",
-      "mapping": {
-        "custom_field_key": "housing_workflow_case_manager_decision_cori_hearing_time"
-      },
-      "required": true,
-      "enable_when": [
-        {
-          "operator": "EQUAL",
-          "question": "cori_hearing_needed",
-          "answer_code": "yes"
-        }
-      ],
-      "enable_behavior": "ALL"
-    },
-    {
-      "text": "The client will be added to the project as Incomplete. Please complete and submit the Intake Assessment to finalize the enrollment.",
+      "text": "The client will be added to the project as Incomplete. Complete and submit the Intake Assessment to finalize the enrollment.",
       "type": "DISPLAY",
       "link_id": "case_manager_decision_enroll_message",
-      "component": "ALERT_INFO",
+      "component": "ALERT_SUCCESS",
       "enable_when": [
         {
           "operator": "EQUAL",
@@ -102,7 +101,7 @@
         { "code": "unsafe_environment_for_this_person", "label": "Unsafe environment for this person" },
         { "code": "unwilling_to_live_in_sro", "label": "Unwilling to live in SRO" },
         { "code": "unwilling_to_live_in_that_neighborhood", "label": "Unwilling to live in that neighborhood" },
-        { "code": "other", "label": "Other (detail in notes section)" }
+        { "code": "other", "label": "Other (specify in Notes)" }
       ],
       "enable_when": [
         {

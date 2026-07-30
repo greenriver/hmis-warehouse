@@ -10,9 +10,9 @@
       "required": true,
       "component": "RADIO_BUTTONS",
       "pick_list_options": [
-        { "code": "continue", "label": "Continue - the client has been at your agency in the past two weeks" },
-        { "code": "decline_not_working_with_client", "label": "Decline - No longer working with this client" },
-        { "code": "decline_client_declined_match", "label": "Decline - The client has declined the match" }
+        { "code": "continue", "label": "Continue referral - client has been at your agency in the past two weeks" },
+        { "code": "decline_not_working_with_client", "label": "Decline - no longer working with this client" },
+        { "code": "decline_client_declined_match", "label": "Decline - client declined the referral" }
       ]
     },
     {
@@ -22,7 +22,7 @@
       "mapping": {
         "custom_field_key": "housing_workflow_shelter_agency_review_notes_continue_match"
       },
-      "helper_text": "Please include any notes that would be useful for this match. e.g. \"Client needs an accessible unit.\"",
+      "helper_text": "e.g. \"Client needs an accessible unit.\"",
       "required": false,
       "enable_when": [
         {
@@ -33,13 +33,14 @@
       ]
     },
     {
-      "text": "Client has spoken to a shelter case manager, understands the services attached and the program requirements, and indicates interest in the match.",
+      "text": "Client has spoken to a shelter case manager, understands the attached services and program requirements, and wants to continue with this referral.",
       "type": "BOOLEAN",
       "link_id": "client_has_spoken_to_shelter_case_manager",
       "mapping": {
         "custom_field_key": "housing_workflow_shelter_agency_review_client_has_spoken_to_shelter_case_manager"
       },
       "required": true,
+      "component": "CHECKBOX",
       "enable_when": [
         {
           "operator": "EQUAL",
@@ -50,9 +51,10 @@
       "enable_behavior": "ALL"
     },
     {
-      "text": "The client does not need to be document-ready in order to indicate interest. When you indicate interest, notification will be sent to the Housing Case Manager. If the Housing Case Manager has a release, they can proceed to determine whether a criminal background hearing is needed. You will be notified when they either accept the match or schedule a hearing.",
+      "text": "The client does not need to be document-ready to continue. The Housing Case Manager will be notified, and if they have a release they can determine whether a CORI hearing is needed. You will be notified when they accept the referral or schedule a hearing.",
       "type": "DISPLAY",
       "link_id": "client_does_not_need_to_be_document_ready",
+      "component": "ALERT_INFO",
       "enable_when": [
         {
           "operator": "EQUAL",
@@ -63,7 +65,7 @@
       "enable_behavior": "ALL"
     },
     {
-      "text": "If you are no longer working with the client, please indicate the reason.",
+      "text": "Reason",
       "type": "CHOICE",
       "link_id": "decline_not_working_with_client_reason",
       "mapping": {
@@ -76,7 +78,7 @@
         { "code": "hospitalized", "label": "Hospitalized" },
         { "code": "dont_know", "label": "Don't know / disappeared" },
         { "code": "incarcerated", "label": "Incarcerated" },
-        { "code": "other", "label": "Other (detail in notes section)" }
+        { "code": "other", "label": "Other (specify in Notes)" }
       ],
       "enable_when": [
         {
@@ -94,7 +96,7 @@
       "mapping": {
         "custom_field_key": "housing_workflow_shelter_agency_review_notes_decline_not_working_with_client"
       },
-      "helper_text": "Other reason",
+      "helper_text": "If Other, describe the reason.",
       "required": false,
       "enable_when": [
         {
@@ -139,7 +141,7 @@
         { "code": "unsafe_environment_for_this_person", "label": "Unsafe environment for this person" },
         { "code": "unwilling_to_live_in_sro", "label": "Unwilling to live in SRO" },
         { "code": "unwilling_to_live_in_that_neighborhood", "label": "Unwilling to live in that neighborhood" },
-        { "code": "other", "label": "Other (detail in notes section)" }
+        { "code": "other", "label": "Other (specify in Notes)" }
       ],
       "enable_when": [
         {
@@ -157,7 +159,7 @@
       "mapping": {
         "custom_field_key": "housing_workflow_shelter_agency_review_notes_client_decline"
       },
-      "helper_text": "List any details related to the decline.",
+      "helper_text": "Details related to the decline.",
       "required": false,
       "enable_when": [
         {

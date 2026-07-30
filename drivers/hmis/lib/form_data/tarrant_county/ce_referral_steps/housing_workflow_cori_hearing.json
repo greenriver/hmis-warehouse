@@ -1,7 +1,7 @@
 {
   "item": [
     {
-      "text": "Notes about criminal background hearing",
+      "text": "CORI Hearing Notes",
       "type": "TEXT",
       "link_id": "cori_hearing_notes",
       "mapping": {
@@ -19,15 +19,15 @@
       "required": true,
       "component": "RADIO_BUTTONS",
       "pick_list_options": [
-        { "code": "continue", "label": "Continue" },
+        { "code": "continue", "label": "Continue referral" },
         { "code": "decline", "label": "Decline" }
       ]
     },
     {
-      "text": "The client will be added to the project as Incomplete. Please complete and submit the Intake Assessment to finalize the enrollment.",
+      "text": "The client will be added to the project as Incomplete. Complete and submit the Intake Assessment to finalize the enrollment.",
       "type": "DISPLAY",
       "link_id": "cori_hearing_enroll_message",
-      "component": "ALERT_INFO",
+      "component": "ALERT_SUCCESS",
       "enable_when": [
         {
           "operator": "EQUAL",

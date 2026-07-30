@@ -1,7 +1,7 @@
 {
   "item": [
     {
-      "text": "Completing this task will end the referral, delete the client's enrollment if there is one, return the client to the eligible pool, and make the unit available for new referrals.",
+      "text": "Completing this task will end the referral, delete the client's enrollment if there is one, return the client to the Eligible Clients list, and make the unit available for new referrals.",
       "type": "DISPLAY",
       "link_id": "decline_message",
       "component": "ALERT_WARNING"

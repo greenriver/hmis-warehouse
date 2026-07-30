@@ -58,10 +58,9 @@ module CeWorkflows::Ph
 
         item['pick_list_options']&.each { |option| options[option['code']] ||= option['label'] }
       end.each do |code, label|
-        Hmis::Ce::ReferralDeclineReason.find_or_create_by!(
-          key: code,
-          data_source: @data_source,
-        ) { |reason| reason.name = label }
+        reason = Hmis::Ce::ReferralDeclineReason.find_or_initialize_by(key: code, data_source: @data_source)
+        reason.name = label
+        reason.save! if reason.changed?
       end
     end
 
@@ -104,7 +103,7 @@ module CeWorkflows::Ph
     # acyclic and each reused form is only ever revisited further along the graph, so a condition always
     # sees the attempt it belongs to. See Hmis::WorkflowExecution::Engine#all_submitted_values.
     def build_housing_graph(template)
-      coc_swimlane = template.swimlanes.create!(name: 'CoC Contacts')
+      coc_swimlane = template.swimlanes.create!(name: 'CoC')
       shelter_agency_swimlane = template.swimlanes.create!(name: 'Shelter Agency')
       case_manager_swimlane = template.swimlanes.create!(name: 'Housing Case Manager')
 
@@ -160,14 +159,14 @@ module CeWorkflows::Ph
         trigger_config: [in_progress, clear_decline_reason],
       )
       schedule_intake_task = Hmis::WorkflowDefinition::UserTask.create!(
-        name: 'Housing Case Manager Initial Review & Schedule Intake',
+        name: 'Housing Case Manager Initial Review',
         form_definition_identifier: HOUSING_WORKFLOW_FORMS.fetch(:housing_case_manager_initial_review),
         template: template,
         swimlane: case_manager_swimlane,
         trigger_config: [in_progress],
       )
       schedule_intake_2_task = Hmis::WorkflowDefinition::UserTask.create!(
-        name: 'Housing Case Manager Initial Review & Schedule Intake (Second Attempt)',
+        name: 'Housing Case Manager Initial Review (Second Attempt)',
         form_definition_identifier: HOUSING_WORKFLOW_FORMS.fetch(:housing_case_manager_initial_review),
         template: template,
         swimlane: case_manager_swimlane,
@@ -202,7 +201,7 @@ module CeWorkflows::Ph
         trigger_config: [in_progress, clear_decline_reason, set_decline_reason],
       )
       date_housed_task = Hmis::WorkflowDefinition::UserTask.create!(
-        name: 'Indicate Date Client Was Housed',
+        name: 'Move-In Date',
         form_definition_identifier: HOUSING_WORKFLOW_FORMS.fetch(:housing_date_housed),
         template: template,
         swimlane: case_manager_swimlane,

@@ -58,7 +58,7 @@ RSpec.describe CeWorkflows::Ph::HousingWorkflowBuilder do
     )
     complete_user_step!(
       engine,
-      'Housing Case Manager Initial Review & Schedule Intake',
+      'Housing Case Manager Initial Review',
       submitted_values: {
         'case_manager_initial_review_decision' => 'continue',
         'intake_date' => Date.current.iso8601,
@@ -76,7 +76,7 @@ RSpec.describe CeWorkflows::Ph::HousingWorkflowBuilder do
     )
     complete_user_step!(
       engine,
-      'Indicate Date Client Was Housed',
+      'Move-In Date',
       submitted_values: { 'move_in_date' => Date.current.iso8601 },
     )
   end
@@ -143,9 +143,9 @@ RSpec.describe CeWorkflows::Ph::HousingWorkflowBuilder do
         [
           'CoC Initial Review',
           'Shelter Agency Initial Review',
-          'Housing Case Manager Initial Review & Schedule Intake',
+          'Housing Case Manager Initial Review',
           'Housing Case Manager Decision',
-          'Indicate Date Client Was Housed',
+          'Move-In Date',
           'Confirm Success',
           'Decline Referral',
         ],
@@ -175,7 +175,7 @@ RSpec.describe CeWorkflows::Ph::HousingWorkflowBuilder do
         submitted_values: { 'review_decline_decision' => 'send_forward' },
       )
 
-      active_step = engine.active_steps.find { |s| s.node.name == 'Housing Case Manager Initial Review & Schedule Intake' }
+      active_step = engine.active_steps.find { |s| s.node.name == 'Housing Case Manager Initial Review' }
       expect(active_step).to be_present
       expect(referral.reload.custom_status).to eq(in_progress_status)
     end
@@ -211,7 +211,7 @@ RSpec.describe CeWorkflows::Ph::HousingWorkflowBuilder do
         submitted_values: { 'review_decline_final_decision' => 'send_forward' },
       )
 
-      active_step = engine.active_steps.find { |s| s.node.name == 'Housing Case Manager Initial Review & Schedule Intake' }
+      active_step = engine.active_steps.find { |s| s.node.name == 'Housing Case Manager Initial Review' }
       expect(active_step).to be_present
       expect(referral.reload.custom_status).to eq(in_progress_status)
     end
