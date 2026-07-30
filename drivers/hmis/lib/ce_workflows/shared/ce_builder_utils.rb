@@ -83,11 +83,9 @@ module CeWorkflows::Shared
       templates = Hmis::WorkflowDefinition::Template.where(identifier: template_identifier)
       raise 'Unexpected, found a template with this identifier associated with another data source' if templates.any? { |template| template.data_source_id != data_source.id }
 
-      # Include soft-deleted records; otherwise steps (and their form_processors) are left behind and block
-      # form definition deletion.
-      instances = Hmis::WorkflowExecution::Instance.with_deleted.where(template: templates)
-      steps = Hmis::WorkflowExecution::Step.with_deleted.where(instance: instances)
-      referrals = Hmis::Ce::Referral.with_deleted.where(workflow_instance: instances)
+      instances = Hmis::WorkflowExecution::Instance.where(template: templates)
+      steps = Hmis::WorkflowExecution::Step.where(instance: instances)
+      referrals = Hmis::Ce::Referral.where(workflow_instance: instances)
 
       Hmis::Form::FormProcessor.
         where(owner_type: Hmis::WorkflowExecution::Step.sti_name, owner_id: steps.select(:id)).
