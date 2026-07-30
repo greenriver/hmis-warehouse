@@ -30,7 +30,7 @@ RSpec.describe 'Warehouse JWT wiring', type: :request do
     # stubbed (find_or_create_from_jwt + JwtHelper.new via sign_in), so they prove the before-action
     # chain admits a resolved user and reaches the action. Token→user resolution correctness (valid?
     # false, find_or_create vs find_from_jwt, impersonation) lives in Idp::JwtCurrentUser's spec. The
-    # deny side of the gate is the unauthenticated example below: it asserts a redirect rather than
+    # deny side of the gate is the unauthenticated example below: it asserts a raise rather than
     # keepalive's own head(:unauthorized), which is what proves authenticate_user! actually guards it.
     it 'admits an authenticated JWT request through the filter chain and reports token expiry (GET → 200)' do
       sign_in(user)
@@ -52,13 +52,93 @@ RSpec.describe 'Warehouse JWT wiring', type: :request do
       expect(JSON.parse(response.body)).to include('expiration_time', 'remaining_seconds')
     end
 
-    it 'redirects an unauthenticated request to the oauth2-proxy sign-in (not a Devise form)' do
-      get session_keepalive_path
+    # A redirect here would go to a proxy that still has a session and come straight back with the
+    # same token.
+    describe 'a forwarded token the app refuses' do
+      # Stubbed reason rather than a real bad token: the JWT env keys aren't set in test, so real
+      # validation can't run here. Which reason is which is Idp::JwtHelper's spec.
+      let(:headers) { { 'HTTP_X_FORWARDED_ACCESS_TOKEN' => 'refused-token' } }
 
-      # A redirect (not keepalive's own head(:unauthorized)) is the tell that authenticate_user! ran
-      # ahead of the action — i.e. the shared JWT auth gate is wired onto this route.
-      expect(response).to have_http_status(:redirect)
-      expect(response.location).to include('/oauth2/sign_in')
+      before do
+        refused = instance_double(
+          Idp::JwtHelper,
+          token?: true,
+          valid?: false,
+          invalid_reason: :malformed,
+          invalid_reason_details: { reason: :malformed },
+        )
+        allow(Idp::JwtHelper).to receive(:new).and_wrap_original do |original_method, **kwargs|
+          kwargs[:access_token] == 'refused-token' ? refused : original_method.call(**kwargs)
+        end
+      end
+
+      it 'raises rather than reporting the request as signed out' do
+        expect { get edit_account_path, headers: headers }.to raise_error(Idp::ForwardedTokenError, /malformed/)
+      end
+
+      # No per-action exceptions: authenticate_user! runs first everywhere, so every authenticated
+      # route reports the misconfiguration the same way.
+      it 'raises on the session routes too rather than converting it to a 401' do
+        expect { get session_keepalive_path, headers: headers.merge('HTTP_ACCEPT' => 'application/json') }.
+          to raise_error(Idp::ForwardedTokenError, /malformed/)
+      end
+
+      # Sign-out never reaches #destroy, so reset_session doesn't run and the IdP session stays
+      # paired with a live Rails session rather than being silently orphaned.
+      it 'raises on sign-out rather than resetting the session' do
+        expect { delete destroy_user_session_path, headers: headers }.
+          to raise_error(Idp::ForwardedTokenError, /malformed/)
+      end
+    end
+
+    # The raise (not keepalive's own head(:unauthorized)) is the tell that authenticate_user! ran ahead
+    # of the action — i.e. the shared JWT auth gate is wired onto this route. oauth2-proxy never passes
+    # a tokenless request to a route that isn't a skip_auth_route, so reaching Rails is the defect.
+    it 'raises on a request with no forwarded token rather than redirecting to sign-in' do
+      expect { get session_keepalive_path }.to raise_error(Idp::UnauthenticatedRequestError)
+    end
+
+    # root is a skip_auth_route and skips authenticate_user!, so the deactivated wall has to come from
+    # its own filter (reject_deactivated_user!) or it isn't there at all. This is the page the proxy
+    # returns someone to after sign-in, so it's where a switched-off account first finds out.
+    describe 'the public root page' do
+      it 'walls off a deactivated token holder instead of serving the signed-out landing page' do
+        sign_in(user)
+        user.update!(active: false)
+
+        get root_path
+
+        expect(response).to have_http_status(:forbidden)
+        expect(response.body).to include(Translation.translate('Your warehouse account has been deactivated'))
+      end
+
+      it 'still serves the landing page to a visitor with no token' do
+        get root_path
+
+        expect(response).to have_http_status(:ok)
+      end
+
+      # Deliberately not walled: on a realm shared with other apps, a valid token from someone who
+      # was never a warehouse user is routine, and the public pages are public for them.
+      it 'still serves the landing page to a token holder with no warehouse account' do
+        sign_in(user)
+        allow(User).to receive(:find_or_create_from_jwt).and_return(nil)
+
+        get root_path
+
+        expect(response).to have_http_status(:ok)
+      end
+
+      # The wall is an HTML page, so it only stands in front of HTML requests. Answering an image
+      # request with it would replace the asset rather than tell anyone anything.
+      it 'leaves a non-HTML request on a route that skips authentication to its own action' do
+        sign_in(user)
+        user.update!(active: false)
+
+        get logo_path('logo.png')
+
+        expect(response).not_to have_http_status(:forbidden)
+      end
     end
 
     describe 'logout' do
@@ -110,6 +190,55 @@ RSpec.describe 'Warehouse JWT wiring', type: :request do
 
           expect(idp_service).to have_received(:logout_user_sessions).with(user_id: jwt_connector_user_id(user))
           expect(response).to redirect_to("/oauth2/sign_out?rd=#{CGI.escape(root_path)}")
+        end
+
+        # The two terminal 403 pages render with no current_user, so the layout drops the site menu
+        # that normally holds Sign Out and the header offers a Sign In link that goes back to a proxy
+        # which already has a session. That left the pages as dead ends: #destroy used to bounce off
+        # authenticate_user! and re-render the same page, so an account switched off mid-session
+        # could never be signed out and the IdP session outlived it. #destroy skips the filter now —
+        # it reads the token, not current_user, so it has everything it needs.
+        describe 'from a terminal 403 page' do
+          it 'signs out a user deactivated mid-session' do
+            start_session
+            user.update!(active: false)
+
+            delete destroy_user_session_path
+
+            expect(idp_service).to have_received(:logout_user_sessions).with(user_id: jwt_connector_user_id(user))
+            expect(response).to redirect_to("/oauth2/sign_out?rd=#{CGI.escape(root_path)}")
+          end
+
+          it 'signs out a token holder with no warehouse account' do
+            start_session
+            allow(User).to receive(:find_or_create_from_jwt).and_return(nil)
+
+            delete destroy_user_session_path
+
+            expect(idp_service).to have_received(:logout_user_sessions).with(user_id: jwt_connector_user_id(user))
+            expect(response).to redirect_to("/oauth2/sign_out?rd=#{CGI.escape(root_path)}")
+          end
+
+          # The link has to be on the page for any of the above to be reachable by a real user.
+          it 'puts the sign-out control on errors/account_deactivated' do
+            start_session
+            user.update!(active: false)
+
+            get edit_account_path
+
+            expect(response).to have_http_status(:forbidden)
+            expect(response.body).to include("href=\"#{destroy_user_session_path}\"", 'data-method="delete"')
+          end
+
+          it 'puts the sign-out control on errors/no_warehouse_account' do
+            start_session
+            allow(User).to receive(:find_or_create_from_jwt).and_return(nil)
+
+            get edit_account_path
+
+            expect(response).to have_http_status(:forbidden)
+            expect(response.body).to include("href=\"#{destroy_user_session_path}\"", 'data-method="delete"')
+          end
         end
 
         # Cross-site GET with no CSRF token, so it renders instead of acting — otherwise any page
@@ -206,6 +335,22 @@ RSpec.describe 'Warehouse JWT wiring', type: :request do
           # Proves the deadline is what ended the wait, not the stubbed sleep finishing.
           expect(elapsed).to be < 5
           expect(Sentry).to have_received(:capture_exception_with_info)
+        end
+
+        # The old code read a refused token as "nothing to attempt": it skipped the Keycloak
+        # teardown, reset the session and redirected, so the user believed they'd signed out while
+        # the IdP session stayed live. Now authenticate_user! raises ahead of #destroy, so nothing is
+        # torn down and the failure is visible.
+        it 'refuses the sign-out when the forwarded token is refused' do
+          start_session
+          # sign_in memoizes one JwtHelper double per token, so this is the object the request reads.
+          helper = Idp::JwtHelper.new(access_token: jwt_token)
+          allow(helper).to receive(:invalid_reason).and_return(:bad_signature)
+          allow(helper).to receive(:invalid_reason_details).and_return({ reason: :bad_signature })
+
+          expect { delete destroy_user_session_path }.to raise_error(Idp::ForwardedTokenError, /bad_signature/)
+
+          expect(idp_service).not_to have_received(:logout_user_sessions)
         end
 
         it 'signs out normally, without attempting a call, when the connector has no admin API' do
@@ -308,7 +453,7 @@ RSpec.describe 'Warehouse JWT wiring', type: :request do
 
     it 'accepts a connection with a valid forwarded token for an active user' do
       # Don't stub active? — the :user factory creates an active row, so the active? gate runs for real.
-      jwt_helper = instance_double(Idp::JwtHelper, token?: true, valid?: true)
+      jwt_helper = instance_double(Idp::JwtHelper, token?: true, valid?: true, invalid_reason: nil)
       allow(Idp::JwtHelper).to receive(:new).and_return(jwt_helper)
       allow(User).to receive(:find_from_jwt).with(jwt_helper).and_return(user)
 
@@ -319,7 +464,7 @@ RSpec.describe 'Warehouse JWT wiring', type: :request do
 
     it 'rejects a connection for a deactivated user even with a valid forwarded token' do
       inactive_user = create :user, active: false
-      jwt_helper = instance_double(Idp::JwtHelper, token?: true, valid?: true)
+      jwt_helper = instance_double(Idp::JwtHelper, token?: true, valid?: true, invalid_reason: nil)
       allow(Idp::JwtHelper).to receive(:new).and_return(jwt_helper)
       allow(User).to receive(:find_from_jwt).with(jwt_helper).and_return(inactive_user)
 
@@ -329,6 +474,23 @@ RSpec.describe 'Warehouse JWT wiring', type: :request do
 
     it 'rejects a connection with no forwarded token' do
       expect { connect }.to have_rejected_connection
+    end
+
+    # A plain rejection, not the raise the controllers do: a socket has no page to render, and every
+    # page load during the same misconfiguration already reports it with full request context.
+    it 'rejects a refused forwarded token without raising or reporting' do
+      refused = instance_double(
+        Idp::JwtHelper,
+        token?: true,
+        valid?: false,
+        invalid_reason: :malformed,
+        invalid_reason_details: { reason: :malformed },
+      )
+      allow(Idp::JwtHelper).to receive(:new).and_return(refused)
+      expect(Sentry).not_to receive(:capture_message)
+
+      expect { connect env: { 'HTTP_X_FORWARDED_ACCESS_TOKEN' => 'refused-token' } }.
+        to have_rejected_connection
     end
   end
 

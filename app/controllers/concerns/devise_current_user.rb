@@ -98,6 +98,14 @@ module DeviseCurrentUser
     end
     helper_method :current_user_identity
 
+    # no-op under Devise: active_for_authentication? (DeviseUser) already fails for a deactivated
+    # account, and Devise's activatable hook logs it out of Warden on the way in, so there's no
+    # half-authenticated state left to wall off. The JWT arm needs its own check because the IdP goes
+    # on issuing that person a valid token; see Idp::JwtCurrentUser.
+    def reject_deactivated_user!
+      nil
+    end
+
     # don't extend the user's session if its an ajax request.
     def skip_timeout
       request.env['devise.skip_trackable'] = true if request.xhr?

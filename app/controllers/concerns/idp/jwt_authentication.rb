@@ -40,9 +40,26 @@ module Idp::JwtAuthentication
   def idp_token_holder
     return @idp_token_holder if defined?(@idp_token_holder)
 
-    @idp_token_holder = begin
-      jwt_helper = idp_jwt_helper_for_request
-      jwt_helper&.token? && jwt_helper.valid? ? User.find_or_create_from_jwt(jwt_helper) : nil
+    # Memoized before the raise below: append_info_to_payload asks for current_user again on the way
+    # out, and a second raise there escapes lograge.
+    @idp_token_holder = nil
+
+    jwt_helper = idp_jwt_helper_for_request
+    case jwt_helper.invalid_reason
+    when nil
+      @idp_token_holder = User.find_or_create_from_jwt(jwt_helper)
+    when :missing
+      # The normal signed-out case: skip_auth_routes (root, /public_agencies, /hmis/user.json, ...)
+      # reach Rails with no header at all. Each of them skips authenticate_user! and then asks
+      # current_user what to render, so nil is the answer they want — RootController#index serves the
+      # public landing page on it.
+      nil
+    else
+      # oauth2-proxy forwarded a token it had already vouched for and we refused it, so our own stack
+      # is misconfigured (wrong OIDC client, an opaque token where we want a JWT, a token that isn't
+      # ours). Let it 500 into Sentry: redirecting to a proxy that still holds a session just hands
+      # the same bad token back.
+      raise Idp::ForwardedTokenError, jwt_helper.invalid_reason_details
     end
   end
 
@@ -77,8 +94,12 @@ module Idp::JwtAuthentication
   #   definite "nothing to attempt" returns true.
   def idp_end_token_holder_sessions
     jwt_helper = idp_jwt_helper_for_request
-    # A token we can't read is nothing to attempt, not a failure.
-    return true unless jwt_helper&.token? && jwt_helper.valid?
+    reason = jwt_helper.invalid_reason
+    # No token is nothing to attempt. Any other refusal already raised in idp_token_holder, before
+    # the action ran — but a refused token is not "nothing to attempt" (the proxy vouched for it, so
+    # there's probably a session to end and we can't tell whose), so fail closed if that changes.
+    return true if reason == :missing
+    return false if reason
 
     connector_id = jwt_helper.connector_id
     connector_user_id = jwt_helper.connector_user_id
@@ -224,17 +245,19 @@ module Idp::JwtAuthentication
     Idp::SyncUserFromIdpJob.perform_later(user_id: user.id)
   end
 
+  # Never a redirect to sign-in. oauth2-proxy owns that, and both cases below arrive with the proxy
+  # holding a live session, so bouncing them to /oauth2/sign_in just gets the same request back.
   def idp_handle_unauthenticated
-    original_url = Idp::PostAuthRedirect.new(
-      request: request,
-      cookies: cookies,
-    ).capture
-    # No current_user here (that's why we're unauthenticated), so the connector comes
-    # from the cookie oauth2-proxy set on the last sign-in.
-    redirect_to Idp::Oauth2ProxySignInPath.call(
-      connector_id: cookies[:last_connector_id],
-      redirect_to: original_url,
-    )
+    # No token at all. The only requests the proxy passes through without one are skip_auth_routes,
+    # and those all skip this filter, so the route surface and the proxy config disagree — or
+    # something reached Rails without the proxy. Ours to fix, so fail loudly.
+    raise Idp::UnauthenticatedRequestError, request.path unless idp_jwt_helper_for_request.token?
+
+    # A good token whose holder has no warehouse account: Idp::UserProvisioner returns nil when
+    # idp/auto_create_user is off and no row matches, which is routine on a realm shared with other
+    # apps. A real person who needs an account, not a misconfiguration — terminal page, same shape as
+    # idp_handle_deactivated.
+    render(template: 'errors/no_warehouse_account', status: :forbidden)
   end
 
   # Shown to a user whose warehouse account has been deactivated (active = false) while

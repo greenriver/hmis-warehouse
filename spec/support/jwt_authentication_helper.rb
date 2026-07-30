@@ -23,6 +23,7 @@ module JwtAuthenticationHelper
       Idp::JwtHelper,
       token?: true,
       valid?: true,
+      invalid_reason: nil,
       connector_id: 'test',
       connector_user_id: jwt_connector_user_id(user),
       payload_email: user.email,

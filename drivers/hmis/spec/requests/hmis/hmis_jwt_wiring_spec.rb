@@ -43,11 +43,42 @@ RSpec.describe 'HMIS JWT wiring', type: :request, if: AuthMethod.jwt? do
       expect(JSON.parse(response.body)).to include('success' => true)
     end
 
-    it 'returns a JSON 401 for an unauthenticated request (no forwarded token), not an HTML redirect' do
+    # Not a JSON 401: nothing authenticates its own callers here, so a tokenless request means the
+    # proxy was bypassed, and a 401 would disguise that as an ordinary signed-out client.
+    it 'raises on a request with no forwarded token rather than answering with a JSON 401' do
+      expect { post hmis_session_keepalive_path, headers: headers }.
+        to raise_error(Idp::UnauthenticatedRequestError)
+    end
+
+    # A good token whose holder has no warehouse account does get JSON, but 403 rather than 401:
+    # signing in again can't produce an account.
+    it 'returns a JSON 403 for a good token whose holder has no warehouse account' do
+      allow(User).to receive(:find_or_create_from_jwt).and_return(nil)
+      sign_in(create(:hmis_user))
+
       post hmis_session_keepalive_path, headers: headers
 
-      expect(response).to have_http_status(:unauthorized)
-      expect(JSON.parse(response.body).dig('error', 'type')).to eq('unauthenticated')
+      expect(response).to have_http_status(:forbidden)
+      expect(JSON.parse(response.body).dig('error', 'type')).to eq('no_warehouse_account')
+    end
+
+    # The one auth failure the HMIS arm doesn't answer with JSON: the raise bypasses the
+    # idp_handle_unauthenticated override on purpose. A 401 would tell the SPA to show a sign-in
+    # screen for a problem no user can sign their way out of.
+    it 'raises on a refused forwarded token instead of answering with a JSON 401' do
+      refused = instance_double(
+        Idp::JwtHelper,
+        token?: true,
+        valid?: false,
+        invalid_reason: :invalid_audience,
+        invalid_reason_details: { reason: :invalid_audience, expected_audiences: ['hmis'], actual_audience: 'other' },
+      )
+      allow(Idp::JwtHelper).to receive(:new).and_wrap_original do |original_method, **kwargs|
+        kwargs[:access_token] == 'refused-token' ? refused : original_method.call(**kwargs)
+      end
+
+      expect { post hmis_session_keepalive_path, headers: headers.merge('HTTP_X_FORWARDED_ACCESS_TOKEN' => 'refused-token') }.
+        to raise_error(Idp::ForwardedTokenError, /invalid_audience/)
     end
 
     it 'returns a JSON 403 for a locally-deactivated token holder (active = false)' do

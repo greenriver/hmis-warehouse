@@ -52,26 +52,50 @@ RSpec.describe Idp::JwtCurrentUser, type: :controller, if: AuthMethod.jwt? do
       Idp::JwtHelper,
       token?: true,
       valid?: true,
+      invalid_reason: nil,
+      invalid_reason_details: { reason: nil },
       connector_id: 'keycloak',
       expiration_time: 9_999_999_999,
     )
   end
 
   describe '#current_user' do
-    it 'is nil when the token is invalid' do
-      allow(jwt_helper).to receive(:valid?).and_return(false)
+    it 'is nil when no token was forwarded' do
+      allow(jwt_helper).to receive(:token?).and_return(false)
+      allow(jwt_helper).to receive(:invalid_reason).and_return(:missing)
 
       get :index
 
       expect(response.body).to eq('')
     end
+  end
 
-    it 'is nil when no token is present' do
+  # None of these are a signed-out user, and redirecting them to a proxy that still holds a session
+  # is what produces the bounce.
+  describe 'a forwarded token we refuse' do
+    Idp::JwtHelper::INVALID_REASONS.excluding(:missing).each do |reason|
+      it "raises Idp::ForwardedTokenError for #{reason}" do
+        allow(jwt_helper).to receive(:invalid_reason).and_return(reason)
+        allow(jwt_helper).to receive(:invalid_reason_details).and_return({ reason: reason })
+
+        expect { get :index }.to raise_error(Idp::ForwardedTokenError, /#{reason}/)
+      end
+    end
+
+    it 'carries the expected and actual audience into the error message' do
+      allow(jwt_helper).to receive(:invalid_reason).and_return(:invalid_audience)
+      allow(jwt_helper).to receive(:invalid_reason_details).and_return(
+        { reason: :invalid_audience, expected_audiences: ['warehouse'], actual_audience: 'something-else' },
+      )
+
+      expect { get :index }.to raise_error(Idp::ForwardedTokenError, /warehouse.*something-else/)
+    end
+
+    it 'does not raise for a missing token' do
       allow(jwt_helper).to receive(:token?).and_return(false)
+      allow(jwt_helper).to receive(:invalid_reason).and_return(:missing)
 
-      get :index
-
-      expect(response.body).to eq('')
+      expect { get :index }.not_to raise_error
     end
   end
 
@@ -216,18 +240,27 @@ RSpec.describe Idp::JwtCurrentUser, type: :controller, if: AuthMethod.jwt? do
       expect(response.body).to eq('')
     end
 
-    # Exercises the real idp_handle_unauthenticated wiring (capture + redirect), including the
-    # real Idp::Oauth2ProxySignInPath builder. No last_connector_id cookie is set here, so
-    # only the rd parameter appears.
-    it 'captures the original URL and redirects to the oauth2 sign-in path when unauthenticated' do
+    # oauth2-proxy owns the sign-in redirect, and the only requests it passes through without a token
+    # are skip_auth_routes, which all skip this filter. So a tokenless request arriving here means the
+    # route surface and the proxy config disagree — ours to fix, not a user's to log in past.
+    it 'raises when a route that requires authentication is reached with no token' do
+      allow(jwt_helper).to receive(:token?).and_return(false)
+      allow(jwt_helper).to receive(:invalid_reason).and_return(:missing)
+
+      expect { get :auth }.to raise_error(Idp::UnauthenticatedRequestError, %r{/auth})
+    end
+
+    # The other way current_user comes back nil: Idp::UserProvisioner returns nil for a good token
+    # with no matching user row when idp/auto_create_user is off, which is routine on a realm shared
+    # with other apps. A real person who needs an account, so a terminal page — not a 500, and not a
+    # redirect the proxy would bounce straight back with the same token.
+    it 'renders a terminal 403 for a good token whose holder has no warehouse account' do
       allow(User).to receive(:find_or_create_from_jwt).and_return(nil)
-      redirect = instance_double(Idp::PostAuthRedirect, capture: '/some/path')
-      allow(Idp::PostAuthRedirect).to receive(:new).and_return(redirect)
 
       get :auth
 
-      expect(redirect).to have_received(:capture)
-      expect(response).to redirect_to('/oauth2/sign_in?rd=%2Fsome%2Fpath')
+      expect(response).to have_http_status(:forbidden)
+      expect(response).to render_template('errors/no_warehouse_account')
     end
   end
 
@@ -390,8 +423,10 @@ RSpec.describe Idp::JwtCurrentUser, type: :controller, if: AuthMethod.jwt? do
       expect { get :auth }.to have_enqueued_job(Idp::SyncUserFromIdpJob).with(user_id: 7)
     end
 
-    it 'does not enqueue for an unauthenticated request' do
-      allow(jwt_helper).to receive(:valid?).and_return(false)
+    # authenticate_user! only schedules once it has a user, so a request that resolves none never gets
+    # here. Uses the no-account case rather than a missing token, which raises further up.
+    it 'does not enqueue for a request that resolves no user' do
+      allow(User).to receive(:find_or_create_from_jwt).and_return(nil)
 
       expect { get :auth }.not_to have_enqueued_job(Idp::SyncUserFromIdpJob)
     end

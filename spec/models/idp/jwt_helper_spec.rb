@@ -100,6 +100,100 @@ RSpec.describe Idp::JwtHelper, if: AuthMethod.jwt? do
     end
   end
 
+  # Lets a caller tell "nobody is signed in" apart from "our stack is misconfigured". #valid?
+  # collapses both into false, which is why every caller guessed wrong.
+  describe '#invalid_reason' do
+    it 'is nil for a token that verifies' do
+      expect(helper.invalid_reason).to be_nil
+    end
+
+    it 'is :missing when there is no token' do
+      expect(described_class.new(access_token: nil).invalid_reason).to eq(:missing)
+    end
+
+    it 'is :malformed for something that is not a JWT at all' do
+      expect(described_class.new(access_token: 'not-a-jwt').invalid_reason).to eq(:malformed)
+    end
+
+    # Not :malformed: this parses fine and names a key we hold. A token from somewhere else, not a
+    # truncated one.
+    it 'is :bad_signature when the token was signed by another key under a kid we hold' do
+      other_key = OpenSSL::PKey::RSA.generate(2048)
+      token = JWT.encode(payload, other_key, 'RS256', { kid: kid })
+
+      expect(described_class.new(access_token: token).invalid_reason).to eq(:bad_signature)
+    end
+
+    it 'is :unknown_key when the kid is not in the JWKS' do
+      token = JWT.encode(payload, rsa_key, 'RS256', { kid: 'wrong_kid' })
+
+      expect(described_class.new(access_token: token).invalid_reason).to eq(:unknown_key)
+    end
+
+    it 'is :expired for a token past its exp' do
+      token = JWT.encode(payload.merge('exp' => Time.now.to_i - 3600), rsa_key, 'RS256', { kid: kid })
+
+      expect(described_class.new(access_token: token).invalid_reason).to eq(:expired)
+    end
+
+    it 'is :invalid_issuer for the wrong iss' do
+      token = JWT.encode(payload.merge('iss' => 'wrong_iss'), rsa_key, 'RS256', { kid: kid })
+
+      expect(described_class.new(access_token: token).invalid_reason).to eq(:invalid_issuer)
+    end
+
+    it 'is :invalid_audience for the wrong aud' do
+      token = JWT.encode(payload.merge('aud' => 'wrong_aud'), rsa_key, 'RS256', { kid: kid })
+
+      expect(described_class.new(access_token: token).invalid_reason).to eq(:invalid_audience)
+    end
+
+    it 'is :jwks_unreachable when the JWKS endpoint cannot be reached' do
+      allow(described_class).to receive(:fetch_jwks).and_raise(SocketError.new('getaddrinfo: Name or service not known'))
+      allow(Sentry).to receive(:capture_exception_with_info)
+
+      expect(helper.invalid_reason).to eq(:jwks_unreachable)
+    end
+
+    it 'covers every reason the class advertises' do
+      expect(described_class::INVALID_REASONS).to contain_exactly(
+        :missing, :malformed, :bad_signature, :unknown_key, :expired,
+        :invalid_issuer, :invalid_audience, :jwks_unreachable
+      )
+    end
+
+    # A wrong IDP_AUD locks out a whole deployment. The only evidence used to be the string
+    # 'Invalid audience'.
+    it 'reports expected and actual audience' do
+      token = JWT.encode(payload.merge('aud' => 'wrong_aud'), rsa_key, 'RS256', { kid: kid })
+
+      details = described_class.new(access_token: token).invalid_reason_details
+
+      expect(details).to eq(reason: :invalid_audience, expected_audiences: ['test_aud'], actual_audience: 'wrong_aud')
+    end
+
+    it 'reports expected and actual issuer' do
+      token = JWT.encode(payload.merge('iss' => 'wrong_iss'), rsa_key, 'RS256', { kid: kid })
+
+      details = described_class.new(access_token: token).invalid_reason_details
+
+      expect(details).to eq(reason: :invalid_issuer, expected_issuer: 'test_iss', actual_issuer: 'wrong_iss')
+    end
+
+    it 'reports the reason alone for a failure that names no expected value' do
+      expect(described_class.new(access_token: 'not-a-jwt').invalid_reason_details).to eq(reason: :malformed)
+    end
+
+    # A request asks more than once, and re-running would re-log and re-report each time.
+    it 'only works the reason out once' do
+      bad_helper = described_class.new(access_token: 'not-a-jwt')
+
+      expect(Rails.logger).to receive(:error).once
+
+      2.times { bad_helper.invalid_reason }
+    end
+  end
+
   describe '#payload' do
     it 'returns the decoded payload and header' do
       result_payload, result_header = helper.payload

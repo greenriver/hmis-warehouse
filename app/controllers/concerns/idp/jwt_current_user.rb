@@ -33,6 +33,27 @@ module Idp::JwtCurrentUser
       idp_handle_unauthenticated
     end
 
+    # The same wall authenticate_user! puts up, for the routes that skip it. oauth2-proxy forwards the
+    # token on a skip_auth_route as well (that's how /hmis/user.json reports who's signed in), and
+    # root is one, so someone whose account was switched off signs in, gets sent to root, and reads
+    # the public landing page as a sign-in that silently failed. It's the first thing they see, since
+    # root is where the proxy returns them when they didn't start anywhere else.
+    #
+    # current_user first, not idp_token_holder: resolving it is what stamps the session principal, so
+    # the 403 can't render on the previous user's session (see idp_sync_session_principal!).
+    #
+    # HTML only. A stylesheet or a JSON poll answered with a page tells nobody anything, and the two
+    # cases differ in who they'd catch: the no-warehouse-account page is deliberately not here,
+    # because on a realm shared with other apps plenty of valid tokens belong to people who simply
+    # aren't warehouse users, and the public pages stay public for them.
+    def reject_deactivated_user!
+      return unless request.format.html?
+      return if current_user
+      return unless idp_token_holder && !idp_token_holder.active?
+
+      idp_handle_deactivated
+    end
+
     def user_signed_in?
       current_user.present?
     end

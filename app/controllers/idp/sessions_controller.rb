@@ -19,7 +19,18 @@ module Idp
   # names to Users::SessionsController instead.
   class SessionsController < ApplicationController
     # sign-in is a redirect to the proxy, so these must not bounce off authenticate_user! first.
-    skip_before_action :authenticate_user!, only: [:new, :create]
+    #
+    # :destroy is here for the opposite reason. The terminal 403 pages
+    # (errors/account_deactivated, errors/no_warehouse_account) render for someone who holds a good
+    # token but has no usable current_user, so authenticate_user! sends them back to the same page
+    # and they can never sign out — on a shared machine the next person inherits a live IdP session.
+    # #destroy doesn't need current_user anyway: idp_end_token_holder_sessions reads the forwarded
+    # token, which is also what lets it run before reset_session.
+    skip_before_action :authenticate_user!, only: [:new, :create, :destroy]
+    # Same reason, one filter later: reject_deactivated_user! walls off the routes that skip
+    # authenticate_user!, and signing out is the one thing a deactivated user still has to be able to
+    # do — otherwise the link on errors/account_deactivated renders that page right back.
+    skip_before_action :reject_deactivated_user!, only: [:new, :create, :destroy]
 
     # GET/POST users/sign_in — nothing in the JWT flow routes here (Idp::JwtCurrentUser redirects
     # straight to the proxy on an unauthenticated request); this only catches stray hits on the
@@ -42,8 +53,8 @@ module Idp
         # A real template rather than render(plain:), matching idp_handle_deactivated's
         # errors/account_deactivated: every sign-out entry point is a link_to method: :delete, so
         # rails-ujs does a full page load and the user lands here. They need the app's layout and a
-        # way to retry, not bare text. Still signed in, so the layout has a current_user to work
-        # with.
+        # way to retry, not bare text. The layout handles a nil current_user (it drops the site
+        # menu), which is what a deactivated or account-less user arriving from those pages has.
         render(template: 'errors/sign_out_failed', status: :internal_server_error)
         return
       end
@@ -71,7 +82,7 @@ module Idp
       return head(:unauthorized) unless access_token.present?
 
       jwt_helper = Idp::JwtHelper.new(access_token: access_token)
-      # valid? returns false for a blank token
+      # Defensive: a token we'd refuse raised in authenticate_user! and never reached this action.
       return head(:unauthorized) unless jwt_helper.valid?
 
       expiration_time = jwt_helper.expiration_time
