@@ -10,7 +10,7 @@
       "required": true,
       "component": "RADIO_BUTTONS",
       "pick_list_options": [
-        { "code": "continue", "label": "Accept - intake scheduled" },
+        { "code": "continue", "label": "Continue referral - intake scheduled" },
         { "code": "decline", "label": "Decline" }
       ]
     },
@@ -75,7 +75,7 @@
         { "code": "unsafe_environment_for_this_person", "label": "Unsafe environment for this person" },
         { "code": "unwilling_to_live_in_sro", "label": "Unwilling to live in SRO" },
         { "code": "unwilling_to_live_in_that_neighborhood", "label": "Unwilling to live in that neighborhood" },
-        { "code": "other", "label": "Other (detail in notes section)" }
+        { "code": "other", "label": "Other (specify in Notes)" }
       ],
       "enable_when": [
         {

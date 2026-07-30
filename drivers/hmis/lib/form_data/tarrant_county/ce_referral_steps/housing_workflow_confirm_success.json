@@ -1,10 +1,10 @@
 {
   "item": [
     {
-      "text": "Confirming success will complete the referral, remove the client from the eligible pool, and make the unit unavailable for new referrals.",
+      "text": "Confirming success will complete the referral, remove the client from the Eligible Clients list, and make the unit unavailable for new referrals.",
       "type": "DISPLAY",
       "link_id": "confirm_success_message",
-      "component": "ALERT_WARNING"
+      "component": "ALERT_SUCCESS"
     },
     {
       "text": "Notes",

@@ -1,31 +1,26 @@
 {
   "item": [
     {
-      "text": "Please record the date the client moved in.",
+      "text": "Move-In Date",
       "type": "DATE",
       "link_id": "move_in_date",
       "mapping": {
         "custom_field_key": "housing_workflow_move_in_date"
       },
+      "helper_text": "Saved as the Move-In Date on the client's enrollment.",
       "required": true
     },
     {
-      "text": "This date is saved as the Move-In Date on the client's enrollment.",
-      "type": "DISPLAY",
-      "link_id": "date_housed_move_in_date_message",
-      "component": "ALERT_INFO"
-    },
-    {
-      "text": "Notes",
+      "text": "Housing Address",
       "type": "TEXT",
-      "link_id": "notes",
+      "link_id": "housing_address",
       "mapping": {
-        "custom_field_key": "housing_workflow_date_housed_note"
+        "custom_field_key": "housing_workflow_housing_address"
       },
       "required": false
     },
     {
-      "text": "Did you or this client use Padmission to help with housing?",
+      "text": "Did you or the client use Padmission to help with housing?",
       "type": "BOOLEAN",
       "link_id": "used_padmission",
       "mapping": {
@@ -34,11 +29,11 @@
       "required": false
     },
     {
-      "text": "Address of housing",
+      "text": "Notes",
       "type": "TEXT",
-      "link_id": "housing_address",
+      "link_id": "notes",
       "mapping": {
-        "custom_field_key": "housing_workflow_housing_address"
+        "custom_field_key": "housing_workflow_date_housed_note"
       },
       "required": false
     }
