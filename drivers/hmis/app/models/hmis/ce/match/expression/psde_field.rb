@@ -9,8 +9,6 @@
 module Hmis::Ce::Match::Expression
   PsdeField = Data.define(
     :key,
-    :table,
-    :column,
     :value_type,
     :label,
     :description,

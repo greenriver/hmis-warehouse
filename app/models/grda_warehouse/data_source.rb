@@ -6,7 +6,6 @@
 
 # frozen_string_literal: true
 
-#
 require 'memery'
 
 class GrdaWarehouse::DataSource < GrdaWarehouseBase
@@ -594,9 +593,9 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     end
   end
 
-  def self.options_for_select(user:, ids: nil)
+  def self.options_for_select(user:, ids: nil, permission: :can_view_projects)
     # don't cache this, it's a class method
-    scope = viewable_by(user)
+    scope = viewable_by(user, permission: permission)
     scope = scope.where(id: ids) if ids.present?
     scope.distinct.
       order(name: :asc).
@@ -717,6 +716,7 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
   def destroy_dependents!
     organizations.map(&:destroy_dependents!)
     organizations.update_all(DateDeleted: Time.current, source_hash: nil)
+    remove_system_collections!
   end
 
   def client_count

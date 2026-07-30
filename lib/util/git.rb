@@ -27,11 +27,43 @@ class Git
     'unknown'
   end
 
+  # Release this container is running, e.g. "staging-release-222.0", or
+  # "staging-release-221.0+25" when 25 commits past that tag. nil when unknown.
   def self.release
-    return nil if Rails.env.development?
+    details = release_details
+    return nil if details.nil?
 
-    File.read("#{Rails.root}/GIT_RELEASE").chomp
+    return details[:tag] if details[:ahead].zero?
+
+    "#{details[:tag]}+#{details[:ahead]}"
+  end
+
+  # Reads the cache file Git::ReleaseResolver writes at container start. Returns
+  # { tag:, ahead: }, or nil when the file is absent, unreadable, or was computed for a
+  # different commit. Memoizes nil as well as a found value.
+  def self.release_details
+    return nil if Rails.env.development?
+    return @release_details if defined?(@release_details)
+
+    @release_details = resolved_release_details
+  end
+
+  # Test support only.
+  def self.reset_memo!
+    remove_instance_variable(:@release_details) if defined?(@release_details)
+  end
+
+  def self.resolved_release_details
+    path = Git::ReleaseResolver::CACHE_PATH
+    return nil unless File.exist?(path)
+
+    details = JSON.parse(File.read(path))
+    # Ignore a cache file computed for a different commit.
+    return nil unless details['revision'].to_s == revision.to_s
+    return nil if details['tag'].to_s.empty?
+
+    { tag: details['tag'], ahead: details['ahead'].to_i }
   rescue StandardError
-    'unknown'
+    nil
   end
 end

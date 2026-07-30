@@ -74,6 +74,24 @@ FactoryBot.define do
   factory :family_vispdat, class: 'GrdaWarehouse::Vispdat::Family' do
     association :client, factory: :grda_warehouse_hud_client
     association :user, factory: :user
+
+    # The minimum needed to pass validation, so a spec can exercise the
+    # "Complete" path rather than bouncing off unrelated validation errors.
+    trait :completable do
+      homeless_refused { true }
+      episodes_homeless_refused { true }
+      emergency_healthcare_refused { true }
+      ambulance_refused { true }
+      inpatient_refused { true }
+      crisis_service_refused { true }
+      talked_to_police_refused { true }
+      jail_refused { true }
+      number_of_children_under_18_with_family_refused { true }
+      number_of_children_under_18_not_with_family_refused { true }
+      find_location { '' }
+      find_time { '' }
+      contact_method { :contact_phone }
+    end
   end
   factory :youth_vispdat, class: 'GrdaWarehouse::Vispdat::Youth' do
     association :client, factory: :grda_warehouse_hud_client

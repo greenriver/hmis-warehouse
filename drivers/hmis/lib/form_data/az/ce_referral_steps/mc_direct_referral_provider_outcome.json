@@ -1,0 +1,57 @@
+{
+  "item": [
+    {
+      "text": "Date",
+      "type": "DATE",
+      "link_id": "provider_outcome_date",
+      "required": true,
+      "initial": [
+        {
+          "initial_behavior": "IF_EMPTY",
+          "value_local_constant": "$today"
+        }
+      ],
+      "mapping": {
+        "custom_field_key": "mc_direct_referral_provider_outcome_date"
+      }
+    },
+    {
+      "text": "Notes",
+      "type": "TEXT",
+      "link_id": "provider_outcome_notes",
+      "required": true,
+      "mapping": {
+        "custom_field_key": "mc_direct_referral_provider_outcome_notes"
+      }
+    },
+    {
+      "text": "Decision",
+      "type": "CHOICE",
+      "link_id": "provider_outcome_decision",
+      "required": true,
+      "component": "RADIO_BUTTONS",
+      "mapping": {
+        "custom_field_key": "mc_direct_referral_provider_outcome_decision"
+      },
+      "pick_list_options": [
+        { "code": "approved", "label": "Approved - Client Accepted" },
+        { "code": "client_rejected", "label": "Declined - Client Rejected" },
+        { "code": "provider_rejected", "label": "Declined - Provider Rejected" }
+      ]
+    },
+    {
+      "text": "The client will be added to the project as Incomplete. Please complete and submit the Intake Assessment to finalize enrollment.",
+      "type": "DISPLAY",
+      "link_id": "provider_outcome_enroll_message",
+      "component": "ALERT_INFO",
+      "enable_when": [
+        {
+          "operator": "EQUAL",
+          "question": "provider_outcome_decision",
+          "answer_code": "approved"
+        }
+      ],
+      "enable_behavior": "ALL"
+    }
+  ]
+}
