@@ -90,22 +90,21 @@ module Api
     end
 
     private def project_types
-      return HudHelper.util.project_types.keys unless project_params[:project_types].present? || project_params[:project_type_ids].present?
+      # Strip blanks before the presence check: a serialized empty array
+      # (`project_types[]=`) arrives as [""], which must mean "no type
+      # restriction" rather than "no types match".
+      requested_types = project_params[:project_types]&.select(&:present?)
+      requested_type_ids = project_params[:project_type_ids]&.select(&:present?)
+      return HudHelper.util.project_types.keys unless requested_types.present? || requested_type_ids.present?
 
       @project_types ||= begin
         types = []
 
         project_type_to_id = HudHelper.util.performance_reporting.merge(HudHelper.util.residential_project_type_numbers_by_code)
-        if project_params[:project_types].present?
-          project_params[:project_types]&.select(&:present?)&.map(&:to_sym)&.each do |type|
-            types += project_type_to_id[type]
-          end
+        requested_types&.map(&:to_sym)&.each do |type|
+          types += project_type_to_id[type]
         end
-        if project_params[:project_type_ids].present?
-          types += project_params[:project_type_ids]&.
-            select(&:present?)&.
-            map(&:to_i)
-        end
+        types += requested_type_ids.map(&:to_i) if requested_type_ids.present?
         types
       end
     end

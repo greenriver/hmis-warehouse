@@ -6,11 +6,12 @@
 
 # frozen_string_literal: true
 
-class AccessControlsController < ApplicationController
+class AccessControlsController < ApplicationControllerV2
   include ViewableEntities
   include ArelHelper
   include AjaxModalRails::Controller
 
+  authorize_with { current_user.can_edit_users? }
   before_action :set_access_control, only: [:show]
 
   def show

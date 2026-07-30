@@ -87,7 +87,7 @@ module Hmis::Hud::Processors
       any_race = client.race_fields.excluding('RaceNone').any?
       race_none = any_race ? nil : client.RaceNone || 99
 
-      any_gender = client.race_fields.excluding('GenderNone').any?
+      any_gender = client.gender_fields.excluding('GenderNone').any?
       gender_none = any_gender ? nil : client.GenderNone || 99
 
       client.assign_attributes({ RaceNone: race_none, GenderNone: gender_none })
