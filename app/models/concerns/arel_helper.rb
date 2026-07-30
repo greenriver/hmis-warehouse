@@ -66,7 +66,10 @@ module ArelHelper
     def nf(name, args = [], aka = nil)
       raise 'args must be an Array' unless args.is_a?(Array)
 
-      Arel::Nodes::NamedFunction.new name, args.map { |v| qt v }, aka
+      # Rails 8's Arel dropped the alias argument from the NamedFunction constructor;
+      # apply the alias via #as instead.
+      function = Arel::Nodes::NamedFunction.new(name, args.map { |v| qt v })
+      aka ? function.as(aka) : function
     end
 
     def cl(*args)

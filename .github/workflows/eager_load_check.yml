@@ -1,4 +1,4 @@
-name: ActiveRecord Smoke Test
+name: Eager Load Check
 
 on:
   pull_request:
@@ -6,12 +6,12 @@ on:
       - '*'
       - '**/*'
 concurrency:
-  group: ${{ github.ref }}-active-record-smoke-test
+  group: ${{ github.ref }}-eager-load-check
   cancel-in-progress: true
 
 jobs:
-  smoke_test:
-    name: ActiveRecord Smoke Test
+  eager_load_check:
+    name: Eager Load Check
 
     runs-on: ubuntu-24.04
     container: ruby:3.4.9-slim-bookworm
@@ -74,6 +74,9 @@ jobs:
 
     env:
       CLIENT: test
+      # Boot the whole app eagerly (like production) so zeitwerk:check below catches
+      # load-time errors app-wide once. Other CI jobs stay lazy to save memory.
+      EAGER_LOAD: true
       DATABASE_ADAPTER: postgresql
       DATABASE_APP_DB_TEST: warehouse_app_test
       DATABASE_DB_TEST: warehouse_test
@@ -150,14 +153,5 @@ jobs:
       - name: Precompile assets
         run: bundle exec rails assets:precompile
 
-      - name: Run ActiveRecord smoke test
-        env:
-          AWS_ACCESS_KEY_ID: local_access_key
-          AWS_SECRET_ACCESS_KEY: local_secret_key
-          MAX_FAILURES: 60
-          LOG_LEVEL: INFO
-          CHROME_URL: http://chrome:3333
-          TODO_OR_DIE_LOG_ONLY: true
-          SKIP_AREL_SQL_LITERAL_INITIALIZER: 1
-        run:
-          bundle exec rspec spec/models/active_record_extended_merge_regression_spec.rb -fd --fail-fast=$MAX_FAILURES --color
+      - name: Verify eager loading (zeitwerk:check)
+        run: bundle exec rails zeitwerk:check

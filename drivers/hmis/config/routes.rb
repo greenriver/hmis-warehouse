@@ -89,7 +89,7 @@ OpenPath::Application.routes.draw do
     end
 
     namespace :hmis_client do
-      resources :clients, only: [:none] do
+      resources :clients, only: [] do
         resources :assessments, only: [:show]
         resources :services, only: [:show]
       end

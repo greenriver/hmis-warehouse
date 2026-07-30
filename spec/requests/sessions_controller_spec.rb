@@ -51,7 +51,8 @@ RSpec.describe Users::SessionsController, type: :request do
     end
 
     it 'user sees an error' do
-      expect(response.body).to include 'Invalid Email or password'
+      # Devise 5.0.0.rc fixed the grammar of this message: "Invalid Email or password" -> "Invalid email or password."
+      expect(response.body).to include 'Invalid email or password.'
     end
 
     # FIXME: we need to double the number of attempts because of a bug in devise 2FA that
@@ -253,7 +254,7 @@ RSpec.describe Users::SessionsController, type: :request do
         identity = create(:oauth_identity, user: user)
         post user_session_path(user: { email: user.email, password: user.password })
         expect(response).to have_http_status(:success)
-        expect(response.body).to include 'Invalid Email or password'
+        expect(response.body).to include 'Invalid email or password.'
         identity.destroy!
       end
     end
