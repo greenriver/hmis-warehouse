@@ -54,6 +54,17 @@ namespace :keycloak do
     Time.zone.parse(raw) || (warn("Error: could not parse since: #{raw}") || exit(1))
   end
 
+  # Ensure the groups the import references exist, print the outcome, and abort on failure.
+  def keycloak_ensure_groups(importer)
+    result = importer.ensure_groups!
+    created = result[:created].join(', ').presence || 'none'
+    existing = result[:existing].join(', ').presence || 'none'
+    puts "Ensured Keycloak groups — created: #{created}; existing: #{existing}"
+  rescue Idp::ServiceError => e
+    warn "Error ensuring Keycloak groups: #{e.message}"
+    exit 1
+  end
+
   desc 'Migrate users from Devise to Keycloak in batches'
   task :migrate_users, [:limit, :batch_size, :policy, :since] => :environment do |_t, args|
     limit = args[:limit]&.to_i
@@ -62,6 +73,7 @@ namespace :keycloak do
     since = keycloak_since(args[:since])
 
     importer = keycloak_importer
+    keycloak_ensure_groups(importer)
 
     users_scope = Idp::Keycloak::UserImporter.migration_scope(since: since)
     users_scope = users_scope.limit(limit) if limit
@@ -143,6 +155,7 @@ namespace :keycloak do
     end
 
     importer = keycloak_importer
+    keycloak_ensure_groups(importer)
 
     puts "Importing users from #{file}..."
 
@@ -172,6 +185,7 @@ namespace :keycloak do
     end
 
     importer = keycloak_importer
+    keycloak_ensure_groups(importer)
 
     puts "Importing user: #{user.email}"
     puts "  Name: #{user.first_name} #{user.last_name}"

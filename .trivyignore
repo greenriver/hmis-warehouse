@@ -44,27 +44,3 @@ CVE-2026-54171
 
 # webrick is only used internally, no patch available yet
 CVE-2026-38969
-
-# chromium is temporarily pinned to 149.0.7827.196-1~deb12u1 (see docker/app/Dockerfile)
-# because the 150.x build breaks headless PDF generation (grover) and CI. Remove
-# once the compatibility issue is resolved and the pin is lifted. See #9368
-CVE-2026-13775
-CVE-2026-13776
-CVE-2026-13780
-CVE-2026-13781
-CVE-2026-13782
-CVE-2026-13785
-CVE-2026-14101
-CVE-2026-14104
-CVE-2026-14106
-CVE-2026-14109
-CVE-2026-14120
-CVE-2026-13281
-CVE-2026-13282
-CVE-2026-13283
-CVE-2026-13774
-CVE-2026-13777
-CVE-2026-13783
-CVE-2026-13784
-CVE-2026-14090
-CVE-2026-14102

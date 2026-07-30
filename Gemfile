@@ -97,7 +97,7 @@ gem 'devise', '~> 4.9'
 gem 'devise_invitable', '~> 2.0.9'
 gem 'devise-pwned_password'
 gem 'devise-security'
-gem 'devise-two-factor', '~> 4.1.1'
+gem 'devise-two-factor', '~> 6.4' # 6.x is rails-8-compatible; legacy otp secrets read via User#legacy_otp_secret
 gem 'rack-cors'
 gem 'doorkeeper'
 
@@ -115,7 +115,7 @@ gem 'authtrail' # for logging login attempts
 gem 'maxminddb' # for local geocoding of login attempts
 gem 'geocoder'
 
-gem 'paper_trail', '~> 15' # 16 breaks models with inherited has_paper_trail, need to update significant code
+gem 'paper_trail', '~> 17'
 gem 'validate_url'
 gem 'validates_email_format_of'
 gem 'ruby-mailchecker'

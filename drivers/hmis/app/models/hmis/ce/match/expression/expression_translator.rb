@@ -42,6 +42,16 @@ module Hmis::Ce::Match::Expression
       GT: '>',
       LTE: '<=',
       GTE: '>=',
+      IS_NULL: '=',
+      IS_NOT_NULL: '!=',
+    }.freeze
+
+    # A NULL RHS becomes IS_NULL/IS_NOT_NULL in the structured expression,
+    # because this allows more precision in the API and frontend.
+    # No other comparison node classes are included here, since "field < NULL" etc. aren't meaningful.
+    NULL_COMPARATORS = {
+      Dentaku::AST::Equal => :IS_NULL,
+      Dentaku::AST::NotEqual => :IS_NOT_NULL,
     }.freeze
 
     FUNCTION_COMPARATORS = {
@@ -136,11 +146,17 @@ module Hmis::Ce::Match::Expression
         field_metadata = field_catalog.field_for(field)
         return unless field_metadata
 
-        value = structured_value_for_expression_value(node.right.value, field_metadata)
+        comparator, value = if node.right.is_a?(Dentaku::AST::Nil) && NULL_COMPARATORS.key?(node.class)
+          # If RHS is nil, use the NULL_COMPARATORS mapping to get the structured comparator. Value is always nil.
+          [NULL_COMPARATORS.fetch(node.class), nil]
+        else
+          # Otherwise, use the COMPARATORS mapping to get the structured comparator and value.
+          [COMPARATORS.fetch(node.class), structured_value_for_expression_value(node.right.value, field_metadata)]
+        end
 
         StructuredExpression::Clause.new(
           field: field,
-          comparator: COMPARATORS.fetch(node.class),
+          comparator: comparator,
           value: value,
           # Return field_source and form_definition_identifier as helpers to the frontend
           # for filling in the related dropdowns when editing existing clauses.
@@ -161,7 +177,7 @@ module Hmis::Ce::Match::Expression
       def clause_to_expression(clause, field_catalog:)
         field = quote_field(clause.field)
         comparator = clause.comparator.to_sym
-        expression_value = format_value_for_expression(clause.value, field: field_catalog&.field_for(clause.field))
+        expression_value = format_value_for_expression(clause.value, field: field_catalog&.field_for(clause.field), comparator: comparator)
 
         if FUNCTION_COMPARATORS.value?(comparator)
           # If this is a function like INCLUDES, format as "INCLUDES(foo, 1)"
@@ -183,7 +199,9 @@ module Hmis::Ce::Match::Expression
         end
       end
 
-      def format_value_for_expression(value, field:)
+      def format_value_for_expression(value, field:, comparator:)
+        return 'NULL' if NULL_COMPARATORS.values.include?(comparator)
+
         value = expression_value_for_structured_value(value, field)
 
         case value

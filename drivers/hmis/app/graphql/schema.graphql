@@ -1055,6 +1055,8 @@ enum CeMatchRuleComparator {
   GT
   GTE
   INCLUDES
+  IS_NOT_NULL
+  IS_NULL
   LT
   LTE
   NOT_EQ
@@ -1092,10 +1094,12 @@ type CeMatchRuleGroup {
 
 input CeMatchRuleInput {
   expression: String
+  funders: [FundingSource!]!
   name: String
   ownerId: ID
   ownerType: CeMatchRuleOwnerType
   priorityRank: Int
+  projectTypes: [ProjectType!]!
   ruleType: CeMatchRuleType
   structuredExpression: CeMatchRuleStructuredExpressionInput
 }

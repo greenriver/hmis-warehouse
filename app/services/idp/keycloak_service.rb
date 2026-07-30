@@ -193,6 +193,29 @@ module Idp
       make_request(:post, "/admin/realms/#{realm}/partialImport", body: import_data)
     end
 
+    # Used by the migration tooling; remove once Devise account data has been migrated.
+    # Idempotently ensure a top-level group exists. Keycloak returns 409 when the
+    # group already exists, which we treat as success — so a re-run is a no-op.
+    # @return [Symbol] :created or :existing
+    def ensure_group(name)
+      response = make_request(
+        :post,
+        "/admin/realms/#{realm}/groups",
+        body: { name: name },
+      )
+
+      case response.code.to_i
+      when 201 then :created
+      when 409 then :existing
+      else
+        raise ServiceError.new(
+          "Failed to ensure group #{name}: #{error_message_from(response)}",
+          idp_name: idp_name,
+          operation: :ensure_group,
+        )
+      end
+    end
+
     private
 
     def validate_config!

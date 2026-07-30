@@ -14,7 +14,7 @@ class Hmis::ProjectCeConfig < Hmis::ProjectConfig
   RECEIVES_DIRECT_REFERRALS_FROM = 'receives_direct_referrals_from'
 
   validate :either_direct_or_waitlist_referrals
-  after_update :rebuild_candidate_pool, if: :supports_waitlist_referrals?
+  after_save :rebuild_candidate_pool, if: :supports_waitlist_referrals?
 
   # "waitlist referrals" are referrals initiated from within a unit's waitlist.
   def supports_waitlist_referrals?
@@ -59,7 +59,7 @@ class Hmis::ProjectCeConfig < Hmis::ProjectConfig
     errors.add(:base, 'Project must either receive direct referrals or support waitlist referrals, or both')
   end
 
-  # If Config was changed and it is marked as supporting waitlist referrals, rebuild all candidate pools
+  # If Config was saved and it is marked as supporting waitlist referrals, rebuild all candidate pools
   # because there may be additional projects that now need Candidate Pools built.
   def rebuild_candidate_pool
     Hmis::Ce::Match::CandidatePool.lock_for_maintenance! do
