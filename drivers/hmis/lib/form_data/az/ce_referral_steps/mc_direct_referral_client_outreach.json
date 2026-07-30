@@ -1,0 +1,43 @@
+{
+  "item": [
+    {
+      "text": "Date",
+      "type": "DATE",
+      "link_id": "client_outreach_date",
+      "required": true,
+      "initial": [
+        {
+          "initial_behavior": "IF_EMPTY",
+          "value_local_constant": "$today"
+        }
+      ],
+      "mapping": {
+        "custom_field_key": "mc_direct_referral_client_outreach_date"
+      }
+    },
+    {
+      "text": "Notes",
+      "type": "TEXT",
+      "link_id": "client_outreach_notes",
+      "required": true,
+      "mapping": {
+        "custom_field_key": "mc_direct_referral_client_outreach_notes"
+      }
+    },
+    {
+      "text": "Outcome",
+      "type": "CHOICE",
+      "link_id": "client_outreach_outcome",
+      "required": true,
+      "component": "RADIO_BUTTONS",
+      "mapping": {
+        "custom_field_key": "mc_direct_referral_client_outreach_outcome"
+      },
+      "pick_list_options": [
+        { "code": "intake_scheduled", "label": "Intake Scheduled" },
+        { "code": "client_rejected", "label": "Declined - Client Rejected" },
+        { "code": "provider_rejected", "label": "Declined - Provider Rejected" }
+      ]
+    }
+  ]
+}

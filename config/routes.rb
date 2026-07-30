@@ -760,13 +760,13 @@ Rails.application.routes.draw do
         resources :top_providers, only: [:index]
       end
     end
-    resources :projects, only: [:none] do
+    resources :projects, only: [] do
       post :index, on: :collection
     end
-    resources :hud_filters, only: [:none] do
+    resources :hud_filters, only: [] do
       post :index, on: :collection
     end
-    resources :reports, only: [:none] do
+    resources :reports, only: [] do
       put :favorite, on: :member
       put :unfavorite, on: :member
     end
@@ -976,7 +976,7 @@ Rails.application.routes.draw do
   end
 
   unless Rails.env.production?
-    resource :style_guide, only: :none do
+    resource :style_guide, only: [] do
       get :index
       get :add_goal
       get :add_team_member

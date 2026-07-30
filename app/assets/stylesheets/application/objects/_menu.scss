@@ -92,14 +92,16 @@
   padding-top: 0.25rem;
 }
 
+// Below the on-canvas breakpoint the menu is a drawer. See
+// $nav-side-on-canvas-* in _settings/_variables.scss before changing these.
 .l-content-width-md .site-menu {
-  @include media-breakpoint-down(md) {
+  @include media-breakpoint-down($nav-side-on-canvas-md) {
     @include o-menu-drawer;
   }
 }
 
 .l-content-width-lg .site-menu {
-  @include media-breakpoint-down(lg) {
+  @include media-breakpoint-down($nav-side-on-canvas-lg) {
     @include o-menu-drawer;
   }
 }
@@ -134,13 +136,13 @@
 }
 
 .l-content-width-md .o-menu {
-  @include media-breakpoint-down(md) {
+  @include media-breakpoint-down($nav-side-on-canvas-md) {
     @include o-menu-drawer;
   }
 }
 
 .l-content-width-lg .o-menu {
-  @include media-breakpoint-down(lg) {
+  @include media-breakpoint-down($nav-side-on-canvas-lg) {
     @include o-menu-drawer;
   }
 }

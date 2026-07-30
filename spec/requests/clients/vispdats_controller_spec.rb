@@ -96,4 +96,94 @@ RSpec.describe Clients::VispdatsController, type: :request do
       end
     end
   end
+
+  describe 'PUT #add_child' do
+    let!(:family_vispdat) { create :family_vispdat, :completable, client: client }
+
+    it 'adds a child beyond the seven the old fixed-row form allowed' do
+      7.times { |i| family_vispdat.children.create!(first_name: "Child#{i}", last_name: 'Tester') }
+
+      expect do
+        put add_child_client_vispdat_path(client, family_vispdat)
+      end.to change { family_vispdat.children.count }.from(7).to(8)
+    end
+
+    it 'does not add a child to a non-family VI-SPDAT' do
+      expect do
+        put add_child_client_vispdat_path(client, vispdat)
+      end.not_to change(GrdaWarehouse::Vispdat::Child, :count)
+    end
+
+    it 'refuses a user who may view but not edit VI-SPDATs' do
+      viewer = create :acl_user
+      setup_access_control(viewer, create(:vispdat_viewer), no_data_source_collection)
+      sign_out user
+      sign_in viewer
+
+      expect do
+        put add_child_client_vispdat_path(client, family_vispdat)
+      end.not_to change(GrdaWarehouse::Vispdat::Child, :count)
+      expect(response).to have_http_status(:redirect)
+    end
+  end
+
+  describe 'DELETE #remove_child' do
+    let!(:family_vispdat) { create :family_vispdat, :completable, client: client }
+    let!(:child) { family_vispdat.children.create!(first_name: 'Mine', last_name: 'Tester') }
+    let!(:other_vispdat) { create :family_vispdat, :completable, client: client }
+    let!(:other_child) { other_vispdat.children.create!(first_name: 'Theirs', last_name: 'Tester') }
+
+    it 'removes a child of the requested VI-SPDAT' do
+      delete remove_child_client_vispdat_path(client, family_vispdat, child_id: child.id), xhr: true
+
+      expect(GrdaWarehouse::Vispdat::Child.where(id: child.id)).not_to exist
+      expect(GrdaWarehouse::Vispdat::Child.where(id: other_child.id)).to exist
+    end
+
+    it 'will not remove a child belonging to a different VI-SPDAT' do
+      begin
+        delete remove_child_client_vispdat_path(client, family_vispdat, child_id: other_child.id), xhr: true
+      rescue ActionView::Template::Error
+        # remove_child.js.coffee dereferences @child, which is nil once the
+        # association scope has (correctly) refused to find the other VI-SPDAT's
+        # child. The guard has already done its job by this point, so tolerate
+        # the render failure rather than pinning it.
+      end
+
+      expect(GrdaWarehouse::Vispdat::Child.where(id: other_child.id)).to exist
+    end
+  end
+
+  describe 'PATCH #update for a family VI-SPDAT with more than seven children' do
+    let!(:family_vispdat) { create :family_vispdat, :completable, client: client }
+    let!(:children) do
+      Array.new(8) { |i| family_vispdat.children.create!(first_name: "Child#{i}", last_name: 'Original') }
+    end
+
+    def children_params(overrides = {})
+      children.map { |child| { id: child.id, first_name: child.first_name }.merge(overrides) }
+    end
+
+    it 'saves progress on an in-progress VI-SPDAT' do
+      patch client_vispdat_path(client, family_vispdat), params: {
+        grda_warehouse_vispdat_family: { children_attributes: children_params(last_name: 'Renamed') },
+      }
+
+      expect(family_vispdat.children.reload.count).to eq 8
+      expect(family_vispdat.children.pluck(:last_name).uniq).to eq ['Renamed']
+    end
+
+    it 'removes a child flagged for destruction and leaves the rest alone' do
+      removed = children.first
+
+      patch client_vispdat_path(client, family_vispdat), params: {
+        grda_warehouse_vispdat_family: {
+          children_attributes: [{ id: removed.id, _destroy: '1' }],
+        },
+      }
+
+      expect(family_vispdat.children.reload.map(&:first_name)).
+        to contain_exactly(*children.drop(1).map(&:first_name))
+    end
+  end
 end

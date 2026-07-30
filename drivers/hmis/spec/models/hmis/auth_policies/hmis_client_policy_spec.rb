@@ -202,6 +202,36 @@ RSpec.describe Hmis::AuthPolicies::HmisClientPolicy, type: :model do
         end
       end
     end
+
+    describe '#can_view_some_enrollment_details?' do
+      context 'when user can view enrollment details at an enrolled project' do
+        let!(:access_control) do
+          create_access_control(
+            user,
+            project,
+            with_permission: [:can_view_clients, :can_view_project, :can_view_enrollment_details],
+          )
+        end
+
+        it 'returns true' do
+          expect(policy.can_view_some_enrollment_details?).to be true
+        end
+      end
+
+      context 'when user lacks can_view_enrollment_details at enrolled projects' do
+        let!(:access_control) do
+          create_access_control(
+            user,
+            project,
+            with_permission: [:can_view_clients, :can_view_project],
+          )
+        end
+
+        it 'returns false' do
+          expect(policy.can_view_some_enrollment_details?).to be false
+        end
+      end
+    end
   end
 
   context 'when client has no enrollments' do

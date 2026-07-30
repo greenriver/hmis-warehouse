@@ -8,8 +8,18 @@
 
 module UserDirectoryReport::WarehouseReports
   class UsersController < ApplicationController
+    include WarehouseReportAuthorization
+
     helper_method :nav_link_classes
     helper_method :cas_available?
+
+    # Both actions are the same report, and there is no :index for the concern's default
+    # derivation to use; the seeded definition is registered under the warehouse action's
+    # path (see GrdaWarehouse::WarehouseReports::ReportDefinition).
+    def related_report
+      GrdaWarehouse::WarehouseReports::ReportDefinition.
+        where(url: 'user_directory_report/warehouse_reports/users/warehouse')
+    end
 
     def readonly?
       true

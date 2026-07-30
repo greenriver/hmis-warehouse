@@ -9,6 +9,8 @@
 require 'rails_helper'
 
 RSpec.describe ProjectGroupsController, type: :request do
+  include AccessControlSetup
+
   let!(:user) { create(:user) }
   let!(:project_group) { create(:project_group, name: 'Test Group') }
   let!(:project_group_2) { create(:project_group, name: 'Another Group') }
@@ -221,6 +223,30 @@ RSpec.describe ProjectGroupsController, type: :request do
       # Should now have 2 projects (project2 excluded)
       expect(project_group.projects.count).to eq(2)
       expect(project_group.projects.pluck(:id)).to match_array([project1.id, project3.id])
+    end
+  end
+
+  # Regression coverage: this form is a project-management CRUD context (gated
+  # by can_edit_some_project_groups), not a report-queuing context, so its
+  # Organizations/Data Sources dropdowns must be scoped by can_view_projects,
+  # not the can_view_assigned_reports default used by report filter forms.
+  describe 'GET #new for an ACL user with can_view_projects but not can_view_assigned_reports' do
+    let!(:acl_user) { create(:acl_user) }
+    let!(:project_groups_role) { create(:role, can_edit_project_groups: true, can_view_projects: true) }
+    let!(:collection) { create(:collection) }
+
+    before do
+      collection.set_viewables(data_sources: [data_source.id])
+      setup_access_control(acl_user, project_groups_role, collection)
+      sign_in(acl_user)
+    end
+
+    it 'populates the Organizations and Data Sources dropdowns' do
+      get new_project_group_path
+      expect(response).to have_http_status(:ok)
+      doc = Nokogiri::HTML(response.body)
+      expect(doc.at_css('select[name="filters[organization_ids][]"]').css('option')).not_to be_empty
+      expect(doc.at_css('select[name="filters[data_source_ids][]"]').css('option')).not_to be_empty
     end
   end
 end
