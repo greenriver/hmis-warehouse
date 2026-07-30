@@ -87,10 +87,6 @@ module CeWorkflows::Shared
       steps = Hmis::WorkflowExecution::Step.where(instance: instances)
       referrals = Hmis::Ce::Referral.where(workflow_instance: instances)
 
-      Hmis::Form::FormProcessor.
-        where(owner_type: Hmis::WorkflowExecution::Step.sti_name, owner_id: steps.select(:id)).
-        find_each(&:destroy!)
-
       Hmis::Ce::ReferralNote.where(referral: referrals).find_each(&:destroy!)
       Hmis::Ce::ReferralParticipant.where(referral: referrals).find_each(&:destroy!)
       referrals.find_each(&:destroy!)
