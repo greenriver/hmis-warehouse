@@ -109,7 +109,7 @@ class Hmis::Hud::Project < Hmis::Hud::Base
   end
 
   # Projects where the user can view full enrollment details (requires both can_view_enrollment_details and can_view_project)
-  scope :with_enrollment_detail_visibility_for, ->(user) do
+  scope :with_enrollment_details_viewable_by, ->(user) do
     with_access(user, :can_view_enrollment_details, :can_view_project, mode: :all)
   end
 

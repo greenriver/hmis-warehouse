@@ -138,7 +138,7 @@ module Types
     private
 
     def can_view_enrollment_details
-      current_user.policy_for(object.enrollment, policy_type: :hmis_enrollment).can_view_details?
+      policy_for(object.enrollment, policy_type: :hmis_enrollment).can_view_details?
     end
   end
 end

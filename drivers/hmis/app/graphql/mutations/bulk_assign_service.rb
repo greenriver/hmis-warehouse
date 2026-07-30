@@ -15,7 +15,7 @@ module Mutations
     def resolve(input:)
       project = Hmis::Hud::Project.viewable_by(current_user).find_by(id: input.project_id)
       access_denied! unless project
-      access_denied! unless current_user.policy_for(project, policy_type: :hmis_project).can_edit_enrollments?
+      access_denied! unless policy_for(project, policy_type: :hmis_project).can_edit_enrollments?
 
       clients = Hmis::Hud::Client.viewable_by(current_user).where(id: input.client_ids)
       access_denied! unless clients.count == input.client_ids.uniq.length

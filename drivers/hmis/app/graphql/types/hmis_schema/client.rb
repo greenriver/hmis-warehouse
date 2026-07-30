@@ -205,7 +205,7 @@ module Types
       # "limited access" enrollments (if permitted). The purpose is to show additional enrollment history
       # for "my" clients, but not for other clients in the system that I can see.
       # This would need to change if we wanted to support the ability to see limited enrollment details for all clients.
-      has_some_detailed_access = current_user.policy_for(object, policy_type: :hmis_client).can_view_some_enrollment_details?
+      has_some_detailed_access = policy_for(object, policy_type: :hmis_client).can_view_some_enrollment_details?
       scope = object.enrollments.viewable_by(current_user, include_limited_access_enrollments: has_some_detailed_access)
       resolve_enrollments(scope, **args, dangerous_skip_permission_check: true)
     end

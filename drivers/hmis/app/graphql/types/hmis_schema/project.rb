@@ -303,7 +303,7 @@ module Types
     end
 
     def outgoing_direct_ce_referrals(**args)
-      policy = current_user.policy_for(object, policy_type: :hmis_project)
+      policy = policy_for(object, policy_type: :hmis_project)
       access_denied! unless policy.can_view_outgoing_referral_summaries?
 
       referral_scope = object.outgoing_ce_referrals.originated_from_direct_send
@@ -314,7 +314,7 @@ module Types
       # For resolving several associations, we want to skip permission checks that use the viewable_by scope, both for
       # performance reasons, and so that we throw an error instead of returning an empty list.
       # After this check it's OK to use `dangerous_skip_permission_check`
-      raise 'access denied' unless current_user.policy_for(object, policy_type: :hmis_project).can_view_enrollment_details?
+      access_denied! unless policy_for(object, policy_type: :hmis_project).can_view_enrollment_details?
     end
 
     private def ce_match_rule_group_owners

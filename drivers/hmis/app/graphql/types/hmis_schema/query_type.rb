@@ -238,7 +238,7 @@ module Types
       raise 'unexpected role' if role && !Hmis::Form::Definition::ASSESSMENT_FORM_ROLES.include?(role.to_sym)
 
       project = Hmis::Hud::Project.find(project_id)
-      access_denied! unless current_user.policy_for(project, policy_type: :hmis_project).can_view_enrollment_details?
+      access_denied! unless policy_for(project, policy_type: :hmis_project).can_view_enrollment_details?
 
       if id
         # If ID is specified, we assume that it's correct for this project.
