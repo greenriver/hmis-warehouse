@@ -7,7 +7,7 @@
 # frozen_string_literal: true
 
 OpenPath::Application.routes.draw do
-  resources :data_sources, only: [:none] do
+  resources :data_sources, only: [] do
     namespace :hmis_supplemental do
       resources :data_sets do
         resource :upload, only: [:create, :new], controller: 'data_set_uploads'
@@ -15,7 +15,7 @@ OpenPath::Application.routes.draw do
     end
   end
   namespace :hmis_supplemental do
-    resources :data_sets, only: [:none] do
+    resources :data_sets, only: [] do
       resources :client_data_sets, only: [:show]
     end
   end

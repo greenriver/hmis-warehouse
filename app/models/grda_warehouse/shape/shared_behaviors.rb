@@ -47,12 +47,16 @@ module GrdaWarehouse
           else
             where(simplified_geom: nil)
           end
-          scope.update_all(Arel.sql("simplified_geom = ST_MakeValid(ST_Simplify(geom, #{simplification_distance_in_degrees}))"))
+          simplified = nf('ST_MakeValid', [nf('ST_Simplify', [arel_table[:geom], simplification_distance_in_degrees])])
+          scope.update_all(simplified_geom: simplified)
         end
 
         # This is the id the census returns
         def set_full_geoid!
-          where(full_geoid: nil).update_all("full_geoid = '#{Arel.sql(_full_geoid_prefix)}' || 'US' || #{_geoid_column}")
+          # `||` rather than CONCAT so that a null geoid leaves full_geoid null (and thus
+          # still eligible) instead of writing a prefix-only value
+          geoid = Arel::Nodes::Concat.new(qt("#{_full_geoid_prefix}US"), arel_table[_geoid_column])
+          where(full_geoid: nil).update_all(full_geoid: geoid)
         end
 
         def _full_geoid_prefix
