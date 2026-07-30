@@ -239,7 +239,7 @@ module Types
 
       project = Hmis::Hud::Project.find(project_id)
       # Ensure that user can view enrollments for this project. There is no need to expose assessment forms otherwise.
-      raise 'Access denied' unless current_user.can_view_enrollment_details_for?(project) # TODO: remove, we resolve forms
+      raise 'Access denied' unless current_user.can_view_enrollment_details_for?(project)
 
       if id
         # If ID is specified, we assume that it's correct for this project.

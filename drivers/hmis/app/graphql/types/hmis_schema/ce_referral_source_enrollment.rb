@@ -71,7 +71,7 @@ module Types
     def project_name
       project = load_ar_association(object.enrollment, :project)
 
-      return Hmis::Hud::Project::CONFIDENTIAL_PROJECT_NAME if project.confidential && !current_permission?(permission: :can_view_enrollment_details, entity: object.enrollment) # TODO policy
+      return Hmis::Hud::Project::CONFIDENTIAL_PROJECT_NAME if project.confidential && !current_permission?(permission: :can_view_enrollment_details, entity: object.enrollment)
 
       project.project_name
     end
@@ -138,7 +138,7 @@ module Types
     private
 
     def can_view_enrollment_details
-      current_permission?(permission: :can_view_enrollment_details, entity: object.enrollment) # TODO needs to resolve from policy for dependencies to apply
+      current_permission?(permission: :can_view_enrollment_details, entity: object.enrollment)
     end
   end
 end

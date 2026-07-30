@@ -18,7 +18,7 @@ module Mutations
 
     def resolve(id:, input:)
       posting = HmisExternalApis::AcHmis::ReferralPosting.active.viewable_by(current_user).find(id)
-      handle_error('access denied') unless current_user.can_view_enrollment_details_for?(posting.project) # TODO policy
+      handle_error('access denied') unless current_user.can_view_enrollment_details_for?(posting.project)
       handle_error('referral not found') unless posting
       handle_error('connection not configured') if posting.from_link? && !HmisExternalApis::AcHmis::LinkApi.enabled?
 

@@ -16,7 +16,6 @@
           %td= service.warehouse_project.name(current_user)
           %td= service.enrollment.entry_date
           %td= service.date_provided
-          -# replace with policy check
           %td= link_to_if can_view_enrollment_details?, service.display_name, hmis_client_client_service_path(@client, service), class: 'btn btn-primary btn-muted btn-xs', data: { loads_in_pjax_modal: true }
           %td.text-right
             - if @client.hmis_source_visible_by?(current_user)
