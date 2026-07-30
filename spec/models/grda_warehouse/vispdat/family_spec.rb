@@ -698,4 +698,38 @@ RSpec.describe GrdaWarehouse::Vispdat::Family, type: :model do
       end
     end
   end
+
+  describe 'children_attributes=' do
+    let!(:persisted_vispdat) { create :family_vispdat, :completable }
+
+    it 'accepts more children than the seven the original fixed-row form allowed' do
+      persisted_vispdat.children_attributes = Array.new(10) do |i|
+        { first_name: "Child#{i}", last_name: 'Tester' }
+      end
+      persisted_vispdat.save(validate: false)
+
+      expect(persisted_vispdat.children.reload.map(&:first_name)).
+        to contain_exactly(*Array.new(10) { |i| "Child#{i}" })
+    end
+
+    it 'destroys only the child flagged for removal' do
+      keeper = persisted_vispdat.children.create!(first_name: 'Keeper', last_name: 'Tester')
+      removed = persisted_vispdat.children.create!(first_name: 'Remove', last_name: 'Tester')
+
+      persisted_vispdat.children_attributes = [{ id: removed.id, _destroy: '1' }]
+      persisted_vispdat.save(validate: false)
+
+      expect(persisted_vispdat.children.reload).to contain_exactly(keeper)
+      expect(GrdaWarehouse::Vispdat::Child.where(id: removed.id)).not_to exist
+    end
+
+    it 'ignores an entirely blank child row' do
+      existing = persisted_vispdat.children.create!(first_name: 'Keeper', last_name: 'Tester')
+
+      persisted_vispdat.children_attributes = [{ first_name: '', last_name: '', dob: '' }]
+      persisted_vispdat.save(validate: false)
+
+      expect(persisted_vispdat.children.reload).to contain_exactly(existing)
+    end
+  end
 end
