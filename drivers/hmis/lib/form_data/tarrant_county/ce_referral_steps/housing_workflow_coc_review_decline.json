@@ -1,0 +1,64 @@
+{
+  "item": [
+    {
+      "text": "Decision",
+      "type": "CHOICE",
+      "link_id": "review_decline_decision",
+      "mapping": {
+        "custom_field_key": "housing_workflow_coc_review_decline_decision"
+      },
+      "required": true,
+      "component": "RADIO_BUTTONS",
+      "pick_list_options": [
+        { "code": "approve_decline", "label": "Approve decline" },
+        { "code": "go_back", "label": "Send back to the previous step" },
+        { "code": "send_forward", "label": "Override decline and advance the referral to the next step" }
+      ]
+    },
+    {
+      "text": "Approving the decline will return the client to the eligible pool and make the unit available for new referrals.",
+      "type": "DISPLAY",
+      "link_id": "review_decline_message",
+      "component": "ALERT_WARNING",
+      "enable_when": [
+        {
+          "operator": "EQUAL",
+          "question": "review_decline_decision",
+          "answer_code": "approve_decline"
+        }
+      ],
+      "enable_behavior": "ALL"
+    },
+    {
+      "text": "Referral Result",
+      "type": "CHOICE",
+      "link_id": "referral_result",
+      "mapping": {
+        "custom_field_key": "housing_workflow_coc_review_decline_referral_result"
+      },
+      "required": true,
+      "component": "RADIO_BUTTONS",
+      "pick_list_options": [
+        { "code": "2", "label": "Unsuccessful referral: client rejected" },
+        { "code": "3", "label": "Unsuccessful referral: provider rejected" }
+      ],
+      "enable_when": [
+        {
+          "operator": "EQUAL",
+          "question": "review_decline_decision",
+          "answer_code": "approve_decline"
+        }
+      ],
+      "enable_behavior": "ALL"
+    },
+    {
+      "text": "Notes",
+      "type": "TEXT",
+      "link_id": "notes",
+      "mapping": {
+        "custom_field_key": "housing_workflow_coc_review_decline_note"
+      },
+      "required": false
+    }
+  ]
+}

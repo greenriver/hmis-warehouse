@@ -1,0 +1,63 @@
+{
+  "item": [
+    {
+      "text": "Completing this task will end the referral, delete the client's enrollment if there is one, return the client to the eligible pool, and make the unit available for new referrals.",
+      "type": "DISPLAY",
+      "link_id": "decline_message",
+      "component": "ALERT_WARNING"
+    },
+    {
+      "text": "Decline Reason",
+      "type": "CHOICE",
+      "link_id": "decline_reason",
+      "mapping": {
+        "custom_field_key": "housing_workflow_coc_decline_reason"
+      },
+      "required": true,
+      "component": "RADIO_BUTTONS",
+      "pick_list_options": [
+        { "code": "client_deceased", "label": "Client deceased" },
+        { "code": "client_has_declined_match", "label": "Client has declined match" },
+        { "code": "client_has_disappeared", "label": "Client has disappeared" },
+        { "code": "client_has_disengaged", "label": "Client has disengaged" },
+        { "code": "client_no_longer_eligible_for_match", "label": "Client no longer eligible for match" },
+        { "code": "client_received_another_housing_opportunity", "label": "Client received another housing opportunity" },
+        { "code": "housing_case_manager_has_disengaged", "label": "Housing Case Manager has disengaged" },
+        { "code": "incarcerated", "label": "Incarcerated" },
+        { "code": "match_expired_agency_interaction", "label": "Match expired – Agency interaction" },
+        { "code": "match_expired_no_agency_interaction", "label": "Match expired – No agency interaction" },
+        { "code": "match_expired_no_housing_case_manager_interaction", "label": "Match expired – No Housing Case Manager interaction" },
+        { "code": "match_expired_no_shelter_agency_interaction", "label": "Match expired – No Shelter Agency interaction" },
+        { "code": "match_stalled_agency_has_disengaged", "label": "Match stalled - Agency has disengaged" },
+        { "code": "match_stalled_housing_case_manager_has_disengaged", "label": "Match stalled – Housing Case Manager has disengaged" },
+        { "code": "shelter_agency_has_disengaged", "label": "Shelter Agency has disengaged" },
+        { "code": "vacancy_filled_by_other_client", "label": "Vacancy filled by other client" },
+        { "code": "vacancy_should_not_have_been_entered", "label": "Vacancy should not have been entered" },
+        { "code": "other", "label": "Other (detail in notes section)" }
+      ]
+    },
+    {
+      "text": "Referral Result",
+      "type": "CHOICE",
+      "link_id": "referral_result",
+      "mapping": {
+        "custom_field_key": "housing_workflow_coc_decline_referral_result"
+      },
+      "required": true,
+      "component": "RADIO_BUTTONS",
+      "pick_list_options": [
+        { "code": "2", "label": "Unsuccessful referral: client rejected" },
+        { "code": "3", "label": "Unsuccessful referral: provider rejected" }
+      ]
+    },
+    {
+      "text": "Notes",
+      "type": "TEXT",
+      "link_id": "notes",
+      "mapping": {
+        "custom_field_key": "housing_workflow_coc_decline_note"
+      },
+      "required": false
+    }
+  ]
+}

@@ -1,0 +1,52 @@
+{
+  "item": [
+    {
+      "text": "Decision",
+      "type": "CHOICE",
+      "link_id": "coc_initial_review_decision",
+      "mapping": {
+        "custom_field_key": "housing_workflow_coc_initial_review_decision"
+      },
+      "required": true,
+      "component": "RADIO_BUTTONS",
+      "pick_list_options": [
+        { "code": "continue", "label": "Accept match" },
+        { "code": "decline", "label": "Decline" }
+      ]
+    },
+    {
+      "text": "Decline Reason",
+      "type": "CHOICE",
+      "link_id": "decline_reason",
+      "mapping": {
+        "custom_field_key": "housing_workflow_coc_initial_review_decline_reason"
+      },
+      "required": true,
+      "component": "RADIO_BUTTONS",
+      "pick_list_options": [
+        { "code": "another_housing_option", "label": "Client has another housing option" },
+        { "code": "ineligible_funding_source", "label": "Client won't be eligible based on funding source" },
+        { "code": "ineligible_housing_type", "label": "Client won't be eligible based on housing type" },
+        { "code": "ineligible_services", "label": "Client won't be eligible for services" },
+        { "code": "other", "label": "Other (detail in Notes)" }
+      ],
+      "enable_when": [
+        {
+          "operator": "EQUAL",
+          "question": "coc_initial_review_decision",
+          "answer_code": "decline"
+        }
+      ],
+      "enable_behavior": "ALL"
+    },
+    {
+      "text": "Notes",
+      "type": "TEXT",
+      "link_id": "notes",
+      "mapping": {
+        "custom_field_key": "housing_workflow_coc_initial_review_note"
+      },
+      "required": false
+    }
+  ]
+}

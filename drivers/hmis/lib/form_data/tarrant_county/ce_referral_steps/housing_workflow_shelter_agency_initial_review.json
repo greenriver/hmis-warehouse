@@ -1,0 +1,171 @@
+{
+  "item": [
+    {
+      "text": "Decision",
+      "type": "CHOICE",
+      "link_id": "shelter_agency_decision",
+      "mapping": {
+        "custom_field_key": "housing_workflow_shelter_agency_review_decision"
+      },
+      "required": true,
+      "component": "RADIO_BUTTONS",
+      "pick_list_options": [
+        { "code": "continue", "label": "Continue - the client has been at your agency in the past two weeks" },
+        { "code": "decline_not_working_with_client", "label": "Decline - No longer working with this client" },
+        { "code": "decline_client_declined_match", "label": "Decline - The client has declined the match" }
+      ]
+    },
+    {
+      "text": "Notes",
+      "type": "TEXT",
+      "link_id": "notes_continue_match",
+      "mapping": {
+        "custom_field_key": "housing_workflow_shelter_agency_review_notes_continue_match"
+      },
+      "helper_text": "Please include any notes that would be useful for this match. e.g. \"Client needs an accessible unit.\"",
+      "required": false,
+      "enable_when": [
+        {
+          "operator": "EQUAL",
+          "question": "shelter_agency_decision",
+          "answer_code": "continue"
+        }
+      ]
+    },
+    {
+      "text": "Client has spoken to a shelter case manager, understands the services attached and the program requirements, and indicates interest in the match.",
+      "type": "BOOLEAN",
+      "link_id": "client_has_spoken_to_shelter_case_manager",
+      "mapping": {
+        "custom_field_key": "housing_workflow_shelter_agency_review_client_has_spoken_to_shelter_case_manager"
+      },
+      "required": true,
+      "enable_when": [
+        {
+          "operator": "EQUAL",
+          "question": "shelter_agency_decision",
+          "answer_code": "continue"
+        }
+      ],
+      "enable_behavior": "ALL"
+    },
+    {
+      "text": "The client does not need to be document-ready in order to indicate interest. When you indicate interest, notification will be sent to the Housing Case Manager. If the Housing Case Manager has a release, they can proceed to determine whether a criminal background hearing is needed. You will be notified when they either accept the match or schedule a hearing.",
+      "type": "DISPLAY",
+      "link_id": "client_does_not_need_to_be_document_ready",
+      "enable_when": [
+        {
+          "operator": "EQUAL",
+          "question": "shelter_agency_decision",
+          "answer_code": "continue"
+        }
+      ],
+      "enable_behavior": "ALL"
+    },
+    {
+      "text": "If you are no longer working with the client, please indicate the reason.",
+      "type": "CHOICE",
+      "link_id": "decline_not_working_with_client_reason",
+      "mapping": {
+        "custom_field_key": "housing_workflow_shelter_agency_review_decline_not_working_with_client_reason"
+      },
+      "required": true,
+      "component": "RADIO_BUTTONS",
+      "pick_list_options": [
+        { "code": "barred", "label": "Barred from working with agency" },
+        { "code": "hospitalized", "label": "Hospitalized" },
+        { "code": "dont_know", "label": "Don't know / disappeared" },
+        { "code": "incarcerated", "label": "Incarcerated" },
+        { "code": "other", "label": "Other (detail in notes section)" }
+      ],
+      "enable_when": [
+        {
+          "operator": "EQUAL",
+          "question": "shelter_agency_decision",
+          "answer_code": "decline_not_working_with_client"
+        }
+      ],
+      "enable_behavior": "ALL"
+    },
+    {
+      "text": "Notes",
+      "type": "TEXT",
+      "link_id": "notes_decline_not_working_with_client",
+      "mapping": {
+        "custom_field_key": "housing_workflow_shelter_agency_review_notes_decline_not_working_with_client"
+      },
+      "helper_text": "Other reason",
+      "required": false,
+      "enable_when": [
+        {
+          "operator": "EQUAL",
+          "question": "shelter_agency_decision",
+          "answer_code": "decline_not_working_with_client"
+        }
+      ]
+    },
+    {
+      "text": "When did you last see this client?",
+      "type": "DATE",
+      "link_id": "client_last_seen",
+      "mapping": {
+        "custom_field_key": "housing_workflow_shelter_agency_review_client_last_seen"
+      },
+      "required": true,
+      "enable_when": [
+        {
+          "operator": "EQUAL",
+          "question": "shelter_agency_decision",
+          "answer_code": "decline_not_working_with_client"
+        }
+      ],
+      "enable_behavior": "ALL"
+    },
+    {
+      "text": "Decline Reason",
+      "type": "CHOICE",
+      "link_id": "decline_client_declined_match_reason",
+      "mapping": {
+        "custom_field_key": "housing_workflow_shelter_agency_review_decline_client_declined_match_reason"
+      },
+      "required": true,
+      "component": "RADIO_BUTTONS",
+      "pick_list_options": [
+        { "code": "another_housing_option", "label": "Client has another housing option" },
+        { "code": "client_refused_unit_non_sro", "label": "Client refused unit (non-SRO)" },
+        { "code": "client_refused_voucher", "label": "Client refused voucher" },
+        { "code": "does_not_agree_to_services", "label": "Does not agree to services" },
+        { "code": "does_not_want_housing_at_this_time", "label": "Does not want housing at this time" },
+        { "code": "unsafe_environment_for_this_person", "label": "Unsafe environment for this person" },
+        { "code": "unwilling_to_live_in_sro", "label": "Unwilling to live in SRO" },
+        { "code": "unwilling_to_live_in_that_neighborhood", "label": "Unwilling to live in that neighborhood" },
+        { "code": "other", "label": "Other (detail in notes section)" }
+      ],
+      "enable_when": [
+        {
+          "operator": "EQUAL",
+          "question": "shelter_agency_decision",
+          "answer_code": "decline_client_declined_match"
+        }
+      ],
+      "enable_behavior": "ALL"
+    },
+    {
+      "text": "Notes",
+      "type": "TEXT",
+      "link_id": "notes_client_decline",
+      "mapping": {
+        "custom_field_key": "housing_workflow_shelter_agency_review_notes_client_decline"
+      },
+      "helper_text": "List any details related to the decline.",
+      "required": false,
+      "enable_when": [
+        {
+          "operator": "EQUAL",
+          "question": "shelter_agency_decision",
+          "answer_code": "decline_client_declined_match"
+        }
+      ]
+    }
+  ]
+}
