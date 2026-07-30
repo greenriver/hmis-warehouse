@@ -16,6 +16,9 @@ namespace :ce_define_standard_workflows do
   #
   # NOTE: This task will fail if the installation's form directory does not contain the required forms.
   # Copy the forms from drivers/hmis/lib/form_data/demo/ce_referral_steps/ to the installation's directory.
+  #
+  # This task uses the non-preferred draft idempotent pattern.
+  # See drivers/hmis/lib/ce_workflows/README_FOR_CE_WORKFLOW_BUILDERS.md
   task :create, [:data_source_id] => :environment do |_, args|
     raise unless HmisEnforcement.hmis_enabled?
     raise 'FORCE_RECREATE destroys data and should not be run in production' if ENV['FORCE_RECREATE'] && Rails.env.production?
