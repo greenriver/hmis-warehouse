@@ -264,6 +264,12 @@ RSpec.describe Idp::JwtCurrentUser, type: :controller, if: AuthMethod.jwt? do
     end
   end
 
+  # Deliberately NOT doubling Idp::ImpersonationManager. It is a plain session-backed object with no
+  # I/O, and doubling it costs three things: `clear` becomes a no-op, so deleting either
+  # impersonation_manager.clear from idp_authenticated_user_from_jwt passes; a `.new` stubbed to one
+  # constant value can't see the session swap the source stays un-memoized for (see the comment on
+  # Idp::JwtAuthentication#impersonation_manager); and the double hands back symbol keys directly,
+  # skipping the symbolize_keys the real manager exists to do.
   describe 'impersonation' do
     let(:true_user) do
       User.new.tap do |u|
@@ -284,19 +290,14 @@ RSpec.describe Idp::JwtCurrentUser, type: :controller, if: AuthMethod.jwt? do
       allow(User).to receive(:find_by).with(id: 10).and_return(true_user)
       allow(User).to receive(:find_by).with(id: 20).and_return(impersonated_user)
 
-      impersonation = double('Idp::ImpersonationManager')
-      allow(impersonation).to receive(:get).and_return(
-        true_user_id: 10,
-        impersonated_user_id: 20,
-      )
-      allow(impersonation).to receive(:clear)
-      allow(Idp::ImpersonationManager).to receive(:new).and_return(impersonation)
+      session[:impersonation] = { true_user_id: 10, impersonated_user_id: 20 }
     end
 
     it 'current_user returns the impersonated user when permissions validate' do
       get :index
 
       expect(response.body).to eq('20')
+      expect(session[:impersonation]).to eq(true_user_id: 10, impersonated_user_id: 20)
     end
 
     it 'true_user returns the true user and impersonating? is true' do
@@ -305,12 +306,24 @@ RSpec.describe Idp::JwtCurrentUser, type: :controller, if: AuthMethod.jwt? do
       expect(response.body).to eq('10/true')
     end
 
+    # The session store may hand the pair back with string keys; Idp::ImpersonationManager#get
+    # normalizes them. Read through the source's symbol-key access to prove that normalization is
+    # load-bearing — without it this honors nothing and falls through to the true user.
+    it 'honors impersonation stored with string keys' do
+      session[:impersonation] = { 'true_user_id' => 10, 'impersonated_user_id' => 20 }
+
+      get :index
+
+      expect(response.body).to eq('20')
+    end
+
     it 'clears impersonation and returns the true user when the target is not impersonateable_by? the true_user' do
       allow(impersonated_user).to receive(:impersonateable_by?).with(true_user).and_return(false)
 
       get :index
 
       expect(response.body).to eq('10')
+      expect(session[:impersonation]).to be_nil
     end
 
     # Guards the can_impersonate_users? gate independently of impersonateable_by?: a true_user who
@@ -323,8 +336,13 @@ RSpec.describe Idp::JwtCurrentUser, type: :controller, if: AuthMethod.jwt? do
       get :index
 
       expect(response.body).to eq('10')
+      expect(session[:impersonation]).to be_nil
     end
 
+    # Reaches the belt-and-braces guard in idp_authenticated_user_from_jwt on its own terms: the
+    # session carries no principal stamp, so idp_sync_session_principal! stamps 77 without a
+    # reset_session, and the leftover impersonation survives to the true_user_id comparison. That
+    # guard is the one that has to clear it.
     it 'ignores impersonation when the JWT principal is not the stored true_user' do
       # Leftover session: the token now logs in a different user (77) than the one who
       # started impersonating (10), so the impersonation should be ignored.
@@ -334,6 +352,7 @@ RSpec.describe Idp::JwtCurrentUser, type: :controller, if: AuthMethod.jwt? do
       get :index
 
       expect(response.body).to eq('77')
+      expect(session[:impersonation]).to be_nil
     end
   end
 
