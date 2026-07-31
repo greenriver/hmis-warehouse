@@ -84,14 +84,28 @@ module Idp::Support
     false
   end
 
+  # True when the connector is live and manageable but the user has no identity row for it, so there
+  # is no account for a push to address. Callers report this state rather than treating it as a
+  # failed write; repairing it needs an admin.
+  def idp_identity_missing?
+    return false unless idp_user_management_available?
+
+    !idp_identity_on_file?
+  end
+
   def idp_deactivate!
     return false unless idp_user_management_available?
 
     idp_service.deactivate_user(user_id: idp_connector_user_id!)
   end
 
+  # A missing identity row is treated like a connector with no management API — no account to
+  # re-enable — for the reason given at #idp_user_management_available?: raising would roll back the
+  # local `active` flip and leave the user out of both systems. Callers surface the missing row
+  # through #idp_identity_missing?.
   def idp_reactivate!
     return false unless idp_user_management_available?
+    return false unless idp_identity_on_file?
 
     idp_service.reactivate_user(user_id: idp_connector_user_id!)
   end
@@ -194,6 +208,10 @@ module Idp::Support
     else
       user_authentication_sources.order(:created_at).first
     end
+  end
+
+  def idp_identity_on_file?
+    primary_auth_source&.connector_user_id.present?
   end
 
   # The user's stable id within the upstream IdP for its primary connector.

@@ -25,6 +25,8 @@ RSpec.describe Admin::Idp::InactiveUsersController, type: :request, if: AuthMeth
   let(:token_url) { "#{api_url}/realms/#{realm}/protocol/openid-connect/token" }
   let(:target_url) { "#{api_url}/admin/realms/#{realm}/users/#{target_connector_user_id}" }
 
+  let(:search_query) { create(:grda_warehouse_client_search_query, created_by: admin_user, params: { q: 'Target' }) }
+
   before(:each) do
     setup_access_control(admin_user, admin_role, collection)
 
@@ -52,10 +54,9 @@ RSpec.describe Admin::Idp::InactiveUsersController, type: :request, if: AuthMeth
     sign_in admin_user
   end
 
-  after(:each) do
-    WebMock.reset!
-    WebMock.allow_net_connect!
-  end
+  # The suite runs with net connect allowed, so restore it rather than leaving this file's
+  # disable_net_connect! in place for later specs. Stubs are reset by webmock/rspec.
+  after(:each) { WebMock.allow_net_connect! }
 
   describe 'PATCH reactivate' do
     let(:current_representation) { { id: target_connector_user_id, username: target.email } }
@@ -134,6 +135,47 @@ RSpec.describe Admin::Idp::InactiveUsersController, type: :request, if: AuthMeth
       end
     end
 
+    # The sibling of the deactivated-config case: the connector is live, but there is no identity row
+    # to push to, so the link is just as dead and the outcome is the same — local access restored,
+    # because that is what admits them to the Warehouse — plus a warning, since the missing row needs
+    # an admin to repair it.
+    context 'when the user has no IdP identity on file' do
+      before do
+        target.user_authentication_sources.destroy_all
+        allow(Sentry).to receive(:capture_exception_with_info)
+      end
+
+      it 'restores local access, attempts no IdP call, and warns that nothing was re-enabled there' do
+        patch reactivate_admin_inactive_user_path(target)
+
+        expect(target.reload.active).to be true
+        expect(a_request(:put, target_url)).not_to have_been_made
+        expect(flash[:notice]).to be_present
+        expect(flash[:alert]).to match(/no identity on file/)
+        # A missing row is a data condition, not a failure to reach the IdP — nothing to page on.
+        expect(Sentry).not_to have_received(:capture_exception_with_info)
+      end
+
+      # The warning is decided during the push, not by re-asking the user afterwards: by then the
+      # action has redirected, so an Idp::ServiceError raised while deciding would reach the rescue,
+      # redirect a second time, and surface a committed reactivation as a DoubleRenderError reported
+      # as "Nothing was changed". Nothing can raise there today, but nothing enforces that either.
+      it 'decides the warning before responding, so a raised predicate cannot double-render' do
+        allow_any_instance_of(User).to receive(:idp_identity_missing?).and_raise(
+          Idp::ServiceError.new('boom', operation: :probe),
+        )
+
+        # Unqualified: the rescue is supposed to absorb this, so nothing at all should escape.
+        expect { patch reactivate_admin_inactive_user_path(target) }.not_to raise_error
+
+        expect(response).to redirect_to(action: :index)
+        expect(flash[:alert]).to match(/Nothing was changed/)
+        # The rescue's claim has to be true: the raise landed inside the transaction, so the flip went
+        # back with it.
+        expect(target.reload.active).to be false
+      end
+    end
+
     it 'refuses to reactivate a user who is not currently inactive' do
       patch reactivate_admin_inactive_user_path(admin_user)
 
@@ -157,17 +199,57 @@ RSpec.describe Admin::Idp::InactiveUsersController, type: :request, if: AuthMeth
       expect(target_row.text).to include(legacy_role.name)
     end
 
+    # Anchored on the inactive user being listed, because an empty table satisfies the exclusion on
+    # its own and a scope narrowed to nothing would read as a pass.
     it 'excludes active users' do
       get admin_inactive_users_path
 
-      rows = Nokogiri::HTML(response.body).css('tbody tr')
-      expect(rows.none? { |row| row.text.include?(admin_user.name) }).to be true
+      listed = Nokogiri::HTML(response.body).css('tbody').text
+      expect(listed).to include(target.email)
+      expect(listed).not_to include(admin_user.email)
+    end
+  end
+
+  # Search results are reached by a separate route from the browse page, and `perform_search` ends in
+  # `render :index`, so the controller that handles the route decides which arm's page the admin sees.
+  # See the route declaration in config/routes.rb.
+  describe 'GET search' do
+    it 'finds the inactive user and offers the IdP re-enable, not a password reset and reset email' do
+      get inactive_user_search_query_admin_inactive_users_path(id: search_query.id)
+
+      expect(response).to have_http_status(:ok)
+      target_row = Nokogiri::HTML(response.body).css('tbody tr').find { |row| row.text.include?(target.name) }
+      expect(target_row).not_to be_nil
+      # The confirm text is the admin-visible difference between the arms' pages: the Devise-arm wording
+      # promises credentials the IdP owns here.
+      expect(response.body).to include('re-enabled in your identity provider')
+      expect(response.body).not_to include('password will be set to something random')
+    end
+
+    # The admin is renamed to match the query, so an unscoped search would list them. Asserted on email
+    # because the rename makes both users' display names identical.
+    it 'stays scoped to inactive users' do
+      admin_user.update!(first_name: 'Target')
+      get inactive_user_search_query_admin_inactive_users_path(id: search_query.id)
+
+      listed = Nokogiri::HTML(response.body).css('tbody').text
+      expect(listed).to include(target.email)
+      expect(listed).not_to include(admin_user.email)
+    end
+
+    it 'reports a missing search query rather than rendering an empty result set' do
+      get inactive_user_search_query_admin_inactive_users_path(id: SecureRandom.uuid)
+
+      expect(response).to redirect_to(admin_inactive_users_path)
+      expect(flash[:error]).to eq('Search query not found')
     end
   end
 
   describe 'authorization (require_can_edit_users!)' do
     # A signed-in user whose role grants no can_edit_users. The privileged reactivate action must
-    # be refused before any local change or IdP push, and the list itself must not render.
+    # be refused before any local change or IdP push, and the list itself must not render. Every
+    # action here redirects on the way out, reactivate included, so the refusal is asserted on the
+    # redirect target and alert rather than on the status.
     let!(:viewer_role) { create(:role) }
     let!(:non_admin) { create(:acl_user, first_name: 'View', last_name: 'Only') }
 
@@ -182,13 +264,23 @@ RSpec.describe Admin::Idp::InactiveUsersController, type: :request, if: AuthMeth
 
       expect(target.reload.active).to be false
       expect(a_request(:put, target_url)).not_to have_been_made
-      expect(response).to have_http_status(:redirect)
+      expect(response).to redirect_to(root_path)
+      expect(flash[:alert]).to include('Sorry you are not authorized to do that')
     end
 
     it 'refuses to list inactive users' do
       get admin_inactive_users_path
 
-      expect(response).to have_http_status(:redirect)
+      expect(response).to redirect_to(root_path)
+      expect(flash[:alert]).to include('Sorry you are not authorized to do that')
+    end
+
+    # Search is a second route into the same list, so the guard has to hold there too.
+    it 'refuses to render search results' do
+      get inactive_user_search_query_admin_inactive_users_path(id: search_query.id)
+
+      expect(response).to redirect_to(root_path)
+      expect(flash[:alert]).to include('Sorry you are not authorized to do that')
     end
   end
 end

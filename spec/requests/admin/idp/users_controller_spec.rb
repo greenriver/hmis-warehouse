@@ -8,6 +8,7 @@
 
 require 'rails_helper'
 require 'webmock/rspec'
+require 'nokogiri'
 
 # JWT-arm admin user management. These assertions require the app to have booted under
 # AUTH_METHOD=jwt (the dedicated CI step), where the route-level seam mounts
@@ -218,6 +219,52 @@ RSpec.describe Admin::Idp::UsersController, type: :request, if: AuthMethod.jwt? 
       unlinked = create(:acl_user, first_name: 'Unlinked', last_name: 'User')
       get admin_users_path
       expect(response.body).not_to include(expire_password_admin_user_path(unlinked))
+    end
+  end
+
+  # Search results are reached by a separate route from the browse page, and `perform_search` ends in
+  # `render :index`, so the controller that handles the route decides which arm's page the admin sees.
+  # See the route declaration in config/routes.rb.
+  describe 'GET search' do
+    let(:search_query) { create(:grda_warehouse_client_search_query, created_by: admin_user, params: { q: 'Target' }) }
+
+    # Routed at the Devise arm's controller this raised NameError on
+    # app/views/admin/users/index.haml's unconditional new_user_invitation_path, which is not routed
+    # under JWT — so the 200 is the assertion, not incidental setup.
+    it 'renders the JWT arm’s page rather than raising on a Devise-only route helper' do
+      get user_search_query_admin_users_path(id: search_query.id)
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include(target.email)
+      # The create button is the arm's marker: this arm links its own form, the Devise arm links the
+      # invitation flow.
+      expect(response.body).to include(new_admin_user_path)
+    end
+
+    it 'offers the IdP-worded password reset, not the Devise arm’s immediate-logout wording' do
+      get user_search_query_admin_users_path(id: search_query.id)
+
+      expect(response.body).to include('will be required to choose a new password on next login')
+      expect(response.body).not_to include('will be immediately logged out')
+    end
+
+    # Anchored on the linked user being listed, because an empty table satisfies the exclusion on its
+    # own and a scope narrowed to nothing would read as a pass.
+    it 'stays scoped to active users' do
+      inactive = create(:acl_user, first_name: 'Target', last_name: 'Inactive', active: false)
+
+      get user_search_query_admin_users_path(id: search_query.id)
+
+      listed = Nokogiri::HTML(response.body).css('tbody').text
+      expect(listed).to include(target.email)
+      expect(listed).not_to include(inactive.email)
+    end
+
+    it 'reports a missing search query rather than rendering an empty result set' do
+      get user_search_query_admin_users_path(id: SecureRandom.uuid)
+
+      expect(response).to redirect_to(admin_users_path)
+      expect(flash[:error]).to eq('Search query not found')
     end
   end
 
@@ -544,6 +591,16 @@ RSpec.describe Admin::Idp::UsersController, type: :request, if: AuthMethod.jwt? 
 
       expect(a_request(:put, target_url)).not_to have_been_made
       expect(response).to have_http_status(:redirect)
+    end
+
+    # Search is a second route into the same list, so the guard has to hold there too.
+    it 'refuses to render search results' do
+      search_query = create(:grda_warehouse_client_search_query, created_by: admin_user, params: { q: 'Target' })
+
+      get user_search_query_admin_users_path(id: search_query.id)
+
+      expect(response).to redirect_to(root_path)
+      expect(flash[:alert]).to include('Sorry you are not authorized to do that')
     end
 
     it 'refuses to render the edit form' do
