@@ -14,6 +14,13 @@ require_relative 'login_and_permissions'
 # path returns JSON (the SPA contract) rather than an HTML redirect/render. The JWT examples run
 # only under the AUTH_METHOD=jwt CI process (they lean on the JwtAuthenticationHelper sign_in,
 # included only when AuthMethod.jwt?).
+#
+# find_or_create_from_jwt is deliberately NOT stubbed: sign_in provisions a real
+# Idp::UserAuthenticationSource for the token's (connector_id, connector_user_id), so the real
+# Idp::UserProvisioner resolves the holder off the token's own claims. Pinning the return value
+# would make token→holder resolution unfalsifiable — resolving the wrong user, or ignoring the
+# token entirely, would still pass. The one exception is the no-warehouse-account example, which
+# stubs nil to force a branch that has no reachable fixture.
 RSpec.describe 'HMIS JWT wiring', type: :request, if: AuthMethod.jwt? do
   let(:ds) { create :hmis_primary_data_source }
   let(:headers) { { 'HOST' => ds.hmis } }
@@ -21,26 +28,30 @@ RSpec.describe 'HMIS JWT wiring', type: :request, if: AuthMethod.jwt? do
   describe 'authentication via a forwarded JWT' do
     it 'admits an authenticated JWT request through the filter chain (POST session_keepalive → 200)' do
       user = create(:hmis_user)
-      # idp_token_holder resolves the holder via find_or_create_from_jwt; pin it so resolution is
-      # deterministic (token→user correctness is covered by Idp::JwtCurrentUser's own spec).
-      allow(User).to receive(:find_or_create_from_jwt).and_return(User.find(user.id))
       sign_in(user)
 
       post hmis_session_keepalive_path, headers: headers
 
       expect(response).to have_http_status(:ok)
       expect(JSON.parse(response.body)).to include('success' => true)
+      # The holder resolved off the token's claims, not off whichever user the DB happened to
+      # return: set_app_user_header reports current_hmis_user, so this is what makes the
+      # unstubbed resolution above load-bearing.
+      expect(response.headers['X-app-user-id'].to_s).to eq(user.id.to_s)
     end
 
-    it 'admits the frontend\'s plain credentialed GET session_keepalive (no CSRF header)' do
+    # GET rather than POST because SessionKeepalivesController aliases show to create, and the SPA
+    # polls the GET. Not a CSRF assertion — config.action_controller.allow_forgery_protection is
+    # false in test, and Rails never verifies the token on GET anyway.
+    it 'admits the aliased GET session_keepalive as well as the POST' do
       user = create(:hmis_user)
-      allow(User).to receive(:find_or_create_from_jwt).and_return(User.find(user.id))
       sign_in(user)
 
       get hmis_session_keepalive_path, headers: headers
 
       expect(response).to have_http_status(:ok)
       expect(JSON.parse(response.body)).to include('success' => true)
+      expect(response.headers['X-app-user-id'].to_s).to eq(user.id.to_s)
     end
 
     # Not a JSON 401: nothing authenticates its own callers here, so a tokenless request means the
@@ -53,6 +64,9 @@ RSpec.describe 'HMIS JWT wiring', type: :request, if: AuthMethod.jwt? do
     # A good token whose holder has no warehouse account does get JSON, but 403 rather than 401:
     # signing in again can't produce an account.
     it 'returns a JSON 403 for a good token whose holder has no warehouse account' do
+      # The one stubbed resolution in the file: Idp::UserProvisioner returns nil only when neither
+      # the connector link nor the email matches, and sign_in provisions both, so there is no
+      # fixture that reaches this branch for real.
       allow(User).to receive(:find_or_create_from_jwt).and_return(nil)
       sign_in(create(:hmis_user))
 
@@ -83,7 +97,6 @@ RSpec.describe 'HMIS JWT wiring', type: :request, if: AuthMethod.jwt? do
 
     it 'returns a JSON 403 for a locally-deactivated token holder (active = false)' do
       inactive = create(:hmis_user, active: false)
-      allow(User).to receive(:find_or_create_from_jwt).and_return(User.find(inactive.id))
       sign_in(inactive)
 
       post hmis_session_keepalive_path, headers: headers
@@ -93,10 +106,32 @@ RSpec.describe 'HMIS JWT wiring', type: :request, if: AuthMethod.jwt? do
     end
   end
 
+  # The only route in this file that skips authenticate_hmis_user! (Hmis::UsersController:10), so
+  # it is the one place where "no usable user" has to answer 200-with-no-user instead of raising or
+  # rendering a JSON error. It's the SPA's bootstrap probe, and oauth2-proxy lists it as a
+  # skip_auth_route, so it legitimately arrives with no token at all.
   describe 'GET /hmis/user.json' do
+    it 'answers 200 with no user for a tokenless request, rather than raising as guarded routes do' do
+      get hmis_user_path, headers: headers
+
+      expect(response).to have_http_status(:ok)
+      # Not merely "no id": the whole payload, so a future change that leaks another user's
+      # values onto the signed-out bootstrap fails here.
+      expect(JSON.parse(response.body)).to eq('impersonating' => false)
+      expect(response.headers['X-app-user-id']).to be_blank
+    end
+
+    it 'answers 200 with no user for a deactivated holder, rather than the JSON 403 guarded routes return' do
+      sign_in(create(:hmis_user, active: false))
+
+      get hmis_user_path, headers: headers
+
+      expect(response).to have_http_status(:ok)
+      expect(JSON.parse(response.body)).to eq('impersonating' => false)
+    end
+
     it 'reflects the actual primaryIdp connector value, not just its presence' do
       user = create(:hmis_user)
-      allow(User).to receive(:find_or_create_from_jwt).and_return(User.find(user.id))
       sign_in(user)
       # sign_in (JwtAuthenticationHelper) provisions a real Authentication Source and sets
       # last_connector_id on the user; assert against that value rather than a hardcoded
@@ -126,8 +161,7 @@ RSpec.describe 'HMIS JWT wiring', type: :request, if: AuthMethod.jwt? do
 
     before do
       # The JWT holder is always the admin; impersonation targets are re-fetched from the session by
-      # id, not from the token (so a single pinned holder exercises the whole round-trip).
-      allow(User).to receive(:find_or_create_from_jwt).and_return(User.find(admin_user.id))
+      # id, not from the token, so one holder exercises the whole round-trip.
       sign_in(admin_user)
     end
 
@@ -163,12 +197,67 @@ RSpec.describe 'HMIS JWT wiring', type: :request, if: AuthMethod.jwt? do
       expect(JSON.parse(response.body)['id']).to eq(admin_user.id.to_s)
       expect(controller.current_hmis_user).to eq(admin_user)
     end
+
+    # The header comment above claims the next request re-VALIDATES the stored impersonation, but
+    # the round-trip above only proves it re-resolves. Without this example, deleting the
+    # idp_validate_impersonation_permissions guard (Idp::JwtAuthentication:218) leaves the whole
+    # file green, and an admin whose can_impersonate_users? was revoked keeps reading a client's
+    # record as that client for the life of the session.
+    it 'drops the stored impersonation once the admin loses can_impersonate_users?' do
+      post hmis_impersonations_path, params: { user_id: target_user.id }, headers: headers
+      expect(response).to have_http_status(:ok)
+      # Guard against a vacuous pass below: the impersonation really is in force first.
+      get hmis_user_path, headers: headers
+      expect(controller.current_hmis_user).to eq(target_user)
+
+      # Revoke through the role that granted it, using the suite's own helper, rather than stubbing
+      # can_impersonate_users? — so the real permission lookup is what changes its mind.
+      remove_permissions(admin_user.access_controls.first, :can_impersonate_users)
+      expect(Hmis::User.find(admin_user.id).can_impersonate_users?).to eq(false)
+
+      get hmis_user_path, headers: headers
+
+      expect(response).to have_http_status(:ok)
+      expect(controller.current_hmis_user).to eq(admin_user)
+      expect(controller.impersonating?).to eq(false)
+      expect(JSON.parse(response.body)['id']).to eq(admin_user.id.to_s)
+    end
+
+    # idp_sync_session_principal! (Idp::JwtAuthentication:161) is what keeps a browser's session from
+    # carrying across holders. Nothing else rotates the Rails session under JWT — there is no
+    # sign-in event — so the session id is what PaperTrail and Hmis::ActivityLog would keep
+    # attributing the new holder's actions to.
+    #
+    # The session ID is the assertion that makes this example load-bearing. Asserting only that the
+    # impersonation didn't carry over does NOT work: the belt-and-braces true_user_id check at
+    # Idp::JwtAuthentication:207-210 clears a foreign impersonation on its own, so deleting
+    # `reset_session if stamped.present?` still yields the right current_hmis_user. Verified by
+    # mutation — that version of this example stayed green.
+    it 'rotates the session id when a different token holder arrives on the same cookie' do
+      post hmis_impersonations_path, params: { user_id: target_user.id }, headers: headers
+      expect(response).to have_http_status(:ok)
+      admin_session_id = session.id.to_s
+      expect(admin_session_id).to be_present
+
+      # A second holder, same cookie jar: sign_in swaps the forwarded token but leaves the
+      # @session_headers the helper has been carrying.
+      other_user = create(:hmis_user, data_source: ds)
+      sign_in(other_user)
+
+      get hmis_user_path, headers: headers
+
+      expect(response).to have_http_status(:ok)
+      expect(session.id.to_s).not_to eq(admin_session_id)
+      expect(session[Idp::JwtAuthentication::SESSION_PRINCIPAL_KEY]).to eq(other_user.id)
+      # And the previous holder's impersonation is gone rather than inherited.
+      expect(controller.current_hmis_user).to eq(other_user)
+      expect(controller.impersonating?).to eq(false)
+    end
   end
 
   describe 'logout' do
     it 'returns the oauth2-proxy sign-out URL as a JSON redirect_url, not an HTTP redirect' do
       user = create(:hmis_user)
-      allow(User).to receive(:find_or_create_from_jwt).and_return(User.find(user.id))
       sign_in(user)
 
       delete destroy_hmis_user_session_path, headers: headers
@@ -185,7 +274,6 @@ RSpec.describe 'HMIS JWT wiring', type: :request, if: AuthMethod.jwt? do
       create_access_control(admin_user, ds, with_permission: [:can_impersonate_users], user_group: user_group)
       target_user = create(:hmis_user, data_source: ds).tap { |u| user_group.add(u) }
 
-      allow(User).to receive(:find_or_create_from_jwt).and_return(User.find(admin_user.id))
       sign_in(admin_user)
 
       post hmis_impersonations_path, params: { user_id: target_user.id }, headers: headers
@@ -222,7 +310,6 @@ RSpec.describe 'HMIS JWT wiring', type: :request, if: AuthMethod.jwt? do
       end
 
       def start_session(as: user)
-        allow(User).to receive(:find_or_create_from_jwt).and_return(User.find(as.id))
         sign_in(as)
         get hmis_session_keepalive_path, headers: headers
         expect(response).to have_http_status(:ok)
@@ -301,25 +388,36 @@ RSpec.describe 'HMIS JWT wiring', type: :request, if: AuthMethod.jwt? do
         expect_signed_out_normally
       end
 
+      # The real NullService, not the double. Its logout_user_sessions RAISES (Idp::NullService:53),
+      # so this is what proves the supports_session_logout? guard runs before the call rather than
+      # after: drop the guard and this goes red with a 500 sign_out_failed.
       it 'signs out normally, without attempting a call, for an unknown connector (NullService)' do
         allow(Idp::ServiceFactory).to receive(:for_connector).with('test').and_call_original
         start_session
 
         delete destroy_hmis_user_session_path, headers: headers
 
-        expect(idp_service).not_to have_received(:logout_user_sessions)
+        expect(Idp::ServiceFactory).to have_received(:for_connector).with('test')
         expect_signed_out_normally
       end
 
-      it 'signs out normally, without attempting a call, when the token carries no connector claim' do
+      # Not "signs out normally": a token with no connector claim can't authenticate at all, because
+      # Idp::UserProvisioner requires the claim to resolve a holder and authenticate_hmis_user! runs
+      # before the sign-out action. So the blank-connector guard in idp_end_token_holder_sessions
+      # (Idp::JwtAuthentication:100) is defensive only — unreachable through a controller. Asserting
+      # "signed out normally, no call" here would have described behavior the app doesn't have.
+      it 'never reaches sign-out for a token with no connector claim: the request fails to authenticate' do
         start_session
         # sign_in memoizes one JwtHelper double per token, so this is the object the request reads.
         allow(Idp::JwtHelper.new(access_token: jwt_token)).to receive(:connector_id).and_return(nil)
 
         delete destroy_hmis_user_session_path, headers: headers
 
-        expect(idp_service).not_to have_received(:logout_user_sessions)
-        expect_signed_out_normally
+        expect(response).to have_http_status(:forbidden)
+        expect(JSON.parse(response.body).dig('error', 'type')).to eq('no_warehouse_account')
+        # The guard the previous wording claimed to cover: the factory is never consulted, so this
+        # can't pass by falling through to a NullService the way the old assertion could.
+        expect(Idp::ServiceFactory).not_to have_received(:for_connector).with('test')
       end
 
       # The whole reason the id comes off the token: current_hmis_user is the impersonated user here,
