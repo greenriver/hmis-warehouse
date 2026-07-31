@@ -9,36 +9,49 @@
 require 'rails_helper'
 
 RSpec.describe Hmis::Role, type: :model do
-  describe '.required_permissions_for' do
-    it 'returns just the permission when it has no requirements' do
-      expect(described_class.required_permissions_for(:can_view_project)).to eq([:can_view_project])
+  # Requirements are resolved recursively when a user's permissions are evaluated
+  # (Hmis::AuthPolicies::ContextLoaders::HmisPermissionLoader), which raises on a cycle.
+  # These specs catch a bad config here rather than on every request that checks permissions.
+  describe 'permission requirements' do
+    let(:requirements) do
+      described_class.permissions_with_descriptions.transform_values { |config| config[:requirements] || [] }
     end
 
-    it 'includes direct requirements' do
-      expect(described_class.required_permissions_for(:can_view_enrollment_details)).
-        to contain_exactly(:can_view_enrollment_details, :can_view_project, :can_view_clients)
+    # Permissions reachable by following requirements from the given permission.
+    # Includes the permission itself only when it participates in a cycle.
+    def reachable_requirements(permission)
+      reachable = Set.new
+      unresolved = requirements.fetch(permission).dup
+
+      while (perm = unresolved.shift)
+        next unless reachable.add?(perm)
+
+        unresolved.concat(requirements.fetch(perm, []))
+      end
+
+      reachable
     end
 
-    it 'includes requirements of requirements' do
-      # can_delete_enrollments -> can_edit_enrollments -> can_view_enrollment_details -> project, clients
-      expect(described_class.required_permissions_for(:can_delete_enrollments)).
-        to contain_exactly(
-          :can_delete_enrollments,
-          :can_edit_enrollments,
-          :can_view_enrollment_details,
-          :can_view_project,
-          :can_view_clients,
-        )
+    def cyclic_permissions
+      requirements.keys.select { |permission| reachable_requirements(permission).include?(permission) }
     end
 
-    it 'returns each permission once' do
-      permissions = described_class.required_permissions_for(:can_enroll_clients)
-      expect(permissions).to eq(permissions.uniq)
+    it 'reference only permissions that exist' do
+      expect(requirements.values.flatten.uniq - described_class.permissions).to be_empty
     end
 
-    it 'raises on an unknown permission' do
-      expect { described_class.required_permissions_for(:can_do_something_nonexistent) }.
-        to raise_error(/unknown permission/)
+    it 'contain no cycles' do
+      expect(cyclic_permissions).to be_empty
+    end
+
+    it 'would report a cycle if one were introduced' do
+      allow(described_class).to receive(:permissions_with_descriptions).and_return(
+        can_view_project: { requirements: [:can_view_clients] },
+        can_view_clients: { requirements: [:can_view_project] },
+        can_administer_hmis: {},
+      )
+
+      expect(cyclic_permissions).to contain_exactly(:can_view_project, :can_view_clients)
     end
   end
 end

@@ -131,29 +131,6 @@ class Hmis::Role < ::ApplicationRecord
     @fg_color ||= GrdaWarehouse::SystemColor.new.calculated_foreground_color(bg_color)
   end
 
-  # Returns a list of permissions that are required for a given permission (including the permission itself).
-  # For example, can_edit_enrollments requires can_view_enrollment_details, which in turn requires
-  # can_view_project and can_view_clients.
-  #
-  # HmisPermissionLoader resolves requirements recursively when evaluating a user's permissions, so
-  # each permission below only declares its direct requirements. This flattened form is for callers
-  # that match Role columns directly and can't resolve requirements themselves, i.e.
-  # `with_access(..., mode: :all)` scopes.
-  def self.required_permissions_for(permission)
-    config = permissions_with_descriptions
-    resolved = []
-    unresolved = [permission]
-
-    while (perm = unresolved.shift)
-      next if resolved.include?(perm) # also guards against requirement cycles
-
-      resolved << perm
-      unresolved.concat(config.fetch(perm) { raise "unknown permission #{perm.inspect}" }[:requirements] || [])
-    end
-
-    resolved
-  end
-
   def self.permissions_with_descriptions
     {
       can_administer_hmis: {
