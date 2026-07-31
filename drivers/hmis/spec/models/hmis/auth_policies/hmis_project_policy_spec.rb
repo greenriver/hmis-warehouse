@@ -98,7 +98,7 @@ RSpec.describe Hmis::AuthPolicies::HmisProjectPolicy, type: :model do
 
   describe '#can_view_enrollment_details?' do
     it 'returns true if user can view enrollment details' do
-      create_access_control(user, project, with_permission: [:can_view_enrollment_details, :can_view_project])
+      create_access_control(user, project, with_permission: [*enrollment_visibility_permissions])
       expect(policy.can_view_enrollment_details?).to be true
     end
 
@@ -115,7 +115,7 @@ RSpec.describe Hmis::AuthPolicies::HmisProjectPolicy, type: :model do
 
   describe '#can_edit_enrollments?' do
     it 'returns true if user can edit enrollments' do
-      create_access_control(user, project, with_permission: [:can_edit_enrollments, :can_view_enrollment_details, :can_view_project])
+      create_access_control(user, project, with_permission: [:can_edit_enrollments, *enrollment_visibility_permissions])
       expect(policy.can_edit_enrollments?).to be true
     end
 
@@ -125,7 +125,7 @@ RSpec.describe Hmis::AuthPolicies::HmisProjectPolicy, type: :model do
     end
 
     it 'returns false if user can view but not edit' do
-      create_access_control(user, project, with_permission: [:can_view_enrollment_details, :can_view_project])
+      create_access_control(user, project, with_permission: [*enrollment_visibility_permissions])
       expect(policy.can_edit_enrollments?).to be false
     end
 
@@ -134,7 +134,7 @@ RSpec.describe Hmis::AuthPolicies::HmisProjectPolicy, type: :model do
     it 'returns false when edit and its requirements are split across projects' do
       other_project = create(:hmis_hud_project, organization: organization, data_source: data_source)
       create_access_control(user, project, with_permission: [:can_edit_enrollments])
-      create_access_control(user, other_project, with_permission: [:can_view_enrollment_details, :can_view_project])
+      create_access_control(user, other_project, with_permission: [:can_view_enrollment_details, :can_view_project, :can_view_clients])
 
       expect(policy.can_edit_enrollments?).to be false
       expect(policy.can_view_enrollment_details?).to be false
