@@ -62,9 +62,6 @@ env:
   REPORTING_DATABASE_DB: reporting_test
   LOG_LEVEL: INFO
   TODO_OR_DIE_LOG_ONLY: true
-  AWS_ACCESS_KEY_ID: local_access_key
-  AWS_SECRET_ACCESS_KEY: local_secret_key
-  AWS_REGION: us-east-1
   # LSA integration test config: point the generator at the mssql service and
   # skip all AWS RDS API calls. NO_LSA_RDS is intentionally left unset so the
   # real Rds/SqlServerBase are loaded (spec helpers, which force it on, are not
@@ -172,6 +169,14 @@ jobs:
           flags: --recursive
 
       - name: Run LSA integration test
+        env:
+          # MinIO placeholder creds for the app's own S3-backed storage; scoped to
+          # this step only so they don't shadow the real AWS_S3_* secrets used by
+          # the "Fetch LSA sample data" step above (AWS CLI env vars take
+          # precedence over the `aws configure set` credentials that step writes).
+          AWS_ACCESS_KEY_ID: local_access_key
+          AWS_SECRET_ACCESS_KEY: local_secret_key
+          AWS_REGION: us-east-1
         run: bundle exec rake driver:hud_lsa:ci_integration_test
 
       - name: Upload generated LSA output
