@@ -53,6 +53,19 @@ RSpec.describe Idp::AccountEmailsController, type: :request, if: AuthMethod.jwt?
       to raise_error(ActionController::RoutingError)
   end
 
+  # Both actions run on current_user, so an unguarded route wouldn't expose another user's address —
+  # it would run on nil. Asserting the raise rather than a redirect is what shows authenticate_user!
+  # ran ahead of the action; the gate itself is covered in warehouse_jwt_wiring_spec.rb.
+  describe 'with no forwarded token' do
+    it 'refuses the read-only tab' do
+      expect { get edit_account_email_path }.to raise_error(Idp::UnauthenticatedRequestError)
+    end
+
+    it 'refuses to start a change' do
+      expect { post begin_change_account_email_path }.to raise_error(Idp::UnauthenticatedRequestError)
+    end
+  end
+
   describe 'when the IdP offers email self-service (Keycloak)' do
     # Every render reads the account back, so the baseline holds the address we already have.
     # Contexts exercising a change override it.
@@ -241,11 +254,27 @@ RSpec.describe Idp::AccountEmailsController, type: :request, if: AuthMethod.jwt?
         expect(ActionMailer::Base.deliveries).to be_empty
       end
 
+      # any_instance because the controller resolves its own User from the token, so the spec's
+      # `user` is a different instance.
       it 'syncs HUD users with the previous email when HMIS is enabled' do
         allow(HmisEnforcement).to receive(:hmis_enabled?).and_return(true)
         expect_any_instance_of(User).to receive(:sync_to_hud_users).with(previous_email: 'before@example.com')
 
         get edit_account_email_path(kc_action_status: 'success')
+
+        expect(user.reload.email).to eq('after@example.com')
+      end
+
+      # Adopting the address without the HUD rows would leave HMIS rows keyed on an email we no
+      # longer hold, and nothing retries it. See the controller for why the transactions are nested.
+      it 'unwinds the adopted address when the HUD sync fails' do
+        allow(HmisEnforcement).to receive(:hmis_enabled?).and_return(true)
+        allow_any_instance_of(User).to receive(:sync_to_hud_users).and_raise(StandardError, 'HUD sync failed')
+
+        expect { get edit_account_email_path(kc_action_status: 'success') }.
+          to raise_error(StandardError, 'HUD sync failed')
+
+        expect(user.reload.email).to eq('before@example.com')
       end
 
       # A cancelled action leaves the IdP holding the old address, and that is what keeps us off it —
@@ -358,6 +387,10 @@ RSpec.describe Idp::AccountEmailsController, type: :request, if: AuthMethod.jwt?
       expect(response).to have_http_status(:ok)
       expect(user.reload.email).to eq('before@example.com')
     end
+
+    it 'refuses to start a change' do
+      expect { post begin_change_account_email_path }.to raise_error(RuntimeError, /not enabled/)
+    end
   end
 
   describe 'when the IdP offers no email self-service (unconfigured => NullService)' do
@@ -388,6 +421,12 @@ RSpec.describe Idp::AccountEmailsController, type: :request, if: AuthMethod.jwt?
       expect(user.reload.email).to eq('before@example.com')
       expect(a_request(:any, /#{Regexp.escape(api_url)}/)).not_to have_been_made
       expect(flash[:alert]).to be_blank
+    end
+
+    # Nothing renders the control here, but the route still accepts a POST, and there is no action
+    # URL to send the browser to.
+    it 'refuses to start a change' do
+      expect { post begin_change_account_email_path }.to raise_error(RuntimeError, /not enabled/)
     end
   end
 end
