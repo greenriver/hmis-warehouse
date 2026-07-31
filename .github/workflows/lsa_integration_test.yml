@@ -177,6 +177,9 @@ jobs:
           AWS_ACCESS_KEY_ID: local_access_key
           AWS_SECRET_ACCESS_KEY: local_secret_key
           AWS_REGION: us-east-1
+          # Exercise the RelationshipToHoH data quality check against the HUD
+          # sample data's unmodified 99s; production keeps converting them to 5.
+          LSA_SKIP_RELATIONSHIP_TO_HOH_CLEANUP: "true"
         run: bundle exec rake driver:hud_lsa:ci_integration_test
 
       - name: Upload generated LSA output
