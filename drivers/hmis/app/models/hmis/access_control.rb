@@ -7,7 +7,7 @@
 # frozen_string_literal: true
 
 # HMIS uses similar but separate permissions system from the warehouse
-# See drivers/hmis/doc/PERMISSIONS.md
+# @see docs/features/hmis-permissions.md
 
 class Hmis::AccessControl < ApplicationRecord
   acts_as_paranoid

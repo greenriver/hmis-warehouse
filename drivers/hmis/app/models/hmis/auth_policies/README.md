@@ -159,3 +159,9 @@ end
 - **Memoization**: All expensive operations are memoized at the UserContext level
 - **Bulk Loading**: Context can support preloading pages of records to avoid N+1 queries
 - **Request Scope**: UserContext is created once per request and reused
+
+## Related Documentation
+
+- [HMIS Permissions](../../../../../../docs/features/hmis-permissions.md) — the underlying role, collection, and user group model, and how permission requirements are resolved
+- [ADR 0006: Policy-Based GraphQL `access` Fields](../../../../../../docs/adr/0006-policy-based-graphql-access-fields.md)
+- [Multi-HMIS support](../../../../../../docs/architecture/multi-hmis-support.md)
