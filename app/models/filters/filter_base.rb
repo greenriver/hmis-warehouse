@@ -456,7 +456,10 @@ module Filters
         opts[label(:sub_population, labels)] = chosen_sub_population
         opts[label(:data_sources, labels)] = data_source_names if data_source_ids.any?
         opts[label(:organizations, labels)] = organization_names if organization_ids.any?
-        opts[label(:projects, labels)] = project_names(project_ids) if project_ids.any?
+        # Show the actual (e.g. CoC/funder-narrowed) project set the report will
+        # run against, not the raw picks, so this agrees with both the live
+        # "N Projects Included" count on the new-report page and the report run itself.
+        opts[label(:projects, labels)] = project_names(effective_project_ids) if project_ids.any?
         opts[label(:project_groups, labels)] = project_groups if project_group_ids.any?
         opts[label(:funders, labels)] = funder_names if funder_ids.any?
         opts[label(:funder_others, labels)] = funder_others if funder_others.any?
@@ -827,24 +830,24 @@ module Filters
       HudHelper.util.project_type_group_titles.select { |k, _| k.in?(default_project_type_codes) }.invert.freeze
     end
 
-    def project_options_for_select(user:, ids: nil)
-      all_project_scope.options_for_select(user: user, ids: ids)
+    def project_options_for_select(user:, ids: nil, permission: :can_view_assigned_reports)
+      all_project_scope.options_for_select(user: user, ids: ids, permission: permission)
     end
 
-    def organization_options_for_select(user:, ids: nil)
-      all_organizations_scope.distinct.options_for_select(user: user, ids: ids)
+    def organization_options_for_select(user:, ids: nil, permission: :can_view_assigned_reports)
+      all_organizations_scope.distinct.options_for_select(user: user, ids: ids, permission: permission)
     end
 
-    def data_source_options_for_select(user:, ids: nil)
-      all_data_sources_scope.options_for_select(user: user, ids: ids)
+    def data_source_options_for_select(user:, ids: nil, permission: :can_view_assigned_reports)
+      all_data_sources_scope.options_for_select(user: user, ids: ids, permission: permission)
     end
 
-    def funder_options_for_select(user:, funder_codes: nil)
-      all_funders_scope.options_for_select(user: user, funder_codes: funder_codes)
+    def funder_options_for_select(user:, funder_codes: nil, permission: :can_view_assigned_reports)
+      all_funders_scope.options_for_select(user: user, funder_codes: funder_codes, permission: permission)
     end
 
-    def funder_other_options_for_select(user:)
-      all_funders_scope.options_for_select_other(user: user)
+    def funder_other_options_for_select(user:, permission: :can_view_assigned_reports)
+      all_funders_scope.options_for_select_other(user: user, permission: permission)
     end
 
     def coc_code_options_for_select(user:, permission: :can_view_assigned_reports)
@@ -1055,7 +1058,10 @@ module Filters
       @available_coc_codes ||= begin
         return GrdaWarehouse::Hud::ProjectCoc.distinct.pluck(GrdaWarehouse::Hud::ProjectCoc.coc_code_coalesce) if user.system_user?
 
-        GrdaWarehouse::Lookups::CocCode.viewable_by(user).distinct.pluck(:coc_code)
+        # Must match the permission used to populate the coc_codes select
+        # (coc_code_options_for_select) or submitted codes get silently
+        # filtered out here and validation fails with "can't be blank".
+        GrdaWarehouse::Lookups::CocCode.viewable_by(user, permission: :can_view_assigned_reports).distinct.pluck(:coc_code)
       end
     end
 
@@ -1361,9 +1367,12 @@ module Filters
     def chosen_projects
       return nil unless project_ids.reject(&:blank?).present?
 
+      # Use effective_project_ids (not the raw picks) so this agrees with both
+      # the live "N Projects Included" count on the new-report page and the
+      # report run itself, both of which narrow by CoC/funder/etc.
       # OK to use non-confidentialized ProjectName because confidential projects
       # are only select-able if user has permission to view their names
-      GrdaWarehouse::Hud::Project.where(id: project_ids).pluck(:ProjectName)
+      GrdaWarehouse::Hud::Project.where(id: effective_project_ids).pluck(:ProjectName)
     end
 
     def chosen_excluded_projects

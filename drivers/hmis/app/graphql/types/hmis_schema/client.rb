@@ -156,6 +156,7 @@ module Types
 
       # Instance policy; resource is the loaded record
       bool_field(:can_view_client_name) { policy.can_view_name? }
+      bool_field(:can_view_enrollment_details) { policy.can_view_some_enrollment_details? }
 
       # Global policy; resource is the class
       bool_field(:can_merge_clients) { global_policy.can_merge_clients? }
@@ -168,7 +169,6 @@ module Types
       can :view_full_ssn
       can :view_client_photo
       can :view_dob
-      can :view_enrollment_details
       can :delete_clients, field_name: :can_delete_client
       can :edit_clients, field_name: :can_edit_client
 
@@ -205,7 +205,7 @@ module Types
       # "limited access" enrollments (if permitted). The purpose is to show additional enrollment history
       # for "my" clients, but not for other clients in the system that I can see.
       # This would need to change if we wanted to support the ability to see limited enrollment details for all clients.
-      has_some_detailed_access = current_permission?(permission: :can_view_enrollment_details, entity: object)
+      has_some_detailed_access = policy_for(object, policy_type: :hmis_client).can_view_some_enrollment_details?
       scope = object.enrollments.viewable_by(current_user, include_limited_access_enrollments: has_some_detailed_access)
       resolve_enrollments(scope, **args, dangerous_skip_permission_check: true)
     end

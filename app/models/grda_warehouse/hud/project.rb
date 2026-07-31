@@ -954,11 +954,11 @@ module GrdaWarehouse::Hud
       )
     end
 
-    def self.options_for_select(user:, scope: nil, ids: nil)
+    def self.options_for_select(user:, scope: nil, ids: nil, permission: :can_view_projects)
       # don't cache this, it's a class method
       @options = begin
         options = {}
-        project_scope = viewable_by(user)
+        project_scope = viewable_by(user, permission: permission)
         project_scope = project_scope.merge(scope) unless scope.nil?
         project_scope = project_scope.merge(non_confidential) unless user.can_view_confidential_project_names?
         project_scope = project_scope.where(id: ids) if ids.present?

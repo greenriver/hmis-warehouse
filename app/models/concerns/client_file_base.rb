@@ -46,8 +46,8 @@ module ClientFileBase
     end
 
     scope :client_photos, -> do
-      # NOTE: tagged_with does not work correctly in testing
-      # tagged_with('Client Headshot')
+      # Query the taggings directly rather than via `tagged_with` so this matches the
+      # headshot tag across File STI subclasses regardless of taggable_type.
       tag_id = ActsAsTaggableOn::Tag.where(
         name: headshot_tag_name,
       ).pluck(:id)
