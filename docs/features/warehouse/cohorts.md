@@ -43,7 +43,7 @@ Inactivity does not remove a client from the cohort but may remove them from cer
 
 **How it works:**
 
-1. **Service History Foundation**: Service History generates daily `ServiceHistoryService` records for each client's enrollments (see [Service History documentation](./service_history.md))
+1. **Service History Foundation**: Service History generates daily `ServiceHistoryService` records for each client's enrollments (see [Service History documentation](./service-history.md))
 
 2. **Cached Aggregation**: A nightly job aggregates service history data into the `WarehouseClientsProcessed` table, computing:
    - `last_homeless_date`: Most recent date with a homeless service
@@ -63,7 +63,7 @@ Inactivity does not remove a client from the cohort but may remove them from cer
 - Auto-maintained system cohorts (like "Currently Homeless") may automatically remove clients when they become inactive
 - The cached data in `WarehouseClientsProcessed` is periodically via `Cohort.prepare_active_cohorts`. So changes in service history may not immediately affect cohorts.
 
-For a detailed explanation of how the Service History is generated and how it impacts client activity, please see the [Service History documentation](./service_history.md).
+For a detailed explanation of how the Service History is generated and how it impacts client activity, please see the [Service History documentation](./service-history.md).
 
 ## User Workflow
 

@@ -6,7 +6,7 @@
 
 # frozen_string_literal: true
 
-# @see docs/features/warehouse-auth-policies.md
+# @see docs/features/warehouse/warehouse-auth-policies.md
 
 # cross-policy memoized utils for Legacy user-role-based permissions
 class GrdaWarehouse::AuthPolicies::UserLegacyContext < GrdaWarehouse::AuthPolicies::UserBaseContext

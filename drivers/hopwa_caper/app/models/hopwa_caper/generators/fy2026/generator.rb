@@ -8,7 +8,7 @@
 
 # run manually with
 # Reporting::Hud::RunReportJob.new.perform(HopwaCaper::Generators::Fy2026::Generator.name, HudReports::ReportInstance.last, email:false)
-# @see docs/features/hopwa_caper.md
+# @see docs/features/warehouse/hopwa-caper.md
 module HopwaCaper::Generators::Fy2026
   class Generator < ::HudReports::GeneratorBase
     SERVICE_LOOKBACK = 15.years

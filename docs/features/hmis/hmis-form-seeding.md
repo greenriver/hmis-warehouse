@@ -30,7 +30,7 @@ An applicability rule (“Form Rule” in the UI) that binds a form definition t
 
 ## Seeding pipeline
 
-The task **`rails driver:hmis:seed_definitions`** ([`drivers/hmis/lib/tasks/setup.rake`](../../drivers/hmis/lib/tasks/setup.rake)) iterates each HMIS data source, loads form definitions, then ensures compliant form instances. This ensures that the HMIS application is HUD-compliant and has all the forms it expects.
+The task **`rails driver:hmis:seed_definitions`** ([`drivers/hmis/lib/tasks/setup.rake`](../../../drivers/hmis/lib/tasks/setup.rake)) iterates each HMIS data source, loads form definitions, then ensures compliant form instances. This ensures that the HMIS application is HUD-compliant and has all the forms it expects.
 
 1. `HmisUtil::JsonForms`: Loads JSON form files, resolves fragments, applies environment-specific patches, validates each definition, and upserts `Form::Definition` records for forms that are `managed_in_version_control`. After definitions are loaded, it invokes `HudComplianceFormInstanceMaintainer` to ensure all system form rules exist.
 
