@@ -21,9 +21,6 @@ task ce_define_ph_housing_workflows: [:environment] do
 
   builder = CeWorkflows::Ph::HousingWorkflowBuilder.new(data_source, unsafe_run_in_production: unsafe_run_in_production)
 
-  puts 'Ensuring decline reasons are in sync'
-  builder.ensure_decline_reasons
-
   puts "Creating workflow template in data source #{data_source.id} (#{data_source.name})"
   templates = []
   Hmis::Hud::Base.transaction do

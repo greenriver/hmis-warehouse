@@ -86,7 +86,7 @@
     {
       "text": "Decline Reason",
       "type": "CHOICE",
-      "link_id": "decline_reason",
+      "link_id": "case_manager_decision_decline_reason",
       "mapping": {
         "custom_field_key": "housing_workflow_case_manager_decision_decline_reason"
       },

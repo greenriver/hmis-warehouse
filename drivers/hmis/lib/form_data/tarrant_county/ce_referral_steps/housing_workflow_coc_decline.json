@@ -9,7 +9,7 @@
     {
       "text": "Decline Reason",
       "type": "CHOICE",
-      "link_id": "decline_reason",
+      "link_id": "coc_decline_reason",
       "mapping": {
         "custom_field_key": "housing_workflow_coc_decline_reason"
       },
