@@ -319,6 +319,28 @@ RSpec.describe Admin::Idp::UsersController, type: :request, if: AuthMethod.jwt? 
       end
     end
 
+    # The connector is live and manageable, so idp_deactivate! attempts a push, but there is no
+    # identity row to address and idp_connector_user_id! raises out of the transaction holding the
+    # local flip. idp_reactivate! guards on the missing row so its local change survives; deactivate
+    # does not, so the account keeps its access to the Warehouse.
+    context 'when the connector is live but the user has no identity row' do
+      before do
+        target.user_authentication_sources.destroy_all
+        allow(Sentry).to receive(:capture_exception_with_info)
+      end
+
+      it 'refuses to revoke local access, attempts no IdP call, pages Sentry, and says so' do
+        delete admin_user_path(target)
+
+        expect(target.reload.active).to be true
+        expect(a_request(:put, target_url)).not_to have_been_made
+        expect(Sentry).to have_received(:capture_exception_with_info)
+        expect(flash[:alert]).to match(/No IdP identity on file/)
+        expect(flash[:alert]).to match(/still has access/)
+        expect(flash[:notice]).to be_blank
+      end
+    end
+
     # A config that is still active but can't be turned into a service (client_id and keycloak_realm
     # aren't validated on Idp::ServiceConfig) is not the same as a connector that was retired: there
     # is an IdP holding this account that we are failing to reach. Revoking locally anyway would
@@ -567,10 +589,13 @@ RSpec.describe Admin::Idp::UsersController, type: :request, if: AuthMethod.jwt? 
   end
 
   describe 'authorization (require_can_edit_users!)' do
-    # A signed-in user whose role grants no can_edit_users. The privileged, destructive actions
-    # must be refused before any local change or IdP push, not merely hidden from the menu.
+    # A signed-in user whose role grants no can_edit_users. Every action must be refused before any
+    # local change or IdP push, not merely hidden from the menu. An unauthenticated bounce is also a
+    # redirect, so the refusal is asserted on the redirect target and alert rather than the status.
     let!(:viewer_role) { create(:role) }
     let!(:non_admin) { create(:acl_user, first_name: 'View', last_name: 'Only') }
+
+    let(:refusal) { 'Sorry you are not authorized to do that' }
 
     before do
       setup_access_control(non_admin, viewer_role, collection)
@@ -583,14 +608,57 @@ RSpec.describe Admin::Idp::UsersController, type: :request, if: AuthMethod.jwt? 
 
       expect(target.reload.active).to be true
       expect(a_request(:put, target_url)).not_to have_been_made
-      expect(response).to have_http_status(:redirect)
+      expect(response).to redirect_to(root_path)
+      expect(flash[:alert]).to include(refusal)
     end
 
     it 'refuses to force a password change and pushes nothing to the IdP' do
       patch expire_password_admin_user_path(target)
 
       expect(a_request(:put, target_url)).not_to have_been_made
-      expect(response).to have_http_status(:redirect)
+      expect(response).to redirect_to(root_path)
+      expect(flash[:alert]).to include(refusal)
+    end
+
+    # new and create carry require_user_creation_available! of their own, and create provisions an
+    # account in the remote IdP, so require_can_edit_users! has to be the filter that runs first.
+    it 'refuses to render the create form' do
+      get new_admin_user_path
+
+      expect(response).to redirect_to(root_path)
+      expect(flash[:alert]).to include(refusal)
+    end
+
+    it 'refuses to create a user and provisions nothing in the IdP' do
+      expect do
+        post admin_users_path, params: { user: { first_name: 'New', last_name: 'Bie', email: 'newbie@example.com', connector_id: connector_id } }
+      end.not_to change(User, :count)
+
+      expect(a_request(:get, users_url)).not_to have_been_made
+      expect(a_request(:post, users_url)).not_to have_been_made
+      expect(response).to redirect_to(root_path)
+      expect(flash[:alert]).to include(refusal)
+    end
+
+    it 'refuses to update a profile and pushes nothing to the IdP' do
+      patch admin_user_path(target), params: { user: { first_name: 'Hacked', email: 'hacked@example.com' } }
+
+      target.reload
+      expect(target.first_name).to eq('Target')
+      expect(target.email).not_to eq('hacked@example.com')
+      expect(a_request(:put, target_url)).not_to have_been_made
+      expect(response).to redirect_to(root_path)
+      expect(flash[:alert]).to include(refusal)
+    end
+
+    # The list itself carries every active user's email, so the guard has to hold on the plain browse
+    # page and not only on the actions reached from it.
+    it 'refuses to list users' do
+      get admin_users_path
+
+      expect(response).to redirect_to(root_path)
+      expect(flash[:alert]).to include(refusal)
+      expect(response.body).not_to include(target.email)
     end
 
     # Search is a second route into the same list, so the guard has to hold there too.
@@ -600,13 +668,15 @@ RSpec.describe Admin::Idp::UsersController, type: :request, if: AuthMethod.jwt? 
       get user_search_query_admin_users_path(id: search_query.id)
 
       expect(response).to redirect_to(root_path)
-      expect(flash[:alert]).to include('Sorry you are not authorized to do that')
+      expect(flash[:alert]).to include(refusal)
     end
 
     it 'refuses to render the edit form' do
       get edit_admin_user_path(target)
 
-      expect(response).to have_http_status(:redirect)
+      expect(response).to redirect_to(root_path)
+      expect(flash[:alert]).to include(refusal)
+      expect(response.body).not_to include(target.email)
     end
   end
 
