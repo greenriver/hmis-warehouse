@@ -8,6 +8,7 @@
 
 module WarehouseReports
   class InactiveYouthIntakesController < ApplicationController
+    include WarehouseReportAuthorization
     include AjaxModalRails::Controller
 
     before_action :set_filter

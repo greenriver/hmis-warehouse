@@ -7,7 +7,7 @@
 # frozen_string_literal: true
 
 OpenPath::Application.routes.draw do
-  resources :clients, only: [:none] do
+  resources :clients, only: [] do
     namespace :health_pctp do
       resources :careplans do
         resources :needs

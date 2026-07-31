@@ -39,6 +39,11 @@ class Hmis::AuthPolicies::HmisClientPolicy < Hmis::AuthPolicies::ResourcePolicy
       client_permissions.include?(:can_edit_enrollments)
     end
 
+    # Whether the user can view full enrollment details for at least one of this client's enrollments.
+    def can_view_some_enrollment_details?
+      client_permissions.include?(:can_view_enrollment_details)
+    end
+
     def can_index_files?
       # User can index files if they can manage own files (global perm),
       # or can view nonconfidential or confidential files for this client

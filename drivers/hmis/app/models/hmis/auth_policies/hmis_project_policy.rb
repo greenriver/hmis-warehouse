@@ -50,11 +50,25 @@ class Hmis::AuthPolicies::HmisProjectPolicy < Hmis::AuthPolicies::ResourcePolicy
       project_permissions.include?(:can_perform_any_referral_tasks) || project_permissions.include?(:can_perform_own_referral_tasks)
     end
 
+    # Whether the user can view full enrollment details at this project.
+    # Note: "can_view_enrollment_details" requires the "can_view_project" permission as a dependency,
+    # so the user must have both (enforced already by UserContext#project_permissions)
+    def can_view_enrollment_details?
+      project_permissions.include?(:can_view_enrollment_details)
+    end
+
+    # Whether the user can edit enrollments at this project.
+    # Note: "can_edit_enrollments" requires the "can_view_enrollment_details" and "can_view_project" permissions as a dependency,
+    # so the user must have all three (enforced already by UserContext#project_permissions)
+    def can_edit_enrollments?
+      project_permissions.include?(:can_edit_enrollments)
+    end
+
     # Whether the user can create a new Enrollment in the project by submitting the ENROLLMENT form.
     # TODO(#7475) - This should be updated to take permission 'can_enroll_clients' into account,
     # but leaving the legacy behavior in place for now.
     def can_create_enrollments?
-      project_permissions.include?(:can_edit_enrollments)
+      can_edit_enrollments?
     end
 
     # Whether the user can create a new Client and Enrollment in the project by submitting
