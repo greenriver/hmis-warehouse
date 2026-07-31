@@ -1084,6 +1084,11 @@ enum CeMatchRuleFieldSource {
   Custom
   """
   CUSTOM_DATA_ELEMENT
+
+  """
+  HUD
+  """
+  PSDE
 }
 
 input CeMatchRuleFilterOptions {
@@ -10387,6 +10392,11 @@ type Query {
   Custom assessment form definitions for use in CE match rule management.
   """
   ceMatchCustomAssessmentForms: [FormDefinition!]!
+
+  """
+  HUD Program Specific Data Element fields available for CE Match Rule expressions.
+  """
+  ceMatchPsdeFields: [CeMatchField!]!
   ceMatchRule(id: ID!): CeMatchRule
 
   """

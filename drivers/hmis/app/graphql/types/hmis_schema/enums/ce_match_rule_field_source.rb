@@ -18,8 +18,10 @@ module Types
     # because we will also expose CDEs with other ownership types (e.g. custom field on Client or Enrollment)
     value 'CUSTOM_DATA_ELEMENT', 'Custom'
 
+    # Program Specific Data Elements use "HUD" as their user-facing source label.
+    value 'PSDE', 'HUD'
+
     # Future choices:
-    # value 'PSDE', 'HUD Program Specific Data Element' # or "HUD Assessment", but we will likely include non-assessment-based PSDEs (like move-in date) in the same namepsace
     # value 'HOUSEHOLD', 'Household' # e.g. household size, youngest member age, etc.
   end
 end

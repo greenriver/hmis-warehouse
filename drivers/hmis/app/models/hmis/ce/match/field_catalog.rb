@@ -21,6 +21,12 @@ module Hmis::Ce::Match
       client_field_map.fields.map { |client_field| build_client_field(client_field) }
     end
 
+    # Build this catalog from the registry so newly registered PSDE fields are
+    # automatically available to both GraphQL and expression translation.
+    def psde_fields
+      Hmis::Ce::Match::Expression::PsdeFieldRegistry::ALL.map { |psde_field| build_psde_field(psde_field) }
+    end
+
     def custom_assessment_fields_for(data_source_id:, form_definition_identifier:)
       form_versions = form_versions_for(data_source_id, form_definition_identifier).to_a
       return [] if form_versions.empty?
@@ -42,6 +48,14 @@ module Hmis::Ce::Match
       field_key = field_key.to_s
       client_field = client_field_by_key[field_key.to_sym]
       return build_client_field(client_field) if client_field
+
+      # PSDE keys have one namespace segment, for example
+      # psde.total_monthly_income. Resolve the suffix through the registry so
+      # unknown keys return nil instead of producing incomplete field metadata.
+      if field_key.start_with?("#{Hmis::Ce::Match::Expression::FieldMap::PSDE}.")
+        psde_field = Hmis::Ce::Match::Expression::PsdeFieldRegistry[field_key.split('.', 2).last]
+        return psde_field && build_psde_field(psde_field)
+      end
 
       return unless field_key.start_with?("#{Hmis::Ce::Match::Expression::FieldMap::CDE}.")
 
@@ -70,6 +84,24 @@ module Hmis::Ce::Match
         source: :CLIENT,
         form_definition_identifier: nil,
         pick_list_reference: client_pick_list_reference(client_field),
+        pick_list_options: nil,
+      )
+    end
+
+    def build_psde_field(psde_field)
+      # Keep the psde.* namespace in both identifiers. Besides matching the
+      # expression syntax, this prevents collisions with client and CDED fields.
+      field_key = Hmis::Ce::Match::Expression::PsdeFieldMap.field_key_for(psde_field.key)
+
+      Field.new(
+        id: field_key,
+        label: psde_field.label,
+        item_type: item_type_for_psde_field(psde_field),
+        multiple: false,
+        field_key: field_key,
+        source: :PSDE,
+        form_definition_identifier: nil,
+        pick_list_reference: nil,
         pick_list_options: nil,
       )
     end
@@ -103,6 +135,19 @@ module Hmis::Ce::Match
         'STRING'
       else
         raise ArgumentError, "unsupported CDED field type for expression builder field #{cded.key}: #{cded.field_type}"
+      end
+    end
+
+    def item_type_for_psde_field(psde_field)
+      # PSDE registry value types are intentionally storage-agnostic; translate
+      # them into the form item types understood by the rule editor.
+      case psde_field.value_type
+      when :logical
+        'BOOLEAN'
+      when :numeric
+        'INTEGER'
+      else
+        raise ArgumentError, "unsupported value type for expression builder field #{psde_field.key}"
       end
     end
 

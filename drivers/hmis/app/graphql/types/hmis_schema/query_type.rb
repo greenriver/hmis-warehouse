@@ -725,6 +725,15 @@ module Types
       Hmis::Ce::Match::FieldCatalog.new.client_fields
     end
 
+    field :ce_match_psde_fields, [HmisSchema::CeMatchField], null: false, description: 'HUD Program Specific Data Element fields available for CE Match Rule expressions.'
+    def ce_match_psde_fields
+      # Field selection exposes rule-management metadata, so use the same
+      # authorization check as the other CE match field catalogs.
+      access_denied! unless policy_for(Hmis::Ce::Match::Rule, policy_type: :ce_match_rule).can_manage?
+
+      Hmis::Ce::Match::FieldCatalog.new.psde_fields
+    end
+
     field :ce_match_custom_assessment_forms, [Forms::FormDefinition], null: false, description: 'Custom assessment form definitions for use in CE match rule management.'
     def ce_match_custom_assessment_forms
       access_denied! unless policy_for(Hmis::Ce::Match::Rule, policy_type: :ce_match_rule).can_manage?
