@@ -37,7 +37,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   let!(:c3) { create :hmis_hud_client, data_source: ds1 }
   let!(:e3) { create :hmis_hud_enrollment, data_source: ds1, project: p2, client: c3 }
 
-  let(:limited_enrollment_visibility_permissions) { [:can_view_limited_enrollment_details, :can_view_clients] }
+  let(:limited_enrollment_visibility_permissions) { HmisPermissionSets::LIMITED_ENROLLMENT_VISIBILITY }
 
   before(:each) do
     hmis_login(user)

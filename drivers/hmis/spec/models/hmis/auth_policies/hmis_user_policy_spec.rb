@@ -156,7 +156,7 @@ RSpec.describe Hmis::AuthPolicies::HmisUserPolicy, type: :model do
         [:can_audit_users],
         [:can_impersonate_users],
         [:can_administrate_config, :can_manage_forms, :can_configure_data_collection],
-        [:can_audit_enrollments, :can_view_enrollment_details, :can_view_project, :can_view_clients],
+        [:can_audit_enrollments, *HmisPermissionSets::ENROLLMENT_VISIBILITY],
         [:can_audit_clients],
         [:can_merge_clients, :can_view_clients],
       ].each do |permissions|

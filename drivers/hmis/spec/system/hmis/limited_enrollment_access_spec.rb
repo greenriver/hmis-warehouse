@@ -31,8 +31,8 @@ RSpec.feature 'Enrollment/household management', type: :system do
   end
 
   context 'A user who has full access to p1 and limited access to p2' do
-    let(:enrollment_visibility_permissions) { [:can_view_clients, :can_view_project, :can_view_enrollment_details] }
-    let(:limited_enrollment_visibility_permissions) { [:can_view_limited_enrollment_details, :can_view_clients] }
+    let(:enrollment_visibility_permissions) { HmisPermissionSets::ENROLLMENT_VISIBILITY }
+    let(:limited_enrollment_visibility_permissions) { HmisPermissionSets::LIMITED_ENROLLMENT_VISIBILITY }
 
     # full enrollment visibility for p1
     let!(:access_control1) { create_access_control(hmis_user, p1, with_permission: enrollment_visibility_permissions) }

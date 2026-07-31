@@ -16,7 +16,7 @@ RSpec.describe Hmis::AuthPolicies::HmisCustomAssessmentPolicy, type: :model do
   let(:other_project) { create(:hmis_hud_project, data_source: data_source) }
   let(:client) { create(:hmis_hud_client, data_source: data_source) }
   let(:enrollment) { create(:hmis_hud_enrollment, project: project, client: client, data_source: data_source) }
-  let(:enrollment_visibility_permissions) { [:can_view_enrollment_details, :can_view_project, :can_view_clients] }
+  let(:enrollment_visibility_permissions) { HmisPermissionSets::ENROLLMENT_VISIBILITY }
 
   describe 'Instance#can_delete?' do
     describe 'when assessment is still in-progress (wip)' do

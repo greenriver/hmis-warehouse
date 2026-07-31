@@ -135,7 +135,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           create_access_control(
             hmis_user,
             source_project,
-            with_permission: [:can_view_project, :can_manage_outgoing_referrals, :can_view_enrollment_details, :can_view_clients],
+            with_permission: [:can_manage_outgoing_referrals, *HmisPermissionSets::ENROLLMENT_VISIBILITY],
           )
         end
 

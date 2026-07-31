@@ -393,7 +393,7 @@ class Hmis::Role < ::ApplicationRecord
         sub_category: 'Access',
       },
       can_view_limited_enrollment_details: {
-        description: 'Access to view limited information about an enrollment, including: entry date, exit date, project name, project type, move-in date, and last bed night date.',
+        description: 'When granted in conjunction with "Can View Clients," grants access to view limited information about an enrollment, including: entry date, exit date, project name, project type, move-in date, and last bed night date.',
         administrative: false,
         requirements: [:can_view_clients],
         access: [:viewable],

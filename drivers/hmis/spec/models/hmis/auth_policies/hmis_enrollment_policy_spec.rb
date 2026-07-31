@@ -18,7 +18,7 @@ RSpec.describe Hmis::AuthPolicies::HmisEnrollmentPolicy, type: :model do
   let(:policy) { user.policy_for(enrollment, policy_type: :hmis_enrollment) }
 
   # Permissions required for viewing an enrollment
-  let(:view_permissions) { [:can_view_enrollment_details, :can_view_project, :can_view_clients] }
+  let(:view_permissions) { HmisPermissionSets::ENROLLMENT_VISIBILITY }
 
   describe '#can_edit?' do
     it 'returns true if user can edit' do

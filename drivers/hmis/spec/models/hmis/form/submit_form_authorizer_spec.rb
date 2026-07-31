@@ -14,8 +14,7 @@ RSpec.describe Hmis::Form::SubmitFormAuthorizer, type: :model do
   let(:project) { create(:hmis_hud_project, organization: organization, data_source: data_source) }
   let(:client) { create(:hmis_hud_client, data_source: data_source) }
   let(:user) { create(:hmis_user, data_source: data_source) }
-  # Required together for enrollment visibility / edit permissions to take effect
-  let(:enrollment_visibility_permissions) { [:can_view_enrollment_details, :can_view_project, :can_view_clients] }
+  let(:enrollment_visibility_permissions) { HmisPermissionSets::ENROLLMENT_VISIBILITY }
 
   def make_definition(owner_class:, role: 'FORM', allowed_form_record_actions: [Hmis::Form::Definition::CREATE, Hmis::Form::Definition::EDIT])
     instance_double('Hmis::Form::Definition', owner_class: owner_class, role: role, data_source_id: data_source.id, allowed_form_record_actions: allowed_form_record_actions)

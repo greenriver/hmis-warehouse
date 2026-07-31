@@ -14,7 +14,7 @@ RSpec.describe Hmis::AuthPolicies::HmisProjectPolicy, type: :model do
   let(:project) { create(:hmis_hud_project, organization: organization, data_source: data_source) }
   let(:user) { create(:hmis_user, data_source: data_source) }
   let(:policy) { user.policy_for(project, policy_type: :hmis_project) }
-  let(:enrollment_visibility_permissions) { [:can_view_enrollment_details, :can_view_project, :can_view_clients] }
+  let(:enrollment_visibility_permissions) { HmisPermissionSets::ENROLLMENT_VISIBILITY }
 
   shared_examples 'permission checks with access' do
     it 'grants configured permissions' do

@@ -56,7 +56,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   end
 
   describe 'enrollment sourceCeReferral query' do
-    let(:enrollment_visibility_permissions) { [:can_view_enrollment_details, :can_view_project, :can_view_clients] }
+    let(:enrollment_visibility_permissions) { HmisPermissionSets::ENROLLMENT_VISIBILITY }
 
     context 'when user has enrollment access' do
       let!(:access_control) { create_access_control(hmis_user, target_project, with_permission: enrollment_visibility_permissions) }

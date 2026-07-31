@@ -79,7 +79,7 @@ RSpec.describe 'PickList USERS', type: :request do
       create_access_control(
         hmis_user,
         ds1,
-        with_permission: [:can_audit_enrollments, :can_view_enrollment_details, :can_view_project, :can_view_clients],
+        with_permission: [:can_audit_enrollments, *HmisPermissionSets::ENROLLMENT_VISIBILITY],
       )
     end
     it_behaves_like 'returns users grouped by status'
