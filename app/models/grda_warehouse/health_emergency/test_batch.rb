@@ -13,7 +13,29 @@ module GrdaWarehouse::HealthEmergency
     include ::HealthEmergency
     include ArelHelper
     include ::Import::ClientMatching
-    mount_uploader :file, TestResultsUploader
+    include FileContentValidator
+    # Remove CarrierWave dependency
+    # mount_uploader :file, TestResultsUploader
+
+    validate :validate_file_content_if_present
+
+    def validate_file_content_if_present
+      return if content.blank?
+
+      file_extension = '.xlsx'
+      allowed_types = ['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/zip']
+
+      result = self.class.validate_file_content(
+        content,
+        content_type,
+        allowed_types,
+        file_extension,
+      )
+
+      return if result[:valid]
+
+      errors.add(:file, result[:error])
+    end
 
     belongs_to :user, optional: true
     has_many :uploaded_tests, foreign_key: :batch_id, inverse_of: :batch

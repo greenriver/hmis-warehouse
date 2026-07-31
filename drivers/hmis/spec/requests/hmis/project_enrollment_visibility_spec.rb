@@ -11,13 +11,6 @@ require_relative 'login_and_permissions'
 require_relative '../../support/hmis_base_setup'
 
 RSpec.describe Hmis::GraphqlController, type: :request do
-  before(:all) do
-    cleanup_test_environment
-  end
-  after(:all) do
-    cleanup_test_environment
-  end
-
   include_context 'hmis base setup'
   let!(:access_control) { create_access_control(hmis_user, p1) }
   let!(:c1) { create :hmis_hud_client, data_source: ds1 }
@@ -103,8 +96,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     it 'fails if user lacks can_view_enrollment_details permission' do
       remove_permissions(access_control, :can_view_enrollment_details)
       # ensure setup. even if they have limited access to enrollments, this query should fail
-      expect(hmis_user.can_view_enrollment_details_for?(p1)).to eq(false)
-      expect(hmis_user.can_view_limited_enrollment_details_for?(p1)).to eq(true)
+      expect(hmis_user.policy_for(e1, policy_type: :hmis_enrollment).can_view_details?).to eq(false)
+      expect(hmis_user.policy_for(e1, policy_type: :hmis_enrollment).can_view_limited?).to eq(true)
 
       expect_gql_error post_graphql(id: p1.id) { query }, message: 'access denied'
     end

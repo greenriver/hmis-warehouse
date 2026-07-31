@@ -1034,4 +1034,32 @@ RSpec.describe Idp::KeycloakService, type: :model do
       expect(timeouts_of("/admin/realms/#{realm}/users?first=0&max=100")).to eq([bulk_timeouts])
     end
   end
+
+  describe '#ensure_group' do
+    let(:groups_url) { "#{api_url}/admin/realms/#{realm}/groups" }
+
+    it 'returns :created when Keycloak creates the group' do
+      stub_request(:post, groups_url).
+        with(body: { name: 'warehouse-users' }.to_json).
+        to_return(status: 201)
+
+      expect(service.ensure_group('warehouse-users')).to eq(:created)
+    end
+
+    it 'returns :existing when the group already exists (409)' do
+      stub_request(:post, groups_url).
+        with(body: { name: 'warehouse-users' }.to_json).
+        to_return(status: 409, body: { errorMessage: 'Top level group named warehouse-users already exists.' }.to_json)
+
+      expect(service.ensure_group('warehouse-users')).to eq(:existing)
+    end
+
+    it 'raises ServiceError on an unexpected response' do
+      stub_request(:post, groups_url).
+        to_return(status: 500, body: { errorMessage: 'boom' }.to_json)
+
+      expect { service.ensure_group('warehouse-users') }.
+        to raise_error(Idp::ServiceError, /boom/)
+    end
+  end
 end

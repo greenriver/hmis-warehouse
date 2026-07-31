@@ -12,5 +12,9 @@ module HmisExternalApis
       # Note: not set up to handle multiple HMIS data sources, since ac_hmis doesn't need it. Expect exactly one.
       ::GrdaWarehouse::DataSource.hmis.sole
     end
+
+    def self.configuration
+      HmisExternalApis::AcHmis::Configuration.new
+    end
   end
 end
