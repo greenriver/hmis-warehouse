@@ -24,6 +24,21 @@ module GrdaWarehouse::Monitoring
 
     scope :for_user, ->(user_id) { where(user_id: user_id) }
     scope :recent_first, -> { order(sent_at: :desc) }
+    scope :successfully_delivered, -> { where(delivery_failed: false) }
+    scope :metric_threshold, -> { where(email_type: 'metric_threshold_crossed') }
+    scope :sent_on, ->(date) { where(sent_at: date.all_day) }
+
+    # Integer metric_ids the user was already successfully notified about on `date`.
+    # Used by NotifyMetricThresholdCrossingsJob to avoid re-sending the same crossing.
+    def self.notified_metric_ids_for(user_id:, date:)
+      for_user(user_id).
+        metric_threshold.
+        successfully_delivered.
+        sent_on(date).
+        flat_map(&:crossings).
+        filter_map { |crossing| crossing['metric_id'] }.
+        to_set
+    end
 
     # Backfills ThresholdNotificationLog stubs from historical Message records for all users.
     # Run from the console: GrdaWarehouse::Monitoring::ThresholdNotificationLog.backfill

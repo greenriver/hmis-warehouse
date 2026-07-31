@@ -6,7 +6,6 @@
 
 # frozen_string_literal: true
 
-#
 require 'memery'
 
 class GrdaWarehouse::DataSource < GrdaWarehouseBase
@@ -594,9 +593,9 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     end
   end
 
-  def self.options_for_select(user:, ids: nil)
+  def self.options_for_select(user:, ids: nil, permission: :can_view_projects)
     # don't cache this, it's a class method
-    scope = viewable_by(user)
+    scope = viewable_by(user, permission: permission)
     scope = scope.where(id: ids) if ids.present?
     scope.distinct.
       order(name: :asc).
@@ -717,6 +716,7 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
   def destroy_dependents!
     organizations.map(&:destroy_dependents!)
     organizations.update_all(DateDeleted: Time.current, source_hash: nil)
+    remove_system_collections!
   end
 
   def client_count
@@ -817,23 +817,25 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
       entity
     end
     hmis_user = user.related_hmis_user(self)
+    return url unless hmis_user.present?
 
-    known_permissions = {
-      'Hmis::Hud::Project' => [:can_view_project],
-      # 'Hmis::Hud::Organization' => [:can_view_organization],
-      'Hmis::Hud::Client' => [:can_view_clients],
-      'Hmis::Hud::Enrollment' => [:can_view_projects, :can_view_enrollment_details],
-      'Hmis::Hud::CustomAssessment' => [:can_view_projects, :can_view_enrollment_details],
-    }
+    # If we can't determine access for this entity type, show the link and let HMIS handle it.
+    # If we can determine the user lacks access, don't bother linking.
+    authorized = case hmis_entity
+    when Hmis::Hud::Project
+      hmis_user.policy_for(hmis_entity, policy_type: :hmis_project).can_view?
+    when Hmis::Hud::Client
+      hmis_user.policy_for(hmis_entity, policy_type: :hmis_client).can_view?
+    when Hmis::Hud::Enrollment
+      hmis_user.policy_for(hmis_entity, policy_type: :hmis_enrollment).can_view_details?
+    when Hmis::Hud::CustomAssessment, Hmis::Hud::CustomService
+      enrollment = hmis_entity.enrollment
+      enrollment.present? && hmis_user.policy_for(enrollment, policy_type: :hmis_enrollment).can_view_details?
+    else
+      true
+    end
 
-    perms = known_permissions[hmis_entity.class.name]
-    # If we can't determine if we can see this in HMIS, just go ahead and show the link,
-    # HMIS will handle access
-    return url if perms.blank?
-    # If we can't see this in HMIS, don't bother linking to it
-    return nil unless hmis_user.permissions_for?(hmis_entity, *perms, mode: :all)
-
-    url
+    authorized ? url : nil
   end
 
   private def maintain_system_group

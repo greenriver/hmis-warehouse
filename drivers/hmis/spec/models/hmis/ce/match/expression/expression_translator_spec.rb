@@ -93,10 +93,16 @@ RSpec.describe Hmis::Ce::Match::Expression::ExpressionTranslator do
       expect(structured.clauses.first).to have_attributes(field: 'open_referral_project_types', comparator: :EXCLUDES, value: Types::HmisSchema::Enums::ProjectType.key_for(1))
     end
 
-    it 'parses EQ with NULL RHS' do
+    it 'parses = NULL as IS_NULL' do
       structured = described_class.to_structured('current_age = NULL')
       expect(structured.clauses.size).to eq(1)
-      expect(structured.clauses.first).to have_attributes(field: 'current_age', comparator: :EQ, value: nil)
+      expect(structured.clauses.first).to have_attributes(field: 'current_age', comparator: :IS_NULL, value: nil)
+    end
+
+    it 'parses != NULL as IS_NOT_NULL' do
+      structured = described_class.to_structured('current_age != NULL')
+      expect(structured.clauses.size).to eq(1)
+      expect(structured.clauses.first).to have_attributes(field: 'current_age', comparator: :IS_NOT_NULL, value: nil)
     end
 
     it 'coerces enum-backed Dentaku literals to frontend enum keys' do
@@ -210,8 +216,15 @@ RSpec.describe Hmis::Ce::Match::Expression::ExpressionTranslator do
       expect(round).to eq(structured)
     end
 
-    it 'preserves structured form when clause value is NULL' do
+    it 'preserves structured form for IS_NULL' do
       original = 'current_age = NULL'
+      structured = described_class.to_structured(original)
+      round = described_class.to_structured(described_class.from_structured(structured))
+      expect(round).to eq(structured)
+    end
+
+    it 'preserves structured form for IS_NOT_NULL' do
+      original = 'current_age != NULL'
       structured = described_class.to_structured(original)
       round = described_class.to_structured(described_class.from_structured(structured))
       expect(round).to eq(structured)

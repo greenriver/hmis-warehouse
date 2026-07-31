@@ -795,6 +795,18 @@ type CeCandidate {
   priorityScores: [Int!]!
 }
 
+type CeCandidatePoolSummary {
+  """
+  Active pools that have never completed a full generation
+  """
+  neverFullyGeneratedCount: Int!
+
+  """
+  Number of active CE candidate pools
+  """
+  totalCount: Int!
+}
+
 type CeCandidatesPaginated {
   hasMoreAfter: Boolean!
   hasMoreBefore: Boolean!
@@ -1055,6 +1067,8 @@ enum CeMatchRuleComparator {
   GT
   GTE
   INCLUDES
+  IS_NOT_NULL
+  IS_NULL
   LT
   LTE
   NOT_EQ
@@ -1092,10 +1106,12 @@ type CeMatchRuleGroup {
 
 input CeMatchRuleInput {
   expression: String
+  funders: [FundingSource!]!
   name: String
   ownerId: ID
   ownerType: CeMatchRuleOwnerType
   priorityRank: Int
+  projectTypes: [ProjectType!]!
   ruleType: CeMatchRuleType
   structuredExpression: CeMatchRuleStructuredExpressionInput
 }
@@ -1183,6 +1199,16 @@ type CeOpportunity {
   active: Boolean!
   candidateLookup(id: ID!): CeCandidate
   candidates(filters: CeOpportunityCandidatesFilterOptions, limit: Int, offset: Int): CeCandidatesPaginated!
+
+  """
+  When this unit's eligible client list last completed a full generation against
+  all destination clients. Null means it has never finished first-time setup.
+  """
+  candidatesFullyGeneratedAt: ISO8601DateTime
+
+  """
+  When this unit's eligible client list was last updated by any processing (full refresh or individual client)
+  """
   candidatesGeneratedAt: ISO8601DateTime
   categories: [String!]!
   dateAvailable: ISO8601Date!
@@ -6014,6 +6040,11 @@ type GlobalFeatureFlags {
   coordinatedEntryEnabled: Boolean!
 
   """
+  Whether the ESG Funding Report is enabled
+  """
+  esgFundingReportEnabled: Boolean!
+
+  """
   Whether an external referral integration is enabled
   """
   externalReferralsEnabled: Boolean!
@@ -10325,6 +10356,11 @@ type Query {
     """
     role: AssessmentRole
   ): FormDefinition
+
+  """
+  Generation and refresh status for active CE candidate pools
+  """
+  ceCandidatePoolSummary(projectGroupId: ID): CeCandidatePoolSummary!
   ceClient(
     """
     Client Proxy ID
@@ -10351,7 +10387,7 @@ type Query {
   Custom assessment form definitions for use in CE match rule management.
   """
   ceMatchCustomAssessmentForms: [FormDefinition!]!
-  ceMatchRule(id: ID!): CeMatchRule!
+  ceMatchRule(id: ID!): CeMatchRule
 
   """
   Coordinated Entry Match Rules in the current data source.

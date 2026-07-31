@@ -439,6 +439,72 @@ RSpec.describe 'Update External Form Submission', type: :request do
         end
       end
 
+      context 'when the submission specifies race but no gender values' do
+        let!(:submission) do
+          data = {
+            'Client.firstName': 'foobar',
+            'Client.White': '1',
+            'Client.Man': '0',
+            'Client.Woman': '0',
+            'Client.NonBinary': '0',
+            'Client.Questioning': '0',
+            'Client.Transgender': '0',
+            'Client.DifferentIdentity': '0',
+            'Client.CulturallySpecific': '0',
+          }.stringify_keys
+          create(:hmis_external_form_submission, raw_data: data, definition: definition)
+        end
+
+        it 'should set GenderNone to 99, independent of the race fields' do
+          expect do
+            response, result = post_graphql(input) { mutation }
+            expect(response.status).to eq(200), result.inspect
+            expect(result.dig('data', 'updateExternalFormSubmission', 'externalFormSubmission', 'status')).to eq('reviewed')
+          end.to change(Hmis::Hud::Client, :count).by(1).
+            and change(Hmis::Hud::Enrollment, :count).by(1)
+
+          submission.reload
+          client = submission.enrollment.client
+          expect(client.RaceNone).to be_nil
+          expect(client.race_fields).to eq(['White'])
+          expect(client.GenderNone).to eq(99)
+          expect(client.gender_fields).to eq([])
+        end
+      end
+
+      context 'when the submission specifies gender but no race values' do
+        let!(:submission) do
+          data = {
+            'Client.firstName': 'foobar',
+            'Client.Woman': '1',
+            'Client.AmIndAKNative': '0',
+            'Client.Asian': '0',
+            'Client.BlackAfAmerican': '0',
+            'Client.HispanicLatinaeo': '0',
+            'Client.MidEastNAfrican': '0',
+            'Client.NativeHIPacific': '0',
+            'Client.White': '0',
+          }.stringify_keys
+          create(:hmis_external_form_submission, raw_data: data, definition: definition)
+        end
+
+        it 'should set RaceNone to 99, independent of the gender fields' do
+          expect do
+            response, result = post_graphql(input) { mutation }
+            expect(response.status).to eq(200), result.inspect
+            expect(result.dig('data', 'updateExternalFormSubmission', 'externalFormSubmission', 'status')).to eq('reviewed')
+          end.to change(Hmis::Hud::Client, :count).by(1).
+            and change(Hmis::Hud::Enrollment, :count).by(1)
+
+          submission.reload
+          client = submission.enrollment.client
+          expect(client.GenderNone).to be_nil
+          expect(client.gender_fields).to eq([:Woman])
+          expect(client.RaceNone).to eq(99)
+          expect(client.race_fields).to eq([])
+        end
+      end
+
       context 'when the submission specifies geolocation' do
         let!(:submission) do
           data = {

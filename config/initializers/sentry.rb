@@ -7,6 +7,7 @@
 # frozen_string_literal: true
 
 require_relative '../../lib/util/git'
+require_relative '../../lib/util/sentry_event_filter'
 
 # ENV['SENTRY_DSN'] is reserved by Sentry and its use seems to prevent this initializer from being recognized.
 # Hence, we use WAREHOUSE_SENTRY_DSN. Any other alternate key should also be fine.
@@ -79,10 +80,8 @@ if sentry_dsn
     # Replacement for Raven's: `config.sanitize_fields`
     # See: https://stackoverflow.com/questions/68867756/missing-piece-in-sentry-raven-to-sentry-ruby-guide
     # And: https://github.com/getsentry/sentry-ruby/issues/1140
-    filter = ActiveSupport::ParameterFilter.new(Rails.application.config.filter_parameters - [:email])
-    config.before_send = ->(event, _hint) do
-      filter.filter(event.to_hash)
-    end
+    event_filter = SentryEventFilter.new(Rails.application.config.filter_parameters - [:email])
+    config.before_send = event_filter.method(:call)
   end
 
   cluster_type =

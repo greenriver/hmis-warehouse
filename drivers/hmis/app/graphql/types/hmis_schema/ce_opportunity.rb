@@ -28,7 +28,14 @@ module Types
 
     field :categories, [String], null: false
     field :active, Boolean, null: false, method: :active?
-    field :candidates_generated_at, GraphQL::Types::ISO8601DateTime, null: true
+    field :candidates_generated_at,
+          GraphQL::Types::ISO8601DateTime,
+          null: true,
+          description: 'When this unit\'s eligible client list was last updated by any processing (full refresh or individual client)'
+    field :candidates_fully_generated_at,
+          GraphQL::Types::ISO8601DateTime,
+          null: true,
+          description: 'When this unit\'s eligible client list last completed a full generation against all destination clients. Null means it has never finished first-time setup.'
     field :date_available, GraphQL::Types::ISO8601Date, null: false
     field :unit, HmisSchema::Unit, null: true
 
@@ -103,7 +110,17 @@ module Types
     end
 
     def candidates_generated_at
-      load_ar_association(object, :candidate_pool)&.candidates_generated_at
+      candidate_pool&.candidates_generated_at
+    end
+
+    def candidates_fully_generated_at
+      candidate_pool&.candidates_fully_generated_at
+    end
+
+    private
+
+    def candidate_pool
+      load_ar_association(object, :candidate_pool)
     end
   end
 end

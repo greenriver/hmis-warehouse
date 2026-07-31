@@ -88,6 +88,11 @@ RSpec.shared_context 'hmis service setup', shared_context: :metadata do
   end
 
   after(:each) do
+    # Some specs override `ds1` with a lookup (e.g. `find_by`) that returns nil
+    # when the expected record wasn't set up, such as system specs skipped
+    # because RUN_SYSTEM_TESTS isn't set. Nothing to clean up in that case.
+    next unless ds1
+
     # Cleanup custom service types and categories that were created in before(:each)
     ds1.custom_service_types.hud.destroy_all
     ds1.custom_service_categories.hud_only.destroy_all
