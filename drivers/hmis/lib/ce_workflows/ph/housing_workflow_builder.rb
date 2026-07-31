@@ -32,8 +32,6 @@ module CeWorkflows::Ph
       housing_coc_decline: 'housing_workflow_coc_decline',
     }.freeze
 
-    DECLINE_REASON_LINK_ID = Hmis::Ce::ReferralMessageHandler::DECLINE_REASON_LINK_ID
-
     def initialize(data_source, unsafe_run_in_production: false)
       @data_source = data_source
       @unsafe_run_in_production = unsafe_run_in_production
@@ -47,21 +45,6 @@ module CeWorkflows::Ph
 
       missing = HOUSING_WORKFLOW_FORMS.values - @form_definitions.keys
       raise "Missing CE_REFERRAL_STEP forms: #{missing.join(', ')}. Did you run 'rails driver:hmis:seed_definitions'?" if missing.any?
-    end
-
-    # TODO @martha: temporary. Seeds every code the forms collect so the template validates while the
-    # housing forms are still in flux. Decline reasons should be a curated list, not derived from forms.
-    def ensure_decline_reasons
-      HOUSING_WORKFLOW_FORMS.values.filter_map { |identifier| @form_definitions[identifier] }.each_with_object({}) do |form, options|
-        item = form.link_id_item_hash[DECLINE_REASON_LINK_ID]
-        next if item.blank?
-
-        item['pick_list_options']&.each { |option| options[option['code']] ||= option['label'] }
-      end.each do |code, label|
-        reason = Hmis::Ce::ReferralDeclineReason.find_or_initialize_by(key: code, data_source: @data_source)
-        reason.name = label
-        reason.save! if reason.changed?
-      end
     end
 
     def build_housing_workflow
@@ -124,13 +107,6 @@ module CeWorkflows::Ph
       pending_decline = status_trigger.call(pending_decline_status)
       enrolled = status_trigger.call(enrolled_status)
 
-      # Only forms that collect their decline reason on a 'decline_reason' item can set it on the referral,
-      # so this trigger is only present on those steps. The rest record their reason as a custom field only.
-      set_decline_reason = { event: 'complete_step', message: 'set_referral_decline_reason' }
-      # A referral that was sent back is active again, so it should no longer carry the decline reason
-      # recorded by the step that declined it.
-      clear_decline_reason = { event: 'enable_step', message: 'clear_referral_decline_reason' }
-
       # Events
       start_event = CeWorkflows::Shared::CeBuilderUtils.find_or_create_start_event(template)
       accept_event = CeWorkflows::Shared::CeBuilderUtils.find_or_create_accept_event(template, update_ce_event: true)
@@ -142,7 +118,7 @@ module CeWorkflows::Ph
         form_definition_identifier: HOUSING_WORKFLOW_FORMS.fetch(:housing_coc_initial_review),
         template: template,
         swimlane: coc_swimlane,
-        trigger_config: [in_progress, set_decline_reason],
+        trigger_config: [in_progress],
       )
       shelter_agency_review_task = Hmis::WorkflowDefinition::UserTask.create!(
         name: 'Shelter Agency Initial Review',
@@ -156,7 +132,7 @@ module CeWorkflows::Ph
         form_definition_identifier: HOUSING_WORKFLOW_FORMS.fetch(:housing_shelter_agency_review),
         template: template,
         swimlane: shelter_agency_swimlane,
-        trigger_config: [in_progress, clear_decline_reason],
+        trigger_config: [in_progress],
       )
       schedule_intake_task = Hmis::WorkflowDefinition::UserTask.create!(
         name: 'Housing Case Manager Initial Review',
@@ -170,35 +146,35 @@ module CeWorkflows::Ph
         form_definition_identifier: HOUSING_WORKFLOW_FORMS.fetch(:housing_case_manager_initial_review),
         template: template,
         swimlane: case_manager_swimlane,
-        trigger_config: [in_progress, clear_decline_reason],
+        trigger_config: [in_progress],
       )
       case_manager_decision_task = Hmis::WorkflowDefinition::UserTask.create!(
         name: 'Housing Case Manager Decision',
         form_definition_identifier: HOUSING_WORKFLOW_FORMS.fetch(:housing_case_manager_decision),
         template: template,
         swimlane: case_manager_swimlane,
-        trigger_config: [in_progress, set_decline_reason],
+        trigger_config: [in_progress],
       )
       case_manager_decision_2_task = Hmis::WorkflowDefinition::UserTask.create!(
         name: 'Housing Case Manager Decision (Second Attempt)',
         form_definition_identifier: HOUSING_WORKFLOW_FORMS.fetch(:housing_case_manager_decision),
         template: template,
         swimlane: case_manager_swimlane,
-        trigger_config: [in_progress, clear_decline_reason, set_decline_reason],
+        trigger_config: [in_progress],
       )
       cori_hearing_task = Hmis::WorkflowDefinition::UserTask.create!(
         name: 'CORI Hearing',
         form_definition_identifier: HOUSING_WORKFLOW_FORMS.fetch(:housing_cori_hearing),
         template: template,
         swimlane: case_manager_swimlane,
-        trigger_config: [in_progress, set_decline_reason],
+        trigger_config: [in_progress],
       )
       cori_hearing_2_task = Hmis::WorkflowDefinition::UserTask.create!(
         name: 'CORI Hearing (Second Attempt)',
         form_definition_identifier: HOUSING_WORKFLOW_FORMS.fetch(:housing_cori_hearing),
         template: template,
         swimlane: case_manager_swimlane,
-        trigger_config: [in_progress, clear_decline_reason, set_decline_reason],
+        trigger_config: [in_progress],
       )
       date_housed_task = Hmis::WorkflowDefinition::UserTask.create!(
         name: 'Move-In Date',
@@ -275,7 +251,6 @@ module CeWorkflows::Ph
         form_definition_identifier: HOUSING_WORKFLOW_FORMS.fetch(:housing_coc_decline),
         template: template,
         swimlane: coc_swimlane,
-        trigger_config: [set_decline_reason],
       )
 
       # Script tasks
@@ -287,10 +262,7 @@ module CeWorkflows::Ph
       create_enrollment_task = Hmis::WorkflowDefinition::ScriptTask.create!(
         name: 'Create Enrollment',
         template: template,
-        trigger_config: [
-          { event: 'complete_step', message: 'clear_referral_decline_reason' },
-          { event: 'complete_step', message: 'create_enrollment' },
-        ],
+        trigger_config: [{ event: 'complete_step', message: 'create_enrollment' }],
       )
       delete_enrollment_task = Hmis::WorkflowDefinition::ScriptTask.create!(
         name: 'Delete Enrollment',

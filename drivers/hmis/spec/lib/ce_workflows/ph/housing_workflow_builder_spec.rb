@@ -24,10 +24,7 @@ RSpec.describe CeWorkflows::Ph::HousingWorkflowBuilder do
   end
 
   let(:builder) { described_class.new(data_source) }
-  let(:template) do
-    builder.ensure_decline_reasons
-    builder.build_housing_workflow
-  end
+  let(:template) { builder.build_housing_workflow }
 
   def node_index(walked_nodes, name)
     walked_nodes.index { |node| node.name == name }
@@ -220,9 +217,6 @@ RSpec.describe CeWorkflows::Ph::HousingWorkflowBuilder do
   describe 'closure walkthrough' do
     include_context 'housing workflow walkthrough'
 
-    let!(:decline_reason) do
-      Hmis::Ce::ReferralDeclineReason.find_by!(key: 'client_has_declined_match', data_source: data_source)
-    end
     let(:decline_referral_node) { template.nodes.find { |node| node.name == 'Decline Referral' } }
 
     it 'accepts the referral when Confirm Success is completed' do
@@ -251,13 +245,12 @@ RSpec.describe CeWorkflows::Ph::HousingWorkflowBuilder do
           engine,
           'Decline Referral',
           submitted_values: {
-            'decline_reason' => 'client_has_declined_match',
+            'coc_decline_reason' => 'client_has_declined_match',
             'referral_result' => '2',
           },
         )
         referral.reload
       end.to change(referral, :status).to('rejected').
-        and change(referral, :decline_reason).to(decline_reason).
         and change(referral, :target_enrollment).from(enrollment).to(nil)
 
       expect(engine.active_steps).to be_empty
