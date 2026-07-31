@@ -78,8 +78,6 @@ module Idp
       return head(:unauthorized) unless jwt_helper.valid?
 
       expiration_time = jwt_helper.expiration_time
-      return head(:ok) unless expiration_time
-
       remaining_seconds = [(expiration_time - Time.current).to_i, 0].max
       render(json: { expiration_time: expiration_time.to_i, remaining_seconds: remaining_seconds })
     end

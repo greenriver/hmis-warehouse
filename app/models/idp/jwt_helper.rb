@@ -29,6 +29,10 @@ class Idp::JwtHelper
     :jwks_unreachable,
   ].freeze
 
+  # The JWKS endpoint answered, but with something that isn't a keyset: an error status, or a body
+  # we can't use (a proxy's HTML error page, say). Handled alongside NETWORK_ERRORS.
+  class JwksUnavailableError < StandardError; end
+
   # Transport-level failures reaching JWKS_URL. We can't verify the token when the IdP is
   # unreachable, so we fail closed
   NETWORK_ERRORS = [
@@ -92,9 +96,9 @@ class Idp::JwtHelper
   rescue JSON::ParserError => e
     Rails.logger.error "JSON verification failed: #{e.message}"
     :malformed
-  rescue *NETWORK_ERRORS => e
-    Rails.logger.error "JWT verification could not reach JWKS endpoint: #{e.message}"
-    Sentry.capture_exception_with_info(e, 'JWT verification could not reach the JWKS endpoint; treating token as invalid')
+  rescue JwksUnavailableError, *NETWORK_ERRORS => e
+    Rails.logger.error "JWT verification could not get a keyset from the JWKS endpoint: #{e.message}"
+    Sentry.capture_exception_with_info(e, 'JWT verification could not get a keyset from the JWKS endpoint; treating token as invalid')
     :jwks_unreachable
   end
 
@@ -112,6 +116,8 @@ class Idp::JwtHelper
     end
   end
 
+  # required_claims: ruby-jwt enforces exp only when the claim is present, so a token carrying none
+  # would verify forever — iss/aud don't bound a lifetime. A token without exp is :malformed.
   memoize def payload
     JWT.decode(
       access_token,
@@ -121,6 +127,7 @@ class Idp::JwtHelper
         algorithm: algorithm,
         aud: idp_audiences,
         iss: ENV.fetch('ISS_URL'),
+        required_claims: ['exp'],
         verify_aud: true,
         verify_iss: true,
       },
@@ -177,11 +184,9 @@ class Idp::JwtHelper
     claims['iat']
   end
 
+  # Never nil for a token that verified: #payload requires the exp claim.
   def expiration_time
-    exp = claims['exp']
-    return nil unless exp
-
-    Time.zone.at(exp)
+    Time.zone.at(claims['exp'])
   end
 
   # Returns the at_hash claim — stable per token, changes on reissue.
@@ -251,12 +256,25 @@ class Idp::JwtHelper
       end
     end
 
+    # Raises rather than returns anything that isn't a keyset: only a raise reaches the fail-closed
+    # rescue in #invalid_reason, and only a raise keeps the bad response out of memory_cache.
     def fetch_jwks
       uri = URI(ENV.fetch('JWKS_URL'))
       response = Net::HTTP.start(uri.host, uri.port, use_ssl: uri.scheme == 'https', open_timeout: 5, read_timeout: 5) do |http|
-        http.get(uri.request_uri).body
+        http.get(uri.request_uri)
       end
-      JSON.parse(response)
+      raise JwksUnavailableError, "JWKS endpoint returned #{response.code}" unless response.is_a?(Net::HTTPSuccess)
+
+      keyset = begin
+        JSON.parse(response.body.to_s)
+      rescue JSON::ParserError => e
+        raise JwksUnavailableError, "JWKS endpoint returned an unparseable body: #{e.message}"
+      end
+      # Well-formed JSON that still isn't a keyset, such as a gateway's {"error": ...}
+      keys = keyset['keys'] if keyset.is_a?(Hash)
+      raise JwksUnavailableError, "JWKS endpoint returned no keys: #{keyset.class}" unless keys.is_a?(Array) && keys.any?
+
+      keyset
     end
 
     def invalidate_jwks_cache!

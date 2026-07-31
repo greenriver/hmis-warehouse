@@ -55,36 +55,11 @@ RSpec.describe Idp::JwtHelper, if: AuthMethod.jwt? do
     end
   end
 
+  # #valid? is `invalid_reason.nil?`. Per-reason cases belong under #invalid_reason; what belongs
+  # here is the wiring in both directions plus the forgery attempts.
   describe '#valid?' do
     it 'returns true if token is valid' do
       expect(helper.valid?).to be true
-    end
-
-    it 'returns false if public key is missing' do
-      bad_token = JWT.encode(payload, rsa_key, 'RS256', { kid: 'wrong_kid' })
-      bad_helper = described_class.new(access_token: bad_token)
-      expect(bad_helper.valid?).to be false
-    end
-
-    it 'returns false if token is expired' do
-      expired_payload = payload.merge('exp' => Time.now.to_i - 3600)
-      expired_token = JWT.encode(expired_payload, rsa_key, 'RS256', { kid: kid })
-      expired_helper = described_class.new(access_token: expired_token)
-      expect(expired_helper.valid?).to be false
-    end
-
-    it 'returns false if issuer is invalid' do
-      bad_iss_payload = payload.merge('iss' => 'wrong_iss')
-      bad_iss_token = JWT.encode(bad_iss_payload, rsa_key, 'RS256', { kid: kid })
-      bad_iss_helper = described_class.new(access_token: bad_iss_token)
-      expect(bad_iss_helper.valid?).to be false
-    end
-
-    it 'returns false if audience is invalid' do
-      bad_aud_payload = payload.merge('aud' => 'wrong_aud')
-      bad_aud_token = JWT.encode(bad_aud_payload, rsa_key, 'RS256', { kid: kid })
-      bad_aud_helper = described_class.new(access_token: bad_aud_token)
-      expect(bad_aud_helper.valid?).to be false
     end
 
     it 'rejects a mismatched audience when IDP_AUD is blank (fail-closed)' do
@@ -115,13 +90,6 @@ RSpec.describe Idp::JwtHelper, if: AuthMethod.jwt? do
 
       expect(hmac_helper.valid?).to be false
       expect(hmac_helper.invalid_reason).to eq(:malformed)
-    end
-
-    it 'fails closed (and reports to Sentry) when the JWKS endpoint is unreachable' do
-      allow(described_class).to receive(:fetch_jwks).and_raise(SocketError.new('getaddrinfo: Name or service not known'))
-      expect(Sentry).to receive(:capture_exception_with_info).with(instance_of(SocketError), anything)
-
-      expect(helper.valid?).to be false
     end
   end
 
@@ -161,6 +129,14 @@ RSpec.describe Idp::JwtHelper, if: AuthMethod.jwt? do
       expect(described_class.new(access_token: token).invalid_reason).to eq(:expired)
     end
 
+    # ruby-jwt enforces exp only when the claim is present, so without required_claims this token
+    # verifies at any point in the future and nothing on our side can revoke it.
+    it 'is :malformed for a token carrying no exp claim' do
+      token = JWT.encode(payload.except('exp'), rsa_key, 'RS256', { kid: kid })
+
+      expect(described_class.new(access_token: token).invalid_reason).to eq(:malformed)
+    end
+
     it 'is :invalid_issuer for the wrong iss' do
       token = JWT.encode(payload.merge('iss' => 'wrong_iss'), rsa_key, 'RS256', { kid: kid })
 
@@ -173,11 +149,14 @@ RSpec.describe Idp::JwtHelper, if: AuthMethod.jwt? do
       expect(described_class.new(access_token: token).invalid_reason).to eq(:invalid_audience)
     end
 
-    it 'is :jwks_unreachable when the JWKS endpoint cannot be reached' do
+    # Sentry is asserted here because an unreachable IdP is the one reason that means our stack is
+    # broken rather than the caller's token, and nothing else in the request would say so.
+    it 'is :jwks_unreachable when the JWKS endpoint cannot be reached, and reports to Sentry' do
       allow(described_class).to receive(:fetch_jwks).and_raise(SocketError.new('getaddrinfo: Name or service not known'))
-      allow(Sentry).to receive(:capture_exception_with_info)
+      expect(Sentry).to receive(:capture_exception_with_info).with(instance_of(SocketError), anything)
 
       expect(helper.invalid_reason).to eq(:jwks_unreachable)
+      expect(helper.valid?).to be false
     end
 
     it 'covers every reason the class advertises' do
@@ -370,6 +349,54 @@ RSpec.describe Idp::JwtHelper, if: AuthMethod.jwt? do
       allow(Sentry).to receive(:capture_exception_with_info)
 
       expect(helper.invalid_reason).to eq(:jwks_unreachable)
+    end
+
+    # 200 with a non-JSON body: the status check alone would miss this one.
+    it 'surfaces a 200 with an unparseable body as :jwks_unreachable' do
+      stub_request(:get, jwks_url).to_return(status: 200, body: 'not json')
+      expect(Sentry).to receive(:capture_exception_with_info).
+        with(instance_of(described_class::JwksUnavailableError), anything)
+
+      expect(helper.invalid_reason).to eq(:jwks_unreachable)
+    end
+
+    # 200 with well-formed JSON that isn't a keyset — a gateway answering {"error": ...} without
+    # bothering to set a status. Neither the status check nor the parse guard catches this shape;
+    # unguarded it raises NoMethodError out of #invalid_reason instead of failing closed.
+    [
+      ['a keyless object', '{"foo":"bar"}'],
+      ['keys that are not an array', '{"keys":"nope"}'],
+      ['a bare array', '[]'],
+      ['a JSON literal', 'null'],
+    ].each do |shape, body|
+      it "surfaces #{shape} from the JWKS endpoint as :jwks_unreachable" do
+        stub_request(:get, jwks_url).
+          to_return(status: 200, body: body, headers: { 'Content-Type' => 'application/json' })
+        expect(Sentry).to receive(:capture_exception_with_info).
+          with(instance_of(described_class::JwksUnavailableError), anything)
+
+        expect(helper.invalid_reason).to eq(:jwks_unreachable)
+      end
+    end
+
+    # A failed fetch must not poison the hour-long JWKS cache — otherwise one bad response keeps
+    # rejecting good tokens long after the IdP recovers. The keyless 200 is the dangerous shape: it
+    # looks like a successful fetch, so nothing but the raise keeps it out of memory_cache.
+    [
+      ['a 502 with an HTML body', 502, '<html>bad gateway</html>'],
+      ['a 200 with an error object', 200, '{"error":"service unavailable"}'],
+    ].each do |shape, status, body|
+      it "does not cache #{shape}" do
+        stub_request(:get, jwks_url).to_return(status: status, body: body)
+        allow(Sentry).to receive(:capture_exception_with_info)
+        expect(helper.invalid_reason).to eq(:jwks_unreachable)
+        expect(described_class.memory_cache.read('jwt_helper_jwks')).to be_nil
+
+        stub_request(:get, jwks_url).
+          to_return(body: jwks_hash.to_json, headers: { 'Content-Type' => 'application/json' })
+
+        expect(described_class.new(access_token: access_token).invalid_reason).to be_nil
+      end
     end
   end
 
