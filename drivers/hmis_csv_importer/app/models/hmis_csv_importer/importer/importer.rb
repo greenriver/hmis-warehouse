@@ -63,6 +63,35 @@ module HmisCsvImporter::Importer
     SELECT_BATCH_SIZE = 10_000
     INSERT_BATCH_SIZE = 5_000
 
+    # Environment override (in milliseconds) for the slow-query capture
+    # threshold used by with_sql_log; benchmark runs set this low to capture
+    # more queries than the production default.
+    #
+    # with_sql_log records bind values alongside the SQL, and importer binds
+    # carry client identifiers, so an accidentally tiny threshold writes a large
+    # volume of client data into ImporterLog#phase_metrics. Values below the
+    # floor -- including the 0 that String#to_i yields for '1s' or 'true' -- are
+    # refused in favor of the default rather than capturing every query.
+    SQL_LOG_MIN_DURATION_ENV = 'HMIS_IMPORTER_SQL_LOG_MIN_DURATION_MS'
+    DEFAULT_SQL_LOG_MIN_DURATION_MS = 60_000
+    MIN_SQL_LOG_MIN_DURATION_MS = 1
+
+    # Cap on the queries captured per with_sql_log block. They accumulate in
+    # memory before being merged into phase_metrics, so a low threshold on a
+    # large import is otherwise unbounded in both memory and stored payload.
+    SQL_LOG_MAX_QUERIES = 500
+
+    def self.sql_log_min_duration_ms
+      override = ENV[SQL_LOG_MIN_DURATION_ENV].presence
+      return DEFAULT_SQL_LOG_MIN_DURATION_MS if override.nil?
+
+      duration = Integer(override, exception: false)
+      return duration if duration && duration >= MIN_SQL_LOG_MIN_DURATION_MS
+
+      Rails.logger.warn("Ignoring #{SQL_LOG_MIN_DURATION_ENV}=#{override.inspect}: expected an integer of at least #{MIN_SQL_LOG_MIN_DURATION_MS} ms, using #{DEFAULT_SQL_LOG_MIN_DURATION_MS} instead")
+      DEFAULT_SQL_LOG_MIN_DURATION_MS
+    end
+
     def initialize(
       loader_id:,
       data_source_id:,
@@ -326,11 +355,15 @@ module HmisCsvImporter::Importer
 
       existing_scope = existing_data_scope(klass)
       conn.execute("DROP TABLE IF EXISTS #{conn.quote_table_name(temp)}")
-      conn.execute(<<~SQL)
-        CREATE TEMP TABLE #{conn.quote_table_name(temp)} AS
-          SELECT DISTINCT #{conn.quote_column_name(key)} AS hud_key
-          FROM (#{existing_scope.select(key).where.not(key => nil).to_sql}) sub
-      SQL
+      # Materializing the multi-join involved scope is a set-based statement;
+      # Guard the planner from using a nested loop join on it.
+      GrdaWarehouseBase.disable_nestloop do
+        conn.execute(<<~SQL)
+          CREATE TEMP TABLE #{conn.quote_table_name(temp)} AS
+            SELECT DISTINCT #{conn.quote_column_name(key)} AS hud_key
+            FROM (#{existing_scope.select(key).where.not(key => nil).to_sql}) sub
+        SQL
+      end
       conn.execute("CREATE INDEX ON #{conn.quote_table_name(temp)} (hud_key)")
 
       # NOT EXISTS instead of NOT IN because NOT IN returns no rows when any
@@ -655,14 +688,23 @@ module HmisCsvImporter::Importer
       data_source.import_cleanups[basename]&.map(&:constantize)
     end
 
-    # Capture executed sql for debugging. Also disable nested loops
-    # min_duration defaults to 1 minute
-    def with_sql_log(phase, klass, name: nil, min_duration: 60_000)
+    # Capture executed sql for debugging.
+    # min_duration defaults to 1 minute; override via SQL_LOG_MIN_DURATION_ENV
+    def with_sql_log(phase, klass, name: nil, min_duration: self.class.sql_log_min_duration_ms, max_queries: SQL_LOG_MAX_QUERIES)
       queries = []
+      capped = false
       callback = lambda { |event|
         payload_sql = event.payload[:sql].squish
         next if payload_sql =~ /ROLLBACK|COMMIT|BEGIN|SAVEPOINT/
         next if event.duration < min_duration
+
+        if queries.length >= max_queries
+          unless capped
+            capped = true
+            Rails.logger.warn("Captured #{max_queries} slow queries for #{phase}; dropping the remainder. Raise #{SQL_LOG_MIN_DURATION_ENV} to capture fewer.")
+          end
+          next
+        end
 
         binds = (event.payload[:binds] || []).map { |bind| { name: bind.name || '?', value: bind.value_for_database.inspect } }
         query_data = { sql: payload_sql.squish, binds: binds }
@@ -685,10 +727,8 @@ module HmisCsvImporter::Importer
       }
 
       result = nil
-      GrdaWarehouseBase.disable_nestloop do
-        ActiveSupport::Notifications.subscribed(callback, 'sql.active_record') do
-          result = yield
-        end
+      ActiveSupport::Notifications.subscribed(callback, 'sql.active_record') do
+        result = yield
       end
 
       scope_name = [klass.name.demodulize, name].compact.join('.')
@@ -702,13 +742,17 @@ module HmisCsvImporter::Importer
         file_count += 1
         Rails.logger.info "[#{file_count}/#{total_files}] Marking tree as dead for #{klass.name}..."
         with_sql_log(__method__, klass, name: 'involved_warehouse_scope') do
-          klass.mark_tree_as_dead(
-            data_source_id: data_source.id,
-            project_ids: involved_project_ids,
-            date_range: date_range,
-            pending_date_deleted: Date.current,
-            importer_log_id: @importer_log.id,
-          )
+          # Set-based UPDATE over the multi-join involved_warehouse_scope; the
+          # planner picks a bad nested-loop plan for it, prevent it from doing so.
+          GrdaWarehouseBase.disable_nestloop do
+            klass.mark_tree_as_dead(
+              data_source_id: data_source.id,
+              project_ids: involved_project_ids,
+              date_range: date_range,
+              pending_date_deleted: Date.current,
+              importer_log_id: @importer_log.id,
+            )
+          end
         end
       end
     end
@@ -800,8 +844,12 @@ module HmisCsvImporter::Importer
     # Records benchmark timings for a completed ingest phase into the importer
     # log summary and emits a debug log line.
     # +type+ is the summary key prefix (e.g., 'added', 'updated').
-    private def log_phase_stats(file_name, bmk, type:, destination_class:)
-      records = summary_for(file_name, type) || 0
+    # +records+ is the row count attributable to this phase. Pass it when the
+    # phase does not record its own count under +type+ in the summary (e.g.
+    # mark_unchanged and mark_incoming_older both accumulate into the shared
+    # 'unchanged' summary key, so neither can be read back by type here).
+    private def log_phase_stats(file_name, bmk, type:, destination_class:, records: nil)
+      records ||= summary_for(file_name, type) || 0
       stat_prefix = type == 'added' ? 'add' : type
       stats = {
         "#{stat_prefix}_secs": bmk.real.round(3),
@@ -838,9 +886,13 @@ module HmisCsvImporter::Importer
         preload_custom_file_data(klass)
         with_sql_log(__method__, klass) do
           Rails.logger.info "  Marking unchanged records for #{file_name}..."
-          mark_unchanged(klass, file_name)
+          unchanged_count = nil
+          bmk = Benchmark.measure { unchanged_count = mark_unchanged(klass, file_name) }
+          log_phase_stats(file_name, bmk, type: 'unchanged', destination_class: klass.warehouse_class, records: unchanged_count)
           Rails.logger.info "  Marking incoming older records for #{file_name}..."
-          mark_incoming_older(klass, file_name)
+          older_count = nil
+          bmk = Benchmark.measure { older_count = mark_incoming_older(klass, file_name) }
+          log_phase_stats(file_name, bmk, type: 'older', destination_class: klass.warehouse_class, records: older_count)
           Rails.logger.info "  Applying updates for #{file_name}..."
           apply_updates(klass, file_name)
           Rails.logger.info "  Completed processing #{file_name}"
@@ -873,11 +925,15 @@ module HmisCsvImporter::Importer
           # for everyone who would have been included in this import, but didn't get
           # processed above, set their source hash to nil so future imports will fix them
           with_sql_log(__method__, klass, name: 'existing_destination_data_scope') do
-            existing.joins(enrollments: :project).
-              merge(GrdaWarehouse::Hud::Enrollment.open_during_range(date_range)).
-              merge(GrdaWarehouse::Hud::Project.where(id: involved_project_ids)).
-              update_all(source_hash: nil)
-            existing.update_all(pending_date_deleted: nil)
+            # Set-based UPDATEs over the multi-join involved_warehouse_scope;
+            # guard the planner as mark_tree_as_dead does.
+            GrdaWarehouseBase.disable_nestloop do
+              existing.joins(enrollments: :project).
+                merge(GrdaWarehouse::Hud::Enrollment.open_during_range(date_range)).
+                merge(GrdaWarehouse::Hud::Project.where(id: involved_project_ids)).
+                update_all(source_hash: nil)
+              existing.update_all(pending_date_deleted: nil)
+            end
           end
         else
           delete_count = klass.pending_deletions(data_source_id: data_source.id, project_ids: involved_project_ids, date_range: date_range).count
@@ -926,30 +982,35 @@ module HmisCsvImporter::Importer
 
         Rails.logger.info "Processing existing records for #{file_name} in batches"
 
-        existing_destination_data_scope(klass).in_batches(of: SELECT_BATCH_SIZE) do |relation|
-          hud_keys = relation.pluck(klass.hud_key)
-          klass.should_import.where(
-            importer_log_id: @importer_log.id,
-            klass.hud_key => hud_keys,
-          ).find_each(batch_size: SELECT_BATCH_SIZE) do |source|
-            batch << prepare_destination_for_update(klass, source.as_destination_record)
-            if batch.count == INSERT_BATCH_SIZE
-              # Client model doesn't have a uniqueness constraint because of the warehouse data source
-              # so these must be processed more slowly
-              if klass.hud_key == :PersonalID
-                Rails.logger.info "Processing #{batch.count} records individually for #{file_name}"
-                batch.each do |incoming|
-                  destination_class.where(
-                    data_source_id: incoming.data_source_id,
-                    PersonalID: incoming.PersonalID,
-                  ).with_deleted.update_all(incoming.slice(klass.upsert_column_names(version: importer_log.version)))
+        # The pagination re-evaluates the multi-join existing_destination_data
+        # scope per batch; guard the planner from using a nested loop join on it. The inner
+        # statements are single-table operations the guard doesn't affect.
+        GrdaWarehouseBase.disable_nestloop do
+          existing_destination_data_scope(klass).in_batches(of: SELECT_BATCH_SIZE) do |relation|
+            hud_keys = relation.pluck(klass.hud_key)
+            klass.should_import.where(
+              importer_log_id: @importer_log.id,
+              klass.hud_key => hud_keys,
+            ).find_each(batch_size: SELECT_BATCH_SIZE) do |source|
+              batch << prepare_destination_for_update(klass, source.as_destination_record)
+              if batch.count == INSERT_BATCH_SIZE
+                # Client model doesn't have a uniqueness constraint because of the warehouse data source
+                # so these must be processed more slowly
+                if klass.hud_key == :PersonalID
+                  Rails.logger.info "Processing #{batch.count} records individually for #{file_name}"
+                  batch.each do |incoming|
+                    destination_class.where(
+                      data_source_id: incoming.data_source_id,
+                      PersonalID: incoming.PersonalID,
+                    ).with_deleted.update_all(incoming.slice(klass.upsert_column_names(version: importer_log.version)))
+                  end
+                  note_processed(file_name, batch.count, 'updated')
+                else
+                  Rails.logger.info "Processing #{batch.count} records in bulk for #{file_name}"
+                  process_batch!(destination_class, batch, file_name, type: 'updated', upsert: true, columns: upsert_columns)
                 end
-                note_processed(file_name, batch.count, 'updated')
-              else
-                Rails.logger.info "Processing #{batch.count} records in bulk for #{file_name}"
-                process_batch!(destination_class, batch, file_name, type: 'updated', upsert: true, columns: upsert_columns)
+                batch = []
               end
-              batch = []
             end
           end
         end
@@ -1121,7 +1182,10 @@ module HmisCsvImporter::Importer
         where.not(DateUpdated: nil).
         where(exists)
 
-      Rails.logger.info { "Processing Unchanged for #{file_name}: #{incoming_scope.count} incoming, #{matched_scope.count} unchanged" }
+      # No matched-row count here: evaluating matched_scope.count would run the
+      # full semi-join an extra time per file; the cleared total is logged by
+      # batch_clear_pending_deletion from the materialized set instead.
+      Rails.logger.info { "Processing Unchanged for #{file_name}: #{incoming_scope.count} incoming" }
       batch_clear_pending_deletion(klass, matched_scope, file_name)
     end
 
@@ -1167,19 +1231,28 @@ module HmisCsvImporter::Importer
         where.not(DateUpdated: nil).
         where(exists)
 
-      Rails.logger.info { "Processing Incoming Older for #{file_name}: #{incoming_scope.count} incoming, #{matched_scope.count} unchanged" }
+      Rails.logger.info { "Processing Incoming Older for #{file_name}: #{incoming_scope.count} incoming" }
       batch_clear_pending_deletion(klass, matched_scope, file_name)
     end
 
     # Creates a session-scoped temp table of IDs materialized from `scope`, builds
     # an index on it, yields the quoted temp-table name for the caller to drive its
     # own batched UPDATE, then drops the table in ensure.
-    private def with_temp_id_table(conn, name, scope)
+    #
+    # disable_nestloop applies the planner guard to the materialization
+    # only — the yielded block (typically small batched UPDATEs joining by
+    # primary key) runs with the planner unconstrained.
+    private def with_temp_id_table(conn, name, scope, disable_nestloop: false)
       conn.execute("DROP TABLE IF EXISTS #{conn.quote_table_name(name)}")
-      conn.execute(<<~SQL)
+      create_sql = <<~SQL
         CREATE TEMP TABLE #{conn.quote_table_name(name)} AS
           SELECT id FROM (#{scope.select(:id).to_sql}) sub
       SQL
+      if disable_nestloop
+        GrdaWarehouseBase.disable_nestloop { conn.execute(create_sql) }
+      else
+        conn.execute(create_sql)
+      end
       conn.execute("CREATE INDEX ON #{conn.quote_table_name(name)} (id)")
       yield conn.quote_table_name(name)
     ensure
@@ -1196,14 +1269,15 @@ module HmisCsvImporter::Importer
     end
 
     # Materialize matched IDs into a temp table so the expensive semi-join runs once,
-    # then batch UPDATE from the temp table.
+    # then batch UPDATE from the temp table. Returns the number of rows cleared.
     private def batch_clear_pending_deletion(klass, matched_scope, file_name)
       conn = klass.warehouse_class.connection
       update_base = klass.warehouse_class
       update_base = update_base.with_deleted if klass.warehouse_class.paranoid?
       tmp_name = tmp_table_name('unchanged', klass.warehouse_class)
 
-      with_temp_id_table(conn, tmp_name, matched_scope) do |quoted_temp|
+      cleared = 0
+      with_temp_id_table(conn, tmp_name, matched_scope, disable_nestloop: true) do |quoted_temp|
         last_id = 0
         loop do
           result = conn.execute(<<~SQL)
@@ -1219,9 +1293,12 @@ module HmisCsvImporter::Importer
           break if result.ntuples.zero?
 
           last_id = result.map { |r| r['id'].to_i }.max
+          cleared += result.ntuples
           note_processed(file_name, result.ntuples, 'unchanged')
         end
       end
+      Rails.logger.info { "Cleared pending deletion for #{cleared} #{file_name} rows" }
+      cleared
     end
 
     # Materialize delete-pending IDs into a temp table, then batch soft-delete.
@@ -1232,7 +1309,7 @@ module HmisCsvImporter::Importer
       deleted_at = conn.quote(Time.current)
       tmp_name = tmp_table_name('pending_deletes', klass.warehouse_class)
 
-      with_temp_id_table(conn, tmp_name, scope) do |quoted_temp|
+      with_temp_id_table(conn, tmp_name, scope, disable_nestloop: true) do |quoted_temp|
         last_id = 0
         loop do
           result = conn.execute(<<~SQL)

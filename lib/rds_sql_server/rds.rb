@@ -266,7 +266,7 @@ class Rds
 
   def db_exists?
     load 'lib/rds_sql_server/sql_server_bootstrap_model.rb'
-    db_exists = SqlServerBootstrapModel.connection.execute(<<~SQL)
+    db_exists = SqlServerBootstrapModel.connection.select_value(<<~SQL)
       if not exists(select * from sys.databases where name = '#{database}')
         select 0;
       else

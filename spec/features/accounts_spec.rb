@@ -20,7 +20,8 @@ RSpec.describe 'Accounts', type: :feature do
       fill_in 'Email', with: 'noreply@example.com'
       fill_in 'Password', with: 'password'
       click_button 'Sign In'
-      expect(page).to have_content 'Invalid Email or password'
+      # Devise 5.0.0.rc fixed the grammar of this message: "Invalid Email or password" -> "Invalid email or password."
+      expect(page).to have_content 'Invalid email or password.'
     end
 
     scenario 'with correct password' do
@@ -130,6 +131,32 @@ RSpec.describe 'Accounts', type: :feature do
         fill_in 'Password', with: user.password
         click_button 'Sign In'
         expect(page).to have_content 'Password Expired'
+      end
+    end
+
+    feature 'Devise session_limitable' do
+      def sign_in_via_form(user)
+        visit path_for_warehouse_sign_in
+        fill_in 'Email', with: user.email
+        fill_in 'Password', with: user.password
+        click_button 'Sign In'
+      end
+
+      scenario 'signing in from a second browser invalidates the first session' do
+        Capybara.using_session(:first_browser) do
+          sign_in_via_form(user)
+          expect(page).to have_content 'Sign Out'
+        end
+
+        Capybara.using_session(:second_browser) do
+          sign_in_via_form(user)
+          expect(page).to have_content 'Sign Out'
+        end
+
+        Capybara.using_session(:first_browser) do
+          visit path_for_warehouse_sign_in
+          expect(page).to have_content 'used in another browser'
+        end
       end
     end
   end
