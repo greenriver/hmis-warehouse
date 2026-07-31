@@ -79,54 +79,38 @@ Records a direct user-to-AccessControl assignment and appears in admin audit his
 
 ## Permission Requirements
 
-Some permissions are meaningless on their own. `can_view_enrollment_details`, for example, grants nothing unless the user can also see the project and the client. These dependencies are declared with `requirements` in `permissions_with_descriptions`:
+Some permissions are meaningless alone: `can_view_enrollment_details` grants nothing unless the user can also see the project and the client. Dependencies are declared with `requirements` in `permissions_with_descriptions`, and **only direct requirements belong there** — resolution is recursive, so `can_edit_enrollments` declares one requirement and inherits the rest of the chain through it:
 
 ```ruby
-can_view_enrollment_details: {
-  requirements: [:can_view_project, :can_view_clients],
-  # ...
-},
 can_edit_enrollments: {
-  requirements: [:can_view_enrollment_details],
+  requirements: [:can_view_enrollment_details], # which itself requires can_view_project and can_view_clients
   # ...
 },
 ```
 
-**Declare only direct requirements.** Resolution is recursive, so `can_edit_enrollments` transitively requires `can_view_project` and `can_view_clients` without restating them. Restating them adds a second place to keep in sync and no enforcement.
+`HmisPermissionLoader` drops any permission whose chain isn't fully granted, so an unmet requirement leaves the permission absent from the set and every policy predicate behaves as if it was never granted. `UserContext#project_permissions` evaluates this per project; `UserContext#global_permissions` evaluates it across the whole data source, where a chain split across projects can over-report — which is why it only informs coarse UI decisions.
 
-### How requirements are enforced
-
-`Hmis::AuthPolicies::ContextLoaders::HmisPermissionLoader` builds a user's permission set, then drops any permission whose requirement chain is not fully satisfied (`requirements_met?`). A permission with an unmet requirement is not merely ignored — it is absent from the set, so every policy predicate reading that set behaves as if it was never granted.
-
-This means requirements are enforced everywhere policies are used, and the granularity depends on which `UserContext` method is involved:
-
-| Method | Behavior |
-|---|---|
-| `UserContext#project_permissions(project_id)` | Requirements enforced per-project. A user with `can_edit_enrollments` at project A and `can_view_enrollment_details` at project B gets neither at either project. |
-| `UserContext#global_permissions` | Requirements enforced across the whole data source. The split-role case above *would* report `can_edit_enrollments`, which is why global permissions are only used for coarse UI decisions and never to authorize a specific record. |
-
-### Requirements and `mode: :all` scopes
-
-ActiveRecord scopes that resolve access (`User#entities_with_permissions`, `Project.with_access`) match Role columns directly and **do not** resolve requirements. When a scope needs a permission's full dependency chain, pass the flattened set with `mode: :all`:
+The lower-level scopes (`User#entities_with_permissions`, `Project.with_access`) match Role columns directly and don't resolve requirements. They take `mode: :any` (the default) or `mode: :all`; pass the flattened chain when a scope needs it:
 
 ```ruby
 Hmis::Hud::Project.with_access(user, *Hmis::Role.required_permissions_for(:can_view_enrollment_details), mode: :all)
 ```
 
-`Hmis::Role.required_permissions_for(permission)` returns the permission plus all of its transitive requirements, and is the correct way to avoid restating a chain at the call site.
-
-Note the semantic difference from policy evaluation, which is intentional:
-
-- The permission loader unions permissions across every Role the user holds in the relevant Collections, then checks requirements against that union.
-- `mode: :all` requires every listed permission on a **single** Role.
-
-So a user holding `can_view_enrollment_details` from one role and `can_view_clients` from another passes the policy check but is excluded by the scope. A role that grants enrollment visibility without client visibility is treated as an incomplete grant rather than something to be completed from an unrelated role.
-
-Because of this, adding a requirement to an existing permission can silently remove access from roles that don't already grant the new prerequisite. `rails driver:hmis:audit_enrollment_visibility_requirements` is a read-only audit that reports roles granting enrollment visibility with unmet requirements, along with how many of their users hold the missing permissions through a different role (i.e. whose access actually changes).
+That is intentionally stricter than policy evaluation, which checks requirements against the union of a user's roles: `mode: :all` requires them on a single role, so a role granting enrollment visibility without client visibility grants no enrollment access rather than borrowing the prerequisite from elsewhere. Adding a requirement can therefore remove access from existing roles — `rails driver:hmis:audit_enrollment_visibility_requirements` reports which ones, and how many of their users are actually affected.
 
 ## How Permission Checks Work
 
-### Policies (preferred)
+Three questions come up in practice, each with a preferred tool:
+
+| Question | Tool |
+|---|---|
+| May this user act on this record? | instance policy — `policy_for(record, policy_type:)` |
+| Which records may this user see? | `viewable_by` scope |
+| Could this user do this at all, anywhere in the data source? | global policy — `policy_for(SomeClass, policy_type:)` |
+
+The first two are complementary rather than alternatives: most code scopes the query to find a record, then asks the policy whether the action is allowed.
+
+### Policies (preferred, for a single record)
 
 `user.policy_for(resource, policy_type: :hmis_project).can_view_enrollment_details?`
 
@@ -134,42 +118,48 @@ Policy classes in `drivers/hmis/app/models/hmis/auth_policies/` are the intended
 
 See [HMIS Authorization Policy Architecture](../../drivers/hmis/app/models/hmis/auth_policies/README.md) for the component breakdown and instructions for adding a policy.
 
-### Entity scopes
+### `viewable_by` entity scopes (preferred, for multiple records)
 
-For filtering records rather than checking one resource:
+`Hmis::Hud::Project.viewable_by(current_user)`
 
-- `Entity.viewable_by(user)` — entities the user can view, directly or by inheritance. This is what most queries should use.
-- `Hmis::Hud::Project.with_access(user, *permissions, **kwargs)` — projects where the user has the given permissions. Note this includes projects the user cannot otherwise view (it does not imply `can_view_project`).
-- `User#entities_with_permissions(model, *permissions, **kwargs)` — the lower-level primitive; returns only **directly** granted entities and is normally used to build the scopes above.
-- `User#viewable_projects`, `viewable_organizations`, etc. — direct grants only, used to assemble `viewable_by`.
+Use `viewable_by` any time you filter a list of records down to what a user may see. Also use it when looking up a **single** record by ID, even when a policy check follows. The scope restricts results to the user's current data source and to the entities reachable through their Collections, which is what keeps a record from another HMIS — or from outside the user's access entirely — from being loaded in the first place. A policy check on an already-loaded record authorizes the action, not the lookup, so it is not a substitute.
+
+Combining the two is the standard pattern for acting on one record:
+
+```ruby
+record = Hmis::Hud::Project.viewable_by(current_user).find_by(id: id)
+access_denied! unless record && policy_for(record, policy_type: :hmis_project).can_delete?
+```
+
+`viewable_by` only answers "can this user see this record?" It never implies permission to edit or delete, which is why the policy check is still required.
 
 An entity is **directly viewable** when a Collection the user reaches through an AccessControl references it and the attached Role grants a viewable permission. It is **inherited** when one of its parents is directly viewable: a Project is viewable through its Organization, Data Source, or a Project Group containing it; an Organization is viewable through its Data Source.
 
-#### Allowed kwargs
+### Global policies (for "can they do this at all?")
 
-| arg | value | default | notes |
-|---|---|---|---|
-| `mode` | `:any` or `:all` | `:any` | Whether any one of the permissions is sufficient, or all are required on the same Role. See [Requirements and `mode: :all` scopes](#requirements-and-mode-all-scopes). |
+`policy_for(Hmis::StaffAssignment, policy_type: :staff_assignment).can_index?`
 
-### Global boolean flags (avoid in new code)
+Passing a **class** rather than a record returns the policy's `Global` variant (see `Hmis::AuthPolicies::ResourcePolicy`), which answers whether the user could do something *somewhere* in the current data source. Reach for it when:
 
-`Hmis::User` defines `can_<permission>`, `can_<permission>?`, and `can_<permission>_for?(entity)` for every permission, plus `permission?`, `permissions?`, and `permissions_for?`. The flag forms answer "does this user have X anywhere?", ignoring both entity scope and data source, which makes them unsafe in a multi-HMIS installation. They also bypass requirement resolution. Prefer a policy predicate.
+- **Deciding what to show at all** — whether a navigation item, dashboard section, or admin area is available. `Types::HmisSchema::RootQueryAccess` is built entirely from global policies, and `UserDashboard` uses `can_index?` to decide whether the staff assignment section appears.
+- **There is no record yet** — `can_create?` before building a record, or a bulk mutation that operates on many.
+- **Short-circuiting work** — `Hmis::Hud::Client.viewable_by` returns `none` unless the global policy grants `can_view?`, and pick lists skip building options the user could never use.
 
-### Entity access loaders
+Because a global policy reads `UserContext#global_permissions`, it must never authorize an action on a specific record: it can report a permission the user holds at one project while the record in question belongs to another. The schema follows this split — fields on `QueryAccess` are global, and anything about a specific record belongs on that record's access object.
 
-`Hmis::BaseAccessLoader` subclasses (`ClientAccessLoader`, `ProjectAccessLoader`, `OrganizationAccessLoader`, `DataSourceAccessLoader`) resolve one permission for many entities at once, which makes them suitable for GraphQL batch loading. `Hmis::EntityAccessLoaderFactory` maps an arbitrary record to the right loader by walking associations toward a Client, Project, Organization, or Data Source — the entity types that can carry permissions.
+### Global boolean flags (legacy, avoid in new code)
 
-These loaders check a single permission against Role columns and do not resolve requirements. They back the legacy `can_<permission>_for?` path and `GraphqlPermissionChecker`.
+`Hmis::User` defines `can_<permission>`, `can_<permission>?`, and `can_<permission>_for?(entity)` for every permission, plus `permission?`, `permissions?`, and `permissions_for?`. The flag forms answer "does this user have X anywhere?", ignoring both entity scope and data source, which makes them unsafe in a multi-HMIS installation. The `_for?` forms are entity-scoped (they resolve through `Hmis::BaseAccessLoader` subclasses), but check a single raw permission and bypass requirement resolution. Prefer a policy predicate in all of these cases: a global policy for "anywhere in this data source" questions, an instance policy for a specific record.
 
 ### GraphQL
 
-Three layers of authorization apply to the GraphQL API:
+Four conventions apply to the GraphQL API:
 
-- **Type-level**: `self.authorized?(object, ctx)` on a type, typically delegating to a policy. `HmisSchema::Enrollment` uses this to require either limited or full enrollment visibility.
-- **Field-level**: `Types::BaseField` accepts `authorize_with:` (a lambda receiving user and object) or the deprecated `permissions:` kwarg, which routes through `GraphqlPermissionChecker`. Unauthorized fields resolve to `null` rather than erroring. `HmisSchema::Enrollment` overrides `self.field` to require `can_view_enrollment_details` for all full-access fields, and defines `summary_field` for the subset visible with `can_view_limited_enrollment_details`.
+- **Resolving records**: fields and mutations that look up or filter records do so through a `viewable_by` scope, so visibility is enforced by the query itself rather than by a later check.
+- **Object-level**: `self.authorized?(object, ctx)` on a type, typically delegating to a policy. This is a secondary guard that raises an exception if unauthorized.
+- **Field-level**: `Types::BaseField` accepts `authorize_with:` (a lambda receiving user and object) or the deprecated `permissions:` kwarg, which routes through `GraphqlPermissionChecker`. Unauthorized fields resolve to `null` rather than erroring. See `HmisSchema::Enrollment` for an example, which differentiates between `field` and `summary_field`.
 - **Access objects**: the nested `access { ... }` objects the frontend uses to decide what to render. New fields should use `bool_field` with a memoized `policy` helper; the legacy `can`, `composite_perm`, and `root_can` helpers expose raw permissions and are not data-source safe. See [ADR 0006](../adr/0006-policy-based-graphql-access-fields.md).
-
-Resolvers and mutations should authorize explicitly with `access_denied!` unless a policy predicate passes, rather than relying on a scope to return nothing.
+- **`current_permission?` (legacy, avoid in new code)**: `current_permission?(permission:, entity:)` from `GraphqlApplicationHelper` checks one raw permission against one entity through `GraphqlPermissionChecker`, and is what the deprecated `permissions:` kwarg and `can` access-object helper use under the hood. It bypasses requirement resolution and reads as a permission flag rather than a domain question. It is being phased out in favor of instance policy checks — don't add new usages, and replace them when touching nearby code.
 
 ## Caching
 
