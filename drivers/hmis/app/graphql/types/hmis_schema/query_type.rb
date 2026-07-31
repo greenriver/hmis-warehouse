@@ -716,20 +716,28 @@ module Types
       scope.order(:id)
     end
 
-    # Client fields (from ClientFieldMap) available in CE Match Rule expressions.
-
-    field :ce_match_client_fields, [HmisSchema::CeMatchField], null: false, description: 'Client fields available for CE Match Rule expressions.'
+    field :ce_match_client_fields, [HmisSchema::CeMatchField], null: false, description: 'Client fields available for CE Match Rule expressions.', deprecation_reason: 'Use ceMatchFields(fieldSource: CLIENT)'
     def ce_match_client_fields
       access_denied! unless policy_for(Hmis::Ce::Match::Rule, policy_type: :ce_match_rule).can_manage?
 
       Hmis::Ce::Match::FieldCatalog.new.client_fields
     end
 
-    field :ce_match_psde_fields, [HmisSchema::CeMatchField], null: false, description: 'HUD Program Specific Data Element fields available for CE Match Rule expressions.'
-    def ce_match_psde_fields
+    field :ce_match_fields, [HmisSchema::CeMatchField], null: false, description: 'Fields available for CE Match Rule expressions. CUSTOM_DATA_ELEMENT fields are scoped to a form, so request those through ceMatchCustomAssessmentFields instead.' do
+      argument :field_source, HmisSchema::Enums::CeMatchRuleFieldSource, required: true
+    end
+    def ce_match_fields(field_source:)
       access_denied! unless policy_for(Hmis::Ce::Match::Rule, policy_type: :ce_match_rule).can_manage?
 
-      Hmis::Ce::Match::FieldCatalog.new.psde_fields
+      catalog = Hmis::Ce::Match::FieldCatalog.new
+      case field_source
+      when 'CLIENT'
+        catalog.client_fields
+      when 'PSDE'
+        catalog.psde_fields
+      else
+        raise HmisErrors::ApiError, "Unsupported CE match field source: #{field_source}"
+      end
     end
 
     field :ce_match_custom_assessment_forms, [Forms::FormDefinition], null: false, description: 'Custom assessment form definitions for use in CE match rule management.'

@@ -18,7 +18,8 @@ module Types
     # because we will also expose CDEs with other ownership types (e.g. custom field on Client or Enrollment)
     value 'CUSTOM_DATA_ELEMENT', 'Custom'
 
-    # Program Specific Data Elements use "HUD" as their user-facing source label.
+    # HUD Program Specific Data Elements, such as `psde.total_monthly_income` or `psde.hiv_aids`
+    # These use "HUD" as their user-facing label.
     value 'PSDE', 'HUD'
 
     # Future choices:

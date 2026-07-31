@@ -10381,7 +10381,7 @@ type Query {
   """
   Client fields available for CE Match Rule expressions.
   """
-  ceMatchClientFields: [CeMatchField!]!
+  ceMatchClientFields: [CeMatchField!]! @deprecated(reason: "Use ceMatchFields(fieldSource: CLIENT)")
 
   """
   Fields on the form that are usable as CE Match Rule condition fields.
@@ -10394,9 +10394,10 @@ type Query {
   ceMatchCustomAssessmentForms: [FormDefinition!]!
 
   """
-  HUD Program Specific Data Element fields available for CE Match Rule expressions.
+  Fields available for CE Match Rule expressions. CUSTOM_DATA_ELEMENT fields are
+  scoped to a form, so request those through ceMatchCustomAssessmentFields instead.
   """
-  ceMatchPsdeFields: [CeMatchField!]!
+  ceMatchFields(fieldSource: CeMatchRuleFieldSource!): [CeMatchField!]!
   ceMatchRule(id: ID!): CeMatchRule
 
   """

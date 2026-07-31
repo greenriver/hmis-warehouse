@@ -50,8 +50,8 @@ module Hmis::Ce::Match
       return build_client_field(client_field) if client_field
 
       # PSDE keys have one namespace segment, for example
-      # psde.total_monthly_income. Resolve the suffix through the registry so
-      # unknown keys return nil instead of producing incomplete field metadata.
+      # psde.total_monthly_income. The registry is the source of truth for
+      # supported keys, so anything unregistered resolves to nil.
       if field_key.start_with?("#{Hmis::Ce::Match::Expression::FieldMap::PSDE}.")
         psde_field = Hmis::Ce::Match::Expression::PsdeFieldRegistry[field_key.split('.', 2).last]
         return psde_field && build_psde_field(psde_field)
