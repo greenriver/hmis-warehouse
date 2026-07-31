@@ -20,6 +20,9 @@ RSpec.describe Idp::JwtHelper, if: AuthMethod.jwt? do
       'aud' => 'test_aud',
       'iss' => 'test_iss',
       'iat' => Time.now.to_i,
+      # A real IdP always stamps exp. Without it here every `valid? == true` example below would be
+      # asserting the never-expires path, and #expiration_time would have nothing to read.
+      'exp' => Time.now.to_i + 3600,
       'name' => '  John   Quincy   Adams  ',
       'federated_claims' => {
         'connector_id' => 'keycloak',
@@ -90,6 +93,28 @@ RSpec.describe Idp::JwtHelper, if: AuthMethod.jwt? do
       bad_aud_token = JWT.encode(bad_aud_payload, rsa_key, 'RS256', { kid: kid })
       bad_aud_helper = described_class.new(access_token: bad_aud_token)
       expect(bad_aud_helper.valid?).to be false
+    end
+
+    # The signing algorithm is the whole basis of trust: every other example here signs with
+    # JWT_ALGORITHM, so widening the allowlist passed to JWT.decode (adding 'none', or accepting a
+    # symmetric alg) would forge tokens at will and leave the rest of this file green. These two pin
+    # the allowlist to exactly the configured algorithm.
+    it 'rejects an unsigned token even when its kid names a key we hold' do
+      unsigned_token = JWT.encode(payload, nil, 'none', { kid: kid })
+      unsigned_helper = described_class.new(access_token: unsigned_token)
+
+      expect(unsigned_helper.valid?).to be false
+      expect(unsigned_helper.invalid_reason).to eq(:malformed)
+    end
+
+    # Classic algorithm-substitution: sign with HMAC using the public key (which anyone can read
+    # from the JWKS) as the shared secret, hoping the verifier treats it as the HMAC key.
+    it 'rejects a token signed with a symmetric algorithm over our public key' do
+      hmac_token = JWT.encode(payload, rsa_key.public_key.to_s, 'HS256', { kid: kid })
+      hmac_helper = described_class.new(access_token: hmac_token)
+
+      expect(hmac_helper.valid?).to be false
+      expect(hmac_helper.invalid_reason).to eq(:malformed)
     end
 
     it 'fails closed (and reports to Sentry) when the JWKS endpoint is unreachable' do
@@ -202,9 +227,30 @@ RSpec.describe Idp::JwtHelper, if: AuthMethod.jwt? do
     end
   end
 
+  # This is the key User.find_from_jwt matches on, so every normalization here decides which account
+  # a token resolves to. Dropping the strip would provision a second account for the same person;
+  # dropping the presence would hand a blank string to the lookup.
   describe '#payload_email' do
     it 'returns downcased email from payload' do
       expect(helper.payload_email).to eq('test@example.com')
+    end
+
+    it 'strips surrounding whitespace before downcasing' do
+      token = JWT.encode(payload.merge('email' => "  Pad@Example.COM \n"), rsa_key, 'RS256', { kid: kid })
+
+      expect(described_class.new(access_token: token).payload_email).to eq('pad@example.com')
+    end
+
+    it 'is nil rather than a blank string when the claim is whitespace only' do
+      token = JWT.encode(payload.merge('email' => '   '), rsa_key, 'RS256', { kid: kid })
+
+      expect(described_class.new(access_token: token).payload_email).to be_nil
+    end
+
+    it 'is nil when the claim is absent' do
+      token = JWT.encode(payload.except('email'), rsa_key, 'RS256', { kid: kid })
+
+      expect(described_class.new(access_token: token).payload_email).to be_nil
     end
   end
 
@@ -266,6 +312,64 @@ RSpec.describe Idp::JwtHelper, if: AuthMethod.jwt? do
     it 'raises naming the missing key when one is absent' do
       allow(ENV).to receive(:fetch).with('IDP_AUD', '').and_return('')
       expect { described_class.assert_boot_config! }.to raise_error(RuntimeError, /IDP_AUD/)
+    end
+
+    # The other half of this guard. A typo'd AUTH_METHOD doesn't fail loudly on its own: AuthMethod
+    # .jwt? just comes back false and the app quietly boots on Devise with the JWT stack inert. This
+    # raise is what turns that into a failed deploy, so it needs its own example.
+    describe 'AUTH_METHOD' do
+      before { allow(ENV).to receive(:[]).and_call_original }
+
+      it 'raises naming the offending value when AUTH_METHOD is not recognized' do
+        allow(ENV).to receive(:[]).with('AUTH_METHOD').and_return('jwtt')
+
+        expect { described_class.assert_boot_config! }.to raise_error(RuntimeError, /Invalid AUTH_METHOD.*jwtt/)
+      end
+
+      ['jwt', 'devise', nil].each do |auth_method|
+        it "accepts #{auth_method.inspect}" do
+          allow(ENV).to receive(:[]).with('AUTH_METHOD').and_return(auth_method)
+
+          expect { described_class.assert_boot_config! }.not_to raise_error
+        end
+      end
+    end
+  end
+
+  # Every other example in this file stubs .fetch_jwks, so the one method that decides which keys we
+  # trust was never exercised. These drive the real Net::HTTP path against WebMock.
+  describe '.fetch_jwks' do
+    let(:jwks_url) { 'https://idp.example.test/jwks' }
+
+    before { allow(described_class).to receive(:fetch_jwks).and_call_original }
+
+    it 'parses the keyset served by JWKS_URL' do
+      request = stub_request(:get, jwks_url).
+        to_return(body: jwks_hash.to_json, headers: { 'Content-Type' => 'application/json' })
+
+      expect(described_class.fetch_jwks).to eq(jwks_hash)
+      expect(request).to have_been_requested
+    end
+
+    # Not a style point: Net::HTTP defaults to no read timeout, so a wedged IdP would hang every
+    # authenticated request in the pool instead of failing closed via NETWORK_ERRORS.
+    it 'bounds both the connect and the read' do
+      stub_request(:get, jwks_url).to_return(body: jwks_hash.to_json)
+
+      expect(Net::HTTP).to receive(:start).
+        with('idp.example.test', 443, hash_including(use_ssl: true, open_timeout: 5, read_timeout: 5)).
+        and_call_original
+
+      described_class.fetch_jwks
+    end
+
+    # The existing SocketError example hand-raises the exception. This one proves NETWORK_ERRORS
+    # actually names what Net::HTTP raises on a real stall, which a hand-raised error cannot.
+    it 'surfaces a transport stall as :jwks_unreachable rather than a client-token problem' do
+      stub_request(:get, jwks_url).to_timeout
+      allow(Sentry).to receive(:capture_exception_with_info)
+
+      expect(helper.invalid_reason).to eq(:jwks_unreachable)
     end
   end
 
