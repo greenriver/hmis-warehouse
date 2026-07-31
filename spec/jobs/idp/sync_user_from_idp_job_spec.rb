@@ -8,9 +8,10 @@
 
 require 'rails_helper'
 
-# The reconciliation rules (emailVerified gate, case-insensitive no-op) are covered with
-# Idp::Support#idp_reconcile_email!. This covers what the job adds: the capability gate, the HMIS
-# re-point, bounded retries, and which failures retry.
+# The job drives the real Idp::Support#idp_reconcile_email!, so the reconciliation rules (the
+# emailVerified gate, the case-insensitive no-op) are covered here too — there is no separate
+# Idp::Support spec. On top of those: the capability gate, the HMIS re-point and its rollback,
+# bounded retries, and which failures retry.
 RSpec.describe Idp::SyncUserFromIdpJob, type: :job do
   let!(:user) { create(:user, email: 'before@example.com', first_name: 'Self', last_name: 'Serve') }
   let(:service) do
@@ -58,6 +59,33 @@ RSpec.describe Idp::SyncUserFromIdpJob, type: :job do
     expect(user).to receive(:sync_to_hud_users).with(previous_email: 'before@example.com')
 
     described_class.new.perform(user_id: user.id)
+  end
+
+  # Case is not a change. Adopting one would write the column and fire a re-point whose
+  # previous_email differs from the address replacing it only in case.
+  it 'treats a case-only difference as no change' do
+    allow(service).to receive(:get_user).and_return(remote_user(email: 'BEFORE@example.com'))
+    allow(HmisEnforcement).to receive(:hmis_enabled?).and_return(true)
+    allow(User).to receive(:find_by).with(id: user.id).and_return(user)
+    expect(user).not_to receive(:sync_to_hud_users)
+
+    described_class.new.perform(user_id: user.id)
+
+    expect(user.reload.email).to eq('before@example.com')
+  end
+
+  # Two databases and no shared commit, so the adopt is only safe if a failed HUD sync takes it back
+  # out. Otherwise users.email moves and the HUD rows keep pointing at the address it replaced.
+  it 'unwinds the adopted address when the HMIS re-point fails' do
+    allow(service).to receive(:get_user).and_return(remote_user(email: 'after@example.com'))
+    allow(HmisEnforcement).to receive(:hmis_enabled?).and_return(true)
+    allow(User).to receive(:find_by).with(id: user.id).and_return(user)
+    allow(user).to receive(:sync_to_hud_users).and_raise(ActiveRecord::RecordInvalid.new(user))
+    allow(Sentry).to receive(:capture_exception_with_info)
+
+    described_class.new.perform(user_id: user.id)
+
+    expect(user.reload.email).to eq('before@example.com')
   end
 
   it 'does not re-point HMIS rows when the address has not moved' do
