@@ -14,6 +14,11 @@ require_relative '../../support/hmis_base_setup'
 # Note: enrollment(id:) requires full enrollment details access (can_view_details?).
 # Limited enrollment access alone is not enough to resolve this query — that permission
 # is for nested enrollments on the client dashboard (see client_enrollments_visibility_spec).
+#
+# Lookup uses Enrollment.viewable_by → Project.with_enrollment_details_viewable_by, which
+# requires can_view_enrollment_details + can_view_project + can_view_clients on the same
+# role (with_access mode: :all via Role.with_permissions). That is independent of
+# HmisPermissionLoader role-requirement stripping used by policy objects.
 RSpec.describe Hmis::GraphqlController, type: :request do
   include_context 'hmis base setup'
 
@@ -21,9 +26,10 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, sexual_orientation: 1 }
   let!(:cls) { create :hmis_current_living_situation, data_source: ds1, client: c1, enrollment: e1 }
 
-  # Canary: enrollment at another project should never leak through this lookup
+  # Canary: enrollment / CLS at another project should never leak through this lookup
   let!(:p2) { create :hmis_hud_project, data_source: ds1, organization: o1 }
   let!(:e2) { create :hmis_hud_enrollment, data_source: ds1, project: p2, client: c1 }
+  let!(:cls2) { create :hmis_current_living_situation, data_source: ds1, client: c1, enrollment: e2 }
 
   before(:each) { hmis_login(user) }
 
@@ -79,7 +85,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       )
       expect(enrollment.dig('access', 'canViewEnrollmentDetails')).to eq(true)
       expect(enrollment.dig('client', 'id')).to eq(c1.id.to_s)
+      # CLS from e2 must not appear even though it shares the same client
       expect(enrollment.dig('currentLivingSituations', 'nodesCount')).to eq(1)
+      expect(enrollment.dig('currentLivingSituations', 'nodes').map { |n| n['id'] }).to contain_exactly(cls.id.to_s)
     end
 
     it 'does not resolve enrollments at projects without access' do
@@ -97,10 +105,12 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     end
 
     it 'returns null' do
+      expect(Hmis::Hud::Enrollment.viewable_by(hmis_user)).not_to include(e1)
       expect(fetch_enrollment).to be_nil
     end
   end
 
+  # Pins with_enrollment_details_viewable_by's mode: :all triad (same role must have all three).
   describe 'without can_view_project' do
     let!(:access_control) do
       create_access_control(
@@ -111,6 +121,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     end
 
     it 'returns null' do
+      expect(Hmis::Hud::Enrollment.viewable_by(hmis_user)).not_to include(e1)
       expect(fetch_enrollment).to be_nil
     end
   end
@@ -126,6 +137,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
     it 'returns null even when enrollment-detail permissions are present' do
       expect(Hmis::Hud::Client.viewable_by(hmis_user)).not_to include(c1)
+      expect(Hmis::Hud::Enrollment.viewable_by(hmis_user)).not_to include(e1)
       expect(fetch_enrollment).to be_nil
     end
   end
@@ -166,6 +178,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     it 'resolves enrollments at the assigned project' do
       enrollment = fetch_enrollment(e2)
       expect(enrollment).to include('id' => e2.id.to_s)
+      expect(enrollment.dig('currentLivingSituations', 'nodes').map { |n| n['id'] }).to contain_exactly(cls2.id.to_s)
     end
   end
 end
