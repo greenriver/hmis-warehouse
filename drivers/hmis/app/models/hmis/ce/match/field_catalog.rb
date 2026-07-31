@@ -22,7 +22,7 @@ module Hmis::Ce::Match
     end
 
     # Build this catalog from the registry so newly registered PSDE fields are
-    # automatically available to both GraphQL and expression translation.
+    # automatically available through the GraphQL field query.
     def psde_fields
       Hmis::Ce::Match::Expression::PsdeFieldRegistry::ALL.map { |psde_field| build_psde_field(psde_field) }
     end
@@ -147,7 +147,7 @@ module Hmis::Ce::Match
       when :numeric
         'INTEGER'
       else
-        raise ArgumentError, "unsupported value type for expression builder field #{psde_field.key}"
+        raise ArgumentError, "unsupported value type for expression builder field #{psde_field.key}: #{psde_field.value_type}"
       end
     end
 

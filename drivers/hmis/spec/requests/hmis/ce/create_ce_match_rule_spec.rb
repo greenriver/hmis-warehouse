@@ -276,6 +276,21 @@ RSpec.describe 'createCeMatchRule mutation', type: :request do
     end.not_to change(Hmis::Ce::Match::Rule, :count)
   end
 
+  it 'returns a validation error for an unknown PSDE field without saving' do
+    input = base_input.merge(expression: '`psde.not_registered` = TRUE')
+
+    expect do
+      response, result = post_graphql(input: input) { mutation }
+      expect(response.status).to eq(200), result.inspect
+
+      # Unknown registry keys should be reported as input errors rather than
+      # escaping the mutation as an unhandled server error.
+      errors = result.dig('data', 'createCeMatchRule', 'errors')
+      expect(errors.first).to include('attribute' => 'expression', 'severity' => 'error')
+      expect(errors.first['message']).to include('Unknown PSDE field "not_registered"')
+    end.not_to change(Hmis::Ce::Match::Rule, :count)
+  end
+
   it 'returns impact warnings without saving until confirmed' do
     allow(Hmis::Ce::Match::RuleChangeImpactCalculator).to receive(:for_rule).and_return(warning_impact)
 
