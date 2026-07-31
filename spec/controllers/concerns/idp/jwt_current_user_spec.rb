@@ -247,7 +247,7 @@ RSpec.describe Idp::JwtCurrentUser, type: :controller, if: AuthMethod.jwt? do
       allow(jwt_helper).to receive(:token?).and_return(false)
       allow(jwt_helper).to receive(:invalid_reason).and_return(:missing)
 
-      expect { get :auth }.to raise_error(Idp::UnauthenticatedRequestError, %r{/auth})
+      expect { get :auth }.to raise_error(Idp::UnauthenticatedRequestError, /\/auth/)
     end
 
     # The other way current_user comes back nil: Idp::UserProvisioner returns nil for a good token
