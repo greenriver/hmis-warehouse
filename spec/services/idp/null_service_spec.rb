@@ -37,6 +37,8 @@ RSpec.describe Idp::NullService, type: :model do
             expect(error.operation).to eq(method)
             # Admin::Idp::UsersController interpolates this into user-facing form copy.
             expect(error.idp_name).to eq('Unknown IDP')
+            # A blank/unknown/deactivated connector keeps giving the same answer; no retry helps.
+            expect(error.transient?).to be false
           end
         end
 
