@@ -199,6 +199,39 @@ RSpec.describe Idp::SyncUserFromIdpJob, type: :job, if: AuthMethod.jwt? do
     end
   end
 
+  # last_connector_id names a live connector the user has no user_authentication_sources row for —
+  # the row was deleted, or the connector was renamed. That is local data, not a connector fault, so
+  # it gets the same treatment as the two cases above.
+  describe 'a user with no identity row for their connector' do
+    before(:each) do
+      user.user_authentication_sources.destroy_all
+      allow(Sentry).to receive(:capture_exception_with_info)
+    end
+
+    it 'never reaches the IdP — there is no account to ask about' do
+      expect(service).not_to receive(:get_user)
+
+      described_class.new.perform(user_id: user.id)
+    end
+
+    it 'reports to Sentry rather than raising' do
+      expect(Sentry).to receive(:capture_exception_with_info).with(
+        kind_of(Idp::ServiceError),
+        /Couldn't adopt IdP email for user #{user.id}/,
+      )
+
+      expect { described_class.new.perform(user_id: user.id) }.not_to raise_error
+    end
+
+    # Otherwise one user's missing row stops the connector: Idp::JwtAuthentication and
+    # Idp::AccountEmailsController both skip the sync for anyone on a paused connector.
+    it 'does not pause the connector, so other users still sync' do
+      described_class.new.perform(user_id: user.id)
+
+      expect(described_class.connector_paused?('test')).to be false
+    end
+  end
+
   it 'is bounded to two attempts' do
     job = described_class.new
     allow(job).to receive(:delayed_job).and_return(nil)

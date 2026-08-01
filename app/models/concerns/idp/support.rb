@@ -220,7 +220,16 @@ module Idp::Support
   # The user's stable id within the upstream IdP for its primary connector.
   def idp_connector_user_id!
     id = primary_auth_source&.connector_user_id
-    raise Idp::ServiceError.new('No IdP identity on file for this user', operation: :connector_user_id) if id.blank?
+    if id.blank?
+      raise Idp::ServiceError.new(
+        'No IdP identity on file for this user',
+        operation: :connector_user_id,
+        # Local data rather than an IdP fault, so the same answer comes back on retry. Callers that
+        # treat transient errors as connector-wide — Idp::SyncUserFromIdpJob's cooldown — would
+        # otherwise let one user's missing row stop the connector for everyone on it.
+        transient: false,
+      )
+    end
 
     id
   end
