@@ -14,12 +14,12 @@ module Hmis
     # Mirrors ::Idp::SessionsController#destroy (the warehouse's JWT logout), but the SPA calls this
     # via fetch + response.json() rather than following a browser redirect, so the oauth2-proxy
     # sign-out URL comes back as a JSON field instead of an HTTP redirect.
+    #
+    # #destroy verifies the CSRF token. A forged one would end the holder's Keycloak sessions
+    # realm-wide, and being a DELETE doesn't put it out of reach: Rack::MethodOverride turns a
+    # cross-site form POST carrying _method=delete into one, and a form post is not preflighted, so
+    # CORS doesn't stand in for the token.
     class SessionsController < Hmis::BaseController
-      # Skipped defensively: every side effect here is a sign-out, so a forged request only ever logs
-      # someone out. Wider than it used to be, though — the IdP call below ends their Keycloak
-      # sessions realm-wide. Only reachable from the SPA's origin, per config/initializers/cors.rb.
-      skip_before_action :verify_authenticity_token, only: :destroy
-
       def destroy
         # First: the Keycloak session, which /oauth2/sign_out never reaches — the proxy ends its own
         # cookie and Dex's, but Dex doesn't propagate logout upstream. Ahead of reset_session because
@@ -35,6 +35,17 @@ module Hmis
         render json: { redirect_url: "/oauth2/sign_out?rd=#{CGI.escape(root_path)}" }
       rescue ::Idp::SessionLogoutRefused
         idp_handle_session_logout_failure
+      end
+
+      private
+
+      # Deliberately doesn't call up to Hmis::BaseController's version, which resets the session
+      # first. Under JWT that reset signs nobody out — the credential is the forwarded token — but it
+      # drops any impersonation and strands the CSRF-Token cookie the browser holds, since
+      # set_csrf_cookie is a later before_action and never runs once this one halts the chain. The
+      # user's own retry of the sign-out would then fail the same way. 401 and no side effect.
+      def handle_unverified_request
+        render_json_error(401, :unverified_request)
       end
     end
   end

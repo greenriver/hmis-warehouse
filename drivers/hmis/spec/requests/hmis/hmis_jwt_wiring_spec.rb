@@ -441,6 +441,85 @@ RSpec.describe 'HMIS JWT wiring', type: :request, if: AuthMethod.jwt? do
         expect(idp_service).to have_received(:logout_user_sessions).
           with(user_id: jwt_connector_user_id(admin_user)).once
       end
+
+      # Why a forged DELETE reaches this action at all, and what it would cost: see
+      # Hmis::Idp::SessionsController. allow_forgery_protection is false in the test environment
+      # (config/environments/test.rb:55), so these examples turn it on — without that they pass
+      # whether or not #destroy verifies the token.
+      describe 'CSRF verification' do
+        around do |example|
+          ActionController::Base.allow_forgery_protection = true
+          example.run
+        ensure
+          ActionController::Base.allow_forgery_protection = false
+        end
+
+        # Mirrors the SPA: fetchWithCsrf reads the CSRF-Token cookie set_csrf_cookie writes on every
+        # Hmis::BaseController response and forwards it as X-CSRF-Token.
+        def csrf_token_from_last_response
+          response.cookies['CSRF-Token'].tap { |token| expect(token).to be_present }
+        end
+
+        it 'still signs out and still ends the IdP sessions when the request carries the token' do
+          start_session
+          token = csrf_token_from_last_response
+
+          delete destroy_hmis_user_session_path, headers: headers.merge('X-CSRF-Token' => token)
+
+          expect(idp_service).to have_received(:logout_user_sessions).with(user_id: jwt_connector_user_id(user))
+          expect_signed_out_normally
+        end
+
+        it 'rejects a request with no token, without reaching the realm-wide logout' do
+          start_session
+
+          delete destroy_hmis_user_session_path, headers: headers
+
+          expect(response).to have_http_status(:unauthorized)
+          expect(JSON.parse(response.body)).to eq('error' => { 'type' => 'unverified_request' })
+          expect(idp_service).not_to have_received(:logout_user_sessions)
+        end
+
+        # Guards the handle_unverified_request override on Hmis::Idp::SessionsController, through a
+        # real retry rather than by reading `session` after the rejected request: that read reports
+        # the request's inbound session, so it shows the pre-reset contents either way and stays
+        # green with the override deleted.
+        it 'leaves a rejected sign-out retryable with the token the browser already holds' do
+          start_session
+          token = csrf_token_from_last_response
+
+          delete destroy_hmis_user_session_path, headers: headers
+          expect(response).to have_http_status(:unauthorized)
+
+          delete destroy_hmis_user_session_path, headers: headers.merge('X-CSRF-Token' => token)
+
+          expect(idp_service).to have_received(:logout_user_sessions).with(user_id: jwt_connector_user_id(user)).once
+          expect_signed_out_normally
+        end
+
+        # Same claim, the other piece of session state a reset would take: an admin mid-impersonation
+        # would silently revert to acting as themselves, with the "Acting as" banner still on screen
+        # from the last render.
+        it 'leaves a rejected sign-out with the session-stored impersonation still in force' do
+          user_group = create(:hmis_user_group)
+          admin_user = create(:hmis_user, data_source: ds)
+          create_access_control(admin_user, ds, with_permission: [:can_impersonate_users], user_group: user_group)
+          target_user = create(:hmis_user, data_source: ds).tap { |u| user_group.add(u) }
+
+          start_session(as: admin_user)
+          post hmis_impersonations_path,
+               params: { user_id: target_user.id },
+               headers: headers.merge('X-CSRF-Token' => csrf_token_from_last_response)
+          expect(response).to have_http_status(:ok)
+
+          delete destroy_hmis_user_session_path, headers: headers
+          expect(response).to have_http_status(:unauthorized)
+
+          get hmis_user_path, headers: headers
+          expect(controller.current_hmis_user).to eq(target_user)
+          expect(controller.true_hmis_user).to eq(admin_user)
+        end
+      end
     end
   end
 
