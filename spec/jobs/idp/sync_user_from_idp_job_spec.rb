@@ -12,7 +12,10 @@ require 'rails_helper'
 # emailVerified gate, the case-insensitive no-op) are covered here too — there is no separate
 # Idp::Support spec. On top of those: the capability gate, the HMIS re-point and its rollback,
 # bounded retries, and which failures retry.
-RSpec.describe Idp::SyncUserFromIdpJob, type: :job do
+#
+# Idp::Support is only mixed into User under the JWT arm (UserConcern), so these examples require
+# the app to have booted under AUTH_METHOD=jwt (the dedicated CI step).
+RSpec.describe Idp::SyncUserFromIdpJob, type: :job, if: AuthMethod.jwt? do
   let!(:user) { create(:user, email: 'before@example.com', first_name: 'Self', last_name: 'Serve') }
   let(:service) do
     instance_double(
