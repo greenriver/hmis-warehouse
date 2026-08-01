@@ -84,18 +84,25 @@ module Idp::Support
     false
   end
 
-  def idp_deactivate!
-    return false unless idp_user_management_available?
-
-    idp_service.deactivate_user(user_id: idp_connector_user_id!)
-  end
-
   # A missing identity row is treated like a connector with no management API — no account to
-  # re-enable — for the reason given at #idp_user_management_available?: raising would roll back the
-  # local reactivation and leave the user out of both systems.
+  # disable — for the reason given at #idp_user_management_available?: raising would roll back the
+  # local deactivation and leave the user with the Warehouse access an admin asked to revoke.
   #
   # The two declines are named apart because they mean different things to an admin: an unmanaged
   # account is the expected shape, a missing identity row is data that needs repairing.
+  #
+  # @return [:unmanaged, :identity_missing, :deactivated]
+  def idp_deactivate!
+    return :unmanaged unless idp_user_management_available?
+    return :identity_missing unless idp_identity_on_file?
+
+    idp_service.deactivate_user(user_id: idp_connector_user_id!)
+    :deactivated
+  end
+
+  # Mirror of #idp_deactivate!, so the local `active` flag stays authoritative in both directions:
+  # raising on a missing identity row would roll back the local reactivation and leave the user out
+  # of both systems.
   #
   # @return [:unmanaged, :identity_missing, :reactivated]
   def idp_reactivate!

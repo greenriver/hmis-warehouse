@@ -319,25 +319,26 @@ RSpec.describe Admin::Idp::UsersController, type: :request, if: AuthMethod.jwt? 
       end
     end
 
-    # The connector is live and manageable, so idp_deactivate! attempts a push, but there is no
-    # identity row to address and idp_connector_user_id! raises out of the transaction holding the
-    # local deactivation. idp_reactivate! guards on the missing row so its local change survives;
-    # deactivate does not, so the account keeps its access to the Warehouse.
+    # The sibling of the deactivated-config case: the connector is live, but there is no identity row
+    # to push to, so the link is just as dead and the outcome is the same — local access revoked,
+    # because the local flag is what admits them to the Warehouse — plus a warning, since the missing
+    # row needs an admin to repair it and may have pointed at an account still enabled in the IdP.
+    # Matches Admin::Idp::InactiveUsersController#reactivate, so the two directions agree.
     context 'when the connector is live but the user has no identity row' do
       before do
         target.user_authentication_sources.destroy_all
         allow(Sentry).to receive(:capture_exception_with_info)
       end
 
-      it 'refuses to revoke local access, attempts no IdP call, pages Sentry, and says so' do
+      it 'revokes local access, attempts no IdP call, and warns that nothing was disabled there' do
         delete admin_user_path(target)
 
-        expect(target.reload.active).to be true
+        expect(target.reload.active).to be false
         expect(a_request(:put, target_url)).not_to have_been_made
-        expect(Sentry).to have_received(:capture_exception_with_info)
-        expect(flash[:alert]).to match(/No IdP identity on file/)
-        expect(flash[:alert]).to match(/still has access/)
-        expect(flash[:notice]).to be_blank
+        expect(flash[:notice]).to be_present
+        expect(flash[:alert]).to match(/no identity on file/)
+        # A missing row is a data condition, not a failure to reach the IdP — nothing to page on.
+        expect(Sentry).not_to have_received(:capture_exception_with_info)
       end
     end
 

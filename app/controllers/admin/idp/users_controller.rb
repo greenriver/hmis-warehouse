@@ -110,8 +110,17 @@ class Admin::Idp::UsersController < ApplicationController
   # Disable the account in the IdP from inside the transaction holding the local deactivation, so a
   # refused write rolls that back too. No-ops for a connector with no management API, which keeps
   # local deactivation available when the IdP link is gone.
+  #
+  # With no identity row there is no account to address, so the push is skipped rather than refused
+  # and the local revocation stands — the local flag is what holds Warehouse access open. The row
+  # still needs repair, and whatever it pointed at may still be enabled in the IdP, so it is warned
+  # about rather than passed over silently. Placed before `super` for the reason given at
+  # Admin::Idp::InactiveUsersController#after_reactivate.
   private def after_deactivate
-    @user.idp_deactivate!
+    return unless @user.idp_deactivate! == :identity_missing
+
+    flash[:alert] = "#{@user.name} has no identity on file in the identity provider, so nothing " \
+                    'was disabled there. Check whether an account still exists for them.'
   end
 
   # Push any first_name/last_name/email change to the IdP from inside the transaction holding the
