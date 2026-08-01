@@ -142,23 +142,22 @@ RSpec.describe 'Warehouse JWT wiring', type: :request do
     end
 
     describe 'logout' do
-      it 'resets the session (clearing any session-stored impersonation), separate from the oauth2-proxy/IdP sign-out that follows the redirect' do
+      it 'resets the session, separate from the oauth2-proxy/IdP sign-out that follows the redirect' do
         sign_in(user)
-        # session is only available once an integration request has happened, so establish one
-        # before poking it directly.
         get session_keepalive_path
         expect(response).to have_http_status(:ok)
-
-        # Simulate a leftover impersonation entry (Idp::ImpersonationManager stores this under
-        # session[:impersonation]); reset_session in Idp::SessionsController#destroy should wipe it,
-        # mirroring Devise's sign_out, so it can't silently resume on the next sign-in.
-        session[:impersonation] = { true_user_id: user.id, impersonated_user_id: user.id }
+        # Asserted on a key the app writes (idp_sync_session_principal! stamps it during a normal
+        # request): a session[...]= from the spec never reaches the next request, so it would read as
+        # nil afterwards whether or not reset_session ran. reset_session in
+        # Idp::SessionsController#destroy clears this, mirroring Devise's sign_out, so nothing
+        # session-backed — impersonation included — can silently resume on the next sign-in.
+        expect(session[Idp::JwtAuthentication::SESSION_PRINCIPAL_KEY]).to eq(user.id)
 
         delete destroy_user_session_path
 
         expect(response).to have_http_status(:redirect)
         expect(response.location).to include('/oauth2/sign_out')
-        expect(session[:impersonation]).to be_nil
+        expect(session[Idp::JwtAuthentication::SESSION_PRINCIPAL_KEY]).to be_nil
       end
 
       describe 'ending the IdP session' do
@@ -270,14 +269,29 @@ RSpec.describe 'Warehouse JWT wiring', type: :request do
         # impersonated user, so sourcing it there signs out a third party and not the admin.
         it 'ends the token holder\'s sessions, not the impersonated user\'s, while impersonating' do
           impersonated_user = create :user
+          allow(impersonated_user).to receive(:training_required?).and_return(false)
+          allow(impersonated_user).to receive(:pending_compliance_requirements).and_return([])
+          allow(user).to receive(:can_edit_users?).and_return(true)
           allow(user).to receive(:can_impersonate_users?).and_return(true)
           allow(impersonated_user).to receive(:impersonateable_by?).with(user).and_return(true)
+          # The impersonation path re-reads the true and impersonated users by id, and these two
+          # objects carry the permission stubs above; without this they come back as plain rows and
+          # the stored impersonation is discarded as unauthorized.
           allow(User).to receive(:find_by).and_call_original
           allow(User).to receive(:find_by).with(id: user.id).and_return(user)
           allow(User).to receive(:find_by).with(id: impersonated_user.id).and_return(impersonated_user)
 
           start_session
-          session[:impersonation] = { true_user_id: user.id, impersonated_user_id: impersonated_user.id }
+          # Impersonate through the app rather than assigning session[:impersonation] here: a spec's
+          # session writes don't cross the request boundary, so poking it leaves the sign-out below
+          # running with no impersonation at all, which passes just as well if the id comes off
+          # current_user.
+          post impersonate_admin_user_path(user, become_id: impersonated_user.id)
+          expect(response).to have_http_status(:redirect)
+          # X-app-user-id comes from current_user, so this is the app confirming the impersonation is
+          # live on the session the sign-out reads.
+          get session_keepalive_path
+          expect(response.headers['X-app-user-id'].to_s).to eq(impersonated_user.id.to_s)
 
           delete destroy_user_session_path
 
@@ -285,6 +299,8 @@ RSpec.describe 'Warehouse JWT wiring', type: :request do
           # current_user.id / the token holder's warehouse id, which are a different string again.
           expect(idp_service).to have_received(:logout_user_sessions).
             with(user_id: jwt_connector_user_id(user)).once
+          # The app wrote this entry, so reset_session dropping it is a real observation.
+          expect(session[:impersonation]).to be_nil
         end
 
         # Fail closed: a failed IdP call aborts sign-out rather than reporting success it didn't
@@ -450,10 +466,20 @@ RSpec.describe 'Warehouse JWT wiring', type: :request do
   describe ApplicationCable::Connection, type: :channel, if: AuthMethod.jwt? do
     let(:user) { create :user }
 
+    # Only the forwarded token resolves to the double; anything else builds a real Idp::JwtHelper,
+    # which refuses it. That keeps the header the connection reads under test: read the wrong one (or
+    # none) and the accepting examples below fail, rather than passing on a double that answers
+    # valid? to whatever it was handed.
+    def stub_forwarded_token(token, helper)
+      allow(Idp::JwtHelper).to receive(:new).and_wrap_original do |original_method, **kwargs|
+        kwargs[:access_token] == token ? helper : original_method.call(**kwargs)
+      end
+    end
+
     it 'accepts a connection with a valid forwarded token for an active user' do
       # Don't stub active? — the :user factory creates an active row, so the active? gate runs for real.
       jwt_helper = instance_double(Idp::JwtHelper, token?: true, valid?: true, invalid_reason: nil)
-      allow(Idp::JwtHelper).to receive(:new).and_return(jwt_helper)
+      stub_forwarded_token('forwarded-token', jwt_helper)
       allow(User).to receive(:find_from_jwt).with(jwt_helper).and_return(user)
 
       connect env: { 'HTTP_X_FORWARDED_ACCESS_TOKEN' => 'forwarded-token' }
@@ -464,7 +490,7 @@ RSpec.describe 'Warehouse JWT wiring', type: :request do
     it 'rejects a connection for a deactivated user even with a valid forwarded token' do
       inactive_user = create :user, active: false
       jwt_helper = instance_double(Idp::JwtHelper, token?: true, valid?: true, invalid_reason: nil)
-      allow(Idp::JwtHelper).to receive(:new).and_return(jwt_helper)
+      stub_forwarded_token('forwarded-token', jwt_helper)
       allow(User).to receive(:find_from_jwt).with(jwt_helper).and_return(inactive_user)
 
       expect { connect env: { 'HTTP_X_FORWARDED_ACCESS_TOKEN' => 'forwarded-token' } }.
@@ -485,7 +511,7 @@ RSpec.describe 'Warehouse JWT wiring', type: :request do
         invalid_reason: :malformed,
         invalid_reason_details: { reason: :malformed },
       )
-      allow(Idp::JwtHelper).to receive(:new).and_return(refused)
+      stub_forwarded_token('refused-token', refused)
       expect(Sentry).not_to receive(:capture_message)
 
       expect { connect env: { 'HTTP_X_FORWARDED_ACCESS_TOKEN' => 'refused-token' } }.
