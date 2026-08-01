@@ -40,6 +40,11 @@ RSpec.describe 'Content Security Policy', type: :request do
     expect(script_src).not_to include('unsafe-inline')
   end
 
+  it 'does not allow unsafe-eval in script-src (GH-9130)' do
+    script_src = csp_header[/script-src[^;]*/]
+    expect(script_src).not_to include('unsafe-eval')
+  end
+
   it 'includes a nonce source in script-src (GH-9130)' do
     expect(csp_header).to match(/script-src[^;]*'nonce-[A-Za-z0-9+\/]+=*'/)
   end
