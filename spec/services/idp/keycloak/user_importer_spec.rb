@@ -82,6 +82,15 @@ RSpec.describe Idp::Keycloak::UserImporter, type: :model do
       expect(described_class.migration_scope(connector_id: connector_id, since: nil)).to include(confirmed_active)
     end
 
+    it 'excludes soft-deleted users' do
+      deleted_user = create(:user, confirmed_at: 1.day.ago, active: true)
+      deleted_user.destroy
+
+      # User is acts_as_paranoid, so the default scope is the only thing keeping a
+      # deleted account's password hash and TOTP secret out of the IdP.
+      expect(described_class.migration_scope(connector_id: connector_id, since: nil)).not_to include(deleted_user)
+    end
+
     it 'with since: nil returns the full base population' do
       old_user = create(:user, confirmed_at: 1.day.ago, active: true, updated_at: 1.year.ago)
 
@@ -189,11 +198,71 @@ RSpec.describe Idp::Keycloak::UserImporter, type: :model do
       expect(result[:groups]).to include('/warehouse-users')
     end
 
-    it 'returns no groups for a system user' do
+    # Every access predicate behind keycloak_groups_for reads an acts_as_paranoid
+    # membership model, so revocation is a soft delete and the default scope is the
+    # only thing keeping a revoked user out of the group. Reading through
+    # with_deleted would hand a revoked account warehouse or HMIS access in the IdP,
+    # which is why each revocation path gets its own example.
+    context 'when access has been revoked' do
+      it 'excludes hmis group after the user is removed from the HMIS UserGroup' do
+        hmis_user_group = create(:hmis_user_group)
+        hmis_user_group.add(user)
+        expect(importer.build_import_user_data(user)[:groups]).to include('/hmis-users')
+
+        hmis_user_group.remove(user)
+
+        expect(importer.build_import_user_data(user)[:groups]).not_to include('/hmis-users')
+      end
+
+      it 'excludes warehouse group after a legacy role is removed' do
+        user_role = user.user_roles.create!(role: create(:role))
+        expect(importer.build_import_user_data(user)[:groups]).to include('/warehouse-users')
+
+        user_role.destroy
+
+        expect(importer.build_import_user_data(user)[:groups]).not_to include('/warehouse-users')
+      end
+
+      it 'excludes warehouse group after access-group membership is removed' do
+        member = create(:access_group_member, user: user)
+        expect(importer.build_import_user_data(user)[:groups]).to include('/warehouse-users')
+
+        member.destroy
+
+        expect(importer.build_import_user_data(user)[:groups]).not_to include('/warehouse-users')
+      end
+
+      it 'excludes warehouse group after an ACL user\'s UserGroup membership is removed' do
+        acl_user = create(:acl_user)
+        member = acl_user.user_group_members.create!(user_group: create(:user_group))
+        expect(importer.build_import_user_data(acl_user)[:groups]).to include('/warehouse-users')
+
+        member.destroy
+
+        expect(importer.build_import_user_data(acl_user)[:groups]).not_to include('/warehouse-users')
+      end
+    end
+
+    # The grants are created first so emptiness is attributable to the system_user?
+    # guard: without them the system user has no roles or groups and would come back
+    # empty whether or not the guard exists.
+    it 'returns no groups for a system user, even one holding warehouse and HMIS access' do
       system_user = User.setup_system_user
+      system_user.user_roles.create!(role: create(:role))
+      create(:hmis_user_group).add(system_user)
+
       result = importer.build_import_user_data(system_user)
 
       expect(result[:groups]).to be_empty
+    end
+
+    it 'always marks the account enabled, leaving deactivation to migration_scope' do
+      # enabled is hardcoded, not derived from user.active?. bulk_import_users imports
+      # whatever list it is handed, so migration_scope's active: true filter is the only
+      # thing keeping deactivated accounts out of the IdP — callers must not bypass it.
+      inactive_user = create(:user, confirmed_at: 1.day.ago, active: false)
+
+      expect(importer.build_import_user_data(inactive_user)[:enabled]).to be true
     end
 
     it 'marks email as unverified when confirmed_at is nil' do
@@ -317,10 +386,12 @@ RSpec.describe Idp::Keycloak::UserImporter, type: :model do
 
     context 'with successful import' do
       before do
+        # Deliberately none of these equal the attempted size (3) or each other, so
+        # substituting users.size — or a hardcoded 0 — for any of them fails here.
         stub_request(:post, "#{api_url}/admin/realms/#{realm}/partialImport").
           to_return(
             status: 200,
-            body: { overwritten: 0, added: 3, skipped: 0 }.to_json,
+            body: { overwritten: 1, added: 1, skipped: 1 }.to_json,
           )
       end
 
@@ -328,10 +399,11 @@ RSpec.describe Idp::Keycloak::UserImporter, type: :model do
         result = importer.bulk_import_users(users, policy: 'OVERWRITE')
 
         expect(result[:success]).to be true
-        expect(result[:added]).to eq(3)
-        expect(result[:skipped]).to eq(0)
+        expect(result[:added]).to eq(1)
+        expect(result[:skipped]).to eq(1)
+        expect(result[:overwritten]).to eq(1)
         expect(result[:attempted]).to eq(3)
-        expect(result[:response]).to be_a(Hash)
+        expect(result[:response]).to eq('overwritten' => 1, 'added' => 1, 'skipped' => 1)
       end
 
       it 'sends every user and the conflict policy in the request body' do
@@ -399,11 +471,18 @@ RSpec.describe Idp::Keycloak::UserImporter, type: :model do
           to_return(status: 200, body: { overwritten: 0, added: 100, skipped: 0 }.to_json)
       end
 
-      it 'imports all users in single request' do
+      it 'sends the whole batch in a single request' do
         result = importer.bulk_import_users(large_batch, policy: 'OVERWRITE')
 
         expect(result[:success]).to be true
-        expect(result[:added]).to eq(100)
+        expect(result[:attempted]).to eq(100)
+        # Asserted against the request, not the stubbed added count: chunking the batch
+        # into several calls would leave that count looking correct while only the last
+        # response was reported.
+        expect(WebMock).to(
+          have_requested(:post, "#{api_url}/admin/realms/#{realm}/partialImport").
+            with { |request| JSON.parse(request.body)['users'].size == 100 }.once,
+        )
       end
     end
   end
