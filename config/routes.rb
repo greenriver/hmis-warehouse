@@ -786,6 +786,7 @@ Rails.application.routes.draw do
       put :unfavorite, on: :member
     end
     resources :clients, only: [:show]
+    get :ping, to: 'pings#show'
 
     # Superset (the M2M caller, not oauth2-proxy) presents a bearer JWT directly; the JWT-side
     # mirror of the Doorkeeper-gated 'oauth/user-data' route declared under AuthMethod.devise? at
