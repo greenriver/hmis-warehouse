@@ -17,7 +17,6 @@ module UserConcern
     include DeviseUser
     include DeviseOktaSupport
     include PasswordRules
-    include DeviseUserPatch
   end
 
   included do
