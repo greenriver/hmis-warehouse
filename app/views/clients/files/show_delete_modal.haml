@@ -13,7 +13,8 @@
   = f.submit 'Delete File', class: ['btn', 'btn-primary', 'ml-auto']
 
 - content_for :page_js do
-  :javascript
-     $('.reason-type').on('change', 'input', function() {
-      $('#grda_warehouse_client_file_delete_detail').prop('disabled', this.value != 99);
-     });
+  %script{ nonce: content_security_policy_nonce }
+    :plain
+       $('.reason-type').on('change', 'input', function() {
+        $('#grda_warehouse_client_file_delete_detail').prop('disabled', this.value != 99);
+       });

@@ -28,7 +28,6 @@
 # administrative reporting, data visualization, and public-facing dashboards.
 
 # allow whitespace to make the configuration easier to read
-# rubocop:disable Layout/EmptyLinesAroundArguments
 Rails.application.config.content_security_policy do |policy|
   public_s3_url = ENV['S3_PUBLIC_URL'].present? ? "https://#{ENV['S3_PUBLIC_URL']}.s3.amazonaws.com/" : nil
 
@@ -103,9 +102,7 @@ Rails.application.config.content_security_policy do |policy|
     'https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/js/', # Date picker component (cdnjs)
     'https://code.jquery.com', # jQuery for DOM manipulation and event handling
     'https://kit.fontawesome.com/b8b025dd15.js', # FontAwesome icons for public reports
-
-    :unsafe_inline, # Required for inline scripts in HAML templates
-    :unsafe_eval, # Required for some JavaScript libraries that use eval()
+    :unsafe_eval, # Required: jquery-ujs evaluates remote form/link `.js` responses via $.globalEval (an eval() call) — an app-wide pattern (86+ .js.erb/.js.haml/.js.coffee response templates across health, warehouse_reports, admin, cohorts, clients, and more), not limited to any one library. No nonce can cover eval(); only unsafe-eval does (GH-9130).
   )
 
   policy.style_src(
@@ -167,8 +164,12 @@ Rails.application.config.content_security_policy do |policy|
   end
 end
 
+# A fresh random nonce per request (not session-based, which would be reused
+# across requests and weaken the anti-replay property nonces are meant to provide)
+Rails.application.config.content_security_policy_nonce_generator = ->(_request) { SecureRandom.base64(16) }
+
 # Set the nonce only to specific directives
-# Rails.application.config.content_security_policy_nonce_directives = %w(script-src)
+Rails.application.config.content_security_policy_nonce_directives = ['script-src']
 
 if ENV['CSP_REPORT_ONLY'] == '1'
   Rails.application.config.content_security_policy_report_only = true
@@ -176,4 +177,3 @@ else
   # the default is to enforce the CSP
   Rails.application.config.content_security_policy_report_only = false
 end
-# rubocop:enable Layout/EmptyLinesAroundArguments

@@ -39,13 +39,14 @@
     %code= report.claims_query.to_sql
 
 = content_for :page_js do
-  :javascript
-    $(function() {
-      $('.datatable').DataTable({
-        searching: false,
-        ordering: false,
-        paging: false,
-        info: false,
-        scrollY: '600px'
+  %script{ nonce: content_security_policy_nonce }
+    :plain
+      $(function() {
+        $('.datatable').DataTable({
+          searching: false,
+          ordering: false,
+          paging: false,
+          info: false,
+          scrollY: '600px'
+        })
       })
-    })

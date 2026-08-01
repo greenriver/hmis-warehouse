@@ -1,19 +1,20 @@
 = render 'field_section', f: f, fields: @assessment.legal_status
 - content_for :page_js do
-  :javascript
-    $(document).ready(function() {
-      $('.jHasLegalInvolvements').change(function() {
-        if(this.value == 'yes') {
-          $('.jLegalInvolvements').slideDown();
-        } else {
-          $('.jLegalInvolvements').slideUp();
-        }
-      });
+  %script{ nonce: content_security_policy_nonce }
+    :plain
+      $(document).ready(function() {
+        $('.jHasLegalInvolvements').change(function() {
+          if(this.value == 'yes') {
+            $('.jLegalInvolvements').slideDown();
+          } else {
+            $('.jLegalInvolvements').slideUp();
+          }
+        });
 
-      $('.jHasLegalInvolvements').each(function() {
-        if(this.value != 'no') {
-          $('.jLegalInvolvements').hide();
-        }
+        $('.jHasLegalInvolvements').each(function() {
+          if(this.value != 'no') {
+            $('.jLegalInvolvements').hide();
+          }
+        });
       });
-    });
 

@@ -62,29 +62,30 @@
         %p This client was this client turned away with no services.
 
 = content_for :page_js do
-  :javascript
-    $('.jOtherStaffTrigger').on('change', function(e){
-      if($(this).is(":checked")){
-        $('.jOtherStaff').show();
-      }
-      else {
-        $('.jOtherStaff').hide();
-      }
-    });
-    $('.jOtherStaffTrigger').trigger('change');
-    $('.jLanguage').on('change', function(e){
-      if($('.jLanguage').is(':checked') && $('.jLanguage:checked').val().includes('Other')){
-        $('.jOtherLanguage').show();
-      } else {
-        $('.jOtherLanguage').hide();
-      }
-    });
-    $('.jLanguage').trigger('change');
-    $('.jHowHear').on('change', function(e){
-      if($('.jHowHear').is(':checked') && $('.jHowHear:checked').val().includes('Other...')){
-        $('.jOtherHowHear').show();
-      } else {
-        $('.jOtherHowHear').hide();
-      }
-    });
-    $('.jHowHear').trigger('change');
+  %script{ nonce: content_security_policy_nonce }
+    :plain
+      $('.jOtherStaffTrigger').on('change', function(e){
+        if($(this).is(":checked")){
+          $('.jOtherStaff').show();
+        }
+        else {
+          $('.jOtherStaff').hide();
+        }
+      });
+      $('.jOtherStaffTrigger').trigger('change');
+      $('.jLanguage').on('change', function(e){
+        if($('.jLanguage').is(':checked') && $('.jLanguage:checked').val().includes('Other')){
+          $('.jOtherLanguage').show();
+        } else {
+          $('.jOtherLanguage').hide();
+        }
+      });
+      $('.jLanguage').trigger('change');
+      $('.jHowHear').on('change', function(e){
+        if($('.jHowHear').is(':checked') && $('.jHowHear:checked').val().includes('Other...')){
+          $('.jOtherHowHear').show();
+        } else {
+          $('.jOtherHowHear').hide();
+        }
+      });
+      $('.jHowHear').trigger('change');

@@ -30,40 +30,41 @@
           = "(#{project_types})" if project_types.present?
         .chart{id: "spm_#{table.gsub('.', '_').gsub(' ', '-')}_#{cell}"}
         = content_for :page_js do
-          :javascript
-            options = {
-              data: {
-                x: 'x',
-                columns: #{@report.chart_data(measure, table, cell).to_json.html_safe},
-                type: 'line',
-              },
-              axis: {
-                x: {
-                  type: 'timeseries',
-                  padding: { right: 15000*60*60*24 },
-                  tick: {
-                    format: '%b %Y'
+          %script{ nonce: content_security_policy_nonce }
+            :plain
+              options = {
+                data: {
+                  x: 'x',
+                  columns: #{@report.chart_data(measure, table, cell).to_json.html_safe},
+                  type: 'line',
+                },
+                axis: {
+                  x: {
+                    type: 'timeseries',
+                    padding: { right: 15000*60*60*24 },
+                    tick: {
+                      format: '%b %Y'
+                    }
+                  },
+                  y: {
+                    min: 0,
+                    padding: {
+                      top: 5,
+                      bottom: 0
+                    },
+                    tick: {
+                      culling: { max: 5, lines: true }
+                    }
                   }
                 },
-                y: {
-                  min: 0,
-                  padding: {
-                    top: 5,
-                    bottom: 0
-                  },
-                  tick: {
-                    culling: { max: 5, lines: true }
-                  }
-                }
-              },
-              bindto: "\#spm_#{table.gsub('.', '_').gsub(' ', '-')}_#{cell}"
-            };
+                bindto: "\#spm_#{table.gsub('.', '_').gsub(' ', '-')}_#{cell}"
+              };
 
-            // Tables 2 and 7 should be 0-100 (and labeled as percentage)
-            if (['Measure 2', 'Measure 7'].includes('#{measure}')) {
-              options.axis.y.max = 100;
-              options.axis.y.min = 0;
-              options.axis.y.tick.format = function(y) { return y + '%' }
-            }
+              // Tables 2 and 7 should be 0-100 (and labeled as percentage)
+              if (['Measure 2', 'Measure 7'].includes('#{measure}')) {
+                options.axis.y.max = 100;
+                options.axis.y.min = 0;
+                options.axis.y.tick.format = function(y) { return y + '%' }
+              }
 
-            bb.generate(options)
+              bb.generate(options)

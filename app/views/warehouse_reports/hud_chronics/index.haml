@@ -20,11 +20,12 @@
 = link_to 'Reports', running_warehouse_reports_hud_chronics_path, class: 'jReportBlock', remote: true
 
 = content_for :page_js do
-  :javascript
-    (function($) {
-      $('.jReportBlock').hide();
-      setInterval(function() {
-        $('.jReportBlock').click();
-      }, 30000);
+  %script{ nonce: content_security_policy_nonce }
+    :plain
+      (function($) {
+        $('.jReportBlock').hide();
+        setInterval(function() {
+          $('.jReportBlock').click();
+        }, 30000);
 
-    })(jQuery);
+      })(jQuery);

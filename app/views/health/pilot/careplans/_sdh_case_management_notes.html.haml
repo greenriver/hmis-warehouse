@@ -15,11 +15,12 @@
   %p.no-data No SDH Case Management Notes on file
 
 = content_for :page_js do
-  :javascript
-    $('.datatable-sdh').DataTable({
-      searching: false,
-      ordering: false,
-      pageLength: 20,
-      lengthChange: false,
-      pagingType: 'simple'
-    })
+  %script{ nonce: content_security_policy_nonce }
+    :plain
+      $('.datatable-sdh').DataTable({
+        searching: false,
+        ordering: false,
+        pageLength: 20,
+        lengthChange: false,
+        pagingType: 'simple'
+      })
