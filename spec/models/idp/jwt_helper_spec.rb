@@ -96,10 +96,8 @@ RSpec.describe Idp::JwtHelper, if: AuthMethod.jwt? do
   # Lets a caller tell "nobody is signed in" apart from "our stack is misconfigured". #valid?
   # collapses both into false, which is why every caller guessed wrong.
   describe '#invalid_reason' do
-    it 'is nil for a token that verifies' do
-      expect(helper.invalid_reason).to be_nil
-    end
-
+    # The nil-for-a-good-token case is #valid?'s 'returns true if token is valid' above — valid? is
+    # `invalid_reason.nil?`, so it is the same assertion read through the delegation.
     it 'is :missing when there is no token' do
       expect(described_class.new(access_token: nil).invalid_reason).to eq(:missing)
     end
@@ -137,17 +135,8 @@ RSpec.describe Idp::JwtHelper, if: AuthMethod.jwt? do
       expect(described_class.new(access_token: token).invalid_reason).to eq(:malformed)
     end
 
-    it 'is :invalid_issuer for the wrong iss' do
-      token = JWT.encode(payload.merge('iss' => 'wrong_iss'), rsa_key, 'RS256', { kid: kid })
-
-      expect(described_class.new(access_token: token).invalid_reason).to eq(:invalid_issuer)
-    end
-
-    it 'is :invalid_audience for the wrong aud' do
-      token = JWT.encode(payload.merge('aud' => 'wrong_aud'), rsa_key, 'RS256', { kid: kid })
-
-      expect(described_class.new(access_token: token).invalid_reason).to eq(:invalid_audience)
-    end
+    # The :invalid_issuer and :invalid_audience reasons are asserted by the invalid_reason_details
+    # examples below, which carry `reason:` in the hash they compare.
 
     # Sentry is asserted here because an unreachable IdP is the one reason that means our stack is
     # broken rather than the caller's token, and nothing else in the request would say so.
@@ -156,7 +145,6 @@ RSpec.describe Idp::JwtHelper, if: AuthMethod.jwt? do
       expect(Sentry).to receive(:capture_exception_with_info).with(instance_of(SocketError), anything)
 
       expect(helper.invalid_reason).to eq(:jwks_unreachable)
-      expect(helper.valid?).to be false
     end
 
     it 'covers every reason the class advertises' do

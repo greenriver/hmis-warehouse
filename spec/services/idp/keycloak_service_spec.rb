@@ -227,7 +227,7 @@ RSpec.describe Idp::KeycloakService, type: :model do
         ).to have_been_made
       end
 
-      it 'sets emailVerified to false when the email changes and leaves username for Keycloak to derive, without clearing other fields' do
+      it 'unverifies the address, leaves username for Keycloak to derive, and sends the verification email' do
         actions_url = "#{api_url}/admin/realms/#{realm}/users/#{user_id}/execute-actions-email"
         stub_request(:put, actions_url).to_return(status: 204)
 
@@ -240,17 +240,6 @@ RSpec.describe Idp::KeycloakService, type: :model do
           a_request(:put, "#{api_url}/admin/realms/#{realm}/users/#{user_id}").
             with(body: current_representation.merge(email: 'new@example.com', emailVerified: false)),
         ).to have_been_made
-      end
-
-      it 'sends a verification email when the email changes' do
-        actions_url = "#{api_url}/admin/realms/#{realm}/users/#{user_id}/execute-actions-email"
-        stub_request(:put, actions_url).to_return(status: 204)
-
-        service.update_user(
-          user_id: user_id,
-          attributes: { email: 'new@example.com' },
-        )
-
         expect(
           a_request(:put, actions_url).with(body: ['VERIFY_EMAIL'].to_json),
         ).to have_been_made
@@ -303,26 +292,8 @@ RSpec.describe Idp::KeycloakService, type: :model do
       end
     end
 
-    context 'with API error' do
-      before do
-        stub_request(:get, "#{api_url}/admin/realms/#{realm}/users/#{user_id}").
-          to_return(status: 200, body: current_representation.to_json)
-        stub_request(:put, "#{api_url}/admin/realms/#{realm}/users/#{user_id}").
-          to_return(
-            status: 400,
-            body: { errorMessage: 'Invalid attribute' }.to_json,
-          )
-      end
-
-      it 'raises ServiceError' do
-        expect do
-          service.update_user(
-            user_id: user_id,
-            attributes: { first_name: 'Jane' },
-          )
-        end.to raise_error(Idp::ServiceError, /Failed to update user: Invalid attribute/)
-      end
-    end
+    # The refused-PUT path is in 'a refused write' below; 'does not swallow a failure from the profile
+    # write itself' covers it again with the mail leg in play.
 
     # The controller's other ConflictError path: the address belongs to another account in
     # the realm rather than the connector being broken.
@@ -375,14 +346,8 @@ RSpec.describe Idp::KeycloakService, type: :model do
         expect(service.update_user(user_id: user_id, attributes: { email: 'new@example.com' })).to be true
       end
 
-      it 'leaves the address change committed at Keycloak' do
-        service.update_user(user_id: user_id, attributes: { email: 'new@example.com' })
-
-        expect(
-          a_request(:put, "#{api_url}/admin/realms/#{realm}/users/#{user_id}").
-            with(body: current_representation.merge(email: 'new@example.com', emailVerified: false)),
-        ).to have_been_made
-      end
+      # The profile write itself landing is asserted by the successful-update example above; the mail
+      # leg failing doesn't unwind it, which is what 'still reports the update as successful' shows.
 
       # Swallowed, not dropped: nobody sees the failure unless it is reported.
       it 'reports the swallowed delivery failure' do
@@ -502,23 +467,8 @@ RSpec.describe Idp::KeycloakService, type: :model do
       end
     end
 
-    context 'with API error' do
-      before do
-        stub_request(:get, "#{api_url}/admin/realms/#{realm}/users/#{user_id}").
-          to_return(status: 200, body: current_representation.to_json)
-        stub_request(:put, "#{api_url}/admin/realms/#{realm}/users/#{user_id}").
-          to_return(
-            status: 404,
-            body: { error: 'User not found' }.to_json,
-          )
-      end
-
-      it 'raises ServiceError' do
-        expect do
-          service.reactivate_user(user_id: user_id)
-        end.to raise_error(Idp::ServiceError, /Failed to reactivate user: User not found/)
-      end
-    end
+    # The refused-PUT path is shared with the other read-modify-write calls; see 'a refused write'
+    # below.
   end
 
   describe '#deactivate_user' do
@@ -544,23 +494,7 @@ RSpec.describe Idp::KeycloakService, type: :model do
       end
     end
 
-    context 'with API error' do
-      before do
-        stub_request(:get, "#{api_url}/admin/realms/#{realm}/users/#{user_id}").
-          to_return(status: 200, body: current_representation.to_json)
-        stub_request(:put, "#{api_url}/admin/realms/#{realm}/users/#{user_id}").
-          to_return(
-            status: 404,
-            body: { error: 'User not found' }.to_json,
-          )
-      end
-
-      it 'raises ServiceError' do
-        expect do
-          service.deactivate_user(user_id: user_id)
-        end.to raise_error(Idp::ServiceError, /Failed to deactivate user: User not found/)
-      end
-    end
+    # See 'a refused write' below for the refused-PUT path.
   end
 
   describe '#set_required_action' do
@@ -586,124 +520,76 @@ RSpec.describe Idp::KeycloakService, type: :model do
       end
     end
 
-    context 'with API error' do
-      before do
-        stub_request(:get, "#{api_url}/admin/realms/#{realm}/users/#{user_id}").
-          to_return(status: 200, body: current_representation.to_json)
-        stub_request(:put, "#{api_url}/admin/realms/#{realm}/users/#{user_id}").
-          to_return(
-            status: 404,
-            body: { error: 'User not found' }.to_json,
-          )
-      end
+    # See 'a refused write' below for the refused-PUT path.
+  end
 
-      it 'raises ServiceError' do
-        expect do
-          service.set_required_action(user_id: user_id, actions: ['UPDATE_PASSWORD'])
-        end.to raise_error(Idp::ServiceError, /Failed to set required actions: User not found/)
+  # Every one of these reads the representation back, merges its change in and PUTs the whole thing,
+  # so a refused PUT is one code path. What each has to get right on its own is the failure message —
+  # a caller looking at Sentry needs to know which call it was — and the merged body, which the
+  # per-method success examples above assert.
+  describe 'a refused write' do
+    let(:user_id) { 'keycloak-user-id' }
+
+    before do
+      stub_request(:get, "#{api_url}/admin/realms/#{realm}/users/#{user_id}").
+        to_return(status: 200, body: { id: user_id, username: 'test@example.com' }.to_json)
+      stub_request(:put, "#{api_url}/admin/realms/#{realm}/users/#{user_id}").
+        to_return(status: 404, body: { error: 'User not found' }.to_json)
+    end
+
+    {
+      'reactivate_user' => [->(s, id) { s.reactivate_user(user_id: id) }, /Failed to reactivate user: User not found/],
+      'deactivate_user' => [->(s, id) { s.deactivate_user(user_id: id) }, /Failed to deactivate user: User not found/],
+      'set_required_action' => [
+        ->(s, id) { s.set_required_action(user_id: id, actions: ['UPDATE_PASSWORD']) },
+        /Failed to set required actions: User not found/,
+      ],
+      'update_user' => [
+        ->(s, id) { s.update_user(user_id: id, attributes: { first_name: 'Jane' }) },
+        /Failed to update user: User not found/,
+      ],
+    }.each do |name, (call, message)|
+      it "raises a ServiceError naming #{name}" do
+        expect { call.call(service, user_id) }.to raise_error(Idp::ServiceError, message)
       end
     end
   end
 
+  # A diagnostic an operator reads on the connector config screen, so every failure has to name
+  # something they can act on rather than a status code. It never raises — the return value is the
+  # whole contract.
   describe '#test_connection' do
-    context 'with successful connection' do
-      before do
-        stub_request(:get, "#{api_url}/admin/realms/#{realm}/users?max=1").
-          to_return(
-            status: 200,
-            body: { realm: realm }.to_json,
-          )
-      end
+    let(:probe_url) { "#{api_url}/admin/realms/#{realm}/users?max=1" }
 
-      it 'returns success result' do
-        result = service.test_connection
+    it 'reports success when the Admin API answers' do
+      stub_request(:get, probe_url).to_return(status: 200, body: { realm: realm }.to_json)
 
-        expect(result[:success]).to be true
-        expect(result[:message]).to include('Connection successful')
-      end
+      result = service.test_connection
+
+      expect(result[:success]).to be true
+      expect(result[:message]).to include('Connection successful')
     end
 
-    context 'with authentication failure' do
-      before do
-        stub_request(:get, "#{api_url}/admin/realms/#{realm}/users?max=1").
-          to_return(status: 401)
-      end
+    {
+      'the credentials are refused' => [{ status: 401 }, 'Authentication failed'],
+      'the endpoint is not there' => [{ status: 404 }, 'API endpoint not found'],
+      'Keycloak itself errors' => [{ status: 500 }, 'Keycloak server error: 500'],
+      'the connection is refused' => [Errno::ECONNREFUSED, 'Connection refused'],
+      'the host is unreachable' => [Errno::EHOSTUNREACH, 'Host unreachable'],
+      'the connection times out' => [:timeout, 'timeout'],
+    }.each do |scenario, (outcome, message)|
+      it "reports failure naming the cause when #{scenario}" do
+        stub = stub_request(:get, probe_url)
+        case outcome
+        when :timeout then stub.to_timeout
+        when Hash then stub.to_return(**outcome)
+        else stub.to_raise(outcome)
+        end
 
-      it 'returns failure with auth message' do
         result = service.test_connection
 
         expect(result[:success]).to be false
-        expect(result[:message]).to include('Authentication failed')
-      end
-    end
-
-    context 'with endpoint not found' do
-      before do
-        stub_request(:get, "#{api_url}/admin/realms/#{realm}/users?max=1").
-          to_return(status: 404)
-      end
-
-      it 'returns failure with an endpoint-not-found message' do
-        result = service.test_connection
-
-        expect(result[:success]).to be false
-        expect(result[:message]).to include('API endpoint not found')
-      end
-    end
-
-    context 'with a Keycloak server error' do
-      before do
-        stub_request(:get, "#{api_url}/admin/realms/#{realm}/users?max=1").
-          to_return(status: 500)
-      end
-
-      it 'returns failure with the server error message' do
-        result = service.test_connection
-
-        expect(result[:success]).to be false
-        expect(result[:message]).to include('Keycloak server error: 500')
-      end
-    end
-
-    context 'with connection refused' do
-      before do
-        stub_request(:get, "#{api_url}/admin/realms/#{realm}/users?max=1").
-          to_raise(Errno::ECONNREFUSED)
-      end
-
-      it 'returns failure with connection message' do
-        result = service.test_connection
-
-        expect(result[:success]).to be false
-        expect(result[:message]).to include('Connection refused')
-      end
-    end
-
-    context 'with host unreachable' do
-      before do
-        stub_request(:get, "#{api_url}/admin/realms/#{realm}/users?max=1").
-          to_raise(Errno::EHOSTUNREACH)
-      end
-
-      it 'returns failure with a host-unreachable message' do
-        result = service.test_connection
-
-        expect(result[:success]).to be false
-        expect(result[:message]).to include('Host unreachable')
-      end
-    end
-
-    context 'with timeout' do
-      before do
-        stub_request(:get, "#{api_url}/admin/realms/#{realm}/users?max=1").
-          to_timeout
-      end
-
-      it 'returns failure with timeout message' do
-        result = service.test_connection
-
-        expect(result[:success]).to be false
-        expect(result[:message]).to include('timeout')
+        expect(result[:message]).to include(message)
       end
     end
   end
@@ -830,51 +716,40 @@ RSpec.describe Idp::KeycloakService, type: :model do
     end
   end
 
-  describe '#idp_name' do
-    it 'returns Keycloak' do
+  # Asserted, not probed (see the comment on #supports_email_self_service?), so these are literals in
+  # the source and one example is as much as they can be worth. #supports_session_logout? is the
+  # exception — it reads api_url — and has its own examples under #logout_user_sessions. The false
+  # side of every predicate belongs to Idp::NullService's spec.
+  describe 'the capability surface' do
+    it 'advertises everything the Admin API can do, and names itself for operators' do
       expect(service.idp_name).to eq('Keycloak')
-    end
-  end
-
-  describe '#supports_user_management?' do
-    it 'returns true when fully configured' do
       expect(service.supports_user_management?).to be true
-    end
-  end
-
-  describe '#supports_account_backfill?' do
-    it 'returns true (the backfill runs against Keycloak)' do
+      expect(service.supports_profile_updates?).to be true
+      expect(service.supports_user_creation?).to be true
       expect(service.supports_account_backfill?).to be true
+      expect(service.supports_email_self_service?).to be true
     end
 
-    it 'defaults to false on a service without a manageable admin API' do
-      expect(Idp::NullService.new('keycloak').supports_account_backfill?).to be false
+    # The one that would cost an Admin API round trip per render if it were probed.
+    it 'answers the email self-service question without touching the realm' do
+      service.supports_email_self_service?
+
+      expect(a_request(:any, /#{Regexp.escape(api_url)}/)).not_to have_been_made
     end
   end
 
   describe 'config validation' do
-    it 'raises on missing api_url' do
-      expect do
-        described_class.new(config: { client_id: 'x', client_secret: 'y' })
-      end.to raise_error(Idp::ServiceError, /api_url/)
-    end
+    let(:complete) { { api_url: 'http://kc:8080', realm: 'r', client_id: 'x', client_secret: 'y' } }
 
-    it 'raises on missing realm (no default)' do
-      expect do
-        described_class.new(config: { api_url: 'http://kc:8080', client_id: 'x', client_secret: 'y' })
-      end.to raise_error(Idp::ServiceError, /realm/)
-    end
-
-    it 'raises on missing client_id' do
-      expect do
-        described_class.new(config: { api_url: 'http://kc:8080', realm: 'r', client_secret: 'y' })
-      end.to raise_error(Idp::ServiceError, /client_id/)
-    end
-
-    it 'raises on missing client_secret' do
-      expect do
-        described_class.new(config: { api_url: 'http://kc:8080', realm: 'r', client_id: 'x' })
-      end.to raise_error(Idp::ServiceError, /client_secret/)
+    # Dropped one at a time rather than checking only the empty config: realm in particular has no
+    # default, and a guard that only fired on a wholly blank config would pass that check while
+    # letting three-quarters-configured connectors through.
+    [:api_url, :realm, :client_id, :client_secret].each do |key|
+      it "raises naming #{key} when it is the only one missing" do
+        expect do
+          described_class.new(config: complete.except(key))
+        end.to raise_error(Idp::ServiceError, /#{key}/)
+      end
     end
 
     it 'lists all missing keys' do
@@ -909,19 +784,6 @@ RSpec.describe Idp::KeycloakService, type: :model do
     end
   end
 
-  describe '#supports_profile_updates?' do
-    it 'returns true' do
-      expect(service.supports_profile_updates?).to be true
-    end
-  end
-
-  describe '#supports_email_self_service?' do
-    it 'asserts true without probing the realm for the Update Email required action' do
-      expect(service.supports_email_self_service?).to be true
-      expect(a_request(:any, /#{Regexp.escape(api_url)}/)).not_to have_been_made
-    end
-  end
-
   describe '#account_console_url' do
     it 'builds the Account Console URL for the realm' do
       expect(service.account_console_url).to eq("#{api_url}/realms/#{realm}/account")
@@ -947,6 +809,9 @@ RSpec.describe Idp::KeycloakService, type: :model do
       expect(url).to start_with("#{api_url}/realms/#{realm}/protocol/openid-connect/auth?")
     end
 
+    # client_id here is the unconfigured default: Keycloak's own account client returns the user to
+    # the Keycloak account console rather than here, but it exists on every realm, and a wrong
+    # destination beats a dead link.
     it 'carries the action, client, redirect, and OIDC params' do
       query = Rack::Utils.parse_query(URI(url).query)
       expect(query).to include(
@@ -981,11 +846,8 @@ RSpec.describe Idp::KeycloakService, type: :model do
         expect(client_id_in(url)).to eq('from-config')
       end
 
-      # Keycloak's own account client returns the user to the Keycloak account console rather than
-      # here, but it exists on every realm — a wrong destination beats a dead link.
-      it 'falls back to the built-in account client when nothing is configured' do
-        expect(client_id_in(url)).to eq('account')
-      end
+      # The unconfigured fallback to 'account' is asserted by 'carries the action, client, redirect,
+      # and OIDC params' above.
     end
 
     context 'when API URL is not configured' do
@@ -1030,10 +892,13 @@ RSpec.describe Idp::KeycloakService, type: :model do
         to raise_error(Idp::ServiceError, /Failed to end IDP sessions/)
     end
 
+    # Named rather than `StandardError`: the point is that the socket failure reaches the caller
+    # unconverted (the controller has a rescue for exactly this), and StandardError would also be
+    # satisfied by a NoMethodError from a typo in this spec.
     it 'raises rather than returning quietly when Keycloak is unreachable' do
       stub_request(:post, logout_path).to_timeout
 
-      expect { service.logout_user_sessions(user_id: 'abc') }.to raise_error(StandardError)
+      expect { service.logout_user_sessions(user_id: 'abc') }.to raise_error(Timeout::Error)
     end
 
     it 'is advertised by the capability predicate' do

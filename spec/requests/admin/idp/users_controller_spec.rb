@@ -464,6 +464,9 @@ RSpec.describe Admin::Idp::UsersController, type: :request, if: AuthMethod.jwt? 
       expect(response).to have_http_status(:ok)
       expect(assigns(:user)).to eq(target)
       ['first_name', 'last_name', 'email'].each do |field|
+        # The field has to be on the page before its lack of a disabled attribute means anything —
+        # otherwise a form that dropped the input entirely reads as a pass.
+        expect(response.body).to match(/<input[^>]*name="user\[#{field}\]"/)
         disabled_input = /<input[^>]*name="user\[#{field}\]"[^>]*disabled|<input[^>]*disabled[^>]*name="user\[#{field}\]"/
         expect(response.body).not_to match(disabled_input)
       end

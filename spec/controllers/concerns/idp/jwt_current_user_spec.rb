@@ -91,12 +91,8 @@ RSpec.describe Idp::JwtCurrentUser, type: :controller, if: AuthMethod.jwt? do
       expect { get :index }.to raise_error(Idp::ForwardedTokenError, /warehouse.*something-else/)
     end
 
-    it 'does not raise for a missing token' do
-      allow(jwt_helper).to receive(:token?).and_return(false)
-      allow(jwt_helper).to receive(:invalid_reason).and_return(:missing)
-
-      expect { get :index }.not_to raise_error
-    end
+    # :missing is excluded from the loop above, and #current_user's 'is nil when no token was
+    # forwarded' is what proves it goes unrefused: a raise there would fail on the raise.
   end
 
   describe '#idp_authenticated_user_from_jwt' do
@@ -412,12 +408,8 @@ RSpec.describe Idp::JwtCurrentUser, type: :controller, if: AuthMethod.jwt? do
       expect { get :auth }.to have_enqueued_job(Idp::SyncUserFromIdpJob).with(user_id: 7)
     end
 
-    it 'does not enqueue a second sync in the same session' do
-      get :auth
-
-      expect { get :auth }.not_to have_enqueued_job(Idp::SyncUserFromIdpJob)
-    end
-
+    # Travels rather than asking twice back to back: an immediate second request is also refused by a
+    # guard with a TTL on it, and the guard is meant to be the session's, not a cooldown's.
     it 'does not enqueue again however long the session lasts' do
       get :auth
 

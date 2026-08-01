@@ -114,7 +114,9 @@ RSpec.describe Idp::AccountEmailsController, type: :request, if: AuthMethod.jwt?
       end
 
       # Reconciliation is no longer scoped to a return trip: Keycloak decides where it drops the user
-      # after a confirmation link, and often that is not here.
+      # after a confirmation link, and often that is not here. kc_action_status is read only by
+      # #change_expected?, which gates the apology copy, so this is the adopt path for the return
+      # trip too.
       it 'adopts a verified address on an ordinary visit, with no return-trip status' do
         stub_request(:get, target_url).to_return(
           status: 200,
@@ -126,6 +128,8 @@ RSpec.describe Idp::AccountEmailsController, type: :request, if: AuthMethod.jwt?
         expect(user.reload.email).to eq('after@example.com')
         expect(response.body).to include('after@example.com')
         expect(flash[:notice]).to eq('Account email was updated.')
+        # Adopting an address the IdP already confirmed is not a thing to mail anyone about.
+        expect(ActionMailer::Base.deliveries).to be_empty
       end
 
       it 'says nothing on an ordinary visit when the address has not moved' do
@@ -138,12 +142,6 @@ RSpec.describe Idp::AccountEmailsController, type: :request, if: AuthMethod.jwt?
     end
 
     describe 'POST begin_change' do
-      it 'hands the browser to the IdP action' do
-        post begin_change_account_email_path
-
-        expect(response.location).to match(/kc_action=UPDATE_EMAIL/)
-      end
-
       # The client the action runs under is what decides where Keycloak returns the user from the
       # confirmation link it mails, so it has to be the one configured for this deployment.
       it 'runs the action under the configured account client, and returns here from the form' do
@@ -202,6 +200,9 @@ RSpec.describe Idp::AccountEmailsController, type: :request, if: AuthMethod.jwt?
         )
       end
 
+      # The other half of this — the same unverified address *with* kc_action_status=success, where
+      # the user gets the apology copy — is 'refuses an address the IdP has not verified, and warns'
+      # under 'returning from the IdP action'.
       it 'tells a casual visitor nothing, and pages Sentry' do
         get edit_account_email_path
 
@@ -210,12 +211,6 @@ RSpec.describe Idp::AccountEmailsController, type: :request, if: AuthMethod.jwt?
         expect(response.body).to include('before@example.com')
         expect(flash[:alert]).to be_blank
         expect(Sentry).to have_received(:capture_exception_with_info)
-      end
-
-      it 'warns the user who just came back from a change of their own' do
-        get edit_account_email_path(kc_action_status: 'success')
-
-        expect(flash[:alert]).to match(/not verified after@example.com/)
       end
     end
 
@@ -245,14 +240,8 @@ RSpec.describe Idp::AccountEmailsController, type: :request, if: AuthMethod.jwt?
     describe 'returning from the IdP action' do
       let(:remote_representation) { { id: jwt_connector_user_id(user), username: 'after@example.com', firstName: 'Self', lastName: 'Serve', email: 'after@example.com', emailVerified: true } }
 
-      it 'adopts the verified address from the Admin API on kc_action_status=success' do
-        get edit_account_email_path(kc_action_status: 'success')
-
-        expect(user.reload.email).to eq('after@example.com')
-        expect(response.body).to include('after@example.com')
-        expect(flash[:notice]).to eq('Account email was updated.')
-        expect(ActionMailer::Base.deliveries).to be_empty
-      end
+      # The adopt path itself is 'adopts a verified address on an ordinary visit' above — the status
+      # doesn't reach it. What's left here is the behavior the status does decide.
 
       # any_instance because the controller resolves its own User from the token, so the spec's
       # `user` is a different instance.
@@ -277,30 +266,23 @@ RSpec.describe Idp::AccountEmailsController, type: :request, if: AuthMethod.jwt?
         expect(user.reload.email).to eq('before@example.com')
       end
 
-      # A cancelled action leaves the IdP holding the old address, and that is what keeps us off it —
-      # not the status, which is only a hint about intent.
-      it 'leaves the address alone when the user cancelled' do
-        stub_request(:get, target_url).to_return(
-          status: 200,
-          body: remote_representation.merge(username: 'before@example.com', email: 'before@example.com').to_json,
-        )
+      # What the IdP still holds is what keeps us off the address, not the status — which is only a
+      # hint about intent, and is why both of these take the same path.
+      {
+        'cancelled' => 'the user cancelled',
+        'success' => 'the action succeeded but the address did not move',
+      }.each do |status, scenario|
+        it "leaves the address alone and says nothing when #{scenario}" do
+          stub_request(:get, target_url).to_return(
+            status: 200,
+            body: remote_representation.merge(username: 'before@example.com', email: 'before@example.com').to_json,
+          )
 
-        get edit_account_email_path(kc_action_status: 'cancelled')
+          get edit_account_email_path(kc_action_status: status)
 
-        expect(user.reload.email).to eq('before@example.com')
-        expect(flash[:notice]).to be_blank
-      end
-
-      it 'says nothing when the action succeeded but the address did not move' do
-        stub_request(:get, target_url).to_return(
-          status: 200,
-          body: remote_representation.merge(username: 'before@example.com', email: 'before@example.com').to_json,
-        )
-
-        get edit_account_email_path(kc_action_status: 'success')
-
-        expect(user.reload.email).to eq('before@example.com')
-        expect(flash[:notice]).to be_blank
+          expect(user.reload.email).to eq('before@example.com')
+          expect(flash[:notice]).to be_blank
+        end
       end
 
       # A realm with Verify Email off applies the new address immediately, so the Admin API can hand

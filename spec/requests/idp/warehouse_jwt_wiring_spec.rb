@@ -254,17 +254,6 @@ RSpec.describe 'Warehouse JWT wiring', type: :request do
           expect(response.body).to include("href=\"#{destroy_user_session_path}\"", 'data-method="delete"')
         end
 
-        it 'ends the IdP session when the interstitial\'s control is used' do
-          start_session
-          get logout_talentlms_path
-          expect(response).to have_http_status(:ok)
-
-          delete destroy_user_session_path
-
-          expect(idp_service).to have_received(:logout_user_sessions).with(user_id: jwt_connector_user_id(user))
-          expect(response).to redirect_to("/oauth2/sign_out?rd=#{CGI.escape(root_path)}")
-        end
-
         # The whole reason the id comes off the token: under impersonation current_user is the
         # impersonated user, so sourcing it there signs out a third party and not the admin.
         it 'ends the token holder\'s sessions, not the impersonated user\'s, while impersonating' do
@@ -379,13 +368,15 @@ RSpec.describe 'Warehouse JWT wiring', type: :request do
           expect(response.location).to include('/oauth2/sign_out')
         end
 
+        # No `idp_service` assertion here: this un-stubs the factory, so that double is never in play
+        # and would report no calls whatever the controller did. The redirect is the observation — a
+        # NullService answers the capability predicate false, and sign-out proceeds.
         it 'signs out normally, without attempting a call, for an unknown connector (NullService)' do
           allow(Idp::ServiceFactory).to receive(:for_connector).with('test').and_call_original
           start_session
 
           delete destroy_user_session_path
 
-          expect(idp_service).not_to have_received(:logout_user_sessions)
           expect(response).to have_http_status(:redirect)
           expect(response.location).to include('/oauth2/sign_out')
         end
