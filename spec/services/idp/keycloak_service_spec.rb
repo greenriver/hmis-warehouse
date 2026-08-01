@@ -106,7 +106,10 @@ RSpec.describe Idp::KeycloakService, type: :model do
       end
     end
 
-    context 'with API error response' do
+    # ConflictError, not the plain ServiceError it descends from: the admin controller
+    # rescues the two separately, putting a conflict on the email field and paging on
+    # anything else. Asserting the parent class here would pass either way.
+    context 'when the address already belongs to an account in the realm' do
       before do
         stub_request(:post, "#{api_url}/admin/realms/#{realm}/users").
           to_return(
@@ -115,14 +118,37 @@ RSpec.describe Idp::KeycloakService, type: :model do
           )
       end
 
-      it 'raises ServiceError' do
+      it 'raises ConflictError' do
         expect do
           service.create_user(
             email: user_email,
             first_name: 'John',
             last_name: 'Doe',
           )
-        end.to raise_error(Idp::ServiceError, /Failed to create user: User exists with same username/)
+        end.to raise_error(Idp::ConflictError, /Failed to create user: User exists with same username/)
+      end
+    end
+
+    context 'with a non-conflict API error' do
+      before do
+        stub_request(:post, "#{api_url}/admin/realms/#{realm}/users").
+          to_return(
+            status: 400,
+            body: { errorMessage: 'Invalid email' }.to_json,
+          )
+      end
+
+      # The other half of the distinction: a broken write must not arrive as a form problem.
+      it 'raises a bare ServiceError rather than ConflictError' do
+        expect do
+          service.create_user(
+            email: user_email,
+            first_name: 'John',
+            last_name: 'Doe',
+          )
+        end.to raise_error(Idp::ServiceError, /Failed to create user: Invalid email/) { |error|
+          expect(error).not_to be_a(Idp::ConflictError)
+        }
       end
     end
   end
@@ -295,6 +321,85 @@ RSpec.describe Idp::KeycloakService, type: :model do
             attributes: { first_name: 'Jane' },
           )
         end.to raise_error(Idp::ServiceError, /Failed to update user: Invalid attribute/)
+      end
+    end
+
+    # The controller's other ConflictError path: the address belongs to another account in
+    # the realm rather than the connector being broken.
+    context 'when the new address is already registered to another account' do
+      before do
+        stub_request(:get, "#{api_url}/admin/realms/#{realm}/users/#{user_id}").
+          to_return(status: 200, body: current_representation.to_json)
+        stub_request(:put, "#{api_url}/admin/realms/#{realm}/users/#{user_id}").
+          to_return(
+            status: 409,
+            body: { errorMessage: 'User exists with same email' }.to_json,
+          )
+      end
+
+      it 'raises ConflictError' do
+        expect do
+          service.update_user(user_id: user_id, attributes: { email: 'taken@example.com' })
+        end.to raise_error(Idp::ConflictError, /Failed to update user: User exists with same email/)
+      end
+
+      it 'does not send a verification email for a write that never landed' do
+        actions_url = "#{api_url}/admin/realms/#{realm}/users/#{user_id}/execute-actions-email"
+        stub_request(:put, actions_url).to_return(status: 204)
+
+        expect do
+          service.update_user(user_id: user_id, attributes: { email: 'taken@example.com' })
+        end.to raise_error(Idp::ConflictError)
+
+        expect(WebMock).not_to have_requested(:put, actions_url)
+      end
+    end
+
+    # Keycloak holds the new address before the mail goes out, so a delivery failure must not
+    # propagate: the caller would unwind its local write and diverge in the direction no retry
+    # can close.
+    context 'when the verification email cannot be delivered' do
+      let(:actions_url) { "#{api_url}/admin/realms/#{realm}/users/#{user_id}/execute-actions-email" }
+
+      before do
+        stub_request(:get, "#{api_url}/admin/realms/#{realm}/users/#{user_id}").
+          to_return(status: 200, body: current_representation.to_json)
+        stub_request(:put, "#{api_url}/admin/realms/#{realm}/users/#{user_id}").
+          to_return(status: 204)
+        stub_request(:put, actions_url).
+          to_return(status: 500, body: { errorMessage: 'Failed to send email' }.to_json)
+        allow(Sentry).to receive(:capture_exception_with_info)
+      end
+
+      it 'still reports the update as successful' do
+        expect(service.update_user(user_id: user_id, attributes: { email: 'new@example.com' })).to be true
+      end
+
+      it 'leaves the address change committed at Keycloak' do
+        service.update_user(user_id: user_id, attributes: { email: 'new@example.com' })
+
+        expect(
+          a_request(:put, "#{api_url}/admin/realms/#{realm}/users/#{user_id}").
+            with(body: current_representation.merge(email: 'new@example.com', emailVerified: false)),
+        ).to have_been_made
+      end
+
+      # Swallowed, not dropped: nobody sees the failure unless it is reported.
+      it 'reports the swallowed delivery failure' do
+        service.update_user(user_id: user_id, attributes: { email: 'new@example.com' })
+
+        expect(Sentry).to have_received(:capture_exception_with_info).
+          with(instance_of(Idp::ServiceError), /couldn't send the address verification email/)
+      end
+
+      # Only the mail leg is forgiven. A failed write still has to reach the caller.
+      it 'does not swallow a failure from the profile write itself' do
+        stub_request(:put, "#{api_url}/admin/realms/#{realm}/users/#{user_id}").
+          to_return(status: 400, body: { errorMessage: 'Invalid attribute' }.to_json)
+
+        expect do
+          service.update_user(user_id: user_id, attributes: { email: 'new@example.com' })
+        end.to raise_error(Idp::ServiceError, /Failed to update user/)
       end
     end
 
@@ -627,6 +732,75 @@ RSpec.describe Idp::KeycloakService, type: :model do
         service.get_user(user_id: user_id)
       end.to raise_error(Idp::ServiceError, /Failed to get user/)
       expect(a_request(:post, token_url)).to have_been_made.times(2)
+    end
+  end
+
+  # Every call goes out behind this exchange, and the token stub these examples inherit matches
+  # any body, so nothing else here would notice the credentials going out wrong.
+  describe 'the client-credentials token exchange' do
+    let(:user_id) { 'keycloak-user-id' }
+
+    it 'posts the service account credentials to the realm token endpoint' do
+      stub_request(:get, "#{api_url}/admin/realms/#{realm}/users/#{user_id}").
+        to_return(status: 200, body: { id: user_id }.to_json)
+
+      service.get_user(user_id: user_id)
+
+      expect(
+        a_request(:post, token_url).
+          with(
+            headers: { 'Content-Type' => 'application/x-www-form-urlencoded' },
+            body: {
+              grant_type: 'client_credentials',
+              client_id: client_id,
+              client_secret: client_secret,
+            },
+          ),
+      ).to have_been_made
+    end
+
+    it 'sends the token it was issued, not a blank bearer' do
+      stub_request(:post, token_url).
+        to_return(
+          status: 200,
+          body: { access_token: 'issued-token', expires_in: 300 }.to_json,
+          headers: { 'Content-Type' => 'application/json' },
+        )
+      stub_request(:get, "#{api_url}/admin/realms/#{realm}/users/#{user_id}").
+        to_return(status: 200, body: { id: user_id }.to_json)
+
+      service.get_user(user_id: user_id)
+
+      expect(
+        a_request(:get, "#{api_url}/admin/realms/#{realm}/users/#{user_id}").
+          with(headers: { 'Authorization' => 'Bearer issued-token' }),
+      ).to have_been_made
+    end
+
+    context 'when the token endpoint rejects the credentials' do
+      before do
+        stub_request(:post, token_url).
+          to_return(status: 401, body: { error: 'invalid_client' }.to_json)
+      end
+
+      it 'raises rather than calling the Admin API unauthenticated' do
+        expect do
+          service.get_user(user_id: user_id)
+        end.to raise_error(Idp::ServiceError, /Failed to obtain access token: 401/)
+
+        expect(WebMock).not_to have_requested(:get, /#{Regexp.escape(api_url)}\/admin/)
+      end
+
+      it 'tags the failure with the operation that produced it' do
+        error = begin
+          service.get_user(user_id: user_id)
+        rescue Idp::ServiceError => e
+          e
+        end
+
+        expect(error.operation).to eq(:access_token)
+        expect(error.idp_name).to eq('Keycloak')
+      end
     end
   end
 
