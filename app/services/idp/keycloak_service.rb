@@ -34,6 +34,9 @@ module Idp
     # and the bulk user import (#partial_import). Requested at the call site.
     BULK_IO_TIMEOUT_SECONDS = 30
 
+    # The 4xx statuses worth coming back for — see #transient_status?.
+    RETRYABLE_CLIENT_ERROR_STATUSES = [408, 429].freeze
+
     def initialize(config: nil)
       super(config: config || default_config)
       validate_config!
@@ -76,11 +79,16 @@ module Idp
       unknown = attributes.keys - UPDATABLE_ATTRIBUTES
       raise ArgumentError, "Unknown attributes: #{unknown.join(', ')}" if unknown.any?
 
+      # Keyed on the attribute being present in the hash rather than on its value being truthy:
+      # callers pass the changes they already committed locally (Idp::Support#idp_update_profile!),
+      # so a blank name is a clear, not a no-op. Dropping it would return true for a write that
+      # never went out and leave the caller's transaction committed against a Keycloak still holding
+      # the old value — the divergence the shared transaction exists to prevent.
       patch = {}
-      patch['firstName'] = attributes[:first_name] if attributes[:first_name]
-      patch['lastName'] = attributes[:last_name] if attributes[:last_name]
+      patch['firstName'] = attributes[:first_name] if attributes.key?(:first_name)
+      patch['lastName'] = attributes[:last_name] if attributes.key?(:last_name)
 
-      email_changed = attributes[:email].present?
+      email_changed = attributes.key?(:email)
       if email_changed
         # The realm runs email-as-username, so Keycloak keeps username in step with email
         # on its own — we only send the email.
@@ -88,6 +96,7 @@ module Idp
         patch['emailVerified'] = false
       end
 
+      # Only reachable for a caller that asked for nothing at all.
       return true if patch.empty?
 
       result = put_full_user(user_id: user_id, patch: patch, operation: :update_user, failure: 'Failed to update user')
@@ -165,6 +174,8 @@ module Idp
           "User not found: #{user_id}",
           idp_name: idp_name,
           operation: :get_user,
+          # The account is gone over there; the same 404 comes back until the link is repaired here.
+          transient: false,
         )
       end
 
@@ -233,11 +244,14 @@ module Idp
     end
 
     # The endpoint exists on every realm, so the only question is whether this service points at
-    # one — same reading of a blank api_url as browser_url. Unlike the other predicates here, this
-    # one gates sign-out, and the caller fails closed: answering true for a connector we can't
-    # reach would refuse sign-out for everyone on it, over a session we were never holding. Whether
-    # the service account may call it (manage-users, granted separately from the user read/write
-    # calls) is ops config and still shows up as a failure.
+    # one — same reading of a blank api_url as browser_url. Defense in depth rather than a reachable
+    # branch: validate_config! has already rejected a blank api_url, so an unconfigured connector
+    # never gets built and Idp::JwtAuthentication refuses the sign-out outright
+    # (Idp::SessionLogoutRefused) instead of ever reading false here. Note which way false points —
+    # the caller takes it as "no IdP session to end" and lets sign-out complete — so this must
+    # answer from configuration, never from a guess about reachability. Whether the service account
+    # may call it (manage-users, granted separately from the user read/write calls) is ops config
+    # and still shows up as a failure.
     def supports_session_logout?
       api_url.present?
     end
@@ -448,6 +462,8 @@ module Idp
           "Failed to obtain access token: #{response.code}",
           idp_name: idp_name,
           operation: :access_token,
+          # Refused credentials are an ops fix; no retry outlasts them.
+          transient: transient_status?(response.code.to_i),
         )
       end
 
@@ -486,11 +502,13 @@ module Idp
 
     # Interpret a Keycloak Admin API response: yield the response on 2xx and
     # return the block's value, otherwise raise a ServiceError tagged with the
-    # operation. `failure` is the verb used in the 4xx message. 409 gets the
+    # operation. `failure` names the call in every message, 5xx included — an
+    # operator reading Sentry needs to know which one it was. 409 gets the
     # ConflictError subclass so callers can tell "this email is taken over there"
     # from "the connector is broken".
     def handle_response(response, operation:, failure:)
-      case response.code.to_i
+      code = response.code.to_i
+      case code
       when 200..299
         yield(response)
       when 409
@@ -498,20 +516,33 @@ module Idp
           "#{failure}: #{error_message_from(response)}",
           idp_name: idp_name,
           operation: operation,
+          # The address belongs to another account over there until somebody changes it.
+          transient: false,
         )
       when 400..499
         raise ServiceError.new(
           "#{failure}: #{error_message_from(response)}",
           idp_name: idp_name,
           operation: operation,
+          transient: transient_status?(code),
         )
       else
         raise ServiceError.new(
-          "Unexpected response from Keycloak: #{response.code}",
+          "#{failure}: unexpected response from Keycloak (#{code})",
           idp_name: idp_name,
           operation: operation,
         )
       end
+    end
+
+    # A 4xx means Keycloak answered and will keep giving the same answer until somebody changes
+    # something — there or in our config — so neither a job retry nor the sync cooldown buys
+    # anything (Idp::SyncUserFromIdpJob branches on this). 408 and 429 are the exceptions: they
+    # invite the caller back. 5xx and transport failures stay transient.
+    def transient_status?(code)
+      return true unless (400..499).cover?(code)
+
+      RETRYABLE_CLIENT_ERROR_STATUSES.include?(code)
     end
 
     def error_message_from(response)
