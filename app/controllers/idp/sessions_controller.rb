@@ -26,6 +26,11 @@ module Idp
     # and they can never sign out — on a shared machine the next person inherits a live IdP session.
     # #destroy doesn't need current_user anyway: idp_end_token_holder_sessions reads the forwarded
     # token, which is also what lets it run before reset_session.
+    #
+    # So #destroy is the one action a token with no resolvable holder reaches, which is why the
+    # blank-claim guard in idp_end_token_holder_sessions is live here and dead on the HMIS arm. A
+    # token we outright refuse still doesn't get through: current_user is resolved by an earlier
+    # filter in the chain, and idp_token_holder raises there.
     skip_before_action :authenticate_user!, only: [:new, :create, :destroy]
     # Same reason, one filter later: reject_deactivated_user! walls off the routes that skip
     # authenticate_user!, and signing out is the one thing a deactivated user still has to be able to

@@ -403,9 +403,10 @@ RSpec.describe 'HMIS JWT wiring', type: :request, if: AuthMethod.jwt? do
 
       # Not "signs out normally": a token with no connector claim can't authenticate at all, because
       # Idp::UserProvisioner requires the claim to resolve a holder and authenticate_hmis_user! runs
-      # before the sign-out action. So the blank-connector guard in idp_end_token_holder_sessions
-      # (Idp::JwtAuthentication:100) is defensive only — unreachable through a controller. Asserting
-      # "signed out normally, no call" here would have described behavior the app doesn't have.
+      # before the sign-out action. So the blank-connector guard in idp_end_token_holder_sessions is
+      # unreachable from this arm, and asserting "signed out normally, no call" here would have
+      # described behavior this arm doesn't have. The warehouse arm skips authenticate_user! on
+      # sign-out, so there the same token does reach that guard and does sign out normally.
       it 'never reaches sign-out for a token with no connector claim: the request fails to authenticate' do
         start_session
         # sign_in memoizes one JwtHelper double per token, so this is the object the request reads.

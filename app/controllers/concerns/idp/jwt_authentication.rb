@@ -88,13 +88,19 @@ module Idp::JwtAuthentication
   def idp_end_token_holder_sessions
     jwt_helper = idp_jwt_helper_for_request
     reason = jwt_helper.invalid_reason
-    # No token means nothing to end. Any other refusal already raised in idp_token_holder, and the
-    # proxy vouched for the token, so assume a session is live and that we can't tell whose.
+    # No token means nothing to end.
     return if reason == :missing
+    # Unreachable through the request layer: idp_token_holder already raised for any reason but
+    # :missing. Kept as the fail-closed answer — the proxy vouched for the token, so assume a session
+    # is live and that we can't tell whose.
     raise Idp::SessionLogoutRefused, "Sign-out refused: oauth2-proxy forwarded a token we refused (#{reason})" if reason
 
     connector_id = jwt_helper.connector_id
     connector_user_id = jwt_helper.connector_user_id
+    # Reached on the warehouse arm only; the HMIS arm walls off a token with no resolvable holder
+    # ahead of sign-out. connector_user_id is the claim this turns on: blank with a connector present
+    # would call logout_user_sessions(user_id: nil). A blank connector_id resolves to an
+    # Idp::NullService and would stop at the capability check below anyway.
     return if connector_id.blank? || connector_user_id.blank?
 
     service = idp_session_logout_service(connector_id)

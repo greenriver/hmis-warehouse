@@ -343,8 +343,9 @@ RSpec.describe 'Warehouse JWT wiring', type: :request do
 
         # The old code read a refused token as "nothing to attempt": it skipped the Keycloak
         # teardown, reset the session and redirected, so the user believed they'd signed out while
-        # the IdP session stayed live. Now authenticate_user! raises ahead of #destroy, so nothing is
-        # torn down and the failure is visible.
+        # the IdP session stayed live. Now the refusal raises ahead of #destroy — out of
+        # idp_token_holder, in a filter that resolves current_user, since #destroy skips
+        # authenticate_user! itself — so nothing is torn down and the failure is visible.
         it 'refuses the sign-out when the forwarded token is refused' do
           start_session
           # sign_in memoizes one JwtHelper double per token, so this is the object the request reads.
@@ -381,8 +382,15 @@ RSpec.describe 'Warehouse JWT wiring', type: :request do
           expect(response.location).to include('/oauth2/sign_out')
         end
 
+        # #destroy skips authenticate_user!, so a token the provisioner can't resolve still reaches
+        # the action and the blank-connector guard is what answers it. The HMIS arm walls the same
+        # token off at authenticate_hmis_user! and answers 403 instead.
         it 'signs out normally, without attempting a call, when the token carries no connector claim' do
           start_session
+          # No holder, rather than the outer block's pinned user: Idp::UserProvisioner needs the
+          # connector claims to resolve one, so pinning it would hide that this token can't
+          # authenticate at all.
+          allow(User).to receive(:find_or_create_from_jwt).and_return(nil)
           # sign_in memoizes one JwtHelper double per token, so this hands back the same object the
           # request will read.
           allow(Idp::JwtHelper.new(access_token: jwt_token)).to receive(:connector_id).and_return(nil)
@@ -390,6 +398,9 @@ RSpec.describe 'Warehouse JWT wiring', type: :request do
           delete destroy_user_session_path
 
           expect(idp_service).not_to have_received(:logout_user_sessions)
+          # The guard short-circuits ahead of service resolution, so this can't pass by falling
+          # through to a NullService whose capability predicate answers false.
+          expect(Idp::ServiceFactory).not_to have_received(:for_connector).with(nil)
           expect(response).to have_http_status(:redirect)
           expect(response.location).to include('/oauth2/sign_out')
         end
