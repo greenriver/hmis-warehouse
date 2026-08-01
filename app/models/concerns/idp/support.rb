@@ -84,15 +84,6 @@ module Idp::Support
     false
   end
 
-  # True when the connector is live and manageable but the user has no identity row for it, so there
-  # is no account for a push to address. Callers report this state rather than treating it as a
-  # failed write; repairing it needs an admin.
-  def idp_identity_missing?
-    return false unless idp_user_management_available?
-
-    !idp_identity_on_file?
-  end
-
   def idp_deactivate!
     return false unless idp_user_management_available?
 
@@ -101,13 +92,18 @@ module Idp::Support
 
   # A missing identity row is treated like a connector with no management API — no account to
   # re-enable — for the reason given at #idp_user_management_available?: raising would roll back the
-  # local `active` flip and leave the user out of both systems. Callers surface the missing row
-  # through #idp_identity_missing?.
+  # local reactivation and leave the user out of both systems.
+  #
+  # The two declines are named apart because they mean different things to an admin: an unmanaged
+  # account is the expected shape, a missing identity row is data that needs repairing.
+  #
+  # @return [:unmanaged, :identity_missing, :reactivated]
   def idp_reactivate!
-    return false unless idp_user_management_available?
-    return false unless idp_identity_on_file?
+    return :unmanaged unless idp_user_management_available?
+    return :identity_missing unless idp_identity_on_file?
 
     idp_service.reactivate_user(user_id: idp_connector_user_id!)
+    :reactivated
   end
 
   def idp_force_password_change!
@@ -185,7 +181,7 @@ module Idp::Support
 
   # A connector whose config was deactivated or removed resolves to a NullService, which answers
   # false. Activation changes still have to land locally in that case: the local `active` flag is
-  # what admits the user to the Warehouse, and withholding the flip because the IdP link is gone
+  # what admits the user to the Warehouse, and withholding that change because the IdP link is gone
   # would leave them enabled here.
   #
   # A connector we can't build (blank client_id, unregistered provider) is a different animal and

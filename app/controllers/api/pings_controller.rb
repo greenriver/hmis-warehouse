@@ -16,7 +16,7 @@ module Api
 
     # rescue prevents the error from bubbling; 500's are expected to generated
     # by monitoring
-    rescue_from 'Idp::UnauthenticatedRequestError' do |exception|
+    rescue_from 'Idp::UnauthenticatedRequestError' do |_exception|
       head 500
     end
   end

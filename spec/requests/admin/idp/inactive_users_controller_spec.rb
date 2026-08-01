@@ -103,9 +103,9 @@ RSpec.describe Admin::Idp::InactiveUsersController, type: :request, if: AuthMeth
         allow(Sentry).to receive(:capture_exception_with_info)
       end
 
-      # The local flip and the push share a transaction, so a refused push takes the flip with it
-      # rather than admitting the user here while Keycloak still has them disabled.
-      it 'rolls the local flip back, pages Sentry, and reports nothing changed' do
+      # The local reactivation and the push share a transaction, so a refused push rolls the local
+      # side back rather than admitting the user here while Keycloak still has them disabled.
+      it 'rolls the local reactivation back, pages Sentry, and reports nothing changed' do
         patch reactivate_admin_inactive_user_path(target)
 
         target.reload
@@ -154,25 +154,6 @@ RSpec.describe Admin::Idp::InactiveUsersController, type: :request, if: AuthMeth
         expect(flash[:alert]).to match(/no identity on file/)
         # A missing row is a data condition, not a failure to reach the IdP — nothing to page on.
         expect(Sentry).not_to have_received(:capture_exception_with_info)
-      end
-
-      # The warning is decided during the push, not by re-asking the user afterwards: by then the
-      # action has redirected, so an Idp::ServiceError raised while deciding would reach the rescue,
-      # redirect a second time, and surface a committed reactivation as a DoubleRenderError reported
-      # as "Nothing was changed". Nothing can raise there today, but nothing enforces that either.
-      it 'decides the warning before responding, so a raised predicate cannot double-render' do
-        allow_any_instance_of(User).to receive(:idp_identity_missing?).and_raise(
-          Idp::ServiceError.new('boom', operation: :probe),
-        )
-
-        # Unqualified: the rescue is supposed to absorb this, so nothing at all should escape.
-        expect { patch reactivate_admin_inactive_user_path(target) }.not_to raise_error
-
-        expect(response).to redirect_to(action: :index)
-        expect(flash[:alert]).to match(/Nothing was changed/)
-        # The rescue's claim has to be true: the raise landed inside the transaction, so the flip went
-        # back with it.
-        expect(target.reload.active).to be false
       end
     end
 

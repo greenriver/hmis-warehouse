@@ -136,9 +136,6 @@ module Admin
             # active record validations run and keycloak and local records stay in sync
             after_profile_update
           end
-        # Only the database's objections mean "the admin can fix this on the form". Anything else —
-        # an arm's external follow-up refusing the write, or a plain bug — belongs to whoever can
-        # act on it, so it propagates instead of being dressed up as a form problem.
         rescue ActiveRecord::ActiveRecordError
           flash[:error] = 'Please review the form problems below'
           render :edit

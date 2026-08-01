@@ -46,9 +46,7 @@ module Admin
         'User List'
       end
 
-      # Arm-specific follow-up, run inside the transaction holding the local flip so a refused write
-      # takes the flip with it. No sensible shared default (Devise resets the password locally; the
-      # JWT arm re-enables the account in the IdP).
+      # Arm-specific follow-up
       private def after_reactivate
         raise NotImplementedError
       end

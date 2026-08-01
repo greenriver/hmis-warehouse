@@ -36,8 +36,8 @@ module Idp::JwtAuthentication
   def idp_token_holder
     return @idp_token_holder if defined?(@idp_token_holder)
 
-    # Memoized before the raise below: append_info_to_payload asks for current_user again on the way
-    # out, and a second raise there escapes lograge.
+    # Set before the raise below: lograge's append_info_to_payload asks for current_user again on
+    # the way out, and a second raise there escapes lograge.
     @idp_token_holder = nil
 
     jwt_helper = idp_jwt_helper_for_request
@@ -45,16 +45,15 @@ module Idp::JwtAuthentication
     when nil
       @idp_token_holder = User.find_or_create_from_jwt(jwt_helper)
     when :missing
-      # The normal signed-out case: skip_auth_routes (root, /public_agencies, /hmis/user.json, ...)
-      # reach Rails with no header at all. Each of them skips authenticate_user! and then asks
-      # current_user what to render, so nil is the answer they want — RootController#index serves the
-      # public landing page on it.
+      # The normal signed-out case: skip_auth_routes reach Rails with no header at all. Those
+      # actions skip authenticate_user! and render based on current_user, so nil is the answer they
+      # want.
       nil
     else
-      # oauth2-proxy forwarded a token it had already vouched for and we refused it, so our own stack
-      # is misconfigured (wrong OIDC client, an opaque token where we want a JWT, a token that isn't
-      # ours). Let it 500 into Sentry: redirecting to a proxy that still holds a session just hands
-      # the same bad token back.
+      # oauth2-proxy had already vouched for this token and we refused it, so our own stack is
+      # misconfigured (wrong OIDC client, an opaque token where we want a JWT, a token that isn't
+      # ours). Redirecting to a proxy that still holds a session would hand back the same token, so
+      # fail loudly instead.
       raise Idp::ForwardedTokenError, jwt_helper.invalid_reason_details
     end
   end
@@ -70,28 +69,27 @@ module Idp::JwtAuthentication
     end
   end
 
-  # Ends the token holder's sessions at the IDP, which is the one session /oauth2/sign_out doesn't
-  # reach: the proxy ends Dex, but Dex doesn't propagate logout upstream. Called by both arms'
-  # sign-out actions.
+  # Ends the token holder's sessions at the IDP, the one session /oauth2/sign_out doesn't reach: the
+  # proxy ends Dex, but Dex doesn't propagate logout upstream.
   #
-  # The admin API rather than an RP-initiated logout redirect because the token is Dex's, so we have
-  # no id_token_hint for Keycloak and no client of our own to name.
+  # Uses the admin API rather than an RP-initiated logout redirect because the token is Dex's, so we
+  # have no id_token_hint for Keycloak and no client of our own to name.
   #
-  # Not single logout: other apps' proxy cookies carry Dex refresh tokens that Dex renews without
-  # re-checking Keycloak, so their sessions outlive this call.
+  # This is not single logout: other apps' proxy cookies carry Dex refresh tokens that Dex renews
+  # without re-checking Keycloak, so their sessions outlive this call.
   #
-  # The id comes off the token, not current_user: under impersonation current_user is the
-  # impersonated user (see idp_authenticated_user_from_jwt), and the impersonation-aware accessors
-  # are session-backed, so they'd be order-dependent against reset_session. Reading the token is
-  # also what lets this run before it.
+  # The id comes off the token rather than current_user because under impersonation current_user is
+  # the impersonated user, and the impersonation-aware accessors are session-backed, so they would
+  # be order-dependent against reset_session. Reading the token is also what lets this run before
+  # reset_session.
   #
   # @raise [Idp::SessionLogoutRefused] the call failed, or we couldn't tell whether to make one.
   #   Either way a session may still be live, so callers fail closed. Returning means nothing to end.
   def idp_end_token_holder_sessions
     jwt_helper = idp_jwt_helper_for_request
     reason = jwt_helper.invalid_reason
-    # No token, nothing to end. Any other refusal already raised in idp_token_holder, but the proxy
-    # vouched for the token, so assume there's a session to end and we can't tell whose.
+    # No token means nothing to end. Any other refusal already raised in idp_token_holder, and the
+    # proxy vouched for the token, so assume a session is live and that we can't tell whose.
     return if reason == :missing
     raise Idp::SessionLogoutRefused, "Sign-out refused: oauth2-proxy forwarded a token we refused (#{reason})" if reason
 
@@ -100,17 +98,18 @@ module Idp::JwtAuthentication
     return if connector_id.blank? || connector_user_id.blank?
 
     service = idp_session_logout_service(connector_id)
-    # nil is "couldn't resolve", already alerted. No admin API is nothing to end.
+    # nil means resolution failed and was already reported. A service without session logout has no
+    # admin API to call, so there is nothing to end.
     raise Idp::SessionLogoutRefused, "Sign-out refused: no IDP service for connector #{connector_id}" if service.nil?
     return unless service.supports_session_logout?
 
     begin
       # No deadline here: the service's own socket timeouts bound this, and Timeout.timeout would
-      # raise at an arbitrary point in the thread — including after Keycloak ended the sessions.
+      # raise at an arbitrary point in the thread, including after Keycloak ended the sessions.
       service.logout_user_sessions(user_id: connector_user_id)
     rescue StandardError => e
-      # Alerted, not swallowed — swallowing it is the bug this method exists to fix. Wrapped around
-      # the call only, so both ids are set here and the raises above aren't reported twice.
+      # Reported and re-raised rather than swallowed: a failed logout must not read as a successful
+      # sign-out.
       Sentry.capture_exception_with_info(
         e,
         "Couldn't end IDP sessions for #{connector_id} user #{connector_user_id}; sign-out was refused",
@@ -118,14 +117,13 @@ module Idp::JwtAuthentication
       raise Idp::SessionLogoutRefused, "Sign-out refused: #{e.class} ending IDP sessions for #{connector_id} user #{connector_user_id}"
     end
 
-    # Not the block's value — a truthy return reads like the boolean contract this no longer has.
+    # Void: callers check for the raise, not a return value.
     nil
   end
 
-  # Split out so a failure to resolve the service is alerted on its own terms: the message above
-  # would name a connector whose service we never got, and the fix is ours (connector config,
-  # credentials) rather than the IDP's. Still fails closed — an unresolvable connector tells us
-  # nothing about whether a session is live, and assuming there isn't one is the bug being fixed.
+  # Split out so a failure to resolve the service is reported on its own terms: the fix is ours
+  # (connector config, credentials) rather than the IDP's. Callers still fail closed, since an
+  # unresolvable connector tells us nothing about whether a session is live.
   #
   # @return [Idp::Service, nil] nil when resolution raised.
   def idp_session_logout_service(connector_id)
@@ -146,7 +144,7 @@ module Idp::JwtAuthentication
   end
 
   # Deliberately not memoized: the manager holds the session object it was built with, and
-  # idp_sync_session_principal! can swap that out mid-request.
+  # idp_sync_session_principal! can replace that mid-request.
   def impersonation_manager
     Idp::ImpersonationManager.new(session)
   end
@@ -160,12 +158,12 @@ module Idp::JwtAuthentication
   # mid-session, which would otherwise reset the session on every refresh.
   def idp_sync_session_principal!(user_id)
     stamped = session[SESSION_PRINCIPAL_KEY]
-    # Compared as strings so a store that stringifies the id can't mismatch on every request and
-    # reset continuously. redis_store Marshals, so today it comes back as an Integer.
+    # Compared as strings so a session store that stringifies the id can't mismatch on every request
+    # and reset the session continuously.
     return if stamped.to_s == user_id.to_s
 
-    # No stamp means nobody's session — an anonymous visitor on a page that skips
-    # authenticate_user!. Nothing to have changed.
+    # No stamp means an anonymous visitor on a page that skips authenticate_user!, so there is no
+    # previous session to clear.
     reset_session if stamped.present?
 
     session[SESSION_PRINCIPAL_KEY] = user_id
@@ -179,7 +177,7 @@ module Idp::JwtAuthentication
     return nil unless authenticated_user
 
     # Ahead of the active? check on purpose: the principal is known either way, and the deactivated
-    # 403 should not render on the previous user's session.
+    # 403 must not render on the previous user's session.
     idp_sync_session_principal!(authenticated_user.id)
 
     # A warehouse User that has been deactivated locally (active = false) is not allowed
@@ -202,8 +200,8 @@ module Idp::JwtAuthentication
 
     impersonation_data = impersonation_manager.get
     if impersonation_data && impersonation_data[:impersonated_user_id].present?
-      # Belt and braces — idp_sync_session_principal! above already resets on a principal change.
-      # Kept because honoring someone else's impersonation is the one leak here that escalates.
+      # idp_sync_session_principal! above already resets the session on a principal change. Checked
+      # again here because honoring another user's impersonation escalates privileges.
       if impersonation_data[:true_user_id] != authenticated_user.id
         impersonation_manager.clear
         return user
@@ -234,26 +232,26 @@ module Idp::JwtAuthentication
     connector_id = user.last_connector_id
     return if connector_id.blank?
 
-    # Marked ahead of the cooldown check, so a session that starts mid-outage spends its one
-    # attempt rather than retrying on every request until the pause lifts.
+    # Marked ahead of the pause check so a session that starts mid-outage spends its one attempt
+    # rather than retrying on every request until the pause lifts.
     session[SESSION_SYNC_KEY] = true
     return if Idp::SyncUserFromIdpJob.connector_paused?(connector_id)
 
     Idp::SyncUserFromIdpJob.perform_later(user_id: user.id)
   end
 
-  # Never a redirect to sign-in. oauth2-proxy owns that, and both cases below arrive with the proxy
-  # holding a live session, so bouncing them to /oauth2/sign_in just gets the same request back.
+  # Never redirects to sign-in. oauth2-proxy owns that, and both cases below arrive with the proxy
+  # holding a live session, so bouncing them to /oauth2/sign_in would return the same request.
   def idp_handle_unauthenticated
     # No token at all. The only requests the proxy passes through without one are skip_auth_routes,
-    # and those all skip this filter, so the route surface and the proxy config disagree — or
-    # something reached Rails without the proxy. Ours to fix, so fail loudly.
+    # and those skip this filter, so either the route surface and the proxy config disagree or
+    # something reached Rails without the proxy. Both are ours to fix, so fail loudly.
     raise Idp::UnauthenticatedRequestError, request.path unless idp_jwt_helper_for_request.token?
 
-    # A good token whose holder has no warehouse account: Idp::UserProvisioner returns nil when
+    # A valid token whose holder has no warehouse account: Idp::UserProvisioner returns nil when
     # idp/auto_create_user is off and no row matches, which is routine on a realm shared with other
-    # apps. A real person who needs an account, not a misconfiguration — terminal page, same shape as
-    # idp_handle_deactivated.
+    # apps. That is a person who needs an account rather than a misconfiguration, so render a
+    # terminal page in the same shape as idp_handle_deactivated.
     render(template: 'errors/no_warehouse_account', status: :forbidden)
   end
 
@@ -267,9 +265,9 @@ module Idp::JwtAuthentication
     render(template: 'errors/account_deactivated', status: :forbidden)
   end
 
-  # Idp::SessionLogoutRefused, rescued by both sign-out actions. A template rather than
-  # render(plain:) because sign-out is a link_to method: :delete, so the user lands here on a full
-  # page load and needs the layout and a retry link. Overridden by HMIS for JSON.
+  # Shown when idp_end_token_holder_sessions raises Idp::SessionLogoutRefused. A template rather
+  # than render(plain:) because sign-out is a link_to with method: :delete, so the user lands here on
+  # a full page load and needs the layout and a retry link. HMIS overrides this to return JSON.
   def idp_handle_session_logout_failure
     render(template: 'errors/sign_out_failed', status: :internal_server_error)
   end

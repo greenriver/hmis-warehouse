@@ -107,9 +107,9 @@ class Admin::Idp::UsersController < ApplicationController
     keys
   end
 
-  # Disable the account in the IdP from inside the transaction holding the local `active: false`
-  # flip, so a refused write takes the local flip with it. No-ops for a connector with no management
-  # API, which keeps local deactivation available when the IdP link is gone.
+  # Disable the account in the IdP from inside the transaction holding the local deactivation, so a
+  # refused write rolls that back too. No-ops for a connector with no management API, which keeps
+  # local deactivation available when the IdP link is gone.
   private def after_deactivate
     @user.idp_deactivate!
   end

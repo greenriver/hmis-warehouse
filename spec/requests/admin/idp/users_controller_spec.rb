@@ -290,9 +290,9 @@ RSpec.describe Admin::Idp::UsersController, type: :request, if: AuthMethod.jwt? 
         allow(Sentry).to receive(:capture_exception_with_info)
       end
 
-      # The local flip and the push share a transaction, so a refused push takes the flip with it
-      # rather than leaving the account disabled here and enabled in Keycloak.
-      it 'rolls the local flip back, pages Sentry, and says the user still has access' do
+      # The local deactivation and the push share a transaction, so a refused push rolls the local
+      # side back rather than leaving the account disabled here and enabled in Keycloak.
+      it 'rolls the local deactivation back, pages Sentry, and says the user still has access' do
         delete admin_user_path(target)
 
         expect(target.reload.active).to be true
@@ -321,8 +321,8 @@ RSpec.describe Admin::Idp::UsersController, type: :request, if: AuthMethod.jwt? 
 
     # The connector is live and manageable, so idp_deactivate! attempts a push, but there is no
     # identity row to address and idp_connector_user_id! raises out of the transaction holding the
-    # local flip. idp_reactivate! guards on the missing row so its local change survives; deactivate
-    # does not, so the account keeps its access to the Warehouse.
+    # local deactivation. idp_reactivate! guards on the missing row so its local change survives;
+    # deactivate does not, so the account keeps its access to the Warehouse.
     context 'when the connector is live but the user has no identity row' do
       before do
         target.user_authentication_sources.destroy_all
