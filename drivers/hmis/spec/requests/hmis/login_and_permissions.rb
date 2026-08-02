@@ -8,6 +8,8 @@
 
 module LoginAndPermissionsSpecHelper
   def hmis_login(user)
+    return sign_in(user) if AuthMethod.jwt?
+
     post hmis_user_session_path(hmis_user: { email: user.email, password: user.password })
   end
 
