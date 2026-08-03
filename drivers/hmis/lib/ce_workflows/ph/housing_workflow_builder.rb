@@ -65,10 +65,6 @@ module CeWorkflows::Ph
       template
     end
 
-    def build_high_impact_workflow
-      # TODO(#9402)
-    end
-
     private
 
     # Builds the Housing waitlist referral workflow graph on a fresh template.

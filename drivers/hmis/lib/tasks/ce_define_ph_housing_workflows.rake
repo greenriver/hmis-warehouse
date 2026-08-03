@@ -3,11 +3,9 @@
 # CE waitlist workflow definition for PH
 # Usage:
 #   rails driver:hmis:ce_define_ph_housing_workflows
-#   UNSAFE_RUN_IN_PRODUCTION=true rails driver:hmis:ce_define_ph_housing_workflows  # one-time prod setup only
 desc 'Create CE housing workflow definitions for PH'
 task ce_define_ph_housing_workflows: [:environment] do
-  unsafe_run_in_production = ENV['UNSAFE_RUN_IN_PRODUCTION']&.downcase == 'true'
-  raise 'This task destroys data and should not be run in production!' if Rails.env.production? && !unsafe_run_in_production
+  raise 'This task destroys data and should not be run in production!' if Rails.env.production?
   raise unless HmisEnforcement.hmis_enabled?
   raise unless Hmis::Ce.configuration.enabled?
 
@@ -19,7 +17,7 @@ task ce_define_ph_housing_workflows: [:environment] do
   puts 'Ensuring custom statuses are in sync'
   CeWorkflows::Shared::CeBuilderUtils.create_state_machine_custom_statuses(data_source)
 
-  builder = CeWorkflows::Ph::HousingWorkflowBuilder.new(data_source, unsafe_run_in_production: unsafe_run_in_production)
+  builder = CeWorkflows::Ph::HousingWorkflowBuilder.new(data_source)
 
   puts "Creating workflow template in data source #{data_source.id} (#{data_source.name})"
   templates = []
