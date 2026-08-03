@@ -74,6 +74,23 @@ module CeWorkflows::Shared
       end
     end
 
+    # Destroys a workflow template and its associated dev/staging data so the builder can recreate it from scratch.
+    # Should not be run in production and raises an error if you try.
+    #
+    # Always destroys referrals, workflow instances/steps, and the template graph. Optionally destroys
+    # opportunities linked to unit groups that reference this template identifier.
+    #
+    # @param delete_opportunities [Boolean] When true (default), also destroys opportunities on units
+    #   belonging to unit groups whose `workflow_template_identifier` or
+    #   `direct_referral_workflow_template_identifier` matches +template_identifier+. When false,
+    #   opportunities are preserved so local rebuilds don't wipe CE inventory.
+    #
+    #   When set to false, this could potentially lead to opportunities with dangling references
+    #   to non-existent workflow templates.
+    #   But as long as the workflow builder immediately recreates the template
+    #   with the same identifier right after running this method (which is our normal builder pattern),
+    #   the dangling references will not be left dangling.
+    #   Since this is a dev/staging-only method anyway, the risk is low.
     def self.delete_template_and_associated_data(template_identifier, data_source:, delete_opportunities: true)
       raise ArgumentError, 'data_source is required' if data_source.blank?
       raise 'This method destroys data and should not be run in production' if Rails.env.production?
@@ -98,6 +115,8 @@ module CeWorkflows::Shared
       referrals.find_each(&:destroy!)
 
       if delete_opportunities
+        # Optional: wipe opportunities tied to this template via unit groups. Pass
+        # delete_opportunities: false to preserve CE inventory during local iteration.
         # Find opportunities through unit groups that use this template
         unit_groups = Hmis::UnitGroup.where(workflow_template_identifier: template_identifier).
           or(Hmis::UnitGroup.where(direct_referral_workflow_template_identifier: template_identifier)).

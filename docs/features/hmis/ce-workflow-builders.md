@@ -65,6 +65,8 @@ end
 ```
 
 **Local iteration:** run the rake task repeatedly. Expect referrals to be destroyed.
+  - Opportunities are destroyed too unless you pass `delete_opportunities: false` to `delete_template_and_associated_data`.
+  - The `delete_opportunities` flag is only read in dev/staging. Production first-time setup skips `delete_template_and_associated_data` entirely (`unsafe_run_in_production: true`), so the value is never used there.
 
 **Production:** run once in Rails with `unsafe_run_in_production: true` (not using the rake task). Do not re-run after go-live.
 
