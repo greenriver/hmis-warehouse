@@ -40,7 +40,7 @@ module WarehouseReports
 
         [job.run_at, report]
       rescue Psych::Exception => e
-        Rails.logger.error("HmisExportsController#set_jobs: skipping unparseable job #{job.id}: #{e.message}")
+        Sentry.capture_exception(e)
         nil
       end
     end

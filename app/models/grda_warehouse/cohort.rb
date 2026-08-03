@@ -26,12 +26,8 @@ module GrdaWarehouse
     validates :static_column_count, numericality: { only_integer: true }
     validates :automation_sub_population, inclusion: { in: ->(_) { AvailableSubPopulations.available_sub_populations.values.map(&:to_s) }, allow_blank: true, message: 'is not a valid sub-population' }
     validate :require_project_group_for_automation
-    # Extends the global yaml_column_permitted_classes (config/application.rb) with every class
-    # in the known_cohort_columns registry (GrdaWarehouse::Cohorts::CohortColumn), rather than a
-    # global allow-list addition — this column is the only place in the app confirmed to embed
-    # app-defined classes via YAML. `.constantize` (not `.descendants`) is required here:
-    # `.descendants` only reflects classes already loaded into memory and returns an empty array
-    # until something else has triggered autoloading, while `.constantize` actively autoloads each one.
+    # permitted_classes here is unioned with the global yaml_column_permitted_classes
+    # (config/application.rb), so it only needs to add the app-defined CohortColumns::* classes.
     serialize :column_state, type: Array, yaml: { permitted_classes: GrdaWarehouse::Cohorts::CohortColumn.known_cohort_columns.map(&:constantize) }
 
     after_create :maintain_system_group
