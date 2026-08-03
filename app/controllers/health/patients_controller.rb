@@ -27,8 +27,6 @@ module Health
 
       @column = params[:sort] || 'name'
       @direction = params[:direction]&.to_sym || :asc
-      @report = Health::AgencyPerformance.new(range: (@start_date..@end_date), agency_scope: Health::Agency.where(id: @active_agency.id))
-      @agencies = @report.agency_counts
 
       medicaid_ids = @patients.map(&:medicaid_id)
       @patients = patient_source.where(id: @patients.pluck(:id))
@@ -60,17 +58,6 @@ module Health
 
     def patient_source
       Health::Patient
-    end
-
-    def detail
-      agency_name = params.require(:entity)[:entity_id]
-      @section = params.require(:entity)[:section]
-      @patient_ids = params.require(:entity)[:patient_ids]&.split(',')&.map(&:to_i)
-      @patients = Health::Patient.bh_cp.where(id: @patient_ids).
-        preload(:care_coordinator).
-        order(last_name: :asc, first_name: :asc)
-
-      @agency = Health::Agency.find_by(name: agency_name)
     end
 
     def create_search_queries
@@ -121,13 +108,5 @@ module Health
 
       not_authorized!
     end
-
-    def describe_computations
-      path = 'app/views/warehouse_reports/health/agency_performance/README.md'
-      description = File.read(path)
-      markdown = Redcarpet::Markdown.new(::TranslatedHtml)
-      markdown.render(description)
-    end
-    helper_method :describe_computations
   end
 end

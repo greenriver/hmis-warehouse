@@ -12,7 +12,6 @@ RSpec.describe 'Missing PCTP Component QAs', type: :model do
   let!(:user) { create(:user) }
   let!(:sender) { create(:sender) }
   let!(:patient) { create(:patient) }
-  let!(:claim) { create :health_claim }
 
   describe 'has all the components' do
     let!(:thrive) { create :thrive, user_id: user.id, patient_id: patient.id }

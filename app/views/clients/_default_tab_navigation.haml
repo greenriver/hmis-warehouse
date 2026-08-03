@@ -171,23 +171,6 @@
        title: 'Care Plan',
        permission: show_health_pilot,
       },
-      polymorphic_path(health_pilot_path_generator + [:metrics], client_id: @client) => {
-        title: 'Metrics',
-        permission: show_health_pilot,
-      },
-      polymorphic_path(health_path_generator + [:metrics], client_id: @client) => {
-        title: 'Metrics',
-        permission: show_health_hpc,
-      },
     }
-    if RailsDrivers.loaded.include?(:health_flexible_service)
-      can_see_vpr = current_user.can_view_my_vprs? && @client.health_housing_navigator_id == current_user.id
-      health.merge!({
-        client_health_flexible_service_vprs_path(@client) => {
-          title: 'Flex Services',
-          permission: can_see_vpr || current_user.can_view_all_vprs?,
-        },
-      })
-    end
   = render 'clients/pre_navigation_bar'
   = render 'menus/client_tab_navigation', current: current, always_visible: always_visible, hmis: hmis, health: health

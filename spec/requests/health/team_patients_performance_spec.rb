@@ -308,40 +308,6 @@ RSpec.describe Health::TeamPatientsController, type: :request do
       puts "\n..." + '=' * 80 + "\n"
     end
 
-    it 'checks report creation query count' do
-      puts "\n[TEST] Testing report creation..."
-      queries = []
-      original_logger = ActiveRecord::Base.logger
-      query_logger = Logger.new(StringIO.new)
-      query_logger.formatter = lambda do |_severity, _datetime, _progname, msg|
-        queries << msg if msg.include?('SELECT') || msg.include?('UPDATE') || msg.include?('INSERT')
-        "#{msg}\n"
-      end
-      ActiveRecord::Base.logger = query_logger
-
-      report = Health::TeamPerformance.new(range: (Date.current.beginning_of_month..Date.current.end_of_month), team_scope: Health::CoordinationTeam.all)
-      # Force report queries to run
-      report.team_counts
-      report.total_counts
-
-      ActiveRecord::Base.logger = original_logger
-
-      puts "\nReport query count: #{queries.count}"
-      table_counts = {}
-      queries.each do |sql|
-        next unless sql =~ /FROM\s+"?(\w+)"?/i || sql =~ /UPDATE\s+"?(\w+)"?/i || sql =~ /INSERT INTO\s+"?(\w+)"?/i
-
-        table = Regexp.last_match(1)
-        table_counts[table] ||= 0
-        table_counts[table] += 1
-      end
-
-      puts "\nQueries by table (top 15):"
-      table_counts.sort_by { |_k, v| -v }.first(15).each do |table, count|
-        puts "  #{table}: #{count} queries"
-      end
-    end
-
     it 'identifies slowest queries and potential bottlenecks' do
       # Capture queries with timing
       queries_with_time = []

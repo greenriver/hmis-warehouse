@@ -13,7 +13,6 @@ module Health
     extend OrderAsSpecified
 
     # Extensions from drivers — see ADR 0007
-    include ClaimsReporting::Health::PatientExtension
     include HealthComprehensiveAssessment::Health::PatientExtension
     include HealthPctp::Health::PatientExtension
     include HealthQaFactory::Health::PatientExtension
@@ -705,9 +704,9 @@ module Health
 
     def chas
       @chas ||= (
-          comprehensive_health_assessments.order(completed_at: :desc).to_a +
-          epic_chas.order(cha_updated_at: :desc)
-        ).sort_by do |f|
+        comprehensive_health_assessments.order(completed_at: :desc).to_a +
+        epic_chas.order(cha_updated_at: :desc)
+      ).sort_by do |f|
         if f.is_a? Health::ComprehensiveHealthAssessment
           f.completed_at || DateTime.current
         elsif f.is_a? GrdaWarehouse::HmisForm
@@ -1019,10 +1018,10 @@ module Health
 
     def ssms
       @ssms ||= (
-          hmis_ssms.order(collected_at: :desc).to_a +
-          self_sufficiency_matrix_forms.order(completed_at: :desc).to_a +
-          epic_ssms.order(ssm_updated_at: :desc)
-        ).sort_by do |f|
+        hmis_ssms.order(collected_at: :desc).to_a +
+        self_sufficiency_matrix_forms.order(completed_at: :desc).to_a +
+        epic_ssms.order(ssm_updated_at: :desc)
+      ).sort_by do |f|
         if f.is_a? Health::SelfSufficiencyMatrixForm
           f.completed_at || DateTime.current
         elsif f.is_a? GrdaWarehouse::HmisForm
