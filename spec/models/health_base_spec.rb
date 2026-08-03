@@ -160,11 +160,6 @@ RSpec.describe 'HealthBase PaperTrail configuration', type: :model do
   end
 
   describe 'real HealthBase subclasses that re-declare has_paper_trail' do
-    it 'keeps ClaimsReporting::CpPaymentUpload on Health::HealthVersion with content ignored' do
-      expect(ClaimsReporting::CpPaymentUpload.version_class_name).to eq('Health::HealthVersion')
-      expect(ClaimsReporting::CpPaymentUpload.paper_trail_options[:ignore]).to include('content')
-    end
-
     it 'keeps Health::Tracing::Contact on Health::HealthVersion' do
       expect(Health::Tracing::Contact.version_class_name).to eq('Health::HealthVersion')
     end

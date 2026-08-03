@@ -97,15 +97,6 @@ module Health::Tasks
           end
         end
 
-        ClaimsReporting::MemberRoster.where(member_id: patient_universe.pluck(:medicaid_id)).find_each do |member|
-          struct = demographics[member.member_id]
-          next unless struct
-
-          language = member.primary_language_s.strip
-          language = 'BLANK' if language.blank?
-          struct.language = language
-        end
-
         patient_leavers.find_each do |patient|
           next if patient.patient_referral.rejected_reason == 'Remove_Removal'
 

@@ -541,153 +541,6 @@ module GrdaWarehouse::WarehouseReports
             health: false,
           },
         ],
-        'Health: General' => [
-          {
-            url: 'warehouse_reports/confidential_touch_point_exports',
-            name: 'Health-related TouchPoint Export',
-            description: 'Export for any Confidential Health-related TouchPoints.',
-            limitable: false,
-            health: true,
-          },
-          {
-            url: 'warehouse_reports/health/ssm_exports',
-            name: 'Self-Sufficiency Matrix Form Export',
-            description: 'Export SSMs from any source, ETO, EPIC, and the Warehouse.',
-            limitable: true,
-            health: true,
-          },
-          {
-            url: 'warehouse_reports/health/ed_ip_visits',
-            name: 'ED & IP Visits',
-            description: 'Upload and attach ED & IP visits to patient records.',
-            limitable: true,
-            health: true,
-          },
-          {
-            url: 'warehouse_reports/health/encounters',
-            name: 'Encounters',
-            description: 'Export Patient Encounters By Year',
-            limitable: true,
-            health: true,
-          },
-        ],
-        'Health: COVID19' => [
-          {
-            url: 'warehouse_reports/health/contact_tracing',
-            name: 'Contact Tracing',
-            description: 'Review and download contact tracing records.',
-            limitable: false,
-            health: true,
-          },
-        ],
-        'Health: Partner Performance' => [
-          {
-            url: 'warehouse_reports/health/agency_performance',
-            name: 'Dashboard',
-            description: 'Summary data on agency performance in the BH CP.',
-            limitable: false,
-            health: true,
-          },
-        ],
-        'Health: Archive' => [
-          {
-            url: 'warehouse_reports/health/overview',
-            name: 'Pilot Health Dashboard',
-            description: 'Overview of patient metrics.',
-            limitable: false,
-            health: true,
-          },
-        ],
-        'Health: ACO Performance Reports' => [
-          {
-            url: 'warehouse_reports/health/aco_performance',
-            name: 'PCTP Signature Tracking by ACO',
-            description: 'Summary data on ACO performance in the BH CP.',
-            limitable: false,
-            health: true,
-          },
-          {
-            url: 'warehouse_reports/health/housing_status',
-            name: 'Housing Status by ACO',
-            description: 'Patient housing status report for ACOs.',
-            limitable: false,
-            health: true,
-          },
-          {
-            url: 'warehouse_reports/health/housing_status_changes',
-            name: 'Patient Housing Status Changes',
-            description: 'Patient housing status changes report for ACOs.',
-            limitable: false,
-            health: true,
-          },
-        ],
-        'Health: Member Status Tracking' => [
-          {
-            url: 'warehouse_reports/health/enrollments',
-            name: '834: MassHealth Enrollments and Disenrollments',
-            description: 'Update patient enrollments.',
-            limitable: false,
-            health: true,
-          },
-          {
-            url: 'warehouse_reports/health/eligibility',
-            name: '270/271: Eligibility Determination and ACO Status Changes',
-            description: 'Generate and download eligibility determination files. (270/271)',
-            limitable: false,
-            health: true,
-          },
-          {
-            url: 'warehouse_reports/health/member_status_reports',
-            name: 'Member Status and Outreach',
-            description: 'Download member status reports',
-            limitable: false,
-            health: true,
-          },
-          {
-            url: 'warehouse_reports/health/patient_referrals',
-            name: 'Patient Referrals',
-            description: 'View and update batches of patient referrals by referral date.',
-            limitable: false,
-            health: true,
-          },
-          {
-            url: 'warehouse_reports/health/cp_roster',
-            name: 'CP Rosters',
-            description: 'Upload CP Rosters',
-            limitable: false,
-            health: true,
-          },
-          {
-            url: 'warehouse_reports/health/expiring_items',
-            name: 'Expiring Items',
-            description: 'See who has Participation Forms, Release Forms, SSMs, CHAs, and PCTPs that are expiring or expired.',
-            limitable: true,
-            health: true,
-          },
-          {
-            url: 'warehouse_reports/health/enrollments_disenrollments',
-            name: 'Enrollment-Disenrollment Files',
-            description: 'Generate the monthly Enrollment/Disenrollment files for ACOs.',
-            limitable: true,
-            health: true,
-          },
-        ],
-        'Health: BH CP Claims/Payments' => [
-          {
-            url: 'warehouse_reports/health/claims',
-            name: '837: Claim Generation',
-            description: 'Generate and download claims files. (837P)',
-            limitable: false,
-            health: true,
-          },
-          {
-            url: 'warehouse_reports/health/premium_payments',
-            name: '820: Process Premium Payments',
-            description: 'Convert 820 files into human-readable Excel files',
-            limitable: false,
-            health: true,
-          },
-        ],
         'Performance' => [
           {
             url: 'performance_dashboards/overview',
@@ -894,36 +747,6 @@ module GrdaWarehouse::WarehouseReports
           health: false,
         }
       end
-      if RailsDrivers.loaded.include?(:claims_reporting)
-        r_list['Health: BH CP Claims/Payments'] << {
-          url: 'claims_reporting/warehouse_reports/reconciliation',
-          name: 'BH CP Claim Reconciliation',
-          description: 'Verify payment of claims.',
-          limitable: false,
-          health: true,
-        }
-        r_list['Health: BH CP Claims/Payments'] << {
-          url: 'claims_reporting/warehouse_reports/engagement_trends',
-          name: 'Patient Engagement Trends',
-          description: 'Engagement metrics by length of engagement',
-          limitable: false,
-          health: true,
-        }
-        r_list['Health: BH CP Claims/Payments'] << {
-          url: 'claims_reporting/warehouse_reports/quality_measures',
-          name: 'BH CP Quality Measures',
-          description: 'Community Partners (CP) Program Quality Measures',
-          limitable: false,
-          health: true,
-        }
-        r_list['Health: BH CP Claims/Payments'] << {
-          url: 'claims_reporting/warehouse_reports/imports',
-          name: 'Claims Reporting Imports',
-          description: 'History of automatically imported claims information',
-          limitable: false,
-          health: true,
-        }
-      end
       if RailsDrivers.loaded.include?(:project_pass_fail)
         r_list['Data Quality'] << {
           url: 'project_pass_fail/warehouse_reports/project_pass_fail',
@@ -931,22 +754,6 @@ module GrdaWarehouse::WarehouseReports
           description: 'Investigate data quality issues for projects',
           limitable: true,
           health: false,
-        }
-      end
-      if RailsDrivers.loaded.include?(:health_flexible_service)
-        r_list['Health: General'] << {
-          url: 'health_flexible_service/warehouse_reports/member_lists',
-          name: 'VPR Member Lists',
-          description: 'Generate the quarterly member list files for flex services',
-          limitable: true,
-          health: true,
-        }
-        r_list['Health: General'] << {
-          url: 'health_flexible_service/warehouse_reports/member_expiration',
-          name: 'VPR Member Expiration',
-          description: 'View clients receiving flex services that have expired.',
-          limitable: true,
-          health: true,
         }
       end
       if RailsDrivers.loaded.include?(:prior_living_situation)
@@ -1269,15 +1076,6 @@ module GrdaWarehouse::WarehouseReports
           health: false,
         }
       end
-      if RailsDrivers.loaded.include?(:health_ip_followup_report)
-        r_list['Health: BH CP Claims/Payments'] << {
-          url: 'health_ip_followup_report/warehouse_reports/followup_reports',
-          name: 'Inpatient Follow Ups',
-          description: 'Rate of 72-hour follow ups after inpatient visits.',
-          limitable: false,
-          health: true,
-        }
-      end
       if RailsDrivers.loaded.include?(:ce_performance)
         r_list['Performance'] << {
           url: 'ce_performance/warehouse_reports/reports',
@@ -1378,6 +1176,32 @@ module GrdaWarehouse::WarehouseReports
         'warehouse_reports/hud/incorrect_move_in_dates',
         'warehouse_reports/tableau_dashboard_export',
         'warehouse_reports/project_type_reconciliation',
+        'warehouse_reports/confidential_touch_point_exports',
+        'warehouse_reports/health/ssm_exports',
+        'warehouse_reports/health/ed_ip_visits',
+        'warehouse_reports/health/encounters',
+        'warehouse_reports/health/contact_tracing',
+        'warehouse_reports/health/agency_performance',
+        'warehouse_reports/health/overview',
+        'warehouse_reports/health/aco_performance',
+        'warehouse_reports/health/housing_status',
+        'warehouse_reports/health/housing_status_changes',
+        'warehouse_reports/health/enrollments',
+        'warehouse_reports/health/eligibility',
+        'warehouse_reports/health/member_status_reports',
+        'warehouse_reports/health/patient_referrals',
+        'warehouse_reports/health/cp_roster',
+        'warehouse_reports/health/expiring_items',
+        'warehouse_reports/health/enrollments_disenrollments',
+        'warehouse_reports/health/claims',
+        'warehouse_reports/health/premium_payments',
+        'claims_reporting/warehouse_reports/reconciliation',
+        'claims_reporting/warehouse_reports/engagement_trends',
+        'claims_reporting/warehouse_reports/quality_measures',
+        'claims_reporting/warehouse_reports/imports',
+        'health_flexible_service/warehouse_reports/member_lists',
+        'health_flexible_service/warehouse_reports/member_expiration',
+        'health_ip_followup_report/warehouse_reports/followup_reports',
       ]
       cleanup << 'ma_yya_report/warehouse_reports/reports' unless RailsDrivers.loaded.include?(:ma_yya_report)
       cleanup << 'ma_yya_followup_report/warehouse_reports/youth_followup' unless RailsDrivers.loaded.include?(:ma_yya_followup_report)
@@ -1394,12 +1218,7 @@ module GrdaWarehouse::WarehouseReports
         cleanup << 'boston_reports/warehouse_reports/community_of_origins'
       end
 
-      unless RailsDrivers.loaded.include?(:claims_reporting)
-        cleanup << 'claims_reporting/warehouse_reports/reconciliation'
-        cleanup << 'claims_reporting/warehouse_reports/engagement_trends'
-      end
       cleanup << 'project_pass_fail/warehouse_reports/project_pass_fail' unless RailsDrivers.loaded.include?(:project_pass_fail)
-      cleanup << 'health_flexible_service/warehouse_reports/member_lists' unless RailsDrivers.loaded.include?(:health_flexible_service)
       cleanup << 'project_scorecard/warehouse_reports/scorecards' unless RailsDrivers.loaded.include?(:project_scorecard)
       cleanup << 'boston_project_scorecard/warehouse_reports/scorecards' unless RailsDrivers.loaded.include?(:boston_project_scorecard)
       cleanup << 'prior_living_situation/warehouse_reports/prior_living_situation' unless RailsDrivers.loaded.include?(:prior_living_situation)
@@ -1436,7 +1255,6 @@ module GrdaWarehouse::WarehouseReports
       cleanup << 'analysis_tool/warehouse_reports/analysis_tool' unless RailsDrivers.loaded.include?(:analysis_tool)
       cleanup << 'start_date_dq/warehouse_reports/reports' unless RailsDrivers.loaded.include?(:start_date_dq)
       cleanup << 'built_for_zero_report/warehouse_reports/bfz' unless RailsDrivers.loaded.include?(:built_for_zero_report)
-      cleanup << 'health_ip_followup_report/warehouse_reports/followup_reports' unless RailsDrivers.loaded.include?(:health_ip_followup_report)
       unless RailsDrivers.loaded.include?(:ce_performance)
         cleanup << 'ce_performance/warehouse_reports/reports'
         cleanup << 'ce_performance/warehouse_reports/goal_configs'

@@ -15,11 +15,6 @@
     - btn_classes.push(['active', 'btn-light'])
   = link_to 'All Patients', health_team_patients_path(entity_id: 'All Patients'), class: btn_classes
 
-.mt-4.mb-6
-  = render 'background_render', url: render_section_health_team_patients_path, fetch_params: {start_date: @start_date, end_date: @end_date, entity_id: @team_name} do
-    .rollup
-      .rollup-container.well
-
 .o-page__controls
   .o-page__search
     = render_generic_search_form(health_create_team_patient_searches_path, method: :post, prompt: 'Search patients...', initial_value: @search_string)
