@@ -75,6 +75,22 @@ module HudLsa::Fy2026
       raise ArgumentError, "unknown scope: #{scope.inspect} (expected one of #{FIXTURE_DIRS.keys})" unless FIXTURE_DIRS.key?(@scope)
     end
 
+    # Public (rather than private, despite only being used internally) so they can be
+    # unit tested directly: unlike run!, they need no SQL Server/report generation.
+    def report_options
+      today = Date.current
+      {
+        start: (today - 1.year).beginning_of_month.to_s,
+        end: today.to_s,
+        coc_code: 'XX-501',
+        lsa_scope: @scope == :hic ? HudLsa::Fy2026::Report.available_lsa_scopes['HIC'] : 1,
+      }
+    end
+
+    def known_sample_data_gaps
+      KNOWN_SAMPLE_DATA_GAPS.fetch(@scope, {})
+    end
+
     # Returns true when the run completed and output matched the fixtures. Raises if
     # the run itself fails (connection, queries, no output, missing fixtures) so the
     # task exits non-zero with a useful message.
@@ -132,16 +148,6 @@ module HudLsa::Fy2026
       report
     end
 
-    def report_options
-      today = Date.current
-      {
-        start: (today - 1.year).beginning_of_month.to_s,
-        end: today.to_s,
-        coc_code: 'XX-501',
-        lsa_scope: @scope == :hic ? HudLsa::Fy2026::Report.available_lsa_scopes['HIC'] : 1,
-      }
-    end
-
     def ensure_factories_loaded
       FactoryBot.find_definitions unless FactoryBot.factories.registered?(:hud_reports_report_instance)
     end
@@ -189,10 +195,6 @@ module HudLsa::Fy2026
       end
       log(all_ok ? "STAGE compare: PASS (all #{diffs.size} files compared match; #{tool.skipped_files.size} skipped)" : 'STAGE compare: FAIL')
       all_ok
-    end
-
-    def known_sample_data_gaps
-      KNOWN_SAMPLE_DATA_GAPS.fetch(@scope, {})
     end
 
     def verify_files_present!(generated_dir)
