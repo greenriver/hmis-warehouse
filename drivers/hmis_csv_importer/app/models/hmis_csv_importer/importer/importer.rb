@@ -38,7 +38,7 @@
 #       enrollments outside the import date range so contiguous stays can be
 #       merged correctly.
 #
-# @see docs/features/hmis-csv-importer.md for full data-flow documentation.
+# @see docs/features/warehouse/hmis-csv-importer.md for full data-flow documentation.
 #
 # Manual run:
 #   loader = HmisCsvImporter::Loader::LoaderLog.last
@@ -50,7 +50,7 @@ require 'zlib'
 require 'base64'
 
 module HmisCsvImporter::Importer
-  # @see docs/features/hmis-csv-importer.md for architecture and design details.
+  # @see docs/features/warehouse/hmis-csv-importer.md for architecture and design details.
   class Importer
     include TsqlImport
     include NotifierConfig

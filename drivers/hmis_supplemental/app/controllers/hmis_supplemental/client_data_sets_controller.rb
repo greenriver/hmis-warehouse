@@ -6,7 +6,7 @@
 
 # frozen_string_literal: true
 
-# @see docs/features/hmis-supplemental.md
+# @see docs/features/warehouse/hmis-supplemental.md
 
 # a "tab" on the client dashboard for viewing a data set.
 # This controller is for both client and enrollment-based data sets

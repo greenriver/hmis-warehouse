@@ -16,7 +16,7 @@ module HmisUtil
   #   - Base definitions live under default/ (fragments, record forms, assessments, static admin forms)
   #   - Environment-specific overrides are loaded from subdirs to override or extend the base definitions: e.g. test, qa_hmis, or ENV['CLIENT']
   #
-  # @see docs/features/hmis-form-seeding.md
+  # @see docs/features/hmis/hmis-form-seeding.md
   class JsonForms
     JsonFormException = Class.new(StandardError)
     private_constant :JsonFormException

@@ -58,7 +58,7 @@ class NotifyMetricThresholdCrossingsJob < BaseJob
 
         # Skip metrics this user was already successfully notified about today. The job is
         # enqueued once per collector run (including every retry), so without this guard the
-        # same crossing is re-sent on every run. See docs/features/metric-tracking.md.
+        # same crossing is re-sent on every run. See docs/features/warehouse/metric-tracking.md.
         already_notified = GrdaWarehouse::Monitoring::ThresholdNotificationLog.
           notified_metric_ids_for(user_id: user.id, date: Date.current)
 
