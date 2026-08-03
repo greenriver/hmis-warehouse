@@ -2,7 +2,7 @@
 
 ## Overview
 This directory contains utilities and workflow definitions specific to the PH installation of Coordinated Entry (CE) workflows.
-See README_FOR_CE_WORKFLOW_BUILDERS.md for general documentation on the CE workflow builder pattern.
+See [CE Workflow Builders](../../../../../docs/features/hmis/ce-workflow-builders.md) for general documentation on the CE workflow builder pattern.
 
 ### Workflow Templates
 - **Direct Referral Workflows**:

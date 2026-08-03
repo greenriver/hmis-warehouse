@@ -38,7 +38,7 @@ Installation-specific workflow builders follow two different patterns. This read
 
 ### Preferred destroy-and-recreate pattern
 
-Use this pattern for new workflows. See `drivers/hmis/lib/ce_workflows/ac/workflow_builder.rb` as a reference implementation.
+Use this pattern for new workflows. See [`drivers/hmis/lib/ce_workflows/ac/workflow_builder.rb`](../../../drivers/hmis/lib/ce_workflows/ac/workflow_builder.rb) as a reference implementation.
 
 **Why we prefer it:**
 
@@ -67,7 +67,7 @@ end
 
 **Local iteration:** run the rake task repeatedly. Expect referrals to be destroyed.
 
-**Production:** run once at initial setup with `UNSAFE_RUN_IN_PRODUCTION=true`. Do not re-run after go-live (same as the rake comment in [ce_define_workflows.rake](../tasks/ce_define_workflows.rake)).
+**Production:** run once at initial setup with `UNSAFE_RUN_IN_PRODUCTION=true`. Do not re-run after go-live (same as the rake comment in [`ce_define_workflows.rake`](../../../drivers/hmis/lib/tasks/ce_define_workflows.rake)).
 
 **Rake task shape:** prod guard at top; pass `unsafe_run_in_production:` into builder.
 
@@ -90,4 +90,3 @@ Updates to Workflow Templates fall into two categories. See [https://github.com/
 - **Graph changes** such as new steps, gateways, side effects:
   - We don't yet have an established pattern for handling this in production.
   - The non-preferred draft-idempotent pattern was partly built to handle this, but due to the downsides listed above, we're retiring that pattern and will cross this bridge when we re-encounter it.
-

@@ -10,7 +10,7 @@
 #
 # This workflow builder uses the non-preferred draft idempotent pattern.
 # Retained for existing PH direct referral workflows, but don't copy this pattern for new workflows.
-# See ../README_FOR_CE_WORKFLOW_BUILDERS.md for the preferred destroy-and-recreate approach.
+# @see docs/features/hmis/ce-workflow-builders.md for the preferred destroy-and-recreate approach.
 module CeWorkflows::Ph
   class WorkflowBuilder
     FORMS = {

@@ -7,7 +7,7 @@ This workflow is intended as an out-of-the-box baseline for QA, staging, demo, a
 
 *Forms* associated with this workflow need to be added to the desired installation's form directory, e.g. `drivers/hmis/lib/form_data/{env}/ce_referral_steps/`. (They cannot be added to the `default` env because they will fail in multi-HMIS installations. See #9035)
 
-See README_FOR_CE_WORKFLOW_BUILDERS.md for general documentation on the CE workflow builder pattern.
+See [CE Workflow Builders](../../../../../docs/features/hmis/ce-workflow-builders.md) for general documentation on the CE workflow builder pattern.
 
 ### Usage
 These workflows are generated and updated using the `CeWorkflows::Standard::WorkflowBuilder` utility class and the `ce_define_standard_workflows` rake task. See usage comments on the rake task.

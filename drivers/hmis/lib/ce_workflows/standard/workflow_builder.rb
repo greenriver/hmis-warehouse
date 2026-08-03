@@ -12,7 +12,7 @@
 # This workflow builder uses the non-preferred draft idempotent pattern.
 # Retained for existing workflows, but don't copy this pattern for new workflows,
 # and if we do more development on the Standard workflow, we will likely update it.
-# See ../README_FOR_CE_WORKFLOW_BUILDERS.md for the preferred destroy-and-recreate approach.
+# @see docs/features/hmis/ce-workflow-builders.md for the preferred destroy-and-recreate approach.
 module CeWorkflows::Standard
   class WorkflowBuilder
     FORMS = {
@@ -55,7 +55,7 @@ module CeWorkflows::Standard
     # Similar to PH, the standard workflow builder hard-codes its version number,
     # and is intended to be idempotent on that version number.
     # This enables iterating on a template until it is ready to be published.
-    # See ../README_FOR_CE_WORKFLOW_BUILDERS.md for the pattern, and README_FOR_STANDARD_CE_WORKFLOWS.md for usage.
+    # @see docs/features/hmis/ce-workflow-builders.md for the pattern, and README_FOR_STANDARD_CE_WORKFLOWS.md for usage.
     def build_standard_referral_workflow
       find_or_create_draft_template(
         identifier: 'standard_referral',
