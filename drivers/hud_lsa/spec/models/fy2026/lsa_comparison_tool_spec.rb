@@ -152,4 +152,63 @@ RSpec.describe HudLsa::Generators::Fy2026::LsaComparisonTool do
       expect(diffs.fetch(File.join(@sample_dir, 'Project.csv'))['sample - generated']).to be_empty
     end
   end
+
+  describe '#compare with a row skip, generated side' do
+    it 'drops a matching row from the generated output, not just the sample' do
+      write_csv(
+        @sample_dir, 'LSACalculated.csv', [
+          { 'Value' => '7', 'ReportRow' => '900', 'Step' => '10.1' },
+        ]
+      )
+      write_csv(
+        @generated_dir, 'LSACalculated.csv', [
+          { 'Value' => '7', 'ReportRow' => '900', 'Step' => '10.1' },
+          { 'Value' => '99', 'ReportRow' => '905', 'Step' => '10.4' },
+        ]
+      )
+
+      skips = { 'LSACalculated.csv' => { rows: { 'ReportRow' => ['905'] } } }
+      diffs = described_class.new(@sample_dir, @generated_dir, skips: skips).compare
+      diff = diffs.fetch(File.join(@sample_dir, 'LSACalculated.csv'))
+
+      # Without the skip, the extra ReportRow 905 in generated-only would show up here.
+      expect(diff['generated - sample']).to be_empty
+      expect(diff['sample - generated']).to be_empty
+    end
+  end
+
+  describe '#compare with a file present only in the generated output' do
+    it 'excludes the unmatched file from the diff and tracks it separately, without affecting other files' do
+      write_csv(@sample_dir, 'Project.csv', [{ 'ProjectID' => 'P1', 'ProjectName' => 'A' }])
+      write_csv(@generated_dir, 'Project.csv', [{ 'ProjectID' => 'P1', 'ProjectName' => 'A' }])
+      write_csv(@generated_dir, 'Unexpected.csv', [{ 'Foo' => 'bar' }])
+
+      tool = described_class.new(@sample_dir, @generated_dir)
+      diffs = tool.compare
+
+      expect(tool.unmatched_generated_files).to contain_exactly('Unexpected.csv')
+      expect(diffs.keys.map { |path| File.basename(path) }).to contain_exactly('Project.csv')
+    end
+
+    it 'does not flag a generated-only file as unmatched when it is explicitly skip_file-d' do
+      write_csv(@sample_dir, 'Project.csv', [{ 'ProjectID' => 'P1', 'ProjectName' => 'A' }])
+      write_csv(@generated_dir, 'Project.csv', [{ 'ProjectID' => 'P1', 'ProjectName' => 'A' }])
+      write_csv(@generated_dir, 'Funder.csv', [{ 'FunderID' => 'F1', 'Funder' => '2' }])
+
+      tool = described_class.new(@sample_dir, @generated_dir, skips: { 'Funder.csv' => { skip_file: true } })
+      tool.compare
+
+      expect(tool.unmatched_generated_files).to be_empty
+    end
+  end
+
+  describe '#compare when a sample file has no matching generated file' do
+    it 'raises a clear error naming the missing file instead of crashing on a nil filename' do
+      write_csv(@sample_dir, 'Project.csv', [{ 'ProjectID' => 'P1', 'ProjectName' => 'A' }])
+
+      tool = described_class.new(@sample_dir, @generated_dir)
+
+      expect { tool.compare }.to raise_error(RuntimeError, /no generated file found matching Project\.csv/)
+    end
+  end
 end

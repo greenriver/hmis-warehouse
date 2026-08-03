@@ -12,7 +12,7 @@
 require 'csv'
 module HudLsa::Generators::Fy2026
   class LsaComparisonTool
-    attr_accessor :sample_data_path, :generated_data_path, :skips, :skipped_files
+    attr_accessor :sample_data_path, :generated_data_path, :skips, :skipped_files, :unmatched_generated_files
 
     # skips: { 'SomeFile.csv' => {
     #   skip_file: true,             # ignore this file entirely (still reported, just not compared)
@@ -24,10 +24,12 @@ module HudLsa::Generators::Fy2026
       @generated_data_path = generated_data_path
       @skips = skips
       @skipped_files = []
+      @unmatched_generated_files = []
     end
 
     def compare
       comparisons = {}
+      sample_basenames = sample_data.map { |f| File.basename(f) }
       sample_data.each do |filepath|
         if skip_file?(filepath)
           skipped_files << File.basename(filepath)
@@ -36,6 +38,7 @@ module HudLsa::Generators::Fy2026
 
         comparisons[filepath] = generate_diff(filepath, generated_data(filepath))
       end
+      @unmatched_generated_files = generated_data_basenames.reject { |name| sample_basenames.include?(name) || skip_file_by_name?(name) }
       comparisons
     end
 
@@ -48,7 +51,13 @@ module HudLsa::Generators::Fy2026
       @generated_data[File.basename(filepath)]
     end
 
+    def generated_data_basenames
+      Dir.glob("#{generated_data_path}/*").map { |f| File.basename(f) }
+    end
+
     def generate_diff(sample, gen)
+      raise "no generated file found matching #{File.basename(sample)} (looked in #{generated_data_path})" if gen.nil?
+
       {
         'sample - generated' => file_contents(sample) - file_contents(gen),
         'generated - sample' => file_contents(gen) - file_contents(sample),
@@ -92,7 +101,11 @@ module HudLsa::Generators::Fy2026
     end
 
     private def skip_file?(filepath)
-      skips.dig(File.basename(filepath), :skip_file)
+      skip_file_by_name?(File.basename(filepath))
+    end
+
+    private def skip_file_by_name?(basename)
+      skips.dig(basename, :skip_file)
     end
   end
 end
