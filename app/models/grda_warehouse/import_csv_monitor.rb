@@ -8,7 +8,7 @@
 
 # Per-CSV import monitoring: alerts when row counts for a specific CSV file change
 # beyond configured numeric thresholds.
-# @see docs/features/import-csv-monitoring.md
+# @see docs/features/warehouse/import-csv-monitoring.md
 module GrdaWarehouse
   class ImportCsvMonitor < GrdaWarehouseBase
     acts_as_paranoid

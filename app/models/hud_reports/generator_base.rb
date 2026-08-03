@@ -7,7 +7,7 @@
 # frozen_string_literal: true
 
 require 'memery'
-# @see docs/features/hud-report-framework.md
+# @see docs/features/warehouse/hud-report-framework.md
 module HudReports
   class GeneratorBase
     include ArelHelper

@@ -6,7 +6,7 @@
 
 # frozen_string_literal: true
 
-# @see docs/features/app-config-property.md
+# @see docs/features/warehouse/app-config-property.md
 module Admin
   class AppConfigPropertiesController < ApplicationController
     before_action :require_can_manage_config!

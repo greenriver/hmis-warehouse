@@ -6,7 +6,7 @@
 
 # frozen_string_literal: true
 
-# @see docs/features/hmis-csv-importer.md
+# @see docs/features/warehouse/hmis-csv-importer.md
 module HmisCsvImporter
   def self.import!(file_path, data_source_id, upload, deidentified:)
     GrdaWarehouse::DbMonitor.assert_healthy!

@@ -12,7 +12,7 @@
 # automatically. ServiceHistoryService records records are a superset of HUD Services, they include "synthetic" services
 # that are implied but not recorded, such as bed-nights at EE projects.
 #
-# @see docs/features/service_history.md
+# @see docs/features/warehouse/service-history.md
 class GrdaWarehouse::ServiceHistoryService < GrdaWarehouseBase
   include ArelHelper
   include ServiceHistoryServiceConcern

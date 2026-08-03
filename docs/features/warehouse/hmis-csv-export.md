@@ -123,7 +123,7 @@ The two options are mutually exclusive in practice: the hashed export path does 
 
 ## Recurring Exports
 
-For automated scheduling and S3 delivery, see [Recurring HMIS Exports](./recurring_hmis_exports.md).
+For automated scheduling and S3 delivery, see [Recurring HMIS Exports](./recurring-hmis-exports.md).
 
 ## Related Code
 

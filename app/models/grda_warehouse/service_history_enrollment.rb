@@ -12,7 +12,7 @@
 # generated automatically. There is a 1:1 correspondence with Hud Enrollment records
 #   created by GrdaWarehouse::Tasks::ServiceHistory::Enrollment.find_each(&:rebuild_service_history!)
 #
-# @see docs/features/service_history.md
+# @see docs/features/warehouse/service-history.md
 class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
   # Extensions from drivers — see ADR 0007
   include AdultOnlyHouseholdsSubPop::GrdaWarehouse::ServiceHistoryEnrollmentExtension
