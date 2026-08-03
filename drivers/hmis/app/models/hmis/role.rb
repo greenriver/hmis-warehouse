@@ -149,9 +149,7 @@ class Hmis::Role < ::ApplicationRecord
     resolved
   end
 
-  # Memoized because permission resolution reads this heavily and it would otherwise be rebuilt on
-  # every call. Values are static; `proc` entries are lambdas that callers evaluate when needed, so
-  # memoizing doesn't capture any runtime state.
+  # Memoized because permission resolution reads this heavily and it would otherwise be rebuilt on every call.
   def self.permissions_with_descriptions
     @permissions_with_descriptions ||= {
       can_administer_hmis: {
