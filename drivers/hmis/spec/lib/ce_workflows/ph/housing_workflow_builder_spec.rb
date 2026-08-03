@@ -9,22 +9,40 @@
 require 'rails_helper'
 
 RSpec.describe CeWorkflows::Ph::HousingWorkflowBuilder do
-  let!(:data_source) { create(:hmis_data_source) }
-  let!(:user) { create(:hmis_user, data_source: data_source) }
-  let!(:client) { create(:hmis_hud_client_with_warehouse_client, data_source: data_source) }
-  let!(:project) { create(:hmis_hud_project, data_source: data_source) }
-
-  before do
-    CeWorkflows::Shared::CeBuilderUtils.create_state_machine_custom_statuses(data_source)
+  # We intentionally build the template (and the data source, seeded CE_REFERRAL_STEP forms, and custom
+  # referral statuses it depends on) once in before(:all), rather than with the usual per-example
+  # transactional fixtures. The class under test is a destroy-and-recreate builder: rebuilding the
+  # template per example would rerun its delete-and-recreate on every example, which is slow.
+  before(:all) do
+    @data_source = create(:hmis_data_source)
+    CeWorkflows::Shared::CeBuilderUtils.create_state_machine_custom_statuses(@data_source)
     HmisUtil::JsonForms.new(
-      data_source_id: data_source.id,
+      data_source_id: @data_source.id,
       env_key: 'tarrant_county',
       generate_cdeds: true,
     ).seed_record_form_definitions(roles: [:CE_REFERRAL_STEP])
+    @template = CeWorkflows::Ph::HousingWorkflowBuilder.new(@data_source).build_housing_workflow
   end
 
-  let(:builder) { described_class.new(data_source) }
-  let(:template) { builder.build_housing_workflow }
+  after(:all) do
+    # Reverse of the before(:all) setup.
+    CeWorkflows::Shared::CeBuilderUtils.delete_template_and_associated_data('housing_workflow', data_source: @data_source)
+    Hmis::Form::Instance.in_data_source(@data_source.id).delete_all
+    Hmis::Form::Definition.in_data_source(@data_source.id).delete_all
+    Hmis::Hud::CustomDataElementDefinition.where(data_source: @data_source).delete_all
+    Hmis::Hud::CustomDataElement.where(data_source: @data_source).delete_all
+    Hmis::Ce::CustomReferralStatus.where(data_source: @data_source).delete_all
+    @data_source.destroy!
+  end
+
+  # Reload the before(:all) records each example so they're bound to the example's transaction and don't
+  # carry cached associations (e.g. `template.instances`) across examples.
+  let(:data_source) { GrdaWarehouse::DataSource.find(@data_source.id) }
+  let(:template) { Hmis::WorkflowDefinition::Template.find(@template.id) }
+
+  let!(:user) { create(:hmis_user, data_source: data_source) }
+  let!(:client) { create(:hmis_hud_client_with_warehouse_client, data_source: data_source) }
+  let!(:project) { create(:hmis_hud_project, data_source: data_source) }
 
   # Reusable submitted-value fragments for the housing steps, so tests read as short declarative scripts.
   let(:coc_continue) { { 'coc_initial_review_decision' => 'continue' } }
@@ -85,6 +103,12 @@ RSpec.describe CeWorkflows::Ph::HousingWorkflowBuilder do
 
   shared_context 'housing workflow walkthrough' do
     let!(:in_progress_status) { Hmis::Ce::CustomReferralStatus.find_by!(key: 'in_progress', data_source: data_source) }
+    # 'enrolled' is created by the builder, so look it up on demand rather than in a before hook.
+    let(:enrolled_status) { Hmis::Ce::CustomReferralStatus.find_by!(key: 'enrolled', data_source: data_source) }
+    # The status after a send_forward override depends on where continue_next_steps lands: sub-trees that
+    # resume an in-review user task stay 'in_progress', while those that route into Create Enrollment (i.e.
+    # continue on to Move-In Date) become 'enrolled'. Including describe blocks override this when needed.
+    let(:continue_status) { in_progress_status }
     let!(:source_project) { create(:hmis_hud_project, data_source: data_source, ProjectType: 14) }
     let!(:source_enrollment) do
       create(:hmis_hud_enrollment, data_source: data_source, project: source_project, client: client, entry_date: 30.days.ago)
@@ -243,7 +267,7 @@ RSpec.describe CeWorkflows::Ph::HousingWorkflowBuilder do
       complete_user_step!(engine, review_decline_step, submitted_values: review_send_forward, user: user)
 
       expect_active_steps(engine, *continue_next_steps)
-      expect(referral.reload.custom_status).to eq(in_progress_status)
+      expect(referral.reload.custom_status).to eq(continue_status)
     end
 
     it 'sends back for a second attempt on go_back' do
@@ -271,7 +295,7 @@ RSpec.describe CeWorkflows::Ph::HousingWorkflowBuilder do
       complete_user_step!(engine, final_review_decline_step, submitted_values: final_review_send_forward, user: user)
 
       expect_active_steps(engine, *continue_next_steps)
-      expect(referral.reload.custom_status).to eq(in_progress_status)
+      expect(referral.reload.custom_status).to eq(continue_status)
     end
   end
 
@@ -330,6 +354,7 @@ RSpec.describe CeWorkflows::Ph::HousingWorkflowBuilder do
     let(:reopened_step) { 'Housing Case Manager Decision (Second Attempt)' }
     let(:reopened_decline_values) { decision_decline }
     let(:continue_next_steps) { ['Move-In Date', 'Decline Referral'] }
+    let(:continue_status) { enrolled_status }
 
     def reach_review_decline!
       drive!(
@@ -370,6 +395,7 @@ RSpec.describe CeWorkflows::Ph::HousingWorkflowBuilder do
     let(:reopened_step) { 'CORI Hearing (Second Attempt)' }
     let(:reopened_decline_values) { cori_decline }
     let(:continue_next_steps) { ['Move-In Date', 'Decline Referral'] }
+    let(:continue_status) { enrolled_status }
 
     def reach_review_decline!
       drive!(
