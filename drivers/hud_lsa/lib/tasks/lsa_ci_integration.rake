@@ -6,8 +6,8 @@
 
 # frozen_string_literal: true
 
-# Loaded under the driver:hud_lsa namespace by lib/tasks/driver_tasks.rake, so
-# this runs as: rails driver:hud_lsa:ci_integration_test
+# Requires `docker compose --profile lsa up -d mssql`
+# run with: rails driver:hud_lsa:ci_integration_test
 desc 'Run the FY2026 LSA end-to-end against SQL Server and compare output to fixtures'
 task ci_integration_test: :environment do
   scopes = [:lsa, :hic]
