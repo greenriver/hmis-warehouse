@@ -26,7 +26,9 @@ module GrdaWarehouse
     validates :static_column_count, numericality: { only_integer: true }
     validates :automation_sub_population, inclusion: { in: ->(_) { AvailableSubPopulations.available_sub_populations.values.map(&:to_s) }, allow_blank: true, message: 'is not a valid sub-population' }
     validate :require_project_group_for_automation
-    serialize :column_state, type: Array
+    # permitted_classes here is unioned with the global yaml_column_permitted_classes
+    # (config/application.rb), so it only needs to add the app-defined CohortColumns::* classes.
+    serialize :column_state, type: Array, yaml: { permitted_classes: GrdaWarehouse::Cohorts::CohortColumn.known_cohort_columns.map(&:constantize) }
 
     after_create :maintain_system_group
     before_validation :clear_automation_filters_without_project_group, if: -> { project_group_id.blank? }

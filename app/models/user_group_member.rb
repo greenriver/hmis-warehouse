@@ -19,10 +19,12 @@ class UserGroupMember < ApplicationRecord
       version.item.user&.name || "User ID #{version.item.user_id}"
     else
       # The destroyed row is gone, so derive the user from the (already parsed) changeset, falling back
-      # to the raw object_changes YAML. PaperTrail serializes timestamps with aliases, so allow them.
+      # to the raw object_changes YAML.
+      # PaperTrail.serializer.load reads config.active_record.yaml_column_permitted_classes
+      # (config/application.rb) — no need to duplicate that list here.
       object_changes = changes.presence || begin
         if version.object_changes.is_a?(String)
-          YAML.safe_load(version.object_changes, permitted_classes: [Time, Date, DateTime, ActiveSupport::TimeWithZone], aliases: true)
+          PaperTrail.serializer.load(version.object_changes)
         else
           version.object_changes
         end
