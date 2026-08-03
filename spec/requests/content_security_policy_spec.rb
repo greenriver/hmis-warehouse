@@ -35,21 +35,54 @@ RSpec.describe 'Content Security Policy', type: :request do
     expect(csp_header).to include('style-src')
   end
 
-  it 'does not allow unsafe-inline in script-src (GH-9130)' do
+  it 'does not allow unsafe-inline in script-src' do
     script_src = csp_header[/script-src[^;]*/]
     expect(script_src).not_to include('unsafe-inline')
   end
 
-  it 'does not allow unsafe-eval in script-src (GH-9130)' do
+  it 'does not allow unsafe-eval in script-src' do
     script_src = csp_header[/script-src[^;]*/]
     expect(script_src).not_to include('unsafe-eval')
   end
 
-  it 'includes a nonce source in script-src (GH-9130)' do
+  it 'includes a nonce source in script-src' do
     expect(csp_header).to match(/script-src[^;]*'nonce-[A-Za-z0-9+\/]+=*'/)
   end
 
-  describe 'inline script nonces (GH-9130)' do
+  it 'issues a different nonce for each request' do
+    first_nonce = csp_header[/nonce-([A-Za-z0-9+\/=]+)/, 1]
+
+    get root_path
+    second_nonce = response.headers['Content-Security-Policy'][/nonce-([A-Za-z0-9+\/=]+)/, 1]
+
+    expect(second_nonce).not_to eq(first_nonce)
+  end
+
+  describe 'inline script nonces on an authenticated, converted application view' do
+    let(:user) { create(:acl_user) }
+    let(:cohort) { create(:cohort) }
+    let(:cohort_role) { create(:cohort_manager) }
+    let(:all_cohorts_collection) { Collection.system_collection(:cohorts) }
+
+    before do
+      Collection.maintain_system_groups
+      setup_access_control(user, cohort_role, all_cohorts_collection)
+      allow(CasAccess::Tag).to receive(:available_cohort_tags).and_return([])
+      sign_in user
+      get edit_cohort_path(cohort)
+    end
+
+    it "gives the page's own inline script (not just layout boilerplate) the current request's nonce" do
+      header_nonce = response.headers['Content-Security-Policy'][/nonce-([A-Za-z0-9+\/=]+)/, 1]
+      page_scripts = Capybara.string(response.body).all('script[nonce]', visible: :all)
+      page_script = page_scripts.find { |el| el.text(:all).include?('minicolors') }
+
+      expect(page_script).not_to be_nil
+      expect(page_script['nonce']).to eq(header_nonce)
+    end
+  end
+
+  describe 'inline script nonces' do
     before { get new_user_session_path }
 
     it 'renders inline <script> tags whose nonce matches the CSP header nonce' do
@@ -60,7 +93,7 @@ RSpec.describe 'Content Security Policy', type: :request do
       expect(script_nonces.uniq).to eq([header_nonce])
     end
 
-    it 'exposes the current nonce to client-side JS before loading application.js (GH-9130)' do
+    it 'exposes the current nonce to client-side JS before loading application.js' do
       header_nonce = response.headers['Content-Security-Policy'][/nonce-([A-Za-z0-9+\/=]+)/, 1]
 
       expect(response.body).to include("window.CSP_NONCE = \"#{header_nonce}\"")

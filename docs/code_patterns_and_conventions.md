@@ -36,7 +36,7 @@ When creating new JavaScript assets, use esbuild in `app/javascripts` rather tha
 
 ### Content Security Policy nonces for inline scripts
 
-`config/initializers/content_security_policy.rb` configures `content_security_policy_nonce_generator` (a fresh random value per request) and `content_security_policy_nonce_directives = ['script-src']`. A CSP nonce is a per-request random token that must match between the `Content-Security-Policy` response header and a `<script>` tag's `nonce` attribute for the browser to execute that script. Because the nonce changes every request and isn't in the page an attacker's injected markup would have to guess, this is what lets `script-src` actually block XSS: only scripts the app itself rendered (with the correct nonce) run, so injected `<script>` tags are inert even where `unsafe-inline` is still listed as a legacy fallback (see GH-9130).
+`config/initializers/content_security_policy.rb` configures `content_security_policy_nonce_generator` (a fresh random value per request) and `content_security_policy_nonce_directives = ['script-src']`. A CSP nonce is a per-request random token that must match between the `Content-Security-Policy` response header and a `<script>` tag's `nonce` attribute for the browser to execute that script. Because the nonce changes every request and isn't in the page an attacker's injected markup would have to guess, this is what lets `script-src` actually block XSS: only scripts the app itself rendered (with the correct nonce) run, so injected `<script>` tags are inert even where `unsafe-inline` is still listed as a legacy fallback.
 
 Any inline `<script>` a view renders must carry this nonce or the browser will refuse to execute it:
 

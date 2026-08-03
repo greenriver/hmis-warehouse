@@ -31,16 +31,23 @@
   };
 
   // Path 2: $.fn.html() (used by ajax_modal_rails'
-  // `content.html(xhr.responseText)`, and any other AJAX-fragment injection)
-  // parses the HTML string into real DOM nodes and reads the `nonce`
-  // attribute directly off any <script> node found there via domManip's own
-  // internal DOMEval call, never through globalEval at all - the patch above
-  // doesn't apply here. Rewriting the nonce in the raw string to the current
-  // page's value, before jQuery parses/executes it, is the only reliable
-  // interception point.
+  // `content.html(xhr.responseText)`) parses the HTML string into real DOM
+  // nodes and reads the `nonce` attribute directly off any <script> node
+  // found there via domManip's own internal DOMEval call, never through
+  // globalEval at all - the patch above doesn't apply here. Rewriting the
+  // nonce in the raw string to the current page's value, before jQuery
+  // parses/executes it, is the only reliable interception point.
+  //
+  // Scoped to ajax_modal_rails' content pane ([data-ajax-modal-content])
+  // rather than patching $.fn.html globally: .html() is also called
+  // elsewhere in the app on server responses that were never meant to carry
+  // executable script, and rewriting a nonce on any of those would let a
+  // forged `nonce="..."` on an injected <script> execute wherever .html()
+  // renders untrusted content.
+  var AJAX_MODAL_CONTENT_SELECTOR = '[data-ajax-modal-content]';
   var originalHtml = $.fn.html;
   $.fn.html = function (value) {
-    if (typeof value === 'string' && value.indexOf('nonce=') !== -1) {
+    if (typeof value === 'string' && value.indexOf('nonce=') !== -1 && this.is(AJAX_MODAL_CONTENT_SELECTOR)) {
       var rewritten = value.replace(/nonce=(["'])[^"']*\1/g, 'nonce="' + window.CSP_NONCE + '"');
       return originalHtml.call(this, rewritten);
     }
