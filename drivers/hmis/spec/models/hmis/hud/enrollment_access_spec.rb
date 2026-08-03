@@ -164,7 +164,7 @@ RSpec.describe Hmis::Hud::Enrollment, type: :model do
     describe 'user has project access to p1, but no enrollment access' do
       let!(:access_control) { create_access_control(user, p1, with_permission: [:can_view_project]) }
       # cruft: give this user can_view_enrollment_details at another project, so we don't hit the early-return optimization
-      let!(:cruft_access_control) { create_access_control(user, p6, with_permission: HmisPermissionSets::ENROLLMENT_VISIBILITY) }
+      let!(:cruft_access_control) { create_access_control(user, p6, with_permission: :can_view_enrollment_details) }
 
       it 'is empty' do
         viewable_enrollments = Hmis::Hud::Enrollment.viewable_by(user, include_limited_access_enrollments: true)
