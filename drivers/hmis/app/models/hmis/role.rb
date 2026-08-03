@@ -131,8 +131,29 @@ class Hmis::Role < ::ApplicationRecord
     @fg_color ||= GrdaWarehouse::SystemColor.new.calculated_foreground_color(bg_color)
   end
 
+  # Returns a list of permissions that are required for a given permission (including the permission itself).
+  # For example, can_edit_enrollments requires can_view_enrollment_details, which in turn requires
+  # can_view_project and can_view_clients.
+  def self.required_permissions_for(permission)
+    config = permissions_with_descriptions
+    resolved = []
+    unresolved = [permission]
+
+    while (perm = unresolved.shift)
+      raise "cycle detected: #{perm} requires #{resolved.join(', ')}" if resolved.include?(perm)
+
+      resolved << perm
+      unresolved.concat(config.fetch(perm) { raise "unknown permission #{perm.inspect}" }[:requirements] || [])
+    end
+
+    resolved
+  end
+
+  # Memoized because permission resolution reads this heavily and it would otherwise be rebuilt on
+  # every call. Values are static; `proc` entries are lambdas that callers evaluate when needed, so
+  # memoizing doesn't capture any runtime state.
   def self.permissions_with_descriptions
-    {
+    @permissions_with_descriptions ||= {
       can_administer_hmis: {
         description: 'Ability to manage permissions and data access for the HMIS. Grants access to HMIS Admin section of the Warehouse.',
         administrative: true,
@@ -575,6 +596,6 @@ class Hmis::Role < ::ApplicationRecord
         category: 'Client Access',
         sub_category: 'Access',
       },
-    }
+    }.freeze
   end
 end
