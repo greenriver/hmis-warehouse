@@ -134,7 +134,7 @@ RSpec.describe Hmis::AuthPolicies::HmisProjectPolicy, type: :model do
     it 'returns false when edit and its requirements are split across projects' do
       other_project = create(:hmis_hud_project, organization: organization, data_source: data_source)
       create_access_control(user, project, with_permission: [:can_edit_enrollments])
-      create_access_control(user, other_project, with_permission: [:can_view_enrollment_details, :can_view_project, :can_view_clients])
+      create_access_control(user, other_project, with_permission: HmisPermissionSets::ENROLLMENT_VISIBILITY)
 
       expect(policy.can_edit_enrollments?).to be false
       expect(policy.can_view_enrollment_details?).to be false

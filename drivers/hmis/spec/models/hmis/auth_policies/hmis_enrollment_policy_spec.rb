@@ -92,12 +92,12 @@ RSpec.describe Hmis::AuthPolicies::HmisEnrollmentPolicy, type: :model do
 
   describe '#can_view_limited?' do
     it 'returns true if user has can_view_limited_enrollment_details and can_view_clients at the enrollment project' do
-      create_access_control(user, project, with_permission: [:can_view_limited_enrollment_details, :can_view_clients])
+      create_access_control(user, project, with_permission: HmisPermissionSets::LIMITED_ENROLLMENT_VISIBILITY)
       expect(policy.can_view_limited?).to be true
     end
 
     it 'returns false if user has no permissions in this project' do
-      create_access_control(user, other_project, with_permission: [:can_view_limited_enrollment_details, :can_view_clients])
+      create_access_control(user, other_project, with_permission: HmisPermissionSets::LIMITED_ENROLLMENT_VISIBILITY)
       expect(policy.can_view_limited?).to be false
     end
   end
@@ -197,7 +197,7 @@ RSpec.describe Hmis::AuthPolicies::HmisEnrollmentPolicy, type: :model do
 
     describe '#can_view?' do
       it 'is true when the user has both can_view_enrollment_details, can_view_project, and can_view_clients in the current data source' do
-        create_access_control(user, project, with_permission: [:can_view_enrollment_details, :can_view_project, :can_view_clients])
+        create_access_control(user, project, with_permission: HmisPermissionSets::ENROLLMENT_VISIBILITY)
         expect(global_policy.can_view?).to be true
       end
 
@@ -229,14 +229,14 @@ RSpec.describe Hmis::AuthPolicies::HmisEnrollmentPolicy, type: :model do
 
       it 'is false when the user has the permissions only in a different data source' do
         other_ds = create(:hmis_data_source)
-        create_access_control(user, other_ds, with_permission: [:can_view_enrollment_details, :can_view_project, :can_view_clients])
+        create_access_control(user, other_ds, with_permission: HmisPermissionSets::ENROLLMENT_VISIBILITY)
         expect(global_policy.can_view?).to be false
       end
     end
 
     describe '#can_view_limited?' do
       it 'is true when the user has can_view_limited_enrollment_details in the current data source' do
-        create_access_control(user, project, with_permission: [:can_view_limited_enrollment_details, :can_view_clients])
+        create_access_control(user, project, with_permission: HmisPermissionSets::LIMITED_ENROLLMENT_VISIBILITY)
         expect(global_policy.can_view_limited?).to be true
       end
 
@@ -246,12 +246,12 @@ RSpec.describe Hmis::AuthPolicies::HmisEnrollmentPolicy, type: :model do
 
       it 'is false when the user has can_view_limited_enrollment_details only in a different data source' do
         other_ds = create(:hmis_data_source)
-        create_access_control(user, other_ds, with_permission: [:can_view_limited_enrollment_details, :can_view_clients])
+        create_access_control(user, other_ds, with_permission: HmisPermissionSets::LIMITED_ENROLLMENT_VISIBILITY)
         expect(global_policy.can_view_limited?).to be false
       end
 
       it 'is independent from can_view? (limited-only access does not grant can_view?)' do
-        create_access_control(user, project, with_permission: [:can_view_limited_enrollment_details, :can_view_clients])
+        create_access_control(user, project, with_permission: HmisPermissionSets::LIMITED_ENROLLMENT_VISIBILITY)
         expect(global_policy.can_view?).to be false
         expect(global_policy.can_view_limited?).to be true
       end

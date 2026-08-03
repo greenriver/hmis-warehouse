@@ -164,7 +164,7 @@ RSpec.describe Hmis::Hud::Enrollment, type: :model do
     describe 'user has project access to p1, but no enrollment access' do
       let!(:access_control) { create_access_control(user, p1, with_permission: [:can_view_project]) }
       # cruft: give this user can_view_enrollment_details at another project, so we don't hit the early-return optimization
-      let!(:cruft_access_control) { create_access_control(user, p6, with_permission: [:can_view_enrollment_details]) }
+      let!(:cruft_access_control) { create_access_control(user, p6, with_permission: HmisPermissionSets::ENROLLMENT_VISIBILITY) }
 
       it 'is empty' do
         viewable_enrollments = Hmis::Hud::Enrollment.viewable_by(user, include_limited_access_enrollments: true)
@@ -183,7 +183,7 @@ RSpec.describe Hmis::Hud::Enrollment, type: :model do
 
     describe 'user has full enrollment access to p1' do
       let!(:access_control) do
-        create_access_control(user, p1, with_permission: [:can_view_enrollment_details, :can_view_project, :can_view_clients])
+        create_access_control(user, p1, with_permission: HmisPermissionSets::ENROLLMENT_VISIBILITY)
       end
 
       it 'includes enrollments at p1' do
@@ -194,7 +194,7 @@ RSpec.describe Hmis::Hud::Enrollment, type: :model do
 
     describe 'user has limited enrollment access to p1' do
       let!(:access_control) do
-        create_access_control(user, p1, with_permission: [:can_view_limited_enrollment_details, :can_view_clients])
+        create_access_control(user, p1, with_permission: HmisPermissionSets::LIMITED_ENROLLMENT_VISIBILITY)
       end
 
       it 'includes enrollments at p1' do
@@ -208,7 +208,7 @@ RSpec.describe Hmis::Hud::Enrollment, type: :model do
 
       describe 'and full access to p2' do
         let!(:access_control2) do
-          create_access_control(user, p2, with_permission: [:can_view_enrollment_details, :can_view_project, :can_view_clients])
+          create_access_control(user, p2, with_permission: HmisPermissionSets::ENROLLMENT_VISIBILITY)
         end
 
         it 'includes enrollments at p1 (limited access) and p2 (full access)' do
@@ -223,7 +223,7 @@ RSpec.describe Hmis::Hud::Enrollment, type: :model do
 
     describe 'user has access full enrollment access to another project' do
       let!(:access_control) do
-        create_access_control(user, p2, with_permission: [:can_view_enrollment_details, :can_view_project, :can_view_clients])
+        create_access_control(user, p2, with_permission: HmisPermissionSets::ENROLLMENT_VISIBILITY)
       end
 
       it 'does not contain p1 enrollments' do
@@ -236,7 +236,7 @@ RSpec.describe Hmis::Hud::Enrollment, type: :model do
   describe 'files_viewable_by scope' do
     let!(:user) { create(:hmis_user, data_source: ds1) }
     let(:file_perms) { [:can_view_any_nonconfidential_client_files, :can_view_any_confidential_client_files, :can_view_clients] }
-    let(:enrollment_view_perms) { [:can_view_enrollment_details, :can_view_project] }
+    let(:enrollment_view_perms) { HmisPermissionSets::ENROLLMENT_VISIBILITY }
 
     it 'is empty for a user with no access' do
       expect(Hmis::Hud::Enrollment.files_viewable_by(user)).to be_empty
@@ -275,7 +275,7 @@ RSpec.describe Hmis::Hud::Enrollment, type: :model do
 
     it 'does not include WIP enrollments via a user with limited_enrollment_details access' do
       # files_viewable_by should only expose "full access" enrollments, not limited-access ones
-      create_access_control(user, p1, with_permission: [:can_view_limited_enrollment_details] + file_perms)
+      create_access_control(user, p1, with_permission: HmisPermissionSets::LIMITED_ENROLLMENT_VISIBILITY + file_perms)
       expect(Hmis::Hud::Enrollment.files_viewable_by(user)).to be_empty
     end
   end

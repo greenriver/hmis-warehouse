@@ -70,7 +70,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       create_access_control(
         hmis_user,
         p1,
-        with_permission: [:can_view_project, :can_view_enrollment_details, :can_view_clients],
+        with_permission: HmisPermissionSets::ENROLLMENT_VISIBILITY,
       )
     end
 
@@ -147,7 +147,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       create_access_control(
         hmis_user,
         p1,
-        with_permission: [:can_view_limited_enrollment_details, :can_view_clients],
+        with_permission: HmisPermissionSets::LIMITED_ENROLLMENT_VISIBILITY,
       )
     end
 
@@ -167,7 +167,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       create_access_control(
         hmis_user,
         p2,
-        with_permission: [:can_view_project, :can_view_enrollment_details, :can_view_clients],
+        with_permission: HmisPermissionSets::ENROLLMENT_VISIBILITY,
       )
     end
 
