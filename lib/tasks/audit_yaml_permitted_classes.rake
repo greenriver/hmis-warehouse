@@ -57,8 +57,6 @@ namespace :audit do
       [GrdaWarehouse::HmisClient, :outreach_counselor_attributes, []],
       [GrdaWarehouse::Config, :client_details, []],
       [GrdaWarehouse::Cohort, :column_state, GrdaWarehouse::Cohorts::CohortColumn.known_cohort_columns.map(&:constantize)],
-      [Health::SdhCaseManagementNote, :topics, []],
-      [Health::SdhCaseManagementNote, :client_action, []],
       [Health::Careplan, :service_archive, []],
       [Health::Careplan, :equipment_archive, []],
       [Health::Careplan, :team_members_archive, []],

@@ -37,17 +37,5 @@ module HealthAuthorization
 
       not_authorized!
     end
-
-    def require_some_patient_access!
-      return true if GrdaWarehouse::Config.get(:healthcare_available) && current_user.has_some_patient_access?
-
-      not_authorized!
-    end
-
-    def require_pilot_or_some_client_access!
-      return true if current_user.has_some_patient_access? || current_user.can_edit_client_health? || current_user.can_view_client_health?
-
-      not_authorized!
-    end
   end
 end

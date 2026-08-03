@@ -112,7 +112,6 @@ module UserConcern
 
     has_many :messages
     has_many :document_exports, dependent: :destroy, class_name: 'GrdaWarehouse::DocumentExport'
-    has_many :health_document_exports, dependent: :destroy, class_name: 'Health::DocumentExport'
     has_many :activity_logs
 
     has_many :user_authentication_sources, class_name: 'Idp::UserAuthenticationSource', dependent: :destroy
@@ -686,22 +685,6 @@ module UserConcern
       Rails.cache.fetch(key, expires_in: 1.minutes) do
         GrdaWarehouse::Hud::Project.viewable_by(self, confidential_scope_limiter: :all, permission: permission).pluck(:id).to_set
       end
-    end
-
-    def team_mates
-      # find all of the team leads for any team this user is a member of
-      team_leader_ids = Health::UserCareCoordinator.
-        joins(:coordination_team).
-        where(user_id: id).
-        pluck(:team_coordinator_id)
-
-      # find all of the users on any team I lead, or which I'm a member of
-      team_member_ids = Health::UserCareCoordinator.
-        joins(:coordination_team).
-        merge(Health::CoordinationTeam.lead_by(team_leader_ids + [id])).
-        pluck(:user_id)
-
-      User.where(id: team_member_ids).active
     end
 
     # patients with CC or NCM relationship to this user

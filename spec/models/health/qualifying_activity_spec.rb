@@ -154,7 +154,7 @@ RSpec.describe Health::QualifyingActivity, type: :model do
       # 4/3/24 - re-enrollment QAs are disabled pending dicussion
       enrollment_start_date = @referral.enrollment_start_date
       careplan = create(
-        :cp2_careplan,
+        :careplan,
         patient: @patient,
         patient_signed_on: enrollment_start_date + 30.days,
         careplan_sent_on: enrollment_start_date + 30.days,

@@ -124,7 +124,7 @@ RSpec.describe Health::Patient, type: :model do
     it 'resets the outreach and engagement dates for a re-enrollment after expiration' do
       enrollment_start_date = @referral.enrollment_start_date
       careplan = create(
-        :cp2_careplan,
+        :careplan,
         patient: @patient,
         patient_signed_on: enrollment_start_date + 30.days,
         careplan_sent_on: enrollment_start_date + 30.days,
