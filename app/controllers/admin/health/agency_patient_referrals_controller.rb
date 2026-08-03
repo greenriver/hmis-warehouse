@@ -127,7 +127,7 @@ module Admin::Health
 
     private def handle_invalid_query(message)
       flash[:error] = message
-      redirect_to health_patients_path
+      redirect_to review_admin_health_agency_patient_referrals_path
       return
     end
 

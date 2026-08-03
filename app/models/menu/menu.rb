@@ -190,30 +190,6 @@ class Menu::Menu
         title: "#{GrdaWarehouse::Config.current_health_emergency_tracing_title} #{Translation.translate('Contact Tracing')}",
       ),
     )
-    menu.add_child(
-      Menu::Item.new(
-        user: user,
-        visible: ->(user) { user.can_view_patients_for_own_agency? && user.health_agencies.any? },
-        path: health_patients_path,
-        title: Translation.translate('My Agency\'s Patients'),
-      ),
-    )
-    menu.add_child(
-      Menu::Item.new(
-        user: user,
-        visible: ->(user) { user.can_administer_health? || user.team_mates.exists? },
-        path: health_team_patients_path,
-        title: Translation.translate('My Team\'s Patients'),
-      ),
-    )
-    menu.add_child(
-      Menu::Item.new(
-        user: user,
-        visible: ->(user) { user.can_view_patients_for_own_agency? && user.health_agencies.any? },
-        path: health_my_patients_path,
-        title: Translation.translate('My Patients'),
-      ),
-    )
     menu
   end
 

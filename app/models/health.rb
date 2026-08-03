@@ -32,7 +32,6 @@ module Health
       'SSM' => Health::EpicSsm,
       'QA_enc' => Health::EpicCaseNoteQualifyingActivity,
       'covid_vaccine' => Health::Vaccination,
-      'thrive' => Health::EpicThrive,
     }.freeze
   end
 end

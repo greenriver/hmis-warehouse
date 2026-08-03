@@ -473,9 +473,5 @@ module Health
         housing_status: self.class::SECTIONS[:housing][housing_score],
       }
     end
-
-    def edit_path
-      client_health_self_sufficiency_matrix_form_path(patient.client, self)
-    end
   end
 end
