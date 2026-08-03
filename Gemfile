@@ -245,7 +245,7 @@ gem 'todo_or_die'
 gem 'dentaku', require: false
 gem 'business_time'
 gem 'cable_ready', '>= 5.0.0.rc2'
-gem 'graphql', '~> 2.5.4'
+gem 'graphql', '~> 2.5'
 gem 'sentry-rails', '~> 6.6'
 gem 'sentry-ruby', '~> 6.6'
 gem 'sentry-delayed_job', '~> 6.6'
