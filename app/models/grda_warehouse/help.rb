@@ -71,11 +71,6 @@ class GrdaWarehouse::Help < GrdaWarehouseBase
         external_url: "#{DEFAULT_HELP_URL}/Client-Performance",
       },
       {
-        controller_path: 'warehouse_reports/health/eligibility',
-        action_name: 'index',
-        external_url: "#{DEFAULT_HELP_URL}/Eligibility-Determination-and-ACO-Status-Changes-(270-and-271)",
-      },
-      {
         controller_path: 'warehouse_reports/chronic',
         action_name: 'index',
         external_url: "#{DEFAULT_HELP_URL}/Potentially-Chronic-Clients",

@@ -42,9 +42,6 @@ namespace :storage do
         # Health::EnrollmentReasons => :with_attached_enrollment_reasons_file,
         # Health::Enrollment => :with_attached_enrollment_file,
         # Health::HealthFile => :with_attached_health_file,
-        # Health::PremiumPayment => :with_attached_premium_payment_file,
-        # Health::TransactionAcknowledgement => :with_attached_acknowledgement_file,
-        # Health::CpMembers::FileBase => :with_attached_member_file,
         # GrdaWarehouse::HealthEmergency::TestBatch => :with_attached_test_batch_file,
 
         # The following were previously moved, leaving here to make adding

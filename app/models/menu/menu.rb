@@ -214,15 +214,6 @@ class Menu::Menu
         title: Translation.translate('My Patients'),
       ),
     )
-    menu.add_child(
-      Menu::Item.new(
-        user: user,
-        visible: ->(user) { !(user.can_view_patients_for_own_agency? && user.health_agencies.any?) && user.can_view_some_vprs? },
-        path: health_flexible_service_my_vprs_path,
-        title: Translation.translate('My Patients'),
-      ),
-    )
-
     menu
   end
 
