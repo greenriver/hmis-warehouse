@@ -527,6 +527,30 @@ RSpec.shared_examples 'an auth-method-aware user' do |factory, model|
       end
     end
 
+    describe 'idp_password_management_enabled?' do
+      it 'follows idp_service.supports_user_management?: disabled when unlinked (NullService can\'t manage the account)' do
+        # null-attached: primary_idp may be present but the service resolves to a NullService that
+        # reports no management capability, so the Force Password Reset affordance stays disabled.
+        user = model.new
+        expect(user.idp_service.supports_user_management?).to be false
+        expect(user.idp_password_management_enabled?).to be false
+      end
+
+      it 'is true when the linked IdP service can manage the account (e.g. Keycloak)' do
+        user = model.new
+        allow(user).to receive(:idp_service).and_return(instance_double(Idp::KeycloakService, supports_user_management?: true))
+        expect(user.idp_password_management_enabled?).to be true
+      end
+
+      it 'is locked-safe (false) when the service is unbuildable and raises Idp::ServiceError' do
+        # unbuildable (e.g. misconfigured Keycloak): building the service raises, and the predicate
+        # rescues to disabled rather than rendering an action that would raise on click.
+        user = model.new
+        allow(user).to receive(:idp_service).and_raise(Idp::ServiceError.new('unbuildable', operation: :build))
+        expect(user.idp_password_management_enabled?).to be false
+      end
+    end
+
     describe 'account_expiry_enabled?' do
       it 'is false (the IdP does not honor local expired_at; the admin form hides the field)' do
         expect(model.new.account_expiry_enabled?).to be false

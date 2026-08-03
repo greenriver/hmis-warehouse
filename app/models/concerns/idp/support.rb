@@ -76,7 +76,9 @@ module Idp::Support
 
   # Whether the JWT-arm admin surface should offer the "Force Password Reset" action
   def idp_password_management_enabled?
-    primary_idp.present?
+    idp_service.supports_user_management?
+  rescue Idp::ServiceError
+    false
   end
 
   # Under JWT credentials are IdP-managed, so admins cannot re-confirm
