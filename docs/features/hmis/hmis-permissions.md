@@ -25,6 +25,8 @@ flowchart LR
 
 A user's effective permissions for an entity are the union of every Role reachable from that entity's Collections — with the important exception of [permission requirements](#permission-requirements), which are evaluated per-role in some code paths.
 
+A Collection covers an entity when it lists that entity or one of its parents: a Project is covered through its Organization, its Data Source, or a Project Group containing it, and an Organization through its Data Source. Coverage on its own grants nothing — it only determines which entities the attached Role applies to, so a Project is viewable only if a Role reached that way grants `can_view_project`.
+
 ## Models
 
 ### AccessControl
@@ -126,8 +128,6 @@ access_denied! unless record && policy_for(record, policy_type: :hmis_project).c
 ```
 
 `viewable_by` only answers "can this user see this record?" It never implies permission to edit or delete, which is why the policy check is still required.
-
-An entity is **directly viewable** when a Collection the user reaches through an AccessControl references it and the attached Role grants a viewable permission. It is **inherited** when one of its parents is directly viewable: a Project is viewable through its Organization, Data Source, or a Project Group containing it; an Organization is viewable through its Data Source.
 
 ### Global policies (for "can they do this at all?")
 
