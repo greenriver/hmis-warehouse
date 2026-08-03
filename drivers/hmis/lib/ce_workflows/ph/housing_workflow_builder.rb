@@ -288,6 +288,8 @@ module CeWorkflows::Ph
       start_event.connect_to!(coc_initial_review_task)
       coc_initial_review_gateway = CeWorkflows::Shared::CeBuilderUtils.create_gateway(template, 'coc_initial_review')
       coc_initial_review_task.connect_to!(coc_initial_review_gateway)
+      # A decline here intentionally sets no referral_result, because the HUD CE event is only created after CoC "continue".
+      # At this point there is no CE event on which to record a result.
       coc_initial_review_gateway.connect_to!(decline_gateway, condition: "coc_initial_review_decision = 'decline'")
       coc_initial_review_gateway.connect_to!(create_ce_event_task)
 
