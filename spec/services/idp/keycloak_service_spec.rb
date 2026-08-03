@@ -700,6 +700,35 @@ RSpec.describe Idp::KeycloakService do
     end
   end
 
+  # An authenticate-only realm (manage_users: false) — a customer-operated Keycloak, or a service
+  # account without the manage-users role. Management capability tracks the config flag, not the
+  # class, while login and the self-service account console keep working.
+  describe 'capabilities on an authenticate-only realm (manage_users: false)' do
+    let(:service) do
+      described_class.new(
+        config: {
+          api_url: api_url,
+          realm: realm,
+          client_id: client_id,
+          client_secret: client_secret,
+          manage_users: false,
+        },
+      )
+    end
+
+    it 'reports every management capability as false' do
+      expect(service.supports_user_management?).to be false
+      expect(service.supports_profile_updates?).to be false
+      expect(service.supports_user_creation?).to be false
+      expect(service.supports_account_backfill?).to be false
+    end
+
+    it 'still offers self-service email and resolves the account console URL' do
+      expect(service.supports_email_self_service?).to be true
+      expect(service.account_console_url).to eq("#{api_url}/realms/#{realm}/account")
+    end
+  end
+
   # Also the only reachable "unconfigured connector": the blank-api_url guards in #browser_url and
   # #supports_session_logout? sit behind this raise, so no service can be constructed in the state
   # they cover and there are no examples driving them through a mutated config hash. What actually
@@ -763,20 +792,21 @@ RSpec.describe Idp::KeycloakService do
     end
 
     # The client's Base URL is where Keycloak sends the user back from an out-of-band confirmation
-    # link, so which client the action runs under decides where an email change lands. The
-    # unconfigured fallback to 'account' is asserted by the params example above.
+    # link, so which client the action runs under decides where an email change lands. It comes off
+    # the config row (a per-realm column seeded from KEYCLOAK_ACCOUNT_CLIENT_ID once), not a
+    # request-time ENV read; the unconfigured fallback to 'account' is asserted by the params example
+    # above.
     describe 'the client the action runs under' do
-      before { stub_const('ENV', ENV.to_h.merge('KEYCLOAK_ACCOUNT_CLIENT_ID' => 'warehouse-account')) }
-
-      it 'runs under the configured account client' do
-        expect(query_param('client_id')).to eq('warehouse-account')
-      end
-
-      # Nothing sets this key yet; a per-realm column would, and it beats ENV.
-      it 'prefers a config key over the ENV value' do
+      it 'runs under the account client from the config row' do
         service.config[:account_client_id] = 'from-config'
 
         expect(query_param('client_id')).to eq('from-config')
+      end
+
+      it 'ignores KEYCLOAK_ACCOUNT_CLIENT_ID in the environment' do
+        stub_const('ENV', ENV.to_h.merge('KEYCLOAK_ACCOUNT_CLIENT_ID' => 'warehouse-account'))
+
+        expect(query_param('client_id')).to eq('account')
       end
     end
   end
@@ -852,13 +882,8 @@ RSpec.describe Idp::KeycloakService do
       end
     end
 
-    context 'supplied by ENV' do
-      before { stub_const('ENV', ENV.to_h.merge('KEYCLOAK_PUBLIC_URL' => public_url)) }
-
-      include_examples 'honors the browser URL'
-    end
-
-    # Nothing sets this key yet; a per-realm column would, and it beats ENV.
+    # browser_url is a per-realm Idp::ServiceConfig column (seeded from ENV once); it is not read from
+    # ENV at request time, so a stray KEYCLOAK_PUBLIC_URL must not leak into a DB-configured service.
     context 'supplied in the config hash' do
       before do
         stub_const('ENV', ENV.to_h.merge('KEYCLOAK_PUBLIC_URL' => 'https://ignored.test'))
@@ -866,6 +891,14 @@ RSpec.describe Idp::KeycloakService do
       end
 
       include_examples 'honors the browser URL'
+    end
+
+    context 'not set in config' do
+      before { stub_const('ENV', ENV.to_h.merge('KEYCLOAK_PUBLIC_URL' => 'https://ignored.test')) }
+
+      it 'falls back to api_url, ignoring ENV' do
+        expect(service.account_console_url).to eq("#{api_url}/realms/#{realm}/account")
+      end
     end
   end
 

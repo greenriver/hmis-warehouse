@@ -427,8 +427,43 @@ class SeedMaker
     end
   end
 
+  # Materialize the Keycloak Idp::ServiceConfig from ENV once, so the DB row is
+  # the single source of truth at request time (Idp::ServiceFactory no longer
+  # reads KEYCLOAK_* ENV). Runs on every deploy, so it must be idempotent and
+  # must never clobber a UI credential edit.
+  #
+  # Guards:
+  #   - Devise-mode installs have no IdP config.
+  #   - A JWT customer on an EXTERNAL IdP legitimately has no KEYCLOAK_* vars, so
+  #     skip silently rather than raising (an unconditional create would violate
+  #     Idp::ServiceConfig presence validations and break the deploy's seed step).
+  #
+  # Create-only (find_or_create_by, no update block): ENV is a one-time
+  # bootstrap; after the row exists, credential rotation is a UI/DB operation and
+  # a re-seed must not overwrite it. with_deleted keys the lookup so a
+  # soft-deleted row is found (not resurrected) and a deactivated (active: false)
+  # row is left untouched, preserving the off-switch across re-seeds.
+  def seed_idp_service_config
+    return unless AuthMethod.jwt?
+    return unless ENV['KEYCLOAK_API_URL'].present? && ENV['KEYCLOAK_SERVICE_CLIENT_SECRET'].present?
+
+    connector_id = ENV.fetch('KEYCLOAK_CONNECTOR_ID', 'keycloak')
+
+    Idp::ServiceConfig.with_deleted.find_or_create_by(connector_id: connector_id) do |config|
+      config.provider = 'keycloak'
+      config.name = 'Keycloak (seeded from ENV)'
+      config.api_url = ENV['KEYCLOAK_API_URL']
+      config.keycloak_realm = ENV['KEYCLOAK_REALM']
+      config.client_id = ENV['KEYCLOAK_SERVICE_CLIENT_ID']
+      config.service_token = ENV['KEYCLOAK_SERVICE_CLIENT_SECRET']
+      config.browser_url = ENV['KEYCLOAK_PUBLIC_URL']
+      config.account_client_id = ENV['KEYCLOAK_ACCOUNT_CLIENT_ID']
+    end
+  end
+
   def run_all
     ensure_db_triggers_and_functions
+    seed_idp_service_config
     setup_fake_user if Rails.env.development?
     setup_fake_health_data
     maintain_data_sources

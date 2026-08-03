@@ -13,10 +13,11 @@ require 'json'
 module Idp
   # Keycloak IDP service over the Admin REST API.
   #
-  # Authenticates via OAuth2 client_credentials. Initialized with a config hash
-  # (from Idp::ServiceConfig) or falls back to ENV. Required config keys: api_url,
-  # realm, client_id, client_secret. There is no realm default — a blank realm
-  # raises, so it must be configured explicitly (DB config or KEYCLOAK_REALM).
+  # Authenticates via OAuth2 client_credentials. Built from an Idp::ServiceConfig
+  # row via .from_config — the DB is the single source of truth, with no request-time
+  # ENV fallback (ENV is read only once at deploy time by SeedMaker). Required config
+  # keys: api_url, realm, client_id, client_secret; validate_config! raises when any
+  # is blank, so a connector must be configured explicitly.
   class KeycloakService < Service
     UPDATABLE_ATTRIBUTES = [:first_name, :last_name, :email].freeze
 
@@ -38,7 +39,7 @@ module Idp
     RETRYABLE_CLIENT_ERROR_STATUSES = [408, 429].freeze
 
     def initialize(config: nil)
-      super(config: config || default_config)
+      super(config: config || {})
       validate_config!
       @cached_token = nil
       @token_expires_at = nil
@@ -50,6 +51,9 @@ module Idp
             client_id: config.client_id,
             client_secret: config.service_token,
             realm: config.keycloak_realm,
+            manage_users: config.manage_users,
+            browser_url: config.browser_url,
+            account_client_id: config.account_client_id,
           })
     end
 
@@ -220,11 +224,11 @@ module Idp
     end
 
     def supports_user_management?
-      true
+      manage_users?
     end
 
     def supports_profile_updates?
-      true
+      manage_users?
     end
 
     # Asserted, not probed: the Update Email required action and realm Verify Email are operator
@@ -236,11 +240,11 @@ module Idp
     end
 
     def supports_user_creation?
-      true
+      manage_users?
     end
 
     def supports_account_backfill?
-      true
+      manage_users?
     end
 
     # The endpoint exists on every realm, so the only question is whether this service points at
@@ -390,22 +394,30 @@ module Idp
       config[:api_url]
     end
 
+    # Whether this realm's service account has admin/manage-API access. Defaults to true so a config
+    # built without the key (or a direct .new for tests) stays admin-managed; false is authenticate-only.
+    def manage_users?
+      config.fetch(:manage_users, true)
+    end
+
     # Base URL for links we hand to a browser instead of fetching ourselves. Same host as the
     # Admin API except in dev, where containers talk to Keycloak directly but the browser goes
     # through Traefik, and the deep-links need the origin that owns the SSO session cookies.
     #
-    # ENV because it describes a deployment's network rather than a realm; add an
-    # Idp::ServiceConfig column if some deployment needs it per realm.
+    # Per-realm on the Idp::ServiceConfig row (seeded once from KEYCLOAK_PUBLIC_URL); the DB is the
+    # single source of truth at request time. Falls back to api_url when unset — the browser origin
+    # only differs from the API origin behind a split-network deployment.
     def browser_url
       # no api_url means the service isn't configured, so there's nothing browser-facing either
       return nil if api_url.blank?
 
-      config[:browser_url].presence || ENV['KEYCLOAK_PUBLIC_URL'].presence || api_url
+      config[:browser_url].presence || api_url
     end
 
-    # The OIDC client an application-initiated action (AIA) runs under
+    # The OIDC client an application-initiated action (AIA) runs under. Per-realm on the config row
+    # (seeded from KEYCLOAK_ACCOUNT_CLIENT_ID); defaults to Keycloak's built-in 'account' client.
     def account_client_id
-      config[:account_client_id].presence || ENV['KEYCLOAK_ACCOUNT_CLIENT_ID'].presence || 'account'
+      config[:account_client_id].presence || 'account'
     end
 
     def realm
@@ -567,17 +579,5 @@ module Idp
       handle_response(response, operation: operation, failure: failure) { true }
     end
 
-    protected
-
-    def default_config
-      {
-        api_url: ENV['KEYCLOAK_API_URL'],
-        browser_url: ENV['KEYCLOAK_PUBLIC_URL'],
-        account_client_id: ENV['KEYCLOAK_ACCOUNT_CLIENT_ID'],
-        realm: ENV['KEYCLOAK_REALM'],
-        client_id: ENV['KEYCLOAK_SERVICE_CLIENT_ID'],
-        client_secret: ENV['KEYCLOAK_SERVICE_CLIENT_SECRET'],
-      }
-    end
   end
 end

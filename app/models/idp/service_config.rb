@@ -19,6 +19,14 @@ module Idp
   #
   # Each provider's service translates these columns into its own config keys in
   # .from_config.
+  #
+  # manage_users:
+  #   Whether we have admin/manage-API access to this IdP. True (the default) is an
+  #   IdP we operate; false is authenticate-only — a customer-operated Keycloak, or a
+  #   service account that connects but lacks the manage-users role.
+  # browser_url / account_client_id:
+  #   Per-realm browser origin and account OIDC client for self-service deep-links.
+  #   Seeded once from ENV; the row is authoritative thereafter (no request-time ENV).
   class ServiceConfig < ApplicationRecord
     self.table_name = 'idp_service_configs'
     acts_as_paranoid

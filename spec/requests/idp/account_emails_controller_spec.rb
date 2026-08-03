@@ -145,8 +145,8 @@ RSpec.describe Idp::AccountEmailsController, type: :request, if: AuthMethod.jwt?
       # The client the action runs under is what decides where Keycloak returns the user from the
       # confirmation link it mails, so it has to be the one configured for this deployment.
       it 'runs the action under the configured account client, and returns here from the form' do
-        allow(ENV).to receive(:[]).and_call_original
-        allow(ENV).to receive(:[]).with('KEYCLOAK_ACCOUNT_CLIENT_ID').and_return('warehouse-account')
+        # account_client_id is a per-realm config column now, not a request-time ENV read.
+        Idp::ServiceConfig.find_by(connector_id: connector_id).update!(account_client_id: 'warehouse-account')
 
         post begin_change_account_email_path
 

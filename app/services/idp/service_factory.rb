@@ -7,11 +7,8 @@
 # frozen_string_literal: true
 
 module Idp
-  # Registry mapping a connector_id to its Idp::Service implementation.
-  #
-  # for_connector is fail-soft: a blank connector returns a NullService, and a
-  # DB-backed Idp::ServiceConfig is preferred over a registered class so ops can
-  # manage credentials in the UI. Only a registered-but-unknown id raises.
+  # Registry of Idp::Service implementations by provider, and resolver from a
+  # connector_id to a configured service (see #for_connector).
   class ServiceFactory
     class << self
       def services
@@ -27,29 +24,20 @@ module Idp
       end
 
       # Get an IDP service instance for the given connector_id (the auth-proxy
-      # routing key). Prefers an active Idp::ServiceConfig record; with no config,
-      # falls back to a registered service class — which only resolves when the
-      # connector_id happens to equal a provider key (the single-realm/ENV path).
+      # routing key). The active Idp::ServiceConfig row is the single source of
+      # truth (seeded from ENV once, then managed in the UI); there is no ENV
+      # fallback.
       #
-      # Fail-soft: an unknown connector returns a NullService rather than raising.
-      # Authentication never consults this method (UserProvisioner works off the
-      # JWT alone), so a valid token from a connector with no config must still
-      # degrade to "no management" on capability checks instead of crashing the
-      # request — see Idp::Support#idp_service.
+      # Degrades to a NullService instead of raising. Authentication never
+      # consults this method (UserProvisioner works off the JWT alone), so a
+      # valid token from a connector with no active config must still pass
+      # capability checks without crashing the request — see
+      # Idp::Support#idp_service.
       def for_connector(connector_id)
         return Idp::NullService.new(connector_id) unless connector_id.present?
 
-        # Prefer DB-managed credentials. Guarded so the factory is usable before
-        # the idp_service_configs table exists (e.g. during its own migration).
-        config_record = Idp::ServiceConfig.active.find_by(connector_id: connector_id) if defined?(Idp::ServiceConfig)
-        return config_record.to_service if config_record
-
-        # No managed config: treat connector_id as a provider key for ENV defaults.
-        service_class = services[connector_id.to_s]
-        return service_class.new if service_class
-
-        # Unknown connector: authenticated but unconfigured. Degrade gracefully.
-        Idp::NullService.new(connector_id)
+        active_config = Idp::ServiceConfig.active.find_by(connector_id: connector_id)
+        active_config ? active_config.to_service : Idp::NullService.new(connector_id)
       end
 
       # @return [Array<String>] registered provider keys (IDP types)

@@ -108,6 +108,34 @@ RSpec.describe Idp::ServiceConfig, type: :model, if: AuthMethod.jwt? do
       expect(service.send(:realm)).to eq('test-realm')
     end
 
+    it 'defaults to a manageable service' do
+      config = create(:idp_service_config, connector_id: 'keycloak')
+
+      expect(config.manage_users).to be true
+      expect(config.to_service.supports_user_management?).to be true
+    end
+
+    it 'builds an authenticate-only service when manage_users is false' do
+      config = create(:idp_service_config, connector_id: 'keycloak', manage_users: false)
+
+      service = config.to_service
+      expect(service).to be_a(Idp::KeycloakService)
+      expect(service.supports_user_management?).to be false
+    end
+
+    it 'carries the per-realm browser fields into the service (DB, not ENV)' do
+      config = create(
+        :idp_service_config,
+        connector_id: 'keycloak',
+        browser_url: 'https://kc.public.test',
+        account_client_id: 'my-account',
+      )
+
+      service = config.to_service
+      expect(service.account_console_url).to eq('https://kc.public.test/realms/openpath/account')
+      expect(service.send(:account_client_id)).to eq('my-account')
+    end
+
     it 'raises ServiceError for an unregistered provider' do
       config = build(:idp_service_config, provider: 'unknown')
       expect { config.to_service }.to raise_error(Idp::ServiceError, /Unknown provider/)

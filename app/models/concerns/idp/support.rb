@@ -125,6 +125,7 @@ module Idp::Support
   # provisioned account off to its owner without the admin setting a credential.
   def idp_send_account_setup_email!
     return false unless primary_idp
+    return false unless idp_service.supports_user_creation?
 
     idp_service.send_execute_actions_email(user_id: idp_connector_user_id!, actions: ['UPDATE_PASSWORD', 'VERIFY_EMAIL'])
   end
