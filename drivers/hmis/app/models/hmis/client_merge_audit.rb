@@ -6,7 +6,7 @@
 
 # frozen_string_literal: true
 
-# See docs/features/hmis_client_merges.md
+# See docs/features/hmis/hmis-client-merges.md
 
 class Hmis::ClientMergeAudit < Hmis::HmisBase
   belongs_to :actor, class_name: 'Hmis::User'

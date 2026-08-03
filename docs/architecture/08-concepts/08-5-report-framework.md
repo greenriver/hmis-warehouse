@@ -8,7 +8,7 @@
 
 - **Report base classes** — The shared superclass and lifecycle (setup, compute, persist, render) that all report drivers follow.
 - **Generator pattern** — How individual report sections are computed and assembled.
-- **Question/answer framework** — The cell-based structure used by HUD APR, SPM, and similar tabular reports (see `docs/features/hud-report-framework.md`).
+- **Question/answer framework** — The cell-based structure used by HUD APR, SPM, and similar tabular reports (see `docs/features/warehouse/hud-report-framework.md`).
 - **Filtering and scoping** — How reports are parameterized by date range, project, CoC, and sub-population.
 - **Sub-population filters** — The cross-cutting filter modules (`veterans_sub_pop`, `adults_with_children_sub_pop`, etc.) used across multiple reports.
 - **Export and rendering** — How report results are rendered to HTML, Excel, and HUD CSV upload formats.
@@ -19,6 +19,6 @@
 
 ### Related Feature Documentation
 
-- [`docs/features/hud-report-framework.md`](../../features/hud-report-framework.md)
-- [`docs/features/hud_spm_report.md`](../../features/hud_spm_report.md)
-- [`docs/features/hopwa_caper.md`](../../features/hopwa_caper.md)
+- [`docs/features/warehouse/hud-report-framework.md`](../../features/warehouse/hud-report-framework.md)
+- [`docs/features/warehouse/hud-spm-report.md`](../../features/warehouse/hud-spm-report.md)
+- [`docs/features/warehouse/hopwa-caper.md`](../../features/warehouse/hopwa-caper.md)

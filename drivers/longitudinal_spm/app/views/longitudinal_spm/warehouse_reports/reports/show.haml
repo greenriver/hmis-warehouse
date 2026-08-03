@@ -5,6 +5,13 @@
 %p.mb-2= @report.description
 %p= "Created by #{@report.user.name_with_email} on #{@report.completed_at&.to_date}"
 
+- if @report.purged_spms.any?
+  .alert.alert--flex.alert-warning
+    %i.alert__icon.icon-warning
+    %p.mb-0
+      One or more of the underlying SPM reports has been archived. The archived report(s) must be restored before the data in this report is available.
+
+
 .well.report-listing.warehouse-reports__completed.d-flex.justify-content-between
   .pl-0.w-50
     %h3 Universe
@@ -12,58 +19,61 @@
   .ml-auto
     - if can_view_all_hud_reports? || can_view_own_hud_reports?
       %h3 SPM Reports
+      - purged_spm_ids = @report.purged_spms.map(&:id).to_set
       - @report.spms.order(start_date: :asc).each do |spm|
         .ml-auto
           = link_to "#{spm.start_date} - #{spm.end_date}", hud_reports_spm_path(spm.spm_id), target: :_blank, class: 'btn btn-sm btn-secondary mb-2'
+          - if purged_spm_ids.include?(spm.id)
+            %span.badge.text-bg-warning.mr-2 Archived
 
-
-- @report.spm_measures.each do |measure, tables|
-  %h2= "#{measure}: #{@report.spm_describe(measure)}"
-  .well
-    - tables.each do |table, cells|
-      - cells.each do |cell|
-        %h3
-          = "Table #{table}:"
-          = @report.spm_describe(table)
-          = @report.spm_describe(table, cell)
-          - project_types = @report.project_types_for_table(table)
-          = "(#{project_types})" if project_types.present?
-        .chart{id: "spm_#{table.gsub('.', '_').gsub(' ', '-')}_#{cell}"}
-        = content_for :page_js do
-          :javascript
-            options = {
-              data: {
-                x: 'x',
-                columns: #{@report.chart_data(measure, table, cell).to_json.html_safe},
-                type: 'line',
-              },
-              axis: {
-                x: {
-                  type: 'timeseries',
-                  padding: { right: 15000*60*60*24 },
-                  tick: {
-                    format: '%b %Y'
+- unless @report.purged_spms.any?
+  - @report.spm_measures.each do |measure, tables|
+    %h2= "#{measure}: #{@report.spm_describe(measure)}"
+    .well
+      - tables.each do |table, cells|
+        - cells.each do |cell|
+          %h3
+            = "Table #{table}:"
+            = @report.spm_describe(table)
+            = @report.spm_describe(table, cell)
+            - project_types = @report.project_types_for_table(table)
+            = "(#{project_types})" if project_types.present?
+          .chart{id: "spm_#{table.gsub('.', '_').gsub(' ', '-')}_#{cell}"}
+          = content_for :page_js do
+            :javascript
+              options = {
+                data: {
+                  x: 'x',
+                  columns: #{@report.chart_data(measure, table, cell).to_json.html_safe},
+                  type: 'line',
+                },
+                axis: {
+                  x: {
+                    type: 'timeseries',
+                    padding: { right: 15000*60*60*24 },
+                    tick: {
+                      format: '%b %Y'
+                    }
+                  },
+                  y: {
+                    min: 0,
+                    padding: {
+                      top: 5,
+                      bottom: 0
+                    },
+                    tick: {
+                      culling: { max: 5, lines: true }
+                    }
                   }
                 },
-                y: {
-                  min: 0,
-                  padding: {
-                    top: 5,
-                    bottom: 0
-                  },
-                  tick: {
-                    culling: { max: 5, lines: true }
-                  }
-                }
-              },
-              bindto: "\#spm_#{table.gsub('.', '_').gsub(' ', '-')}_#{cell}"
-            };
+                bindto: "\#spm_#{table.gsub('.', '_').gsub(' ', '-')}_#{cell}"
+              };
 
-            // Tables 2 and 7 should be 0-100 (and labeled as percentage)
-            if (['Measure 2', 'Measure 7'].includes('#{measure}')) {
-              options.axis.y.max = 100;
-              options.axis.y.min = 0;
-              options.axis.y.tick.format = function(y) { return y + '%' }
-            }
+              // Tables 2 and 7 should be 0-100 (and labeled as percentage)
+              if (['Measure 2', 'Measure 7'].includes('#{measure}')) {
+                options.axis.y.max = 100;
+                options.axis.y.min = 0;
+                options.axis.y.tick.format = function(y) { return y + '%' }
+              }
 
-            bb.generate(options)
+              bb.generate(options)

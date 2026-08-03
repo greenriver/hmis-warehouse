@@ -8,7 +8,7 @@
 
 # Metric calculator for CSV row counts per DataSource.
 # Uses latest completed ImporterLog summary - not a scheduled calculator.
-# @see docs/features/import-csv-monitoring.md
+# @see docs/features/warehouse/import-csv-monitoring.md
 module GrdaWarehouse::Monitoring::MetricCalculators
   class CsvRowCountMetricCalculator < BaseCalculator
     # Batch calculation for DataSource entities.

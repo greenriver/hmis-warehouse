@@ -1,6 +1,6 @@
 source 'https://rubygems.org'
 
-gem 'rails', '8.1.3'
+gem 'rails', '~> 8.1.3'
 gem 'rack', '< 3.2' # kept on the rack 3.1.x line; rails 8.x resolves fine under this cap
 
 gem 'openssl', '>=3.3.1' # override the default ruby version of openssl https://github.com/ruby/openssl/issues/949#issuecomment-3370358680

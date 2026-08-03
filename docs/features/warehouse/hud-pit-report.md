@@ -47,4 +47,4 @@ The report includes the following project types:
 ## Related Documentation
 
 - [HUD Report Framework](hud-report-framework.md)
-- [HUD Utility 2024](../../lib/util/hud_utility_2024.rb) (Used for race and project type definitions)
+- [HUD Utility 2024](../../../lib/util/hud_utility_2024.rb) (Used for race and project type definitions)

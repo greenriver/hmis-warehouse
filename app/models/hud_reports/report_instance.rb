@@ -7,7 +7,7 @@
 # frozen_string_literal: true
 
 # A HUD Report instance
-# @see docs/features/hud-report-framework.md
+# @see docs/features/warehouse/hud-report-framework.md
 #
 # While the model supports STI, this is not commonly used to identify report type. Instead, the report_name is used to
 # indicate the type of report. For example:
