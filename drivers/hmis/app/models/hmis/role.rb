@@ -139,7 +139,7 @@ class Hmis::Role < ::ApplicationRecord
 
     config = permissions_with_descriptions.fetch(permission) { raise "unknown permission #{permission.inspect}" }
     required = (config[:requirements] || []).flat_map { |perm| required_permissions_for(perm, path + [permission]) }
-    ([permission] + required).uniq.sort
+    ([permission] + required).uniq
   end
 
   # Memoized because permission resolution reads this heavily and it would otherwise be rebuilt on every call.

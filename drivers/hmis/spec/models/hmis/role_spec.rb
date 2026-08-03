@@ -11,11 +11,8 @@ require 'rails_helper'
 RSpec.describe Hmis::Role, type: :model do
   # These specs catch a bad config of Hmis::Role.permissions_with_descriptions
   describe '.permissions_with_descriptions config' do
-    let(:requirements) do
-      described_class.permissions_with_descriptions.transform_values { |config| config[:requirements] || [] }
-    end
-
     it 'requirements reference only permissions that exist' do
+      requirements = described_class.permissions_with_descriptions.transform_values { |config| config[:requirements] || [] }
       expect(requirements.values.flatten.uniq - described_class.permissions).to be_empty
     end
 
