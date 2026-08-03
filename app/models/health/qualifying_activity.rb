@@ -37,8 +37,8 @@ module Health
 
     validate :patient_eligible_for_qa_on_date
 
-    MODE_OF_CONTACT_OTHER = 'other'.freeze
-    REACHED_CLIENT_OTHER = 'collateral'.freeze
+    MODE_OF_CONTACT_OTHER = 'other'
+    REACHED_CLIENT_OTHER = 'collateral'
     VERSIONS = [
       Health::QualifyingActivityV1,
       Health::QualifyingActivityV2,
@@ -369,7 +369,7 @@ module Health
 
       # In-person contacts must reach the client, EXCEPT for outreach
       valid_options = activities[activity_sym]
-      return false if modifiers.include?('U2') && (!modifiers.include?('U1') && !valid_options[:code] == activities[:outreach][:code])
+      return false if modifiers.include?('U2') && !modifiers.include?('U1') && !valid_options[:code] == activities[:outreach][:code]
 
       # Must be a QA in the CP
       return false unless valid_options
