@@ -1,4 +1,4 @@
-// GH-9130: CSP uses a fresh random nonce per request. jQuery's own script
+// CSP uses a fresh random nonce per request. jQuery's own script
 // execution paths don't automatically reuse the current page's nonce for
 // content that arrives via a separate AJAX response (a different request,
 // therefore a different nonce) - without this, any inline <script> in
@@ -6,7 +6,7 @@
 // responses) fails CSP. This relays the CURRENT page's nonce (exposed as
 // window.CSP_NONCE by an inline script in the layout, sharing this same
 // request/nonce) into both jQuery execution paths that need it explicitly.
-(function($) {
+(function ($) {
   'use strict';
 
   if (!window.CSP_NONCE) {
@@ -22,7 +22,7 @@
   // whether it happens to pass an options object, and still respects an
   // explicit nonce if one is ever provided.
   var originalGlobalEval = $.globalEval;
-  $.globalEval = function(code, options, doc) {
+  $.globalEval = function (code, options, doc) {
     options = options || {};
     if (options.nonce === undefined) {
       options.nonce = window.CSP_NONCE;
@@ -39,7 +39,7 @@
   // page's value, before jQuery parses/executes it, is the only reliable
   // interception point.
   var originalHtml = $.fn.html;
-  $.fn.html = function(value) {
+  $.fn.html = function (value) {
     if (typeof value === 'string' && value.indexOf('nonce=') !== -1) {
       var rewritten = value.replace(/nonce=(["'])[^"']*\1/g, 'nonce="' + window.CSP_NONCE + '"');
       return originalHtml.call(this, rewritten);
