@@ -26,19 +26,18 @@ Installation-specific workflow builders follow two different patterns. This read
 ### Overview of two patterns
 
 
-|                                             | **Preferred: destroy-and-recreate (AC-style)**                        | **Legacy: draft idempotent (PH/Standard-style)**                            |
-| ------------------------------------------- | --------------------------------------------------------------------- | --------------------------------------------------------------------------- |
-| **Template lifecycle**                      | `delete_template_and_associated_data` → `create_template` (published) | `find_or_create_draft_template` → mutate in place → optional `PUBLISH=true` |
-| **Strategy for changing existing template** | Wipes existing template and starts anew                               | Idempotent on hard-coded version while draft; errors once published         |
-| **Prod setup**                              | One-time via `UNSAFE_RUN_IN_PRODUCTION=true` (builder + rake guard)   | `PUBLISH=true`; no destroy in prod                                          |
-| **Env vars**                                | `UNSAFE_RUN_IN_PRODUCTION` (prod only)                                | `PUBLISH`, `FORCE_RECREATE` (non-prod only)                                 |
+|                                             | **Preferred: destroy-and-recreate (AC-style)**                         | **Legacy: draft idempotent (PH/Standard-style)**                            |
+| ------------------------------------------- | ---------------------------------------------------------------------- | --------------------------------------------------------------------------- |
+| **Template lifecycle**                      | `delete_template_and_associated_data` → `create_template` (published)  | `find_or_create_draft_template` → mutate in place → optional `PUBLISH=true` |
+| **Strategy for changing existing template** | Wipes existing template and starts anew                                | Idempotent on hard-coded version while draft; errors once published         |
+| **Prod setup**                              | One-time in rails console using `unsafe_run_in_production: true` flag. | `PUBLISH=true`; no destroy in prod                                          |
 
 
 
 
 ### Preferred destroy-and-recreate pattern
 
-Use this pattern for new workflows. See [`drivers/hmis/lib/ce_workflows/ac/workflow_builder.rb`](../../../drivers/hmis/lib/ce_workflows/ac/workflow_builder.rb) as a reference implementation.
+Use this pattern for new workflows. See `[drivers/hmis/lib/ce_workflows/ac/workflow_builder.rb](../../../drivers/hmis/lib/ce_workflows/ac/workflow_builder.rb)` as a reference implementation.
 
 **Why we prefer it:**
 
@@ -67,7 +66,7 @@ end
 
 **Local iteration:** run the rake task repeatedly. Expect referrals to be destroyed.
 
-**Production:** run once at initial setup with `UNSAFE_RUN_IN_PRODUCTION=true`. Do not re-run after go-live (same as the rake comment in [`ce_define_workflows.rake`](../../../drivers/hmis/lib/tasks/ce_define_workflows.rake)).
+**Production:** run once in Rails with `unsafe_run_in_production: true` (not using the rake task). Do not re-run after go-live.
 
 **Rake task shape:** prod guard at top; pass `unsafe_run_in_production:` into builder.
 
