@@ -134,19 +134,12 @@ class Hmis::Role < ::ApplicationRecord
   # Returns a list of permissions that are required for a given permission (including the permission itself).
   # For example, can_edit_enrollments requires can_view_enrollment_details, which in turn requires
   # can_view_project and can_view_clients.
-  def self.required_permissions_for(permission)
-    config = permissions_with_descriptions
-    resolved = []
-    unresolved = [permission]
+  def self.required_permissions_for(permission, path = [])
+    raise "cycle detected: #{permission} requires #{path.join(', ')}" if path.include?(permission)
 
-    while (perm = unresolved.shift)
-      raise "cycle detected: #{perm} requires #{resolved.join(', ')}" if resolved.include?(perm)
-
-      resolved << perm
-      unresolved.concat(config.fetch(perm) { raise "unknown permission #{perm.inspect}" }[:requirements] || [])
-    end
-
-    resolved
+    config = permissions_with_descriptions.fetch(permission) { raise "unknown permission #{permission.inspect}" }
+    required = (config[:requirements] || []).flat_map { |perm| required_permissions_for(perm, path + [permission]) }
+    ([permission] + required).uniq.sort
   end
 
   # Memoized because permission resolution reads this heavily and it would otherwise be rebuilt on every call.

@@ -10,7 +10,7 @@ require 'rails_helper'
 
 RSpec.describe Hmis::Role, type: :model do
   # These specs catch a bad config of Hmis::Role.permissions_with_descriptions
-  describe 'permissions_with_descriptions config' do
+  describe '.permissions_with_descriptions config' do
     let(:requirements) do
       described_class.permissions_with_descriptions.transform_values { |config| config[:requirements] || [] }
     end
@@ -20,13 +20,7 @@ RSpec.describe Hmis::Role, type: :model do
     end
 
     it 'declares no requirement cycles' do
-      closures = described_class.permissions.index_with { |permission| described_class.required_permissions_for(permission) }
-
-      cyclic = closures.select do |permission, closure|
-        (closure - [permission]).any? { |required| closures[required].include?(permission) }
-      end
-
-      expect(cyclic.keys).to be_empty
+      expect { described_class.permissions.each { |perm| described_class.required_permissions_for(perm) } }.not_to raise_error
     end
 
     it 'declares only direct requirements, not transitive ones' do
@@ -41,7 +35,7 @@ RSpec.describe Hmis::Role, type: :model do
     end
   end
 
-  describe '#required_permissions_for' do
+  describe '.required_permissions_for' do
     it 'would report a cycle if one were introduced' do
       allow(described_class).to receive(:permissions_with_descriptions).and_return(
         can_view_project: { requirements: [:can_view_clients] },
