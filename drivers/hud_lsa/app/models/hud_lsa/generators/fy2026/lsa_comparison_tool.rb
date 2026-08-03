@@ -12,16 +12,28 @@
 require 'csv'
 module HudLsa::Generators::Fy2026
   class LsaComparisonTool
-    attr_accessor :sample_data_path, :generated_data_path
+    attr_accessor :sample_data_path, :generated_data_path, :skips, :skipped_files
 
-    def initialize(sample_data_path, generated_data_path)
+    # skips: { 'SomeFile.csv' => {
+    #   skip_file: true,             # ignore this file entirely (still reported, just not compared)
+    #   columns: ['SomeColumn'],     # additional columns to drop from every row before comparing
+    #   rows: { 'SomeColumn' => ['1', '2'] }, # drop any row (either side) whose SomeColumn is '1' or '2'
+    # } }
+    def initialize(sample_data_path, generated_data_path, skips: {})
       @sample_data_path = sample_data_path
       @generated_data_path = generated_data_path
+      @skips = skips
+      @skipped_files = []
     end
 
     def compare
       comparisons = {}
       sample_data.each do |filepath|
+        if skip_file?(filepath)
+          skipped_files << File.basename(filepath)
+          next
+        end
+
         comparisons[filepath] = generate_diff(filepath, generated_data(filepath))
       end
       comparisons
@@ -44,9 +56,16 @@ module HudLsa::Generators::Fy2026
     end
 
     def file_contents(filename)
+      file_skips = skips[File.basename(filename)] || {}
+      skip_columns = removed_keys + Array(file_skips[:columns])
+      row_skips = file_skips[:rows] || {}
+
       [].tap do |data|
         CSV.foreach(filename, headers: true) do |row|
-          data << row.to_h.except(*removed_keys).values.map(&:to_s)
+          hash = row.to_h
+          next if row_skips.any? { |column, values| values.include?(hash[column]) }
+
+          data << hash.except(*skip_columns).values.map(&:to_s)
         end
       end.sort
     end
@@ -70,6 +89,10 @@ module HudLsa::Generators::Fy2026
         'HMISParticipationID',
         'PITCount',
       ]
+    end
+
+    private def skip_file?(filepath)
+      skips.dig(File.basename(filepath), :skip_file)
     end
   end
 end

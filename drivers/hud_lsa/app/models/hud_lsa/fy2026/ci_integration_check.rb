@@ -23,6 +23,47 @@ module HudLsa::Fy2026
       hic: 'drivers/hud_lsa/spec/fixtures/files/lsa/fy2026/sample_hic_results',
     }.freeze
 
+    # Known gaps between HUD's sample_hmis_export and its
+    # paired sample_results/sample_hic_results, keyed by scope (:lsa / :hic)
+    # and then by filename. Each file entry may set any combination of:
+    #   columns: ['ColumnName', ...]        - drop these columns from every row before comparing
+    #   rows: { 'ColumnName' => ['value'] } - drop any row (either side) whose ColumnName matches one of these values
+    #   skip_file: true                     - skip this file entirely
+    #
+    # e.g.:
+    # {
+    #   lsa: {
+    #     'SomeFile.csv' => {
+    #       columns: ['SomeColumn'],          # why this column is unreliable
+    #       rows: { 'ReportRow' => ['905'] },  # why this row is unreliable
+    #     },
+    #     'OtherFile.csv' => { skip_file: true }, # why this whole file is unreliable
+    #   },
+    # }
+    #
+    # Every skip must be accompanied by a comment explaining why it's here.
+    KNOWN_SAMPLE_DATA_GAPS = {
+      lsa: {
+        # sample_hmis_export/Enrollment.csv has zero HoH enrollments with an
+        # invalid/missing EnrollmentCoC, this DQ count can only ever compute as 0.
+        # sample_results/LSAReport.csv
+        # expects 12, implying it was generated from a different Enrollment.csv.
+        'LSAReport.csv' => { columns: ['NoCoC'] },
+        # Same underlying condition as NoCoC above, just the per-project version:
+        # "10.4 Get Counts of Households with no Enrollment CoC Record" (ReportRow
+        # 905 in "10 LSACalculated Data Quality.sql").
+        'LSACalculated.csv' => { rows: { 'ReportRow' => ['905'] } },
+      },
+      hic: {
+        'LSAReport.csv' => { columns: ['NoCoC'] },
+        # sample_hic_results is from an older HMIS data generation than the
+        # current sample_hmis_export (HUD has no newer HIC sample for this
+        # release) — Funder/Inventory rows legitimately differ wholesale.
+        'Funder.csv' => { skip_file: true },
+        'Inventory.csv' => { skip_file: true },
+      },
+    }.freeze
+
     OUTPUT_ROOT = 'tmp/lsa_ci_output'
 
     def self.run!(scope:)
@@ -123,13 +164,16 @@ module HudLsa::Fy2026
     end
 
     # Compares generated output to the fixtures with the shared LsaComparisonTool
-    # (which drops per-run volatile columns). Fails loudly if fixtures are missing
-    # so an empty/unfetched fixture dir can't produce a vacuous pass.
+    # (which drops per-run volatile columns, plus the known-gap skips above).
+    # Fails loudly if fixtures are missing so an empty/unfetched fixture dir can't
+    # produce a vacuous pass.
     def compare(generated_dir)
       verify_files_present!(generated_dir)
 
-      diffs = HudLsa::Generators::Fy2026::LsaComparisonTool.new(fixture_dir, generated_dir).compare
+      tool = HudLsa::Generators::Fy2026::LsaComparisonTool.new(fixture_dir, generated_dir, skips: known_sample_data_gaps)
+      diffs = tool.compare
       all_ok = true
+      tool.skipped_files.each { |name| log "  [SKIP] #{name} (known sample data gap)" }
       diffs.each do |sample_path, diff|
         name = File.basename(sample_path)
         missing = diff['sample - generated']
@@ -143,8 +187,12 @@ module HudLsa::Fy2026
           extra.first(2).each { |row| log "      generated: #{row.inspect}" }
         end
       end
-      log(all_ok ? "STAGE compare: PASS (all #{diffs.size} files match)" : 'STAGE compare: FAIL')
+      log(all_ok ? "STAGE compare: PASS (all #{diffs.size} files compared match; #{tool.skipped_files.size} skipped)" : 'STAGE compare: FAIL')
       all_ok
+    end
+
+    def known_sample_data_gaps
+      KNOWN_SAMPLE_DATA_GAPS.fetch(@scope, {})
     end
 
     def verify_files_present!(generated_dir)
