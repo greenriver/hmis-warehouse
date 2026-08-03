@@ -1000,14 +1000,6 @@ module GrdaWarehouse::Hud
       end
     end
 
-    def show_health_pilot_for?(user)
-      patient.present? && patient.accessible_by_user(user).present? && patient.pilot_patient? && GrdaWarehouse::Config.get(:healthcare_available)
-    end
-
-    def show_health_hpc_for?(user)
-      patient.present? && patient.hpc_patient? && user.has_some_patient_access? && GrdaWarehouse::Config.get(:healthcare_available)
-    end
-
     ##############################
     # NOTE: this section deals with the release/consent form as uploaded
     # and maintained in the warehouse

@@ -19,29 +19,6 @@ class StyleGuidesController < ApplicationController
   def icon_font
   end
 
-  def careplan
-    @patient = Health::Patient.pilot.first
-    # Stub out a patient for the style guide if one isn't available
-    @patient ||= OpenStruct.new(
-      client: GrdaWarehouse::Hud::Client.new(
-        id: 1,
-        FirstName: Faker::Name.first_name,
-        LastName: Faker::Name.last_name,
-      ),
-      careplans: Health::Careplan.none,
-    )
-    @client = @patient.client
-    @careplan = @patient.careplans.build
-    @goal = Health::Goal::Base.new
-    @goals = @careplan.hpc_goals.order(number: :asc)
-  end
-
-  def add_goal
-  end
-
-  def add_team_member
-  end
-
   def form
     @form = OpenStruct.new
   end
@@ -149,11 +126,8 @@ class StyleGuidesController < ApplicationController
 
   private def guide_routes
     @guide_routes ||= {
-      add_goal: 'Add Goal',
-      add_team_member: 'Add Team Member',
       alerts: 'Alerts',
       buttons: 'Buttons',
-      careplan: 'Careplan',
       client_dashboard: 'Client Dashboard',
       colors: 'Colors',
       datepicker: 'Date Picker',

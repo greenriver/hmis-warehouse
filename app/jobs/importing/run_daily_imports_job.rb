@@ -185,7 +185,6 @@ module Importing
       run_maintenance_task('System maintenance') do
         # Remove any expired export jobs
         PruneDocumentExportsJob.perform_later
-        Health::PruneDocumentExportsJob.perform_later
 
         YouthFollowUpsJob.set(priority: BaseJob::BULK_PROCESSING_PRIORITY_10).perform_later
         SystemCohortsJob.set(priority: BaseJob::BULK_PROCESSING_PRIORITY_10).perform_later unless Delayed::Job.queued?('SystemCohortsJob')

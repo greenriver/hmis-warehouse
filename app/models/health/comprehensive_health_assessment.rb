@@ -23,10 +23,6 @@ module Health
     phi_attr :health_file_id, Phi::OtherIdentifier, 'ID of health file'
     phi_attr :answers, Phi::FreeText
 
-    def edit_path
-      client_health_cha_path(patient.client_id, id)
-    end
-
     # Generates translation keys of the form "CHA A_Q5_A6"
     def self.answers_for section: nil, question: nil, number: 0
       return [] unless section.present? &&

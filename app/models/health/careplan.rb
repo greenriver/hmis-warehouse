@@ -49,8 +49,6 @@ module Health
     phi_attr :careplan_sender_id, Phi::SmallPopulation, 'ID of sender'
     phi_attr :careplan_sent_on, Phi::Date, 'Date careplan was sent to PCP'
 
-    # has_many :goals, class_name: 'Health::Goal::Base'
-    # has_many :hpc_goals, class_name: 'Health::Goal::Hpc'
     has_one :team, class_name: 'Health::Team', dependent: :destroy
 
     # PT story #158636393 taken off the of the careplan and added to the patient
@@ -61,11 +59,7 @@ module Health
     has_one :health_file, class_name: 'Health::CareplanFile', foreign_key: :parent_id, dependent: :destroy
     include HealthFiles
 
-    has_many :services, through: :patient, class_name: 'Health::Service'
-    has_many :equipments, through: :patient, class_name: 'Health::Equipment'
     has_many :team_members, through: :patient, class_name: 'Health::Team::Member'
-    has_many :hpc_goals, through: :patient, class_name: 'Health::Goal::Hpc'
-    has_many :backup_plans, through: :patient, class_name: 'Health::BackupPlan'
 
     has_many :aco_signature_requests, class_name: 'Health::SignatureRequests::AcoSignatureRequest'
 
@@ -202,28 +196,12 @@ module Health
 
     # End Scope
 
-    def edit_path(anchor: nil)
-      edit_client_health_careplan_path(patient.client, id, anchor: anchor)
-    end
-
-    def signature_path
-      edit_path(anchor: 'complete')
-    end
-
     def signature_complete?
       patient_signed_on.present?
     end
 
     def download_partial
       'signable_document'
-    end
-
-    def show_path
-      client_health_careplan_path(patient.client, id)
-    end
-
-    def current_goals_list
-      hpc_goals
     end
 
     # if the care plan has been signed, return the health file id associated with the most
@@ -271,38 +249,8 @@ module Health
       provider_signed_on < Health::PatientReferral::CP_2_REFERRAL_DATE && ncm_just_approved?
     end
 
-    def set_lock
-      if patient_signed_on.present?
-        self.locked = true
-        archive_services
-        archive_equipment
-        archive_goals
-        archive_team_members
-        archive_backup_plans
-      else
-        self.locked = false
-      end
-      save
-    end
-
-    def archive_services
-      self.service_archive = services.map(&:attributes)
-    end
-
-    def archive_equipment
-      self.equipment_archive = equipments.map(&:attributes)
-    end
-
-    def archive_goals
-      self.goals_archive = hpc_goals.map(&:attributes)
-    end
-
     def archive_team_members
       self.team_members_archive = team_members.map(&:attributes)
-    end
-
-    def archive_backup_plans
-      self.backup_plan_archive = backup_plans.map(&:attributes)
     end
 
     def revise!

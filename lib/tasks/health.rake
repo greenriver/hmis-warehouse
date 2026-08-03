@@ -64,8 +64,6 @@ namespace :health do
         form_id = Health::ParticipationForm.where(health_file_id: file.id).pluck(:id).first
       when 'Health::ComprehensiveHealthAssessmentFile'
         form_id = Health::ComprehensiveHealthAssessment.where(health_file_id: file.id).pluck(:id).first
-      when 'Health::SdhCaseManagementNoteFile'
-        form_id = Health::SdhCaseManagementNote.where(health_file_id: file.id).pluck(:id).first
       when 'Health::ReleaseFormFile'
         form_id = Health::ReleaseForm.where(health_file_id: file.id).pluck(:id).first
       when 'Health::SignableDocumentFile'

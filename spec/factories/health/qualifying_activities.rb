@@ -7,13 +7,6 @@
 # frozen_string_literal: true
 
 FactoryBot.define do
-  factory :qa_source, class: 'Health::SdhCaseManagementNote' do
-    title { 'SdhCaseManagementNote' }
-    date_of_contact { '2023-03-31'.to_date }
-    patient
-    user
-  end
-
   factory :qualifying_activity, class: 'Health::QualifyingActivity' do
     user_full_name { 'First Last' }
     follow_up { 'X' }
@@ -22,7 +15,6 @@ FactoryBot.define do
     reached_client { :yes }
     activity { :outreach }
     naturally_payable { true }
-    association :source, factory: :qa_source
     user
     patient
   end
@@ -34,7 +26,6 @@ FactoryBot.define do
     mode_of_contact { :in_person }
     reached_client { :yes }
     activity { :outreach }
-    association :source, factory: :qa_source
     user
     association :patient
   end
@@ -50,7 +41,6 @@ FactoryBot.define do
     mode_of_contact { :in_person }
     reached_client { :yes }
     activity { :outreach }
-    association :source, factory: :qa_source
     user
     patient
   end
@@ -63,7 +53,6 @@ FactoryBot.define do
     mode_of_contact_other { 'X' }
     reached_client { :yes }
     activity { :pctp_signed }
-    association :source, factory: :qa_source
     user
     patient
   end
@@ -76,7 +65,6 @@ FactoryBot.define do
     mode_of_contact_other { 'X' }
     reached_client { :yes }
     activity { :cha }
-    association :source, factory: :qa_source
     user
     patient
   end
@@ -89,7 +77,6 @@ FactoryBot.define do
     mode_of_contact_other { 'X' }
     reached_client { :yes }
     activity { :discharge_follow_up }
-    association :source, factory: :qa_source
     user
     patient
   end
@@ -102,7 +89,6 @@ FactoryBot.define do
     mode_of_contact_other { 'X' }
     reached_client { :yes }
     activity { :care_team }
-    association :source, factory: :qa_source
     user
     patient
   end
