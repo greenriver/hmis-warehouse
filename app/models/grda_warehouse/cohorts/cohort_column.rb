@@ -23,7 +23,14 @@ module GrdaWarehouse::Cohorts
 
     def remove_from_cohorts
       GrdaWarehouse::Cohort.all.each do |cohort|
-        cohort.update!(column_state: cohort.column_state.reject { |col| col.cohort_column.class_name == class_name })
+        # col.class_name (CohortColumns::Base#class_name is just `self.class.name`) rather than
+        # col.cohort_column.class_name: the latter memoizes a live GrdaWarehouse::Cohorts::CohortColumn
+        # (an ActiveRecord instance) onto every surviving col before it gets re-serialized into
+        # column_state below, which fails once yaml_column_permitted_classes restricts what
+        # classes are allowed in that column (GrdaWarehouse::Cohorts::CohortColumn isn't, and
+        # shouldn't be, one of them) — both produce the identical class-name string, so this is
+        # behavior-preserving, just without the unnecessary DB lookup and ivar side effect.
+        cohort.update!(column_state: cohort.column_state.reject { |col| col.class_name == class_name })
       end
     end
 

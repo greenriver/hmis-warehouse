@@ -10,14 +10,7 @@ require 'rails_helper'
 
 # Exercises the shared Base behavior (CSV export + permissions note) through the Legacy subclass.
 RSpec.describe Audit::CohortAccess::Base do
-  around(:each) do |example|
-    PaperTrailHelper.with_paper_trail do
-      PaperTrail.request.enabled = true
-      example.run
-    ensure
-      PaperTrail.request.enabled = false
-    end
-  end
+  around(:each) { |example| PaperTrailHelper.with_paper_trail { example.run } }
 
   let(:cohort) { create(:cohort) }
   let(:user) { create(:user) }
