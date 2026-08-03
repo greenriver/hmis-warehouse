@@ -1,8 +1,8 @@
 # HMIS Permissions
 
-The HMIS uses a scoped RBAC (Role-Based Access Control) system that is structurally similar to, but entirely separate from, [warehouse permissions](warehouse-permissions.md). Each grant combines a role (the actions), a collection of entities (the targets), and a user group (the recipients). Unlike the warehouse, the HMIS has no legacy permissions path — every grant goes through `Hmis::AccessControl`.
+The HMIS uses a scoped RBAC (Role-Based Access Control) system that is structurally similar to, but entirely separate from, [warehouse permissions](../warehouse/warehouse-permissions.md). Each grant combines a role (the actions), a collection of entities (the targets), and a user group (the recipients). Unlike the warehouse, the HMIS has no legacy permissions path — every grant goes through `Hmis::AccessControl`.
 
-Everything in the HMIS is additionally scoped to a single data source. A user's permissions apply only within the HMIS they are currently signed into, even if the same account has access to another HMIS installation in the same warehouse. See [Multi-HMIS Support](../architecture/multi-hmis-support.md).
+Everything in the HMIS is additionally scoped to a single data source. A user's permissions apply only within the HMIS they are currently signed into, even if the same account has access to another HMIS installation in the same warehouse. See [Multi-HMIS Support](../../architecture/multi-hmis-support.md).
 
 ## Core Concepts
 
@@ -110,7 +110,7 @@ The first two are complementary rather than alternatives: most code scopes the q
 
 Policy classes in `drivers/hmis/app/models/hmis/auth_policies/` are the intended API for authorization. They answer domain questions rather than exposing raw permission flags, they enforce requirements, and they verify the resource belongs to the user's current data source. Policies share a per-request `UserContext` that memoizes permission sets and batches database access through context loaders, so repeated checks do not re-query.
 
-See [HMIS Authorization Policy Architecture](../../drivers/hmis/app/models/hmis/auth_policies/README.md) for the component breakdown and instructions for adding a policy.
+See [HMIS Authorization Policy Architecture](hmis-auth-policies.md) for the component breakdown and instructions for adding a policy.
 
 ### `viewable_by` entity scopes (preferred, for multiple records)
 
@@ -152,7 +152,7 @@ Four conventions apply to the GraphQL API:
 - **Resolving records**: fields and mutations that look up or filter records do so through a `viewable_by` scope, so visibility is enforced by the query itself rather than by a later check.
 - **Object-level**: `self.authorized?(object, ctx)` on a type, typically delegating to a policy. This is a secondary guard that raises an exception if unauthorized.
 - **Field-level**: `Types::BaseField` accepts `authorize_with:` (a lambda receiving user and object) or the deprecated `permissions:` kwarg, which routes through `GraphqlPermissionChecker`. Unauthorized fields resolve to `null` rather than erroring. See `HmisSchema::Enrollment` for an example, which differentiates between `field` and `summary_field`.
-- **Access objects**: the nested `access { ... }` objects the frontend uses to decide what to render. New fields should use `bool_field` with a memoized `policy` helper; the legacy `can`, `composite_perm`, and `root_can` helpers expose raw permissions and are not data-source safe. See [ADR 0006](../adr/0006-policy-based-graphql-access-fields.md).
+- **Access objects**: the nested `access { ... }` objects the frontend uses to decide what to render. New fields should use `bool_field` with a memoized `policy` helper; the legacy `can`, `composite_perm`, and `root_can` helpers expose raw permissions and are not data-source safe. See [ADR 0006](../../adr/0006-policy-based-graphql-access-fields.md).
 - **`current_permission?` (legacy, avoid in new code)**: `current_permission?(permission:, entity:)` from `GraphqlApplicationHelper` checks one raw permission against one entity through `GraphqlPermissionChecker`, and is what the deprecated `permissions:` kwarg and `can` access-object helper use under the hood. It bypasses requirement resolution and reads as a permission flag rather than a domain question. It is being phased out in favor of instance policy checks — don't add new usages, and replace them when touching nearby code.
 
 ## Caching
@@ -182,12 +182,12 @@ Roles, Collections, UserGroups, and AccessControls are versioned with `paper_tra
 
 ## Related Documentation
 
-- [HMIS Authorization Policy Architecture](../../drivers/hmis/app/models/hmis/auth_policies/README.md) — policies, `UserContext`, and context loaders
-- [Warehouse Permissions](warehouse-permissions.md) — the parallel system on the warehouse side
-- [Warehouse Auth Policies](warehouse-auth-policies.md) — policy pattern in the warehouse
-- [Multi-HMIS Support](../architecture/multi-hmis-support.md) — how requests bind to a data source, and why permissions are data-source scoped
-- [Data Sources](data-sources.md)
-- [ADR 0006: Policy-Based GraphQL `access` Fields](../adr/0006-policy-based-graphql-access-fields.md) — why access fields delegate to policies
-- [ADR 0002: PII Management Strategy](../adr/0002-pii-management-strategy.md) — access control as part of the broader PII strategy
-- [Security concepts](../architecture/08-concepts/08-2-security.md)
-- [Developer FAQ](../developer/faq.md) — includes guidance on choosing between policies and permission flags
+- [HMIS Authorization Policy Architecture](hmis-auth-policies.md) — policies, `UserContext`, and context loaders
+- [Warehouse Permissions](../warehouse/warehouse-permissions.md) — the parallel system on the warehouse side
+- [Warehouse Auth Policies](../warehouse/warehouse-auth-policies.md) — policy pattern in the warehouse
+- [Multi-HMIS Support](../../architecture/multi-hmis-support.md) — how requests bind to a data source, and why permissions are data-source scoped
+- [Data Sources](../warehouse/data-sources.md)
+- [ADR 0006: Policy-Based GraphQL `access` Fields](../../adr/0006-policy-based-graphql-access-fields.md) — why access fields delegate to policies
+- [ADR 0002: PII Management Strategy](../../adr/0002-pii-management-strategy.md) — access control as part of the broader PII strategy
+- [Security concepts](../../architecture/08-concepts/08-2-security.md)
+- [Developer FAQ](../../developer/faq.md) — includes guidance on choosing between policies and permission flags
