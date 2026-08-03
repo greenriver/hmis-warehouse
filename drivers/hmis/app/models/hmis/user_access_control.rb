@@ -7,7 +7,7 @@
 # frozen_string_literal: true
 
 # HMIS uses similar but separate permissions system from the warehouse
-# @see docs/features/hmis-permissions.md
+# @see docs/features/hmis/hmis-permissions.md
 
 class Hmis::UserAccessControl < ApplicationRecord
   acts_as_paranoid

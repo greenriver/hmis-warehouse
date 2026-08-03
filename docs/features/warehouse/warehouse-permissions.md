@@ -156,4 +156,4 @@ Super-admin permissions (`can_edit_roles`, `can_edit_users`, `can_manage_config`
 
 ## HMIS Permissions
 
-The HMIS front-end (`drivers/hmis/`) uses a structurally similar but separate permissions system with its own `Hmis::AccessControl`, `Hmis::UserAccessControl`, and `Hmis::Role` models. See [HMIS Permissions](hmis-permissions.md).
+The HMIS front-end (`drivers/hmis/`) uses a structurally similar but separate permissions system with its own `Hmis::AccessControl`, `Hmis::UserAccessControl`, and `Hmis::Role` models. See [HMIS Permissions](../hmis/hmis-permissions.md).
