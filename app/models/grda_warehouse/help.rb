@@ -9,7 +9,7 @@
 class GrdaWarehouse::Help < GrdaWarehouseBase
   has_paper_trail
 
-  DEFAULT_HELP_URL = 'https://github.com/greenriver/hmis-warehouse/wiki'.freeze
+  DEFAULT_HELP_URL = 'https://github.com/greenriver/hmis-warehouse/wiki'
 
   scope :sorted, -> do
     order(title: :asc)
