@@ -110,7 +110,7 @@ RSpec.describe Hmis::Hud::Client, type: :model do
 
       it 'makes a reasonable number of db queries' do
         expect do
-          Hmis::Hud::Client.viewable_by(user_with_access_to_p1_clients)
+          Hmis::Hud::Client.viewable_by(user_with_access_to_p1_clients).to_a
         end.to make_database_queries(count: 5..12)
       end
     end

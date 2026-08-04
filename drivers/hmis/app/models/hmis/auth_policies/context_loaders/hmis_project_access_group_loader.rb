@@ -43,17 +43,19 @@ module Hmis::AuthPolicies::ContextLoaders
       @cache.merge!(no_access_project_ids.index_with(nil))
     end
 
-    # {project_id => [access_group_id, ...]} for every project covered by the given access groups,
-    # directly or indirectly. The inverse of #get, so results mention only the access groups passed in.
-    # Deliberately doesn't populate the per-project cache, which holds every access group for a project
-    # regardless of who can reach it. Deleted access groups need no filtering here, since callers arrive
-    # with groups they resolved through their own access controls. IDs are sorted so that projects sharing
-    # an access profile share a cache entry in HmisPermissionLoader.
-    def access_group_ids_by_project(access_group_ids)
+    # {project_id => [access_group_id, ...]} for projects in the given data source that are covered by the
+    # given access groups, directly or indirectly. The inverse of #get, so results mention only the access
+    # groups passed in. Deliberately doesn't populate the per-project cache, which holds every access group
+    # for a project regardless of who can reach it. Deleted access groups need no filtering here, since
+    # callers arrive with groups they resolved through their own access controls. IDs are sorted so that
+    # projects sharing an access profile share a cache entry in HmisPermissionLoader.
+    def access_group_ids_by_project(access_group_ids, data_source_id:)
       return {} if access_group_ids.empty?
 
       Hmis::ProjectAccessGroupMember.
+        joins(:project).
         where(access_group_id: access_group_ids).
+        where(Hmis::Hud::Project.arel_table[:data_source_id].eq(data_source_id)).
         pluck(:project_id, :access_group_id).
         group_by(&:first).
         transform_values { |rows| rows.map(&:last).sort }

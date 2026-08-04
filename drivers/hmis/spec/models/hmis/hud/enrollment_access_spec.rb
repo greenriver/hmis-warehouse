@@ -164,7 +164,7 @@ RSpec.describe Hmis::Hud::Enrollment, type: :model do
 
       it 'makes a reasonable number of db queries' do
         expect do
-          Hmis::Hud::Enrollment.viewable_by(user_with_full_access)
+          Hmis::Hud::Enrollment.viewable_by(user_with_full_access).to_a
         end.to make_database_queries(count: 5..12)
       end
     end

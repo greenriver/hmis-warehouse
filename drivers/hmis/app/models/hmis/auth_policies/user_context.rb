@@ -62,13 +62,13 @@ class Hmis::AuthPolicies::UserContext
     permission_loader.for_access_group_ids(access_group_ids)
   end
 
-  # IDs of the projects where the user has the given permission(s), evaluated the same way as
-  # #project_permissions: permissions are unioned across the user's roles at each project, and
-  # requirements are resolved. Callers therefore name only the permissions they care about, not the
+  # IDs of the projects in the current data source where the user has the given permission(s), evaluated
+  # the same way as #project_permissions: permissions are unioned across the user's roles at each project,
+  # and requirements are resolved. Callers therefore name only the permissions they care about, not the
   # requirements behind them.
   #
-  # mode: :any (the default) matches projects granting at least one of the permissions, :all matches
-  # projects granting every one of them.
+  # mode: :any matches projects granting at least one of the permissions, :all matches projects granting
+  # every one of them.
   #
   # This is the bulk counterpart to #project_permissions, for scopes that filter projects (or records
   # that hang off projects) rather than authorizing a single record.
@@ -158,12 +158,13 @@ class Hmis::AuthPolicies::UserContext
 
   protected
 
-  # {project_id => [access_group_id, ...]} for every project the user reaches through an AccessControl,
-  # including indirectly via organization, data source, or project group.
-  #
-  # Not filtered to the current data source; callers scope projects to it (see Project.with_access).
+  # {project_id => [access_group_id, ...]} for every project in the current data source that the user
+  # reaches through an AccessControl, including indirectly via organization, data source, or project group.
   memoize def access_group_ids_by_project
-    project_access_group_loader.access_group_ids_by_project(user.access_groups.pluck(:id))
+    project_access_group_loader.access_group_ids_by_project(
+      user.access_groups.pluck(:id),
+      data_source_id: @data_source_id,
+    )
   end
 
   def project_belongs_to_current_data_source?(project_id)

@@ -167,8 +167,10 @@ class Hmis::User < ApplicationRecord
   end
 
   # NOTE: this matches Role columns directly, so it does not resolve permission requirements.
-  # Project.with_access does, and should be preferred for anything project-scoped.
-  def entities_with_permissions(model, *permissions, mode: :any)
+  # Project.with_access does, and should be preferred for anything project-scoped. Since with_access
+  # stopped calling through here, Project.viewable_by is the only caller, so mode: :all (and the :all
+  # branch of Hmis::Role.with_permissions) is exercised only by specs.
+  private def entities_with_permissions(model, *permissions, mode: :any)
     raise "missing data source on user id #{id}" unless hmis_data_source_id
 
     # Get all the roles that have this permission

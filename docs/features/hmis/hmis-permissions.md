@@ -98,8 +98,6 @@ Scopes get the same answer, because `Project.with_access` resolves permissions t
 Hmis::Hud::Project.with_access(user, :can_view_enrollment_details) # implies project and client visibility
 ```
 
-`User#entities_with_permissions`, which backs `Project.viewable_by`, is the exception: it matches Role columns directly and does not resolve requirements.
-
 ## How Permission Checks Work
 
 Three questions come up in practice, each with a preferred tool:
