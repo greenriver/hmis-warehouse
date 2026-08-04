@@ -321,6 +321,7 @@ jobs:
             drivers/hmis/spec/models/hmis/user_auth_method_spec.rb
             spec/models/idp/jwt_helper_spec.rb
             spec/models/concerns/idp/jwt_user_spec.rb
+            spec/models/concerns/idp/support_spec.rb
             spec/controllers/concerns/idp/jwt_current_user_spec.rb
             spec/requests/idp/warehouse_jwt_wiring_spec.rb
             spec/services/idp/service_factory_spec.rb
