@@ -23,6 +23,12 @@ module Idp
       raise NotImplementedError, "#{name} must implement .from_config"
     end
 
+    # Validate that a persisted Idp::ServiceConfig carries every column this service's
+    # .from_config needs, adding errors to the record for any that are missing. Base is a
+    # no-op — providers with required columns override.
+    def self.validate_config(record)
+    end
+
     # @return [Hash] { success: Boolean, connector_user_id: String|nil }
     def create_user(email:, first_name:, last_name:, phone: nil)
       raise NotImplementedError, "#{self.class.name} must implement #create_user"

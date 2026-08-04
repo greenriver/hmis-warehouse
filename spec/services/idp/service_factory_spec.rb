@@ -8,7 +8,7 @@
 
 RSpec.describe Idp::ServiceFactory, type: :model, if: AuthMethod.jwt? do
   describe '.for_connector' do
-    context 'with database config present' do
+    context 'with an active database config' do
       let!(:config) do
         create(
           :idp_service_config,
@@ -18,52 +18,47 @@ RSpec.describe Idp::ServiceFactory, type: :model, if: AuthMethod.jwt? do
         )
       end
 
-      it 'returns service instance from database config' do
+      it 'returns the managed service instance built from the row' do
         service = described_class.for_connector('keycloak')
 
         expect(service).to be_a(Idp::KeycloakService)
         expect(service.send(:api_url)).to eq('http://test.keycloak:8080')
         expect(service.send(:client_secret)).to eq('test-token')
       end
+    end
 
-      it 'uses database config over ENV variables' do
-        allow(ENV).to receive(:[]).and_call_original
-        allow(ENV).to receive(:[]).with('KEYCLOAK_API_URL').
-          and_return('http://env.keycloak:9090')
+    context 'with an inactive database config' do
+      let!(:inactive_config) do
+        create(:idp_service_config, connector_id: 'keycloak', active: false)
+      end
 
+      # The DB row is the single source of truth, so a deactivated row is an
+      # explicit "turn this connector off" that degrades to unmanaged.
+      it 'returns a NullService carrying the connector_id' do
         service = described_class.for_connector('keycloak')
 
-        # Should use database config, not ENV
-        expect(service.send(:api_url)).to eq('http://test.keycloak:8080')
+        expect(service).to be_a(Idp::NullService)
+        expect(service.connector_id).to eq('keycloak')
+        expect(service.supports_user_management?).to be(false)
       end
     end
 
-    context 'without database config' do
-      before do
-        Idp::ServiceConfig.delete_all
-      end
+    context 'with no database config' do
+      before { Idp::ServiceConfig.delete_all }
 
-      it 'returns service instance from ENV config' do
-        allow_any_instance_of(Idp::KeycloakService).
-          to receive(:default_config).
-          and_return({
-                       api_url: 'http://env.keycloak:8080',
-                       realm: 'env-realm',
-                       client_id: 'env-client',
-                       client_secret: 'env-secret',
-                       org_id: 'env-org',
-                     })
-
-        service = described_class.for_connector('keycloak')
-
-        expect(service).to be_a(Idp::KeycloakService)
-      end
-    end
-
-    context 'with unknown connector' do
       # Fail-soft: a valid JWT from a connector with no config still authenticates
       # (UserProvisioner never calls this), so capability checks must degrade to a
       # NullService rather than raising and crashing the request.
+      it 'returns a NullService carrying the connector_id, without raising' do
+        service = described_class.for_connector('keycloak')
+
+        expect(service).to be_a(Idp::NullService)
+        expect(service.connector_id).to eq('keycloak')
+        expect(service.supports_user_management?).to be(false)
+      end
+    end
+
+    context 'with an unknown connector' do
       it 'returns a NullService carrying the connector_id, without raising' do
         service = described_class.for_connector('unknown_idp')
 
@@ -73,55 +68,34 @@ RSpec.describe Idp::ServiceFactory, type: :model, if: AuthMethod.jwt? do
       end
     end
 
-    context 'with blank connector' do
+    context 'with a blank connector' do
       it 'returns a NullService without raising' do
         expect(described_class.for_connector(nil)).to be_a(Idp::NullService)
         expect(described_class.for_connector('')).to be_a(Idp::NullService)
       end
     end
 
-    context 'with soft-deleted config' do
-      let(:env_config) do
-        { api_url: 'http://env.keycloak:8080', realm: 'env-realm', client_id: 'env-client', client_secret: 'env-secret' }
-      end
-
-      let!(:deleted_config) do
-        config = create(
-          :idp_service_config,
-          connector_id: 'keycloak',
-        )
-        config.destroy
-        config
-      end
-
-      it 'uses ENV config, ignoring deleted database config' do
-        allow_any_instance_of(Idp::KeycloakService).to receive(:default_config).and_return(env_config)
-
-        service = described_class.for_connector('keycloak')
-
-        expect(service).to be_a(Idp::KeycloakService)
-      end
-    end
-
-    context 'with inactive config' do
-      let(:env_config) do
-        { api_url: 'http://env.keycloak:8080', realm: 'env-realm', client_id: 'env-client', client_secret: 'env-secret' }
-      end
-
+    context 'with both an inactive and an active row for the same connector_id' do
+      # Deactivating must not strand a connector: a fresh active row for the same
+      # connector_id restores the managed service via the active scope.
       let!(:inactive_config) do
+        create(:idp_service_config, connector_id: 'keycloak', active: false)
+      end
+
+      let!(:active_config) do
         create(
           :idp_service_config,
           connector_id: 'keycloak',
-          active: false,
+          api_url: 'http://test.keycloak:8080',
+          service_token: 'test-token',
         )
       end
 
-      it 'uses ENV config, ignoring inactive database config' do
-        allow_any_instance_of(Idp::KeycloakService).to receive(:default_config).and_return(env_config)
-
+      it 'prefers the active row and builds the managed service' do
         service = described_class.for_connector('keycloak')
 
         expect(service).to be_a(Idp::KeycloakService)
+        expect(service.config[:api_url]).to eq('http://test.keycloak:8080')
       end
     end
   end

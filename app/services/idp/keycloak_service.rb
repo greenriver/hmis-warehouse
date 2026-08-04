@@ -13,15 +13,23 @@ require 'json'
 module Idp
   # Keycloak IDP service over the Admin REST API.
   #
-  # Authenticates via OAuth2 client_credentials. Initialized with a config hash
-  # (from Idp::ServiceConfig) or falls back to ENV. Required config keys: api_url,
-  # realm, client_id, client_secret. There is no realm default — a blank realm
-  # raises, so it must be configured explicitly (DB config or KEYCLOAK_REALM).
+  # Authenticates via OAuth2 client_credentials. Built from an Idp::ServiceConfig
+  # row (seeded from ENV) via .from_config. Required config keys: api_url, realm,
+  # client_id, client_secret; validate_config! raises when any is blank.
   class KeycloakService < Service
     UPDATABLE_ATTRIBUTES = [:first_name, :last_name, :email].freeze
 
+    # Most calls are on a request path, so the default budget is short enough that a hung Keycloak
+    # fails the request rather than holding the thread.
+    OPEN_TIMEOUT_SECONDS = 2
+    IO_TIMEOUT_SECONDS = 3
+
+    # For the two calls that move more than a status code: the paginated user listing (#each_user)
+    # and the bulk user import (#partial_import). Requested at the call site.
+    BULK_IO_TIMEOUT_SECONDS = 30
+
     def initialize(config: nil)
-      super(config: config || default_config)
+      super(config: config || {})
       validate_config!
       @cached_token = nil
       @token_expires_at = nil
@@ -33,7 +41,17 @@ module Idp
             client_id: config.client_id,
             client_secret: config.service_token,
             realm: config.keycloak_realm,
+            manage_users: config.manage_users,
+            browser_url: config.browser_url,
+            account_client_id: config.account_client_id,
           })
+    end
+
+    # api_url/service_token are validated globally on the record; keycloak_realm and
+    # client_id are the columns .from_config additionally needs to build a usable service.
+    def self.validate_config(record)
+      record.errors.add(:keycloak_realm, :blank) if record.keycloak_realm.blank?
+      record.errors.add(:client_id, :blank) if record.client_id.blank?
     end
 
     # @return [Hash] { success: Boolean, connector_user_id: String|nil }
@@ -62,23 +80,34 @@ module Idp
       unknown = attributes.keys - UPDATABLE_ATTRIBUTES
       raise ArgumentError, "Unknown attributes: #{unknown.join(', ')}" if unknown.any?
 
+      # A blank name here is an intentional clear, not a missing field: callers pass exactly the
+      # changes they made locally (Idp::Support#idp_update_profile!). Include each field whenever
+      # it is present in the hash
       patch = {}
-      patch['firstName'] = attributes[:first_name] if attributes[:first_name]
-      patch['lastName'] = attributes[:last_name] if attributes[:last_name]
+      patch['firstName'] = attributes[:first_name] if attributes.key?(:first_name)
+      patch['lastName'] = attributes[:last_name] if attributes.key?(:last_name)
 
-      email_changed = attributes[:email].present?
+      email_changed = attributes.key?(:email)
       if email_changed
-        # We treat username and email as one field even though Keycloak stores them
-        # separately; create_user seeds username from email, so keep them in lockstep here too.
+        # The realm runs email-as-username, so Keycloak keeps username in step with email
+        # on its own — we only send the email.
         patch['email'] = attributes[:email]
-        patch['username'] = attributes[:email]
         patch['emailVerified'] = false
       end
 
       return true if patch.empty?
 
       result = put_full_user(user_id: user_id, patch: patch, operation: :update_user, failure: 'Failed to update user')
-      send_execute_actions_email(user_id: user_id, actions: ['VERIFY_EMAIL']) if email_changed
+      if email_changed
+        # Keycloak already holds the new address, so a mail failure must not fail the update: the
+        # caller would roll its local write back and leave the two out of step in the other
+        # direction, with no retry that could close the gap.
+        begin
+          send_execute_actions_email(user_id: user_id, actions: ['VERIFY_EMAIL'])
+        rescue ServiceError => e
+          Sentry.capture_exception_with_info(e, "Updated #{user_id} in #{idp_name}, but couldn't send the address verification email")
+        end
+      end
       result
     end
 
@@ -121,7 +150,7 @@ module Idp
 
       first = 0
       loop do
-        response = make_request(:get, "/admin/realms/#{realm}/users?first=#{first}&max=#{page_size}")
+        response = make_request(:get, "/admin/realms/#{realm}/users?first=#{first}&max=#{page_size}", io_timeout: BULK_IO_TIMEOUT_SECONDS)
         users = handle_response(response, operation: :each_user, failure: 'Failed to list users') do |resp|
           JSON.parse(resp.body)
         end
@@ -143,6 +172,8 @@ module Idp
           "User not found: #{user_id}",
           idp_name: idp_name,
           operation: :get_user,
+          # The account is gone over there; the same 404 comes back until the link is repaired here.
+          transient: false,
         )
       end
 
@@ -171,19 +202,19 @@ module Idp
     end
 
     def supports_user_management?
-      true
+      manage_users?
     end
 
     def supports_profile_updates?
-      true
+      manage_users?
     end
 
     def supports_user_creation?
-      true
+      manage_users?
     end
 
     def supports_account_backfill?
-      true
+      manage_users?
     end
 
     # Deep-link to the Keycloak Account Console for this realm, where end users
@@ -251,18 +282,9 @@ module Idp
       }
     end
 
-    def logout_url(post_logout_redirect_uri:, client_id: nil)
-      return post_logout_redirect_uri unless api_url.present?
-
-      params = { post_logout_redirect_uri: post_logout_redirect_uri }
-      params[:client_id] = client_id if client_id.present?
-
-      "#{api_url}/realms/#{realm}/protocol/openid-connect/logout?#{params.to_query}"
-    end
-
     # Used by the migration tooling; remove once Devise account data has been migrated.
     def partial_import(import_data)
-      make_request(:post, "/admin/realms/#{realm}/partialImport", body: import_data)
+      make_request(:post, "/admin/realms/#{realm}/partialImport", body: import_data, io_timeout: BULK_IO_TIMEOUT_SECONDS)
     end
 
     # Used by the migration tooling; remove once Devise account data has been migrated.
@@ -305,6 +327,31 @@ module Idp
       config[:api_url]
     end
 
+    # Whether this realm's service account has admin/manage-API access. Defaults to true so a config
+    # built without the key (or a direct .new for tests) stays admin-managed; false is authenticate-only.
+    def manage_users?
+      config.fetch(:manage_users, true)
+    end
+
+    # Base URL for links we hand to a browser instead of fetching ourselves. Same host as the
+    # Admin API except in dev, where containers talk to Keycloak directly but the browser goes
+    # through Traefik, and the deep-links need the origin that owns the SSO session cookies.
+    #
+    # Per-realm on the Idp::ServiceConfig row (seeded once from KEYCLOAK_PUBLIC_URL); the DB is the
+    # single source of truth at request time. Falls back to api_url when unset — the browser origin
+    # only differs from the API origin behind a split-network deployment.
+    def browser_url
+      return nil if api_url.blank?
+
+      config[:browser_url].presence || api_url
+    end
+
+    # The OIDC client an application-initiated action (AIA) runs under. Per-realm on the config row
+    # (seeded from KEYCLOAK_ACCOUNT_CLIENT_ID); defaults to Keycloak's built-in 'account' client.
+    def account_client_id
+      config[:account_client_id].presence || 'account'
+    end
+
     def realm
       config[:realm]
     end
@@ -329,11 +376,14 @@ module Idp
       @cached_token
     end
 
-    def build_http(uri)
+    # `io_timeout` overrides the read and write budget for a caller that needs longer than the
+    # default — see BULK_IO_TIMEOUT_SECONDS.
+    def build_http(uri, io_timeout: IO_TIMEOUT_SECONDS)
       http = Net::HTTP.new(uri.host, uri.port)
       http.use_ssl = uri.scheme == 'https'
-      http.open_timeout = 10
-      http.read_timeout = 30
+      http.open_timeout = OPEN_TIMEOUT_SECONDS
+      http.read_timeout = io_timeout
+      http.write_timeout = io_timeout
       http
     end
 
@@ -356,6 +406,8 @@ module Idp
           "Failed to obtain access token: #{response.code}",
           idp_name: idp_name,
           operation: :access_token,
+          # Refused credentials are an ops fix; no retry outlasts them.
+          transient: transient_status?(response.code.to_i),
         )
       end
 
@@ -363,9 +415,9 @@ module Idp
     end
 
     # Make an authenticated request to the Keycloak Admin API, retrying once on 401.
-    def make_request(method, path, body: nil, token_retried: false)
+    def make_request(method, path, body: nil, io_timeout: IO_TIMEOUT_SECONDS, token_retried: false)
       uri = URI("#{api_url}#{path}")
-      http = build_http(uri)
+      http = build_http(uri, io_timeout: io_timeout)
 
       request_class =
         case method
@@ -386,7 +438,7 @@ module Idp
       if response.code.to_i == 401 && !token_retried
         @cached_token = nil
         @token_expires_at = nil
-        return make_request(method, path, body: body, token_retried: true)
+        return make_request(method, path, body: body, io_timeout: io_timeout, token_retried: true)
       end
 
       response
@@ -394,23 +446,48 @@ module Idp
 
     # Interpret a Keycloak Admin API response: yield the response on 2xx and
     # return the block's value, otherwise raise a ServiceError tagged with the
-    # operation. `failure` is the verb used in the 4xx message.
+    # operation. `failure` names the call in every message, 5xx included — an
+    # operator reading Sentry needs to know which one it was. 409 gets the
+    # ConflictError subclass so callers can tell "this email is taken over there"
+    # from "the connector is broken".
     def handle_response(response, operation:, failure:)
-      case response.code.to_i
+      code = response.code.to_i
+      case code
       when 200..299
         yield(response)
+      when 409
+        raise ConflictError.new(
+          "#{failure}: #{error_message_from(response)}",
+          idp_name: idp_name,
+          operation: operation,
+          # The address belongs to another account over there until somebody changes it.
+          transient: false,
+        )
       when 400..499
         raise ServiceError.new(
           "#{failure}: #{error_message_from(response)}",
           idp_name: idp_name,
           operation: operation,
+          transient: transient_status?(code),
         )
       else
         raise ServiceError.new(
-          "Unexpected response from Keycloak: #{response.code}",
+          "#{failure}: unexpected response from Keycloak (#{code})",
           idp_name: idp_name,
           operation: operation,
         )
+      end
+    end
+
+    # A 4xx means Keycloak answered and will keep giving the same answer until somebody changes
+    # something — there or in our config — so neither a job retry nor the sync cooldown buys
+    # anything (Idp::SyncUserFromIdpJob branches on this). 408 and 429 are the exceptions: they
+    # invite the caller back. 5xx and transport failures stay transient.
+    def transient_status?(code)
+      case code
+      when 408, 429 then true
+      when 400..499 then false
+      else true
       end
     end
 
@@ -434,17 +511,6 @@ module Idp
       response = make_request(:put, "/admin/realms/#{realm}/users/#{user_id}", body: current.merge(patch))
 
       handle_response(response, operation: operation, failure: failure) { true }
-    end
-
-    protected
-
-    def default_config
-      {
-        api_url: ENV['KEYCLOAK_API_URL'],
-        realm: ENV['KEYCLOAK_REALM'],
-        client_id: ENV['KEYCLOAK_SERVICE_CLIENT_ID'],
-        client_secret: ENV['KEYCLOAK_SERVICE_CLIENT_SECRET'],
-      }
     end
   end
 end

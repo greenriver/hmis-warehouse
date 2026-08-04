@@ -46,7 +46,9 @@ module Idp::Support
 
   # Whether the JWT-arm admin surface should offer the "Force Password Reset" action
   def idp_password_management_enabled?
-    primary_idp.present?
+    idp_service.supports_user_management?
+  rescue Idp::ServiceError
+    false
   end
 
   # Under JWT credentials are IdP-managed, so admins cannot re-confirm
@@ -76,6 +78,7 @@ module Idp::Support
   # provisioned account off to its owner without the admin setting a credential.
   def idp_send_account_setup_email!
     return false unless primary_idp
+    return false unless idp_service.supports_user_creation?
 
     idp_service.send_execute_actions_email(user_id: idp_connector_user_id!, actions: ['UPDATE_PASSWORD', 'VERIFY_EMAIL'])
   end
@@ -91,6 +94,18 @@ module Idp::Support
 
   private
 
+  # Unlike the render-time predicates above, this deliberately does not rescue Idp::ServiceError. A
+  # deactivated or removed config resolves to a NullService (returns false) and the local write still
+  # proceeds — the local `active` flag is what admits the user here. But a config we can't build
+  # (blank client_id, unregistered provider) means an IdP holds this account and we can't reach it,
+  # so the raise aborts the write rather than letting local state diverge. Deactivate the
+  # Idp::ServiceConfig to fall back to the NullService case.
+  def idp_user_management_available?
+    return false unless primary_idp
+
+    idp_service.supports_user_management?
+  end
+
   def primary_auth_source
     return @primary_auth_source if defined?(@primary_auth_source)
 
@@ -104,7 +119,16 @@ module Idp::Support
   # The user's stable id within the upstream IdP for its primary connector.
   def idp_connector_user_id!
     id = primary_auth_source&.connector_user_id
-    raise Idp::ServiceError.new('No IdP identity on file for this user', operation: :connector_user_id) if id.blank?
+    if id.blank?
+      raise Idp::ServiceError.new(
+        'No IdP identity on file for this user',
+        operation: :connector_user_id,
+        # Local data rather than an IdP fault, so the same answer comes back on retry. Callers that
+        # treat transient errors as connector-wide — Idp::SyncUserFromIdpJob's cooldown — would
+        # otherwise let one user's missing row stop the connector for everyone on it.
+        transient: false,
+      )
+    end
 
     id
   end
