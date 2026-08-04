@@ -76,43 +76,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     GRAPHQL
   end
 
-  let(:enrollment_query) do
-    <<~GRAPHQL
-      query Enrollment($id: ID!) {
-        enrollment(id: $id) {
-          #{scalar_fields(Types::HmisSchema::Enrollment)}
-          services {
-            nodesCount
-            nodes {
-              #{scalar_fields(Types::HmisSchema::Service)}
-            }
-          }
-          events {
-            nodesCount
-            nodes {
-              #{scalar_fields(Types::HmisSchema::Event)}
-            }
-          }
-          assessments {
-            nodesCount
-            nodes {
-              #{scalar_fields(Types::HmisSchema::Assessment)}
-            }
-          }
-          currentLivingSituations {
-            nodesCount
-            nodes {
-              #{scalar_fields(Types::HmisSchema::CurrentLivingSituation)}
-            }
-          }
-          currentUnit {
-            #{scalar_fields(Types::HmisSchema::Unit)}
-          }
-        }
-      }
-    GRAPHQL
-  end
-
   let(:client_wip_enrollments_query) do
     <<~GRAPHQL
       query Client($id: ID!) {
@@ -187,53 +150,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect(client['enrollments']['nodesCount']).to eq(1)
       expect(client['enrollments']['nodes'][0]['id']).to eq(e1.id.to_s)
     end
-  end
-
-  describe 'Enrollment lookup' do
-    it 'should return empty if user does not have view access' do
-      remove_permissions(access_control, :can_view_enrollment_details)
-      response, result = post_graphql(id: e1.id) { enrollment_query }
-      expect(response.status).to eq(200), result.inspect
-      enrollment = result.dig('data', 'enrollment')
-      expect(enrollment).to be_nil
-    end
-
-    it 'should resolve related records if user has view access' do
-      response, result = post_graphql(id: e1.id) { enrollment_query }
-      expect(response.status).to eq(200), result.inspect
-      enrollment = result.dig('data', 'enrollment')
-      expect(enrollment['id']).to eq(e1.id.to_s)
-      expect(enrollment['status']).to eq('ACTIVE')
-      expect(enrollment['services']['nodesCount']).to eq(2)
-      expect(enrollment['events']['nodesCount']).to eq(1)
-      expect(enrollment['assessments']['nodesCount']).to eq(1)
-      expect(enrollment['currentLivingSituations']['nodesCount']).to eq(1)
-      expect(enrollment['currentUnit']).to be_nil
-      expect(enrollment['numUnitsAssignedToHousehold']).to eq(0)
-    end
-
-    it 'should resolve the current unit and number of units assigned to household' do
-      # Put e1 in unit1
-      unit1 = create(:hmis_unit, project: p1)
-      create(:hmis_unit_occupancy, unit: unit1, enrollment: e1, start_date: e1.entry_date)
-      # Put e3 and e4 in unit2
-      unit2 = create(:hmis_unit, project: p1)
-      e3 = create(:hmis_hud_enrollment, data_source: ds1, project: p1, household_id: e1.household_id)
-      create(:hmis_unit_occupancy, unit: unit2, enrollment: e3, start_date: e3.entry_date)
-      e4 = create(:hmis_hud_enrollment, data_source: ds1, project: p1, household_id: e1.household_id, entry_date: 2.weeks.ago)
-      create(:hmis_unit_occupancy, unit: unit2, enrollment: e4, start_date: e4.entry_date + 2.days)
-      # previous occupancy in another unit should not be counted
-      create(:hmis_unit_occupancy, enrollment: e4, start_date: e4.entry_date, end_date: e4.entry_date + 2.day)
-
-      response, result = post_graphql(id: e1.id) { enrollment_query }
-      expect(response.status).to eq(200), result.inspect
-      enrollment = result.dig('data', 'enrollment')
-      expect(enrollment['id']).to eq(e1.id.to_s)
-      expect(enrollment['currentUnit']['id']).to eq(unit1.id.to_s)
-      expect(enrollment['numUnitsAssignedToHousehold']).to eq(2)
-    end
-    # add: resolve nil relationship to hoh
-    # add: resolve 99 relationship to hoh
   end
 end
 

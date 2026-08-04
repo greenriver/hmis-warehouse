@@ -12,6 +12,8 @@
 #
 # WARNING! Building these workflows will delete existing referrals and opportunities associated with the workflow templates.
 # Not intended for use in production.
+#
+# Pattern: destroy-and-recreate (preferred). @see docs/features/hmis/ce-workflow-builders.md
 module CeWorkflows::Ac
   class WorkflowBuilder
     CE_STEP_FORMS = {

@@ -20,8 +20,13 @@ module Hmis::WorkflowDefinition
     has_many :flows, class_name: 'Hmis::WorkflowDefinition::Flow', dependent: :destroy
     has_many :instances, class_name: 'Hmis::WorkflowExecution::Instance', dependent: :restrict_with_exception, foreign_key: 'template_id'
     has_many :swimlanes, class_name: 'Hmis::WorkflowDefinition::Swimlane', dependent: :restrict_with_exception, foreign_key: 'template_id'
-    has_many :unit_groups, class_name: 'Hmis::UnitGroup', foreign_key: 'workflow_template_identifier', primary_key: 'identifier', dependent: :nullify
-    has_many :direct_referral_unit_groups, class_name: 'Hmis::UnitGroup', foreign_key: 'direct_referral_workflow_template_identifier', primary_key: 'identifier', dependent: :nullify
+
+    # When the template is deleted, don't nullify the unit groups' template columns workflow_template_identifier and direct_referral_workflow_template_identifier.
+    # This is for ease of iteration in dev, so that you don't have to reset the unit group's template references every time you rebuild the workflow.
+    # It does run the risk of leaving unit groups that refer to nonexistent templates, an acceptable risk that's low in prod since templates are not deleted there.
+    has_many :unit_groups, class_name: 'Hmis::UnitGroup', foreign_key: 'workflow_template_identifier', primary_key: 'identifier'
+    has_many :direct_referral_unit_groups, class_name: 'Hmis::UnitGroup', foreign_key: 'direct_referral_workflow_template_identifier', primary_key: 'identifier'
+
     belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
 
     validates :name, presence: true

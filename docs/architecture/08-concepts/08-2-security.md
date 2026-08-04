@@ -10,5 +10,5 @@
 - **Role hierarchy** — Built-in roles, custom roles, and how role assignments cascade across organizations and projects.
 - **Legacy CAS roles** — How CAS manages its own role/access model independently of the Warehouse.
 - **Data visibility rules** — Row-level and field-level restrictions based on user role, data source ownership, and CoC affiliation.
-- **Access policies** — Policy objects that gate controller actions and GraphQL resolvers (see `docs/features/warehouse-auth-policies.md`).
+- **Access policies** — Policy objects that gate controller actions and GraphQL resolvers (see `docs/features/warehouse/warehouse-auth-policies.md`).
 - **Audit logging** — How access to sensitive data (PII, SSN) is tracked across systems.

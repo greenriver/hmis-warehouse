@@ -114,9 +114,13 @@ module HmisSqlServer
 
     def clean_row_for_import(row:, headers:)
       # RelationshipToHoH allows 99 in the CSV spec, but not the dictionary
-      # The LSA excludes 99 from the report, so just make them 5s
-      field_index = headers.index('RelationshipToHoH')
-      row[field_index] = 5 if row[field_index].to_s == '99'
+      # The LSA excludes 99 from the report, so just make them 5s. Skippable via
+      # ENV so the CI integration test can exercise the RelationshipToHoH data
+      # quality check against the HUD sample data's unmodified 99s.
+      unless ENV['LSA_SKIP_RELATIONSHIP_TO_HOH_CLEANUP'].present?
+        field_index = headers.index('RelationshipToHoH')
+        row[field_index] = 5 if row[field_index].to_s == '99'
+      end
       super(row: row, headers: headers)
     end
   end
