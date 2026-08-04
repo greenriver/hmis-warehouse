@@ -25,17 +25,22 @@ module Idp
         hmis: 'hmis-users',
       }.freeze
 
-      # Users to migrate: confirmed and active.
+      # Users to migrate: confirmed, active, and not already linked to the connector.
       #
       # confirmed_at also gates out invited-but-not-accepted users: :invitable
       # and :confirmable run together, so confirmed_at is only set once an
       # invitation is accepted. Those users have no credential to carry and are
       # provisioned on first JWT login instead — keep this filter.
       #
+      # A live authentication source means the account already exists in the IdP,
+      # with its id recorded locally. Re-importing under OVERWRITE would replace
+      # that account and leave the recorded id pointing at nothing.
+      #
       # @param since [Time, nil] limit to users changed since this time, for a
       #   cheap re-run that catches edits made during migration; nil exports all.
-      def self.migration_scope(since: nil)
-        scope = User.where.not(confirmed_at: nil).where(active: true)
+      def self.migration_scope(connector_id:, since: nil)
+        linked = Idp::UserAuthenticationSource.where(connector_id: connector_id).select(:user_id)
+        scope = User.where.not(confirmed_at: nil).where(active: true).where.not(id: linked)
         scope = scope.where(updated_at: since..) if since
         scope
       end

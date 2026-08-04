@@ -17,9 +17,11 @@ after transition to JWT mode, run: `AUTH_METHOD=devise bin/rails keycloak:migrat
 
 ## Scope
 
-`Idp::Keycloak::UserImporter.migration_scope` migrates **confirmed, active** users. The `confirmed_at`
-filter also excludes invited-but-not-accepted users — accepting an invitation is what sets
-`confirmed_at`, so they have no credential to carry and are instead provisioned on first JWT login.
+`Idp::Keycloak::UserImporter.migration_scope` migrates **confirmed, active** users that aren't already
+linked to Keycloak. The `confirmed_at` filter also excludes invited-but-not-accepted users — accepting
+an invitation is what sets `confirmed_at`, so they have no credential to carry and are instead
+provisioned on first JWT login. Already-linked users have an account in Keycloak, so there is nothing
+left to carry.
 
 ## Re-running and the pre-flip pass
 
@@ -30,6 +32,9 @@ during migration, keeping the switchover gap to minutes.
 Re-imports default to the `OVERWRITE` conflict policy so that edits made after the first pass — a
 password reset, a new TOTP secret — are carried over. `SKIP` (`migrate_users[,,SKIP]`) leaves existing
 Keycloak users untouched and would silently drop those edits.
+
+Do the final pass before `backfill_authentication_sources` — linking is what takes a user out of scope,
+so a pass after the backfill skips everyone it linked.
 
 ## 2FA backup codes are not migrated
 
