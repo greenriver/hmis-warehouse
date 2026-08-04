@@ -429,6 +429,7 @@ class SeedMaker
 
   def run_all
     ensure_db_triggers_and_functions
+    Idp::ServiceConfig.bootstrap_from_env
     setup_fake_user if Rails.env.development?
     setup_fake_health_data
     maintain_data_sources

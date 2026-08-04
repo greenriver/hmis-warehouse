@@ -1,7 +1,6 @@
 # Keycloak IDP Integration (dev stack)
 
-The opt-in local Docker Compose stack that reproduces the production auth chain. Application wiring
-(JWT validation, identity resolution, `Idp::Service`, user-migration tasks) lands in later branches.
+The opt-in local Docker Compose stack that reproduces the production auth chain.
 
 ```
 User → OAuth2-Proxy → Dex (OIDC broker) → Keycloak → Rails (JWT headers)
@@ -57,69 +56,87 @@ Then log into the Keycloak admin console at `https://op-keycloak.dev.test` (`adm
 
 ## Service config (Admin API credentials)
 
-`Idp::KeycloakService` (`app/services/idp/keycloak_service.rb`) talks to the Keycloak **Admin
-REST API** — creating/updating users, profile edits, the migration tooling. It authenticates with
-the OAuth2 `client_credentials` grant using the **`rails-service-account`** client (a *service
-account*, not the `dex-connector` browser client). That client needs the `realm-management` roles
-(`manage-users`, `view-users`, `query-users`, `manage-realm`); `realm-import.json` grants them on
-first import.
+`Idp::KeycloakService` talks to the Keycloak **Admin REST API** using the OAuth2
+`client_credentials` grant on the **`rails-service-account`** client (a *service account*, not the
+`dex-connector` browser client). That client needs the `realm-management` roles `manage-users`,
+`view-users`, `query-users` and `manage-realm`; `realm-import.json` grants them on first import.
 
-`Idp::KeycloakService` needs four values — `api_url`, `realm`, `client_id`, `client_secret`. There
-are two ways to supply them; the DB-managed config wins when both are present (see
-`Idp::ServiceFactory.for_connector`).
+The `Idp::ServiceConfig` row is the **single source of truth** at request time. ENV is read **once**,
+at deploy, to seed that row (see *Seeding from ENV* below); there is no request-time ENV fallback, so a
+connector with no active row degrades to an unmanaged `NullService` rather than silently reading ENV.
 
-### Option A — DB-managed `Idp::ServiceConfig` (preferred)
+### DB-managed `Idp::ServiceConfig`
 
-Credentials live in the `idp_service_configs` table and are managed in the admin UI at
-**`/admin/idp_service_configs`** (New → provider `keycloak`). One row per realm. The columns map to
-the service's config keys in `KeycloakService.from_config`:
+Managed in the admin UI at **`/admin/idp_service_configs`** (New → provider `keycloak`), one row per
+realm. Dev values:
 
-| `Idp::ServiceConfig` column | Maps to service key | Dev value |
-| --- | --- | --- |
-| `provider` | (selects the service class) | `keycloak` |
-| `connector_id` | the auth-proxy routing key in the JWT — must match the connector that issued the token | `keycloak` |
-| `name` | display label only | e.g. `Keycloak (dev)` |
-| `api_url` | `api_url` | `http://op-keycloak.dev.test:8080` |
-| `keycloak_realm` | `realm` | `openpath` |
-| `client_id` | `client_id` | `rails-service-account` |
-| `service_token` (encrypted) | `client_secret` | `rails-service-account-secret-dev` |
+| Column | Dev value |
+| --- | --- |
+| `provider` | `keycloak` |
+| `connector_id` | `keycloak` — the auth-proxy routing key in the JWT; must match the connector that issued the token |
+| `name` | e.g. `Keycloak (dev)` (display only) |
+| `api_url` | `http://op-keycloak.dev.test:8080` |
+| `keycloak_realm` | `openpath` |
+| `client_id` | `rails-service-account` |
+| `service_token` (encrypted, needs `ENCRYPTION_KEY`) | `rails-service-account-secret-dev` |
+| `browser_url` | `https://op-keycloak.dev.test` — public origin for browser deep-links (blank ⇒ `api_url`) |
+| `account_client_id` | `account` — OIDC client for account deep-links (blank ⇒ `account`) |
+| `manage_users` | `true` — see *Manage-users capability* below |
 
-`service_token` is stored `attr_encrypted` (needs `ENCRYPTION_KEY` set). To create one from the
-console instead of the UI:
-
-```ruby
-Idp::ServiceConfig.create!(
-  provider:       'keycloak',
-  connector_id:   'keycloak',
-  name:           'Keycloak (dev)',
-  api_url:        'http://op-keycloak.dev.test:8080',
-  keycloak_realm: 'openpath',
-  client_id:      'rails-service-account',
-  service_token:  'rails-service-account-secret-dev',
-  active:         true,
-)
-```
-
-Verify it end-to-end with the row's `#test` action (the **Test** button in the UI) or
-`config.to_service.test_connection` — a green result means the secret is valid *and* the service
+Verify with the row's **Test** button — a green result means the secret is valid *and* the service
 account has the Admin-API roles.
 
-### Option B — ENV fallback (single realm)
+### Seeding from ENV
 
-With no matching active `ServiceConfig`, the factory falls back to the registered service class,
-which reads ENV (`KeycloakService#default_config`):
+`SeedMaker#seed_idp_service_config` materializes the row from ENV on deploy, so an existing
+ENV-configured install keeps working without a manual UI step:
 
 ```
 KEYCLOAK_API_URL=http://op-keycloak.dev.test:8080
 KEYCLOAK_REALM=openpath
 KEYCLOAK_SERVICE_CLIENT_ID=rails-service-account
 KEYCLOAK_SERVICE_CLIENT_SECRET=rails-service-account-secret-dev
+KEYCLOAK_PUBLIC_URL=https://op-keycloak.dev.test
+KEYCLOAK_ACCOUNT_CLIENT_ID=account
 ```
 
-In the dev stack these are already provided to the `web` container via
-`docker/auth/keycloak-credentials.env` (loaded through `env_file`), so the service account works
-out of the box — no `.env.development.local` edits needed. This path only resolves when the JWT's
-`connector_id` equals the provider key `keycloak`.
+The dev stack provides these to the `web` container via `docker/auth/keycloak-credentials.env`. Seeding
+is **create-only and idempotent**: it runs on every deploy but never clobbers a later UI edit, never
+resurrects a soft-deleted row, and never reactivates a disabled one. It is gated on the JWT auth method
+and on `KEYCLOAK_API_URL`/`KEYCLOAK_SERVICE_CLIENT_SECRET` being present, so a Devise install or an
+external-IdP customer (no `KEYCLOAK_*`) is a silent no-op. `KEYCLOAK_CONNECTOR_ID` (default `keycloak`)
+sets the row's `connector_id`. After the row exists, credential rotation is a UI/DB operation — ENV is
+not read again.
+
+### Browser URL vs Admin API URL
+
+`api_url` is where Rails calls the Admin API. Anything handed to a *browser* instead uses `browser_url`
+from the row, falling back to `api_url` when blank.
+
+The two only differ in the dev stack: Rails uses the compose network alias
+(`http://op-keycloak.dev.test:8080`), and the browser has to go through Traefik
+(`https://op-keycloak.dev.test`) because the SSO session cookies are `Secure` and belong to that
+origin. Pointing `api_url` at Traefik instead breaks the Admin API, since Traefik serves a
+per-developer self-signed `*.dev.test` cert that only the host keychain trusts
+(`bin/developer/certificates.sh`). Both are seeded from `docker/auth/keycloak-credentials.env`.
+
+`browser_url` is a per-realm column (seeded from `KEYCLOAK_PUBLIC_URL`) rather than a request-time ENV
+read, so multi-realm production can point each realm at its own origin.
+
+`account_client_id` (the row's column, seeded from `KEYCLOAK_ACCOUNT_CLIENT_ID`, default `account`)
+names the client account deep-links run under, which decides where Keycloak returns a user who
+confirmed a new address — see [Where Keycloak sends the user back](#where-keycloak-sends-the-user-back).
+
+### Manage-users capability
+
+`manage_users` records whether this row's service account actually has admin/manage-API access to the
+realm. `true` (the default) is an IdP we operate. `false` is **authenticate-only** — a
+customer-operated Keycloak, or a service account that can sign users in but lacks the `manage-users`
+role. An authenticate-only row still builds a normal `KeycloakService` (so OIDC logout and the
+self-service account console keep working) but answers `false` to every `supports_*?` management
+predicate, so the admin/self-service management surfaces degrade (actions hidden or no-op) instead of
+failing at an Admin API we can't call. A connector with no active row at all resolves to `NullService`,
+which behaves the same way.
 
 > Heads-up: `realm-import.json` is applied only on the **first** import into a fresh `keycloak`
 > database. If your volume predates the `rails-service-account` client (or its roles), the token
@@ -137,9 +154,7 @@ out of the box — no `.env.development.local` edits needed. This path only reso
 - **Linux:** the proxies use `extra_hosts: …:host-gateway`; needs a recent Docker Engine (it resolves
   out of the box on Docker Desktop).
 - **Credentials:** `docker/auth/keycloak-credentials.env` is committed because its values are
-  pre-defined in `realm-import.json` (chosen, not generated). Dev-only — never used in production. It
-  provides `KEYCLOAK_API_URL`, `KEYCLOAK_REALM`, and the `dex-connector` / `rails-service-account`
-  client IDs and secrets.
+  pre-defined in `realm-import.json` (chosen, not generated). Dev-only — never used in production.
 
 ## Related
 
