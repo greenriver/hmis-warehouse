@@ -82,5 +82,5 @@ Units must be organized into Unit Groups. Unit Groups:
 - **Unit Occupancy Model:** `drivers/hmis/app/models/hmis/unit_occupancy.rb`
 - **CE Opportunity Model:** `drivers/hmis/app/models/hmis/ce/opportunity.rb`
 - **CE Referral Model:** `drivers/hmis/app/models/hmis/ce/referral.rb`
-- **CE Processing Overview:** `drivers/hmis/app/models/hmis/ce/README_FOR_CE_PROCESSING.md`
+- **CE Processing Overview:** [`ce-processing.md`](./ce-processing.md)
 

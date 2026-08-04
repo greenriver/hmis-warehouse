@@ -10,7 +10,7 @@ module GrdaWarehouse
   # Simple content pages with paper_trail versioning (auditing only).
   # Can be used standalone (help, about) or linked to Compliance::Requirement.
   #
-  # @see docs/features/compliance-requirements.md
+  # @see docs/features/warehouse/compliance-requirements.md
   class ContentPage < GrdaWarehouseBase
     acts_as_paranoid
     has_paper_trail

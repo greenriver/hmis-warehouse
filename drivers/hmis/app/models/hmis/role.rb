@@ -7,7 +7,7 @@
 # frozen_string_literal: true
 
 # HMIS uses similar but separate permissions system from the warehouse
-# See drivers/hmis/doc/PERMISSIONS.md
+# @see docs/features/hmis/hmis-permissions.md
 
 class Hmis::Role < ::ApplicationRecord
   self.table_name = :hmis_roles
@@ -385,16 +385,17 @@ class Hmis::Role < ::ApplicationRecord
         sub_category: 'Expanded Access',
       },
       can_view_enrollment_details: {
-        description: 'When granted in conjunction with "Can View Project," grants access to view the full Enrollment Dashboard. Includes all related records such as Assessments, Services, Current Living Situations, and more.',
+        description: 'When granted in conjunction with "Can View Project" and "Can View Clients," grants access to view the full Enrollment Dashboard. Includes all related records such as Assessments, Services, Current Living Situations, and more.',
         administrative: false,
-        requirements: [:can_view_project],
+        requirements: [:can_view_project, :can_view_clients],
         access: [:viewable],
         category: 'Enrollment Access',
         sub_category: 'Access',
       },
       can_view_limited_enrollment_details: {
-        description: 'Access to view limited information about an enrollment, including: entry date, exit date, project name, project type, move-in date, and last bed night date.',
+        description: 'When granted in conjunction with "Can View Clients," grants access to view limited information about an enrollment, including: entry date, exit date, project name, project type, move-in date, and last bed night date.',
         administrative: false,
+        requirements: [:can_view_clients],
         access: [:viewable],
         category: 'Enrollment Access',
         sub_category: 'Access',
@@ -408,7 +409,7 @@ class Hmis::Role < ::ApplicationRecord
       },
       can_edit_enrollments: {
         description: 'Ability to edit enrollment details. This includes the ability to create/edit assessments, services, living situations, and other Enrollment-related records.',
-        requirements: [:can_view_enrollment_details, :can_view_project],
+        requirements: [:can_view_enrollment_details],
         administrative: false,
         access: [:editable],
         category: 'Enrollment Access',
@@ -416,7 +417,7 @@ class Hmis::Role < ::ApplicationRecord
       },
       can_enroll_clients: {
         description: 'Ability to enroll new or existing clients into the project. (Note: \'Can edit clients\' is required for creating new client records.)',
-        requirements: [:can_edit_enrollments, :can_view_enrollment_details, :can_view_project],
+        requirements: [:can_edit_enrollments],
         administrative: false,
         access: [:editable],
         category: 'Project Access',
@@ -424,7 +425,7 @@ class Hmis::Role < ::ApplicationRecord
       },
       can_delete_enrollments: {
         description: 'Ability to delete enrollments. (Note: users with Edit-access can delete "incomplete" enrollments even if this box is not checked).',
-        requirements: [:can_edit_enrollments, :can_view_enrollment_details, :can_view_project],
+        requirements: [:can_edit_enrollments],
         administrative: true,
         access: [:editable],
         category: 'Enrollment Access',
@@ -432,7 +433,7 @@ class Hmis::Role < ::ApplicationRecord
       },
       can_audit_enrollments: {
         description: 'View audit history for the Enrollment, and associated records, on the Enrollment Dashboard',
-        requirements: [:can_view_enrollment_details, :can_view_project],
+        requirements: [:can_view_enrollment_details],
         administrative: true,
         access: [:viewable],
         category: 'Enrollment Access',
@@ -440,7 +441,7 @@ class Hmis::Role < ::ApplicationRecord
       },
       can_delete_assessments: {
         description: 'Ability to delete assessments that have been submitted. (Note: users with Edit-access can delete "in-progress" assessments even if this box is not checked).',
-        requirements: [:can_view_enrollment_details, :can_view_project],
+        requirements: [:can_view_enrollment_details],
         administrative: true,
         access: [:editable],
         category: 'Enrollment Access',
@@ -561,7 +562,7 @@ class Hmis::Role < ::ApplicationRecord
       },
       can_view_enrollment_location_map: {
         description: 'Access to view a Location Map, which shows the locations where the client was contacted during the Enrollment.',
-        requirements: [:can_view_enrollment_details, :can_view_project],
+        requirements: [:can_view_enrollment_details],
         administrative: false,
         access: [:viewable],
         category: 'Enrollment Access',

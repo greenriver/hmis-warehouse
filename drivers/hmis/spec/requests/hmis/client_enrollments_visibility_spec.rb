@@ -37,6 +37,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   let!(:c3) { create :hmis_hud_client, data_source: ds1 }
   let!(:e3) { create :hmis_hud_enrollment, data_source: ds1, project: p2, client: c3 }
 
+  let(:limited_enrollment_visibility_permissions) { HmisPermissionSets::LIMITED_ENROLLMENT_VISIBILITY }
+
   before(:each) do
     hmis_login(user)
   end
@@ -91,7 +93,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     end
 
     it 'does not resolve limited-access enrollments if they are not requested' do
-      create_access_control(hmis_user, p2, with_permission: :can_view_limited_enrollment_details)
+      create_access_control(hmis_user, p2, with_permission: limited_enrollment_visibility_permissions)
 
       response, result = post_graphql(id: c1.id) { query }
       expect(response.status).to eq(200), result.inspect
@@ -100,7 +102,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     end
 
     it 'resolves enrollment where user has limited access (but not services)' do
-      create_access_control(hmis_user, p2, with_permission: :can_view_limited_enrollment_details)
+      create_access_control(hmis_user, p2, with_permission: limited_enrollment_visibility_permissions)
 
       response, result = post_graphql(id: c1.id, includeEnrollmentsWithLimitedAccess: true) { query }
       expect(response.status).to eq(200), result.inspect
@@ -134,7 +136,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     it 'confidentializes name of limited-access enrollment when appropriate' do
       p1.update(confidential: true)
       p2.update(confidential: true)
-      create_access_control(hmis_user, p2, with_permission: :can_view_limited_enrollment_details)
+      create_access_control(hmis_user, p2, with_permission: limited_enrollment_visibility_permissions)
 
       response, result = post_graphql(id: c1.id, includeEnrollmentsWithLimitedAccess: true) { query }
       expect(response.status).to eq(200), result.inspect
@@ -154,7 +156,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     end
 
     it 'does not resolve limited enrollments for clients where the user doesn\'t have any detailed enrollments access' do
-      create_access_control(hmis_user, p2, with_permission: :can_view_limited_enrollment_details)
+      create_access_control(hmis_user, p2, with_permission: limited_enrollment_visibility_permissions)
       expect(c3.enrollments.where(project_id: p2.project_id).exists?).to eq(true) # ensure setup
 
       response, result = post_graphql(id: c3.id) { query }
@@ -164,7 +166,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     end
 
     describe 'resolving limited-access enrollments' do
-      let!(:limited_access_control) { create_access_control(hmis_user, p2, with_permission: :can_view_limited_enrollment_details) }
+      let!(:limited_access_control) { create_access_control(hmis_user, p2, with_permission: limited_enrollment_visibility_permissions) }
       let(:query_with_project) do
         <<~GRAPHQL
           query TestQuery($id: ID!) {

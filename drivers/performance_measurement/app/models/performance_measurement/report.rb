@@ -6,7 +6,7 @@
 
 # frozen_string_literal: true
 
-# See @docs/features/coc-performance-measurement-dashboard.md
+# See @docs/features/warehouse/coc-performance-measurement-dashboard.md
 require 'memery'
 
 module PerformanceMeasurement

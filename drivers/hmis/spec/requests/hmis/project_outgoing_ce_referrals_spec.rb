@@ -131,7 +131,13 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       end
 
       context 'and the current user can view enrollment details in the source project' do
-        let!(:source_ac) { create_access_control(hmis_user, source_project, with_permission: [:can_view_project, :can_manage_outgoing_referrals, :can_view_enrollment_details]) }
+        let!(:source_ac) do
+          create_access_control(
+            hmis_user,
+            source_project,
+            with_permission: [:can_manage_outgoing_referrals, *HmisPermissionSets::ENROLLMENT_VISIBILITY],
+          )
+        end
 
         it 'resolves the access object correctly' do
           response, result = post_graphql(id: source_project.id) { query }

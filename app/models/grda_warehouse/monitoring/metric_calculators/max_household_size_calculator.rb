@@ -6,7 +6,7 @@
 
 # frozen_string_literal: true
 
-# @see docs/features/metric-tracking.md
+# @see docs/features/warehouse/metric-tracking.md
 # This metric tracks the largest household size across all enrollments for a given client.
 # It is calculated as the count of members for each unique [data_source_id, HouseholdID] combination.
 # It is designed to alert on the situation where a client's household size increases.

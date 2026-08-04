@@ -8,7 +8,7 @@
 
 require 'json'
 
-# @see docs/features/ci-test-bucketing.md
+# @see docs/features/warehouse/ci-test-bucketing.md
 namespace :ci do
   desc 'Analyze rspec profiles, write bucket assignments to file'
   task :build_bucket_assignments, [:profile_dir, :buckets_file, :max_minutes] => :environment do |_t, args|
