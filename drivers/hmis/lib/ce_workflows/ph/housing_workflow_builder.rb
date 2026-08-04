@@ -41,7 +41,7 @@ module CeWorkflows::Ph
       form_definitions = Hmis::Form::Definition.
         in_data_source(@data_source.id).
         where(role: 'CE_REFERRAL_STEP', identifier: HOUSING_WORKFLOW_FORMS.values).
-        pluck(&:identifier).uniq
+        pluck(:identifier).uniq
 
       missing = HOUSING_WORKFLOW_FORMS.values - form_definitions
       raise "Missing CE_REFERRAL_STEP forms: #{missing.join(', ')}. Did you run 'rails driver:hmis:seed_definitions'?" if missing.any?
