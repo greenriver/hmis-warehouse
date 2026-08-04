@@ -30,7 +30,7 @@ RSpec.describe 'Warehouse JWT wiring', type: :request do
     # stubbed (find_or_create_from_jwt + JwtHelper.new via sign_in), so they prove the before-action
     # chain admits a resolved user and reaches the action. Token→user resolution correctness (valid?
     # false, find_or_create vs find_from_jwt, impersonation) lives in Idp::JwtCurrentUser's spec. The
-    # deny side of the gate is the unauthenticated example below: it asserts a redirect rather than
+    # deny side of the gate is the unauthenticated example below: it asserts a raise rather than
     # keepalive's own head(:unauthorized), which is what proves authenticate_user! actually guards it.
     it 'admits an authenticated JWT request through the filter chain and reports token expiry (GET → 200)' do
       sign_in(user)
@@ -52,33 +52,146 @@ RSpec.describe 'Warehouse JWT wiring', type: :request do
       expect(JSON.parse(response.body)).to include('expiration_time', 'remaining_seconds')
     end
 
-    it 'redirects an unauthenticated request to the oauth2-proxy sign-in (not a Devise form)' do
-      get session_keepalive_path
+    # A redirect here would go to a proxy that still has a session and come straight back with the
+    # same token.
+    describe 'a forwarded token the app refuses' do
+      # Stubbed reason rather than a real bad token: the JWT env keys aren't set in test, so real
+      # validation can't run here. Which reason is which is Idp::JwtHelper's spec.
+      let(:headers) { { 'HTTP_X_FORWARDED_ACCESS_TOKEN' => 'refused-token' } }
 
-      # A redirect (not keepalive's own head(:unauthorized)) is the tell that authenticate_user! ran
-      # ahead of the action — i.e. the shared JWT auth gate is wired onto this route.
-      expect(response).to have_http_status(:redirect)
-      expect(response.location).to include('/oauth2/sign_in')
+      before do
+        refused = instance_double(
+          Idp::JwtHelper,
+          token?: true,
+          valid?: false,
+          invalid_reason: :malformed,
+          invalid_reason_details: { reason: :malformed },
+        )
+        allow(Idp::JwtHelper).to receive(:new).and_wrap_original do |original_method, **kwargs|
+          kwargs[:access_token] == 'refused-token' ? refused : original_method.call(**kwargs)
+        end
+      end
+
+      it 'raises rather than reporting the request as signed out' do
+        expect { get edit_account_path, headers: headers }.to raise_error(Idp::ForwardedTokenError, /malformed/)
+      end
+
+      # No per-action exceptions: authenticate_user! runs first everywhere, so every authenticated
+      # route reports the misconfiguration the same way.
+      it 'raises on the session routes too rather than converting it to a 401' do
+        expect { get session_keepalive_path, headers: headers.merge('HTTP_ACCEPT' => 'application/json') }.
+          to raise_error(Idp::ForwardedTokenError, /malformed/)
+      end
+
+      # Sign-out never reaches #destroy, so reset_session doesn't run and the IdP session stays
+      # paired with a live Rails session rather than being silently orphaned.
+      it 'raises on sign-out rather than resetting the session' do
+        expect { delete destroy_user_session_path, headers: headers }.
+          to raise_error(Idp::ForwardedTokenError, /malformed/)
+      end
+    end
+
+    # The raise (not keepalive's own head(:unauthorized)) is the tell that authenticate_user! ran ahead
+    # of the action — i.e. the shared JWT auth gate is wired onto this route. oauth2-proxy never passes
+    # a tokenless request to a route that isn't a skip_auth_route, so reaching Rails is the defect.
+    it 'raises on a request with no forwarded token rather than redirecting to sign-in' do
+      expect { get session_keepalive_path }.to raise_error(Idp::UnauthenticatedRequestError)
+    end
+
+    # root is a skip_auth_route and skips authenticate_user!, so the deactivated wall has to come from
+    # its own filter (reject_deactivated_user!) or it isn't there at all. This is the page the proxy
+    # returns someone to after sign-in, so it's where a switched-off account first finds out.
+    describe 'the public root page' do
+      it 'walls off a deactivated token holder instead of serving the signed-out landing page' do
+        sign_in(user)
+        user.update!(active: false)
+
+        get root_path
+
+        expect(response).to have_http_status(:forbidden)
+        expect(response.body).to include(Translation.translate('Your warehouse account has been deactivated'))
+      end
+
+      it 'still serves the landing page to a visitor with no token' do
+        get root_path
+
+        expect(response).to have_http_status(:ok)
+      end
+
+      # Deliberately not walled: on a realm shared with other apps, a valid token from someone who
+      # was never a warehouse user is routine, and the public pages are public for them.
+      it 'still serves the landing page to a token holder with no warehouse account' do
+        sign_in(user)
+        allow(User).to receive(:find_or_create_from_jwt).and_return(nil)
+
+        get root_path
+
+        expect(response).to have_http_status(:ok)
+      end
+
+      # The wall is an HTML page, so it only stands in front of HTML requests. Answering an image
+      # request with it would replace the asset rather than tell anyone anything.
+      it 'leaves a non-HTML request on a route that skips authentication to its own action' do
+        sign_in(user)
+        user.update!(active: false)
+
+        get logo_path('logo.png')
+
+        expect(response).not_to have_http_status(:forbidden)
+      end
     end
 
     describe 'logout' do
-      it 'resets the session (clearing any session-stored impersonation), separate from the oauth2-proxy/IdP sign-out that follows the redirect' do
+      it 'resets the session, separate from the oauth2-proxy/IdP sign-out that follows the redirect' do
         sign_in(user)
-        # session is only available once an integration request has happened, so establish one
-        # before poking it directly.
         get session_keepalive_path
         expect(response).to have_http_status(:ok)
-
-        # Simulate a leftover impersonation entry (Idp::ImpersonationManager stores this under
-        # session[:impersonation]); reset_session in Idp::SessionsController#destroy should wipe it,
-        # mirroring Devise's sign_out, so it can't silently resume on the next sign-in.
-        session[:impersonation] = { true_user_id: user.id, impersonated_user_id: user.id }
+        # Asserted on a key the app writes (idp_sync_session_principal! stamps it during a normal
+        # request): a session[...]= from the spec never reaches the next request, so it would read as
+        # nil afterwards whether or not reset_session ran. reset_session in
+        # Idp::SessionsController#destroy clears this, mirroring Devise's sign_out, so nothing
+        # session-backed — impersonation included — can silently resume on the next sign-in.
+        expect(session[Idp::JwtAuthentication::SESSION_PRINCIPAL_KEY]).to eq(user.id)
 
         delete destroy_user_session_path
 
         expect(response).to have_http_status(:redirect)
         expect(response.location).to include('/oauth2/sign_out')
-        expect(session[:impersonation]).to be_nil
+        expect(session[Idp::JwtAuthentication::SESSION_PRINCIPAL_KEY]).to be_nil
+      end
+    end
+
+    # The concern spec covers the branches. This covers the bit only the real stack shows: against
+    # the live session store the session.id actually rotates, so two people's audit rows can't
+    # share one.
+    describe 'session boundary between IdP principals' do
+      let(:other_user) { create :user }
+
+      it 'starts a new Rails session when a different user authenticates on the same browser' do
+        allow(other_user).to receive(:training_required?).and_return(false)
+        allow(other_user).to receive(:pending_compliance_requirements).and_return([])
+        # Resolve off the forwarded token rather than the flat stub in the outer before block, so
+        # that signing in as someone else is what actually moves the principal.
+        allow(User).to receive(:find_or_create_from_jwt) do |helper|
+          helper.connector_user_id == jwt_connector_user_id(other_user) ? other_user : user
+        end
+
+        sign_in(user)
+        get session_keepalive_path
+        expect(response).to have_http_status(:ok)
+        expect(session[Idp::JwtAuthentication::SESSION_PRINCIPAL_KEY]).to eq(user.id)
+        first_session_id = session.id.to_s
+        expect(first_session_id).to be_present
+
+        # Someone else signs in on the same browser — the integration cookie jar carries the
+        # session cookie forward.
+        sign_in(other_user)
+
+        get session_keepalive_path
+
+        expect(response).to have_http_status(:ok)
+        expect(session[Idp::JwtAuthentication::SESSION_PRINCIPAL_KEY]).to eq(other_user.id)
+        expect(session.id.to_s).not_to eq(first_session_id)
       end
     end
 
@@ -109,10 +222,20 @@ RSpec.describe 'Warehouse JWT wiring', type: :request do
   describe ApplicationCable::Connection, type: :channel, if: AuthMethod.jwt? do
     let(:user) { create :user }
 
+    # Only the forwarded token resolves to the double; anything else builds a real Idp::JwtHelper,
+    # which refuses it. That keeps the header the connection reads under test: read the wrong one (or
+    # none) and the accepting examples below fail, rather than passing on a double that answers
+    # valid? to whatever it was handed.
+    def stub_forwarded_token(token, helper)
+      allow(Idp::JwtHelper).to receive(:new).and_wrap_original do |original_method, **kwargs|
+        kwargs[:access_token] == token ? helper : original_method.call(**kwargs)
+      end
+    end
+
     it 'accepts a connection with a valid forwarded token for an active user' do
       # Don't stub active? — the :user factory creates an active row, so the active? gate runs for real.
-      jwt_helper = instance_double(Idp::JwtHelper, token?: true, valid?: true)
-      allow(Idp::JwtHelper).to receive(:new).and_return(jwt_helper)
+      jwt_helper = instance_double(Idp::JwtHelper, token?: true, valid?: true, invalid_reason: nil)
+      stub_forwarded_token('forwarded-token', jwt_helper)
       allow(User).to receive(:find_from_jwt).with(jwt_helper).and_return(user)
 
       connect env: { 'HTTP_X_FORWARDED_ACCESS_TOKEN' => 'forwarded-token' }
@@ -122,8 +245,8 @@ RSpec.describe 'Warehouse JWT wiring', type: :request do
 
     it 'rejects a connection for a deactivated user even with a valid forwarded token' do
       inactive_user = create :user, active: false
-      jwt_helper = instance_double(Idp::JwtHelper, token?: true, valid?: true)
-      allow(Idp::JwtHelper).to receive(:new).and_return(jwt_helper)
+      jwt_helper = instance_double(Idp::JwtHelper, token?: true, valid?: true, invalid_reason: nil)
+      stub_forwarded_token('forwarded-token', jwt_helper)
       allow(User).to receive(:find_from_jwt).with(jwt_helper).and_return(inactive_user)
 
       expect { connect env: { 'HTTP_X_FORWARDED_ACCESS_TOKEN' => 'forwarded-token' } }.
@@ -132,6 +255,23 @@ RSpec.describe 'Warehouse JWT wiring', type: :request do
 
     it 'rejects a connection with no forwarded token' do
       expect { connect }.to have_rejected_connection
+    end
+
+    # A plain rejection, not the raise the controllers do: a socket has no page to render, and every
+    # page load during the same misconfiguration already reports it with full request context.
+    it 'rejects a refused forwarded token without raising or reporting' do
+      refused = instance_double(
+        Idp::JwtHelper,
+        token?: true,
+        valid?: false,
+        invalid_reason: :malformed,
+        invalid_reason_details: { reason: :malformed },
+      )
+      stub_forwarded_token('refused-token', refused)
+      expect(Sentry).not_to receive(:capture_message)
+
+      expect { connect env: { 'HTTP_X_FORWARDED_ACCESS_TOKEN' => 'refused-token' } }.
+        to have_rejected_connection
     end
   end
 

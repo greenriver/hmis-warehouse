@@ -20,6 +20,8 @@
 module Idp::JwtAuthentication
   extend ActiveSupport::Concern
 
+  SESSION_PRINCIPAL_KEY = :idp_token_holder_id
+
   included do
     helper_method :user_session_expires_at
   end
@@ -33,9 +35,25 @@ module Idp::JwtAuthentication
   def idp_token_holder
     return @idp_token_holder if defined?(@idp_token_holder)
 
-    @idp_token_holder = begin
-      jwt_helper = idp_jwt_helper_for_request
-      jwt_helper&.token? && jwt_helper.valid? ? User.find_or_create_from_jwt(jwt_helper) : nil
+    # Set before the raise below: lograge's append_info_to_payload asks for current_user again on
+    # the way out, and a second raise there escapes lograge.
+    @idp_token_holder = nil
+
+    jwt_helper = idp_jwt_helper_for_request
+    case jwt_helper.invalid_reason
+    when nil
+      @idp_token_holder = User.find_or_create_from_jwt(jwt_helper)
+    when :missing
+      # The normal signed-out case: skip_auth_routes reach Rails with no header at all. Those
+      # actions skip authenticate_user! and render based on current_user, so nil is the answer they
+      # want.
+      nil
+    else
+      # oauth2-proxy had already vouched for this token and we refused it, so our own stack is
+      # misconfigured (wrong OIDC client, an opaque token where we want a JWT, a token that isn't
+      # ours). Redirecting to a proxy that still holds a session would hand back the same token, so
+      # fail loudly instead.
+      raise Idp::ForwardedTokenError, jwt_helper.invalid_reason_details
     end
   end
 
@@ -57,11 +75,28 @@ module Idp::JwtAuthentication
     true
   end
 
-  # Memoized per request. The manager does not cache anything itself (it reads the session
-  # again on every call to #get), so it is fine to reuse one instance for store/get/clear
-  # within a single request.
   def impersonation_manager
-    @impersonation_manager ||= Idp::ImpersonationManager.new(session)
+    Idp::ImpersonationManager.new(session)
+  end
+
+  # Nothing rotates the Rails session under JWT: there is no sign-in event, and oauth2-proxy can
+  # idle out without the app ever seeing a request. Left alone, the next person to sign in on this
+  # browser inherits the previous one's session, including the session.id that PaperTrail,
+  # Hmis::ActivityLog, lograge and Rack::Attack log against.
+  #
+  # Stamped with the user id rather than a token claim because oauth2-proxy refreshes the token
+  # mid-session, which would otherwise reset the session on every refresh.
+  def idp_sync_session_principal!(user_id)
+    stamped = session[SESSION_PRINCIPAL_KEY]
+    # Compared as strings so a session store that stringifies the id can't mismatch on every request
+    # and reset the session continuously.
+    return if stamped.to_s == user_id.to_s
+
+    # No stamp means an anonymous visitor on a page that skips authenticate_user!, so there is no
+    # previous session to clear.
+    reset_session if stamped.present?
+
+    session[SESSION_PRINCIPAL_KEY] = user_id
   end
 
   def idp_authenticated_user_from_jwt(user_class: User)
@@ -70,6 +105,10 @@ module Idp::JwtAuthentication
     # idp_token_holder memoizes this so it only happens once per request.
     authenticated_user = idp_token_holder
     return nil unless authenticated_user
+
+    # Ahead of the active? check on purpose: the principal is known either way, and the deactivated
+    # 403 must not render on the previous user's session.
+    idp_sync_session_principal!(authenticated_user.id)
 
     # A warehouse User that has been deactivated locally (active = false) is not allowed
     # to authenticate, even with a valid IdP token. This matches the check already done in
@@ -91,9 +130,8 @@ module Idp::JwtAuthentication
 
     impersonation_data = impersonation_manager.get
     if impersonation_data && impersonation_data[:impersonated_user_id].present?
-      # Only apply impersonation if the current token belongs to the user who started it.
-      # If it doesn't match the stored true_user, this is a leftover session from an
-      # earlier sign-in on this browser, so it is ignored.
+      # idp_sync_session_principal! above already resets the session on a principal change. Checked
+      # again here because honoring another user's impersonation escalates privileges.
       if impersonation_data[:true_user_id] != authenticated_user.id
         impersonation_manager.clear
         return user
@@ -114,17 +152,18 @@ module Idp::JwtAuthentication
     user
   end
 
+  # Never redirects to sign-in. oauth2-proxy owns that, and both cases below arrive with the proxy
+  # holding a live session, so bouncing them to /oauth2/sign_in would return the same request.
   def idp_handle_unauthenticated
-    original_url = Idp::PostAuthRedirect.new(
-      request: request,
-      cookies: cookies,
-    ).capture
-    # No current_user here (that's why we're unauthenticated), so the connector comes
-    # from the cookie oauth2-proxy set on the last sign-in.
-    redirect_to Idp::Oauth2ProxySignInPath.call(
-      connector_id: cookies[:last_connector_id],
-      redirect_to: original_url,
-    )
+    # No token at all — shouldn't be reachable, and ours to fix if it is, so fail loudly. See
+    # Idp::UnauthenticatedRequestError for how the proxy config and route surface let it happen.
+    raise Idp::UnauthenticatedRequestError, request.path unless idp_jwt_helper_for_request.token?
+
+    # A valid token whose holder has no warehouse account: Idp::UserProvisioner returns nil when
+    # idp/auto_create_user is off and no row matches, which is routine on a realm shared with other
+    # apps. That is a person who needs an account rather than a misconfiguration, so render a
+    # terminal page in the same shape as idp_handle_deactivated.
+    render(template: 'errors/no_warehouse_account', status: :forbidden)
   end
 
   # Shown to a user whose warehouse account has been deactivated (active = false) while
