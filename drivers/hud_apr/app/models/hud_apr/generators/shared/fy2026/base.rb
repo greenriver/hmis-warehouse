@@ -86,7 +86,7 @@ module HudApr::Generators::Shared::Fy2026
 
           hh_id = get_hh_id(last_service_history_enrollment)
           hoh_enrollment = hoh_enrollments[hh_id]
-          household_assessment_required[last_service_history_enrollment.client_id] = annual_assessment_expected?(hoh_enrollment: hoh_enrollment, enrollment: last_service_history_enrollment, report_end_date: @report.end_date)
+          household_assessment_required[last_service_history_enrollment.client_id] = annual_assessment_expected?(hoh_enrollment: hoh_enrollment, enrollment: last_service_history_enrollment, report_end_date: @report.end_date, start_for_annual: household_start_dates[hh_id])
           end_date = if needs_ce_assessments?
             # Only HoHs get CE assessments, so we prefer their entry date
             hoh_enrollment&.first_date_in_program || last_service_history_enrollment.first_date_in_program
@@ -625,6 +625,19 @@ module HudApr::Generators::Shared::Fy2026
         )
       scope = scope.in_project(@report.project_ids) if @report.project_ids.present? # for consistency with client_scope
       scope
+    end
+
+    # The earliest project start date for each household, which the Annual Assessment section of the
+    # HMIS Reporting Glossary uses as the anniversary date.  Includes enrollments outside
+    # enrollment_scope so households whose head of household exited before the report period still
+    # get the correct anniversary.
+    private def household_start_dates
+      @household_start_dates ||= begin
+        household_ids = enrollment_scope_without_preloads.where.not(household_id: nil).select(:household_id)
+        scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.where(household_id: household_ids)
+        scope = scope.in_project(@report.project_ids) if @report.project_ids.present?
+        scope.group(:household_id).minimum(:first_date_in_program)
+      end
     end
 
     private def pit_enrollment_info(enrollments)

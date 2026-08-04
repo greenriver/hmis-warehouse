@@ -34,10 +34,11 @@ module HudReports::Clients
       }
     end
 
-    private def annual_assessment_expected?(hoh_enrollment:, enrollment:, report_end_date: Date.current)
+    private def annual_assessment_expected?(hoh_enrollment:, enrollment:, report_end_date: Date.current, start_for_annual: nil)
       # Notes from Annual Assessment section in
       # https://files.hudexchange.info/resources/documents/HMIS-Standard-Reporting-Terminology-Glossary-2024.pdf
-      return false unless enrollment.present? && hoh_enrollment.present? && hoh_enrollment.head_of_household?
+      return false unless enrollment.present?
+      return false unless start_for_annual.present? || (hoh_enrollment.present? && hoh_enrollment.head_of_household?)
 
       # Calculate the head of household’s number of years in the project. This can be done using the same
       # algorithm as for calculating a client’s age as of a certain date. Use the client’s [project start date] and the
@@ -49,7 +50,7 @@ module HudReports::Clients
 
       # The date for the annual enrollment is tied to the HoH's entry date
       # Calculate when the annual assessment is due for the household prior to the report end date
-      start_for_annual = hoh_enrollment.entry_date
+      start_for_annual ||= hoh_enrollment.entry_date
       # Get difference in years, ignoring month/date
       years_in_project = report_end_date.year - start_for_annual.year
       # Remove 1 year if month/date of start is after the month/date of the end date. This will account for leap years.
