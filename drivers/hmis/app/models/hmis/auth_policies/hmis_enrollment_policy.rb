@@ -9,9 +9,9 @@
 class Hmis::AuthPolicies::HmisEnrollmentPolicy < Hmis::AuthPolicies::ResourcePolicy
   class Instance < Hmis::AuthPolicies::BasePolicy
     # Whether the user can view the full enrollment details (grants access to the Enrollment Dashboard).
+    # Note: "can_view_enrollment_details" requires the "can_view_project" and "can_view_clients" permissions
+    # as dependencies, so the user must have all 3 permissions (enforced already by UserContext#project_permissions)
     def can_view_details?
-      # Note: "can_view_enrollment_details" requires the "can_view_project" permission as a dependency,
-      # so the user must have both (enforced already by UserContext#project_permissions)
       project_permissions.include?(:can_view_enrollment_details)
     end
 
@@ -78,11 +78,19 @@ class Hmis::AuthPolicies::HmisEnrollmentPolicy < Hmis::AuthPolicies::ResourcePol
 
   class Global < Hmis::AuthPolicies::BasePolicy
     # Whether the user can view some enrollments with full details
+    #
+    # Note: "can_view_enrollment_details" requires the "can_view_project" and "can_view_clients" permissions
+    # as dependencies, so the user must have all 3 at SOME projects (not necessarily the same project).
+    # Enforced by UserContext#global_permissions.
     def can_view?
-      global_permissions.include?(:can_view_enrollment_details) && global_permissions.include?(:can_view_project)
+      global_permissions.include?(:can_view_enrollment_details)
     end
 
     # Whether the user can view some enrollments with limited details
+    #
+    # Note: "can_view_limited_enrollment_details" requires the "can_view_clients" permission as a dependency,
+    # so the user must have both at SOME projects (not necessarily the same project).
+    # Enforced by UserContext#global_permissions.
     def can_view_limited?
       global_permissions.include?(:can_view_limited_enrollment_details)
     end

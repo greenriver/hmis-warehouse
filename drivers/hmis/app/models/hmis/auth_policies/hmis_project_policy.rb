@@ -51,8 +51,8 @@ class Hmis::AuthPolicies::HmisProjectPolicy < Hmis::AuthPolicies::ResourcePolicy
     end
 
     # Whether the user can view full enrollment details at this project.
-    # Note: "can_view_enrollment_details" requires the "can_view_project" permission as a dependency,
-    # so the user must have both (enforced already by UserContext#project_permissions)
+    # Note: "can_view_enrollment_details" requires the "can_view_project" and "can_view_clients" permissions
+    # as dependencies, so the user must have all 3 permissions (enforced already by UserContext#project_permissions)
     def can_view_enrollment_details?
       project_permissions.include?(:can_view_enrollment_details)
     end
