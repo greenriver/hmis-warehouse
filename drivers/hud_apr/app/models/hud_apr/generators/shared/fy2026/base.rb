@@ -163,9 +163,11 @@ module HudApr::Generators::Shared::Fy2026
 
           disabilities_at_entry = enrollment.disabilities.select { |d| d.DataCollectionStage == 1 }
           disabilities_at_exit = enrollment.disabilities.select { |d| d.DataCollectionStage == 3 }
-          max_disability_date = enrollment.disabilities.select { |d| d.InformationDate <= @report.end_date }.
+          max_disability_date_in_report = enrollment.disabilities.select { |d| d.InformationDate <= @report.end_date }.
             map(&:InformationDate).max
-          disabilities_latest = enrollment.disabilities.select { |d| d.InformationDate == max_disability_date }
+          disabilities_latest_in_report = enrollment.disabilities.select { |d| d.InformationDate == max_disability_date_in_report }
+          max_disability_date_overall = enrollment.disabilities.map(&:InformationDate).max
+          disabilities_latest_overall = enrollment.disabilities.select { |d| d.InformationDate == max_disability_date_overall }
 
           # Need to sort by information date, then DateUpdated to catch the most-recent
           # added for the Datalab test kit
@@ -250,7 +252,7 @@ module HudApr::Generators::Shared::Fy2026
             age: age,
             alcohol_abuse_entry: [1, 3].include?(disabilities_at_entry.detect(&:substance?)&.DisabilityResponse),
             alcohol_abuse_exit: [1, 3].include?(disabilities_at_exit.detect(&:substance?)&.DisabilityResponse),
-            alcohol_abuse_latest: [1, 3].include?(disabilities_latest.detect(&:substance?)&.DisabilityResponse),
+            alcohol_abuse_latest: [1, 3].include?(disabilities_latest_in_report.detect(&:substance?)&.DisabilityResponse),
             annual_assessment_expected: annual_assessment_expected,
             # anniversary dates are always based on HoH enrollment
             annual_assessment_in_window: annual_assessment_in_window?(hoh_enrollment, income_at_annual_assessment&.InformationDate),
@@ -258,7 +260,7 @@ module HudApr::Generators::Shared::Fy2026
             came_from_street_last_night: enrollment.PreviousStreetESSH,
             chronic_disability_entry: disabilities_at_entry.detect(&:chronic?)&.DisabilityResponse,
             chronic_disability_exit: disabilities_at_exit.detect(&:chronic?)&.DisabilityResponse,
-            chronic_disability_latest: disabilities_latest.detect(&:chronic?)&.DisabilityResponse,
+            chronic_disability_latest: disabilities_latest_in_report.detect(&:chronic?)&.DisabilityResponse,
             chronic_disability: disabilities.detect(&:chronic?).present?,
             chronically_homeless: chronic_source.try(:[], :chronic_status) || false,
             chronically_homeless_detail: chronic_source.try(:[], :chronic_detail) || {},
@@ -281,7 +283,7 @@ module HudApr::Generators::Shared::Fy2026
             destination: destination,
             developmental_disability_entry: disabilities_at_entry.detect(&:developmental?)&.DisabilityResponse,
             developmental_disability_exit: disabilities_at_exit.detect(&:developmental?)&.DisabilityResponse,
-            developmental_disability_latest: disabilities_latest.detect(&:developmental?)&.DisabilityResponse,
+            developmental_disability_latest: disabilities_latest_in_report.detect(&:developmental?)&.DisabilityResponse,
             developmental_disability: disabilities.detect(&:developmental?).present?,
             disabling_condition: enrollment.DisablingCondition,
             dob_quality: apr_client_dob_quality(source_client),
@@ -291,7 +293,7 @@ module HudApr::Generators::Shared::Fy2026
             domestic_violence_occurred: health_and_dv&.WhenOccurred,
             drug_abuse_entry: [2, 3].include?(disabilities_at_entry.detect(&:substance?)&.DisabilityResponse),
             drug_abuse_exit: [2, 3].include?(disabilities_at_exit.detect(&:substance?)&.DisabilityResponse),
-            drug_abuse_latest: [2, 3].include?(disabilities_latest.detect(&:substance?)&.DisabilityResponse),
+            drug_abuse_latest: [2, 3].include?(disabilities_latest_in_report.detect(&:substance?)&.DisabilityResponse),
             enrollment_coc: enrollment.enrollment_coc,
             enrollment_created: enrollment.DateCreated || enrollment.DateUpdated || DateTime.current,
             exit_created: exit_record&.exit&.DateCreated,
@@ -303,7 +305,7 @@ module HudApr::Generators::Shared::Fy2026
             head_of_household: last_service_history_enrollment[:head_of_household],
             hiv_aids_entry: disabilities_at_entry.detect(&:hiv?)&.DisabilityResponse,
             hiv_aids_exit: disabilities_at_exit.detect(&:hiv?)&.DisabilityResponse,
-            hiv_aids_latest: disabilities_latest.detect(&:hiv?)&.DisabilityResponse,
+            hiv_aids_latest: disabilities_latest_in_report.detect(&:hiv?)&.DisabilityResponse,
             hiv_aids: disabilities.detect(&:hiv?).present?,
             household_id: get_hh_id(last_service_history_enrollment),
             household_members: household_member_data(last_service_history_enrollment, household_calculation_date),
@@ -333,7 +335,7 @@ module HudApr::Generators::Shared::Fy2026
             income_total_at_exit: income_at_exit&.hud_total_monthly_income,
             income_total_at_start: income_at_start&.hud_total_monthly_income,
             # NOTE: this is used for data quality, and should only look at the most recent disability
-            indefinite_and_impairs: disabilities_latest.detect(&:indefinite_and_impairs?),
+            indefinite_and_impairs: disabilities_latest_overall.detect(&:indefinite_and_impairs?),
             insurance_from_any_source_at_annual_assessment: income_at_annual_assessment&.InsuranceFromAnySource,
             insurance_from_any_source_at_exit: income_at_exit&.InsuranceFromAnySource,
             insurance_from_any_source_at_start: income_at_start&.InsuranceFromAnySource,
@@ -343,7 +345,7 @@ module HudApr::Generators::Shared::Fy2026
             length_of_stay: stay_length(last_service_history_enrollment),
             mental_health_problem_entry: disabilities_at_entry.detect(&:mental?)&.DisabilityResponse,
             mental_health_problem_exit: disabilities_at_exit.detect(&:mental?)&.DisabilityResponse,
-            mental_health_problem_latest: disabilities_latest.detect(&:mental?)&.DisabilityResponse,
+            mental_health_problem_latest: disabilities_latest_in_report.detect(&:mental?)&.DisabilityResponse,
             mental_health_problem: disabilities.detect(&:mental?).present?,
             months_homeless: enrollment.MonthsHomelessPastThreeYears,
             move_in_date: last_service_history_enrollment.move_in_date,
@@ -373,7 +375,7 @@ module HudApr::Generators::Shared::Fy2026
             pit_enrollments: pit_enrollment_info(enrollments),
             physical_disability_entry: disabilities_at_entry.detect(&:physical?)&.DisabilityResponse,
             physical_disability_exit: disabilities_at_exit.detect(&:physical?)&.DisabilityResponse,
-            physical_disability_latest: disabilities_latest.detect(&:physical?)&.DisabilityResponse,
+            physical_disability_latest: disabilities_latest_in_report.detect(&:physical?)&.DisabilityResponse,
             physical_disability: disabilities.detect(&:physical?).present?,
             prior_length_of_stay: enrollment.LengthOfStay,
             prior_living_situation: enrollment.LivingSituation,
@@ -390,7 +392,7 @@ module HudApr::Generators::Shared::Fy2026
             subsidy_information: last_service_history_enrollment.enrollment.exit&.SubsidyInformation,
             substance_abuse_entry: disabilities_at_entry.detect(&:substance?)&.DisabilityResponse,
             substance_abuse_exit: disabilities_at_exit.detect(&:substance?)&.DisabilityResponse,
-            substance_abuse_latest: disabilities_latest.detect(&:substance?)&.DisabilityResponse,
+            substance_abuse_latest: disabilities_latest_in_report.detect(&:substance?)&.DisabilityResponse,
             substance_abuse: disabilities.detect(&:substance?).present?,
             time_to_move_in: times_to_move_in[last_service_history_enrollment.client_id],
             times_homeless: enrollment.TimesHomelessPastThreeYears,
