@@ -100,6 +100,24 @@ RSpec.describe SeedMaker do
       end
     end
 
+    context 'with a partial KEYCLOAK_* env (a core build key absent)' do
+      before do
+        allow(AuthMethod).to receive(:jwt?).and_return(true)
+      end
+
+      it 'is a silent no-op when KEYCLOAK_REALM is absent' do
+        stub_env(keycloak_env.merge('KEYCLOAK_REALM' => nil))
+
+        expect { seed_maker.seed_idp_service_config }.not_to change(Idp::ServiceConfig, :count)
+      end
+
+      it 'is a silent no-op when KEYCLOAK_SERVICE_CLIENT_ID is absent' do
+        stub_env(keycloak_env.merge('KEYCLOAK_SERVICE_CLIENT_ID' => nil))
+
+        expect { seed_maker.seed_idp_service_config }.not_to change(Idp::ServiceConfig, :count)
+      end
+    end
+
     context 're-seeding (runs on every deploy)' do
       before do
         allow(AuthMethod).to receive(:jwt?).and_return(true)

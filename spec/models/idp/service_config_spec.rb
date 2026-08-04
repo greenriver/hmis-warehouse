@@ -29,6 +29,30 @@ RSpec.describe Idp::ServiceConfig, type: :model, if: AuthMethod.jwt? do
       end
     end
 
+    describe 'keycloak build-key validation' do
+      it 'rejects an active keycloak config with a blank client_id' do
+        config = build(:idp_service_config, active: true, client_id: nil)
+        expect(config).not_to be_valid
+        expect(config.errors[:client_id]).to be_present
+      end
+
+      it 'rejects an active keycloak config with a blank keycloak_realm' do
+        config = build(:idp_service_config, active: true, keycloak_realm: nil)
+        expect(config).not_to be_valid
+        expect(config.errors[:keycloak_realm]).to be_present
+      end
+
+      it 'allows an inactive keycloak config with a blank client_id (draft parking)' do
+        config = build(:idp_service_config, active: false, client_id: nil)
+        expect(config).to be_valid
+      end
+
+      it 'allows an inactive keycloak config with a blank keycloak_realm (draft parking)' do
+        config = build(:idp_service_config, active: false, keycloak_realm: nil)
+        expect(config).to be_valid
+      end
+    end
+
     describe 'connector_id uniqueness' do
       let!(:existing) { create(:idp_service_config, connector_id: 'keycloak') }
 

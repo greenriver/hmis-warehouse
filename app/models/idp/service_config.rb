@@ -39,6 +39,10 @@ module Idp
     validates :api_url, presence: true
     validates :service_token, presence: true
     validate :validate_provider
+    # Active-only: for_connector builds from .active rows, so a blank-key row only breaks
+    # once active. Scoping here lets ops park an inactive, half-filled draft and finish it
+    # before turning it on.
+    validate :validate_provider_config, if: :active?
 
     scope :active, -> { where(active: true) }
 
@@ -63,6 +67,16 @@ module Idp
       return if Idp::ServiceFactory.services.key?(provider.to_s)
 
       errors.add(:provider, "unknown provider: #{provider}")
+    end
+
+    # Keycloak's build (KeycloakService.from_config) needs keycloak_realm and client_id
+    # in addition to the globally-validated api_url/service_token. Without them an active
+    # row saves cleanly then raises Idp::ServiceError at every service build.
+    def validate_provider_config
+      return unless provider == 'keycloak'
+
+      errors.add(:keycloak_realm, :blank) if keycloak_realm.blank?
+      errors.add(:client_id, :blank) if client_id.blank?
     end
   end
 end

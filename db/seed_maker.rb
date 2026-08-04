@@ -445,7 +445,14 @@ class SeedMaker
   # row is left untouched, preserving the off-switch across re-seeds.
   def seed_idp_service_config
     return unless AuthMethod.jwt?
-    return unless ENV['KEYCLOAK_API_URL'].present? && ENV['KEYCLOAK_SERVICE_CLIENT_SECRET'].present?
+    # Require all four core build keys, not just API_URL+SECRET: the model now validates
+    # realm/client_id on active rows, so a partial ENV would make create raise
+    # RecordInvalid and break the deploy. Missing keys stay a no-op (external IdPs have no
+    # KEYCLOAK_* at all).
+    return unless ENV['KEYCLOAK_API_URL'].present? &&
+      ENV['KEYCLOAK_REALM'].present? &&
+      ENV['KEYCLOAK_SERVICE_CLIENT_ID'].present? &&
+      ENV['KEYCLOAK_SERVICE_CLIENT_SECRET'].present?
 
     connector_id = ENV.fetch('KEYCLOAK_CONNECTOR_ID', 'keycloak')
 
