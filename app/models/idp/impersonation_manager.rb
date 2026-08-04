@@ -11,11 +11,7 @@
 # Stores impersonation state ({ true_user_id, impersonated_user_id }) in the Rails session,
 # replacing pretender's session machinery.
 #
-# NOTE: there is deliberately no session-stamp here. Under this cookie-store implementation
-# any such stamp would live in the same cookie as the payload, be written together with it, and be
-# wiped together with it by reset_session — so it could never diverge and offered no protection.
-# Instead, the guard lives upstream in Idp::JwtAuthentication#idp_authenticated_user_from_jwt,
-# which invalidates impersonation whenever the JWT principal is not the stored true_user.
+# Whose impersonation this is gets policed upstream in Idp::JwtAuthentication, not here.
 class Idp::ImpersonationManager
   attr_reader :session
 

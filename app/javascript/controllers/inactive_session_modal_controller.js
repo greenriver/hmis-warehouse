@@ -29,6 +29,9 @@ export default class extends Controller {
   connect() {
     this.initialUserIdValue = this.data.get('initial-user-id-value');
     this.sessionLifetimeSecsValue = parseInt(this.data.get('session-lifetime-secs-value'));
+    // Absolute token expiry in epoch seconds (JWT arm), not a duration; absent → NaN on Devise.
+    this.sessionExpiresAtValue = parseInt(this.data.get('session-expires-at-value'));
+    this.tokenExpiryDriven = !Number.isNaN(this.sessionExpiresAtValue);
     shared.saveValue(UID_KEY, this.initialUserIdValue);
     if (!this.initialUserIdValue) {
       return;
@@ -71,7 +74,7 @@ export default class extends Controller {
     state.userId = shared.getValue(UID_KEY);
     const ts = parseInt(shared.getValue(TS_KEY));
     if (ts) {
-      const expires = ts + this.sessionLifetimeSecsValue;
+      const expires = this.tokenExpiryDriven ? this.sessionExpiresAtValue : ts + this.sessionLifetimeSecsValue;
       const delta = expires - getTimestamp();
       const remaining = delta > 0 ? delta : 0;
       state.remaining = remaining;
@@ -151,17 +154,28 @@ export default class extends Controller {
   handleRenewSession(event) {
     event.preventDefault();
     if (this.state.xhr) return;
-    const success = () => {
+    const success = (data) => {
       this.state.xhr = undefined;
+      this.applyKeepaliveExpiry(data);
       this.hideWarning();
     };
     const error = () => {
       window.location.reload();
     };
+    // No dataType: 'json' — the Devise keepalive returns head :ok with an empty body, which a forced
+    // JSON parse would fail, routing this success through `error` (a page reload).
     this.state.xhr = $.ajax(event.currentTarget.href, {
       method: 'POST',
       success,
       error,
     });
+  }
+
+  applyKeepaliveExpiry(data) {
+    if (!this.tokenExpiryDriven || !data) return;
+    const expiresAt = data.expiration_time || (data.remaining_seconds && getTimestamp() + data.remaining_seconds);
+    if (!expiresAt) return;
+    this.sessionExpiresAtValue = parseInt(expiresAt);
+    this.state.remaining = Number.MAX_VALUE;
   }
 }
