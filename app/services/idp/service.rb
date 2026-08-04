@@ -132,6 +132,13 @@ module Idp
       nil
     end
 
+    # #pending_email split in two, so a caller that already holds the representation (the account page,
+    # which just read it to reconcile) needn't spend a second Admin API read. Defaults to nil.
+    # @return [String, nil]
+    def pending_email_from_representation(representation) # rubocop:disable Lint/UnusedMethodArgument
+      nil
+    end
+
     protected
 
     def default_config

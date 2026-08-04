@@ -190,7 +190,10 @@ module Idp
 
     # Read only — Keycloak owns the attribute's lifecycle.
     def pending_email(user_id:)
-      representation = get_user(user_id: user_id)
+      pending_email_from_representation(get_user(user_id: user_id))
+    end
+
+    def pending_email_from_representation(representation)
       Array(representation.dig('attributes', EMAIL_PENDING_ATTRIBUTE)).first.presence
     end
 
@@ -578,6 +581,5 @@ module Idp
 
       handle_response(response, operation: operation, failure: failure) { true }
     end
-
   end
 end

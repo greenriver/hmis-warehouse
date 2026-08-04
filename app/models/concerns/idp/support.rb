@@ -143,7 +143,7 @@ module Idp::Support
   def idp_reconcile_email!
     return nil unless primary_idp
 
-    representation = idp_service.get_user(user_id: idp_connector_user_id!)
+    representation = idp_user_representation
     remote_email = representation['email'].presence
     return nil if remote_email.blank? || remote_email.casecmp?(email)
 
@@ -175,7 +175,7 @@ module Idp::Support
   def idp_pending_email
     return nil unless primary_idp
 
-    idp_service.pending_email(user_id: idp_connector_user_id!)
+    idp_service.pending_email_from_representation(idp_user_representation)
   end
 
   # Push admin-edited first_name/last_name/email to the IdP. No-ops unless the service can accept
@@ -188,6 +188,13 @@ module Idp::Support
   end
 
   private
+
+  # Reconcile and the pending-address read run back-to-back on the account page and want the same
+  # record; memoized so that costs one Admin API read, not two.
+  # @raise [Idp::ServiceError] the read failed
+  def idp_user_representation
+    @idp_user_representation ||= idp_service.get_user(user_id: idp_connector_user_id!)
+  end
 
   # A connector whose config was deactivated or removed resolves to a NullService, which answers
   # false. Activation changes still have to land locally in that case: the local `active` flag is
