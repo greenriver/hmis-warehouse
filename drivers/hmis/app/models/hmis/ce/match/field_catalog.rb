@@ -40,28 +40,25 @@ module Hmis::Ce::Match
       end
     end
 
-    # Used by ExpressionTranslator to resolve field metadata by expression key.
-    # If the expression includes a CDED key, attempt to recover type metadata from its
-    # form definition (in order to resolve all historical picklist options).
-    # Fall back to CDED type if no form identifier is present.
     def field_for(field_key)
-      field_key = field_key.to_s
-      client_field = client_field_by_key[field_key.to_sym]
-      return build_client_field(client_field) if client_field
+      namespace, resolved_key = Hmis::Ce::Match::Expression::FieldMap.field_type_for(field_key.to_s)
 
-      # PSDE keys have one namespace segment, for example
-      # psde.total_monthly_income. The registry is the source of truth for
-      # supported keys, so anything unregistered resolves to nil.
-      if field_key.start_with?("#{Hmis::Ce::Match::Expression::FieldMap::PSDE}.")
-        psde_field = Hmis::Ce::Match::Expression::PsdeFieldRegistry[field_key.split('.', 2).last]
-        return psde_field && build_psde_field(psde_field)
+      case namespace
+      when Hmis::Ce::Match::Expression::FieldMap::CLIENT
+        client_field = client_field_by_key[resolved_key.to_sym]
+        build_client_field(client_field) if client_field
+      when Hmis::Ce::Match::Expression::FieldMap::PSDE
+        psde_field = Hmis::Ce::Match::Expression::PsdeFieldRegistry[resolved_key]
+        build_psde_field(psde_field) if psde_field
+      when Hmis::Ce::Match::Expression::FieldMap::CDE
+        cded_key = resolved_key.split('.').last
+        cded = Hmis::Hud::CustomDataElementDefinition.for_ce_match_conditions.find_by(key: cded_key)
+        build_cded_field(cded, **form_metadata_for_cded(cded)) if cded
       end
-
-      return unless field_key.start_with?("#{Hmis::Ce::Match::Expression::FieldMap::CDE}.")
-
-      cded_key = field_key.split('.').last
-      cded = Hmis::Hud::CustomDataElementDefinition.for_ce_match_conditions.find_by(key: cded_key)
-      build_cded_field(cded, **form_metadata_for_cded(cded)) if cded
+    rescue ArgumentError
+      # Unknown namespaces raise from FieldMap.field_type_for; treat them like
+      # other unrecognized keys so hydration can fall back to the raw editor.
+      nil
     end
 
     private
