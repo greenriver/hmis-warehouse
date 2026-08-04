@@ -108,9 +108,11 @@ class Hmis::Hud::Project < Hmis::Hud::Base
     where(id: ids, data_source_id: user.hmis_data_source_id)
   end
 
-  # Projects where the user can view full enrollment details (requires both can_view_enrollment_details and can_view_project)
+  # Projects where the user can view full enrollment details.
+  # mode: :all requires all 3 permissions on the same role, which is intentional: a role that grants
+  # enrollment details without client visibility grants no enrollment access.
   scope :with_enrollment_details_viewable_by, ->(user) do
-    with_access(user, :can_view_enrollment_details, :can_view_project, mode: :all)
+    with_access(user, :can_view_enrollment_details, :can_view_project, :can_view_clients, mode: :all)
   end
 
   scope :with_organization_ids, ->(organization_ids) do

@@ -6,7 +6,7 @@
 
 # frozen_string_literal: true
 
-# @see docs/features/hmis-supplemental.md
+# @see docs/features/warehouse/hmis-supplemental.md
 module HmisSupplemental
   Field = Struct.new(:key, :label, :type, :multi_valued, :data_set, keyword_init: true) do
     DELIMITER = '|'.freeze

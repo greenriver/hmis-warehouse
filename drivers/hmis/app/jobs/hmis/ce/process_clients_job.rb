@@ -13,7 +13,7 @@
 # This job runs frequently to provide low-latency updates for client eligibility changes.
 # Uses non-blocking per-pool advisory locks to coordinate with ProcessPoolsJob.
 #
-# See drivers/hmis/app/models/hmis/ce/README_FOR_CE_PROCESSING.md
+# See docs/features/hmis/ce-processing.md
 #
 module Hmis::Ce
   class ProcessClientsJob < BaseJob

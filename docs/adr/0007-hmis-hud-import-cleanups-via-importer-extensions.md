@@ -91,7 +91,7 @@ More discussion needed; calling this out-of-scope for this ADR. We may want to e
 ## Related Documents
 
 - [`HmisCsvImporter::HmisCsvCleanup::Base`](../../drivers/hmis_csv_importer/app/models/hmis_csv_importer/hmis_csv_cleanup/base.rb) — `cleanup!`, `self.enable`, `self.description`, `self.associated_model`
-- [`docs/features/hmis-csv-importer.md`](../features/hmis-csv-importer.md) — import lifecycle and log models
+- [`docs/features/warehouse/hmis-csv-importer.md`](../features/warehouse/hmis-csv-importer.md) — import lifecycle and log models
 
 ### APPENDIX A: Proposed Importer Extensions to Add
 

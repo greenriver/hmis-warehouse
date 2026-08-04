@@ -35,6 +35,16 @@ RSpec.describe Hmis::AuthPolicies::ContextLoaders::HmisPermissionLoader, type: :
 
         expect(result.to_a).to eq([:can_view_project]) # can_start_referrals filtered out due to unmet requirements
       end
+
+      # Permissions declare only their direct requirements, so the chain must be resolved recursively:
+      # can_delete_assessments -> can_view_enrollment_details -> can_view_project, can_view_clients
+      it 'excludes permissions when a transitive requirement is not met' do
+        access_control = create_access_control(user, project, with_permission: [:can_view_project, :can_view_enrollment_details, :can_delete_assessments])
+
+        result = loader.for_access_group_ids([access_control.access_group.id])
+
+        expect(result.to_a).to eq([:can_view_project])
+      end
     end
   end
 end

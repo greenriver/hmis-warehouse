@@ -7,6 +7,10 @@
 # frozen_string_literal: true
 
 # Utility for building CE workflow definitions specific to the PH installation.
+#
+# This workflow builder uses the non-preferred draft idempotent pattern.
+# Retained for existing PH direct referral workflows, but don't copy this pattern for new workflows.
+# @see docs/features/hmis/ce-workflow-builders.md for the preferred destroy-and-recreate approach.
 module CeWorkflows::Ph
   class WorkflowBuilder
     FORMS = {

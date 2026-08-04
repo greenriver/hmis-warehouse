@@ -60,7 +60,7 @@ The table below documents columns on the `data_sources` table. "Admin UI" indica
 ## See also
 
 - [hmis-csv-importer.md](hmis-csv-importer.md) — import pipeline
-- [multi-hmis-support.md](../architecture/multi-hmis-support.md) — Open Path HMIS hostname routing
+- [multi-hmis-support.md](../../architecture/multi-hmis-support.md) — Open Path HMIS hostname routing
 - [warehouse-permissions.md](warehouse-permissions.md) — access control for data sources
 - [import-csv-monitoring.md](import-csv-monitoring.md) — per-CSV import monitors
 - `app/models/grda_warehouse/data_source.rb` — model, scopes, and behavior

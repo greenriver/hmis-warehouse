@@ -2,4 +2,4 @@
 
 Implementation of the Boston CoC's Project Scorecard.
 
-See docs/features/boston-project-scorecard.md
+See docs/features/warehouse/boston-project-scorecard.md

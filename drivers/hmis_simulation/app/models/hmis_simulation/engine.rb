@@ -9,7 +9,7 @@
 module HmisSimulation
   # Drives the simulation forward one calendar day at a time.
   #
-  # See @docs/features/hmis-simulation.md
+  # See @docs/features/warehouse/hmis-simulation.md
   #
   # Each call to #run(date:) processes exactly one simulated day:
   #   1. Spawn new clients (looped over all primary tracks)
