@@ -14,11 +14,6 @@ require_relative '../../support/hmis_base_setup'
 # Note: enrollment(id:) requires full enrollment details access (can_view_details?).
 # Limited enrollment access alone is not enough to resolve this query — that permission
 # is for nested enrollments on the client dashboard (see client_enrollments_visibility_spec).
-#
-# Lookup uses Enrollment.viewable_by → Project.with_enrollment_details_viewable_by, which resolves
-# can_view_enrollment_details through UserContext, so its requirements (can_view_project and
-# can_view_clients) are enforced the same way the policies enforce them: unioned across the user's
-# roles at the project.
 RSpec.describe Hmis::GraphqlController, type: :request do
   include_context 'hmis base setup'
 
@@ -145,7 +140,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   # role at the same project counts. Splitting the same permissions across projects does not (below).
   describe 'with the required permissions split across two roles at the same project' do
     let!(:access_control) { create_access_control(hmis_user, p1, with_permission: [:can_view_enrollment_details]) }
-    let!(:other_access_control) { create_access_control(hmis_user, p1, with_permission: [:can_view_project, :can_view_clients]) }
+    let!(:other_access_control) { create_access_control(hmis_user, p1.organization, with_permission: [:can_view_project, :can_view_clients]) }
 
     it 'resolves the enrollment' do
       expect(Hmis::Hud::Enrollment.viewable_by(hmis_user)).to include(e1)

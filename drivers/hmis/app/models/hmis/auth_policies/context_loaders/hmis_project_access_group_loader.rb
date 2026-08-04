@@ -45,10 +45,7 @@ module Hmis::AuthPolicies::ContextLoaders
 
     # {project_id => [access_group_id, ...]} for projects in the given data source that are covered by the
     # given access groups, directly or indirectly. The inverse of #get, so results mention only the access
-    # groups passed in. Deliberately doesn't populate the per-project cache, which holds every access group
-    # for a project regardless of who can reach it. Deleted access groups need no filtering here, since
-    # callers arrive with groups they resolved through their own access controls. IDs are sorted so that
-    # projects sharing an access profile share a cache entry in HmisPermissionLoader.
+    # groups passed in.
     def access_group_ids_by_project(access_group_ids, data_source_id:)
       return {} if access_group_ids.empty?
 

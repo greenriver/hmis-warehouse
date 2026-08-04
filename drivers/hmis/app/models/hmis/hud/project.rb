@@ -104,8 +104,8 @@ class Hmis::Hud::Project < Hmis::Hud::Base
   #
   # WARNING! This will include projects that the user does not have access to view (e.g. they lack can_view_projects)
   scope :with_access, ->(user, *permissions, mode: :any) do
-    # IDs are already limited to the user's current data source
-    where(id: user.policy_context.project_ids_with_permissions(*permissions, mode: mode))
+    ids = user.policy_context.project_ids_with_permissions(*permissions, mode: mode)
+    where(id: ids, data_source_id: user.hmis_data_source_id)
   end
 
   # Projects where the user can view full enrollment details.
