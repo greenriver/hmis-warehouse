@@ -169,7 +169,7 @@ RSpec.describe CeWorkflows::Ph::HousingWorkflowBuilder do
           'Housing Case Manager Decision',
           'Move-In Date',
           'Confirm Success',
-          'Decline Referral',
+          'Admin Cancel',
         ],
       )
     end
@@ -273,13 +273,13 @@ RSpec.describe CeWorkflows::Ph::HousingWorkflowBuilder do
     it 'sends back for a second attempt on go_back' do
       complete_user_step!(engine, review_decline_step, submitted_values: review_go_back, user: user)
 
-      expect_active_steps(engine, reopened_step, 'Decline Referral')
+      expect_active_steps(engine, reopened_step, 'Admin Cancel')
     end
 
     it 'routes a second decline to the final review step' do
       drive_to_final_review!
 
-      expect_active_steps(engine, final_review_decline_step, 'Decline Referral')
+      expect_active_steps(engine, final_review_decline_step, 'Admin Cancel')
     end
 
     it 'rejects when the CoC approves the decline at final review' do
@@ -306,7 +306,7 @@ RSpec.describe CeWorkflows::Ph::HousingWorkflowBuilder do
     let(:final_review_decline_step) { 'Final Review Decline (Shelter Agency)' }
     let(:reopened_step) { 'Shelter Agency Initial Review (Second Attempt)' }
     let(:reopened_decline_values) { shelter_decline }
-    let(:continue_next_steps) { ['Housing Case Manager Initial Review', 'Decline Referral'] }
+    let(:continue_next_steps) { ['Housing Case Manager Initial Review', 'Admin Cancel'] }
 
     def reach_review_decline!
       drive!(
@@ -329,7 +329,7 @@ RSpec.describe CeWorkflows::Ph::HousingWorkflowBuilder do
     let(:final_review_decline_step) { 'Final Review Decline (Case Manager Intake)' }
     let(:reopened_step) { 'Housing Case Manager Initial Review (Second Attempt)' }
     let(:reopened_decline_values) { intake_decline }
-    let(:continue_next_steps) { ['Housing Case Manager Decision', 'Decline Referral'] }
+    let(:continue_next_steps) { ['Housing Case Manager Decision', 'Admin Cancel'] }
 
     def reach_review_decline!
       drive!(
@@ -353,7 +353,7 @@ RSpec.describe CeWorkflows::Ph::HousingWorkflowBuilder do
     let(:final_review_decline_step) { 'Final Review Decline (Case Manager Decision)' }
     let(:reopened_step) { 'Housing Case Manager Decision (Second Attempt)' }
     let(:reopened_decline_values) { decision_decline }
-    let(:continue_next_steps) { ['Move-In Date', 'Decline Referral'] }
+    let(:continue_next_steps) { ['Move-In Date', 'Admin Cancel'] }
     let(:continue_status) { enrolled_status }
 
     def reach_review_decline!
@@ -383,7 +383,7 @@ RSpec.describe CeWorkflows::Ph::HousingWorkflowBuilder do
         user: user,
       )
 
-      expect_active_steps(engine, 'CORI Hearing', 'Decline Referral')
+      expect_active_steps(engine, 'CORI Hearing', 'Admin Cancel')
     end
   end
 
@@ -394,7 +394,7 @@ RSpec.describe CeWorkflows::Ph::HousingWorkflowBuilder do
     let(:final_review_decline_step) { 'Final Review Decline (CORI Hearing)' }
     let(:reopened_step) { 'CORI Hearing (Second Attempt)' }
     let(:reopened_decline_values) { cori_decline }
-    let(:continue_next_steps) { ['Move-In Date', 'Decline Referral'] }
+    let(:continue_next_steps) { ['Move-In Date', 'Admin Cancel'] }
     let(:continue_status) { enrolled_status }
 
     def reach_review_decline!
@@ -426,7 +426,7 @@ RSpec.describe CeWorkflows::Ph::HousingWorkflowBuilder do
         user: user,
       )
 
-      expect_active_steps(engine, 'Move-In Date', 'Decline Referral')
+      expect_active_steps(engine, 'Move-In Date', 'Admin Cancel')
       expect(referral.reload.target_enrollment).to be_present
     end
   end
@@ -434,12 +434,12 @@ RSpec.describe CeWorkflows::Ph::HousingWorkflowBuilder do
   describe 'acceptance' do
     include_context 'housing workflow walkthrough'
 
-    let(:decline_referral_node) { template.nodes.find { |node| node.name == 'Decline Referral' } }
+    let(:decline_referral_node) { template.nodes.find { |node| node.name == 'Admin Cancel' } }
 
     it 'accepts the referral and records CE event result 1 when Confirm Success is completed' do
       advance_housing_workflow_to_post_enrollment!(engine)
 
-      expect_active_steps(engine, 'Confirm Success', 'Decline Referral')
+      expect_active_steps(engine, 'Confirm Success', 'Admin Cancel')
 
       complete_user_step!(engine, 'Confirm Success', submitted_values: {}, user: user)
 
@@ -462,7 +462,7 @@ RSpec.describe CeWorkflows::Ph::HousingWorkflowBuilder do
   describe 'closure walkthrough' do
     include_context 'housing workflow walkthrough'
 
-    it 'rejects the referral when Decline Referral is completed after enrollment' do
+    it 'rejects the referral when Admin Cancel is completed after enrollment' do
       advance_housing_workflow_to_post_enrollment!(engine)
 
       enrollment = referral.reload.target_enrollment
@@ -471,7 +471,7 @@ RSpec.describe CeWorkflows::Ph::HousingWorkflowBuilder do
       expect do
         complete_user_step!(
           engine,
-          'Decline Referral',
+          'Admin Cancel',
           submitted_values: {
             'coc_decline_reason' => 'client_has_declined_match',
             'referral_result' => '2',

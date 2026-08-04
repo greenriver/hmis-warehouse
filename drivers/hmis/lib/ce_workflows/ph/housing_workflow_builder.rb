@@ -243,7 +243,7 @@ module CeWorkflows::Ph
         trigger_config: [pending_decline],
       )
       optional_decline_task = Hmis::WorkflowDefinition::UserTask.create!(
-        name: 'Decline Referral',
+        name: 'Admin Cancel',
         form_definition_identifier: HOUSING_WORKFLOW_FORMS.fetch(:housing_coc_decline),
         template: template,
         swimlane: coc_swimlane,
