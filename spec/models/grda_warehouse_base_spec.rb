@@ -126,14 +126,7 @@ RSpec.describe 'GrdaWarehouseBase PaperTrail configuration', type: :model do
     end
   end
 
-  around(:example) do |ex|
-    PaperTrailHelper.with_paper_trail do
-      PaperTrail.request.enabled = true
-      ex.run
-    ensure
-      PaperTrail.request.enabled = false
-    end
-  end
+  around(:example) { |ex| PaperTrailHelper.with_paper_trail { ex.run } }
 
   describe 'a model that declares has_paper_trail once (super path)' do
     it 'records exactly one version on create, and nothing in the default (primary) versions table' do

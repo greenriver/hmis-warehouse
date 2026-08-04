@@ -6,7 +6,7 @@
 
 # frozen_string_literal: true
 
-# @see docs/features/project-scorecard.md
+# @see docs/features/warehouse/project-scorecard.md
 module ProjectScorecard::WarehouseReports
   class ScorecardsController < ApplicationController
     include WarehouseReportAuthorization

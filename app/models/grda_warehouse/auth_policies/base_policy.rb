@@ -6,7 +6,7 @@
 
 # frozen_string_literal: true
 
-# @see docs/features/warehouse-auth-policies.md
+# @see docs/features/warehouse/warehouse-auth-policies.md
 require 'memery'
 
 class GrdaWarehouse::AuthPolicies::BasePolicy

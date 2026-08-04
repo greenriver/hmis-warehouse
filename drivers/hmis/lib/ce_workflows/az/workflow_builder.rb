@@ -42,7 +42,7 @@ module CeWorkflows::Az
     def build_mc_direct_referral_workflow
       identifier = 'mc_direct_referral'
       template_name = 'Direct Referral'
-      CeWorkflows::Shared::CeBuilderUtils.delete_template_and_associated_data(identifier, data_source: @data_source) unless @unsafe_run_in_production
+      CeWorkflows::Shared::CeBuilderUtils.delete_template_and_associated_data(identifier, data_source: @data_source, delete_opportunities: false) unless @unsafe_run_in_production
 
       puts "Creating workflow definition template '#{identifier}'"
       template = CeWorkflows::Shared::CeBuilderUtils.create_template(identifier, template_name, @data_source)
