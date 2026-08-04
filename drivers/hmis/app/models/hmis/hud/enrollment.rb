@@ -158,9 +158,9 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   end
 
   # Enrollments that the user has limited enrollment details access to (e.g. they can see that the Enrollments exist on the Client dashboard)
-  # mode: :all requires both permissions on the same role (see Project.with_enrollment_details_viewable_by)
+  # can_view_limited_enrollment_details requires can_view_clients, which with_access resolves.
   scope :limited_enrollment_details_viewable_by, ->(user) do
-    project_ids = Hmis::Hud::Project.with_access(user, :can_view_limited_enrollment_details, :can_view_clients, mode: :all).select(:id)
+    project_ids = Hmis::Hud::Project.with_access(user, :can_view_limited_enrollment_details).select(:id)
     where(project_pk: project_ids)
   end
 

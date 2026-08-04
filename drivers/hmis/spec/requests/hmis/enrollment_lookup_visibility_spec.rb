@@ -15,10 +15,10 @@ require_relative '../../support/hmis_base_setup'
 # Limited enrollment access alone is not enough to resolve this query — that permission
 # is for nested enrollments on the client dashboard (see client_enrollments_visibility_spec).
 #
-# Lookup uses Enrollment.viewable_by → Project.with_enrollment_details_viewable_by, which
-# requires can_view_enrollment_details + can_view_project + can_view_clients on the same
-# role (with_access mode: :all via Role.with_permissions). That is independent of
-# HmisPermissionLoader role-requirement stripping used by policy objects.
+# Lookup uses Enrollment.viewable_by → Project.with_enrollment_details_viewable_by, which resolves
+# can_view_enrollment_details through UserContext, so its requirements (can_view_project and
+# can_view_clients) are enforced the same way the policies enforce them: unioned across the user's
+# roles at the project.
 RSpec.describe Hmis::GraphqlController, type: :request do
   include_context 'hmis base setup'
 
@@ -110,7 +110,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     end
   end
 
-  # Pins with_enrollment_details_viewable_by's mode: :all triad (same role must have all three).
   describe 'without can_view_project' do
     let!(:access_control) do
       create_access_control(
@@ -137,6 +136,28 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
     it 'returns null even when enrollment-detail permissions are present' do
       expect(Hmis::Hud::Client.viewable_by(hmis_user)).not_to include(c1)
+      expect(Hmis::Hud::Enrollment.viewable_by(hmis_user)).not_to include(e1)
+      expect(fetch_enrollment).to be_nil
+    end
+  end
+
+  # The scope resolves permissions the way the policies do, so a requirement satisfied by a second
+  # role at the same project counts. Splitting the same permissions across projects does not (below).
+  describe 'with the required permissions split across two roles at the same project' do
+    let!(:access_control) { create_access_control(hmis_user, p1, with_permission: [:can_view_enrollment_details]) }
+    let!(:other_access_control) { create_access_control(hmis_user, p1, with_permission: [:can_view_project, :can_view_clients]) }
+
+    it 'resolves the enrollment' do
+      expect(Hmis::Hud::Enrollment.viewable_by(hmis_user)).to include(e1)
+      expect(fetch_enrollment).to include('id' => e1.id.to_s)
+    end
+  end
+
+  describe 'with the required permissions split across projects' do
+    let!(:access_control) { create_access_control(hmis_user, p1, with_permission: [:can_view_enrollment_details]) }
+    let!(:other_access_control) { create_access_control(hmis_user, p2, with_permission: [:can_view_project, :can_view_clients]) }
+
+    it 'returns null' do
       expect(Hmis::Hud::Enrollment.viewable_by(hmis_user)).not_to include(e1)
       expect(fetch_enrollment).to be_nil
     end
