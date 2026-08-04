@@ -26,6 +26,15 @@ module JwtHelperTestExtensions
     super
   end
 
+  # Same bypass as valid?. Without it a mock token reads as :malformed and every JWT path treats it
+  # as a broken stack.
+  def invalid_reason
+    return :missing unless token?
+    return nil if access_token.start_with?('mock-jwt-token-')
+
+    super
+  end
+
   # Override payload to return mock payload for mock tokens
   def payload
     # For mock tokens in system tests, return mock payload

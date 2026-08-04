@@ -30,6 +30,16 @@ module Idp::JwtCurrentUser
       idp_handle_unauthenticated
     end
 
+    # If a deactivated user reaches the app with a valid JWT, show a warning page instead of
+    # letting them land on the public homepage as we do for unauthenticated users.
+    def reject_deactivated_user!
+      return unless request.format.html?
+      return if current_user
+      return unless idp_token_holder && !idp_token_holder.active?
+
+      idp_handle_deactivated
+    end
+
     def user_signed_in?
       current_user.present?
     end
