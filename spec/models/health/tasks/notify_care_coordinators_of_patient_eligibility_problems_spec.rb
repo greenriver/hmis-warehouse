@@ -77,6 +77,6 @@ RSpec.describe Health::Tasks::NotifyCareCoordinatorsOfPatientEligibilityProblems
   end
 
   def patient_links(patients)
-    patients.map { |p| client_health_patient_index_path(p.client_id) }
+    patients.map { |p| client_path(p.client_id) }
   end
 end

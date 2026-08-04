@@ -17,6 +17,7 @@ FactoryBot.define do
     naturally_payable { true }
     user
     patient
+    source { patient }
   end
 
   factory :qualifying_activity_for_patient_a, class: 'Health::QualifyingActivity' do
@@ -28,6 +29,7 @@ FactoryBot.define do
     activity { :outreach }
     user
     association :patient
+    source { patient }
   end
 
   trait :old_qa do
@@ -43,6 +45,7 @@ FactoryBot.define do
     activity { :outreach }
     user
     patient
+    source { patient }
   end
 
   factory :pctp_signed_qa, class: 'Health::QualifyingActivity' do
@@ -55,6 +58,7 @@ FactoryBot.define do
     activity { :pctp_signed }
     user
     patient
+    source { patient }
   end
 
   factory :cha_qa, class: 'Health::QualifyingActivity' do
@@ -67,6 +71,7 @@ FactoryBot.define do
     activity { :cha }
     user
     patient
+    source { patient }
   end
 
   factory :discharge_follow_up_qa, class: 'Health::QualifyingActivity' do
@@ -79,6 +84,7 @@ FactoryBot.define do
     activity { :discharge_follow_up }
     user
     patient
+    source { patient }
   end
 
   factory :care_team_qa, class: 'Health::QualifyingActivity' do
@@ -91,5 +97,6 @@ FactoryBot.define do
     activity { :care_team }
     user
     patient
+    source { patient }
   end
 end

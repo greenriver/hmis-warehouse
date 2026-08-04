@@ -13,6 +13,10 @@ FactoryBot.define do
   end
 
   factory :pctp_careplan, class: 'Health::PctpCareplan' do
-    association :instrument, factory: :careplan
+    transient do
+      patient { create(:patient) }
+    end
+    patient_id { patient.id }
+    instrument { create(:careplan, patient: patient) }
   end
 end
