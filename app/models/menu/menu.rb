@@ -25,7 +25,6 @@ class Menu::Menu
       menu << health_menu
       menu << data_menu
       menu << warehouse_admin_menu
-      menu << health_admin_menu
       menu << hmis_admin_menu
       menu << support_menu
       links_menu.each do |item|
@@ -529,31 +528,6 @@ class Menu::Menu
         visible: lambda(&:can_manage_config?),
         path: admin_system_maintenance_tasks_path,
         title: 'System Tasks',
-      ),
-    )
-    menu
-  end
-
-  def health_admin_menu
-    menu = Menu::Item.new(
-      user: user,
-      title: Translation.translate('Healthcare Admin'),
-      icon: 'icon-cog',
-      id: 'health-administration',
-    )
-    path = if user.can_approve_patient_assignments?
-      review_admin_health_patient_referrals_path
-    elsif (user.can_manage_health_agency? || user.can_manage_patients_for_own_agency?) && user.health_agencies.any?
-      review_admin_health_agency_patient_referrals_path
-    else
-      admin_health_admin_index_path
-    end
-    menu.add_child(
-      Menu::Item.new(
-        user: user,
-        visible: ->(user) { GrdaWarehouse::Config.get(:healthcare_available) && (user.can_administer_health? || user.can_manage_health_agency? || user.has_patient_referral_review_access?) },
-        path: path,
-        title: Translation.translate('Healthcare Admin'),
       ),
     )
     menu
