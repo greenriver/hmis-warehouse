@@ -642,30 +642,58 @@ module HudApr::Generators::Shared::Fy2026
       end
     end
 
-    private def pit_enrollment_info(enrollments)
-      pit_dates = [1, 4, 7, 10].map { |month| pit_date(month: month, before: @report.end_date) }
-      pit_dates.map do |pit_date|
-        enrollments_for_date = enrollments.select do |enrollment|
-          enrolled = if enrollment.project_type.in?([3, 13]) || enrollment.enrollment.project.pay_for_success?
-            # PSH/RRH OR project type 7 (other) with Funder 35 (Pay for Success)
-            move_in_date = calculate_hh_move_in_date(enrollment.household_id, enrollment)
-            enrollment.first_date_in_program <= pit_date &&
-              (enrollment.last_date_in_program.nil? || enrollment.last_date_in_program > pit_date) && # Exclude exit date
-              move_in_date.present? && # Check that move in date is present and is before the PIT data and on or after the entry date
-              move_in_date <= pit_date &&
-              move_in_date >= enrollment.first_date_in_program
-          elsif enrollment.project_type.in?([0, 1, 2, 8, 9, 10]) # Other residential
-            enrollment.first_date_in_program <= pit_date &&
-              (enrollment.last_date_in_program.nil? || enrollment.last_date_in_program > pit_date) # Exclude exit date
-          else # Other project types (4, 6, 7, 11, 12, 14)
-            enrollment.first_date_in_program <= pit_date &&
-              (enrollment.last_date_in_program.nil? || enrollment.last_date_in_program >= pit_date) # Include the exit date
-          end
-          next false unless enrolled
-          next true if enrollment.project_type != 1 || enrollment.project_tracking_method != 3 # Not ES or ES and not NbN
+    private def pit_dates
+      @pit_dates ||= [1, 4, 7, 10].map { |month| pit_date(month: month, before: @report.end_date) }
+    end
 
-          enrollment.service_history_services.bed_night.on_date(pit_date).exists?
-        end.map do |enrollment|
+    # Households with a bed night from any member on each PIT date, keyed to match get_hh_id
+    private def pit_bed_night_household_ids
+      @pit_bed_night_household_ids ||= pit_dates.index_with do |pit_date|
+        enrollment_scope_without_preloads.
+          joins(:service_history_services).
+          merge(GrdaWarehouse::ServiceHistoryService.bed_night.where(date: pit_date)).
+          distinct.
+          pluck(:household_id, :enrollment_group_id).
+          map { |household_id, enrollment_group_id| household_id || "#{enrollment_group_id}*HH" }.
+          to_set
+      end
+    end
+
+    # Returns :client, :household (Q8b only, see below), or nil
+    private def pit_presence(enrollment, pit_date)
+      return nil unless enrollment.first_date_in_program <= pit_date
+
+      if enrollment.project_type == 1
+        # Night-by-night shelters must use bed night records indicating household presence on each
+        # point in time night, so the exit date is not compared
+        return :client if enrollment.service_history_services.bed_night.on_date(pit_date).exists?
+        # Q8b reports a household via its HoH, so include the HoH when only other members were present
+        return :household if enrollment.head_of_household? && pit_bed_night_household_ids[pit_date].include?(get_hh_id(enrollment))
+
+        return nil
+      end
+
+      present = if enrollment.project_type.in?([3, 13]) || enrollment.enrollment.project.pay_for_success?
+        # PSH/RRH OR project type 7 (other) with Funder 35 (Pay for Success)
+        move_in_date = calculate_hh_move_in_date(enrollment.household_id, enrollment)
+        (enrollment.last_date_in_program.nil? || enrollment.last_date_in_program > pit_date) && # Exclude exit date
+          move_in_date.present? && # Check that move in date is present and is before the PIT data and on or after the entry date
+          move_in_date <= pit_date &&
+          move_in_date >= enrollment.first_date_in_program
+      elsif enrollment.project_type.in?([0, 2, 8, 9, 10]) # Other residential
+        enrollment.last_date_in_program.nil? || enrollment.last_date_in_program > pit_date # Exclude exit date
+      else # Other project types (4, 6, 7, 11, 12, 14)
+        enrollment.last_date_in_program.nil? || enrollment.last_date_in_program >= pit_date # Include the exit date
+      end
+      present ? :client : nil
+    end
+
+    private def pit_enrollment_info(enrollments)
+      pit_dates.map do |pit_date|
+        enrollments_for_date = enrollments.filter_map do |enrollment|
+          presence = pit_presence(enrollment, pit_date)
+          next unless presence
+
           {
             first_date_in_program: enrollment.first_date_in_program,
             last_date_in_program: enrollment.last_date_in_program,
@@ -673,6 +701,7 @@ module HudApr::Generators::Shared::Fy2026
             project_tracking_method: enrollment.project_tracking_method,
             move_in_date: calculate_hh_move_in_date(enrollment.household_id, enrollment),
             relationship_to_hoh: enrollment.enrollment.relationship_to_hoh,
+            household_presence_only: presence == :household,
           }
         end
         [pit_date, enrollments_for_date]
