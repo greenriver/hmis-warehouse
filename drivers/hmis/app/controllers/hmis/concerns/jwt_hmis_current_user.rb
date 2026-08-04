@@ -74,11 +74,20 @@ module Hmis::Concerns::JwtHmisCurrentUser
       nil
     end
 
-    # HMIS is a JSON SPA API: every auth-failure path returns JSON, overriding the HTML
-    # redirect/render defaults in Idp::JwtAuthentication. render_json_error comes from
-    # Hmis::Concerns::JsonErrors (already included in Hmis::BaseController).
+    # HMIS is a JSON SPA API, so the terminal pages in Idp::JwtAuthentication become JSON here.
+    # render_json_error comes from Hmis::Concerns::JsonErrors (already included in
+    # Hmis::BaseController).
     def idp_handle_unauthenticated
-      render_json_error(401, :unauthenticated)
+      # No 401 for a tokenless request, deliberately. This endpoint doesn't authenticate its own
+      # callers, it trusts the proxy — so there is no legitimate client that arrives without a token,
+      # and api_routes=["^/hmis/"] already 401s the one race the proxy knows about (a request
+      # overlapping a logout) before Rails sees it. One getting through means the proxy was bypassed or
+      # misconfigured, which a 401 would disguise as an ordinary signed-out client.
+      raise Idp::UnauthenticatedRequestError, request.path unless idp_jwt_helper_for_request.token?
+
+      # 403, not 401: signing in again can't produce an account. A 401 would send the SPA to a
+      # sign-in screen it would come straight back from.
+      render_json_error(403, :no_warehouse_account)
     end
 
     def idp_handle_deactivated

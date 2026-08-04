@@ -7,6 +7,11 @@
     },
     reflex_permanent: true
   }
+  # On JWT the session is owned by oauth2-proxy / the forwarded token, so the Devise.timeout_in seed
+  # above doesn't reflect the real expiry; seed the token's actual expiry instead.
+  if AuthMethod.jwt? && current_user.present? && (session_expires_at = user_session_expires_at)
+    root_data[:inactive_session_modal][:session_expires_at_value] = session_expires_at.to_i
+  end
 #inactive-session-modal{data: root_data}
   .session_expiry__content.d-none{data: {'inactive-session-modal-target': 'alert'}}
     .session_expiry__alert-box

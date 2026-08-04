@@ -19,6 +19,10 @@ module Idp
   class SessionsController < ApplicationController
     # sign-in is a redirect to the proxy, so these must not bounce off authenticate_user! first.
     skip_before_action :authenticate_user!, only: [:new, :create]
+    # Same reason, one filter later: reject_deactivated_user! walls off the routes that skip
+    # authenticate_user!, and signing out is the one thing a deactivated user still has to be able to
+    # do — otherwise the link on errors/account_deactivated renders that page right back.
+    skip_before_action :reject_deactivated_user!, only: [:new, :create, :destroy]
 
     # GET/POST users/sign_in — nothing in the JWT flow routes here (Idp::JwtCurrentUser redirects
     # straight to the proxy on an unauthenticated request); this only catches stray hits on the
@@ -47,12 +51,10 @@ module Idp
       return head(:unauthorized) unless access_token.present?
 
       jwt_helper = Idp::JwtHelper.new(access_token: access_token)
-      # valid? returns false for a blank token
+      # Defensive: a token we'd refuse raised in authenticate_user! and never reached this action.
       return head(:unauthorized) unless jwt_helper.valid?
 
       expiration_time = jwt_helper.expiration_time
-      return head(:ok) unless expiration_time
-
       remaining_seconds = [(expiration_time - Time.current).to_i, 0].max
       render(json: { expiration_time: expiration_time.to_i, remaining_seconds: remaining_seconds })
     end

@@ -41,6 +41,12 @@ class ApplicationController < ActionController::Base
 
   before_action :authenticate_user!
 
+  # Registered separately from authenticate_user! so `skip_before_action :authenticate_user!` doesn't
+  # take it with it: deactivation bars an account from the app, not just from the routes that require
+  # a user, and under JWT the IdP keeps handing that person a valid token. Both auth strategies
+  # respond to it (the Devise arm no-ops; see DeviseCurrentUser).
+  before_action :reject_deactivated_user!
+
   before_action :set_sentry_user
 
   before_action :set_paper_trail_whodunnit
