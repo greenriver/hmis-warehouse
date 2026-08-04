@@ -128,7 +128,7 @@ module CeWorkflows::Shared
         opportunities.find_each(&:destroy!)
       else
         # If the delete_opportunities flag is false, release any locked opportunities.
-        # This leaving dangling locked opportunities associated with deleted referrals.
+        # This avoids leaving dangling locked opportunities associated with deleted referrals.
         opportunities.locked.find_each(&:release!)
       end
 
