@@ -12,7 +12,8 @@
 # WARNING! Running this builder will delete existing referrals associated with the housing_workflow template.
 # Not intended for repeated use in production.
 #
-# Pattern: destroy-and-recreate (preferred). See ../README_FOR_CE_WORKFLOW_BUILDERS.md.
+# Pattern: destroy-and-recreate (preferred).
+# @see docs/features/hmis/ce-workflow-builders.md
 module CeWorkflows::Ph
   class HousingWorkflowBuilder
     HOUSING_WORKFLOW_FORMS = {
@@ -37,13 +38,12 @@ module CeWorkflows::Ph
       @unsafe_run_in_production = unsafe_run_in_production
       raise 'This class destroys data and should not be run in production' if Rails.env.production? && !@unsafe_run_in_production
 
-      @form_definitions = Hmis::Form::Definition.
+      form_definitions = Hmis::Form::Definition.
         in_data_source(@data_source.id).
         where(role: 'CE_REFERRAL_STEP', identifier: HOUSING_WORKFLOW_FORMS.values).
-        order(:version).
-        index_by(&:identifier)
+        pluck(&:identifier).uniq
 
-      missing = HOUSING_WORKFLOW_FORMS.values - @form_definitions.keys
+      missing = HOUSING_WORKFLOW_FORMS.values - form_definitions
       raise "Missing CE_REFERRAL_STEP forms: #{missing.join(', ')}. Did you run 'rails driver:hmis:seed_definitions'?" if missing.any?
     end
 

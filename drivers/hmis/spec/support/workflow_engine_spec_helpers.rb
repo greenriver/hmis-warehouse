@@ -10,11 +10,6 @@
 # steps in specs and asserting on the resulting state. Kept separate from any particular workflow's
 # fixtures so it can be shared across workflow specs.
 module WorkflowEngineSpecHelper
-  # Index of a node by name within a walked list of nodes (generic graph helper).
-  def node_index(walked_nodes, name)
-    walked_nodes.index { |node| node.name == name }
-  end
-
   # Find the currently-open step named `step_name`, submit `submitted_values` for it, and advance the engine.
   def complete_user_step!(engine, step_name, submitted_values:, user:)
     step = engine.active_steps.find { |s| s.node.name == step_name }

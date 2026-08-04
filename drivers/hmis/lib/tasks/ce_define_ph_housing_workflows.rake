@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# CE waitlist workflow definition for PH
+# CE housing workflow definition for PH
 # Usage:
 #   rails driver:hmis:ce_define_ph_housing_workflows
 desc 'Create CE housing workflow definitions for PH'
