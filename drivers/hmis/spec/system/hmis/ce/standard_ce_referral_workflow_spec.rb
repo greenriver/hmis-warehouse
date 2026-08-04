@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-# frozen_string_literal: false
+# frozen_string_literal: true
 
 require 'rails_helper'
 require_relative '../../../support/ce_system_test_helper'
@@ -24,7 +24,6 @@ RSpec.feature 'Standard CE Referral Workflow', type: :system do
       CeWorkflows::Shared::CeBuilderUtils.create_state_machine_custom_statuses(ds1)
 
       builder = CeWorkflows::Standard::WorkflowBuilder.new(ds1)
-      builder.ensure_decline_reasons
       template = builder.build_standard_referral_workflow
 
       # The builder produces a draft template; publish it
