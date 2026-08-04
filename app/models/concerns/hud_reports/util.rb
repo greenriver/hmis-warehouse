@@ -13,7 +13,7 @@ module HudReports::Util
   included do
     # Earlier enrollments for the same client in the same project where this project start date
     # falls between the earlier project start date and the earlier project exit date. The spec does
-    # not mention what to do when the earlier enrollment has no exit date, so we  mimics the DataLab
+    # not mention what to do when the earlier enrollment has no exit date, so this mimics the DataLab
     # implementation of the overlapping enrollments calculation by dropping enrollments with no exit date.
     private def overlapping_enrollments(enrollments, last_enrollment)
       enrollments.select do |enrollment|
