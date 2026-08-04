@@ -24,6 +24,7 @@ RSpec.feature 'Standard CE Referral Workflow', type: :system do
       CeWorkflows::Shared::CeBuilderUtils.create_state_machine_custom_statuses(ds1)
 
       builder = CeWorkflows::Standard::WorkflowBuilder.new(ds1)
+      builder.ensure_decline_reasons
       template = builder.build_standard_referral_workflow
 
       # The builder produces a draft template; publish it
@@ -37,7 +38,8 @@ RSpec.feature 'Standard CE Referral Workflow', type: :system do
 
       # Clean up workflow definition related records, since they were created in before(:all) and not in fixtures.
       CeWorkflows::Shared::CeBuilderUtils.delete_template_and_associated_data('standard_referral', data_source: ds1)
-      Hmis::Ce::CustomReferralStatus.delete_all
+      Hmis::Ce::CustomReferralStatus.where(data_source_id: ds1.id).delete_all
+      Hmis::Ce::ReferralDeclineReason.where(data_source_id: ds1.id).delete_all
 
       # Cleanup seeded referral step forms that were created in before(:all)
       forms = Hmis::Form::Definition.where(role: :CE_REFERRAL_STEP)
