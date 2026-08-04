@@ -353,8 +353,8 @@ RSpec.describe CeWorkflows::Ph::HousingWorkflowBuilder do
     let(:final_review_decline_step) { 'Final Review Decline (Case Manager Decision)' }
     let(:reopened_step) { 'Housing Case Manager Decision (Second Attempt)' }
     let(:reopened_decline_values) { decision_decline }
-    let(:continue_next_steps) { ['Move-In Date', 'Admin Cancel'] }
-    let(:continue_status) { enrolled_status }
+    let(:continue_next_steps) { ['CORI Hearing', 'Admin Cancel'] }
+    let(:continue_status) { in_progress_status }
 
     def reach_review_decline!
       drive!(

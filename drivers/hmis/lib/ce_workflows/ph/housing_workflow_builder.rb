@@ -359,7 +359,7 @@ module CeWorkflows::Ph
       review_decline_3_task.connect_to!(review_decline_3_gateway)
       review_decline_3_gateway.connect_to!(decline_gateway, condition: "review_decline_decision = 'approve_decline'")
       review_decline_3_gateway.connect_to!(case_manager_decision_2_task, condition: "review_decline_decision = 'go_back'")
-      review_decline_3_gateway.connect_to!(create_enrollment_task)
+      review_decline_3_gateway.connect_to!(cori_hearing_task)
 
       # Housing Case Manager Decision (Second Attempt) => CORI Hearing, Create Enrollment, or final decline review
       case_manager_decision_2_gateway = CeWorkflows::Shared::CeBuilderUtils.create_gateway(template, 'case_manager_decision_2')
@@ -371,7 +371,7 @@ module CeWorkflows::Ph
       final_review_decline_3_gateway = CeWorkflows::Shared::CeBuilderUtils.create_gateway(template, 'final_review_decline_3')
       final_review_decline_3_task.connect_to!(final_review_decline_3_gateway)
       final_review_decline_3_gateway.connect_to!(decline_gateway, condition: "review_decline_final_decision = 'approve_decline'")
-      final_review_decline_3_gateway.connect_to!(create_enrollment_task)
+      final_review_decline_3_gateway.connect_to!(cori_hearing_task)
 
       # CORI Hearing => Create Enrollment (or decline review)
       cori_hearing_gateway = CeWorkflows::Shared::CeBuilderUtils.create_gateway(template, 'cori_hearing')
