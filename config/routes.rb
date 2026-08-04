@@ -555,26 +555,6 @@ Rails.application.routes.draw do
   end
 
   namespace :api do
-    namespace :health do
-      namespace :claims do
-        resources :patients, only: [] do
-          resources :amount_paid, only: [:index], controller: 'patients/amount_paid'
-          resources :claims_volume, only: [:index], controller: 'patients/claims_volume'
-          resources :ed_nyu_severity, only: [:index], controller: 'patients/ed_nyu_severity'
-          resources :roster, only: [:index], controller: 'patients/roster'
-          resources :top_conditions, only: [:index], controller: 'patients/top_conditions'
-          resources :top_ip_conditions, only: [:index], controller: 'patients/top_ip_conditions'
-          resources :top_providers, only: [:index], controller: 'patients/top_providers'
-        end
-        resources :amount_paid, only: [:index]
-        resources :claims_volume, only: [:index]
-        resources :ed_nyu_severity, only: [:index]
-        resources :roster, only: [:index]
-        resources :top_conditions, only: [:index]
-        resources :top_ip_conditions, only: [:index]
-        resources :top_providers, only: [:index]
-      end
-    end
     resources :projects, only: [] do
       post :index, on: :collection
     end
@@ -687,48 +667,6 @@ Rails.application.routes.draw do
     resources :compliance_requirements, except: [:show] do
       post :activate, on: :member
       post :deactivate, on: :member
-    end
-    namespace :health do
-      resources :admin, only: [:index]
-      resources :agencies, except: [:show]
-      resources :coordination_teams, only: [:index, :create, :update, :destroy]
-      resources :team_members, only: [:index, :create, :destroy]
-      resources :patients, only: [:index] do
-        post :update, on: :collection
-      end
-      resources :accountable_care_organizations, only: [:index, :create, :edit, :update, :new]
-      resources :scheduled_documents
-      resources :patient_referrals, only: [:edit, :update] do
-        patch :reject
-        collection do
-          get :review
-          get :assigned
-          get :rejected
-          get :disenrolled
-          get :disenrollment_accepted
-          post :bulk_assign_agency
-          post :bulk_assign_agency_and_care_staff
-          # Patient search queries
-          resources :searches, only: [:create], to: 'patient_referrals#create_search_queries', as: :create_patient_referral_searches
-          get 'searches/:id', to: 'patient_referrals#search', as: :patient_referral_search_query
-        end
-        post :assign_agency
-      end
-      resources :agency_patient_referrals, only: [:create, :update] do
-        get :claim_buttons
-        collection do
-          get :review
-          get :reviewed
-          # Patient search queries
-          resources :searches, only: [:create], to: 'agency_patient_referrals#create_search_queries', as: :create_agency__patient_referral_searches
-          get 'searches/:id', to: 'agency_patient_referrals#search', as: :agency_patient_referral_search_query
-        end
-      end
-      resources :users, only: [:index] do
-        post :update, on: :collection
-        resources :agency_users, only: [:new, :create]
-      end
-      resources :roles, only: [:index, :edit, :update]
     end
     resources :translation_keys, only: [:index, :update]
     resources :translation_text, only: [:update]
