@@ -45,10 +45,8 @@ module Idp
     end
     alias_method :create, :new
 
-    # DELETE users/sign_out — end the IdP session, clear the Rails
-    # session, then hand off to the proxy, which returns to root_path via the rd parameter.
-    # Deliberately uses a relative path since oauth2-proxy is same-origin; an absolute URL built
-    # from request.base_url could be spoofed via the Host header.
+    # DELETE users/sign_out. The rd redirect uses a relative path since oauth2-proxy is same-origin;
+    # an absolute URL built from request.base_url could be spoofed via the Host header.
     def destroy
       # First: reads the token, not the session, and fails closed — a refusal means the SSO session is
       # still live, so nothing below runs. Cost accepted: while the IdP is unreachable nobody can sign

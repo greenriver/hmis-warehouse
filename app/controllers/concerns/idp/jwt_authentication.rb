@@ -249,9 +249,8 @@ module Idp::JwtAuthentication
   # Never redirects to sign-in. oauth2-proxy owns that, and both cases below arrive with the proxy
   # holding a live session, so bouncing them to /oauth2/sign_in would return the same request.
   def idp_handle_unauthenticated
-    # No token at all. The only requests the proxy passes through without one are skip_auth_routes,
-    # and those skip this filter, so either the route surface and the proxy config disagree or
-    # something reached Rails without the proxy. Both are ours to fix, so fail loudly.
+    # No token at all — shouldn't be reachable, and ours to fix if it is, so fail loudly. See
+    # Idp::UnauthenticatedRequestError for how the proxy config and route surface let it happen.
     raise Idp::UnauthenticatedRequestError, request.path unless idp_jwt_helper_for_request.token?
 
     # A valid token whose holder has no warehouse account: Idp::UserProvisioner returns nil when
