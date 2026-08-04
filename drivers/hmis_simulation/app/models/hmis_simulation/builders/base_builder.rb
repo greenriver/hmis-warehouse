@@ -8,7 +8,7 @@
 
 module HmisSimulation
   module Builders
-    # See @docs/features/hmis-simulation.md
+    # See @docs/features/warehouse/hmis-simulation.md
     #
     # Shared foundation for all HmisSimulation builder classes.
     #

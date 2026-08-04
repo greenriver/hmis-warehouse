@@ -7,7 +7,7 @@
 # frozen_string_literal: true
 
 #
-# @see docs/features/document-export.md
+# @see docs/features/warehouse/document-export.md
 
 module DocumentExportBehavior
   extend ActiveSupport::Concern

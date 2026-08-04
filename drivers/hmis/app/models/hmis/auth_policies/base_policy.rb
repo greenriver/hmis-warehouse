@@ -8,6 +8,7 @@
 
 require 'memery'
 
+# @see docs/features/hmis/hmis-auth-policies.md
 class Hmis::AuthPolicies::BasePolicy
   attr_reader :context, :resource
   # used in child policy classes

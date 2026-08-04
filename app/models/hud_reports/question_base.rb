@@ -6,7 +6,7 @@
 
 # frozen_string_literal: true
 
-# @see docs/features/hud-report-framework.md
+# @see docs/features/warehouse/hud-report-framework.md
 module HudReports
   class QuestionBase
     include NotifierConfig

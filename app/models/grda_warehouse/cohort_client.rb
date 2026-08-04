@@ -7,7 +7,7 @@
 # frozen_string_literal: true
 
 module GrdaWarehouse
-  # @see docs/features/cohorts.md
+  # @see docs/features/warehouse/cohorts.md
   class CohortClient < GrdaWarehouseBase
     include TsqlImport
     acts_as_paranoid

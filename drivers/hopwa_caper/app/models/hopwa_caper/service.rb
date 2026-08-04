@@ -19,7 +19,7 @@
 # The service_category_name and service_type_name fields are denormalized for easier querying
 # and reporting. They may be null if the source records lack the necessary type information.
 #
-# @see docs/features/hopwa_caper.md
+# @see docs/features/warehouse/hopwa-caper.md
 module HopwaCaper
   class Service < ::HudReports::ReportClientBase
     self.table_name = 'hopwa_caper_services'

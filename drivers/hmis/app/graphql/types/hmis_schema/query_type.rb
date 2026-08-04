@@ -238,8 +238,7 @@ module Types
       raise 'unexpected role' if role && !Hmis::Form::Definition::ASSESSMENT_FORM_ROLES.include?(role.to_sym)
 
       project = Hmis::Hud::Project.find(project_id)
-      # Ensure that user can view enrollments for this project. There is no need to expose assessment forms otherwise.
-      raise 'Access denied' unless current_user.can_view_enrollment_details_for?(project)
+      access_denied! unless policy_for(project, policy_type: :hmis_project).can_view_enrollment_details?
 
       if id
         # If ID is specified, we assume that it's correct for this project.
