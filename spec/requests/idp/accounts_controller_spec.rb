@@ -236,6 +236,47 @@ RSpec.describe Idp::AccountsController, type: :request, if: AuthMethod.jwt? do
     end
   end
 
+  # Same locked-profile behavior as the NullService context above, but on a reachable, *built*
+  # Keycloak (active config, manage_users:false — app-1kz), not an absent config: prove it locks and
+  # drops writes rather than raising. Email/console self-service live is on the Login & Security tab
+  # (account_emails spec, L13). Ledger rows L4/L8.
+  describe 'when the connector authenticates but declines profile writes (manage_users:false)' do
+    before(:each) do
+      create(
+        :idp_service_config,
+        :authenticate_only,
+        connector_id: connector_id,
+        provider: 'keycloak',
+        api_url: api_url,
+        keycloak_realm: realm,
+      )
+      sign_in user
+    end
+
+    # L4: profile locked.
+    it 'renders the name fields read-only with the managed-by-IdP hint' do
+      get edit_account_path
+
+      expect(response).to have_http_status(:ok)
+      ['first_name', 'last_name'].each do |field|
+        disabled_input = /<input[^>]*name="user\[#{field}\]"[^>]*disabled|<input[^>]*disabled[^>]*name="user\[#{field}\]"/
+        expect(response.body).to match(disabled_input)
+      end
+      expect(response.body).to match(/managed by your identity provider/i)
+    end
+
+    # L8: update inert.
+    it 'strips crafted name params, saves local fields, and never calls the IdP' do
+      patch account_path, params: { user: { first_name: 'Hacked', last_name: 'Hacked', phone: '5085550000' } }
+
+      user.reload
+      expect(user.first_name).to eq('Self')
+      expect(user.last_name).to eq('Serve')
+      expect(user.phone).to eq('5085550000') # local field still saves
+      expect(a_request(:put, /#{Regexp.escape(api_url)}/)).not_to have_been_made
+    end
+  end
+
   describe 'IdP-owned routes are absent under JWT' do
     it 'does not generate helpers for password, two-factor, or login-history' do
       # Bare undefined helpers raise NameError (NoMethodError's parent); the route helpers are gone.

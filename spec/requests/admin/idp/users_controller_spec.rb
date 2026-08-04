@@ -691,4 +691,71 @@ RSpec.describe Admin::Idp::UsersController, type: :request, if: AuthMethod.jwt? 
       expect { admin_user_locations_path(target) }.to raise_error(NoMethodError)
     end
   end
+
+  # Authenticate-only connector (active config, manage_users:false — app-1kz). Ledger rows L4/L8/L18/L23.
+  describe 'authenticate-only connector (manage_users:false, app-1kz)' do
+    before(:each) do
+      # Flip the config the shared setup created (a second active row for this connector would collide).
+      Idp::ServiceConfig.find_by(connector_id: connector_id).update!(manage_users: false)
+    end
+
+    describe 'GET edit' do # L4: profile locked
+      it 'renders the name/email fields disabled, since the connector accepts no profile writes' do
+        get edit_admin_user_path(target)
+
+        expect(response).to have_http_status(:ok)
+        ['first_name', 'last_name', 'email'].each do |field|
+          # The field has to be on the page before its disabled attribute means anything — a form that
+          # dropped the input entirely would otherwise read as a pass.
+          expect(response.body).to match(/<input[^>]*name="user\[#{field}\]"/)
+          disabled_input = /<input[^>]*name="user\[#{field}\]"[^>]*disabled|<input[^>]*disabled[^>]*name="user\[#{field}\]"/
+          expect(response.body).to match(disabled_input)
+        end
+      end
+    end
+
+    # L8: update inert — identity params stripped and idp_update_profile! no-ops (two independent guards).
+    describe 'PATCH update' do
+      it 'ignores submitted name/email changes, saves local fields, calls no Admin API, and does not raise' do
+        patch admin_user_path(target), params: {
+          user: { first_name: 'Changed', last_name: 'Name', email: 'changed@example.com', notify_on_client_added: '1' },
+        }
+
+        target.reload
+        expect(target.first_name).to eq('Target')
+        expect(target.email).not_to eq('changed@example.com')
+        expect(target.notify_on_client_added).to be true # a local-only field still saves
+        expect(a_request(:put, /\/admin\/realms\/#{realm}\/users\//)).not_to have_been_made
+        expect(response).not_to have_http_status(:error)
+      end
+    end
+
+    # L18: force-password inert — idp_force_password_change! returns false before any HTTP.
+    describe 'PATCH expire_password' do
+      it 'silently no-ops: no Admin API call, no success claim, no warning, and no raise' do
+        allow(Sentry).to receive(:capture_exception_with_info)
+
+        patch expire_password_admin_user_path(target)
+
+        expect(a_request(:put, /\/admin\/realms\/#{realm}\/users\//)).not_to have_been_made
+        expect(Sentry).not_to have_received(:capture_exception_with_info)
+        expect(flash[:notice]).to be_blank
+        expect(flash[:alert]).to be_blank
+        expect(response).to redirect_to(action: :index)
+      end
+    end
+
+    # L23: deactivate inert — idp_deactivate! returns :unmanaged (not :identity_missing; the identity
+    # is on file), so local access still revokes with no Admin API call and no warning.
+    describe 'DELETE destroy (deactivate)' do
+      it 'revokes local access with no Admin API call, no warning, and no raise' do
+        delete admin_user_path(target)
+
+        expect(target.reload.active).to be false
+        expect(a_request(:put, /\/admin\/realms\/#{realm}\/users\//)).not_to have_been_made
+        expect(flash[:alert]).to be_blank
+        expect(response).to redirect_to(action: :index)
+      end
+    end
+  end
 end

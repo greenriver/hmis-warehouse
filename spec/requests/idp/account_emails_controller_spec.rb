@@ -411,4 +411,70 @@ RSpec.describe Idp::AccountEmailsController, type: :request, if: AuthMethod.jwt?
       expect { post begin_change_account_email_path }.to raise_error(RuntimeError, /not enabled/)
     end
   end
+
+  # Authenticate-only connector (manage_users:false — app-1kz), where the L13 seam splits: the
+  # deep-links (email change, credential console) are pure URL builders and stay live, but the adopt
+  # half — idp_reconcile_email! -> get_user — is ungated by capability and still hits the Admin API
+  # this class is declared not to have (§2.5). In the field that read 403s and must degrade to a
+  # paged warning, not a 500. Ledger row L13.
+  describe 'when the connector is authenticate-only (manage_users:false, app-1kz)' do
+    let(:remote_representation) { { id: jwt_connector_user_id(user), username: 'before@example.com', firstName: 'Self', lastName: 'Serve', email: 'before@example.com', emailVerified: true } }
+
+    before(:each) do
+      create(
+        :idp_service_config,
+        :authenticate_only,
+        connector_id: connector_id,
+        provider: 'keycloak',
+        api_url: api_url,
+        keycloak_realm: realm,
+      )
+      sign_in user
+    end
+
+    describe 'GET edit' do
+      # L13: the deep-link half stays live.
+      it 'keeps the email change and credential deep-links live' do
+        stub_request(:get, target_url).to_return(status: 200, body: remote_representation.to_json)
+
+        get edit_account_email_path
+
+        expect(response).to have_http_status(:ok)
+        expect(response.body).to include(begin_change_account_email_path)
+        expect(response.body).to match(/kc_action=UPDATE_PASSWORD/)
+        expect(response.body).not_to match(/managed by your identity provider/i)
+      end
+
+      # L13: the adopt half is ungated by capability, so it still calls the Admin API get_user.
+      it 'still reaches the Admin API to adopt an address (the ungated adopt half)' do
+        stub_request(:get, target_url).to_return(status: 200, body: remote_representation.to_json)
+
+        get edit_account_email_path
+
+        expect(a_request(:get, target_url)).to have_been_made
+      end
+
+      # L13: a 403 there (app-1kz) is a permanent failure the controller rescues, so the page renders.
+      it 'degrades to a paged warning, not a 500, when the Admin API read is forbidden (403)' do
+        allow(Sentry).to receive(:capture_exception_with_info)
+        stub_request(:get, target_url).to_return(status: 403, body: { error: 'Forbidden' }.to_json)
+
+        get edit_account_email_path
+
+        expect(response).to have_http_status(:ok)
+        expect(user.reload.email).to eq('before@example.com')
+        expect(Sentry).to have_received(:capture_exception_with_info)
+      end
+    end
+
+    describe 'POST begin_change' do
+      it 'redirects into the IdP email-change action without any Admin API call' do
+        post begin_change_account_email_path
+
+        expect(response).to have_http_status(:redirect)
+        expect(response.location).to match(/kc_action=UPDATE_EMAIL/)
+        expect(a_request(:get, target_url)).not_to have_been_made
+      end
+    end
+  end
 end

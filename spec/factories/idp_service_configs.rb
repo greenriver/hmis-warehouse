@@ -17,5 +17,10 @@ FactoryBot.define do
     client_id { 'rails-service-account' }
     keycloak_realm { 'openpath' }
     active { true }
+
+    # The authenticate-only class (manage_users:false; see Idp::ServiceConfig, app-1kz).
+    trait :authenticate_only do
+      manage_users { false }
+    end
   end
 end

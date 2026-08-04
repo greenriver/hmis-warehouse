@@ -166,6 +166,24 @@ RSpec.describe Admin::Idp::InactiveUsersController, type: :request, if: AuthMeth
     end
   end
 
+  # L28: reactivate inert — idp_reactivate! returns :unmanaged (not :identity_missing; identity is on
+  # file), so local access restores with no Admin API call and no warning. app-1kz in the field.
+  describe 'authenticate-only connector (manage_users:false, app-1kz)' do
+    before(:each) do
+      # Flip the config the shared setup created (a second active row for this connector would collide).
+      Idp::ServiceConfig.find_by(connector_id: connector_id).update!(manage_users: false)
+    end
+
+    it 'restores local access with no Admin API call, no warning, and no raise' do
+      patch reactivate_admin_inactive_user_path(target)
+
+      expect(target.reload.active).to be true
+      expect(a_request(:put, /\/admin\/realms\/#{realm}\/users\//)).not_to have_been_made
+      expect(flash[:alert]).to be_blank
+      expect(response).to redirect_to(action: :index)
+    end
+  end
+
   describe 'GET index' do
     let!(:legacy_role) { create(:role, name: 'Case Manager Reviewer') }
 
