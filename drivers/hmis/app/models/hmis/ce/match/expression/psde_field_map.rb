@@ -42,8 +42,11 @@ module Hmis::Ce::Match::Expression
     def format_for_display(field, value)
       return value if value.nil?
 
-      case PsdeFieldRegistry[field]&.value_type
+      psde_field = PsdeFieldRegistry[field]
+      case psde_field&.value_type
       when :logical
+        return Array.wrap(value).map { |v| v ? 'Yes' : 'No' } if psde_field.multiple
+
         value ? 'Yes' : 'No'
       else
         value.to_s # could expand this later if there are dates or other types
