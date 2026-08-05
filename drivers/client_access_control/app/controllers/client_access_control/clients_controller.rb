@@ -215,8 +215,6 @@ class ClientAccessControl::ClientsController < ApplicationController
   private def client_params
     params.require(:grda_warehouse_hud_client).
       permit(
-        :hmis_receiver,
-        :health_receiver,
         merge: [],
         unmerge: [],
       )

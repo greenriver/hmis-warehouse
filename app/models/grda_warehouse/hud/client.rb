@@ -2242,12 +2242,10 @@ module GrdaWarehouse::Hud
       scope.select(Arel.star, diff_full, diff_first, diff_last).order('diff_full DESC, diff_last DESC, diff_first DESC')
     end
 
-    def split(client_ids, hmis_receiver_id, health_receiver_id, current_user)
+    def split(client_ids, current_user)
       Rails.logger.info '=== Starting client split ==='
       Rails.logger.info "Original client: #{id}"
       Rails.logger.info "Clients to split: #{client_ids.inspect}"
-      Rails.logger.info "HMIS receiver: #{hmis_receiver_id}"
-      Rails.logger.info "Health receiver: #{health_receiver_id}"
 
       client_names = []
       to_clean = [id]
@@ -2269,14 +2267,9 @@ module GrdaWarehouse::Hud
           destination_client.save
           Rails.logger.info "Created new destination client: #{destination_client.id}"
 
-          receive_hmis = hmis_receiver_id == client_id
-          receive_health = health_receiver_id == client_id
-
           split_history = GrdaWarehouse::ClientSplitHistory.create(
             split_from: id,
             split_into: destination_client.id,
-            receive_hmis: receive_hmis,
-            receive_health: receive_health,
           )
           Rails.logger.info "Created split history record: #{split_history.inspect}"
 
@@ -2291,11 +2284,6 @@ module GrdaWarehouse::Hud
             approved_at: Time.now,
           )
           Rails.logger.info "Created warehouse client record: #{warehouse_client.inspect}"
-
-          if receive_hmis
-            Rails.logger.info "Moving HMIS items from #{id} to #{destination_client.id}"
-            destination_client.move_dependent_hmis_items(id, destination_client.id)
-          end
 
           # Conservative carry-forward: if the original destination was excluded from
           # external data sharing, all split-off destinations inherit that exclusion.

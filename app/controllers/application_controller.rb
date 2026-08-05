@@ -154,7 +154,7 @@ class ApplicationController < ActionController::Base
   def colorize(object)
     # make a hash of the object, truncate it to an appropriate size and then turn it into
     # a css friendly hash code
-    format('#%06x', (Zlib.crc32(Marshal.dump(object)) & 0xffffff))
+    format('#%06x', Zlib.crc32(Marshal.dump(object)) & 0xffffff)
   end
   helper_method :colorize
 

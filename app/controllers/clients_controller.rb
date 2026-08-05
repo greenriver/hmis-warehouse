@@ -176,11 +176,8 @@ class ClientsController < ApplicationController
     to_unmerge = client_params['unmerge']&.reject(&:empty?) # Set of source client ids
     redirect_to({ action: :edit }, alert: 'No clients selected.') and return unless to_unmerge
 
-    hmis_receiver = client_params['hmis_receiver']
-    health_receiver = client_params['health_receiver']
-
     Rails.logger.info "Unmerging #{to_unmerge.inspect}"
-    client_names = @client.split(to_unmerge, hmis_receiver, health_receiver, current_user)
+    client_names = @client.split(to_unmerge, current_user)
 
     Rails.logger.info '@client.invalidate_service_history'
     @client.invalidate_service_history
@@ -256,8 +253,6 @@ class ClientsController < ApplicationController
 
     params.require(:grda_warehouse_hud_client).
       permit(
-        :hmis_receiver,
-        :health_receiver,
         merge: [],
         unmerge: [],
       )

@@ -159,7 +159,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
         include ActiveJob::TestHelper
         before do
           perform_enqueued_jobs do
-            destination_client.split([source_clients.first.id], nil, nil, user)
+            destination_client.split([source_clients.first.id], user)
           end
         end
         it 'there are two destination clients and one contains only the first source client' do
