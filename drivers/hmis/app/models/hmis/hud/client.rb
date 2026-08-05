@@ -102,6 +102,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   #
   # Restricted clients additionally require can_view_restricted_clients at an overlapping enrollment project.
   # Unenrolled restricted clients are hidden from everyone.
+  # See docs/features/hmis/hmis-restricted-records.md for more details.
   #
   # NOTE: This could include clients that are enrolled at projects that the User can't necessarily see (e.g. they lack can_view_projects at that project).
   scope :visible_to, ->(user) do
