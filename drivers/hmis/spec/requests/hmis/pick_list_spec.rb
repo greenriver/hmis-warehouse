@@ -64,31 +64,36 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   end
 
   describe 'ENROLLABLE_PROJECTS list' do
-    it 'should return no projects if no permission' do
-      remove_permissions(access_control, :can_enroll_clients)
-      response, result = post_graphql(pick_list_type: 'ENROLLABLE_PROJECTS') { query }
-      aggregate_failures 'checking response' do
+    context 'when user lacks can_enroll_clients permission' do
+      let!(:access_control) { create_access_control(hmis_user, o1, with_permission: [:can_view_project]) }
+      it 'returns no projects' do
+        response, result = post_graphql(pick_list_type: 'ENROLLABLE_PROJECTS') { query }
         expect(response.status).to eq 200
-        options = result.dig('data', 'pickList')
-        expect(options).to be_empty
+        expect(result.dig('data', 'pickList')).to be_empty
       end
     end
 
-    it 'should exclude projects without can_enroll_clients permission' do
-      o2 = create(:hmis_hud_organization, data_source: ds1, user: u1)
-      create_access_control(hmis_user, o2, without_permission: :can_enroll_clients)
-
-      # Viewable but doesn't have enroll permissions, so should not be in pick list
-      p2 = create(:hmis_hud_project, organization: o2, data_source: ds1, user: u1)
-      # Not viewable at all, so should not be in pick list
-      create(:hmis_hud_project, data_source: ds1, user: u1)
-      expect(Hmis::Hud::Project.viewable_by(hmis_user)).to contain_exactly(p1, p2)
-      response, result = post_graphql(pick_list_type: 'ENROLLABLE_PROJECTS') { query }
-      aggregate_failures 'checking response' do
+    context 'when user has can_enroll_clients but lacks dependent permissions' do
+      let!(:access_control) { create_access_control(hmis_user, o1, with_permission: [:can_enroll_clients]) }
+      it 'returns no projects' do
+        response, result = post_graphql(pick_list_type: 'ENROLLABLE_PROJECTS') { query }
         expect(response.status).to eq 200
-        options = result.dig('data', 'pickList')
-        # p1 should be the only project that is viewable and has the right perms
-        expect(options).to contain_exactly(include('code' => p1.id.to_s))
+        expect(result.dig('data', 'pickList')).to be_empty
+      end
+    end
+
+    context 'when user has can_enroll_clients and dependent permissions' do
+      let!(:access_control) { create_access_control(hmis_user, o1, with_permission: [*HmisPermissionSets::ENROLLMENT_EDITING, :can_enroll_clients]) }
+
+      # cruft: o2 where user has permission to edit enrollment, but not directly enroll clients
+      let!(:o2) { create(:hmis_hud_organization, data_source: ds1) }
+      let!(:p2) { create(:hmis_hud_project, organization: o2, data_source: ds1) }
+      let!(:access_control_o2) { create_access_control(hmis_user, o2, with_permission: HmisPermissionSets::ENROLLMENT_EDITING) }
+
+      it 'returns projects where user can enroll' do
+        response, result = post_graphql(pick_list_type: 'ENROLLABLE_PROJECTS') { query }
+        expect(response.status).to eq 200
+        expect(result.dig('data', 'pickList')).to contain_exactly(include('code' => p1.id.to_s))
       end
     end
   end
