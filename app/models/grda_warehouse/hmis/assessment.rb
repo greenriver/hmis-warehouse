@@ -8,6 +8,9 @@
 
 module GrdaWarehouse::Hmis
   class Assessment < Base
+    # Columns pending removal in a later deploy; see db/warehouse/migrate/20260804130000_remove_health_only_columns_from_warehouse.rb
+    self.ignored_columns = ['health', 'health_case_note', 'health_has_qualifying_activities'].freeze
+
     dub 'assessments'
     has_paper_trail
 

@@ -8,6 +8,9 @@
 
 module GrdaWarehouse::WarehouseReports
   class ReportDefinition < GrdaWarehouseBase
+    # Column pending removal in a later deploy; see db/warehouse/migrate/20260804130000_remove_health_only_columns_from_warehouse.rb
+    self.ignored_columns = ['health'].freeze
+
     acts_as_paranoid
     has_many :group_viewable_entities, as: :entity, class_name: 'GrdaWarehouse::GroupViewableEntity'
 

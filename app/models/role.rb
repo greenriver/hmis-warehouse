@@ -21,6 +21,36 @@
 #   Role.ensure_permissions_exist
 #
 class Role < ApplicationRecord
+  # Columns pending removal in a later deploy; see db/migrate/20260804130000_remove_health_only_columns.rb
+  self.ignored_columns = [
+    'health_role',
+    'can_administer_health',
+    'can_edit_client_health',
+    'can_view_client_health',
+    'can_view_aggregate_health',
+    'can_manage_health_agency',
+    'can_approve_patient_assignments',
+    'can_manage_claims',
+    'can_manage_all_patients',
+    'can_manage_patients_for_own_agency',
+    'can_manage_care_coordinators',
+    'can_approve_cha',
+    'can_approve_ssm',
+    'can_approve_release',
+    'can_approve_participation',
+    'can_approve_careplan',
+    'can_edit_all_patient_items',
+    'can_edit_patient_items_for_own_agency',
+    'can_create_care_plans_for_own_agency',
+    'can_view_all_patients',
+    'can_view_patients_for_own_agency',
+    'can_add_case_management_notes',
+    'can_manage_accountable_care_organizations',
+    'can_view_member_health_reports',
+    'can_unsubmit_submitted_claims',
+    'can_edit_health_emergency_contact_tracing',
+  ].freeze
+
   acts_as_paranoid
   has_paper_trail
 
