@@ -6,8 +6,9 @@ The opt-in local Docker Compose stack that reproduces the production auth chain.
 User → OAuth2-Proxy → Dex (OIDC broker) → Keycloak → Rails (JWT headers)
 ```
 
-The `openpath` realm is auto-imported on first boot with two clients — `dex-connector` (OIDC auth
-code flow for Dex) and `rails-service-account` (client credentials for the Rails admin API) — plus the
+The `openpath` realm is auto-imported on first boot with three clients — `dex-connector` (OIDC auth
+code flow for Dex), `rails-service-account` (client credentials for the Rails admin API) and
+`warehouse-account` (the browser client account self-service deep-links run under) — plus the
 `warehouse-users` and `hmis-users` groups.
 
 ## Setup
@@ -140,7 +141,9 @@ which behaves the same way.
 
 > Heads-up: `realm-import.json` is applied only on the **first** import into a fresh `keycloak`
 > database. If your volume predates the `rails-service-account` client (or its roles), the token
-> grant 401s or the Admin API 403s. Confirm the live client with
+> grant 401s or the Admin API 403s. The same goes for `warehouse-account`, which is newer still: on an
+> older volume, add it by hand (public, standard flow, Base URL `https://hmis-warehouse.dev.test/account_email/edit`)
+> or the email-change return trip lands on the Keycloak account console. Confirm the live client with
 > `kcadm.sh get clients -r openpath -q clientId=rails-service-account --fields clientId,secret,serviceAccountsEnabled`
 > (after `kcadm.sh config credentials --server http://localhost:8080 --realm master --user admin
 > --password 'AdminPassword1!'`), and reset the secret in the admin console or recreate the realm
