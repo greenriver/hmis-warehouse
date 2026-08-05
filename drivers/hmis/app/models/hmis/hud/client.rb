@@ -148,27 +148,13 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     joins(:enrollments).where(e_t[:project_pk].in(project_ids)).distinct
   end
 
+  # Restricted clients require can_view_restricted_clients at a project where the client is or was
+  # enrolled. Unenrolled restricted clients match nothing here, so they stay hidden from everyone.
   def self.apply_restricted_visibility(scope, user)
-    restricted_view_project_ids = Hmis::Hud::Project.with_access(
-      user,
-      :can_view_clients,
-      :can_view_restricted_clients,
-      mode: :all,
-    ).pluck(:id)
-
-    restricted_client_ids_sql = Hmis::RestrictedRecord.restricted_client_ids.to_sql
-
-    return scope.where(c_t[:id].not_in(Arel.sql("(#{restricted_client_ids_sql})"))) if restricted_view_project_ids.empty?
-
-    visible_restricted_client_ids_sql = scope.
-      where(c_t[:id].in(Arel.sql("(#{restricted_client_ids_sql})"))).
-      merge(with_enrollment_at_projects(restricted_view_project_ids)).
-      select(c_t[:id]).to_sql
-
-    scope.where(
-      c_t[:id].not_in(Arel.sql("(#{restricted_client_ids_sql})")).or(
-        c_t[:id].in(Arel.sql("(#{visible_restricted_client_ids_sql})")),
-      ),
+    unlocked_project_ids = Hmis::Hud::Project.with_access(user, :can_view_restricted_clients, :can_view_clients, mode: :all).pluck(:id)
+    unlocked_client_ids = with_enrollment_at_projects(unlocked_project_ids).select(c_t[:id])
+    scope.where.not(
+      id: Hmis::RestrictedRecord.restricted_client_ids.where.not(restrictable_id: unlocked_client_ids),
     )
   end
 
