@@ -37,10 +37,6 @@ FactoryBot.define do
     can_upload_hud_zips { true }
     can_edit_translations { true }
     can_manage_assessments { true }
-    can_administer_health { true }
-    can_edit_client_health { true }
-    can_view_client_health { true }
-    health_role { false }
     can_manage_config { true }
     can_manage_client_files { true }
     can_manage_window_client_files { true }
@@ -51,16 +47,6 @@ FactoryBot.define do
     can_edit_window_client_notes { true }
     can_track_anomalies { true }
     can_add_administrative_event { true }
-  end
-
-  factory :health_admin, class: 'Role' do
-    name { 'health admin' }
-    verb { nil }
-    health_role { true }
-    can_view_assigned_reports { true }
-    can_administer_health { true }
-    can_edit_client_health { true }
-    can_view_client_health { true }
   end
 
   factory :vispdat_viewer, class: 'Role' do

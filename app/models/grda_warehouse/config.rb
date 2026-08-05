@@ -230,7 +230,6 @@ module GrdaWarehouse
       [
         :last_name,
         :eto_api_available,
-        :healthcare_available,
         :release_duration,
         :cas_available_method,
         :cas_flag_method,

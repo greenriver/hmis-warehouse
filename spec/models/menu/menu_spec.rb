@@ -136,4 +136,48 @@ RSpec.describe Menu::Menu, type: :model do
       end
     end
   end
+
+  describe '#site_menu' do
+    let(:user) { create(:acl_user) }
+    let(:context) do
+      double(
+        'context',
+        access_captured_for_setup?: false,
+        hmis_admin_visible?: false,
+        help_for_path: nil,
+        controller_path: 'clients',
+        action_name: 'index',
+      )
+    end
+
+    # Building the tree alone already invokes `visible` for every child item
+    # (Item#add_child checks Item#show?, which calls visible.call(user) before
+    # adding), but a root-level item pushed straight into the array returned by
+    # site_menu -- rather than passed through add_child -- never has its own
+    # `visible` invoked just by building the tree. That gap is exactly what let
+    # a broken lazy `visible` proc referencing removed health methods slip
+    # through, so recurse and call every item's `visible` explicitly.
+    def call_every_visible(items, user)
+      items.each do |item|
+        item.visible&.call(user)
+        call_every_visible(item.children.to_a, user) if item.children?
+      end
+    end
+
+    def collect_titles(items)
+      items.flat_map { |item| [item.title] + collect_titles(item.children.to_a) }
+    end
+
+    it 'builds the menu tree for a normal ACL user and invokes every visible lambda without raising' do
+      tree = menu.site_menu
+
+      expect { call_every_visible(tree, user) }.not_to raise_error
+    end
+
+    it 'does not include a Care Hub menu item anywhere in the tree' do
+      tree = menu.site_menu
+
+      expect(collect_titles(tree)).not_to include('Care Hub')
+    end
+  end
 end

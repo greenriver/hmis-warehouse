@@ -11,7 +11,6 @@ require 'rails_helper'
 RSpec.describe GrdaWarehouse::SourceClientNameSet, type: :model do
   let(:policy) { GrdaWarehouse::AuthPolicies::AllowPiiPolicy.instance }
   let(:user) { double('User') }
-  let(:destination_client) { double('DestinationClient', patient: nil) }
 
   def make_source_client(first_name:, last_name:, ds_name: 'Test DS', ds_id: 1)
     data_source = double('DataSource', short_name: ds_name, id: ds_id)
@@ -31,7 +30,7 @@ RSpec.describe GrdaWarehouse::SourceClientNameSet, type: :model do
         ]
       end
 
-      subject { described_class.new(destination_client: destination_client, source_clients: source_clients, user: user) }
+      subject { described_class.new(source_clients: source_clients, user: user) }
 
       it 'includes all names' do
         expect(subject.to_a.map(&:value)).to contain_exactly('Jane Doe', 'Jane Smith')
@@ -46,7 +45,7 @@ RSpec.describe GrdaWarehouse::SourceClientNameSet, type: :model do
         ]
       end
 
-      subject { described_class.new(destination_client: destination_client, source_clients: source_clients, user: user) }
+      subject { described_class.new(source_clients: source_clients, user: user) }
 
       it 'excludes the blank-name entry' do
         expect(subject.to_a.map(&:value)).to eq(['Jane Doe'])
@@ -62,7 +61,7 @@ RSpec.describe GrdaWarehouse::SourceClientNameSet, type: :model do
         [make_source_client(first_name: nil, last_name: nil, ds_id: 1)]
       end
 
-      subject { described_class.new(destination_client: destination_client, source_clients: source_clients, user: user) }
+      subject { described_class.new(source_clients: source_clients, user: user) }
 
       it 'returns an empty set' do
         expect(subject.to_a).to be_empty

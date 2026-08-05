@@ -159,9 +159,18 @@ RSpec.describe 'HealthBase PaperTrail configuration', type: :model do
     end
   end
 
-  describe 'real HealthBase subclasses that re-declare has_paper_trail' do
-    it 'keeps Health::Tracing::Contact on Health::HealthVersion' do
-      expect(Health::Tracing::Contact.version_class_name).to eq('Health::HealthVersion')
+  describe 'real HealthBase subclasses' do
+    # The classes that previously exercised the merge path (re-declaring
+    # has_paper_trail with a custom :ignore) were removed along with the rest
+    # of the Health:: namespace. The remaining preserved subclasses only
+    # inherit versioning, so these checks confirm that inheritance still
+    # routes through Health::HealthVersion.
+    it 'keeps Health::Cp on Health::HealthVersion' do
+      expect(Health::Cp.version_class_name).to eq('Health::HealthVersion')
+    end
+
+    it 'keeps Health::ImportConfig on Health::HealthVersion' do
+      expect(Health::ImportConfig.version_class_name).to eq('Health::HealthVersion')
     end
   end
 

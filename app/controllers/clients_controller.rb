@@ -22,7 +22,7 @@ class ClientsController < ApplicationController
   before_action :require_can_access_some_version_of_clients!, only: [:show, :service_range, :rollup, :image, :assessment]
   before_action :require_can_view_some_client_dashboard!, only: [:show, :service_range, :rollup, :image]
   before_action :require_can_view_enrollment_details!, only: [:enrollment_details]
-  before_action :require_can_see_this_client_demographics!, except: [:new, :create, :simple, :appropriate, :assessment, :health_assessment]
+  before_action :require_can_see_this_client_demographics!, except: [:new, :create, :simple, :appropriate, :assessment]
   before_action :require_can_edit_clients!, only: [:edit, :merge, :unmerge]
   before_action :require_can_create_clients!, only: [:new, :create]
   before_action :set_client, only: [:show, :edit, :merge, :unmerge, :service_range, :rollup, :image, :chronic_days, :enrollment_details]
@@ -126,19 +126,6 @@ class ClientsController < ApplicationController
       @client = client
     else
       @form = assessment_scope.new
-    end
-    render 'assessment_form'
-  end
-
-  def health_assessment
-    form = health_assessment_scope.find(params.require(:id).to_i)
-    client = form.client&.destination_client
-    patient = client&.patient
-    if patient&.visible_to(current_user)
-      @form = form
-      @client = client
-    else
-      @form = health_assessment_scope.new
     end
     render 'assessment_form'
   end
@@ -294,10 +281,6 @@ class ClientsController < ApplicationController
     else
       GrdaWarehouse::HmisForm.window_with_details
     end
-  end
-
-  private def health_assessment_scope
-    GrdaWarehouse::HmisForm.health
   end
 
   private def log_client

@@ -188,15 +188,6 @@ module UserConcern
       )
     end
 
-    scope :care_coordinators, -> do
-      care_coordinator_ids = Health::Patient.pluck(:care_coordinator_id)
-      where(id: care_coordinator_ids)
-    end
-
-    scope :nurse_care_managers, -> do
-      joins(:health_roles).merge(Role.nurse_care_manager)
-    end
-
     scope :not_system, -> { where.not(first_name: 'System') }
 
     scope :in_directory, -> do
@@ -357,11 +348,6 @@ module UserConcern
 
     def phone_for_directory
       phone unless exclude_phone_from_directory
-    end
-
-    def show_credentials?
-      # Show the credentials field if the user has at least one health role
-      roles.health.exists?
     end
 
     def credential_options
@@ -687,17 +673,6 @@ module UserConcern
       end
     end
 
-    # patients with CC or NCM relationship to this user
-    def patients
-      Health::Patient.where(care_coordinator_id: id).
-        or(Health::Patient.where(nurse_care_manager_id: id))
-    end
-
-    # patients with CC relationship to this user
-    def care_coordination_patients
-      Health::Patient.where(care_coordinator_id: id)
-    end
-
     # TODO: START_ACL remove after ACL migration is complete
     private def create_access_group
       group = access_group
@@ -809,26 +784,6 @@ module UserConcern
         }.freeze
       end
       memoize :group_associations
-    end
-
-    # def health_agency
-    #   agency_user&.agency
-    # end
-
-    # def agency_user
-    #   Health::AgencyUser.where(user_id: id).last
-    # end
-
-    def health_agencies
-      agency_users.map(&:agency).compact
-    end
-
-    def health_agency_names
-      health_agencies.map(&:name).compact
-    end
-
-    def agency_users
-      Health::AgencyUser.where(user_id: id)
     end
 
     # send email upon creation or only in a periodic digest

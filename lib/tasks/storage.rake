@@ -37,11 +37,6 @@ namespace :storage do
 
         # The following are classes are not being migrated
 
-        # Health::EdIpVisitFile => :with_attached_ed_ip_visit_file,
-        # Health::EligibilityResponse => :with_attached_eligibility_response_file,
-        # Health::EnrollmentReasons => :with_attached_enrollment_reasons_file,
-        # Health::Enrollment => :with_attached_enrollment_file,
-        # Health::HealthFile => :with_attached_health_file,
         # GrdaWarehouse::HealthEmergency::TestBatch => :with_attached_test_batch_file,
 
         # The following were previously moved, leaving here to make adding
