@@ -33,6 +33,7 @@ RSpec.describe 'HUD CSV MigrateAssessmentsJob enqueue', type: :model do
     end
 
     before do
+      allow(HmisEnforcement).to receive(:hmis_enabled?).and_return(true)
       import_hmis_csv_fixture(
         fixture,
         data_source: hmis_data_source,

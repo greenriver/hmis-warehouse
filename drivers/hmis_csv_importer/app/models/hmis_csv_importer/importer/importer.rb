@@ -1616,7 +1616,7 @@ module HmisCsvImporter::Importer
       log_timing :queue_enrollment_processing
       log_timing :maintain_ch_enrollments
       log_timing :check_csv_monitors
-      log_timing :hmis_post_process
+      hmis_post_process
     end
 
     private def hmis_post_process
