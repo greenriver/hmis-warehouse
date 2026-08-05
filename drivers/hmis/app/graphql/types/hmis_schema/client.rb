@@ -188,7 +188,6 @@ module Types
       root_can :can_view_client_eligible_opportunities
       can :print_client_case_notes
       bool_field(:can_mark_restricted) { policy.can_mark_restricted? }
-      bool_field(:can_view_restricted_status) { policy.can_view_restricted_status? }
     end
 
     def external_ids

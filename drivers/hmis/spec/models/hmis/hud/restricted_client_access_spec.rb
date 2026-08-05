@@ -68,7 +68,6 @@ RSpec.describe 'Restricted client visibility', type: :model do
     it 'grants can_view? with both permissions for restricted clients' do
       policy = user_view_restricted.policy_for(restricted_client_at_p1, policy_type: :hmis_client)
       expect(policy.can_view?).to be true
-      expect(policy.can_view_restricted_status?).to be true
     end
   end
 end
