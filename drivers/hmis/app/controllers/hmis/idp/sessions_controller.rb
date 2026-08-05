@@ -15,6 +15,11 @@ module Hmis
     # via fetch + response.json() rather than following a browser redirect, so the oauth2-proxy
     # sign-out URL comes back as a JSON field instead of an HTTP redirect.
     #
+    # Unlike ::Idp::SessionsController, #destroy keeps authenticate_hmis_user! (Hmis::BaseController
+    # applies it, and this class does not skip it): the SPA recovers from a JSON 403 by hitting
+    # /oauth2/sign_out itself, so there is no server-rendered dead-end page needing sign-out to work
+    # without a resolvable current_user (the reason the warehouse skips the filter).
+    #
     class SessionsController < Hmis::BaseController
       # The CSRF token is what guards #destroy
       def destroy

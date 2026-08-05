@@ -149,6 +149,46 @@ which behaves the same way.
 > --password 'AdminPassword1!'`), and reset the secret in the admin console or recreate the realm
 > from a clean DB if it drifted.
 
+## Realm prerequisites for account email self-service
+
+Under the JWT arm a user changes their own email **inside Keycloak**, not in the Warehouse. The Email
+tab is read-only and hands the browser to Keycloak's `UPDATE_EMAIL` application-initiated action.
+Keycloak collects the new address, mails a confirmation link to it, and applies it only once that
+link is clicked.
+
+The Warehouse adopts the result the next time it reads the account back from the Admin API, and only
+when Keycloak reports the mailbox verified — so no self-service path can put an unproven address in
+`users.email`. Two things read it back: every render of the Email tab, and a background sync job on
+authenticated requests. Adoption therefore does not depend on the user landing back on the tab, which
+matters because we do not control where Keycloak drops them.
+
+(The **admin** path is separate and unchanged: an admin-supplied address is written locally and
+pushed with `emailVerified: false`, so an admin can still put an unverified address in `users.email`.)
+
+The service **asserts** the realm is set up for this rather than probing it, so the items below are
+operator setup for every realm running the JWT arm. Miss one and the tab still renders and still
+offers the button, but the flow misbehaves in the ways noted.
+
+| Requirement | Where | If missing |
+| --- | --- | --- |
+| **Update Email** required action **enabled** | Authentication → Required actions | Keycloak rejects the `kc_action=UPDATE_EMAIL` link; the user gets no way to change their address |
+| Email verification **in effect for this action** | Realm settings → Login → **Verify email**, or Authentication → Required actions → Update Email → **Force Email Verification** | Keycloak applies the new address **immediately, unverified**. The Warehouse refuses to adopt it, so Keycloak and `users.email` diverge until the realm is fixed |
+| Working **SMTP** on the realm | Realm settings → Email | The verification mail never sends, so a change can never complete |
+
+Either verification lever is enough — the realm-wide **Verify email** setting, or **Force Email
+Verification** on the Update Email required action (off by default), which turns it on for this
+action regardless of the realm setting. The per-action one is more precise, since it leaves password
+resets and admin-provisioned accounts on the realm default.
+
+Additional notes
+
+- **Email is the login name.** The realm runs **Email as username**
+  (`registrationEmailAsUsername: true`), so Keycloak keeps `username` tracking `email` — matching the
+  legacy Devise model where email *is* the login.
+- **Starting a change can ask for a password.** The Update Email required action carries a **Maximum
+  Age of Authentication** (`max_auth_age`, default **300** seconds). If the browser's Keycloak session
+  last authenticated longer ago than that, Keycloak re-authenticates the user before showing the form.
+
 ## Notes
 
 - **Warehouse-only?** `oauth2-proxy-hmis` upstreams to Vite on the host (`host.docker.internal:5173`)

@@ -1,0 +1,35 @@
+-# Email is changed at the IdP via deep-link; this tab has no local write path for the address.
+
+- if impersonating?
+  %p.text-muted You can't change login and security settings for another user while impersonating.
+- else
+  - change_password_url = @user.account_action_url(action: 'UPDATE_PASSWORD', redirect_uri: edit_account_email_url)
+  - change_email_available = @user.email_change_enabled? && @user.account_action_url(action: 'UPDATE_EMAIL', redirect_uri: edit_account_email_url).present?
+
+  %p.lead
+    Your email is:
+    = @user.email
+
+  - if @pending_email.present?
+    %p.text-muted
+      Waiting for you to confirm
+      %strong= @pending_email
+      \. Check that inbox for the confirmation link, then
+      = link_to 'check for changes', edit_account_email_path
+      \.
+
+  - unless change_email_available
+    %p.text-muted Your email is managed by your identity provider.
+
+  - btn_class = 'btn btn-primary btn-sm'
+  - if change_email_available || change_password_url
+    - if change_email_available
+      .my-2
+        -# A POST rather than the deep-link itself, so the controller can log the change first.
+        = button_to 'Change Email', begin_change_account_email_path, class: btn_class
+    - if change_password_url
+      .my-2
+        = link_to "Change password", change_password_url, class: btn_class
+      .mt-2
+        - totp_url = @user.account_action_url(action: 'CONFIGURE_TOTP', redirect_uri: edit_account_email_url)
+        = link_to "Set up two-factor authentication", totp_url, class: btn_class

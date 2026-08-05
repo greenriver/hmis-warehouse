@@ -28,8 +28,8 @@ RSpec.describe Idp::Support, type: :model, if: AuthMethod.jwt? do
     user.update_column(:last_connector_id, connector_id)
   end
 
-  # reconcile_email! is deliberately excluded from this shared set: alone among the ops it has no
-  # capability gate, so it raises rather than no-ops and diverges per class (see each context).
+  # reconcile_email! is excluded from this shared set: it gates on supports_user_management? like
+  # these ops, but no-ops to nil (its "nothing moved" value) rather than :unmanaged/false.
   shared_examples 'management ops no-op without raising' do
     it 'idp_deactivate! returns :unmanaged' do
       expect(user.idp_deactivate!).to eq(:unmanaged)
@@ -86,13 +86,11 @@ RSpec.describe Idp::Support, type: :model, if: AuthMethod.jwt? do
       expect(user.idp_send_account_setup_email!).to be false
     end
 
-    # idp_reconcile_email! is the one surviving latent raise — it gates on primary_idp alone and
-    # reaches NullService#get_user, which raises. The controller can never reach this (the
-    # change-email tab gates off when supports_email_self_service? is false), so this model-layer
-    # assertion is the only place it is exercised. Pins that a caller must gate or rescue rather
-    # than call it blind on a null-attached user.
-    it 'idp_reconcile_email! raises Idp::ServiceError (the surviving latent caller-discipline case)' do
-      expect { user.idp_reconcile_email! }.to raise_error(Idp::ServiceError)
+    # A NullService reports supports_user_management? false, so idp_reconcile_email! self-gates
+    # before reaching the raising NullService#get_user.
+    it 'idp_reconcile_email! stays inert instead of reaching the raising NullService method' do
+      expect(user.idp_service).not_to receive(:get_user)
+      expect(user.idp_reconcile_email!).to be_nil
     end
   end
 
@@ -175,10 +173,11 @@ RSpec.describe Idp::Support, type: :model, if: AuthMethod.jwt? do
       expect(service.supports_session_logout?).to be true
     end
 
-    it 'idp_reconcile_email! is ungated by capability and still reaches the admin-API get_user' do
-      allow(service).to receive(:get_user).and_return('email' => user.email, 'emailVerified' => true)
-      user.idp_reconcile_email!
-      expect(service).to have_received(:get_user).with(user_id: connector_user_id)
+    # get_user is an Admin API read this realm can't serve, so the reconcile no-ops rather than
+    # firing a doomed request per eligible login (which would pause the connector).
+    it 'idp_reconcile_email! self-gates on the missing management capability' do
+      expect(service).not_to receive(:get_user)
+      expect(user.idp_reconcile_email!).to be_nil
     end
   end
 
