@@ -74,7 +74,24 @@ module CeWorkflows::Shared
       end
     end
 
-    def self.delete_template_and_associated_data(template_identifier, data_source:)
+    # Destroys a workflow template and its associated dev/staging data so the builder can recreate it from scratch.
+    # Should not be run in production and raises an error if you try.
+    #
+    # Always destroys referrals, workflow instances/steps, and the template graph. Optionally destroys
+    # opportunities linked to unit groups that reference this template identifier.
+    #
+    # @param delete_opportunities [Boolean] When true (default), also destroys opportunities on units
+    #   belonging to unit groups whose `workflow_template_identifier` or
+    #   `direct_referral_workflow_template_identifier` matches +template_identifier+. When false,
+    #   opportunities are preserved so local rebuilds don't wipe CE inventory.
+    #
+    #   When set to false, this could potentially lead to opportunities with dangling references
+    #   to non-existent workflow templates.
+    #   But as long as the workflow builder immediately recreates the template
+    #   with the same identifier right after running this method (which is our normal builder pattern),
+    #   the dangling references will not be left dangling.
+    #   Since this is a dev/staging-only method anyway, the risk is low.
+    def self.delete_template_and_associated_data(template_identifier, data_source:, delete_opportunities: true)
       raise ArgumentError, 'data_source is required' if data_source.blank?
       raise 'This method destroys data and should not be run in production' if Rails.env.production?
 
@@ -83,23 +100,34 @@ module CeWorkflows::Shared
       templates = Hmis::WorkflowDefinition::Template.where(identifier: template_identifier)
       raise 'Unexpected, found a template with this identifier associated with another data source' if templates.any? { |template| template.data_source_id != data_source.id }
 
-      # Find opportunities through unit groups that use this template
-      unit_groups = Hmis::UnitGroup.where(workflow_template_identifier: template_identifier).
-        or(Hmis::UnitGroup.where(direct_referral_workflow_template_identifier: template_identifier)).
-        preload(:project)
-      raise 'Unexpected, found a unit group associated with this template in another data source' if unit_groups.any? { |ug| ug.project.data_source_id != data_source.id }
+      # Include soft-deleted records. Otherwise steps and their form_processors are left behind and block form definition deletion
+      # (which doesn't happen as part of this method, but can be run separately while iterating on a workflow, using `delete_form_definitions` below).
+      instances = Hmis::WorkflowExecution::Instance.with_deleted.where(template: templates)
+      steps = Hmis::WorkflowExecution::Step.with_deleted.where(instance: instances)
+      referrals = Hmis::Ce::Referral.with_deleted.where(workflow_instance: instances)
 
-      opportunities = Hmis::Ce::Opportunity.joins(:unit).where(hmis_units: { hmis_unit_group_id: unit_groups.select(:id) })
-      instances = Hmis::WorkflowExecution::Instance.where(template: templates)
-      steps = Hmis::WorkflowExecution::Step.where(instance: instances)
-      referrals = Hmis::Ce::Referral.where(workflow_instance: instances)
+      Hmis::Form::FormProcessor.
+        where(owner_type: Hmis::WorkflowExecution::Step.sti_name, owner_id: steps.select(:id)).
+        find_each(&:destroy!)
 
       Hmis::Ce::ReferralNote.where(referral: referrals).find_each(&:destroy!)
       Hmis::Ce::ReferralParticipant.where(referral: referrals).find_each(&:destroy!)
       referrals.find_each(&:destroy!)
 
-      Hmis::Ce::OpportunityCategorization.where(opportunity: opportunities).find_each(&:destroy!)
-      opportunities.find_each(&:destroy!)
+      if delete_opportunities
+        # Optional: wipe opportunities tied to this template via unit groups. Pass
+        # delete_opportunities: false to preserve CE inventory during local iteration.
+        # Find opportunities through unit groups that use this template
+        unit_groups = Hmis::UnitGroup.where(workflow_template_identifier: template_identifier).
+          or(Hmis::UnitGroup.where(direct_referral_workflow_template_identifier: template_identifier)).
+          preload(:project)
+        raise 'Unexpected, found a unit group associated with this template in another data source' if unit_groups.any? { |ug| ug.project.data_source_id != data_source.id }
+
+        opportunities = Hmis::Ce::Opportunity.joins(:unit).where(hmis_units: { hmis_unit_group_id: unit_groups.select(:id) })
+
+        Hmis::Ce::OpportunityCategorization.where(opportunity: opportunities).find_each(&:destroy!)
+        opportunities.find_each(&:destroy!)
+      end
 
       Hmis::WorkflowExecution::AuditEvent.where(instance: instances).find_each(&:destroy!)
       instances.find_each(&:destroy!)
@@ -150,6 +178,7 @@ module CeWorkflows::Shared
       # Temporarily disable the callback that prevents destroying published forms
       Hmis::Form::Definition.skip_callback(:destroy, :before, :can_be_destroyed)
       scope = Hmis::Form::Definition.in_data_source(data_source_id).where(role: 'CE_REFERRAL_STEP', identifier: form_definition_identifiers)
+      Hmis::Form::FormProcessor.where(definition_id: scope.select(:id)).find_each(&:destroy!)
       scope.destroy_all
       Hmis::Form::Definition.set_callback(:destroy, :before, :can_be_destroyed) # re-enable callback
     end

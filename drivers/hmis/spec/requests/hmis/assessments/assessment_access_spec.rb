@@ -44,7 +44,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       )
     end
 
-    let(:view_permissions) { [:can_view_enrollment_details, :can_view_project] }
+    let(:view_permissions) { HmisPermissionSets::ENROLLMENT_VISIBILITY }
 
     it 'resolves canDeleteAssessment from the assessment policy (WIP + can_edit_enrollments)' do
       create_access_control(hmis_user, p1, with_permission: [:can_edit_enrollments, *view_permissions])
@@ -54,7 +54,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     end
 
     it 'returns false when the policy denies delete' do
-      create_access_control(hmis_user, p1, with_permission: [*view_permissions])
+      create_access_control(hmis_user, p1, with_permission: view_permissions)
       assessment = create(:hmis_custom_assessment, data_source: ds1, enrollment: e1, client: c1)
 
       expect_assessment_access!(assessment: assessment, can_delete_assessment: false)

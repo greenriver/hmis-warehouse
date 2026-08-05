@@ -14,7 +14,7 @@
 #   - Enables the definition of CE `eligibility_requirements` and `priority_scheme`
 #     rules (Hmis::Ce::Match::Rule) that apply to all units in the group
 #
-# @see docs/features/hmis_units.md For documentation on unit groups and their role in CE workflows
+# @see docs/features/hmis/hmis-units.md For documentation on unit groups and their role in CE workflows
 module Hmis
   class UnitGroup < HmisBase
     acts_as_paranoid
@@ -64,6 +64,14 @@ module Hmis
     scope :viewable_by, ->(user) do
       joins(:project).merge(Hmis::Hud::Project.viewable_by(user).with_access(user, :can_view_units))
     end
+
+    scope :in_data_source, ->(data_source_id) {
+      joins(:project).merge(Hmis::Hud::Project.where(data_source_id: data_source_id))
+    }
+
+    scope :in_project_group, ->(project_group_id) {
+      joins(:project).merge(Hmis::Hud::Project.in_project_group(project_group_id))
+    }
 
     scope :with_ce_waitlists_enabled, -> do
       joins(:project).

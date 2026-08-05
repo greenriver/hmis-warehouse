@@ -795,6 +795,18 @@ type CeCandidate {
   priorityScores: [Int!]!
 }
 
+type CeCandidatePoolSummary {
+  """
+  Active pools that have never completed a full generation
+  """
+  neverFullyGeneratedCount: Int!
+
+  """
+  Number of active CE candidate pools
+  """
+  totalCount: Int!
+}
+
 type CeCandidatesPaginated {
   hasMoreAfter: Boolean!
   hasMoreBefore: Boolean!
@@ -1072,6 +1084,11 @@ enum CeMatchRuleFieldSource {
   Custom
   """
   CUSTOM_DATA_ELEMENT
+
+  """
+  HUD
+  """
+  PSDE
 }
 
 input CeMatchRuleFilterOptions {
@@ -1187,6 +1204,16 @@ type CeOpportunity {
   active: Boolean!
   candidateLookup(id: ID!): CeCandidate
   candidates(filters: CeOpportunityCandidatesFilterOptions, limit: Int, offset: Int): CeCandidatesPaginated!
+
+  """
+  When this unit's eligible client list last completed a full generation against
+  all destination clients. Null means it has never finished first-time setup.
+  """
+  candidatesFullyGeneratedAt: ISO8601DateTime
+
+  """
+  When this unit's eligible client list was last updated by any processing (full refresh or individual client)
+  """
   candidatesGeneratedAt: ISO8601DateTime
   categories: [String!]!
   dateAvailable: ISO8601Date!
@@ -6021,6 +6048,11 @@ type GlobalFeatureFlags {
   coordinatedEntryEnabled: Boolean!
 
   """
+  Whether the ESG Funding Report is enabled
+  """
+  esgFundingReportEnabled: Boolean!
+
+  """
   Whether an external referral integration is enabled
   """
   externalReferralsEnabled: Boolean!
@@ -10333,6 +10365,11 @@ type Query {
     """
     role: AssessmentRole
   ): FormDefinition
+
+  """
+  Generation and refresh status for active CE candidate pools
+  """
+  ceCandidatePoolSummary(projectGroupId: ID): CeCandidatePoolSummary!
   ceClient(
     """
     Client Proxy ID
@@ -10348,7 +10385,7 @@ type Query {
   """
   Client fields available for CE Match Rule expressions.
   """
-  ceMatchClientFields: [CeMatchField!]!
+  ceMatchClientFields: [CeMatchField!]! @deprecated(reason: "Use ceMatchFields(fieldSource: CLIENT)")
 
   """
   Fields on the form that are usable as CE Match Rule condition fields.
@@ -10359,7 +10396,13 @@ type Query {
   Custom assessment form definitions for use in CE match rule management.
   """
   ceMatchCustomAssessmentForms: [FormDefinition!]!
-  ceMatchRule(id: ID!): CeMatchRule!
+
+  """
+  Fields available for CE Match Rule expressions. CUSTOM_DATA_ELEMENT fields are
+  scoped to a form, so request those through ceMatchCustomAssessmentFields instead.
+  """
+  ceMatchFields(fieldSource: CeMatchRuleFieldSource!): [CeMatchField!]!
+  ceMatchRule(id: ID!): CeMatchRule
 
   """
   Coordinated Entry Match Rules in the current data source.

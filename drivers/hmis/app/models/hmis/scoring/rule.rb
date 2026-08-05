@@ -8,6 +8,13 @@
 
 module Hmis
   module Scoring
+    # Stores per-question scoring criteria (match type, config, and weight) used to evaluate assessment
+    # responses as part of a larger scoring algorithm.
+    #
+    # Added to support HmisExternalApis::AcHmis::AltAhaCalculator, which loads rules for its three
+    # alt_aha_* algorithms and sums each rule's contribution against Housing Needs Assessment values.
+    # The model is intentionally generic and could be reused for other complex form-based scoring.
+    # In general, prefer to use built-in scoring capabilities in the FormDefinition whenever possible.
     class Rule < ::GrdaWarehouseBase
       self.table_name = 'hmis_scoring_rules'
 

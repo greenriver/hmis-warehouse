@@ -51,11 +51,16 @@ module TxClientReports
 
     def run_and_save!
       update(started_at: Time.current)
-      create_export(
+      export = create_export(
         user_id: filter.user_id,
-        content: excel_content,
         content_type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
       )
+      export.research_export_file.attach(
+        io: StringIO.new(excel_content),
+        filename: 'research_export.xlsx',
+        content_type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      )
+      export.save!
       assign_attributes(completed_at: Time.current)
       save
     end

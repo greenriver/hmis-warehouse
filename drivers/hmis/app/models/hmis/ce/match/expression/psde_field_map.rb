@@ -39,8 +39,15 @@ module Hmis::Ce::Match::Expression
       PsdeFieldRegistry[field]&.label || field.to_s.humanize
     end
 
-    def format_for_display(_field, value)
-      value
+    def format_for_display(field, value)
+      return value if value.nil?
+
+      case PsdeFieldRegistry[field]&.value_type
+      when :logical
+        value ? 'Yes' : 'No'
+      else
+        value.to_s # could expand this later if there are dates or other types
+      end
     end
 
     def self.field_key_for(field_key)

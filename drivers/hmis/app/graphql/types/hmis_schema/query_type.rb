@@ -238,8 +238,7 @@ module Types
       raise 'unexpected role' if role && !Hmis::Form::Definition::ASSESSMENT_FORM_ROLES.include?(role.to_sym)
 
       project = Hmis::Hud::Project.find(project_id)
-      # Ensure that user can view enrollments for this project. There is no need to expose assessment forms otherwise.
-      raise 'Access denied' unless current_user.can_view_enrollment_details_for?(project)
+      access_denied! unless policy_for(project, policy_type: :hmis_project).can_view_enrollment_details?
 
       if id
         # If ID is specified, we assume that it's correct for this project.
@@ -412,6 +411,8 @@ module Types
     end
 
     def esg_funding_report(client_ids:)
+      access_denied! unless HmisExternalApis::AcHmis.configuration.esg_funding_report_enabled?
+
       cst = Hmis::Hud::CustomServiceType.where(name: 'ESG Funding Assistance').first!
       raise HmisErrors::ApiError, 'ESG Funding Assistance service not configured' unless cst.present?
 
@@ -443,8 +444,8 @@ module Types
       # NOTE: this query is only used for form management. It probably should
       # not be used for the application, because there is no project context passed
       # to the definition.
-      definition = Hmis::Form::Definition.in_data_source(current_user.hmis_data_source_id).find(id)
-      access_denied! unless policy_for(definition, policy_type: :form_definition).can_configure_form?
+      definition = Hmis::Form::Definition.in_data_source(current_user.hmis_data_source_id).find_by(id: id)
+      return nil unless definition && policy_for(definition, policy_type: :form_definition).can_configure_form?
 
       definition
     end
@@ -620,6 +621,16 @@ module Types
       {}
     end
 
+    field :ce_candidate_pool_summary, HmisSchema::CeCandidatePoolSummary, null: false,
+                                                                          description: 'Generation and refresh status for active CE candidate pools' do
+      argument :project_group_id, ID, required: false
+    end
+    def ce_candidate_pool_summary(project_group_id: nil)
+      access_denied! unless current_user.can_administrate_coordinated_entry?
+
+      { project_group_id: project_group_id }
+    end
+
     field :ce_clients, HmisSchema::CeClient.page_type, null: false, description: 'Clients who belong to at least one CE candidate pool', nodes_count: ->(all_nodes) { all_nodes.count(:id) } do
       filters_argument HmisSchema::CeClient
     end
@@ -686,12 +697,12 @@ module Types
       Hmis::Unit.viewable_by(current_user).find_by(id: id)
     end
 
-    field :ce_match_rule, HmisSchema::CeMatchRule, null: false do
+    field :ce_match_rule, HmisSchema::CeMatchRule, null: true do
       argument :id, ID, required: true
     end
     def ce_match_rule(id:)
       rule = Hmis::Ce::Match::Rule.find_by(id: id)
-      access_denied! unless rule && policy_for(rule, policy_type: :ce_match_rule).can_view?
+      return nil unless rule && policy_for(rule, policy_type: :ce_match_rule).can_view?
 
       rule
     end
@@ -708,13 +719,28 @@ module Types
       scope.order(:id)
     end
 
-    # Client fields (from ClientFieldMap) available in CE Match Rule expressions.
-
-    field :ce_match_client_fields, [HmisSchema::CeMatchField], null: false, description: 'Client fields available for CE Match Rule expressions.'
+    field :ce_match_client_fields, [HmisSchema::CeMatchField], null: false, description: 'Client fields available for CE Match Rule expressions.', deprecation_reason: 'Use ceMatchFields(fieldSource: CLIENT)'
     def ce_match_client_fields
       access_denied! unless policy_for(Hmis::Ce::Match::Rule, policy_type: :ce_match_rule).can_manage?
 
       Hmis::Ce::Match::FieldCatalog.new.client_fields
+    end
+
+    field :ce_match_fields, [HmisSchema::CeMatchField], null: false, description: 'Fields available for CE Match Rule expressions. CUSTOM_DATA_ELEMENT fields are scoped to a form, so request those through ceMatchCustomAssessmentFields instead.' do
+      argument :field_source, HmisSchema::Enums::CeMatchRuleFieldSource, required: true
+    end
+    def ce_match_fields(field_source:)
+      access_denied! unless policy_for(Hmis::Ce::Match::Rule, policy_type: :ce_match_rule).can_manage?
+
+      catalog = Hmis::Ce::Match::FieldCatalog.new
+      case field_source
+      when 'CLIENT'
+        catalog.client_fields
+      when 'PSDE'
+        catalog.psde_fields
+      else
+        raise HmisErrors::ApiError, "Unsupported CE match field source: #{field_source}"
+      end
     end
 
     field :ce_match_custom_assessment_forms, [Forms::FormDefinition], null: false, description: 'Custom assessment form definitions for use in CE match rule management.'

@@ -205,6 +205,96 @@ RSpec.describe Filters::FilterBase, type: :model do
     end
   end
 
+  # Regression coverage for a permission mismatch: these *_options_for_select
+  # methods scope through all_project_scope (can_view_assigned_reports), but
+  # each underlying model's own options_for_select used to default its
+  # internal viewable_by call to :can_view_projects, silently ANDing the two
+  # scopes together and returning nothing for a user who only has
+  # can_view_assigned_reports (the normal case for HUD report filter forms).
+  describe 'options for select scoping for an ACL user with only can_view_assigned_reports' do
+    let(:filter) { Filters::FilterBase.new(user_id: user.id) }
+
+    it 'includes the granted data source' do
+      expect(filter.data_source_options_for_select(user: user).map(&:last)).to include(data_source.id)
+    end
+
+    it 'includes the granted organization' do
+      expect(filter.organization_options_for_select(user: user).values.flatten(1).map(&:last)).to include(organization.id)
+    end
+
+    it 'includes a project under the granted data source' do
+      expect(filter.project_options_for_select(user: user).values.flatten(1).map(&:last)).to include(psh_project.id)
+    end
+
+    context 'with a funder on a granted project' do
+      let!(:funder) { create :hud_funder, data_source_id: data_source.id, ProjectID: psh_project.ProjectID, Funder: 21 }
+
+      it 'includes the funder' do
+        expect(filter.funder_options_for_select(user: user).map(&:last)).to include('21')
+      end
+    end
+  end
+
+  # Regression coverage for the same permission mismatch inside
+  # available_coc_codes: a submitted coc_code used to be silently stripped
+  # (falling back to blank) for an ACL user granted only
+  # can_view_assigned_reports, tripping the "CoC codes can't be blank"
+  # validation on report submission even though the code was chosen from the
+  # (correctly scoped) coc_codes select.
+  describe 'coc_codes filtering for an ACL user with only can_view_assigned_reports' do
+    let!(:coc_code_lookup) { create :lookup_coc, coc_code: 'XX-500' }
+    let!(:project_coc) { create :hud_project_coc, data_source_id: data_source.id, ProjectID: psh_project.ProjectID, CoCCode: 'XX-500' }
+
+    it 'retains a coc_code inherited from a project viewable via can_view_assigned_reports' do
+      filter = Filters::HudFilterBase.new(user_id: user.id).update(coc_codes: ['XX-500'])
+      expect(filter.coc_codes).to eq(['XX-500'])
+      expect(filter).to be_valid
+    end
+
+    it 'still strips a coc_code that is not inherited from any viewable project' do
+      filter = Filters::HudFilterBase.new(user_id: user.id).update(coc_codes: ['XX-999'])
+      expect(filter.coc_codes).to be_empty
+      expect(filter).not_to be_valid
+    end
+  end
+
+  # Regression coverage: report summaries must agree with both the live
+  # "N Projects Included" count on the new-report page
+  # (Api::HudFiltersController#index) and the report run itself
+  # (HudReports::ReportInstance), which both use effective_project_ids. Two
+  # independent summary code paths used to display the raw, un-narrowed
+  # project_ids instead: selected_params_for_display (xlsx export summaries)
+  # and chosen_projects (the HTML report list page's "Projects:" line, via
+  # describe_filter_as_html -> describe -> chosen).
+  describe 'selected_params_for_display (xlsx export summaries)' do
+    let!(:coc_code_lookup) { create :lookup_coc, coc_code: 'XX-500' }
+    let!(:psh_project_coc) { create :hud_project_coc, data_source_id: data_source.id, ProjectID: psh_project.ProjectID, CoCCode: 'XX-500' }
+
+    it 'shows only the CoC-narrowed effective projects, not every raw-picked project' do
+      filter = Filters::HudFilterBase.new(user_id: user.id).update(
+        project_ids: [psh_project.id, es_project.id],
+        coc_codes: ['XX-500'],
+      )
+      displayed = filter.selected_params_for_display['Projects']
+      expect(displayed.any? { |name| name.include?(psh_project.ProjectName) }).to eq(true)
+      expect(displayed.any? { |name| name.include?(es_project.ProjectName) }).to eq(false)
+    end
+  end
+
+  describe 'chosen_projects (the HTML report list page "Projects:" line)' do
+    let!(:coc_code_lookup) { create :lookup_coc, coc_code: 'XX-500' }
+    let!(:psh_project_coc) { create :hud_project_coc, data_source_id: data_source.id, ProjectID: psh_project.ProjectID, CoCCode: 'XX-500' }
+
+    it 'shows only the CoC-narrowed effective projects, not every raw-picked project' do
+      filter = Filters::HudFilterBase.new(user_id: user.id).update(
+        project_ids: [psh_project.id, es_project.id],
+        coc_codes: ['XX-500'],
+      )
+      expect(filter.chosen_projects).to include(psh_project.ProjectName)
+      expect(filter.chosen_projects).not_to include(es_project.ProjectName)
+    end
+  end
+
   describe 'defaults regression' do
     it 'evaluates date defaults at instantiation time (dynamic), not class load time (static)' do
       travel_to Date.new(2025, 1, 1)

@@ -7,7 +7,7 @@
 # frozen_string_literal: true
 
 module GrdaWarehouse
-  # @see docs/features/cohorts.md
+  # @see docs/features/warehouse/cohorts.md
   class CohortTab < GrdaWarehouseBase
     include ArelHelper
     acts_as_paranoid

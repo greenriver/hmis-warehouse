@@ -96,24 +96,27 @@ module Types
     referral_postings_field :incoming_referral_postings
     referral_postings_field :outgoing_referral_postings
     access_field do
-      can :delete_project
-      can :edit_project_details
-      can :view_enrollment_details
+      define_method(:policy) { @policy ||= policy_for(object, policy_type: :hmis_project) }
+
+      bool_field(:can_delete_project) { policy.can_delete? }
+      bool_field(:can_edit_project_details) { policy.can_edit? }
+      bool_field(:can_view_enrollment_details) { policy.can_view_enrollment_details? }
+      bool_field(:can_edit_enrollments) { policy.can_edit_enrollments? }
+      bool_field(:can_manage_units) { policy.can_manage_units? }
+      bool_field(:can_update_unit_availability) { policy.can_update_unit_availability? }
+      bool_field(:can_manage_outgoing_referrals) { policy.can_send_out_direct_referral? }
+      bool_field(:can_view_outgoing_referral_summaries) { policy.can_view_outgoing_referral_summaries? }
+
+      # TODO(#9005) move remaining legacy fields to resolve via policy methods
       can :enroll_clients
-      can :edit_enrollments
-      can :manage_units
       can :view_units
       can :manage_incoming_referrals
-      can :manage_outgoing_referrals
       can :view_outgoing_referral_details
-      # TODO(#8067) - reduce duplication of logic with HmisProjectPolicy once we establish a frontend pattern for permission requirements
-      composite_perm :can_view_outgoing_referral_summaries, permissions: [:manage_outgoing_referrals, :view_outgoing_referral_details], mode: :any
       can :manage_external_form_submissions
       can :split_households
       can :view_referrals
       can :view_own_referrals
       can :start_referrals
-      can :update_unit_availability
       can :view_prioritized_client_lists
     end
     field :unit_types, [Types::HmisSchema::UnitTypeCapacity], null: false
@@ -300,7 +303,7 @@ module Types
     end
 
     def outgoing_direct_ce_referrals(**args)
-      policy = current_user.policy_for(object, policy_type: :hmis_project)
+      policy = policy_for(object, policy_type: :hmis_project)
       access_denied! unless policy.can_view_outgoing_referral_summaries?
 
       referral_scope = object.outgoing_ce_referrals.originated_from_direct_send
@@ -311,7 +314,7 @@ module Types
       # For resolving several associations, we want to skip permission checks that use the viewable_by scope, both for
       # performance reasons, and so that we throw an error instead of returning an empty list.
       # After this check it's OK to use `dangerous_skip_permission_check`
-      raise 'access denied' unless current_user.can_view_enrollment_details_for?(object)
+      access_denied! unless policy_for(object, policy_type: :hmis_project).can_view_enrollment_details?
     end
 
     private def ce_match_rule_group_owners

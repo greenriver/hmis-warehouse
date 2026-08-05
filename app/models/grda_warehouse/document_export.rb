@@ -7,7 +7,7 @@
 # frozen_string_literal: true
 
 #
-# @see docs/features/document-export.md
+# @see docs/features/warehouse/document-export.md
 
 class GrdaWarehouse::DocumentExport < GrdaWarehouseBase
   include DocumentExportBehavior

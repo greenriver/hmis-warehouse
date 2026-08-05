@@ -15,7 +15,6 @@ class User < ApplicationRecord
   # Extensions from drivers — see ADR 0007
   include CasAccess::UserExtension
   include Hmis::UserExtension
-  include DeviseUserPatch
 
   validates :talent_lms_email, format: { with: URI::MailTo::EMAIL_REGEXP }, unless: -> { talent_lms_email.blank? }
 
@@ -286,7 +285,7 @@ class User < ApplicationRecord
     policy || GrdaWarehouse::AuthPolicies::DenyPiiPolicy.instance
   end
 
-  # @see docs/features/warehouse-auth-policies.md
+  # @see docs/features/warehouse/warehouse-auth-policies.md
   memoize def policy_for(resource, policy_class: nil)
     if policy_class
       raise ArgumentError, "policy class not supported: #{policy_class.name}" unless policy_class < GrdaWarehouse::AuthPolicies::BasePolicy

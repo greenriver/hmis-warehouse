@@ -13,7 +13,7 @@ require 'progress_bar'
 # It identifies which clients are eligible for the pool and calculates a priority score for each.
 # The engine is designed to be idempotent and can be run repeatedly without causing side effects.
 #
-# See README_FOR_CE_MATCH_ENGINE.md
+# See docs/features/hmis/ce-match-engine.md
 module Hmis::Ce::Match
   # Orchestrates the process of evaluating a universe of clients against a
   # candidate pool's criteria. It coordinates various components to filter,
@@ -146,7 +146,10 @@ module Hmis::Ce::Match
         end
       end
 
-      @pool.update!(candidates_generated_at: Time.current)
+      now = Time.current
+      @pool.candidates_generated_at = now
+      @pool.candidates_fully_generated_at = now if is_full_refresh
+      @pool.save!
       log_info { "Finished for pool_id=#{@pool.id}" }
     end
 

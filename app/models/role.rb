@@ -6,7 +6,7 @@
 
 # frozen_string_literal: true
 
-# @see docs/features/warehouse-permissions.md
+# @see docs/features/warehouse/warehouse-permissions.md
 #
 # Participates in both the "new" and "legacy" permissions systems
 #

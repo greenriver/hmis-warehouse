@@ -7,8 +7,8 @@
 # frozen_string_literal: true
 
 OpenPath::Application.routes.draw do
-  # NOTE: using only: [:none] because leaving it blank inserts the default routes, which we have moved to a driver
-  resources :clients, only: [:none] do
+  # NOTE: using only: [] because leaving it blank inserts the default routes, which we have moved to a driver
+  resources :clients, only: [] do
     namespace :health_flexible_service do
       resource :staff, only: [:update]
       resources :vprs do

@@ -12,15 +12,12 @@ RSpec.describe 'Admin::EditHistories', type: :request do
   let(:admin_user) { create(:user) }
   let(:target_user) { create(:user, first_name: 'Test', last_name: 'User') }
 
+  around(:example) { |ex| PaperTrailHelper.with_paper_trail { ex.run } }
+
   before do
-    PaperTrail.enabled = true
     # Grant admin user permission to audit users
     allow_any_instance_of(User).to receive(:can_audit_users?).and_return(true)
     sign_in admin_user
-  end
-
-  after do
-    PaperTrail.enabled = false
   end
 
   describe 'GET /admin/users/:user_id/edit_history' do
