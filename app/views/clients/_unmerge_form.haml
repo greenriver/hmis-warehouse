@@ -25,7 +25,6 @@
           %table.table.table-striped
             %thead
               %th
-              %th.text-center HMIS Receiver
               %th Data Source
               %th Personal ID
               %th Name
@@ -38,8 +37,6 @@
                 - pii = c.pii_provider(user: current_user)
                 %tr
                   %td.jSplit= f.input_field :merge, as: :boolean, checked_value: c.id, unchecked_value: nil, name: input_id
-                  %td.text-center{data: { 'bs-toggle' => :tooltip, 'bs-title' => "If selected, dependent HMIS items will be associated with a newly created client for PersonalID #{c.uuid}"}}
-                    = radio_button_tag 'grda_warehouse_hud_client[hmis_receiver]', c.id, false, disabled: true
                   %td= c.data_source&.short_name
                   %td= c.uuid
                   %td= pii.full_name
@@ -55,23 +52,16 @@
                         Match Details
 
         .form-actions
-          = f.button :submit, "Split selected records from #{@client.pii_provider(user: current_user).full_name}", id: :splitButton, data: {confirm: "Are you sure you want to split #{@client.pii_provider(user: current_user).full_name}? Dependent data will be moved to the selected clients."}
+          = f.button :submit, "Split selected records from #{@client.pii_provider(user: current_user).full_name}", id: :splitButton, data: {confirm: "Are you sure you want to split #{@client.pii_provider(user: current_user).full_name}?"}
 
 = content_for :page_js do
   %script{ nonce: content_security_policy_nonce }
     :plain
       $('.jSplit').on('change', function(e) {
-        // Don't let unselected clients be receivers
-        var hmis_receiver = $('#grda_warehouse_hud_client_hmis_receiver_' + e.target.value)
-        hmis_receiver.prop('disabled', !e.target.checked)
-        if(!e.target.checked){
-          hmis_receiver.prop('checked', false)
-        }
-
-        // Require at least one selected client to be split off
-        anyChecked = $('input[name="grda_warehouse_hud_client[unmerge][]"]').toArray().some((e) => e.checked)
-        $('#splitButton').prop('disabled', !anyChecked)
-      });
+      // Require at least one selected client to be split off
+      anyChecked = $('input[name="grda_warehouse_hud_client[unmerge][]"]').toArray().some((e) => e.checked)
+      $('#splitButton').prop('disabled', !anyChecked)
+    });
 
       $(document).ready(function() {
         $('#splitButton').prop('disabled', true)
