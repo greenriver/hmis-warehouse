@@ -114,7 +114,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     project_ids = Hmis::Hud::Project.with_access(user, :can_view_clients).pluck(:id)
     client_ids = union_sql_for_clients_in_projects_or_unenrolled(project_ids: project_ids, data_source_id: user.hmis_data_source_id)
 
-    apply_restricted_visibility(where(c_t[:id].in(client_ids)), user)
+    where(c_t[:id].in(client_ids)).excluding_hidden_restricted_clients(user)
   end
 
   class << self
@@ -137,25 +137,13 @@ class Hmis::Hud::Client < Hmis::Hud::Base
       pluck(:id)
     client_ids = union_sql_for_clients_in_projects_or_unenrolled(project_ids: project_ids, data_source_id: user.hmis_data_source_id)
 
-    apply_restricted_visibility(where(c_t[:id].in(client_ids)), user)
+    where(c_t[:id].in(client_ids)).excluding_hidden_restricted_clients(user)
   end
 
-  # Clients enrolled at any of the given projects (includes WIP and exited enrollments).
-  scope :with_enrollment_at_projects, ->(project_ids) do
-    project_ids = Array.wrap(project_ids)
-    return none if project_ids.empty?
-
-    joins(:enrollments).where(e_t[:project_pk].in(project_ids)).distinct
-  end
-
-  # Restricted clients require can_view_restricted_clients at a project where the client is or was
-  # enrolled. Unenrolled restricted clients match nothing here, so they stay hidden from everyone.
-  def self.apply_restricted_visibility(scope, user)
-    unlocked_project_ids = Hmis::Hud::Project.with_access(user, :can_view_restricted_clients, :can_view_clients, mode: :all).pluck(:id)
-    unlocked_client_ids = with_enrollment_at_projects(unlocked_project_ids).select(c_t[:id])
-    scope.where.not(
-      id: Hmis::RestrictedRecord.restricted_client_ids.where.not(restrictable_id: unlocked_client_ids),
-    )
+  # Excludes clients that are hidden from the user due to restricted records.
+  # See docs/features/hmis/hmis-restricted-records.md for more details.
+  scope :excluding_hidden_restricted_clients, ->(user) do
+    where.not(id: Hmis::RestrictedClientEnrollment.client_ids_hidden_from(user))
   end
 
   # Shared helper that returns a raw SQL UNION subquery (as Arel.sql) containing client IDs for:

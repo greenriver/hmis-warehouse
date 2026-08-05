@@ -37,7 +37,7 @@ module Types
     end
 
     def household_clients
-      # TODO: check visibility of clients?
+      # TODO: exclude non-viewable enrollments (due to restricted clients)
       enrollments.map do |enrollment|
         {
           relationship_to_ho_h: enrollment.relationship_to_ho_h,
@@ -48,10 +48,6 @@ module Types
 
     def household_size
       enrollments.map(&:personal_id).uniq.size
-    end
-
-    def enrollments
-      load_ar_association(object, :enrollments)
     end
 
     def assessments(**args)
@@ -85,6 +81,12 @@ module Types
 
     def latest_exit_date
       object.latest_exit
+    end
+
+    private
+
+    def enrollments
+      load_ar_association(object, :enrollments)
     end
   end
 end

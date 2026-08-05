@@ -35,10 +35,6 @@ class Hmis::RestrictedRecord < Hmis::HmisBase
     restrictable_type == CLIENT_RESTRICTABLE_TYPE
   end
 
-  def self.restricted_client_ids
-    for_clients.select(:restrictable_id)
-  end
-
   def self.mark!(restrictable, user:)
     raise ArgumentError, "unsupported restrictable type #{restrictable.class.name}" unless RESTRICTABLE_TYPES.include?(restrictable.class.name)
 
