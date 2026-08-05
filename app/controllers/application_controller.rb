@@ -289,11 +289,6 @@ class ApplicationController < ActionController::Base
   end
   helper_method :health_emergency_test_status
 
-  def healthcare_available?
-    GrdaWarehouse::Config.get(:healthcare_available)
-  end
-  helper_method :healthcare_available?
-
   def ajax_modal_request?
     false
   end

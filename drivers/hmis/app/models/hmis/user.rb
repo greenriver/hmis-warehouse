@@ -99,7 +99,7 @@ class Hmis::User < ApplicationRecord
     end
 
     # Methods for determining if a user has permission
-    # e.g. the_user.can_administer_health?
+    # e.g. the_user.can_manage_agency?
     define_method("#{permission}?") do
       send(permission)
     end
@@ -117,7 +117,7 @@ class Hmis::User < ApplicationRecord
     end
 
     # Provide a scope for each permission to get any user who qualifies
-    # e.g. User.can_administer_health
+    # e.g. User.can_manage_agency
     scope permission, -> do
       joins(:roles).
         where(roles: { permission => true })
