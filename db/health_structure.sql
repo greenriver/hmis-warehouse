@@ -624,6 +624,885 @@ ALTER SEQUENCE public.claims_id_seq OWNED BY public.claims.id;
 
 
 --
+-- Name: claims_reporting_ccs_lookups; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.claims_reporting_ccs_lookups (
+    id bigint NOT NULL,
+    hcpcs_start character varying NOT NULL,
+    hcpcs_end character varying NOT NULL,
+    ccs_id integer NOT NULL,
+    ccs_label character varying NOT NULL,
+    effective_start date NOT NULL,
+    effective_end date NOT NULL,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL
+);
+
+
+--
+-- Name: claims_reporting_ccs_lookups_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.claims_reporting_ccs_lookups_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: claims_reporting_ccs_lookups_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.claims_reporting_ccs_lookups_id_seq OWNED BY public.claims_reporting_ccs_lookups.id;
+
+
+--
+-- Name: claims_reporting_cp_payment_details; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.claims_reporting_cp_payment_details (
+    id bigint NOT NULL,
+    cp_payment_upload_id bigint NOT NULL,
+    medicaid_id character varying NOT NULL,
+    cp_enrollment_start_date date NOT NULL,
+    paid_dos date NOT NULL,
+    payment_date date NOT NULL,
+    amount_paid numeric(10,2),
+    adjustment_amount numeric(10,2),
+    member_cp_assignment_plan character varying,
+    cp_name_dsrip character varying,
+    cp_name_official character varying,
+    cp_pid character varying,
+    cp_sl character varying,
+    month_payment_issued character varying,
+    paid_num_icn character varying,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL
+);
+
+
+--
+-- Name: claims_reporting_cp_payment_details_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.claims_reporting_cp_payment_details_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: claims_reporting_cp_payment_details_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.claims_reporting_cp_payment_details_id_seq OWNED BY public.claims_reporting_cp_payment_details.id;
+
+
+--
+-- Name: claims_reporting_cp_payment_uploads; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.claims_reporting_cp_payment_uploads (
+    id bigint NOT NULL,
+    user_id bigint,
+    original_filename character varying,
+    content bytea,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL,
+    started_at timestamp without time zone,
+    completed_at timestamp without time zone,
+    deleted_at timestamp without time zone
+);
+
+
+--
+-- Name: claims_reporting_cp_payment_uploads_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.claims_reporting_cp_payment_uploads_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: claims_reporting_cp_payment_uploads_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.claims_reporting_cp_payment_uploads_id_seq OWNED BY public.claims_reporting_cp_payment_uploads.id;
+
+
+--
+-- Name: claims_reporting_engagement_trends; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.claims_reporting_engagement_trends (
+    id bigint NOT NULL,
+    user_id bigint NOT NULL,
+    options jsonb,
+    results jsonb,
+    processing_errors character varying,
+    completed_at timestamp without time zone,
+    started_at timestamp without time zone,
+    failed_at timestamp without time zone,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL,
+    deleted_at timestamp without time zone
+);
+
+
+--
+-- Name: claims_reporting_engagement_trends_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.claims_reporting_engagement_trends_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: claims_reporting_engagement_trends_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.claims_reporting_engagement_trends_id_seq OWNED BY public.claims_reporting_engagement_trends.id;
+
+
+--
+-- Name: claims_reporting_imports; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.claims_reporting_imports (
+    id bigint NOT NULL,
+    source_url character varying NOT NULL,
+    started_at timestamp without time zone,
+    completed_at timestamp without time zone,
+    successful boolean,
+    status_message character varying,
+    content_hash character varying,
+    content bytea,
+    importer character varying,
+    method character varying,
+    args jsonb,
+    env jsonb,
+    results jsonb,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL
+);
+
+
+--
+-- Name: claims_reporting_imports_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.claims_reporting_imports_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: claims_reporting_imports_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.claims_reporting_imports_id_seq OWNED BY public.claims_reporting_imports.id;
+
+
+--
+-- Name: claims_reporting_medical_claims; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.claims_reporting_medical_claims (
+    id bigint NOT NULL,
+    member_id character varying(50) NOT NULL,
+    claim_number character varying(30) NOT NULL,
+    line_number character varying(10) NOT NULL,
+    cp_pidsl character varying(50),
+    cp_name character varying(255),
+    aco_pidsl character varying(50),
+    aco_name character varying(255),
+    pcc_pidsl character varying(50),
+    pcc_name character varying(255),
+    pcc_npi character varying(50),
+    pcc_taxid character varying(50),
+    mco_pidsl character varying(50),
+    mco_name character varying(50),
+    source character varying(50),
+    claim_type character varying(255),
+    member_dob date,
+    patient_status character varying(255),
+    service_start_date date,
+    service_end_date date,
+    admit_date date,
+    discharge_date date,
+    type_of_bill character varying(255),
+    admit_source character varying(255),
+    admit_type character varying(255),
+    frequency_code character varying(255),
+    paid_date date,
+    billed_amount numeric(19,4),
+    allowed_amount numeric(19,4),
+    paid_amount numeric(19,4),
+    admit_diagnosis character varying(50),
+    dx_1 character varying(50),
+    dx_2 character varying(50),
+    dx_3 character varying(50),
+    dx_4 character varying(50),
+    dx_5 character varying(50),
+    dx_6 character varying(50),
+    dx_7 character varying(50),
+    dx_8 character varying(50),
+    dx_9 character varying(50),
+    dx_10 character varying(50),
+    dx_11 character varying(50),
+    dx_12 character varying(50),
+    dx_13 character varying(50),
+    dx_14 character varying(50),
+    dx_15 character varying(50),
+    dx_16 character varying(50),
+    dx_17 character varying(50),
+    dx_18 character varying(50),
+    dx_19 character varying(50),
+    dx_20 character varying(50),
+    dx_21 character varying(50),
+    dx_22 character varying(50),
+    dx_23 character varying(50),
+    dx_24 character varying(50),
+    dx_25 character varying(50),
+    e_dx_1 character varying(50),
+    e_dx_2 character varying(50),
+    e_dx_3 character varying(50),
+    e_dx_4 character varying(50),
+    e_dx_5 character varying(50),
+    e_dx_6 character varying(50),
+    e_dx_7 character varying(50),
+    e_dx_8 character varying(50),
+    e_dx_9 character varying(50),
+    e_dx_10 character varying(50),
+    e_dx_11 character varying(50),
+    e_dx_12 character varying(50),
+    icd_version character varying(50),
+    surgical_procedure_code_1 character varying(50),
+    surgical_procedure_code_2 character varying(50),
+    surgical_procedure_code_3 character varying(50),
+    surgical_procedure_code_4 character varying(50),
+    surgical_procedure_code_5 character varying(50),
+    surgical_procedure_code_6 character varying(50),
+    revenue_code character varying(50),
+    place_of_service_code character varying(50),
+    procedure_code character varying(50),
+    procedure_modifier_1 character varying(50),
+    procedure_modifier_2 character varying(50),
+    procedure_modifier_3 character varying(50),
+    procedure_modifier_4 character varying(50),
+    drg_code character varying(50),
+    drg_version_code character varying(50),
+    severity_of_illness character varying(50),
+    service_provider_npi character varying(50),
+    id_provider_servicing character varying(50),
+    servicing_taxid character varying(50),
+    servicing_provider_name character varying(512),
+    servicing_provider_type character varying(255),
+    servicing_provider_taxonomy character varying(255),
+    servicing_address character varying(512),
+    servicing_city character varying(255),
+    servicing_state character varying(255),
+    servicing_zip character varying(50),
+    billing_npi character varying(50),
+    id_provider_billing character varying(50),
+    billing_taxid character varying(50),
+    billing_provider_name character varying(512),
+    billing_provider_type character varying(50),
+    billing_provider_taxonomy character varying(50),
+    billing_address character varying(512),
+    billing_city character varying(255),
+    billing_state character varying(255),
+    billing_zip character varying(50),
+    claim_status character varying(255),
+    disbursement_code character varying(255),
+    enrolled_flag character varying(50),
+    referral_circle_ind character varying(50),
+    mbhp_flag character varying(50),
+    present_on_admission_1 character varying(50),
+    present_on_admission_2 character varying(50),
+    present_on_admission_3 character varying(50),
+    present_on_admission_4 character varying(50),
+    present_on_admission_5 character varying(50),
+    present_on_admission_6 character varying(50),
+    present_on_admission_7 character varying(50),
+    present_on_admission_8 character varying(50),
+    present_on_admission_9 character varying(50),
+    present_on_admission_10 character varying(50),
+    present_on_admission_11 character varying(50),
+    present_on_admission_12 character varying(50),
+    present_on_admission_13 character varying(50),
+    present_on_admission_14 character varying(50),
+    present_on_admission_15 character varying(50),
+    present_on_admission_16 character varying(50),
+    present_on_admission_17 character varying(50),
+    present_on_admission_18 character varying(50),
+    present_on_admission_19 character varying(50),
+    present_on_admission_20 character varying(50),
+    present_on_admission_21 character varying(50),
+    present_on_admission_22 character varying(50),
+    present_on_admission_23 character varying(50),
+    present_on_admission_24 character varying(50),
+    present_on_admission_25 character varying(50),
+    e_dx_present_on_admission_1 character varying(50),
+    e_dx_present_on_admission_2 character varying(50),
+    e_dx_present_on_admission_3 character varying(50),
+    e_dx_present_on_admission_4 character varying(50),
+    e_dx_present_on_admission_5 character varying(50),
+    e_dx_present_on_admission_6 character varying(50),
+    e_dx_present_on_admission_7 character varying(50),
+    e_dx_present_on_admission_8 character varying(50),
+    e_dx_present_on_admission_9 character varying(50),
+    e_dx_present_on_admission_10 character varying(50),
+    e_dx_present_on_admission_11 character varying(50),
+    e_dx_present_on_admission_12 character varying(50),
+    quantity numeric(12,4),
+    price_method character varying(50),
+    ccs_id character varying,
+    cde_cos_rollup character varying(50),
+    cde_cos_category character varying(50),
+    cde_cos_subcategory character varying(50),
+    ind_mco_aco_cvd_svc character varying(50),
+    enrolled_days integer DEFAULT 0,
+    engaged_days integer DEFAULT 0,
+    cde_ndc character varying(48),
+    pcc_repricing_fee_flag character varying(50),
+    cde_enc_rec_ind character varying(50)
+);
+
+
+--
+-- Name: COLUMN claims_reporting_medical_claims.enrolled_days; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.claims_reporting_medical_claims.enrolled_days IS 'Est. number of days the member has been enrolled as of the service start date.';
+
+
+--
+-- Name: COLUMN claims_reporting_medical_claims.engaged_days; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.claims_reporting_medical_claims.engaged_days IS 'Est. number of days the member has been engaged by a CP as of the service start date.';
+
+
+--
+-- Name: claims_reporting_medical_claims_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.claims_reporting_medical_claims_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: claims_reporting_medical_claims_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.claims_reporting_medical_claims_id_seq OWNED BY public.claims_reporting_medical_claims.id;
+
+
+--
+-- Name: claims_reporting_member_diagnosis_classifications; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.claims_reporting_member_diagnosis_classifications (
+    id bigint NOT NULL,
+    member_id character varying NOT NULL,
+    currently_assigned boolean,
+    currently_engaged boolean,
+    ast boolean,
+    cpd boolean,
+    cir boolean,
+    dia boolean,
+    spn boolean,
+    gbt boolean,
+    obs boolean,
+    hyp boolean,
+    hep boolean,
+    sch boolean,
+    pbd boolean,
+    das boolean,
+    pid boolean,
+    sia boolean,
+    sud boolean,
+    other_bh boolean,
+    coi boolean,
+    high_er boolean,
+    psychoses boolean,
+    other_ip_psych boolean,
+    high_util boolean,
+    er_visits integer,
+    ip_admits integer,
+    ip_admits_psychoses integer,
+    antipsy_day integer,
+    engaged_member_days integer,
+    engaged_member_months integer,
+    antipsy_denom integer,
+    antidep_day integer,
+    antidep_denom integer,
+    moodstab_day integer,
+    moodstab_denom integer,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL
+);
+
+
+--
+-- Name: COLUMN claims_reporting_member_diagnosis_classifications.ast; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.claims_reporting_member_diagnosis_classifications.ast IS 'asthma';
+
+
+--
+-- Name: COLUMN claims_reporting_member_diagnosis_classifications.cpd; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.claims_reporting_member_diagnosis_classifications.cpd IS 'copd';
+
+
+--
+-- Name: COLUMN claims_reporting_member_diagnosis_classifications.cir; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.claims_reporting_member_diagnosis_classifications.cir IS 'cardiac disease';
+
+
+--
+-- Name: COLUMN claims_reporting_member_diagnosis_classifications.dia; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.claims_reporting_member_diagnosis_classifications.dia IS 'diabetes';
+
+
+--
+-- Name: COLUMN claims_reporting_member_diagnosis_classifications.spn; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.claims_reporting_member_diagnosis_classifications.spn IS 'degenerative spinal disease/chronic pain';
+
+
+--
+-- Name: COLUMN claims_reporting_member_diagnosis_classifications.gbt; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.claims_reporting_member_diagnosis_classifications.gbt IS 'gi and biliary tract disease';
+
+
+--
+-- Name: COLUMN claims_reporting_member_diagnosis_classifications.obs; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.claims_reporting_member_diagnosis_classifications.obs IS 'obesity';
+
+
+--
+-- Name: COLUMN claims_reporting_member_diagnosis_classifications.hyp; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.claims_reporting_member_diagnosis_classifications.hyp IS 'hypertension';
+
+
+--
+-- Name: COLUMN claims_reporting_member_diagnosis_classifications.hep; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.claims_reporting_member_diagnosis_classifications.hep IS 'hepatitis';
+
+
+--
+-- Name: COLUMN claims_reporting_member_diagnosis_classifications.sch; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.claims_reporting_member_diagnosis_classifications.sch IS 'schizophrenia';
+
+
+--
+-- Name: COLUMN claims_reporting_member_diagnosis_classifications.pbd; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.claims_reporting_member_diagnosis_classifications.pbd IS 'psychoses/bipolar disorders';
+
+
+--
+-- Name: COLUMN claims_reporting_member_diagnosis_classifications.das; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.claims_reporting_member_diagnosis_classifications.das IS 'depression/anxiety/stress reactions';
+
+
+--
+-- Name: COLUMN claims_reporting_member_diagnosis_classifications.pid; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.claims_reporting_member_diagnosis_classifications.pid IS 'personality/impulse disorder';
+
+
+--
+-- Name: COLUMN claims_reporting_member_diagnosis_classifications.sia; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.claims_reporting_member_diagnosis_classifications.sia IS 'suicidal ideation/attempt';
+
+
+--
+-- Name: COLUMN claims_reporting_member_diagnosis_classifications.sud; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.claims_reporting_member_diagnosis_classifications.sud IS 'substance Abuse Disorder';
+
+
+--
+-- Name: COLUMN claims_reporting_member_diagnosis_classifications.other_bh; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.claims_reporting_member_diagnosis_classifications.other_bh IS 'other behavioral health';
+
+
+--
+-- Name: COLUMN claims_reporting_member_diagnosis_classifications.coi; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.claims_reporting_member_diagnosis_classifications.coi IS 'cohort of interest';
+
+
+--
+-- Name: COLUMN claims_reporting_member_diagnosis_classifications.high_er; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.claims_reporting_member_diagnosis_classifications.high_er IS '5+ ER Visits with No IP Psych Admission';
+
+
+--
+-- Name: COLUMN claims_reporting_member_diagnosis_classifications.psychoses; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.claims_reporting_member_diagnosis_classifications.psychoses IS '1+ Psychoses Admissions';
+
+
+--
+-- Name: COLUMN claims_reporting_member_diagnosis_classifications.other_ip_psych; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.claims_reporting_member_diagnosis_classifications.other_ip_psych IS '+ IP Psych Admissions';
+
+
+--
+-- Name: COLUMN claims_reporting_member_diagnosis_classifications.high_util; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.claims_reporting_member_diagnosis_classifications.high_util IS '3+ inpatient stays or 5+ emergency room visits throughout their claims experience';
+
+
+--
+-- Name: claims_reporting_member_diagnosis_classifications_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.claims_reporting_member_diagnosis_classifications_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: claims_reporting_member_diagnosis_classifications_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.claims_reporting_member_diagnosis_classifications_id_seq OWNED BY public.claims_reporting_member_diagnosis_classifications.id;
+
+
+--
+-- Name: claims_reporting_member_enrollment_rosters; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.claims_reporting_member_enrollment_rosters (
+    id bigint NOT NULL,
+    member_id character varying(50) NOT NULL,
+    performance_year character varying(50),
+    region character varying(50),
+    service_area character varying(50),
+    aco_pidsl character varying(50),
+    aco_name character varying(255),
+    pcc_pidsl character varying(50),
+    pcc_name character varying(255),
+    pcc_npi character varying(50),
+    pcc_taxid character varying(50),
+    mco_pidsl character varying(50),
+    mco_name character varying(50),
+    enrolled_flag character varying(50),
+    enroll_type character varying(50),
+    enroll_stop_reason character varying(50),
+    rating_category_char_cd character varying(255),
+    ind_dds character varying(50),
+    ind_dmh character varying(50),
+    ind_dta character varying(50),
+    ind_dss character varying(50),
+    cde_hcb_waiver character varying(50),
+    cde_waiver_category character varying(50),
+    span_start_date date NOT NULL,
+    span_end_date date,
+    span_mem_days integer,
+    cp_prov_type character varying(255),
+    cp_plan_type character varying(255),
+    cp_pidsl character varying(50),
+    cp_prov_name character varying(512),
+    cp_enroll_dt date,
+    cp_disenroll_dt date,
+    cp_start_rsn character varying(255),
+    cp_stop_rsn character varying(255),
+    ind_medicare_a character varying(50),
+    ind_medicare_b character varying(50),
+    tpl_coverage_cat character varying(50),
+    created_at timestamp without time zone,
+    updated_at timestamp without time zone,
+    engagement_date date,
+    engaged_days integer,
+    enrollment_end_at_engagement_calculation date,
+    first_claim_date date,
+    pre_engagement_days integer DEFAULT 0
+);
+
+
+--
+-- Name: claims_reporting_member_enrollment_rosters_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.claims_reporting_member_enrollment_rosters_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: claims_reporting_member_enrollment_rosters_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.claims_reporting_member_enrollment_rosters_id_seq OWNED BY public.claims_reporting_member_enrollment_rosters.id;
+
+
+--
+-- Name: claims_reporting_member_rosters; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.claims_reporting_member_rosters (
+    id bigint NOT NULL,
+    member_id character varying(50) NOT NULL,
+    nam_first character varying(255),
+    nam_last character varying(255),
+    cp_pidsl character varying(50),
+    cp_name character varying(255),
+    aco_pidsl character varying(50),
+    aco_name character varying(255),
+    mco_pidsl character varying(50),
+    mco_name character varying(50),
+    sex character varying(50),
+    date_of_birth date,
+    mailing_address_1 character varying(512),
+    mailing_address_2 character varying(512),
+    mailing_city character varying(255),
+    mailing_state character varying(255),
+    mailing_zip character varying(50),
+    residential_address_1 character varying(512),
+    residential_address_2 character varying(512),
+    residential_city character varying(255),
+    residential_state character varying(255),
+    residential_zip character varying(50),
+    race character varying(50),
+    phone_number character varying(50),
+    primary_language_s character varying(255),
+    primary_language_w character varying(255),
+    sdh_nss7_score character varying(50),
+    sdh_homelessness character varying(50),
+    sdh_addresses_flag character varying(50),
+    sdh_other_disabled character varying(50),
+    sdh_spmi character varying(50),
+    raw_risk_score character varying(50),
+    normalized_risk_score character varying(50),
+    raw_dxcg_risk_score character varying(50),
+    last_office_visit date,
+    last_ed_visit date,
+    last_ip_visit date,
+    enrolled_flag character varying(50),
+    enrollment_status character varying(50),
+    cp_claim_dt date,
+    qualifying_hcpcs character varying(50),
+    qualifying_hcpcs_nm character varying(255),
+    qualifying_dsc character varying(512),
+    email character varying(512),
+    head_of_household character varying(512),
+    sdh_smi character varying(50)
+);
+
+
+--
+-- Name: claims_reporting_member_rosters_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.claims_reporting_member_rosters_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: claims_reporting_member_rosters_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.claims_reporting_member_rosters_id_seq OWNED BY public.claims_reporting_member_rosters.id;
+
+
+--
+-- Name: claims_reporting_quality_measures; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.claims_reporting_quality_measures (
+    id bigint NOT NULL,
+    user_id bigint NOT NULL,
+    options jsonb,
+    results jsonb,
+    processing_errors character varying,
+    completed_at timestamp without time zone,
+    started_at timestamp without time zone,
+    failed_at timestamp without time zone,
+    deleted_at timestamp without time zone,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL
+);
+
+
+--
+-- Name: claims_reporting_quality_measures_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.claims_reporting_quality_measures_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: claims_reporting_quality_measures_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.claims_reporting_quality_measures_id_seq OWNED BY public.claims_reporting_quality_measures.id;
+
+
+--
+-- Name: claims_reporting_rx_claims; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.claims_reporting_rx_claims (
+    id bigint NOT NULL,
+    member_id character varying(50) NOT NULL,
+    claim_number character varying(30) NOT NULL,
+    line_number character varying(10) NOT NULL,
+    cp_pidsl character varying(50),
+    cp_name character varying(255),
+    aco_pidsl character varying(50),
+    aco_name character varying(255),
+    pcc_pidsl character varying(50),
+    pcc_name character varying(255),
+    pcc_npi character varying(50),
+    pcc_taxid character varying(50),
+    mco_pidsl character varying(50),
+    mco_name character varying(50),
+    source character varying(50),
+    claim_type character varying(255),
+    member_dob date,
+    refill_quantity character varying(20),
+    service_start_date date,
+    service_end_date date,
+    paid_date date,
+    days_supply integer,
+    billed_amount numeric(19,4),
+    allowed_amount numeric(19,4),
+    paid_amount numeric(19,4),
+    prescriber_npi character varying(50),
+    id_prescriber_servicing character varying(50),
+    prescriber_taxid character varying(50),
+    prescriber_name character varying(255),
+    prescriber_type character varying(50),
+    prescriber_taxonomy character varying(50),
+    prescriber_address character varying(512),
+    prescriber_city character varying(255),
+    prescriber_state character varying(255),
+    prescriber_zip character varying(50),
+    billing_npi character varying(50),
+    id_provider_billing character varying(50),
+    billing_taxid character varying(50),
+    billing_provider_name character varying(255),
+    billing_provider_type character varying(50),
+    billing_provider_taxonomy character varying(50),
+    billing_address character varying(512),
+    billing_city character varying(255),
+    billing_state character varying(255),
+    billing_zip character varying(50),
+    ndc_code character varying(50),
+    dosage_form_code character varying(50),
+    therapeutic_class character varying(50),
+    daw_ind character varying(50),
+    gcn character varying(50),
+    claim_status character varying(50),
+    disbursement_code character varying(50),
+    enrolled_flag character varying(50),
+    drug_name character varying(512),
+    brand_vs_generic_indicator integer,
+    price_method character varying(50),
+    quantity numeric(12,4),
+    route_of_administration character varying(255),
+    cde_cos_rollup character varying(50),
+    cde_cos_category character varying(50),
+    cde_cos_subcategory character varying(50),
+    ind_mco_aco_cvd_svc character varying(50)
+);
+
+
+--
+-- Name: claims_reporting_rx_claims_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.claims_reporting_rx_claims_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: claims_reporting_rx_claims_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.claims_reporting_rx_claims_id_seq OWNED BY public.claims_reporting_rx_claims.id;
+
+
+--
 -- Name: claims_roster; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -5103,6 +5982,83 @@ ALTER TABLE ONLY public.claims_ed_nyu_severity ALTER COLUMN id SET DEFAULT nextv
 
 
 --
+-- Name: claims_reporting_ccs_lookups id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.claims_reporting_ccs_lookups ALTER COLUMN id SET DEFAULT nextval('public.claims_reporting_ccs_lookups_id_seq'::regclass);
+
+
+--
+-- Name: claims_reporting_cp_payment_details id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.claims_reporting_cp_payment_details ALTER COLUMN id SET DEFAULT nextval('public.claims_reporting_cp_payment_details_id_seq'::regclass);
+
+
+--
+-- Name: claims_reporting_cp_payment_uploads id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.claims_reporting_cp_payment_uploads ALTER COLUMN id SET DEFAULT nextval('public.claims_reporting_cp_payment_uploads_id_seq'::regclass);
+
+
+--
+-- Name: claims_reporting_engagement_trends id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.claims_reporting_engagement_trends ALTER COLUMN id SET DEFAULT nextval('public.claims_reporting_engagement_trends_id_seq'::regclass);
+
+
+--
+-- Name: claims_reporting_imports id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.claims_reporting_imports ALTER COLUMN id SET DEFAULT nextval('public.claims_reporting_imports_id_seq'::regclass);
+
+
+--
+-- Name: claims_reporting_medical_claims id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.claims_reporting_medical_claims ALTER COLUMN id SET DEFAULT nextval('public.claims_reporting_medical_claims_id_seq'::regclass);
+
+
+--
+-- Name: claims_reporting_member_diagnosis_classifications id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.claims_reporting_member_diagnosis_classifications ALTER COLUMN id SET DEFAULT nextval('public.claims_reporting_member_diagnosis_classifications_id_seq'::regclass);
+
+
+--
+-- Name: claims_reporting_member_enrollment_rosters id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.claims_reporting_member_enrollment_rosters ALTER COLUMN id SET DEFAULT nextval('public.claims_reporting_member_enrollment_rosters_id_seq'::regclass);
+
+
+--
+-- Name: claims_reporting_member_rosters id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.claims_reporting_member_rosters ALTER COLUMN id SET DEFAULT nextval('public.claims_reporting_member_rosters_id_seq'::regclass);
+
+
+--
+-- Name: claims_reporting_quality_measures id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.claims_reporting_quality_measures ALTER COLUMN id SET DEFAULT nextval('public.claims_reporting_quality_measures_id_seq'::regclass);
+
+
+--
+-- Name: claims_reporting_rx_claims id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.claims_reporting_rx_claims ALTER COLUMN id SET DEFAULT nextval('public.claims_reporting_rx_claims_id_seq'::regclass);
+
+
+--
 -- Name: claims_roster id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -5868,6 +6824,94 @@ ALTER TABLE ONLY public.claims
 
 
 --
+-- Name: claims_reporting_ccs_lookups claims_reporting_ccs_lookups_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.claims_reporting_ccs_lookups
+    ADD CONSTRAINT claims_reporting_ccs_lookups_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: claims_reporting_cp_payment_details claims_reporting_cp_payment_details_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.claims_reporting_cp_payment_details
+    ADD CONSTRAINT claims_reporting_cp_payment_details_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: claims_reporting_cp_payment_uploads claims_reporting_cp_payment_uploads_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.claims_reporting_cp_payment_uploads
+    ADD CONSTRAINT claims_reporting_cp_payment_uploads_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: claims_reporting_engagement_trends claims_reporting_engagement_trends_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.claims_reporting_engagement_trends
+    ADD CONSTRAINT claims_reporting_engagement_trends_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: claims_reporting_imports claims_reporting_imports_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.claims_reporting_imports
+    ADD CONSTRAINT claims_reporting_imports_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: claims_reporting_medical_claims claims_reporting_medical_claims_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.claims_reporting_medical_claims
+    ADD CONSTRAINT claims_reporting_medical_claims_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: claims_reporting_member_diagnosis_classifications claims_reporting_member_diagnosis_classifications_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.claims_reporting_member_diagnosis_classifications
+    ADD CONSTRAINT claims_reporting_member_diagnosis_classifications_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: claims_reporting_member_enrollment_rosters claims_reporting_member_enrollment_rosters_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.claims_reporting_member_enrollment_rosters
+    ADD CONSTRAINT claims_reporting_member_enrollment_rosters_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: claims_reporting_member_rosters claims_reporting_member_rosters_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.claims_reporting_member_rosters
+    ADD CONSTRAINT claims_reporting_member_rosters_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: claims_reporting_quality_measures claims_reporting_quality_measures_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.claims_reporting_quality_measures
+    ADD CONSTRAINT claims_reporting_quality_measures_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: claims_reporting_rx_claims claims_reporting_rx_claims_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.claims_reporting_rx_claims
+    ADD CONSTRAINT claims_reporting_rx_claims_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: claims_roster claims_roster_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -6604,6 +7648,13 @@ ALTER TABLE ONLY public.visits
 
 
 --
+-- Name: claims_reporting_medical_claims_service_daterange; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX claims_reporting_medical_claims_service_daterange ON public.claims_reporting_medical_claims USING gist (daterange(service_start_date, service_end_date, '[]'::text));
+
+
+--
 -- Name: hl_value_set_code; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -6629,6 +7680,20 @@ CREATE UNIQUE INDEX hl_value_set_code_uniq_by_name ON public.hl7_value_set_codes
 --
 
 CREATE UNIQUE INDEX hl_value_set_code_uniq_by_oid ON public.hl7_value_set_codes USING btree (value_set_oid, code_system_oid, code);
+
+
+--
+-- Name: idx_cpd_on_cp_payment_upload_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_cpd_on_cp_payment_upload_id ON public.claims_reporting_cp_payment_details USING btree (cp_payment_upload_id);
+
+
+--
+-- Name: idx_crmc_member_service_start_date; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_crmc_member_service_start_date ON public.claims_reporting_medical_claims USING btree (member_id, service_start_date);
 
 
 --
@@ -6748,6 +7813,111 @@ CREATE INDEX index_claims_ed_nyu_severity_on_medicaid_id ON public.claims_ed_nyu
 --
 
 CREATE INDEX index_claims_on_deleted_at ON public.claims USING btree (deleted_at);
+
+
+--
+-- Name: index_claims_reporting_cp_payment_details_on_paid_dos; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_claims_reporting_cp_payment_details_on_paid_dos ON public.claims_reporting_cp_payment_details USING btree (paid_dos);
+
+
+--
+-- Name: index_claims_reporting_cp_payment_details_on_payment_date; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_claims_reporting_cp_payment_details_on_payment_date ON public.claims_reporting_cp_payment_details USING btree (payment_date);
+
+
+--
+-- Name: index_claims_reporting_cp_payment_uploads_on_deleted_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_claims_reporting_cp_payment_uploads_on_deleted_at ON public.claims_reporting_cp_payment_uploads USING btree (deleted_at);
+
+
+--
+-- Name: index_claims_reporting_cp_payment_uploads_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_claims_reporting_cp_payment_uploads_on_user_id ON public.claims_reporting_cp_payment_uploads USING btree (user_id);
+
+
+--
+-- Name: index_claims_reporting_engagement_trends_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_claims_reporting_engagement_trends_on_user_id ON public.claims_reporting_engagement_trends USING btree (user_id);
+
+
+--
+-- Name: index_claims_reporting_medical_claims_on_aco_name; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_claims_reporting_medical_claims_on_aco_name ON public.claims_reporting_medical_claims USING btree (aco_name);
+
+
+--
+-- Name: index_claims_reporting_medical_claims_on_aco_pidsl; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_claims_reporting_medical_claims_on_aco_pidsl ON public.claims_reporting_medical_claims USING btree (aco_pidsl);
+
+
+--
+-- Name: index_claims_reporting_medical_claims_on_service_start_date; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_claims_reporting_medical_claims_on_service_start_date ON public.claims_reporting_medical_claims USING btree (service_start_date);
+
+
+--
+-- Name: index_claims_reporting_member_rosters_on_aco_name; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_claims_reporting_member_rosters_on_aco_name ON public.claims_reporting_member_rosters USING btree (aco_name);
+
+
+--
+-- Name: index_claims_reporting_member_rosters_on_date_of_birth; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_claims_reporting_member_rosters_on_date_of_birth ON public.claims_reporting_member_rosters USING btree (date_of_birth);
+
+
+--
+-- Name: index_claims_reporting_member_rosters_on_member_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_claims_reporting_member_rosters_on_member_id ON public.claims_reporting_member_rosters USING btree (member_id);
+
+
+--
+-- Name: index_claims_reporting_member_rosters_on_race; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_claims_reporting_member_rosters_on_race ON public.claims_reporting_member_rosters USING btree (race);
+
+
+--
+-- Name: index_claims_reporting_member_rosters_on_sex; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_claims_reporting_member_rosters_on_sex ON public.claims_reporting_member_rosters USING btree (sex);
+
+
+--
+-- Name: index_claims_reporting_quality_measures_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_claims_reporting_quality_measures_on_user_id ON public.claims_reporting_quality_measures USING btree (user_id);
+
+
+--
+-- Name: index_claims_reporting_rx_claims_on_service_start_date; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_claims_reporting_rx_claims_on_service_start_date ON public.claims_reporting_rx_claims USING btree (service_start_date);
 
 
 --
@@ -7689,10 +8859,59 @@ CREATE INDEX index_versions_on_item_type_and_item_id ON public.versions USING bt
 
 
 --
+-- Name: med_claim_member_procedure_index; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX med_claim_member_procedure_index ON public.claims_reporting_medical_claims USING btree (member_id, procedure_code);
+
+
+--
 -- Name: patients_client_id_constraint; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE UNIQUE INDEX patients_client_id_constraint ON public.patients USING btree (client_id) WHERE (deleted_at IS NULL);
+
+
+--
+-- Name: unk_code_range; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX unk_code_range ON public.claims_reporting_ccs_lookups USING btree (effective_start, hcpcs_start, hcpcs_end);
+
+
+--
+-- Name: unk_cr_medical_claim; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX unk_cr_medical_claim ON public.claims_reporting_medical_claims USING btree (member_id, claim_number, line_number);
+
+
+--
+-- Name: unk_cr_member_enrollment_roster; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX unk_cr_member_enrollment_roster ON public.claims_reporting_member_enrollment_rosters USING btree (member_id, span_start_date);
+
+
+--
+-- Name: unk_cr_member_roster; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX unk_cr_member_roster ON public.claims_reporting_member_rosters USING btree (member_id);
+
+
+--
+-- Name: unk_cr_rx_claims; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX unk_cr_rx_claims ON public.claims_reporting_rx_claims USING btree (member_id, claim_number, line_number);
+
+
+--
+-- Name: unk_crmd; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX unk_crmd ON public.claims_reporting_member_diagnosis_classifications USING btree (member_id);
 
 
 --
@@ -7744,6 +8963,14 @@ ALTER TABLE ONLY public.sdh_case_management_notes
 
 
 --
+-- Name: claims_reporting_cp_payment_details fk_rails_cfb684843a; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.claims_reporting_cp_payment_details
+    ADD CONSTRAINT fk_rails_cfb684843a FOREIGN KEY (cp_payment_upload_id) REFERENCES public.claims_reporting_cp_payment_uploads(id);
+
+
+--
 -- Name: team_members fk_rails_ecf5238646; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -7758,7 +8985,6 @@ ALTER TABLE ONLY public.team_members
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
-('20260803180723'),
 ('20260108154000'),
 ('20260107184500'),
 ('20240807185011'),
