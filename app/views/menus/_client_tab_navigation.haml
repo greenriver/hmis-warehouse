@@ -1,29 +1,8 @@
 :ruby
   can_see_always_visible = always_visible.map{|_,details| details[:permission]}.any?
   can_see_hmis = hmis.map{|_,details| details[:permission]}.any?
-  can_see_health = health.map{|_,details| details[:permission]}.any?
-  can_see_tabs = can_see_always_visible || can_see_hmis || can_see_health
-  on_health = health.keys.include?(current) || @on_health
-  on_hmis = ! on_hmis
-  if on_health
-    dropdown = {
-      'dropdown' => {
-        title: 'HMIS',
-        permission: can_see_hmis
-      },
-    }
-    expanded_tabs = always_visible.merge(dropdown).merge(health)
-    tab_dropdowns = {'HMIS' => hmis}
-  else
-    dropdown = {
-      'dropdown' => {
-        title: 'Health',
-        permission: can_see_health
-      },
-    }
-    expanded_tabs = always_visible.merge(hmis).merge(dropdown)
-    tab_dropdowns = {'Health' => health}
-  end
+  can_see_tabs = can_see_always_visible || can_see_hmis
+  expanded_tabs = always_visible.merge(hmis)
 - if can_see_tabs
   %ul.nav.nav-tabs
     - expanded_tabs.each do |action, details|
@@ -31,30 +10,12 @@
       - item_classes = []
       - item_classes << details[:item_class] || ''
 
-      - if action == 'dropdown'
-        - if details[:permission]
-          - current_tab = current.include? details[:title].downcase
-          - item_classes << 'active' if current_tab
-          %li.nav-item.dropdown.dropdown--hover.dropdown--nav{class: item_classes}
-            %a.nav-link.dropdown-toggle{data: { 'bs-toggle' => 'dropdown'}, href: '#'}
-              = details[:title]
-              %span.caret
-            %ul.dropdown-menu
-              - tab_dropdowns[details[:title]].each do |action, details|
-                - current_sub_tab = action == current
-                - item_classes = []
-                - item_classes << details[:item_class] || ''
-                - item_classes << 'active' if current_sub_tab
-                - if details[:permission]
-                  %li{role: 'presentation', class: item_classes}
-                    = link_to details[:title], action
-      - else
-        - if details[:permission]
-          - item_classes << 'active' if current_tab
-          %li.nav-item{class: item_classes}
-            = link_to action, class: 'nav-link' do
-              = details[:title]
-              - if details[:title] == 'Notes'
-                - if @note_count > 0
-                  .label.label-info
-                    = @note_count
+      - if details[:permission]
+        - item_classes << 'active' if current_tab
+        %li.nav-item{class: item_classes}
+          = link_to action, class: 'nav-link' do
+            = details[:title]
+            - if details[:title] == 'Notes'
+              - if @note_count > 0
+                .label.label-info
+                  = @note_count
