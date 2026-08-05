@@ -15,7 +15,7 @@ module Hmis::Ce::Match::Expression
     DISABILITY_TYPE_CODES = GrdaWarehouse::Hud::Disability.disability_types.invert.freeze
 
     # Maps NoYes-disability field keys to their HUD DisabilityType code. Substance use is deliberately
-    # excluded here — it is dispatched separately in boolean_source because its meaningful-value set differs.
+    # excluded here — it is dispatched separately in boolean_field_source because its meaningful-value set differs.
     NO_YES_DISABILITY_TYPES = {
       PsdeFieldRegistry::PHYSICAL_DISABILITY.key => DISABILITY_TYPE_CODES.fetch(:physical),
       PsdeFieldRegistry::DEVELOPMENTAL_DISABILITY.key => DISABILITY_TYPE_CODES.fetch(:developmental),
@@ -42,7 +42,7 @@ module Hmis::Ce::Match::Expression
 
       all_enrollment = field.key.end_with?(PsdeFieldRegistry::ALL_ENROLLMENT_SUFFIX)
       base_key = field.key.delete_suffix(PsdeFieldRegistry::ALL_ENROLLMENT_SUFFIX)
-      source = boolean_source(base_key)
+      source = boolean_field_source(base_key)
 
       if all_enrollment
         resolve_all_enrollment_boolean_values(clients, **source)
@@ -85,8 +85,10 @@ module Hmis::Ce::Match::Expression
       result
     end
 
-    # HUD source for a boolean PSDE field, keyed by its base (non-suffixed) key.
-    def boolean_source(base_key)
+    # Describes where a boolean PSDE field's response lives in HUD data, keyed by its base
+    # (suffix-stripped) key. Returns { scope:, column:, meaningful_values: } which both the
+    # "latest" and "all enrollment" resolvers splat straight into their keyword args.
+    def boolean_field_source(base_key)
       case base_key
       when PsdeFieldRegistry::DOMESTIC_VIOLENCE_SURVIVOR.key
         { scope: Hmis::Hud::HealthAndDv.all, column: hdv_t[:DomesticViolenceSurvivor], meaningful_values: NO_YES_RESPONSES }
@@ -113,8 +115,8 @@ module Hmis::Ce::Match::Expression
       result = client_ids.index_with { nil }
       rows = scoped_rows(client_ids, scope).pluck(wc_t[:destination_id], column)
       rows.group_by(&:first).each do |client_id, client_rows|
-        selected = first_meaningful_row(client_rows, meaningful_values, index: 1)
-        result[client_id] = response_to_boolean(selected[1]) if selected
+        response = most_recent_meaningful_response(client_rows, meaningful_values)
+        result[client_id] = response_to_boolean(response) unless response.nil?
       end
       result
     end
@@ -129,13 +131,13 @@ module Hmis::Ce::Match::Expression
       # Ensure all destination clients are in the hash. Clients with no meaningful rows will have an empty array.
       result = client_ids.index_with { [] }
       rows = scoped_rows(client_ids, scope).pluck(wc_t[:destination_id], e_t[:id], column)
-      rows.group_by(&:first).each do |client_id, client_rows|
-        result[client_id] = client_rows.group_by { |row| row[1] }.map do |_enrollment_id, enrollment_rows|
-          selected = first_meaningful_row(enrollment_rows, meaningful_values, index: 2)
-          next unless selected
-
-          response_to_boolean(selected[2])
-        end.compact
+      rows.group_by(&:first).each do |client_id, client_rows| # group by client_id
+        # Group each client's rows by enrollment so we can take each enrollment's most-recent
+        # meaningful response. Group by enrollment_id (the second element of the tuple).
+        responses = client_rows.group_by(&:second).filter_map do |_enrollment_id, enrollment_rows|
+          most_recent_meaningful_response(enrollment_rows, meaningful_values)
+        end
+        result[client_id] = responses.map { |response| response_to_boolean(response) }
       end
       result
     end
@@ -150,9 +152,11 @@ module Hmis::Ce::Match::Expression
         order(information_date: :desc, date_updated: :desc, id: :desc)
     end
 
-    # First row (already ordered most-recent-first) whose response is meaningful, or nil.
-    def first_meaningful_row(rows, meaningful_values, index:)
-      rows.find { |row| meaningful_values.include?(row[index]) }
+    # The most-recent meaningful response for a set of rows, or nil if none is meaningful.
+    # `rows` must already be ordered most-recent-first (see #scoped_rows), and each row is a
+    # plucked tuple whose LAST element is the response code.
+    def most_recent_meaningful_response(rows, meaningful_values)
+      rows.find { |row| meaningful_values.include?(row.last) }&.last
     end
 
     # HUD NoYes code -> boolean (0 => false; any other meaningful code => true)
