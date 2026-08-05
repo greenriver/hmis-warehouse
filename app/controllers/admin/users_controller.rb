@@ -414,7 +414,6 @@ module Admin
         :email,
         :talent_lms_email,
         :phone,
-        :credentials,
         :agency_id,
         :exclude_from_directory,
         :exclude_phone_from_directory,

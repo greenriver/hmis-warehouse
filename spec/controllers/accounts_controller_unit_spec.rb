@@ -9,7 +9,7 @@
 require 'rails_helper'
 
 RSpec.describe AccountsController, type: :controller do
-  let(:user) { create(:user, first_name: 'Original', last_name: 'User', credentials: 'old_creds', email_schedule: 'daily', phone: '1234567890') }
+  let(:user) { create(:user, first_name: 'Original', last_name: 'User', email_schedule: 'daily', phone: '1234567890') }
   let(:controller_instance) { described_class.new }
   let(:flash_hash) { {} }
 
@@ -29,7 +29,6 @@ RSpec.describe AccountsController, type: :controller do
         {
           first_name: user.first_name,
           last_name: user.last_name,
-          credentials: user.credentials,
           email_schedule: user.email_schedule,
           phone: user.phone,
           agency_id: user.agency_id&.to_s,
@@ -47,7 +46,6 @@ RSpec.describe AccountsController, type: :controller do
         {
           first_name: 'Updated',
           last_name: user.last_name,
-          credentials: user.credentials,
           email_schedule: user.email_schedule,
           phone: user.phone,
           agency_id: user.agency_id&.to_s,
@@ -65,7 +63,6 @@ RSpec.describe AccountsController, type: :controller do
         {
           first_name: 'Updated',
           last_name: 'Name',
-          credentials: 'new_creds',
           email_schedule: 'immediate',
           phone: '9876543210',
           agency_id: user.agency_id&.to_s,
@@ -74,7 +71,7 @@ RSpec.describe AccountsController, type: :controller do
 
       it 'sets flash notice with multiple change messages joined by spaces' do
         controller_instance.update
-        expected_message = 'Account name was updated. User credentials were changed. Email schedule was updated. Phone number was updated.'
+        expected_message = 'Account name was updated. Email schedule was updated. Phone number was updated.'
         expect(flash_hash[:notice]).to eq(expected_message)
       end
     end
