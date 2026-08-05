@@ -22,7 +22,6 @@ class Menu::Menu
     [].tap do |menu|
       menu << reports_menu
       menu << clients_menu
-      menu << health_menu
       menu << data_menu
       menu << warehouse_admin_menu
       menu << hmis_admin_menu
@@ -125,11 +124,7 @@ class Menu::Menu
         title: Translation.translate('All Assigned Clients'),
       ),
     )
-    title = if user.can_view_aggregate_health? || user.can_view_patients_for_own_agency?
-      Translation.translate('My Agency\'s HMIS Clients')
-    else
-      Translation.translate('My Agency\'s Clients')
-    end
+    title = Translation.translate('My Agency\'s Clients')
     menu.add_child(
       Menu::Item.new(
         user: user,
@@ -138,11 +133,7 @@ class Menu::Menu
         title: title,
       ),
     )
-    title = if user.can_view_aggregate_health? || user.can_view_patients_for_own_agency?
-      Translation.translate('My HMIS Clients')
-    else
-      Translation.translate('My Clients')
-    end
+    title = Translation.translate('My Clients')
     menu.add_child(
       Menu::Item.new(
         user: user,
@@ -170,25 +161,6 @@ class Menu::Menu
       ),
     )
 
-    menu
-  end
-
-  def health_menu
-    menu = Menu::Item.new(
-      user: user,
-      title: Translation.translate('Care Hub'),
-      icon: 'icon-heart-empty',
-      id: 'care-hub',
-      always_open: true,
-    )
-    menu.add_child(
-      Menu::Item.new(
-        user: user,
-        visible: ->(user) { GrdaWarehouse::Config.get(:health_emergency_tracing).present? && user.can_edit_health_emergency_contact_tracing? },
-        path: health_he_search_path,
-        title: "#{GrdaWarehouse::Config.current_health_emergency_tracing_title} #{Translation.translate('Contact Tracing')}",
-      ),
-    )
     menu
   end
 

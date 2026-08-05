@@ -302,7 +302,6 @@ Rails.application.routes.draw do
       get :service_range
       get 'rollup/:partial', to: 'clients#rollup', as: :rollup
       get :assessment
-      get :health_assessment
       # get :image
       get :chronic_days
       patch :merge
@@ -540,20 +539,6 @@ Rails.application.routes.draw do
     end
   end
 
-  namespace :health do
-    namespace :he do
-      get :search
-      resources :cases do
-        resources :locations, except: [:index]
-        resources :contacts do
-          resources :results
-        end
-        resources :site_managers
-        resources :staff
-      end
-    end
-  end
-
   namespace :api do
     resources :projects, only: [] do
       post :index, on: :collection
@@ -737,7 +722,6 @@ Rails.application.routes.draw do
       get :colors
       get :datepicker
       get :form
-      get :health_dashboard
       get :icon_font
       get :menu
       get :modals

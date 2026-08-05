@@ -31,57 +31,6 @@ class StyleGuidesController < ApplicationController
     @form = OpenStruct.new
   end
 
-  def health_dashboard
-    @name = Faker::Name.name
-    timeline_date_range = ((Date.today - 3.months)..Date.today)
-    entries = []
-    grid_lines = []
-    timeline_date_range.each do |d|
-      entries << (rand(1..50) > 45 ? 0.5 : nil)
-      class_name = if d == d.at_beginning_of_month
-        '--start-of-month'
-      elsif d == d.at_beginning_of_week
-        '--start-of-week'
-      else
-        ''
-      end
-      grid_lines << { value: d, class: "date-tick #{class_name}" }
-    end
-    @timeline_config = {
-      data: {
-        x: 'x',
-        columns: [
-          ['x'] + timeline_date_range.map { |d| d },
-          ['Entries'] + entries,
-        ],
-        type: 'scatter',
-      },
-      grid: {
-        x: {
-          front: false,
-          show: true,
-          lines: grid_lines,
-        },
-      },
-    }.to_json
-    @appointments = (Date.today.beginning_of_week(:sunday)..Date.today + 2.weeks).map do |d|
-      details = nil
-      if rand(1..50) > 45
-        details = {
-          metadata: {
-            doctor: Faker::Name.name,
-          },
-        }
-      end
-      {
-        date: d,
-        scheduled: details.present?,
-        **(details || {}),
-      }
-    end
-    @form = OpenStruct.new
-  end
-
   def reports
     @indicator_groups = [
       {
@@ -132,7 +81,6 @@ class StyleGuidesController < ApplicationController
       colors: 'Colors',
       datepicker: 'Date Picker',
       form: 'Form Elements',
-      health_dashboard: 'Health Dashboard',
       icon_font: 'Icon Font',
       pagination: 'Pagination',
       menu: 'Menu',

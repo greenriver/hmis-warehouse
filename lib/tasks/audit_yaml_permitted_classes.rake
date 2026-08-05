@@ -57,11 +57,6 @@ namespace :audit do
       [GrdaWarehouse::HmisClient, :outreach_counselor_attributes, []],
       [GrdaWarehouse::Config, :client_details, []],
       [GrdaWarehouse::Cohort, :column_state, GrdaWarehouse::Cohorts::CohortColumn.known_cohort_columns.map(&:constantize)],
-      [Health::Careplan, :service_archive, []],
-      [Health::Careplan, :equipment_archive, []],
-      [Health::Careplan, :team_members_archive, []],
-      [Health::Careplan, :goals_archive, []],
-      [Health::Careplan, :backup_plan_archive, []],
       [HmisSupplemental::DataSet, :fields, []],
     ].freeze
 

@@ -16,7 +16,6 @@ module GrdaWarehouse::Hud
     include Memery
     include RandomScope
     include ArelHelper
-    include HealthCharts
     include ::HudConcerns::Client
     include ::HmisStructure::Client
     include ::HmisStructure::Shared
@@ -208,7 +207,6 @@ module GrdaWarehouse::Hud
     has_many :chronics_in_range, ->(range) do
       where(date: range)
     end, class_name: 'GrdaWarehouse::Chronic', inverse_of: :client
-    has_one :patient, class_name: 'Health::Patient'
 
     has_many :notes, class_name: 'GrdaWarehouse::ClientNotes::Base', inverse_of: :client
     has_many :chronic_justifications, class_name: 'GrdaWarehouse::ClientNotes::ChronicJustification'
@@ -2244,12 +2242,10 @@ module GrdaWarehouse::Hud
       scope.select(Arel.star, diff_full, diff_first, diff_last).order('diff_full DESC, diff_last DESC, diff_first DESC')
     end
 
-    def split(client_ids, hmis_receiver_id, health_receiver_id, current_user)
+    def split(client_ids, current_user)
       Rails.logger.info '=== Starting client split ==='
       Rails.logger.info "Original client: #{id}"
       Rails.logger.info "Clients to split: #{client_ids.inspect}"
-      Rails.logger.info "HMIS receiver: #{hmis_receiver_id}"
-      Rails.logger.info "Health receiver: #{health_receiver_id}"
 
       client_names = []
       to_clean = [id]
@@ -2271,14 +2267,9 @@ module GrdaWarehouse::Hud
           destination_client.save
           Rails.logger.info "Created new destination client: #{destination_client.id}"
 
-          receive_hmis = hmis_receiver_id == client_id
-          receive_health = health_receiver_id == client_id
-
           split_history = GrdaWarehouse::ClientSplitHistory.create(
             split_from: id,
             split_into: destination_client.id,
-            receive_hmis: receive_hmis,
-            receive_health: receive_health,
           )
           Rails.logger.info "Created split history record: #{split_history.inspect}"
 
@@ -2293,16 +2284,6 @@ module GrdaWarehouse::Hud
             approved_at: Time.now,
           )
           Rails.logger.info "Created warehouse client record: #{warehouse_client.inspect}"
-
-          if receive_hmis
-            Rails.logger.info "Moving HMIS items from #{id} to #{destination_client.id}"
-            destination_client.move_dependent_hmis_items(id, destination_client.id)
-          end
-
-          if receive_health
-            Rails.logger.info "Moving health items from #{id} to #{destination_client.id}"
-            destination_client.move_dependent_health_items(id, destination_client.id)
-          end
 
           # Conservative carry-forward: if the original destination was excluded from
           # external data sharing, all split-off destinations inherit that exclusion.
@@ -2333,74 +2314,62 @@ module GrdaWarehouse::Hud
       setup_notifier('PatientMerger') unless @notifier
       moved = []
       to_clean = [id]
-      begin
-        transaction do
-          # get the existing destination client for other_client
-          prev_destination_client = if other_client.destination_client
-            other_client.destination_client
-          elsif other_client.destination?
-            to_clean << other_client.id
-            other_client
-          end
-          # if it had sources then move those over to us
-          # and say who made the decision and when
-          other_client.source_clients.each do |m|
-            m.warehouse_client_source.update!(
-              destination_id: id,
-              reviewed_at: reviewed_at,
-              reviewd_by: reviewed_by.id,
-              client_match_id: client_match_id,
-            )
-            moved << m
-          end
-          # if we are a source, move us
-          if other_client.warehouse_client_source
-            other_client.warehouse_client_source.update!(
-              destination_id: id,
-              reviewed_at: reviewed_at,
-              reviewd_by: reviewed_by.id,
-              client_match_id: client_match_id,
-            )
-            moved << other_client
-          end
-          # clean up the previous destination
-          if prev_destination_client
-            # move any CAS column data
-            previous_cas_columns = prev_destination_client.attributes.slice(*self.class.cas_columns.keys.map(&:to_s))
-            current_cas_columns = attributes.slice(*self.class.cas_columns.keys.map(&:to_s))
-            current_cas_columns.merge!(previous_cas_columns) { |_k, old, new| old.presence || new }
-            update(current_cas_columns)
-            save!
-
-            prev_destination_client.force_full_service_history_rebuild
-            prev_destination_client.source_clients.reload
-            if prev_destination_client.source_clients.empty?
-              # Create a client_merge_history record so we can keep links working
-              GrdaWarehouse::ClientMergeHistory.create(merged_into: id, merged_from: prev_destination_client.id)
-              # Carry-forward: if the merged-away client was excluded from external data sharing,
-              # ensure the surviving client is also excluded.
-              ClientExternalDataSharing.new(self).set_exclusion!(value: true) if ClientExternalDataSharing.new(prev_destination_client).excluded?
-              prev_destination_client.destroy
-            end
-
-            move_dependent_items(prev_destination_client.id, id)
-            to_clean << prev_destination_client.id
-          end
-          # and invalidate our own service history
-          force_full_service_history_rebuild
-          # and invalidate any cache for these clients
-          self.class.clear_view_cache(prev_destination_client.id) if prev_destination_client.present?
+      transaction do
+        # get the existing destination client for other_client
+        prev_destination_client = if other_client.destination_client
+          other_client.destination_client
+        elsif other_client.destination?
+          to_clean << other_client.id
+          other_client
         end
-      rescue Health::MedicaidIdConflict => e
-        @notifier.ping(
-          'Non-matching Medicaid IDs on patient merge',
-          {
-            exception: e,
-          },
-        )
-        # add a split record to prevent these client being merged automatically in the future
-        GrdaWarehouse::ClientSplitHistory.create(split_from: other_client.id, split_into: id)
-        return []
+        # if it had sources then move those over to us
+        # and say who made the decision and when
+        other_client.source_clients.each do |m|
+          m.warehouse_client_source.update!(
+            destination_id: id,
+            reviewed_at: reviewed_at,
+            reviewd_by: reviewed_by.id,
+            client_match_id: client_match_id,
+          )
+          moved << m
+        end
+        # if we are a source, move us
+        if other_client.warehouse_client_source
+          other_client.warehouse_client_source.update!(
+            destination_id: id,
+            reviewed_at: reviewed_at,
+            reviewd_by: reviewed_by.id,
+            client_match_id: client_match_id,
+          )
+          moved << other_client
+        end
+        # clean up the previous destination
+        if prev_destination_client
+          # move any CAS column data
+          previous_cas_columns = prev_destination_client.attributes.slice(*self.class.cas_columns.keys.map(&:to_s))
+          current_cas_columns = attributes.slice(*self.class.cas_columns.keys.map(&:to_s))
+          current_cas_columns.merge!(previous_cas_columns) { |_k, old, new| old.presence || new }
+          update(current_cas_columns)
+          save!
+
+          prev_destination_client.force_full_service_history_rebuild
+          prev_destination_client.source_clients.reload
+          if prev_destination_client.source_clients.empty?
+            # Create a client_merge_history record so we can keep links working
+            GrdaWarehouse::ClientMergeHistory.create(merged_into: id, merged_from: prev_destination_client.id)
+            # Carry-forward: if the merged-away client was excluded from external data sharing,
+            # ensure the surviving client is also excluded.
+            ClientExternalDataSharing.new(self).set_exclusion!(value: true) if ClientExternalDataSharing.new(prev_destination_client).excluded?
+            prev_destination_client.destroy
+          end
+
+          move_dependent_items(prev_destination_client.id, id)
+          to_clean << prev_destination_client.id
+        end
+        # and invalidate our own service history
+        force_full_service_history_rebuild
+        # and invalidate any cache for these clients
+        self.class.clear_view_cache(prev_destination_client.id) if prev_destination_client.present?
       end
       self.class.clear_view_cache(id)
       self.class.clear_view_cache(other_client.id)
@@ -2423,33 +2392,8 @@ module GrdaWarehouse::Hud
       end
     end
 
-    def move_dependent_health_items(previous_id, new_id)
-      return if previous_id == new_id
-
-      # If we are merging 2 existing patients...
-      previous_patient = Health::Patient.find_by(client_id: previous_id)
-      new_patient = Health::Patient.find_by(client_id: new_id)
-      if previous_patient.present? && new_patient.present?
-        # Confirm their MedicaidIDs match
-        raise Health::MedicaidIdConflict, "Cannot merge #{previous_patient.id} and #{new_patient.id}" if previous_patient.medicaid_id != new_patient.medicaid_id
-
-        # Move the referrals
-        previous_patient.patient_referrals.update_all(patient_id: new_patient.id)
-        new_patient.cleanup_referrals
-
-        # There can only be one patient with an client_id, so clean up the old one
-        previous_patient.destroy
-      end
-
-      health_dependent_items.each do |klass|
-        klass.where(client_id: previous_id).
-          update_all(client_id: new_id)
-      end
-    end
-
     def move_dependent_items previous_id, new_id
       move_dependent_hmis_items(previous_id, new_id)
-      move_dependent_health_items(previous_id, new_id)
     end
 
     private def hmis_dependent_items
@@ -2476,15 +2420,6 @@ module GrdaWarehouse::Hud
         [GrdaWarehouse::HealthEmergency::UploadedTest, :client_id],
         [GrdaWarehouse::HealthEmergency::Vaccination, :client_id],
         [GrdaWarehouse::Anomaly, :client_id],
-      ]
-    end
-
-    private def health_dependent_items
-      [
-        Health::Patient,
-        Health::HealthFile,
-        Health::Tracing::Case,
-        Health::Vaccination,
       ]
     end
 
