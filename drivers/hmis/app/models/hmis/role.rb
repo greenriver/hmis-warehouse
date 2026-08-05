@@ -327,14 +327,14 @@ class Hmis::Role < ::ApplicationRecord
         sub_category: 'Organizations',
       },
       can_view_clients: {
-        description: 'Access to view clients at assigned projects. Clients marked as restricted require the additional "View restricted clients" permission.',
+        description: 'Access to view clients at assigned projects. Restricted clients still appear in project enrollments and households, but are omitted from client search and have name/DOB/SSN masked unless the user also has "View restricted clients".',
         administrative: false,
         access: [:viewable],
         category: 'Client Access',
         sub_category: 'Access',
       },
       can_view_restricted_clients: {
-        description: 'Access to view clients marked as restricted, at assigned projects where the client is or was enrolled.',
+        description: 'Access to search for restricted clients that have enrollments at assigned projects, and view their name/DOB/SSN (if permissions otherwise allow). Does not change project enrollment or household visibility.',
         administrative: false,
         access: [:viewable],
         requirements: [:can_view_clients],
@@ -342,7 +342,7 @@ class Hmis::Role < ::ApplicationRecord
         sub_category: 'Access',
       },
       can_mark_clients_as_restricted: {
-        description: 'Ability to mark or unmark clients as restricted at assigned projects.',
+        description: 'Ability to mark or unmark clients as restricted.',
         administrative: false,
         access: [:editable],
         requirements: [:can_view_restricted_clients],

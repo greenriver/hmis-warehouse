@@ -102,6 +102,21 @@ class Hmis::AuthPolicies::UserContext
     end
   end
 
+  # Projects where the user can unlock restricted-client PII / search.
+  # Memoized because it is constant for the request.
+  memoize def unlocked_restricted_client_project_ids
+    Hmis::Hud::Project.with_access(user, :can_view_clients, :can_view_restricted_clients, mode: :all).pluck(:id).to_set.freeze
+  end
+
+  # Whether the client has an enrollment at a project that unlocks restricted PII for this user.
+  # Unenrolled clients never unlock — do not use global client_permissions fallback here.
+  def client_enrolled_at_unlocked_restricted_project?(client_id)
+    project_ids = client_project_loader.get(client_id)
+    return false if project_ids.empty?
+
+    project_ids.intersect?(unlocked_restricted_client_project_ids)
+  end
+
   def preload_referral_dependencies(referral_ids)
     ce_referral_project_loader.preload(referral_ids)
     ce_referral_source_project_loader.preload(referral_ids)

@@ -12,6 +12,10 @@ class Hmis::AuthPolicies::HmisClientPolicy < Hmis::AuthPolicies::ResourcePolicy
       client_permissions.include?(:can_view_clients)
     end
 
+    def can_mark_restricted?
+      client_permissions.include?(:can_mark_clients_as_restricted)
+    end
+
     def can_edit?
       client_permissions.include?(:can_edit_clients)
     end
@@ -21,7 +25,24 @@ class Hmis::AuthPolicies::HmisClientPolicy < Hmis::AuthPolicies::ResourcePolicy
     end
 
     def can_view_name?
-      client_permissions.include?(:can_view_client_name)
+      client_permissions.include?(:can_view_client_name) && restricted_pii_unlocked?
+    end
+
+    def can_view_dob?
+      client_permissions.include?(:can_view_dob) && restricted_pii_unlocked?
+    end
+
+    def can_view_full_ssn?
+      client_permissions.include?(:can_view_full_ssn) && restricted_pii_unlocked?
+    end
+
+    def can_view_partial_ssn?
+      client_permissions.include?(:can_view_partial_ssn) && restricted_pii_unlocked?
+    end
+
+    # Age is normally visible without can_view_dob; restricted clients still lock it until unlocked.
+    def can_view_age?
+      restricted_pii_unlocked?
     end
 
     def can_manage_alerts?
@@ -67,6 +88,14 @@ class Hmis::AuthPolicies::HmisClientPolicy < Hmis::AuthPolicies::ResourcePolicy
     # Get permissions for the specific client instance, based on the projects they are enrolled in
     memoize def client_permissions
       context.client_permissions(resource.id)
+    end
+
+    # Restricted clients keep name/DOB/SSN/age locked unless the user has overlapping enrollment
+    # access with can_view_restricted_clients. Unenrolled restricted clients stay locked.
+    def restricted_pii_unlocked?
+      return true unless resource.restricted?
+
+      context.client_enrolled_at_unlocked_restricted_project?(resource.id)
     end
   end
 

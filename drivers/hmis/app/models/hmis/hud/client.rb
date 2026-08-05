@@ -149,8 +149,25 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     Arel.sql(sql)
   end
 
+  # Clients enrolled at any of the given projects (includes WIP and exited enrollments).
+  scope :with_enrollment_at_projects, ->(project_ids) do
+    project_ids = Array.wrap(project_ids)
+    return none if project_ids.empty?
+
+    joins(:enrollments).where(e_t[:project_pk].in(project_ids)).distinct
+  end
+
+  # Like visible_to, but omits restricted clients the user cannot unlock.
+  # Unlock requires can_view_clients + can_view_restricted_clients at an overlapping enrollment project.
+  # Unenrolled restricted clients never unlock and stay omitted from search.
+  # Direct resolve / enrollment / household listing use visible_to and are not filtered here.
+  # See docs/features/hmis/hmis-restricted-records.md
   scope :searchable_to, ->(user) do
-    visible_to(user)
+    unlocked_project_ids = Hmis::Hud::Project.with_access(user, :can_view_clients, :can_view_restricted_clients, mode: :all).pluck(:id)
+    unlocked_client_ids = with_enrollment_at_projects(unlocked_project_ids).select(c_t[:id])
+    visible_to(user).where.not(
+      id: Hmis::RestrictedRecord.restricted_client_ids.where.not(restrictable_id: unlocked_client_ids),
+    )
   end
 
   scope :matching_search_term, ->(text_search) do
