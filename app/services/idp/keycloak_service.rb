@@ -241,12 +241,36 @@ module Idp
     end
 
     # Deep-link to the Keycloak Account Console for this realm, where end users
-    # manage their own password and 2FA. Built from the browser-reachable
-    # api_url, consistent with logout_url.
+    # manage their own password and 2FA.
     def account_console_url
-      return nil unless api_url.present?
+      return nil unless browser_url.present?
 
-      "#{api_url}/realms/#{realm}/account"
+      "#{browser_url}/realms/#{realm}/account"
+    end
+
+    # Keycloak Application-Initiated Action: sends the browser through the realm's OIDC
+    # authorize endpoint with kc_action set, so the user completes exactly one action
+    # (password change, TOTP setup, ...) against their existing Keycloak SSO session and
+    # is redirected back to redirect_uri. Only usable for the current user — it runs
+    # against whoever's browser session it is, not an arbitrary user_id.
+    #
+    # The redirect_uri must be registered under this client's Valid Redirect URIs in
+    # Keycloak, and the client must have the standard (authorization code) flow enabled.
+    #
+    # redirect_uri only governs the return after the *form* is submitted. UPDATE_EMAIL has a second
+    # leg — the confirmation link mailed to the new address — which returns via the client's Base URL
+    # instead, so see #account_client_id too.
+    def account_action_url(action:, redirect_uri:)
+      return nil unless browser_url.present?
+
+      params = {
+        client_id: account_client_id,
+        redirect_uri: redirect_uri,
+        response_type: 'code',
+        scope: 'openid',
+        kc_action: action,
+      }
+      "#{browser_url}/realms/#{realm}/protocol/openid-connect/auth?#{params.to_query}"
     end
 
     # Ping the Admin API to verify credentials and connectivity, using the same
