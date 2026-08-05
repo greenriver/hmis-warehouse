@@ -118,7 +118,6 @@ class SystemStatusController < ActionController::Base
       cache: cache_message,
       user_count_positive: User.all.any?,
       data_source_count_positive: GrdaWarehouse::DataSource.any?,
-      patient_count_positive: Health::Patient.any?,
       registered_deployment_id: Rails.cache.read('registered-deployment-id'),
       environment_deployment_id: ENV['DEPLOYMENT_ID'],
       last_migration: {

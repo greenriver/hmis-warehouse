@@ -107,7 +107,6 @@ module Admin
         return
       end
 
-      existing_health_roles = @user.health_roles.to_a
       email_before = @user.email
 
       begin
@@ -143,11 +142,7 @@ module Admin
           # if we have a user to copy user groups from, add them
           copy_user_groups if user_using_or_changing_to_acls?
           # TODO: START_ACL remove when ACL transition complete
-          # Restore any health roles we previously had
-          if ! user_using_or_changing_to_acls?
-            @user.legacy_roles = (@user.legacy_roles + existing_health_roles).uniq
-            @user.set_viewables viewable_params
-          end
+          @user.set_viewables viewable_params unless user_using_or_changing_to_acls?
           # END_ACL
         end
       rescue Exception

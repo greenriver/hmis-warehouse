@@ -285,8 +285,6 @@ module Importing
         @notifier.ping('Set VI-SPDAT Pregnancies from ETO TouchPoints')
         GrdaWarehouse::HmisForm.set_part_of_a_family
         @notifier.ping('Updated Family Status based on ETO TouchPoints')
-        GrdaWarehouse::HmisForm.set_missing_housing_status
-        @notifier.ping('Set Housing Status based on ETO TouchPoints')
         GrdaWarehouse::HmisForm.set_missing_physical_disabilities
         @notifier.ping('Set Physical Disabilities based on ETO TouchPoints')
       end

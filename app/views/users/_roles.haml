@@ -11,8 +11,7 @@
     %h3.c-columns__column-title Permissions Granted
   .c-columns__column-content.j-column-content
     %ul.c-columns__column-list
-      - # show non-health permissions
-      - user_permissions = user.load_effective_permissions.select{|k,v| v && Role.permissions(exclude_health: true).include?(k)}
+      - user_permissions = user.load_effective_permissions.select{|k,v| v && Role.permissions.include?(k)}
       - if user_permissions.any?
         - user_permissions.each do |permission|
           %li.c-columns__column-list-item--read-only

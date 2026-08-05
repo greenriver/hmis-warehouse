@@ -126,12 +126,6 @@ class ClientAccessControl::ClientsController < ApplicationController
         :health_emergency_quarantines,
       ]
     end
-    if healthcare_available?
-      preloads += [
-        :patient,
-      ]
-    end
-
     @clients = @clients.
       destination.
       preload(preloads)
@@ -234,10 +228,6 @@ class ClientAccessControl::ClientsController < ApplicationController
     else
       GrdaWarehouse::HmisForm.window_with_details
     end
-  end
-
-  private def health_assessment_scope
-    GrdaWarehouse::HmisForm.health
   end
 
   private def log_client
