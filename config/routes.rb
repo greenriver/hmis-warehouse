@@ -803,11 +803,10 @@ Rails.application.routes.draw do
       resources :users, except: [:show], controller: 'idp/users' do
         resource :audit, only: :show
         resource :edit_history, only: :show
-        patch :reactivate, on: :member
         collection do
-          # Search is auth-agnostic, so both arms use the shared Admin::UsersController
+          # Storing a query is auth-agnostic, so both arms share Admin::Users::SearchQueriesController.
           resources :searches, only: [:create], controller: 'users/search_queries', as: :user_search_queries
-          get '/searches/:id', to: 'users#search', as: 'user_search_query'
+          get '/searches/:id', to: 'idp/users#search', as: 'user_search_query'
           get :load_select_options
           post :stop_impersonating
         end
@@ -823,7 +822,10 @@ Rails.application.routes.draw do
         patch :reactivate, on: :member
         collection do
           resources :searches, only: [:create], controller: 'inactive_users/search_queries', as: :inactive_user_search_queries
-          get '/searches/:id', to: 'inactive_users#search', as: 'inactive_user_search_query'
+          # Search comes from the shared Admin::Concerns::InactiveUserManagementBehavior and ends in
+          # `render :index`, which resolves against whichever controller handled the request. So this route
+          # names the arm's controller: the `controller:` option above does not reach a `to:` string.
+          get '/searches/:id', to: 'idp/inactive_users#search', as: 'inactive_user_search_query'
         end
       end
     else
@@ -835,7 +837,6 @@ Rails.application.routes.draw do
         resource :audit, only: :show
         resource :edit_history, only: :show
         resource :locations, only: :show
-        patch :reactivate, on: :member
         collection do
           # User search queries
           resources :searches, only: [:create], controller: 'users/search_queries', as: :user_search_queries

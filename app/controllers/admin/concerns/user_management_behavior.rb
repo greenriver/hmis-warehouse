@@ -131,14 +131,16 @@ module Admin
               @user.set_viewables viewable_params
             end
             # END_ACL
+
+            # possible external calls to IDP within a transaction. Acceptable compromise to ensure
+            # active record validations run and keycloak and local records stay in sync
+            after_profile_update
           end
-        rescue Exception
+        rescue ActiveRecord::ActiveRecordError
           flash[:error] = 'Please review the form problems below'
           render :edit
           return
         end
-
-        after_profile_update
 
         # Queue recomputation of external report access
         @user.delay(queue: ENV.fetch('DJ_SHORT_QUEUE_NAME', :short_running)).populate_external_reporting_permissions!
@@ -345,8 +347,10 @@ module Admin
         @user.paper_trail_event = 'deactivate'
         # paper_trail.update_column() allows us to update the user even if the record is invalid, while
         # still recording a version (plain update_column bypasses PaperTrail's callbacks entirely)
-        @user.paper_trail.update_column(:active, false)
-        after_deactivate
+        @user.transaction do
+          @user.paper_trail.update_column(:active, false)
+          after_deactivate
+        end
         redirect_to({ action: :index }, notice: "User #{@user.name} deactivated")
       end
 

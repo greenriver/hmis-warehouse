@@ -8,16 +8,12 @@
 
 require 'rails_helper'
 
-# Exercises the partial's countdown seed on both arms by stubbing AuthMethod.jwt?, so it runs under
-# either CI boot with no `if: AuthMethod.jwt?` guard. The url helpers it renders (session_keepalive_path,
-# destroy_user_session_path) exist on both arms, so the stubbed arm never mismatches routing.
 RSpec.describe 'application/_inactive_session_modal', type: :view do
   let(:user) { create(:user) }
 
   before do
     allow(Translation).to receive(:translate) { |key| key }
-    # current_user / user_session_expires_at are controller helper_methods absent on the bare view
-    # double, so partial-double verification must be relaxed to stub them.
+    # current_user is a controller helper_method, absent from the view verifying double, so stubbing it needs verification off.
     without_partial_double_verification do
       allow(view).to receive(:current_user).and_return(user)
     end
