@@ -40,12 +40,12 @@ module Hmis::Ce::Match::Expression
     def call(clients, field)
       return resolve_total_monthly_income(clients) if field.key == PsdeFieldRegistry::TOTAL_MONTHLY_INCOME.key
 
-      all_enrollment = field.key.end_with?(PsdeFieldRegistry::ALL_ENROLLMENT_SUFFIX)
-      base_key = field.key.delete_suffix(PsdeFieldRegistry::ALL_ENROLLMENT_SUFFIX)
+      values_in_window = field.key.end_with?(PsdeFieldRegistry::VALUES_IN_WINDOW_SUFFIX)
+      base_key = field.key.delete_suffix(PsdeFieldRegistry::VALUES_IN_WINDOW_SUFFIX)
       source = boolean_field_source(base_key)
 
-      if all_enrollment
-        resolve_all_enrollment_boolean_values(clients, **source)
+      if values_in_window
+        resolve_boolean_values_in_window(clients, **source)
       else
         resolve_latest_boolean_response(clients, **source)
       end
@@ -115,29 +115,26 @@ module Hmis::Ce::Match::Expression
       result = client_ids.index_with { nil }
       rows = scoped_rows(client_ids, scope).pluck(wc_t[:destination_id], column)
       rows.group_by(&:first).each do |client_id, client_rows|
-        response = most_recent_meaningful_response(client_rows, meaningful_values)
+        response = client_rows.find { |row| meaningful_values.include?(row.last) }&.last
         result[client_id] = response_to_boolean(response) unless response.nil?
       end
       result
     end
 
-    # For each in-scope enrollment, picks that enrollment's most-recent meaningful row and converts it
-    # to a boolean. Returns an array (one entry per enrollment that had a meaningful value) per client.
+    # Collects every meaningful response recorded within the configured eligibility scope
+    # (lookback window + optional project group) and converts each to a boolean.
     # Clients with no meaningful values get []. Shape: Hash{Integer => Array<Boolean>}.
-    def resolve_all_enrollment_boolean_values(clients, scope:, column:, meaningful_values:)
+    def resolve_boolean_values_in_window(clients, scope:, column:, meaningful_values:)
       client_ids = extract_client_ids(clients)
       return {} if client_ids.empty?
 
       # Ensure all destination clients are in the hash. Clients with no meaningful rows will have an empty array.
       result = client_ids.index_with { [] }
-      rows = scoped_rows(client_ids, scope).pluck(wc_t[:destination_id], e_t[:id], column)
-      rows.group_by(&:first).each do |client_id, client_rows| # group by client_id
-        # Group each client's rows by enrollment so we can take each enrollment's most-recent
-        # meaningful response. Group by enrollment_id (the second element of the tuple).
-        responses = client_rows.group_by(&:second).filter_map do |_enrollment_id, enrollment_rows|
-          most_recent_meaningful_response(enrollment_rows, meaningful_values)
-        end
-        result[client_id] = responses.map { |response| response_to_boolean(response) }
+      rows = scoped_rows(client_ids, scope).pluck(wc_t[:destination_id], column)
+      rows.group_by(&:first).each do |client_id, client_rows|
+        result[client_id] = client_rows.map(&:last).
+          select { |code| meaningful_values.include?(code) }.
+          map { |code| response_to_boolean(code) }
       end
       result
     end
@@ -150,13 +147,6 @@ module Hmis::Ce::Match::Expression
         joins(:enrollment).
         merge(eligibility_scope.call(client_ids)).
         order(information_date: :desc, date_updated: :desc, id: :desc)
-    end
-
-    # The most-recent meaningful response for a set of rows, or nil if none is meaningful.
-    # `rows` must already be ordered most-recent-first (see #scoped_rows), and each row is a
-    # plucked tuple whose LAST element is the response code.
-    def most_recent_meaningful_response(rows, meaningful_values)
-      rows.find { |row| meaningful_values.include?(row.last) }&.last
     end
 
     # HUD NoYes code -> boolean (0 => false; any other meaningful code => true)

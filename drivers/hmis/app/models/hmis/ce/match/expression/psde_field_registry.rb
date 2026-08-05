@@ -10,7 +10,7 @@ module Hmis::Ce::Match::Expression
   # Static registry of HUD table fields exposed as flat psde.* CE match expression keys
   # (e.g. psde.total_monthly_income).
   class PsdeFieldRegistry
-    ALL_ENROLLMENT_SUFFIX = '_all_enrollment_values'
+    VALUES_IN_WINDOW_SUFFIX = '_values_in_window'
 
     def self.latest_boolean_field(key:, label:, hud_description:)
       PsdeField.new(
@@ -23,15 +23,14 @@ module Hmis::Ce::Match::Expression
       )
     end
 
-    def self.all_enrollment_boolean_field(key:, label:, hud_description:)
+    def self.values_in_window_boolean_field(key:, label:, hud_description:)
       PsdeField.new(
-        key: "#{key}#{ALL_ENROLLMENT_SUFFIX}",
+        key: "#{key}#{VALUES_IN_WINDOW_SUFFIX}",
         value_type: :logical,
         multiple: true,
-        label: "#{label} (all enrollment values)",
-        description: "Array of per-enrollment responses for #{hud_description} within the configured eligibility scope. " \
-                     "For each in-scope enrollment, takes that enrollment's most recent meaningful value (skipping 8/9/99/nil). " \
-                     'Use with INCLUDES(..., TRUE) to match clients who were ever Yes in the window.',
+        label: "#{label} (all values in window)",
+        description: "All meaningful responses for #{hud_description} recorded within the configured eligibility scope " \
+                     '(skipping 8/9/99/nil). Use with INCLUDES(..., TRUE) to match clients who were ever Yes within the lookback window.',
       )
     end
 
@@ -49,7 +48,7 @@ module Hmis::Ce::Match::Expression
       label: 'Mental Health Disorder',
       hud_description: 'HUD Mental Health Disorder (HUD Disabilities, DisabilityType 9)',
     )
-    MENTAL_HEALTH_DISORDER_ALL_ENROLLMENT_VALUES = all_enrollment_boolean_field(
+    MENTAL_HEALTH_DISORDER_VALUES_IN_WINDOW = values_in_window_boolean_field(
       key: 'mental_health_disorder',
       label: 'Mental Health Disorder',
       hud_description: 'HUD Mental Health Disorder (HUD Disabilities, DisabilityType 9)',
@@ -60,7 +59,7 @@ module Hmis::Ce::Match::Expression
       label: 'Substance Use Disorder',
       hud_description: 'HUD Substance Use Disorder (HUD Disabilities, DisabilityType 10)',
     )
-    SUBSTANCE_USE_DISORDER_ALL_ENROLLMENT_VALUES = all_enrollment_boolean_field(
+    SUBSTANCE_USE_DISORDER_VALUES_IN_WINDOW = values_in_window_boolean_field(
       key: 'substance_use_disorder',
       label: 'Substance Use Disorder',
       hud_description: 'HUD Substance Use Disorder (HUD Disabilities, DisabilityType 10)',
@@ -71,7 +70,7 @@ module Hmis::Ce::Match::Expression
       label: 'Physical Disability',
       hud_description: 'HUD Physical Disability (HUD Disabilities, DisabilityType 5)',
     )
-    PHYSICAL_DISABILITY_ALL_ENROLLMENT_VALUES = all_enrollment_boolean_field(
+    PHYSICAL_DISABILITY_VALUES_IN_WINDOW = values_in_window_boolean_field(
       key: 'physical_disability',
       label: 'Physical Disability',
       hud_description: 'HUD Physical Disability (HUD Disabilities, DisabilityType 5)',
@@ -82,7 +81,7 @@ module Hmis::Ce::Match::Expression
       label: 'Developmental Disability',
       hud_description: 'HUD Developmental Disability (HUD Disabilities, DisabilityType 6)',
     )
-    DEVELOPMENTAL_DISABILITY_ALL_ENROLLMENT_VALUES = all_enrollment_boolean_field(
+    DEVELOPMENTAL_DISABILITY_VALUES_IN_WINDOW = values_in_window_boolean_field(
       key: 'developmental_disability',
       label: 'Developmental Disability',
       hud_description: 'HUD Developmental Disability (HUD Disabilities, DisabilityType 6)',
@@ -93,7 +92,7 @@ module Hmis::Ce::Match::Expression
       label: 'Chronic Health Condition',
       hud_description: 'HUD Chronic Health Condition (HUD Disabilities, DisabilityType 7)',
     )
-    CHRONIC_HEALTH_CONDITION_ALL_ENROLLMENT_VALUES = all_enrollment_boolean_field(
+    CHRONIC_HEALTH_CONDITION_VALUES_IN_WINDOW = values_in_window_boolean_field(
       key: 'chronic_health_condition',
       label: 'Chronic Health Condition',
       hud_description: 'HUD Chronic Health Condition (HUD Disabilities, DisabilityType 7)',
@@ -104,7 +103,7 @@ module Hmis::Ce::Match::Expression
       label: 'HIV/AIDS',
       hud_description: 'HUD HIV/AIDS (HUD Disabilities, DisabilityType 8)',
     )
-    HIV_AIDS_ALL_ENROLLMENT_VALUES = all_enrollment_boolean_field(
+    HIV_AIDS_VALUES_IN_WINDOW = values_in_window_boolean_field(
       key: 'hiv_aids',
       label: 'HIV/AIDS',
       hud_description: 'HUD HIV/AIDS (HUD Disabilities, DisabilityType 8)',
@@ -115,7 +114,7 @@ module Hmis::Ce::Match::Expression
       label: 'DV Survivor',
       hud_description: 'HUD Domestic Violence Survivor (HUD HealthAndDV)',
     )
-    DOMESTIC_VIOLENCE_SURVIVOR_ALL_ENROLLMENT_VALUES = all_enrollment_boolean_field(
+    DOMESTIC_VIOLENCE_SURVIVOR_VALUES_IN_WINDOW = values_in_window_boolean_field(
       key: 'domestic_violence_survivor',
       label: 'DV Survivor',
       hud_description: 'HUD Domestic Violence Survivor (HUD HealthAndDV)',
@@ -124,19 +123,19 @@ module Hmis::Ce::Match::Expression
     ALL = [
       TOTAL_MONTHLY_INCOME,
       MENTAL_HEALTH_DISORDER,
-      MENTAL_HEALTH_DISORDER_ALL_ENROLLMENT_VALUES,
+      MENTAL_HEALTH_DISORDER_VALUES_IN_WINDOW,
       SUBSTANCE_USE_DISORDER,
-      SUBSTANCE_USE_DISORDER_ALL_ENROLLMENT_VALUES,
+      SUBSTANCE_USE_DISORDER_VALUES_IN_WINDOW,
       PHYSICAL_DISABILITY,
-      PHYSICAL_DISABILITY_ALL_ENROLLMENT_VALUES,
+      PHYSICAL_DISABILITY_VALUES_IN_WINDOW,
       DEVELOPMENTAL_DISABILITY,
-      DEVELOPMENTAL_DISABILITY_ALL_ENROLLMENT_VALUES,
+      DEVELOPMENTAL_DISABILITY_VALUES_IN_WINDOW,
       CHRONIC_HEALTH_CONDITION,
-      CHRONIC_HEALTH_CONDITION_ALL_ENROLLMENT_VALUES,
+      CHRONIC_HEALTH_CONDITION_VALUES_IN_WINDOW,
       HIV_AIDS,
-      HIV_AIDS_ALL_ENROLLMENT_VALUES,
+      HIV_AIDS_VALUES_IN_WINDOW,
       DOMESTIC_VIOLENCE_SURVIVOR,
-      DOMESTIC_VIOLENCE_SURVIVOR_ALL_ENROLLMENT_VALUES,
+      DOMESTIC_VIOLENCE_SURVIVOR_VALUES_IN_WINDOW,
     ].freeze
 
     def self.[](key)

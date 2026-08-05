@@ -609,8 +609,8 @@ RSpec.describe Hmis::Ce::Match::Expression::PsdeValueResolver, type: :model do
     end
   end
 
-  describe 'hiv_aids_all_enrollment_values resolution' do
-    let(:field) { Hmis::Ce::Match::Expression::PsdeFieldRegistry::HIV_AIDS_ALL_ENROLLMENT_VALUES }
+  describe 'hiv_aids_values_in_window resolution' do
+    let(:field) { Hmis::Ce::Match::Expression::PsdeFieldRegistry::HIV_AIDS_VALUES_IN_WINDOW }
     let(:latest_field) { Hmis::Ce::Match::Expression::PsdeFieldRegistry::HIV_AIDS }
     let(:disability_type) { 8 }
 
@@ -628,7 +628,7 @@ RSpec.describe Hmis::Ce::Match::Expression::PsdeValueResolver, type: :model do
       expect(resolver.call(clients, field)).to eq({ destination_client.id => [] })
     end
 
-    it 'uses the latest meaningful value within a single enrollment (Yes then No => false)' do
+    it 'keeps every meaningful value within a single enrollment (Yes then No => both kept)' do
       create_disability(
         disability_type: disability_type,
         disability_response: 1,
@@ -642,7 +642,8 @@ RSpec.describe Hmis::Ce::Match::Expression::PsdeValueResolver, type: :model do
         date_updated: current_date - 1.week,
       )
 
-      expect(resolver.call(clients, field)).to eq({ destination_client.id => [false] })
+      expect(resolver.call(clients, field)[destination_client.id]).to contain_exactly(true, false)
+      expect(resolver.call(clients, latest_field)).to eq({ destination_client.id => false }) # `latest` field still returns false
     end
 
     it 'includes true when one enrollment is Yes and another is No, even if latest across all is No' do
@@ -742,8 +743,8 @@ RSpec.describe Hmis::Ce::Match::Expression::PsdeValueResolver, type: :model do
     end
   end
 
-  describe 'substance_use_disorder_all_enrollment_values resolution' do
-    let(:field) { Hmis::Ce::Match::Expression::PsdeFieldRegistry::SUBSTANCE_USE_DISORDER_ALL_ENROLLMENT_VALUES }
+  describe 'substance_use_disorder_values_in_window resolution' do
+    let(:field) { Hmis::Ce::Match::Expression::PsdeFieldRegistry::SUBSTANCE_USE_DISORDER_VALUES_IN_WINDOW }
 
     def create_disability(**attrs)
       defaults = {
@@ -766,8 +767,8 @@ RSpec.describe Hmis::Ce::Match::Expression::PsdeValueResolver, type: :model do
     end
   end
 
-  describe 'domestic_violence_survivor_all_enrollment_values resolution' do
-    let(:field) { Hmis::Ce::Match::Expression::PsdeFieldRegistry::DOMESTIC_VIOLENCE_SURVIVOR_ALL_ENROLLMENT_VALUES }
+  describe 'domestic_violence_survivor_values_in_window resolution' do
+    let(:field) { Hmis::Ce::Match::Expression::PsdeFieldRegistry::DOMESTIC_VIOLENCE_SURVIVOR_VALUES_IN_WINDOW }
 
     def create_health_and_dv(**attrs)
       defaults = {
