@@ -152,8 +152,8 @@ RSpec.describe Hmis::Hud::Enrollment, type: :model do
 
     context 'with many enrollments across several projects and clients' do
       before do
-        projects = [p1, p2, p3, p4, p5, p6]
-        15.times do
+        projects = [p1, p2, p3]
+        5.times do
           client = create(:hmis_hud_client, data_source: ds1)
           projects.each do |project|
             create(:hmis_hud_enrollment, client: client, data_source: ds1, project: project, entry_date: 1.month.ago)

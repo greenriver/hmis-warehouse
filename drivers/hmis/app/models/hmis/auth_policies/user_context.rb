@@ -160,7 +160,7 @@ class Hmis::AuthPolicies::UserContext
 
   # {project_id => [access_group_id, ...]} for every project in the current data source that the user
   # reaches through an AccessControl, including indirectly via organization, data source, or project group.
-  memoize def access_group_ids_by_project
+  def access_group_ids_by_project
     project_access_group_loader.access_group_ids_by_project(
       user.access_groups.pluck(:id),
       data_source_id: @data_source_id,

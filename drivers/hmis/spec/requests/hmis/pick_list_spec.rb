@@ -91,6 +91,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       let!(:access_control_o2) { create_access_control(hmis_user, o2, with_permission: HmisPermissionSets::ENROLLMENT_EDITING) }
 
       it 'returns projects where user can enroll' do
+        # p2 is viewable, so it is excluded from the pick list for lacking can_enroll_clients
+        expect(Hmis::Hud::Project.viewable_by(hmis_user)).to contain_exactly(p1, p2)
+
         response, result = post_graphql(pick_list_type: 'ENROLLABLE_PROJECTS') { query }
         expect(response.status).to eq 200
         expect(result.dig('data', 'pickList')).to contain_exactly(include('code' => p1.id.to_s))
