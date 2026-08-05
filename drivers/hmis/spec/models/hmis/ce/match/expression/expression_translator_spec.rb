@@ -105,6 +105,44 @@ RSpec.describe Hmis::Ce::Match::Expression::ExpressionTranslator do
       expect(structured.clauses.first).to have_attributes(field: 'current_age', comparator: :IS_NOT_NULL, value: nil)
     end
 
+    it 'parses a numeric PSDE comparison with PSDE field metadata' do
+      structured = described_class.to_structured('`psde.total_monthly_income` >= 750')
+
+      # The catalog metadata identifies the source and item type; the translator
+      # uses it to hydrate the frontend-facing structured clause.
+      expect(structured.clauses.first).to have_attributes(
+        field: 'psde.total_monthly_income',
+        comparator: :GTE,
+        value: 750,
+        field_source: :PSDE,
+        form_definition_identifier: nil,
+      )
+    end
+
+    it 'parses a logical PSDE comparison' do
+      structured = described_class.to_structured('`psde.mental_health_disorder` = TRUE')
+
+      expect(structured.clauses.first).to have_attributes(
+        field: 'psde.mental_health_disorder',
+        comparator: :EQ,
+        value: true,
+        field_source: :PSDE,
+        form_definition_identifier: nil,
+      )
+    end
+
+    it 'parses a PSDE null check' do
+      structured = described_class.to_structured('`psde.physical_disability` = NULL')
+
+      expect(structured.clauses.first).to have_attributes(
+        field: 'psde.physical_disability',
+        comparator: :IS_NULL,
+        value: nil,
+        field_source: :PSDE,
+        form_definition_identifier: nil,
+      )
+    end
+
     it 'coerces enum-backed Dentaku literals to frontend enum keys' do
       structured = described_class.to_structured('veteran_status = 1')
 
@@ -228,6 +266,15 @@ RSpec.describe Hmis::Ce::Match::Expression::ExpressionTranslator do
       structured = described_class.to_structured(original)
       round = described_class.to_structured(described_class.from_structured(structured))
       expect(round).to eq(structured)
+    end
+
+    it 'preserves the required backtick quoting for a PSDE field' do
+      original = '`psde.total_monthly_income` >= 750'
+      structured = described_class.to_structured(original)
+
+      # Dentaku requires dotted expression identifiers to remain backtick-quoted
+      # when the structured clause is serialized back to a stored expression.
+      expect(described_class.from_structured(structured)).to eq(original)
     end
   end
 
