@@ -289,6 +289,238 @@ RSpec.describe 'HMIS JWT wiring', type: :request, if: AuthMethod.jwt? do
       expect(controller.current_hmis_user).to eq(admin_user)
       expect(controller.impersonating?).to eq(false)
     end
+
+    # The session /oauth2/sign_out never reaches, since Dex doesn't propagate logout to Keycloak.
+    # Mirrors spec/requests/idp/warehouse_jwt_wiring_spec.rb's set, JSON instead of HTML.
+    describe 'ending the IdP session' do
+      let(:user) { create(:hmis_user) }
+      # The token's connector is 'test' (see JwtAuthenticationHelper), which resolves to a
+      # NullService, so a service has to be stubbed in to get past the predicate.
+      let(:idp_service) do
+        instance_double(
+          Idp::KeycloakService,
+          supports_session_logout?: true,
+          logout_user_sessions: true,
+        )
+      end
+
+      before do
+        allow(Idp::ServiceFactory).to receive(:for_connector).and_call_original
+        allow(Idp::ServiceFactory).to receive(:for_connector).with('test').and_return(idp_service)
+      end
+
+      def start_session(as: user)
+        sign_in(as)
+        get hmis_session_keepalive_path, headers: headers
+        expect(response).to have_http_status(:ok)
+      end
+
+      def expect_signed_out_normally
+        expect(response).to have_http_status(:ok)
+        expect(JSON.parse(response.body)['redirect_url']).to start_with('/oauth2/sign_out?rd=')
+      end
+
+      # The body is the whole contract with the SPA — throwMaybeHmisError reads the type, and no
+      # redirect_url, since the SPA must not be handed a sign-out URL for a sign-out that didn't
+      # happen.
+      def expect_refused_sign_out
+        expect(response).to have_http_status(:internal_server_error)
+        expect(JSON.parse(response.body)).to eq('error' => { 'type' => 'sign_out_failed' })
+        # Real session state, written by the app during start_session. reset_session clears it, and
+        # fail-closed means reset_session never ran.
+        expect(session[Idp::JwtAuthentication::SESSION_PRINCIPAL_KEY]).to eq(user.id)
+      end
+
+      it 'ends the token holder\'s IdP sessions, then resets and renders the sign-out URL' do
+        start_session
+
+        delete destroy_hmis_user_session_path, headers: headers
+
+        expect(idp_service).to have_received(:logout_user_sessions).with(user_id: jwt_connector_user_id(user))
+        expect_signed_out_normally
+      end
+
+      # Fail closed, deliberately: better than reporting a sign-out that didn't happen.
+      it 'aborts sign-out and leaves the session intact when the IdP call raises' do
+        start_session
+        allow(idp_service).to receive(:logout_user_sessions).
+          and_raise(Idp::ServiceError.new('boom', idp_name: 'Keycloak', operation: :logout_user_sessions))
+        expect(Sentry).to receive(:capture_exception_with_info)
+
+        delete destroy_hmis_user_session_path, headers: headers
+
+        expect_refused_sign_out
+      end
+
+      # A hung IdP reaches the controller as the socket timeout the service didn't convert, so this
+      # covers an exception that isn't an Idp::ServiceError taking the same fail-closed path.
+      it 'aborts sign-out when the IdP call times out' do
+        start_session
+        allow(idp_service).to receive(:logout_user_sessions).and_raise(Net::ReadTimeout)
+        allow(Sentry).to receive(:capture_exception_with_info)
+
+        delete destroy_hmis_user_session_path, headers: headers
+
+        expect_refused_sign_out
+        # One report, not one per rescue on the way out.
+        expect(Sentry).to have_received(:capture_exception_with_info).once
+      end
+
+      # Can't tell whether a session is live, so this fails closed too, with its own alert.
+      it 'aborts sign-out when the connector\'s service can\'t be resolved' do
+        start_session
+        allow(Idp::ServiceFactory).to receive(:for_connector).with('test').and_raise(StandardError.new('bad config'))
+        expect(Sentry).to receive(:capture_exception_with_info).
+          with(anything, /Couldn't resolve the IDP service for connector test/)
+
+        delete destroy_hmis_user_session_path, headers: headers
+
+        expect_refused_sign_out
+      end
+
+      it 'signs out normally, without attempting a call, when the connector has no admin API' do
+        allow(idp_service).to receive(:supports_session_logout?).and_return(false)
+        start_session
+
+        delete destroy_hmis_user_session_path, headers: headers
+
+        expect(idp_service).not_to have_received(:logout_user_sessions)
+        expect_signed_out_normally
+      end
+
+      # The real NullService, not the double. Its logout_user_sessions RAISES (Idp::NullService:53),
+      # so this is what proves the supports_session_logout? guard runs before the call rather than
+      # after: drop the guard and this goes red with a 500 sign_out_failed.
+      it 'signs out normally, without attempting a call, for an unknown connector (NullService)' do
+        allow(Idp::ServiceFactory).to receive(:for_connector).with('test').and_call_original
+        start_session
+
+        delete destroy_hmis_user_session_path, headers: headers
+
+        expect(Idp::ServiceFactory).to have_received(:for_connector).with('test')
+        expect_signed_out_normally
+      end
+
+      # Not "signs out normally": a token with no connector claim can't authenticate at all, because
+      # Idp::UserProvisioner requires the claim to resolve a holder and authenticate_hmis_user! runs
+      # before the sign-out action. So the blank-connector guard in idp_end_token_holder_sessions is
+      # unreachable from this arm, and asserting "signed out normally, no call" here would have
+      # described behavior this arm doesn't have. The warehouse arm skips authenticate_user! on
+      # sign-out, so there the same token does reach that guard and does sign out normally.
+      it 'never reaches sign-out for a token with no connector claim: the request fails to authenticate' do
+        start_session
+        # sign_in memoizes one JwtHelper double per token, so this is the object the request reads.
+        allow(Idp::JwtHelper.new(access_token: jwt_token)).to receive(:connector_id).and_return(nil)
+
+        delete destroy_hmis_user_session_path, headers: headers
+
+        expect(response).to have_http_status(:forbidden)
+        expect(JSON.parse(response.body).dig('error', 'type')).to eq('no_warehouse_account')
+        # The guard the previous wording claimed to cover: the factory is never consulted, so this
+        # can't pass by falling through to a NullService the way the old assertion could.
+        expect(Idp::ServiceFactory).not_to have_received(:for_connector).with('test')
+      end
+
+      # The whole reason the id comes off the token: current_hmis_user is the impersonated user here,
+      # so sourcing it there ends a third party's sessions and not the admin's.
+      it 'ends the token holder\'s sessions, not the impersonated user\'s, while impersonating' do
+        user_group = create(:hmis_user_group)
+        admin_user = create(:hmis_user, data_source: ds)
+        create_access_control(admin_user, ds, with_permission: [:can_impersonate_users], user_group: user_group)
+        target_user = create(:hmis_user, data_source: ds).tap { |u| user_group.add(u) }
+
+        start_session(as: admin_user)
+        post hmis_impersonations_path, params: { user_id: target_user.id }, headers: headers
+        expect(response).to have_http_status(:ok)
+
+        delete destroy_hmis_user_session_path, headers: headers
+
+        expect(response).to have_http_status(:ok)
+        # The claim value, and exactly one call: rules out the impersonated user and both warehouse
+        # ids, which are a different string again.
+        expect(idp_service).to have_received(:logout_user_sessions).
+          with(user_id: jwt_connector_user_id(admin_user)).once
+      end
+
+      # Why a forged DELETE reaches this action at all, and what it would cost: see
+      # Hmis::Idp::SessionsController. allow_forgery_protection is false in the test environment
+      # (config/environments/test.rb:55), so these examples turn it on — without that they pass
+      # whether or not #destroy verifies the token.
+      describe 'CSRF verification' do
+        around do |example|
+          ActionController::Base.allow_forgery_protection = true
+          example.run
+        ensure
+          ActionController::Base.allow_forgery_protection = false
+        end
+
+        # Mirrors the SPA: fetchWithCsrf reads the CSRF-Token cookie set_csrf_cookie writes on every
+        # Hmis::BaseController response and forwards it as X-CSRF-Token.
+        def csrf_token_from_last_response
+          response.cookies['CSRF-Token'].tap { |token| expect(token).to be_present }
+        end
+
+        it 'still signs out and still ends the IdP sessions when the request carries the token' do
+          start_session
+          token = csrf_token_from_last_response
+
+          delete destroy_hmis_user_session_path, headers: headers.merge('X-CSRF-Token' => token)
+
+          expect(idp_service).to have_received(:logout_user_sessions).with(user_id: jwt_connector_user_id(user))
+          expect_signed_out_normally
+        end
+
+        it 'rejects a request with no token, without reaching the realm-wide logout' do
+          start_session
+
+          delete destroy_hmis_user_session_path, headers: headers
+
+          expect(response).to have_http_status(:unauthorized)
+          expect(JSON.parse(response.body)).to eq('error' => { 'type' => 'unverified_request' })
+          expect(idp_service).not_to have_received(:logout_user_sessions)
+        end
+
+        # Guards the handle_unverified_request override on Hmis::Idp::SessionsController, through a
+        # real retry rather than by reading `session` after the rejected request: that read reports
+        # the request's inbound session, so it shows the pre-reset contents either way and stays
+        # green with the override deleted.
+        it 'leaves a rejected sign-out retryable with the token the browser already holds' do
+          start_session
+          token = csrf_token_from_last_response
+
+          delete destroy_hmis_user_session_path, headers: headers
+          expect(response).to have_http_status(:unauthorized)
+
+          delete destroy_hmis_user_session_path, headers: headers.merge('X-CSRF-Token' => token)
+
+          expect(idp_service).to have_received(:logout_user_sessions).with(user_id: jwt_connector_user_id(user)).once
+          expect_signed_out_normally
+        end
+
+        # Same claim, the other piece of session state a reset would take: an admin mid-impersonation
+        # would silently revert to acting as themselves, with the "Acting as" banner still on screen
+        # from the last render.
+        it 'leaves a rejected sign-out with the session-stored impersonation still in force' do
+          user_group = create(:hmis_user_group)
+          admin_user = create(:hmis_user, data_source: ds)
+          create_access_control(admin_user, ds, with_permission: [:can_impersonate_users], user_group: user_group)
+          target_user = create(:hmis_user, data_source: ds).tap { |u| user_group.add(u) }
+
+          start_session(as: admin_user)
+          post hmis_impersonations_path,
+               params: { user_id: target_user.id },
+               headers: headers.merge('X-CSRF-Token' => csrf_token_from_last_response)
+          expect(response).to have_http_status(:ok)
+
+          delete destroy_hmis_user_session_path, headers: headers
+          expect(response).to have_http_status(:unauthorized)
+
+          get hmis_user_path, headers: headers
+          expect(controller.current_hmis_user).to eq(target_user)
+          expect(controller.true_hmis_user).to eq(admin_user)
+        end
+      end
+    end
   end
 
   describe '#info_for_paper_trail' do
