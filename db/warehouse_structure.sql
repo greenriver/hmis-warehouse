@@ -42680,6 +42680,56 @@ ALTER SEQUENCE public.hmis_project_unit_type_mappings_id_seq OWNED BY public.hmi
 
 
 --
+-- Name: hmis_restricted_records; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_restricted_records (
+    id bigint NOT NULL,
+    restrictable_type character varying NOT NULL,
+    restrictable_id bigint NOT NULL,
+    data_source_id bigint NOT NULL,
+    created_by_id bigint NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp(6) without time zone
+);
+
+
+--
+-- Name: hmis_restricted_client_enrollments; Type: VIEW; Schema: public; Owner: -
+--
+
+CREATE VIEW public.hmis_restricted_client_enrollments AS
+ SELECT hmis_restricted_records.restrictable_id AS client_id,
+    "Enrollment".id AS enrollment_id,
+    "Enrollment".project_pk AS project_id,
+    hmis_restricted_records.data_source_id
+   FROM ((public.hmis_restricted_records
+     JOIN public."Client" ON ((("Client"."DateDeleted" IS NULL) AND ("Client".id = hmis_restricted_records.restrictable_id) AND ("Client".data_source_id = hmis_restricted_records.data_source_id))))
+     LEFT JOIN public."Enrollment" ON ((("Enrollment"."DateDeleted" IS NULL) AND (("Enrollment"."PersonalID")::text = ("Client"."PersonalID")::text) AND ("Enrollment".data_source_id = "Client".data_source_id))))
+  WHERE (((hmis_restricted_records.restrictable_type)::text = 'Hmis::Hud::Client'::text) AND (hmis_restricted_records.deleted_at IS NULL));
+
+
+--
+-- Name: hmis_restricted_records_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_restricted_records_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_restricted_records_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_restricted_records_id_seq OWNED BY public.hmis_restricted_records.id;
+
+
+--
 -- Name: hmis_scan_card_codes_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
@@ -59332,6 +59382,13 @@ ALTER TABLE ONLY public.hmis_project_unit_type_mappings ALTER COLUMN id SET DEFA
 
 
 --
+-- Name: hmis_restricted_records id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_restricted_records ALTER COLUMN id SET DEFAULT nextval('public.hmis_restricted_records_id_seq'::regclass);
+
+
+--
 -- Name: hmis_scan_card_codes id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -66329,6 +66386,14 @@ ALTER TABLE ONLY public.hmis_project_project_groups
 
 ALTER TABLE ONLY public.hmis_project_unit_type_mappings
     ADD CONSTRAINT hmis_project_unit_type_mappings_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_restricted_records hmis_restricted_records_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_restricted_records
+    ADD CONSTRAINT hmis_restricted_records_pkey PRIMARY KEY (id);
 
 
 --
@@ -213907,6 +213972,13 @@ CREATE INDEX idx_on_data_source_id_next_population_0fce94469b ON public.hmis_sim
 
 
 --
+-- Name: idx_on_data_source_id_restrictable_type_b03a962836; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_on_data_source_id_restrictable_type_b03a962836 ON public.hmis_restricted_records USING btree (data_source_id, restrictable_type);
+
+
+--
 -- Name: idx_on_data_source_id_status_c26af6b41d; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -219021,6 +219093,27 @@ CREATE INDEX index_hmis_project_unit_type_mappings_on_project_id ON public.hmis_
 --
 
 CREATE INDEX index_hmis_project_unit_type_mappings_on_unit_type_id ON public.hmis_project_unit_type_mappings USING btree (unit_type_id);
+
+
+--
+-- Name: index_hmis_restricted_records_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_restricted_records_on_data_source_id ON public.hmis_restricted_records USING btree (data_source_id);
+
+
+--
+-- Name: index_hmis_restricted_records_on_deleted_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_restricted_records_on_deleted_at ON public.hmis_restricted_records USING btree (deleted_at);
+
+
+--
+-- Name: index_hmis_restricted_records_on_restrictable; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_hmis_restricted_records_on_restrictable ON public.hmis_restricted_records USING btree (restrictable_type, restrictable_id) WHERE (deleted_at IS NULL);
 
 
 --
@@ -359850,8 +359943,10 @@ ALTER TABLE ONLY public.import_logs
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260805120000'),
 ('20260728120000'),
 ('20260717132223'),
+('20260624120000'),
 ('20260624000001'),
 ('20260622120000'),
 ('20260618120000'),

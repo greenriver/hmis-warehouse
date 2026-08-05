@@ -1840,7 +1840,6 @@ type ClientAccess {
   canViewOwnReferrals: Boolean!
   canViewPartialSsn: Boolean!
   canViewReferrals: Boolean!
-  canViewRestrictedStatus: Boolean!
   id: ID!
 }
 

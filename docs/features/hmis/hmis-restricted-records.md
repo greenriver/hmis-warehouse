@@ -14,17 +14,9 @@ An active (non-deleted) row means the associated record is restricted. Soft-dele
 
 ## Behavior for Restricted Clients
 
-* **Client Visibility**: Restricted clients require `can_view_clients` **and** `can_view_restricted_clients` at an overlapping enrollment project
-* **Unenrolled Restricted Clients**: Restricted clients with no enrollments are hidden from everyone (there is no project context to grant access)
-* **Marking a Client as Restricted**: Requires `can_mark_clients_as_restricted` (which requires `can_view_restricted_clients`)
-* **Merging Restricted Clients**: If any merged client is restricted, the retained client is marked restricted
-
-Restriction is a **full hide** in HMIS (not PII masking). Warehouse report/PII redaction based on this table is out of scope for the initial HMIS feature, but is planned as future work.
+Not yet implemented
 
 ## Architecture
 
 - **`Hmis::RestrictedRecord`**: ActiveRecord model for the table
 - **`Hmis::Concerns::Restrictable`**: Included on restrictable models (`Hmis::Hud::Client` today). Provides `restricted?`, `mark_as_restricted!`, and `remove_restriction!`.
-- **Visibility**: `Hmis::Hud::Client.apply_restricted_visibility` filters scopes such as `visible_to` and `files_viewable_by` using active restricted-client IDs.
-- **Policy**: `Hmis::AuthPolicies::HmisClientPolicy` gates view/mark via `can_view_restricted_clients` and `can_mark_clients_as_restricted`.
-- **GraphQL**: `SetClientRestricted` mutation toggles the flag; client types expose a `restricted` field.
