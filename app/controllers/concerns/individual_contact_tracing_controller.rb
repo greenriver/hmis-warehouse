@@ -12,7 +12,6 @@ module IndividualContactTracingController
   included do
     before_action :require_health_emergency_contact_tracing!
     before_action :require_can_edit_health_emergency_contact_tracing!
-    before_action :set_he_report_access
 
     def require_health_emergency_contact_tracing!
       return true if health_emergency_contact_tracing?
@@ -35,12 +34,6 @@ module IndividualContactTracingController
 
     private def set_client
       @client = @case.client
-    end
-
-    private def set_he_report_access
-      url = 'warehouse_reports/health/contact_tracing'
-      @he_report_access = GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: url).
-        viewable_by(current_user).exists?
     end
   end
 end

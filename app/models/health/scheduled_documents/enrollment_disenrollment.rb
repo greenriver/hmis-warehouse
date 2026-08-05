@@ -23,14 +23,14 @@ module Health
         enrollment_reasons: Health::EnrollmentReasons.last || Health::EnrollmentReasons.new,
       )
       summary = ApplicationController.render(
-        template: 'warehouse_reports/health/enrollments_disenrollments/summary.xlsx',
+        template: 'health/scheduled_documents/enrollment_disenrollment/summary.xlsx',
         assigns: {
           report: ed,
         },
       )
       report =
         ApplicationController.render(
-          template: 'warehouse_reports/health/enrollments_disenrollments/report.xlsx',
+          template: 'health/scheduled_documents/enrollment_disenrollment/report.xlsx',
           assigns: {
             report: ed,
           },

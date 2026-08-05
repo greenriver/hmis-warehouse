@@ -86,8 +86,6 @@ class DocumentExportsControllerBase < ApplicationController
       'CoreDemographicsReport::DemographicSummary::DocumentExports::DemographicSummaryExcelExport',
       'ProjectPassFail::DocumentExports::ProjectPassFailExport',
       'GrdaWarehouse::DocumentExports::BasePerformanceExport',
-      'Health::DocumentExports::HousingStatusChangesExport',
-      'Health::DocumentExports::AgencyPerformanceExport',
       'ProjectScorecard::DocumentExports::ScorecardExport',
       'BostonProjectScorecard::DocumentExports::ScorecardExport',
       'HudApr::DocumentExports::HudAprExport',

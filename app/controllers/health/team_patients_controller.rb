@@ -12,19 +12,10 @@ module Health
     include AjaxModalRails::Controller
     include HealthPatientDashboard
     include Search
-    extend BackgroundRenderAction
 
     before_action :require_can_view_patients_for_own_agency!
     before_action :require_has_team_or_admin!
     before_action :set_dates
-
-    background_render_action(:render_section, ::BackgroundRender::HealthTeamPatientsTableJob) do
-      {
-        user_id: current_user.id,
-        start_date: @start_date.to_s,
-        end_date: @end_date.to_s,
-      }
-    end
 
     def require_has_team_or_admin!
       return if current_user.can_administer_health? || current_user.team_mates.exists?
@@ -97,17 +88,6 @@ module Health
       end
     end
 
-    def detail
-      team_name = params.require(:entity)[:entity_id]
-      @section = params.require(:entity)[:section]
-      @patient_ids = params.require(:entity)[:patient_ids]&.split(',')&.map(&:to_i)
-      @patients = Health::Patient.bh_cp.where(id: @patient_ids).
-        preload(:care_coordinator).
-        order(last_name: :asc, first_name: :asc)
-
-      @team = Health::CoordinationTeam.find_by(name: team_name)
-    end
-
     def create_search_queries
       safe_params = GrdaWarehouse::ClientSearchQuery.permit_params(params)
       query = GrdaWarehouse::ClientSearchQuery.find_or_create_by_params(safe_params, user: current_user)
@@ -154,13 +134,5 @@ module Health
     private def patient_source
       Health::Patient
     end
-
-    def describe_computations
-      path = 'app/views/warehouse_reports/health/agency_performance/README.md'
-      description = File.read(path)
-      markdown = Redcarpet::Markdown.new(::TranslatedHtml)
-      markdown.render(description)
-    end
-    helper_method :describe_computations
   end
 end

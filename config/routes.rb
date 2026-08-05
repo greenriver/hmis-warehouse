@@ -118,10 +118,8 @@ Rails.application.routes.draw do
           patch :upload
         end
       end
-      resources :metrics, only: [:index], controller: '/health/metrics'
       namespace :pilot do
         resources :patient, only: [:index], controller: '/health/pilot/patient'
-        resources :metrics, only: [:index], controller: '/health/pilot/metrics'
         resource :careplan, except: [:destroy], controller: '/health/pilot/careplans' do
           get :self_sufficiency_assessment
           get :print
@@ -236,7 +234,6 @@ Rails.application.routes.draw do
     end
     resources :anomalies, only: [:index]
     resources :touch_point_exports, only: [:index, :create, :show, :destroy]
-    resources :confidential_touch_point_exports, only: [:index, :create, :show, :destroy]
     resources :hmis_exports, except: [:new] do
       collection do
         get :running
@@ -361,77 +358,6 @@ Rails.application.routes.draw do
       end
       resources :non_hmis_clients, only: [:index] do
         patch :match, on: :collection
-      end
-    end
-    namespace :health do
-      resources :overview, only: [:index]
-      resources :aco_performance, only: [:index]
-      resources :agency_performance, only: [:index] do
-        collection do
-          post :detail
-        end
-      end
-      resources :member_status_reports, only: [:index, :show, :create, :destroy] do
-        collection do
-          get :running
-        end
-      end
-      resources :claims, only: [:index, :show, :destroy] do
-        collection do
-          get :running
-          post :precalculate
-          post :qualifying_activities
-          get :precalculated
-          get :patients
-        end
-        member do
-          post :generate_claims_file
-          post :revise
-          post :submit
-          post :acknowledge
-          get :details
-          get :accept
-        end
-      end
-      resources :patient_referrals, only: [:index] do
-        collection do
-          patch :update
-        end
-      end
-      resources :premium_payments, only: [:index, :show, :create, :destroy]
-      resources :eligibility
-      resources :eligibility_results, only: [:show]
-      resources :enrollments do
-        get :download, on: :member
-        post :override, on: :member
-      end
-      resources :expiring_items, only: [:index]
-      resources :ssm_exports, only: [:index, :show, :create, :destroy]
-      resources :encounters, only: [:index, :show, :create, :destroy]
-      resources :housing_status, only: [:index] do
-        get :details, on: :collection
-      end
-      resources :housing_status_changes, only: [:index] do
-        collection do
-          get :detail
-        end
-      end
-      resources :cp_roster, only: [:index, :show, :destroy] do
-        collection do
-          post :roster
-          post :enrollment
-        end
-      end
-      resources :ed_ip_visits, only: [:index, :show, :create, :destroy]
-      resources :contact_tracing, only: [:index] do
-        get :download, on: :collection
-        get :single_case, on: :member
-      end
-      resources :completed_contact_tracing, only: [:index] do
-        get :download, on: :collection
-      end
-      resources :enrollments_disenrollments, only: [:index, :create] do
-        get :download, on: :member
       end
     end
   end
@@ -700,7 +626,6 @@ Rails.application.routes.draw do
   namespace :health do
     resources :patients, only: [:index] do
       collection do
-        post :detail
         # Patient search queries
         resources :searches, only: [:create], to: 'patients#create_search_queries', as: :create_patient_searches
         get 'searches/:id', to: 'patients#search', as: :patient_search_query
@@ -708,9 +633,6 @@ Rails.application.routes.draw do
     end
     resources :team_patients, only: [:index] do
       collection do
-        post :detail
-        post :render_section
-
         # Patient search queries
         resources :searches, only: [:create], to: 'team_patients#create_search_queries', as: :create_team_patient_searches
         get 'searches/:id', to: 'team_patients#search', as: :team_patient_search_query

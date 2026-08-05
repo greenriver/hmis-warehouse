@@ -28,7 +28,7 @@ module Health
     phi_attr :user_id, Phi::OtherIdentifier
     phi_attr :user_full_name, Phi::NeedsReview
     phi_attr :follow_up, Phi::FreeText
-    phi_attr :claim_id, Phi::SmallPopulation # belongs_to Health::Claim, optional: true
+    phi_attr :claim_id, Phi::SmallPopulation
     # phi_attr :force_payable
     # phi_attr :naturally_payable
     phi_attr :sent_at, Phi::Date
@@ -37,8 +37,8 @@ module Health
 
     validate :patient_eligible_for_qa_on_date
 
-    MODE_OF_CONTACT_OTHER = 'other'.freeze
-    REACHED_CLIENT_OTHER = 'collateral'.freeze
+    MODE_OF_CONTACT_OTHER = 'other'
+    REACHED_CLIENT_OTHER = 'collateral'
     VERSIONS = [
       Health::QualifyingActivityV1,
       Health::QualifyingActivityV2,
@@ -369,7 +369,7 @@ module Health
 
       # In-person contacts must reach the client, EXCEPT for outreach
       valid_options = activities[activity_sym]
-      return false if modifiers.include?('U2') && (!modifiers.include?('U1') && !valid_options[:code] == activities[:outreach][:code])
+      return false if modifiers.include?('U2') && !modifiers.include?('U1') && !valid_options[:code] == activities[:outreach][:code]
 
       # Must be a QA in the CP
       return false unless valid_options
