@@ -15,7 +15,7 @@ module Hmis::Ce::Match::Expression
     DISABILITY_TYPE_CODES = GrdaWarehouse::Hud::Disability.disability_types.invert.freeze
 
     # Maps NoYes-disability field keys to their HUD DisabilityType code. Substance use is deliberately
-    # excluded here — it is dispatched separately in #call because its meaningful-value set differs.
+    # excluded here — it is dispatched separately in boolean_source because its meaningful-value set differs.
     NO_YES_DISABILITY_TYPES = {
       PsdeFieldRegistry::PHYSICAL_DISABILITY.key => DISABILITY_TYPE_CODES.fetch(:physical),
       PsdeFieldRegistry::DEVELOPMENTAL_DISABILITY.key => DISABILITY_TYPE_CODES.fetch(:developmental),
@@ -38,18 +38,16 @@ module Hmis::Ce::Match::Expression
 
     # Resolves the value for a PSDE field for a given set of destination clients.
     def call(clients, field)
-      case field.key
-      when PsdeFieldRegistry::TOTAL_MONTHLY_INCOME.key
-        resolve_total_monthly_income(clients)
-      when *NO_YES_DISABILITY_TYPES.keys
-        resolve_disability(clients, disability_type: NO_YES_DISABILITY_TYPES.fetch(field.key))
-      when PsdeFieldRegistry::SUBSTANCE_USE_DISORDER.key
-        # Substance use has a distinct 4-value meaningful set: Alcohol (1), Drug (2), and Both (3) all collapse to true.
-        resolve_disability(clients, disability_type: SUBSTANCE_USE_DISABILITY_TYPE, meaningful_values: SUBSTANCE_RESPONSES)
-      when PsdeFieldRegistry::DOMESTIC_VIOLENCE_SURVIVOR.key
-        resolve_domestic_violence_survivor(clients)
+      return resolve_total_monthly_income(clients) if field.key == PsdeFieldRegistry::TOTAL_MONTHLY_INCOME.key
+
+      all_enrollment = field.key.end_with?(PsdeFieldRegistry::ALL_ENROLLMENT_SUFFIX)
+      base_key = field.key.delete_suffix(PsdeFieldRegistry::ALL_ENROLLMENT_SUFFIX)
+      source = boolean_source(base_key)
+
+      if all_enrollment
+        resolve_all_enrollment_boolean_values(clients, **source)
       else
-        raise ArgumentError, "Unknown PSDE field \"#{field.key}\""
+        resolve_latest_boolean_response(clients, **source)
       end
     end
 
@@ -67,15 +65,11 @@ module Hmis::Ce::Match::Expression
       # Ensure all destination clients are in the hash. Clients with no valid IncomeBenefits rows will have a nil value.
       result = client_ids.index_with { nil }
 
-      rows = Hmis::Hud::IncomeBenefit.
-        joins(:enrollment).
-        merge(eligibility_scope.call(client_ids)).
-        order(information_date: :desc, date_updated: :desc, id: :desc).
-        pluck(
-          wc_t[:destination_id],
-          ib_t[:IncomeFromAnySource],
-          ib_t[:TotalMonthlyIncome],
-        )
+      rows = scoped_rows(client_ids, Hmis::Hud::IncomeBenefit.all).pluck(
+        wc_t[:destination_id],
+        ib_t[:IncomeFromAnySource],
+        ib_t[:TotalMonthlyIncome],
+      )
 
       rows.group_by(&:first).each do |client_id, client_rows|
         selected = client_rows.find { |row| valid_total_monthly_income_row?(income_from_any_source: row[1], total_monthly_income: row[2]) }
@@ -91,25 +85,19 @@ module Hmis::Ce::Match::Expression
       result
     end
 
-    # Filter by DisabilityType, then pick the single latest row with a meaningful response.
-    #
-    # @return [Hash{Integer => Boolean, nil}]
-    def resolve_disability(clients, disability_type:, meaningful_values: NO_YES_RESPONSES)
-      resolve_latest_boolean_response(
-        clients,
-        scope: Hmis::Hud::Disability.where(d_t[:DisabilityType].eq(disability_type)),
-        column: d_t[:DisabilityResponse],
-        meaningful_values: meaningful_values,
-      )
-    end
-
-    def resolve_domestic_violence_survivor(clients)
-      resolve_latest_boolean_response(
-        clients,
-        scope: Hmis::Hud::HealthAndDv.all,
-        column: hdv_t[:DomesticViolenceSurvivor],
-        meaningful_values: NO_YES_RESPONSES,
-      )
+    # HUD source for a boolean PSDE field, keyed by its base (non-suffixed) key.
+    def boolean_source(base_key)
+      case base_key
+      when PsdeFieldRegistry::DOMESTIC_VIOLENCE_SURVIVOR.key
+        { scope: Hmis::Hud::HealthAndDv.all, column: hdv_t[:DomesticViolenceSurvivor], meaningful_values: NO_YES_RESPONSES }
+      when PsdeFieldRegistry::SUBSTANCE_USE_DISORDER.key
+        # Substance use collapses Alcohol/Drug/Both (1/2/3) to true, No (0) to false.
+        { scope: disability_scope(SUBSTANCE_USE_DISABILITY_TYPE), column: d_t[:DisabilityResponse], meaningful_values: SUBSTANCE_RESPONSES }
+      when *NO_YES_DISABILITY_TYPES.keys
+        { scope: disability_scope(NO_YES_DISABILITY_TYPES.fetch(base_key)), column: d_t[:DisabilityResponse], meaningful_values: NO_YES_RESPONSES }
+      else
+        raise ArgumentError, "Unknown boolean PSDE field \"#{base_key}\""
+      end
     end
 
     # Picks the single latest row with a meaningful response per client, and converts the raw HUD
@@ -123,19 +111,57 @@ module Hmis::Ce::Match::Expression
 
       # Ensure all destination clients are in the hash. Clients with no meaningful rows will have a nil value.
       result = client_ids.index_with { nil }
+      rows = scoped_rows(client_ids, scope).pluck(wc_t[:destination_id], column)
+      rows.group_by(&:first).each do |client_id, client_rows|
+        selected = first_meaningful_row(client_rows, meaningful_values, index: 1)
+        result[client_id] = response_to_boolean(selected[1]) if selected
+      end
+      result
+    end
 
-      rows = scope.
+    # For each in-scope enrollment, picks that enrollment's most-recent meaningful row and converts it
+    # to a boolean. Returns an array (one entry per enrollment that had a meaningful value) per client.
+    # Clients with no meaningful values get []. Shape: Hash{Integer => Array<Boolean>}.
+    def resolve_all_enrollment_boolean_values(clients, scope:, column:, meaningful_values:)
+      client_ids = extract_client_ids(clients)
+      return {} if client_ids.empty?
+
+      # Ensure all destination clients are in the hash. Clients with no meaningful rows will have an empty array.
+      result = client_ids.index_with { [] }
+      rows = scoped_rows(client_ids, scope).pluck(wc_t[:destination_id], e_t[:id], column)
+      rows.group_by(&:first).each do |client_id, client_rows|
+        result[client_id] = client_rows.group_by { |row| row[1] }.map do |_enrollment_id, enrollment_rows|
+          selected = first_meaningful_row(enrollment_rows, meaningful_values, index: 2)
+          next unless selected
+
+          response_to_boolean(selected[2])
+        end.compact
+      end
+      result
+    end
+
+    # Scoped, ordered relation for a HUD table restricted to eligible enrollments.
+    # Ordered so the first row is the most recent.
+    # Callers pluck the specific columns they need.
+    def scoped_rows(client_ids, scope)
+      scope.
         joins(:enrollment).
         merge(eligibility_scope.call(client_ids)).
-        order(information_date: :desc, date_updated: :desc, id: :desc).
-        pluck(wc_t[:destination_id], column)
+        order(information_date: :desc, date_updated: :desc, id: :desc)
+    end
 
-      rows.group_by(&:first).each do |client_id, client_rows|
-        selected = client_rows.find { |row| meaningful_values.include?(row[1]) }
-        result[client_id] = !selected[1].zero? if selected # 0 => false; any other meaningful code => true
-      end
+    # First row (already ordered most-recent-first) whose response is meaningful, or nil.
+    def first_meaningful_row(rows, meaningful_values, index:)
+      rows.find { |row| meaningful_values.include?(row[index]) }
+    end
 
-      result
+    # HUD NoYes code -> boolean (0 => false; any other meaningful code => true)
+    def response_to_boolean(code)
+      !code.zero?
+    end
+
+    def disability_scope(disability_type)
+      Hmis::Hud::Disability.where(d_t[:DisabilityType].eq(disability_type))
     end
 
     def eligibility_scope
