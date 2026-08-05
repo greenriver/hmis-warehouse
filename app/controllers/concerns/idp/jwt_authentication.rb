@@ -68,6 +68,76 @@ module Idp::JwtAuthentication
     end
   end
 
+  # Ends the token holder's sessions at the IDP, the one session /oauth2/sign_out doesn't reach: the
+  # proxy ends Dex, but Dex doesn't propagate logout upstream.
+  #
+  # Uses the admin API rather than an RP-initiated logout redirect because the token is Dex's, so we
+  # have no id_token_hint for Keycloak and no client of our own to name.
+  #
+  # This is not single logout: other apps' proxy cookies carry Dex refresh tokens that Dex renews
+  # without re-checking Keycloak, so their sessions outlive this call.
+  #
+  # The id comes off the token rather than current_user because under impersonation current_user is
+  # the impersonated user, and the impersonation-aware accessors are session-backed, so they would
+  # be order-dependent against reset_session. Reading the token is also what lets this run before
+  # reset_session.
+  #
+  # @raise [Idp::SessionLogoutRefused] the call failed, or we couldn't tell whether to make one.
+  #   Either way a session may still be live, so callers fail closed. Returning means nothing to end.
+  def idp_end_token_holder_sessions
+    jwt_helper = idp_jwt_helper_for_request
+    reason = jwt_helper.invalid_reason
+    # No token means nothing to end.
+    return if reason == :missing
+    # Unreachable through the request layer: idp_token_holder already raised for any reason but
+    # :missing. Kept as the fail-closed answer — the proxy vouched for the token, so assume a session
+    # is live and that we can't tell whose.
+    raise Idp::SessionLogoutRefused, "Sign-out refused: oauth2-proxy forwarded a token we refused (#{reason})" if reason
+
+    connector_id = jwt_helper.connector_id
+    connector_user_id = jwt_helper.connector_user_id
+    # Reached on the warehouse arm only; the HMIS arm walls off a token with no resolvable holder
+    # ahead of sign-out. connector_user_id is the claim this turns on: blank with a connector present
+    # would call logout_user_sessions(user_id: nil). A blank connector_id resolves to an
+    # Idp::NullService and would stop at the capability check below anyway.
+    return if connector_id.blank? || connector_user_id.blank?
+
+    service = idp_session_logout_service(connector_id)
+    # nil means resolution failed and was already reported. A service without session logout has no
+    # admin API to call, so there is nothing to end.
+    raise Idp::SessionLogoutRefused, "Sign-out refused: no IDP service for connector #{connector_id}" if service.nil?
+    return unless service.supports_session_logout?
+
+    begin
+      # No deadline here: the service's own socket timeouts bound this, and Timeout.timeout would
+      # raise at an arbitrary point in the thread, including after Keycloak ended the sessions.
+      service.logout_user_sessions(user_id: connector_user_id)
+    rescue StandardError => e
+      Sentry.capture_exception_with_info(
+        e,
+        "Couldn't end IDP sessions for #{connector_id} user #{connector_user_id}; sign-out was refused",
+      )
+      raise Idp::SessionLogoutRefused, "Sign-out refused: #{e.class} ending IDP sessions for #{connector_id} user #{connector_user_id}"
+    end
+
+    nil
+  end
+
+  # Split out so a failure to resolve the service is reported on its own terms: the fix is ours
+  # (connector config, credentials) rather than the IDP's. Callers still fail closed, since an
+  # unresolvable connector tells us nothing about whether a session is live.
+  #
+  # @return [Idp::Service, nil] nil when resolution raised.
+  def idp_session_logout_service(connector_id)
+    Idp::ServiceFactory.for_connector(connector_id)
+  rescue StandardError => e
+    Sentry.capture_exception_with_info(
+      e,
+      "Couldn't resolve the IDP service for connector #{connector_id}; sign-out was refused",
+    )
+    nil
+  end
+
   def idp_validate_impersonation_permissions(true_user, impersonated_user)
     return false unless true_user&.can_impersonate_users?
     return false unless impersonated_user&.impersonateable_by?(true_user)
@@ -174,6 +244,13 @@ module Idp::JwtAuthentication
   # as a JSON 403 for API/HMIS controllers, the same way as idp_handle_unauthenticated.
   def idp_handle_deactivated
     render(template: 'errors/account_deactivated', status: :forbidden)
+  end
+
+  # Shown when idp_end_token_holder_sessions raises Idp::SessionLogoutRefused. A template rather
+  # than render(plain:) because sign-out is a link_to with method: :delete, so the user lands here on
+  # a full page load and needs the layout and a retry link. HMIS overrides this to return JSON.
+  def idp_handle_session_logout_failure
+    render(template: 'errors/sign_out_failed', status: :internal_server_error)
   end
 
   def user_session_expires_at

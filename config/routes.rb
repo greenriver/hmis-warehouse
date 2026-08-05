@@ -45,7 +45,8 @@ Rails.application.routes.draw do
     post   'users/sign_in',     to: 'idp/sessions#create',    as: :user_session
     delete 'users/sign_out',    to: 'idp/sessions#destroy',   as: :destroy_user_session
     match  'session_keepalive', to: 'idp/sessions#keepalive', as: :session_keepalive, via: [:get, :post]
-    get    'logout_talentlms',  to: 'idp/sessions#destroy',   as: :logout_talentlms
+    # Not #destroy — cross-site GET with no CSRF token, so it renders a logout form
+    get    'logout_talentlms',  to: 'idp/sessions#logout_talentlms', as: :logout_talentlms
   end
 
   namespace :users do
