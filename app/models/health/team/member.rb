@@ -109,20 +109,6 @@ module Health
       end
     end
 
-    def remove_from_goals
-      Health::Goal::Base.where(responsible_team_member_id: id).each do |goal|
-        goal.update(responsible_team_member_id: nil)
-      end
-    end
-
-    def goals
-      Health::Goal::Base.where(responsible_team_member_id: id)
-    end
-
-    def in_use?
-      careplans.any? || goals.any?
-    end
-
     def email_domain_if_present
       return if email.blank?
 
