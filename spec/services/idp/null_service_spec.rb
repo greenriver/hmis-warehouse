@@ -26,6 +26,9 @@ RSpec.describe Idp::NullService, type: :model do
       reactivate_user: ['User reactivation not supported', { user_id: 'user-123' }],
       deactivate_user: ['User deactivation not supported', { user_id: 'user-123' }],
       set_required_action: ['Required actions not supported', { user_id: 'user-123', actions: ['UPDATE_PASSWORD'] }],
+      # supports_session_logout? means nothing should reach this. If something does it must be loud,
+      # not a silent no-op that reads as "the IdP session was ended".
+      logout_user_sessions: ['Session logout not supported', { user_id: 'user-123' }],
     }.each do |method, (message, args)|
       describe "##{method}" do
         it 'raises ServiceError tagged with the operation and the IdP name' do
@@ -111,6 +114,14 @@ RSpec.describe Idp::Service, type: :model do
   describe '#supports_session_logout?' do
     it 'defaults to false on the base contract' do
       expect(described_class.new.supports_session_logout?).to be false
+    end
+  end
+
+  describe '#logout_user_sessions' do
+    it 'raises NotImplementedError on the base contract' do
+      expect do
+        described_class.new.logout_user_sessions(user_id: 'user-123')
+      end.to raise_error(NotImplementedError, /must implement #logout_user_sessions/)
     end
   end
 end

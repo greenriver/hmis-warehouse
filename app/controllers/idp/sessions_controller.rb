@@ -8,17 +8,30 @@
 
 module Idp
   # Serves the shared session route names (new_user_session / user_session / destroy_user_session /
-  # session_keepalive / logout_talentlms) under AUTH_METHOD=jwt. Login and logout are owned by the
-  # oauth2-proxy sidecar + the IdP, so these actions only bridge the legacy routes to proxy
-  # redirects (sign-in/out) and report the forwarded token's expiry for the inactivity countdown
-  # (keepalive). No Devise/Warden machinery is involved — current_user / authenticate_user! come
-  # from Idp::JwtCurrentUser, which ApplicationController includes under JWT.
+  # session_keepalive / logout_talentlms) under AUTH_METHOD=jwt. Login is owned by the oauth2-proxy
+  # sidecar + the IdP, so these actions mostly bridge the legacy routes to proxy redirects and
+  # report the forwarded token's expiry for the inactivity countdown (keepalive). #destroy is the
+  # exception — it ends the IdP session itself, since the proxy hop doesn't reach Keycloak. No
+  # Devise/Warden machinery is involved — current_user / authenticate_user! come from
+  # Idp::JwtCurrentUser, which ApplicationController includes under JWT.
   #
   # Only mounted by the AuthMethod.jwt? arm of config/routes.rb; the Devise arm routes the same
   # names to Users::SessionsController instead.
   class SessionsController < ApplicationController
     # sign-in is a redirect to the proxy, so these must not bounce off authenticate_user! first.
-    skip_before_action :authenticate_user!, only: [:new, :create]
+    #
+    # :destroy is here for the opposite reason. The terminal 403 pages
+    # (errors/account_deactivated, errors/no_warehouse_account) render for someone who holds a good
+    # token but has no usable current_user, so authenticate_user! sends them back to the same page
+    # and they can never sign out — on a shared machine the next person inherits a live IdP session.
+    # #destroy doesn't need current_user anyway: idp_end_token_holder_sessions reads the forwarded
+    # token, which is also what lets it run before reset_session.
+    #
+    # So #destroy is the one action a token with no resolvable holder reaches, which is why the
+    # blank-claim guard in idp_end_token_holder_sessions is live here and dead on the HMIS arm. A
+    # token we outright refuse still doesn't get through: current_user is resolved by an earlier
+    # filter in the chain, and idp_token_holder raises there.
+    skip_before_action :authenticate_user!, only: [:new, :create, :destroy]
     # Same reason, one filter later: reject_deactivated_user! walls off the routes that skip
     # authenticate_user!, and signing out is the one thing a deactivated user still has to be able to
     # do — otherwise the link on errors/account_deactivated renders that page right back.
@@ -32,15 +45,30 @@ module Idp
     end
     alias_method :create, :new
 
-    # DELETE users/sign_out (and GET logout_talentlms) — clear the proxy session and return to
-    # root_path via the rd parameter. Deliberately uses a relative path since oauth2-proxy is
-    # same-origin; an absolute URL built from request.base_url could be spoofed via the Host header.
+    # DELETE users/sign_out. The rd redirect uses a relative path since oauth2-proxy is same-origin;
+    # an absolute URL built from request.base_url could be spoofed via the Host header.
     def destroy
-      # wipes session so it doesn't outlive this login. Not a substitute for oauth2-proxy/IdP
-      # sign-out the browser performs next via this redirect.
+      # First: reads the token, not the session, and fails closed — a refusal means the SSO session is
+      # still live, so nothing below runs. Cost accepted: while the IdP is unreachable nobody can sign
+      # out. Don't make this best-effort. Hmis::Idp::SessionsController#destroy is the same sequence.
+      idp_end_token_holder_sessions
+
       reset_session
 
       redirect_to("/oauth2/sign_out?rd=#{CGI.escape(root_path)}")
+    rescue Idp::SessionLogoutRefused
+      idp_handle_session_logout_failure
+    end
+
+    # GET logout_talentlms — TalentLMS redirects here when the user logs out of the LMS. Renders a
+    # page whose button does the sign-out; must not sign out itself. It's a cross-site GET with no
+    # CSRF token, so a forged one looks identical, and #destroy would end all of that user's IdP
+    # sessions (every browser and device), not just this one — scoped to the token holder, never
+    # realm-wide.
+    #
+    # Don't redirect to /oauth2/sign_out first: that drops the forwarded token the button's DELETE
+    # authenticates with.
+    def logout_talentlms
     end
 
     # GET/POST session_keepalive — report the forwarded token's expiry so the frontend countdown

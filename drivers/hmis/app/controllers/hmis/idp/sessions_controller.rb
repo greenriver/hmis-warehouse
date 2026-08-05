@@ -14,21 +14,34 @@ module Hmis
     # Mirrors ::Idp::SessionsController#destroy (the warehouse's JWT logout), but the SPA calls this
     # via fetch + response.json() rather than following a browser redirect, so the oauth2-proxy
     # sign-out URL comes back as a JSON field instead of an HTTP redirect.
+    #
     class SessionsController < Hmis::BaseController
-      # Skipped defensively: the only stateful side effect here is reset_session (below), and a
-      # forged cross-site request triggering that is a forced-logout nuisance at worst, not a
-      # meaningful escalation - the actual credential (the oauth2-proxy/IdP session) is untouched
-      # here regardless and only ends when the browser follows the returned redirect_url.
-      skip_before_action :verify_authenticity_token, only: :destroy
-
+      # The CSRF token is what guards #destroy
       def destroy
-        # wipes session so it doesn't outlive this login. Not a substitute for oauth2-proxy/IdP
-        # sign-out the browser performs next via this redirect.
+        # First: the Keycloak session, which /oauth2/sign_out never reaches. Ahead of reset_session
+        # because it reads the forwarded token, and because it fails closed. Don't make it
+        # best-effort. ::Idp::SessionsController#destroy is the same sequence with an HTML response.
+        idp_end_token_holder_sessions
+
+        # Second: the Rails session, so it doesn't outlive this login.
         reset_session
 
-        # Deliberately a relative path since oauth2-proxy is same-origin; an absolute URL built from
+        # Third, once the SPA navigates to this. Relative on purpose — an absolute URL built from
         # request.base_url could be spoofed via the Host header.
         render json: { redirect_url: "/oauth2/sign_out?rd=#{CGI.escape(root_path)}" }
+      rescue ::Idp::SessionLogoutRefused
+        idp_handle_session_logout_failure
+      end
+
+      private
+
+      # Deliberately doesn't call up to Hmis::BaseController's version, which resets the session
+      # first. Under JWT that reset signs nobody out — the credential is the forwarded token — but it
+      # drops any impersonation and strands the CSRF-Token cookie the browser holds, since
+      # set_csrf_cookie is a later before_action and never runs once this one halts the chain. The
+      # user's own retry of the sign-out would then fail the same way. 401 and no side effect.
+      def handle_unverified_request
+        render_json_error(401, :unverified_request)
       end
     end
   end

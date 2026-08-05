@@ -93,5 +93,11 @@ module Hmis::Concerns::JwtHmisCurrentUser
     def idp_handle_deactivated
       render_json_error(403, :account_deactivated)
     end
+
+    # 500, not a 4xx: the request was fine, we couldn't reach the IdP. No message — the SPA's
+    # LogoutFailedDialog writes its own copy and never reads the body.
+    def idp_handle_session_logout_failure
+      render_json_error(500, :sign_out_failed)
+    end
   end
 end
