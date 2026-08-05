@@ -5,6 +5,7 @@
   "registrationAllowed": false,
   "resetPasswordAllowed": true,
   "loginWithEmailAllowed": true,
+  "registrationEmailAsUsername": true,
   "clients": [
     {
       "clientId": "dex-connector",

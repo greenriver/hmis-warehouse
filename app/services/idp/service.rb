@@ -93,6 +93,13 @@ module Idp
       false
     end
 
+    # Whether the user can change their own email address *at the IdP*, with the IdP owning
+    # collection and mailbox verification. Distinct from #supports_profile_updates?, which is
+    # about the Warehouse pushing an already-committed edit in.
+    def supports_email_self_service?
+      false
+    end
+
     def supports_account_backfill?
       false
     end
@@ -121,6 +128,20 @@ module Idp
     # (e.g. UPDATE_PASSWORD, CONFIGURE_TOTP) and returns them to redirect_uri afterward.
     # Defaults to nil for IDPs that don't support such deep-links.
     def account_action_url(action:, redirect_uri:) # rubocop:disable Lint/UnusedMethodArgument
+      nil
+    end
+
+    # Address the user asked for but hasn't confirmed yet, for IDPs that hold one alongside the live
+    # address. Display only; nil for an IDP with no such concept.
+    # @return [String, nil]
+    def pending_email(user_id:) # rubocop:disable Lint/UnusedMethodArgument
+      nil
+    end
+
+    # Takes an already-fetched representation so a caller that holds one — the account page, which
+    # just read it to reconcile — needn't spend a second Admin API read.
+    # @return [String, nil]
+    def pending_email_from_representation(representation) # rubocop:disable Lint/UnusedMethodArgument
       nil
     end
 

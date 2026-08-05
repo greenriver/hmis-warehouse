@@ -301,6 +301,7 @@ RSpec.describe 'HMIS JWT wiring', type: :request, if: AuthMethod.jwt? do
           Idp::KeycloakService,
           supports_session_logout?: true,
           logout_user_sessions: true,
+          supports_email_self_service?: false,
         )
       end
 
@@ -397,16 +398,14 @@ RSpec.describe 'HMIS JWT wiring', type: :request, if: AuthMethod.jwt? do
 
         delete destroy_hmis_user_session_path, headers: headers
 
-        expect(Idp::ServiceFactory).to have_received(:for_connector).with('test')
+        expect(Idp::ServiceFactory).to have_received(:for_connector).with('test').at_least(:once)
         expect_signed_out_normally
       end
 
-      # Not "signs out normally": a token with no connector claim can't authenticate at all, because
-      # Idp::UserProvisioner requires the claim to resolve a holder and authenticate_hmis_user! runs
-      # before the sign-out action. So the blank-connector guard in idp_end_token_holder_sessions is
-      # unreachable from this arm, and asserting "signed out normally, no call" here would have
-      # described behavior this arm doesn't have. The warehouse arm skips authenticate_user! on
-      # sign-out, so there the same token does reach that guard and does sign out normally.
+      # Idp::UserProvisioner needs the connector claim to resolve a holder, and authenticate_hmis_user!
+      # runs before #destroy, so a claimless token 403s at authentication rather than reaching sign-out.
+      # The warehouse arm skips authenticate_user! on #destroy, so there the same token reaches
+      # idp_end_token_holder_sessions and signs out via its blank-connector guard.
       it 'never reaches sign-out for a token with no connector claim: the request fails to authenticate' do
         start_session
         # sign_in memoizes one JwtHelper double per token, so this is the object the request reads.
@@ -416,9 +415,9 @@ RSpec.describe 'HMIS JWT wiring', type: :request, if: AuthMethod.jwt? do
 
         expect(response).to have_http_status(:forbidden)
         expect(JSON.parse(response.body).dig('error', 'type')).to eq('no_warehouse_account')
-        # The guard the previous wording claimed to cover: the factory is never consulted, so this
-        # can't pass by falling through to a NullService the way the old assertion could.
-        expect(Idp::ServiceFactory).not_to have_received(:for_connector).with('test')
+        # start_session's keepalive resolves 'test' once (the per-session sync guard); the DELETE adds
+        # none. A fall-through to a NullService sign-out — the regression this guards — would make it two.
+        expect(Idp::ServiceFactory).to have_received(:for_connector).with('test').once
       end
 
       # The whole reason the id comes off the token: current_hmis_user is the impersonated user here,
