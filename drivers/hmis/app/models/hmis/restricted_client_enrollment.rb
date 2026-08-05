@@ -29,9 +29,9 @@ class Hmis::RestrictedClientEnrollment < GrdaWarehouseBase
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
 
   # Rows the user can unlock: the enrollment is at a project where they can view restricted clients.
+  # The project set is memoized per request by UserContext, since resolving it costs several queries.
   scope :unlocked_by, ->(user) do
-    unlocked_project_ids = Hmis::Hud::Project.with_access(user, :can_view_clients, :can_view_restricted_clients, mode: :all).pluck(:id)
-    where(project_id: unlocked_project_ids)
+    where(project_id: user.policy_context.unlocked_restricted_client_project_ids)
   end
 
   # Restricted clients the user may not see, because none of their enrollments are at an unlocking

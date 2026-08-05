@@ -81,9 +81,32 @@ class Hmis::AuthPolicies::UserContext
 
   def preload_client_dependencies(client_ids)
     client_project_loader.preload(client_ids)
+    restricted_client_loader.preload_clients(client_ids)
     project_ids = client_project_loader.cached_project_ids
     project_data_source_loader.preload(project_ids)
     project_access_group_loader.preload(project_ids)
+  end
+
+  def preload_enrollment_restrictions(enrollment_ids)
+    restricted_client_loader.preload_enrollments(enrollment_ids)
+  end
+
+  # Projects where the user can see restricted clients, which is what unlocks a restricted client for
+  # them. Memoized because it is constant for the request and resolving it costs several queries.
+  memoize def unlocked_restricted_client_project_ids
+    Hmis::Hud::Project.with_access(user, :can_view_clients, :can_view_restricted_clients, mode: :all).pluck(:id)
+  end
+
+  # Whether the client is restricted and the user lacks access to unlock it. Unrestricted clients are
+  # never hidden. See docs/features/hmis/hmis-restricted-records.md
+  def client_hidden?(client_id)
+    restricted_client_loader.client_hidden?(client_id)
+  end
+
+  # Whether the enrollment belongs to a client that is hidden from the user. Restriction is resolved
+  # per client, so all of a hidden client's enrollments are hidden.
+  def enrollment_hidden?(enrollment_id)
+    restricted_client_loader.enrollment_hidden?(enrollment_id)
   end
 
   # Client permissions are based on the user's permissions at projects they are enrolled in.
@@ -185,5 +208,9 @@ class Hmis::AuthPolicies::UserContext
 
   memoize def client_project_loader
     Hmis::AuthPolicies::ContextLoaders::ClientProjectLoader.new
+  end
+
+  memoize def restricted_client_loader
+    Hmis::AuthPolicies::ContextLoaders::RestrictedClientLoader.new(user)
   end
 end

@@ -36,9 +36,18 @@ module Types
       arg :assigned_staff, ID
     end
 
+    # Household members whose client is restricted and not visible to the user are omitted.
+    # Members are all enrolled at the same project, so restriction is the only thing that can
+    # differentiate them; the limited-details case is included so that users who can only see that
+    # the enrollments exist still get the full membership.
     def household_clients
-      # TODO: exclude non-viewable enrollments (due to restricted clients)
-      enrollments.map do |enrollment|
+      # preload_enrollment_restrictions(enrollments)
+      # current_user.policy_context.preload_project_dependencies(enrollments.map(&:project_pk))
+
+      enrollments.filter_map do |enrollment|
+        policy = current_user.policy_for(enrollment, policy_type: :hmis_enrollment)
+        next unless policy.can_view_details? || policy.can_view_limited?
+
         {
           relationship_to_ho_h: enrollment.relationship_to_ho_h,
           enrollment: enrollment,

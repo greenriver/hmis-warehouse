@@ -13,7 +13,15 @@ module Types
 
       class_methods do
         def households_field(name = :households, description = nil, filter_args: {}, type: Types::HmisSchema::Household.page_type, **override_options, &block)
-          default_field_options = { type: type, null: false, description: description }
+          default_field_options = {
+            type: type,
+            null: false,
+            description: description,
+            after_paginate: ->(nodes, ctx) {
+              ctx[:current_user].policy_context.preload_enrollment_restrictions(nodes.map(&:enrollment_ids))
+              ctx[:current_user].policy_context.preload_project_dependencies(nodes.map(&:project_pk))
+            },
+          }
           field_options = default_field_options.merge(override_options)
           field(name, **field_options) do
             argument :sort_order, HmisSchema::HouseholdSortOption, required: false

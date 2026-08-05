@@ -8,14 +8,10 @@
 
 class Hmis::AuthPolicies::HmisClientPolicy < Hmis::AuthPolicies::ResourcePolicy
   class Instance < Hmis::AuthPolicies::BasePolicy
+    # The hidden check subsumes the restricted case: a restricted client is hidden unless the user can
+    # view restricted clients at a project where the client is or was enrolled.
     def can_view?
-      return false unless client_permissions.include?(:can_view_clients)
-
-      if resource.restricted?
-        client_permissions.include?(:can_view_restricted_clients)
-      else
-        client_permissions.include?(:can_view_clients)
-      end
+      client_permissions.include?(:can_view_clients) && !context.client_hidden?(resource.id)
     end
 
     def can_mark_restricted?
@@ -23,7 +19,7 @@ class Hmis::AuthPolicies::HmisClientPolicy < Hmis::AuthPolicies::ResourcePolicy
     end
 
     def can_edit?
-      client_permissions.include?(:can_edit_clients)
+      client_permissions.include?(:can_edit_clients) # these all need to be false for hidden clients..
     end
 
     def can_delete?
