@@ -394,6 +394,96 @@ RSpec.describe Idp::JwtCurrentUser, type: :controller, if: AuthMethod.jwt? do
     end
   end
 
+  # When we ask the IdP; what the sync does with the answer is Idp::SyncUserFromIdpJob's spec.
+  describe 'scheduling the IdP read-back (#idp_schedule_user_sync)' do
+    let(:user) { double('User', id: 7, active?: true, last_connector_id: 'keycloak', email_change_enabled?: true) }
+
+    before do
+      allow(User).to receive(:find_or_create_from_jwt).and_return(user)
+      # NullStore holds nothing, so the connector pause would never engage.
+      allow(Rails).to receive(:cache).and_return(ActiveSupport::Cache::MemoryStore.new)
+    end
+
+    it 'enqueues a sync once the request is authenticated' do
+      expect { get :auth }.to have_enqueued_job(Idp::SyncUserFromIdpJob).with(user_id: 7)
+    end
+
+    # Travels rather than asking twice back to back: an immediate second request is also refused by a
+    # guard with a TTL on it, and the guard is meant to be the session's, not a cooldown's.
+    it 'does not enqueue again however long the session lasts' do
+      get :auth
+
+      travel(3.days) do
+        expect { get :auth }.not_to have_enqueued_job(Idp::SyncUserFromIdpJob)
+      end
+    end
+
+    it 'enqueues again for a new session' do
+      get :auth
+      session.delete(Idp::JwtAuthentication::SESSION_SYNC_KEY)
+
+      expect { get :auth }.to have_enqueued_job(Idp::SyncUserFromIdpJob).with(user_id: 7)
+    end
+
+    # idp_sync_session_principal! resets the session when the principal changes, which takes the
+    # guard with it.
+    it 'enqueues for a user who inherits a browser from someone else' do
+      session[Idp::JwtAuthentication::SESSION_PRINCIPAL_KEY] = 99
+      session[Idp::JwtAuthentication::SESSION_SYNC_KEY] = true
+
+      expect { get :auth }.to have_enqueued_job(Idp::SyncUserFromIdpJob).with(user_id: 7)
+    end
+
+    # authenticate_user! only schedules once it has a user, so a request that resolves none never gets
+    # here. Uses the no-account case rather than a missing token, which raises further up.
+    it 'does not enqueue for a request that resolves no user' do
+      allow(User).to receive(:find_or_create_from_jwt).and_return(nil)
+
+      expect { get :auth }.not_to have_enqueued_job(Idp::SyncUserFromIdpJob)
+    end
+
+    it 'does not enqueue while the connector is paused' do
+      Idp::SyncUserFromIdpJob.pause_connector!('keycloak')
+
+      expect { get :auth }.not_to have_enqueued_job(Idp::SyncUserFromIdpJob)
+    end
+
+    # Otherwise every request in a session that started mid-outage retries until the pause lifts.
+    it 'spends the session attempt even when the connector is paused' do
+      Idp::SyncUserFromIdpJob.pause_connector!('keycloak')
+      get :auth
+
+      travel(Idp::SyncUserFromIdpJob::COOLDOWN_TTL + 1.minute) do
+        expect { get :auth }.not_to have_enqueued_job(Idp::SyncUserFromIdpJob)
+      end
+    end
+
+    it 'does not enqueue for a user with no connector on file' do
+      allow(user).to receive(:last_connector_id).and_return(nil)
+
+      expect { get :auth }.not_to have_enqueued_job(Idp::SyncUserFromIdpJob)
+    end
+
+    # The job no-ops on a connector without email self-service, so there is nothing to enqueue. Same
+    # gate the job applies, checked here to keep those jobs off the queue.
+    it 'does not enqueue when the connector offers no email self-service' do
+      allow(user).to receive(:email_change_enabled?).and_return(false)
+
+      expect { get :auth }.not_to have_enqueued_job(Idp::SyncUserFromIdpJob)
+    end
+
+    it 'syncs the token holder, not the account being impersonated' do
+      impersonated_user = double('User', id: 20, active?: true, last_connector_id: 'keycloak')
+      allow(user).to receive(:can_impersonate_users?).and_return(true)
+      allow(impersonated_user).to receive(:impersonateable_by?).with(user).and_return(true)
+      allow(User).to receive(:find_by).with(id: 7).and_return(user)
+      allow(User).to receive(:find_by).with(id: 20).and_return(impersonated_user)
+      session[:impersonation] = { true_user_id: 7, impersonated_user_id: 20 }
+
+      expect { get :auth }.to have_enqueued_job(Idp::SyncUserFromIdpJob).with(user_id: 7)
+    end
+  end
+
   describe 'dropped methods (regression guard for the subtractions)' do
     it 'does not define forced-logout / provisioning / activity methods' do
       [:check_token_denylist!, :handle_denylisted_token, :ensure_authentication_source, :update_user_activity, :handle_inactive_user].each do |method_name|
