@@ -9,41 +9,30 @@
 require 'rails_helper'
 
 RSpec.describe Hmis::Role, type: :model do
-  # Requirements are resolved recursively when a user's permissions are evaluated
-  # (Hmis::AuthPolicies::ContextLoaders::HmisPermissionLoader), which raises on a cycle.
-  # These specs catch a bad config here rather than on every request that checks permissions.
-  describe 'permission requirements' do
-    let(:requirements) do
-      described_class.permissions_with_descriptions.transform_values { |config| config[:requirements] || [] }
-    end
-
-    # Permissions reachable by following requirements from the given permission.
-    # Includes the permission itself only when it participates in a cycle.
-    def reachable_requirements(permission)
-      reachable = Set.new
-      unresolved = requirements.fetch(permission).dup
-
-      while (perm = unresolved.shift)
-        next unless reachable.add?(perm)
-
-        unresolved.concat(requirements.fetch(perm, []))
-      end
-
-      reachable
-    end
-
-    def cyclic_permissions
-      requirements.keys.select { |permission| reachable_requirements(permission).include?(permission) }
-    end
-
-    it 'reference only permissions that exist' do
+  # These specs catch a bad config of Hmis::Role.permissions_with_descriptions
+  describe '.permissions_with_descriptions config' do
+    it 'requirements reference only permissions that exist' do
+      requirements = described_class.permissions_with_descriptions.transform_values { |config| config[:requirements] || [] }
       expect(requirements.values.flatten.uniq - described_class.permissions).to be_empty
     end
 
-    it 'contain no cycles' do
-      expect(cyclic_permissions).to be_empty
+    it 'declares no requirement cycles' do
+      expect { described_class.permissions.each { |perm| described_class.required_permissions_for(perm) } }.not_to raise_error
     end
 
+    it 'declares only direct requirements, not transitive ones' do
+      redundant = described_class.permissions.filter_map do |permission|
+        declared = described_class.permissions_with_descriptions[permission][:requirements] || []
+        implied = declared.flat_map { |req| described_class.required_permissions_for(req) - [req] }
+        overlap = declared & implied
+        [permission, overlap] if overlap.any?
+      end
+
+      expect(redundant).to be_empty
+    end
+  end
+
+  describe '.required_permissions_for' do
     it 'would report a cycle if one were introduced' do
       allow(described_class).to receive(:permissions_with_descriptions).and_return(
         can_view_project: { requirements: [:can_view_clients] },
@@ -51,7 +40,7 @@ RSpec.describe Hmis::Role, type: :model do
         can_administer_hmis: {},
       )
 
-      expect(cyclic_permissions).to contain_exactly(:can_view_project, :can_view_clients)
+      expect { described_class.required_permissions_for(:can_view_project) }.to raise_error(/cycle detected/)
     end
   end
 end
