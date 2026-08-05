@@ -15,9 +15,9 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   include ::HmisStructure::Client
   include ::Hmis::Hud::Concerns::Shared
   include ::Hmis::Hud::Concerns::FormSubmittable
+  include ::Hmis::Concerns::Restrictable
   include ::HudConcerns::Client
   include ClientSearch
-  include Hmis::Concerns::Restrictable
   # this may be invoked multiple times for the same record as IdentifyDuplicates may also mark clients as dirty
   include ::Hmis::MarkClientAsDirtyBehavior
 
@@ -100,10 +100,6 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   #     OR,
   #  2. The Client has NO enrollments AND the User can view clients at _any_ project
   #
-  # Restricted clients additionally require can_view_restricted_clients at an overlapping enrollment project.
-  # Unenrolled restricted clients are hidden from everyone.
-  # See docs/features/hmis/hmis-restricted-records.md for more details.
-  #
   # NOTE: This could include clients that are enrolled at projects that the User can't necessarily see (e.g. they lack can_view_projects at that project).
   scope :visible_to, ->(user) do
     # Confirm that user has access to view clients *somewhere* in the current data source.
@@ -114,7 +110,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     project_ids = Hmis::Hud::Project.with_access(user, :can_view_clients).pluck(:id)
     client_ids = union_sql_for_clients_in_projects_or_unenrolled(project_ids: project_ids, data_source_id: user.hmis_data_source_id)
 
-    where(c_t[:id].in(client_ids)).excluding_hidden_restricted_clients(user)
+    where(c_t[:id].in(client_ids))
   end
 
   class << self
@@ -137,13 +133,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
       pluck(:id)
     client_ids = union_sql_for_clients_in_projects_or_unenrolled(project_ids: project_ids, data_source_id: user.hmis_data_source_id)
 
-    where(c_t[:id].in(client_ids)).excluding_hidden_restricted_clients(user)
-  end
-
-  # Excludes clients that are hidden from the user due to restricted records.
-  # See docs/features/hmis/hmis-restricted-records.md for more details.
-  scope :excluding_hidden_restricted_clients, ->(user) do
-    where.not(id: Hmis::RestrictedClientEnrollment.client_ids_hidden_from(user))
+    where(c_t[:id].in(client_ids))
   end
 
   # Shared helper that returns a raw SQL UNION subquery (as Arel.sql) containing client IDs for:

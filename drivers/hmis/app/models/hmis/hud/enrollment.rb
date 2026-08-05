@@ -164,32 +164,19 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
     where(project_pk: project_ids)
   end
 
-  # Excludes enrollments belonging to restricted clients that the user can't see. Restriction is
-  # evaluated per client, not per enrollment: a user who can unlock the client at any one project
-  # keeps access to every enrollment of that client they can otherwise see.
-  # See docs/features/hmis/hmis-restricted-records.md for more details.
-  scope :excluding_hidden_restricted_clients, ->(user) do
-    where.not(id: Hmis::RestrictedClientEnrollment.enrollment_ids_hidden_from(user))
-  end
-
   # Enrollments that this user has access to. By default, only returns enrollments that the user has full
   # access to (can_view_enrollment_details).
   #
   # Note: use "replace_scope" hide previous declaration of :viewable_by
   replace_scope :viewable_by, ->(user, include_limited_access_enrollments: false) do
-    scope = if include_limited_access_enrollments
-      # optimization: return early if the user has NO access to enrollments in this data source
-      global_policy = user.policy_for(Hmis::Hud::Enrollment, policy_type: :hmis_enrollment)
-      return none unless global_policy.can_view? || global_policy.can_view_limited?
+    return enrollment_details_viewable_by(user) unless include_limited_access_enrollments
 
-      enrollment_details_viewable_by(user).
-        or(limited_enrollment_details_viewable_by(user))
-    else
-      enrollment_details_viewable_by(user)
-    end
+    # optimization: return early if the user has NO access to enrollments in this data source
+    global_policy = user.policy_for(Hmis::Hud::Enrollment, policy_type: :hmis_enrollment)
+    return none unless global_policy.can_view? || global_policy.can_view_limited?
 
-    # Applied after the `or` so both branches stay structurally compatible
-    scope.excluding_hidden_restricted_clients(user)
+    enrollment_details_viewable_by(user).
+      or(limited_enrollment_details_viewable_by(user))
   end
 
   # Includes enrollments that are viewable by the user AND the user has some access to the enrollment's files
@@ -204,7 +191,7 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
       with_access(user, :can_view_any_nonconfidential_client_files, :can_view_any_confidential_client_files, mode: :any).
       select(:id)
 
-    where(project_pk: project_ids).excluding_hidden_restricted_clients(user)
+    where(project_pk: project_ids)
   end
 
   # Free-text search for Enrollment

@@ -7,26 +7,22 @@
 # frozen_string_literal: true
 
 class Hmis::AuthPolicies::HmisEnrollmentPolicy < Hmis::AuthPolicies::ResourcePolicy
-  # Every instance permission is gated on the enrollment's client being visible. Restriction is
-  # resolved per client, not per enrollment, so a client the user can't see hides all of their
-  # enrollments regardless of the user's permissions at the enrollment's project.
-  # See docs/features/hmis/hmis-restricted-records.md
   class Instance < Hmis::AuthPolicies::BasePolicy
     # Whether the user can view the full enrollment details (grants access to the Enrollment Dashboard).
     # Note: "can_view_enrollment_details" requires the "can_view_project" and "can_view_clients" permissions
     # as dependencies, so the user must have all 3 permissions (enforced already by UserContext#project_permissions)
     def can_view_details?
-      permitted?(:can_view_enrollment_details)
+      project_permissions.include?(:can_view_enrollment_details)
     end
 
     # Whether the user can view limited enrollment details (Entry/Exit date, project name, project type, move-in date, last bed night date).
     # Note: user can have access to view limited enrollment details even if they cannot view the project.
     def can_view_limited?
-      permitted?(:can_view_limited_enrollment_details)
+      project_permissions.include?(:can_view_limited_enrollment_details)
     end
 
     def can_edit?
-      permitted?(:can_edit_enrollments)
+      project_permissions.include?(:can_edit_enrollments)
     end
 
     def can_delete?
@@ -34,12 +30,10 @@ class Hmis::AuthPolicies::HmisEnrollmentPolicy < Hmis::AuthPolicies::ResourcePol
       return can_edit? if enrollment.in_progress?
 
       # Otherwise, to delete an active enrollment the user needs "can_delete_enrollments" permission
-      permitted?(:can_delete_enrollments)
+      project_permissions.include?(:can_delete_enrollments)
     end
 
     def can_create_file?
-      return false if client_hidden?
-
       # User can create a file for this enrollment if they:
       # - can manage client files in the project, OR
       # - have the global permission can_manage_own_client_files
@@ -47,15 +41,15 @@ class Hmis::AuthPolicies::HmisEnrollmentPolicy < Hmis::AuthPolicies::ResourcePol
     end
 
     def can_split_household?
-      permitted?(:can_split_households)
+      project_permissions.include?(:can_split_households)
     end
 
     def can_audit?
-      permitted?(:can_audit_enrollments)
+      project_permissions.include?(:can_audit_enrollments)
     end
 
     def can_view_location_map?
-      permitted?(:can_view_enrollment_location_map)
+      project_permissions.include?(:can_view_enrollment_location_map)
     end
 
     # Whether the user can see a summary of all of this client's other open enrollments on the
@@ -63,23 +57,13 @@ class Hmis::AuthPolicies::HmisEnrollmentPolicy < Hmis::AuthPolicies::ResourcePol
     # permission intentionally exposes minimal info for open enrollments at any project, even
     # projects the user cannot otherwise access (via HmisSchema::EnrollmentSummary type).
     def can_view_open_enrollment_summary?
-      permitted?(:can_view_open_enrollment_summary)
+      project_permissions.include?(:can_view_open_enrollment_summary)
     end
 
     protected
 
     # convenience
     def enrollment = resource
-
-    def permitted?(permission)
-      return false if client_hidden?
-
-      project_permissions.include?(permission)
-    end
-
-    memoize def client_hidden?
-      context.enrollment_hidden?(enrollment.id)
-    end
 
     def project_permissions
       raise "Enrollment #{enrollment.id} is missing project_pk" unless enrollment.project_pk.present?
