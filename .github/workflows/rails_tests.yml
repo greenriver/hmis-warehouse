@@ -334,6 +334,8 @@ jobs:
             drivers/hmis/spec/requests/hmis_admin/users_controller_spec.rb
             spec/requests/admin/audits_controller_spec.rb
             spec/requests/idp/accounts_controller_spec.rb
+            spec/requests/idp/account_emails_controller_spec.rb
+            spec/jobs/idp/sync_user_from_idp_job_spec.rb
           )
           AUTH_METHOD=jwt IDP_AUD=test-aud ISS_URL=https://idp.example.test JWKS_URL=https://idp.example.test/jwks JWT_ALGORITHM=RS256 bundle exec rspec --fail-fast=$MAX_FAILURES --color -fd "${specs[@]}"
 

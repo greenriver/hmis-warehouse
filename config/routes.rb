@@ -1018,7 +1018,9 @@ Rails.application.routes.draw do
     # No :update — the JWT arm never writes email locally; the IdP owns the change (see
     # Idp::AccountEmailsController). begin_change hands the browser off to the IdP and writes nothing
     # about the address.
-    resource :account_email, only: [:edit], controller: 'idp/account_emails'
+    resource :account_email, only: [:edit], controller: 'idp/account_emails' do
+      post :begin_change
+    end
     resources :account_downloads, only: [:index], controller: 'idp/account_downloads'
   else
     resource :account, only: [:edit, :update] do
