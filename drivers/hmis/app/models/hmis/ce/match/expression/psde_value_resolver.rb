@@ -38,16 +38,39 @@ module Hmis::Ce::Match::Expression
 
     # Resolves the value for a PSDE field for a given set of destination clients.
     def call(clients, field)
-      return resolve_total_monthly_income(clients) if field.key == PsdeFieldRegistry::TOTAL_MONTHLY_INCOME.key
-
-      values_in_window = field.key.end_with?(PsdeFieldRegistry::VALUES_IN_WINDOW_SUFFIX)
-      base_key = field.key.delete_suffix(PsdeFieldRegistry::VALUES_IN_WINDOW_SUFFIX)
-      source = boolean_field_source(base_key)
-
-      if values_in_window
-        resolve_boolean_values_in_window(clients, **source)
+      case field.key
+      when PsdeFieldRegistry::TOTAL_MONTHLY_INCOME.key
+        resolve_total_monthly_income(clients)
+      when PsdeFieldRegistry::MENTAL_HEALTH_DISORDER.key
+        resolve_latest_boolean_response(clients, **boolean_field_source(PsdeFieldRegistry::MENTAL_HEALTH_DISORDER.key))
+      when PsdeFieldRegistry::MENTAL_HEALTH_DISORDER_VALUES_IN_WINDOW.key
+        resolve_boolean_values_in_window(clients, **boolean_field_source(PsdeFieldRegistry::MENTAL_HEALTH_DISORDER.key))
+      when PsdeFieldRegistry::SUBSTANCE_USE_DISORDER.key
+        resolve_latest_boolean_response(clients, **boolean_field_source(PsdeFieldRegistry::SUBSTANCE_USE_DISORDER.key))
+      when PsdeFieldRegistry::SUBSTANCE_USE_DISORDER_VALUES_IN_WINDOW.key
+        resolve_boolean_values_in_window(clients, **boolean_field_source(PsdeFieldRegistry::SUBSTANCE_USE_DISORDER.key))
+      when PsdeFieldRegistry::PHYSICAL_DISABILITY.key
+        resolve_latest_boolean_response(clients, **boolean_field_source(PsdeFieldRegistry::PHYSICAL_DISABILITY.key))
+      when PsdeFieldRegistry::PHYSICAL_DISABILITY_VALUES_IN_WINDOW.key
+        resolve_boolean_values_in_window(clients, **boolean_field_source(PsdeFieldRegistry::PHYSICAL_DISABILITY.key))
+      when PsdeFieldRegistry::DEVELOPMENTAL_DISABILITY.key
+        resolve_latest_boolean_response(clients, **boolean_field_source(PsdeFieldRegistry::DEVELOPMENTAL_DISABILITY.key))
+      when PsdeFieldRegistry::DEVELOPMENTAL_DISABILITY_VALUES_IN_WINDOW.key
+        resolve_boolean_values_in_window(clients, **boolean_field_source(PsdeFieldRegistry::DEVELOPMENTAL_DISABILITY.key))
+      when PsdeFieldRegistry::CHRONIC_HEALTH_CONDITION.key
+        resolve_latest_boolean_response(clients, **boolean_field_source(PsdeFieldRegistry::CHRONIC_HEALTH_CONDITION.key))
+      when PsdeFieldRegistry::CHRONIC_HEALTH_CONDITION_VALUES_IN_WINDOW.key
+        resolve_boolean_values_in_window(clients, **boolean_field_source(PsdeFieldRegistry::CHRONIC_HEALTH_CONDITION.key))
+      when PsdeFieldRegistry::HIV_AIDS.key
+        resolve_latest_boolean_response(clients, **boolean_field_source(PsdeFieldRegistry::HIV_AIDS.key))
+      when PsdeFieldRegistry::HIV_AIDS_VALUES_IN_WINDOW.key
+        resolve_boolean_values_in_window(clients, **boolean_field_source(PsdeFieldRegistry::HIV_AIDS.key))
+      when PsdeFieldRegistry::DOMESTIC_VIOLENCE_SURVIVOR.key
+        resolve_latest_boolean_response(clients, **boolean_field_source(PsdeFieldRegistry::DOMESTIC_VIOLENCE_SURVIVOR.key))
+      when PsdeFieldRegistry::DOMESTIC_VIOLENCE_SURVIVOR_VALUES_IN_WINDOW.key
+        resolve_boolean_values_in_window(clients, **boolean_field_source(PsdeFieldRegistry::DOMESTIC_VIOLENCE_SURVIVOR.key))
       else
-        resolve_latest_boolean_response(clients, **source)
+        raise ArgumentError, "Unknown PSDE field \"#{field.key}\""
       end
     end
 
