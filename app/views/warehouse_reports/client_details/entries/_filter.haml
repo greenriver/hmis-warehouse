@@ -1,12 +1,13 @@
 - content_for :page_js do
-  :javascript
-    $('#new_range').submit(function(e){
-      var $form = $(this);
-      // disable things *immediately after* submit
-      setTimeout(function(){
-        $form.find(':input').prop('disabled', true);
-      }, 0);
-    });
+  %script{ nonce: content_security_policy_nonce }
+    :plain
+      $('#new_range').submit(function(e){
+        var $form = $(this);
+        // disable things *immediately after* submit
+        setTimeout(function(){
+          $form.find(':input').prop('disabled', true);
+        }, 0);
+      });
 
 = simple_form_for @filter, as: :filter, url: polymorphic_path([:warehouse_reports, :client_details, :entries], sub_population: @filter.sub_population), html: { method: :get, class: 'jFilter' } do |f|
   - content_for :filters_col_full do

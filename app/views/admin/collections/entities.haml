@@ -14,21 +14,22 @@
     .ml-4= f.submit 'Save', class: ['btn', 'btn-primary', 'jSubmit']
 
 = content_for :page_js do
-  :javascript
-    table = $('.datatable').DataTable({
-      paging: false,
-      "dom": 'lrtip',
-      order: [[1, 'asc']]
-    });
-    $('#table_search').keyup(function(){
-      table.search($(this).val()).draw();
-    });
-    // Make sure all items are visible before submitting
-    $('body').on('click', '.jSubmit', function(e){
-      table.search('').draw();
-    })
-    // Enable full row clicking
-    $('body').on('click', '.jClickRow td', function(e) {
-      var checkboxes = $(e.currentTarget).closest('.jClickRow').find('input[type="checkbox"]');
-      checkboxes.prop('checked', !checkboxes.prop('checked'));
-    })
+  %script{ nonce: content_security_policy_nonce }
+    :plain
+      table = $('.datatable').DataTable({
+        paging: false,
+        "dom": 'lrtip',
+        order: [[1, 'asc']]
+      });
+      $('#table_search').keyup(function(){
+        table.search($(this).val()).draw();
+      });
+      // Make sure all items are visible before submitting
+      $('body').on('click', '.jSubmit', function(e){
+        table.search('').draw();
+      })
+      // Enable full row clicking
+      $('body').on('click', '.jClickRow td', function(e) {
+        var checkboxes = $(e.currentTarget).closest('.jClickRow').find('input[type="checkbox"]');
+        checkboxes.prop('checked', !checkboxes.prop('checked'));
+      })

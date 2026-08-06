@@ -47,11 +47,12 @@
               %td= @report.format_value(client[column], column.to_s)
 
 = content_for :page_js do
-  :javascript
-    let table = $('.datatable').DataTable({
-      paging: false,
-      "dom": 'lrtip'
-    });
-    $('#table_search').keyup(function(){
-      table.search($(this).val()).draw();
-    });
+  %script{ nonce: content_security_policy_nonce }
+    :plain
+      let table = $('.datatable').DataTable({
+        paging: false,
+        "dom": 'lrtip'
+      });
+      $('#table_search').keyup(function(){
+        table.search($(this).val()).draw();
+      });

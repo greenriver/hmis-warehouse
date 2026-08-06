@@ -54,10 +54,11 @@
   .alert.alert-info.jLoading
     %p.text-center Loading claims...
 = content_for :page_js do
-  :javascript
-    $.get('#{precalculated_warehouse_reports_health_claims_path}', function(data){
-      $('#jPrecalculated').append(data);
-      $('#jPrecalculated').find('.jLoading').remove();
-    });
+  %script{ nonce: content_security_policy_nonce }
+    :plain
+      $.get('#{precalculated_warehouse_reports_health_claims_path}', function(data){
+        $('#jPrecalculated').append(data);
+        $('#jPrecalculated').find('.jLoading').remove();
+      });
 
 = render 'precalculated_js'

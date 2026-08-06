@@ -7,19 +7,20 @@
 = f.input :social_supports, as: :text, label: 'Friendship/Social/Peer Support Relationships, Pets, Community Supports/Self Help Groups (AA, NA, SMART, NAMI, Peer Support, etc.)', placeholder: @assessment.social_supports_placeholder
 
 - content_for :page_js do
-  :javascript
-    $(document).ready(function() {
-      $('.jHasSupports').change(function() {
-        if(this.value == 'yes') {
-          $('.jHasSupportsPicker').slideDown();
-        } else {
-          $('.jHasSupportsPicker').slideUp();
-        }
-      });
+  %script{ nonce: content_security_policy_nonce }
+    :plain
+      $(document).ready(function() {
+        $('.jHasSupports').change(function() {
+          if(this.value == 'yes') {
+            $('.jHasSupportsPicker').slideDown();
+          } else {
+            $('.jHasSupportsPicker').slideUp();
+          }
+        });
 
-      $('.jHasSupports').each(function() {
-        if(this.value != 'no') {
-          $('.jHasSupportsPicker').hide();
-        }
+        $('.jHasSupports').each(function() {
+          if(this.value != 'no') {
+            $('.jHasSupportsPicker').hide();
+          }
+        });
       });
-    });

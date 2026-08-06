@@ -7,6 +7,7 @@
   = render 'entered'
 
   = content_for :page_js do
-    :javascript
-      var chart = $('#entered-chart');
-      new App.Dashboards.Clients.Entered(chart, chart.data('labels'), chart.data('data'));
+    %script{ nonce: content_security_policy_nonce }
+      :plain
+        var chart = $('#entered-chart');
+        new App.Dashboards.Clients.Entered(chart, chart.data('labels'), chart.data('data'));

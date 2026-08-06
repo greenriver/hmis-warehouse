@@ -11,14 +11,15 @@
   = f.button :submit, value: 'Add Service or Search for Client'
 
 = content_for :page_js do
-  :javascript
-    $(document).ready(function() {
-      $('.jType').on('change', function(e) {
-        if($(this).val() == 'other'){
-          $('.jOtherType').show();
-        } else {
-          $('.jOtherType').hide();
-        }
+  %script{ nonce: content_security_policy_nonce }
+    :plain
+      $(document).ready(function() {
+        $('.jType').on('change', function(e) {
+          if($(this).val() == 'other'){
+            $('.jOtherType').show();
+          } else {
+            $('.jOtherType').hide();
+          }
+        });
+        $('.jType').trigger('change');
       });
-      $('.jType').trigger('change');
-    });
