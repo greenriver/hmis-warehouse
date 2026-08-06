@@ -63,7 +63,7 @@ RSpec.describe 'ceMatchFields query', type: :request do
       },
       {
         'key' => 'mental_health_disorder',
-        'label' => 'Mental Health Disorder (latest)',
+        'label' => 'Mental Health Disorder',
         'itemType' => 'BOOLEAN',
         'multiple' => false,
         'expressionField' => 'psde.mental_health_disorder',

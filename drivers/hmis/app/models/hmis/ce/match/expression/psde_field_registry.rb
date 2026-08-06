@@ -17,7 +17,7 @@ module Hmis::Ce::Match::Expression
         key: key,
         value_type: :logical,
         multiple: false,
-        label: "#{label} (latest)",
+        label: label,
         description: "Latest Yes or No response for #{hud_description} within the eligibility scope. " \
                      'Client refused / doesn’t know / not collected (8/9/99) and blank answers are ignored.',
       )

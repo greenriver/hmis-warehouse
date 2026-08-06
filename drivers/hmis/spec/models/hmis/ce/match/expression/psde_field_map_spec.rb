@@ -85,7 +85,7 @@ RSpec.describe Hmis::Ce::Match::Expression::PsdeFieldMap, type: :model do
     end
 
     it 'returns the registry label for a disability field' do
-      expect(field_map.label_for('mental_health_disorder')).to eq('Mental Health Disorder (latest)')
+      expect(field_map.label_for('mental_health_disorder')).to eq('Mental Health Disorder')
     end
   end
 
