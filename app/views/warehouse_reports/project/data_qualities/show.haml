@@ -61,7 +61,8 @@
     Your search resulted in no projects,
     = link_to 'choose a less specific search.', warehouse_reports_project_data_quality_path
 = content_for :page_js do
-  :javascript
-    new App.SelectableList({
-      title: 'Organizations & Projects'
-    })
+  %script{ nonce: content_security_policy_nonce }
+    :plain
+      new App.SelectableList({
+        title: 'Organizations & Projects'
+      })

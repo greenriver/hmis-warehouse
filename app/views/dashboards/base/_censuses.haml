@@ -9,5 +9,6 @@
 
 - if @pdf
   = content_for :page_js do
-    :javascript
-      new App.Dashboards.Clients.Census('.jMonthlyCensus', '#{@report.sub_population_title}', '', #{chart_options.to_json.html_safe});
+    %script{ nonce: content_security_policy_nonce }
+      :plain
+        new App.Dashboards.Clients.Census('.jMonthlyCensus', '#{@report.sub_population_title}', '', #{chart_options.to_json.html_safe});

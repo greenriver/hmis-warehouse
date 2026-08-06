@@ -12,13 +12,14 @@
     = f.button :submit, value: 'Update View'
 
   - content_for :page_js do
-    :javascript
-      $('#new_range').submit(function(e){
-        var $form = $(this);
-        // disable things *immediately after* submit
-        setTimeout(function(){
-          $form.find(':input').prop('disabled', true);
-        }, 0);
-      });
+    %script{ nonce: content_security_policy_nonce }
+      :plain
+        $('#new_range').submit(function(e){
+          var $form = $(this);
+          // disable things *immediately after* submit
+          setTimeout(function(){
+            $form.find(':input').prop('disabled', true);
+          }, 0);
+        });
 
   = render 'warehouse_reports/filters', f:f

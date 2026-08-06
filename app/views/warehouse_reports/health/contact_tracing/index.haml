@@ -32,5 +32,6 @@
   .none-found No cases
 
 - content_for :page_js do
-  :javascript
-    new App.TableWithToggleRows('.j-toggle-row-content')
+  %script{ nonce: content_security_policy_nonce }
+    :plain
+      new App.TableWithToggleRows('.j-toggle-row-content')

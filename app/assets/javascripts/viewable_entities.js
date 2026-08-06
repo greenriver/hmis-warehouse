@@ -72,6 +72,10 @@ window.App.ViewableEntities = class {
         itemValues.push(items[i]);
       }
     }
+    // items comes from option.textContent, i.e. free-text entity names (data
+    // sources, cohorts, etc). Escape before interpolating into an HTML
+    // string, or a name containing markup reaches $listContainer.html() below.
+    const escapeHtml = (str) => $('<div>').text(str).html();
     const itemsMarkup = itemValues.map((item, i) => {
       let unlimitable = '';
       if (unlimitableIds.includes(parseInt(ids[i]))) {
@@ -83,7 +87,7 @@ window.App.ViewableEntities = class {
       }
       return `
         <li class='c-columns__column-list-item' data-id=${ids[i]}>
-          <span>${item}</span>
+          <span>${escapeHtml(item)}</span>
           ${unlimitable}
           ${icon_span}
         </li>

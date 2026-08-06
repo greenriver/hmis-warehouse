@@ -11,15 +11,16 @@
           .jEdIpVisitChart.opaque-area-chart
 
 - content_for :page_js do
-  :javascript
-    $(document).ready(function() {
-      var data = #{@client.health_housing_stati.to_json.html_safe}
-      hsChart = {
-        margin: {top: 25, right: 45, bottom: 70, left: 150},
-        selector: '.d3-housing-status__chart',
-        data: data,
-        type: 'hs',
-        viewBoxSizing: true
-      }
-      var pc = new App.D3Chart.PatientCharts([hsChart])
-    })
+  %script{ nonce: content_security_policy_nonce }
+    :plain
+      $(document).ready(function() {
+        var data = #{@client.health_housing_stati.to_json.html_safe}
+        hsChart = {
+          margin: {top: 25, right: 45, bottom: 70, left: 150},
+          selector: '.d3-housing-status__chart',
+          data: data,
+          type: 'hs',
+          viewBoxSizing: true
+        }
+        var pc = new App.D3Chart.PatientCharts([hsChart])
+      })
