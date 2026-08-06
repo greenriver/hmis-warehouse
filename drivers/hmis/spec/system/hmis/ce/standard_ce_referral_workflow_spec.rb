@@ -17,8 +17,6 @@ RSpec.feature 'Standard CE Referral Workflow', type: :system do
       ds1 = GrdaWarehouse::DataSource.find_by!(hmis: 'localhost') # created in E2eSystemSuite.seed_hmis_json_forms!
 
       # Seed the CE Referral Step forms.
-      # In the test env, JsonForms defaults to env_key: 'test', which picks up the Standard
-      # workflow forms in lib/form_data/test/ce_referral_steps.
       HmisUtil::JsonForms.new(data_source_id: ds1.id, env_key: 'demo', generate_cdeds: true).
         seed_record_form_definitions(roles: [:CE_REFERRAL_STEP])
       CeWorkflows::Shared::CeBuilderUtils.create_state_machine_custom_statuses(ds1)
