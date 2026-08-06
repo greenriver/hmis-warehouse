@@ -159,7 +159,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
         include ActiveJob::TestHelper
         before do
           perform_enqueued_jobs do
-            destination_client.split([source_clients.first.id], user)
+            destination_client.split([source_clients.first.id], nil, [], user)
           end
         end
         it 'there are two destination clients and one contains only the first source client' do
@@ -175,6 +175,166 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
           expect(destination_client.reload.asian).to eq(source_clients.second.asian)
         end
       end
+    end
+  end
+
+  describe '#move_dependent_hmis_items' do
+    let(:previous) { create(:hud_client, data_source_id: destination_ds.id) }
+    let(:new_client) { create(:hud_client, data_source_id: destination_ds.id) }
+
+    it 'moves only the requested categories, leaving unrequested categories behind' do
+      note = create(:grda_warehouse_client_notes_window_note, client_id: previous.id)
+      file = create(:client_file, client: previous)
+
+      new_client.move_dependent_hmis_items(previous.id, new_client.id, categories: [:notes])
+
+      expect(note.reload.client_id).to eq(new_client.id)
+      expect(file.reload.client_id).to eq(previous.id)
+    end
+
+    it 'moves CE Assessments and client-owned Custom Data Elements, which were previously never wired into the move logic' do
+      ce_assessment = GrdaWarehouse::CoordinatedEntryAssessment::Individual.create!(
+        client: previous,
+        user: user,
+        assessor: user,
+      )
+      cded = create(:hmis_custom_data_element_definition_for_color)
+      custom_data_element = create(
+        :hmis_custom_data_element,
+        owner: Hmis::Hud::Client.find(previous.id),
+        data_element_definition: cded,
+        value_string: 'Blue',
+      )
+
+      new_client.move_dependent_hmis_items(previous.id, new_client.id, categories: [:ce_assessments, :custom_data_elements])
+
+      expect(ce_assessment.reload.client_id).to eq(new_client.id)
+      expect(custom_data_element.reload.owner_id).to eq(new_client.id)
+    end
+
+    it 'moves everything when no categories are specified, preserving merge_from behavior' do
+      note = create(:grda_warehouse_client_notes_window_note, client_id: previous.id)
+      chronic = create(:chronic, client_id: previous.id, date: 1.month.ago)
+
+      new_client.move_dependent_hmis_items(previous.id, new_client.id)
+
+      expect(note.reload.client_id).to eq(new_client.id)
+      expect(chronic.reload.client_id).to eq(new_client.id)
+    end
+  end
+
+  describe '#dependent_item_counts' do
+    let(:client) { create(:hud_client, data_source_id: destination_ds.id) }
+
+    it 'counts each category independently, including the newly-wired CE Assessments/Custom Data Elements and the aggregated Other bucket' do
+      create_list(:grda_warehouse_client_notes_window_note, 2, client_id: client.id)
+      create(:client_file, client: client)
+      GrdaWarehouse::CoordinatedEntryAssessment::Individual.create!(client: client, user: user, assessor: user)
+      cded = create(:hmis_custom_data_element_definition_for_color)
+      create(:hmis_custom_data_element, owner: Hmis::Hud::Client.find(client.id), data_element_definition: cded, value_string: 'Green')
+      create(:hud_chronic, client_id: client.id, date: 1.month.ago)
+      create(:chronic, client_id: client.id, date: 1.month.ago)
+
+      expect(client.dependent_item_counts).to eq(
+        notes: 2,
+        files: 1,
+        vispdats: 0,
+        cohort_assignments: 0,
+        ce_assessments: 1,
+        custom_data_elements: 1,
+        other: 2,
+      )
+    end
+  end
+
+  describe '#split with per-category item movement' do
+    let!(:organization) { create(:hud_organization, data_source: source_ds) }
+    let!(:project) { create(:hud_project, project_type: 1, organization: organization, data_source: source_ds) }
+    let!(:source_a) { create(:hud_client, data_source_id: source_ds.id) }
+    let!(:source_b) { create(:hud_client, data_source_id: source_ds.id) }
+    let!(:destination_client) { create(:hud_client, data_source_id: destination_ds.id) }
+    let!(:note) { create(:grda_warehouse_client_notes_window_note, client_id: destination_client.id) }
+    let!(:client_file) { create(:client_file, client: destination_client) }
+
+    before do
+      GrdaWarehouse::WarehouseClient.create!(destination_id: destination_client.id, source_id: source_a.id, id_in_source: source_a.PersonalID)
+      GrdaWarehouse::WarehouseClient.create!(destination_id: destination_client.id, source_id: source_b.id, id_in_source: source_b.PersonalID)
+      [source_a, source_b].each { |c| create(:hud_enrollment, client: c, project: project, data_source: source_ds, entry_date: 2.years.ago.to_date) }
+    end
+
+    it 'moves only the chosen categories to the chosen receiver' do
+      destination_client.split([source_a.id], source_a.id, [:notes], user)
+
+      new_destination = source_a.reload.destination_client
+      expect(note.reload.client_id).to eq(new_destination.id)
+      expect(client_file.reload.client_id).to eq(destination_client.id)
+    end
+
+    it 'moves nothing when no receiver is chosen, even if categories are checked' do
+      destination_client.split([source_a.id], nil, [:notes, :files], user)
+
+      expect(note.reload.client_id).to eq(destination_client.id)
+      expect(client_file.reload.client_id).to eq(destination_client.id)
+    end
+  end
+
+  describe '#data_source_deleted?' do
+    it 'is true only once the data source has been soft-deleted' do
+      active_ds = create(:source_data_source)
+      deleted_ds = create(:source_data_source)
+      active_client = create(:hud_client, data_source_id: active_ds.id)
+      deleted_client = create(:hud_client, data_source_id: deleted_ds.id)
+
+      deleted_ds.destroy
+
+      expect(active_client.reload.data_source_deleted?).to be(false)
+      expect(deleted_client.reload.data_source_deleted?).to be(true)
+    end
+  end
+
+  describe '#active_source_clients' do
+    let(:destination_client) { create(:hud_client, data_source_id: destination_ds.id) }
+    let(:active_ds) { create(:source_data_source) }
+    let(:deleted_ds) { create(:source_data_source) }
+    let(:active_source) { create(:hud_client, data_source_id: active_ds.id) }
+    let(:deleted_source) { create(:hud_client, data_source_id: deleted_ds.id) }
+
+    before do
+      GrdaWarehouse::WarehouseClient.create!(destination_id: destination_client.id, source_id: active_source.id, id_in_source: active_source.PersonalID)
+      GrdaWarehouse::WarehouseClient.create!(destination_id: destination_client.id, source_id: deleted_source.id, id_in_source: deleted_source.PersonalID)
+      deleted_ds.destroy
+    end
+
+    it 'excludes source clients whose data source has been soft-deleted, even though both are joined' do
+      expect(destination_client.active_source_clients).to contain_exactly(active_source)
+    end
+
+    it 'includes a second source client once its data source is confirmed non-deleted' do
+      second_active_source = create(:hud_client, data_source_id: active_ds.id)
+      GrdaWarehouse::WarehouseClient.create!(destination_id: destination_client.id, source_id: second_active_source.id, id_in_source: second_active_source.PersonalID)
+
+      expect(destination_client.active_source_clients).to contain_exactly(active_source, second_active_source)
+    end
+  end
+
+  describe '#potential_matches' do
+    let(:client) { create(:hud_client, FirstName: 'Rob', LastName: 'Smith', data_source_id: source_ds.id) }
+
+    it 'matches destination clients by word-prefix in either name order, excluding substring-only and wrong-scope matches' do
+      prefix_match = create(:hud_client, FirstName: 'Robert', LastName: 'Smithers', data_source_id: destination_ds.id)
+      swapped_order_match = create(:hud_client, FirstName: 'Smithville', LastName: 'Robertson', data_source_id: destination_ds.id)
+      create(:hud_client, FirstName: 'Robby', LastName: 'Blacksmith', data_source_id: destination_ds.id)
+      create(:hud_client, FirstName: 'Robert', LastName: 'Smithers', data_source_id: source_ds.id)
+
+      matches = client.potential_matches[:by_name]
+
+      expect(matches).to contain_exactly(prefix_match, swapped_order_match)
+    end
+
+    it 'returns no matches when the client has a blank first or last name' do
+      blank_named_client = create(:hud_client, FirstName: '', LastName: 'Smith', data_source_id: source_ds.id)
+
+      expect(blank_named_client.potential_matches).to eq({})
     end
   end
 end
