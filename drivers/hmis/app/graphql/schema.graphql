@@ -7451,7 +7451,7 @@ type Mutation {
     """
     input: SaveAssessmentInput!
   ): SaveAssessmentPayload
-  setClientRestricted(clientId: ID!, lockVersion: Int, restricted: Boolean!): SetClientRestrictedPayload
+  setClientRestricted(clientId: ID!, restricted: Boolean!): SetClientRestrictedPayload
   splitHousehold(splittingEnrollmentInputs: [EnrollmentRelationshipInput!]!): SplitHouseholdPayload
   startCeReferralStep(referralId: ID!, stepId: ID!): StartCeReferralStepPayload
 

@@ -423,5 +423,9 @@ module Types
     def ce_referrals(**args)
       resolve_ce_referrals(object.ce_referrals, **args)
     end
+
+    def restricted
+      load_ar_association(object, :restricted_record).present?
+    end
   end
 end
