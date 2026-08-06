@@ -15,23 +15,24 @@
 
   = render 'common/panel_collapse', id: 'computation-info', title: 'How this Data is Computed'
 = content_for :page_js do
-  :javascript
-    var followups = bb.generate({
-      data: {
-        x: 'x',
-        xFormat: '%Y-%m-%d',
-        columns: #{@report.for_chart.to_json.html_safe}
-      },
-      axis: {
-        x: {
-          type: 'timeseries',
-          tick: {
-            format: '%m-%Y'
+  %script{ nonce: content_security_policy_nonce }
+    :plain
+      var followups = bb.generate({
+        data: {
+          x: 'x',
+          xFormat: '%Y-%m-%d',
+          columns: #{@report.for_chart.to_json.html_safe}
+        },
+        axis: {
+          x: {
+            type: 'timeseries',
+            tick: {
+              format: '%m-%Y'
+            }
           }
-        }
-      },
-      padding: {
-        left: 30
-      },
-      bindto: '#jFollowupChart'
-    });
+        },
+        padding: {
+          left: 30
+        },
+        bindto: '#jFollowupChart'
+      });

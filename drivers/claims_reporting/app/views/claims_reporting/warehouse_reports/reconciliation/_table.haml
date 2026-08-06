@@ -34,13 +34,14 @@
             %td= @report.qa_missing_careplan_count_for_patient(patient)
             %td= @report.careplan_dates_for_patient(patient)
 = content_for :page_js do
-  :javascript
-    $(function() {
-      $('.datatable').DataTable({
-        searching: true,
-        ordering: true,
-        paging: false,
-        info: false,
-        scrollY: '60vh'
+  %script{ nonce: content_security_policy_nonce }
+    :plain
+      $(function() {
+        $('.datatable').DataTable({
+          searching: true,
+          ordering: true,
+          paging: false,
+          info: false,
+          scrollY: '60vh'
+        })
       })
-    })

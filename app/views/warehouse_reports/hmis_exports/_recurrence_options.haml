@@ -41,28 +41,29 @@
       = f.button :submit, value: save_language, data: { disable_with: 'running...' }
 
 = content_for :page_js do
-  :javascript
-    $(document).ready(function() {
-      $('.jRecurringDays').on('change', function(e) {
-        var value = $('.jRecurringDays').val();
-        if(value == '0'){
-          $('.jDependentRecurringFields').hide();
-        }
-        else {
-          $('.jDependentRecurringFields').show();
-        }
+  %script{ nonce: content_security_policy_nonce }
+    :plain
+      $(document).ready(function() {
+        $('.jRecurringDays').on('change', function(e) {
+          var value = $('.jRecurringDays').val();
+          if(value == '0'){
+            $('.jDependentRecurringFields').hide();
+          }
+          else {
+            $('.jDependentRecurringFields').show();
+          }
+        });
+        $('.jReportingRange').on('change', function (e) {
+          var value = $(".jReportingRange").val();
+          if(value == "n_days") {
+            $(".jReportingRangeDays input").removeAttr("disabled");
+            $(".jReportingRangeDays").show();
+          }
+          else {
+            $(".jReportingRangeDays input").attr('disabled', 'disabled');
+            $(".jReportingRangeDays").hide();
+          }
+        });
+        $('.jReportingRange').trigger('change');
+        $('.jRecurringDays').trigger('change');
       });
-      $('.jReportingRange').on('change', function (e) {
-        var value = $(".jReportingRange").val();
-        if(value == "n_days") {
-          $(".jReportingRangeDays input").removeAttr("disabled");
-          $(".jReportingRangeDays").show();
-        }
-        else {
-          $(".jReportingRangeDays input").attr('disabled', 'disabled');
-          $(".jReportingRangeDays").hide();
-        }
-      });
-      $('.jReportingRange').trigger('change');
-      $('.jRecurringDays').trigger('change');
-    });

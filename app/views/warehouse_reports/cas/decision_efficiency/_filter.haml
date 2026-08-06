@@ -25,12 +25,13 @@
   = render 'warehouse_reports/filters', f:f
 
 - content_for :page_js do
-  :javascript
-    $(function(){
-      $('.jTrigger').on('change', function(e){
-        $('.jDependent :input').val('');
-        var url = new URL(window.location.href);
-        url.searchParams.set("steps[match_route]", $(this).val());
-        window.location = url.href;
+  %script{ nonce: content_security_policy_nonce }
+    :plain
+      $(function(){
+        $('.jTrigger').on('change', function(e){
+          $('.jDependent :input').val('');
+          var url = new URL(window.location.href);
+          url.searchParams.set("steps[match_route]", $(this).val());
+          window.location = url.href;
+        });
       });
-    });

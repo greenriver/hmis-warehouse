@@ -27,10 +27,11 @@
               = link_to admin_health_team_member_path(member.id), class: 'btn btn-danger btn-icon-only btn-sm', method: :delete do
                 %i.icon-cross
   = content_for :page_js do
-    :javascript
-      $('.datatable').DataTable({
-        searching: true,
-        ordering: true,
-        paging: false,
-        info: false
-      });
+    %script{ nonce: content_security_policy_nonce }
+      :plain
+        $('.datatable').DataTable({
+          searching: true,
+          ordering: true,
+          paging: false,
+          info: false
+        });
