@@ -119,6 +119,9 @@ module HudApr::Generators::Shared::Fy2026
           hh_id = get_hh_id(last_service_history_enrollment)
           # Fetch the Head of Household's enrollment, but if we don't have a head, just use ours
           hoh_enrollment = hoh_enrollments[hh_id] || last_service_history_enrollment
+          # Annual assessment timing is anchored on the household's HoH even when they exited before
+          # the report period, so it does not use the HoH enrollment above
+          annual_hoh_enrollment = household_hoh_enrollments[hh_id] || hoh_enrollment
           if needs_ce_assessments?
             ce_latest_assessment = latest_ce_assessment(last_service_history_enrollment, hoh_enrollment)
             ce_latest_event = latest_ce_event(last_service_history_enrollment, hoh_enrollment, ce_latest_assessment)
@@ -159,7 +162,7 @@ module HudApr::Generators::Shared::Fy2026
           exit_record = last_service_history_enrollment.enrollment if exit_date.present? && exit_date <= @report.end_date
 
           income_at_start = enrollment.income_benefits_at_entry
-          income_at_annual_assessment = annual_assessment(enrollment, hoh_enrollment.first_date_in_program)
+          income_at_annual_assessment = annual_assessment(enrollment, annual_hoh_enrollment.first_date_in_program)
           income_at_exit = exit_record&.income_benefits_at_exit
 
           disabilities = enrollment.disabilities.select { |disability| [1, 2, 3].include?(disability.DisabilityResponse) }
@@ -208,7 +211,7 @@ module HudApr::Generators::Shared::Fy2026
           # else
           #   household_types[hh_id]
           # end
-          hoh_anniversary_date = anniversary_date(entry_date: hoh_enrollment.first_date_in_program, report_end_date: @report.end_date)
+          hoh_anniversary_date = anniversary_date(entry_date: annual_hoh_enrollment.first_date_in_program, report_end_date: @report.end_date)
           # Households with required assessments are calculated earlier for performance reasons.
           # An APR is being submitted to verify assessment requirements for non-HoH adults entering the HH at a different date than the HoH.
           # e.g. If an adult enters 1 day prior HoH assessment date, is their assessment required on the HoH date (1 day later) or on the following year (1 year + 1 day later)
@@ -258,7 +261,7 @@ module HudApr::Generators::Shared::Fy2026
             alcohol_abuse_latest: [1, 3].include?(disabilities_latest_in_report.detect(&:substance?)&.DisabilityResponse),
             annual_assessment_expected: annual_assessment_expected,
             # anniversary dates are always based on HoH enrollment
-            annual_assessment_in_window: annual_assessment_in_window?(hoh_enrollment, income_at_annual_assessment&.InformationDate),
+            annual_assessment_in_window: annual_assessment_in_window?(annual_hoh_enrollment, income_at_annual_assessment&.InformationDate),
             approximate_time_to_move_in: approximate_move_in_dates[last_service_history_enrollment.client_id],
             came_from_street_last_night: enrollment.PreviousStreetESSH,
             chronic_disability_entry: disabilities_at_entry.detect(&:chronic?)&.DisabilityResponse,
@@ -636,8 +639,11 @@ module HudApr::Generators::Shared::Fy2026
     # section of the HMIS Reporting Glossary uses as the anniversary date, per: in the event a household has
     # more than one head of household active in the report range, (i.e., if the first HoH exited and another
     # household member became the HoH), the later HoH's [project start date] will be back-dated to the first
-    # HoH's [project start date].  Includes enrollments outside enrollment_scope so households whose head of
-    # household exited before the report period still get the correct anniversary.
+    # HoH's [project start date].
+    # Deliberately ignores the report date range so that a household whose head of household exited before
+    # the report period, and where no other member was recorded as the head of household, still has an
+    # anniversary.  Datalab does the same, calculating annual_assessment_dates from the unfiltered
+    # Enrollment table rather than from the enrollments included in the report.
     private def household_hoh_enrollments
       @household_hoh_enrollments ||= begin
         household_ids = enrollment_scope_without_preloads.where.not(household_id: nil).select(:household_id)
