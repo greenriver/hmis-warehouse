@@ -6,7 +6,7 @@ An active (non-deleted) row means the associated record is restricted. Soft-dele
 
 ## Use Cases
 
-- **Restricted clients**: Hide clients from staff who lack `can_view_restricted_clients` at a project where the client is or was enrolled. Users with that permission (plus `can_view_clients`) can see the client; users without it should not discover the client in search, lists, merge candidates, or related views.
+- **Restricted clients**: Hide clients from staff who lack `can_view_restricted_clients` at a project where the client is or was enrolled. Users with that permission (plus `can_view_clients`) can see the client; users without it cannot.
 - **Future record types**: The polymorphic `restrictable` association is designed so additional HMIS models can be marked restricted without a new table per type. Potential future use-cases:
   - **CustomAssessment**: Ability to mark a specific Assessment as restricted.
   - **FormDefinition**: Ability to mark a specific Form as restricted, for example an assessment Form that collects particularly sensitive data.

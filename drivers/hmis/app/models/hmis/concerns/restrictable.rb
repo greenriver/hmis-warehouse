@@ -17,11 +17,6 @@ module Hmis::Concerns::Restrictable
     restricted_record.present?
   end
 
-  # GraphQL and serializers use the `restricted` name.
-  def restricted
-    restricted?
-  end
-
   def mark_as_restricted!(user:)
     Hmis::RestrictedRecord.mark!(self, user: user)
   end

@@ -53,6 +53,11 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     expect_access_denied post_graphql(clientId: client.id.to_s, restricted: true) { mutation }
   end
 
+  it 'denies users without view permission' do
+    remove_permissions(access_control, :can_view_restricted_clients)
+    expect_access_denied post_graphql(clientId: client.id.to_s, restricted: true) { mutation }
+  end
+
   it 'creates an audit trail entry' do
     expect do
       post_graphql(clientId: client.id.to_s, restricted: true) { mutation }
