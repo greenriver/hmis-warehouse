@@ -14,7 +14,7 @@ module Types
       class_methods do
         def ce_referrals_field(name = :ce_referrals, description = nil, filter_args: {}, **override_options, &block)
           default_field_options = {
-            type: Types::HmisSchema::CeReferral.page_type,
+            type: Types::HmisSchema::CeReferral.page_type(include_search_query_id: true),
             null: false,
             description: description,
             after_paginate: ->(nodes, ctx) {
