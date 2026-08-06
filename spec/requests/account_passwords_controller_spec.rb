@@ -8,7 +8,9 @@
 
 require 'rails_helper'
 
-RSpec.describe AccountPasswordsController, type: :request do
+# Devise-only: passwords are IdP-owned under jwt, so config/routes.rb omits `resource
+# :account_password` entirely on that arm.
+RSpec.describe AccountPasswordsController, :devise_only, type: :request do
   # TODO: - get auth working in tests
   let(:user) { create :user }
   let(:email)  { ActionMailer::Base.deliveries.last }

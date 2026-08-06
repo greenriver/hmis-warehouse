@@ -11,9 +11,8 @@ require_relative 'login_and_permissions'
 
 # Proves the HMIS request layer wires the JWT auth path correctly when a Deployment boots with
 # AUTH_METHOD=jwt. Mirrors spec/requests/idp/warehouse_jwt_wiring_spec.rb, but every auth-failure
-# path returns JSON (the SPA contract) rather than an HTML redirect/render. The JWT examples run
-# only under the AUTH_METHOD=jwt CI process (they lean on the JwtAuthenticationHelper sign_in,
-# included only when AuthMethod.jwt?).
+# path returns JSON (the SPA contract) rather than an HTML redirect/render. The JWT examples lean on
+# the JwtAuthenticationHelper sign_in, included only when AuthMethod.jwt?.
 #
 # find_or_create_from_jwt is deliberately NOT stubbed: sign_in provisions a real
 # Idp::UserAuthenticationSource for the token's (connector_id, connector_user_id), so the real
@@ -21,7 +20,7 @@ require_relative 'login_and_permissions'
 # would make token→holder resolution unfalsifiable — resolving the wrong user, or ignoring the
 # token entirely, would still pass. The one exception is the no-warehouse-account example, which
 # stubs nil to force a branch that has no reachable fixture.
-RSpec.describe 'HMIS JWT wiring', type: :request, if: AuthMethod.jwt? do
+RSpec.describe 'HMIS JWT wiring', :jwt_only, type: :request do
   let(:ds) { create :hmis_primary_data_source }
   let(:headers) { { 'HOST' => ds.hmis } }
 
@@ -297,10 +296,14 @@ RSpec.describe 'HMIS JWT wiring', type: :request, if: AuthMethod.jwt? do
       # The token's connector is 'test' (see JwtAuthenticationHelper), which resolves to a
       # NullService, so a service has to be stubbed in to get past the predicate.
       let(:idp_service) do
+        # Idp::Support#idp_service builds a service for the user payload too, so this double answers
+        # every for_connector('test') call an example makes, not only the sign-out's — hence
+        # supports_email_self_service?, which Idp::Support#email_change_enabled? calls on each render.
         instance_double(
           Idp::KeycloakService,
           supports_session_logout?: true,
           logout_user_sessions: true,
+          supports_email_self_service?: false,
         )
       end
 
@@ -397,7 +400,8 @@ RSpec.describe 'HMIS JWT wiring', type: :request, if: AuthMethod.jwt? do
 
         delete destroy_hmis_user_session_path, headers: headers
 
-        expect(Idp::ServiceFactory).to have_received(:for_connector).with('test')
+        # Not an exact count: the user payload consults the factory too (see idp_service above).
+        expect(Idp::ServiceFactory).to have_received(:for_connector).with('test').at_least(:once)
         expect_signed_out_normally
       end
 
@@ -416,9 +420,9 @@ RSpec.describe 'HMIS JWT wiring', type: :request, if: AuthMethod.jwt? do
 
         expect(response).to have_http_status(:forbidden)
         expect(JSON.parse(response.body).dig('error', 'type')).to eq('no_warehouse_account')
-        # The guard the previous wording claimed to cover: the factory is never consulted, so this
-        # can't pass by falling through to a NullService the way the old assertion could.
-        expect(Idp::ServiceFactory).not_to have_received(:for_connector).with('test')
+        # On the service, not on Idp::ServiceFactory: the user payload consults the factory too
+        # (see idp_service above), so the factory cannot carry a never-consulted assertion.
+        expect(idp_service).not_to have_received(:logout_user_sessions)
       end
 
       # The whole reason the id comes off the token: current_hmis_user is the impersonated user here,

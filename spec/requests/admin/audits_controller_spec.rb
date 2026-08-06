@@ -12,10 +12,9 @@ require 'rails_helper'
 # @user.login_locations_enabled? (true for Devise, false for JWT — see Idp::Support and
 # DeviseOktaSupport), so it renders for the Devise arm and is omitted for the JWT arm, where the
 # admin_user_locations_path route helper isn't defined at all and would raise NoMethodError.
-# Runs under whichever AUTH_METHOD the suite is booted with; see the JWT CI step for the
-# AUTH_METHOD=jwt boot of this same file. That CI step names this file explicitly in its rspec
-# invocation — if it's ever dropped from that list, the JWT-arm half of this guard silently stops
-# running (a Devise-arm run can't catch it: admin_user_locations_path exists either way there).
+# Runs under whichever AUTH_METHOD the suite is booted with, and both halves are load-bearing: a
+# Devise-arm run cannot catch a regression in the JWT half, since admin_user_locations_path is
+# defined either way there.
 RSpec.describe 'Admin::Audits', type: :request do
   let(:admin_user) { create(:acl_user) }
   let(:target_user) { create(:user, first_name: 'Test', last_name: 'User') }

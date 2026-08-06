@@ -8,7 +8,7 @@
 
 require 'rails_helper'
 
-RSpec.describe Api::PingsController, type: :request, if: AuthMethod.jwt? do
+RSpec.describe Api::PingsController, :jwt_only, type: :request do
   let(:user) { create(:user) }
 
   it 'returns 200 for an authenticated user' do

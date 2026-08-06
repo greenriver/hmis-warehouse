@@ -136,6 +136,16 @@ RSpec.describe 'bin/ci_matrix_router.rb' do
         buckets_file.unlink
       end
     end
+
+    # A step whose `if: matrix.test_group.<flag>` is false is skipped, not failed, so dropping a flag
+    # here loses that step's coverage on a green run — for `devise`, the whole AUTH_METHOD=devise arm.
+    it 'puts the once-per-run step flags on ci_default' do
+      output = run_script
+      groups = JSON.parse(output['unit_matrix'])['test_group']
+      ci_default = groups.find { |g| g['id'] == 'ci_default' }
+
+      expect(ci_default).to include('okta' => true, 'logging' => true, 'devise' => true)
+    end
   end
 
   context 'when validating test paths' do

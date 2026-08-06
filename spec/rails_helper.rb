@@ -76,6 +76,27 @@ RSpec.configure do |config|
     config.include Devise::Test::ControllerHelpers, type: :controller
     config.include Devise::Test::IntegrationHelpers, type: :request
   end
+
+  # :devise_only and :jwt_only mark an example that only makes sense on one arm. The tag is the whole
+  # marker — see docs/features/warehouse/ci-test-bucketing.md and spec/lib/auth_method_arm_tags_spec.rb
+  # for why it is a tag and not an `if:` condition.
+  #
+  # Both mechanisms are needed, because they cover different invocations. filter_run_excluding covers
+  # bulk runs; the before hook covers `rspec path:line`, --example, and an explicit --tag, where
+  # RSpec's location and tag filters take priority over exclusion filters and would otherwise run the
+  # example against routes that are not mounted.
+  if AuthMethod.jwt?
+    config.filter_run_excluding(:devise_only)
+    config.before(:each, :devise_only) do |example|
+      raise "#{example.location} is tagged :devise_only; re-run it under AUTH_METHOD=devise."
+    end
+  else
+    config.filter_run_excluding(:jwt_only)
+    config.before(:each, :jwt_only) do |example|
+      raise "#{example.location} is tagged :jwt_only; re-run it under AUTH_METHOD=jwt."
+    end
+  end
+
   config.include FactoryBot::Syntax::Methods
   config.include HmisCsvFixtures
   config.include AccessControlSetup
@@ -171,4 +192,15 @@ end
 
 def regex_for_warehouse_sign_in
   /#{Regexp.escape(new_user_session_path)}/
+end
+
+# Arm-aware analogue of LoginAndPermissionsSpecHelper#expect_unauthenticated_api_request for the
+# warehouse redirect surface. The request must run inside the block: under JWT a tokenless request
+# to an authenticated route raises Idp::UnauthenticatedRequestError (oauth2-proxy owns sign-in, so
+# an untokened request reaching Rails was never proxied), rather than redirecting as Devise does.
+def expect_unauthenticated_warehouse_request
+  return expect { yield }.to raise_error(Idp::UnauthenticatedRequestError) if AuthMethod.jwt?
+
+  yield
+  expect(response).to redirect_to(regex_for_warehouse_sign_in)
 end

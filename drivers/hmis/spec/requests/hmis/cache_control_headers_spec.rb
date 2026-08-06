@@ -39,9 +39,13 @@ RSpec.describe 'HMIS Cache-Control headers', type: :request do
     end
   end
 
+  # Not the GraphQL endpoint the authenticated context uses: a tokenless POST to /hmis/hmis-gql raises
+  # under AUTH_METHOD=jwt, leaving no response to read headers off. GET /hmis/user.json answers
+  # without credentials on both arms, because Hmis::UsersController skips authenticate_hmis_user!.
   context 'when not authenticated' do
     before do
-      post '/hmis/hmis-gql', params: { query: query }.to_json, headers: { 'Content-Type' => 'application/json' }
+      get hmis_user_path
+      expect(response).to have_http_status(:ok)
     end
 
     it 'does not set no-store Cache-Control' do

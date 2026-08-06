@@ -89,11 +89,15 @@ module Hmis::Concerns::JwtHmisCurrentUser
       raise Idp::UnauthenticatedRequestError, request.path unless idp_jwt_helper_for_request.token?
 
       # 403, not 401: signing in again can't produce an account. A 401 would send the SPA to a
-      # sign-in screen it would come straight back from.
+      # sign-in screen it would come straight back from. The SPA reads error.type on a 403 and shows
+      # a terminal page (hmis-frontend apolloErrorLink.tsx -> AccountTerminalErrorDialog); under the
+      # Devise arm the equivalent state is a 401 that takes the re-auth path instead. Contract table:
+      # hmis-frontend src/modules/auth/hooks/README.md.
       render_json_error(403, :no_warehouse_account)
     end
 
     def idp_handle_deactivated
+      # 403 :account_deactivated -> terminal page in the SPA; see idp_handle_unauthenticated above.
       render_json_error(403, :account_deactivated)
     end
 

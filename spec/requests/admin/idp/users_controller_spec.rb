@@ -10,10 +10,9 @@ require 'rails_helper'
 require 'webmock/rspec'
 require 'nokogiri'
 
-# JWT-arm admin user management. These assertions require the app to have booted under
-# AUTH_METHOD=jwt (the dedicated CI step), where the route-level seam mounts
-# Admin::Idp::UsersController and JwtAuthenticationHelper#sign_in is active.
-RSpec.describe Admin::Idp::UsersController, type: :request, if: AuthMethod.jwt? do
+# JWT-arm admin user management. On this arm the route-level seam mounts Admin::Idp::UsersController
+# and JwtAuthenticationHelper#sign_in is active.
+RSpec.describe Admin::Idp::UsersController, :jwt_only, type: :request do
   # Keycloak/IdP scaffolding: a creation-capable 'test' connector backed by DB credentials,
   # a stubbed token endpoint, and WebMock net isolation.
   let(:api_url) { 'http://keycloak.test:8080' }

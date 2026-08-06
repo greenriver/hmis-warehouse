@@ -8,7 +8,7 @@
 
 require 'rails_helper'
 
-RSpec.describe HmisAdmin::UsersController, type: :request, if: AuthMethod.jwt? do
+RSpec.describe HmisAdmin::UsersController, :jwt_only, type: :request do
   let!(:data_source) { create(:hmis_data_source) }
   let!(:admin_user) { create(:acl_user, first_name: 'Admin', last_name: 'User') }
 
