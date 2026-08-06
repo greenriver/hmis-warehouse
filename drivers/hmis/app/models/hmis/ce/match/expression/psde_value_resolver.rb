@@ -186,12 +186,13 @@ module Hmis::Ce::Match::Expression
         order(information_date: :desc, date_updated: :desc, id: :desc)
     end
 
-    # HUD NoYes code -> boolean (0 => false; any other meaningful code => true)
+    # HUD NoYes code -> boolean.
+    # Supports additional "yes" response codes for Substance Use Disorder (1/2/3)
     def response_to_boolean(code, extra_yes_response_codes: [])
       case code
       when 0 then false
       when 1 then true
-      when *extra_yes_response_codes then true # support additional "yes" response codes for Substance Use Disorder (1/2/3)
+      when *extra_yes_response_codes then true
       end
     end
 
