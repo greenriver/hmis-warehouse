@@ -19,17 +19,14 @@ module Types
     connection_type_class(Types::BaseConnection)
     field_class Types::BaseField
 
-    # Memoize separately for include_search_query_id true/false. A single @page_type
-    # would make the first caller win forever, so a later opt-in to searchQueryId could
-    # silently reuse a paginated type that omitted the field (or the reverse).
-    # Prefer one setting per node type (see Client + HasClients). Do not rely on both
-    # variants for the same node class unless BasePaginated type naming also diverges.
+    # Safe today because each node type uses one include_search_query_id setting
+    # everywhere. Types that always pass true: Client (HasClients), CeReferral
+    # (HasCeReferrals), CeClient (QueryType#ce_clients).
+    # Future footgun: @page_type ||= remembers only the first call. If the same
+    # node type were later called with both true and false, the first caller would
+    # win forever and the other setting would be silently ignored.
     def self.page_type(include_search_query_id: false)
-      # before
-      # @page_type ||= BasePaginated.build(self, include_search_query_id: include_search_query_id)
-      # after
-      @page_types ||= {}
-      @page_types[include_search_query_id] ||= BasePaginated.build(self, include_search_query_id: include_search_query_id)
+      @page_type ||= BasePaginated.build(self, include_search_query_id: include_search_query_id)
     end
 
     def self.array_page_type
