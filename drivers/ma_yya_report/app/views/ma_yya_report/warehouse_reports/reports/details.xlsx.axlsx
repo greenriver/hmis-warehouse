@@ -15,7 +15,7 @@ wb.add_worksheet(name: @cell.slice(0, 30).gsub(/[^a-zA-Z0-9]/, ' ')) do |sheet|
   current_user.policy_context.preload_project_dependencies(@members.flat_map { |m| m.universe_membership.service_history_enrollment&.project_id }.compact.uniq)
   @members.each do |member|
     client = member.universe_membership
-    project = client.service_history_enrollment&.project
+    project = client&.project
     next unless project
 
     pii_policy = current_user.reporting_policy_for_project(project_id: project.id, mode: :download)
