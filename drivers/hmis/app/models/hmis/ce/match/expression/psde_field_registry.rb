@@ -18,8 +18,8 @@ module Hmis::Ce::Match::Expression
         value_type: :logical,
         multiple: false,
         label: "#{label} (latest)",
-        description: "Latest response for #{hud_description} within the configured eligibility scope. " \
-                     'Selects the most recent row with a meaningful value (skipping 8/9/99/nil).',
+        description: "Latest Yes or No response for #{hud_description} within the eligibility scope. " \
+                     'Client refused / doesn’t know / not collected (8/9/99) and blank answers are ignored.',
       )
     end
 
@@ -29,8 +29,9 @@ module Hmis::Ce::Match::Expression
         value_type: :logical,
         multiple: true,
         label: "#{label} (all values in window)",
-        description: "All meaningful responses for #{hud_description} recorded within the configured eligibility scope " \
-                     '(skipping 8/9/99/nil). Use with INCLUDES(..., TRUE) to match clients who were ever Yes within the lookback window.',
+        description: "All Yes and No responses for #{hud_description} within the eligibility scope. " \
+                     'Client refused / doesn’t know / not collected (8/9/99) and blank answers are ignored. ' \
+                     'Use with INCLUDES(..., TRUE) for ever-Yes in the lookback window.',
       )
     end
 

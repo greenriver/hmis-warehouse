@@ -642,8 +642,31 @@ RSpec.describe Hmis::Ce::Match::Expression::PsdeValueResolver, type: :model do
         date_updated: current_date - 1.week,
       )
 
-      expect(resolver.call(clients, field)[destination_client.id]).to contain_exactly(true, false)
+      expect(resolver.call(clients, field)[destination_client.id]).to eq([false, true]) # most recent is first
       expect(resolver.call(clients, latest_field)).to eq({ destination_client.id => false }) # `latest` field still returns false
+    end
+
+    it 'returns meaningful values newest-first, deduplicated by boolean' do
+      create_disability(
+        disability_type: disability_type,
+        disability_response: 1,
+        information_date: current_date - 3.weeks,
+        date_updated: current_date - 3.weeks,
+      )
+      create_disability(
+        disability_type: disability_type,
+        disability_response: 1,
+        information_date: current_date - 2.weeks,
+        date_updated: current_date - 2.weeks,
+      )
+      create_disability(
+        disability_type: disability_type,
+        disability_response: 0,
+        information_date: current_date - 1.week,
+        date_updated: current_date - 1.week,
+      )
+
+      expect(resolver.call(clients, field)).to eq({ destination_client.id => [false, true] })
     end
 
     it 'includes true when one enrollment is Yes and another is No, even if latest across all is No' do

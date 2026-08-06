@@ -130,11 +130,13 @@ module Hmis::Ce::Match::Expression
 
       # Ensure all destination clients are in the hash. Clients with no meaningful rows will have an empty array.
       result = client_ids.index_with { [] }
+
+      # scoped_rows already orders rows newest-first
       rows = scoped_rows(client_ids, scope).pluck(wc_t[:destination_id], column)
       rows.group_by(&:first).each do |client_id, client_rows|
         result[client_id] = client_rows.map(&:last).
           select { |code| meaningful_values.include?(code) }.
-          map { |code| response_to_boolean(code) }
+          map { |code| response_to_boolean(code) }.uniq
       end
       result
     end
