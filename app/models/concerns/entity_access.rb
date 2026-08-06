@@ -99,6 +99,16 @@ module EntityAccess
     end
   end
 
+  # Tears down this entity's system collection(s) when it is deleted. Queries by
+  # +source+ (not +system_collection+, which would create one). Errors are logged
+  # and reported, not raised, so teardown never blocks the delete.
+  def remove_system_collections!
+    Collection.system.where(source: self).find_each(&:destroy_with_associated_records!)
+  rescue StandardError => e
+    Rails.logger.error("EntityAccess#remove_system_collections! failed for #{self.class.sti_name}##{id}: #{e.message}")
+    Sentry.capture_exception_with_info(e, info: { source_type: self.class.sti_name, source_id: id })
+  end
+
   ##
   # Finds or creates a "system" +UserGroup+ that grants viewable access
   # to this entity to users through the `viewable_access_control``.

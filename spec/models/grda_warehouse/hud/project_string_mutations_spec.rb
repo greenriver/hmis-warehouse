@@ -141,7 +141,7 @@ RSpec.describe GrdaWarehouse::Hud::Project, type: :model do
         # Test the string mutation from line 967:
         # options[org_name] << [text, project.id]
 
-        allow(described_class).to receive(:viewable_by).with(user).and_return(described_class.where(id: project.id))
+        allow(described_class).to receive(:viewable_by).with(user, permission: :can_view_projects).and_return(described_class.where(id: project.id))
 
         options = described_class.options_for_select(user: user)
 
@@ -157,7 +157,7 @@ RSpec.describe GrdaWarehouse::Hud::Project, type: :model do
       it 'handles multiple projects under same organization' do
         other_project = create(:grda_warehouse_hud_project, organization: organization, data_source: data_source, ProjectName: 'Another Project')
 
-        allow(described_class).to receive(:viewable_by).with(user).and_return(described_class.where(id: [project.id, other_project.id]))
+        allow(described_class).to receive(:viewable_by).with(user, permission: :can_view_projects).and_return(described_class.where(id: [project.id, other_project.id]))
 
         options = described_class.options_for_select(user: user)
 

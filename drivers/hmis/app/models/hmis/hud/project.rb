@@ -112,6 +112,11 @@ class Hmis::Hud::Project < Hmis::Hud::Base
     joins(:organization).where(o_t[:id].in(Array.wrap(organization_ids)))
   end
 
+  scope :in_project_group, ->(project_group_id) do
+    project_ids = Hmis::ProjectGroup.project_ids_for(project_group_id)
+    project_ids.any? ? where(id: project_ids) : none
+  end
+
   # Always use ProjectType, we shouldn't need overrides since we can change the source data
   scope :with_project_type, ->(project_types) do
     where(ProjectType: project_types)
