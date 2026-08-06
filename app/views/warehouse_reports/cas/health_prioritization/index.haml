@@ -47,9 +47,10 @@
 - else
   .none-found No clients found.
 = content_for :page_js do
-  :javascript
-    $('.jClientTable input[type=submit]').hide();
-    $('.jClientTable').on('change', '.jClientForm input', function(e){
-      var form = $(e.target).closest('form');
-      form.trigger('submit');
-    });
+  %script{ nonce: content_security_policy_nonce }
+    :plain
+      $('.jClientTable input[type=submit]').hide();
+      $('.jClientTable').on('change', '.jClientForm input', function(e){
+        var form = $(e.target).closest('form');
+        form.trigger('submit');
+      });

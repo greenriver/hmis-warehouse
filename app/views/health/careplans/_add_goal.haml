@@ -28,25 +28,26 @@
 
 - if false
   = content_for :page_js do
-    :javascript
-      (function($) {
-        var list = $('.draggable-list');
-        var update_order_url = '#{polymorphic_path([:sort] + careplan_path_generator + [:goals])}';
-        list.sortable({
-          update: function(event, ui) {
-            var order = $.map($('.draggable-list').sortable('toArray'), function(item) {
-              return item.replace('sorted-goal-', '')
-            });
-            $.post(update_order_url, {order: order}, function(data){
-              if(data.success) {
-                $('.draggable-list').prepend('<div class="alert alert-success order-updated">' + data.success + '</div>')
-                $('.order-updated').delay(2500).fadeOut();
-              }
-              else if(data.error){
-                $('.draggable-list').prepend('<div class="alert alert-danger">' + data.error + '</div>')
-              }
-            });
-          }
-        });
+    %script{ nonce: content_security_policy_nonce }
+      :plain
+        (function($) {
+          var list = $('.draggable-list');
+          var update_order_url = '#{polymorphic_path([:sort] + careplan_path_generator + [:goals])}';
+          list.sortable({
+            update: function(event, ui) {
+              var order = $.map($('.draggable-list').sortable('toArray'), function(item) {
+                return item.replace('sorted-goal-', '')
+              });
+              $.post(update_order_url, {order: order}, function(data){
+                if(data.success) {
+                  $('.draggable-list').prepend('<div class="alert alert-success order-updated">' + data.success + '</div>')
+                  $('.order-updated').delay(2500).fadeOut();
+                }
+                else if(data.error){
+                  $('.draggable-list').prepend('<div class="alert alert-danger">' + data.error + '</div>')
+                }
+              });
+            }
+          });
 
-      })(jQuery);
+        })(jQuery);

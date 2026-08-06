@@ -41,8 +41,9 @@
 - data = GrdaWarehouse::ClientMatch.score_distribution
 
 = content_for :page_js do
-  :javascript
-    new App.Admin.ClientMatches.MixedChart('.jAll');
-    new App.Admin.ClientMatches.MixedChart('.jUnprocessed');
-    new App.Admin.ClientMatches.MixedChart('.jAccepted');
-    new App.Admin.ClientMatches.MixedChart('.jRejected');
+  %script{ nonce: content_security_policy_nonce }
+    :plain
+      new App.Admin.ClientMatches.MixedChart('.jAll');
+      new App.Admin.ClientMatches.MixedChart('.jUnprocessed');
+      new App.Admin.ClientMatches.MixedChart('.jAccepted');
+      new App.Admin.ClientMatches.MixedChart('.jRejected');

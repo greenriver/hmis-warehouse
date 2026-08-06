@@ -81,6 +81,8 @@ RSpec.shared_context 'ce system test helper' do
     ensure
       click_button 'Submit'
     end
+    # Wait for the step form to close
+    expect(page).to have_no_content('Back to All Tasks')
   end
 
   # Shared helper for assigning referral steps.

@@ -13,38 +13,39 @@
       = render 'form', f: f
 
 - content_for :page_js do
-  :javascript
-    $(document).ready(function() {
-      $('.jWithOther').change(function() {
-        other_input = $(this).closest('.jSelectPair').find('.jOther');
-        values = $(this).val();
-        if(values.includes('other')) {
-          $(other_input).slideDown();
-        } else {
-          $(other_input).slideUp();
-        }
-      });
-
-      $('.jWithOther').each(function() {
-        values =$(this).val();
-        if(! values.includes('other')) {
-          $(this).closest('.jSelectPair').find('.jOther').hide();
-        }
-      });
-
-      $(document).change('.jCaForm', function() {
-        var form = $('.jCaForm');
-        var url = form.attr('action');
-        $.ajax({
-          url: url,
-          type: 'PATCH',
-          data: form.serialize(),
-          success: function() {
-            console.debug('done', url);
-          },
-          error: function(e) {
-            console.error('failed', url, e);
+  %script{ nonce: content_security_policy_nonce }
+    :plain
+      $(document).ready(function() {
+        $('.jWithOther').change(function() {
+          other_input = $(this).closest('.jSelectPair').find('.jOther');
+          values = $(this).val();
+          if(values.includes('other')) {
+            $(other_input).slideDown();
+          } else {
+            $(other_input).slideUp();
           }
         });
+
+        $('.jWithOther').each(function() {
+          values =$(this).val();
+          if(! values.includes('other')) {
+            $(this).closest('.jSelectPair').find('.jOther').hide();
+          }
+        });
+
+        $(document).change('.jCaForm', function() {
+          var form = $('.jCaForm');
+          var url = form.attr('action');
+          $.ajax({
+            url: url,
+            type: 'PATCH',
+            data: form.serialize(),
+            success: function() {
+              console.debug('done', url);
+            },
+            error: function(e) {
+              console.error('failed', url, e);
+            }
+          });
+        });
       });
-    });

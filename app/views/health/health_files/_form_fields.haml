@@ -13,7 +13,8 @@
         = f.button :submit, 'Save', disabled: true, data: { disable_with: 'Uploading...' }, id: 'upload_button', style: 'background-color: #3c6776'
 
 - content_for :page_js do
-  :javascript
-    $('#health_file_health_file_attributes_file').on('change', function() {
-      $('#upload_button').prop('disabled', !$(this).val());
-    });
+  %script{ nonce: content_security_policy_nonce }
+    :plain
+      $('#health_file_health_file_attributes_file').on('change', function() {
+        $('#upload_button').prop('disabled', !$(this).val());
+      });
