@@ -8,15 +8,12 @@
 
 # Behavior of the AuthMethod (devise/JWT) branching that UserConcern mixes into both User and Hmis::User.
 #
-# The branch is resolved at *class-load*, so the suite is split by how CI boots:
-#   - the default (Devise) suite asserts the DeviseUser concern, its macro, and the overrides that `super`
-#     into the macro, and
-#   - the JWT-boot suite (the dedicated AUTH_METHOD=jwt CI step) asserts the macro is absent and the Idp::JwtUser
-#     branches are taken.
+# The branch is resolved at *class-load*, so a booted process is one arm only — no example can
+# cover both, and the two describes below must stay split by arm rather than merged.
 #
 # Pass the factory + model class so the same expectations run against every UserConcern host.
 RSpec.shared_examples 'an auth-method-aware user' do |factory, model|
-  describe 'default (Devise) mode', if: AuthMethod.devise? do
+  describe 'default (Devise) mode', :devise_only do
     it 'includes the Devise auth concern and applies the macro and its injected accessors' do
       expect(model.include?(DeviseUser)).to be true
       expect(model.include?(Idp::JwtUser)).to be false
@@ -413,7 +410,7 @@ RSpec.shared_examples 'an auth-method-aware user' do |factory, model|
   end
 
   # These assertions require the class to have *loaded* under AUTH_METHOD=jwt
-  describe 'JWT-boot (AUTH_METHOD=jwt process)', if: AuthMethod.jwt? do
+  describe 'JWT-boot (AUTH_METHOD=jwt process)', :jwt_only do
     it 'omits the Devise auth concern, the macro, and its injected accessors' do
       expect(model.include?(DeviseUser)).to be false
       expect(model.include?(Idp::JwtUser)).to be true

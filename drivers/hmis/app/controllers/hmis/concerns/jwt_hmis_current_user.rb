@@ -88,8 +88,10 @@ module Hmis::Concerns::JwtHmisCurrentUser
       # misconfigured, which a 401 would disguise as an ordinary signed-out client.
       raise Idp::UnauthenticatedRequestError, request.path unless idp_jwt_helper_for_request.token?
 
-      # 403, not 401: signing in again can't produce an account. A 401 would send the SPA to a
-      # sign-in screen it would come straight back from.
+      # 403, not 401: signing in again can't produce an account, and a 401 would send the SPA to a
+      # sign-in screen it would come straight back from. The SPA keys off error.type on the 403 to
+      # render a terminal page (hmis-frontend apolloErrorLink.tsx -> AccountTerminalErrorDialog,
+      # contract in src/modules/auth/hooks/README.md).
       render_json_error(403, :no_warehouse_account)
     end
 

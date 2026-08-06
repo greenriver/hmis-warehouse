@@ -20,7 +20,7 @@ RSpec.describe Hmis::UsersController, type: :request do
         get hmis_user_path
       end
 
-      it 'includes a primaryIdp key (nil under Devise, since there is no connector)' do
+      it 'includes a primaryIdp key (nil under Devise, since there is no connector)', :devise_only do
         expect(response).to have_http_status(:ok)
         parsed = JSON.parse(response.body)
         expect(parsed).to have_key('primaryIdp')
@@ -34,8 +34,18 @@ RSpec.describe Hmis::UsersController, type: :request do
         expect(parsed['name']).to eq(hmis_user.name)
         expect(parsed['email']).to eq(hmis_user.email)
         expect(parsed['phone']).to eq(hmis_user.phone)
-        expect(parsed['sessionDuration']).to eq(Devise.timeout_in.in_seconds)
         expect(parsed['impersonating']).to eq(false)
+      end
+
+      it 'reports the Devise session timeout as sessionDuration', :devise_only do
+        expect(JSON.parse(response.body)['sessionDuration']).to eq(Devise.timeout_in.in_seconds)
+      end
+
+      # Hmis::User reports Devise.timeout_in on both arms (Hmis::User#current_user_api_values),
+      # so tightening this to that value would pass while pinning the JWT arm to a Devise setting —
+      # the credential's lifetime here is the IdP token's.
+      it 'reports a positive sessionDuration', :jwt_only do
+        expect(JSON.parse(response.body)['sessionDuration']).to be > 0
       end
     end
 

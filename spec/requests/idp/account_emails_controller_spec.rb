@@ -10,7 +10,7 @@ require 'rails_helper'
 require 'webmock/rspec'
 
 # JWT-arm email self-management, read-only.
-RSpec.describe Idp::AccountEmailsController, type: :request, if: AuthMethod.jwt? do
+RSpec.describe Idp::AccountEmailsController, :jwt_only, type: :request do
   let(:api_url) { 'http://keycloak.test:8080' }
   let(:realm) { 'openpath' }
   let(:connector_id) { 'test' } # matches JwtAuthenticationHelper#sign_in
