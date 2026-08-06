@@ -86,7 +86,10 @@ module HudApr::Generators::Shared::Fy2026
 
           hh_id = get_hh_id(last_service_history_enrollment)
           hoh_enrollment = hoh_enrollments[hh_id]
-          household_assessment_required[last_service_history_enrollment.client_id] = annual_assessment_expected?(hoh_enrollment: hoh_enrollment, enrollment: last_service_history_enrollment, report_end_date: @report.end_date, start_for_annual: household_start_dates[hh_id])
+          # The annual assessment anniversary follows the household's earliest head of household, who may
+          # have exited before the report period and so may not be in hoh_enrollments
+          annual_hoh_enrollment = household_hoh_enrollments[hh_id] || hoh_enrollment
+          household_assessment_required[last_service_history_enrollment.client_id] = annual_assessment_expected?(hoh_enrollment: annual_hoh_enrollment, enrollment: last_service_history_enrollment, report_end_date: @report.end_date)
           end_date = if needs_ce_assessments?
             # Only HoHs get CE assessments, so we prefer their entry date
             hoh_enrollment&.first_date_in_program || last_service_history_enrollment.first_date_in_program
@@ -629,16 +632,18 @@ module HudApr::Generators::Shared::Fy2026
       scope
     end
 
-    # The earliest project start date for each household, which the Annual Assessment section of the
-    # HMIS Reporting Glossary uses as the anniversary date.  Includes enrollments outside
-    # enrollment_scope so households whose head of household exited before the report period still
-    # get the correct anniversary.
-    private def household_start_dates
-      @household_start_dates ||= begin
+    # The earliest head of household enrollment for each household, whose entry date the Annual Assessment
+    # section of the HMIS Reporting Glossary uses as the anniversary date, per: in the event a household has
+    # more than one head of household active in the report range, (i.e., if the first HoH exited and another
+    # household member became the HoH), the later HoH's [project start date] will be back-dated to the first
+    # HoH's [project start date].  Includes enrollments outside enrollment_scope so households whose head of
+    # household exited before the report period still get the correct anniversary.
+    private def household_hoh_enrollments
+      @household_hoh_enrollments ||= begin
         household_ids = enrollment_scope_without_preloads.where.not(household_id: nil).select(:household_id)
-        scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.where(household_id: household_ids)
+        scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.heads_of_households.where(household_id: household_ids)
         scope = scope.in_project(@report.project_ids) if @report.project_ids.present?
-        scope.group(:household_id).minimum(:first_date_in_program)
+        scope.group_by(&:household_id).transform_values { |enrollments| enrollments.min_by(&:first_date_in_program) }
       end
     end
 
@@ -646,16 +651,19 @@ module HudApr::Generators::Shared::Fy2026
       @pit_dates ||= [1, 4, 7, 10].map { |month| pit_date(month: month, before: @report.end_date) }
     end
 
-    # Households with a bed night from any member on each PIT date, keyed to match get_hh_id
-    private def pit_bed_night_household_ids
-      @pit_bed_night_household_ids ||= pit_dates.index_with do |pit_date|
-        enrollment_scope_without_preloads.
+    # Bed nights on each PIT date, as the ids of the enrollments that have one, and the ids of their
+    # households keyed to match get_hh_id
+    private def pit_bed_nights
+      @pit_bed_nights ||= pit_dates.index_with do |pit_date|
+        rows = enrollment_scope_without_preloads.
           joins(:service_history_services).
           merge(GrdaWarehouse::ServiceHistoryService.bed_night.where(date: pit_date)).
           distinct.
-          pluck(:household_id, :enrollment_group_id).
-          map { |household_id, enrollment_group_id| household_id || "#{enrollment_group_id}*HH" }.
-          to_set
+          pluck(:id, :household_id, :enrollment_group_id)
+        {
+          enrollment_ids: rows.map(&:first).to_set,
+          household_ids: rows.map { |_, household_id, enrollment_group_id| household_id || "#{enrollment_group_id}*HH" }.to_set,
+        }
       end
     end
 
@@ -664,11 +672,12 @@ module HudApr::Generators::Shared::Fy2026
       return nil unless enrollment.first_date_in_program <= pit_date
 
       if enrollment.project_type == 1
+        bed_nights = pit_bed_nights[pit_date]
         # Night-by-night shelters must use bed night records indicating household presence on each
         # point in time night, so the exit date is not compared
-        return :client if enrollment.service_history_services.bed_night.on_date(pit_date).exists?
+        return :client if bed_nights[:enrollment_ids].include?(enrollment.id)
         # Q8b reports a household via its HoH, so include the HoH when only other members were present
-        return :household if enrollment.head_of_household? && pit_bed_night_household_ids[pit_date].include?(get_hh_id(enrollment))
+        return :household if enrollment.head_of_household? && bed_nights[:household_ids].include?(get_hh_id(enrollment))
 
         return nil
       end

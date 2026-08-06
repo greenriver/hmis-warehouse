@@ -20,10 +20,10 @@ module HudReports::Util
         next false if enrollment.id == last_enrollment.id
         next false unless enrollment.data_source_id == last_enrollment.data_source_id
         next false unless enrollment.project_id == last_enrollment.project_id
-        next false if enrollment.last_date_in_program.blank?
+        next false if enrollment.exit_date.blank?
 
-        enrollment.first_date_in_program < last_enrollment.first_date_in_program &&
-          last_enrollment.first_date_in_program < enrollment.last_date_in_program
+        enrollment.entry_date < last_enrollment.entry_date &&
+          last_enrollment.entry_date < enrollment.exit_date
       end.map(&:enrollment_group_id).uniq
     end
 
