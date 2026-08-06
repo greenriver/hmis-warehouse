@@ -18,63 +18,75 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
 
   describe 'logged out' do
     it 'doesn\'t allow index' do
-      get clients_path
-      expect(response).to redirect_to(regex_for_warehouse_sign_in)
+      expect_unauthenticated_warehouse_request do
+        get clients_path
+      end
     end
 
     it 'doesn\'t allow show' do
-      get client_path(destination)
-      expect(response).to redirect_to(regex_for_warehouse_sign_in)
+      expect_unauthenticated_warehouse_request do
+        get client_path(destination)
+      end
     end
 
     it 'doesn\'t allow new' do
-      get new_client_path
-      expect(response).to redirect_to(regex_for_warehouse_sign_in)
+      expect_unauthenticated_warehouse_request do
+        get new_client_path
+      end
     end
 
     it 'doesn\'t allow create' do
-      post clients_path
-      expect(response).to redirect_to(regex_for_warehouse_sign_in)
+      expect_unauthenticated_warehouse_request do
+        post clients_path
+      end
     end
 
     it 'doesn\'t allow edit' do
-      get edit_client_path(destination)
-      expect(response).to redirect_to(regex_for_warehouse_sign_in)
+      expect_unauthenticated_warehouse_request do
+        get edit_client_path(destination)
+      end
     end
 
     it 'doesn\'t allow service_range' do
-      get service_range_client_path(destination)
-      expect(response).to redirect_to(regex_for_warehouse_sign_in)
+      expect_unauthenticated_warehouse_request do
+        get service_range_client_path(destination)
+      end
     end
 
     it 'doesn\'t allow rollup' do
-      get rollup_client_path(destination, partial: :residential_enrollments)
-      expect(response).to redirect_to(regex_for_warehouse_sign_in)
+      expect_unauthenticated_warehouse_request do
+        get rollup_client_path(destination, partial: :residential_enrollments)
+      end
     end
 
     it 'doesn\'t allow assessment' do
-      get assessment_client_path(destination)
-      expect(response).to redirect_to(regex_for_warehouse_sign_in)
+      expect_unauthenticated_warehouse_request do
+        get assessment_client_path(destination)
+      end
     end
 
     it 'doesn\'t allow image' do
-      get image_client_path(destination)
-      expect(response).to redirect_to(regex_for_warehouse_sign_in)
+      expect_unauthenticated_warehouse_request do
+        get image_client_path(destination)
+      end
     end
 
     it 'doesn\'t allow chronic_days' do
-      get chronic_days_client_path(destination)
-      expect(response).to redirect_to(regex_for_warehouse_sign_in)
+      expect_unauthenticated_warehouse_request do
+        get chronic_days_client_path(destination)
+      end
     end
 
     it 'doesn\'t allow merge' do
-      patch merge_client_path(destination)
-      expect(response).to redirect_to(regex_for_warehouse_sign_in)
+      expect_unauthenticated_warehouse_request do
+        patch merge_client_path(destination)
+      end
     end
 
     it 'doesn\'t allow unmerge' do
-      patch unmerge_client_path(destination)
-      expect(response).to redirect_to(regex_for_warehouse_sign_in)
+      expect_unauthenticated_warehouse_request do
+        patch unmerge_client_path(destination)
+      end
     end
   end
 

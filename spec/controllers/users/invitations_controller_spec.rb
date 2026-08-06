@@ -8,7 +8,9 @@
 
 require 'rails_helper'
 
-RSpec.describe Users::InvitationsController, type: :controller do
+# The invitation routes come from `devise_for :users`, mounted only under AuthMethod.devise?;
+# under jwt the IdP owns provisioning (see Idp::AdminUserCreator).
+RSpec.describe Users::InvitationsController, :devise_only, type: :controller do
   let(:admin_user) { create(:acl_user) }
   let(:admin_role) { create :admin_role }
   let(:no_data_source_collection) { create :collection }

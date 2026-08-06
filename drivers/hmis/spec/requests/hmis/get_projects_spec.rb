@@ -97,14 +97,10 @@ RSpec.describe 'GetProjects query', type: :request do
     end
   end
 
-  it 'responds with 401 if not authenticated' do
-    delete destroy_hmis_user_session_path
-    aggregate_failures 'checking response' do
-      expect(response.status).to eq 204
-      response, body = post_graphql { query }
-      expect(response.status).to eq 401
-      expect(body.dig('error', 'type')).to eq 'unauthenticated'
-    end
+  it 'refuses the query once the user has logged out' do
+    hmis_logout
+
+    expect_unauthenticated_api_request { post_graphql { query } }
   end
 
   context 'sorting' do

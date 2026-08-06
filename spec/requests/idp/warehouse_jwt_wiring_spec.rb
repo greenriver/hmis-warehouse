@@ -12,7 +12,7 @@ require 'rails_helper'
 # AUTH_METHOD=jwt, leaving the Devise path unchanged. The `if: AuthMethod.jwt?` examples lean on
 # JwtAuthenticationHelper, which is included only when AuthMethod.jwt?.
 RSpec.describe 'Warehouse JWT wiring', type: :request do
-  describe 'authentication via a forwarded JWT', if: AuthMethod.jwt? do
+  describe 'authentication via a forwarded JWT', :jwt_only do
     let(:user) { create :user }
 
     before do
@@ -454,7 +454,7 @@ RSpec.describe 'Warehouse JWT wiring', type: :request do
   # Describe the connection class directly: a :channel group mixes in both Connection and Channel
   # TestCase behaviors, so `tests` resolves to the Channel variant (sets _channel_class). Naming the
   # class here makes it the described_class, which connection_class falls back to (else nil <= raises).
-  describe ApplicationCable::Connection, type: :channel, if: AuthMethod.jwt? do
+  describe ApplicationCable::Connection, :jwt_only, type: :channel do
     let(:user) { create :user }
 
     # Only the forwarded token resolves to the double; anything else builds a real Idp::JwtHelper,
@@ -510,7 +510,7 @@ RSpec.describe 'Warehouse JWT wiring', type: :request do
     end
   end
 
-  describe "rack-attack's authenticated? helper", if: AuthMethod.jwt? do
+  describe "rack-attack's authenticated? helper", :jwt_only do
     it 'is true for a valid forwarded token' do
       allow(Idp::JwtHelper).to receive(:authenticated?).with('good-token').and_return(true)
       request = Rack::Attack::Request.new('QUERY_STRING' => '', 'HTTP_X_FORWARDED_ACCESS_TOKEN' => 'good-token')
