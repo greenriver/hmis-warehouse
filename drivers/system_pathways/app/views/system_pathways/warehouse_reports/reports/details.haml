@@ -59,11 +59,12 @@
                 - else
                   = value
     = content_for :page_js do
-      :javascript
-        table = $('.datatable').DataTable({
-          paging: false,
-          "dom": 'lrtip'
-        });
-        $('#table_search').keyup(function(){
-          table.search($(this).val()).draw() ;
-        })
+      %script{ nonce: content_security_policy_nonce }
+        :plain
+          table = $('.datatable').DataTable({
+            paging: false,
+            "dom": 'lrtip'
+          });
+          $('#table_search').keyup(function(){
+            table.search($(this).val()).draw() ;
+          })

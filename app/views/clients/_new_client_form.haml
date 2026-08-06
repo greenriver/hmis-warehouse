@@ -82,7 +82,8 @@
       = f.submit value: 'Add Client', class: 'btn btn-primary'
 
 = content_for :page_js do
-  :javascript
-    $(document).ready(function(){
-      $('.jSSN').inputmask("999-99-9999");
-    });
+  %script{ nonce: content_security_policy_nonce }
+    :plain
+      $(document).ready(function(){
+        $('.jSSN').inputmask("999-99-9999");
+      });

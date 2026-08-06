@@ -123,27 +123,28 @@
       = f.submit value: 'Update Cohort', class: 'btn btn-primary'
 
 = content_for :page_js do
-  :javascript
-    $(function() {
-      $('.colorpicker').minicolors({theme: 'bootstrap'});
+  %script{ nonce: content_security_policy_nonce }
+    :plain
+      $(function() {
+        $('.colorpicker').minicolors({theme: 'bootstrap'});
 
-      var $projectGroup = $('#cohort_project_group_id');
-      var $automationOptions = $('.js-automation-options');
+        var $projectGroup = $('#cohort_project_group_id');
+        var $automationOptions = $('.js-automation-options');
 
-      var toggleAutomationOptions = function() {
-        var hasProjectGroup = !!$projectGroup.val();
+        var toggleAutomationOptions = function() {
+          var hasProjectGroup = !!$projectGroup.val();
 
-        if (hasProjectGroup) {
-          $automationOptions.removeClass('d-none');
-          $automationOptions.find('select, input, textarea').prop('disabled', false);
-        } else {
-          $automationOptions.addClass('d-none');
-          $automationOptions.find('select').val('').trigger('change');
-          $automationOptions.find('input[type="checkbox"]').prop('checked', false).trigger('change');
-          $automationOptions.find('select, input, textarea').prop('disabled', true);
-        }
-      };
+          if (hasProjectGroup) {
+            $automationOptions.removeClass('d-none');
+            $automationOptions.find('select, input, textarea').prop('disabled', false);
+          } else {
+            $automationOptions.addClass('d-none');
+            $automationOptions.find('select').val('').trigger('change');
+            $automationOptions.find('input[type="checkbox"]').prop('checked', false).trigger('change');
+            $automationOptions.find('select, input, textarea').prop('disabled', true);
+          }
+        };
 
-      toggleAutomationOptions();
-      $projectGroup.on('change', toggleAutomationOptions);
-    });
+        toggleAutomationOptions();
+        $projectGroup.on('change', toggleAutomationOptions);
+      });

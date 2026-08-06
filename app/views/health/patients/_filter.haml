@@ -89,7 +89,8 @@
           Filter
 
 = content_for :page_js do
-  :javascript
-    $('.dropdown-toggle').click(function(event){
-      $(event.currentTarget).blur()
-    })
+  %script{ nonce: content_security_policy_nonce }
+    :plain
+      $('.dropdown-toggle').click(function(event){
+        $(event.currentTarget).blur()
+      })

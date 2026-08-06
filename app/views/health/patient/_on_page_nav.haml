@@ -8,10 +8,11 @@
 
 
 - content_for :page_js do
-  :javascript
-    var tabs = document.querySelector('.sub-nav-tabs')
-    new App.Affix({
-      element: tabs,
-      offset: tabs.offsetTop,
-      elementToPad: tabs.parentElement.nextElementSibling
-    })
+  %script{ nonce: content_security_policy_nonce }
+    :plain
+      var tabs = document.querySelector('.sub-nav-tabs')
+      new App.Affix({
+        element: tabs,
+        offset: tabs.offsetTop,
+        elementToPad: tabs.parentElement.nextElementSibling
+      })
