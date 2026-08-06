@@ -1623,7 +1623,7 @@ module HmisCsvImporter::Importer
       return unless @data_source.hmis?
       return unless HmisEnforcement.hmis_enabled?
 
-      log_timing :queue_hmis_assessment_migration
+      queue_hmis_assessment_migration # No need to log timing here, since it's just enqueuing a job
     end
 
     private def queue_hmis_assessment_migration
