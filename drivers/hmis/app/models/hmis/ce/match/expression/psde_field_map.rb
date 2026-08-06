@@ -40,17 +40,17 @@ module Hmis::Ce::Match::Expression
     end
 
     def format_for_display(field, value)
-      return value if value.nil?
+      return value if value.nil? || value.empty?
 
       psde_field = PsdeFieldRegistry[field]
-      case psde_field&.value_type
-      when :logical
-        return Array.wrap(value).map { |v| v ? 'Yes' : 'No' } if psde_field.multiple
+      return value unless psde_field
 
-        value ? 'Yes' : 'No'
-      else
-        value.to_s # could expand this later if there are dates or other types
-      end
+      value_type = psde_field.value_type
+      multiple = psde_field.multiple
+
+      return _format_for_display(value_type, value) unless multiple
+
+      Array.wrap(value).map { |v| _format_for_display(value_type, v) }
     end
 
     def self.field_key_for(field_key)
@@ -64,6 +64,15 @@ module Hmis::Ce::Match::Expression
         current_date: @current_date,
         configuration: @configuration,
       )
+    end
+
+    def _format_for_display(value_type, value)
+      case value_type
+      when :logical
+        value ? 'Yes' : 'No'
+      else
+        value.to_s # could expand this later if there are dates or other types
+      end
     end
   end
 end
