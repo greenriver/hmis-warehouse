@@ -15,7 +15,7 @@ module Hmis::Ce::Match::Expression
     DISABILITY_TYPE_CODES = GrdaWarehouse::Hud::Disability.disability_types.invert.freeze
 
     # Maps NoYes-disability field keys to their HUD DisabilityType code. Substance use is deliberately
-    # excluded here — it is dispatched separately in boolean_field_source because its meaningful-value set differs.
+    # excluded here — it is dispatched separately in boolean_field_source because it has additional "yes" response codes.
     NO_YES_DISABILITY_TYPES = {
       PsdeFieldRegistry::PHYSICAL_DISABILITY.key => DISABILITY_TYPE_CODES.fetch(:physical),
       PsdeFieldRegistry::DEVELOPMENTAL_DISABILITY.key => DISABILITY_TYPE_CODES.fetch(:developmental),
@@ -29,7 +29,7 @@ module Hmis::Ce::Match::Expression
     # Meaningful raw HUD response codes from NoYesReasonsForMissingData.
     # Anything else — 8/9/99/nil — is skipped as "not meaningful".
     NO_YES_RESPONSES = [0, 1].freeze
-    SUBSTANCE_RESPONSES = [0, 1, 2, 3].freeze # 1=Alcohol, 2=Drug, 3=Both; all collapse to true
+    SUBSTANCE_USE_EXTRA_YES_RESPONSE_CODES = [2, 3].freeze # 1=Alcohol, 2=Drug, 3=Both; all collapse to true
 
     def initialize(current_date: Date.current, configuration: Hmis::Ce.configuration)
       @current_date = current_date.to_date
@@ -86,57 +86,69 @@ module Hmis::Ce::Match::Expression
     end
 
     # Describes where a boolean PSDE field's response lives in HUD data, keyed by its base
-    # (suffix-stripped) key. Returns { scope:, column:, meaningful_values: } which both the
+    # (suffix-stripped) key. Returns { scope:, column:, extra_yes_response_codes: } which both the
     # "latest" and "all enrollment" resolvers splat straight into their keyword args.
     def boolean_field_source(base_key)
       case base_key
       when PsdeFieldRegistry::DOMESTIC_VIOLENCE_SURVIVOR.key
-        { scope: Hmis::Hud::HealthAndDv.all, column: hdv_t[:DomesticViolenceSurvivor], meaningful_values: NO_YES_RESPONSES }
+        { scope: Hmis::Hud::HealthAndDv.all, column: hdv_t[:DomesticViolenceSurvivor] }
       when PsdeFieldRegistry::SUBSTANCE_USE_DISORDER.key
         # Substance use collapses Alcohol/Drug/Both (1/2/3) to true, No (0) to false.
-        { scope: disability_scope(SUBSTANCE_USE_DISABILITY_TYPE), column: d_t[:DisabilityResponse], meaningful_values: SUBSTANCE_RESPONSES }
+        {
+          scope: disability_scope(SUBSTANCE_USE_DISABILITY_TYPE),
+          column: d_t[:DisabilityResponse], extra_yes_response_codes:
+          SUBSTANCE_USE_EXTRA_YES_RESPONSE_CODES
+        }
       when *NO_YES_DISABILITY_TYPES.keys
-        { scope: disability_scope(NO_YES_DISABILITY_TYPES.fetch(base_key)), column: d_t[:DisabilityResponse], meaningful_values: NO_YES_RESPONSES }
+        { scope: disability_scope(NO_YES_DISABILITY_TYPES.fetch(base_key)), column: d_t[:DisabilityResponse] }
       else
         raise ArgumentError, "Unknown boolean PSDE field \"#{base_key}\""
       end
     end
 
-    # Picks the single latest row with a meaningful response per client, and converts the raw HUD
-    # response code of that row to a real Ruby boolean (0 => false; any other meaningful code => true).
-    # Returns nil when no row has a meaningful response in scope.
+    # Picks the single latest row with a Yes/No response per client and converts it to a boolean.
+    # Returns nil when no row has a Yes/No response in scope.
+    #
+    # extra_yes_response_codes: an array of response codes that should be treated as "yes" responses.
+    #   This is used for Substance Use Disorder, where Alcohol/Drug/Both (1/2/3) are all Yes responses.
     #
     # @return [Hash{Integer => Boolean, nil}]
-    def resolve_latest_boolean_response(clients, scope:, column:, meaningful_values:)
+    def resolve_latest_boolean_response(clients, scope:, column:, extra_yes_response_codes: [])
       client_ids = extract_client_ids(clients)
       return {} if client_ids.empty?
 
-      # Ensure all destination clients are in the hash. Clients with no meaningful rows will have a nil value.
+      # Ensure all destination clients are in the hash. Clients with no Yes/No responses will have a nil value.
       result = client_ids.index_with { nil }
       rows = scoped_rows(client_ids, scope).pluck(wc_t[:destination_id], column)
       rows.group_by(&:first).each do |client_id, client_rows|
-        response = client_rows.find { |row| meaningful_values.include?(row.last) }&.last
-        result[client_id] = response_to_boolean(response) unless response.nil?
+        client_rows.each do |row|
+          value = response_to_boolean(row.last, extra_yes_response_codes: extra_yes_response_codes)
+          next if value.nil?
+
+          result[client_id] = value
+          break
+        end
       end
       result
     end
 
-    # Collects every meaningful response recorded within the configured eligibility scope
+    # Collects every meaningful Yes/No response recorded within the configured eligibility scope
     # (lookback window + optional project group) and converts each to a boolean.
-    # Clients with no meaningful values get []. Shape: Hash{Integer => Array<Boolean>}.
-    def resolve_boolean_values_in_window(clients, scope:, column:, meaningful_values:)
+    # Clients with no Yes/No responses get []. Shape: Hash{Integer => Array<Boolean>}.
+    def resolve_boolean_values_in_window(clients, scope:, column:, extra_yes_response_codes: [])
       client_ids = extract_client_ids(clients)
       return {} if client_ids.empty?
 
-      # Ensure all destination clients are in the hash. Clients with no meaningful rows will have an empty array.
+      # Ensure all destination clients are in the hash. Clients with no Yes/No rows will have an empty array.
       result = client_ids.index_with { [] }
 
       # scoped_rows already orders rows newest-first
       rows = scoped_rows(client_ids, scope).pluck(wc_t[:destination_id], column)
       rows.group_by(&:first).each do |client_id, client_rows|
         result[client_id] = client_rows.map(&:last).
-          select { |code| meaningful_values.include?(code) }.
-          map { |code| response_to_boolean(code) }.uniq
+          map { |code| response_to_boolean(code, extra_yes_response_codes: extra_yes_response_codes) }.
+          compact. # drop nils
+          uniq # deduplicate, keeping the newest occurrence of each value
       end
       result
     end
@@ -152,8 +164,12 @@ module Hmis::Ce::Match::Expression
     end
 
     # HUD NoYes code -> boolean (0 => false; any other meaningful code => true)
-    def response_to_boolean(code)
-      !code.zero?
+    def response_to_boolean(code, extra_yes_response_codes: [])
+      case code
+      when 0 then false
+      when 1 then true
+      when *extra_yes_response_codes then true # support additional "yes" response codes for Substance Use Disorder (1/2/3)
+      end
     end
 
     def disability_scope(disability_type)
