@@ -36,22 +36,23 @@
   .none-found No translations found.
 
 = content_for :page_js do
-  :javascript
-    $('.jTranslationText').on('blur', function(e){
-      form = $(this).closest('form');
-      $.ajax({
-        data: form.serialize(),
-        type: form.attr('method'),
-        url: form.attr('action'),
-        complete: function(e) {
-          var note = e.responseText;
-          var alert_class = 'danger';
-          if(e.status == 200) {
-            alert_class = 'success';
+  %script{ nonce: content_security_policy_nonce }
+    :plain
+      $('.jTranslationText').on('blur', function(e){
+        form = $(this).closest('form');
+        $.ajax({
+          data: form.serialize(),
+          type: form.attr('method'),
+          url: form.attr('action'),
+          complete: function(e) {
+            var note = e.responseText;
+            var alert_class = 'danger';
+            if(e.status == 200) {
+              alert_class = 'success';
+            }
+            var html = '<div class="jAjaxSave alert alert-' + alert_class + '">' + note + '</div>';
+            $('.utility').html(html);
+            $('.jAjaxSave').delay(5000).fadeOut(250);
           }
-          var html = '<div class="jAjaxSave alert alert-' + alert_class + '">' + note + '</div>';
-          $('.utility').html(html);
-          $('.jAjaxSave').delay(5000).fadeOut(250);
-        }
+        });
       });
-    });

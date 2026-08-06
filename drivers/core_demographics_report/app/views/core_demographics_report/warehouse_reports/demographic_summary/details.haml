@@ -21,34 +21,35 @@
           .rollup-container.well
 
   = content_for :page_js do
-    :javascript
-      let observer = new MutationObserver((mutations) => {
-        mutations.forEach((mutation) => {
-          console.log(mutation)
-          if (mutation.addedNodes && mutation.addedNodes.length > 0) {
-            let hasClass = [].some.call(mutation.addedNodes, (el) => {
-              if(!el.classList)
-                return
+    %script{ nonce: content_security_policy_nonce }
+      :plain
+        let observer = new MutationObserver((mutations) => {
+          mutations.forEach((mutation) => {
+            console.log(mutation)
+            if (mutation.addedNodes && mutation.addedNodes.length > 0) {
+              let hasClass = [].some.call(mutation.addedNodes, (el) => {
+                if(!el.classList)
+                  return
 
-              return $(el).find('.datatable').length > 0
-            });
-            if (hasClass) {
-              let table = $('.datatable').DataTable({
-                paging: false,
-                "dom": 'lrtip'
+                return $(el).find('.datatable').length > 0
               });
-              $('#table_search').keyup(function(){
-                table.search($(this).val()).draw();
-              });
+              if (hasClass) {
+                let table = $('.datatable').DataTable({
+                  paging: false,
+                  "dom": 'lrtip'
+                });
+                $('#table_search').keyup(function(){
+                  table.search($(this).val()).draw();
+                });
+              }
             }
-          }
+          });
         });
-      });
 
-      let config = {
-          attributes: false,
-          childList: true,
-          characterData: false
-      };
+        let config = {
+            attributes: false,
+            childList: true,
+            characterData: false
+        };
 
-      observer.observe(document.getElementById('detailRollup'), config);
+        observer.observe(document.getElementById('detailRollup'), config);

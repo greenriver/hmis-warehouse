@@ -35,76 +35,77 @@
 
 
 - content_for :page_js do
-  :javascript
-    $(document).ready(function() {
-      console.debug('Unhoused Population -----------------')
-      var verticalStackData = #{all_data.vertical_stack.to_json.html_safe}
+  %script{ nonce: content_security_policy_nonce }
+    :plain
+      $(document).ready(function() {
+        console.debug('Unhoused Population -----------------')
+        var verticalStackData = #{all_data.vertical_stack.to_json.html_safe}
 
-      var donutData = #{all_data.donut_data.to_json.html_safe}
-      var stackedData = #{all_data.stacked_data.to_json.html_safe}
-      var stackedId = '##{chart_id(tab[:id], "stacked_#{all_data.stacked_data[:id]}")}'
-      var donutIds = #{donut_ids.to_json.html_safe}
-      var donutFilterLabelIds = #{donut_filter_label_ids.to_json.html_safe}
+        var donutData = #{all_data.donut_data.to_json.html_safe}
+        var stackedData = #{all_data.stacked_data.to_json.html_safe}
+        var stackedId = '##{chart_id(tab[:id], "stacked_#{all_data.stacked_data[:id]}")}'
+        var donutIds = #{donut_ids.to_json.html_safe}
+        var donutFilterLabelIds = #{donut_filter_label_ids.to_json.html_safe}
 
-      var charts = [
-        {
-          chart: AllNeighborsSystemDashboardStack,
-          data: stackedData,
-          selector: stackedId,
-          options: {
-            legend: {selector: stackedId+'_legend'},
-          }
-        }
-      ].concat(donutData.map(function(d, i) {
-        return {
-          chart: AllNeighborsSystemDashboardDonut,
-          data: d,
-          selector: '#'+donutIds[i],
-          options: {
-            countLevelLabelSelector: '#'+donutFilterLabelIds[i],
-            legend: {
-              selector: '#'+donutIds[i]+'_legend'
+        var charts = [
+          {
+            chart: AllNeighborsSystemDashboardStack,
+            data: stackedData,
+            selector: stackedId,
+            options: {
+              legend: {selector: stackedId+'_legend'},
             }
           }
-        }
-      }))
-
-      var filterConfig = [
-        {
-          name: 'homelessnessStatus',
-          type: 'select',
-          selector: '##{filter_id(tab[:id], 'homelessness_status')}'
-        },
-        {
-          name: 'year',
-          type: 'year',
-          selector: '##{filter_id(tab[:id], 'year')}'
-        },
-      ]
-
-      var labelConfig = [
-        {
-          name: 'year',
-          selector: '.#{filter_label_id(tab[:id], 'year')}'
-        },
-      ]
-
-      var filters = new AllNeighborsSystemDashboardFilters(filterConfig, charts, labelConfig)
-      filters.test()
-
-      // this chart doesn't use filters but still wrapping to get resize behavior from filters class
-      var verticalStackFilter = new AllNeighborsSystemDashboardFilters(
-          [],
-          [
-            {
-              chart: AllNeighborsSystemDashboardUPVerticalStack,
-              data: verticalStackData,
-              selector: '##{chart_id(tab[:id], 'vertical_stack')}',
-              options: {
-                legend: {selector: '##{legend_id(tab[:id], 'vertical_stack')}'}
+        ].concat(donutData.map(function(d, i) {
+          return {
+            chart: AllNeighborsSystemDashboardDonut,
+            data: d,
+            selector: '#'+donutIds[i],
+            options: {
+              countLevelLabelSelector: '#'+donutFilterLabelIds[i],
+              legend: {
+                selector: '#'+donutIds[i]+'_legend'
               }
             }
-          ]
-        )
+          }
+        }))
 
-    })
+        var filterConfig = [
+          {
+            name: 'homelessnessStatus',
+            type: 'select',
+            selector: '##{filter_id(tab[:id], 'homelessness_status')}'
+          },
+          {
+            name: 'year',
+            type: 'year',
+            selector: '##{filter_id(tab[:id], 'year')}'
+          },
+        ]
+
+        var labelConfig = [
+          {
+            name: 'year',
+            selector: '.#{filter_label_id(tab[:id], 'year')}'
+          },
+        ]
+
+        var filters = new AllNeighborsSystemDashboardFilters(filterConfig, charts, labelConfig)
+        filters.test()
+
+        // this chart doesn't use filters but still wrapping to get resize behavior from filters class
+        var verticalStackFilter = new AllNeighborsSystemDashboardFilters(
+            [],
+            [
+              {
+                chart: AllNeighborsSystemDashboardUPVerticalStack,
+                data: verticalStackData,
+                selector: '##{chart_id(tab[:id], 'vertical_stack')}',
+                options: {
+                  legend: {selector: '##{legend_id(tab[:id], 'vertical_stack')}'}
+                }
+              }
+            ]
+          )
+
+      })

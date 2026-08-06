@@ -25,10 +25,11 @@
         %td= "#{patient.care_coordinator&.first_name} #{patient.care_coordinator&.last_name}"
 
 = content_for :page_js do
-  :javascript
-    $('.#{datatable_class}').DataTable({
-      searching: true,
-      ordering: true,
-      paging: false,
-      info: false
-    });
+  %script{ nonce: content_security_policy_nonce }
+    :plain
+      $('.#{datatable_class}').DataTable({
+        searching: true,
+        ordering: true,
+        paging: false,
+        info: false
+      });

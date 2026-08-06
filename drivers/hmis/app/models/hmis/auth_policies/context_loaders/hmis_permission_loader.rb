@@ -30,36 +30,13 @@ module Hmis::AuthPolicies::ContextLoaders
 
     protected
 
+    # Drops permissions whose requirements aren't also granted. Requirements are transitive:
+    # required_permissions_for returns the full chain, so can_edit_enrollments needs
+    # can_view_enrollment_details plus everything that permission requires.
     def apply_permission_requirements(permissions)
-      # support cycle detection for requirement chains
-      visited = Set.new
-
       permissions.delete_if do |permission|
-        !requirements_met?(permission, permissions, visited)
+        !Hmis::Role.required_permissions_for(permission).all? { |required| permissions.include?(required) }
       end
-    end
-
-    # Recursively checks that a permission and all its transitive requirements are satisfied
-    def requirements_met?(permission, permissions, visited)
-      raise 'cycle detected' if visited.include?(permission) # This shouldn't occur
-
-      required = role_config[permission][:requirements]
-
-      return true if required.blank? # No requirements, keep it
-
-      # check that all requirements are satisfied
-      visited.add(permission)
-      result = required.all? do |req|
-        permissions.include?(req) && requirements_met?(req, permissions, visited)
-      end
-      visited.delete(permission)
-
-      result
-    end
-
-    # note, the config is not memoized on Role (as of this time) so memoize here
-    memoize def role_config
-      Hmis::Role.permissions_with_descriptions.freeze
     end
   end
 end
