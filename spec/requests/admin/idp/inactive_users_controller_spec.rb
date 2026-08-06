@@ -10,8 +10,8 @@ require 'rails_helper'
 require 'webmock/rspec'
 require 'nokogiri'
 
-# JWT-arm inactive-user (reactivation) management. Requires an AUTH_METHOD=jwt boot (CI step).
-RSpec.describe Admin::Idp::InactiveUsersController, type: :request, if: AuthMethod.jwt? do
+# JWT-arm inactive-user (reactivation) management.
+RSpec.describe Admin::Idp::InactiveUsersController, :jwt_only, type: :request do
   let(:api_url) { 'http://keycloak.test:8080' }
   let(:realm) { 'openpath' }
   let(:connector_id) { 'test' } # matches JwtAuthenticationHelper#sign_in

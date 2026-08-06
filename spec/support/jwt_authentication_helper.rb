@@ -87,10 +87,18 @@ module JwtAuthenticationHelper
       [:get, :post, :put, :patch, :delete, :head].each do |method|
         define_singleton_method(method) do |*args, **kwargs|
           if defined?(controller) && controller.present?
-            allow(controller).to receive(:current_user).and_return(user)
-            allow(controller).to receive(:user_signed_in?).and_return(true)
-            if defined?(request) && request.present?
-              request.headers['HTTP_X_FORWARDED_ACCESS_TOKEN'] = mock_token
+            # The else branch is what makes #sign_out effective in a controller spec: without it the
+            # current_user stub outlives the token and the signed-out spec still reads a user.
+            if test_instance.jwt_token == mock_token
+              allow(controller).to receive(:current_user).and_return(user)
+              allow(controller).to receive(:user_signed_in?).and_return(true)
+              if defined?(request) && request.present?
+                request.headers['HTTP_X_FORWARDED_ACCESS_TOKEN'] = mock_token
+              end
+            else
+              allow(controller).to receive(:current_user).and_call_original
+              allow(controller).to receive(:user_signed_in?).and_call_original
+              request.headers['HTTP_X_FORWARDED_ACCESS_TOKEN'] = nil if defined?(request) && request.present?
             end
           end
           super(*args, **kwargs)
@@ -129,6 +137,13 @@ module JwtAuthenticationHelper
     end
 
     mock_token
+  end
+
+  # Replaces Devise's sign_out, which spec/rails_helper.rb withholds on the JWT arm.
+  def sign_out(_user = nil)
+    @jwt_token = nil
+    @jwt_session_id = nil
+    @jwt_headers = nil
   end
 
   def jwt_token

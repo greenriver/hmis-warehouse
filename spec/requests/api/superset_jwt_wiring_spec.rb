@@ -13,7 +13,7 @@ require 'rails_helper'
 # the role payload Superset needs; the route is entirely absent under Devise, mirroring how
 # /oauth/user-data is absent under JWT (spec/requests/idp/warehouse_jwt_wiring_spec.rb).
 RSpec.describe 'Superset JWT wiring', type: :request do
-  describe 'GET /api/superset/user_roles', if: AuthMethod.jwt? do
+  describe 'GET /api/superset/user_roles', :jwt_only do
     let(:user) { create(:user, superset_roles: ['Report Runner']) }
 
     it 'returns the role payload for a valid bearer token' do

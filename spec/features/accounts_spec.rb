@@ -8,7 +8,10 @@
 
 require 'rails_helper'
 
-RSpec.describe 'Accounts', type: :feature do
+# Devise-only: drives the warehouse password sign-in form and exercises Devise lockable,
+# password expiration, and session_limitable behavior (user.password, force_password_reset!).
+# The jwt arm has no password form — authentication is delegated to the IdP.
+RSpec.describe 'Accounts', :devise_only, type: :feature do
   let(:user) { create(:user) }
 
   before(:each) do
