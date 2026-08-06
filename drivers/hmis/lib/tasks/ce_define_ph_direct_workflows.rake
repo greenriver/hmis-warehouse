@@ -1,11 +1,13 @@
 # frozen_string_literal: true
 
-# CE workflow definition for PH
+# CE direct workflow definition for PH
 # Usage:
-#   rails driver:hmis:ce_define_ph_workflows                # creates draft templates. Idempotent; if templates already exist as draft, they will be updated.
-#   rails driver:hmis:ce_define_ph_workflows PUBLISH=true   # creates and publishes templates. Once the templates are published, this task will error if you try to run it again.
-desc 'Create CE workflow definitions for PH'
-task ce_define_ph_workflows: [:environment] do
+#   rails driver:hmis:ce_define_ph_direct_workflows                # creates draft templates. Idempotent; if templates already exist as draft, they will be updated.
+#   rails driver:hmis:ce_define_ph_direct_workflows PUBLISH=true   # creates and publishes templates. Once the templates are published, this task will error if you try to run it again.
+# This task uses the non-preferred draft idempotent pattern.
+# See docs/features/hmis/ce-workflow-builders.md
+desc 'Create CE direct workflow definitions for PH'
+task ce_define_ph_direct_workflows: [:environment] do
   raise unless HmisEnforcement.hmis_enabled?
 
   # Parse publish option (defaults to false)
