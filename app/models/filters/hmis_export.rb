@@ -8,7 +8,7 @@
 
 require 'memery'
 
-# @see docs/features/hmis-csv-export.md
+# @see docs/features/warehouse/hmis-csv-export.md
 module Filters
   class HmisExport < FilterBase
     include ArelHelper
@@ -149,9 +149,9 @@ module Filters
       table = Rails.application.config.hmis_exporters || []
 
       job_class = if version.present?
-                    table.index_by(&:version_str)[version.to_s]
-                  else
-                    table.first
+        table.index_by(&:version_str)[version.to_s]
+      else
+        table.first
       end&.job_class
 
       raise "Unable to find an HMIS Exporter for #{job_class}. Available: #{self.class.options_for_version} " unless job_class

@@ -8,9 +8,11 @@
 
 class GrdaWarehouse::ImportLog < GrdaWarehouseBase
   include ActionView::Helpers::DateHelper
-  serialize :files
-  serialize :import_errors
-  serialize :summary
+  # summary: real usage across the hmis_csv_importer/hmis_csv_twenty_twenty driver
+  # loaders/importers is a nested Hash{String filename => Hash{String stat => Integer count}}.
+  serialize :files, type: Array
+  serialize :import_errors, type: Array
+  serialize :summary, type: Hash
   belongs_to :data_source
   belongs_to :upload, optional: true
 

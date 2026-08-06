@@ -9,14 +9,7 @@
 require 'rails_helper'
 
 RSpec.describe Health::PatientReferral, type: :model do
-  around(:example) do |ex|
-    PaperTrailHelper.with_paper_trail do
-      PaperTrail.request.enabled = true
-      ex.run
-    ensure
-      PaperTrail.request.enabled = false
-    end
-  end
+  around(:example) { |ex| PaperTrailHelper.with_paper_trail { ex.run } }
 
   describe 'derive referrals' do
     it 'leaves simple open referrals alone' do

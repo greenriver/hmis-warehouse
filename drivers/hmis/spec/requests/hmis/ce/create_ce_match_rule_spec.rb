@@ -162,6 +162,24 @@ RSpec.describe 'createCeMatchRule mutation', type: :request do
     expect(result.dig('data', 'createCeMatchRule', 'rule', 'expression')).to eq('current_age >= 18')
   end
 
+  it 'creates a rule from structured PSDE expression input' do
+    input = base_input.except(:expression).merge(
+      structuredExpression: {
+        operator: 'AND',
+        clauses: [
+          { field: 'psde.total_monthly_income', comparator: 'GTE', value: 750 },
+        ],
+      },
+    )
+
+    response, result = post_graphql(input: input) { mutation }
+    expect(response.status).to eq(200), result.inspect
+
+    # The mutation stores the same free-text format used by the evaluator.
+    # Dotted PSDE field names must be quoted when structured input is serialized.
+    expect(result.dig('data', 'createCeMatchRule', 'rule', 'expression')).to eq('`psde.total_monthly_income` >= 750')
+  end
+
   it 'creates a rule from structured expression input with IS_NULL' do
     input = base_input.except(:expression).merge(
       structuredExpression: {
@@ -255,6 +273,21 @@ RSpec.describe 'createCeMatchRule mutation', type: :request do
 
       errors = result.dig('data', 'createCeMatchRule', 'errors')
       expect(errors.first).to include('attribute' => 'expression', 'severity' => 'error')
+    end.not_to change(Hmis::Ce::Match::Rule, :count)
+  end
+
+  it 'returns a validation error for an unknown PSDE field without saving' do
+    input = base_input.merge(expression: '`psde.not_registered` = TRUE')
+
+    expect do
+      response, result = post_graphql(input: input) { mutation }
+      expect(response.status).to eq(200), result.inspect
+
+      # Unknown registry keys should be reported as input errors rather than
+      # escaping the mutation as an unhandled server error.
+      errors = result.dig('data', 'createCeMatchRule', 'errors')
+      expect(errors.first).to include('attribute' => 'expression', 'severity' => 'error')
+      expect(errors.first['message']).to include('Unknown PSDE field "not_registered"')
     end.not_to change(Hmis::Ce::Match::Rule, :count)
   end
 

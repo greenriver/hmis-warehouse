@@ -96,7 +96,7 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   belongs_to :household, **hmis_relation(:HouseholdID, 'Household'), inverse_of: :enrollments, optional: true
 
   # Unit occupancy
-  # All unit occupancies, including historical. @see docs/features/hmis_units.md For detailed documentation on unit occupancy workflows
+  # All unit occupancies, including historical. @see docs/features/hmis/hmis-units.md For detailed documentation on unit occupancy workflows
   has_many :unit_occupancies, class_name: 'Hmis::UnitOccupancy', inverse_of: :enrollment, dependent: :destroy
   has_one :active_unit_occupancy, -> { active }, class_name: 'Hmis::UnitOccupancy', inverse_of: :enrollment, autosave: true
   has_one :current_unit, through: :active_unit_occupancy, class_name: 'Hmis::Unit', source: :unit
@@ -158,8 +158,9 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   end
 
   # Enrollments that the user has limited enrollment details access to (e.g. they can see that the Enrollments exist on the Client dashboard)
+  # mode: :all requires both permissions on the same role (see Project.with_enrollment_details_viewable_by)
   scope :limited_enrollment_details_viewable_by, ->(user) do
-    project_ids = Hmis::Hud::Project.with_access(user, :can_view_limited_enrollment_details).select(:id)
+    project_ids = Hmis::Hud::Project.with_access(user, :can_view_limited_enrollment_details, :can_view_clients, mode: :all).select(:id)
     where(project_pk: project_ids)
   end
 

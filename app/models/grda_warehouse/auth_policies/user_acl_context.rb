@@ -6,7 +6,7 @@
 
 # frozen_string_literal: true
 
-# @see docs/features/warehouse-auth-policies.md
+# @see docs/features/warehouse/warehouse-auth-policies.md
 
 # cross-policy memoized utils for ACL permissions
 class GrdaWarehouse::AuthPolicies::UserAclContext < GrdaWarehouse::AuthPolicies::UserBaseContext

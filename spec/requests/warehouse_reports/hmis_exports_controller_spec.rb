@@ -321,4 +321,63 @@ RSpec.describe WarehouseReports::HmisExportsController, type: :request do
       end
     end
   end
+
+  describe 'GET #index' do
+    # The test environment's default ActiveJob adapter is :test (config/environments/test.rb),
+    # which never touches the delayed_jobs table. Switch to the real :delayed_job adapter for
+    # this block only, matching the existing pattern in spec/jobs/application_job_spec.rb, so
+    # `schedule_job` produces a real Delayed::Job row with a real YAML `handler`.
+    around do |example|
+      previous_adapter = ActiveJob::Base.queue_adapter
+      ActiveJob::Base.queue_adapter = :delayed_job
+      example.run
+    ensure
+      ActiveJob::Base.queue_adapter = previous_adapter
+    end
+
+    # The outer `before` block in this file stubs `schedule_job` to a no-op; these examples
+    # need the real behavior to produce a real delayed_job handler.
+    before do
+      allow_any_instance_of(Filters::HmisExport).to receive(:schedule_job).and_call_original
+    end
+
+    it 'lists a real queued export job parsed from its delayed_job handler' do
+      filter = Filters::HmisExport.new(
+        user_id: user.id,
+        start_date: 30.days.ago.to_date,
+        end_date: Date.current,
+      )
+      filter.schedule_job(report_url: 'https://example.test/report')
+
+      get warehouse_reports_hmis_exports_path
+
+      expect(response).to have_http_status(:success)
+      job_reports = assigns(:job_reports)
+      expect(job_reports.size).to eq(1)
+      _run_at, report = job_reports.first
+      expect(report.start_date).to eq(30.days.ago.to_date)
+      expect(report.end_date).to eq(Date.current)
+    end
+
+    it 'skips a job whose handler contains a disallowed class instead of raising for every admin' do
+      filter = Filters::HmisExport.new(user_id: user.id, start_date: 30.days.ago.to_date, end_date: Date.current)
+      filter.schedule_job(report_url: 'https://example.test/report')
+
+      good_job = Delayed::Job.last
+      # The `note:` line keeps this within Delayed::Job.jobs_for_class's `handler LIKE
+      # "%HmisCsvTwentyTwentyFour::ExportJob%"` scope (see config/initializers/delayed_job.rb),
+      # same as a real HmisExport job's handler would be, while the top-level `!ruby/object:`
+      # tag is a class YAML.safe_load must reject.
+      malicious_yaml = "--- !ruby/object:Gem::Requirement\nrequirements: []\nnote: HmisCsvTwentyTwentyFour::ExportJob\n"
+      poisoned_job = Delayed::Job.create!(handler: malicious_yaml, run_at: Time.current)
+
+      get warehouse_reports_hmis_exports_path
+
+      expect(response).to have_http_status(:success)
+      job_reports = assigns(:job_reports)
+      expect(job_reports.size).to eq(1)
+      expect(Delayed::Job.exists?(poisoned_job.id)).to be true
+      expect(Delayed::Job.exists?(good_job.id)).to be true
+    end
+  end
 end

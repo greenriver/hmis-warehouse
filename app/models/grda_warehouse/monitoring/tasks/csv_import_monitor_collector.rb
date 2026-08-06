@@ -9,7 +9,7 @@
 # Collects per-CSV row count metrics after each import.
 # Uses MetricSnapshot for storage, ImportCsvMonitor for config.
 # Triggered from importer post_process.
-# @see docs/features/import-csv-monitoring.md
+# @see docs/features/warehouse/import-csv-monitoring.md
 module GrdaWarehouse::Monitoring::Tasks
   class CsvImportMonitorCollector
     def self.run!(data_source:, importer_log:, import_log: nil)
