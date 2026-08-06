@@ -40,13 +40,12 @@ module Hmis::Ce::Match::Expression
     end
 
     def format_for_display(field, value)
-      return value if value.nil? || value.empty?
+      return value if value.nil?
 
       psde_field = PsdeFieldRegistry[field]
-      return value unless psde_field
 
-      value_type = psde_field.value_type
-      multiple = psde_field.multiple
+      value_type = psde_field&.value_type
+      multiple = psde_field&.multiple
 
       return _format_for_display(value_type, value) unless multiple
 
