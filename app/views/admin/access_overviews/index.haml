@@ -93,7 +93,8 @@
                       Report Viewers x Projects in MA-500
 
 = content_for :page_js do
-  :javascript
-    $('body').on('click', '.jClosePopover', function(e){
-      $(e.target).closest('.popover').popover('hide')
-    });
+  %script{ nonce: content_security_policy_nonce }
+    :plain
+      $('body').on('click', '.jClosePopover', function(e){
+        $(e.target).closest('.popover').popover('hide')
+      });

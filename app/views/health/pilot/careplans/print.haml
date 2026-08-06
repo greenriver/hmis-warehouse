@@ -8,5 +8,6 @@
 
 
 = content_for :page_js do
-  :javascript
-    window.print();
+  %script{ nonce: content_security_policy_nonce }
+    :plain
+      window.print();

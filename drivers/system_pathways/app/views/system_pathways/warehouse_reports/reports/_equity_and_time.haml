@@ -3,14 +3,15 @@
 .well
   = render 'time'
 = content_for :page_js do
-  :javascript
-    $('body').on('click', '.jChartLoaderItemTime', function(e) {
-      let menu_item = $(e.target).data('menu-item');
-      let other_element = $(`.jChartLoaderItemEquity[data-menu-item=${menu_item}]`);
-      document.querySelector('#equity-controller').chartLoader.loadChartData(other_element);
-    });
-    $('body').on('click', '.jChartLoaderItemEquity', function(e) {
-      let menu_item = $(e.target).data('menu-item');
-      let other_element = $(`.jChartLoaderItemTime[data-menu-item=${menu_item}]`);
-      document.querySelector('#time-controller').chartLoader.loadChartData(other_element);
-    });
+  %script{ nonce: content_security_policy_nonce }
+    :plain
+      $('body').on('click', '.jChartLoaderItemTime', function(e) {
+        let menu_item = $(e.target).data('menu-item');
+        let other_element = $(`.jChartLoaderItemEquity[data-menu-item=${menu_item}]`);
+        document.querySelector('#equity-controller').chartLoader.loadChartData(other_element);
+      });
+      $('body').on('click', '.jChartLoaderItemEquity', function(e) {
+        let menu_item = $(e.target).data('menu-item');
+        let other_element = $(`.jChartLoaderItemTime[data-menu-item=${menu_item}]`);
+        document.querySelector('#time-controller').chartLoader.loadChartData(other_element);
+      });

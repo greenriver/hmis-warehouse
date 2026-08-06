@@ -21,6 +21,12 @@ module Hmis::Ce::Match
       client_field_map.fields.map { |client_field| build_client_field(client_field) }
     end
 
+    # Build this catalog from the registry so newly registered PSDE fields are
+    # automatically available through the GraphQL field query.
+    def psde_fields
+      Hmis::Ce::Match::Expression::PsdeFieldRegistry::ALL.map { |psde_field| build_psde_field(psde_field) }
+    end
+
     def custom_assessment_fields_for(data_source_id:, form_definition_identifier:)
       form_versions = form_versions_for(data_source_id, form_definition_identifier).to_a
       return [] if form_versions.empty?
@@ -34,20 +40,25 @@ module Hmis::Ce::Match
       end
     end
 
-    # Used by ExpressionTranslator to resolve field metadata by expression key.
-    # If the expression includes a CDED key, attempt to recover type metadata from its
-    # form definition (in order to resolve all historical picklist options).
-    # Fall back to CDED type if no form identifier is present.
     def field_for(field_key)
-      field_key = field_key.to_s
-      client_field = client_field_by_key[field_key.to_sym]
-      return build_client_field(client_field) if client_field
+      namespace, resolved_key = Hmis::Ce::Match::Expression::FieldMap.field_type_for(field_key.to_s)
 
-      return unless field_key.start_with?("#{Hmis::Ce::Match::Expression::FieldMap::CDE}.")
-
-      cded_key = field_key.split('.').last
-      cded = Hmis::Hud::CustomDataElementDefinition.for_ce_match_conditions.find_by(key: cded_key)
-      build_cded_field(cded, **form_metadata_for_cded(cded)) if cded
+      case namespace
+      when Hmis::Ce::Match::Expression::FieldMap::CLIENT
+        client_field = client_field_by_key[resolved_key.to_sym]
+        build_client_field(client_field) if client_field
+      when Hmis::Ce::Match::Expression::FieldMap::PSDE
+        psde_field = Hmis::Ce::Match::Expression::PsdeFieldRegistry[resolved_key]
+        build_psde_field(psde_field) if psde_field
+      when Hmis::Ce::Match::Expression::FieldMap::CDE
+        cded_key = resolved_key.split('.').last
+        cded = Hmis::Hud::CustomDataElementDefinition.for_ce_match_conditions.find_by(key: cded_key)
+        build_cded_field(cded, **form_metadata_for_cded(cded)) if cded
+      end
+    rescue ArgumentError
+      # Unknown namespaces raise from FieldMap.field_type_for; treat them like
+      # other unrecognized keys so hydration can fall back to the raw editor.
+      nil
     end
 
     private
@@ -70,6 +81,24 @@ module Hmis::Ce::Match
         source: :CLIENT,
         form_definition_identifier: nil,
         pick_list_reference: client_pick_list_reference(client_field),
+        pick_list_options: nil,
+      )
+    end
+
+    def build_psde_field(psde_field)
+      # Keep the psde.* namespace in both identifiers. Besides matching the
+      # expression syntax, this prevents collisions with client and CDED fields.
+      field_key = Hmis::Ce::Match::Expression::PsdeFieldMap.field_key_for(psde_field.key)
+
+      Field.new(
+        id: field_key,
+        label: psde_field.label,
+        item_type: item_type_for_psde_field(psde_field),
+        multiple: false,
+        field_key: field_key,
+        source: :PSDE,
+        form_definition_identifier: nil,
+        pick_list_reference: nil,
         pick_list_options: nil,
       )
     end
@@ -103,6 +132,19 @@ module Hmis::Ce::Match
         'STRING'
       else
         raise ArgumentError, "unsupported CDED field type for expression builder field #{cded.key}: #{cded.field_type}"
+      end
+    end
+
+    def item_type_for_psde_field(psde_field)
+      # PSDE registry value types are intentionally storage-agnostic; translate
+      # them into the form item types understood by the rule editor.
+      case psde_field.value_type
+      when :logical
+        'BOOLEAN'
+      when :numeric
+        'INTEGER'
+      else
+        raise ArgumentError, "unsupported value type for expression builder field #{psde_field.key}: #{psde_field.value_type}"
       end
     end
 

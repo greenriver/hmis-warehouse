@@ -25,10 +25,11 @@
   .none-found No uploaded roster files.
 
 - content_for :page_js do
-  :javascript
-    $('#roster_content').on('change', function() {
-      $('#roster_upload_button').prop('disabled', !$(this).val());
-    });
-    $('#enrollment_content').on('change', function() {
-      $('#enrollment_upload_button').prop('disabled', !$(this).val());
-    });
+  %script{ nonce: content_security_policy_nonce }
+    :plain
+      $('#roster_content').on('change', function() {
+        $('#roster_upload_button').prop('disabled', !$(this).val());
+      });
+      $('#enrollment_content').on('change', function() {
+        $('#enrollment_upload_button').prop('disabled', !$(this).val());
+      });
