@@ -9,7 +9,7 @@
 # Handles user agreement to compliance requirements (e.g. Terms of Service).
 # Users are blocked from accessing the site until all active requirements are agreed to.
 #
-# @see docs/features/compliance-requirements.md
+# @see docs/features/warehouse/compliance-requirements.md
 class ComplianceAgreementsController < ApplicationController
   skip_before_action :require_compliance_agreement!, raise: false
 

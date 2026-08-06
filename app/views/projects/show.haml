@@ -144,10 +144,11 @@
 = render 'clients'
 
 - content_for :page_js do
-  :javascript
-    (function($) {
-      if ('#{@census_filter_params.present?}' === 'true') {
-        census = new App.Census.Base('#{date_range_censuses_path()}', '#{@census_filter_params.to_json.html_safe}', { follow_link: '#{project_policy.can_view_clients?}' });
-        census.load();
-      }
-    })(jQuery);
+  %script{ nonce: content_security_policy_nonce }
+    :plain
+      (function($) {
+        if ('#{@census_filter_params.present?}' === 'true') {
+          census = new App.Census.Base('#{date_range_censuses_path()}', '#{@census_filter_params.to_json.html_safe}', { follow_link: '#{project_policy.can_view_clients?}' });
+          census.load();
+        }
+      })(jQuery);

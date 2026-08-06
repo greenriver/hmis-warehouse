@@ -9,12 +9,13 @@
   .h5-prs1.mb-2= data.values_at(*%i/race gender age_group/).select(&:present?).join('; ')
   .j-chart(id=chart_id)
 - content_for :page_js do
-  :javascript
-    var domain = #{@report.time_range.to_json.html_safe};
-    var enrollments = #{data[:enrollments].to_json.html_safe};
-    App.WarehouseReports.clientTimelineChart({
-      enrollments: enrollments,
-      rootSelector: '#' + #{chart_id.to_json.html_safe},
-      domain: domain,
-      cocs: #{@details[:cocs].to_json.html_safe}
-    });
+  %script{ nonce: content_security_policy_nonce }
+    :plain
+      var domain = #{@report.time_range.to_json.html_safe};
+      var enrollments = #{data[:enrollments].to_json.html_safe};
+      App.WarehouseReports.clientTimelineChart({
+        enrollments: enrollments,
+        rootSelector: '#' + #{chart_id.to_json.html_safe},
+        domain: domain,
+        cocs: #{@details[:cocs].to_json.html_safe}
+      });

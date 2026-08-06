@@ -4,14 +4,15 @@
   = f.input :zip_code, hidden: true, label: 'In What Zip Code?'
 
 - content_for :page_js do
-  :javascript
-    $(function() {
-      $('.jHousingStatus').on('change', function() {
-        if ($('.jHousingStatus').val() != "No") {
-          $('.jZipCode').show()
-        } else {
-          $('.jZipCode').hide()
-        }
-      });
-      $('.jHousingStatus').trigger('change')
-    })
+  %script{ nonce: content_security_policy_nonce }
+    :plain
+      $(function() {
+        $('.jHousingStatus').on('change', function() {
+          if ($('.jHousingStatus').val() != "No") {
+            $('.jZipCode').show()
+          } else {
+            $('.jZipCode').hide()
+          }
+        });
+        $('.jHousingStatus').trigger('change')
+      })

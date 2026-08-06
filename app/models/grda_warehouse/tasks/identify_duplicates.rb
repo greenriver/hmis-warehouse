@@ -10,7 +10,7 @@
 
 require 'memery'
 
-# @see docs/features/identify_duplicates.md
+# @see docs/features/warehouse/identify-duplicates.md
 module GrdaWarehouse::Tasks
   class IdentifyDuplicates
     include ArelHelper

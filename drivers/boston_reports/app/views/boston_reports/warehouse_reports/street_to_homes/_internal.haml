@@ -21,62 +21,63 @@
   Unsheltered Population consists of anyone with an open street outreach enrollment over the past year.
 
 = content_for :page_js do
-  :javascript
-    // Force window resize re-calculation
-    resize_window_event = function() {
-      window.dispatchEvent(new Event('resize'));
-      var resizeEvent = window.document.createEvent('UIEvents');
-      resizeEvent.initUIEvent('resize', true, false, window, 0);
-      window.dispatchEvent(resizeEvent);
-    };
-    window.group = 'stages';
-    window.demographics = 'race';
-    $('.internal-demographic-dropdown a.dropdown-item').on('click', function(e) {
-      e.preventDefault();
-      let current_group = $('.internal-group-dropdown:visible a.dropdown-item.active').data('value');
-      let new_demographic = $(this).data('value');
-      $('.internal-chart-wrapper').addClass('hide');
-      $(`.demographic-${new_demographic}.group-${current_group}`).removeClass('hide');
+  %script{ nonce: content_security_policy_nonce }
+    :plain
+      // Force window resize re-calculation
+      resize_window_event = function() {
+        window.dispatchEvent(new Event('resize'));
+        var resizeEvent = window.document.createEvent('UIEvents');
+        resizeEvent.initUIEvent('resize', true, false, window, 0);
+        window.dispatchEvent(resizeEvent);
+      };
+      window.group = 'stages';
+      window.demographics = 'race';
+      $('.internal-demographic-dropdown a.dropdown-item').on('click', function(e) {
+        e.preventDefault();
+        let current_group = $('.internal-group-dropdown:visible a.dropdown-item.active').data('value');
+        let new_demographic = $(this).data('value');
+        $('.internal-chart-wrapper').addClass('hide');
+        $(`.demographic-${new_demographic}.group-${current_group}`).removeClass('hide');
 
-      let chart_key = `internal_${new_demographic}_by_${current_group}_chart`;
-      window.charts[chart_key].flush();
-      window.demographics = new_demographic;
-      resize_window_event();
-    });
+        let chart_key = `internal_${new_demographic}_by_${current_group}_chart`;
+        window.charts[chart_key].flush();
+        window.demographics = new_demographic;
+        resize_window_event();
+      });
 
-    $('.internal-group-dropdown a.dropdown-item').on('click', function(e) {
-      e.preventDefault();
-      let current_demographic = 'race'; // ethnicity removed for FY2024
-      '.internal-chart-wrapper'
-      let new_group = $(this).data('value');
-      $('.internal-chart-wrapper').addClass('hide');
-      $(`.demographic-${current_demographic}.group-${new_group}`).removeClass('hide');
+      $('.internal-group-dropdown a.dropdown-item').on('click', function(e) {
+        e.preventDefault();
+        let current_demographic = 'race'; // ethnicity removed for FY2024
+        '.internal-chart-wrapper'
+        let new_group = $(this).data('value');
+        $('.internal-chart-wrapper').addClass('hide');
+        $(`.demographic-${current_demographic}.group-${new_group}`).removeClass('hide');
 
-      let chart_key = `internal_${current_demographic}_by_${new_group}_chart`;
-      window.charts[chart_key].flush();
-      window.group = new_group;
-      resize_window_event();
-    });
-    window.swapped = false;
+        let chart_key = `internal_${current_demographic}_by_${new_group}_chart`;
+        window.charts[chart_key].flush();
+        window.group = new_group;
+        resize_window_event();
+      });
+      window.swapped = false;
 
-    $('body').on('click', '.internal-axis-swap', function(e) {
-      e.preventDefault();
+      $('body').on('click', '.internal-axis-swap', function(e) {
+        e.preventDefault();
 
-      let new_demographic, new_group;
+        let new_demographic, new_group;
 
-      if(window.swapped) {
-        new_demographic = window.demographics;
-        new_group = window.group;
-        window.swapped = false;
-      } else {
-        new_demographic = window.group;
-        new_group = window.demographics;
-        window.swapped = true;
-      }
-      $('.internal-chart-wrapper').addClass('hide');
-      $(`.demographic-${new_demographic}.group-${new_group}`).removeClass('hide');
+        if(window.swapped) {
+          new_demographic = window.demographics;
+          new_group = window.group;
+          window.swapped = false;
+        } else {
+          new_demographic = window.group;
+          new_group = window.demographics;
+          window.swapped = true;
+        }
+        $('.internal-chart-wrapper').addClass('hide');
+        $(`.demographic-${new_demographic}.group-${new_group}`).removeClass('hide');
 
-      let chart_key = `internal_${new_demographic}_by_${new_group}_chart`;
-      resize_window_event();
-      Object.keys(window.charts).forEach(chart_key => window.charts[chart_key].flush());
-    });
+        let chart_key = `internal_${new_demographic}_by_${new_group}_chart`;
+        resize_window_event();
+        Object.keys(window.charts).forEach(chart_key => window.charts[chart_key].flush());
+      });

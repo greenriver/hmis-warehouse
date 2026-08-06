@@ -141,7 +141,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   end
 
   describe 'when the user can only view limited enrollments at this project' do
-    let!(:access_control) { create_access_control(hmis_user, p1, with_permission: [:can_view_clients, :can_view_limited_enrollment_details]) }
+    let!(:access_control) { create_access_control(hmis_user, p1, with_permission: HmisPermissionSets::LIMITED_ENROLLMENT_VISIBILITY) }
 
     it 'does not resolve activeEnrollments' do
       response, result = post_graphql(dob: shared_client_dob, project_id: p1.id, date: 2.days.ago) { query }

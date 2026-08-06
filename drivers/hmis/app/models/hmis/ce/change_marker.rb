@@ -15,7 +15,7 @@
 #
 # Records are considered "dirty" when current_version > processed_version.
 #
-# See ./README_FOR_CE_PROCESSING.md
+# See docs/features/hmis/ce-processing.md
 class Hmis::Ce::ChangeMarker < GrdaWarehouseBase
   # Bulk-managed, does not log to paper_trail
   self.table_name = 'hmis_ce_change_markers'

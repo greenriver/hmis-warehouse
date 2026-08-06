@@ -89,12 +89,13 @@
           -# %td.text-right= totals.intake_renewal_overdue.size
           -# %td.text-right= totals.without_required_wellcare_visit.size
   = content_for :page_js do
-    :javascript
-      $(document).ready(function() {
-        $('.btn').each(function(i){
-          $(this).removeAttr('data-disable-with');
+    %script{ nonce: content_security_policy_nonce }
+      :plain
+        $(document).ready(function() {
+          $('.btn').each(function(i){
+            $(this).removeAttr('data-disable-with');
+          });
         });
-      });
 
 - default_open ||= 'no'
 .mt-4

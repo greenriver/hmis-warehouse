@@ -208,8 +208,8 @@ module HudApr::Generators::Shared::Fy2024
       # The client we return may not be an HoH in relation to the rest of the APR, but they
       # must be an HoH for the enrollment that was open on the PIT date
       query = <<~SQL
-        pit_enrollments ? '#{pit_date}'
-        AND pit_enrollments -> '#{pit_date}' @> '[{"relationship_to_hoh": 1}]'
+        pit_enrollments ? '#{pit_date.iso8601}'
+        AND pit_enrollments -> '#{pit_date.iso8601}' @> '[{"relationship_to_hoh": 1}]'
       SQL
       universe.members.where(query)
     end

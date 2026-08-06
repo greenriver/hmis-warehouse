@@ -196,6 +196,6 @@ As individual module groups are documented in depth, Level 3 pages will be added
 
 | Future Page | Content | Existing Feature Docs |
 | --- | --- | --- |
-| `05-3-1-hud-reporting.md` | HUD Reporting framework and individual report drivers | [`docs/features/hud-report-framework.md`](../../features/hud-report-framework.md) |
-| `05-3-2-data-ingestion.md` | CSV import pipeline, supplemental ingestion, validation | [`docs/features/hmis-csv-importer.md`](../../features/hmis-csv-importer.md) |
+| `05-3-1-hud-reporting.md` | HUD Reporting framework and individual report drivers | [`docs/features/warehouse/hud-report-framework.md`](../../features/warehouse/hud-report-framework.md) |
+| `05-3-2-data-ingestion.md` | CSV import pipeline, supplemental ingestion, validation | [`docs/features/warehouse/hmis-csv-importer.md`](../../features/warehouse/hmis-csv-importer.md) |
 | `05-3-3-hmis-module.md` | HMIS GraphQL API, forms engine, coordinated entry | |

@@ -41,7 +41,12 @@ RSpec.describe HmisCsvImporter::Importer::Importer, type: :model do
     PROBE_PATTERNS = {
       # source_hash renders as a bind ($1) when prepared statements are on and
       # as a NULL literal when they are off; match both.
-      client_source_hash_update: /\AUPDATE "Client" SET "source_hash" = (?:\$\d+|NULL) WHERE .* INNER JOIN/m,
+      # Rails 8.1 rewrites update_all on a joined relation as
+      # `UPDATE "Client" "alias" SET ... FROM "Client" INNER JOIN ... WHERE
+      # ... AND "Client"."id" = "alias"."id"` rather than the old
+      # `WHERE id IN (subquery with joins)` shape, so INNER JOIN now precedes
+      # WHERE instead of following it.
+      client_source_hash_update: /\AUPDATE "Client" .*SET "source_hash" = (?:\$\d+|NULL) FROM .*INNER JOIN/m,
       pending_deletes_materialization: /\ACREATE TEMP TABLE "tmp_pending_deletes_/,
       pending_deletes_batch_update: /\AUPDATE .* SELECT id FROM "tmp_pending_deletes_/m,
     }.freeze

@@ -34,6 +34,22 @@ Avoid defining global view helpers on ApplicationHelper unless the helper is tru
 
 When creating new JavaScript assets, use esbuild in `app/javascripts` rather than asset pipeline.
 
+### Content Security Policy nonces for inline scripts
+
+`config/initializers/content_security_policy.rb` configures `content_security_policy_nonce_generator` (a fresh random value per request) and `content_security_policy_nonce_directives = ['script-src']`. A CSP nonce is a per-request random token that must match between the `Content-Security-Policy` response header and a `<script>` tag's `nonce` attribute for the browser to execute that script. Because the nonce changes every request and isn't in the page an attacker's injected markup would have to guess, this is what lets `script-src` actually block XSS: only scripts the app itself rendered (with the correct nonce) run, so injected `<script>` tags are inert even where `unsafe-inline` is still listed as a legacy fallback.
+
+Any inline `<script>` a view renders must carry this nonce or the browser will refuse to execute it:
+
+```haml
+%script{ nonce: content_security_policy_nonce }
+  :plain
+    var foo = #{bar};
+```
+
+Don't use HAML's `:javascript` filter for new inline scripts — it emits a bare `<script>` tag with no way to add the `nonce` attribute. In ERB, use `javascript_tag nonce: true do ... end` instead.
+
+Note that `style_src` still includes `:unsafe_inline` unconditionally — inline `style=` attributes and `<style>` blocks are not yet nonce-protected. Prefer avoiding inline styles regardless (see Styles guidance in project instructions).
+
 ## Authorization
 
 ### Authorization on a record
@@ -114,6 +130,8 @@ GrdaWarehouse::Hud::Enrollment.joins(:client).where(c_t[:VeteranStatus].eq(1))
 ```
 
 Rely on ActiveRecord relationships over manual table joins.
+
+Avoid passing raw SQL strings to `update_all` / `delete_all` / `update_counters`; on joined relations (e.g. the `.hmis` scope) Rails 8.1 aliases the table and bare columns become ambiguous. See [ActiveRecord, Arel, and Query Best Practices](active-record-arel-and-queries.md) for the full rationale, the range-syntax preference, and the `Queries/UnsafeBulkUpdateSql` cop.
 
 ## Background Async Jobs
 

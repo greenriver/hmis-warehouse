@@ -30,7 +30,8 @@
 
 
 = content_for :page_js do
-  :javascript
-    $('.jClose').on('click', function(e) {
-      e.preventDefault();
-    });
+  %script{ nonce: content_security_policy_nonce }
+    :plain
+      $('.jClose').on('click', function(e) {
+        e.preventDefault();
+      });

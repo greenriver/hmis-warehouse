@@ -19,7 +19,8 @@
         %dd "Assisted Living / Nursing Home / Rest Home," "Assisted Living Facility, Nursing Home, Rest Home," "Supportive Housing," "Housing with No Supports," "Housing with no Support Services," and "Housing with no Supportive Services."
 
 = content_for :page_js do
-  :javascript
-    (function($) {
-      var status_chart = new App.Health.HousingStatus('.jHousingChart', #{@report.data_for_housing_type_chart.to_json.html_safe});
-    })(jQuery);
+  %script{ nonce: content_security_policy_nonce }
+    :plain
+      (function($) {
+        var status_chart = new App.Health.HousingStatus('.jHousingChart', #{@report.data_for_housing_type_chart.to_json.html_safe});
+      })(jQuery);

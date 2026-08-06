@@ -194,6 +194,10 @@ RSpec.describe User, type: :model do
     end
   end
 
+  # Regression coverage for CVE-2026-32700: confirmation_token/unconfirmed_email desync.
+  # The app previously carried a monkey patch (DeviseUserPatch) working around this on
+  # Devise 4; Devise 5.0.4 fixes it natively, so the patch was removed. This spec confirms
+  # the native behavior still holds.
   describe 'CVE-2026-32700 - confirmation token/unconfirmed_email sync' do
     it 'prevents desync when a concurrent request modifies unconfirmed_email mid-flight' do
       attacker_email = 'attacker@example.com'
@@ -210,15 +214,125 @@ RSpec.describe User, type: :model do
         confirmation_token: 'injected_token',
       )
 
-      # Second update with the same email — without the patch, AR considers
+      # Second update with the same email — without the fix, AR would consider
       # unconfirmed_email unchanged (still 'attacker_email' in memory) and
-      # omits it from the UPDATE, leaving 'victim_email' in the DB
+      # omit it from the UPDATE, leaving 'victim_email' in the DB
       user.update!(email: attacker_email)
 
       user.reload
-      # The patch ensures unconfirmed_email is always written, correcting the DB
+      # Devise 5 ensures unconfirmed_email is always written, correcting the DB
       expect(user.unconfirmed_email).to eq(attacker_email)
       expect(user.confirmation_token).not_to eq('injected_token')
+    end
+  end
+
+  describe 'devise-security password_archivable' do
+    around do |example|
+      original = Devise.deny_old_passwords
+      Devise.deny_old_passwords = 2
+      example.run
+      Devise.deny_old_passwords = original
+    end
+
+    let(:user) { create(:user) }
+
+    def change_password!(user, password)
+      user.update!(password: password, password_confirmation: password)
+    end
+
+    it 'accepts a new password that has never been used' do
+      change_password!(user, 'Unique-Password-1')
+
+      expect(user).to be_valid
+    end
+
+    it 'rejects a password that is still within the archived window' do
+      # user starts on the factory-default password (pw0); build a chain of changes
+      # so pw1 and pw2 remain archived (deny_old_passwords: 2) after the 3rd change.
+      change_password!(user, 'History-Pass-1')
+      change_password!(user, 'History-Pass-2')
+      change_password!(user, 'History-Pass-3')
+
+      expect(user.old_passwords.count).to eq(2)
+
+      user.assign_attributes(password: 'History-Pass-2', password_confirmation: 'History-Pass-2')
+
+      expect(user).to be_invalid
+      expect(user.errors[:password]).to include('was used previously.')
+    end
+
+    it 'allows reusing a password once it has aged out of the archive window' do
+      original_password = user.password
+
+      change_password!(user, 'History-Pass-1')
+      change_password!(user, 'History-Pass-2')
+      change_password!(user, 'History-Pass-3') # pushes the original factory password out of the 2-entry window
+
+      user.assign_attributes(password: original_password, password_confirmation: original_password)
+
+      expect(user).to be_valid
+    end
+  end
+
+  describe 'devise-security expirable' do
+    let(:user) { create(:user) }
+
+    it 'is active when recently active' do
+      user.update_column(:last_activity_at, Time.current)
+
+      expect(user.expired?).to be false
+      expect(user.active_for_authentication?).to be true
+    end
+
+    it 'is not expired just inside the configured expire_after window (boundary)' do
+      user.update_column(:last_activity_at, (Devise.expire_after - 1.hour).ago)
+
+      expect(user.expired?).to be false
+    end
+
+    it 'is expired once inactivity exceeds the configured expire_after window' do
+      user.update_column(:last_activity_at, (Devise.expire_after + 1.day).ago)
+
+      expect(user.expired?).to be true
+      expect(user.active_for_authentication?).to be false
+      expect(user.inactive_message).to eq(:expired)
+    end
+
+    it 'treats a manually-set expired_at as authoritative even when recently active' do
+      user.update_column(:last_activity_at, Time.current)
+      user.expire!(1.day.ago)
+
+      expect(user.expired?).to be true
+      expect(user.active_for_authentication?).to be false
+    end
+  end
+
+  describe 'devise-security secure_validatable password complexity' do
+    around do |example|
+      original = Devise.password_complexity
+      Devise.password_complexity = { digit: 1, lower: 1, upper: 1, symbol: 1 }
+      example.run
+      Devise.password_complexity = original
+    end
+
+    it 'accepts a password satisfying every configured character class' do
+      user = build(:user, password: 'Abcdefgh1!', password_confirmation: 'Abcdefgh1!')
+
+      expect(user).to be_valid
+    end
+
+    it 'rejects a password missing a required character class' do
+      user = build(:user, password: 'Abcdefgh12', password_confirmation: 'Abcdefgh12')
+
+      expect(user).to be_invalid
+      expect(user.errors[:password]).to include('must contain at least one punctuation mark or symbol')
+    end
+
+    it 'does not enforce complexity when disabled' do
+      Devise.password_complexity = {}
+      user = build(:user, password: 'alllowercase123', password_confirmation: 'alllowercase123')
+
+      expect(user).to be_valid
     end
   end
 end

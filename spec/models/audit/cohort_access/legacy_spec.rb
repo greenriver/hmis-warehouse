@@ -9,14 +9,7 @@
 require 'rails_helper'
 
 RSpec.describe Audit::CohortAccess::Legacy do
-  around(:each) do |example|
-    PaperTrailHelper.with_paper_trail do
-      PaperTrail.request.enabled = true
-      example.run
-    ensure
-      PaperTrail.request.enabled = false
-    end
-  end
+  around(:each) { |example| PaperTrailHelper.with_paper_trail { example.run } }
 
   let(:cohort) { create(:cohort) }
   let(:user) { create(:user) }

@@ -8,8 +8,11 @@
 
 require 'rails_helper'
 
-# Verifies the monkey patch for CVE-2026-40295 (GHSA-jp94-3292-c3xv):
+# Regression coverage for CVE-2026-40295 (GHSA-jp94-3292-c3xv):
 # Open redirect via unvalidated `request.referrer` in Timeoutable session timeout handler.
+# Devise 5.0.4 fixes this natively (see Devise::Controllers::StoreLocation#extract_path_from_location);
+# the app previously carried a monkey patch backporting this fix, which was removed once the gem upgrade
+# landed. These specs confirm the native behavior still holds.
 RSpec.describe 'CVE-2026-40295 - open redirect via Referer on timeout' do
   let(:store_location_host) { Class.new { include Devise::Controllers::StoreLocation }.new }
 
@@ -44,29 +47,6 @@ RSpec.describe 'CVE-2026-40295 - open redirect via Referer on timeout' do
 
     it 'passes through a plain path unchanged' do
       expect(extract('/dashboard')).to eq('/dashboard')
-    end
-  end
-
-  describe 'patches are applied to the active authentication chain' do
-    it 'resolves FailureApp#redirect_url from the monkey patch, not the gem' do
-      source_file, = Devise::FailureApp.instance_method(:redirect_url).source_location
-      expect(source_file).to end_with('devise_cve_2026_40295.rb')
-    end
-
-    it 'resolves extract_path_from_location from the monkey patch, not the gem' do
-      source_file, = Devise::Controllers::StoreLocation.instance_method(:extract_path_from_location).source_location
-      expect(source_file).to end_with('devise_cve_2026_40295.rb')
-    end
-
-    it 'CustomAuthFailure inherits the patched redirect_url' do
-      source_file, = CustomAuthFailure.instance_method(:redirect_url).source_location
-      expect(source_file).to end_with('devise_cve_2026_40295.rb')
-    end
-
-    it 'Warden is configured to use CustomAuthFailure as the failure app' do
-      failure_app = Devise.warden_config.failure_app
-      expect(failure_app).to eq(CustomAuthFailure)
-      expect(failure_app).to be < Devise::FailureApp
     end
   end
 end

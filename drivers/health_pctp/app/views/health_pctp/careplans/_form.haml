@@ -96,22 +96,23 @@
 = render 'complete', f: f
 
 - content_for :page_js do
-  :javascript
-    $(document).ready(function() {
-      $('.jWithOther').change(function() {
-        other_input = $(this).closest('.jSelectPair').find('.jOther');
-        values = $(this).val();
-        if(values.includes('other')) {
-          $(other_input).slideDown();
-        } else {
-          $(other_input).slideUp();
-        }
-      });
+  %script{ nonce: content_security_policy_nonce }
+    :plain
+      $(document).ready(function() {
+        $('.jWithOther').change(function() {
+          other_input = $(this).closest('.jSelectPair').find('.jOther');
+          values = $(this).val();
+          if(values.includes('other')) {
+            $(other_input).slideDown();
+          } else {
+            $(other_input).slideUp();
+          }
+        });
 
-      $('.jWithOther').each(function() {
-        values =$(this).val();
-        if(! values.includes('other')) {
-          $(this).closest('.jSelectPair').find('.jOther').hide();
-        }
+        $('.jWithOther').each(function() {
+          values =$(this).val();
+          if(! values.includes('other')) {
+            $(this).closest('.jSelectPair').find('.jOther').hide();
+          }
+        });
       });
-    });

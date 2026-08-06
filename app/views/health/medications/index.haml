@@ -13,11 +13,12 @@
       %p No medications on file.
 
 = content_for :page_js do
-  :javascript
-    $('.datatable').DataTable({
-      searching: false,
-      ordering: false,
-      pageLength: 15,
-      lengthChange: false,
-      pagingType: 'simple'
-    });
+  %script{ nonce: content_security_policy_nonce }
+    :plain
+      $('.datatable').DataTable({
+        searching: false,
+        ordering: false,
+        pageLength: 15,
+        lengthChange: false,
+        pagingType: 'simple'
+      });

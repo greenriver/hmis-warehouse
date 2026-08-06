@@ -6,7 +6,7 @@
 
 # frozen_string_literal: true
 
-# @see docs/features/translation.md
+# @see docs/features/warehouse/translation.md
 class Translation < ApplicationRecord
   include NotifierConfig
 

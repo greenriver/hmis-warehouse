@@ -21,7 +21,6 @@ class Hmis::User < ApplicationRecord
   include UserConcern
   include Idp::JwtUser
   include HasRecentItems
-  include DeviseUserPatch
 
   self.table_name = :users
 
