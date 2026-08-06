@@ -119,8 +119,8 @@ module Hmis::Ce::Match::Expression
         # Substance use collapses Alcohol/Drug/Both (1/2/3) to true, No (0) to false.
         {
           scope: disability_scope(SUBSTANCE_USE_DISABILITY_TYPE),
-          column: d_t[:DisabilityResponse], extra_yes_response_codes:
-          SUBSTANCE_USE_EXTRA_YES_RESPONSE_CODES
+          column: d_t[:DisabilityResponse],
+          extra_yes_response_codes: SUBSTANCE_USE_EXTRA_YES_RESPONSE_CODES,
         }
       when *NO_YES_DISABILITY_TYPES.keys
         { scope: disability_scope(NO_YES_DISABILITY_TYPES.fetch(base_key)), column: d_t[:DisabilityResponse] }
