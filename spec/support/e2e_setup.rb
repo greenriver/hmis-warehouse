@@ -195,6 +195,7 @@ RSpec.shared_context 'SystemSpecHelper' do
     JS
 
     visit current_path # reload the page
+    page.driver.wait_for_network_idle
     expect(page).to have_content("Acting as #{user.full_name}")
 
     begin

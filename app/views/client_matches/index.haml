@@ -1,30 +1,31 @@
 = render '/clients/breadcrumbs'
 - content_for :title, "Match Similar Clients"
 - content_for :page_js do
-  :javascript
-    jQuery(function($) {
-      $(document).on("ajax:success", function (e, data, status, xhr) {
-        var cards = $('.client-match[data-id='+data.id+']');
-        var rows = cards.closest('.merge-row');
-        cards.fadeOut(100, function() {
-          cards.remove();
-          rows.each(function() {
-            var row = $(this);
-            if (row.find('.client_match').length == 0) {
-              row.remove();
-            }
+  %script{ nonce: content_security_policy_nonce }
+    :plain
+      jQuery(function($) {
+        $(document).on("ajax:success", function (e, data, status, xhr) {
+          var cards = $('.client-match[data-id='+data.id+']');
+          var rows = cards.closest('.merge-row');
+          cards.fadeOut(100, function() {
+            cards.remove();
+            rows.each(function() {
+              var row = $(this);
+              if (row.find('.client_match').length == 0) {
+                row.remove();
+              }
+            });
           });
-        });
 
-        var candidate_badge = $('.badge[data-status=candidate]');
-        var result_badge = $('.badge[data-status='+data.status+']');
-        candidate_badge.html(parseInt(candidate_badge.html())-1);
-        result_badge.html(parseInt(result_badge.html())+1);
-      });
-      $(document).on("ajax:error", function (e, xhr, status, error) {
-        alert(error);
-      });
-    })
+          var candidate_badge = $('.badge[data-status=candidate]');
+          var result_badge = $('.badge[data-status='+data.status+']');
+          candidate_badge.html(parseInt(candidate_badge.html())-1);
+          result_badge.html(parseInt(result_badge.html())+1);
+        });
+        $(document).on("ajax:error", function (e, xhr, status, error) {
+          alert(error);
+        });
+      })
 
 %h1= content_for :title
 %ul.nav.nav-tabs

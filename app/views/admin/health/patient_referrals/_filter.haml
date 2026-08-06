@@ -66,14 +66,18 @@
           .radio-button-list__container
             - [['Referral Date', 'created_at'], ['Last Name', 'last_name']].each do |item|
               = f.label :sort_by, value: item.last do
-                = f.radio_button :sort_by, item.last, onclick: "$(this).parents('form').submit()"
+                = f.radio_button :sort_by, item.last, class: 'sort-by-radio'
                 %span= item.first
 
 - agency_data = @agencies.map{|a| {label: a.name, value: a.id}}.to_json
 - content_for :page_js do
-  :javascript
-    $(document).ready(function() {
-      $(document).on('click', '#filter-form', function(e) {
-        e.stopPropagation();
+  %script{ nonce: content_security_policy_nonce }
+    :plain
+      $(document).ready(function() {
+        $(document).on('click', '#filter-form', function(e) {
+          e.stopPropagation();
+        });
+        $(document).on('change', '.sort-by-radio', function() {
+          $(this).parents('form').submit();
+        });
       });
-    });

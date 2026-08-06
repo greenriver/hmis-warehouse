@@ -21,7 +21,8 @@
   .none-found No data
 
 = content_for :page_js do
-  :javascript
-    $(document).ready( function () {
-      $('#jRosterTable').DataTable();
-    } );
+  %script{ nonce: content_security_policy_nonce }
+    :plain
+      $(document).ready( function () {
+        $('#jRosterTable').DataTable();
+      } );
