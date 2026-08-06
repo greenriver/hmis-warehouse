@@ -1,9 +1,10 @@
 - content_for :page_js do
-  :javascript
-    $(document).ready(function() {
-      $('.jRemoteSubmit').on('change', function(e){
-        console.log(e);
-        var form = $(e.currentTarget).closest('form');
-        form.submit();
+  %script{ nonce: content_security_policy_nonce }
+    :plain
+      $(document).ready(function() {
+        $('.jRemoteSubmit').on('change', function(e){
+          console.log(e);
+          var form = $(e.currentTarget).closest('form');
+          form.submit();
+        });
       });
-    });

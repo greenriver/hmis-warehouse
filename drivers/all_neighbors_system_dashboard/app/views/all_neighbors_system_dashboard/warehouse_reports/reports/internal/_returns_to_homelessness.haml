@@ -37,69 +37,70 @@
     .d-flex.justify-content-center{id: legend_id(tab[:id], vertical_stack[:id])}
 
 - content_for :page_js do
-  :javascript
-    $(document).ready(function() {
-      console.debug('Returns To Homelessness -----------------')
-      var barsData = #{bars_data.to_json.html_safe}
-      var verticalStackData = #{vertical_stack.to_json.html_safe}
+  %script{ nonce: content_security_policy_nonce }
+    :plain
+      $(document).ready(function() {
+        console.debug('Returns To Homelessness -----------------')
+        var barsData = #{bars_data.to_json.html_safe}
+        var verticalStackData = #{vertical_stack.to_json.html_safe}
 
-      var charts = [
-        {
-          chart: AllNeighborsSystemDashboardHorizontalBar,
-          data: barsData,
-          selector: '##{chart_id(tab[:id], bars_data[:id])}',
-          options: {}
-        },
-        {
-          chart: AllNeighborsSystemDashboardUPVerticalStack,
-          data: verticalStackData,
-          selector: '##{chart_id(tab[:id], vertical_stack[:id])}',
-          options: {
-            legend: {
-              selector: '##{legend_id(tab[:id], vertical_stack[:id])}'
+        var charts = [
+          {
+            chart: AllNeighborsSystemDashboardHorizontalBar,
+            data: barsData,
+            selector: '##{chart_id(tab[:id], bars_data[:id])}',
+            options: {}
+          },
+          {
+            chart: AllNeighborsSystemDashboardUPVerticalStack,
+            data: verticalStackData,
+            selector: '##{chart_id(tab[:id], vertical_stack[:id])}',
+            options: {
+              legend: {
+                selector: '##{legend_id(tab[:id], vertical_stack[:id])}'
+              }
             }
           }
-        }
-      ]
+        ]
 
-      var filters = [
-        {
-          name: 'projectType',
-          type: 'select',
-          selector: '##{filter_id(tab[:id], 'project_type')}'
-        },
-        {
-          name: 'countLevel',
-          type: 'select',
-          selector: '##{filter_id(tab[:id], 'count_level')}'
-        },
-        {
-          name: 'cohort',
-          type: 'select',
-          selector: '##{filter_id(tab[:id], 'cohort')}'
-        }
-      ]
+        var filters = [
+          {
+            name: 'projectType',
+            type: 'select',
+            selector: '##{filter_id(tab[:id], 'project_type')}'
+          },
+          {
+            name: 'countLevel',
+            type: 'select',
+            selector: '##{filter_id(tab[:id], 'count_level')}'
+          },
+          {
+            name: 'cohort',
+            type: 'select',
+            selector: '##{filter_id(tab[:id], 'cohort')}'
+          }
+        ]
 
-      var labels = [
-        {
-          name: 'projectType',
-          selector: '.#{filter_label_id(tab[:id], 'project_type')}'
-        },
-        {
-          name: 'countLevel',
-          selector: '.#{filter_label_id(tab[:id], 'count_level')}'
-        },
-        {
-          name: 'cohort',
-          selector: '.#{filter_label_id(tab[:id], 'cohort')}'
-        },
-        {
-          name: 'cohortYears',
-          selector: '##{filter_label_id(tab[:id], 'housing_retention')}'
-        }
-      ]
+        var labels = [
+          {
+            name: 'projectType',
+            selector: '.#{filter_label_id(tab[:id], 'project_type')}'
+          },
+          {
+            name: 'countLevel',
+            selector: '.#{filter_label_id(tab[:id], 'count_level')}'
+          },
+          {
+            name: 'cohort',
+            selector: '.#{filter_label_id(tab[:id], 'cohort')}'
+          },
+          {
+            name: 'cohortYears',
+            selector: '##{filter_label_id(tab[:id], 'housing_retention')}'
+          }
+        ]
 
-      var filters = new AllNeighborsSystemDashboardFilters(filters, charts, labels)
-      filters.test()
+        var filters = new AllNeighborsSystemDashboardFilters(filters, charts, labels)
+        filters.test()
 
-    })
+      })

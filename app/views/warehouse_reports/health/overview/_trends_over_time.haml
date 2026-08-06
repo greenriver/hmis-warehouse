@@ -19,8 +19,9 @@
       .ho-hints.d3-claims__legend
 
 - content_for :page_js do
-  :javascript
-    $(document).ready(function() {
-      var claimsCharts = new App.D3Chart.Claims('d3-claims')
-      claimsCharts.draw()
-    })
+  %script{ nonce: content_security_policy_nonce }
+    :plain
+      $(document).ready(function() {
+        var claimsCharts = new App.D3Chart.Claims('d3-claims')
+        claimsCharts.draw()
+      })

@@ -1,3 +1,4 @@
 = content_for :page_js do
-  :javascript
-    $('#ajax-modal.modal').find('.close').trigger('click');
+  %script{ nonce: content_security_policy_nonce }
+    :plain
+      $('#ajax-modal.modal').find('.close').trigger('click');

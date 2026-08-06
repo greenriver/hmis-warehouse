@@ -4,6 +4,9 @@ require 'rails_helper'
 require_relative '../login_and_permissions'
 require_relative '../../../support/hmis_base_setup'
 
+# ceMatchClientFields is deprecated in favor of ceMatchFields(fieldSource: CLIENT)
+# and will be removed. Delete this spec along with the query;
+# get_ce_match_fields_spec.rb already covers the same client field metadata.
 RSpec.describe 'ceMatchClientFields query', type: :request do
   include_context 'hmis base setup'
 

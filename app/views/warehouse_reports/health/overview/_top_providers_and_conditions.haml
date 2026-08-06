@@ -11,10 +11,11 @@
       = d3_top_chart('top_ip_conditions', data_type)
 
 - content_for :page_js do
-  :javascript
-    $(document).ready(function() {
-      var ids = ['#top_providers', '#top_conditions', '#top_ip_conditions']
-      var topBars = new App.D3Chart.TopBarCharts(ids)
-      topBars.draw()
-    })
+  %script{ nonce: content_security_policy_nonce }
+    :plain
+      $(document).ready(function() {
+        var ids = ['#top_providers', '#top_conditions', '#top_ip_conditions']
+        var topBars = new App.D3Chart.TopBarCharts(ids)
+        topBars.draw()
+      })
 

@@ -57,7 +57,8 @@
             = render 'report_results/pit/support', title: section_title, question: question, category: category, support: evidence
 
 = content_for :page_js do
-  :javascript
-    (function($) {
-      $('.launch-modal').on('click', function(e){ e.preventDefault();});
-    })(jQuery);
+  %script{ nonce: content_security_policy_nonce }
+    :plain
+      (function($) {
+        $('.launch-modal').on('click', function(e){ e.preventDefault();});
+      })(jQuery);
