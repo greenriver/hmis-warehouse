@@ -7,9 +7,10 @@
   = render 'housed'
 
   = content_for :page_js do
-    :javascript
-      var ph_chart = $('#housed-chart');
-      new App.Dashboards.Clients.Exits(ph_chart, ph_chart.data('labels'), ph_chart.data('data'), '#{sub_population_key}', {ph_only: true});
+    %script{ nonce: content_security_policy_nonce }
+      :plain
+        var ph_chart = $('#housed-chart');
+        new App.Dashboards.Clients.Exits(ph_chart, ph_chart.data('labels'), ph_chart.data('data'), '#{sub_population_key}', {ph_only: true});
 
-      var destination_chart = $('#destination-chart');
-      new App.Dashboards.Clients.Exits(destination_chart, destination_chart.data('labels'), destination_chart.data('data'), '#{sub_population_key}');
+        var destination_chart = $('#destination-chart');
+        new App.Dashboards.Clients.Exits(destination_chart, destination_chart.data('labels'), destination_chart.data('data'), '#{sub_population_key}');

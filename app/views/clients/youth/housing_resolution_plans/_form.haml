@@ -57,37 +57,38 @@
 %section
 
 = content_for :page_js do
-  :javascript
-    $('.jPscAttempted').on('change', function(e){
-      if($('.jPscAttempted').is(':checked') && $('.jPscAttempted:checked').val().includes('No')){
-        $('.jPscNotAttemptedReason').show();
-      } else {
-        $('.jPscNotAttemptedReason').hide();
-      }
-      });
-    $('.jPscAttempted').trigger('change');
+  %script{ nonce: content_security_policy_nonce }
+    :plain
+      $('.jPscAttempted').on('change', function(e){
+        if($('.jPscAttempted').is(':checked') && $('.jPscAttempted:checked').val().includes('No')){
+          $('.jPscNotAttemptedReason').show();
+        } else {
+          $('.jPscNotAttemptedReason').hide();
+        }
+        });
+      $('.jPscAttempted').trigger('change');
 
-    $('.jResolutionAchieved').on('change', function(e){
-      if($('.jResolutionAchieved').is(':checked') && $('.jResolutionAchieved:checked').val().includes('No')){
-        $('.jResolutionNotAchievedReason').show();
-      } else {
-        $('.jResolutionNotAchievedReason').hide();
-      }
-      });
-    $('.jResolutionAchieved').trigger('change');
+      $('.jResolutionAchieved').on('change', function(e){
+        if($('.jResolutionAchieved').is(':checked') && $('.jResolutionAchieved:checked').val().includes('No')){
+          $('.jResolutionNotAchievedReason').show();
+        } else {
+          $('.jResolutionNotAchievedReason').hide();
+        }
+        });
+      $('.jResolutionAchieved').trigger('change');
 
-    $('.jHousingCrisisCauses').on('change', function(e){
-      var includes_other = false;
-      if($('.jHousingCrisisCauses').is(':checked')){
-        $.each(
-          $('.jHousingCrisisCauses:checked'), function(){
-            includes_other = includes_other || $(this).val().includes('Other');
-          });
-      }
-      if(includes_other){
-        $('.jHousingCrisisCausesOther').show();
-      } else {
-        $('.jHousingCrisisCausesOther').hide();
-      }
-    });
-    $('.jHousingCrisisCauses').trigger('change');
+      $('.jHousingCrisisCauses').on('change', function(e){
+        var includes_other = false;
+        if($('.jHousingCrisisCauses').is(':checked')){
+          $.each(
+            $('.jHousingCrisisCauses:checked'), function(){
+              includes_other = includes_other || $(this).val().includes('Other');
+            });
+        }
+        if(includes_other){
+          $('.jHousingCrisisCausesOther').show();
+        } else {
+          $('.jHousingCrisisCausesOther').hide();
+        }
+      });
+      $('.jHousingCrisisCauses').trigger('change');

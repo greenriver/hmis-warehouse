@@ -17,7 +17,8 @@
   .none-found No patients
 
 = content_for :page_js do
-  :javascript
-    $('.jHousingNavigator').on('change', function(e){
-      $(this).closest('form').trigger('submit');
-    });
+  %script{ nonce: content_security_policy_nonce }
+    :plain
+      $('.jHousingNavigator').on('change', function(e){
+        $(this).closest('form').trigger('submit');
+      });

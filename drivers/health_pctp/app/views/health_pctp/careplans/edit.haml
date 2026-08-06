@@ -16,21 +16,22 @@
       = f.submit 'Save Care Plan', class: 'btn btn-primary'
 
 - content_for :page_js do
-  :javascript
-    $(document).ready(function() {
-      $(document).change('.jCareplanForm', function() {
-        var form = $('.jCareplanForm');
-        var url = form.attr('action');
-        $.ajax({
-          url: url,
-          type: form.attr('method'),
-          data: form.serialize(),
-          success: function() {
-            console.debug('done', url);
-          },
-          error: function(e) {
-            console.error('failed', url, e);
-          }
+  %script{ nonce: content_security_policy_nonce }
+    :plain
+      $(document).ready(function() {
+        $(document).change('.jCareplanForm', function() {
+          var form = $('.jCareplanForm');
+          var url = form.attr('action');
+          $.ajax({
+            url: url,
+            type: form.attr('method'),
+            data: form.serialize(),
+            success: function() {
+              console.debug('done', url);
+            },
+            error: function(e) {
+              console.error('failed', url, e);
+            }
+          });
         });
       });
-    });

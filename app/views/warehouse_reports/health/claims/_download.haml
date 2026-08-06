@@ -29,7 +29,8 @@
         Delete this File
 
 = content_for :page_js do
-  :javascript
-    $('#health_transaction_acknowledgement_content').on('change', function() {
-      $('#upload_button').prop('disabled', !$(this).val());
-    });
+  %script{ nonce: content_security_policy_nonce }
+    :plain
+      $('#health_transaction_acknowledgement_content').on('change', function() {
+        $('#upload_button').prop('disabled', !$(this).val());
+      });

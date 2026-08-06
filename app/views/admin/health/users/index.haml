@@ -57,16 +57,17 @@
 = render 'agency_user_modal'
 
 - content_for :page_js do
-  :javascript
-    $(document).ready(function(e) {
-      var modal = $('#agency-user-modal');
-      $('a[data-behavior="assign agency user"]').click(function(e) {
-        e.preventDefault();
-        var container = $('#agency-user-form');
-        var url = $(this).attr('href');
-        modal.modal('show');
-        container.html("loading...");
-        container.load(url);
-        return false
+  %script{ nonce: content_security_policy_nonce }
+    :plain
+      $(document).ready(function(e) {
+        var modal = $('#agency-user-modal');
+        $('a[data-behavior="assign agency user"]').click(function(e) {
+          e.preventDefault();
+          var container = $('#agency-user-form');
+          var url = $(this).attr('href');
+          modal.modal('show');
+          container.html("loading...");
+          container.load(url);
+          return false
+        });
       });
-    });
