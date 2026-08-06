@@ -27,6 +27,11 @@
 # Most external asset rules support core application functionality including internal operations,
 # administrative reporting, data visualization, and public-facing dashboards.
 
+require_relative '../../lib/util/sentry_csp_reporting'
+
+sentry_dsn = ENV['WAREHOUSE_SENTRY_DSN'].presence
+sentry_csp_reporting = SentryCspReporting.new(sentry_dsn) if sentry_dsn
+
 # allow whitespace to make the configuration easier to read
 Rails.application.config.content_security_policy do |policy|
   public_s3_url = ENV['S3_PUBLIC_URL'].present? ? "https://#{ENV['S3_PUBLIC_URL']}.s3.amazonaws.com/" : nil
@@ -145,22 +150,18 @@ Rails.application.config.content_security_policy do |policy|
     ].compact_blank,
   )
 
-  # Report CSP violations to a specified URI
-  sentry_dsn = ENV['WAREHOUSE_SENTRY_DSN'].presence
-  if sentry_dsn
-    # transform the DSN into the sentry reporting uri
-    # SENTRY_DSN=https://aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa@o256059.ingest.sentry.io/1111111111111111
-    # report_uri=https://o256059.ingest.sentry.io/api/1111111111111111/security/?sentry_key=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
-    # see https://docs.sentry.io/platforms/javascript/guides/express/security-policy-reporting/
-
-    uri = URI.parse(sentry_dsn)
-    public_key = uri.user.presence
-    host = uri.host.presence
-    project_id = uri.path&.split('/')&.last.presence
-    raise 'Invalid sentry dsn' unless uri.scheme == 'https' && public_key && host && project_id && project_id =~ /\A\d+\z/
-
-    policy.report_uri("https://#{host}/api/#{project_id}/security/?sentry_key=#{public_key}")
+  # Report CSP violations to Sentry. `report-uri` is deprecated in favor of `report-to`,
+  # but browsers that don't yet support `report-to` ignore it, so both are sent -- see
+  # SentryCspReporting for the header values this depends on.
+  if sentry_csp_reporting
+    policy.report_uri(sentry_csp_reporting.report_uri)
+    policy.directives['report-to'] = [sentry_csp_reporting.report_to_directive_value]
   end
+end
+
+if sentry_csp_reporting
+  Rails.application.config.action_dispatch.default_headers['Reporting-Endpoints'] = sentry_csp_reporting.reporting_endpoints_header
+  Rails.application.config.action_dispatch.default_headers['Report-To'] = sentry_csp_reporting.report_to_header
 end
 
 # A fresh random nonce per request (not session-based, which would be reused
