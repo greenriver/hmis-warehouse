@@ -18,7 +18,7 @@ require 'rails_helper'
 # resolve it, so config→service resolution is exercised, not stubbed. Only the remote
 # Keycloak calls are stubbed, on the memoized service instance (Idp::Support#idp_service
 # caches, so the op reuses what we stub).
-RSpec.describe Idp::Support, type: :model, if: AuthMethod.jwt? do
+RSpec.describe Idp::Support, :jwt_only, type: :model do
   let(:user) { create(:user) }
   let(:connector_id) { 'test' }
   let(:connector_user_id) { 'kc-user-1' }

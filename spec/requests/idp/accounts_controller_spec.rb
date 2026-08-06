@@ -9,10 +9,9 @@
 require 'rails_helper'
 require 'webmock/rspec'
 
-# JWT-arm account self-management. These assertions require the app to have booted under
-# AUTH_METHOD=jwt (the dedicated CI step), where the route-level seam mounts Idp::AccountsController
+# JWT-arm account self-management. On this arm the route-level seam mounts Idp::AccountsController
 # and JwtAuthenticationHelper#sign_in is active.
-RSpec.describe Idp::AccountsController, type: :request, if: AuthMethod.jwt? do
+RSpec.describe Idp::AccountsController, :jwt_only, type: :request do
   let(:api_url) { 'http://keycloak.test:8080' }
   let(:realm) { 'openpath' }
   let(:connector_id) { 'test' } # matches JwtAuthenticationHelper#sign_in

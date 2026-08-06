@@ -128,7 +128,9 @@ class CiMatrixRouter
         }
       end
     end
-    groups << { id: 'ci_default', tag: '~ci_bucket', okta: true, logging: true, jwt: true }
+    # okta, logging and devise each gate a once-per-run step in
+    # .github/workflows/rails_tests.yml; ci_default is the one job that opts into them.
+    groups << { id: 'ci_default', tag: '~ci_bucket', okta: true, logging: true, devise: true }
     groups
   end
 

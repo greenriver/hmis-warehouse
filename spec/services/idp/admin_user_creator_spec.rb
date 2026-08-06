@@ -10,7 +10,7 @@ require 'rails_helper'
 
 # AdminUserCreator builds a local User without a password, which only validates under the JWT
 # boot (AUTH_METHOD=jwt); under Devise, User is :secure_validatable and requires one.
-RSpec.describe Idp::AdminUserCreator, if: AuthMethod.jwt? do
+RSpec.describe Idp::AdminUserCreator, :jwt_only do
   let(:connector_id) { 'kc' }
   let(:service) { instance_double(Idp::KeycloakService, supports_user_creation?: true, idp_name: 'Keycloak') }
 

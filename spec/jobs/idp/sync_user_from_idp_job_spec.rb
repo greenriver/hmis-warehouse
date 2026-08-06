@@ -11,9 +11,8 @@ require 'rails_helper'
 # This doubles as the Idp::Support#idp_reconcile_email! spec — the job drives the real method, so
 # the emailVerified gate and case-insensitive no-op are exercised here; there is no separate one.
 #
-# Idp::Support mixes into User only under the JWT arm (UserConcern), so the describe is guarded on
-# AuthMethod.jwt? and these examples run only under AUTH_METHOD=jwt.
-RSpec.describe Idp::SyncUserFromIdpJob, type: :job, if: AuthMethod.jwt? do
+# Idp::Support is only mixed into User under the JWT arm (UserConcern).
+RSpec.describe Idp::SyncUserFromIdpJob, :jwt_only, type: :job do
   let!(:user) { create(:user, email: 'before@example.com', first_name: 'Self', last_name: 'Serve') }
   let(:service) do
     instance_double(

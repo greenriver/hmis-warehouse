@@ -277,7 +277,7 @@ class AccessControlUpload < ApplicationRecord
     agency_ids = Agency.pluck(:name, :id).to_h
     users.each do |item|
       user = User.with_deleted.where(email: item[:email]).first_or_initialize do |u|
-        u.password = Faker::Internet.password(min_length: 16)
+        u.password = Faker::Internet.password(min_length: 16) if u.password_change_enabled?
       end
       user.first_name = item[:first_name]
       user.last_name = item[:last_name]

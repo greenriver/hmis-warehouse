@@ -199,6 +199,11 @@ Additional notes
 - **Credentials:** `docker/auth/keycloak-credentials.env` is committed because its values are
   pre-defined in `realm-import.json` (chosen, not generated). Dev-only — never used in production.
 
+In development, dump the config with
+```
+opt/keycloak/bin/kcadm.sh create realms/openpath/partial-export --config /tmp/kcadm.config -s exportGroupsAndRoles=true -s exportClients=true --server http://localhost:8080 --realm=master --user admin --password 'AdminPassword1!' -o > /tmp/realm-live.json
+```
+
 ## Related
 
 - [User migration (`rails keycloak:*`)](./keycloak-user-migration.md) — seeding Keycloak from legacy
