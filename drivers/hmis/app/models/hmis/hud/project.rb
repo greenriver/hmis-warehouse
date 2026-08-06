@@ -108,12 +108,6 @@ class Hmis::Hud::Project < Hmis::Hud::Base
     where(id: ids, data_source_id: user.hmis_data_source_id)
   end
 
-  # Projects where the user can view full enrollment details.
-  # can_view_enrollment_details requires can_view_project and can_view_clients, which with_access resolves.
-  scope :with_enrollment_details_viewable_by, ->(user) do
-    with_access(user, :can_view_enrollment_details)
-  end
-
   scope :with_organization_ids, ->(organization_ids) do
     joins(:organization).where(o_t[:id].in(Array.wrap(organization_ids)))
   end

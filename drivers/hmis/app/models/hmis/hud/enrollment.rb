@@ -152,8 +152,9 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   }.freeze
 
   # Enrollments that the user has full enrollment details access to (e.g. they can see the full Enrollment Dashboard)
+  # can_view_enrollment_details requires can_view_project and can_view_clients, which with_access resolves.
   scope :enrollment_details_viewable_by, ->(user) do
-    project_ids = Hmis::Hud::Project.with_enrollment_details_viewable_by(user).select(:id)
+    project_ids = Hmis::Hud::Project.with_access(user, :can_view_enrollment_details).select(:id)
     where(project_pk: project_ids)
   end
 
@@ -186,7 +187,7 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   scope :files_viewable_by, ->(user) do
     project_ids = Hmis::Hud::Project.
       # Projects where the user can see enrollment details
-      with_enrollment_details_viewable_by(user).
+      with_access(user, :can_view_enrollment_details).
       # Projects where the user has one of the listed file perms
       with_access(user, :can_view_any_nonconfidential_client_files, :can_view_any_confidential_client_files, mode: :any).
       select(:id)

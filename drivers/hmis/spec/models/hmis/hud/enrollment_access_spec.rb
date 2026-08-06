@@ -236,7 +236,7 @@ RSpec.describe Hmis::Hud::Enrollment, type: :model do
         expect(viewable_enrollments).to be_empty
       end
 
-      describe 'and client visibility from a role that does not cover p1' do
+      describe 'and client visibility from a role that does not cover p2' do
         let!(:limited_without_clients) { create_access_control(user, p2, with_permission: [:can_view_limited_enrollment_details]) }
 
         it 'does not include enrollments at p2' do

@@ -74,14 +74,16 @@ class Hmis::AuthPolicies::UserContext
   # that hang off projects) rather than authorizing a single record.
   memoize def project_ids_with_permissions(*permissions, mode:)
     raise ArgumentError, "unknown mode #{mode.inspect}" unless mode.in?([:any, :all])
+    raise ArgumentError, 'no permissions given' if permissions.empty?
 
+    groups_by_project = access_group_ids_by_project
     granted = mode == :all ? :all? : :any?
-    permitted = access_group_ids_by_project.values.uniq.select do |access_group_ids|
+    permitted = groups_by_project.values.uniq.select do |access_group_ids|
       resolved = permission_loader.for_access_group_ids(access_group_ids)
       permissions.public_send(granted) { |permission| resolved.include?(permission) }
     end.to_set
 
-    access_group_ids_by_project.select { |_project_id, access_group_ids| permitted.include?(access_group_ids) }.keys
+    groups_by_project.select { |_project_id, access_group_ids| permitted.include?(access_group_ids) }.keys
   end
 
   # Set of permissions that the user has for the given organization.
