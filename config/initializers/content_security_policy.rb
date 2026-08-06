@@ -147,6 +147,9 @@ Rails.application.config.content_security_policy do |policy|
 
       # Public Reports - UI Components
       'https://ka-f.fontawesome.com/releases/', # FontAwesome asset loading and updates
+
+      # Development
+      ('https://cdnjs.cloudflare.com/ajax/libs/chance/' if Rails.env.development?), # DevTools fetches chance.min.js.map under connect-src, not script-src
     ].compact_blank,
   )
 
