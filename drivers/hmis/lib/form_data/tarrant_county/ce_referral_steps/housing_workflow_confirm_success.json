@@ -1,0 +1,19 @@
+{
+  "item": [
+    {
+      "text": "Confirming success will complete the referral, remove the client from the Eligible Clients list, and make the unit unavailable for new referrals.",
+      "type": "DISPLAY",
+      "link_id": "confirm_success_message",
+      "component": "ALERT_SUCCESS"
+    },
+    {
+      "text": "Notes",
+      "type": "TEXT",
+      "link_id": "notes",
+      "mapping": {
+        "custom_field_key": "housing_workflow_confirm_success_note"
+      },
+      "required": false
+    }
+  ]
+}
