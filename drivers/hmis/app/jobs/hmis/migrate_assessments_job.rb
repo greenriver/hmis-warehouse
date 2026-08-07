@@ -17,7 +17,7 @@ module Hmis
     include NotifierConfig
 
     # TODO(maybe): Add option to create Exit Assessment if there are Exit-stage records, even if there is no Exit record. Enrollment would remain open but the exit assessment would exist. This could have other unintended side effects.
-    attr_accessor :data_source_id, :soft_delete_datetime, :delete_dangling_records, :preferred_source_hash, :project_ids, :generate_empty_intakes
+    attr_accessor :data_source_id, :soft_delete_datetime, :delete_dangling_records, :preferred_source_hash, :project_ids, :enrollment_ids, :generate_empty_intakes, :upsert
 
     queue_as ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
 
@@ -31,6 +31,23 @@ module Hmis
       Hmis::Hud::YouthEducationStatus,
       Hmis::Hud::Disability,
       Hmis::Hud::Exit,
+    ].freeze
+
+    # FormProcessor FK columns owned by this migration. When `upsert` is enabled these are the
+    # reference columns reconciled on an existing FormProcessor; all other non-HUD columns
+    # (definition, custom data elements, values, etc.) are left untouched.
+    FORM_PROCESSOR_HUD_COLUMNS = [
+      :income_benefit_id,
+      :health_and_dv_id,
+      :employment_education_id,
+      :youth_education_status_id,
+      :physical_disability_id,
+      :developmental_disability_id,
+      :chronic_health_condition_id,
+      :hiv_aids_id,
+      :mental_health_disorder_id,
+      :substance_use_disorder_id,
+      :exit_id,
     ].freeze
 
     # Construct CustomAssessment and FormProcessor records for Assessment-related records.
@@ -50,39 +67,28 @@ module Hmis
     # Parameters:
     #
     # @param data_source_id [Integer] The ID of the HMIS data source.
-    # @param project_ids [Array<Integer>] (optional) An array of project IDs to limit the enrollment scope
-    # @param enrollments [ActiveRecord::Relation] (optional) An ActiveRecord relation of enrollments to process
-    # @param clobber [Boolean] (optional) Whether to delete existing HUD CustomAssessment and FormProcessor records before generating.
+    # @param project_ids [Array<Integer>] (optional) An array of Project IDs (Project row PK, not ProjectID) to limit the enrollment scope
+    # @param enrollment_ids [Array<Integer>] (optional) An array of Enrollment IDs (Enrollment row PK, not EnrollmentID) to limit the enrollment scope
+    # @param upsert [Boolean] (optional) Reconcile existing HUD CustomAssessment/FormProcessor records in place instead of skipping them. When unset, existing assessments are left untouched (skip-existing).
     # @param delete_dangling_records [Boolean] (optional) Whether to delete dangling records that are not tied to any assessment.
     # @param preferred_source_hash [String] (optional) The preferred source hash to use when choosing between duplicate records.
     # @param generate_empty_intakes [Boolean] (optional) Whether to generate empty intake assessments for enrollments missing an intake.
-    # @raise [ArgumentError] If the data source is not an HMIS data source or if both project_ids and enrollments are provided.
-    def perform(data_source_id:, project_ids: nil, enrollments: nil, clobber: false, delete_dangling_records: false, preferred_source_hash: nil, generate_empty_intakes: false)
+    # @raise [ArgumentError] If the data source is not an HMIS data source, or if both project_ids and enrollment_ids are provided.
+    def perform(data_source_id:, project_ids: nil, enrollment_ids: nil, upsert: false, delete_dangling_records: false, preferred_source_hash: nil, generate_empty_intakes: false)
       setup_notifier('Migrate HMIS Assessments')
 
       self.data_source_id = data_source_id
       self.project_ids = Array.wrap(project_ids)
+      self.enrollment_ids = Array.wrap(enrollment_ids)
       self.soft_delete_datetime = Time.current
       self.delete_dangling_records = delete_dangling_records
       self.preferred_source_hash = preferred_source_hash
       self.generate_empty_intakes = generate_empty_intakes
+      self.upsert = upsert
       raise ArgumentError, 'Not an HMIS Data source' if ::GrdaWarehouse::DataSource.find(data_source_id).hmis.nil?
-      raise ArgumentError, 'Can pass project_ids or enrollments, but not both' if project_ids.present? && enrollments.present?
-
-      if enrollments
-        @full_enrollment_scope = enrollments.not_in_progress
-        raise 'invalid enrollment scope' if enrollments.where.not(data_source_id: data_source_id).exists?
-      end
+      raise ArgumentError, 'Can pass project_ids or enrollment_ids, but not both' if project_ids.present? && enrollment_ids.present?
 
       debug_log "MigrateAssessmentsJob starting at #{Time.current.to_fs(:db)}"
-
-      # Deletes the CustomAssessment and FormProcessor, but not the underlying data. It DOES delete Custom Data Elements tied to CustomAssessment.
-      if clobber
-        Hmis::Hud::CustomAssessment.
-          joins(:project).merge(project_scope).
-          where(data_collection_stage: ::HudHelper.util.data_collection_stages.keys). # Only clobber HUD assessments, not fully custom assessments
-          each(&:really_destroy!)
-      end
 
       total = full_enrollment_scope.count
       Rails.logger.info "#{total} Enrollments to process"
@@ -127,16 +133,23 @@ module Hmis
     end
 
     def full_enrollment_scope
-      @full_enrollment_scope ||= Hmis::Hud::Enrollment.joins(:project).merge(project_scope).not_in_progress
+      @full_enrollment_scope ||= begin
+        scope = Hmis::Hud::Enrollment.joins(:project).merge(project_scope).not_in_progress
+        scope = scope.where(id: enrollment_ids) if enrollment_ids.present?
+        scope
+      end
     end
 
     def build_assessments(enrollment_batch:, data_collection_stages:, unique_by_information_date:, data_source_id:)
-      # Get "hash keys" for exiting assessments
+      # Get "hash keys" for existing assessments.
+      # Scoped to the stages being processed, so fully-custom assessments (stage 99) are not touched.
       key_cols = [:enrollment_id, :personal_id, :data_collection_stage]
       key_cols << :assessment_date if unique_by_information_date
-      keys_matching_existing_assessments = Hmis::Hud::CustomAssessment.joins(:enrollment).
+      existing_assessment_ids_by_key = Hmis::Hud::CustomAssessment.joins(:enrollment).
         merge(enrollment_batch).
-        pluck(*key_cols)
+        where(data_collection_stage: data_collection_stages).
+        pluck(:id, *key_cols).
+        each_with_object({}) { |(id, *key), h| h[key] = id }
 
       # Key fields that will be used to group records
       key_fields = [:enrollment_id, :personal_id, :data_collection_stage]
@@ -174,8 +187,8 @@ module Hmis
             # values looks like {:id=>[6], :user_id=>["548"]}
             values = result_fields.zip(arr[group_by_fields.length..]).to_h
 
-            if keys_matching_existing_assessments.include?(hash_key)
-              # There is already a CustomAssessment record with this key, so skip the record
+            if existing_assessment_ids_by_key.key?(hash_key) && !upsert
+              # There is already a CustomAssessment record with this key, so skip the record (except in upsert mode)
               skipped_records += 1
               next
             end
@@ -219,9 +232,19 @@ module Hmis
       skipped_exit_assessments = 0
       skipped_intake_enrollment_ids = []
 
+      # In upsert mode, preload the existing CustomAssessments (and their FormProcessors) that we're going to upsert.
+      existing_assessments_by_id = if upsert && existing_assessment_ids_by_key.any?
+        Hmis::Hud::CustomAssessment.where(id: existing_assessment_ids_by_key.values).
+          preload(:form_processor).index_by(&:id)
+      else
+        {}
+      end
+
       # For each grouping of Enrollment+InformationDate+DataCollectionStage,
-      # create a CustomAssessment and a FormProcessor that references the related records
+      # create or upsert a CustomAssessment and a FormProcessor that references the related records
       assessments_to_import = []
+      assessments_to_upsert = []
+      form_processors_to_upsert = []
       assessment_records.each do |hash_key, value|
         key = key_fields.zip(hash_key).to_h
         uniq_attributes = {
@@ -233,6 +256,25 @@ module Hmis
         # Build CustomAssessment with appropriate metadata
         metadata_attributes = value.extract!(:user_id, :date_created, :date_updated, :assessment_date)
         metadata_attributes[:assessment_date] = value.delete :exit_date if value.key?(:exit_date)
+        # After the extract!/delete above, `value` contains only the FormProcessor HUD reference columns.
+
+        existing_id = existing_assessment_ids_by_key[hash_key]
+        existing_assessment = existing_assessments_by_id[existing_id] if existing_id
+
+        if existing_assessment && upsert # we shouldn't reach here if !upsert, but just in case
+          # Reconcile the existing assessment and its FormProcessor in place, preserving IDs.
+          form_processor = reconcile_existing_assessment(existing_assessment, metadata_attributes, value)
+
+          if existing_assessment.valid?
+            assessments_to_upsert << existing_assessment
+            form_processors_to_upsert << form_processor
+          else
+            Rails.logger.info "Skipping invalid assessment (upsert) for EnrollmentID: #{existing_assessment.enrollment_id}"
+            skipped_invalid_assessments += 1
+          end
+          next
+        end
+
         assessment = Hmis::Hud::CustomAssessment.new(
           **uniq_attributes.merge(metadata_attributes),
           user: hud_users_by_id[metadata_attributes[:user_id]] || system_user,
@@ -259,6 +301,11 @@ module Hmis
 
       Rails.logger.info "Importing #{assessments_to_import.size} assessments..."
       ar_import(assessments_to_import)
+
+      if assessments_to_upsert.any?
+        Rails.logger.info "Upserting #{assessments_to_upsert.size} existing assessments..."
+        upsert_existing_assessments(assessments_to_upsert, form_processors_to_upsert)
+      end
 
       Rails.logger.info "Skipped creating #{skipped_invalid_assessments} invalid assessments" if skipped_invalid_assessments.positive?
       Rails.logger.info "Skipped creating #{skipped_exit_assessments} exit assessments because the enrollment is open" if skipped_exit_assessments.positive?
@@ -292,6 +339,39 @@ module Hmis
       return unless result.failed_instances.present?
 
       raise "Aborting, failed to import assessments in batch: #{result.failed_instances}"
+    end
+
+    # Reconcile an existing CustomAssessment and its FormProcessor in place (for upsert mode),
+    # preserving IDs. Returns the FormProcessor.
+    def reconcile_existing_assessment(existing_assessment, metadata_attributes, hud_reference_columns)
+      existing_assessment.assign_attributes(**metadata_attributes.slice(:date_created, :date_updated, :assessment_date))
+      existing_assessment.user = hud_users_by_id[metadata_attributes[:user_id]] || system_user
+
+      # Reset the HUD columns first, so references removed since the last import are cleared.
+      # Then apply the new values. Non-HUD columns are left untouched.
+      form_processor = existing_assessment.form_processor || existing_assessment.build_form_processor
+      FORM_PROCESSOR_HUD_COLUMNS.each { |col| form_processor[col] = nil }
+      hud_reference_columns.each { |col, id| form_processor[col] = id }
+
+      form_processor
+    end
+
+    # Upsert existing assessments and form processors in place.
+    # Two bulk import calls avoid the recursive import that we use above for new records, which is fragile on upsert.
+    def upsert_existing_assessments(assessments, form_processors)
+      Hmis::Hud::CustomAssessment.import(
+        assessments,
+        # timestamps: false so activerecord-import doesn't auto-add DateUpdated (it would collide with
+        # the explicit date_updated column).
+        timestamps: false,
+        on_duplicate_key_update: { conflict_target: [:id], columns: [:user_id, :date_created, :date_updated, :assessment_date] },
+        validate: false,
+      )
+      Hmis::Form::FormProcessor.import(
+        form_processors,
+        on_duplicate_key_update: { conflict_target: [:id], columns: FORM_PROCESSOR_HUD_COLUMNS },
+        validate: false,
+      )
     end
 
     # "values" has shape  {:id=>[6, 7], :user_id=>["548", "548"], :date_updated=>[yesterday, today]}
