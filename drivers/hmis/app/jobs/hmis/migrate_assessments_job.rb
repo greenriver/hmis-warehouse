@@ -277,7 +277,7 @@ module Hmis
 
         assessment = Hmis::Hud::CustomAssessment.new(
           **uniq_attributes.merge(metadata_attributes),
-          user: hud_users_by_id[metadata_attributes[:user_id]] || system_user,
+          user: hud_or_system_user(metadata_attributes[:user_id]),
           wip: false,
         )
 
@@ -344,8 +344,8 @@ module Hmis
     # Reconcile an existing CustomAssessment and its FormProcessor in place (for upsert mode),
     # preserving IDs. Returns the FormProcessor.
     def reconcile_existing_assessment(existing_assessment, metadata_attributes, hud_reference_columns)
-      existing_assessment.assign_attributes(**metadata_attributes.slice(:date_created, :date_updated, :assessment_date))
-      existing_assessment.user = hud_users_by_id[metadata_attributes[:user_id]] || system_user
+      existing_assessment.assign_attributes(**metadata_attributes)
+      existing_assessment.user = hud_or_system_user(metadata_attributes[:user_id])
 
       # Reset the HUD columns first, so references removed since the last import are cleared.
       # Then apply the new values. Non-HUD columns are left untouched.
@@ -406,6 +406,11 @@ module Hmis
 
     def hud_users_by_id
       @hud_users_by_id ||= Hmis::Hud::User.where(data_source_id: data_source_id).index_by(&:user_id)
+    end
+
+    # Resolve the HUD user for a given UserID, falling back to the system user when not found.
+    def hud_or_system_user(user_id)
+      hud_users_by_id[user_id] || system_user
     end
 
     def project_scope
