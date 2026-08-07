@@ -1,0 +1,89 @@
+{
+  "item": [
+    {
+      "text": "CORI Hearing Notes",
+      "type": "TEXT",
+      "link_id": "cori_hearing_notes",
+      "mapping": {
+        "custom_field_key": "housing_workflow_cori_hearing_notes"
+      },
+      "required": true
+    },
+    {
+      "text": "Decision",
+      "type": "CHOICE",
+      "link_id": "cori_hearing_decision",
+      "mapping": {
+        "custom_field_key": "housing_workflow_cori_hearing_decision"
+      },
+      "required": true,
+      "component": "RADIO_BUTTONS",
+      "pick_list_options": [
+        { "code": "continue", "label": "Continue referral" },
+        { "code": "decline", "label": "Decline" }
+      ]
+    },
+    {
+      "text": "The client will be added to the project as Incomplete. Complete and submit the Intake Assessment to finalize the enrollment.",
+      "type": "DISPLAY",
+      "link_id": "cori_hearing_enroll_message",
+      "component": "ALERT_SUCCESS",
+      "enable_when": [
+        {
+          "operator": "EQUAL",
+          "question": "cori_hearing_decision",
+          "answer_code": "continue"
+        }
+      ],
+      "enable_behavior": "ALL"
+    },
+    {
+      "text": "Decline Reason",
+      "type": "CHOICE",
+      "link_id": "cori_hearing_decline_reason",
+      "mapping": {
+        "custom_field_key": "housing_workflow_cori_hearing_decline_reason"
+      },
+      "required": true,
+      "component": "RADIO_BUTTONS",
+      "pick_list_options": [
+        { "code": "additional_screening_criteria_imposed_by_third_parties", "label": "Additional screening criteria imposed by third parties" },
+        { "code": "client_refused_offer", "label": "Client refused offer" },
+        { "code": "cori", "label": "CORI" },
+        { "code": "falsification_of_documents", "label": "Falsification of documents" },
+        { "code": "health_and_safety", "label": "Health and Safety" },
+        { "code": "household_did_not_respond_after_initial_acceptance_of_match", "label": "Household did not respond after initial acceptance of match" },
+        { "code": "immigration_status", "label": "Immigration status" },
+        { "code": "ineligible_for_housing_program", "label": "Ineligible for Housing Program" },
+        { "code": "self_resolved", "label": "Self-resolved" },
+        { "code": "sori", "label": "SORI" },
+        { "code": "other", "label": "Other (detail in notes section)" }
+      ],
+      "enable_when": [
+        {
+          "operator": "EQUAL",
+          "question": "cori_hearing_decision",
+          "answer_code": "decline"
+        }
+      ],
+      "enable_behavior": "ALL"
+    },
+    {
+      "text": "Notes",
+      "type": "TEXT",
+      "link_id": "decline_notes",
+      "mapping": {
+        "custom_field_key": "housing_workflow_cori_hearing_decline_note"
+      },
+      "required": false,
+      "enable_when": [
+        {
+          "operator": "EQUAL",
+          "question": "cori_hearing_decision",
+          "answer_code": "decline"
+        }
+      ],
+      "enable_behavior": "ALL"
+    }
+  ]
+}
