@@ -17,7 +17,6 @@
           %tbody
             - split_froms.each do |split|
               - c = split.source_client
-              = debug c
               - if c
                 - pii = c.pii_provider(user: current_user)
                 %tr
