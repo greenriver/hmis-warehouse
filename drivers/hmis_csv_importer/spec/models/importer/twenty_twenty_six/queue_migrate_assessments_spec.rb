@@ -43,14 +43,17 @@ RSpec.describe 'HUD CSV MigrateAssessmentsJob enqueue', type: :model do
       )
     end
 
-    it 'enqueues MigrateAssessmentsJob once with the data source and involved project pks' do
-      expected_project_pks = GrdaWarehouse::Hud::Project.
-        where(data_source_id: hmis_data_source.id, ProjectID: ['751']). # '751' is the ProjectID from the fixture's Project.csv
+    it 'enqueues MigrateAssessmentsJob once scoped to the involved enrollment pks' do
+      expected_enrollment_pks = GrdaWarehouse::Hud::Enrollment.
+        where(data_source_id: hmis_data_source.id).
         pluck(:id)
+      expect(expected_enrollment_pks.count).to eq(4) # 4 enrollments from the fixture
 
       expect(Hmis::MigrateAssessmentsJob).to have_been_enqueued.once.with(
         data_source_id: hmis_data_source.id,
-        project_ids: expected_project_pks,
+        enrollment_ids: expected_enrollment_pks,
+        upsert: true,
+        generate_empty_intakes: true,
       )
     end
   end
