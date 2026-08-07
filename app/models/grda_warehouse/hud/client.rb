@@ -2206,14 +2206,10 @@ module GrdaWarehouse::Hud
       end
     end
 
-    # Search by this client's own name and by each active source client's name, since a
-    # destination's own name doesn't necessarily reflect every merged-in name variant
-    # (merge_from doesn't update FirstName/LastName, and a source with a differing name
-    # can later have its data source deleted, dropping out of active_source_clients).
+    # Search by each active source client's name. At least one active source client will share the
+    # destination's name.
     private def potential_match_search_queries
-      names = active_source_clients.map { |c| "#{c.FirstName} #{c.LastName}".strip }
-      names << "#{self.FirstName} #{self.LastName}".strip
-      names.uniq.reject(&:blank?)
+      active_source_clients.map { |c| "#{c.FirstName} #{c.LastName}".strip }.uniq.reject(&:blank?)
     end
 
     # Ages of this client's active (non-deleted-data-source) source clients, used to

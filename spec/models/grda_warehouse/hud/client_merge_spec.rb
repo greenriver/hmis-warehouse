@@ -321,6 +321,9 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
     let(:client) { create(:hud_client, FirstName: 'Roberta', LastName: 'Smithers', data_source_id: source_ds.id) }
 
     it 'delegates to the shared client text search on this client\'s own name, excluding itself' do
+      own_source = create(:hud_client, FirstName: 'Roberta', LastName: 'Smithers', data_source_id: source_ds.id)
+      GrdaWarehouse::WarehouseClient.create!(destination_id: client.id, source_id: own_source.id, id_in_source: own_source.PersonalID)
+
       matching_source = create(:hud_client, FirstName: 'Roberta', LastName: 'Smithers', data_source_id: source_ds.id)
       matching_destination = create(:hud_client, data_source_id: destination_ds.id)
       GrdaWarehouse::WarehouseClient.create!(destination_id: matching_destination.id, source_id: matching_source.id, id_in_source: matching_source.PersonalID)
@@ -335,10 +338,10 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
       expect(matches).not_to include(unrelated_destination)
     end
 
-    it 'returns no matches when the client has a blank name' do
-      blank_named_client = create(:hud_client, FirstName: '', LastName: '', data_source_id: source_ds.id)
+    it 'returns no matches when the client has no active source clients' do
+      unlinked_client = create(:hud_client, FirstName: 'Nobody', LastName: 'Special', data_source_id: source_ds.id)
 
-      expect(blank_named_client.potential_matches).to eq({})
+      expect(unlinked_client.potential_matches).to eq({})
     end
 
     it "only includes candidates whose age matches at least one active source client's age" do
@@ -386,6 +389,9 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
     end
 
     it 'orders results by relevance, best match first' do
+      own_source = create(:hud_client, FirstName: 'Roberta', LastName: 'Smithers', data_source_id: source_ds.id)
+      GrdaWarehouse::WarehouseClient.create!(destination_id: client.id, source_id: own_source.id, id_in_source: own_source.PersonalID)
+
       exact_source = create(:hud_client, FirstName: 'Roberta', LastName: 'Smithers', data_source_id: source_ds.id)
       exact_destination = create(:hud_client, data_source_id: destination_ds.id)
       GrdaWarehouse::WarehouseClient.create!(destination_id: exact_destination.id, source_id: exact_source.id, id_in_source: exact_source.PersonalID)
@@ -400,6 +406,9 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
     end
 
     it "caps results at #{GrdaWarehouse::Hud::Client::POTENTIAL_MATCHES_LIMIT}" do
+      own_source = create(:hud_client, FirstName: 'Roberta', LastName: 'Smithers', data_source_id: source_ds.id)
+      GrdaWarehouse::WarehouseClient.create!(destination_id: client.id, source_id: own_source.id, id_in_source: own_source.PersonalID)
+
       (GrdaWarehouse::Hud::Client::POTENTIAL_MATCHES_LIMIT + 1).times do
         exact_source = create(:hud_client, FirstName: 'Roberta', LastName: 'Smithers', data_source_id: source_ds.id)
         exact_destination = create(:hud_client, data_source_id: destination_ds.id)
