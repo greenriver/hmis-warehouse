@@ -149,6 +149,18 @@ class User < ApplicationRecord
     batch = ids.uniq.map do |item_id|
       GrdaWarehouse::ExternalReportingCohortPermission.new(user_id: id, email: email, cohort_id: item_id, permission: :can_view_cohorts)
     end
+
+    name_ids = if using_acls?
+      GrdaWarehouse::Cohort.viewable_by(self, permission: :can_view_client_name).pluck(:id)
+    elsif can_view_client_name?
+      ids
+    else
+      []
+    end
+    batch += (ids & name_ids).uniq.map do |item_id|
+      GrdaWarehouse::ExternalReportingCohortPermission.new(user_id: id, email: email, cohort_id: item_id, permission: :can_view_client_name)
+    end
+
     GrdaWarehouse::ExternalReportingCohortPermission.transaction do
       GrdaWarehouse::ExternalReportingCohortPermission.where(user_id: id).delete_all
       GrdaWarehouse::ExternalReportingCohortPermission.import(batch)

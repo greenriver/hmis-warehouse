@@ -85,22 +85,20 @@ module GrdaWarehouse
       where.not(project_group_id: nil)
     end
 
-    scope :viewable_by, ->(user) do
+    scope :viewable_by, ->(user, permission: :can_view_cohorts) do
       return none unless user.present?
 
       # TODO: START_ACL cleanup after permission migration is complete
       if user.using_acls?
-        return none unless GrdaWarehouse::Cohort.viewable_permissions.map { |perm| user.send("#{perm}?") }.any?
+        return none unless user.send("#{permission}?")
 
-        ids = GrdaWarehouse::Cohort.viewable_permissions.flat_map do |perm|
-          group_ids = user.collections_for_permission(perm)
-          next [] if group_ids.empty?
+        group_ids = user.collections_for_permission(permission)
+        return none if group_ids.empty?
 
-          GrdaWarehouse::GroupViewableEntity.where(
-            collection_id: group_ids,
-            entity_type: 'GrdaWarehouse::Cohort',
-          ).pluck(:entity_id)
-        end.compact
+        ids = GrdaWarehouse::GroupViewableEntity.where(
+          collection_id: group_ids,
+          entity_type: 'GrdaWarehouse::Cohort',
+        ).pluck(:entity_id)
         return none if ids.empty?
 
         where(id: ids)

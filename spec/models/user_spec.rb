@@ -178,6 +178,61 @@ RSpec.describe User, type: :model do
       expect(cohort_records.map(&:cohort_id)).to contain_exactly(*cohort_ids.uniq)
       expect(cohort_records).to all(have_attributes(user_id: user.id, email: user.email, permission: 'can_view_cohorts'))
     end
+
+    context 'when the user is on ACLs' do
+      let(:user) { create(:acl_user, email: 'reporter@example.com') }
+      let(:cohort_b) { 404 }
+      let(:cohort_c) { 505 }
+      let(:cohort_ids) { [cohort_a, cohort_b] }
+      let(:name_scope) { instance_double(ActiveRecord::Relation, pluck: [cohort_b, cohort_c]) }
+
+      before do
+        allow(GrdaWarehouse::Cohort).to receive(:viewable_by).with(user, permission: :can_view_client_name).and_return(name_scope)
+      end
+
+      it 'adds a can_view_client_name row only for cohorts that are both viewable and name-permitted' do
+        populate_permissions
+
+        pairs = cohort_records.map { |record| [record.cohort_id, record.permission] }
+        expect(pairs).to contain_exactly(
+          [cohort_a, 'can_view_cohorts'],
+          [cohort_b, 'can_view_cohorts'],
+          [cohort_b, 'can_view_client_name'],
+        )
+      end
+    end
+
+    context 'when the user is on legacy roles' do
+      context 'and none of their roles grant can_view_client_name' do
+        before { user.legacy_roles = [create(:cohort_client_viewer)] }
+
+        it 'does not add a can_view_client_name row' do
+          populate_permissions
+
+          pairs = cohort_records.map { |record| [record.cohort_id, record.permission] }
+          expect(pairs).to contain_exactly([cohort_a, 'can_view_cohorts'])
+        end
+      end
+
+      context 'and a role unrelated to cohort access grants can_view_client_name' do
+        before do
+          user.legacy_roles = [
+            create(:cohort_client_viewer),
+            create(:role, can_view_client_name: true),
+          ]
+        end
+
+        it 'adds a can_view_client_name row for every legacy-viewable cohort' do
+          populate_permissions
+
+          pairs = cohort_records.map { |record| [record.cohort_id, record.permission] }
+          expect(pairs).to contain_exactly(
+            [cohort_a, 'can_view_cohorts'],
+            [cohort_a, 'can_view_client_name'],
+          )
+        end
+      end
+    end
   end
 
   describe '#all_access_group_ids' do
