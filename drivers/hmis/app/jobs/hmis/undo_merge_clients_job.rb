@@ -29,6 +29,7 @@ module Hmis
       [Hmis::ScanCardCode, 'scan_cards', { with_deleted: true, restore_if_deleted: true }],
       [::ClientLocationHistory::Location, 'client_locations'],
       [Hmis::Ce::Referral, 'ce_referrals'],
+      [Hmis::ClientAlert, 'client_alerts'],
     ].freeze
 
     PERSONAL_ID_FOREIGN_KEY_CANDIDATES = [
