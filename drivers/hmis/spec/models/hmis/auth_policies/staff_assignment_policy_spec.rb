@@ -32,7 +32,7 @@ RSpec.describe Hmis::AuthPolicies::StaffAssignmentPolicy, type: :model do
 
       it 'returns false if user has access to a project without a config' do
         unconfigured_project = create(:hmis_hud_project, data_source: data_source, organization: organization)
-        create_access_control(user, unconfigured_project, with_permission: [:can_edit_enrollments])
+        create_access_control(user, unconfigured_project, with_permission: HmisPermissionSets::ENROLLMENT_EDITING)
         expect(policy.can_index?).to be false
       end
 
@@ -42,8 +42,13 @@ RSpec.describe Hmis::AuthPolicies::StaffAssignmentPolicy, type: :model do
       end
 
       it 'returns true if user has access to a configured project with correct permissions' do
-        create_access_control(user, project, with_permission: [:can_edit_enrollments])
+        create_access_control(user, project, with_permission: HmisPermissionSets::ENROLLMENT_EDITING)
         expect(policy.can_index?).to be true
+      end
+
+      it 'returns false if can_edit_enrollments is granted without the permissions it requires' do
+        create_access_control(user, project, with_permission: [:can_edit_enrollments])
+        expect(policy.can_index?).to be false
       end
     end
   end

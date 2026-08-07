@@ -149,6 +149,26 @@ RSpec.describe Hmis::Hud::Enrollment, type: :model do
       viewable = Hmis::Hud::Household.viewable_by(user_with_p1_p2_access).pluck(:household_id)
       expect(viewable).to contain_exactly(e1.household_id, e2.household_id)
     end
+
+    context 'with many enrollments across several projects and clients' do
+      before do
+        projects = [p1, p2, p3]
+        5.times do
+          client = create(:hmis_hud_client, data_source: ds1)
+          projects.each do |project|
+            create(:hmis_hud_enrollment, client: client, data_source: ds1, project: project, entry_date: 1.month.ago)
+            create(:hmis_hud_enrollment, client: client, data_source: ds1, project: project, entry_date: 1.week.ago)
+          end
+        end
+      end
+
+      it 'makes a reasonable number of db queries' do
+        expect do
+          enrollments = Hmis::Hud::Enrollment.viewable_by(user_with_full_access)
+          expect(enrollments.size).to be >= 30
+        end.to make_database_queries(count: 3..10)
+      end
+    end
   end
 
   describe 'viewable_by scope with include_limited_access_enrollments' do
@@ -192,6 +212,16 @@ RSpec.describe Hmis::Hud::Enrollment, type: :model do
       end
     end
 
+    describe 'user has full enrollment access to p1 through two roles' do
+      let!(:access_control) { create_access_control(user, p1, with_permission: [:can_view_enrollment_details]) }
+      let!(:access_control2) { create_access_control(user, p1, with_permission: [:can_view_project, :can_view_clients]) }
+
+      it 'includes enrollments at p1' do
+        viewable_enrollments = Hmis::Hud::Enrollment.viewable_by(user, include_limited_access_enrollments: true)
+        expect(viewable_enrollments).to contain_exactly(e1)
+      end
+    end
+
     describe 'user has limited enrollment access to p1' do
       let!(:access_control) do
         create_access_control(user, p1, with_permission: HmisPermissionSets::LIMITED_ENROLLMENT_VISIBILITY)
@@ -204,6 +234,15 @@ RSpec.describe Hmis::Hud::Enrollment, type: :model do
         # confirm is empty if flag not passed
         viewable_enrollments = Hmis::Hud::Enrollment.viewable_by(user)
         expect(viewable_enrollments).to be_empty
+      end
+
+      describe 'and client visibility from a role that does not cover p2' do
+        let!(:limited_without_clients) { create_access_control(user, p2, with_permission: [:can_view_limited_enrollment_details]) }
+
+        it 'does not include enrollments at p2' do
+          viewable_enrollments = Hmis::Hud::Enrollment.viewable_by(user, include_limited_access_enrollments: true)
+          expect(viewable_enrollments).to contain_exactly(e1)
+        end
       end
 
       describe 'and full access to p2' do

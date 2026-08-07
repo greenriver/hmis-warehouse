@@ -92,7 +92,11 @@ can_edit_enrollments: {
 
 `HmisPermissionLoader` drops any permission whose chain isn't fully granted, so an unmet requirement leaves the permission absent from the set and every policy predicate behaves as if it was never granted. `UserContext#project_permissions` evaluates this per project; `UserContext#global_permissions` evaluates it across the whole data source, where a chain split across projects can over-report — which is why it only informs coarse UI decisions.
 
-The lower-level scopes (`User#entities_with_permissions`, `Project.with_access`) match Role columns directly and don't resolve requirements. They take `mode: :any` (the default) or `mode: :all`. Pass the flattened chain when a scope needs it. That is intentionally stricter than policy evaluation, which checks requirements against the union of a user's roles: `mode: :all` requires them on a single role, so a role granting enrollment visibility without client visibility grants no enrollment access rather than borrowing the prerequisite from elsewhere.
+Scopes get the same answer, because `Project.with_access` resolves permissions through `UserContext` rather than matching Role columns. Name only the permission you need — its requirements come along:
+
+```ruby
+Hmis::Hud::Project.with_access(user, :can_view_enrollment_details) # implies project and client visibility
+```
 
 ## How Permission Checks Work
 

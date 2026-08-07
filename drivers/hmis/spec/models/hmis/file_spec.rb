@@ -158,15 +158,16 @@ RSpec.describe Hmis::File, type: :model do
     context 'with many files' do
       before do
         30.times do
-          enrollment = create :hmis_hud_enrollment, data_source: ds1, entry_date: 1.month.ago
+          enrollment = create :hmis_hud_enrollment, project: p1, data_source: ds1, entry_date: 1.month.ago
           create :file, enrollment: enrollment, client: enrollment.client, blob: blob
         end
       end
 
       it 'makes a reasonable number of db queries' do
         expect do
-          Hmis::File.viewable_by(hmis_user)
-        end.to make_database_queries(count: 50..65)
+          files = Hmis::File.viewable_by(hmis_user)
+          expect(files.size).to be >= 30
+        end.to make_database_queries(count: 5..20)
       end
     end
   end
