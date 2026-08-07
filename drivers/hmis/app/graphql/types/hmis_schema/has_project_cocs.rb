@@ -26,7 +26,7 @@ module Types
       end
 
       def scoped_arguments(scope)
-        scope.viewable_by(current_user)
+        scope.viewable_by(current_user).order(date_updated: :desc, id: :desc)
       end
     end
   end

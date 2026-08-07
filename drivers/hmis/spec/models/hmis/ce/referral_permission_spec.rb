@@ -197,6 +197,15 @@ RSpec.describe Hmis::Ce::Referral, type: :model do
       it 'includes referral with source enrollment from that project' do
         expect(Hmis::Ce::Referral.viewable_by(hmis_user)).to contain_exactly(referral)
       end
+
+      context 'when source project is not viewable' do
+        # override both access controls to remove can_view_project
+        let!(:ds_access_control) { create_access_control(hmis_user, ds1, with_permission: [:can_view_clients]) }
+        let!(:acl) { create_access_control(hmis_user, source_project, with_permission: [:can_view_outgoing_referral_details]) }
+        it 'excludes referral' do
+          expect(Hmis::Ce::Referral.viewable_by(hmis_user)).to be_empty
+        end
+      end
     end
   end
 end
