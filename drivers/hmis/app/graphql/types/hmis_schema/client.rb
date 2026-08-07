@@ -42,6 +42,7 @@ module Types
     description 'HUD Client'
     field :id, ID, null: false
     field :lock_version, Integer, null: false
+    field :restricted, Boolean, null: false
     field :external_ids, [Types::HmisSchema::ExternalIdentifier], null: false
     hud_field :personal_id
     hud_field :first_name
@@ -186,6 +187,7 @@ module Types
       can :manage_client_alerts
       root_can :can_view_client_eligible_opportunities
       can :print_client_case_notes
+      bool_field(:can_mark_restricted) { policy.can_mark_restricted? }
     end
 
     def external_ids
@@ -420,6 +422,10 @@ module Types
 
     def ce_referrals(**args)
       resolve_ce_referrals(object.ce_referrals, **args)
+    end
+
+    def restricted
+      load_ar_association(object, :restricted_record).present?
     end
   end
 end
