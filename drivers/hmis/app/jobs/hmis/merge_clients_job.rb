@@ -247,6 +247,7 @@ module Hmis
       candidates = [
         [Hmis::File, 'files'],
         [Hmis::Ce::Referral, 'ce_referrals'],
+        [Hmis::ClientAlert, 'client_alerts'],
       ]
 
       Rails.logger.info "Updating #{candidates.length} tables with foreign keys to merged clients (client_id)"
