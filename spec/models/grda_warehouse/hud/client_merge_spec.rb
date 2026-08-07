@@ -318,23 +318,97 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
   end
 
   describe '#potential_matches' do
-    let(:client) { create(:hud_client, FirstName: 'Rob', LastName: 'Smith', data_source_id: source_ds.id) }
+    let(:client) { create(:hud_client, FirstName: 'Roberta', LastName: 'Smithers', data_source_id: source_ds.id) }
 
-    it 'matches destination clients by word-prefix in either name order, excluding substring-only and wrong-scope matches' do
-      prefix_match = create(:hud_client, FirstName: 'Robert', LastName: 'Smithers', data_source_id: destination_ds.id)
-      swapped_order_match = create(:hud_client, FirstName: 'Smithville', LastName: 'Robertson', data_source_id: destination_ds.id)
-      create(:hud_client, FirstName: 'Robby', LastName: 'Blacksmith', data_source_id: destination_ds.id)
-      create(:hud_client, FirstName: 'Robert', LastName: 'Smithers', data_source_id: source_ds.id)
+    it 'delegates to the shared client text search on this client\'s own name, excluding itself' do
+      matching_source = create(:hud_client, FirstName: 'Roberta', LastName: 'Smithers', data_source_id: source_ds.id)
+      matching_destination = create(:hud_client, data_source_id: destination_ds.id)
+      GrdaWarehouse::WarehouseClient.create!(destination_id: matching_destination.id, source_id: matching_source.id, id_in_source: matching_source.PersonalID)
+
+      unrelated_source = create(:hud_client, FirstName: 'Zachary', LastName: 'Quinnson', data_source_id: source_ds.id)
+      unrelated_destination = create(:hud_client, data_source_id: destination_ds.id)
+      GrdaWarehouse::WarehouseClient.create!(destination_id: unrelated_destination.id, source_id: unrelated_source.id, id_in_source: unrelated_source.PersonalID)
 
       matches = client.potential_matches[:by_name]
 
-      expect(matches).to contain_exactly(prefix_match, swapped_order_match)
+      expect(matches).to include(matching_destination)
+      expect(matches).not_to include(unrelated_destination)
     end
 
-    it 'returns no matches when the client has a blank first or last name' do
-      blank_named_client = create(:hud_client, FirstName: '', LastName: 'Smith', data_source_id: source_ds.id)
+    it 'returns no matches when the client has a blank name' do
+      blank_named_client = create(:hud_client, FirstName: '', LastName: '', data_source_id: source_ds.id)
 
       expect(blank_named_client.potential_matches).to eq({})
+    end
+
+    it "only includes candidates whose age matches at least one active source client's age" do
+      client_source = create(:hud_client, FirstName: 'Roberta', LastName: 'Smithers', DOB: 30.years.ago.to_date, data_source_id: source_ds.id)
+      GrdaWarehouse::WarehouseClient.create!(destination_id: client.id, source_id: client_source.id, id_in_source: client_source.PersonalID)
+
+      age_match_source = create(:hud_client, FirstName: 'Roberta', LastName: 'Smithers', data_source_id: source_ds.id)
+      age_match_destination = create(:hud_client, DOB: 30.years.ago.to_date, data_source_id: destination_ds.id)
+      GrdaWarehouse::WarehouseClient.create!(destination_id: age_match_destination.id, source_id: age_match_source.id, id_in_source: age_match_source.PersonalID)
+
+      age_mismatch_source = create(:hud_client, FirstName: 'Roberta', LastName: 'Smithers', data_source_id: source_ds.id)
+      age_mismatch_destination = create(:hud_client, DOB: 5.years.ago.to_date, data_source_id: destination_ds.id)
+      GrdaWarehouse::WarehouseClient.create!(destination_id: age_mismatch_destination.id, source_id: age_mismatch_source.id, id_in_source: age_mismatch_source.PersonalID)
+
+      matches = client.potential_matches[:by_name]
+
+      expect(matches).to include(age_match_destination)
+      expect(matches).not_to include(age_mismatch_destination)
+    end
+
+    it "searches by each active source client's name, not just the destination's own name" do
+      distinct_name_source = create(:hud_client, FirstName: 'Zachary', LastName: 'Quinnson', data_source_id: source_ds.id)
+      GrdaWarehouse::WarehouseClient.create!(destination_id: client.id, source_id: distinct_name_source.id, id_in_source: distinct_name_source.PersonalID)
+
+      match_source = create(:hud_client, FirstName: 'Zachary', LastName: 'Quinnson', data_source_id: source_ds.id)
+      match_destination = create(:hud_client, data_source_id: destination_ds.id)
+      GrdaWarehouse::WarehouseClient.create!(destination_id: match_destination.id, source_id: match_source.id, id_in_source: match_source.PersonalID)
+
+      matches = client.potential_matches[:by_name]
+
+      expect(matches).to include(match_destination)
+    end
+
+    it 'does not filter by age when none of the active source clients have a DOB' do
+      client_source = create(:hud_client, FirstName: 'Roberta', LastName: 'Smithers', DOB: nil, data_source_id: source_ds.id)
+      GrdaWarehouse::WarehouseClient.create!(destination_id: client.id, source_id: client_source.id, id_in_source: client_source.PersonalID)
+
+      candidate_source = create(:hud_client, FirstName: 'Roberta', LastName: 'Smithers', data_source_id: source_ds.id)
+      candidate_destination = create(:hud_client, DOB: 40.years.ago.to_date, data_source_id: destination_ds.id)
+      GrdaWarehouse::WarehouseClient.create!(destination_id: candidate_destination.id, source_id: candidate_source.id, id_in_source: candidate_source.PersonalID)
+
+      matches = client.potential_matches[:by_name]
+
+      expect(matches).to include(candidate_destination)
+    end
+
+    it 'orders results by relevance, best match first' do
+      exact_source = create(:hud_client, FirstName: 'Roberta', LastName: 'Smithers', data_source_id: source_ds.id)
+      exact_destination = create(:hud_client, data_source_id: destination_ds.id)
+      GrdaWarehouse::WarehouseClient.create!(destination_id: exact_destination.id, source_id: exact_source.id, id_in_source: exact_source.PersonalID)
+
+      fuzzy_source = create(:hud_client, FirstName: 'Roberta', LastName: 'Smither', data_source_id: source_ds.id)
+      fuzzy_destination = create(:hud_client, data_source_id: destination_ds.id)
+      GrdaWarehouse::WarehouseClient.create!(destination_id: fuzzy_destination.id, source_id: fuzzy_source.id, id_in_source: fuzzy_source.PersonalID)
+
+      matches = client.potential_matches[:by_name].to_a
+
+      expect(matches.index(exact_destination)).to be < matches.index(fuzzy_destination)
+    end
+
+    it "caps results at #{GrdaWarehouse::Hud::Client::POTENTIAL_MATCHES_LIMIT}" do
+      (GrdaWarehouse::Hud::Client::POTENTIAL_MATCHES_LIMIT + 1).times do
+        exact_source = create(:hud_client, FirstName: 'Roberta', LastName: 'Smithers', data_source_id: source_ds.id)
+        exact_destination = create(:hud_client, data_source_id: destination_ds.id)
+        GrdaWarehouse::WarehouseClient.create!(destination_id: exact_destination.id, source_id: exact_source.id, id_in_source: exact_source.PersonalID)
+      end
+
+      matches = client.potential_matches[:by_name]
+
+      expect(matches.count).to eq(GrdaWarehouse::Hud::Client::POTENTIAL_MATCHES_LIMIT)
     end
   end
 end

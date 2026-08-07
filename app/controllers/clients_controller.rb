@@ -114,7 +114,7 @@ class ClientsController < ApplicationController
   end
 
   def edit
-    @search_clients = client_source.text_search(params[:q], client_scope: client_source).where.not(id: @client.id).limit(50) if params[:q].present?
+    @search_clients = client_source.text_search(params[:q], client_scope: client_source, sorted: true).where.not(id: @client.id).limit(50) if params[:q].present?
   end
 
   # display an assessment form in a modal

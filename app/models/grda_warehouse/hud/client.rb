@@ -1830,7 +1830,8 @@ module GrdaWarehouse::Hud
         group(Arel.sql('1'))
 
       # now join the results, mapped through the WarehouseClient, to the current scope
-      mapped = joins(%(JOIN (#{grouped.to_sql}) AS dst_search_results ON dst_search_results.client_id = "Client".id))
+      mapped = joins(%(JOIN (#{grouped.to_sql}) AS dst_search_results ON dst_search_results.client_id = "Client".id)).
+        select(Arel.sql('"Client".*, dst_search_results.score AS score'))
       mapped = mapped.order(Arel.sql('dst_search_results.score DESC'), :id) if sorted
       mapped
     end
@@ -2178,24 +2179,47 @@ module GrdaWarehouse::Hud
       @document_ready ||= document_readiness(required_documents).all?(&:available)
     end
 
+    # Cap on how many suggestions to show, keeping the best-scored matches when more are found
+    POTENTIAL_MATCHES_LIMIT = 20
+
     # Build a set of potential client matches grouped by criteria
     def potential_matches
       @potential_matches ||= {}.tap do |m|
-        first = self.FirstName.to_s.strip.downcase
-        last = self.LastName.to_s.strip.downcase
-        next if first.blank? || last.blank?
+        scores_by_id = {}
+        potential_match_search_queries.each do |query|
+          self.class.text_search(query, client_scope: self.class, sorted: true).where.not(id: id).each do |candidate|
+            score = candidate.score.to_f
+            scores_by_id[candidate.id] = score if scores_by_id[candidate.id].nil? || score > scores_by_id[candidate.id]
+          end
+        end
+        next if scores_by_id.empty?
 
-        c_arel = self.class.arel_table
-        matches = self.class.destination.where.not(id: id).where(
-          nf('LOWER', [c_arel[:FirstName]]).matches("#{first}%").
-            and(nf('LOWER', [c_arel[:LastName]]).matches("#{last}%")).
-          or(
-            nf('LOWER', [c_arel[:FirstName]]).matches("#{last}%").
-              and(nf('LOWER', [c_arel[:LastName]]).matches("#{first}%")),
-          ),
-        )
-        m[:by_name] = matches if matches.any?
+        candidates = self.class.where(id: scores_by_id.keys)
+        ages = active_source_client_ages
+        candidates = candidates.select { |c| ages.include?(c.age) } if ages.any?
+
+        top_ids = candidates.sort_by { |c| -scores_by_id[c.id] }.first(POTENTIAL_MATCHES_LIMIT).map(&:id)
+        next if top_ids.empty?
+
+        m[:by_name] = self.class.where(id: top_ids).
+          order(Arel.sql("array_position(ARRAY[#{top_ids.join(',')}]::bigint[], id)"))
       end
+    end
+
+    # Search by this client's own name and by each active source client's name, since a
+    # destination's own name doesn't necessarily reflect every merged-in name variant
+    # (merge_from doesn't update FirstName/LastName, and a source with a differing name
+    # can later have its data source deleted, dropping out of active_source_clients).
+    private def potential_match_search_queries
+      names = active_source_clients.map { |c| "#{c.FirstName} #{c.LastName}".strip }
+      names << "#{self.FirstName} #{self.LastName}".strip
+      names.uniq.reject(&:blank?)
+    end
+
+    # Ages of this client's active (non-deleted-data-source) source clients, used to
+    # narrow potential_matches down to candidates plausibly the same person.
+    private def active_source_client_ages
+      active_source_clients.filter_map(&:age)
     end
 
     # find other clients with similar names
