@@ -109,7 +109,7 @@ module GrdaWarehouse
     end
 
     def filter
-      ::Filters::HmisExport.new(options)
+      ::Filters::HmisExport.new(options.merge(user_id: user_id))
     end
 
     def source_type
