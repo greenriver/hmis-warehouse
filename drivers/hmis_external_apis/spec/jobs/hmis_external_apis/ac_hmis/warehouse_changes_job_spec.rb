@@ -136,7 +136,7 @@ RSpec.describe HmisExternalApis::AcHmis::WarehouseChangesJob, type: :job do
     other_client.warehouse_client_source.update(destination_id: client.warehouse_id)
 
     # Split the other_client out
-    client.destination_client.as_warehouse.split([other_client.id], user)
+    client.destination_client.as_warehouse.split([other_client.id], nil, [], user)
     expect(other_client.reload.warehouse_id).not_to eq(client.reload.warehouse_id)
     expect(GrdaWarehouse::ClientSplitHistory.exists?(split_from: client.destination_client.id)).to be_truthy
 
@@ -156,7 +156,7 @@ RSpec.describe HmisExternalApis::AcHmis::WarehouseChangesJob, type: :job do
     create(:mci_unique_id_external_id, value: '1000119810', remote_credential: remote_credential, source: other_client_1)
 
     # Split other_client_1 out from other_client_2's dest client
-    other_client_2.destination_client.as_warehouse.split([other_client_1.id], user)
+    other_client_2.destination_client.as_warehouse.split([other_client_1.id], nil, [], user)
     expect(other_client_1.reload.warehouse_id).not_to eq(other_client_2.reload.warehouse_id)
     expect(GrdaWarehouse::ClientSplitHistory.exists?(split_from: other_client_2.destination_client.id)).to be_truthy
 

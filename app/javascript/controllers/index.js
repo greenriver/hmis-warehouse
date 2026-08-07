@@ -24,3 +24,6 @@ application.register("chart-loader", ChartLoaderController)
 
 import FormsController from "./forms_controller.js"
 application.register("forms", FormsController)
+
+import UnmergeFormController from "./unmerge_form_controller.js"
+application.register("unmerge-form", UnmergeFormController)
