@@ -97,24 +97,25 @@
         = f.submit value: 'Save Goal', class: 'btn btn-primary', data: { disable_with: 'Saving ...' }
 
   = content_for :page_js do
-    :javascript
-      $('.jAddAction, .jActionRow').addClass('hide');
-      $('.jActionRow:first').removeClass('hide');
-      $('.jAddAction').each(function(i){
-        var row = $(this).closest('.jActionRow');
-        var input = row.find('.jAction input');
-        if(input.val().length > 0) {
+    %script{ nonce: content_security_policy_nonce }
+      :plain
+        $('.jAddAction, .jActionRow').addClass('hide');
+        $('.jActionRow:first').removeClass('hide');
+        $('.jAddAction').each(function(i){
+          var row = $(this).closest('.jActionRow');
+          var input = row.find('.jAction input');
+          if(input.val().length > 0) {
+            row.removeClass('hide');
+          }
+        });
+
+        $('.jActionRow:visible:last').next().removeClass('hide');
+        $('.jActionRow:visible:last').find('.jAddAction').removeClass('hide');
+
+        $('.jAddAction').on('click', function(e) {
+          e.preventDefault();
+          var row = $('.jActionRow:visible:last').next('.jActionRow');
           row.removeClass('hide');
-        }
-      });
-
-      $('.jActionRow:visible:last').next().removeClass('hide');
-      $('.jActionRow:visible:last').find('.jAddAction').removeClass('hide');
-
-      $('.jAddAction').on('click', function(e) {
-        e.preventDefault();
-        var row = $('.jActionRow:visible:last').next('.jActionRow');
-        row.removeClass('hide');
-        row.find('.jAddAction').removeClass('hide');
-        $(this).addClass('hide');
-      });
+          row.find('.jAddAction').removeClass('hide');
+          $(this).addClass('hide');
+        });

@@ -114,19 +114,22 @@ module CeWorkflows::Shared
       Hmis::Ce::ReferralParticipant.where(referral: referrals).find_each(&:destroy!)
       referrals.find_each(&:destroy!)
 
+      unit_groups = Hmis::UnitGroup.where(workflow_template_identifier: template_identifier).
+        or(Hmis::UnitGroup.where(direct_referral_workflow_template_identifier: template_identifier)).
+        preload(:project)
+      raise 'Unexpected, found a unit group associated with this template in another data source' if unit_groups.any? { |ug| ug.project.data_source_id != data_source.id }
+
+      # Find opportunities through unit groups that use this template
+      opportunities = Hmis::Ce::Opportunity.joins(:unit).where(hmis_units: { hmis_unit_group_id: unit_groups.select(:id) })
+
       if delete_opportunities
-        # Optional: wipe opportunities tied to this template via unit groups. Pass
-        # delete_opportunities: false to preserve CE inventory during local iteration.
-        # Find opportunities through unit groups that use this template
-        unit_groups = Hmis::UnitGroup.where(workflow_template_identifier: template_identifier).
-          or(Hmis::UnitGroup.where(direct_referral_workflow_template_identifier: template_identifier)).
-          preload(:project)
-        raise 'Unexpected, found a unit group associated with this template in another data source' if unit_groups.any? { |ug| ug.project.data_source_id != data_source.id }
-
-        opportunities = Hmis::Ce::Opportunity.joins(:unit).where(hmis_units: { hmis_unit_group_id: unit_groups.select(:id) })
-
+        # Optional: wipe opportunities tied to this template
         Hmis::Ce::OpportunityCategorization.where(opportunity: opportunities).find_each(&:destroy!)
         opportunities.find_each(&:destroy!)
+      else
+        # If the delete_opportunities flag is false, release any locked opportunities.
+        # This avoids leaving dangling locked opportunities associated with deleted referrals.
+        opportunities.locked.find_each(&:release!)
       end
 
       Hmis::WorkflowExecution::AuditEvent.where(instance: instances).find_each(&:destroy!)

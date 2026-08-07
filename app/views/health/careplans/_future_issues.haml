@@ -24,23 +24,24 @@
       .no-data No issues listed
 
 = content_for :page_js do
-  :javascript
-    $('.jAddIssue, .jIssueRow').addClass('hide');
-    $('.jIssueRow:first').removeClass('hide');
-    $('.jAddIssue').each(function(i){
-      var row = $(this).closest('.jIssueRow');
-      var input = row.find('.jIssue');
-      if(input.val().length > 0) {
-        row.removeClass('hide');
-      }
-    });
+  %script{ nonce: content_security_policy_nonce }
+    :plain
+      $('.jAddIssue, .jIssueRow').addClass('hide');
+      $('.jIssueRow:first').removeClass('hide');
+      $('.jAddIssue').each(function(i){
+        var row = $(this).closest('.jIssueRow');
+        var input = row.find('.jIssue');
+        if(input.val().length > 0) {
+          row.removeClass('hide');
+        }
+      });
 
-    $('.jIssueRow:visible:last').next().removeClass('hide');
-    $('.jIssueRow:visible:last').find('.jAddIssue').removeClass('hide');
-
-    $('body').on('click', '.jAddIssue', function(e) {
-      e.preventDefault();
       $('.jIssueRow:visible:last').next().removeClass('hide');
       $('.jIssueRow:visible:last').find('.jAddIssue').removeClass('hide');
-      $(this).addClass('hide');
-    });
+
+      $('body').on('click', '.jAddIssue', function(e) {
+        e.preventDefault();
+        $('.jIssueRow:visible:last').next().removeClass('hide');
+        $('.jIssueRow:visible:last').find('.jAddIssue').removeClass('hide');
+        $(this).addClass('hide');
+      });

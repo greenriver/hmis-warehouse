@@ -14,37 +14,38 @@
           %div{ id: legend_id }
           %div{ id: chart_id }
         = content_for :page_js do
-          :javascript
-            var chart = bb.generate({
-              data: {
-                columns: #{data.last.to_json.html_safe},
-                type: "donut", // for ESM specify as: bar()
-              },
-              legend: {
-                contents: {
-                  bindto: "##{legend_id}",
-                  template: function (title, color) {
-                    var swatch = `<svg class="chart-legend-item-swatch-prs1" viewBox="0 0 10 10" xmlns="http://www.w3.org/2000/svg"><rect width="10" height="10" fill="${color}"/></svg>`;
-                    return `<div class="chart-legend-item-prs1"><div class="swatch">${swatch}</div><div class="chart-legend-item-label-prs1">${title}</div></div>`;
+          %script{ nonce: content_security_policy_nonce }
+            :plain
+              var chart = bb.generate({
+                data: {
+                  columns: #{data.last.to_json.html_safe},
+                  type: "donut", // for ESM specify as: bar()
+                },
+                legend: {
+                  contents: {
+                    bindto: "##{legend_id}",
+                    template: function (title, color) {
+                      var swatch = `<svg class="chart-legend-item-swatch-prs1" viewBox="0 0 10 10" xmlns="http://www.w3.org/2000/svg"><rect width="10" height="10" fill="${color}"/></svg>`;
+                      return `<div class="chart-legend-item-prs1"><div class="swatch">${swatch}</div><div class="chart-legend-item-label-prs1">${title}</div></div>`;
+                    },
                   },
                 },
-              },
-              tooltip: {
-                format: {
-                  title: function(x) { return "#{@report.support_title(key)}" },
+                tooltip: {
+                  format: {
+                    title: function(x) { return "#{@report.support_title(key)}" },
+                  },
                 },
-              },
-              axis: {
-                rotated: true,
-                x: {
-                  show: true,
-                  tick: {
+                axis: {
+                  rotated: true,
+                  x: {
                     show: true,
-                  }
+                    tick: {
+                      show: true,
+                    }
+                  },
                 },
-              },
-              bindto: "##{chart_id}"
-            });
+                bindto: "##{chart_id}"
+              });
       = data.first
       - data.last.each do |label, count|
         - sub_key = :returned_in_two_years

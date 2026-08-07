@@ -150,15 +150,16 @@
         = f.input :employment_status, collection: @vpr.class.available_employments, as: :pretty_boolean_group
 
 = content_for :page_js do
-  :javascript
-    var total_possible_services = #{@vpr.class.max_service_count};
-    $('.jFlexibleServicePlanHidden').hide();
-    $('.jAddFlexiblService').on('click', function(e) {
-      e.preventDefault();
-      $('.jFlexibleServicePlanHidden:first').removeClass('jFlexibleServicePlanHidden').show();
-      $(this).hide();
-    });
-    $('.jAddFlexiblService:visible:not(:last)').hide();
-    if($('.jFlexibleServicePlan:visible').length == total_possible_services) {
-      $('.jAddFlexiblService').hide();
-    }
+  %script{ nonce: content_security_policy_nonce }
+    :plain
+      var total_possible_services = #{@vpr.class.max_service_count};
+      $('.jFlexibleServicePlanHidden').hide();
+      $('.jAddFlexiblService').on('click', function(e) {
+        e.preventDefault();
+        $('.jFlexibleServicePlanHidden:first').removeClass('jFlexibleServicePlanHidden').show();
+        $(this).hide();
+      });
+      $('.jAddFlexiblService:visible:not(:last)').hide();
+      if($('.jFlexibleServicePlan:visible').length == total_possible_services) {
+        $('.jAddFlexiblService').hide();
+      }

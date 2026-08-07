@@ -39,11 +39,11 @@ RSpec.describe 'PickList BULK_VOID_CE_PROJECTS', type: :request do
     create_access_control(hmis_user, bulk_void_org, with_permission: [:can_administrate_coordinated_entry])
     create_access_control(hmis_user, other_ds, with_permission: [:can_administrate_coordinated_entry])
 
-    create_access_control(hmis_user, editable_ce_project, with_permission: [:can_view_project, :can_edit_enrollments])
+    create_access_control(hmis_user, editable_ce_project, with_permission: HmisPermissionSets::ENROLLMENT_EDITING)
     create_access_control(hmis_user, viewable_only_ce_project, with_permission: [:can_view_project])
-    create_access_control(hmis_user, closed_ce_project, with_permission: [:can_view_project, :can_edit_enrollments])
-    create_access_control(hmis_user, non_ce_project, with_permission: [:can_view_project, :can_edit_enrollments])
-    create_access_control(hmis_user, other_ds_ce_project, with_permission: [:can_view_project, :can_edit_enrollments])
+    create_access_control(hmis_user, closed_ce_project, with_permission: HmisPermissionSets::ENROLLMENT_EDITING)
+    create_access_control(hmis_user, non_ce_project, with_permission: HmisPermissionSets::ENROLLMENT_EDITING)
+    create_access_control(hmis_user, other_ds_ce_project, with_permission: HmisPermissionSets::ENROLLMENT_EDITING)
 
     hmis_login(user)
     allow_any_instance_of(Hmis::Ce::Configuration).to receive(:bulk_void_enabled?).and_return(true)

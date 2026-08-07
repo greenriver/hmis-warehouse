@@ -59,12 +59,13 @@
   .none-found There are no project groups.
 
 = content_for :page_js do
-  :javascript
-    $('.jSelect, .jCheckAll').on('change', function(e) {
-      anyChecked = $('input[name="selections[group][]"]').toArray().some((e) => e.checked)
-      $('#deleteMultipleButton').prop('disabled', !anyChecked)
-    });
+  %script{ nonce: content_security_policy_nonce }
+    :plain
+      $('.jSelect, .jCheckAll').on('change', function(e) {
+        anyChecked = $('input[name="selections[group][]"]').toArray().some((e) => e.checked)
+        $('#deleteMultipleButton').prop('disabled', !anyChecked)
+      });
 
-    $(document).ready(function() {
-      $('#deleteMultipleButton').prop('disabled', true)
-    });
+      $(document).ready(function() {
+        $('#deleteMultipleButton').prop('disabled', true)
+      });

@@ -10,9 +10,10 @@
 
   = render 'warehouse_reports/filters', f:f, submit_button: nil
 = content_for :page_js do
-  :javascript
-    $(document).ready(function() {
-      $('.btn').each(function(i){
-        $(this).removeAttr('data-disable-with');
+  %script{ nonce: content_security_policy_nonce }
+    :plain
+      $(document).ready(function() {
+        $('.btn').each(function(i){
+          $(this).removeAttr('data-disable-with');
+        });
       });
-    });
