@@ -10,7 +10,7 @@ module Types
   class HmisSchema::ClientMergeCandidate < Types::BaseObject
     field :id, ID, null: false, description: 'Warehouse ID'
     field :warehouse_url, String, null: false
-    field :clients, [HmisSchema::Client], null: false
+    field :clients, [HmisSchema::Client], null: false # this should use a different more limited type. too much exposure
 
     # object is a Hmis::Hud::Client that is a "destination client"
 
