@@ -2196,6 +2196,9 @@ module GrdaWarehouse::Hud
 
         candidates = self.class.where(id: scores_by_id.keys)
         ages = active_source_client_ages
+        # sanity check: only show clients with ages that match existing source clients.
+        # This isn't perfect, a transposed date would be missed, and it is current date dependent,
+        # but the goal is to prevent including children/parents/grandparents of the client.
         candidates = candidates.select { |c| ages.include?(c.age) } if ages.any?
 
         top_ids = candidates.sort_by { |c| -scores_by_id[c.id] }.first(POTENTIAL_MATCHES_LIMIT).map(&:id)
