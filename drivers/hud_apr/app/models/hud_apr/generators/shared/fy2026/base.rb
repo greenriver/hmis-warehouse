@@ -166,12 +166,11 @@ module HudApr::Generators::Shared::Fy2026
           income_at_exit = exit_record&.income_benefits_at_exit
 
           disabilities = enrollment.disabilities.select { |disability| [1, 2, 3].include?(disability.DisabilityResponse) }
-
-          disabilities_at_entry = enrollment.disabilities.select { |d| d.DataCollectionStage == 1 }
-          disabilities_at_exit = enrollment.disabilities.select { |d| d.DataCollectionStage == 3 }
-          max_disability_date_in_report = enrollment.disabilities.select { |d| d.InformationDate <= @report.end_date }.
-            map(&:InformationDate).max
-          disabilities_latest_in_report = enrollment.disabilities.select { |d| d.InformationDate == max_disability_date_in_report }
+          relevant_disability_records = enrollment.disabilities.select { |d| d.InformationDate <= @report.end_date }
+          disabilities_at_entry = relevant_disability_records.select { |d| d.DataCollectionStage == 1 }
+          disabilities_at_exit = relevant_disability_records.select { |d| d.DataCollectionStage == 3 }
+          max_disability_date_in_report = relevant_disability_records.map(&:InformationDate).select { |date| date <= @report.end_date }.max
+          disabilities_latest_in_report = relevant_disability_records.select { |d| d.InformationDate == max_disability_date_in_report }
           max_disability_date_overall = enrollment.disabilities.map(&:InformationDate).max
           disabilities_latest_overall = enrollment.disabilities.select { |d| d.InformationDate == max_disability_date_overall }
 
@@ -667,8 +666,8 @@ module HudApr::Generators::Shared::Fy2026
           distinct.
           pluck(:id, :household_id, :enrollment_group_id)
         {
-          enrollment_ids: rows.map(&:first).to_set,
-          household_ids: rows.map { |_, household_id, enrollment_group_id| household_id || "#{enrollment_group_id}*HH" }.to_set,
+          enrollment_ids: rows.map(&:shift).to_set,
+          household_ids: rows.map { |household_id, enrollment_group_id| household_id || "#{enrollment_group_id || ''}*HH" }.to_set,
         }
       end
     end
