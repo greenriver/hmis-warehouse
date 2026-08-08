@@ -11,6 +11,9 @@
         = f.input :keycloak_realm, as: :string, hint: 'Keycloak realm (required for Keycloak; no default)'
         = f.input :service_token, as: :password, input_html: { value: @idp_service_config.service_token }, hint: 'Service account token/password.'
         = f.input :okta_org_id, label: 'Okta Org ID', hint: 'Org identifier in Okta (optional)'
+        = f.input :browser_url, label: 'Browser URL', hint: 'Public origin for self-service deep-links (Keycloak; defaults to the API URL when blank)'
+        = f.input :account_client_id, label: 'Account client ID', hint: "OIDC client an application-initiated action runs under (Keycloak; defaults to 'account')"
+        = f.input :manage_users, label: 'Manage users', as: :boolean, hint: 'On when this service account has admin access to manage users in the IdP. Turn off for an authenticate-only IdP (e.g. a customer-operated Keycloak); management actions are then hidden instead of failing at the API.'
         = f.input :active, label: 'Active', hint: 'Only active configurations will be used'
 
       .form_actions

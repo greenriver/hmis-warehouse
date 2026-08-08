@@ -72,6 +72,9 @@ module Admin
         :client_id,
         :keycloak_realm,
         :okta_org_id,
+        :browser_url,
+        :account_client_id,
+        :manage_users,
         :active,
       )
     end
