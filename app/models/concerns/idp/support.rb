@@ -56,20 +56,30 @@ module Idp::Support
     false
   end
 
+  # @return [:unmanaged, :identity_missing, :deactivated]
   def idp_deactivate!
-    return false unless primary_idp
+    return :unmanaged unless idp_user_management_available?
+    # Pre-empts idp_connector_user_id!'s raise: callers run this in the transaction holding the
+    # local deactivation, so raising here rolls it back and leaves the user with the Warehouse
+    # access an admin revoked.
+    return :identity_missing unless idp_identity_on_file?
 
     idp_service.deactivate_user(user_id: idp_connector_user_id!)
+    :deactivated
   end
 
+  # Mirror of #idp_deactivate! for the reactivation direction.
+  # @return [:unmanaged, :identity_missing, :reactivated]
   def idp_reactivate!
-    return false unless primary_idp
+    return :unmanaged unless idp_user_management_available?
+    return :identity_missing unless idp_identity_on_file?
 
     idp_service.reactivate_user(user_id: idp_connector_user_id!)
+    :reactivated
   end
 
   def idp_force_password_change!
-    return false unless primary_idp
+    return false unless idp_user_management_available?
 
     idp_service.set_required_action(user_id: idp_connector_user_id!, actions: ['UPDATE_PASSWORD'])
   end
@@ -114,6 +124,10 @@ module Idp::Support
     else
       user_authentication_sources.order(:created_at).first
     end
+  end
+
+  def idp_identity_on_file?
+    primary_auth_source&.connector_user_id.present?
   end
 
   # The user's stable id within the upstream IdP for its primary connector.
