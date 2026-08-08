@@ -8,7 +8,8 @@
 
 # == Hmis::MigrateAssessmentsJob
 #
-# Intended to be run manually during the setup and migration phase of a new HMIS installation
+# Auto-enqueued in import post-processing for OP HMIS data sources.
+# @see docs/features/warehouse/hmis-csv-importer.md
 #
 module Hmis
   class MigrateAssessmentsJob < BaseJob

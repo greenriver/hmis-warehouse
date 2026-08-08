@@ -1,0 +1,99 @@
+{
+  "item": [
+    {
+      "text": "Decision",
+      "type": "CHOICE",
+      "link_id": "case_manager_initial_review_decision",
+      "mapping": {
+        "custom_field_key": "housing_workflow_case_manager_initial_review_decision"
+      },
+      "required": true,
+      "component": "RADIO_BUTTONS",
+      "pick_list_options": [
+        { "code": "continue", "label": "Continue referral - intake scheduled" },
+        { "code": "decline", "label": "Decline" }
+      ]
+    },
+    {
+      "item": [
+        {
+          "text": "Intake Date",
+          "type": "DATE",
+          "link_id": "intake_date",
+          "mapping": {
+            "custom_field_key": "housing_workflow_schedule_intake_date"
+          },
+          "required": true
+        },
+        {
+          "text": "Intake Time",
+          "type": "TIME_OF_DAY",
+          "link_id": "intake_time",
+          "mapping": {
+            "custom_field_key": "housing_workflow_schedule_intake_time"
+          },
+          "required": true
+        },
+        {
+          "size": "MEDIUM",
+          "text": "Intake Location",
+          "type": "STRING",
+          "link_id": "intake_location",
+          "mapping": {
+            "custom_field_key": "housing_workflow_schedule_intake_location"
+          },
+          "required": true
+        }
+      ],
+      "text": "Scheduled Intake",
+      "type": "GROUP",
+      "link_id": "schedule_intake_appointment_group",
+      "enable_when": [
+        {
+          "operator": "EQUAL",
+          "question": "case_manager_initial_review_decision",
+          "answer_code": "continue"
+        }
+      ],
+      "enable_behavior": "ALL"
+    },
+    {
+      "text": "Decline Reason",
+      "type": "CHOICE",
+      "link_id": "case_manager_initial_review_decline_reason",
+      "mapping": {
+        "custom_field_key": "housing_workflow_case_manager_initial_review_decline_reason"
+      },
+      "required": true,
+      "component": "RADIO_BUTTONS",
+      "pick_list_options": [
+        { "code": "another_housing_option", "label": "Client has another housing option" },
+        { "code": "client_refused_unit_non_sro", "label": "Client refused unit (non-SRO)" },
+        { "code": "client_refused_voucher", "label": "Client refused voucher" },
+        { "code": "does_not_agree_to_services", "label": "Does not agree to services" },
+        { "code": "does_not_want_housing_at_this_time", "label": "Does not want housing at this time" },
+        { "code": "unsafe_environment_for_this_person", "label": "Unsafe environment for this person" },
+        { "code": "unwilling_to_live_in_sro", "label": "Unwilling to live in SRO" },
+        { "code": "unwilling_to_live_in_that_neighborhood", "label": "Unwilling to live in that neighborhood" },
+        { "code": "other", "label": "Other (specify in Notes)" }
+      ],
+      "enable_when": [
+        {
+          "operator": "EQUAL",
+          "question": "case_manager_initial_review_decision",
+          "answer_code": "decline"
+        }
+      ],
+      "enable_behavior": "ALL"
+    },
+    {
+      "text": "Notes",
+      "type": "TEXT",
+      "link_id": "notes",
+      "mapping": {
+        "custom_field_key": "housing_workflow_case_manager_initial_review_note"
+      },
+      "required": false
+    }
+  ]
+}
