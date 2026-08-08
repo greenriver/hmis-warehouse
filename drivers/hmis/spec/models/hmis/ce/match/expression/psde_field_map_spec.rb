@@ -95,6 +95,12 @@ RSpec.describe Hmis::Ce::Match::Expression::PsdeFieldMap, type: :model do
       expect(field_map.format_for_display('mental_health_disorder', false)).to eq('No')
     end
 
+    it 'formats all-enrollment logical fields as Yes/No arrays' do
+      expect(field_map.format_for_display('hiv_aids_values_in_window', [true, false])).to eq(['Yes', 'No'])
+      expect(field_map.format_for_display('hiv_aids_values_in_window', [false])).to eq(['No'])
+      expect(field_map.format_for_display('hiv_aids_values_in_window', [])).to eq([])
+    end
+
     it 'returns nil without formatting' do
       expect(field_map.format_for_display('mental_health_disorder', nil)).to be_nil
       expect(field_map.format_for_display(field_key, nil)).to be_nil
@@ -102,6 +108,62 @@ RSpec.describe Hmis::Ce::Match::Expression::PsdeFieldMap, type: :model do
 
     it 'falls back to string formatting for unknown fields' do
       expect(field_map.format_for_display('unknown_field', 5)).to eq('5')
+    end
+  end
+
+  describe 'INCLUDES with values-in-window PSDE fields' do
+    let(:full_field_map) { Hmis::Ce::Match::Expression::FieldMap.new(current_date: current_date) }
+    let(:calculator) { Hmis::Ce::Match::Expression::CalculatorFactory.build }
+    let(:field_name) { 'psde.hiv_aids_values_in_window' }
+    let(:expression) { "INCLUDES(#{field_name}, TRUE)" }
+
+    def create_disability(**attrs)
+      defaults = {
+        enrollment: enrollment,
+        client: client,
+        data_source: hmis_data_source,
+        data_collection_stage: 1,
+        disability_type: 8,
+      }
+      create(:hmis_disability, :skip_validate, defaults.merge(attrs))
+    end
+
+    def evaluate_includes
+      values = full_field_map.client_query(clients, field_name)
+      calculator.evaluate!(expression, field_name => values.fetch(destination_client.id))
+    end
+
+    it 'evaluates to true when any in-scope enrollment was Yes' do
+      other_enrollment = create(
+        :hmis_hud_enrollment,
+        data_source: hmis_data_source,
+        client: client,
+        EntryDate: current_date - 2.months,
+      )
+      create_disability(
+        disability_response: 1,
+        information_date: current_date - 2.weeks,
+      )
+      create_disability(
+        enrollment: other_enrollment,
+        disability_response: 0,
+        information_date: current_date - 1.week,
+      )
+
+      expect(evaluate_includes).to be(true)
+    end
+
+    it 'evaluates to false when all in-scope enrollments were No' do
+      create_disability(
+        disability_response: 0,
+        information_date: current_date - 1.week,
+      )
+
+      expect(evaluate_includes).to be(false)
+    end
+
+    it 'evaluates to false when there are no meaningful values' do
+      expect(evaluate_includes).to be(false)
     end
   end
 
