@@ -34,6 +34,31 @@ module Idp::Support
     true
   end
 
+  # Under JWT there is no in-app password; credential management is delegated to the IdP's
+  # account console. Defined for both-mode-reachable callers even though the JWT account surface
+  # never renders the change-password tab (parity with confirm_password_for_admin_actions?).
+  def password_change_enabled?
+    false
+  end
+
+  # Deep-link to the IdP's self-service credential console (password/2FA), or nil when the IdP
+  # has none — in which case the account page shows static "managed by your identity provider"
+  # text instead of a link. A service we can't build is treated as no-console.
+  def account_console_url
+    idp_service.account_console_url
+  rescue Idp::ServiceError
+    nil
+  end
+
+  # Deep-link that takes the current user straight into a single self-service action
+  # (password change, 2FA setup) and returns them to redirect_uri. Only valid for the
+  # signed-in user; redirect_uri is supplied by the caller, which owns request context.
+  def account_action_url(action:, redirect_uri:)
+    idp_service.account_action_url(action: action, redirect_uri: redirect_uri)
+  rescue Idp::ServiceError
+    nil
+  end
+
   # Local `expired_at`-based account expiry not supported
   def account_expiry_enabled?
     false
