@@ -98,6 +98,11 @@ module DeviseCurrentUser
     end
     helper_method :current_user_identity
 
+    # When devise is active, a user can't be logged in and inactive, so do nothing.
+    def reject_deactivated_user!
+      nil
+    end
+
     # don't extend the user's session if its an ajax request.
     def skip_timeout
       request.env['devise.skip_trackable'] = true if request.xhr?

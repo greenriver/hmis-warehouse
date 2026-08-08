@@ -7,6 +7,14 @@
 # frozen_string_literal: true
 
 module JwtAuthenticationHelper
+  # The id the IdP knows this user by, deliberately not the warehouse user id. Code that confuses
+  # the two — reading current_user.id where it should read the token's federated claim, or vice
+  # versa — has to fail a spec rather than pass by coincidence. Specs that stub Admin API URLs for
+  # a signed-in user build them off this, not off user.id.
+  def jwt_connector_user_id(user)
+    "kc-#{user.id}"
+  end
+
   def sign_in(user)
     mock_token = "mock-jwt-token-#{user.id}-#{SecureRandom.hex(8)}"
     mock_session_id = "mock-session-id-#{user.id}-#{SecureRandom.hex(4)}"
@@ -15,8 +23,9 @@ module JwtAuthenticationHelper
       Idp::JwtHelper,
       token?: true,
       valid?: true,
+      invalid_reason: nil,
       connector_id: 'test',
-      connector_user_id: user.id.to_s,
+      connector_user_id: jwt_connector_user_id(user),
       payload_email: user.email,
       expiration_time: 1.hour.from_now,
       session_id: mock_session_id,
@@ -40,7 +49,7 @@ module JwtAuthenticationHelper
 
     user.user_authentication_sources.find_or_create_by!(
       connector_id: 'test',
-      connector_user_id: user.id.to_s,
+      connector_user_id: jwt_connector_user_id(user),
     )
     user.update_column(:last_connector_id, 'test') if user.last_connector_id != 'test'
 

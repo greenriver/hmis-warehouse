@@ -52,27 +52,47 @@ RSpec.describe Idp::JwtCurrentUser, type: :controller, if: AuthMethod.jwt? do
       Idp::JwtHelper,
       token?: true,
       valid?: true,
+      invalid_reason: nil,
+      invalid_reason_details: { reason: nil },
       connector_id: 'keycloak',
       expiration_time: 9_999_999_999,
     )
   end
 
   describe '#current_user' do
-    it 'is nil when the token is invalid' do
-      allow(jwt_helper).to receive(:valid?).and_return(false)
-
-      get :index
-
-      expect(response.body).to eq('')
-    end
-
-    it 'is nil when no token is present' do
+    it 'is nil when no token was forwarded' do
       allow(jwt_helper).to receive(:token?).and_return(false)
+      allow(jwt_helper).to receive(:invalid_reason).and_return(:missing)
 
       get :index
 
       expect(response.body).to eq('')
     end
+  end
+
+  # None of these are a signed-out user, and redirecting them to a proxy that still holds a session
+  # is what produces the bounce.
+  describe 'a forwarded token we refuse' do
+    Idp::JwtHelper::INVALID_REASONS.excluding(:missing).each do |reason|
+      it "raises Idp::ForwardedTokenError for #{reason}" do
+        allow(jwt_helper).to receive(:invalid_reason).and_return(reason)
+        allow(jwt_helper).to receive(:invalid_reason_details).and_return({ reason: reason })
+
+        expect { get :index }.to raise_error(Idp::ForwardedTokenError, /#{reason}/)
+      end
+    end
+
+    it 'carries the expected and actual audience into the error message' do
+      allow(jwt_helper).to receive(:invalid_reason).and_return(:invalid_audience)
+      allow(jwt_helper).to receive(:invalid_reason_details).and_return(
+        { reason: :invalid_audience, expected_audiences: ['warehouse'], actual_audience: 'something-else' },
+      )
+
+      expect { get :index }.to raise_error(Idp::ForwardedTokenError, /warehouse.*something-else/)
+    end
+
+    # :missing is excluded from the loop above, and #current_user's 'is nil when no token was
+    # forwarded' is what proves it goes unrefused: a raise there would fail on the raise.
   end
 
   describe '#idp_authenticated_user_from_jwt' do
@@ -96,9 +116,93 @@ RSpec.describe Idp::JwtCurrentUser, type: :controller, if: AuthMethod.jwt? do
     end
   end
 
+  # session[:scratch] stands in for ordinary session state. Unlike session[:impersonation] it has no
+  # guard of its own, so its disappearance is what proves reset_session ran.
+  describe 'session principal boundary (#idp_sync_session_principal!)' do
+    let(:principal_key) { Idp::JwtAuthentication::SESSION_PRINCIPAL_KEY }
+    let(:user) { double('User', id: 7, active?: true) }
+
+    before { allow(User).to receive(:find_or_create_from_jwt).and_return(user) }
+
+    it 'stamps the authenticated principal on the session' do
+      get :index
+
+      expect(session[principal_key]).to eq(7)
+    end
+
+    it 'discards session state left behind by a different principal' do
+      session[principal_key] = 99
+      session[:scratch] = 'previous user'
+      session[:impersonation] = { true_user_id: 99, impersonated_user_id: 20 }
+
+      get :index
+
+      expect(response.body).to eq('7')
+      expect(session[:scratch]).to be_nil
+      expect(session[:impersonation]).to be_nil
+      expect(session[principal_key]).to eq(7)
+    end
+
+    # oauth2-proxy refreshes the token mid-session, so this is the common case, not an edge one.
+    it 'keeps the session when the same principal returns' do
+      session[principal_key] = 7
+      session[:scratch] = 'same user'
+
+      get :index
+
+      expect(session[:scratch]).to eq('same user')
+      expect(session[principal_key]).to eq(7)
+    end
+
+    # An anonymous visitor's session, from a page that skips authenticate_user!.
+    it 'stamps an unstamped session without discarding it' do
+      session[:scratch] = 'no stamp yet'
+
+      get :index
+
+      expect(session[:scratch]).to eq('no stamp yet')
+      expect(session[principal_key]).to eq(7)
+    end
+
+    # redis_store hands back an Integer today; this covers a future store that stringifies, where
+    # the failure would be a reset on every request rather than a missed one.
+    it 'treats a stringified stamp as a match' do
+      session[principal_key] = '7'
+      session[:scratch] = 'same user'
+
+      get :index
+
+      expect(session[:scratch]).to eq('same user')
+    end
+
+    # The 403 is terminal, so it must not render on the previous user's session.
+    it 'discards a previous principal session even when the new principal is deactivated' do
+      allow(User).to receive(:find_or_create_from_jwt).and_return(double('User', id: 9, active?: false))
+      session[principal_key] = 99
+      session[:scratch] = 'previous user'
+
+      get :auth
+
+      expect(response).to have_http_status(:forbidden)
+      expect(session[:scratch]).to be_nil
+      expect(session[principal_key]).to eq(9)
+    end
+
+    it 'leaves the session alone when no token resolves a user' do
+      allow(User).to receive(:find_or_create_from_jwt).and_return(nil)
+      session[principal_key] = 99
+      session[:scratch] = 'previous user'
+
+      get :index
+
+      expect(session[:scratch]).to eq('previous user')
+    end
+  end
+
   describe '#authenticate_user!' do
     it 'sets current_user when a user is present' do
-      user = double('User', id: 5, active?: true)
+      # last_connector_id: the authenticated path also schedules the IdP read-back, which reads it.
+      user = double('User', id: 5, active?: true, last_connector_id: nil)
       allow(User).to receive(:find_or_create_from_jwt).and_return(user)
 
       get :auth
@@ -132,21 +236,36 @@ RSpec.describe Idp::JwtCurrentUser, type: :controller, if: AuthMethod.jwt? do
       expect(response.body).to eq('')
     end
 
-    # Exercises the real idp_handle_unauthenticated wiring (capture + redirect), including the
-    # real Idp::Oauth2ProxySignInPath builder. No last_connector_id cookie is set here, so
-    # only the rd parameter appears.
-    it 'captures the original URL and redirects to the oauth2 sign-in path when unauthenticated' do
+    # oauth2-proxy owns the sign-in redirect, and the only requests it passes through without a token
+    # are skip_auth_routes, which all skip this filter. So a tokenless request arriving here means the
+    # route surface and the proxy config disagree — ours to fix, not a user's to log in past.
+    it 'raises when a route that requires authentication is reached with no token' do
+      allow(jwt_helper).to receive(:token?).and_return(false)
+      allow(jwt_helper).to receive(:invalid_reason).and_return(:missing)
+
+      expect { get :auth }.to raise_error(Idp::UnauthenticatedRequestError, /\/auth/)
+    end
+
+    # The other way current_user comes back nil: Idp::UserProvisioner returns nil for a good token
+    # with no matching user row when idp/auto_create_user is off, which is routine on a realm shared
+    # with other apps. A real person who needs an account, so a terminal page — not a 500, and not a
+    # redirect the proxy would bounce straight back with the same token.
+    it 'renders a terminal 403 for a good token whose holder has no warehouse account' do
       allow(User).to receive(:find_or_create_from_jwt).and_return(nil)
-      redirect = instance_double(Idp::PostAuthRedirect, capture: '/some/path')
-      allow(Idp::PostAuthRedirect).to receive(:new).and_return(redirect)
 
       get :auth
 
-      expect(redirect).to have_received(:capture)
-      expect(response).to redirect_to('/oauth2/sign_in?rd=%2Fsome%2Fpath')
+      expect(response).to have_http_status(:forbidden)
+      expect(response).to render_template('errors/no_warehouse_account')
     end
   end
 
+  # Deliberately NOT doubling Idp::ImpersonationManager. It is a plain session-backed object with no
+  # I/O, and doubling it costs three things: `clear` becomes a no-op, so deleting either
+  # impersonation_manager.clear from idp_authenticated_user_from_jwt passes; a `.new` stubbed to one
+  # constant value can't see the session swap the source stays un-memoized for (see the comment on
+  # Idp::JwtAuthentication#impersonation_manager); and the double hands back symbol keys directly,
+  # skipping the symbolize_keys the real manager exists to do.
   describe 'impersonation' do
     let(:true_user) do
       User.new.tap do |u|
@@ -167,19 +286,14 @@ RSpec.describe Idp::JwtCurrentUser, type: :controller, if: AuthMethod.jwt? do
       allow(User).to receive(:find_by).with(id: 10).and_return(true_user)
       allow(User).to receive(:find_by).with(id: 20).and_return(impersonated_user)
 
-      impersonation = double('Idp::ImpersonationManager')
-      allow(impersonation).to receive(:get).and_return(
-        true_user_id: 10,
-        impersonated_user_id: 20,
-      )
-      allow(impersonation).to receive(:clear)
-      allow(Idp::ImpersonationManager).to receive(:new).and_return(impersonation)
+      session[:impersonation] = { true_user_id: 10, impersonated_user_id: 20 }
     end
 
     it 'current_user returns the impersonated user when permissions validate' do
       get :index
 
       expect(response.body).to eq('20')
+      expect(session[:impersonation]).to eq(true_user_id: 10, impersonated_user_id: 20)
     end
 
     it 'true_user returns the true user and impersonating? is true' do
@@ -188,12 +302,24 @@ RSpec.describe Idp::JwtCurrentUser, type: :controller, if: AuthMethod.jwt? do
       expect(response.body).to eq('10/true')
     end
 
+    # The session store may hand the pair back with string keys; Idp::ImpersonationManager#get
+    # normalizes them. Read through the source's symbol-key access to prove that normalization is
+    # load-bearing — without it this honors nothing and falls through to the true user.
+    it 'honors impersonation stored with string keys' do
+      session[:impersonation] = { 'true_user_id' => 10, 'impersonated_user_id' => 20 }
+
+      get :index
+
+      expect(response.body).to eq('20')
+    end
+
     it 'clears impersonation and returns the true user when the target is not impersonateable_by? the true_user' do
       allow(impersonated_user).to receive(:impersonateable_by?).with(true_user).and_return(false)
 
       get :index
 
       expect(response.body).to eq('10')
+      expect(session[:impersonation]).to be_nil
     end
 
     # Guards the can_impersonate_users? gate independently of impersonateable_by?: a true_user who
@@ -206,8 +332,13 @@ RSpec.describe Idp::JwtCurrentUser, type: :controller, if: AuthMethod.jwt? do
       get :index
 
       expect(response.body).to eq('10')
+      expect(session[:impersonation]).to be_nil
     end
 
+    # Reaches the belt-and-braces guard in idp_authenticated_user_from_jwt on its own terms: the
+    # session carries no principal stamp, so idp_sync_session_principal! stamps 77 without a
+    # reset_session, and the leftover impersonation survives to the true_user_id comparison. That
+    # guard is the one that has to clear it.
     it 'ignores impersonation when the JWT principal is not the stored true_user' do
       # Leftover session: the token now logs in a different user (77) than the one who
       # started impersonating (10), so the impersonation should be ignored.
@@ -217,6 +348,7 @@ RSpec.describe Idp::JwtCurrentUser, type: :controller, if: AuthMethod.jwt? do
       get :index
 
       expect(response.body).to eq('77')
+      expect(session[:impersonation]).to be_nil
     end
   end
 
