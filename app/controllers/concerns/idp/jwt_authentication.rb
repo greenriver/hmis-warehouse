@@ -21,6 +21,7 @@ module Idp::JwtAuthentication
   extend ActiveSupport::Concern
 
   SESSION_PRINCIPAL_KEY = :idp_token_holder_id
+  SESSION_SYNC_KEY = :idp_user_synced
 
   included do
     helper_method :user_session_expires_at
@@ -220,6 +221,27 @@ module Idp::JwtAuthentication
     end
 
     user
+  end
+
+  # Enqueue an IdP read-back for the token holder, once per session.
+  def idp_schedule_user_sync
+    return if session[SESSION_SYNC_KEY]
+
+    user = idp_token_holder
+    return unless user
+
+    connector_id = user.last_connector_id
+    return if connector_id.blank?
+
+    # Set before the checks below, not after: otherwise a paused or non-self-service connector
+    # re-runs them on every request instead of spending its one per-session attempt.
+    session[SESSION_SYNC_KEY] = true
+
+    # The job no-ops on connectors without email self-service; skip enqueuing one at all.
+    return unless user.email_change_enabled?
+    return if Idp::SyncUserFromIdpJob.connector_paused?(connector_id)
+
+    Idp::SyncUserFromIdpJob.perform_later(user_id: user.id)
   end
 
   # Never redirects to sign-in. oauth2-proxy owns that, and both cases below arrive with the proxy

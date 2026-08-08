@@ -19,6 +19,10 @@ module Idp
   class KeycloakService < Service
     UPDATABLE_ATTRIBUTES = [:first_name, :last_name, :email].freeze
 
+    # Where Keycloak parks an unconfirmed address (`UserModel.EMAIL_PENDING`). It clears the attribute
+    # on confirmation.
+    EMAIL_PENDING_ATTRIBUTE = 'kc.email.pending'
+
     # Most calls are on a request path, so the default budget is short enough that a hung Keycloak
     # fails the request rather than holding the thread.
     OPEN_TIMEOUT_SECONDS = 2
@@ -182,6 +186,15 @@ module Idp
       end
     end
 
+    # Read only — Keycloak owns the attribute's lifecycle.
+    def pending_email(user_id:)
+      pending_email_from_representation(get_user(user_id: user_id))
+    end
+
+    def pending_email_from_representation(representation)
+      Array(representation.dig('attributes', EMAIL_PENDING_ATTRIBUTE)).first.presence
+    end
+
     def reactivate_user(user_id:)
       put_full_user(user_id: user_id, patch: { 'enabled' => true }, operation: :reactivate_user, failure: 'Failed to reactivate user')
     end
@@ -217,6 +230,13 @@ module Idp
 
     def supports_profile_updates?
       manage_users?
+    end
+
+    # Asserted, not probed: the Update Email required action and realm Verify Email are operator
+    # prerequisites documented in docs/developer/keycloak-idp.md, not something checked at render
+    # time.
+    def supports_email_self_service?
+      true
     end
 
     def supports_user_creation?

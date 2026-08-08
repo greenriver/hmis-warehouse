@@ -165,6 +165,7 @@ RSpec.describe 'Warehouse JWT wiring', type: :request do
             Idp::KeycloakService,
             supports_session_logout?: true,
             logout_user_sessions: true,
+            supports_email_self_service?: false,
           )
         end
 
