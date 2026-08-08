@@ -4015,6 +4015,13 @@ CREATE INDEX index_uploads_on_deleted_at ON public.uploads USING btree (deleted_
 
 
 --
+-- Name: index_user_auth_sources_on_user_connector_live; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_user_auth_sources_on_user_connector_live ON public.user_authentication_sources USING btree (user_id, connector_id) WHERE (deleted_at IS NULL);
+
+
+--
 -- Name: index_user_authentication_sources_on_user_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -4250,6 +4257,7 @@ ALTER TABLE ONLY public.oauth_access_tokens
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260724120000'),
 ('20260715120000'),
 ('20260620000000'),
 ('20260614130000'),

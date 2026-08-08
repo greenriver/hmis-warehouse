@@ -8,7 +8,7 @@
 
 require 'rails_helper'
 
-RSpec.describe Idp::JwtHelper do
+RSpec.describe Idp::JwtHelper, if: AuthMethod.jwt? do
   let(:jwks_url) { 'http://example.com/jwks' }
   let(:kid) { 'test_kid' }
   let(:rsa_key) { OpenSSL::PKey::RSA.generate(2048) }
@@ -90,6 +90,13 @@ RSpec.describe Idp::JwtHelper do
       bad_aud_token = JWT.encode(bad_aud_payload, rsa_key, 'RS256', { kid: kid })
       bad_aud_helper = described_class.new(access_token: bad_aud_token)
       expect(bad_aud_helper.valid?).to be false
+    end
+
+    it 'fails closed (and reports to Sentry) when the JWKS endpoint is unreachable' do
+      allow(described_class).to receive(:fetch_jwks).and_raise(SocketError.new('getaddrinfo: Name or service not known'))
+      expect(Sentry).to receive(:capture_exception_with_info).with(instance_of(SocketError), anything)
+
+      expect(helper.valid?).to be false
     end
   end
 

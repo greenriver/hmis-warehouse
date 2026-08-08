@@ -22,7 +22,28 @@ module Superset
     "#{superset_base_url}/login/The%20Warehouse"
   end
 
+  # The value SUPERSET_ADMIN_PASS is seeded with in the local/dev images. Outside development a
+  # password still set to this placeholder means Superset was never really configured, so we treat
+  # it as unavailable rather than exposing it with the insecure default.
+  INSECURE_DEFAULT_ADMIN_PASS = 'admin'
+
   def self.available?
+    AuthMethod.jwt? ? admin_password_configured? : doorkeeper_app_registered?
+  end
+
+  # Under JWT, Superset rides the shared admin credential (see Superset::Api), so it's usable only
+  # once that credential is really set: any non-blank value in development, and anything other than
+  # the insecure placeholder everywhere else.
+  def self.admin_password_configured?
+    password = ENV['SUPERSET_ADMIN_PASS']
+    return false if password.blank?
+    return true if Rails.env.development?
+
+    password != INSECURE_DEFAULT_ADMIN_PASS
+  end
+
+  # Under Devise, availability means a Doorkeeper OAuth app is registered for the Superset host.
+  def self.doorkeeper_app_registered?
     a_t = Doorkeeper::Application.arel_table
     Doorkeeper::Application.where(a_t[:redirect_uri].matches("%#{superset_base_url}%")).exists?
   end
