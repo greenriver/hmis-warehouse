@@ -28,8 +28,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   let!(:pc2) { create :hmis_hud_project_coc, data_source: ds1, project: p1, coc_code: 'CO-503' }
   let!(:i1) { create :hmis_hud_inventory, data_source: ds1, project: p1, coc_code: pc1.coc_code, inventory_start_date: '2020-01-01' }
   let!(:i2) { create :hmis_hud_inventory, data_source: ds1, project: p1, coc_code: pc2.coc_code, inventory_start_date: '2022-01-01' }
-  let!(:f1) { create :hmis_hud_funder, data_source: ds1, project: p1 }
-  let!(:f2) { create :hmis_hud_funder, data_source: ds1, project: p1 }
+  let!(:f1) { create :hmis_hud_funder, data_source: ds1, project: p1, start_date: '2020-01-01' }
+  let!(:f2) { create :hmis_hud_funder, data_source: ds1, project: p1, start_date: '2022-01-01' }
   let!(:cep1) { create :hmis_hud_ce_participation, data_source: ds1, project: p1 }
   let!(:hp1) { create :hmis_hud_hmis_participation, data_source: ds1, project: p1 }
 
@@ -104,7 +104,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect(record.dig('projectCocs', 'nodesCount').to_i).to eq(2)
         expect(record.dig('projectCocs', 'nodes').map(&to_id)).to contain_exactly(pc1.id, pc2.id)
         expect(record.dig('funders', 'nodesCount').to_i).to eq(2)
-        expect(record.dig('funders', 'nodes').map(&to_id)).to contain_exactly(f1.id, f2.id)
+        expect(record.dig('funders', 'nodes').map(&to_id)).to eq([f2.id, f1.id])
         expect(record.dig('organization', 'id').to_i).to eq(o1.id)
         expect(record.dig('ceParticipations', 'nodes', 0, 'id')).to eq(cep1.id&.to_s)
         expect(record.dig('hmisParticipations', 'nodes', 0, 'id')).to eq(hp1.id&.to_s)
