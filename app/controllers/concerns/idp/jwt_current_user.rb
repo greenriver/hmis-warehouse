@@ -13,9 +13,17 @@ module Idp::JwtCurrentUser
 
   included do
     def current_user
-      @current_user ||= idp_authenticated_user_from_jwt(user_class: User)
+      @current_user ||= idp_authenticated_user_from_jwt(user_class: User) || idp_background_render_user
     end
     helper_method :current_user
+
+    # Background renders carry no forwarded JWT: WardenProxyFactory hands the user's proxy to
+    # ActionController::Renderer as the 'warden' rack key. No Warden middleware runs on the JWT
+    # arm, so only those renderers can populate the key.
+    private def idp_background_render_user
+      proxy = request&.env&.dig('warden')
+      proxy.user(:user) if proxy.is_a?(Idp::WardenProxy)
+    end
 
     def warden
       @warden ||= Idp::WardenProxy.new(current_user, session: session)
