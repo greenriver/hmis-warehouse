@@ -136,23 +136,16 @@ module HudApr::Generators::Shared::Fy2026::Dq::QuestionThree
       )
       missing_cell = sheet.update_cell_members(
         cell: 'C6',
-        members: universe_members.where(a_t[:disabling_condition].eq(99).or(a_t[:disabling_condition].eq(99))),
+        members: universe_members.where(a_t[:disabling_condition].eq(99).or(a_t[:disabling_condition].eq(nil))),
       )
 
-      qualifies_for_disability = [
-        a_t[:developmental_disability_latest].eq(1).or(a_t[:hiv_aids_latest].eq(1)),
-        a_t[:indefinite_and_impairs].eq(true).and(
-          [
-            a_t[:physical_disability_latest].eq(1),
-            a_t[:chronic_disability_latest].eq(1),
-            a_t[:mental_health_problem_latest].eq(1),
-            a_t[:substance_abuse_latest].in([1, 2, 3]),
-          ].inject(&:or),
-        ),
-      ].inject(&:or)
+      # indefinite_and_impairs covers the whole rule: a developmental disability or HIV/AIDS response
+      # of yes, or a physical disability, chronic health condition, mental health disorder, or
+      # substance use disorder response of yes that also substantially impairs the ability to live
+      # independently.
       issue_cell = sheet.update_cell_members(
         cell: 'D6',
-        members: universe_members.where(a_t[:disabling_condition].eq(0)).where(qualifies_for_disability),
+        members: universe_members.where(a_t[:disabling_condition].eq(0)).where(a_t[:indefinite_and_impairs].eq(true)),
       )
 
       total_cell = sheet.update_cell_value(cell: 'E6', value: [dkpntr_cell, missing_cell, issue_cell].map(&:value).sum)
