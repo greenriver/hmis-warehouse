@@ -11,16 +11,19 @@ module HudReports::Util
   include ActionView::Helpers::NumberHelper
 
   included do
+    # Earlier enrollments for the same client in the same project where this project start date
+    # falls between the earlier project start date and the earlier project exit date. The spec does
+    # not mention what to do when the earlier enrollment has no exit date, so this mimics the DataLab
+    # implementation of the overlapping enrollments calculation by dropping enrollments with no exit date.
     private def overlapping_enrollments(enrollments, last_enrollment)
-      last_enrollment_end = last_enrollment.last_date_in_program || Date.tomorrow
       enrollments.select do |enrollment|
-        enrollment_end = enrollment.last_date_in_program || Date.tomorrow
+        next false if enrollment.id == last_enrollment.id
+        next false unless enrollment.data_source_id == last_enrollment.data_source_id
+        next false unless enrollment.project_id == last_enrollment.project_id
+        next false if enrollment.exit_date.blank?
 
-        enrollment.id != last_enrollment.id && # Don't include the last enrollment
-          enrollment.data_source_id == last_enrollment.data_source_id &&
-          enrollment.project_id == last_enrollment.project_id &&
-          enrollment.first_date_in_program < last_enrollment_end &&
-          enrollment_end > last_enrollment.first_date_in_program
+        enrollment.entry_date < last_enrollment.entry_date &&
+          last_enrollment.entry_date < enrollment.exit_date
       end.map(&:enrollment_group_id).uniq
     end
 
@@ -54,7 +57,7 @@ module HudReports::Util
     end
 
     private def percentage(value)
-      value = 0 if value.to_f&.nan?
+      value = 0 if value.to_f.nan?
 
       format('%1.4f', value.round(4))
     end
