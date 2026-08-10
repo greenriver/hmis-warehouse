@@ -43252,6 +43252,21 @@ CREATE TABLE public.hmis_restricted_records (
 
 
 --
+-- Name: hmis_restricted_client_enrollments; Type: VIEW; Schema: public; Owner: -
+--
+
+CREATE VIEW public.hmis_restricted_client_enrollments AS
+ SELECT hmis_restricted_records.restrictable_id AS client_id,
+    "Enrollment".id AS enrollment_id,
+    "Enrollment".project_pk AS project_id,
+    hmis_restricted_records.data_source_id
+   FROM ((public.hmis_restricted_records
+     JOIN public."Client" ON ((("Client"."DateDeleted" IS NULL) AND ("Client".id = hmis_restricted_records.restrictable_id) AND ("Client".data_source_id = hmis_restricted_records.data_source_id))))
+     LEFT JOIN public."Enrollment" ON ((("Enrollment"."DateDeleted" IS NULL) AND (("Enrollment"."PersonalID")::text = ("Client"."PersonalID")::text) AND ("Enrollment".data_source_id = "Client".data_source_id))))
+  WHERE (((hmis_restricted_records.restrictable_type)::text = 'Hmis::Hud::Client'::text) AND (hmis_restricted_records.deleted_at IS NULL));
+
+
+--
 -- Name: hmis_restricted_records_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
@@ -360484,6 +360499,7 @@ ALTER TABLE ONLY public.import_logs
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260805120000'),
 ('20260728120000'),
 ('20260717132223'),
 ('20260624120000'),
