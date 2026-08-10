@@ -28,7 +28,7 @@
 .row
   .col-sm-12
     - if GrdaWarehouse::Config.get(:eto_api_available)
-      .rollup{data: {partial: :assessments_without_data}}
+      .rollup{data: {partial: :boston_assessments_with_limited_data}}
         %h3 Assessments
     .rollup{data: {partial: :residential_enrollments}}
       %h3 Residential Enrollments

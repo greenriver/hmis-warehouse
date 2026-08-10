@@ -771,5 +771,91 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
         end
       end
     end
+
+    context 'boston assessments_with_limited_data rollup' do
+      # NOTE: the shared context's `can_view_clients` role bakes in `can_view_limited_client_dashboard: true`,
+      # so these roles are self-contained rather than layered on top of it, to keep full-vs-limited meaningful.
+      let!(:limited_dashboard_role) { create :role, can_view_clients: true, can_view_client_name: true, can_search_own_clients: true, can_view_full_client_dashboard: false, can_view_limited_client_dashboard: true }
+      let!(:full_dashboard_role) { create :role, can_view_clients: true, can_view_client_name: true, can_search_own_clients: true, can_view_full_client_dashboard: true, can_view_limited_client_dashboard: false }
+
+      def build_pathways_assessment(date: Date.current)
+        assessment = create(:hud_assessment, data_source_id: window_visible_data_source.id, PersonalID: window_source_client.PersonalID, EnrollmentID: window_enrollment.EnrollmentID, AssessmentDate: date)
+        GrdaWarehouse::AssessmentAnswerLookup.create!(assessment_question: 'c_housing_assessment_name', response_code: assessment.AssessmentID.to_s, response_text: 'Pathways 2024')
+        create(
+          :hud_assessment_question,
+          data_source_id: window_visible_data_source.id,
+          AssessmentID: assessment.AssessmentID,
+          AssessmentQuestion: 'c_housing_assessment_name',
+          AssessmentAnswer: assessment.AssessmentID.to_s,
+        )
+        assessment
+      end
+
+      let!(:pathways_assessment) { build_pathways_assessment }
+      let!(:non_qualifying_assessment) do
+        create(:hud_assessment, data_source_id: window_visible_data_source.id, PersonalID: window_source_client.PersonalID, EnrollmentID: window_enrollment.EnrollmentID, AssessmentLevel: 2)
+      end
+
+      it 'shows a link to the pathways assessment when config is boston and the user has limited dashboard permission' do
+        config.update(client_dashboard: :boston)
+        setup_access_control(user, limited_dashboard_role, Collection.system_collection(:window_data_sources))
+        sign_in user
+
+        get rollup_client_path(window_destination_client, partial: :boston_assessments_with_limited_data)
+
+        expect(response.body).to include(client_coordinated_entry_hud_assessment_path(window_destination_client, pathways_assessment))
+      end
+
+      it 'shows a row for a non-qualifying assessment without a link to it, alongside the linked pathways assessment' do
+        config.update(client_dashboard: :boston)
+        setup_access_control(user, limited_dashboard_role, Collection.system_collection(:window_data_sources))
+        sign_in user
+
+        get rollup_client_path(window_destination_client, partial: :boston_assessments_with_limited_data)
+
+        expect(response.body).to include(client_coordinated_entry_hud_assessment_path(window_destination_client, pathways_assessment))
+        expect(response.body).to include(non_qualifying_assessment.name)
+        expect(response.body).not_to include(client_coordinated_entry_hud_assessment_path(window_destination_client, non_qualifying_assessment))
+      end
+
+      it 'collapses multiple assessments of the same type, showing the newest by default with a toggle to expand' do
+        older_pathways_assessment = build_pathways_assessment(date: 6.months.ago.to_date)
+        config.update(client_dashboard: :boston)
+        setup_access_control(user, limited_dashboard_role, Collection.system_collection(:window_data_sources))
+        sign_in user
+
+        get rollup_client_path(window_destination_client, partial: :boston_assessments_with_limited_data)
+
+        doc = Nokogiri::HTML(response.body)
+        newer_link = doc.at_css("a[href='#{client_coordinated_entry_hud_assessment_path(window_destination_client, pathways_assessment)}']")
+        older_link = doc.at_css("a[href='#{client_coordinated_entry_hud_assessment_path(window_destination_client, older_pathways_assessment)}']")
+
+        expect(newer_link).to be_present
+        expect(older_link).to be_present
+        expect(newer_link.ancestors('tr').first[:style]).to be_nil
+        expect(older_link.ancestors('tr').first[:style]).to match(/display:\s*none/)
+        expect(doc.css('.jAssessmentTypeToggle')).to be_present
+      end
+
+      it 'does not show a link when config is default, even with limited dashboard permission' do
+        config.update(client_dashboard: :default)
+        setup_access_control(user, limited_dashboard_role, Collection.system_collection(:window_data_sources))
+        sign_in user
+
+        get rollup_client_path(window_destination_client, partial: :boston_assessments_with_limited_data)
+
+        expect(response.body).not_to include(client_coordinated_entry_hud_assessment_path(window_destination_client, pathways_assessment))
+      end
+
+      it 'does not show a link when config is boston but the user has full (not limited) dashboard permission' do
+        config.update(client_dashboard: :boston)
+        setup_access_control(user, full_dashboard_role, Collection.system_collection(:window_data_sources))
+        sign_in user
+
+        get rollup_client_path(window_destination_client, partial: :boston_assessments_with_limited_data)
+
+        expect(response.body).not_to include(client_coordinated_entry_hud_assessment_path(window_destination_client, pathways_assessment))
+      end
+    end
   end
 end

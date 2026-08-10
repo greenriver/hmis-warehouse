@@ -469,6 +469,7 @@ Rails.application.routes.draw do
       # get :enrollment_details
     end
     resources :hud_assessments, only: [:show], controller: 'clients/hud_assessments'
+    resources :coordinated_entry_hud_assessments, only: [:show], controller: 'clients/coordinated_entry_hud_assessments'
     # resource :history, only: [:show], controller: 'clients/history' do
     #   get :pdf, on: :collection
     #   post :queue, on: :collection
