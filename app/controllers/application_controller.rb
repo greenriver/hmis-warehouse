@@ -177,18 +177,19 @@ class ApplicationController < ActionController::Base
   protected
 
   def allowed_setup_controllers
-    controller_path.in?(
-      [
-        'users/sessions',
-        'accounts',
-        'account_two_factors',
-        'account_emails',
-        'account_passwords',
-        'user_training',
-        'compliance_agreements',
-        'content_pages',
-      ],
-    ) || controller_path == 'admin/users' && action_name == 'stop_impersonating'
+    portal_controllers = ['user_training', 'compliance_agreements', 'content_pages']
+
+    # Without the sessions controllers, a user held in the portal, which links to no other
+    # route, can never sign out.
+    account_controllers = if AuthMethod.jwt?
+      ['idp/sessions', 'idp/accounts', 'idp/account_emails']
+    else
+      ['users/sessions', 'accounts', 'account_two_factors', 'account_emails', 'account_passwords']
+    end
+
+    return true if controller_path.in?(portal_controllers + account_controllers)
+
+    controller_path == 'admin/users' && action_name == 'stop_impersonating'
   end
 
   def require_training!
