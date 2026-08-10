@@ -704,7 +704,6 @@ Lint/RedundantRequireStatement:
 # AdditionalNilMethods: present?, blank?, try, try!
 Lint/RedundantSafeNavigation:
   Exclude:
-    - 'app/models/concerns/hud_reports/util.rb'
     - 'drivers/claims_reporting/app/models/claims_reporting/engagement_trends.rb'
 
 # Offense count: 1
