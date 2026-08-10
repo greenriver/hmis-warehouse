@@ -721,5 +721,55 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
         expect(response).to have_http_status(403)
       end
     end
+
+    context 'client_dashboard config variants' do
+      variants = {
+        default: {
+          dispatcher: 'client_access_control/clients/_default',
+          full_rollup: 'client_access_control/clients/_rollups',
+          limited_rollup: 'client_access_control/clients/_rollups_limited',
+        },
+        va: {
+          dispatcher: 'client_access_control/clients/_va',
+          full_rollup: 'client_access_control/clients/va/_rollups',
+          limited_rollup: 'client_access_control/clients/va/_rollups',
+        },
+        boston: {
+          dispatcher: 'client_access_control/clients/_boston',
+          full_rollup: 'client_access_control/clients/boston/_rollups',
+          limited_rollup: 'client_access_control/clients/boston/_rollups_limited',
+        },
+      }
+
+      variants.each do |variant, templates|
+        context "when client_dashboard config is #{variant}" do
+          before { config.update(client_dashboard: variant) }
+
+          it 'renders the full rollups partial for a user with full dashboard permission' do
+            setup_access_control(user, can_view_clients, Collection.system_collection(:window_data_sources))
+            setup_access_control(user, can_search_own_clients, Collection.system_collection(:window_data_sources))
+            setup_access_control(user, can_view_full_client_dashboard, Collection.system_collection(:window_data_sources))
+            sign_in user
+
+            get client_path(window_destination_client)
+
+            expect(response).to render_template(templates[:dispatcher])
+            expect(response).to render_template(templates[:full_rollup])
+          end
+
+          it 'renders the limited rollups partial for a user with limited dashboard permission' do
+            setup_access_control(user, can_view_clients, Collection.system_collection(:window_data_sources))
+            setup_access_control(user, can_search_own_clients, Collection.system_collection(:window_data_sources))
+            setup_access_control(user, can_view_limited_client_dashboard, Collection.system_collection(:window_data_sources))
+            sign_in user
+
+            get client_path(window_destination_client)
+
+            expect(response).to render_template(templates[:dispatcher])
+            expect(response).to render_template(templates[:limited_rollup])
+          end
+        end
+      end
+    end
   end
 end
