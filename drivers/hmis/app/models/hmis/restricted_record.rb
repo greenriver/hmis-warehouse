@@ -18,7 +18,7 @@ class Hmis::RestrictedRecord < Hmis::HmisBase
   acts_as_paranoid
   has_paper_trail(
     meta: {
-      client_id: ->(r) { r.client_restrictable? ? r.restrictable_id : nil },
+      client_id: ->(r) { r.client_record? ? r.restrictable_id : nil },
     },
   )
 
@@ -31,14 +31,14 @@ class Hmis::RestrictedRecord < Hmis::HmisBase
 
   scope :for_clients, -> { where(restrictable_type: CLIENT_RESTRICTABLE_TYPE) }
 
-  def client_restrictable?
+  def client_record?
     restrictable_type == CLIENT_RESTRICTABLE_TYPE
   end
 
-  def self.mark!(restrictable, user:)
-    raise ArgumentError, "unsupported restrictable type #{restrictable.class.name}" unless RESTRICTABLE_TYPES.include?(restrictable.class.name)
+  def self.mark!(record, user:)
+    raise ArgumentError, "unsupported restrictable type #{record.class.name}" unless RESTRICTABLE_TYPES.include?(record.class.name)
 
-    existing = with_deleted.find_by(restrictable: restrictable, data_source_id: restrictable.data_source_id)
+    existing = with_deleted.find_by(restrictable: record, data_source_id: record.data_source_id)
     if existing
       existing.restore if existing.deleted?
       existing.update!(created_by: user)
@@ -46,14 +46,14 @@ class Hmis::RestrictedRecord < Hmis::HmisBase
     end
 
     create!(
-      restrictable: restrictable,
-      data_source_id: restrictable.data_source_id,
+      restrictable: record,
+      data_source_id: record.data_source_id,
       created_by: user,
     )
   end
 
-  def self.unmark!(restrictable)
-    find_by(restrictable: restrictable)&.destroy!
+  def self.unmark!(record)
+    find_by(restrictable: record)&.destroy!
   end
 
   private def restrictable_data_source_matches

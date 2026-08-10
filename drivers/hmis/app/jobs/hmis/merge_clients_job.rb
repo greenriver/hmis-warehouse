@@ -22,7 +22,7 @@ module Hmis
 
       self.actor = User.find(actor_id)
       self.clients = Hmis::Hud::Client.
-        preload(:names, :contact_points, :addresses, :custom_data_elements).
+        preload(:names, :contact_points, :addresses, :custom_data_elements, :restricted_record).
         find(client_ids).
         map do |client|
           # set some defaults

@@ -327,7 +327,7 @@ class Hmis::Role < ::ApplicationRecord
         sub_category: 'Organizations',
       },
       can_view_clients: {
-        description: 'Access to view clients at assigned projects. Clients marked as restricted require the additional "View restricted clients" permission.',
+        description: 'Access to view clients at assigned projects.',
         administrative: false,
         access: [:viewable],
         category: 'Client Access',
@@ -340,14 +340,16 @@ class Hmis::Role < ::ApplicationRecord
         requirements: [:can_view_clients],
         category: 'Client Access',
         sub_category: 'Access',
+        proc: -> { false }, # Hidden until restricted clients are implemented
       },
       can_mark_clients_as_restricted: {
-        description: 'Ability to mark or unmark clients as restricted at assigned projects.',
+        description: 'Ability to mark or unmark clients as restricted, at assigned projects where the client is or was enrolled.',
         administrative: false,
         access: [:editable],
         requirements: [:can_view_restricted_clients],
         category: 'Client Access',
         sub_category: 'Access',
+        proc: -> { false }, # Hidden until restricted clients are implemented
       },
       can_edit_clients: {
         description: 'Ability to create clients & edit client demographics',
@@ -533,6 +535,7 @@ class Hmis::Role < ::ApplicationRecord
         access: [:editable],
         category: 'Administration',
         sub_category: 'Enrollment Management',
+        proc: -> { false }, # Hidden until feature is implemented (#5767)
       },
       can_manage_forms: {
         description: 'Ability to edit forms',

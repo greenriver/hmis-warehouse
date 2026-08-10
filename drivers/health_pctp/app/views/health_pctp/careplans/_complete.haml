@@ -46,32 +46,33 @@
             = "Sent by #{@careplan.sent_to_pcp_by&.name} on #{@careplan.sent_to_pcp_on}"
 
 - content_for :page_js do
-  :javascript
-    $(document).ready(function() {
-      $('.jVerbalApproval').on('change', function(e) {
-        if($(e.target).is(':checked')) {
-          signature_date = $('#health_pctp_careplan_patient_signed_on')
-          if(signature_date.val() == '') {
-            const today = new Date();
-            const formattedDate = today.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-            signature_date.val(formattedDate);
-          }
-        };
-      });
+  %script{ nonce: content_security_policy_nonce }
+    :plain
+      $(document).ready(function() {
+        $('.jVerbalApproval').on('change', function(e) {
+          if($(e.target).is(':checked')) {
+            signature_date = $('#health_pctp_careplan_patient_signed_on')
+            if(signature_date.val() == '') {
+              const today = new Date();
+              const formattedDate = today.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+              signature_date.val(formattedDate);
+            }
+          };
+        });
 
-      $('.jPatientSignature').on('change', function(e) {
-        // prev() is to work around structure of pretty boolean
-        $('.jRNApproval').prev().attr('disabled', $('.jPatientSignature').val() == '');
-        $('.jRNApproval').attr('disabled', $('.jPatientSignature').val() == '');
-      });
+        $('.jPatientSignature').on('change', function(e) {
+          // prev() is to work around structure of pretty boolean
+          $('.jRNApproval').prev().attr('disabled', $('.jPatientSignature').val() == '');
+          $('.jRNApproval').attr('disabled', $('.jPatientSignature').val() == '');
+        });
 
-      $('.jRNApproval').on('change', function(e) {
-        $('.jCCMApproval').prev().attr('disabled', ! $('.jRNApproval').is(':checked'));
-        $('.jCCMApproval').attr('disabled', ! $('.jRNApproval').is(':checked'));
-      });
+        $('.jRNApproval').on('change', function(e) {
+          $('.jCCMApproval').prev().attr('disabled', ! $('.jRNApproval').is(':checked'));
+          $('.jCCMApproval').attr('disabled', ! $('.jRNApproval').is(':checked'));
+        });
 
-      $('.jCCMApproval').on('change', function(e) {
-        $('.jSentToPCP').prev().attr('disabled', ! $('.jCCMApproval').is(':checked'));
-        $('.jSentToPCP').attr('disabled', ! $('.jCCMApproval').is(':checked'));
+        $('.jCCMApproval').on('change', function(e) {
+          $('.jSentToPCP').prev().attr('disabled', ! $('.jCCMApproval').is(':checked'));
+          $('.jSentToPCP').attr('disabled', ! $('.jCCMApproval').is(':checked'));
+        });
       });
-    });

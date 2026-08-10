@@ -15,9 +15,9 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   include ::HmisStructure::Client
   include ::Hmis::Hud::Concerns::Shared
   include ::Hmis::Hud::Concerns::FormSubmittable
+  include ::Hmis::Concerns::Restrictable
   include ::HudConcerns::Client
   include ClientSearch
-  include Hmis::Concerns::Restrictable
   # this may be invoked multiple times for the same record as IdentifyDuplicates may also mark clients as dirty
   include ::Hmis::MarkClientAsDirtyBehavior
 

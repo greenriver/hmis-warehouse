@@ -53,9 +53,25 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     expect_access_denied post_graphql(clientId: client.id.to_s, restricted: true) { mutation }
   end
 
-  it 'creates an audit trail entry' do
+  it 'denies users without view permission' do
+    remove_permissions(access_control, :can_view_restricted_clients)
+    expect_access_denied post_graphql(clientId: client.id.to_s, restricted: true) { mutation }
+  end
+
+  it 'creates an audit trail entry when marking as restricted' do
     expect do
-      post_graphql(clientId: client.id.to_s, restricted: true) { mutation }
+      response, = post_graphql(clientId: client.id.to_s, restricted: true) { mutation }
+      expect(response.status).to eq(200)
+    end.to change {
+      GrdaWarehouse.paper_trail_versions.where(item_type: 'Hmis::RestrictedRecord').count
+    }.by(1)
+  end
+
+  it 'creates an audit trail entry when removing restriction' do
+    client.mark_as_restricted!(user: hmis_user)
+    expect do
+      response, = post_graphql(clientId: client.id.to_s, restricted: false) { mutation }
+      expect(response.status).to eq(200)
     end.to change {
       GrdaWarehouse.paper_trail_versions.where(item_type: 'Hmis::RestrictedRecord').count
     }.by(1)

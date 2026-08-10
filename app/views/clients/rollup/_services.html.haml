@@ -24,8 +24,9 @@
           %td.dot
 
   - if dots[:min] < dots[:max]
-    :javascript
-      var dots = #{dots.to_json.html_safe};
-      $('#services td.dot').each(function(i){
-        $(this).append(App.util.colorDot({point:dots.points[i],low:dots.min,high:dots.max,center:true}));
-      });
+    %script{ nonce: content_security_policy_nonce }
+      :plain
+        var dots = #{dots.to_json.html_safe};
+        $('#services td.dot').each(function(i){
+          $(this).append(App.util.colorDot({point:dots.points[i],low:dots.min,high:dots.max,center:true}));
+        });

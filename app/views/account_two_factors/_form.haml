@@ -70,14 +70,15 @@
 
 - if false
   = content_for :page_js do
-    :javascript
-      $(document).ready(function() {
-        $('.j2Fa').on('change', function(e){
-          if($(this).val() == 'true') {
-            $('.j2FaEnabled').removeClass('hidden');
-          } else {
-            $('.j2FaEnabled').addClass('hidden');
-          }
+    %script{ nonce: content_security_policy_nonce }
+      :plain
+        $(document).ready(function() {
+          $('.j2Fa').on('change', function(e){
+            if($(this).val() == 'true') {
+              $('.j2FaEnabled').removeClass('hidden');
+            } else {
+              $('.j2FaEnabled').addClass('hidden');
+            }
+          });
+          $('.j2Fa').trigger('change');
         });
-        $('.j2Fa').trigger('change');
-      });

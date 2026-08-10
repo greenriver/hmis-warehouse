@@ -62,6 +62,30 @@ class Hmis::AuthPolicies::UserContext
     permission_loader.for_access_group_ids(access_group_ids)
   end
 
+  # IDs of the projects in the current data source where the user has the given permission(s), evaluated
+  # the same way as #project_permissions: permissions are unioned across the user's roles at each project,
+  # and requirements are resolved. Callers therefore name only the permissions they care about, not the
+  # requirements behind them.
+  #
+  # mode: :any matches projects granting at least one of the permissions, :all matches projects granting
+  # every one of them.
+  #
+  # This is the bulk counterpart to #project_permissions, for scopes that filter projects (or records
+  # that hang off projects) rather than authorizing a single record.
+  memoize def project_ids_with_permissions(*permissions, mode:)
+    raise ArgumentError, "unknown mode #{mode.inspect}" unless mode.in?([:any, :all])
+    raise ArgumentError, 'no permissions given' if permissions.empty?
+
+    groups_by_project = access_group_ids_by_project
+    granted = mode == :all ? :all? : :any?
+    permitted = groups_by_project.values.uniq.select do |access_group_ids|
+      resolved = permission_loader.for_access_group_ids(access_group_ids)
+      permissions.public_send(granted) { |permission| resolved.include?(permission) }
+    end.to_set
+
+    groups_by_project.select { |_project_id, access_group_ids| permitted.include?(access_group_ids) }.keys
+  end
+
   # Set of permissions that the user has for the given organization.
   # Unlike for Project, where we built loaders to ensure efficient queries against multiple projects,
   # we can just load all permissions for the given organization directly,
@@ -158,6 +182,15 @@ class Hmis::AuthPolicies::UserContext
   end
 
   protected
+
+  # {project_id => [access_group_id, ...]} for every project in the current data source that the user
+  # reaches through an AccessControl, including indirectly via organization, data source, or project group.
+  def access_group_ids_by_project
+    project_access_group_loader.access_group_ids_by_project(
+      user.access_groups.pluck(:id),
+      data_source_id: @data_source_id,
+    )
+  end
 
   def project_belongs_to_current_data_source?(project_id)
     project_data_source_id = project_data_source_loader.get(project_id)
