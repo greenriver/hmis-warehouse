@@ -52,15 +52,11 @@ RSpec.shared_context 'datalab organization t hp caper', shared_context: :metadat
       )
     end
 
-    # pending https://www.hudexchange.info/program-support/my-question/?askaquestionaction=public%3Amain.answer&key=20077029-802F-4997-903A87560D233223
+    # previous https://www.hudexchange.info/program-support/my-question/?askaquestionaction=public%3Amain.answer&key=20077029-802F-4997-903A87560D233223
     it 'Q5a' do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q5a',
-        skip: [
-          'B17', # expected '1.0000' (1), got '0.0000' (0)
-          'C17', # expected '1.0000' (1), got '0.0000' (0)
-        ],
       )
     end
 
@@ -82,11 +78,6 @@ RSpec.shared_context 'datalab organization t hp caper', shared_context: :metadat
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q6c',
-        skip: [
-          'C4', # expected '1.0000' (1), got '0.0000' (0)
-          'E4', # expected '1.0000' (1), got '0.0000' (0)
-          'F4', # expected '1.0000' (1.0000), got '0.0000' (0.0000)
-        ],
       )
     end
 
@@ -243,10 +234,6 @@ RSpec.shared_context 'datalab organization t hp caper', shared_context: :metadat
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q16',
-        skip: [
-          'C12', # expected '50.0000' (50), got '51.0000' (51)
-          'C13', # expected '1.0000' (1), got '0.0000' (0)
-        ],
       )
     end
 
@@ -278,10 +265,6 @@ RSpec.shared_context 'datalab organization t hp caper', shared_context: :metadat
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q21',
-        skip: [
-          'C14', # expected '1.0000' (1), got '0.0000' (0)
-          'C15', # expected '86.0000' (86), got '87.0000' (87)
-        ],
       )
     end
 
