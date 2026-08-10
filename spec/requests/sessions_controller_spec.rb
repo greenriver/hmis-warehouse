@@ -13,7 +13,7 @@ require 'support/shared_contexts/login_activity_context'
 
 # Devise-only: Users::SessionsController is reachable only via the `devise_for :users` routes,
 # which config/routes.rb mounts under AuthMethod.devise?.
-RSpec.describe Users::SessionsController, :devise_only, type: :request do
+RSpec.describe 'Users::SessionsController', :devise_only, type: :request do
   let(:user) { create :user }
   let(:user_2fa) { create :user_2fa }
   let(:email) { ActionMailer::Base.deliveries.last }
