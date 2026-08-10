@@ -41,11 +41,13 @@ RSpec.describe Hmis::UsersController, type: :request do
         expect(JSON.parse(response.body)['sessionDuration']).to eq(Devise.timeout_in.in_seconds)
       end
 
-      # Hmis::User reports Devise.timeout_in on both arms (Hmis::User#current_user_api_values),
-      # so tightening this to that value would pass while pinning the JWT arm to a Devise setting —
-      # the credential's lifetime here is the IdP token's.
       it 'reports a positive sessionDuration', :jwt_only do
         expect(JSON.parse(response.body)['sessionDuration']).to be > 0
+      end
+
+      # The hour is the stubbed expiration_time in JwtAuthenticationHelper#sign_in.
+      it 'sources sessionDuration from the token expiry rather than a Devise timeout', :jwt_only do
+        expect(JSON.parse(response.body)['sessionDuration']).to be_within(5).of(1.hour.to_i)
       end
     end
 

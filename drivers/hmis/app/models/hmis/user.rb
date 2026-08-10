@@ -250,13 +250,15 @@ class Hmis::User < ApplicationRecord
     @editable_project_ids ||= Hmis::Hud::Project.viewable_by(self).pluck(:id)
   end
 
-  def current_user_api_values
+  # session_duration is a required kwarg, not a Devise default: the devise gem is unloaded under
+  # AuthMethod.jwt?, so a default would NameError for any caller that omits it.
+  def current_user_api_values(session_duration:)
     {
       id: id.to_s,
       name: name,
       email: email,
       phone: phone,
-      sessionDuration: Devise.timeout_in.in_seconds,
+      sessionDuration: session_duration,
       # primary_idp is only defined under AuthMethod.jwt?
       primaryIdp: AuthMethod.jwt? ? primary_idp : nil,
     }
