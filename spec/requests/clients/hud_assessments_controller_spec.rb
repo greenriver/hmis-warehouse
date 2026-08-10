@@ -31,6 +31,19 @@ RSpec.describe Clients::HudAssessmentsController, type: :request do
       get client_hud_assessment_path(client, assessment)
       expect(response).to render_template(:show)
     end
+
+    it 'renders the specifically requested assessment when the client has more than one' do
+      assessment.update!(AssessmentDate: Date.new(2024, 6, 15))
+      other_assessment = create(:hud_assessment, data_source_id: source_client.data_source_id, PersonalID: source_client.PersonalID, EnrollmentID: enrollment.EnrollmentID, AssessmentDate: Date.new(2020, 1, 1))
+
+      get client_hud_assessment_path(client, other_assessment)
+      expect(response.body).to include(other_assessment.AssessmentDate.to_s)
+      expect(response.body).not_to include(assessment.AssessmentDate.to_s)
+
+      get client_hud_assessment_path(client, assessment)
+      expect(response.body).to include(assessment.AssessmentDate.to_s)
+      expect(response.body).not_to include(other_assessment.AssessmentDate.to_s)
+    end
   end
 
   context 'when the user lacks can_view_enrollment_details' do

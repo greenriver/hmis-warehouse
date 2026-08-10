@@ -19,12 +19,12 @@ RSpec.describe Clients::CoordinatedEntryHudAssessmentsController, type: :request
 
   before { Collection.maintain_system_groups }
 
-  def build_assessment(response_text:)
-    assessment = create(:hud_assessment, data_source_id: window_visible_data_source.id, PersonalID: window_source_client.PersonalID, EnrollmentID: window_enrollment.EnrollmentID)
+  def build_assessment(response_text:, data_source_id: window_visible_data_source.id, personal_id: window_source_client.PersonalID, enrollment_id: window_enrollment.EnrollmentID)
+    assessment = create(:hud_assessment, data_source_id: data_source_id, PersonalID: personal_id, EnrollmentID: enrollment_id)
     GrdaWarehouse::AssessmentAnswerLookup.create!(assessment_question: 'c_housing_assessment_name', response_code: assessment.AssessmentID.to_s, response_text: response_text)
     create(
       :hud_assessment_question,
-      data_source_id: window_visible_data_source.id,
+      data_source_id: data_source_id,
       AssessmentID: assessment.AssessmentID,
       AssessmentQuestion: 'c_housing_assessment_name',
       AssessmentAnswer: assessment.AssessmentID.to_s,
@@ -63,6 +63,19 @@ RSpec.describe Clients::CoordinatedEntryHudAssessmentsController, type: :request
     it 'blocks access to a non-qualifying assessment' do
       get client_coordinated_entry_hud_assessment_path(window_destination_client, non_qualifying_assessment)
       expect(response).to redirect_to(user.my_root_path)
+    end
+
+    it 'blocks access to a qualifying assessment that belongs to a different client' do
+      other_clients_pathways_assessment = build_assessment(
+        response_text: 'Pathways 2024',
+        data_source_id: non_window_visible_data_source.id,
+        personal_id: non_window_source_client.PersonalID,
+        enrollment_id: non_window_enrollment.EnrollmentID,
+      )
+
+      get client_coordinated_entry_hud_assessment_path(window_destination_client, other_clients_pathways_assessment)
+
+      expect(response).to have_http_status(:not_found)
     end
   end
 
