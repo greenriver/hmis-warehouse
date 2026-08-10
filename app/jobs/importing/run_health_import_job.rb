@@ -10,7 +10,7 @@ module Importing
   class RunHealthImportJob < BaseJob
     queue_as ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
 
-    PILOT_IMPORT = 'pilot'.freeze
+    PILOT_IMPORT = 'pilot'
 
     def perform
       change_counts = Health::Tasks::ImportEpic.new.run!
@@ -18,7 +18,6 @@ module Importing
       change_counts[PILOT_IMPORT].merge!(Health::Tasks::PatientClientMatcher.new.run!)
       Health::EpicTeamMember.process!
       Health::EpicQualifyingActivity.update_qualifying_activities!
-      Health::EpicThrive.update_thrive_assessments!
       Health::QualifyingActivity.transaction do
         Health::QualifyingActivity.where(source_type: GrdaWarehouse::HmisForm.name).unsubmitted.delete_all
         GrdaWarehouse::HmisForm.has_qualifying_activities.each(&:create_qualifying_activity!)

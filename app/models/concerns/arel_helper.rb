@@ -445,10 +445,6 @@ module ArelHelper
       Health::EpicSsm.arel_table
     end
 
-    def h_sdhcmn_t
-      Health::SdhCaseManagementNote.arel_table
-    end
-
     def h_ehs_t
       Health::EpicHousingStatus.arel_table
     end
@@ -463,10 +459,6 @@ module ArelHelper
 
     def h_echa_t
       Health::EpicCha.arel_table
-    end
-
-    def h_rf_t
-      Health::ReleaseForm.arel_table
     end
 
     def h_cp_t

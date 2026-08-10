@@ -47,88 +47,6 @@ Rails.application.routes.draw do
   resources :content_pages, only: [:show], param: :slug, path: 'public/pages'
   resource :compliance_agreement, only: [:show, :create], controller: 'compliance_agreements'
 
-  def healthcare_routes
-    namespace :health do
-      resources :patient, only: [:index, :update], controller: '/health/patient'
-      resources :utilization, only: [:index], controller: '/health/utilization'
-      resources :appointments, only: [:index], controller: '/health/appointments' do
-        collection do
-          get :upcoming
-          get :calendar
-        end
-      end
-      resources :ed_ip_visits, only: [:index], controller: '/health/ed_ip_visits'
-      resources :medications, only: [:index], controller: '/health/medications'
-      resources :problems, only: [:index], controller: '/health/problems'
-      resources :self_sufficiency_matrix_forms, controller: '/health/self_sufficiency_matrix_forms' do
-        member do
-          delete :remove_file
-          get :download
-          patch :upload
-        end
-      end
-      resources :sdh_case_management_notes, only: [:show, :new, :create, :edit, :update, :destroy], controller: '/health/sdh_case_management_notes' do
-        member do
-          delete :remove_file
-          get :download
-        end
-      end
-      resources :services, controller: '/health/services'
-      resources :backup_plans, controller: '/health/backup_plans'
-      resources :qualifying_activities, controller: '/health/qualifying_activities'
-      resources :patient_referrals, only: [:index], controller: '/health/patient_referrals'
-      resources :durable_equipments, except: [:index], controller: '/health/durable_equipments'
-      resources :files, only: [:index, :show], controller: '/health/files'
-      resources :team_members, controller: '/health/patient_team_members'
-      resources :goals, controller: '/health/patient_goals'
-      resources :epic_case_notes, only: [:show], controller: '/health/epic_case_notes'
-      resources :epic_ssms, only: [:show], controller: '/health/epic_ssms'
-      resources :epic_chas, only: [:show], controller: '/health/epic_chas'
-      resources :epic_careplans, only: [:show], controller: '/health/epic_careplans'
-      resources :careplans, except: [:create], controller: '/health/careplans' do
-        resources :team_members, except: [:index, :show], controller: '/health/team_members'
-        resources :goals, except: [:index, :show], controller: '/health/goals'
-        get :self_sufficiency_assessment
-        get :print
-        get :revise, on: :member
-        get :coversheet, on: :member
-        get :pctp, on: :member
-        member do
-          delete :remove_file
-          get :download
-          patch :upload
-        end
-      end
-      resources :participation_forms, controller: '/health/participation_forms' do
-        member do
-          delete :remove_file
-          get :download
-        end
-      end
-      resources :release_forms, controller: '/health/release_forms' do
-        member do
-          delete :remove_file
-          get :download
-        end
-      end
-      resources :comprehensive_health_assessments, path: :chas, as: :chas, controller: '/health/comprehensive_health_assessments' do
-        member do
-          delete :remove_file
-          get :download
-          patch :upload
-        end
-      end
-      namespace :pilot do
-        resources :patient, only: [:index], controller: '/health/pilot/patient'
-        resource :careplan, except: [:destroy], controller: '/health/pilot/careplans' do
-          get :self_sufficiency_assessment
-          get :print
-        end
-      end
-      resources :contacts, only: [:index], controller: '/health/contacts'
-    end
-  end
-
   # obfuscation of links sent out via email
   resources :tokens, only: [:show]
 
@@ -446,7 +364,6 @@ Rails.application.routes.draw do
     resources :anomalies, except: [:show], controller: 'clients/anomalies'
     resources :audits, only: [:index], controller: 'clients/audits'
     resources :hud_lots, only: [:index], controller: 'clients/hud_lots'
-    healthcare_routes
     namespace :he do
       get :boston_covid_19
       get :covid_19_vaccinations_only
@@ -624,27 +541,6 @@ Rails.application.routes.draw do
   end
 
   namespace :health do
-    resources :patients, only: [:index] do
-      collection do
-        # Patient search queries
-        resources :searches, only: [:create], to: 'patients#create_search_queries', as: :create_patient_searches
-        get 'searches/:id', to: 'patients#search', as: :patient_search_query
-      end
-    end
-    resources :team_patients, only: [:index] do
-      collection do
-        # Patient search queries
-        resources :searches, only: [:create], to: 'team_patients#create_search_queries', as: :create_team_patient_searches
-        get 'searches/:id', to: 'team_patients#search', as: :team_patient_search_query
-      end
-    end
-    resources :my_patients, only: [:index] do
-      collection do
-        # Patient search queries
-        resources :searches, only: [:create], to: 'my_patients#create_search_queries', as: :create_my_patient_searches
-        get 'searches/:id', to: 'my_patients#search', as: :my_patient_search_query
-      end
-    end
     namespace :he do
       get :search
       resources :cases do
@@ -655,9 +551,6 @@ Rails.application.routes.draw do
         resources :site_managers
         resources :staff
       end
-    end
-    resources :document_exports, only: [:show, :create] do
-      get :download, on: :member
     end
   end
 
@@ -900,11 +793,8 @@ Rails.application.routes.draw do
   unless Rails.env.production?
     resource :style_guide, only: [] do
       get :index
-      get :add_goal
-      get :add_team_member
       get :alerts
       get :buttons
-      get :careplan
       get :client_dashboard
       get :colors
       get :datepicker

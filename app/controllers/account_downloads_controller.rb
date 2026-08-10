@@ -13,8 +13,6 @@ class AccountDownloadsController < ApplicationController
     limit = 50
     @items = @user.document_exports.diet_select.
       completed.limit(limit).order(created_at: :desc).to_a
-    @items += @user.health_document_exports.diet_select.
-      completed.limit(limit).order(created_at: :desc).to_a
     @items = @items.sort_by { |e| e.created_at.to_i * -1 }
   end
 

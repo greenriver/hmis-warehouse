@@ -12,11 +12,6 @@ module Health
   class Patient < Base
     extend OrderAsSpecified
 
-    # Extensions from drivers — see ADR 0007
-    include HealthComprehensiveAssessment::Health::PatientExtension
-    include HealthPctp::Health::PatientExtension
-    include HealthQaFactory::Health::PatientExtension
-    include HealthThriveAssessment::Health::PatientExtension
     include ArelHelper
     acts_as_paranoid
 
@@ -74,11 +69,6 @@ module Health
     has_many :consolidated_contacts, class_name: 'Health::Contact'
     has_many :client_contacts, -> { where category: 'Client' }, class_name: 'Health::Contact'
 
-    # has_many :goals, class_name: 'Health::Goal::Base', through: :careplans
-    has_many :goals, class_name: 'Health::Goal::Base'
-    # NOTE: not sure if this is the right order but it seems they should have some kind of order
-    has_many :hpc_goals, -> { order 'health_goals.start_date' }, class_name: 'Health::Goal::Hpc'
-
     belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client', optional: true
 
     has_one :claims_roster, class_name: 'Health::Claims::Roster', primary_key: :medicaid_id, foreign_key: :medicaid_id
@@ -90,7 +80,6 @@ module Health
     has_many :hmis_ssms, -> do
       merge(GrdaWarehouse::HmisForm.self_sufficiency)
     end, class_name: 'GrdaWarehouse::HmisForm', through: :client, source: :source_hmis_forms
-    has_many :sdh_case_management_notes
     has_many :participation_forms
     has_one :recent_participation_form, -> do
       merge(Health::ParticipationForm.recent)
@@ -108,24 +97,10 @@ module Health
       merge(Health::Careplan.recent)
     end, class_name: 'Health::Careplan'
 
-    has_many :hrsn_screenings
-    has_one :recent_hrsn_screening, -> do
-      merge(Health::HrsnScreening.recent)
-    end, class_name: 'Health::HrsnScreening'
-
-    has_many :ca_assessments
-    has_one :recent_ca_assessment, -> do
-      merge(Health::CaAssessment.recent)
-    end, class_name: 'Health::CaAssessment'
-
     has_many :pctp_careplans
     has_one :recent_pctp_careplan, -> do
       merge(Health::PctpCareplan.recent)
     end, class_name: 'Health::PctpCareplan'
-
-    has_many :services
-    has_many :equipments
-    has_many :backup_plans
 
     has_one :patient_referral, -> do
       merge(PatientReferral.current)
@@ -733,104 +708,6 @@ module Health
       false
     end
 
-    def anything_expiring?
-      release_status.present? || hrsn_status.present? || ca_status.present? || careplan_status.present?
-    end
-
-    def release_status
-      @release_status ||= if active_release? && ! expiring_release?
-        # Valid
-      elsif expiring_release?
-        "Release of information expires #{release_forms.recent.expiring_soon.during_current_enrollment.last.expires_on}"
-      elsif expired_release?
-        "Release of information expired on #{release_forms.recent.expired.during_current_enrollment.last.expires_on}"
-      end
-    end
-
-    private def active_release?
-      @active_release ||= release_forms.active.during_current_enrollment.exists?
-    end
-
-    private def expiring_release?
-      @expiring_release ||= release_forms.expiring_soon.during_current_enrollment.exists?
-    end
-
-    private def expired_release?
-      @expired_release ||= release_forms.expired.during_current_enrollment.exists?
-    end
-
-    def hrsn_status
-      @hrsn_status ||= if active_hrsn? && !expiring_hrsn?
-        # Valid
-      elsif expiring_hrsn?
-        "HRSN Assessment expires #{recent_hrsn_screening.expires_on}"
-      elsif expired_hrsn?
-        "HRSN Assessment expired on #{recent_hrsn_screening.expires_on}"
-      end
-    end
-
-    private def active_hrsn?
-      @active_hrsn ||= recent_hrsn_screening&.active? || false
-    end
-
-    private def expiring_hrsn?
-      @expiring_hrsn ||= recent_hrsn_screening&.expiring? || false
-    end
-
-    private def expired_hrsn?
-      @expired_hrsn ||= recent_hrsn_screening&.expired? || false
-    end
-
-    def ca_status
-      @ca_status ||= if active_ca? && !expiring_ca?
-        # Valid
-      elsif expiring_ca?
-        "Comprehensive Assessment expires #{recent_ca_assessment.expires_on}"
-      elsif expired_ca?
-        "Comprehensive Assessment expired on #{recent_ca_assessment.expires_on}"
-      end
-    end
-
-    private def active_ca?
-      @active_ca ||= recent_ca_assessment&.active? || false
-    end
-
-    private def expiring_ca?
-      @expiring_ca ||= recent_ca_assessment&.expiring? || false
-    end
-
-    private def expired_ca?
-      @expired_ca ||= recent_ca_assessment&.expired? || false
-    end
-
-    def careplan_status
-      @careplan_status ||= if active_careplan? && ! expiring_careplan?
-        # Valid
-      elsif missing_careplan?
-        'Person-Centered Treatment Plan not completed by required date'
-      elsif expiring_careplan?
-        "Person-Centered Treatment Plan expires #{recent_pctp_careplan.expires_on}"
-      elsif expired_careplan?
-        "Person-Centered Treatment Plan expired on #{recent_pctp_careplan.expires_on}"
-      end
-    end
-
-    private def active_careplan?
-      @active_careplan ||= recent_pctp_careplan&.active? || false
-    end
-
-    private def missing_careplan?
-      @missing_careplan ||= current_days_enrolled > 150 && !active_careplan? && !expired_careplan?
-    end
-
-    private def expiring_careplan?
-      @expiring_careplan ||= recent_pctp_careplan&.expiring? || false
-    end
-
-    private def expired_careplan?
-      @expired_careplan ||= recent_pctp_careplan&.expired? || false
-    end
-
     def pilot_patient?
       pilot == true
     end
@@ -1172,42 +1049,6 @@ module Health
         user_id: current_user.id,
       )
       team_member.save!
-    end
-
-    def assigned_care_coordinator_in_agency?
-      return true unless care_coordinator_id
-
-      care_coordinator_id.in?(available_user_ids)
-    end
-
-    def assigned_nurse_care_manager_in_agency?
-      return true unless nurse_care_manager_id
-
-      nurse_care_manager_id.in?(available_user_ids)
-    end
-
-    def available_user_ids
-      @available_user_ids ||= begin
-        return [] unless health_agency.present?
-
-        Health::AgencyUserLookup.user_ids_for_agency(health_agency.id)
-      end
-    end
-
-    def available_care_coordinators
-      return [] unless health_agency.present?
-
-      user_ids = available_user_ids
-      user_ids << care_coordinator_id if care_coordinator_id.present?
-      User.where(id: user_ids)
-    end
-
-    def available_nurse_care_managers
-      return [] unless health_agency.present?
-
-      user_ids = available_user_ids
-      user_ids << nurse_care_manager_id if nurse_care_manager_id.present?
-      User.where(id: user_ids)
     end
 
     def housing_stati
