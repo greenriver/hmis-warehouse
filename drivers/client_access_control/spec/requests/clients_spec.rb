@@ -773,8 +773,6 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
     end
 
     context 'boston assessments_with_limited_data rollup' do
-      # NOTE: the shared context's `can_view_clients` role bakes in `can_view_limited_client_dashboard: true`,
-      # so these roles are self-contained rather than layered on top of it, to keep full-vs-limited meaningful.
       let!(:limited_dashboard_role) { create :role, can_view_clients: true, can_view_client_name: true, can_search_own_clients: true, can_view_full_client_dashboard: false, can_view_limited_client_dashboard: true }
       let!(:full_dashboard_role) { create :role, can_view_clients: true, can_view_client_name: true, can_search_own_clients: true, can_view_full_client_dashboard: true, can_view_limited_client_dashboard: false }
 

@@ -14,9 +14,6 @@ RSpec.describe Clients::CoordinatedEntryHudAssessmentsController, type: :request
 
   let!(:config) { create :config_b }
   let!(:user) { create :acl_user }
-  # NOTE: the shared context's `can_view_clients` role bakes in `can_view_limited_client_dashboard: true`
-  # (see visibility_test_context.rb), so these roles are self-contained rather than layered on top of it,
-  # to keep the full-vs-limited distinction meaningful in this spec.
   let!(:full_dashboard_role) { create :role, can_view_clients: true, can_view_client_name: true, can_search_own_clients: true, can_view_full_client_dashboard: true, can_view_limited_client_dashboard: false }
   let!(:limited_dashboard_role) { create :role, can_view_clients: true, can_view_client_name: true, can_search_own_clients: true, can_view_full_client_dashboard: false, can_view_limited_client_dashboard: true }
 
