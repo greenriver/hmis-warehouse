@@ -15,7 +15,7 @@ require 'support/shared_contexts/timing_attack_mitigation_context'
 
 # Devise-only: drivers/hmis/config/routes.rb mounts Hmis::SessionsController under
 # AuthMethod.devise?; the jwt arm serves hmis/logout from Hmis::Idp::SessionsController instead.
-RSpec.describe Hmis::SessionsController, :devise_only, type: :request do
+RSpec.describe 'Hmis::SessionsController', :devise_only, type: :request do
   let(:user) { create :user }
   let(:hmis_user) { user.as_hmis_user.tap(&:reload) }
   let(:user_2fa) { create :user_2fa }
