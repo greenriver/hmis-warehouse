@@ -86,7 +86,10 @@ module HudApr::Generators::Shared::Fy2026
 
           hh_id = get_hh_id(last_service_history_enrollment)
           hoh_enrollment = hoh_enrollments[hh_id]
-          household_assessment_required[last_service_history_enrollment.client_id] = annual_assessment_expected?(hoh_enrollment: hoh_enrollment, enrollment: last_service_history_enrollment, report_end_date: @report.end_date)
+          # The annual assessment anniversary follows the household's earliest head of household, who may
+          # have exited before the report period and so may not be in hoh_enrollments
+          annual_hoh_enrollment = household_hoh_enrollments[hh_id] || hoh_enrollment
+          household_assessment_required[last_service_history_enrollment.client_id] = annual_assessment_expected?(hoh_enrollment: annual_hoh_enrollment, enrollment: last_service_history_enrollment, report_end_date: @report.end_date)
           end_date = if needs_ce_assessments?
             # Only HoHs get CE assessments, so we prefer their entry date
             hoh_enrollment&.first_date_in_program || last_service_history_enrollment.first_date_in_program
@@ -116,6 +119,9 @@ module HudApr::Generators::Shared::Fy2026
           hh_id = get_hh_id(last_service_history_enrollment)
           # Fetch the Head of Household's enrollment, but if we don't have a head, just use ours
           hoh_enrollment = hoh_enrollments[hh_id] || last_service_history_enrollment
+          # Annual assessment timing is anchored on the household's HoH even when they exited before
+          # the report period, so it does not use the HoH enrollment above
+          annual_hoh_enrollment = household_hoh_enrollments[hh_id] || hoh_enrollment
           if needs_ce_assessments?
             ce_latest_assessment = latest_ce_assessment(last_service_history_enrollment, hoh_enrollment)
             ce_latest_event = latest_ce_event(last_service_history_enrollment, hoh_enrollment, ce_latest_assessment)
@@ -156,16 +162,17 @@ module HudApr::Generators::Shared::Fy2026
           exit_record = last_service_history_enrollment.enrollment if exit_date.present? && exit_date <= @report.end_date
 
           income_at_start = enrollment.income_benefits_at_entry
-          income_at_annual_assessment = annual_assessment(enrollment, hoh_enrollment.first_date_in_program)
+          income_at_annual_assessment = annual_assessment(enrollment, annual_hoh_enrollment.first_date_in_program)
           income_at_exit = exit_record&.income_benefits_at_exit
 
           disabilities = enrollment.disabilities.select { |disability| [1, 2, 3].include?(disability.DisabilityResponse) }
-
-          disabilities_at_entry = enrollment.disabilities.select { |d| d.DataCollectionStage == 1 }
-          disabilities_at_exit = enrollment.disabilities.select { |d| d.DataCollectionStage == 3 }
-          max_disability_date = enrollment.disabilities.select { |d| d.InformationDate <= @report.end_date }.
-            map(&:InformationDate).max
-          disabilities_latest = enrollment.disabilities.select { |d| d.InformationDate == max_disability_date }
+          relevant_disability_records = enrollment.disabilities.select { |d| d.InformationDate <= @report.end_date }
+          disabilities_at_entry = relevant_disability_records.select { |d| d.DataCollectionStage == 1 }
+          disabilities_at_exit = relevant_disability_records.select { |d| d.DataCollectionStage == 3 }
+          max_disability_date_in_report = relevant_disability_records.map(&:InformationDate).select { |date| date <= @report.end_date }.max
+          disabilities_latest_in_report = relevant_disability_records.select { |d| d.InformationDate == max_disability_date_in_report }
+          max_disability_date_overall = enrollment.disabilities.map(&:InformationDate).max
+          disabilities_latest_overall = enrollment.disabilities.select { |d| d.InformationDate == max_disability_date_overall }
 
           # Need to sort by information date, then DateUpdated to catch the most-recent
           # added for the Datalab test kit
@@ -203,7 +210,7 @@ module HudApr::Generators::Shared::Fy2026
           # else
           #   household_types[hh_id]
           # end
-          hoh_anniversary_date = anniversary_date(entry_date: hoh_enrollment.first_date_in_program, report_end_date: @report.end_date)
+          hoh_anniversary_date = anniversary_date(entry_date: annual_hoh_enrollment.first_date_in_program, report_end_date: @report.end_date)
           # Households with required assessments are calculated earlier for performance reasons.
           # An APR is being submitted to verify assessment requirements for non-HoH adults entering the HH at a different date than the HoH.
           # e.g. If an adult enters 1 day prior HoH assessment date, is their assessment required on the HoH date (1 day later) or on the following year (1 year + 1 day later)
@@ -250,15 +257,15 @@ module HudApr::Generators::Shared::Fy2026
             age: age,
             alcohol_abuse_entry: [1, 3].include?(disabilities_at_entry.detect(&:substance?)&.DisabilityResponse),
             alcohol_abuse_exit: [1, 3].include?(disabilities_at_exit.detect(&:substance?)&.DisabilityResponse),
-            alcohol_abuse_latest: [1, 3].include?(disabilities_latest.detect(&:substance?)&.DisabilityResponse),
+            alcohol_abuse_latest: [1, 3].include?(disabilities_latest_in_report.detect(&:substance?)&.DisabilityResponse),
             annual_assessment_expected: annual_assessment_expected,
             # anniversary dates are always based on HoH enrollment
-            annual_assessment_in_window: annual_assessment_in_window?(hoh_enrollment, income_at_annual_assessment&.InformationDate),
+            annual_assessment_in_window: annual_assessment_in_window?(annual_hoh_enrollment, income_at_annual_assessment&.InformationDate),
             approximate_time_to_move_in: approximate_move_in_dates[last_service_history_enrollment.client_id],
             came_from_street_last_night: enrollment.PreviousStreetESSH,
             chronic_disability_entry: disabilities_at_entry.detect(&:chronic?)&.DisabilityResponse,
             chronic_disability_exit: disabilities_at_exit.detect(&:chronic?)&.DisabilityResponse,
-            chronic_disability_latest: disabilities_latest.detect(&:chronic?)&.DisabilityResponse,
+            chronic_disability_latest: disabilities_latest_in_report.detect(&:chronic?)&.DisabilityResponse,
             chronic_disability: disabilities.detect(&:chronic?).present?,
             chronically_homeless: chronic_source.try(:[], :chronic_status) || false,
             chronically_homeless_detail: chronic_source.try(:[], :chronic_detail) || {},
@@ -281,7 +288,7 @@ module HudApr::Generators::Shared::Fy2026
             destination: destination,
             developmental_disability_entry: disabilities_at_entry.detect(&:developmental?)&.DisabilityResponse,
             developmental_disability_exit: disabilities_at_exit.detect(&:developmental?)&.DisabilityResponse,
-            developmental_disability_latest: disabilities_latest.detect(&:developmental?)&.DisabilityResponse,
+            developmental_disability_latest: disabilities_latest_in_report.detect(&:developmental?)&.DisabilityResponse,
             developmental_disability: disabilities.detect(&:developmental?).present?,
             disabling_condition: enrollment.DisablingCondition,
             dob_quality: apr_client_dob_quality(source_client),
@@ -291,7 +298,7 @@ module HudApr::Generators::Shared::Fy2026
             domestic_violence_occurred: health_and_dv&.WhenOccurred,
             drug_abuse_entry: [2, 3].include?(disabilities_at_entry.detect(&:substance?)&.DisabilityResponse),
             drug_abuse_exit: [2, 3].include?(disabilities_at_exit.detect(&:substance?)&.DisabilityResponse),
-            drug_abuse_latest: [2, 3].include?(disabilities_latest.detect(&:substance?)&.DisabilityResponse),
+            drug_abuse_latest: [2, 3].include?(disabilities_latest_in_report.detect(&:substance?)&.DisabilityResponse),
             enrollment_coc: enrollment.enrollment_coc,
             enrollment_created: enrollment.DateCreated || enrollment.DateUpdated || DateTime.current,
             exit_created: exit_record&.exit&.DateCreated,
@@ -303,7 +310,7 @@ module HudApr::Generators::Shared::Fy2026
             head_of_household: last_service_history_enrollment[:head_of_household],
             hiv_aids_entry: disabilities_at_entry.detect(&:hiv?)&.DisabilityResponse,
             hiv_aids_exit: disabilities_at_exit.detect(&:hiv?)&.DisabilityResponse,
-            hiv_aids_latest: disabilities_latest.detect(&:hiv?)&.DisabilityResponse,
+            hiv_aids_latest: disabilities_latest_in_report.detect(&:hiv?)&.DisabilityResponse,
             hiv_aids: disabilities.detect(&:hiv?).present?,
             household_id: get_hh_id(last_service_history_enrollment),
             household_members: household_member_data(last_service_history_enrollment, household_calculation_date),
@@ -333,7 +340,7 @@ module HudApr::Generators::Shared::Fy2026
             income_total_at_exit: income_at_exit&.hud_total_monthly_income,
             income_total_at_start: income_at_start&.hud_total_monthly_income,
             # NOTE: this is used for data quality, and should only look at the most recent disability
-            indefinite_and_impairs: disabilities_latest.detect(&:indefinite_and_impairs?),
+            indefinite_and_impairs: disabilities_latest_overall.detect(&:indefinite_and_impairs?),
             insurance_from_any_source_at_annual_assessment: income_at_annual_assessment&.InsuranceFromAnySource,
             insurance_from_any_source_at_exit: income_at_exit&.InsuranceFromAnySource,
             insurance_from_any_source_at_start: income_at_start&.InsuranceFromAnySource,
@@ -343,7 +350,7 @@ module HudApr::Generators::Shared::Fy2026
             length_of_stay: stay_length(last_service_history_enrollment),
             mental_health_problem_entry: disabilities_at_entry.detect(&:mental?)&.DisabilityResponse,
             mental_health_problem_exit: disabilities_at_exit.detect(&:mental?)&.DisabilityResponse,
-            mental_health_problem_latest: disabilities_latest.detect(&:mental?)&.DisabilityResponse,
+            mental_health_problem_latest: disabilities_latest_in_report.detect(&:mental?)&.DisabilityResponse,
             mental_health_problem: disabilities.detect(&:mental?).present?,
             months_homeless: enrollment.MonthsHomelessPastThreeYears,
             move_in_date: last_service_history_enrollment.move_in_date,
@@ -373,7 +380,7 @@ module HudApr::Generators::Shared::Fy2026
             pit_enrollments: pit_enrollment_info(enrollments),
             physical_disability_entry: disabilities_at_entry.detect(&:physical?)&.DisabilityResponse,
             physical_disability_exit: disabilities_at_exit.detect(&:physical?)&.DisabilityResponse,
-            physical_disability_latest: disabilities_latest.detect(&:physical?)&.DisabilityResponse,
+            physical_disability_latest: disabilities_latest_in_report.detect(&:physical?)&.DisabilityResponse,
             physical_disability: disabilities.detect(&:physical?).present?,
             prior_length_of_stay: enrollment.LengthOfStay,
             prior_living_situation: enrollment.LivingSituation,
@@ -390,7 +397,7 @@ module HudApr::Generators::Shared::Fy2026
             subsidy_information: last_service_history_enrollment.enrollment.exit&.SubsidyInformation,
             substance_abuse_entry: disabilities_at_entry.detect(&:substance?)&.DisabilityResponse,
             substance_abuse_exit: disabilities_at_exit.detect(&:substance?)&.DisabilityResponse,
-            substance_abuse_latest: disabilities_latest.detect(&:substance?)&.DisabilityResponse,
+            substance_abuse_latest: disabilities_latest_in_report.detect(&:substance?)&.DisabilityResponse,
             substance_abuse: disabilities.detect(&:substance?).present?,
             time_to_move_in: times_to_move_in[last_service_history_enrollment.client_id],
             times_homeless: enrollment.TimesHomelessPastThreeYears,
@@ -627,30 +634,80 @@ module HudApr::Generators::Shared::Fy2026
       scope
     end
 
-    private def pit_enrollment_info(enrollments)
-      pit_dates = [1, 4, 7, 10].map { |month| pit_date(month: month, before: @report.end_date) }
-      pit_dates.map do |pit_date|
-        enrollments_for_date = enrollments.select do |enrollment|
-          enrolled = if enrollment.project_type.in?([3, 13]) || enrollment.enrollment.project.pay_for_success?
-            # PSH/RRH OR project type 7 (other) with Funder 35 (Pay for Success)
-            move_in_date = calculate_hh_move_in_date(enrollment.household_id, enrollment)
-            enrollment.first_date_in_program <= pit_date &&
-              (enrollment.last_date_in_program.nil? || enrollment.last_date_in_program > pit_date) && # Exclude exit date
-              move_in_date.present? && # Check that move in date is present and is before the PIT data and on or after the entry date
-              move_in_date <= pit_date &&
-              move_in_date >= enrollment.first_date_in_program
-          elsif enrollment.project_type.in?([0, 1, 2, 8, 9, 10]) # Other residential
-            enrollment.first_date_in_program <= pit_date &&
-              (enrollment.last_date_in_program.nil? || enrollment.last_date_in_program > pit_date) # Exclude exit date
-          else # Other project types (4, 6, 7, 11, 12, 14)
-            enrollment.first_date_in_program <= pit_date &&
-              (enrollment.last_date_in_program.nil? || enrollment.last_date_in_program >= pit_date) # Include the exit date
-          end
-          next false unless enrolled
-          next true if enrollment.project_type != 1 || enrollment.project_tracking_method != 3 # Not ES or ES and not NbN
+    # The earliest head of household enrollment for each household, whose entry date the Annual Assessment
+    # section of the HMIS Reporting Glossary uses as the anniversary date, per: in the event a household has
+    # more than one head of household active in the report range, (i.e., if the first HoH exited and another
+    # household member became the HoH), the later HoH's [project start date] will be back-dated to the first
+    # HoH's [project start date].
+    # Deliberately ignores the report date range so that a household whose head of household exited before
+    # the report period, and where no other member was recorded as the head of household, still has an
+    # anniversary.  Datalab does the same, calculating annual_assessment_dates from the unfiltered
+    # Enrollment table rather than from the enrollments included in the report.
+    private def household_hoh_enrollments
+      @household_hoh_enrollments ||= begin
+        household_ids = enrollment_scope_without_preloads.where.not(household_id: nil).select(:household_id)
+        scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.heads_of_households.where(household_id: household_ids)
+        scope = scope.in_project(@report.project_ids) if @report.project_ids.present?
+        scope.group_by(&:household_id).transform_values { |enrollments| enrollments.min_by(&:first_date_in_program) }
+      end
+    end
 
-          enrollment.service_history_services.bed_night.on_date(pit_date).exists?
-        end.map do |enrollment|
+    private def pit_dates
+      @pit_dates ||= [1, 4, 7, 10].map { |month| pit_date(month: month, before: @report.end_date) }
+    end
+
+    # Bed nights on each PIT date, as the ids of the enrollments that have one, and the ids of their
+    # households keyed to match get_hh_id
+    private def pit_bed_nights
+      @pit_bed_nights ||= pit_dates.index_with do |pit_date|
+        rows = enrollment_scope_without_preloads.
+          joins(:service_history_services).
+          merge(GrdaWarehouse::ServiceHistoryService.bed_night.where(date: pit_date)).
+          distinct.
+          pluck(:id, :household_id, :enrollment_group_id)
+        {
+          enrollment_ids: rows.map(&:shift).to_set,
+          household_ids: rows.map { |household_id, enrollment_group_id| household_id || "#{enrollment_group_id || ''}*HH" }.to_set,
+        }
+      end
+    end
+
+    # Returns :client, :household (Q8b only, see below), or nil
+    private def pit_presence(enrollment, pit_date)
+      return nil unless enrollment.first_date_in_program <= pit_date
+
+      if enrollment.project_type == 1
+        bed_nights = pit_bed_nights[pit_date]
+        # Night-by-night shelters must use bed night records indicating household presence on each
+        # point in time night, so the exit date is not compared
+        return :client if bed_nights[:enrollment_ids].include?(enrollment.id)
+        # Q8b reports a household via its HoH, so include the HoH when only other members were present
+        return :household if enrollment.head_of_household? && bed_nights[:household_ids].include?(get_hh_id(enrollment))
+
+        return nil
+      end
+
+      present = if enrollment.project_type.in?([3, 13]) || enrollment.enrollment.project.pay_for_success?
+        # PSH/RRH OR project type 7 (other) with Funder 35 (Pay for Success)
+        move_in_date = calculate_hh_move_in_date(enrollment.household_id, enrollment)
+        (enrollment.last_date_in_program.nil? || enrollment.last_date_in_program > pit_date) && # Exclude exit date
+          move_in_date.present? && # Check that move in date is present and is before the PIT data and on or after the entry date
+          move_in_date <= pit_date &&
+          move_in_date >= enrollment.first_date_in_program
+      elsif enrollment.project_type.in?([0, 2, 8, 9, 10]) # Other residential
+        enrollment.last_date_in_program.nil? || enrollment.last_date_in_program > pit_date # Exclude exit date
+      else # Other project types (4, 6, 7, 11, 12, 14)
+        enrollment.last_date_in_program.nil? || enrollment.last_date_in_program >= pit_date # Include the exit date
+      end
+      present ? :client : nil
+    end
+
+    private def pit_enrollment_info(enrollments)
+      pit_dates.map do |pit_date|
+        enrollments_for_date = enrollments.filter_map do |enrollment|
+          presence = pit_presence(enrollment, pit_date)
+          next unless presence
+
           {
             first_date_in_program: enrollment.first_date_in_program,
             last_date_in_program: enrollment.last_date_in_program,
@@ -658,6 +715,7 @@ module HudApr::Generators::Shared::Fy2026
             project_tracking_method: enrollment.project_tracking_method,
             move_in_date: calculate_hh_move_in_date(enrollment.household_id, enrollment),
             relationship_to_hoh: enrollment.enrollment.relationship_to_hoh,
+            household_presence_only: presence == :household,
           }
         end
         [pit_date, enrollments_for_date]

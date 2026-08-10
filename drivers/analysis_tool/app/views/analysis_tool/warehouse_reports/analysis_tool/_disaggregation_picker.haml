@@ -21,22 +21,23 @@
     %div Loading&hellip;
 
 - content_for :page_js do
-  :javascript
-    'use strict';
-    $(function() {
-      var $selects = $('.j-disaggregation');
-      $selects.change(function() {
-        var row_breakdown = $('#j-disaggregation-row').val();
-        var col_breakdown = $('#j-disaggregation-col').val();
+  %script{ nonce: content_security_policy_nonce }
+    :plain
+      'use strict';
+      $(function() {
+        var $selects = $('.j-disaggregation');
+        $selects.change(function() {
+          var row_breakdown = $('#j-disaggregation-row').val();
+          var col_breakdown = $('#j-disaggregation-col').val();
 
-        if (row_breakdown || col_breakdown) {
-          $selects.prop('disabled', true)
-          $('#j-disaggregation-spinner').removeClass('d-none').addClass('d-flex');
-          var url = new URL(window.location.href);
-          url.searchParams.set('row_breakdown', row_breakdown);
-          url.searchParams.set('col_breakdown', col_breakdown);
-          window.location = url.href;
-          history.pushState({}, row_breakdown, url.href);
-        }
-      });
-    })
+          if (row_breakdown || col_breakdown) {
+            $selects.prop('disabled', true)
+            $('#j-disaggregation-spinner').removeClass('d-none').addClass('d-flex');
+            var url = new URL(window.location.href);
+            url.searchParams.set('row_breakdown', row_breakdown);
+            url.searchParams.set('col_breakdown', col_breakdown);
+            window.location = url.href;
+            history.pushState({}, row_breakdown, url.href);
+          }
+        });
+      })

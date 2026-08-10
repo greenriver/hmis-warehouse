@@ -94,7 +94,7 @@ module Hmis::Ce::Match
         id: field_key,
         label: psde_field.label,
         item_type: item_type_for_psde_field(psde_field),
-        multiple: false,
+        multiple: psde_field.multiple,
         field_key: field_key,
         source: :PSDE,
         form_definition_identifier: nil,

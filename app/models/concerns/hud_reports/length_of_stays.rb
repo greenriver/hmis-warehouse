@@ -66,6 +66,16 @@ module HudReports::LengthOfStays
       (nbn_ids + other_ids).uniq
     end
 
+    # Heads of households and adult stayers in the project 365 days or more, including any adult
+    # stayer whose head of household's stay is not longer than 365 days
+    private def hoh_and_adult_lts_stayer_clause
+      # Every adult and hoh members of a households whose head of household is a long-term stayer
+      members_of_lts_stayer_households = a_t[:head_of_household_id].in(hoh_lts_stayer_ids).
+        and(adult_or_hoh_clause)
+      # Plus adult stayers whose own stay is 365 days or more, even when their head of household's is not
+      members_of_lts_stayer_households.or(a_t[:id].in(adult_lts_stayer_ids))
+    end
+
     private def hoh_entry_dates
       @hoh_entry_dates ||= {}.tap do |entries|
         enrollment_scope.where(client_id: client_scope).heads_of_households.

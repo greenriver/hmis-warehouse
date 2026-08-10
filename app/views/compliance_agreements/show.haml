@@ -30,7 +30,8 @@
           = link_to 'Sign Out', destroy_user_session_path, method: :delete
 
 = content_for :page_js do
-  :javascript
-    document.getElementById('agree_checkbox').addEventListener('change', function() {
-      document.getElementById('submit_btn').disabled = !this.checked;
-    });
+  %script{ nonce: content_security_policy_nonce }
+    :plain
+      document.getElementById('agree_checkbox').addEventListener('change', function() {
+        document.getElementById('submit_btn').disabled = !this.checked;
+      });

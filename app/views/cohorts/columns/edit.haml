@@ -45,21 +45,22 @@
   = f.submit value: 'Update Cohort', class: 'btn btn-primary'
 
 - content_for :page_js do
-  :javascript
-    $(function() {
-      $('.draggable-list').sortable({axis: 'y', containment: "parent"});
+  %script{ nonce: content_security_policy_nonce }
+    :plain
+      $(function() {
+        $('.draggable-list').sortable({axis: 'y', containment: "parent"});
 
-      // Add move to top functionality
-      $('.move-to-top').on('click', function() {
-        var $item = $(this).closest('.draggable-list__item');
-        $('.draggable-list').prepend($item);
-      });
-
-      $(document).on('submit', '#edit_column_state', function(event) {
-        var order = $.map($('.draggable-list').sortable('toArray'), function(item) {
-          return item.replace('sorted-col-', '')
+        // Add move to top functionality
+        $('.move-to-top').on('click', function() {
+          var $item = $(this).closest('.draggable-list__item');
+          $('.draggable-list').prepend($item);
         });
-        var input = $('<input>').attr('type', 'hidden').attr('name', 'order').val(order);
-        $('#edit_column_state').append($(input));
+
+        $(document).on('submit', '#edit_column_state', function(event) {
+          var order = $.map($('.draggable-list').sortable('toArray'), function(item) {
+            return item.replace('sorted-col-', '')
+          });
+          var input = $('<input>').attr('type', 'hidden').attr('name', 'order').val(order);
+          $('#edit_column_state').append($(input));
+        });
       });
-    });

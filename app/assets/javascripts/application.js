@@ -15,6 +15,7 @@
 ////////////////////
 //= require jquery3
 //= require jquery_ujs
+//= require csp_nonce_relay
 //= require DataTables/datatables.min
 //= require handlebars.runtime
 //= require select2/dist/js/select2.full.min

@@ -55,13 +55,14 @@
           = f.button :submit, "Split selected records from #{@client.pii_provider(user: current_user).full_name}", id: :splitButton, data: {confirm: "Are you sure you want to split #{@client.pii_provider(user: current_user).full_name}?"}
 
 = content_for :page_js do
-  :javascript
-    $('.jSplit').on('change', function(e) {
+  %script{ nonce: content_security_policy_nonce }
+    :plain
+      $('.jSplit').on('change', function(e) {
       // Require at least one selected client to be split off
       anyChecked = $('input[name="grda_warehouse_hud_client[unmerge][]"]').toArray().some((e) => e.checked)
       $('#splitButton').prop('disabled', !anyChecked)
     });
 
-    $(document).ready(function() {
-      $('#splitButton').prop('disabled', true)
-    });
+      $(document).ready(function() {
+        $('#splitButton').prop('disabled', true)
+      });

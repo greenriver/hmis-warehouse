@@ -26,7 +26,7 @@ module Types
           define_method(:resolve_ce_participations) do |record|
             record.ce_participations.
               viewable_by(current_user).
-              order(ce_participation_status_start_date: :desc)
+              order(ce_participation_status_start_date: :desc, id: :desc)
           end
         end
       end

@@ -17,23 +17,25 @@
 
 - if @report.show_entry_timeliness?
   = content_for :page_js do
-    :javascript
-      $(function() {
-        'use strict';
-        var time_to_enter = new HmisDqToolTimeToEnter(
-          #{@report.average_time_to_enter_date(:entry).to_json.html_safe},
-          '.time-to-enter-chart',
-          );
-        time_to_enter.build_chart();
-      });
+    %script{ nonce: content_security_policy_nonce }
+      :plain
+        $(function() {
+          'use strict';
+          var time_to_enter = new HmisDqToolTimeToEnter(
+            #{@report.average_time_to_enter_date(:entry).to_json.html_safe},
+            '.time-to-enter-chart',
+            );
+          time_to_enter.build_chart();
+        });
 - if @report.show_exit_timeliness?
   = content_for :page_js do
-    :javascript
-      $(function() {
-        'use strict';
-        var time_to_exit = new HmisDqToolTimeToEnter(
-          #{@report.average_time_to_enter_date(:exit).to_json.html_safe},
-          '.time-to-exit-chart',
-          );
-        time_to_exit.build_chart();
-      });
+    %script{ nonce: content_security_policy_nonce }
+      :plain
+        $(function() {
+          'use strict';
+          var time_to_exit = new HmisDqToolTimeToEnter(
+            #{@report.average_time_to_enter_date(:exit).to_json.html_safe},
+            '.time-to-exit-chart',
+            );
+          time_to_exit.build_chart();
+        });

@@ -53,9 +53,10 @@
         %span.icon-cross
         Remove from #{@cohort.name}
 
-:javascript
-  $.fn.datepicker.defaults.format = "M d, yyyy";
-  // $('abbr').tooltip();
-  // FIXME: needs testing before removal
-  // $('[data-bs-toggle="tooltip"]').tooltip();
-  $('[data-bs-toggle="popover"]').popover();
+%script{ nonce: content_security_policy_nonce }
+  :plain
+    $.fn.datepicker.defaults.format = "M d, yyyy";
+    // $('abbr').tooltip();
+    // FIXME: needs testing before removal
+    // $('[data-bs-toggle="tooltip"]').tooltip();
+    $('[data-bs-toggle="popover"]').popover();
