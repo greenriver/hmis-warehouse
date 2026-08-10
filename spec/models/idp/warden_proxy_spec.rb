@@ -120,12 +120,12 @@ RSpec.describe Idp::WardenProxy do
     # "no exception" as success.
     it 'raises for a non-:user scope' do
       proxy = described_class.new(user)
-      expect { proxy.authenticate!(:password, scope: :hmis_user) }.to raise_error(Warden::NotAuthenticated)
+      expect { proxy.authenticate!(:password, scope: :hmis_user) }.to raise_error(described_class::NotAuthenticated)
     end
 
     it 'raises when there is no authenticated user for the :user scope' do
       proxy = described_class.new(nil)
-      expect { proxy.authenticate! }.to raise_error(Warden::NotAuthenticated)
+      expect { proxy.authenticate! }.to raise_error(described_class::NotAuthenticated)
     end
   end
 

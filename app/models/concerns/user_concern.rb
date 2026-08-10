@@ -34,9 +34,13 @@ module UserConcern
 
     attr_accessor :remember_device, :device_name, :client_access_arbiter, :copy_form_id
 
-    # Doorkeeper
-    has_many :access_grants, class_name: 'Doorkeeper::AccessGrant', foreign_key: :resource_owner_id, dependent: :delete_all # or :destroy if you need callbacks
-    has_many :access_tokens, class_name: 'Doorkeeper::AccessToken', foreign_key: :resource_owner_id, dependent: :delete_all # or :destroy if you need callbacks
+    # Doorkeeper. Gated because the gem is in the :devise Gemfile group, so Doorkeeper::AccessGrant
+    # is undefined under jwt; `dependent: :delete_all` would then raise on any User destroy, not
+    # just on a read of the association.
+    if AuthMethod.devise?
+      has_many :access_grants, class_name: 'Doorkeeper::AccessGrant', foreign_key: :resource_owner_id, dependent: :delete_all # or :destroy if you need callbacks
+      has_many :access_tokens, class_name: 'Doorkeeper::AccessToken', foreign_key: :resource_owner_id, dependent: :delete_all # or :destroy if you need callbacks
+    end
 
     # Connect users to login attempts.
     # Only includes Warehouse activity when called on User record, and only HMIS activity for Hmis::User record.
