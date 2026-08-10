@@ -7,6 +7,5 @@
 # frozen_string_literal: true
 
 class HealthController < ApplicationController
-  include HealthAuthorization
   include HealthPatient
 end
