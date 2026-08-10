@@ -253,12 +253,7 @@ module Health
     end
 
     def sdh_risk_score(patient)
-      @sdh_risk_score ||= if RailsDrivers.loaded.include?(:claims_reporting)
-        medicaid_ids = Health::Patient.where(id: patient_ids).pluck(:medicaid_id)
-        ClaimsReporting::Calculators::PatientSdhRiskScore.new(medicaid_ids).to_map
-      else
-        {}
-      end
+      @sdh_risk_score ||= {}
 
       @sdh_risk_score[patient.medicaid_id] || 'Unknown'
     end

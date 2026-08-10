@@ -22,7 +22,7 @@ RSpec.describe model, type: :model do
   let!(:user) { create :acl_user }
 
   let!(:r1) { create :touch_point_report }
-  let!(:r2) { create :confidential_touch_point_report }
+  let!(:r2) { create :hmis_export_report }
 
   let!(:no_reports_collection) { create :collection }
 

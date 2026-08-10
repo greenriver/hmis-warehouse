@@ -51,10 +51,6 @@
             %strong Claim Submitted:
           %td
             = qa.claim_submitted_on&.to_date
-            - if qa.patient&.best_medical_claim_for_qualifying_activity(qa)&.present?
-              = surround "(", ")" do
-                %i.o-color--positive.icon-checkmark
-                Reconciled
       %tr
         %td
           %strong Procedure Code:

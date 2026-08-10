@@ -365,8 +365,8 @@ module GrdaWarehouse::Hud
     scope :has_homeless_service_after_date, ->(date: 31.days.ago) do
       where(id:
         GrdaWarehouse::ServiceHistoryService.homeless(chronic_types_only: true).
-        where(sh_t[:date].gt(date)).
-        select(:client_id).distinct)
+          where(sh_t[:date].gt(date)).
+          select(:client_id).distinct)
     end
 
     scope :has_homeless_service_between_dates, ->(start_date: 31.days.ago, end_date: Date.current, include_extrapolated: true) do
@@ -909,7 +909,7 @@ module GrdaWarehouse::Hud
 
       destination.where(
         id: GrdaWarehouse::ServiceHistoryEnrollment.
-        with(most_recent_enrollments: most_recent_enrollment_scope).
+          with(most_recent_enrollments: most_recent_enrollment_scope).
           joins(join.join_sources, :enrollment).
           where(e_t[:DisablingCondition].eq(1)).
           select(:client_id),
@@ -2488,15 +2488,12 @@ module GrdaWarehouse::Hud
     end
 
     private def health_dependent_items
-      items = [
+      [
         Health::Patient,
         Health::HealthFile,
         Health::Tracing::Case,
         Health::Vaccination,
       ]
-      items << HealthFlexibleService::Vpr if RailsDrivers.loaded.include?(:health_flexible_service)
-
-      items
     end
 
     def force_full_service_history_rebuild
@@ -2872,7 +2869,6 @@ module GrdaWarehouse::Hud
     include CustomImportsBostonService::GrdaWarehouse::Hud::ClientExtension
     include EccoviaData::GrdaWarehouse::Hud::ClientExtension
     include Financial::GrdaWarehouse::Hud::ClientExtension
-    include HealthFlexibleService::GrdaWarehouse::Hud::ClientExtension
     include Hmis::GrdaWarehouse::Hud::ClientExtension
     include HmisCsvImporter::GrdaWarehouse::Hud::ClientExtension
     include HmisCsvTwentyTwenty::GrdaWarehouse::Hud::ClientExtension
