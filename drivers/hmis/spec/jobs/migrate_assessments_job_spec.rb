@@ -199,6 +199,39 @@ RSpec.describe Hmis::MigrateAssessmentsJob, type: :model do
           # MigrateAssessmentsJob cleared the stale reference
           expect(intake_assessment.reload.form_processor.employment_education).to be_nil
         end
+
+        it 'reconciles an existing annual (unique-by-information-date) assessment in place' do
+          # Annual (stage 5) assessments are matched on assessment_date == the records' information_date,
+          # so this exercises the unique_by_information_date key alignment (which intake tests do not exercise).
+          annual_date = 6.months.ago.to_date
+          annual_assessment = create(
+            :hmis_custom_assessment,
+            data_collection_stage: 5,
+            assessment_date: annual_date,
+            enrollment: e1,
+            data_source: ds1,
+            client: c1,
+          )
+          annual_assessment_id = annual_assessment.id
+          form_processor_id = annual_assessment.form_processor.id
+          expect(annual_assessment.form_processor.income_benefit).to be_nil
+
+          # Newly-available annual records sharing the assessment's information_date
+          annual_income_benefit = create(:hmis_income_benefit, data_source: ds1, enrollment: e1, client: c1, data_collection_stage: 5, information_date: annual_date)
+          annual_health_and_dv = create(:hmis_health_and_dv, data_source: ds1, enrollment: e1, client: c1, data_collection_stage: 5, information_date: annual_date)
+
+          Hmis::MigrateAssessmentsJob.perform_now(data_source_id: ds1.id, upsert: true)
+
+          # No duplicate annual was created, and the record ids are preserved
+          expect(e1.custom_assessments.where(data_collection_stage: 5).count).to eq(1)
+          annual_assessment.reload
+          expect(annual_assessment.id).to eq(annual_assessment_id) # unchanged
+          expect(annual_assessment.form_processor.id).to eq(form_processor_id) # unchanged
+
+          # The newly-available related records for the existing key are attached to the existing FormProcessor
+          expect(annual_assessment.form_processor.income_benefit).to eq(annual_income_benefit)
+          expect(annual_assessment.form_processor.health_and_dv).to eq(annual_health_and_dv)
+        end
       end
 
       context 'when there is an ExitDate and another record with earlier information date' do

@@ -33,22 +33,31 @@ module Hmis
       Hmis::Hud::Exit,
     ].freeze
 
+    # DisabilityType => FormProcessor FK column. A Disability record fans out into one of these
+    # columns based on its DisabilityType, so it's the one RELATED_RECORDS class that maps to
+    # more than one FormProcessor column.
+    DISABILITY_TYPE_FORM_PROCESSOR_COLUMNS = {
+      5 => :physical_disability_id,
+      6 => :developmental_disability_id,
+      7 => :chronic_health_condition_id,
+      8 => :hiv_aids_id,
+      9 => :mental_health_disorder_id,
+      10 => :substance_use_disorder_id,
+    }.freeze
+
     # FormProcessor FK columns owned by this migration. When `upsert` is enabled these are the
     # reference columns reconciled on an existing FormProcessor; all other non-HUD columns
     # (definition, custom data elements, values, etc.) are left untouched.
-    FORM_PROCESSOR_HUD_COLUMNS = [
-      :income_benefit_id,
-      :health_and_dv_id,
-      :employment_education_id,
-      :youth_education_status_id,
-      :physical_disability_id,
-      :developmental_disability_id,
-      :chronic_health_condition_id,
-      :hiv_aids_id,
-      :mental_health_disorder_id,
-      :substance_use_disorder_id,
-      :exit_id,
-    ].freeze
+    #
+    # Derived from RELATED_RECORDS (and the disability type mapping) so upsert behavior stays in sync
+    # with all related record types.
+    FORM_PROCESSOR_HUD_COLUMNS = RELATED_RECORDS.flat_map do |klass|
+      if klass == Hmis::Hud::Disability
+        DISABILITY_TYPE_FORM_PROCESSOR_COLUMNS.values
+      else
+        :"#{klass.name.demodulize.underscore}_id"
+      end
+    end.freeze
 
     # Construct CustomAssessment and FormProcessor records for Assessment-related records.
     # Can be run for an entire data source or for a set of projects.
@@ -427,22 +436,7 @@ module Hmis
 
       raise 'disability record without disability type' unless disability_type.present?
 
-      case disability_type
-      when 5
-        :physical_disability_id
-      when 6
-        :developmental_disability_id
-      when 7
-        :chronic_health_condition_id
-      when 8
-        :hiv_aids_id
-      when 9
-        :mental_health_disorder_id
-      when 10
-        :substance_use_disorder_id
-      else
-        raise "Disability type not found: #{disability_type}"
-      end
+      DISABILITY_TYPE_FORM_PROCESSOR_COLUMNS[disability_type] || raise("Disability type not found: #{disability_type}")
     end
 
     def merge_metadata(old_hash, values)
