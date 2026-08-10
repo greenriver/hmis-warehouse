@@ -435,8 +435,6 @@ RSpec.describe GrdaWarehouse::Tasks::IdentifyDuplicates, type: :model do
     split_client_id = destination_client.source_clients.last.id
     destination_client.split(
       [split_client_id],
-      destination_client.id,
-      destination_client.id,
       user,
     )
   end

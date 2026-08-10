@@ -8,15 +8,14 @@
 
 module GrdaWarehouse::WarehouseReports
   class ReportDefinition < GrdaWarehouseBase
+    # Column pending removal in a later deploy; see db/warehouse/migrate/20260804130000_remove_health_only_columns_from_warehouse.rb
+    self.ignored_columns = ['health'].freeze
+
     acts_as_paranoid
     has_many :group_viewable_entities, as: :entity, class_name: 'GrdaWarehouse::GroupViewableEntity'
 
     scope :enabled, -> do
       where(enabled: true)
-    end
-
-    scope :non_health, -> do
-      where(health: false)
     end
 
     # TODO: START_ACL cleanup after migration to ACLs
@@ -70,7 +69,6 @@ module GrdaWarehouse::WarehouseReports
           r.name = report[:name]
           r.description = report[:description]
           r.limitable = report[:limitable]
-          r.health = report[:health]
           r.save!
         end
       end
@@ -91,238 +89,204 @@ module GrdaWarehouse::WarehouseReports
             name: 'Potentially Chronic Clients',
             description: 'Disabled clients who are currently homeless and have been in a project at least 12 of the last 36 months.<br />Calculated using HMIS data.',
             limitable: false,
-            health: false,
           },
           {
             url: 'warehouse_reports/client_in_project_during_date_range',
             name: 'Clients in a project for a given date range',
             description: 'Who was enrolled at a specific project during a given time.',
             limitable: true,
-            health: false,
           },
           {
             url: 'warehouse_reports/hud_chronics',
             name: 'HUD Chronic',
             description: 'Clients who meet the HUD definition of Chronically Homeless as outlined in the HMIS Glossary.<br />Calculated using self-report data from entry assessments.',
             limitable: false,
-            health: false,
           },
           {
             url: 'warehouse_reports/first_time_homeless',
             name: 'First Time Homeless',
             description: 'Clients who first used residential services within a given date range.',
             limitable: true,
-            health: false,
           },
           {
             url: 'warehouse_reports/active_veterans',
             name: 'Active Veterans for a given date range',
             description: 'Find veterans who were homeless during a date range, limitable by project type.',
             limitable: true,
-            health: false,
           },
           {
             url: 'warehouse_reports/disabilities',
             name: 'Enrolled clients with selected disabilities',
             description: 'Find currently enrolled clients based on disabilities',
             limitable: true,
-            health: false,
           },
           {
             url: 'warehouse_reports/open_enrollments_no_service',
             name: 'Open Bed-Night Enrollments with No Recent Service',
             description: 'Client enrollments that may need to be closed.',
             limitable: true,
-            health: false,
           },
           {
             url: 'warehouse_reports/find_by_id',
             name: 'Bulk Find Client Details by ID',
             description: 'Lookup clients by warehouse ID. Useful for doing research outside of the warehouse and then reconnecting clients.',
             limitable: false,
-            health: false,
           },
           {
             url: 'warehouse_reports/chronic_housed',
             name: 'Clients Housed, Previously on the Chronic List',
             description: 'See who was housed in permanent housing after being on the chronic list.',
             limitable: false,
-            health: false,
           },
           {
             url: 'warehouse_reports/client_details/actives',
             name: 'Active Client Detail',
             description: 'Clients with service within a date range.',
             limitable: true,
-            health: false,
           },
           {
             url: 'warehouse_reports/client_details/entries',
             name: 'Client Entry Detail',
             description: 'Clients with entries into a project type within a date range.',
             limitable: true,
-            health: false,
           },
           {
             url: 'warehouse_reports/client_details/exits',
             name: 'Client Exit Detail',
             description: 'Clients with entries into a project type within a date range.',
             limitable: true,
-            health: false,
           },
           {
             url: 'warehouse_reports/expiring_consent',
             name: 'Expiring Consent',
             description: 'Clients whose consent form has expired or expires soon.',
             limitable: false,
-            health: false,
           },
           {
             url: 'warehouse_reports/touch_point_exports',
             name: 'Export Touch Points',
             description: 'Export CSVs of ETO TouchPoints.',
             limitable: false,
-            health: false,
           },
           {
             url: 'warehouse_reports/recidivism',
             name: 'Recidivism Report',
             description: 'Clients enrolled in PH who have service in ES or SO after the move-in-date.',
             limitable: false,
-            health: false,
           },
           {
             url: 'warehouse_reports/rrh',
             name: 'Rapid Rehousing Dashboard',
             description: 'Overview of RRH performance and data exploration.',
             limitable: true,
-            health: false,
           },
           {
             url: 'warehouse_reports/cohort_changes',
             name: 'Cohort Changes Report',
             description: 'Explore and download data related to changes in cohorts over time',
             limitable: false,
-            health: false,
           },
           {
             url: 'warehouse_reports/incomes',
             name: 'Client Incomes',
             description: 'Report client incomes and sources',
             limitable: false,
-            health: false,
           },
           {
             url: 'warehouse_reports/psh',
             name: 'Permanent Supportive Housing Dashboard',
             description: 'Overview of PSH performance and data exploration.',
             limitable: true,
-            health: false,
           },
           {
             url: 'warehouse_reports/youth_intakes',
             name: 'Homeless Youth Program Report',
             description: 'Summary counts of youth activity for state reporting.',
             limitable: true,
-            health: false,
           },
           {
             url: 'warehouse_reports/youth_activity',
             name: 'Youth Activity',
             description: 'Review data youth entered within a selected time period.',
             limitable: true,
-            health: false,
           },
           {
             url: 'warehouse_reports/enrolled_project_type',
             name: 'Enrollments per project type',
             description: 'A list of clients who were enrolled in a set of project types for a given date range.',
             limitable: true,
-            health: false,
           },
           {
             url: 'warehouse_reports/re_entry',
             name: 'Homelessness Re-Entry',
             description: 'Details on clients who returned to homelessness after a 60 day break.',
             limitable: true,
-            health: false,
           },
           {
             url: 'warehouse_reports/outflow',
             name: 'Client Outflow',
             description: 'Clients who exited homelessness, or who have no recent homeless service.',
             limitable: true,
-            health: false,
           },
           {
             url: 'warehouse_reports/youth_follow_ups',
             name: 'Homeless Youth Follow Up Report',
             description: 'Youth who require a three month follow up.',
             limitable: true,
-            health: false,
           },
           {
             url: 'warehouse_reports/dv_victim_service',
             name: 'DV Victim Service Report',
             description: 'Clients fleeing domestic violence.',
             limitable: true,
-            health: false,
           },
           {
             url: 'warehouse_reports/ce_assessments',
             name: 'CE Assessment Report',
             description: 'Coordinated Entry assessment details.',
             limitable: true,
-            health: false,
           },
           {
             url: 'warehouse_reports/overlapping_coc_utilization',
             name: 'Inter-CoC Client Overlap',
             description: 'Explore enrollments for CoCs with shared clients.',
             limitable: true,
-            health: false,
           },
           {
             url: 'warehouse_reports/time_homeless_for_exits',
             name: 'Average Length of Time Homeless for Housed Clients',
             description: 'Time spent homeless for clients exiting homeless within a date range.',
             limitable: true,
-            health: false,
           },
           {
             url: 'warehouse_reports/inactive_youth_intakes',
             name: 'Inactive Youth',
             description: 'Youth with an open intake and no case management activity in the given date range.',
             limitable: true,
-            health: false,
           },
           {
             url: 'client_matches',
             name: 'Process Duplicates',
             description: 'Merge identified possible duplicate clients.',
             limitable: false,
-            health: false,
           },
           {
             url: 'warehouse_reports/shelter',
             name: 'Emergency Shelter Dashboard',
             description: 'Overview of ES performance and data exploration.',
             limitable: true,
-            health: false,
           },
           {
             url: 'warehouse_reports/th',
             name: 'Transitional Housing Dashboard',
             description: 'Overview of TH performance and data exploration.',
             limitable: true,
-            health: false,
           },
           {
             url: 'warehouse_reports/client_lookups',
             name: 'Client PersonalID Lookup',
             description: 'Mapping table to translate warehouse IDs to HMIS Personal IDs',
             limitable: true,
-            health: false,
           },
         ],
         'Data Quality' => [
@@ -331,98 +295,84 @@ module GrdaWarehouse::WarehouseReports
             name: 'Missing Projects ',
             description: "Shows Project IDs for enrollment records where the project isn't in the source data.",
             limitable: false,
-            health: false,
           },
           {
             url: 'warehouse_reports/future_enrollments',
             name: 'Clients with future enrollments',
             description: 'List any clients who have enrollments in the future.',
             limitable: true,
-            health: false,
           },
           {
             url: 'warehouse_reports/entry_exit_service',
             name: 'Clients with Single Day Enrollments with Services',
             description: 'Clients who received services for one-day enrollments in housing related projects.',
             limitable: true,
-            health: false,
           },
           {
             url: 'warehouse_reports/missing_values',
             name: 'Missing values in HUD tables',
             description: 'Find the frequency of missing values in HUD Client and Enrollment tables.',
             limitable: true,
-            health: false,
           },
           {
             url: 'warehouse_reports/dob_entry_same',
             name: 'DOB = Entry date',
             description: 'List clients whose first entry date is on their birthdate.',
             limitable: true,
-            health: false,
           },
           {
             url: 'warehouse_reports/long_standing_clients',
             name: 'Long Standing Clients',
             description: 'List clients who have been enrolled in an emergency shelter for a given number of years.',
             limitable: true,
-            health: false,
           },
           {
             url: 'warehouse_reports/bed_utilization',
             name: 'Bed Utilization',
             description: 'Bed utilization within the programs of an organization.',
             limitable: true,
-            health: false,
           },
           {
             url: 'warehouse_reports/project/data_quality',
             name: 'Project Data Quality',
             description: 'A comprehensive view into the details of how well projects meet various data quality goals.',
             limitable: true,
-            health: false,
           },
           {
             url: 'warehouse_reports/non_alpha_names',
             name: 'Client with odd characters in their names',
             description: 'List clients whose first or last name starts with a non-alphabetic character.',
             limitable: false,
-            health: false,
           },
           {
             url: 'warehouse_reports/really_old_enrollments',
             name: 'Really Old Enrollments',
             description: 'List clients who have enrollments prior to 1980.',
             limitable: true,
-            health: false,
           },
           {
             url: 'warehouse_reports/length_of_stay',
             name: 'Currently enrolled clients with length of stay',
             description: 'The length of stay per program of currently enrolled clients aggregated by time interval.',
             limitable: true,
-            health: false,
           },
           {
             url: 'warehouse_reports/anomalies',
             name: 'Client Anomalies',
             description: 'Reported anomalies and their status.',
             limitable: true,
-            health: false,
           },
           {
             url: 'warehouse_reports/conflicting_client_attributes',
             name: 'Clients with Conflicting Reported Attributes',
             description: 'Identify clients whose source record attributes differ between data sources.',
             limitable: true,
-            health: false,
           },
           {
             url: 'override_summary/warehouse_reports/reports',
             name: 'Override Summary',
             description: 'Track and download all inventory related items that are overridden.',
             limitable: true,
-            health: false,
           },
         ],
         'CAS' => [
@@ -431,91 +381,78 @@ module GrdaWarehouse::WarehouseReports
             name: 'Non-HMIS to Warehouse Clients',
             description: 'Mapping of Non-HMIS to Warehouse Clients',
             limitable: false,
-            health: false,
           },
           {
             url: 'warehouse_reports/manage_cas_flags',
             name: 'Manage CAS Flags',
             description: 'Use this report to bulk update <b>available in cas, disability verification on file, and HAN release on file</b>',
             limitable: false,
-            health: false,
           },
           {
             url: 'warehouse_reports/cas/chronic_reconciliation',
             name: 'Chronic Reconciliation',
             description: 'See who is available in CAS but not on the chronic list, and who is not available in CAS, but is on the chronic list.',
             limitable: false,
-            health: false,
           },
           {
             url: 'warehouse_reports/cas/decision_efficiency',
             name: 'Decision Efficiency',
             description: 'Shows how quickly clients move through CAS steps.',
             limitable: false,
-            health: false,
           },
           {
             url: 'warehouse_reports/cas/canceled_matches',
             name: 'Canceled Matches',
             description: 'See when matches were canceled and who was involved.',
             limitable: false,
-            health: false,
           },
           {
             url: 'warehouse_reports/cas/decline_reason',
             name: 'Decline Reason',
             description: 'Why CAS matches were declined.',
             limitable: false,
-            health: false,
           },
           {
             url: 'warehouse_reports/consent',
             name: 'Consent Processing',
             description: 'Review and process consent and disability forms for potentially CAS ready clients.',
             limitable: false,
-            health: false,
           },
           {
             url: 'warehouse_reports/cas/process',
             name: 'Match Process',
             description: 'Export of time between steps',
             limitable: false,
-            health: false,
           },
           {
             url: 'warehouse_reports/cas/apr',
             name: 'CAS APR',
             description: 'High-level counts of CAS activity for a date range',
             limitable: false,
-            health: false,
           },
           {
             url: 'warehouse_reports/cas/vacancies',
             name: 'CAS Vacancies',
             description: 'CAS vacancies for a given date range',
             limitable: true,
-            health: false,
           },
           {
             url: 'warehouse_reports/cas/rrh_desired',
             name: 'Clients Interested in RRH',
             description: 'Who has indicated interest in RRH but does not yet have any consent on file',
             limitable: false,
-            health: false,
           },
           {
             url: 'warehouse_reports/cas/ce_assessments',
             name: 'Coordinated-Entry Assessment Status',
             description: Translation.translate('Find clients who need a Coordinated Entry re-assessment.'),
             limitable: true,
-            health: false,
           },
           {
             url: 'warehouse_reports/cas/health_prioritization',
             name: 'Health Prioritization',
             description: Translation.translate('Bulk set Health Prioritization for CAS.'),
             limitable: true,
-            health: false,
           },
         ],
         'Audit' => [
@@ -524,21 +461,18 @@ module GrdaWarehouse::WarehouseReports
             name: 'Agency User Audit Report',
             description: 'Report recent warehouse activity by agency users',
             limitable: false,
-            health: false,
           },
           {
             url: 'audit_reports/user_login',
             name: 'User Login Report',
             description: 'Report most recent logins by users',
             limitable: false,
-            health: false,
           },
           {
             url: 'access_logs/warehouse_reports/reports',
             name: 'User Access Logs',
             description: 'Download access logs for offline analysis',
             limitable: false,
-            health: false,
           },
         ],
         'Performance' => [
@@ -547,21 +481,18 @@ module GrdaWarehouse::WarehouseReports
             name: 'Client Performance',
             description: 'Overview of warehouse performance.',
             limitable: true,
-            health: false,
           },
           # {
           #   url: 'performance_dashboards/household',
           #   name: 'Household Performance',
           #   description: 'Overview of warehouse performance.',
           #   limitable: true,
-          #   health: false,
           # },
           {
             url: 'performance_dashboards/project_type',
             name: 'Project Type Performance',
             description: 'Performance by project type.',
             limitable: true,
-            health: false,
           },
         ],
         'Health Emergency' => [
@@ -570,28 +501,24 @@ module GrdaWarehouse::WarehouseReports
             name: 'Testing Results',
             description: 'Review testing results.',
             limitable: false,
-            health: false,
           },
           {
             url: 'warehouse_reports/health_emergency/vaccinations',
             name: 'Vaccinations',
             description: 'Review vaccinations.',
             limitable: false,
-            health: false,
           },
           {
             url: 'warehouse_reports/health_emergency/medical_restrictions',
             name: 'Active Medical Restrictions',
             description: 'List active medical restrictions.',
             limitable: false,
-            health: false,
           },
           {
             url: 'warehouse_reports/health_emergency/uploaded_results',
             name: 'Upload Test Results',
             description: 'Upload and batch add test results to clients.',
             limitable: false,
-            health: false,
           },
         ],
         'Exports' => [
@@ -600,56 +527,48 @@ module GrdaWarehouse::WarehouseReports
             name: 'HUD HMIS CSV Exports',
             description: 'Export data in the HUD standard CSV format.',
             limitable: true,
-            health: false,
           },
           {
             url: 'warehouse_reports/hashed_only_hmis_exports',
             name: 'HUD HMIS CSV Exports (Hashed Only)',
             description: 'Export data in the HUD HMIS exchange format with PII hashed',
             limitable: true,
-            health: false,
           },
           {
             url: 'warehouse_reports/youth_export',
             name: 'Youth Export',
             description: 'Youth data for a given time frame',
             limitable: false,
-            health: false,
           },
           {
             url: 'warehouse_reports/youth_intake_export',
             name: 'Youth Intake Export',
             description: 'Export youth intake and associated data for a given time frame',
             limitable: false,
-            health: false,
           },
           {
             url: 'warehouse_reports/ad_hoc_analysis',
             name: 'Ad-Hoc Analysis Export',
             description: 'Export data for offline analysis',
             limitable: true,
-            health: false,
           },
           {
             url: 'warehouse_reports/ad_hoc_anon_analysis',
             name: 'Ad-Hoc Analysis Export (De-identified)',
             description: 'Export data for offline analysis, client names and ids removed',
             limitable: true,
-            health: false,
           },
           {
             url: 'warehouse_reports/hmis_cross_walks',
             name: 'HMIS Cross-walk',
             description: 'Export lookup tables for warehouse record ids to HMIS ids.',
             limitable: true,
-            health: false,
           },
           {
             url: 'warehouse_reports/export_covid_impact_assessments',
             name: 'COVID-19 Impact Assessment Export',
             description: 'Export Data from ETO COVID-19 impact assessments',
             limitable: true,
-            health: false,
           },
         ],
         'Census' => [
@@ -658,7 +577,6 @@ module GrdaWarehouse::WarehouseReports
             name: 'Nightly Census',
             description: 'Daily utilization charts for projects and residential project types.',
             limitable: true,
-            health: false,
           },
         ],
         'Population Dashboards' => [],
@@ -669,7 +587,6 @@ module GrdaWarehouse::WarehouseReports
           name: 'MA Homeless Youth Program Report',
           description: 'Downloadable MA YYA report.',
           limitable: true,
-          health: false,
         }
       end
       if RailsDrivers.loaded.include?(:ma_yya_followup_report)
@@ -678,7 +595,6 @@ module GrdaWarehouse::WarehouseReports
           name: 'MA Homeless Youth Follow Up Report',
           description: 'Youth who require a three month follow up.',
           limitable: true,
-          health: false,
         }
       end
       if RailsDrivers.loaded.include?(:service_scanning)
@@ -687,7 +603,6 @@ module GrdaWarehouse::WarehouseReports
           name: Translation.translate('Scanned Services'),
           description: 'Pull a list of services added within a date range',
           limitable: true,
-          health: false,
         }
       end
       if RailsDrivers.loaded.include?(:core_demographics_report)
@@ -696,14 +611,12 @@ module GrdaWarehouse::WarehouseReports
           name: 'Core Demographics',
           description: 'Summary data for client demographics across an arbitrary universe.',
           limitable: true,
-          health: false,
         }
         r_list['Operational'] << {
           url: 'core_demographics_report/warehouse_reports/demographic_summary',
           name: 'Demographic Summary',
           description: 'Summary data for client demographics across an arbitrary universe with basic outcome and recidivism sections.',
           limitable: true,
-          health: false,
         }
       end
       if RailsDrivers.loaded.include?(:boston_reports)
@@ -712,21 +625,18 @@ module GrdaWarehouse::WarehouseReports
           name: Translation.translate('Street to Home'),
           description: 'Boston-specific report to track progress for the Street to Home initiative',
           limitable: false,
-          health: false,
         }
         r_list['Performance'] << {
           url: 'boston_reports/warehouse_reports/configs',
           name: Translation.translate('Boston Reports Configuration'),
           description: 'Report configuration for Boston-specific reports',
           limitable: false,
-          health: false,
         }
         r_list['Performance'] << {
           url: 'boston_reports/warehouse_reports/community_of_origins',
           name: Translation.translate('Community of Origin'),
           description: 'Summary information and maps covering client communities of origin.',
           limitable: true,
-          health: false,
         }
       end
       if RailsDrivers.loaded.include?(:project_scorecard)
@@ -735,7 +645,6 @@ module GrdaWarehouse::WarehouseReports
           name: 'Project Scorecard',
           description: 'Instrument for evaluating project performance.',
           limitable: true,
-          health: false,
         }
       end
       if RailsDrivers.loaded.include?(:boston_project_scorecard)
@@ -744,7 +653,6 @@ module GrdaWarehouse::WarehouseReports
           name: 'Boston Project Scorecard',
           description: 'Instrument for evaluating project performance.',
           limitable: true,
-          health: false,
         }
       end
       if RailsDrivers.loaded.include?(:project_pass_fail)
@@ -753,7 +661,6 @@ module GrdaWarehouse::WarehouseReports
           name: 'Project Pass Fail',
           description: 'Investigate data quality issues for projects',
           limitable: true,
-          health: false,
         }
       end
       if RailsDrivers.loaded.include?(:prior_living_situation)
@@ -762,7 +669,6 @@ module GrdaWarehouse::WarehouseReports
           name: 'Prior Living Situation Breakdowns',
           description: 'Details of Prior Living Situation at Entry (3.917)',
           limitable: true,
-          health: false,
         }
       end
       if RailsDrivers.loaded.include?(:destination_report)
@@ -771,7 +677,6 @@ module GrdaWarehouse::WarehouseReports
           name: 'Destination Breakdowns',
           description: 'Details of Destination at Exit (3.12.1)',
           limitable: true,
-          health: false,
         }
       end
       if RailsDrivers.loaded.include?(:data_source_report)
@@ -780,7 +685,6 @@ module GrdaWarehouse::WarehouseReports
           name: 'Data Source Report',
           description: 'Status and details of HMIS source data',
           limitable: true,
-          health: false,
         }
       end
       if RailsDrivers.loaded.include?(:user_permission_report)
@@ -789,7 +693,6 @@ module GrdaWarehouse::WarehouseReports
           name: 'User Permission Report',
           description: 'Summary of active users and their functional permissions',
           limitable: false,
-          health: false,
         }
       end
       if RailsDrivers.loaded.include?(:user_directory_report)
@@ -798,7 +701,6 @@ module GrdaWarehouse::WarehouseReports
           name: 'User Directory Report',
           description: 'List of users by name, email, phone and agency',
           limitable: false,
-          health: false,
         }
       end
       if RailsDrivers.loaded.include?(:disability_summary)
@@ -807,7 +709,6 @@ module GrdaWarehouse::WarehouseReports
           name: 'Disability Summary',
           description: 'Details of client disabilities by CoC',
           limitable: true,
-          health: false,
         }
       end
       if RailsDrivers.loaded.include?(:performance_metrics)
@@ -816,7 +717,6 @@ module GrdaWarehouse::WarehouseReports
           name: 'Performance Metrics',
           description: 'Various high-level metrics for selected universe',
           limitable: true,
-          health: false,
         }
       end
       if RailsDrivers.loaded.include?(:performance_measurement)
@@ -825,14 +725,12 @@ module GrdaWarehouse::WarehouseReports
           name: 'CoC Performance Measurement Dashboard',
           description: 'Identify and track performance toward rare, brief, and non-recurring homelessness system-wide',
           limitable: true,
-          health: false,
         }
         r_list['Performance'] << {
           url: 'performance_measurement/warehouse_reports/goal_configs',
           name: 'CoC Performance Measurement Goal Configurator',
           description: 'Set per-CoC Performance Measurement Goals',
           limitable: false,
-          health: false,
         }
       end
       if RailsDrivers.loaded.include?(:longitudinal_spm)
@@ -841,7 +739,6 @@ module GrdaWarehouse::WarehouseReports
           name: 'Longitudinal System Performance Measurement',
           description: 'Compare quarterly System Performance Measurement Reports for length of time homeless, returns to homelessness, and successful placements.',
           limitable: true,
-          health: false,
         }
       end
       if RailsDrivers.loaded.include?(:homeless_summary_report)
@@ -850,7 +747,6 @@ module GrdaWarehouse::WarehouseReports
           name: 'System Performance Measures by Sub-Population',
           description: 'A summary of SPMs 1, 2, and 7 with sub-population and demographic details',
           limitable: true,
-          health: false,
         }
       end
       if RailsDrivers.loaded.include?(:text_message)
@@ -859,7 +755,6 @@ module GrdaWarehouse::WarehouseReports
           name: 'Text Message Queue Review',
           description: 'Insight into pending and sent Text Messages',
           limitable: false,
-          health: false,
         }
       end
       if RailsDrivers.loaded.include?(:census_tracking)
@@ -868,7 +763,6 @@ module GrdaWarehouse::WarehouseReports
           name: 'Census Tracking Worksheet',
           description: 'Breakdown of PIT Census data for chosen date',
           limitable: true,
-          health: false,
         }
       end
       if RailsDrivers.loaded.include?(:hap_report)
@@ -877,7 +771,6 @@ module GrdaWarehouse::WarehouseReports
           name: 'HAP Report',
           description: 'Pennsylvania Homeless Assistance Program Report',
           limitable: true,
-          health: false,
         }
       end
       if RailsDrivers.loaded.include?(:tx_client_reports)
@@ -886,14 +779,12 @@ module GrdaWarehouse::WarehouseReports
           name: 'Attachment III - Client Data Report',
           description: 'Attachment III - Client Data Report',
           limitable: true,
-          health: false,
         }
         r_list['Exports'] << {
           url: 'tx_client_reports/warehouse_reports/research_exports',
           name: Translation.translate('Offline Research Export'),
           description: 'Download enrollment data for offline research.',
           limitable: true,
-          health: false,
         }
       end
       if RailsDrivers.loaded.include?(:client_documents_report)
@@ -902,7 +793,6 @@ module GrdaWarehouse::WarehouseReports
           name: 'Client Documents Report',
           description: 'Identify clients who have or are missing files or documents.',
           limitable: true,
-          health: false,
         }
       end
       if RailsDrivers.loaded.include?(:inactive_client_report)
@@ -911,7 +801,6 @@ module GrdaWarehouse::WarehouseReports
           name: Translation.translate('Client Activity Report'),
           description: 'Identify clients who are enrolled but have not had recent contact with the homeless side of HMIS.',
           limitable: true,
-          health: false,
         }
       end
 
@@ -924,56 +813,48 @@ module GrdaWarehouse::WarehouseReports
             name: 'Point-in-Time Report Generator',
             description: 'Use this to review and publish Point-in-Time charts for public consumption.',
             limitable: true,
-            health: false,
           }
           r_list['Public'] << {
             url: 'public_reports/warehouse_reports/pit_by_month',
             name: 'Point-in-Time by Month Report Generator',
             description: 'Use this to review and publish Point-in-Time by month charts for public consumption.',
             limitable: true,
-            health: false,
           }
           r_list['Public'] << {
             url: 'public_reports/warehouse_reports/public_configs',
             name: 'Public Report Configuration',
             description: 'Settings for colors, fonts, etc. related to reports which can be published publicly.',
             limitable: false,
-            health: false,
           }
           r_list['Public'] << {
             url: 'public_reports/warehouse_reports/number_housed',
             name: 'Number Housed Report Generator',
             description: 'Use this to review and publish the number of clients housed for public consumption.',
             limitable: true,
-            health: false,
           }
           r_list['Public'] << {
             url: 'public_reports/warehouse_reports/homeless_count',
             name: 'Number Homeless Report Generator',
             description: 'Use this to review and publish the number of homeless clients for public consumption.',
             limitable: true,
-            health: false,
           }
           r_list['Public'] << {
             url: 'public_reports/warehouse_reports/homeless_count_comparison',
             name: 'Percent Homeless Comparison Report Generator',
             description: 'Use this to review and publish the change of homeless clients for public consumption.',
             limitable: true,
-            health: false,
           }
           r_list['Public'] << {
             url: 'public_reports/warehouse_reports/homeless_populations',
             name: 'Homeless Populations Report Generator',
             description: 'Use this to review and publish the homeless population report for public consumption.',
             limitable: true,
-            health: false,
           }
           r_list['Public'] << {
             url: 'public_reports/warehouse_reports/state_level_homelessness',
             name: 'State-Level Homelessness Report Generator',
             description: 'Review and publish the state-level homelessness report for public consumption.',
             limitable: true,
-            health: false,
           }
         end
       end
@@ -983,7 +864,6 @@ module GrdaWarehouse::WarehouseReports
           name: 'Adult only Households',
           description: 'Clients enrolled in homeless projects (ES, SH, SO, TH) where the household has at least one adult (18+) and no children (less than 18).',
           limitable: true,
-          health: false,
         }
       end
       if RailsDrivers.loaded.include?(:adults_with_children_sub_pop)
@@ -992,7 +872,6 @@ module GrdaWarehouse::WarehouseReports
           name: 'Adult and Child Households',
           description: 'Clients enrolled in homeless projects (ES, SH, SO, TH) where the household has at least one adult (18+) and one child (less than 18).',
           limitable: true,
-          health: false,
         }
       end
       if RailsDrivers.loaded.include?(:child_only_households_sub_pop)
@@ -1001,7 +880,6 @@ module GrdaWarehouse::WarehouseReports
           name: 'Child only Households',
           description: 'Clients enrolled in homeless projects (ES, SH, SO, TH) where the household has at least one child (less than 18) and no adults (+ 18).',
           limitable: true,
-          health: false,
         }
       end
       if RailsDrivers.loaded.include?(:clients_sub_pop)
@@ -1010,7 +888,6 @@ module GrdaWarehouse::WarehouseReports
           name: 'All Clients',
           description: 'Clients enrolled in homeless projects (ES, SH, SO, TH).',
           limitable: true,
-          health: false,
         }
       end
       if RailsDrivers.loaded.include?(:non_veterans_sub_pop)
@@ -1019,7 +896,6 @@ module GrdaWarehouse::WarehouseReports
           name: 'Non-Veteran',
           description: 'Clients enrolled in homeless projects (ES, SH, SO, TH) where the client is not a veteran.',
           limitable: true,
-          health: false,
         }
       end
       if RailsDrivers.loaded.include?(:veterans_sub_pop)
@@ -1028,7 +904,6 @@ module GrdaWarehouse::WarehouseReports
           name: 'Veteran',
           description: 'Veteran clients enrolled in homeless projects (ES, SH, SO, TH).',
           limitable: true,
-          health: false,
         }
       end
       if RailsDrivers.loaded.include?(:income_benefits_report)
@@ -1037,7 +912,6 @@ module GrdaWarehouse::WarehouseReports
           name: 'Income, Non-Cash Benefits, Health Insurance Report',
           description: 'Performance indicators and aggregate statistics for income, benefits, and health insurance from HMIS data.',
           limitable: true,
-          health: false,
         }
       end
       if RailsDrivers.loaded.include?(:client_location_history)
@@ -1046,7 +920,6 @@ module GrdaWarehouse::WarehouseReports
           name: 'Client Contact Locations',
           description: 'A map of the most recent client locations.',
           limitable: true,
-          health: false,
         }
       end
       if RailsDrivers.loaded.include?(:analysis_tool)
@@ -1055,7 +928,6 @@ module GrdaWarehouse::WarehouseReports
           name: 'Analysis Tool',
           description: 'Cross cut client data by known categories',
           limitable: true,
-          health: false,
         }
       end
       if RailsDrivers.loaded.include?(:start_date_dq)
@@ -1064,7 +936,6 @@ module GrdaWarehouse::WarehouseReports
           name: 'Date Homelessness Started',
           description: 'View differences between the client\'s self-reported date homelessness started (DateToStreetESSH) and the enrollment entry date.',
           limitable: true,
-          health: false,
         }
       end
       if RailsDrivers.loaded.include?(:built_for_zero_report)
@@ -1073,7 +944,6 @@ module GrdaWarehouse::WarehouseReports
           name: Translation.translate('Built For Zero Monthly Report'),
           description: 'Generate Built For Zero monthly reporting information',
           limitable: false,
-          health: false,
         }
       end
       if RailsDrivers.loaded.include?(:ce_performance)
@@ -1082,14 +952,12 @@ module GrdaWarehouse::WarehouseReports
           name: Translation.translate('Coordinated Entry Performance'),
           description: Translation.translate('A tool to track performance and utilization of Coordinated Entry resources.'),
           limitable: true,
-          health: false,
         }
         r_list['Performance'] << {
           url: 'ce_performance/warehouse_reports/goal_configs',
           name: 'Coordinated Entry Performance Goal Configurator',
           description: 'Set per-CoC Coordinated Entry Performance Measurement Goals',
           limitable: false,
-          health: false,
         }
       end
       if RailsDrivers.loaded.include?(:hmis_data_quality_tool)
@@ -1098,14 +966,12 @@ module GrdaWarehouse::WarehouseReports
           name: HmisDataQualityTool::Report.new.title,
           description: HmisDataQualityTool::Report.new.description,
           limitable: true,
-          health: false,
         }
         r_list['Data Quality'] << {
           url: 'hmis_data_quality_tool/warehouse_reports/goal_configs',
           name: "#{HmisDataQualityTool::Report.new.title} Configurator",
           description: 'Set per-CoC HMIS Data Quality Goals',
           limitable: false,
-          health: false,
         }
       end
       if RailsDrivers.loaded.include?(:ma_reports)
@@ -1114,7 +980,6 @@ module GrdaWarehouse::WarehouseReports
           name: 'Project Utilization by Month',
           description: 'Includes monthly breakdowns of enrollment and inventory counts by project, and CoC.  Additionally, summary demographic data for report range',
           limitable: true,
-          health: false,
         }
       end
 
@@ -1124,7 +989,6 @@ module GrdaWarehouse::WarehouseReports
           name: 'System Pathways',
           description: 'A tool to look at client pathways through the continuum including some equity analysis.',
           limitable: true,
-          health: false,
         }
       end
 
@@ -1134,7 +998,6 @@ module GrdaWarehouse::WarehouseReports
           name: 'All Neighbors System Dashboard',
           description: 'Collin and Dallas County TX All Neighbors System Dashboard',
           limitable: true,
-          health: false,
         }
       end
       if RailsDrivers.loaded.include?(:zip_code_report)
@@ -1143,7 +1006,6 @@ module GrdaWarehouse::WarehouseReports
           name: 'Zip Code Report',
           description: 'Identify the number of clients and households within each zip code.',
           limitable: true,
-          health: false,
         }
       end
 
@@ -1154,7 +1016,6 @@ module GrdaWarehouse::WarehouseReports
           name: 'Launch OP Analytics (Superset)',
           description: 'An integration with the Apache Superset business intelligence tool.',
           limitable: true,
-          health: false,
         }
       end
 

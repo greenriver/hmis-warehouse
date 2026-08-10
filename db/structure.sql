@@ -1150,7 +1150,8 @@ CREATE TABLE public.idp_service_configs (
     active boolean DEFAULT true NOT NULL,
     deleted_at timestamp(6) without time zone,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    skip_ssl_verification boolean DEFAULT false NOT NULL
 );
 
 
@@ -2482,7 +2483,6 @@ CREATE TABLE public.users (
     exclude_from_directory boolean DEFAULT false,
     exclude_phone_from_directory boolean DEFAULT false,
     notify_on_new_account boolean DEFAULT false NOT NULL,
-    credentials character varying,
     hmis_unique_session_id character varying,
     permission_context character varying DEFAULT 'role_based'::character varying,
     superset_roles jsonb DEFAULT '[]'::jsonb,
@@ -4250,6 +4250,7 @@ ALTER TABLE ONLY public.oauth_access_tokens
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260805120000'),
 ('20260715120000'),
 ('20260620000000'),
 ('20260614130000'),

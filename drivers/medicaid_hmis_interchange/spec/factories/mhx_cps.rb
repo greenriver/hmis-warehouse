@@ -26,9 +26,4 @@ FactoryBot.define do
     zip { '05301' }
     ein { '999999999' }
   end
-
-  factory :receiver, class: 'Health::Cp' do
-    pid { '110999999' }
-    sl { 'B' }
-  end
 end

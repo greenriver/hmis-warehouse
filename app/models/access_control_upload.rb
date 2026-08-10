@@ -325,7 +325,7 @@ class AccessControlUpload < ApplicationRecord
 
   private def titles
     @titles ||= [].tap do |h|
-      Role.permissions(exclude_health: true).count.times do |i|
+      Role.permissions.count.times do |i|
         title = roles_worksheet[1][2 + i]&.value
         h << title if title.present?
       end
@@ -334,7 +334,7 @@ class AccessControlUpload < ApplicationRecord
 
   private def permissions_for_row(row, existing_role)
     {}.tap do |p|
-      Role.permissions(exclude_health: true).count.times do |i|
+      Role.permissions.count.times do |i|
         title = titles[i]
         value = case row[2 + i]&.value&.strip&.presence
         when /\A(?:x|y|yes|true)\z/i

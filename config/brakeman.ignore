@@ -24,40 +24,6 @@
       "note": ""
     },
     {
-      "warning_type": "Cross-Site Scripting",
-      "warning_code": 2,
-      "fingerprint": "038bcd60acffeb30ca826c9b5f82d7628089aec25339d562440efa0b130911ca",
-      "check_name": "CrossSiteScripting",
-      "message": "Unescaped model attribute",
-      "file": "drivers/health_pctp/app/views/health_pctp/careplans/edit_pdf.haml",
-      "line": 14,
-      "link": "https://brakemanscanner.org/docs/warning_types/cross_site_scripting",
-      "code": "Health::Patient.viewable_by_user(current_user).find_by(:client_id => params[:client_id].to_i).pctps.find(params[:id]).enrollee_overview_label",
-      "render_path": [
-        {
-          "type": "controller",
-          "class": "HealthPctp::CareplansController",
-          "method": "edit",
-          "line": 36,
-          "file": "drivers/health_pctp/app/controllers/health_pctp/careplans_controller.rb",
-          "rendered": {
-            "name": "health_pctp/careplans/edit_pdf",
-            "file": "drivers/health_pctp/app/views/health_pctp/careplans/edit_pdf.haml"
-          }
-        }
-      ],
-      "location": {
-        "type": "template",
-        "template": "health_pctp/careplans/edit_pdf"
-      },
-      "user_input": null,
-      "confidence": "High",
-      "cwe_id": [
-        79
-      ],
-      "note": ""
-    },
-    {
       "warning_type": "HTTP Verb Confusion",
       "warning_code": 118,
       "fingerprint": "05a3960f7236c0da86510f0fb7338b584ba226de1b321eaefe4ef493408c38dc",

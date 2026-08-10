@@ -6,6 +6,10 @@
 
 # frozen_string_literal: true
 
-module Health
-  class MedicaidIdConflict < StandardError; end
+class RemoveCredentialsFromUsers < ActiveRecord::Migration[7.2]
+  def change
+    safety_assured do
+      remove_column :users, :credentials, :string
+    end
+  end
 end
