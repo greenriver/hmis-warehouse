@@ -187,6 +187,24 @@ RSpec.describe GrdaWarehouse::Cohort, type: :model do
         expect(GrdaWarehouse::Cohort.viewable_by(acl_user, permission: :can_view_client_name).pluck(:id)).to contain_exactly(target_cohort.id)
       end
     end
+
+    context 'when passed an array of permissions' do
+      let!(:other_permission_role) { create(:cohort_client_viewer, can_view_cohorts: false, can_manage_cohort_data: true) }
+      let!(:other_permission_collection) { create :collection, collection_type: 'Cohorts' }
+
+      before do
+        other_permission_collection.set_viewables({ cohorts: [target_cohort.id] })
+        setup_access_control(acl_user, other_permission_role, other_permission_collection)
+      end
+
+      it 'includes the cohort when the granting role matches any permission in the array' do
+        expect(GrdaWarehouse::Cohort.viewable_by(acl_user, permission: [:can_view_cohorts, :can_manage_cohort_data]).pluck(:id)).to contain_exactly(target_cohort.id)
+      end
+
+      it 'excludes the cohort when checking only a permission the granting role lacks' do
+        expect(GrdaWarehouse::Cohort.viewable_by(acl_user, permission: :can_view_cohorts).pluck(:id)).to be_empty
+      end
+    end
   end
 
   describe '#owner_name' do
