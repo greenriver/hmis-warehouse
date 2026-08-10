@@ -11,7 +11,7 @@ if ENV['OKTA_DOMAIN'].present?
   # Make sure that https://nvd.nist.gov/vuln/detail/CVE-2015-9284 is mitigated
   # Devise-only: the okta callback route is declared inside the `devise_scope :user` block, so it
   # is not mounted under jwt, where the IdP owns federated sign-in.
-  RSpec.describe Users::OmniauthCallbacksController, :devise_only, type: :request do
+  RSpec.describe 'Users::OmniauthCallbacksController', :devise_only, type: :request do
     describe 'GET /users/auth/:provider protects against CVE-2015-9284' do
       it do
         get '/users/auth/okta'
