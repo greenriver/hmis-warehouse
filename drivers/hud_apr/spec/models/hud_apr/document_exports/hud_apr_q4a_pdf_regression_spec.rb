@@ -70,10 +70,7 @@ RSpec.describe 'Q4a survives real PDF rendering', type: :model, exclude_fixpoint
   end
 
   it 'renders a real PDF where all Q4a columns (A through Q) survive, in order' do
-    ActionController::Renderer::RACK_KEY_TRANSLATION['warden'] ||= 'warden'
-    renderer = HudApr::AprsController.renderer.new(
-      'warden' => PdfGenerator.warden_proxy(user),
-    )
+    renderer = HudApr::AprsController.renderer.new(WardenProxyFactory.renderer_env(user))
     html = renderer.render(
       'hud_reports/download',
       layout: 'layouts/hud_report_export',
