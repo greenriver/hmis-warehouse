@@ -41,8 +41,10 @@ module Types
     # differentiate them; the limited-details case is included so that users who can only see that
     # the enrollments exist still get the full membership.
     def household_clients
-      # preload_enrollment_restrictions(enrollments)
-      # current_user.policy_context.preload_project_dependencies(enrollments.map(&:project_pk))
+      # Needed when a single household is resolved directly; a no-op when the households field
+      # already preloaded the page.
+      current_user.policy_context.preload_enrollment_restrictions(enrollments.map(&:id))
+      current_user.policy_context.preload_project_dependencies(enrollments.map(&:project_pk))
 
       enrollments.filter_map do |enrollment|
         policy = current_user.policy_for(enrollment, policy_type: :hmis_enrollment)

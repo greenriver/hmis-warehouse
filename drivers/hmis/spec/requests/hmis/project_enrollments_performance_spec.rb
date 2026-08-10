@@ -166,7 +166,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect do
         _, result = post_graphql(**variables) { query }
         expect(result.dig('data', 'project', 'enrollments', 'nodes').size).to eq(enrollments.size), result.inspect
-      end.to make_database_queries(count: 10..30)
+      end.to make_database_queries(count: 10..35)
     end
 
     it 'is responsive' do
@@ -188,7 +188,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           response, result = post_graphql(**adjusted_variables) { query }
           expect(response.status).to eq(200), result.inspect
           expect(result.dig('data', 'project', 'enrollments', 'nodes').size).to eq(enrollments.size)
-        end.to make_database_queries(count: 10..35)
+        end.to make_database_queries(count: 10..45)
       end
     end
   end

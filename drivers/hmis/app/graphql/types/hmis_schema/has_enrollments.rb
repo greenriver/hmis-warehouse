@@ -28,6 +28,9 @@ module Types
               # Preload project dependencies to avoid N+1 queries when invoking HmisEnrollmentPolicy
               # across a set of Enrollments that span multiple projects.
               ctx[:current_user].policy_context.preload_project_dependencies(nodes.map(&:project_pk))
+              # Every HmisEnrollmentPolicy permission resolves whether the enrollment's client is a
+              # restricted client hidden from this user.
+              ctx[:current_user].policy_context.preload_enrollment_restrictions(nodes.map(&:id))
             },
           }
           field_options = default_field_options.merge(override_options)
@@ -47,7 +50,15 @@ module Types
       private
 
       def scoped_enrollments(scope, sort_order: :most_recent, filters: nil, dangerous_skip_permission_check: false)
-        scope = scope.viewable_by(current_user) unless dangerous_skip_permission_check
+        # Callers skip the permission check when they have already authorized the parent record (a
+        # project, for example). Restriction is resolved per client, so it isn't covered by that
+        # check and must still be applied: otherwise Enrollment.authorized? rejects the hidden
+        # nodes and fails the whole query.
+        scope = if dangerous_skip_permission_check
+          scope.excluding_hidden_restricted_clients(current_user)
+        else
+          scope.viewable_by(current_user)
+        end
         scope = scope.apply_filters(filters) if filters.present?
         scope = scope.sort_by_option(sort_order) if sort_order.present?
         scope

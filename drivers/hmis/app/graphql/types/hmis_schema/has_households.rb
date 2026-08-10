@@ -18,8 +18,13 @@ module Types
             null: false,
             description: description,
             after_paginate: ->(nodes, ctx) {
-              ctx[:current_user].policy_context.preload_enrollment_restrictions(nodes.map(&:enrollment_ids))
-              ctx[:current_user].policy_context.preload_project_dependencies(nodes.map(&:project_pk))
+              # Household members are resolved through HmisEnrollmentPolicy, which needs each
+              # enrollment's project and its client's restriction status. Preload the page's
+              # enrollments in one query; Household#household_clients reuses this association.
+              ::ActiveRecord::Associations::Preloader.new(records: nodes, associations: [:enrollments]).call
+              enrollments = nodes.flat_map(&:enrollments)
+              ctx[:current_user].policy_context.preload_enrollment_restrictions(enrollments.map(&:id))
+              ctx[:current_user].policy_context.preload_project_dependencies(enrollments.map(&:project_pk))
             },
           }
           field_options = default_field_options.merge(override_options)

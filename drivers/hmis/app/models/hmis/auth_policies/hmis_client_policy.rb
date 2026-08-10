@@ -73,6 +73,8 @@ class Hmis::AuthPolicies::HmisClientPolicy < Hmis::AuthPolicies::ResourcePolicy
 
     def validate_resource!(arg) = ensure_arg_type!(arg, Hmis::Hud::Client)
 
+    # Client is "hidden" if they are restricted and the user does not have permission to view restricted clients.
+    # See docs/features/hmis/hmis-restricted-records.md
     def client_hidden?
       context.client_hidden?(resource.id)
     end

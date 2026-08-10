@@ -79,8 +79,10 @@ module GraphqlApplicationHelper
     # Load all enrollments for the client
     enrollments = load_ar_association(client, :enrollments_with_exits)
 
-    # Perf optimization: preload project dependencies for enrollments, to avoid N+1 in policy check below
+    # Perf optimization: preload project dependencies and client restrictions for enrollments, to
+    # avoid N+1 in policy check below
     current_user.policy_context.preload_project_dependencies(enrollments.map(&:project_pk))
+    current_user.policy_context.preload_enrollment_restrictions(enrollments.map(&:id))
 
     # Filter to only enrollments the user has permission to see;
     # Filter down to open enrollments in the specified project on the specified date
