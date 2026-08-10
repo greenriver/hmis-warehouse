@@ -9,48 +9,51 @@
 class Hmis::AuthPolicies::HmisClientPolicy < Hmis::AuthPolicies::ResourcePolicy
   class Instance < Hmis::AuthPolicies::BasePolicy
     # The hidden check subsumes the restricted case: a restricted client is hidden unless the user can
-    # view restricted clients at a project where the client is or was enrolled.
+    # view restricted clients at a project where the client is or was enrolled. All instance
+    # permissions are denied for hidden clients.
     def can_view?
-      client_permissions.include?(:can_view_clients) && !context.client_hidden?(resource.id)
+      !client_hidden? && client_permissions.include?(:can_view_clients)
     end
 
     def can_mark_restricted?
-      client_permissions.include?(:can_mark_clients_as_restricted)
+      !client_hidden? && client_permissions.include?(:can_mark_clients_as_restricted)
     end
 
     def can_edit?
-      client_permissions.include?(:can_edit_clients) # these all need to be false for hidden clients..
+      !client_hidden? && client_permissions.include?(:can_edit_clients)
     end
 
     def can_delete?
-      client_permissions.include?(:can_delete_clients)
+      !client_hidden? && client_permissions.include?(:can_delete_clients)
     end
 
     def can_view_name?
-      client_permissions.include?(:can_view_client_name)
+      !client_hidden? && client_permissions.include?(:can_view_client_name)
     end
 
     def can_manage_alerts?
-      client_permissions.include?(:can_manage_client_alerts)
+      !client_hidden? && client_permissions.include?(:can_manage_client_alerts)
     end
 
     def can_manage_scan_cards?
-      client_permissions.include?(:can_manage_scan_cards)
+      !client_hidden? && client_permissions.include?(:can_manage_scan_cards)
     end
 
     # Whether the user can edit at least one of this client's enrollments.
     # Delegates to client_permissions: unions permissions from enrolled projects, or global
     # permissions when the client has no enrollments.
     def can_edit_some_enrollments?
-      client_permissions.include?(:can_edit_enrollments)
+      !client_hidden? && client_permissions.include?(:can_edit_enrollments)
     end
 
     # Whether the user can view full enrollment details for at least one of this client's enrollments.
     def can_view_some_enrollment_details?
-      client_permissions.include?(:can_view_enrollment_details)
+      !client_hidden? && client_permissions.include?(:can_view_enrollment_details)
     end
 
     def can_index_files?
+      return false if client_hidden?
+
       # User can index files if they can manage own files (global perm),
       # or can view nonconfidential or confidential files for this client
       global_permissions.include?(:can_manage_own_client_files) ||
@@ -69,6 +72,10 @@ class Hmis::AuthPolicies::HmisClientPolicy < Hmis::AuthPolicies::ResourcePolicy
     protected
 
     def validate_resource!(arg) = ensure_arg_type!(arg, Hmis::Hud::Client)
+
+    def client_hidden?
+      context.client_hidden?(resource.id)
+    end
 
     # Get permissions for the specific client instance, based on the projects they are enrolled in
     memoize def client_permissions

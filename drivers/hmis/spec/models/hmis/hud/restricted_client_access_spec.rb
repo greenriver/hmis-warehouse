@@ -117,5 +117,27 @@ RSpec.describe 'Restricted client visibility', type: :model do
       policy = user_view_restricted.policy_for(restricted_client_at_p1, policy_type: :hmis_client)
       expect(policy.can_view?).to be true
     end
+
+    it 'denies other instance permissions for hidden restricted clients' do
+      user = create(:hmis_user, data_source: ds1)
+      create_access_control(
+        user,
+        p1,
+        with_permission: [
+          :can_view_clients,
+          :can_edit_clients,
+          :can_delete_clients,
+          :can_mark_clients_as_restricted,
+          :can_view_client_name,
+        ],
+      )
+      policy = user.policy_for(restricted_client_at_p1, policy_type: :hmis_client)
+
+      expect(policy.can_view?).to be false
+      expect(policy.can_edit?).to be false
+      expect(policy.can_delete?).to be false
+      expect(policy.can_mark_restricted?).to be false
+      expect(policy.can_view_name?).to be false
+    end
   end
 end

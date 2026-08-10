@@ -55,6 +55,7 @@ module Types
       end
     end
 
+    # Full household size, including restricted clients the user may not see in household_clients.
     def household_size
       enrollments.map(&:personal_id).uniq.size
     end
