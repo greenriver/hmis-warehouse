@@ -13,6 +13,8 @@ RSpec.describe 'HudSpmReport CellsController Integration', type: :request do
   include_context '2026 SPM test setup'
 
   let(:user) { create(:user) }
+  # Project columns are not client PII; the policy only gates client name/dob/ssn.
+  let(:pii_policy) { GrdaWarehouse::AuthPolicies::AllowPiiPolicy.instance }
 
   shared_examples 'drilldown show behavior' do
     it 'renders the drilldown page with the expected client' do
@@ -92,7 +94,10 @@ RSpec.describe 'HudSpmReport CellsController Integration', type: :request do
   end
 
   before do
-    user.legacy_roles << create(:role, can_view_own_hud_reports: true)
+    # can_view_projects is granted here, not per-example: User memoizes its effective
+    # permissions on first use, setup_report triggers that via HudFilterBase, and Warden
+    # hands the view this very instance. Granting later would not be seen.
+    user.legacy_roles << create(:role, can_view_own_hud_reports: true, can_view_projects: true)
     sign_in(user)
   end
 
@@ -134,6 +139,56 @@ RSpec.describe 'HudSpmReport CellsController Integration', type: :request do
       let(:table) { '1a' }
       let(:expected_client) { @client }
       let(:noise_client) { @noise_client }
+    end
+  end
+
+  describe 'GET #show for an Episode spanning two projects' do
+    before do
+      @project_a = create_project(project_type: 0)
+      @project_b = create_project(project_type: 0)
+      @client = create_client_with_warehouse_link(first_name: 'MultiProject', last_name: 'TestClient')
+
+      create_enrollment(
+        client: @client,
+        project: @project_a,
+        entry_date: '2022-11-01'.to_date,
+        exit_date: '2022-12-15'.to_date,
+      )
+      create_enrollment(
+        client: @client,
+        project: @project_b,
+        entry_date: '2022-12-15'.to_date,
+        exit_date: '2023-01-15'.to_date,
+      )
+
+      @report = setup_report([@project_a.id, @project_b.id], ['Measure 1'])
+      run_measure(@report, HudSpmReport::Generators::Fy2026::MeasureOne)
+    end
+
+    it 'lists both HMIS ProjectIDs in one column, in entry-date order' do
+      get hud_reports_spm_measure_cell_path(
+        spm_id: @report.id,
+        measure_id: 'Measure 1',
+        id: 'B2',
+        table: '1a',
+      )
+
+      expect(response).to be_successful
+      expect(assigns(:drilldown).headers.values).to include('Projects', 'Data Source ID')
+
+      row = assigns(:clients).first
+      expect(row.projects).to eq([@project_a, @project_b])
+      expect(row.display_value('project_hmis_ids', pii_policy: pii_policy)).to eq(
+        "#{@project_a.ProjectID}; #{@project_b.ProjectID}",
+      )
+
+      # Each ID links to its own project page, since an HMIS ProjectID is only unique
+      # within a data source.
+      expect(row.projects_by_column['project_hmis_ids']).to eq([@project_a, @project_b])
+      expect(response.body).to include("#{@project_a.ProjectName} (#{@project_a.ProjectID})")
+      expect(response.body).to include("#{@project_b.ProjectName} (#{@project_b.ProjectID})")
+      expect(response.body).to include(project_path(id: @project_a.id))
+      expect(response.body).to include(project_path(id: @project_b.id))
     end
   end
 
@@ -202,11 +257,96 @@ RSpec.describe 'HudSpmReport CellsController Integration', type: :request do
       let(:expected_client) { @client }
       let(:noise_client) { @noise_client }
     end
+
+    it 'shows the HMIS ProjectID for each row' do
+      get hud_reports_spm_measure_cell_path(
+        spm_id: @report.id,
+        measure_id: 'Measure 4',
+        id: 'C2',
+        table: '4.1',
+      )
+
+      expect(response).to be_successful
+      expect(assigns(:drilldown).headers.values).to include('Project')
+
+      row = assigns(:clients).first
+      expect(row.display_value('enrollment.project.ProjectID', pii_policy: pii_policy)).to eq(@ph_project.ProjectID)
+
+      # The drilldown links the ID to the project page; the download keeps the plain ID.
+      expect(row.projects_by_column['enrollment.project.ProjectID']).to eq([@ph_project])
+      expect(response.body).to include("#{@ph_project.ProjectName} (#{@ph_project.ProjectID})")
+      expect(response.body).to include(project_path(id: @ph_project.id))
+    end
+
+    it 'masks a confidential project name in the drilldown but keeps the HMIS ProjectID' do
+      @ph_project.update!(confidential: true)
+
+      get hud_reports_spm_measure_cell_path(
+        spm_id: @report.id,
+        measure_id: 'Measure 4',
+        id: 'C2',
+        table: '4.1',
+      )
+
+      expect(response).to be_successful
+
+      # This user can view projects but not confidential project names, so the name is
+      # masked while the ID keeps the row identifiable.
+      expect(response.body).to include(
+        "#{GrdaWarehouse::Hud::Project.confidential_project_name} (#{@ph_project.ProjectID})",
+      )
+      expect(response.body).not_to include("#{@ph_project.ProjectName} (#{@ph_project.ProjectID})")
+
+      # The download is unaffected: it carries the ID, never the name.
+      expect(assigns(:drilldown).export_headers.keys).to include('enrollment.project.ProjectID')
+    end
+
+    it 'shows the HMIS ProjectID without a link when the user cannot view projects' do
+      # Stubbed on this instance because Warden hands the view the same User object.
+      allow(user).to receive(:can_view_projects?).and_return(false)
+      allow(user).to receive(:can_edit_projects?).and_return(false)
+
+      get hud_reports_spm_measure_cell_path(
+        spm_id: @report.id,
+        measure_id: 'Measure 4',
+        id: 'C2',
+        table: '4.1',
+      )
+
+      expect(response).to be_successful
+      expect(response.body).to include(@ph_project.ProjectID)
+      expect(response.body).not_to include(project_path(id: @ph_project.id))
+    end
+
+    it 'keeps the project column when PII is excluded from downloads' do
+      allow(GrdaWarehouse::Config).to receive(:get).and_call_original
+      allow(GrdaWarehouse::Config).to receive(:get).with(:include_pii_in_detail_downloads).and_return(false)
+
+      get hud_reports_spm_measure_cell_path(
+        spm_id: @report.id,
+        measure_id: 'Measure 4',
+        id: 'C2',
+        table: '4.1',
+      )
+
+      expect(response).to be_successful
+      export_keys = assigns(:drilldown).export_headers.keys
+
+      expect(export_keys).to include('enrollment.project.ProjectID')
+      expect(export_keys).not_to include('first_name', 'last_name')
+
+      # Downloads swap in DenyPiiPolicy. Project attribution must survive it: stripping
+      # client PII is not a reason to hide which project a row came from.
+      row = assigns(:clients).first
+      deny_policy = GrdaWarehouse::AuthPolicies::DenyPiiPolicy.instance
+      expect(row.display_value('enrollment.project.ProjectID', pii_policy: deny_policy)).to eq(@ph_project.ProjectID)
+    end
   end
 
   describe 'GET #show for Return based measures' do
     before do
       @es_project = create_project(project_type: 0)
+      @return_project = create_project(project_type: 0)
       @client = create_client_with_warehouse_link(first_name: 'Measure2', last_name: 'TestClient')
       @noise_client = create_client_with_warehouse_link(first_name: 'Noise2', last_name: 'OtherClient')
 
@@ -221,17 +361,17 @@ RSpec.describe 'HudSpmReport CellsController Integration', type: :request do
           living_situation: 1,
         )
 
-        # Return to homelessness within 181-365 day window
+        # Return to homelessness within 181-365 day window, at a different project
         create_enrollment(
           client: c,
-          project: @es_project,
+          project: @return_project,
           entry_date: '2022-01-10'.to_date,
           exit_date: '2022-02-20'.to_date,
           living_situation: 1,
         )
       end
 
-      @report = setup_report([@es_project.id], ['Measure 2'])
+      @report = setup_report([@es_project.id, @return_project.id], ['Measure 2'])
       run_measure(@report, HudSpmReport::Generators::Fy2026::MeasureTwo)
     end
 
@@ -252,6 +392,30 @@ RSpec.describe 'HudSpmReport CellsController Integration', type: :request do
       let(:table) { '2a and 2b' }
       let(:expected_client) { @client }
       let(:noise_client) { @noise_client }
+    end
+
+    it 'shows the exit and return HMIS ProjectIDs in separate columns' do
+      get hud_reports_spm_measure_cell_path(
+        spm_id: @report.id,
+        measure_id: 'Measure 2',
+        id: 'B3',
+        table: '2a and 2b',
+      )
+
+      expect(response).to be_successful
+      expect(assigns(:drilldown).headers.values).to include(
+        'Exited Project',
+        'Returned Project',
+        'Data Source ID',
+      )
+
+      # The two legs are different projects, so the columns are provably independent.
+      row = assigns(:clients).first
+      expect(row.display_value('exit_enrollment.enrollment.project.ProjectID', pii_policy: pii_policy)).to eq(@es_project.ProjectID)
+      expect(row.display_value('return_enrollment.enrollment.project.ProjectID', pii_policy: pii_policy)).to eq(@return_project.ProjectID)
+
+      expect(response.body).to include(project_path(id: @es_project.id))
+      expect(response.body).to include(project_path(id: @return_project.id))
     end
   end
 
