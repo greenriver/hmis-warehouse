@@ -119,8 +119,10 @@ module Hmis
       return if updated_enrollment_ids.empty?
 
       updated_enrollment_scope = Hmis::Hud::Enrollment.where(id: updated_enrollment_ids)
-      HmisDataCleanup::Util.fix_incorrect_personal_id_references!(
-        enrollment_scope: updated_enrollment_scope,
+      HmisDataCleanup::FixIncorrectPersonalIdReferences.run!(
+        data_source_id: retained_client.data_source_id,
+        # FixIncorrectPersonalIdReferences expects Enrollment.EnrollmentID, not Enrollment.id (database PK)
+        enrollment_ids: updated_enrollment_scope.pluck(:EnrollmentID),
         dry_run: dry_run,
       )
 
