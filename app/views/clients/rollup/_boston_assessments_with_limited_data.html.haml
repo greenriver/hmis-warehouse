@@ -2,7 +2,7 @@
 - hmis_forms = @client.source_non_confidential_hmis_forms.select(*hmis_form_columms)&.sort&.group_by(&:assessment_type)
 - ce_assessments = []
 - if GrdaWarehouse::Config.get(:client_dashboard).to_s == 'boston' && can_view_limited_client_dashboard?
-  - ce_assessments = @client.source_assessments.order(AssessmentDate: :desc).preload(:assessment_questions).to_a
+  - ce_assessments = @client.source_assessments.order(AssessmentDate: :desc).preload(:user, assessment_questions: :lookup).to_a
 - if hmis_forms.any? || ce_assessments.any?
   - if hmis_forms.any?
     %table.table
