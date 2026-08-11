@@ -14,14 +14,16 @@ class Hmis::BaseController < ActionController::Base
   before_action :authenticate_hmis_user!
 
   # AUTH_METHOD seam: under JWT, current_hmis_user / authenticate_hmis_user! / true_hmis_user / the
-  # impersonation write-side are provided by Hmis::Concerns::JwtHmisCurrentUser (off a validated
-  # forwarded JWT); under Devise they come from the pretender macro + the devise :hmis_user scope.
+  # impersonation write-side / session_duration_seconds are provided by
+  # Hmis::Concerns::JwtHmisCurrentUser (off a validated forwarded JWT); under Devise they come from
+  # the pretender macro + the devise :hmis_user scope + Hmis::Concerns::DeviseHmisCurrentUser.
   # The before_action :authenticate_hmis_user! (above) and the set_anti_caching_headers
   # hmis_user_signed_in? guard (below) are satisfied either way.
   if AuthMethod.jwt?
     include Hmis::Concerns::JwtHmisCurrentUser
   else
     impersonates :hmis_user, with: ->(id) { Hmis::User.find_by(id: id) }
+    include Hmis::Concerns::DeviseHmisCurrentUser
   end
 
   include Hmis::Concerns::JsonErrors
@@ -101,7 +103,7 @@ class Hmis::BaseController < ActionController::Base
 
   # Shared shape for any endpoint that reports the signed-in HMIS user (user.json, impersonations).
   def current_user_payload
-    payload = current_hmis_user&.current_user_api_values || {}
+    payload = current_hmis_user&.current_user_api_values(session_duration: session_duration_seconds) || {}
     payload[:impersonating] = impersonating?
     payload
   end
