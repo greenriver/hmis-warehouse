@@ -57,8 +57,10 @@ module HmisDataCleanup
             values = []
             batch.each do |record|
               real_personal_id = eid_to_pid[record.EnrollmentID]
-              next unless real_personal_id # enrollment not found, so we cant update the PersonalID
-              next if record.PersonalID == real_personal_id # this shouldn't be true, but check anyway
+
+              # These shouldn't be true, but check anyway
+              next unless real_personal_id # enrollment not found
+              next if record.PersonalID == real_personal_id # personal ID is already correct
 
               record.PersonalID = real_personal_id
               values << record
