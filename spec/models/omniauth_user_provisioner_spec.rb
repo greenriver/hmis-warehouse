@@ -8,7 +8,7 @@
 
 require 'rails_helper'
 
-RSpec.describe OmniauthUserProvisioner, type: :model do
+RSpec.describe OmniauthUserProvisioner, :devise_only, type: :model do
   include ActiveJob::TestHelper
   before(:all) do
     clear_enqueued_jobs
