@@ -18,8 +18,7 @@ module Hmis::Concerns::DeviseHmisCurrentUser
       Devise.timeout_in.in_seconds
     end
 
-    # nil stub of the JWT arm's terminal_account_error, so Hmis::UsersController#show can call it
-    # under both arms without a respond_to? check.
+    # Defined only because Hmis::UsersController#show calls it on both arms.
     def terminal_account_error
       nil
     end

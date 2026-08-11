@@ -70,8 +70,7 @@ module Hmis::Concerns::JwtHmisCurrentUser
 
     private
 
-    # Terminal account state for the bootstrap probe, allows front-end to show the
-    # correct account error to the user
+    # Surfaced as accountError in the /hmis/user.json payload; the SPA renders its terminal page from it.
     def terminal_account_error
       return nil if current_hmis_user
       return :account_deactivated if idp_token_holder && !idp_token_holder.active?
@@ -102,8 +101,8 @@ module Hmis::Concerns::JwtHmisCurrentUser
       raise Idp::UnauthenticatedRequestError, request.path unless idp_jwt_helper_for_request.token?
 
       # 403, not 401: signing in again can't produce an account, and a 401 would send the SPA to a
-      # sign-in screen it would come straight back from. The SPA renders its terminal page from the
-      # /hmis/user.json bootstrap payload (accountError, via terminal_account_error), not this 403.
+      # sign-in screen it would come straight back from. The SPA's terminal page comes from
+      # terminal_account_error, not this 403.
       render_json_error(403, :no_warehouse_account)
     end
 
