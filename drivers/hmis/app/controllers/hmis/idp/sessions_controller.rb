@@ -14,15 +14,18 @@ module Hmis
     # Mirrors ::Idp::SessionsController#destroy (the warehouse's JWT logout), but the SPA calls this
     # via fetch + response.json() rather than following a browser redirect, so the oauth2-proxy
     # sign-out URL comes back as a JSON field instead of an HTTP redirect.
-    #
-    # Unlike ::Idp::SessionsController, #destroy keeps authenticate_hmis_user! (Hmis::BaseController
-    # applies it, and this class does not skip it): the SPA recovers from a JSON 403 by hitting
-    # /oauth2/sign_out itself, so there is no server-rendered dead-end page needing sign-out to work
-    # without a resolvable current_user (the reason the warehouse skips the filter).
-    #
     class SessionsController < Hmis::BaseController
-      # The CSRF token is what guards #destroy
+      # Skipped so the two terminal account states (account_deactivated, no_warehouse_account) can
+      # sign out: both hold a valid token but resolve no current_hmis_user, so the filter would
+      # render the JSON 403 dead end sign-out exists to escape. Matches ::Idp::SessionsController.
+      skip_before_action :authenticate_hmis_user!, only: [:destroy]
+
+      # CSRF (verify_authenticity_token, ahead of the skipped filter) is the outermost guard on #destroy.
       def destroy
+        # authenticate_hmis_user! is skipped on #destroy, so its tokenless raise has to live here.
+        # Why tokenless must raise, not answer: JwtHmisCurrentUser#idp_handle_unauthenticated.
+        raise ::Idp::UnauthenticatedRequestError, request.path unless idp_jwt_helper_for_request.token?
+
         # First: the Keycloak session, which /oauth2/sign_out never reaches. Ahead of reset_session
         # because it reads the forwarded token, and because it fails closed. Don't make it
         # best-effort. ::Idp::SessionsController#destroy is the same sequence with an HTML response.
