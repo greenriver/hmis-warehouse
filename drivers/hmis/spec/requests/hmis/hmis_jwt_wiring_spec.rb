@@ -120,20 +120,21 @@ RSpec.describe 'HMIS JWT wiring', :jwt_only, type: :request do
       expect(response.headers['X-app-user-id']).to be_blank
     end
 
-    it 'answers 200 with an accountError for a deactivated holder, rather than the JSON 403 guarded routes return' do
+    it 'answers 200 with an accountError for a deactivated holder' do
       sign_in(create(:hmis_user, active: false))
 
       get hmis_user_path, headers: headers
 
       expect(response).to have_http_status(:ok)
-      # Whole-payload assertion, not include: a change that leaks another user's values onto the
-      # terminal-state bootstrap must fail here.
+      # Match the whole payload with eq, not include: the terminal-state bootstrap must be exactly
+      # these two keys. A regression that let current_hmis_user resolve would surface the holder's
+      # full current_user_api_values here, and a partial matcher would still pass.
       expect(JSON.parse(response.body)).to eq('impersonating' => false, 'accountError' => 'account_deactivated')
     end
 
     it 'answers 200 with an accountError for a good token whose holder has no warehouse account' do
       # find_or_create_from_jwt returns nil only when neither the connector link nor the email
-      # matches, and sign_in provisions both, so no fixture reaches this branch — hence the stub.
+      # matches, and sign_in provisions both, so no fixture reaches this branch.
       allow(User).to receive(:find_or_create_from_jwt).and_return(nil)
       sign_in(create(:hmis_user))
 
@@ -428,9 +429,6 @@ RSpec.describe 'HMIS JWT wiring', :jwt_only, type: :request do
         expect_signed_out_normally
       end
 
-      # The skip on authenticate_hmis_user! lets a no-connector-claim token reach #destroy, where
-      # idp_end_token_holder_sessions returns on the blank connector before any admin-API call. Mirrors
-      # the warehouse arm.
       it 'signs out a token with no connector claim via the blank-connector guard, without an IdP call' do
         start_session
         # sign_in memoizes one JwtHelper double per token, so this is the object the request reads.
@@ -444,9 +442,8 @@ RSpec.describe 'HMIS JWT wiring', :jwt_only, type: :request do
         expect_signed_out_normally
       end
 
-      # Ending the IdP session for a locked-out deactivated holder looks pointless, but on a shared
-      # machine a surviving session signs the next person in — and the token still carries the connector
-      # claims logout_user_sessions needs. #destroy runs at all only because it skips authenticate_hmis_user!.
+      # A deactivated holder is locked out of HMIS, but a surviving Keycloak session signs the next
+      # person at a shared machine straight back in.
       it 'ends the IdP session and signs out a deactivated token holder' do
         inactive = create(:hmis_user, active: false)
         sign_in(inactive)
@@ -457,9 +454,8 @@ RSpec.describe 'HMIS JWT wiring', :jwt_only, type: :request do
         expect_signed_out_normally
       end
 
-      # No warehouse row, but the token still carries connector_id and connector_user_id — all
-      # idp_end_token_holder_sessions needs — so the IdP session ends exactly as for the deactivated
-      # holder. find_or_create_from_jwt stubbed nil: no reachable fixture hits this branch.
+      # The claims logout_user_sessions needs live on the token, not on the warehouse row, so a
+      # holder without one still gets a full IdP sign-out.
       it 'ends the IdP session and signs out a good token whose holder has no warehouse account' do
         allow(User).to receive(:find_or_create_from_jwt).and_return(nil)
         holder = create(:hmis_user)
@@ -570,8 +566,6 @@ RSpec.describe 'HMIS JWT wiring', :jwt_only, type: :request do
           expect(controller.true_hmis_user).to eq(admin_user)
         end
 
-        # The skip made terminal-state holders reachable at #destroy; verify CSRF still rejects them,
-        # not only the active holder above.
         it 'still rejects a terminal-state holder with no CSRF token, without ending the IdP session' do
           sign_in(create(:hmis_user, active: false))
 
