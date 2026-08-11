@@ -68,12 +68,13 @@
               = client.site_chronics.find_by_date(@date)&.trigger
 
 = content_for :page_js do
-  :javascript
-    console.log('test');
-    $(document).on('ajax:success', '.jRemoveCasActive', function(evt, data, status, xhr){
-      $(evt.currentTarget).closest('.jClient').fadeOut();
-    }).on('ajax:error', '.jRemoveCasActive', function(evt, data, status, xhr){
-      $(evt.currentTarget).text('Remove Failed').
-        removeClass('btn-secondary').
-        addClass('btn-danger');
-    });
+  %script{ nonce: content_security_policy_nonce }
+    :plain
+      console.log('test');
+      $(document).on('ajax:success', '.jRemoveCasActive', function(evt, data, status, xhr){
+        $(evt.currentTarget).closest('.jClient').fadeOut();
+      }).on('ajax:error', '.jRemoveCasActive', function(evt, data, status, xhr){
+        $(evt.currentTarget).text('Remove Failed').
+          removeClass('btn-secondary').
+          addClass('btn-danger');
+      });

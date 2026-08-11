@@ -64,8 +64,9 @@
 
 - url = summary_warehouse_reports_first_time_homeless_index_path(filter: filter)
 - content_for :page_js do
-  :javascript
-    (function($) {
-      chart = new App.ChartsScatterByDate.FirstTimeHomeless('#{url}');
-      chart.load();
-    })(jQuery);
+  %script{ nonce: content_security_policy_nonce }
+    :plain
+      (function($) {
+        chart = new App.ChartsScatterByDate.FirstTimeHomeless('#{url}');
+        chart.load();
+      })(jQuery);

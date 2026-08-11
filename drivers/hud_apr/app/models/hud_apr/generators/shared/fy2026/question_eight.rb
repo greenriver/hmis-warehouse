@@ -207,6 +207,7 @@ module HudApr::Generators::Shared::Fy2026
       # have a record for the PIT date
       # The client we return may not be an HoH in relation to the rest of the APR, but they
       # must be an HoH for the enrollment that was open on the PIT date
+      # For night-by-night shelters the HoH is recorded whenever any member had a bed night
       query = <<~SQL
         pit_enrollments ? '#{pit_date.iso8601}'
         AND pit_enrollments -> '#{pit_date.iso8601}' @> '[{"relationship_to_hoh": 1}]'
