@@ -56,6 +56,15 @@ module Idp::JwtCurrentUser
     end
     helper_method :user_signed_in?
 
+    # A duration the inactivity modal's JS anchors to the browser clock — never the absolute
+    # server-issued expiry, which server/browser clock skew would read as already expired.
+    def inactive_session_countdown_values
+      return {} unless current_user && (expires_at = user_session_expires_at)
+
+      { session_remaining_secs_value: (expires_at - Time.current).to_i }
+    end
+    helper_method :inactive_session_countdown_values
+
     # The actual authenticated user from the JWT, not the impersonated user.
     def true_user
       return nil unless current_user
@@ -108,6 +117,12 @@ module Idp::JwtCurrentUser
 
     def enforce_2fa!
       nil # no-op for jwt: L2/MFA assurance is gated upstream by the IdP, not the warehouse
+    end
+
+    # Devise (unloaded on this arm) is what defines devise_controller?; stub it false so the
+    # Devise-only before_action :configure_permitted_parameters no-ops instead of raising.
+    def devise_controller?
+      false
     end
   end
 end
