@@ -16,26 +16,26 @@ on:
   workflow_dispatch:
     inputs:
       test_path:
-        description: 'Spec file or directory (e.g., spec/models/user_spec.rb)'
+        description: "Spec file or directory (e.g., spec/models/user_spec.rb)"
         required: false
         type: string
       with_okta:
-        description: 'Run Okta integration tests'
+        description: "Run Okta integration tests"
         required: false
         type: boolean
         default: false
       testkit_check_all_table_results:
-        description: 'Ignore skip option in table comparisons'
+        description: "Ignore skip option in table comparisons"
         required: false
         type: boolean
         default: false
       with_logging:
-        description: 'Run logging configuration tests'
+        description: "Run logging configuration tests"
         required: false
         type: boolean
         default: false
       with_profiling:
-        description: 'Enable RSpec profiling'
+        description: "Enable RSpec profiling"
         required: false
         type: boolean
         default: false
@@ -119,7 +119,7 @@ jobs:
           apt-get update
           apt-get install -y git
       - name: Checkout
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
       - id: set-matrix
@@ -193,7 +193,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: "Container Setup"
         id: container-setup
@@ -225,7 +225,7 @@ jobs:
         run: bundle exec rails assets:precompile
 
       - name: Configure AWS credentials for OIDC (test kit S3)
-        uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502 # v4
+        uses: aws-actions/configure-aws-credentials@e6de054238d6b7531b4efff3b6587d9aade6a06c # v6.2.3
         with:
           aws-region: us-east-1
           role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/${{ secrets.AWS_ROLE_NAME }}
@@ -233,13 +233,10 @@ jobs:
 
       # fetch some closed source files
       - name: "Fetch testkit source files"
-        uses: keithweaver/aws-s3-github-action@46dd0263ee582cbb2e81ad88209198d26d7a67c6 # v1.0.0
-        with:
-          command: cp
-          source: ${{ secrets.AWS_S3_ACTION_BUCKET }}${{ vars.AWS_S3_ACTIONS_SOURCE_PATH_FY_2026 }}
-          destination: ./drivers/datalab_testkit/spec/fixtures/inputs/
-          aws_region: us-east-1
-          flags: --recursive
+        env:
+          SOURCE: ${{ secrets.AWS_S3_ACTION_BUCKET }}${{ vars.AWS_S3_ACTIONS_SOURCE_PATH_FY_2026 }}
+          DESTINATION: ./drivers/datalab_testkit/spec/fixtures/inputs/
+        run: aws s3 cp --no-progress "$SOURCE" "$DESTINATION" --recursive --region us-east-1
 
       # fetch pre-processed FY2024 data set; note that we need to update this whenever the test kit source
       # data changes.  To update:
@@ -248,31 +245,22 @@ jobs:
       # 3. Re-run the tests  rspec drivers/hud_apr/spec/models/fy2024/datalab_2_0_spec.rb
       # 4. Update the fixpoint in S3 from the newly generated file
       - name: "Fetch testkit fixpoint files"
-        uses: keithweaver/aws-s3-github-action@46dd0263ee582cbb2e81ad88209198d26d7a67c6 # v1.0.0
-        with:
-          command: cp
-          source: ${{ secrets.AWS_S3_ACTION_BUCKET }}${{ vars.AWS_S3_ACTIONS_FIXPOINT_PATH_FY_2026 }}
-          destination: ./drivers/datalab_testkit/spec/fixpoints/
-          aws_region: us-east-1
-          flags: --recursive
+        env:
+          SOURCE: ${{ secrets.AWS_S3_ACTION_BUCKET }}${{ vars.AWS_S3_ACTIONS_FIXPOINT_PATH_FY_2026 }}
+          DESTINATION: ./drivers/datalab_testkit/spec/fixpoints/
+        run: aws s3 cp --no-progress "$SOURCE" "$DESTINATION" --recursive --region us-east-1
 
       - name: "Fetch result files"
-        uses: keithweaver/aws-s3-github-action@46dd0263ee582cbb2e81ad88209198d26d7a67c6 # v1.0.0
-        with:
-          command: cp
-          source: ${{ secrets.AWS_S3_ACTION_BUCKET }}${{ vars.AWS_S3_ACTIONS_RESULTS_PATH_FY_2026 }}
-          destination: ./drivers/datalab_testkit/spec/fixtures/results/
-          aws_region: us-east-1
-          flags: --recursive
+        env:
+          SOURCE: ${{ secrets.AWS_S3_ACTION_BUCKET }}${{ vars.AWS_S3_ACTIONS_RESULTS_PATH_FY_2026 }}
+          DESTINATION: ./drivers/datalab_testkit/spec/fixtures/results/
+        run: aws s3 cp --no-progress "$SOURCE" "$DESTINATION" --recursive --region us-east-1
 
       - name: "Fetch 2022 -> 2024 source files"
-        uses: keithweaver/aws-s3-github-action@46dd0263ee582cbb2e81ad88209198d26d7a67c6 # v1.0.0
-        with:
-          command: cp
-          source: ${{ secrets.AWS_S3_ACTION_BUCKET }}${{ vars.AWS_S3_ACTIONS_SOURCE_PATH_FY_2026 }}/merged/source
-          destination: ./drivers/hud_twenty_twenty_two_to_twenty_twenty_four/spec/fixtures/in/
-          aws_region: us-east-1
-          flags: --recursive
+        env:
+          SOURCE: ${{ secrets.AWS_S3_ACTION_BUCKET }}${{ vars.AWS_S3_ACTIONS_SOURCE_PATH_FY_2026 }}/merged/source
+          DESTINATION: ./drivers/hud_twenty_twenty_two_to_twenty_twenty_four/spec/fixtures/in/
+        run: aws s3 cp --no-progress "$SOURCE" "$DESTINATION" --recursive --region us-east-1
 
       - name: Run tests
         env:
@@ -323,7 +311,7 @@ jobs:
 
       - name: Archive artifacts
         if: always()
-        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           if-no-files-found: ignore
           name: artifacts-unit-${{ matrix.test_group.id }}
@@ -351,7 +339,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: "Container Setup"
         uses: ./.github/workflows/container_setup
@@ -400,7 +388,7 @@ jobs:
 
       - name: Archive artifacts
         if: always()
-        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           if-no-files-found: ignore
           name: artifacts-hmis-system
@@ -427,7 +415,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: "Container Setup"
         uses: ./.github/workflows/container_setup
@@ -473,7 +461,7 @@ jobs:
 
       - name: Archive artifacts
         if: always()
-        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           if-no-files-found: ignore
           name: artifacts-warehouse-system
