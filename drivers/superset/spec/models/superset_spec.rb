@@ -77,7 +77,9 @@ RSpec.describe Superset do
       end
     end
 
-    context 'under AuthMethod.devise?' do
+    # The Devise branch of .available? queries Doorkeeper::Application, a constant in the :devise
+    # Gemfile group that the jwt arm never loads.
+    context 'under AuthMethod.devise?', :devise_only do
       before { allow(AuthMethod).to receive(:jwt?).and_return(false) }
 
       it 'is available when a Doorkeeper::Application is registered for the Superset host' do
