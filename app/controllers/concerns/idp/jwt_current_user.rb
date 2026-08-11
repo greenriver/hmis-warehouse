@@ -118,5 +118,11 @@ module Idp::JwtCurrentUser
     def enforce_2fa!
       nil # no-op for jwt: L2/MFA assurance is gated upstream by the IdP, not the warehouse
     end
+
+    # Devise (unloaded on this arm) is what defines devise_controller?; stub it false so the
+    # Devise-only before_action :configure_permitted_parameters no-ops instead of raising.
+    def devise_controller?
+      false
+    end
   end
 end
