@@ -117,5 +117,11 @@ module DeviseCurrentUser
       Time.current + (Devise.timeout_in - (Time.now.utc - (session['last_request_at'].presence || 0)).to_i)
     end
     helper_method :user_session_expires_at
+
+    # The inactivity modal's JS rolls this forward on each request, so hand it the full timeout.
+    def inactive_session_countdown_values
+      { session_lifetime_secs_value: Devise.timeout_in.in_seconds }
+    end
+    helper_method :inactive_session_countdown_values
   end
 end

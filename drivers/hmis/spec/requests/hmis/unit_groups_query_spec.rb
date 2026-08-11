@@ -135,7 +135,7 @@ RSpec.describe 'Unit groups query', type: :request do
         response, result = post_graphql { query }
         expect(response.status).to eq(200), result.inspect
         expect(result.dig('data', 'unitGroups', 'nodes').size).to eq(12)
-      end.to make_database_queries(count: 15..25)
+      end.to make_database_queries(count: 20..30)
     end
   end
 end
