@@ -15,13 +15,13 @@ module Hmis
     # via fetch + response.json() rather than following a browser redirect, so the oauth2-proxy
     # sign-out URL comes back as a JSON field instead of an HTTP redirect.
     class SessionsController < Hmis::BaseController
-      # account_deactivated / no_warehouse_account users hold a valid token but no
-      # current_hmis_user; without this skip, #destroy would 403 their sign-out request.
+      # account_deactivated and no_warehouse_account holders carry a valid token but resolve no
+      # current_hmis_user, so restoring this filter renders the JSON 403 they are signing out to escape.
       skip_before_action :authenticate_hmis_user!, only: [:destroy]
 
       def destroy
-        # authenticate_hmis_user! (skipped above) would raise on a tokenless request; reproduce
-        # that so idp_handle_unauthenticated (JwtHmisCurrentUser) runs rather than a login redirect.
+        # Duplicates the raise the skipped authenticate_hmis_user! would make; the reason a tokenless
+        # request must raise rather than answer is in JwtHmisCurrentUser#idp_handle_unauthenticated.
         raise ::Idp::UnauthenticatedRequestError, request.path unless idp_jwt_helper_for_request.token?
 
         # Ends the Keycloak session that /oauth2/sign_out never reaches. reset_session would clear
