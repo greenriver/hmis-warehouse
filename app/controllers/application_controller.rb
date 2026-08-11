@@ -138,8 +138,6 @@ class ApplicationController < ActionController::Base
     end
   end
 
-  # No AuthMethod guard needed: `devise_controller?` is false under JWT (no Devise controllers are
-  # routed), so this never fires there even though configure_permitted_parameters is Devise-only.
   before_action :configure_permitted_parameters, if: :devise_controller?
 
   def append_info_to_payload(payload)
