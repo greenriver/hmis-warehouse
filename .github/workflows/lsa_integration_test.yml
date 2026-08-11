@@ -162,7 +162,7 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_S3_SECRET_ACCESS_KEY }}
           SOURCE: ${{ secrets.AWS_S3_ACTION_BUCKET }}${{ vars.AWS_S3_ACTIONS_LSA_SAMPLE_PATH_FY_2026 }}
           DESTINATION: ./drivers/hud_lsa/spec/fixtures/files/lsa/fy2026/
-        run: aws s3 cp "$SOURCE" "$DESTINATION" --recursive --region us-east-1
+        run: aws s3 cp --no-progress "$SOURCE" "$DESTINATION" --recursive --region us-east-1
 
       - name: Run LSA integration test
         env:

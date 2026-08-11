@@ -142,7 +142,7 @@ jobs:
         env:
           SOURCE: ${{ secrets.AWS_S3_ACTION_BUCKET }}${{ vars.AWS_S3_ACTIONS_SOURCE_PATH_FY_2026 }}
           DESTINATION: ./drivers/datalab_testkit/spec/fixtures/inputs/
-        run: aws s3 cp "$SOURCE" "$DESTINATION" --recursive --region us-east-1
+        run: aws s3 cp --no-progress "$SOURCE" "$DESTINATION" --recursive --region us-east-1
       - name: Generate new fixpoint files
         env:
           AWS_ACCESS_KEY_ID: local_access_key
@@ -161,9 +161,9 @@ jobs:
         env:
           SOURCE: ${{ secrets.AWS_S3_ACTION_BUCKET }}${{ vars.AWS_S3_ACTIONS_FIXPOINT_PATH_FY_2026 }}
           DESTINATION: ${{ secrets.AWS_S3_ACTION_BUCKET }}${{ vars.AWS_S3_ACTIONS_PREVIOUS_FIXPOINT_PATH_FY_2026 }}${{ env.today }}/
-        run: aws s3 cp "$SOURCE" "$DESTINATION" --recursive --region us-east-1
+        run: aws s3 cp --no-progress "$SOURCE" "$DESTINATION" --recursive --region us-east-1
       - name: "Copy new fixpoint files to current folder"
         env:
           SOURCE: ./drivers/datalab_testkit/spec/fixpoints/
           DESTINATION: ${{ secrets.AWS_S3_ACTION_BUCKET }}${{ vars.AWS_S3_ACTIONS_FIXPOINT_PATH_FY_2026 }}
-        run: aws s3 cp "$SOURCE" "$DESTINATION" --recursive --region us-east-1
+        run: aws s3 cp --no-progress "$SOURCE" "$DESTINATION" --recursive --region us-east-1
