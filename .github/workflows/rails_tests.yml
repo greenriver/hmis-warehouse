@@ -233,13 +233,10 @@ jobs:
 
       # fetch some closed source files
       - name: "Fetch testkit source files"
-        uses: keithweaver/aws-s3-github-action@46dd0263ee582cbb2e81ad88209198d26d7a67c6 # v1.0.0
-        with:
-          command: cp
-          source: ${{ secrets.AWS_S3_ACTION_BUCKET }}${{ vars.AWS_S3_ACTIONS_SOURCE_PATH_FY_2026 }}
-          destination: ./drivers/datalab_testkit/spec/fixtures/inputs/
-          aws_region: us-east-1
-          flags: --recursive
+        env:
+          SOURCE: ${{ secrets.AWS_S3_ACTION_BUCKET }}${{ vars.AWS_S3_ACTIONS_SOURCE_PATH_FY_2026 }}
+          DESTINATION: ./drivers/datalab_testkit/spec/fixtures/inputs/
+        run: aws s3 cp "$SOURCE" "$DESTINATION" --recursive --region us-east-1
 
       # fetch pre-processed FY2024 data set; note that we need to update this whenever the test kit source
       # data changes.  To update:
@@ -248,31 +245,22 @@ jobs:
       # 3. Re-run the tests  rspec drivers/hud_apr/spec/models/fy2024/datalab_2_0_spec.rb
       # 4. Update the fixpoint in S3 from the newly generated file
       - name: "Fetch testkit fixpoint files"
-        uses: keithweaver/aws-s3-github-action@46dd0263ee582cbb2e81ad88209198d26d7a67c6 # v1.0.0
-        with:
-          command: cp
-          source: ${{ secrets.AWS_S3_ACTION_BUCKET }}${{ vars.AWS_S3_ACTIONS_FIXPOINT_PATH_FY_2026 }}
-          destination: ./drivers/datalab_testkit/spec/fixpoints/
-          aws_region: us-east-1
-          flags: --recursive
+        env:
+          SOURCE: ${{ secrets.AWS_S3_ACTION_BUCKET }}${{ vars.AWS_S3_ACTIONS_FIXPOINT_PATH_FY_2026 }}
+          DESTINATION: ./drivers/datalab_testkit/spec/fixpoints/
+        run: aws s3 cp "$SOURCE" "$DESTINATION" --recursive --region us-east-1
 
       - name: "Fetch result files"
-        uses: keithweaver/aws-s3-github-action@46dd0263ee582cbb2e81ad88209198d26d7a67c6 # v1.0.0
-        with:
-          command: cp
-          source: ${{ secrets.AWS_S3_ACTION_BUCKET }}${{ vars.AWS_S3_ACTIONS_RESULTS_PATH_FY_2026 }}
-          destination: ./drivers/datalab_testkit/spec/fixtures/results/
-          aws_region: us-east-1
-          flags: --recursive
+        env:
+          SOURCE: ${{ secrets.AWS_S3_ACTION_BUCKET }}${{ vars.AWS_S3_ACTIONS_RESULTS_PATH_FY_2026 }}
+          DESTINATION: ./drivers/datalab_testkit/spec/fixtures/results/
+        run: aws s3 cp "$SOURCE" "$DESTINATION" --recursive --region us-east-1
 
       - name: "Fetch 2022 -> 2024 source files"
-        uses: keithweaver/aws-s3-github-action@46dd0263ee582cbb2e81ad88209198d26d7a67c6 # v1.0.0
-        with:
-          command: cp
-          source: ${{ secrets.AWS_S3_ACTION_BUCKET }}${{ vars.AWS_S3_ACTIONS_SOURCE_PATH_FY_2026 }}/merged/source
-          destination: ./drivers/hud_twenty_twenty_two_to_twenty_twenty_four/spec/fixtures/in/
-          aws_region: us-east-1
-          flags: --recursive
+        env:
+          SOURCE: ${{ secrets.AWS_S3_ACTION_BUCKET }}${{ vars.AWS_S3_ACTIONS_SOURCE_PATH_FY_2026 }}/merged/source
+          DESTINATION: ./drivers/hud_twenty_twenty_two_to_twenty_twenty_four/spec/fixtures/in/
+        run: aws s3 cp "$SOURCE" "$DESTINATION" --recursive --region us-east-1
 
       - name: Run tests
         env:
