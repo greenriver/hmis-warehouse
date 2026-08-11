@@ -34,6 +34,10 @@ RSpec.describe Idp::JwtCurrentUser, :jwt_only, type: :controller do
       stop_impersonating_user
       render plain: "#{true_user&.id}/#{current_user&.id}"
     end
+
+    def countdown
+      render json: inactive_session_countdown_values
+    end
   end
 
   before do
@@ -43,6 +47,7 @@ RSpec.describe Idp::JwtCurrentUser, :jwt_only, type: :controller do
       get 'who' => 'anonymous#who'
       get 'become' => 'anonymous#become'
       get 'unbecome' => 'anonymous#unbecome'
+      get 'countdown' => 'anonymous#countdown'
     end
     allow(controller).to receive(:idp_jwt_helper_for_request).and_return(jwt_helper)
   end
@@ -478,6 +483,28 @@ RSpec.describe Idp::JwtCurrentUser, :jwt_only, type: :controller do
       session[:impersonation] = { true_user_id: 7, impersonated_user_id: 20 }
 
       expect { get :auth }.to have_enqueued_job(Idp::SyncUserFromIdpJob).with(user_id: 7)
+    end
+  end
+
+  describe '#inactive_session_countdown_values' do
+    let(:user) { double('User', id: 7, active?: true) }
+
+    before { allow(User).to receive(:find_or_create_from_jwt).and_return(user) }
+
+    it 'reports the token expiry as seconds remaining' do
+      allow(jwt_helper).to receive(:expiration_time).and_return(37.minutes.from_now)
+
+      get :countdown
+
+      expect(JSON.parse(response.body)['session_remaining_secs_value']).to be_within(5).of(37.minutes.to_i)
+    end
+
+    it 'is empty when no user is authenticated' do
+      allow(User).to receive(:find_or_create_from_jwt).and_return(nil)
+
+      get :countdown
+
+      expect(JSON.parse(response.body)).to eq({})
     end
   end
 
