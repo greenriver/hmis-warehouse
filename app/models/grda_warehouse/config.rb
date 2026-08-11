@@ -171,6 +171,7 @@ module GrdaWarehouse
       {
         'Default' => :default,
         'VA' => :va,
+        'Boston' => :boston,
       }
     end
 
