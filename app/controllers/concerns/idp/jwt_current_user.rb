@@ -48,6 +48,15 @@ module Idp::JwtCurrentUser
     end
     helper_method :user_signed_in?
 
+    # Return seconds remaining, not the absolute expiry timestamp: browser/server clock skew
+    # would read a server-issued timestamp as already expired.
+    def inactive_session_countdown_values
+      return {} unless current_user && (expires_at = user_session_expires_at)
+
+      { session_remaining_secs_value: (expires_at - Time.current).to_i }
+    end
+    helper_method :inactive_session_countdown_values
+
     # The actual authenticated user from the JWT, not the impersonated user.
     def true_user
       return nil unless current_user

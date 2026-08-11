@@ -13,9 +13,11 @@ RSpec.describe 'application/_inactive_session_modal', type: :view do
 
   before do
     allow(Translation).to receive(:translate) { |key| key }
-    # current_user is a controller helper_method, absent from the view verifying double, so stubbing it needs verification off.
+    # current_user and inactive_session_countdown_values are controller helper_methods, absent from
+    # the view verifying double, so stubbing them needs without_partial_double_verification.
     without_partial_double_verification do
       allow(view).to receive(:current_user).and_return(user)
+      allow(view).to receive(:inactive_session_countdown_values).and_return(session_remaining_secs_value: 2220)
     end
   end
 
@@ -24,33 +26,10 @@ RSpec.describe 'application/_inactive_session_modal', type: :view do
     Nokogiri::HTML(rendered).at_css('#inactive-session-modal')
   end
 
-  context 'on the JWT arm' do
-    let(:expires_at) { 37.minutes.from_now }
+  it 'seeds the modal with the current user and the auth arm countdown values' do
+    node = modal_node
 
-    before do
-      allow(AuthMethod).to receive(:jwt?).and_return(true)
-      without_partial_double_verification do
-        allow(view).to receive(:user_session_expires_at).and_return(expires_at)
-      end
-    end
-
-    it 'seeds the countdown from the token expiry rather than the Devise default' do
-      node = modal_node
-
-      expect(node['data-inactive-session-modal-session-expires-at-value']).to eq(expires_at.to_i.to_s)
-      devise_default = Time.current.to_i + Devise.timeout_in.in_seconds.to_i
-      expect(node['data-inactive-session-modal-session-expires-at-value'].to_i).not_to be_within(30).of(devise_default)
-    end
-  end
-
-  context 'on the Devise arm' do
-    before { allow(AuthMethod).to receive(:jwt?).and_return(false) }
-
-    it 'does not seed a token expiry and keeps the Devise lifetime' do
-      node = modal_node
-
-      expect(node['data-inactive-session-modal-session-expires-at-value']).to be_nil
-      expect(node['data-inactive-session-modal-session-lifetime-secs-value']).to eq(Devise.timeout_in.in_seconds.to_s)
-    end
+    expect(node['data-inactive-session-modal-initial-user-id-value']).to eq(user.id.to_s)
+    expect(node['data-inactive-session-modal-session-remaining-secs-value']).to eq('2220')
   end
 end
