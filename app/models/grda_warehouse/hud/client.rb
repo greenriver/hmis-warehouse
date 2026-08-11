@@ -1815,7 +1815,8 @@ module GrdaWarehouse::Hud
 
     # @param client_scope [GrdaWarehouse::Hud::Client.source] source clients to search in
     # @param sorted [Boolean] order results by closest match to text
-    def self.text_search(text, client_scope: nil, sorted: false)
+    # @param with_score [Boolean] add the match score as a #score attribute on results.
+    def self.text_search(text, client_scope: nil, sorted: false, with_score: false)
       # Get search results from client scope. Then return the unique destination client records that map to those matching source records
       relation = (client_scope || self) # rubocop:disable Style/RedundantParentheses
       # with resolve_for_join_query, results are client.scope.select(:client_id, :score) suitable for subquery
@@ -1830,8 +1831,8 @@ module GrdaWarehouse::Hud
         group(Arel.sql('1'))
 
       # now join the results, mapped through the WarehouseClient, to the current scope
-      mapped = joins(%(JOIN (#{grouped.to_sql}) AS dst_search_results ON dst_search_results.client_id = "Client".id)).
-        select(Arel.sql('"Client".*, dst_search_results.score AS score'))
+      mapped = joins(%(JOIN (#{grouped.to_sql}) AS dst_search_results ON dst_search_results.client_id = "Client".id))
+      mapped = mapped.select(Arel.sql('"Client".*, dst_search_results.score AS score')) if with_score
       mapped = mapped.order(Arel.sql('dst_search_results.score DESC'), :id) if sorted
       mapped
     end
@@ -2187,7 +2188,7 @@ module GrdaWarehouse::Hud
       @potential_matches ||= {}.tap do |m|
         scores_by_id = {}
         potential_match_search_queries.each do |query|
-          self.class.text_search(query, client_scope: self.class, sorted: true).where.not(id: id).each do |candidate|
+          self.class.text_search(query, client_scope: self.class, sorted: true, with_score: true).where.not(id: id).each do |candidate|
             score = candidate.score.to_f
             scores_by_id[candidate.id] = score if scores_by_id[candidate.id].nil? || score > scores_by_id[candidate.id]
           end
