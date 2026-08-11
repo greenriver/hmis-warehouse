@@ -22,11 +22,11 @@ module HmisDataCleanup
 
       classes ||= Hmis::Hud::Enrollment.hmis_enrollment_related_classes
 
-      raise ArgumentError, 'Pass enrollment_ids or project_ids, but not both' if enrollment_ids.present? && project_ids.present?
+      raise ArgumentError, 'Pass enrollment_ids or project_ids, but not both' if !enrollment_ids.nil? && !project_ids.nil?
 
       enrollment_scope = GrdaWarehouse::Hud::Enrollment.where(data_source_id: data_source_id)
-      enrollment_scope = enrollment_scope.where(EnrollmentID: enrollment_ids) if enrollment_ids.present?
-      enrollment_scope = enrollment_scope.where(ProjectID: project_ids) if project_ids.present?
+      enrollment_scope = enrollment_scope.where(EnrollmentID: enrollment_ids) unless enrollment_ids.nil?
+      enrollment_scope = enrollment_scope.where(ProjectID: project_ids) unless project_ids.nil?
 
       Hmis::Hud::Base.transaction do
         classes.each do |klass|
