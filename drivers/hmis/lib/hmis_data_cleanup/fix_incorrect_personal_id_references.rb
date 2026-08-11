@@ -14,15 +14,15 @@ module HmisDataCleanup
     # @param project_ids [Array<String>, nil] Optional HUD ProjectIDs to limit the fix to.
     # @param classes [Array<Class>, nil] Optional array of classes to process. If nil, processes all enrollment-related classes.
     # @param dry_run [Boolean] If true, only reports what would be fixed without making changes.
-    # @raise [ArgumentError] If both enrollment_ids and project_ids are provided.
+    # @raise [ArgumentError] If both enrollment_ids and project_ids are provided, or if an invalid class is passed.
     def self.run!(data_source_id:, enrollment_ids: nil, project_ids: nil, classes: nil, dry_run: false)
+      raise ArgumentError, 'Pass enrollment_ids or project_ids, but not both' if !enrollment_ids.nil? && !project_ids.nil?
+
       classes&.each do |klass|
-        raise "Invalid class: #{klass.name}" unless Hmis::Hud::Enrollment.hmis_enrollment_related_classes.include?(klass)
+        raise ArgumentError, "Invalid class: #{klass.name}" unless Hmis::Hud::Enrollment.hmis_enrollment_related_classes.include?(klass)
       end
 
       classes ||= Hmis::Hud::Enrollment.hmis_enrollment_related_classes
-
-      raise ArgumentError, 'Pass enrollment_ids or project_ids, but not both' if !enrollment_ids.nil? && !project_ids.nil?
 
       enrollment_scope = GrdaWarehouse::Hud::Enrollment.where(data_source_id: data_source_id)
       enrollment_scope = enrollment_scope.where(EnrollmentID: enrollment_ids) unless enrollment_ids.nil?

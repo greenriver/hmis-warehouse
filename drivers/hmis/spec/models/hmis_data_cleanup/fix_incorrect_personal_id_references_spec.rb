@@ -152,7 +152,7 @@ RSpec.describe HmisDataCleanup::FixIncorrectPersonalIdReferences, type: :model d
 
   it 'raises when both enrollment_ids and project_ids are provided' do
     expect do
-      run!(enrollment_ids: [e1.id], project_ids: [p1.project_id])
+      run!(enrollment_ids: [e1.enrollment_id], project_ids: [p1.project_id])
     end.to raise_error(ArgumentError, 'Pass enrollment_ids or project_ids, but not both')
   end
 
