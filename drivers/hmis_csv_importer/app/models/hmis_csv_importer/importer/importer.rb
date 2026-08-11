@@ -631,6 +631,19 @@ module HmisCsvImporter::Importer
           project_ids: involved_project_ids,
           version: @current_version,
         ).cleanup!
+      rescue StandardError => e
+        # If any errors arose during post-ingest cleanup, capture in Sentry
+        # but don't re-raise, so that the import is still considered complete.
+        message = "Post-ingest cleanup #{cleanup_klass.name} failed: #{e.message}"
+        log(message)
+        Sentry.capture_exception_with_info(
+          e,
+          'Post-ingest cleanup failed',
+          cleanup_class: cleanup_klass.name,
+          data_source_id: @data_source.id,
+          importer_log_id: @importer_log.id,
+          project_ids: involved_project_ids,
+        )
       end
     end
 
