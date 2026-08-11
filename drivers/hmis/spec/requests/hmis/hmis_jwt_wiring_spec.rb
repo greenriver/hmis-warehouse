@@ -120,13 +120,36 @@ RSpec.describe 'HMIS JWT wiring', :jwt_only, type: :request do
       expect(response.headers['X-app-user-id']).to be_blank
     end
 
-    it 'answers 200 with no user for a deactivated holder, rather than the JSON 403 guarded routes return' do
+    it 'answers 200 with an accountError for a deactivated holder, rather than the JSON 403 guarded routes return' do
       sign_in(create(:hmis_user, active: false))
 
       get hmis_user_path, headers: headers
 
       expect(response).to have_http_status(:ok)
-      expect(JSON.parse(response.body)).to eq('impersonating' => false)
+      # Whole-payload assertion, not include: a change that leaks another user's values onto the
+      # terminal-state bootstrap must fail here.
+      expect(JSON.parse(response.body)).to eq('impersonating' => false, 'accountError' => 'account_deactivated')
+    end
+
+    it 'answers 200 with an accountError for a good token whose holder has no warehouse account' do
+      # find_or_create_from_jwt returns nil only when neither the connector link nor the email
+      # matches, and sign_in provisions both, so no fixture reaches this branch — hence the stub.
+      allow(User).to receive(:find_or_create_from_jwt).and_return(nil)
+      sign_in(create(:hmis_user))
+
+      get hmis_user_path, headers: headers
+
+      expect(response).to have_http_status(:ok)
+      expect(JSON.parse(response.body)).to eq('impersonating' => false, 'accountError' => 'no_warehouse_account')
+    end
+
+    it 'has no accountError for an active signed-in user' do
+      sign_in(create(:hmis_user))
+
+      get hmis_user_path, headers: headers
+
+      expect(response).to have_http_status(:ok)
+      expect(JSON.parse(response.body)).not_to have_key('accountError')
     end
 
     it 'reflects the actual primaryIdp connector value, not just its presence' do
