@@ -19,29 +19,6 @@ class StyleGuidesController < ApplicationController
   def icon_font
   end
 
-  def careplan
-    @patient = Health::Patient.pilot.first
-    # Stub out a patient for the style guide if one isn't available
-    @patient ||= OpenStruct.new(
-      client: GrdaWarehouse::Hud::Client.new(
-        id: 1,
-        FirstName: Faker::Name.first_name,
-        LastName: Faker::Name.last_name,
-      ),
-      careplans: Health::Careplan.none,
-    )
-    @client = @patient.client
-    @careplan = @patient.careplans.build
-    @goal = Health::Goal::Base.new
-    @goals = @careplan.hpc_goals.order(number: :asc)
-  end
-
-  def add_goal
-  end
-
-  def add_team_member
-  end
-
   def form
     @form = OpenStruct.new
   end
@@ -51,57 +28,6 @@ class StyleGuidesController < ApplicationController
   end
 
   def stimulus_select
-    @form = OpenStruct.new
-  end
-
-  def health_dashboard
-    @name = Faker::Name.name
-    timeline_date_range = ((Date.today - 3.months)..Date.today)
-    entries = []
-    grid_lines = []
-    timeline_date_range.each do |d|
-      entries << (rand(1..50) > 45 ? 0.5 : nil)
-      class_name = if d == d.at_beginning_of_month
-        '--start-of-month'
-      elsif d == d.at_beginning_of_week
-        '--start-of-week'
-      else
-        ''
-      end
-      grid_lines << { value: d, class: "date-tick #{class_name}" }
-    end
-    @timeline_config = {
-      data: {
-        x: 'x',
-        columns: [
-          ['x'] + timeline_date_range.map { |d| d },
-          ['Entries'] + entries,
-        ],
-        type: 'scatter',
-      },
-      grid: {
-        x: {
-          front: false,
-          show: true,
-          lines: grid_lines,
-        },
-      },
-    }.to_json
-    @appointments = (Date.today.beginning_of_week(:sunday)..Date.today + 2.weeks).map do |d|
-      details = nil
-      if rand(1..50) > 45
-        details = {
-          metadata: {
-            doctor: Faker::Name.name,
-          },
-        }
-      end
-      {
-        date: d,
-        scheduled: details.present?,
-        **(details || {}),
-      }
-    end
     @form = OpenStruct.new
   end
 
@@ -149,16 +75,12 @@ class StyleGuidesController < ApplicationController
 
   private def guide_routes
     @guide_routes ||= {
-      add_goal: 'Add Goal',
-      add_team_member: 'Add Team Member',
       alerts: 'Alerts',
       buttons: 'Buttons',
-      careplan: 'Careplan',
       client_dashboard: 'Client Dashboard',
       colors: 'Colors',
       datepicker: 'Date Picker',
       form: 'Form Elements',
-      health_dashboard: 'Health Dashboard',
       icon_font: 'Icon Font',
       pagination: 'Pagination',
       menu: 'Menu',

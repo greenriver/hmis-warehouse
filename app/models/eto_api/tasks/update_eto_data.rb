@@ -468,7 +468,6 @@ module EtoApi::Tasks
 
       begin
         hmis_form.save
-        hmis_form.create_qualifying_activity!
         true
       rescue Exception
         # msg = "Failed to save, probably dirty: #{e.message}"

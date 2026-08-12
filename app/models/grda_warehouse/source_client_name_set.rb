@@ -6,13 +6,11 @@
 
 # frozen_string_literal: true
 
-# SourceClientNameSet aggregates client names from multiple data sources, including
-# both source clients and patient health records. It provides a unified interface
-# for iterating over all valid client names.
+# SourceClientNameSet aggregates client names from multiple source clients.
+# It provides a unified interface for iterating over all valid client names.
 #
 # @example Basic usage
 #   name_set = SourceClientNameSet.new(
-#     destination_client: client,
 #     source_clients: [source_client1, source_client2],
 #     user: current_user
 #   )
@@ -28,7 +26,7 @@ module GrdaWarehouse
     end
     private_constant :SourceClientName
 
-    def initialize(destination_client:, source_clients:, user:)
+    def initialize(source_clients:, user:)
       @names = source_clients.map do |client|
         SourceClientName.new(
           ds_name: client.data_source.short_name,
@@ -37,16 +35,6 @@ module GrdaWarehouse
         )
       end
 
-      # if the destination client has a patient record, and we haven't already added a source client
-      # from the health data source, include the name of the patient
-      patient = destination_client.patient
-      if patient && source_clients.none? { |sc| sc.data_source&.authoritative_type == 'health' }
-        @names << SourceClientName.new(
-          ds_name: 'Health',
-          ds_id: GrdaWarehouse::DataSource.health_authoritative_id,
-          value: patient.pii_provider(user: user).full_name,
-        )
-      end
       @names.reject! { |n| n.value.blank? }
       @names.uniq!
     end

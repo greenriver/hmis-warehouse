@@ -157,7 +157,7 @@ class ApplicationController < ActionController::Base
   def colorize(object)
     # make a hash of the object, truncate it to an appropriate size and then turn it into
     # a css friendly hash code
-    format('#%06x', (Zlib.crc32(Marshal.dump(object)) & 0xffffff))
+    format('#%06x', Zlib.crc32(Marshal.dump(object)) & 0xffffff)
   end
   helper_method :colorize
 
@@ -228,11 +228,6 @@ class ApplicationController < ActionController::Base
     @health_emergency_test_status ||= GrdaWarehouse::HealthEmergency::TestBatch.completed.maximum(:completed_at) if health_emergency? && current_user.can_see_health_emergency_clinical?
   end
   helper_method :health_emergency_test_status
-
-  def healthcare_available?
-    GrdaWarehouse::Config.get(:healthcare_available)
-  end
-  helper_method :healthcare_available?
 
   def ajax_modal_request?
     false
