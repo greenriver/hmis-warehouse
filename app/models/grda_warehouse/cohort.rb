@@ -28,9 +28,7 @@ module GrdaWarehouse
     validate :require_project_group_for_automation
     # permitted_classes here is unioned with the global yaml_column_permitted_classes
     # (config/application.rb), so it only needs to add the app-defined CohortColumns::* classes.
-    # Including `GrdaWarehouse::Cohorts::CohortColumn` explicitly as it was previously serialized into the
-    # column_state and errors when deserializing.
-    serialize :column_state, type: Array, yaml: { permitted_classes: GrdaWarehouse::Cohorts::CohortColumn.known_cohort_columns.map(&:constantize) + [GrdaWarehouse::Cohorts::CohortColumn] }
+    serialize :column_state, type: Array, yaml: { permitted_classes: GrdaWarehouse::Cohorts::CohortColumn.known_cohort_columns.map(&:constantize) }
 
     after_create :maintain_system_group
     before_validation :clear_automation_filters_without_project_group, if: -> { project_group_id.blank? }
