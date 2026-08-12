@@ -22,8 +22,6 @@ PreCommit:
     enabled: true
   BundleAudit:
     enabled: true
-    flags:
-      - --ignore CVE-2015-9284
   RuboCop:
     enabled: true
     on_warn: fail # Treat all warnings as failures
@@ -31,12 +29,6 @@ PreCommit:
     enabled: true
     description: Update Rubocop TODO
     required_executable: './bin/update_rubocop_todo.rb'
-  # CoffeeLint:
-  #   enabled: true
-  #   required_executable: 'npm'
-  #   command: ['npm', 'run', 'coffeelint']
-
-
   TrailingWhitespace:
     enabled: false
     exclude:
@@ -44,6 +36,15 @@ PreCommit:
       - 'db/**/schema.rb'
       - 'db/structure.rb'
       - 'db/**/structure.rb'
+PrePush:
+  ProtectedBranches:
+    enabled: true
+    destructive_only: false  # false = block all pushes
+    branches:
+      - main
+      - production
+      - staging
+      - gig/overcommit-update
 #
 #PostCheckout:
 #  ALL: # Special hook name that customizes all hooks of this type
