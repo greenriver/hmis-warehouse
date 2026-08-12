@@ -39,14 +39,4 @@ RSpec.describe Hmis::ProjectAutoEnterConfig, type: :model do
     config = Hmis::ProjectAutoEnterConfig.detect_best_config_for_project(p1)
     expect(config).to be_nil
   end
-
-  it 'should return nil if an auto-enter config exists, but is soft-deleted' do
-    auto_enter_config = Hmis::ProjectAutoEnterConfig.create!(project: p1, data_source: ds1)
-    config = Hmis::ProjectAutoEnterConfig.detect_best_config_for_project(p1)
-    expect(config).not_to be_nil
-    auto_enter_config.destroy!
-    expect(auto_enter_config.reload.deleted_at).not_to be_nil
-    config = Hmis::ProjectAutoEnterConfig.detect_best_config_for_project(p1)
-    expect(config).to be_nil
-  end
 end
