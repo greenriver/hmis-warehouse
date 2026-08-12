@@ -60,7 +60,7 @@ module ClientLocationHistory
     end
 
     private def link_for(path, text)
-      "<a href=\"#{path}\" target=\"_blank\">#{text}</a>"
+      "<a href=\"#{ERB::Util.html_escape(path)}\" target=\"_blank\">#{ERB::Util.html_escape(text)}</a>"
     end
 
     def self.bounds(locations)
