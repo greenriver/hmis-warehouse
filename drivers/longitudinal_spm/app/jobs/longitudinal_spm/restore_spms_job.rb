@@ -23,6 +23,11 @@ module LongitudinalSpm
         else
           message = Array.wrap(result[:errors]).join(', ')
           Rails.logger.error("LongitudinalSpm::RestoreSpmsJob: SPM ##{spm.id} restore failed: #{message}")
+          Sentry.capture_message(
+            "LongitudinalSpm::RestoreSpmsJob: SPM restore failed: #{message}",
+            level: :error,
+            extra: { report_id: report_id, hud_report_instance_id: spm.id },
+          )
           spm.fail_restore!(message)
         end
       end
