@@ -1,8 +1,10 @@
 = link_to 'Refresh', @path_for_running, class: 'jReportBlock', remote: true, style: 'display:none'
 
 = content_for :page_js do
-  :coffeescript
-    $ ->
-      setInterval ->
-        $('.jReportBlock').click()
-      , 30*1000
+  %script{ nonce: content_security_policy_nonce }
+    :plain
+      $(function() {
+        setInterval(function() {
+          $('.jReportBlock').click();
+        }, 30 * 1000);
+      });
