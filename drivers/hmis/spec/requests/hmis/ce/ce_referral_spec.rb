@@ -413,6 +413,69 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       end
     end
 
+    context 'when many steps have custom data elements' do
+      let(:query) do
+        <<~GRAPHQL
+          query GetCeReferral($id: ID!) {
+            ceReferral(id: $id) {
+              id
+              steps {
+                id
+                name
+                status
+                customDataElements {
+                  id
+                  key
+                  value {
+                    valueString
+                    valueDate
+                  }
+                  values {
+                    valueString
+                    valueDate
+                  }
+                }
+              }
+            }
+          }
+        GRAPHQL
+      end
+
+      let(:step_count) { 25 }
+      # Reuse the CDEDs generated for the CE referral step form (see ce_step_definition `generate_cdeds`)
+      let(:cdeds) { Hmis::Hud::CustomDataElementDefinition.where(owner_type: Hmis::WorkflowExecution::Step.sti_name).order(:id).first(2) }
+
+      before do
+        step_count.times do |i|
+          task = create(
+            :hmis_workflow_definition_user_task,
+            template: workflow_template,
+            name: "task with cde #{i}",
+            swimlane: case_manager_swimlane,
+            form_definition: ce_step_definition,
+          )
+          start_event.connect_to!(task)
+
+          step = workflow_instance.steps.create!(node: task, status: 'completed', available_at: Time.current, form_definition: ce_step_definition, updated_by: hmis_user)
+          cdeds.each do |cded|
+            value_attr = cded.field_type.to_sym == :date ? { value_date: Date.current } : { value_string: 'value' }
+            create(:hmis_custom_data_element, owner: step, data_element_definition: cded, data_source: ds1, user: u1, **value_attr)
+          end
+        end
+      end
+
+      it 'resolves custom data elements without n+1 queries' do
+        expect do
+          response, result = post_graphql(**variables) { query }
+          expect(response.status).to eq(200), result.inspect
+          steps = result.dig('data', 'ceReferral', 'steps')
+          steps_with_cdes = steps.select { |step| step['customDataElements'].present? }
+          expect(steps_with_cdes.count).to eq(step_count)
+          expect(steps_with_cdes).to all(satisfy { |step| step['customDataElements'].count == cdeds.count })
+        end.to make_database_queries(count: 25..35)
+      end
+    end
+
     context 'when workflow includes a conditional step' do
       let(:gateway) do
         create(
