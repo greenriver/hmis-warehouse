@@ -86,14 +86,14 @@ module Admin
     end
 
     def batch_params
-      params.permit(role: [*Role.permissions(exclude_health: true)])
+      params.permit(role: [*Role.permissions])
     end
 
     def role_params
       params.require(:role).
         permit(
           :name,
-          Role.permissions(exclude_health: true),
+          Role.permissions,
         )
     end
   end

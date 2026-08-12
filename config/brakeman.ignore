@@ -24,40 +24,6 @@
       "note": ""
     },
     {
-      "warning_type": "Cross-Site Scripting",
-      "warning_code": 2,
-      "fingerprint": "038bcd60acffeb30ca826c9b5f82d7628089aec25339d562440efa0b130911ca",
-      "check_name": "CrossSiteScripting",
-      "message": "Unescaped model attribute",
-      "file": "drivers/health_pctp/app/views/health_pctp/careplans/edit_pdf.haml",
-      "line": 14,
-      "link": "https://brakemanscanner.org/docs/warning_types/cross_site_scripting",
-      "code": "Health::Patient.viewable_by_user(current_user).find_by(:client_id => params[:client_id].to_i).pctps.find(params[:id]).enrollee_overview_label",
-      "render_path": [
-        {
-          "type": "controller",
-          "class": "HealthPctp::CareplansController",
-          "method": "edit",
-          "line": 36,
-          "file": "drivers/health_pctp/app/controllers/health_pctp/careplans_controller.rb",
-          "rendered": {
-            "name": "health_pctp/careplans/edit_pdf",
-            "file": "drivers/health_pctp/app/views/health_pctp/careplans/edit_pdf.haml"
-          }
-        }
-      ],
-      "location": {
-        "type": "template",
-        "template": "health_pctp/careplans/edit_pdf"
-      },
-      "user_input": null,
-      "confidence": "High",
-      "cwe_id": [
-        79
-      ],
-      "note": ""
-    },
-    {
       "warning_type": "HTTP Verb Confusion",
       "warning_code": 118,
       "fingerprint": "05a3960f7236c0da86510f0fb7338b584ba226de1b321eaefe4ef493408c38dc",
@@ -106,13 +72,13 @@
     {
       "warning_type": "File Access",
       "warning_code": 16,
-      "fingerprint": "0a8413f58bac50c36a5c6154a71747e5b6dcc2c7c345f8388fd7d4f42e2350d3",
+      "fingerprint": "d1627a2f8d895fe01ce3cb43a57e7022714976efd50937b866110cbb07cf6a61",
       "check_name": "SendFile",
       "message": "Model attribute used in file name",
       "file": "app/models/health/scheduled_documents/enrollment_disenrollment.rb",
       "line": 46,
       "link": "https://brakemanscanner.org/docs/warning_types/file_access/",
-      "code": "send_file(:file_name => Health::EnrollmentDisenrollment.new(:start_date => Date.current.beginning_of_month, :end_date => Date.current.end_of_month, :effective_date => Date.current, :aco_ids => acos.reject(&:blank?), :enrollment_reasons => ((Health::EnrollmentReasons.last or Health::EnrollmentReasons.new))).zip_file_name, :data => Zip::OutputStream.write_buffer do\n zio.put_next_entry(Health::EnrollmentDisenrollment.new(:start_date => Date.current.beginning_of_month, :end_date => Date.current.end_of_month, :effective_date => Date.current, :aco_ids => acos.reject(&:blank?), :enrollment_reasons => ((Health::EnrollmentReasons.last or Health::EnrollmentReasons.new))).summary_file_name)\nzio.write(ApplicationController.render(:template => \"warehouse_reports/health/enrollments_disenrollments/summary.xlsx\", :assigns => ({ :report => Health::EnrollmentDisenrollment.new(:start_date => Date.current.beginning_of_month, :end_date => Date.current.end_of_month, :effective_date => Date.current, :aco_ids => acos.reject(&:blank?), :enrollment_reasons => ((Health::EnrollmentReasons.last or Health::EnrollmentReasons.new))) })))\nzio.put_next_entry(Health::EnrollmentDisenrollment.new(:start_date => Date.current.beginning_of_month, :end_date => Date.current.end_of_month, :effective_date => Date.current, :aco_ids => acos.reject(&:blank?), :enrollment_reasons => ((Health::EnrollmentReasons.last or Health::EnrollmentReasons.new))).report_file_name)\nzio.write(ApplicationController.render(:template => \"warehouse_reports/health/enrollments_disenrollments/report.xlsx\", :assigns => ({ :report => Health::EnrollmentDisenrollment.new(:start_date => Date.current.beginning_of_month, :end_date => Date.current.end_of_month, :effective_date => Date.current, :aco_ids => acos.reject(&:blank?), :enrollment_reasons => ((Health::EnrollmentReasons.last or Health::EnrollmentReasons.new))) })))\n end.string)",
+      "code": "send_file(:file_name => Health::EnrollmentDisenrollment.new(:start_date => Date.current.beginning_of_month, :end_date => Date.current.end_of_month, :effective_date => Date.current, :aco_ids => acos.reject(&:blank?), :enrollment_reasons => ((Health::EnrollmentReasons.last or Health::EnrollmentReasons.new))).zip_file_name, :data => Zip::OutputStream.write_buffer do\n zio.put_next_entry(Health::EnrollmentDisenrollment.new(:start_date => Date.current.beginning_of_month, :end_date => Date.current.end_of_month, :effective_date => Date.current, :aco_ids => acos.reject(&:blank?), :enrollment_reasons => ((Health::EnrollmentReasons.last or Health::EnrollmentReasons.new))).summary_file_name)\nzio.write(ApplicationController.render(:template => \"health/scheduled_documents/enrollment_disenrollment/summary.xlsx\", :assigns => ({ :report => Health::EnrollmentDisenrollment.new(:start_date => Date.current.beginning_of_month, :end_date => Date.current.end_of_month, :effective_date => Date.current, :aco_ids => acos.reject(&:blank?), :enrollment_reasons => ((Health::EnrollmentReasons.last or Health::EnrollmentReasons.new))) })))\nzio.put_next_entry(Health::EnrollmentDisenrollment.new(:start_date => Date.current.beginning_of_month, :end_date => Date.current.end_of_month, :effective_date => Date.current, :aco_ids => acos.reject(&:blank?), :enrollment_reasons => ((Health::EnrollmentReasons.last or Health::EnrollmentReasons.new))).report_file_name)\nzio.write(ApplicationController.render(:template => \"health/scheduled_documents/enrollment_disenrollment/report.xlsx\", :assigns => ({ :report => Health::EnrollmentDisenrollment.new(:start_date => Date.current.beginning_of_month, :end_date => Date.current.end_of_month, :effective_date => Date.current, :aco_ids => acos.reject(&:blank?), :enrollment_reasons => ((Health::EnrollmentReasons.last or Health::EnrollmentReasons.new))) })))\n end.string)",
       "render_path": null,
       "location": {
         "type": "method",
