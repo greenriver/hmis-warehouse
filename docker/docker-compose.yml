@@ -28,6 +28,10 @@ x-app: &app
     BUNDLE_FORCE_RUBY_PLATFORM: "true"
     KUBE_CONFIG_PATH: ${KUBE_CONFIG_PATH:-/home/app-user/.kube/config}
     K8S_API_HOST_AND_PORT: ${K8S_API_HOST_AND_PORT:-}
+    IDP_AUD: ${IDP_AUD:-hmis-warehouse,hmis-frontend,superset}
+    JWT_ALGORITHM: ${JWT_ALGORITHM:-RS256}
+    ISS_URL: ${ISS_URL:-https://dex.dev.test/dex}
+    JWKS_URL: ${JWKS_URL:-http://dex.dev.test:4443/dex/keys}
 
   env_file:
     - .env.development.local
@@ -264,7 +268,11 @@ services:
     expose:
       - 1433
     healthcheck:
-      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -C -S localhost -U sa -P \"$$MSSQL_SA_PASSWORD\" -Q 'SELECT 1' || exit 1"]
+      test:
+        [
+          "CMD-SHELL",
+          '/opt/mssql-tools18/bin/sqlcmd -C -S localhost -U sa -P "$$MSSQL_SA_PASSWORD" -Q ''SELECT 1'' || exit 1',
+        ]
       interval: 10s
       timeout: 5s
       retries: 12
