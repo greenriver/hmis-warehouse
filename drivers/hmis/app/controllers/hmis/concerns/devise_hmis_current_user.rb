@@ -17,5 +17,10 @@ module Hmis::Concerns::DeviseHmisCurrentUser
     def session_duration_seconds
       Devise.timeout_in.in_seconds
     end
+
+    # Defined only because Hmis::UsersController#show calls it on both arms.
+    def terminal_account_error
+      nil
+    end
   end
 end
