@@ -31,6 +31,14 @@ module HudSpmReport::Fy2026
       [exit_enrollment, return_enrollment].detect(&:present?)&.enrollment&.project&.id
     end
 
+    # @see HudSpmReport::Fy2026::SpmEnrollment#projects_by_column
+    def projects_by_column
+      @projects_by_column ||= {
+        'exit_enrollment.enrollment.project.ProjectID' => [exit_enrollment&.enrollment&.project].compact,
+        'return_enrollment.enrollment.project.ProjectID' => [return_enrollment&.enrollment&.project].compact,
+      }
+    end
+
     def self.pluck_project_ids
       project_table = GrdaWarehouse::Hud::Project.arel_table
 
@@ -70,10 +78,13 @@ module HudSpmReport::Fy2026
     end
 
     def self.detail_headers
-      client_columns = ['client_id', 'exit_enrollment.first_name', 'exit_enrollment.last_name', 'exit_enrollment.personal_id']
+      client_columns = ['client_id', 'exit_enrollment.first_name', 'exit_enrollment.last_name', 'exit_enrollment.personal_id', 'data_source_id']
       hidden_columns = ['id', 'report_instance_id'] + client_columns
-      join_columns = ['exit_enrollment.enrollment.project.project_name', 'return_enrollment.enrollment.project.project_name']
-      columns = client_columns + (column_names + join_columns - hidden_columns)
+      project_columns = [
+        'exit_enrollment.enrollment.project.ProjectID',
+        'return_enrollment.enrollment.project.ProjectID',
+      ]
+      columns = client_columns + (column_names + project_columns - hidden_columns)
       columns.map do |col|
         [col, header_label(col)]
       end.to_h
