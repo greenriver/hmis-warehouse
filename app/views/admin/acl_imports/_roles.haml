@@ -16,7 +16,7 @@
           %th
           %th.border-end Incoming
     %tbody
-      - Role.permissions(exclude_health: true).each do |column|
+      - Role.permissions.each do |column|
         %tr
           %th.border-end= Role.title_for_column(column)
           - @import.roles.each do |role|

@@ -21,15 +21,43 @@
 #   Role.ensure_permissions_exist
 #
 class Role < ApplicationRecord
+  # Columns pending removal in a later deploy; see db/migrate/20260804130000_remove_health_only_columns.rb
+  self.ignored_columns = [
+    'health_role',
+    'can_administer_health',
+    'can_edit_client_health',
+    'can_view_client_health',
+    'can_view_aggregate_health',
+    'can_manage_health_agency',
+    'can_approve_patient_assignments',
+    'can_manage_claims',
+    'can_manage_all_patients',
+    'can_manage_patients_for_own_agency',
+    'can_manage_care_coordinators',
+    'can_approve_cha',
+    'can_approve_ssm',
+    'can_approve_release',
+    'can_approve_participation',
+    'can_approve_careplan',
+    'can_edit_all_patient_items',
+    'can_edit_patient_items_for_own_agency',
+    'can_create_care_plans_for_own_agency',
+    'can_view_all_patients',
+    'can_view_patients_for_own_agency',
+    'can_add_case_management_notes',
+    'can_manage_accountable_care_organizations',
+    'can_view_member_health_reports',
+    'can_unsubmit_submitted_claims',
+    'can_edit_health_emergency_contact_tracing',
+  ].freeze
+
   acts_as_paranoid
   has_paper_trail
 
   include UserPermissionCache
   include HistoryDescriptions
 
-  # Keep for health roles
   has_many :user_roles
-  has_many :health_users, through: :user_roles
   # TODO: START_ACL remove after ACL migration is complete
   # has_many :user_roles, dependent: :destroy, inverse_of: :role
   has_many :legacy_users, through: :user_roles # FIXME: need to track down where we use this and update as appropriate
@@ -53,20 +81,12 @@ class Role < ApplicationRecord
     where(system: false)
   end
 
-  scope :health, -> do
-    where(health_role: true)
-  end
-
   scope :editable, -> do
-    not_system.where(health_role: false)
+    not_system
   end
 
   scope :homeless, -> do
     editable
-  end
-
-  scope :nurse_care_manager, -> do
-    health.where(name: 'Nurse Care Manager')
   end
 
   scope :with_all_permissions, ->(*perms) do
@@ -92,12 +112,8 @@ class Role < ApplicationRecord
     ).first_or_create
   end
 
-  def health?
-    health_role
-  end
-
   def editable?
-    system == false && health_role == false
+    system == false
   end
 
   def has_super_admin_permissions? # rubocop:disable Naming/PredicatePrefix
@@ -124,30 +140,24 @@ class Role < ApplicationRecord
     false
   end
 
-  def self.permissions(exclude_health: false)
-    perms = permissions_with_descriptions.keys
-    perms += self.health_permissions unless exclude_health # rubocop:disable Style/RedundantSelf
-    return perms
+  def self.permissions
+    permissions_with_descriptions.keys
   end
 
   def self.permission_categories
     permissions_with_descriptions.map { |_perm_key, perm| perm[:category] }
   end
 
-  def self.health_permissions
-    health_permissions_with_descriptions.keys
-  end
-
   def self.description_for permission:
-    permissions_with_descriptions.merge(health_permissions_with_descriptions)[permission][:description] rescue '' # rubocop:disable Style/RescueModifier
+    permissions_with_descriptions[permission][:description] rescue '' # rubocop:disable Style/RescueModifier
   end
 
   def self.category_for permission:
-    permissions_with_descriptions.merge(health_permissions_with_descriptions)[permission][:category] rescue [] # rubocop:disable Style/RescueModifier
+    permissions_with_descriptions[permission][:category] rescue [] # rubocop:disable Style/RescueModifier
   end
 
   def self.administrative? permission:
-    permissions_with_descriptions.merge(health_permissions_with_descriptions)[permission][:administrative] rescue true # rubocop:disable Style/RescueModifier
+    permissions_with_descriptions[permission][:administrative] rescue true # rubocop:disable Style/RescueModifier
   end
 
   def self.permissions_by_group
@@ -977,160 +987,17 @@ class Role < ApplicationRecord
     }
   end
 
-  def self.health_permissions_with_descriptions
-    {
-      can_administer_health: {
-        description: 'Administrative access to all health sections and patient records',
-        administrative: true,
-        categories: [],
-      },
-      can_edit_client_health: {
-        description: 'Provides the ability to enter data for pilot patients. Pilot Permission',
-        administrative: false,
-        categories: [],
-      },
-      can_view_client_health: {
-        description: 'Ability to view pilot patient records. Pilot Permission',
-        administrative: false,
-        categories: [],
-      },
-      can_view_aggregate_health: {
-        description: 'Access to see the claims and ED use data provided from BHCHP',
-        administrative: true,
-        categories: [],
-      },
-      can_manage_health_agency: {
-        description: 'Ability to add and edit health agency records',
-        administrative: true,
-        categories: [],
-      },
-      can_approve_patient_assignments: {
-        description: 'Ability to convert patient referrals to patient records and assign patients to agencies',
-        administrative: true,
-        categories: [],
-      },
-      can_manage_claims: {
-        description: 'Can generate, review, and download claims files',
-        administrative: true,
-        categories: [],
-      },
-      can_manage_all_patients: {
-        description: 'Ability to claim patient referrals for any agency',
-        administrative: true,
-        categories: [],
-      },
-      can_manage_patients_for_own_agency: {
-        description: 'Ability to claim patient referrals for an agency, used in conjunction with user-agency assignments',
-        administrative: false,
-        categories: [],
-      },
-      can_manage_care_coordinators: {
-        description: 'Assign care coordinators to patients',
-        administrative: false,
-        categories: [],
-      },
-      can_approve_cha: {
-        description: 'Ability to approve Comprehensive Health Assessments',
-        administrative: false,
-        categories: [],
-      },
-      can_approve_ssm: {
-        description: 'Ability to approve Self-Sufficiency Matrix forms',
-        administrative: false,
-        categories: [],
-      },
-      can_approve_release: {
-        description: 'Ability to approve release forms',
-        administrative: false,
-        categories: [],
-      },
-      can_approve_participation: {
-        description: 'Ability to approve participation forms',
-        administrative: false,
-        categories: [],
-      },
-      can_approve_careplan: {
-        description: 'Ability to approve Care Plans',
-        administrative: false,
-        categories: [],
-      },
-      can_edit_all_patient_items: {
-        description: 'Unused',
-        administrative: true,
-        categories: [],
-      },
-      can_edit_patient_items_for_own_agency: {
-        description: 'Edit ability for patient records',
-        administrative: false,
-        categories: [],
-      },
-      can_create_care_plans_for_own_agency: {
-        description: 'Unused',
-        administrative: false,
-        categories: [],
-      },
-      can_view_all_patients: {
-        description: 'Unused',
-        administrative: true,
-        categories: [],
-      },
-      can_view_patients_for_own_agency: {
-        description: 'Allows access to patient records',
-        administrative: false,
-        categories: [],
-      }, # Read-only - not implemented as such yet
-      can_add_case_management_notes: {
-        description: 'Unused',
-        administrative: false,
-        categories: [],
-      },
-      can_manage_accountable_care_organizations: {
-        description: 'Administer ACO records',
-        administrative: true,
-        categories: [],
-      },
-      can_view_member_health_reports: {
-        description: 'Use for downloading individual member reports',
-        administrative: true,
-        categories: [],
-      },
-      can_unsubmit_submitted_claims: {
-        description: 'Can this user blank out the submitted date on QA, allowing resubmission?',
-        administrative: true,
-        categories: [],
-      },
-      can_edit_health_emergency_contact_tracing: {
-        description: 'Grants access to the contact tracing section when there is an active health emergency',
-        administrative: false,
-        categories: [],
-      },
-      can_view_all_vprs: {
-        description: 'Can view Flex Services information for all patients',
-        administrative: true,
-        categories: [],
-      },
-      can_view_my_vprs: {
-        description: 'Can view Flex Services information for assigned patients',
-        administrative: false,
-        categories: [],
-      },
-    }
-  end
-
   def self.ensure_permissions_exist
     Role.permissions.each do |permission|
       ActiveRecord::Migration.add_column(:roles, permission, :boolean, default: false) unless ActiveRecord::Base.connection.column_exists?(:roles, permission)
     end
   end
 
-  # Only used in the Healthcare context (once ACL migration is complete) START_ACL
   def add(users)
-    self.health_users = (health_users + Array.wrap(users)).uniq
     self.legacy_users = (legacy_users + Array.wrap(users)).uniq # START_ACL remove after ACL migration is complete
   end
 
   def remove(users)
-    self.health_users = (health_users - Array.wrap(users))
     self.legacy_users = (legacy_users - Array.wrap(users)) # START_ACL remove after ACL migration is complete
   end
 end

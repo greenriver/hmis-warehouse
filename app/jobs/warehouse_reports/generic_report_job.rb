@@ -60,10 +60,7 @@ module WarehouseReports
     def allowed_reports
       reports = {
         'GrdaWarehouse::WarehouseReports::Youth::Export' => ::GrdaWarehouse::WarehouseReports::Youth::Export,
-        'Health::SsmExport' => ::Health::SsmExport,
-        'Health::EncounterReport' => ::Health::EncounterReport,
         'GrdaWarehouse::WarehouseReports::TouchPoint' => ::GrdaWarehouse::WarehouseReports::TouchPoint,
-        'GrdaWarehouse::WarehouseReports::ConfidentialTouchPoint' => GrdaWarehouse::WarehouseReports::ConfidentialTouchPoint,
         'GrdaWarehouse::WarehouseReports::Exports::AdHoc' => GrdaWarehouse::WarehouseReports::Exports::AdHoc,
         'GrdaWarehouse::WarehouseReports::Exports::AdHocAnon' => GrdaWarehouse::WarehouseReports::Exports::AdHocAnon,
       }
@@ -81,10 +78,6 @@ module WarehouseReports
         reports['PublicReports::StateLevelHomelessness'] = PublicReports::StateLevelHomelessness
       end
       reports['IncomeBenefitsReport::Report'] = IncomeBenefitsReport::Report if RailsDrivers.loaded.include?(:income_benefits_report)
-      if RailsDrivers.loaded.include?(:claims_reporting)
-        reports['ClaimsReporting::EngagementTrends'] = ClaimsReporting::EngagementTrends
-        reports['ClaimsReporting::QualityMeasures'] = ClaimsReporting::QualityMeasures
-      end
       reports['HapReport::Report'] = HapReport::Report if RailsDrivers.loaded.include?(:hap_report)
       reports['PerformanceMetrics::Report'] = PerformanceMetrics::Report if RailsDrivers.loaded.include?(:performance_metrics)
       reports['HomelessSummaryReport::Report'] = HomelessSummaryReport::Report if RailsDrivers.loaded.include?(:homeless_summary_report)

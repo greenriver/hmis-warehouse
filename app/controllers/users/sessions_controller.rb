@@ -8,15 +8,23 @@
 
 class Users::SessionsController < Devise::SessionsController
   include AuthenticatesWithTwoFactor
-  # Start the time log before other methods are called in the authentication stack so we can get the server begin time for the login attempt
-  prepend_before_action :begin_time_log, only: :create
   prepend_before_action(
     :authenticate_with_two_factor,
     if: -> { action_name == 'create' && two_factor_enabled? },
   )
+  # Wraps the entire :create callback chain (including authenticate_with_two_factor and Devise's
+  # own filters), so the timing log always runs.
+  prepend_around_action :time_login, only: :create
 
   # Minimum required login processing time for ALL login attempts (seconds)
   MIN_REQ_LOGIN_TIME = 2
+
+  def time_login
+    begin_time_log
+    yield
+  ensure
+    end_time_log
+  end
 
   def begin_time_log
     # Timestamp for tracking login time to help ensure that the application response time is consistent for valid/invalid usernames.
@@ -34,15 +42,22 @@ class Users::SessionsController < Devise::SessionsController
 
   def create
     super do |resource|
-      # User has successfully signed in, so clear any unused reset token
-      resource.update(reset_password_token: nil, reset_password_sent_at: nil) if resource.reset_password_token.present?
-      # Note access for external reporting
-      resource.delay(queue: ENV.fetch('DJ_SHORT_QUEUE_NAME', :short_running)).populate_external_reporting_permissions!
+      post_sign_in!(resource)
     end
-  ensure
-    # `super` includes a redirect on failed authentication. We want to make sure this check is captured and processed
-    # from a location with access to the server's initial login timestamp.
-    end_time_log
+  end
+
+  # Devise::SessionsController#create never runs for a 2FA login, since require_no_authentication
+  # (a Devise before_action) redirects as soon as authenticate_with_two_factor signs the user in.
+  # This method overrides the no-op for warehouse users to ensure the post-sign-in logic runs.
+  def after_two_factor_sign_in(user)
+    post_sign_in!(user)
+  end
+
+  private def post_sign_in!(resource)
+    # User has successfully signed in, so clear any unused reset token
+    resource.update(reset_password_token: nil, reset_password_sent_at: nil) if resource.reset_password_token.present?
+    # Note access for external reporting for OP Analytics
+    resource.delay(queue: ENV.fetch('DJ_SHORT_QUEUE_NAME', :short_running)).populate_external_reporting_permissions!
   end
 
   def destroy

@@ -1,9 +1,0 @@
-:ruby
-  if export.present?
-    data = {
-      type: export.type,
-      query_string: export.query_string
-    }
-  end
-
-= render 'report_downloads/report_download_button', export: export, data: data, excel_download_path: excel_download_path
