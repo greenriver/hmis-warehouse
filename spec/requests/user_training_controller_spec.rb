@@ -60,8 +60,11 @@ RSpec.describe 'UserTrainingController', type: :request do
     end
 
     it 'redirects to the user root without reading a stored location', :jwt_only do
-      # Devise defines stored_location_for even under AUTH_METHOD=jwt, so this has something to catch.
-      expect_any_instance_of(UserTrainingController).not_to receive(:stored_location_for)
+      # Under AUTH_METHOD=jwt the Devise helpers are unloaded, so stored_location_for isn't defined on
+      # the controller — the jwt guard in stored_landing_after_training can't reach it. Assert the
+      # method's absence (the inverse of the :devise_only canaries above), which is a stronger
+      # guarantee than spying that it went uncalled.
+      expect(UserTrainingController.instance_methods).not_to include(:stored_location_for)
 
       allow_any_instance_of(User).to receive(:my_root_path).and_return(censuses_path)
 

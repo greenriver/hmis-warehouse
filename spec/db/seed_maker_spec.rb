@@ -46,7 +46,7 @@ RSpec.describe SeedMaker do
       # Neutralize the unrelated deploy steps: a full run_all loads HMIS data, shapefiles,
       # translations, etc. — too heavy and brittle to run here. The IdP seed itself runs for real.
       [
-        :ensure_db_triggers_and_functions, :setup_fake_health_data, :maintain_data_sources, :maintain_health_seeds, :setup_hmis_admin_access, :load_hmis_data, :install_shapes, :maintain_lookups, :maintain_system_groups, :populate_internal_system_choices
+        :ensure_db_triggers_and_functions, :maintain_data_sources, :maintain_cp_seed, :setup_hmis_admin_access, :load_hmis_data, :install_shapes, :maintain_lookups, :maintain_system_groups, :populate_internal_system_choices
       ].each { |step| allow(seed_maker).to receive(step) }
 
       allow(GrdaWarehouse::WarehouseReports::ReportDefinition).to receive(:maintain_report_definitions)
