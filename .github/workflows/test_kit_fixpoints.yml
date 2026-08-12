@@ -157,6 +157,12 @@ jobs:
       - name: Get current date
         id: date
         run: echo "today=$(date +'%Y-%m-%d')" >> $GITHUB_ENV
+      - name: Refresh AWS credentials for OIDC (test kit S3)
+        uses: aws-actions/configure-aws-credentials@e6de054238d6b7531b4efff3b6587d9aade6a06c # v6.2.3
+        with:
+          aws-region: us-east-1
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/${{ secrets.AWS_ROLE_NAME }}
+          role-session-name: warehouse-fixpoints-s3-upload
       - name: "Copy old fixpoints to previous folder"
         env:
           SOURCE: ${{ secrets.AWS_S3_ACTION_BUCKET }}${{ vars.AWS_S3_ACTIONS_FIXPOINT_PATH_FY_2026 }}
