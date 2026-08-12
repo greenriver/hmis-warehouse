@@ -17,8 +17,6 @@
 # every registered mapping, and :hmis_user remains a Devise mapping until seam 6. A raise
 # here would turn a routine "is the hmis_user signed in? no" probe into a 500.
 class Idp::WardenProxy
-  # Not Warden::NotAuthenticated: the :devise Gemfile group is required only on the Devise arm, so
-  # the Warden constant is undefined on the arm this proxy stands in for.
   class NotAuthenticated < StandardError; end
 
   def initialize(user, session: nil)
