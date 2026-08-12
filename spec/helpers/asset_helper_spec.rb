@@ -27,7 +27,7 @@ RSpec.describe AssetHelper, type: :helper do
     # inlines theme/styles/*.scss through a local variable, which cannot be derived
     # statically; that glob currently matches only a sass partial, which sprockets does
     # not serve.
-    inlined_for_pdf = ['dashboard_pdf', 'application', 'print', 'roi_pdf', 'health_flex_services_pdf'].freeze
+    inlined_for_pdf = ['dashboard_pdf', 'application', 'print', 'roi_pdf'].freeze
 
     it 'covers every stylesheet named literally in a call to inline_stylesheet_link_tag' do
       paths = Dir.glob(Rails.root.join('{app,drivers,lib,config}/**/*.{haml,erb,rb}'))

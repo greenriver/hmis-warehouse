@@ -22,10 +22,8 @@ class Menu::Menu
     [].tap do |menu|
       menu << reports_menu
       menu << clients_menu
-      menu << health_menu
       menu << data_menu
       menu << warehouse_admin_menu
-      menu << health_admin_menu
       menu << hmis_admin_menu
       menu << support_menu
       links_menu.each do |item|
@@ -126,11 +124,7 @@ class Menu::Menu
         title: Translation.translate('All Assigned Clients'),
       ),
     )
-    title = if user.can_view_aggregate_health? || user.can_view_patients_for_own_agency?
-      Translation.translate('My Agency\'s HMIS Clients')
-    else
-      Translation.translate('My Agency\'s Clients')
-    end
+    title = Translation.translate('My Agency\'s Clients')
     menu.add_child(
       Menu::Item.new(
         user: user,
@@ -139,11 +133,7 @@ class Menu::Menu
         title: title,
       ),
     )
-    title = if user.can_view_aggregate_health? || user.can_view_patients_for_own_agency?
-      Translation.translate('My HMIS Clients')
-    else
-      Translation.translate('My Clients')
-    end
+    title = Translation.translate('My Clients')
     menu.add_child(
       Menu::Item.new(
         user: user,
@@ -168,58 +158,6 @@ class Menu::Menu
         visible: ->(user) { user.can_access_some_cohorts? }, # rubocop:disable Style/SymbolProc
         path: cohorts_path,
         title: Translation.translate('Cohorts'),
-      ),
-    )
-
-    menu
-  end
-
-  def health_menu
-    menu = Menu::Item.new(
-      user: user,
-      title: Translation.translate('Care Hub'),
-      icon: 'icon-heart-empty',
-      id: 'care-hub',
-      always_open: true,
-    )
-    menu.add_child(
-      Menu::Item.new(
-        user: user,
-        visible: ->(user) { GrdaWarehouse::Config.get(:health_emergency_tracing).present? && user.can_edit_health_emergency_contact_tracing? },
-        path: health_he_search_path,
-        title: "#{GrdaWarehouse::Config.current_health_emergency_tracing_title} #{Translation.translate('Contact Tracing')}",
-      ),
-    )
-    menu.add_child(
-      Menu::Item.new(
-        user: user,
-        visible: ->(user) { user.can_view_patients_for_own_agency? && user.health_agencies.any? },
-        path: health_patients_path,
-        title: Translation.translate('My Agency\'s Patients'),
-      ),
-    )
-    menu.add_child(
-      Menu::Item.new(
-        user: user,
-        visible: ->(user) { user.can_administer_health? || user.team_mates.exists? },
-        path: health_team_patients_path,
-        title: Translation.translate('My Team\'s Patients'),
-      ),
-    )
-    menu.add_child(
-      Menu::Item.new(
-        user: user,
-        visible: ->(user) { user.can_view_patients_for_own_agency? && user.health_agencies.any? },
-        path: health_my_patients_path,
-        title: Translation.translate('My Patients'),
-      ),
-    )
-    menu.add_child(
-      Menu::Item.new(
-        user: user,
-        visible: ->(user) { !(user.can_view_patients_for_own_agency? && user.health_agencies.any?) && user.can_view_some_vprs? },
-        path: health_flexible_service_my_vprs_path,
-        title: Translation.translate('My Patients'),
       ),
     )
 
@@ -565,31 +503,6 @@ class Menu::Menu
         visible: lambda(&:can_manage_config?),
         path: admin_system_maintenance_tasks_path,
         title: 'System Tasks',
-      ),
-    )
-    menu
-  end
-
-  def health_admin_menu
-    menu = Menu::Item.new(
-      user: user,
-      title: Translation.translate('Healthcare Admin'),
-      icon: 'icon-cog',
-      id: 'health-administration',
-    )
-    path = if user.can_approve_patient_assignments?
-      review_admin_health_patient_referrals_path
-    elsif (user.can_manage_health_agency? || user.can_manage_patients_for_own_agency?) && user.health_agencies.any?
-      review_admin_health_agency_patient_referrals_path
-    else
-      admin_health_admin_index_path
-    end
-    menu.add_child(
-      Menu::Item.new(
-        user: user,
-        visible: ->(user) { GrdaWarehouse::Config.get(:healthcare_available) && (user.can_administer_health? || user.can_manage_health_agency? || user.has_patient_referral_review_access?) },
-        path: path,
-        title: Translation.translate('Healthcare Admin'),
       ),
     )
     menu

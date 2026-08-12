@@ -21,7 +21,7 @@ RSpec.describe model, type: :model do
   let!(:user) { create :user }
 
   let!(:r1) { create :touch_point_report }
-  let!(:r2) { create :confidential_touch_point_report }
+  let!(:r2) { create :hmis_export_report }
 
   user_ids = ->(user) { model.viewable_by(user).pluck(:id).sort }
   ids      = ->(*reports) { reports.map(&:id).sort }

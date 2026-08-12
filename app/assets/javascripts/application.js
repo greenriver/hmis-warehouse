@@ -48,8 +48,6 @@
 //= require ajax_modal_rails
 //= require util
 //= require site_menu
-//= require ssm
-//= require cha
 //= require vispdats
 //= require files
 //= require selectable_list
