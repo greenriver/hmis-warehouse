@@ -1,0 +1,44 @@
+- purged_spms = @report.purged_spms.map(&:hud_spm)
+- restoring = purged_spms.any?(&:restoring?)
+- failed_spm = purged_spms.detect(&:restore_failed?)
+
+#longitudinal-spm-archival-alert{ data: { restoring: restoring.to_s } }
+  - if restoring
+    .alert.alert--flex.alert-info
+      %i.alert__icon.icon-spinner
+      %p.mb-0
+        Restoring the archived SPM reports. This may take several minutes; this page will update on its own when the data is available.
+    -# Registered once, on the full page render: content_for :page_js is dropped
+    -# on the layout-less xhr render below, so polling cannot compound.
+    = content_for :page_js do
+      %script{ nonce: content_security_policy_nonce }
+        :plain
+          (function($) {
+            var url = '#{running_longitudinal_spm_warehouse_reports_report_path(@report)}';
+            var timer = setInterval(function() {
+              $.ajax({ url: url, dataType: 'html' }).done(function(html, textStatus, xhr) {
+                if (xhr.status === 204) {
+                  location.reload();
+                  return;
+                }
+                $('#longitudinal-spm-archival-alert').replaceWith(html);
+                // A restore that failed leaves the alert in its idle state. Stop
+                // polling rather than re-fetching the same markup indefinitely.
+                if ($('#longitudinal-spm-archival-alert').attr('data-restoring') !== 'true') {
+                  clearInterval(timer);
+                }
+              });
+            }, 30000);
+          })(jQuery);
+  - else
+    .alert.alert--flex.alert-warning
+      %i.alert__icon.icon-warning
+      %p.mb-0
+        One or more of the underlying SPM reports has been archived. The archived report(s) must be restored before the data in this report is available.
+    - if failed_spm.present?
+      .alert.alert--flex.alert-danger
+        %i.alert__icon.icon-warning
+        %p.mb-0
+          The last restore attempt did not finish. Try again below; if it keeps failing, contact your system administrator.
+    = form_with url: restore_spms_longitudinal_spm_warehouse_reports_report_path(@report), method: :post, local: true, class: 'mb-4' do |f|
+      = f.submit 'Restore Archived SPM Data', class: 'btn btn-primary'
