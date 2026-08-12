@@ -106,30 +106,7 @@ The Form Builder UI can't be used to set this up; it must be configured in the J
           "required": true,
           "mapping": { "record_type": "ASSESSMENT", "field_name": "assessmentLocation" }
         },
-        {
-          "type": "CHOICE",
-          "text": "Assessment Type",
-          "link_id": "ce_assessment_type",
-          "required": true,
-          "mapping": { "record_type": "ASSESSMENT", "field_name": "assessmentType" },
-          "pick_list_reference": "AssessmentType"
-        },
-        {
-          "type": "CHOICE",
-          "text": "Assessment Level",
-          "link_id": "ce_assessment_level",
-          "required": true,
-          "mapping": { "record_type": "ASSESSMENT", "field_name": "assessmentLevel" },
-          "pick_list_reference": "AssessmentLevel"
-        },
-        {
-          "type": "CHOICE",
-          "text": "Prioritization Status",
-          "link_id": "ce_prioritization_status",
-          "required": true,
-          "mapping": { "record_type": "ASSESSMENT", "field_name": "prioritizationStatus" },
-          "pick_list_reference": "PrioritizationStatus"
-        },
+        // ... other required fields on Assessment
         {
           "type": "CHOICE",
           "text": "What is the household composition?",
