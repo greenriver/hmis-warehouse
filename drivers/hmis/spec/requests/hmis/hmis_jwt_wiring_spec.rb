@@ -120,13 +120,37 @@ RSpec.describe 'HMIS JWT wiring', :jwt_only, type: :request do
       expect(response.headers['X-app-user-id']).to be_blank
     end
 
-    it 'answers 200 with no user for a deactivated holder, rather than the JSON 403 guarded routes return' do
+    it 'answers 200 with an accountError for a deactivated holder' do
       sign_in(create(:hmis_user, active: false))
 
       get hmis_user_path, headers: headers
 
       expect(response).to have_http_status(:ok)
-      expect(JSON.parse(response.body)).to eq('impersonating' => false)
+      # Match the whole payload with eq, not include: the terminal-state bootstrap must be exactly
+      # these two keys. A regression that let current_hmis_user resolve would surface the holder's
+      # full current_user_api_values here, and a partial matcher would still pass.
+      expect(JSON.parse(response.body)).to eq('impersonating' => false, 'accountError' => 'account_deactivated')
+    end
+
+    it 'answers 200 with an accountError for a good token whose holder has no warehouse account' do
+      # find_or_create_from_jwt returns nil only when neither the connector link nor the email
+      # matches, and sign_in provisions both, so no fixture reaches this branch.
+      allow(User).to receive(:find_or_create_from_jwt).and_return(nil)
+      sign_in(create(:hmis_user))
+
+      get hmis_user_path, headers: headers
+
+      expect(response).to have_http_status(:ok)
+      expect(JSON.parse(response.body)).to eq('impersonating' => false, 'accountError' => 'no_warehouse_account')
+    end
+
+    it 'has no accountError for an active signed-in user' do
+      sign_in(create(:hmis_user))
+
+      get hmis_user_path, headers: headers
+
+      expect(response).to have_http_status(:ok)
+      expect(JSON.parse(response.body)).not_to have_key('accountError')
     end
 
     it 'reflects the actual primaryIdp connector value, not just its presence' do
@@ -405,22 +429,42 @@ RSpec.describe 'HMIS JWT wiring', :jwt_only, type: :request do
         expect_signed_out_normally
       end
 
-      # Idp::UserProvisioner needs the connector claim to resolve a holder, and authenticate_hmis_user!
-      # runs before #destroy, so a claimless token 403s at authentication rather than reaching sign-out.
-      # The warehouse arm skips authenticate_user! on #destroy, so there the same token reaches
-      # idp_end_token_holder_sessions and signs out via its blank-connector guard.
-      it 'never reaches sign-out for a token with no connector claim: the request fails to authenticate' do
+      it 'signs out a token with no connector claim via the blank-connector guard, without an IdP call' do
         start_session
         # sign_in memoizes one JwtHelper double per token, so this is the object the request reads.
         allow(Idp::JwtHelper.new(access_token: jwt_token)).to receive(:connector_id).and_return(nil)
 
         delete destroy_hmis_user_session_path, headers: headers
 
-        expect(response).to have_http_status(:forbidden)
-        expect(JSON.parse(response.body).dig('error', 'type')).to eq('no_warehouse_account')
         # On the service, not on Idp::ServiceFactory: the user payload consults the factory too
         # (see idp_service above), so the factory cannot carry a never-consulted assertion.
         expect(idp_service).not_to have_received(:logout_user_sessions)
+        expect_signed_out_normally
+      end
+
+      # A deactivated holder is locked out of HMIS, but a surviving Keycloak session signs the next
+      # person at a shared machine straight back in.
+      it 'ends the IdP session and signs out a deactivated token holder' do
+        inactive = create(:hmis_user, active: false)
+        sign_in(inactive)
+
+        delete destroy_hmis_user_session_path, headers: headers
+
+        expect(idp_service).to have_received(:logout_user_sessions).with(user_id: jwt_connector_user_id(inactive))
+        expect_signed_out_normally
+      end
+
+      # The claims logout_user_sessions needs live on the token, not on the warehouse row, so a
+      # holder without one still gets a full IdP sign-out.
+      it 'ends the IdP session and signs out a good token whose holder has no warehouse account' do
+        allow(User).to receive(:find_or_create_from_jwt).and_return(nil)
+        holder = create(:hmis_user)
+        sign_in(holder)
+
+        delete destroy_hmis_user_session_path, headers: headers
+
+        expect(idp_service).to have_received(:logout_user_sessions).with(user_id: jwt_connector_user_id(holder))
+        expect_signed_out_normally
       end
 
       # The whole reason the id comes off the token: current_hmis_user is the impersonated user here,
@@ -520,6 +564,31 @@ RSpec.describe 'HMIS JWT wiring', :jwt_only, type: :request do
           get hmis_user_path, headers: headers
           expect(controller.current_hmis_user).to eq(target_user)
           expect(controller.true_hmis_user).to eq(admin_user)
+        end
+
+        it 'still rejects a terminal-state holder with no CSRF token, without ending the IdP session' do
+          sign_in(create(:hmis_user, active: false))
+
+          delete destroy_hmis_user_session_path, headers: headers
+
+          expect(response).to have_http_status(:unauthorized)
+          expect(JSON.parse(response.body)).to eq('error' => { 'type' => 'unverified_request' })
+          expect(idp_service).not_to have_received(:logout_user_sessions)
+        end
+
+        # A bare tokenless request would 401 on CSRF (checked ahead of the action) and never reach the
+        # tokenless guard — passing even if the guard were gone. So sign in for a valid CSRF token, then
+        # drop the JWT: CSRF passes, and the guard fires.
+        it 'raises on a tokenless request that clears CSRF, rather than a quiet sign-out' do
+          start_session
+          token = csrf_token_from_last_response
+          sign_out
+
+          expect do
+            delete destroy_hmis_user_session_path, headers: headers.merge('X-CSRF-Token' => token)
+          end.to raise_error(Idp::UnauthenticatedRequestError)
+
+          expect(idp_service).not_to have_received(:logout_user_sessions)
         end
       end
     end

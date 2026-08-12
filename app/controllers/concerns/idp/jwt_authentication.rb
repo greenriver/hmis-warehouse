@@ -97,10 +97,9 @@ module Idp::JwtAuthentication
 
     connector_id = jwt_helper.connector_id
     connector_user_id = jwt_helper.connector_user_id
-    # Reached on the warehouse arm only; the HMIS arm walls off a token with no resolvable holder
-    # ahead of sign-out. connector_user_id is the claim this turns on: blank with a connector present
-    # would call logout_user_sessions(user_id: nil). A blank connector_id resolves to an
-    # Idp::NullService and would stop at the capability check below anyway.
+    # ::Idp::SessionsController#destroy and Hmis::Idp::SessionsController#destroy both skip their
+    # authentication filter, so a token with no connector_user_id claim reaches this guard — the only
+    # thing between it and logout_user_sessions(user_id: nil).
     return if connector_id.blank? || connector_user_id.blank?
 
     service = idp_session_logout_service(connector_id)
