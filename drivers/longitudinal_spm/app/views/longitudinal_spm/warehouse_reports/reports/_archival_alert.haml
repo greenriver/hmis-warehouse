@@ -2,34 +2,15 @@
 - restoring = purged_spms.any?(&:restoring?)
 - failed_spm = purged_spms.detect(&:restore_failed?)
 
-#longitudinal-spm-archival-alert{ data: { restoring: restoring.to_s } }
+-# poll-replace re-fetches this partial while a restore is running and swaps it
+-# in; a restore that finished or failed renders with active_value false, which
+-# stops the polling.
+#longitudinal-spm-archival-alert{ data: { controller: 'poll-replace', poll_replace_url_value: running_longitudinal_spm_warehouse_reports_report_path(@report), poll_replace_active_value: restoring.to_s } }
   - if restoring
     .alert.alert--flex.alert-info
       %i.alert__icon.icon-spinner
       %p.mb-0
         Restoring the archived SPM reports. This may take several minutes; this page will update on its own when the data is available.
-    -# Registered once, on the full page render: content_for :page_js is dropped
-    -# on the layout-less xhr render below, so polling cannot compound.
-    = content_for :page_js do
-      %script{ nonce: content_security_policy_nonce }
-        :plain
-          (function($) {
-            var url = '#{running_longitudinal_spm_warehouse_reports_report_path(@report)}';
-            var timer = setInterval(function() {
-              $.ajax({ url: url, dataType: 'html' }).done(function(html, textStatus, xhr) {
-                if (xhr.status === 204) {
-                  location.reload();
-                  return;
-                }
-                $('#longitudinal-spm-archival-alert').replaceWith(html);
-                // A restore that failed leaves the alert in its idle state. Stop
-                // polling rather than re-fetching the same markup indefinitely.
-                if ($('#longitudinal-spm-archival-alert').attr('data-restoring') !== 'true') {
-                  clearInterval(timer);
-                }
-              });
-            }, 30000);
-          })(jQuery);
   - else
     .alert.alert--flex.alert-warning
       %i.alert__icon.icon-warning

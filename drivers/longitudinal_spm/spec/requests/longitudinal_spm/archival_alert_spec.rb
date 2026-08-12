@@ -84,8 +84,9 @@ RSpec.describe 'Longitudinal SPM archival alert', type: :request do
 
       expect(response.body).to include('Restoring the archived SPM reports')
       expect(response.body).not_to include('Restore Archived SPM Data')
-      expect(response.body).to include(running_longitudinal_spm_warehouse_reports_report_path(report))
-      expect(response.body).to include('setInterval')
+      expect(response.body).to include("data-poll-replace-url-value='#{running_longitudinal_spm_warehouse_reports_report_path(report)}'")
+      expect(response.body).to include("data-poll-replace-active-value='true'")
+      expect(response.body).not_to include('setInterval')
     end
   end
 
@@ -102,7 +103,8 @@ RSpec.describe 'Longitudinal SPM archival alert', type: :request do
       expect(response.body).not_to include('universe_members_csv is not attached')
       expect(response.body).to include('Restore Archived SPM Data')
       expect(response.body).not_to include('Restoring the archived SPM reports')
-      expect(response.body).not_to include('jArchivalRefresh')
+      # Nothing to poll for: the controller connects inactive and never fires.
+      expect(response.body).to include("data-poll-replace-active-value='false'")
     end
   end
 
@@ -183,18 +185,19 @@ RSpec.describe 'Longitudinal SPM archival alert', type: :request do
         hud_spm.begin_restore!
       end
 
-      it 'returns the alert markup, and no executable script for jQuery to eval' do
+      it 'returns the alert markup, with no inline script in the swapped-in HTML' do
         get running_path, headers: xhr_headers, xhr: true
 
         expect(response).to have_http_status(:success)
         expect(response.body).to include('longitudinal-spm-archival-alert')
         expect(response.body).to include('Restoring the archived SPM reports')
-        # An inline <script> here would need the page's CSP nonce relayed onto it
-        # by jQuery. content_for :page_js is dropped on this layout-less render,
-        # which is what keeps the swapped-in markup script-free.
+        # Swapped-in markup carries no script, so no CSP nonce has to be relayed
+        # onto it; Stimulus picks up data-controller on the inserted node instead.
         expect(response.body).not_to include('<script')
-        # The poller reads this to decide whether to keep going.
-        expect(response.body).to include("data-restoring='true'")
+        # The replacement re-declares the controller, which is how polling
+        # continues after the swap.
+        expect(response.body).to include("data-controller='poll-replace'")
+        expect(response.body).to include("data-poll-replace-active-value='true'")
       end
     end
 
@@ -208,7 +211,7 @@ RSpec.describe 'Longitudinal SPM archival alert', type: :request do
         get running_path, headers: xhr_headers, xhr: true
 
         expect(response).to have_http_status(:success)
-        expect(response.body).to include("data-restoring='false'")
+        expect(response.body).to include("data-poll-replace-active-value='false'")
       end
     end
 
