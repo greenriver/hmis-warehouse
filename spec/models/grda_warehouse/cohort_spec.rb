@@ -144,6 +144,69 @@ RSpec.describe GrdaWarehouse::Cohort, type: :model do
     end
   end
 
+  describe '.viewable_by with permission:' do
+    let!(:acl_user) { create :acl_user }
+    let!(:target_cohort) { create :cohort }
+    let!(:name_role) { create(:cohort_client_viewer, can_view_client_name: true) }
+    let!(:no_name_role) { create(:cohort_client_viewer) }
+    let!(:name_collection) { create :collection, collection_type: 'Cohorts' }
+    let!(:no_name_collection) { create :collection, collection_type: 'Cohorts' }
+
+    context "when the granting collection's role has can_view_client_name" do
+      before do
+        name_collection.set_viewables({ cohorts: [target_cohort.id] })
+        setup_access_control(acl_user, name_role, name_collection)
+      end
+
+      it 'includes the cohort' do
+        expect(GrdaWarehouse::Cohort.viewable_by(acl_user, permission: :can_view_client_name).pluck(:id)).to contain_exactly(target_cohort.id)
+      end
+    end
+
+    context "when the granting collection's role lacks can_view_client_name" do
+      before do
+        no_name_collection.set_viewables({ cohorts: [target_cohort.id] })
+        setup_access_control(acl_user, no_name_role, no_name_collection)
+      end
+
+      it 'excludes the cohort even though the user can view_cohorts' do
+        expect(GrdaWarehouse::Cohort.viewable_by(acl_user).pluck(:id)).to contain_exactly(target_cohort.id)
+        expect(GrdaWarehouse::Cohort.viewable_by(acl_user, permission: :can_view_client_name).pluck(:id)).to be_empty
+      end
+    end
+
+    context 'when the user reaches the same cohort via two collections, only one granting can_view_client_name' do
+      before do
+        no_name_collection.set_viewables({ cohorts: [target_cohort.id] })
+        setup_access_control(acl_user, no_name_role, no_name_collection)
+        name_collection.set_viewables({ cohorts: [target_cohort.id] })
+        setup_access_control(acl_user, name_role, name_collection)
+      end
+
+      it 'includes the cohort because at least one path grants it' do
+        expect(GrdaWarehouse::Cohort.viewable_by(acl_user, permission: :can_view_client_name).pluck(:id)).to contain_exactly(target_cohort.id)
+      end
+    end
+
+    context 'when passed an array of permissions' do
+      let!(:other_permission_role) { create(:cohort_client_viewer, can_view_cohorts: false, can_manage_cohort_data: true) }
+      let!(:other_permission_collection) { create :collection, collection_type: 'Cohorts' }
+
+      before do
+        other_permission_collection.set_viewables({ cohorts: [target_cohort.id] })
+        setup_access_control(acl_user, other_permission_role, other_permission_collection)
+      end
+
+      it 'includes the cohort when the granting role matches any permission in the array' do
+        expect(GrdaWarehouse::Cohort.viewable_by(acl_user, permission: [:can_view_cohorts, :can_manage_cohort_data]).pluck(:id)).to contain_exactly(target_cohort.id)
+      end
+
+      it 'excludes the cohort when checking only a permission the granting role lacks' do
+        expect(GrdaWarehouse::Cohort.viewable_by(acl_user, permission: :can_view_cohorts).pluck(:id)).to be_empty
+      end
+    end
+  end
+
   describe '#owner_name' do
     context 'when no owner is assigned' do
       it 'returns Unassigned by default' do

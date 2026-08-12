@@ -34,7 +34,6 @@ class User < ApplicationRecord
 
   has_many :user_roles, dependent: :destroy, inverse_of: :user
   has_many :legacy_roles, through: :user_roles # TODO: START_ACL remove after ACL migration is complete
-  has_many :health_roles, -> { health }, through: :user_roles
 
   has_many :client_search_queries, class_name: 'GrdaWarehouse::ClientSearchQuery', foreign_key: :created_by_id, dependent: :destroy
 
@@ -62,18 +61,7 @@ class User < ApplicationRecord
     @load_effective_permissions ||= {}.tap do |h|
       role_source = if using_acls? then roles else legacy_roles end
       role_source.each do |role|
-        Role.permissions(exclude_health: true).each do |permission|
-          h[permission] ||= role.send(permission)
-        end
-      end
-    end
-  end
-
-  # Health related permissions are tied to roles through user_roles
-  def load_health_effective_permissions
-    @load_health_effective_permissions ||= {}.tap do |h|
-      health_roles.each do |role|
-        Role.health_permissions.each do |permission|
+        Role.permissions.each do |permission|
           h[permission] ||= role.send(permission)
         end
       end
@@ -84,18 +72,18 @@ class User < ApplicationRecord
   # user has an permission through one of its roles
   Role.permissions.each do |permission|
     define_method(permission) do
-      @permissions ||= load_effective_permissions.merge(load_health_effective_permissions)
+      @permissions ||= load_effective_permissions
       @permissions[permission] || false
     end
 
     # Methods for determining if a user has permission
-    # e.g. the_user.can_administer_health?
+    # e.g. the_user.can_manage_agency?
     define_method("#{permission}?") do
       send(permission)
     end
 
     # Provide a scope for each permission to get any user who qualifies
-    # e.g. User.can_administer_health
+    # e.g. User.can_manage_agency
     scope permission, -> do
       roles = Role.where(permission => true)
       legacy = User.joins(:legacy_roles).merge(roles)
@@ -148,6 +136,18 @@ class User < ApplicationRecord
     batch = ids.uniq.map do |item_id|
       GrdaWarehouse::ExternalReportingCohortPermission.new(user_id: id, email: email, cohort_id: item_id, permission: :can_view_cohorts)
     end
+
+    name_ids = if using_acls?
+      GrdaWarehouse::Cohort.viewable_by(self, permission: :can_view_client_name).pluck(:id)
+    elsif can_view_client_name?
+      ids
+    else
+      []
+    end
+    batch += (ids & name_ids).uniq.map do |item_id|
+      GrdaWarehouse::ExternalReportingCohortPermission.new(user_id: id, email: email, cohort_id: item_id, permission: :can_view_client_name)
+    end
+
     GrdaWarehouse::ExternalReportingCohortPermission.transaction do
       GrdaWarehouse::ExternalReportingCohortPermission.where(user_id: id).delete_all
       GrdaWarehouse::ExternalReportingCohortPermission.import(batch)

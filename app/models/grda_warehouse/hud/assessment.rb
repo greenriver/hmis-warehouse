@@ -90,6 +90,10 @@ module GrdaWarehouse::Hud
       where(AssessmentID: GrdaWarehouse::Hud::AssessmentQuestion.transfer.select(:AssessmentID))
     end
 
+    scope :pathways_or_transfer, -> do
+      pathways.or(transfer)
+    end
+
     scope :family_pathways, -> do
       where(AssessmentID: GrdaWarehouse::Hud::AssessmentQuestion.family_pathways.select(:AssessmentID))
     end
@@ -135,6 +139,14 @@ module GrdaWarehouse::Hud
 
     def pathways?
       assessment_questions.any?(&:pathways?)
+    end
+
+    def transfer?
+      assessment_questions.any?(&:transfer?)
+    end
+
+    def pathways_or_transfer?
+      pathways? || transfer?
     end
 
     def family_pathways_2024?
