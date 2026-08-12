@@ -27,6 +27,13 @@ module DeviseUser
   end
 
   included do
+    # Doorkeeper is in the :devise Gemfile group, so Doorkeeper::AccessGrant is undefined under jwt.
+    # dependent: :delete_all resolves that constant in a destroy callback, so declaring these in the
+    # shared User concern would raise on every User destroy under jwt, not only when the association
+    # is read.
+    has_many :access_grants, class_name: 'Doorkeeper::AccessGrant', foreign_key: :resource_owner_id, dependent: :delete_all # or :destroy if you need callbacks
+    has_many :access_tokens, class_name: 'Doorkeeper::AccessToken', foreign_key: :resource_owner_id, dependent: :delete_all # or :destroy if you need callbacks
+
     # Include default devise modules. Others available are:
     devise :invitable,
            :recoverable,
