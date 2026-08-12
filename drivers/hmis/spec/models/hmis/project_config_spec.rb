@@ -40,14 +40,15 @@ RSpec.describe Hmis::ProjectConfig, type: :model do
     expect(config).to be_nil
   end
 
-  it 'should return nil if an auto-enter config exists, but is not enabled' do
+  it 'soft-deletes a config and excludes it from default queries' do
     auto_enter_config = Hmis::ProjectAutoEnterConfig.create!(project: p1, data_source: ds1)
-    config = Hmis::ProjectAutoEnterConfig.detect_best_config_for_project(p1)
-    expect(config).not_to be_nil
-    auto_enter_config.enabled = false
-    auto_enter_config.save!
-    config = Hmis::ProjectAutoEnterConfig.detect_best_config_for_project(p1)
-    expect(config).to be_nil
+    expect(Hmis::ProjectAutoEnterConfig.detect_best_config_for_project(p1)).to eq(auto_enter_config)
+
+    expect { auto_enter_config.destroy! }.to change(auto_enter_config, :deleted_at).from(nil)
+
+    expect(Hmis::ProjectAutoEnterConfig.find_by(id: auto_enter_config.id)).to be_nil
+    expect(Hmis::ProjectAutoEnterConfig.with_deleted.find(auto_enter_config.id).deleted_at).to be_present
+    expect(Hmis::ProjectAutoEnterConfig.detect_best_config_for_project(p1)).to be_nil
   end
 
   it 'does not allow config type to change once set' do

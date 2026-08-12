@@ -63,7 +63,6 @@ RSpec.describe HmisUtil::HmisProjectConfigImporter do
 
       auto_exit = Hmis::ProjectAutoExitConfig.find_by!(project: project)
       expect(auto_exit.length_of_absence_days).to eq(45)
-      expect(auto_exit.enabled).to eq(true)
       expect(auto_exit.data_source_id).to eq(data_source.id)
 
       expect(Hmis::ProjectAutoEnterConfig.find_by!(project: project)).to be_present
@@ -292,7 +291,6 @@ RSpec.describe HmisUtil::HmisProjectConfigImporter do
       file = write_csv(['ProjectID', 'AutoEnter'], [['P1', 'false']])
       expect { run_import!(file) }.not_to change(Hmis::ProjectConfig, :count)
       expect(auto_enter.reload).to be_present
-      expect(auto_enter.enabled).to eq(true)
     ensure
       file.close!
     end
