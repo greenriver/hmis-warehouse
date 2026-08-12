@@ -442,8 +442,15 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       end
 
       let(:step_count) { 25 }
-      # Reuse the CDEDs generated for the CE referral step form (see ce_step_definition `generate_cdeds`)
-      let(:cdeds) { Hmis::Hud::CustomDataElementDefinition.where(owner_type: Hmis::WorkflowExecution::Step.sti_name).order(:id).first(2) }
+      # Reuse the CDEDs generated for the CE referral step form by the 'ce_referral_step_form_definition' factory
+      # (see ce_step_definition `generate_cdeds` in ce_spec_helper.rb)
+      let(:cdeds) do
+        Hmis::Hud::CustomDataElementDefinition.where(
+          data_source: ds1,
+          owner_type: Hmis::WorkflowExecution::Step.sti_name,
+          key: ['contact_date', 'client_accepted'],
+        ).order(:id).to_a
+      end
 
       before do
         step_count.times do |i|
