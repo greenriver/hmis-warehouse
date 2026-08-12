@@ -14,25 +14,25 @@ module Hmis
     # Mirrors ::Idp::SessionsController#destroy (the warehouse's JWT logout), but the SPA calls this
     # via fetch + response.json() rather than following a browser redirect, so the oauth2-proxy
     # sign-out URL comes back as a JSON field instead of an HTTP redirect.
-    #
-    # Unlike ::Idp::SessionsController, #destroy keeps authenticate_hmis_user! (Hmis::BaseController
-    # applies it, and this class does not skip it): the SPA recovers from a JSON 403 by hitting
-    # /oauth2/sign_out itself, so there is no server-rendered dead-end page needing sign-out to work
-    # without a resolvable current_user (the reason the warehouse skips the filter).
-    #
     class SessionsController < Hmis::BaseController
-      # The CSRF token is what guards #destroy
+      # account_deactivated / no_warehouse_account users hold a valid token but no
+      # current_hmis_user; without this skip, #destroy would 403 their sign-out request.
+      skip_before_action :authenticate_hmis_user!, only: [:destroy]
+
       def destroy
-        # First: the Keycloak session, which /oauth2/sign_out never reaches. Ahead of reset_session
-        # because it reads the forwarded token, and because it fails closed. Don't make it
-        # best-effort. ::Idp::SessionsController#destroy is the same sequence with an HTML response.
+        # authenticate_hmis_user! (skipped above) would raise on a tokenless request; reproduce
+        # that so idp_handle_unauthenticated (JwtHmisCurrentUser) runs rather than a login redirect.
+        raise ::Idp::UnauthenticatedRequestError, request.path unless idp_jwt_helper_for_request.token?
+
+        # Ends the Keycloak session that /oauth2/sign_out never reaches. reset_session would clear
+        # the forwarded token this reads, so it runs first. Let ::Idp::SessionLogoutRefused reach
+        # the rescue below — swallowing it here silently skips teardown and leaves the session live.
         idp_end_token_holder_sessions
 
-        # Second: the Rails session, so it doesn't outlive this login.
         reset_session
 
-        # Third, once the SPA navigates to this. Relative on purpose — an absolute URL built from
-        # request.base_url could be spoofed via the Host header.
+        # Relative, not absolute: an absolute URL built from request.base_url could be spoofed via
+        # the Host header.
         render json: { redirect_url: "/oauth2/sign_out?rd=#{CGI.escape(root_path)}" }
       rescue ::Idp::SessionLogoutRefused
         idp_handle_session_logout_failure
@@ -40,11 +40,12 @@ module Hmis
 
       private
 
-      # Deliberately doesn't call up to Hmis::BaseController's version, which resets the session
-      # first. Under JWT that reset signs nobody out — the credential is the forwarded token — but it
-      # drops any impersonation and strands the CSRF-Token cookie the browser holds, since
-      # set_csrf_cookie is a later before_action and never runs once this one halts the chain. The
-      # user's own retry of the sign-out would then fail the same way. 401 and no side effect.
+      # Overrides Hmis::BaseController's handler and skips super, which calls reset_session. Under
+      # JWT, reset_session signs nobody out (the credential is the forwarded token, not the session)
+      # and has two costs. It drops any active impersonation. And it strands the CSRF-Token cookie:
+      # set_csrf_cookie, the before_action that refreshes that cookie, runs later in the chain, so it
+      # is skipped once this handler halts the request — and the user's next sign-out attempt then
+      # fails the same way. Respond 401 and leave the session untouched.
       def handle_unverified_request
         render_json_error(401, :unverified_request)
       end
