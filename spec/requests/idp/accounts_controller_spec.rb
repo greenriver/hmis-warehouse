@@ -17,7 +17,7 @@ RSpec.describe Idp::AccountsController, :jwt_only, type: :request do
   let(:connector_id) { 'test' } # matches JwtAuthenticationHelper#sign_in
   let(:token_url) { "#{api_url}/realms/#{realm}/protocol/openid-connect/token" }
 
-  let!(:user) { create(:acl_user, first_name: 'Self', last_name: 'Serve', phone: '5085551000', email_schedule: 'daily', credentials: 'old') }
+  let!(:user) { create(:acl_user, first_name: 'Self', last_name: 'Serve', phone: '5085551000', email_schedule: 'daily') }
   # sign_in links this user to the 'test' connector at jwt_connector_user_id, which is deliberately
   # not the warehouse user id — the Admin API is addressed by the IdP's id.
   let(:target_url) { "#{api_url}/admin/realms/#{realm}/users/#{jwt_connector_user_id(user)}" }
@@ -101,7 +101,7 @@ RSpec.describe Idp::AccountsController, :jwt_only, type: :request do
       end
 
       it 'applies a name change locally and syncs it to Keycloak' do
-        patch account_path, params: { user: { first_name: 'Renamed', last_name: 'Serve', phone: '5085551000', credentials: 'old', email_schedule: 'daily' } }
+        patch account_path, params: { user: { first_name: 'Renamed', last_name: 'Serve', phone: '5085551000', email_schedule: 'daily' } }
 
         expect(user.reload.first_name).to eq('Renamed')
         expect(
@@ -112,26 +112,15 @@ RSpec.describe Idp::AccountsController, :jwt_only, type: :request do
       end
 
       it 'saves local-only fields without calling Keycloak' do
-        patch account_path, params: { user: { first_name: 'Self', last_name: 'Serve', phone: '5085551212', credentials: 'old', email_schedule: 'daily' } }
+        patch account_path, params: { user: { first_name: 'Self', last_name: 'Serve', phone: '5085551212', email_schedule: 'daily' } }
 
         expect(user.reload.phone).to eq('5085551212')
         expect(a_request(:put, target_url)).not_to have_been_made
         expect(flash[:notice]).to eq('Phone number was updated.')
       end
 
-      # credentials only renders for health-role users, so a normal submit omits it entirely; the
-      # notice must not fire on that omission.
-      it 'does not report a credentials change when the field was not submitted' do
-        user.update_column(:credentials, 'stored-value')
-
-        patch account_path, params: { user: { first_name: 'Self', last_name: 'Serve', phone: '5085551212', email_schedule: 'daily' } }
-
-        expect(user.reload.credentials).to eq('stored-value')
-        expect(flash[:notice]).to eq('Phone number was updated.')
-      end
-
       it 'persists a theme-only change even though it has no notice' do
-        patch account_path, params: { user: { first_name: 'Self', last_name: 'Serve', phone: '5085551000', credentials: 'old', email_schedule: 'daily', theme: 'modern' } }
+        patch account_path, params: { user: { first_name: 'Self', last_name: 'Serve', phone: '5085551000', email_schedule: 'daily', theme: 'modern' } }
 
         expect(user.reload.theme).to eq('modern')
         expect(a_request(:put, target_url)).not_to have_been_made
@@ -150,7 +139,7 @@ RSpec.describe Idp::AccountsController, :jwt_only, type: :request do
         user.update_column(:agency_id, own_agency.id)
         original_email = user.email
 
-        patch account_path, params: { user: { first_name: 'Self', last_name: 'Serve', phone: '5085551212', credentials: 'old', email_schedule: 'daily', email: 'attacker@example.com', agency_id: other_agency.id } }
+        patch account_path, params: { user: { first_name: 'Self', last_name: 'Serve', phone: '5085551212', email_schedule: 'daily', email: 'attacker@example.com', agency_id: other_agency.id } }
 
         user.reload
         expect(user.phone).to eq('5085551212')
@@ -169,7 +158,7 @@ RSpec.describe Idp::AccountsController, :jwt_only, type: :request do
         before { allow(HmisEnforcement).to receive(:hmis_enabled?).and_return(true) }
 
         it 'carries a name change through to the HMIS user rows and on to Keycloak' do
-          patch account_path, params: { user: { first_name: 'Renamed', last_name: 'Serve', phone: '5085551000', credentials: 'old', email_schedule: 'daily' } }
+          patch account_path, params: { user: { first_name: 'Renamed', last_name: 'Serve', phone: '5085551000', email_schedule: 'daily' } }
 
           expect(user.reload.first_name).to eq('Renamed')
           expect(hud_user.reload.user_first_name).to eq('Renamed')
@@ -184,7 +173,7 @@ RSpec.describe Idp::AccountsController, :jwt_only, type: :request do
           # standing still is observable evidence the sync was skipped.
           stale_hud_user = create(:hmis_hud_user, data_source: hmis_data_source, user_email: user.email, user_first_name: 'Stale', user_last_name: 'Row')
 
-          patch account_path, params: { user: { first_name: 'Self', last_name: 'Serve', phone: '5085551000', credentials: 'old', email_schedule: 'daily' } }
+          patch account_path, params: { user: { first_name: 'Self', last_name: 'Serve', phone: '5085551000', email_schedule: 'daily' } }
 
           expect(stale_hud_user.reload.user_first_name).to eq('Stale')
           expect(a_request(:put, target_url)).not_to have_been_made
@@ -198,7 +187,7 @@ RSpec.describe Idp::AccountsController, :jwt_only, type: :request do
         it 'rolls the local save back when the HUD sync is rejected, and never reaches Keycloak' do
           allow_any_instance_of(User).to receive(:sync_to_hud_users).and_raise(ActiveRecord::RecordInvalid)
 
-          patch account_path, params: { user: { first_name: 'Renamed', last_name: 'Serve', phone: '5085551000', credentials: 'old', email_schedule: 'daily' } }
+          patch account_path, params: { user: { first_name: 'Renamed', last_name: 'Serve', phone: '5085551000', email_schedule: 'daily' } }
 
           expect(user.reload.first_name).to eq('Self')
           expect(hud_user.reload.user_first_name).to eq('Self')

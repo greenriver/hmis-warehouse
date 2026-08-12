@@ -48,7 +48,6 @@ class Idp::AccountsController < ApplicationController
   private def change_notes(changes)
     notes = []
     notes << 'Account name was updated.' if changes.key?('first_name') || changes.key?('last_name')
-    notes << 'User credentials were changed.' if changes.key?('credentials')
     notes << 'Email schedule was updated.' if changes.key?('email_schedule')
     notes << 'Phone number was updated.' if changes.key?('phone')
     notes
@@ -75,7 +74,6 @@ class Idp::AccountsController < ApplicationController
         :last_name,
         :phone,
         :email_schedule,
-        :credentials,
         :theme,
       )
     # The form disables name inputs for an IdP-managed profile; strip them defensively so a crafted
