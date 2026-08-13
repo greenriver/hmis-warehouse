@@ -187,6 +187,9 @@ module Importing
         PruneDocumentExportsJob.perform_later
 
         YouthFollowUpsJob.set(priority: BaseJob::BULK_PROCESSING_PRIORITY_10).perform_later
+
+        Idp::Keycloak::BackfillAuthenticationSourcesJob.perform_later
+
         SystemCohortsJob.set(priority: BaseJob::BULK_PROCESSING_PRIORITY_10).perform_later unless Delayed::Job.queued?('SystemCohortsJob')
         AccessGroup.delayed_system_group_maintenance
         Collection.delayed_system_group_maintenance

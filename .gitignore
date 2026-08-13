@@ -192,3 +192,4 @@ etc-localtime
 docker/auth/*.pat
 docker/auth/zitadel-credentials.env
 docs/research/*
+.beads

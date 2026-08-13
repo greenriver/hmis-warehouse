@@ -16,6 +16,24 @@ A standalone Ruby script determines which test categories (Unit, HMIS System, Wa
 *   **Coverage**: It always adds a "default" job with the `~ci_bucket` tag to catch any tests not explicitly assigned to a bucket, ensuring no tests are skipped.
 *   **Logic**: It determines the matrix based on the event type and commit message flags.
 
+### 4. Auth Arms (`AUTH_METHOD`)
+
+Devise is being sunset, so **CI's default arm is JWT**: every bucket's "Run tests" step sets
+`AUTH_METHOD=jwt` plus the IdP env, and `spec/rails_helper.rb` excludes `:devise_only` from such a
+run. One extra step on `ci_default`, gated on the `devise` matrix flag, runs `--tag devise_only`
+under `AUTH_METHOD=devise`, and fails if the tag selects nothing. An arm-specific spec — or
+`describe`, or single `it` — carries `:devise_only` or `:jwt_only` and nothing else. Do not add an
+`if: AuthMethod.devise?` or `if: AuthMethod.jwt?` gate; `spec/lib/auth_method_arm_tags_spec.rb`
+fails the build on either. `lib/auth_method.rb` still defaults to Devise, so the logging step, both
+system-test jobs, and any local `rspec` run under it.
+
+To reproduce a default-arm CI failure locally:
+
+```bash
+AUTH_METHOD=jwt IDP_AUD=test-aud ISS_URL=https://idp.example.test \
+  JWKS_URL=https://idp.example.test/jwks JWT_ALGORITHM=RS256 bundle exec rspec <path>
+```
+
 ---
 
 ## Developer Workflows

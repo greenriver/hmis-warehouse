@@ -66,17 +66,8 @@ class PdfGenerator
     Rails.application.routes.url_helpers.root_url(host: ENV['FQDN'])
   end
 
-  def self.warden_proxy(user)
-    Warden::Proxy.new({}, Warden::Manager.new({})).tap do |i|
-      i.set_user(user, scope: :user, store: false, run_callbacks: false)
-    end
-  end
-
   def self.html(controller:, user:, template: nil, layout: false, assigns:, partial: nil)
-    ActionController::Renderer::RACK_KEY_TRANSLATION['warden'] ||= 'warden'
-    renderer = controller.renderer.new(
-      'warden' => warden_proxy(user),
-    )
+    renderer = controller.renderer.new(WardenProxyFactory.renderer_env(user))
     if partial.present?
       renderer.render(
         partial: partial,
