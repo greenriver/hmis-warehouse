@@ -398,6 +398,7 @@ class Hmis::Role < ::ApplicationRecord
       can_view_hud_chronic_status: {
         description: "Access to view 'Chronic at PIT' status on the Client Dashboard. This field gives you an idea of someones previous enrollments, even ones you can't otherwise see.",
         administrative: false,
+        requirements: [:can_view_clients],
         access: [:viewable],
         category: 'Client Access',
         sub_category: 'Expanded Access',
@@ -497,6 +498,7 @@ class Hmis::Role < ::ApplicationRecord
       },
       can_audit_clients: {
         description: 'View audit history for client on the Client Dashboard.  This permission allows the user to view changes to any client details, including DOB, SSN, and name, even if they don\'t have the specific permissions to view those fields on the Client.',
+        requirements: [:can_view_clients],
         administrative: true,
         access: [:viewable],
         category: 'Client Access',
@@ -591,6 +593,7 @@ class Hmis::Role < ::ApplicationRecord
       can_print_client_case_notes: {
         description: 'Ability to print case notes from the client profile.',
         administrative: false,
+        requirements: [:can_view_clients],
         access: [:viewable],
         category: 'Client Access',
         sub_category: 'Access',
