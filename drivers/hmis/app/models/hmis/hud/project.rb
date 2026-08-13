@@ -98,21 +98,14 @@ class Hmis::Hud::Project < Hmis::Hud::Base
   # Includes any HMIS projects where the user has the specified permission(s)
   # NOTE: Pass kwarg "mode: :all" if all permissions must be present. Default is 'any'.
   #
+  # Permissions are evaluated the same way the policies evaluate them: unioned across the user's roles
+  # at each project, with permission requirements applied. Name only the permissions you need — the
+  # requirements behind them are resolved for you.
+  #
   # WARNING! This will include projects that the user does not have access to view (e.g. they lack can_view_projects)
-  scope :with_access, ->(user, *permissions, **kwargs) do
-    ids = user.entities_with_permissions(Hmis::Hud::Project, *permissions, **kwargs).pluck(:id)
-    ids += user.entities_with_permissions(Hmis::Hud::Organization, *permissions, **kwargs).joins(:projects).pluck(p_t[:id])
-    ids += user.entities_with_permissions(Hmis::ProjectGroup, *permissions, **kwargs).joins(:projects).pluck(p_t[:id])
-    ids += user.entities_with_permissions(GrdaWarehouse::DataSource, *permissions, **kwargs).joins(:projects).pluck(p_t[:id])
-
+  scope :with_access, ->(user, *permissions, mode: :any) do
+    ids = user.policy_context.project_ids_with_permissions(*permissions, mode: mode)
     where(id: ids, data_source_id: user.hmis_data_source_id)
-  end
-
-  # Projects where the user can view full enrollment details.
-  # mode: :all requires all 3 permissions on the same role, which is intentional: a role that grants
-  # enrollment details without client visibility grants no enrollment access.
-  scope :with_enrollment_details_viewable_by, ->(user) do
-    with_access(user, :can_view_enrollment_details, :can_view_project, :can_view_clients, mode: :all)
   end
 
   scope :with_organization_ids, ->(organization_ids) do
@@ -194,12 +187,12 @@ class Hmis::Hud::Project < Hmis::Hud::Base
 
   # Projects that are open and have CE waitlist referrals enabled
   scope :with_ce_waitlists_enabled, -> do
-    open_on_date.with_configs(Hmis::ProjectCeConfig.active.filter(&:supports_waitlist_referrals?))
+    open_on_date.with_configs(Hmis::ProjectCeConfig.all.filter(&:supports_waitlist_referrals?))
   end
 
   # Projects that are open and have CE enabled
   scope :with_ce_enabled, -> do
-    open_on_date.with_configs(Hmis::ProjectCeConfig.active)
+    open_on_date.with_configs(Hmis::ProjectCeConfig.all)
   end
 
   SORT_OPTIONS = [:organization_and_name, :name].freeze

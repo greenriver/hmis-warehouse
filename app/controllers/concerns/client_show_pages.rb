@@ -29,6 +29,7 @@ module ClientShowPages
         '/clients/rollup/assessments',
         '/clients/rollup/verifications',
         '/clients/rollup/assessments_without_data',
+        '/clients/rollup/boston_assessments_with_limited_data',
         '/clients/rollup/case_manager',
         '/clients/rollup/chronic_days',
         '/clients/rollup/contact_information',

@@ -70,6 +70,15 @@ RSpec.describe 'ceMatchFields query', type: :request do
         'pickListReference' => nil,
         'pickListOptions' => nil,
       },
+      {
+        'key' => 'hiv_aids_values_in_window',
+        'label' => 'HIV/AIDS (all values in window)',
+        'itemType' => 'BOOLEAN',
+        'multiple' => true,
+        'expressionField' => 'psde.hiv_aids_values_in_window',
+        'pickListReference' => nil,
+        'pickListOptions' => nil,
+      },
     )
   end
 

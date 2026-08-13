@@ -82,13 +82,7 @@ module TxClientReports
     private def excel_content
       controller = TxClientReports::WarehouseReports::ResearchExportsController
       assigns = { filter: filter, format: :xlsx, report: self }
-      ActionController::Renderer::RACK_KEY_TRANSLATION['warden'] ||= 'warden'
-      warden_proxy = Warden::Proxy.new({}, Warden::Manager.new({})).tap do |i|
-        i.set_user(user, scope: :user, store: false, run_callbacks: false)
-      end
-      renderer = controller.renderer.new(
-        'warden' => warden_proxy,
-      )
+      renderer = controller.renderer.new(WardenProxyFactory.renderer_env(user))
       renderer.render(
         action: :index,
         layout: false,

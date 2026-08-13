@@ -517,6 +517,7 @@ class Hmis::Role < ::ApplicationRecord
         access: [:editable],
         category: 'Administration',
         sub_category: 'Enrollment Management',
+        proc: -> { false }, # Hidden until feature is implemented (#5767)
       },
       can_manage_forms: {
         description: 'Ability to edit forms',

@@ -32,8 +32,6 @@ FactoryBot.define do
   end
 
   factory :hmis_project_ce_config, parent: :hmis_project_config_base, class: 'Hmis::ProjectCeConfig' do
-    enabled { true }
-
     transient do
       receives_direct_referrals { false }
       supports_waitlist_referrals { true }

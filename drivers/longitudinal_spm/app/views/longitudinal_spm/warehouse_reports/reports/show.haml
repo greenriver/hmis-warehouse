@@ -5,11 +5,7 @@
 %p.mb-2= @report.description
 %p= "Created by #{@report.user.name_with_email} on #{@report.completed_at&.to_date}"
 
-- if @report.purged_spms.any?
-  .alert.alert--flex.alert-warning
-    %i.alert__icon.icon-warning
-    %p.mb-0
-      One or more of the underlying SPM reports has been archived. The archived report(s) must be restored before the data in this report is available.
+= render 'archival_alert' if @report.purged_spms.any?
 
 
 .well.report-listing.warehouse-reports__completed.d-flex.justify-content-between

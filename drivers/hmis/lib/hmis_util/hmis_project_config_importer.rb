@@ -251,7 +251,6 @@ module HmisUtil
       record = Hmis::ProjectAutoExitConfig.find_or_initialize_by(
         project_id: row[:project].id,
         data_source_id: data_source.id,
-        enabled: true,
       )
       record.length_of_absence_days = row[:auto_exit_days]
       save_config(record, row, 'AutoExit')
@@ -263,7 +262,6 @@ module HmisUtil
       record = Hmis::ProjectAutoEnterConfig.find_or_initialize_by(
         project_id: row[:project].id,
         data_source_id: data_source.id,
-        enabled: true,
       )
       save_config(record, row, 'AutoEnter')
     end
@@ -274,7 +272,6 @@ module HmisUtil
       record = Hmis::ProjectSendsDirectCeReferralsConfig.find_or_initialize_by(
         project_id: row[:project].id,
         data_source_id: data_source.id,
-        enabled: true,
       )
       save_config(record, row, 'CE_SendsReferrals')
     end
@@ -287,9 +284,7 @@ module HmisUtil
       record = Hmis::ProjectCeConfig.find_or_initialize_by(
         project_id: row[:project].id,
         data_source_id: data_source.id,
-        enabled: true,
       )
-      record.enabled = true
       record.receives_direct_referrals = receives unless receives.nil?
       record.supports_waitlist_referrals = waitlists unless waitlists.nil?
       record.receives_direct_referrals_from = row[:ce_from_project_ids] if row[:ce_from_present]
@@ -327,7 +322,7 @@ module HmisUtil
 
       # If there are any active projects that support waitlist referrals in the data source, rebuild pools after import.
       # Relatively cheap, so OK even if this import didn't touch waitlist CE configs.
-      return unless Hmis::ProjectCeConfig.active.where(data_source_id: data_source.id).any?(&:supports_waitlist_referrals?)
+      return unless Hmis::ProjectCeConfig.where(data_source_id: data_source.id).any?(&:supports_waitlist_referrals?)
 
       puts 'Rebuilding CE candidate pools...'
       Hmis::Ce::Match::CandidatePool.lock_for_maintenance! do

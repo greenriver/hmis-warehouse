@@ -21,14 +21,7 @@ class BackgroundRender::CasReadinessJob < BackgroundRenderJob
       ).
       find(client_id.to_i)
 
-    ActionController::Renderer::RACK_KEY_TRANSLATION['warden'] ||= 'warden'
-    warden_proxy = Warden::Proxy.new({}, Warden::Manager.new({})).tap do |i|
-      i.set_user(current_user, scope: :user, store: false, run_callbacks: false)
-    end
-
-    renderer = controller_class.renderer.new(
-      'warden' => warden_proxy,
-    )
+    renderer = controller_class.renderer.new(WardenProxyFactory.renderer_env(current_user))
     html = renderer.render(
       partial: 'render_content',
       assigns: {

@@ -12,5 +12,6 @@ module Hmis::Ce::Match::Expression
     :value_type,
     :label,
     :description,
+    :multiple,
   )
 end

@@ -1150,7 +1150,11 @@ CREATE TABLE public.idp_service_configs (
     active boolean DEFAULT true NOT NULL,
     deleted_at timestamp(6) without time zone,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    manage_users boolean DEFAULT true NOT NULL,
+    browser_url character varying,
+    account_client_id character varying,
+    skip_ssl_verification boolean DEFAULT false NOT NULL
 );
 
 
@@ -2482,7 +2486,6 @@ CREATE TABLE public.users (
     exclude_from_directory boolean DEFAULT false,
     exclude_phone_from_directory boolean DEFAULT false,
     notify_on_new_account boolean DEFAULT false NOT NULL,
-    credentials character varying,
     hmis_unique_session_id character varying,
     permission_context character varying DEFAULT 'role_based'::character varying,
     superset_roles jsonb DEFAULT '[]'::jsonb,
@@ -4015,6 +4018,13 @@ CREATE INDEX index_uploads_on_deleted_at ON public.uploads USING btree (deleted_
 
 
 --
+-- Name: index_user_auth_sources_on_user_connector_live; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_user_auth_sources_on_user_connector_live ON public.user_authentication_sources USING btree (user_id, connector_id) WHERE (deleted_at IS NULL);
+
+
+--
 -- Name: index_user_authentication_sources_on_user_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -4250,6 +4260,9 @@ ALTER TABLE ONLY public.oauth_access_tokens
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260805120000'),
+('20260803120000'),
+('20260724120000'),
 ('20260715120000'),
 ('20260620000000'),
 ('20260614130000'),

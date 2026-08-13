@@ -31,13 +31,15 @@ RSpec.describe ClientAccessControl::HistoryController, type: :request do
 
   describe 'logged out' do
     it 'doesn\'t allow show' do
-      get client_history_path(destination)
-      expect(response).to redirect_to(regex_for_warehouse_sign_in)
+      expect_unauthenticated_warehouse_request do
+        get client_history_path(destination)
+      end
     end
 
     it 'doesn\'t allow queue' do
-      post queue_client_history_path(destination)
-      expect(response).to redirect_to(regex_for_warehouse_sign_in)
+      expect_unauthenticated_warehouse_request do
+        post queue_client_history_path(destination)
+      end
     end
 
     it 'does not allow pdf if client not set to generate pdf' do

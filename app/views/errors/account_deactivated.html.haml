@@ -1,0 +1,5 @@
+%h1= Translation.translate('Your warehouse account has been deactivated')
+%p= Translation.translate('Your account does not have permission to access the warehouse. Please contact your administrator to for assistance')
+-# See errors/no_warehouse_account for why this link is here rather than left to the layout.
+%p
+  = link_to Translation.translate('Sign out'), destroy_user_session_path, method: :delete, class: 'btn btn-primary'

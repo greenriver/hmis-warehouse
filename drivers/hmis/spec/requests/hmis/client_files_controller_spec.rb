@@ -56,9 +56,10 @@ RSpec.describe Hmis::ClientFilesController, type: :request do
 
   describe 'GET /hmis/clients/:client_id/files/:id' do
     context 'when not authenticated' do
-      it 'returns 401' do
-        get(hmis_client_file_path(client_id: c1.id, id: nonconfidential_file.id), headers: request_headers)
-        expect(response).to have_http_status(:unauthorized)
+      it 'refuses the download' do
+        expect_unauthenticated_api_request do
+          get(hmis_client_file_path(client_id: c1.id, id: nonconfidential_file.id), headers: request_headers)
+        end
       end
     end
 

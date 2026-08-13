@@ -277,7 +277,7 @@ class AccessControlUpload < ApplicationRecord
     agency_ids = Agency.pluck(:name, :id).to_h
     users.each do |item|
       user = User.with_deleted.where(email: item[:email]).first_or_initialize do |u|
-        u.password = Faker::Internet.password(min_length: 16)
+        u.password = Faker::Internet.password(min_length: 16) if u.password_change_enabled?
       end
       user.first_name = item[:first_name]
       user.last_name = item[:last_name]
@@ -325,7 +325,7 @@ class AccessControlUpload < ApplicationRecord
 
   private def titles
     @titles ||= [].tap do |h|
-      Role.permissions(exclude_health: true).count.times do |i|
+      Role.permissions.count.times do |i|
         title = roles_worksheet[1][2 + i]&.value
         h << title if title.present?
       end
@@ -334,7 +334,7 @@ class AccessControlUpload < ApplicationRecord
 
   private def permissions_for_row(row, existing_role)
     {}.tap do |p|
-      Role.permissions(exclude_health: true).count.times do |i|
+      Role.permissions.count.times do |i|
         title = titles[i]
         value = case row[2 + i]&.value&.strip&.presence
         when /\A(?:x|y|yes|true)\z/i

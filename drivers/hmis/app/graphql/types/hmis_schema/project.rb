@@ -200,6 +200,14 @@ module Types
       resolve_inventories(**args)
     end
 
+    def funders(**args)
+      resolve_funders(**args)
+    end
+
+    def project_cocs(**args)
+      resolve_project_cocs(**args)
+    end
+
     def services(**args)
       check_enrollment_details_access
 
