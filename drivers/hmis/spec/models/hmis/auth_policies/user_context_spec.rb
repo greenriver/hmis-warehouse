@@ -57,6 +57,43 @@ RSpec.describe Hmis::AuthPolicies::UserContext, type: :model do
     end
   end
 
+  describe '#client_permissions' do
+    let(:project) { create(:hmis_hud_project, data_source: data_source) }
+
+    before do
+      create_access_control(user, project, with_permission: :can_view_clients)
+    end
+
+    context 'when the client belongs to the users current hmis data source' do
+      let(:client) { create(:hmis_hud_client, data_source: data_source) }
+
+      it 'returns the granted permissions' do
+        expect(context.client_permissions(client.id)).to include(:can_view_clients)
+      end
+    end
+
+    context 'when the client belongs to a different data source' do
+      let(:other_data_source) { create(:hmis_data_source) }
+      let!(:other_data_source_access_control) { create_access_control(user, other_data_source, with_permission: :can_view_clients) }
+      let(:other_client) { create(:hmis_hud_client, data_source: other_data_source) }
+
+      it 'returns an empty permission set, rather than falling back to global permissions' do
+        expect(context.client_permissions(other_client.id)).to be_empty
+      end
+
+      it 'reports the mismatch to Sentry' do
+        expect(Sentry).to receive(:capture_message).with(/HMIS Data Source Mismatch/)
+        context.client_permissions(other_client.id)
+      end
+    end
+
+    context 'when the client id is blank' do
+      it 'returns an empty permission set' do
+        expect(context.client_permissions(nil)).to be_empty
+      end
+    end
+  end
+
   describe '#global_permissions' do
     context 'with no access controls' do
       it 'returns an empty set' do

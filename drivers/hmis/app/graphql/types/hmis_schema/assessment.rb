@@ -107,6 +107,10 @@ module Types
       object.in_progress?
     end
 
+    def client
+      load_ar_client_association(object)
+    end
+
     def ce_assessment
       load_ar_association(form_processor, :ce_assessment)
     end

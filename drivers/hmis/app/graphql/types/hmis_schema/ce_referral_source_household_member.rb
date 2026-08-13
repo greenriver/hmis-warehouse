@@ -27,9 +27,11 @@ module Types
     end
 
     def client_name
-      return client.masked_name unless policy.can_view? && policy.can_view_name?
-
-      client.brief_name
+      if policy.can_view_name?
+        client.brief_name
+      else
+        client.masked_name
+      end
     end
 
     def access

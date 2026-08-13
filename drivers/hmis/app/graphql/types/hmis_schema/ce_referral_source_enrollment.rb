@@ -61,7 +61,7 @@ module Types
       # In the future, we plan to add more nuanced permission checking against different data sources.
       client = load_ar_client_association(object.enrollment)
       policy = policy_for(client, policy_type: :hmis_client)
-      policy.can_view? && policy.can_view_name? ? client.brief_name : client.masked_name
+      policy.can_view_name? ? client.brief_name : client.masked_name
     end
 
     def data_source
