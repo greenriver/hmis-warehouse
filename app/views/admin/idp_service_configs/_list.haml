@@ -6,6 +6,7 @@
         %th Provider
         %th Connector ID
         %th API URL
+        %th Manage users
         %th Active
         %th
     %tbody
@@ -16,6 +17,7 @@
           %td= config.provider
           %td= config.connector_id
           %td= truncate(config.api_url, length: 50)
+          %td= checkmark(config.manage_users)
           %td= checkmark(config.active)
           %td
             :ruby

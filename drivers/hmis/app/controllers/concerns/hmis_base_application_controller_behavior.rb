@@ -8,8 +8,8 @@
 
 require 'application_responder'
 
-# ApplicationController that could be shared between WH and HMIS, but is currently only used by HMIS
-module BaseApplicationControllerBehavior
+# Shared setup for Hmis::BaseController, common to both the Devise and JWT auth arms.
+module HmisBaseApplicationControllerBehavior
   extend ActiveSupport::Concern
 
   included do
@@ -27,8 +27,6 @@ module BaseApplicationControllerBehavior
 
     before_action :prepare_exception_notifier
 
-    before_action :configure_permitted_parameters, if: :devise_controller?
-
     protected
 
     # Send any exceptions on production to slack
@@ -41,38 +39,11 @@ module BaseApplicationControllerBehavior
       params[:locale] || session[:locale] || default_locale
     end
 
-    # don't extend the user's session if its an ajax request.
+    # Devise::Timeoutable-only (don't extend the user's session if it's an ajax request); a no-op
+    # under JWT (session lifetime is governed by the IdP token), overridden in
+    # Hmis::Concerns::JwtHmisCurrentUser.
     def skip_timeout
       request.env['devise.skip_trackable'] = true if request.xhr?
-    end
-
-    def configure_permitted_parameters
-      devise_parameter_sanitizer.permit(:sign_in, keys: [:otp_attempt, :remember_device, :device_name])
-    end
-
-    # Redirect to window page after signin if you have
-    # no where else to go (and you can see it)
-    def after_sign_in_path_for(resource)
-      # alert users if their password has been compromised
-      set_flash_message! :alert, :warn_pwned if resource.respond_to?(:pwned?) && resource.pwned?
-
-      last_url = session['user_return_to']
-      if last_url.present?
-        last_url
-      else
-        current_app_user&.my_root_path || root_path
-      end
-    end
-
-    def after_sign_out_path_for(_scope)
-      user = request.env['last_user']
-      if user
-        provider = cookies.signed[:active_provider]
-        identity = OauthIdentity.for_user(user).where(provider: provider).first if provider
-        identity&.idp_signout_url(post_logout_redirect_uri: root_url) || root_url
-      else
-        root_url
-      end
     end
 
     def set_hostname
@@ -100,10 +71,5 @@ module BaseApplicationControllerBehavior
         scope.set_user(id: current_app_user.id, email: current_app_user.email)
       end
     end
-
-    def bypass_2fa_enabled?
-      GrdaWarehouse::Config.get(:bypass_2fa_duration)&.positive?
-    end
-    helper_method :bypass_2fa_enabled?
   end
 end

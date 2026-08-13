@@ -17,6 +17,8 @@
 # every registered mapping, and :hmis_user remains a Devise mapping until seam 6. A raise
 # here would turn a routine "is the hmis_user signed in? no" probe into a 500.
 class Idp::WardenProxy
+  class NotAuthenticated < StandardError; end
+
   def initialize(user, session: nil)
     @user = user
     @session = session
@@ -51,12 +53,12 @@ class Idp::WardenProxy
 
   # Real Warden throws :warden on failure so its failure app can redirect to login. There is no
   # Warden failure app under JWT, and the cutover invariant is that an unauthenticated request
-  # never reaches a proxy-backed gate (the :user gate is handled upstream in Idp::CurrentUser).
+  # never reaches a proxy-backed gate (the :user gate is handled upstream in Idp::JwtCurrentUser).
   # So reaching here without a resolved user means a scope is leaning on the proxy as its sole
   # gate: fail loudly rather than silently authorize. Dial back to returning nil if too aggressive.
   def authenticate!(*args)
     user = authenticate(*args)
-    raise Warden::NotAuthenticated, "Idp::WardenProxy#authenticate! got no authenticated user for scope #{_scope(args).inspect}" unless user
+    raise NotAuthenticated, "Idp::WardenProxy#authenticate! got no authenticated user for scope #{_scope(args).inspect}" unless user
 
     user
   end

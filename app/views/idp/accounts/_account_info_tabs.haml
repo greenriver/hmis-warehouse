@@ -1,0 +1,9 @@
+%ul.nav.nav-tabs{role: "presentation"}
+  %li.nav-item{role: "presentation", class: ('active' if current_page?(edit_account_path))}
+    = link_to 'Accounts Details', edit_account_path, class: 'nav-link'
+  -# Always present: the tab is read-only, so it has something to say (the current address) even
+  -# when the IdP offers no way to change it.
+  %li.nav-item{role: "presentation", class: ('active' if current_page?(edit_account_email_path))}
+    = link_to 'Login & Security', edit_account_email_path, class: 'nav-link'
+  %li.nav-item{role: "presentation", class: ('active' if current_page?(account_downloads_path))}
+    = link_to 'Recent Downloads', account_downloads_path, class: 'nav-link'

@@ -13,7 +13,13 @@
           - item[:icon] ||= :cross
         - path = item.dig(:link_to, :path)
         %li
-          = link_to(path, **item[:link_to]) do
-            - if item[:icon].present?
-              %i{class: "icon-#{item[:icon]} mr-2"}
-            = item[:label]
+          - if item[:disabled]
+            %a.dropdown-item.disabled{ aria: { disabled: true }, tabindex: -1 }
+              - if item[:icon].present?
+                %i{class: "icon-#{item[:icon]} mr-2"}
+              = item[:label]
+          - else
+            = link_to(path, **item[:link_to]) do
+              - if item[:icon].present?
+                %i{class: "icon-#{item[:icon]} mr-2"}
+              = item[:label]

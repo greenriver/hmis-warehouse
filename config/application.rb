@@ -15,11 +15,13 @@ require 'active_record_extended'
 #   * Note, we still use the deprecated behavior for date/time. It's preserved in config/initializers/legacy_rails_conversions.rb
 ENV['RAILS_DISABLE_DEPRECATED_TO_S_CONVERSION'] = 'true'
 
+require_relative '../lib/auth_method'
+
 # Require the gems listed in Gemfile, including any gems
 # you've limited to :test, :development, or :production.
-Bundler.require(*Rails.groups)
+# The :devise group is taken only on the Devise arm; see the group in Gemfile.
+Bundler.require(*Rails.groups, *(AuthMethod.devise? ? [:devise] : []))
 
-require_relative '../lib/auth_method'
 require_relative '../lib/util/id_protector'
 require_relative '../lib/util/rails_trusted_proxies_config'
 
@@ -57,7 +59,8 @@ module OpenPath
     # config.autoload_lib(ignore: ['assets', 'tasks'])
 
     config.add_autoload_paths_to_load_path = false
-    config.autoload_paths << Rails.root.join('lib', 'devise')
+    # lib/devise subclasses Devise constants, so it loads only on the arm that requires the gem.
+    config.autoload_paths << Rails.root.join('lib', 'devise') if AuthMethod.devise?
 
     # ActionCable
     config.action_cable.mount_path = '/cable'
@@ -149,7 +152,21 @@ module OpenPath
 
     # additional library paths
     config.eager_load_paths << Rails.root.join('lib', 'util')
-    config.eager_load_paths << Rails.root.join('lib', 'devise')
+    config.eager_load_paths << Rails.root.join('lib', 'devise') if AuthMethod.devise?
+
+    # Each of these subclasses a Devise constant, and their routes are already gated off the JWT
+    # arm. Ignoring them is what lets an unintended JWT-arm reference to Devise or Warden fail at
+    # boot rather than resolve against a class that loaded anyway.
+    unless AuthMethod.devise?
+      Rails.autoloaders.main.ignore(
+        Rails.root.join('app/mailers/account_mailer.rb'),
+        Rails.root.join('app/controllers/users/sessions_controller.rb'),
+        Rails.root.join('app/controllers/users/omniauth_callbacks_controller.rb'),
+        Rails.root.join('app/controllers/users/invitations_controller.rb'),
+        Rails.root.join('drivers/hmis/app/controllers/hmis/sessions_controller.rb'),
+        Rails.root.join('drivers/hmis/app/controllers/hmis/users/omniauth_callbacks_controller.rb'),
+      )
+    end
 
     # Replace rails_drivers gem autoloading — mirrors what the gem's Railtie did
     driver_app_components = ['models', 'controllers', 'mailers', 'helpers', 'jobs', 'graphql'].freeze

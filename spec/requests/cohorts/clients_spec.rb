@@ -28,8 +28,9 @@ RSpec.describe Cohorts::ClientsController, type: :request do
 
     context 'when logged out' do
       it 'redirects to the login page' do
-        post cohort_client_search_queries_path(cohort_id: cohort.id), params: search_params
-        expect(response).to redirect_to(regex_for_warehouse_sign_in)
+        expect_unauthenticated_warehouse_request do
+          post cohort_client_search_queries_path(cohort_id: cohort.id), params: search_params
+        end
       end
     end
 
@@ -76,8 +77,9 @@ RSpec.describe Cohorts::ClientsController, type: :request do
 
     context 'when logged out' do
       it 'redirects to the login page' do
-        get cohort_cohort_client_search_query_path(cohort_id: cohort.id, id: search_query.id)
-        expect(response).to redirect_to(regex_for_warehouse_sign_in)
+        expect_unauthenticated_warehouse_request do
+          get cohort_cohort_client_search_query_path(cohort_id: cohort.id, id: search_query.id)
+        end
       end
     end
 
@@ -130,8 +132,9 @@ RSpec.describe Cohorts::ClientsController, type: :request do
 
     context 'when logged out' do
       it 'redirects to the login page' do
-        post cohort_cohort_clients_path(cohort_id: cohort.id), params: create_params
-        expect(response).to redirect_to(regex_for_warehouse_sign_in)
+        expect_unauthenticated_warehouse_request do
+          post cohort_cohort_clients_path(cohort_id: cohort.id), params: create_params
+        end
       end
     end
 

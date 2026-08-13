@@ -27,7 +27,7 @@ RSpec.describe 'UserTrainingController', type: :request do
   end
 
   describe 'GET /user_training' do
-    it 'redirects to the stored location when it is safe' do
+    it 'redirects to the stored location when it is safe', :devise_only do
       # Canary: Verify that stored_location_for exists (from Devise)
       # If Devise is removed, this test will fail and you'll need to reimplement the stored location functionality
       expect(UserTrainingController.instance_methods).to(
@@ -44,7 +44,7 @@ RSpec.describe 'UserTrainingController', type: :request do
       expect(response).to redirect_to('/welcome_back')
     end
 
-    it 'falls back when the stored location points to the training portal' do
+    it 'falls back when the stored location points to the training portal', :devise_only do
       # Canary: Verify that stored_location_for exists (from Devise)
       expect(UserTrainingController.instance_methods).to(
         include(:stored_location_for),
@@ -57,6 +57,20 @@ RSpec.describe 'UserTrainingController', type: :request do
       get user_training_path
 
       expect(response).to redirect_to(root_path)
+    end
+
+    it 'redirects to the user root without reading a stored location', :jwt_only do
+      # Under AUTH_METHOD=jwt the Devise helpers are unloaded, so stored_location_for isn't defined on
+      # the controller — the jwt guard in stored_landing_after_training can't reach it. Assert the
+      # method's absence (the inverse of the :devise_only canaries above), which is a stronger
+      # guarantee than spying that it went uncalled.
+      expect(UserTrainingController.instance_methods).not_to include(:stored_location_for)
+
+      allow_any_instance_of(User).to receive(:my_root_path).and_return(censuses_path)
+
+      get user_training_path
+
+      expect(response).to redirect_to(censuses_path)
     end
 
     it 'lets a user continue when all required trainings are completed' do
@@ -91,6 +105,36 @@ RSpec.describe 'UserTrainingController', type: :request do
 
       # Should redirect to after_sign_in_path_for
       expect(response).to redirect_to(root_path)
+    end
+
+    it 'lets a user continue when the portal finds every required training complete' do
+      config = create(:talentlms_config)
+      course = create(
+        :default_course,
+        config: config,
+        courseid: 123,
+      )
+      create(
+        :talentlms_login,
+        user: user,
+        config: config,
+        lms_user_id: 456,
+      )
+
+      allow_any_instance_of(User).to receive(:required_training_courses).and_return([course])
+      allow_any_instance_of(User).to receive(:my_root_path).and_return(censuses_path)
+
+      allow(lms_double).to receive(:any_training_required?).and_return(true)
+      allow(lms_double).to receive(:login).with(config).and_return(true)
+      allow(lms_double).to receive(:enroll).with(config, course.courseid)
+      allow(lms_double).to receive(:training_expired?).with(config, course.courseid).and_return(false)
+      allow(lms_double).to receive(:complete?).with(config, course.courseid).and_return(Date.today)
+      allow(lms_double).to receive(:valid_date?).with(Date.today).and_return(true)
+      allow(lms_double).to receive(:log_course_completion).with(config, course.courseid, Date.today)
+
+      get user_training_path
+
+      expect(response).to redirect_to(censuses_path)
     end
 
     it 'presents the captive portal when a required training is incomplete' do
@@ -128,6 +172,27 @@ RSpec.describe 'UserTrainingController', type: :request do
 
       # Should render the captive portal
       expect(response).to render_template('required_trainings')
+    end
+  end
+
+  describe 'DELETE /users/sign_out while a required training is incomplete' do
+    before do
+      allow_any_instance_of(User).to receive(:training_required?).and_return(true)
+      allow(lms_double).to receive(:any_training_required?).and_return(true)
+    end
+
+    it 'hands the request to the proxy sign-out rather than the portal', :jwt_only do
+      allow_any_instance_of(Idp::SessionsController).to receive(:idp_end_token_holder_sessions)
+
+      delete destroy_user_session_path
+
+      expect(response).to redirect_to("/oauth2/sign_out?rd=#{CGI.escape(root_path)}")
+    end
+
+    it 'runs the Devise sign-out rather than returning to the portal', :devise_only do
+      delete destroy_user_session_path
+
+      expect(response).to redirect_to(root_url)
     end
   end
 end
