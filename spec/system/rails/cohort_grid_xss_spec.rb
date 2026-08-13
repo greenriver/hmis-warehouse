@@ -39,6 +39,12 @@ RSpec.feature 'Cohort grid XSS resistance', type: :rails_system do
       instance.id == client.id
     end
 
+    # The :cohort factory doesn't create cohort_tabs (unlike CohortsController#create in the
+    # real app), and #search_clients requires one to select a population.
+    GrdaWarehouse::CohortTab.default_rules.each do |rule|
+      cohort.cohort_tabs.create!(**rule)
+    end
+
     Collection.maintain_system_groups
     setup_access_control(user, cohort_role, all_cohorts_collection)
     cohort.update!(
