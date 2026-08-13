@@ -42,6 +42,7 @@ module Types
     description 'HUD Client'
     field :id, ID, null: false
     field :lock_version, Integer, null: false
+    field :restricted, Boolean, null: false
     field :external_ids, [Types::HmisSchema::ExternalIdentifier], null: false
     hud_field :personal_id
     hud_field :first_name
@@ -169,6 +170,7 @@ module Types
       bool_field(:can_manage_scan_cards) { policy.can_manage_scan_cards? }
       bool_field(:can_manage_client_alerts) { policy.can_manage_alerts? }
       bool_field(:can_print_client_case_notes) { policy.can_print_case_notes? }
+      bool_field(:can_mark_restricted) { policy.can_mark_restricted? }
 
       # Global policy; resource is the class
       bool_field(:can_merge_clients) { global_policy.can_merge_clients? }
@@ -407,6 +409,10 @@ module Types
 
     def ce_referrals(**args)
       resolve_ce_referrals(object.ce_referrals, **args)
+    end
+
+    def restricted
+      load_ar_association(object, :restricted_record).present?
     end
 
     private def policy
