@@ -137,7 +137,7 @@ class Hmis::AuthPolicies::HmisClientPolicy < Hmis::AuthPolicies::ResourcePolicy
       global_permissions.include?(:can_view_client_alerts)
     end
 
-    # Whether the user can view any eligible opportunities lists for *some* clients in the data source.
+    # Whether the user can view eligible opportunities lists for clients in the data source.
     # This permission is marked "global" on the Role definition; granting it anywhere is meant to grant it for all clients in the data source.
     def can_view_eligible_opportunities_lists?
       global_permissions.include?(:can_view_client_eligible_opportunities)

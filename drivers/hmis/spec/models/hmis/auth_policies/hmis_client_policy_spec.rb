@@ -167,6 +167,16 @@ RSpec.describe Hmis::AuthPolicies::HmisClientPolicy, type: :model do
           expect(policy.can_index_files?).to be false
         end
       end
+
+      # An unenrolled client resolves permissions from the user's global permissions, so the client's data
+      # source has to be checked to keep permissions in one HMIS from applying to clients in another.
+      context 'when the client belongs to a different data source' do
+        let(:other_ds_client) { create(:hmis_hud_client, data_source: other_ds) }
+        let(:policy) { user.policy_for(other_ds_client, policy_type: :hmis_client) }
+        let!(:access_control) { create_access_control(user, project, with_permission: granted_permissions) }
+
+        include_examples 'permission checks without access'
+      end
     end
 
     describe '#can_create_file?' do
@@ -237,36 +247,36 @@ RSpec.describe Hmis::AuthPolicies::HmisClientPolicy, type: :model do
     describe '#can_view_alerts?' do
       it_behaves_like 'a client permission resolved at enrolled projects', :can_view_alerts?, :can_view_client_alerts
     end
-  end
 
-  describe '#can_view_hud_chronic_status?' do
-    it_behaves_like 'a client permission resolved at enrolled projects', :can_view_hud_chronic_status?, :can_view_hud_chronic_status
-  end
+    describe '#can_view_hud_chronic_status?' do
+      it_behaves_like 'a client permission resolved at enrolled projects', :can_view_hud_chronic_status?, :can_view_hud_chronic_status
+    end
 
-  describe '#can_audit?' do
-    it_behaves_like 'a client permission resolved at enrolled projects', :can_audit?, :can_audit_clients
-  end
+    describe '#can_audit?' do
+      it_behaves_like 'a client permission resolved at enrolled projects', :can_audit?, :can_audit_clients
+    end
 
-  describe '#can_print_case_notes?' do
-    it_behaves_like 'a client permission resolved at enrolled projects', :can_print_case_notes?, :can_print_client_case_notes
-  end
+    describe '#can_print_case_notes?' do
+      it_behaves_like 'a client permission resolved at enrolled projects', :can_print_case_notes?, :can_print_client_case_notes
+    end
 
-  describe '#can_manage_scan_cards?' do
-    it_behaves_like 'a client permission resolved at enrolled projects', :can_manage_scan_cards?, :can_manage_scan_cards
-  end
+    describe '#can_manage_scan_cards?' do
+      it_behaves_like 'a client permission resolved at enrolled projects', :can_manage_scan_cards?, :can_manage_scan_cards
+    end
 
-  describe '#can_manage_alerts?' do
-    it_behaves_like 'a client permission resolved at enrolled projects',
-                    :can_manage_alerts?,
-                    :can_manage_client_alerts,
-                    [:can_view_clients, :can_view_client_alerts]
-  end
+    describe '#can_manage_alerts?' do
+      it_behaves_like 'a client permission resolved at enrolled projects',
+                      :can_manage_alerts?,
+                      :can_manage_client_alerts,
+                      [:can_view_clients, :can_view_client_alerts]
+    end
 
-  describe '#can_view_some_enrollment_details?' do
-    it_behaves_like 'a client permission resolved at enrolled projects',
-                    :can_view_some_enrollment_details?,
-                    :can_view_enrollment_details,
-                    [:can_view_clients, :can_view_project]
+    describe '#can_view_some_enrollment_details?' do
+      it_behaves_like 'a client permission resolved at enrolled projects',
+                      :can_view_some_enrollment_details?,
+                      :can_view_enrollment_details,
+                      [:can_view_clients, :can_view_project]
+    end
   end
 
   context 'when client has no enrollments' do

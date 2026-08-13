@@ -99,8 +99,7 @@ module GraphqlApplicationHelper
     source_clients = load_ar_client_association(destination_client, association_name: :hmis_source_clients)
 
     source_clients.sort_by(&:id).find do |client|
-      policy = policy_for(client, policy_type: :hmis_client)
-      policy.can_view_name?
+      policy_for(client, policy_type: :hmis_client).can_view_name?
     end&.brief_name
   end
 

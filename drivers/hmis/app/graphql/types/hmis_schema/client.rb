@@ -398,7 +398,7 @@ module Types
 
     def eligible_ce_opportunities(**args) # Don't resolve in batch
       # Check if the user has the _global_ (not project-specific) permission to view all CE opportunities a client is eligible for.
-      access_denied! unless current_user.can_view_client_eligible_opportunities?
+      access_denied! unless policy_for(Hmis::Hud::Client, policy_type: :hmis_client).can_view_eligible_opportunities_lists?
 
       # If so, we can skip the permission check inside resolve_ce_opportunities.
       # The global permission gives the user permission to view all opportunities the client is eligible for, regardless of project-level access.
