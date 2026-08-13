@@ -7,6 +7,9 @@
 # frozen_string_literal: true
 
 class Hmis::AuthPolicies::HmisClientPolicy < Hmis::AuthPolicies::ResourcePolicy
+  # Restriction is not a denial of access: a restricted client remains viewable and editable, and only
+  # the PII predicates below (name, DOB, SSN) are affected.
+  # See docs/features/hmis/hmis-restricted-records.md
   class Instance < Hmis::AuthPolicies::BasePolicy
     def can_view?
       client_permissions.include?(:can_view_clients)
@@ -24,8 +27,33 @@ class Hmis::AuthPolicies::HmisClientPolicy < Hmis::AuthPolicies::ResourcePolicy
       client_permissions.include?(:can_mark_clients_as_restricted)
     end
 
+    # Whether the user may see a restricted client's PII, resolved from the projects where the client
+    # is or was enrolled (or their global permissions, when the client has no enrollments).
+    # Only meaningful for clients that are actually restricted.
+    def can_view_restricted_clients?
+      client_permissions.include?(:can_view_restricted_clients)
+    end
+
+    # Whether this client's PII is redacted for this user, because they are restricted and the user
+    # can't view restricted clients.
+    def pii_redacted?
+      context.client_restricted?(resource.id) && !can_view_restricted_clients?
+    end
+
     def can_view_name?
-      client_permissions.include?(:can_view_client_name)
+      !pii_redacted? && client_permissions.include?(:can_view_client_name)
+    end
+
+    def can_view_dob?
+      !pii_redacted? && client_permissions.include?(:can_view_dob)
+    end
+
+    def can_view_full_ssn?
+      !pii_redacted? && client_permissions.include?(:can_view_full_ssn)
+    end
+
+    def can_view_partial_ssn?
+      !pii_redacted? && client_permissions.include?(:can_view_partial_ssn)
     end
 
     def can_manage_alerts?

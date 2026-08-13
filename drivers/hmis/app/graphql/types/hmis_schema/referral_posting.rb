@@ -73,7 +73,10 @@ module Types
     end
 
     def hoh_name
-      hoh_member&.client&.brief_name
+      client = hoh_member&.client
+      return unless client
+
+      client_pii_redacted?(client) ? client.masked_name : client.brief_name
     end
 
     def hoh_mci_id

@@ -161,6 +161,7 @@ module Types
 
     def client_name
       c = load_ar_client_association(object)
+      return c.masked_name if client_pii_redacted?(c)
 
       # This is a summary field. If the current user can view the referral, always return the client name
       # (even if the current user can't otherwise view that client), UNLESS the user doesn't have permission to view client names in general.

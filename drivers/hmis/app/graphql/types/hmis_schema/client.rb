@@ -157,6 +157,9 @@ module Types
 
       # Instance policy; resource is the loaded record
       bool_field(:can_view_client_name) { policy.can_view_name? }
+      bool_field(:can_view_dob) { policy.can_view_dob? }
+      bool_field(:can_view_full_ssn) { policy.can_view_full_ssn? }
+      bool_field(:can_view_partial_ssn) { policy.can_view_partial_ssn? }
       bool_field(:can_view_enrollment_details) { policy.can_view_some_enrollment_details? }
 
       # Global policy; resource is the class
@@ -166,10 +169,7 @@ module Types
       bool_field(:can_view_referrals)     { ce_referral_policy.can_view_referrals? }
       bool_field(:can_view_own_referrals) { ce_referral_policy.can_view_own_referrals? }
 
-      can :view_partial_ssn
-      can :view_full_ssn
       can :view_client_photo
-      can :view_dob
       can :delete_clients, field_name: :can_delete_client
       can :edit_clients, field_name: :can_edit_client
 
@@ -266,15 +266,15 @@ module Types
     end
 
     def ssn
-      if current_permission?(permission: :can_view_full_ssn, entity: object)
+      if policy.can_view_full_ssn?
         object.ssn
-      elsif current_permission?(permission: :can_view_partial_ssn, entity: object)
+      elsif policy.can_view_partial_ssn?
         object&.ssn&.sub(/^.*?(\d{4})$/, 'XXXXX\1')
       end
     end
 
     def dob
-      object.dob if current_permission?(permission: :can_view_dob, entity: object)
+      object.dob if policy.can_view_dob?
     end
 
     def first_name
@@ -307,7 +307,11 @@ module Types
     end
 
     private def can_view_name
-      current_permission?(permission: :can_view_client_name, entity: object)
+      policy.can_view_name?
+    end
+
+    private def policy
+      @policy ||= policy_for(object, policy_type: :hmis_client)
     end
 
     def contact_points

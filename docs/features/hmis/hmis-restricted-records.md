@@ -6,7 +6,7 @@ An active (non-deleted) row means the associated record is restricted. Soft-dele
 
 ## Use Cases
 
-- **Restricted clients**: Hide clients from staff who lack `can_view_restricted_clients` at a project where the client is or was enrolled. Users with that permission (plus `can_view_clients`) can see the client; users without it cannot.
+- **Restricted clients**: Keep clients out of client search, and redact their PII, for staff who lack `can_view_restricted_clients` at a project where the client is or was enrolled. See below.
 - **Future record types**: The polymorphic `restrictable` association is designed so additional HMIS models can be marked restricted without a new table per type. Potential future use-cases:
   - **CustomAssessment**: Ability to mark a specific Assessment as restricted.
   - **FormDefinition**: Ability to mark a specific Form as restricted, for example an assessment Form that collects particularly sensitive data.
@@ -14,9 +14,33 @@ An active (non-deleted) row means the associated record is restricted. Soft-dele
 
 ## Behavior for Restricted Clients
 
-Not yet implemented
+Restricted clients don't appear in client search unless you have permission to find them. If you have other ways of finding the client, such as a direct link or by navigating from a project where they're enrolled, you still see them, but their PII (name, DOB, SSN) is redacted.
+
+Restriction is deliberately *not* a denial of access. A restricted client remains a normal, viewable client: their enrollments, households, assessments, services, and files resolve as they would otherwise, and every permission other than the ones listed below behaves the same whether or not the client is restricted. This keeps day-to-day workflows (household rosters, project enrollment lists, bulk services) intact for staff who work with the client but aren't cleared to see who they are.
+
+### Who can view a restricted client
+
+`can_view_restricted_clients` is a project-level permission that requires `can_view_clients`. A user may view a restricted client if they hold the permission at **any project where the client is or was enrolled**. Clients with no enrollments fall back to the user's global (data-source-wide) permissions, matching how `Hmis::AuthPolicies::UserContext#client_permissions` and `Hmis::Hud::Client.visible_to` already treat unenrolled clients.
+
+### Excluded from search
+
+`Hmis::Hud::Client.searchable_to` drops restricted clients the user can't view. This covers both `clientSearch` and `clientOmniSearch`, including lookup by ID and by PersonalID, since those go through the same scope. `visible_to` is unchanged, so the `client(id:)` query and any navigation from an enrollment or project still resolves the record.
+
+### Redacted PII
+
+`HmisClientPolicy::Instance#pii_redacted?` is the single definition of "restricted and hidden from this user". The PII predicates on that policy (`can_view_name?`, `can_view_dob?`, `can_view_full_ssn?`, `can_view_partial_ssn?`) each combine it with the underlying permission, so callers ask one question rather than two. When a restricted client is resolved by a user without the permission:
+
+- Name is masked. `firstName` returns `Client <id>`, the other name parts return null, and `names` returns a single masked entry.
+- `dob` and `ssn` return null.
+- The matching `access` booleans (`canViewClientName`, `canViewDob`, `canViewPartialSsn`, `canViewFullSsn`) return false, so the frontend renders these the same way it does for a user who simply lacks the permission.
+
+Client names resolved outside the `Client` type — CE referrals, CE referral source households, destination client names, and the outgoing-referral household picker — are masked the same way.
+
+Not redacted: `age`, photo, contact info, addresses, alerts, and external IDs. The `restricted` field itself is always resolved, so the frontend can explain why the record is redacted.
 
 ## Architecture
 
-- **`Hmis::RestrictedRecord`**: ActiveRecord model for the table
+- **`Hmis::RestrictedRecord`**: ActiveRecord model for the table. `client_ids_hidden_from(user)` returns the restricted client IDs a user may not find, and backs the search exclusion.
 - **`Hmis::Concerns::Restrictable`**: Included on restrictable models (`Hmis::Hud::Client` today). Provides `restricted?`, `mark_as_restricted!`, and `remove_restriction!`.
+- **`Hmis::AuthPolicies::HmisClientPolicy::Instance`**: Owns the rule. `can_view_restricted_clients?` resolves the permission from the projects where the client is enrolled, `pii_redacted?` combines it with the client's restriction status, and the PII predicates fold both into one answer.
+- **`Hmis::AuthPolicies::ContextLoaders::RestrictedClientLoader`**: Bulk-loads restriction status, so authorizing a page of clients takes one query. Wired into `UserContext#preload_client_dependencies`, which GraphQL already calls when loading clients.

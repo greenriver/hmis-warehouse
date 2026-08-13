@@ -105,9 +105,22 @@ class Hmis::AuthPolicies::UserContext
 
   def preload_client_dependencies(client_ids)
     client_project_loader.preload(client_ids)
+    restricted_client_loader.preload(client_ids)
     project_ids = client_project_loader.cached_project_ids
     project_data_source_loader.preload(project_ids)
     project_access_group_loader.preload(project_ids)
+  end
+
+  # Whether the client is marked as restricted. Whether the user may *see* a restricted client is a
+  # separate question, resolved by HmisClientPolicy.
+  # See docs/features/hmis/hmis-restricted-records.md
+  def client_restricted?(client_id)
+    restricted_client_loader.restricted?(client_id)
+  end
+
+  # Clear cached restriction data when a client is marked or unmarked during a mutation
+  def clear_client_restriction_cache!
+    restricted_client_loader.clear_cache!
   end
 
   # Client permissions are based on the user's permissions at projects they are enrolled in.
@@ -218,5 +231,9 @@ class Hmis::AuthPolicies::UserContext
 
   memoize def client_project_loader
     Hmis::AuthPolicies::ContextLoaders::ClientProjectLoader.new
+  end
+
+  memoize def restricted_client_loader
+    Hmis::AuthPolicies::ContextLoaders::RestrictedClientLoader.new
   end
 end
