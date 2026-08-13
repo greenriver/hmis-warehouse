@@ -27,3 +27,6 @@ application.register("forms", FormsController)
 
 import AjaxModalContentController from "./ajax_modal_content_controller.js"
 application.register("ajax-modal-content", AjaxModalContentController)
+
+import PollReplaceController from "./poll_replace_controller.js"
+application.register("poll-replace", PollReplaceController)

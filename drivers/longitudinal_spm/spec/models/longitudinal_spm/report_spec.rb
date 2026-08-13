@@ -101,4 +101,62 @@ RSpec.describe LongitudinalSpm::Report, type: :model do
       expect(report.spm_describe('1a', 'D2', :col)).to eq('Current')
     end
   end
+
+  describe 'after the backing SPMs are restored' do
+    let!(:report) { LongitudinalSpm::Report.create!(user_id: user.id) }
+    let!(:hud_spm) do
+      HudReports::ReportInstance.create!(
+        report_name: HudSpmReport.current_generator.title,
+        question_names: ['Measure 1'],
+        user_id: user.id,
+        state: 'Completed',
+        completed_at: Time.current,
+        archival_metadata: {
+          'archived_at' => 3.days.ago.iso8601,
+          'expected_files' => ['report_cells_csv'],
+          'purged_at' => 2.days.ago.iso8601,
+        },
+      )
+    end
+    let!(:spm) do
+      LongitudinalSpm::Spm.create!(
+        report_id: report.id,
+        spm_id: hud_spm.id,
+        start_date: '2023-01-01',
+        end_date: '2023-12-31',
+      )
+    end
+
+    before do
+      # What the restore service and the job do on success: the cells come back
+      # from the archived CSVs, purged_at is removed, and the restore keys clear.
+      hud_spm.report_cells.create!(
+        question: '1a',
+        cell_name: nil,
+        universe: false,
+        status: 'Completed',
+        metadata: {
+          'row_labels' => ['Persons in ES, SH, and TH', 'Persons in ES, SH, TH, and PH'],
+          'header_row' => ['', 'Previous FY', 'Current FY', 'Difference'],
+        },
+      )
+      hud_spm.remove_archival_metadata('purged_at')
+      hud_spm.finish_restore!
+    end
+
+    # @sample_spm is memoized, so re-find rather than reusing the cached instance.
+    let(:restored_report) { LongitudinalSpm::Report.find(report.id) }
+
+    it 'no longer reports any purged SPMs' do
+      expect(restored_report.purged_spms).to be_empty
+    end
+
+    it 'returns the real row label' do
+      expect(restored_report.spm_describe('1a', 'D2')).to eq('Persons in ES, SH, and TH')
+    end
+
+    it 'returns the real column label' do
+      expect(restored_report.spm_describe('1a', 'D2', :col)).to eq('Difference')
+    end
+  end
 end

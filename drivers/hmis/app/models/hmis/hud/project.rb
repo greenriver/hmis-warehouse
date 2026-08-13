@@ -187,12 +187,12 @@ class Hmis::Hud::Project < Hmis::Hud::Base
 
   # Projects that are open and have CE waitlist referrals enabled
   scope :with_ce_waitlists_enabled, -> do
-    open_on_date.with_configs(Hmis::ProjectCeConfig.active.filter(&:supports_waitlist_referrals?))
+    open_on_date.with_configs(Hmis::ProjectCeConfig.all.filter(&:supports_waitlist_referrals?))
   end
 
   # Projects that are open and have CE enabled
   scope :with_ce_enabled, -> do
-    open_on_date.with_configs(Hmis::ProjectCeConfig.active)
+    open_on_date.with_configs(Hmis::ProjectCeConfig.all)
   end
 
   SORT_OPTIONS = [:organization_and_name, :name].freeze
