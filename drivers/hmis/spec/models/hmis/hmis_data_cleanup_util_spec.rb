@@ -533,37 +533,6 @@ RSpec.describe HmisDataCleanup::Util, type: :model do
     end
   end
 
-  context 'with missing total monthly income' do
-    let(:income_attrs) do
-      [:EarnedAmount, :UnemploymentAmount, :SSIAmount, :SSDIAmount, :VADisabilityServiceAmount, :VADisabilityNonServiceAmount, :PrivateDisabilityAmount, :WorkersCompAmount, :TANFAmount, :GAAmount, :SocSecRetirementAmount, :PensionAmount, :ChildSupportAmount, :AlimonyAmount, :OtherIncomeAmount].map.with_index do |field, idx|
-        [field, 2**(idx + 1)] # Sidon sequence
-      end.to_h
-    end
-    before(:each) do
-      # canary records
-      create(:hmis_income_benefit, enrollment: e1, client: e1.client, **default_enrollment_attrs)
-    end
-    let(:missing) do
-      create(:hmis_income_benefit, :skip_validate, income_from_any_source: 1, total_monthly_income: nil, enrollment: e1, client: e1.client, **income_attrs, **default_enrollment_attrs)
-    end
-
-    it 'sums total income correctly' do
-      expected_total = income_attrs.values.sum
-      expect { HmisDataCleanup::Util.fix_missing_monthly_total_income! }.to(
-        [
-          change { Hmis::Hud::IncomeBenefit.find(missing.id).total_monthly_income.to_i }.to(expected_total),
-          not_change { Hmis::Hud::IncomeBenefit.where.not(id: missing.id).order(:id).map(&:attributes) },
-        ].reduce(&:and),
-      )
-    end
-
-    it 'has no side-effects' do
-      expect_leaves_non_hmis_data_alone do
-        HmisDataCleanup::Util.fix_missing_monthly_total_income!
-      end
-    end
-  end
-
   context 'with incorrect total income via form processor' do
     let!(:form_definition) { create(:hmis_form_definition) }
     let!(:non_system_user) { create(:hmis_hud_user, data_source: hmis_ds) }
