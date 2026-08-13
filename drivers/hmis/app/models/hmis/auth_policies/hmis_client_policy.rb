@@ -20,6 +20,10 @@ class Hmis::AuthPolicies::HmisClientPolicy < Hmis::AuthPolicies::ResourcePolicy
       client_permissions.include?(:can_delete_clients)
     end
 
+    def can_mark_restricted?
+      client_permissions.include?(:can_mark_clients_as_restricted)
+    end
+
     def can_view_name?
       client_permissions.include?(:can_view_client_name)
     end
