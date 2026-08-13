@@ -16,11 +16,22 @@ An active (non-deleted) row means the associated record is restricted. Soft-dele
 
 Restricted clients don't appear in client search unless you have permission to find them. If you have other ways of finding the client, such as a direct link or by navigating from a project where they're enrolled, you still see them, but their PII (name, DOB, SSN) is redacted.
 
-Restriction is deliberately *not* a denial of access. A restricted client remains a normal, viewable client: their enrollments, households, assessments, services, and files resolve as they would otherwise, and every permission other than the ones listed below behaves the same whether or not the client is restricted. This keeps day-to-day workflows (household rosters, project enrollment lists, bulk services) intact for staff who work with the client but aren't cleared to see who they are.
+Restriction is deliberately *not* a denial of access. A restricted client remains a normal, viewable client: their enrollments, households, assessments, services, and files resolve as they would otherwise, and every permission other than the ones listed below behaves the same whether or not the client is restricted.
+
+A typical setup for case managers:
+
+- Grant `can_view_clients` **globally** (data-source-wide), so they can open any client record they encounter.
+- Grant `can_view_restricted_clients` and `can_view_enrollment_details` only at **their own project**.
+
+With that combination:
+
+- **Search** only returns a restricted client if they are (or were) enrolled at the case manager's project. Restricted clients enrolled only elsewhere are omitted from search results entirely — including lookup by ID or PersonalID.
+- **At their own project**, they can see the restricted client's PII and enrollment details (for example by opening the client from an enrollment or from search).
+- **Outside their project**, they can still open the client via a direct link or other navigation (global `can_view_clients`), but PII stays redacted and they do not get enrollment details from this permission set.
 
 ### Who can view a restricted client
 
-`can_view_restricted_clients` is a project-level permission that requires `can_view_clients`. A user may view a restricted client if they hold the permission at **any project where the client is or was enrolled**. Clients with no enrollments fall back to the user's global (data-source-wide) permissions, matching how `Hmis::AuthPolicies::UserContext#client_permissions` and `Hmis::Hud::Client.visible_to` already treat unenrolled clients.
+`can_view_restricted_clients` is a project-level permission that requires `can_view_clients`. A user may view a restricted client if they hold both permissions at **any project where the client is or was enrolled**. Clients with no enrollments fall back to the user's global (data-source-wide) permissions, matching how `Hmis::AuthPolicies::UserContext#client_permissions` and `Hmis::Hud::Client.visible_to` already treat unenrolled clients.
 
 ### Excluded from search
 
