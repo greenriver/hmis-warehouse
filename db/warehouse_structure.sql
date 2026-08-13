@@ -42577,7 +42577,6 @@ CREATE VIEW public.hmis_project_access_group_members AS
 CREATE TABLE public.hmis_project_configs (
     id bigint NOT NULL,
     type character varying NOT NULL,
-    enabled boolean DEFAULT true NOT NULL,
     config_options jsonb,
     project_type integer,
     organization_id bigint,
@@ -359936,6 +359935,7 @@ ALTER TABLE ONLY public.import_logs
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260812172057'),
 ('20260812160243'),
 ('20260728120000'),
 ('20260717132223'),
