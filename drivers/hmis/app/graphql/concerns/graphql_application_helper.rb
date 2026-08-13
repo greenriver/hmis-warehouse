@@ -96,7 +96,8 @@ module GraphqlApplicationHelper
   # on any of the destination client's HMIS source clients (for the current HMIS data source).
   # If no viewable name is found, it returns nil.
   def load_destination_client_name(destination_client:)
-    source_clients = load_ar_client_association(destination_client, association_name: :hmis_source_clients)
+    source_clients = load_ar_client_association(destination_client, association_name: :hmis_source_clients).
+      filter { |client| client.data_source_id == current_user.hmis_data_source_id }
 
     source_clients.sort_by(&:id).find do |client|
       policy_for(client, policy_type: :hmis_client).can_view_name?
