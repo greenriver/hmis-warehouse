@@ -29,7 +29,7 @@ RSpec.describe Hmis::ProjectCeConfig, type: :model do
 
     context 'on update' do
       it 'calls CandidatePoolBuilder when waitlist referrals are supported' do
-        waitlist_config.update!(enabled: false)
+        waitlist_config.update!(receives_direct_referrals: true)
         expect(Hmis::Ce::Match::CandidatePoolBuilder).to have_received(:call)
       end
 
@@ -40,7 +40,7 @@ RSpec.describe Hmis::ProjectCeConfig, type: :model do
           supports_waitlist_referrals: false,
           receives_direct_referrals: true,
         )
-        direct_config.update!(enabled: false)
+        direct_config.update!(receives_direct_referrals_from: [project.id])
         expect(Hmis::Ce::Match::CandidatePoolBuilder).not_to have_received(:call)
       end
     end
