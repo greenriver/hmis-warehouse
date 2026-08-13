@@ -727,6 +727,34 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     projects.joins(:organization).count
   end
 
+  # Below this size and dominance, a data source's organizations page can render
+  # everything at once; otherwise it's large or fragmented enough that the user
+  # should pick a CoC to filter by first.
+  SMALL_ENOUGH_PROJECT_COUNT = Rails.env.development? ? 100 : 1000
+  DOMINANT_COC_SHARE = Rails.env.development? ? 0.90 : 0.75
+
+  # project_scope must be a viewable-projects scope (e.g. GrdaWarehouse::Hud::Project.viewable_by(...)),
+  # not yet narrowed to this data source or any particular CoC code — the point here is deciding
+  # whether a CoC choice is needed at all, based on what this user could otherwise see all at once.
+  def require_coc_choice?(project_scope)
+    project_scope = project_scope.where(data_source_id: id)
+    return true if project_scope.count >= SMALL_ENOUGH_PROJECT_COUNT
+
+    dominant_coc_share(project_scope) < DOMINANT_COC_SHARE
+  end
+
+  private def dominant_coc_share(project_scope)
+    counts = GrdaWarehouse::Hud::ProjectCoc.
+      where(data_source_id: id).
+      joins(:project).
+      merge(project_scope).
+      group(:CoCCode).count.values
+    total = counts.sum
+    return 1.0 if total.zero?
+
+    counts.max.to_f / total
+  end
+
   # True when this data source is an Open Path HMIS installation
   # @see docs/architecture/multi-hmis-support.md
   def hmis?

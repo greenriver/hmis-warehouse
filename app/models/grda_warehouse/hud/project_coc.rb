@@ -48,6 +48,11 @@ module GrdaWarehouse::Hud
       where.not(CoCCode: nil)
     end
 
+    scope :unknown_coc, -> do
+      coc = arel_table[:CoCCode]
+      where(coc.eq(nil).or(Arel::Nodes::NamedFunction.new('TRIM', [coc]).eq('')))
+    end
+
     scope :in_zip, ->(zip_code:) do
       zip_code = Array(zip_code)
       where(Zip: zip_code)
