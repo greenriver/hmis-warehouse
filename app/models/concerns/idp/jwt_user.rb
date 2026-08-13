@@ -58,6 +58,10 @@ module Idp::JwtUser
     !active?
   end
 
+  def active_for_authentication?
+    active?
+  end
+
   def overall_status(_current_user)
     return ['Active'] if active?
 
