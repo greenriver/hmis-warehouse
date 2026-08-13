@@ -1,6 +1,6 @@
 import { Controller } from '@hotwired/stimulus';
 
-// Reloads an HTML fragment when a control changes (or, later, when a button is clicked).
+// Reloads an HTML fragment when a control changes.
 //
 //   %div{ data: { controller: 'content-loader', content_loader_url_value: some_path } }
 //     = select_tag :coc_code, options_for_select(options), include_blank: 'Select a CoC Code',
