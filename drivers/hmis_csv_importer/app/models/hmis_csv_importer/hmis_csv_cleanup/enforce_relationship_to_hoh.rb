@@ -14,6 +14,14 @@
 # set the oldest person to RelationshipToHoH = 1 and set any other RelationshipToHoH == 1 to 99
 # If everyone in the household is 17 or younger, and there is a person 10 or younger, set the oldest person to RelationshipToHoH = 1 and set any other RelationshipToHoH == 1 to 99
 # If the household only contains clients between the age of 11 and 17 inclusive, break up the household and set everyone as RelationshipToHoH = 1
+#
+# Two places where we go beyond the published tree:
+# 1. The Glossary names "the oldest person aged 11 or greater" as the head. When everyone is 10 or
+#    younger no one qualifies, and it gives no further instruction. We take the oldest anyway so the
+#    household survives; splitting it would only produce more households headed by a young child.
+# 2. Clients with no DOB have an unknown age, which the Glossary treats as its own category rather
+#    than as a child (see Household Types). They are excluded from the age tests above, so the
+#    household is classified on its remaining members.
 
 module HmisCsvImporter::HmisCsvCleanup
   class EnforceRelationshipToHoh < Base
@@ -60,11 +68,17 @@ module HmisCsvImporter::HmisCsvCleanup
           individual_household_ids << hh_id
         else
           oldest_adult = rows.select { |m| m[:adult] }.max_by { |m| m[:age] }
+          # An unknown age is -1, so it never counts as a child under 11 and always sorts below a
+          # known age -- a member with no DOB can't be shown to be 17 or under, and the Glossary
+          # only makes someone aged 11 or greater the head.
           child_under_11 = rows.any? { |m| m[:age].between?(0, 10) }
           oldest_client = rows.max_by { |m| m[:age] }
           if oldest_adult.present?
             multi_person_to_fix[hh_id] = oldest_adult[:row_id]
           elsif child_under_11
+            # When no one is 11 or greater we still take the oldest, keeping the household intact
+            # rather than splitting it; the Glossary's "Combining Households" report exists to
+            # reconcile child heads of household against adults found elsewhere in the HMIS.
             multi_person_to_fix[hh_id] = oldest_client[:row_id]
           else
             multi_person_with_no_child_under_11 += rows
@@ -254,6 +268,7 @@ module HmisCsvImporter::HmisCsvCleanup
               row_id: id,
               personal_id: personal_id,
               hoh: relationship == 1,
+              # -1 when the client has no DOB, so an unknown age is never mistaken for a young one
               age: age || -1,
               adult: age.present? && age >= 18,
               enrollment_id: en_id,
