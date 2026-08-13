@@ -359,5 +359,19 @@ RSpec.describe Hmis::AuthPolicies::HmisClientPolicy, type: :model do
         end
       end
     end
+
+    describe '#can_view_eligible_opportunities_lists?' do
+      it 'denies when user lacks can_view_client_eligible_opportunities permission' do
+        expect(policy.can_view_eligible_opportunities_lists?).to be false
+      end
+
+      context 'with can_view_client_eligible_opportunities at one project in the data source' do
+        let!(:access_control) { create_access_control(user, project, with_permission: [:can_view_client_eligible_opportunities]) }
+
+        it 'grants can_view_eligible_opportunities_lists?' do
+          expect(policy.can_view_eligible_opportunities_lists?).to be true
+        end
+      end
+    end
   end
 end

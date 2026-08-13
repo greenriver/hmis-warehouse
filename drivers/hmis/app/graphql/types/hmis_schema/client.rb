@@ -148,7 +148,6 @@ module Types
     field :image, HmisSchema::ClientImage, null: true
     field :enabled_features, [Types::Forms::Enums::ClientDashboardFeature], null: false
 
-    # TODO(#9004) Migrating the access field to use policies is in-progress, see ADR 0006.
     access_field do
       define_method(:policy) { @policy ||= policy_for(object, policy_type: :hmis_client) }
       define_method(:global_policy) { @global_policy ||= policy_for(object.class, policy_type: :hmis_client) }
@@ -179,7 +178,7 @@ module Types
       bool_field(:can_manage_scan_cards) { policy.can_manage_scan_cards? }
       bool_field(:can_view_client_alerts) { policy.can_view_alerts? }
       bool_field(:can_manage_client_alerts) { policy.can_manage_alerts? }
-      root_can :can_view_client_eligible_opportunities
+      bool_field(:can_view_client_eligible_opportunities) { global_policy.can_view_eligible_opportunities_lists? }
       bool_field(:can_print_client_case_notes) { policy.can_print_case_notes? }
     end
 
