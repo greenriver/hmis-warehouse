@@ -71,6 +71,21 @@ RSpec.describe Audit::CohortAccess::Base do
       expect(audit.current_access.user_accesses.map(&:user)).to all(be_present)
       expect(audit.current_access.users.map(&:id)).not_to include(purged_user_id)
     end
+
+    it 'excludes a deactivated user' do
+      user.update_column(:active, false)
+      expect(audit.current_access.users.map(&:id)).not_to include(user.id)
+    end
+
+    it 'excludes a user whose account has expired' do
+      user.update_column(:expired_at, 1.day.ago)
+      expect(audit.current_access.users.map(&:id)).not_to include(user.id)
+    end
+
+    it 'excludes an unconfirmed user' do
+      user.update_column(:confirmed_at, nil)
+      expect(audit.current_access.users.map(&:id)).not_to include(user.id)
+    end
   end
 
   describe '#events' do
@@ -79,6 +94,12 @@ RSpec.describe Audit::CohortAccess::Base do
       travel_to(Time.zone.parse('2025-01-01 13:00:00')) { group.add(system_user) }
       system_events = audit.events.select { |e| e.affected_user&.id == system_user.id }
       expect(system_events).to be_empty
+    end
+
+    it 'still includes a deactivated user\'s historical grant event' do
+      user.update_column(:active, false)
+      grant_events = audit.events.select { |e| e.affected_user&.id == user.id && e.effect == :granted }
+      expect(grant_events).not_to be_empty
     end
   end
 end

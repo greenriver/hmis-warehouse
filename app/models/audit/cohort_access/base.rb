@@ -74,6 +74,7 @@ module Audit
 
           user = users_by_id[user_id]
           next if user.nil? || user.deleted_at.present?
+          next unless user.active_for_authentication?
 
           labels = segs.map { |s| path_label(s.via) }.uniq.sort
           UserAccess.new(user: user, path_labels: labels)
