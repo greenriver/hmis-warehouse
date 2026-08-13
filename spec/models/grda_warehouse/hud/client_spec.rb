@@ -118,6 +118,22 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
         whitespace_text_search_expects('Trailing Whitespace', client_trailing_whitespace)
         whitespace_text_search_expects('Leading Whitespace', client_leading_whitespace)
       end
+
+      it 'returns a relation whose select can be narrowed to a single column for use as a subquery' do
+        # Cohorts::ClientsController#calculate_search_result_data chains .select(:id) onto the
+        # text_search result to use it as an `id IN (subquery)` filter elsewhere. Since
+        # ActiveRecord's #select accumulates rather than replaces select_values, a stray extra
+        # select column on the text_search relation (e.g. the match score) would make that
+        # subquery select more than one column and raise PG::SyntaxError.
+        subquery = GrdaWarehouse::Hud::Client.text_search('Whitespace').reorder(id: :asc).select(:id)
+        matches = GrdaWarehouse::Hud::Client.where(id: subquery)
+
+        expect(matches.to_a).to contain_exactly(
+          client_no_whitespace,
+          client_trailing_whitespace,
+          client_leading_whitespace,
+        )
+      end
     end
 
     describe 'strict_search' do

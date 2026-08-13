@@ -112,7 +112,6 @@ module UserConcern
 
     has_many :messages
     has_many :document_exports, dependent: :destroy, class_name: 'GrdaWarehouse::DocumentExport'
-    has_many :health_document_exports, dependent: :destroy, class_name: 'Health::DocumentExport'
     has_many :activity_logs
 
     has_many :user_authentication_sources, class_name: 'Idp::UserAuthenticationSource', dependent: :destroy
@@ -187,15 +186,6 @@ module UserConcern
         or(arel_table[:expired_at].lteq(Time.current)).
         or(arel_table[:last_activity_at].lteq(expire_after.ago)),
       )
-    end
-
-    scope :care_coordinators, -> do
-      care_coordinator_ids = Health::Patient.pluck(:care_coordinator_id)
-      where(id: care_coordinator_ids)
-    end
-
-    scope :nurse_care_managers, -> do
-      joins(:health_roles).merge(Role.nurse_care_manager)
     end
 
     scope :not_system, -> { where.not(first_name: 'System') }
@@ -346,27 +336,12 @@ module UserConcern
       "#{name} <#{email}>"
     end
 
-    def name_with_credentials
-      return "#{name}, #{credentials}" if credentials.present?
-
-      name
-    end
-
     def agency_name
       agency&.name if agency.present?
     end
 
     def phone_for_directory
       phone unless exclude_phone_from_directory
-    end
-
-    def show_credentials?
-      # Show the credentials field if the user has at least one health role
-      roles.health.exists?
-    end
-
-    def credential_options
-      @credential_options ||= User.pluck(:credentials).compact.uniq.sort
     end
 
     def two_factor_label
@@ -688,33 +663,6 @@ module UserConcern
       end
     end
 
-    def team_mates
-      # find all of the team leads for any team this user is a member of
-      team_leader_ids = Health::UserCareCoordinator.
-        joins(:coordination_team).
-        where(user_id: id).
-        pluck(:team_coordinator_id)
-
-      # find all of the users on any team I lead, or which I'm a member of
-      team_member_ids = Health::UserCareCoordinator.
-        joins(:coordination_team).
-        merge(Health::CoordinationTeam.lead_by(team_leader_ids + [id])).
-        pluck(:user_id)
-
-      User.where(id: team_member_ids).active
-    end
-
-    # patients with CC or NCM relationship to this user
-    def patients
-      Health::Patient.where(care_coordinator_id: id).
-        or(Health::Patient.where(nurse_care_manager_id: id))
-    end
-
-    # patients with CC relationship to this user
-    def care_coordination_patients
-      Health::Patient.where(care_coordinator_id: id)
-    end
-
     # TODO: START_ACL remove after ACL migration is complete
     private def create_access_group
       group = access_group
@@ -826,26 +774,6 @@ module UserConcern
         }.freeze
       end
       memoize :group_associations
-    end
-
-    # def health_agency
-    #   agency_user&.agency
-    # end
-
-    # def agency_user
-    #   Health::AgencyUser.where(user_id: id).last
-    # end
-
-    def health_agencies
-      agency_users.map(&:agency).compact
-    end
-
-    def health_agency_names
-      health_agencies.map(&:name).compact
-    end
-
-    def agency_users
-      Health::AgencyUser.where(user_id: id)
     end
 
     # send email upon creation or only in a periodic digest

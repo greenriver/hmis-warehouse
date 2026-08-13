@@ -105,7 +105,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: "Container Setup"
         id: container-setup
@@ -131,7 +131,7 @@ jobs:
           chmod 600 ~/.pgpass
 
       - name: Configure AWS credentials for OIDC (test kit S3)
-        uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502 # v4
+        uses: aws-actions/configure-aws-credentials@e6de054238d6b7531b4efff3b6587d9aade6a06c # v6.2.3
         with:
           aws-region: us-east-1
           role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/${{ secrets.AWS_ROLE_NAME }}
@@ -139,13 +139,10 @@ jobs:
 
       # fetch some closed source files
       - name: "Fetch testkit source files"
-        uses: keithweaver/aws-s3-github-action@46dd0263ee582cbb2e81ad88209198d26d7a67c6 # v1.0.0
-        with:
-          command: cp
-          source: ${{ secrets.AWS_S3_ACTION_BUCKET }}${{ vars.AWS_S3_ACTIONS_SOURCE_PATH_FY_2026 }}
-          destination: ./drivers/datalab_testkit/spec/fixtures/inputs/
-          aws_region: us-east-1
-          flags: --recursive
+        env:
+          SOURCE: ${{ secrets.AWS_S3_ACTION_BUCKET }}${{ vars.AWS_S3_ACTIONS_SOURCE_PATH_FY_2026 }}
+          DESTINATION: ./drivers/datalab_testkit/spec/fixtures/inputs/
+        run: aws s3 cp --no-progress "$SOURCE" "$DESTINATION" --recursive --region us-east-1
       - name: Generate new fixpoint files
         env:
           AWS_ACCESS_KEY_ID: local_access_key
@@ -160,19 +157,19 @@ jobs:
       - name: Get current date
         id: date
         run: echo "today=$(date +'%Y-%m-%d')" >> $GITHUB_ENV
+      - name: Refresh AWS credentials for OIDC (test kit S3)
+        uses: aws-actions/configure-aws-credentials@e6de054238d6b7531b4efff3b6587d9aade6a06c # v6.2.3
+        with:
+          aws-region: us-east-1
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/${{ secrets.AWS_ROLE_NAME }}
+          role-session-name: warehouse-fixpoints-s3-upload
       - name: "Copy old fixpoints to previous folder"
-        uses: keithweaver/aws-s3-github-action@46dd0263ee582cbb2e81ad88209198d26d7a67c6 # v1.0.0
-        with:
-          command: cp
-          source: ${{ secrets.AWS_S3_ACTION_BUCKET }}${{ vars.AWS_S3_ACTIONS_FIXPOINT_PATH_FY_2026 }}
-          destination: ${{ secrets.AWS_S3_ACTION_BUCKET }}${{ vars.AWS_S3_ACTIONS_PREVIOUS_FIXPOINT_PATH_FY_2026 }}${{ env.today }}/
-          aws_region: us-east-1
-          flags: --recursive
+        env:
+          SOURCE: ${{ secrets.AWS_S3_ACTION_BUCKET }}${{ vars.AWS_S3_ACTIONS_FIXPOINT_PATH_FY_2026 }}
+          DESTINATION: ${{ secrets.AWS_S3_ACTION_BUCKET }}${{ vars.AWS_S3_ACTIONS_PREVIOUS_FIXPOINT_PATH_FY_2026 }}${{ env.today }}/
+        run: aws s3 cp --no-progress "$SOURCE" "$DESTINATION" --recursive --region us-east-1
       - name: "Copy new fixpoint files to current folder"
-        uses: keithweaver/aws-s3-github-action@46dd0263ee582cbb2e81ad88209198d26d7a67c6 # v1.0.0
-        with:
-          command: cp
-          source: ./drivers/datalab_testkit/spec/fixpoints/
-          destination: ${{ secrets.AWS_S3_ACTION_BUCKET }}${{ vars.AWS_S3_ACTIONS_FIXPOINT_PATH_FY_2026 }}
-          aws_region: us-east-1
-          flags: --recursive
+        env:
+          SOURCE: ./drivers/datalab_testkit/spec/fixpoints/
+          DESTINATION: ${{ secrets.AWS_S3_ACTION_BUCKET }}${{ vars.AWS_S3_ACTIONS_FIXPOINT_PATH_FY_2026 }}
+        run: aws s3 cp --no-progress "$SOURCE" "$DESTINATION" --recursive --region us-east-1

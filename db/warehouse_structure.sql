@@ -43140,7 +43140,8 @@ CREATE TABLE public.hmis_project_configs (
     project_id bigint,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
-    data_source_id bigint NOT NULL
+    data_source_id bigint NOT NULL,
+    deleted_at timestamp(6) without time zone
 );
 
 
@@ -219588,6 +219589,13 @@ CREATE INDEX index_hmis_project_configs_on_data_source_id ON public.hmis_project
 
 
 --
+-- Name: index_hmis_project_configs_on_deleted_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_project_configs_on_deleted_at ON public.hmis_project_configs USING btree (deleted_at);
+
+
+--
 -- Name: index_hmis_project_configs_on_organization_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -360484,6 +360492,7 @@ ALTER TABLE ONLY public.import_logs
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260812160243'),
 ('20260728120000'),
 ('20260717132223'),
 ('20260624120000'),

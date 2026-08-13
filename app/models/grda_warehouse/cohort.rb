@@ -85,22 +85,25 @@ module GrdaWarehouse
       where.not(project_group_id: nil)
     end
 
-    scope :viewable_by, ->(user) do
+    # @param permission [Symbol, Array<Symbol>] despite the singular name, this accepts either
+    #   a single permission or an array of permissions to OR together (defaults to
+    #   +viewable_permissions+, i.e. every permission that currently grants cohort visibility)
+    scope :viewable_by, ->(user, permission: viewable_permissions) do
       return none unless user.present?
+
+      permissions = Array.wrap(permission)
 
       # TODO: START_ACL cleanup after permission migration is complete
       if user.using_acls?
-        return none unless GrdaWarehouse::Cohort.viewable_permissions.map { |perm| user.send("#{perm}?") }.any?
+        return none unless permissions.any? { |perm| user.send("#{perm}?") }
 
-        ids = GrdaWarehouse::Cohort.viewable_permissions.flat_map do |perm|
-          group_ids = user.collections_for_permission(perm)
-          next [] if group_ids.empty?
+        group_ids = permissions.flat_map { |perm| user.collections_for_permission(perm) }.uniq
+        return none if group_ids.empty?
 
-          GrdaWarehouse::GroupViewableEntity.where(
-            collection_id: group_ids,
-            entity_type: 'GrdaWarehouse::Cohort',
-          ).pluck(:entity_id)
-        end.compact
+        ids = GrdaWarehouse::GroupViewableEntity.where(
+          collection_id: group_ids,
+          entity_type: 'GrdaWarehouse::Cohort',
+        ).pluck(:entity_id)
         return none if ids.empty?
 
         where(id: ids)

@@ -47,90 +47,6 @@ Rails.application.routes.draw do
   resources :content_pages, only: [:show], param: :slug, path: 'public/pages'
   resource :compliance_agreement, only: [:show, :create], controller: 'compliance_agreements'
 
-  def healthcare_routes
-    namespace :health do
-      resources :patient, only: [:index, :update], controller: '/health/patient'
-      resources :utilization, only: [:index], controller: '/health/utilization'
-      resources :appointments, only: [:index], controller: '/health/appointments' do
-        collection do
-          get :upcoming
-          get :calendar
-        end
-      end
-      resources :ed_ip_visits, only: [:index], controller: '/health/ed_ip_visits'
-      resources :medications, only: [:index], controller: '/health/medications'
-      resources :problems, only: [:index], controller: '/health/problems'
-      resources :self_sufficiency_matrix_forms, controller: '/health/self_sufficiency_matrix_forms' do
-        member do
-          delete :remove_file
-          get :download
-          patch :upload
-        end
-      end
-      resources :sdh_case_management_notes, only: [:show, :new, :create, :edit, :update, :destroy], controller: '/health/sdh_case_management_notes' do
-        member do
-          delete :remove_file
-          get :download
-        end
-      end
-      resources :services, controller: '/health/services'
-      resources :backup_plans, controller: '/health/backup_plans'
-      resources :qualifying_activities, controller: '/health/qualifying_activities'
-      resources :patient_referrals, only: [:index], controller: '/health/patient_referrals'
-      resources :durable_equipments, except: [:index], controller: '/health/durable_equipments'
-      resources :files, only: [:index, :show], controller: '/health/files'
-      resources :team_members, controller: '/health/patient_team_members'
-      resources :goals, controller: '/health/patient_goals'
-      resources :epic_case_notes, only: [:show], controller: '/health/epic_case_notes'
-      resources :epic_ssms, only: [:show], controller: '/health/epic_ssms'
-      resources :epic_chas, only: [:show], controller: '/health/epic_chas'
-      resources :epic_careplans, only: [:show], controller: '/health/epic_careplans'
-      resources :careplans, except: [:create], controller: '/health/careplans' do
-        resources :team_members, except: [:index, :show], controller: '/health/team_members'
-        resources :goals, except: [:index, :show], controller: '/health/goals'
-        get :self_sufficiency_assessment
-        get :print
-        get :revise, on: :member
-        get :coversheet, on: :member
-        get :pctp, on: :member
-        member do
-          delete :remove_file
-          get :download
-          patch :upload
-        end
-      end
-      resources :participation_forms, controller: '/health/participation_forms' do
-        member do
-          delete :remove_file
-          get :download
-        end
-      end
-      resources :release_forms, controller: '/health/release_forms' do
-        member do
-          delete :remove_file
-          get :download
-        end
-      end
-      resources :comprehensive_health_assessments, path: :chas, as: :chas, controller: '/health/comprehensive_health_assessments' do
-        member do
-          delete :remove_file
-          get :download
-          patch :upload
-        end
-      end
-      resources :metrics, only: [:index], controller: '/health/metrics'
-      namespace :pilot do
-        resources :patient, only: [:index], controller: '/health/pilot/patient'
-        resources :metrics, only: [:index], controller: '/health/pilot/metrics'
-        resource :careplan, except: [:destroy], controller: '/health/pilot/careplans' do
-          get :self_sufficiency_assessment
-          get :print
-        end
-      end
-      resources :contacts, only: [:index], controller: '/health/contacts'
-    end
-  end
-
   # obfuscation of links sent out via email
   resources :tokens, only: [:show]
 
@@ -236,7 +152,6 @@ Rails.application.routes.draw do
     end
     resources :anomalies, only: [:index]
     resources :touch_point_exports, only: [:index, :create, :show, :destroy]
-    resources :confidential_touch_point_exports, only: [:index, :create, :show, :destroy]
     resources :hmis_exports, except: [:new] do
       collection do
         get :running
@@ -363,77 +278,6 @@ Rails.application.routes.draw do
         patch :match, on: :collection
       end
     end
-    namespace :health do
-      resources :overview, only: [:index]
-      resources :aco_performance, only: [:index]
-      resources :agency_performance, only: [:index] do
-        collection do
-          post :detail
-        end
-      end
-      resources :member_status_reports, only: [:index, :show, :create, :destroy] do
-        collection do
-          get :running
-        end
-      end
-      resources :claims, only: [:index, :show, :destroy] do
-        collection do
-          get :running
-          post :precalculate
-          post :qualifying_activities
-          get :precalculated
-          get :patients
-        end
-        member do
-          post :generate_claims_file
-          post :revise
-          post :submit
-          post :acknowledge
-          get :details
-          get :accept
-        end
-      end
-      resources :patient_referrals, only: [:index] do
-        collection do
-          patch :update
-        end
-      end
-      resources :premium_payments, only: [:index, :show, :create, :destroy]
-      resources :eligibility
-      resources :eligibility_results, only: [:show]
-      resources :enrollments do
-        get :download, on: :member
-        post :override, on: :member
-      end
-      resources :expiring_items, only: [:index]
-      resources :ssm_exports, only: [:index, :show, :create, :destroy]
-      resources :encounters, only: [:index, :show, :create, :destroy]
-      resources :housing_status, only: [:index] do
-        get :details, on: :collection
-      end
-      resources :housing_status_changes, only: [:index] do
-        collection do
-          get :detail
-        end
-      end
-      resources :cp_roster, only: [:index, :show, :destroy] do
-        collection do
-          post :roster
-          post :enrollment
-        end
-      end
-      resources :ed_ip_visits, only: [:index, :show, :create, :destroy]
-      resources :contact_tracing, only: [:index] do
-        get :download, on: :collection
-        get :single_case, on: :member
-      end
-      resources :completed_contact_tracing, only: [:index] do
-        get :download, on: :collection
-      end
-      resources :enrollments_disenrollments, only: [:index, :create] do
-        get :download, on: :member
-      end
-    end
   end
 
   resources :client_matches, only: [:index, :update] do
@@ -458,7 +302,6 @@ Rails.application.routes.draw do
       get :service_range
       get 'rollup/:partial', to: 'clients#rollup', as: :rollup
       get :assessment
-      get :health_assessment
       # get :image
       get :chronic_days
       patch :merge
@@ -469,6 +312,7 @@ Rails.application.routes.draw do
       # get :enrollment_details
     end
     resources :hud_assessments, only: [:show], controller: 'clients/hud_assessments'
+    resources :coordinated_entry_hud_assessments, only: [:show], controller: 'clients/coordinated_entry_hud_assessments'
     # resource :history, only: [:show], controller: 'clients/history' do
     #   get :pdf, on: :collection
     #   post :queue, on: :collection
@@ -520,7 +364,6 @@ Rails.application.routes.draw do
     resources :anomalies, except: [:show], controller: 'clients/anomalies'
     resources :audits, only: [:index], controller: 'clients/audits'
     resources :hud_lots, only: [:index], controller: 'clients/hud_lots'
-    healthcare_routes
     namespace :he do
       get :boston_covid_19
       get :covid_19_vaccinations_only
@@ -697,69 +540,7 @@ Rails.application.routes.draw do
     end
   end
 
-  namespace :health do
-    resources :patients, only: [:index] do
-      collection do
-        post :detail
-        # Patient search queries
-        resources :searches, only: [:create], to: 'patients#create_search_queries', as: :create_patient_searches
-        get 'searches/:id', to: 'patients#search', as: :patient_search_query
-      end
-    end
-    resources :team_patients, only: [:index] do
-      collection do
-        post :detail
-        post :render_section
-
-        # Patient search queries
-        resources :searches, only: [:create], to: 'team_patients#create_search_queries', as: :create_team_patient_searches
-        get 'searches/:id', to: 'team_patients#search', as: :team_patient_search_query
-      end
-    end
-    resources :my_patients, only: [:index] do
-      collection do
-        # Patient search queries
-        resources :searches, only: [:create], to: 'my_patients#create_search_queries', as: :create_my_patient_searches
-        get 'searches/:id', to: 'my_patients#search', as: :my_patient_search_query
-      end
-    end
-    namespace :he do
-      get :search
-      resources :cases do
-        resources :locations, except: [:index]
-        resources :contacts do
-          resources :results
-        end
-        resources :site_managers
-        resources :staff
-      end
-    end
-    resources :document_exports, only: [:show, :create] do
-      get :download, on: :member
-    end
-  end
-
   namespace :api do
-    namespace :health do
-      namespace :claims do
-        resources :patients, only: [] do
-          resources :amount_paid, only: [:index], controller: 'patients/amount_paid'
-          resources :claims_volume, only: [:index], controller: 'patients/claims_volume'
-          resources :ed_nyu_severity, only: [:index], controller: 'patients/ed_nyu_severity'
-          resources :roster, only: [:index], controller: 'patients/roster'
-          resources :top_conditions, only: [:index], controller: 'patients/top_conditions'
-          resources :top_ip_conditions, only: [:index], controller: 'patients/top_ip_conditions'
-          resources :top_providers, only: [:index], controller: 'patients/top_providers'
-        end
-        resources :amount_paid, only: [:index]
-        resources :claims_volume, only: [:index]
-        resources :ed_nyu_severity, only: [:index]
-        resources :roster, only: [:index]
-        resources :top_conditions, only: [:index]
-        resources :top_ip_conditions, only: [:index]
-        resources :top_providers, only: [:index]
-      end
-    end
     resources :projects, only: [] do
       post :index, on: :collection
     end
@@ -873,48 +654,6 @@ Rails.application.routes.draw do
       post :activate, on: :member
       post :deactivate, on: :member
     end
-    namespace :health do
-      resources :admin, only: [:index]
-      resources :agencies, except: [:show]
-      resources :coordination_teams, only: [:index, :create, :update, :destroy]
-      resources :team_members, only: [:index, :create, :destroy]
-      resources :patients, only: [:index] do
-        post :update, on: :collection
-      end
-      resources :accountable_care_organizations, only: [:index, :create, :edit, :update, :new]
-      resources :scheduled_documents
-      resources :patient_referrals, only: [:edit, :update] do
-        patch :reject
-        collection do
-          get :review
-          get :assigned
-          get :rejected
-          get :disenrolled
-          get :disenrollment_accepted
-          post :bulk_assign_agency
-          post :bulk_assign_agency_and_care_staff
-          # Patient search queries
-          resources :searches, only: [:create], to: 'patient_referrals#create_search_queries', as: :create_patient_referral_searches
-          get 'searches/:id', to: 'patient_referrals#search', as: :patient_referral_search_query
-        end
-        post :assign_agency
-      end
-      resources :agency_patient_referrals, only: [:create, :update] do
-        get :claim_buttons
-        collection do
-          get :review
-          get :reviewed
-          # Patient search queries
-          resources :searches, only: [:create], to: 'agency_patient_referrals#create_search_queries', as: :create_agency__patient_referral_searches
-          get 'searches/:id', to: 'agency_patient_referrals#search', as: :agency_patient_referral_search_query
-        end
-      end
-      resources :users, only: [:index] do
-        post :update, on: :collection
-        resources :agency_users, only: [:new, :create]
-      end
-      resources :roles, only: [:index, :edit, :update]
-    end
     resources :translation_keys, only: [:index, :update]
     resources :translation_text, only: [:update]
     resources :configs, only: [:index] do
@@ -978,16 +717,12 @@ Rails.application.routes.draw do
   unless Rails.env.production?
     resource :style_guide, only: [] do
       get :index
-      get :add_goal
-      get :add_team_member
       get :alerts
       get :buttons
-      get :careplan
       get :client_dashboard
       get :colors
       get :datepicker
       get :form
-      get :health_dashboard
       get :icon_font
       get :menu
       get :modals
