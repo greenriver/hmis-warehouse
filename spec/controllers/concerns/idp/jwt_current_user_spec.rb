@@ -38,6 +38,15 @@ RSpec.describe Idp::JwtCurrentUser, :jwt_only, type: :controller do
     def countdown
       render json: inactive_session_countdown_values
     end
+
+    # Reads current_user twice in one request. Mirrors lograge's append_info_to_payload asking
+    # for current_user again on the way out of the request, after the action itself is done with it.
+    def double_read
+      current_user
+      render plain: current_user&.id.to_s
+    rescue Idp::ForwardedTokenError
+      render plain: "recovered:#{current_user.inspect}"
+    end
   end
 
   before do
@@ -48,6 +57,7 @@ RSpec.describe Idp::JwtCurrentUser, :jwt_only, type: :controller do
       get 'become' => 'anonymous#become'
       get 'unbecome' => 'anonymous#unbecome'
       get 'countdown' => 'anonymous#countdown'
+      get 'double_read' => 'anonymous#double_read'
     end
     allow(controller).to receive(:idp_jwt_helper_for_request).and_return(jwt_helper)
   end
@@ -100,9 +110,34 @@ RSpec.describe Idp::JwtCurrentUser, :jwt_only, type: :controller do
     # forwarded' is what proves it goes unrefused: a raise there would fail on the raise.
   end
 
+  # idp_token_holder sets @idp_token_holder = nil before raising Idp::ForwardedTokenError,
+  # specifically so a second read within the same request doesn't re-raise or re-resolve. The
+  # real trigger is lograge's append_info_to_payload reading current_user again after the action
+  # is done with it; double_read reproduces that same second read.
+  describe 'reading current_user twice in one request' do
+    it 'does not raise a second time, and current_user resolves to nil, after a refused token' do
+      allow(jwt_helper).to receive(:invalid_reason).and_return(:bad_signature)
+      allow(jwt_helper).to receive(:invalid_reason_details).and_return(reason: :bad_signature)
+      expect(User).not_to receive(:find_or_create_from_jwt)
+
+      get :double_read
+
+      expect(response.body).to eq('recovered:nil')
+    end
+
+    it 'does not re-resolve the user on the second read after a successful token' do
+      user = instance_double(User, id: 7, active?: true)
+      expect(User).to receive(:find_or_create_from_jwt).once.and_return(user)
+
+      get :double_read
+
+      expect(response.body).to eq('7')
+    end
+  end
+
   describe '#idp_authenticated_user_from_jwt' do
     it 'resolves via find_or_create_from_jwt (the learning call), not find_from_jwt' do
-      user = double('User', id: 7, active?: true)
+      user = instance_double(User, id: 7, active?: true)
       expect(User).to receive(:find_or_create_from_jwt).with(jwt_helper).and_return(user)
       expect(User).not_to receive(:find_from_jwt)
 
@@ -112,7 +147,7 @@ RSpec.describe Idp::JwtCurrentUser, :jwt_only, type: :controller do
     end
 
     it 'sets the last_connector_id cookie from the token' do
-      user = double('User', id: 7, active?: true)
+      user = instance_double(User, id: 7, active?: true)
       allow(User).to receive(:find_or_create_from_jwt).and_return(user)
 
       get :index
@@ -125,7 +160,7 @@ RSpec.describe Idp::JwtCurrentUser, :jwt_only, type: :controller do
   # guard of its own, so its disappearance is what proves reset_session ran.
   describe 'session principal boundary (#idp_sync_session_principal!)' do
     let(:principal_key) { Idp::JwtAuthentication::SESSION_PRINCIPAL_KEY }
-    let(:user) { double('User', id: 7, active?: true) }
+    let(:user) { instance_double(User, id: 7, active?: true) }
 
     before { allow(User).to receive(:find_or_create_from_jwt).and_return(user) }
 
@@ -182,7 +217,7 @@ RSpec.describe Idp::JwtCurrentUser, :jwt_only, type: :controller do
 
     # The 403 is terminal, so it must not render on the previous user's session.
     it 'discards a previous principal session even when the new principal is deactivated' do
-      allow(User).to receive(:find_or_create_from_jwt).and_return(double('User', id: 9, active?: false))
+      allow(User).to receive(:find_or_create_from_jwt).and_return(instance_double(User, id: 9, active?: false))
       session[principal_key] = 99
       session[:scratch] = 'previous user'
 
@@ -207,7 +242,7 @@ RSpec.describe Idp::JwtCurrentUser, :jwt_only, type: :controller do
   describe '#authenticate_user!' do
     it 'sets current_user when a user is present' do
       # last_connector_id: the authenticated path also schedules the IdP read-back, which reads it.
-      user = double('User', id: 5, active?: true, last_connector_id: nil)
+      user = instance_double(User, id: 5, active?: true, last_connector_id: nil)
       allow(User).to receive(:find_or_create_from_jwt).and_return(user)
 
       get :auth
@@ -223,7 +258,7 @@ RSpec.describe Idp::JwtCurrentUser, :jwt_only, type: :controller do
     # sign-in redirect. render_template asserts the chosen template without needing render_views, so
     # the view's Translation.translate calls don't run here.
     it 'renders a terminal 403 deactivated page (not a sign-in redirect) for a deactivated user' do
-      inactive_user = double('User', id: 9, active?: false)
+      inactive_user = instance_double(User, id: 9, active?: false)
       allow(User).to receive(:find_or_create_from_jwt).and_return(inactive_user)
 
       get :auth
@@ -233,7 +268,7 @@ RSpec.describe Idp::JwtCurrentUser, :jwt_only, type: :controller do
     end
 
     it 'current_user is nil for a deactivated user' do
-      inactive_user = double('User', id: 9, active?: false)
+      inactive_user = instance_double(User, id: 9, active?: false)
       allow(User).to receive(:find_or_create_from_jwt).and_return(inactive_user)
 
       get :index
@@ -347,7 +382,7 @@ RSpec.describe Idp::JwtCurrentUser, :jwt_only, type: :controller do
     it 'ignores impersonation when the JWT principal is not the stored true_user' do
       # Leftover session: the token now logs in a different user (77) than the one who
       # started impersonating (10), so the impersonation should be ignored.
-      other_principal = double('User', id: 77, active?: true)
+      other_principal = instance_double(User, id: 77, active?: true)
       allow(User).to receive(:find_or_create_from_jwt).and_return(other_principal)
 
       get :index
@@ -400,7 +435,7 @@ RSpec.describe Idp::JwtCurrentUser, :jwt_only, type: :controller do
   end
 
   describe 'scheduling the IdP read-back (#idp_schedule_user_sync)' do
-    let(:user) { double('User', id: 7, active?: true, last_connector_id: 'keycloak', email_change_enabled?: true) }
+    let(:user) { instance_double(User, id: 7, active?: true, last_connector_id: 'keycloak', email_change_enabled?: true) }
 
     before do
       allow(User).to receive(:find_or_create_from_jwt).and_return(user)
@@ -475,7 +510,7 @@ RSpec.describe Idp::JwtCurrentUser, :jwt_only, type: :controller do
     end
 
     it 'syncs the token holder, not the account being impersonated' do
-      impersonated_user = double('User', id: 20, active?: true, last_connector_id: 'keycloak')
+      impersonated_user = instance_double(User, id: 20, active?: true, last_connector_id: 'keycloak')
       allow(user).to receive(:can_impersonate_users?).and_return(true)
       allow(impersonated_user).to receive(:impersonateable_by?).with(user).and_return(true)
       allow(User).to receive(:find_by).with(id: 7).and_return(user)
@@ -487,7 +522,7 @@ RSpec.describe Idp::JwtCurrentUser, :jwt_only, type: :controller do
   end
 
   describe '#inactive_session_countdown_values' do
-    let(:user) { double('User', id: 7, active?: true) }
+    let(:user) { instance_double(User, id: 7, active?: true) }
 
     before { allow(User).to receive(:find_or_create_from_jwt).and_return(user) }
 

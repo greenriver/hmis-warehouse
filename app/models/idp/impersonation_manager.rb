@@ -37,7 +37,7 @@ class Idp::ImpersonationManager
     return nil if session.nil?
 
     data = session[:impersonation]
-    return nil unless data
+    return nil unless data.is_a?(Hash)
 
     # The session store may come back with string keys; normalize to symbols.
     data.symbolize_keys
