@@ -50,7 +50,7 @@ module GrdaWarehouse::Hud
 
     scope :unknown_coc, -> do
       coc = arel_table[:CoCCode]
-      where(coc.eq(nil).or(Arel::Nodes::NamedFunction.new('TRIM', [coc]).eq('')))
+      where(coc.eq(nil).or(nf('TRIM', [coc]).eq('')))
     end
 
     scope :in_zip, ->(zip_code:) do

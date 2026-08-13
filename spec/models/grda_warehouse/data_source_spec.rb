@@ -361,6 +361,18 @@ RSpec.describe model, type: :model do
       # Restricted to only the projects with a visible CoC: fully concentrated, so no choice is needed.
       expect(ds.require_coc_choice?(restricted_scope)).to eq(false)
     end
+
+    it 'treats nil, empty, and whitespace-only CoC codes as a single dominance bucket' do
+      add_projects_with_coc('XX-500', 1)
+      add_projects_with_coc(nil, 1)
+      add_projects_with_coc('', 1)
+      add_projects_with_coc('   ', 1)
+      # Grouped as one "unknown" bucket: 3/4 = 75%, meeting the threshold, so no choice is needed.
+      # If nil/''/'   ' were instead counted as three separate one-project buckets, the largest
+      # bucket would be XX-500 with 1/4 = 25%, well under the threshold, and a choice would wrongly
+      # be required.
+      expect(ds.require_coc_choice?(all_projects)).to eq(false)
+    end
   end
 
   describe 'PaperTrail' do

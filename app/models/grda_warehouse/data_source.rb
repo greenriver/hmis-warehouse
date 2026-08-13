@@ -744,11 +744,17 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
   end
 
   private def dominant_coc_share(project_scope)
+    # Group nil, empty, and whitespace-only CoC codes into a single bucket, matching
+    # ProjectCoc.unknown_coc — otherwise they'd count as separate groups here despite
+    # the picker (coc_code_options) offering them as a single "Unknown CoC" option.
+    coc = GrdaWarehouse::Hud::ProjectCoc.arel_table[:CoCCode]
+    bucket = nf('NULLIF', [nf('TRIM', [coc]), ''])
+
     counts = GrdaWarehouse::Hud::ProjectCoc.
       where(data_source_id: id).
       joins(:project).
       merge(project_scope).
-      group(:CoCCode).count.values
+      group(bucket).count.values
     total = counts.sum
     return 1.0 if total.zero?
 
