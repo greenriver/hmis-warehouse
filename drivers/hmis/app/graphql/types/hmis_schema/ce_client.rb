@@ -104,7 +104,7 @@ module Types
     end
 
     def source_clients
-      load_ar_client_association(destination_client, association_name: :hmis_source_clients)
+      load_ar_association(destination_client, :hmis_source_clients)
     end
   end
 end
