@@ -302,9 +302,9 @@ RSpec.describe 'HudSpmReport CellsController Integration', type: :request do
     end
 
     it 'shows the HMIS ProjectID without a link when the user cannot view projects' do
-      # Stubbed on this instance because Warden hands the view the same User object.
-      allow(user).to receive(:can_view_projects?).and_return(false)
-      allow(user).to receive(:can_edit_projects?).and_return(false)
+      # The controller loads current_user fresh from the database each request; it is never this
+      # `user` object. Revoke it on the persisted role instead
+      user.legacy_roles.each { |role| role.update!(can_view_projects: false, can_edit_projects: false) }
 
       get hud_reports_spm_measure_cell_path(
         spm_id: @report.id,
