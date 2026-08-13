@@ -43,6 +43,20 @@ RSpec.describe CohortColumns::HealthPrioritized, type: :model do
     end
   end
 
+  describe '#display_read_only' do
+    it 'escapes stored markup instead of rendering it verbatim into the html cell' do
+      client.update_column(:health_prioritized, '<script>alert(1)</script>')
+      html = column.display_read_only(nil)
+      expect(html).not_to include('<script>')
+      expect(html).to include('&lt;script&gt;')
+    end
+
+    it 'is html_safe' do
+      client.update_column(:health_prioritized, 'Yes')
+      expect(column.display_read_only(nil)).to be_html_safe
+    end
+  end
+
   describe '#analytics_value' do
     it 'returns the plain stored value rather than the escaped html cell markup' do
       client.update_column(:health_prioritized, 'Yes')

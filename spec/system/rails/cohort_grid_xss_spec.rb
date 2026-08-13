@@ -31,7 +31,13 @@ RSpec.feature 'Cohort grid XSS resistance', type: :rails_system do
   let(:all_cohorts_collection) { Collection.system_collection(:cohorts) }
 
   before do
-    allow_any_instance_of(GrdaWarehouse::Hud::Client).to receive(:consent_form_valid?).and_return(true)
+    # The system-test request loads its own Client instance in the controller, distinct
+    # from the `client` object created above, so this can't be a scoped `allow(client)`
+    # stub — but it's narrowed to this fixture's id so it doesn't fake consent for any
+    # other Client instance that happens to load during the request.
+    allow_any_instance_of(GrdaWarehouse::Hud::Client).to receive(:consent_form_valid?) do |instance|
+      instance.id == client.id
+    end
 
     Collection.maintain_system_groups
     setup_access_control(user, cohort_role, all_cohorts_collection)

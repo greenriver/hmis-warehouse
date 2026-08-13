@@ -43,7 +43,7 @@ module ClientLocationHistory
       [
         label_attributes.include?(:name) ? name_for_label(user) : nil,
         label_attributes.include?(:seen_on) ? "Seen on: #{located_at || located_on}" : nil,
-        label_attributes.include?(:collected_by) ? "by #{collected_by}" : nil,
+        label_attributes.include?(:collected_by) ? "by #{ERB::Util.html_escape(collected_by)}" : nil,
       ].compact
     end
 
