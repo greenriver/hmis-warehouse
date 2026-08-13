@@ -86,10 +86,7 @@ RSpec.describe HudApr::DocumentExports::HudAprExport, type: :model do
   describe 'the rendered PDF HTML' do
     let(:report) { create(:hud_reports_report_instance, user: user, report_name: report_name, options: {}) }
     let(:rendered_html) do
-      ActionController::Renderer::RACK_KEY_TRANSLATION['warden'] ||= 'warden'
-      renderer = HudApr::AprsController.renderer.new(
-        'warden' => PdfGenerator.warden_proxy(user),
-      )
+      renderer = HudApr::AprsController.renderer.new(WardenProxyFactory.renderer_env(user))
       renderer.render(
         'hud_reports/download',
         layout: 'layouts/hud_report_export',

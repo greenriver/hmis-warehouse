@@ -83,8 +83,6 @@ RSpec.describe 'Content Security Policy', type: :request do
   end
 
   describe 'inline script nonces' do
-    before { get new_user_session_path }
-
     it 'renders inline <script> tags whose nonce matches the CSP header nonce' do
       header_nonce = response.headers['Content-Security-Policy'][/nonce-([A-Za-z0-9+\/=]+)/, 1]
       script_nonces = Capybara.string(response.body).all('script[nonce]', visible: :all).map { |el| el['nonce'] }

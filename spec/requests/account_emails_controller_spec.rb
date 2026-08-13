@@ -8,7 +8,9 @@
 
 require 'rails_helper'
 
-RSpec.describe AccountEmailsController, type: :request do
+# Devise-only: the jwt arm never writes email locally — the IdP owns the change, and
+# Idp::AccountEmailsController serves this path instead (spec/requests/idp/).
+RSpec.describe AccountEmailsController, :devise_only, type: :request do
   # TODO: - get auth working in tests
   let(:user) { create :user }
   let(:email)  { ActionMailer::Base.deliveries.last }

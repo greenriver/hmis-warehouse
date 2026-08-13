@@ -9,6 +9,6 @@ RUN curl -fsSL -o /tmp/keycloak-bcrypt-1.7.0.jar \
 
 # Stage 2: Final Keycloak image with providers baked in.
 # Version is pinned here — update this line to upgrade Keycloak.
-FROM quay.io/keycloak/keycloak:26.5.4
+FROM quay.io/keycloak/keycloak:26.7.0
 
 COPY --from=downloader /tmp/keycloak-bcrypt-1.7.0.jar /opt/keycloak/providers/keycloak-bcrypt-1.7.0.jar

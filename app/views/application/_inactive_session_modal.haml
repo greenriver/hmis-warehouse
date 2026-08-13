@@ -3,7 +3,7 @@
     controller: "inactive-session-modal",
     inactive_session_modal: {
       initial_user_id_value: current_user&.id.to_s,
-      session_lifetime_secs_value: Devise.timeout_in.in_seconds,
+      **inactive_session_countdown_values,
     },
     reflex_permanent: true
   }

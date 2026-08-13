@@ -7,8 +7,11 @@
 # frozen_string_literal: true
 
 Rails.application.routes.draw do
-  use_doorkeeper
-  get 'oauth/user-data', to: 'oauth#user'
+  # Doorkeeper's /oauth routes are Devise-path only; under JWT the IdP owns OAuth.
+  if AuthMethod.devise?
+    use_doorkeeper
+    get 'oauth/user-data', to: 'oauth#user'
+  end
 
   # For details on the DSL available within this file, see http://guides.rubyonrails.org/routing.html
   match '/404', to: 'errors#not_found', via: :all
@@ -20,18 +23,30 @@ Rails.application.routes.draw do
       request.xhr?
     end
   end
-  devise_for :users, controllers: {
-    invitations: 'users/invitations',
-    sessions: 'users/sessions',
-  }
+  # AUTH_METHOD seam: Devise mounts its session/invitation routes; under JWT the same route
+  # names are served by flat routes pointing at the oauth2-proxy-aware sessions controller
+  if AuthMethod.devise?
+    devise_for :users, controllers: {
+      invitations: 'users/invitations',
+      sessions: 'users/sessions',
+    }
 
-  devise_scope :user do
-    match 'session_keepalive' => 'users/sessions#keepalive', via: :post
-    match 'users/invitations/confirm', via: :post
-    match 'logout_talentlms' => 'users/sessions#destroy', via: :get
-    if ENV['OKTA_DOMAIN'].present?
-      get '/users/auth/okta/callback' => 'users/omniauth_callbacks#okta' if ENV['OKTA_CLIENT_ID']
+    devise_scope :user do
+      match 'session_keepalive' => 'users/sessions#keepalive', via: :post
+      match 'users/invitations/confirm', via: :post
+      match 'logout_talentlms' => 'users/sessions#destroy', via: :get
+      if ENV['OKTA_DOMAIN'].present?
+        get '/users/auth/okta/callback' => 'users/omniauth_callbacks#okta' if ENV['OKTA_CLIENT_ID']
+      end
     end
+  else
+    # Same route names Devise, served by Idp::SessionsController
+    get    'users/sign_in',     to: 'idp/sessions#new',       as: :new_user_session
+    post   'users/sign_in',     to: 'idp/sessions#create',    as: :user_session
+    delete 'users/sign_out',    to: 'idp/sessions#destroy',   as: :destroy_user_session
+    match  'session_keepalive', to: 'idp/sessions#keepalive', as: :session_keepalive, via: [:get, :post]
+    # Not #destroy — cross-site GET with no CSRF token, so it renders a logout form
+    get    'logout_talentlms',  to: 'idp/sessions#logout_talentlms', as: :logout_talentlms
   end
 
   namespace :users do
@@ -552,44 +567,85 @@ Rails.application.routes.draw do
       put :unfavorite, on: :member
     end
     resources :clients, only: [:show]
+    get :ping, to: 'pings#show'
+
+    # Superset (the M2M caller, not oauth2-proxy) presents a bearer JWT directly; the JWT-side
+    # mirror of the Doorkeeper-gated 'oauth/user-data' route declared under AuthMethod.devise? at
+    # the top of this file.
+    get 'superset/user_roles', to: 'superset#user_roles' if AuthMethod.jwt?
   end
 
   namespace :admin do
-    # resolves route clash w/ devise
-    resources :users, except: [:show, :new, :create] do
-      resource :resend_invitation, only: :create
-      resource :recreate_invitation, only: :create
-      resource :audit, only: :show
-      resource :edit_history, only: :show
-      resource :locations, only: :show
-      patch :reactivate, on: :member
-      collection do
-        # User search queries
-        resources :searches, only: [:create], controller: 'users/search_queries', as: :user_search_queries
-        get '/searches/:id', to: 'users#search', as: 'user_search_query'
-        get :load_select_options
-        post :stop_impersonating
+    # Auth-method seam: one boot-time gate selects each arm's controllers. Only one block is
+    # ever valid so there is no route-name conflict and the helper names are constant
+    if AuthMethod.jwt?
+      # JWT arm: IdP-backed user management. Devise-only routes are omitted; new/create are
+      # supported here because the IdP (e.g. Keycloak) can provision the remote account.
+      resources :users, except: [:show], controller: 'idp/users' do
+        resource :audit, only: :show
+        resource :edit_history, only: :show
+        collection do
+          # Storing a query is auth-agnostic, so both arms share Admin::Users::SearchQueriesController.
+          resources :searches, only: [:create], controller: 'users/search_queries', as: :user_search_queries
+          get '/searches/:id', to: 'idp/users#search', as: 'user_search_query'
+          get :load_select_options
+          post :stop_impersonating
+        end
+        member do
+          post :confirm
+          post :impersonate
+          patch :expire_password
+        end
+        resources :threshold_notification_logs, only: [:index, :show]
       end
-      member do
-        post :unlock
-        post :un_expire
-        post :confirm
-        post :impersonate
-        patch :expire_password
+
+      resources :inactive_users, except: [:show, :new, :create], controller: 'idp/inactive_users' do
+        patch :reactivate, on: :member
+        collection do
+          resources :searches, only: [:create], controller: 'inactive_users/search_queries', as: :inactive_user_search_queries
+          # Search comes from the shared Admin::Concerns::InactiveUserManagementBehavior and ends in
+          # `render :index`, which resolves against whichever controller handled the request. So this route
+          # names the arm's controller: the `controller:` option above does not reach a `to:` string.
+          get '/searches/:id', to: 'idp/inactive_users#search', as: 'inactive_user_search_query'
+        end
       end
-      resources :threshold_notification_logs, only: [:index, :show]
+    else
+      # Devise arm: existing local-account management
+      # resolves route clash w/ devise
+      resources :users, except: [:show, :new, :create] do
+        resource :resend_invitation, only: :create
+        resource :recreate_invitation, only: :create
+        resource :audit, only: :show
+        resource :edit_history, only: :show
+        resource :locations, only: :show
+        collection do
+          # User search queries
+          resources :searches, only: [:create], controller: 'users/search_queries', as: :user_search_queries
+          get '/searches/:id', to: 'users#search', as: 'user_search_query'
+          get :load_select_options
+          post :stop_impersonating
+        end
+        member do
+          post :unlock
+          post :un_expire
+          post :confirm
+          post :impersonate
+          patch :expire_password
+        end
+        resources :threshold_notification_logs, only: [:index, :show]
+      end
+
+      resources :inactive_users, except: [:show, :new, :create] do
+        patch :reactivate, on: :member
+        collection do
+          # Inactive user search queries
+          resources :searches, only: [:create], controller: 'inactive_users/search_queries', as: :inactive_user_search_queries
+          get '/searches/:id', to: 'inactive_users#search', as: 'inactive_user_search_query'
+        end
+      end
     end
 
     resources :inbound_api_configurations, only: [:index, :new, :create, :destroy]
-
-    resources :inactive_users, except: [:show, :new, :create] do
-      patch :reactivate, on: :member
-      collection do
-        # Inactive user search queries
-        resources :searches, only: [:create], controller: 'inactive_users/search_queries', as: :inactive_user_search_queries
-        get '/searches/:id', to: 'inactive_users#search', as: 'inactive_user_search_query'
-      end
-    end
     resources :account_requests, only: [:index, :edit, :update, :destroy] do
       post :confirm
     end
@@ -692,15 +748,30 @@ Rails.application.routes.draw do
     end
   end
 
-  resource :account, only: [:edit, :update] do
-    get :locations, on: :member
+  # Auth-method seam: the account self-service surface forks by boot-time arm. Under JWT the IdP
+  # owns credentials (password/2FA) and login history, so those routes are omitted entirely and
+  # the arm's own controllers/views render profile + email. account_downloads forks too — only so
+  # its shared tabs partial resolves to the JWT variant that drops the IdP-owned tabs.
+  if AuthMethod.jwt?
+    resource :account, only: [:edit, :update], controller: 'idp/accounts'
+    # No :update — the JWT arm never writes email locally; the IdP owns the change (see
+    # Idp::AccountEmailsController). begin_change hands the browser off to the IdP and writes nothing
+    # about the address.
+    resource :account_email, only: [:edit], controller: 'idp/account_emails' do
+      post :begin_change
+    end
+    resources :account_downloads, only: [:index], controller: 'idp/account_downloads'
+  else
+    resource :account, only: [:edit, :update] do
+      get :locations, on: :member
+    end
+    resource :account_email, only: [:edit, :update]
+    resource :account_password, only: [:edit, :update]
+    resource :account_two_factor, only: [:show, :edit, :update, :destroy] do
+      get :remove_device
+    end
+    resources :account_downloads, only: [:index]
   end
-  resource :account_email, only: [:edit, :update]
-  resource :account_password, only: [:edit, :update]
-  resource :account_two_factor, only: [:show, :edit, :update, :destroy] do
-    get :remove_device
-  end
-  resources :account_downloads, only: [:index]
 
   resources :document_exports, only: [:show, :create] do
     get :download, on: :member

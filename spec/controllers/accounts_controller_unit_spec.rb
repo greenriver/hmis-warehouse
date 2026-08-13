@@ -8,7 +8,9 @@
 
 require 'rails_helper'
 
-RSpec.describe AccountsController, type: :controller do
+# AccountsController#update calls bypass_sign_in, a Devise controller helper absent under the
+# jwt arm (which updates accounts through Idp::AccountsController).
+RSpec.describe AccountsController, :devise_only, type: :controller do
   let(:user) { create(:user, first_name: 'Original', last_name: 'User', email_schedule: 'daily', phone: '1234567890') }
   let(:controller_instance) { described_class.new }
   let(:flash_hash) { {} }
