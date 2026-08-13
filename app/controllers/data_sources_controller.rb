@@ -150,8 +150,6 @@ class DataSourcesController < ApplicationController
   end
 
   private def load_overrides
-    return unless RailsDrivers.loaded.include?(:hmis_csv_importer)
-
     @overrides = HmisCsvImporter::ImportOverride.
       where(data_source: @data_source).
       sorted
