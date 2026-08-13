@@ -30,7 +30,7 @@ The supported stages are:
 - `5`: annual
 - `6`: post-exit
 
-For data entered in Open Path, submitting an assessment form creates the `CustomAssessment`, its `FormProcessor`, and the applicable HUD records. For imported HUD CSV data, `Hmis::MigrateAssessmentsJob` reconstructs the `CustomAssessment` and `FormProcessor` by grouping related records.
+For data entered into Open Path HMIS, submitting an assessment form creates the `CustomAssessment`, its `FormProcessor`, and the applicable HUD records. For HUD CSV data imported into an OP HMIS data source, `Hmis::MigrateAssessmentsJob` reconstructs the `CustomAssessment` and `FormProcessor` by grouping related records.
 
 These records are called "HUD assessments" in parts of the codebase, but they are not rows in HUD's `Assessment.csv`. That file is specifically for Coordinated Entry assessments (see below).
 

@@ -12,7 +12,7 @@ The `HmisStructure::Shared` concern adds snake_case aliases for every CSV column
 * `Enrollment.enrollment_id` is the HUD `EnrollmentID` column on the Enrollment table.
   - As noted above, we alias HMIS field names to snake-case, so you can either use `EnrollmentID` or `enrollment_id`; snake-case is preferred.
   - This ID is a String (32 char max) that is defined by the HMIS system that generated the data -- either our OP HMIS, or data imported to our warehouse from another HMIS.
-  - For the OP HMIS, we use uuids. Other HMIS's use other conventions.
+  - When the OP HMIS generates new data, it generates HUD Keys as UUIDs. Data imported into an OP HMIS (or into the warehouse from another HMIS) may use other conventions.
   - This value is NOT guaranteed to be unique in the Enrollment Table. (A warehouse installation could import from multiple HMISes that don't talk to one another, so there is no guarantee of uniqueness across data sources.)
   - This value _should_ be unique in combination with the `data_source_id`. (However, there is no actual constraint enforcing this in our database, because we need to be able to import faulty data from other data sources.)
 * The above comments apply to ProjectID, PersonalID, OrganizationID, and HouseholdID.
