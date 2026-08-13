@@ -25,6 +25,9 @@ application.register("chart-loader", ChartLoaderController)
 import FormsController from "./forms_controller.js"
 application.register("forms", FormsController)
 
+import UnmergeFormController from "./unmerge_form_controller.js"
+application.register("unmerge-form", UnmergeFormController)
+
 import AjaxModalContentController from "./ajax_modal_content_controller.js"
 application.register("ajax-modal-content", AjaxModalContentController)
 
