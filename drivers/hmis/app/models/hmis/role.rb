@@ -351,6 +351,7 @@ class Hmis::Role < ::ApplicationRecord
       can_view_client_name: {
         description: 'Access to view client names',
         administrative: false,
+        requirements: [:can_view_clients],
         access: [:viewable],
         category: 'Client Access',
         sub_category: 'Sensitive Client Data',
@@ -358,6 +359,7 @@ class Hmis::Role < ::ApplicationRecord
       can_view_client_contact_info: {
         description: 'Access to view client contact info: addresses, phone numbers, emails.',
         administrative: false,
+        requirements: [:can_view_clients],
         access: [:viewable],
         category: 'Client Access',
         sub_category: 'Sensitive Client Data',
@@ -365,12 +367,14 @@ class Hmis::Role < ::ApplicationRecord
       can_view_client_photo: {
         description: 'Access to view client photo.',
         administrative: false,
+        requirements: [:can_view_clients],
         access: [:viewable],
         category: 'Client Access',
         sub_category: 'Sensitive Client Data',
       },
       can_view_full_ssn: {
         administrative: false,
+        requirements: [:can_view_clients],
         access: [:viewable],
         category: 'Client Access',
         sub_category: 'Sensitive Client Data',
@@ -378,6 +382,7 @@ class Hmis::Role < ::ApplicationRecord
       can_view_partial_ssn: {
         description: 'Access to view last 4 digits of SSN',
         administrative: false,
+        requirements: [:can_view_clients],
         access: [:viewable],
         category: 'Client Access',
         sub_category: 'Sensitive Client Data',
@@ -385,6 +390,7 @@ class Hmis::Role < ::ApplicationRecord
       can_view_dob: {
         description: 'Access to view Date of Birth. (Note: client\'s age is always visible, even if this permission is not checked).',
         administrative: false,
+        requirements: [:can_view_clients],
         access: [:viewable],
         category: 'Client Access',
         sub_category: 'Sensitive Client Data',
@@ -553,6 +559,7 @@ class Hmis::Role < ::ApplicationRecord
       },
       can_view_client_alerts: {
         description: 'Access to view Client Alerts',
+        requirements: [:can_view_clients],
         administrative: false,
         access: [:viewable],
         category: 'Client Access',

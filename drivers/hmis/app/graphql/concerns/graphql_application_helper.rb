@@ -41,7 +41,8 @@ module GraphqlApplicationHelper
   def data_source_client_preloader
     # memoize into context; data source relies on stable object identity
     context[:data_source_client_preloader] ||= ->(clients) {
-      client_ids = clients.compact.map(&:id)
+      # flatten because a has_many association loads a collection per record (e.g. loading all :source_clients on destination client)
+      client_ids = clients.flatten.compact.map(&:id)
       current_user.policy_context.preload_client_dependencies(client_ids)
     }
   end
@@ -95,10 +96,11 @@ module GraphqlApplicationHelper
   # on any of the destination client's HMIS source clients (for the current HMIS data source).
   # If no viewable name is found, it returns nil.
   def load_destination_client_name(destination_client:)
-    source_clients = load_ar_association(destination_client, :hmis_source_clients)
+    source_clients = load_ar_client_association(destination_client, association_name: :hmis_source_clients)
 
     source_clients.sort_by(&:id).find do |client|
-      current_permission?(permission: :can_view_clients, entity: client) && current_permission?(permission: :can_view_client_name, entity: client)
+      policy = policy_for(client, policy_type: :hmis_client)
+      policy.can_view_name?
     end&.brief_name
   end
 

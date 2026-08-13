@@ -156,6 +156,9 @@ module Types
 
       # Instance policy; resource is the loaded record
       bool_field(:can_view_client_name) { policy.can_view_name? }
+      bool_field(:can_view_dob) { policy.can_view_dob? }
+      bool_field(:can_view_full_ssn) { policy.can_view_full_ssn? }
+      bool_field(:can_view_partial_ssn) { policy.can_view_partial_ssn? }
       bool_field(:can_view_enrollment_details) { policy.can_view_some_enrollment_details? }
 
       # Global policy; resource is the class
@@ -165,12 +168,9 @@ module Types
       bool_field(:can_view_referrals)     { ce_referral_policy.can_view_referrals? }
       bool_field(:can_view_own_referrals) { ce_referral_policy.can_view_own_referrals? }
 
-      can :view_partial_ssn
-      can :view_full_ssn
-      can :view_client_photo
-      can :view_dob
-      can :delete_clients, field_name: :can_delete_client
-      can :edit_clients, field_name: :can_edit_client
+      bool_field(:can_view_client_photo) { policy.can_view_photo? }
+      bool_field(:can_delete_client) { policy.can_delete? }
+      bool_field(:can_edit_client) { policy.can_edit? }
 
       bool_field(:can_index_files) { policy.can_index_files? }
       bool_field(:can_upload_client_files) { policy.can_create_file? }
@@ -180,12 +180,12 @@ module Types
       can :manage_own_client_files, deprecation_reason: 'Resolve canManage on individual file access field instead'
       composite_perm :can_view_any_files, permissions: [:manage_own_client_files, :view_any_nonconfidential_client_files, :view_any_confidential_client_files], mode: :any, deprecation_reason: 'Use canIndexFiles'
 
-      can :audit_clients
-      can :manage_scan_cards
-      can :view_client_alerts
-      can :manage_client_alerts
+      bool_field(:can_audit_clients) { policy.can_audit? }
+      bool_field(:can_manage_scan_cards) { policy.can_manage_scan_cards? }
+      bool_field(:can_view_client_alerts) { policy.can_view_alerts? }
+      bool_field(:can_manage_client_alerts) { policy.can_manage_alerts? }
       root_can :can_view_client_eligible_opportunities
-      can :print_client_case_notes
+      bool_field(:can_print_client_case_notes) { policy.can_print_case_notes? }
     end
 
     def external_ids
@@ -246,7 +246,7 @@ module Types
     end
 
     def image # Don't resolve in batch
-      return unless current_permission?(permission: :can_view_client_photo, entity: object)
+      return unless policy.can_view_photo?
 
       file = object.client_files.client_photos.newest_first.first&.client_file
       file&.download ? file : nil
@@ -264,38 +264,38 @@ module Types
     end
 
     def ssn
-      if current_permission?(permission: :can_view_full_ssn, entity: object)
+      if policy.can_view_full_ssn?
         object.ssn
-      elsif current_permission?(permission: :can_view_partial_ssn, entity: object)
+      elsif policy.can_view_partial_ssn?
         object&.ssn&.sub(/^.*?(\d{4})$/, 'XXXXX\1')
       end
     end
 
     def dob
-      object.dob if current_permission?(permission: :can_view_dob, entity: object)
+      object.dob if policy.can_view_dob?
     end
 
     def first_name
-      return object.masked_name unless can_view_name
+      return object.masked_name unless policy.can_view_name?
 
       object.first_name
     end
 
     def middle_name
-      object.middle_name if can_view_name
+      object.middle_name if policy.can_view_name?
     end
 
     def last_name
-      object.last_name if can_view_name
+      object.last_name if policy.can_view_name?
     end
 
     def name_suffix
-      object.name_suffix if can_view_name
+      object.name_suffix if policy.can_view_name?
     end
 
     def names
       # initialize a dummy CustomClientName with masked name
-      return [object.names.new(first: object.masked_name)] unless can_view_name
+      return [object.names.new(first: object.masked_name)] unless policy.can_view_name?
 
       names = load_ar_association(object, :names)
       return names unless names.empty?
@@ -304,43 +304,39 @@ module Types
       [object.build_primary_custom_client_name]
     end
 
-    private def can_view_name
-      current_permission?(permission: :can_view_client_name, entity: object)
-    end
-
     def contact_points
-      return [] unless current_permission?(permission: :can_view_client_contact_info, entity: object)
+      return [] unless policy.can_view_contact_info?
 
       load_ar_association(object, :contact_points)
     end
 
     def phone_numbers
-      return [] unless current_permission?(permission: :can_view_client_contact_info, entity: object)
+      return [] unless policy.can_view_contact_info?
 
       load_ar_association(object, :contact_points).filter { |r| r.system == 'phone' }
     end
 
     def email_addresses
-      return [] unless current_permission?(permission: :can_view_client_contact_info, entity: object)
+      return [] unless policy.can_view_contact_info?
 
       load_ar_association(object, :contact_points).filter { |r| r.system == 'email' }
     end
 
     def addresses
-      return [] unless current_permission?(permission: :can_view_client_contact_info, entity: object)
+      return [] unless policy.can_view_contact_info?
 
       load_ar_association(object, :addresses)
     end
 
     def alerts
-      return [] unless current_permission?(permission: :can_view_client_alerts, entity: object)
+      return [] unless policy.can_view_alerts?
 
       load_ar_association(object, :active_alerts).sort_by(&:created_at).reverse
     end
 
     # not optimized for batch queries, causes n+1 queries
     def hud_chronic
-      return unless current_permission?(permission: :can_view_hud_chronic_status, entity: object)
+      return unless policy.can_view_hud_chronic_status?
 
       # We are intentionally not checking enrollment visibility. The can_view_hud_chronic_status
       # permission grants visibility into HUD Chronic status across all the client's enrollments
@@ -420,6 +416,10 @@ module Types
 
     def ce_referrals(**args)
       resolve_ce_referrals(object.ce_referrals, **args)
+    end
+
+    private def policy
+      @policy ||= policy_for(object, policy_type: :hmis_client)
     end
   end
 end

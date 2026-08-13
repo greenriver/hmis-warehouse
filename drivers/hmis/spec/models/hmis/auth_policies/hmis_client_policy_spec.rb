@@ -203,6 +203,57 @@ RSpec.describe Hmis::AuthPolicies::HmisClientPolicy, type: :model do
       end
     end
 
+    describe 'PII predicates' do
+      let(:pii_permissions) { [:can_view_client_name, :can_view_dob, :can_view_full_ssn, :can_view_partial_ssn] }
+
+      context 'when user has the PII permissions at an enrolled project' do
+        let!(:access_control) { create_access_control(user, project, with_permission: [:can_view_clients, *pii_permissions]) }
+
+        it 'grants each PII permission' do
+          expect(policy.can_view_name?).to be true
+          expect(policy.can_view_dob?).to be true
+          expect(policy.can_view_full_ssn?).to be true
+          expect(policy.can_view_partial_ssn?).to be true
+        end
+      end
+
+      context 'when user has the PII permissions only at a project the client is not enrolled in' do
+        let!(:other_project) { create(:hmis_hud_project, organization: organization, data_source: data_source) }
+        let!(:access_control) { create_access_control(user, other_project, with_permission: [:can_view_clients, *pii_permissions]) }
+
+        it 'denies each PII permission' do
+          expect(policy.can_view_name?).to be false
+          expect(policy.can_view_dob?).to be false
+          expect(policy.can_view_full_ssn?).to be false
+          expect(policy.can_view_partial_ssn?).to be false
+        end
+      end
+
+      context 'when user can view the client but lacks the PII permissions' do
+        let!(:access_control) { create_access_control(user, project, with_permission: [:can_view_clients]) }
+
+        it 'denies each PII permission' do
+          expect(policy.can_view?).to be true
+          expect(policy.can_view_name?).to be false
+          expect(policy.can_view_dob?).to be false
+          expect(policy.can_view_full_ssn?).to be false
+          expect(policy.can_view_partial_ssn?).to be false
+        end
+      end
+
+      context 'when user has the PII permissions but lacks can_view_clients' do
+        let!(:access_control) { create_access_control(user, project, with_permission: [*pii_permissions]) }
+
+        it 'denies each PII permission' do
+          expect(policy.can_view?).to be false
+          expect(policy.can_view_name?).to be false
+          expect(policy.can_view_dob?).to be false
+          expect(policy.can_view_full_ssn?).to be false
+          expect(policy.can_view_partial_ssn?).to be false
+        end
+      end
+    end
+
     describe '#can_view_some_enrollment_details?' do
       context 'when user can view enrollment details at an enrolled project' do
         let!(:access_control) do
@@ -303,7 +354,7 @@ RSpec.describe Hmis::AuthPolicies::HmisClientPolicy, type: :model do
       end
 
       context 'with can_view_dob permission' do
-        let!(:access_control) { create_access_control(user, project, with_permission: [:can_view_dob]) }
+        let!(:access_control) { create_access_control(user, project, with_permission: [:can_view_clients, :can_view_dob]) }
 
         it 'grants can_view_dob?' do
           expect(policy.can_view_dob?).to be true
@@ -317,7 +368,7 @@ RSpec.describe Hmis::AuthPolicies::HmisClientPolicy, type: :model do
       end
 
       context 'with can_view_client_alerts permission' do
-        let!(:access_control) { create_access_control(user, project, with_permission: [:can_view_client_alerts]) }
+        let!(:access_control) { create_access_control(user, project, with_permission: [:can_view_clients, :can_view_client_alerts]) }
 
         it 'grants can_view_client_alerts?' do
           expect(policy.can_view_client_alerts?).to be true

@@ -27,8 +27,7 @@ module Types
     end
 
     def client_name
-      client = load_ar_client_association(object)
-      if can_view_client && current_permission?(permission: :can_view_client_name, entity: client)
+      if policy.can_view_name?
         client.brief_name
       else
         client.masked_name
@@ -36,13 +35,13 @@ module Types
     end
 
     def access
-      { can_view_clients: can_view_client }
+      { can_view_clients: policy.can_view? }
     end
 
     private
 
-    def can_view_client
-      current_permission?(permission: :can_view_clients, entity: client)
+    def policy
+      @policy ||= policy_for(client, policy_type: :hmis_client)
     end
 
     def client
