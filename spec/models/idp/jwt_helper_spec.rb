@@ -264,6 +264,72 @@ RSpec.describe Idp::JwtHelper, :jwt_only do
     end
   end
 
+  # These three class methods are the only auth-gate this class exposes to Idp::JwtApiController
+  # and ApplicationCable::Connection. Elsewhere in the suite (e.g. warehouse_jwt_wiring_spec.rb)
+  # Idp::JwtHelper itself is stubbed away, so nothing else runs a real token through
+  # User.find_from_jwt for these three entry points — these do, end to end.
+  describe '.authenticated?' do
+    it 'is true for a token that verifies' do
+      expect(described_class.authenticated?(access_token)).to be true
+    end
+
+    it 'is false for a token that fails verification' do
+      bad_signature_token = JWT.encode(payload, OpenSSL::PKey::RSA.generate(2048), 'RS256', { kid: kid })
+
+      expect(described_class.authenticated?(bad_signature_token)).to be false
+    end
+
+    it 'is false when there is no token' do
+      expect(described_class.authenticated?(nil)).to be false
+    end
+  end
+
+  describe '.user_id_from_token' do
+    it 'is nil when there is no token' do
+      expect(described_class.user_id_from_token(nil)).to be_nil
+    end
+
+    it 'is nil for a token that fails verification' do
+      bad_signature_token = JWT.encode(payload, OpenSSL::PKey::RSA.generate(2048), 'RS256', { kid: kid })
+
+      expect(described_class.user_id_from_token(bad_signature_token)).to be_nil
+    end
+
+    it 'is nil when no user matches the resolved identity' do
+      expect(described_class.user_id_from_token(access_token)).to be_nil
+    end
+
+    it 'is the id of the user the token resolves to' do
+      user = create(:user, email: 'test@example.com')
+
+      expect(described_class.user_id_from_token(access_token)).to eq(user.id)
+    end
+  end
+
+  describe '.active_user_from_token' do
+    it 'is nil for a token that fails verification' do
+      bad_signature_token = JWT.encode(payload, OpenSSL::PKey::RSA.generate(2048), 'RS256', { kid: kid })
+
+      expect(described_class.active_user_from_token(bad_signature_token)).to be_nil
+    end
+
+    it 'is nil when no user matches the resolved identity' do
+      expect(described_class.active_user_from_token(access_token)).to be_nil
+    end
+
+    it 'is the resolved user when active' do
+      user = create(:user, email: 'test@example.com', active: true)
+
+      expect(described_class.active_user_from_token(access_token)).to eq(user)
+    end
+
+    it 'is nil when the resolved user is deactivated' do
+      create(:user, email: 'test@example.com', active: false)
+
+      expect(described_class.active_user_from_token(access_token)).to be_nil
+    end
+  end
+
   describe '.assert_boot_config!' do
     before do
       allow(ENV).to receive(:fetch).with('IDP_AUD', '').and_return('test_aud')

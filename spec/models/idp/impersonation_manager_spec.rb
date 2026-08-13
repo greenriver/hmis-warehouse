@@ -69,6 +69,14 @@ RSpec.describe Idp::ImpersonationManager do
     it 'returns nil when session is nil' do
       expect(described_class.new(nil).get).to be_nil
     end
+
+    # A stale or corrupted session value could hold anything under :impersonation. Without the
+    # is_a?(Hash) guard, symbolize_keys raises NoMethodError instead of degrading to nil.
+    it 'returns nil rather than raising when the stored value is not a Hash' do
+      session = fake_session(impersonation: 'not-a-hash')
+
+      expect(described_class.new(session).get).to be_nil
+    end
   end
 
   describe 'store/get round-trip (the JWT cross-request path)' do

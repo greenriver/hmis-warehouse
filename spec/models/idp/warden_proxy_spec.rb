@@ -201,5 +201,21 @@ RSpec.describe Idp::WardenProxy do
     it 'responds to #clear_strategies_cache! without raising' do
       expect { proxy.clear_strategies_cache! }.not_to raise_error
     end
+
+    # Devise's bypass_sign_in writes straight to the session serializer, skipping #set_user.
+    # This must swallow store/delete and answer fetch with nil rather than touching a real
+    # Warden session store, which doesn't exist under JWT.
+    it 'returns a NullSessionSerializer whose store/delete no-op and whose fetch answers nil' do
+      serializer = proxy.session_serializer
+
+      expect(serializer).to be_a(described_class::NullSessionSerializer)
+      expect { serializer.store(:user, user) }.not_to raise_error
+      expect { serializer.delete(:user, user) }.not_to raise_error
+      expect(serializer.fetch(:user)).to be_nil
+    end
+
+    it 'memoizes the session serializer for the life of the proxy' do
+      expect(proxy.session_serializer).to equal(proxy.session_serializer)
+    end
   end
 end
