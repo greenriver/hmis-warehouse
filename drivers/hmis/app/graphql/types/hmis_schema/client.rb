@@ -159,27 +159,24 @@ module Types
       bool_field(:can_view_full_ssn) { policy.can_view_full_ssn? }
       bool_field(:can_view_partial_ssn) { policy.can_view_partial_ssn? }
       bool_field(:can_view_enrollment_details) { policy.can_view_some_enrollment_details? }
+      bool_field(:can_view_client_photo) { policy.can_view_photo? }
+      bool_field(:can_view_client_alerts) { policy.can_view_alerts? }
+      bool_field(:can_delete_client) { policy.can_delete? }
+      bool_field(:can_edit_client) { policy.can_edit? }
+      bool_field(:can_index_files) { policy.can_index_files? }
+      bool_field(:can_upload_client_files) { policy.can_create_file? }
+      bool_field(:can_audit_clients) { policy.can_audit? }
+      bool_field(:can_manage_scan_cards) { policy.can_manage_scan_cards? }
+      bool_field(:can_manage_client_alerts) { policy.can_manage_alerts? }
+      bool_field(:can_print_client_case_notes) { policy.can_print_case_notes? }
 
       # Global policy; resource is the class
       bool_field(:can_merge_clients) { global_policy.can_merge_clients? }
+      bool_field(:can_view_client_eligible_opportunities) { global_policy.can_view_eligible_opportunities_lists? }
 
       # Different policy type; these permissions defer to the global CeReferralPolicy
       bool_field(:can_view_referrals)     { ce_referral_policy.can_view_referrals? }
       bool_field(:can_view_own_referrals) { ce_referral_policy.can_view_own_referrals? }
-
-      bool_field(:can_view_client_photo) { policy.can_view_photo? }
-      bool_field(:can_delete_client) { policy.can_delete? }
-      bool_field(:can_edit_client) { policy.can_edit? }
-
-      bool_field(:can_index_files) { policy.can_index_files? }
-      bool_field(:can_upload_client_files) { policy.can_create_file? }
-
-      bool_field(:can_audit_clients) { policy.can_audit? }
-      bool_field(:can_manage_scan_cards) { policy.can_manage_scan_cards? }
-      bool_field(:can_view_client_alerts) { policy.can_view_alerts? }
-      bool_field(:can_manage_client_alerts) { policy.can_manage_alerts? }
-      bool_field(:can_view_client_eligible_opportunities) { global_policy.can_view_eligible_opportunities_lists? }
-      bool_field(:can_print_client_case_notes) { policy.can_print_case_notes? }
     end
 
     def external_ids
