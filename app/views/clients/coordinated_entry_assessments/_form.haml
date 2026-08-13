@@ -115,14 +115,15 @@
   = f.submit 'Complete', class: 'btn btn-secondary'
 
   = content_for :page_js do
-    :javascript
-      $(document).ready(function() {
-        $('.jHomelessTrigger').on('change', function(e) {
-          if($(this).is(':checked')) {
-            $('.jHomeless').removeClass('hide');
-          } else {
-            $('.jHomeless').addClass('hide');
-          }
+    %script{ nonce: content_security_policy_nonce }
+      :plain
+        $(document).ready(function() {
+          $('.jHomelessTrigger').on('change', function(e) {
+            if($(this).is(':checked')) {
+              $('.jHomeless').removeClass('hide');
+            } else {
+              $('.jHomeless').addClass('hide');
+            }
+          });
+          $('.jHomelessTrigger').trigger('change');
         });
-        $('.jHomelessTrigger').trigger('change');
-      });

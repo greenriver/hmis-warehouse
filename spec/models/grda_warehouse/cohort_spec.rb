@@ -213,7 +213,14 @@ RSpec.describe GrdaWarehouse::Cohort, type: :model do
     before do
       # Add test column to cohort's column_state
       @all_columns = GrdaWarehouse::Cohort.available_columns
-      @all_columns.each { |c| c.cohort_column.activate }
+      # Activate via a separate lookup rather than calling `.cohort_column.activate` on the same
+      # instances assigned to column_state below: CohortColumns::Base#cohort_column memoizes a
+      # live GrdaWarehouse::Cohorts::CohortColumn (an ActiveRecord instance) onto `@cohort_column`,
+      # which would then get embedded in this column's serialized YAML — real production writes
+      # (Cohorts::ColumnsController#update) never do this; they only ever set `visible`/`editable`
+      # directly on fresh instances, so this is a test-only artifact worth avoiding rather than a
+      # real serialization need.
+      GrdaWarehouse::Cohorts::CohortColumn.where(class_name: @all_columns.map(&:class_name)).find_each(&:activate)
       cohort.update(column_state: @all_columns)
     end
 
@@ -235,6 +242,23 @@ RSpec.describe GrdaWarehouse::Cohort, type: :model do
 
       expect(cohort.column_state.map(&:class_name)).to match_array(@all_columns.map(&:class_name))
       expect(cohort.reload.column_state.map(&:class_name)).to include('CohortColumns::UserString1')
+    end
+  end
+
+  describe 'column_state permitted-classes allow-list' do
+    it 'round-trips a real CohortColumns instance from the known registry' do
+      cohort.update!(column_state: [CohortColumns::LastName.new])
+
+      expect(cohort.reload.column_state.map(&:class)).to eq([CohortColumns::LastName])
+    end
+
+    it 'rejects a class outside the known cohort columns allow-list' do
+      malicious_yaml = "--- !ruby/object:Gem::Requirement\nrequirements: []\n"
+      cohort.class.connection.execute(
+        "UPDATE cohorts SET column_state = #{cohort.class.connection.quote(malicious_yaml)} WHERE id = #{cohort.id}",
+      )
+
+      expect { cohort.reload.column_state }.to raise_error(Psych::DisallowedClass)
     end
   end
 end

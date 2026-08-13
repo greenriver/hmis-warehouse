@@ -23,15 +23,25 @@ module WarehouseReports
     def running
     end
 
+    JOB_HANDLER_PERMITTED_CLASSES = [ActiveJob::QueueAdapters::DelayedJobAdapter::JobWrapper, Symbol, Date, Time].freeze
+
     def set_jobs
-      @job_reports = Delayed::Job.jobs_for_class(::Filters::HmisExport.job_classes).order(run_at: :desc).map do |job|
-        parameters = YAML.unsafe_load(job.handler).job_data['arguments'].first
+      jobs = Delayed::Job.jobs_for_class(::Filters::HmisExport.job_classes).order(run_at: :desc)
+      @job_reports = jobs.filter_map do |job|
+        parameters = YAML.safe_load(
+          job.handler,
+          permitted_classes: JOB_HANDLER_PERMITTED_CLASSES,
+          aliases: true,
+        ).job_data['arguments'].first
         parameters.delete('_aj_symbol_keys')
         parameters.delete('_aj_globalid')
         parameters['project_ids'] = parameters.delete('projects')
         report = GrdaWarehouse::HmisExport.new(parameters)
 
         [job.run_at, report]
+      rescue Psych::Exception => e
+        Sentry.capture_exception(e)
+        nil
       end
     end
 

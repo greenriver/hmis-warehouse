@@ -7,7 +7,7 @@
 # frozen_string_literal: true
 
 module HmisSimulation
-  # See @docs/features/hmis-simulation.md
+  # See @docs/features/warehouse/hmis-simulation.md
   #
   # Creates or updates the HMIS records that provide the structural scaffolding
   # a simulation needs: organizations, projects, ProjectCoc, Inventory, Funder,

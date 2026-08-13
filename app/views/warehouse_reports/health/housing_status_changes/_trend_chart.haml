@@ -15,7 +15,8 @@
         %dd Shelter, Street, Doubled Up, and Unknown
 
 = content_for :page_js do
-  :javascript
-    (function($) {
-      var trend_chart = new App.Health.HousingStatus('.jTrendChart', #{@report.data_for_housing_trend_chart.to_json.html_safe}, { link: '#{detail_warehouse_reports_health_housing_status_changes_path}', params: #{@report_params.to_json.html_safe} });
-    })(jQuery);
+  %script{ nonce: content_security_policy_nonce }
+    :plain
+      (function($) {
+        var trend_chart = new App.Health.HousingStatus('.jTrendChart', #{@report.data_for_housing_trend_chart.to_json.html_safe}, { link: '#{detail_warehouse_reports_health_housing_status_changes_path}', params: #{@report_params.to_json.html_safe} });
+      })(jQuery);

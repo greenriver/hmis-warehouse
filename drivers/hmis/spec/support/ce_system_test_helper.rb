@@ -43,8 +43,8 @@ RSpec.shared_context 'ce system test helper' do
       provider,
       target_project,
       with_permission: [
+        *HmisPermissionSets::ENROLLMENT_VISIBILITY,
         :can_view_project,
-        :can_view_enrollment_details,
         :can_edit_enrollments,
         :can_view_units, # but *not* can_manage_units
         :can_update_unit_availability,
@@ -81,6 +81,8 @@ RSpec.shared_context 'ce system test helper' do
     ensure
       click_button 'Submit'
     end
+    # Wait for the step form to close
+    expect(page).to have_no_content('Back to All Tasks')
   end
 
   # Shared helper for assigning referral steps.

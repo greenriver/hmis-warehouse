@@ -21,7 +21,8 @@
 = render 'reports'
 
 - content_for :page_js do
-  :javascript
-    $('#result_content').on('change', function() {
-      $('#upload_button').prop('disabled', !$(this).val());
-    });
+  %script{ nonce: content_security_policy_nonce }
+    :plain
+      $('#result_content').on('change', function() {
+        $('#upload_button').prop('disabled', !$(this).val());
+      });

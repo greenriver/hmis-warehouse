@@ -44,13 +44,14 @@
   = f.input :representative_id, as: :select_two, label: 'Patient’s Designated Representative', collection: available_team_members, input_html: { class: ['select2--full-width'] }, wrapper_html: { class: 'mb-3'}, disabled: @careplan.locked?
 
 = content_for :page_js do
-  :javascript
-    $(document).ready(function() {
-      $('.jNCMApproval').on('change', function(e) {
-        $('.jRNApproval').attr('disabled', ! $(e.target).is(':checked'));
-      });
+  %script{ nonce: content_security_policy_nonce }
+    :plain
+      $(document).ready(function() {
+        $('.jNCMApproval').on('change', function(e) {
+          $('.jRNApproval').attr('disabled', ! $(e.target).is(':checked'));
+        });
 
-      $('.jRNApproval').on('change', function(e) {
-        $('.jCareplanSent').attr('disabled', ! $(e.target).is(':checked'));
+        $('.jRNApproval').on('change', function(e) {
+          $('.jCareplanSent').attr('disabled', ! $(e.target).is(':checked'));
+        });
       });
-    });

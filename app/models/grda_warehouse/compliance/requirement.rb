@@ -11,7 +11,7 @@ module GrdaWarehouse::Compliance
   # Links to a ContentPage that contains the actual terms/policy text.
   # Agreements expire when revision increments or expires_after_days is reached.
   #
-  # @see docs/features/compliance-requirements.md
+  # @see docs/features/warehouse/compliance-requirements.md
   class Requirement < GrdaWarehouseBase
     self.table_name = 'compliance_requirements'
 

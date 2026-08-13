@@ -120,7 +120,7 @@ RSpec.describe Hmis::Form::SubmitFormRecordInitializer, type: :model do
       it_behaves_like 'raises when required association passed but not viewable'
       it_behaves_like 'builds record when associations viewable',
                       expected_class: Hmis::Hud::CustomCaseNote,
-                      view_permission: [:can_view_project, :can_view_enrollment_details]
+                      view_permission: HmisPermissionSets::ENROLLMENT_VISIBILITY
     end
 
     context 'HmisService' do
@@ -138,7 +138,7 @@ RSpec.describe Hmis::Form::SubmitFormRecordInitializer, type: :model do
         end
 
         it 'raises when service_type_id not passed' do
-          create_access_control(user, data_source, with_permission: [:can_view_project, :can_view_enrollment_details])
+          create_access_control(user, data_source, with_permission: HmisPermissionSets::ENROLLMENT_VISIBILITY)
           input = make_input(enrollment_id: enrollment.id)
           expect { build_record(owner_class: owner_class, input: input) }.to raise_error(/service type/)
         end
@@ -146,7 +146,7 @@ RSpec.describe Hmis::Form::SubmitFormRecordInitializer, type: :model do
         it_behaves_like 'raises when required association passed but not viewable'
         it_behaves_like 'builds record when associations viewable',
                         expected_class: Hmis::Hud::Service,
-                        view_permission: [:can_view_project, :can_view_enrollment_details]
+                        view_permission: HmisPermissionSets::ENROLLMENT_VISIBILITY
       end
 
       context 'with custom service type' do
@@ -154,7 +154,7 @@ RSpec.describe Hmis::Form::SubmitFormRecordInitializer, type: :model do
         let(:input_with_required_id) { make_input(enrollment_id: enrollment.id, service_type_id: custom_service_type.id) }
 
         it 'succeeds and returns CustomService when enrollment and service_type viewable' do
-          create_access_control(user, data_source, with_permission: [:can_view_project, :can_view_enrollment_details])
+          create_access_control(user, data_source, with_permission: HmisPermissionSets::ENROLLMENT_VISIBILITY)
           result = build_record(owner_class: owner_class, input: input_with_required_id)
           expect(result).to be_a(Hmis::Hud::CustomService)
           expect(result).to be_new_record

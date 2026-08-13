@@ -31,7 +31,7 @@ module OpenPath
     require_relative '../lib/rails_drivers'
 
     # Initialize configuration defaults for originally generated Rails version.
-    config.load_defaults 7.1
+    config.load_defaults 8.1
 
     # Continue to use config/secrets.yml. This is deprecated in rails > 7.0 but we don't want to move to
     # encrypted credentials, it's not appropriate for an open-source project
@@ -71,8 +71,15 @@ module OpenPath
 
     Rails.application.config.active_record.belongs_to_required_by_default = true
     # https://discuss.rubyonrails.org/t/cve-2022-32224-possible-rce-escalation-bug-with-serialized-columns-in-active-record/81017
-    # config.active_record.yaml_column_permitted_classes = [Symbol, Date, Time]
-    config.active_record.use_yaml_unsafe_load = true
+    # Audited via `rails audit:yaml_permitted_classes` (lib/tasks/audit_yaml_permitted_classes.rake)
+    # against production data across multiple environments — re-run that task against
+    # production data before widening this list.
+    # GrdaWarehouse::Cohort#column_state has its own additional per-column allow-list on top of
+    # this — see app/models/grda_warehouse/cohort.rb.
+    config.active_record.yaml_column_permitted_classes = [
+      Symbol, Date, Time, DateTime, ActiveSupport::TimeWithZone, ActiveSupport::TimeZone,
+      ActiveModel::Type::Binary::Data, BigDecimal
+    ]
 
     # ActiveRecord encryption backs devise-two-factor 6.x's `otp_secret` column (new and
     # re-enrolled 2FA secrets). Existing secrets remain in encrypted_otp_secret* and are
@@ -177,6 +184,12 @@ module OpenPath
     # Maintain Rails 7.0 behavior for specific settings
     config.active_record.before_committed_on_all_records = false # Keep due to uploader test issues
     config.active_record.default_column_serializer = YAML # Keep historic behavior
+
+    # load_defaults 7.2+ flips this to true, making raw SQL date/timestamp columns
+    # decode to Date/Time objects instead of Strings. We have a lot of raw SQL that
+    # assumes Strings, so keep the pre-7.2 behavior (must stay after load_defaults to
+    # win); adopting the new default is tracked separately as future work.
+    config.active_record.postgresql_adapter_decode_dates = false
 
     # Extension points
     config.sub_populations = {}

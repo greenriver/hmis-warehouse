@@ -19,7 +19,7 @@ require 'charlock_holmes'
 # reload!; HmisCsvImporter::Loader::Loader.new(data_source_id: 90, debug: true, remove_files: false).load!
 
 module HmisCsvImporter::Loader
-  # @see docs/features/hmis-csv-importer.md
+  # @see docs/features/warehouse/hmis-csv-importer.md
   class Loader
     include TsqlImport
     include NotifierConfig
