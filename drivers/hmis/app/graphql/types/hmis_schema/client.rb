@@ -175,11 +175,6 @@ module Types
       bool_field(:can_index_files) { policy.can_index_files? }
       bool_field(:can_upload_client_files) { policy.can_create_file? }
 
-      # Deprecated
-      can :manage_any_client_files, deprecation_reason: 'Resolve canManage on individual file access field instead'
-      can :manage_own_client_files, deprecation_reason: 'Resolve canManage on individual file access field instead'
-      composite_perm :can_view_any_files, permissions: [:manage_own_client_files, :view_any_nonconfidential_client_files, :view_any_confidential_client_files], mode: :any, deprecation_reason: 'Use canIndexFiles'
-
       bool_field(:can_audit_clients) { policy.can_audit? }
       bool_field(:can_manage_scan_cards) { policy.can_manage_scan_cards? }
       bool_field(:can_view_client_alerts) { policy.can_view_alerts? }
