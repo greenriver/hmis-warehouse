@@ -9,6 +9,8 @@
 module HudReportArchival
   extend ActiveSupport::Concern
 
+  RESTORE_STALE_AFTER = 4.hours
+
   mattr_accessor :generator_registry
   self.generator_registry = {}
 
@@ -124,6 +126,58 @@ module HudReportArchival
     (completed_at + grace.to_i.days) <= Time.current
   end
 
+  def restoring?
+    return false unless purged?
+
+    started = parsed_archival_time('restore_started_at')
+    return false if started.blank?
+    return false if parsed_archival_time('restore_failed_at').present?
+    return false if started < RESTORE_STALE_AFTER.ago
+
+    started > purged_at_time
+  end
+
+  def restore_failed?
+    return false unless purged?
+
+    failed = parsed_archival_time('restore_failed_at')
+    return false if failed.blank?
+
+    failed > purged_at_time
+  end
+
+  def restore_error
+    archival_metadata&.dig('restore_error')
+  end
+
+  def begin_restore!
+    remove_archival_metadata('restore_failed_at', 'restore_error')
+    update_archival_metadata('restore_started_at', Time.current.iso8601)
+  end
+
+  def finish_restore!
+    remove_archival_metadata('restore_started_at', 'restore_failed_at', 'restore_error')
+  end
+
+  def fail_restore!(message)
+    remove_archival_metadata('restore_started_at')
+    update_archival_metadata('restore_failed_at', Time.current.iso8601)
+    update_archival_metadata('restore_error', message.to_s)
+  end
+
+  private def purged_at_time
+    parsed_archival_time('purged_at') || Time.zone.at(0)
+  end
+
+  private def parsed_archival_time(key)
+    value = archival_metadata&.dig(key)
+    return if value.blank?
+
+    Time.zone.parse(value.to_s)
+  rescue ArgumentError
+    nil
+  end
+
   def archival_status
     return { archived: false } unless archival_metadata&.dig('archived_at').present?
 
@@ -150,6 +204,11 @@ module HudReportArchival
   def update_archival_metadata(key, value)
     current = archival_metadata || {}
     update_column(:archival_metadata, current.merge(key.to_s => value))
+  end
+
+  def remove_archival_metadata(*keys)
+    current = archival_metadata || {}
+    update_column(:archival_metadata, current.except(*keys.map(&:to_s)))
   end
 
   def archival_generator_klass
