@@ -17,7 +17,7 @@ RSpec.describe 'Ensure Relationships', type: :model do
     end
 
     it 'Has expected enrollments' do
-      expect(GrdaWarehouse::Hud::Enrollment.count).to eq(23)
+      expect(GrdaWarehouse::Hud::Enrollment.count).to eq(25)
     end
   end
 
@@ -29,7 +29,7 @@ RSpec.describe 'Ensure Relationships', type: :model do
     end
 
     it 'Has expected enrollments' do
-      expect(GrdaWarehouse::Hud::Enrollment.count).to eq(23)
+      expect(GrdaWarehouse::Hud::Enrollment.count).to eq(25)
     end
 
     it 'Individual enrollments all have one HoH' do
@@ -86,6 +86,20 @@ RSpec.describe 'Ensure Relationships', type: :model do
         expect(enrollment.HouseholdID).to be_present
       end
       expect(GrdaWarehouse::Hud::Enrollment.where(EnrollmentID: ['E-22', 'E-23']).
+        pluck(:HouseholdID).uniq.count).to eq(2)
+    end
+
+    it 'treats age 11 as a teen, splitting a household with no child aged 10 or less' do
+      # C-11 and C-12 were 11 and 16 at their 2020-01-01 EntryDate. The Glossary
+      # only keeps an all-under-18 household together when someone is aged 10 or
+      # less, so H12 must be split into one household per person.
+      expect(GrdaWarehouse::Hud::Enrollment.where(HouseholdID: 'H12').count).to eq(0)
+      ['E-24', 'E-25'].each do |enrollment_id|
+        enrollment = GrdaWarehouse::Hud::Enrollment.find_by(EnrollmentID: enrollment_id)
+        expect(enrollment.RelationshipToHoH).to eq(1)
+        expect(enrollment.HouseholdID).to be_present
+      end
+      expect(GrdaWarehouse::Hud::Enrollment.where(EnrollmentID: ['E-24', 'E-25']).
         pluck(:HouseholdID).uniq.count).to eq(2)
     end
   end

@@ -60,7 +60,7 @@ module HmisCsvImporter::HmisCsvCleanup
           individual_household_ids << hh_id
         else
           oldest_adult = rows.select { |m| m[:adult] }.max_by { |m| m[:age] }
-          child_under_11 = rows.any? { |m| m[:age].between?(0, 11) }
+          child_under_11 = rows.any? { |m| m[:age].between?(0, 10) }
           oldest_client = rows.max_by { |m| m[:age] }
           if oldest_adult.present?
             multi_person_to_fix[hh_id] = oldest_adult[:row_id]
