@@ -8,7 +8,7 @@
 
 require 'rails_helper'
 
-RSpec.describe Hmis::Hud::DataIntegrity::FillMissingTotalIncome, type: :model do
+RSpec.describe Hmis::Hud::DataIntegrity::MissingTotalMonthlyIncomeFixer, type: :model do
   let!(:hmis_ds) { create :hmis_data_source }
   let(:yesterday) { Date.current - 1.day }
   let(:default_attrs) { { data_source: hmis_ds, date_created: yesterday, date_updated: yesterday } }

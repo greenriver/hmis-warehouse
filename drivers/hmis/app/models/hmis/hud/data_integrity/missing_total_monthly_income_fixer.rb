@@ -10,12 +10,12 @@
 # (IncomeFromAnySource = 1) but are missing a total, by summing the individual income source amounts.
 #
 # Scope-based usage (e.g. in an opt-in ImporterExtension):
-#   Hmis::Hud::DataIntegrity::FillMissingTotalIncome.run!(scope: staging_scope, conflict_target: [:id, :importer_log_id])
+#   Hmis::Hud::DataIntegrity::MissingTotalMonthlyIncomeFixer.run!(scope: staging_scope, conflict_target: [:id, :importer_log_id])
 #
 # Console convenience:
-#   Hmis::Hud::DataIntegrity::FillMissingTotalIncome.for_data_source!(data_source_id: ds_id)
+#   Hmis::Hud::DataIntegrity::MissingTotalMonthlyIncomeFixer.for_data_source!(data_source_id: ds_id)
 #
-class Hmis::Hud::DataIntegrity::FillMissingTotalIncome
+class Hmis::Hud::DataIntegrity::MissingTotalMonthlyIncomeFixer
   BATCH_SIZE = 1_000
 
   # @param scope [ActiveRecord::Relation] the scope of IncomeBenefit(-like) records to process.
