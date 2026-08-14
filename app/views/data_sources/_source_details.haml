@@ -23,7 +23,7 @@
       %tr
         %th.pl-2 Open Path HMIS URL
         %td
-          %a{ href: "https://#{@data_source.hmis}", title: 'HMIS', target: '_blank', rel: 'noopener noreferrer' }
+          %a{ href: @data_source.hmis_login_url(user: current_user), title: 'HMIS', target: '_blank', rel: 'noopener noreferrer' }
             = @data_source.hmis
             %span.pl-1.icon-link-ext
     %tr
