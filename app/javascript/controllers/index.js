@@ -33,3 +33,6 @@ application.register("ajax-modal-content", AjaxModalContentController)
 
 import PollReplaceController from "./poll_replace_controller.js"
 application.register("poll-replace", PollReplaceController)
+
+import ClientLookupExportController from "./client_lookup_export_controller.js"
+application.register("client-lookup-export", ClientLookupExportController)
