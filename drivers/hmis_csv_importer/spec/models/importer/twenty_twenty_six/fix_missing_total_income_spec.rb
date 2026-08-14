@@ -47,6 +47,23 @@ RSpec.describe 'Fix Missing Monthly Total Income', type: :model do
       # indicates no income, so it is left alone
       expect(income_benefit('IB-3').TotalMonthlyIncome).to be_blank
     end
+
+    it 'refreshes the staging record source_hash so change-detection stays consistent' do
+      # The staging (importer) row for the most recent import of this data source. Two imports may
+      # exist (the "without cleanup" and "with cleanup" contexts), so pick the latest importer_log.
+      staging = HmisCsvTwentyTwentySix.importable_file_class('IncomeBenefits').
+        where(IncomeBenefitsID: 'IB-1').
+        order(importer_log_id: :desc).
+        first
+
+      # sanity check: this is the staging row whose total was filled by the cleanup
+      expect(staging.TotalMonthlyIncome.to_i).to eq(100)
+
+      # source_hash is derived from the source columns (including TotalMonthlyIncome). If the
+      # cleanup had filled the total without refreshing source_hash, recomputing it here would
+      # change the value, and the importer would mis-detect changes on subsequent imports.
+      expect { staging.set_source_hash }.not_to change(staging, :source_hash)
+    end
   end
 
   def setup(with_cleanup:)
