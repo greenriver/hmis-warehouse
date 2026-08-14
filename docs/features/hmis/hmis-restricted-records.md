@@ -14,7 +14,7 @@ An active (non-deleted) row means the associated record is restricted. Soft-dele
 
 ## Behavior for Restricted Clients
 
-Restricted clients don't appear in client search unless you have permission to find them. If you have other ways of finding the client, such as a direct link or by navigating from a project where they're enrolled, you still see them, but their PII (name, DOB, SSN) is redacted.
+Restricted clients don't appear in client search unless you have permission to find them. If you have other ways of finding the client, such as a direct link or by navigating from a project where they're enrolled, you still see them, but their PII (name, DOB, SSN, photo, and contact info) is redacted.
 
 Restriction is deliberately *not* a denial of access. A restricted client remains a normal, viewable client: their enrollments, households, assessments, services, and files resolve as they would otherwise, and every permission other than the ones listed below behaves the same whether or not the client is restricted.
 
@@ -39,19 +39,19 @@ With that combination:
 
 ### Redacted PII
 
-`HmisClientPolicy::Instance#pii_redacted?` is the single definition of "restricted and hidden from this user". The PII predicates on that policy (`can_view_name?`, `can_view_dob?`, `can_view_full_ssn?`, `can_view_partial_ssn?`) each combine it with the underlying permission, so callers ask one question rather than two. When a restricted client is resolved by a user without the permission:
+`HmisClientPolicy::Instance#pii_redacted?` is the single definition of "restricted and hidden from this user". The PII predicates on that policy (e.g. `can_view_name?`) each combine it with the underlying permission, so callers ask one question rather than two. When a restricted client is resolved by a user without the permission:
 
 - Name is masked. `firstName` returns `Client <id>`, the other name parts return null, and `names` returns a single masked entry.
 - `dob` and `ssn` return null.
-- The matching `access` booleans (`canViewClientName`, `canViewDob`, `canViewPartialSsn`, `canViewFullSsn`) return false, so the frontend renders these the same way it does for a user who simply lacks the permission.
+- Photo is not resolved, and contact info (addresses, phone numbers, email) returns empty.
+- The matching `access` booleans (`canViewClientName`, `canViewDob`, `canViewPartialSsn`, `canViewFullSsn`, `canViewClientPhoto`) return false, so the frontend renders these the same way it does for a user who simply lacks the permission.
 
 Client names resolved outside the `Client` type — CE referrals, CE referral source households, destination client names, and the outgoing-referral household picker — are masked the same way.
 
-Not redacted: `age`, photo, contact info, addresses, alerts, and external IDs. The `restricted` field itself is always resolved, so the frontend can explain why the record is redacted.
+Not redacted: `age`, alerts, and any associated records to the client that the user otherwise has permission to view (e.g. enrollments, assessments, files).
 
 ## Architecture
 
 - **`Hmis::RestrictedRecord`**: ActiveRecord model for the table. `client_ids_hidden_from(user)` returns the restricted client IDs a user may not find, and backs the search exclusion.
 - **`Hmis::Concerns::Restrictable`**: Included on restrictable models (`Hmis::Hud::Client` today). Provides `restricted?`, `mark_as_restricted!`, and `remove_restriction!`.
-- **`Hmis::AuthPolicies::HmisClientPolicy::Instance`**: Owns the rule. `can_view_restricted_clients?` resolves the permission from the projects where the client is enrolled, `pii_redacted?` combines it with the client's restriction status, and the PII predicates fold both into one answer.
 - **`Hmis::AuthPolicies::ContextLoaders::RestrictedClientLoader`**: Bulk-loads restriction status, so authorizing a page of clients takes one query. Wired into `UserContext#preload_client_dependencies`, which GraphQL already calls when loading clients.

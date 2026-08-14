@@ -56,14 +56,13 @@ class Hmis::RestrictedRecord < Hmis::HmisBase
     find_by(restrictable: record)&.destroy!
   end
 
-  # Client IDs, in the user's data source, that are restricted and that the user has no permission to
+  # Client IDs in the user's data source that are restricted, AND that the user has no permission to
   # find. Used to omit them from client search; they remain reachable by other means with PII redacted.
   #
-  # Restriction is a rare designation, so the per-client permission is resolved in Ruby against the
-  # cached policy loaders rather than reproducing their project-union-with-global-fallback in SQL.
+  # Client restriction is expected to be relatively rare, so it's acceptable to pluck every restricted client ID.
   def self.client_ids_hidden_from(user)
     client_ids = for_clients.where(data_source_id: user.hmis_data_source_id).pluck(:restrictable_id)
-    return client_ids if client_ids.empty?
+    return [] if client_ids.empty?
 
     user.policy_context.preload_client_dependencies(client_ids)
     client_ids.reject { |id| user.policy_context.client_permissions(id).include?(:can_view_restricted_clients) }

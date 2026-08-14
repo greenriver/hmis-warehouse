@@ -330,23 +330,37 @@ RSpec.describe Hmis::AuthPolicies::HmisClientPolicy, type: :model do
     describe 'PII predicates when the client is restricted' do
       let!(:restricted_record) { client.mark_as_restricted!(user: user) }
 
-      context 'when user can view restricted clients somewhere in the data source' do
+      context 'when the user can view restricted clients at an enrolled project' do
         let!(:access_control) do
-          create_access_control(user, project, with_permission: [:can_view_clients, :can_view_restricted_clients, :can_view_client_name])
+          create_access_control(
+            user,
+            project,
+            with_permission: [:can_view_clients, :can_view_restricted_clients, :can_view_client_name, :can_view_client_photo, :can_view_client_contact_info],
+          )
         end
 
-        it 'is not redacted, falling back to global permissions' do
+        it 'is not redacted' do
           expect(policy.pii_redacted?).to be false
           expect(policy.can_view_name?).to be true
+          expect(policy.can_view_photo?).to be true
+          expect(policy.can_view_contact_info?).to be true
         end
       end
 
-      context 'when user cannot view restricted clients anywhere in the data source' do
-        let!(:access_control) { create_access_control(user, project, with_permission: [:can_view_clients, :can_view_client_name]) }
+      context 'when the user cannot view restricted clients at an enrolled project' do
+        let!(:access_control) do
+          create_access_control(
+            user,
+            project,
+            with_permission: [:can_view_clients, :can_view_client_name, :can_view_client_photo, :can_view_client_contact_info],
+          )
+        end
 
-        it 'is redacted' do
+        it 'is redacted, including photo and contact info' do
           expect(policy.pii_redacted?).to be true
           expect(policy.can_view_name?).to be false
+          expect(policy.can_view_photo?).to be false
+          expect(policy.can_view_contact_info?).to be false
         end
       end
     end

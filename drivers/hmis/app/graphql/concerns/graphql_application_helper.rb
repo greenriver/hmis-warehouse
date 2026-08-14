@@ -92,7 +92,7 @@ module GraphqlApplicationHelper
   end
 
   # A restricted client stays reachable by direct link or from a project where they're enrolled, but
-  # their name, DOB, and SSN are redacted unless the user can view restricted clients.
+  # their identifying details are redacted unless the user can view restricted clients.
   # See docs/features/hmis/hmis-restricted-records.md
   def client_pii_redacted?(client)
     policy_for(client, policy_type: :hmis_client).pii_redacted?

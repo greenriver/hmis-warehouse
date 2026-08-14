@@ -7,9 +7,6 @@
 # frozen_string_literal: true
 
 class Hmis::AuthPolicies::HmisClientPolicy < Hmis::AuthPolicies::ResourcePolicy
-  # Restriction is not a denial of access: a restricted client remains viewable and editable, and only
-  # the PII predicates below (name, DOB, SSN) are affected.
-  # See docs/features/hmis/hmis-restricted-records.md
   class Instance < Hmis::AuthPolicies::BasePolicy
     def can_view?
       client_permissions.include?(:can_view_clients)
@@ -35,7 +32,9 @@ class Hmis::AuthPolicies::HmisClientPolicy < Hmis::AuthPolicies::ResourcePolicy
     end
 
     # Whether this client's PII is redacted for this user, because they are restricted and the user
-    # can't view restricted clients.
+    # can't view restricted clients. Restriction is not a denial of access: a restricted client remains
+    # viewable and editable, and only the PII predicates below (name, DOB, SSN, photo, and contact info) are affected.
+    # See docs/features/hmis/hmis-restricted-records.md for more details.
     def pii_redacted?
       context.client_restricted?(resource.id) && !can_view_restricted_clients?
     end
