@@ -17,7 +17,7 @@ RSpec.describe 'Ensure Relationships', type: :model do
     end
 
     it 'Has expected enrollments' do
-      expect(GrdaWarehouse::Hud::Enrollment.count).to eq(21)
+      expect(GrdaWarehouse::Hud::Enrollment.count).to eq(23)
     end
   end
 
@@ -29,7 +29,7 @@ RSpec.describe 'Ensure Relationships', type: :model do
     end
 
     it 'Has expected enrollments' do
-      expect(GrdaWarehouse::Hud::Enrollment.count).to eq(21)
+      expect(GrdaWarehouse::Hud::Enrollment.count).to eq(23)
     end
 
     it 'Individual enrollments all have one HoH' do
@@ -74,6 +74,19 @@ RSpec.describe 'Ensure Relationships', type: :model do
       expect(GrdaWarehouse::Hud::Enrollment.find_by(EnrollmentID: 'E-21').RelationshipToHoH).to eq(1)
       expect(GrdaWarehouse::Hud::Enrollment.find_by(EnrollmentID: 'E-21').HouseholdID).not_to be_empty
       expect(GrdaWarehouse::Hud::Enrollment.where(HouseholdID: 'H10').count).to eq(0)
+    end
+
+    it 'uses age at EntryDate, not age today, when categorizing a household' do
+      # C-9 and C-10 were 13 and 12 at their 2020-01-01 EntryDate, so H11 is an
+      # 11-to-17 household and must be split into one household per person.
+      expect(GrdaWarehouse::Hud::Enrollment.where(HouseholdID: 'H11').count).to eq(0)
+      ['E-22', 'E-23'].each do |enrollment_id|
+        enrollment = GrdaWarehouse::Hud::Enrollment.find_by(EnrollmentID: enrollment_id)
+        expect(enrollment.RelationshipToHoH).to eq(1)
+        expect(enrollment.HouseholdID).to be_present
+      end
+      expect(GrdaWarehouse::Hud::Enrollment.where(EnrollmentID: ['E-22', 'E-23']).
+        pluck(:HouseholdID).uniq.count).to eq(2)
     end
   end
 

@@ -7,6 +7,7 @@
 # frozen_string_literal: true
 
 # Decision Tree (based on the HMIS Reporting Glossary Guidance - updated for FY2026)
+# All ages below are the client's age as of the enrollment's EntryDate (the HUD [project start date])
 # If the HouseholdID is blank, consider it an individual enrollment, ensure RelationshipToHoH is 1
 # If the household only has one person, ensure RelationshipToHoH is 1
 # If the household has more than one person, and there is a person 18 or older,
@@ -244,10 +245,11 @@ module HmisCsvImporter::HmisCsvCleanup
             ic_t[:DOB],
             :RelationshipToHoH,
             :id,
+            :EntryDate,
           ).
-          each do |en_id, project_id, hh_id, personal_id, dob, relationship, id|
+          each do |en_id, project_id, hh_id, personal_id, dob, relationship, id, entry_date|
             hh[hh_id] ||= []
-            age = GrdaWarehouse::Hud::Client.age(date: Date.current, dob: dob)
+            age = GrdaWarehouse::Hud::Client.age(date: entry_date, dob: dob)
             hh[hh_id] << {
               row_id: id,
               personal_id: personal_id,
