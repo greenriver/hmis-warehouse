@@ -71,4 +71,44 @@ class Hmis::Hud::CustomDataElementDefinition < Hmis::Hud::Base
 
     cde_t[column_name]
   end
+
+  # Convert pick-list metadata (from Hmis::Form::Definition#pick_list_metadata_*) into a
+  # { code => label } map for a CHOICE item. Returns {} for non-choice items, dynamic
+  # references (project/client) that need context we don't have here, and unknown references.
+  def self.pick_list_labels_from_metadata(metadata, user:)
+    return {} if metadata.blank?
+
+    inline_options = metadata[:pick_list_options]
+    if inline_options.present?
+      return inline_options.each_with_object({}) do |option, labels|
+        code = option['code'] || option[:code]
+        next if code.blank?
+
+        labels[code] = option['label'] || option[:label] || code
+      end
+    end
+
+    reference = metadata[:pick_list_reference]
+    return {} if reference.blank?
+
+    # Only static enum references can be resolved without project/client context.
+    static_options = Types::Forms::PickListOption.static_options_for_type(reference, user: user)
+    return {} if static_options.blank?
+
+    static_options.each_with_object({}) do |option, labels|
+      code = option[:code] || option['code']
+      next if code.blank?
+
+      labels[code.to_s] = option[:label] || option['label'] || code.to_s
+    end
+  end
+
+  # Convenience for non-batched callers/specs. GraphQL uses the dataloader source instead,
+  # but both share .pick_list_labels_from_metadata so the options/reference logic isn't duplicated.
+  def pick_list_labels(user:)
+    return {} unless form_definition
+
+    metadata = form_definition.pick_list_metadata_across_versions[key]
+    self.class.pick_list_labels_from_metadata(metadata, user: user)
+  end
 end

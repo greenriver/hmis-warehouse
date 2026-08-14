@@ -309,6 +309,119 @@ RSpec.describe Hmis::Form::Definition, type: :model do
     end
   end
 
+  describe 'pick-list metadata extraction' do
+    let(:choice_items) do
+      [
+        {
+          'type' => 'CHOICE',
+          'link_id' => 'decision',
+          'text' => 'Decision',
+          'mapping' => { 'custom_field_key' => 'decision' },
+          'pick_list_options' => [
+            { 'code' => 'hmis_user_error', 'label' => 'HMIS user error' },
+            { 'code' => 'client_declined', 'label' => 'Client declined' },
+          ],
+        },
+        {
+          'type' => 'CHOICE',
+          'link_id' => 'prior_living',
+          'text' => 'Prior Living Situation',
+          'pick_list_reference' => 'PRIOR_LIVING_SITUATION',
+          'mapping' => { 'custom_field_key' => 'prior_living' },
+        },
+        {
+          'type' => 'STRING',
+          'link_id' => 'notes',
+          'text' => 'Notes',
+          'mapping' => { 'custom_field_key' => 'notes' },
+        },
+      ]
+    end
+
+    let!(:definition) do
+      create(:hmis_form_definition, data_source: ds1, role: :CUSTOM_ASSESSMENT, identifier: 'choice-form', version: 1, append_items: choice_items)
+    end
+
+    describe '#pick_list_metadata_by_key' do
+      it 'extracts item type, inline options, and references for custom fields' do
+        metadata = definition.pick_list_metadata_by_key
+
+        expect(metadata['decision']).to match(
+          item_type: 'CHOICE',
+          pick_list_reference: nil,
+          pick_list_options: [
+            a_hash_including('code' => 'hmis_user_error', 'label' => 'HMIS user error'),
+            a_hash_including('code' => 'client_declined', 'label' => 'Client declined'),
+          ],
+        )
+        expect(metadata['prior_living']).to match(
+          item_type: 'CHOICE',
+          pick_list_reference: 'PRIOR_LIVING_SITUATION',
+          pick_list_options: nil,
+        )
+        expect(metadata['notes'][:pick_list_options]).to be_nil
+        expect(metadata['notes'][:pick_list_reference]).to be_nil
+      end
+    end
+
+    describe '#pick_list_metadata_across_versions' do
+      # Only one *published* version is allowed per identifier, so older versions are retired.
+      let!(:retired_version) do
+        create(:hmis_form_definition, data_source: ds1, role: :CUSTOM_ASSESSMENT, identifier: 'unioned-form', version: 1, status: :retired, append_items: [
+                 {
+                   'type' => 'CHOICE',
+                   'link_id' => 'decision',
+                   'text' => 'Decision',
+                   'mapping' => { 'custom_field_key' => 'decision' },
+                   'pick_list_options' => [
+                     { 'code' => 'hmis_user_error', 'label' => 'HMIS user error' },
+                     { 'code' => 'client_declined', 'label' => 'Client declined' },
+                   ],
+                 },
+               ])
+      end
+
+      let!(:published_version) do
+        create(:hmis_form_definition, data_source: ds1, role: :CUSTOM_ASSESSMENT, identifier: 'unioned-form', version: 2, status: :published, append_items: [
+                 {
+                   'type' => 'CHOICE',
+                   'link_id' => 'decision',
+                   'text' => 'Decision',
+                   'mapping' => { 'custom_field_key' => 'decision' },
+                   'pick_list_options' => [
+                     # New code introduced in the latest version
+                     { 'code' => 'other', 'label' => 'Other' },
+                   ],
+                 },
+               ])
+      end
+
+      it 'unions inline options across published and retired versions' do
+        metadata = published_version.pick_list_metadata_across_versions
+
+        codes = metadata['decision'][:pick_list_options].map { |o| o['code'] }
+        expect(codes).to contain_exactly('other', 'hmis_user_error', 'client_declined')
+      end
+
+      it 'excludes draft versions' do
+        create(:hmis_form_definition, data_source: ds1, role: :CUSTOM_ASSESSMENT, identifier: 'unioned-form', version: 3, status: :draft, append_items: [
+                 {
+                   'type' => 'CHOICE',
+                   'link_id' => 'decision',
+                   'text' => 'Decision',
+                   'mapping' => { 'custom_field_key' => 'decision' },
+                   'pick_list_options' => [
+                     { 'code' => 'draft_only', 'label' => 'Draft only' },
+                   ],
+                 },
+               ])
+
+        codes = published_version.pick_list_metadata_across_versions['decision'][:pick_list_options].map { |o| o['code'] }
+        expect(codes).not_to include('draft_only')
+      end
+    end
+  end
+
   describe '#validate_external_form_object_key' do
     it 'should error if the object key is already taken' do
       # form with the key 'existing-key' - can't be reused

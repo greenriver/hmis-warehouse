@@ -301,6 +301,104 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       end
     end
   end
+
+  describe 'pick-list displayValue resolution' do
+    let(:query) do
+      <<~GRAPHQL
+        query Assessment($id: ID!) {
+          assessment(id: $id) {
+            id
+            customDataElements {
+              key
+              displayValue
+              value { valueString }
+              values { valueString }
+            }
+          }
+        }
+      GRAPHQL
+    end
+
+    let!(:form_definition) do
+      create(:hmis_form_definition, data_source: ds1, role: :CUSTOM_ASSESSMENT, identifier: 'decision-form', append_items: [
+               {
+                 'type' => 'CHOICE',
+                 'link_id' => 'decision',
+                 'text' => 'Decision',
+                 'mapping' => { 'custom_field_key' => 'decision' },
+                 'pick_list_options' => [
+                   { 'code' => 'hmis_user_error', 'label' => 'HMIS user error' },
+                 ],
+               },
+               {
+                 'type' => 'CHOICE',
+                 'link_id' => 'follow_ups',
+                 'text' => 'Follow-ups',
+                 'mapping' => { 'custom_field_key' => 'follow_ups' },
+                 'pick_list_options' => [
+                   { 'code' => 'call', 'label' => 'Call client' },
+                   { 'code' => 'verify', 'label' => 'Verify income' },
+                 ],
+               },
+               {
+                 'type' => 'CHOICE',
+                 'link_id' => 'status',
+                 'text' => 'Status',
+                 'mapping' => { 'custom_field_key' => 'status' },
+                 'pick_list_options' => [
+                   { 'code' => 'open', 'label' => 'Open' },
+                 ],
+               },
+               {
+                 'type' => 'STRING',
+                 'link_id' => 'notes',
+                 'text' => 'Notes',
+                 'mapping' => { 'custom_field_key' => 'notes' },
+               },
+             ])
+    end
+
+    let!(:cded_decision) { create :hmis_custom_data_element_definition, data_source: ds1, owner_type: 'Hmis::Hud::CustomAssessment', field_type: :string, key: 'decision', form_definition_identifier: 'decision-form' }
+    let!(:cded_follow_ups) { create :hmis_custom_data_element_definition, data_source: ds1, owner_type: 'Hmis::Hud::CustomAssessment', field_type: :string, repeats: true, key: 'follow_ups', form_definition_identifier: 'decision-form' }
+    let!(:cded_status) { create :hmis_custom_data_element_definition, data_source: ds1, owner_type: 'Hmis::Hud::CustomAssessment', field_type: :string, key: 'status', form_definition_identifier: 'decision-form' }
+    let!(:cded_notes) { create :hmis_custom_data_element_definition, data_source: ds1, owner_type: 'Hmis::Hud::CustomAssessment', field_type: :string, key: 'notes', form_definition_identifier: 'decision-form' }
+    let!(:cded_no_form) { create :hmis_custom_data_element_definition, data_source: ds1, owner_type: 'Hmis::Hud::CustomAssessment', field_type: :string, key: 'no_form', form_definition_identifier: nil }
+
+    let!(:enrollment) { create(:hmis_hud_enrollment, data_source: ds1, project: p1, client: c1) }
+    let!(:assessment) { create(:hmis_custom_assessment, data_source: ds1, enrollment: enrollment) }
+
+    before do
+      create(:hmis_custom_data_element, data_element_definition: cded_decision, owner: assessment, data_source: ds1, value_string: 'hmis_user_error')
+      create(:hmis_custom_data_element, data_element_definition: cded_follow_ups, owner: assessment, data_source: ds1, value_string: 'call')
+      create(:hmis_custom_data_element, data_element_definition: cded_follow_ups, owner: assessment, data_source: ds1, value_string: 'verify')
+      create(:hmis_custom_data_element, data_element_definition: cded_status, owner: assessment, data_source: ds1, value_string: 'closed') # code not in pick list
+      create(:hmis_custom_data_element, data_element_definition: cded_notes, owner: assessment, data_source: ds1, value_string: 'freeform text')
+      create(:hmis_custom_data_element, data_element_definition: cded_no_form, owner: assessment, data_source: ds1, value_string: 'some_code')
+    end
+
+    def display_value_for(elements, key)
+      elements.find { |e| e['key'] == key }&.dig('displayValue')
+    end
+
+    it 'resolves pick-list codes to labels and falls back appropriately' do
+      response, result = post_graphql(id: assessment.id) { query }
+      aggregate_failures 'checking response' do
+        expect(response.status).to eq(200), result.inspect
+        elements = result.dig('data', 'assessment', 'customDataElements')
+
+        # single-select pick list resolves to its label
+        expect(display_value_for(elements, 'decision')).to eq('HMIS user error')
+        # repeating multi-select joins labels with ', '
+        expect(display_value_for(elements, 'follow_ups')).to eq('Call client, Verify income')
+        # unknown code falls back to the raw code
+        expect(display_value_for(elements, 'status')).to eq('closed')
+        # non-pick-list field has no displayValue
+        expect(display_value_for(elements, 'notes')).to be_nil
+        # field with no form definition identifier has no displayValue
+        expect(display_value_for(elements, 'no_form')).to be_nil
+      end
+    end
+  end
 end
 
 RSpec.configure do |c|

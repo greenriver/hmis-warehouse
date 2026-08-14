@@ -28,10 +28,10 @@ module Hmis::Ce::Match
     end
 
     def custom_assessment_fields_for(data_source_id:, form_definition_identifier:)
-      form_versions = form_versions_for(data_source_id, form_definition_identifier).to_a
-      return [] if form_versions.empty?
+      entry_version = form_versions_for(data_source_id, form_definition_identifier).first
+      return [] unless entry_version
 
-      metadata_by_key = item_metadata_by_key(form_versions)
+      metadata_by_key = entry_version.pick_list_metadata_across_versions
 
       custom_assessment_cdeds(data_source_id, form_definition_identifier).filter_map do |cded|
         metadata = metadata_by_key[cded.key] || {}
@@ -187,47 +187,10 @@ module Hmis::Ce::Match
     end
 
     def form_metadata_for_cded(cded)
-      form_versions = form_versions_for(cded.data_source_id, cded.form_definition_identifier).to_a
-      item_metadata_by_key(form_versions)[cded.key] || {}
-    end
+      entry_version = form_versions_for(cded.data_source_id, cded.form_definition_identifier).first
+      return {} unless entry_version
 
-    # Newer form versions are visited first so scalar choice metadata comes from
-    # the latest published/retired item. Inline options are unioned across
-    # versions so historical answer codes remain selectable.
-    def item_metadata_by_key(form_versions)
-      metadata_by_key = {}
-
-      form_versions.each do |definition|
-        definition.walk_definition_nodes do |item|
-          key = item.dig('mapping', 'custom_field_key')
-          next unless key.present?
-
-          form_metadata = metadata_by_key[key] ||= {}
-          form_metadata[:item_type] ||= item['type'].presence
-          form_metadata[:pick_list_reference] = item['pick_list_reference'].presence unless form_metadata.key?(:pick_list_reference)
-
-          if form_metadata[:pick_list_reference].present?
-            form_metadata[:pick_list_options] = nil
-          else
-            form_metadata[:pick_list_options] = merge_pick_list_options(form_metadata[:pick_list_options], Array.wrap(item['pick_list_options'])).presence
-          end
-        end
-      end
-
-      metadata_by_key
-    end
-
-    def merge_pick_list_options(existing_options, new_options)
-      existing_options = Array.wrap(existing_options)
-      existing_codes = existing_options.pluck('code').to_set
-
-      existing_options + new_options.filter_map do |option|
-        code = option['code'] || option[:code]
-        next if code.blank? || existing_codes.include?(code)
-
-        existing_codes << code
-        option.stringify_keys
-      end
+      entry_version.pick_list_metadata_across_versions[cded.key] || {}
     end
   end
 end

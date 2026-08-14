@@ -621,6 +621,86 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     link_id_item_hash.values.find { |item| ['ENROLLMENT', 'CLIENT'].include?(item.mapping&.record_type) }.present?
   end
 
+  # Pick-list metadata for the custom fields collected by *this* version of the definition.
+  # Returns { custom_field_key => { item_type:, pick_list_reference:, pick_list_options: } }.
+  # This is the per-version half of #pick_list_metadata_across_versions.
+  def pick_list_metadata_by_key
+    metadata_by_key = {}
+
+    walk_definition_nodes do |item|
+      key = item.dig('mapping', 'custom_field_key')
+      next unless key.present?
+
+      metadata = metadata_by_key[key] ||= {}
+      self.class.merge_pick_list_item_metadata!(metadata, item)
+    end
+
+    metadata_by_key
+  end
+
+  # Union the pick-list metadata across every version that shares this version's identifier
+  # (within the same data source). Newer versions are visited first, so scalar choice metadata
+  # (item_type, pick_list_reference) comes from the latest published/retired item, while inline
+  # options are unioned across versions so historical answer codes remain resolvable.
+  def pick_list_metadata_across_versions
+    versions = self.class.
+      where(identifier: identifier, data_source_id: data_source_id).
+      published_or_retired.
+      order(version: :desc, id: :desc)
+
+    merged = {}
+    versions.each do |definition|
+      definition.pick_list_metadata_by_key.each do |key, metadata|
+        target = merged[key] ||= {}
+        self.class.merge_pick_list_metadata_into!(target, metadata)
+      end
+    end
+    merged
+  end
+
+  # Merge the pick-list-relevant attributes of a single form item (Hash) into an accumulating
+  # metadata hash, preserving newest-first precedence for scalar attributes.
+  def self.merge_pick_list_item_metadata!(metadata, item)
+    metadata[:item_type] ||= item['type'].presence
+    metadata[:pick_list_reference] = item['pick_list_reference'].presence unless metadata.key?(:pick_list_reference)
+
+    if metadata[:pick_list_reference].present?
+      metadata[:pick_list_options] = nil
+    else
+      metadata[:pick_list_options] = merge_pick_list_options(metadata[:pick_list_options], Array.wrap(item['pick_list_options'])).presence
+    end
+
+    metadata
+  end
+
+  # Merge one version's already-extracted metadata for a key into an accumulating hash.
+  def self.merge_pick_list_metadata_into!(target, metadata)
+    target[:item_type] ||= metadata[:item_type]
+    target[:pick_list_reference] = metadata[:pick_list_reference] unless target.key?(:pick_list_reference)
+
+    if target[:pick_list_reference].present?
+      target[:pick_list_options] = nil
+    else
+      target[:pick_list_options] = merge_pick_list_options(target[:pick_list_options], Array.wrap(metadata[:pick_list_options])).presence
+    end
+
+    target
+  end
+
+  # Union two lists of inline pick-list options, keeping the first occurrence of each code.
+  def self.merge_pick_list_options(existing_options, new_options)
+    existing_options = Array.wrap(existing_options)
+    existing_codes = existing_options.pluck('code').to_set
+
+    existing_options + new_options.filter_map do |option|
+      code = option['code'] || option[:code]
+      next if code.blank? || existing_codes.include?(code)
+
+      existing_codes << code
+      option.stringify_keys
+    end
+  end
+
   def numeric_validator
     @numeric_validator ||= Hmis::Form::NumericInputValidator.new
   end

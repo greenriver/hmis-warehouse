@@ -12,6 +12,67 @@ RSpec.describe Hmis::Hud::CustomDataElementDefinition, type: :model do
   let(:data_source) { create(:hmis_primary_data_source) }
   let(:user) { create(:hmis_hud_user, data_source: data_source) }
 
+  describe '.pick_list_labels_from_metadata' do
+    it 'maps inline pick_list_options to a code => label hash' do
+      metadata = {
+        item_type: 'CHOICE',
+        pick_list_reference: nil,
+        pick_list_options: [
+          { 'code' => 'hmis_user_error', 'label' => 'HMIS user error' },
+          { 'code' => 'client_declined', 'label' => 'Client declined' },
+        ],
+      }
+      expect(described_class.pick_list_labels_from_metadata(metadata, user: user)).to eq(
+        'hmis_user_error' => 'HMIS user error',
+        'client_declined' => 'Client declined',
+      )
+    end
+
+    it 'resolves static enum references' do
+      metadata = { item_type: 'CHOICE', pick_list_reference: 'PRIOR_LIVING_SITUATION', pick_list_options: nil }
+      labels = described_class.pick_list_labels_from_metadata(metadata, user: user)
+      expect(labels).not_to be_empty
+      expect(labels.values).to all(be_a(String))
+    end
+
+    it 'returns {} for dynamic references that need context' do
+      metadata = { item_type: 'CHOICE', pick_list_reference: 'PROJECT', pick_list_options: nil }
+      expect(described_class.pick_list_labels_from_metadata(metadata, user: user)).to eq({})
+    end
+
+    it 'returns {} for blank metadata or non-choice items' do
+      expect(described_class.pick_list_labels_from_metadata(nil, user: user)).to eq({})
+      expect(described_class.pick_list_labels_from_metadata({}, user: user)).to eq({})
+      expect(described_class.pick_list_labels_from_metadata({ item_type: 'STRING' }, user: user)).to eq({})
+    end
+  end
+
+  describe '#pick_list_labels' do
+    let!(:form_definition) do
+      create(:hmis_form_definition, data_source: data_source, role: :CUSTOM_ASSESSMENT, identifier: 'labels-form', append_items: [
+               {
+                 'type' => 'CHOICE',
+                 'link_id' => 'decision',
+                 'text' => 'Decision',
+                 'mapping' => { 'custom_field_key' => 'decision' },
+                 'pick_list_options' => [
+                   { 'code' => 'hmis_user_error', 'label' => 'HMIS user error' },
+                 ],
+               },
+             ])
+    end
+
+    it 'resolves labels via the form definition association' do
+      cded = create(:hmis_custom_data_element_definition, data_source: data_source, owner_type: 'Hmis::Hud::CustomAssessment', key: 'decision', form_definition_identifier: 'labels-form')
+      expect(cded.pick_list_labels(user: user)).to eq('hmis_user_error' => 'HMIS user error')
+    end
+
+    it 'returns {} when there is no associated form definition' do
+      cded = create(:hmis_custom_data_element_definition, data_source: data_source, owner_type: 'Hmis::Hud::CustomAssessment', key: 'decision', form_definition_identifier: nil)
+      expect(cded.pick_list_labels(user: user)).to eq({})
+    end
+  end
+
   shared_examples 'saves successfully' do
     it 'is valid and saves' do
       expect(subject).to be_valid

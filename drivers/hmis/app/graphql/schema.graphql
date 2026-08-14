@@ -3040,6 +3040,11 @@ type CustomDataElement {
   Where to display the custom field in the application
   """
   displayHooks: [DisplayHook!]!
+
+  """
+  Human-readable value, with pick-list codes resolved to labels
+  """
+  displayValue: String
   fieldType: CustomDataElementType!
   id: ID!
   key: String!
