@@ -327,7 +327,7 @@ class Hmis::Role < ::ApplicationRecord
         sub_category: 'Organizations',
       },
       can_view_clients: {
-        description: 'Access to view clients at assigned projects. Additional permissions "can view restricted clients" is required to view restricted client details.',
+        description: 'Access to view client profiles. When assigned at a project, this includes all clients who are or have been enrolled at that project. Additional permissions may be needed for viewing sensitive data such as client name, DOB, and SSN. Additional permission \'can view restricted clients\' is needed for viewing restricted clients\' identifying information.',
         administrative: false,
         access: [:viewable],
         category: 'Client Access',
