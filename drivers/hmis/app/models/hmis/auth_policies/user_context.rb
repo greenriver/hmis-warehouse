@@ -105,6 +105,7 @@ class Hmis::AuthPolicies::UserContext
 
   def preload_client_dependencies(client_ids)
     client_project_loader.preload(client_ids)
+    client_data_source_loader.preload(client_ids)
     project_ids = client_project_loader.cached_project_ids
     project_data_source_loader.preload(project_ids)
     project_access_group_loader.preload(project_ids)
@@ -113,6 +114,9 @@ class Hmis::AuthPolicies::UserContext
   # Client permissions are based on the user's permissions at projects they are enrolled in.
   # If they have no enrollments, it's based on the user's global permissions.
   def client_permissions(client_id)
+    return EMPTY_SET if client_id.blank?
+    return EMPTY_SET unless client_belongs_to_current_data_source?(client_id)
+
     project_ids = client_project_loader.get(client_id)
 
     if project_ids.empty?
@@ -191,6 +195,17 @@ class Hmis::AuthPolicies::UserContext
     false
   end
 
+  def client_belongs_to_current_data_source?(client_id)
+    client_data_source_id = client_data_source_loader.get(client_id)
+    return true if client_data_source_id == user.hmis_data_source_id
+
+    Sentry.capture_message(
+      "HMIS Data Source Mismatch: User #{user.id} (DS: #{user.hmis_data_source_id}) " \
+      "attempted to access Client #{client_id} (DS: #{client_data_source_id})",
+    )
+    false
+  end
+
   # Context loaders (memoized for request-level caching)
   memoize def project_data_source_loader
     Hmis::AuthPolicies::ContextLoaders::ProjectDataSourceLoader.new
@@ -218,5 +233,9 @@ class Hmis::AuthPolicies::UserContext
 
   memoize def client_project_loader
     Hmis::AuthPolicies::ContextLoaders::ClientProjectLoader.new
+  end
+
+  memoize def client_data_source_loader
+    Hmis::AuthPolicies::ContextLoaders::ClientDataSourceLoader.new
   end
 end

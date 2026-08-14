@@ -20,8 +20,42 @@ class Hmis::AuthPolicies::HmisClientPolicy < Hmis::AuthPolicies::ResourcePolicy
       client_permissions.include?(:can_delete_clients)
     end
 
+    def can_mark_restricted?
+      client_permissions.include?(:can_mark_clients_as_restricted)
+    end
+
     def can_view_name?
       client_permissions.include?(:can_view_client_name)
+    end
+
+    def can_view_dob?
+      client_permissions.include?(:can_view_dob)
+    end
+
+    def can_view_full_ssn?
+      client_permissions.include?(:can_view_full_ssn)
+    end
+
+    def can_view_partial_ssn?
+      client_permissions.include?(:can_view_partial_ssn)
+    end
+
+    def can_view_contact_info?
+      client_permissions.include?(:can_view_client_contact_info)
+    end
+
+    def can_view_photo?
+      client_permissions.include?(:can_view_client_photo)
+    end
+
+    # Whether the user can see 'Chronic at PIT' status, which summarizes enrollments that the user may
+    # not otherwise be able to see.
+    def can_view_hud_chronic_status?
+      client_permissions.include?(:can_view_hud_chronic_status)
+    end
+
+    def can_view_alerts?
+      client_permissions.include?(:can_view_client_alerts)
     end
 
     def can_manage_alerts?
@@ -30,6 +64,14 @@ class Hmis::AuthPolicies::HmisClientPolicy < Hmis::AuthPolicies::ResourcePolicy
 
     def can_manage_scan_cards?
       client_permissions.include?(:can_manage_scan_cards)
+    end
+
+    def can_audit?
+      client_permissions.include?(:can_audit_clients)
+    end
+
+    def can_print_case_notes?
+      client_permissions.include?(:can_print_client_case_notes)
     end
 
     # Whether the user can edit at least one of this client's enrollments.
@@ -97,6 +139,12 @@ class Hmis::AuthPolicies::HmisClientPolicy < Hmis::AuthPolicies::ResourcePolicy
     # The global permission is used mainly as an optimization on the frontend to skip the query if the user doesn't have any access.
     def can_view_client_alerts?
       global_permissions.include?(:can_view_client_alerts)
+    end
+
+    # Whether the user can view eligible opportunities lists for clients in the data source.
+    # This permission is marked "global" on the Role definition; granting it anywhere is meant to grant it for all clients in the data source.
+    def can_view_eligible_opportunities_lists?
+      global_permissions.include?(:can_view_client_eligible_opportunities)
     end
 
     protected
