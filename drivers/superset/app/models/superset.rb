@@ -18,8 +18,20 @@ module Superset
     'https://' + ENV.fetch('SUPERSET_FQDN', tokens.join('.'))
   end
 
-  def self.warehouse_login_url
-    "#{superset_base_url}/login/The%20Warehouse"
+  def self.warehouse_login_url(user = nil)
+    if AuthMethod.jwt?
+      base_url = superset_base_url
+      connector_id = user&.last_connector_id
+      return base_url if connector_id.blank?
+
+      # Superset's own oauth2-proxy sidecar only forwards connector_id to Dex when the
+      # request hits its /oauth2/sign_in endpoint (per its loginURLParameters config) --
+      # not when it's just appended to the app URL. Without this, Dex shows its connector
+      # picker instead of sending the user straight to their IdP.
+      base_url + Idp::Oauth2ProxySignInPath.call(connector_id: connector_id, redirect_to: '/')
+    else
+      "#{superset_base_url}/login/The%20Warehouse"
+    end
   end
 
   # The value SUPERSET_ADMIN_PASS is seeded with in the local/dev images. Outside development a

@@ -77,7 +77,7 @@ class Menu::Menu
     Menu::Item.new(
       user: user,
       visible: ->(user) { RailsDrivers.loaded.include?(:superset) && Superset.available_to_user?(user) },
-      path: Superset.warehouse_login_url,
+      path: Superset.warehouse_login_url(user),
       title: Translation.translate('OP Analytics'),
       id: 'superset',
       target: :_blank,
