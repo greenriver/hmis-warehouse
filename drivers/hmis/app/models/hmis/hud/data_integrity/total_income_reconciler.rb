@@ -10,13 +10,15 @@
 # and on imported data.
 # Calculates expected total from individual income sources and auto-corrects mismatches.
 #
-# todo @martha - logging and transactional safety
-#
-# Two entrypoints:
+# Entrypoints:
 #   - #call(record): reconcile a single IncomeBenefit(-like) record in memory.
 #     Returns `messages` indicating the changes made.
+#     Used by the frontend save path (Hmis::Hud::CustomAssessment#data_integrity_reconciliation)
+#     as a secondary guard (frontend validations should already prevent discrepancies).
 #   - .fill_missing_totals!: batch entrypoint that fills in missing TotalMonthlyIncome
-#     across a scope of records, persists the changes, and logs messages.
+#     across a scope of records, persists the changes, and logs messages. Used by:
+#       - an opt-in ImporterExtension
+#       - console cleanup
 #
 class Hmis::Hud::DataIntegrity::TotalIncomeReconciler < Hmis::Hud::DataIntegrity::BaseReconciler
   # [[:Alimony, :AlimonyAmount], ...]
@@ -68,8 +70,8 @@ class Hmis::Hud::DataIntegrity::TotalIncomeReconciler < Hmis::Hud::DataIntegrity
     missing_scope(scope).in_batches(of: BATCH_SIZE) do |batch|
       changed = []
       batch.each do |record|
-        # todo @martha - refer to messages instead of checking changed?
-        call(record)
+        messages = call(record)
+        messages.each { |message| Rails.logger.info(message) }
 
         # Only persist records whose total was actually filled in
         next unless record.changed.include?('TotalMonthlyIncome')
@@ -79,7 +81,6 @@ class Hmis::Hud::DataIntegrity::TotalIncomeReconciler < Hmis::Hud::DataIntegrity
       end
       next if changed.empty?
 
-      # todo @martha - transactional safety and logging?
       persist!(changed)
       total_updated += changed.size
     end
