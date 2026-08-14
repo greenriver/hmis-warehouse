@@ -119,7 +119,7 @@ RSpec.describe GrdaWarehouse::WarehouseReports::DocumentExports::ClientLookupExp
   # export from a query string (rather than handing it a ready-made filter) is
   # deliberate: reconstructing the filter -- and `map_enrollments`, which travels
   # outside `known_params` -- is the most likely place for a silent regression.
-  def query_string_for(project_ids:, map_enrollments: false, data_source_ids: [source_ds.id], organization_ids: [], generated_on: Date.current)
+  def query_string_for(project_ids:, map_enrollments: false, data_source_ids: [source_ds.id], organization_ids: [], generated_at: Time.current)
     {
       report: {
         start: start_date,
@@ -128,7 +128,7 @@ RSpec.describe GrdaWarehouse::WarehouseReports::DocumentExports::ClientLookupExp
         organization_ids: organization_ids,
         data_source_ids: data_source_ids,
         map_enrollments: map_enrollments ? '1' : '0',
-        generated_on: generated_on.to_s,
+        generated_at: generated_at.strftime('%Y-%m-%dT%H'),
       },
     }.to_query
   end
@@ -768,7 +768,7 @@ RSpec.describe GrdaWarehouse::WarehouseReports::DocumentExports::ClientLookupExp
       expect(described_class.last.status).to eq(described_class::PENDING_STATUS)
     end
 
-    it 'reuses a completed export built the same day' do
+    it 'reuses a completed export built the same hour' do
       post_export
       completed = described_class.last
       completed.update!(status: described_class::COMPLETED_STATUS)
@@ -777,15 +777,14 @@ RSpec.describe GrdaWarehouse::WarehouseReports::DocumentExports::ClientLookupExp
       expect(response.parsed_body['downloadUrl']).to include(completed.id.to_s)
     end
 
-    # Guards the `generated_on` cache buster: without it the 8-hour reuse window would
-    # match a late-evening export the next morning, handing back a crosswalk built
-    # against the prior import.
-    it 'does not reuse a completed export carrying the previous day' do
+    # Guards the `generated_at` cache buster: without it the 8-hour reuse window would
+    # hand back a crosswalk built hours earlier, against an older import.
+    it 'does not reuse a completed export carrying an earlier hour' do
       post(
         document_exports_path,
         params: {
           type: described_class.name,
-          query_string: query_string_for(project_ids: [viewable_project.id], generated_on: Date.current - 1.day),
+          query_string: query_string_for(project_ids: [viewable_project.id], generated_at: Time.current - 1.hour),
         },
       )
       described_class.last.update!(status: described_class::COMPLETED_STATUS)

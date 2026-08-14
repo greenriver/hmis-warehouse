@@ -76,7 +76,7 @@ export default class extends Controller {
   queryString() {
     const params = this.fields().filter((field) => field.name.startsWith('report['))
     // cache bust so reports can be re-generated if the data changes.
-    params.push({ name: 'report[generated_on]', value: this.today() })
+    params.push({ name: 'report[generated_at]', value: this.currentHour() })
 
     return window.$.param(params)
   }
@@ -85,10 +85,10 @@ export default class extends Controller {
     return window.$(this.element).serializeArray()
   }
 
-  today() {
+  currentHour() {
     const now = new Date()
     const pad = (n) => String(n).padStart(2, '0')
 
-    return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`
+    return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}T${pad(now.getHours())}`
   }
 }
