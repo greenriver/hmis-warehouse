@@ -133,7 +133,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
         context 'with restricted clients on the page' do
           before do
-            Hmis::Ce::Referral.where(project: project).first(15).each do |referral|
+            project.ce_referrals.limit(15).each do |referral|
               referral.client.mark_as_restricted!(user: hmis_user)
             end
           end
