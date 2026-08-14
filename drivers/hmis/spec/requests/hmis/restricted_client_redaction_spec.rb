@@ -17,7 +17,22 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   # User has every permission except the ability to view restricted clients
   let!(:access_control) { create_access_control(hmis_user, p1, without_permission: :can_view_restricted_clients) }
 
-  before(:each) { hmis_login(user) }
+  let!(:phone) { create(:hmis_hud_custom_client_contact_point, client: client, data_source: ds1, system: 'phone', value: '5555555555') }
+  let!(:email) { create(:hmis_hud_custom_client_contact_point, client: client, data_source: ds1, system: 'email', value: 'client@e.mail') }
+  let!(:address) { create(:hmis_hud_custom_client_address, client: client, data_source: ds1) }
+  let!(:photo_blob) do
+    ActiveStorage::Blob.create_and_upload!(
+      io: File.open('drivers/hmis/spec/fixtures/files/client_photo_00001.jpg'),
+      filename: 'client_photo_00001.jpg',
+      content_type: 'image/jpeg',
+    )
+  end
+
+  before(:each) do
+    hmis_login(user)
+    client.build_client_headshot_file(photo_blob.signed_id, u1)
+    client.save!
+  end
 
   let(:query) do
     <<~GRAPHQL
@@ -34,11 +49,24 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             first
             last
           }
+          image {
+            id
+          }
+          phoneNumbers {
+            value
+          }
+          emailAddresses {
+            value
+          }
+          addresses {
+            line1
+          }
           access {
             canViewClientName
             canViewDob
             canViewPartialSsn
             canViewFullSsn
+            canViewClientPhoto
             canEditClient
           }
         }
@@ -67,6 +95,16 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         ),
       )
     end
+
+    it 'resolves photo and contact info' do
+      expect(resolve_client).to include(
+        'image' => a_hash_including('id' => be_present),
+        'phoneNumbers' => [{ 'value' => phone.value }],
+        'emailAddresses' => [{ 'value' => email.value }],
+        'addresses' => [{ 'line1' => address.line1 }],
+        'access' => a_hash_including('canViewClientPhoto' => true),
+      )
+    end
   end
 
   context 'when the client is restricted' do
@@ -84,12 +122,22 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       )
     end
 
+    it 'redacts photo and contact info' do
+      expect(resolve_client).to include(
+        'image' => nil,
+        'phoneNumbers' => [],
+        'emailAddresses' => [],
+        'addresses' => [],
+      )
+    end
+
     it 'reports the corresponding access fields as false' do
       expect(resolve_client['access']).to include(
         'canViewClientName' => false,
         'canViewDob' => false,
         'canViewPartialSsn' => false,
         'canViewFullSsn' => false,
+        'canViewClientPhoto' => false,
       )
     end
 
@@ -106,7 +154,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         'lastName' => client.last_name,
         'dob' => client.dob.strftime('%Y-%m-%d'),
         'ssn' => client.ssn,
-        'access' => a_hash_including('canViewClientName' => true, 'canViewDob' => true),
+        'image' => a_hash_including('id' => be_present),
+        'phoneNumbers' => [{ 'value' => phone.value }],
+        'access' => a_hash_including('canViewClientName' => true, 'canViewDob' => true, 'canViewClientPhoto' => true),
       )
     end
   end
