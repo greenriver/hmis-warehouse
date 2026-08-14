@@ -555,7 +555,7 @@ module Types
         household_size = en.household&.enrollments&.size || 0
         other_size = household_size - 1 # more than hoh
         desc = other_size.positive? ? "and #{other_size} #{'other'.pluralize(other_size)}" : ''
-        name = user.policy_for(client, policy_type: :hmis_client).pii_redacted? ? client.masked_name : client.brief_name
+        name = user.policy_for(client, policy_type: :hmis_client).can_view_name? ? client.brief_name : client.masked_name
         {
           code: en.id,
           label: "#{name} #{desc} (Entered #{en.entry_date.strftime('%m/%d/%Y')})",
