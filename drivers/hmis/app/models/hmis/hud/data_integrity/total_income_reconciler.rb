@@ -144,29 +144,15 @@ class Hmis::Hud::DataIntegrity::TotalIncomeReconciler < Hmis::Hud::DataIntegrity
   end
 
   def persist!(records)
-    # todo @martha - understand this better; it is from the cleanup util, should it be moved to a common place/concern?
-    without_papertrail_or_timestamps do
-      result = @model_class.import(
-        records,
-        validate: false,
-        timestamps: false,
-        on_duplicate_key_update: { # todo @martha -why are we worried about duplicate key updates? automated importer?
-          conflict_target: @conflict_target,
-          columns: update_columns,
-        },
-      )
-      raise "error: #{result.failed_instances.inspect}" if result.failed_instances.any?
-    end
-  end
-
-  def without_papertrail_or_timestamps
-    ActiveRecord::Base.record_timestamps = false
-    begin
-      PaperTrail.request(enabled: false) do
-        yield
-      end
-    ensure
-      ActiveRecord::Base.record_timestamps = true
-    end
+    result = @model_class.import( # import skips PaperTrail and timestamps
+      records,
+      validate: false,
+      timestamps: false,
+      on_duplicate_key_update: {
+        conflict_target: @conflict_target,
+        columns: update_columns,
+      },
+    )
+    raise "error: #{result.failed_instances.inspect}" if result.failed_instances.any?
   end
 end

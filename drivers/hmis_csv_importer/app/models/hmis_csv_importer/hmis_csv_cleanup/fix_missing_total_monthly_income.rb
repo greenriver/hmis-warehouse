@@ -16,7 +16,7 @@ module HmisCsvImporter::HmisCsvCleanup
     def cleanup!
       Hmis::Hud::DataIntegrity::TotalIncomeReconciler.new.fill_missing_totals!(
         scope: income_benefit_scope,
-        conflict_target: conflict_target(income_benefit_source), # todo @martha - understand this better
+        conflict_target: conflict_target(income_benefit_source),
       )
     end
 
