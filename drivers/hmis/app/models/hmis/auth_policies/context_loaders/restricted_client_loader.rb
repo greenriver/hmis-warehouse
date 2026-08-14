@@ -25,7 +25,7 @@ module Hmis::AuthPolicies::ContextLoaders
     end
 
     def preload(client_ids)
-      new_client_ids = client_ids.compact.uniq - @loaded_client_ids.to_a
+      new_client_ids = client_ids.compact.uniq.reject { |id| @loaded_client_ids.include?(id) }
       return if new_client_ids.empty?
 
       @loaded_client_ids.merge(new_client_ids)

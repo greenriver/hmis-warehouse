@@ -31,11 +31,15 @@ With that combination:
 
 ### Who can view a restricted client
 
-`can_view_restricted_clients` is a project-level permission that requires `can_view_clients`. A user may view a restricted client if they hold both permissions at **any project where the client is or was enrolled**. Clients with no enrollments fall back to the user's global (data-source-wide) permissions, matching how `Hmis::AuthPolicies::UserContext#client_permissions` and `Hmis::Hud::Client.visible_to` already treat unenrolled clients.
+`can_view_restricted_clients` is a project-level permission that requires `can_view_clients`. A user may view a restricted client if they hold both permissions at **any project where the client is or was enrolled**.
+
+**Restricted clients with no enrollments are treated as restricted for everyone**: they are hidden from search, and their PII is redacted, regardless of who is asking. There is no project through which the permission could be granted for such a client, so both `pii_redacted?` and `client_ids_hidden_from` skip the permission check entirely when the client has no enrollments.
+
+This is deliberately stricter than the rest of the permission system. `UserContext#client_permissions` normally falls back to the user's global (data-source-wide) permissions for unenrolled clients, which would let anyone holding `can_view_restricted_clients` at any one project find and read every unenrolled restricted client in the data source. Marking and unmarking still uses the normal fallback, so a user who restricts an unenrolled client can still unmark them, but will see their name masked while the restriction is in place.
 
 ### Excluded from search
 
-`Hmis::Hud::Client.searchable_to` drops restricted clients the user can't view. This covers both `clientSearch` and `clientOmniSearch`, including lookup by ID and by PersonalID, since those go through the same scope. `visible_to` is unchanged, so the `client(id:)` query and any navigation from an enrollment or project still resolves the record.
+`Hmis::Hud::Client.searchable_to` drops restricted clients the user can't find. This covers both `clientSearch` and `clientOmniSearch`, including lookup by ID and by PersonalID, since those go through the same scope. `visible_to` is unchanged, so the `client(id:)` query and any navigation from an enrollment or project still resolves the record.
 
 ### Redacted PII
 
@@ -46,7 +50,7 @@ With that combination:
 - Photo is not resolved, and contact info (addresses, phone numbers, email) returns empty.
 - The matching `access` booleans (`canViewClientName`, `canViewDob`, `canViewPartialSsn`, `canViewFullSsn`, `canViewClientPhoto`) return false, so the frontend renders these the same way it does for a user who simply lacks the permission.
 
-Client names resolved outside the `Client` type — CE referrals, CE referral source households, destination client names, and the outgoing-referral household picker — are masked the same way.
+Client names resolved outside the `Client` type are masked the same way (e.g. CE referrals, CE referral source households, destination client names, and the outgoing-referral household picker).
 
 Not redacted: `age`, alerts, and any associated records to the client that the user otherwise has permission to view (e.g. enrollments, assessments, files).
 

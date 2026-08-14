@@ -151,8 +151,14 @@ RSpec.describe Hmis::Hud::Client, type: :model do
         expect(Hmis::Hud::Client.searchable_to(user_with_access_to_p1_clients)).to contain_exactly(client_at_p1)
       end
 
-      it 'includes them for users with can_view_restricted_clients anywhere in the data source' do
-        expect(Hmis::Hud::Client.searchable_to(user_who_can_view_restricted_at_p1)).to contain_exactly(client_at_p1, unenrolled_client)
+      # There is no project through which can_view_restricted_clients could be granted for this client,
+      # so nobody can find them in search, even a user who holds the permission elsewhere.
+      it 'omits them even for users with can_view_restricted_clients at a project' do
+        expect(Hmis::Hud::Client.searchable_to(user_who_can_view_restricted_at_p1)).to contain_exactly(client_at_p1)
+      end
+
+      it 'still includes them in viewable_by, so they remain reachable by direct link' do
+        expect(Hmis::Hud::Client.viewable_by(user_who_can_view_restricted_at_p1)).to include(unenrolled_client)
       end
     end
   end

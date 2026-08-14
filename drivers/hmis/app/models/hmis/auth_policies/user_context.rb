@@ -124,6 +124,11 @@ class Hmis::AuthPolicies::UserContext
     restricted_client_loader.clear_cache!
   end
 
+  # Whether the client is unenrolled, i.e. has no enrollments in the current data source.
+  def unenrolled_client_id?(client_id)
+    client_project_loader.get(client_id).empty?
+  end
+
   # Client permissions are based on the user's permissions at projects they are enrolled in.
   # If they have no enrollments, it's based on the user's global permissions.
   def client_permissions(client_id)

@@ -36,7 +36,13 @@ class Hmis::AuthPolicies::HmisClientPolicy < Hmis::AuthPolicies::ResourcePolicy
     # viewable and editable, and only the PII predicates below (name, DOB, SSN, photo, and contact info) are affected.
     # See docs/features/hmis/hmis-restricted-records.md for more details.
     def pii_redacted?
-      context.client_restricted?(resource.id) && !can_view_restricted_clients?
+      # don't redact if the client is not restricted
+      return false unless context.client_restricted?(resource.id)
+      # always redact unenrolled restricted clients (stricter than the global fallback,
+      # which would allow any user with can_view_restricted_clients _anywhere_ to view them)
+      return true if unenrolled_client?
+
+      !can_view_restricted_clients? # redact if the user can't view restricted clients
     end
 
     def can_view_name?
@@ -124,6 +130,11 @@ class Hmis::AuthPolicies::HmisClientPolicy < Hmis::AuthPolicies::ResourcePolicy
     # Get permissions for the specific client instance, based on the projects they are enrolled in
     memoize def client_permissions
       context.client_permissions(resource.id)
+    end
+
+    # Whether the client is unenrolled, i.e. has no enrollments in the current data source.
+    memoize def unenrolled_client?
+      context.unenrolled_client_id?(resource.id)
     end
   end
 

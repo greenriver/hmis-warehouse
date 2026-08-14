@@ -76,7 +76,7 @@ module Types
       client = hoh_member&.client
       return unless client
 
-      client_pii_redacted?(client) ? client.masked_name : client.brief_name
+      policy_for(client, policy_type: :hmis_client).can_view_name? ? client.brief_name : client.masked_name
     end
 
     def hoh_mci_id

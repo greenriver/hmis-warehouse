@@ -64,8 +64,17 @@ class Hmis::RestrictedRecord < Hmis::HmisBase
     client_ids = for_clients.where(data_source_id: user.hmis_data_source_id).pluck(:restrictable_id)
     return [] if client_ids.empty?
 
-    user.policy_context.preload_client_dependencies(client_ids)
-    client_ids.reject { |id| user.policy_context.client_permissions(id).include?(:can_view_restricted_clients) }
+    context = user.policy_context
+    context.preload_client_dependencies(client_ids)
+    client_ids.reject do |id|
+      # Mirrors HmisClientPolicy::Instance#pii_redacted?. Unenrolled restricted clients are hidden from
+      # everyone, because there is no project through which can_view_restricted_clients could be
+      # granted for them. Skipping the permission check here also skips the permissive
+      # global-permission fallback that #client_permissions applies to unenrolled clients.
+      next false if context.unenrolled_client_id?(id)
+
+      context.client_permissions(id).include?(:can_view_restricted_clients)
+    end
   end
 
   private def restrictable_data_source_matches

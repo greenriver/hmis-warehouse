@@ -156,12 +156,15 @@ module Types
     end
 
     def client
-      load_ar_client_scope(scope: Hmis::Hud::Client.viewable_by(current_user), id: object.client_id)
+      client = load_ar_client_association(object)
+      client if policy_for(client, policy_type: :hmis_client).can_view?
     end
 
     def client_name
       c = load_ar_client_association(object)
-      return c.masked_name if client_pii_redacted?(c)
+      client_policy = policy_for(c, policy_type: :hmis_client)
+      # if this is a restricted client that the user can't view, return the masked name
+      return c.masked_name if client_policy.pii_redacted?
 
       # This is a summary field. If the current user can view the referral, always return the client name
       # (even if the current user can't otherwise view that client), UNLESS the user doesn't have permission to view client names in general.
@@ -174,11 +177,7 @@ module Types
       end
 
       # Otherwise if the current user can only view the referral summary, only return the client name if permissioned
-      viewable_client = load_ar_client_scope(scope: Hmis::Hud::Client.viewable_by(current_user), id: c.id)
-      return c.masked_name unless viewable_client
-      return c.masked_name unless current_permission?(permission: :can_view_client_name, entity: viewable_client)
-
-      viewable_client.brief_name.presence || viewable_client.masked_name
+      client_policy.can_view_name? ? c.brief_name : c.masked_name
     end
 
     # NOTE: This field intentionally does not check can_view_clients

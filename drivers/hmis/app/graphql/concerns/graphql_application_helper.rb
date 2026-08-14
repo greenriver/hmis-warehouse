@@ -91,13 +91,6 @@ module GraphqlApplicationHelper
     end.min_by { |e| [e.entry_date, e.id] }
   end
 
-  # A restricted client stays reachable by direct link or from a project where they're enrolled, but
-  # their identifying details are redacted unless the user can view restricted clients.
-  # See docs/features/hmis/hmis-restricted-records.md
-  def client_pii_redacted?(client)
-    policy_for(client, policy_type: :hmis_client).pii_redacted?
-  end
-
   # Resolves the name of a destination client conservatively.
   # It checks if the current user has permission to view the client name
   # on any of the destination client's HMIS source clients (for the current HMIS data source).

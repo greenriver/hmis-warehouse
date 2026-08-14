@@ -300,6 +300,44 @@ RSpec.describe Hmis::AuthPolicies::HmisClientPolicy, type: :model do
                       :can_view_enrollment_details,
                       [:can_view_clients, :can_view_project]
     end
+
+    describe 'PII predicates when the client is restricted' do
+      let!(:restricted_record) { client.mark_as_restricted!(user: user) }
+
+      context 'when the user can view restricted clients at the enrolled project' do
+        let!(:access_control) do
+          create_access_control(
+            user,
+            project,
+            with_permission: [:can_view_clients, :can_view_restricted_clients, :can_view_client_name, :can_view_client_photo, :can_view_client_contact_info],
+          )
+        end
+
+        it 'is not redacted' do
+          expect(policy.pii_redacted?).to be false
+          expect(policy.can_view_name?).to be true
+          expect(policy.can_view_photo?).to be true
+          expect(policy.can_view_contact_info?).to be true
+        end
+      end
+
+      context 'when the user cannot view restricted clients at the enrolled project' do
+        let!(:access_control) do
+          create_access_control(
+            user,
+            project,
+            with_permission: [:can_view_clients, :can_view_client_name, :can_view_client_photo, :can_view_client_contact_info],
+          )
+        end
+
+        it 'is redacted, including photo and contact info' do
+          expect(policy.pii_redacted?).to be true
+          expect(policy.can_view_name?).to be false
+          expect(policy.can_view_photo?).to be false
+          expect(policy.can_view_contact_info?).to be false
+        end
+      end
+    end
   end
 
   context 'when client has no enrollments' do
@@ -327,41 +365,28 @@ RSpec.describe Hmis::AuthPolicies::HmisClientPolicy, type: :model do
       end
     end
 
+    # There is no project through which can_view_restricted_clients could be granted for an unenrolled
+    # client, so the permissive global-permission fallback is deliberately not applied to restriction.
     describe 'PII predicates when the client is restricted' do
       let!(:restricted_record) { client.mark_as_restricted!(user: user) }
-
-      context 'when the user can view restricted clients at an enrolled project' do
-        let!(:access_control) do
-          create_access_control(
-            user,
-            project,
-            with_permission: [:can_view_clients, :can_view_restricted_clients, :can_view_client_name, :can_view_client_photo, :can_view_client_contact_info],
-          )
-        end
-
-        it 'is not redacted' do
-          expect(policy.pii_redacted?).to be false
-          expect(policy.can_view_name?).to be true
-          expect(policy.can_view_photo?).to be true
-          expect(policy.can_view_contact_info?).to be true
-        end
+      let!(:access_control) do
+        create_access_control(
+          user,
+          project,
+          with_permission: [:can_view_clients, :can_view_restricted_clients, :can_view_client_name, :can_view_client_photo, :can_view_client_contact_info],
+        )
       end
 
-      context 'when the user cannot view restricted clients at an enrolled project' do
-        let!(:access_control) do
-          create_access_control(
-            user,
-            project,
-            with_permission: [:can_view_clients, :can_view_client_name, :can_view_client_photo, :can_view_client_contact_info],
-          )
-        end
+      it 'is redacted even though the user can view restricted clients elsewhere' do
+        expect(policy.pii_redacted?).to be true
+        expect(policy.can_view_name?).to be false
+        expect(policy.can_view_photo?).to be false
+        expect(policy.can_view_contact_info?).to be false
+      end
 
-        it 'is redacted, including photo and contact info' do
-          expect(policy.pii_redacted?).to be true
-          expect(policy.can_view_name?).to be false
-          expect(policy.can_view_photo?).to be false
-          expect(policy.can_view_contact_info?).to be false
-        end
+      it 'does not restrict unrelated permissions, so the client can still be unmarked' do
+        expect(policy.can_view?).to be true
+        expect(policy.can_mark_restricted?).to be false # requires can_mark_clients_as_restricted
       end
     end
   end
