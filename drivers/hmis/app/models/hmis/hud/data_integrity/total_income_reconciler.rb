@@ -10,40 +10,9 @@
 # and on imported data.
 # Calculates expected total from individual income sources and auto-corrects mismatches.
 #
-# Entrypoints:
-#   - #call(record): reconcile a single IncomeBenefit(-like) record in memory.
-#     Returns `messages` indicating the changes made.
-#     Used by the frontend save path (Hmis::Hud::CustomAssessment#data_integrity_reconciliation)
-#     as a secondary guard (frontend validations should already prevent discrepancies).
-#   - .fill_missing_totals!: batch entrypoint that fills in missing TotalMonthlyIncome
-#     across a scope of records, persists the changes, and logs messages. Used by:
-#       - an opt-in ImporterExtension
-#       - console cleanup
-#
 class Hmis::Hud::DataIntegrity::TotalIncomeReconciler < Hmis::Hud::DataIntegrity::BaseReconciler
   # [[:Alimony, :AlimonyAmount], ...]
   INCOME_SOURCES = GrdaWarehouse::Hud::IncomeBenefit::SOURCES.to_a.freeze
-  BATCH_SIZE = 1_000
-
-  # Batch entrypoint. Fills in TotalMonthlyIncome on IncomeBenefit records that indicate
-  # income (IncomeFromAnySource = 1) but are missing a total, by summing the individual income source amounts.
-  #
-  # This can be run from the console as a one-time cleanup, and also powers the opt-in CSV importer cleanup
-  # (HmisCsvImporter::HmisCsvCleanup::FixMissingTotalMonthlyIncome). It owns missing-only selection, batching,
-  # reconciliation, changed-only filtering, source_hash refresh (when the record supports it) and bulk persistence.
-  #
-  # Console usage (operates on HMIS IncomeBenefits in a data source):
-  #   Hmis::Hud::DataIntegrity::TotalIncomeReconciler.fill_missing_totals!(data_source_id: ds_id)
-  #
-  # Callers that already have an explicit scope (e.g. versioned importer staging) should build the reconciler
-  # and call the instance method directly, e.g.:
-  #   new.fill_missing_totals!(scope: staging_scope, conflict_target: [:id, :importer_log_id])
-  #
-  # @param data_source_id [Integer] restrict to HMIS IncomeBenefits in this data source.
-  # @return [Integer] number of records that were updated
-  def self.fill_missing_totals!(data_source_id:)
-    new.fill_missing_totals!(scope: Hmis::Hud::IncomeBenefit.hmis.where(data_source_id: data_source_id))
-  end
 
   # @param record [Hmis::Hud::IncomeBenefit, GrdaWarehouse::Hud::Base] an IncomeBenefit record. May be a
   #   versioned CSV importer staging record, so we access HUD fields by their CamelCase names rather than
@@ -59,34 +28,6 @@ class Hmis::Hud::DataIntegrity::TotalIncomeReconciler < Hmis::Hud::DataIntegrity
     end
 
     format_messages(record, @messages)
-  end
-
-  # @return [Integer] number of records that were updated
-  def fill_missing_totals!(scope:, conflict_target: [:id])
-    @model_class = scope.klass
-    @conflict_target = conflict_target
-    total_updated = 0
-
-    missing_scope(scope).in_batches(of: BATCH_SIZE) do |batch|
-      changed = []
-      batch.each do |record|
-        messages = call(record)
-        messages.each { |message| Rails.logger.info(message) }
-
-        # Only persist records whose total was actually filled in
-        next unless record.changed.include?('TotalMonthlyIncome')
-
-        record.set_source_hash if record.respond_to?(:set_source_hash)
-        changed << record
-      end
-      next if changed.empty?
-
-      persist!(changed)
-      total_updated += changed.size
-    end
-
-    Rails.logger.info "Filled TotalMonthlyIncome on #{total_updated} IncomeBenefit records"
-    total_updated
   end
 
   protected
@@ -128,32 +69,5 @@ class Hmis::Hud::DataIntegrity::TotalIncomeReconciler < Hmis::Hud::DataIntegrity
   def report(record, message)
     tag = "#{record.class.name}##{record.id}"
     @messages << "#{tag}: #{message}"
-  end
-
-  private
-
-  # IncomeBenefits that indicate income but are missing a total
-  def missing_scope(scope)
-    scope.where(IncomeFromAnySource: 1, TotalMonthlyIncome: nil)
-  end
-
-  # Only refresh source_hash on records that support it (versioned CSV importer staging records)
-  def update_columns
-    columns = [:TotalMonthlyIncome]
-    columns << :source_hash if @model_class.column_names.include?('source_hash')
-    columns
-  end
-
-  def persist!(records)
-    result = @model_class.import( # import skips PaperTrail and timestamps
-      records,
-      validate: false,
-      timestamps: false,
-      on_duplicate_key_update: {
-        conflict_target: @conflict_target,
-        columns: update_columns,
-      },
-    )
-    raise "error: #{result.failed_instances.inspect}" if result.failed_instances.any?
   end
 end
