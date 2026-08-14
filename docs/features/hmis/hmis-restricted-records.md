@@ -31,9 +31,9 @@ With that combination:
 
 ### Who can view a restricted client
 
-`can_view_restricted_clients` is a project-level permission that requires `can_view_clients`. A user may view a restricted client if they hold both permissions at **any project where the client is or was enrolled**.
+`can_view_restricted_clients` is a project-level permission that requires `can_view_clients`. A user may view a restricted client if they hold both permissions at **any project where the client is or was enrolled**. `HmisClientPolicy::Instance#can_view_restricted_clients?` is the single definition of this rule, and both search exclusion and PII redaction are derived from it.
 
-**Restricted clients with no enrollments are treated as restricted for everyone**: they are hidden from search, and their PII is redacted, regardless of who is asking. There is no project through which the permission could be granted for such a client, so both `pii_redacted?` and `client_ids_hidden_from` skip the permission check entirely when the client has no enrollments.
+**Restricted clients with no enrollments are treated as restricted for everyone**: they are hidden from search, and their PII is redacted, regardless of who is asking. There is no project through which the permission could be granted for such a client, so the predicate returns false for them without consulting permissions at all.
 
 This is deliberately stricter than the rest of the permission system. `UserContext#client_permissions` normally falls back to the user's global (data-source-wide) permissions for unenrolled clients, which would let anyone holding `can_view_restricted_clients` at any one project find and read every unenrolled restricted client in the data source. Marking and unmarking still uses the normal fallback, so a user who restricts an unenrolled client can still unmark them, but will see their name masked while the restriction is in place.
 
@@ -43,7 +43,7 @@ This is deliberately stricter than the rest of the permission system. `UserConte
 
 ### Redacted PII
 
-`HmisClientPolicy::Instance#pii_redacted?` is the single definition of "restricted and hidden from this user". The PII predicates on that policy (e.g. `can_view_name?`) each combine it with the underlying permission, so callers ask one question rather than two. When a restricted client is resolved by a user without the permission:
+`HmisClientPolicy::Instance#pii_redacted?` combines the client's restriction status with `can_view_restricted_clients?` above. The PII predicates on that policy (e.g. `can_view_name?`) each fold it into the underlying permission, so callers ask one question rather than two. When a restricted client is resolved by a user without the permission:
 
 - Name is masked. `firstName` returns `Client <id>`, the other name parts return null, and `names` returns a single masked entry.
 - `dob` and `ssn` return null.

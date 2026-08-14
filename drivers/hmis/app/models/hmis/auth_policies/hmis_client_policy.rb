@@ -24,10 +24,17 @@ class Hmis::AuthPolicies::HmisClientPolicy < Hmis::AuthPolicies::ResourcePolicy
       client_permissions.include?(:can_mark_clients_as_restricted)
     end
 
-    # Whether the user may see a restricted client's PII, resolved from the projects where the client
-    # is or was enrolled (or their global permissions, when the client has no enrollments).
-    # Only meaningful for clients that are actually restricted.
+    # Whether the user may find this client in search and see their PII, if they are restricted.
+    # Resolved from the projects where the client is or was enrolled. Only meaningful for clients that
+    # are actually restricted.
+    # Mirrors Hmis::RestrictedRecord.client_ids_hidden_from.
     def can_view_restricted_clients?
+      # An unenrolled client has no project through which the permission could be granted, so nobody
+      # can view them. Deliberately stricter than #client_permissions, which falls back to global
+      # permissions for unenrolled clients: that fallback would let anyone holding the permission at
+      # any one project see every unenrolled restricted client in the data source.
+      return false if unenrolled_client?
+
       client_permissions.include?(:can_view_restricted_clients)
     end
 
@@ -36,13 +43,7 @@ class Hmis::AuthPolicies::HmisClientPolicy < Hmis::AuthPolicies::ResourcePolicy
     # viewable and editable, and only the PII predicates below (name, DOB, SSN, photo, and contact info) are affected.
     # See docs/features/hmis/hmis-restricted-records.md for more details.
     def pii_redacted?
-      # don't redact if the client is not restricted
-      return false unless context.client_restricted?(resource.id)
-      # always redact unenrolled restricted clients (stricter than the global fallback,
-      # which would allow any user with can_view_restricted_clients _anywhere_ to view them)
-      return true if unenrolled_client?
-
-      !can_view_restricted_clients? # redact if the user can't view restricted clients
+      context.client_restricted?(resource.id) && !can_view_restricted_clients?
     end
 
     def can_view_name?
