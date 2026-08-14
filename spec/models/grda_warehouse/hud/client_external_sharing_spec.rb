@@ -115,7 +115,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, '#merge_from and #split external data
     end
 
     def new_dest_after_split(reviewer)
-      split_dest.split([split_source.id], reviewer)
+      split_dest.split([split_source.id], nil, [], reviewer)
       new_wc = GrdaWarehouse::WarehouseClient.where(source_id: split_source.id).first
       GrdaWarehouse::Hud::Client.find_by(id: new_wc&.destination_id)
     end

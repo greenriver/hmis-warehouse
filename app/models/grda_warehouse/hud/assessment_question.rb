@@ -83,6 +83,10 @@ module GrdaWarehouse::Hud
       self.AssessmentQuestion.to_s == 'c_housing_assessment_name' && human_readable.in?(self.class.pathways_titles)
     end
 
+    def transfer?
+      self.AssessmentQuestion.to_s == 'c_housing_assessment_name' && human_readable.in?(self.class.transfer_titles)
+    end
+
     def self.pathways_titles
       [
         'Pathways',

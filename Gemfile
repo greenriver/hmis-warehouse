@@ -93,25 +93,30 @@ gem 'marcel'
 gem 'acts-as-taggable-on', '~> 13.0' # major bump for rails 8.1 (AR < 8.2); tagging behavior to verify manually (Release notes: https://github.com/mbleigh/acts-as-taggable-on/blob/master/CHANGELOG.md indicate no breaking changes)
 # gem 'seven_zip_ruby' unless ENV['NO_7ZIP'] == '1'
 
-gem 'devise', '~> 5.0'
-gem 'devise_invitable', '~> 2.0.9'
-gem 'devise-pwned_password'
-gem 'devise-security'
-gem 'devise-two-factor', '~> 6.4' # 6.x is rails-8-compatible; legacy otp secrets read via User#legacy_otp_secret
+# Bundler.require in config/application.rb takes this group only on the Devise arm, so a JWT-arm
+# reference to Devise or Warden raises at boot instead of resolving against a gem that loaded
+# anyway. A Devise-dependent gem added outside this group silences that signal.
+group :devise do
+  gem 'devise', '~> 5.0'
+  gem 'devise_invitable', '~> 2.0.9'
+  gem 'devise-pwned_password'
+  gem 'devise-security'
+  gem 'devise-two-factor', '~> 6.4' # 6.x is rails-8-compatible; legacy otp secrets read via User#legacy_otp_secret
+  gem 'doorkeeper'
+  gem 'omniauth', '~> 2.1'
+  gem 'omniauth-oauth2', '~> 1.7.3'
+  gem 'omniauth-rails_csrf_protection', '~> 2.0' # 2.x drops ActiveSupport::Configurable (deprecated in rails 8.1, removed 8.2)
+  gem 'pretender'
+  gem 'rqrcode'
+  gem 'authtrail' # for logging login attempts
+end
+
 gem 'rack-cors'
-gem 'doorkeeper'
 
 gem 'jwt', '~> 3.1' # Validates IdP-issued JWT access tokens
-gem 'omniauth', '~> 2.1'
-gem 'omniauth-oauth2', '~> 1.7.3'
-gem 'omniauth-rails_csrf_protection', '~> 2.0' # 2.x drops ActiveSupport::Configurable (deprecated in rails 8.1, removed 8.2)
 gem 'faraday', '~> 2.2'
 gem 'oauth2', '>= 2.0.22'
 
-gem 'pretender'
-gem 'rqrcode'
-
-gem 'authtrail' # for logging login attempts
 gem 'maxminddb' # for local geocoding of login attempts
 gem 'geocoder'
 

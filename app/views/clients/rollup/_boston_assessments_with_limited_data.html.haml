@@ -1,0 +1,62 @@
+- hmis_form_columms = (GrdaWarehouse::HmisForm.column_names - ['api_response', 'answers']).map(&:to_sym)
+- hmis_forms = @client.source_non_confidential_hmis_forms.select(*hmis_form_columms)&.sort&.group_by(&:assessment_type)
+- ce_assessments = []
+- if GrdaWarehouse::Config.get(:client_dashboard).to_s == 'boston' && can_view_limited_client_dashboard?
+  - ce_assessments = @client.source_assessments.order(AssessmentDate: :desc).preload(:user, assessment_questions: :lookup).to_a
+- if hmis_forms.any? || ce_assessments.any?
+  - if hmis_forms.any?
+    %table.table
+      %thead
+        %tr
+          %th Assessment Type
+          %th Collection Date
+          %th Location
+          %th Staff
+          %th.zero-width
+      %tbody
+        - any_buttons = hmis_forms.values.any?(&:many?)
+        - hmis_forms.each_with_index do |(type, (form, *rest)), i|
+          - cz = "assessment_type_#{i}"
+          %tr{ class: ( 'assessment__new-type' if any_buttons )}
+            %td= form.assessment_type
+            %td= form.collected_at.to_date
+            %td= GrdaWarehouse::Hud::Project.confidentialize_by_name_only(name: form.collection_location)
+            %td= form.staff
+            %td.zero-width
+              - if rest.any?
+                %a.btn.btn-secondary.btn-xs.jAssessmentTypeToggle{ href: '#', data: { class: cz } }
+                  %span.icon-plus
+          - rest.each do |form|
+            %tr{ class: cz, style: 'display:none;' }
+              %td= form.assessment_type
+              %td= form.collected_at.to_date
+              %td= GrdaWarehouse::Hud::Project.confidentialize_by_name_only(name: form.collection_location)
+              %td= form.staff
+  - if ce_assessments.any?
+    %table.table
+      %thead
+        %tr
+          %th Assessment Type
+          %th Collection Date
+          %th Staff
+          %th
+      %tbody
+        - ce_assessments.group_by(&:name).each_with_index do |(name, (assessment, *assessments)), i|
+          - any_buttons = assessments.any?
+          - cz = "assessment_type_#{i}"
+          %tr{ class: ( 'assessment__new-type' if any_buttons )}
+            %td= link_to_if assessment.pathways_or_transfer?, name, client_coordinated_entry_hud_assessment_path(@client, assessment), class: 'btn btn-primary btn-muted btn-xs', data: { loads_in_pjax_modal: true }
+            %td= assessment.AssessmentDate
+            %td= assessment.user&.name
+            %td.zero-width
+              - if any_buttons
+                %a.btn.btn-secondary.btn-xs.btn-icon-only.jAssessmentTypeToggle{ href: '#', data: { class: cz } }
+                  %span.icon-plus
+          - assessments.each do |assessment|
+            %tr{ class: cz, style: 'display:none;' }
+              %td= link_to_if assessment.pathways_or_transfer?, name, client_coordinated_entry_hud_assessment_path(@client, assessment), class: 'btn btn-primary btn-muted btn-xs', data: { loads_in_pjax_modal: true }
+              %td= assessment.AssessmentDate
+              %td= assessment.user&.name
+- else
+  .no-data
+    No assessments on file

@@ -8,7 +8,7 @@
 
 require 'rails_helper'
 
-RSpec.describe Idp::JwtUser, type: :model do
+RSpec.describe Idp::JwtUser, :jwt_only, type: :model do
   let(:user) { create(:user) }
   let(:jwt_helper) do
     instance_double(
@@ -155,6 +155,59 @@ RSpec.describe Idp::JwtUser, type: :model do
         expect(deleted.deleted_at).to be_present
         expect(live.id).not_to eq(deleted.id)
       end
+    end
+
+    context 'when the user already has a live link for this connector under a different id' do
+      # e.g. the upstream account was deleted and recreated with a new subject.
+      before do
+        user.user_authentication_sources.create!(
+          connector_id: 'test-idp',
+          connector_user_id: 'ext-user-stale',
+        )
+      end
+
+      it 'supersedes the stale link with the token identity' do
+        result = User.find_or_create_from_jwt(jwt_helper)
+        expect(result).to eq(user)
+
+        live = user.user_authentication_sources.where(connector_id: 'test-idp')
+        expect(live.pluck(:connector_user_id)).to contain_exactly('ext-user-1')
+
+        stale = Idp::UserAuthenticationSource.only_deleted.find_by(connector_id: 'test-idp', connector_user_id: 'ext-user-stale')
+        expect(stale.deleted_at).to be_present
+      end
+
+      it 'leaves a live link for a different connector untouched' do
+        user.user_authentication_sources.create!(connector_id: 'other-idp', connector_user_id: 'ext-user-stale')
+
+        User.find_or_create_from_jwt(jwt_helper)
+
+        expect(user.user_authentication_sources.where(connector_id: 'other-idp', connector_user_id: 'ext-user-stale')).to exist
+      end
+
+      it 'alerts engineering via Sentry that the token disagreed with the stored link' do
+        allow(Sentry).to receive(:initialized?).and_return(true)
+        expect(Sentry).to receive(:capture_message).with(
+          /identity disagreement/,
+          hash_including(
+            level: :warning,
+            extra: hash_including(
+              user_id: user.id,
+              connector_id: 'test-idp',
+              token_connector_user_id: 'ext-user-1',
+              superseded_connector_user_ids: ['ext-user-stale'],
+            ),
+          ),
+        )
+
+        User.find_or_create_from_jwt(jwt_helper)
+      end
+    end
+
+    it 'does not alert on an ordinary first-login link (no disagreement)' do
+      expect(Sentry).not_to receive(:capture_message)
+      User.find_or_create_from_jwt(jwt_helper)
+      expect(user.user_authentication_sources.pluck(:connector_user_id)).to eq(['ext-user-1'])
     end
   end
 end

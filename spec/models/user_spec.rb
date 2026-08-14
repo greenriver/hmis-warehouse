@@ -22,7 +22,7 @@ RSpec.describe User, type: :model do
     end
   end
 
-  describe 'invitation handling' do
+  describe 'invitation handling', :devise_only do
     context 'when user has an outstanding invitation' do
       before do
         User.invite!({ email: 'unconfirmed@example.com', first_name: 'Unconfirmed', last_name: 'User', agency_id: agency.id }, User.system_user)
@@ -253,7 +253,7 @@ RSpec.describe User, type: :model do
   # The app previously carried a monkey patch (DeviseUserPatch) working around this on
   # Devise 4; Devise 5.0.4 fixes it natively, so the patch was removed. This spec confirms
   # the native behavior still holds.
-  describe 'CVE-2026-32700 - confirmation token/unconfirmed_email sync' do
+  describe 'CVE-2026-32700 - confirmation token/unconfirmed_email sync', :devise_only do
     it 'prevents desync when a concurrent request modifies unconfirmed_email mid-flight' do
       attacker_email = 'attacker@example.com'
       victim_email   = 'victim@example.com'
@@ -281,7 +281,7 @@ RSpec.describe User, type: :model do
     end
   end
 
-  describe 'devise-security password_archivable' do
+  describe 'devise-security password_archivable', :devise_only do
     around do |example|
       original = Devise.deny_old_passwords
       Devise.deny_old_passwords = 2
@@ -329,7 +329,7 @@ RSpec.describe User, type: :model do
     end
   end
 
-  describe 'devise-security expirable' do
+  describe 'devise-security expirable', :devise_only do
     let(:user) { create(:user) }
 
     it 'is active when recently active' do
@@ -362,7 +362,7 @@ RSpec.describe User, type: :model do
     end
   end
 
-  describe 'devise-security secure_validatable password complexity' do
+  describe 'devise-security secure_validatable password complexity', :devise_only do
     around do |example|
       original = Devise.password_complexity
       Devise.password_complexity = { digit: 1, lower: 1, upper: 1, symbol: 1 }

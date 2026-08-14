@@ -9,6 +9,8 @@
 class Hmis::ProjectConfig < Hmis::HmisBase
   self.table_name = 'hmis_project_configs'
 
+  acts_as_paranoid
+
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
   belongs_to :project, optional: true, class_name: 'Hmis::Hud::Project'
   belongs_to :organization, optional: true, class_name: 'Hmis::Hud::Organization'
@@ -89,10 +91,6 @@ class Hmis::ProjectConfig < Hmis::HmisBase
     )
   end
 
-  scope :active, -> do
-    where(enabled: true)
-  end
-
   # Filter by GraphQL config type (eg 'AUTO_ENTER', 'AUTO_EXIT', etc.)
   scope :with_config_type, ->(config_type) do
     types = Array.wrap(config_type).map do |type|
@@ -110,7 +108,7 @@ class Hmis::ProjectConfig < Hmis::HmisBase
   end
 
   def self.detect_best_config_for_project(project)
-    configs = for_project(project).active
+    configs = for_project(project)
     return unless configs.exists?
 
     # Selects the most specific rule that applies. The specificity order is Project > Org > ProjectType, so rules that

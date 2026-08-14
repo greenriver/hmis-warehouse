@@ -2,67 +2,85 @@
   .popover {
     max-width: 480px;
   }
-%h3 Data Sources
-%p
-  Data for this record comes from the following data sources. Use this form to split clients into their own separate records or merge in data from a different client record.
-.row
-  .col-sm-12
-    - if @client.source_clients.count > 1
-      - input_id = "grda_warehouse_hud_client[unmerge][]"
-      = simple_form_for @client, url: unmerge_client_path do |f|
-        :ruby
-          source_clients = @client.source_clients.preload(
-            :data_source,
-            warehouse_client_source: {
-              client_match: {
-                source_client: :data_source,
-                destination_client: :data_source,
-              }
-            }
-          ).order('warehouse_clients.updated_at asc')
-          reviewers = User.where(id: source_clients.flat_map{|c| c.warehouse_client_source.reviewd_by.to_i}.uniq).index_by(&:id)
-        .card
-          %table.table.table-striped
-            %thead
-              %th
-              %th Data Source
-              %th Personal ID
-              %th Name
-              %th DOB/Age
-              %th SSN
-              %th Merged
-              %th Merged By
-            %tbody
-              - source_clients.each do |c|
-                - pii = c.pii_provider(user: current_user)
-                %tr
-                  %td.jSplit= f.input_field :merge, as: :boolean, checked_value: c.id, unchecked_value: nil, name: input_id
-                  %td= c.data_source&.short_name
-                  %td= c.uuid
-                  %td= pii.full_name
-                  %td= pii.dob_or_age
-                  %td= pii.ssn
-                  %td= c.warehouse_client_source.reviewed_at
-                  %td
-                    - if (user = reviewers[c.warehouse_client_source.reviewd_by.to_i])
-                      = user.name
 
-                    - if (match = c.warehouse_client_source.client_match)
-                      %button.btn.btn-secondary.btn-xs.mt-2{type: :button, data: { 'bs-toggle' => :popover, trigger: :click, title: 'Match Details', html: :true, content: "#{client_match_scorecard(match)}"}}
-                        Match Details
+- if @client.active_source_clients.size > 1
 
-        .form-actions
-          = f.button :submit, "Split selected records from #{@client.pii_provider(user: current_user).full_name}", id: :splitButton, data: {confirm: "Are you sure you want to split #{@client.pii_provider(user: current_user).full_name}?"}
+  - input_id = "grda_warehouse_hud_client[unmerge][]"
+  - counts = @client.dependent_item_counts
+  = simple_form_for @client, url: unmerge_client_path, html: { data: { controller: 'unmerge-form' } } do |f|
+    :ruby
+      visible_source_clients = @client.active_source_clients.preload(
+        :data_source,
+        warehouse_client_source: {
+          client_match: {
+            source_client: :data_source,
+            destination_client: :data_source,
+          }
+        }
+      ).order('warehouse_clients.updated_at asc')
+      reviewers = User.where(id: visible_source_clients.flat_map { |c| c.warehouse_client_source.reviewd_by.to_i }.uniq).index_by(&:id)
+      item_categories = {
+        notes: 'Notes',
+        files: 'Files / ROIs',
+        vispdats: 'VI-SPDATs',
+        cohort_assignments: 'Cohort Assignments',
+        ce_assessments: 'CE Assessments',
+        custom_data_elements: 'Custom Data Elements',
+        other: 'Other HMIS records',
+      }
+    %h3 1. Choose clients to split off, and which receives moved data.
+    %p Data for this client comes from the following source clients. Use this form to split the client into separate records.
+    .card.mb-4
+      %table.table.table-striped
+        %thead
+          %th Select
+          %th.text-center Receiver
+          %th Data Source
+          %th Name
+          %th DOB/Age
+          %th SSN
+          %th Merged
+        %tbody
+          - visible_source_clients.each do |c|
+            - pii = c.pii_provider(user: current_user)
+            %tr
+              %td= f.input_field :merge, as: :boolean, checked_value: c.id, unchecked_value: nil, name: input_id, data: { unmerge_form_target: 'splitCheckbox', action: 'change->unmerge-form#toggleReceiver' }
+              %td.text-center{data: { 'bs-toggle' => :tooltip, 'bs-title' => "If selected, checked categories below move to a newly created client for PersonalID #{c.uuid}"}}
+                = radio_button_tag 'grda_warehouse_hud_client[receiver]', c.id, false, disabled: true
+              %td= c.data_source&.short_name
+              %td{data: { 'bs-toggle' => :tooltip, 'bs-title' => "Personal ID: #{c.uuid}" }}= pii.full_name
+              %td= pii.dob_or_age
+              %td= pii.ssn
+              %td
+                = c.warehouse_client_source.reviewed_at.presence || c.warehouse_client_source.created_at
+                - user = reviewers[c.warehouse_client_source.reviewd_by.to_i] || User.system_user
+                %br/
+                %small.text-muted= user.name
+                - if (match = c.warehouse_client_source.client_match)
+                  %button.btn.btn-secondary.btn-xs.mt-2{type: :button, data: { 'bs-toggle' => :popover, trigger: :click, title: 'Match Details', html: :true, content: "#{client_match_scorecard(match)}"}}
+                    Match Details
 
-= content_for :page_js do
-  %script{ nonce: content_security_policy_nonce }
-    :plain
-      $('.jSplit').on('change', function(e) {
-      // Require at least one selected client to be split off
-      anyChecked = $('input[name="grda_warehouse_hud_client[unmerge][]"]').toArray().some((e) => e.checked)
-      $('#splitButton').prop('disabled', !anyChecked)
-    });
 
-      $(document).ready(function() {
-        $('#splitButton').prop('disabled', true)
-      });
+    %h3 2. Choose what moves with the receiver
+    %p.text-muted
+      Categories checked below move to the receiver chosen above.
+      %br/
+      Unchecked categories remain with the original client.
+      %br/
+      If no receiver is chosen, everything remains with the original client.
+    .card.w-50.me-auto
+      %table.table.table-striped
+        %thead
+          %tr
+            %th Move?
+            %th Category
+            %th.text-right Count
+        %tbody
+          - item_categories.each do |key, label|
+            %tr
+              %td= check_box_tag 'grda_warehouse_hud_client[item_categories][]', key, true
+              %td= label
+              %td.text-right= counts[key]
+
+    .form-actions
+      = f.button :submit, "Split selected records from #{@client.pii_provider(user: current_user).full_name}", id: :splitButton, data: { confirm: "Are you sure you want to split #{@client.pii_provider(user: current_user).full_name}? Checked categories will be moved to the selected receiver, if chosen.", unmerge_form_target: 'submitButton' }
