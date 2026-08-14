@@ -30,18 +30,17 @@ class Hmis::Hud::DataIntegrity::TotalIncomeReconciler < Hmis::Hud::DataIntegrity
   # (HmisCsvImporter::HmisCsvCleanup::FixMissingTotalMonthlyIncome). It owns missing-only selection, batching,
   # reconciliation, changed-only filtering, source_hash refresh (when the record supports it) and bulk persistence.
   #
-  # Console usage (operates on all HMIS IncomeBenefits):
-  #   Hmis::Hud::DataIntegrity::TotalIncomeReconciler.fill_missing_totals!
+  # Console usage (operates on HMIS IncomeBenefits in a data source):
+  #   Hmis::Hud::DataIntegrity::TotalIncomeReconciler.fill_missing_totals!(data_source_id: ds_id)
   #
-  # Explicit (e.g. versioned importer staging) scope:
-  #   Hmis::Hud::DataIntegrity::TotalIncomeReconciler.fill_missing_totals!(scope: staging_scope, conflict_target: [:id, :importer_log_id])
+  # Callers that already have an explicit scope (e.g. versioned importer staging) should build the reconciler
+  # and call the instance method directly, e.g.:
+  #   new.fill_missing_totals!(scope: staging_scope, conflict_target: [:id, :importer_log_id])
   #
-  # @param scope [ActiveRecord::Relation] base scope of IncomeBenefit(-like) records. Defaults to all HMIS IncomeBenefits.
-  # # todo @martha - probably dont' default to all HMIS, instead require a ds id as argument
-  # @param conflict_target [Array<Symbol>] columns identifying a row for the upsert. Defaults to [:id].
+  # @param data_source_id [Integer] restrict to HMIS IncomeBenefits in this data source.
   # @return [Integer] number of records that were updated
-  def self.fill_missing_totals!(scope: Hmis::Hud::IncomeBenefit.hmis, conflict_target: [:id])
-    new.fill_missing_totals!(scope: scope, conflict_target: conflict_target)
+  def self.fill_missing_totals!(data_source_id:)
+    new.fill_missing_totals!(scope: Hmis::Hud::IncomeBenefit.hmis.where(data_source_id: data_source_id))
   end
 
   # @param record [Hmis::Hud::IncomeBenefit, GrdaWarehouse::Hud::Base] an IncomeBenefit record. May be a

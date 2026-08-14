@@ -14,7 +14,7 @@ module HmisCsvImporter::HmisCsvCleanup
   # Does not fix records where the TotalMonthlyIncome disagrees with the individual income source amounts.
   class FixMissingTotalMonthlyIncome < Base
     def cleanup!
-      Hmis::Hud::DataIntegrity::TotalIncomeReconciler.fill_missing_totals!(
+      Hmis::Hud::DataIntegrity::TotalIncomeReconciler.new.fill_missing_totals!(
         scope: income_benefit_scope,
         conflict_target: conflict_target(income_benefit_source), # todo @martha - understand this better
       )
