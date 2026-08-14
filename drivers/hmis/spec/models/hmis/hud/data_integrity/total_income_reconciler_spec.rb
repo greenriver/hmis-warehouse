@@ -93,8 +93,10 @@ RSpec.describe Hmis::Hud::DataIntegrity::TotalIncomeReconciler, type: :model do
         expect(income_benefit.total_monthly_income).to eq(300.00)
       end
     end
+  end
 
-    context 'when income_from_any_source is not 1 and total_monthly_income is non-zero' do
+  context 'when income_from_any_source is not 1' do
+    context 'and total_monthly_income is non-zero' do
       before do
         income_benefit.income_from_any_source = 0 # No income from any source
         income_benefit.total_monthly_income = 300.00 # Incorrectly has a total
