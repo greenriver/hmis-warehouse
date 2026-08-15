@@ -993,6 +993,53 @@ RSpec.describe Idp::KeycloakService do
     end
   end
 
+  describe 'the internal CA certificate' do
+    let(:sent) { {} }
+
+    before do
+      recorded = sent
+      allow_any_instance_of(Net::HTTP).to receive(:request).and_wrap_original do |original, *args|
+        http = original.receiver
+        recorded[args.first.path] = { use_ssl: http.use_ssl?, ca_file: http.ca_file }
+        original.call(*args)
+      end
+    end
+
+    # File.exist? is consulted for other paths too, so stub only the cert path and pass the rest through.
+    def stub_cert_present(present)
+      allow(File).to receive(:exist?).and_call_original
+      allow(File).to receive(:exist?).with(described_class::CA_CERT_FILE).and_return(present)
+    end
+
+    context 'over an https connection' do
+      let(:api_url) { 'https://keycloak.test:8443' }
+
+      it 'points Net::HTTP at the bundled cert when it exists' do
+        stub_cert_present(true)
+        stub_request(:get, user_url).to_return(status: 200, body: { id: user_id }.to_json)
+
+        service.get_user(user_id: user_id)
+
+        expect(sent.fetch("/admin/realms/#{realm}/users/#{user_id}")).to include(
+          use_ssl: true,
+          ca_file: described_class::CA_CERT_FILE.to_s,
+        )
+      end
+
+      it 'leaves ca_file at the system default when the cert is absent' do
+        stub_cert_present(false)
+        stub_request(:get, user_url).to_return(status: 200, body: { id: user_id }.to_json)
+
+        service.get_user(user_id: user_id)
+
+        expect(sent.fetch("/admin/realms/#{realm}/users/#{user_id}")).to include(
+          use_ssl: true,
+          ca_file: nil,
+        )
+      end
+    end
+  end
+
   describe '#ensure_group' do
     let(:groups_url) { admin_url('/groups') }
 
