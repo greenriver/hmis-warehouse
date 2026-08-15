@@ -221,6 +221,31 @@ RSpec.describe Idp::JwtHelper, :jwt_only do
     end
   end
 
+  # Idp::Support#idp_reconcile_profile_from_claims! adopts the address on absent and refuses it on
+  # false, so collapsing the two answers into one boolean changes who gets synced.
+  describe '#email_verified' do
+    def helper_for(claims)
+      described_class.new(access_token: JWT.encode(claims, rsa_key, 'RS256', { kid: kid }))
+    end
+
+    it 'is nil when the token carries no such claim, as a SAML-fed upstream does not' do
+      expect(helper_for(payload.except('email_verified')).email_verified).to be_nil
+    end
+
+    it 'is true for a boolean true claim' do
+      expect(helper_for(payload.merge('email_verified' => true)).email_verified).to be true
+    end
+
+    it 'is false for a boolean false claim' do
+      expect(helper_for(payload.merge('email_verified' => false)).email_verified).to be false
+    end
+
+    it 'casts a string claim rather than reading it raw, where "false" would be truthy' do
+      expect(helper_for(payload.merge('email_verified' => 'true')).email_verified).to be true
+      expect(helper_for(payload.merge('email_verified' => 'false')).email_verified).to be false
+    end
+  end
+
   describe '#connector_user_id' do
     it 'reads user_id from federated_claims' do
       expect(helper.connector_user_id).to eq('kc-123')

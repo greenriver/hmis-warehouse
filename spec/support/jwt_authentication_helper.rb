@@ -29,6 +29,13 @@ module JwtAuthenticationHelper
       payload_email: user.email,
       expiration_time: 1.hour.from_now,
       session_id: mock_session_id,
+      # The claims Idp::JwtAuthentication#idp_profile_claims reads for the :token_claims sync arm.
+      # Mirror them off the signed-in user, never fixed values: that arm adopts whatever differs, so
+      # a fixed name or address here would rewrite first_name/last_name/email under every spec that
+      # signs in and then reads them.
+      email_verified: true,
+      first_name: user.first_name,
+      last_name: user.last_name,
     )
 
     allow(Idp::JwtHelper).to receive(:authenticated?).and_wrap_original do |original_method, token|

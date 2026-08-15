@@ -322,12 +322,15 @@ RSpec.describe 'HMIS JWT wiring', :jwt_only, type: :request do
       let(:idp_service) do
         # Idp::Support#idp_service builds a service for the user payload too, so this double answers
         # every for_connector('test') call an example makes, not only the sign-out's — hence
-        # supports_email_self_service?, which Idp::Support#email_change_enabled? calls on each render.
+        # supports_email_self_service?, which Idp::Support#email_change_enabled? calls on each render,
+        # and profile_source, which Idp::Support#profile_source calls once per session. Both are
+        # stubbed only to keep the profile sync inert; these examples are about sign-out.
         instance_double(
           Idp::KeycloakService,
           supports_session_logout?: true,
           logout_user_sessions: true,
           supports_email_self_service?: false,
+          profile_source: :admin_api,
         )
       end
 

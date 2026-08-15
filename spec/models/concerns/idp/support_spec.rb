@@ -63,6 +63,10 @@ RSpec.describe Idp::Support, :jwt_only, type: :model do
     it 'idp_reconcile_email! returns nil (no IdP to adopt from)' do
       expect(user.idp_reconcile_email!).to be_nil
     end
+
+    it 'profile_source is :token_claims' do
+      expect(user.profile_source).to eq(:token_claims)
+    end
   end
 
   # null-attached — an auth-source row still names the connector (primary_idp present), but no
@@ -92,6 +96,12 @@ RSpec.describe Idp::Support, :jwt_only, type: :model do
       expect(user.idp_service).not_to receive(:get_user)
       expect(user.idp_reconcile_email!).to be_nil
     end
+
+    # The customer-org-IdP shape: a connector Dex authenticates against that we hold no config for
+    # and never will.
+    it 'profile_source is :token_claims' do
+      expect(user.profile_source).to eq(:token_claims)
+    end
   end
 
   # Covered transitively by the request specs; carried here to complete the model-layer matrix and
@@ -105,6 +115,10 @@ RSpec.describe Idp::Support, :jwt_only, type: :model do
     it 'resolves to a manageable KeycloakService' do
       expect(service).to be_a(Idp::KeycloakService)
       expect(service.supports_user_management?).to be true
+    end
+
+    it 'profile_source is :admin_api' do
+      expect(user.profile_source).to eq(:admin_api)
     end
 
     it 'idp_deactivate! calls deactivate_user and returns :deactivated' do
@@ -153,8 +167,8 @@ RSpec.describe Idp::Support, :jwt_only, type: :model do
 
   # keycloak-on-file, authenticate-only — active config, manage_users:false. Every management
   # capability reports false so the management ops no-op, but email self-service and session
-  # logout stay live. The email-adopt half (reconcile_email!) has no capability gate, so it still
-  # reaches the admin-API get_user even on this class; the request specs cover that path.
+  # logout stay live. reconcile_email! self-gates on the same capability and no-ops, so this realm
+  # syncs off the token instead.
   context 'keycloak-on-file, authenticate-only (manage_users:false)' do
     let!(:config) { create(:idp_service_config, connector_id: connector_id, manage_users: false) }
     let(:service) { user.idp_service }
@@ -178,6 +192,11 @@ RSpec.describe Idp::Support, :jwt_only, type: :model do
     it 'idp_reconcile_email! self-gates on the missing management capability' do
       expect(service).not_to receive(:get_user)
       expect(user.idp_reconcile_email!).to be_nil
+    end
+
+    it 'profile_source is :token_claims even though email self-service reports true' do
+      expect(service.supports_email_self_service?).to be true
+      expect(user.profile_source).to eq(:token_claims)
     end
   end
 
@@ -218,6 +237,77 @@ RSpec.describe Idp::Support, :jwt_only, type: :model do
 
     it 'idp_update_profile! raises Idp::ServiceError at idp_connector_user_id!' do
       expect { user.idp_update_profile!(first_name: 'New') }.to raise_error(Idp::ServiceError)
+    end
+  end
+
+  # Unlike every context above, this one builds no service: the claims arrive from the request and
+  # the method never asks the IdP anything.
+  describe '#idp_reconcile_profile_from_claims!' do
+    let(:user) { create(:user, email: 'before@example.com', first_name: 'Ada', last_name: 'Lovelace') }
+
+    it 'adopts an address the IdP asserts as verified' do
+      result = user.idp_reconcile_profile_from_claims!(email: 'after@example.com', email_verified: true)
+
+      expect(result).to eq(previous_email: 'before@example.com')
+      expect(user.reload.email).to eq('after@example.com')
+    end
+
+    # Refusing on absence would leave SAML-fed users' addresses stale forever — the bug this fixes.
+    it 'adopts an address when the token carries no email_verified claim at all' do
+      user.idp_reconcile_profile_from_claims!(email: 'after@example.com', email_verified: nil)
+
+      expect(user.reload.email).to eq('after@example.com')
+    end
+
+    it 'refuses an address the IdP explicitly reports as unconfirmed' do
+      result = user.idp_reconcile_profile_from_claims!(email: 'after@example.com', email_verified: false)
+
+      expect(result).to be_nil
+      expect(user.reload.email).to eq('before@example.com')
+    end
+
+    it 'reports nothing moved when the address only differs in case' do
+      expect(user.idp_reconcile_profile_from_claims!(email: 'BEFORE@example.com', email_verified: true)).to be_nil
+    end
+
+    it 'adopts changed names' do
+      user.idp_reconcile_profile_from_claims!(first_name: 'Augusta', last_name: 'Byron')
+
+      expect(user.reload.first_name).to eq('Augusta')
+      expect(user.last_name).to eq('Byron')
+    end
+
+    it 'reports a name-only change with a nil previous_email' do
+      result = user.idp_reconcile_profile_from_claims!(email: 'before@example.com', first_name: 'Augusta')
+
+      expect(result).to eq(previous_email: nil)
+    end
+
+    it 'leaves names on file alone when the claims carry none' do
+      user.idp_reconcile_profile_from_claims!(email: 'after@example.com', first_name: nil, last_name: nil)
+
+      expect(user.reload.first_name).to eq('Ada')
+      expect(user.last_name).to eq('Lovelace')
+    end
+
+    it 'returns nil when every claim matches what is already on file' do
+      result = user.idp_reconcile_profile_from_claims!(
+        email: 'before@example.com',
+        email_verified: true,
+        first_name: 'Ada',
+        last_name: 'Lovelace',
+      )
+
+      expect(result).to be_nil
+    end
+
+    # The caller (Idp::SyncUserFromIdpJob) rescues this into Sentry; raising is what rolls back the
+    # HUD sync sharing the transaction.
+    it 'raises when the claimed address is already taken locally' do
+      create(:user, email: 'taken@example.com')
+
+      expect { user.idp_reconcile_profile_from_claims!(email: 'taken@example.com', email_verified: true) }.
+        to raise_error(ActiveRecord::RecordInvalid)
     end
   end
 end

@@ -180,6 +180,20 @@ class Idp::JwtHelper
     claims['email'].to_s.strip.downcase.presence
   end
 
+  # nil means the token carried no email_verified claim, which is routine: Dex normalizes SAML
+  # upstreams, and a SAML assertion has no such claim to forward. Only an explicit false asserts an
+  # unconfirmed mailbox. Idp::Support#idp_reconcile_profile_from_claims! adopts the address on nil
+  # and refuses it on false, so the two answers must stay distinguishable.
+  #
+  # Cast rather than read raw: IdPs send this as a boolean or as a string, and a raw "false" is
+  # truthy.
+  def email_verified
+    raw = claims['email_verified']
+    return nil if raw.nil?
+
+    ActiveModel::Type::Boolean.new.cast(raw)
+  end
+
   def last_login_at
     claims['iat']
   end

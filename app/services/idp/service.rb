@@ -104,6 +104,16 @@ module Idp
       false
     end
 
+    # Where this app learns a user's profile (email, name) once their account exists.
+    #
+    # :admin_api — read the account back through the management API
+    #   (Idp::Support#idp_reconcile_email!).
+    # :token_claims — no management API, so the JWT is the only channel that can carry a change
+    #   (Idp::Support#idp_reconcile_profile_from_claims!).
+    def profile_source
+      supports_user_management? ? :admin_api : :token_claims
+    end
+
     # Whether this IDP can end a user's sessions through its admin API. Sign-out gates on it: an
     # IDP that only authenticates has no session for us to end.
     def supports_session_logout?

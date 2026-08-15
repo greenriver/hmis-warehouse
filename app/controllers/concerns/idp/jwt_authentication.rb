@@ -235,11 +235,32 @@ module Idp::JwtAuthentication
     # re-runs them on every request instead of spending its one per-session attempt.
     session[SESSION_SYNC_KEY] = true
 
-    # The job no-ops on connectors without email self-service; skip enqueuing one at all.
-    return unless user.email_change_enabled?
-    return if Idp::SyncUserFromIdpJob.connector_paused?(connector_id)
+    # Keyed on read-back availability, not email_change_enabled?: Keycloak reports email self-service
+    # true even on an authenticate-only realm, so that gate would skip the connectors that most need
+    # the token sync.
+    case user.profile_source
+    when :admin_api
+      # The job no-ops on connectors without email self-service; skip enqueuing one at all.
+      return unless user.email_change_enabled?
+      return if Idp::SyncUserFromIdpJob.connector_paused?(connector_id)
 
-    Idp::SyncUserFromIdpJob.perform_later(user_id: user.id)
+      Idp::SyncUserFromIdpJob.perform_later(user_id: user.id)
+    when :token_claims
+      # No cooldown check: this arm makes no IdP call, so a paused connector must not suppress it.
+      Idp::SyncUserFromIdpJob.perform_later(user_id: user.id, claims: idp_profile_claims)
+    end
+  end
+
+  # The profile claims for the :token_claims arm of Idp::SyncUserFromIdpJob. Gathered here rather than
+  # in the job because only the request holds the JWT.
+  def idp_profile_claims
+    jwt_helper = idp_jwt_helper_for_request
+    {
+      email: jwt_helper.payload_email,
+      email_verified: jwt_helper.email_verified,
+      first_name: jwt_helper.first_name,
+      last_name: jwt_helper.last_name,
+    }
   end
 
   # Never redirects to sign-in. oauth2-proxy owns that, and both cases below arrive with the proxy

@@ -189,6 +189,38 @@ Additional notes
   Age of Authentication** (`max_auth_age`, default **300** seconds). If the browser's Keycloak session
   last authenticated longer ago than that, Keycloak re-authenticates the user before showing the form.
 
+## Profile sync for IdPs with no admin API
+
+Everything above assumes an IdP we operate. Customer-org IdPs attach as additional Dex connectors,
+and we never get a management API for those — there is no service class for them, so they resolve to
+`NullService`. An authenticate-only Keycloak row (`manage_users: false`) is in the same position.
+
+`Idp::Service#profile_source` is the switch, and it reads off `supports_user_management?`:
+
+| `profile_source` | Who | How `users` stays current |
+| --- | --- | --- |
+| `:admin_api` | Keycloak we operate | `Idp::Support#idp_reconcile_email!` reads the account back and adopts the address once Keycloak reports the mailbox verified — the flow described above |
+| `:token_claims` | Customer-org IdP on a Dex connector; authenticate-only Keycloak | `Idp::Support#idp_reconcile_profile_from_claims!` mirrors `email`, `given_name`/`name` straight off the JWT |
+| `:none` | A config we can't build | Nothing is reconciled |
+
+`Idp::SyncUserFromIdpJob` runs both arms, once per session, enqueued by
+`Idp::JwtAuthentication#idp_schedule_user_sync`. The `:token_claims` arm takes the claims as job
+arguments, since only the request holds the token.
+
+**Trust rule on `:token_claims`.** The address is adopted unless the token says `email_verified:
+false`. A *missing* `email_verified` claim is not a refusal. Dex normalizes arbitrary upstreams
+including SAML, which has no such claim to forward, so requiring it would silently disable this sync
+for the deployments that depend on it. That is a weaker gate than the `:admin_api` arm's, and
+deliberately so: there the user may be mid-handoff with an address they typed and haven't proven,
+whereas here the value is one somebody else's directory has already committed to for them. Nothing
+local competes to write it either — `profile_managed_by_idp?` is true for these connectors, so the
+admin form renders the fields read-only and `Admin::Idp::UsersController` strips them from the
+permitted keys.
+
+Names are only overwritten from a claim that carried something, so a token missing them never blanks
+a name already on file. Note that `Idp::JwtHelper#first_name`/`#last_name` split a single `name`
+claim when there is no `given_name`, which is lossy for names that aren't two words.
+
 ## Notes
 
 - **Warehouse-only?** `oauth2-proxy-hmis` upstreams to Vite on the host (`host.docker.internal:5173`)

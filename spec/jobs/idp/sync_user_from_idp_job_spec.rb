@@ -20,6 +20,7 @@ RSpec.describe Idp::SyncUserFromIdpJob, :jwt_only, type: :job do
       idp_name: 'Keycloak',
       supports_email_self_service?: true,
       supports_user_management?: true,
+      profile_source: :admin_api,
     )
   end
 
@@ -235,5 +236,123 @@ RSpec.describe Idp::SyncUserFromIdpJob, :jwt_only, type: :job do
     allow(job).to receive(:delayed_job).and_return(nil)
 
     expect(Delayed::Worker.max_attempts - job.calculated_attempts).to eq(2)
+  end
+
+  # Everything above this describe exercises the :admin_api arm.
+  describe 'a connector with no management API (customer-org IdP on a Dex connector)' do
+    let(:service) do
+      instance_double(
+        Idp::NullService,
+        idp_name: 'Unknown IDP',
+        supports_email_self_service?: false,
+        supports_user_management?: false,
+        profile_source: :token_claims,
+      )
+    end
+
+    def claims(overrides = {})
+      { email: 'after@example.com', email_verified: true, first_name: 'Ada', last_name: 'Lovelace' }.merge(overrides)
+    end
+
+    it 'adopts the claimed profile' do
+      described_class.new.perform(user_id: user.id, claims: claims)
+
+      expect(user.reload.email).to eq('after@example.com')
+      expect(user.first_name).to eq('Ada')
+    end
+
+    it 'never attempts the read-back this connector cannot serve' do
+      expect(service).not_to receive(:get_user)
+
+      described_class.new.perform(user_id: user.id, claims: claims)
+    end
+
+    it 're-points HMIS HUD user rows from the previous address' do
+      allow(HmisEnforcement).to receive(:hmis_enabled?).and_return(true)
+      allow(User).to receive(:find_by).with(id: user.id).and_return(user)
+      expect(user).to receive(:sync_to_hud_users).with(previous_email: 'before@example.com')
+
+      described_class.new.perform(user_id: user.id, claims: claims)
+    end
+
+    # HUD rows carry first/last name as well as the address, so a name-only change still needs the push.
+    it 're-points HMIS HUD user rows for a name-only change' do
+      allow(HmisEnforcement).to receive(:hmis_enabled?).and_return(true)
+      allow(User).to receive(:find_by).with(id: user.id).and_return(user)
+      expect(user).to receive(:sync_to_hud_users).with(previous_email: nil)
+
+      described_class.new.perform(user_id: user.id, claims: claims(email: 'before@example.com'))
+    end
+
+    it 'does not re-point HMIS rows when nothing moved' do
+      allow(HmisEnforcement).to receive(:hmis_enabled?).and_return(true)
+      allow(User).to receive(:find_by).with(id: user.id).and_return(user)
+      expect(user).not_to receive(:sync_to_hud_users)
+
+      described_class.new.perform(user_id: user.id, claims: claims(email: 'before@example.com', first_name: 'Self', last_name: 'Serve'))
+    end
+
+    it 'refuses an address the IdP reports as unconfirmed' do
+      described_class.new.perform(user_id: user.id, claims: claims(email_verified: false))
+
+      expect(user.reload.email).to eq('before@example.com')
+    end
+
+    it 'rolls the adopted profile back when the HMIS re-point fails' do
+      allow(HmisEnforcement).to receive(:hmis_enabled?).and_return(true)
+      allow(User).to receive(:find_by).with(id: user.id).and_return(user)
+      allow(user).to receive(:sync_to_hud_users).and_raise(ActiveRecord::RecordInvalid.new(user))
+      allow(Sentry).to receive(:capture_exception_with_info)
+
+      described_class.new.perform(user_id: user.id, claims: claims)
+
+      expect(user.reload.email).to eq('before@example.com')
+    end
+
+    it 'reports an address another user already holds rather than raising' do
+      create(:user, email: 'after@example.com')
+      expect(Sentry).to receive(:capture_exception_with_info).with(
+        kind_of(ActiveRecord::RecordInvalid),
+        /Couldn't adopt IdP profile claims for user #{user.id}/,
+        hash_including(user_id: user.id),
+      )
+
+      expect { described_class.new.perform(user_id: user.id, claims: claims) }.not_to raise_error
+      expect(user.reload.email).to eq('before@example.com')
+    end
+
+    # ActiveJob round-trips arguments through its serializer; a store that hands back string keys
+    # must not silently sync nothing.
+    it 'accepts claims with string keys' do
+      described_class.new.perform(user_id: user.id, claims: claims.stringify_keys)
+
+      expect(user.reload.email).to eq('after@example.com')
+    end
+
+    it 'does nothing when no claims came with the job' do
+      described_class.new.perform(user_id: user.id, claims: nil)
+
+      expect(user.reload.email).to eq('before@example.com')
+    end
+
+    it 'never pauses the connector — this arm calls no IdP that could fault' do
+      create(:user, email: 'after@example.com')
+      allow(Sentry).to receive(:capture_exception_with_info)
+
+      described_class.new.perform(user_id: user.id, claims: claims)
+
+      expect(described_class.connector_paused?('test')).to be false
+    end
+  end
+
+  describe 'a connector whose service will not build' do
+    it 'reconciles from neither source' do
+      allow(Idp::ServiceFactory).to receive(:for_connector).with('test').
+        and_raise(Idp::ServiceError.new('bad config', idp_name: 'Keycloak', operation: :build, transient: false))
+
+      described_class.new.perform(user_id: user.id, claims: { email: 'after@example.com' })
+
+      expect(user.reload.email).to eq('before@example.com')
+    end
   end
 end
