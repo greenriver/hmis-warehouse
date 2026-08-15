@@ -209,12 +209,10 @@ RSpec.describe GrdaWarehouse::Monitoring::Tasks::MetricSnapshotCollector, type: 
       end
 
       let!(:processed3) do
-        create(
-          :grda_warehouse_warehouse_clients_processed,
-          client_id: client2.id,
-          routine: 'service_history',
-          days_homeless_last_three_years: 100,
-        )
+        # client2 already has a warehouse_clients_processed row for 'service_history'
+        # (processed2); reuse it rather than inserting a duplicate, which would violate
+        # uidx_warehouse_clients_processed_on_client_id_and_routine.
+        processed2.tap { |p| p.update!(days_homeless_last_three_years: 100) }
       end
 
       before do
