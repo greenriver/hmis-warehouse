@@ -69,8 +69,18 @@ module Idp
       end
       previous_email
     rescue ActiveRecord::RecordInvalid => e
+      Sentry.capture_exception_with_info(
+        e,
+        "Couldn't adopt IdP email for user #{user.id}",
+        {
+          user_id: user.id,
+          attempted_email: user.email, # rolled back, but still dirty in memory
+          retained_email: user.email_was,
+          invalid_record: e.record.class.name,
+          reason: e.record.errors.full_messages.join(', '),
+        },
+      )
       # A no-retry failure (e.g. the address already belongs to another user). Report and stop.
-      Sentry.capture_exception_with_info(e, "Couldn't adopt IdP email for user #{user.id}", { user_id: user.id })
       nil
     rescue Idp::ServiceError => e
       # #perform owns the cooldown. Non-transient means the same answer comes back, so don't retry.

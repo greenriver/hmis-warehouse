@@ -80,6 +80,12 @@ RSpec.describe Idp::NullService, type: :model do
     end
   end
 
+  describe '#profile_source' do
+    it 'returns :none' do
+      expect(service.profile_source).to eq(:none)
+    end
+  end
+
   describe 'initialization' do
     it 'accepts optional connector_id' do
       service = described_class.new('custom_idp')

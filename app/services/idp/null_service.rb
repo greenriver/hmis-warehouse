@@ -57,5 +57,9 @@ module Idp
     def idp_name
       connector_id&.humanize || 'Unknown IDP'
     end
+
+    def profile_source
+      :none
+    end
   end
 end

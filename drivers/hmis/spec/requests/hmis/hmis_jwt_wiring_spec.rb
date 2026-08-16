@@ -320,6 +320,9 @@ RSpec.describe 'HMIS JWT wiring', :jwt_only, type: :request do
       # The token's connector is 'test' (see JwtAuthenticationHelper), which resolves to a
       # NullService, so a service has to be stubbed in to get past the predicate.
       let(:idp_service) do
+        # Idp::Support#idp_service builds a service for the user payload too, so this double answers
+        # every for_connector('test') call an example makes, not only the sign-out's — hence
+        # supports_email_self_service?, which Idp::Support#email_change_enabled? calls on each render.
         instance_double(
           Idp::KeycloakService,
           supports_session_logout?: true,

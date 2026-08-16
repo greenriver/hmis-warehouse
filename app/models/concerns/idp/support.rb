@@ -61,6 +61,7 @@ module Idp::Support
     false
   end
 
+  # How should we keep the local profile in sync with the remote IdP?
   def idp_profile_source
     idp_service.profile_source
   rescue Idp::ServiceError
