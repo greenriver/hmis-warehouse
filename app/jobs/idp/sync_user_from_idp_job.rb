@@ -54,6 +54,8 @@ module Idp
 
     private
 
+    # Email only, unlike #sync_from_claims: idp_update_profile! pushes admin-edited names out to a
+    # manageable realm, so adopting the realm's names here would revert those edits.
     def sync_from_admin_api(user)
       # Nothing can have moved on a realm that offers no email self-service, so skip the Admin API read.
       return unless user.email_change_enabled?

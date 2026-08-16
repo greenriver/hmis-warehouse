@@ -243,20 +243,24 @@ class Idp::JwtHelper
     raise "Missing JWT configuration: #{missing.join(', ')}" if missing.any?
   end
 
-  # TODO: this is inconsistent based on the IDP
+  # These names are stored, not just displayed. Idp::Support#idp_reconcile_profile_from_claims!
+  # copies them into users.first_name/last_name on every sign-in, and
+  # Hmis::UserExtension#sync_to_hud_users copies them on to the matching Hmis::Hud::User rows. So
+  # return the string the IdP sent: casing normalized here is written to both tables.
+  #
+  # The `name` fallback splits once, giving everything after the first word to #last_name, so
+  # "Jan van der Berg" keeps its particles. A middle name rides along on the surname; users has no
+  # column for one, so the alternative is dropping it.
   def first_name
-    claims['given_name'].to_s.strip.presence || claims['name'].to_s.strip.split.first&.titleize
+    claims['given_name'].to_s.strip.presence || name_parts.first
   end
 
-  # TODO: this is inconsistent based on the IDP
   def last_name
-    raw = claims['name'].to_s.strip
-    return nil if raw.blank?
+    claims['family_name'].to_s.strip.presence || name_parts.drop(1).join(' ').presence
+  end
 
-    parts = raw.split
-    return nil if parts.size <= 1
-
-    parts.last.titleize
+  private def name_parts
+    @name_parts ||= claims['name'].to_s.split
   end
 
   def jwks
