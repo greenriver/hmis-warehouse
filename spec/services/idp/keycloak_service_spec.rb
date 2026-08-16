@@ -723,9 +723,8 @@ RSpec.describe Idp::KeycloakService do
       expect(service.supports_account_backfill?).to be false
     end
 
-    it 'still offers self-service email and resolves the account console URL' do
+    it 'still offers self-service email' do
       expect(service.supports_email_self_service?).to be true
-      expect(service.account_console_url).to eq("#{api_url}/realms/#{realm}/account")
     end
   end
 
@@ -758,12 +757,6 @@ RSpec.describe Idp::KeycloakService do
   # four column => config-key mappings against a real persisted Idp::ServiceConfig. Covering it here
   # would mean faking that reader surface, and a fake can't notice a renamed column — the one failure
   # this translation actually has.
-
-  describe '#account_console_url' do
-    it 'builds the Account Console URL for the realm' do
-      expect(service.account_console_url).to eq("#{api_url}/realms/#{realm}/account")
-    end
-  end
 
   describe '#account_action_url' do
     let(:redirect_uri) { 'https://warehouse.test/account/edit' }
@@ -861,10 +854,6 @@ RSpec.describe Idp::KeycloakService do
     let(:public_url) { 'https://keycloak.public.test' }
 
     shared_examples 'honors the browser URL' do
-      it 'builds the account console URL from it' do
-        expect(service.account_console_url).to eq("#{public_url}/realms/#{realm}/account")
-      end
-
       it 'builds account action deep-links from it' do
         url = service.account_action_url(action: 'UPDATE_PASSWORD', redirect_uri: 'https://warehouse.test/account/edit')
 
@@ -897,7 +886,9 @@ RSpec.describe Idp::KeycloakService do
       before { stub_const('ENV', ENV.to_h.merge('KEYCLOAK_PUBLIC_URL' => 'https://ignored.test')) }
 
       it 'falls back to api_url, ignoring ENV' do
-        expect(service.account_console_url).to eq("#{api_url}/realms/#{realm}/account")
+        url = service.account_action_url(action: 'UPDATE_PASSWORD', redirect_uri: 'https://warehouse.test/account/edit')
+
+        expect(url).to start_with("#{api_url}/realms/#{realm}/protocol/openid-connect/auth?")
       end
     end
   end

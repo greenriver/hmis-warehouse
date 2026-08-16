@@ -42,15 +42,6 @@ module Idp::Support
     false
   end
 
-  # Deep-link to the IdP's self-service credential console (password/2FA), or nil when the IdP
-  # has none — in which case the account page shows static "managed by your identity provider"
-  # text instead of a link. A service we can't build is treated as no-console.
-  def account_console_url
-    idp_service.account_console_url
-  rescue Idp::ServiceError
-    nil
-  end
-
   # Deep-link that takes the current user straight into a single self-service action
   # (password change, 2FA setup) and returns them to redirect_uri. Only valid for the
   # signed-in user; redirect_uri is supplied by the caller, which owns request context.
@@ -70,9 +61,7 @@ module Idp::Support
     false
   end
 
-  # @return [:admin_api, :token_claims, :none] :none when the service won't build. Not :token_claims:
-  #   an IdP holds this account and we can't reach it, so its claims aren't a safe fallback either.
-  def profile_source
+  def idp_profile_source
     idp_service.profile_source
   rescue Idp::ServiceError
     :none
@@ -166,28 +155,11 @@ module Idp::Support
     previous_email
   end
 
-  # Adopt the profile the IdP asserted in the JWT, for a connector with #profile_source
-  # :token_claims.
-  #
-  # Deliberately a weaker gate on the address than #idp_reconcile_email!: adopt unless the IdP says
-  # the mailbox is unconfirmed, where that method demands a positive verification. Requiring one here
-  # would disable the sync outright, since Dex forwards no email_verified claim from a SAML upstream
-  # (Idp::JwtHelper#email_verified). What makes the weaker gate safe is that nothing local competes
-  # to write these fields: #profile_managed_by_idp? is true for these connectors, so the admin form
-  # renders them read-only and Admin::Idp::UsersController strips them from the permitted keys.
-  #
-  # @param email_verified [Boolean, nil] nil when the token carried no such claim
-  # @return [Hash, nil] nil when nothing moved. Otherwise { previous_email: } — the address this
-  #   replaced, for callers re-pointing HMIS user rows keyed on it, and nil within that hash when
-  #   only the name moved.
-  # @raise [ActiveRecord::RecordInvalid] the claimed values can't be stored here (email taken, or
-  #   malformed)
   def idp_reconcile_profile_from_claims!(email: nil, email_verified: nil, first_name: nil, last_name: nil)
     attributes = {}
+    # Adopt unless the token explicitly says unverified. Unlike idp_reconcile_email!, email_verified is
+    # an optional OIDC claim: nil means the IdP is silent, not unverified, and we trust its email claim.
     attributes[:email] = email if email.present? && !email.casecmp?(self.email.to_s) && email_verified != false
-    # Overwrite a name only from a claim that carried one. A token can omit the name claims, and
-    # Idp::JwtHelper#last_name returns nil for a single-word name — neither may blank out what is
-    # already on file.
     attributes[:first_name] = first_name if first_name.present? && first_name != self.first_name
     attributes[:last_name] = last_name if last_name.present? && last_name != self.last_name
     return nil if attributes.empty?
@@ -242,8 +214,6 @@ module Idp::Support
   def primary_auth_source
     return @primary_auth_source if defined?(@primary_auth_source)
 
-    # :id breaks a created_at tie, so two sources stamped in the same transaction pick the same
-    # primary on every call.
     scope = user_authentication_sources.order(:created_at, :id)
     scope = scope.where(connector_id: last_connector_id) if last_connector_id.presence
     @primary_auth_source = scope.first

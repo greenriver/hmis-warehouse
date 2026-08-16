@@ -180,13 +180,6 @@ class Idp::JwtHelper
     claims['email'].to_s.strip.downcase.presence
   end
 
-  # nil means the token carried no email_verified claim, which is routine: Dex normalizes SAML
-  # upstreams, and a SAML assertion has no such claim to forward. Only an explicit false asserts an
-  # unconfirmed mailbox. Idp::Support#idp_reconcile_profile_from_claims! adopts the address on nil
-  # and refuses it on false, so the two answers must stay distinguishable.
-  #
-  # Cast rather than read raw: IdPs send this as a boolean or as a string, and a raw "false" is
-  # truthy.
   def email_verified
     raw = claims['email_verified']
     return nil if raw.nil?
@@ -243,14 +236,6 @@ class Idp::JwtHelper
     raise "Missing JWT configuration: #{missing.join(', ')}" if missing.any?
   end
 
-  # These names are stored, not just displayed. Idp::Support#idp_reconcile_profile_from_claims!
-  # copies them into users.first_name/last_name on every sign-in, and
-  # Hmis::UserExtension#sync_to_hud_users copies them on to the matching Hmis::Hud::User rows. So
-  # return the string the IdP sent: casing normalized here is written to both tables.
-  #
-  # The `name` fallback splits once, giving everything after the first word to #last_name, so
-  # "Jan van der Berg" keeps its particles. A middle name rides along on the surname; users has no
-  # column for one, so the alternative is dropping it.
   def first_name
     claims['given_name'].to_s.strip.presence || name_parts.first
   end

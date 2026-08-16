@@ -221,8 +221,6 @@ RSpec.describe Idp::JwtHelper, :jwt_only do
     end
   end
 
-  # Idp::Support#idp_reconcile_profile_from_claims! adopts the address on absent and refuses it on
-  # false, so collapsing the two answers into one boolean changes who gets synced.
   describe '#email_verified' do
     def helper_for(claims)
       described_class.new(access_token: JWT.encode(claims, rsa_key, 'RS256', { kid: kid }))
@@ -285,7 +283,6 @@ RSpec.describe Idp::JwtHelper, :jwt_only do
       expect(helper_for(payload.merge('family_name' => 'Quincy')).last_name).to eq('Quincy')
     end
 
-    # Keycloak's profile scope sends given_name and family_name with no `name` claim.
     it 'reads both dedicated claims when the token carries no display name' do
       claims = payload.except('name').merge('given_name' => 'John', 'family_name' => 'Adams')
 
@@ -301,8 +298,6 @@ RSpec.describe Idp::JwtHelper, :jwt_only do
       expect(helper_for(payload.merge('name' => 'John Adams')).last_name).to eq('Adams')
     end
 
-    # Splitting on every space would store 'Berg', and a middle name has no column to go in, so the
-    # surname carries the remainder either way.
     it 'keeps the whole remainder rather than only its last word' do
       expect(helper_for(payload.merge('name' => 'Jan van der Berg')).last_name).to eq('van der Berg')
       expect(helper_for(payload.merge('name' => 'John Quincy Adams')).last_name).to eq('Quincy Adams')

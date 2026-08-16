@@ -104,12 +104,6 @@ module Idp
       false
     end
 
-    # Where this app learns a user's profile (email, name) once their account exists.
-    #
-    # :admin_api — read the account back through the management API
-    #   (Idp::Support#idp_reconcile_email!).
-    # :token_claims — no management API, so the JWT is the only channel that can carry a change
-    #   (Idp::Support#idp_reconcile_profile_from_claims!).
     def profile_source
       supports_user_management? ? :admin_api : :token_claims
     end
@@ -126,12 +120,6 @@ module Idp
         success: false,
         message: 'Connection testing not supported for this IDP',
       }
-    end
-
-    # Deep-link to the IDP's self-service credential console (password/2FA).
-    # Defaults to nil for IDPs with no such console.
-    def account_console_url
-      nil
     end
 
     # Deep-link that drops the current user straight into a single self-service action

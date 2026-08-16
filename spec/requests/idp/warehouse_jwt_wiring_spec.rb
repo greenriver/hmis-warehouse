@@ -161,8 +161,6 @@ RSpec.describe 'Warehouse JWT wiring', type: :request do
         # The token's connector is 'test' (see JwtAuthenticationHelper), which ServiceFactory
         # resolves to a NullService, so a service has to be stubbed in to get past the predicate.
         let(:idp_service) do
-          # profile_source and supports_email_self_service? are stubbed only to keep the per-session
-          # profile sync inert; these examples are about sign-out.
           instance_double(
             Idp::KeycloakService,
             supports_session_logout?: true,

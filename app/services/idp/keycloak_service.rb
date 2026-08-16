@@ -258,14 +258,6 @@ module Idp
       api_url.present?
     end
 
-    # Deep-link to the Keycloak Account Console for this realm, where end users
-    # manage their own password and 2FA.
-    def account_console_url
-      return nil unless browser_url.present?
-
-      "#{browser_url}/realms/#{realm}/account"
-    end
-
     # Keycloak Application-Initiated Action: sends the browser through the realm's OIDC
     # authorize endpoint with kc_action set, so the user completes exactly one action
     # (password change, TOTP setup, ...) against their existing Keycloak SSO session and

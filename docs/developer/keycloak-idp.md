@@ -194,8 +194,8 @@ Additional notes
 Everything above assumes an IdP we operate. Customer-org IdPs attach as additional Dex connectors
 ([§5.2.3](../architecture/05-building-blocks/05-2-3-authentication.md)) and expose no management API,
 so there is no account to read back and the JWT is the only channel that carries a profile change.
-`Idp::Service#profile_source` picks the channel; `Idp::SyncUserFromIdpJob` runs whichever it names.
-Two decisions behind that code are not recoverable from reading it:
+The sync reads the profile from the token's claims instead of the admin API. Two decisions behind
+that code are not recoverable from reading it:
 
 **A missing `email_verified` claim is not a refusal.** On the `:token_claims` path the claimed
 address is adopted unless the token says `email_verified: false`. Dex normalizes SAML upstreams,

@@ -64,8 +64,8 @@ RSpec.describe Idp::Support, :jwt_only, type: :model do
       expect(user.idp_reconcile_email!).to be_nil
     end
 
-    it 'profile_source is :token_claims' do
-      expect(user.profile_source).to eq(:token_claims)
+    it 'idp_profile_source is :token_claims' do
+      expect(user.idp_profile_source).to eq(:token_claims)
     end
   end
 
@@ -97,10 +97,8 @@ RSpec.describe Idp::Support, :jwt_only, type: :model do
       expect(user.idp_reconcile_email!).to be_nil
     end
 
-    # The customer-org-IdP shape: a connector Dex authenticates against that we hold no config for
-    # and never will.
-    it 'profile_source is :token_claims' do
-      expect(user.profile_source).to eq(:token_claims)
+    it 'idp_profile_source is :token_claims' do
+      expect(user.idp_profile_source).to eq(:token_claims)
     end
   end
 
@@ -117,8 +115,8 @@ RSpec.describe Idp::Support, :jwt_only, type: :model do
       expect(service.supports_user_management?).to be true
     end
 
-    it 'profile_source is :admin_api' do
-      expect(user.profile_source).to eq(:admin_api)
+    it 'idp_profile_source is :admin_api' do
+      expect(user.idp_profile_source).to eq(:admin_api)
     end
 
     it 'idp_deactivate! calls deactivate_user and returns :deactivated' do
@@ -194,9 +192,9 @@ RSpec.describe Idp::Support, :jwt_only, type: :model do
       expect(user.idp_reconcile_email!).to be_nil
     end
 
-    it 'profile_source is :token_claims even though email self-service reports true' do
+    it 'idp_profile_source is :token_claims even though email self-service reports true' do
       expect(service.supports_email_self_service?).to be true
-      expect(user.profile_source).to eq(:token_claims)
+      expect(user.idp_profile_source).to eq(:token_claims)
     end
   end
 
@@ -240,8 +238,6 @@ RSpec.describe Idp::Support, :jwt_only, type: :model do
     end
   end
 
-  # Unlike every context above, this one builds no service: the claims arrive from the request and
-  # the method never asks the IdP anything.
   describe '#idp_reconcile_profile_from_claims!' do
     let(:user) { create(:user, email: 'before@example.com', first_name: 'Ada', last_name: 'Lovelace') }
 
@@ -252,7 +248,6 @@ RSpec.describe Idp::Support, :jwt_only, type: :model do
       expect(user.reload.email).to eq('after@example.com')
     end
 
-    # Refusing on absence would leave SAML-fed users' addresses stale forever — the bug this fixes.
     it 'adopts an address when the token carries no email_verified claim at all' do
       user.idp_reconcile_profile_from_claims!(email: 'after@example.com', email_verified: nil)
 
@@ -301,8 +296,6 @@ RSpec.describe Idp::Support, :jwt_only, type: :model do
       expect(result).to be_nil
     end
 
-    # The caller (Idp::SyncUserFromIdpJob) rescues this into Sentry; raising is what rolls back the
-    # HUD sync sharing the transaction.
     it 'raises when the claimed address is already taken locally' do
       create(:user, email: 'taken@example.com')
 
