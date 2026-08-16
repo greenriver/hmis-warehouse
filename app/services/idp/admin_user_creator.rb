@@ -7,14 +7,8 @@
 # frozen_string_literal: true
 
 module Idp
-  # Admin-initiated account provisioning for the JWT arm. Given a chosen connector and identity
-  # fields, provision (or link to an existing) account in the remote IdP, then persist the local
-  # User and its durable connector link. This is the identity half only — roles/ACLs are assigned
-  # afterward on the edit form.
-  #
-  # Mirrors the linkage that UserProvisioner establishes on JIT login (connector_id +
-  # connector_user_id row, last_connector_id), but driven by an admin form and an explicit
-  # connector rather than an inbound JWT.
+  # Admin-initiated JWT provisioning: creates the local user, and links/creates the remote IdP
+  # account when the connector supports_user_creation?. Identity only; roles/ACLs come later.
   class AdminUserCreator
     def self.call(...)
       new(...).call
@@ -30,20 +24,18 @@ module Idp
       @user_class = user_class
     end
 
-    # @return [User] the persisted, IdP-linked user
-    # @raise [ActiveRecord::RecordInvalid] the local user is invalid (e.g. email already in use locally)
-    # @raise [Idp::ServiceError] the connector can't create users, or the remote create/lookup failed
+    # @raise [ActiveRecord::RecordInvalid] the local user is invalid (e.g. email already in use)
+    # @raise [Idp::ServiceError] the remote create/lookup failed on a management-API connector
     def call
       service = Idp::ServiceFactory.for_connector(@connector_id)
-      raise Idp::ServiceError.new("#{service.idp_name} does not support creating users", idp_name: service.idp_name, operation: :create_user) unless service.supports_user_creation?
 
-      # Claim the email locally first, via the users table's unique index, before making any
-      # (irreversible) remote IdP call. That keeps a race between concurrent admin submissions
-      # local and fast to resolve — the loser fails right here with a normal validation error —
-      # instead of both racing to provision remote accounts and risking an orphaned IdP account
-      # if the loser's local save fails only after it already created something remotely.
+      # Claim the email locally (unique index) before any irreversible remote call, so concurrent
+      # submissions race on the local save rather than on provisioning remote accounts.
       user = build_user
       user.save!
+
+      # No management API: link happens by email on first JWT sign-in instead.
+      return user unless service.supports_user_creation?
 
       begin
         connector_user_id = find_or_create_connector_user_id(service)
@@ -75,11 +67,10 @@ module Idp
         first_name: @first_name,
         last_name: @last_name,
         active: true,
-        agency_id: 0, # agency_id is required, 0 passes validation, but will need to be updated on next user edit.
+        agency_id: 0, # required; placeholder until the next user edit sets a real agency.
       )
     end
 
-    # Link an existing remote account when the email already exists in the IdP; otherwise create one.
     def find_or_create_connector_user_id(service)
       existing = service.find_user_by_email(email: @email)
       return existing['id'] if existing && existing['id'].present?
