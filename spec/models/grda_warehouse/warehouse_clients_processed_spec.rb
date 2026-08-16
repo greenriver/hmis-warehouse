@@ -73,24 +73,50 @@ RSpec.describe GrdaWarehouse::WarehouseClientsProcessed, type: :model do
       end.to raise_error(ActiveRecord::RecordNotUnique)
     end
 
-    it 'upserts on conflict instead of duplicating when two batches import for the same client_id and routine' do
-      import_options = { on_duplicate_key_update: { conflict_target: [:client_id, :routine], columns: [:days_served] } }
-      first_batch = GrdaWarehouse::WarehouseClientsProcessed.new(client_id: client.id, routine: 'service_history', days_served: 1)
-      second_batch = GrdaWarehouse::WarehouseClientsProcessed.new(client_id: client.id, routine: 'service_history', days_served: 2)
+    it 'wraps the upsert batch in the advisory lock' do
+      expect(GrdaWarehouse::WarehouseClientsProcessed).to receive(:with_advisory_lock).
+        with(GrdaWarehouse::WarehouseClientsProcessed::UPSERT_ADVISORY_LOCK_NAME).
+        at_least(:once).and_call_original
 
-      GrdaWarehouse::WarehouseClientsProcessed.import([first_batch], **import_options)
-      GrdaWarehouse::WarehouseClientsProcessed.import([second_batch], **import_options)
+      GrdaWarehouse::WarehouseClientsProcessed.update_cached_counts(client_ids: [client.id])
+    end
 
-      processed = GrdaWarehouse::WarehouseClientsProcessed.where(client_id: client.id, routine: 'service_history')
+    it 'upserts instead of duplicating when update_cached_counts runs again for a client whose stats changed' do
+      GrdaWarehouse::WarehouseClientsProcessed.update_cached_counts(client_ids: [client.id])
+
+      # advance the clock so last_service_updated_at actually differs, forcing a real
+      # second write instead of a no-op (with equal stats, update_cached_counts would
+      # see no changed attributes and never call import a second time)
+      travel_to(1.day.from_now) do
+        GrdaWarehouse::WarehouseClientsProcessed.update_cached_counts(client_ids: [client.id])
+      end
+
+      processed = GrdaWarehouse::WarehouseClientsProcessed.service_history.where(client_id: client.id)
       expect(processed.count).to eq(1)
-      expect(processed.sole.days_served).to eq(2)
+      expect(processed.sole.last_service_updated_at.to_date).to eq(1.day.from_now.to_date)
     end
 
-    it 'is idempotent when update_cached_counts runs for the same client more than once' do
-      GrdaWarehouse::WarehouseClientsProcessed.update_cached_counts(client_ids: [client.id])
-      GrdaWarehouse::WarehouseClientsProcessed.update_cached_counts(client_ids: [client.id])
+    it 'upserts instead of duplicating on the limited-data (skip_expensive_calculations) code path too' do
+      GrdaWarehouse::WarehouseClientsProcessed.update_cached_counts(client_ids: [client.id], skip_expensive_calculations: true)
 
-      expect(GrdaWarehouse::WarehouseClientsProcessed.service_history.where(client_id: client.id).count).to eq(1)
+      travel_to(1.day.from_now) do
+        GrdaWarehouse::WarehouseClientsProcessed.update_cached_counts(client_ids: [client.id], skip_expensive_calculations: true)
+      end
+
+      processed = GrdaWarehouse::WarehouseClientsProcessed.service_history.where(client_id: client.id)
+      expect(processed.count).to eq(1)
+      expect(processed.sole.last_service_updated_at.to_date).to eq(1.day.from_now.to_date)
     end
+
+    # The following comment explains to future reviewers (AI and human) why there is
+    # no test for the actual race condition.
+    # A test simulating two concurrent writers racing to upsert the same (client_id,
+    # routine) — the actual scenario this advisory lock fixes — was attempted here but
+    # dropped: RSpec wraps each example in a transaction, so a second thread either
+    # blocks waiting for a connection from the (size-1 in test) pool or can't see the
+    # first thread's uncommitted row, making the race impossible to reproduce under
+    # transactional fixtures without disabling them for this example (which would leak
+    # data across examples). The advisory-lock-is-used and upsert-not-duplicate tests
+    # above are the closest coverage achievable within that constraint.
   end
 end
