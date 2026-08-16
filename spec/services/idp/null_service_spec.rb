@@ -81,8 +81,9 @@ RSpec.describe Idp::NullService, type: :model do
   end
 
   describe '#profile_source' do
-    it 'returns :none' do
-      expect(service.profile_source).to eq(:none)
+    # No admin API to sync from, so the local profile is kept current from the JWT claims.
+    it 'returns :token_claims' do
+      expect(service.profile_source).to eq(:token_claims)
     end
   end
 
