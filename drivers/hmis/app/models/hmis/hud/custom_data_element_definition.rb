@@ -106,9 +106,13 @@ class Hmis::Hud::CustomDataElementDefinition < Hmis::Hud::Base
   # Convenience for non-batched callers/specs. GraphQL uses the dataloader source instead,
   # but both share .pick_list_labels_from_metadata so the options/reference logic isn't duplicated.
   def pick_list_labels(user:)
-    return {} unless form_definition
+    return {} if form_definition_identifier.blank?
 
-    metadata = form_definition.pick_list_metadata_across_versions[key]
+    versions = Hmis::Form::Definition.
+      where(identifier: form_definition_identifier, data_source_id: data_source_id).
+      published_or_retired.
+      order(version: :desc, id: :desc)
+    metadata = Hmis::Form::Definition.merge_pick_list_metadata(versions)[key]
     self.class.pick_list_labels_from_metadata(metadata, user: user)
   end
 end

@@ -623,7 +623,6 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
 
   # Pick-list metadata for the custom fields collected by *this* version of the definition.
   # Returns { custom_field_key => { item_type:, pick_list_reference:, pick_list_options: } }.
-  # This is the per-version half of #pick_list_metadata_across_versions.
   def pick_list_metadata_by_key
     metadata_by_key = {}
 
@@ -638,21 +637,16 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     metadata_by_key
   end
 
-  # Union the pick-list metadata across every version that shares this version's identifier
-  # (within the same data source). Newer versions are visited first, so scalar choice metadata
-  # (item_type, pick_list_reference) comes from the latest published/retired item, while inline
-  # options are unioned across versions so historical answer codes remain resolvable.
-  def pick_list_metadata_across_versions
-    versions = self.class.
-      where(identifier: identifier, data_source_id: data_source_id).
-      published_or_retired.
-      order(version: :desc, id: :desc)
-
+  # Union pick-list metadata across already-loaded definition versions.
+  # Pass newer versions first so scalar choice metadata (item_type, pick_list_reference)
+  # comes from the latest item, while inline options are unioned so historical answer
+  # codes remain resolvable. Callers should load the versions themselves to avoid extra queries.
+  def self.merge_pick_list_metadata(definitions)
     merged = {}
-    versions.each do |definition|
+    definitions.each do |definition|
       definition.pick_list_metadata_by_key.each do |key, metadata|
         target = merged[key] ||= {}
-        self.class.merge_pick_list_metadata_into!(target, metadata)
+        merge_pick_list_metadata_into!(target, metadata)
       end
     end
     merged

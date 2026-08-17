@@ -25,14 +25,7 @@ module Sources
         group_by(&:identifier)
 
       labels_by_identifier = versions_by_identifier.transform_values do |versions|
-        # Union pick-list metadata across every version (newest first)
-        merged_metadata = {}
-        versions.each do |definition|
-          definition.pick_list_metadata_by_key.each do |key, metadata|
-            target = merged_metadata[key] ||= {}
-            Hmis::Form::Definition.merge_pick_list_metadata_into!(target, metadata)
-          end
-        end
+        merged_metadata = Hmis::Form::Definition.merge_pick_list_metadata(versions)
 
         merged_metadata.each_with_object({}) do |(key, metadata), labels_by_key|
           labels = Hmis::Hud::CustomDataElementDefinition.pick_list_labels_from_metadata(metadata, user: @user)

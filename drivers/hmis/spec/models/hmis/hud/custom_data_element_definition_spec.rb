@@ -62,7 +62,7 @@ RSpec.describe Hmis::Hud::CustomDataElementDefinition, type: :model do
              ])
     end
 
-    it 'resolves labels via the form definition association' do
+    it 'resolves labels via published/retired form definition versions' do
       cded = create(:hmis_custom_data_element_definition, data_source: data_source, owner_type: 'Hmis::Hud::CustomAssessment', key: 'decision', form_definition_identifier: 'labels-form')
       expect(cded.pick_list_labels(user: user)).to eq('hmis_user_error' => 'HMIS user error')
     end

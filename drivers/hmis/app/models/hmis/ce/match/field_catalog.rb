@@ -28,10 +28,10 @@ module Hmis::Ce::Match
     end
 
     def custom_assessment_fields_for(data_source_id:, form_definition_identifier:)
-      entry_version = form_versions_for(data_source_id, form_definition_identifier).first
-      return [] unless entry_version
+      versions = form_versions_for(data_source_id, form_definition_identifier).to_a
+      return [] if versions.empty?
 
-      metadata_by_key = entry_version.pick_list_metadata_across_versions
+      metadata_by_key = Hmis::Form::Definition.merge_pick_list_metadata(versions)
 
       custom_assessment_cdeds(data_source_id, form_definition_identifier).filter_map do |cded|
         metadata = metadata_by_key[cded.key] || {}
@@ -187,10 +187,8 @@ module Hmis::Ce::Match
     end
 
     def form_metadata_for_cded(cded)
-      entry_version = form_versions_for(cded.data_source_id, cded.form_definition_identifier).first
-      return {} unless entry_version
-
-      entry_version.pick_list_metadata_across_versions[cded.key] || {}
+      versions = form_versions_for(cded.data_source_id, cded.form_definition_identifier)
+      Hmis::Form::Definition.merge_pick_list_metadata(versions)[cded.key] || {}
     end
   end
 end
