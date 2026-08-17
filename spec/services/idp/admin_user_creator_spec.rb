@@ -66,9 +66,22 @@ RSpec.describe Idp::AdminUserCreator, :jwt_only do
   context 'when the connector cannot create users' do
     let(:service) { instance_double(Idp::NullService, supports_user_creation?: false, idp_name: 'Unknown IDP') }
 
-    it 'raises a ServiceError and creates nothing' do
-      expect { call }.to raise_error(Idp::ServiceError)
-      expect(User.find_by(email: 'newbie@example.com')).to be_nil
+    before { allow(service).to receive(:find_user_by_email) }
+
+    it 'creates a local-only, email-keyed user with no remote call and no connector link' do
+      user = call
+
+      expect(user).to be_persisted
+      expect(user.email).to eq('newbie@example.com')
+      expect(user.last_connector_id).to be_nil
+      expect(user.user_authentication_sources).to be_empty
+      expect(service).not_to have_received(:find_user_by_email)
+    end
+
+    it 'still enforces local email uniqueness' do
+      create(:user, email: 'dup@example.com')
+
+      expect { call(email: 'dup@example.com') }.to raise_error(ActiveRecord::RecordInvalid)
     end
   end
 
