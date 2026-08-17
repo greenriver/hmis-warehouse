@@ -1,15 +1,15 @@
-.row
-  .col-sm-6
-    %h2= Translation.translate('Request access to the HMIS Warehouse')
-    .account-request-description= simple_format Translation.translate('The HMIS Warehouse can be used for homeless client care coordination and reporting.')
-
-    = simple_form_for @account_request, url: users_account_requests_path do |f|
-      %h3 General
+.well.mx-auto(style='max-width: 480px')
+  %h2= Translation.translate('Request access to the HMIS Warehouse')
+  .account-request-description= simple_format Translation.translate('The HMIS Warehouse can be used for homeless client care coordination and reporting.')
+  = simple_form_for @account_request, url: users_account_requests_path do |f|
+    %fieldset
+      %legend.h3 General
       = f.input :details, label: 'Why are you requesting access?', hint: 'Please explain specifically what you would like to be able to accomplish if given access.', required: true
-      %h3 Contact Information
+    %fieldset
+      %legend.h3 Contact Information
       = f.input :first_name
       = f.input :last_name
-      = f.input :email
+      = f.input :email, type: 'email'
       = f.input :phone
-      .form-actions
-        = f.submit 'Request Account'
+    .form-actions
+      = f.submit 'Request Account', class: 'btn btn-primary'
