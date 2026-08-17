@@ -65,7 +65,6 @@ env:
   HEALTH_DATABASE_HOST: postgres
   HEALTH_DATABASE_PASS: postgres
   HEALTH_DATABASE_USER: postgres
-  HEALTH_FROM: greenriver.testing@mailinator.com
   HOSTNAME: openpath.host
   MINIO_ENDPOINT: http://minio:9000
   USE_MINIO_ENDPOINT: true
