@@ -163,7 +163,7 @@ gem 'curb', '~> 1.0.9', require: false # pinning to 1.0.9 to keep webmock happy
 # gem 'savon'
 # gem 'qaaws', require: false, git: 'https://github.com/greenriver/eis-ruby-qaaws.git', branch: 'master'
 
-gem 'stupidedi', git: 'https://github.com/greenriver/stupidedi.git', branch: 'master'
+gem 'stupidedi', '~> 1.5'
 gem 'rexml', '>= 3.4.2', require: false # For ETO API and MassHealth SOAP processing; pinned for CVE-2025-58767
 
 gem 'redcarpet'
