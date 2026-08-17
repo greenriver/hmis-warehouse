@@ -42,15 +42,6 @@ module Idp::Support
     false
   end
 
-  # Deep-link to the IdP's self-service credential console (password/2FA), or nil when the IdP
-  # has none — in which case the account page shows static "managed by your identity provider"
-  # text instead of a link. A service we can't build is treated as no-console.
-  def account_console_url
-    idp_service.account_console_url
-  rescue Idp::ServiceError
-    nil
-  end
-
   # Deep-link that takes the current user straight into a single self-service action
   # (password change, 2FA setup) and returns them to redirect_uri. Only valid for the
   # signed-in user; redirect_uri is supplied by the caller, which owns request context.
@@ -68,6 +59,13 @@ module Idp::Support
   # The JWT arm never runs Devise/Warden, so nothing populates login_activities.
   def login_locations_enabled?
     false
+  end
+
+  # How should we keep the local profile in sync with the remote IdP?
+  def idp_profile_source
+    idp_service.profile_source
+  rescue Idp::ServiceError
+    :none
   end
 
   # Whether the JWT-arm admin surface should offer the "Force Password Reset" action
@@ -158,6 +156,21 @@ module Idp::Support
     previous_email
   end
 
+  def idp_reconcile_profile_from_claims!(email: nil, email_verified: nil, first_name: nil, last_name: nil)
+    attributes = {}
+    # Adopt unless the token explicitly says unverified. Unlike idp_reconcile_email!, email_verified is
+    # an optional OIDC claim: nil means the IdP is silent, not unverified, and we trust its email claim.
+    attributes[:email] = email if email.present? && !email.casecmp?(self.email.to_s) && email_verified != false
+    attributes[:first_name] = first_name if first_name.present? && first_name != self.first_name
+    attributes[:last_name] = last_name if last_name.present? && last_name != self.last_name
+    return nil if attributes.empty?
+
+    previous_email = attributes.key?(:email) ? self.email : nil
+    update!(attributes)
+
+    { previous_email: previous_email }
+  end
+
   # Unconfirmed address at the IdP, or nil. Display only — #idp_reconcile_email! still trusts nothing
   # but a verified address.
   #
@@ -202,11 +215,9 @@ module Idp::Support
   def primary_auth_source
     return @primary_auth_source if defined?(@primary_auth_source)
 
-    @primary_auth_source = if last_connector_id.presence
-      user_authentication_sources.where(connector_id: last_connector_id).order(:created_at).first
-    else
-      user_authentication_sources.order(:created_at).first
-    end
+    scope = user_authentication_sources.order(:created_at, :id)
+    scope = scope.where(connector_id: last_connector_id) if last_connector_id.presence
+    @primary_auth_source = scope.first
   end
 
   def idp_identity_on_file?

@@ -509,18 +509,6 @@ RSpec.shared_examples 'an auth-method-aware user' do |factory, model|
       end
     end
 
-    describe 'account_console_url' do
-      it 'delegates to the IdP service, and is nil for an unlinked user (NullService has no console)' do
-        expect(model.new.account_console_url).to be_nil
-      end
-
-      it 'returns the linked service console URL when the service exposes one' do
-        user = model.new
-        allow(user).to receive(:idp_service).and_return(instance_double(Idp::KeycloakService, account_console_url: 'http://kc.test/realms/openpath/account'))
-        expect(user.account_console_url).to eq('http://kc.test/realms/openpath/account')
-      end
-    end
-
     describe 'idp_password_management_enabled?' do
       it 'follows idp_service.supports_user_management?: disabled when unlinked (NullService can\'t manage the account)' do
         # null-attached: primary_idp may be present but the service resolves to a NullService that

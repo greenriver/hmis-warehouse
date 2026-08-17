@@ -7,8 +7,8 @@
 # frozen_string_literal: true
 
 module Idp
-  # Adopts an IdP-side email change after login. The JWT can't report one — oauth2-proxy still holds a
-  # token minted before the change.
+  # Adopts an IdP-side email change after login by reading the account back through the connector's
+  # management API.
   class SyncUserFromIdpJob < BaseJob
     queue_as ENV.fetch('DJ_SHORT_QUEUE_NAME', :short_running)
 
@@ -69,7 +69,6 @@ module Idp
       end
       previous_email
     rescue ActiveRecord::RecordInvalid => e
-      # The new address is taken here, or malformed. No retry fixes that.
       Sentry.capture_exception_with_info(
         e,
         "Couldn't adopt IdP email for user #{user.id}",
@@ -81,6 +80,7 @@ module Idp
           reason: e.record.errors.full_messages.join(', '),
         },
       )
+      # A no-retry failure (e.g. the address already belongs to another user). Report and stop.
       nil
     rescue Idp::ServiceError => e
       # #perform owns the cooldown. Non-transient means the same answer comes back, so don't retry.
