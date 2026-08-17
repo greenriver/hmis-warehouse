@@ -122,4 +122,15 @@ FactoryBot.define do
       }
     end
   end
+
+  factory :make_sole_member_hoh, class: 'GrdaWarehouse::DataSource' do
+    name { 'Make sole member HoH' }
+    short_name { 'Sole HoH' }
+    source_type { :sftp }
+    import_cleanups do
+      {
+        'Enrollment': ['HmisCsvImporter::HmisCsvCleanup::MakeSoleMemberHoh'],
+      }
+    end
+  end
 end
