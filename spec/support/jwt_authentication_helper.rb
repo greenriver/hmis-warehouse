@@ -50,6 +50,9 @@ module JwtAuthenticationHelper
       helper == jwt_helper ? user : original_method.call(helper)
     end
 
+    # Skip the incidental per-request profile sync so it doesn't pollute enqueued-jobs assertions
+    allow_any_instance_of(Idp::JwtAuthentication).to receive(:idp_schedule_user_sync)
+
     user.user_authentication_sources.find_or_create_by!(
       connector_id: 'test',
       connector_user_id: jwt_connector_user_id(user),
