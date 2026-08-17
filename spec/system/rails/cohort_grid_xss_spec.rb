@@ -69,7 +69,7 @@ RSpec.feature 'Cohort grid XSS resistance', type: :rails_system do
       # rrh_assessment_contact_info may not have been rendered into the DOM yet — force them
       # into view so the assertions below actually exercise the cell renderer.
       page.execute_script(<<~JS)
-        var table = $('body').data('cohort').table;
+        var table = window.jQuery('body').data('cohort').table;
         table.ensureColumnVisible('health_prioritized');
         table.ensureColumnVisible('rrh_assessment_contact_info');
       JS
