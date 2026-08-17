@@ -29,9 +29,6 @@ module GrdaWarehouse
     has_one_attached :print_logo do |attachable|
       attachable.variant :thumb, resize_to_limit: [100, 100]
     end
-    has_one_attached :careplan_logo do |attachable|
-      attachable.variant :thumb, resize_to_limit: [100, 100]
-    end
     has_one_attached :hmis_logo do |attachable|
       attachable.variant :thumb, resize_to_limit: [100, 100]
     end
@@ -65,10 +62,6 @@ module GrdaWarehouse
       theme.print_logo
     end
 
-    def self.careplan_logo
-      active_theme.careplan_logo
-    end
-
     def self.hmis_logo
       theme = active_theme
       # Use the default logo of no HMIS logo has been defined
@@ -81,8 +74,6 @@ module GrdaWarehouse
       case type
       when 'print_logo'
         print_logo
-      when 'careplan_logo'
-        careplan_logo
       when 'hmis_logo'
         hmis_logo
       else
@@ -160,10 +151,6 @@ module GrdaWarehouse
 
     def self.encoded_print_logo
       cached_encoded_attachment(active_theme.print_logo)
-    end
-
-    def self.encoded_careplan_logo
-      cached_encoded_attachment(active_theme.careplan_logo)
     end
 
     def self.encoded_hmis_logo
