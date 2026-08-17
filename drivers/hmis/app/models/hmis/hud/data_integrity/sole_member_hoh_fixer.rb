@@ -67,8 +67,9 @@ class Hmis::Hud::DataIntegrity::SoleMemberHohFixer
     live_scope = @scope.where(DateDeleted: nil)
 
     # Use HUD column names (e.g. HouseholdID not household_id)
-    # because importer staging tables do not alias snake_case
-    single_member_household_ids = live_scope.where.not(HouseholdID: nil).
+    # because importer staging tables do not alias snake_case.
+    # Exclude nil and ''
+    single_member_household_ids = live_scope.where.not(HouseholdID: [nil, '']).
       group(:HouseholdID).
       having(nf('COUNT', [:HouseholdID]).eq(1)).
       select(:HouseholdID)
@@ -76,8 +77,8 @@ class Hmis::Hud::DataIntegrity::SoleMemberHohFixer
     enrollments_scope = live_scope.where(HouseholdID: single_member_household_ids)
 
     # where.not(RelationshipToHoH: 1) alone skips nils, so explicitly include them
-    enrollments_scope.where.not(RelationshipToHoH: 1).
-      or(enrollments_scope.where(RelationshipToHoH: nil))
+    rel = @model_class.arel_table[:RelationshipToHoH]
+    enrollments_scope.where(rel.not_eq(1).or(rel.eq(nil)))
   end
 
   private

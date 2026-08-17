@@ -52,17 +52,19 @@ RSpec.describe Hmis::Hud::DataIntegrity::SoleMemberHohFixer, type: :model do
       expect(described_class.for_data_source!(data_source_id: hmis_ds.id)).to eq(2)
     end
 
-    context 'with a blank HouseholdID' do
-      let!(:blank_hh) do
-        create(:hmis_hud_enrollment, data_source: hmis_ds, project: p1, relationship_to_hoh: 99).tap do |enrollment|
-          enrollment.update_columns(HouseholdID: nil)
+    [nil, ''].each do |blank_household_id|
+      context "with HouseholdID #{blank_household_id.inspect}" do
+        let!(:blank_hh) do
+          create(:hmis_hud_enrollment, data_source: hmis_ds, project: p1, relationship_to_hoh: 99).tap do |enrollment|
+            enrollment.update_columns(HouseholdID: blank_household_id)
+          end
         end
-      end
 
-      it 'leaves it unchanged' do
-        expect { described_class.for_data_source!(data_source_id: hmis_ds.id) }.to(
-          not_change { Hmis::Hud::Enrollment.find(blank_hh.id).relationship_to_hoh },
-        )
+        it 'leaves it unchanged' do
+          expect { described_class.for_data_source!(data_source_id: hmis_ds.id) }.to(
+            not_change { Hmis::Hud::Enrollment.find(blank_hh.id).relationship_to_hoh },
+          )
+        end
       end
     end
 
@@ -88,6 +90,42 @@ RSpec.describe Hmis::Hud::DataIntegrity::SoleMemberHohFixer, type: :model do
         change { Hmis::Hud::Enrollment.find(sole_99.id).relationship_to_hoh }.from(99).to(1).
         and(not_change { Hmis::Hud::Enrollment.find(sole_99_out_of_scope.id).relationship_to_hoh }),
       )
+    end
+  end
+
+  describe '.run! when the scope includes deleted enrollments' do
+    let(:scope) { Hmis::Hud::Enrollment.hmis.with_deleted.where(data_source_id: hmis_ds.id) }
+
+    context 'with a deleted sole member' do
+      let!(:deleted_sole) do
+        create(:hmis_hud_enrollment, data_source: hmis_ds, project: p1, relationship_to_hoh: 99).tap do |enrollment|
+          enrollment.update_columns(DateDeleted: Time.current)
+        end
+      end
+
+      it 'does not update the deleted enrollment' do
+        expect { described_class.run!(scope: scope) }.to(
+          not_change { Hmis::Hud::Enrollment.with_deleted.find(deleted_sole.id).relationship_to_hoh },
+        )
+      end
+    end
+
+    context 'with a deleted second household member' do
+      let!(:live_member) do
+        create :hmis_hud_enrollment, data_source: hmis_ds, project: p1, relationship_to_hoh: 99, household_id: 'hh-with-deleted'
+      end
+      let!(:deleted_member) do
+        create(:hmis_hud_enrollment, data_source: hmis_ds, project: p1, relationship_to_hoh: 1, household_id: 'hh-with-deleted').tap do |enrollment|
+          enrollment.update_columns(DateDeleted: Time.current)
+        end
+      end
+
+      it 'promotes the live member and does not update the deleted member' do
+        expect { described_class.run!(scope: scope) }.to(
+          change { Hmis::Hud::Enrollment.find(live_member.id).relationship_to_hoh }.from(99).to(1).
+          and(not_change { Hmis::Hud::Enrollment.with_deleted.find(deleted_member.id).relationship_to_hoh }),
+        )
+      end
     end
   end
 end
