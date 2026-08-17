@@ -235,11 +235,25 @@ module Idp::JwtAuthentication
     # re-runs them on every request instead of spending its one per-session attempt.
     session[SESSION_SYNC_KEY] = true
 
-    # The job no-ops on connectors without email self-service; skip enqueuing one at all.
-    return unless user.email_change_enabled?
-    return if Idp::SyncUserFromIdpJob.connector_paused?(connector_id)
+    case user.idp_profile_source
+    when :admin_api
+      return unless user.email_change_enabled?
+      return if Idp::SyncUserFromIdpJob.connector_paused?(connector_id)
 
-    Idp::SyncUserFromIdpJob.perform_later(user_id: user.id)
+      Idp::SyncUserFromIdpJob.perform_later(user_id: user.id)
+    when :token_claims
+      Idp::SyncUserFromClaimsJob.perform_later(user_id: user.id, claims: idp_profile_claims)
+    end
+  end
+
+  def idp_profile_claims
+    jwt_helper = idp_jwt_helper_for_request
+    {
+      email: jwt_helper.payload_email,
+      email_verified: jwt_helper.email_verified,
+      first_name: jwt_helper.first_name,
+      last_name: jwt_helper.last_name,
+    }
   end
 
   # Never redirects to sign-in. oauth2-proxy owns that, and both cases below arrive with the proxy
