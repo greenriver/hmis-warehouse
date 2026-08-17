@@ -20,6 +20,7 @@ RSpec.feature 'Cohort grid XSS resistance', type: :rails_system do
   let!(:client) do
     create(
       :hud_client,
+      FirstName: 'XssTestClient',
       health_prioritized: '<script>window.__healthXssRan = true;</script>',
       rrh_assessment_contact_info: '<script>window.__rrhXssRan = true;</script>',
     )
@@ -61,7 +62,11 @@ RSpec.feature 'Cohort grid XSS resistance', type: :rails_system do
 
   describe 'html-rendered cohort columns', js: true do
     it 'never executes a <script> payload stored in health_prioritized or rrh_assessment_contact_info' do
-      visit cohort_cohort_clients_path(cohort_id: cohort.id)
+      # cohort_cohort_clients_path (Cohorts::ClientsController#index) only ever returns the JSON
+      # row data or a layout-less HTML fragment — the AG Grid itself, and the JS that
+      # initializes it, are only rendered by CohortsController#show (see
+      # app/views/cohorts/show.haml, which renders both _cohorts_js and _client_table).
+      visit cohort_path(cohort)
 
       expect(page).to have_content(client.FirstName)
 
@@ -69,7 +74,7 @@ RSpec.feature 'Cohort grid XSS resistance', type: :rails_system do
       # rrh_assessment_contact_info may not have been rendered into the DOM yet — force them
       # into view so the assertions below actually exercise the cell renderer.
       page.execute_script(<<~JS)
-        var table = window.jQuery('body').data('cohort').table;
+        var table = document.querySelector('.datatable').agGridApi;
         table.ensureColumnVisible('health_prioritized');
         table.ensureColumnVisible('rrh_assessment_contact_info');
       JS
