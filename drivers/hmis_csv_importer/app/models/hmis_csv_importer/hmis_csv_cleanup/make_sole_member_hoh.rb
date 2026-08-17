@@ -30,6 +30,11 @@ module HmisCsvImporter::HmisCsvCleanup
       'Make the sole member of a household the Head of Household'
     end
 
+    # Must run after FixBlankHouseholdIds (default 0) so newly assigned one-person households get HoH in the same import.
+    def self.run_order
+      10
+    end
+
     def self.enable
       {
         import_cleanups: {

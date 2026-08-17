@@ -16,7 +16,9 @@ RSpec.describe 'Make Sole Member HoH', type: :model do
   describe 'without cleanup' do
     before(:all) do
       travel_to Time.local(2020, 1, 15) do
-        setup(with_cleanup: false)
+        GrdaWarehouse::Utility.clear!
+        HmisCsvTwentyTwenty::Utility.clear!
+        setup(import_cleanups: {})
       end
     end
 
@@ -33,7 +35,11 @@ RSpec.describe 'Make Sole Member HoH', type: :model do
   describe 'with cleanup' do
     before(:all) do
       travel_to Time.local(2020, 1, 15) do
-        setup(with_cleanup: true)
+        setup(
+          import_cleanups: {
+            'Enrollment': ['HmisCsvImporter::HmisCsvCleanup::MakeSoleMemberHoh'],
+          },
+        )
       end
     end
 
@@ -69,17 +75,31 @@ RSpec.describe 'Make Sole Member HoH', type: :model do
       expect { staging_row.set_source_hash }.not_to change(staging_row, :source_hash)
     end
   end
-
-  def setup(with_cleanup:)
-    if with_cleanup
-      import_cleanups = {
-        'Enrollment': ['HmisCsvImporter::HmisCsvCleanup::MakeSoleMemberHoh'],
-      }
-    else
-      GrdaWarehouse::Utility.clear!
-      HmisCsvTwentyTwenty::Utility.clear!
-      import_cleanups = {}
+  describe 'with both FixBlankHouseholdIds and MakeSoleMemberHoh' do
+    before(:all) do
+      travel_to Time.local(2020, 1, 15) do
+        setup(
+          import_cleanups: {
+            'Enrollment': [
+              # Put MakeSoleMemberHoh first in the cleanup list to prove run order.
+              # In the real code, FixBlankHouseholdIds is provided first,
+              # but that's too brittle and we don't want to rely on it, hence this regression test.
+              'HmisCsvImporter::HmisCsvCleanup::MakeSoleMemberHoh',
+              'HmisCsvImporter::HmisCsvCleanup::FixBlankHouseholdIds',
+            ],
+          },
+        )
+      end
     end
+
+    it 'assigns a HouseholdID and promotes the sole member in the same import' do
+      e6 = enrollment('E-6')
+      expect(e6.HouseholdID).to be_present
+      expect(e6.RelationshipToHoH).to eq(1)
+    end
+  end
+
+  def setup(import_cleanups:)
     @data_source = GrdaWarehouse::DataSource.find_by(name: 'Make sole member HoH') || create(:make_sole_member_hoh)
     @data_source.update(import_cleanups: import_cleanups)
     import_hmis_csv_fixture(
