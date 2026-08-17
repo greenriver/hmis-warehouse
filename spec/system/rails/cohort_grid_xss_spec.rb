@@ -64,6 +64,16 @@ RSpec.feature 'Cohort grid XSS resistance', type: :rails_system do
       visit cohort_cohort_clients_path(cohort_id: cohort.id)
 
       expect(page).to have_content(client.FirstName)
+
+      # AG Grid virtualizes columns outside the current viewport, so health_prioritized and
+      # rrh_assessment_contact_info may not have been rendered into the DOM yet — force them
+      # into view so the assertions below actually exercise the cell renderer.
+      page.execute_script(<<~JS)
+        var table = $('body').data('cohort').table;
+        table.ensureColumnVisible('health_prioritized');
+        table.ensureColumnVisible('rrh_assessment_contact_info');
+      JS
+
       expect(page.evaluate_script('window.__healthXssRan')).to be_falsy
       expect(page.evaluate_script('window.__rrhXssRan')).to be_falsy
       expect(page.evaluate_script("document.querySelectorAll('.ag-cell script').length")).to eq(0)
