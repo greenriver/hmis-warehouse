@@ -97,7 +97,6 @@ module Clients
       @file = GrdaWarehouse::ClientFile.new
       @file.assign_attributes(
         file_params.merge(
-          file: 'See S3', # Temporary until we remove the column
           client_id: @client.id,
           user_id: current_user.id,
           visible_in_window: true,

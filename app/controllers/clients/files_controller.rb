@@ -61,7 +61,6 @@ module Clients
 
         @file.assign_attributes(
           allowed_params.merge(
-            file: 'See S3', # Temporary until we remove the column
             client_id: @client.id,
             user_id: current_user.id,
             visible_in_window: window_visible?(allowed_params[:visible_in_window]),
