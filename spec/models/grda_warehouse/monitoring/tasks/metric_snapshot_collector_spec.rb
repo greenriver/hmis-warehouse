@@ -208,16 +208,12 @@ RSpec.describe GrdaWarehouse::Monitoring::Tasks::MetricSnapshotCollector, type: 
         )
       end
 
-      let!(:processed3) do
-        create(
-          :grda_warehouse_warehouse_clients_processed,
-          client_id: client2.id,
-          routine: 'service_history',
-          days_homeless_last_three_years: 100,
-        )
-      end
-
       before do
+        # client2 can only have one warehouse_clients_processed row for 'service_history'
+        # (uidx_warehouse_clients_processed_on_client_id_and_routine), so reuse processed2
+        # as the baseline for this context rather than creating a second row.
+        processed2.update!(days_homeless_last_three_years: 100)
+
         create(
           :grda_warehouse_monitoring_metric_snapshot,
           entity: client2,
@@ -240,7 +236,7 @@ RSpec.describe GrdaWarehouse::Monitoring::Tasks::MetricSnapshotCollector, type: 
             for_metric(metric_with_both_thresholds).
             delete_all
 
-          processed3.update!(days_homeless_last_three_years: 200)
+          processed2.update!(days_homeless_last_three_years: 200)
           create(
             :grda_warehouse_monitoring_metric_snapshot,
             entity: client2,
@@ -250,7 +246,7 @@ RSpec.describe GrdaWarehouse::Monitoring::Tasks::MetricSnapshotCollector, type: 
             initial_value: 200,
             current_value: 200,
           )
-          processed3.update!(days_homeless_last_three_years: 235)
+          processed2.update!(days_homeless_last_three_years: 235)
         end
 
         it 'updates existing snapshot without creating new one' do
@@ -277,7 +273,7 @@ RSpec.describe GrdaWarehouse::Monitoring::Tasks::MetricSnapshotCollector, type: 
       context 'when percent threshold met but count threshold not met' do
         before do
           # +25% (above 20%), but only +25 count (below 30)
-          processed3.update!(days_homeless_last_three_years: 125)
+          processed2.update!(days_homeless_last_three_years: 125)
         end
 
         it 'updates existing snapshot without creating new one' do
@@ -303,7 +299,7 @@ RSpec.describe GrdaWarehouse::Monitoring::Tasks::MetricSnapshotCollector, type: 
       context 'when both thresholds are met' do
         before do
           # +40 count (above 30) AND +40% (above 20%)
-          processed3.update!(days_homeless_last_three_years: 140)
+          processed2.update!(days_homeless_last_three_years: 140)
         end
 
         it 'creates new snapshot' do
