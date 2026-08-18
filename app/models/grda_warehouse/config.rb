@@ -11,6 +11,8 @@ module GrdaWarehouse
     # Column pending removal in a later deploy; see db/warehouse/migrate/20260804130000_remove_health_only_columns_from_warehouse.rb
     self.ignored_columns = ['healthcare_available'].freeze
 
+    has_paper_trail
+
     serialize :client_details, type: Array
     validates :cas_sync_project_group_id, presence: { message: 'is required for the selected sync method.' }, if: ->(o) { o.cas_available_method.to_sym.in?([:project_group, :boston]) }
 

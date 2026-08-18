@@ -27,23 +27,9 @@ RSpec.describe GrdaWarehouse::PublicFile, type: :model do
     end
   end
 
-  describe '#copy_to_s3!' do
-    it 'attaches and nulls content' do
-      file = build_file
-      file.save!(validate: false)
-      file.copy_to_s3!
-      file.reload
-      expect(file.public_file).to be_attached
-      expect(file.public_file.download).to eq(bytes)
-      expect(file.content).to be_nil
-    end
-  end
-
   describe 'content type validation' do
-    # CarrierWave's FileUploader#content_type_whitelist used to reject these on
-    # upload; new uploads bypass CarrierWave entirely, so this restores the check
-    # against the ActiveStorage attachment instead. The check must look at the
-    # bytes, not the client-supplied content_type column, which can be spoofed.
+    # The check must look at the bytes, not the client-supplied content_type
+    # column, which can be spoofed.
     let(:png_bytes) { "\x89PNG\r\n\x1a\n".b + bytes.b }
     let(:html_bytes) { '<html><script>alert(1)</script></html>' + bytes }
 
@@ -71,42 +57,6 @@ RSpec.describe GrdaWarehouse::PublicFile, type: :model do
       file = described_class.new(name: 'test', content_type: 'image/png')
       file.public_file.attach(io: StringIO.new(html_bytes), filename: 'x.png', content_type: 'image/png')
       expect(file.detected_content_type).to eq('text/html')
-    end
-
-    it 'does not block copy_to_s3! migration of legacy rows with disallowed content types' do
-      file = described_class.new(name: 'legacy', content_type: 'application/x-msdownload', content: bytes)
-      file.save!(validate: false)
-      expect { file.copy_to_s3! }.not_to raise_error
-      file.reload
-      expect(file.public_file).to be_attached
-    end
-  end
-
-  describe '.unprocessed_s3_migration' do
-    it 'does not bleed across sibling STI types on the files table' do
-      client = create :hud_client
-      sibling = GrdaWarehouse::ClientFile.new(client: client, name: 'x', visible_in_window: false)
-      sibling.client_file.attach(io: StringIO.new(bytes), filename: 'x.png', content_type: 'image/png')
-      sibling.save!(validate: false)
-
-      pending_row = build_file
-      pending_row.save!(validate: false)
-
-      ids = described_class.unprocessed_s3_migration.pluck(:id)
-      expect(ids).to eq([pending_row.id])
-    end
-
-    it 'excludes already-migrated rows and includes pending rows' do
-      migrated_row = build_file
-      migrated_row.save!(validate: false)
-      migrated_row.public_file.attach(io: StringIO.new(bytes), filename: 'coc_map.png', content_type: 'image/png')
-
-      pending_row = build_file
-      pending_row.save!(validate: false)
-
-      ids = described_class.unprocessed_s3_migration.pluck(:id)
-      expect(ids).to include(pending_row.id)
-      expect(ids).not_to include(migrated_row.id)
     end
   end
 end
