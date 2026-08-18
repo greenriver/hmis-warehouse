@@ -12,6 +12,7 @@ module Types
       extend ActiveSupport::Concern
 
       class_methods do
+        # Keep include_search_query_id consistent for CeReferral; BaseObject.page_type memoizes its first setting.
         def ce_referrals_field(name = :ce_referrals, description = nil, filter_args: {}, **override_options, &block)
           default_field_options = {
             type: Types::HmisSchema::CeReferral.page_type(include_search_query_id: true),

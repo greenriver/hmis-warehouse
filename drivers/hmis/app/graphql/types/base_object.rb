@@ -50,6 +50,15 @@ module Types
       @audit_event_type ||= BaseAuditEvent.build(self, **args)
     end
 
+    # Find or create an Hmis::ClientSearchQuery for the given params and stash its id on
+    # the GraphQL context so BaseField can expose it as searchQueryId on the paginated result.
+    private def persist_client_search_query(params)
+      query = Hmis::ClientSearchQuery.find_or_create_by_params(params, user: current_user)
+      raise query.errors.full_messages.join(', ') unless query.valid?
+
+      context[:search_query_id] = query.id
+    end
+
     def load_last_user_from_versions(object)
       user_id = papertrail_user_ids(object).fetch(:last_user_id)
       load_ar_scope(scope: Hmis::User.with_deleted, id: user_id) if user_id

@@ -48,7 +48,7 @@ module Types
       has_service_filter = args[:filters]&.service_in_range&.project_id.present?
       raise 'Invalid search. At least 1 search param is required.' unless has_search_term || has_service_filter
 
-      persist_client_search_query_id(input.to_h)
+      persist_client_search_query(input.to_h)
 
       # if the search should also sort by rank
       sorted = args[:sort_order] == :best_match
@@ -73,7 +73,7 @@ module Types
     end
 
     def client_omni_search(text_search:)
-      persist_client_search_query_id({ 'text_search' => text_search })
+      persist_client_search_query({ 'text_search' => text_search })
 
       Hmis::Hud::Client.searchable_to(current_user).
         matching_search_term(text_search).
@@ -598,7 +598,7 @@ module Types
       # Persist text search for top-level CE Referrals URL restore only.
       # Nested ce_referrals resolvers do not call this method, so they won't create search rows.
       search_term = args[:filters]&.search_term.to_s.strip
-      persist_client_search_query_id({ 'text_search' => search_term }) if search_term.present?
+      persist_client_search_query({ 'text_search' => search_term }) if search_term.present?
 
       resolve_ce_referrals(Hmis::Ce::Referral.viewable_by(current_user), **args)
     end
@@ -625,6 +625,7 @@ module Types
       { project_group_id: project_group_id }
     end
 
+    # Keep include_search_query_id consistent for CeClient; BaseObject.page_type memoizes its first setting.
     field :ce_clients, HmisSchema::CeClient.page_type(include_search_query_id: true), null: false, description: 'Clients who belong to at least one CE candidate pool', nodes_count: ->(all_nodes) { all_nodes.count(:id) } do
       filters_argument HmisSchema::CeClient
     end
@@ -632,7 +633,7 @@ module Types
       access_denied! unless current_user.can_administrate_coordinated_entry?
 
       search_term = filters&.search_term.to_s.strip
-      persist_client_search_query_id({ 'text_search' => search_term }) if search_term.present?
+      persist_client_search_query({ 'text_search' => search_term }) if search_term.present?
 
       scope = Hmis::Ce::ClientProxy.for_warehouse_clients.
         joins(ce_match_candidates: :candidate_pool).
@@ -763,13 +764,5 @@ module Types
       )
     end
 
-    # Find or create an Hmis::ClientSearchQuery for the given params and stash its id on
-    # the GraphQL context so BaseField can expose it as searchQueryId on the paginated result.
-    private def persist_client_search_query_id(params)
-      query = Hmis::ClientSearchQuery.find_or_create_by_params(params, user: current_user)
-      raise query.errors.full_messages.join(', ') unless query.valid?
-
-      context[:search_query_id] = query.id
-    end
   end
 end
