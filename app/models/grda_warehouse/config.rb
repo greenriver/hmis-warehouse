@@ -12,6 +12,7 @@ module GrdaWarehouse
     self.ignored_columns = ['healthcare_available'].freeze
 
     serialize :client_details, type: Array
+    serialize :client_demographic_columns, type: Array
     validates :cas_sync_project_group_id, presence: { message: 'is required for the selected sync method.' }, if: ->(o) { o.cas_available_method.to_sym.in?([:project_group, :boston]) }
 
     after_save :invalidate_cache
@@ -324,6 +325,7 @@ module GrdaWarehouse
         :rds_s3_integration_role_arn,
         :relevant_state_codes,
         client_details: [],
+        client_demographic_columns: [],
       ]
     end
 
