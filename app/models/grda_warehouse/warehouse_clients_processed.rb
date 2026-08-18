@@ -14,12 +14,21 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
   self.table_name = :warehouse_clients_processed
 
   UPSERT_ADVISORY_LOCK_NAME = 'WarehouseClientsProcessed#upsert'
+  UPSERT_ADVISORY_LOCK_TIMEOUT_SECONDS = 120
 
   belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client'
   belongs_to :warehouse_client, class_name: 'GrdaWarehouse::WarehouseClient', foreign_key: :client_id, primary_key: :destination_id
   has_many :service_history_enrollments, class_name: 'GrdaWarehouse::ServiceHistoryEnrollment', primary_key: :client_id, foreign_key: :client_id
 
   scope :service_history, -> { where(routine: 'service_history') }
+
+  def self.with_lock(&block)
+    with_advisory_lock!(
+      UPSERT_ADVISORY_LOCK_NAME,
+      timeout_seconds: UPSERT_ADVISORY_LOCK_TIMEOUT_SECONDS,
+      &block
+    )
+  end
 
   private def default_client_ids
     range = ::Filters::DateRange.new(start: 1.years.ago, end: Date.current)
@@ -109,7 +118,7 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
         processed_batch << processed if processed.changed?
       end
       if processed_batch.present?
-        self.class.with_advisory_lock(UPSERT_ADVISORY_LOCK_NAME) do
+        self.class.with_lock do
           self.class.import(
             processed_batch,
             on_duplicate_key_update: {
@@ -194,7 +203,7 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
         processed_batch << processed if processed.changed?
       end
       if processed_batch.present?
-        self.class.with_advisory_lock(UPSERT_ADVISORY_LOCK_NAME) do
+        self.class.with_lock do
           self.class.import(
             processed_batch,
             on_duplicate_key_update: {

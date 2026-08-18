@@ -73,12 +73,28 @@ RSpec.describe GrdaWarehouse::WarehouseClientsProcessed, type: :model do
       end.to raise_error(ActiveRecord::RecordNotUnique)
     end
 
-    it 'wraps the upsert batch in the advisory lock' do
-      expect(GrdaWarehouse::WarehouseClientsProcessed).to receive(:with_advisory_lock).
-        with(GrdaWarehouse::WarehouseClientsProcessed::UPSERT_ADVISORY_LOCK_NAME).
+    it 'wraps the upsert batch in the advisory lock with a bounded timeout' do
+      expect(GrdaWarehouse::WarehouseClientsProcessed).to receive(:with_advisory_lock!).
+        with(
+          GrdaWarehouse::WarehouseClientsProcessed::UPSERT_ADVISORY_LOCK_NAME,
+          timeout_seconds: GrdaWarehouse::WarehouseClientsProcessed::UPSERT_ADVISORY_LOCK_TIMEOUT_SECONDS,
+        ).
         at_least(:once).and_call_original
 
       GrdaWarehouse::WarehouseClientsProcessed.update_cached_counts(client_ids: [client.id])
+    end
+
+    it 'raises FailedToAcquireLock instead of silently dropping the batch when the lock cannot be acquired' do
+      allow(GrdaWarehouse::WarehouseClientsProcessed).to receive(:with_advisory_lock!).
+        with(
+          GrdaWarehouse::WarehouseClientsProcessed::UPSERT_ADVISORY_LOCK_NAME,
+          timeout_seconds: GrdaWarehouse::WarehouseClientsProcessed::UPSERT_ADVISORY_LOCK_TIMEOUT_SECONDS,
+        ).
+        and_raise(WithAdvisoryLock::FailedToAcquireLock.new(GrdaWarehouse::WarehouseClientsProcessed::UPSERT_ADVISORY_LOCK_NAME))
+
+      expect do
+        GrdaWarehouse::WarehouseClientsProcessed.update_cached_counts(client_ids: [client.id])
+      end.to raise_error(WithAdvisoryLock::FailedToAcquireLock)
     end
 
     it 'upserts instead of duplicating when update_cached_counts runs again for a client whose stats changed' do
