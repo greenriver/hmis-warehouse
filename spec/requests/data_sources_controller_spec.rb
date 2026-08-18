@@ -17,8 +17,9 @@ RSpec.describe DataSourcesController, type: :request do
 
   describe 'GET #organizations' do
     it 'redirects unauthenticated users to sign in' do
-      get organizations_data_source_path(data_source)
-      expect(response).to redirect_to(regex_for_warehouse_sign_in)
+      expect_unauthenticated_warehouse_request do
+        get organizations_data_source_path(data_source)
+      end
     end
 
     it 'denies users who cannot view projects, organizations, or imports' do
