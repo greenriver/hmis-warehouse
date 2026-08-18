@@ -29,7 +29,6 @@ gem 'loofah'
 gem 'rubyzip'
 gem 'rails-html-sanitizer'
 gem 'sanitize' # used to sanitize user-entered theme CSS
-gem 'sshkit'
 gem 'paranoia'
 gem 'pg'
 gem 'activerecord-sqlserver-adapter', '~> 8.1.0' # tied to the rails version
@@ -281,10 +280,6 @@ end
 
 group :development do
   gem 'html2haml', require: false
-  gem 'capistrano-bundler', require: false
-  gem 'capistrano-rvm', require: false
-  gem 'capistrano-passenger', require: false
-  gem 'capistrano-rails', require: false
   gem 'rails-erd', require: false
   gem 'web-console'
   gem 'aws-sdk-dynamodb', require: false
