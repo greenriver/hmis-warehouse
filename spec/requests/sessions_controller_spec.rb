@@ -11,7 +11,9 @@ require 'support/shared_contexts/post_login_hooks_context'
 require 'support/shared_contexts/login_activity_context'
 # require 'support/shared_contexts/timing_attack_mitigation_context'
 
-RSpec.describe Users::SessionsController, type: :request do
+# Devise-only: Users::SessionsController is reachable only via the `devise_for :users` routes,
+# which config/routes.rb mounts under AuthMethod.devise?.
+RSpec.describe 'Users::SessionsController', :devise_only, type: :request do
   let(:user) { create :user }
   let(:user_2fa) { create :user_2fa }
   let(:email) { ActionMailer::Base.deliveries.last }
@@ -156,6 +158,52 @@ RSpec.describe Users::SessionsController, type: :request do
       expect(user_2fa.reload.failed_attempts).to eq 2 # double increment bug
     end
 
+    context 'with post-authentication hooks' do
+      def do_login
+        post user_session_path(user: { otp_attempt: user_2fa.current_otp })
+      end
+
+      def do_failed_login
+        post user_session_path(user: { otp_attempt: '-1' })
+      end
+
+      include_context 'with post-authentication hooks'
+
+      # Overrides the shared context's default (`let(:post_auth_user) { user }`); must come after
+      # include_context so this definition wins.
+      let(:post_auth_user) { user_2fa }
+    end
+
+    context 'with external reporting permissions population' do
+      it 'enqueues the job when 2fa is completed successfully' do
+        expect { post user_session_path(user: { otp_attempt: user_2fa.current_otp }) }.
+          to change(Delayed::Job, :count).by(1)
+
+        job = Delayed::Job.last
+        expect(job.payload_object.method_name).to eq(:populate_external_reporting_permissions!)
+        expect(job.payload_object.object).to eq(user_2fa)
+      end
+
+      it 'does not enqueue the job when 2fa fails' do
+        expect { post user_session_path(user: { otp_attempt: '-1' }) }.
+          to_not change(Delayed::Job, :count)
+      end
+    end
+
+    context 'with timing mitigation' do
+      it 'runs end_time_log for an incorrect 2fa attempt' do
+        expect_any_instance_of(Users::SessionsController).to receive(:end_time_log)
+
+        post user_session_path(user: { otp_attempt: '-1' })
+      end
+
+      it 'runs end_time_log for a correct 2fa attempt' do
+        expect_any_instance_of(Users::SessionsController).to receive(:end_time_log)
+
+        post user_session_path(user: { otp_attempt: user_2fa.current_otp })
+      end
+    end
+
     describe 'User does not remember 2FA device' do
       before(:each) do
         post user_session_path(user: { otp_attempt: user_2fa.current_otp, remember_device: nil })
@@ -218,6 +266,19 @@ RSpec.describe Users::SessionsController, type: :request do
           expect(response).to render_template('devise/sessions/two_factor')
         end
       end
+
+      it 'enqueues the external reporting permissions job on the bypass login' do
+        expect { post user_session_path(user: { email: user_2fa.email, password: user_2fa.password }) }.
+          to change(Delayed::Job, :count).by(1)
+      end
+    end
+  end
+
+  describe 'Login with 2FA enabled, prompting for a 2fa code' do
+    it 'runs end_time_log' do
+      expect_any_instance_of(Users::SessionsController).to receive(:end_time_log)
+
+      post user_session_path(user: { email: user_2fa.email, password: user_2fa.password })
     end
   end
 

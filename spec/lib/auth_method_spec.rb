@@ -36,4 +36,17 @@ RSpec.describe AuthMethod do
       expect(described_class.devise?).to be false
     end
   end
+
+  # The :devise group in Gemfile is required only on the Devise arm, which is what makes an
+  # unintended reference to Devise or Warden raise here instead of resolving against a loaded gem.
+  # A transitive require from any other gem restores them silently, so assert on the constants.
+  describe 'the :devise bundler group', :jwt_only do
+    it 'leaves Devise unloaded' do
+      expect(defined?(Devise)).to be_nil
+    end
+
+    it 'leaves Warden unloaded' do
+      expect(defined?(Warden)).to be_nil
+    end
+  end
 end

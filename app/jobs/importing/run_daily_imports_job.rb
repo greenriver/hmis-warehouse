@@ -185,9 +185,11 @@ module Importing
       run_maintenance_task('System maintenance') do
         # Remove any expired export jobs
         PruneDocumentExportsJob.perform_later
-        Health::PruneDocumentExportsJob.perform_later
 
         YouthFollowUpsJob.set(priority: BaseJob::BULK_PROCESSING_PRIORITY_10).perform_later
+
+        Idp::Keycloak::BackfillAuthenticationSourcesJob.perform_later
+
         SystemCohortsJob.set(priority: BaseJob::BULK_PROCESSING_PRIORITY_10).perform_later unless Delayed::Job.queued?('SystemCohortsJob')
         AccessGroup.delayed_system_group_maintenance
         Collection.delayed_system_group_maintenance
@@ -286,8 +288,6 @@ module Importing
         @notifier.ping('Set VI-SPDAT Pregnancies from ETO TouchPoints')
         GrdaWarehouse::HmisForm.set_part_of_a_family
         @notifier.ping('Updated Family Status based on ETO TouchPoints')
-        GrdaWarehouse::HmisForm.set_missing_housing_status
-        @notifier.ping('Set Housing Status based on ETO TouchPoints')
         GrdaWarehouse::HmisForm.set_missing_physical_disabilities
         @notifier.ping('Set Physical Disabilities based on ETO TouchPoints')
       end

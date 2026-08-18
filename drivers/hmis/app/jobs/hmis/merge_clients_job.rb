@@ -22,7 +22,7 @@ module Hmis
 
       self.actor = User.find(actor_id)
       self.clients = Hmis::Hud::Client.
-        preload(:names, :contact_points, :addresses, :custom_data_elements).
+        preload(:names, :contact_points, :addresses, :custom_data_elements, :restricted_record).
         find(client_ids).
         map do |client|
           # set some defaults
@@ -131,6 +131,7 @@ module Hmis
       Rails.logger.info "Saving merged values to client #{client_to_retain.id}"
 
       client_to_retain.attributes = merged_attributes
+      client_to_retain.mark_as_restricted!(user: actor) if clients.any?(&:restricted?) && !client_to_retain.restricted?
       client_to_retain.save!(validate: false)
     end
 

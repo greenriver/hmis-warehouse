@@ -22,7 +22,7 @@ RSpec.describe User, type: :model do
     end
   end
 
-  describe 'invitation handling' do
+  describe 'invitation handling', :devise_only do
     context 'when user has an outstanding invitation' do
       before do
         User.invite!({ email: 'unconfirmed@example.com', first_name: 'Unconfirmed', last_name: 'User', agency_id: agency.id }, User.system_user)
@@ -178,6 +178,61 @@ RSpec.describe User, type: :model do
       expect(cohort_records.map(&:cohort_id)).to contain_exactly(*cohort_ids.uniq)
       expect(cohort_records).to all(have_attributes(user_id: user.id, email: user.email, permission: 'can_view_cohorts'))
     end
+
+    context 'when the user is on ACLs' do
+      let(:user) { create(:acl_user, email: 'reporter@example.com') }
+      let(:cohort_b) { 404 }
+      let(:cohort_c) { 505 }
+      let(:cohort_ids) { [cohort_a, cohort_b] }
+      let(:name_scope) { instance_double(ActiveRecord::Relation, pluck: [cohort_b, cohort_c]) }
+
+      before do
+        allow(GrdaWarehouse::Cohort).to receive(:viewable_by).with(user, permission: :can_view_client_name).and_return(name_scope)
+      end
+
+      it 'adds a can_view_client_name row only for cohorts that are both viewable and name-permitted' do
+        populate_permissions
+
+        pairs = cohort_records.map { |record| [record.cohort_id, record.permission] }
+        expect(pairs).to contain_exactly(
+          [cohort_a, 'can_view_cohorts'],
+          [cohort_b, 'can_view_cohorts'],
+          [cohort_b, 'can_view_client_name'],
+        )
+      end
+    end
+
+    context 'when the user is on legacy roles' do
+      context 'and none of their roles grant can_view_client_name' do
+        before { user.legacy_roles = [create(:cohort_client_viewer)] }
+
+        it 'does not add a can_view_client_name row' do
+          populate_permissions
+
+          pairs = cohort_records.map { |record| [record.cohort_id, record.permission] }
+          expect(pairs).to contain_exactly([cohort_a, 'can_view_cohorts'])
+        end
+      end
+
+      context 'and a role unrelated to cohort access grants can_view_client_name' do
+        before do
+          user.legacy_roles = [
+            create(:cohort_client_viewer),
+            create(:role, can_view_client_name: true),
+          ]
+        end
+
+        it 'adds a can_view_client_name row for every legacy-viewable cohort' do
+          populate_permissions
+
+          pairs = cohort_records.map { |record| [record.cohort_id, record.permission] }
+          expect(pairs).to contain_exactly(
+            [cohort_a, 'can_view_cohorts'],
+            [cohort_a, 'can_view_client_name'],
+          )
+        end
+      end
+    end
   end
 
   describe '#all_access_group_ids' do
@@ -198,7 +253,7 @@ RSpec.describe User, type: :model do
   # The app previously carried a monkey patch (DeviseUserPatch) working around this on
   # Devise 4; Devise 5.0.4 fixes it natively, so the patch was removed. This spec confirms
   # the native behavior still holds.
-  describe 'CVE-2026-32700 - confirmation token/unconfirmed_email sync' do
+  describe 'CVE-2026-32700 - confirmation token/unconfirmed_email sync', :devise_only do
     it 'prevents desync when a concurrent request modifies unconfirmed_email mid-flight' do
       attacker_email = 'attacker@example.com'
       victim_email   = 'victim@example.com'
@@ -226,7 +281,7 @@ RSpec.describe User, type: :model do
     end
   end
 
-  describe 'devise-security password_archivable' do
+  describe 'devise-security password_archivable', :devise_only do
     around do |example|
       original = Devise.deny_old_passwords
       Devise.deny_old_passwords = 2
@@ -274,7 +329,7 @@ RSpec.describe User, type: :model do
     end
   end
 
-  describe 'devise-security expirable' do
+  describe 'devise-security expirable', :devise_only do
     let(:user) { create(:user) }
 
     it 'is active when recently active' do
@@ -307,7 +362,7 @@ RSpec.describe User, type: :model do
     end
   end
 
-  describe 'devise-security secure_validatable password complexity' do
+  describe 'devise-security secure_validatable password complexity', :devise_only do
     around do |example|
       original = Devise.password_complexity
       Devise.password_complexity = { digit: 1, lower: 1, upper: 1, symbol: 1 }

@@ -27,14 +27,7 @@ module TxClientReports::AttachmentThreeReportExports
 
     def perform
       with_status_progression do
-        ActionController::Renderer::RACK_KEY_TRANSLATION['warden'] ||= 'warden'
-        warden_proxy = Warden::Proxy.new({}, Warden::Manager.new({})).tap do |i|
-          i.set_user(user, scope: :user, store: false, run_callbacks: false)
-        end
-
-        renderer = controller_class.renderer.new(
-          'warden' => warden_proxy,
-        )
+        renderer = controller_class.renderer.new(WardenProxyFactory.renderer_env(user))
 
         write_tmp_file(
           renderer.render(

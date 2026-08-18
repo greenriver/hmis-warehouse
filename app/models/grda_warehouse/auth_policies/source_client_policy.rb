@@ -131,12 +131,7 @@ class GrdaWarehouse::AuthPolicies::SourceClientPolicy < GrdaWarehouse::AuthPolic
 
   # permissions the user has through association with the client's enrolled projects, orgs, project groups, etc.
   def add_project_based_permissions(results)
-    enrolled_project_ids = GrdaWarehouse::Hud::Project.
-      joins(:clients).
-      merge(GrdaWarehouse::Hud::Client.where(id: client_id)).
-      distinct.
-      pluck(:id)
-    enrolled_project_ids.each do |project_id|
+    context.enrolled_project_ids_for_client(client_id).each do |project_id|
       results.merge(context.project_role_permissions(project_id))
     end
   end

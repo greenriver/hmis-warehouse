@@ -173,30 +173,6 @@ class NotifyUser < DatabaseMailer
     mail(to: @user.email, subject: 'Medical Restrictions or Test Results Added')
   end
 
-  def health_member_status_report_finished(user_id)
-    @user = User.find(user_id)
-    return unless @user.active?
-
-    @report_url = warehouse_reports_health_member_status_reports_url
-    mail(from: ENV.fetch('HEALTH_FROM'), to: @user.email, subject: 'Your Member Status report has finished')
-  end
-
-  def health_claims_finished(user_id)
-    @user = User.find(user_id)
-    return unless @user.active?
-
-    @report_url = warehouse_reports_health_claims_url
-    mail(from: ENV.fetch('HEALTH_FROM'), to: @user.email, subject: 'Your Claims file has been generated')
-  end
-
-  def health_qa_pre_calculation_finished(user_id)
-    @user = User.find(user_id)
-    return unless @user.active?
-
-    @report_url = warehouse_reports_health_claims_url
-    mail(from: ENV.fetch('HEALTH_FROM'), to: @user.email, subject: 'Qualifying Activity Payability has been calculated')
-  end
-
   def hud_report_finished(user_id, report_id, report_result_id)
     @user = User.find(user_id)
     return unless @user.active?
@@ -213,14 +189,6 @@ class NotifyUser < DatabaseMailer
     @report_url = report_url || @generator.url
     @report_name = report_name || @generator.class.short_name
     mail(to: @user.email, subject: "Your #{@report_name} has finished")
-  end
-
-  def health_premium_payments_finished(user_id)
-    @user = User.find(user_id)
-    return unless @user.active?
-
-    @report_url = warehouse_reports_health_premium_payments_url
-    mail(from: ENV.fetch('HEALTH_FROM'), to: @user.email, subject: 'Premium Payment File Processed')
   end
 
   def pending_account_submitted

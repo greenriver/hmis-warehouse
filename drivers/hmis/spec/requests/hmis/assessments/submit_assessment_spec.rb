@@ -130,7 +130,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
     context 'when assessment is updated by a different user' do
       before(:each) do
-        delete destroy_hmis_user_session_path
+        hmis_logout
         hmis_login(other_user)
       end
 

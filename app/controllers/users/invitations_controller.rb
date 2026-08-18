@@ -119,7 +119,6 @@ class Users::InvitationsController < Devise::InvitationsController
       :notify_on_anomaly_identified,
       :expired_at,
       :copy_form_id,
-      :credentials,
       :exclude_from_directory,
       :exclude_phone_from_directory,
       :notify_on_new_account,

@@ -198,6 +198,12 @@ RSpec.describe Hmis::ProjectGroup, type: :model do
     it 'strips script tags to prevent XSS' do
       group.notes = '<script>alert("xss")</script>'
       expect(group.markdown_notes).not_to include('<script>')
+      expect(group.markdown_notes).not_to include('&lt;script&gt;')
+    end
+
+    it 'drops javascript: links' do
+      group.notes = '[click me](javascript:alert(1))'
+      expect(group.markdown_notes).not_to include('href="javascript:')
     end
   end
 end

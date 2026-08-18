@@ -11,11 +11,13 @@ module HomelessSummaryReport
     acts_as_paranoid
 
     include HasPiiAttributes
+    include ::PiiDisplay
     pii_attr :first_name
     pii_attr :last_name
 
     has_many :simple_reports_universe_members, inverse_of: :universe_membership, class_name: 'SimpleReports::UniverseMember', foreign_key: :universe_membership_id
     belongs_to :report
+    belongs_to :hud_client, class_name: 'GrdaWarehouse::Hud::Client', foreign_key: :client_id, optional: true
 
     # Create a scope for each report variant
     HOUSEHOLD_VARIANTS = [
@@ -95,6 +97,10 @@ module HomelessSummaryReport
           end
         end
       end
+    end
+
+    def display_value(col, pii_policy:)
+      pii_value(col: col.to_s, raw_value: send(col), pii_policy: pii_policy)
     end
 
     def show_cell?(name, value)

@@ -1616,6 +1616,27 @@ module HmisCsvImporter::Importer
       log_timing :queue_enrollment_processing
       log_timing :maintain_ch_enrollments
       log_timing :check_csv_monitors
+      hmis_post_process
+    end
+
+    private def hmis_post_process
+      return unless @data_source.hmis?
+      return unless HmisEnforcement.hmis_enabled?
+
+      queue_hmis_assessment_migration # No need to log timing here, since it's just enqueuing a job
+    end
+
+    private def queue_hmis_assessment_migration
+      # involved_project_ids are HUD ProjectIDs; MigrateAssessmentsJob expects warehouse Project pks
+      project_pks = GrdaWarehouse::Hud::Project.
+        where(data_source_id: @data_source.id, ProjectID: involved_project_ids).
+        pluck(:id)
+      return if project_pks.blank?
+
+      Hmis::MigrateAssessmentsJob.perform_later(
+        data_source_id: @data_source.id,
+        project_ids: project_pks,
+      )
     end
 
     private def check_csv_monitors

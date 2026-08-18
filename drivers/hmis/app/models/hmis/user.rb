@@ -19,7 +19,6 @@ class Hmis::User < ApplicationRecord
   include Memery
 
   include UserConcern
-  include Idp::JwtUser
   include HasRecentItems
 
   self.table_name = :users
@@ -39,7 +38,7 @@ class Hmis::User < ApplicationRecord
 
   # Request-scoped attribute storing the data_source_id of the current HMIS request for the current user.
   # All HMIS access is scoped to this data source.
-  # @see docs/architecture/multi-hmis-support.md
+  # @see docs/features/hmis/multi-hmis-support.md
   attr_accessor :hmis_data_source_id
 
   # Returns application users who have some permissions in the given data source.
@@ -99,7 +98,7 @@ class Hmis::User < ApplicationRecord
     end
 
     # Methods for determining if a user has permission
-    # e.g. the_user.can_administer_health?
+    # e.g. the_user.can_manage_agency?
     define_method("#{permission}?") do
       send(permission)
     end
@@ -117,7 +116,7 @@ class Hmis::User < ApplicationRecord
     end
 
     # Provide a scope for each permission to get any user who qualifies
-    # e.g. User.can_administer_health
+    # e.g. User.can_manage_agency
     scope permission, -> do
       joins(:roles).
         where(roles: { permission => true })
@@ -166,7 +165,11 @@ class Hmis::User < ApplicationRecord
     check_permissions_with_mode(*permissions, mode: mode) { |perm| permission_for?(entity, perm) }
   end
 
-  def entities_with_permissions(model, *permissions, mode: :any)
+  # NOTE:
+  # - this matches Role columns directly, so it does not resolve permission requirements.
+  #   Project.with_access does, and should be preferred for anything project-scoped.
+  # - Project.viewable_by is the only caller, so mode: :all is exercised only by specs.
+  private def entities_with_permissions(model, *permissions, mode: :any)
     raise "missing data source on user id #{id}" unless hmis_data_source_id
 
     # Get all the roles that have this permission
@@ -247,13 +250,15 @@ class Hmis::User < ApplicationRecord
     @editable_project_ids ||= Hmis::Hud::Project.viewable_by(self).pluck(:id)
   end
 
-  def current_user_api_values
+  def current_user_api_values(session_duration:)
     {
       id: id.to_s,
       name: name,
       email: email,
       phone: phone,
-      sessionDuration: Devise.timeout_in.in_seconds,
+      sessionDuration: session_duration,
+      # primary_idp is only defined under AuthMethod.jwt?
+      primaryIdp: AuthMethod.jwt? ? primary_idp : nil,
     }
   end
 

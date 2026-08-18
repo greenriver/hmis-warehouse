@@ -44,8 +44,8 @@ class NonHmisUploadsController < ApplicationController
         user_id: current_user.id,
       ),
     )
-    # New uploads live entirely in ActiveStorage; the legacy CarrierWave `file` column
-    # is left null and read only for rows that predate the migration.
+    # New uploads live entirely in ActiveStorage; the legacy `file` column is left
+    # null and read only for rows that predate the migration.
     @upload.upload_file.attach(file)
     # Use the file type detected by Active Storage over the client-supplied one
     @upload.content_type = @upload.detected_content_type

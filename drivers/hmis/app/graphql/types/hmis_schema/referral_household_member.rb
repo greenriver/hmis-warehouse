@@ -15,6 +15,12 @@ module Types
     field :client, HmisSchema::Client, null: false
     field :open_enrollment_summary, [HmisSchema::EnrollmentSummary], null: false
 
+    # object is a HmisExternalApis::AcHmis::ReferralHouseholdMember
+
+    def client
+      load_ar_client_association(object)
+    end
+
     def open_enrollment_summary
       client = load_ar_client_association(object)
       return [] unless current_user.can_view_open_enrollment_summary?

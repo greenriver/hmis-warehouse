@@ -11,13 +11,23 @@
     SPM Report Cell:
     %em
       = @cell_name
-  %div.mb-8
-    Total:
-    %em
-      = @detail_clients.count
+  .d-flex.mb-4
+    %p.mr-auto
+      Total:
+      %em
+        = @detail_clients.count
+    %div
+      = link_to({format: :xlsx}.merge(link_params), class: 'btn btn-secondary') do
+        %i.icon.icon-download2
+        Download Excel
+  .d-flex.mb-4
+    .mr-4
+      .input-group
+        %input#table_search.form-control{autofocus: true, type: :text, placeholder: 'Search...'}
+        %button.btn.btn-secondary Search
   .card
     .overflow-x-scroll{style: "height: 500px"}
-      %table.table.table-sm.table-bordered.table-fixed
+      %table.table.table-sm.table-bordered.table-fixed.datatable
         %thead.table-dark
           %tr
             %th
@@ -28,15 +38,26 @@
               %th= cell.to_s.gsub('_', ' ')
         %tbody
           - @detail_clients.each_with_index do |client, index|
+            - pii_policy = current_user.reporting_policy_for_client(client: client.hud_client, mode: :browse)
             %tr
               - row_num = index + 1
               %th= row_num
               %td= link_to_if can_view_clients?, client.client_id, appropriate_client_path(client.client_id)
-              %td= client.first_name
-              %td= client.last_name
+              %td= client.display_value(:first_name, pii_policy: pii_policy)
+              %td= client.display_value(:last_name, pii_policy: pii_policy)
               - @data_cells.each do |cell|
                 - val = client.send("spm_#{cell}")
                 - if client.show_cell?(cell, val)
                   %td= val
                 - else
                   %td
+  = content_for :page_js do
+    %script{ nonce: content_security_policy_nonce }
+      :plain
+        table = $('.datatable').DataTable({
+          paging: false,
+          "dom": 'lrtip'
+        });
+        $('#table_search').keyup(function(){
+          table.search($(this).val()).draw();
+        });

@@ -30,14 +30,20 @@ require 'progress_bar'
 # OVERWRITE is the default so a re-run carries over edits (e.g. a password the
 # user changed after the first pass) instead of silently skipping them. The
 # intended pre-flip step is a final pass — optionally with a `since` timestamp —
-# in a low-traffic window, keeping the switchover gap to minutes.
+# in a low-traffic window, keeping the switchover gap to minutes. Do that pass
+# before backfill_authentication_sources, which takes users out of scope.
 ###
 
 # @see docs/developer/keycloak-user-migration.md
 namespace :keycloak do
+  # The JWT routing key: resolves the service, and keys authentication sources.
+  def keycloak_connector_id
+    'keycloak'
+  end
+
   # Build the importer, exiting unless a real Keycloak service is configured.
   def keycloak_importer
-    service = Idp::ServiceFactory.for_connector('keycloak')
+    service = Idp::ServiceFactory.for_connector(keycloak_connector_id)
 
     unless service.is_a?(Idp::KeycloakService)
       warn 'Error: Keycloak service not configured'
@@ -52,6 +58,18 @@ namespace :keycloak do
     return nil if raw.blank?
 
     Time.zone.parse(raw) || (warn("Error: could not parse since: #{raw}") || exit(1))
+  end
+
+  # Refuse to build credentials under AUTH_METHOD=jwt. Building a TOTP credential
+  # reads User#otp_secret, an accessor the :two_factor_authenticatable Devise
+  # macro provides only in devise mode (UserConcern gates the macro behind
+  # AuthMethod.devise?).
+  #
+  def keycloak_assert_devise!
+    return if AuthMethod.devise?
+
+    warn 'Error: keycloak user migration requires AUTH_METHOD=devise (Devise credential accessors such as User#otp_secret are disabled under jwt). Re-run prefixed with AUTH_METHOD=devise, e.g. AUTH_METHOD=devise bin/rails keycloak:migrate_users'
+    exit 1
   end
 
   # Ensure the groups the import references exist, print the outcome, and abort on failure.
@@ -72,10 +90,11 @@ namespace :keycloak do
     policy = args[:policy] || 'OVERWRITE'
     since = keycloak_since(args[:since])
 
+    keycloak_assert_devise!
     importer = keycloak_importer
     keycloak_ensure_groups(importer)
 
-    users_scope = Idp::Keycloak::UserImporter.migration_scope(since: since)
+    users_scope = Idp::Keycloak::UserImporter.migration_scope(connector_id: keycloak_connector_id, since: since)
     users_scope = users_scope.limit(limit) if limit
 
     total = users_scope.count
@@ -119,9 +138,10 @@ namespace :keycloak do
     limit = args[:limit]&.to_i
     since = keycloak_since(args[:since])
 
+    keycloak_assert_devise!
     importer = keycloak_importer
 
-    users_scope = Idp::Keycloak::UserImporter.migration_scope(since: since)
+    users_scope = Idp::Keycloak::UserImporter.migration_scope(connector_id: keycloak_connector_id, since: since)
     users_scope = users_scope.limit(limit) if limit
     users = users_scope.to_a
 
@@ -172,6 +192,8 @@ namespace :keycloak do
 
   desc 'Import a single user to Keycloak (for testing)'
   task :import_single_user, [:email] => :environment do |_t, args|
+    keycloak_assert_devise!
+
     email = args[:email]
     unless email
       warn 'Usage: rails keycloak:import_single_user[user@example.com]'
@@ -201,9 +223,26 @@ namespace :keycloak do
     end
   end
 
+  # Backfill Keycloak authentication sources for imported users.
+  desc 'Backfill Keycloak authentication sources for imported users'
+  task :backfill_authentication_sources, [:progress] => :environment do |_t, args|
+    show_progress = ActiveModel::Type::Boolean.new.cast(args[:progress])
+
+    connector_id = keycloak_connector_id
+    service = Idp::ServiceFactory.for_connector(connector_id)
+    raise 'Error: Keycloak service not configured' unless service.is_a?(Idp::KeycloakService)
+
+    result = Idp::Keycloak::AuthenticationSourceBackfill.call(
+      service: service,
+      connector_id: connector_id,
+      progress: show_progress,
+    )
+    puts result.summary if show_progress && result.total.positive?
+  end
+
   desc 'Test Keycloak connection and get realm info'
   task test_connection: :environment do
-    service = Idp::ServiceFactory.for_connector('keycloak')
+    service = Idp::ServiceFactory.for_connector(keycloak_connector_id)
 
     unless service.is_a?(Idp::KeycloakService)
       warn 'Error: Keycloak service not configured'

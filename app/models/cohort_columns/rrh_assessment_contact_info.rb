@@ -30,5 +30,23 @@ module CohortColumns
     def text_value(cohort_client)
       strip_tags value(cohort_client)
     end
+
+    # Rendered into the AG Grid cell via innerHTML (see HtmlCellRenderer), so escaping has to be
+    # baked into the string itself — JSON serialization drops the html_safe flag.
+    def display_read_only(_user)
+      raw_text = value(cohort_client)
+      return if raw_text.blank?
+
+      # Same paragraph-split ActionView::Helpers::TextHelper#simple_format uses internally
+      # (its private split_paragraphs): normalize line endings, then split on blank lines.
+      blocks = raw_text.to_s.gsub(/\r\n?/, "\n").split(/\n\n+/).
+        map { |block| block.split("\n").map(&:strip).reject(&:blank?).join(', ') }.
+        reject(&:blank?)
+      content_tag(:span, blocks.join(' | '), title: raw_text.to_s)
+    end
+
+    def analytics_value
+      text_value(cohort_client)
+    end
   end
 end

@@ -19,13 +19,15 @@ RSpec.describe SourceDataController, type: :request do
 
   describe 'logged out' do
     it 'redirects index to login' do
-      get source_data_path
-      expect(response).to redirect_to(regex_for_warehouse_sign_in)
+      expect_unauthenticated_warehouse_request do
+        get source_data_path
+      end
     end
 
     it 'redirects show to login' do
-      get source_datum_path(id: item.id, type: 'Client')
-      expect(response).to redirect_to(regex_for_warehouse_sign_in)
+      expect_unauthenticated_warehouse_request do
+        get source_datum_path(id: item.id, type: 'Client')
+      end
     end
   end
 

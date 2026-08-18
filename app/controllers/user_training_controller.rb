@@ -80,7 +80,7 @@ class UserTrainingController < ApplicationController
         # If the user has an active account in all configs and has no trainings left to complete, allow them to navigate the warehouse
         elsif account_exists_in_all_configs && course_redirects.blank?
           # All trainings are completed and the user has an account in all training configs
-          redirect_to after_sign_in_path_for(current_user)
+          redirect_to safe_landing(landing_after_training)
           return
         end
         # For all other cases, send the user to the captive portal
@@ -92,11 +92,23 @@ class UserTrainingController < ApplicationController
     end
   end
 
-  # Figure out where we are going after login
-  # stored_location_for is provided by Devise
-  # after_sign_in_path_for is provided by ApplicationController
   def safe_training_redirect_path
-    path = stored_location_for(:user).presence || after_sign_in_path_for(current_user)
+    safe_landing(stored_landing_after_training)
+  end
+
+  def landing_after_training
+    return fallback_redirect_path if AuthMethod.jwt?
+
+    after_sign_in_path_for(current_user)
+  end
+
+  def stored_landing_after_training
+    return fallback_redirect_path if AuthMethod.jwt?
+
+    stored_location_for(:user).presence || after_sign_in_path_for(current_user)
+  end
+
+  def safe_landing(path)
     return fallback_redirect_path if training_path?(path)
 
     path

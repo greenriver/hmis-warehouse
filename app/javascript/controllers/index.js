@@ -25,5 +25,19 @@ application.register("chart-loader", ChartLoaderController)
 import FormsController from "./forms_controller.js"
 application.register("forms", FormsController)
 
+import UnmergeFormController from "./unmerge_form_controller.js"
+application.register("unmerge-form", UnmergeFormController)
+
 import AjaxModalContentController from "./ajax_modal_content_controller.js"
 application.register("ajax-modal-content", AjaxModalContentController)
+
+import PollReplaceController from "./poll_replace_controller.js"
+application.register("poll-replace", PollReplaceController)
+
+
+import ContentLoaderController from "./content_loader_controller.js"
+application.register("content-loader", ContentLoaderController)
+
+import ClientLookupExportController from "./client_lookup_export_controller.js"
+application.register("client-lookup-export", ClientLookupExportController)
+
