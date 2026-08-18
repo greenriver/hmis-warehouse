@@ -179,6 +179,8 @@ lib/data/*.xlsx
 /dev**
 /storage/**
 /app/assets/builds/**
+# Regenerated on every `yarn build:css` by bin/generate_sass_imports.js — never hand-edited or committed.
+/app/assets/stylesheets/application/_generated_imports.scss
 /drivers/hud_spm_report/spec/fixpoints/enrollment_universe/warehouse_app_test.sql
 /drivers/hud_spm_report/spec/fixpoints/enrollment_universe/warehouse_test.sql
 /drivers/hud_spm_report/spec/fixpoints/return_universe/warehouse_app_test.sql

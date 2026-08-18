@@ -1,5 +1,5 @@
 @import '../../_settings/variables';
-@import 'bootstrap/mixins';
+@import 'bootstrap/scss/mixins';
 
 @mixin card {
   background: var(--white);

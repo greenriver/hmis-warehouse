@@ -149,6 +149,7 @@ gem 'virtus'
 
 # Asset related
 gem 'jsbundling-rails', '~> 1.1'
+gem 'cssbundling-rails'
 gem 'bootstrap', '~> 5.3.3'
 gem 'jquery-rails'
 gem 'coffee-rails'

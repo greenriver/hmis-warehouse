@@ -41,13 +41,11 @@
 @import '@eonasdan/tempus-dominus/dist/css/tempus-dominus';
 
 // 3. Application-specific Styles
-// Import all your components, layouts, pages, etc. in an explicit order.
-// This replaces `require_tree`. You will need to list your subdirectories here.
-@import 'application/base/**/*';
-@import 'application/elements/**/*';
-@import 'application/objects/**/*';
-@import 'application/components/**/*';
-@import 'application/layouts/**/*';
-@import 'application/modules/**/*';
-@import 'application/overrides/**/*';
-@import 'application/utilities/**/*';
+// Import all your components, layouts, pages, etc. dart-sass doesn't support
+// glob imports (this replaced Sprockets' `require_tree`/sassc-rails' glob
+// @import), so this list is generated on every build by
+// bin/generate_sass_imports.js from application/{base,elements,objects,
+// components,layouts,modules,overrides,utilities}/ — do not hand-edit the
+// generated file, and see docs/code_patterns_and_conventions.md ("View Asset
+// Management") for how to add a new file to one of those directories.
+@import 'application/_generated_imports';
