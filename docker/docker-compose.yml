@@ -151,6 +151,30 @@ services:
       minio:
         condition: service_started
 
+  # Mirrors the `yarn` service above, but for CSS (dart-sass via
+  # cssbundling-rails) instead of JS (esbuild). --poll is required because
+  # dart-sass's default file watcher fails under Docker Desktop's node_modules
+  # mount (a symlink into a named volume): "inotify_add_watch on
+  # '/app/node_modules' failed: Not a directory". Editing an existing file
+  # recompiles automatically; adding a brand-new file under
+  # app/assets/stylesheets/application/{base,elements,objects,components,
+  # layouts,modules,overrides,utilities}/ requires restarting this service
+  # (`docker compose restart sass`) — see docs/code_patterns_and_conventions.md,
+  # "View Asset Management".
+  sass:
+    <<: *backend
+    container_name: hmis-warehouse-sass
+    stdin_open: true
+    tty: true
+    command: yarn build:css --watch --poll
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      minio:
+        condition: service_started
+
   web:
     <<: *backend
     container_name: hmis-warehouse-web
