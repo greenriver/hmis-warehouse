@@ -16,7 +16,6 @@ module GrdaWarehouse
 
     CONSENT_FORM_TAG_CACHE_KEY = 'consent_form_tagging_ids/tag_ids'
 
-    mount_uploader :file, FileUploader # This is probably no necessary, but added to be safe
     has_paper_trail
     acts_as_taggable
 
@@ -233,16 +232,6 @@ module GrdaWarehouse
     scope :for_coc, ->(coc_codes) do
       coc_codes = Array.wrap(coc_codes) + [nil, '']
       where(coc_codes: coc_codes)
-    end
-
-    scope :unprocessed_s3_migration, -> do
-      # plucking these seems to be 100x faster than where.not(id: migrated)
-      migrated = ActiveStorage::Attachment.where(record_type: 'GrdaWarehouse::File').pluck(:record_id)
-      all = pluck(:id)
-      unmigrated = all - migrated
-      return none if unmigrated.blank?
-
-      where(id: unmigrated)
     end
 
     ####################
@@ -463,26 +452,6 @@ module GrdaWarehouse
         end
         upsert_all(batch, update_only: [:active_storage_url], record_timestamps: false) if batch.any?
       end
-    end
-
-    def copy_to_s3!
-      return unless content.present?
-      return if client_file.attached? # don't re-process
-
-      # Prevent any callbacks
-      @callbacks_skipped = true
-
-      puts "Migrating #{file} to S3 for client_id: #{client_id}"
-
-      Tempfile.create(binmode: true) do |tmp_file|
-        tmp_file.write(content)
-        tmp_file.rewind
-        client_file.attach(io: tmp_file, content_type: content_type, filename: file, identify: false)
-
-        # Save no-matter validity state
-        save!(validate: false)
-      end
-      @callbacks_skipped = nil
     end
   end
 end

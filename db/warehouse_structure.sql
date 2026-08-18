@@ -27096,7 +27096,9 @@ CREATE TABLE public.configs (
     rds_s3_integration_role_arn character varying,
     default_lms_email_to_warehouse_email boolean,
     relevant_state_codes character varying DEFAULT 'MA'::character varying NOT NULL,
-    enable_external_data_sharing_exclusion boolean DEFAULT false NOT NULL
+    enable_external_data_sharing_exclusion boolean DEFAULT false NOT NULL,
+    created_at timestamp(6) without time zone,
+    updated_at timestamp(6) without time zone
 );
 
 
@@ -359930,6 +359932,7 @@ ALTER TABLE ONLY public.import_logs
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260818130528'),
 ('20260812172057'),
 ('20260812160243'),
 ('20260804130000'),
