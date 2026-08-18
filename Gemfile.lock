@@ -1,13 +1,4 @@
 GIT
-  remote: https://github.com/greenriver/carrierwave-aws.git
-  revision: 35a5361e4567661dbb71c12489359d06d7b80981
-  branch: gr-1.4.0-without-deprecations
-  specs:
-    carrierwave-aws (1.4.0)
-      aws-sdk-s3 (~> 1.0)
-      carrierwave (>= 0.7, < 2.1)
-
-GIT
   remote: https://github.com/greenriver/census_api.git
   revision: 39303ab2463f50078f28c867c23cd27d525f5173
   specs:
@@ -308,12 +299,6 @@ GEM
       rack-test (>= 0.6.3)
       regexp_parser (>= 1.5, < 3.0)
       xpath (~> 3.2)
-    carrierwave (1.3.4)
-      activemodel (>= 4.0.0)
-      activesupport (>= 4.0.0)
-      mime-types (>= 1.16)
-      ssrf_filter (~> 1.0, < 1.1.0)
-    carrierwave-i18n (0.3.0)
     caxlsx (4.5.0)
       htmlentities (~> 4.3, >= 4.3.4)
       marcel (~> 1.0)
@@ -1143,9 +1128,6 @@ DEPENDENCIES
   byebug
   cable_ready (>= 5.0.0.rc2)
   capybara
-  carrierwave (~> 1)
-  carrierwave-aws!
-  carrierwave-i18n
   caxlsx
   caxlsx_rails (>= 0.7.1)
   census_api!
@@ -1410,9 +1392,6 @@ CHECKSUMS
   cable_ready (5.0.6) sha256=de1c94beab04b15a47c8794507a0b5d0ce9c0f25edb1b60a7542adc5413ea894
   cantor (1.2.1) sha256=f9c2c3d2ff23f07908990a891d4d4d53e6ad157f3fe8194ce06332fa4037d8bb
   capybara (3.40.0) sha256=42dba720578ea1ca65fd7a41d163dd368502c191804558f6e0f71b391054aeef
-  carrierwave (1.3.4) sha256=81772dabd1830edbd7f4526d2ae2c79f974f1d48900c3f03f7ecb7c657463a21
-  carrierwave-aws (1.4.0)
-  carrierwave-i18n (0.3.0) sha256=0b8dee3cb8397bb00d670c6b42bdd1b165d113d6008890a83e1363deae9fbb7e
   caxlsx (4.5.0) sha256=e3d98d859f148df05d5462086b5079b523f29c1766b569535f1d68629ce743ff
   caxlsx_rails (0.7.2) sha256=c7169c96a878a4548568f04742734c59826e3e473894867781796c2e13d1f52a
   census_api (2.0.1)
