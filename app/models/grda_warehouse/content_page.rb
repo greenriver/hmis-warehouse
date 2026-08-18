@@ -28,16 +28,7 @@ module GrdaWarehouse
     end
 
     def render_content
-      markdown = Redcarpet::Markdown.new(
-        Redcarpet::Render::HTML,
-        autolink: true,
-        tables: true,
-        underline: true,
-        superscript: true,
-        space_after_headers: true,
-        strikethrough: true,
-      )
-      markdown.render(content).html_safe
+      SafeUserMarkdown.render(content, underline: true, superscript: true)
     end
   end
 end

@@ -76,6 +76,7 @@ class GrdaWarehouse::Utility
       UserGroup,
       AccessControl,
       User,
+      Idp::ServiceConfig,
       HudReports::ReportCheckpoint,
       HudReports::ReportInstance,
       HudReports::HouseholdContext,

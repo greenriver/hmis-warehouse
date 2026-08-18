@@ -166,6 +166,7 @@ RSpec.describe 'Warehouse JWT wiring', type: :request do
             supports_session_logout?: true,
             logout_user_sessions: true,
             supports_email_self_service?: false,
+            profile_source: :admin_api,
           )
         end
 

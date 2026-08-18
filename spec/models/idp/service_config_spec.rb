@@ -156,7 +156,7 @@ RSpec.describe Idp::ServiceConfig, :jwt_only, type: :model do
       )
 
       service = config.to_service
-      expect(service.account_console_url).to eq('https://kc.public.test/realms/openpath/account')
+      expect(service.send(:browser_url)).to eq('https://kc.public.test')
       expect(service.send(:account_client_id)).to eq('my-account')
     end
 

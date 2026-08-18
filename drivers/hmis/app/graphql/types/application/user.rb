@@ -77,7 +77,12 @@ module Types
       # Only allow this if fetching our own recent items
       return [] unless current_user == object
 
-      current_user.recent_items
+      items = current_user.recent_items
+      # Preload client dependencies to avoid N+1 queries when invoking HmisClientPolicy
+      client_ids = items.filter { |item| item.is_a?(Hmis::Hud::Client) }.map(&:id)
+      current_user.policy_context.preload_client_dependencies(client_ids) if client_ids.any?
+
+      items
     end
 
     def activity_logs

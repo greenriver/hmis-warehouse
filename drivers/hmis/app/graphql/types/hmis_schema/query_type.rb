@@ -354,7 +354,7 @@ module Types
 
     field :merge_candidates, Types::HmisSchema::ClientMergeCandidate.page_type, null: false
     def merge_candidates
-      raise 'Access denied' unless current_user.can_merge_clients?
+      raise 'Access denied' unless policy_for(Hmis::Hud::Client, policy_type: :hmis_client).can_merge_clients?
 
       # Find all destination clients that have more than 1 source client in the HMIS
       destination_ids_with_multiple_sources = GrdaWarehouse::WarehouseClient.
@@ -392,7 +392,7 @@ module Types
       filters_argument Types::HmisSchema::MergeAuditEvent
     end
     def merge_audit_history(filters: nil)
-      raise 'Access denied' unless current_user.can_merge_clients?
+      raise 'Access denied' unless policy_for(Hmis::Hud::Client, policy_type: :hmis_client).can_merge_clients?
 
       # can_merge_clients is a global permission (not limited to specific clients), but MergeAuditEvent resolves
       # the client record which requires object-level authorization. Filter by viewable_by to prevent authorization failures.

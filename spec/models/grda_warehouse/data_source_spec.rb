@@ -255,6 +255,56 @@ RSpec.describe model, type: :model do
     end
   end
 
+  describe '#hmis_login_url' do
+    let!(:hmis_ds) { create(:source_data_source, hmis: 'hmis.example.test', authoritative: true) }
+
+    it 'returns nil for a data source with no HMIS hostname' do
+      expect(ds1.hmis_login_url).to be_nil
+    end
+
+    it 'points at the HMIS host', :devise_only do
+      expect(hmis_ds.hmis_login_url).to eq('https://hmis.example.test/')
+    end
+
+    it "routes through HMIS's own oauth2-proxy sign-in endpoint with the user's connector_id, so Dex skips its connector picker", :jwt_only do
+      user.update_column(:last_connector_id, 'keycloak')
+
+      expect(hmis_ds.hmis_login_url(user: user)).to eq('https://hmis.example.test/oauth2/sign_in?connector_id=keycloak&rd=%2F')
+    end
+
+    it 'is unaffected by connector_id under Devise', :devise_only do
+      user.update_column(:last_connector_id, 'keycloak')
+
+      expect(hmis_ds.hmis_login_url(user: user)).to eq('https://hmis.example.test/')
+    end
+  end
+
+  describe '#hmis_url_for' do
+    let!(:hmis_ds) { create(:source_data_source, hmis: 'hmis.example.test', authoritative: true) }
+    let(:client) { create(:hud_client, data_source: hmis_ds) }
+
+    before { allow(HmisEnforcement).to receive(:hmis_enabled?).and_return(true) }
+
+    it 'points at the deep-linked path when no user is given' do
+      expect(hmis_ds.hmis_url_for(client)).to eq("https://hmis.example.test/client/#{client.id}")
+    end
+
+    it "routes through HMIS's own oauth2-proxy sign-in endpoint with the user's connector_id, so Dex skips its connector picker", :jwt_only do
+      allow(user).to receive(:related_hmis_user).and_return(nil)
+      user.update_column(:last_connector_id, 'keycloak')
+
+      expect(hmis_ds.hmis_url_for(client, user: user)).
+        to eq("https://hmis.example.test/oauth2/sign_in?connector_id=keycloak&rd=%2Fclient%2F#{client.id}")
+    end
+
+    it 'is unaffected by connector_id under Devise', :devise_only do
+      allow(user).to receive(:related_hmis_user).and_return(nil)
+      user.update_column(:last_connector_id, 'keycloak')
+
+      expect(hmis_ds.hmis_url_for(client, user: user)).to eq("https://hmis.example.test/client/#{client.id}")
+    end
+  end
+
   describe 'hmis hostnames' do
     it 'returns configured hostnames from env' do
       allow(ENV).to receive(:fetch).and_call_original

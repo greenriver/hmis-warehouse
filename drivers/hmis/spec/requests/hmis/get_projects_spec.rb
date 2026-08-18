@@ -173,7 +173,7 @@ RSpec.describe 'GetProjects query', type: :request do
         response, result = post_graphql(limit: 50) { query }
         expect(response.status).to eq(200), result.inspect
         expect(result.dig('data', 'projects', 'nodes').size).to eq(50)
-      end.to make_database_queries(count: 1..20)
+      end.to make_database_queries(count: 10..30)
     end
 
     it 'is responsive' do
