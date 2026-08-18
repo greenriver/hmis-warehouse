@@ -151,7 +151,10 @@ class GrdaWarehouse::AuthPolicies::UserAclContext < GrdaWarehouse::AuthPolicies:
       pluck(c_t[:id], gve_t[:collection_id]).
       group_by(&:shift).
       transform_values { |v| (active_collection_ids & v.flatten.compact_blank).to_a.sort }
-    @collection_ids_by_client.merge!(results)
+    # Clients with no matching row get no key from the pluck/group_by above. Without
+    # backfilling an empty array here, #direct_client_collection_ids's `.key?` check
+    # below would treat them as never-preloaded and re-query per client.
+    @collection_ids_by_client.merge!(client_ids.index_with { [] }.merge(results))
   end
 
   def direct_client_collection_ids(client_id)
@@ -170,7 +173,10 @@ class GrdaWarehouse::AuthPolicies::UserAclContext < GrdaWarehouse::AuthPolicies:
       pluck(c_t[:id], p_t[:id]).
       group_by(&:shift).
       transform_values(&:flatten)
-    @enrolled_project_ids_by_client.merge!(results)
+    # Clients with no enrollments get no key from the pluck/group_by above. Without
+    # backfilling an empty array here, #enrolled_project_ids_for_client's `.key?` check
+    # would treat them as never-preloaded and re-query per client.
+    @enrolled_project_ids_by_client.merge!(client_ids.index_with { [] }.merge(results))
   end
 
   memoize def active_collection_ids

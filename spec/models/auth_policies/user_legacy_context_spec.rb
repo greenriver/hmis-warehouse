@@ -128,7 +128,7 @@ RSpec.describe GrdaWarehouse::AuthPolicies::UserLegacyContext do
     end
 
     it 'warms project_role_permissions for a client\'s enrolled projects' do
-      client = create(:hud_client, data_source: client_data_source)
+      client = create(:hud_client, data_source: data_source)
       create(:hud_enrollment, client: client, project: project, data_source: data_source)
       group = create(:project_access_group)
       access_group.add_viewable(group)
@@ -137,7 +137,46 @@ RSpec.describe GrdaWarehouse::AuthPolicies::UserLegacyContext do
 
       context.preload_client_dependencies([client.id])
 
+      expect(context.enrolled_project_ids_for_client(client.id)).to eq([project.id])
       expect(context.project_role_permissions(project.id)).to include(:can_view_projects)
+    end
+
+    it 'reduces the queries needed to read back permissions, compared to no preload at all' do
+      client = create(:hud_client, data_source: data_source)
+      create(:hud_enrollment, client: client, project: project, data_source: data_source)
+      group = create(:project_access_group)
+      access_group.add_viewable(group)
+      project.project_groups << group
+      project.save!
+
+      count_queries = lambda do |&block|
+        count = 0
+        callback = ->(*) { count += 1 }
+        ActiveSupport::Notifications.subscribed(callback, 'sql.active_record', &block)
+        count
+      end
+
+      # Each of these still costs one query to compute the actual permission set the
+      # first time -- preload_client_dependencies doesn't warm that per-access-group-ids
+      # cost. But without a working preload, each id-lookup step below would *also* run
+      # its own per-id query, so a lazy fallback that silently re-ran them would leave
+      # warm_queries no lower than cold_queries.
+      cold_context = described_class.new(legacy_user)
+      cold_queries = count_queries.call do
+        cold_context.direct_client_role_permissions(client.id)
+        cold_context.enrolled_project_ids_for_client(client.id)
+        cold_context.project_role_permissions(project.id)
+      end
+
+      warm_context = described_class.new(legacy_user)
+      warm_context.preload_client_dependencies([client.id])
+      warm_queries = count_queries.call do
+        warm_context.direct_client_role_permissions(client.id)
+        warm_context.enrolled_project_ids_for_client(client.id)
+        warm_context.project_role_permissions(project.id)
+      end
+
+      expect(warm_queries).to be < cold_queries
     end
 
     it 'runs a bounded number of queries regardless of client batch size' do
@@ -166,6 +205,36 @@ RSpec.describe GrdaWarehouse::AuthPolicies::UserLegacyContext do
       # A regression to the old per-client query pattern would make large_queries scale
       # roughly with client count (5x more clients here); a small constant tolerance
       # accommodates incidental memoization-boundary variance without masking that regression.
+      expect(large_queries).to be_within(2).of(small_queries)
+    end
+
+    it 'runs a bounded number of queries for enrolled-project lookups, even with unenrolled clients mixed in' do
+      count_queries = lambda do |&block|
+        count = 0
+        callback = ->(*) { count += 1 }
+        ActiveSupport::Notifications.subscribed(callback, 'sql.active_record', &block)
+        count
+      end
+
+      small_batch = create_list(:hud_client, 3, data_source: data_source)
+      large_batch = create_list(:hud_client, 15, data_source: data_source)
+      # Enroll only every other client so the batch also exercises clients with zero
+      # enrolled projects.
+      small_batch.each_with_index { |c, i| create(:hud_enrollment, client: c, project: project, data_source: data_source) if i.even? }
+      large_batch.each_with_index { |c, i| create(:hud_enrollment, client: c, project: project, data_source: data_source) if i.even? }
+
+      small_context = described_class.new(legacy_user)
+      small_queries = count_queries.call do
+        small_context.preload_client_dependencies(small_batch.map(&:id))
+        small_batch.each { |c| small_context.enrolled_project_ids_for_client(c.id) }
+      end
+
+      large_context = described_class.new(legacy_user)
+      large_queries = count_queries.call do
+        large_context.preload_client_dependencies(large_batch.map(&:id))
+        large_batch.each { |c| large_context.enrolled_project_ids_for_client(c.id) }
+      end
+
       expect(large_queries).to be_within(2).of(small_queries)
     end
   end

@@ -80,6 +80,36 @@ RSpec.feature 'Homeless Summary Report details search and sort', type: :rails_sy
       expect(page).to have_link('Download Excel')
       expect(page).to have_css('#table_search')
       clients.each { |attrs| expect(page).to have_content(attrs[:first_name]) }
+      expect(all('table.datatable tbody tr').size).to eq(clients.size)
+    end
+
+    context 'when the user cannot view client names' do
+      let(:restricted_role) do
+        create(
+          :role,
+          can_view_all_reports: true,
+          can_view_clients: true,
+          can_view_client_name: false,
+        )
+      end
+      let(:restricted_access_group) { create(:access_group) }
+      let(:restricted_user) do
+        user = create(:user)
+        restricted_role.add(user)
+        restricted_access_group.add(user)
+        restricted_access_group.add_viewable(report_definition)
+        user
+      end
+
+      it 'redacts client names' do
+        sign_out_user
+        sign_in_user(restricted_user)
+
+        visit details_homeless_summary_report_warehouse_reports_report_path(report, cell: 'm1b_es_sh_ph_days', variant: 'spm_all_persons__all')
+
+        clients.each { |attrs| expect(page).not_to have_content(attrs[:first_name]) }
+        expect(page).to have_content('Redacted')
+      end
     end
 
     it 'filters visible rows when searching by name' do

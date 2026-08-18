@@ -69,7 +69,7 @@ module HomelessSummaryReport::WarehouseReports
 
     def details
       params = details_params(@report)
-      @variant = params['variant'] || 'all_persons'
+      @variant = allowed_detail_variant(params['variant'])
       @cell = "spm_#{params['cell']}"
       @cell_name = @cell.humanize.split(' ')[1..].join(' ')
       if @report.field_measure(params['cell']) == 1
@@ -82,7 +82,7 @@ module HomelessSummaryReport::WarehouseReports
         @measure = 'Measure 7'
         @data_cells = [params['cell']]
       end
-      @detail_clients = @report.clients.send(@variant).send(@cell).includes(hud_client: :source_clients)
+      @detail_clients = @report.clients.public_send(@variant).public_send(@cell).includes(hud_client: :source_clients)
       source_client_ids = @detail_clients.flat_map { |c| c.hud_client&.source_clients&.map(&:id) || [] }.uniq
       current_user.policy_context.preload_client_dependencies(source_client_ids)
 
@@ -100,8 +100,6 @@ module HomelessSummaryReport::WarehouseReports
         :variant,
         :cell,
       ).delete_if do |key, value|
-        key == 'variant' && report.class.available_variants.exclude?(value.gsub('spm_', ''))
-      end.delete_if do |key, value|
         key == 'cell' && (report.spm_fields.keys + [
           :m2_reentry_0_to_180_days,
           :m2_reentry_181_to_365_days,
@@ -118,6 +116,13 @@ module HomelessSummaryReport::WarehouseReports
       end
     end
     helper_method :details_params
+
+    # Resolves the requested variant to one of the report's own known scope names before
+    # it reaches `public_send`, so a request-controlled string never drives dynamic dispatch.
+    private def allowed_detail_variant(requested)
+      allowed_scopes = report_class.available_variants.map { |variant| "spm_#{variant}" }
+      (allowed_scopes.find { |scope| scope == requested } || 'spm_all_persons__all').to_sym
+    end
 
     private def set_report
       @report = report_class.find(params[:id].to_i)

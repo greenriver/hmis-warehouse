@@ -92,6 +92,19 @@ RSpec.describe 'HomelessSummaryReport::WarehouseReports::Reports#details', type:
       expect(response).to have_http_status(:success)
       expect(response.body).to include('No clients matched the current criteria.')
     end
+
+    context 'when the user lacks view access to the client\'s underlying project' do
+      let(:grant_project_access) { false }
+
+      it 'redacts the client name' do
+        get details_homeless_summary_report_warehouse_reports_report_path(report, cell: 'm1b_es_sh_ph_days', variant: 'spm_all_persons__all')
+
+        expect(response).to have_http_status(:success)
+        expect(response.body).to include('Redacted')
+        expect(response.body).not_to include('Alix')
+        expect(response.body).not_to include('Realname')
+      end
+    end
   end
 
   describe 'xlsx format' do
@@ -157,6 +170,57 @@ RSpec.describe 'HomelessSummaryReport::WarehouseReports::Reports#details', type:
       expect(data_row[0]).to eq(destination_client.id)
       expect(data_row[3]).to eq(5)
       expect(data_row[5]).to eq(20)
+    end
+  end
+
+  describe 'query efficiency' do
+    def create_matching_detail_client(first_name:, last_name:)
+      source = create(:hud_client, data_source: data_source, first_name: first_name, last_name: last_name)
+      create(:hud_enrollment, client: source, project: project)
+      destination = create(:hud_client, data_source_id: destination_data_source.id)
+      create(:warehouse_client, source_id: source.id, destination_id: destination.id)
+      report.clients.create!(
+        client_id: destination.id,
+        first_name: first_name,
+        last_name: last_name,
+        spm_all_persons__all: 1,
+        spm_m1a_es_sh_days: 5,
+        spm_m1a_es_sh_th_days: 0,
+        spm_m1b_es_sh_ph_days: 20,
+        spm_m1b_es_sh_th_ph_days: 0,
+      )
+    end
+
+    def count_queries(&block)
+      count = 0
+      callback = ->(*) { count += 1 }
+      ActiveSupport::Notifications.subscribed(callback, 'sql.active_record', &block)
+      count
+    end
+
+    it 'does not scale with the number of matching clients' do
+      # Warm up one-time, request-independent query costs (schema cache, session/Devise
+      # lookups, memoized reflection) with an uncounted request first, so only the
+      # marginal per-client cost is reflected in the counts compared below.
+      get details_homeless_summary_report_warehouse_reports_report_path(report, cell: 'm1b_es_sh_ph_days', variant: 'spm_all_persons__all')
+      expect(response).to have_http_status(:success)
+
+      baseline_queries = count_queries do
+        get details_homeless_summary_report_warehouse_reports_report_path(report, cell: 'm1b_es_sh_ph_days', variant: 'spm_all_persons__all')
+      end
+      expect(response).to have_http_status(:success)
+
+      5.times { |i| create_matching_detail_client(first_name: "Extra#{i}", last_name: 'Client') }
+
+      scaled_queries = count_queries do
+        get details_homeless_summary_report_warehouse_reports_report_path(report, cell: 'm1b_es_sh_ph_days', variant: 'spm_all_persons__all')
+      end
+      expect(response).to have_http_status(:success)
+
+      # A per-client N+1 in PII permission resolution would make scaled_queries scale
+      # roughly with client count; a modest tolerance accommodates incidental variance
+      # without masking that regression.
+      expect(scaled_queries).to be_within(5).of(baseline_queries)
     end
   end
 end
