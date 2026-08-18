@@ -15,7 +15,7 @@ require 'memery'
 # enabling efficient bulk data loading and caching.
 #
 # Authorization is scoped to the user's current HMIS data source (user.hmis_data_source_id).
-# @see docs/architecture/multi-hmis-support.md
+# @see docs/features/hmis/multi-hmis-support.md
 class Hmis::AuthPolicies::UserContext
   include Memery
 
