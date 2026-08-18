@@ -27097,7 +27097,7 @@ CREATE TABLE public.configs (
     default_lms_email_to_warehouse_email boolean,
     relevant_state_codes character varying DEFAULT 'MA'::character varying NOT NULL,
     enable_external_data_sharing_exclusion boolean DEFAULT false NOT NULL,
-    client_demographic_columns text
+    client_demographic_columns jsonb
 );
 
 

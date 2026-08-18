@@ -24,8 +24,6 @@ RSpec.describe GrdaWarehouse::ClientDemographicColumns, type: :model do
     )
   end
 
-  # Real policy objects, not doubles: these are the two ends of the PII contract the
-  # registry has to honor, and a double would pass even if value_for read client.SSN directly.
   let(:allow_pii) { GrdaWarehouse::PiiProvider.new(client, policy: GrdaWarehouse::AuthPolicies::AllowPiiPolicy.instance) }
   let(:deny_pii) { GrdaWarehouse::PiiProvider.new(client, policy: GrdaWarehouse::AuthPolicies::DenyPiiPolicy.instance) }
 
