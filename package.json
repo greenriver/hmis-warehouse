@@ -58,7 +58,8 @@
     "lint": "eslint app/assets/javascripts",
     "test": "echo \"Error: no test specified\" && exit 1",
     "dedup": "yarn-deduplicate -s fewer yarn.lock",
-    "build": "esbuild app/javascript/*.* --bundle --sourcemap --outdir=app/assets/builds --public-path=/assets"
+    "build": "esbuild app/javascript/*.* --bundle --sourcemap --outdir=app/assets/builds --public-path=/assets",
+    "build:css": "sass ./app/assets/stylesheets/application.scss:./app/assets/builds/dartsass_application.css --no-source-map --load-path=node_modules --load-path=app/assets/stylesheets --load-path=vendor/assets/stylesheets"
   },
   "repository": {
     "type": "git",
