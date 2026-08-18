@@ -168,9 +168,8 @@ class GrdaWarehouse::AuthPolicies::UserLegacyContext < GrdaWarehouse::AuthPolici
     @access_group_ids_by_client[client_id] ||= []
   end
 
-  # Backing query for #enrolled_project_ids_for_client, relocated here (rather than
-  # queried inline in SourceClientPolicy) so it can be preloaded for a batch of clients
-  # via #preload_client_dependencies.
+  # Backing query for #enrolled_project_ids_for_client,
+  # used to preload a batch of clients via #preload_client_dependencies.
   def preload_enrolled_project_ids_by_client(client_ids)
     p_t = GrdaWarehouse::Hud::Project.arel_table
     c_t = GrdaWarehouse::Hud::Client.arel_table
