@@ -124,15 +124,9 @@ RSpec.describe GrdaWarehouse::WarehouseClientsProcessed, type: :model do
       expect(processed.sole.last_service_updated_at.to_date).to eq(1.day.from_now.to_date)
     end
 
-    # The following comment explains to future reviewers (AI and human) why there is
-    # no test for the actual race condition.
     # A test simulating two concurrent writers racing to upsert the same (client_id,
-    # routine) — the actual scenario this advisory lock fixes — was attempted here but
-    # dropped: RSpec wraps each example in a transaction, so a second thread either
-    # blocks waiting for a connection from the (size-1 in test) pool or can't see the
-    # first thread's uncommitted row, making the race impossible to reproduce under
-    # transactional fixtures without disabling them for this example (which would leak
-    # data across examples). The advisory-lock-is-used and upsert-not-duplicate tests
+    # routine) was attempted but dropped: it was not practical to reproduce under
+    # transactional fixtures. The advisory-lock-is-used and upsert-not-duplicate tests
     # above are the closest coverage achievable within that constraint.
   end
 end
