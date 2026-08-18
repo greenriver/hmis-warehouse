@@ -763,6 +763,5 @@ module Types
         form_definition_identifier: form_definition_identifier,
       )
     end
-
   end
 end
