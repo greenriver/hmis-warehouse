@@ -284,6 +284,27 @@ class User < ApplicationRecord
     policy || GrdaWarehouse::AuthPolicies::DenyPiiPolicy.instance
   end
 
+  # Retrieve the user's PII Policy for a specific client (used by reports whose detail rows
+  # are client-level, not scoped to a single project — e.g. homeless_summary_report). Delegates
+  # to policy_for(client), which resolves to DestinationClientPolicy/SourceClientPolicy based
+  # on Client#policy_class.
+  def reporting_policy_for_client(client:, mode: :browse)
+    return GrdaWarehouse::AuthPolicies::AllowPiiPolicy.instance if client.nil?
+
+    allowed = false
+    case mode.to_sym
+    when :download
+      allowed = ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
+    when :browse
+      allowed = true
+    else
+      raise ArgumentError, "Bad mode #{mode}"
+    end
+
+    policy = policy_for(client) if allowed
+    policy || GrdaWarehouse::AuthPolicies::DenyPiiPolicy.instance
+  end
+
   # @see docs/features/warehouse/warehouse-auth-policies.md
   memoize def policy_for(resource, policy_class: nil)
     if policy_class

@@ -82,7 +82,17 @@ module HomelessSummaryReport::WarehouseReports
         @measure = 'Measure 7'
         @data_cells = [params['cell']]
       end
-      @detail_clients = @report.clients.send(@variant).send(@cell)
+      @detail_clients = @report.clients.send(@variant).send(@cell).includes(hud_client: :source_clients)
+      source_client_ids = @detail_clients.flat_map { |c| c.hud_client&.source_clients&.map(&:id) || [] }.uniq
+      current_user.policy_context.preload_client_dependencies(source_client_ids)
+
+      respond_to do |format|
+        format.html {}
+        format.xlsx do
+          filename = "#{@report.title&.tr(' ', '-')}-#{@cell_name.tr(' ', '-')}-#{Date.current.strftime('%Y-%m-%d')}.xlsx"
+          headers['Content-Disposition'] = "attachment; filename=#{filename}"
+        end
+      end
     end
 
     def details_params(report)

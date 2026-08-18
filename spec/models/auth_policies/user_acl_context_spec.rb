@@ -107,6 +107,66 @@ RSpec.describe GrdaWarehouse::AuthPolicies::UserAclContext do
         collection.destroy
         expect(described_class.new(acl_user).direct_client_role_permissions(client.id)).to be_empty
       end
+
+      it 'returns the same permissions when warmed via preload_client_dependencies' do
+        other_client = create(:hud_client)
+
+        context.preload_client_dependencies([client.id, other_client.id])
+
+        expect(context.direct_client_role_permissions(client.id)).to include(:can_view_projects)
+        expect(context.direct_client_role_permissions(other_client.id)).to be_empty
+      end
+    end
+  end
+
+  describe '#preload_client_dependencies' do
+    subject(:context) { described_class.new(acl_user) }
+    let(:user_group) { create(:user_group) }
+    let(:client_data_source) { create(:grda_warehouse_data_source, authoritative: true) }
+
+    before do
+      create(:access_control, role: role, collection: collection, user_group: user_group)
+      user_group.add(acl_user)
+      create(:grda_warehouse_group_viewable_entity, collection: collection, entity: client_data_source)
+    end
+
+    it 'warms project_role_permissions for a client\'s enrolled projects' do
+      client = create(:hud_client, data_source: client_data_source)
+      create(:hud_enrollment, client: client, project: project, data_source: data_source)
+      create(:grda_warehouse_group_viewable_entity, collection: collection, entity: project)
+
+      context.preload_client_dependencies([client.id])
+
+      expect(context.project_role_permissions(project.id)).to include(:can_view_projects)
+    end
+
+    it 'runs a bounded number of queries regardless of client batch size' do
+      small_batch = create_list(:hud_client, 3, data_source: client_data_source)
+      large_batch = create_list(:hud_client, 15, data_source: client_data_source)
+
+      count_queries = lambda do |&block|
+        count = 0
+        callback = ->(*) { count += 1 }
+        ActiveSupport::Notifications.subscribed(callback, 'sql.active_record', &block)
+        count
+      end
+
+      small_context = described_class.new(acl_user)
+      small_queries = count_queries.call do
+        small_context.preload_client_dependencies(small_batch.map(&:id))
+        small_batch.each { |c| small_context.direct_client_role_permissions(c.id) }
+      end
+
+      large_context = described_class.new(acl_user)
+      large_queries = count_queries.call do
+        large_context.preload_client_dependencies(large_batch.map(&:id))
+        large_batch.each { |c| large_context.direct_client_role_permissions(c.id) }
+      end
+
+      # A regression to the old per-client query pattern would make large_queries scale
+      # roughly with client count (5x more clients here); a small constant tolerance
+      # accommodates incidental memoization-boundary variance without masking that regression.
+      expect(large_queries).to be_within(2).of(small_queries)
     end
   end
 
