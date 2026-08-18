@@ -26,11 +26,11 @@ class Hmis::Hud::DataIntegrity::MissingTotalMonthlyIncomeFixer
     new(scope: scope, conflict_target: conflict_target).run!
   end
 
-  # Convenience helper: run on all HMIS IncomeBenefits in a data source.
-  # @param data_source_id [Integer] restrict to HMIS IncomeBenefits in this data source.
+  # Convenience helper: run on all IncomeBenefits in a data source.
+  # @param data_source_id [Integer] restrict to IncomeBenefits in this data source.
   # @return [Integer] number of records that were updated
   def self.for_data_source!(data_source_id:)
-    run!(scope: Hmis::Hud::IncomeBenefit.hmis.where(data_source_id: data_source_id))
+    run!(scope: Hmis::Hud::IncomeBenefit.where(data_source_id: data_source_id))
   end
 
   def initialize(scope:, conflict_target: [:id])
