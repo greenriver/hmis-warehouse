@@ -38,7 +38,7 @@ class Hmis::User < ApplicationRecord
 
   # Request-scoped attribute storing the data_source_id of the current HMIS request for the current user.
   # All HMIS access is scoped to this data source.
-  # @see docs/architecture/multi-hmis-support.md
+  # @see docs/features/hmis/multi-hmis-support.md
   attr_accessor :hmis_data_source_id
 
   # Returns application users who have some permissions in the given data source.
