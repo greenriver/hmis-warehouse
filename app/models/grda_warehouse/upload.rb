@@ -30,16 +30,6 @@ module GrdaWarehouse
       where(percent_complete: 100)
     end
 
-    scope :unprocessed_s3_migration, -> do
-      # plucking these seems to be 100x faster than where.not(id: migrated)
-      migrated = ActiveStorage::Attachment.where(record_type: 'GrdaWarehouse::Upload').pluck(:record_id)
-      all = pluck(:id)
-      unmigrated = all - migrated
-      return none if unmigrated.blank?
-
-      where(id: unmigrated)
-    end
-
     scope :viewable_by, ->(user) do
       where(data_source_id: GrdaWarehouse::DataSource.directly_viewable_by(user, permission: :can_upload_hud_zips).select(:id))
     end
@@ -87,20 +77,6 @@ module GrdaWarehouse
         else
           'processing...'
         end
-      end
-    end
-
-    def copy_to_s3!
-      return unless content.present?
-      return unless valid? # Ignore uploads that are already invalid (data source deleted?)
-      return if hmis_zip.attached? # don't re-process
-
-      puts "Migrating #{file} to S3"
-
-      Tempfile.create(binmode: true) do |tmp_file|
-        tmp_file.write(content)
-        tmp_file.rewind
-        hmis_zip.attach(io: tmp_file, content_type: content_type, filename: file, identify: false)
       end
     end
 
