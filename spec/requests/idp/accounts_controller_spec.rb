@@ -37,7 +37,7 @@ RSpec.describe Idp::AccountsController, :jwt_only, type: :request do
   end
 
   # A creation/write-capable Keycloak connector, so primary_idp resolves to a real KeycloakService
-  # (supports_profile_updates? == true, account_console_url present).
+  # (supports_profile_updates? == true).
   def configure_keycloak!
     create(
       :idp_service_config,

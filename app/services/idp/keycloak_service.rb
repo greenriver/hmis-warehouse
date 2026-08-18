@@ -32,6 +32,9 @@ module Idp
     # and the bulk user import (#partial_import). Requested at the call site.
     BULK_IO_TIMEOUT_SECONDS = 30
 
+    # cert for internal keycloak, use if it exists
+    CA_CERT_FILE = Rails.root.join('config/keycloak/ca.crt').freeze
+
     def initialize(config: nil)
       super(config: config || {})
       validate_config!
@@ -258,14 +261,6 @@ module Idp
       api_url.present?
     end
 
-    # Deep-link to the Keycloak Account Console for this realm, where end users
-    # manage their own password and 2FA.
-    def account_console_url
-      return nil unless browser_url.present?
-
-      "#{browser_url}/realms/#{realm}/account"
-    end
-
     # Keycloak Application-Initiated Action: sends the browser through the realm's OIDC
     # authorize endpoint with kc_action set, so the user completes exactly one action
     # (password change, TOTP setup, ...) against their existing Keycloak SSO session and
@@ -445,6 +440,7 @@ module Idp
     def build_http(uri, io_timeout: IO_TIMEOUT_SECONDS)
       http = Net::HTTP.new(uri.host, uri.port)
       http.use_ssl = uri.scheme == 'https'
+      http.ca_file = CA_CERT_FILE.to_s if http.use_ssl? && File.exist?(CA_CERT_FILE)
       http.open_timeout = OPEN_TIMEOUT_SECONDS
       http.read_timeout = io_timeout
       http.write_timeout = io_timeout

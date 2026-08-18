@@ -27004,7 +27004,6 @@ CREATE TABLE public.configs (
     project_type_override boolean DEFAULT true NOT NULL,
     eto_api_available boolean DEFAULT false NOT NULL,
     cas_available_method character varying DEFAULT 'cas_flag'::character varying NOT NULL,
-    healthcare_available boolean DEFAULT false NOT NULL,
     family_calculation_method character varying DEFAULT 'adult_child'::character varying,
     site_coc_codes character varying,
     default_coc_zipcodes character varying,
@@ -27097,7 +27096,9 @@ CREATE TABLE public.configs (
     rds_s3_integration_role_arn character varying,
     default_lms_email_to_warehouse_email boolean,
     relevant_state_codes character varying DEFAULT 'MA'::character varying NOT NULL,
-    enable_external_data_sharing_exclusion boolean DEFAULT false NOT NULL
+    enable_external_data_sharing_exclusion boolean DEFAULT false NOT NULL,
+    created_at timestamp(6) without time zone,
+    updated_at timestamp(6) without time zone
 );
 
 
@@ -35744,12 +35745,9 @@ CREATE TABLE public.hmis_assessments (
     confidential boolean DEFAULT false NOT NULL,
     exclude_from_window boolean DEFAULT false NOT NULL,
     details_in_window_with_release boolean DEFAULT false NOT NULL,
-    health boolean DEFAULT false NOT NULL,
     vispdat boolean DEFAULT false,
     pathways boolean DEFAULT false,
     ssm boolean DEFAULT false,
-    health_case_note boolean DEFAULT false,
-    health_has_qualifying_activities boolean DEFAULT false,
     hud_assessment boolean DEFAULT false,
     triage_assessment boolean DEFAULT false,
     rrh_assessment boolean DEFAULT false,
@@ -49614,7 +49612,6 @@ CREATE TABLE public.report_definitions (
     weight integer DEFAULT 0 NOT NULL,
     enabled boolean DEFAULT true NOT NULL,
     limitable boolean DEFAULT true NOT NULL,
-    health boolean DEFAULT false,
     created_at timestamp without time zone DEFAULT now() NOT NULL,
     updated_at timestamp without time zone DEFAULT now() NOT NULL,
     deleted_at timestamp without time zone
@@ -359942,10 +359939,12 @@ ALTER TABLE ONLY public.import_logs
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260818130528'),
 ('20260814212023'),
 ('20260814211958'),
 ('20260812172057'),
 ('20260812160243'),
+('20260804130000'),
 ('20260728120000'),
 ('20260717132223'),
 ('20260624120000'),

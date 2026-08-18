@@ -180,7 +180,7 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
 
   # Data sources that are OP HMIS installations ('hmis' attribute = domain).
   # If 'user' provided, limits to the HMIS user's current HMIS data source.
-  # @see docs/architecture/multi-hmis-support.md
+  # @see docs/features/hmis/multi-hmis-support.md
   scope :hmis, ->(user = nil) do
     scope = where.not(hmis: nil)
     scope = scope.where(id: user.hmis_data_source_id) if user.present?
@@ -728,7 +728,7 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
   end
 
   # True when this data source is an Open Path HMIS installation
-  # @see docs/architecture/multi-hmis-support.md
+  # @see docs/features/hmis/multi-hmis-support.md
   def hmis?
     hmis.present?
   end
@@ -770,6 +770,16 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     external_hmis_configuration&.url(entity)
   end
 
+  # Bare link to this data source's Open Path HMIS instance -- there's no specific entity to
+  # deep-link to (used by nav menus and the data sources admin table). Routed through the user's
+  # last IdP connector the same way #open_path_hmis_url routes its deep links; see
+  # #hmis_signed_in_url.
+  def hmis_login_url(user: nil)
+    return unless hmis?
+
+    hmis_signed_in_url(base: "https://#{hmis}", path: '/', user: user)
+  end
+
   # Validate that the HMIS hostname was not changed
   private def hmis_hostname_immutable
     errors.add(:hmis, 'cannot be changed once set') if hmis_changed? && hmis_was.present?
@@ -788,27 +798,28 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     base = "https://#{hmis}"
     base += ':5173' if Rails.env.development? # port used by hmis vite dev server
 
-    url = case entity
+    path = case entity
     when GrdaWarehouse::Hud::Project, Hmis::Hud::Project
-      "#{base}/projects/#{entity.id}"
+      "/projects/#{entity.id}"
     when GrdaWarehouse::Hud::Organization, Hmis::Hud::Organization
-      "#{base}/organizations/#{entity.id}"
+      "/organizations/#{entity.id}"
     when GrdaWarehouse::Hud::Client, Hmis::Hud::Client
-      "#{base}/client/#{entity.id}"
+      "/client/#{entity.id}"
     when GrdaWarehouse::Hud::Enrollment, Hmis::Hud::Enrollment
-      "#{base}/client/#{entity.client&.id}/enrollments/#{entity.id}"
+      "/client/#{entity.client&.id}/enrollments/#{entity.id}"
     when Hmis::Hud::CustomAssessment
-      "#{base}/client/#{entity.enrollment&.client&.id}/enrollments/#{entity.enrollment&.id}/assessments/#{entity.id}"
+      "/client/#{entity.enrollment&.client&.id}/enrollments/#{entity.enrollment&.id}/assessments/#{entity.id}"
     when Hmis::Hud::CustomService
-      "#{base}/client/#{entity.enrollment&.client&.id}/enrollments/#{entity.enrollment&.id}/services"
+      "/client/#{entity.enrollment&.client&.id}/enrollments/#{entity.enrollment&.id}/services"
     end
 
     # For any other Enrollment-related record, link to the enrollment page
-    url ||= "#{base}/client/#{entity.client&.id}/enrollments/#{entity.enrollment&.id}" if entity.respond_to?(:enrollment) && entity.respond_to?(:client)
+    path ||= "/client/#{entity.client&.id}/enrollments/#{entity.enrollment&.id}" if entity.respond_to?(:enrollment) && entity.respond_to?(:client)
+    return unless path.present?
 
     # If we don't have the HMIS driver we probably aren't here, but we need to check for the next section
     # If we don't have a user, just return the URl (backwards compatibility)
-    return url if user.blank?
+    return hmis_signed_in_url(base: base, path: path, user: user) if user.blank?
 
     # If we have a user, check for access (on the HMIS side)
     hmis_entity = if entity.respond_to?(:as_hmis)
@@ -817,7 +828,7 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
       entity
     end
     hmis_user = user.related_hmis_user(self)
-    return url unless hmis_user.present?
+    return hmis_signed_in_url(base: base, path: path, user: user) unless hmis_user.present?
 
     # If we can't determine access for this entity type, show the link and let HMIS handle it.
     # If we can determine the user lacks access, don't bother linking.
@@ -835,7 +846,20 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
       true
     end
 
-    authorized ? url : nil
+    authorized ? hmis_signed_in_url(base: base, path: path, user: user) : nil
+  end
+
+  # Routes the URL through HMIS's own oauth2-proxy /oauth2/sign_in endpoint with the user's
+  # connector_id, so Dex sends the user straight to their IdP instead of showing its connector
+  # picker: oauth2-proxy forwards connector_id to Dex for requests to that endpoint, per its
+  # loginURLParameters config. See Superset.warehouse_login_url for the same routing on Superset.
+  private def hmis_signed_in_url(base:, path:, user:)
+    return "#{base}#{path}" unless AuthMethod.jwt?
+
+    connector_id = user&.last_connector_id
+    return "#{base}#{path}" if connector_id.blank?
+
+    base + Idp::Oauth2ProxySignInPath.call(connector_id: connector_id, redirect_to: path)
   end
 
   private def maintain_system_group
