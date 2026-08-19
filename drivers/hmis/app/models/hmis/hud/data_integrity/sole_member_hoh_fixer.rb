@@ -78,7 +78,11 @@ class Hmis::Hud::DataIntegrity::SoleMemberHohFixer
 
     # where.not(RelationshipToHoH: 1) alone skips nils, so explicitly include them
     rel = @model_class.arel_table[:RelationshipToHoH]
-    enrollments_scope.where(rel.not_eq(1).or(rel.eq(nil)))
+    enrollments_scope.where(
+      rel.not_eq(1).
+      or(rel.eq(nil)).
+      or(rel.eq('')),
+    )
   end
 
   private
