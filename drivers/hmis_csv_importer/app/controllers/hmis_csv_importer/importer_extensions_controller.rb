@@ -18,6 +18,7 @@ class HmisCsvImporter::ImporterExtensionsController < ApplicationController
     config = {
       import_aggregators: {},
       import_cleanups: {},
+      pre_process_hooks: {},
     }
     allowed_extensions.each do |extension|
       next unless params[:extensions][extension.to_s] == '1'

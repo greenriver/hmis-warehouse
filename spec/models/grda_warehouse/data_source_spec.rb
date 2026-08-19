@@ -425,6 +425,13 @@ RSpec.describe model, type: :model do
     end
   end
 
+  describe '#pre_process_hooks' do
+    it 'defaults pre_process_hooks to an empty hash' do
+      data_source = create(:data_source)
+      expect(data_source.pre_process_hooks).to eq({})
+    end
+  end
+
   describe 'PaperTrail' do
     it 'creates a version on update' do
       PaperTrailHelper.with_paper_trail do
