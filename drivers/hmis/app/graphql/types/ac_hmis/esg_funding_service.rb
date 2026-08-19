@@ -49,15 +49,15 @@ module Types
     end
 
     def client_dob
-      client.dob
+      client.dob if client_policy.can_view_dob?
     end
 
     def first_name
-      client.first_name
+      client_policy.can_view_name? ? client.first_name : client.masked_name
     end
 
     def last_name
-      client.last_name
+      client.last_name if client_policy.can_view_name?
     end
 
     def mci_ids
@@ -72,6 +72,11 @@ module Types
 
     def client
       load_ar_client_association(object)
+    end
+
+    # Name and DOB follow the same rules as the Client type, so restricted clients are redacted here too
+    def client_policy
+      @client_policy ||= policy_for(client, policy_type: :hmis_client)
     end
 
     def project

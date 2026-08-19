@@ -33,6 +33,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
                   key
                   name
                 }
+                clientId
+                clientName
                 createdAt
                 opportunity {
                   id
@@ -127,6 +129,22 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             expect(response.status).to eq(200), result.inspect
             expect(result.dig('data', 'project', 'ceReferrals', 'nodesCount')).to eq(32), result.inspect
           end.to make_database_queries(count: 40..50)
+        end
+
+        context 'with restricted clients on the page' do
+          before do
+            project.ce_referrals.limit(15).each do |referral|
+              referral.client.mark_as_restricted!(user: hmis_user)
+            end
+          end
+
+          it 'queries the db a reasonable amount' do
+            expect do
+              response, result = post_graphql(**variables) { query }
+              expect(response.status).to eq(200), result.inspect
+              expect(result.dig('data', 'project', 'ceReferrals', 'nodesCount')).to eq(32), result.inspect
+            end.to make_database_queries(count: 40..50)
+          end
         end
       end
 

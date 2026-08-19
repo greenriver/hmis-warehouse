@@ -106,9 +106,36 @@ class Hmis::AuthPolicies::UserContext
   def preload_client_dependencies(client_ids)
     client_project_loader.preload(client_ids)
     client_data_source_loader.preload(client_ids)
+    restricted_client_loader.preload(client_ids)
     project_ids = client_project_loader.cached_project_ids
     project_data_source_loader.preload(project_ids)
     project_access_group_loader.preload(project_ids)
+  end
+
+  # Clear cached restriction data when a client is marked or unmarked during a mutation
+  def clear_client_restriction_cache!
+    restricted_client_loader.clear_cache!
+  end
+
+  # Whether this client's PII is redacted for this user, because the client is restricted and the user
+  # can't view restricted clients at a project where the client is or was enrolled.
+  # See docs/features/hmis/hmis-restricted-records.md for more details.
+  def pii_redacted_for_client?(client_id)
+    return false unless client_restricted?(client_id)
+    return true if unenrolled_client_id?(client_id) # restricted clients with no enrollments are always redacted
+
+    !client_permissions(client_id).include?(:can_view_restricted_clients)
+  end
+
+  # IDs of the restricted clients in the current data source that this user may not find, for omitting
+  # them from client search. They remain reachable by other means with their PII redacted.
+  # See docs/features/hmis/hmis-restricted-records.md for more details.
+  def client_ids_hidden_from_search
+    client_ids = restricted_client_loader.restricted_ids_in_data_source(@data_source_id)
+    return [] if client_ids.empty?
+
+    preload_client_dependencies(client_ids)
+    client_ids.select { |id| pii_redacted_for_client?(id) }
   end
 
   # Client permissions are based on the user's permissions at projects they are enrolled in.
@@ -163,6 +190,17 @@ class Hmis::AuthPolicies::UserContext
   end
 
   protected
+
+  # Whether the client is marked as restricted. Whether the user may *see* them is the separate question
+  # answered by #pii_redacted_for_client?.
+  def client_restricted?(client_id)
+    restricted_client_loader.restricted?(client_id)
+  end
+
+  # Whether the client is unenrolled, i.e. has no enrollments in the current data source.
+  def unenrolled_client_id?(client_id)
+    client_project_loader.get(client_id).empty?
+  end
 
   # {project_id => [access_group_id, ...]} for every project in the current data source that the user
   # reaches through an AccessControl, including indirectly via organization, data source, or project group.
@@ -237,5 +275,9 @@ class Hmis::AuthPolicies::UserContext
 
   memoize def client_data_source_loader
     Hmis::AuthPolicies::ContextLoaders::ClientDataSourceLoader.new
+  end
+
+  memoize def restricted_client_loader
+    Hmis::AuthPolicies::ContextLoaders::RestrictedClientLoader.new
   end
 end

@@ -23,6 +23,9 @@ module Mutations
         client.remove_restriction!
       end
 
+      # The client's restriction status is cached for authorization; the response resolves it again
+      current_user.policy_context.clear_client_restriction_cache!
+
       { client: client }
     end
   end
