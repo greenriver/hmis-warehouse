@@ -7,10 +7,10 @@
 # frozen_string_literal: true
 
 require 'rails_helper'
-require_relative '../../support/hmis_base_setup'
-require_relative '../../support/hmis_data_cleanup_spec_helpers'
+require_relative '../../../../support/hmis_base_setup'
+require_relative '../../../../support/hmis_data_cleanup_spec_helpers'
 
-# Unit/behavioral spec for HmisDataCleanup::FixIncorrectPersonalIdReferences.
+# Unit/behavioral spec for Hmis::Hud::DataIntegrity::FixIncorrectPersonalIdReferences.
 #
 # FixIncorrectPersonalIdReferences is not import-specific; it is shared by the post-ingest import extension,
 # UndoMergeClientsJob, and can also be called directly from a Rails console.
@@ -20,7 +20,7 @@ require_relative '../../support/hmis_data_cleanup_spec_helpers'
 #
 # For import pipeline wiring, see the fixture spec at
 # drivers/hmis_csv_importer/spec/models/importer/twenty_twenty_six/fix_incorrect_personal_id_references_spec.rb.
-RSpec.describe HmisDataCleanup::FixIncorrectPersonalIdReferences, type: :model do
+RSpec.describe Hmis::Hud::DataIntegrity::FixIncorrectPersonalIdReferences, type: :model do
   include_context 'hmis data cleanup spec helpers'
 
   let!(:hmis_ds) { create :hmis_data_source }

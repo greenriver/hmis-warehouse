@@ -6,11 +6,11 @@
 
 # frozen_string_literal: true
 
-# Post-ingest import extension that delegates to HmisDataCleanup::FixIncorrectPersonalIdReferences.
+# Post-ingest import extension that delegates to Hmis::Hud::DataIntegrity::FixIncorrectPersonalIdReferences.
 module HmisCsvImporter::PostIngestCleanup
   class FixIncorrectPersonalIdReferences < Base
     def cleanup!
-      HmisDataCleanup::FixIncorrectPersonalIdReferences.run!(
+      Hmis::Hud::DataIntegrity::FixIncorrectPersonalIdReferences.run!(
         data_source_id: importer_log.data_source_id,
         project_ids: project_ids,
         dry_run: false,

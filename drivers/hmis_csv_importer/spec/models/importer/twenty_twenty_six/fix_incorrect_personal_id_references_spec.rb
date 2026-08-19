@@ -18,7 +18,7 @@ require 'rails_helper'
 #   E-1 => C-1, E-5 => C-2, E-7 => C-3
 #
 # For behavioral coverage of the implementation (all record types, scoping, dry_run, etc.),
-# see drivers/hmis/spec/models/hmis_data_cleanup/fix_incorrect_personal_id_references_spec.rb.
+# see drivers/hmis/spec/models/hmis/hud/data_integrity/fix_incorrect_personal_id_references_spec.rb.
 RSpec.describe 'Fix Incorrect PersonalID References', type: :model do
   def exit_personal_id(exit_id)
     GrdaWarehouse::Hud::Exit.where(data_source_id: @data_source.id).find_by(ExitID: exit_id).PersonalID
