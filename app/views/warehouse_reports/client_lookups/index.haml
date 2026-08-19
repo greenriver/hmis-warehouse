@@ -7,7 +7,7 @@
 = render '/warehouse_reports/breadcrumbs'
 %p Export a lookup table for cross-walks with HMIS. The exported file will include Data Source, Personal ID (from HMIS), Warehouse Client ID, first name, and last name, for any client with an open enrollment within the date range and project set chosen.
 
-= simple_form_for @filter, as: :report, url: warehouse_reports_client_lookups_path(format: :xlsx), html: {method: :get} do |f|
+= simple_form_for @filter, as: :report, url: warehouse_reports_client_lookups_path, html: {method: :get, data: {controller: 'client-lookup-export'}} do |f|
   - content_for :filters_col_full do
     .row
       .col-sm-3
@@ -30,8 +30,9 @@
           %span.hint Include HMIS "Enrollment ID" and "Warehouse Enrollment ID", one row per enrollment instead of one row per client.
 
   - content_for :filter_actions do
-    .row
-      .col-sm-3
-        = f.submit 'Download XLSX', class: 'btn btn-primary', data: { disable_with: false }
+    - download_data = { type: 'GrdaWarehouse::WarehouseReports::DocumentExports::ClientLookupExport', url: document_exports_path, 'client-lookup-export-target' => 'button', action: 'client-lookup-export#download' }
+    - scoped = @filter.any_effective_project_ids?
+    %span.d-inline-block{data: {'client-lookup-export-target' => 'tooltip'}, title: 'Select at least one Data Source, Organization, or Project'}
+      %a.btn.btn-primary.text-nowrap.j-document-exports{href: '#', class: ('disabled' unless scoped), aria: {disabled: !scoped}, data: download_data} Download XLSX
 
   = render 'warehouse_reports/filters', f:f

@@ -24,16 +24,22 @@ module Admin
     end
 
     def update
+      @agencies = Agency.order(:name)
       agency_id = account_params.dig(:agency_id)
       if agency_id.blank?
-        flash[:error] = 'An agency is required to create an account'
-        redirect_to(action: :index)
+        flash.now[:error] = 'An agency is required to create an account'
+        render 'edit'
+
         return
       end
 
+      @account_request.agency_id = agency_id
       # TODO: START_ACL replace when ACL transition complete
       # @account_request.convert_to_user!(access_control_ids: access_control_ids)
-      @account_request.convert_to_user!(user: current_user, role_ids: role_ids, access_group_ids: access_group_ids, access_control_ids: access_control_ids)
+
+      @account_request.transaction do
+        @account_request.convert_to_user!(user: current_user, role_ids: role_ids, access_group_ids: access_group_ids, access_control_ids: access_control_ids)
+      end
       # END_ACL
       flash[:notice] = "Account created for #{@account_request.name}"
       redirect_to(action: :index)
@@ -63,6 +69,10 @@ module Admin
 
     private def access_group_ids
       account_params[:access_group_ids].select(&:present?).map(&:to_i) || []
+    end
+
+    private def access_control_ids
+      Array(account_params[:access_control_ids]).select(&:present?).map(&:to_i)
     end
 
     private def confirmation_params
