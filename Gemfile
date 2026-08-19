@@ -29,7 +29,6 @@ gem 'loofah'
 gem 'rubyzip'
 gem 'rails-html-sanitizer'
 gem 'sanitize' # used to sanitize user-entered theme CSS
-gem 'sshkit'
 gem 'paranoia'
 gem 'pg'
 gem 'activerecord-sqlserver-adapter', '~> 8.1.0' # tied to the rails version
@@ -76,13 +75,7 @@ gem 'rserve-simpler', require: false
 gem 'encryptor'
 
 # File processing
-gem 'carrierwave', '~> 1'
-gem 'carrierwave-i18n'
-
-# version 1.5 has the fix we need when we ever go to 1.5
-# gem 'carrierwave-aws', '~> 1.4'
-gem 'carrierwave-aws', git: 'https://github.com/greenriver/carrierwave-aws.git', branch: 'gr-1.4.0-without-deprecations'
-gem 'image_processing', '~> 1.13.0' # higher requires mini_magick 5, which appears to be incompatible with carrierwave 1.4
+gem 'image_processing', '~> 1.13.0'
 
 gem 'mini_magick'
 gem 'mimemagic'
@@ -281,10 +274,6 @@ end
 
 group :development do
   gem 'html2haml', require: false
-  gem 'capistrano-bundler', require: false
-  gem 'capistrano-rvm', require: false
-  gem 'capistrano-passenger', require: false
-  gem 'capistrano-rails', require: false
   gem 'rails-erd', require: false
   gem 'web-console'
   gem 'aws-sdk-dynamodb', require: false

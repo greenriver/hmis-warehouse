@@ -61,7 +61,6 @@ module Export::Exporter
         io: Pathname.new(zip_path).open,
         filename: File.basename(zip_path),
       )
-      @export.file = 'See S3'
       @export.save
     end
 

@@ -9,11 +9,21 @@
 module GrdaWarehouse
   class PublicFile < GrdaWarehouse::File
     include ArelHelper
-    mount_uploader :file, FileUploader
     has_one_attached :public_file, dependent: false
     acts_as_taggable
 
-    ALLOWED_CONTENT_TYPES = (FileUploader::WHITELIST + ['application/octet-stream']).freeze
+    ALLOWED_CONTENT_TYPES = [
+      'image/jpeg',
+      'image/png',
+      'image/gif',
+      'application/pdf',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'text/csv',
+      'application/vnd.ms-excel',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'application/octet-stream',
+    ].freeze
 
     validates_presence_of :name
     validate :file_exists_and_not_too_large
@@ -23,28 +33,6 @@ module GrdaWarehouse
       return public_file.download if public_file.attached?
 
       content
-    end
-
-    scope :unprocessed_s3_migration, -> do
-      migrated = ActiveStorage::Attachment.where(record_type: 'GrdaWarehouse::File', name: 'public_file').pluck(:record_id)
-      all = pluck(:id)
-      unmigrated = all - migrated
-      return none if unmigrated.blank?
-
-      where(id: unmigrated)
-    end
-
-    def copy_to_s3!
-      return unless content.present?
-      return if public_file.attached?
-
-      Tempfile.create(binmode: true) do |tmp_file|
-        tmp_file.write(content)
-        tmp_file.rewind
-        self.content = nil
-        public_file.attach(io: tmp_file, content_type: content_type, filename: name.presence || 'file', identify: false)
-        save!(validate: false)
-      end
     end
 
     def file_exists_and_not_too_large

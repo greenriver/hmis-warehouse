@@ -60,5 +60,15 @@ RSpec.describe model, type: :model do
         end
       end
     end
+
+    describe 'unknown_coc' do
+      let!(:pc_nil) { create :hud_project_coc, CoCCode: nil, data_source_id: ds1.id, project: p1 }
+      let!(:pc_blank) { create :hud_project_coc, CoCCode: '', data_source_id: ds1.id, project: p1 }
+      let!(:pc_whitespace) { create :hud_project_coc, CoCCode: '   ', data_source_id: ds1.id, project: p1 }
+
+      it 'matches nil, empty, and whitespace-only CoC codes but not real ones' do
+        expect(model.unknown_coc.pluck(:id)).to contain_exactly(pc_nil.id, pc_blank.id, pc_whitespace.id)
+      end
+    end
   end
 end
