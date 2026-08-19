@@ -639,10 +639,12 @@ module HmisCsvImporter::Importer
         Sentry.capture_exception_with_info(
           e,
           'Post-ingest cleanup failed',
-          cleanup_class: cleanup_klass.name,
-          data_source_id: @data_source.id,
-          importer_log_id: @importer_log.id,
-          project_ids: involved_project_ids,
+          {
+            cleanup_class: cleanup_klass.name,
+            data_source_id: @data_source.id,
+            importer_log_id: @importer_log.id,
+            project_ids: involved_project_ids,
+          },
         )
       end
     end

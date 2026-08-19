@@ -10,7 +10,7 @@
 module HmisDataCleanup
   class FixIncorrectPersonalIdReferences
     # @param data_source_id [Integer] The data source to operate on.
-    # @param enrollment_ids [Array<Integer>, nil] Optional HUD EnrollmentIds to limit the fix to.
+    # @param enrollment_ids [Array<String>, nil] Optional HUD EnrollmentIDs to limit the fix to.
     # @param project_ids [Array<String>, nil] Optional HUD ProjectIDs to limit the fix to.
     # @param classes [Array<Class>, nil] Optional array of classes to process. If nil, processes all enrollment-related classes.
     # @param dry_run [Boolean] If true, only reports what would be fixed without making changes.
