@@ -1,1 +1,3 @@
-"EmploymentEducationID","EnrollmentID","PersonalID","InformationDate","LastGradeCompleted","SchoolStatus","Employed","EmploymentType","NotEmployedReason","DataCollectionStage","DateCreated","DateUpdated","UserID","DateDeleted","ExportID"
+EmploymentEducationID,EnrollmentID,PersonalID,InformationDate,LastGradeCompleted,SchoolStatus,Employed,EmploymentType,NotEmployedReason,DataCollectionStage,DateCreated,DateUpdated,UserID,DateDeleted,ExportID
+EmploymentEducation-STAY,E-1,C-1,,,,,,,,2012-10-01 12:00:00,2012-10-01 12:00:00,user,,TEST
+EmploymentEducation-GONE,E-2,C-BAD,,,,,,,,2012-10-01 12:00:00,2012-10-01 12:00:00,user,,TEST
