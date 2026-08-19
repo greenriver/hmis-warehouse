@@ -416,6 +416,109 @@ RSpec.describe Hmis::AuthPolicies::CeReferralPolicy, type: :model do
     end
   end
 
+  describe 'Instance#can_view_client_name?' do
+    let(:source_project) { create :hmis_hud_project, data_source: data_source }
+    let!(:source_enrollment) { create :hmis_hud_enrollment, project: source_project, client: client, data_source: data_source }
+    let(:referral) do
+      create(
+        :hmis_ce_referral,
+        opportunity: opportunity,
+        workflow_instance: workflow_instance,
+        client: client,
+        referred_by: user,
+        status: 'initialized',
+        source_enrollment: source_enrollment,
+      )
+    end
+
+    context 'when the user can view the full referral' do
+      before do
+        create_access_control(user, project, with_permission: [:can_view_referrals, :can_view_project])
+      end
+
+      it 'returns true if the user can view client names somewhere in the data source' do
+        other_project = create(:hmis_hud_project, data_source: data_source)
+        create_access_control(user, other_project, with_permission: [:can_view_clients, :can_view_client_name])
+        expect(policy.can_view_client_name?(client)).to be true
+      end
+
+      it 'returns false if the user cannot view client names anywhere' do
+        expect(policy.can_view_client_name?(client)).to be false
+      end
+    end
+
+    context 'when the user can only view the referral summary' do
+      before do
+        create_access_control(user, source_project, with_permission: [:can_manage_outgoing_referrals])
+      end
+
+      it 'returns true if the user can view the client name on the client record' do
+        create_access_control(user, source_project, with_permission: [:can_view_clients, :can_view_client_name])
+        expect(policy.can_view_client_name?(client)).to be true
+      end
+
+      it 'returns false if the user cannot view the client name on the client record' do
+        expect(policy.can_view_client_name?(client)).to be false
+      end
+    end
+
+    context 'when the referred client is restricted' do
+      before { client.mark_as_restricted!(user: user) }
+
+      context 'and the user can view the full referral' do
+        before do
+          create_access_control(
+            user,
+            project,
+            with_permission: [:can_view_referrals, :can_view_project, :can_view_clients, :can_view_client_name],
+          )
+        end
+
+        it 'returns false without can_view_restricted_clients at an enrolled project' do
+          expect(policy.can_view_client_name?(client)).to be false
+        end
+
+        it 'returns true with can_view_restricted_clients at an enrolled project' do
+          create_access_control(
+            user,
+            source_project,
+            with_permission: [:can_view_clients, :can_view_restricted_clients],
+          )
+          expect(policy.can_view_client_name?(client)).to be true
+        end
+      end
+
+      context 'and the user can only view the referral summary' do
+        it 'returns false without can_view_restricted_clients' do
+          create_access_control(
+            user,
+            source_project,
+            with_permission: [:can_manage_outgoing_referrals, :can_view_clients, :can_view_client_name],
+          )
+          expect(policy.can_view_client_name?(client)).to be false
+        end
+
+        it 'returns true with can_view_restricted_clients at the enrolled project' do
+          create_access_control(
+            user,
+            source_project,
+            with_permission: [
+              :can_manage_outgoing_referrals,
+              :can_view_clients,
+              :can_view_restricted_clients,
+              :can_view_client_name,
+            ],
+          )
+          expect(policy.can_view_client_name?(client)).to be true
+        end
+      end
+    end
+
+    it 'returns false if the user cannot view the referral at all' do
+      expect(policy.can_view_client_name?(client)).to be false
+    end
+  end
+
   describe 'Instance#can_create_note?' do
     let(:task) { create(:hmis_workflow_definition_user_task, template: workflow_template, name: 'task') }
     let(:step) { create(:hmis_wfe_step, instance: referral.workflow_instance, node: task) }
