@@ -30,7 +30,7 @@ class Hmis::Hud::DataIntegrity::MissingTotalMonthlyIncomeFixer
   # @param data_source_id [Integer] restrict to IncomeBenefits in this data source.
   # @return [Integer] number of records that were updated
   def self.for_data_source!(data_source_id:)
-    run!(scope: Hmis::Hud::IncomeBenefit.where(data_source_id: data_source_id))
+    run!(scope: GrdaWarehouse::Hud::IncomeBenefit.where(data_source_id: data_source_id))
   end
 
   def initialize(scope:, conflict_target: [:id])

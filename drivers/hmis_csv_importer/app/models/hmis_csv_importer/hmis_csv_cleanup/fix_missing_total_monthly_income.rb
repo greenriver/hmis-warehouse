@@ -29,7 +29,8 @@ module HmisCsvImporter::HmisCsvCleanup
     end
 
     def self.description
-      'Fill in missing TotalMonthlyIncome by summing income source amounts'
+      'When TotalMonthlyIncome is null, fill it in by summing income source amounts. ' \
+      'Does not change TotalMonthlyIncome when it is already present, even if it disagrees with the source amounts.'
     end
 
     def self.enable
