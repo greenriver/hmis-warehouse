@@ -21,9 +21,6 @@ module HmisCsvImporter::Loader
       :"All Files"
     end
 
-    # Keyed by class name (like `import_cleanups`' array values) rather than
-    # a made-up slug, so pre_process_hooks stays consistent with the existing
-    # extension-config columns.
     def self.enable
       { pre_process_hooks: { name => true } }
     end

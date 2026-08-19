@@ -1,1 +1,2 @@
-"UserID","UserFirstName","UserLastName","UserPhone","UserExtension","UserEmail","DateCreated","DateUpdated","DateDeleted","ExportID"
+UserID,UserFirstName,UserLastName,UserPhone,UserExtension,UserEmail,DateCreated,DateUpdated,DateDeleted,ExportID
+user,,,,,,2012-10-01 12:00:00,2012-10-01 12:00:00,,TEST

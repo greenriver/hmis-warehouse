@@ -1,1 +1,2 @@
 YouthEducationStatusID,EnrollmentID,PersonalID,InformationDate,CurrentSchoolAttend,MostRecentEdStatus,CurrentEdStatus,DataCollectionStage,DateCreated,DateUpdated,UserID,DateDeleted,ExportID
+YES-1,E-1,C-1,2010-10-01,,,,1,2012-10-01 12:00:00,2012-10-01 12:00:00,user,,TEST

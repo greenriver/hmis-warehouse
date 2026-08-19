@@ -1,1 +1,2 @@
-"AssessmentQuestionID","AssessmentID","EnrollmentID","PersonalID","AssessmentQuestionGroup","AssessmentQuestionOrder","AssessmentQuestion","AssessmentAnswer","DateCreated","DateUpdated","UserID","DateDeleted","ExportID"
+AssessmentQuestionID,AssessmentID,EnrollmentID,PersonalID,AssessmentQuestionGroup,AssessmentQuestionOrder,AssessmentQuestion,AssessmentAnswer,DateCreated,DateUpdated,UserID,DateDeleted,ExportID
+AQ-1,ASSESS-1,E-1,C-1,,,,,2012-10-01 12:00:00,2012-10-01 12:00:00,user,,TEST

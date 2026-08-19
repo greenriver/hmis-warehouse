@@ -1,1 +1,2 @@
 InventoryID,ProjectID,CoCCode,HouseholdType,Availability,UnitInventory,BedInventory,CHVetBedInventory,YouthVetBedInventory,VetBedInventory,CHYouthBedInventory,YouthBedInventory,CHBedInventory,OtherBedInventory,ESBedType,InventoryStartDate,InventoryEndDate,DateCreated,DateUpdated,UserID,DateDeleted,ExportID
+INV-1,ES,,,,,,,,,,,,,,,,2012-10-01 12:00:00,2012-10-01 12:00:00,user,,TEST
