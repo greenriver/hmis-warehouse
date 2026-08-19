@@ -162,22 +162,10 @@ module Types
 
     def client_name
       c = load_ar_client_association(object)
-      client_policy = policy_for(c, policy_type: :hmis_client)
-      # if this is a restricted client that the user can't view, return the masked name
-      return c.masked_name if client_policy.pii_redacted?
+      # The policy owns both authorization paths (full referral view vs. summary-only) and restriction
+      return c.masked_name unless policy_for(object, policy_type: :ce_referral).can_view_client_name?(c)
 
-      # This is a summary field. If the current user can view the referral, always return the client name
-      # (even if the current user can't otherwise view that client), UNLESS the user doesn't have permission to view client names in general.
-      if current_user.policy_for(object, policy_type: :ce_referral).can_view?
-        # TODO - this should be a global policy check
-        can_view_any_client_names = current_user.can_view_client_name?
-        return c.brief_name if c.brief_name.present? && can_view_any_client_names
-
-        return c.masked_name
-      end
-
-      # Otherwise if the current user can only view the referral summary, only return the client name if permissioned
-      client_policy.can_view_name? ? c.brief_name : c.masked_name
+      c.brief_name.presence || c.masked_name
     end
 
     # NOTE: This field intentionally does not check can_view_clients
