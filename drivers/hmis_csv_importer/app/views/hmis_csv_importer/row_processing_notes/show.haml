@@ -1,0 +1,25 @@
+= content_for :crumbs do
+  = link_to import_path(@import) do
+    &laquo; Import Log
+
+%h1= "Row Processing Notes for #{@filename}"
+
+%ul.nav.nav-tabs{role: "presentation"}
+  %li.nav-item{role: 'presentation'}
+    = link_to 'Loader Errors', hmis_csv_importer_loader_error_path(@import.loader_log, file: @filename), class: 'nav-link'
+  %li.nav-item.active{role: 'presentation'}
+    = link_to 'Row Processing Notes', hmis_csv_importer_row_processing_note_path(@import.loader_log, file: @filename), class: 'nav-link'
+
+= render 'common/pagination_top', item_name: 'note'
+.table-responsive
+  %table.table.table-striped
+    %thead
+      %tr
+        %th Reason
+        %th Row
+    %tbody
+      - @notes.each do |note|
+        %tr
+          %td= note.reason
+          %td= note.row
+= render 'common/pagination_bottom', item_name: 'note'
