@@ -875,6 +875,7 @@ type CeClientsPaginated {
   nodesCount: Int!
   offset: Int!
   pagesCount: Int!
+  searchQueryId: String
 }
 
 type CeCustomReferralStatus {
@@ -1686,6 +1687,7 @@ type CeReferralsPaginated {
   nodesCount: Int!
   offset: Int!
   pagesCount: Int!
+  searchQueryId: String
 }
 
 type CeSwimlane {
