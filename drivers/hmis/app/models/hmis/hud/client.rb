@@ -150,11 +150,11 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   end
 
   # Restricted clients are omitted from search unless the user can view restricted clients at a project
-  # where the client is or was enrolled (or anywhere in the data source, for unenrolled clients). They
-  # remain reachable by other means, such as a direct link, with their PII redacted.
+  # where the client is or was enrolled. They remain reachable by other means, such as a direct link,
+  # with their PII redacted.
   # See docs/features/hmis/hmis-restricted-records.md
   scope :searchable_to, ->(user) do
-    hidden_ids = Hmis::RestrictedRecord.client_ids_hidden_from(user)
+    hidden_ids = user.policy_context.client_ids_hidden_from_search
     scope = visible_to(user)
     hidden_ids.any? ? scope.where.not(id: hidden_ids) : scope
   end

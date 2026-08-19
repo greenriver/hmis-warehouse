@@ -271,29 +271,6 @@ RSpec.describe Hmis::AuthPolicies::HmisClientPolicy, type: :model do
                       [:can_view_clients, :can_view_client_alerts]
     end
 
-    describe '#can_view_restricted_clients?' do
-      context 'when user has the permission at an enrolled project' do
-        let!(:access_control) do
-          create_access_control(user, project, with_permission: [:can_view_clients, :can_view_restricted_clients])
-        end
-
-        it 'returns true' do
-          expect(policy.can_view_restricted_clients?).to be true
-        end
-      end
-
-      context 'when user has the permission only at a project the client is not enrolled in' do
-        let!(:other_project) { create(:hmis_hud_project, organization: organization, data_source: data_source) }
-        let!(:access_control) do
-          create_access_control(user, other_project, with_permission: [:can_view_clients, :can_view_restricted_clients])
-        end
-
-        it 'returns false' do
-          expect(policy.can_view_restricted_clients?).to be false
-        end
-      end
-    end
-
     describe '#can_view_some_enrollment_details?' do
       it_behaves_like 'a client permission resolved at enrolled projects',
                       :can_view_some_enrollment_details?,
@@ -314,7 +291,6 @@ RSpec.describe Hmis::AuthPolicies::HmisClientPolicy, type: :model do
         end
 
         it 'is not redacted' do
-          expect(policy.pii_redacted?).to be false
           expect(policy.can_view_name?).to be true
           expect(policy.can_view_photo?).to be true
           expect(policy.can_view_contact_info?).to be true
@@ -330,8 +306,27 @@ RSpec.describe Hmis::AuthPolicies::HmisClientPolicy, type: :model do
           )
         end
 
-        it 'is redacted, including photo and contact info' do
-          expect(policy.pii_redacted?).to be true
+        it 'is redacted' do
+          expect(policy.can_view_name?).to be false
+          expect(policy.can_view_photo?).to be false
+          expect(policy.can_view_contact_info?).to be false
+        end
+      end
+
+      context 'when the user can view restricted clients only at a project the client is not enrolled in' do
+        let!(:other_project) { create(:hmis_hud_project, organization: organization, data_source: data_source) }
+        let!(:access_control) do
+          create_access_control(
+            user,
+            project,
+            with_permission: [:can_view_clients, :can_view_client_name, :can_view_client_photo, :can_view_client_contact_info],
+          )
+        end
+        let!(:other_access_control) do
+          create_access_control(user, other_project, with_permission: [:can_view_clients, :can_view_restricted_clients])
+        end
+
+        it 'is redacted' do
           expect(policy.can_view_name?).to be false
           expect(policy.can_view_photo?).to be false
           expect(policy.can_view_contact_info?).to be false
@@ -373,12 +368,18 @@ RSpec.describe Hmis::AuthPolicies::HmisClientPolicy, type: :model do
         create_access_control(
           user,
           project,
-          with_permission: [:can_view_clients, :can_view_restricted_clients, :can_view_client_name, :can_view_client_photo, :can_view_client_contact_info],
+          with_permission: [
+            :can_view_clients,
+            :can_view_restricted_clients,
+            :can_mark_clients_as_restricted,
+            :can_view_client_name,
+            :can_view_client_photo,
+            :can_view_client_contact_info,
+          ],
         )
       end
 
       it 'is redacted even though the user can view restricted clients elsewhere' do
-        expect(policy.pii_redacted?).to be true
         expect(policy.can_view_name?).to be false
         expect(policy.can_view_photo?).to be false
         expect(policy.can_view_contact_info?).to be false
@@ -386,7 +387,7 @@ RSpec.describe Hmis::AuthPolicies::HmisClientPolicy, type: :model do
 
       it 'does not restrict unrelated permissions, so the client can still be unmarked' do
         expect(policy.can_view?).to be true
-        expect(policy.can_mark_restricted?).to be false # requires can_mark_clients_as_restricted
+        expect(policy.can_mark_restricted?).to be true
       end
     end
   end

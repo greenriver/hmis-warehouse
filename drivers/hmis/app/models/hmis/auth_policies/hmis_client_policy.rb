@@ -24,28 +24,6 @@ class Hmis::AuthPolicies::HmisClientPolicy < Hmis::AuthPolicies::ResourcePolicy
       client_permissions.include?(:can_mark_clients_as_restricted)
     end
 
-    # Whether the user may find this client in search and see their PII, if they are restricted.
-    # Resolved from the projects where the client is or was enrolled. Only meaningful for clients that
-    # are actually restricted.
-    # Mirrors Hmis::RestrictedRecord.client_ids_hidden_from.
-    def can_view_restricted_clients?
-      # An unenrolled client has no project through which the permission could be granted, so nobody
-      # can view them. Deliberately stricter than #client_permissions, which falls back to global
-      # permissions for unenrolled clients: that fallback would let anyone holding the permission at
-      # any one project see every unenrolled restricted client in the data source.
-      return false if unenrolled_client?
-
-      client_permissions.include?(:can_view_restricted_clients)
-    end
-
-    # Whether this client's PII is redacted for this user, because they are restricted and the user
-    # can't view restricted clients. Restriction is not a denial of access: a restricted client remains
-    # viewable and editable, and only the PII predicates below (name, DOB, SSN, photo, and contact info) are affected.
-    # See docs/features/hmis/hmis-restricted-records.md for more details.
-    def pii_redacted?
-      context.client_restricted?(resource.id) && !can_view_restricted_clients?
-    end
-
     def can_view_name?
       !pii_redacted? && client_permissions.include?(:can_view_client_name)
     end
@@ -133,9 +111,12 @@ class Hmis::AuthPolicies::HmisClientPolicy < Hmis::AuthPolicies::ResourcePolicy
       context.client_permissions(resource.id)
     end
 
-    # Whether the client is unenrolled, i.e. has no enrollments in the current data source.
-    memoize def unenrolled_client?
-      context.unenrolled_client_id?(resource.id)
+    # Whether this client's PII is redacted for this user, because they are restricted and the user can't
+    # view restricted clients. Restriction is not a denial of access: a restricted client remains viewable
+    # and editable, and only the PII predicates above (name, DOB, SSN, photo, and contact info) are affected.
+    # See docs/features/hmis/hmis-restricted-records.md for more details.
+    def pii_redacted?
+      context.pii_redacted_for_client?(resource.id)
     end
   end
 

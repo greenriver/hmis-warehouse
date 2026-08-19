@@ -56,27 +56,6 @@ class Hmis::RestrictedRecord < Hmis::HmisBase
     find_by(restrictable: record)&.destroy!
   end
 
-  # Client IDs in the user's data source that are restricted, AND that the user has no permission to
-  # find. Used to omit them from client search; they remain reachable by other means with PII redacted.
-  #
-  # Client restriction is expected to be relatively rare, so it's acceptable to pluck every restricted client ID.
-  def self.client_ids_hidden_from(user)
-    client_ids = for_clients.where(data_source_id: user.hmis_data_source_id).pluck(:restrictable_id)
-    return [] if client_ids.empty?
-
-    context = user.policy_context
-    context.preload_client_dependencies(client_ids)
-    client_ids.reject do |id|
-      # Mirrors HmisClientPolicy::Instance#can_view_restricted_clients?. Unenrolled restricted clients are hidden from
-      # everyone, because there is no project through which can_view_restricted_clients could be
-      # granted for them. Skipping the permission check here also skips the permissive
-      # global-permission fallback that #client_permissions applies to unenrolled clients.
-      next false if context.unenrolled_client_id?(id)
-
-      context.client_permissions(id).include?(:can_view_restricted_clients)
-    end
-  end
-
   private def restrictable_data_source_matches
     return unless restrictable && data_source_id
 
