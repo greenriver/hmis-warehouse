@@ -12,6 +12,11 @@ module HmisCsvImporter::HmisCsvCleanup
   # Does not change HouseholdID, multi-member households, or blank HouseholdIDs.
   class MakeSoleMemberHoh < Base
     def cleanup!
+      if HmisCsvImporter::HmisCsvCleanup::EnforceRelationshipToHoh.checked?(@importer_log.data_source)
+        Rails.logger.info 'Skipping MakeSoleMemberHoh; EnforceRelationshipToHoh already covers one-person households'
+        return
+      end
+
       Hmis::Hud::DataIntegrity::SoleMemberHohFixer.run!(
         scope: enrollment_scope,
         conflict_target: conflict_target(enrollment_source),
@@ -27,7 +32,7 @@ module HmisCsvImporter::HmisCsvCleanup
     end
 
     def self.description
-      'Make the sole member of a household the Head of Household'
+      'When a household has exactly one member, set RelationshipToHoH to 1. Does not change multi-member households. Unnecessary if "Enforce only one Head of Household per household" is already enabled.'
     end
 
     # Must run after FixBlankHouseholdIds (default 0) so newly assigned one-person households get HoH in the same import.

@@ -99,6 +99,31 @@ RSpec.describe 'Make Sole Member HoH', type: :model do
     end
   end
 
+  describe HmisCsvImporter::HmisCsvCleanup::MakeSoleMemberHoh do
+    let(:importer_log) { double('importer_log', id: 1, data_source: data_source) }
+    let(:cleanup) { described_class.new(importer_log: importer_log, date_range: nil, version: '2026') }
+
+    describe '#cleanup!' do
+      context 'when EnforceRelationshipToHoh is also enabled' do
+        let(:data_source) do
+          {
+            import_cleanups: {
+              'Enrollment' => [
+                'HmisCsvImporter::HmisCsvCleanup::EnforceRelationshipToHoh',
+                'HmisCsvImporter::HmisCsvCleanup::MakeSoleMemberHoh',
+              ],
+            },
+          }
+        end
+
+        it 'does not run the fixer' do
+          expect(Hmis::Hud::DataIntegrity::SoleMemberHohFixer).not_to receive(:run!)
+          cleanup.cleanup!
+        end
+      end
+    end
+  end
+
   def setup(import_cleanups:)
     @data_source = GrdaWarehouse::DataSource.find_by(name: 'Make sole member HoH') || create(:make_sole_member_hoh)
     @data_source.update(import_cleanups: import_cleanups)
