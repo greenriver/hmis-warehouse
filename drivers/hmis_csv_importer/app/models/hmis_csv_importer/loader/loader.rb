@@ -175,6 +175,8 @@ module HmisCsvImporter::Loader
 
       ProjectFilter.filter(@file_path, @data_source.id, @post_processor) if @limit_projects
 
+      HudKeyRemapper.remap!(@file_path, loadable_files, @export[:SourceID]) if HudKeyRemapper.checked?(data_source)
+
       loadable_files.each do |file_name, klass|
         source_file_path = File.join(@file_path, file_name)
         next unless File.file?(source_file_path)
