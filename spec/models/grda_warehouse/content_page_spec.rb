@@ -64,4 +64,22 @@ RSpec.describe GrdaWarehouse::ContentPage, type: :model do
       expect(GrdaWarehouse::ContentPage.ordered.pluck(:title)).to eq(['Apple', 'Banana', 'Cherry'])
     end
   end
+
+  describe '#render_content' do
+    it 'renders markdown to html' do
+      page = build(:content_page, content: '**bold**')
+      expect(page.render_content).to include('<strong>bold</strong>')
+    end
+
+    it 'escapes script tags to prevent XSS' do
+      page = build(:content_page, content: '<script>alert("xss")</script>')
+      expect(page.render_content).not_to include('<script>')
+      expect(page.render_content).to include('&lt;script&gt;')
+    end
+
+    it 'drops javascript: links' do
+      page = build(:content_page, content: '[click me](javascript:alert(1))')
+      expect(page.render_content).not_to include('href="javascript:')
+    end
+  end
 end

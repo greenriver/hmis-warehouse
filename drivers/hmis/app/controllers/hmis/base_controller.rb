@@ -45,7 +45,7 @@ class Hmis::BaseController < ActionController::Base
   end
 
   # HMIS domain for this request; used to resolve the data source (DataSource.hmis).
-  # @see docs/architecture/multi-hmis-support.md
+  # @see docs/features/hmis/multi-hmis-support.md
   def current_hmis_host
     # In development, use untrusted header X-Hmis-Dev-Host.
     # Trusted header 'request.host' cannot be used because the dev server setup makes it appear to come from the backend host.
@@ -65,7 +65,7 @@ class Hmis::BaseController < ActionController::Base
   end
 
   # Binds the current request to an HMIS data source using the request host
-  # @see docs/architecture/multi-hmis-support.md
+  # @see docs/features/hmis/multi-hmis-support.md
   def attach_data_source_id
     data_source_id = current_data_source.id
     current_hmis_user.hmis_data_source_id = data_source_id

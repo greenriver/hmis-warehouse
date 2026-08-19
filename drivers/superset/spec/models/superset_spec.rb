@@ -34,10 +34,27 @@ RSpec.describe Superset do
   end
 
   describe '.warehouse_login_url' do
-    it 'points at the URL-encoded warehouse login provider path' do
-      allow(described_class).to receive(:superset_base_url).and_return('https://superset.example.test')
+    before { allow(described_class).to receive(:superset_base_url).and_return('https://superset.example.test') }
 
+    it 'points at the URL-encoded warehouse login provider path', :devise_only do
       expect(described_class.warehouse_login_url).to eq('https://superset.example.test/login/The%20Warehouse')
+    end
+
+    it 'returns the bare base URL when no user is given', :jwt_only do
+      expect(described_class.warehouse_login_url).to eq('https://superset.example.test')
+    end
+
+    it 'returns the bare base URL when the user has no last_connector_id', :jwt_only do
+      user = instance_double(User, last_connector_id: nil)
+
+      expect(described_class.warehouse_login_url(user)).to eq('https://superset.example.test')
+    end
+
+    it "routes through Superset's own oauth2-proxy sign-in endpoint with the user's connector_id, so Dex skips its connector picker", :jwt_only do
+      user = instance_double(User, last_connector_id: 'keycloak')
+
+      expect(described_class.warehouse_login_url(user)).
+        to eq('https://superset.example.test/oauth2/sign_in?connector_id=keycloak&rd=%2F')
     end
   end
 

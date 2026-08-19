@@ -78,8 +78,14 @@ RSpec.describe Admin::Idp::UsersController, :jwt_only, type: :request do
         expect(response.body).to include(new_admin_user_path)
       end
 
-      it 'omits the create button when no connector can provision accounts' do
+      it 'still offers the create button when the connector has no management API (local-only pre-create)' do
         allow_any_instance_of(::Idp::KeycloakService).to receive(:supports_user_creation?).and_return(false)
+        get admin_users_path
+        expect(response.body).to include(new_admin_user_path)
+      end
+
+      it 'omits the create button when there are no active connectors' do
+        ::Idp::ServiceConfig.update_all(active: false)
         get admin_users_path
         expect(response.body).not_to include(new_admin_user_path)
       end
@@ -185,12 +191,31 @@ RSpec.describe Admin::Idp::UsersController, :jwt_only, type: :request do
       end
     end
 
-    # JWT is on (routes mounted), but no active connector reports itself creation-capable, so
-    # require_user_creation_available! sends the admin back to the index instead of the form.
-    describe 'when no connector can provision accounts' do
+    describe 'when the connector has no management API' do
       before do
         allow_any_instance_of(::Idp::KeycloakService).to receive(:supports_user_creation?).and_return(false)
       end
+
+      it 'renders GET new (the form is available for local-only pre-create)' do
+        get new_admin_user_path
+
+        expect(response).to have_http_status(:ok)
+      end
+
+      it 'POST create makes a local-only user with no remote call and no connector link' do
+        expect { post admin_users_path, params: params }.to change(User, :count).by(1)
+
+        user = User.find_by(email: new_email)
+        expect(user.user_authentication_sources).to be_empty
+        expect(user.last_connector_id).to be_nil
+        expect(a_request(:post, users_url)).not_to have_been_made
+        expect(response).to redirect_to(edit_admin_user_path(user))
+      end
+    end
+
+    # No active connector at all: nothing to provision against, so the form is unavailable.
+    describe 'when there are no active connectors' do
+      before { ::Idp::ServiceConfig.update_all(active: false) }
 
       it 'redirects GET new to the index with an unavailable alert' do
         get new_admin_user_path

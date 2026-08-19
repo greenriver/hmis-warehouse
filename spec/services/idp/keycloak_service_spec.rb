@@ -723,9 +723,8 @@ RSpec.describe Idp::KeycloakService do
       expect(service.supports_account_backfill?).to be false
     end
 
-    it 'still offers self-service email and resolves the account console URL' do
+    it 'still offers self-service email' do
       expect(service.supports_email_self_service?).to be true
-      expect(service.account_console_url).to eq("#{api_url}/realms/#{realm}/account")
     end
   end
 
@@ -758,12 +757,6 @@ RSpec.describe Idp::KeycloakService do
   # four column => config-key mappings against a real persisted Idp::ServiceConfig. Covering it here
   # would mean faking that reader surface, and a fake can't notice a renamed column — the one failure
   # this translation actually has.
-
-  describe '#account_console_url' do
-    it 'builds the Account Console URL for the realm' do
-      expect(service.account_console_url).to eq("#{api_url}/realms/#{realm}/account")
-    end
-  end
 
   describe '#account_action_url' do
     let(:redirect_uri) { 'https://warehouse.test/account/edit' }
@@ -861,10 +854,6 @@ RSpec.describe Idp::KeycloakService do
     let(:public_url) { 'https://keycloak.public.test' }
 
     shared_examples 'honors the browser URL' do
-      it 'builds the account console URL from it' do
-        expect(service.account_console_url).to eq("#{public_url}/realms/#{realm}/account")
-      end
-
       it 'builds account action deep-links from it' do
         url = service.account_action_url(action: 'UPDATE_PASSWORD', redirect_uri: 'https://warehouse.test/account/edit')
 
@@ -897,7 +886,9 @@ RSpec.describe Idp::KeycloakService do
       before { stub_const('ENV', ENV.to_h.merge('KEYCLOAK_PUBLIC_URL' => 'https://ignored.test')) }
 
       it 'falls back to api_url, ignoring ENV' do
-        expect(service.account_console_url).to eq("#{api_url}/realms/#{realm}/account")
+        url = service.account_action_url(action: 'UPDATE_PASSWORD', redirect_uri: 'https://warehouse.test/account/edit')
+
+        expect(url).to start_with("#{api_url}/realms/#{realm}/protocol/openid-connect/auth?")
       end
     end
   end
@@ -999,6 +990,53 @@ RSpec.describe Idp::KeycloakService do
       service.each_user.to_a
 
       expect(timeouts_of("/admin/realms/#{realm}/users?first=0&max=100")).to eq([bulk_timeouts])
+    end
+  end
+
+  describe 'the internal CA certificate' do
+    let(:sent) { {} }
+
+    before do
+      recorded = sent
+      allow_any_instance_of(Net::HTTP).to receive(:request).and_wrap_original do |original, *args|
+        http = original.receiver
+        recorded[args.first.path] = { use_ssl: http.use_ssl?, ca_file: http.ca_file }
+        original.call(*args)
+      end
+    end
+
+    # File.exist? is consulted for other paths too, so stub only the cert path and pass the rest through.
+    def stub_cert_present(present)
+      allow(File).to receive(:exist?).and_call_original
+      allow(File).to receive(:exist?).with(described_class::CA_CERT_FILE).and_return(present)
+    end
+
+    context 'over an https connection' do
+      let(:api_url) { 'https://keycloak.test:8443' }
+
+      it 'points Net::HTTP at the bundled cert when it exists' do
+        stub_cert_present(true)
+        stub_request(:get, user_url).to_return(status: 200, body: { id: user_id }.to_json)
+
+        service.get_user(user_id: user_id)
+
+        expect(sent.fetch("/admin/realms/#{realm}/users/#{user_id}")).to include(
+          use_ssl: true,
+          ca_file: described_class::CA_CERT_FILE.to_s,
+        )
+      end
+
+      it 'leaves ca_file at the system default when the cert is absent' do
+        stub_cert_present(false)
+        stub_request(:get, user_url).to_return(status: 200, body: { id: user_id }.to_json)
+
+        service.get_user(user_id: user_id)
+
+        expect(sent.fetch("/admin/realms/#{realm}/users/#{user_id}")).to include(
+          use_ssl: true,
+          ca_file: nil,
+        )
+      end
     end
   end
 

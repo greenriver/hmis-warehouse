@@ -14,8 +14,6 @@ module GrdaWarehouse::HealthEmergency
     include ArelHelper
     include ::Import::ClientMatching
     include FileContentValidator
-    # Remove CarrierWave dependency
-    # mount_uploader :file, TestResultsUploader
 
     validate :validate_file_content_if_present
 
