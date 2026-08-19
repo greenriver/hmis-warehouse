@@ -81,28 +81,23 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   end
 
   context 'when the client is not restricted' do
-    it 'resolves PII' do
+    it 'resolves PII, photo, and contact info' do
       expect(resolve_client).to include(
         'restricted' => false,
         'firstName' => client.first_name,
         'lastName' => client.last_name,
         'dob' => client.dob.strftime('%Y-%m-%d'),
         'ssn' => client.ssn,
-        'access' => a_hash_including(
-          'canViewClientName' => true,
-          'canViewDob' => true,
-          'canViewFullSsn' => true,
-        ),
-      )
-    end
-
-    it 'resolves photo and contact info' do
-      expect(resolve_client).to include(
         'image' => a_hash_including('id' => be_present),
         'phoneNumbers' => [{ 'value' => phone.value }],
         'emailAddresses' => [{ 'value' => email.value }],
         'addresses' => [{ 'line1' => address.line1 }],
-        'access' => a_hash_including('canViewClientPhoto' => true),
+        'access' => a_hash_including(
+          'canViewClientName' => true,
+          'canViewDob' => true,
+          'canViewFullSsn' => true,
+          'canViewClientPhoto' => true,
+        ),
       )
     end
   end
@@ -110,7 +105,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   context 'when the client is restricted' do
     before(:each) { client.mark_as_restricted!(user: hmis_user) }
 
-    it 'still resolves the client, with PII redacted' do
+    it 'still resolves the client, with PII redacted and the corresponding access fields false' do
       expect(resolve_client).to include(
         'restricted' => true,
         'firstName' => client.masked_name,
@@ -119,30 +114,20 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         'dob' => nil,
         'ssn' => nil,
         'names' => [{ 'first' => client.masked_name, 'last' => nil }],
-      )
-    end
-
-    it 'redacts photo and contact info' do
-      expect(resolve_client).to include(
         'image' => nil,
         'phoneNumbers' => [],
         'emailAddresses' => [],
         'addresses' => [],
+        'access' => a_hash_including(
+          'canViewClientName' => false,
+          'canViewDob' => false,
+          'canViewPartialSsn' => false,
+          'canViewFullSsn' => false,
+          'canViewClientPhoto' => false,
+          # unrelated permissions are not restricted
+          'canEditClient' => true,
+        ),
       )
-    end
-
-    it 'reports the corresponding access fields as false' do
-      expect(resolve_client['access']).to include(
-        'canViewClientName' => false,
-        'canViewDob' => false,
-        'canViewPartialSsn' => false,
-        'canViewFullSsn' => false,
-        'canViewClientPhoto' => false,
-      )
-    end
-
-    it 'does not restrict unrelated permissions' do
-      expect(resolve_client['access']).to include('canEditClient' => true)
     end
 
     it 'resolves PII for users who can view restricted clients' do
