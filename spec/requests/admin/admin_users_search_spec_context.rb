@@ -14,8 +14,9 @@ RSpec.shared_context 'admin users search', shared_context: :metadata do
 
     context 'when logged out' do
       it 'redirects to the login page' do
-        post admin_user_search_queries_path, params: search_params
-        expect(response).to redirect_to(new_user_session_path)
+        expect_unauthenticated_warehouse_request do
+          post admin_user_search_queries_path, params: search_params
+        end
       end
     end
 
@@ -60,8 +61,9 @@ RSpec.shared_context 'admin users search', shared_context: :metadata do
 
     context 'when logged out' do
       it 'redirects to the login page' do
-        get user_search_query_admin_users_path(id: search_query.id)
-        expect(response).to redirect_to(new_user_session_path)
+        expect_unauthenticated_warehouse_request do
+          get user_search_query_admin_users_path(id: search_query.id)
+        end
       end
     end
 

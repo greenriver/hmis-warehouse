@@ -17,5 +17,9 @@ FactoryBot.define do
     client_id { 'rails-service-account' }
     keycloak_realm { 'openpath' }
     active { true }
+
+    trait :authenticate_only do
+      manage_users { false }
+    end
   end
 end

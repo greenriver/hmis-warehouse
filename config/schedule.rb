@@ -41,13 +41,6 @@ monthly_schedule = (Time.parse(import_schedule) - 5.hours).strftime('%I:%M %P')
 import_cleanup_time = Time.parse(import_schedule) + 9.hours
 
 tasks = [
-  # temporary task to move files to S3 and ActiveStorage
-  {
-    task: 'storage:move_to_s3',
-    frequency: 1.day,
-    at: '5:00pm',
-    interruptable: true,
-  },
   {
     task: 'grda_warehouse:daily',
     frequency: 1.day,

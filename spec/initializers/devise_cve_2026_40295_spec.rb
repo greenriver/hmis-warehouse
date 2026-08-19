@@ -13,7 +13,7 @@ require 'rails_helper'
 # Devise 5.0.4 fixes this natively (see Devise::Controllers::StoreLocation#extract_path_from_location);
 # the app previously carried a monkey patch backporting this fix, which was removed once the gem upgrade
 # landed. These specs confirm the native behavior still holds.
-RSpec.describe 'CVE-2026-40295 - open redirect via Referer on timeout' do
+RSpec.describe 'CVE-2026-40295 - open redirect via Referer on timeout', :devise_only do
   let(:store_location_host) { Class.new { include Devise::Controllers::StoreLocation }.new }
 
   describe 'extract_path_from_location' do

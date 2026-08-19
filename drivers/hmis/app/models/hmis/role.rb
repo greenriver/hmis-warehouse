@@ -327,11 +327,29 @@ class Hmis::Role < ::ApplicationRecord
         sub_category: 'Organizations',
       },
       can_view_clients: {
-        description: 'Access to view clients at assigned projects',
+        description: 'Access to view clients at assigned projects.',
         administrative: false,
         access: [:viewable],
         category: 'Client Access',
         sub_category: 'Access',
+      },
+      can_view_restricted_clients: {
+        description: 'Access to view clients marked as restricted, at assigned projects where the client is or was enrolled.',
+        administrative: false,
+        access: [:viewable],
+        requirements: [:can_view_clients],
+        category: 'Client Access',
+        sub_category: 'Access',
+        proc: -> { false }, # Hidden until restricted clients are implemented
+      },
+      can_mark_clients_as_restricted: {
+        description: 'Ability to mark or unmark clients as restricted, at assigned projects where the client is or was enrolled.',
+        administrative: false,
+        access: [:editable],
+        requirements: [:can_view_restricted_clients],
+        category: 'Client Access',
+        sub_category: 'Access',
+        proc: -> { false }, # Hidden until restricted clients are implemented
       },
       can_edit_clients: {
         description: 'Ability to create clients & edit client demographics',
@@ -351,6 +369,7 @@ class Hmis::Role < ::ApplicationRecord
       can_view_client_name: {
         description: 'Access to view client names',
         administrative: false,
+        requirements: [:can_view_clients],
         access: [:viewable],
         category: 'Client Access',
         sub_category: 'Sensitive Client Data',
@@ -358,6 +377,7 @@ class Hmis::Role < ::ApplicationRecord
       can_view_client_contact_info: {
         description: 'Access to view client contact info: addresses, phone numbers, emails.',
         administrative: false,
+        requirements: [:can_view_clients],
         access: [:viewable],
         category: 'Client Access',
         sub_category: 'Sensitive Client Data',
@@ -365,12 +385,14 @@ class Hmis::Role < ::ApplicationRecord
       can_view_client_photo: {
         description: 'Access to view client photo.',
         administrative: false,
+        requirements: [:can_view_clients],
         access: [:viewable],
         category: 'Client Access',
         sub_category: 'Sensitive Client Data',
       },
       can_view_full_ssn: {
         administrative: false,
+        requirements: [:can_view_clients],
         access: [:viewable],
         category: 'Client Access',
         sub_category: 'Sensitive Client Data',
@@ -378,6 +400,7 @@ class Hmis::Role < ::ApplicationRecord
       can_view_partial_ssn: {
         description: 'Access to view last 4 digits of SSN',
         administrative: false,
+        requirements: [:can_view_clients],
         access: [:viewable],
         category: 'Client Access',
         sub_category: 'Sensitive Client Data',
@@ -385,6 +408,7 @@ class Hmis::Role < ::ApplicationRecord
       can_view_dob: {
         description: 'Access to view Date of Birth. (Note: client\'s age is always visible, even if this permission is not checked).',
         administrative: false,
+        requirements: [:can_view_clients],
         access: [:viewable],
         category: 'Client Access',
         sub_category: 'Sensitive Client Data',
@@ -392,6 +416,7 @@ class Hmis::Role < ::ApplicationRecord
       can_view_hud_chronic_status: {
         description: "Access to view 'Chronic at PIT' status on the Client Dashboard. This field gives you an idea of someones previous enrollments, even ones you can't otherwise see.",
         administrative: false,
+        requirements: [:can_view_clients],
         access: [:viewable],
         category: 'Client Access',
         sub_category: 'Expanded Access',
@@ -491,6 +516,7 @@ class Hmis::Role < ::ApplicationRecord
       },
       can_audit_clients: {
         description: 'View audit history for client on the Client Dashboard.  This permission allows the user to view changes to any client details, including DOB, SSN, and name, even if they don\'t have the specific permissions to view those fields on the Client.',
+        requirements: [:can_view_clients],
         administrative: true,
         access: [:viewable],
         category: 'Client Access',
@@ -553,6 +579,7 @@ class Hmis::Role < ::ApplicationRecord
       },
       can_view_client_alerts: {
         description: 'Access to view Client Alerts',
+        requirements: [:can_view_clients],
         administrative: false,
         access: [:viewable],
         category: 'Client Access',
@@ -584,6 +611,7 @@ class Hmis::Role < ::ApplicationRecord
       can_print_client_case_notes: {
         description: 'Ability to print case notes from the client profile.',
         administrative: false,
+        requirements: [:can_view_clients],
         access: [:viewable],
         category: 'Client Access',
         sub_category: 'Access',

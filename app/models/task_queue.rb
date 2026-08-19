@@ -106,5 +106,10 @@ class TaskQueue < ApplicationRecord
     config.queued_tasks[:gr_staff_report_q1_2026] = -> do
       GrdaWarehouse::Tasks::GrStaffReport.run!
     end
+
+    # Repair Cohort#column_state rows poisoned by a leaked GrdaWarehouse::Cohorts::CohortColumn instance
+    config.queued_tasks[:repair_cohort_column_state] = -> do
+      GrdaWarehouse::Cohorts::RepairColumnState.run!
+    end
   end
 end

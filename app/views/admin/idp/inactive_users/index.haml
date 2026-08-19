@@ -1,0 +1,14 @@
+- content_for :title, t('admin.inactive_users.index.title')
+%h1= content_for :title
+= render partial: 'menus/admin_tabs'
+.o-page
+  .o-page__header
+    - @prompt = t('admin.inactive_users.index.search_prompt')
+
+    .o-page__controls
+      .o-page__search
+        = render_generic_search_form(admin_inactive_user_search_queries_path, prompt: @prompt, initial_value: @query, method: :post)
+
+= render 'admin/users/tabs', selected_path: admin_inactive_users_path
+
+= render_paginated_list_with_explicit_pagy(pagy: @pagy, list: @users, item_name: 'user account', list_partial: 'list', empty_message: 'No users found.')

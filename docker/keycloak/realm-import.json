@@ -5,6 +5,7 @@
   "registrationAllowed": false,
   "resetPasswordAllowed": true,
   "loginWithEmailAllowed": true,
+  "registrationEmailAsUsername": true,
   "clients": [
     {
       "clientId": "dex-connector",
@@ -24,6 +25,22 @@
       "attributes": {
         "post.logout.redirect.uris": "https://hmis-warehouse.dev.test/oauth2/sign_out##https://hmis.dev.test/oauth2/sign_out"
       }
+    },
+    {
+      "clientId": "warehouse-account",
+      "protocol": "openid-connect",
+      "enabled": true,
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "baseUrl": "https://hmis-warehouse.dev.test/account_email/edit",
+      "redirectUris": [
+        "https://hmis-warehouse.dev.test/account_email/edit",
+        "https://hmis-warehouse.dev.test/account/edit"
+      ],
+      "webOrigins": ["https://hmis-warehouse.dev.test"]
     },
     {
       "clientId": "rails-service-account",

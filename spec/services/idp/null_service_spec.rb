@@ -9,42 +9,44 @@
 RSpec.describe Idp::NullService, type: :model do
   let(:service) { described_class.new }
 
-  describe '#create_user' do
-    it 'raises ServiceError' do
-      expect do
-        service.create_user(
-          email: 'test@example.com',
-          first_name: 'Test',
-          last_name: 'User',
-        )
-      end.to raise_error(Idp::ServiceError, /User management not supported/)
-    end
-  end
+  # Every management method has to raise Idp::ServiceError specifically. Callers rescue that class and
+  # nothing wider, so a method that fell through to Idp::Service and raised NotImplementedError would
+  # escape their soft-failure handling and 500 the request. `operation` is also what tells get_user's
+  # raise apart from find_user_by_email's, since the two share a message.
+  #
+  # send_execute_actions_email has no capability predicate in front of it: Idp::Support#idp_send_account_setup_email!
+  # gates only on primary_idp, so the raise is the sole guard.
+  describe 'management methods' do
+    {
+      create_user: ['User management not supported', { email: 'test@example.com', first_name: 'Test', last_name: 'User' }],
+      update_user: ['Profile updates not supported', { user_id: 'user-123', attributes: { first_name: 'John' } }],
+      get_user: ['User lookup not supported', { user_id: 'user-123' }],
+      find_user_by_email: ['User lookup not supported', { email: 'test@example.com' }],
+      send_execute_actions_email: ['Account setup email not supported', { user_id: 'user-123', actions: ['UPDATE_PASSWORD'] }],
+      reactivate_user: ['User reactivation not supported', { user_id: 'user-123' }],
+      deactivate_user: ['User deactivation not supported', { user_id: 'user-123' }],
+      set_required_action: ['Required actions not supported', { user_id: 'user-123', actions: ['UPDATE_PASSWORD'] }],
+      # supports_session_logout? means nothing should reach this. If something does it must be loud,
+      # not a silent no-op that reads as "the IdP session was ended".
+      logout_user_sessions: ['Session logout not supported', { user_id: 'user-123' }],
+    }.each do |method, (message, args)|
+      describe "##{method}" do
+        it 'raises ServiceError tagged with the operation and the IdP name' do
+          expect { service.public_send(method, **args) }.to raise_error(Idp::ServiceError) do |error|
+            expect(error.message).to eq(message)
+            expect(error.operation).to eq(method)
+            # Admin::Idp::UsersController interpolates this into user-facing form copy.
+            expect(error.idp_name).to eq('Unknown IDP')
+            # A blank/unknown/deactivated connector keeps giving the same answer; no retry helps.
+            expect(error.transient?).to be false
+          end
+        end
 
-  describe '#update_user' do
-    it 'raises ServiceError' do
-      expect do
-        service.update_user(
-          user_id: 'user-123',
-          attributes: { first_name: 'John' },
-        )
-      end.to raise_error(Idp::ServiceError, /Profile updates not supported/)
-    end
-  end
-
-  describe '#get_user' do
-    it 'raises ServiceError' do
-      expect do
-        service.get_user(user_id: 'user-123')
-      end.to raise_error(Idp::ServiceError, /User lookup not supported/)
-    end
-  end
-
-  describe '#reactivate_user' do
-    it 'raises ServiceError' do
-      expect do
-        service.reactivate_user(user_id: 'user-123')
-      end.to raise_error(Idp::ServiceError, /User reactivation not supported/)
+        it 'carries the humanized connector_id as the IdP name when there is one' do
+          expect { described_class.new('keycloak').public_send(method, **args) }.
+            to raise_error(Idp::ServiceError) { |error| expect(error.idp_name).to eq('Keycloak') }
+        end
+      end
     end
   end
 
@@ -59,21 +61,29 @@ RSpec.describe Idp::NullService, type: :model do
     end
   end
 
-  describe '#supports_user_management?' do
-    it 'returns false' do
-      expect(service.supports_user_management?).to be false
+  # These gates keep admin and self-service surfaces from offering an action the null IdP cannot
+  # perform, and NullService inherits the defaults, so flipping one to true in Idp::Service would
+  # otherwise go unnoticed here. supports_user_creation? is what stands between an unconfigured
+  # connector and Idp::AdminUserCreator provisioning against it.
+  describe 'capability predicates' do
+    [
+      :supports_user_management?,
+      :supports_user_creation?,
+      :supports_profile_updates?,
+      :supports_email_self_service?,
+      :supports_account_backfill?,
+      :supports_session_logout?,
+    ].each do |predicate|
+      it "answers false to ##{predicate}" do
+        expect(service.public_send(predicate)).to be false
+      end
     end
   end
 
-  describe '#supports_profile_updates?' do
-    it 'returns false' do
-      expect(service.supports_profile_updates?).to be false
-    end
-  end
-
-  describe '#account_console_url' do
-    it 'returns nil' do
-      expect(service.account_console_url).to be_nil
+  describe '#profile_source' do
+    # No admin API to sync from, so the local profile is kept current from the JWT claims.
+    it 'returns :token_claims' do
+      expect(service.profile_source).to eq(:token_claims)
     end
   end
 
@@ -90,9 +100,23 @@ RSpec.describe Idp::NullService, type: :model do
 end
 
 RSpec.describe Idp::Service, type: :model do
-  describe '#account_console_url' do
-    it 'defaults to nil on the base contract' do
-      expect(described_class.new.account_console_url).to be_nil
+  describe '#supports_email_self_service?' do
+    it 'defaults to false on the base contract' do
+      expect(described_class.new.supports_email_self_service?).to be false
+    end
+  end
+
+  describe '#supports_session_logout?' do
+    it 'defaults to false on the base contract' do
+      expect(described_class.new.supports_session_logout?).to be false
+    end
+  end
+
+  describe '#logout_user_sessions' do
+    it 'raises NotImplementedError on the base contract' do
+      expect do
+        described_class.new.logout_user_sessions(user_id: 'user-123')
+      end.to raise_error(NotImplementedError, /must implement #logout_user_sessions/)
     end
   end
 end

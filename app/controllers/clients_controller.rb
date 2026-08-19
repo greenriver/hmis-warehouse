@@ -114,7 +114,7 @@ class ClientsController < ApplicationController
   end
 
   def edit
-    @search_clients = client_source.text_search(params[:q], client_scope: client_source).where.not(id: @client.id).limit(50) if params[:q].present?
+    @search_clients = client_source.text_search(params[:q], client_scope: client_source, sorted: true).where.not(id: @client.id).limit(50) if params[:q].present?
   end
 
   # display an assessment form in a modal
@@ -176,8 +176,11 @@ class ClientsController < ApplicationController
     to_unmerge = client_params['unmerge']&.reject(&:empty?) # Set of source client ids
     redirect_to({ action: :edit }, alert: 'No clients selected.') and return unless to_unmerge
 
+    receiver_id = client_params['receiver']
+    item_categories = Array(client_params['item_categories']).map(&:to_sym)
+
     Rails.logger.info "Unmerging #{to_unmerge.inspect}"
-    client_names = @client.split(to_unmerge, current_user)
+    client_names = @client.split(to_unmerge, receiver_id, item_categories, current_user)
 
     Rails.logger.info '@client.invalidate_service_history'
     @client.invalidate_service_history
@@ -253,8 +256,10 @@ class ClientsController < ApplicationController
 
     params.require(:grda_warehouse_hud_client).
       permit(
+        :receiver,
         merge: [],
         unmerge: [],
+        item_categories: [],
       )
   end
 

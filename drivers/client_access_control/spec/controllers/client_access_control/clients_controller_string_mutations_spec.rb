@@ -63,6 +63,14 @@ RSpec.describe ClientAccessControl::ClientsController, type: :controller do
   end
 
   describe 'controller actions that exercise string mutations' do
+    # perform_search raises unless the user can_use_strict_search?, so stub it — otherwise get :index /
+    # :search never reach assign_client_list_vars, the code under test. The stub only takes effect on the
+    # JWT arm, where the sign_in helper makes current_user the stubbed `user`; on the Devise arm Warden
+    # reloads current_user and the require_* before_action redirects instead.
+    before(:each) do
+      allow(user).to receive(:can_use_strict_search?).and_return(true)
+    end
+
     it 'exercises index action that leads to assign_client_list_vars' do
       allow(GrdaWarehouse::ClientSearchQuery).to receive(:permit_params).and_return(nil)
 

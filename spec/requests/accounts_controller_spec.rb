@@ -8,7 +8,9 @@
 
 require 'rails_helper'
 
-RSpec.describe AccountsController, type: :request do
+# Devise-only: config/routes.rb points `resource :account` at this controller only on the Devise
+# arm; under jwt the same path is served by Idp::AccountsController (spec/requests/idp/).
+RSpec.describe AccountsController, :devise_only, type: :request do
   # TODO: - get auth working in tests
   let(:user) { create :user }
   let(:email) { ActionMailer::Base.deliveries.last }

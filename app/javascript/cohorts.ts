@@ -211,7 +211,12 @@ window.App.Cohorts.Cohort = class Cohort {
       }
     };
 
-    this.table = createGrid($(this.table_selector)[0], this.grid_options);
+    const gridElement = $(this.table_selector)[0];
+    this.table = createGrid(gridElement, this.grid_options);
+    // Exposed on the element (rather than only via jQuery's .data('cohort')) so system tests
+    // can reach the AG Grid api directly, e.g. to call ensureColumnVisible on columns AG Grid
+    // hasn't rendered yet because they're outside the current horizontal scroll position.
+    (gridElement as any).agGridApi = this.table;
   }
 
   // Resize columns to fit content

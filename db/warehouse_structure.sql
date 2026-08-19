@@ -27004,7 +27004,6 @@ CREATE TABLE public.configs (
     project_type_override boolean DEFAULT true NOT NULL,
     eto_api_available boolean DEFAULT false NOT NULL,
     cas_available_method character varying DEFAULT 'cas_flag'::character varying NOT NULL,
-    healthcare_available boolean DEFAULT false NOT NULL,
     family_calculation_method character varying DEFAULT 'adult_child'::character varying,
     site_coc_codes character varying,
     default_coc_zipcodes character varying,
@@ -27097,7 +27096,9 @@ CREATE TABLE public.configs (
     rds_s3_integration_role_arn character varying,
     default_lms_email_to_warehouse_email boolean,
     relevant_state_codes character varying DEFAULT 'MA'::character varying NOT NULL,
-    enable_external_data_sharing_exclusion boolean DEFAULT false NOT NULL
+    enable_external_data_sharing_exclusion boolean DEFAULT false NOT NULL,
+    created_at timestamp(6) without time zone,
+    updated_at timestamp(6) without time zone
 );
 
 
@@ -35744,12 +35745,9 @@ CREATE TABLE public.hmis_assessments (
     confidential boolean DEFAULT false NOT NULL,
     exclude_from_window boolean DEFAULT false NOT NULL,
     details_in_window_with_release boolean DEFAULT false NOT NULL,
-    health boolean DEFAULT false NOT NULL,
     vispdat boolean DEFAULT false,
     pathways boolean DEFAULT false,
     ssm boolean DEFAULT false,
-    health_case_note boolean DEFAULT false,
-    health_has_qualifying_activities boolean DEFAULT false,
     hud_assessment boolean DEFAULT false,
     triage_assessment boolean DEFAULT false,
     rrh_assessment boolean DEFAULT false,
@@ -42577,14 +42575,14 @@ CREATE VIEW public.hmis_project_access_group_members AS
 CREATE TABLE public.hmis_project_configs (
     id bigint NOT NULL,
     type character varying NOT NULL,
-    enabled boolean DEFAULT true NOT NULL,
     config_options jsonb,
     project_type integer,
     organization_id bigint,
     project_id bigint,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
-    data_source_id bigint NOT NULL
+    data_source_id bigint NOT NULL,
+    deleted_at timestamp(6) without time zone
 );
 
 
@@ -42677,6 +42675,41 @@ CREATE SEQUENCE public.hmis_project_unit_type_mappings_id_seq
 --
 
 ALTER SEQUENCE public.hmis_project_unit_type_mappings_id_seq OWNED BY public.hmis_project_unit_type_mappings.id;
+
+
+--
+-- Name: hmis_restricted_records; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_restricted_records (
+    id bigint NOT NULL,
+    restrictable_type character varying NOT NULL,
+    restrictable_id bigint NOT NULL,
+    data_source_id bigint NOT NULL,
+    created_by_id bigint NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp(6) without time zone
+);
+
+
+--
+-- Name: hmis_restricted_records_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_restricted_records_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_restricted_records_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_restricted_records_id_seq OWNED BY public.hmis_restricted_records.id;
 
 
 --
@@ -49579,7 +49612,6 @@ CREATE TABLE public.report_definitions (
     weight integer DEFAULT 0 NOT NULL,
     enabled boolean DEFAULT true NOT NULL,
     limitable boolean DEFAULT true NOT NULL,
-    health boolean DEFAULT false,
     created_at timestamp without time zone DEFAULT now() NOT NULL,
     updated_at timestamp without time zone DEFAULT now() NOT NULL,
     deleted_at timestamp without time zone
@@ -59332,6 +59364,13 @@ ALTER TABLE ONLY public.hmis_project_unit_type_mappings ALTER COLUMN id SET DEFA
 
 
 --
+-- Name: hmis_restricted_records id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_restricted_records ALTER COLUMN id SET DEFAULT nextval('public.hmis_restricted_records_id_seq'::regclass);
+
+
+--
 -- Name: hmis_scan_card_codes id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -66329,6 +66368,14 @@ ALTER TABLE ONLY public.hmis_project_project_groups
 
 ALTER TABLE ONLY public.hmis_project_unit_type_mappings
     ADD CONSTRAINT hmis_project_unit_type_mappings_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_restricted_records hmis_restricted_records_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_restricted_records
+    ADD CONSTRAINT hmis_restricted_records_pkey PRIMARY KEY (id);
 
 
 --
@@ -213907,6 +213954,13 @@ CREATE INDEX idx_on_data_source_id_next_population_0fce94469b ON public.hmis_sim
 
 
 --
+-- Name: idx_on_data_source_id_restrictable_type_b03a962836; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_on_data_source_id_restrictable_type_b03a962836 ON public.hmis_restricted_records USING btree (data_source_id, restrictable_type);
+
+
+--
 -- Name: idx_on_data_source_id_status_c26af6b41d; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -218975,6 +219029,13 @@ CREATE INDEX index_hmis_project_configs_on_data_source_id ON public.hmis_project
 
 
 --
+-- Name: index_hmis_project_configs_on_deleted_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_project_configs_on_deleted_at ON public.hmis_project_configs USING btree (deleted_at);
+
+
+--
 -- Name: index_hmis_project_configs_on_organization_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -219021,6 +219082,27 @@ CREATE INDEX index_hmis_project_unit_type_mappings_on_project_id ON public.hmis_
 --
 
 CREATE INDEX index_hmis_project_unit_type_mappings_on_unit_type_id ON public.hmis_project_unit_type_mappings USING btree (unit_type_id);
+
+
+--
+-- Name: index_hmis_restricted_records_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_restricted_records_on_data_source_id ON public.hmis_restricted_records USING btree (data_source_id);
+
+
+--
+-- Name: index_hmis_restricted_records_on_deleted_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_restricted_records_on_deleted_at ON public.hmis_restricted_records USING btree (deleted_at);
+
+
+--
+-- Name: index_hmis_restricted_records_on_restrictable; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_hmis_restricted_records_on_restrictable ON public.hmis_restricted_records USING btree (restrictable_type, restrictable_id) WHERE (deleted_at IS NULL);
 
 
 --
@@ -226399,6 +226481,13 @@ CREATE UNIQUE INDEX uidx_hopwa_caper_services ON public.hopwa_caper_services USI
 --
 
 CREATE UNIQUE INDEX uidx_import_overrides_rules ON public.import_overrides USING btree (data_source_id, file_name, replaces_column, COALESCE(matched_hud_key, 'ALL'::character varying), COALESCE(replaces_value, 'ALL'::character varying)) WHERE (deleted_at IS NULL);
+
+
+--
+-- Name: uidx_warehouse_clients_processed_on_client_id_and_routine; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX uidx_warehouse_clients_processed_on_client_id_and_routine ON public.warehouse_clients_processed USING btree (client_id, routine);
 
 
 --
@@ -359850,8 +359939,15 @@ ALTER TABLE ONLY public.import_logs
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260818130528'),
+('20260814212023'),
+('20260814211958'),
+('20260812172057'),
+('20260812160243'),
+('20260804130000'),
 ('20260728120000'),
 ('20260717132223'),
+('20260624120000'),
 ('20260624000001'),
 ('20260622120000'),
 ('20260618120000'),

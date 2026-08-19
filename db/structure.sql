@@ -981,7 +981,9 @@ CREATE TABLE public.hmis_roles (
     can_assign_referral_tasks boolean DEFAULT false,
     can_print_client_case_notes boolean DEFAULT false,
     can_update_unit_availability boolean DEFAULT false,
-    can_view_outgoing_referral_details boolean DEFAULT false
+    can_view_outgoing_referral_details boolean DEFAULT false,
+    can_view_restricted_clients boolean DEFAULT false,
+    can_mark_clients_as_restricted boolean DEFAULT false
 );
 
 
@@ -1151,7 +1153,10 @@ CREATE TABLE public.idp_service_configs (
     deleted_at timestamp(6) without time zone,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
-    skip_ssl_verification boolean DEFAULT false NOT NULL
+    skip_ssl_verification boolean DEFAULT false NOT NULL,
+    manage_users boolean DEFAULT true NOT NULL,
+    browser_url character varying,
+    account_client_id character varying
 );
 
 
@@ -1874,31 +1879,6 @@ CREATE TABLE public.roles (
     can_use_service_register boolean DEFAULT false,
     can_view_service_register_on_client boolean DEFAULT false,
     can_manage_auto_client_de_duplication boolean DEFAULT false,
-    can_administer_health boolean DEFAULT false,
-    can_edit_client_health boolean DEFAULT false,
-    can_view_client_health boolean DEFAULT false,
-    can_view_aggregate_health boolean DEFAULT false,
-    can_manage_health_agency boolean DEFAULT false,
-    can_approve_patient_assignments boolean DEFAULT false,
-    can_manage_claims boolean DEFAULT false,
-    can_manage_all_patients boolean DEFAULT false,
-    can_manage_patients_for_own_agency boolean DEFAULT false,
-    can_manage_care_coordinators boolean DEFAULT false,
-    can_approve_cha boolean DEFAULT false,
-    can_approve_ssm boolean DEFAULT false,
-    can_approve_release boolean DEFAULT false,
-    can_approve_participation boolean DEFAULT false,
-    can_edit_all_patient_items boolean DEFAULT false,
-    can_edit_patient_items_for_own_agency boolean DEFAULT false,
-    can_create_care_plans_for_own_agency boolean DEFAULT false,
-    can_view_all_patients boolean DEFAULT false,
-    can_view_patients_for_own_agency boolean DEFAULT false,
-    can_add_case_management_notes boolean DEFAULT false,
-    can_manage_accountable_care_organizations boolean DEFAULT false,
-    can_view_member_health_reports boolean DEFAULT false,
-    can_unsubmit_submitted_claims boolean DEFAULT false,
-    can_edit_health_emergency_contact_tracing boolean DEFAULT false,
-    health_role boolean DEFAULT false NOT NULL,
     can_view_all_vprs boolean DEFAULT false,
     can_view_my_vprs boolean DEFAULT false,
     can_search_own_clients boolean DEFAULT false,
@@ -1915,7 +1895,6 @@ CREATE TABLE public.roles (
     can_manage_inactive_cohort_clients boolean DEFAULT false,
     can_view_deleted_cohort_clients boolean DEFAULT false,
     can_view_cohort_client_changes_report boolean DEFAULT false,
-    can_approve_careplan boolean DEFAULT false,
     can_manage_inbound_api_configurations boolean DEFAULT false,
     can_view_client_enrollments_with_roi boolean DEFAULT false,
     can_search_clients_with_roi boolean DEFAULT false,
@@ -4015,6 +3994,13 @@ CREATE INDEX index_uploads_on_deleted_at ON public.uploads USING btree (deleted_
 
 
 --
+-- Name: index_user_auth_sources_on_user_connector_live; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_user_auth_sources_on_user_connector_live ON public.user_authentication_sources USING btree (user_id, connector_id) WHERE (deleted_at IS NULL);
+
+
+--
 -- Name: index_user_authentication_sources_on_user_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -4251,7 +4237,13 @@ SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
 ('20260805120000'),
+('20260804130000'),
+('20260804120000'),
+('20260803120000'),
+('20260724120000'),
+('20260720000000'),
 ('20260715120000'),
+('20260623120001'),
 ('20260620000000'),
 ('20260614130000'),
 ('20260611120000'),

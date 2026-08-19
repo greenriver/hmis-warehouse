@@ -10,8 +10,7 @@ require 'memery'
 class User < ApplicationRecord
   include Memery
   include UserConcern
-  include Idp::JwtUser
-  include Idp::Support if AuthMethod.jwt?
+
   # Extensions from drivers — see ADR 0007
   include CasAccess::UserExtension
   include Hmis::UserExtension
@@ -36,7 +35,7 @@ class User < ApplicationRecord
   has_many :user_roles, dependent: :destroy, inverse_of: :user
   has_many :legacy_roles, through: :user_roles # TODO: START_ACL remove after ACL migration is complete
 
-  has_many :client_search_queries, class_name: 'GrdaWarehouse::ClientSearchQuery', dependent: :destroy
+  has_many :client_search_queries, class_name: 'GrdaWarehouse::ClientSearchQuery', foreign_key: :created_by_id, dependent: :destroy
 
   has_many :contacts, class_name: 'GrdaWarehouse::Contact::Base', foreign_key: :user_id
   has_one :system_contact, -> { where(type: 'GrdaWarehouse::Contact::User') }, class_name: 'GrdaWarehouse::Contact::User', foreign_key: :user_id
@@ -282,6 +281,27 @@ class User < ApplicationRecord
     end
 
     policy = policy_for(project_id, policy_class: GrdaWarehouse::AuthPolicies::ProjectPiiPolicy) if allowed
+    policy || GrdaWarehouse::AuthPolicies::DenyPiiPolicy.instance
+  end
+
+  # Retrieve the user's PII Policy for a specific client (used by reports whose detail rows
+  # are client-level, not scoped to a single project — e.g. homeless_summary_report). Delegates
+  # to policy_for(client), which resolves to DestinationClientPolicy/SourceClientPolicy based
+  # on Client#policy_class.
+  def reporting_policy_for_client(client:, mode: :browse)
+    return GrdaWarehouse::AuthPolicies::AllowPiiPolicy.instance if client.nil?
+
+    allowed = false
+    case mode.to_sym
+    when :download
+      allowed = ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
+    when :browse
+      allowed = true
+    else
+      raise ArgumentError, "Bad mode #{mode}"
+    end
+
+    policy = policy_for(client) if allowed
     policy || GrdaWarehouse::AuthPolicies::DenyPiiPolicy.instance
   end
 

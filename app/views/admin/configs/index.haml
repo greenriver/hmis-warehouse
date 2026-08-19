@@ -13,7 +13,8 @@
         = link_to 'TalentLMS', admin_talentlms_path, class: 'nav-item nav-link'
     .col-sm-4
       = render 'schedule'
-      = render 'security', f: f
+      -# Password/lockout/expiration/timeout are Devise settings; the IdP owns them under JWT.
+      = render 'security', f: f if AuthMethod.devise?
       = render 'roi', f: f
       = render 'client_calculations', f: f
       = render 'client_display', f: f

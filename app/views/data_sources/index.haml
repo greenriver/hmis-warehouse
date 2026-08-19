@@ -52,7 +52,7 @@
           - if hmis_enabled?
             %td.text-center
               - if data_source.hmis?
-                = link_to "https://#{data_source.hmis}" do
+                = link_to data_source.hmis_login_url(user: current_user) do
                   %i.icon-link-ext
           %td.text-center
             = checkmark(data_source.visible_in_window)
