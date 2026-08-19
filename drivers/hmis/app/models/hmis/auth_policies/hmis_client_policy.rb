@@ -25,27 +25,27 @@ class Hmis::AuthPolicies::HmisClientPolicy < Hmis::AuthPolicies::ResourcePolicy
     end
 
     def can_view_name?
-      client_permissions.include?(:can_view_client_name)
+      !pii_redacted? && client_permissions.include?(:can_view_client_name)
     end
 
     def can_view_dob?
-      client_permissions.include?(:can_view_dob)
+      !pii_redacted? && client_permissions.include?(:can_view_dob)
     end
 
     def can_view_full_ssn?
-      client_permissions.include?(:can_view_full_ssn)
+      !pii_redacted? && client_permissions.include?(:can_view_full_ssn)
     end
 
     def can_view_partial_ssn?
-      client_permissions.include?(:can_view_partial_ssn)
+      !pii_redacted? && client_permissions.include?(:can_view_partial_ssn)
     end
 
     def can_view_contact_info?
-      client_permissions.include?(:can_view_client_contact_info)
+      !pii_redacted? && client_permissions.include?(:can_view_client_contact_info)
     end
 
     def can_view_photo?
-      client_permissions.include?(:can_view_client_photo)
+      !pii_redacted? && client_permissions.include?(:can_view_client_photo)
     end
 
     # Whether the user can see 'Chronic at PIT' status, which summarizes enrollments that the user may
@@ -109,6 +109,14 @@ class Hmis::AuthPolicies::HmisClientPolicy < Hmis::AuthPolicies::ResourcePolicy
     # Get permissions for the specific client instance, based on the projects they are enrolled in
     memoize def client_permissions
       context.client_permissions(resource.id)
+    end
+
+    # Whether this client's PII is redacted for this user, because they are restricted and the user can't
+    # view restricted clients. Restriction is not a denial of access: a restricted client remains viewable
+    # and editable, and only the PII predicates above (name, DOB, SSN, photo, and contact info) are affected.
+    # See docs/features/hmis/hmis-restricted-records.md for more details.
+    def pii_redacted?
+      context.pii_redacted_for_client?(resource.id)
     end
   end
 

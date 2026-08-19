@@ -1,4 +1,5 @@
-= cache(['clients', 'demographics', @client, controller_path, current_user, current_user.load_effective_permissions], expires_in: GrdaWarehouse::Hud::Client::CACHE_EXPIRY) do
+- demographic_columns = GrdaWarehouse::ClientDemographicColumns.visible
+= cache(['clients', 'demographics', @client, controller_path, current_user, current_user.load_effective_permissions, demographic_columns.map { |column| column[:key] }], expires_in: GrdaWarehouse::Hud::Client::CACHE_EXPIRY) do
   - authoritative_data_source_ids = GrdaWarehouse::DataSource.authoritative.pluck(:id)
   - source_clients = @client.source_clients.source_visible_to(current_user, client_ids: @client.source_client_ids)
   - pii = @client.pii_provider(user: current_user)
@@ -6,34 +7,21 @@
     %thead
       %tr
         %th ID
-        %th{style: 'width: 15em;'}
-          %span{data: { 'bs-toggle' => :tooltip, 'bs-title' => @client.demographic_calculation_logic_description(:name)}} Name
-        %th{style: 'width: 10em;'}
-          %span{data: { 'bs-toggle' => :tooltip, 'bs-title' => @client.demographic_calculation_logic_description(:ssn)}} SSN
-        %th{style: 'width: 11em;'}
-          %span{data: { 'bs-toggle' => :tooltip, 'bs-title' => @client.demographic_calculation_logic_description(:dob)}} Age
-        %th
-          %span{data: { 'bs-toggle' => :tooltip, 'bs-title' => @client.demographic_calculation_logic_description(:gender)}} Gender
-        %th
-          %span{data: { 'bs-toggle' => :tooltip, 'bs-title' => @client.demographic_calculation_logic_description(:race)}} Race
-        %th
-          %span{data: { 'bs-toggle' => :tooltip, 'bs-title' => @client.demographic_calculation_logic_description(:veteran_status)}} Veteran Status
+        - demographic_columns.each do |column|
+          %th{style: column[:width] ? "width: #{column[:width]};" : nil}
+            %span{data: { 'bs-toggle' => :tooltip, 'bs-title' => @client.demographic_calculation_logic_description(column[:tooltip])}}= column[:label]
         %th
         %th
     %tbody
       %tr
         %td.destination-data-source-tag{data: { 'bs-toggle' => :tooltip, 'bs-title' => 'Data from this row is used in reporting.', container: 'body'}}
           .destination-sqr Warehouse
-        %td= pii.brief_name
-        %td= pii.ssn
-        %td= pii.dob_and_age
-        %td= @client.gender
-        %td= @client.race_description(include_missing_reason: true)
-        %td= HudHelper.util.no_yes_reasons_for_missing_data @client.VeteranStatus
+        - demographic_columns.each do |column|
+          %td= GrdaWarehouse::ClientDemographicColumns.value_for(column[:key], client: @client, pii: pii)
         %td{colspan: 2}
 
       - source_clients.joins(:data_source).preload(:data_source).each do |client|
-        = render 'clients/demographic_row', client: client, authoritative_data_source_ids: authoritative_data_source_ids
+        = render 'clients/demographic_row', client: client, authoritative_data_source_ids: authoritative_data_source_ids, demographic_columns: demographic_columns
 
 
 :css

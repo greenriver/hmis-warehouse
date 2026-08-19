@@ -133,4 +133,15 @@ FactoryBot.define do
       }
     end
   end
+
+  factory :fix_missing_total_monthly_income, class: 'GrdaWarehouse::DataSource' do
+    name { 'Fix missing total monthly income' }
+    short_name { 'Total Income' }
+    source_type { :sftp }
+    import_cleanups do
+      {
+        'IncomeBenefit': ['HmisCsvImporter::HmisCsvCleanup::FixMissingTotalMonthlyIncome'],
+      }
+    end
+  end
 end

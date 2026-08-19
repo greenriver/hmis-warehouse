@@ -27097,6 +27097,7 @@ CREATE TABLE public.configs (
     default_lms_email_to_warehouse_email boolean,
     relevant_state_codes character varying DEFAULT 'MA'::character varying NOT NULL,
     enable_external_data_sharing_exclusion boolean DEFAULT false NOT NULL,
+    client_demographic_columns jsonb,
     created_at timestamp(6) without time zone,
     updated_at timestamp(6) without time zone
 );
@@ -359940,6 +359941,7 @@ SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
 ('20260818130528'),
+('20260818120000'),
 ('20260814212023'),
 ('20260814211958'),
 ('20260812172057'),
