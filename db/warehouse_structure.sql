@@ -226485,6 +226485,13 @@ CREATE UNIQUE INDEX uidx_import_overrides_rules ON public.import_overrides USING
 
 
 --
+-- Name: uidx_warehouse_clients_processed_on_client_id_and_routine; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX uidx_warehouse_clients_processed_on_client_id_and_routine ON public.warehouse_clients_processed USING btree (client_id, routine);
+
+
+--
 -- Name: uniq_hmis_table_configs_global; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -359935,6 +359942,8 @@ SET search_path TO "$user", public;
 INSERT INTO "schema_migrations" (version) VALUES
 ('20260818130528'),
 ('20260818120000'),
+('20260814212023'),
+('20260814211958'),
 ('20260812172057'),
 ('20260812160243'),
 ('20260804130000'),
