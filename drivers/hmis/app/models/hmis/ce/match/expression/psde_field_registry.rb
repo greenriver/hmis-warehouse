@@ -17,9 +17,9 @@ module Hmis::Ce::Match::Expression
         key: key,
         value_type: :logical,
         multiple: false,
-        label: label,
-        description: "Latest Yes or No response for #{hud_description} within the eligibility scope. " \
-                     'Client refused / doesn’t know / not collected (8/9/99) and blank answers are ignored.',
+        label: "#{label} (most recent)",
+        description: "The client's most recent Yes or No response for #{hud_description}, within the eligibility scope. " \
+                     'Refused, unknown, not collected (8/9/99) and blank answers are ignored.', \
       )
     end
 
@@ -29,9 +29,8 @@ module Hmis::Ce::Match::Expression
         value_type: :logical,
         multiple: true,
         label: "#{label} (all values in window)",
-        description: "All Yes and No responses for #{hud_description} within the eligibility scope. " \
-                     'Client refused / doesn’t know / not collected (8/9/99) and blank answers are ignored. ' \
-                     'Use with INCLUDES(..., TRUE) for ever-Yes in the lookback window.',
+        description: "All of this client's Yes or No responses for #{hud_description}, within the eligibility scope. " \
+                     'Refused, unknown, not collected (8/9/99) and blank answers are ignored. ',
       )
     end
 
@@ -40,8 +39,8 @@ module Hmis::Ce::Match::Expression
       value_type: :numeric,
       multiple: false,
       label: 'Total Monthly Income',
-      description: 'Latest total monthly income from HUD IncomeBenefits within the configured eligibility scope. ' \
-                   'Selects the most recent row with a valid IncomeFromAnySource (skipping 8/9/99/nil).',
+      description: "The client's most recent total monthly income from HUD Income and Benefits records " \
+                   'within the eligibility scope. Refused, unknown, not collected (8/9/99) and blank answers are ignored.',
     )
 
     MENTAL_HEALTH_DISORDER = latest_boolean_field(
