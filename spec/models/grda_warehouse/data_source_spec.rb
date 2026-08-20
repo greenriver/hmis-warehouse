@@ -255,6 +255,56 @@ RSpec.describe model, type: :model do
     end
   end
 
+  describe '#hmis_login_url' do
+    let!(:hmis_ds) { create(:source_data_source, hmis: 'hmis.example.test', authoritative: true) }
+
+    it 'returns nil for a data source with no HMIS hostname' do
+      expect(ds1.hmis_login_url).to be_nil
+    end
+
+    it 'points at the HMIS host', :devise_only do
+      expect(hmis_ds.hmis_login_url).to eq('https://hmis.example.test/')
+    end
+
+    it "routes through HMIS's own oauth2-proxy sign-in endpoint with the user's connector_id, so Dex skips its connector picker", :jwt_only do
+      user.update_column(:last_connector_id, 'keycloak')
+
+      expect(hmis_ds.hmis_login_url(user: user)).to eq('https://hmis.example.test/oauth2/sign_in?connector_id=keycloak&rd=%2F')
+    end
+
+    it 'is unaffected by connector_id under Devise', :devise_only do
+      user.update_column(:last_connector_id, 'keycloak')
+
+      expect(hmis_ds.hmis_login_url(user: user)).to eq('https://hmis.example.test/')
+    end
+  end
+
+  describe '#hmis_url_for' do
+    let!(:hmis_ds) { create(:source_data_source, hmis: 'hmis.example.test', authoritative: true) }
+    let(:client) { create(:hud_client, data_source: hmis_ds) }
+
+    before { allow(HmisEnforcement).to receive(:hmis_enabled?).and_return(true) }
+
+    it 'points at the deep-linked path when no user is given' do
+      expect(hmis_ds.hmis_url_for(client)).to eq("https://hmis.example.test/client/#{client.id}")
+    end
+
+    it "routes through HMIS's own oauth2-proxy sign-in endpoint with the user's connector_id, so Dex skips its connector picker", :jwt_only do
+      allow(user).to receive(:related_hmis_user).and_return(nil)
+      user.update_column(:last_connector_id, 'keycloak')
+
+      expect(hmis_ds.hmis_url_for(client, user: user)).
+        to eq("https://hmis.example.test/oauth2/sign_in?connector_id=keycloak&rd=%2Fclient%2F#{client.id}")
+    end
+
+    it 'is unaffected by connector_id under Devise', :devise_only do
+      allow(user).to receive(:related_hmis_user).and_return(nil)
+      user.update_column(:last_connector_id, 'keycloak')
+
+      expect(hmis_ds.hmis_url_for(client, user: user)).to eq("https://hmis.example.test/client/#{client.id}")
+    end
+  end
+
   describe 'hmis hostnames' do
     it 'returns configured hostnames from env' do
       allow(ENV).to receive(:fetch).and_call_original
@@ -307,6 +357,71 @@ RSpec.describe model, type: :model do
       expect(ds.munged_personal_id).to be false
       expect(ds.after_create_path).to be_nil
       expect(ds.service_scannable).to be false
+    end
+  end
+
+  describe '#require_coc_choice?' do
+    let!(:ds) { create(:source_data_source) }
+    let!(:org) { create(:hud_organization, data_source_id: ds.id) }
+    let(:all_projects) { GrdaWarehouse::Hud::Project.all }
+
+    def add_projects_with_coc(coc_code, count)
+      create_list(:hud_project, count, data_source_id: ds.id, OrganizationID: org.OrganizationID).each do |project|
+        create(:hud_project_coc, data_source_id: ds.id, ProjectID: project.ProjectID, CoCCode: coc_code)
+      end
+    end
+
+    it 'does not require a choice when one CoC has exactly the dominance threshold share' do
+      add_projects_with_coc('XX-500', 3)
+      add_projects_with_coc('XX-502', 1)
+      expect(ds.require_coc_choice?(all_projects)).to eq(false)
+    end
+
+    it 'requires a choice when just under the dominance threshold' do
+      add_projects_with_coc('XX-500', 2)
+      add_projects_with_coc('XX-502', 1)
+      expect(ds.require_coc_choice?(all_projects)).to eq(true)
+    end
+
+    it 'requires a choice once project count reaches the size threshold, even when fully concentrated' do
+      stub_const('GrdaWarehouse::DataSource::SMALL_ENOUGH_PROJECT_COUNT', 3)
+      add_projects_with_coc('XX-500', 3)
+      expect(ds.require_coc_choice?(all_projects)).to eq(true)
+    end
+
+    it 'does not require a choice just under the size threshold when fully concentrated' do
+      stub_const('GrdaWarehouse::DataSource::SMALL_ENOUGH_PROJECT_COUNT', 3)
+      add_projects_with_coc('XX-500', 2)
+      expect(ds.require_coc_choice?(all_projects)).to eq(false)
+    end
+
+    it 'does not require a choice when there is no CoC data at all' do
+      create_list(:hud_project, 3, data_source_id: ds.id, OrganizationID: org.OrganizationID)
+      expect(ds.require_coc_choice?(all_projects)).to eq(false)
+    end
+
+    it 'only counts CoC data for projects included in the given project scope' do
+      add_projects_with_coc('XX-500', 2)
+      add_projects_with_coc('XX-502', 1)
+      # Unscoped: 2/3 =~ 66.7% dominance, under the 75% threshold, so a choice is required.
+      expect(ds.require_coc_choice?(all_projects)).to eq(true)
+
+      visible_project_ids = GrdaWarehouse::Hud::ProjectCoc.where(data_source_id: ds.id, CoCCode: 'XX-500').pluck(:ProjectID)
+      restricted_scope = GrdaWarehouse::Hud::Project.where(data_source_id: ds.id, ProjectID: visible_project_ids)
+      # Restricted to only the projects with a visible CoC: fully concentrated, so no choice is needed.
+      expect(ds.require_coc_choice?(restricted_scope)).to eq(false)
+    end
+
+    it 'treats nil, empty, and whitespace-only CoC codes as a single dominance bucket' do
+      add_projects_with_coc('XX-500', 1)
+      add_projects_with_coc(nil, 1)
+      add_projects_with_coc('', 1)
+      add_projects_with_coc('   ', 1)
+      # Grouped as one "unknown" bucket: 3/4 = 75%, meeting the threshold, so no choice is needed.
+      # If nil/''/'   ' were instead counted as three separate one-project buckets, the largest
+      # bucket would be XX-500 with 1/4 = 25%, well under the threshold, and a choice would wrongly
+      # be required.
+      expect(ds.require_coc_choice?(all_projects)).to eq(false)
     end
   end
 

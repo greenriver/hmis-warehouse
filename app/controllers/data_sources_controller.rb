@@ -9,8 +9,8 @@
 class DataSourcesController < ApplicationController
   before_action :require_can_edit_projects!, only: [:update]
   before_action :require_can_edit_data_sources!, only: [:new, :create, :destroy, :edit, :update]
-  before_action :require_can_view_imports_projects_or_organizations!, only: [:show, :index]
-  before_action :set_data_source, only: [:show, :edit, :update, :destroy]
+  before_action :require_can_view_imports_projects_or_organizations!, only: [:show, :index, :organizations]
+  before_action :set_data_source, only: [:show, :edit, :update, :destroy, :organizations]
   before_action :load_hmis_hostname_options, only: [:new, :create, :edit, :update]
 
   def index
@@ -28,23 +28,18 @@ class DataSourcesController < ApplicationController
 
   def show
     @readonly = ! (can_edit_data_sources? || can_edit_projects?)
-    p_t = GrdaWarehouse::Hud::Project.arel_table
-    o_t = GrdaWarehouse::Hud::Organization.arel_table
-    if RailsDrivers.loaded.include?(:hmis_csv_importer)
-      @overrides = HmisCsvImporter::ImportOverride.
-        where(data_source: @data_source).
-        sorted
-    end
-    @organizations = @data_source.organizations.
-      eager_load(:data_source, projects: :data_source).
-      merge(
-        GrdaWarehouse::Hud::Project.viewable_by(
-          current_user,
-          confidential_scope_limiter: :all,
-          permission: :can_view_projects,
-        ),
-      ).
-      order(o_t[:OrganizationName].asc, p_t[:ProjectName].asc)
+    load_overrides
+    @coc_code_options = coc_code_options
+    @require_coc_choice = @data_source.require_coc_choice?(viewable_projects)
+    @organizations = load_organizations unless @require_coc_choice && params[:coc_code].blank?
+  end
+
+  def organizations
+    load_overrides
+    return head(:bad_request) if @data_source.require_coc_choice?(viewable_projects) && params[:coc_code].blank?
+
+    @organizations = load_organizations
+    render layout: false
   end
 
   def new
@@ -152,5 +147,55 @@ class DataSourcesController < ApplicationController
 
   private def set_data_source
     @data_source = data_source_source.find(params[:id].to_i)
+  end
+
+  private def load_overrides
+    @overrides = HmisCsvImporter::ImportOverride.
+      where(data_source: @data_source).
+      sorted
+  end
+
+  private def coc_code_options
+    @coc_code_options ||= begin
+      codes = GrdaWarehouse::Hud::ProjectCoc.
+        where(data_source_id: @data_source.id).
+        joins(:project).
+        merge(viewable_projects).
+        distinct.
+        pluck(:CoCCode)
+      options = codes.reject(&:blank?).sort.map { |code| [code, code] }
+      options << [Translation.translate('Unknown CoC'), 'unknown'] if codes.any?(&:blank?)
+      options
+    end
+  end
+
+  private def load_organizations
+    p_t = GrdaWarehouse::Hud::Project.arel_table
+    o_t = GrdaWarehouse::Hud::Organization.arel_table
+    @data_source.organizations.
+      eager_load(:data_source, projects: :data_source).
+      merge(project_scope).
+      order(o_t[:OrganizationName].asc, p_t[:ProjectName].asc)
+  end
+
+  private def viewable_projects
+    @viewable_projects ||= GrdaWarehouse::Hud::Project.viewable_by(
+      current_user,
+      confidential_scope_limiter: :all,
+      permission: :can_view_projects,
+    )
+  end
+
+  private def project_scope
+    coc_code = params[:coc_code]
+    return viewable_projects if coc_code.blank?
+
+    # Subquery so ProjectCoC joins stay off the Organization query.
+    matching = if coc_code == 'unknown'
+      GrdaWarehouse::Hud::Project.joins(:project_cocs).merge(GrdaWarehouse::Hud::ProjectCoc.unknown_coc)
+    else
+      GrdaWarehouse::Hud::Project.in_coc(coc_code: coc_code)
+    end
+    viewable_projects.where(id: matching.select(:id))
   end
 end

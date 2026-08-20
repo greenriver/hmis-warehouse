@@ -189,6 +189,16 @@ Additional notes
   Age of Authentication** (`max_auth_age`, default **300** seconds). If the browser's Keycloak session
   last authenticated longer ago than that, Keycloak re-authenticates the user before showing the form.
 
+## Profile sync for IdPs with no admin API
+
+Everything above assumes an IdP we operate. Customer-org IdPs attach as additional Dex connectors
+([§5.2.3](../architecture/05-building-blocks/05-2-3-authentication.md)) and expose no management API,
+so there is no account to read back and the JWT is the only channel that carries a profile change.
+The sync reads the profile from the token's claims instead of the admin API.
+
+Note, when updating a user from a JWT claim, treat a missing `email_verified` as a verified email and
+adopt it. External IdPs may not populate the field reliably.
+
 ## Notes
 
 - **Warehouse-only?** `oauth2-proxy-hmis` upstreams to Vite on the host (`host.docker.internal:5173`)

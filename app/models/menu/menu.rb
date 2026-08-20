@@ -77,7 +77,7 @@ class Menu::Menu
     Menu::Item.new(
       user: user,
       visible: ->(user) { RailsDrivers.loaded.include?(:superset) && Superset.available_to_user?(user) },
-      path: Superset.warehouse_login_url,
+      path: Superset.warehouse_login_url(user),
       title: Translation.translate('OP Analytics'),
       id: 'superset',
       target: :_blank,
@@ -600,7 +600,7 @@ class Menu::Menu
       Menu::Item.new(
         user: user,
         visible: ->(user) { user.can_access_hmis_data_source?(hmis_ds.id) },
-        path: "//#{hmis_ds.hmis}",
+        path: hmis_ds.hmis_login_url(user: user),
         title: Translation.translate(default_link_text),
         icon: 'icon-link-ext',
         target: :_blank,

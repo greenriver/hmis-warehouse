@@ -182,7 +182,11 @@ services:
       dockerfile: Dockerfile
     image: op-keycloak:local
     container_name: op-keycloak
-    command: start-dev --import-realm
+    command:
+      - start-dev
+      - --import-realm
+      - --features=workflows
+      - --spi-events-listener--workflow-event-listener--step-runner-task-interval=30s
     labels:
       - traefik.enable=true
       - traefik.http.routers.keycloak.rule=Host(`op-keycloak.dev.test`)

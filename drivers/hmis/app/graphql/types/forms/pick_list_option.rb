@@ -543,16 +543,22 @@ module Types
         open_excluding_wip.
         heads_of_households.
         preload(:client).
-        preload(household: :enrollments)
+        preload(household: :enrollments).
+        sort_by_option(:most_recent).
+        to_a
 
-      enrollments.sort_by_option(:most_recent).map do |en|
+      # Avoid an n+1 in the client policy check below
+      user.policy_context.preload_client_dependencies(enrollments.map { |en| en.client.id })
+
+      enrollments.map do |en|
         client = en.client
         household_size = en.household&.enrollments&.size || 0
         other_size = household_size - 1 # more than hoh
         desc = other_size.positive? ? "and #{other_size} #{'other'.pluralize(other_size)}" : ''
+        name = user.policy_for(client, policy_type: :hmis_client).can_view_name? ? client.brief_name : client.masked_name
         {
           code: en.id,
-          label: "#{client.brief_name} #{desc} (Entered #{en.entry_date.strftime('%m/%d/%Y')})",
+          label: "#{name} #{desc} (Entered #{en.entry_date.strftime('%m/%d/%Y')})",
         }
       end
     end

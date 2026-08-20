@@ -109,6 +109,10 @@ class SeedMaker
     end
   end
 
+  def maintain_db_monitor_defaults
+    AppConfigProperty.where(key: 'wh_db_space_monitor/alert_threshold_pct').first_or_create!(value: 10)
+  end
+
   def maintain_lookups
     GrdaWarehouse::Lookups::CocCode.maintain!
     GrdaWarehouse::Lookups::YesNoEtc.transaction do
@@ -238,6 +242,7 @@ class SeedMaker
     Idp::ServiceConfig.bootstrap_from_env
     setup_fake_user if Rails.env.development?
     maintain_data_sources
+    maintain_db_monitor_defaults
     GrdaWarehouse::WarehouseReports::ReportDefinition.maintain_report_definitions
     maintain_cp_seed
     setup_hmis_admin_access

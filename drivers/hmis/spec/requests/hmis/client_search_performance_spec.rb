@@ -45,11 +45,13 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   end
 
   describe 'client search' do
+    # Reflects the search query used in the frontend, see src/api/operations/client.queries.graphql
     let(:query) do
       <<~GRAPHQL
-        query SearchClients($input: ClientSearchInput!, $limit: Int, $offset: Int, $sortOrder: ClientSortOption = LAST_NAME_A_TO_Z) {
+        query SearchClients($filters: ClientFilterOptions, $input: ClientSearchInput!, $limit: Int, $offset: Int, $sortOrder: ClientSortOption = LAST_NAME_A_TO_Z, $includeSsn: Boolean = false) {
           clientSearch(
             input: $input
+            filters: $filters
             limit: $limit
             offset: $offset
             sortOrder: $sortOrder
@@ -58,72 +60,35 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             limit
             nodesCount
             nodes {
-              ...ClientFields
+              ...ClientSearchResultFields
               __typename
             }
+            searchQueryId
             __typename
           }
         }
 
-        fragment ClientFields on Client {
+        fragment ClientSearchResultFields on Client {
+          ...ClientName
           ...ClientIdentificationFields
-          dobDataQuality
-          gender
-          pronouns
-          nameDataQuality
-          personalId
-          race
-          ssnDataQuality
-          veteranStatus
+          ...ClientSsnFields @include(if: $includeSsn)
           dateCreated
           dateDeleted
           dateUpdated
-          ...ClientName
-          ...ClientImage
           externalIds {
             ...ClientIdentifierFields
             __typename
           }
-          user {
-            ...UserFields
+          alerts {
+            ...ClientAlertFields
             __typename
           }
-          access {
-            ...ClientAccessFields
-            __typename
-          }
-          customDataElements {
-            ...CustomDataElementFields
-            __typename
-          }
-          names {
-            ...ClientNameObjectFields
-            __typename
-          }
-          addresses {
-            ...ClientAddressFields
-            __typename
-          }
-          phoneNumbers {
-            ...ClientContactPointFields
-            __typename
-          }
-          emailAddresses {
-            ...ClientContactPointFields
-            __typename
-          }
-          __typename
-        }
-
-        fragment ClientIdentificationFields on Client {
-          id
-          dob
-          age
-          ssn
           __typename
         }
 
         fragment ClientName on Client {
+          id
+          lockVersion
           firstName
           middleName
           lastName
@@ -131,19 +96,26 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           __typename
         }
 
-        fragment ClientImage on Client {
+        fragment ClientIdentificationFields on Client {
           id
-          image {
-            ...ClientImageFields
-            __typename
-          }
+          lockVersion
+          dob
+          age
+          gender
+          pronouns
           __typename
         }
 
-        fragment ClientImageFields on ClientImage {
+        fragment ClientSsnFields on Client {
           id
-          contentType
-          base64
+          lockVersion
+          ssn
+          access {
+            id
+            canViewFullSsn
+            canViewPartialSsn
+            __typename
+          }
           __typename
         }
 
@@ -152,6 +124,20 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           identifier
           url
           label
+          type
+          __typename
+        }
+
+        fragment ClientAlertFields on ClientAlert {
+          id
+          note
+          expirationDate
+          createdBy {
+            ...UserFields
+            __typename
+          }
+          createdAt
+          priority
           __typename
         }
 
@@ -159,121 +145,22 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           __typename
           id
           name
-        }
-
-        fragment ClientAccessFields on ClientAccess {
-          id
-          canAuditClients
-          canDeleteClient
-          canEditClient
-          canManageAnyClientFiles
-          canManageClientAlerts
-          canManageOwnClientFiles
-          canManageScanCards
-          canMergeClients
-          canPrintClientCaseNotes
-          canUploadClientFiles
-          canViewAnyFiles
-          canViewClientAlerts
-          canViewClientEligibleOpportunities
-          canViewClientName
-          canViewClientPhoto
-          canViewDob
-          canViewEnrollmentDetails
-          canViewFullSsn
-          canViewOwnReferrals
-          canViewPartialSsn
-          canViewReferrals
-          __typename
-        }
-
-        fragment CustomDataElementFields on CustomDataElement {
-          id
-          key
-          label
-          repeats
-          value {
-            ...CustomDataElementValueFields
-            __typename
-          }
-          values {
-            ...CustomDataElementValueFields
-            __typename
-          }
-          __typename
-        }
-
-        fragment CustomDataElementValueFields on CustomDataElementValue {
-          id
-          valueBoolean
-          valueDate
-          valueFloat
-          valueInteger
-          valueJson
-          valueString
-          valueText
-          user {
-            ...UserFields
-            __typename
-          }
-          dateCreated
-          dateUpdated
-          __typename
-        }
-
-        fragment ClientNameObjectFields on ClientName {
-          id
-          first
-          middle
-          last
-          suffix
-          nameDataQuality
-          use
-          notes
-          primary
-          dateCreated
-          dateUpdated
-          __typename
-        }
-
-        fragment ClientAddressFields on ClientAddress {
-          id
-          line1
-          line2
-          city
-          state
-          district
-          country
-          postalCode
-          notes
-          use
-          addressType
-          dateCreated
-          dateUpdated
-          __typename
-        }
-
-        fragment ClientContactPointFields on ClientContactPoint {
-          id
-          value
-          notes
-          use
-          system
-          dateCreated
-          dateUpdated
-          __typename
+          firstName
+          lastName
+          email
         }
       GRAPHQL
     end
 
     let(:variables) do
       {
-        "sortOrder": 'LAST_NAME_A_TO_Z',
-        "input": {
-          "textSearch": search_term,
+        sortOrder: 'BEST_MATCH',
+        includeSsn: true,
+        input: {
+          textSearch: search_term,
         },
-        "limit": 20,
-        "offset": 0,
+        offset: 0,
+        limit: 25,
       }
     end
 
@@ -282,14 +169,14 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect do
         _, result = post_graphql(**variables) { query }
         expect(result.dig('data', 'clientSearch', 'nodes').size).to eq(n)
-      end.to make_database_queries(count: 10..50)
+      end.to make_database_queries(count: 10..35)
     end
 
     it 'is responsive' do
       expect do
         _, result = post_graphql(**variables) { query }
         expect(result.dig('data', 'clientSearch', 'nodes').size).to eq(n)
-      end.to perform_under(400).ms
+      end.to perform_under(300).ms
     end
   end
 end

@@ -756,6 +756,8 @@ module GrdaWarehouse::Hud
         'DOB reflects the earliest response where DOB Data Quality was full or partial.'
       when :name
         'Name reflects the earliest response where the Name Data Quality was full or partial.'
+      when :sex
+        'Sex reflects the most-recent response where the client answered the question.'
       end
     end
 

@@ -100,11 +100,18 @@ RSpec.describe GrdaWarehouse::ProjectGroup, type: :model do
       group.notes = '<script>alert("xss")</script>'
       # filter_html removes the tag; text content remains as harmless plain text
       expect(group.markdown_notes).not_to include('<script>')
+      expect(group.markdown_notes).not_to include('&lt;script&gt;')
     end
 
     it 'strips raw html tags' do
       group.notes = '<b>bold</b>'
       expect(group.markdown_notes).not_to include('<b>')
+      expect(group.markdown_notes).not_to include('&lt;b&gt;')
+    end
+
+    it 'drops javascript: links' do
+      group.notes = '[click me](javascript:alert(1))'
+      expect(group.markdown_notes).not_to include('href="javascript:')
     end
   end
 end

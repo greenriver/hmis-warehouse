@@ -80,9 +80,10 @@ RSpec.describe Idp::NullService, type: :model do
     end
   end
 
-  describe '#account_console_url' do
-    it 'returns nil' do
-      expect(service.account_console_url).to be_nil
+  describe '#profile_source' do
+    # No admin API to sync from, so the local profile is kept current from the JWT claims.
+    it 'returns :token_claims' do
+      expect(service.profile_source).to eq(:token_claims)
     end
   end
 
@@ -99,12 +100,6 @@ RSpec.describe Idp::NullService, type: :model do
 end
 
 RSpec.describe Idp::Service, type: :model do
-  describe '#account_console_url' do
-    it 'defaults to nil on the base contract' do
-      expect(described_class.new.account_console_url).to be_nil
-    end
-  end
-
   describe '#supports_email_self_service?' do
     it 'defaults to false on the base contract' do
       expect(described_class.new.supports_email_self_service?).to be false

@@ -18,6 +18,10 @@ RSpec.describe Hmis::AuthPolicies::HmisClientPolicy, type: :model do
 
   let(:granted_permissions) { [:can_view_clients, :can_edit_clients, :can_view_client_name, :can_view_any_nonconfidential_client_files] }
 
+  # cruft: user has full permissions in a different data source, which should not be returned in any of the examples
+  let(:other_ds) { create(:hmis_data_source) }
+  let!(:other_ds_access_control) { create_access_control(user, other_ds) }
+
   shared_examples 'permission checks with access' do
     it 'grants configured permissions' do
       expect(policy.can_view?).to be true
@@ -45,9 +49,50 @@ RSpec.describe Hmis::AuthPolicies::HmisClientPolicy, type: :model do
     end
   end
 
-  # cruft: user has full permissions in a different data source, which should not be returned in any of the examples
-  let(:other_ds) { create(:hmis_data_source) }
-  let!(:other_ds_access_control) { create_access_control(user, other_ds) }
+  # A predicate backed by a single permission that resolves from the projects where the client is
+  # enrolled. Assumes the client is enrolled at `project`.
+  #
+  # `prerequisites` are the permissions that `permission` declares as requirements in Hmis::Role. They
+  # are granted alongside it in the positive case, then dropped one at a time to check that the
+  # permission has no effect without them.
+  shared_examples 'a client permission resolved at enrolled projects' do |predicate, permission, prerequisites = [:can_view_clients]|
+    let(:all_granted_permissions) { [permission, *prerequisites] }
+
+    context 'when granted at an enrolled project' do
+      let!(:access_control) { create_access_control(user, project, with_permission: all_granted_permissions) }
+
+      it 'returns true' do
+        expect(policy.public_send(predicate)).to be true
+      end
+    end
+
+    context 'when granted only at a project the client is not enrolled in' do
+      let!(:other_project) { create(:hmis_hud_project, organization: organization, data_source: data_source) }
+      let!(:access_control) { create_access_control(user, other_project, with_permission: all_granted_permissions) }
+
+      it 'returns false' do
+        expect(policy.public_send(predicate)).to be false
+      end
+    end
+
+    context "when the user has the prerequisites but not #{permission}" do
+      let!(:access_control) { create_access_control(user, project, with_permission: prerequisites) }
+
+      it 'returns false' do
+        expect(policy.public_send(predicate)).to be false
+      end
+    end
+
+    prerequisites.each do |prerequisite|
+      context "when granted without the required #{prerequisite}" do
+        let!(:access_control) { create_access_control(user, project, with_permission: all_granted_permissions - [prerequisite]) }
+
+        it 'returns false' do
+          expect(policy.public_send(predicate)).to be false
+        end
+      end
+    end
+  end
 
   context 'Instance policy' do
     let!(:enrollment) { create(:hmis_hud_enrollment, client: client, project: project) }
@@ -122,6 +167,16 @@ RSpec.describe Hmis::AuthPolicies::HmisClientPolicy, type: :model do
           expect(policy.can_index_files?).to be false
         end
       end
+
+      # An unenrolled client resolves permissions from the user's global permissions, so the client's data
+      # source has to be checked to keep permissions in one HMIS from applying to clients in another.
+      context 'when the client belongs to a different data source' do
+        let(:other_ds_client) { create(:hmis_hud_client, data_source: other_ds) }
+        let(:policy) { user.policy_for(other_ds_client, policy_type: :hmis_client) }
+        let!(:access_control) { create_access_control(user, project, with_permission: granted_permissions) }
+
+        include_examples 'permission checks without access'
+      end
     end
 
     describe '#can_create_file?' do
@@ -159,76 +214,122 @@ RSpec.describe Hmis::AuthPolicies::HmisClientPolicy, type: :model do
     end
 
     describe '#can_edit_some_enrollments?' do
-      context 'when user can edit enrollments at an enrolled project' do
+      it_behaves_like 'a client permission resolved at enrolled projects',
+                      :can_edit_some_enrollments?,
+                      :can_edit_enrollments,
+                      [:can_view_clients, :can_view_project, :can_view_enrollment_details]
+    end
+
+    describe '#can_view_name?' do
+      it_behaves_like 'a client permission resolved at enrolled projects', :can_view_name?, :can_view_client_name
+    end
+
+    describe '#can_view_dob?' do
+      it_behaves_like 'a client permission resolved at enrolled projects', :can_view_dob?, :can_view_dob
+    end
+
+    describe '#can_view_full_ssn?' do
+      it_behaves_like 'a client permission resolved at enrolled projects', :can_view_full_ssn?, :can_view_full_ssn
+    end
+
+    describe '#can_view_partial_ssn?' do
+      it_behaves_like 'a client permission resolved at enrolled projects', :can_view_partial_ssn?, :can_view_partial_ssn
+    end
+
+    describe '#can_view_contact_info?' do
+      it_behaves_like 'a client permission resolved at enrolled projects', :can_view_contact_info?, :can_view_client_contact_info
+    end
+
+    describe '#can_view_photo?' do
+      it_behaves_like 'a client permission resolved at enrolled projects', :can_view_photo?, :can_view_client_photo
+    end
+
+    describe '#can_view_alerts?' do
+      it_behaves_like 'a client permission resolved at enrolled projects', :can_view_alerts?, :can_view_client_alerts
+    end
+
+    describe '#can_view_hud_chronic_status?' do
+      it_behaves_like 'a client permission resolved at enrolled projects', :can_view_hud_chronic_status?, :can_view_hud_chronic_status
+    end
+
+    describe '#can_audit?' do
+      it_behaves_like 'a client permission resolved at enrolled projects', :can_audit?, :can_audit_clients
+    end
+
+    describe '#can_print_case_notes?' do
+      it_behaves_like 'a client permission resolved at enrolled projects', :can_print_case_notes?, :can_print_client_case_notes
+    end
+
+    describe '#can_manage_scan_cards?' do
+      it_behaves_like 'a client permission resolved at enrolled projects', :can_manage_scan_cards?, :can_manage_scan_cards
+    end
+
+    describe '#can_manage_alerts?' do
+      it_behaves_like 'a client permission resolved at enrolled projects',
+                      :can_manage_alerts?,
+                      :can_manage_client_alerts,
+                      [:can_view_clients, :can_view_client_alerts]
+    end
+
+    describe '#can_view_some_enrollment_details?' do
+      it_behaves_like 'a client permission resolved at enrolled projects',
+                      :can_view_some_enrollment_details?,
+                      :can_view_enrollment_details,
+                      [:can_view_clients, :can_view_project]
+    end
+
+    describe 'PII predicates when the client is restricted' do
+      let!(:restricted_record) { client.mark_as_restricted!(user: user) }
+
+      context 'when the user can view restricted clients at the enrolled project' do
         let!(:access_control) do
           create_access_control(
             user,
             project,
-            with_permission: [:can_view_clients, :can_view_project, :can_view_enrollment_details, :can_edit_enrollments],
+            with_permission: [:can_view_clients, :can_view_restricted_clients, :can_view_client_name, :can_view_client_photo, :can_view_client_contact_info],
           )
         end
 
-        it 'returns true' do
-          expect(policy.can_edit_some_enrollments?).to be true
+        it 'is not redacted' do
+          expect(policy.can_view_name?).to be true
+          expect(policy.can_view_photo?).to be true
+          expect(policy.can_view_contact_info?).to be true
         end
       end
 
-      context 'when user can view but not edit enrollments at an enrolled project' do
+      context 'when the user cannot view restricted clients at the enrolled project' do
         let!(:access_control) do
           create_access_control(
             user,
             project,
-            with_permission: [:can_view_clients, :can_view_project, :can_view_enrollment_details],
+            with_permission: [:can_view_clients, :can_view_client_name, :can_view_client_photo, :can_view_client_contact_info],
           )
         end
 
-        it 'returns false' do
-          expect(policy.can_edit_some_enrollments?).to be false
+        it 'is redacted' do
+          expect(policy.can_view_name?).to be false
+          expect(policy.can_view_photo?).to be false
+          expect(policy.can_view_contact_info?).to be false
         end
       end
 
-      context 'when user can edit enrollments only at a different project' do
+      context 'when the user can view restricted clients only at a project the client is not enrolled in' do
         let!(:other_project) { create(:hmis_hud_project, organization: organization, data_source: data_source) }
         let!(:access_control) do
           create_access_control(
             user,
-            other_project,
-            with_permission: [:can_view_clients, :can_view_project, :can_view_enrollment_details, :can_edit_enrollments],
-          )
-        end
-
-        it 'returns false' do
-          expect(policy.can_edit_some_enrollments?).to be false
-        end
-      end
-    end
-
-    describe '#can_view_some_enrollment_details?' do
-      context 'when user can view enrollment details at an enrolled project' do
-        let!(:access_control) do
-          create_access_control(
-            user,
             project,
-            with_permission: [:can_view_clients, :can_view_project, :can_view_enrollment_details],
+            with_permission: [:can_view_clients, :can_view_client_name, :can_view_client_photo, :can_view_client_contact_info],
           )
         end
-
-        it 'returns true' do
-          expect(policy.can_view_some_enrollment_details?).to be true
-        end
-      end
-
-      context 'when user lacks can_view_enrollment_details at enrolled projects' do
-        let!(:access_control) do
-          create_access_control(
-            user,
-            project,
-            with_permission: [:can_view_clients, :can_view_project],
-          )
+        let!(:other_access_control) do
+          create_access_control(user, other_project, with_permission: [:can_view_clients, :can_view_restricted_clients])
         end
 
-        it 'returns false' do
-          expect(policy.can_view_some_enrollment_details?).to be false
+        it 'is redacted' do
+          expect(policy.can_view_name?).to be false
+          expect(policy.can_view_photo?).to be false
+          expect(policy.can_view_contact_info?).to be false
         end
       end
     end
@@ -256,6 +357,37 @@ RSpec.describe Hmis::AuthPolicies::HmisClientPolicy, type: :model do
 
       it 'returns true if user has enrollment edit permission anywhere' do
         expect(policy.can_edit_some_enrollments?).to be true
+      end
+    end
+
+    # There is no project through which can_view_restricted_clients could be granted for an unenrolled
+    # client, so the permissive global-permission fallback is deliberately not applied to restriction.
+    describe 'PII predicates when the client is restricted' do
+      let!(:restricted_record) { client.mark_as_restricted!(user: user) }
+      let!(:access_control) do
+        create_access_control(
+          user,
+          project,
+          with_permission: [
+            :can_view_clients,
+            :can_view_restricted_clients,
+            :can_mark_clients_as_restricted,
+            :can_view_client_name,
+            :can_view_client_photo,
+            :can_view_client_contact_info,
+          ],
+        )
+      end
+
+      it 'is redacted even though the user can view restricted clients elsewhere' do
+        expect(policy.can_view_name?).to be false
+        expect(policy.can_view_photo?).to be false
+        expect(policy.can_view_contact_info?).to be false
+      end
+
+      it 'does not restrict unrelated permissions, so the client can still be unmarked' do
+        expect(policy.can_view?).to be true
+        expect(policy.can_mark_restricted?).to be true
       end
     end
   end
@@ -303,7 +435,7 @@ RSpec.describe Hmis::AuthPolicies::HmisClientPolicy, type: :model do
       end
 
       context 'with can_view_dob permission' do
-        let!(:access_control) { create_access_control(user, project, with_permission: [:can_view_dob]) }
+        let!(:access_control) { create_access_control(user, project, with_permission: [:can_view_clients, :can_view_dob]) }
 
         it 'grants can_view_dob?' do
           expect(policy.can_view_dob?).to be true
@@ -317,10 +449,24 @@ RSpec.describe Hmis::AuthPolicies::HmisClientPolicy, type: :model do
       end
 
       context 'with can_view_client_alerts permission' do
-        let!(:access_control) { create_access_control(user, project, with_permission: [:can_view_client_alerts]) }
+        let!(:access_control) { create_access_control(user, project, with_permission: [:can_view_clients, :can_view_client_alerts]) }
 
         it 'grants can_view_client_alerts?' do
           expect(policy.can_view_client_alerts?).to be true
+        end
+      end
+    end
+
+    describe '#can_view_eligible_opportunities_lists?' do
+      it 'denies when user lacks can_view_client_eligible_opportunities permission' do
+        expect(policy.can_view_eligible_opportunities_lists?).to be false
+      end
+
+      context 'with can_view_client_eligible_opportunities at one project in the data source' do
+        let!(:access_control) { create_access_control(user, project, with_permission: [:can_view_client_eligible_opportunities]) }
+
+        it 'grants can_view_eligible_opportunities_lists?' do
+          expect(policy.can_view_eligible_opportunities_lists?).to be true
         end
       end
     end

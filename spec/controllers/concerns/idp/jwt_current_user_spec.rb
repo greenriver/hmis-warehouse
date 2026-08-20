@@ -435,7 +435,16 @@ RSpec.describe Idp::JwtCurrentUser, :jwt_only, type: :controller do
   end
 
   describe 'scheduling the IdP read-back (#idp_schedule_user_sync)' do
-    let(:user) { instance_double(User, id: 7, active?: true, last_connector_id: 'keycloak', email_change_enabled?: true) }
+    let(:user) do
+      instance_double(
+        User,
+        id: 7,
+        active?: true,
+        last_connector_id: 'keycloak',
+        email_change_enabled?: true,
+        idp_profile_source: :admin_api,
+      )
+    end
 
     before do
       allow(User).to receive(:find_or_create_from_jwt).and_return(user)
@@ -503,10 +512,54 @@ RSpec.describe Idp::JwtCurrentUser, :jwt_only, type: :controller do
     end
 
     # Duplicates the gate the job itself applies, to keep no-op jobs off the queue.
-    it 'does not enqueue when the connector offers no email self-service' do
+    it 'does not enqueue when a read-back connector offers no email self-service' do
       allow(user).to receive(:email_change_enabled?).and_return(false)
 
       expect { get :auth }.not_to have_enqueued_job(Idp::SyncUserFromIdpJob)
+    end
+
+    it 'enqueues neither job when the service will not build, so no channel is trustworthy' do
+      allow(user).to receive(:idp_profile_source).and_return(:none)
+
+      expect { get :auth }.not_to have_enqueued_job(Idp::SyncUserFromIdpJob)
+      expect { get :auth }.not_to have_enqueued_job(Idp::SyncUserFromClaimsJob)
+    end
+
+    describe 'a connector with no management API (customer-org IdP on a Dex connector)' do
+      before do
+        allow(user).to receive(:idp_profile_source).and_return(:token_claims)
+        allow(jwt_helper).to receive(:payload_email).and_return('claimed@example.com')
+        allow(jwt_helper).to receive(:email_verified).and_return(true)
+        allow(jwt_helper).to receive(:first_name).and_return('Ada')
+        allow(jwt_helper).to receive(:last_name).and_return('Lovelace')
+      end
+
+      it 'enqueues the sync with the profile the token asserts' do
+        expect { get :auth }.to have_enqueued_job(Idp::SyncUserFromClaimsJob).with(
+          user_id: 7,
+          claims: { email: 'claimed@example.com', email_verified: true, first_name: 'Ada', last_name: 'Lovelace' },
+        )
+      end
+
+      it 'enqueues regardless of what email self-service reports' do
+        allow(user).to receive(:email_change_enabled?).and_return(false)
+
+        expect { get :auth }.to have_enqueued_job(Idp::SyncUserFromClaimsJob)
+      end
+
+      it 'enqueues even while the connector is paused' do
+        Idp::SyncUserFromIdpJob.pause_connector!('keycloak')
+
+        expect { get :auth }.to have_enqueued_job(Idp::SyncUserFromClaimsJob)
+      end
+
+      it 'still spends only one attempt per session' do
+        get :auth
+
+        travel(3.days) do
+          expect { get :auth }.not_to have_enqueued_job(Idp::SyncUserFromClaimsJob)
+        end
+      end
     end
 
     it 'syncs the token holder, not the account being impersonated' do

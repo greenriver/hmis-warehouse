@@ -157,11 +157,7 @@ class Admin::Idp::UsersController < ApplicationController
   private def available_connectors
     return [] unless AuthMethod.jwt?
 
-    @available_connectors ||= ::Idp::ServiceConfig.active.order(:name, :id).select do |config|
-      config.to_service.supports_user_creation?
-    rescue ::Idp::ServiceError
-      false
-    end
+    @available_connectors ||= ::Idp::ServiceConfig.active.order(:name, :id)
   end
 
   private def idp_user_creation_available?
