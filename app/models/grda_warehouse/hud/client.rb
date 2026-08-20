@@ -16,7 +16,6 @@ module GrdaWarehouse::Hud
     include Memery
     include RandomScope
     include ArelHelper
-    include HealthCharts
     include ::HudConcerns::Client
     include ::HmisStructure::Client
     include ::HmisStructure::Shared
@@ -208,7 +207,6 @@ module GrdaWarehouse::Hud
     has_many :chronics_in_range, ->(range) do
       where(date: range)
     end, class_name: 'GrdaWarehouse::Chronic', inverse_of: :client
-    has_one :patient, class_name: 'Health::Patient'
 
     has_many :notes, class_name: 'GrdaWarehouse::ClientNotes::Base', inverse_of: :client
     has_many :chronic_justifications, class_name: 'GrdaWarehouse::ClientNotes::ChronicJustification'
@@ -365,8 +363,8 @@ module GrdaWarehouse::Hud
     scope :has_homeless_service_after_date, ->(date: 31.days.ago) do
       where(id:
         GrdaWarehouse::ServiceHistoryService.homeless(chronic_types_only: true).
-        where(sh_t[:date].gt(date)).
-        select(:client_id).distinct)
+          where(sh_t[:date].gt(date)).
+          select(:client_id).distinct)
     end
 
     scope :has_homeless_service_between_dates, ->(start_date: 31.days.ago, end_date: Date.current, include_extrapolated: true) do
@@ -758,6 +756,8 @@ module GrdaWarehouse::Hud
         'DOB reflects the earliest response where DOB Data Quality was full or partial.'
       when :name
         'Name reflects the earliest response where the Name Data Quality was full or partial.'
+      when :sex
+        'Sex reflects the most-recent response where the client answered the question.'
       end
     end
 
@@ -909,7 +909,7 @@ module GrdaWarehouse::Hud
 
       destination.where(
         id: GrdaWarehouse::ServiceHistoryEnrollment.
-        with(most_recent_enrollments: most_recent_enrollment_scope).
+          with(most_recent_enrollments: most_recent_enrollment_scope).
           joins(join.join_sources, :enrollment).
           where(e_t[:DisablingCondition].eq(1)).
           select(:client_id),
@@ -998,14 +998,6 @@ module GrdaWarehouse::Hud
       elsif GrdaWarehouse::CoordinatedEntryAssessment::Base.any_visible_by?(user)
         client_coordinated_entry_assessments_path(self)
       end
-    end
-
-    def show_health_pilot_for?(user)
-      patient.present? && patient.accessible_by_user(user).present? && patient.pilot_patient? && GrdaWarehouse::Config.get(:healthcare_available)
-    end
-
-    def show_health_hpc_for?(user)
-      patient.present? && patient.hpc_patient? && user.has_some_patient_access? && GrdaWarehouse::Config.get(:healthcare_available)
     end
 
     ##############################
@@ -1825,7 +1817,8 @@ module GrdaWarehouse::Hud
 
     # @param client_scope [GrdaWarehouse::Hud::Client.source] source clients to search in
     # @param sorted [Boolean] order results by closest match to text
-    def self.text_search(text, client_scope: nil, sorted: false)
+    # @param with_score [Boolean] add the match score as a #score attribute on results.
+    def self.text_search(text, client_scope: nil, sorted: false, with_score: false)
       # Get search results from client scope. Then return the unique destination client records that map to those matching source records
       relation = (client_scope || self) # rubocop:disable Style/RedundantParentheses
       # with resolve_for_join_query, results are client.scope.select(:client_id, :score) suitable for subquery
@@ -1841,6 +1834,7 @@ module GrdaWarehouse::Hud
 
       # now join the results, mapped through the WarehouseClient, to the current scope
       mapped = joins(%(JOIN (#{grouped.to_sql}) AS dst_search_results ON dst_search_results.client_id = "Client".id))
+      mapped = mapped.select(Arel.sql('"Client".*, dst_search_results.score AS score')) if with_score
       mapped = mapped.order(Arel.sql('dst_search_results.score DESC'), :id) if sorted
       mapped
     end
@@ -2188,46 +2182,46 @@ module GrdaWarehouse::Hud
       @document_ready ||= document_readiness(required_documents).all?(&:available)
     end
 
+    # Cap on how many suggestions to show, keeping the best-scored matches when more are found
+    POTENTIAL_MATCHES_LIMIT = 20
+
     # Build a set of potential client matches grouped by criteria
-    # FIXME: consolidate this logic with merge_candidates below
     def potential_matches
       @potential_matches ||= {}.tap do |m|
-        c_arel = self.class.arel_table
-        # Find anyone with a nickname match
-        nicks = Nickname.for(self.FirstName).map(&:name)
+        scores_by_id = {}
+        potential_match_search_queries.each do |query|
+          self.class.text_search(query, client_scope: self.class, sorted: true, with_score: true).where.not(id: id).each do |candidate|
+            score = candidate.score.to_f
+            scores_by_id[candidate.id] = score if scores_by_id[candidate.id].nil? || score > scores_by_id[candidate.id]
+          end
+        end
+        next if scores_by_id.empty?
 
-        if nicks.any?
-          nicks_for_search = nicks.map { |name| GrdaWarehouse::Hud::Client.connection.quote(name) }.join(',')
-          similar_destinations = self.class.destination.where(
-            nf('LOWER', [c_arel[:FirstName]]).in(nicks_for_search),
-          ).where(c_arel['LastName'].matches("%#{self.LastName.downcase}%")).
-            where.not(id: self.id) # rubocop:disable Style/RedundantSelf
-          m[:by_nickname] = similar_destinations if similar_destinations.any?
-        end
-        # Find anyone with similar sounding names
-        alt_first_names = UniqueName.where(double_metaphone: Text::Metaphone.double_metaphone(self.FirstName).to_s).map(&:name)
-        alt_last_names = UniqueName.where(double_metaphone: Text::Metaphone.double_metaphone(self.LastName).to_s).map(&:name)
-        alt_names = alt_first_names + alt_last_names
-        if alt_names.any?
-          alt_names_for_search = alt_names.map { |name| GrdaWarehouse::Hud::Client.connection.quote(name) }.join(',')
-          similar_destinations = self.class.destination.where(
-            nf('LOWER', [c_arel[:FirstName]]).in(alt_names_for_search).
-              and(nf('LOWER', [c_arel[:LastName]]).matches("#{self.LastName.downcase}%")).
-            or(nf('LOWER', [c_arel[:LastName]]).in(alt_names_for_search).
-              and(nf('LOWER', [c_arel[:FirstName]]).matches("#{self.FirstName.downcase}%"))),
-          ).where.not(id: self.id) # rubocop:disable Style/RedundantSelf
-          m[:where_the_name_sounds_similar] = similar_destinations if similar_destinations.any?
-        end
-        # Find anyone with similar sounding names
-        # similar_destinations = self.class.where(id: GrdaWarehouse::WarehouseClient.where(source_id:  self.class.source.where("difference(?, FirstName) > 1", self.FirstName).where('LastName': self.class.source.where('soundex(LastName) = soundex(?)', self.LastName).select('LastName')).where.not(id: source_clients.pluck(:id)).pluck(:id)).pluck(:destination_id))
-        # m[:where_the_name_sounds_similar] = similar_destinations if similar_destinations.any?
+        candidates = self.class.where(id: scores_by_id.keys)
+        ages = active_source_client_ages
+        # sanity check: only show clients with ages that match existing source clients.
+        # This isn't perfect, a transposed date would be missed, and it is current date dependent,
+        # but the goal is to prevent including children/parents/grandparents of the client.
+        candidates = candidates.select { |c| ages.include?(c.age) } if ages.any?
+
+        top_ids = candidates.sort_by { |c| -scores_by_id[c.id] }.first(POTENTIAL_MATCHES_LIMIT).map(&:id)
+        next if top_ids.empty?
+
+        m[:by_name] = self.class.where(id: top_ids).
+          order(Arel.sql("array_position(ARRAY[#{top_ids.join(',')}]::bigint[], id)"))
       end
+    end
 
-      # TODO
-      # Soundex on names
-      # William/Bill/Will
+    # Search by each active source client's name. At least one active source client will share the
+    # destination's name.
+    private def potential_match_search_queries
+      active_source_clients.map { |c| "#{c.FirstName} #{c.LastName}".strip }.uniq.reject(&:blank?)
+    end
 
-      # Others
+    # Ages of this client's active (non-deleted-data-source) source clients, used to
+    # narrow potential_matches down to candidates plausibly the same person.
+    private def active_source_client_ages
+      active_source_clients.filter_map(&:age)
     end
 
     # find other clients with similar names
@@ -2252,12 +2246,11 @@ module GrdaWarehouse::Hud
       scope.select(Arel.star, diff_full, diff_first, diff_last).order('diff_full DESC, diff_last DESC, diff_first DESC')
     end
 
-    def split(client_ids, hmis_receiver_id, health_receiver_id, current_user)
+    def split(client_ids, receiver_id, item_categories, current_user)
       Rails.logger.info '=== Starting client split ==='
       Rails.logger.info "Original client: #{id}"
       Rails.logger.info "Clients to split: #{client_ids.inspect}"
-      Rails.logger.info "HMIS receiver: #{hmis_receiver_id}"
-      Rails.logger.info "Health receiver: #{health_receiver_id}"
+      Rails.logger.info "Receiver: #{receiver_id}"
 
       client_names = []
       to_clean = [id]
@@ -2279,14 +2272,12 @@ module GrdaWarehouse::Hud
           destination_client.save
           Rails.logger.info "Created new destination client: #{destination_client.id}"
 
-          receive_hmis = hmis_receiver_id == client_id
-          receive_health = health_receiver_id == client_id
+          receives_items = receiver_id.present? && receiver_id == client_id
 
           split_history = GrdaWarehouse::ClientSplitHistory.create(
             split_from: id,
             split_into: destination_client.id,
-            receive_hmis: receive_hmis,
-            receive_health: receive_health,
+            receive_hmis: receives_items,
           )
           Rails.logger.info "Created split history record: #{split_history.inspect}"
 
@@ -2302,14 +2293,9 @@ module GrdaWarehouse::Hud
           )
           Rails.logger.info "Created warehouse client record: #{warehouse_client.inspect}"
 
-          if receive_hmis
-            Rails.logger.info "Moving HMIS items from #{id} to #{destination_client.id}"
-            destination_client.move_dependent_hmis_items(id, destination_client.id)
-          end
-
-          if receive_health
-            Rails.logger.info "Moving health items from #{id} to #{destination_client.id}"
-            destination_client.move_dependent_health_items(id, destination_client.id)
+          if receives_items
+            Rails.logger.info "Moving #{item_categories.inspect} from #{id} to #{destination_client.id}"
+            destination_client.move_dependent_hmis_items(id, destination_client.id, categories: item_categories)
           end
 
           # Conservative carry-forward: if the original destination was excluded from
@@ -2341,74 +2327,62 @@ module GrdaWarehouse::Hud
       setup_notifier('PatientMerger') unless @notifier
       moved = []
       to_clean = [id]
-      begin
-        transaction do
-          # get the existing destination client for other_client
-          prev_destination_client = if other_client.destination_client
-            other_client.destination_client
-          elsif other_client.destination?
-            to_clean << other_client.id
-            other_client
-          end
-          # if it had sources then move those over to us
-          # and say who made the decision and when
-          other_client.source_clients.each do |m|
-            m.warehouse_client_source.update!(
-              destination_id: id,
-              reviewed_at: reviewed_at,
-              reviewd_by: reviewed_by.id,
-              client_match_id: client_match_id,
-            )
-            moved << m
-          end
-          # if we are a source, move us
-          if other_client.warehouse_client_source
-            other_client.warehouse_client_source.update!(
-              destination_id: id,
-              reviewed_at: reviewed_at,
-              reviewd_by: reviewed_by.id,
-              client_match_id: client_match_id,
-            )
-            moved << other_client
-          end
-          # clean up the previous destination
-          if prev_destination_client
-            # move any CAS column data
-            previous_cas_columns = prev_destination_client.attributes.slice(*self.class.cas_columns.keys.map(&:to_s))
-            current_cas_columns = attributes.slice(*self.class.cas_columns.keys.map(&:to_s))
-            current_cas_columns.merge!(previous_cas_columns) { |_k, old, new| old.presence || new }
-            update(current_cas_columns)
-            save!
-
-            prev_destination_client.force_full_service_history_rebuild
-            prev_destination_client.source_clients.reload
-            if prev_destination_client.source_clients.empty?
-              # Create a client_merge_history record so we can keep links working
-              GrdaWarehouse::ClientMergeHistory.create(merged_into: id, merged_from: prev_destination_client.id)
-              # Carry-forward: if the merged-away client was excluded from external data sharing,
-              # ensure the surviving client is also excluded.
-              ClientExternalDataSharing.new(self).set_exclusion!(value: true) if ClientExternalDataSharing.new(prev_destination_client).excluded?
-              prev_destination_client.destroy
-            end
-
-            move_dependent_items(prev_destination_client.id, id)
-            to_clean << prev_destination_client.id
-          end
-          # and invalidate our own service history
-          force_full_service_history_rebuild
-          # and invalidate any cache for these clients
-          self.class.clear_view_cache(prev_destination_client.id) if prev_destination_client.present?
+      transaction do
+        # get the existing destination client for other_client
+        prev_destination_client = if other_client.destination_client
+          other_client.destination_client
+        elsif other_client.destination?
+          to_clean << other_client.id
+          other_client
         end
-      rescue Health::MedicaidIdConflict => e
-        @notifier.ping(
-          'Non-matching Medicaid IDs on patient merge',
-          {
-            exception: e,
-          },
-        )
-        # add a split record to prevent these client being merged automatically in the future
-        GrdaWarehouse::ClientSplitHistory.create(split_from: other_client.id, split_into: id)
-        return []
+        # if it had sources then move those over to us
+        # and say who made the decision and when
+        other_client.source_clients.each do |m|
+          m.warehouse_client_source.update!(
+            destination_id: id,
+            reviewed_at: reviewed_at,
+            reviewd_by: reviewed_by.id,
+            client_match_id: client_match_id,
+          )
+          moved << m
+        end
+        # if we are a source, move us
+        if other_client.warehouse_client_source
+          other_client.warehouse_client_source.update!(
+            destination_id: id,
+            reviewed_at: reviewed_at,
+            reviewd_by: reviewed_by.id,
+            client_match_id: client_match_id,
+          )
+          moved << other_client
+        end
+        # clean up the previous destination
+        if prev_destination_client
+          # move any CAS column data
+          previous_cas_columns = prev_destination_client.attributes.slice(*self.class.cas_columns.keys.map(&:to_s))
+          current_cas_columns = attributes.slice(*self.class.cas_columns.keys.map(&:to_s))
+          current_cas_columns.merge!(previous_cas_columns) { |_k, old, new| old.presence || new }
+          update(current_cas_columns)
+          save!
+
+          prev_destination_client.force_full_service_history_rebuild
+          prev_destination_client.source_clients.reload
+          if prev_destination_client.source_clients.empty?
+            # Create a client_merge_history record so we can keep links working
+            GrdaWarehouse::ClientMergeHistory.create(merged_into: id, merged_from: prev_destination_client.id)
+            # Carry-forward: if the merged-away client was excluded from external data sharing,
+            # ensure the surviving client is also excluded.
+            ClientExternalDataSharing.new(self).set_exclusion!(value: true) if ClientExternalDataSharing.new(prev_destination_client).excluded?
+            prev_destination_client.destroy
+          end
+
+          move_dependent_items(prev_destination_client.id, id)
+          to_clean << prev_destination_client.id
+        end
+        # and invalidate our own service history
+        force_full_service_history_rebuild
+        # and invalidate any cache for these clients
+        self.class.clear_view_cache(prev_destination_client.id) if prev_destination_client.present?
       end
       self.class.clear_view_cache(id)
       self.class.clear_view_cache(other_client.id)
@@ -2423,80 +2397,90 @@ module GrdaWarehouse::Hud
       moved
     end
 
-    def move_dependent_hmis_items(previous_id, new_id)
+    DEPENDENT_ITEM_CATEGORIES = [
+      :notes,
+      :files,
+      :vispdats,
+      :cohort_assignments,
+      :ce_assessments,
+      :custom_data_elements,
+      :other,
+    ].freeze
+
+    CUSTOM_DATA_ELEMENT_OWNER_TYPE = 'Hmis::Hud::Client'
+
+    def move_dependent_hmis_items(previous_id, new_id, categories: DEPENDENT_ITEM_CATEGORIES)
       return if previous_id == new_id
 
-      hmis_dependent_items.each do |klass, foreign_key|
-        klass.where(foreign_key => previous_id).update_all(foreign_key => new_id)
+      hmis_dependent_items.slice(*(categories - [:custom_data_elements])).each_value do |pairs|
+        pairs.each do |klass, foreign_key|
+          klass.where(foreign_key => previous_id).update_all(foreign_key => new_id)
+        end
       end
+
+      return unless categories.include?(:custom_data_elements)
+
+      Hmis::Hud::CustomDataElement.
+        where(owner_type: CUSTOM_DATA_ELEMENT_OWNER_TYPE, owner_id: previous_id).
+        update_all(owner_id: new_id)
     end
 
-    def move_dependent_health_items(previous_id, new_id)
-      return if previous_id == new_id
+    def dependent_item_counts
+      other_items = hmis_dependent_items[:other]
+      {
+        notes: notes.count,
+        files: client_files.count,
+        vispdats: vispdats.count,
+        cohort_assignments: cohort_clients.count,
+        ce_assessments: ce_assessments.count,
+        custom_data_elements: Hmis::Hud::CustomDataElement.where(
+          owner_type: CUSTOM_DATA_ELEMENT_OWNER_TYPE,
+          owner_id: id,
+        ).count,
+        other: other_items.sum { |klass, foreign_key| klass.where(foreign_key => id).count },
+      }
+    end
 
-      # If we are merging 2 existing patients...
-      previous_patient = Health::Patient.find_by(client_id: previous_id)
-      new_patient = Health::Patient.find_by(client_id: new_id)
-      if previous_patient.present? && new_patient.present?
-        # Confirm their MedicaidIDs match
-        raise Health::MedicaidIdConflict, "Cannot merge #{previous_patient.id} and #{new_patient.id}" if previous_patient.medicaid_id != new_patient.medicaid_id
+    def data_source_deleted?
+      data_source.blank?
+    end
 
-        # Move the referrals
-        previous_patient.patient_referrals.update_all(patient_id: new_patient.id)
-        new_patient.cleanup_referrals
-
-        # There can only be one patient with an client_id, so clean up the old one
-        previous_patient.destroy
-      end
-
-      health_dependent_items.each do |klass|
-        klass.where(client_id: previous_id).
-          update_all(client_id: new_id)
-      end
+    def active_source_clients
+      source_clients.joins(:data_source)
     end
 
     def move_dependent_items previous_id, new_id
       move_dependent_hmis_items(previous_id, new_id)
-      move_dependent_health_items(previous_id, new_id)
     end
 
     private def hmis_dependent_items
-      [
-        [GrdaWarehouse::ClientNotes::Base, :client_id],
-        [GrdaWarehouse::ClientFile, :client_id],
-        [GrdaWarehouse::Vispdat::Base, :client_id],
-        [GrdaWarehouse::CohortClient, :client_id],
-        [GrdaWarehouse::Chronic, :client_id],
-        [GrdaWarehouse::HudChronic, :client_id],
-        [GrdaWarehouse::UserClient, :client_id],
-        [GrdaWarehouse::EnrollmentChangeHistory, :client_id],
-        [GrdaWarehouse::CasAvailability, :client_id],
-        [GrdaWarehouse::YouthIntake::Base, :client_id],
-        [GrdaWarehouse::Youth::DirectFinancialAssistance, :client_id],
-        [GrdaWarehouse::Youth::YouthCaseManagement, :client_id],
-        [GrdaWarehouse::Youth::YouthReferral, :client_id],
-        [GrdaWarehouse::Youth::YouthFollowUp, :client_id],
-        [GrdaWarehouse::HealthEmergency::AmaRestriction, :client_id],
-        [GrdaWarehouse::HealthEmergency::Test, :client_id],
-        [GrdaWarehouse::HealthEmergency::ClinicalTriage, :client_id],
-        [GrdaWarehouse::HealthEmergency::Isolation, :client_id],
-        [GrdaWarehouse::HealthEmergency::Quarantine, :client_id],
-        [GrdaWarehouse::HealthEmergency::UploadedTest, :client_id],
-        [GrdaWarehouse::HealthEmergency::Vaccination, :client_id],
-        [GrdaWarehouse::Anomaly, :client_id],
-      ]
-    end
-
-    private def health_dependent_items
-      items = [
-        Health::Patient,
-        Health::HealthFile,
-        Health::Tracing::Case,
-        Health::Vaccination,
-      ]
-      items << HealthFlexibleService::Vpr if RailsDrivers.loaded.include?(:health_flexible_service)
-
-      items
+      {
+        notes: [[GrdaWarehouse::ClientNotes::Base, :client_id]],
+        files: [[GrdaWarehouse::ClientFile, :client_id]],
+        vispdats: [[GrdaWarehouse::Vispdat::Base, :client_id]],
+        cohort_assignments: [[GrdaWarehouse::CohortClient, :client_id]],
+        ce_assessments: [[GrdaWarehouse::CoordinatedEntryAssessment::Base, :client_id]],
+        other: [
+          [GrdaWarehouse::Chronic, :client_id],
+          [GrdaWarehouse::HudChronic, :client_id],
+          [GrdaWarehouse::UserClient, :client_id],
+          [GrdaWarehouse::EnrollmentChangeHistory, :client_id],
+          [GrdaWarehouse::CasAvailability, :client_id],
+          [GrdaWarehouse::YouthIntake::Base, :client_id],
+          [GrdaWarehouse::Youth::DirectFinancialAssistance, :client_id],
+          [GrdaWarehouse::Youth::YouthCaseManagement, :client_id],
+          [GrdaWarehouse::Youth::YouthReferral, :client_id],
+          [GrdaWarehouse::Youth::YouthFollowUp, :client_id],
+          [GrdaWarehouse::HealthEmergency::AmaRestriction, :client_id],
+          [GrdaWarehouse::HealthEmergency::Test, :client_id],
+          [GrdaWarehouse::HealthEmergency::ClinicalTriage, :client_id],
+          [GrdaWarehouse::HealthEmergency::Isolation, :client_id],
+          [GrdaWarehouse::HealthEmergency::Quarantine, :client_id],
+          [GrdaWarehouse::HealthEmergency::UploadedTest, :client_id],
+          [GrdaWarehouse::HealthEmergency::Vaccination, :client_id],
+          [GrdaWarehouse::Anomaly, :client_id],
+        ],
+      }
     end
 
     def force_full_service_history_rebuild
@@ -2872,7 +2856,6 @@ module GrdaWarehouse::Hud
     include CustomImportsBostonService::GrdaWarehouse::Hud::ClientExtension
     include EccoviaData::GrdaWarehouse::Hud::ClientExtension
     include Financial::GrdaWarehouse::Hud::ClientExtension
-    include HealthFlexibleService::GrdaWarehouse::Hud::ClientExtension
     include Hmis::GrdaWarehouse::Hud::ClientExtension
     include HmisCsvImporter::GrdaWarehouse::Hud::ClientExtension
     include HmisCsvTwentyTwenty::GrdaWarehouse::Hud::ClientExtension

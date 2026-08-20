@@ -52,7 +52,7 @@ RSpec.describe Hmis::User, type: :model do
       expect(raw_after).to eq(raw_before)
     end
 
-    it 'raises NotPersistedError when called on an unsaved record' do
+    it 'raises NotPersistedError when called on an unsaved record', :devise_only do
       new_user = build(:hmis_user)
       expect { new_user.update_unique_session_id!('x') }.to raise_error(Devise::Models::Compatibility::NotPersistedError)
     end
@@ -101,7 +101,7 @@ RSpec.describe Hmis::User, type: :model do
     end
   end
 
-  describe 'CVE-2026-32700 - confirmation token/unconfirmed_email sync' do
+  describe 'CVE-2026-32700 - confirmation token/unconfirmed_email sync', :devise_only do
     it 'prevents desync when a concurrent request modifies unconfirmed_email mid-flight' do
       attacker_email = 'attacker@example.com'
       victim_email   = 'victim@example.com'

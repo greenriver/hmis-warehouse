@@ -8,7 +8,35 @@
 
 module LoginAndPermissionsSpecHelper
   def hmis_login(user)
+    return sign_in(user) if AuthMethod.jwt?
+
     post hmis_user_session_path(hmis_user: { email: user.email, password: user.password })
+  end
+
+  # Under JWT the credential is the forwarded token, not a cookie the response can clear, so the
+  # sign_out below is what makes the spec tokenless. Drop it and every later request still authenticates.
+  def hmis_logout(headers: {})
+    delete destroy_hmis_user_session_path, headers: headers
+
+    unless AuthMethod.jwt?
+      expect(response).to have_http_status(:no_content)
+      return
+    end
+
+    expect(response).to have_http_status(:ok)
+    expect(JSON.parse(response.body)['redirect_url']).to start_with('/oauth2/sign_out?rd=')
+    sign_out
+  end
+
+  # The JWT arm raises rather than answering 401: oauth2-proxy owns every /hmis/* path
+  # (api_routes = ^/hmis/ in docker/auth/dev.oauth2-proxy-hmis-backend.cfg), so a tokenless request
+  # means the proxy was bypassed, not that a client is signed out.
+  def expect_unauthenticated_api_request
+    return expect { yield }.to raise_error(Idp::UnauthenticatedRequestError) if AuthMethod.jwt?
+
+    yield
+    expect(response).to have_http_status(:unauthorized)
+    expect(JSON.parse(response.body).dig('error', 'type')).to eq('unauthenticated')
   end
 
   def viewable_type(entity)

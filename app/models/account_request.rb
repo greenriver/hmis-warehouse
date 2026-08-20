@@ -32,29 +32,39 @@ class AccountRequest < ApplicationRecord
   end
 
   def convert_to_user!(user:, role_ids: [], access_group_ids: [], access_control_ids: [])
-    options = {
+    new_user = build_approved_user(approver: user)
+    # TODO: START_ACL remove when ACL transition complete
+    roles = Role.where(id: role_ids)
+    access_groups = AccessGroup.where(id: access_group_ids)
+    new_user.legacy_roles = roles
+    new_user.access_groups = access_groups
+    # END_ACL
+    acls = AccessControl.where(id: access_control_ids)
+    acls.each do |acl|
+      acl.user_group.add(new_user)
+    end
+    update!(
+      status: :accepted,
+      accepted_by: user.id,
+      accepted_at: Time.current,
+      user_id: new_user.id,
+    )
+  end
+
+  private
+
+  def build_approved_user(approver:)
+    attrs = {
       first_name: first_name,
       last_name: last_name,
       email: email,
       phone: phone,
       agency_id: agency_id,
     }
-    user = User.invite!(options, user)
-    # TODO: START_ACL remove when ACL transition complete
-    roles = Role.where(id: role_ids)
-    access_groups = AccessGroup.where(id: access_group_ids)
-    user.legacy_roles = roles
-    user.access_groups = access_groups
-    # END_ACL
-    acls = AccessControl.where(id: access_control_ids)
-    acls.each do |acl|
-      acl.user_group.add(user)
+    if AuthMethod.jwt?
+      User.create!(**attrs.merge(active: true))
+    else
+      User.invite!(attrs, approver)
     end
-    update(
-      status: :accepted,
-      accepted_by: user.id,
-      accepted_at: Time.current,
-      user_id: user.id,
-    )
   end
 end

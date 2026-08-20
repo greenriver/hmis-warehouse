@@ -325,7 +325,7 @@ module HudApr::Generators::Shared::Fy2026
             where(youth_adult_or_youth_hoh_clause).
             where(leavers_clause).
             where(a_t[:disabling_condition].in([0, 1])).
-            where(a_t[:income_from_any_source_at_exit].in([0, 1]))
+            where(a_t[:income_from_any_source_at_exit_raw].in([0, 1]))
 
           answer.update(summary: 0) and next if members.count.zero?
 
@@ -413,7 +413,7 @@ module HudApr::Generators::Shared::Fy2026
       ).merge(
         {
           'Other Source' => income_types(:exit).slice(*other_sources).values,
-          'No Sources' => a_t[:income_from_any_source_at_exit].eq(0),
+          'No Sources' => a_t[:income_from_any_source_at_exit_raw].eq(0),
           'Unduplicated Total Youth' => youth_filter,
         },
       )

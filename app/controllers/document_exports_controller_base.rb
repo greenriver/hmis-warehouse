@@ -86,8 +86,6 @@ class DocumentExportsControllerBase < ApplicationController
       'CoreDemographicsReport::DemographicSummary::DocumentExports::DemographicSummaryExcelExport',
       'ProjectPassFail::DocumentExports::ProjectPassFailExport',
       'GrdaWarehouse::DocumentExports::BasePerformanceExport',
-      'Health::DocumentExports::HousingStatusChangesExport',
-      'Health::DocumentExports::AgencyPerformanceExport',
       'ProjectScorecard::DocumentExports::ScorecardExport',
       'BostonProjectScorecard::DocumentExports::ScorecardExport',
       'HudApr::DocumentExports::HudAprExport',
@@ -108,9 +106,6 @@ class DocumentExportsControllerBase < ApplicationController
       'HmisDataQualityTool::DocumentExports::ReportExcelExport',
       'HmisDataQualityTool::DocumentExports::ReportByClientExcelExport',
       'SystemPathways::DocumentExports::ReportExport',
-      'HealthPctp::DocumentExports::HealthPctpPdfExport',
-      'HealthPctp::DocumentExports::HealthPctpSignaturePdfExport',
-      'HealthComprehensiveAssessment::DocumentExports::HealthCaPdfExport',
       'StartDateDq::DocumentExports::StartDateDqExcelExport',
       'ClientDocumentsReport::DocumentExports::ReportExcelExport',
       'InactiveClientReport::DocumentExports::ReportExcelExport',
@@ -123,6 +118,7 @@ class DocumentExportsControllerBase < ApplicationController
       'GrdaWarehouse::DocumentExports::AccessControlsAuditExport',
       'HudSpmReport::DocumentExports::CellDetailExport',
       'HudApr::DocumentExports::CellDetailExport',
+      'GrdaWarehouse::WarehouseReports::DocumentExports::ClientLookupExport',
     ]
   end
 end

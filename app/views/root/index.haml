@@ -3,11 +3,18 @@
 - else
   - title = Translation.translate('Open Path HMIS Warehouse')
   - content_for :title, title
-  %h1= content_for :title
-  .row
-    .col-sm-7
-      %p.home-intro
-        = Translation.translate('Open Path HMIS Warehouse')
-    - if !user_signed_in?
-      .col-sm-5
-        = render '/root/sign_in_form'
+  .d-flex
+    - if AuthMethod.devise? && !user_signed_in?
+      = render '/root/sign_in_form'
+    -else
+      .mx-auto.well.px-5(style="max-width: 340px")
+        %h1= content_for :title
+        %div(style="margin: 2.5em 0")
+          = link_to new_user_session_path, class: 'btn btn-primary btn-lg d-block' do
+            Sign in to your account
+        %p
+          %strong Need help?
+          Contact your organization's administrator for assistance.
+        %p.m-0
+          - if GrdaWarehouse::Config.get(:request_account_available)
+            = link_to 'Request an account', new_users_account_request_path

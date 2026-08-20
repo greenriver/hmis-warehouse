@@ -46,6 +46,18 @@ class Hmis::AuthPolicies::CeReferralPolicy < Hmis::AuthPolicies::ResourcePolicy
       false
     end
 
+    # Whether the user can see the name of the referred client on this referral.
+    # Users who can view the full referral see the name even without access to the client record itself,
+    # as long as they can view client names somewhere in the data source. Users who can only view the
+    # referral summary need name access on the client record.
+    # A restricted client's name is never shown to a user who can't view restricted clients.
+    def can_view_client_name?(client)
+      return false if context.pii_redacted_for_client?(client.id)
+      return global_permissions.include?(:can_view_client_name) if can_view?
+
+      can_view_summary? && user.policy_for(client, policy_type: :hmis_client).can_view_name?
+    end
+
     def can_assign_referral_tasks?
       return false unless Hmis::Ce.configuration.enabled?
 

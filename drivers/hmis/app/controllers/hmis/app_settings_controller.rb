@@ -39,6 +39,7 @@ class Hmis::AppSettingsController < Hmis::BaseController
       revision: Git.revision,
       branch: Git.branch,
       theme: theme&.hmis_value,
+      authMethod: AuthMethod.jwt? ? 'jwt' : 'devise',
     }
   end
 end

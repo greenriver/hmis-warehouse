@@ -14,12 +14,35 @@
   .col-sm-4
     = render 'buttons'
 - if @data_source.has_data?
-  .row.table-utilities
-    .col-sm-12
-      %h2
-        = Translation.translate('Organizations')
-        &amp;
-        = Translation.translate('Projects')
-      .table-responsive
-        - @organizations.each do |org|
-          = render 'organization', org: org
+  - if @require_coc_choice
+    %div{ data: { controller: 'content-loader',
+      content_loader_url_value: organizations_data_source_path(@data_source),
+      content_loader_history_url_value: data_source_path(@data_source) } }
+      .row.table-utilities.mt-4
+        .col-sm-6
+          %h2
+            = Translation.translate('Organizations')
+            &amp;
+            = Translation.translate('Projects')
+        .col-sm-6
+          .form-group{ data: { controller: 'stimulus-select' } }
+            %label{ for: 'coc_code' }= Translation.translate('Show projects for CoC code')
+            = select_tag :coc_code,
+              options_for_select(@coc_code_options, params[:coc_code]),
+              include_blank: Translation.translate('Select a CoC Code'),
+              class: 'form-control stimulus-select',
+              data: { 'stimulus-select-target' => 'element', action: 'change->content-loader#load', content_loader_target: 'param' }
+      .rollup-container{ data: { content_loader_target: 'results' } }
+        - if @organizations
+          = render 'organizations'
+        - else
+          %p.alert.alert-info.mb-0= Translation.translate('Choose a CoC Code to view organizations and projects.')
+  - else
+    .row.table-utilities
+      .col-sm-12
+        %h2
+          = Translation.translate('Organizations')
+          &amp;
+          = Translation.translate('Projects')
+    .table-responsive
+      = render 'organizations'

@@ -7,12 +7,24 @@
 # frozen_string_literal: true
 
 class Hmis::BaseController < ActionController::Base
-  include BaseApplicationControllerBehavior
+  include HmisBaseApplicationControllerBehavior
   include LogRagePayloadBehavior
   include ControllerCacheBehavior
 
   before_action :authenticate_hmis_user!
-  impersonates :hmis_user, with: ->(id) { Hmis::User.find_by(id: id) }
+
+  # AUTH_METHOD seam: under JWT, current_hmis_user / authenticate_hmis_user! / true_hmis_user / the
+  # impersonation write-side / session_duration_seconds are provided by
+  # Hmis::Concerns::JwtHmisCurrentUser (off a validated forwarded JWT); under Devise they come from
+  # the pretender macro + the devise :hmis_user scope + Hmis::Concerns::DeviseHmisCurrentUser.
+  # The before_action :authenticate_hmis_user! (above) and the set_anti_caching_headers
+  # hmis_user_signed_in? guard (below) are satisfied either way.
+  if AuthMethod.jwt?
+    include Hmis::Concerns::JwtHmisCurrentUser
+  else
+    impersonates :hmis_user, with: ->(id) { Hmis::User.find_by(id: id) }
+    include Hmis::Concerns::DeviseHmisCurrentUser
+  end
 
   include Hmis::Concerns::JsonErrors
   respond_to :json
@@ -33,7 +45,7 @@ class Hmis::BaseController < ActionController::Base
   end
 
   # HMIS domain for this request; used to resolve the data source (DataSource.hmis).
-  # @see docs/architecture/multi-hmis-support.md
+  # @see docs/features/hmis/multi-hmis-support.md
   def current_hmis_host
     # In development, use untrusted header X-Hmis-Dev-Host.
     # Trusted header 'request.host' cannot be used because the dev server setup makes it appear to come from the backend host.
@@ -53,7 +65,7 @@ class Hmis::BaseController < ActionController::Base
   end
 
   # Binds the current request to an HMIS data source using the request host
-  # @see docs/architecture/multi-hmis-support.md
+  # @see docs/features/hmis/multi-hmis-support.md
   def attach_data_source_id
     data_source_id = current_data_source.id
     current_hmis_user.hmis_data_source_id = data_source_id
@@ -87,6 +99,13 @@ class Hmis::BaseController < ActionController::Base
 
   def impersonating?
     true_hmis_user != current_hmis_user
+  end
+
+  # Shared shape for any endpoint that reports the signed-in HMIS user (user.json, impersonations).
+  def current_user_payload
+    payload = current_hmis_user&.current_user_api_values(session_duration: session_duration_seconds) || {}
+    payload[:impersonating] = impersonating?
+    payload
   end
 
   # for mixins

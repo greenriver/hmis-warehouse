@@ -8,10 +8,23 @@
 
 module GrdaWarehouse
   class Config < GrdaWarehouseBase
+    # Column pending removal in a later deploy; see db/warehouse/migrate/20260804130000_remove_health_only_columns_from_warehouse.rb
+    self.ignored_columns = ['healthcare_available'].freeze
+
+    has_paper_trail
+
     serialize :client_details, type: Array
     validates :cas_sync_project_group_id, presence: { message: 'is required for the selected sync method.' }, if: ->(o) { o.cas_available_method.to_sym.in?([:project_group, :boston]) }
 
     after_save :invalidate_cache
+
+    # The multi-select posts a hidden blank alongside the real selections, and that
+    # blank is also the only signal that an admin cleared the picker. Drop it here so
+    # the jsonb column holds nothing but column keys; an empty array still means
+    # "use the defaults".
+    def client_demographic_columns=(value)
+      super(Array.wrap(value).map { |key| key.to_s.presence }.compact)
+    end
 
     def self.cas_enabled?
       CasBase.db_exists?
@@ -168,6 +181,7 @@ module GrdaWarehouse
       {
         'Default' => :default,
         'VA' => :va,
+        'Boston' => :boston,
       }
     end
 
@@ -230,7 +244,6 @@ module GrdaWarehouse
       [
         :last_name,
         :eto_api_available,
-        :healthcare_available,
         :release_duration,
         :cas_available_method,
         :cas_flag_method,
@@ -321,6 +334,7 @@ module GrdaWarehouse
         :rds_s3_integration_role_arn,
         :relevant_state_codes,
         client_details: [],
+        client_demographic_columns: [],
       ]
     end
 

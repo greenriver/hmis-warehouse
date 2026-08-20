@@ -29,6 +29,11 @@ export default class extends Controller {
   connect() {
     this.initialUserIdValue = this.data.get('initial-user-id-value');
     this.sessionLifetimeSecsValue = parseInt(this.data.get('session-lifetime-secs-value'));
+    // Anchor the forwarded token's remaining seconds to the browser clock, so the countdown never
+    // subtracts browser time from a server-issued instant. Absent on the Devise arm, which seeds a lifetime.
+    const remainingSecs = parseInt(this.data.get('session-remaining-secs-value'));
+    this.tokenExpiryDriven = !Number.isNaN(remainingSecs);
+    this.sessionExpiresAtValue = this.tokenExpiryDriven ? getTimestamp() + remainingSecs : NaN;
     shared.saveValue(UID_KEY, this.initialUserIdValue);
     if (!this.initialUserIdValue) {
       return;
@@ -71,9 +76,10 @@ export default class extends Controller {
     state.userId = shared.getValue(UID_KEY);
     const ts = parseInt(shared.getValue(TS_KEY));
     if (ts) {
-      const expires = ts + this.sessionLifetimeSecsValue;
-      const delta = expires - getTimestamp();
-      const remaining = delta > 0 ? delta : 0;
+      const expires = this.tokenExpiryDriven ? this.sessionExpiresAtValue : ts + this.sessionLifetimeSecsValue;
+      // JWT arm with a current_user but no token expiry: no seed to count down, so hold at
+      // not-expiring (a NaN countdown would otherwise render a false "session expired").
+      const remaining = Number.isFinite(expires) ? Math.max(expires - getTimestamp(), 0) : Number.MAX_VALUE;
       state.remaining = remaining;
       const timeout = remaining > 0 && remaining <= WARNING_WHEN_REMAINING_SECS ? 1000 : DEFAULT_POLL_SECS * 1000;
       this.mainLoopInterval = setTimeout(() => this.mainLoop(), timeout);
@@ -151,17 +157,27 @@ export default class extends Controller {
   handleRenewSession(event) {
     event.preventDefault();
     if (this.state.xhr) return;
-    const success = () => {
+    const success = (data) => {
       this.state.xhr = undefined;
+      this.applyKeepaliveExpiry(data);
       this.hideWarning();
     };
     const error = () => {
       window.location.reload();
     };
+    // No dataType: 'json' — the Devise keepalive returns head :ok with an empty body, which a forced
+    // JSON parse would fail, routing this success through `error` (a page reload).
     this.state.xhr = $.ajax(event.currentTarget.href, {
       method: 'POST',
       success,
       error,
     });
+  }
+
+  applyKeepaliveExpiry(data) {
+    if (!this.tokenExpiryDriven || !data || !Number.isFinite(data.remaining_seconds)) return;
+    // Browser-clock basis, like connect(): the payload's absolute expiration_time would carry skew.
+    this.sessionExpiresAtValue = getTimestamp() + data.remaining_seconds;
+    this.state.remaining = Number.MAX_VALUE;
   }
 }

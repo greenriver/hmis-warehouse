@@ -1,0 +1,49 @@
+.card.overflow-visible
+  %table.table.table-striped
+    %thead
+      %tr
+        - titles.each do | k, title |
+          %th.text-nowrap
+            = sort_link(titles[k], k, directions)
+            %i{:class => ["fa", "fa-sort-#{directions[k]}"] }
+        %th Roles
+        -# TODO: START_ACL cleanup after ACL transition
+        %th Collections/Groups
+        %th Actions
+    %tbody
+      - list.each do |user|
+        %tr
+          %td= link_to user.last_name, edit_admin_user_path(id: user)
+          %td= link_to user.first_name, edit_admin_user_path(id: user)
+          %td
+            = user.email
+            - if user.agency
+              .user__agency
+                %em.text-muted= user.agency.name
+            - else
+              .text-danger.user__agency{ data: { 'bs-toggle' => :tooltip, 'bs-title' => 'Lack of agency may prevent login, password reset, and account deletion. Edit the account to set the agency.' }}
+                %i.icon-warning
+                %em
+                  = link_to 'Agency not assigned!', edit_admin_user_path(id: user), class: 'text-danger'
+          %td
+            -# TODO: START_ACL cleanup after ACL transition
+            - if user.using_acls?
+              - names = user.roles.map(&:name).uniq
+              - names.each do |name|
+                .mb-1= name
+            - else
+              - names = user.legacy_roles.map(&:name).uniq
+              - names.each do |name|
+                .mb-1= name
+          %td
+            -# TODO: START_ACL remove after ACL transition
+            - if user.using_acls?
+              .mt-2
+                = checkmark(true)
+                Access Controls Enabled
+            - else
+              -# TODO: START_ACL cleanup after ACL transition
+              - names = user.access_groups.general.order(name: :asc).distinct.map(&:name)
+              - names.uniq.sort.each do |name|
+                .mb-1= name
+          %td= render 'user_links', user: user
