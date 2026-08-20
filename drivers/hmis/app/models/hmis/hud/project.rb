@@ -44,7 +44,6 @@ class Hmis::Hud::Project < Hmis::Hud::Base
   has_many :funders, **hmis_relation(:ProjectID, 'Funder'), inverse_of: :project, dependent: :destroy
   has_many :units, -> { active }, dependent: :destroy
   has_many :unit_groups, dependent: :destroy, class_name: 'Hmis::UnitGroup'
-  has_many :unit_type_mappings, dependent: :destroy, class_name: 'Hmis::ProjectUnitTypeMapping'
 
   has_many :group_viewable_entity_projects
   has_many :group_viewable_entities, through: :group_viewable_entity_projects, source: :group_viewable_entity
@@ -401,20 +400,6 @@ class Hmis::Hud::Project < Hmis::Hud::Base
     raise "Invalid CoC Code #{coc_code_arg} for project" unless uniq_coc_codes.include?(coc_code_arg)
 
     coc_code_arg
-  end
-
-  def possible_unit_types
-    unit_type_scope = Hmis::UnitType.all
-
-    # Only return types that are "mapped" for this project. If there are
-    # no mappings it should return all unit types, which is the default behavior.
-    unit_type_ids = unit_type_mappings.active.pluck(:unit_type_id)
-    if unit_type_ids.any?
-      unit_type_ids += units.distinct.pluck(:unit_type_id) # include unit types for existing units
-      unit_type_scope = unit_type_scope.where(id: unit_type_ids)
-    end
-
-    unit_type_scope
   end
 
   private
