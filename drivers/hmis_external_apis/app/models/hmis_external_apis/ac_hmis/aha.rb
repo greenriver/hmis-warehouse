@@ -284,16 +284,18 @@ module HmisExternalApis::AcHmis
 
       # If some flags were missing but not all, log to Sentry so we can investigate (unexpected behavior)
       Sentry.capture_message("VisionLink metadata missing fields: #{missing_fields.join(', ')}") if missing_fields.any?
+      # If some expected_fields flags have non-boolean values, log to Sentry so we can investigate (unexpected behavior)
+      Sentry.capture_message("VisionLink metadata contains non-boolean values: #{metadata.slice(*expected_fields).inspect}") if metadata.slice(*expected_fields).any? { |_, value| !value.in?([true, false]) }
 
       AhaScores::VisionLinkResult.new(
         score: score_value,
         dw_client_id: dw_client_id,
         generator: score_obj['generator'],
-        is_eligible_ra: metadata['is_eligible_ra'] == true,          # 'Risk of Homelessness Flag'
-        section_8: metadata['section_8'] == 1,                       # 'Section 8 Housing Flag'
-        city_of_pittsburgh: metadata['city_of_pittsburgh'] == 1,     # 'City of Pittsburgh Flag'
-        subsidized_housing: metadata['subsidized_housing'] == 1,     # 'Subsidized Housing Flag'
-        recent_eviction_case: metadata['recent_eviction_case'] == 1, # 'Recent Eviction Case Flag'
+        is_eligible_ra: metadata['is_eligible_ra'] == true,             # 'Risk of Homelessness Flag'
+        section_8: metadata['section_8'] == true,                       # 'Section 8 Housing Flag'
+        city_of_pittsburgh: metadata['city_of_pittsburgh'] == true,     # 'City of Pittsburgh Flag'
+        subsidized_housing: metadata['subsidized_housing'] == true,     # 'Subsidized Housing Flag'
+        recent_eviction_case: metadata['recent_eviction_case'] == true, # 'Recent Eviction Case Flag'
       )
     end
 

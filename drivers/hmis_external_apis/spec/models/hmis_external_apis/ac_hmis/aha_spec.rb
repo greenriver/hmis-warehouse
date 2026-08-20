@@ -44,9 +44,10 @@ RSpec.describe HmisExternalApis::AcHmis::Aha, type: :model do
       'generator' => generator,
       'metadata' => metadata || {
         'is_eligible_ra' => false,
-        'section_8' => 0,
-        'subsidized_housing' => 0,
-        'recent_eviction_case' => 0,
+        'section_8' => false,
+        'city_of_pittsburgh' => false,
+        'subsidized_housing' => false,
+        'recent_eviction_case' => false,
       },
     }
   end
@@ -446,12 +447,14 @@ RSpec.describe HmisExternalApis::AcHmis::Aha, type: :model do
       expect(result.score).to eq(4.25)
       expect(result.is_eligible_ra).to eq(false)
       expect(result.section_8).to eq(false)
+      expect(result.city_of_pittsburgh).to eq(false)
       expect(result.subsidized_housing).to eq(false)
       expect(result.recent_eviction_case).to eq(false)
       expect(result).to be_a(HmisExternalApis::AcHmis::AhaScores::VisionLinkResult)
     end
 
-    it 'normalizes VisionLink flags from API values' do
+    it 'treats boolean true as eligible and boolean false as ineligible' do
+      allow(Sentry).to receive(:capture_message)
       response = mock_api_response(
         client_data(
           dw_client_id: mci_unique_id.value,
@@ -460,9 +463,10 @@ RSpec.describe HmisExternalApis::AcHmis::Aha, type: :model do
               score: 2,
               metadata: {
                 'is_eligible_ra' => true,
-                'section_8' => 1,
-                'subsidized_housing' => 1,
-                'recent_eviction_case' => 0,
+                'section_8' => true,
+                'city_of_pittsburgh' => false,
+                'subsidized_housing' => true,
+                'recent_eviction_case' => false,
               },
             ),
           ],
@@ -473,8 +477,37 @@ RSpec.describe HmisExternalApis::AcHmis::Aha, type: :model do
       result = aha.fetch_score(client, requested_generators: [:visionlink])[:visionlink]
       expect(result.is_eligible_ra).to eq(true)
       expect(result.section_8).to eq(true)
+      expect(result.city_of_pittsburgh).to eq(false)
       expect(result.subsidized_housing).to eq(true)
       expect(result.recent_eviction_case).to eq(false)
+      expect(Sentry).not_to have_received(:capture_message)
+    end
+
+    it 'treats numeric 1/0 flags as ineligible and logs to Sentry' do
+      allow(Sentry).to receive(:capture_message)
+      numeric_metadata = {
+        'is_eligible_ra' => true,
+        'section_8' => 1,
+        'city_of_pittsburgh' => 0,
+        'subsidized_housing' => 1,
+        'recent_eviction_case' => 0,
+      }
+      response = mock_api_response(
+        client_data(
+          dw_client_id: mci_unique_id.value,
+          scores: [visionlink_score_hash(score: 2, metadata: numeric_metadata)],
+        ),
+      )
+      setup_api_expectation(mci_unique_ids: mci_unique_id.value, response: response)
+
+      result = aha.fetch_score(client, requested_generators: [:visionlink])[:visionlink]
+      expect(result.is_eligible_ra).to eq(true)
+      expect(result.section_8).to eq(false)
+      expect(result.city_of_pittsburgh).to eq(false)
+      expect(result.subsidized_housing).to eq(false)
+      expect(result.recent_eviction_case).to eq(false)
+      expect(Sentry).to have_received(:capture_message).
+        with("VisionLink metadata contains non-boolean values: #{numeric_metadata.inspect}")
     end
 
     it 'returns nil when all eligibility metadata fields are missing' do
@@ -507,9 +540,9 @@ RSpec.describe HmisExternalApis::AcHmis::Aha, type: :model do
               score: 1,
               metadata: {
                 'is_eligible_ra' => false,
-                'section_8' => 0,
-                'subsidized_housing' => 0,
-                'recent_eviction_case' => 0,
+                'section_8' => false,
+                'subsidized_housing' => false,
+                'recent_eviction_case' => false,
                 'row_id' => '123',
                 'mci_uniq_id' => mci_unique_id.value,
               },
@@ -532,7 +565,7 @@ RSpec.describe HmisExternalApis::AcHmis::Aha, type: :model do
               score: -999,
               metadata: {
                 'is_eligible_ra' => false,
-                'section_8' => 1,
+                'section_8' => true,
               },
             ),
           ],
