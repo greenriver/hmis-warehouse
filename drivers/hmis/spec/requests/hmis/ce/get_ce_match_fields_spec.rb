@@ -65,7 +65,7 @@ RSpec.describe 'ceMatchFields query', type: :request do
       },
       {
         'key' => 'mental_health_disorder',
-        'label' => 'Mental Health Disorder',
+        'label' => 'Mental Health Disorder (most recent)',
         'description' => Hmis::Ce::Match::Expression::PsdeFieldRegistry::MENTAL_HEALTH_DISORDER.description,
         'itemType' => 'BOOLEAN',
         'multiple' => false,

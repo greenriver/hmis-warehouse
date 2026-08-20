@@ -19,7 +19,7 @@ module Hmis::Ce::Match::Expression
         multiple: false,
         label: "#{label} (most recent)",
         description: "The client's most recent Yes or No response for #{hud_description}, within the eligibility scope. " \
-                     'Refused, unknown, not collected (8/9/99) and blank answers are ignored.', \
+                     'Refused, unknown, not collected (8/9/99) and blank answers are ignored.',
       )
     end
 
@@ -30,7 +30,7 @@ module Hmis::Ce::Match::Expression
         multiple: true,
         label: "#{label} (all values in window)",
         description: "All of this client's Yes or No responses for #{hud_description}, within the eligibility scope. " \
-                     'Refused, unknown, not collected (8/9/99) and blank answers are ignored. ',
+                     'Refused, unknown, not collected (8/9/99) and blank answers are ignored.',
       )
     end
 
