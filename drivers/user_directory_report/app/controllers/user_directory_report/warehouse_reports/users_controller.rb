@@ -9,6 +9,7 @@
 module UserDirectoryReport::WarehouseReports
   class UsersController < ApplicationController
     include WarehouseReportAuthorization
+    include UserDirectoryReport::DirectoryUsers
 
     helper_method :nav_link_classes
     helper_method :cas_available?
@@ -26,8 +27,8 @@ module UserDirectoryReport::WarehouseReports
     end
 
     def warehouse
-      @users = _users(User)
-      @pagy, @users = pagy(@users)
+      @users = directory_users(User)
+      @inactive_user_ids = inactive_user_ids(User)
       @user_source = 'warehouse'
       @excel_export = UserDirectoryReport::DocumentExports::WarehouseUserDirectoryExcelExport.new
       respond_to do |format|
@@ -41,9 +42,11 @@ module UserDirectoryReport::WarehouseReports
 
     def cas
       if cas_available?
-        @users = _users(CasAccess::User)
+        @users = directory_users(CasAccess::User)
+        @inactive_user_ids = inactive_user_ids(CasAccess::User)
       else
         @users = []
+        @inactive_user_ids = Set.new
       end
       @user_source = 'cas'
       @excel_export = UserDirectoryReport::DocumentExports::CasUserDirectoryExcelExport.new
@@ -64,18 +67,6 @@ module UserDirectoryReport::WarehouseReports
 
     def cas_available?
       CasBase.db_exists? && CasAccess::User.take.respond_to?('exclude_from_directory')
-    end
-
-    private def _users(user_model)
-      if params[:q].present?
-        users = user_model.in_directory.
-          text_search(params[:q]).
-          order(:last_name, :first_name)
-      else
-        users = user_model.in_directory.
-          order(:last_name, :first_name)
-      end
-      return users
     end
   end
 end

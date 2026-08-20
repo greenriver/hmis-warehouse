@@ -22,6 +22,14 @@ module CasAccess
       current_scope
     end
 
+    scope :inactive, -> do
+      where(
+        arel_table[:active].eq(false).
+        or(arel_table[:expired_at].lteq(Time.current)).
+        or(arel_table[:last_activity_at].lteq(Devise.expire_after.ago)),
+      )
+    end
+
     def match_admin?
       self.class.match_admin.where(id: id).exists?
     end

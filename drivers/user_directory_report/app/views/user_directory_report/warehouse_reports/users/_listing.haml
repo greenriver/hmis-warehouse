@@ -24,7 +24,7 @@
               - user.unique_role_names.sort.each do |name| 
                 .role-name= name
               
-            %td= user.active ? 'Active': 'Inactive'
+            %td= @inactive_user_ids.include?(user.id) ? 'Inactive' : 'Active'
             %td= user.last_sign_in_at
   = render 'common/pagination_bottom', item_name: 'user'
 - else

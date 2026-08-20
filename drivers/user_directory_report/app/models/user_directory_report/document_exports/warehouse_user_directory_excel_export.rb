@@ -9,20 +9,10 @@
 module UserDirectoryReport::DocumentExports
   class WarehouseUserDirectoryExcelExport < ::GrdaWarehouse::DocumentExport
     include ApplicationHelper
+    include UserDirectoryReport::DirectoryUsers
+
     def authorized?
       user.can_view_any_reports?
-    end
-
-    private def _users(user_model)
-      if params[:q].present?
-        users = user_model.in_directory.
-          text_search(params[:q]).
-          order(:last_name, :first_name)
-      else
-        users = user_model.in_directory.
-          order(:last_name, :first_name)
-      end
-      return users
     end
 
     def perform
@@ -49,7 +39,8 @@ module UserDirectoryReport::DocumentExports
               'Last Login',
             ], style: title
           )
-          _users(User).each do |user|
+          inactive_ids = inactive_user_ids(User)
+          directory_users(User).each do |user|
             sheet.add_row(
               [
                 user.name,
@@ -57,7 +48,7 @@ module UserDirectoryReport::DocumentExports
                 user.phone_for_directory,
                 user.agency_name,
                 user.unique_role_names&.sort&.join('; '),
-                user.active ? 'Active' : 'Inactive',
+                inactive_ids.include?(user.id) ? 'Inactive' : 'Active',
                 user.last_sign_in_at,
               ],
             )

@@ -83,6 +83,24 @@ RSpec.describe UserDirectoryReport::WarehouseReports::UsersController, type: :re
         expect(assigns(:users)).to include(listed_user)
       end
     end
+
+    it 'lists inactive users, and marks them inactive on the same terms as the scope' do
+      # The directory includes inactive users, so the status column carries the whole
+      # meaning of "inactive" -- and `active` is only one of the three things that make a
+      # user inactive. This user's flag is still set, so a status derived from the column
+      # alone would call an aged-out account Active.
+      aged_out = create(:acl_user, active: true, last_activity_at: (Devise.expire_after + 1.day).ago)
+      flag_off = create(:acl_user, active: false)
+      sign_in_with(create(:role, can_view_assigned_reports: true), grant_report: true)
+
+      get warehouse_user_directory_report_warehouse_reports_users_path
+
+      aggregate_failures do
+        expect(assigns(:users)).to include(aged_out, flag_off, listed_user)
+        expect(assigns(:inactive_user_ids)).to include(aged_out.id, flag_off.id)
+        expect(assigns(:inactive_user_ids)).not_to include(listed_user.id)
+      end
+    end
   end
 
   describe 'GET /user_directory_report/warehouse_reports/users/cas' do
