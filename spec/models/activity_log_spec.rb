@@ -45,4 +45,34 @@ RSpec.describe ActivityLog do
       expect(described_class.warehouse_reports).to include(entry)
     end
   end
+
+  describe '.warehouse_report_conditions' do
+    def condition_for(url)
+      described_class.warehouse_report_conditions.find { |report_url, _| report_url == url }.last
+    end
+
+    # 'warehouse_reports/chronic' is a string-prefix of the sibling report
+    # 'warehouse_reports/chronic_housed' -- a bare `path LIKE '/url%'` default would let Chronic's
+    # condition also match Chronic Housed's traffic, misattributing it (first-match-wins in the
+    # CASE UsageSummary builds from this same list). The default must require a `/`, `?`, or
+    # end-of-string boundary right after the url, not just any continuation.
+    it "doesn't let one report's condition match a sibling report whose url is a string-prefix of it" do
+      housed_entry = log(path: '/warehouse_reports/chronic_housed/42')
+
+      expect(described_class.where(condition_for('warehouse_reports/chronic'))).not_to include(housed_entry)
+      expect(described_class.where(condition_for('warehouse_reports/chronic_housed'))).to include(housed_entry)
+    end
+
+    it 'still matches the exact bare url with no trailing segment' do
+      entry = log(path: '/warehouse_reports/chronic')
+
+      expect(described_class.where(condition_for('warehouse_reports/chronic'))).to include(entry)
+    end
+
+    it 'still matches the url followed by a query string' do
+      entry = log(path: '/warehouse_reports/chronic?foo=bar')
+
+      expect(described_class.where(condition_for('warehouse_reports/chronic'))).to include(entry)
+    end
+  end
 end

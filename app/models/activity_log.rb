@@ -28,8 +28,17 @@ class ActivityLog < ApplicationRecord
   # individually (not just OR'd together) to attribute each row to a report.
   def self.warehouse_report_conditions
     GrdaWarehouse::WarehouseReports::ReportDefinition.report_list.values.flatten.map do |r|
-      [r[:url], r[:reporting_query]&.call(arel_table) || arel_table[:path].matches("/#{r[:url]}%")]
+      [r[:url], r[:reporting_query]&.call(arel_table) || default_report_condition(r[:url])]
     end
+  end
+
+  # Exact match, or the url followed by a `/` (a nested path) or `?` (a query string) -- not a
+  # bare `LIKE '/url%'`, which would also match a sibling report whose url happens to be a
+  # string-prefix of this one (e.g. 'warehouse_reports/chronic' matching
+  # 'warehouse_reports/chronic_housed' traffic too, misattributing it via first-match-wins).
+  def self.default_report_condition(url)
+    at = arel_table
+    at[:path].eq("/#{url}").or(at[:path].matches("/#{url}/%")).or(at[:path].matches("/#{url}?%"))
   end
 
   def clean_object_name
