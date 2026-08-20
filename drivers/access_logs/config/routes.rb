@@ -13,7 +13,12 @@ OpenPath::Application.routes.draw do
   end
   namespace :access_logs do
     namespace :warehouse_reports do
-      resources :reports, only: [:index, :create]
+      resources :reports, only: [:index, :create] do
+        collection do
+          get :report_usage
+          post :render_report_usage
+        end
+      end
     end
   end
 end
