@@ -10,16 +10,17 @@
           %th SSN
       %tbody
         - clients.each do |c|
+          - visible_source_clients = c.source_clients.reject(&:data_source_deleted?)
+          - next if visible_source_clients.empty?
           %tr.client__potential-match
             - client_name = "#{c.pii_provider(user: current_user).full_name}"
-            - sc_count = c.source_clients.count
+            - sc_count = visible_source_clients.size
             - colspan = if sc_count == 1 then 2 else 4 end
             - if sc_count == 1
-              - client_name = "#{client_name} in #{c.source_clients.first.data_source&.short_name}"
+              - client_name = "#{client_name} in #{visible_source_clients.first.data_source&.short_name}"
             %td{colspan: colspan}
               .d-flex.align-items-center
                 .c-checkbox.c-checkbox.mr-4
-                  -# = f.input :merge, label: false, as: :boolean, checked_value: c.id, unchecked_value: nil, input_html: {name: input_id, id: input_id}
                   = check_box_tag input_id, c.id, nil, id: c.id
                   %label{for:c.id, tabindex:'1' }
                 = link_to(client_name, client_path(c), target: "_blank")
@@ -27,7 +28,7 @@
               %td= c.pii_provider(user: current_user).dob_or_age
               %td= c.pii_provider(user: current_user).ssn
             - else
-              - c.source_clients.each do |sc|
+              - visible_source_clients.each do |sc|
                 %tr
                   %td{style: 'width: 2em;'}
                   %td.client__source-client

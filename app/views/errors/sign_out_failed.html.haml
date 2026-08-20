@@ -1,0 +1,5 @@
+%h1= Translation.translate('We could not finish signing you out')
+%p= Translation.translate('Your session with the identity provider is still active, so you are still signed in. Green River has been notified.')
+%p= Translation.translate('If it keeps failing, quitting your browser completely will usually end the session.')
+%p
+  = link_to Translation.translate('Try signing out again'), destroy_user_session_path, method: :delete, class: 'btn btn-primary'

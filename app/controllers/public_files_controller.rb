@@ -10,7 +10,11 @@ class PublicFilesController < ApplicationController
   before_action :load_file
 
   def show
-    filename = @file.file&.file&.filename&.to_s || 'file'
+    filename = if @file.public_file.attached?
+      @file.public_file.filename.to_s
+    else
+      @file.file.presence || 'file'
+    end
     send_data(@file.file_data, type: @file.content_type, filename: filename)
   end
 

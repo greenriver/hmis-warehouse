@@ -29,7 +29,6 @@ gem 'loofah'
 gem 'rubyzip'
 gem 'rails-html-sanitizer'
 gem 'sanitize' # used to sanitize user-entered theme CSS
-gem 'sshkit'
 gem 'paranoia'
 gem 'pg'
 gem 'activerecord-sqlserver-adapter', '~> 8.1.0' # tied to the rails version
@@ -76,13 +75,7 @@ gem 'rserve-simpler', require: false
 gem 'encryptor'
 
 # File processing
-gem 'carrierwave', '~> 1'
-gem 'carrierwave-i18n'
-
-# version 1.5 has the fix we need when we ever go to 1.5
-# gem 'carrierwave-aws', '~> 1.4'
-gem 'carrierwave-aws', git: 'https://github.com/greenriver/carrierwave-aws.git', branch: 'gr-1.4.0-without-deprecations'
-gem 'image_processing', '~> 1.13.0' # higher requires mini_magick 5, which appears to be incompatible with carrierwave 1.4
+gem 'image_processing', '~> 1.13.0'
 
 gem 'mini_magick'
 gem 'mimemagic'
@@ -93,25 +86,30 @@ gem 'marcel'
 gem 'acts-as-taggable-on', '~> 13.0' # major bump for rails 8.1 (AR < 8.2); tagging behavior to verify manually (Release notes: https://github.com/mbleigh/acts-as-taggable-on/blob/master/CHANGELOG.md indicate no breaking changes)
 # gem 'seven_zip_ruby' unless ENV['NO_7ZIP'] == '1'
 
-gem 'devise', '~> 5.0'
-gem 'devise_invitable', '~> 2.0.9'
-gem 'devise-pwned_password'
-gem 'devise-security'
-gem 'devise-two-factor', '~> 6.4' # 6.x is rails-8-compatible; legacy otp secrets read via User#legacy_otp_secret
+# Bundler.require in config/application.rb takes this group only on the Devise arm, so a JWT-arm
+# reference to Devise or Warden raises at boot instead of resolving against a gem that loaded
+# anyway. A Devise-dependent gem added outside this group silences that signal.
+group :devise do
+  gem 'devise', '~> 5.0'
+  gem 'devise_invitable', '~> 2.0.9'
+  gem 'devise-pwned_password'
+  gem 'devise-security'
+  gem 'devise-two-factor', '~> 6.4' # 6.x is rails-8-compatible; legacy otp secrets read via User#legacy_otp_secret
+  gem 'doorkeeper'
+  gem 'omniauth', '~> 2.1'
+  gem 'omniauth-oauth2', '~> 1.7.3'
+  gem 'omniauth-rails_csrf_protection', '~> 2.0' # 2.x drops ActiveSupport::Configurable (deprecated in rails 8.1, removed 8.2)
+  gem 'pretender'
+  gem 'rqrcode'
+  gem 'authtrail' # for logging login attempts
+end
+
 gem 'rack-cors'
-gem 'doorkeeper'
 
 gem 'jwt', '~> 3.1' # Validates IdP-issued JWT access tokens
-gem 'omniauth', '~> 2.1'
-gem 'omniauth-oauth2', '~> 1.7.3'
-gem 'omniauth-rails_csrf_protection', '~> 2.0' # 2.x drops ActiveSupport::Configurable (deprecated in rails 8.1, removed 8.2)
 gem 'faraday', '~> 2.2'
 gem 'oauth2', '>= 2.0.22'
 
-gem 'pretender'
-gem 'rqrcode'
-
-gem 'authtrail' # for logging login attempts
 gem 'maxminddb' # for local geocoding of login attempts
 gem 'geocoder'
 
@@ -164,7 +162,7 @@ gem 'curb', '~> 1.0.9', require: false # pinning to 1.0.9 to keep webmock happy
 # gem 'savon'
 # gem 'qaaws', require: false, git: 'https://github.com/greenriver/eis-ruby-qaaws.git', branch: 'master'
 
-gem 'stupidedi', git: 'https://github.com/greenriver/stupidedi.git', branch: 'master'
+gem 'stupidedi', '~> 1.5'
 gem 'rexml', '>= 3.4.2', require: false # For ETO API and MassHealth SOAP processing; pinned for CVE-2025-58767
 
 gem 'redcarpet'
@@ -276,10 +274,6 @@ end
 
 group :development do
   gem 'html2haml', require: false
-  gem 'capistrano-bundler', require: false
-  gem 'capistrano-rvm', require: false
-  gem 'capistrano-passenger', require: false
-  gem 'capistrano-rails', require: false
   gem 'rails-erd', require: false
   gem 'web-console'
   gem 'aws-sdk-dynamodb', require: false

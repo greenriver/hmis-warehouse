@@ -85,21 +85,5 @@ module GrdaWarehouse
         tag.included_info.present? && tag.included_info.split(',').map(&:strip).include?(info_type)
       end
     end
-
-    # Taken from here:https://github.com/carrierwaveuploader/carrierwave-i18n/blob/master/rails/locales/en.yml
-    # These don't get translated appropriately unless they are here
-    # def translations
-    #   Translation.translate("failed to be processed")
-    #   Translation.translate("is not of an allowed file type")
-    #   Translation.translate("could not be downloaded")
-    #   Translation.translate("You are not allowed to upload %{extension} files, allowed types: %{allowed_types}")
-    #   Translation.translate("You are not allowed to upload %{extension} files, prohibited types: %{prohibited_types}")
-    #   Translation.translate("You are not allowed to upload %{content_type} files")
-    #   Translation.translate("You are not allowed to upload %{content_type} files")
-    #   Translation.translate("Failed to manipulate with rmagick, maybe it is not an image?")
-    #   Translation.translate("Failed to manipulate with MiniMagick, maybe it is not an image? Original Error: %{e}")
-    #   Translation.translate("File size should be greater than %{min_size}")
-    #   Translation.translate("File size should be less than %{max_size}")
-    # end
   end
 end

@@ -33,6 +33,7 @@ connectors:
       # reuses these absolute discovery URLs for the browser redirect, so this must
       # be the same externally reachable URL the browser uses. The dex service routes
       # op-keycloak.dev.test to Traefik via extra_hosts:host-gateway.
+      # (Requires the shared Traefik dev proxy to be running — see keycloak-idp.md.)
       issuer: https://op-keycloak.dev.test/realms/openpath
       clientID: ${KEYCLOAK_IDP_CLIENT_ID}
       clientSecret: ${KEYCLOAK_IDP_CLIENT_SECRET}

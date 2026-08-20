@@ -9,6 +9,7 @@
 class Hmis::SessionsController < Devise::SessionsController
   include Hmis::Concerns::JsonErrors
   include AuthenticatesWithTwoFactor
+  include Hmis::Concerns::DeviseHmisCurrentUser
 
   # Only respond to JSON requests
   clear_respond_to
@@ -37,7 +38,7 @@ class Hmis::SessionsController < Devise::SessionsController
       clear_reset_password_state(resource)
       set_csrf_cookie
       response.headers['X-app-user-id'] = resource.id
-      render json: resource.current_user_api_values
+      render json: resource.current_user_api_values(session_duration: session_duration_seconds)
     else
       handle_failed_authentication
     end

@@ -44,7 +44,6 @@ RSpec.describe Importing::RunDailyImportsJob, type: :job do
     allow(HudReports::HouseholdContext).to receive(:prune!)
     allow(Reporting::PopulationDashboardPopulateJob).to receive(:set).and_return(double(perform_later: true))
     allow(PruneDocumentExportsJob).to receive(:perform_later)
-    allow(Health::PruneDocumentExportsJob).to receive(:perform_later)
     allow(YouthFollowUpsJob).to receive(:set).and_return(double(perform_later: true))
     allow(SystemCohortsJob).to receive(:set).and_return(double(perform_later: true))
     allow(AccessGroup).to receive(:delayed_system_group_maintenance)

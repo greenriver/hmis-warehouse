@@ -15,6 +15,7 @@ module LongitudinalSpm::WarehouseReports
 
     before_action :require_can_access_some_version_of_clients!, only: [:details]
     before_action :set_report, only: [:show, :destroy, :details]
+    before_action :set_visible_report, only: [:restore_spms, :running]
     # before_action :set_pdf_export, only: [:show]
 
     def index
@@ -72,6 +73,26 @@ module LongitudinalSpm::WarehouseReports
       respond_with(@report, location: longitudinal_spm_warehouse_reports_reports_path)
     end
 
+    def restore_spms
+      purged = @report.purged_spms.map(&:hud_spm)
+      report_path = longitudinal_spm_warehouse_reports_report_path(@report)
+
+      return redirect_to(report_path, notice: 'No archived SPM reports to restore.') if purged.none?
+      return redirect_to(report_path, notice: 'A restore is already running for this report.') if purged.any?(&:restoring?)
+
+      purged.each(&:begin_restore!)
+
+      LongitudinalSpm::RestoreSpmsJob.perform_later(report_id: @report.id)
+      redirect_to report_path, notice: 'Restoring the archived SPM reports. This may take several minutes.'
+    end
+
+    def running
+      return head(:bad_request) unless request.xhr?
+      return head(:no_content) if @report.purged_spms.none?
+
+      render partial: 'archival_alert'
+    end
+
     def details_params
       params.permit(
         :spm_id,
@@ -84,6 +105,10 @@ module LongitudinalSpm::WarehouseReports
 
     private def set_report
       @report = report_class.find(params[:id].to_i)
+    end
+
+    private def set_visible_report
+      @report = report_scope.find(params[:id].to_i)
     end
 
     private def report_scope

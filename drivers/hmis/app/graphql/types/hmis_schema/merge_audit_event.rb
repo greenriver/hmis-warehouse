@@ -30,7 +30,7 @@ module Types
     end
 
     def client
-      load_ar_association(object, :retained_client)
+      load_ar_client_association(object, association_name: :retained_client)
     end
   end
 end

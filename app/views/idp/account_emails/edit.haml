@@ -1,0 +1,9 @@
+= content_for :title, 'Edit Account'
+%h1= content_for :title
+%hr
+.row
+  .col-sm-12
+    .mb-5= render 'idp/accounts/account_info_tabs'
+    .well(style="max-width: 500px")
+      %h3 Login & Security
+      = render 'content'

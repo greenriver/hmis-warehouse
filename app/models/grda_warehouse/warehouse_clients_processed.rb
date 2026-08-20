@@ -13,11 +13,22 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
 
   self.table_name = :warehouse_clients_processed
 
+  UPSERT_ADVISORY_LOCK_NAME = 'WarehouseClientsProcessed#upsert'
+  UPSERT_ADVISORY_LOCK_TIMEOUT_SECONDS = 120
+
   belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client'
   belongs_to :warehouse_client, class_name: 'GrdaWarehouse::WarehouseClient', foreign_key: :client_id, primary_key: :destination_id
   has_many :service_history_enrollments, class_name: 'GrdaWarehouse::ServiceHistoryEnrollment', primary_key: :client_id, foreign_key: :client_id
 
   scope :service_history, -> { where(routine: 'service_history') }
+
+  def self.with_lock(&block)
+    with_advisory_lock!(
+      UPSERT_ADVISORY_LOCK_NAME,
+      timeout_seconds: UPSERT_ADVISORY_LOCK_TIMEOUT_SECONDS,
+      &block
+    )
+  end
 
   private def default_client_ids
     range = ::Filters::DateRange.new(start: 1.years.ago, end: Date.current)
@@ -107,26 +118,29 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
         processed_batch << processed if processed.changed?
       end
       if processed_batch.present?
-        self.class.import(
-          processed_batch,
-          on_duplicate_key_update: {
-            columns: [
-              :last_service_updated_at,
-              :first_homeless_date,
-              :last_homeless_date,
-              :homeless_days,
-              :first_chronic_date,
-              :last_chronic_date,
-              :chronic_days,
-              :first_date_served,
-              :last_date_served,
-              :days_served,
-              :days_homeless_last_three_years,
-              :literally_homeless_last_three_years,
-              :days_homeless_plus_overrides,
-            ],
-          },
-        )
+        self.class.with_lock do
+          self.class.import(
+            processed_batch,
+            on_duplicate_key_update: {
+              conflict_target: [:client_id, :routine],
+              columns: [
+                :last_service_updated_at,
+                :first_homeless_date,
+                :last_homeless_date,
+                :homeless_days,
+                :first_chronic_date,
+                :last_chronic_date,
+                :chronic_days,
+                :first_date_served,
+                :last_date_served,
+                :days_served,
+                :days_homeless_last_three_years,
+                :literally_homeless_last_three_years,
+                :days_homeless_plus_overrides,
+              ],
+            },
+          )
+        end
       end
       client_id_batch.each do |client_id|
         GrdaWarehouse::Hud::Client.destination.clear_view_cache(client_id)
@@ -189,48 +203,51 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
         processed_batch << processed if processed.changed?
       end
       if processed_batch.present?
-        self.class.import(
-          processed_batch,
-          on_duplicate_key_update: {
-            columns: [
-              :last_service_updated_at,
-              :first_homeless_date,
-              :last_homeless_date,
-              :homeless_days,
-              :first_chronic_date,
-              :last_chronic_date,
-              :chronic_days,
-              :first_date_served,
-              :last_date_served,
-              :days_served,
-              :days_homeless_last_three_years,
-              :literally_homeless_last_three_years,
-              :days_homeless_plus_overrides,
-              :enrolled_homeless_shelter,
-              :enrolled_homeless_unsheltered,
-              :enrolled_permanent_housing,
-              :most_recent_move_in_date,
-              :household_members,
-              :open_enrollments,
-              :rrh_desired,
-              :last_homeless_visit,
-              :cohorts_ongoing_enrollments_es,
-              :cohorts_ongoing_enrollments_sh,
-              :cohorts_ongoing_enrollments_th,
-              :cohorts_ongoing_enrollments_so,
-              :cohorts_ongoing_enrollments_psh,
-              :cohorts_ongoing_enrollments_rrh,
-              :cohorts_ongoing_enrollments_sso,
-              :active_in_cas_match,
-              :last_cas_match_date,
-              :lgbtq_from_hmis,
-              :last_exit_destination,
-              :vispdat_score,
-              :vispdat_priority_score,
-              :last_intentional_contacts,
-            ],
-          },
-        )
+        self.class.with_lock do
+          self.class.import(
+            processed_batch,
+            on_duplicate_key_update: {
+              conflict_target: [:client_id, :routine],
+              columns: [
+                :last_service_updated_at,
+                :first_homeless_date,
+                :last_homeless_date,
+                :homeless_days,
+                :first_chronic_date,
+                :last_chronic_date,
+                :chronic_days,
+                :first_date_served,
+                :last_date_served,
+                :days_served,
+                :days_homeless_last_three_years,
+                :literally_homeless_last_three_years,
+                :days_homeless_plus_overrides,
+                :enrolled_homeless_shelter,
+                :enrolled_homeless_unsheltered,
+                :enrolled_permanent_housing,
+                :most_recent_move_in_date,
+                :household_members,
+                :open_enrollments,
+                :rrh_desired,
+                :last_homeless_visit,
+                :cohorts_ongoing_enrollments_es,
+                :cohorts_ongoing_enrollments_sh,
+                :cohorts_ongoing_enrollments_th,
+                :cohorts_ongoing_enrollments_so,
+                :cohorts_ongoing_enrollments_psh,
+                :cohorts_ongoing_enrollments_rrh,
+                :cohorts_ongoing_enrollments_sso,
+                :active_in_cas_match,
+                :last_cas_match_date,
+                :lgbtq_from_hmis,
+                :last_exit_destination,
+                :vispdat_score,
+                :vispdat_priority_score,
+                :last_intentional_contacts,
+              ],
+            },
+          )
+        end
       end
       client_id_batch.each do |client_id|
         GrdaWarehouse::Hud::Client.destination.clear_view_cache(client_id)

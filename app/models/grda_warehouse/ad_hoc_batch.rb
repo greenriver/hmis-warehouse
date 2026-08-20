@@ -159,33 +159,4 @@ class GrdaWarehouse::AdHocBatch < GrdaWarehouseBase
       client.save
     end
   end
-
-  # for file migration
-  scope :unprocessed_s3_migration, -> do
-    migrated = ActiveStorage::Attachment.where(record_type: 'GrdaWarehouse::AdHocBatch').pluck(:record_id)
-    all = pluck(:id)
-    unmigrated = all - migrated
-    return none if unmigrated.blank?
-
-    where(id: unmigrated)
-  end
-
-  def copy_to_s3!
-    return unless content.present?
-    return unless valid? # Ignore uploads that are already invalid (data source deleted?)
-    return if batch_file.attached? # don't re-process
-
-    puts "Migrating #{file} to S3"
-
-    Tempfile.create(binmode: true) do |tmp_file|
-      tmp_file.write(content)
-      tmp_file.rewind
-      batch_file.attach(io: tmp_file, content_type: content_type, filename: file, identify: false)
-    end
-
-    # Save no-matter validity state
-    self.content = nil
-    save!(validate: false)
-  end
-  # END for file migration
 end
