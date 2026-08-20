@@ -117,8 +117,7 @@ RSpec.describe Hmis::MigrateAssessmentsJob, type: :model do
       it 'creates assessments only in specified enrollment scope' do
         e2 = create(:hmis_hud_enrollment, data_source: ds1, client: c1)
 
-        enrollments = Hmis::Hud::Enrollment.where(id: e2.id)
-        Hmis::MigrateAssessmentsJob.perform_now(data_source_id: ds1.id, enrollments: enrollments, generate_empty_intakes: true)
+        Hmis::MigrateAssessmentsJob.perform_now(data_source_id: ds1.id, enrollment_ids: [e2.id], generate_empty_intakes: true)
 
         expect(e1.custom_assessments).to be_empty # didn't create assessment for p1 enrollment
         expect(e2.intake_assessment).to be_present
@@ -151,15 +150,88 @@ RSpec.describe Hmis::MigrateAssessmentsJob, type: :model do
         end.to change(e1.custom_assessments, :count).by(0)
       end
 
-      it 'clobbers existing HUD assessments without clobbering fully custom assessments' do
-        intake_assessment = create(:hmis_custom_assessment, data_collection_stage: 1, assessment_date: 1.month.ago, enrollment: e1, data_source: ds1, client: c1)
-        annual_assessment = create(:hmis_custom_assessment, data_collection_stage: 5, assessment_date: 1.day.ago, enrollment: e1, data_source: ds1, client: c1)
-        fully_custom_assessment = create(:hmis_custom_assessment, data_collection_stage: 99, assessment_date: 2.days.ago, enrollment: e1, data_source: ds1, client: c1)
-        Hmis::MigrateAssessmentsJob.perform_now(data_source_id: ds1.id, clobber: true)
-        expect { intake_assessment.reload }.to raise_error(ActiveRecord::RecordNotFound, /Couldn't find Hmis::Hud::CustomAssessment/)
-        expect { annual_assessment.reload }.to raise_error(ActiveRecord::RecordNotFound, /Couldn't find Hmis::Hud::CustomAssessment/)
-        fully_custom_assessment.reload
-        expect(fully_custom_assessment.enrollment).to eq(e1)
+      describe 'upsert' do
+        let!(:intake_assessment) { create(:hmis_custom_assessment, data_collection_stage: 1, assessment_date: 1.month.ago, enrollment: e1, data_source: ds1, client: c1) }
+        let!(:fully_custom_assessment) { create(:hmis_custom_assessment, data_collection_stage: 99, assessment_date: 2.days.ago, enrollment: e1, data_source: ds1, client: c1) }
+        let(:entry_records) { records_by_data_collaction_stage[1] }
+
+        it 'reconciles existing HUD assessments in place, preserving ids and leaving fully-custom assessments untouched' do
+          assessment_id = intake_assessment.id
+          form_processor_id = intake_assessment.form_processor.id
+          custom_form_processor_id = fully_custom_assessment.form_processor.id
+
+          # Before upsert the existing intake has no HUD references attached
+          expect(intake_assessment.form_processor.income_benefit).to be_nil
+          expect(intake_assessment.form_processor.health_and_dv).to be_nil
+
+          Hmis::MigrateAssessmentsJob.perform_now(data_source_id: ds1.id, upsert: true)
+
+          # No duplicate intake was created, and the record ids are preserved
+          expect(e1.custom_assessments.where(data_collection_stage: 1).count).to eq(1)
+          expect(e1.custom_assessments.intakes.sole.id).to eq(assessment_id) # unchanged
+          intake_assessment.reload
+          expect(intake_assessment.form_processor.id).to eq(form_processor_id) # unchanged
+
+          # A newly-available related record for the existing key is attached to the existing FormProcessor
+          expect(intake_assessment.form_processor.income_benefit).to eq(entry_records.find { |r| r.instance_of?(Hmis::Hud::IncomeBenefit) })
+          expect(intake_assessment.form_processor.health_and_dv).to eq(entry_records.find { |r| r.instance_of?(Hmis::Hud::HealthAndDv) })
+
+          # Metadata is recomputed from the related records (was 2019-01-01 from the factory)
+          expect(intake_assessment.date_created.to_fs(:db)).to eq(entry_records.map(&:date_created).min.to_fs(:db))
+          expect(intake_assessment.user).to eq(entry_records.max_by(&:date_updated).user)
+
+          # Fully-custom (stage 99) assessment is untouched
+          expect(fully_custom_assessment.reload.id).to eq(fully_custom_assessment.id)
+          expect(fully_custom_assessment.data_collection_stage).to eq(99)
+          expect(fully_custom_assessment.form_processor.id).to eq(custom_form_processor_id)
+        end
+
+        it 'clears migrate-owned references that no longer have a matching record' do
+          # Point the existing FormProcessor at an employment_education record that is not part of the
+          # current entry data, then remove the current entry employment_education so there's nothing to
+          # reconcile it to. Use stage 99 so migrate never generates an assessment for the stale record.
+          stale = create(:hmis_employment_education, data_source: ds1, enrollment: e1, client: c1, data_collection_stage: 99)
+          intake_assessment.form_processor.update!(employment_education: stale)
+          entry_records.find { |r| r.instance_of?(Hmis::Hud::EmploymentEducation) }.destroy!
+
+          Hmis::MigrateAssessmentsJob.perform_now(data_source_id: ds1.id, upsert: true)
+
+          # MigrateAssessmentsJob cleared the stale reference
+          expect(intake_assessment.reload.form_processor.employment_education).to be_nil
+        end
+
+        it 'reconciles an existing annual (unique-by-information-date) assessment in place' do
+          # Annual (stage 5) assessments are matched on assessment_date == the records' information_date,
+          # so this exercises the unique_by_information_date key alignment (which intake tests do not exercise).
+          annual_date = 6.months.ago.to_date
+          annual_assessment = create(
+            :hmis_custom_assessment,
+            data_collection_stage: 5,
+            assessment_date: annual_date,
+            enrollment: e1,
+            data_source: ds1,
+            client: c1,
+          )
+          annual_assessment_id = annual_assessment.id
+          form_processor_id = annual_assessment.form_processor.id
+          expect(annual_assessment.form_processor.income_benefit).to be_nil
+
+          # Newly-available annual records sharing the assessment's information_date
+          annual_income_benefit = create(:hmis_income_benefit, data_source: ds1, enrollment: e1, client: c1, data_collection_stage: 5, information_date: annual_date)
+          annual_health_and_dv = create(:hmis_health_and_dv, data_source: ds1, enrollment: e1, client: c1, data_collection_stage: 5, information_date: annual_date)
+
+          Hmis::MigrateAssessmentsJob.perform_now(data_source_id: ds1.id, upsert: true)
+
+          # No duplicate annual was created, and the record ids are preserved
+          expect(e1.custom_assessments.where(data_collection_stage: 5).count).to eq(1)
+          annual_assessment.reload
+          expect(annual_assessment.id).to eq(annual_assessment_id) # unchanged
+          expect(annual_assessment.form_processor.id).to eq(form_processor_id) # unchanged
+
+          # The newly-available related records for the existing key are attached to the existing FormProcessor
+          expect(annual_assessment.form_processor.income_benefit).to eq(annual_income_benefit)
+          expect(annual_assessment.form_processor.health_and_dv).to eq(annual_health_and_dv)
+        end
       end
 
       context 'when there is an ExitDate and another record with earlier information date' do
