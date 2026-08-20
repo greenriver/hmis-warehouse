@@ -1,0 +1,11 @@
+.mx-auto.well.px-5(style="max-width: 340px")
+  %h1= title
+  %div(style="margin: 2.5em 0")
+    = link_to new_user_session_path, class: 'btn btn-primary btn-lg d-block' do
+      Sign in to your account
+  %p
+    %strong Need help?
+    Contact your organization's administrator for assistance.
+  %p.m-0
+    - if GrdaWarehouse::Config.get(:request_account_available)
+      = link_to 'Request an account', new_users_account_request_path
