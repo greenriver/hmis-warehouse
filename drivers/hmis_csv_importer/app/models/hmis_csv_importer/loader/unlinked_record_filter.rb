@@ -9,7 +9,7 @@
 module HmisCsvImporter::Loader
   class UnlinkedRecordFilter
     def self.description
-      'Strip Enrollment rows (and related records) with no matching Client or Project, logging what was removed'
+      'Discard Enrollment rows (and related records) with no matching Client or Project prior to import'
     end
 
     def self.associated_model
