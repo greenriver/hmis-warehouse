@@ -14,7 +14,7 @@ module HmisCsvImporter::Loader
     JOIN_ONLY_COLUMNS = ['HouseholdID', 'ResProjectID'].freeze
 
     def self.description
-      'Remap all HUD ID columns to stable, de-identified values before loading'
+      'Remap HUD ID columns to stable, non-colliding values before loading'
     end
 
     def self.associated_model
