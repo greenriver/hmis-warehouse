@@ -7,8 +7,7 @@
 # frozen_string_literal: true
 
 module HmisExternalApis::AcHmis::Exporters
-  # Class to export current Units.
-  # Does not include unit occupancy (which is included in CdeExport currently), just unit capacity per project.
+  # Class to export Units, including deleted units.
   class UnitExport
     include ::HmisExternalApis::AcHmis::Exporters::CsvExporter
     include ::Hmis::Concerns::HmisArelHelper
@@ -34,6 +33,7 @@ module HmisExternalApis::AcHmis::Exporters
           unit.project.project_name, # ProjectName
           unit.created_at, # DateCreated
           unit.updated_at, # DateUpdated
+          unit.deleted_at, # DateDeleted
         ]
         write_row(values)
       end
@@ -50,11 +50,12 @@ module HmisExternalApis::AcHmis::Exporters
         'ProjectName',
         'DateCreated',
         'DateUpdated',
+        'DateDeleted', # Blank for active units; set when the unit was removed. Deleted units are not reactivated.
       ]
     end
 
     def units
-      @units ||= Hmis::Unit.
+      @units ||= Hmis::Unit.with_deleted.
         joins(:project).
         merge(Hmis::Hud::Project.where(data_source: data_source)).
         order(Hmis::Hud::Project.arel_table[:id], Hmis::Unit.arel_table[:hmis_unit_group_id], Hmis::Unit.arel_table[:id]).
