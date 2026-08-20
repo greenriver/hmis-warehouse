@@ -32,7 +32,9 @@ module HmisCsvImporter::Loader
       return if removed_enrollment_ids.empty?
 
       loadable_files.each do |file_name, klass|
-        next if file_name.in?(['Client.csv', 'Project.csv', 'Enrollment.csv'])
+        # We already filtered Enrollment.csv
+        next if file_name.in?(['Enrollment.csv'])
+        # Skip any file that doesn't contain an EnrollmentID column
         next unless klass.hud_csv_headers.map(&:to_s).include?('EnrollmentID')
 
         filter_by_enrollment_id!(source_dir, file_name, klass, removed_enrollment_ids, loader_log)

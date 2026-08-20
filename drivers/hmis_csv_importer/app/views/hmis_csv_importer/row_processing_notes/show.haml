@@ -10,16 +10,4 @@
   %li.nav-item.active{role: 'presentation'}
     = link_to 'Row Processing Notes', hmis_csv_importer_row_processing_note_path(@import.loader_log, file: @filename), class: 'nav-link'
 
-= render 'common/pagination_top', item_name: 'note'
-.table-responsive
-  %table.table.table-striped
-    %thead
-      %tr
-        %th Reason
-        %th Row
-    %tbody
-      - @notes.each do |note|
-        %tr
-          %td= note.reason
-          %td= note.row
-= render 'common/pagination_bottom', item_name: 'note'
+= render_paginated_list_with_explicit_pagy(pagy: @pagy, list: @notes, item_name: 'note', list_partial: 'list')
