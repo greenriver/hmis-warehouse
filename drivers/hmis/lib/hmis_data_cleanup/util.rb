@@ -76,22 +76,6 @@ module HmisDataCleanup
       end
     end
 
-    # Find any single-member households that do not have a HoH, and make that person the HoH
-    def self.make_sole_member_hoh!
-      single_member_households = Hmis::Hud::Enrollment.hmis.where.not(household_id: nil).
-        group(:household_id).
-        having(nf('COUNT', [:HouseholdID]).eq(1)).
-        select(:household_id)
-
-      without_papertrail_or_timestamps do
-        rows_affected = Hmis::Hud::Enrollment.hmis.where(household_id: single_member_households).
-          where.not(relationship_to_hoh: 1).
-          update_all(relationship_to_hoh: 1) # skips callbacks
-
-        Rails.logger.info "Set HoH in #{rows_affected} single-member households"
-      end
-    end
-
     # Change any RelationshipToHoH values that are 99 (Data not collected) to 5 (Unrelated household member)
     # 99 is not a valid option for RelationshipToHoH, and causes flags in the LSA. Reference issue #7127.
     def self.fix_relationship_to_hoh_99s!
@@ -591,7 +575,7 @@ module HmisDataCleanup
       # You probably want to run some cleanup:
       #
       # HmisDataCleanup::Util.assign_missing_household_ids!
-      # HmisDataCleanup::Util.make_sole_member_hoh!
+      # Hmis::Hud::DataIntegrity::SoleMemberHohFixer.for_data_source!(data_source_id: ...)
 
       # Remember to generate HUD Assessments by running the MigrateAssessmentsJob:
       #

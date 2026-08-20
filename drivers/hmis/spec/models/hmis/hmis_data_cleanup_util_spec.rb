@@ -66,31 +66,6 @@ RSpec.describe HmisDataCleanup::Util, type: :model do
     end
   end
 
-  describe '#make_sole_member_hoh!' do
-    before(:each) do
-      e1.update!(relationship_to_hoh: 99, household_id: 'multi-member-household')
-      e2.update!(relationship_to_hoh: 99, household_id: 'multi-member-household')
-      e3.update!(relationship_to_hoh: 99, household_id: 'individual-household') # should be updated
-
-      # cruft in other data sources that shouldn't be touched
-      GrdaWarehouse::Hud::Enrollment.where.not(data_source: hmis_ds).update_all(relationship_to_hoh: 99)
-    end
-
-    it 'assigns HoH' do
-      HmisDataCleanup::Util.make_sole_member_hoh!
-
-      expect(e1.reload.relationship_to_hoh).to eq(99)
-      expect(e2.reload.relationship_to_hoh).to eq(99)
-      expect(e3.reload.relationship_to_hoh).to eq(1)
-    end
-
-    it 'does not make unexpected changes' do
-      expect_leaves_non_hmis_data_alone do
-        HmisDataCleanup::Util.make_sole_member_hoh!
-      end
-    end
-  end
-
   describe '#fix_disabling_condition_nils!' do
     before(:each) do
       # use update_columns to bypass before_save hook

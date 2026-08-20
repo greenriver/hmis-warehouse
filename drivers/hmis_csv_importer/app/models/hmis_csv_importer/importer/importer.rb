@@ -724,7 +724,10 @@ module HmisCsvImporter::Importer
 
     def cleanups_from_class(klass, data_source)
       basename = klass.name.split('::').last
-      data_source.import_cleanups[basename]&.map(&:constantize)
+      cleanups = data_source.import_cleanups[basename]&.map(&:constantize)
+      return unless cleanups.present?
+
+      cleanups.sort_by.with_index { |cleanup_klass, index| [cleanup_klass.run_order, index] }
     end
 
     # Capture executed sql for debugging.
