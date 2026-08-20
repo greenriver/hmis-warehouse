@@ -64,10 +64,7 @@ module HudReports::HudPdfExportConcern
         template_file = 'hud_reports/download'
         layout = 'layouts/hud_report_export'
 
-        ActionController::Renderer::RACK_KEY_TRANSLATION['warden'] ||= 'warden'
-        renderer = controller_class.renderer.new(
-          'warden' => PdfGenerator.warden_proxy(user),
-        )
+        renderer = controller_class.renderer.new(WardenProxyFactory.renderer_env(user))
         html = renderer.render(
           template_file,
           layout: layout,

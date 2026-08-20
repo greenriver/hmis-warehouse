@@ -71,7 +71,12 @@ RSpec.describe ApplicationHelper, type: :helper do
     before do
       allow(ENV).to receive(:fetch).with('CLIENT').and_return('test-client')
       allow(helper).to receive(:params).and_return(ActionController::Parameters.new(controller: 'test/nested', action: 'show'))
-      allow(helper).to receive(:current_user).and_return(nil)
+      # Without this wrapper, stubbing current_user verifies under devise (mixed into
+      # ActionController::Base globally) but raises under jwt (defined only on ApplicationController,
+      # which this bare helper spec's controller does not inherit).
+      without_partial_double_verification do
+        allow(helper).to receive(:current_user).and_return(nil)
+      end
       helper.instance_variable_set(:@layout__width, 'lg')
     end
 
@@ -89,7 +94,9 @@ RSpec.describe ApplicationHelper, type: :helper do
 
     context 'with signed in user' do
       before do
-        allow(helper).to receive(:current_user).and_return(double('User'))
+        without_partial_double_verification do
+          allow(helper).to receive(:current_user).and_return(double('User'))
+        end
       end
 
       it 'does not include not-signed-in class' do
@@ -313,7 +320,9 @@ RSpec.describe ApplicationHelper, type: :helper do
         before do
           allow(ENV).to receive(:fetch).with('CLIENT').and_return('test-client')
           allow(helper).to receive(:params).and_return(ActionController::Parameters.new(controller: 'admin/users', action: 'index'))
-          allow(helper).to receive(:current_user).and_return(nil)
+          without_partial_double_verification do
+            allow(helper).to receive(:current_user).and_return(nil)
+          end
           helper.instance_variable_set(:@layout__width, 'md')
         end
 

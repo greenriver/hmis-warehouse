@@ -332,10 +332,6 @@ class Collection < ApplicationRecord
         g.system = ['Entities']
         g.collection_type = 'Reports'
       end,
-      health_reports: Collection.where(name: 'All Health Reports', must_exist: true).first_or_create do |g|
-        g.system = ['Entities']
-        g.collection_type = 'Reports'
-      end,
       cohorts: Collection.where(name: 'All Cohorts', must_exist: true).first_or_create do |g|
         g.system = ['Entities']
         g.collection_type = 'Cohorts'
@@ -387,17 +383,10 @@ class Collection < ApplicationRecord
       # Reports
       all_reports = GrdaWarehouse::WarehouseReports::ReportDefinition.enabled
 
-      all_report_ids = []
       all_hmis_reports = system_collection(:hmis_reports)
-      ids = all_reports.where(health: false).pluck(:id)
+      ids = all_reports.pluck(:id)
       all_hmis_reports.set_viewables({ reports: ids })
-      all_report_ids += ids
-
-      all_health_reports = system_collection(:health_reports)
-      ids = all_reports.where(health: true).pluck(:id)
-      all_health_reports.set_viewables({ reports: ids })
-      all_report_ids += ids
-      system_user_access_group.set_viewables({ reports: all_report_ids })
+      system_user_access_group.set_viewables({ reports: ids })
     end
 
     if group.blank? || group == :cohorts

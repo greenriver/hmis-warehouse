@@ -74,10 +74,10 @@ class GrdaWarehouse::SourceClientViewAccessor
     @user = user
     arbiter = GrdaWarehouse::Hud::Client.arbiter(@user)
     @searchable_cache = Cache.new(user) do |ids|
-      arbiter.clients_source_searchable_to(@user, client_ids: ids).preload(:destination_client, :data_source, :patient)
+      arbiter.clients_source_searchable_to(@user, client_ids: ids).preload(:destination_client, :data_source)
     end
     @viewable_cache = Cache.new(user) do |ids|
-      arbiter.clients_source_visible_to(@user, client_ids: ids).preload(:destination_client, :data_source, :patient)
+      arbiter.clients_source_visible_to(@user, client_ids: ids).preload(:destination_client, :data_source)
     end
   end
 
@@ -112,7 +112,6 @@ class GrdaWarehouse::SourceClientViewAccessor
   #   variations from source records
   def searchable_client_names(client)
     GrdaWarehouse::SourceClientNameSet.new(
-      destination_client: client,
       source_clients: searchable_clients(client),
       user: @user,
     )
@@ -120,7 +119,6 @@ class GrdaWarehouse::SourceClientViewAccessor
 
   def viewable_client_names(client)
     GrdaWarehouse::SourceClientNameSet.new(
-      destination_client: client,
       source_clients: viewable_clients(client),
       user: @user,
     )

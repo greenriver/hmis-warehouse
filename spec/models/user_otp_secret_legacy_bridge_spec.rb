@@ -12,7 +12,9 @@ require 'rails_helper'
 # but existing users' secrets remain in the legacy attr_encrypted columns
 # (encrypted_otp_secret/_iv/_salt). User#legacy_otp_secret must decrypt those so existing
 # 2FA keeps working with no data migration.
-RSpec.describe 'User OTP secret legacy bridge', type: :model do
+# Devise-only: 2FA is a devise-two-factor feature, and the :two_factor_authenticatable macro that
+# supplies the otp_* accessors is gated off under AUTH_METHOD=jwt, where the IdP owns 2FA.
+RSpec.describe 'User OTP secret legacy bridge', :devise_only, type: :model do
   # Writes a secret into the legacy encrypted_otp_secret* columns the way
   # devise-two-factor <= 4.x did (attr_encrypted, per-attribute iv+salt, aes-256-gcm),
   # i.e. how production secrets are currently stored.

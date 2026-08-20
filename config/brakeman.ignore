@@ -24,40 +24,6 @@
       "note": ""
     },
     {
-      "warning_type": "Cross-Site Scripting",
-      "warning_code": 2,
-      "fingerprint": "038bcd60acffeb30ca826c9b5f82d7628089aec25339d562440efa0b130911ca",
-      "check_name": "CrossSiteScripting",
-      "message": "Unescaped model attribute",
-      "file": "drivers/health_pctp/app/views/health_pctp/careplans/edit_pdf.haml",
-      "line": 14,
-      "link": "https://brakemanscanner.org/docs/warning_types/cross_site_scripting",
-      "code": "Health::Patient.viewable_by_user(current_user).find_by(:client_id => params[:client_id].to_i).pctps.find(params[:id]).enrollee_overview_label",
-      "render_path": [
-        {
-          "type": "controller",
-          "class": "HealthPctp::CareplansController",
-          "method": "edit",
-          "line": 36,
-          "file": "drivers/health_pctp/app/controllers/health_pctp/careplans_controller.rb",
-          "rendered": {
-            "name": "health_pctp/careplans/edit_pdf",
-            "file": "drivers/health_pctp/app/views/health_pctp/careplans/edit_pdf.haml"
-          }
-        }
-      ],
-      "location": {
-        "type": "template",
-        "template": "health_pctp/careplans/edit_pdf"
-      },
-      "user_input": null,
-      "confidence": "High",
-      "cwe_id": [
-        79
-      ],
-      "note": ""
-    },
-    {
       "warning_type": "HTTP Verb Confusion",
       "warning_code": 118,
       "fingerprint": "05a3960f7236c0da86510f0fb7338b584ba226de1b321eaefe4ef493408c38dc",
@@ -104,29 +70,6 @@
       "note": ""
     },
     {
-      "warning_type": "File Access",
-      "warning_code": 16,
-      "fingerprint": "0a8413f58bac50c36a5c6154a71747e5b6dcc2c7c345f8388fd7d4f42e2350d3",
-      "check_name": "SendFile",
-      "message": "Model attribute used in file name",
-      "file": "app/models/health/scheduled_documents/enrollment_disenrollment.rb",
-      "line": 46,
-      "link": "https://brakemanscanner.org/docs/warning_types/file_access/",
-      "code": "send_file(:file_name => Health::EnrollmentDisenrollment.new(:start_date => Date.current.beginning_of_month, :end_date => Date.current.end_of_month, :effective_date => Date.current, :aco_ids => acos.reject(&:blank?), :enrollment_reasons => ((Health::EnrollmentReasons.last or Health::EnrollmentReasons.new))).zip_file_name, :data => Zip::OutputStream.write_buffer do\n zio.put_next_entry(Health::EnrollmentDisenrollment.new(:start_date => Date.current.beginning_of_month, :end_date => Date.current.end_of_month, :effective_date => Date.current, :aco_ids => acos.reject(&:blank?), :enrollment_reasons => ((Health::EnrollmentReasons.last or Health::EnrollmentReasons.new))).summary_file_name)\nzio.write(ApplicationController.render(:template => \"warehouse_reports/health/enrollments_disenrollments/summary.xlsx\", :assigns => ({ :report => Health::EnrollmentDisenrollment.new(:start_date => Date.current.beginning_of_month, :end_date => Date.current.end_of_month, :effective_date => Date.current, :aco_ids => acos.reject(&:blank?), :enrollment_reasons => ((Health::EnrollmentReasons.last or Health::EnrollmentReasons.new))) })))\nzio.put_next_entry(Health::EnrollmentDisenrollment.new(:start_date => Date.current.beginning_of_month, :end_date => Date.current.end_of_month, :effective_date => Date.current, :aco_ids => acos.reject(&:blank?), :enrollment_reasons => ((Health::EnrollmentReasons.last or Health::EnrollmentReasons.new))).report_file_name)\nzio.write(ApplicationController.render(:template => \"warehouse_reports/health/enrollments_disenrollments/report.xlsx\", :assigns => ({ :report => Health::EnrollmentDisenrollment.new(:start_date => Date.current.beginning_of_month, :end_date => Date.current.end_of_month, :effective_date => Date.current, :aco_ids => acos.reject(&:blank?), :enrollment_reasons => ((Health::EnrollmentReasons.last or Health::EnrollmentReasons.new))) })))\n end.string)",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "Health::ScheduledDocuments::EnrollmentDisenrollment",
-        "method": "deliver"
-      },
-      "user_input": "Health::EnrollmentDisenrollment.new(:start_date => Date.current.beginning_of_month, :end_date => Date.current.end_of_month, :effective_date => Date.current, :aco_ids => acos.reject(&:blank?), :enrollment_reasons => ((Health::EnrollmentReasons.last or Health::EnrollmentReasons.new))).report_file_name",
-      "confidence": "Weak",
-      "cwe_id": [
-        22
-      ],
-      "note": ""
-    },
-    {
       "warning_type": "SQL Injection",
       "warning_code": 0,
       "fingerprint": "0af0024667b7b016cd20c0283221da1380c57b59de7f31758007777193b6bae8",
@@ -156,7 +99,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/grda_warehouse_base.rb",
-      "line": 94,
+      "line": 126,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "connection.execute(\"SET enable_nestloop = #{connection.select_value(\"SHOW enable_nestloop\").downcase}\")",
       "render_path": null,
@@ -234,64 +177,6 @@
         "template": "project_groups/_form"
       },
       "user_input": "(not User.anyone_using_acls?)",
-      "confidence": "Weak",
-      "cwe_id": [
-        79
-      ],
-      "note": ""
-    },
-    {
-      "warning_type": "Denial of Service",
-      "warning_code": 76,
-      "fingerprint": "12d54f9786ea1b87aaff0a84ef939d760a3eac5d1e4c213b702b67a0f9b7905e",
-      "check_name": "RegexDoS",
-      "message": "Model attribute used in regular expression",
-      "file": "app/models/health/qualifying_activity.rb",
-      "line": 72,
-      "link": "https://brakemanscanner.org/docs/warning_types/denial_of_service/",
-      "code": "/#{[Health::QualifyingActivityV1, Health::QualifyingActivityV2, Health::QualifyingActivityV3].map do\n (version::ATTRIBUTE_SUFFIX + \"$\")\n end.join(\"|\")}/",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "Health::QualifyingActivity",
-        "method": "Health::QualifyingActivity.human_attribute_name"
-      },
-      "user_input": "[Health::QualifyingActivityV1, Health::QualifyingActivityV2, Health::QualifyingActivityV3].map",
-      "confidence": "Weak",
-      "cwe_id": [
-        20,
-        185
-      ],
-      "note": ""
-    },
-    {
-      "warning_type": "Cross-Site Scripting",
-      "warning_code": 2,
-      "fingerprint": "14ea9dd6d7b1196626264bf32e91cd0f2f42bf4d9924501a27a9ff138431e887",
-      "check_name": "CrossSiteScripting",
-      "message": "Unescaped model attribute",
-      "file": "app/views/health/sdh_case_management_notes/edit.haml",
-      "line": 7,
-      "link": "https://brakemanscanner.org/docs/warning_types/cross_site_scripting",
-      "code": "Health::QualifyingActivity::VERSIONS.map(&:js_model).join(\", \").html_safe",
-      "render_path": [
-        {
-          "type": "controller",
-          "class": "Health::SdhCaseManagementNotesController",
-          "method": "edit",
-          "line": 45,
-          "file": "app/controllers/health/sdh_case_management_notes_controller.rb",
-          "rendered": {
-            "name": "health/sdh_case_management_notes/edit",
-            "file": "app/views/health/sdh_case_management_notes/edit.haml"
-          }
-        }
-      ],
-      "location": {
-        "type": "template",
-        "template": "health/sdh_case_management_notes/edit"
-      },
-      "user_input": "Health::QualifyingActivity::VERSIONS.map(&:js_model)",
       "confidence": "Weak",
       "cwe_id": [
         79
@@ -678,60 +563,6 @@
       "note": ""
     },
     {
-      "warning_type": "Cross-Site Scripting",
-      "warning_code": 2,
-      "fingerprint": "3e636e70d49ecf3213726f9e7ff6da99b597a8724967c1be77567905f8383362",
-      "check_name": "CrossSiteScripting",
-      "message": "Unescaped model attribute",
-      "file": "app/views/health/careplans/_current_team.haml",
-      "line": 14,
-      "link": "https://brakemanscanner.org/docs/warning_types/cross_site_scripting",
-      "code": "::Haml::AttributeBuilder.build_class(true, Health::Team::Member.icon_for(member.member_type_name))",
-      "render_path": [
-        {
-          "type": "controller",
-          "class": "Health::CareplansController",
-          "method": "index",
-          "line": 36,
-          "file": "app/controllers/health/careplans_controller.rb",
-          "rendered": {
-            "name": "health/careplans/index",
-            "file": "app/views/health/careplans/index.haml"
-          }
-        },
-        {
-          "type": "template",
-          "name": "health/careplans/index",
-          "line": 9,
-          "file": "app/views/health/careplans/index.haml",
-          "rendered": {
-            "name": "health/careplans/_index",
-            "file": "app/views/health/careplans/_index.haml"
-          }
-        },
-        {
-          "type": "template",
-          "name": "health/careplans/_index",
-          "line": 10,
-          "file": "app/views/health/careplans/_index.haml",
-          "rendered": {
-            "name": "health/careplans/_current_team",
-            "file": "app/views/health/careplans/_current_team.haml"
-          }
-        }
-      ],
-      "location": {
-        "type": "template",
-        "template": "health/careplans/_current_team"
-      },
-      "user_input": "Health::Team::Member.icon_for(member.member_type_name)",
-      "confidence": "Weak",
-      "cwe_id": [
-        79
-      ],
-      "note": ""
-    },
-    {
       "warning_type": "SQL Injection",
       "warning_code": 0,
       "fingerprint": "3e7e0291a50a229015f6e9674412dd30aaa687e973bc11e005d95406444e97d9",
@@ -774,60 +605,6 @@
       "confidence": "Medium",
       "cwe_id": [
         77
-      ],
-      "note": ""
-    },
-    {
-      "warning_type": "Cross-Site Scripting",
-      "warning_code": 2,
-      "fingerprint": "3f9acb4ebf7508068bdbecac4a688c383544f4da0ca3967f5a51ea80f5bcb125",
-      "check_name": "CrossSiteScripting",
-      "message": "Unescaped model attribute",
-      "file": "app/views/health/comprehensive_health_assessments/_show.haml",
-      "line": 104,
-      "link": "https://brakemanscanner.org/docs/warning_types/cross_site_scripting",
-      "code": "Translation.translate(\"CHA L_Q1S1A_SUBHEADER\")",
-      "render_path": [
-        {
-          "type": "controller",
-          "class": "Health::CareplansController",
-          "method": "show",
-          "line": 42,
-          "file": "app/controllers/health/careplans_controller.rb",
-          "rendered": {
-            "name": "health/careplans/show",
-            "file": "app/views/health/careplans/show.haml"
-          }
-        },
-        {
-          "type": "template",
-          "name": "health/careplans/show",
-          "line": 1,
-          "file": "app/views/health/careplans/show.haml",
-          "rendered": {
-            "name": "health/careplans/_show",
-            "file": "app/views/health/careplans/_show.haml"
-          }
-        },
-        {
-          "type": "template",
-          "name": "health/careplans/_show",
-          "line": 7,
-          "file": "app/views/health/careplans/_show.haml",
-          "rendered": {
-            "name": "health/comprehensive_health_assessments/_show",
-            "file": "app/views/health/comprehensive_health_assessments/_show.haml"
-          }
-        }
-      ],
-      "location": {
-        "type": "template",
-        "template": "health/comprehensive_health_assessments/_show"
-      },
-      "user_input": null,
-      "confidence": "Medium",
-      "cwe_id": [
-        79
       ],
       "note": ""
     },
@@ -892,7 +669,7 @@
           "type": "controller",
           "class": "StyleGuidesController",
           "method": "system_colors",
-          "line": 141,
+          "line": 67,
           "file": "app/controllers/style_guides_controller.rb",
           "rendered": {
             "name": "style_guides/system_colors",
@@ -1002,39 +779,6 @@
       "note": ""
     },
     {
-      "warning_type": "Cross-Site Scripting",
-      "warning_code": 2,
-      "fingerprint": "53be4bbabac9313cff3af4c94b8de0786ce0caec55b67816c11fa2ccdc48198a",
-      "check_name": "CrossSiteScripting",
-      "message": "Unescaped model attribute",
-      "file": "app/views/health/team_members/_team_member.haml",
-      "line": 16,
-      "link": "https://brakemanscanner.org/docs/warning_types/cross_site_scripting",
-      "code": "::Haml::AttributeBuilder.build_class(true, Health::Team::Member.icon_for(member.member_type_name))",
-      "render_path": [
-        {
-          "type": "template",
-          "name": "health/careplans/_team",
-          "line": 13,
-          "file": "app/views/health/careplans/_team.haml",
-          "rendered": {
-            "name": "health/team_members/_team_member",
-            "file": "app/views/health/team_members/_team_member.haml"
-          }
-        }
-      ],
-      "location": {
-        "type": "template",
-        "template": "health/team_members/_team_member"
-      },
-      "user_input": "Health::Team::Member.icon_for(member.member_type_name)",
-      "confidence": "Weak",
-      "cwe_id": [
-        79
-      ],
-      "note": ""
-    },
-    {
       "warning_type": "Command Injection",
       "warning_code": 14,
       "fingerprint": "5499b637b8348aa1e36c39c76eedd901c66563518a8514361499efb75c9b0b43",
@@ -1133,7 +877,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/grda_warehouse/monitoring/tasks/metric_snapshot_collector.rb",
-      "line": 398,
+      "line": 402,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "GrdaWarehouseBase.connection.execute(\"UPDATE #{GrdaWarehouse::Monitoring::MetricSnapshot.quoted_table_name}\\nSET\\n  current_value = v.new_current_value::integer,\\n  current_observation_date = v.new_current_observation_date::date,\\n  updated_at = #{GrdaWarehouseBase.connection.quote(Time.current.strftime(\"%Y-%m-%d %H:%M:%S\"))}\\nFROM (VALUES #{snapshots.map do\n original_date = s.instance_variable_get(:@original_current_observation_date)\noriginal_date_str = s.instance_variable_get(:@original_current_observation_date).strftime(\"%Y-%m-%d\")\nentity_type = GrdaWarehouseBase.connection.quote(s.entity_type)\nentity_id = s.entity_id.to_i\nmetric_definition_id = s.metric_definition_id.to_i\ninitial_observation_date = GrdaWarehouseBase.connection.quote(s.initial_observation_date.strftime(\"%Y-%m-%d\"))\nold_current_observation_date = GrdaWarehouseBase.connection.quote(s.instance_variable_get(:@original_current_observation_date).strftime(\"%Y-%m-%d\"))\nnew_current_value = s.current_value.to_i\nnew_current_observation_date = GrdaWarehouseBase.connection.quote(s.current_observation_date.strftime(\"%Y-%m-%d\"))\n end.join(\",\")}) AS v(\\n  entity_type, entity_id, metric_definition_id, initial_observation_date,\\n  old_current_observation_date, new_current_value, new_current_observation_date\\n)\\nWHERE #{GrdaWarehouse::Monitoring::MetricSnapshot.quoted_table_name}.entity_type = v.entity_type\\n  AND #{GrdaWarehouse::Monitoring::MetricSnapshot.quoted_table_name}.entity_id = v.entity_id\\n  AND #{GrdaWarehouse::Monitoring::MetricSnapshot.quoted_table_name}.metric_definition_id = v.metric_definition_id\\n  AND #{GrdaWarehouse::Monitoring::MetricSnapshot.quoted_table_name}.initial_observation_date = v.initial_observation_date::date\\n  AND #{GrdaWarehouse::Monitoring::MetricSnapshot.quoted_table_name}.current_observation_date = v.old_current_observation_date::date\\n\")",
       "render_path": null,
@@ -1255,29 +999,6 @@
     {
       "warning_type": "SQL Injection",
       "warning_code": 0,
-      "fingerprint": "70c7d5e56f2aae7f8a1be7e25ea15fb31cb39d725235fad7940bb8e4a2840a25",
-      "check_name": "SQL",
-      "message": "Possible SQL injection",
-      "file": "app/models/grda_warehouse/shape/shared_behaviors.rb",
-      "line": 50,
-      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
-      "code": "Arel.sql(\"simplified_geom = ST_MakeValid(ST_Simplify(geom, #{simplification_distance_in_degrees}))\")",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "GrdaWarehouse::Shape::SharedBehaviors::ClassMethods",
-        "method": "simplify!"
-      },
-      "user_input": "simplification_distance_in_degrees",
-      "confidence": "Medium",
-      "cwe_id": [
-        89
-      ],
-      "note": "Injection from internal sources"
-    },
-    {
-      "warning_type": "SQL Injection",
-      "warning_code": 0,
       "fingerprint": "767755b5093a0a0e3dfa4a274187a35692b8b193ddc82131ffa7696be25fafef",
       "check_name": "SQL",
       "message": "Possible SQL injection",
@@ -1351,50 +1072,6 @@
       "confidence": "Weak",
       "cwe_id": [
         89
-      ],
-      "note": ""
-    },
-    {
-      "warning_type": "Cross-Site Scripting",
-      "warning_code": 2,
-      "fingerprint": "7ce9556ff0c07a7f1884e3d229a5ad86fcf69b73de4c708bbaa135f5c774a148",
-      "check_name": "CrossSiteScripting",
-      "message": "Unescaped model attribute",
-      "file": "app/views/admin/health/patient_referrals/_paginate.haml",
-      "line": 12,
-      "link": "https://brakemanscanner.org/docs/warning_types/cross_site_scripting",
-      "code": "pagy_info(@pagy, :item_name => Translation.translate(\"patient\").pluralize(@pagy.count))",
-      "render_path": [
-        {
-          "type": "controller",
-          "class": "Admin::Health::AgencyPatientReferralsController",
-          "method": "reviewed",
-          "line": 82,
-          "file": "app/controllers/admin/health/agency_patient_referrals_controller.rb",
-          "rendered": {
-            "name": "admin/health/agency_patient_referrals/index",
-            "file": "app/views/admin/health/agency_patient_referrals/index.haml"
-          }
-        },
-        {
-          "type": "template",
-          "name": "admin/health/agency_patient_referrals/index",
-          "line": 7,
-          "file": "app/views/admin/health/agency_patient_referrals/index.haml",
-          "rendered": {
-            "name": "admin/health/patient_referrals/_paginate",
-            "file": "app/views/admin/health/patient_referrals/_paginate.haml"
-          }
-        }
-      ],
-      "location": {
-        "type": "template",
-        "template": "admin/health/patient_referrals/_paginate"
-      },
-      "user_input": "Translation.translate(\"patient\").pluralize(@pagy.count)",
-      "confidence": "Weak",
-      "cwe_id": [
-        79
       ],
       "note": ""
     },
@@ -1493,34 +1170,11 @@
     {
       "warning_type": "SQL Injection",
       "warning_code": 0,
-      "fingerprint": "81e2b0d48a2dbe0a092252cf247638254bc6b7f2b6c876600d4edbd6102b7c72",
-      "check_name": "SQL",
-      "message": "Possible SQL injection",
-      "file": "app/models/grda_warehouse/shape/shared_behaviors.rb",
-      "line": 55,
-      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
-      "code": "where(:full_geoid => nil).update_all(\"full_geoid = '#{Arel.sql(_full_geoid_prefix)}' || 'US' || #{_geoid_column}\")",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "GrdaWarehouse::Shape::SharedBehaviors::ClassMethods",
-        "method": "set_full_geoid!"
-      },
-      "user_input": "Arel.sql(_full_geoid_prefix)",
-      "confidence": "Weak",
-      "cwe_id": [
-        89
-      ],
-      "note": "Injection from internal sources"
-    },
-    {
-      "warning_type": "SQL Injection",
-      "warning_code": 0,
       "fingerprint": "81f07f422194345a4f17b06a9a97c2d21b9e7252587090d27f1f9f22e7305aee",
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "lib/rds_sql_server/rds.rb",
-      "line": 270,
+      "line": 277,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "SqlServerBootstrapModel.connection.select_value(\"if not exists(select * from sys.databases where name = '#{database}')\\n  select 0;\\nelse\\n  select 1;\\n\")",
       "render_path": null,
@@ -1713,7 +1367,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/grda_warehouse/data_source.rb",
-      "line": 124,
+      "line": 123,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "where(\"#{has_access_to_data_source_through_viewable_entities(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{has_access_to_data_source_through_organizations(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{has_access_to_data_source_through_projects(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)}\")",
       "render_path": null,
@@ -1823,7 +1477,7 @@
           "type": "controller",
           "class": "AccessControlsController",
           "method": "show",
-          "line": 18,
+          "line": 19,
           "file": "app/controllers/access_controls_controller.rb",
           "rendered": {
             "name": "layouts/application",
@@ -2128,61 +1782,6 @@
       "note": ""
     },
     {
-      "warning_type": "Cross-Site Scripting",
-      "warning_code": 2,
-      "fingerprint": "bc97f624010dc57cf94f78e3f9d16d7e2d016f2c77435c5124c07125bac6b01c",
-      "check_name": "CrossSiteScripting",
-      "message": "Unescaped model attribute",
-      "file": "app/views/health/team_members/_group.haml",
-      "line": 3,
-      "link": "https://brakemanscanner.org/docs/warning_types/cross_site_scripting",
-      "code": "::Haml::AttributeBuilder.build_class(true, Health::Team::Member.icon_for(group))",
-      "render_path": null,
-      "location": {
-        "type": "template",
-        "template": "health/team_members/_group"
-      },
-      "user_input": "Health::Team::Member.icon_for(group)",
-      "confidence": "Weak",
-      "cwe_id": [
-        79
-      ],
-      "note": ""
-    },
-    {
-      "warning_type": "Cross-Site Scripting",
-      "warning_code": 2,
-      "fingerprint": "bed4cd225be0bb57377c6783a3406f509eb654d6e79c8cdb9c39757452bf9c9a",
-      "check_name": "CrossSiteScripting",
-      "message": "Unescaped model attribute",
-      "file": "app/views/health/careplan/team/members/_current_members.haml",
-      "line": 30,
-      "link": "https://brakemanscanner.org/docs/warning_types/cross_site_scripting",
-      "code": "::Haml::AttributeBuilder.build_class(true, Health::Team::Member.icon_for(group))",
-      "render_path": [
-        {
-          "type": "template",
-          "name": "health/careplan/team/members/index",
-          "line": 10,
-          "file": "app/views/health/careplan/team/members/index.haml",
-          "rendered": {
-            "name": "health/careplan/team/members/_current_members",
-            "file": "app/views/health/careplan/team/members/_current_members.haml"
-          }
-        }
-      ],
-      "location": {
-        "type": "template",
-        "template": "health/careplan/team/members/_current_members"
-      },
-      "user_input": "Health::Team::Member.icon_for(group)",
-      "confidence": "Weak",
-      "cwe_id": [
-        79
-      ],
-      "note": ""
-    },
-    {
       "warning_type": "Command Injection",
       "warning_code": 14,
       "fingerprint": "c001b77515db71c33c42f71ebb9f55b97fc3fa1dc0f7c8bc3c6255abcf416607",
@@ -2231,44 +1830,11 @@
     {
       "warning_type": "Cross-Site Scripting",
       "warning_code": 2,
-      "fingerprint": "c62c9ed9d0a5941aa377f5cd59535ab40b9dc40c21a2bce5abda3ed210a7c56e",
-      "check_name": "CrossSiteScripting",
-      "message": "Unescaped model attribute",
-      "file": "app/views/health/patient_team_members/_team_member.haml",
-      "line": 4,
-      "link": "https://brakemanscanner.org/docs/warning_types/cross_site_scripting",
-      "code": "::Haml::AttributeBuilder.build_class(true, Health::Team::Member.icon_for(member.member_type_name))",
-      "render_path": [
-        {
-          "type": "template",
-          "name": "health/patient_team_members/index",
-          "line": 30,
-          "file": "app/views/health/patient_team_members/index.haml",
-          "rendered": {
-            "name": "health/patient_team_members/_team_member",
-            "file": "app/views/health/patient_team_members/_team_member.haml"
-          }
-        }
-      ],
-      "location": {
-        "type": "template",
-        "template": "health/patient_team_members/_team_member"
-      },
-      "user_input": "Health::Team::Member.icon_for(member.member_type_name)",
-      "confidence": "Weak",
-      "cwe_id": [
-        79
-      ],
-      "note": ""
-    },
-    {
-      "warning_type": "Cross-Site Scripting",
-      "warning_code": 2,
       "fingerprint": "c6d2416929705fe07d75e0cba96b643e0d9361ef1329ece172ff0fcd797deb31",
       "check_name": "CrossSiteScripting",
       "message": "Unescaped model attribute",
       "file": "app/views/admin/users/_login_chart.haml",
-      "line": 15,
+      "line": 6,
       "link": "https://brakemanscanner.org/docs/warning_types/cross_site_scripting",
       "code": "ActivityLog.for_chart",
       "render_path": [
@@ -2314,39 +1880,6 @@
       "confidence": "Weak",
       "cwe_id": [
         89
-      ],
-      "note": ""
-    },
-    {
-      "warning_type": "Cross-Site Scripting",
-      "warning_code": 2,
-      "fingerprint": "c9b9edc3452f436d29c8c17ae156ab2f345f6dc2e3d977069a461ee5b316c5dd",
-      "check_name": "CrossSiteScripting",
-      "message": "Unescaped model attribute",
-      "file": "app/views/health/team_members/_current_members.haml",
-      "line": 30,
-      "link": "https://brakemanscanner.org/docs/warning_types/cross_site_scripting",
-      "code": "::Haml::AttributeBuilder.build_class(true, Health::Team::Member.icon_for(group))",
-      "render_path": [
-        {
-          "type": "template",
-          "name": "health/team_members/index",
-          "line": 10,
-          "file": "app/views/health/team_members/index.haml",
-          "rendered": {
-            "name": "health/team_members/_current_members",
-            "file": "app/views/health/team_members/_current_members.haml"
-          }
-        }
-      ],
-      "location": {
-        "type": "template",
-        "template": "health/team_members/_current_members"
-      },
-      "user_input": "Health::Team::Member.icon_for(group)",
-      "confidence": "Weak",
-      "cwe_id": [
-        79
       ],
       "note": ""
     },
@@ -2564,7 +2097,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "lib/rds_sql_server/rds.rb",
-      "line": 284,
+      "line": 291,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "SqlServerBootstrapModel.connection.execute(\"if not exists(select * from sys.databases where name = '#{database}')\\n  create database #{database}\\n\")",
       "render_path": null,
@@ -2574,6 +2107,29 @@
         "method": "create_database!"
       },
       "user_input": "database",
+      "confidence": "Medium",
+      "cwe_id": [
+        89
+      ],
+      "note": ""
+    },
+    {
+      "warning_type": "SQL Injection",
+      "warning_code": 0,
+      "fingerprint": "da290e26a7347010c244018dd872a4a1cdf89c0955e9e8eed235aa41756d5a0a",
+      "check_name": "SQL",
+      "message": "Possible SQL injection",
+      "file": "app/models/grda_warehouse/hud/client.rb",
+      "line": 2209,
+      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
+      "code": "Arel.sql(\"array_position(ARRAY[#{self.class.where(:id => { candidate.id => candidate.score.to_f }.keys).select do\n active_source_client_ages.include?(c.age)\n end.sort_by do\n -scores_by_id[c.id]\n end.first(20).map(&:id).join(\",\")}]::bigint[], id)\")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "GrdaWarehouse::Hud::Client",
+        "method": "potential_matches"
+      },
+      "user_input": "self.class.where(:id => { candidate.id => candidate.score.to_f }.keys).select do\n active_source_client_ages.include?(c.age)\n end.sort_by do\n -scores_by_id[c.id]\n end.first(20).map(&:id).join(\",\")",
       "confidence": "Medium",
       "cwe_id": [
         89

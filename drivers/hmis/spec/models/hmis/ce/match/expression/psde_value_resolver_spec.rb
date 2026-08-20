@@ -608,4 +608,208 @@ RSpec.describe Hmis::Ce::Match::Expression::PsdeValueResolver, type: :model do
       expect(resolver.call(clients, field)).to eq({ destination_client.id => nil })
     end
   end
+
+  describe 'hiv_aids_values_in_window resolution' do
+    let(:field) { Hmis::Ce::Match::Expression::PsdeFieldRegistry::HIV_AIDS_VALUES_IN_WINDOW }
+    let(:latest_field) { Hmis::Ce::Match::Expression::PsdeFieldRegistry::HIV_AIDS }
+    let(:disability_type) { 8 }
+
+    def create_disability(**attrs)
+      defaults = {
+        enrollment: enrollment,
+        client: client,
+        data_source: hmis_data_source,
+        data_collection_stage: 1,
+      }
+      create(:hmis_disability, :skip_validate, defaults.merge(attrs))
+    end
+
+    it 'returns an empty array for clients with no disability rows in scope' do
+      expect(resolver.call(clients, field)).to eq({ destination_client.id => [] })
+    end
+
+    it 'keeps every meaningful value within a single enrollment (Yes then No => both kept)' do
+      create_disability(
+        disability_type: disability_type,
+        disability_response: 1,
+        information_date: current_date - 2.weeks,
+        date_updated: current_date - 2.weeks,
+      )
+      create_disability(
+        disability_type: disability_type,
+        disability_response: 0,
+        information_date: current_date - 1.week,
+        date_updated: current_date - 1.week,
+      )
+
+      expect(resolver.call(clients, field)[destination_client.id]).to eq([false, true]) # most recent is first
+      expect(resolver.call(clients, latest_field)).to eq({ destination_client.id => false }) # `latest` field still returns false
+    end
+
+    it 'returns meaningful values newest-first, deduplicated by boolean' do
+      create_disability(
+        disability_type: disability_type,
+        disability_response: 1,
+        information_date: current_date - 3.weeks,
+        date_updated: current_date - 3.weeks,
+      )
+      create_disability(
+        disability_type: disability_type,
+        disability_response: 1,
+        information_date: current_date - 2.weeks,
+        date_updated: current_date - 2.weeks,
+      )
+      create_disability(
+        disability_type: disability_type,
+        disability_response: 0,
+        information_date: current_date - 1.week,
+        date_updated: current_date - 1.week,
+      )
+
+      expect(resolver.call(clients, field)).to eq({ destination_client.id => [false, true] })
+    end
+
+    it 'includes true when one enrollment is Yes and another is No, even if latest across all is No' do
+      other_enrollment = create(
+        :hmis_hud_enrollment,
+        data_source: hmis_data_source,
+        client: client,
+        EntryDate: current_date - 2.months,
+      )
+      create_disability(
+        disability_type: disability_type,
+        disability_response: 1,
+        information_date: current_date - 2.weeks,
+        date_updated: current_date - 2.weeks,
+      )
+      create_disability(
+        enrollment: other_enrollment,
+        disability_type: disability_type,
+        disability_response: 0,
+        information_date: current_date - 1.week,
+        date_updated: current_date - 1.week,
+      )
+
+      result = resolver.call(clients, field)
+      expect(result[destination_client.id]).to contain_exactly(true, false)
+      expect(resolver.call(clients, latest_field)).to eq({ destination_client.id => false }) # `latest` field still returns false
+    end
+
+    it 'returns [false] when all meaningful values are No' do
+      create_disability(
+        disability_type: disability_type,
+        disability_response: 0,
+        information_date: current_date - 1.week,
+      )
+
+      expect(resolver.call(clients, field)).to eq({ destination_client.id => [false] })
+    end
+
+    it 'returns an empty array when only 8/9/99/nil responses exist' do
+      [8, 9, 99, nil].each_with_index do |response, i|
+        create_disability(
+          disability_type: disability_type,
+          disability_response: response,
+          information_date: current_date - (i + 1).days,
+        )
+      end
+
+      expect(resolver.call(clients, field)).to eq({ destination_client.id => [] })
+    end
+
+    it 'excludes disabilities from exited enrollments when lookback is 0' do
+      exited_enrollment = create(
+        :hmis_hud_enrollment,
+        data_source: hmis_data_source,
+        client: client,
+        EntryDate: current_date - 3.months,
+        exit_date: current_date - 1.month,
+      )
+      create_disability(
+        enrollment: exited_enrollment,
+        disability_type: disability_type,
+        disability_response: 1,
+        information_date: current_date - 6.weeks,
+      )
+
+      expect(resolver.call(clients, field)).to eq({ destination_client.id => [] })
+    end
+
+    it 'aggregates across merged source clients for a destination client' do
+      other_source_client = create(:hmis_hud_client, data_source: hmis_data_source)
+      create(
+        :hmis_warehouse_client,
+        data_source: hmis_data_source,
+        source: other_source_client,
+        destination: destination_client,
+      )
+      other_enrollment = create(
+        :hmis_hud_enrollment,
+        data_source: hmis_data_source,
+        client: other_source_client,
+        EntryDate: current_date - 1.month,
+      )
+      create_disability(
+        disability_type: disability_type,
+        disability_response: 0,
+        information_date: current_date - 2.weeks,
+      )
+      create_disability(
+        enrollment: other_enrollment,
+        client: other_source_client,
+        disability_type: disability_type,
+        disability_response: 1,
+        information_date: current_date - 1.week,
+      )
+
+      expect(resolver.call(clients, field)[destination_client.id]).to contain_exactly(false, true)
+    end
+  end
+
+  describe 'substance_use_disorder_values_in_window resolution' do
+    let(:field) { Hmis::Ce::Match::Expression::PsdeFieldRegistry::SUBSTANCE_USE_DISORDER_VALUES_IN_WINDOW }
+
+    def create_disability(**attrs)
+      defaults = {
+        enrollment: enrollment,
+        client: client,
+        data_source: hmis_data_source,
+        data_collection_stage: 1,
+      }
+      create(:hmis_disability, :skip_validate, defaults.merge(attrs))
+    end
+
+    it 'resolves Drug (2) to true' do
+      create_disability(
+        disability_type: 10,
+        disability_response: 2,
+        information_date: current_date - 1.week,
+      )
+
+      expect(resolver.call(clients, field)).to eq({ destination_client.id => [true] })
+    end
+  end
+
+  describe 'domestic_violence_survivor_values_in_window resolution' do
+    let(:field) { Hmis::Ce::Match::Expression::PsdeFieldRegistry::DOMESTIC_VIOLENCE_SURVIVOR_VALUES_IN_WINDOW }
+
+    def create_health_and_dv(**attrs)
+      defaults = {
+        enrollment: enrollment,
+        client: client,
+        data_source: hmis_data_source,
+        data_collection_stage: 1,
+      }
+      create(:hmis_health_and_dv, :skip_validate, defaults.merge(attrs))
+    end
+
+    it 'reads from HealthAndDV, not Disabilities' do
+      create_health_and_dv(
+        domestic_violence_survivor: 1,
+        information_date: current_date - 1.week,
+      )
+
+      expect(resolver.call(clients, field)).to eq({ destination_client.id => [true] })
+    end
+  end
 end

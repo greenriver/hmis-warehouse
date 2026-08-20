@@ -130,7 +130,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: "Container Setup"
         id: container-setup
@@ -157,15 +157,12 @@ jobs:
       # like the datalab testkit. The bucket path must contain sample_hmis_export/,
       # sample_results/, and sample_hic_results/ subdirectories.
       - name: "Fetch LSA sample data"
-        uses: keithweaver/aws-s3-github-action@46dd0263ee582cbb2e81ad88209198d26d7a67c6 # v1.0.0
-        with:
-          command: cp
-          source: ${{ secrets.AWS_S3_ACTION_BUCKET }}${{ vars.AWS_S3_ACTIONS_LSA_SAMPLE_PATH_FY_2026 }}
-          destination: ./drivers/hud_lsa/spec/fixtures/files/lsa/fy2026/
-          aws_access_key_id: ${{ secrets.AWS_S3_ACCESS_KEY_ID }}
-          aws_secret_access_key: ${{ secrets.AWS_S3_SECRET_ACCESS_KEY }}
-          aws_region: us-east-1
-          flags: --recursive
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_S3_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_S3_SECRET_ACCESS_KEY }}
+          SOURCE: ${{ secrets.AWS_S3_ACTION_BUCKET }}${{ vars.AWS_S3_ACTIONS_LSA_SAMPLE_PATH_FY_2026 }}
+          DESTINATION: ./drivers/hud_lsa/spec/fixtures/files/lsa/fy2026/
+        run: aws s3 cp --no-progress "$SOURCE" "$DESTINATION" --recursive --region us-east-1
 
       - name: Run LSA integration test
         env:
@@ -183,7 +180,7 @@ jobs:
 
       - name: Upload generated LSA output
         if: always()
-        uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08 # v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: lsa-ci-output
           path: tmp/lsa_ci_output/**

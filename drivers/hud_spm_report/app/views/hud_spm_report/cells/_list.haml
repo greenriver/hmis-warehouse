@@ -7,6 +7,7 @@
           %th= header
     %tbody
       - # list contains SpmEnrollment, Episodes, or Returns
+      - can_view_project_page = current_user.can_view_projects? || current_user.can_edit_projects?
       - list.each.with_index do |client, i|
         - pii_policy = current_user.reporting_policy_for_project(project_id: client.project_id)
         %tr
@@ -25,5 +26,7 @@
                 -# This should only be one client, but just in case of data issues, we'll loop through them all
                 - client.client.source_clients.select { |sc| sc.data_source_id == client.data_source_id }.each do |hmis_client|
                   = hmis_external_link(hmis_client, user: current_user, wrapper_class: nil, text: value, icon_class: nil, icon_style: nil) || value
+              - elsif (linked_projects = client.projects_by_column[k.to_s]).present?
+                = safe_join(linked_projects.map { |project| link_to_if(can_view_project_page, "#{project.name(current_user)} (#{project.ProjectID})", project_path(id: project.id)) }, '; ')
               - else
                 = client.display_value(k, pii_policy: pii_policy, include_content_tag: true)

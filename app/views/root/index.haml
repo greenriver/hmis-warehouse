@@ -2,12 +2,13 @@
   = render 'root/homepage_content'
 - else
   - title = Translation.translate('Open Path HMIS Warehouse')
-  - content_for :title, title
-  %h1= content_for :title
-  .row
-    .col-sm-7
-      %p.home-intro
-        = Translation.translate('Open Path HMIS Warehouse')
-    - if !user_signed_in?
-      .col-sm-5
-        = render '/root/sign_in_form'
+
+  - if !user_signed_in?
+    .d-flex
+      - if AuthMethod.devise?
+        = render '/root/sign_in_form', title: title
+      - elsif AuthMethod.jwt?
+        = render '/root/jwt_sign_in_form', title: title
+  -else
+    %h1 Access Limited
+    %p.alert.alert-info You do not have access to any data, please contact your administrator.

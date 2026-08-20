@@ -78,6 +78,10 @@ Ingestion reconciles staged data with the warehouse in four passes:
 
 **After ingest — Post-ingest hooks.** Staging models may implement `after_ingest!`; the importer calls them for all data sources. Hooks receive `data_source`, and `project_ids` (from `Project.csv`). The FY2026 enrollment importer populates `project_pk` when the data source is an Open Path HMIS installation, setting it on all enrollments in the imported projects regardless of export date range.
 
+### Post-process
+
+After `ingest!` finishes and the import is marked complete (`complete_import`), `import!` and `resume!` call `post_process`. This runs **once per data source** (not per file), **only on successful imports** (not dry runs or paused imports), and handles data-source-level follow-up work such as service history rebuild, duplicate detection, CH enrollment maintenance, and CSV monitors; as well as OP HMIS-specific post-import work, such as queueing `Hmis::MigrateAssessmentsJob`.
+
 ## Validation
 
 Data quality is enforced via `HmisCsvValidation`. Two severity tiers:
@@ -107,6 +111,8 @@ Imports run asynchronously on the `long_running` Delayed Job queue.
 - `Importing::HudZip::FetchAndImportJob` — scheduled entry point that pulls zips from a data source's configured S3 bucket and imports them.
 - `Importing::HudZip::ResumeHmisImportJob` — resumes an import that was paused at a threshold check.
 - `HmisCsvImporter::Cleanup::Expire*Job` — periodic cleanup of expired staging data.
+
+- `post_process` enqueues additional jobs onto the same `long_running` queue — for example service history rebuilds (`ServiceHistory::RebuildEnrollmentsByBatchJob`) and, for OP HMIS data sources, `Hmis::MigrateAssessmentsJob` (see [Post-process](#post-process)).
 
 The importer does not wrap its run in a surrounding transaction. Import jobs acquire a
 per-data-source advisory lock so that only one import runs at a time for a given data source.

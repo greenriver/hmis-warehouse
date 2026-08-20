@@ -294,7 +294,12 @@ module HudApr::Generators::Shared::Fy2026
       # Logic for step 4 is enforced when adding PIT dates to the client record
       # If a client doesn't have any overlapping enrollments that qualify, they won't
       # have a record for the PIT date
-      universe.members.where("pit_enrollments ? '#{pit_date.iso8601}'")
+      # Q7b counts people, so it ignores enrollments only present to represent their household
+      query = <<~SQL
+        pit_enrollments ? '#{pit_date.iso8601}'
+        AND pit_enrollments -> '#{pit_date.iso8601}' @> '[{"household_presence_only": false}]'
+      SQL
+      universe.members.where(query)
     end
   end
 end

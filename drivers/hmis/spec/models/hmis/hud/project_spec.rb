@@ -305,10 +305,10 @@ RSpec.describe Hmis::Hud::Project, type: :model do
       end
     end
 
-    context 'with disabled config' do
-      let!(:config) { create(:hmis_project_ce_config, project: project, enabled: false) }
+    context 'with soft-deleted config' do
+      let!(:config) { create(:hmis_project_ce_config, project: project, deleted_at: 1.day.ago) }
 
-      it 'does not return projects with disabled config' do
+      it 'does not return projects with a soft-deleted config' do
         expect(Hmis::Hud::Project.with_ce_enabled).to be_empty
       end
     end
