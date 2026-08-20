@@ -464,6 +464,40 @@ RSpec.describe Hmis::MergeClientsJob, type: :model do
         it_behaves_like 'merge that saves mappings', 'ce_referrals', 'client_id', 'id'
       end
 
+      context 'with client alerts' do
+        let(:alert_user) { create(:hmis_user) }
+        let!(:record1) { create(:hmis_client_alert, client: client1, created_by: alert_user, note: 'alert on retained', priority: 'high') }
+        let!(:record2) { create(:hmis_client_alert, client: client2, created_by: alert_user, note: 'alert on deleted', priority: 'medium') }
+        let!(:expired_alert) do
+          create(:hmis_client_alert, client: client2, created_by: alert_user, note: 'expired alert on deleted', priority: 'low', expiration_date: Date.current - 10.days)
+        end
+        let!(:soft_deleted_alert) do
+          create(:hmis_client_alert, client: client2, created_by: alert_user, note: 'already deleted alert', priority: 'low').tap(&:destroy!)
+        end
+
+        it_behaves_like 'merge of records related by client_id'
+        it_behaves_like 'merge that saves mappings', 'client_alerts', 'client_id', 'id'
+
+        it 'moves active and expired alerts to the retained client without soft-deleting them' do
+          expect { Hmis::MergeClientsJob.perform_now(client_ids: client_ids, actor_id: actor.id) }.
+            not_to change(Hmis::ClientAlert, :count)
+
+          expect(record1.reload.client_id).to eq(client1.id)
+          expect(record2.reload.client_id).to eq(client1.id)
+          expect(expired_alert.reload.client_id).to eq(client1.id)
+          expect([record1, record2, expired_alert].map(&:deleted_at)).to all(be_nil)
+          expect(client1.alerts).to include(record1, record2, expired_alert)
+        end
+
+        it 'does not remap already soft-deleted alerts' do
+          Hmis::MergeClientsJob.perform_now(client_ids: client_ids, actor_id: actor.id)
+
+          expect(Hmis::ClientAlert.with_deleted.find(soft_deleted_alert.id).client_id).to eq(client2.id)
+          audit = Hmis::ClientMergeAudit.first
+          expect(audit.mappings_for('client_alerts').keys).not_to include(soft_deleted_alert.id)
+        end
+      end
+
       context 'with external referral records (legacy)' do
         let!(:referral1) { create :hmis_external_api_ac_hmis_referral }
         let!(:referral1_hhm1) { create :hmis_external_api_ac_hmis_referral_household_member, client: client1, referral: referral1 }

@@ -50,6 +50,8 @@ The following table lists all record types that are updated during a merge, alon
 | **Contact Points** (CustomClientContactPoint) | `PersonalID` | Deduplicated |
 | **Custom Data Elements** | `owner_id` | Non-repeating CDEDs are deduplicated |
 | **Files** | `client_id` | |
+| **CE Referrals** | `client_id` | |
+| **Client Alerts** | `client_id` | Includes expired alerts; not soft-deleted alerts; not deduplicated |
 | **Scan Card Codes** | `client_id` | Includes soft-deleted cards |
 | **Client Locations** | `client_id` | |
 | **MCI IDs** (External IDs) | `source_id` | Deduplicated by value |
