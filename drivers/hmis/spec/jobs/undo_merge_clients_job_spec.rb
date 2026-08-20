@@ -18,6 +18,11 @@ RSpec.describe Hmis::UndoMergeClientsJob, type: :job do
   let!(:deleted_client_name) { create(:hmis_hud_custom_client_name, client: deleted_client, data_source: data_source) }
   let!(:deleted_client_file) { create(:file, :skip_validate, client_id: deleted_client.id) }
   let!(:deleted_client_ce_referral) { create(:hmis_ce_referral, data_source: data_source, client: deleted_client) }
+  let(:alert_user) { create(:hmis_user) }
+  let!(:deleted_client_alert) { create(:hmis_client_alert, client: deleted_client, created_by: alert_user, note: 'active alert on deleted') }
+  let!(:deleted_client_expired_alert) do
+    create(:hmis_client_alert, client: deleted_client, created_by: alert_user, note: 'expired alert on deleted', expiration_date: Date.current - 10.days)
+  end
 
   describe '#perform' do
     before do
@@ -161,6 +166,21 @@ RSpec.describe Hmis::UndoMergeClientsJob, type: :job do
 
       deleted_client_ce_referral.reload
       expect(deleted_client_ce_referral.client_id).to eq(deleted_client.id)
+    end
+
+    it 'restores client alerts to deleted client' do
+      expect(deleted_client_alert.reload.client_id).to eq(retained_client.id), 'merge should have moved alert to retained client'
+      expect(deleted_client_expired_alert.reload.client_id).to eq(retained_client.id), 'merge should have moved expired alert to retained client'
+
+      described_class.perform_now(
+        retained_client_id: retained_client.id,
+        deleted_client_id: deleted_client.id,
+      )
+
+      expect(deleted_client_alert.reload.client_id).to eq(deleted_client.id)
+      expect(deleted_client_expired_alert.reload.client_id).to eq(deleted_client.id)
+      expect(deleted_client_alert.deleted_at).to be_nil
+      expect(deleted_client_expired_alert.deleted_at).to be_nil
     end
   end
 
