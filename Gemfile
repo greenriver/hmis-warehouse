@@ -45,6 +45,8 @@ gem 'ar_lazy_preload'
 
 # style-inliner https://github.com/premailer/premailer
 gem 'premailer'
+# CVE-2026-53727 (GHSA-9pmc-p236-855h): SSRF/local file disclosure in CssParser::Parser#read_remote_file
+gem 'css_parser', '>= 3.0.0'
 
 gem 'census_api', github: 'greenriver/census_api'
 
