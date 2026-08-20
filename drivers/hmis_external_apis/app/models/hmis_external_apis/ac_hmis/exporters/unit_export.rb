@@ -16,19 +16,21 @@ module HmisExternalApis::AcHmis::Exporters
       Rails.logger.info 'Generating Unit export'
       write_row(columns)
       total = units.count
+
       Rails.logger.info "There are #{total} Units to export"
 
       units.each.with_index do |unit, i|
         Rails.logger.info "Processed #{i} of #{total}" if (i % 100).zero?
         # Note: expects certain structure because it assumes HmisDataCleanup::MigrateUnitsToUnitGroups20250828 has run.
         # Once #8157 is completed, unit type relationship may be more tightly enforced.
-        raise 'unexpected: unit missing unit group' unless unit.unit_group
-        raise 'unexpected: unit group missing unit type' unless unit.unit_group.unit_type
+        unit_group = unit_groups_by_id[unit.hmis_unit_group_id]
+        raise 'unexpected: unit missing unit group' unless unit_group
+        raise 'unexpected: unit group missing unit type' unless unit_group.unit_type
 
         values = [
           unit.id, # UnitID
-          unit.unit_group.id, # UnitGroupID
-          unit.unit_group.unit_type.description, # UnitTypeName
+          unit_group.id, # UnitGroupID
+          unit_group.unit_type.description, # UnitTypeName
           unit.project.id, # ProjectID
           unit.project.project_name, # ProjectName
           unit.created_at, # DateCreated
@@ -59,7 +61,14 @@ module HmisExternalApis::AcHmis::Exporters
         joins(:project).
         merge(Hmis::Hud::Project.where(data_source: data_source)).
         order(Hmis::Hud::Project.arel_table[:id], Hmis::Unit.arel_table[:hmis_unit_group_id], Hmis::Unit.arel_table[:id]).
-        preload(:project, unit_group: :unit_type)
+        preload(:project)
+    end
+
+    def unit_groups_by_id
+      @unit_groups_by_id ||= Hmis::UnitGroup.with_deleted.
+        where(id: units.select(:hmis_unit_group_id)).
+        preload(:unit_type).
+        index_by(&:id)
     end
   end
 end

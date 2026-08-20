@@ -63,4 +63,24 @@ RSpec.describe HmisExternalApis::AcHmis::Exporters::UnitExport, type: :model do
       expect(active_row['DateDeleted']).to be_blank
     end
   end
+
+  context 'when a unit group is soft-deleted' do
+    before do
+      # Unit type must come from the (deleted) unit group, not the unit's own type association
+      unit.update_column(:unit_type_id, nil)
+      unit_group.destroy!
+    end
+
+    it 'still exports the unit with unit group id and unit type name' do
+      subject.run!
+      result = CSV.parse(output, headers: true)
+
+      expect(result.length).to eq(1)
+      expect(result.first['UnitID']).to eq(unit.id.to_s)
+      expect(result.first['UnitGroupID']).to eq(unit_group.id.to_s)
+      expect(result.first['UnitTypeName']).to eq(unit_type.description)
+      expect(result.first['ProjectID']).to eq(project.id.to_s)
+      expect(result.first['DateDeleted']).to be_present
+    end
+  end
 end
