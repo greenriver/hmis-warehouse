@@ -82,7 +82,7 @@ RSpec.describe HmisCsvImporter::Loader::HudKeyRemapper, type: :model do
   end
 
   describe 'the admin-extension interface' do
-    it 'is checked only when pre_process_hooks[remap_hud_keys] is set' do
+    it 'is checked only when pre_process_hooks[described_class.name] is set' do
       data_source = create(:data_source, pre_process_hooks: { 'HmisCsvImporter::Loader::HudKeyRemapper' => true })
       expect(described_class.checked?(data_source)).to eq(true)
       expect(described_class.checked?(create(:data_source))).to eq(false)
