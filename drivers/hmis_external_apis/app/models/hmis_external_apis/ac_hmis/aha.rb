@@ -255,19 +255,21 @@ module HmisExternalApis::AcHmis
     end
 
     # Parses a VisionLink generator entry. Accepts any numeric score (including -999, which means
-    # no score but may still carry eligibility flags). Metadata field types are preserved as returned
-    # by the API (booleans stay boolean, numeric flags stay numeric).
+    # no score but may still carry eligibility flags). Every eligibility flag must be a boolean;
+    # the API previously sent 0/1 integers, so an entry carrying any other type is rejected rather
+    # than coerced, to avoid reporting a client as ineligible if the shape changes again.
     #
     # Example:
     #   score_obj: {
     #     'score' => -999,
     #     'generator' => 'VisionLink',
     #     'metadata' => {
-    #       'is_eligible_ra' => false, 'section_8' => 0, 'city_of_pittsburgh' => 0
+    #       'is_eligible_ra' => false, 'section_8' => true, 'city_of_pittsburgh' => false,
+    #       'subsidized_housing' => false, 'recent_eviction_case' => false
     #     },
     #   }
     #   dw_client_id: '100000022'
-    #   => AhaScores::VisionLinkResult(score: -999, is_eligible_ra: false, is_eligible_cc: true, ...)
+    #   => AhaScores::VisionLinkResult(score: -999, is_eligible_ra: false, section_8: true, ...)
     def parse_visionlink_entry(score_obj, dw_client_id)
       score_value = score_obj.dig('score')
       raise ArgumentError, 'Received blank score' if score_value.blank?
@@ -284,8 +286,9 @@ module HmisExternalApis::AcHmis
 
       # If some flags were missing but not all, log to Sentry so we can investigate (unexpected behavior)
       Sentry.capture_message("VisionLink metadata missing fields: #{missing_fields.join(', ')}") if missing_fields.any?
-      # If some expected_fields flags have non-boolean values, log to Sentry so we can investigate (unexpected behavior)
-      Sentry.capture_message("VisionLink metadata contains non-boolean values: #{metadata.slice(*expected_fields).inspect}") if metadata.slice(*expected_fields).any? { |_, value| !value.in?([true, false]) }
+      # If some expected_fields flags have non-boolean values, raise (unexpected behavior)
+      non_boolean = metadata.slice(*expected_fields).reject { |_, value| value.in?([true, false]) }
+      raise ArgumentError, "Received non-boolean eligibility flags: #{non_boolean.keys.join(', ')}" if non_boolean.any?
 
       AhaScores::VisionLinkResult.new(
         score: score_value,

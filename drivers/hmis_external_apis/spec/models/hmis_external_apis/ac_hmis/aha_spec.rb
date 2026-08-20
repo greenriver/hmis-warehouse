@@ -483,31 +483,34 @@ RSpec.describe HmisExternalApis::AcHmis::Aha, type: :model do
       expect(Sentry).not_to have_received(:capture_message)
     end
 
-    it 'treats numeric 1/0 flags as ineligible and logs to Sentry' do
-      allow(Sentry).to receive(:capture_message)
-      numeric_metadata = {
-        'is_eligible_ra' => true,
-        'section_8' => 1,
-        'city_of_pittsburgh' => 0,
-        'subsidized_housing' => 1,
-        'recent_eviction_case' => 0,
-      }
-      response = mock_api_response(
-        client_data(
-          dw_client_id: mci_unique_id.value,
-          scores: [visionlink_score_hash(score: 2, metadata: numeric_metadata)],
-        ),
-      )
-      setup_api_expectation(mci_unique_ids: mci_unique_id.value, response: response)
+    # A non-boolean flag is dropped rather than coerced, so staff see no eligibility data instead
+    # of a client incorrectly reported as ineligible.
+    [1, 0, 'true', 'false', nil].each do |non_boolean_value|
+      it "skips the entry and logs to Sentry when a flag is #{non_boolean_value.inspect}" do
+        allow(Sentry).to receive(:capture_message)
+        response = mock_api_response(
+          client_data(
+            dw_client_id: mci_unique_id.value,
+            scores: [
+              visionlink_score_hash(
+                score: 2,
+                metadata: {
+                  'is_eligible_ra' => true,
+                  'section_8' => non_boolean_value,
+                  'city_of_pittsburgh' => false,
+                  'subsidized_housing' => false,
+                  'recent_eviction_case' => false,
+                },
+              ),
+            ],
+          ),
+        )
+        setup_api_expectation(mci_unique_ids: mci_unique_id.value, response: response)
 
-      result = aha.fetch_score(client, requested_generators: [:visionlink])[:visionlink]
-      expect(result.is_eligible_ra).to eq(true)
-      expect(result.section_8).to eq(false)
-      expect(result.city_of_pittsburgh).to eq(false)
-      expect(result.subsidized_housing).to eq(false)
-      expect(result.recent_eviction_case).to eq(false)
-      expect(Sentry).to have_received(:capture_message).
-        with("VisionLink metadata contains non-boolean values: #{numeric_metadata.inspect}")
+        expect(aha.fetch_score(client, requested_generators: [:visionlink])[:visionlink]).to be_nil
+        expect(Sentry).to have_received(:capture_message).
+          with('AHA received invalid VisionLink score entry: Received non-boolean eligibility flags: section_8')
+      end
     end
 
     it 'returns nil when all eligibility metadata fields are missing' do
