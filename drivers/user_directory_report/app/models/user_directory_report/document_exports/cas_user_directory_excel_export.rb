@@ -41,7 +41,6 @@ module UserDirectoryReport::DocumentExports
               'Count of Closed Matches',
             ], style: title
           )
-          inactive_ids = inactive_user_ids(CasAccess::User)
           directory_users(CasAccess::User).each do |user|
             sheet.add_row(
               [
@@ -50,7 +49,7 @@ module UserDirectoryReport::DocumentExports
                 user.phone_for_directory,
                 user.agency_name,
                 user.unique_role_names&.sort&.join('; '),
-                inactive_ids.include?(user.id) ? 'Inactive' : 'Active',
+                user.active ? 'Active' : 'Inactive',
                 user.last_sign_in_at,
                 user.contact&.client_opportunity_matches&.merge(CasAccess::ClientOpportunityMatch.active)&.count,
                 user.contact&.client_opportunity_matches&.merge(CasAccess::ClientOpportunityMatch.closed)&.count,

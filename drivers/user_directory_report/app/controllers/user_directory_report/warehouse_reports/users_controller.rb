@@ -13,6 +13,7 @@ module UserDirectoryReport::WarehouseReports
 
     helper_method :nav_link_classes
     helper_method :cas_available?
+    helper_method :warehouse_user_source?
 
     # Both actions are the same report, and there is no :index for the concern's default
     # derivation to use; the seeded definition is registered under the warehouse action's
@@ -28,7 +29,6 @@ module UserDirectoryReport::WarehouseReports
 
     def warehouse
       @users = directory_users(User)
-      @inactive_user_ids = inactive_user_ids(User)
       @user_source = 'warehouse'
       @excel_export = UserDirectoryReport::DocumentExports::WarehouseUserDirectoryExcelExport.new
       respond_to do |format|
@@ -40,13 +40,24 @@ module UserDirectoryReport::WarehouseReports
       end
     end
 
+    def inactive
+      @users = directory_users(User, active: false)
+      @user_source = 'inactive'
+      @excel_export = UserDirectoryReport::DocumentExports::InactiveWarehouseUserDirectoryExcelExport.new
+      respond_to do |format|
+        format.html { @pagy, @users = pagy(@users) }
+        format.xlsx do
+          filename = "Inactive Warehouse User Directory Report - #{Time.current.to_fs(:db)}.xlsx"
+          headers['Content-Disposition'] = "attachment; filename=#{filename}"
+        end
+      end
+    end
+
     def cas
       if cas_available?
         @users = directory_users(CasAccess::User)
-        @inactive_user_ids = inactive_user_ids(CasAccess::User)
       else
         @users = []
-        @inactive_user_ids = Set.new
       end
       @user_source = 'cas'
       @excel_export = UserDirectoryReport::DocumentExports::CasUserDirectoryExcelExport.new
@@ -63,6 +74,10 @@ module UserDirectoryReport::WarehouseReports
       class_list = ['nav-link']
       class_list.append('active') if link_type == user_source
       class_list.join(' ')
+    end
+
+    def warehouse_user_source?
+      @user_source.in?(['warehouse', 'inactive'])
     end
 
     def cas_available?

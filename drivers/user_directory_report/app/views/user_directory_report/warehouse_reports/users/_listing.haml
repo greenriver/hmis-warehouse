@@ -16,7 +16,7 @@
       %tbody
         - @users.each do |user|
           %tr
-            %td= link_to_if can_edit_users? && @user_source == 'warehouse', user.name, edit_admin_user_path(user)
+            %td= link_to_if can_edit_users? && warehouse_user_source?, user.name, edit_admin_user_path(user)
             %td= user.email
             %td= user.phone_for_directory
             %td= user.agency_name
@@ -24,7 +24,7 @@
               - user.unique_role_names.sort.each do |name| 
                 .role-name= name
               
-            %td= @inactive_user_ids.include?(user.id) ? 'Inactive' : 'Active'
+            %td= @user_source == 'inactive' ? 'Inactive' : (user.active ? 'Active': 'Inactive')
             %td= user.last_sign_in_at
   = render 'common/pagination_bottom', item_name: 'user'
 - else

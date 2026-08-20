@@ -7,7 +7,7 @@
 # frozen_string_literal: true
 
 module UserDirectoryReport::DocumentExports
-  class WarehouseUserDirectoryExcelExport < ::GrdaWarehouse::DocumentExport
+  class InactiveWarehouseUserDirectoryExcelExport < ::GrdaWarehouse::DocumentExport
     include ApplicationHelper
     include UserDirectoryReport::DirectoryUsers
 
@@ -17,7 +17,7 @@ module UserDirectoryReport::DocumentExports
 
     def perform
       with_status_progression do
-        self.filename = "Warehouse User Directory Report - #{Time.current.to_fs(:db)}.xlsx"
+        self.filename = "Inactive Warehouse User Directory Report - #{Time.current.to_fs(:db)}.xlsx"
         self.file_data = excel_package.to_stream.read
         self.mime_type = EXCEL_MIME_TYPE
       end
@@ -26,7 +26,7 @@ module UserDirectoryReport::DocumentExports
     private def excel_package
       Axlsx::Package.new do |package|
         wb = package.workbook
-        wb.add_worksheet(name: 'Warehouse Users'[0, 30]) do |sheet|
+        wb.add_worksheet(name: 'Inactive Warehouse Users'[0, 30]) do |sheet|
           title = sheet.styles.add_style(sz: 12, b: true, alignment: { horizontal: :center })
           sheet.add_row(
             [
@@ -39,7 +39,7 @@ module UserDirectoryReport::DocumentExports
               'Last Login',
             ], style: title
           )
-          directory_users(User).each do |user|
+          directory_users(User, active: false).each do |user|
             sheet.add_row(
               [
                 user.name,
@@ -47,7 +47,7 @@ module UserDirectoryReport::DocumentExports
                 user.phone_for_directory,
                 user.agency_name,
                 user.unique_role_names&.sort&.join('; '),
-                user.active ? 'Active' : 'Inactive',
+                'Inactive',
                 user.last_sign_in_at,
               ],
             )

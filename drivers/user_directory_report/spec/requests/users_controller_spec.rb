@@ -84,11 +84,9 @@ RSpec.describe UserDirectoryReport::WarehouseReports::UsersController, type: :re
       end
     end
 
-    it 'lists inactive users, and marks them inactive on the same terms as the scope' do
-      # The directory includes inactive users, so the status column carries the whole
-      # meaning of "inactive" -- and `active` is only one of the three things that make a
-      # user inactive. This user's flag is still set, so a status derived from the column
-      # alone would call an aged-out account Active.
+    it 'omits inactive users' do
+      # `active` is only one of the three things that make a user inactive, so an account
+      # whose flag is still set but whose activity has aged out has to be omitted too.
       aged_out = create(:acl_user, active: true, last_activity_at: (Devise.expire_after + 1.day).ago)
       flag_off = create(:acl_user, active: false)
       sign_in_with(create(:role, can_view_assigned_reports: true), grant_report: true)
@@ -96,9 +94,38 @@ RSpec.describe UserDirectoryReport::WarehouseReports::UsersController, type: :re
       get warehouse_user_directory_report_warehouse_reports_users_path
 
       aggregate_failures do
-        expect(assigns(:users)).to include(aged_out, flag_off, listed_user)
-        expect(assigns(:inactive_user_ids)).to include(aged_out.id, flag_off.id)
-        expect(assigns(:inactive_user_ids)).not_to include(listed_user.id)
+        expect(assigns(:users)).to include(listed_user)
+        expect(assigns(:users)).not_to include(aged_out, flag_off)
+      end
+    end
+  end
+
+  describe 'GET /user_directory_report/warehouse_reports/users/inactive' do
+    it 'denies a user who has not been granted this report' do
+      # The inactive listing shares the warehouse action's report definition, so the
+      # override of related_report has to cover it too.
+      sign_in_with(create(:role, can_view_assigned_reports: true))
+
+      get inactive_user_directory_report_warehouse_reports_users_path
+
+      aggregate_failures do
+        expect(response).to have_http_status(:redirect)
+        expect(flash[:alert]).to be_present
+      end
+    end
+
+    it 'lists the inactive directory users, and only those' do
+      aged_out = create(:acl_user, active: true, last_activity_at: (Devise.expire_after + 1.day).ago)
+      flag_off = create(:acl_user, active: false)
+      excluded = create(:acl_user, active: false, exclude_from_directory: true)
+      sign_in_with(create(:role, can_view_assigned_reports: true), grant_report: true)
+
+      get inactive_user_directory_report_warehouse_reports_users_path
+
+      aggregate_failures do
+        expect(response).to have_http_status(:success)
+        expect(assigns(:users)).to include(aged_out, flag_off)
+        expect(assigns(:users)).not_to include(listed_user, excluded)
       end
     end
   end
