@@ -36,10 +36,12 @@ class AccessLogs::WarehouseReports::UsageSummary
   end
 
   # One grouped query: report_key (via CASE, first-match-wins) x user_id x COUNT(DISTINCT day).
-  # Reuses ActivityLog.warehouse_reports for the WHERE so "what counts as a report url" has one source of truth.
+  # ActivityLog.warehouse_report_conditions is the single source of truth for what counts as each
+  # report's activity (including any ReportDefinition `reporting_query` override) -- shared with
+  # the ActivityLog.warehouse_reports scope used for the WHERE below.
   def grouped_rows
     at = ActivityLog.arel_table
-    report_key = acase(report_names.keys.map { |url| [at[:path].matches("/#{url}%"), url] })
+    report_key = acase(ActivityLog.warehouse_report_conditions.map { |url, condition| [condition, url] })
     visit_day = cast(at[:created_at], 'date')
 
     ActivityLog.warehouse_reports.created_in_range(range: @range).

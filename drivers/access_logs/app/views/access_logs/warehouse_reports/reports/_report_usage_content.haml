@@ -4,13 +4,20 @@
   .row.mb-4{ data: { access_logs_usage_report_target: 'kpis' } }
 
   .card.mb-4
+    .card-header
+      %h2 Counting Visit-Days
     .card-body
-      %h2.h5 Report Usage
-      %p.text-muted Unique visit-days per report. Click a row to see who used it.
+      %p.mb-0 A visit-day counts a user once per report per calendar day they accessed it — reloading or revisiting the same report later that day doesn't add another.
+
+  .card.mb-4
+    .card-header
+      %h2 Report Usage
+      %p.text-muted.mb-0 Unique visit-days per report. Click a row to see who used it.
+    .card-body
       .mb-3
-        %input.form-control.w-auto{ type: 'search', placeholder: 'Filter reports by name…', data: { access_logs_usage_report_target: 'reportSearch', action: 'input->access-logs-usage-report#filterReports' } }
+        %input.form-control{ type: 'search', placeholder: 'Filter reports by name…', style: 'width: 20rem', data: { access_logs_usage_report_target: 'reportSearch', action: 'input->access-logs-usage-report#filterReports' } }
       .table-responsive
-        %table.table.table-sm.table-hover.align-middle
+        %table.table.table-hover.align-middle
           %thead
             %tr
               %th.usage-report-sortable{ data: { key: 'name', action: 'click->access-logs-usage-report#sortReports' } } Report
@@ -22,11 +29,12 @@
           %tbody{ data: { access_logs_usage_report_target: 'reportsBody' } }
 
   .card.mb-4
+    .card-header
+      %h2 Most Active Users
+      %p.text-muted.mb-0 Total unique visit-days across all reports.
     .card-body
-      %h2.h5 Most Active Users
-      %p.text-muted Total unique visit-days across all reports.
       .table-responsive
-        %table.table.table-sm
+        %table.table
           %thead
             %tr
               %th.text-end Rank
@@ -37,8 +45,9 @@
       %button.btn.btn-outline-secondary.btn-sm{ type: 'button', data: { access_logs_usage_report_target: 'showMoreUsers', action: 'click->access-logs-usage-report#showAllUsers' } }
 
   .card
+    .card-header
+      %h2 Usage Concentration
+      %p.text-muted.mb-0 Reports ranked from most to least used, showing what share of total activity the top reports account for.
     .card-body
-      %h2.h5 Usage Concentration
-      %p.text-muted Reports ranked from most to least used, showing what share of total activity the top reports account for.
       %div{ data: { access_logs_usage_report_target: 'chart' } }
       %p.text-muted.mt-2.mb-0{ data: { access_logs_usage_report_target: 'chartInsight' } }

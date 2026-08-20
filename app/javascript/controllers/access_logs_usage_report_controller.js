@@ -84,9 +84,9 @@ export default class extends Controller {
       <div class="col">
         <div class="card h-100">
           <div class="card-body">
-            <div class="text-muted small">${this.escapeHtml(t.label)}</div>
-            <div class="h4 mb-0">${this.escapeHtml(t.value)}</div>
-            ${t.sub ? `<div class="text-muted small text-truncate" title="${this.escapeHtml(t.sub)}">${this.escapeHtml(t.sub)}</div>` : ""}
+            <div class="small">${this.escapeHtml(t.label)}</div>
+            <div class="fs-2 mb-0 fw-bolder">${this.escapeHtml(t.value)}</div>
+            ${t.sub ? `<div class="small text-truncate" title="${this.escapeHtml(t.sub)}">${this.escapeHtml(t.sub)}</div>` : ""}
           </div>
         </div>
       </div>`,
@@ -262,20 +262,22 @@ export default class extends Controller {
         x: { tick: { values: [1, n], outer: false } },
         y: { min: 0, max: 100, tick: { values: [0, 25, 50, 75, 100], format: (v) => `${v}%` }, padding: { top: 0, bottom: 0 } },
       },
-      grid: { y: { lines: gridLines } },
+      grid: { y: { lines: gridLines }, focus: { show: false } },
       legend: { show: false },
       point: { show: false },
       tooltip: {
-        format: {
-          title: (x) => {
-            const p = points[x - 1];
-            return p ? p.name : `Rank ${x}`;
-          },
-          value: (value, ratio, id, x) => {
-            const p = points[x - 1];
-            if (!p) return "";
-            return `${p.visits.toLocaleString()} visit-days · rank ${p.rank} of ${n} · ${value.toFixed(1)}% cumulative`;
-          },
+        contents: (d) => {
+          const point = points[d[0].index];
+          if (!point) return "";
+
+          return `
+            <div style="background:#fff;border:1px solid rgba(0,0,0,0.15);border-radius:4px;box-shadow:0 2px 6px rgba(0,0,0,0.15);font-size:0.85rem;min-width:220px;overflow:hidden;">
+              <div style="background:#6c757d;color:#fff;font-weight:600;padding:6px 10px;">${this.escapeHtml(point.name)}</div>
+              <div style="display:flex;align-items:center;gap:6px;padding:6px 10px;">
+                <span style="display:inline-block;width:10px;height:10px;background:#2a78d6;border-radius:2px;flex:none;"></span>
+                <span>${point.visits.toLocaleString()} visit-days · rank ${point.rank} of ${n} · ${point.cumPct.toFixed(1)}% cumulative</span>
+              </div>
+            </div>`;
         },
       },
       color: { pattern: ["#2a78d6"] },

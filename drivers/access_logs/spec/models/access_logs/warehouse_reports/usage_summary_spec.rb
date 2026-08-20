@@ -77,4 +77,37 @@ RSpec.describe AccessLogs::WarehouseReports::UsageSummary do
 
     expect(summary[:reports].map { |r| r[:key] }).to eq(['warehouse_reports/chronic'])
   end
+
+  # Nightly Census's sub-routes (/censuses/date_range, /censuses/details) are also used by an
+  # AJAX widget embedded on the project show page (app/views/projects/show.haml), so path alone
+  # can't tell "visited the report" from "opened a project page that happens to embed its chart."
+  # ReportDefinition's `reporting_query` lets this one report require a Census-page referrer for
+  # those sub-routes, while still always counting a bare /censuses visit.
+  describe "Nightly Census's referrer-scoped reporting_query" do
+    def log_referred_visit(user:, path:, referrer:, visited_at:)
+      ActivityLog.create!(user: user, path: path, referrer: referrer, controller_name: 'censuses', action_name: 'date_range', ip_address: '127.0.0.1', created_at: visited_at)
+    end
+
+    it 'counts a bare visit to the report index regardless of referrer' do
+      log_referred_visit(user: user_1, path: '/censuses', referrer: nil, visited_at: 1.day.ago)
+
+      report = summary[:reports].find { |r| r[:key] == 'censuses' }
+
+      expect(report[:unique_visits]).to eq(1)
+    end
+
+    it 'counts a date_range sub-request referred from the report itself' do
+      log_referred_visit(user: user_1, path: '/censuses/date_range', referrer: 'https://hmis-warehouse.dev.test/censuses', visited_at: 1.day.ago)
+
+      report = summary[:reports].find { |r| r[:key] == 'censuses' }
+
+      expect(report[:unique_visits]).to eq(1)
+    end
+
+    it 'excludes a date_range sub-request referred from a project page (the embedded widget, not the report)' do
+      log_referred_visit(user: user_1, path: '/censuses/date_range', referrer: 'https://hmis-warehouse.dev.test/projects/42', visited_at: 1.day.ago)
+
+      expect(summary[:reports].map { |r| r[:key] }).not_to include('censuses')
+    end
+  end
 end

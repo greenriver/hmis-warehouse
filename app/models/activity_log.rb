@@ -16,11 +16,20 @@ class ActivityLog < ApplicationRecord
   end
 
   scope :warehouse_reports, -> do
-    report_paths = GrdaWarehouse::WarehouseReports::ReportDefinition.pluck(:url).map do |u|
-      arel_table[:path].matches("/#{u}%")
-    end
+    where(warehouse_report_conditions.map(&:last).reduce(:or))
+  end
 
-    where(report_paths.map(&:to_sql).join(' OR '))
+  # [url, arel condition] per ReportDefinition.report_list entry. Each report's condition
+  # defaults to a path-prefix match, but can be overridden via a `reporting_query` lambda on the
+  # report_list entry (see the Nightly Census entry in report_definition.rb, whose date_range/
+  # details sub-routes are also hit by a widget embedded on other pages, so a bare path match
+  # would over-count). Shared by the `warehouse_reports` scope above and by
+  # AccessLogs::WarehouseReports::UsageSummary, which needs the same per-report conditions
+  # individually (not just OR'd together) to attribute each row to a report.
+  def self.warehouse_report_conditions
+    GrdaWarehouse::WarehouseReports::ReportDefinition.report_list.values.flatten.map do |r|
+      [r[:url], r[:reporting_query]&.call(arel_table) || arel_table[:path].matches("/#{r[:url]}%")]
+    end
   end
 
   def clean_object_name
