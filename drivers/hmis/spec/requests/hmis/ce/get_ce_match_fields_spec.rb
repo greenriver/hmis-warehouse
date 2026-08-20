@@ -15,6 +15,7 @@ RSpec.describe 'ceMatchFields query', type: :request do
         ceMatchFields(fieldSource: $fieldSource) {
           key
           label
+          description
           itemType
           multiple
           expressionField
@@ -55,6 +56,7 @@ RSpec.describe 'ceMatchFields query', type: :request do
       {
         'key' => 'total_monthly_income',
         'label' => 'Total Monthly Income',
+        'description' => Hmis::Ce::Match::Expression::PsdeFieldRegistry::TOTAL_MONTHLY_INCOME.description,
         'itemType' => 'INTEGER',
         'multiple' => false,
         'expressionField' => 'psde.total_monthly_income',
@@ -64,6 +66,7 @@ RSpec.describe 'ceMatchFields query', type: :request do
       {
         'key' => 'mental_health_disorder',
         'label' => 'Mental Health Disorder',
+        'description' => Hmis::Ce::Match::Expression::PsdeFieldRegistry::MENTAL_HEALTH_DISORDER.description,
         'itemType' => 'BOOLEAN',
         'multiple' => false,
         'expressionField' => 'psde.mental_health_disorder',
@@ -73,6 +76,7 @@ RSpec.describe 'ceMatchFields query', type: :request do
       {
         'key' => 'hiv_aids_values_in_window',
         'label' => 'HIV/AIDS (all values in window)',
+        'description' => Hmis::Ce::Match::Expression::PsdeFieldRegistry::HIV_AIDS_VALUES_IN_WINDOW.description,
         'itemType' => 'BOOLEAN',
         'multiple' => true,
         'expressionField' => 'psde.hiv_aids_values_in_window',
@@ -98,6 +102,7 @@ RSpec.describe 'ceMatchFields query', type: :request do
     expect(fields).to include(
       hash_including(
         'key' => 'current_age',
+        'description' => Hmis::Ce::Match::Expression::ClientFieldMap::Fields::CURRENT_AGE.description,
         'itemType' => 'INTEGER',
         'multiple' => false,
         'expressionField' => 'current_age',

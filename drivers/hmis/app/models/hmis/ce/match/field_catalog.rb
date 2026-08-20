@@ -75,6 +75,7 @@ module Hmis::Ce::Match
       Field.new(
         id: client_field.key.to_s,
         label: client_field_map.label_for(client_field.key),
+        description: client_field.description,
         item_type: item_type_for_client_field(client_field),
         multiple: client_field.multiple,
         field_key: client_field.key.to_s,
@@ -93,6 +94,7 @@ module Hmis::Ce::Match
       Field.new(
         id: field_key,
         label: psde_field.label,
+        description: psde_field.description,
         item_type: item_type_for_psde_field(psde_field),
         multiple: psde_field.multiple,
         field_key: field_key,
@@ -107,6 +109,7 @@ module Hmis::Ce::Match
       Field.new(
         id: cded.id,
         label: cded.label,
+        description: nil,
         item_type: item_type || item_type_for_cded(cded),
         multiple: cded.repeats || false,
         field_key: Hmis::Ce::Match::Expression::CdeFieldMap.field_key_for(Hmis::Ce::Match::Expression::FieldMap::CUSTOM_ASSESSMENT, cded.key),
