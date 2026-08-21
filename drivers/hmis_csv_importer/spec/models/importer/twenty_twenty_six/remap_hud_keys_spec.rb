@@ -36,8 +36,12 @@ RSpec.describe HmisCsvImporter, type: :model do
     expect(GrdaWarehouse::Hud::Enrollment.first.HouseholdID).to eq(Digest::MD5.hexdigest('HouseholdID--TEST-SRC--H-1'))
   end
 
-  it 'remaps ResProjectID even though it is not any file\'s hud_key' do
-    expect(GrdaWarehouse::Hud::Affiliation.first.ResProjectID).to eq(Digest::MD5.hexdigest('ResProjectID--TEST-SRC--ES-RES'))
+  it 'remaps ResProjectID as ProjectID so residential affiliations still join' do
+    affiliation = GrdaWarehouse::Hud::Affiliation.first
+    residential_project_id = Digest::MD5.hexdigest('ProjectID--TEST-SRC--ES-RES')
+
+    expect(affiliation.ResProjectID).to eq(residential_project_id)
+    expect(affiliation.residential_project&.ProjectID).to eq(residential_project_id)
   end
 
   it 'remaps the same UserID identically whether it is User.csv\'s own hud_key or another file\'s audit field' do

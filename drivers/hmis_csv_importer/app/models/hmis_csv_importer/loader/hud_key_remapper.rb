@@ -8,13 +8,18 @@
 
 module HmisCsvImporter::Loader
   class HudKeyRemapper
-    # HouseholdID and ResProjectID are cross-file join keys with no HUD file
-    # of their own (there's no Household.csv), so no class ever declares
-    # them as its hud_key -- they have to be added explicitly.
-    JOIN_ONLY_COLUMNS = ['HouseholdID', 'ResProjectID'].freeze
+    # HouseholdID is a cross-file join key with no HUD file of its own (there's no
+    # Household.csv), so no class ever declares it as its hud_key -- it has to be
+    # added explicitly.
+    EXTRA_JOIN_COLUMNS = ['HouseholdID'].freeze
+
+    # Affiliation.ResProjectID is a foreign key to another project's ProjectID
+    # (GrdaWarehouse::Hud::Affiliation#residential_project), so it must hash under the
+    # 'ProjectID' label to stay joinable with Project.ProjectID after remapping.
+    ALIASED_COLUMNS = { 'ResProjectID' => 'ProjectID' }.freeze
 
     def self.description
-      'Remap HUD ID columns to stable, non-colliding values before loading'
+      'Remap HUD IDs using Export.csv SourceID so keys from different SourceIDs do not collide'
     end
 
     def self.associated_model
@@ -30,7 +35,7 @@ module HmisCsvImporter::Loader
     end
 
     def self.remap!(source_dir, loadable_files, source_id)
-      canonical_columns = (loadable_files.values.map { |klass| klass.hud_key.to_s } + JOIN_ONLY_COLUMNS).to_set
+      canonical_columns = (loadable_files.values.map { |klass| klass.hud_key.to_s } + EXTRA_JOIN_COLUMNS + ALIASED_COLUMNS.keys).to_set
 
       loadable_files.each do |file_name, klass|
         columns = canonical_columns & klass.hud_csv_headers.map(&:to_s)
@@ -46,7 +51,7 @@ module HmisCsvImporter::Loader
               columns.each do |column|
                 key = column.downcase
                 value = row[key]
-                row[key] = remap_value(column, source_id, value) if value.present?
+                row[key] = remap_value(ALIASED_COLUMNS.fetch(column, column), source_id, value) if value.present?
               end
               csv << row
             end

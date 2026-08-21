@@ -49,15 +49,17 @@ RSpec.describe HmisCsvImporter::Loader::HudKeyRemapper, type: :model do
     end
   end
 
-  it 'remaps ResProjectID in Affiliation.csv even though no HUD file declares it as a hud_key' do
+  it 'remaps ResProjectID under the ProjectID label so Affiliation stays joined to its residential Project' do
     Dir.mktmpdir do |dir|
+      write_csv(dir, 'Project.csv', ['ProjectID'], ['P-2'])
       write_csv(dir, 'Affiliation.csv', ['AffiliationID', 'ProjectID', 'ResProjectID'], ['A-1', 'P-1', 'P-2'])
 
       described_class.remap!(dir, loadable_files, 'SRC-1')
 
       row = read_rows(dir, 'Affiliation.csv').first
-      expect(row['ResProjectID']).to eq(Digest::MD5.hexdigest('ResProjectID--SRC-1--P-2'))
       expect(row['ProjectID']).to eq(Digest::MD5.hexdigest('ProjectID--SRC-1--P-1'))
+      expect(row['ResProjectID']).to eq(Digest::MD5.hexdigest('ProjectID--SRC-1--P-2'))
+      expect(row['ResProjectID']).to eq(read_rows(dir, 'Project.csv').first['ProjectID'])
     end
   end
 
