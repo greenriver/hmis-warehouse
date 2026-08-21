@@ -7,13 +7,6 @@
 # frozen_string_literal: true
 
 FactoryBot.define do
-  factory :data_source, class: 'GrdaWarehouse::DataSource' do
-    sequence(:name) { |n| "Data Source #{n}" }
-    short_name { 'DS' }
-    source_type { :sftp }
-    obey_consent { true }
-  end
-
   factory :grda_warehouse_data_source, class: 'GrdaWarehouse::DataSource' do
     sequence(:name) { |n| "Green River #{n}" }
     short_name { 'GR' }

@@ -427,7 +427,7 @@ RSpec.describe model, type: :model do
 
   describe '#pre_process_hooks' do
     it 'defaults pre_process_hooks to an empty hash' do
-      data_source = create(:data_source)
+      data_source = create(:source_data_source)
       expect(data_source.pre_process_hooks).to eq({})
     end
   end
