@@ -94,6 +94,26 @@ RSpec.describe HmisCsvImporter::ImporterExtensionsController, type: :request do
 
         expect(data_source.reload.import_aggregators).to eq({})
       end
+
+      it 'writes the checked HudKeyRemapper extension into pre_process_hooks' do
+        put hmis_csv_importer_importer_extension_path(data_source), params: {
+          extensions: { 'HmisCsvImporter::Loader::HudKeyRemapper' => '1' },
+        }
+
+        expect(data_source.reload.pre_process_hooks).to eq(
+          'HmisCsvImporter::Loader::HudKeyRemapper' => true,
+        )
+      end
+
+      it 'removes a previously enabled HudKeyRemapper extension once its checkbox is unchecked' do
+        data_source.update!(pre_process_hooks: { 'HmisCsvImporter::Loader::HudKeyRemapper' => true })
+
+        put hmis_csv_importer_importer_extension_path(data_source), params: {
+          extensions: { 'HmisCsvImporter::Loader::HudKeyRemapper' => '0' },
+        }
+
+        expect(data_source.reload.pre_process_hooks).to eq({})
+      end
     end
   end
 end

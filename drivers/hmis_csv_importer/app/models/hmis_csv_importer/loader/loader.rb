@@ -173,7 +173,12 @@ module HmisCsvImporter::Loader
         setup_summary(file_name)
       end
 
-      ProjectFilter.filter(@file_path, @data_source.id, @post_processor) if @limit_projects
+      # ProjectFilter must run against the same PersonalID/ProjectID values already in the
+      # warehouse, so it has to see the CSVs after HudKeyRemapper hashes them, not before.
+      remap_source_id = @export[:SourceID] if HudKeyRemapper.checked?(data_source)
+      HudKeyRemapper.remap!(@file_path, loadable_files, remap_source_id) if remap_source_id
+
+      ProjectFilter.filter(@file_path, @data_source.id, @post_processor, remap_source_id: remap_source_id) if @limit_projects
 
       loadable_files.each do |file_name, klass|
         source_file_path = File.join(@file_path, file_name)
