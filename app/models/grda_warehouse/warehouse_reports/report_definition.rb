@@ -577,6 +577,20 @@ module GrdaWarehouse::WarehouseReports
             name: 'Nightly Census',
             description: 'Daily utilization charts for projects and residential project types.',
             limitable: true,
+            # The date_range/details AJAX endpoints under /censuses are also hit by the census
+            # widget embedded on the project show page (app/views/projects/show.haml), so a bare
+            # path match over-counts every project-page view as a report visit. Only count those
+            # sub-routes when they were actually referred from the report page itself; a plain
+            # /censuses visit always counts. Used by AccessLogs::WarehouseReports::UsageSummary.
+            reporting_query: ->(at) {
+              at[:path].eq('/censuses').or(
+                at[:path].matches('/censuses/%').and(
+                  at[:referrer].matches('%/censuses').
+                    or(at[:referrer].matches('%/censuses/%')).
+                    or(at[:referrer].matches('%/censuses?%')),
+                ),
+              )
+            },
           },
         ],
         'Population Dashboards' => [],
