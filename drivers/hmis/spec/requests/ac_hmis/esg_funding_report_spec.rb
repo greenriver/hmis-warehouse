@@ -131,6 +131,17 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       )
     end
   end
+
+  it 'redacts name and DOB for a restricted client' do
+    remove_permissions(access_control, :can_view_restricted_clients)
+    c1.mark_as_restricted!(user: hmis_user)
+
+    response, result = post_graphql({ client_ids: [c1.id.to_s] }) { query }
+    expect(response.status).to eq 200
+    expect(result.dig('data', 'esgFundingReport')).to all(
+      include('clientId' => c1.id.to_s, 'firstName' => c1.masked_name, 'lastName' => nil, 'clientDob' => nil),
+    )
+  end
 end
 
 RSpec.configure do |c|

@@ -18,6 +18,14 @@ module GrdaWarehouse
 
     after_save :invalidate_cache
 
+    # The multi-select posts a hidden blank alongside the real selections, and that
+    # blank is also the only signal that an admin cleared the picker. Drop it here so
+    # the jsonb column holds nothing but column keys; an empty array still means
+    # "use the defaults".
+    def client_demographic_columns=(value)
+      super(Array.wrap(value).map { |key| key.to_s.presence }.compact)
+    end
+
     def self.cas_enabled?
       CasBase.db_exists?
     end
@@ -326,6 +334,7 @@ module GrdaWarehouse
         :rds_s3_integration_role_arn,
         :relevant_state_codes,
         client_details: [],
+        client_demographic_columns: [],
       ]
     end
 

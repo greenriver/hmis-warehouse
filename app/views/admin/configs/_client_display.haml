@@ -3,3 +3,4 @@
   .c-card.c-card--flush.c-card--padded.flex-wrap
     = f.input :client_dashboard, collection: GrdaWarehouse::Config.available_client_dashboards, as: :select_two
     = f.input :chronic_tab_justifications, label: 'Show chronic justification notes on the chronic tab'
+    = f.input :client_demographic_columns, collection: GrdaWarehouse::ClientDemographicColumns.available_for_select, label: 'Columns shown in the client dashboard demographic table', hint: "Leave blank to show the default columns: #{GrdaWarehouse::ClientDemographicColumns.default_labels.to_sentence}.", as: :select_two, input_html: { multiple: true }

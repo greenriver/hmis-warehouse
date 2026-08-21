@@ -117,6 +117,52 @@ RSpec.describe Hmis::Hud::Client, type: :model do
     end
   end
 
+  describe 'searchable_to scope' do
+    let!(:user_who_can_view_restricted_at_p1) do
+      hmis_user = create(:hmis_user, data_source: ds1)
+      create_access_control(hmis_user, p1, with_permission: [:can_view_clients, :can_view_project, :can_view_restricted_clients])
+      hmis_user
+    end
+
+    it 'matches viewable_by when nothing is restricted' do
+      expect(Hmis::Hud::Client.searchable_to(user_with_access_to_p1_clients)).to contain_exactly(client_at_p1, unenrolled_client)
+    end
+
+    context 'when an enrolled client is restricted' do
+      before { client_at_p1.mark_as_restricted!(user: user_with_access_to_p1_clients) }
+
+      it 'omits them from users without can_view_restricted_clients' do
+        expect(Hmis::Hud::Client.searchable_to(user_with_access_to_p1_clients)).to contain_exactly(unenrolled_client)
+      end
+
+      it 'includes them for users with can_view_restricted_clients at the enrolled project' do
+        expect(Hmis::Hud::Client.searchable_to(user_who_can_view_restricted_at_p1)).to contain_exactly(client_at_p1, unenrolled_client)
+      end
+
+      it 'still includes them in viewable_by, so they remain reachable by direct link' do
+        expect(Hmis::Hud::Client.viewable_by(user_with_access_to_p1_clients)).to include(client_at_p1)
+      end
+    end
+
+    context 'when an unenrolled client is restricted' do
+      before { unenrolled_client.mark_as_restricted!(user: user_with_access_to_p1_clients) }
+
+      it 'omits them from users without can_view_restricted_clients anywhere' do
+        expect(Hmis::Hud::Client.searchable_to(user_with_access_to_p1_clients)).to contain_exactly(client_at_p1)
+      end
+
+      # There is no project through which can_view_restricted_clients could be granted for this client,
+      # so nobody can find them in search, even a user who holds the permission elsewhere.
+      it 'omits them even for users with can_view_restricted_clients at a project' do
+        expect(Hmis::Hud::Client.searchable_to(user_who_can_view_restricted_at_p1)).to contain_exactly(client_at_p1)
+      end
+
+      it 'still includes them in viewable_by, so they remain reachable by direct link' do
+        expect(Hmis::Hud::Client.viewable_by(user_who_can_view_restricted_at_p1)).to include(unenrolled_client)
+      end
+    end
+  end
+
   describe 'files_viewable_by scope' do
     let(:file_perms) do
       [
