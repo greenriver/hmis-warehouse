@@ -29,7 +29,6 @@ module HmisCsvImporter::Loader
     def self.filter!(source_dir, loadable_files, loader_log)
       allowed_personal_ids = read_column_set(source_dir, 'Client.csv', 'PersonalID')
       allowed_project_ids = read_column_set(source_dir, 'Project.csv', 'ProjectID')
-      discarded_rows = []
 
       removed_enrollment_ids, kept_enrollment_ids = filter_enrollments!(
         source_dir: source_dir,
@@ -37,7 +36,6 @@ module HmisCsvImporter::Loader
         allowed_personal_ids: allowed_personal_ids,
         allowed_project_ids: allowed_project_ids,
         loader_log: loader_log,
-        discarded_rows: discarded_rows,
       )
 
       loadable_files.each do |file_name, klass|
@@ -53,11 +51,8 @@ module HmisCsvImporter::Loader
           removed_enrollment_ids: removed_enrollment_ids,
           kept_enrollment_ids: kept_enrollment_ids,
           loader_log: loader_log,
-          discarded_rows: discarded_rows,
         )
       end
-
-      RowProcessingNote.import(discarded_rows, batch_size: NOTE_IMPORT_BATCH_SIZE) if discarded_rows.any?
     end
 
     def self.read_column_set(source_dir, file_name, column)
@@ -72,12 +67,13 @@ module HmisCsvImporter::Loader
     end
     private_class_method :read_column_set
 
-    def self.filter_enrollments!(source_dir:, klass:, allowed_personal_ids:, allowed_project_ids:, loader_log:, discarded_rows:)
+    def self.filter_enrollments!(source_dir:, klass:, allowed_personal_ids:, allowed_project_ids:, loader_log:)
       file = File.join(source_dir, 'Enrollment.csv')
       return [Set.new, Set.new] unless File.exist?(file)
 
       removed_enrollment_ids = Set.new
       kept_enrollment_ids = Set.new
+      discarded_rows = []
       Tempfile.create do |clean_file|
         CSV.open(clean_file, 'wb') do |csv|
           csv << CSV.parse_line(File.open(file, &:readline))
@@ -89,11 +85,13 @@ module HmisCsvImporter::Loader
               removed_enrollment_ids << row['enrollmentid']
               reason = allowed_personal_ids.include?(row['personalid']) ? 'no_matching_project_id' : 'no_matching_personal_id'
               discarded_rows << build_discarded_row(loader_log: loader_log, file_name: 'Enrollment.csv', klass: klass, row: row, reason: reason)
+              import_discarded_rows!(discarded_rows) if discarded_rows.size >= NOTE_IMPORT_BATCH_SIZE
             end
           end
         end
         FileUtils.mv(clean_file, file)
       end
+      import_discarded_rows!(discarded_rows)
       [removed_enrollment_ids, kept_enrollment_ids]
     end
     private_class_method :filter_enrollments!
@@ -102,10 +100,11 @@ module HmisCsvImporter::Loader
     # kept_enrollment_ids: every EnrollmentID that survived, i.e. is present in the cleaned Enrollment.csv.
     # A row whose EnrollmentID is in neither set points at an Enrollment that was never in this
     # import at all, rather than one this run removed.
-    def self.filter_by_enrollment_id!(source_dir:, file_name:, klass:, removed_enrollment_ids:, kept_enrollment_ids:, loader_log:, discarded_rows:)
+    def self.filter_by_enrollment_id!(source_dir:, file_name:, klass:, removed_enrollment_ids:, kept_enrollment_ids:, loader_log:)
       file = File.join(source_dir, file_name)
       return unless File.exist?(file)
 
+      discarded_rows = []
       Tempfile.create do |clean_file|
         CSV.open(clean_file, 'wb') do |csv|
           csv << CSV.parse_line(File.open(file, &:readline))
@@ -113,17 +112,26 @@ module HmisCsvImporter::Loader
             enrollment_id = row['enrollmentid']
             if kept_enrollment_ids.include?(enrollment_id)
               csv << row
-            elsif removed_enrollment_ids.include?(enrollment_id)
-              discarded_rows << build_discarded_row(loader_log: loader_log, file_name: file_name, klass: klass, row: row, reason: 'orphaned_child_record')
             else
-              discarded_rows << build_discarded_row(loader_log: loader_log, file_name: file_name, klass: klass, row: row, reason: 'orphaned_enrollment_record')
+              reason = removed_enrollment_ids.include?(enrollment_id) ? 'orphaned_child_record' : 'orphaned_enrollment_record'
+              discarded_rows << build_discarded_row(loader_log: loader_log, file_name: file_name, klass: klass, row: row, reason: reason)
+              import_discarded_rows!(discarded_rows) if discarded_rows.size >= NOTE_IMPORT_BATCH_SIZE
             end
           end
         end
         FileUtils.mv(clean_file, file)
       end
+      import_discarded_rows!(discarded_rows)
     end
     private_class_method :filter_by_enrollment_id!
+
+    def self.import_discarded_rows!(discarded_rows)
+      return if discarded_rows.empty?
+
+      RowProcessingNote.import(discarded_rows)
+      discarded_rows.clear
+    end
+    private_class_method :import_discarded_rows!
 
     def self.build_discarded_row(loader_log:, file_name:, klass:, row:, reason:)
       ordered_values = klass.hud_csv_headers.map { |header| row[header.to_s.downcase] }

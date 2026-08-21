@@ -175,7 +175,7 @@ RSpec.describe HmisCsvImporter::Loader::UnlinkedRecordFilter, type: :model do
     end
   end
 
-  it 'imports discarded rows in a single batched call rather than one insert per row' do
+  it 'starts a fresh batch for each file, rather than accumulating discarded rows across files' do
     Dir.mktmpdir do |dir|
       write_csv(dir, 'Client.csv', ['PersonalID'], ['C-1'])
       write_csv(dir, 'Project.csv', ['ProjectID'], ['P-1'])
@@ -186,14 +186,45 @@ RSpec.describe HmisCsvImporter::Loader::UnlinkedRecordFilter, type: :model do
                 ['E-1', '2020-01-01'],
                 ['E-2', '2020-01-02'])
 
-      expect(HmisCsvImporter::Loader::RowProcessingNote).to receive(:import).once.with(
-        array_including(hash_including(reason: 'no_matching_personal_id'), hash_including(reason: 'orphaned_child_record')),
-        batch_size: 1_000,
-      ).and_call_original
+      batches = []
+      allow(HmisCsvImporter::Loader::RowProcessingNote).to receive(:import).and_wrap_original do |original, rows|
+        batches << rows.dup
+        original.call(rows)
+      end
 
       described_class.filter!(dir, loadable_files, loader_log)
 
+      expect(batches.map(&:size)).to eq([1, 1])
+      expect(batches[0]).to all(include(file_name: 'Enrollment.csv'))
+      expect(batches[1]).to all(include(file_name: 'Exit.csv'))
       expect(loader_log.row_processing_notes.count).to eq(2)
+    end
+  end
+
+  it 'flushes discarded rows once the in-memory batch reaches the configured size, so it never holds more than that many at once' do
+    stub_const('HmisCsvImporter::Loader::UnlinkedRecordFilter::NOTE_IMPORT_BATCH_SIZE', 2)
+
+    Dir.mktmpdir do |dir|
+      write_csv(dir, 'Client.csv', ['PersonalID'], ['C-1'])
+      write_csv(dir, 'Project.csv', ['ProjectID'], ['P-1'])
+      write_csv(dir, 'Enrollment.csv', ['EnrollmentID', 'PersonalID', 'ProjectID'], ['E-1', 'C-1', 'P-1'])
+      write_csv(dir, 'Exit.csv', ['EnrollmentID', 'ExitDate'],
+                ['E-NEVER-1', '2020-01-01'],
+                ['E-NEVER-2', '2020-01-02'],
+                ['E-NEVER-3', '2020-01-03'],
+                ['E-NEVER-4', '2020-01-04'],
+                ['E-NEVER-5', '2020-01-05'])
+
+      batch_sizes = []
+      allow(HmisCsvImporter::Loader::RowProcessingNote).to receive(:import).and_wrap_original do |original, rows|
+        batch_sizes << rows.size
+        original.call(rows)
+      end
+
+      described_class.filter!(dir, loadable_files, loader_log)
+
+      expect(batch_sizes).to eq([2, 2, 1])
+      expect(loader_log.row_processing_notes.count).to eq(5)
     end
   end
 
