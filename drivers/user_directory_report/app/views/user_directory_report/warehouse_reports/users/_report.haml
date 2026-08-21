@@ -13,10 +13,12 @@
   .col-sm-8
     %h1= content_for :title
 
-- if cas_available?
-  %ul.nav.nav-tabs{role: :tablist}
-    %li.nav-item{role: :presentation}
-      = link_to 'Warehouse Users', warehouse_user_directory_report_warehouse_reports_users_path(link_params.permit(:q, :utf8)), class: nav_link_classes('warehouse', @user_source)
+%ul.nav.nav-tabs{role: :tablist}
+  %li.nav-item{role: :presentation}
+    = link_to 'Warehouse Users', warehouse_user_directory_report_warehouse_reports_users_path(link_params.permit(:q, :utf8)), class: nav_link_classes('warehouse', @user_source)
+  %li.nav-item{role: :presentation}
+    = link_to 'Inactive Warehouse Users', inactive_user_directory_report_warehouse_reports_users_path(link_params.permit(:q, :utf8)), class: nav_link_classes('inactive', @user_source)
+  - if cas_available?
     %li.nav-item{role: :presentation}
       = link_to 'CAS Users', cas_user_directory_report_warehouse_reports_users_path(link_params.permit(:q, :utf8)), class: nav_link_classes('cas', @user_source)
 

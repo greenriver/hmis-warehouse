@@ -9,20 +9,20 @@
 module UserDirectoryReport::DocumentExports
   class WarehouseUserDirectoryExcelExport < ::GrdaWarehouse::DocumentExport
     include ApplicationHelper
+    include UserDirectoryReport::DirectoryUsers
+
+    HEADERS = [
+      'Name',
+      'Email',
+      'Phone',
+      'Agency',
+      'Roles',
+      'Status',
+      'Last Login',
+    ].freeze
+
     def authorized?
       user.can_view_any_reports?
-    end
-
-    private def _users(user_model)
-      if params[:q].present?
-        users = user_model.in_directory.
-          text_search(params[:q]).
-          order(:last_name, :first_name)
-      else
-        users = user_model.in_directory.
-          order(:last_name, :first_name)
-      end
-      return users
     end
 
     def perform
@@ -36,32 +36,27 @@ module UserDirectoryReport::DocumentExports
     private def excel_package
       Axlsx::Package.new do |package|
         wb = package.workbook
-        wb.add_worksheet(name: 'Warehouse Users'[0, 30]) do |sheet|
-          title = sheet.styles.add_style(sz: 12, b: true, alignment: { horizontal: :center })
+        add_sheet(wb, 'Active Warehouse Users', directory_users(User), 'Active')
+        add_sheet(wb, 'Inactive Warehouse Users', directory_users(User, active: false), 'Inactive')
+      end
+    end
+
+    private def add_sheet(workbook, name, users, status)
+      workbook.add_worksheet(name: name[0, 30]) do |sheet|
+        title = sheet.styles.add_style(sz: 12, b: true, alignment: { horizontal: :center })
+        sheet.add_row(HEADERS, style: title)
+        users.each do |user|
           sheet.add_row(
             [
-              'Name',
-              'Email',
-              'Phone',
-              'Agency',
-              'Roles',
-              'Status',
-              'Last Login',
-            ], style: title
+              user.name,
+              user.email,
+              user.phone_for_directory,
+              user.agency_name,
+              user.unique_role_names&.sort&.join('; '),
+              status,
+              user.last_sign_in_at,
+            ],
           )
-          _users(User).each do |user|
-            sheet.add_row(
-              [
-                user.name,
-                user.email,
-                user.phone_for_directory,
-                user.agency_name,
-                user.unique_role_names&.sort&.join('; '),
-                user.active ? 'Active' : 'Inactive',
-                user.last_sign_in_at,
-              ],
-            )
-          end
         end
       end
     end

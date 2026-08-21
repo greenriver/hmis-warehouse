@@ -83,6 +83,77 @@ RSpec.describe UserDirectoryReport::WarehouseReports::UsersController, type: :re
         expect(assigns(:users)).to include(listed_user)
       end
     end
+
+    it 'omits inactive users' do
+      flag_off = create(:acl_user, active: false)
+      sign_in_with(create(:role, can_view_assigned_reports: true), grant_report: true)
+
+      get warehouse_user_directory_report_warehouse_reports_users_path
+
+      aggregate_failures do
+        expect(assigns(:users)).to include(listed_user)
+        expect(assigns(:users)).not_to include(flag_off)
+      end
+    end
+
+    # Under Devise the `active` flag is only one of the three things that make a user
+    # inactive, so an account whose flag is still set but whose activity has aged out has
+    # to be omitted too. The jwt arm's scopes read the flag alone and have no
+    # `expire_after`, hence the tag.
+    it 'omits a user whose activity has aged out', :devise_only do
+      aged_out = create(:acl_user, active: true, last_activity_at: (User.expire_after + 1.day).ago)
+      sign_in_with(create(:role, can_view_assigned_reports: true), grant_report: true)
+
+      get warehouse_user_directory_report_warehouse_reports_users_path
+
+      aggregate_failures do
+        expect(assigns(:users)).to include(listed_user)
+        expect(assigns(:users)).not_to include(aged_out)
+      end
+    end
+  end
+
+  describe 'GET /user_directory_report/warehouse_reports/users/inactive' do
+    it 'denies a user who has not been granted this report' do
+      # The inactive listing shares the warehouse action's report definition, so the
+      # override of related_report has to cover it too.
+      sign_in_with(create(:role, can_view_assigned_reports: true))
+
+      get inactive_user_directory_report_warehouse_reports_users_path
+
+      aggregate_failures do
+        expect(response).to have_http_status(:redirect)
+        expect(flash[:alert]).to be_present
+      end
+    end
+
+    it 'lists the inactive directory users, and only those' do
+      flag_off = create(:acl_user, active: false)
+      excluded = create(:acl_user, active: false, exclude_from_directory: true)
+      sign_in_with(create(:role, can_view_assigned_reports: true), grant_report: true)
+
+      get inactive_user_directory_report_warehouse_reports_users_path
+
+      aggregate_failures do
+        expect(response).to have_http_status(:success)
+        expect(assigns(:users)).to include(flag_off)
+        expect(assigns(:users)).not_to include(listed_user, excluded)
+      end
+    end
+
+    # See the warehouse action's aged-out example for why this arm is tagged.
+    it 'lists a user whose activity has aged out', :devise_only do
+      aged_out = create(:acl_user, active: true, last_activity_at: (User.expire_after + 1.day).ago)
+      sign_in_with(create(:role, can_view_assigned_reports: true), grant_report: true)
+
+      get inactive_user_directory_report_warehouse_reports_users_path
+
+      aggregate_failures do
+        expect(response).to have_http_status(:success)
+        expect(assigns(:users)).to include(aged_out)
+        expect(assigns(:users)).not_to include(listed_user)
+      end
+    end
   end
 
   describe 'GET /user_directory_report/warehouse_reports/users/cas' do
