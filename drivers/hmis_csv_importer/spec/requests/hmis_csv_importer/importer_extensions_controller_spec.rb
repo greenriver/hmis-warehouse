@@ -9,7 +9,7 @@
 require 'rails_helper'
 
 RSpec.describe HmisCsvImporter::ImporterExtensionsController, type: :request do
-  let(:data_source) { create(:data_source) }
+  let(:data_source) { create(:grda_warehouse_data_source) }
   let(:user) do
     u = create(:user)
     u.legacy_roles << role
