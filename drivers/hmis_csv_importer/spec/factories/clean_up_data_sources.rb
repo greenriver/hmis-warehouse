@@ -154,4 +154,13 @@ FactoryBot.define do
       { 'HmisCsvImporter::Loader::HudKeyRemapper' => true }
     end
   end
+
+  factory :strip_unlinked_records_ds, class: 'GrdaWarehouse::DataSource' do
+    name { 'Strip Unlinked Records' }
+    short_name { 'Strip Unlinked' }
+    source_type { :sftp }
+    pre_process_hooks do
+      { 'HmisCsvImporter::Loader::UnlinkedRecordFilter' => true }
+    end
+  end
 end
