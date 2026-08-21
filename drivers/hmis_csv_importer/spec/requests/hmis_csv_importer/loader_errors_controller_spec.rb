@@ -9,7 +9,7 @@
 require 'rails_helper'
 
 RSpec.describe HmisCsvImporter::LoaderErrorsController, type: :request do
-  let!(:data_source) { create(:data_source) }
+  let!(:data_source) { create(:grda_warehouse_data_source) }
   let!(:loader_log) { HmisCsvImporter::Loader::LoaderLog.create!(data_source_id: data_source.id, status: :loaded, summary: { 'Enrollment.csv' => {} }) }
   let!(:import_log) { create(:grda_warehouse_import_log, data_source: data_source, loader_log_id: loader_log.id) }
   let!(:user) { create(:acl_user) }
@@ -34,7 +34,7 @@ RSpec.describe HmisCsvImporter::LoaderErrorsController, type: :request do
     end
 
     it 'denies access to errors for a loader log belonging to a data source the user cannot view' do
-      other_data_source = create(:data_source)
+      other_data_source = create(:grda_warehouse_data_source)
       other_loader_log = HmisCsvImporter::Loader::LoaderLog.create!(data_source_id: other_data_source.id, status: :loaded, summary: { 'Enrollment.csv' => {} })
       create(:grda_warehouse_import_log, data_source: other_data_source, loader_log_id: other_loader_log.id)
       other_loader_log.load_errors.create!(file_name: 'Enrollment.csv', message: 'Error in Enrollment.csv', details: 'Too many columns found', source: 'E-9,C-SECRET,ES')

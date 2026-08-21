@@ -9,7 +9,7 @@
 require 'rails_helper'
 
 RSpec.describe HmisCsvImporter::Loader::UnlinkedRecordFilter, type: :model do
-  let(:loader_log) { HmisCsvImporter::Loader::LoaderLog.create!(data_source_id: create(:data_source).id, status: :loading, summary: {}) }
+  let(:loader_log) { HmisCsvImporter::Loader::LoaderLog.create!(data_source_id: create(:grda_warehouse_data_source).id, status: :loading, summary: {}) }
   let(:loadable_files) do
     {
       'Client.csv' => HmisCsvTwentyTwentySix::Loader::Client,
@@ -137,11 +137,71 @@ RSpec.describe HmisCsvImporter::Loader::UnlinkedRecordFilter, type: :model do
     end
   end
 
+  describe 'dependent rows with no matching Enrollment at all' do
+    it 'distinguishes a never-existed EnrollmentID (orphaned_enrollment_record) from one removed above (orphaned_child_record)' do
+      Dir.mktmpdir do |dir|
+        write_csv(dir, 'Client.csv', ['PersonalID'], ['C-1'])
+        write_csv(dir, 'Project.csv', ['ProjectID'], ['P-1'])
+        write_csv(dir, 'Enrollment.csv', ['EnrollmentID', 'PersonalID', 'ProjectID'],
+                  ['E-1', 'C-1', 'P-1'],
+                  ['E-2', 'C-MISSING', 'P-1'])
+        write_csv(dir, 'Exit.csv', ['EnrollmentID', 'ExitDate'],
+                  ['E-1', '2020-01-01'],
+                  ['E-2', '2020-01-02'],
+                  ['E-NEVER', '2020-01-03'])
+
+        described_class.filter!(dir, loadable_files, loader_log)
+
+        expect(read_column(dir, 'Exit.csv', 'EnrollmentID')).to eq(['E-1'])
+        notes = loader_log.row_processing_notes.where(file_name: 'Exit.csv').order(:id)
+        expect(notes.map(&:reason)).to eq(['orphaned_child_record', 'orphaned_enrollment_record'])
+      end
+    end
+
+    it 'still flags a never-existed EnrollmentID even when every Enrollment matches its Client and Project' do
+      Dir.mktmpdir do |dir|
+        write_csv(dir, 'Client.csv', ['PersonalID'], ['C-1'])
+        write_csv(dir, 'Project.csv', ['ProjectID'], ['P-1'])
+        write_csv(dir, 'Enrollment.csv', ['EnrollmentID', 'PersonalID', 'ProjectID'], ['E-1', 'C-1', 'P-1'])
+        write_csv(dir, 'Exit.csv', ['EnrollmentID', 'ExitDate'],
+                  ['E-1', '2020-01-01'],
+                  ['E-NEVER', '2020-01-02'])
+
+        described_class.filter!(dir, loadable_files, loader_log)
+
+        expect(read_column(dir, 'Exit.csv', 'EnrollmentID')).to eq(['E-1'])
+        expect(loader_log.row_processing_notes.pluck(:reason)).to eq(['orphaned_enrollment_record'])
+      end
+    end
+  end
+
+  it 'imports discarded rows in a single batched call rather than one insert per row' do
+    Dir.mktmpdir do |dir|
+      write_csv(dir, 'Client.csv', ['PersonalID'], ['C-1'])
+      write_csv(dir, 'Project.csv', ['ProjectID'], ['P-1'])
+      write_csv(dir, 'Enrollment.csv', ['EnrollmentID', 'PersonalID', 'ProjectID'],
+                ['E-1', 'C-1', 'P-1'],
+                ['E-2', 'C-MISSING', 'P-1'])
+      write_csv(dir, 'Exit.csv', ['EnrollmentID', 'ExitDate'],
+                ['E-1', '2020-01-01'],
+                ['E-2', '2020-01-02'])
+
+      expect(HmisCsvImporter::Loader::RowProcessingNote).to receive(:import).once.with(
+        array_including(hash_including(reason: 'no_matching_personal_id'), hash_including(reason: 'orphaned_child_record')),
+        batch_size: 1_000,
+      ).and_call_original
+
+      described_class.filter!(dir, loadable_files, loader_log)
+
+      expect(loader_log.row_processing_notes.count).to eq(2)
+    end
+  end
+
   describe 'the admin-extension interface' do
     it 'is checked only when pre_process_hooks[strip_unlinked_records] is set' do
-      data_source = create(:data_source, pre_process_hooks: { 'HmisCsvImporter::Loader::UnlinkedRecordFilter' => true })
+      data_source = create(:grda_warehouse_data_source, pre_process_hooks: { 'HmisCsvImporter::Loader::UnlinkedRecordFilter' => true })
       expect(described_class.checked?(data_source)).to eq(true)
-      expect(described_class.checked?(create(:data_source))).to eq(false)
+      expect(described_class.checked?(create(:grda_warehouse_data_source))).to eq(false)
     end
   end
 end
