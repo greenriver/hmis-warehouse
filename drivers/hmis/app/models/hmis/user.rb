@@ -283,6 +283,16 @@ class Hmis::User < ApplicationRecord
     Hmis::Filter::ApplicationUserFilter.new(input).filter_scope(self)
   end
 
+  # Batch counterpart to can_access_hmis_data_source?, for listing many users at once.
+  # Returns { user_id => [hmis data source id, ...] }, omitting users with no HMIS access.
+  def self.accessible_hmis_data_source_ids_by_user_id
+    GrdaWarehouse::DataSource.hmis.each_with_object({}) do |data_source, result|
+      with_hmis_access_in_data_source(data_source.id).
+        pluck(:id).
+        each { |user_id| (result[user_id] ||= []) << data_source.id }
+    end
+  end
+
   # Determine whether this user has _any_ access to a given HMIS data source.
   # Returns true even if they can only access 1 project or org within the DS.
   # This doesn't check for permissions (so, they don't necessarily have can_view_projects within the DS).
