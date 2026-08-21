@@ -178,19 +178,6 @@ $_$;
 
 
 --
--- Name: hmis_csv_remap_key(text, text, text); Type: FUNCTION; Schema: public; Owner: -
---
-
-CREATE FUNCTION public.hmis_csv_remap_key(column_name text, source_id text, original text) RETURNS text
-    LANGUAGE plpgsql IMMUTABLE
-    AS $$
-BEGIN
-  RETURN md5(column_name || '--' || source_id || '--' || original);
-END;
-$$;
-
-
---
 -- Name: prevent_modification(); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -359954,7 +359941,6 @@ ALTER TABLE ONLY public.import_logs
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
-('20260819120100'),
 ('20260819120000'),
 ('20260818130528'),
 ('20260818120000'),
