@@ -43,11 +43,11 @@ module UserDirectoryReport::WarehouseReports
     def inactive
       @users = directory_users(User, active: false)
       @user_source = 'inactive'
-      @excel_export = UserDirectoryReport::DocumentExports::InactiveWarehouseUserDirectoryExcelExport.new
+      @excel_export = UserDirectoryReport::DocumentExports::WarehouseUserDirectoryExcelExport.new
       respond_to do |format|
         format.html { @pagy, @users = pagy(@users) }
         format.xlsx do
-          filename = "Inactive Warehouse User Directory Report - #{Time.current.to_fs(:db)}.xlsx"
+          filename = "Warehouse User Directory Report - #{Time.current.to_fs(:db)}.xlsx"
           headers['Content-Disposition'] = "attachment; filename=#{filename}"
         end
       end
