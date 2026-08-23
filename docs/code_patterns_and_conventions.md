@@ -12,9 +12,9 @@ Note that this document may include code that is only in use in a handful of loc
 - [Rich Text and Markdown Rendering Safety](#rich-text-and-markdown-rendering-safety)
 - [Controllers](#controllers)
 - [Authorization](#authorization)
-- [Installation-specific configuration](#installation-specific-configuration)
 - [Models](#models)
 - [Service Objects](#service-objects)
+- [Installation-specific configuration](#installation-specific-configuration)
 - [Database Queries](#database-queries)
 - [Background Async Jobs](#background-async-jobs)
 - [Driver Architecture](#driver-architecture)
@@ -40,7 +40,7 @@ Avoid defining global view helpers on ApplicationHelper unless the helper is tru
 
 When creating new JavaScript assets, use esbuild in `app/javascript`. Don't add new files to `app/assets/javascripts`.
 
-Most JavaScript should be implemented as Stimulus controllers which live under `app/javascript/controllers/`.  Conrollers are named `snake_case_controller.js` with a default-exported `PascalCase` class, registered under a `kebab-case` identifier. There are two registration paths, choose based on use scope:
+Most JavaScript should be implemented as Stimulus controllers which live under `app/javascript/controllers/`.  Controllers are named `snake_case_controller.js` with a default-exported `PascalCase` class, registered under a `kebab-case` identifier. There are two registration paths, choose based on use scope:
 
 - A controller meant for use on any page is registered globally through the auto-generated `app/javascript/controllers/index.js`.
 - A controller only relevant to one heavy/specialized page instead gets its own small esbuild entry file (`app/javascript/<name>.js`) that registers onto the already-running Stimulus application (e.g. `window.Stimulus.register(...)` guarded by `if (window.Stimulus)`) and is pulled onto just that view via `content_for :page_js`.
