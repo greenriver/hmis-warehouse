@@ -77,4 +77,23 @@ RSpec.describe 'User Audit History Query', type: :request do
       expect(records.pluck('recordName')).to include('A very custom assessment')
     end
   end
+
+  describe 'authorization' do
+    before(:each) do
+      PaperTrail.request(controller_info: { true_user_id: hmis_user.id }) do
+        c1.update!(Man: 0)
+      end
+    end
+
+    # The `user(id:)` root query only requires can_view?, which is satisfied here by impersonation
+    # access, so the query resolves the user and is rejected by the field rather than the query.
+    it 'denies access when the user cannot audit users' do
+      remove_permissions(access_control, :can_audit_users)
+      expect_access_denied post_graphql(id: hmis_user.id, filters: nil) { query }
+    end
+
+    it 'resolves audit history when the user can audit users' do
+      expect(run_query(id: hmis_user.id).size).to eq(1)
+    end
+  end
 end
