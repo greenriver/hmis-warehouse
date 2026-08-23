@@ -246,27 +246,74 @@ HUD-report drivers define their own `<Driver>::BaseController < ::HudReports::Ba
 
 ## GraphQL
 
-### Field-level authorization: `access_field` + `bool_field`
+HMIS GraphQL authorization is documented in detail in [HMIS Permissions](features/hmis/hmis-permissions.md). That page is the accurate description of the RBAC model (roles, collections, policies, requirements). This section is the prescriptive pattern for *where* checks belong in schema code.
 
-Expose granular, UI-facing permission booleans via `access_field` on a type, with `bool_field` calls inside reusing a memoized `policy` helper:
+### Authorization layers
+
+A type is authorized at three layers. They are not interchangeable:
+
+1. **`viewable_by(user)` scope** — primary defense. Apply it when looking up or listing records so unauthorized (and other-data-source) rows are never loaded.
+2. **`self.authorized?(object, ctx)`** — object-level secondary guard. Re-check a policy before the object is returned at all. Raises if the user should not see the object. See below; not needed on every type.
+3. **Per-field checks** — a policy check in the field resolver that returns empty/`nil` when unauthorized (see below).
+
+Standard lookup + action check:
+
+```ruby
+record = Hmis::Hud::Project.viewable_by(current_user).find_by(id: id)
+access_denied! unless record && policy_for(record, policy_type: :hmis_project).can_delete?
+```
+
+`viewable_by` only answers visibility. Edit/delete still need a policy check. See [HMIS Permissions — How Permission Checks Work](features/hmis/hmis-permissions.md#how-permission-checks-work).
+
+### Object-level authorization
+
+Override `self.authorized?` on GraphQL types that must not leak if a record slips past `viewable_by`. Returning false raises — the query fails rather than resolving the object. That is intentional: reaching this check means the primary scope already failed, so it is a **secondary guard**, not the normal way to filter lists.
+
+Do **not** add it on every type. Add it on records with sensitive fields (Client) or types that open traversal to many other records (Project). Skip it on small nested types whose parent is already authorized.
+
+```ruby
+# Types::HmisSchema::Client
+# Primary defense is applying the viewable_by / visible_to scope.
+def self.authorized?(object, ctx)
+  super && ctx[:current_user].policy_for(object, policy_type: :hmis_client).can_view?
+end
+```
+
+### Authorizing a field
+
+The usual pattern: declare the field normally, then check a memoized policy in the resolver and return an empty collection or `nil` if unauthorized. `HmisSchema::Client` does this throughout (alerts, names, contact info, SSN, etc.):
+
+```ruby
+field :alerts, [HmisSchema::ClientAlert], null: false
+
+def alerts
+  return [] unless policy.can_view_alerts?
+
+  load_ar_association(object, :active_alerts).sort_by(&:created_at).reverse
+end
+```
+
+Do not add `authorize_with:` / `permissions:` on these fields. The object is already visible; the resolver decides whether this association or attribute is included.
+
+Collections that appear on more than one type (enrollments, assessments, services, and similar) live in `Has*` concerns and apply `viewable_by` by default. Some of those helpers accept `dangerous_skip_permission_check` so a parent that already authorized (for example `Project`) can skip a second scope. Don't add new skips without a parent check first.
+
+**Exception — two-level access:** when the user may see a *summary* of the object but not full details, use GraphQL field-level authorization (`authorize_with:` on `Types::BaseField`, or a `field` / `summary_field` split) so extra fields resolve to `null` without a resolver per field. Enrollment (`can_view_limited?` vs `can_view_details?`) and CE Referral are the cases. Unauthorized fields null out; they do not raise. Don't use this as the default for one-off extra-permission fields. The deprecated `permissions:` kwarg bypasses requirement resolution — don't add it on new fields.
+
+### Access objects (presentational)
+
+Access objects tell the frontend what to show (buttons, links, dashboard chrome). They are **not** a security boundary — the mutation or field resolver must still authorize — but each flag **should match** what the user can actually do. Call the same policy predicate the API uses so the UI does not offer an action that will be rejected.
+
+Declare them with `access_field` and `bool_field`, reusing a memoized `policy` helper:
 
 ```ruby
 define_method(:policy) { @policy ||= policy_for(object, policy_type: :hmis_organization) }
 
 access_field do
-  bool_field(:can_edit?) { policy.can_edit? }
+  bool_field(:can_edit) { policy.can_edit? }
 end
 ```
 
-This is the current standard. Legacy `root_can`/`composite_perm`/`can` still exist and aren't automatically violations — don't flag them on sight, but write new fields this way.
-
-### Three layers of authorization
-
-A GraphQL type can be authorized at three layers, each serving a different purpose:
-
-1. `viewable_by(user)` scope — the primary defense, applied when building the initial relation.
-2. `self.authorized?(object, ctx)` override — a secondary, defense-in-depth guard re-checking a policy per-object before it's returned to the client at all.
-3. `access_field` / `bool_field` — UI-facing booleans for what the client is allowed to *do*, not a security boundary on their own.
+This is the current standard for new access fields ([ADR 0006](adr/0006-policy-based-graphql-access-fields.md)). Legacy `root_can` / `composite_perm` / `can` still exist — don't flag them on sight, but write new fields this way. `current_permission?` is likewise legacy; don't add new usages.
 
 ### Mutation authorization
 
@@ -280,9 +327,47 @@ access_denied! unless policy_for(unit_group.project, policy_type: :hmis_project)
 
 Subclass `CleanBaseMutation`, not `BaseMutation` — `BaseMutation` is legacy Relay-flavored scaffolding kept for compatibility.
 
+### Global policies (root access and “can they do this at all?”)
+
+Passing a **class** to `policy_for` (`policy_for(Hmis::StaffAssignment, policy_type: :staff_assignment).can_index?`) answers whether the user could do something *somewhere* in the current data source. Use it for `QueryAccess` / `RootQueryAccess`, navigation, `can_create?` when no record exists yet, and short-circuiting empty lists. **Never** use a global policy to authorize a specific record — the user may hold the permission at another project. Record-level flags belong on that record’s `access` object. Details: [HMIS Permissions — Global policies](features/hmis/hmis-permissions.md#global-policies-for-can-they-do-this-at-all).
+
+### Preloading auth dependencies on paginated lists
+
+Policy checks on a page of records will N+1 unless authorization data is batched first. Paginated collection fields should pass `after_paginate` to preload `UserContext` dependencies for the resolved page (not the entire relation).
+
+```ruby
+after_paginate: ->(nodes, ctx) {
+  ctx[:current_user].policy_context.preload_project_dependencies(nodes.map(&:project_pk))
+}
+```
+
+Use the loader that matches the policy you will invoke: `preload_project_dependencies`, `preload_client_dependencies`, `preload_referral_dependencies`. The `HasEnrollments` / `HasProjects` / `HasClients` / `HasCeReferrals` / `HasUnits` field helpers already do this — follow them when adding a new paginated association.
+
 ### Avoiding N+1s in resolvers
 
 Read associations inside resolvers/mutations through `load_ar_association` / `load_ar_client_association` (from `GraphqlApplicationHelper`), not plain AR association methods — GraphQL field resolution fans out per-object, so a plain `object.client` call becomes an N+1 across the result set. Use the `_client_` variant for anything touching `Client`, since it also preloads authorization dependencies.
+
+### Testing GraphQL N+1s
+
+For list/query endpoints that resolve a page of records (especially those that hit policies or `access` fields), add a request spec that asserts query count with `make_database_queries` against a large-enough set (tens of records, not 1–2):
+
+```ruby
+it 'minimizes n+1 queries' do
+  expect do
+    response, result = post_graphql(limit: 50) { query }
+    expect(response.status).to eq(200), result.inspect
+    expect(result.dig('data', 'projects', 'nodes').size).to eq(50)
+  end.to make_database_queries(count: 10..30)
+end
+```
+
+### Avoiding unnecessary graph traversal
+
+If the UI only needs an id or a display name, resolve those as scalars on the parent (`project_id`, `project_name`) instead of a nested `project { ... }` object.
+
+This is an **auth** concern, not only a performance one. Nesting a full `Project` (or `Client`, `Enrollment`) type on a piece of config or a summary object exposes the rest of that type’s graph: a client could query `project { enrollments { nodes { client { ssn } } } }` even when the screen only needed a name. Downstream field checks may correctly return empty/`nil` or raise, but the path should not exist unless the product needs it. When reviewing schema changes, check that new associations do not open traversal to sensitive records.
+
+`Enrollment` summary fields (`project_name`, `project_type`, `organization_name`) and `CeReferral` summary fields are the pattern to copy. Nested types also cost object-level auth and association loading on every row.
 
 ## Testing
 
