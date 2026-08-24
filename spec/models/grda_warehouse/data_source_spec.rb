@@ -425,6 +425,103 @@ RSpec.describe model, type: :model do
     end
   end
 
+  describe '#coc_summaries' do
+    let!(:ds) { create(:source_data_source) }
+    let!(:org1) { create(:hud_organization, data_source_id: ds.id) }
+    let!(:org2) { create(:hud_organization, data_source_id: ds.id) }
+    let(:all_projects) { GrdaWarehouse::Hud::Project.all }
+
+    def add_project_with_coc(coc_code, organization:, site_count: 1)
+      project = create(:hud_project, data_source_id: ds.id, OrganizationID: organization.OrganizationID)
+      create_list(:hud_project_coc, site_count, data_source_id: ds.id, ProjectID: project.ProjectID, CoCCode: coc_code)
+      project
+    end
+
+    it 'summarizes distinct project and organization counts per CoC, sorted by name with unknown last' do
+      # multi_site_project has two ProjectCoC rows for the same CoC (HUD allows multiple
+      # site records per project/CoC) - it must still only count once toward project_count.
+      multi_site_project = add_project_with_coc('XX-500', organization: org1, site_count: 2)
+      add_project_with_coc('XX-500', organization: org1)
+      add_project_with_coc('XX-501', organization: org2)
+      add_project_with_coc(nil, organization: org2)
+
+      summaries = ds.coc_summaries(all_projects)
+
+      # HudHelper.util.coc_name resolves 'XX-500'/'XX-501' to fixed test-fixture names
+      # ("Test CoC"/"2nd Test CoC") rather than falling back to the code itself, so the
+      # name-sorted order below is genuinely alphabetical ("2nd..." sorts before "Test...").
+      expect(summaries).to eq([
+                                { code: 'XX-501', name: HudHelper.util.coc_name('XX-501'), project_count: 1, org_count: 1 },
+                                { code: 'XX-500', name: HudHelper.util.coc_name('XX-500'), project_count: 2, org_count: 1 },
+                                { code: 'unknown', name: Translation.translate('Unknown CoC'), project_count: 1, org_count: 1 },
+                              ])
+      expect(GrdaWarehouse::Hud::ProjectCoc.where(ProjectID: multi_site_project.ProjectID).count).to eq(2)
+    end
+
+    it 'treats nil, empty, and whitespace-only CoC codes as a single unknown bucket' do
+      add_project_with_coc(nil, organization: org1)
+      add_project_with_coc('', organization: org1)
+      add_project_with_coc('   ', organization: org2)
+
+      summaries = ds.coc_summaries(all_projects)
+
+      expect(summaries).to contain_exactly(
+        { code: 'unknown', name: Translation.translate('Unknown CoC'), project_count: 3, org_count: 2 },
+      )
+    end
+
+    it 'only counts projects included in the given project scope' do
+      add_project_with_coc('XX-500', organization: org1)
+      excluded_project = add_project_with_coc('XX-501', organization: org2)
+
+      restricted_scope = GrdaWarehouse::Hud::Project.where.not(ProjectID: excluded_project.ProjectID)
+
+      expect(ds.coc_summaries(restricted_scope).map { |s| s[:code] }).to contain_exactly('XX-500')
+    end
+  end
+
+  describe '#users_with_view_access' do
+    # A can_view_clients grant only counts if it actually reaches this data source.
+    # Legacy users (using_acls? false) reach it via AccessGroup#add_viewable; ACL users
+    # (using_acls? true) reach it via a Collection whose set_viewables covers this data
+    # source (directly or via its organizations/projects/etc) - a role granting
+    # can_view_clients through some OTHER, unrelated collection must NOT count, since
+    # that collection was never given access to this data source.
+    let!(:ds) { create(:source_data_source) }
+    # Distinct names matter here: setup_access_control keys its UserGroup lookup by
+    # "#{role.name} x #{collection.name}" - two same-named roles sharing a collection
+    # would collapse into one UserGroup, and its members would inherit both roles.
+    let!(:viewer_role) { create(:role, name: 'viewer', can_view_clients: true) }
+    let!(:non_viewing_role) { create(:role, name: 'non_viewer', can_view_clients: false) }
+    let!(:legacy_viewer) { create(:user) }
+    let!(:legacy_wrong_role_user) { create(:user) }
+    let!(:acl_viewer) { create(:acl_user) }
+    let!(:acl_wrong_collection_user) { create(:acl_user) }
+    let!(:acl_wrong_role_user) { create(:acl_user) }
+
+    before do
+      legacy_viewer.add_viewable(ds)
+      legacy_viewer.legacy_roles << viewer_role
+
+      legacy_wrong_role_user.add_viewable(ds)
+      legacy_wrong_role_user.legacy_roles << non_viewing_role
+
+      covering_collection = create(:collection)
+      covering_collection.set_viewables({ data_sources: [ds.id] })
+      setup_access_control(acl_viewer, viewer_role, covering_collection)
+
+      unrelated_collection = create(:collection)
+      unrelated_collection.set_viewables({ data_sources: [create(:source_data_source).id] })
+      setup_access_control(acl_wrong_collection_user, viewer_role, unrelated_collection)
+
+      setup_access_control(acl_wrong_role_user, non_viewing_role, covering_collection)
+    end
+
+    it 'includes legacy and ACL users whose can_view_clients grant actually reaches this data source' do
+      expect(ds.users_with_view_access).to contain_exactly(legacy_viewer, acl_viewer)
+    end
+  end
+
   describe '#pre_process_hooks' do
     it 'defaults pre_process_hooks to an empty hash' do
       data_source = create(:source_data_source)

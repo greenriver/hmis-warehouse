@@ -744,21 +744,63 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
   end
 
   private def dominant_coc_share(project_scope)
-    # Group nil, empty, and whitespace-only CoC codes into a single bucket, matching
-    # ProjectCoc.unknown_coc — otherwise they'd count as separate groups here despite
-    # the picker (coc_code_options) offering them as a single "Unknown CoC" option.
-    coc = GrdaWarehouse::Hud::ProjectCoc.arel_table[:CoCCode]
-    bucket = nf('NULLIF', [nf('TRIM', [coc]), ''])
-
-    counts = GrdaWarehouse::Hud::ProjectCoc.
-      where(data_source_id: id).
-      joins(:project).
-      merge(project_scope).
-      group(bucket).count.values
+    counts = coc_code_bucket_scope(project_scope).count.values
     total = counts.sum
     return 1.0 if total.zero?
 
     counts.max.to_f / total
+  end
+
+  # One summary row per distinct CoC code (plus an "unknown" bucket for projects with
+  # a blank/whitespace CoC code), each with counts of the distinct projects and
+  # organizations in that CoC, for use as the picker cards on the data source show page.
+  #
+  # project_scope has the same contract as require_coc_choice?: a viewable-projects
+  # scope not yet narrowed to this data source or any particular CoC code.
+  def coc_summaries(project_scope)
+    scope = coc_code_bucket_scope(project_scope)
+    project_counts = scope.count('DISTINCT "Project"."id"')
+    org_counts = scope.count('DISTINCT "Project"."OrganizationID"')
+
+    project_counts.map do |code, project_count|
+      known = code.present?
+      {
+        code: known ? code : 'unknown',
+        name: known ? HudHelper.util.coc_name(code) : Translation.translate('Unknown CoC'),
+        project_count: project_count,
+        org_count: org_counts[code] || 0,
+      }
+    end.sort_by { |summary| [summary[:code] == 'unknown' ? 1 : 0, summary[:name]] }
+  end
+
+  # Users who can see this data source's clients regardless of window visibility;
+  # shown on the show page's Access card and its "who can view this" modal.
+  #
+  # A can_view_clients grant only counts if it actually reaches this data source -
+  # via the legacy AccessGroup system, or via an ACL Collection that covers this data
+  # source directly or through its organizations/projects/project access groups/CoCs.
+  # DataSource#users (legacy AccessGroup only) can't express the ACL half of that, and
+  # hand-rolling the ACL collection-inclusion rules here risks diverging from the real
+  # ones, so this reuses .viewable_by - the same scope every other access check in the
+  # app relies on - per candidate user, rather than re-deriving them.
+  def users_with_view_access
+    User.can_view_clients.active.select do |user|
+      GrdaWarehouse::DataSource.viewable_by(user, permission: :can_view_clients).exists?(id: id)
+    end
+  end
+
+  # Group nil, empty, and whitespace-only CoC codes into a single bucket, matching
+  # ProjectCoc.unknown_coc — otherwise they'd count as separate groups here despite
+  # coc_summaries offering them as a single "Unknown CoC" entry.
+  private def coc_code_bucket_scope(project_scope)
+    coc = GrdaWarehouse::Hud::ProjectCoc.arel_table[:CoCCode]
+    bucket = nf('NULLIF', [nf('TRIM', [coc]), ''])
+
+    GrdaWarehouse::Hud::ProjectCoc.
+      where(data_source_id: id).
+      joins(:project).
+      merge(project_scope).
+      group(bucket)
   end
 
   # True when this data source is an Open Path HMIS installation

@@ -481,7 +481,6 @@ Rails.application.routes.draw do
   resources :match_logs, only: [:index]
   resources :service_history_logs, only: [:index]
   resources :data_sources do
-    get :organizations, on: :member
     resources :uploads, except: [:update, :destroy, :edit]
     resources :non_hmis_uploads, except: [:update, :destroy, :edit]
     resources :custom_imports, controller: 'data_sources/custom_imports' do
@@ -498,10 +497,11 @@ Rails.application.routes.draw do
       resources :notification_configurations, only: [:new, :edit, :create, :update, :destroy], controller: 'import_csv_monitors/notification_configurations'
     end
     resource :external_hmis_configuration, only: [:show, :update]
+    resource :user_access, only: [:show], controller: 'user_access'
   end
-  # Bookmarkable link to the CoC-code picker on a data source's show page,
-  # pre-selected. Declared after `resources :data_sources` so its own routes
-  # (edit, organizations, etc.) still win over this catch-all shape.
+  # Bookmarkable link to a data source's CoC-scoped show page. Declared after
+  # `resources :data_sources` so its own routes (edit, uploads, etc.) still win
+  # over this catch-all shape.
   get 'data_sources/:id/:coc_code', to: 'data_sources#show', as: :data_source_with_coc_code
   resources :ad_hoc_data_sources do
     resources :uploads, except: [:edit], controller: 'ad_hoc_data_sources/uploads' do
