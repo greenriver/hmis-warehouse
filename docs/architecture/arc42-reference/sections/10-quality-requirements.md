@@ -207,9 +207,14 @@ uses an imperative like "Ensure". The global `HOUSE-CODEREF-1` rule in
   pass may revisit): 10-2 (quality tree — *marked deprecated upstream*), 10-3 (use
   a mind-map as quality tree), 10-4 (use the quality tree as a checklist), 10-8
   (use scenarios for architecture analysis/evaluation).
+- **Q42 quality model** — a pinned extract is held locally in
+  [`../quality-model/`](../quality-model/): dimension tags and characteristics in
+  `qualities.md`, example scenarios in `requirements.md`. Use it to verify that a
+  document's quality labels are real dimensions and that its scenarios follow the
+  Context / Trigger / Response / Acceptance Criteria shape. See
+  [`../00-index.md`](../00-index.md) for the pinned SHA.
 - **Referenced within the source, not independently cited here:** ISO 25010:2023
-  and the Q42 quality model (<https://quality.arc42.org>) as category
-  vocabularies; Len Bass, Paul Clements, Rick Kazman, *Software Architecture in
+  as a category vocabulary; Len Bass, Paul Clements, Rick Kazman, *Software Architecture in
   Practice*, 4th ed., 2021 ([Bass+21]) for the Quality Attribute Utility Tree and
   the long-form scenario fields — named in the upstream chapter.
 - **License:** arc42 template CC BY-SA 4.0; attribution in

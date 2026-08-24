@@ -11,32 +11,41 @@ The diagram below shows the platform as a "black box" in its surrounding environ
 ```mermaid
 flowchart TB
     subgraph users ["Users"]
+        PUBLIC["General Public"]
+
         EU["HMIS End Users"]
         AR["Analysts & Researchers"]
-        LEAD["HMIS Lead"]
-        SA["HMIS System Administrators"]
+        LEAD["HMIS Leads"]
+        SA["System Administrators"]
         VENDOR["Open Path Engineering Team"]
     end
 
     OP["Open Path Platform"]
 
-    UPSTREAM["Upstream Data Partners"]
+    PARTNERS["Data Exchange Partners"]
     IDP["Identity Providers"]
     HUD["HUD"]
     LMS["TalentLMS"]
 
     EU -- "Client data, referrals" --> OP
     AR -- "Queries, dashboard access" --> OP
-    LEAD -- "Report requests" --> OP
     SA -- "Configuration, user management" --> OP
-    VENDOR -- "Maintenance, API/ETL config" --> OP
+    LEAD -- "Report requests" --> OP
+    LEAD -. "Submits reports" .-> HUD
+    HUD -. "Data standards & reporting specs" .-> OP
 
-    UPSTREAM -- "Client records, program data" --> OP
+
+    VENDOR -- "Maintenance, API/ETL config" --> OP
+    PUBLIC -- "form submissions" --> OP
+
+    PARTNERS -- "HMIS exports, supplemental data" --> OP
+    OP -- "Scheduled extracts (SFTP)" --> PARTNERS
     OP -. "Authentication requests" .-> IDP
     OP -. "Training enrollment sync" .-> LMS
 
-    LEAD -. "Submits reports" .-> HUD
-    HUD -. "Data standards & reporting specs" .-> OP
+    OP -- "Published reports" --> PUBLIC
+
+    style OP fill:#2563eb,stroke:#1e3a8a,stroke-width:4px,color:#fff,font-weight:bold
 ```
 
 ### External Actors
@@ -48,35 +57,40 @@ flowchart TB
 | **System Administrators** | User/role configuration, data source setup, reference data. | Audit logs, system status, import results. |
 | **Analysts & Researchers** | Dashboard queries, filter criteria. | Aggregated analytics, operational dashboards, exportable datasets. |
 | **Open Path Engineering Team** | API/ETL configuration, system maintenance actions. | System health metrics, job status, error logs. |
-| **Upstream Data Partners** | HUD CSV exports, supplemental data (healthcare, justice), API referrals. | Import validation results, error notifications. |
+| **Data Exchange Partners** (contributing agencies; partner warehouses and state/agency reporting systems) | HUD CSV exports, supplemental data (healthcare, justice), API referrals. | Import validation results, error notifications; scheduled extracts. Two outbound consumers are named in code: a county partner data warehouse in the Allegheny County deployment, which receives daily and quarterly extracts (`drivers/hmis_external_apis/app/jobs/hmis_external_apis/ac_hmis/data_warehouse_upload_job.rb`), and MassHealth, which receives a homelessness-verification file in the Massachusetts deployment (`drivers/medicaid_hmis_interchange`). Both are deployment-specific; no outbound extract runs in a default installation. |
+| **General Public** | Anonymous form submissions (e.g., PIT counts, outreach surveys). | Published static reports, typically embedded in CoC or agency public websites; aggregate figures only, no client-level data. |
 | **Identity Providers** (Keycloak, Okta) | Authentication tokens, user identity claims. | Authentication requests, token refresh requests. |
 | **HUD** | HMIS Data Standards, reporting specifications. | *(Indirect: HMIS Leads submit generated reports to HUD outside the platform.)* |
 | **TalentLMS** | Training completion status. | User training enrollment data. |
-| **Clients** | *(Indirect: data entered by proxies or via public forms.)* | *(No direct output — clients are data subjects, not system users.)* |
+
+Clients are data subjects, not communication partners: their data reaches the platform through staff acting as proxies or through public forms, and they have no interface of their own.
 
 ### Users
 
 | User | Role | Responsibilities |
 | --- | --- | --- |
 | **HMIS End Users** | Front-line staff | Collect and enter client data (demographics, enrollments, services); manage housing referrals. |
-| **HMIS Lead** | Oversight & Reporting | Oversee CoC-level operations, monitor data quality, and submit HUD reports. |
-| **HMIS System Administrators** | System Management | Manage user access, training, system setup, and oversee data ingestion. |
+| **HMIS Leads** | Oversight & Reporting | Oversee CoC-level operations, monitor data quality, and submit HUD reports. |
+| **System Administrators** | System Management | Manage user access, training, system setup, and oversee data ingestion. |
 | **Analysts & Researchers** | Data Consumers | Use consolidated warehouse data for community-wide analytics and strategic planning. |
+| **General Public** | Unauthenticated | View published static reports; submit data through public forms. |
 | **Open Path Engineering Team** | Platform Operations | Configure external APIs, maintain ETL pipelines, and oversee system health. |
-| **Clients** | Data Subjects | Individuals whose data is managed; interact with the platform via proxies or public forms. |
 
 ## 3.2 Technical Context
 
-This table maps each external interface to its channel, protocol, and data format.
+This table maps each external partner from 3.1 to the channel, protocol, and data format that carries its inputs and outputs.
 
-| Interface | Channel / Protocol | Data Format | Notes |
+| Interface (partner) | Channel / Protocol | Data Format | Notes |
 | --- | --- | --- | --- |
-| HMIS Frontend → Warehouse | GraphQL over HTTPS | JSON | React SPA communicating with the Rails backend. |
-| Warehouse Web UI | HTTPS | HTML (server-rendered) | Administrative interface for leads, admins, and the engineering team. |
-| Upstream CSV Ingestion | S3 file deposit | HUD HMIS CSV | Partners deposit exports into designated S3 buckets; Warehouse imports on schedule. |
-| Supplemental Data Ingestion | Airflow → S3 | Varies (CSV, JSON) | Airflow transforms bespoke source data before deposit to S3 for Warehouse pickup. |
-| Public Forms | S3-hosted static HTML → Lambda → S3 → Warehouse | Form POST (JSON) | Static HTML/JS forms submit to a Lambda function that writes submissions to S3; Warehouse imports on schedule. Used for anonymous data collection (e.g., PIT counts, outreach). |
-| Authentication | OAuth2 / OIDC | JWT | OAuth2-Proxy + Dex broker identity from upstream IDPs. See [5.2.3 Authentication](05-building-blocks/05-2-3-authentication.md). |
-| Analytics | SQL (internal network) | Tabular (PostgreSQL) | DBT transforms warehouse data; Superset queries the analytics database. |
-| CAS ↔ Warehouse | Direct PostgreSQL connection | SQL | Legacy integration; CAS reads/writes warehouse tables directly. See [5.2.2 CAS](05-building-blocks/05-2-2-cas.md). |
+| HMIS Frontend (HMIS End Users) | HTTPS, React SPA | HTML/JSON | Browser-based data entry and coordinated entry UI. |
+| Warehouse Web UI (Leads, System Administrators, Open Path Engineering Team) | HTTPS | HTML (server-rendered) | Reporting, configuration, and administration interface. |
+| Superset dashboards (Analysts & Researchers) | HTTPS | HTML, tabular exports | Hosted dashboards over the analytics database. |
+| HMIS CSV ingestion (Data Exchange Partners) | S3 file deposit | HUD HMIS CSV | Partners deposit exports into designated S3 buckets; Warehouse imports on schedule. |
+| Supplemental data ingestion (Data Exchange Partners) | Airflow → S3 | Varies (CSV, JSON) | Airflow transforms bespoke source data before deposit to S3 for Warehouse pickup. |
+| Downstream extracts (Data Exchange Partners) | Scheduled job → SFTP upload to the partner | Zipped CSV; zipped pipe-delimited text | Warehouse pushes; the partner does not query the platform. Allegheny County: HUD CSV export plus per-domain extracts (clients/MCI, project crosswalk, postings, CE referrals, waitlists) in a daily group, with a 10-year full refresh at each quarter start, driven by `driver:hmis_external_apis:export:ac_clients` (scheduled outside this repository). MassHealth: a weekly homeless-verification file (`config/schedule.rb:136`), with an error report returned on the same SFTP path. |
+| Public forms (General Public) | S3-hosted static HTML → Lambda → S3 → Warehouse | Form POST (JSON) | Static HTML/JS forms submit to a Lambda function that writes submissions to S3; Warehouse imports on schedule. Used for anonymous data collection (e.g., PIT counts, outreach). |
+| Published static reports (General Public) | Warehouse → public S3 bucket → HTTPS | Static HTML/JS, JSON | Aggregate reports published to a public bucket; read anonymously, usually via an `<iframe>` embed on a CoC or agency website. |
+| Authentication (Identity Providers) | OAuth2 / OIDC | JWT | OAuth2-Proxy + Dex broker identity from upstream IDPs. See [5.2.3 Authentication](05-building-blocks/05-2-3-authentication.md). |
 | TalentLMS | REST API over HTTPS | JSON | Sync user training status for compliance tracking. |
+
+HUD has no technical interface: data standards arrive as published specifications, and Leads submit generated reports through HUD's own portals outside the platform.

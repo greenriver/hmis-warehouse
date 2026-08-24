@@ -27,6 +27,26 @@ Every chapter copies from there.
 | 11 | [`sections/11-risks-and-technical-debt.md`](sections/11-risks-and-technical-debt.md) | Risks and Technical Debt |
 | 12 | [`sections/12-glossary.md`](sections/12-glossary.md)                | Glossary                 |
 
+## Quality model dataset
+
+[`quality-model/`](quality-model/) holds a generated extract of the **Q42 quality
+model** ([quality.arc42.org](https://quality.arc42.org)), pinned to
+`arc42/quality.arc42.org-site` @ `3a24a3c640a7bb32fb3d5344dcc7dcda8d6e22f0`,
+retrieved 2026-08-24. Refresh by diffing that SHA against `HEAD` and
+regenerating; each file repeats its own provenance header.
+
+| File | Holds | Consult it when |
+|------|-------|-----------------|
+| [`qualities.md`](quality-model/qualities.md) | 191 quality characteristics, each with its dimension tags, related characteristics, and governing standards | Checking that a document's quality labels are real dimensions, or finding the canonical name for a quality we invented a label for |
+| [`requirements.md`](quality-model/requirements.md) | 149 example quality scenarios in Context / Trigger / Response / Acceptance Criteria form | Writing or reviewing a section 10 scenario — these are templates to adapt, not a checklist |
+| [`approaches.md`](quality-model/approaches.md) | 55 solution approaches (tactics and patterns), indexed by the quality each enables, with the qualities each one costs | Reviewing section 4 or 8: naming a pattern we already use, or finding the trade-off we failed to record |
+| [`standards.md`](quality-model/standards.md) | 46 standards across 13 categories | Checking whether a constraint or compliance obligation has a named standard behind it |
+
+The nine dimension tags are `reliable`, `usable`, `suitable`, `safe`, `flexible`,
+`secure`, `efficient`, `maintainable`, `operable`. A label outside that set is not
+a dimension, whatever else it may be — that check is the dataset's most direct use
+against a section 10.
+
 ## How to use
 
 For a human writing or reviewing a document, read a chapter's prose top to
