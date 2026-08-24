@@ -144,4 +144,14 @@ FactoryBot.define do
       }
     end
   end
+
+  factory :remap_hud_keys_ds, class: 'GrdaWarehouse::DataSource' do
+    name { 'Remap HUD Keys' }
+    short_name { 'Remap Keys' }
+    source_type { :sftp }
+    source_id { 'TEST-SRC' }
+    pre_process_hooks do
+      { 'HmisCsvImporter::Loader::HudKeyRemapper' => true }
+    end
+  end
 end
