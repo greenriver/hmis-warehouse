@@ -5,6 +5,7 @@ module Hmis::Ce::Match
   Field = Data.define(
     :id,
     :label,
+    :description,
     :multiple,
     :field_key,
     :source,

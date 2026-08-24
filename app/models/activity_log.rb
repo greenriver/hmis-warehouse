@@ -16,11 +16,29 @@ class ActivityLog < ApplicationRecord
   end
 
   scope :warehouse_reports, -> do
-    report_paths = GrdaWarehouse::WarehouseReports::ReportDefinition.pluck(:url).map do |u|
-      arel_table[:path].matches("/#{u}%")
-    end
+    where(warehouse_report_conditions.map(&:last).reduce(:or))
+  end
 
-    where(report_paths.map(&:to_sql).join(' OR '))
+  # [url, arel condition] per ReportDefinition.report_list entry. Each report's condition
+  # defaults to a path-prefix match, but can be overridden via a `reporting_query` lambda on the
+  # report_list entry (see the Nightly Census entry in report_definition.rb, whose date_range/
+  # details sub-routes are also hit by a widget embedded on other pages, so a bare path match
+  # would over-count). Shared by the `warehouse_reports` scope above and by
+  # AccessLogs::WarehouseReports::UsageSummary, which needs the same per-report conditions
+  # individually (not just OR'd together) to attribute each row to a report.
+  def self.warehouse_report_conditions
+    GrdaWarehouse::WarehouseReports::ReportDefinition.report_list.values.flatten.map do |r|
+      [r[:url], r[:reporting_query]&.call(arel_table) || default_report_condition(r[:url])]
+    end
+  end
+
+  # Exact match, or the url followed by a `/` (a nested path) or `?` (a query string) -- not a
+  # bare `LIKE '/url%'`, which would also match a sibling report whose url happens to be a
+  # string-prefix of this one (e.g. 'warehouse_reports/chronic' matching
+  # 'warehouse_reports/chronic_housed' traffic too, misattributing it via first-match-wins).
+  def self.default_report_condition(url)
+    at = arel_table
+    at[:path].eq("/#{url}").or(at[:path].matches("/#{url}/%")).or(at[:path].matches("/#{url}?%"))
   end
 
   def clean_object_name

@@ -962,6 +962,11 @@ Field metadata for CE Match Rule expressions
 """
 type CeMatchField {
   """
+  Additional detail about what this field represents and how its value is resolved
+  """
+  description: String
+
+  """
   The full-length identifier used in CE Match Rule expressions, such as
   "current_age" or "cde.custom_assessment.my_field_key".
   """

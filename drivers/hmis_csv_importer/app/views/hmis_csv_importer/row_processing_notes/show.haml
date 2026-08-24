@@ -1,0 +1,13 @@
+= content_for :crumbs do
+  = link_to import_path(@import) do
+    &laquo; Import Log
+
+%h1= "Row Processing Notes for #{@filename}"
+
+%ul.nav.nav-tabs{role: "presentation"}
+  %li.nav-item{role: 'presentation'}
+    = link_to 'Loader Errors', hmis_csv_importer_loader_error_path(@import.loader_log, file: @filename), class: 'nav-link'
+  %li.nav-item.active{role: 'presentation'}
+    = link_to 'Row Processing Notes', hmis_csv_importer_row_processing_note_path(@import.loader_log, file: @filename), class: 'nav-link'
+
+= render_paginated_list_with_explicit_pagy(pagy: @pagy, list: @notes, item_name: 'note', list_partial: 'list')

@@ -42,7 +42,8 @@ module Types
     # N+1 query; do not use in batch for multiple clients.
     def eligible_unit_groups(filters: nil)
       scope = object.ce_match_candidates.
-        joins(candidate_pool: :unit_groups)
+        joins(candidate_pool: :unit_groups).
+        merge(Hmis::Ce::Match::CandidatePool.active) # drop membership in inactive pools (closed projects, or no longer using waitlists)
 
       if filters&.project_type.present?
         p_t = Hmis::Hud::Project.arel_table

@@ -11,6 +11,10 @@ module Mutations
     field :success, Boolean, null: false
 
     def resolve
+      # Global check: this re-processes the submission queue across all projects, so there is no
+      # single project to authorize against.
+      access_denied! unless policy_for(Hmis::Hud::Project, policy_type: :hmis_project).can_manage_external_form_submissions?
+
       handlers = ['HmisExternalApis::ConsumeExternalFormSubmissionsJob']
       return { success: true } if Delayed::Job.queued?(handlers) || Delayed::Job.running?(handlers)
 

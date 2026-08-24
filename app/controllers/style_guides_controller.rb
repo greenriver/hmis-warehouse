@@ -6,6 +6,8 @@
 
 # frozen_string_literal: true
 
+require 'faker'
+
 class StyleGuidesController < ApplicationController
   include AjaxModalRails::Controller
   include ClientPathGenerator

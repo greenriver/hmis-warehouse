@@ -191,7 +191,35 @@
   stroke-width: 3px;
 }
 
+.ho-container {
+  margin-top: space(4);
+  margin-bottom: space(6);
+  padding: 10px;
+  @include card-content;
+}
+
+.ho-container__summary {
+  display: flex;
+  justify-content: space-evenly;
+  padding: space(6) 0;
+  flex-wrap: wrap;
+}
+
+.ho-container__header {
+  border-bottom: 1px solid var(--gray-034);
+  margin-bottom: 10px;
+}
+
+.ho-container.rrh .ho-container__header h3 {
+  margin-top: 0;
+}
+
 .chunk {
+  margin-bottom: space(6);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
   &:only-child {
     margin-bottom: 0;
   }
@@ -247,6 +275,66 @@
   .icon-svg {
     margin-bottom: space(2);
   }
+}
+
+#d3-tooltip {
+  position: absolute;
+  display: none;
+  background-color: #FFFFFF;
+  padding: 10px;
+  border: 1px solid var(--gray-034);
+  max-width: 300px;
+  min-width: 100px;
+  pointer-events: none;
+}
+
+.d3-tooltip__item {
+  position: relative;
+  padding-left: 13px;
+}
+
+.d3-tooltip__item.d3-tooltip__label {
+  font-weight: bold;
+  padding-left: 0px;
+}
+
+.d3-tooltip__swatch {
+  width: 8px;
+  height: 8px;
+  position: absolute;
+  left: 0px;
+  top: 6px;
+}
+
+.d3-chart {
+  height: 300px;
+  position: relative;
+}
+
+.rrh-row .col-md-6:first-child {
+  border-right: 1px solid var(--gray-034);
+}
+
+.ho-hint {
+  position: relative;
+  padding-left: 13px;
+}
+
+.ho-hint__swatch {
+  width: 8px;
+  height: 8px;
+  position: absolute;
+  left: 0px;
+  top: 6px;
+}
+
+.ho-hint__swatch-text {
+  display: inline-block;
+}
+
+#d3-demographics__legend .ho-hint {
+  float: right;
+  margin-right: 10px;
 }
 
 @for $i from 1 through length($indicator-colors) {
