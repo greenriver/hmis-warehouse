@@ -1,0 +1,11 @@
+.table-responsive
+  %table.table.table-striped
+    %thead
+      %tr
+        %th Reason
+        %th Row
+    %tbody
+      - list.each do |note|
+        %tr
+          %td= note.reason
+          %td= note.row

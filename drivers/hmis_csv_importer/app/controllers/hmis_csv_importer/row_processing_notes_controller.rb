@@ -6,7 +6,7 @@
 
 # frozen_string_literal: true
 
-class HmisCsvImporter::LoaderErrorsController < ApplicationController
+class HmisCsvImporter::RowProcessingNotesController < ApplicationController
   before_action :require_can_view_imports!
 
   def show
@@ -16,7 +16,7 @@ class HmisCsvImporter::LoaderErrorsController < ApplicationController
     raise ActiveRecord::RecordNotFound unless @import
 
     @filename = loader_log.summary.keys.detect { |v| v == params[:file] }
-    @errors = loader_log.load_errors.where(file_name: @filename)
-    @pagy, @errors = pagy(@errors, items: 200)
+    @notes = loader_log.row_processing_notes.where(file_name: @filename)
+    @pagy, @notes = pagy(@notes, items: 200)
   end
 end

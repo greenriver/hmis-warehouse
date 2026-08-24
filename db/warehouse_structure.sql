@@ -41411,6 +41411,38 @@ ALTER SEQUENCE public.hmis_csv_loader_logs_id_seq OWNED BY public.hmis_csv_loade
 
 
 --
+-- Name: hmis_csv_row_processing_notes; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_csv_row_processing_notes (
+    id bigint NOT NULL,
+    loader_log_id bigint NOT NULL,
+    file_name character varying NOT NULL,
+    "row" character varying,
+    reason character varying
+);
+
+
+--
+-- Name: hmis_csv_row_processing_notes_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_csv_row_processing_notes_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_csv_row_processing_notes_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_csv_row_processing_notes_id_seq OWNED BY public.hmis_csv_row_processing_notes.id;
+
+
+--
 -- Name: hmis_destination_client_latest_assessments; Type: VIEW; Schema: public; Owner: -
 --
 
@@ -59191,6 +59223,13 @@ ALTER TABLE ONLY public.hmis_csv_loader_logs ALTER COLUMN id SET DEFAULT nextval
 
 
 --
+-- Name: hmis_csv_row_processing_notes id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_csv_row_processing_notes ALTER COLUMN id SET DEFAULT nextval('public.hmis_csv_row_processing_notes_id_seq'::regclass);
+
+
+--
 -- Name: hmis_dqt_assessments id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -66170,6 +66209,14 @@ ALTER TABLE ONLY public.hmis_csv_load_errors
 
 ALTER TABLE ONLY public.hmis_csv_loader_logs
     ADD CONSTRAINT hmis_csv_loader_logs_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_csv_row_processing_notes hmis_csv_row_processing_notes_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_csv_row_processing_notes
+    ADD CONSTRAINT hmis_csv_row_processing_notes_pkey PRIMARY KEY (id);
 
 
 --
@@ -359941,6 +359988,7 @@ ALTER TABLE ONLY public.import_logs
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260819120200'),
 ('20260819120000'),
 ('20260818130528'),
 ('20260818120000'),

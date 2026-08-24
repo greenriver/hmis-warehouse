@@ -72,6 +72,7 @@
           %th Total Rows
           %th Rows Loaded
           %th Errors
+          %th Discarded
       %tbody
         - @import.loader_log.summary.with_indifferent_access.sort_by{|f,_| f}.each do |filename,v|
           %tr
@@ -79,6 +80,7 @@
             %td= number_with_delimiter(v['total_lines'])
             %td= link_to_if v['lines_loaded']&.positive?, number_with_delimiter(v['lines_loaded']), hmis_csv_importer_loaded_path(@import.loader_log, file: filename)
             %td= link_to_if v['total_errors']&.positive?, number_with_delimiter(v['total_errors']), hmis_csv_importer_loader_error_path(@import.loader_log, file: filename)
+            %td= link_to_if v['total_discarded']&.positive?, number_with_delimiter(v['total_discarded'] || 0), hmis_csv_importer_row_processing_note_path(@import.loader_log, file: filename)
 
 - if @import.importer_log.present?
   %h3 Importer Summary
