@@ -1,0 +1,13 @@
+.table-responsive
+  %table.table.table-striped
+    %thead
+      %tr
+        %th Filename
+        %th Error
+        %th Line
+    %tbody
+      - list.each do |error|
+        %tr
+          %td= error.file_name
+          %td= error.details
+          %td= error.source
