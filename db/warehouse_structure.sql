@@ -2896,7 +2896,8 @@ CREATE TABLE public.data_sources (
     import_cleanups jsonb DEFAULT '{}'::jsonb,
     hmis character varying,
     obey_consent boolean DEFAULT true,
-    disable_imports boolean DEFAULT false NOT NULL
+    disable_imports boolean DEFAULT false NOT NULL,
+    pre_process_hooks jsonb DEFAULT '{}'::jsonb NOT NULL
 );
 
 
@@ -359940,6 +359941,7 @@ ALTER TABLE ONLY public.import_logs
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260819120000'),
 ('20260818130528'),
 ('20260818120000'),
 ('20260814212023'),
