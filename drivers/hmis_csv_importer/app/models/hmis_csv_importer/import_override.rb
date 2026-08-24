@@ -8,6 +8,7 @@
 
 class HmisCsvImporter::ImportOverride < GrdaWarehouseBase
   UNUSED_DAYS = 30
+  MARKDOWN_ESCAPE_PATTERN = /[\\`*_{}\[\]()#+\-.!]/
   belongs_to :data_source
   has_paper_trail
   acts_as_paranoid
@@ -96,6 +97,10 @@ class HmisCsvImporter::ImportOverride < GrdaWarehouseBase
     row
   end
 
+  private def markdown_escape(text)
+    text.to_s.gsub(MARKDOWN_ESCAPE_PATTERN) { |char| "\\#{char}" }
+  end
+
   private def normalize_row(row)
     return row.attributes if row.is_a?(GrdaWarehouse::Hud::Base)
 
@@ -144,26 +149,35 @@ class HmisCsvImporter::ImportOverride < GrdaWarehouseBase
   # returns a markdown description of the override suitable for the override summary report
   def describe_overall
     # build a more human readable description of what will happen when the override is applied.
-    with_clause = describe_with
-    with_clause = 'will be **removed**' if with_clause.nil?
-    with_clause = "will be replaced with **#{with_clause}**" unless describe_with.nil?
+    replacement = describe_with(markdown: true)
+    with_clause = replacement.nil? ? 'will be **removed**' : "will be replaced with **#{replacement}**"
 
-    when_clause = "where **#{describe_when}**"
-    when_clause = 'for **all records** in the data source' if describe_when == 'always'
+    when_text = describe_when(markdown: true)
+    when_clause = "where **#{when_text}**"
+    when_clause = 'for **all records** in the data source' if when_text == 'always'
 
     "In #{file_name}, **#{replaces_column}** will be #{with_clause} #{when_clause}."
   end
 
-  def describe_with
-    replacement_value == ':NULL:' ? nil : replacement_value
+  def describe_with(markdown: false)
+    return nil if replacement_value == ':NULL:'
+
+    markdown ? markdown_escape(replacement_value) : replacement_value
   end
 
-  def describe_when
-    return 'always' if matched_hud_key.blank? && replaces_value_language.blank?
-    return "#{associated_class.hud_key} is #{matched_hud_key} and #{replaces_column} is #{replaces_value_language}" if matched_hud_key.present? && replaces_value_language.present?
-    return "#{associated_class.hud_key} is #{matched_hud_key}" if matched_hud_key.present?
+  def describe_when(markdown: false)
+    key = matched_hud_key
+    value_language = replaces_value_language
+    if markdown
+      key = markdown_escape(key) if key.present?
+      value_language = markdown_escape(value_language) if value_language.present?
+    end
 
-    "#{replaces_column} is #{replaces_value_language}" if replaces_value_language.present?
+    return 'always' if matched_hud_key.blank? && replaces_value_language.blank?
+    return "#{associated_class.hud_key} is #{key} and #{replaces_column} is #{value_language}" if matched_hud_key.present? && replaces_value_language.present?
+    return "#{associated_class.hud_key} is #{key}" if matched_hud_key.present?
+
+    "#{replaces_column} is #{value_language}" if replaces_value_language.present?
   end
 
   def describe_expiration
@@ -174,7 +188,7 @@ class HmisCsvImporter::ImportOverride < GrdaWarehouseBase
     text = 'Created'
     return "#{text} on _#{created_at&.to_date}_" unless created_by.present?
 
-    "#{text} by _#{creator.name_with_email}_ on _#{created_at.to_date}_"
+    "#{text} by _#{markdown_escape(creator.name_with_email)}_ on _#{created_at.to_date}_"
   end
 
   def incorrect_warning
