@@ -37,11 +37,9 @@ RSpec.describe HmisCsvImporter::ImportOverride, type: :model do
       expect(html).to include('[click here](http://evil.example)')
     end
 
-    # Test design: Tier 2 — regression for a nil-check bug where the ':NULL:'
-    # branch's re-check ran against the already-reassigned local variable
-    # instead of the original describe_with result, which would re-wrap
-    # 'will be **removed**' a second time.
-    it 'describes a removal without double-wrapping when replacement_value is :NULL:' do
+    # Test design: Tier 2 — pins describe_overall's exact :NULL: output across the
+    # describe_with(markdown:)/describe_when(markdown:) refactor.
+    it 'describes a removal when replacement_value is :NULL:' do
       override = create(
         :import_override,
         data_source: data_source,
@@ -50,7 +48,7 @@ RSpec.describe HmisCsvImporter::ImportOverride, type: :model do
         replacement_value: ':NULL:',
       )
 
-      expect(override.describe_overall).to eq('In Project.csv, **FirstName** will be will be **removed** for **all records** in the data source.')
+      expect(override.describe_overall).to eq('In Project.csv, **FirstName** will be **removed** for **all records** in the data source.')
     end
   end
 

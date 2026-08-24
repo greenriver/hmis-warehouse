@@ -156,7 +156,7 @@ class HmisCsvImporter::ImportOverride < GrdaWarehouseBase
     when_clause = "where **#{when_text}**"
     when_clause = 'for **all records** in the data source' if when_text == 'always'
 
-    "In #{file_name}, **#{replaces_column}** will be #{with_clause} #{when_clause}."
+    "In #{file_name}, **#{replaces_column}** #{with_clause} #{when_clause}."
   end
 
   def describe_with(markdown: false)

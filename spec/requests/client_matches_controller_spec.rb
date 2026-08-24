@@ -34,6 +34,13 @@ RSpec.describe ClientMatchesController, '#index', type: :request do
     expect(response.body).to include(CGI.escapeHTML('<script>alert(1)</script>'))
   end
 
+  it 'renders the accept-tooltip as plain text rather than opting into HTML rendering' do
+    get client_matches_path
+
+    accept_link = Nokogiri::HTML(response.body).at_css('a[data-bs-toggle="tooltip"][data-bs-title]')
+    expect(accept_link['data-bs-html']).to be_nil
+  end
+
   it 'renders the accept-tooltip without error when a matched client has no name on file' do
     blank_name_source = create(:hud_client, data_source_id: source_ds.id)
     blank_name_destination = create(:hud_client, data_source_id: destination_ds.id)
@@ -43,6 +50,6 @@ RSpec.describe ClientMatchesController, '#index', type: :request do
     get client_matches_path
 
     expect(response).to have_http_status(:ok)
-    expect(response.body).to include("into existing: <br> #{blank_name_source.uuid}")
+    expect(response.body).to include("into existing:\n #{blank_name_source.uuid}")
   end
 end
