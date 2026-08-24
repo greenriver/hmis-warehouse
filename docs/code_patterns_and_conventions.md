@@ -126,7 +126,7 @@ class ProjectsController < ApplicationController
 
 ### Authorization on a scope
 
-We should use `ArModel.viewable_by(user)`. Note there are variations of this scope in the code base but we should prefer `viewable_by` over visible_by or other variations.
+We should use `ArModel.viewable_by(user)`. Note there are variations of this scope in the code base (`visible_to`, `visible_by`, etc.) but `viewable_by` is the preferred name.
 
 ## Tracking PII
 
@@ -273,7 +273,7 @@ Do **not** add it on every type. Add it on records with sensitive fields (Client
 
 ```ruby
 # Types::HmisSchema::Client
-# Primary defense is applying the viewable_by / visible_to scope.
+# Primary defense is applying the viewable_by scope.
 def self.authorized?(object, ctx)
   super && ctx[:current_user].policy_for(object, policy_type: :hmis_client).can_view?
 end
