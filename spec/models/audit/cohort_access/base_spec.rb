@@ -77,12 +77,12 @@ RSpec.describe Audit::CohortAccess::Base do
       expect(audit.current_access.users.map(&:id)).not_to include(user.id)
     end
 
-    it 'excludes a user whose account has expired' do
+    it 'excludes a user whose account has expired', :devise_only do
       user.update_column(:expired_at, 1.day.ago)
       expect(audit.current_access.users.map(&:id)).not_to include(user.id)
     end
 
-    it 'excludes an unconfirmed user' do
+    it 'excludes an unconfirmed user', :devise_only do
       user.update_column(:confirmed_at, nil)
       expect(audit.current_access.users.map(&:id)).not_to include(user.id)
     end

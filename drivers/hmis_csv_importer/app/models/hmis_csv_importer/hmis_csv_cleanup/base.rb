@@ -33,6 +33,11 @@ module HmisCsvImporter::HmisCsvCleanup
       name.split('::').last.underscore.humanize
     end
 
+    # Lower runs first. Same-priority cleanups keep stored JSON order.
+    def self.run_order
+      0
+    end
+
     def self.associated_model
       return unless enable.present?
 

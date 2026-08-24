@@ -38,8 +38,8 @@ module WarehouseReports::Cas
     # patch client with health_prioritization
     def client
       @client = GrdaWarehouse::Hud::Client.destination.find(params[:id])
-      health_prioritized = params.dig(:client, :health_prioritized)
-      @client.update(health_prioritized: health_prioritized.presence)
+      health_prioritized = params.dig(:client, :health_prioritized).presence_in(['Yes', 'No'])
+      @client.update(health_prioritized: health_prioritized)
       respond_with(@client, location: warehouse_reports_cas_health_prioritization_index_path(filter: filter_params))
     end
 

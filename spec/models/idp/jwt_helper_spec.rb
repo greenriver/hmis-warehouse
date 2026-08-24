@@ -221,6 +221,29 @@ RSpec.describe Idp::JwtHelper, :jwt_only do
     end
   end
 
+  describe '#email_verified' do
+    def helper_for(claims)
+      described_class.new(access_token: JWT.encode(claims, rsa_key, 'RS256', { kid: kid }))
+    end
+
+    it 'is nil when the token carries no such claim, as a SAML-fed upstream does not' do
+      expect(helper_for(payload.except('email_verified')).email_verified).to be_nil
+    end
+
+    it 'is true for a boolean true claim' do
+      expect(helper_for(payload.merge('email_verified' => true)).email_verified).to be true
+    end
+
+    it 'is false for a boolean false claim' do
+      expect(helper_for(payload.merge('email_verified' => false)).email_verified).to be false
+    end
+
+    it 'casts a string claim rather than reading it raw, where "false" would be truthy' do
+      expect(helper_for(payload.merge('email_verified' => 'true')).email_verified).to be true
+      expect(helper_for(payload.merge('email_verified' => 'false')).email_verified).to be false
+    end
+  end
+
   describe '#connector_user_id' do
     it 'reads user_id from federated_claims' do
       expect(helper.connector_user_id).to eq('kc-123')
@@ -248,19 +271,62 @@ RSpec.describe Idp::JwtHelper, :jwt_only do
   end
 
   describe 'name parsing' do
-    it '#first_name returns the titleized first part' do
+    def helper_for(claims)
+      described_class.new(access_token: JWT.encode(claims, rsa_key, 'RS256', { kid: kid }))
+    end
+
+    it '#first_name prefers the given_name claim over the display name' do
+      expect(helper_for(payload.merge('given_name' => 'Quincy')).first_name).to eq('Quincy')
+    end
+
+    it '#last_name prefers the family_name claim over the display name' do
+      expect(helper_for(payload.merge('family_name' => 'Quincy')).last_name).to eq('Quincy')
+    end
+
+    it 'reads both dedicated claims when the token carries no display name' do
+      claims = payload.except('name').merge('given_name' => 'John', 'family_name' => 'Adams')
+
+      expect(helper_for(claims).first_name).to eq('John')
+      expect(helper_for(claims).last_name).to eq('Adams')
+    end
+
+    it '#first_name falls back to the first word of the display name' do
       expect(helper.first_name).to eq('John')
     end
 
-    it '#last_name returns the titleized last part' do
-      expect(helper.last_name).to eq('Adams')
+    it '#last_name falls back to everything after the first word of the display name' do
+      expect(helper_for(payload.merge('name' => 'John Adams')).last_name).to eq('Adams')
     end
 
-    it '#last_name returns nil if only one name exists' do
-      single_name_payload = payload.merge('name' => 'Cher')
-      single_name_token = JWT.encode(single_name_payload, rsa_key, 'RS256', { kid: kid })
-      single_name_helper = described_class.new(access_token: single_name_token)
-      expect(single_name_helper.last_name).to be_nil
+    it 'keeps the whole remainder rather than only its last word' do
+      expect(helper_for(payload.merge('name' => 'Jan van der Berg')).last_name).to eq('van der Berg')
+      expect(helper_for(payload.merge('name' => 'John Quincy Adams')).last_name).to eq('Quincy Adams')
+    end
+
+    it '#last_name is nil when the display name is one word and no family_name claim came with it' do
+      expect(helper_for(payload.merge('name' => 'Cher')).last_name).to be_nil
+    end
+
+    it '#first_name reads a one-word display name' do
+      expect(helper_for(payload.merge('name' => 'Cher')).first_name).to eq('Cher')
+    end
+
+    it 'is nil for both when the token carries no name claim at all' do
+      claims = payload.except('name')
+
+      expect(helper_for(claims).first_name).to be_nil
+      expect(helper_for(claims).last_name).to be_nil
+    end
+
+    it 'preserves casing the IdP chose rather than titleizing it' do
+      expect(helper_for(payload.merge('name' => 'Ada McDonald')).last_name).to eq('McDonald')
+      expect(helper_for(payload.merge('family_name' => 'van der Berg')).last_name).to eq('van der Berg')
+      expect(helper_for(payload.merge('name' => 'ADA MCDONALD')).first_name).to eq('ADA')
+    end
+
+    it 'ignores the surrounding and repeated whitespace an IdP may send' do
+      expect(helper_for(payload.merge('given_name' => '  John  ')).first_name).to eq('John')
+      expect(helper_for(payload.merge('name' => '  John   Quincy   Adams  ')).last_name).to eq('Quincy Adams')
     end
   end
 

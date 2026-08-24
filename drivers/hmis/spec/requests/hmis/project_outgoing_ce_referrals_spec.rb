@@ -130,6 +130,50 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         end
       end
 
+      context 'and the referred client is restricted' do
+        let!(:source_ac) { create_access_control(hmis_user, source_project, with_permission: [:can_view_project, :can_manage_outgoing_referrals, :can_view_clients, :can_view_client_name]) }
+        before(:each) { client1.mark_as_restricted!(user: hmis_user) }
+
+        it 'masks the name of the restricted client only' do
+          response, result = post_graphql(id: source_project.id) { query }
+          expect(response.status).to eq(200), result.inspect
+          outgoing_referrals = result.dig('data', 'project', 'outgoingDirectCeReferrals', 'nodes')
+
+          expect(outgoing_referrals).to contain_exactly(
+            a_hash_including('id' => direct_referral1.id.to_s, 'clientName' => client1.masked_name),
+            a_hash_including('id' => direct_referral2.id.to_s, 'clientName' => client2.brief_name),
+          )
+        end
+
+        it 'masks the name for users who can view the full referral' do
+          create_access_control(hmis_user, target_project1, with_permission: [:can_view_project, :can_view_referrals])
+
+          response, result = post_graphql(id: source_project.id) { query }
+          expect(response.status).to eq(200), result.inspect
+          outgoing_referrals = result.dig('data', 'project', 'outgoingDirectCeReferrals', 'nodes')
+
+          expect(outgoing_referrals).to include(
+            a_hash_including(
+              'id' => direct_referral1.id.to_s,
+              'clientName' => client1.masked_name,
+              'access' => a_hash_including('canViewReferralDetails' => true),
+            ),
+          )
+        end
+
+        it 'resolves the name for users who can view restricted clients at the enrolled project' do
+          add_permissions(source_ac, :can_view_restricted_clients)
+
+          response, result = post_graphql(id: source_project.id) { query }
+          expect(response.status).to eq(200), result.inspect
+          outgoing_referrals = result.dig('data', 'project', 'outgoingDirectCeReferrals', 'nodes')
+
+          expect(outgoing_referrals).to include(
+            a_hash_including('id' => direct_referral1.id.to_s, 'clientName' => client1.brief_name),
+          )
+        end
+      end
+
       context 'and the current user can view enrollment details in the source project' do
         let!(:source_ac) do
           create_access_control(

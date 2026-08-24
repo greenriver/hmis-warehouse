@@ -236,4 +236,15 @@ RSpec.describe Idp::SyncUserFromIdpJob, :jwt_only, type: :job do
 
     expect(Delayed::Worker.max_attempts - job.calculated_attempts).to eq(2)
   end
+
+  describe 'a connector whose service will not build' do
+    it 'syncs nothing, since the read-back needs the service' do
+      allow(Idp::ServiceFactory).to receive(:for_connector).with('test').
+        and_raise(Idp::ServiceError.new('bad config', idp_name: 'Keycloak', operation: :build, transient: false))
+
+      described_class.new.perform(user_id: user.id)
+
+      expect(user.reload.email).to eq('before@example.com')
+    end
+  end
 end

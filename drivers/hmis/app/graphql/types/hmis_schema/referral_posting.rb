@@ -73,7 +73,10 @@ module Types
     end
 
     def hoh_name
-      hoh_member&.client&.brief_name
+      client = hoh_member&.client
+      return unless client
+
+      policy_for(client, policy_type: :hmis_client).can_view_name? ? client.brief_name : client.masked_name
     end
 
     def hoh_mci_id
