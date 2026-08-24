@@ -37,6 +37,30 @@ RSpec.describe CohortColumns::OpenEnrollments, type: :model do
     end
   end
 
+  describe '#display_read_only with an unexpected HTML-bearing project type label' do
+    # Test design: Tier 3 — project type labels normally come from
+    # HudHelper.util.project_type_brief, a fixed system lookup, so this is
+    # defense-in-depth rather than a reachable exploit today. content_tag
+    # already escapes block content, so this doesn't distinguish safe_join
+    # from the pre-fix `.join(' ').html_safe`; it guards the method's
+    # overall escaping guarantee against a future change that bypasses
+    # content_tag (e.g. splicing text into a raw interpolated string).
+    before do
+      create(
+        :grda_warehouse_warehouse_clients_processed,
+        client: client,
+        open_enrollments: [[1, '<script>alert(1)</script>']],
+      )
+    end
+
+    it 'escapes the label instead of rendering it live' do
+      result = column.display_read_only(nil)
+
+      expect(result).not_to include('<script>alert(1)</script>')
+      expect(result).to include('&lt;script&gt;alert(1)&lt;/script&gt;')
+    end
+  end
+
   describe '#display_read_only without a processed service history' do
     it 'returns nil' do
       expect(column.display_read_only(nil)).to be_nil
