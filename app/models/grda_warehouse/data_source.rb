@@ -770,7 +770,7 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
         project_count: project_count,
         org_count: org_counts[code] || 0,
       }
-    end.sort_by { |summary| [summary[:code] == 'unknown' ? 1 : 0, summary[:name]] }
+    end.sort_by { |summary| [summary[:code] == 'unknown' ? 1 : 0, summary[:code]] }
   end
 
   # Users who can see this data source's clients regardless of window visibility;
