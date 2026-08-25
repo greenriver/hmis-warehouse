@@ -486,6 +486,7 @@ Rails.application.routes.draw do
     resources :custom_imports, controller: 'data_sources/custom_imports' do
       get :download, on: :member
     end
+    resources :unprocessed_enrollments, only: [:index], controller: 'data_sources/unprocessed_enrollments'
     resource :api_config
     resource :hmis_import_config do
       get :download

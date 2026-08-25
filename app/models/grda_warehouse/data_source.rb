@@ -533,7 +533,7 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
   end
 
   def unprocessed_enrollment_count
-    @unprocessed_enrollment_count ||= enrollments.unprocessed.joins(:project, :destination_client).count
+    @unprocessed_enrollment_count ||= enrollments.unprocessed_with_resolvable_project_and_client.count
   end
 
   # Returns the date of the most recent fully successful import if the import is stalled, nil if it is not stalled
@@ -781,8 +781,7 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
   # source directly or through its organizations/projects/project access groups/CoCs.
   # DataSource#users (legacy AccessGroup only) can't express the ACL half of that, and
   # hand-rolling the ACL collection-inclusion rules here risks diverging from the real
-  # ones, so this reuses .viewable_by - the same scope every other access check in the
-  # app relies on - per candidate user, rather than re-deriving them.
+  # ones, so this reuses .viewable_by.
   def users_with_view_access
     User.can_view_clients.active.select do |user|
       GrdaWarehouse::DataSource.viewable_by(user, permission: :can_view_clients).exists?(id: id)
@@ -790,8 +789,7 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
   end
 
   # Group nil, empty, and whitespace-only CoC codes into a single bucket, matching
-  # ProjectCoc.unknown_coc — otherwise they'd count as separate groups here despite
-  # coc_summaries offering them as a single "Unknown CoC" entry.
+  # ProjectCoc.unknown_coc.
   private def coc_code_bucket_scope(project_scope)
     coc = GrdaWarehouse::Hud::ProjectCoc.arel_table[:CoCCode]
     bucket = nf('NULLIF', [nf('TRIM', [coc]), ''])

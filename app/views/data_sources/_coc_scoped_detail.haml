@@ -12,14 +12,14 @@
     .col-sm-3
       %label{ for: 'coc_scoped_project_type_filter' } Project Type
       .form-group{ data: { controller: 'stimulus-select' } }
-        %select#coc_scoped_project_type_filter.form-control.stimulus-select{ data: { 'stimulus-select-target' => 'element', action: 'change->table-filter#filter', 'table-filter-target' => 'projectTypeSelect' } }
+        %select#coc_scoped_project_type_filter.form-control.stimulus-select{ data: { 'stimulus-select-target' => 'element', action: 'change->table-filter#filter', 'table-filter-target' => 'select', 'table-filter-field' => 'projectType' } }
           %option{ value: '' } All project types
           - HudHelper.util.project_type_briefs.select { |value, _| @coc_project_types.include?(value) }.each do |value, label|
             %option{ value: value }= label
     .col-sm-3
       %label{ for: 'coc_scoped_confidential_filter' } Confidential?
       .form-group{ data: { controller: 'stimulus-select' } }
-        %select#coc_scoped_confidential_filter.form-control.stimulus-select{ data: { 'stimulus-select-target' => 'element', action: 'change->table-filter#filter', 'table-filter-target' => 'confidentialSelect' } }
+        %select#coc_scoped_confidential_filter.form-control.stimulus-select{ data: { 'stimulus-select-target' => 'element', action: 'change->table-filter#filter', 'table-filter-target' => 'select', 'table-filter-field' => 'confidential' } }
           %option{ value: '' } Any
           %option{ value: 'true' } Confidential
           %option{ value: 'false' } Not confidential

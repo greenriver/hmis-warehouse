@@ -24,10 +24,7 @@ function waitForJQuery() {
   }
 }
 
-// Enable tooltips. A single element with a missing/invalid title (e.g. a blank hint
-// derived from unexpected data) must not throw and abort this script - that would skip
-// everything below, including waitForJQuery()/initializeControllers(), breaking Stimulus
-// (and anything built on it, like Select2) for the whole page.
+// Enable tooltips and prevent a missing/invalid title from breaking JS on the remainder of the page.
 const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
 const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => {
   try {
