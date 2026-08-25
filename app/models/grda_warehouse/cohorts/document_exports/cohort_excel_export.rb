@@ -60,6 +60,7 @@ module GrdaWarehouse::Cohorts::DocumentExports
             row += ([CohortColumns::Meta.new] + cohort.visible_columns(user: user)).map do |column|
               column.cohort = cohort
               column.cohort_names = cohort_names
+              column.current_user = user
               column.cohort_client = cohort_client
               if column.renderer == 'html'
                 column.text_value(cohort_client)

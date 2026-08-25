@@ -323,8 +323,6 @@ module GrdaWarehouse
     end
 
     def visible_columns(user:)
-      return self.class.default_visible_columns unless column_state.present?
-
       active_columns.each do |column|
         column.current_user = user
       end
