@@ -666,6 +666,18 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
       ids = described_class.hmis_restricted_destination_client_ids([destination_client.id])
       expect(ids).to eq(Set.new)
     end
+
+    it 'includes a destination client that is itself restricted directly' do
+      Hmis::RestrictedRecord.create!(
+        restrictable_id: destination_client.id,
+        restrictable_type: 'Hmis::Hud::Client',
+        data_source_id: destination_client.data_source_id,
+        created_by: hmis_user,
+      )
+
+      ids = described_class.hmis_restricted_destination_client_ids([destination_client.id, unrestricted_destination_client.id])
+      expect(ids).to eq(Set.new([destination_client.id]))
+    end
   end
 
   describe '#pii_provider' do
