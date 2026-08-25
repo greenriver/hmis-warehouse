@@ -54,6 +54,8 @@ module Types
     EXCLUDED_RECORD_TYPES_FOR_AUDIT = ['Hmis::Wip'].freeze
 
     def audit_history(filters: nil)
+      access_denied! unless policy_for(object, policy_type: :hmis_user).can_audit?
+
       v_t = GrdaWarehouse.paper_trail_versions.arel_table
       scope = GrdaWarehouse.paper_trail_versions.
         where(true_user_id: object.id).
