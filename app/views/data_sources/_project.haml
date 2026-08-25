@@ -2,7 +2,7 @@
 %tr{ data: { 'table-filter-target' => 'row', 'project-type' => project.ProjectType, confidential: (!!project.confidential).to_s, 'search-text' => project_display_name } }
   %td
     .project__name.mb-2{id: "project-#{project.id}"}
-      = link_to_if can_view_projects?, project_display_name, project_path(project)
+      = link_to_if can_view_projects?, project_display_name, project_path(project, coc_code: params[:coc_code])
   %td
     .d-flex
       .enrollment__project_type.mr-2{class: "client__service_type_#{project.ProjectType}"}
@@ -17,7 +17,7 @@
   - if can_edit_projects?
     %td
       .d-flex
-        = link_to edit_project_path(project), class: ['btn', 'btn-sm', 'btn-secondary', 'btn-icon-only', 'my-1'] do
+        = link_to edit_project_path(project, coc_code: params[:coc_code]), class: ['btn', 'btn-sm', 'btn-secondary', 'btn-icon-only', 'my-1'] do
           %i.icon-pencil
         = render 'projects/add_override', data_source_id: project.data_source.id, file_type: 'Project.csv', hmis_value: project.ProjectID
   %td

@@ -29,6 +29,7 @@ class DataSourcesController < ApplicationController
   def show
     @readonly = ! (can_edit_data_sources? || can_edit_projects?)
     load_overrides
+    params[:coc_code] = nil unless valid_coc_code_param?
     @require_coc_choice = @data_source.require_coc_choice?(viewable_projects)
     if @require_coc_choice && params[:coc_code].blank?
       @coc_summaries = @data_source.coc_summaries(viewable_projects)
@@ -164,6 +165,12 @@ class DataSourcesController < ApplicationController
       eager_load(:data_source, projects: :data_source).
       merge(project_scope).
       order(o_t[:OrganizationName].asc, p_t[:ProjectName].asc)
+  end
+
+  # 'unknown' is this feature's own bucket for projects with a blank/whitespace CoC
+  # code (see GrdaWarehouse::DataSource#coc_summaries), not a real HUD CoC code.
+  private def valid_coc_code_param?
+    params[:coc_code].blank? || params[:coc_code] == 'unknown' || HudHelper.util.valid_coc?(params[:coc_code])
   end
 
   private def viewable_projects
