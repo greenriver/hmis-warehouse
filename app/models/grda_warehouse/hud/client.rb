@@ -1393,21 +1393,22 @@ module GrdaWarehouse::Hud
       # this catches empty
     end
 
-    # HMIS Client Restriction is tracked per source client, this maps each destination id
-    # to its source client ids before checking Hmis::RestrictedRecord so we can enforce
-    # the restriction on all source clients for a given destination client.
+    # HMIS Client Restriction is tracked per source client, so this maps each destination
+    # id to its source client ids before checking Hmis::RestrictedRecord. A RestrictedRecord
+    # can also be placed directly on the destination client id — there's no UI for that yet,
+    # but nothing prevents it, and it should restrict the same way a source-level record does.
     def self.hmis_restricted_destination_client_ids(destination_client_ids)
       return Set.new if destination_client_ids.blank?
 
       source_pairs = joins(:warehouse_client_destination).
         where(id: destination_client_ids).
         pluck(wc_t[:destination_id], wc_t[:source_id])
-      return Set.new if source_pairs.empty?
+      pairs = source_pairs + destination_client_ids.map { |id| [id, id] }
 
-      restricted_source_ids = Hmis::RestrictedRecord.for_clients.
-        where(restrictable_id: source_pairs.map(&:last)).
+      restricted_ids = Hmis::RestrictedRecord.for_clients.
+        where(restrictable_id: pairs.map(&:last)).
         pluck(:restrictable_id).to_set
-      source_pairs.select { |_, source_id| restricted_source_ids.include?(source_id) }.map(&:first).to_set
+      pairs.select { |_, id| restricted_ids.include?(id) }.map(&:first).to_set
     end
 
     def policy_class
