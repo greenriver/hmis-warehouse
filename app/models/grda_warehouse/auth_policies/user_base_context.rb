@@ -25,4 +25,16 @@ class GrdaWarehouse::AuthPolicies::UserBaseContext
   memoize def client_roi_loader
     GrdaWarehouse::AuthPolicies::ContextLoaders::ClientRoiLoader.new(@user)
   end
+
+  memoize def client_restriction_loader
+    GrdaWarehouse::AuthPolicies::ContextLoaders::ClientRestrictionLoader.new
+  end
+
+  def client_restricted?(destination_client_id)
+    client_restriction_loader.restricted?(destination_client_id)
+  end
+
+  def preload_client_restriction_dependencies(destination_client_ids)
+    client_restriction_loader.preload(destination_client_ids)
+  end
 end

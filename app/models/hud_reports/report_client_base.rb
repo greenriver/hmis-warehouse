@@ -22,6 +22,10 @@ module HudReports
       transform_value(col.to_s, cell_val, pii_policy)
     end
 
+    def destination_client_id_for_pii
+      self.class.column_names.include?('destination_client_id') ? destination_client_id : client_id
+    end
+
     def self.search_clients(scope, search_term)
       return scope if search_term.blank?
       return scope unless searchable?

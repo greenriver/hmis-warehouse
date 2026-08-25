@@ -1393,6 +1393,23 @@ module GrdaWarehouse::Hud
       # this catches empty
     end
 
+    # HMIS Client Restriction is tracked per source client, this maps each destination id
+    # to its source client ids before checking Hmis::RestrictedRecord so we can enforce
+    # the restriction on all source clients for a given destination client.
+    def self.hmis_restricted_destination_client_ids(destination_client_ids)
+      return Set.new if destination_client_ids.blank?
+
+      source_pairs = joins(:warehouse_client_destination).
+        where(id: destination_client_ids).
+        pluck(wc_t[:destination_id], wc_t[:source_id])
+      return Set.new if source_pairs.empty?
+
+      restricted_source_ids = Hmis::RestrictedRecord.for_clients.
+        where(restrictable_id: source_pairs.map(&:last)).
+        pluck(:restrictable_id).to_set
+      source_pairs.select { |_, source_id| restricted_source_ids.include?(source_id) }.map(&:first).to_set
+    end
+
     def policy_class
       if destination?(strict: true)
         GrdaWarehouse::AuthPolicies::DestinationClientPolicy
@@ -1404,13 +1421,18 @@ module GrdaWarehouse::Hud
     # pii provider for use on client dashboard
     memoize def pii_provider(user:)
       policy = user.policy_for(self)
+      policy = GrdaWarehouse::PiiProvider.restrict(policy, restricted: user.policy_context.client_restricted?(destination_client_id_for_restriction))
       GrdaWarehouse::PiiProvider.new(self, policy: policy)
     end
 
     # pii provider for use in reports and bulk view
     def project_pii_provider(project:, user:, mode:)
-      policy = user.reporting_policy_for_project(project_id: project.id, mode: mode)
+      policy = user.reporting_policy_for_project(project_id: project.id, mode: mode, client_id: destination_client_id_for_restriction)
       GrdaWarehouse::PiiProvider.new(self, policy: policy)
+    end
+
+    private def destination_client_id_for_restriction
+      destination?(strict: true) ? id : destination_client&.id
     end
 
     def name

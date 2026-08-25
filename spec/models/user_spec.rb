@@ -390,4 +390,30 @@ RSpec.describe User, type: :model do
       expect(user).to be_valid
     end
   end
+
+  describe '#reporting_policy_for_project' do
+    let(:data_source) { create(:data_source_fixed_id) }
+    let(:organization) { create(:hud_organization, data_source: data_source) }
+    let(:project) { create(:grda_warehouse_hud_project, organization: organization, data_source: data_source) }
+
+    it 'returns AllowPiiPolicy when project_id is nil' do
+      expect(user.reporting_policy_for_project(project_id: nil)).to eq(GrdaWarehouse::AuthPolicies::AllowPiiPolicy.instance)
+    end
+
+    it 'is unaffected by restriction when client_id is not provided' do
+      expect(user.reporting_policy_for_project(project_id: project.id)).to be_a(GrdaWarehouse::AuthPolicies::ProjectPiiPolicy)
+    end
+
+    it 'wraps the resolved policy when the given client is restricted' do
+      allow(user.policy_context).to receive(:client_restricted?).with(42).and_return(true)
+      policy = user.reporting_policy_for_project(project_id: project.id, client_id: 42)
+      expect(policy).to be_a(GrdaWarehouse::PiiProvider::RestrictedPolicy)
+    end
+
+    it 'does not wrap the resolved policy when the given client is not restricted' do
+      allow(user.policy_context).to receive(:client_restricted?).with(42).and_return(false)
+      policy = user.reporting_policy_for_project(project_id: project.id, client_id: 42)
+      expect(policy).to be_a(GrdaWarehouse::AuthPolicies::ProjectPiiPolicy)
+    end
+  end
 end

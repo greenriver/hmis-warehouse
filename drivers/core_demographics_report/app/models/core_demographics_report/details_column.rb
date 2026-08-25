@@ -24,20 +24,4 @@ module CoreDemographicsReport
       @field ||= label.gsub(' ', '_').downcase
     end
   end
-
-  def column_objects_for(key)
-    raw = detail_hash.dig(key, :headers) || []
-    project_id_index = raw.index('_project_id')
-    raw.map.with_index do |label, index|
-      next if index == project_id_index # we don't show project id, it's just for permissions
-
-      CoreDemographicReportColumn.new(
-        label: label,
-        index: index,
-        pii: label.in?(pii_headers),
-        user: filter.user,
-        project_id_index: project_id_index,
-      )
-    end.compact
-  end
 end

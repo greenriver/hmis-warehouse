@@ -23,6 +23,17 @@ module CohortColumns
     attribute :editable, Boolean, lazy: false, default: true
     attribute :current_user
 
+    def client_restricted?(cohort_client)
+      current_user.policy_context.client_restricted?(cohort_client.client.id)
+    end
+
+    # If a client has been marked restricted in HMIS, we prevent their PII from showing on the cohort.
+    # We use the AllowPiiPolicy so all other clients' PII, regardless of the user's access are still visible.
+    def pii_provider(cohort_client)
+      policy = GrdaWarehouse::PiiProvider.restrict(GrdaWarehouse::AuthPolicies::AllowPiiPolicy.instance, restricted: client_restricted?(cohort_client))
+      GrdaWarehouse::PiiProvider.new(cohort_client.client, policy: policy)
+    end
+
     def cohort_column
       @cohort_column ||= GrdaWarehouse::Cohorts::CohortColumn.find_by!(class_name: class_name)
     end

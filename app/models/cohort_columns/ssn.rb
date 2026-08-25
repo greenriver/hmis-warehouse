@@ -19,6 +19,8 @@ module CohortColumns
     end
 
     def value(cohort_client)
+      return GrdaWarehouse::PiiProvider::REDACTED if client_restricted?(cohort_client)
+
       ssn(cohort_client.client.SSN)
     end
 

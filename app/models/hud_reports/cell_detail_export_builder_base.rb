@@ -79,6 +79,7 @@ module HudReports
               pii_policy = user.reporting_policy_for_project(
                 project_id: client.project_id,
                 mode: :download,
+                client_id: client.destination_client_id_for_pii,
               )
 
               row = headers.keys.map do |key|
@@ -98,6 +99,8 @@ module HudReports
     def preload_batch_policies(batch)
       project_ids = batch.map(&:project_id).compact.uniq
       user.policy_context.preload_project_dependencies(project_ids) if project_ids.any?
+      destination_client_ids = batch.map(&:destination_client_id_for_pii).compact.uniq
+      user.policy_context.preload_client_restriction_dependencies(destination_client_ids) if destination_client_ids.any?
     end
   end
 end

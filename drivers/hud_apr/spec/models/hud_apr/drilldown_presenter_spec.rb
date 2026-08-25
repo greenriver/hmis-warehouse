@@ -243,6 +243,65 @@ RSpec.describe HudApr::DrilldownPresenter, type: :model do
       end
     end
   end
+
+  describe 'HMIS client restriction' do
+    let!(:hmis_ds) { create(:hmis_primary_data_source) }
+    let!(:hmis_user) { create(:hmis_user, data_source: hmis_ds) }
+    let!(:restricted_source_client) { create(:hmis_hud_client, data_source: hmis_ds, first_name: 'Restricted', last_name: 'Client') }
+    let!(:restricted_destination_client) { create(:grda_warehouse_hud_client, FirstName: 'Restricted', LastName: 'Client') }
+    let!(:unrestricted_source_client) { create(:hmis_hud_client, data_source: hmis_ds, first_name: 'Open', last_name: 'Client') }
+    let!(:unrestricted_destination_client) { create(:grda_warehouse_hud_client, FirstName: 'Open', LastName: 'Client') }
+    let!(:data_source) { create(:data_source_fixed_id) }
+    let!(:organization) { create(:hud_organization, data_source: data_source) }
+    let!(:project) { create(:grda_warehouse_hud_project, organization: organization, data_source: data_source) }
+
+    let!(:restricted_record) do
+      create(:hud_report_apr_client,
+             report_instance: report,
+             first_name: 'Restricted',
+             last_name: 'Client',
+             personal_id: 'P1',
+             destination_client_id: restricted_destination_client.id,
+             project_id: project.id,
+             ssn: '111-11-1111',
+             dob: Date.new(1990, 1, 1))
+    end
+    let!(:unrestricted_record) do
+      create(:hud_report_apr_client,
+             report_instance: report,
+             first_name: 'Open',
+             last_name: 'Client',
+             personal_id: 'P2',
+             destination_client_id: unrestricted_destination_client.id,
+             project_id: project.id,
+             ssn: '222-22-2222',
+             dob: Date.new(1991, 2, 2))
+    end
+    let(:scope) { HudApr::Fy2020::AprClient.where(id: [restricted_record.id, unrestricted_record.id]) }
+
+    before do
+      GrdaWarehouse::WarehouseClient.create!(destination_id: restricted_destination_client.id, source_id: restricted_source_client.id, data_source_id: hmis_ds.id, id_in_source: restricted_source_client.id.to_s)
+      GrdaWarehouse::WarehouseClient.create!(destination_id: unrestricted_destination_client.id, source_id: unrestricted_source_client.id, data_source_id: hmis_ds.id, id_in_source: unrestricted_source_client.id.to_s)
+      restricted_source_client.mark_as_restricted!(user: hmis_user)
+      # The outer describe block stubs reporting_policy_for_project wholesale (see the top-level
+      # `before` above); restore the real implementation here so this test exercises the actual
+      # mode-gating + restriction-wrapping logic, not the outer stub's fixed return value.
+      allow(user).to receive(:reporting_policy_for_project).and_call_original
+      allow(user).to receive(:policy_for).and_return(GrdaWarehouse::AuthPolicies::AllowPiiPolicy.instance)
+    end
+
+    it 'redacts the restricted client and leaves the unrestricted client intact' do
+      presenter = described_class.new(scope, report, user)
+
+      expect(presenter.display_value(restricted_record, 'first_name')).to eq('Redacted')
+      expect(presenter.display_value(restricted_record, 'ssn')).to eq('Redacted')
+      expect(presenter.display_value(restricted_record, 'dob')).to eq('Redacted')
+
+      expect(presenter.display_value(unrestricted_record, 'first_name')).to eq('Open')
+      expect(presenter.display_value(unrestricted_record, 'ssn')).to eq('222-22-2222')
+      expect(presenter.display_value(unrestricted_record, 'dob')).to eq(Date.new(1991, 2, 2))
+    end
+  end
 end
 
 RSpec.describe HudApr::CeAprDrilldownPresenter, type: :model do
