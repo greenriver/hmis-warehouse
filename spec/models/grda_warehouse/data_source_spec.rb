@@ -437,22 +437,19 @@ RSpec.describe model, type: :model do
       project
     end
 
-    it 'summarizes distinct project and organization counts per CoC, sorted by name with unknown last' do
+    it 'summarizes distinct project and organization counts per CoC, sorted by code with unknown last' do
       # multi_site_project has two ProjectCoC rows for the same CoC (HUD allows multiple
       # site records per project/CoC) - it must still only count once toward project_count.
-      multi_site_project = add_project_with_coc('XX-500', organization: org1, site_count: 2)
-      add_project_with_coc('XX-500', organization: org1)
-      add_project_with_coc('XX-501', organization: org2)
+      multi_site_project = add_project_with_coc('XX-501', organization: org1, site_count: 2)
+      add_project_with_coc('XX-501', organization: org1)
+      add_project_with_coc('XX-500', organization: org2)
       add_project_with_coc(nil, organization: org2)
 
       summaries = ds.coc_summaries(all_projects)
 
-      # HudHelper.util.coc_name resolves 'XX-500'/'XX-501' to fixed test-fixture names
-      # ("Test CoC"/"2nd Test CoC") rather than falling back to the code itself, so the
-      # name-sorted order below is genuinely alphabetical ("2nd..." sorts before "Test...").
       expect(summaries).to eq([
-                                { code: 'XX-501', name: HudHelper.util.coc_name('XX-501'), project_count: 1, org_count: 1 },
-                                { code: 'XX-500', name: HudHelper.util.coc_name('XX-500'), project_count: 2, org_count: 1 },
+                                { code: 'XX-500', name: HudHelper.util.coc_name('XX-500'), project_count: 1, org_count: 1 },
+                                { code: 'XX-501', name: HudHelper.util.coc_name('XX-501'), project_count: 2, org_count: 1 },
                                 { code: 'unknown', name: Translation.translate('Unknown CoC'), project_count: 1, org_count: 1 },
                               ])
       expect(GrdaWarehouse::Hud::ProjectCoc.where(ProjectID: multi_site_project.ProjectID).count).to eq(2)
