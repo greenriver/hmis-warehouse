@@ -148,4 +148,16 @@ RSpec.describe HudReports::ReportClientBase, type: :model do
       end
     end
   end
+
+  describe '#destination_client_id_for_pii' do
+    it 'returns destination_client_id when the column exists' do
+      apr_client = HudApr::Fy2020::AprClient.new(destination_client_id: 42)
+      expect(apr_client.destination_client_id_for_pii).to eq(42)
+    end
+
+    it 'falls back to client_id when there is no destination_client_id column' do
+      spm_client = HudSpmReport::Fy2020::SpmClient.new(client_id: 99)
+      expect(spm_client.destination_client_id_for_pii).to eq(99)
+    end
+  end
 end

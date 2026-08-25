@@ -23,6 +23,8 @@ module HopwaCaper
         joins(hud_reports_universe_members: { report_cell: :report_instance }).
         merge(::HudReports::ReportCell.for_table(@table).for_cell(@cell))
       @name = "#{generator.file_prefix} #{@question} #{@cell}"
+      destination_client_ids = (@enrollments.to_a + @services.to_a).map(&:destination_client_id_for_pii).compact.uniq
+      current_user.policy_context.preload_client_restriction_dependencies(destination_client_ids) if destination_client_ids.any?
       respond_to do |format|
         format.html {}
         format.xlsx do

@@ -267,7 +267,7 @@ class User < ApplicationRecord
   #   project_ids.each do |project_id|
   #     pii_policy = current_user.reporting_policy_for_project(project_id)
   #   end
-  def reporting_policy_for_project(project_id:, mode: :browse)
+  def reporting_policy_for_project(project_id:, mode: :browse, client_id: nil)
     return GrdaWarehouse::AuthPolicies::AllowPiiPolicy.instance if project_id.nil?
 
     allowed = false
@@ -281,7 +281,8 @@ class User < ApplicationRecord
     end
 
     policy = policy_for(project_id, policy_class: GrdaWarehouse::AuthPolicies::ProjectPiiPolicy) if allowed
-    policy || GrdaWarehouse::AuthPolicies::DenyPiiPolicy.instance
+    policy ||= GrdaWarehouse::AuthPolicies::DenyPiiPolicy.instance
+    GrdaWarehouse::PiiProvider.restrict(policy, restricted: policy_context.client_restricted?(client_id))
   end
 
   # Retrieve the user's PII Policy for a specific client (used by reports whose detail rows

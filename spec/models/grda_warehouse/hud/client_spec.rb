@@ -629,4 +629,67 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
       end
     end
   end
+
+  describe '.hmis_restricted_destination_client_ids' do
+    let!(:hmis_ds) { create(:hmis_primary_data_source) }
+    let!(:hmis_user) { create(:hmis_user, data_source: hmis_ds) }
+    let!(:source_client) { create(:hmis_hud_client, data_source: hmis_ds) }
+    let!(:destination_client) { create(:grda_warehouse_hud_client) }
+    let!(:unrestricted_source_client) { create(:hmis_hud_client, data_source: hmis_ds) }
+    let!(:unrestricted_destination_client) { create(:grda_warehouse_hud_client) }
+
+    before do
+      GrdaWarehouse::WarehouseClient.create!(destination_id: destination_client.id, source_id: source_client.id, data_source_id: hmis_ds.id, id_in_source: source_client.id.to_s)
+      GrdaWarehouse::WarehouseClient.create!(destination_id: unrestricted_destination_client.id, source_id: unrestricted_source_client.id, data_source_id: hmis_ds.id, id_in_source: unrestricted_source_client.id.to_s)
+    end
+
+    it 'returns an empty set for a blank id list' do
+      expect(described_class.hmis_restricted_destination_client_ids([])).to eq(Set.new)
+    end
+
+    it 'excludes a destination client with no restricted source clients' do
+      ids = described_class.hmis_restricted_destination_client_ids([destination_client.id, unrestricted_destination_client.id])
+      expect(ids).to eq(Set.new)
+    end
+
+    it 'includes a destination client whose source client is restricted' do
+      source_client.mark_as_restricted!(user: hmis_user)
+
+      ids = described_class.hmis_restricted_destination_client_ids([destination_client.id, unrestricted_destination_client.id])
+      expect(ids).to eq(Set.new([destination_client.id]))
+    end
+
+    it 'excludes a destination client whose restriction has been removed' do
+      source_client.mark_as_restricted!(user: hmis_user)
+      source_client.remove_restriction!
+
+      ids = described_class.hmis_restricted_destination_client_ids([destination_client.id])
+      expect(ids).to eq(Set.new)
+    end
+  end
+
+  describe '#pii_provider' do
+    let!(:hmis_ds) { create(:hmis_primary_data_source) }
+    let!(:hmis_user) { create(:hmis_user, data_source: hmis_ds) }
+    let!(:source_client) { create(:hmis_hud_client, data_source: hmis_ds) }
+    let!(:destination_client) { create(:grda_warehouse_hud_client) }
+    let(:user) { create(:user) }
+
+    before do
+      GrdaWarehouse::WarehouseClient.create!(destination_id: destination_client.id, source_id: source_client.id, data_source_id: hmis_ds.id, id_in_source: source_client.id.to_s)
+      allow(user).to receive(:policy_for).and_return(GrdaWarehouse::AuthPolicies::AllowPiiPolicy.instance)
+    end
+
+    it 'shows PII when the client is not restricted' do
+      provider = destination_client.pii_provider(user: user)
+      expect(provider.redact_name?).to eq(false)
+    end
+
+    it 'redacts PII when the client is restricted, regardless of the underlying policy' do
+      source_client.mark_as_restricted!(user: hmis_user)
+
+      provider = destination_client.pii_provider(user: user)
+      expect(provider.redact_name?).to eq(true)
+    end
+  end
 end

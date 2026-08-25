@@ -63,6 +63,9 @@ module Cohorts
       end
       @visible_columns << delete_column if current_user.can_add_cohort_clients?
 
+      destination_client_ids = @cohort_clients.map { |cc| cc.client&.id }.compact.uniq
+      current_user.policy_context.preload_client_restriction_dependencies(destination_client_ids) if destination_client_ids.any?
+
       @cohort_clients.each do |cohort_client|
         client = cohort_client.client
         next if client.blank?
@@ -71,6 +74,7 @@ module Cohorts
         @visible_columns.each do |cohort_column|
           cohort_column.cohort = @cohort
           cohort_column.cohort_names = @cohort_names
+          cohort_column.current_user = current_user
 
           # set the cohort_client we want this for this column
           # it will be used to render the corresponding cell
@@ -178,6 +182,18 @@ module Cohorts
       @clients = @clients.where.not(id: @cohort.cohort_clients.select(:client_id)).pluck(*client_columns).map do |row|
         Hash[client_columns.zip(row)]
       end
+
+      # If a client has been marked restricted in HMIS, we prevent their PII from showing on the cohort.
+      # We use the AllowPiiPolicy so all other clients' PII, regardless of the user's access are still visible.
+      destination_client_ids = @clients.map { |c| c[:id] }
+      current_user.policy_context.preload_client_restriction_dependencies(destination_client_ids)
+      @clients = @clients.map do |c|
+        restricted = current_user.policy_context.client_restricted?(c[:id])
+        policy = GrdaWarehouse::PiiProvider.restrict(GrdaWarehouse::AuthPolicies::AllowPiiPolicy.instance, restricted: restricted)
+        provider = GrdaWarehouse::PiiProvider.from_attributes(policy: policy, first_name: c[:FirstName], last_name: c[:LastName], dob: c[:DOB])
+        c.merge(FirstName: provider.first_name, LastName: provider.last_name, DOB: provider.dob, restricted: restricted)
+      end
+
       @client_notes = cohort_client_notes(@clients)
       @removal_reasons = removal_reasons(@clients)
       # Clients is an array of hashes
@@ -638,7 +654,7 @@ module Cohorts
       scope = if @cohort.only_window
         client_source.destination.where(
           id: GrdaWarehouse::WarehouseClient.joins(:data_source).
-          merge(GrdaWarehouse::DataSource.visible_in_window).select(:destination_id),
+            merge(GrdaWarehouse::DataSource.visible_in_window).select(:destination_id),
         )
       else
         client_source.destination
