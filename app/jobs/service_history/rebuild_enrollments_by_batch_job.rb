@@ -20,11 +20,20 @@ module ServiceHistory
 
       @enrollment_ids.each do |id|
         Rails.logger.info "===RebuildEnrollmentsByBatchJob=== Processing enrollment #{id}"
-        # Rails.logger.debug "rebuilding enrollment #{enrollment_id}"
-        GrdaWarehouse::Tasks::ServiceHistory::Enrollment.
-          where(id: id).
-          each(&:rebuild_service_history!)
+        rebuild_one(id)
       end
+    end
+
+    private def rebuild_one(id)
+      enrollment = GrdaWarehouse::Tasks::ServiceHistory::Enrollment.find_by(id: id)
+      return unless enrollment
+
+      enrollment.rebuild_service_history!
+      enrollment.update_column(:processing_error, nil) if enrollment.processing_error.present?
+    rescue StandardError => e
+      Rails.logger.error "===RebuildEnrollmentsByBatchJob=== Enrollment #{id} failed: #{e.class}: #{e.message}"
+      enrollment&.update_column(:processing_error, "#{e.class}: #{e.message}")
+      Sentry.capture_exception_with_info(e, "RebuildEnrollmentsByBatchJob failed for enrollment #{id}", { enrollment_id: id })
     end
 
     def enqueue(job)

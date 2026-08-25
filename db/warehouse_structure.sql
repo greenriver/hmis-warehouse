@@ -3244,7 +3244,8 @@ CREATE TABLE public."Enrollment" (
     lock_version integer DEFAULT 0 NOT NULL,
     "LivingSituation2022" integer,
     project_pk bigint,
-    "MentalHealthConsultation" integer
+    "MentalHealthConsultation" integer,
+    processing_error text
 );
 
 
@@ -359988,6 +359989,7 @@ ALTER TABLE ONLY public.import_logs
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260825120000'),
 ('20260819120200'),
 ('20260819120000'),
 ('20260818130528'),
