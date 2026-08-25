@@ -14,6 +14,9 @@ module UserDirectoryReport::WarehouseReports
     helper_method :nav_link_classes
     helper_method :cas_available?
     helper_method :warehouse_user_source?
+    helper_method :hmis_data_sources
+    helper_method :hmis_data_sources_for
+    helper_method :hmis_data_source_linkable?
 
     # Both actions are the same report, and there is no :index for the concern's default
     # derivation to use; the seeded definition is registered under the warehouse action's
@@ -82,6 +85,13 @@ module UserDirectoryReport::WarehouseReports
 
     def cas_available?
       CasBase.db_exists? && CasAccess::User.take.respond_to?('exclude_from_directory')
+    end
+
+    def hmis_data_source_linkable?(hmis_ds)
+      return false unless current_user.can_view_imports_projects_or_organizations?
+
+      @viewable_hmis_data_source_ids ||= GrdaWarehouse::DataSource.hmis.viewable_by(current_user).pluck(:id).to_set
+      @viewable_hmis_data_source_ids.include?(hmis_ds.id)
     end
   end
 end

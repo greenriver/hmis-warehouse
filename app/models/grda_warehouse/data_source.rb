@@ -189,6 +189,14 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
 
   scope :not_hmis, -> { where(hmis: nil) }
 
+  # Every HMIS installation on this deployment, empty when HMIS is turned off here.
+  # Callers use the emptiness to decide whether to show HMIS at all.
+  def self.enabled_hmis_data_sources
+    return [] unless HmisEnforcement.hmis_enabled?
+
+    hmis.to_a
+  end
+
   scope :scannable, -> do
     where(service_scannable: true)
   end
