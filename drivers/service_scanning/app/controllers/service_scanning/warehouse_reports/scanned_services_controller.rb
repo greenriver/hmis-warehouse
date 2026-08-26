@@ -19,6 +19,7 @@ module ServiceScanning::WarehouseReports
       ids = @dates.values.map(&:values).flatten.flat_map { |m| m[:services].to_a }
       @services = service_class.where(id: ids).
         preload(:project, client: [:processed_service_history])
+      current_user.policy_context.preload_client_restriction_dependencies(@services.map(&:client_id).uniq)
 
       respond_to do |format|
         format.html {}
@@ -35,6 +36,7 @@ module ServiceScanning::WarehouseReports
       ids = @dates[@filter.start].values.flat_map { |m| m[:services] }
       @services = service_class.where(id: ids).
         preload(:project, :client)
+      current_user.policy_context.preload_client_restriction_dependencies(@services.map(&:client_id).uniq)
       respond_to do |format|
         format.html {}
         format.xlsx do

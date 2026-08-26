@@ -1,5 +1,7 @@
 .history__pdf
   - client = @client_history.client
+  - restricted = GrdaWarehouse::Hud::Client.hmis_restricted_destination_client_ids([client.id]).include?(client.id)
+  - pii = GrdaWarehouse::PiiProvider.new(client, policy: GrdaWarehouse::PiiProvider.restrict(GrdaWarehouse::AuthPolicies::AllowPiiPolicy.instance, restricted: restricted))
   = inline_stylesheet_link_tag 'print'
   - title = "#{Translation.translate('HMIS Data Warehouse')} Homeless History for Residential Programs"
   - content_for :title, title
@@ -12,7 +14,7 @@
   .history__title
     %h1= content_for :title
   .history__summary
-    %p Snapshot for #{client.name} (#{client.id}) taken on #{Date.current}
+    %p Snapshot for #{pii.full_name} (#{client.id}) taken on #{Date.current}
     %ul
       %li= "Days Homeless in the past three years: #{client.days_homeless_in_last_three_years} (seen in ES, SO, SH, TH with no overlapping PH)"
       %li= "Days Literally Homeless in the past three years: #{client.literally_homeless_last_three_years} (seen in ES, SO, SH with no overlapping TH or PH)"

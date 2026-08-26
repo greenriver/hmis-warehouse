@@ -41,6 +41,7 @@ module WarehouseReports::HealthEmergency
       respond_to do |format|
         format.html do
           @pagy, @results = pagy(@results)
+          current_user.policy_context.preload_client_restriction_dependencies(@results.map(&:client_id))
         end
         format.xlsx do
         end

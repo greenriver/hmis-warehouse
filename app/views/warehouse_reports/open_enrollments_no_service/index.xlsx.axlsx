@@ -17,12 +17,14 @@ wb.add_worksheet(name: "Open Enrollments") do |sheet|
     'Most Recent Date Served (in the last three years)',
   ], :style => title)
   @entries.each do |entry|
-    client = @clients[entry.client_id]
+    client_data = @clients[entry.client_id]
     max_date = @max_dates[entry.id]
+    policy = current_user.reporting_policy_for_project(project_id: entry.project.id, mode: :download, client_id: entry.client_id)
+    pii = GrdaWarehouse::PiiProvider.from_attributes(policy: policy, first_name: client_data[:FirstName], last_name: client_data[:LastName])
     sheet.add_row([
-      client[:id], 
-      client[:FirstName], 
-      client[:LastName], 
+      client_data[:id],
+      pii.first_name,
+      pii.last_name,
       entry.project.name(current_user),
       entry[:first_date_in_program],
       max_date,
