@@ -1,0 +1,11 @@
+.c-card--flush.mb-4
+  %header.c-card__header.align-items-center
+    .text-muted.text-uppercase.small.fw-bold.mb-1 Access
+    %h3.mb-0 Who can view this
+  .p-3
+    %p
+      %strong= pluralize(@data_source.users_with_view_access.count, 'user')
+      %br
+      have access to clients in this data source regardless of window visibility.
+    = link_to data_source_user_access_path(@data_source), class: 'btn btn-secondary btn-sm', data: { loads_in_ajax_modal: true } do
+      View user access &rarr;

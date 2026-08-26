@@ -115,12 +115,12 @@
   .col-sm-4.text-right
     - if project_policy.can_edit?
       .mb-4
-        = link_to edit_project_path(@project), class: ['btn', 'btn-sm', 'btn-secondary'] do
+        = link_to edit_project_path(@project, coc_code: params[:coc_code]), class: ['btn', 'btn-sm', 'btn-secondary'] do
           %i.icon-pencil
           Edit Project
     - if project_policy.can_destroy?
       .mb-4
-        = link_to project_path(@project), method: :delete, class: ['btn', 'btn-sm', 'btn-danger'], data: { confirm: "Deleting #{@project.ProjectName} will delete ALL associated data.  Do you want to proceed?"} do
+        = link_to project_path(@project, coc_code: params[:coc_code]), method: :delete, class: ['btn', 'btn-sm', 'btn-danger'], data: { confirm: "Deleting #{@project.ProjectName} will delete ALL associated data.  Do you want to proceed?"} do
           %i.icon-cross
           Delete Project
     - if RailsDrivers.loaded.include?(:synthetic_ce_assessment) && project_policy.can_edit?
