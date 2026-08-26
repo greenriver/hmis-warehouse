@@ -23,6 +23,10 @@ RSpec.describe CohortColumns::Ssn, type: :model do
   end
 
   describe '#value' do
+    it 'shows the masked SSN, per the viewing user\'s general permission, when the client is not restricted' do
+      expect(column.value(cohort_client)).to eq('<span>XXX-XX-6789</span>')
+    end
+
     it 'fully redacts the SSN when the client is restricted' do
       source_client.mark_as_restricted!(user: hmis_user)
       expect(column.value(cohort_client)).to eq('Redacted')

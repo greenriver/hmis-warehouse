@@ -683,8 +683,8 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
   describe '#pii_provider' do
     let!(:hmis_ds) { create(:hmis_primary_data_source) }
     let!(:hmis_user) { create(:hmis_user, data_source: hmis_ds) }
-    let!(:source_client) { create(:hmis_hud_client, data_source: hmis_ds) }
-    let!(:destination_client) { create(:grda_warehouse_hud_client) }
+    let!(:source_client) { create(:hmis_hud_client, data_source: hmis_ds, first_name: 'Jamie') }
+    let!(:destination_client) { create(:grda_warehouse_hud_client, FirstName: 'Jamie') }
     let(:user) { create(:user) }
 
     before do
@@ -694,14 +694,33 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
 
     it 'shows PII when the client is not restricted' do
       provider = destination_client.pii_provider(user: user)
-      expect(provider.redact_name?).to eq(false)
+      expect(provider.first_name).to eq('Jamie')
     end
 
     it 'redacts PII when the client is restricted, regardless of the underlying policy' do
       source_client.mark_as_restricted!(user: hmis_user)
 
       provider = destination_client.pii_provider(user: user)
-      expect(provider.redact_name?).to eq(true)
+      expect(provider.first_name).to eq('Name Redacted')
+    end
+
+    context 'called on the source client rather than the destination client' do
+      # GrdaWarehouse::Hud::Client and Hmis::Hud::Client both map to the `Client` table by id,
+      # so the warehouse-side source client is the same row as `source_client`, loaded through
+      # the warehouse model that defines #pii_provider.
+      let(:warehouse_source_client) { GrdaWarehouse::Hud::Client.find(source_client.id) }
+
+      it 'shows PII when the client is not restricted' do
+        provider = warehouse_source_client.pii_provider(user: user)
+        expect(provider.first_name).to eq('Jamie')
+      end
+
+      it 'redacts PII when the mapped destination client is restricted' do
+        source_client.mark_as_restricted!(user: hmis_user)
+
+        provider = warehouse_source_client.pii_provider(user: user)
+        expect(provider.first_name).to eq('Name Redacted')
+      end
     end
   end
 end

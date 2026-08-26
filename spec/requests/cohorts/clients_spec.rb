@@ -122,6 +122,46 @@ RSpec.describe Cohorts::ClientsController, type: :request do
         get cohort_cohort_client_search_query_path(cohort_id: cohort.id, id: 'non-existent-uuid')
         expect(response).to have_http_status(:not_found)
       end
+
+      context 'when a matching client has been marked restricted in HMIS' do
+        let!(:hmis_ds) { create(:hmis_primary_data_source, visible_in_window: true) }
+        let!(:hmis_user) { create(:hmis_user, data_source: hmis_ds) }
+        let!(:restricted_source_client) { create(:hmis_hud_client, data_source: hmis_ds, first_name: 'CohortClient', last_name: 'Sensitive') }
+        let!(:restricted_destination_client) { create(:hud_client, FirstName: 'CohortClient', LastName: 'Sensitive', SSN: '111223333') }
+        let!(:open_source_client) { create(:hmis_hud_client, data_source: hmis_ds, first_name: 'CohortClient', last_name: 'Open') }
+        let!(:open_destination_client) { create(:hud_client, FirstName: 'CohortClient', LastName: 'Open', SSN: '444556666') }
+
+        let!(:hmis_ds_viewable_collection) { create(:collection) }
+
+        before do
+          # source_data_source_ids/destination_data_source_ids are cached for an hour (see
+          # GrdaWarehouse::DataSource); invalidate so the newly-created HMIS data source is
+          # picked up by full-text search.
+          Rails.cache.delete(:source_data_source_ids)
+          Rails.cache.delete(:destination_data_source_ids)
+          GrdaWarehouse::WarehouseClient.create!(destination_id: restricted_destination_client.id, source_id: restricted_source_client.id, data_source_id: hmis_ds.id, id_in_source: restricted_source_client.id.to_s)
+          GrdaWarehouse::WarehouseClient.create!(destination_id: open_destination_client.id, source_id: open_source_client.id, data_source_id: hmis_ds.id, id_in_source: open_source_client.id.to_s)
+          restricted_source_client.mark_as_restricted!(user: hmis_user)
+
+          # hmis_ds is authoritative, so granting can_view_clients directly on it (rather
+          # than on a project/enrollment) is enough to make its clients search-visible.
+          hmis_ds_viewable_collection.add_viewable(hmis_ds)
+          setup_access_control(user, cohort_role, hmis_ds_viewable_collection)
+        end
+
+        it 'redacts the restricted client while leaving the unrestricted client intact' do
+          get cohort_cohort_client_search_query_path(cohort_id: cohort.id, id: search_query.id)
+
+          expect(response).to have_http_status(:ok)
+          expect(response.body).to include('Name Redacted')
+          expect(response.body).not_to include('Sensitive')
+          expect(response.body).not_to include('111223333')
+
+          expect(response.body).to include('Open')
+          expect(response.body).to include('XXX-XX-6666')
+          expect(response.body).not_to include('444556666')
+        end
+      end
     end
   end
 
