@@ -240,10 +240,6 @@ A new report driver adds its own `belongs_to` to the shared `HudReports::Univers
 
 HUD-report drivers define their own `<Driver>::BaseController < ::HudReports::BaseController` (not `ApplicationController` directly), and all other controllers in that driver inherit from it. Drivers outside the report framework may inherit `ApplicationController` directly instead — follow whichever base your driver extends.
 
-### `RailsDrivers.loaded` is legacy
-
-`RailsDrivers.loaded << :driver_name` in a driver's feature initializer is boilerplate carried forward through technical debt — all drivers are always loaded. `RailsDrivers.loaded.include?(...)` is legacy code slated for cleanup; do not write new code that gates behavior on it.
-
 ## GraphQL
 
 HMIS GraphQL authorization is documented in detail in [HMIS Permissions](features/hmis/hmis-permissions.md). That page is the accurate description of the RBAC model (roles, collections, policies, requirements). This section is the prescriptive pattern for *where* checks belong in schema code.
