@@ -98,6 +98,7 @@ module LsaSqlServer
         :ClientEntry,
         :AdultHoHEntry,
         :ClientExit,
+        :SSN4Digit,
         :SSNNotProvided,
         :SSNMissingOrInvalid,
         :ClientSSNNotUnique,

@@ -42,7 +42,7 @@ module LsaSqlServer
       when :lsa
         run_query('lib/rds_sql_server/lsa/fy2027/sample_code/03_01a LSA Parameters and Metadata-Annual Systemwide.sql')
       when :hic
-        run_query('lib/rds_sql_server/lsa/fy2027/sample_code/03_01c LSA Parameters and Metadata-HIC.sql')
+        run_query('lib/rds_sql_server/lsa/fy2027/sample_code/03_01b LSA Parameters and Metadata-HIC.sql')
       end
     end
 
