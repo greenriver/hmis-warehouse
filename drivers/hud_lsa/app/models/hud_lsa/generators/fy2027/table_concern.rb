@@ -14,8 +14,8 @@ module HudLsa::Generators::Fy2027::TableConcern
     ::Rds.database = sql_server_database
     load 'lib/rds_sql_server/lsa/fy2027/hmis_sql_server.rb'
     HmisSqlServer.models_by_hud_filename.each do |_, klass|
-      klass.hmis_table_create!(version: '2027')
-      klass.hmis_table_create_indices!(version: '2027')
+      klass.hmis_table_create!(version: hmis_csv_version)
+      klass.hmis_table_create_indices!(version: hmis_csv_version)
     end
   end
 

@@ -8,6 +8,10 @@
 
 require_relative '../../sql_server_base'
 module LsaSqlServer
+  module_function def hmis_csv_version
+    ::HudLsa::Generators::Fy2027::Lsa.hmis_csv_version
+  end
+
   module_function def models_by_filename
     {
       'Project.csv' => LsaSqlServer::Project,
@@ -314,7 +318,7 @@ module LsaSqlServer
     include TsqlImport
 
     def self.csv_columns
-      GrdaWarehouse::Hud::Organization.hud_csv_headers(version: '2026')
+      GrdaWarehouse::Hud::Organization.hud_csv_headers(version: LsaSqlServer.hmis_csv_version)
     end
   end
 
@@ -323,7 +327,7 @@ module LsaSqlServer
     include TsqlImport
 
     def self.csv_columns
-      GrdaWarehouse::Hud::Project.hud_csv_headers(version: '2026')
+      GrdaWarehouse::Hud::Project.hud_csv_headers(version: LsaSqlServer.hmis_csv_version)
     end
   end
 
@@ -332,7 +336,7 @@ module LsaSqlServer
     include TsqlImport
 
     def self.csv_columns
-      GrdaWarehouse::Hud::Funder.hud_csv_headers(version: '2026')
+      GrdaWarehouse::Hud::Funder.hud_csv_headers(version: LsaSqlServer.hmis_csv_version)
     end
   end
 
@@ -341,7 +345,7 @@ module LsaSqlServer
     include TsqlImport
 
     def self.csv_columns
-      GrdaWarehouse::Hud::Inventory.hud_csv_headers(version: '2026')
+      GrdaWarehouse::Hud::Inventory.hud_csv_headers(version: LsaSqlServer.hmis_csv_version)
     end
   end
 
@@ -350,7 +354,7 @@ module LsaSqlServer
     include TsqlImport
 
     def self.csv_columns
-      GrdaWarehouse::Hud::ProjectCoc.hud_csv_headers(version: '2026')
+      GrdaWarehouse::Hud::ProjectCoc.hud_csv_headers(version: LsaSqlServer.hmis_csv_version)
     end
   end
 
@@ -359,7 +363,7 @@ module LsaSqlServer
     include TsqlImport
 
     def self.csv_columns
-      GrdaWarehouse::Hud::HmisParticipation.hud_csv_headers(version: '2026')
+      GrdaWarehouse::Hud::HmisParticipation.hud_csv_headers(version: LsaSqlServer.hmis_csv_version)
     end
   end
 
@@ -368,7 +372,7 @@ module LsaSqlServer
     include TsqlImport
 
     def self.csv_columns
-      GrdaWarehouse::Hud::Affiliation.hud_csv_headers(version: '2026')
+      GrdaWarehouse::Hud::Affiliation.hud_csv_headers(version: LsaSqlServer.hmis_csv_version)
     end
   end
 

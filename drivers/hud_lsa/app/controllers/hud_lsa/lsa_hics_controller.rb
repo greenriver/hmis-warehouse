@@ -70,10 +70,6 @@ module HudLsa
     end
     helper_method :available_report_versions
 
-    def default_report_version
-      "fy#{HudHelper.current_version}".to_sym
-    end
-
     private def filter_class
       ::HudLsa::Filters::LsaFilter
     end

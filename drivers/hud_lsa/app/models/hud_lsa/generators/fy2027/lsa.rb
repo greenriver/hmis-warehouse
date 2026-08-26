@@ -55,6 +55,16 @@ module HudLsa::Generators::Fy2027
       where("(options->>'lsa_scope')::integer = ?", HudLsa::Fy2027::Report.available_lsa_scopes['HIC'])
     end
 
+    def self.hmis_csv_version
+      '2026'
+    end
+
+    def self.hmis_csv_exporter
+      ::HmisCsvTwentyTwentySix::Exporter::Base
+    end
+
+    delegate :hmis_csv_version, :hmis_csv_exporter, to: :class
+
     def self.find_report(user)
       where(user_id: user.id).
         lsa.
@@ -239,7 +249,7 @@ module HudLsa::Generators::Fy2027
           where(
             created_at: Time.zone.now.beginning_of_day..Time.zone.now.end_of_day,
             start_date: export_date_range.first,
-            version: 2027,
+            version: hmis_csv_version.to_i,
             period_type: 3,
             directive: 2,
             hash_status: 1,
@@ -257,8 +267,8 @@ module HudLsa::Generators::Fy2027
         end
       end
 
-      exporter = HmisCsvTwentyTwentySix::Exporter::Base.new(
-        version: '2027',
+      exporter = hmis_csv_exporter.new(
+        version: hmis_csv_version,
         start_date: export_date_range.first,
         end_date: export_date_range.last,
         projects: filter.effective_project_ids_during_range(export_date_range),
