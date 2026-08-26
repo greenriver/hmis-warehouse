@@ -429,4 +429,43 @@ RSpec.describe User, type: :model do
       expect(policy).to be_a(GrdaWarehouse::AuthPolicies::ProjectPiiPolicy)
     end
   end
+
+  describe '#reporting_policy_for_client' do
+    let(:destination_data_source) { create(:destination_data_source) }
+    let(:client) { create(:grda_warehouse_hud_client, data_source: destination_data_source) }
+    let!(:warehouse_client) { create(:warehouse_client, destination: client) }
+
+    it 'returns DenyPiiPolicy when client is nil' do
+      expect(user.reporting_policy_for_client(client: nil)).to eq(GrdaWarehouse::AuthPolicies::DenyPiiPolicy.instance)
+    end
+
+    it 'wraps the resolved policy when the given client is restricted' do
+      allow(user.policy_context).to receive(:client_restricted?).with(client.id).and_return(true)
+      policy = user.reporting_policy_for_client(client: client, mode: :browse)
+      expect(policy).to be_a(GrdaWarehouse::PiiProvider::RestrictedPolicy)
+    end
+
+    it 'does not wrap the resolved policy when the given client is not restricted' do
+      allow(user.policy_context).to receive(:client_restricted?).with(client.id).and_return(false)
+      policy = user.reporting_policy_for_client(client: client, mode: :browse)
+      expect(policy).not_to be_a(GrdaWarehouse::PiiProvider::RestrictedPolicy)
+    end
+
+    context 'with a real HMIS-restricted client' do
+      let!(:hmis_ds) { create(:hmis_primary_data_source) }
+      let!(:hmis_user) { create(:hmis_user, data_source: hmis_ds) }
+      let!(:restricted_source_client) { create(:hmis_hud_client, data_source: hmis_ds) }
+      let!(:restricted_destination_client) { create(:grda_warehouse_hud_client) }
+
+      before do
+        GrdaWarehouse::WarehouseClient.create!(destination_id: restricted_destination_client.id, source_id: restricted_source_client.id, data_source_id: hmis_ds.id, id_in_source: restricted_source_client.id.to_s)
+        restricted_source_client.mark_as_restricted!(user: hmis_user)
+      end
+
+      it 'redacts PII for a client restricted via a real Hmis::RestrictedRecord' do
+        policy = user.reporting_policy_for_client(client: restricted_destination_client, mode: :browse)
+        expect(policy.can_view_name?).to eq(false)
+      end
+    end
+  end
 end
