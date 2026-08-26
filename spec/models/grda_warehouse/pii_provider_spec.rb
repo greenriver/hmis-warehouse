@@ -229,5 +229,14 @@ RSpec.describe 'GrdaWarehouse::PiiProvider', type: :model do
         expect(restricted_policy.can_view_hiv_status?).to eq(false)
       end
     end
+
+    context 'when restricted and the wrapped policy denies general visibility' do
+      let(:policy) { new_policy(can_view: false, can_view_name: true, can_view_full_ssn: true, can_view_full_dob: true, can_view_photo: true, can_view_hiv_status: true) }
+      subject(:restricted_policy) { GrdaWarehouse::PiiProvider.restrict(policy, restricted: true) }
+
+      it 'still delegates can_view? to the wrapped policy' do
+        expect(restricted_policy.can_view?).to eq(false)
+      end
+    end
   end
 end
