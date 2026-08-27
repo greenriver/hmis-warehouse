@@ -270,7 +270,7 @@ module CePerformance
     end
 
     def include_supplemental?
-      RailsDrivers.loaded.include?(:supplemental_enrollment_data) && SupplementalEnrollmentData::Tpc.exists?
+      SupplementalEnrollmentData::Tpc.exists?
     end
 
     # find the newest that is before the report end date
@@ -462,16 +462,12 @@ module CePerformance
     end
 
     private def answer_clients(report, table, cell)
-      preloads = if RailsDrivers.loaded.include?(:supplemental_enrollment_data)
-        {
-          universe_membership: [
-            :hud_report_apr_living_situations,
-            source_enrollment: :tpc_supplemental_enrollment_datum,
-          ],
-        }
-      else
-        { universe_membership: :hud_report_apr_living_situations }
-      end
+      preloads = {
+        universe_membership: [
+          :hud_report_apr_living_situations,
+          source_enrollment: :tpc_supplemental_enrollment_datum,
+        ],
+      }
       report.answer(question: table, cell: cell).universe_members.preload(preloads).map(&:universe_membership)
     end
 
