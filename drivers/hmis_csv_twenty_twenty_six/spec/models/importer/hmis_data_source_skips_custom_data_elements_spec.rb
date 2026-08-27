@@ -9,15 +9,10 @@
 require 'rails_helper'
 
 RSpec.describe 'HMIS-backed data source skips CustomDataElement import' do
-  # Test design: Tier 1 -- data destruction & retention. Without the fix, a
-  # routine CSV import into an HMIS-backed data source silently soft-deletes
+  # Without `hmis_owned: true` the CSV import into an HMIS-backed data source silently soft-deletes
   # every pre-existing CustomDataElement(Definition) row for that data source,
   # because involved_warehouse_scope for these two custom files matches every
-  # row regardless of what's in the incoming CSV. This spec runs the real
-  # Loader -> Importer pipeline (not stubs) against the same custom_files
-  # fixture the non-HMIS regression spec (custom_files_integration_spec.rb)
-  # uses, so a fix that merely skips creation but still lets the deletion pass
-  # run would still turn the "pre-existing row survives" examples red.
+  # row regardless of what's in the incoming CSV.
   after(:all) do
     HmisCsvImporter::Utility.clear!
     GrdaWarehouse::Utility.clear!
