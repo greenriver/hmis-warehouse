@@ -21,7 +21,10 @@ RSpec.describe 'ServiceScanning::WarehouseReports::ScannedServicesController#det
   let!(:project) { create(:hud_project) }
   let!(:service) { ServiceScanning::OtherService.create!(client_id: restricted_destination_client.id, project: project, provided_at: Time.current, user: user) }
 
+  after { GrdaWarehouse::Config.invalidate_cache }
+
   before do
+    Rails.cache.clear
     Collection.maintain_system_groups
     collection.set_viewables({ reports: [report.id] })
     setup_access_control(user, role, collection)
