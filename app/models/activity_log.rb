@@ -62,6 +62,7 @@ class ActivityLog < ApplicationRecord
   def self.backfill_reporting_path!(batch_size: 1000)
     loop do
       updated = where(reporting_path: nil).
+        where.not(path: nil).
         limit(batch_size).
         update_all(reporting_path: Arel.sql("left(path, #{REPORTING_PATH_LENGTH})"))
       break if updated.zero?
