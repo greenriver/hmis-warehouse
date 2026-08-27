@@ -2706,7 +2706,7 @@
   },
   {
     "id": "bucket-12",
-    "total_time": 1675.8792275113992,
+    "total_time": 1431.2126212140993,
     "specs": [
       {
         "file_path": "./drivers/client_access_control/spec/requests/clients_spec.rb",
@@ -2716,17 +2716,6 @@
             "location": "./drivers/client_access_control/spec/requests/clients_spec.rb:14",
             "total_time": 260.839721348,
             "description": "ClientAccessControl::ClientsController"
-          }
-        ]
-      },
-      {
-        "file_path": "./drivers/hmis_csv_importer/spec/models/importer/twenty_twenty_six/custom_augmentation_spec.rb",
-        "total_time": 244.6666062973,
-        "groups": [
-          {
-            "location": "./drivers/hmis_csv_importer/spec/models/importer/twenty_twenty_six/custom_augmentation_spec.rb:11",
-            "total_time": 222.424187543,
-            "description": "Custom Augmentation File Imports"
           }
         ]
       },
