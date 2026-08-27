@@ -28,6 +28,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             offset
             limit
             nodesCount
+            searchQueryId
             nodes {
               id
               status
@@ -226,6 +227,50 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         referrals = perform_referrals_query(**variables)
         expect(referrals.size).to eq(1)
         expect(referrals.first['id']).to eq(referral2.id.to_s)
+      end
+
+      describe 'searchQueryId persistence' do
+        it 'does not create a ClientSearchQuery when searchTerm is absent' do
+          expect do
+            response, result = post_graphql { query }
+            expect(response.status).to eq(200), result.inspect
+            expect(result.dig('data', 'ceReferrals', 'searchQueryId')).to be_nil
+          end.not_to change(Hmis::ClientSearchQuery, :count)
+        end
+
+        it 'creates a ClientSearchQuery and returns searchQueryId when searching by name' do
+          expect do
+            response, result = post_graphql(filters: { searchTerm: 'Wonderland' }) { query }
+            expect(response.status).to eq(200), result.inspect
+
+            expect(result.dig('data', 'ceReferrals', 'nodes')).to contain_exactly(
+              a_hash_including('id' => referral1.id.to_s),
+            )
+
+            query_id = result.dig('data', 'ceReferrals', 'searchQueryId')
+            expect(query_id).to be_present
+
+            search_query = Hmis::ClientSearchQuery.find(query_id)
+            expect(search_query.params).to eq('text_search' => 'Wonderland')
+            expect(search_query.created_by).to eq(hmis_user)
+            expect(search_query.data_source_id).to eq(ds1.id)
+          end.to change(Hmis::ClientSearchQuery, :count).by(1)
+        end
+
+        it 'reuses an existing ClientSearchQuery for the same term and user' do
+          existing = create(
+            :hmis_client_search_query,
+            created_by: hmis_user,
+            data_source: ds1,
+            params: { 'text_search' => 'Wonderland' },
+          )
+
+          expect do
+            response, result = post_graphql(filters: { searchTerm: 'Wonderland' }) { query }
+            expect(response.status).to eq(200), result.inspect
+            expect(result.dig('data', 'ceReferrals', 'searchQueryId')).to eq(existing.id)
+          end.not_to change(Hmis::ClientSearchQuery, :count)
+        end
       end
     end
 

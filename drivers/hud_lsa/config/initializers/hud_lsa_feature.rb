@@ -6,7 +6,7 @@
 
 # frozen_string_literal: true
 
-Rails.application.config.hud_reports['HudLsa::Generators::Fy2026::Lsa'] = {
+Rails.application.config.hud_reports['HudLsa::Generators::Fy2027::Lsa'] = {
   title: 'Longitudinal System Analysis',
   helper: 'hud_reports_lsas_path',
 }
