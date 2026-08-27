@@ -410,6 +410,65 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     end
   end
 
+  describe 'OPEN_HOH_ENROLLMENTS_FOR_PROJECT' do
+    let!(:exited_household_member) do
+      create(
+        :hmis_hud_enrollment,
+        data_source: ds1,
+        project: p1,
+        household_id: e1.household_id,
+        relationship_to_ho_h: 3,
+        user: u1,
+        exit_date: Date.current,
+      )
+    end
+
+    let!(:mixed_hoh_client) do
+      create(:hmis_hud_client, data_source: ds1, user: u1, first_name: 'Mira', last_name: 'Mixedhh')
+    end
+    let!(:mixed_hoh) do
+      create(
+        :hmis_hud_enrollment,
+        data_source: ds1,
+        project: p1,
+        client: mixed_hoh_client,
+        household_id: 'mixed-household',
+        relationship_to_ho_h: 1,
+        user: u1,
+      )
+    end
+    let!(:open_mixed_household_member) do
+      create(
+        :hmis_hud_enrollment,
+        data_source: ds1,
+        project: p1,
+        household_id: mixed_hoh.household_id,
+        relationship_to_ho_h: 3,
+        user: u1,
+      )
+    end
+    let!(:exited_mixed_household_member) do
+      create(
+        :hmis_hud_enrollment,
+        data_source: ds1,
+        project: p1,
+        household_id: mixed_hoh.household_id,
+        relationship_to_ho_h: 3,
+        user: u1,
+        exit_date: Date.current,
+      )
+    end
+
+    it 'counts only open household members in enrollment labels' do
+      response, result = post_graphql(pick_list_type: 'OPEN_HOH_ENROLLMENTS_FOR_PROJECT', project_id: p1.id.to_s) { query }
+      expect(response.status).to eq 200
+
+      options = result.dig('data', 'pickList').index_by { |option| option['code'] }
+      expect(options.fetch(e1.id.to_s)['label']).not_to include('and')
+      expect(options.fetch(mixed_hoh.id.to_s)['label']).to include("#{mixed_hoh_client.brief_name} and 1 other")
+    end
+  end
+
   describe 'PROJECTS_RECEIVING_DIRECT_CE_REFERRALS' do
     let!(:sending_project) { create(:hmis_hud_project, data_source: ds1, organization: o1, user: u1) }
     let!(:receiving_project) { create(:hmis_hud_project, data_source: ds1, user: u1) }
