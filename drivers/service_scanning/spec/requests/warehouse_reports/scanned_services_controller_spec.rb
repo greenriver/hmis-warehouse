@@ -22,7 +22,6 @@ RSpec.describe 'ServiceScanning::WarehouseReports::ScannedServicesController#det
   let!(:service) { ServiceScanning::OtherService.create!(client_id: restricted_destination_client.id, project: project, provided_at: Time.current, user: user) }
 
   before do
-    ::Filters::Scan.name
     Collection.maintain_system_groups
     collection.set_viewables({ reports: [report.id] })
     setup_access_control(user, role, collection)

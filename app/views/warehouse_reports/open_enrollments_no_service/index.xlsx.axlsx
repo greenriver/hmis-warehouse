@@ -4,30 +4,31 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
 
 wb = xlsx_package.workbook
-wb.add_worksheet(name: "Open Enrollments") do |sheet|
-  title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
+wb.add_worksheet(name: 'Open Enrollments') do |sheet|
+  title = sheet.styles.add_style(sz: 12, b: true, alignment: { horizontal: :center })
   sheet.add_row([
-    'Warehouse Client ID',
-    'First Name', 
-    'Last Name', 
-    'Project', 
-    'Entry Date', 
-    'Most Recent Date Served (in the last three years)',
-  ], :style => title)
+                  'Warehouse Client ID',
+                  'First Name',
+                  'Last Name',
+                  'Project',
+                  'Entry Date',
+                  'Most Recent Date Served (in the last three years)',
+                ], style: title)
   @entries.each do |entry|
     client_data = @clients[entry.client_id]
     max_date = @max_dates[entry.id]
     policy = current_user.reporting_policy_for_project(project_id: entry.project.id, mode: :download, client_id: entry.client_id)
     pii = GrdaWarehouse::PiiProvider.from_attributes(policy: policy, first_name: client_data[:FirstName], last_name: client_data[:LastName])
     sheet.add_row([
-      client_data[:id],
-      pii.first_name,
-      pii.last_name,
-      entry.project.name(current_user),
-      entry[:first_date_in_program],
-      max_date,
-    ])
+                    client_data[:id],
+                    pii.first_name,
+                    pii.last_name,
+                    entry.project.name(current_user),
+                    entry[:first_date_in_program],
+                    max_date,
+                  ])
   end
 end
