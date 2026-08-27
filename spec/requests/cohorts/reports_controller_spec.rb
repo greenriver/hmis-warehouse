@@ -30,6 +30,7 @@ RSpec.describe Cohorts::ReportsController, type: :request do
   after { GrdaWarehouse::Config.invalidate_cache }
 
   before do
+    Rails.cache.clear
     Collection.maintain_system_groups
     setup_access_control(user, cohort_role, all_cohorts_collection)
     GrdaWarehouse::WarehouseClient.create!(destination_id: restricted_destination_client.id, source_id: restricted_source_client.id, data_source_id: hmis_ds.id, id_in_source: restricted_source_client.id.to_s)
