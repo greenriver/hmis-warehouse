@@ -75,4 +75,67 @@ RSpec.describe ActivityLog do
       expect(described_class.where(condition_for('warehouse_reports/chronic'))).to include(entry)
     end
   end
+
+  describe '#reporting_path' do
+    it 'mirrors the first REPORTING_PATH_LENGTH characters of path on save' do
+      long_path = "/warehouse_reports/chronic/#{'a' * described_class::REPORTING_PATH_LENGTH}"
+      entry = log(path: long_path)
+
+      expect(entry.reload.reporting_path).to eq(long_path.first(described_class::REPORTING_PATH_LENGTH))
+    end
+
+    it 'does not modify the stored path of an entry longer than REPORTING_PATH_LENGTH' do
+      long_path = "/warehouse_reports/chronic/#{'a' * described_class::REPORTING_PATH_LENGTH}"
+      entry = log(path: long_path)
+
+      expect(entry.reload.path).to eq(long_path)
+    end
+  end
+
+  describe '.backfill_reporting_path!' do
+    # Existing rows predate the reporting_path column (see
+    # db/migrate/20260827150000_add_reporting_path_to_activity_logs.rb) and this runs out of band
+    # via TaskQueue rather than in that migration; simulate that pre-backfill state directly since
+    # the before_save callback would otherwise always populate reporting_path on save.
+    it 'sets reporting_path from path for a row that predates the column' do
+      entry = log(path: '/warehouse_reports/chronic/1234')
+      entry.update_column(:reporting_path, nil)
+
+      described_class.backfill_reporting_path!
+
+      expect(entry.reload.reporting_path).to eq('/warehouse_reports/chronic/1234')
+    end
+
+    it 'truncates to REPORTING_PATH_LENGTH characters for a path longer than that' do
+      long_path = "/warehouse_reports/chronic/#{'a' * (described_class::REPORTING_PATH_LENGTH * 2)}"
+      entry = log(path: long_path)
+      entry.update_column(:reporting_path, nil)
+
+      described_class.backfill_reporting_path!
+
+      expect(entry.reload.reporting_path).to eq(long_path.first(described_class::REPORTING_PATH_LENGTH))
+    end
+
+    it 'leaves a row with a reporting_path already set untouched' do
+      entry = log(path: '/warehouse_reports/chronic/1234')
+      entry.update_column(:reporting_path, '/something/else')
+
+      described_class.backfill_reporting_path!
+
+      expect(entry.reload.reporting_path).to eq('/something/else')
+    end
+  end
+
+  describe '.warehouse_reports with a path longer than REPORTING_PATH_LENGTH' do
+    # `path` can't be indexed directly (see db/migrate/20260827150000_add_reporting_path_to_activity_logs.rb
+    # for why), but report urls are always far shorter than REPORTING_PATH_LENGTH, so a matching
+    # entry is still counted correctly however long the real path's query string runs beyond that --
+    # unlike the excluded-outlier approach this replaced, oversized report traffic isn't dropped.
+    it 'still includes a matching entry whose path runs well past REPORTING_PATH_LENGTH' do
+      long_path = "/warehouse_reports/chronic/#{'a' * (described_class::REPORTING_PATH_LENGTH * 2)}"
+      entry = log(path: long_path)
+
+      expect(described_class.warehouse_reports).to include(entry)
+    end
+  end
 end
