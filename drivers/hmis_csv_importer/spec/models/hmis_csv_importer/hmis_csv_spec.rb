@@ -9,14 +9,9 @@
 require 'rails_helper'
 
 RSpec.describe HmisCsvImporter::HmisCsv do
-  # Test design: Tier 1 -- these two files back the tables the HMIS app itself
-  # owns for an HMIS-backed data source (see GrdaWarehouse::DataSource#hmis?).
-  # If the pipeline stops excluding them here, the importer's "guilty until
-  # proven innocent" deletion pass would purge HMIS-app-owned rows on the next
-  # CSV import. Real Loader/Importer instances (not stubs) prove the exclusion
-  # holds for both classes, and the vendor case proves normal imports still see
-  # every file -- so a guard that accidentally excludes everyone, or excludes
-  # no one, turns both halves of each pair red.
+  # These files back tables owned by the HMIS for an HMIS-backed data source (see GrdaWarehouse::DataSource#hmis?).
+  # Ensure they are correctly excluded so that the importer's "guilty until
+  # proven innocent" deletion pass doesn't purge rows on the next CSV import.
   let(:hmis_data_source) { create(:hmis_primary_data_source) }
   let(:vendor_data_source) { create(:grda_warehouse_data_source) }
 
