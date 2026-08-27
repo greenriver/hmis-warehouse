@@ -170,6 +170,80 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
         whitespace_strict_search_expects(client_leading_whitespace)
       end
     end
+
+    describe 'text_search with HMIS restriction' do
+      let!(:hmis_ds) { create(:hmis_primary_data_source) }
+      let!(:hmis_user) { create(:hmis_user, data_source: hmis_ds) }
+      let!(:restricted_source_client) { create(:hmis_hud_client, data_source: hmis_ds, first_name: 'Zzrestrict', last_name: 'Zzclient', ssn: '999887777', dob: Date.new(1980, 5, 5)) }
+      let!(:restricted_destination_client) { create(:grda_warehouse_hud_client) }
+      let!(:unrestricted_source_client) { create(:hmis_hud_client, data_source: hmis_ds, first_name: 'Zzopen', last_name: 'Zzclient', ssn: '111223333', dob: Date.new(1981, 6, 6)) }
+      let!(:unrestricted_destination_client) { create(:grda_warehouse_hud_client) }
+
+      before do
+        GrdaWarehouse::WarehouseClient.create!(destination_id: restricted_destination_client.id, source_id: restricted_source_client.id, data_source_id: hmis_ds.id, id_in_source: restricted_source_client.id.to_s)
+        GrdaWarehouse::WarehouseClient.create!(destination_id: unrestricted_destination_client.id, source_id: unrestricted_source_client.id, data_source_id: hmis_ds.id, id_in_source: unrestricted_source_client.id.to_s)
+        restricted_source_client.mark_as_restricted!(user: hmis_user)
+      end
+
+      it 'does not find a restricted client by SSN' do
+        expect(GrdaWarehouse::Hud::Client.text_search('999-88-7777').to_a).to eq([])
+      end
+
+      it 'still finds an unrestricted client by SSN' do
+        expect(GrdaWarehouse::Hud::Client.text_search('111-22-3333').to_a).to eq([unrestricted_destination_client])
+      end
+
+      it 'does not find a restricted client by name' do
+        expect(GrdaWarehouse::Hud::Client.text_search('Zzrestrict Zzclient').to_a).to eq([])
+      end
+
+      it 'still finds a restricted client by DOB' do
+        expect(GrdaWarehouse::Hud::Client.text_search('05/05/1980').to_a).to eq([restricted_destination_client])
+      end
+
+      it 'still finds a restricted client by exact PersonalID' do
+        expect(GrdaWarehouse::Hud::Client.text_search(restricted_source_client.PersonalID).to_a).to eq([restricted_destination_client])
+      end
+    end
+
+    describe 'strict_search with HMIS restriction' do
+      let!(:hmis_ds) { create(:hmis_primary_data_source) }
+      let!(:hmis_user) { create(:hmis_user, data_source: hmis_ds) }
+      let!(:restricted_source_client) { create(:hmis_hud_client, data_source: hmis_ds, first_name: 'Zzrestrict', last_name: 'Zzclient', ssn: '999887777', dob: Date.new(1980, 5, 5)) }
+      let!(:restricted_destination_client) { create(:grda_warehouse_hud_client) }
+      let!(:unrestricted_source_client) { create(:hmis_hud_client, data_source: hmis_ds, first_name: 'Zzopen', last_name: 'Zzclient', ssn: '111223333', dob: Date.new(1981, 6, 6)) }
+      let!(:unrestricted_destination_client) { create(:grda_warehouse_hud_client) }
+
+      before do
+        GrdaWarehouse::WarehouseClient.create!(destination_id: restricted_destination_client.id, source_id: restricted_source_client.id, data_source_id: hmis_ds.id, id_in_source: restricted_source_client.id.to_s)
+        GrdaWarehouse::WarehouseClient.create!(destination_id: unrestricted_destination_client.id, source_id: unrestricted_source_client.id, data_source_id: hmis_ds.id, id_in_source: unrestricted_source_client.id.to_s)
+        restricted_source_client.mark_as_restricted!(user: hmis_user)
+      end
+
+      it 'excludes a restricted client matching on name and SSN' do
+        criteria = { first_name: 'Zzrestrict', last_name: 'Zzclient', ssn: '999887777', dob: nil }
+
+        expect(GrdaWarehouse::Hud::Client.strict_search(criteria, client_scope: GrdaWarehouse::Hud::Client).to_a).to eq([])
+      end
+
+      it 'excludes a restricted client matching on name and DOB' do
+        criteria = { first_name: 'Zzrestrict', last_name: 'Zzclient', ssn: nil, dob: Date.new(1980, 5, 5) }
+
+        expect(GrdaWarehouse::Hud::Client.strict_search(criteria, client_scope: GrdaWarehouse::Hud::Client).to_a).to eq([])
+      end
+
+      it 'excludes a restricted client matching on SSN, DOB, and last name' do
+        criteria = { first_name: 'Nomatch', last_name: 'Zzclient', ssn: '999887777', dob: Date.new(1980, 5, 5) }
+
+        expect(GrdaWarehouse::Hud::Client.strict_search(criteria, client_scope: GrdaWarehouse::Hud::Client).to_a).to eq([])
+      end
+
+      it 'still returns an unrestricted client matching the same shape of criteria' do
+        criteria = { first_name: 'Zzopen', last_name: 'Zzclient', ssn: '111223333', dob: nil }
+
+        expect(GrdaWarehouse::Hud::Client.strict_search(criteria, client_scope: GrdaWarehouse::Hud::Client).to_a).to eq([unrestricted_destination_client])
+      end
+    end
   end
 
   describe 'scopes' do

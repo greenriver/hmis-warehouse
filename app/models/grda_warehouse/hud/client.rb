@@ -1835,7 +1835,7 @@ module GrdaWarehouse::Hud
       # Get search results from client scope. Then return the unique destination client records that map to those matching source records
       relation = (client_scope || self) # rubocop:disable Style/RedundantParentheses
       # with resolve_for_join_query, results are client.scope.select(:client_id, :score) suitable for subquery
-      results = relation.searchable.text_searcher(text, sorted: sorted, resolve_for_join_query: true)
+      results = relation.searchable.text_searcher(text, sorted: sorted, resolve_for_join_query: true, exclude_ids_for_name_and_ssn: hmis_restricted_source_client_ids)
       return relation.none if results.nil?
 
       grouped = GrdaWarehouse::WarehouseClient.
@@ -1912,6 +1912,7 @@ module GrdaWarehouse::Hud
         where(id: matching_ids).
         preload(:destination_client).
         map { |m| m.destination_client.id }
+      ids -= hmis_restricted_destination_client_ids(ids).to_a
       where(id: ids)
     end
 
