@@ -1637,21 +1637,57 @@ CREATE TABLE public."Client" (
 
 
 --
+-- Name: hmis_restricted_records; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_restricted_records (
+    id bigint NOT NULL,
+    restrictable_type character varying NOT NULL,
+    restrictable_id bigint NOT NULL,
+    data_source_id bigint NOT NULL,
+    created_by_id bigint NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp(6) without time zone
+);
+
+
+--
 -- Name: client_piis; Type: VIEW; Schema: analytics; Owner: -
 --
 
 CREATE VIEW analytics.client_piis AS
- SELECT id,
-    data_source_id,
-    "PersonalID",
-    "FirstName",
-    "MiddleName",
-    "LastName",
-    "NameSuffix",
-    "SSN",
-    "DOB"
-   FROM public."Client"
-  WHERE ("DateDeleted" IS NULL);
+ SELECT "Client".id,
+    "Client".data_source_id,
+    "Client"."PersonalID",
+    (
+        CASE
+            WHEN (hmis_restricted_records.id IS NOT NULL) THEN 'Redacted'::character varying
+            ELSE "Client"."FirstName"
+        END)::character varying(150) AS "FirstName",
+    (
+        CASE
+            WHEN (hmis_restricted_records.id IS NOT NULL) THEN 'Redacted'::character varying
+            ELSE "Client"."MiddleName"
+        END)::character varying(150) AS "MiddleName",
+    (
+        CASE
+            WHEN (hmis_restricted_records.id IS NOT NULL) THEN 'Redacted'::character varying
+            ELSE "Client"."LastName"
+        END)::character varying(150) AS "LastName",
+    (
+        CASE
+            WHEN (hmis_restricted_records.id IS NOT NULL) THEN 'Redacted'::character varying
+            ELSE "Client"."NameSuffix"
+        END)::character varying(50) AS "NameSuffix",
+        CASE
+            WHEN (hmis_restricted_records.id IS NOT NULL) THEN 'Redacted'::character varying
+            ELSE "Client"."SSN"
+        END AS "SSN",
+    "Client"."DOB"
+   FROM (public."Client"
+     LEFT JOIN public.hmis_restricted_records ON ((((hmis_restricted_records.restrictable_type)::text = 'Hmis::Hud::Client'::text) AND (hmis_restricted_records.restrictable_id = "Client".id) AND (hmis_restricted_records.deleted_at IS NULL))))
+  WHERE ("Client"."DateDeleted" IS NULL);
 
 
 --
@@ -42709,22 +42745,6 @@ CREATE SEQUENCE public.hmis_project_unit_type_mappings_id_seq
 --
 
 ALTER SEQUENCE public.hmis_project_unit_type_mappings_id_seq OWNED BY public.hmis_project_unit_type_mappings.id;
-
-
---
--- Name: hmis_restricted_records; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.hmis_restricted_records (
-    id bigint NOT NULL,
-    restrictable_type character varying NOT NULL,
-    restrictable_id bigint NOT NULL,
-    data_source_id bigint NOT NULL,
-    created_by_id bigint NOT NULL,
-    created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL,
-    deleted_at timestamp(6) without time zone
-);
 
 
 --
@@ -359988,6 +360008,7 @@ ALTER TABLE ONLY public.import_logs
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260827120000'),
 ('20260819120200'),
 ('20260819120000'),
 ('20260818130528'),
