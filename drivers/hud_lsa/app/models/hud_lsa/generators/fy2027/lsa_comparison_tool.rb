@@ -96,7 +96,6 @@ module HudLsa::Generators::Fy2027
         'ProjectCoCID',
         'AffiliationID',
         'HMISParticipationID',
-        'PITCount',
       ]
     end
 

@@ -44,23 +44,33 @@ module HudLsa::Fy2027
     # Every skip must be accompanied by a comment explaining why it's here.
     KNOWN_SAMPLE_DATA_GAPS = {
       lsa: {
-        # sample_hmis_export/Enrollment.csv has zero HoH enrollments with an
-        # invalid/missing EnrollmentCoC, this DQ count can only ever compute as 0.
-        # sample_results/LSAReport.csv
-        # expects 12, implying it was generated from a different Enrollment.csv.
+        # 4.1 copies PITCount from hmis_Project, loaded from
+        # sample_hmis_export/Project.csv, where it is empty for all 72 projects --
+        # so it can only generate as null. sample_results/Project.csv still expects
+        # values for two (NBN171 => 22, NXS173 => 28): the fixtures contradict each
+        # other, and only real HMIS data exercises this column.
+        'Project.csv' => { columns: ['PITCount'] },
+        # sample_hmis_export/Enrollment.csv has no HoH enrollments with an
+        # invalid/missing EnrollmentCoC, so this DQ count can only compute as 0,
+        # while sample_results/LSAReport.csv expects 3.
         'LSAReport.csv' => { columns: ['NoCoC'] },
-        # Same underlying condition as NoCoC above, just the per-project version:
-        # "10.4 Get Counts of Households with no Enrollment CoC Record" (ReportRow
-        # 905 in "10 LSACalculated Data Quality.sql").
-        'LSACalculated.csv' => { rows: { 'ReportRow' => ['905'] } },
+        'LSACalculated.csv' => {
+          # Same underlying condition as NoCoC above, just the per-project version:
+          # "10.4 Get Counts of Households with no Enrollment CoC Record" (ReportRow
+          # 905 in "10 LSACalculated Data Quality.sql").
+          rows: { 'ReportRow' => ['905'] },
+          # lsa_Calculated.Step is `not NULL` in "02 LSA Output Tables.sql", so it is
+          # generated and submitted, but HUD's sample LSACalculated.csv omits the
+          # column entirely — every row would differ on column count alone.
+          columns: ['Step'],
+        },
       },
       hic: {
+        'Project.csv' => { columns: ['PITCount'] },
         'LSAReport.csv' => { columns: ['NoCoC'] },
-        # sample_hic_results is from an older HMIS data generation than the
-        # current sample_hmis_export (HUD has no newer HIC sample for this
-        # release) — Funder/Inventory rows legitimately differ wholesale.
-        'Funder.csv' => { skip_file: true },
-        'Inventory.csv' => { skip_file: true },
+        # Neither HUD's HIC sample nor our HIC output emits ReportRow 905, so no
+        # gap is needed for it here; the Step column is still omitted from HUD's.
+        'LSACalculated.csv' => { columns: ['Step'] },
       },
     }.freeze
 
