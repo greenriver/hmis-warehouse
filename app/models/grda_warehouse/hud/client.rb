@@ -1421,7 +1421,9 @@ module GrdaWarehouse::Hud
     end
 
     def destination_client_id_for_restriction
-      destination?(strict: true) ? id : destination_client&.id
+      return id if data_source_id.in?(GrdaWarehouse::DataSource.destination_data_source_ids)
+
+      destination_client&.id
     end
 
     def name
