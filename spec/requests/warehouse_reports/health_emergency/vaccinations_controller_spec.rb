@@ -29,7 +29,9 @@ RSpec.describe 'WarehouseReports::HealthEmergency::VaccinationsController#index'
   let!(:hmis_ds_viewable_collection) { create(:collection) }
   let!(:restricted_source_client) { create(:hmis_hud_client, data_source: hmis_ds, first_name: 'Restricted', last_name: 'Client') }
   let!(:restricted_destination_client) { create(:grda_warehouse_hud_client, FirstName: 'Restricted', LastName: 'Client') }
-  let!(:project) { create(:hud_project, data_source: hmis_ds) }
+  # `VaccinationsController#project_ids` narrows `with_service` to `Project.residential`; the
+  # `hud_project` factory samples `ProjectType` from every HUD type, so pin a residential one.
+  let!(:project) { create(:hud_project, data_source: hmis_ds, ProjectType: 1) }
   let!(:she) { create(:she_entry, client: restricted_destination_client, project: project) }
   let!(:she_service) { create(:service_history_service, service_history_enrollment: she, record_type: 'service', date: Date.current, client_id: restricted_destination_client.id, project_type: project.ProjectType) }
   let!(:warehouse_client) { GrdaWarehouse::WarehouseClient.create!(destination_id: restricted_destination_client.id, source_id: restricted_source_client.id, data_source_id: hmis_ds.id, id_in_source: restricted_source_client.id.to_s) }
