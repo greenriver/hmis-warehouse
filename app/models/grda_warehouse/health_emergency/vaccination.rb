@@ -9,6 +9,7 @@
 module GrdaWarehouse::HealthEmergency
   class Vaccination < GrdaWarehouseBase
     include ::HealthEmergency
+    belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client'
     # Extensions from drivers — see ADR 0007
     include TextMessage::GrdaWarehouse::HealthEmergency::VaccinationExtension
 
