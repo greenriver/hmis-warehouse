@@ -44,6 +44,13 @@ RSpec.describe ActivityLog do
 
       expect(described_class.warehouse_reports).to include(entry)
     end
+
+    it 'excludes an entry whose path matches a report url but whose reporting_path has not been backfilled' do
+      entry = log(path: '/warehouse_reports/chronic/1234')
+      entry.update_column(:reporting_path, nil)
+
+      expect(described_class.warehouse_reports).not_to include(entry)
+    end
   end
 
   describe '.warehouse_report_conditions' do
@@ -123,6 +130,15 @@ RSpec.describe ActivityLog do
       described_class.backfill_reporting_path!
 
       expect(entry.reload.reporting_path).to eq('/something/else')
+    end
+
+    it 'backfills every row across multiple batches, not just the first' do
+      entries = Array.new(5) { |i| log(path: "/warehouse_reports/chronic/#{i}") }
+      entries.each { |entry| entry.update_column(:reporting_path, nil) }
+
+      described_class.backfill_reporting_path!(batch_size: 2)
+
+      expect(entries.map { |entry| entry.reload.reporting_path }).to eq(entries.map(&:path))
     end
   end
 

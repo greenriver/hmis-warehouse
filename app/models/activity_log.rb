@@ -59,10 +59,10 @@ class ActivityLog < ApplicationRecord
   # db/migrate/20260827150000_add_reporting_path_to_activity_logs.rb); run out of band via
   # TaskQueue rather than in that migration, since activity_logs is too large to backfill within a
   # deployment's migration window.
-  def self.backfill_reporting_path!
+  def self.backfill_reporting_path!(batch_size: 1000)
     loop do
       updated = where(reporting_path: nil).
-        limit(1000).
+        limit(batch_size).
         update_all(reporting_path: Arel.sql("left(path, #{REPORTING_PATH_LENGTH})"))
       break if updated.zero?
     end
