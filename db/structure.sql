@@ -3581,6 +3581,13 @@ CREATE INDEX index_activity_logs_on_item_model_and_user_id_and_created_at ON pub
 
 
 --
+-- Name: index_activity_logs_on_path_and_created_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_activity_logs_on_path_and_created_at ON public.activity_logs USING btree (path varchar_pattern_ops, created_at);
+
+
+--
 -- Name: index_activity_logs_on_user_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -4236,6 +4243,7 @@ ALTER TABLE ONLY public.oauth_access_tokens
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260820120000'),
 ('20260805120000'),
 ('20260804130000'),
 ('20260804120000'),

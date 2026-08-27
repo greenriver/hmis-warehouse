@@ -80,7 +80,7 @@ module GrdaWarehouse::WarehouseReports
     end
 
     # Reports
-    def self.report_list # rubocop:disable Metrics/AbcSize
+    def self.report_list
       r_list = {
         'Public' => [],
         'Operational' => [
@@ -577,440 +577,368 @@ module GrdaWarehouse::WarehouseReports
             name: 'Nightly Census',
             description: 'Daily utilization charts for projects and residential project types.',
             limitable: true,
+            # The date_range/details AJAX endpoints under /censuses are also hit by the census
+            # widget embedded on the project show page (app/views/projects/show.haml), so a bare
+            # path match over-counts every project-page view as a report visit. Only count those
+            # sub-routes when they were actually referred from the report page itself; a plain
+            # /censuses visit always counts. Used by AccessLogs::WarehouseReports::UsageSummary.
+            reporting_query: ->(at) {
+              at[:path].eq('/censuses').or(
+                at[:path].matches('/censuses/%').and(
+                  at[:referrer].matches('%/censuses').
+                    or(at[:referrer].matches('%/censuses/%')).
+                    or(at[:referrer].matches('%/censuses?%')),
+                ),
+              )
+            },
           },
         ],
         'Population Dashboards' => [],
       }
-      if RailsDrivers.loaded.include?(:ma_yya_report)
-        r_list['Operational'] << {
-          url: 'ma_yya_report/warehouse_reports/reports',
-          name: 'MA Homeless Youth Program Report',
-          description: 'Downloadable MA YYA report.',
-          limitable: true,
-        }
-      end
-      if RailsDrivers.loaded.include?(:ma_yya_followup_report)
-        r_list['Operational'] << {
-          url: 'ma_yya_followup_report/warehouse_reports/youth_followup',
-          name: 'MA Homeless Youth Follow Up Report',
-          description: 'Youth who require a three month follow up.',
-          limitable: true,
-        }
-      end
-      if RailsDrivers.loaded.include?(:service_scanning)
-        r_list['Operational'] << {
-          url: 'service_scanning/warehouse_reports/scanned_services',
-          name: Translation.translate('Scanned Services'),
-          description: 'Pull a list of services added within a date range',
-          limitable: true,
-        }
-      end
-      if RailsDrivers.loaded.include?(:core_demographics_report)
-        r_list['Operational'] << {
-          url: 'core_demographics_report/warehouse_reports/core',
-          name: 'Core Demographics',
-          description: 'Summary data for client demographics across an arbitrary universe.',
-          limitable: true,
-        }
-        r_list['Operational'] << {
-          url: 'core_demographics_report/warehouse_reports/demographic_summary',
-          name: 'Demographic Summary',
-          description: 'Summary data for client demographics across an arbitrary universe with basic outcome and recidivism sections.',
-          limitable: true,
-        }
-      end
-      if RailsDrivers.loaded.include?(:boston_reports)
-        r_list['Performance'] << {
-          url: 'boston_reports/warehouse_reports/street_to_homes',
-          name: Translation.translate('Street to Home'),
-          description: 'Boston-specific report to track progress for the Street to Home initiative',
-          limitable: false,
-        }
-        r_list['Performance'] << {
-          url: 'boston_reports/warehouse_reports/configs',
-          name: Translation.translate('Boston Reports Configuration'),
-          description: 'Report configuration for Boston-specific reports',
-          limitable: false,
-        }
-        r_list['Performance'] << {
-          url: 'boston_reports/warehouse_reports/community_of_origins',
-          name: Translation.translate('Community of Origin'),
-          description: 'Summary information and maps covering client communities of origin.',
-          limitable: true,
-        }
-      end
-      if RailsDrivers.loaded.include?(:project_scorecard)
-        r_list['Performance'] << {
-          url: 'project_scorecard/warehouse_reports/scorecards',
-          name: 'Project Scorecard',
-          description: 'Instrument for evaluating project performance.',
-          limitable: true,
-        }
-      end
-      if RailsDrivers.loaded.include?(:boston_project_scorecard)
-        r_list['Performance'] << {
-          url: 'boston_project_scorecard/warehouse_reports/scorecards',
-          name: 'Boston Project Scorecard',
-          description: 'Instrument for evaluating project performance.',
-          limitable: true,
-        }
-      end
-      if RailsDrivers.loaded.include?(:project_pass_fail)
-        r_list['Data Quality'] << {
-          url: 'project_pass_fail/warehouse_reports/project_pass_fail',
-          name: 'Project Pass Fail',
-          description: 'Investigate data quality issues for projects',
-          limitable: true,
-        }
-      end
-      if RailsDrivers.loaded.include?(:prior_living_situation)
-        r_list['Operational'] << {
-          url: 'prior_living_situation/warehouse_reports/prior_living_situation',
-          name: 'Prior Living Situation Breakdowns',
-          description: 'Details of Prior Living Situation at Entry (3.917)',
-          limitable: true,
-        }
-      end
-      if RailsDrivers.loaded.include?(:destination_report)
-        r_list['Operational'] << {
-          url: 'destination_report/warehouse_reports/reports',
-          name: 'Destination Breakdowns',
-          description: 'Details of Destination at Exit (3.12.1)',
-          limitable: true,
-        }
-      end
-      if RailsDrivers.loaded.include?(:data_source_report)
-        r_list['Operational'] << {
-          url: 'data_source_report/warehouse_reports/reports',
-          name: 'Data Source Report',
-          description: 'Status and details of HMIS source data',
-          limitable: true,
-        }
-      end
-      if RailsDrivers.loaded.include?(:user_permission_report)
-        r_list['Audit'] << {
-          url: 'user_permission_report/warehouse_reports/reports',
-          name: 'User Permission Report',
-          description: 'Summary of active users and their functional permissions',
-          limitable: false,
-        }
-      end
-      if RailsDrivers.loaded.include?(:user_directory_report)
-        r_list['Operational'] << {
-          url: 'user_directory_report/warehouse_reports/users/warehouse',
-          name: 'User Directory Report',
-          description: 'List of users by name, email, phone and agency',
-          limitable: false,
-        }
-      end
-      if RailsDrivers.loaded.include?(:disability_summary)
-        r_list['Operational'] << {
-          url: 'disability_summary/warehouse_reports/disability_summary',
-          name: 'Disability Summary',
-          description: 'Details of client disabilities by CoC',
-          limitable: true,
-        }
-      end
-      if RailsDrivers.loaded.include?(:performance_metrics)
-        r_list['Performance'] << {
-          url: 'performance_metrics/warehouse_reports/reports',
-          name: 'Performance Metrics',
-          description: 'Various high-level metrics for selected universe',
-          limitable: true,
-        }
-      end
-      if RailsDrivers.loaded.include?(:performance_measurement)
-        r_list['Performance'] << {
-          url: 'performance_measurement/warehouse_reports/reports',
-          name: 'CoC Performance Measurement Dashboard',
-          description: 'Identify and track performance toward rare, brief, and non-recurring homelessness system-wide',
-          limitable: true,
-        }
-        r_list['Performance'] << {
-          url: 'performance_measurement/warehouse_reports/goal_configs',
-          name: 'CoC Performance Measurement Goal Configurator',
-          description: 'Set per-CoC Performance Measurement Goals',
-          limitable: false,
-        }
-      end
-      if RailsDrivers.loaded.include?(:longitudinal_spm)
-        r_list['Performance'] << {
-          url: 'longitudinal_spm/warehouse_reports/reports',
-          name: 'Longitudinal System Performance Measurement',
-          description: 'Compare quarterly System Performance Measurement Reports for length of time homeless, returns to homelessness, and successful placements.',
-          limitable: true,
-        }
-      end
-      if RailsDrivers.loaded.include?(:homeless_summary_report)
-        r_list['Operational'] << {
-          url: 'homeless_summary_report/warehouse_reports/reports',
-          name: 'System Performance Measures by Sub-Population',
-          description: 'A summary of SPMs 1, 2, and 7 with sub-population and demographic details',
-          limitable: true,
-        }
-      end
-      if RailsDrivers.loaded.include?(:text_message)
-        r_list['Operational'] << {
-          url: 'text_message/warehouse_reports/queue',
-          name: 'Text Message Queue Review',
-          description: 'Insight into pending and sent Text Messages',
-          limitable: false,
-        }
-      end
-      if RailsDrivers.loaded.include?(:census_tracking)
-        r_list['Operational'] << {
-          url: 'census_tracking/warehouse_reports/census_trackers',
-          name: 'Census Tracking Worksheet',
-          description: 'Breakdown of PIT Census data for chosen date',
-          limitable: true,
-        }
-      end
-      if RailsDrivers.loaded.include?(:hap_report)
-        r_list['Operational'] << {
-          url: 'hap_report/warehouse_reports/hap_reports',
-          name: 'HAP Report',
-          description: 'Pennsylvania Homeless Assistance Program Report',
-          limitable: true,
-        }
-      end
-      if RailsDrivers.loaded.include?(:tx_client_reports)
-        r_list['Operational'] << {
-          url: 'tx_client_reports/warehouse_reports/attachment_three_client_data_reports',
-          name: 'Attachment III - Client Data Report',
-          description: 'Attachment III - Client Data Report',
-          limitable: true,
-        }
-        r_list['Exports'] << {
-          url: 'tx_client_reports/warehouse_reports/research_exports',
-          name: Translation.translate('Offline Research Export'),
-          description: 'Download enrollment data for offline research.',
-          limitable: true,
-        }
-      end
-      if RailsDrivers.loaded.include?(:client_documents_report)
-        r_list['Operational'] << {
-          url: 'client_documents_report/warehouse_reports/reports',
-          name: 'Client Documents Report',
-          description: 'Identify clients who have or are missing files or documents.',
-          limitable: true,
-        }
-      end
-      if RailsDrivers.loaded.include?(:inactive_client_report)
-        r_list['Operational'] << {
-          url: 'inactive_client_report/warehouse_reports/reports',
-          name: Translation.translate('Client Activity Report'),
-          description: 'Identify clients who are enrolled but have not had recent contact with the homeless side of HMIS.',
-          limitable: true,
-        }
-      end
+      r_list['Operational'] << {
+        url: 'ma_yya_report/warehouse_reports/reports',
+        name: 'MA Homeless Youth Program Report',
+        description: 'Downloadable MA YYA report.',
+        limitable: true,
+      }
+      r_list['Operational'] << {
+        url: 'ma_yya_followup_report/warehouse_reports/youth_followup',
+        name: 'MA Homeless Youth Follow Up Report',
+        description: 'Youth who require a three month follow up.',
+        limitable: true,
+      }
+      r_list['Operational'] << {
+        url: 'service_scanning/warehouse_reports/scanned_services',
+        name: Translation.translate('Scanned Services'),
+        description: 'Pull a list of services added within a date range',
+        limitable: true,
+      }
+      r_list['Operational'] << {
+        url: 'core_demographics_report/warehouse_reports/core',
+        name: 'Core Demographics',
+        description: 'Summary data for client demographics across an arbitrary universe.',
+        limitable: true,
+      }
+      r_list['Operational'] << {
+        url: 'core_demographics_report/warehouse_reports/demographic_summary',
+        name: 'Demographic Summary',
+        description: 'Summary data for client demographics across an arbitrary universe with basic outcome and recidivism sections.',
+        limitable: true,
+      }
+      r_list['Performance'] << {
+        url: 'boston_reports/warehouse_reports/street_to_homes',
+        name: Translation.translate('Street to Home'),
+        description: 'Boston-specific report to track progress for the Street to Home initiative',
+        limitable: false,
+      }
+      r_list['Performance'] << {
+        url: 'boston_reports/warehouse_reports/configs',
+        name: Translation.translate('Boston Reports Configuration'),
+        description: 'Report configuration for Boston-specific reports',
+        limitable: false,
+      }
+      r_list['Performance'] << {
+        url: 'boston_reports/warehouse_reports/community_of_origins',
+        name: Translation.translate('Community of Origin'),
+        description: 'Summary information and maps covering client communities of origin.',
+        limitable: true,
+      }
+      r_list['Performance'] << {
+        url: 'project_scorecard/warehouse_reports/scorecards',
+        name: 'Project Scorecard',
+        description: 'Instrument for evaluating project performance.',
+        limitable: true,
+      }
+      r_list['Performance'] << {
+        url: 'boston_project_scorecard/warehouse_reports/scorecards',
+        name: 'Boston Project Scorecard',
+        description: 'Instrument for evaluating project performance.',
+        limitable: true,
+      }
+      r_list['Data Quality'] << {
+        url: 'project_pass_fail/warehouse_reports/project_pass_fail',
+        name: 'Project Pass Fail',
+        description: 'Investigate data quality issues for projects',
+        limitable: true,
+      }
+      r_list['Operational'] << {
+        url: 'prior_living_situation/warehouse_reports/prior_living_situation',
+        name: 'Prior Living Situation Breakdowns',
+        description: 'Details of Prior Living Situation at Entry (3.917)',
+        limitable: true,
+      }
+      r_list['Operational'] << {
+        url: 'destination_report/warehouse_reports/reports',
+        name: 'Destination Breakdowns',
+        description: 'Details of Destination at Exit (3.12.1)',
+        limitable: true,
+      }
+      r_list['Operational'] << {
+        url: 'data_source_report/warehouse_reports/reports',
+        name: 'Data Source Report',
+        description: 'Status and details of HMIS source data',
+        limitable: true,
+      }
+      r_list['Audit'] << {
+        url: 'user_permission_report/warehouse_reports/reports',
+        name: 'User Permission Report',
+        description: 'Summary of active users and their functional permissions',
+        limitable: false,
+      }
+      r_list['Operational'] << {
+        url: 'user_directory_report/warehouse_reports/users/warehouse',
+        name: 'User Directory Report',
+        description: 'List of users by name, email, phone and agency',
+        limitable: false,
+      }
+      r_list['Operational'] << {
+        url: 'disability_summary/warehouse_reports/disability_summary',
+        name: 'Disability Summary',
+        description: 'Details of client disabilities by CoC',
+        limitable: true,
+      }
+      r_list['Performance'] << {
+        url: 'performance_metrics/warehouse_reports/reports',
+        name: 'Performance Metrics',
+        description: 'Various high-level metrics for selected universe',
+        limitable: true,
+      }
+      r_list['Performance'] << {
+        url: 'performance_measurement/warehouse_reports/reports',
+        name: 'CoC Performance Measurement Dashboard',
+        description: 'Identify and track performance toward rare, brief, and non-recurring homelessness system-wide',
+        limitable: true,
+      }
+      r_list['Performance'] << {
+        url: 'performance_measurement/warehouse_reports/goal_configs',
+        name: 'CoC Performance Measurement Goal Configurator',
+        description: 'Set per-CoC Performance Measurement Goals',
+        limitable: false,
+      }
+      r_list['Performance'] << {
+        url: 'longitudinal_spm/warehouse_reports/reports',
+        name: 'Longitudinal System Performance Measurement',
+        description: 'Compare quarterly System Performance Measurement Reports for length of time homeless, returns to homelessness, and successful placements.',
+        limitable: true,
+      }
+      r_list['Operational'] << {
+        url: 'homeless_summary_report/warehouse_reports/reports',
+        name: 'System Performance Measures by Sub-Population',
+        description: 'A summary of SPMs 1, 2, and 7 with sub-population and demographic details',
+        limitable: true,
+      }
+      r_list['Operational'] << {
+        url: 'text_message/warehouse_reports/queue',
+        name: 'Text Message Queue Review',
+        description: 'Insight into pending and sent Text Messages',
+        limitable: false,
+      }
+      r_list['Operational'] << {
+        url: 'census_tracking/warehouse_reports/census_trackers',
+        name: 'Census Tracking Worksheet',
+        description: 'Breakdown of PIT Census data for chosen date',
+        limitable: true,
+      }
+      r_list['Operational'] << {
+        url: 'hap_report/warehouse_reports/hap_reports',
+        name: 'HAP Report',
+        description: 'Pennsylvania Homeless Assistance Program Report',
+        limitable: true,
+      }
+      r_list['Operational'] << {
+        url: 'tx_client_reports/warehouse_reports/attachment_three_client_data_reports',
+        name: 'Attachment III - Client Data Report',
+        description: 'Attachment III - Client Data Report',
+        limitable: true,
+      }
+      r_list['Exports'] << {
+        url: 'tx_client_reports/warehouse_reports/research_exports',
+        name: Translation.translate('Offline Research Export'),
+        description: 'Download enrollment data for offline research.',
+        limitable: true,
+      }
+      r_list['Operational'] << {
+        url: 'client_documents_report/warehouse_reports/reports',
+        name: 'Client Documents Report',
+        description: 'Identify clients who have or are missing files or documents.',
+        limitable: true,
+      }
+      r_list['Operational'] << {
+        url: 'inactive_client_report/warehouse_reports/reports',
+        name: Translation.translate('Client Activity Report'),
+        description: 'Identify clients who are enrolled but have not had recent contact with the homeless side of HMIS.',
+        limitable: true,
+      }
 
-      if RailsDrivers.loaded.include?(:public_reports)
-        # Only attempt this if the driver is loaded, and only install the reports
-        # if the bucket can be setup correctly
-        if PublicReports::Report.new.ready_public_s3_bucket!
-          r_list['Public'] << {
-            url: 'public_reports/warehouse_reports/point_in_time',
-            name: 'Point-in-Time Report Generator',
-            description: 'Use this to review and publish Point-in-Time charts for public consumption.',
-            limitable: true,
-          }
-          r_list['Public'] << {
-            url: 'public_reports/warehouse_reports/pit_by_month',
-            name: 'Point-in-Time by Month Report Generator',
-            description: 'Use this to review and publish Point-in-Time by month charts for public consumption.',
-            limitable: true,
-          }
-          r_list['Public'] << {
-            url: 'public_reports/warehouse_reports/public_configs',
-            name: 'Public Report Configuration',
-            description: 'Settings for colors, fonts, etc. related to reports which can be published publicly.',
-            limitable: false,
-          }
-          r_list['Public'] << {
-            url: 'public_reports/warehouse_reports/number_housed',
-            name: 'Number Housed Report Generator',
-            description: 'Use this to review and publish the number of clients housed for public consumption.',
-            limitable: true,
-          }
-          r_list['Public'] << {
-            url: 'public_reports/warehouse_reports/homeless_count',
-            name: 'Number Homeless Report Generator',
-            description: 'Use this to review and publish the number of homeless clients for public consumption.',
-            limitable: true,
-          }
-          r_list['Public'] << {
-            url: 'public_reports/warehouse_reports/homeless_count_comparison',
-            name: 'Percent Homeless Comparison Report Generator',
-            description: 'Use this to review and publish the change of homeless clients for public consumption.',
-            limitable: true,
-          }
-          r_list['Public'] << {
-            url: 'public_reports/warehouse_reports/homeless_populations',
-            name: 'Homeless Populations Report Generator',
-            description: 'Use this to review and publish the homeless population report for public consumption.',
-            limitable: true,
-          }
-          r_list['Public'] << {
-            url: 'public_reports/warehouse_reports/state_level_homelessness',
-            name: 'State-Level Homelessness Report Generator',
-            description: 'Review and publish the state-level homelessness report for public consumption.',
-            limitable: true,
-          }
-        end
-      end
-      if RailsDrivers.loaded.include?(:adult_only_households_sub_pop)
-        r_list['Population Dashboards'] << {
-          url: 'dashboards/adult_only_households',
-          name: 'Adult only Households',
-          description: 'Clients enrolled in homeless projects (ES, SH, SO, TH) where the household has at least one adult (18+) and no children (less than 18).',
+      if PublicReports::Report.new.ready_public_s3_bucket!
+        r_list['Public'] << {
+          url: 'public_reports/warehouse_reports/point_in_time',
+          name: 'Point-in-Time Report Generator',
+          description: 'Use this to review and publish Point-in-Time charts for public consumption.',
           limitable: true,
         }
-      end
-      if RailsDrivers.loaded.include?(:adults_with_children_sub_pop)
-        r_list['Population Dashboards'] << {
-          url: 'dashboards/adults_with_children',
-          name: 'Adult and Child Households',
-          description: 'Clients enrolled in homeless projects (ES, SH, SO, TH) where the household has at least one adult (18+) and one child (less than 18).',
+        r_list['Public'] << {
+          url: 'public_reports/warehouse_reports/pit_by_month',
+          name: 'Point-in-Time by Month Report Generator',
+          description: 'Use this to review and publish Point-in-Time by month charts for public consumption.',
           limitable: true,
         }
-      end
-      if RailsDrivers.loaded.include?(:child_only_households_sub_pop)
-        r_list['Population Dashboards'] << {
-          url: 'dashboards/child_only_households',
-          name: 'Child only Households',
-          description: 'Clients enrolled in homeless projects (ES, SH, SO, TH) where the household has at least one child (less than 18) and no adults (+ 18).',
-          limitable: true,
-        }
-      end
-      if RailsDrivers.loaded.include?(:clients_sub_pop)
-        r_list['Population Dashboards'] << {
-          url: 'dashboards/clients',
-          name: 'All Clients',
-          description: 'Clients enrolled in homeless projects (ES, SH, SO, TH).',
-          limitable: true,
-        }
-      end
-      if RailsDrivers.loaded.include?(:non_veterans_sub_pop)
-        r_list['Population Dashboards'] << {
-          url: 'dashboards/non_veterans',
-          name: 'Non-Veteran',
-          description: 'Clients enrolled in homeless projects (ES, SH, SO, TH) where the client is not a veteran.',
-          limitable: true,
-        }
-      end
-      if RailsDrivers.loaded.include?(:veterans_sub_pop)
-        r_list['Population Dashboards'] << {
-          url: 'dashboards/veterans',
-          name: 'Veteran',
-          description: 'Veteran clients enrolled in homeless projects (ES, SH, SO, TH).',
-          limitable: true,
-        }
-      end
-      if RailsDrivers.loaded.include?(:income_benefits_report)
-        r_list['Operational'] << {
-          url: 'income_benefits_report/warehouse_reports/report',
-          name: 'Income, Non-Cash Benefits, Health Insurance Report',
-          description: 'Performance indicators and aggregate statistics for income, benefits, and health insurance from HMIS data.',
-          limitable: true,
-        }
-      end
-      if RailsDrivers.loaded.include?(:client_location_history)
-        r_list['Operational'] << {
-          url: 'client_location_history/warehouse_reports/client_location_history',
-          name: 'Client Contact Locations',
-          description: 'A map of the most recent client locations.',
-          limitable: true,
-        }
-      end
-      if RailsDrivers.loaded.include?(:analysis_tool)
-        r_list['Operational'] << {
-          url: 'analysis_tool/warehouse_reports/analysis_tool',
-          name: 'Analysis Tool',
-          description: 'Cross cut client data by known categories',
-          limitable: true,
-        }
-      end
-      if RailsDrivers.loaded.include?(:start_date_dq)
-        r_list['Data Quality'] << {
-          url: 'start_date_dq/warehouse_reports/reports',
-          name: 'Date Homelessness Started',
-          description: 'View differences between the client\'s self-reported date homelessness started (DateToStreetESSH) and the enrollment entry date.',
-          limitable: true,
-        }
-      end
-      if RailsDrivers.loaded.include?(:built_for_zero_report)
-        r_list['Operational'] << {
-          url: 'built_for_zero_report/warehouse_reports/bfz',
-          name: Translation.translate('Built For Zero Monthly Report'),
-          description: 'Generate Built For Zero monthly reporting information',
+        r_list['Public'] << {
+          url: 'public_reports/warehouse_reports/public_configs',
+          name: 'Public Report Configuration',
+          description: 'Settings for colors, fonts, etc. related to reports which can be published publicly.',
           limitable: false,
         }
-      end
-      if RailsDrivers.loaded.include?(:ce_performance)
-        r_list['Performance'] << {
-          url: 'ce_performance/warehouse_reports/reports',
-          name: Translation.translate('Coordinated Entry Performance'),
-          description: Translation.translate('A tool to track performance and utilization of Coordinated Entry resources.'),
+        r_list['Public'] << {
+          url: 'public_reports/warehouse_reports/number_housed',
+          name: 'Number Housed Report Generator',
+          description: 'Use this to review and publish the number of clients housed for public consumption.',
           limitable: true,
         }
-        r_list['Performance'] << {
-          url: 'ce_performance/warehouse_reports/goal_configs',
-          name: 'Coordinated Entry Performance Goal Configurator',
-          description: 'Set per-CoC Coordinated Entry Performance Measurement Goals',
-          limitable: false,
-        }
-      end
-      if RailsDrivers.loaded.include?(:hmis_data_quality_tool)
-        r_list['Data Quality'] << {
-          url: 'hmis_data_quality_tool/warehouse_reports/reports',
-          name: HmisDataQualityTool::Report.new.title,
-          description: HmisDataQualityTool::Report.new.description,
+        r_list['Public'] << {
+          url: 'public_reports/warehouse_reports/homeless_count',
+          name: 'Number Homeless Report Generator',
+          description: 'Use this to review and publish the number of homeless clients for public consumption.',
           limitable: true,
         }
-        r_list['Data Quality'] << {
-          url: 'hmis_data_quality_tool/warehouse_reports/goal_configs',
-          name: "#{HmisDataQualityTool::Report.new.title} Configurator",
-          description: 'Set per-CoC HMIS Data Quality Goals',
-          limitable: false,
+        r_list['Public'] << {
+          url: 'public_reports/warehouse_reports/homeless_count_comparison',
+          name: 'Percent Homeless Comparison Report Generator',
+          description: 'Use this to review and publish the change of homeless clients for public consumption.',
+          limitable: true,
         }
-      end
-      if RailsDrivers.loaded.include?(:ma_reports)
-        r_list['Exports'] << {
-          url: 'ma_reports/warehouse_reports/monthly_project_utilizations',
-          name: 'Project Utilization by Month',
-          description: 'Includes monthly breakdowns of enrollment and inventory counts by project, and CoC.  Additionally, summary demographic data for report range',
+        r_list['Public'] << {
+          url: 'public_reports/warehouse_reports/homeless_populations',
+          name: 'Homeless Populations Report Generator',
+          description: 'Use this to review and publish the homeless population report for public consumption.',
+          limitable: true,
+        }
+        r_list['Public'] << {
+          url: 'public_reports/warehouse_reports/state_level_homelessness',
+          name: 'State-Level Homelessness Report Generator',
+          description: 'Review and publish the state-level homelessness report for public consumption.',
           limitable: true,
         }
       end
+      r_list['Population Dashboards'] << {
+        url: 'dashboards/adult_only_households',
+        name: 'Adult only Households',
+        description: 'Clients enrolled in homeless projects (ES, SH, SO, TH) where the household has at least one adult (18+) and no children (less than 18).',
+        limitable: true,
+      }
+      r_list['Population Dashboards'] << {
+        url: 'dashboards/adults_with_children',
+        name: 'Adult and Child Households',
+        description: 'Clients enrolled in homeless projects (ES, SH, SO, TH) where the household has at least one adult (18+) and one child (less than 18).',
+        limitable: true,
+      }
+      r_list['Population Dashboards'] << {
+        url: 'dashboards/child_only_households',
+        name: 'Child only Households',
+        description: 'Clients enrolled in homeless projects (ES, SH, SO, TH) where the household has at least one child (less than 18) and no adults (+ 18).',
+        limitable: true,
+      }
+      r_list['Population Dashboards'] << {
+        url: 'dashboards/clients',
+        name: 'All Clients',
+        description: 'Clients enrolled in homeless projects (ES, SH, SO, TH).',
+        limitable: true,
+      }
+      r_list['Population Dashboards'] << {
+        url: 'dashboards/non_veterans',
+        name: 'Non-Veteran',
+        description: 'Clients enrolled in homeless projects (ES, SH, SO, TH) where the client is not a veteran.',
+        limitable: true,
+      }
+      r_list['Population Dashboards'] << {
+        url: 'dashboards/veterans',
+        name: 'Veteran',
+        description: 'Veteran clients enrolled in homeless projects (ES, SH, SO, TH).',
+        limitable: true,
+      }
+      r_list['Operational'] << {
+        url: 'income_benefits_report/warehouse_reports/report',
+        name: 'Income, Non-Cash Benefits, Health Insurance Report',
+        description: 'Performance indicators and aggregate statistics for income, benefits, and health insurance from HMIS data.',
+        limitable: true,
+      }
+      r_list['Operational'] << {
+        url: 'client_location_history/warehouse_reports/client_location_history',
+        name: 'Client Contact Locations',
+        description: 'A map of the most recent client locations.',
+        limitable: true,
+      }
+      r_list['Operational'] << {
+        url: 'analysis_tool/warehouse_reports/analysis_tool',
+        name: 'Analysis Tool',
+        description: 'Cross cut client data by known categories',
+        limitable: true,
+      }
+      r_list['Data Quality'] << {
+        url: 'start_date_dq/warehouse_reports/reports',
+        name: 'Date Homelessness Started',
+        description: 'View differences between the client\'s self-reported date homelessness started (DateToStreetESSH) and the enrollment entry date.',
+        limitable: true,
+      }
+      r_list['Operational'] << {
+        url: 'built_for_zero_report/warehouse_reports/bfz',
+        name: Translation.translate('Built For Zero Monthly Report'),
+        description: 'Generate Built For Zero monthly reporting information',
+        limitable: false,
+      }
+      r_list['Performance'] << {
+        url: 'ce_performance/warehouse_reports/reports',
+        name: Translation.translate('Coordinated Entry Performance'),
+        description: Translation.translate('A tool to track performance and utilization of Coordinated Entry resources.'),
+        limitable: true,
+      }
+      r_list['Performance'] << {
+        url: 'ce_performance/warehouse_reports/goal_configs',
+        name: 'Coordinated Entry Performance Goal Configurator',
+        description: 'Set per-CoC Coordinated Entry Performance Measurement Goals',
+        limitable: false,
+      }
+      r_list['Data Quality'] << {
+        url: 'hmis_data_quality_tool/warehouse_reports/reports',
+        name: HmisDataQualityTool::Report.new.title,
+        description: HmisDataQualityTool::Report.new.description,
+        limitable: true,
+      }
+      r_list['Data Quality'] << {
+        url: 'hmis_data_quality_tool/warehouse_reports/goal_configs',
+        name: "#{HmisDataQualityTool::Report.new.title} Configurator",
+        description: 'Set per-CoC HMIS Data Quality Goals',
+        limitable: false,
+      }
+      r_list['Exports'] << {
+        url: 'ma_reports/warehouse_reports/monthly_project_utilizations',
+        name: 'Project Utilization by Month',
+        description: 'Includes monthly breakdowns of enrollment and inventory counts by project, and CoC.  Additionally, summary demographic data for report range',
+        limitable: true,
+      }
 
-      if RailsDrivers.loaded.include?(:system_pathways)
-        r_list['Performance'] << {
-          url: 'system_pathways/warehouse_reports/reports',
-          name: 'System Pathways',
-          description: 'A tool to look at client pathways through the continuum including some equity analysis.',
-          limitable: true,
-        }
-      end
+      r_list['Performance'] << {
+        url: 'system_pathways/warehouse_reports/reports',
+        name: 'System Pathways',
+        description: 'A tool to look at client pathways through the continuum including some equity analysis.',
+        limitable: true,
+      }
 
-      if RailsDrivers.loaded.include?(:all_neighbors_system_dashboard)
-        r_list['Performance'] << {
-          url: 'all_neighbors_system_dashboard/warehouse_reports/reports',
-          name: 'All Neighbors System Dashboard',
-          description: 'Collin and Dallas County TX All Neighbors System Dashboard',
-          limitable: true,
-        }
-      end
-      if RailsDrivers.loaded.include?(:zip_code_report)
-        r_list['Operational'] << {
-          url: 'zip_code_report/warehouse_reports/reports',
-          name: 'Zip Code Report',
-          description: 'Identify the number of clients and households within each zip code.',
-          limitable: true,
-        }
-      end
+      r_list['Performance'] << {
+        url: 'all_neighbors_system_dashboard/warehouse_reports/reports',
+        name: 'All Neighbors System Dashboard',
+        description: 'Collin and Dallas County TX All Neighbors System Dashboard',
+        limitable: true,
+      }
+      r_list['Operational'] << {
+        url: 'zip_code_report/warehouse_reports/reports',
+        name: 'Zip Code Report',
+        description: 'Identify the number of clients and households within each zip code.',
+        limitable: true,
+      }
 
       # Don't enable this report in production yet
-      if RailsDrivers.loaded.include?(:superset) && Superset.available?
+      if Superset.available?
         r_list['Performance'] << {
           url: 'superset/warehouse_reports/reports',
           name: 'Launch OP Analytics (Superset)',
@@ -1064,73 +992,6 @@ module GrdaWarehouse::WarehouseReports
         'health_flexible_service/warehouse_reports/member_expiration',
         'health_ip_followup_report/warehouse_reports/followup_reports',
       ]
-      cleanup << 'ma_yya_report/warehouse_reports/reports' unless RailsDrivers.loaded.include?(:ma_yya_report)
-      cleanup << 'ma_yya_followup_report/warehouse_reports/youth_followup' unless RailsDrivers.loaded.include?(:ma_yya_followup_report)
-      cleanup << 'service_scanning/warehouse_reports/scanned_services' unless RailsDrivers.loaded.include?(:service_scanning)
-
-      unless RailsDrivers.loaded.include?(:core_demographics_report)
-        cleanup << 'core_demographics_report/warehouse_reports/core'
-        cleanup << 'core_demographics_report/warehouse_reports/demographic_summary'
-      end
-
-      unless RailsDrivers.loaded.include?(:boston_reports)
-        cleanup << 'boston_reports/warehouse_reports/street_to_homes'
-        cleanup << 'boston_reports/warehouse_reports/configs'
-        cleanup << 'boston_reports/warehouse_reports/community_of_origins'
-      end
-
-      cleanup << 'project_pass_fail/warehouse_reports/project_pass_fail' unless RailsDrivers.loaded.include?(:project_pass_fail)
-      cleanup << 'project_scorecard/warehouse_reports/scorecards' unless RailsDrivers.loaded.include?(:project_scorecard)
-      cleanup << 'boston_project_scorecard/warehouse_reports/scorecards' unless RailsDrivers.loaded.include?(:boston_project_scorecard)
-      cleanup << 'prior_living_situation/warehouse_reports/prior_living_situation' unless RailsDrivers.loaded.include?(:prior_living_situation)
-      cleanup << 'destination_report/warehouse_reports/reports' unless RailsDrivers.loaded.include?(:destination_report)
-      cleanup << 'data_source_report/warehouse_reports/reports' unless RailsDrivers.loaded.include?(:data_source_report)
-      cleanup << 'user_permission_report/warehouse_reports/reports' unless RailsDrivers.loaded.include?(:user_permission_report)
-      cleanup << 'user_directory_report/warehouse_reports/users/warehouse' unless RailsDrivers.loaded.include?(:user_directory_report)
-      cleanup << 'disability_summary/warehouse_reports/disability_summary' unless RailsDrivers.loaded.include?(:disability_summary)
-      cleanup << 'performance_metrics/warehouse_reports/reports' unless RailsDrivers.loaded.include?(:performance_metrics)
-      cleanup << 'performance_measurement/warehouse_reports/reports' unless RailsDrivers.loaded.include?(:performance_measurement)
-      cleanup << 'performance_measurement/warehouse_reports/goal_configs' unless RailsDrivers.loaded.include?(:performance_measurement)
-      cleanup << 'homeless_summary_report/warehouse_reports/reports' unless RailsDrivers.loaded.include?(:homeless_summary_report)
-      cleanup << 'text_message/warehouse_reports/queue' unless RailsDrivers.loaded.include?(:text_message)
-      unless RailsDrivers.loaded.include?(:public_reports)
-        cleanup << 'public_reports/warehouse_reports/point_in_time'
-        cleanup << 'public_reports/warehouse_reports/pit_by_month'
-        cleanup << 'public_reports/warehouse_reports/public_configs'
-        cleanup << 'public_reports/warehouse_reports/number_housed'
-        cleanup << 'public_reports/warehouse_reports/homeless_count'
-        cleanup << 'public_reports/warehouse_reports/homeless_count_comparison'
-        cleanup << 'public_reports/warehouse_reports/homeless_populations'
-        cleanup << 'public_reports/warehouse_reports/state_level_homelessness'
-      end
-      cleanup << 'dashboards/adult_only_households' unless RailsDrivers.loaded.include?(:adult_only_households_sub_pop)
-      cleanup << 'dashboards/adults_with_children' unless RailsDrivers.loaded.include?(:adults_with_children_sub_pop)
-      cleanup << 'dashboards/child_only_households' unless RailsDrivers.loaded.include?(:child_only_households_sub_pop)
-      cleanup << 'dashboards/clients' unless RailsDrivers.loaded.include?(:clients_sub_pop)
-      cleanup << 'dashboards/non_veterans' unless RailsDrivers.loaded.include?(:non_veterans_sub_pop)
-      cleanup << 'dashboards/veterans' unless RailsDrivers.loaded.include?(:veterans_sub_pop)
-      cleanup << 'census_tracking/warehouse_reports/census_trackers' unless RailsDrivers.loaded.include?(:census_tracking)
-      cleanup << 'income_benefits_report/warehouse_reports/report' unless RailsDrivers.loaded.include?(:income_benefits_report)
-      cleanup << 'client_location_history/warehouse_reports/client_location_history' unless RailsDrivers.loaded.include?(:client_location_history)
-      cleanup << 'client_location_history/warehouse_reports/client_location_history' unless RailsDrivers.loaded.include?(:client_location_history)
-      cleanup << 'analysis_tool/warehouse_reports/analysis_tool' unless RailsDrivers.loaded.include?(:analysis_tool)
-      cleanup << 'start_date_dq/warehouse_reports/reports' unless RailsDrivers.loaded.include?(:start_date_dq)
-      cleanup << 'built_for_zero_report/warehouse_reports/bfz' unless RailsDrivers.loaded.include?(:built_for_zero_report)
-      unless RailsDrivers.loaded.include?(:ce_performance)
-        cleanup << 'ce_performance/warehouse_reports/reports'
-        cleanup << 'ce_performance/warehouse_reports/goal_configs'
-      end
-      unless RailsDrivers.loaded.include?(:hmis_data_quality_tool)
-        cleanup << 'hmis_data_quality_tool/warehouse_reports/reports'
-        cleanup << 'hmis_data_quality_tool/warehouse_reports/goal_configs'
-      end
-      cleanup << 'ma_reports/warehouse_reports/monthly_project_utilizations' unless RailsDrivers.loaded.include?(:ma_reports)
-      cleanup << 'system_pathways/warehouse_reports/reports' unless RailsDrivers.loaded.include?(:system_pathways)
-      cleanup << 'client_documents_report/warehouse_reports/reports' unless RailsDrivers.loaded.include?(:client_documents_report)
-      cleanup << 'inactive_client_report/warehouse_reports/reports' unless RailsDrivers.loaded.include?(:inactive_client_report)
-      cleanup << 'all_neighbors_system_dashboard/warehouse_reports/reports' unless RailsDrivers.loaded.include?(:all_neighbors_system_dashboard)
-      cleanup << 'zip_code_report/warehouse_reports/reports' unless RailsDrivers.loaded.include?(:zip_code_report)
-      cleanup << 'superset/warehouse_reports/reports' unless RailsDrivers.loaded.include?(:superset)
 
       cleanup.each do |url|
         GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: url).update_all(deleted_at: Time.current)

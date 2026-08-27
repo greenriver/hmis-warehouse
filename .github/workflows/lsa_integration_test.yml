@@ -1,6 +1,6 @@
 name: LSA Integration Test
 
-# Runs the FY2026 HUD LSA end-to-end against a real SQL Server 2022 service
+# Runs the FY2027 HUD LSA end-to-end against a real SQL Server 2022 service
 # container (test mode, bundled HMIS fixtures) and compares the output to
 # fixtures. This is the automated replacement for the manual LSA smoke test.
 on:
@@ -159,8 +159,8 @@ jobs:
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_S3_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_S3_SECRET_ACCESS_KEY }}
-          SOURCE: ${{ secrets.AWS_S3_ACTION_BUCKET }}${{ vars.AWS_S3_ACTIONS_LSA_SAMPLE_PATH_FY_2026 }}
-          DESTINATION: ./drivers/hud_lsa/spec/fixtures/files/lsa/fy2026/
+          SOURCE: ${{ secrets.AWS_S3_ACTION_BUCKET }}${{ vars.AWS_S3_ACTIONS_LSA_SAMPLE_PATH_FY_2027 }}
+          DESTINATION: ./drivers/hud_lsa/spec/fixtures/files/lsa/fy2027/
         run: aws s3 cp --no-progress "$SOURCE" "$DESTINATION" --recursive --region us-east-1
 
       - name: Run LSA integration test

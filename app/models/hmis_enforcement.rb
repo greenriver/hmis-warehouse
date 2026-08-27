@@ -8,7 +8,7 @@
 
 class HmisEnforcement
   def self.hmis_enabled?
-    ENV['ENABLE_HMIS_API'] == 'true' && RailsDrivers.loaded.include?(:hmis)
+    ENV['ENABLE_HMIS_API'] == 'true'
   end
 
   def self.hmis_admin_visible?(user)

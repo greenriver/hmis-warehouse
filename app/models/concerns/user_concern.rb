@@ -117,7 +117,7 @@ module UserConcern
     scope :not_system, -> { where.not(first_name: 'System') }
 
     scope :in_directory, -> do
-      active.not_system.where(exclude_from_directory: false)
+      not_system.where(exclude_from_directory: false)
     end
 
     scope :using_acls, -> do

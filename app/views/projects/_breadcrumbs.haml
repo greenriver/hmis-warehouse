@@ -1,3 +1,3 @@
 = content_for :crumbs do
-  = link_to data_source_path(id: @project.data_source.id) do
+  = link_to data_source_path(id: @project.data_source.id, coc_code: params[:coc_code]) do
     = "« " + @project.data_source.name

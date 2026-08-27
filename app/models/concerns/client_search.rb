@@ -66,7 +66,6 @@ module ClientSearch
         ## At this point, term could be an alpha-numeric ID or a human name. To avoid having to combine fuzzy name
         ## search with these other conditions, first check if the term matches external ids. If no matches are
         ## found, we do an early return with name-search results.
-        # matches_external_ids = where(search_by_external_id(never_cond, text)).any? if ENV['ALPHANUMERIC_HMIS_EXTERNAL_IDS'] && alpha_numeric && respond_to?(:search_by_external_id) && RailsDrivers.loaded.include?(:hmis_external_apis)
         matches_external_ids = false
         unless matches_external_ids
           # short circuit the rest of search. Since no external IDS are found, this seems to be free text and we can just return
@@ -79,7 +78,7 @@ module ClientSearch
 
       # dummy condition to start the OR chain. This method needs refactoring
       where ||= never_cond
-      where = search_by_external_id(where, text) if alpha_numeric && respond_to?(:search_by_external_id) && RailsDrivers.loaded.include?(:hmis_external_apis) && HmisExternalApis::AcHmis::Mci.enabled?
+      where = search_by_external_id(where, text) if alpha_numeric && respond_to?(:search_by_external_id) && HmisExternalApis::AcHmis::Mci.enabled?
 
       results = nil
       if numeric && term_is_possibly_pk

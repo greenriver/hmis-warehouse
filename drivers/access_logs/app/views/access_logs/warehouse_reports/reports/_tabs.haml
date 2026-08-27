@@ -1,0 +1,5 @@
+%ul.nav.nav-tabs.mb-4
+  %li.nav-item
+    = link_to 'Recent Exports', access_logs_warehouse_reports_reports_path, class: "nav-link #{'active' if current_page?(access_logs_warehouse_reports_reports_path)}"
+  %li.nav-item
+    = link_to 'Report Usage', report_usage_access_logs_warehouse_reports_reports_path, class: "nav-link #{'active' if current_page?(report_usage_access_logs_warehouse_reports_reports_path)}"
