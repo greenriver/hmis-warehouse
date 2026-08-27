@@ -11,6 +11,16 @@ class ActivityLog < ApplicationRecord
 
   belongs_to :user
 
+  # `path` is request.fullpath (path + query string), which is otherwise unbounded and can exceed
+  # Postgres's btree index row limit. `path` also serves as an unmodified audit trail elsewhere, so
+  # it can't be truncated or excluded from anything itself; report-usage matching instead uses
+  # `reporting_path`, an always-short mirror kept in sync by the before_save callback below (and
+  # backfilled for existing rows in db/migrate/20260827150000_add_reporting_path_to_activity_logs.rb).
+  # Report urls are always far shorter than this, so no report-matching condition is affected by it.
+  REPORTING_PATH_LENGTH = 200
+
+  before_save :set_reporting_path
+
   scope :created_in_range, ->(range:) do
     where(created_at: range)
   end
@@ -38,11 +48,25 @@ class ActivityLog < ApplicationRecord
   # 'warehouse_reports/chronic_housed' traffic too, misattributing it via first-match-wins).
   def self.default_report_condition(url)
     at = arel_table
-    at[:path].eq("/#{url}").or(at[:path].matches("/#{url}/%")).or(at[:path].matches("/#{url}?%"))
+    at[:reporting_path].eq("/#{url}").or(at[:reporting_path].matches("/#{url}/%")).or(at[:reporting_path].matches("/#{url}?%"))
   end
 
   def clean_object_name
     item_model&.gsub('GrdaWarehouse::Hud::', '')
+  end
+
+  # Backfills reporting_path for rows that predate it (see
+  # db/migrate/20260827150000_add_reporting_path_to_activity_logs.rb); run out of band via
+  # TaskQueue rather than in that migration, since activity_logs is too large to backfill within a
+  # deployment's migration window.
+  def self.backfill_reporting_path!(batch_size: 1000)
+    loop do
+      updated = where(reporting_path: nil).
+        where.not(path: nil).
+        limit(batch_size).
+        update_all(reporting_path: Arel.sql("left(path, #{REPORTING_PATH_LENGTH})"))
+      break if updated.zero?
+    end
   end
 
   # increment can be: minute, hour, day, week, month, year
@@ -118,5 +142,9 @@ class ActivityLog < ApplicationRecord
       row[:path] = row[:path].sub("/reports/#{id}/", "/reports/#{name.parameterize}/")
     end
     row
+  end
+
+  private def set_reporting_path
+    self.reporting_path = path&.first(REPORTING_PATH_LENGTH)
   end
 end
