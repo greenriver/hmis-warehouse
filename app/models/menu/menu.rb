@@ -76,7 +76,7 @@ class Menu::Menu
   def op_analytics_menu
     Menu::Item.new(
       user: user,
-      visible: ->(user) { RailsDrivers.loaded.include?(:superset) && Superset.available_to_user?(user) },
+      visible: ->(user) { Superset.available_to_user?(user) },
       path: Superset.warehouse_login_url(user),
       title: Translation.translate('OP Analytics'),
       id: 'superset',
@@ -471,7 +471,7 @@ class Menu::Menu
         title: 'Imports',
       ),
     )
-    if RailsDrivers.loaded.include?(:ma_reports) && MaReports::CsgEngage::Credential.active.present?
+    if MaReports::CsgEngage::Credential.active.present?
       menu.add_child(
         Menu::Item.new(
           user: user,
