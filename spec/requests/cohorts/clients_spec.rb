@@ -123,6 +123,24 @@ RSpec.describe Cohorts::ClientsController, type: :request do
         expect(response).to have_http_status(:not_found)
       end
 
+      it 'does not show a restricted client matched by name' do
+        hmis_ds = create(:hmis_primary_data_source)
+        hmis_user = create(:hmis_user, data_source: hmis_ds)
+        restricted_source_client = create(:hmis_hud_client, data_source: hmis_ds, first_name: 'Zzrestrictcohort', last_name: 'Zzclientsensitive')
+        restricted_destination_client = create(:grda_warehouse_hud_client, FirstName: 'Zzrestrictcohort', LastName: 'Zzclientsensitive')
+        GrdaWarehouse::WarehouseClient.create!(destination_id: restricted_destination_client.id, source_id: restricted_source_client.id, data_source_id: hmis_ds.id, id_in_source: restricted_source_client.id.to_s)
+        restricted_source_client.mark_as_restricted!(user: hmis_user)
+        restricted_query = create(:grda_warehouse_client_search_query, created_by: user, params: { q: 'Zzrestrictcohort' })
+
+        get cohort_cohort_client_search_query_path(cohort_id: cohort.id, id: restricted_query.id)
+
+        expect(response).to have_http_status(:ok)
+        # 'Zzrestrictcohort' itself is echoed back into the search box's value= attribute
+        # regardless of results, so assert on the last name instead — it only appears if a
+        # client row actually rendered.
+        expect(response.body).not_to include('Zzclientsensitive')
+      end
+
       context 'when a matching client has been marked restricted in HMIS' do
         let!(:hmis_ds) { create(:hmis_primary_data_source, visible_in_window: true) }
         let!(:hmis_user) { create(:hmis_user, data_source: hmis_ds) }
@@ -149,11 +167,11 @@ RSpec.describe Cohorts::ClientsController, type: :request do
           setup_access_control(user, cohort_role, hmis_ds_viewable_collection)
         end
 
-        it 'redacts the restricted client while leaving the unrestricted client intact' do
+        it 'excludes the restricted client entirely from a name search, while leaving the unrestricted client intact' do
           get cohort_cohort_client_search_query_path(cohort_id: cohort.id, id: search_query.id)
 
           expect(response).to have_http_status(:ok)
-          expect(response.body).to include('Name Redacted')
+          expect(response.body).not_to include('Name Redacted')
           expect(response.body).not_to include('Sensitive')
           expect(response.body).not_to include('111223333')
 

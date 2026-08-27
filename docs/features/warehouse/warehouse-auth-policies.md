@@ -121,6 +121,12 @@ An HMIS source client marked restricted (see [HMIS Restricted Records](../hmis/h
 
 **Not bounded data source.** HMIS's `restricted_ids_in_data_source` is limited to the data in a single data source on the HMIS front-end.  When we extend the client restriction to the warehouse, we restrict any related source and destination record.
 
+### Search
+
+Restricted clients are also excluded from every warehouse-side client search path by name or SSN — window/admin search, the client-edit merge-candidate search, the new-client duplicate check, cohort "Add Client to Cohort" search, `potential_matches`, the chronic/HUD-chronic report name filters, and the Coordinated Entry client proxy search. DOB search and exact-ID/PersonalID lookup are unaffected, matching the general rule that restriction blocks PII display and search-by-PII, not record access.
+
+`GrdaWarehouse::Hud::Client.hmis_restricted_source_client_ids` computes the excluded id set (both source and destination ids, since restriction is tracked per source client but some search scopes can return destination rows). `ClientSearch#text_searcher` (`app/models/concerns/client_search.rb`, shared by `GrdaWarehouse::Hud::Client` and `Hmis::Hud::Client`) takes this set through an optional `exclude_ids_for_name_and_ssn:` keyword, applied only to the SSN-exact-match and free-text name-matching branches; the keyword defaults to `nil`; `Hmis::Hud::Client`'s own search methods never pass it, so `Hmis::Hud::Client.searchable_to` (see [HMIS Restricted Records](../hmis/hmis-restricted-records.md)) is unaffected by this mechanism. `GrdaWarehouse::Hud::Client.strict_search` excludes restricted destination clients from its final result set entirely, since its 3-of-4-criteria match can never be satisfied by DOB alone. The one search path that doesn't go through `text_searcher` — the new-client duplicate check (`ClientController#look_for_existing_match`) — applies the same exclusion directly to its SSN and name clauses.
+
 ### Known limitations
 
 Coverage is bounded by what actually calls into `PiiProvider`/the `reporting_policy_for_*` methods. The following do not honor restriction, and continue to show a restricted client's real PII:
