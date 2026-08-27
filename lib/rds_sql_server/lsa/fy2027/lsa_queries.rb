@@ -63,6 +63,7 @@ module LsaSqlServer
           , ContinuumProject, ProjectType, HousingType, RRHSubType
           , ResidentialAffiliation, TargetPopulation
           , HOPWAMedAssistedLivingFac
+          , PITCount
           , DateCreated, DateUpdated, ExportID)
         select distinct
           hp.ProjectID, hp.OrganizationID, left(hp.ProjectName, 200)
@@ -74,6 +75,7 @@ module LsaSqlServer
           , case when hp.RRHSubType = 1 then hp.ResidentialAffiliation else null end
           , hp.TargetPopulation
           , hp.HOPWAMedAssistedLivingFac
+          , hp.PITCount
           , format(hp.DateCreated, 'yyyy-MM-dd HH:mm:ss')
           , format(hp.DateUpdated, 'yyyy-MM-dd HH:mm:ss')
           , rpt.ReportID
@@ -81,13 +83,11 @@ module LsaSqlServer
         inner join hmis_ProjectCoC coc on coc.ProjectID = hp.ProjectID
           and coc.DateDeleted is null
         inner join lsa_Report rpt on rpt.ReportCoC = coc.CoCCode
-          and coc.ProjectID = hp.ProjectID
-          and coc.DateDeleted is null
         where hp.DateDeleted is null
           and hp.ContinuumProject = 1
           and hp.ProjectType in (0,1,2,3,8,9,10,13)
           and (hp.OperatingEndDate is null
-            or	(hp.OperatingEndDate >= rpt.LookbackDate
+            or	(hp.OperatingEndDate > rpt.LookbackDate
               and hp.OperatingEndDate > hp.OperatingStartDate)
             )
       SQL
