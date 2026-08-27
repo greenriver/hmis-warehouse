@@ -18,7 +18,7 @@
               %tr
                 %td
                   = link_to public_file_path(id: file.id) do
-                    = file.class.known_locations[file.name]
+                    = file.class.known_locations[file.name] || "#{file.name} - no longer available"
                 %td
                   = link_to admin_public_file_path(id: file.id), method: :delete, data: {confirm: 'Are you sure you want to delete this file? It will no longer be accessible.'}, class: 'btn btn-danger btn-sm btn-icon-only' do
                     %i.icon-cross
@@ -28,8 +28,6 @@
   .col-sm-4
     %h4 Upload
     = simple_form_for @file, url: admin_public_files_path do |f|
-      = f.input :name, collection: @file.class.known_locations.invert, label: false, as: :select_two
-      = f.input :file, label: false
+      = f.input :name, collection: @file.class.known_locations.invert, label: false, as: :select_two, include_blank: 'Select a file type'
+      = f.input :file, label: false, as: :file
       = f.button :submit, value: 'Upload File'
-
-

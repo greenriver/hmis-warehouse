@@ -9,15 +9,11 @@
 class ImportsController < ApplicationController
   before_action :require_can_view_imports!
   before_action :set_import, only: [:show, :edit, :update, :destroy, :download]
-  helper_method :sort_column, :sort_direction
 
   # GET /imports
   def index
-    @imports = import_scope
-    # sort / paginate
-    sort = "#{sort_column} #{sort_direction}"
-    @imports = @imports.select(:id, :data_source_id, :completed_at, :created_at, :updated_at, :upload_id).
-      order(sort)
+    @imports = import_scope.select(:id, :data_source_id, :completed_at, :created_at, :updated_at, :upload_id).
+      order(created_at: :desc)
     @pagy, @imports = pagy(@imports)
   end
 
@@ -39,10 +35,6 @@ class ImportsController < ApplicationController
     send_data(zip.download, type: zip.content_type, filename: filename) if zip.present?
   end
 
-  private def import_source
-    Import
-  end
-
   private def import_scope
     GrdaWarehouse::ImportLog.viewable_by(current_user)
   end
@@ -58,13 +50,5 @@ class ImportsController < ApplicationController
     @import = import_scope.find(params.require(:id))
   ensure
     import_scope.inheritance_column = sti_col
-  end
-
-  private def sort_column
-    import_source.column_names.include?(params[:sort]) ? params[:sort] : 'created_at'
-  end
-
-  private def sort_direction
-    ['asc', 'desc'].include?(params[:direction]) ? params[:direction] : 'desc'
   end
 end

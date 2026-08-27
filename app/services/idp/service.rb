@@ -104,6 +104,10 @@ module Idp
       false
     end
 
+    def profile_source
+      supports_user_management? ? :admin_api : :token_claims
+    end
+
     # Whether this IDP can end a user's sessions through its admin API. Sign-out gates on it: an
     # IDP that only authenticates has no session for us to end.
     def supports_session_logout?
@@ -116,12 +120,6 @@ module Idp
         success: false,
         message: 'Connection testing not supported for this IDP',
       }
-    end
-
-    # Deep-link to the IDP's self-service credential console (password/2FA).
-    # Defaults to nil for IDPs with no such console.
-    def account_console_url
-      nil
     end
 
     # Deep-link that drops the current user straight into a single self-service action

@@ -29,6 +29,9 @@ module JwtAuthenticationHelper
       payload_email: user.email,
       expiration_time: 1.hour.from_now,
       session_id: mock_session_id,
+      email_verified: true,
+      first_name: user.first_name,
+      last_name: user.last_name,
     )
 
     allow(Idp::JwtHelper).to receive(:authenticated?).and_wrap_original do |original_method, token|
@@ -46,6 +49,9 @@ module JwtAuthenticationHelper
     allow(User).to receive(:find_from_jwt).and_wrap_original do |original_method, helper|
       helper == jwt_helper ? user : original_method.call(helper)
     end
+
+    # Skip the incidental per-request profile sync so it doesn't pollute enqueued-jobs assertions
+    allow_any_instance_of(Idp::JwtAuthentication).to receive(:idp_schedule_user_sync)
 
     user.user_authentication_sources.find_or_create_by!(
       connector_id: 'test',

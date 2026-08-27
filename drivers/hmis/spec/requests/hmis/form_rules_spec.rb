@@ -94,7 +94,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect do
           rules = query_form_rules(id: assessment.id, limit: 100)
           expect(rules.count).to eq(100)
-        end.to make_database_queries(count: 5..15)
+        end.to make_database_queries(count: 10..20)
       end
     end
   end

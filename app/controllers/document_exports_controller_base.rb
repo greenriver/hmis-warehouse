@@ -118,6 +118,7 @@ class DocumentExportsControllerBase < ApplicationController
       'GrdaWarehouse::DocumentExports::AccessControlsAuditExport',
       'HudSpmReport::DocumentExports::CellDetailExport',
       'HudApr::DocumentExports::CellDetailExport',
+      'GrdaWarehouse::WarehouseReports::DocumentExports::ClientLookupExport',
     ]
   end
 end

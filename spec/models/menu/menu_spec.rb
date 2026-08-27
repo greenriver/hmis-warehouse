@@ -137,6 +137,21 @@ RSpec.describe Menu::Menu, type: :model do
     end
   end
 
+  describe '#hmis_menu' do
+    let(:user) { create(:acl_user) }
+    let!(:hmis_ds) { create(:source_data_source, hmis: 'hmis.example.test', authoritative: true) }
+
+    it 'points at the HMIS host', :devise_only do
+      expect(menu.hmis_menu.first.path).to eq('https://hmis.example.test/')
+    end
+
+    it "routes through HMIS's own oauth2-proxy sign-in endpoint with the user's connector_id, so Dex skips its connector picker", :jwt_only do
+      user.update_column(:last_connector_id, 'keycloak')
+
+      expect(menu.hmis_menu.first.path).to eq('https://hmis.example.test/oauth2/sign_in?connector_id=keycloak&rd=%2F')
+    end
+  end
+
   describe '#site_menu' do
     let(:user) { create(:acl_user) }
     let(:context) do

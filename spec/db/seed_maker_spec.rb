@@ -46,7 +46,7 @@ RSpec.describe SeedMaker do
       # Neutralize the unrelated deploy steps: a full run_all loads HMIS data, shapefiles,
       # translations, etc. — too heavy and brittle to run here. The IdP seed itself runs for real.
       [
-        :ensure_db_triggers_and_functions, :maintain_data_sources, :maintain_cp_seed, :setup_hmis_admin_access, :load_hmis_data, :install_shapes, :maintain_lookups, :maintain_system_groups, :populate_internal_system_choices
+        :ensure_db_triggers_and_functions, :maintain_data_sources, :maintain_db_monitor_defaults, :maintain_cp_seed, :setup_hmis_admin_access, :load_hmis_data, :install_shapes, :maintain_lookups, :maintain_system_groups, :populate_internal_system_choices
       ].each { |step| allow(seed_maker).to receive(step) }
 
       allow(GrdaWarehouse::WarehouseReports::ReportDefinition).to receive(:maintain_report_definitions)
@@ -63,6 +63,24 @@ RSpec.describe SeedMaker do
         provider: 'keycloak',
         name: 'Keycloak (seeded from ENV)',
       )
+    end
+  end
+
+  describe '#maintain_db_monitor_defaults' do
+    it 'creates the alert threshold with a default that reads as 10' do
+      expect { seed_maker.maintain_db_monitor_defaults }.
+        to change { AppConfigProperty.where(key: 'wh_db_space_monitor/alert_threshold_pct').count }.by(1)
+
+      expect(GrdaWarehouse::DbMonitor::FreeStorageSpaceConfiguration.new.alert_threshold_pct).to eq(10)
+    end
+
+    it 'does not override an existing value' do
+      AppConfigProperty.create!(key: 'wh_db_space_monitor/alert_threshold_pct', value: 20)
+
+      expect { seed_maker.maintain_db_monitor_defaults }.
+        not_to(change { AppConfigProperty.find_by(key: 'wh_db_space_monitor/alert_threshold_pct').value })
+
+      expect(GrdaWarehouse::DbMonitor::FreeStorageSpaceConfiguration.new.alert_threshold_pct).to eq(20)
     end
   end
 end

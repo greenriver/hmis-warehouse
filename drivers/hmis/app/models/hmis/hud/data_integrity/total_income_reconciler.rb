@@ -6,19 +6,22 @@
 
 # frozen_string_literal: true
 
-# Reconciles total monthly income discrepancies that may occur despite front-end validations.
+# Reconciles total monthly income discrepancies that may occur despite front-end validations,
+# and on imported data.
 # Calculates expected total from individual income sources and auto-corrects mismatches.
 #
 class Hmis::Hud::DataIntegrity::TotalIncomeReconciler < Hmis::Hud::DataIntegrity::BaseReconciler
   # [[:Alimony, :AlimonyAmount], ...]
   INCOME_SOURCES = GrdaWarehouse::Hud::IncomeBenefit::SOURCES.to_a.freeze
 
-  # @param [Hmis::Hud::IncomeBenefit] record
+  # @param record [Hmis::Hud::IncomeBenefit, GrdaWarehouse::Hud::Base] an IncomeBenefit record. May be a
+  #   versioned CSV importer staging record, so we access HUD fields by their CamelCase names rather than
+  #   the snake_case aliases (which are not defined on staging classes).
   def call(record)
-    # note, we only perform reconciliation if the record indicates income_from_any_source. Otherwise we leave any
+    # note, we only perform reconciliation if the record indicates IncomeFromAnySource. Otherwise we leave any
     # issues to be flagged by DQ
     @messages = []
-    if record.income_from_any_source&.to_i == 1
+    if record.IncomeFromAnySource&.to_i == 1
       reconcile_total_income(record)
     else
       check_no_income_fields(record)
@@ -30,20 +33,20 @@ class Hmis::Hud::DataIntegrity::TotalIncomeReconciler < Hmis::Hud::DataIntegrity
   protected
 
   def check_no_income_fields(record)
-    total = record.total_monthly_income
+    total = record.TotalMonthlyIncome
     report(record, "Expected total_monthly_income to be zero or nil, was #{total}") if total.to_f.positive?
   end
 
   def reconcile_total_income(record)
     calculated_income = calculate_total_income(record)
-    # Normalize nil total_monthly_income to 0 for comparison
-    total_income = record.total_monthly_income.to_f
+    # Normalize nil TotalMonthlyIncome to 0 for comparison
+    total_income = record.TotalMonthlyIncome.to_f
     # do nothing if total income matches calculated within tolerance
     return if (calculated_income - total_income).abs < 0.01
 
     # report and correct value
-    report(record, "Total monthly income does not match calculated income. Expected #{record.total_monthly_income&.to_f.inspect} to equal calculated: #{calculated_income.inspect} (auto-corrected)")
-    record.total_monthly_income = calculated_income
+    report(record, "Total monthly income does not match calculated income. Expected #{record.TotalMonthlyIncome&.to_f.inspect} to equal calculated: #{calculated_income.inspect} (auto-corrected)")
+    record.TotalMonthlyIncome = calculated_income
   end
 
   def calculate_total_income(record)

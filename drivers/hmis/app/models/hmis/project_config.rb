@@ -8,7 +8,6 @@
 
 class Hmis::ProjectConfig < Hmis::HmisBase
   self.table_name = 'hmis_project_configs'
-  self.ignored_columns = ['enabled'] # Dropping `enabled` in favor of `deleted_at`. TODO: migrate to remove the column in a future release
 
   acts_as_paranoid
 

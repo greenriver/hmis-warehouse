@@ -113,9 +113,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             canViewFullSsn
             canViewPartialSsn
             canViewEnrollmentDetails
-            canManageAnyClientFiles
-            canManageOwnClientFiles
-            canViewAnyFiles
           }
         }
       }
@@ -296,11 +293,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         'canViewFullSsn' => role.can_view_full_ssn,
         'canViewPartialSsn' => role.can_view_partial_ssn,
         'canViewEnrollmentDetails' => role.can_view_enrollment_details,
-        'canManageAnyClientFiles' => role.can_manage_any_client_files,
-        'canManageOwnClientFiles' => role.can_manage_own_client_files,
-        'canViewAnyFiles' => role.can_manage_own_client_files ||
-          role.can_view_any_nonconfidential_client_files ||
-          role.can_view_any_confidential_client_files,
       )
     end
 

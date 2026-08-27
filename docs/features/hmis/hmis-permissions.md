@@ -2,7 +2,7 @@
 
 The HMIS uses a scoped RBAC (Role-Based Access Control) system that is structurally similar to, but entirely separate from, [warehouse permissions](../warehouse/warehouse-permissions.md). Each grant combines a role (the actions), a collection of entities (the targets), and a user group (the recipients). Unlike the warehouse, the HMIS has no legacy permissions path — every grant goes through `Hmis::AccessControl`.
 
-Everything in the HMIS is additionally scoped to a single data source. A user's permissions apply only within the HMIS they are currently signed into, even if the same account has access to another HMIS installation in the same warehouse. See [Multi-HMIS Support](../../architecture/multi-hmis-support.md).
+Everything in the HMIS is additionally scoped to a single data source. A user's permissions apply only within the HMIS they are currently signed into, even if the same account has access to another HMIS installation in the same warehouse. See [Multi-HMIS Support](multi-hmis-support.md).
 
 ## Core Concepts
 
@@ -189,7 +189,7 @@ Roles, Collections, UserGroups, and AccessControls are versioned with `paper_tra
 - [HMIS Authorization Policy Architecture](hmis-auth-policies.md) — policies, `UserContext`, and context loaders
 - [Warehouse Permissions](../warehouse/warehouse-permissions.md) — the parallel system on the warehouse side
 - [Warehouse Auth Policies](../warehouse/warehouse-auth-policies.md) — policy pattern in the warehouse
-- [Multi-HMIS Support](../../architecture/multi-hmis-support.md) — how requests bind to a data source, and why permissions are data-source scoped
+- [Multi-HMIS Support](multi-hmis-support.md) — how requests bind to a data source, and why permissions are data-source scoped
 - [Data Sources](../warehouse/data-sources.md)
 - [ADR 0006: Policy-Based GraphQL `access` Fields](../../adr/0006-policy-based-graphql-access-fields.md) — why access fields delegate to policies
 - [ADR 0002: PII Management Strategy](../../adr/0002-pii-management-strategy.md) — access control as part of the broader PII strategy

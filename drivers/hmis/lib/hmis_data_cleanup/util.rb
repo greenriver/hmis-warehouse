@@ -76,22 +76,6 @@ module HmisDataCleanup
       end
     end
 
-    # Find any single-member households that do not have a HoH, and make that person the HoH
-    def self.make_sole_member_hoh!
-      single_member_households = Hmis::Hud::Enrollment.hmis.where.not(household_id: nil).
-        group(:household_id).
-        having(nf('COUNT', [:HouseholdID]).eq(1)).
-        select(:household_id)
-
-      without_papertrail_or_timestamps do
-        rows_affected = Hmis::Hud::Enrollment.hmis.where(household_id: single_member_households).
-          where.not(relationship_to_hoh: 1).
-          update_all(relationship_to_hoh: 1) # skips callbacks
-
-        Rails.logger.info "Set HoH in #{rows_affected} single-member households"
-      end
-    end
-
     # Change any RelationshipToHoH values that are 99 (Data not collected) to 5 (Unrelated household member)
     # 99 is not a valid option for RelationshipToHoH, and causes flags in the LSA. Reference issue #7127.
     def self.fix_relationship_to_hoh_99s!
@@ -519,75 +503,6 @@ module HmisDataCleanup
       end
     end
 
-    # Sum MonthlyTotalIncome where it is null but there are Income values
-    def self.fix_missing_monthly_total_income!
-      scope = Hmis::Hud::IncomeBenefit.hmis.where(IncomeFromAnySource: 1, TotalMonthlyIncome: nil)
-      count = scope.count
-      Rails.logger.info "#{count} income records to clean"
-
-      scope.in_batches do |batch|
-        Rails.logger.info('Processing batch...')
-        values = []
-        batch.each do |record|
-          Hmis::Hud::DataIntegrity::TotalIncomeReconciler.call(record)
-
-          # Only add to import if the total_monthly_income was updated
-          next unless record.total_monthly_income_changed?
-
-          values << [record.id, record.total_monthly_income]
-        end
-        next if values.empty?
-
-        without_papertrail_or_timestamps do
-          cols = [:id, :TotalMonthlyIncome]
-          result = Hmis::Hud::IncomeBenefit.import(cols, values, validate: false, on_duplicate_key_update: { conflict_target: [:id], columns: [:TotalMonthlyIncome] })
-          raise "error: #{result.failed_instances.inspect}" if result.failed_instances.any?
-        end
-      end
-      Rails.logger.info 'Done'
-    end
-
-    # Similar to fix_missing_monthly_total_income! but with logging and transactional safety.
-    # Added for one-time use, can be removed once the corresponding"TaskQueue" is completed
-    def self.correct_total_income_records!
-      return unless HmisEnforcement.hmis_enabled?
-
-      data_sources = GrdaWarehouse::DataSource.hmis
-      return if data_sources.empty?
-
-      scope = Hmis::Form::FormProcessor.
-        joins(income_benefit: :data_source).
-        merge(data_sources).
-        preload(:income_benefit)
-
-      system_hud_users = data_sources.map do |ds|
-        Hmis::Hud::User.system_user(data_source_id: ds.id)
-      end.index_by(&:data_source_id)
-
-      messages = []
-      Hmis::Hud::IncomeBenefit.transaction do
-        scope.find_each do |fp|
-          record = fp.income_benefit
-          raise unless record
-
-          # skip records that were likely created by migrations
-          next if fp.values.nil?
-          next if record.user_id.nil?
-          next if record.user_id == system_hud_users.fetch(record.data_source_id)&.user_id
-
-          messages += Hmis::Hud::DataIntegrity::TotalIncomeReconciler.call(record)
-          record.save! if record.changed?
-        end
-      end
-      messages.each do |message|
-        if Rails.env.development?
-          puts message
-        else
-          Sentry.capture_message(message)
-        end
-      end
-    end
-
     # Cleanup function to run if/when we add a new Custom record type and forget to add it to the Hmis::MergeClientsJob.
     # WARNING: this cleanup task is not the most efficient. If there are a lot of record to clean up, may need further optimization.
     def self.cleanup_dangling_records_from_merge!(klass: Hmis::Hud::CustomCaseNote)
@@ -740,7 +655,7 @@ module HmisDataCleanup
       # You probably want to run some cleanup:
       #
       # HmisDataCleanup::Util.assign_missing_household_ids!
-      # HmisDataCleanup::Util.make_sole_member_hoh!
+      # Hmis::Hud::DataIntegrity::SoleMemberHohFixer.for_data_source!(data_source_id: ...)
 
       # Remember to generate HUD Assessments by running the MigrateAssessmentsJob:
       #
