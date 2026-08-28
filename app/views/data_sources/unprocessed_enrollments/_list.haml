@@ -1,0 +1,19 @@
+.table-responsive
+  %table.table.table-striped
+    %thead
+      %tr
+        %th Enrollment ID
+        %th Client
+        %th Project
+        %th Entry Date
+    %tbody
+      - list.each do |enrollment|
+        %tr
+          %td= link_to_if can_upload_hud_zips?, enrollment.id, source_datum_path(enrollment.id, type: 'Enrollment')
+          %td
+            - client = enrollment.destination_client
+            - pii = client&.project_pii_provider(project: enrollment.project, user: current_user, mode: :browse)
+            = link_to_if can_view_clients?, pii&.full_name, appropriate_client_path(client)
+          %td
+            = link_to enrollment.project.name(current_user), project_path(enrollment.project.id)
+          %td= enrollment.EntryDate

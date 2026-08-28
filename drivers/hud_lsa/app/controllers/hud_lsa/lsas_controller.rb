@@ -80,8 +80,10 @@ module HudLsa
       @report ||= report_class.new(options: { user_id: current_user.id, start: default_start_date, end: default_end_date })
     end
 
+    # For the LSA the generator and the report instance are the same class, so the
+    # report class has to follow the version chosen in the filter, not the default.
     def report_class
-      @report_class ||= active_version
+      generator
     end
     helper_method :report_class
 
@@ -116,10 +118,6 @@ module HudLsa
       filter.update(filter_params.merge(coc_codes: [filter_params[:coc_code]]))
       report = report_class.from_filter(filter, report_name, build_for_questions: [])
       filter.effective_project_ids_during_range(report.export_date_range)
-    end
-
-    private def active_version
-      possible_generator_classes[default_report_version]
     end
 
     private def default_year
@@ -186,22 +184,21 @@ module HudLsa
     end
     helper_method :filtered?
 
-    private def report_name
-      active_version.title
-    end
-
     def available_report_versions
       {
         'FY 2022' => { slug: :fy2022, active: false },
         'FY 2023' => { slug: :fy2023, active: false },
         'FY 2024' => { slug: :fy2024, active: false },
         'FY 2026' => { slug: :fy2026, active: true },
+        'FY 2027' => { slug: :fy2027, active: true },
       }.freeze
     end
     helper_method :available_report_versions
 
+    # The LSA fiscal year is independent of the HUD CSV data standard version, so the
+    # default comes from the version list above rather than HudHelper.current_version.
     def default_report_version
-      "fy#{HudHelper.current_version}".to_sym
+      available_report_versions.values.select { |v| v[:active] }.last&.fetch(:slug) || super
     end
 
     private def filter_class
@@ -214,6 +211,7 @@ module HudLsa
         fy2023: HudLsa::Generators::Fy2023::Lsa,
         fy2024: HudLsa::Generators::Fy2024::Lsa,
         fy2026: HudLsa::Generators::Fy2026::Lsa,
+        fy2027: HudLsa::Generators::Fy2027::Lsa,
       }
     end
 

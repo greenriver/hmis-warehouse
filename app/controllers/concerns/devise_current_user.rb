@@ -58,7 +58,7 @@ module DeviseCurrentUser
         else
           # If no provider exists, attempt to log the user out of superset (if they have access)
           # this will redirect back to the warehouse
-          superset_logout = "#{Superset.superset_base_url}/logout/?next=#{CGI.escape(root_url)}" if RailsDrivers.loaded.include?(:superset) && Superset.available_to_user?(user)
+          superset_logout = "#{Superset.superset_base_url}/logout/?next=#{CGI.escape(root_url)}" if Superset.available_to_user?(user)
           superset_logout || root_url
         end
       else

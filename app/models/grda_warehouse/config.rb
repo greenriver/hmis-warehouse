@@ -340,7 +340,7 @@ module GrdaWarehouse
 
     def self.arbiter_class
       # FIXME: for now, just return the one known one
-      ClientAccessControl::EnrollmentArbiter if RailsDrivers.loaded.include?(:client_access_control)
+      ClientAccessControl::EnrollmentArbiter
     end
 
     def self.active_supplemental_enrollment_importer_class

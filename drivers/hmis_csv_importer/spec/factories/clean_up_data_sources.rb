@@ -144,4 +144,23 @@ FactoryBot.define do
       }
     end
   end
+
+  factory :remap_hud_keys_ds, class: 'GrdaWarehouse::DataSource' do
+    name { 'Remap HUD Keys' }
+    short_name { 'Remap Keys' }
+    source_type { :sftp }
+    source_id { 'TEST-SRC' }
+    pre_process_hooks do
+      { 'HmisCsvImporter::Loader::HudKeyRemapper' => true }
+    end
+  end
+
+  factory :strip_unlinked_records_ds, class: 'GrdaWarehouse::DataSource' do
+    name { 'Strip Unlinked Records' }
+    short_name { 'Strip Unlinked' }
+    source_type { :sftp }
+    pre_process_hooks do
+      { 'HmisCsvImporter::Loader::UnlinkedRecordFilter' => true }
+    end
+  end
 end
