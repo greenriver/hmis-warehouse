@@ -124,20 +124,36 @@ RSpec.describe Cohorts::ClientsController, type: :request do
       end
 
       it 'does not show a restricted client matched by name' do
-        hmis_ds = create(:hmis_primary_data_source)
+        hmis_ds = create(:hmis_primary_data_source, visible_in_window: true)
         hmis_user = create(:hmis_user, data_source: hmis_ds)
+        hmis_ds_viewable_collection = create(:collection)
+        hmis_ds_viewable_collection.add_viewable(hmis_ds)
+        setup_access_control(user, cohort_role, hmis_ds_viewable_collection)
+        # source_data_source_ids/destination_data_source_ids are cached for an hour (see
+        # GrdaWarehouse::DataSource); invalidate so the newly-created HMIS data source is
+        # picked up by full-text search.
+        Rails.cache.delete(:source_data_source_ids)
+        Rails.cache.delete(:destination_data_source_ids)
+
         restricted_source_client = create(:hmis_hud_client, data_source: hmis_ds, first_name: 'Zzrestrictcohort', last_name: 'Zzclientsensitive')
         restricted_destination_client = create(:grda_warehouse_hud_client, FirstName: 'Zzrestrictcohort', LastName: 'Zzclientsensitive')
         GrdaWarehouse::WarehouseClient.create!(destination_id: restricted_destination_client.id, source_id: restricted_source_client.id, data_source_id: hmis_ds.id, id_in_source: restricted_source_client.id.to_s)
         restricted_source_client.mark_as_restricted!(user: hmis_user)
+        # Unrestricted sibling matching the same search term, so the assertions below can't
+        # pass merely because the search returned nothing at all.
+        open_source_client = create(:hmis_hud_client, data_source: hmis_ds, first_name: 'Zzrestrictcohort', last_name: 'Zzclientopen')
+        open_destination_client = create(:grda_warehouse_hud_client, FirstName: 'Zzrestrictcohort', LastName: 'Zzclientopen')
+        GrdaWarehouse::WarehouseClient.create!(destination_id: open_destination_client.id, source_id: open_source_client.id, data_source_id: hmis_ds.id, id_in_source: open_source_client.id.to_s)
         restricted_query = create(:grda_warehouse_client_search_query, created_by: user, params: { q: 'Zzrestrictcohort' })
 
         get cohort_cohort_client_search_query_path(cohort_id: cohort.id, id: restricted_query.id)
 
         expect(response).to have_http_status(:ok)
-        # 'Zzrestrictcohort' itself is echoed back into the search box's value= attribute
-        # regardless of results, so assert on the last name instead — it only appears if a
-        # client row actually rendered.
+        expect(response.body).to include('Zzclientopen')
+        # The restricted client must be excluded from the result set entirely, not merely
+        # redacted in place — a generic "Name Redacted" row would also satisfy the older,
+        # weaker assertion that just checked for the absence of the real last name.
+        expect(response.body).not_to include('Name Redacted')
         expect(response.body).not_to include('Zzclientsensitive')
       end
 
