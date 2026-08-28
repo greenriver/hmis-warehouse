@@ -28,6 +28,13 @@ RSpec.describe 'WarehouseReports::CohortChangesController', type: :request do
   end
   let(:filter_params) { { start: 1.month.ago.to_date.to_s, end: Date.current.to_s, cohort_id: cohort.id } }
 
+  # `GrdaWarehouse::Config.get` caches the settings row at the class level for 30 seconds,
+  # independent of each example's DB transaction rollback — without this, the
+  # `include_pii_in_detail_downloads` change made below could leak into another spec file
+  # running later in the same process. Matches the established pattern in
+  # `spec/requests/warehouse_reports/chronic_housed_controller_spec.rb`.
+  after { GrdaWarehouse::Config.invalidate_cache }
+
   before do
     Collection.maintain_system_groups
     collection.set_viewables({ reports: [report.id] })
@@ -84,6 +91,25 @@ RSpec.describe 'WarehouseReports::CohortChangesController', type: :request do
 
       expect(response.body).to include('Open')
       expect(response.body).to include('Name Redacted')
+    end
+
+    # Proves the Excel export is gated by the org-wide `include_pii_in_detail_downloads` download
+    # toggle for this UNRESTRICTED client too — the HTML view's `pii_provider` call uses the
+    # default `mode: :browse` and ignores the toggle, so the first assertion confirms that; the
+    # Excel view passes `mode: :download`, so the second proves the toggle is its sole gate here.
+    it 'redacts this client in the Excel export when the download toggle is off, but not in the HTML view' do
+      GrdaWarehouse::Config.first_or_create.update!(include_pii_in_detail_downloads: false)
+      GrdaWarehouse::Config.invalidate_cache
+
+      get warehouse_reports_cohort_changes_path(filter: filter_params)
+      expect(response.body).to include('Open')
+
+      get warehouse_reports_cohort_changes_path(filter: filter_params, format: :xlsx)
+      expect(response).to have_http_status(:ok)
+      sheet = rendered_workbook.sheet(0)
+      data_row = (sheet.first_row..sheet.last_row).map { |i| sheet.row(i) }.find { |r| r[0] == open_destination_client.id }
+      expect(data_row[1]).to eq('Name Redacted')
+      expect(data_row[2]).to eq('Name Redacted')
     end
   end
 end
