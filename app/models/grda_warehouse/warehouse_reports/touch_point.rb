@@ -53,10 +53,6 @@ module GrdaWarehouse::WarehouseReports
           row = []
           destination_client = response.client.destination_client
           client_id = destination_client.id
-          # This report is only ever consumed as an Excel download (see
-          # WarehouseReports::TouchPointExportsController#show), never rendered on-screen — so
-          # the policy is always resolved in :download mode, honoring the same
-          # `include_pii_in_detail_downloads` toggle every other bulk PII export in this app does.
           policy = user.reporting_policy_for_client(client: destination_client, mode: :download)
           client_name = GrdaWarehouse::PiiProvider.new(destination_client, policy: policy).full_name
           row << client_id

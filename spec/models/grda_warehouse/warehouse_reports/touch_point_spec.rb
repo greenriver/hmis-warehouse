@@ -10,13 +10,6 @@ require 'rails_helper'
 
 RSpec.describe GrdaWarehouse::WarehouseReports::TouchPoint, type: :model do
   describe '#clean_data' do
-    # Legacy (non-ACL) user + role/access-group grant — matches the proven working pattern in
-    # `drivers/homeless_summary_report/spec/requests/homeless_summary_report/warehouse_reports/reports_controller_details_spec.rb`,
-    # itself resolving PII through `User#reporting_policy_for_client`/`SourceClientPolicy` the
-    # same way this report now does. `can_view_client_name` alone is not sufficient —
-    # `SourceClientPolicy#can_view_name?` requires the client be enrolled in a project the
-    # access group has been granted (`access_group.add_viewable(project)` below), which is why
-    # `unrestricted_source_client` gets a real `Hud::Enrollment` into `project`.
     let!(:role) { create(:role, can_view_clients: true, can_view_client_name: true) }
     let!(:access_group) { create(:access_group) }
     let!(:running_user) do
@@ -30,17 +23,8 @@ RSpec.describe GrdaWarehouse::WarehouseReports::TouchPoint, type: :model do
     let!(:restricted_source_client) { create(:hmis_hud_client, data_source: hmis_ds, first_name: 'Restricted', last_name: 'Client') }
     let!(:restricted_destination_client) { create(:grda_warehouse_hud_client, FirstName: 'Restricted', LastName: 'Client') }
     let!(:unrestricted_destination_client) { create(:grda_warehouse_hud_client, FirstName: 'Open', LastName: 'Client') }
-    # The project/enrollment must live in the SAME data source as `unrestricted_source_client`
-    # (`hmis_ds`) — `GrdaWarehouse::Hud::Project.joins(:clients)` (which the ACL/legacy permission
-    # chain's `enrolled_project_ids_for_client` relies on) only resolves an enrollment's client
-    # within that enrollment's own data source. `unrestricted_source_client` can't move to a
-    # different data source either — `open_form` below needs it in `hmis_ds` for the touchpoint's
-    # own `HmisForm`/`Hmis::Assessment` query logic to find it.
     let!(:organization) { create(:hud_organization, data_source: hmis_ds) }
     let!(:project) { create(:grda_warehouse_hud_project, organization: organization, data_source: hmis_ds) }
-    # `Hud::Enrollment#client` strictly requires a `GrdaWarehouse::Hud::Client` instance —
-    # `Hmis::Hud::Client` shares the same DB table but is a distinct AR class, so a plain
-    # `unrestricted_source_client` (an `Hmis::Hud::Client`) raises `AssociationTypeMismatch`.
     let!(:unrestricted_enrollment) { create(:hud_enrollment, client: GrdaWarehouse::Hud::Client.find(unrestricted_source_client.id), project: project, data_source: hmis_ds) }
 
     let!(:report) do
@@ -49,12 +33,6 @@ RSpec.describe GrdaWarehouse::WarehouseReports::TouchPoint, type: :model do
              parameters: { 'start' => 1.year.ago.to_date, 'end' => Date.tomorrow, 'name' => 'Intake' })
     end
 
-    # No FactoryBot factory exists for GrdaWarehouse::HmisForm or GrdaWarehouse::Hmis::Assessment
-    # anywhere in this codebase (confirmed via repo-wide grep) — build both directly. `touch_point_source`
-    # (`GrdaWarehouse::HmisForm.non_confidential`) requires a joined `Hmis::Assessment` row with
-    # `confidential: false`; `responses` additionally requires `hmis_assessment` to join and
-    # `client: :destination_client` to resolve, and filters by `name: touch_point_name` and
-    # `collected_at` inside the report's `start`/`end` window.
     let!(:hmis_assessment_row) do
       GrdaWarehouse::Hmis::Assessment.create!(
         data_source_id: hmis_ds.id,
