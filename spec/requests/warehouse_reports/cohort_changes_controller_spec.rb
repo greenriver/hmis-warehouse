@@ -20,9 +20,6 @@ RSpec.describe 'WarehouseReports::CohortChangesController', type: :request do
   let!(:restricted_source_client) { create(:hmis_hud_client, data_source: hmis_ds, first_name: 'Restricted', last_name: 'Client') }
   let!(:restricted_destination_client) { create(:grda_warehouse_hud_client, FirstName: 'Restricted', LastName: 'Client') }
   let!(:cohort_client) { GrdaWarehouse::CohortClient.create!(cohort: cohort, client: restricted_destination_client) }
-  # No FactoryBot factory exists for GrdaWarehouse::CohortClientChange we'll build directly.
-  # The `combined_cohort_client_changes` view (what WarehouseReport::CohortChanges#cohort_enrollments reads) is a read-only,
-  # non-insertable Postgres VIEW derived from CohortClientChange, filtered to change: create/activate for entries.
   let!(:cohort_client_change) do
     GrdaWarehouse::CohortClientChange.create!(cohort: cohort, cohort_client: cohort_client, user: user, change: 'create', changed_at: 1.week.ago)
   end
@@ -93,10 +90,6 @@ RSpec.describe 'WarehouseReports::CohortChangesController', type: :request do
       expect(response.body).to include('Name Redacted')
     end
 
-    # Proves the Excel export is gated by the org-wide `include_pii_in_detail_downloads` download
-    # toggle for this UNRESTRICTED client too — the HTML view's `pii_provider` call uses the
-    # default `mode: :browse` and ignores the toggle, so the first assertion confirms that; the
-    # Excel view passes `mode: :download`, so the second proves the toggle is its sole gate here.
     it 'redacts this client in the Excel export when the download toggle is off, but not in the HTML view' do
       GrdaWarehouse::Config.first_or_create.update!(include_pii_in_detail_downloads: false)
       GrdaWarehouse::Config.invalidate_cache
