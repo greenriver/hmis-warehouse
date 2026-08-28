@@ -59,10 +59,11 @@
           %td.text-center= checkmark(data_source.authoritative)
           %td
             = most_recently_completed
-            - if data_source.unprocessed_enrollment_count.positive?
+            - unprocessed_enrollment_count = @unprocessed_enrollment_counts[data_source.id]
+            - if unprocessed_enrollment_count.positive?
               .mt-2
                 %em
-                  = link_to "Enrollments remaining to process: #{data_source.unprocessed_enrollment_count}", data_source_unprocessed_enrollments_path(data_source)
+                  = link_to "Enrollments remaining to process: #{unprocessed_enrollment_count}", data_source_unprocessed_enrollments_path(data_source)
           %td
             -# NOTE: this will only show the data source as stalled if the files were brought in by the system user
             - if most_recently_completed.present?

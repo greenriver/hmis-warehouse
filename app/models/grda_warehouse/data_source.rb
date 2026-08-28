@@ -735,6 +735,25 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     projects.joins(:organization).count
   end
 
+  # Batched form of #client_count for a page of data sources, to avoid one query per row.
+  def self.client_counts_by_id(data_source_ids)
+    Hash.new(0).merge(GrdaWarehouse::Hud::Client.where(data_source_id: data_source_ids).group(:data_source_id).count)
+  end
+
+  # Batched form of #project_count for a page of data sources, to avoid one query per row.
+  def self.project_counts_by_id(data_source_ids)
+    Hash.new(0).merge(GrdaWarehouse::Hud::Project.joins(:organization).where(data_source_id: data_source_ids).group(:data_source_id).count)
+  end
+
+  # Batched form of #unprocessed_enrollment_count for a page of data sources, to avoid one query per row.
+  def self.unprocessed_enrollment_counts_by_id(data_source_ids)
+    Hash.new(0).merge(
+      GrdaWarehouse::Hud::Enrollment.unprocessed_with_resolvable_project_and_client.
+        where(data_source_id: data_source_ids).
+        group(:data_source_id).count,
+    )
+  end
+
   # Below this size and dominance, a data source's organizations page can render
   # everything at once; otherwise it's large or fragmented enough that the user
   # should pick a CoC to filter by first.
