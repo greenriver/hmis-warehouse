@@ -20,10 +20,9 @@ RSpec.describe 'WarehouseReports::CohortChangesController', type: :request do
   let!(:restricted_source_client) { create(:hmis_hud_client, data_source: hmis_ds, first_name: 'Restricted', last_name: 'Client') }
   let!(:restricted_destination_client) { create(:grda_warehouse_hud_client, FirstName: 'Restricted', LastName: 'Client') }
   let!(:cohort_client) { GrdaWarehouse::CohortClient.create!(cohort: cohort, client: restricted_destination_client) }
-  # No FactoryBot factory exists for GrdaWarehouse::CohortClientChange anywhere in this codebase
-  # (confirmed via repo-wide grep of spec/factories) — build directly. The `combined_cohort_client_changes`
-  # view (what WarehouseReport::CohortChanges#cohort_enrollments actually reads) is a read-only,
-  # non-insertable Postgres VIEW derived from this table, filtered to change: create/activate for entries.
+  # No FactoryBot factory exists for GrdaWarehouse::CohortClientChange we'll build directly.
+  # The `combined_cohort_client_changes` view (what WarehouseReport::CohortChanges#cohort_enrollments reads) is a read-only,
+  # non-insertable Postgres VIEW derived from CohortClientChange, filtered to change: create/activate for entries.
   let!(:cohort_client_change) do
     GrdaWarehouse::CohortClientChange.create!(cohort: cohort, cohort_client: cohort_client, user: user, change: 'create', changed_at: 1.week.ago)
   end
