@@ -72,9 +72,10 @@ RSpec.describe 'WarehouseReports::OpenEnrollmentsNoServiceController', type: :re
     get warehouse_reports_open_enrollments_no_service_index_path(format: :xlsx)
 
     expect(response).to have_http_status(:success)
-    data_row = rendered_workbook.sheet(0).row(2)
-    expect(data_row[1]).to eq('Name Redacted')
-    expect(data_row[2]).to eq('Name Redacted')
+    sheet = rendered_workbook.sheet(0)
+    row = (sheet.first_row..sheet.last_row).map { |i| sheet.row(i) }.find { |r| r[0] == restricted_destination_client.id }
+    expect(row[1]).to eq('Name Redacted')
+    expect(row[2]).to eq('Name Redacted')
   end
 
   it 'shows the unrestricted client name in the HTML view but redacts it in the Excel export when the download toggle is off' do
