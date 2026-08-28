@@ -264,7 +264,10 @@ jobs:
       # Default arm: the AUTH_METHOD=jwt env below is the only arm selector. Don't add a
       # ~devise_only flag here for symmetry with the Devise step — rails_helper.rb already
       # excludes :devise_only under a jwt run (filter_run_excluding).
+      # ci_auth carries neither a tag nor a focus path; it runs only the arm steps below. Without this
+      # guard an empty --tag would widen the run to the entire suite.
       - name: Run tests
+        if: matrix.test_group.tag || matrix.test_group.test_path
         env:
           MAX_FAILURES: 60
           AWS_ACCESS_KEY_ID: local_access_key
@@ -295,7 +298,7 @@ jobs:
           fi
 
       - name: Run okta tests
-        if: matrix.test_group.okta || needs.determine_matrix.outputs.okta == 'true'
+        if: matrix.test_group.auth || needs.determine_matrix.outputs.okta == 'true'
         env:
           MAX_FAILURES: 60
           AWS_ACCESS_KEY_ID: local_access_key
@@ -309,7 +312,7 @@ jobs:
       # would silently drop any spec nobody remembered to add. The broad --pattern is only affordable
       # because --tag devise_only narrows it: without that tag this re-runs the entire ungated suite.
       - name: Run AUTH_METHOD=devise tests
-        if: matrix.test_group.devise
+        if: matrix.test_group.auth
         env:
           MAX_FAILURES: 60
           AWS_ACCESS_KEY_ID: local_access_key
@@ -330,7 +333,7 @@ jobs:
           echo "AUTH_METHOD=devise arm ran $count examples."
 
       - name: Run logging tests
-        if: matrix.test_group.logging || needs.determine_matrix.outputs.logging == 'true'
+        if: matrix.test_group.auth || needs.determine_matrix.outputs.logging == 'true'
         env:
           AWS_ACCESS_KEY_ID: local_access_key
           AWS_SECRET_ACCESS_KEY: local_secret_key
