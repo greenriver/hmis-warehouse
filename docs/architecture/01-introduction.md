@@ -17,7 +17,7 @@ Open Path Platform is an integrated platform for homeless services management, b
 
 ## 1.2 Quality Goals
 
-These five **quality goals** are the architecture's drivers, in priority order. Each is stated as a scenario so it can be judged rather than asserted.
+These five **quality goals** are the architecture's drivers, in priority order.
 
 | Priority | Quality goal | Scenario | Detail |
 | --- | --- | --- | --- |
@@ -40,7 +40,7 @@ Three further qualities — Operational Self-Sufficiency, Interoperability, and 
 | **System Administrators** | Manageable configuration for user access, data sources, and system behavior without code changes. |
 | **Analysts & Researchers** | Stable, well-modeled analytics data that supports ad-hoc querying and dashboards. |
 | **Open Path Engineering Team** | Modular, well-documented codebase that supports independent feature development and safe deployments. |
-| **Clients (People Experiencing Homelessness)** | Their PII is disclosed only where a permission grants it, under their community's disclosure rules; decisions that allocate housing to them are recorded and accountable. They hold no account, so these are expectations the architecture carries on their behalf. |
+| **Clients (People Experiencing Homelessness)** | Their PII is disclosed only where a permission grants it, under their community's disclosure rules; decisions that allocate housing to them are recorded and accountable. They hold no account in the platform. |
 | **Housing Providers & Partner Agencies** | Access limited to the clients and referrals they are responsible for, and a durable record of referral decisions. |
 | **Upstream Data Partners** | Stable ingestion interfaces (S3, API) with clear data format contracts. |
 | **General Public** | Community-level figures readable without an account, aggregate figures only. |
