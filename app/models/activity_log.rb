@@ -21,8 +21,11 @@ class ActivityLog < ApplicationRecord
 
   before_save :set_reporting_path
 
+  # `range` is a Date..Date; created_at is stored as a UTC instant, so comparing it against bare
+  # date literals drops rows created in the evening (US Eastern), whose UTC-stored date has already
+  # rolled to the next day.
   scope :created_in_range, ->(range:) do
-    where(created_at: range)
+    where(created_at: range.begin.beginning_of_day..range.end.end_of_day)
   end
 
   scope :warehouse_reports, -> do

@@ -83,6 +83,33 @@ RSpec.describe ActivityLog do
     end
   end
 
+  describe '.created_in_range' do
+    # created_at is stored as a UTC instant; an evening-Eastern timestamp's UTC-stored date has
+    # already rolled to the next day, so a naive Date-literal comparison silently drops it. Time is
+    # pinned to a fixed evening moment so this doesn't only fail depending on when it happens to run.
+    it 'includes an entry created the previous evening (US Eastern), whose UTC-stored date already rolled to today' do
+      travel_to Time.zone.local(2026, 8, 27, 21, 0, 0) do
+        entry = log(path: '/warehouse_reports/chronic/1')
+        entry.update_column(:created_at, 1.day.ago)
+
+        range = 5.days.ago.to_date..Date.current
+
+        expect(described_class.created_in_range(range: range)).to include(entry)
+      end
+    end
+
+    it 'excludes an entry created before the given range' do
+      travel_to Time.zone.local(2026, 8, 27, 21, 0, 0) do
+        entry = log(path: '/warehouse_reports/chronic/1')
+        entry.update_column(:created_at, 10.days.ago)
+
+        range = 5.days.ago.to_date..Date.current
+
+        expect(described_class.created_in_range(range: range)).not_to include(entry)
+      end
+    end
+  end
+
   describe '#reporting_path' do
     it 'mirrors the first REPORTING_PATH_LENGTH characters of path on save' do
       long_path = "/warehouse_reports/chronic/#{'a' * described_class::REPORTING_PATH_LENGTH}"
