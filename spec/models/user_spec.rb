@@ -456,15 +456,25 @@ RSpec.describe User, type: :model do
       let!(:hmis_user) { create(:hmis_user, data_source: hmis_ds) }
       let!(:restricted_source_client) { create(:hmis_hud_client, data_source: hmis_ds) }
       let!(:restricted_destination_client) { create(:grda_warehouse_hud_client) }
+      let!(:open_source_client) { create(:hmis_hud_client, data_source: hmis_ds) }
+      let!(:open_destination_client) { create(:grda_warehouse_hud_client) }
 
       before do
         GrdaWarehouse::WarehouseClient.create!(destination_id: restricted_destination_client.id, source_id: restricted_source_client.id, data_source_id: hmis_ds.id, id_in_source: restricted_source_client.id.to_s)
+        GrdaWarehouse::WarehouseClient.create!(destination_id: open_destination_client.id, source_id: open_source_client.id, data_source_id: hmis_ds.id, id_in_source: open_source_client.id.to_s)
         restricted_source_client.mark_as_restricted!(user: hmis_user)
+        # Stub the base PII policy permissive so the assertions below are attributable
+        # only to the real Hmis::RestrictedRecord -> client_restricted? chain, not to
+        # this permission-less user's underlying (also-denying) DestinationClientPolicy.
+        allow(user).to receive(:policy_for).and_return(GrdaWarehouse::AuthPolicies::AllowPiiPolicy.instance)
       end
 
-      it 'redacts PII for a client restricted via a real Hmis::RestrictedRecord' do
-        policy = user.reporting_policy_for_client(client: restricted_destination_client, mode: :browse)
-        expect(policy.can_view_name?).to eq(false)
+      it 'redacts PII for a client restricted via a real Hmis::RestrictedRecord, but not for an unrestricted one' do
+        restricted_policy = user.reporting_policy_for_client(client: restricted_destination_client, mode: :browse)
+        open_policy = user.reporting_policy_for_client(client: open_destination_client, mode: :browse)
+
+        expect(restricted_policy.can_view_name?).to eq(false)
+        expect(open_policy.can_view_name?).to eq(true)
       end
     end
   end
