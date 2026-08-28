@@ -7,19 +7,16 @@
       %tr
         %th Last Import Run
         %td
-          - if can_view_imports? && @data_source.uploads.any? && @data_source.directly_viewable_by?(current_user, permission: :can_view_imports) && can_upload_hud_zips?
-            = link_to @data_source.last_imported_at, data_source_uploads_path(@data_source)
-          - else
-            = @data_source.last_imported_at
+          = @data_source.last_imported_at
       - if @data_source.hmis?
         %tr
-          %th.pl-2 Open Path HMIS URL
+          %th Open Path HMIS URL
           %td
             %a{ href: @data_source.hmis_login_url(user: current_user), title: 'HMIS', target: '_blank', rel: 'noopener noreferrer' }
               = @data_source.hmis
               %span.pl-1.icon-link-ext
       %tr
-        %th.pl-2 HUD CSV imports
+        %th HUD CSV imports
         %td
           = checkmark_or_x(@data_source.importable?)
           - if @data_source.importable?
@@ -34,6 +31,11 @@
         .d-block
           = link_to new_data_source_upload_path(@data_source), class: 'btn btn-sm btn-primary mr-2 mb-2' do
             Upload HUD HMIS CSV
+      - if can_view_imports? && @data_source.uploads.any? && @data_source.directly_viewable_by?(current_user, permission: :can_view_imports) && can_upload_hud_zips?
+        .d-block
+          = link_to data_source_uploads_path(@data_source), class: 'btn btn-sm btn-secondary mr-2 mb-2' do
+            View Uploads
+      - if @data_source.importable_by?(current_user)
         .d-block
           = link_to hmis_csv_importer_data_source_import_overrides_path(data_source_id: @data_source), class: 'btn btn-sm btn-secondary mr-2 mb-2' do
-            Import Overrides
+            Manage Import Overrides
