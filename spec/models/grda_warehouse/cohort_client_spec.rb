@@ -29,5 +29,27 @@ RSpec.describe GrdaWarehouse::CohortClient, type: :model do
       expect(restricted_cohort_client.pii_provider(user: user).full_name).to eq('Name Redacted')
       expect(open_cohort_client.pii_provider(user: user).full_name).to eq('Open Client')
     end
+
+    context 'mode: :download' do
+      # `GrdaWarehouse::Config.get` caches the settings row at the class level for 30 seconds,
+      # independent of each example's DB transaction rollback — without this, this context's
+      # `include_pii_in_detail_downloads` changes can leak into a later example regardless of run order.
+      after { GrdaWarehouse::Config.invalidate_cache }
+
+      it 'redacts a restricted client regardless of the PII-download toggle' do
+        GrdaWarehouse::Config.first_or_create.update!(include_pii_in_detail_downloads: true)
+
+        expect(restricted_cohort_client.pii_provider(user: user, mode: :download).full_name).to eq('Name Redacted')
+      end
+
+      it 'reveals an unrestricted client only when the PII-download toggle is on' do
+        GrdaWarehouse::Config.first_or_create.update!(include_pii_in_detail_downloads: true)
+        expect(open_cohort_client.pii_provider(user: user, mode: :download).full_name).to eq('Open Client')
+
+        GrdaWarehouse::Config.first_or_create.update!(include_pii_in_detail_downloads: false)
+        GrdaWarehouse::Config.invalidate_cache
+        expect(open_cohort_client.pii_provider(user: user, mode: :download).full_name).to eq('Name Redacted')
+      end
+    end
   end
 end

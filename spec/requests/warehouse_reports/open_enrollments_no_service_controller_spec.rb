@@ -91,4 +91,16 @@ RSpec.describe 'WarehouseReports::OpenEnrollmentsNoServiceController', type: :re
     expect(row[1]).to eq('Name Redacted')
     expect(row[2]).to eq('Name Redacted')
   end
+
+  it 'shows the unrestricted client name in the Excel export when the download toggle is on' do
+    GrdaWarehouse::Config.first_or_create.update!(include_pii_in_detail_downloads: true)
+
+    get warehouse_reports_open_enrollments_no_service_index_path(format: :xlsx)
+
+    expect(response).to have_http_status(:success)
+    sheet = rendered_workbook.sheet(0)
+    row = (sheet.first_row..sheet.last_row).map { |i| sheet.row(i) }.find { |r| r[0] == open_destination_client.id }
+    expect(row[1]).to eq('Open')
+    expect(row[2]).to eq('Client')
+  end
 end

@@ -10,15 +10,15 @@ require 'rails_helper'
 
 RSpec.describe 'ClientMatchesController', type: :request do
   let!(:user) { create(:acl_user) }
-  let!(:role) { create(:role, can_edit_clients: true) }
+  let!(:role) { create(:role, can_edit_clients: true, can_view_client_name: true, can_view_full_ssn: true, can_view_full_dob: true) }
   let!(:collection) { Collection.system_collection(:data_sources) }
 
   let!(:hmis_ds) { create(:hmis_primary_data_source) }
   let!(:hmis_user) { create(:hmis_user, data_source: hmis_ds) }
-  let!(:restricted_source_client) { create(:hmis_hud_client, data_source: hmis_ds, first_name: 'Restricted', last_name: 'Client') }
+  let!(:restricted_source_client) { create(:hmis_hud_client, data_source: hmis_ds, first_name: 'Restricted', last_name: 'Client', ssn: '111223333', dob: '1980-01-01') }
   let!(:restricted_destination_client) { create(:grda_warehouse_hud_client, FirstName: 'Restricted', LastName: 'Client') }
   let!(:candidate_destination_client) { create(:grda_warehouse_hud_client, FirstName: 'Candidate', LastName: 'Client') }
-  let!(:candidate_source_client) { create(:hmis_hud_client, data_source: hmis_ds, first_name: 'Candidate', last_name: 'Client') }
+  let!(:candidate_source_client) { create(:hmis_hud_client, data_source: hmis_ds, first_name: 'Candidate', last_name: 'Client', ssn: '444556666', dob: '1985-06-15') }
   let!(:match) do
     GrdaWarehouse::ClientMatch.create!(
       destination_client: GrdaWarehouse::Hud::Client.find(restricted_source_client.id),
@@ -43,5 +43,20 @@ RSpec.describe 'ClientMatchesController', type: :request do
 
     expect(response.body).not_to include('Restricted Client')
     expect(response.body).to include('Name Redacted')
+  end
+
+  it 'redacts the restricted client name, SSN, and DOB in the match card' do
+    get client_matches_path
+
+    expect(response.body).not_to include('111-22-3333')
+    expect(response.body).not_to include('Jan  1, 1980')
+  end
+
+  it 'shows the unrestricted candidate client name, SSN, and DOB in the match card' do
+    get client_matches_path
+
+    expect(response.body).to include('Candidate Client')
+    expect(response.body).to include('444-55-6666')
+    expect(response.body).to include('Jun 15, 1985')
   end
 end
