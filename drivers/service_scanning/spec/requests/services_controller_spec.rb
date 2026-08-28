@@ -18,11 +18,6 @@ RSpec.describe 'ServiceScanning::ServicesController#index (last added panel)', t
   let!(:restricted_source_client) { create(:hmis_hud_client, data_source: hmis_ds, first_name: 'Restricted', last_name: 'Client') }
   let!(:restricted_destination_client) { create(:grda_warehouse_hud_client, FirstName: 'Restricted', LastName: 'Client') }
   let!(:project) { create(:hud_project) }
-  # No FactoryBot factory exists for ServiceScanning::Service anywhere in this codebase
-  # (confirmed via repo-wide grep — the driver has no spec/factories directory at all) — build
-  # the concrete STI subclass directly. `Service` is an abstract STI base
-  # (`validates_presence_of :project_id`); `ServiceScanning::OtherService` is a real, directly
-  # instantiable subclass (see `Service.type_map`).
   let!(:service) { ServiceScanning::OtherService.create!(client_id: restricted_destination_client.id, project: project, provided_at: Time.current, user: user) }
 
   before do
