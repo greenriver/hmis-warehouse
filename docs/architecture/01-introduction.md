@@ -21,11 +21,11 @@ These five **quality goals** are the architecture's drivers, in priority order.
 
 | Priority | Quality goal | Scenario | Detail |
 | --- | --- | --- | --- |
-| 1 | **Extensibility & Local Configuration** | HUD publishes revised HMIS Data Standards; they are in production before the compliance deadline, without modifying core domain models and without forking any installation. | [Q-1–Q-3, Q-13, Q-14, Q-24](10-quality.md#extensibility--local-configuration-suitable-flexible-maintainable) |
-| 2 | **Data Integrity & Auditability** | An HMIS Lead questions a figure in a generated report and drills into the exact client records and data sources that produced it. | [Q-4–Q-6, Q-25](10-quality.md#data-integrity--auditability-reliable-operable) |
-| 3 | **Client Protection & Fair Access** | A client is declined for a housing vacancy they were matched to; the CoC can reconstruct which decision produced that outcome and on whose stated reason, from recorded data rather than recollection. | [Q-7–Q-9, Q-21, Q-26](10-quality.md#client-protection--fair-access-secure-usable) |
-| 4 | **Availability & Resilience** | Front-line staff keep working in the HMIS interface through peak intake hours while a large import runs; after a catastrophic database failure, warehouse data is restored from backup. | [Q-22, Q-23](10-quality.md#availability--resilience-reliable-operable) |
-| 5 | **Data Scalability** | A statewide deployment accumulates ten years of service transactions; reporting stays within its time budget and storage growth stays bounded, without re-architecting. | [Q-11, Q-12, Q-27](10-quality.md#data-scalability-flexible-efficient) |
+| 1 | **Extensibility & Local Configuration** | HUD publishes revised HMIS Data Standards; they are in production before the compliance deadline, without modifying core domain models and without forking any installation. | [Q-1–Q-3, Q-13, Q-14, Q-24](10-quality.md#102-quality-scenarios) |
+| 2 | **Data Integrity & Auditability** | An HMIS Lead questions a figure in a generated report and drills into the exact client records and data sources that produced it. | [Q-4–Q-6, Q-25](10-quality.md#102-quality-scenarios) |
+| 3 | **Client Protection & Fair Access** | A client is declined for a housing vacancy they were matched to; the CoC can reconstruct which decision produced that outcome and on whose stated reason, from recorded data rather than recollection. | [Q-7–Q-9, Q-21, Q-26](10-quality.md#102-quality-scenarios) |
+| 4 | **Availability & Resilience** | Front-line staff keep working in the HMIS interface through peak intake hours while a large import runs; after a catastrophic database failure, warehouse data is restored from backup. | [Q-22, Q-23](10-quality.md#102-quality-scenarios) |
+| 5 | **Data Scalability** | A statewide deployment accumulates ten years of service transactions; reporting stays within its time budget and storage growth stays bounded, without re-architecting. | [Q-11, Q-12, Q-27](10-quality.md#102-quality-scenarios) |
 
 Three further qualities — Operational Self-Sufficiency, Interoperability, and Usability — are tracked as **secondary quality requirements**: real acceptance criteria, but not ranked architectural drivers.
 
