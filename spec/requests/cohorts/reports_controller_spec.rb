@@ -21,9 +21,6 @@ RSpec.describe Cohorts::ReportsController, type: :request do
   let!(:cohort_client) { GrdaWarehouse::CohortClient.create!(cohort: cohort, client: restricted_destination_client) }
   let!(:open_destination_client) { create(:grda_warehouse_hud_client, FirstName: 'Open', LastName: 'Client') }
   let!(:open_cohort_client) { GrdaWarehouse::CohortClient.create!(cohort: cohort, client: open_destination_client) }
-  # No FactoryBot factory exists for GrdaWarehouse::CohortClientChange anywhere in this codebase
-  # (confirmed via repo-wide grep of spec/factories) — build directly.
-  # Required: `validates_presence_of :cohort_client, :cohort, :user, :change`.
   let!(:change) { GrdaWarehouse::CohortClientChange.create!(cohort_client: cohort_client, cohort: cohort, user: user, change: 'add', changed_at: Time.current) }
   let!(:open_change) { GrdaWarehouse::CohortClientChange.create!(cohort_client: open_cohort_client, cohort: cohort, user: user, change: 'add', changed_at: Time.current) }
 
@@ -73,11 +70,6 @@ RSpec.describe Cohorts::ReportsController, type: :request do
     expect(data_row[1]).to eq('Name Redacted')
   end
 
-  # Proves the Excel export is gated by the org-wide `include_pii_in_detail_downloads` download
-  # toggle for an UNRESTRICTED client too — cohorts default to `AllowPiiPolicy` in browse mode
-  # (no per-user PII permission needed to see a name in the HTML view), so the first assertion
-  # below confirms the toggle plays no role there; the second proves it's the sole gate on the
-  # Excel download.
   it 'shows the unrestricted client name in the HTML view but redacts it in the Excel export when the download toggle is off' do
     GrdaWarehouse::Config.first_or_create.update!(include_pii_in_detail_downloads: false)
     GrdaWarehouse::Config.invalidate_cache

@@ -11,18 +11,6 @@ require 'rails_helper'
 RSpec.describe 'WarehouseReports::ChronicHousedController', type: :request do
   let!(:user) { create(:acl_user) }
   let!(:collection) { create(:collection) }
-  # `WarehouseReportAuthorization#report_visible?` calls `ReportDefinition.viewable_by(current_user)`,
-  # which for an ACL user (`:acl_user` below) requires `can_view_assigned_reports?` specifically —
-  # it looks up collections granted that permission and joins on `GroupViewableEntity` for the
-  # report (satisfied by `collection.set_viewables` below). `can_view_all_reports` alone (as
-  # granted by a bare `create(:role, can_view_all_reports: true)`) only satisfies the separate
-  # `before_action :require_can_view_any_reports!` check, not `report_visible?`, and the request
-  # 302s to `/warehouse_reports` before reaching the controller action. `:report_viewer`
-  # (`spec/factories/roles.rb`) grants both permissions, matching the pattern already used in
-  # `spec/requests/warehouse_reports/touch_point_exports_controller_spec.rb`.
-  # `can_view_client_name` grants nothing by itself without a project-based ACL grant — added so
-  # the fixture can distinguish "blocked by the download toggle" from "blocked by lacking PII
-  # permission at all" (see the toggle test below).
   let!(:role) { create(:report_viewer, can_view_client_name: true) }
   let!(:report) { create(:touch_point_report, url: 'warehouse_reports/chronic_housed', name: 'Chronic Housed') }
 
@@ -32,16 +20,8 @@ RSpec.describe 'WarehouseReports::ChronicHousedController', type: :request do
   let!(:restricted_destination_client) { create(:grda_warehouse_hud_client, FirstName: 'Restricted', LastName: 'Client') }
   let!(:open_source_client) { create(:hmis_hud_client, data_source: hmis_ds, first_name: 'Open', last_name: 'Client') }
   let!(:open_destination_client) { create(:grda_warehouse_hud_client, FirstName: 'Open', LastName: 'Client') }
-  # `project` must share a data source with any client the ACL project-grant needs to cover —
-  # `GrdaWarehouse::Hud::Project.joins(:clients)` (which the permission chain's
-  # `enrolled_project_ids_for_client` relies on) only resolves an enrollment's client within that
-  # enrollment's own data source, so `project` lives in `hmis_ds` rather than its factory default.
   let!(:project) { create(:hud_project, data_source: hmis_ds) }
-  # `Hud::Enrollment#client` strictly requires a `GrdaWarehouse::Hud::Client` instance —
-  # `Hmis::Hud::Client` shares the same DB table but is a distinct AR class.
   let!(:open_enrollment) { create(:hud_enrollment, client: GrdaWarehouse::Hud::Client.find(open_source_client.id), project: project, data_source: hmis_ds) }
-  # `:she_entry` is the real factory (there is no generic `:service_history_enrollment` factory
-  # anywhere in this codebase).
   let!(:she) do
     # destination 10 (legacy "rental by client, no ongoing housing subsidy") isn't a permanent
     # destination under the 2026 HUD spec (`HudHelper.util` pins '2026' outside prod/staging,
@@ -104,17 +84,7 @@ RSpec.describe 'WarehouseReports::ChronicHousedController', type: :request do
     expect(data_row[2]).to eq('Name Redacted')
   end
 
-  # Proves the Excel export is gated by the org-wide `include_pii_in_detail_downloads` download
-  # toggle, independent of restriction — the same `mode: :download` distinction every other bulk
-  # PII export in this codebase honors. Uses the unrestricted client so restriction can't explain
-  # the redaction either way; the first assertion proves this user has real PII-view permission
-  # (name shows in the browse-mode HTML view regardless of the toggle), so the Excel-only
-  # redaction below is attributable to the toggle, not a missing permission.
   it 'shows the unrestricted client name in the HTML view but redacts it in the Excel export when the download toggle is off' do
-    # `GrdaWarehouse::Config.get` caches the settings row at the class level for 30 seconds,
-    # independent of the per-example DB transaction rollback — explicit invalidation matches the
-    # established pattern elsewhere in this codebase (e.g. `spec/models/grda_warehouse/client_file_spec.rb`)
-    # and avoids this example's toggle value leaking into whichever example runs next.
     GrdaWarehouse::Config.first_or_create.update!(include_pii_in_detail_downloads: false)
     GrdaWarehouse::Config.invalidate_cache
 

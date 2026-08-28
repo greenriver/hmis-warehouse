@@ -30,8 +30,6 @@ module WarehouseReports
           row[:client_id]
         end
       current_user.policy_context.preload_client_restriction_dependencies(@clients.keys)
-      # Fail closed: only the known html template gets the permissive :browse mode; any other
-      # format (xlsx, or a future export type) defaults to the stricter :download gate.
       mode = request.format.symbol == :html ? :browse : :download
       @pii_providers = client_source.where(id: @clients.keys).index_by(&:id).
         transform_values do |client|
