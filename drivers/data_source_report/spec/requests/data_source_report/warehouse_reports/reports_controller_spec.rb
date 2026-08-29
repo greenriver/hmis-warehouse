@@ -33,7 +33,14 @@ RSpec.describe DataSourceReport::WarehouseReports::ReportsController, type: :req
       expect(response.body).to include('same file since:')
     end
 
-    it 'shows no stalled-import label for a data source with no import history' do
+    it 'shows no stalled-import label for a data source whose most recent import is current' do
+      # An import log and a recent upload put this row through the same stall check the stale
+      # row above takes, so the label's absence is attributable to the stall rule rather than
+      # to the outer `most_recently_completed.present?` gate in the view.
+      create(:grda_warehouse_hmis_import_config, data_source: data_source, file_count: 1)
+      create(:grda_warehouse_upload, data_source: data_source, user: User.system_user, percent_complete: 100, completed_at: 2.hours.ago)
+      GrdaWarehouse::ImportLog.create!(data_source: data_source, completed_at: 2.hours.ago)
+
       get data_source_report_warehouse_reports_reports_path
 
       expect(response).to have_http_status(:ok)
@@ -61,6 +68,11 @@ RSpec.describe DataSourceReport::WarehouseReports::ReportsController, type: :req
       ds
     end
 
+    # Each data source row leads with its name; the leading warehouse-totals row is dropped.
+    def rendered_data_source_names(body)
+      Nokogiri::HTML(body).css('tbody tr').drop(1).map { |row| row.at_css('td').text.strip }
+    end
+
     it 'runs a bounded number of queries regardless of how many data sources are on the page' do
       count_queries = lambda do |&block|
         count = 0
@@ -79,7 +91,7 @@ RSpec.describe DataSourceReport::WarehouseReports::ReportsController, type: :req
       expect(response).to have_http_status(:ok)
 
       small_queries = count_queries.call { get data_source_report_warehouse_reports_reports_path }
-      expect(response).to have_http_status(:ok)
+      expect(rendered_data_source_names(response.body)).to match_array(small_batch.map(&:name))
 
       large_batch = small_batch + Array.new(9) { |i| build_data_source_with_data(name: "Large Vendor #{i}", destination_data_source: destination_data_source) }
       collection.set_viewables(reports: [report_definition.id], data_sources: large_batch.map(&:id), projects: [])
@@ -89,7 +101,10 @@ RSpec.describe DataSourceReport::WarehouseReports::ReportsController, type: :req
       expect(large_batch.size).to be <= Pagy::DEFAULT[:items]
 
       large_queries = count_queries.call { get data_source_report_warehouse_reports_reports_path }
-      expect(response).to have_http_status(:ok)
+      # The query comparison below is only meaningful if the nine additional data sources
+      # actually rendered; a page that kept showing three rows would match on query count
+      # while exercising none of the added load.
+      expect(rendered_data_source_names(response.body)).to match_array(large_batch.map(&:name))
 
       # A regression to a per-row query pattern (client/project/unprocessed-enrollment counts
       # and last-import timestamps each queried once per row) would make large_queries scale

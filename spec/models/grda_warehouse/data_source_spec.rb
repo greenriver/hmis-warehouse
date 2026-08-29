@@ -51,6 +51,12 @@ RSpec.describe model, type: :model do
   user_ids = ->(user) { model.viewable_by(user, permission: :can_view_projects).pluck(:id).sort }
   ids = ->(*sources) { sources.map(&:id).sort }
 
+  # A fixed instant clear of midnight and of any daylight-saving transition, so the 24-hour
+  # stall boundary and the `.to_date` assertions in the stall examples can't drift.
+  def import_stall_evaluated_at
+    Time.zone.local(2026, 6, 15, 12, 0, 0)
+  end
+
   def build_data_source_with_upload(file_count:, completed_at:)
     data_source = create(:source_data_source)
     create(:grda_warehouse_hmis_import_config, data_source: data_source, file_count: file_count)
@@ -148,6 +154,10 @@ RSpec.describe model, type: :model do
   end
 
   describe '.stalled_dates_by_id' do
+    around do |example|
+      travel_to(import_stall_evaluated_at) { example.run }
+    end
+
     describe 'when expecting one file' do
       it 'is not stalled when there are no prior imports in the past 6 months' do
         create(:grda_warehouse_hmis_import_config, data_source: ds1, file_count: 1)
@@ -205,6 +215,17 @@ RSpec.describe model, type: :model do
 
         expect(GrdaWarehouse::DataSource.stalled_dates_by_id([ds1.id])[ds1.id]).to eq(nil)
       end
+
+      it 'is stalled when fewer than the expected number of uploads arrived, even though all of them arrived within the last 24 hours' do
+        create(:grda_warehouse_hmis_import_config, data_source: ds1, file_count: 3)
+        oldest_of_the_two = 5.hours.ago
+        create(:grda_warehouse_upload, data_source: ds1, user: User.system_user, percent_complete: 100, completed_at: 2.hours.ago)
+        create(:grda_warehouse_upload, data_source: ds1, user: User.system_user, percent_complete: 100, completed_at: oldest_of_the_two)
+
+        # Both uploads are recent, so recency alone would clear this data source; only the
+        # count check distinguishes a partial delivery from a complete one.
+        expect(GrdaWarehouse::DataSource.stalled_dates_by_id([ds1.id])[ds1.id]).to eq(oldest_of_the_two.to_date)
+      end
     end
 
     it 'is not stalled when the import is paused, regardless of upload history' do
@@ -220,6 +241,28 @@ RSpec.describe model, type: :model do
       create(:grda_warehouse_upload, data_source: ds1, user: User.system_user, percent_complete: 100, completed_at: 30.hours.ago)
 
       expect(GrdaWarehouse::DataSource.stalled_dates_by_id([ds1.id])[ds1.id]).to eq(nil)
+    end
+
+    it 'ignores uploads brought in by anyone other than the system user' do
+      create(:grda_warehouse_hmis_import_config, data_source: ds1, file_count: 1)
+      system_user_completed_at = 30.hours.ago
+      create(:grda_warehouse_upload, data_source: ds1, user: User.system_user, percent_complete: 100, completed_at: system_user_completed_at)
+      create(:grda_warehouse_upload, data_source: ds1, user: user, percent_complete: 100, completed_at: 2.hours.ago)
+
+      # The hand-uploaded file is the more recent of the two, so without the system-user
+      # filter it would take rn=1 and clear the data source.
+      expect(GrdaWarehouse::DataSource.stalled_dates_by_id([ds1.id])[ds1.id]).to eq(system_user_completed_at.to_date)
+    end
+
+    it 'ignores an upload that has not finished importing' do
+      create(:grda_warehouse_hmis_import_config, data_source: ds1, file_count: 1)
+      finished_completed_at = 30.hours.ago
+      create(:grda_warehouse_upload, data_source: ds1, user: User.system_user, percent_complete: 100, completed_at: finished_completed_at)
+      create(:grda_warehouse_upload, data_source: ds1, user: User.system_user, percent_complete: 50, completed_at: 2.hours.ago)
+
+      # The in-flight upload is the more recent of the two, so without the completed filter
+      # it would take rn=1 and clear the data source.
+      expect(GrdaWarehouse::DataSource.stalled_dates_by_id([ds1.id])[ds1.id]).to eq(finished_completed_at.to_date)
     end
 
     it "trims each data source to its own file_count instead of the batch's shared cap, when file counts differ" do
@@ -297,6 +340,10 @@ RSpec.describe model, type: :model do
   end
 
   describe '.stalled_imports?' do
+    around do |example|
+      travel_to(import_stall_evaluated_at) { example.run }
+    end
+
     def make_stalled(data_source)
       create(:grda_warehouse_hmis_import_config, data_source: data_source, file_count: 1)
       create(:grda_warehouse_upload, data_source: data_source, user: User.system_user, percent_complete: 100, completed_at: 30.hours.ago)
@@ -341,6 +388,7 @@ RSpec.describe model, type: :model do
         original_cache_store = Rails.cache
         Rails.cache = ActiveSupport::Cache::MemoryStore.new
         example.run
+      ensure
         Rails.cache = original_cache_store
       end
 
@@ -361,23 +409,24 @@ RSpec.describe model, type: :model do
         expect(queries_on_second_call).to eq(0)
       end
 
-      it 'is keyed globally rather than per-user, so a second user reuses the first user\'s cached result' do
-        make_stalled(ds1)
+      it 'shares one cached set of stalled ids across users rather than computing one per user' do
         other_user = create(:acl_user)
-        empty_collection.set_viewables({ data_sources: [ds1.id, ds2.id] })
+        other_collection = create(:collection)
+        empty_collection.set_viewables({ data_sources: [ds1.id] })
+        other_collection.set_viewables({ data_sources: [ds2.id] })
         setup_access_control(user, can_view_projects, empty_collection)
-        setup_access_control(other_user, can_view_projects, empty_collection)
+        setup_access_control(other_user, can_view_projects, other_collection)
 
+        # Warms the cache while ds1 is the only stalled data source.
+        make_stalled(ds1)
         expect(GrdaWarehouse::DataSource.stalled_imports?(user)).to eq(true)
 
-        # ds2 becomes stalled after the cache was warmed by `user`'s call above. If the cache
-        # key were accidentally scoped per-user, `other_user` would trigger its own
-        # recomputation and see ds2's fresh stall - instead it should see the same cached
-        # (now stale) id set the first user warmed, proving the key is shared globally.
+        # ds2 stalls only after that warm-up, and other_user can view ds2 alone. Under a
+        # per-user cache key other_user would compute a fresh set and see ds2; one shared
+        # entry keeps ds2 out until the entry expires.
         make_stalled(ds2)
 
-        expect(GrdaWarehouse::DataSource.stalled_data_source_ids).to eq([ds1.id])
-        expect(GrdaWarehouse::DataSource.stalled_imports?(other_user)).to eq(true)
+        expect(GrdaWarehouse::DataSource.stalled_imports?(other_user)).to eq(false)
       end
     end
   end
