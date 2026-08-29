@@ -4,7 +4,7 @@
 
 This document opens the Analytics Stack to show how external data is ingested, transformed, and made available for community dashboards. The source repositories for this stack (Superset configuration, DBT models) are private.
 
-Although the stack runs on external infrastructure, it is opened here because it does the platform's heavy lifting for non-standard data types and high-performance reporting, off the interactive path. The decomposition follows the data's direction of travel — an inbound half (Airflow orchestration and the S3 staging buckets) that lands raw data, and an outbound half (DBT modeling into the Analytics DB, then Superset dashboards) that serves it — matching the two views below.
+Although the stack is closed-source and separately deployed, the platform team operates it; it is opened here because it does the platform's heavy lifting for non-standard data types and high-performance reporting — including bespoke, community-specific reports — off the interactive path. The decomposition follows the data's direction of travel — an inbound half (Airflow orchestration and the S3 staging buckets) that lands raw data, and an outbound half (DBT modeling into the Analytics DB, then Superset dashboards) that serves it — matching the two views below.
 
 ## Data Ingestion & Collection
 
@@ -79,4 +79,4 @@ flowchart LR
 
 ## Relationship to the Warehouse
 
-The Warehouse Application is the primary consumer of data from the ingestion and supplemental buckets. While the import pipeline is a Warehouse module, the external infrastructure (Airflow, DBT, Superset) provides the heavy lifting for non-standard data types and high-performance reporting.
+The Warehouse Application is the primary consumer of data from the ingestion and supplemental buckets. While the import pipeline is a Warehouse module, the separately deployed infrastructure (Airflow, DBT, Superset) provides the heavy lifting for non-standard data types and high-performance reporting.

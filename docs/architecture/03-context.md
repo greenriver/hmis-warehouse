@@ -76,7 +76,7 @@ This table maps each external partner from 3.1 to the channel, protocol, and dat
 | --- | --- | --- | --- |
 | HMIS Frontend (HMIS End Users) | HTTPS, React SPA | HTML/JSON | Browser-based data entry and coordinated entry UI. |
 | Warehouse Web UI (Leads, System Administrators, Open Path Engineering Team) | HTTPS | HTML (server-rendered) | Reporting, configuration, and administration interface. |
-| Superset dashboards (Analysts & Researchers) | HTTPS | HTML, tabular exports | Hosted dashboards over the analytics database. |
+| Superset dashboards (Analysts & Researchers) | Behind the auth layer (OAuth2-Proxy / Dex) | HTML, tabular exports | Hosted dashboards over the analytics database; not public. |
 | HMIS CSV ingestion (Data Exchange Partners) | S3 file deposit | HUD HMIS CSV | Partners deposit exports into designated S3 buckets; Warehouse imports on schedule. |
 | Supplemental data ingestion (Data Exchange Partners) | Airflow → S3 | Varies (CSV, JSON) | Airflow transforms bespoke source data before deposit to S3 for Warehouse pickup. |
 | Downstream extracts (Data Exchange Partners) | Scheduled job → SFTP upload to the partner | Zipped CSV; zipped pipe-delimited text | Warehouse pushes; the partner does not query the platform. One deployment sends a HUD CSV export plus per-domain extracts (clients/MCI, project crosswalk, postings, CE referrals, waitlists) in a daily group, with a 10-year full refresh at each quarter start. Another sends a weekly homelessness-verification file to a state Medicaid agency, with an error report returned on the same SFTP path. |
