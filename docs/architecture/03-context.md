@@ -57,24 +57,15 @@ flowchart TB
 | **System Administrators** | User/role configuration, data source setup, reference data. | Audit logs, system status, import results. |
 | **Analysts & Researchers** | Dashboard queries, filter criteria. | Aggregated analytics, operational dashboards, exportable datasets. |
 | **Open Path Engineering Team** | API/ETL configuration, system maintenance actions. | System health metrics, job status, error logs. |
-| **Data Exchange Partners** (contributing agencies; partner warehouses and state/agency reporting systems) | HUD CSV exports, supplemental data (healthcare, justice), API referrals. | Import validation results, error notifications; scheduled extracts. Two outbound consumers exist today, both deployment-specific: one deployment sends daily and quarterly extracts to a county partner data warehouse, and another sends a homelessness-verification file to a state Medicaid agency. No outbound extract runs in a default installation. |
+| **Data Exchange Partners** (contributing agencies; partner warehouses and state/agency reporting systems) | HUD CSV exports, supplemental data (healthcare, justice), API referrals. | Import validation results, error notifications; scheduled extracts. Outbound extracts are deployment-specific — none run in a default installation. |
 | **General Public** | Anonymous form submissions (e.g., PIT counts, outreach surveys). | Published static reports, typically embedded in CoC or agency public websites; aggregate figures only, no client-level data. |
 | **Identity Providers** (Keycloak, Okta) | Authentication tokens, user identity claims. | Authentication requests, token refresh requests. |
-| **HUD** | HMIS Data Standards, reporting specifications. | *(Indirect: HMIS Leads submit generated reports to HUD outside the platform.)* |
+| **HUD** | HMIS Data Standards, reporting specifications. | *(No direct interface — see note below.)* |
 | **TalentLMS** | Training completion status. | User training enrollment data. |
 
 Clients are data subjects, not communication partners: their data reaches the platform through staff acting as proxies or through public forms, and they have no interface of their own.
 
-### Users
-
-| User | Role | Responsibilities |
-| --- | --- | --- |
-| **HMIS End Users** | Front-line staff | Collect and enter client data (demographics, enrollments, services); manage housing referrals. |
-| **HMIS Leads** | Oversight & Reporting | Oversee CoC-level operations, monitor data quality, and submit HUD reports. |
-| **System Administrators** | System Management | Manage user access, training, system setup, and oversee data ingestion. |
-| **Analysts & Researchers** | Data Consumers | Use consolidated warehouse data for community-wide analytics and strategic planning. |
-| **General Public** | Unauthenticated | View published static reports; submit data through public forms. |
-| **Open Path Engineering Team** | Platform Operations | Configure external APIs, maintain ETL pipelines, and oversee system health. |
+User roles and their expectations of the architecture are listed in [Section 1.3 Stakeholders](01-introduction.md#13-stakeholders).
 
 ## 3.2 Technical Context
 
