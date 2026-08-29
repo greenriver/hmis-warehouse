@@ -184,7 +184,7 @@ Each driver is a self-contained module directory in `/drivers/[name]` with its o
 
 ### Medicaid Data Interchange
 
-`medicaid_hmis_interchange` provides the deployment-specific MassHealth homelessness-verification exchange.
+`medicaid_hmis_interchange` provides a deployment-specific homelessness-verification exchange with a state Medicaid agency.
 
 ### Platform & Administration
 
