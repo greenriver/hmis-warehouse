@@ -4,6 +4,8 @@
 
 This document opens the Analytics Stack to show how external data is ingested, transformed, and made available for community dashboards. The source repositories for this stack (Superset configuration, DBT models) are private.
 
+Although the stack runs on external infrastructure, it is opened here because it does the platform's heavy lifting for non-standard data types and high-performance reporting, off the interactive path. The decomposition follows the data's direction of travel — an inbound half (Airflow orchestration and the S3 staging buckets) that lands raw data, and an outbound half (DBT modeling into the Analytics DB, then Superset dashboards) that serves it — matching the two views below.
+
 ## Data Ingestion & Collection
 
 This view focuses on the "Inbound" path. Data partners provide files or API access, which are then orchestrated by Airflow or the Warehouse Application and stored in raw formats or the initial warehouse database.

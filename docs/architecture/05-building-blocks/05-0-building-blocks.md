@@ -66,6 +66,8 @@ See [Section 3.1](../03-context.md) for full role definitions. HMIS End Users ac
 
 ## 5.2 Level 2
 
+These four containers are opened because each is architecturally significant or volatile: the Warehouse is the bulk of the system, CAS is legacy and being evaluated for consolidation, Authentication is a security boundary mid-migration, and Analytics carries the non-HMIS data path on external infrastructure. The Warehouse Database and S3 Storage stay black boxes — standard infrastructure with no surprising internal structure.
+
 The following sub-sections open selected containers from the diagram above:
 
 - **[5.2.1 Warehouse Application](05-2-1-warehouse.md)** — Internal module groupings of the core Rails monolith, including the driver catalog.
