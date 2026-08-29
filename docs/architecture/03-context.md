@@ -53,6 +53,7 @@ flowchart TB
 | Partner | Inputs to Platform | Outputs from Platform |
 | --- | --- | --- |
 | **HMIS End Users** | Client demographics, enrollments, services, assessments; referral decisions. | Case records, coordinated entry status, client search results. |
+| **Housing Providers & Partner Agencies** | Referral decisions, match responses. | Assigned clients and referrals they are responsible for; a durable record of referral decisions. Access is scoped to those responsibilities. |
 | **HMIS Leads** | Report parameters, data quality review actions. | HUD-compliant reports (APR, CAPER, LSA, SPM); data quality dashboards. |
 | **System Administrators** | User/role configuration, data source setup, reference data. | Audit logs, system status, import results. |
 | **Analysts & Researchers** | Dashboard queries, filter criteria. | Aggregated analytics, operational dashboards, exportable datasets. |
