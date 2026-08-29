@@ -13,7 +13,7 @@ This section describes the constraints that limit design and implementation free
 | **Multi-CoC Deployment** | A single deployment must support multiple Continua of Care with data partitioning for access control, ruling out per-CoC isolation strategies. Clients move between CoCs, so records must remain correlatable across those boundaries. |
 | **Multi-Installation Customization** | A single codebase must serve many independent installations, each customized to its community, and every installation must be able to take core upgrades — so per-customer forks or long-lived branches are not available. |
 | **PII Protection** | Client PII must be encrypted at rest and in transit, and all access to it must be auditable. |
-| **Externalized Credential Management (target)** | The platform must integrate with existing community identity providers, delegating authentication to an external layer rather than managing user credentials in-app. A legacy local-credential path remains during the migration period and is sunsetting. See [5.2.3 Authentication](05-building-blocks/05-2-3-authentication.md) and [D-1 in Section 11](11-risks.md). |
+| **Externalized Credential Management** | The platform must integrate with existing community identity providers, delegating authentication to an external layer rather than managing user credentials in-app. |
 | **Existing Technology Stack** | The Warehouse is a Ruby on Rails monolith; the HMIS frontend is a React SPA. Codebase size and team expertise make changing core technologies impractical. New capabilities (e.g., analytics via DBT/Python) are introduced as separate applications rather than replacements. |
 
 ## 2.2 Organizational Constraints

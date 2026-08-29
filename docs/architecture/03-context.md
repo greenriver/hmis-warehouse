@@ -36,14 +36,14 @@ flowchart TB
 
 
     VENDOR -- "Maintenance, API/ETL config" --> OP
-    PUBLIC -- "form submissions" --> OP
+    PUBLIC -. "Form submissions" .-> OP
 
     PARTNERS -- "HMIS exports, supplemental data" --> OP
     OP -- "Scheduled extracts (SFTP)" --> PARTNERS
     OP -. "Authentication requests" .-> IDP
-    OP -. "Training enrollment sync" .-> LMS
+    OP -. "required training" .-> LMS
 
-    OP -- "Published reports" --> PUBLIC
+    OP -. "Published reports" .-> PUBLIC
 
     style OP fill:#2563eb,stroke:#1e3a8a,stroke-width:4px,color:#fff,font-weight:bold
 ```
