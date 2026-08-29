@@ -4,7 +4,7 @@
 
 This document opens the Authentication Layer container to show its internal components.
 
-> **Transition note:** This section describes the target SSO architecture. Some deployments are still in the process of migrating from Devise-based local authentication to the Keycloak / Dex / OAuth2-Proxy stack described here. See [D-1 in Section 11](../11-risks.md) for status.
+> **Transition note:** This section describes the target SSO architecture. During the migration period the platform supports two authentication arms: the legacy Devise arm (local accounts) and the JWT/SSO arm described here. Devise is sunsetting; deployments move to the SSO arm as the required IdP infrastructure is provisioned. See [D-1 in Section 11](../11-risks.md) for status.
 
 ## Component Diagram
 
