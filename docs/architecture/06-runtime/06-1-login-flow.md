@@ -10,7 +10,7 @@ A user attempts to access the HMIS Warehouse. The request is intercepted by the 
 ## Involved Building Blocks
 - **User (Browser)**: The client initiating the request.
 - **[Authentication Layer](../05-building-blocks/05-2-3-authentication.md)**: OAuth2-Proxy and Dex working together to validate and broker identity.
-- **[Identity Providers](../05-building-blocks/05-2-3-authentication.md)**: Keycloak (Internal Staff IdP), customer-org IdPs, or GitHub — connected as Dex connectors.
+- **[Identity Providers](../05-building-blocks/05-2-3-authentication.md)**: Keycloak (Internal Staff IdP) or customer-org IdPs — connected as Dex connectors.
 - **[Warehouse Application](../05-building-blocks/05-2-1-warehouse.md)**: The Rails backend that validates the Dex-issued token and provisions/authorizes the user.
 
 ## Sequence Diagram

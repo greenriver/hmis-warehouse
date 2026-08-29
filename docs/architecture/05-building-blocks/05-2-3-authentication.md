@@ -44,10 +44,10 @@ graph TB
 
 | Component | Technology | Responsibilities |
 | --- | --- | --- |
-| **OAuth2-Proxy** | Go | Reverse proxy that handles JWT validation and session management. Injects user headers into upstream requests. |
+| **OAuth2-Proxy** | Go | Reverse proxy that manages the user session and forwards the IdP access token to upstream requests as the `X-Forwarded-Access-Token` header. |
 | **Dex** | Go / OIDC | Identity broker that normalizes multiple authentication sources into a single OIDC flow. Customer-org IdPs attach as additional Dex connectors. |
 | **Keycloak** (Internal Staff IdP) | Java / PostgreSQL | Primary Identity Provider for internal staff user management and credential storage. |
 
 ## Key Interaction: Token-Based Trust
 
-The Warehouse Application does not perform its own authentication challenge — credential handling is delegated to the IdP via Dex. Rather than trusting forwarded headers as a primary control, it validates the Dex-issued token; forwarded headers (`X-Forwarded-User`, `X-Forwarded-Groups`) are convenience hints. The validation mechanics, header handling, and session policy are crosscutting security concerns documented in [§8.2 Security](../08-concepts/08-2-security.md); network isolation between the proxy and the Warehouse is described in [§7 Deployment View](../07-deployment-view.md).
+The Warehouse Application does not perform its own authentication challenge — credential handling is delegated to the IdP via Dex. Rather than trusting a forwarded header on its face, it validates the JWT that OAuth2-Proxy forwards in the `X-Forwarded-Access-Token` header — signature against the IdP's JWKS, plus issuer, audience, and expiry. The validation mechanics, header handling, and session policy are crosscutting security concerns documented in [§8.2 Security](../08-concepts/08-2-security.md); network isolation between the proxy and the Warehouse is described in [§7 Deployment View](../07-deployment.md).
