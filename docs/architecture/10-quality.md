@@ -35,7 +35,7 @@ Two tiers:
 | Goal 4 | **Availability & Resilience** | #reliable #operable | Availability and recovery together: the HMIS data-entry interface remains available and responsive to front-line staff during operating hours, and planned maintenance and heavy background work do not take it offline; warehouse data is backed up on a regular schedule and can be restored after a catastrophic infrastructure failure. No recovery objective is committed here — see Q-23. |
 | Goal 5 | **Data Scalability** | #flexible #efficient | The platform supports deployments of varying scale, ranging from a single municipality to multi-state organizations, and absorbs years of accumulating data volume without architectural change. Bulk imports and large reports do not degrade interactive use, and storage growth stays bounded — the retained audit trail of imported records is pruned on a retention policy rather than kept indefinitely. |
 | Secondary | **Operational Self-Sufficiency** | #usable #operable | Administrators perform routine, common operations themselves without code changes or deployments. Failed background work is diagnosable from its logs by the person who has to act on it. Infrequent or one-time tasks may still require engineering support. |
-| Secondary | **Interoperability** | #suitable | HUD CSV exports conform to the published specification and are consumable by external systems without transformation. |
+| Secondary | **Interoperability** | #suitable | HUD CSV exchange goes both ways: exports conform to the published specification and are consumable by external systems without transformation, and any CSV set conforming to a supported HUD specification imports without transformation. |
 | Secondary | **Usability** | #usable #operable | Data entry workflows do not impede front-line staff productivity. Long-running operations report progress and completion. |
 
 ## 10.2 Quality Scenarios
@@ -60,32 +60,31 @@ One group per quality, in the tier order of 10.1: the five goals first, then the
 | Q-4 | An HMIS Lead questions a specific figure in a generated HUD report. | Post-generation review before HUD submission. | The user can drill into the report to see the exact client records and data sources that contributed to the figure. |
 | Q-5 | A data source re-submits a corrected CSV export. | Routine data correction after initial import. | Re-import replaces the affected source records; the warehouse re-normalizes without duplicating or orphaning destination records. |
 | Q-6 | An upstream vendor's export contains records that match existing warehouse clients. | Nightly or scheduled import of a multi-source deployment. | The deduplication engine links matching records to existing warehouse clients rather than creating duplicates. |
-| Q-25 | An HMIS Lead re-runs a HUD report for a reporting period governed by a superseded fiscal-year specification. | Audit, resubmission, or year-over-year comparison after the current specification has moved on. | The report reproduces its original figures, because the generator for each fiscal-year specification is retained alongside the current one rather than replaced — every superseded year's generator ships side by side with the latest. |
+| Q-25 | An HMIS Lead loads a HUD report for a previous fiscal-year specification. | Fields or programming specs for the the current specification has moved on. | The report loads its original figures, its is unchanged by the new specification and still true to the specification that produced it. |
 
 ### Client Protection & Fair Access (#secure #reliable)
 
 | ID | Stimulus | Context | Metric |
 | --- | --- | --- | --- |
-| Q-7 | A user with no permission grant covering a client attempts to view that client's PII. | Normal application use. | Access is denied and only non-identifying information is returned. |
+| Q-7 | A user with no permission to view a client's PII attempts to view the client record. | Normal application use. | Only non-identifying information is returned, the name, DOB, and social redacted. |
 | Q-8 | A user in CoC A attempts to access client data belonging to CoC B. | Multi-CoC deployment with data partitioning. | The system enforces CoC-scoped visibility; the user sees no indication that the record exists. |
 | Q-9 | A security auditor requests a log of all access to a specific client's record. | Compliance audit or incident investigation. | The system produces a complete access log including user, timestamp, and action for the requested client. |
-| Q-21 | An attacker obtains a stolen staff credential and attempts to read client PII at scale. | Internet-facing deployment holding PII; credential leak or phished staff account. | PII is encrypted in transit and at rest; the session sees no more than that user's permission grants and CoC scope allow; and every record accessed is recorded in the audit log, so the affected clients can be identified and notified. |
-| Q-26 | A client matched to a housing vacancy through Coordinated Entry is declined for it, and the CoC is asked to account for the outcome. | Referral review, client grievance, or CoC-level equity analysis of who is passed over. | The decline is reconstructable from recorded data rather than recollection: the match, the declining program, and the stated reason are stored on the match record and are reportable by reason and by agency. |
+| Q-21 | An attacker obtains a stolen staff credential and attempts to read client PII at scale. | Internet-facing deployment holding PII; compromised staff account. | Client data is restricted; the session sees no more than that user's permission grants and CoC scope allow; and every record accessed is recorded in the audit log, so the affected clients can be identified and notified. |
+| Q-26 | A client matched to a housing vacancy through Coordinated Entry is declined for it, and the CoC is asked to account for the outcome. | Referral review, client grievance, or CoC-level equity analysis of who is passed over. | The decline is reconstructable from recorded data: the match, the declining program, and the stated reason are stored on the match record and are reportable by reason and by agency. |
 
 ### Availability & Resilience (#reliable #operable)
 
 | ID | Stimulus | Context | Metric |
 | --- | --- | --- | --- |
-| Q-22 | Front-line staff load and use the HMIS data-entry interface. | Peak intake hours, with imports and large reports running in the background. | The data-entry interface stays available and responsive; background work and planned maintenance do not take it offline. No platform-wide availability percentage is committed: availability targets are per-deployment contractual terms, and a deployment that has agreed one measures against it. |
-| Q-23 | A catastrophic database failure destroys or corrupts warehouse data. | Rare RDS-level fault; routine record deletion is not in scope here, as application deletes are soft deletes and are reversible in place. | Data is restored from backup, and data loss is bounded by the backup interval in effect. No RTO or RPO is committed: backup schedule and retention are set on the managed database instance by infrastructure configuration held outside this repository. |
+| Q-22 | Front-line staff load and use the HMIS data-entry interface. | Peak intake hours, with imports and large reports running in the background. | The data-entry interface stays available and responsive; background work and planned maintenance do not impede HMIS operation. |
+| Q-23 | A catastrophic database failure destroys or corrupts warehouse data. | Rare RDS-level fault; routine record deletion is not in scope here, as application deletes are soft deletes and are reversible in place. | Data is restored from backup, and data loss is bounded to 24 hours. |
 
 ### Data Scalability (#flexible #efficient)
 
 | ID | Stimulus | Context | Metric |
 | --- | --- | --- | --- |
-| Q-11 | A large upstream partner submits a bulk CSV export. | Scheduled nightly import. | The import runs as background processing and does not take the interactive application offline or degrade its responsiveness for the duration. No specific response-time target is committed. |
-| Q-12 | An HMIS Lead generates a system-wide SPM report covering multiple CoCs. | Annual reporting period. | The report executes as a background job and reports periodic progress (percentage or phase); the user can navigate away and is notified on completion. No specific completion-time target is committed. |
-| Q-27 | A statewide deployment accumulates ten years of nightly imports and service transactions. | Long-running multi-source deployment; every import retains the loaded and imported rows behind each warehouse record. | Reporting stays within its stated time budget and storage growth stays bounded without re-architecting: the per-record import audit trail is pruned on a retention policy rather than kept indefinitely — a scheduled cleanup job retains a configured number of recent versions past a retention date. |
+| Q-27 | A statewide deployment accumulates ten years of nightly imports. | Long-running multi-source deployment; every import retains the loaded and imported rows behind each warehouse record. | Storage growth stays bounded without re-architecting: the per-record import audit trail is pruned on a retention policy rather than kept indefinitely — a scheduled cleanup job retains a configured number of recent versions past a retention date. |
+| Q-29 | A report aggregates millions of disability or service rows across a large deployment. | System-wide report over years of accumulated data. | Peak memory stays bounded regardless of result-set size — rows are streamed or processed in batches rather than loaded at once — with a footprint under 6 GB. |
 
 ### Operational Self-Sufficiency (#usable #operable)
 
@@ -94,12 +93,15 @@ One group per quality, in the tier order of 10.1: the five goals first, then the
 | Q-10 | A new CoC is onboarded to an existing deployment. | Statewide expansion. | The CoC is configured (data source, user groups, visibility rules) through administrative UI without code changes or architectural modification. |
 | Q-16 | A system administrator needs to grant a new user access scoped to specific projects. | Staff onboarding. | Access is granted through the administrative UI with appropriate role and project scope; no developer intervention required. |
 | Q-17 | A background import job fails due to malformed source data. | Automated nightly processing. | The failure is logged with actionable detail; other queued jobs continue processing; the administrator is notified. |
+| Q-30 | A nightly import's per-CSV row counts cross a threshold an administrator set (e.g. too few new services, too many enrollments removed). | Data-quality monitoring of a recurring multi-source import. | The administrator configures per-data-source, per-CSV thresholds and notification recipients through the admin UI; when a completed import breaches one, the configured recipients are notified — no code change or deployment. |
 
 ### Interoperability (#suitable)
 
 | ID | Stimulus | Context | Metric |
 | --- | --- | --- | --- |
 | Q-15 | An external system or migration tool consumes a HUD CSV export produced by the platform. | Data portability or system migration. | The exported CSV files conform to the published HUD CSV specification and pass validation by the receiving system. |
+| Q-31 | An external HMIS or vendor supplies a HUD CSV export for the platform to consume. | Onboarding a new data source or migrating from another system. | Any CSV set conforming to a supported HUD CSV specification imports without transformation; the platform accepts the published format as produced by the source system. |
+| Q-32 | An HMIS Lead downloads a generated HUD report as its submission file to upload to HUD's portal (e.g. the SPM HDX 2.0 CSV, the LSA CSV set, or the APR/CAPER table bundle). | End-of-cycle HUD reporting; the file is uploaded to HDX 2.0 / Sage, not re-imported here. | The exported file conforms to HUD's published CSV export specification for that report — column names, order, and per-field data types — and is accepted by the HUD portal without transformation. |
 
 ### Usability (#usable #operable)
 
