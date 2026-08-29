@@ -296,6 +296,24 @@ RSpec.describe DataSourcesController, type: :request do
         expect(cells[3].text.strip).to eq('0')
         expect(row_without_data.text).not_to include('Enrollments remaining to process')
       end
+
+      it 'shows the stalled-import label only for a data source whose most recent import is stale' do
+        ds_with_data.update!(last_imported_at: 30.hours.ago)
+        create(:grda_warehouse_hmis_import_config, data_source: ds_with_data, file_count: 1)
+        create(:grda_warehouse_upload, data_source: ds_with_data, user: User.system_user, percent_complete: 100, completed_at: 30.hours.ago)
+
+        get data_sources_path
+        expect(response).to have_http_status(:ok)
+
+        doc = Nokogiri::HTML(response.body)
+        rows = doc.css('tbody tr')
+
+        row_with_data = rows.find { |r| r.at_css('td a')&.text == 'Alpha Vendor' }
+        expect(row_with_data.text).to include('same file since:')
+
+        row_without_data = rows.find { |r| r.at_css('td a')&.text == 'Zeta Vendor' }
+        expect(row_without_data.text).not_to include('same file since:')
+      end
     end
 
     context 'query efficiency' do

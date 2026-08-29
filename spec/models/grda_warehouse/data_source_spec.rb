@@ -51,6 +51,13 @@ RSpec.describe model, type: :model do
   user_ids = ->(user) { model.viewable_by(user, permission: :can_view_projects).pluck(:id).sort }
   ids = ->(*sources) { sources.map(&:id).sort }
 
+  def build_data_source_with_upload(file_count:, completed_at:)
+    data_source = create(:source_data_source)
+    create(:grda_warehouse_hmis_import_config, data_source: data_source, file_count: file_count)
+    create(:grda_warehouse_upload, data_source: data_source, user: User.system_user, percent_complete: 100, completed_at: completed_at)
+    data_source
+  end
+
   describe 'scopes' do
     describe 'viewability' do
       describe 'ordinary user' do
@@ -140,56 +147,235 @@ RSpec.describe model, type: :model do
     end
   end
 
-  describe 'importer' do
-    let!(:imports) { create_list :grda_warehouse_upload, 12, data_source_id: ds1.id, user_id: User.system_user.id, percent_complete: 100, completed_at: 2.years.ago }
-
+  describe '.stalled_dates_by_id' do
     describe 'when expecting one file' do
-      let!(:import_config) { create :grda_warehouse_hmis_import_config, file_count: 1, data_source_id: ds1.id }
       it 'is not stalled when there are no prior imports in the past 6 months' do
-        expect(ds1.stalled_date).to eq(nil)
+        create(:grda_warehouse_hmis_import_config, data_source: ds1, file_count: 1)
+        create(:grda_warehouse_upload, data_source: ds1, user: User.system_user, percent_complete: 100, completed_at: 7.months.ago)
+
+        expect(GrdaWarehouse::DataSource.stalled_dates_by_id([ds1.id])[ds1.id]).to eq(nil)
       end
 
-      it 'is stalled when the last import was over 24 hours ago' do
-        imports.each.with_index { |import, i| import.update(completed_at: (i + 1).days.ago - 2.minutes) }
-        expect(ds1.stalled_date).to_not eq(nil)
+      it 'is stalled, since its single most recent upload, when the last import was over 24 hours ago' do
+        create(:grda_warehouse_hmis_import_config, data_source: ds1, file_count: 1)
+        most_recent_completed_at = 30.hours.ago
+        create(:grda_warehouse_upload, data_source: ds1, user: User.system_user, percent_complete: 100, completed_at: most_recent_completed_at)
+        create(:grda_warehouse_upload, data_source: ds1, user: User.system_user, percent_complete: 100, completed_at: 50.hours.ago)
+
+        expect(GrdaWarehouse::DataSource.stalled_dates_by_id([ds1.id])[ds1.id]).to eq(most_recent_completed_at.to_date)
       end
 
-      it 'is not stalled when there was an import yesterday' do
-        # 2-hour buffer so tests don't fail across DST boundaries
-        imports.each.with_index { |import, i| import.update(completed_at: i.days.ago + 2.hours) }
-        expect(ds1.stalled_date).to eq(nil)
-      end
+      it 'is not stalled when there was an import within the last 24 hours' do
+        create(:grda_warehouse_hmis_import_config, data_source: ds1, file_count: 1)
+        create(:grda_warehouse_upload, data_source: ds1, user: User.system_user, percent_complete: 100, completed_at: 2.hours.ago)
 
-      it 'is stalled when the last import was 26 hours ago' do
-        imports.each.with_index do |import, i|
-          time = i.days.ago - 26.hours
-          import.update(completed_at: time)
-        end
-        expect(ds1.stalled_date).to_not eq(nil)
+        expect(GrdaWarehouse::DataSource.stalled_dates_by_id([ds1.id])[ds1.id]).to eq(nil)
       end
     end
 
-    describe 'when expecting multiple file' do
-      let!(:import_config) { create :grda_warehouse_hmis_import_config, file_count: 3, data_source_id: ds1.id }
+    describe 'when expecting multiple files' do
       it 'is not stalled when there are no prior imports in the past 6 months' do
-        expect(ds1.stalled_date).to eq(nil)
+        create(:grda_warehouse_hmis_import_config, data_source: ds1, file_count: 3)
+        create(:grda_warehouse_upload, data_source: ds1, user: User.system_user, percent_complete: 100, completed_at: 7.months.ago)
+
+        expect(GrdaWarehouse::DataSource.stalled_dates_by_id([ds1.id])[ds1.id]).to eq(nil)
       end
 
-      it 'is stalled when there was a partial import yesterday' do
-        # Move one file into the expected range
-        imports.each.with_index { |import, i| import.update(completed_at: i.days.ago) }
-        expect(ds1.stalled_date).to_not eq(nil)
+      it 'is stalled since the oldest of the most recent N uploads, when they span more than 24 hours' do
+        create(:grda_warehouse_hmis_import_config, data_source: ds1, file_count: 3)
+        oldest_of_the_three = 50.hours.ago
+        create(:grda_warehouse_upload, data_source: ds1, user: User.system_user, percent_complete: 100, completed_at: 2.hours.ago)
+        create(:grda_warehouse_upload, data_source: ds1, user: User.system_user, percent_complete: 100, completed_at: 26.hours.ago)
+        create(:grda_warehouse_upload, data_source: ds1, user: User.system_user, percent_complete: 100, completed_at: oldest_of_the_three)
+
+        expect(GrdaWarehouse::DataSource.stalled_dates_by_id([ds1.id])[ds1.id]).to eq(oldest_of_the_three.to_date)
       end
 
-      it 'is stalled when there was a full import recently, but nothing in the past 24 hours' do
-        imports.first(3).each { |import| import.update(completed_at: 25.hours.ago) }
-        expect(ds1.stalled_date).to_not eq(nil)
+      it 'is stalled when a full set of uploads arrived recently, but not within the last 24 hours' do
+        create(:grda_warehouse_hmis_import_config, data_source: ds1, file_count: 3)
+        all_three_completed_at = 25.hours.ago
+        create_list(:grda_warehouse_upload, 3, data_source: ds1, user: User.system_user, percent_complete: 100, completed_at: all_three_completed_at)
+
+        expect(GrdaWarehouse::DataSource.stalled_dates_by_id([ds1.id])[ds1.id]).to eq(all_three_completed_at.to_date)
       end
 
-      it 'is not stalled when there was a full import within the last 24 hours' do
-        imports.first(3).each { |import| import.update(completed_at: 23.hours.ago) }
-        expect(ds1.stalled_date).to eq(nil)
+      it 'is not stalled when a full set of uploads arrived within the last 24 hours' do
+        create(:grda_warehouse_hmis_import_config, data_source: ds1, file_count: 3)
+        create_list(:grda_warehouse_upload, 3, data_source: ds1, user: User.system_user, percent_complete: 100, completed_at: 23.hours.ago)
+
+        expect(GrdaWarehouse::DataSource.stalled_dates_by_id([ds1.id])[ds1.id]).to eq(nil)
       end
+    end
+
+    it 'is not stalled when the import is paused, regardless of upload history' do
+      create(:grda_warehouse_hmis_import_config, data_source: ds1, file_count: 1)
+      create(:grda_warehouse_upload, data_source: ds1, user: User.system_user, percent_complete: 100, completed_at: 30.hours.ago)
+      ds1.update!(import_paused: true)
+
+      expect(GrdaWarehouse::DataSource.stalled_dates_by_id([ds1.id])[ds1.id]).to eq(nil)
+    end
+
+    it 'is not stalled when the import config is inactive, regardless of upload history' do
+      create(:grda_warehouse_hmis_import_config, data_source: ds1, file_count: 1, active: false)
+      create(:grda_warehouse_upload, data_source: ds1, user: User.system_user, percent_complete: 100, completed_at: 30.hours.ago)
+
+      expect(GrdaWarehouse::DataSource.stalled_dates_by_id([ds1.id])[ds1.id]).to eq(nil)
+    end
+
+    it "trims each data source to its own file_count instead of the batch's shared cap, when file counts differ" do
+      # file_count: 1, but has 3 historical uploads - only the single most recent may count.
+      single_file_ds = create(:source_data_source)
+      create(:grda_warehouse_hmis_import_config, data_source: single_file_ds, file_count: 1)
+      most_recent_for_single_file_ds = 30.hours.ago
+      create(:grda_warehouse_upload, data_source: single_file_ds, user: User.system_user, percent_complete: 100, completed_at: most_recent_for_single_file_ds)
+      create(:grda_warehouse_upload, data_source: single_file_ds, user: User.system_user, percent_complete: 100, completed_at: 50.hours.ago)
+      create(:grda_warehouse_upload, data_source: single_file_ds, user: User.system_user, percent_complete: 100, completed_at: 70.hours.ago)
+
+      # file_count: 3, sets the batch's shared row cap above 1.
+      multi_file_ds = build_data_source_with_upload(file_count: 3, completed_at: 1.hour.ago)
+      create(:grda_warehouse_upload, data_source: multi_file_ds, user: User.system_user, percent_complete: 100, completed_at: 2.hours.ago)
+      create(:grda_warehouse_upload, data_source: multi_file_ds, user: User.system_user, percent_complete: 100, completed_at: 3.hours.ago)
+
+      result = GrdaWarehouse::DataSource.stalled_dates_by_id([single_file_ds.id, multi_file_ds.id])
+
+      # If the shared cap (3, from multi_file_ds) leaked into single_file_ds's own calculation
+      # instead of being trimmed back down to its file_count of 1, this would incorrectly equal
+      # 70.hours.ago.to_date (the oldest of all three uploads) instead of the single most recent one.
+      expect(result[single_file_ds.id]).to eq(most_recent_for_single_file_ds.to_date)
+      expect(result[multi_file_ds.id]).to eq(nil)
+    end
+
+    it "returns each requested id's own result independently in one call, without cross-contamination" do
+      stalled_ds = build_data_source_with_upload(file_count: 1, completed_at: 30.hours.ago)
+      fresh_ds = build_data_source_with_upload(file_count: 1, completed_at: 2.hours.ago)
+
+      result = GrdaWarehouse::DataSource.stalled_dates_by_id([stalled_ds.id, fresh_ds.id])
+
+      expect(result[stalled_ds.id]).to eq(30.hours.ago.to_date)
+      expect(result[fresh_ds.id]).to eq(nil)
+    end
+
+    it 'excludes a soft-deleted upload from the ranking' do
+      create(:grda_warehouse_hmis_import_config, data_source: ds1, file_count: 1)
+      real_completed_at = 30.hours.ago
+      create(:grda_warehouse_upload, data_source: ds1, user: User.system_user, percent_complete: 100, completed_at: real_completed_at)
+      deleted_upload = create(:grda_warehouse_upload, data_source: ds1, user: User.system_user, percent_complete: 100, completed_at: 2.hours.ago)
+      deleted_upload.destroy
+
+      # The deleted upload is more recent than the real one, so if it leaked into the
+      # ranking (e.g. an `.unscoped` applied too broadly), rn=1 would pick it instead and
+      # this would incorrectly return nil (not stalled) rather than the real upload's date.
+      expect(GrdaWarehouse::DataSource.stalled_dates_by_id([ds1.id])[ds1.id]).to eq(real_completed_at.to_date)
+    end
+  end
+
+  describe '.stalled_dates_by_id query efficiency' do
+    it 'runs a bounded number of queries regardless of how many data sources are checked' do
+      count_queries = lambda do |&block|
+        count = 0
+        callback = ->(*) { count += 1 }
+        ActiveSupport::Notifications.subscribed(callback, 'sql.active_record', &block)
+        count
+      end
+
+      small_batch = Array.new(3) { build_data_source_with_upload(file_count: 1, completed_at: 30.hours.ago) }
+
+      # Warm up one-time schema-cache/connection-setup queries so they don't confound
+      # the small-vs-large comparison below.
+      GrdaWarehouse::DataSource.stalled_dates_by_id(small_batch.map(&:id))
+
+      small_queries = count_queries.call { GrdaWarehouse::DataSource.stalled_dates_by_id(small_batch.map(&:id)) }
+
+      large_batch = small_batch + Array.new(9) { build_data_source_with_upload(file_count: 1, completed_at: 30.hours.ago) }
+      large_queries = count_queries.call { GrdaWarehouse::DataSource.stalled_dates_by_id(large_batch.map(&:id)) }
+
+      # A regression to a per-row query pattern would make large_queries scale with data
+      # source count (9 more data sources here); a small constant tolerance accommodates
+      # incidental variance without masking that regression.
+      expect(large_queries).to be_within(2).of(small_queries)
+    end
+  end
+
+  describe '.stalled_imports?' do
+    def make_stalled(data_source)
+      create(:grda_warehouse_hmis_import_config, data_source: data_source, file_count: 1)
+      create(:grda_warehouse_upload, data_source: data_source, user: User.system_user, percent_complete: 100, completed_at: 30.hours.ago)
+      GrdaWarehouse::ImportLog.create!(data_source: data_source, completed_at: 30.hours.ago)
+    end
+
+    def make_fresh(data_source)
+      create(:grda_warehouse_hmis_import_config, data_source: data_source, file_count: 1)
+      create(:grda_warehouse_upload, data_source: data_source, user: User.system_user, percent_complete: 100, completed_at: 2.hours.ago)
+      GrdaWarehouse::ImportLog.create!(data_source: data_source, completed_at: 2.hours.ago)
+    end
+
+    it 'returns true when a data source the user can view has a stalled import' do
+      make_stalled(ds1)
+      empty_collection.set_viewables({ data_sources: [ds1.id] })
+      setup_access_control(user, can_view_projects, empty_collection)
+
+      expect(GrdaWarehouse::DataSource.stalled_imports?(user)).to eq(true)
+    end
+
+    it 'returns false when the only stalled data source is outside what the user can view' do
+      make_stalled(ds1)
+      empty_collection.set_viewables({ data_sources: [ds2.id] })
+      setup_access_control(user, can_view_projects, empty_collection)
+
+      expect(GrdaWarehouse::DataSource.stalled_imports?(user)).to eq(false)
+    end
+
+    it 'returns false when the viewable data source has recent, non-stalled imports' do
+      make_fresh(ds1)
+      empty_collection.set_viewables({ data_sources: [ds1.id] })
+      setup_access_control(user, can_view_projects, empty_collection)
+
+      expect(GrdaWarehouse::DataSource.stalled_imports?(user)).to eq(false)
+    end
+  end
+
+  describe '.stalled_imports? query efficiency' do
+    it 'runs a bounded number of queries regardless of how many data sources the user can view' do
+      count_queries = lambda do |&block|
+        count = 0
+        callback = ->(*) { count += 1 }
+        ActiveSupport::Notifications.subscribed(callback, 'sql.active_record', &block)
+        count
+      end
+
+      small_batch = Array.new(3) { create(:source_data_source) }
+      empty_collection.set_viewables({ data_sources: small_batch.map(&:id) })
+      setup_access_control(user, can_view_projects, empty_collection)
+
+      # Warm up one-time schema-cache/connection-setup queries so they don't confound
+      # the small-vs-large comparison below.
+      GrdaWarehouse::DataSource.stalled_imports?(user)
+      small_queries = count_queries.call { GrdaWarehouse::DataSource.stalled_imports?(user) }
+
+      large_batch = small_batch + Array.new(9) { create(:source_data_source) }
+      empty_collection.set_viewables({ data_sources: large_batch.map(&:id) })
+      large_queries = count_queries.call { GrdaWarehouse::DataSource.stalled_imports?(user) }
+
+      expect(large_queries).to be_within(3).of(small_queries)
+    end
+  end
+
+  describe '.last_import_completed_ats_by_id' do
+    it 'returns the most recent completed_at per data source, keyed by id' do
+      GrdaWarehouse::ImportLog.create!(data_source: ds1, completed_at: 2.days.ago)
+      GrdaWarehouse::ImportLog.create!(data_source: ds1, completed_at: 1.day.ago)
+      GrdaWarehouse::ImportLog.create!(data_source: ds2, completed_at: 3.days.ago)
+
+      result = GrdaWarehouse::DataSource.last_import_completed_ats_by_id([ds1.id, ds2.id])
+
+      expect(result[ds1.id]).to be_within(1.second).of(1.day.ago)
+      expect(result[ds2.id]).to be_within(1.second).of(3.days.ago)
+    end
+
+    it 'omits an id with no import logs at all, so callers can tell "never imported" apart from "imported long ago"' do
+      result = GrdaWarehouse::DataSource.last_import_completed_ats_by_id([ds1.id])
+
+      expect(result).not_to have_key(ds1.id)
     end
   end
 

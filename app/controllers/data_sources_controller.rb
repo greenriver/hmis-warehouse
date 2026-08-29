@@ -25,6 +25,7 @@ class DataSourcesController < ApplicationController
     @client_counts = GrdaWarehouse::DataSource.client_counts_by_id(data_source_ids)
     @project_counts = GrdaWarehouse::DataSource.project_counts_by_id(data_source_ids)
     @unprocessed_enrollment_counts = GrdaWarehouse::DataSource.unprocessed_enrollment_counts_by_id(data_source_ids)
+    @stalled_dates = GrdaWarehouse::DataSource.stalled_dates_by_id(data_source_ids)
   end
 
   def show

@@ -544,61 +544,97 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     @unprocessed_enrollment_count ||= enrollments.unprocessed_with_resolvable_project_and_client.count
   end
 
-  # Returns the date of the most recent fully successful import if the import is stalled, nil if it is not stalled
-  # @return [Date, nil] The date the import stalled, or nil if not stalled.
-  def stalled_date
-    return nil if import_paused
-    return nil unless hmis_import_config&.active
+  # Batched form of the stalled-date business rules for a page of data sources, to avoid one
+  # query per row. Every requested id is present in the result; nil means not stalled.
+  def self.stalled_dates_by_id(data_source_ids)
+    return {} if data_source_ids.blank?
 
-    # hmis_import_config.file_count is the expected number of uploads for a given day
-    # fetch the expected number, and confirm they all arrived within a 24 hour window
-    most_recent_uploads = uploads.completed.
-      # limit look back to 6 months to improve performance, but to potentially highlight missing data
-      where(user_id: User.system_user.id, completed_at: 6.months.ago..Time.current).
-      order(completed_at: :desc, created_at: :desc).
-      select(:id, :data_source_id, :user_id, :completed_at, :created_at).
-      distinct.
-      first(hmis_import_config.file_count)
-    # We didn't find any uploads in the last 6 months, assume this isn't connected yet
-    return nil unless most_recent_uploads.present?
+    ds_t = arel_table
+    ic_t = GrdaWarehouse::HmisImportConfig.arel_table
+    file_counts = GrdaWarehouse::DataSource.
+      where(id: data_source_ids, import_paused: false).
+      joins(:hmis_import_config).
+      merge(GrdaWarehouse::HmisImportConfig.active).
+      pluck(ds_t[:id], ic_t[:file_count]).to_h
 
-    min_completion_time = most_recent_uploads.minimum(:completed_at)
-    received_files_count = most_recent_uploads.count
+    return data_source_ids.index_with { nil } if file_counts.empty?
 
-    # If we only expected one file
-    if hmis_import_config.file_count == 1
-      # and it came in the last 24 hours, we're good
-      return nil if min_completion_time > 24.hours.ago
+    max_file_count = file_counts.values.max
 
-      # if not, return the last time we received a file
-      return min_completion_time.to_date
+    # file_count is the expected number of uploads per day; capping at rn <= max_file_count
+    # keeps this query from pulling the full 6-month lookback's uploads into Ruby.
+    ranked = GrdaWarehouse::Upload.
+      completed.
+      where(
+        user_id: User.system_user.id,
+        data_source_id: file_counts.keys,
+        # limit look back to 6 months to improve performance, but to potentially highlight missing data
+        completed_at: 6.months.ago..Time.current,
+      ).
+      define_window(:per_data_source).
+      partition_by(:data_source_id, order_by: { completed_at: :desc, created_at: :desc }).
+      select_window(:row_number, over: :per_data_source, as: :rn).
+      select(:data_source_id, :completed_at)
+
+    # Use GrdaWarehouse::Upload.unscoped as ranked already ignores deleted uploads.
+    top_uploads = GrdaWarehouse::Upload.unscoped.from(ranked, :ranked_uploads).
+      where('ranked_uploads.rn <= ?', max_file_count).
+      order('ranked_uploads.data_source_id, ranked_uploads.rn').
+      pluck('ranked_uploads.data_source_id', 'ranked_uploads.completed_at')
+    completion_times_by_data_source_id = top_uploads.group_by(&:first).transform_values { |rows| rows.map(&:second) }
+
+    data_source_ids.index_with do |id|
+      file_count = file_counts[id]
+      next nil unless file_count
+
+      # Trim back down to this id's own file_count - the query above capped every id at
+      # max_file_count across the whole batch, which can be larger than this one's own.
+      completion_times = completion_times_by_data_source_id[id]&.first(file_count)
+      # We didn't find any uploads in the last 6 months, assume this isn't connected yet
+      next nil if completion_times.blank?
+
+      min_completion_time = completion_times.min
+      received_files_count = completion_times.size
+
+      if file_count == 1
+        next nil if min_completion_time > 24.hours.ago
+
+        next min_completion_time.to_date
+      end
+
+      next nil if min_completion_time > 24.hours.ago && received_files_count >= file_count
+
+      min_completion_time.to_date
     end
-
-    # If we processed the expected number of files within a 24 hour period, we're good
-    return nil if min_completion_time > 24.hours.ago && received_files_count >= hmis_import_config.file_count
-
-    # Note the last time we received a file
-    min_completion_time.to_date
   end
 
   def self.import_advisory_lock_name(data_source_id)
     "enforce_sequential_data_source_imports_for_#{data_source_id}"
   end
 
-  def self.stalled_imports?(user)
-    Rails.cache.fetch(['data_source_stalled_imports', user], expires_in: 1.hours) do
-      stalled = false
-      viewable_by(user).each do |data_source|
-        next if stalled
+  # Batched form of the per-row import_logs.maximum(:completed_at) lookup.
+  # Ids with no import logs are absent from the result.
+  def self.last_import_completed_ats_by_id(data_source_ids)
+    return {} if data_source_ids.blank?
 
-        most_recently_completed = data_source.import_logs.maximum(:completed_at)
-        if most_recently_completed.present?
-          stalled = true if data_source.stalled_date.present?
-        end
-      end
+    GrdaWarehouse::ImportLog.where(data_source_id: data_source_ids).group(:data_source_id).maximum(:completed_at)
+  end
 
-      stalled
+  # Cached globally for an hour - user-independent;
+  # stalled_imports?'s viewability filter limits to user-relevant data sources.
+  def self.stalled_data_source_ids
+    Rails.cache.fetch('data_source_stalled_ids', expires_in: 1.hours) do
+      ids = GrdaWarehouse::DataSource.pluck(:id)
+      last_completed_by_id = last_import_completed_ats_by_id(ids)
+      stall_date_by_id = stalled_dates_by_id(ids)
+
+      ids.select { |id| last_completed_by_id[id].present? && stall_date_by_id[id].present? }
     end
+  end
+
+  def self.stalled_imports?(user)
+    viewable_ids = viewable_by(user).pluck(:id)
+    (stalled_data_source_ids & viewable_ids).any?
   end
 
   def self.options_for_select(user:, ids: nil, permission: :can_view_projects)
