@@ -332,6 +332,54 @@ RSpec.describe model, type: :model do
 
       expect(GrdaWarehouse::DataSource.stalled_imports?(user)).to eq(false)
     end
+
+    # The test environment uses config.cache_store = :null_store (config/environments/test.rb),
+    # so Rails.cache.fetch always re-runs its block. Swap in a real store here so these examples
+    # can actually observe caching behavior instead of it being a no-op.
+    describe 'caching' do
+      around do |example|
+        original_cache_store = Rails.cache
+        Rails.cache = ActiveSupport::Cache::MemoryStore.new
+        example.run
+        Rails.cache = original_cache_store
+      end
+
+      def count_queries(&block)
+        count = 0
+        callback = ->(*) { count += 1 }
+        ActiveSupport::Notifications.subscribed(callback, 'sql.active_record', &block)
+        count
+      end
+
+      it 'reuses the cached result on a second call instead of recomputing it' do
+        make_stalled(ds1)
+
+        expect(GrdaWarehouse::DataSource.stalled_data_source_ids).to eq([ds1.id])
+
+        queries_on_second_call = count_queries { GrdaWarehouse::DataSource.stalled_data_source_ids }
+
+        expect(queries_on_second_call).to eq(0)
+      end
+
+      it 'is keyed globally rather than per-user, so a second user reuses the first user\'s cached result' do
+        make_stalled(ds1)
+        other_user = create(:acl_user)
+        empty_collection.set_viewables({ data_sources: [ds1.id, ds2.id] })
+        setup_access_control(user, can_view_projects, empty_collection)
+        setup_access_control(other_user, can_view_projects, empty_collection)
+
+        expect(GrdaWarehouse::DataSource.stalled_imports?(user)).to eq(true)
+
+        # ds2 becomes stalled after the cache was warmed by `user`'s call above. If the cache
+        # key were accidentally scoped per-user, `other_user` would trigger its own
+        # recomputation and see ds2's fresh stall - instead it should see the same cached
+        # (now stale) id set the first user warmed, proving the key is shared globally.
+        make_stalled(ds2)
+
+        expect(GrdaWarehouse::DataSource.stalled_data_source_ids).to eq([ds1.id])
+        expect(GrdaWarehouse::DataSource.stalled_imports?(other_user)).to eq(true)
+      end
+    end
   end
 
   describe '.stalled_imports? query efficiency' do
@@ -376,6 +424,74 @@ RSpec.describe model, type: :model do
       result = GrdaWarehouse::DataSource.last_import_completed_ats_by_id([ds1.id])
 
       expect(result).not_to have_key(ds1.id)
+    end
+  end
+
+  describe '.client_counts_by_id' do
+    it "matches each data source's own #client_count" do
+      create_list(:hud_client, 2, data_source_id: ds1.id)
+      create(:hud_client, data_source_id: ds2.id)
+
+      result = GrdaWarehouse::DataSource.client_counts_by_id([ds1.id, ds2.id])
+
+      expect(result[ds1.id]).to eq(ds1.client_count)
+      expect(result[ds2.id]).to eq(ds2.client_count)
+      expect(result[ds1.id]).to eq(2)
+      expect(result[ds2.id]).to eq(1)
+    end
+
+    it 'defaults to 0 for a data source with no clients, rather than omitting its key' do
+      result = GrdaWarehouse::DataSource.client_counts_by_id([ds1.id])
+
+      expect(result[ds1.id]).to eq(0)
+    end
+  end
+
+  describe '.project_counts_by_id' do
+    it "matches each data source's own #project_count" do
+      result = GrdaWarehouse::DataSource.project_counts_by_id([ds1.id, ds2.id])
+
+      # ds1 has p1-p4, ds2 has p5-p8 (see the fixture hierarchy at the top of this file).
+      expect(result[ds1.id]).to eq(ds1.project_count)
+      expect(result[ds2.id]).to eq(ds2.project_count)
+      expect(result[ds1.id]).to eq(4)
+      expect(result[ds2.id]).to eq(4)
+    end
+
+    it 'defaults to 0 for a data source with no projects, rather than omitting its key' do
+      empty_ds = create(:source_data_source)
+
+      result = GrdaWarehouse::DataSource.project_counts_by_id([empty_ds.id])
+
+      expect(result[empty_ds.id]).to eq(0)
+    end
+  end
+
+  describe '.unprocessed_enrollment_counts_by_id' do
+    def create_resolvable_enrollment(data_source:, project:, processed_as:)
+      source_client = create(:hud_client, data_source: data_source)
+      destination_client = source_client.dup
+      destination_client.data_source = create(:destination_data_source)
+      destination_client.save!
+      create(:warehouse_client, destination_id: destination_client.id, source_id: source_client.id)
+      create(:hud_enrollment, data_source: data_source, project: project, client: source_client, processed_as: processed_as)
+    end
+
+    it "matches each data source's own #unprocessed_enrollment_count" do
+      create_resolvable_enrollment(data_source: ds1, project: p1, processed_as: nil)
+      create_resolvable_enrollment(data_source: ds1, project: p1, processed_as: { 'a' => 1 })
+
+      result = GrdaWarehouse::DataSource.unprocessed_enrollment_counts_by_id([ds1.id, ds2.id])
+
+      expect(result[ds1.id]).to eq(ds1.unprocessed_enrollment_count)
+      expect(result[ds1.id]).to eq(1)
+      expect(result[ds2.id]).to eq(0)
+    end
+
+    it 'defaults to 0 for a data source with no unprocessed enrollments, rather than omitting its key' do
+      result = GrdaWarehouse::DataSource.unprocessed_enrollment_counts_by_id([ds1.id])
+
+      expect(result[ds1.id]).to eq(0)
     end
   end
 

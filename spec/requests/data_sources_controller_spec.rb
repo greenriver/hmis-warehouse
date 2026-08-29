@@ -340,6 +340,10 @@ RSpec.describe DataSourcesController, type: :request do
 
         large_batch = small_batch + Array.new(9) { |i| build_data_source_with_data(name: "Large Vendor #{i}") }
         collection.set_viewables({ data_sources: large_batch.map(&:id) })
+        # This comparison only holds if every data source in large_batch lands on page 1;
+        # otherwise large_queries would undercount and the assertion below would pass for
+        # the wrong reason.
+        expect(large_batch.size).to be <= Pagy::DEFAULT[:items]
 
         large_queries = count_queries.call { get data_sources_path }
         expect(response).to have_http_status(:ok)

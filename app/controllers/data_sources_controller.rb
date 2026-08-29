@@ -20,7 +20,7 @@ class DataSourcesController < ApplicationController
     else
       data_source_scope
     end
-    @pagy, @data_sources = pagy(@data_sources.includes(:hmis_import_config).order(name: :asc))
+    @pagy, @data_sources = pagy(@data_sources.order(name: :asc))
     data_source_ids = @data_sources.map(&:id)
     @client_counts = GrdaWarehouse::DataSource.client_counts_by_id(data_source_ids)
     @project_counts = GrdaWarehouse::DataSource.project_counts_by_id(data_source_ids)
