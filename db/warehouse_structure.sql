@@ -203370,24 +203370,10 @@ CREATE INDEX hmis2026assessments_634d ON public.hmis_2026_assessments USING btre
 
 
 --
--- Name: hmis2026assessments_da04; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmis2026assessments_da04 ON public.hmis_2026_assessments USING btree ("AssessmentID");
-
-
---
 -- Name: hmis2026ceparticipations_42af; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX hmis2026ceparticipations_42af ON public.hmis_2026_ce_participations USING btree ("ProjectID");
-
-
---
--- Name: hmis2026ceparticipations_5a29; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmis2026ceparticipations_5a29 ON public.hmis_2026_ce_participations USING btree ("CEParticipationID");
 
 
 --
@@ -203433,13 +203419,6 @@ CREATE INDEX hmis2026clients_539c ON public.hmis_2026_clients USING btree ("Last
 
 
 --
--- Name: hmis2026clients_603f; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmis2026clients_603f ON public.hmis_2026_clients USING btree ("PersonalID");
-
-
---
 -- Name: hmis2026clients_634d; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -203475,13 +203454,6 @@ CREATE INDEX hmis2026currentlivingsituations_634d ON public.hmis_2026_current_li
 
 
 --
--- Name: hmis2026currentlivingsituations_c1ef; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmis2026currentlivingsituations_c1ef ON public.hmis_2026_current_living_situations USING btree ("CurrentLivingSitID");
-
-
---
 -- Name: hmis2026currentlivingsituations_d718; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -203493,13 +203465,6 @@ CREATE INDEX hmis2026currentlivingsituations_d718 ON public.hmis_2026_current_li
 --
 
 CREATE INDEX hmis2026currentlivingsituations_fabe ON public.hmis_2026_current_living_situations USING btree ("InformationDate");
-
-
---
--- Name: hmis2026disabilities_1873; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmis2026disabilities_1873 ON public.hmis_2026_disabilities USING btree ("DisabilitiesID");
 
 
 --
@@ -203535,13 +203500,6 @@ CREATE INDEX hmis2026disabilities_634d ON public.hmis_2026_disabilities USING bt
 --
 
 CREATE INDEX hmis2026disabilities_d381 ON public.hmis_2026_disabilities USING btree ("DateCreated");
-
-
---
--- Name: hmis2026employmenteducations_350e; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmis2026employmenteducations_350e ON public.hmis_2026_employment_educations USING btree ("EmploymentEducationID");
 
 
 --
@@ -203601,24 +203559,10 @@ CREATE INDEX hmis2026enrollments_34e3 ON public.hmis_2026_enrollments USING btre
 
 
 --
--- Name: hmis2026enrollments_42af; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmis2026enrollments_42af ON public.hmis_2026_enrollments USING btree ("ProjectID");
-
-
---
 -- Name: hmis2026enrollments_42d5; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX hmis2026enrollments_42d5 ON public.hmis_2026_enrollments USING btree ("DateUpdated");
-
-
---
--- Name: hmis2026enrollments_4337; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmis2026enrollments_4337 ON public.hmis_2026_enrollments USING btree ("EnrollmentID");
 
 
 --
@@ -203633,13 +203577,6 @@ CREATE INDEX hmis2026enrollments_44c4 ON public.hmis_2026_enrollments USING btre
 --
 
 CREATE INDEX hmis2026enrollments_4685 ON public.hmis_2026_enrollments USING btree ("LengthOfStay") INCLUDE ("EnrollmentID");
-
-
---
--- Name: hmis2026enrollments_5328; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmis2026enrollments_5328 ON public.hmis_2026_enrollments USING btree ("HouseholdID");
 
 
 --
@@ -203741,13 +203678,6 @@ CREATE INDEX hmis2026enrollments_ea7f ON public.hmis_2026_enrollments USING btre
 
 
 --
--- Name: hmis2026enrollments_f3a2; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmis2026enrollments_f3a2 ON public.hmis_2026_enrollments USING btree ("DateDeleted");
-
-
---
 -- Name: hmis2026enrollments_fbbd; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -203759,13 +203689,6 @@ CREATE INDEX hmis2026enrollments_fbbd ON public.hmis_2026_enrollments USING btre
 --
 
 CREATE INDEX hmis2026events_4337 ON public.hmis_2026_events USING btree ("EnrollmentID");
-
-
---
--- Name: hmis2026events_5251; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmis2026events_5251 ON public.hmis_2026_events USING btree ("EventID");
 
 
 --
@@ -203825,13 +203748,6 @@ CREATE INDEX hmis2026exits_634d ON public.hmis_2026_exits USING btree ("ExportID
 
 
 --
--- Name: hmis2026exits_6f2b; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmis2026exits_6f2b ON public.hmis_2026_exits USING btree ("ExitID");
-
-
---
 -- Name: hmis2026exits_d381; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -203846,31 +203762,10 @@ CREATE INDEX hmis2026exits_f3a2 ON public.hmis_2026_exits USING btree ("DateDele
 
 
 --
--- Name: hmis2026exits_fa9a; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmis2026exits_fa9a ON public.hmis_2026_exits USING btree ("ExitDate");
-
-
---
--- Name: hmis2026exports_634d; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmis2026exports_634d ON public.hmis_2026_exports USING btree ("ExportID");
-
-
---
 -- Name: hmis2026funders_42d5; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX hmis2026funders_42d5 ON public.hmis_2026_funders USING btree ("DateUpdated");
-
-
---
--- Name: hmis2026funders_4657; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmis2026funders_4657 ON public.hmis_2026_funders USING btree ("FunderID");
 
 
 --
@@ -203885,13 +203780,6 @@ CREATE INDEX hmis2026funders_634d ON public.hmis_2026_funders USING btree ("Expo
 --
 
 CREATE INDEX hmis2026funders_d381 ON public.hmis_2026_funders USING btree ("DateCreated");
-
-
---
--- Name: hmis2026healthanddvs_1329; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmis2026healthanddvs_1329 ON public.hmis_2026_health_and_dvs USING btree ("HealthAndDVID");
 
 
 --
@@ -203944,13 +203832,6 @@ CREATE INDEX hmis2026hmisparticipations_634d ON public.hmis_2026_hmis_participat
 
 
 --
--- Name: hmis2026hmisparticipations_827e; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmis2026hmisparticipations_827e ON public.hmis_2026_hmis_participations USING btree ("HMISParticipationID");
-
-
---
 -- Name: hmis2026incomebenefits_16c2; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -204000,13 +203881,6 @@ CREATE INDEX hmis2026incomebenefits_d381 ON public.hmis_2026_income_benefits USI
 
 
 --
--- Name: hmis2026incomebenefits_f5f5; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmis2026incomebenefits_f5f5 ON public.hmis_2026_income_benefits USING btree ("IncomeBenefitsID");
-
-
---
 -- Name: hmis2026incomebenefits_fabe; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -204025,13 +203899,6 @@ CREATE INDEX hmis2026inventories_42d5 ON public.hmis_2026_inventories USING btre
 --
 
 CREATE INDEX hmis2026inventories_634d ON public.hmis_2026_inventories USING btree ("ExportID");
-
-
---
--- Name: hmis2026inventories_9529; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmis2026inventories_9529 ON public.hmis_2026_inventories USING btree ("InventoryID");
 
 
 --
@@ -204056,13 +203923,6 @@ CREATE INDEX hmis2026organizations_634d ON public.hmis_2026_organizations USING 
 
 
 --
--- Name: hmis2026organizations_b19d; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmis2026organizations_b19d ON public.hmis_2026_organizations USING btree ("OrganizationID");
-
-
---
 -- Name: hmis2026projectcocs_42d5; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -204077,13 +203937,6 @@ CREATE INDEX hmis2026projectcocs_634d ON public.hmis_2026_project_cocs USING btr
 
 
 --
--- Name: hmis2026projectcocs_787b; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmis2026projectcocs_787b ON public.hmis_2026_project_cocs USING btree ("ProjectCoCID");
-
-
---
 -- Name: hmis2026projectcocs_b15e; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -204095,13 +203948,6 @@ CREATE INDEX hmis2026projectcocs_b15e ON public.hmis_2026_project_cocs USING btr
 --
 
 CREATE INDEX hmis2026projectcocs_d381 ON public.hmis_2026_project_cocs USING btree ("DateCreated");
-
-
---
--- Name: hmis2026projects_42af; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmis2026projects_42af ON public.hmis_2026_projects USING btree ("ProjectID");
 
 
 --
@@ -204133,13 +203979,6 @@ CREATE INDEX hmis2026projects_e4bb ON public.hmis_2026_projects USING btree ("Pr
 
 
 --
--- Name: hmis2026services_237b; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmis2026services_237b ON public.hmis_2026_services USING btree ("RecordType");
-
-
---
 -- Name: hmis2026services_3444; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -204154,31 +203993,10 @@ CREATE INDEX hmis2026services_42d5 ON public.hmis_2026_services USING btree ("Da
 
 
 --
--- Name: hmis2026services_4337; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmis2026services_4337 ON public.hmis_2026_services USING btree ("EnrollmentID");
-
-
---
--- Name: hmis2026services_603f; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmis2026services_603f ON public.hmis_2026_services USING btree ("PersonalID");
-
-
---
 -- Name: hmis2026services_634d; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX hmis2026services_634d ON public.hmis_2026_services USING btree ("ExportID");
-
-
---
--- Name: hmis2026services_6415; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmis2026services_6415 ON public.hmis_2026_services USING btree ("ServicesID");
 
 
 --
@@ -204210,13 +204028,6 @@ CREATE INDEX hmis2026services_8dbb ON public.hmis_2026_services USING btree ("Re
 
 
 --
--- Name: hmis2026services_9c1a; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmis2026services_9c1a ON public.hmis_2026_services USING btree ("EnrollmentID", "RecordType", "DateDeleted") INCLUDE ("DateProvided");
-
-
---
 -- Name: hmis2026services_c548; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -204238,20 +204049,6 @@ CREATE INDEX hmis2026services_f3a2 ON public.hmis_2026_services USING btree ("Da
 
 
 --
--- Name: hmis2026services_f749; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmis2026services_f749 ON public.hmis_2026_services USING btree ("RecordType", "DateDeleted");
-
-
---
--- Name: hmis2026users_57c7; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmis2026users_57c7 ON public.hmis_2026_users USING btree ("UserID");
-
-
---
 -- Name: hmis2026users_634d; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -204270,13 +204067,6 @@ CREATE INDEX hmis2026youtheducationstatuses_4337 ON public.hmis_2026_youth_educa
 --
 
 CREATE INDEX hmis2026youtheducationstatuses_603f ON public.hmis_2026_youth_education_statuses USING btree ("PersonalID");
-
-
---
--- Name: hmis2026youtheducationstatuses_6049; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmis2026youtheducationstatuses_6049 ON public.hmis_2026_youth_education_statuses USING btree ("YouthEducationStatusID");
 
 
 --
@@ -360013,6 +359803,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20260604120000'),
 ('20260527100001'),
 ('20260527100000'),
+('20260525011848'),
 ('20260522123000'),
 ('20260521120000'),
 ('20260514123606'),
