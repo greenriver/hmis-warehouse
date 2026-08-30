@@ -10,6 +10,14 @@
 module Idp::Support
   extend ActiveSupport::Concern
 
+  included do
+    # Virtual: the realm an admin picks on the account-create form. Never persisted under this name
+    # — a successful create records the choice as a UserAuthenticationSource and last_connector_id —
+    # but it has to live on the record so the form can render the selection back and hang a
+    # validation error on it.
+    attr_accessor :connector_id
+  end
+
   def idp_service
     return @idp_service if defined?(@idp_service)
 
@@ -32,6 +40,11 @@ module Idp::Support
   # default that keeps the admin form renderable; management actions surface the real config
   # error through their own soft-failure handling.
   def profile_managed_by_idp?
+    # No connector on the record: nothing owns this profile but us, so the local fields are the
+    # only copy and stay editable. An account created local-only sits here until its first
+    # sign-in links it, at which point the connector's own answer takes over.
+    return false if primary_idp.blank?
+
     !idp_service.supports_profile_updates?
   rescue Idp::ServiceError
     true

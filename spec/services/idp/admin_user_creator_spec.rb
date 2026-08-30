@@ -12,14 +12,17 @@ require 'rails_helper'
 # boot (AUTH_METHOD=jwt); under Devise, User is :secure_validatable and requires one.
 RSpec.describe Idp::AdminUserCreator, :jwt_only do
   let(:connector_id) { 'kc' }
+  let(:agency) { create(:agency) }
   let(:service) { instance_double(Idp::KeycloakService, supports_user_creation?: true, idp_name: 'Keycloak') }
 
   before do
     allow(Idp::ServiceFactory).to receive(:for_connector).with(connector_id).and_return(service)
   end
 
-  def call(email: 'newbie@example.com')
-    described_class.call(connector_id: connector_id, email: email, first_name: 'New', last_name: 'User')
+  def call(email: 'newbie@example.com', **overrides)
+    described_class.call(
+      **{ connector_id: connector_id, email: email, first_name: 'New', last_name: 'User', agency_id: agency.id }.merge(overrides),
+    )
   end
 
   context 'when the email is new to the IdP' do
@@ -32,9 +35,29 @@ RSpec.describe Idp::AdminUserCreator, :jwt_only do
       user = call
 
       expect(user).to be_persisted
+      expect(user.agency_id).to eq(agency.id)
       expect(user.last_connector_id).to eq(connector_id)
       expect(user.user_authentication_sources.pluck(:connector_id, :connector_user_id)).to eq([[connector_id, 'kc-new']])
       expect(service).to have_received(:create_user).with(email: 'newbie@example.com', first_name: 'New', last_name: 'User')
+    end
+
+    it 'rejects a blank agency before provisioning anything remotely' do
+      expect { call(agency_id: nil) }.to raise_error(ActiveRecord::RecordInvalid)
+      expect(service).not_to have_received(:create_user)
+    end
+  end
+
+  # 'None' in the admin form: a realm we can't provision into (Okta, say). The account is matched
+  # by email on first sign-in, so no service is built and no connector link is written.
+  context 'when no connector is chosen' do
+    before { allow(Idp::ServiceFactory).to receive(:for_connector).with(nil).and_call_original }
+
+    it 'resolves a NullService and creates a local-only user with no remote call' do
+      user = call(connector_id: nil)
+
+      expect(user).to be_persisted
+      expect(user.last_connector_id).to be_nil
+      expect(user.user_authentication_sources).to be_empty
     end
   end
 
@@ -94,7 +117,7 @@ RSpec.describe Idp::AdminUserCreator, :jwt_only do
     end
 
     it 'persists and links an instance of the given class' do
-      user = described_class.call(connector_id: connector_id, email: 'hmis@example.com', first_name: 'H', last_name: 'M', user_class: Hmis::User)
+      user = call(email: 'hmis@example.com', first_name: 'H', last_name: 'M', user_class: Hmis::User)
 
       expect(user).to be_a(Hmis::User)
       expect(user).to be_persisted

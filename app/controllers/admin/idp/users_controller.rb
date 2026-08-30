@@ -9,9 +9,13 @@
 class Admin::Idp::UsersController < ApplicationController
   include ::Admin::Concerns::UserManagementBehavior
 
-  before_action :require_user_creation_available!, only: [:new, :create]
+  # The create form's "Local account only" choice. Not blank: a blank value matches the record's nil
+  # connector_id and would come back pre-selected on the radios, which must have no default.
+  LOCAL_ONLY_CONNECTOR = 'local-only'
+
   before_action :set_connectors, only: [:new, :create]
-  helper_method :idp_user_creation_available?
+  before_action :set_agencies, only: [:new, :create]
+  helper_method :local_only_connector
 
   # Fall back to the shared admin/users templates for any views this arm doesn't override:
   def _prefixes
@@ -48,26 +52,34 @@ class Admin::Idp::UsersController < ApplicationController
   end
 
   def create
+    # Only the radios (several connectors, no default) can come back unanswered; the checkbox and
+    # hidden-field forms always submit a value. Local-only submits LOCAL_ONLY_CONNECTOR, not blank.
+    return render_missing_connector if @connectors.many? && new_user_params[:connector_id].blank?
+
     @user = ::Idp::AdminUserCreator.call(
       connector_id: create_connector_id,
       email: new_user_params[:email],
       first_name: new_user_params[:first_name],
       last_name: new_user_params[:last_name],
+      agency_id: agency_scope.where(id: new_user_params[:agency_id]).pick(:id),
     )
   rescue ActiveRecord::RecordInvalid => e
     @user = e.record
+    # AdminUserCreator doesn't set the virtual attribute, so put the admin's pick back on the record
+    # for the re-rendered radios.
+    @user.connector_id = new_user_params[:connector_id]
     flash.now[:error] = 'Please review the form problems below'
     render :new
   rescue ::Idp::ConflictError => e
     # The address is registered to a different account in the IdP. AdminUserCreator links to an
     # existing account by email rather than colliding with it, so this is the narrower case of a
     # username/email clash inside the realm — a form problem, not a broken connector.
-    @user = User.new(new_user_params.except(:connector_id))
+    @user = User.new(new_user_params)
     @user.errors.add(:email, "is already registered with #{e.idp_name}")
     flash.now[:error] = 'Please review the form problems below'
     render :new
   rescue ::Idp::ServiceError => e
-    @user = User.new(new_user_params.except(:connector_id))
+    @user = User.new(new_user_params)
     flash.now[:error] = "Couldn't create the account in the identity provider: #{e.message}"
     render :new
   else
@@ -144,6 +156,13 @@ class Admin::Idp::UsersController < ApplicationController
   private def skip_email_reconfirmation
   end
 
+  private def render_missing_connector
+    @user = User.new(new_user_params)
+    @user.errors.add(:connector_id, 'must be chosen')
+    flash.now[:error] = 'Please review the form problems below'
+    render :new
+  end
+
   private def creation_notice(user, emailed:)
     parts = ["Account created for #{user.email}."]
     parts << 'A setup email has been sent.' if emailed
@@ -151,40 +170,32 @@ class Admin::Idp::UsersController < ApplicationController
     parts.join(' ')
   end
 
-  # Active configs whose IdP can provision new accounts; a deployment may have several, one per
-  # realm. Empty under Devise: provisioning relies on Idp::Support, which is only mixed into the
-  # user models under AuthMethod.jwt?.
+  # Active configs that can actually provision accounts; a deployment may have several, one per
+  # realm, or none. A config without a management API is filtered out rather than offered, since
+  # choosing it would create the account locally anyway. Empty under Devise: provisioning relies on
+  # Idp::Support, which is only mixed into the user models under AuthMethod.jwt?.
   private def available_connectors
-    return [] unless AuthMethod.jwt?
-
-    @available_connectors ||= ::Idp::ServiceConfig.active.order(:name, :id)
-  end
-
-  private def idp_user_creation_available?
-    available_connectors.any?
-  end
-
-  private def require_user_creation_available!
-    return if idp_user_creation_available?
-
-    redirect_to admin_users_path, alert: 'Creating user accounts is not available for this identity provider.'
+    @available_connectors ||= ::Idp::ServiceConfig.active.order(:name, :id).
+      select { |config| config.to_service.supports_user_creation? }
   end
 
   private def set_connectors
     @connectors = available_connectors
   end
 
+  private def local_only_connector
+    LOCAL_ONLY_CONNECTOR
+  end
+
   # Constrained to available_connectors so the connector_id param can't target an arbitrary or
-  # creation-incapable config; falls back to the sole available connector when none is chosen.
+  # creation-incapable config. LOCAL_ONLY_CONNECTOR — and anything else unrecognized — means no
+  # remote account is provisioned.
   private def create_connector_id
     chosen = new_user_params[:connector_id]
-    ids = available_connectors.map(&:connector_id)
-    return chosen if chosen.present? && ids.include?(chosen)
-
-    ids.first
+    available_connectors.map(&:connector_id).include?(chosen) ? chosen : nil
   end
 
   private def new_user_params
-    params.require(:user).permit(:first_name, :last_name, :email, :connector_id)
+    params.require(:user).permit(:first_name, :last_name, :email, :agency_id, :connector_id)
   end
 end
