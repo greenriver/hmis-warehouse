@@ -1,6 +1,6 @@
 # Open Path HMIS Warehouse
 
-The Rails monolith for the Open Path Platform  — a homeless-services system. It covers HMIS data entry, coordinated entry, data warehousing, HUD-compliant reporting, and analytics. The React front-end (`hmis-frontend`) and CAS matching system (`boston-cas`) are separate repos; `docs/architecture/README.md` has the full repo map.
+The Rails monolith for the Open Path Platform  — a homeless-services system. It covers HMIS data entry, coordinated entry, data warehousing, HUD-compliant reporting, and analytics. The React front-end (`hmis-frontend`) and CAS matching system (`boston-cas`) are separate repos.
 
 ## Stack
 
