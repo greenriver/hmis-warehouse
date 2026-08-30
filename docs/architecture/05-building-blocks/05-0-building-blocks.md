@@ -54,7 +54,7 @@ See [Section 3.1](../03-context.md) for full role definitions. HMIS End Users ac
 | **Authentication Layer** | Externalized identity brokering via OAuth2-Proxy, Dex, and Keycloak. | [5.2.3 Authentication](05-2-3-authentication.md) |
 | **Analytics Stack** | ETL orchestration (Airflow), data transformation (DBT), and dashboards (Superset). | [5.2.4 Analytics](05-2-4-analytics.md) |
 | **Warehouse Database** | Primary store for HMIS source tables and normalized warehouse records. | |
-| **Analytics Database** | Separate analytics store holding DBT-modeled data read from the Warehouse DB; serves Superset. | [5.2.4 Analytics](05-2-4-analytics.md) |
+| **Analytics Database** | Separate analytics store holding DBT-modeled data read from the Warehouse DB and data sourced from external integrations; serves Superset. | [5.2.4 Analytics](05-2-4-analytics.md) |
 | **S3 Storage** | Ingestion boundary for HUD CSV exports; hosting for public forms and reports. | |
 
 ### Key Interfaces
@@ -70,9 +70,9 @@ See [Section 3.1](../03-context.md) for full role definitions. HMIS End Users ac
 
 ## 5.2 Level 2
 
-These four containers are opened because each is architecturally significant or volatile: the Warehouse is the bulk of the system, CAS is legacy and being evaluated for consolidation, Authentication is a security boundary mid-migration, and Analytics carries the non-HMIS data path on separate, closed-source infrastructure the platform team operates. The Warehouse Database and S3 Storage stay black boxes — standard infrastructure with no surprising internal structure.
+Four containers are decomposed here because each is architecturally significant or volatile: the Warehouse is the bulk of the system, CAS is legacy and being evaluated for consolidation, Authentication is a security boundary mid-migration, and Analytics handles data that doesn't come through HMIS and runs on a separate stack the platform team operates outside the open-source codebase.
 
-The following sub-sections open selected containers from the diagram above:
+The following sub-sections decompose selected containers from the diagram above:
 
 - **[5.2.1 Warehouse Application](05-2-1-warehouse.md)** — Internal module groupings of the core Rails monolith, including the driver catalog.
 - **[5.2.2 CAS](05-2-2-cas.md)** — Internal components of the legacy matching system.
