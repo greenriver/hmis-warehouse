@@ -57,6 +57,10 @@ class AppResourceMonitor::PostgresInspector
     select_all(format(TOAST_STATS_SQL, query_variables))
   end
 
+  def sequence_stats
+    select_all(format(SEQUENCE_STATS_SQL, query_variables))
+  end
+
   def query_variables
     db_name = connection.current_database
     {
@@ -113,6 +117,36 @@ class AppResourceMonitor::PostgresInspector
       reltoastrelid != 0
     ORDER BY
       table_name;
+  SQL
+
+  SEQUENCE_STATS_SQL = <<~SQL.freeze
+    SELECT
+      %{db_name} AS database,
+      t.relname    AS tablename,
+      a.attname    AS column_name,
+      s.sequencename,
+      COALESCE(s.last_value, 0)::text AS last_value,
+      s.max_value::text               AS max_value,
+      CASE
+        WHEN s.last_value IS NULL THEN '0'
+        ELSE ROUND((s.last_value::numeric / s.max_value::numeric) * 100, 4)::text
+      END AS pct_used
+    FROM pg_sequences s
+    JOIN pg_class seq
+      ON seq.relname = s.sequencename
+     AND seq.relnamespace = (SELECT oid FROM pg_namespace WHERE nspname = s.schemaname)
+    JOIN pg_depend d
+      ON d.objid        = seq.oid
+     AND d.classid      = 'pg_class'::regclass
+     AND d.refclassid   = 'pg_class'::regclass
+     AND d.deptype      = 'a'
+    JOIN pg_class t ON t.oid = d.refobjid
+    JOIN pg_attribute a
+      ON a.attrelid = t.oid
+     AND a.attnum   = d.refobjsubid
+    JOIN pg_namespace n ON n.oid = t.relnamespace
+    WHERE n.nspname = %{schema}
+    ORDER BY pct_used DESC, t.relname;
   SQL
 
   INDEX_STATS_SQL = <<~SQL.freeze
