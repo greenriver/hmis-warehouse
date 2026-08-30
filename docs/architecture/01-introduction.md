@@ -25,7 +25,7 @@ These five **quality goals** are the architecture's drivers, in priority order.
 | 2 | **Data Integrity & Auditability** | An HMIS Lead questions a figure in a generated report and drills into the exact client records and data sources that produced it. | [Q-4–Q-6, Q-25](10-quality.md#102-quality-scenarios) |
 | 3 | **Client Protection & Fair Access** | A staff member views a client record but lacks the permission to view PII; PII fields are withheld; all client information is restricted from users who have not been granted access. | [Q-7–Q-9, Q-21, Q-26](10-quality.md#102-quality-scenarios) |
 | 4 | **Availability & Resilience** | Front-line staff can work in the HMIS without interruption through peak intake hours while a large report runs in the background. | [Q-22, Q-23](10-quality.md#102-quality-scenarios) |
-| 5 | **Data Scalability** | A statewide deployment accumulates ten years of service data; reporting stays within its time budget and storage growth stays bounded, without re-architecting. | [Q-11, Q-12, Q-27](10-quality.md#102-quality-scenarios) |
+| 5 | **Data Scalability** | A statewide deployment accumulates ten years of service data; reporting stays within its time budget and storage growth stays bounded, without re-architecting. | [Q-27, Q-29](10-quality.md#102-quality-scenarios) |
 
 Three further qualities — Operational Self-Sufficiency, Interoperability, and Usability — are tracked as **secondary quality requirements**: real acceptance criteria, but not ranked architectural drivers.
 
