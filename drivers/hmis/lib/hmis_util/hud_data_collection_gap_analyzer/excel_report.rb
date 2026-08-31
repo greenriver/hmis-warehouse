@@ -9,9 +9,8 @@
 module HmisUtil
   class HudDataCollectionGapAnalyzer
     # Renders an analyzer Result as a four-sheet workbook: a per-project summary, the two
-    # gap lists, and a rollup that groups gaps by funder / project type / element so a
-    # developer can tell whether a patch should target a funder, a project type, or a
-    # handful of named projects.
+    # gap lists, and a rollup that merges those two lists into one, sorted by funder /
+    # project type / element so the projects needing the same form patch sit together.
     class ExcelReport
       IDENTITY_HEADERS = [
         [:project_id, 'Project ID'],
@@ -44,9 +43,9 @@ module HmisUtil
         ] + PRESENCE_HEADERS
       ).freeze
 
-      ROLLUP_HEADERS = [
-        ['Funders', 'Project Type Name', 'Element', 'Projects Affected', 'Records With Data', 'Project Names'],
-      ].freeze
+      ROLLUP_HEADERS = (
+        IDENTITY_HEADERS + [[:element, 'Element']] + PRESENCE_HEADERS
+      ).freeze
 
       attr_reader :result
 
@@ -64,7 +63,7 @@ module HmisUtil
           add_summary_sheet(workbook, header_style)
           add_rows_sheet(workbook, header_style, 'Field-Level Gaps', FIELD_GAP_HEADERS, result.field_gap_rows)
           add_rows_sheet(workbook, header_style, 'Form-Level Gaps', FORM_GAP_HEADERS, result.form_gap_rows)
-          add_rollup_sheet(workbook, header_style)
+          add_rows_sheet(workbook, header_style, 'Patch Targeting Rollup', ROLLUP_HEADERS, rollup_rows)
         end
       end
 
@@ -90,30 +89,14 @@ module HmisUtil
         end
       end
 
-      def add_rollup_sheet(workbook, header_style)
-        workbook.add_worksheet(name: 'Patch Targeting Rollup') do |sheet|
-          sheet.add_row(ROLLUP_HEADERS.first, style: header_style)
-          rollup_rows.each { |row| sheet.add_row(row) }
-        end
-      end
-
+      # One row per project per gap -- the same data as the Field/Form gap sheets, merged
+      # and sorted so every project that needs the same patch (same funder combination,
+      # project type, and element) sits together.
       def rollup_rows
         gap_rows = result.field_gap_rows.map { |row| row.merge(element: "#{row[:record_type]} / #{row[:link_id]}") } +
           result.form_gap_rows.map { |row| row.merge(element: [row[:form], row[:record_type]].compact.join(' / ')) }
 
-        gap_rows.
-          group_by { |row| [row[:funders], row[:project_type_name], row[:element]] }.
-          map do |(funders, project_type_name, element), rows|
-            [
-              funders,
-              project_type_name,
-              element,
-              rows.map { |row| row[:project_id] }.uniq.size,
-              rows.sum { |row| row[:count] },
-              rows.map { |row| row[:project_name] }.uniq.sort.join('; '),
-            ]
-          end.
-          sort_by { |row| [-row[3], row[2].to_s] }
+        gap_rows.sort_by { |row| [row[:funders].to_s, row[:project_type_name].to_s, row[:element].to_s, row[:project_name].to_s] }
       end
     end
   end

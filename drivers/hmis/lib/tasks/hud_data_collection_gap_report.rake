@@ -14,8 +14,10 @@ task :hud_data_collection_gap_report, [:data_source, :start_date, :end_date, :ou
     puts "Data source not found: #{args.data_source}"
     exit 1
   end
-  date_range = Date.parse(args.start_date)..Date.parse(args.end_date)
-  output_path = args.output_path.presence || "tmp/hud_data_collection_gap_report_#{Date.current.iso8601}.xlsx"
+  start_date = args.start_date.presence || Date.new(2020, 1, 1)
+  end_date = args.end_date.presence || Date.current
+  date_range = start_date..end_date
+  output_path = args.output_path.presence || "tmp/hud_data_collection_gap_report_#{data_source.id}_#{Date.current.iso8601}.xlsx"
 
   result = HmisUtil::HudDataCollectionGapAnalyzer.new(
     data_source: data_source,
@@ -32,5 +34,5 @@ task :hud_data_collection_gap_report, [:data_source, :start_date, :end_date, :ou
   puts "Written to:  #{output_path}"
   puts
   puts 'To retrieve this file via the warehouse UI (Account => Secure Files), run:'
-  puts "  bundle exec rails \"secure_files:upload_to_secure_files[#{output_path},<your_user_id>]\""
+  puts "  bundle exec rails secure_files:upload_to_secure_files[#{output_path},<your_user_id>]"
 end

@@ -79,6 +79,24 @@ RSpec.describe HmisUtil::HudDataCollectionGapAnalyzer do
     end
   end
 
+  describe 'project identity' do
+    it 'reports the same funders string for two projects with the same funders in a different insertion order' do
+      # The rollup sheet groups gaps by this string; if funder order leaked through, two
+      # projects with an identical funder roster would still land in separate rollup rows.
+      coc_psh_funder = hud.funding_source('HUD: CoC - Permanent Supportive Housing', true, raise_on_missing: true)
+      hopwa_funder = hud.funder_components.fetch('HUD: HOPWA').first
+
+      forward = build_project(funders: [coc_psh_funder, hopwa_funder])
+      reversed = build_project(funders: [hopwa_funder, coc_psh_funder])
+
+      rows = analyzer.perform.summary_rows
+      forward_funders = rows.find { |row| row[:project_id] == forward.id }[:funders]
+      reversed_funders = rows.find { |row| row[:project_id] == reversed.id }[:funders]
+
+      expect(forward_funders).to eq(reversed_funders)
+    end
+  end
+
   describe 'field-level gaps' do
     # Verified against the real evaluator at project type 2 (ES Entry/Exit):
     #   no funders     -> income and HOPWA elements both absent from the form

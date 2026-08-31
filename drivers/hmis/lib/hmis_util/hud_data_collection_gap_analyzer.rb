@@ -172,8 +172,11 @@ module HmisUtil
       link_ids
     end
 
+    # Sorted so two projects with the same set of funders produce identical
+    # #project_identity funder strings regardless of Funder row insertion order --
+    # otherwise the rollup sheet's grouping would fragment by that arbitrary order.
     def funder_codes(project)
-      project.funders.filter_map { |funder| funder.Funder&.to_i }
+      project.funders.filter_map { |funder| funder.Funder&.to_i }.sort
     end
 
     def project_identity(project)
