@@ -171,8 +171,8 @@ module Idp::JwtAuthentication
 
   def idp_authenticated_user_from_jwt(user_class: User)
     # find_or_create_from_jwt provisions a user on first sign-in, and updates the Authentication
-    # Source record on every request (via Idp::UserProvisioner).
-    # idp_token_holder memoizes this so it only happens once per request.
+    # Source record on every request (via Idp::UserProvisioner). idp_token_holder memoizes this
+    # so it only happens once per request.
     authenticated_user = idp_token_holder
     return nil unless authenticated_user
 

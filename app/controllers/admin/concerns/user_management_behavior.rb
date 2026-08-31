@@ -513,8 +513,6 @@ module Admin
         @agencies = agency_scope.order(:name)
       end
 
-      # The one seam for narrowing which agencies an admin may assign. Both the assignable
-      # collection and the agency_id check in user_params read it, so they can't disagree.
       private def agency_scope
         Agency.all
       end

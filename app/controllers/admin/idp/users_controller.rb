@@ -9,8 +9,6 @@
 class Admin::Idp::UsersController < ApplicationController
   include ::Admin::Concerns::UserManagementBehavior
 
-  # The create form's "Local account only" choice. Not blank: a blank value matches the record's nil
-  # connector_id and would come back pre-selected on the radios, which must have no default.
   LOCAL_ONLY_CONNECTOR = 'local-only'
 
   before_action :set_connectors, only: [:new, :create]
@@ -52,9 +50,7 @@ class Admin::Idp::UsersController < ApplicationController
   end
 
   def create
-    # Only the radios (several connectors, no default) can come back unanswered; the checkbox and
-    # hidden-field forms always submit a value. Local-only submits LOCAL_ONLY_CONNECTOR, not blank.
-    return render_missing_connector if @connectors.many? && new_user_params[:connector_id].blank?
+    return render_missing_connector if new_user_params[:selected_idp_connector_id].blank?
 
     @user = ::Idp::AdminUserCreator.call(
       connector_id: create_connector_id,
@@ -65,9 +61,7 @@ class Admin::Idp::UsersController < ApplicationController
     )
   rescue ActiveRecord::RecordInvalid => e
     @user = e.record
-    # AdminUserCreator doesn't set the virtual attribute, so put the admin's pick back on the record
-    # for the re-rendered radios.
-    @user.connector_id = new_user_params[:connector_id]
+    @user.selected_idp_connector_id = new_user_params[:selected_idp_connector_id]
     flash.now[:error] = 'Please review the form problems below'
     render :new
   rescue ::Idp::ConflictError => e
@@ -158,7 +152,7 @@ class Admin::Idp::UsersController < ApplicationController
 
   private def render_missing_connector
     @user = User.new(new_user_params)
-    @user.errors.add(:connector_id, 'must be chosen')
+    @user.errors.add(:selected_idp_connector_id, 'must be chosen')
     flash.now[:error] = 'Please review the form problems below'
     render :new
   end
@@ -184,15 +178,15 @@ class Admin::Idp::UsersController < ApplicationController
     LOCAL_ONLY_CONNECTOR
   end
 
-  # Constrained to available_connectors so the connector_id param can't target an arbitrary or
-  # creation-incapable config. LOCAL_ONLY_CONNECTOR — and anything else unrecognized — means no
+  # Constrained to available_connectors so the selected_idp_connector_id param can't target an arbitrary
+  # or creation-incapable config. LOCAL_ONLY_CONNECTOR — and anything else unrecognized — means no
   # remote account is provisioned.
   private def create_connector_id
-    chosen = new_user_params[:connector_id]
+    chosen = new_user_params[:selected_idp_connector_id]
     available_connectors.map(&:connector_id).include?(chosen) ? chosen : nil
   end
 
   private def new_user_params
-    params.require(:user).permit(:first_name, :last_name, :email, :agency_id, :connector_id)
+    params.require(:user).permit(:first_name, :last_name, :email, :agency_id, :selected_idp_connector_id)
   end
 end

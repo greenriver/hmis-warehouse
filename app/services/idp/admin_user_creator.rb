@@ -20,10 +20,7 @@ module Idp
     #   provisioned and no UserAuthenticationSource is written.
     def initialize(connector_id:, email:, first_name:, last_name:, agency_id: nil, user_class: User)
       @connector_id = connector_id
-      # Normalize the same way Idp::JwtHelper#payload_email does. User.email is stored verbatim and
-      # never downcased on save, so a mixed-case entry here would miss the email-fallback link
-      # (Idp::UserProvisioner#find_existing_user matches the downcased token email) and provision a
-      # duplicate account on first sign-in.
+      # Normalize the same way Idp::JwtHelper#payload_email does.
       @email = email&.strip&.downcase
       @first_name = first_name
       @last_name = last_name
@@ -41,7 +38,7 @@ module Idp
       user = build_user
       user.save!
 
-      # No connector chosen, or no management API: link happens by email on first JWT sign-in.
+      # No management API: link happens by email on first JWT sign-in.
       return user unless service.supports_user_creation?
 
       begin

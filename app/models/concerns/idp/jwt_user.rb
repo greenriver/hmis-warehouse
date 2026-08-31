@@ -12,8 +12,6 @@ module Idp::JwtUser
   extend ActiveSupport::Concern
 
   class_methods do
-    # Creation is always allowed: a token this stack verified is an authenticated person, and the
-    # IdP realm is the access boundary.
     def find_or_create_from_jwt(jwt_helper)
       Idp::UserProvisioner.call(jwt_helper: jwt_helper, user_class: self, allow_create: true, learn: true)
     end
