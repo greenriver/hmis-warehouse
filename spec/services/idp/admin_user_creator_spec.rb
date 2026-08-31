@@ -60,11 +60,11 @@ RSpec.describe Idp::AdminUserCreator, :jwt_only do
       expect(user.user_authentication_sources).to be_empty
     end
 
-    # The link happens by email on first sign-in, and payload_email is downcased. A mixed-case
-    # entry here must be stored downcased so it resolves the same account rather than provisioning
-    # a duplicate.
-    it 'downcases the email so first sign-in links the same account instead of duplicating it' do
-      user = call(connector_id: nil, email: 'Mixed.Case@Example.com')
+    # The link happens by email on first sign-in, and payload_email is downcased and stripped. A
+    # mixed-case, space-padded entry here must be stored normalized so it resolves the same account
+    # rather than provisioning a duplicate.
+    it 'normalizes the email so first sign-in links the same account instead of duplicating it' do
+      user = call(connector_id: nil, email: '  Mixed.Case@Example.com  ')
       expect(user.email).to eq('mixed.case@example.com')
 
       jwt_helper = instance_double(
@@ -97,6 +97,43 @@ RSpec.describe Idp::AdminUserCreator, :jwt_only do
     end
   end
 
+  # A lookup hit that carries no usable id is not a match: Keycloak can return a representation
+  # whose id we can't link on, so fall through to creating the account rather than writing a blank
+  # connector_user_id.
+  context 'when the IdP lookup returns a hash with no usable id' do
+    before do
+      allow(service).to receive(:find_user_by_email).and_return('id' => '')
+      allow(service).to receive(:create_user).and_return(success: true, connector_user_id: 'kc-new')
+    end
+
+    it 'provisions a new remote account and links the created id' do
+      user = call
+
+      expect(user.user_authentication_sources.pluck(:connector_user_id)).to eq(['kc-new'])
+      expect(service).to have_received(:create_user).with(email: 'newbie@example.com', first_name: 'New', last_name: 'User')
+    end
+  end
+
+  # Provisioning claims the email locally first, then calls the remote IdP. A failure after that
+  # local save must roll the local user back, or a failed attempt permanently owns the unique email
+  # and no retry for that address can ever succeed. (The 409 arm of this is exercised end-to-end in
+  # the request spec; here we pin the compensation itself: the raise propagates and nothing is left
+  # behind.)
+  context 'when the remote provisioning call fails' do
+    before do
+      allow(service).to receive(:find_user_by_email).and_return(nil)
+      allow(service).to receive(:create_user).
+        and_raise(Idp::ServiceError.new('boom', idp_name: 'Keycloak', operation: :create_user, transient: true))
+    end
+
+    it 'rolls the local user back and re-raises, leaving the email free to retry' do
+      expect { call }.to raise_error(Idp::ServiceError)
+
+      expect(User.find_by(email: 'newbie@example.com')).to be_nil
+      expect(Idp::UserAuthenticationSource.where(connector_id: connector_id)).to be_empty
+    end
+  end
+
   context 'when the email is already taken locally' do
     let!(:existing) { create(:user, email: 'dup@example.com') }
 
@@ -121,12 +158,6 @@ RSpec.describe Idp::AdminUserCreator, :jwt_only do
       expect(user.last_connector_id).to be_nil
       expect(user.user_authentication_sources).to be_empty
       expect(service).not_to have_received(:find_user_by_email)
-    end
-
-    it 'still enforces local email uniqueness' do
-      create(:user, email: 'dup@example.com')
-
-      expect { call(email: 'dup@example.com') }.to raise_error(ActiveRecord::RecordInvalid)
     end
   end
 

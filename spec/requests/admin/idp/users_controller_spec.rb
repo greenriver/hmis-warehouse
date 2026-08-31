@@ -80,7 +80,7 @@ RSpec.describe Admin::Idp::UsersController, :jwt_only, type: :request do
       end
 
       it 'still offers the create button when the connector has no management API (local-only pre-create)' do
-        allow_any_instance_of(::Idp::KeycloakService).to receive(:supports_user_creation?).and_return(false)
+        Idp::ServiceConfig.find_by(connector_id: connector_id).update!(manage_users: false)
         get admin_users_path
         expect(response.body).to include(new_admin_user_path)
       end
@@ -95,11 +95,6 @@ RSpec.describe Admin::Idp::UsersController, :jwt_only, type: :request do
     end
 
     describe 'GET new' do
-      it 'renders the create form' do
-        get new_admin_user_path
-        expect(response).to have_http_status(:ok)
-      end
-
       it 'offers an agency select' do
         agency # created so it can be selected
         get new_admin_user_path
@@ -156,6 +151,27 @@ RSpec.describe Admin::Idp::UsersController, :jwt_only, type: :request do
           expect(response).to redirect_to(edit_admin_user_path(user))
           expect(flash[:notice]).to match(/setup email has been sent/)
           expect(flash[:notice]).to match(/roles and access/i)
+        end
+      end
+
+      # AdminUserCreator downcases the email before the local save and the IdP lookup, so a mixed-case
+      # entry links to the account the token's downcased email will match on first sign-in rather than
+      # provisioning a duplicate.
+      context 'when the email is entered with mixed case' do
+        let(:params) { { user: { first_name: 'New', last_name: 'Bie', email: 'Newbie@Example.com', agency_id: agency.id, connector_id: connector_id } } }
+
+        before do
+          stub_request(:get, users_url).with(query: { email: new_email, exact: 'true' }).to_return(status: 200, body: [].to_json)
+          stub_request(:post, users_url).to_return(status: 201, headers: { 'Location' => "#{users_url}/#{new_kc_id}" })
+          stub_request(:put, actions_url).to_return(status: 204)
+        end
+
+        it 'stores the downcased address locally and looks the IdP up by it' do
+          post admin_users_path, params: params
+
+          expect(User.find_by(email: new_email)).to be_present
+          expect(User.where(email: 'Newbie@Example.com')).to be_empty
+          expect(a_request(:get, users_url).with(query: { email: new_email, exact: 'true' })).to have_been_made
         end
       end
 
@@ -293,13 +309,16 @@ RSpec.describe Admin::Idp::UsersController, :jwt_only, type: :request do
 
     describe 'when the connector has no management API' do
       before do
-        allow_any_instance_of(::Idp::KeycloakService).to receive(:supports_user_creation?).and_return(false)
+        Idp::ServiceConfig.find_by(connector_id: connector_id).update!(manage_users: false)
       end
 
-      it 'renders GET new (the form is available for local-only pre-create)' do
+      it 'renders GET new with no identity provider radios (the form is available for local-only pre-create)' do
         get new_admin_user_path
 
         expect(response).to have_http_status(:ok)
+        html = Nokogiri::HTML(response.body)
+        expect(html.css('input[type=radio][name="user[connector_id]"]')).to be_empty
+        expect(html.css('select#user_agency_id')).to be_present
       end
 
       it 'POST create makes a local-only user with no remote call and no connector link' do
@@ -364,16 +383,8 @@ RSpec.describe Admin::Idp::UsersController, :jwt_only, type: :request do
       expect(unlinked.email).to eq('renamed@example.com')
       expect(a_request(:put, %r{/admin/realms/})).not_to have_been_made
     end
-
-    # The linked account is only locked when its IdP refuses profile writes; the 'test' connector
-    # accepts them, so the fields stay editable there too.
-    it 'locks the identity fields for an account linked to an IdP that refuses profile writes' do
-      allow_any_instance_of(::Idp::KeycloakService).to receive(:supports_profile_updates?).and_return(false)
-      get edit_admin_user_path(target)
-
-      html = Nokogiri::HTML(response.body)
-      expect(html.at_css('input#user_email')['disabled']).to eq('disabled')
-    end
+    # Locking the identity fields for a linked account whose IdP refuses profile writes is covered by
+    # the authenticate-only (manage_users:false) GET edit case below, against the real config path.
   end
 
   describe 'GET index (action-menu gating)' do
@@ -733,22 +744,8 @@ RSpec.describe Admin::Idp::UsersController, :jwt_only, type: :request do
       end
     end
 
-    # Locked is the linked IdP refusing profile writes, so crafted params must not slip past the
-    # disabled inputs. Fields the IdP has no opinion about still save.
-    it 'strips crafted name/email params when the linked IdP refuses profile writes' do
-      allow_any_instance_of(::Idp::KeycloakService).to receive(:supports_profile_updates?).and_return(false)
-
-      patch admin_user_path(target), params: {
-        user: { first_name: 'Hacked', last_name: 'Hacked', email: 'hacked@example.com', notify_on_client_added: '1' },
-      }
-
-      target.reload
-      expect(target.first_name).to eq('Target')
-      expect(target.last_name).to eq('User')
-      expect(target.email).not_to eq('hacked@example.com')
-      expect(target.notify_on_client_added).to be true
-      expect(a_request(:put, /#{Regexp.escape(api_url)}/)).not_to have_been_made
-    end
+    # Stripping crafted name/email params when the linked IdP refuses profile writes is covered by
+    # the authenticate-only (manage_users:false) PATCH update case below, against the real config path.
 
     it 'ignores expired_at (the IdP does not honor local account expiry)' do
       patch admin_user_path(target), params: {
