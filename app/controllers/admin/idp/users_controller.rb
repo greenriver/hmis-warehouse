@@ -178,9 +178,7 @@ class Admin::Idp::UsersController < ApplicationController
     LOCAL_ONLY_CONNECTOR
   end
 
-  # Constrained to available_connectors so the idp_connector_id param can't target an arbitrary
-  # or creation-incapable config. LOCAL_ONLY_CONNECTOR — and anything else unrecognized — means no
-  # remote account is provisioned.
+  # Constrained to available_connectors
   private def create_connector_id
     chosen = new_user_params[:idp_connector_id]
     available_connectors.map(&:connector_id).include?(chosen) ? chosen : nil
