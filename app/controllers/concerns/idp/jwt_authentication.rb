@@ -263,9 +263,7 @@ module Idp::JwtAuthentication
     # Idp::UnauthenticatedRequestError for how the proxy config and route surface let it happen.
     raise Idp::UnauthenticatedRequestError, request.path unless idp_jwt_helper_for_request.token?
 
-    # A valid token we couldn't resolve or provision an account from. Provisioning is
-    # unconditional now, so the remaining case is a token carrying no usable email claim.
-    # Rendered as a terminal page in the same shape as idp_handle_deactivated.
+    # A valid token we could neither resolve nor provision an account from.
     render(template: 'errors/no_warehouse_account', status: :forbidden)
   end
 

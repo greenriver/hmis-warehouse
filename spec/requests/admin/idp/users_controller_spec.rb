@@ -126,7 +126,6 @@ RSpec.describe Admin::Idp::UsersController, :jwt_only, type: :request do
           radios = html.css('input[type=radio][name="user[connector_id]"]')
           # Connectors ordered by name, then the local-only option.
           expect(radios.map { |r| r['value'] }).to eq([connector_id, other_config.connector_id, described_class::LOCAL_ONLY_CONNECTOR])
-          # No default: creating the account in the wrong realm has to be cleaned up in two places.
           expect(radios.select { |r| r['checked'] }).to be_empty
         end
       end
@@ -154,9 +153,6 @@ RSpec.describe Admin::Idp::UsersController, :jwt_only, type: :request do
         end
       end
 
-      # AdminUserCreator downcases the email before the local save and the IdP lookup, so a mixed-case
-      # entry links to the account the token's downcased email will match on first sign-in rather than
-      # provisioning a duplicate.
       context 'when the email is entered with mixed case' do
         let(:params) { { user: { first_name: 'New', last_name: 'Bie', email: 'Newbie@Example.com', agency_id: agency.id, connector_id: connector_id } } }
 
@@ -381,10 +377,8 @@ RSpec.describe Admin::Idp::UsersController, :jwt_only, type: :request do
       unlinked.reload
       expect(unlinked.first_name).to eq('Renamed')
       expect(unlinked.email).to eq('renamed@example.com')
-      expect(a_request(:put, %r{/admin/realms/})).not_to have_been_made
+      expect(a_request(:put, /\/admin\/realms\//)).not_to have_been_made
     end
-    # Locking the identity fields for a linked account whose IdP refuses profile writes is covered by
-    # the authenticate-only (manage_users:false) GET edit case below, against the real config path.
   end
 
   describe 'GET index (action-menu gating)' do
@@ -743,9 +737,6 @@ RSpec.describe Admin::Idp::UsersController, :jwt_only, type: :request do
         expect(Sentry).not_to have_received(:capture_exception_with_info)
       end
     end
-
-    # Stripping crafted name/email params when the linked IdP refuses profile writes is covered by
-    # the authenticate-only (manage_users:false) PATCH update case below, against the real config path.
 
     it 'ignores expired_at (the IdP does not honor local account expiry)' do
       patch admin_user_path(target), params: {

@@ -17,9 +17,7 @@ module Idp
     private_class_method :new
 
     # @param connector_id [String, nil] nil creates a local account only: no remote account is
-    #   provisioned and no UserAuthenticationSource is written. Use for a realm we can't
-    #   provision into (one with no management API, or a provider we don't implement) — the link
-    #   happens by email on first JWT sign-in, same as a connector without a management API.
+    #   provisioned and no UserAuthenticationSource is written.
     def initialize(connector_id:, email:, first_name:, last_name:, agency_id: nil, user_class: User)
       @connector_id = connector_id
       # Normalize the same way Idp::JwtHelper#payload_email does. User.email is stored verbatim and
@@ -36,7 +34,6 @@ module Idp
     # @raise [ActiveRecord::RecordInvalid] the local user is invalid (e.g. email already in use)
     # @raise [Idp::ServiceError] the remote create/lookup failed on a management-API connector
     def call
-      # A blank connector_id resolves to a NullService, which reports no user creation.
       service = Idp::ServiceFactory.for_connector(@connector_id)
 
       # Claim the email locally (unique index) before any irreversible remote call, so concurrent

@@ -69,9 +69,9 @@ RSpec.describe Idp::JwtUser, :jwt_only, type: :model do
   end
 
   describe '.find_or_create_from_jwt' do
-    # Fail-closed claim checks live in the shared provisioner gate and are
-    # covered exhaustively under .find_from_jwt; this is just a smoke test that
-    # this entry point routes through the same gate.
+    # Claim validation lives in the shared provisioner gate and is covered
+    # exhaustively under .find_from_jwt; this is just a smoke test that this
+    # entry point routes through the same gate.
     it 'returns nil when valid? is false' do
       allow(jwt_helper).to receive(:valid?).and_return(false)
       expect(User.find_or_create_from_jwt(jwt_helper)).to be_nil

@@ -116,9 +116,7 @@ RSpec.describe Idp::AdminUserCreator, :jwt_only do
 
   # Provisioning claims the email locally first, then calls the remote IdP. A failure after that
   # local save must roll the local user back, or a failed attempt permanently owns the unique email
-  # and no retry for that address can ever succeed. (The 409 arm of this is exercised end-to-end in
-  # the request spec; here we pin the compensation itself: the raise propagates and nothing is left
-  # behind.)
+  # and no retry for that address can ever succeed.
   context 'when the remote provisioning call fails' do
     before do
       allow(service).to receive(:find_user_by_email).and_return(nil)

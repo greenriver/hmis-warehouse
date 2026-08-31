@@ -61,7 +61,7 @@ module Idp
       @connector_id.present? && @connector_user_id.present?
     end
 
-    # The  attributes that identify one IdP link.
+    # The attributes that identify one IdP link.
     def connector_identity
       { connector_id: @connector_id, connector_user_id: @connector_user_id }
     end

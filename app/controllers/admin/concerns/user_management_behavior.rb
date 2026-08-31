@@ -464,11 +464,6 @@ module Admin
             # User params will never include system user groups in user_group_ids, re-add any of those before saving
             result[:user_group_ids] ||= []
             result[:user_group_ids] += @user.user_groups.system.pluck(:id)
-
-            # users.agency_id has no foreign key (0 is a sentinel for system and JIT-provisioned
-            # accounts), so an id outside agency_scope would save as a dangling or off-limits
-            # reference. Blank it instead and let the presence validation put the admin back on the
-            # form.
             result[:agency_id] = agency_scope.where(id: result[:agency_id]).pick(:id) if result.key?(:agency_id)
           end.
           except(*externally_managed_param_keys)

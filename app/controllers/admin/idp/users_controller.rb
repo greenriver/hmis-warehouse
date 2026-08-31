@@ -170,10 +170,7 @@ class Admin::Idp::UsersController < ApplicationController
     parts.join(' ')
   end
 
-  # Active configs that can actually provision accounts; a deployment may have several, one per
-  # realm, or none. A config without a management API is filtered out rather than offered, since
-  # choosing it would create the account locally anyway. Empty under Devise: provisioning relies on
-  # Idp::Support, which is only mixed into the user models under AuthMethod.jwt?.
+  # Active IdP configs that can actually provision accounts
   private def available_connectors
     @available_connectors ||= ::Idp::ServiceConfig.active.order(:name, :id).
       select { |config| config.to_service.supports_user_creation? }
