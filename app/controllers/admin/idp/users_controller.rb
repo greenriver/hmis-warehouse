@@ -50,7 +50,7 @@ class Admin::Idp::UsersController < ApplicationController
   end
 
   def create
-    return render_missing_connector if new_user_params[:selected_idp_connector_id].blank?
+    return render_missing_connector if new_user_params[:idp_connector_id].blank?
 
     @user = ::Idp::AdminUserCreator.call(
       connector_id: create_connector_id,
@@ -61,7 +61,7 @@ class Admin::Idp::UsersController < ApplicationController
     )
   rescue ActiveRecord::RecordInvalid => e
     @user = e.record
-    @user.selected_idp_connector_id = new_user_params[:selected_idp_connector_id]
+    @user.idp_connector_id = new_user_params[:idp_connector_id]
     flash.now[:error] = 'Please review the form problems below'
     render :new
   rescue ::Idp::ConflictError => e
@@ -152,7 +152,7 @@ class Admin::Idp::UsersController < ApplicationController
 
   private def render_missing_connector
     @user = User.new(new_user_params)
-    @user.errors.add(:selected_idp_connector_id, 'must be chosen')
+    @user.errors.add(:idp_connector_id, 'must be chosen')
     flash.now[:error] = 'Please review the form problems below'
     render :new
   end
@@ -178,15 +178,15 @@ class Admin::Idp::UsersController < ApplicationController
     LOCAL_ONLY_CONNECTOR
   end
 
-  # Constrained to available_connectors so the selected_idp_connector_id param can't target an arbitrary
+  # Constrained to available_connectors so the idp_connector_id param can't target an arbitrary
   # or creation-incapable config. LOCAL_ONLY_CONNECTOR — and anything else unrecognized — means no
   # remote account is provisioned.
   private def create_connector_id
-    chosen = new_user_params[:selected_idp_connector_id]
+    chosen = new_user_params[:idp_connector_id]
     available_connectors.map(&:connector_id).include?(chosen) ? chosen : nil
   end
 
   private def new_user_params
-    params.require(:user).permit(:first_name, :last_name, :email, :agency_id, :selected_idp_connector_id)
+    params.require(:user).permit(:first_name, :last_name, :email, :agency_id, :idp_connector_id)
   end
 end

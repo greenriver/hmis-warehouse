@@ -71,7 +71,7 @@ RSpec.describe Admin::Idp::UsersController, :jwt_only, type: :request do
     let(:new_kc_id) { 'kc-new-id' }
     let(:actions_url) { "#{users_url}/#{new_kc_id}/execute-actions-email" }
     let(:agency) { create(:agency) }
-    let(:params) { { user: { first_name: 'New', last_name: 'Bie', email: new_email, agency_id: agency.id, selected_idp_connector_id: connector_id } } }
+    let(:params) { { user: { first_name: 'New', last_name: 'Bie', email: new_email, agency_id: agency.id, idp_connector_id: connector_id } } }
 
     describe 'GET index' do
       it 'offers an "Add a User Account" button linking to the create form' do
@@ -107,11 +107,11 @@ RSpec.describe Admin::Idp::UsersController, :jwt_only, type: :request do
         get new_admin_user_path
 
         html = Nokogiri::HTML(response.body)
-        expect(html.css('input[type=radio][name="user[selected_idp_connector_id]"]')).to be_empty
-        checkbox = html.at_css('input[type=checkbox][name="user[selected_idp_connector_id]"]')
+        expect(html.css('input[type=radio][name="user[idp_connector_id]"]')).to be_empty
+        checkbox = html.at_css('input[type=checkbox][name="user[idp_connector_id]"]')
         expect(checkbox['value']).to eq(described_class::LOCAL_ONLY_CONNECTOR)
         expect(checkbox['checked']).to be_nil
-        expect(html.at_css('input[type=hidden][name="user[selected_idp_connector_id]"]')['value']).to eq(connector_id)
+        expect(html.at_css('input[type=hidden][name="user[idp_connector_id]"]')['value']).to eq(connector_id)
       end
 
       context 'with several creation-capable connectors' do
@@ -123,7 +123,7 @@ RSpec.describe Admin::Idp::UsersController, :jwt_only, type: :request do
           get new_admin_user_path
 
           html = Nokogiri::HTML(response.body)
-          radios = html.css('input[type=radio][name="user[selected_idp_connector_id]"]')
+          radios = html.css('input[type=radio][name="user[idp_connector_id]"]')
           # Connectors ordered by name, then the local-only option.
           expect(radios.map { |r| r['value'] }).to eq([connector_id, other_config.connector_id, described_class::LOCAL_ONLY_CONNECTOR])
           expect(radios.select { |r| r['checked'] }).to be_empty
@@ -154,7 +154,7 @@ RSpec.describe Admin::Idp::UsersController, :jwt_only, type: :request do
       end
 
       context 'when the email is entered with mixed case' do
-        let(:params) { { user: { first_name: 'New', last_name: 'Bie', email: 'Newbie@Example.com', agency_id: agency.id, selected_idp_connector_id: connector_id } } }
+        let(:params) { { user: { first_name: 'New', last_name: 'Bie', email: 'Newbie@Example.com', agency_id: agency.id, idp_connector_id: connector_id } } }
 
         before do
           stub_request(:get, users_url).with(query: { email: new_email, exact: 'true' }).to_return(status: 200, body: [].to_json)
@@ -213,7 +213,7 @@ RSpec.describe Admin::Idp::UsersController, :jwt_only, type: :request do
       end
 
       context 'when the local-only option is chosen' do
-        let(:params) { { user: { first_name: 'New', last_name: 'Bie', email: new_email, agency_id: agency.id, selected_idp_connector_id: described_class::LOCAL_ONLY_CONNECTOR } } }
+        let(:params) { { user: { first_name: 'New', last_name: 'Bie', email: new_email, agency_id: agency.id, idp_connector_id: described_class::LOCAL_ONLY_CONNECTOR } } }
 
         # The local-only radio is for a realm we can't provision into (an Okta one, say). It must not
         # silently fall back to the sole configured connector and create the account in that realm.
@@ -263,7 +263,7 @@ RSpec.describe Admin::Idp::UsersController, :jwt_only, type: :request do
       end
 
       context 'when no agency is chosen' do
-        let(:params) { { user: { first_name: 'New', last_name: 'Bie', email: new_email, agency_id: '', selected_idp_connector_id: connector_id } } }
+        let(:params) { { user: { first_name: 'New', last_name: 'Bie', email: new_email, agency_id: '', idp_connector_id: connector_id } } }
 
         it 're-renders the form and never provisions the IdP' do
           expect { post admin_users_path, params: params }.not_to change(User, :count)
@@ -313,7 +313,7 @@ RSpec.describe Admin::Idp::UsersController, :jwt_only, type: :request do
 
         expect(response).to have_http_status(:ok)
         html = Nokogiri::HTML(response.body)
-        expect(html.css('input[type=radio][name="user[selected_idp_connector_id]"]')).to be_empty
+        expect(html.css('input[type=radio][name="user[idp_connector_id]"]')).to be_empty
         expect(html.css('select#user_agency_id')).to be_present
       end
 
@@ -338,7 +338,7 @@ RSpec.describe Admin::Idp::UsersController, :jwt_only, type: :request do
 
         expect(response).to have_http_status(:ok)
         html = Nokogiri::HTML(response.body)
-        expect(html.css('input[type=radio][name="user[selected_idp_connector_id]"]')).to be_empty
+        expect(html.css('input[type=radio][name="user[idp_connector_id]"]')).to be_empty
         expect(html.css('select#user_agency_id')).to be_present
       end
 
@@ -792,7 +792,7 @@ RSpec.describe Admin::Idp::UsersController, :jwt_only, type: :request do
 
     it 'refuses to create a user and provisions nothing in the IdP' do
       expect do
-        post admin_users_path, params: { user: { first_name: 'New', last_name: 'Bie', email: 'newbie@example.com', selected_idp_connector_id: connector_id } }
+        post admin_users_path, params: { user: { first_name: 'New', last_name: 'Bie', email: 'newbie@example.com', idp_connector_id: connector_id } }
       end.not_to change(User, :count)
 
       expect(a_request(:get, users_url)).not_to have_been_made

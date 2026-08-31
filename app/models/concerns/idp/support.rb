@@ -12,7 +12,7 @@ module Idp::Support
 
   included do
     # Virtual: the IdP connector an admin picks on the account-create form.
-    attr_accessor :selected_idp_connector_id
+    attr_accessor :idp_connector_id
   end
 
   def idp_service

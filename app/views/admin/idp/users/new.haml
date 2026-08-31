@@ -11,13 +11,13 @@
       = f.input :agency_id, collection: @agencies, label_method: :name, value_method: :id, include_blank: true, as: :select_two, required: true, label: 'Agency'
 
       - if @connectors.none?
-        = f.hidden_field :selected_idp_connector_id, value: local_only_connector
+        = f.hidden_field :idp_connector_id, value: local_only_connector
       - elsif @connectors.one?
-        = f.input :selected_idp_connector_id, as: :boolean, label: 'Manual account setup (advanced)',
+        = f.input :idp_connector_id, as: :boolean, label: 'Manual account setup (advanced)',
           checked_value: local_only_connector, unchecked_value: @connectors.first.connector_id,
           hint: "Leave unchecked unless you are configuring this account manually in an external IdP, such as Okta"
       - else
-        = f.input :selected_idp_connector_id, as: :radio_buttons, required: true, label: 'Identity provider',
+        = f.input :idp_connector_id, as: :radio_buttons, required: true, label: 'Identity provider',
           collection: @connectors.map { |c| [c.name, c.connector_id] } + [['Local account only', local_only_connector]]
 
       .form-actions.mt-4
