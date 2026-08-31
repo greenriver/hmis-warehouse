@@ -22,7 +22,11 @@ module Idp
     #   happens by email on first JWT sign-in, same as a connector without a management API.
     def initialize(connector_id:, email:, first_name:, last_name:, agency_id: nil, user_class: User)
       @connector_id = connector_id
-      @email = email
+      # Normalize the same way Idp::JwtHelper#payload_email does. User.email is stored verbatim and
+      # never downcased on save, so a mixed-case entry here would miss the email-fallback link
+      # (Idp::UserProvisioner#find_existing_user matches the downcased token email) and provision a
+      # duplicate account on first sign-in.
+      @email = email&.strip&.downcase
       @first_name = first_name
       @last_name = last_name
       @agency_id = agency_id

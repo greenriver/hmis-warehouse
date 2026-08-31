@@ -59,6 +59,28 @@ RSpec.describe Idp::AdminUserCreator, :jwt_only do
       expect(user.last_connector_id).to be_nil
       expect(user.user_authentication_sources).to be_empty
     end
+
+    # The link happens by email on first sign-in, and payload_email is downcased. A mixed-case
+    # entry here must be stored downcased so it resolves the same account rather than provisioning
+    # a duplicate.
+    it 'downcases the email so first sign-in links the same account instead of duplicating it' do
+      user = call(connector_id: nil, email: 'Mixed.Case@Example.com')
+      expect(user.email).to eq('mixed.case@example.com')
+
+      jwt_helper = instance_double(
+        Idp::JwtHelper,
+        token?: true,
+        valid?: true,
+        connector_id: nil,
+        connector_user_id: nil,
+        payload_email: 'mixed.case@example.com',
+        first_name: 'Mixed',
+        last_name: 'Case',
+      )
+
+      expect { User.find_or_create_from_jwt(jwt_helper) }.not_to change(User, :count)
+      expect(User.find_or_create_from_jwt(jwt_helper)).to eq(user)
+    end
   end
 
   context 'when the email already exists in the IdP' do
