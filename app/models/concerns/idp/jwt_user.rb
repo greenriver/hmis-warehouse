@@ -12,9 +12,11 @@ module Idp::JwtUser
   extend ActiveSupport::Concern
 
   class_methods do
+    # Creation is always allowed: a token this stack verified is an authenticated person, and the
+    # IdP realm is the access boundary. Provisioning is not gated on connector config, so a
+    # first sign-in never lands on errors/no_warehouse_account.
     def find_or_create_from_jwt(jwt_helper)
-      allow_create = AppConfigProperty.find_by(key: 'idp/auto_create_user')&.value == 'true'
-      Idp::UserProvisioner.call(jwt_helper: jwt_helper, user_class: self, allow_create: allow_create, learn: true)
+      Idp::UserProvisioner.call(jwt_helper: jwt_helper, user_class: self, allow_create: true, learn: true)
     end
 
     def find_from_jwt(jwt_helper)

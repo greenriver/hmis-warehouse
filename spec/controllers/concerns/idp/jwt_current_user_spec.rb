@@ -287,9 +287,9 @@ RSpec.describe Idp::JwtCurrentUser, :jwt_only, type: :controller do
     end
 
     # The other way current_user comes back nil: Idp::UserProvisioner returns nil for a good token
-    # with no matching user row when idp/auto_create_user is off, which is routine on a realm shared
-    # with other apps. A real person who needs an account, so a terminal page — not a 500, and not a
-    # redirect the proxy would bounce straight back with the same token.
+    # it can neither resolve nor provision from — now only a token carrying no email claim, since
+    # provisioning is unconditional. A terminal page — not a 500, and not a redirect the proxy
+    # would bounce straight back with the same token.
     it 'renders a terminal 403 for a good token whose holder has no warehouse account' do
       allow(User).to receive(:find_or_create_from_jwt).and_return(nil)
 
