@@ -82,8 +82,6 @@ RSpec.describe Admin::UsersController, type: :request do
       end
     end
 
-    # users.agency_id has no foreign key, so an id naming no agency would otherwise save as a
-    # dangling reference.
     context 'when the submitted agency does not exist' do
       let!(:agency) { create(:agency) }
       let(:updated_user) { create(:acl_user, agency_id: agency.id) }

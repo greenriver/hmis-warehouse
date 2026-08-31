@@ -69,9 +69,9 @@ RSpec.describe Idp::JwtUser, :jwt_only, type: :model do
   end
 
   describe '.find_or_create_from_jwt' do
-    # Claim validation lives in the shared provisioner gate and is covered
-    # exhaustively under .find_from_jwt; this is just a smoke test that this
-    # entry point routes through the same gate.
+    # Both entry points validate the token the same way in Idp::UserProvisioner, and
+    # .find_from_jwt tests that fully. This one check confirms this method rejects an
+    # invalid token too.
     it 'returns nil when valid? is false' do
       allow(jwt_helper).to receive(:valid?).and_return(false)
       expect(User.find_or_create_from_jwt(jwt_helper)).to be_nil

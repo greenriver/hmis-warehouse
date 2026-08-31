@@ -50,9 +50,7 @@ module Idp
       @connector_id = @jwt_helper.connector_id
       @connector_user_id = @jwt_helper.connector_user_id
 
-      # Email alone resolves or provisions: a token from a local login, or from a connector we
-      # hold no config for, carries no federated_claims, and that person still needs an account.
-      # The durable connector link is learned only when both claims are present.
+      # Email is the only claim we require as it's used to link accounts on first-login
       @email.present?
     end
 
@@ -61,7 +59,6 @@ module Idp
       @connector_id.present? && @connector_user_id.present?
     end
 
-    # The attributes that identify one IdP link.
     def connector_identity
       { connector_id: @connector_id, connector_user_id: @connector_user_id }
     end

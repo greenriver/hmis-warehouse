@@ -60,9 +60,7 @@ RSpec.describe Idp::AdminUserCreator, :jwt_only do
       expect(user.user_authentication_sources).to be_empty
     end
 
-    # The link happens by email on first sign-in, and payload_email is downcased and stripped. A
-    # mixed-case, space-padded entry here must be stored normalized so it resolves the same account
-    # rather than provisioning a duplicate.
+    # payload_email is downcased and stripped to match
     it 'normalizes the email so first sign-in links the same account instead of duplicating it' do
       user = call(connector_id: nil, email: '  Mixed.Case@Example.com  ')
       expect(user.email).to eq('mixed.case@example.com')
@@ -97,20 +95,18 @@ RSpec.describe Idp::AdminUserCreator, :jwt_only do
     end
   end
 
-  # A lookup hit that carries no usable id is not a match: Keycloak can return a representation
-  # whose id we can't link on, so fall through to creating the account rather than writing a blank
-  # connector_user_id.
-  context 'when the IdP lookup returns a hash with no usable id' do
+  # A match with no id is contradictory: the IdP claims the email exists but gives us nothing to
+  # link on. We raise rather than create a duplicate remote account, and the local user rolls back.
+  context 'when the IdP lookup returns a match with no usable id' do
     before do
       allow(service).to receive(:find_user_by_email).and_return('id' => '')
-      allow(service).to receive(:create_user).and_return(success: true, connector_user_id: 'kc-new')
+      allow(service).to receive(:create_user)
     end
 
-    it 'provisions a new remote account and links the created id' do
-      user = call
-
-      expect(user.user_authentication_sources.pluck(:connector_user_id)).to eq(['kc-new'])
-      expect(service).to have_received(:create_user).with(email: 'newbie@example.com', first_name: 'New', last_name: 'User')
+    it 'raises and does not provision or persist a local user' do
+      expect { call }.to raise_error(Idp::ServiceError, /no id/)
+      expect(service).not_to have_received(:create_user)
+      expect(User.where(email: 'newbie@example.com')).to be_empty
     end
   end
 

@@ -77,7 +77,18 @@ module Idp
 
     def find_or_create_connector_user_id(service)
       existing = service.find_user_by_email(email: @email)
-      return existing['id'] if existing && existing['id'].present?
+      if existing
+        # A match with no id is contradictory: the IdP claims this email exists but gives us nothing
+        # to link on. Creating a new account would duplicate it (or 409), so fail loudly instead.
+        raise Idp::ServiceError.new(
+          "IdP returned a match with no id for #{@email}",
+          idp_name: service.idp_name,
+          operation: :find_user_by_email,
+          transient: false,
+        ) if existing['id'].blank?
+
+        return existing['id']
+      end
 
       service.create_user(email: @email, first_name: @first_name, last_name: @last_name).fetch(:connector_user_id)
     end

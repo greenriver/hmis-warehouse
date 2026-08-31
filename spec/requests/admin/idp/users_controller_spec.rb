@@ -85,8 +85,6 @@ RSpec.describe Admin::Idp::UsersController, :jwt_only, type: :request do
         expect(response.body).to include(new_admin_user_path)
       end
 
-      # A local-only account is still worth creating with no connector configured: the IdP matches
-      # it by email on first sign-in.
       it 'still offers the create button when there are no active connectors' do
         ::Idp::ServiceConfig.update_all(active: false)
         get admin_users_path
@@ -230,8 +228,6 @@ RSpec.describe Admin::Idp::UsersController, :jwt_only, type: :request do
         end
       end
 
-      # Distinct from the local-only choice above: no radio was touched at all, which is an
-      # unanswered question, not a request for a local-only account.
       context 'when the identity provider radio is left untouched' do
         let!(:other_config) do
           create(:idp_service_config, connector_id: 'other', provider: 'keycloak', api_url: api_url, keycloak_realm: realm, name: 'Other realm')
@@ -357,8 +353,6 @@ RSpec.describe Admin::Idp::UsersController, :jwt_only, type: :request do
     end
   end
 
-  # An account created local-only has no connector until its first sign-in links it, so the IdP
-  # holds no copy of the profile to be overwritten by a local edit.
   describe 'editing an account with no IdP link' do
     let!(:unlinked) { create(:acl_user, first_name: 'Un', last_name: 'Linked', email: 'unlinked@example.com') }
 
