@@ -4,7 +4,7 @@
 
 This document opens the Authentication Layer container to show its internal components.
 
-The layer is decomposed by trust boundary: a proxy that terminates sessions and injects headers, a broker that normalizes many identity sources into a single OIDC flow, and the identity providers that hold credentials. Splitting the broker from the providers is what lets customer-org IdPs be added or swapped as Dex connectors without any change to the applications behind them.
+The described components below are split by trust boundary: a proxy that terminates sessions and injects headers, a broker that normalizes many identity sources into a single OIDC flow, and the identity providers that hold credentials. Splitting the broker from the providers is what lets customer-org IdPs be added or swapped as Dex connectors without any change to the applications behind them.
 
 > **Transition note:** This section describes the target SSO architecture. During the migration period the platform supports two authentication arms: the legacy Devise arm (local accounts) and the JWT/SSO arm described here. Devise is sunsetting; deployments move to the SSO arm as the required IdP infrastructure is provisioned. See [D-1 in Section 11](../11-risks.md) for status.
 

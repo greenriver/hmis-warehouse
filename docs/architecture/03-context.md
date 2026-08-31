@@ -39,7 +39,7 @@ flowchart TB
     PUBLIC -. "Form submissions" .-> OP
 
     PARTNERS -- "HMIS exports, supplemental data" --> OP
-    OP -- "Scheduled extracts (SFTP)" --> PARTNERS
+    OP -- "Scheduled extracts (S3, SFTP, etc.)" --> PARTNERS
     OP -. "Authentication requests" .-> IDP
     OP -. "required training" .-> LMS
 
@@ -64,7 +64,7 @@ flowchart TB
 | **HUD** | HMIS Data Standards, reporting specifications. | *(No direct interface — see note below.)* |
 | **TalentLMS** | Training completion status. | User training enrollment data. |
 
-Clients are data subjects, not communication partners: their data reaches the platform through staff acting as proxies or through public forms, and they have no interface of their own.
+Clients hold no account and do not use the platform directly: their data reaches it through staff acting on their behalf or through public forms. CAS is the exception: it can notify a client directly about a housing match.
 
 User roles and their expectations of the architecture are listed in [Section 1.3 Stakeholders](01-introduction.md#13-stakeholders).
 
@@ -76,10 +76,10 @@ This table maps each external partner from 3.1 to the channel, protocol, and dat
 | --- | --- | --- | --- |
 | HMIS Frontend (HMIS End Users) | HTTPS, React SPA | HTML/JSON | Browser-based data entry and coordinated entry UI. |
 | Warehouse Web UI (Leads, System Administrators, Open Path Engineering Team) | HTTPS | HTML (server-rendered) | Reporting, configuration, and administration interface. |
-| Superset dashboards (Analysts & Researchers) | Behind the auth layer (OAuth2-Proxy / Dex) | HTML, tabular exports | Hosted dashboards over the analytics database; not public. |
-| HMIS CSV ingestion (Data Exchange Partners) | S3 file deposit | HUD HMIS CSV | Partners deposit exports into designated S3 buckets; Warehouse imports on schedule. |
-| Supplemental data ingestion (Data Exchange Partners) | Airflow → S3 | Varies (CSV, JSON) | Airflow transforms bespoke source data before deposit to S3 for Warehouse pickup. |
-| Downstream extracts (Data Exchange Partners) | Scheduled job → SFTP upload to the partner | Zipped CSV; zipped pipe-delimited text | Warehouse pushes; the partner does not query the platform. One deployment sends a HUD CSV export plus per-domain extracts (clients/MCI, project crosswalk, postings, CE referrals, waitlists) in a daily group, with a 10-year full refresh at each quarter start. Another sends a weekly homelessness-verification file to a state Medicaid agency, with an error report returned on the same SFTP path. |
+| OP Analytics dashboards (Analysts & Researchers) | HTTPS| HTML, tabular exports | Hosted dashboards over the analytics database presented via Apache Superset; not public. |
+| HMIS CSV ingestion (Data Exchange Partners) | S3 file deposit or direct upload | HUD HMIS CSV | Partners upload or deposit exports into designated S3 buckets; Warehouse imports on schedule. |
+| Supplemental data ingestion (Data Exchange Partners) | Airflow → S3 | Varies (CSV, JSON) | Airflow transforms bespoke source data before deposit to S3 for Warehouse or OP Analytics pickup. |
+| Downstream extracts (Data Exchange Partners) | Scheduled job → S3 or other upload to the partner | Data in a standard or custom defined format is extracted and shared via a variety of mechanisms (S3, SFTP, direct API call.) |
 | Public forms (General Public) | S3-hosted static HTML → Lambda → S3 → Warehouse | Form POST (JSON) | Static HTML/JS forms submit to a Lambda function that writes submissions to S3; Warehouse imports on schedule. Used for anonymous data collection (e.g., PIT counts, outreach). |
 | Published static reports (General Public) | Warehouse → public S3 bucket → HTTPS | Static HTML/JS, JSON | Aggregate reports published to a public bucket; read anonymously, usually via an `<iframe>` embed on a CoC or agency website. |
 | Authentication (Identity Providers) | OAuth2 / OIDC | JWT | OAuth2-Proxy + Dex broker identity from upstream IDPs. See [5.2.3 Authentication](05-building-blocks/05-2-3-authentication.md). |

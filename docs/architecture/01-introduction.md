@@ -4,7 +4,7 @@
 
 ## 1.1 Requirements Overview
 
-Open Path Platform is an integrated platform for homeless services management, built to help one or more **Continua of Care (CoC)** meet federal data collection and reporting requirements. It supports deployments of varying scale, ranging from a single municipality to multi-state organizations.
+Open Path is an integrated platform for homeless services management, built to help one or more **Continua of Care (CoC)** meet federal data collection and reporting requirements. It supports deployments of varying scale, ranging from a single organization to multi-state installations.
 
 > **Scope:** This architecture documentation covers the entire Open Path Platform across all of its repositories. Individual building blocks are mapped to their source repositories in [Section 5](05-building-blocks/05-0-building-blocks.md).
 
@@ -21,10 +21,10 @@ These five **quality goals** are the architecture's drivers, in priority order.
 
 | Priority | Quality goal | Scenario | Detail |
 | --- | --- | --- | --- |
-| 1 | **Extensibility & Local Configuration** | HUD publishes revised HMIS Data Standards; they are in production before the compliance deadline, without modifying core domain models and without forking any installation. | [Q-1–Q-6](10-quality.md#102-quality-scenarios) |
+| 1 | **Extensibility & Local Configuration** | HUD publishes revised HMIS Data Standards; they are in production before the compliance deadline. A community also captures a local data element and runs its own Coordinated Entry assessment — both met through configuration or an isolated driver module, without modifying core domain models. | [Q-1–Q-6](10-quality.md#102-quality-scenarios) |
 | 2 | **Data Integrity & Auditability** | An HMIS Lead questions a figure in a generated report and drills into the exact client records and data sources that produced it. | [Q-7–Q-13](10-quality.md#102-quality-scenarios) |
-| 3 | **Client Protection & Fair Access** | A staff member views a client record but lacks the permission to view PII; PII fields are withheld; all client information is restricted from users who have not been granted access. | [Q-14–Q-20](10-quality.md#102-quality-scenarios) |
-| 4 | **Availability & Resilience** | Front-line staff can work in the HMIS without interruption through peak intake hours while a large report runs in the background. | [Q-21, Q-22](10-quality.md#102-quality-scenarios) |
+| 3 | **Client Protection & Fair Access** | A staff member views a client record but lacks the permission to view PII; PII fields are withheld; all client information is restricted from users who have not been granted access. Eligibility and prioritization for housing and service opportunities are still evaluated over the complete client record, so a client is not passed over because the staff member in front of them cannot see the qualifying data. | [Q-14–Q-20](10-quality.md#102-quality-scenarios) |
+| 4 | **Availability & Resilience** | Front-line staff can work in the HMIS without interruption through peak intake hours while imports and large reports run concurrently in the Warehouse. | [Q-21, Q-22](10-quality.md#102-quality-scenarios) |
 | 5 | **Data Scalability** | A statewide deployment accumulates ten years of service data; reporting stays within its time budget and storage growth stays bounded, without re-architecting. | [Q-23, Q-24](10-quality.md#102-quality-scenarios) |
 
 Three further qualities — Operational Self-Sufficiency, Interoperability, and Usability — are tracked as **secondary quality requirements**: real acceptance criteria, but not ranked architectural drivers.
@@ -40,7 +40,7 @@ Three further qualities — Operational Self-Sufficiency, Interoperability, and 
 | **System Administrators** | Manageable configuration for user access, data sources, and system behavior without code changes. |
 | **Analysts & Researchers** | Stable, well-modeled analytics data that supports ad-hoc querying and dashboards. |
 | **Open Path Engineering Team** | Modular, well-documented codebase that supports independent feature development and safe deployments. |
-| **Clients (People Experiencing Homelessness)** | Their PII is disclosed only where a permission grants it, under their community's disclosure rules; decisions that allocate housing to them are recorded and accountable. |
+| **Clients (People Experiencing Homelessness)** | Their PII and HMIS participation details are disclosed only where a permission grants it, under their community's disclosure rules; decisions that allocate housing to them are recorded and accountable. |
 | **Housing Providers & Partner Agencies** | Access limited to the clients and referrals they are responsible for, and a durable record of referral decisions. |
 | **Upstream Data Partners** | Stable ingestion interfaces (S3, API) with clear data format contracts. |
 | **General Public** | Community-level figures readable without an account, aggregate figures only. |

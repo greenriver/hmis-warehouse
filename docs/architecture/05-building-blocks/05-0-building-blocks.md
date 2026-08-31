@@ -70,9 +70,9 @@ See [Section 3.1](../03-context.md) for full role definitions. HMIS End Users ac
 
 ## 5.2 Level 2
 
-Four containers are decomposed here because each is architecturally significant or volatile: the Warehouse is the bulk of the system, CAS is legacy and being evaluated for consolidation, Authentication is a security boundary mid-migration, and Analytics handles data that doesn't come through HMIS and runs on a separate stack the platform team operates outside the open-source codebase.
+Four containers are described here because each is architecturally significant or volatile: the Warehouse is the bulk of the system, CAS is legacy and being evaluated for consolidation, Authentication is a security boundary mid-migration, and Analytics handles data that doesn't come through HMIS and runs on a separate stack the platform team operates outside the open-source codebase.
 
-The following sub-sections decompose selected containers from the diagram above:
+Each has its own sub-section below:
 
 - **[5.2.1 Warehouse Application](05-2-1-warehouse.md)** — Internal module groupings of the core Rails monolith, including the driver catalog.
 - **[5.2.2 CAS](05-2-2-cas.md)** — Internal components of the legacy matching system.
