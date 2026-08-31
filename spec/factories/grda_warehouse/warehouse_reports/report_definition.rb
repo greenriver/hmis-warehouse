@@ -49,6 +49,13 @@ FactoryBot.define do
     description { 'Mapping table to translate warehouse IDs to HMIS Personal IDs' }
   end
 
+  factory :data_source_report, class: 'GrdaWarehouse::WarehouseReports::ReportDefinition' do
+    report_group { 'Operational Reports' }
+    url { 'data_source_report/warehouse_reports/reports' }
+    name { 'Data Source Report' }
+    description { '' }
+  end
+
   factory :access_logs_report, class: 'GrdaWarehouse::WarehouseReports::ReportDefinition' do
     report_group { 'Audit' }
     url { 'access_logs/warehouse_reports/reports' }

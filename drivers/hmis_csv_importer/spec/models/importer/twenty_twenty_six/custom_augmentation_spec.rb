@@ -212,6 +212,8 @@ RSpec.describe 'Custom Augmentation File Imports', type: :model do
 
   describe 'Augmentation files never delete records using factory' do
     before(:all) do
+      cleanup_import_state
+
       # Baseline import
       @baseline_factory = HmisCsvFixtureFactory.new
       @baseline_factory.export_start_date = Date.new(2024, 1, 1)
@@ -276,24 +278,28 @@ RSpec.describe 'Custom Augmentation File Imports', type: :model do
       cleanup_import_state
     end
 
+    # Scoped to this spec's data source: import_hmis_csv_fixture reuses a shared 'Green River' data
+    # source, so an unscoped count reports on whatever else is in the warehouse too.
+    let(:enrollments) { GrdaWarehouse::Hud::Enrollment.where(data_source_id: @data_source.id) }
+
     it 'has augmented enrollments' do
-      expect(GrdaWarehouse::Hud::Enrollment.where.not(SexualOrientation: nil).count).to eq(2)
+      expect(enrollments.where.not(SexualOrientation: nil).count).to eq(2)
     end
 
     it 'does not remove augmentation data from records not in the file' do
-      enrollment_2 = GrdaWarehouse::Hud::Enrollment.find_by(EnrollmentID: 'enroll-2')
+      enrollment_2 = enrollments.find_by(EnrollmentID: 'enroll-2')
       expect(enrollment_2.SexualOrientation).to eq(2)
       expect(enrollment_2.TranslationNeeded).to eq(1)
     end
 
     it 'updates the enrollment that is in the file' do
-      enrollment_1 = GrdaWarehouse::Hud::Enrollment.find_by(EnrollmentID: 'enroll-1')
+      enrollment_1 = enrollments.find_by(EnrollmentID: 'enroll-1')
       expect(enrollment_1.SexualOrientation).to eq(5)
     end
 
     it 'does not delete any enrollments' do
-      expect(GrdaWarehouse::Hud::Enrollment.count).to eq(3)
-      expect(GrdaWarehouse::Hud::Enrollment.only_deleted.count).to eq(0)
+      expect(enrollments.count).to eq(3)
+      expect(enrollments.only_deleted.count).to eq(0)
     end
   end
 end
