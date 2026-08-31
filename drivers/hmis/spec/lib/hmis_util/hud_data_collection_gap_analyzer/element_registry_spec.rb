@@ -1,0 +1,100 @@
+###
+# Copyright Green River Data Group, Inc.
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
+# frozen_string_literal: true
+
+require 'rails_helper'
+
+RSpec.describe HmisUtil::HudDataCollectionGapAnalyzer::ElementRegistry do
+  subject(:registry) { described_class.new }
+
+  let(:elements) { registry.assessment_elements }
+
+  it 'resolves fragments to reach items that the base assessment files only reference' do
+    # base_intake.json itself declares only ENROLLMENT mappings; income items live in
+    # the income_and_sources fragment, so finding one proves fragments were resolved.
+    intake_income = elements.select { |e| e.role == :INTAKE && e.record_type == 'INCOME_BENEFIT' }
+
+    expect(intake_income.map(&:field_name)).to include('incomeFromAnySource')
+  end
+
+  it 'emits only the five target record types' do
+    expect(elements.map(&:record_type).uniq).to match_array(
+      ['INCOME_BENEFIT', 'DISABILITY_GROUP', 'HEALTH_AND_DV', 'EMPLOYMENT_EDUCATION', 'YOUTH_EDUCATION_STATUS'],
+    )
+  end
+
+  it 'excludes disablingCondition, which maps to ENROLLMENT rather than the Disability table' do
+    expect(elements.map(&:field_name)).not_to include('disablingCondition')
+  end
+
+  it 'excludes DISPLAY items, which carry no stored data' do
+    expect(elements.map(&:item_type)).not_to include('DISPLAY')
+  end
+
+  it 'maps a camelCase field name to its PascalCase HUD column' do
+    element = elements.find { |e| e.field_name == 'incomeFromAnySource' }
+
+    expect(element.column).to eq(:IncomeFromAnySource)
+  end
+
+  it 'maps a disability response field to its DisabilityType and response column' do
+    element = elements.find { |e| e.field_name == 'physicalDisabilityIndefiniteAndImpairs' }
+
+    expect(element).to have_attributes(
+      disability_type: 5,
+      column: :IndefiniteAndImpairs,
+      association_name: :disabilities,
+    )
+  end
+
+  it 'maps a HOPWA disability field to DisabilityType 8 and its own column' do
+    element = elements.find { |e| e.field_name == 'viralLoad' }
+
+    expect(element).to have_attributes(disability_type: 8, column: :ViralLoad)
+  end
+
+  describe '#definition_tree' do
+    def find_item(node, link_id)
+      return node if node['link_id'] == link_id
+
+      node['item']&.each do |child|
+        found = find_item(child, link_id)
+        return found if found
+      end
+      nil
+    end
+
+    it 'annotates a group link id with the HUD rule that governs its children' do
+      # HUD rules key on group link ids, not the leaf items carrying field names.
+      group = find_item(registry.definition_tree(:INTAKE), 'income_and_sources')
+
+      expect(group['rule']).to include('operator' => 'ANY')
+    end
+
+    it 'leaves leaf items unannotated, since requiredness is inherited from their group' do
+      leaf = find_item(registry.definition_tree(:INTAKE), 'q_4_05_2')
+
+      expect(leaf['rule']).to be_nil
+    end
+
+    it 'returns an independent copy each call, so filtering one does not corrupt the next' do
+      first = registry.definition_tree(:INTAKE)
+      first['item'] = []
+
+      expect(registry.definition_tree(:INTAKE)['item']).to be_present
+    end
+  end
+
+  it 'resolves every element to a column that exists on its target model' do
+    offenders = elements.reject do |element|
+      klass = GrdaWarehouse::Hud::Base.descendants.find { |k| k.name == element.model_name }
+      klass.column_names.include?(element.column.to_s)
+    end
+
+    expect(offenders.map(&:field_name)).to be_empty
+  end
+end
