@@ -29,7 +29,7 @@
             %th= header
       %tbody
         - current_user.policy_context.preload_project_dependencies(@clients.distinct.pluck(:project_id))
-        - current_user.policy_context.preload_client_restriction_dependencies(@clients.distinct.pluck(:destination_client_id).compact)
+        - current_user.policy_context.preload_destination_client_dependencies(@clients.distinct.pluck(:destination_client_id).compact)
         - @clients.preload(:source_client, :data_source).each.with_index do |client, i|
           - pii_policy = current_user.reporting_policy_for_project(project_id: client.project_id, client_id: client.destination_client_id_for_pii)
           %tr

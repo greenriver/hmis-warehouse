@@ -32,6 +32,31 @@ For a collection of resources on an index page, prefer using a helper to render 
   render_paginated_list(scope: @data_sets, item_name: 'data set', list_partial: 'list')
 ```
 
+### Preloading auth dependencies on paginated warehouse views
+
+Same problem as the GraphQL case below (see [Preloading auth dependencies on paginated lists](#preloading-auth-dependencies-on-paginated-lists)), different call sites: a policy check (project access, `client_restricted?`, etc.) per row on a page of records N+1s unless preloaded first, and it must be preloaded against the **paginated** page, not the full unpaginated relation — calling `.to_a`/`pluck` on the pre-pagination scope just to gather ids for a preload materializes the whole result set and defeats the pagination.
+
+Where pagination happens depends on who owns it, and the preload call goes wherever the paginated set becomes known:
+
+- **Controller paginates** (e.g. via `pagy`) — preload right after, before rendering:
+
+  ```ruby
+  @pagy, @clients = pagy(scope, items: pagination_limit)
+  current_user.policy_context.preload_project_dependencies(@clients.map(&:project_id).compact.uniq)
+  current_user.policy_context.preload_destination_client_dependencies(@clients.map(&:destination_client_id_for_pii).compact.uniq)
+  ```
+
+- **View paginates** (e.g. `render_paginated_list`, which calls `pagy` internally and passes the resulting page as `list` to the partial) — preload inside the partial that receives `list`, not in the controller action that built the pre-pagination scope:
+
+  ```haml
+  - destination_client_ids = list.map(&:destination_client_id_for_pii).compact.uniq
+  - current_user.policy_context.preload_destination_client_dependencies(destination_client_ids) if destination_client_ids.any?
+  ```
+
+  A download/export format serving the full (unpaginated) list is a separate code path with its own preload over the full set it actually iterates — don't try to share one preload call between a paginated html view and an unpaginated xlsx export of the same action.
+
+Use the loader that matches the policy you're about to invoke: `preload_project_dependencies`, `preload_destination_client_dependencies` (client restriction — see [PII Redaction](features/warehouse/warehouse-auth-policies.md#pii-redaction)).
+
 ### View Helper methods
 
 Avoid defining global view helpers on ApplicationHelper unless the helper is truly global in scope. Instead constrain the helper to just the controllers where it is used.
