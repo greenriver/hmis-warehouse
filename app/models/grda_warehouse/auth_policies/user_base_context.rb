@@ -30,11 +30,13 @@ class GrdaWarehouse::AuthPolicies::UserBaseContext
     GrdaWarehouse::AuthPolicies::ContextLoaders::RestrictedClientLoader.new
   end
 
-  def client_restricted?(destination_client_id)
-    restricted_client_loader.restricted?(destination_client_id)
+  def client_restricted?(client_id)
+    return false unless client_id # keep first: see RestrictedClientLoader's laziness note
+
+    restricted_client_loader.restricted?(client_id)
   end
 
-  def preload_destination_client_dependencies(destination_client_ids)
-    restricted_client_loader.preload(destination_client_ids)
+  def restricted_clients_cache_token
+    restricted_client_loader.cache_token
   end
 end

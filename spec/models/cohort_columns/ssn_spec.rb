@@ -29,7 +29,7 @@ RSpec.describe CohortColumns::Ssn, type: :model do
 
     it 'fully redacts the SSN when the client is restricted' do
       source_client.mark_as_restricted!(user: hmis_user)
-      expect(column.value(cohort_client)).to eq('Redacted')
+      expect(column.value(cohort_client)).to eq('<span>Redacted</span>')
     end
   end
 end

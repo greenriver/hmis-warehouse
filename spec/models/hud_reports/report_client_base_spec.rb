@@ -159,5 +159,16 @@ RSpec.describe HudReports::ReportClientBase, type: :model do
       spm_client = HudSpmReport::Fy2020::SpmClient.new(client_id: 99)
       expect(spm_client.destination_client_id_for_pii).to eq(99)
     end
+
+    it 'returns nil when the model has neither column' do
+      expect(HmisDataQualityTool::Inventory.new.destination_client_id_for_pii).to be_nil
+    end
+
+    it 'resolves without raising for every item class the DQT report can produce' do
+      item_classes = HmisDataQualityTool::Report.new.send(:result_groups).values.flat_map(&:values).uniq
+      item_classes.each do |klass|
+        expect { klass.new.destination_client_id_for_pii }.not_to raise_error
+      end
+    end
   end
 end

@@ -23,7 +23,10 @@ module HudReports
     end
 
     def destination_client_id_for_pii
-      self.class.column_names.include?('destination_client_id') ? destination_client_id : client_id
+      return destination_client_id if self.class.column_names.include?('destination_client_id')
+      return client_id if self.class.column_names.include?('client_id')
+
+      nil
     end
 
     def self.search_clients(scope, search_term)

@@ -230,4 +230,66 @@ RSpec.describe Cohorts::ClientsController, type: :request do
       end
     end
   end
+
+  describe 'GET /cohorts/:cohort_id/cohort_clients (index, content=true)' do
+    # This is the JSON grid the ag-Grid UI actually renders (app/javascript/cohorts.ts),
+    # via Cohorts::ClientsController#data_for_table -> CohortColumns::Base#pii_provider.
+    # The search-results path above exercises a different controller action entirely.
+    let!(:hmis_ds) { create(:hmis_primary_data_source, visible_in_window: true) }
+    let!(:hmis_user) { create(:hmis_user, data_source: hmis_ds) }
+    let!(:restricted_source_client) { create(:hmis_hud_client, data_source: hmis_ds, first_name: 'CohortClient', last_name: 'Sensitive') }
+    let!(:restricted_destination_client) { create(:hud_client, FirstName: 'CohortClient', LastName: 'Sensitive', SSN: '111223333') }
+    let!(:open_destination_client) { create(:hud_client, FirstName: 'CohortClient', LastName: 'Open', SSN: '444556666') }
+
+    before do
+      # The :cohort factory doesn't create cohort_tabs (unlike CohortsController#create in
+      # the real app), and #search_clients requires one to select a population.
+      GrdaWarehouse::CohortTab.default_rules.each do |rule|
+        cohort.cohort_tabs.create!(**rule)
+      end
+
+      GrdaWarehouse::WarehouseClient.create!(destination_id: restricted_destination_client.id, source_id: restricted_source_client.id, data_source_id: hmis_ds.id, id_in_source: restricted_source_client.id.to_s)
+      restricted_source_client.mark_as_restricted!(user: hmis_user)
+
+      cohort.cohort_clients.create!(client_id: restricted_destination_client.id)
+      cohort.cohort_clients.create!(client_id: open_destination_client.id)
+      cohort.update!(column_state: [
+                       CohortColumns::FirstName.new,
+                       CohortColumns::LastName.new,
+                       CohortColumns::Dob.new,
+                       CohortColumns::Ssn.new,
+                     ])
+      sign_in user
+    end
+
+    it "redacts the restricted client's PII cells and leaves the unrestricted client's intact" do
+      get cohort_cohort_clients_path(cohort, format: :json), params: { content: true, page: 1, per: 50 }
+
+      expect(response).to have_http_status(:ok)
+      rows = JSON.parse(response.body)
+
+      restricted_client_id = cohort.cohort_clients.find_by(client_id: restricted_destination_client.id).id
+      open_client_id = cohort.cohort_clients.find_by(client_id: open_destination_client.id).id
+      restricted_row = rows.find { |row| row['first_name']['cohort_client_id'] == restricted_client_id }
+      open_row = rows.find { |row| row['first_name']['cohort_client_id'] == open_client_id }
+
+      expect(restricted_row['first_name']['value']).to include(GrdaWarehouse::PiiProvider::NAME_REDACTED)
+      expect(restricted_row['last_name']['value']).to include(GrdaWarehouse::PiiProvider::NAME_REDACTED)
+      expect(restricted_row['ssnumber']['value']).to include(GrdaWarehouse::PiiProvider::REDACTED)
+      expect(response.body).not_to include('Sensitive')
+      expect(response.body).not_to include('111223333')
+
+      expect(open_row['first_name']['value']).to include('CohortClient')
+      expect(open_row['last_name']['value']).to include('Open')
+      expect(open_row['ssnumber']['value']).to include('XXX-XX-6666')
+    end
+
+    it 'wires current_user onto every visible column' do
+      # GrdaWarehouse::Cohort#visible_columns sets current_user on each column; without
+      # that, CohortColumns::Base#client_restricted? raises on a nil current_user.
+      get cohort_cohort_clients_path(cohort, format: :json), params: { content: true, page: 1, per: 50 }
+
+      expect(response).to have_http_status(:ok)
+    end
+  end
 end

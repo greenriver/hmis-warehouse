@@ -19,9 +19,7 @@ module CohortColumns
     end
 
     def value(cohort_client)
-      return GrdaWarehouse::PiiProvider::REDACTED if client_restricted?(cohort_client)
-
-      ssn(cohort_client.client.SSN)
+      content_tag(:span, pii_provider(cohort_client).ssn)
     end
 
     # Don't report PII in Cohort Data, this can be obtained from the PII store

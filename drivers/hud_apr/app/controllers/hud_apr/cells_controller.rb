@@ -66,8 +66,6 @@ module HudApr
       @pagy, @clients = pagy(scope, items: pagination_limit)
       project_ids = @clients.map(&:project_id).compact.uniq
       current_user.policy_context.preload_project_dependencies(project_ids) if project_ids.any?
-      destination_client_ids = @clients.map(&:destination_client_id_for_pii).compact.uniq
-      current_user.policy_context.preload_destination_client_dependencies(destination_client_ids) if destination_client_ids.any?
       render 'hud_apr/shared/cells/show'
     end
 
