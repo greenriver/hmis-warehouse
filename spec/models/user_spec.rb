@@ -400,6 +400,19 @@ RSpec.describe User, type: :model do
       expect(user.reporting_policy_for_project(project_id: nil)).to eq(GrdaWarehouse::AuthPolicies::AllowPiiPolicy.instance)
     end
 
+    it 'wraps AllowPiiPolicy when project_id is nil and the given client is restricted' do
+      allow(user.policy_context).to receive(:client_restricted?).with(42).and_return(true)
+      policy = user.reporting_policy_for_project(project_id: nil, client_id: 42)
+      expect(policy).to be_a(GrdaWarehouse::PiiProvider::RestrictedPolicy)
+      expect(policy.can_view_name?).to eq(false)
+    end
+
+    it 'does not wrap AllowPiiPolicy when project_id is nil and the given client is not restricted' do
+      allow(user.policy_context).to receive(:client_restricted?).with(42).and_return(false)
+      policy = user.reporting_policy_for_project(project_id: nil, client_id: 42)
+      expect(policy).to eq(GrdaWarehouse::AuthPolicies::AllowPiiPolicy.instance)
+    end
+
     it 'is unaffected by restriction when client_id is not provided' do
       expect(user.reporting_policy_for_project(project_id: project.id)).to be_a(GrdaWarehouse::AuthPolicies::ProjectPiiPolicy)
     end
