@@ -56,7 +56,7 @@ module HmisUtil
       end
 
       def hud
-        @hud ||= HudHelper.util
+        @hud ||= HudHelper.util(HUD_VERSION)
       end
     end
   end

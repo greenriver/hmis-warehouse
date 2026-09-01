@@ -44,12 +44,15 @@ module HmisUtil
         @date_range = date_range
       end
 
+      # Cached by the query the element resolves to rather than by the element itself: the
+      # same HUD field recurs across intake, update, annual and exit, and nothing in the
+      # query depends on which assessment role it came from.
+      #
       # @param element [Element]
       # @return [Presence]
       def field_presence(element)
-        scope = base_scope(element.association_name)
-        scope = scope.where(DisabilityType: element.disability_type) if element.disability?
-        aggregate(scope.where(real_data_condition(element)), element.association_name)
+        key = [element.association_name, element.disability_type, element.column, element.item_type]
+        field_presence_cache[key] ||= compute_field_presence(element)
       end
 
       # @param association_name [Symbol]
@@ -71,6 +74,16 @@ module HmisUtil
       end
 
       protected
+
+      def field_presence_cache
+        @field_presence_cache ||= {}
+      end
+
+      def compute_field_presence(element)
+        scope = base_scope(element.association_name)
+        scope = scope.where(DisabilityType: element.disability_type) if element.disability?
+        aggregate(scope.where(real_data_condition(element)), element.association_name)
+      end
 
       def base_scope(association_name)
         project.public_send(association_name).where(DATE_COLUMNS.fetch(association_name) => date_range)

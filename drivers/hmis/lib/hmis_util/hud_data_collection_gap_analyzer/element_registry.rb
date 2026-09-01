@@ -47,19 +47,14 @@ module HmisUtil
       # @param role [Symbol]
       # @return [Hash]
       def definition_tree(role)
-        annotated_trees.fetch(role).deep_dup
+        load_definition(role).deep_dup
       end
 
       protected
 
-      def annotated_trees
-        @annotated_trees ||= ASSESSMENT_ROLES.index_with { |role| load_definition(role) }
-      end
-
       def elements_for_role(role)
-        definition = load_definition(role)
         elements = []
-        walk_nodes(definition) do |item|
+        walk_nodes(load_definition(role)) do |item|
           element = build_element(role, item)
           elements << element if element
         end
@@ -89,6 +84,14 @@ module HmisUtil
       end
 
       def load_definition(role)
+        definitions[role] ||= build_definition(role)
+      end
+
+      def definitions
+        @definitions ||= {}
+      end
+
+      def build_definition(role)
         definition = JSON.parse(File.read("#{DATA_DIR}/assessments/base_#{role.to_s.downcase}.json"))
         walk_nodes(definition) { |item| resolve_fragment!(item) }
         apply_hud_rules!(definition, role)
@@ -102,6 +105,11 @@ module HmisUtil
       # Mirrors the rule half of Hmis::Form::Definition#set_hud_requirements: HUD rules are
       # not stored in the JSON, they are written onto matching link ids at seed time. Rules
       # key on group link ids, and DefinitionItemFilter drops a failing group's descendants.
+      #
+      # Those group link ids sit on nodes the base assessment file owns. Nodes reached
+      # through a fragment are shared with every other role referencing that fragment,
+      # because resolve_fragment! merges the fragment's child array by reference, so a rule
+      # keyed on one of them would be written once and then read by all five roles.
       def apply_hud_rules!(definition, role)
         walk_nodes(definition) do |item|
           # hud_data_element_rule calls link_id.to_sym; container nodes often have none.

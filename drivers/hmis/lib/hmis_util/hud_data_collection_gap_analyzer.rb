@@ -20,6 +20,8 @@ module HmisUtil
   class HudDataCollectionGapAnalyzer
     Result = Struct.new(:summary_rows, :field_gap_rows, :form_gap_rows, keyword_init: true)
 
+    HUD_VERSION = '2026'
+
     CURRENT_LIVING_SITUATION_FORM = 'Current Living Situation'
     SERVICE_FORM = 'Service'
 
@@ -73,6 +75,18 @@ module HmisUtil
       @registry ||= ElementRegistry.new
     end
 
+    def hud
+      @hud ||= HudHelper.util(HUD_VERSION)
+    end
+
+    # Roles that contribute no scannable element are omitted: nothing in them can be
+    # reported as a gap, so neither their elements nor their filter run is needed.
+    #
+    # @return [Hash{Symbol => Array<Element>}]
+    def elements_by_role
+      @elements_by_role ||= registry.assessment_elements.group_by(&:role)
+    end
+
     def summary_row(project, scanner)
       row = project_identity(project)
       SUMMARY_ASSOCIATIONS.each do |association_name|
@@ -87,21 +101,23 @@ module HmisUtil
     def field_gaps(project, scanner)
       required = required_link_ids(project)
 
-      registry.assessment_elements.filter_map do |element|
-        next if element.link_id.in?(required.fetch(element.role))
+      elements_by_role.flat_map do |role, elements|
+        elements.filter_map do |element|
+          next if element.link_id.in?(required.fetch(role))
 
-        presence = scanner.field_presence(element)
-        next unless presence.any?
+          presence = scanner.field_presence(element)
+          next unless presence.any?
 
-        project_identity(project).merge(
-          role: element.role,
-          link_id: element.link_id,
-          record_type: element.record_type,
-          field_name: element.field_name,
-          count: presence.count,
-          earliest: presence.earliest,
-          latest: presence.latest,
-        )
+          project_identity(project).merge(
+            role: role,
+            link_id: element.link_id,
+            record_type: element.record_type,
+            field_name: element.field_name,
+            count: presence.count,
+            earliest: presence.earliest,
+            latest: presence.latest,
+          )
+        end
       end
     end
 
@@ -146,9 +162,15 @@ module HmisUtil
     # the rule-annotated tree and keep whatever survives -- the same approach as
     # drivers/hmis/lib/tasks/form_definition_psde_alignment_report.rake.
     #
+    # Shared between projects with the same cache key. Every variable a rule in
+    # HudAssessmentFormRules2026 tests -- projectType, projectFunders,
+    # projectFunderComponents -- is a function of that key, so a rule reading anything
+    # further about the project (Hmis::Form::DefinitionItemFilter also exposes projectId and
+    # projectOtherFunders) has to be added to it.
+    #
     # @return [Hash{Symbol => Set<String>}]
     def required_link_ids(project)
-      ElementRegistry::ASSESSMENT_ROLES.index_with do |role|
+      required_link_ids_cache[[project.project_type, funder_codes(project)]] ||= elements_by_role.keys.index_with do |role|
         filtered = Hmis::Form::DefinitionItemFilter.perform(
           definition: registry.definition_tree(role),
           project: project,
@@ -157,6 +179,10 @@ module HmisUtil
         )
         collect_link_ids(filtered)
       end
+    end
+
+    def required_link_ids_cache
+      @required_link_ids_cache ||= {}
     end
 
     # @return [Set<String>]
@@ -184,9 +210,9 @@ module HmisUtil
         project_id: project.id,
         project_name: project.ProjectName,
         project_type: project.project_type,
-        project_type_name: HudHelper.util.project_type(project.project_type),
-        funders: funder_codes(project).map { |code| HudHelper.util.funding_source(code) }.join('; '),
-        funder_components: funder_codes(project).filter_map { |code| HudHelper.util.funder_component(code) }.uniq.join('; '),
+        project_type_name: hud.project_type(project.project_type),
+        funders: funder_codes(project).map { |code| hud.funding_source(code) }.join('; '),
+        funder_components: funder_codes(project).filter_map { |code| hud.funder_component(code) }.uniq.join('; '),
       }
     end
   end

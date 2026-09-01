@@ -14,8 +14,8 @@ task :hud_data_collection_gap_report, [:data_source, :start_date, :end_date, :ou
     puts "Data source not found: #{args.data_source}"
     exit 1
   end
-  start_date = args.start_date.presence || Date.new(2020, 1, 1)
-  end_date = args.end_date.presence || Date.current
+  start_date = args.start_date.presence&.to_date || Date.new(2020, 1, 1)
+  end_date = args.end_date.presence&.to_date || Date.current
   date_range = start_date..end_date
   output_path = args.output_path.presence || "tmp/hud_data_collection_gap_report_#{data_source.id}_#{Date.current.iso8601}.xlsx"
 
