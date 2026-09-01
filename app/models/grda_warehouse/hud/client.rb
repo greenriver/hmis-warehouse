@@ -1397,6 +1397,9 @@ module GrdaWarehouse::Hud
     # id to its source client ids before checking Hmis::RestrictedRecord. A RestrictedRecord
     # can also be placed directly on the destination client id — there's no UI for that yet,
     # but nothing prevents it, and it should restrict the same way a source-level record does.
+    #
+    # Returns the subset of provided destination client ids that are restricted.
+    # A destination client is restricted if any of its source clients are restricted.
     def self.hmis_restricted_destination_client_ids(destination_client_ids)
       return Set.new if destination_client_ids.blank?
 
