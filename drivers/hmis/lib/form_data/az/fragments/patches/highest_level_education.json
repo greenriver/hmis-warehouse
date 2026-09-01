@@ -1,0 +1,162 @@
+[
+  {
+    "form_identifier": "base-intake",
+    "append_items": [
+      {
+        "type": "GROUP",
+        "link_id": "az_education",
+        "text": "Education",
+        "data_collected_about": "HOH_AND_ADULTS",
+        "item": [
+          {
+            "type": "CHOICE",
+            "link_id": "highestlevelofeducati",
+            "text": "Highest Level of Education Attained",
+            "required": false,
+            "warn_if_empty": false,
+            "mapping": {
+              "custom_field_key": "mar_highestlevelofeducati"
+            },
+            "pick_list_options": [
+              {
+                "code": "College or University Completed"
+              },
+              {
+                "code": "High School Diploma or Equivalent"
+              },
+              {
+                "code": "Master's Degree"
+              },
+              {
+                "code": "Uncompleted further education college or university"
+              },
+              {
+                "code": "Uncompleted / Less than highschool"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "form_identifier": "base-exit",
+    "append_items": [
+      {
+        "type": "GROUP",
+        "link_id": "az_education",
+        "text": "Education",
+        "data_collected_about": "HOH_AND_ADULTS",
+        "item": [
+          {
+            "type": "CHOICE",
+            "link_id": "highestlevelofeducati",
+            "text": "Highest Level of Education Attained",
+            "required": false,
+            "warn_if_empty": false,
+            "mapping": {
+              "custom_field_key": "mar_highestlevelofeducati"
+            },
+            "pick_list_options": [
+              {
+                "code": "College or University Completed"
+              },
+              {
+                "code": "High School Diploma or Equivalent"
+              },
+              {
+                "code": "Master's Degree"
+              },
+              {
+                "code": "Uncompleted further education college or university"
+              },
+              {
+                "code": "Uncompleted / Less than highschool"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "form_identifier": "base-update",
+    "append_items": [
+      {
+        "type": "GROUP",
+        "link_id": "az_education",
+        "text": "Education",
+        "data_collected_about": "HOH_AND_ADULTS",
+        "item": [
+          {
+            "type": "CHOICE",
+            "link_id": "highestlevelofeducati",
+            "text": "Highest Level of Education Attained",
+            "required": false,
+            "warn_if_empty": false,
+            "mapping": {
+              "custom_field_key": "mar_highestlevelofeducati"
+            },
+            "pick_list_options": [
+              {
+                "code": "College or University Completed"
+              },
+              {
+                "code": "High School Diploma or Equivalent"
+              },
+              {
+                "code": "Master's Degree"
+              },
+              {
+                "code": "Uncompleted further education college or university"
+              },
+              {
+                "code": "Uncompleted / Less than highschool"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "form_identifier": "base-annual",
+    "append_items": [
+      {
+        "type": "GROUP",
+        "link_id": "az_education",
+        "text": "Education",
+        "data_collected_about": "HOH_AND_ADULTS",
+        "item": [
+          {
+            "type": "CHOICE",
+            "link_id": "highestlevelofeducati",
+            "text": "Highest Level of Education Attained",
+            "required": false,
+            "warn_if_empty": false,
+            "mapping": {
+              "custom_field_key": "mar_highestlevelofeducati"
+            },
+            "pick_list_options": [
+              {
+                "code": "College or University Completed"
+              },
+              {
+                "code": "High School Diploma or Equivalent"
+              },
+              {
+                "code": "Master's Degree"
+              },
+              {
+                "code": "Uncompleted further education college or university"
+              },
+              {
+                "code": "Uncompleted / Less than highschool"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+]
