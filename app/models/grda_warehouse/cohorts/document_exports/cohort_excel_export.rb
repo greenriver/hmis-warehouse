@@ -27,7 +27,7 @@ module GrdaWarehouse::Cohorts::DocumentExports
     end
 
     protected def cohort_clients
-      cohort.search_clients(population: population, user: user)
+      @cohort_clients ||= cohort.search_clients(population: population, user: user)
     end
 
     protected def population
@@ -55,6 +55,7 @@ module GrdaWarehouse::Cohorts::DocumentExports
         wb.add_worksheet(name: cohort.sanitized_name.slice(0, 30)) do |sheet|
           title = sheet.styles.add_style(sz: 12, b: true, alignment: { horizontal: :center })
           sheet.add_row(['Warehouse Client ID', 'Alerts'] + cohort.visible_columns(user: user).map(&:title), style: title)
+          user.policy_context.preload_destination_client_dependencies(cohort_clients.map(&:client_id).compact.uniq)
           cohort_clients.each do |cohort_client|
             row = [cohort_client.client_id]
             row += ([CohortColumns::Meta.new] + cohort.visible_columns(user: user)).map do |column|
