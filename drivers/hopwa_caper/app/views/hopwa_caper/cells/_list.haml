@@ -1,7 +1,7 @@
 - project_ids = list.map(&:project_id).uniq
 - current_user.policy_context.preload_project_dependencies(project_ids)
 - destination_client_ids = list.map(&:destination_client_id_for_pii).compact.uniq
-- current_user.policy_context.preload_client_restriction_dependencies(destination_client_ids) if destination_client_ids.any?
+- current_user.policy_context.preload_destination_client_dependencies(destination_client_ids) if destination_client_ids.any?
 - presenter = presenter_class.new(list, @report, current_user, format: :html)
 - display_headers = presenter.headers
 .card.overflow-x-scroll{style: "max-height: 80vh"}
