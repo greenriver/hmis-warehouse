@@ -34,7 +34,7 @@ For a collection of resources on an index page, prefer using a helper to render 
 
 ### Preloading auth dependencies on paginated warehouse views
 
-Same problem as the GraphQL case below (see [Preloading auth dependencies on paginated lists](#preloading-auth-dependencies-on-paginated-lists)), different call sites: a policy check (project access, `client_restricted?`, etc.) per row on a page of records N+1s unless preloaded first, and it must be preloaded against the **paginated** page, not the full unpaginated relation — calling `.to_a`/`pluck` on the pre-pagination scope just to gather ids for a preload materializes the whole result set and defeats the pagination.
+A policy check (project access, `client_restricted?`, etc.) per row on a page of records N+1s unless data is preloaded first.  When the page is paginated, it must be preloaded against the **paginated** page, not the full unpaginated relation — calling `.to_a`/`pluck` on the pre-pagination scope just to gather ids for a preload materializes the whole result set and defeats the pagination.
 
 Where pagination happens depends on who owns it, and the preload call goes wherever the paginated set becomes known:
 
