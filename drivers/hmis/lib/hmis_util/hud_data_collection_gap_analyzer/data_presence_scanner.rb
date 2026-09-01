@@ -8,8 +8,7 @@
 
 module HmisUtil
   class HudDataCollectionGapAnalyzer
-    # Answers "does real data exist for this project?" using COUNT/MIN/MAX only, so a full
-    # data source scan never loads record instances or field values into Ruby.
+    # Answers "does real data exist for this project?" using COUNT/MIN/MAX only.
     class DataPresenceScanner
       include ArelHelper
 
@@ -20,11 +19,7 @@ module HmisUtil
       end
 
       EMPTY = Presence.new(count: 0, earliest: nil, latest: nil).freeze
-
-      # HUD "data not collected". Only meaningful for coded items -- 99 is an ordinary
-      # currency amount or count.
       DATA_NOT_COLLECTED = 99
-
       DATE_COLUMNS = {
         income_benefits: :InformationDate,
         disabilities: :InformationDate,

@@ -24,11 +24,6 @@ module HmisUtil
 
     CURRENT_LIVING_SITUATION_FORM = 'Current Living Situation'
     SERVICE_FORM = 'Service'
-
-    # Every sub-record table the summary sheet reports presence counts for: the five
-    # record types with HUD-required *elements* (ElementRegistry), plus Current Living
-    # Situation and Service, which only ever get accepted or rejected as a whole form
-    # rather than scanned field by field.
     SUMMARY_ASSOCIATIONS = (
       ElementRegistry::RECORD_TYPE_ASSOCIATIONS.values + [:current_living_situations, :services]
     ).freeze
@@ -198,9 +193,6 @@ module HmisUtil
       link_ids
     end
 
-    # Sorted so two projects with the same set of funders produce identical
-    # #project_identity funder strings regardless of Funder row insertion order --
-    # otherwise the rollup sheet's grouping would fragment by that arbitrary order.
     def funder_codes(project)
       project.funders.filter_map { |funder| funder.Funder&.to_i }.sort
     end
