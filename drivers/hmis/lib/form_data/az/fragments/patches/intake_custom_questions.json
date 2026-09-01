@@ -1,5 +1,211 @@
 [
   {
+    "form_identifier": "base-intake",
+    "append_items": [
+      {
+        "type": "GROUP",
+        "link_id": "az_eviction",
+        "text": "Eviction",
+        "item": [
+          {
+            "type": "CHOICE",
+            "link_id": "didyouexperienceanevi",
+            "text": "Did you experience an eviction from housing in the last 12 months?",
+            "required": false,
+            "warn_if_empty": false,
+            "mapping": {
+              "custom_field_key": "mar_didyouexperienceanevi"
+            },
+            "pick_list_options": [
+              {
+                "code": "Yes"
+              },
+              {
+                "code": "No"
+              }
+            ]
+          },
+          {
+            "type": "CHOICE",
+            "link_id": "ifyespleaseselectthet",
+            "text": "IF YES, please select the type of eviction you experienced:",
+            "brief_text": "Type of Eviction",
+            "required": false,
+            "warn_if_empty": false,
+            "mapping": {
+              "custom_field_key": "mar_ifyespleaseselectthet"
+            },
+            "enable_behavior": "ALL",
+            "enable_when": [
+              {
+                "question": "didyouexperienceanevi",
+                "operator": "EQUAL",
+                "answer_code": "Yes"
+              }
+            ],
+            "pick_list_options": [
+              {
+                "code": "Non-Payment of Rent (COVID-19 Hardship)"
+              },
+              {
+                "code": "Non-Payment of Rent (Non-COVID-19 Related)"
+              },
+              {
+                "code": "Other Issue (Non-Rent)"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "GROUP",
+        "link_id": "az_move_in",
+        "text": "Move-In",
+        "data_collected_about": "HOH",
+        "custom_rule": {
+          "operator": "ANY",
+          "parts": [
+            {
+              "_comment": "PSH",
+              "variable": "projectType",
+              "operator": "EQUAL",
+              "value": 3
+            },
+            {
+              "_comment": "RRH",
+              "variable": "projectType",
+              "operator": "EQUAL",
+              "value": 13
+            },
+            {
+              "_comment": "TH",
+              "variable": "projectType",
+              "operator": "EQUAL",
+              "value": 2
+            },
+            {
+              "_comment": "SSO",
+              "variable": "projectType",
+              "operator": "EQUAL",
+              "value": 6
+            },
+            {
+              "_comment": "HP",
+              "variable": "projectType",
+              "operator": "EQUAL",
+              "value": 12
+            }
+          ]
+        },
+        "item": [
+          {
+            "type": "CHOICE",
+            "link_id": "locationofhousingmove",
+            "text": "Location of Housing Move-In",
+            "required": false,
+            "warn_if_empty": false,
+            "mapping": {
+              "record_type": "ENROLLMENT",
+              "custom_field_key": "mar_locationofhousingmove"
+            },
+            "pick_list_options": [
+              {
+                "code": "Avondale"
+              },
+              {
+                "code": "Buckeye"
+              },
+              {
+                "code": "Chandler"
+              },
+              {
+                "code": "Fountain Hills"
+              },
+              {
+                "code": "Gilbert"
+              },
+              {
+                "code": "Glendale"
+              },
+              {
+                "code": "Goodyear"
+              },
+              {
+                "code": "Mesa"
+              },
+              {
+                "code": "Peoria"
+              },
+              {
+                "code": "Phoenix"
+              },
+              {
+                "code": "Scottsdale"
+              },
+              {
+                "code": "Surprise"
+              },
+              {
+                "code": "Tempe"
+              },
+              {
+                "code": "Tolleson"
+              },
+              {
+                "code": "Tonopah"
+              },
+              {
+                "code": "Other city in Maricopa County"
+              },
+              {
+                "code": "Outside Maricopa County but inside Arizona"
+              },
+              {
+                "code": "Outside Arizona"
+              },
+              {
+                "code": "Client Doesn't Know"
+              },
+              {
+                "code": "Client Refused"
+              },
+              {
+                "code": "Data Not Collected"
+              }
+            ]
+          },
+          {
+            "link_id": "q_3_20",
+            "type": "DATE",
+            "text": "Move-in Date",
+            "mapping": {
+              "record_type": "ENROLLMENT",
+              "field_name": "moveInDate"
+            },
+            "bounds": [
+              {
+                "id": "min-date",
+                "type": "MIN",
+                "value_local_constant": "$entryDate"
+              },
+              {
+                "id": "max-date",
+                "type": "MAX",
+                "value_local_constant": "$exitDate"
+              },
+              {
+                "id": "max-future-date",
+                "type": "MAX",
+                "value_local_constant": "$today",
+                "offset": 7
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
     "link_id": "entry_date_group",
     "append_items": [
       {
@@ -12,54 +218,6 @@
         "mapping": {
           "custom_field_key": "mar_ifcoveredbyahcccsente"
         }
-      },
-      {
-        "type": "CHOICE",
-        "link_id": "didyouexperienceanevi",
-        "text": "Did you experience an eviction from housing in the last 12 months?",
-        "required": false,
-        "warn_if_empty": false,
-        "mapping": {
-          "custom_field_key": "mar_didyouexperienceanevi"
-        },
-        "pick_list_options": [
-          {
-            "code": "Yes"
-          },
-          {
-            "code": "No"
-          }
-        ]
-      },
-      {
-        "type": "CHOICE",
-        "link_id": "ifyespleaseselectthet",
-        "text": "IF YES, please select the type of eviction you experienced:",
-        "brief_text": "Type of Eviction",
-        "required": false,
-        "warn_if_empty": false,
-        "mapping": {
-          "custom_field_key": "mar_ifyespleaseselectthet"
-        },
-        "enable_behavior": "ALL",
-        "enable_when": [
-          {
-            "question": "didyouexperienceanevi",
-            "operator": "EQUAL",
-            "answer_code": "Yes"
-          }
-        ],
-        "pick_list_options": [
-          {
-            "code": "Non-Payment of Rent (COVID-19 Hardship)"
-          },
-          {
-            "code": "Non-Payment of Rent (Non-COVID-19 Related)"
-          },
-          {
-            "code": "Other Issue (Non-Rent)"
-          }
-        ]
       },
       {
         "type": "CHOICE",
@@ -141,81 +299,6 @@
         "warn_if_empty": false,
         "mapping": {
           "custom_field_key": "mar_locationofpriorreside"
-        },
-        "pick_list_options": [
-          {
-            "code": "Avondale"
-          },
-          {
-            "code": "Buckeye"
-          },
-          {
-            "code": "Chandler"
-          },
-          {
-            "code": "Fountain Hills"
-          },
-          {
-            "code": "Gilbert"
-          },
-          {
-            "code": "Glendale"
-          },
-          {
-            "code": "Goodyear"
-          },
-          {
-            "code": "Mesa"
-          },
-          {
-            "code": "Peoria"
-          },
-          {
-            "code": "Phoenix"
-          },
-          {
-            "code": "Scottsdale"
-          },
-          {
-            "code": "Surprise"
-          },
-          {
-            "code": "Tempe"
-          },
-          {
-            "code": "Tolleson"
-          },
-          {
-            "code": "Tonopah"
-          },
-          {
-            "code": "Other city in Maricopa County"
-          },
-          {
-            "code": "Outside Maricopa County but inside Arizona"
-          },
-          {
-            "code": "Outside Arizona"
-          },
-          {
-            "code": "Client Doesn't Know"
-          },
-          {
-            "code": "Client Refused"
-          },
-          {
-            "code": "Data Not Collected"
-          }
-        ]
-      },
-      {
-        "type": "CHOICE",
-        "link_id": "locationofhousingmove",
-        "text": "Location of Housing Move-In",
-        "required": false,
-        "warn_if_empty": false,
-        "mapping": {
-          "custom_field_key": "mar_locationofhousingmove"
         },
         "pick_list_options": [
           {
