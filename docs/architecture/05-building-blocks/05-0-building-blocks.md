@@ -85,5 +85,5 @@ Detailed implementation documentation for individual features lives in [`docs/fe
 
 ## Notes
 
-- **Data Provenance:** The Warehouse preserves all source records alongside normalized data. See [2.3 Conventions](../02-constraints.md) for the source data integrity policy.
+- **Data Provenance:** See [4.3 Core Architectural Patterns](../04-solution-strategy.md#43-core-architectural-patterns) for the source data integrity policy.
 - **TalentLMS:** The Warehouse syncs user training completion with TalentLMS — a minor SaaS integration, not a core architectural boundary.

@@ -63,5 +63,5 @@ These are the mandated reports referenced throughout the [Reporting components](
 | **Destination Record** | A unified, deduplicated warehouse record created by linking one or more source records to a single client identity. |
 | **Driver Module** | An isolated feature directory under `/drivers/[module]` that mirrors the Rails application structure. Used to encapsulate large features (e.g., specific HUD reports, CE workflows) without polluting the core codebase. |
 | **Single Sign-On (SSO)** | Federated authentication via an external IdP (JWT arm), replacing local Devise accounts. Distinct from the HUD project type SSO (Supportive Services Only). See [5.2.3 Authentication](05-building-blocks/05-2-3-authentication.md). |
-| **Source Record** | A record stored in HUD-schema source tables exactly as received from a data source, before normalization or deduplication. |
+| **Source Record** | A record stored in HUD-schema source tables as imported from a data source, before normalization or deduplication. |
 | **Warehouse Client** | The unified client entity in the warehouse, created by deduplication. Links back to all contributing source records across data sources. |

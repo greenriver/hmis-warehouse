@@ -29,7 +29,6 @@ This section describes the constraints that limit design and implementation free
 | Convention | Consequence |
 | --- | --- |
 | **HUD CSV Schema as Source Tables** | Warehouse HUD data tables are 1:1 with the CSV exchange format, using HUD naming conventions. This ensures portability and simplifies compliance validation. |
-| **Imported Data Retained As Received** | The upload from an external HMIS is retained unmodified; corrections applied on the way in are opt-in per data source and write only to the derived copies. Reports surface the remaining upstream data quality issues intentionally, giving HMIS Leads visibility into DQ problems at their source rather than masking them. |
 | **Data Source Provenance** | Every HUD record includes a data source identifier. Combined with the record ID, this forms a composite unique identity enabling multi-source deduplication. |
 | **Driver Module Pattern** | Features are isolated as self-contained module directories under `/drivers/`, which is one way the Multi-Installation Customization constraint above is satisfied without forking. See [8.3 Driver Module Pattern](08-concepts/08-3-driver-module-pattern.md). |
 | **GraphQL API Boundary** | The HMIS React frontend communicates exclusively via GraphQL, enforcing a clean separation between presentation and business logic. |

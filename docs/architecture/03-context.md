@@ -59,6 +59,7 @@ flowchart TB
 | **Analysts & Researchers** | Dashboard queries, filter criteria. | Aggregated analytics, operational dashboards, exportable datasets. |
 | **Open Path Engineering Team** | API/ETL configuration, system maintenance actions. | System health metrics, job status, error logs. |
 | **Data Exchange Partners** (contributing agencies; partner warehouses and state/agency reporting systems) | HUD CSV exports, supplemental data (healthcare, justice), API referrals. | Import validation results, error notifications; scheduled extracts. Outbound extracts are deployment-specific — none run in a default installation. |
+| **Clients (People Experiencing Homelessness)** | *(None directly — see note below.)* | Housing match notifications, sent by CAS. |
 | **General Public** | Anonymous form submissions (e.g., PIT counts, outreach surveys). | Published static reports, typically embedded in CoC or agency public websites; aggregate figures only, no client-level data. |
 | **Identity Providers** (Keycloak, Okta) | Authentication tokens, user identity claims. | Authentication requests, token refresh requests. |
 | **HUD** | HMIS Data Standards, reporting specifications. | *(No direct interface — see note below.)* |
@@ -76,7 +77,7 @@ This table maps each external partner from 3.1 to the channel, protocol, and dat
 | --- | --- | --- | --- |
 | HMIS Frontend (HMIS End Users) | HTTPS, React SPA | HTML/JSON | Browser-based data entry and coordinated entry UI. |
 | Warehouse Web UI (Leads, System Administrators, Open Path Engineering Team) | HTTPS | HTML (server-rendered) | Reporting, configuration, and administration interface. |
-| OP Analytics dashboards (Analysts & Researchers) | HTTPS| HTML, tabular exports | Hosted dashboards over the analytics database presented via Apache Superset; not public. |
+| OP Analytics dashboards (Analysts & Researchers) | HTTPS | HTML, tabular exports | Hosted dashboards over the analytics database presented via Apache Superset; not public. |
 | HMIS CSV ingestion (Data Exchange Partners) | S3 file deposit or direct upload | HUD HMIS CSV | Partners upload or deposit exports into designated S3 buckets; Warehouse imports on schedule. |
 | Supplemental data ingestion (Data Exchange Partners) | Airflow → S3 | Varies (CSV, JSON) | Airflow transforms bespoke source data before deposit to S3 for Warehouse or OP Analytics pickup. |
 | Downstream extracts (Data Exchange Partners) | Scheduled job → S3 or other upload to the partner | Data in a standard or custom defined format is extracted and shared via a variety of mechanisms (S3, SFTP, direct API call.) |
