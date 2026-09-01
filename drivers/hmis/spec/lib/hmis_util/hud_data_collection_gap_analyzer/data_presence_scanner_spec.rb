@@ -181,4 +181,47 @@ RSpec.describe HmisUtil::HudDataCollectionGapAnalyzer::DataPresenceScanner do
       )
     end
   end
+
+  describe '#column_presence' do
+    def hud_enrollment(attrs)
+      create(:hud_enrollment, { data_source_id: data_source.id, ProjectID: project.ProjectID }.merge(attrs))
+    end
+
+    it 'counts an enrollment with the column set but not one with it nil' do
+      hud_enrollment(EntryDate: Date.new(2025, 3, 1), MoveInDate: Date.new(2025, 4, 1))
+      hud_enrollment(EntryDate: Date.new(2025, 5, 1), MoveInDate: nil)
+
+      expect(scanner.column_presence(:enrollments, :MoveInDate)).to have_attributes(
+        count: 1,
+        earliest: Date.new(2025, 3, 1),
+      )
+    end
+
+    it 'excludes 99 (data not collected) for a coded column but counts other values' do
+      hud_enrollment(EntryDate: Date.new(2025, 3, 1), ClientEnrolledInPATH: 0)
+      hud_enrollment(EntryDate: Date.new(2025, 6, 1), ClientEnrolledInPATH: 99)
+      hud_enrollment(EntryDate: Date.new(2025, 7, 1), ClientEnrolledInPATH: nil)
+
+      expect(scanner.column_presence(:enrollments, :ClientEnrolledInPATH, coded: true).count).to eq(1)
+    end
+
+    it 'excludes enrollments outside the date range' do
+      hud_enrollment(EntryDate: Date.new(2024, 12, 31), MoveInDate: Date.new(2024, 12, 31))
+      hud_enrollment(EntryDate: Date.new(2025, 3, 1), MoveInDate: Date.new(2025, 3, 1))
+
+      expect(scanner.column_presence(:enrollments, :MoveInDate).count).to eq(1)
+    end
+
+    it "excludes another project's enrollments" do
+      create(
+        :hud_enrollment,
+        data_source_id: data_source.id,
+        ProjectID: other_project.ProjectID,
+        EntryDate: Date.new(2025, 3, 1),
+        MoveInDate: Date.new(2025, 3, 1),
+      )
+
+      expect(scanner.column_presence(:enrollments, :MoveInDate).count).to eq(0)
+    end
+  end
 end

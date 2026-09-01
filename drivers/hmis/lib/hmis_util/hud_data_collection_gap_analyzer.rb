@@ -28,6 +28,14 @@ module HmisUtil
       ElementRegistry::RECORD_TYPE_ASSOCIATIONS.values + [:current_living_situations, :services]
     ).freeze
 
+    # Enrollment fields with no sub-record of their own, reported as [key prefix, column,
+    # coded?] rather than through SUMMARY_ASSOCIATIONS.
+    ENROLLMENT_FIELD_PRESENCE = [
+      [:enrollment_move_in_date, :MoveInDate, false],
+      [:enrollment_date_of_engagement, :DateOfEngagement, false],
+      [:enrollment_client_enrolled_in_path, :ClientEnrolledInPATH, true],
+    ].freeze
+
     attr_reader :data_source, :date_range
 
     # @param data_source [GrdaWarehouse::DataSource]
@@ -89,6 +97,12 @@ module HmisUtil
         row[:"#{association_name}_count"] = presence.count
         row[:"#{association_name}_earliest"] = presence.earliest
         row[:"#{association_name}_latest"] = presence.latest
+      end
+      ENROLLMENT_FIELD_PRESENCE.each do |key, column, coded|
+        presence = scanner.column_presence(:enrollments, column, coded: coded)
+        row[:"#{key}_count"] = presence.count
+        row[:"#{key}_earliest"] = presence.earliest
+        row[:"#{key}_latest"] = presence.latest
       end
       row
     end

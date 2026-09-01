@@ -28,6 +28,7 @@ module HmisUtil
         youth_education_statuses: :InformationDate,
         current_living_situations: :InformationDate,
         services: :DateProvided,
+        enrollments: :EntryDate,
       }.freeze
 
       attr_reader :project, :date_range
@@ -54,6 +55,21 @@ module HmisUtil
       # @return [Presence]
       def table_presence(association_name)
         aggregate(base_scope(association_name), association_name)
+      end
+
+      # Presence of a single column, rather than an entire sub-record -- for fields that
+      # live directly on an association's own table (e.g. Enrollment.MoveInDate) instead of
+      # a scannable sub-record.
+      #
+      # @param association_name [Symbol]
+      # @param column [Symbol]
+      # @return [Presence]
+      def column_presence(association_name, column, coded: false)
+        scope = base_scope(association_name)
+        arel_col = scope.klass.arel_table[column]
+        condition = arel_col.not_eq(nil)
+        condition = condition.and(arel_col.not_eq(DATA_NOT_COLLECTED)) if coded
+        aggregate(scope.where(condition), association_name)
       end
 
       # @return [Hash{Integer => Presence}] keyed by HUD Service RecordType

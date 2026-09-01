@@ -40,8 +40,8 @@ RSpec.describe HmisUtil::HudDataCollectionGapAnalyzer do
     project
   end
 
-  def enroll(project)
-    create(:hud_enrollment, data_source_id: data_source.id, ProjectID: project.ProjectID)
+  def enroll(project, attrs = {})
+    create(:hud_enrollment, { data_source_id: data_source.id, ProjectID: project.ProjectID }.merge(attrs))
   end
 
   describe 'project universe' do
@@ -94,6 +94,28 @@ RSpec.describe HmisUtil::HudDataCollectionGapAnalyzer do
       reversed_funders = rows.find { |row| row[:project_id] == reversed.id }[:funders]
 
       expect(forward_funders).to eq(reversed_funders)
+    end
+  end
+
+  describe 'enrollment field presence' do
+    it 'counts MoveInDate, DateOfEngagement, and ClientEnrolledInPATH on the summary row' do
+      project = build_project
+      enroll(
+        project,
+        EntryDate: Date.new(2025, 3, 1),
+        MoveInDate: Date.new(2025, 4, 1),
+        DateOfEngagement: Date.new(2025, 3, 15),
+        ClientEnrolledInPATH: 1,
+      )
+      enroll(project, EntryDate: Date.new(2025, 5, 1))
+
+      row = analyzer.perform.summary_rows.find { |r| r[:project_id] == project.id }
+
+      expect(row).to include(
+        enrollment_move_in_date_count: 1,
+        enrollment_date_of_engagement_count: 1,
+        enrollment_client_enrolled_in_path_count: 1,
+      )
     end
   end
 
