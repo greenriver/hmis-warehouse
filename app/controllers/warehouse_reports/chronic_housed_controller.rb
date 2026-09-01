@@ -29,7 +29,6 @@ module WarehouseReports
         end.group_by do |row|
           row[:client_id]
         end
-      current_user.policy_context.preload_client_restriction_dependencies(@clients.keys)
       mode = request.format.symbol == :html ? :browse : :download
       @pii_providers = client_source.where(id: @clients.keys).index_by(&:id).
         transform_values do |client|
