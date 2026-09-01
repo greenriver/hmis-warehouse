@@ -31,6 +31,7 @@ RSpec.describe 'GrdaWarehouse::PiiProvider', type: :model do
       can_view_photo?: false,
       can_view_full_dob?: false,
       can_view_full_ssn?: false,
+      can_view_partial_ssn?: true,
       can_view_hiv_status?: false,
     }
 
@@ -121,6 +122,12 @@ RSpec.describe 'GrdaWarehouse::PiiProvider', type: :model do
       expect(pii.first_name).to eq('Name Redacted')
       expect(pii.dob).to be_nil
     end
+
+    it 'still shows the full ssn even if can_view_partial_ssn? is (incorrectly) false -- full access implies partial' do
+      full_only_policy = new_policy(can_view_full_ssn: true, can_view_partial_ssn: false)
+      pii = GrdaWarehouse::PiiProvider.from_attributes(policy: full_only_policy, **pii_attributes)
+      expect(pii.ssn).to eq(pii_attributes[:ssn])
+    end
   end
 
   context('pii without permissions') do
@@ -175,6 +182,18 @@ RSpec.describe 'GrdaWarehouse::PiiProvider', type: :model do
         expect(restricted_policy.can_view_full_dob?).to eq(false)
         expect(restricted_policy.can_view_photo?).to eq(false)
         expect(restricted_policy.can_view_hiv_status?).to eq(false)
+      end
+
+      it 'blocks the partial (masked) SSN too -- restricted means no SSN at all' do
+        expect(restricted_policy.can_view_partial_ssn?).to eq(false)
+
+        pii = GrdaWarehouse::PiiProvider.from_attributes(policy: restricted_policy, **pii_attributes)
+        expect(pii.ssn).to eq(GrdaWarehouse::PiiProvider::REDACTED)
+      end
+
+      it 'still shows blank rather than "Redacted" when the client has no SSN' do
+        pii = GrdaWarehouse::PiiProvider.from_attributes(policy: restricted_policy, **pii_attributes.merge(ssn: nil))
+        expect(pii.ssn).to be_nil
       end
     end
 

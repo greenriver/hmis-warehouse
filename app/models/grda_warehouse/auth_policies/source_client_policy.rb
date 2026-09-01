@@ -21,6 +21,12 @@ class GrdaWarehouse::AuthPolicies::SourceClientPolicy < GrdaWarehouse::AuthPolic
     end
   end
 
+  # Hand-written, not added to the permission-mapping array above: there is no
+  # can_view_partial_ssn role permission to map from.
+  def can_view_partial_ssn?
+    true
+  end
+
   # can the user see the full client dash page and additional details?
   memoize def can_view?
     return true if resource_permissions.include?(:can_view_clients)

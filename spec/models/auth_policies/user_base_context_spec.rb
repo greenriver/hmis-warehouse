@@ -25,19 +25,18 @@ RSpec.describe GrdaWarehouse::AuthPolicies::UserBaseContext do
       expect(context.client_restricted?(destination_client.id)).to eq(false)
     end
 
-    it 'returns true once the client is restricted' do
+    it 'returns true once the client is restricted, checking by destination id' do
       source_client.mark_as_restricted!(user: hmis_user)
       expect(context.client_restricted?(destination_client.id)).to eq(true)
     end
-  end
 
-  describe '#preload_destination_client_dependencies' do
-    it 'warms the cache so a later check does not requery' do
+    it 'returns true once the client is restricted, checking by source id' do
       source_client.mark_as_restricted!(user: hmis_user)
-      context.preload_destination_client_dependencies([destination_client.id])
+      expect(context.client_restricted?(source_client.id)).to eq(true)
+    end
 
-      expect(GrdaWarehouse::Hud::Client).not_to receive(:hmis_restricted_destination_client_ids)
-      expect(context.client_restricted?(destination_client.id)).to eq(true)
+    it 'returns false for a nil id' do
+      expect(context.client_restricted?(nil)).to eq(false)
     end
   end
 end

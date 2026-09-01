@@ -45,7 +45,7 @@
                   %br
                   Age:
                   = GrdaWarehouse::Hud::Client.age date: Date.current, dob: client[:DOB]
-              %td= client[:restricted] ? GrdaWarehouse::PiiProvider::REDACTED : masked_ssn(client[:SSN])
+              %td= client[:SSN]
               %td= HudHelper.util.veteran_status(client[:VeteranStatus])
               %td= @days_homeless[client[:id]]
               %td= @days_homeless_three_years[client[:id]]

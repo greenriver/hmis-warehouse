@@ -9,7 +9,6 @@ wb.add_worksheet(name: @name.slice(0,30).gsub(':', ' ')) do |sheet|
   title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
   sheet.add_row(HudPathReport::Fy2020::PathClient.detail_headers_for_export.values, style: title)
   current_user.policy_context.preload_project_dependencies(@clients.distinct.pluck(:project_id))
-  current_user.policy_context.preload_destination_client_dependencies(@clients.distinct.pluck(:destination_client_id).compact)
   @clients.each do |client|
     pii_policy = current_user.reporting_policy_for_project(project_id: client.project_id, mode: :download, client_id: client.destination_client_id_for_pii)
     row = []

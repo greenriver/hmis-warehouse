@@ -63,9 +63,6 @@ module Cohorts
       end
       @visible_columns << delete_column if current_user.can_add_cohort_clients?
 
-      destination_client_ids = @cohort_clients.map { |cc| cc.client&.id }.compact.uniq
-      current_user.policy_context.preload_destination_client_dependencies(destination_client_ids) if destination_client_ids.any?
-
       @cohort_clients.each do |cohort_client|
         client = cohort_client.client
         next if client.blank?
@@ -184,14 +181,14 @@ module Cohorts
       end
 
       # If a client has been marked restricted in HMIS, we prevent their PII from showing on the cohort.
-      # We use the AllowPiiPolicy so all other clients' PII, regardless of the user's access are still visible.
-      destination_client_ids = @clients.map { |c| c[:id] }
-      current_user.policy_context.preload_destination_client_dependencies(destination_client_ids)
+      # We use CohortPiiPolicy so all other clients' PII, regardless of the user's access are still
+      # visible, while a restricted client's SSN is redacted here in the hash rather than left raw
+      # for a view to redact later.
       @clients = @clients.map do |c|
         restricted = current_user.policy_context.client_restricted?(c[:id])
-        policy = GrdaWarehouse::PiiProvider.restrict(GrdaWarehouse::AuthPolicies::AllowPiiPolicy.instance, restricted: restricted)
-        provider = GrdaWarehouse::PiiProvider.from_attributes(policy: policy, first_name: c[:FirstName], last_name: c[:LastName], dob: c[:DOB])
-        c.merge(FirstName: provider.first_name, LastName: provider.last_name, DOB: provider.dob, restricted: restricted)
+        policy = GrdaWarehouse::PiiProvider.restrict(GrdaWarehouse::AuthPolicies::CohortPiiPolicy.new(user: current_user), restricted: restricted)
+        provider = GrdaWarehouse::PiiProvider.from_attributes(policy: policy, first_name: c[:FirstName], last_name: c[:LastName], dob: c[:DOB], ssn: c[:SSN])
+        c.merge(FirstName: provider.first_name, LastName: provider.last_name, DOB: provider.dob, SSN: provider.ssn)
       end
 
       @client_notes = cohort_client_notes(@clients)

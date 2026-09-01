@@ -28,9 +28,11 @@ module CohortColumns
     end
 
     # If a client has been marked restricted in HMIS, we prevent their PII from showing on the cohort.
-    # We use the AllowPiiPolicy so all other clients' PII, regardless of the user's access are still visible.
+    # We use CohortPiiPolicy so name/DOB/photo/HIV status stay visible to any cohort viewer
+    # regardless of their other access, while the full SSN still gates on the viewer's
+    # global permission (see GrdaWarehouse::AuthPolicies::CohortPiiPolicy).
     def pii_provider(cohort_client)
-      policy = GrdaWarehouse::PiiProvider.restrict(GrdaWarehouse::AuthPolicies::AllowPiiPolicy.instance, restricted: client_restricted?(cohort_client))
+      policy = GrdaWarehouse::PiiProvider.restrict(GrdaWarehouse::AuthPolicies::CohortPiiPolicy.new(user: current_user), restricted: client_restricted?(cohort_client))
       GrdaWarehouse::PiiProvider.new(cohort_client.client, policy: policy)
     end
 

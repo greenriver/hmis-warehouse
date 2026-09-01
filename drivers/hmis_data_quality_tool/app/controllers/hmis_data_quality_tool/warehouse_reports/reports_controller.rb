@@ -47,7 +47,6 @@ module HmisDataQualityTool::WarehouseReports
       @clients = @report.clients.preload(client: :data_source).order(:last_name, :first_name)
       @pivot_details = @report.pivot_details
       @pagy, @clients = pagy(@clients)
-      current_user.policy_context.preload_destination_client_dependencies(@clients.map(&:destination_client_id_for_pii).compact.uniq)
       respond_to do |format|
         format.html {}
         format.xlsx do
@@ -119,8 +118,6 @@ module HmisDataQualityTool::WarehouseReports
       # Preload project dependencies for PII policy checks
       all_project_ids = all_project_ids_from_items(@items)
       current_user.policy_context.preload_project_dependencies(all_project_ids)
-      all_destination_client_ids = all_destination_client_ids_from_items(@items)
-      current_user.policy_context.preload_destination_client_dependencies(all_destination_client_ids)
 
       respond_to do |format|
         format.html {}
@@ -221,11 +218,5 @@ module HmisDataQualityTool::WarehouseReports
       items.flat_map { |item| item.respond_to?(:project_ids) ? item.project_ids : [item.project_id] }.compact.uniq
     end
     helper_method :all_project_ids_from_items
-
-    # Collects all destination client ids from items, for restriction preloading.
-    def all_destination_client_ids_from_items(items)
-      items.map(&:destination_client_id_for_pii).compact.uniq
-    end
-    helper_method :all_destination_client_ids_from_items
   end
 end

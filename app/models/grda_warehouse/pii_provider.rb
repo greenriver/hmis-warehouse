@@ -34,6 +34,10 @@ class GrdaWarehouse::PiiProvider
       false
     end
 
+    def can_view_partial_ssn?
+      false
+    end
+
     def can_view_full_dob?
       false
     end
@@ -174,8 +178,16 @@ class GrdaWarehouse::PiiProvider
 
   def ssn(force_mask: false)
     value = record.ssn.presence
+    return nil unless value
+    # Restricted means no SSN at all -- matching HmisClientPolicy#can_view_partial_ssn?
+    # (drivers/hmis/app/models/hmis/auth_policies/hmis_client_policy.rb). A blank SSN still
+    # returns nil rather than REDACTED, for the same reason #dob returns nil: implying a value
+    # exists when it doesn't is worse than showing nothing. Full access implies partial access,
+    # so a policy granting can_view_full_ssn? isn't blocked by can_view_partial_ssn? alone.
+    return REDACTED unless policy.can_view_partial_ssn? || policy.can_view_full_ssn?
+
     mask = force_mask || redact_ssn?
-    format_ssn(value, mask: mask) if value
+    format_ssn(value, mask: mask)
   end
 
   # @return [String, nil] (client.image is a string)
