@@ -85,7 +85,6 @@ module HomelessSummaryReport::WarehouseReports
       @detail_clients = @report.clients.public_send(@variant).public_send(@cell).includes(hud_client: :source_clients)
       source_client_ids = @detail_clients.flat_map { |c| c.hud_client&.source_clients&.map(&:id) || [] }.uniq
       current_user.policy_context.preload_client_dependencies(source_client_ids)
-      current_user.policy_context.preload_client_restriction_dependencies(@detail_clients.map(&:client_id))
 
       respond_to do |format|
         format.html {}
