@@ -36,6 +36,6 @@
                       .c-checkbox.c-checkbox.mr-4
                         = check_box_tag input_id, sc.id, nil, id: sc.id
                         %label{for:sc.id, tabindex:'1' }
-                      %span= "#{sc.pii_provider(user: current_user).full_name} in #{sc.data_source&.short_name} <br /> #{sc.uuid}".html_safe
+                      %span= safe_join([sc.pii_provider(user: current_user).full_name, " in #{sc.data_source&.short_name} ", tag.br, " #{sc.uuid}"])
                   %td= sc.pii_provider(user: current_user).dob_or_age
                   %td= sc.pii_provider(user: current_user).ssn

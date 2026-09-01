@@ -57,7 +57,7 @@
               %tr
                 %th Goal or Target
                 - table[:system].each do |detail, data|
-                  %td{ data: { 'bs-toggle' => :tooltip, 'bs-title' => raw(markdown.render(data[:tooltip])), 'bs-html' => 'true' }}= raw markdown.render(data[:goal_description])
+                  %td{ data: { 'bs-toggle' => :tooltip, 'bs-title' => markdown.render(data[:tooltip]), 'bs-html' => 'true' }}= raw markdown.render(data[:goal_description])
             %tbody
               %tr
                 %td System Level
@@ -68,7 +68,7 @@
                   %td= link_to_if can_view_projects?, data[:project_name], project_path(project_id)
                   - data[:values].each do |detail, result|
                     - data = {}
-                    - data = {data: { 'bs-toggle' => :tooltip, 'bs-title' => raw(markdown.render(result[:tooltip])), 'bs-html' => 'true' }} if result[:tooltip].present?
+                    - data = {data: { 'bs-toggle' => :tooltip, 'bs-title' => markdown.render(result[:tooltip]), 'bs-html' => 'true' }} if result[:tooltip].present?
                     %td{class: result[:decorator], **data}
                       - if result[:display_value].present?
                         = result[:display_value]
