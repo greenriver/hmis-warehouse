@@ -34,7 +34,7 @@ class GrdaWarehouse::AuthPolicies::UserBaseContext
     restricted_client_loader.restricted?(destination_client_id)
   end
 
-  def preload_client_restriction_dependencies(destination_client_ids)
+  def preload_destination_client_dependencies(destination_client_ids)
     restricted_client_loader.preload(destination_client_ids)
   end
 end

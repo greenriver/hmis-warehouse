@@ -47,7 +47,7 @@ module HmisDataQualityTool::WarehouseReports
       @clients = @report.clients.preload(client: :data_source).order(:last_name, :first_name)
       @pivot_details = @report.pivot_details
       @pagy, @clients = pagy(@clients)
-      current_user.policy_context.preload_client_restriction_dependencies(@clients.map(&:destination_client_id_for_pii).compact.uniq)
+      current_user.policy_context.preload_destination_client_dependencies(@clients.map(&:destination_client_id_for_pii).compact.uniq)
       respond_to do |format|
         format.html {}
         format.xlsx do
@@ -120,7 +120,7 @@ module HmisDataQualityTool::WarehouseReports
       all_project_ids = all_project_ids_from_items(@items)
       current_user.policy_context.preload_project_dependencies(all_project_ids)
       all_destination_client_ids = all_destination_client_ids_from_items(@items)
-      current_user.policy_context.preload_client_restriction_dependencies(all_destination_client_ids)
+      current_user.policy_context.preload_destination_client_dependencies(all_destination_client_ids)
 
       respond_to do |format|
         format.html {}

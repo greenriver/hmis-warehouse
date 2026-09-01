@@ -31,10 +31,10 @@ RSpec.describe GrdaWarehouse::AuthPolicies::UserBaseContext do
     end
   end
 
-  describe '#preload_client_restriction_dependencies' do
+  describe '#preload_destination_client_dependencies' do
     it 'warms the cache so a later check does not requery' do
       source_client.mark_as_restricted!(user: hmis_user)
-      context.preload_client_restriction_dependencies([destination_client.id])
+      context.preload_destination_client_dependencies([destination_client.id])
 
       expect(GrdaWarehouse::Hud::Client).not_to receive(:hmis_restricted_destination_client_ids)
       expect(context.client_restricted?(destination_client.id)).to eq(true)

@@ -64,7 +64,7 @@ module Cohorts
       @visible_columns << delete_column if current_user.can_add_cohort_clients?
 
       destination_client_ids = @cohort_clients.map { |cc| cc.client&.id }.compact.uniq
-      current_user.policy_context.preload_client_restriction_dependencies(destination_client_ids) if destination_client_ids.any?
+      current_user.policy_context.preload_destination_client_dependencies(destination_client_ids) if destination_client_ids.any?
 
       @cohort_clients.each do |cohort_client|
         client = cohort_client.client
@@ -186,7 +186,7 @@ module Cohorts
       # If a client has been marked restricted in HMIS, we prevent their PII from showing on the cohort.
       # We use the AllowPiiPolicy so all other clients' PII, regardless of the user's access are still visible.
       destination_client_ids = @clients.map { |c| c[:id] }
-      current_user.policy_context.preload_client_restriction_dependencies(destination_client_ids)
+      current_user.policy_context.preload_destination_client_dependencies(destination_client_ids)
       @clients = @clients.map do |c|
         restricted = current_user.policy_context.client_restricted?(c[:id])
         policy = GrdaWarehouse::PiiProvider.restrict(GrdaWarehouse::AuthPolicies::AllowPiiPolicy.instance, restricted: restricted)
