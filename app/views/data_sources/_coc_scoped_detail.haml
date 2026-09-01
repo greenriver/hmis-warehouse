@@ -8,24 +8,7 @@
   %p.text-muted
     = "#{pluralize(@coc_project_count, 'project')} across #{pluralize(@coc_org_count, 'organization')} in the CoC"
 %div{ data: { controller: 'table-filter' } }
-  .row.table-utilities.mb-3
-    .col-sm-3
-      %label{ for: 'coc_scoped_project_type_filter' } Project Type
-      .form-group{ data: { controller: 'stimulus-select' } }
-        %select#coc_scoped_project_type_filter.form-control.stimulus-select{ data: { 'stimulus-select-target' => 'element', action: 'change->table-filter#filter', 'table-filter-target' => 'select', 'table-filter-field' => 'projectType' } }
-          %option{ value: '' } All project types
-          - HudHelper.util.project_type_briefs.select { |value, _| @coc_project_types.include?(value) }.each do |value, label|
-            %option{ value: value }= label
-    .col-sm-3
-      %label{ for: 'coc_scoped_confidential_filter' } Confidential?
-      .form-group{ data: { controller: 'stimulus-select' } }
-        %select#coc_scoped_confidential_filter.form-control.stimulus-select{ data: { 'stimulus-select-target' => 'element', action: 'change->table-filter#filter', 'table-filter-target' => 'select', 'table-filter-field' => 'confidential' } }
-          %option{ value: '' } Any
-          %option{ value: 'true' } Confidential
-          %option{ value: 'false' } Not confidential
-    .col-sm-3
-      %label{ for: 'coc_scoped_search_filter' } Search
-      %input#coc_scoped_search_filter.form-control{ type: 'text', placeholder: 'Search by project name', data: { action: 'input->table-filter#debouncedFilter', 'table-filter-target' => 'searchInput' } }
+  = render 'project_filters', project_types: @coc_project_types
   .table-responsive
     = render 'organizations'
   .none-found.hide{ data: { 'table-filter-target' => 'noResults' } } No projects found.
