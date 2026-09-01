@@ -1,0 +1,55 @@
+[
+  {
+    "link_id": "current_living_situation",
+    "append_items": [
+      {
+        "type": "STRING",
+        "link_id": "svp_hud_cls_currentlivingsit_other",
+        "text": "If \"Other\" location, specify",
+        "brief_text": "Other location",
+        "mapping": {
+          "record_type": "CURRENT_LIVING_SITUATION",
+          "custom_field_key": "mar_svp_hud_cls_currentlivingsit_other"
+        },
+        "enable_behavior": "ALL",
+        "enable_when": [
+          {
+            "question": "q_4_12_2",
+            "operator": "EQUAL",
+            "answer_code": "OTHER"
+          }
+        ]
+      },
+      {
+        "type": "STRING",
+        "link_id": "crossstreetsnocommasi_2",
+        "text": "Cross Streets (No commas in this field)",
+        "brief_text": "Cross Streets",
+        "mapping": {
+          "record_type": "CURRENT_LIVING_SITUATION",
+          "custom_field_key": "mar_crossstreetsnocommasi_2"
+        }
+      },
+      {
+        "type": "STRING",
+        "link_id": "latitude33xxxxxuseexa_1",
+        "text": "Latitude: 33.xxxxx (Use Exact Format to 5 Decimals)",
+        "brief_text": "Latitude",
+        "mapping": {
+          "record_type": "CURRENT_LIVING_SITUATION",
+          "custom_field_key": "mar_latitude33xxxxxuseexa_1"
+        }
+      },
+      {
+        "type": "STRING",
+        "link_id": "longitude11xxxxxxusee_2",
+        "text": "Longitude: -11x.xxxxx (Use Exact Format to 5 Decimals)",
+        "brief_text": "Longitude",
+        "mapping": {
+          "record_type": "CURRENT_LIVING_SITUATION",
+          "custom_field_key": "mar_longitude11xxxxxxusee_2"
+        }
+      }
+    ]
+  }
+]
