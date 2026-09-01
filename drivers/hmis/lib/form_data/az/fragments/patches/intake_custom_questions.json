@@ -1,0 +1,298 @@
+[
+  {
+    "link_id": "entry_date_group",
+    "append_items": [
+      {
+        "type": "STRING",
+        "link_id": "ifcoveredbyahcccsente",
+        "text": "If covered by AHCCCS enter ID #:",
+        "required": false,
+        "brief_text": "AHCCCS ID",
+        "warn_if_empty": false,
+        "mapping": {
+          "custom_field_key": "mar_ifcoveredbyahcccsente"
+        }
+      },
+      {
+        "type": "CHOICE",
+        "link_id": "didyouexperienceanevi",
+        "text": "Did you experience an eviction from housing in the last 12 months?",
+        "required": false,
+        "warn_if_empty": false,
+        "mapping": {
+          "custom_field_key": "mar_didyouexperienceanevi"
+        },
+        "pick_list_options": [
+          {
+            "code": "Yes"
+          },
+          {
+            "code": "No"
+          }
+        ]
+      },
+      {
+        "type": "CHOICE",
+        "link_id": "ifyespleaseselectthet",
+        "text": "IF YES, please select the type of eviction you experienced:",
+        "brief_text": "Type of Eviction",
+        "required": false,
+        "warn_if_empty": false,
+        "mapping": {
+          "custom_field_key": "mar_ifyespleaseselectthet"
+        },
+        "enable_behavior": "ALL",
+        "enable_when": [
+          {
+            "question": "didyouexperienceanevi",
+            "operator": "EQUAL",
+            "answer_code": "Yes"
+          }
+        ],
+        "pick_list_options": [
+          {
+            "code": "Non-Payment of Rent (COVID-19 Hardship)"
+          },
+          {
+            "code": "Non-Payment of Rent (Non-COVID-19 Related)"
+          },
+          {
+            "code": "Other Issue (Non-Rent)"
+          }
+        ]
+      },
+      {
+        "type": "CHOICE",
+        "link_id": "primaryreasonforhomle",
+        "text": "Homelessness Primary Reason",
+        "required": false,
+        "warn_if_empty": false,
+        "mapping": {
+          "custom_field_key": "mar_primaryreasonforhomle"
+        },
+        "pick_list_options": [
+          {
+            "code": "Aged Out of Foster Care"
+          },
+          {
+            "code": "Client NOT Homeless"
+          },
+          {
+            "code": "COVID-19/Coronavirus"
+          },
+          {
+            "code": "Exploitation/Human Trafficking"
+          },
+          {
+            "code": "Family Dispute/Overcrowding/Kicked-Out"
+          },
+          {
+            "code": "Loss of Employment"
+          },
+          {
+            "code": "Loss of Non-Employment Income or No Financial Resources"
+          },
+          {
+            "code": "Medical Problems"
+          },
+          {
+            "code": "Mental Health Concerns"
+          },
+          {
+            "code": "Moved to Seek Work"
+          },
+          {
+            "code": "Natural Disaster/Fire"
+          },
+          {
+            "code": "New to Area"
+          },
+          {
+            "code": "Release from Jail/Prison/Juvenile Hall"
+          },
+          {
+            "code": "Substance Use/Alcohol Dependency Concerns"
+          },
+          {
+            "code": "Transient/Choice"
+          },
+          {
+            "code": "Unable to Find Affordable Housing"
+          },
+          {
+            "code": "Unsafe Living Environment - Not Violence Related"
+          },
+          {
+            "code": "Unsafe Living Environment - Violence/Domestic Abuse"
+          },
+          {
+            "code": "Client Refused"
+          },
+          {
+            "code": "Other"
+          }
+        ]
+      },
+      {
+        "type": "CHOICE",
+        "link_id": "locationofpriorreside",
+        "text": "Location of Prior Residence",
+        "required": false,
+        "warn_if_empty": false,
+        "mapping": {
+          "custom_field_key": "mar_locationofpriorreside"
+        },
+        "pick_list_options": [
+          {
+            "code": "Avondale"
+          },
+          {
+            "code": "Buckeye"
+          },
+          {
+            "code": "Chandler"
+          },
+          {
+            "code": "Fountain Hills"
+          },
+          {
+            "code": "Gilbert"
+          },
+          {
+            "code": "Glendale"
+          },
+          {
+            "code": "Goodyear"
+          },
+          {
+            "code": "Mesa"
+          },
+          {
+            "code": "Peoria"
+          },
+          {
+            "code": "Phoenix"
+          },
+          {
+            "code": "Scottsdale"
+          },
+          {
+            "code": "Surprise"
+          },
+          {
+            "code": "Tempe"
+          },
+          {
+            "code": "Tolleson"
+          },
+          {
+            "code": "Tonopah"
+          },
+          {
+            "code": "Other city in Maricopa County"
+          },
+          {
+            "code": "Outside Maricopa County but inside Arizona"
+          },
+          {
+            "code": "Outside Arizona"
+          },
+          {
+            "code": "Client Doesn't Know"
+          },
+          {
+            "code": "Client Refused"
+          },
+          {
+            "code": "Data Not Collected"
+          }
+        ]
+      },
+      {
+        "type": "CHOICE",
+        "link_id": "locationofhousingmove",
+        "text": "Location of Housing Move-In",
+        "required": false,
+        "warn_if_empty": false,
+        "mapping": {
+          "custom_field_key": "mar_locationofhousingmove"
+        },
+        "pick_list_options": [
+          {
+            "code": "Avondale"
+          },
+          {
+            "code": "Buckeye"
+          },
+          {
+            "code": "Chandler"
+          },
+          {
+            "code": "Fountain Hills"
+          },
+          {
+            "code": "Gilbert"
+          },
+          {
+            "code": "Glendale"
+          },
+          {
+            "code": "Goodyear"
+          },
+          {
+            "code": "Mesa"
+          },
+          {
+            "code": "Peoria"
+          },
+          {
+            "code": "Phoenix"
+          },
+          {
+            "code": "Scottsdale"
+          },
+          {
+            "code": "Surprise"
+          },
+          {
+            "code": "Tempe"
+          },
+          {
+            "code": "Tolleson"
+          },
+          {
+            "code": "Tonopah"
+          },
+          {
+            "code": "Other city in Maricopa County"
+          },
+          {
+            "code": "Outside Maricopa County but inside Arizona"
+          },
+          {
+            "code": "Outside Arizona"
+          },
+          {
+            "code": "Client Doesn't Know"
+          },
+          {
+            "code": "Client Refused"
+          },
+          {
+            "code": "Data Not Collected"
+          }
+        ]
+      },
+      {
+        "type": "STRING",
+        "link_id": "hud_zipcodelastpermaddr",
+        "text": "Zip Code of Last Permanent Address",
+        "required": false,
+        "warn_if_empty": false,
+        "mapping": {
+          "custom_field_key": "mar_hud_zipcodelastpermaddr"
+        }
+      }
+    ]
+  }
+]
