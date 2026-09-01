@@ -8,7 +8,7 @@
 
 require 'rails_helper'
 
-RSpec.describe GrdaWarehouse::AuthPolicies::ContextLoaders::ClientRestrictionLoader, type: :model do
+RSpec.describe GrdaWarehouse::AuthPolicies::ContextLoaders::RestrictedClientLoader, type: :model do
   let(:loader) { described_class.new }
   let!(:hmis_ds) { create(:hmis_primary_data_source) }
   let!(:hmis_user) { create(:hmis_user, data_source: hmis_ds) }

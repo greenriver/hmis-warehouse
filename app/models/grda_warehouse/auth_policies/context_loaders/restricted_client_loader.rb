@@ -7,7 +7,7 @@
 # frozen_string_literal: true
 
 module GrdaWarehouse::AuthPolicies::ContextLoaders
-  class ClientRestrictionLoader
+  class RestrictedClientLoader
     def initialize
       @restricted_client_ids = Set.new
       @loaded_client_ids = Set.new
