@@ -68,7 +68,14 @@ module Hmis::Ce
 
     # Which opportunities are available for a given client
     scope :for_client, ->(client) {
-      eligible_pool_ids = client.destination_client&.as_warehouse&.ce_match_candidates&.select(:candidate_pool_id)
+      # Inactive pools are not re-evaluated, so leftover candidate rows must not count as eligibility.
+      candidates = client.destination_client&.as_warehouse&.ce_match_candidates
+      return Hmis::Ce::Opportunity.none if candidates.blank?
+
+      eligible_pool_ids = candidates.
+        joins(:candidate_pool).
+        merge(Hmis::Ce::Match::CandidatePool.active).
+        select(:candidate_pool_id)
       return Hmis::Ce::Opportunity.none if eligible_pool_ids.blank?
 
       scope = self.open.joins(unit: :unit_group).where(hmis_unit_groups: { candidate_pool_id: eligible_pool_ids })
@@ -76,15 +83,6 @@ module Hmis::Ce
       exclude_ids = []
       # exclude opportunities where the client has already been referred
       exclude_ids += client.ce_referrals.distinct.pluck(:opportunity_id)
-
-      # exclude opportunities with overlapping categories from this client's active referrals
-      active_category_ids = Hmis::Ce::OpportunityCategory.
-        joins(:opportunities).
-        where(ce_opportunities: { id: client.ce_referrals.active.select(:opportunity_id) }).
-        pluck(:id)
-      exclude_ids += Hmis::Ce::Opportunity.joins(:categories).
-        where(ce_opportunity_categories: { id: active_category_ids }).
-        pluck(:id)
 
       scope = scope.where.not(id: exclude_ids.sort.uniq)
       scope
