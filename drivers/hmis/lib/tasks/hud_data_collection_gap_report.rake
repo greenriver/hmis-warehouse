@@ -5,8 +5,6 @@
 #
 # Usage:
 # rails driver:hmis:hud_data_collection_gap_report[2,2020-01-01,2026-08-31,tmp/gap_report.xlsx]
-#
-# The data source may be given as a name or an id.
 desc 'Excel report of HUD data collected but not exposed by current form definitions'
 task :hud_data_collection_gap_report, [:data_source, :start_date, :end_date, :output_path] => :environment do |_task, args|
   data_source = GrdaWarehouse::DataSource.find_by(id: args.data_source)
