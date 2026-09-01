@@ -9,7 +9,7 @@
 require 'rails_helper'
 
 RSpec.describe HmisUtil::HudDataCollectionGapAnalyzer::ApplicabilityMatcher do
-  let(:hud) { HudHelper.util }
+  let(:hud) { HudHelper.util(HmisUtil::HudDataCollectionGapAnalyzer::HUD_VERSION) }
   # ES - Night-by-Night: the one project type HUD requires Bed Night collection for,
   # regardless of funder.
   let(:es_nbn_project_type) { 1 }
@@ -34,9 +34,9 @@ RSpec.describe HmisUtil::HudDataCollectionGapAnalyzer::ApplicabilityMatcher do
       expect(matcher.current_living_situation_required?).to be(true)
     end
 
-    it 'is false for a funder with no CLS rule at a project type with no CLS rule' do
-      # Project type 2 with a funder that appears in no CLS applicability entry.
-      matcher = matcher_for(project_type: 2, funder_codes: [999])
+    it 'is false for a funder that appears in no CLS applicability entry' do
+      coc_psh_funder = hud.funding_source('HUD: CoC - Permanent Supportive Housing', true, raise_on_missing: true)
+      matcher = matcher_for(project_type: 2, funder_codes: [coc_psh_funder])
 
       expect(matcher.current_living_situation_required?).to be(false)
     end

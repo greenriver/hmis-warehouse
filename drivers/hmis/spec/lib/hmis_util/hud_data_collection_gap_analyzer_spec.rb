@@ -13,7 +13,7 @@ RSpec.describe HmisUtil::HudDataCollectionGapAnalyzer do
 
   let(:date_range) { Date.new(2025, 1, 1)..Date.new(2025, 12, 31) }
   let(:data_source) { create(:grda_warehouse_data_source) }
-  let(:hud) { HudHelper.util }
+  let(:hud) { HudHelper.util(described_class::HUD_VERSION) }
   let(:path_funder) do
     hud.funding_source('HHS: PATH - Street Outreach & Supportive Services Only', true, raise_on_missing: true)
   end
@@ -140,12 +140,16 @@ RSpec.describe HmisUtil::HudDataCollectionGapAnalyzer do
 
       gaps = analyzer.perform.field_gap_rows.select { |row| row[:field_name] == 'viralLoad' }
 
-      expect(gaps.first).to include(
-        project_id: project.id,
-        record_type: 'DISABILITY_GROUP',
-        link_id: 'W4_C',
-        count: 1,
-        earliest: Date.new(2025, 5, 1),
+      expect(gaps.map { |row| row[:role] }).to contain_exactly(:INTAKE, :UPDATE, :ANNUAL, :EXIT)
+      expect(gaps).to all(
+        include(
+          project_id: project.id,
+          record_type: 'DISABILITY_GROUP',
+          link_id: 'W4_C',
+          count: 1,
+          earliest: Date.new(2025, 5, 1),
+          latest: Date.new(2025, 5, 1),
+        ),
       )
     end
 
@@ -164,7 +168,17 @@ RSpec.describe HmisUtil::HudDataCollectionGapAnalyzer do
 
       gaps = analyzer.perform.field_gap_rows.select { |row| row[:field_name] == 'incomeFromAnySource' }
 
-      expect(gaps.first).to include(project_id: project.id, count: 1)
+      expect(gaps.map { |row| row[:role] }).to contain_exactly(:INTAKE, :UPDATE, :ANNUAL, :EXIT)
+      expect(gaps).to all(
+        include(
+          project_id: project.id,
+          record_type: 'INCOME_BENEFIT',
+          link_id: 'q_4_02_2',
+          count: 1,
+          earliest: Date.new(2025, 5, 1),
+          latest: Date.new(2025, 5, 1),
+        ),
+      )
     end
 
     it 'reports no income gap for a CoC-funded project, where HUD requires income' do
@@ -183,6 +197,24 @@ RSpec.describe HmisUtil::HudDataCollectionGapAnalyzer do
       field_names = analyzer.perform.field_gap_rows.map { |row| row[:field_name] }
 
       expect(field_names).not_to include('viralLoad')
+    end
+
+    it 'decides requiredness separately for each project in a single run' do
+      # Three funder profiles at one project type. Requiredness is cached across projects,
+      # and the rule filter rewrites the definition tree in place, so whatever the first
+      # project computes or prunes must not reach the second.
+      coc = build_project(funders: [coc_psh_funder])
+      hopwa = build_project(funders: [hopwa_funder])
+      unfunded = build_project(funders: [])
+      [coc, hopwa].each { |project| add_viral_load(project) }
+      [coc, unfunded].each { |project| add_income(project) }
+
+      gaps = analyzer.perform.field_gap_rows.
+        select { |row| row[:field_name].in?(['viralLoad', 'incomeFromAnySource']) }.
+        map { |row| [row[:project_id], row[:field_name]] }.
+        uniq
+
+      expect(gaps).to contain_exactly([coc.id, 'viralLoad'], [unfunded.id, 'incomeFromAnySource'])
     end
   end
 

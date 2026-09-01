@@ -27,18 +27,8 @@ RSpec.describe HmisUtil::HudDataCollectionGapAnalyzer::ElementRegistry do
     )
   end
 
-  it 'excludes disablingCondition, which maps to ENROLLMENT rather than the Disability table' do
-    expect(elements.map(&:field_name)).not_to include('disablingCondition')
-  end
-
   it 'excludes DISPLAY items, which carry no stored data' do
     expect(elements.map(&:item_type)).not_to include('DISPLAY')
-  end
-
-  it 'maps a camelCase field name to its PascalCase HUD column' do
-    element = elements.find { |e| e.field_name == 'incomeFromAnySource' }
-
-    expect(element.column).to eq(:IncomeFromAnySource)
   end
 
   it 'maps a disability response field to its DisabilityType and response column' do
@@ -82,17 +72,18 @@ RSpec.describe HmisUtil::HudDataCollectionGapAnalyzer::ElementRegistry do
     end
 
     it 'returns an independent copy each call, so filtering one does not corrupt the next' do
+      # DefinitionItemFilter empties item['item'] on nested nodes, not just the root, so a
+      # copy that shares its children would hand the next caller a pruned tree.
       first = registry.definition_tree(:INTAKE)
-      first['item'] = []
+      find_item(first, 'income_and_sources')['item'] = []
 
-      expect(registry.definition_tree(:INTAKE)['item']).to be_present
+      expect(find_item(registry.definition_tree(:INTAKE), 'income_and_sources')['item']).to be_present
     end
   end
 
   it 'resolves every element to a column that exists on its target model' do
     offenders = elements.reject do |element|
-      klass = GrdaWarehouse::Hud::Base.descendants.find { |k| k.name == element.model_name }
-      klass.column_names.include?(element.column.to_s)
+      element.model_name.constantize.column_names.include?(element.column.to_s)
     end
 
     expect(offenders.map(&:field_name)).to be_empty

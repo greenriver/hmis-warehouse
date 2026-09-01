@@ -12,6 +12,7 @@ RSpec.describe HmisUtil::HudDataCollectionGapAnalyzer::DataPresenceScanner do
   subject(:scanner) { described_class.new(project: project, date_range: date_range) }
 
   let(:date_range) { Date.new(2025, 1, 1)..Date.new(2025, 12, 31) }
+  let(:hud) { HudHelper.util(HmisUtil::HudDataCollectionGapAnalyzer::HUD_VERSION) }
   let(:data_source) { create(:grda_warehouse_data_source) }
   let(:project) { create(:hud_project, data_source_id: data_source.id, ProjectType: 1) }
   let(:other_project) { create(:hud_project, data_source_id: data_source.id, ProjectType: 1) }
@@ -83,6 +84,22 @@ RSpec.describe HmisUtil::HudDataCollectionGapAnalyzer::DataPresenceScanner do
     end
   end
 
+  describe '#field_presence for a free-text element' do
+    let(:element) { element_for('otherIncomeSourceIdentify') }
+
+    it 'counts a filled string but not an empty one' do
+      income_benefit(InformationDate: Date.new(2025, 3, 1), OtherIncomeSourceIdentify: 'Odd jobs')
+      income_benefit(InformationDate: Date.new(2025, 4, 1), OtherIncomeSourceIdentify: '')
+      income_benefit(InformationDate: Date.new(2025, 5, 1), OtherIncomeSourceIdentify: nil)
+
+      expect(scanner.field_presence(element)).to have_attributes(
+        count: 1,
+        earliest: Date.new(2025, 3, 1),
+        latest: Date.new(2025, 3, 1),
+      )
+    end
+  end
+
   describe '#field_presence for a disability element' do
     let(:element) { element_for('physicalDisability') }
 
@@ -124,8 +141,8 @@ RSpec.describe HmisUtil::HudDataCollectionGapAnalyzer::DataPresenceScanner do
     end
 
     it 'groups by RecordType and uses DateProvided as the date column' do
-      bed_night = HudHelper.util.record_type('Bed Night', true, raise_on_missing: true)
-      path_service = HudHelper.util.record_type('PATH Service', true, raise_on_missing: true)
+      bed_night = hud.record_type('Bed Night', true, raise_on_missing: true)
+      path_service = hud.record_type('PATH Service', true, raise_on_missing: true)
       service(DateProvided: Date.new(2025, 2, 1), RecordType: bed_night)
       service(DateProvided: Date.new(2025, 5, 1), RecordType: bed_night)
       service(DateProvided: Date.new(2025, 3, 1), RecordType: path_service)
