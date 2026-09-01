@@ -31,7 +31,6 @@ module WarehouseReports
                        end
       @entries = open_enrollments_no_service
       client_ids = @entries.map(&:client_id).uniq
-      current_user.policy_context.preload_client_restriction_dependencies(client_ids)
       @clients = client_source.where(id: client_ids).
         pluck(:id, :FirstName, :LastName).map do |row|
           Hash[[:id, :FirstName, :LastName].zip(row)]

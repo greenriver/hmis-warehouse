@@ -56,7 +56,6 @@ module HapReport::WarehouseReports
     def details
       @cell = params[:cell].humanize
       @members = @report.cell(params[:cell]).members
-      current_user.policy_context.preload_client_restriction_dependencies(@members.map(&:client_id).compact.uniq)
     end
 
     def report_class

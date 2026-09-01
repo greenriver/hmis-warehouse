@@ -7,7 +7,7 @@
   - # it is desireable to include the client's PII in the PDF.
   - client = @client_history.client
   - requesting_user = @client_history.requesting_user
-  - restricted = GrdaWarehouse::Hud::Client.hmis_restricted_destination_client_ids([client.id]).include?(client.id)
+  - restricted = GrdaWarehouse::AuthPolicies::ContextLoaders::RestrictedClientLoader.new.restricted?(client.id)
   - pii = requesting_user ? client.pii_provider(user: requesting_user) : GrdaWarehouse::PiiProvider.new(client, policy: GrdaWarehouse::PiiProvider.restrict(GrdaWarehouse::AuthPolicies::AllowPiiPolicy.instance, restricted: restricted))
   = inline_stylesheet_link_tag 'print'
   - title = "#{Translation.translate('HMIS Data Warehouse')} Homeless History for Residential Programs"
