@@ -64,8 +64,6 @@ module MaYyaReport::WarehouseReports
 
       @members = @report.cell(params[:cell]).members.preload(universe_membership: { service_history_enrollment: [:project] })
       @detail_columns = @report.detail_columns_for(cell)
-      client_ids = @members.filter_map { |member| member.universe_membership&.client_id }.uniq
-      current_user.policy_context.preload_client_restriction_dependencies(client_ids)
 
       respond_to do |format|
         format.html {}

@@ -93,10 +93,6 @@ module
       end.compact
     end
 
-    def preload_client_restriction_dependencies(rows)
-      filter.user.policy_context.preload_client_restriction_dependencies(rows.map(&:first))
-    end
-
     def detail_columns_for_export(key)
       return columns_for(key) if GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
 

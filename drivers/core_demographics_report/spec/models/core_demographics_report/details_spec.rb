@@ -61,14 +61,4 @@ RSpec.describe CoreDemographicsReport::Details, type: :model do
       expect(columns.first.client_id_index).to eq(0)
     end
   end
-
-  describe '#preload_client_restriction_dependencies' do
-    it 'preloads restriction status for the whole row set in one query, so later per-client checks do not re-query' do
-      report.preload_client_restriction_dependencies([[restricted_destination_client.id], [open_destination_client.id]])
-
-      expect(GrdaWarehouse::Hud::Client).not_to receive(:where)
-      expect(user.policy_context.client_restricted?(restricted_destination_client.id)).to eq(true)
-      expect(user.policy_context.client_restricted?(open_destination_client.id)).to eq(false)
-    end
-  end
 end

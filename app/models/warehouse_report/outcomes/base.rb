@@ -1268,10 +1268,7 @@ class WarehouseReport::Outcomes::Base
         GrdaWarehouse::AuthPolicies::AllowPiiPolicy.instance
       end
 
-      if client_id.present?
-        user.policy_context.preload_client_restriction_dependencies(rows_client_ids)
-        pii_policy = GrdaWarehouse::PiiProvider.restrict(pii_policy, restricted: user.policy_context.client_restricted?(client_id.to_i))
-      end
+      pii_policy = GrdaWarehouse::PiiProvider.restrict(pii_policy, restricted: user.policy_context.client_restricted?(client_id.to_i)) if client_id.present?
 
       pii_value(col: header, raw_value: value, pii_policy: pii_policy)
     end

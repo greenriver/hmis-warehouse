@@ -18,7 +18,6 @@
 - else
   - columns = @report.column_objects_for(@key)
   - rows = scope.pluck(*@report.columns_for(@key))
-  - @report.preload_client_restriction_dependencies(rows)
   %p Showing #{pluralize(number_with_delimiter(scope.distinct.select(:client_id).count), 'client')}.
   .card.overflow-x-scroll{style: "height: 800px"}
     %table.table.table-sm.table-bordered.table-fixed.datatable{ style: 'margin-top: 0 !important;'}
