@@ -356,7 +356,7 @@ module Types
     def self.possible_unit_types_for_project(project)
       return [] unless project.present?
 
-      project.possible_unit_types.
+      Hmis::UnitType.
         order(:description, :id).
         map(&:to_pick_list_option)
     end
