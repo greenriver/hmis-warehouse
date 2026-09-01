@@ -34,13 +34,14 @@ class DataSourcesController < ApplicationController
     if @require_coc_choice && params[:coc_code].blank?
       @coc_summaries = @data_source.coc_summaries(viewable_projects)
     else
-      @organizations = load_organizations
+      @organizations = load_organizations.to_a
       if @require_coc_choice
         @coc_display_name = params[:coc_code] == 'unknown' ? Translation.translate('Unknown CoC') : HudHelper.util.coc_name(params[:coc_code])
         @coc_project_count = project_scope.count
-        @organizations = @organizations.to_a
         @coc_org_count = @organizations.size
         @coc_project_types = @organizations.flat_map(&:projects).map(&:ProjectType).uniq
+      else
+        @project_types = @organizations.flat_map(&:projects).map(&:ProjectType).uniq
       end
     end
   end
