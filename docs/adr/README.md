@@ -54,7 +54,7 @@ Our ADR process began in 2024. Not all historical decisions may be documented as
 
 ## Repository Structure
 
-```
+```plain
 docs/
   adr/
     README.md             <- This file
