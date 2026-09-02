@@ -991,6 +991,12 @@ module HmisCsvImporter::Importer
         pluck(:ProjectID)
     end
 
+    def involved_enrollment_ids
+      @involved_enrollment_ids ||= importable_files['Enrollment.csv'].
+        where(importer_log_id: importer_log.id).
+        pluck(:EnrollmentID)
+    end
+
     private def existing_destination_data_scope(klass)
       klass.existing_destination_data(
         data_source_id: data_source.id,
@@ -1669,15 +1675,17 @@ module HmisCsvImporter::Importer
     end
 
     private def queue_hmis_assessment_migration
-      # involved_project_ids are HUD ProjectIDs; MigrateAssessmentsJob expects warehouse Project pks
-      project_pks = GrdaWarehouse::Hud::Project.
-        where(data_source_id: @data_source.id, ProjectID: involved_project_ids).
+      # involved_enrollment_ids are HUD EnrollmentIDs; MigrateAssessmentsJob expects warehouse Enrollment pks
+      enrollment_pks = GrdaWarehouse::Hud::Enrollment.
+        where(data_source_id: @data_source.id, EnrollmentID: involved_enrollment_ids).
         pluck(:id)
-      return if project_pks.blank?
+      return if enrollment_pks.blank?
 
       Hmis::MigrateAssessmentsJob.perform_later(
         data_source_id: @data_source.id,
-        project_ids: project_pks,
+        enrollment_ids: enrollment_pks,
+        upsert: true,
+        generate_empty_intakes: true,
       )
     end
 
