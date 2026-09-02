@@ -9,9 +9,14 @@
 module UserDirectoryReport::WarehouseReports
   class UsersController < ApplicationController
     include WarehouseReportAuthorization
+    include UserDirectoryReport::DirectoryUsers
 
     helper_method :nav_link_classes
     helper_method :cas_available?
+    helper_method :warehouse_user_source?
+    helper_method :hmis_data_sources
+    helper_method :hmis_data_sources_for
+    helper_method :hmis_data_source_linkable?
 
     # Both actions are the same report, and there is no :index for the concern's default
     # derivation to use; the seeded definition is registered under the warehouse action's
@@ -26,9 +31,21 @@ module UserDirectoryReport::WarehouseReports
     end
 
     def warehouse
-      @users = _users(User)
-      @pagy, @users = pagy(@users)
+      @users = directory_users(User)
       @user_source = 'warehouse'
+      @excel_export = UserDirectoryReport::DocumentExports::WarehouseUserDirectoryExcelExport.new
+      respond_to do |format|
+        format.html { @pagy, @users = pagy(@users) }
+        format.xlsx do
+          filename = "Warehouse User Directory Report - #{Time.current.to_fs(:db)}.xlsx"
+          headers['Content-Disposition'] = "attachment; filename=#{filename}"
+        end
+      end
+    end
+
+    def inactive
+      @users = directory_users(User, active: false)
+      @user_source = 'inactive'
       @excel_export = UserDirectoryReport::DocumentExports::WarehouseUserDirectoryExcelExport.new
       respond_to do |format|
         format.html { @pagy, @users = pagy(@users) }
@@ -41,7 +58,7 @@ module UserDirectoryReport::WarehouseReports
 
     def cas
       if cas_available?
-        @users = _users(CasAccess::User)
+        @users = directory_users(CasAccess::User)
       else
         @users = []
       end
@@ -62,20 +79,19 @@ module UserDirectoryReport::WarehouseReports
       class_list.join(' ')
     end
 
+    def warehouse_user_source?
+      @user_source.in?(['warehouse', 'inactive'])
+    end
+
     def cas_available?
       CasBase.db_exists? && CasAccess::User.take.respond_to?('exclude_from_directory')
     end
 
-    private def _users(user_model)
-      if params[:q].present?
-        users = user_model.in_directory.
-          text_search(params[:q]).
-          order(:last_name, :first_name)
-      else
-        users = user_model.in_directory.
-          order(:last_name, :first_name)
-      end
-      return users
+    def hmis_data_source_linkable?(hmis_ds)
+      return false unless current_user.can_view_imports_projects_or_organizations?
+
+      @viewable_hmis_data_source_ids ||= GrdaWarehouse::DataSource.hmis.viewable_by(current_user).pluck(:id).to_set
+      @viewable_hmis_data_source_ids.include?(hmis_ds.id)
     end
   end
 end

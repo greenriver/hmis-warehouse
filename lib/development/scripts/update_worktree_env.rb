@@ -82,14 +82,18 @@ def rewrite(path)
   end
 end
 
-# --- .env.local (development databases) -------------------------------------
-env_local = File.join(worktree_path, '.env.local')
-rewrite(env_local) do |content|
-  DEV_DB_KEYS.each { |key| content = append_db_suffix(content, key, db_suffix) }
-  # CAS is the external boston-cas database; disable it in worktrees so the
-  # database.yml `cas:` section (guarded by .present?) is dropped entirely.
-  content = set_value(content, 'DATABASE_CAS_DB', '')
-  content
+# --- .env.local / .env.development.local (development databases) ----------
+# Checkouts diverge on which of these two gitignored files actually defines
+# the DEV_DB_KEYS/DATABASE_CAS_DB values (dotenv-rails reads both), so rewrite
+# whichever one(s) each worktree actually has them in.
+['.env.local', '.env.development.local'].each do |filename|
+  rewrite(File.join(worktree_path, filename)) do |content|
+    DEV_DB_KEYS.each { |key| content = append_db_suffix(content, key, db_suffix) }
+    # CAS is the external boston-cas database; disable it in worktrees so the
+    # database.yml `cas:` section (guarded by .present?) is dropped entirely.
+    content = set_value(content, 'DATABASE_CAS_DB', '')
+    content
+  end
 end
 
 # --- .env.test.local (test databases) --------------------------------------

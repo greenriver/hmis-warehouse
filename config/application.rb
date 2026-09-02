@@ -30,8 +30,6 @@ require_relative '../lib/hud_reports/route_concerns'
 
 module OpenPath
   class Application < Rails::Application
-    require_relative '../lib/rails_drivers'
-
     # Initialize configuration defaults for originally generated Rails version.
     config.load_defaults 8.1
 

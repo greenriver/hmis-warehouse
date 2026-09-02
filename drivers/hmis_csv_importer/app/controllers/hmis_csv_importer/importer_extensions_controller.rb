@@ -18,6 +18,7 @@ class HmisCsvImporter::ImporterExtensionsController < ApplicationController
     config = {
       import_aggregators: {},
       import_cleanups: {},
+      pre_process_hooks: {},
     }
     allowed_extensions.each do |extension|
       next unless params[:extensions][extension.to_s] == '1'
@@ -49,6 +50,8 @@ class HmisCsvImporter::ImporterExtensionsController < ApplicationController
       HmisCsvImporter::HmisCsvCleanup::FixMissingTotalMonthlyIncome,
       HmisCsvImporter::HmisCsvCleanup::MakeSoleMemberHoh,
       HmisCsvImporter::PostIngestCleanup::FixIncorrectPersonalIdReferences,
+      HmisCsvImporter::Loader::HudKeyRemapper,
+      HmisCsvImporter::Loader::UnlinkedRecordFilter,
     ].sort_by(&:associated_model).
       freeze
   end

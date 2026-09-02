@@ -130,4 +130,65 @@ RSpec.describe Hmis::User, type: :model do
       expect(user.confirmation_token).not_to eq('injected_token')
     end
   end
+  # The batch counterpart to can_access_hmis_data_source?, used by the User Directory
+  # report to avoid a query per user per data source. It delegates the per-data-source
+  # lookup to .with_hmis_access_in_data_source (covered above), so these examples pin
+  # what the batch method itself adds: the shape of the hash, the multi-data-source
+  # keying, and agreement with the per-user checker.
+  describe '.accessible_hmis_data_source_ids_by_user_id' do
+    let!(:ds2) { create(:hmis_data_source) }
+    let!(:ds1_user) { create(:hmis_user, data_source: ds1) }
+    let!(:no_access_user) { create(:hmis_user, data_source: ds1) }
+
+    it 'returns an empty hash when nobody has HMIS access' do
+      expect(described_class.accessible_hmis_data_source_ids_by_user_id).to eq({})
+    end
+
+    it 'maps a user id to the data sources they can reach, omitting users with none' do
+      create_access_control(ds1_user, ds1)
+
+      expect(described_class.accessible_hmis_data_source_ids_by_user_id).to eq(ds1_user.id => [ds1.id])
+    end
+
+    it 'lists every data source a user can reach' do
+      create_access_control(ds1_user, ds1)
+      create_access_control(ds1_user, ds2)
+
+      result = described_class.accessible_hmis_data_source_ids_by_user_id
+      expect(result.keys).to contain_exactly(ds1_user.id)
+      expect(result[ds1_user.id]).to contain_exactly(ds1.id, ds2.id)
+    end
+
+    it 'keys each user separately' do
+      create_access_control(ds1_user, ds1)
+      create_access_control(no_access_user, ds2)
+
+      expect(described_class.accessible_hmis_data_source_ids_by_user_id).
+        to eq(ds1_user.id => [ds1.id], no_access_user.id => [ds2.id])
+    end
+
+    it 'omits the system user' do
+      # Inherited from with_hmis_access_in_data_source, but the directory report relies on
+      # it: the system user would otherwise be listed as an HMIS user.
+      create_access_control(User.system_user.related_hmis_user(ds1), ds1)
+      create_access_control(ds1_user, ds1)
+
+      expect(described_class.accessible_hmis_data_source_ids_by_user_id.keys).
+        not_to include(User.system_user.id)
+    end
+
+    it 'agrees with the per-user checker, for access granted below the data source' do
+      # Access via a project rather than the whole data source, so this also covers the
+      # entity-walking the report depends on.
+      create_access_control(ds1_user, p1)
+      result = described_class.accessible_hmis_data_source_ids_by_user_id
+
+      aggregate_failures do
+        expect(result.fetch(ds1_user.id, []).include?(ds1.id)).
+          to eq(ds1_user.can_access_hmis_data_source?(ds1.id))
+        expect(result.fetch(no_access_user.id, []).include?(ds1.id)).
+          to eq(no_access_user.can_access_hmis_data_source?(ds1.id))
+      end
+    end
+  end
 end

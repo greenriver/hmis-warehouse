@@ -15,6 +15,7 @@ module Types
     field :id, ID, null: false
     field :key, String, null: false, description: 'The CDED key for this field, or the client field key for a client field'
     field :label, String, null: false, description: 'Human-readable label for this field'
+    field :description, String, null: true, description: 'Additional detail about what this field represents and how its value is resolved'
     field :item_type, Types::Forms::Enums::ItemType, null: false, description: 'The type of the field, used for determining the possible values it can match against.'
     field :multiple, Boolean, null: false, description: 'Whether a client can have more than one value for the field.' # e.g. `age` is not multiple, but `open_enrollment_project_types` is.
     field :expression_field, String, null: false, description: 'The full-length identifier used in CE Match Rule expressions, such as "current_age" or "cde.custom_assessment.my_field_key".'

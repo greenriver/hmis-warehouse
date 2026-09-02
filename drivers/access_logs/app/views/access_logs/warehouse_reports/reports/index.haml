@@ -2,7 +2,8 @@
 - content_for :title, title
 
 = render '/warehouse_reports/breadcrumbs', tab: 'audit'
-%h1.mb-5= title
+%h1.mb-3= title
+= render 'tabs'
 = render 'filter'
 
 %h2 Recently Requested Files

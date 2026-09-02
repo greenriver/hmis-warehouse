@@ -1,0 +1,10 @@
+- title = 'Report Usage'
+- content_for :title, title
+
+= render '/warehouse_reports/breadcrumbs', tab: 'audit'
+%h1.mb-3= title
+= render 'tabs'
+= render 'report_usage_filter'
+= render 'background_render', url: render_report_usage_access_logs_warehouse_reports_reports_path, fetch_params: { filters: @filter.for_params[:filters] } do
+  .rollup
+    .rollup-container.well

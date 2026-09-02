@@ -2,9 +2,8 @@
   %h1= t('.title')
 %p= link_to t('.new'), new_oauth_application_path, class: 'btn btn-success'
 %p
-  - if RailsDrivers.loaded.include?(:superset)
-    = link_to Superset.superset_base_url do
-      « Go to Superset »
+  = link_to Superset.superset_base_url do
+    « Go to Superset »
 %table.table.table-striped
   %thead
     %tr

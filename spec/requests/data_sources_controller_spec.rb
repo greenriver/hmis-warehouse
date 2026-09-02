@@ -15,16 +15,16 @@ RSpec.describe DataSourcesController, type: :request do
   let(:data_source) { create(:source_data_source) }
   let!(:export) { create(:hud_export, data_source: data_source, ExportID: 'DS1') }
 
-  describe 'GET #organizations' do
+  describe 'GET #show' do
     it 'redirects unauthenticated users to sign in' do
       expect_unauthenticated_warehouse_request do
-        get organizations_data_source_path(data_source)
+        get data_source_path(data_source)
       end
     end
 
     it 'denies users who cannot view projects, organizations, or imports' do
       sign_in user
-      get organizations_data_source_path(data_source)
+      get data_source_path(data_source)
       expect(response).to redirect_to(root_path)
     end
   end
@@ -44,7 +44,10 @@ RSpec.describe DataSourcesController, type: :request do
       let!(:other_org) { create(:hud_organization, data_source: other_data_source, OrganizationName: 'Other CoC Org') }
 
       let!(:project_ma500) do
-        create(:hud_project, data_source: data_source, OrganizationID: org_alpha.OrganizationID, ProjectName: 'Shelter MA-500')
+        create(:hud_project, data_source: data_source, OrganizationID: org_alpha.OrganizationID, ProjectName: 'Shelter MA-500', ProjectType: 0)
+      end
+      let!(:confidential_project_ma500) do
+        create(:hud_project, data_source: data_source, OrganizationID: org_alpha.OrganizationID, ProjectName: 'Confidential Shelter MA-500', ProjectType: 0, confidential: true)
       end
       let!(:project_ma502) do
         create(:hud_project, data_source: data_source, OrganizationID: org_alpha.OrganizationID, ProjectName: 'RRH MA-502')
@@ -61,6 +64,7 @@ RSpec.describe DataSourcesController, type: :request do
 
       before do
         create(:hud_project_coc, project: project_ma500, ProjectID: project_ma500.ProjectID, data_source: data_source, CoCCode: 'MA-500')
+        create(:hud_project_coc, project: confidential_project_ma500, ProjectID: confidential_project_ma500.ProjectID, data_source: data_source, CoCCode: 'MA-500')
         create(:hud_project_coc, project: project_ma502, ProjectID: project_ma502.ProjectID, data_source: data_source, CoCCode: 'MA-502')
         create(:hud_project_coc, project: project_ma504, ProjectID: project_ma504.ProjectID, data_source: data_source, CoCCode: 'MA-504')
         create(:hud_project_coc, project: project_unknown, ProjectID: project_unknown.ProjectID, data_source: data_source, CoCCode: nil)
@@ -68,28 +72,29 @@ RSpec.describe DataSourcesController, type: :request do
       end
 
       describe 'GET #show' do
-        it 'shows the CoC picker and prompt instead of organizations' do
+        it 'shows the CoC cards grid instead of organizations' do
           get data_source_path(data_source)
           expect(response).to have_http_status(:ok)
-          expect(response.body).to include('name="coc_code"')
-          expect(response.body).to include('data-controller')
-          expect(response.body).to include('content-loader')
-          expect(response.body).to include(organizations_data_source_path(data_source))
-          expect(response.body).to include('Choose a CoC Code to view organizations and projects.')
+          expect(response.body).to include('Continuums of Care')
+          expect(response.body).to include(data_source_with_coc_code_path(data_source, 'MA-500'))
+          expect(response.body).to include(data_source_with_coc_code_path(data_source, 'MA-502'))
+          expect(response.body).to include(data_source_with_coc_code_path(data_source, 'MA-504'))
           expect(response.body).not_to include('Alpha Housing')
           expect(response.body).not_to include('Beta Services')
         end
 
-        it 'includes Unknown CoC when a ProjectCoC CoCCode is blank' do
+        it 'shows an Unassigned card linking to the unknown-CoC bucket when a ProjectCoC CoCCode is blank' do
           get data_source_path(data_source)
-          expect(response.body).to include('Unknown CoC')
+          expect(response.body).to include('Unassigned')
+          expect(response.body).to include(data_source_with_coc_code_path(data_source, 'unknown'))
         end
       end
 
-      describe 'GET #organizations' do
-        it 'includes only projects in the requested CoC from this data source' do
-          get organizations_data_source_path(data_source, params: { coc_code: 'MA-500' })
+      describe 'GET #show via the bookmarkable CoC-code URL' do
+        it 'shows only the requested CoC\'s organizations and projects' do
+          get data_source_with_coc_code_path(data_source, 'MA-500')
           expect(response).to have_http_status(:ok)
+          expect(response.body).to include('MA-500')
           expect(response.body).to include('Alpha Housing')
           expect(response.body).to include('Shelter MA-500')
           expect(response.body).not_to include('RRH MA-502')
@@ -99,8 +104,40 @@ RSpec.describe DataSourcesController, type: :request do
           expect(response.body).not_to include('Foreign Project')
         end
 
-        it 'includes only projects with a blank CoCCode when unknown is requested' do
-          get organizations_data_source_path(data_source, params: { coc_code: 'unknown' })
+        it 'renders the breadcrumb exactly once and skips the data source header cards' do
+          get data_source_with_coc_code_path(data_source, 'MA-500')
+          expect(response.body.scan('View Data Sources').size).to eq(1)
+          expect(response.body).not_to include('Details & visibility')
+        end
+
+        it 'limits the Project Type filter to types actually present on the page' do
+          get data_source_with_coc_code_path(data_source, 'MA-500')
+          # Only project_ma500 (ProjectType: 0, "ES - Entry/Exit") is on this CoC's page -
+          # the full 14-option HUD project type list must not appear.
+          expect(response.body).to include('ES - Entry/Exit')
+          expect(response.body).not_to include('>SSO<')
+          expect(response.body).not_to include('>TH<')
+        end
+
+        it 'wires each project row with the search text the live filter matches against' do
+          get data_source_with_coc_code_path(data_source, 'MA-500')
+          expect(response.body).to include("data-table-filter-target='searchInput'")
+          expect(response.body).to include("data-search-text='Shelter MA-500'")
+        end
+
+        it "renders each row's data-confidential attribute as the literal string 'true'/'false', not a bare/omitted boolean attribute" do
+          # Haml's own attribute builder special-cases a literal Ruby true/false value in a
+          # data: hash as an HTML boolean attribute (bare `data-confidential` for true, omitted
+          # entirely for false) rather than the literal string the JS filter compares against -
+          # the value must be pre-stringified in the view to avoid that.
+          get data_source_with_coc_code_path(data_source, 'MA-500')
+          expect(response.body).to include("data-confidential='true'")
+          expect(response.body).to include("data-confidential='false'")
+          expect(response.body).not_to match(/data-confidential(?!=)/)
+        end
+
+        it 'shows only projects with a blank CoCCode for the unknown bucket' do
+          get data_source_with_coc_code_path(data_source, 'unknown')
           expect(response).to have_http_status(:ok)
           expect(response.body).to include('Unknown Coc Project')
           expect(response.body).to include('Beta Services')
@@ -109,28 +146,9 @@ RSpec.describe DataSourcesController, type: :request do
           expect(response.body).not_to include('TH MA-504')
         end
 
-        it 'does not serve organizations for a data source the user cannot view' do
-          get organizations_data_source_path(other_data_source, params: { coc_code: 'XX-999' })
+        it 'does not serve a CoC-scoped page for a data source the user cannot view' do
+          get data_source_with_coc_code_path(other_data_source, 'XX-999')
           expect(response).to have_http_status(:not_found)
-        end
-
-        it 'rejects the request when no CoC code is given and a choice is required' do
-          get organizations_data_source_path(data_source)
-          expect(response).to have_http_status(:bad_request)
-          expect(response.body).not_to include('Alpha Housing')
-        end
-      end
-
-      describe 'GET #show via the bookmarkable CoC-code URL' do
-        it 'pre-selects the requested CoC code and preloads its organizations' do
-          get data_source_with_coc_code_path(data_source, 'MA-500')
-          expect(response).to have_http_status(:ok)
-          expect(response.body).to include('<option selected="selected" value="MA-500">')
-          expect(response.body).to include('Alpha Housing')
-          expect(response.body).to include('Shelter MA-500')
-          expect(response.body).not_to include('RRH MA-502')
-          expect(response.body).not_to include('TH MA-504')
-          expect(response.body).not_to include('Unknown Coc Project')
         end
       end
     end
@@ -162,8 +180,7 @@ RSpec.describe DataSourcesController, type: :request do
         expect(response).to have_http_status(:ok)
         expect(response.body).to include('Dominant Coc Org')
         expect(response.body).to include('First Dominant Coc Project')
-        expect(response.body).not_to include('name="coc_code"')
-        expect(response.body).not_to include('Choose a CoC Code to view organizations and projects.')
+        expect(response.body).not_to include('Continuums of Care')
       end
     end
 
@@ -181,11 +198,10 @@ RSpec.describe DataSourcesController, type: :request do
         create(:hud_project_coc, project: project_two, ProjectID: project_two.ProjectID, data_source: data_source, CoCCode: 'MA-502')
       end
 
-      it 'shows the CoC picker instead of organizations' do
+      it 'shows the CoC cards grid instead of organizations' do
         get data_source_path(data_source)
         expect(response).to have_http_status(:ok)
-        expect(response.body).to include('name="coc_code"')
-        expect(response.body).to include('Choose a CoC Code to view organizations and projects.')
+        expect(response.body).to include('Continuums of Care')
         expect(response.body).not_to include('Split Coc Org')
       end
     end
@@ -208,14 +224,59 @@ RSpec.describe DataSourcesController, type: :request do
         collection.set_viewables({ projects: [visible_project.id] })
       end
 
-      it 'excludes the invisible CoC code from the picker and skips the picker entirely' do
+      it 'excludes the invisible CoC code and skips the CoC picker entirely' do
         get data_source_path(data_source)
         expect(response).to have_http_status(:ok)
         expect(response.body).not_to include('MA-777')
-        expect(response.body).not_to include('name="coc_code"')
+        expect(response.body).not_to include('Continuums of Care')
         expect(response.body).to include('Visible Project')
         expect(response.body).not_to include('Hidden Project')
       end
+    end
+  end
+
+  describe 'with permission to edit the data source' do
+    let(:edit_role) { create(:role, can_view_projects: true, can_edit_data_sources: true) }
+
+    before do
+      collection.set_viewables({ data_sources: [data_source.id] })
+      setup_access_control(user, edit_role, collection)
+      sign_in user
+    end
+
+    it 'shows Service Scanning and Personal ID/UUID as plain read-only rows on the Source Info card, not as More dropdown links' do
+      data_source.update!(service_scannable: true, munged_personal_id: true)
+      get data_source_path(data_source)
+      expect(response.body).to include('Service Scanning Enabled?')
+      expect(response.body).to include('Does the Personal ID column contain a UUID?')
+      expect(response.body).not_to include('href="' + edit_data_source_path(data_source, anchor: 'grda_warehouse_data_source_service_scannable') + '"')
+      expect(response.body).not_to include('href="' + edit_data_source_path(data_source, anchor: 'grda_warehouse_data_source_munged_personal_id') + '"')
+    end
+
+    it 'hides the More dropdown\'s import-gated items when the user cannot upload HUD zips' do
+      get data_source_path(data_source)
+      expect(response.body).to include('External HMIS Configuration')
+      expect(response.body).not_to include('Import Cleanup Routines')
+      expect(response.body).not_to include('Alert Configuration')
+      expect(response.body).not_to include('Automate HMIS CSV Loads')
+    end
+
+    context 'and the user can also upload HUD zips' do
+      let(:edit_role) { create(:role, can_view_projects: true, can_edit_data_sources: true, can_upload_hud_zips: true) }
+
+      it "shows the More dropdown's import-gated items" do
+        get data_source_path(data_source)
+        expect(response.body).to include('Import Cleanup Routines')
+        expect(response.body).to include('Alert Configuration')
+        expect(response.body).to include('Automate HMIS CSV Loads')
+      end
+    end
+
+    it 'renders the fields those anchors point at' do
+      get edit_data_source_path(data_source)
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include('id="grda_warehouse_data_source_service_scannable"')
+      expect(response.body).to include('id="grda_warehouse_data_source_munged_personal_id"')
     end
   end
 end
