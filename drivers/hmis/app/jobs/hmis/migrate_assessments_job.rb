@@ -239,6 +239,7 @@ module Hmis
 
       skipped_invalid_assessments = 0
       skipped_exit_assessments = 0
+      skipped_wip_assessments = 0
       skipped_intake_enrollment_ids = []
 
       # In upsert mode, preload the existing CustomAssessments (and their FormProcessors) that we're going to upsert.
@@ -271,6 +272,13 @@ module Hmis
         existing_assessment = existing_assessments_by_id[existing_id] if existing_id
 
         if existing_assessment && upsert # we shouldn't reach here if !upsert, but just in case
+          # A WIP assessment holds unsubmitted user edits in its FormProcessor values; reconciling its
+          # HUD references would make submission act on records the user never loaded.
+          if existing_assessment.in_progress?
+            skipped_wip_assessments += 1
+            next
+          end
+
           # Reconcile the existing assessment and its FormProcessor in place, preserving IDs.
           form_processor = reconcile_existing_assessment(existing_assessment, metadata_attributes, value)
 
@@ -318,6 +326,7 @@ module Hmis
 
       Rails.logger.info "Skipped creating #{skipped_invalid_assessments} invalid assessments" if skipped_invalid_assessments.positive?
       Rails.logger.info "Skipped creating #{skipped_exit_assessments} exit assessments because the enrollment is open" if skipped_exit_assessments.positive?
+      Rails.logger.info "Skipped upserting #{skipped_wip_assessments} in-progress (WIP) assessments" if skipped_wip_assessments.positive?
 
       return unless data_collection_stages.include?(1) && generate_empty_intakes
 

@@ -9,6 +9,37 @@
 require 'rails_helper'
 
 RSpec.describe Hmis::MigrateAssessmentsJob, type: :model do
+  # Every related record the assessment's FormProcessor references, in any HUD column.
+  def attached_records(assessment)
+    [
+      :health_and_dv,
+      :income_benefit,
+      :physical_disability,
+      :developmental_disability,
+      :chronic_health_condition,
+      :hiv_aids,
+      :mental_health_disorder,
+      :substance_use_disorder,
+      :exit,
+      :youth_education_status,
+      :employment_education,
+      :current_living_situation,
+    ].map { |rec| assessment.send(rec) }.uniq.compact
+  end
+
+  # A non-WIP enrollment with no intake in a second HMIS data source. Assessments built from related
+  # records are validated against the job's data source, but synthetic intakes are imported without
+  # validation, so `generate_empty_intakes: true` would create one for this enrollment if the job's
+  # data-source scoping were lost.
+  def create_enrollment_in_other_data_source
+    ds2 = create(:hmis_data_source)
+    u2 = create(:hmis_hud_user, data_source: ds2)
+    o2 = create(:hmis_hud_organization, data_source: ds2, user: u2)
+    p2 = create(:hmis_hud_project, data_source: ds2, organization: o2, user: u2)
+    c2 = create(:hmis_hud_client, data_source: ds2, user: u2)
+    create(:hmis_hud_enrollment, data_source: ds2, project: p2, client: c2)
+  end
+
   context 'builds simple assesssment' do
     let!(:ds1) { create(:hmis_data_source) }
     let!(:u1) { create :hmis_hud_user, data_source: ds1 }
@@ -81,26 +112,25 @@ RSpec.describe Hmis::MigrateAssessmentsJob, type: :model do
           # Date updated should be MAX from records
           expect(assessment.date_updated.to_fs(:db)).to eq(expected_records.map(&:date_updated).max.to_fs(:db))
 
-          related_records = [
-            :health_and_dv,
-            :income_benefit,
-            :physical_disability,
-            :developmental_disability,
-            :chronic_health_condition,
-            :hiv_aids,
-            :mental_health_disorder,
-            :substance_use_disorder,
-            :exit,
-            :youth_education_status,
-            :employment_education,
-            :current_living_situation,
-          ].map do |rec|
-            assessment.send(rec)
-          end.uniq.compact
-
-          expect(related_records.size).to eq(expected_records.size), "Data collection stage #{dcs}"
-          expect(related_records).to include(*expected_records), "Data collection stage #{dcs}"
+          expect(attached_records(assessment)).to contain_exactly(*expected_records), "Data collection stage #{dcs}"
         end
+      end
+
+      it 'ignores enrollment_ids that belong to another data source' do
+        other_enrollment = create_enrollment_in_other_data_source
+
+        Hmis::MigrateAssessmentsJob.perform_now(data_source_id: ds1.id, enrollment_ids: [e1.id, other_enrollment.id], generate_empty_intakes: true)
+
+        expect(e1.custom_assessments.intakes.count).to eq(1)
+        expect(Hmis::Hud::CustomAssessment.where(enrollment_id: other_enrollment.enrollment_id)).to be_empty
+      end
+
+      it 'ignores project_ids that belong to another data source' do
+        other_enrollment = create_enrollment_in_other_data_source
+
+        Hmis::MigrateAssessmentsJob.perform_now(data_source_id: ds1.id, project_ids: [other_enrollment.project.id], generate_empty_intakes: true)
+
+        expect(Hmis::Hud::CustomAssessment.count).to eq(0)
       end
 
       it 'creates assessments only in specified projects' do
@@ -172,9 +202,8 @@ RSpec.describe Hmis::MigrateAssessmentsJob, type: :model do
           intake_assessment.reload
           expect(intake_assessment.form_processor.id).to eq(form_processor_id) # unchanged
 
-          # A newly-available related record for the existing key is attached to the existing FormProcessor
-          expect(intake_assessment.form_processor.income_benefit).to eq(entry_records.find { |r| r.instance_of?(Hmis::Hud::IncomeBenefit) })
-          expect(intake_assessment.form_processor.health_and_dv).to eq(entry_records.find { |r| r.instance_of?(Hmis::Hud::HealthAndDv) })
+          # Every Entry-stage record is attached to the existing FormProcessor, including the disability fan-out columns
+          expect(attached_records(intake_assessment)).to contain_exactly(*entry_records)
 
           # Metadata is recomputed from the related records (was 2019-01-01 from the factory)
           expect(intake_assessment.date_created.to_fs(:db)).to eq(entry_records.map(&:date_created).min.to_fs(:db))
@@ -198,6 +227,37 @@ RSpec.describe Hmis::MigrateAssessmentsJob, type: :model do
 
           # MigrateAssessmentsJob cleared the stale reference
           expect(intake_assessment.reload.form_processor.employment_education).to be_nil
+        end
+
+        it 'reconciles an existing exit assessment in place, taking assessment_date from the Exit record' do
+          exit_records = records_by_data_collaction_stage[3]
+          exit_assessment = create(:hmis_custom_assessment, data_collection_stage: 3, assessment_date: 1.year.ago, enrollment: e1, data_source: ds1, client: c1)
+          exit_assessment_id = exit_assessment.id
+          form_processor_id = exit_assessment.form_processor.id
+          expect(exit_assessment.form_processor.exit).to be_nil
+
+          Hmis::MigrateAssessmentsJob.perform_now(data_source_id: ds1.id, upsert: true)
+
+          expect(e1.custom_assessments.exits.count).to eq(1)
+          exit_assessment.reload
+          expect(exit_assessment.id).to eq(exit_assessment_id)
+          expect(exit_assessment.form_processor.id).to eq(form_processor_id)
+          expect(attached_records(exit_assessment)).to contain_exactly(*exit_records)
+          expect(exit_assessment.assessment_date).to eq(e1.exit.exit_date)
+        end
+
+        it 'leaves an in-progress (WIP) intake untouched and does not create a second intake' do
+          intake_assessment.update!(wip: true)
+          wip_assessment_date = intake_assessment.assessment_date
+
+          Hmis::MigrateAssessmentsJob.perform_now(data_source_id: ds1.id, upsert: true)
+
+          expect(e1.custom_assessments.where(data_collection_stage: 1).count).to eq(1)
+          intake_assessment.reload
+          expect(intake_assessment.wip).to eq(true)
+          expect(intake_assessment.assessment_date).to eq(wip_assessment_date)
+          expect(intake_assessment.date_created.to_date).to eq(Date.parse('2019-01-01'))
+          expect(attached_records(intake_assessment)).to be_empty
         end
 
         it 'reconciles an existing annual (unique-by-information-date) assessment in place' do
