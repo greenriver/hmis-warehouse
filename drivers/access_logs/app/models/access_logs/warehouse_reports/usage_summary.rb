@@ -35,18 +35,24 @@ class AccessLogs::WarehouseReports::UsageSummary
     { key: url, name: name, unique_visits: user_visits.values.sum, unique_users: user_visits.size, user_visits: user_visits }
   end
 
-  # One grouped query: report_key (via CASE, first-match-wins) x user_id x COUNT(DISTINCT day).
+  # One grouped query: report_key (via CASE, first-match-wins) x user_id x COUNT(DISTINCT local day).
   # ActivityLog.warehouse_report_conditions is the single source of truth for what counts as each
   # report's activity (including any ReportDefinition `reporting_query` override) -- shared with
   # the ActivityLog.warehouse_reports scope used for the WHERE below.
   def grouped_rows
     at = ActivityLog.arel_table
     report_key = acase(ActivityLog.warehouse_report_conditions.map { |url, condition| [condition, url] })
-    visit_day = cast(at[:created_at], 'date')
+    visit_day = local_date(at[:created_at])
 
-    ActivityLog.warehouse_reports.created_in_range(range: @range).
+    ActivityLog.warehouse_reports.created_in_range(range: timestamp_range).
       group(report_key, :user_id).
       pluck(report_key, :user_id, Arel::Nodes::Count.new([visit_day], true))
+  end
+
+  # created_at is a timestamp column; comparing it to bare Date bounds casts the upper bound to
+  # midnight UTC, silently excluding same-day visits made after that (evening Eastern).
+  def timestamp_range
+    @range.begin.beginning_of_day..@range.end.end_of_day
   end
 
   def report_names
