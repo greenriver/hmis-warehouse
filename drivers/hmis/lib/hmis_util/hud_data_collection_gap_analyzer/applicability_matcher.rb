@@ -8,8 +8,8 @@
 
 module HmisUtil
   class HudDataCollectionGapAnalyzer
-    # Decides whether HUD requires Current Living Situation or a given Service record type
-    # for a project.
+    # Decides whether HUD requires Current Living Situation, a Service record type, or an
+    # occurrence-point form (Move-in Date, Date of Engagement, PATH Status) for a project.
     #
     # Applicability entries omit keys to mean "any": { funder: 5 } applies at every project
     # type, and { project_type: 1 } applies under every funder. Treating these as exact
@@ -35,6 +35,20 @@ module HmisUtil
         hud.service_form_funder_applicability_requirements.filter_map do |config|
           config[:record_type] if config[:applicability_requirements].any? { |entry| matches?(entry) }
         end
+      end
+
+      # System instances are one per PH project type and one per move-in-date funder (OR).
+      def move_in_date_required?
+        hud.permanent_housing_project_types.include?(project.project_type) ||
+          hud.move_in_date_funders.any? { |code| funder_codes.include?(code) }
+      end
+
+      def date_of_engagement_required?
+        hud.doe_project_types.include?(project.project_type)
+      end
+
+      def path_status_required?
+        hud.path_funders.any? { |code| funder_codes.include?(code) }
       end
 
       protected

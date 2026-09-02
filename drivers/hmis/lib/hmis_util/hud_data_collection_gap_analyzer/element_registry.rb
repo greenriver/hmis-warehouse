@@ -26,6 +26,8 @@ module HmisUtil
         'HEALTH_AND_DV' => :health_and_dvs,
         'EMPLOYMENT_EDUCATION' => :employment_educations,
         'YOUTH_EDUCATION_STATUS' => :youth_education_statuses,
+        'ENROLLMENT' => :enrollments,
+        'EXIT' => :exits,
       }.freeze
 
       # DISPLAY items are labels; they store no value.

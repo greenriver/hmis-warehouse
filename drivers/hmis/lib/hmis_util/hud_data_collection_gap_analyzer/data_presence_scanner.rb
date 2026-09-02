@@ -29,6 +29,7 @@ module HmisUtil
         current_living_situations: :InformationDate,
         services: :DateProvided,
         enrollments: :EntryDate,
+        exits: :ExitDate,
       }.freeze
 
       attr_reader :project, :date_range
