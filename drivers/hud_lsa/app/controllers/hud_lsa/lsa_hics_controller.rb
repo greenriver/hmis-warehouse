@@ -64,7 +64,7 @@ module HudLsa
       {
         'FY 2023' => { slug: :fy2023, active: false },
         'FY 2024' => { slug: :fy2024, active: false },
-        'FY 2026' => { slug: :fy2026, active: false },
+        'FY 2026' => { slug: :fy2026, active: true },
         'FY 2027' => { slug: :fy2027, active: true },
       }.freeze
     end
