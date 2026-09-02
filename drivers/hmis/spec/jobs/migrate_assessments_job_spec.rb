@@ -180,6 +180,21 @@ RSpec.describe Hmis::MigrateAssessmentsJob, type: :model do
         end.to change(e1.custom_assessments, :count).by(0)
       end
 
+      describe 'atomicity' do
+        it 'creates no assessments when the FormProcessor import fails' do
+          # recursive import inserts FormProcessors via bulk_import, a separate statement from the
+          # CustomAssessment insert. Failing it here simulates a DB error between the two statements.
+          allow(Hmis::Form::FormProcessor).to receive(:bulk_import).and_raise(ActiveRecord::StatementInvalid, 'simulated failure')
+
+          expect do
+            Hmis::MigrateAssessmentsJob.perform_now(data_source_id: ds1.id)
+          end.to raise_error(ActiveRecord::StatementInvalid, /simulated failure/)
+
+          expect(e1.custom_assessments).to be_empty
+          expect(Hmis::Form::FormProcessor.joins(:custom_assessment).where(custom_assessment: { enrollment_id: e1.enrollment_id })).to be_empty
+        end
+      end
+
       describe 'upsert' do
         let!(:intake_assessment) { create(:hmis_custom_assessment, data_collection_stage: 1, assessment_date: 1.month.ago, enrollment: e1, data_source: ds1, client: c1) }
         let!(:fully_custom_assessment) { create(:hmis_custom_assessment, data_collection_stage: 99, assessment_date: 2.days.ago, enrollment: e1, data_source: ds1, client: c1) }
@@ -291,6 +306,25 @@ RSpec.describe Hmis::MigrateAssessmentsJob, type: :model do
           # The newly-available related records for the existing key are attached to the existing FormProcessor
           expect(annual_assessment.form_processor.income_benefit).to eq(annual_income_benefit)
           expect(annual_assessment.form_processor.health_and_dv).to eq(annual_health_and_dv)
+        end
+
+        it 'leaves the existing assessment unchanged when the FormProcessor upsert fails' do
+          original_user_id = intake_assessment.user_id
+          original_date_updated = intake_assessment.date_updated
+          # Sanity check that the fixture would otherwise be changed by the upsert
+          expect(entry_records.map(&:date_created).min.to_date).not_to eq(Date.parse('2019-01-01'))
+
+          allow(Hmis::Form::FormProcessor).to receive(:import).and_raise(ActiveRecord::StatementInvalid, 'simulated failure')
+
+          expect do
+            Hmis::MigrateAssessmentsJob.perform_now(data_source_id: ds1.id, upsert: true)
+          end.to raise_error(ActiveRecord::StatementInvalid, /simulated failure/)
+
+          intake_assessment.reload
+          expect(intake_assessment.date_created.to_date).to eq(Date.parse('2019-01-01'))
+          expect(intake_assessment.date_updated.to_fs(:db)).to eq(original_date_updated.to_fs(:db))
+          expect(intake_assessment.user_id).to eq(original_user_id)
+          expect(attached_records(intake_assessment)).to be_empty
         end
       end
 

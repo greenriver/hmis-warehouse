@@ -123,8 +123,11 @@ module Hmis
       # Delete any records that were marked for deletion
       if delete_dangling_records
         debug_log("Deleting dangling records:\n #{records_to_delete.map { |k, ids| [k.name, ids.size] }.to_h}")
-        records_to_delete.each do |klass, ids|
-          klass.where(id: ids).update_all(DateDeleted: soft_delete_datetime, source_hash: nil)
+        # One statement per record class; all-or-nothing so a rerun never sees a half-deleted set.
+        Hmis::Hud::Base.transaction(requires_new: true) do
+          records_to_delete.each do |klass, ids|
+            klass.where(id: ids).update_all(DateDeleted: soft_delete_datetime, source_hash: nil)
+          end
         end
       end
 
@@ -316,31 +319,37 @@ module Hmis
         end
       end
 
-      Rails.logger.info "Importing #{assessments_to_import.size} assessments..."
-      ar_import(assessments_to_import)
+      # Everything above is reads and in-memory building; the writes below are one unit. activerecord-import
+      # does not open a transaction on Postgres, so without this a failure between the CustomAssessment insert
+      # and the FormProcessor insert (or between the two upsert imports) leaves half-written assessments.
+      # requires_new so the block is a savepoint when a caller already holds a transaction.
+      Hmis::Hud::CustomAssessment.transaction(requires_new: true) do
+        Rails.logger.info "Importing #{assessments_to_import.size} assessments..."
+        ar_import(assessments_to_import)
 
-      if assessments_to_upsert.any?
-        Rails.logger.info "Upserting #{assessments_to_upsert.size} existing assessments..."
-        upsert_existing_assessments(assessments_to_upsert, form_processors_to_upsert)
+        if assessments_to_upsert.any?
+          Rails.logger.info "Upserting #{assessments_to_upsert.size} existing assessments..."
+          upsert_existing_assessments(assessments_to_upsert, form_processors_to_upsert)
+        end
+
+        Rails.logger.info "Skipped creating #{skipped_invalid_assessments} invalid assessments" if skipped_invalid_assessments.positive?
+        Rails.logger.info "Skipped creating #{skipped_exit_assessments} exit assessments because the enrollment is open" if skipped_exit_assessments.positive?
+        Rails.logger.info "Skipped upserting #{skipped_wip_assessments} in-progress (WIP) assessments" if skipped_wip_assessments.positive?
+
+        if data_collection_stages.include?(1) && generate_empty_intakes
+          # For INTAKE assessments:
+          # If generate_empty_intakes option is set, then generate empty intake assessments for any enrollment in the batch
+          # that is missing an intake. This would occur if the enrollment didn't have any related records with DataCollectionStage:1.
+          enrollments_missing_intakes = enrollment_batch.left_outer_joins(:intake_assessment).
+            where(intake_assessment: { id: nil }).
+            where.not(enrollment_id: skipped_intake_enrollment_ids) # enrollment_ids with intake assessments that were skipped because they were invalid
+
+          empty_intakes = enrollments_missing_intakes.map(&:build_synthetic_intake_assessment)
+
+          Rails.logger.info "Importing #{enrollments_missing_intakes.count} empty intake assessments"
+          ar_import(empty_intakes)
+        end
       end
-
-      Rails.logger.info "Skipped creating #{skipped_invalid_assessments} invalid assessments" if skipped_invalid_assessments.positive?
-      Rails.logger.info "Skipped creating #{skipped_exit_assessments} exit assessments because the enrollment is open" if skipped_exit_assessments.positive?
-      Rails.logger.info "Skipped upserting #{skipped_wip_assessments} in-progress (WIP) assessments" if skipped_wip_assessments.positive?
-
-      return unless data_collection_stages.include?(1) && generate_empty_intakes
-
-      # For INTAKE assessments:
-      # If generate_empty_intakes option is set, then generate empty intake assessments for any enrollment in the batch
-      # that is missing an intake. This would occur if the enrollment didn't have any related records with DataCollectionStage:1.
-      enrollments_missing_intakes = enrollment_batch.left_outer_joins(:intake_assessment).
-        where(intake_assessment: { id: nil }).
-        where.not(enrollment_id: skipped_intake_enrollment_ids) # enrollment_ids with intake assessments that were skipped because they were invalid
-
-      empty_intakes = enrollments_missing_intakes.map(&:build_synthetic_intake_assessment)
-
-      Rails.logger.info "Importing #{enrollments_missing_intakes.count} empty intake assessments"
-      ar_import(empty_intakes)
     end
 
     private
