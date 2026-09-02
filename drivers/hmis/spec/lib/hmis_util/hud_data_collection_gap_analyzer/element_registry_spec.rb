@@ -17,13 +17,15 @@ RSpec.describe HmisUtil::HudDataCollectionGapAnalyzer::ElementRegistry do
     # base_intake.json itself declares only ENROLLMENT mappings; income items live in
     # the income_and_sources fragment, so finding one proves fragments were resolved.
     intake_income = elements.select { |e| e.role == :INTAKE && e.record_type == 'INCOME_BENEFIT' }
+    intake_enrollment = elements.select { |e| e.role == :INTAKE && e.record_type == 'ENROLLMENT' }
 
     expect(intake_income.map(&:field_name)).to include('incomeFromAnySource')
+    expect(intake_enrollment.map(&:field_name)).to include('livingSituation')
   end
 
-  it 'emits only the five target record types' do
+  it 'emits only the target record types' do
     expect(elements.map(&:record_type).uniq).to match_array(
-      ['INCOME_BENEFIT', 'DISABILITY_GROUP', 'HEALTH_AND_DV', 'EMPLOYMENT_EDUCATION', 'YOUTH_EDUCATION_STATUS'],
+      ['INCOME_BENEFIT', 'DISABILITY_GROUP', 'HEALTH_AND_DV', 'EMPLOYMENT_EDUCATION', 'YOUTH_EDUCATION_STATUS', 'ENROLLMENT', 'EXIT'],
     )
   end
 
@@ -45,6 +47,12 @@ RSpec.describe HmisUtil::HudDataCollectionGapAnalyzer::ElementRegistry do
     element = elements.find { |e| e.field_name == 'viralLoad' }
 
     expect(element).to have_attributes(disability_type: 8, column: :ViralLoad)
+  end
+
+  it 'maps an enrollment acronym field and a multi-select exit field to HUD columns' do
+    expect(elements.find { |e| e.field_name == 'dateToStreetEssh' }.column).to eq(:DateToStreetESSH)
+    expect(elements.find { |e| e.field_name == 'counselingMethods' }.column).to eq(:IndividualCounseling)
+    expect(elements.find { |e| e.field_name == 'aftercareMethods' }.column).to eq(:Telephone)
   end
 
   describe '#definition_tree' do

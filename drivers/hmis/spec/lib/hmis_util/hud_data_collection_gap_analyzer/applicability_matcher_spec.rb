@@ -80,4 +80,21 @@ RSpec.describe HmisUtil::HudDataCollectionGapAnalyzer::ApplicabilityMatcher do
       expect(matcher.required_service_record_types).not_to include(bed_night_record_type)
     end
   end
+
+  describe 'occurrence-point forms' do
+    it 'requires Date of Engagement for ES NbN, not for ES Entry/Exit' do
+      expect(matcher_for(project_type: es_nbn_project_type, funder_codes: []).date_of_engagement_required?).to be(true)
+      expect(matcher_for(project_type: 2, funder_codes: []).date_of_engagement_required?).to be(false)
+    end
+
+    it 'requires Move-in Date for PH, not for ES Entry/Exit' do
+      expect(matcher_for(project_type: 3, funder_codes: []).move_in_date_required?).to be(true)
+      expect(matcher_for(project_type: 2, funder_codes: []).move_in_date_required?).to be(false)
+    end
+
+    it 'requires PATH Status only when the project is PATH funded' do
+      expect(matcher_for(project_type: 2, funder_codes: [path_funder]).path_status_required?).to be(true)
+      expect(matcher_for(project_type: 2, funder_codes: [coc_sso_funder]).path_status_required?).to be(false)
+    end
+  end
 end
