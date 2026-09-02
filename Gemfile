@@ -200,6 +200,8 @@ gem 'multipart-post'
 gem 'addressable' # normalize uris
 gem 'redis-actionpack'
 
+gem 'resolv', '>= 0.7.2' # CVE-2026-80212 and CVE-2026-80213
+
 gem 'ed25519'
 gem 'bcrypt_pbkdf'
 gem 'gpgme'
