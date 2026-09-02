@@ -26,7 +26,7 @@ module Idp
 
       # Learn the durable connector link for every resolved user (existing or
       # JIT-created), independent of whether JIT-creation was allowed.
-      if @learn
+      if @learn && connector_identity?
         ensure_authentication_source(user)
         update_last_connector(user)
       end
@@ -50,10 +50,15 @@ module Idp
       @connector_id = @jwt_helper.connector_id
       @connector_user_id = @jwt_helper.connector_user_id
 
-      @email.present? && @connector_id.present? && @connector_user_id.present?
+      # Email is the only claim we require as it's used to link accounts on first-login
+      @email.present?
     end
 
-    # The  attributes that identify one IdP link.
+    # Both halves of the link or neither: UserAuthenticationSource requires both columns.
+    def connector_identity?
+      @connector_id.present? && @connector_user_id.present?
+    end
+
     def connector_identity
       { connector_id: @connector_id, connector_user_id: @connector_user_id }
     end
@@ -61,13 +66,15 @@ module Idp
     def find_existing_user
       # hot path, called on every authenticated request.
       # use eager_load for one query
-      auth_source = Idp::UserAuthenticationSource.
-        where(connector_identity).
-        eager_load(:user).
-        order(Idp::UserAuthenticationSource.arel_table[:id]).
-        first
+      if connector_identity?
+        auth_source = Idp::UserAuthenticationSource.
+          where(connector_identity).
+          eager_load(:user).
+          order(Idp::UserAuthenticationSource.arel_table[:id]).
+          first
 
-      return auth_source.user if auth_source
+        return auth_source.user if auth_source
+      end
 
       user = @user_class.find_by(email: @email)
       Rails.logger.info("JWT email-fallback lookup matched user id=#{user.id} via connector #{@connector_id}") if user

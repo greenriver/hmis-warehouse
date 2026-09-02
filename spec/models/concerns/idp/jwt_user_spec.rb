@@ -29,14 +29,19 @@ RSpec.describe Idp::JwtUser, :jwt_only, type: :model do
       expect(User.find_from_jwt(jwt_helper)).to be_nil
     end
 
-    it 'returns nil when connector_id is nil (fail-closed)' do
-      allow(jwt_helper).to receive(:connector_id).and_return(nil)
+    it 'returns nil when the token carries no email' do
+      allow(jwt_helper).to receive(:payload_email).and_return(nil)
       expect(User.find_from_jwt(jwt_helper)).to be_nil
     end
 
-    it 'returns nil when connector_user_id is nil (fail-closed)' do
+    it 'still resolves by email when connector_id is absent' do
+      allow(jwt_helper).to receive(:connector_id).and_return(nil)
+      expect(User.find_from_jwt(jwt_helper)).to eq(user)
+    end
+
+    it 'still resolves by email when connector_user_id is absent' do
       allow(jwt_helper).to receive(:connector_user_id).and_return(nil)
-      expect(User.find_from_jwt(jwt_helper)).to be_nil
+      expect(User.find_from_jwt(jwt_helper)).to eq(user)
     end
 
     it 'finds a user by Authentication Source when one exists' do
@@ -64,17 +69,15 @@ RSpec.describe Idp::JwtUser, :jwt_only, type: :model do
   end
 
   describe '.find_or_create_from_jwt' do
-    # Fail-closed claim checks live in the shared provisioner gate and are
-    # covered exhaustively under .find_from_jwt; this is just a smoke test that
-    # this entry point routes through the same gate.
+    # Both entry points validate the token the same way in Idp::UserProvisioner, and
+    # .find_from_jwt tests that fully. This one check confirms this method rejects an
+    # invalid token too.
     it 'returns nil when valid? is false' do
       allow(jwt_helper).to receive(:valid?).and_return(false)
       expect(User.find_or_create_from_jwt(jwt_helper)).to be_nil
     end
 
-    context 'with auto-creation enabled' do
-      before { AppConfigProperty.create!(key: 'idp/auto_create_user', value: 'true') }
-
+    context 'provisioning' do
       it 'finds by auth source even when the JWT email no longer matches' do
         user.user_authentication_sources.create!(
           connector_id: 'test-idp',
@@ -103,25 +106,29 @@ RSpec.describe Idp::JwtUser, :jwt_only, type: :model do
         expect(result.agency_id).to eq(0)
         expect(result.user_authentication_sources.where(connector_id: 'test-idp', connector_user_id: 'ext-user-new')).to exist
       end
-    end
 
-    context 'without auto-creation' do
+      it 'creates a user when the token carries no connector claims' do
+        allow(jwt_helper).to receive(:connector_id).and_return(nil)
+        allow(jwt_helper).to receive(:connector_user_id).and_return(nil)
+        allow(jwt_helper).to receive(:payload_email).and_return('nobody@example.com')
+
+        result = User.find_or_create_from_jwt(jwt_helper)
+        expect(result).to be_persisted
+        expect(result.email).to eq('nobody@example.com')
+        expect(result.user_authentication_sources).to be_empty
+        expect(result.last_connector_id).to be_nil
+      end
+
+      it 'returns nil when the token carries no email' do
+        allow(jwt_helper).to receive(:payload_email).and_return(nil)
+        expect(User.find_or_create_from_jwt(jwt_helper)).to be_nil
+      end
+
       it 'provisions an Authentication Source and last_connector_id for an existing user' do
         result = User.find_or_create_from_jwt(jwt_helper)
         expect(result).to eq(user)
         expect(user.user_authentication_sources.where(connector_id: 'test-idp', connector_user_id: 'ext-user-1')).to exist
         expect(user.reload.last_connector_id).to eq('test-idp')
-      end
-
-      it 'does NOT create a user when idp/auto_create_user is absent' do
-        allow(jwt_helper).to receive(:payload_email).and_return('nobody@example.com')
-        expect(User.find_or_create_from_jwt(jwt_helper)).to be_nil
-      end
-
-      it 'does NOT create a user when idp/auto_create_user is false' do
-        AppConfigProperty.create!(key: 'idp/auto_create_user', value: 'false')
-        allow(jwt_helper).to receive(:payload_email).and_return('nobody@example.com')
-        expect(User.find_or_create_from_jwt(jwt_helper)).to be_nil
       end
     end
 

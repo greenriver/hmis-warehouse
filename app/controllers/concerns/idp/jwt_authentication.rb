@@ -170,9 +170,9 @@ module Idp::JwtAuthentication
   end
 
   def idp_authenticated_user_from_jwt(user_class: User)
-    # find_or_create_from_jwt only creates a user if idp/auto_create_user is set, and it
-    # updates the Authentication Source record on every request (via Idp::UserProvisioner).
-    # idp_token_holder memoizes this so it only happens once per request.
+    # find_or_create_from_jwt provisions a user on first sign-in, and updates the Authentication
+    # Source record on every request (via Idp::UserProvisioner). idp_token_holder memoizes this
+    # so it only happens once per request.
     authenticated_user = idp_token_holder
     return nil unless authenticated_user
 
@@ -263,10 +263,7 @@ module Idp::JwtAuthentication
     # Idp::UnauthenticatedRequestError for how the proxy config and route surface let it happen.
     raise Idp::UnauthenticatedRequestError, request.path unless idp_jwt_helper_for_request.token?
 
-    # A valid token whose holder has no warehouse account: Idp::UserProvisioner returns nil when
-    # idp/auto_create_user is off and no row matches, which is routine on a realm shared with other
-    # apps. That is a person who needs an account rather than a misconfiguration, so render a
-    # terminal page in the same shape as idp_handle_deactivated.
+    # A valid token we could neither resolve nor provision an account from.
     render(template: 'errors/no_warehouse_account', status: :forbidden)
   end
 
