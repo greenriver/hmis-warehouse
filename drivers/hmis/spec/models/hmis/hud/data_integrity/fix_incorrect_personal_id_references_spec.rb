@@ -156,6 +156,40 @@ RSpec.describe Hmis::Hud::DataIntegrity::FixIncorrectPersonalIdReferences, type:
     end.to raise_error(ArgumentError, 'Pass enrollment_ids or project_ids, but not both')
   end
 
+  context 'with a colliding EnrollmentID in another data source' do
+    let!(:other_ds_project) { create(:hud_project, data_source_id: other_source_ds.id) }
+    let!(:other_ds_client) { create(:grda_warehouse_hud_client, data_source_id: other_source_ds.id, PersonalID: 'other-ds-client') }
+    let!(:other_ds_enrollment) do
+      create(
+        :grda_warehouse_hud_enrollment,
+        data_source_id: other_source_ds.id,
+        client: other_ds_client,
+        project: other_ds_project,
+        EnrollmentID: e1.enrollment_id,
+        DateCreated: last_year,
+        DateUpdated: last_year,
+      )
+    end
+    let!(:other_ds_service) do
+      create(
+        :hud_service,
+        data_source_id: other_source_ds.id,
+        EnrollmentID: e1.enrollment_id,
+        PersonalID: 'other-ds-wrong',
+        DateCreated: last_year,
+        DateUpdated: last_year,
+      )
+    end
+
+    it 'resolves PersonalID from the enrollment in the given data source only' do
+      run!
+
+      records_with_bad_references.each(&:reload)
+      expect(records_with_bad_references.map(&:PersonalID).uniq).to contain_exactly(e1.personal_id)
+      expect(other_ds_service.reload.PersonalID).to eq('other-ds-wrong')
+    end
+  end
+
   context 'with an orphaned record (EnrollmentID not found)' do
     let!(:orphan_service) { create(:hmis_hud_service, :skip_validate, enrollment: e1, EnrollmentID: 'does-not-exist', PersonalID: 'also-wrong', data_source: hmis_ds) }
 

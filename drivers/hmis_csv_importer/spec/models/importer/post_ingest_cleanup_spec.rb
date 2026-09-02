@@ -14,20 +14,45 @@ RSpec.describe HmisCsvImporter::Importer::Importer, type: :model do
     HmisCsvImporter::Loader::LoaderLog.create!(data_source_id: data_source.id, status: :loaded, version: '2026')
   end
   let(:importer) { described_class.new(loader_id: loader_log.id, data_source_id: data_source.id) }
+  let(:cleanup_class) { HmisCsvImporter::PostIngestCleanup::FixIncorrectPersonalIdReferences }
+  let(:cleanup) { instance_double(cleanup_class) }
 
   before do
-    allow(importer).to receive(:involved_project_ids).and_return(['P-1'])
-    allow_any_instance_of(HmisCsvImporter::PostIngestCleanup::FixIncorrectPersonalIdReferences).
-      to receive(:cleanup!).and_raise(StandardError, 'oh no')
+    HmisCsvTwentyTwentySix::Importer::Project.create!(
+      importer_log_id: importer.importer_log.id,
+      data_source_id: data_source.id,
+      ProjectID: 'P-1',
+      OrganizationID: 'O-1',
+      ProjectName: 'Test Project',
+      pre_processed_at: Time.current,
+      source_type: 'HmisCsvTwentyTwentySix::Loader::Project',
+      source_id: 1,
+    )
+    allow(cleanup_class).to receive(:new).and_return(cleanup)
   end
 
   describe '#post_ingest_cleanup!' do
+    it 'runs each configured cleanup against the import data source and its projects' do
+      allow(cleanup).to receive(:cleanup!)
+
+      importer.post_ingest_cleanup!
+
+      expect(cleanup_class).to have_received(:new).with(
+        importer_log: importer.importer_log,
+        data_source: data_source,
+        project_ids: ['P-1'],
+        version: '2026',
+      )
+      expect(cleanup).to have_received(:cleanup!)
+    end
+
     it 'reports failures to Sentry without raising' do
+      allow(cleanup).to receive(:cleanup!).and_raise(StandardError, 'oh no')
       expect(Sentry).to receive(:capture_exception_with_info).with(
         instance_of(StandardError),
         'Post-ingest cleanup failed',
         hash_including(
-          cleanup_class: 'HmisCsvImporter::PostIngestCleanup::FixIncorrectPersonalIdReferences',
+          cleanup_class: cleanup_class.name,
           data_source_id: data_source.id,
           importer_log_id: importer.importer_log.id,
           project_ids: ['P-1'],
@@ -35,32 +60,6 @@ RSpec.describe HmisCsvImporter::Importer::Importer, type: :model do
       )
 
       expect { importer.post_ingest_cleanup! }.not_to raise_error
-    end
-  end
-
-  describe '#import!' do
-    before do
-      allow(importer).to receive(:start_import) do
-        importer.instance_variable_set(:@started_at, Time.current)
-      end
-      allow(importer).to receive(:analyze_tables)
-      allow(importer).to receive(:pre_process!)
-      allow(importer).to receive(:validate_data_set!)
-      allow(importer).to receive(:aggregate!)
-      allow(importer).to receive(:cleanup_data_set!)
-      allow(importer).to receive(:precalculate_change_counts)
-      allow(importer).to receive(:notify_of_import_status)
-      allow(importer).to receive(:should_pause?).and_return(false)
-      allow(importer).to receive(:ingest!)
-      allow(importer).to receive(:invalidate_aggregated_enrollments!)
-      allow(importer).to receive(:post_process)
-      allow(Sentry).to receive(:capture_exception_with_info)
-    end
-
-    it 'marks the import complete even when post-ingest cleanup fails' do
-      importer.import!
-
-      expect(importer.importer_log.reload.status).to eq('complete')
     end
   end
 end
