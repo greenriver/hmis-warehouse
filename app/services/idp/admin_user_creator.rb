@@ -80,12 +80,14 @@ module Idp
       if existing
         # A match with no id is contradictory: the IdP claims this email exists but gives us nothing
         # to link on. Creating a new account would duplicate it (or 409), so fail loudly instead.
-        raise Idp::ServiceError.new(
-          "IdP returned a match with no id for #{@email}",
-          idp_name: service.idp_name,
-          operation: :find_user_by_email,
-          transient: false,
-        ) if existing['id'].blank?
+        if existing['id'].blank?
+          raise Idp::ServiceError.new(
+            "IdP returned a match with no id for #{@email}",
+            idp_name: service.idp_name,
+            operation: :find_user_by_email,
+            transient: false,
+          )
+        end
 
         return existing['id']
       end

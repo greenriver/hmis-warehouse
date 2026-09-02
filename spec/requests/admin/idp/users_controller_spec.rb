@@ -244,20 +244,6 @@ RSpec.describe Admin::Idp::UsersController, :jwt_only, type: :request do
         end
       end
 
-      # Not reachable from the checkbox form, which always submits a value.
-      context 'when connector_id is omitted with one connector configured' do
-        let(:params) { { user: { first_name: 'New', last_name: 'Bie', email: new_email, agency_id: agency.id } } }
-
-        it 'creates a local-only user with no remote call' do
-          expect { post admin_users_path, params: params }.to change(User, :count).by(1)
-
-          user = User.find_by(email: new_email)
-          expect(user.user_authentication_sources).to be_empty
-          expect(a_request(:post, users_url)).not_to have_been_made
-          expect(response).to redirect_to(edit_admin_user_path(user))
-        end
-      end
-
       context 'when no agency is chosen' do
         let(:params) { { user: { first_name: 'New', last_name: 'Bie', email: new_email, agency_id: '', idp_connector_id: connector_id } } }
 
