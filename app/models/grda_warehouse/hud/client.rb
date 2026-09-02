@@ -1426,6 +1426,20 @@ module GrdaWarehouse::Hud
       destination_client&.id
     end
 
+    # All currently HMIS-restricted client ids (source and destination alike -- restriction
+    # applies to the whole warehouse identity, see RestrictedClientLoader).
+    def self.hmis_restricted_source_client_ids
+      GrdaWarehouse::AuthPolicies::ContextLoaders::RestrictedClientLoader.new.restricted_client_ids
+    end
+
+    # The subset of the given destination client ids that are HMIS-restricted.
+    def self.hmis_restricted_destination_client_ids(destination_client_ids)
+      return Set.new if destination_client_ids.blank?
+
+      loader = GrdaWarehouse::AuthPolicies::ContextLoaders::RestrictedClientLoader.new
+      destination_client_ids.select { |id| loader.restricted?(id) }.to_set
+    end
+
     def name
       # Deprecated
       # skip deprecations to avoid test failures. Suggest uncommenting when we are ready to implement pii globally
