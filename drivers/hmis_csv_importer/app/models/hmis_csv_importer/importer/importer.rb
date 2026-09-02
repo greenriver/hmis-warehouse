@@ -1192,20 +1192,6 @@ module HmisCsvImporter::Importer
       batch_clear_pending_deletion(klass, matched_scope, file_name)
     end
 
-    # Arel node: CAST(col AT TIME ZONE 'UTC' AT TIME ZONE '<local>' AS DATE)
-    # The DB stores naive timestamps in UTC; this converts to the app's local
-    # timezone before extracting the date so day boundaries match
-    private def local_date_cast_arel(conn, arel_column)
-      tz = Time.zone.tzinfo.name
-      utc_tz = Arel::Nodes::SqlLiteral.new("'UTC'")
-      local_tz = Arel::Nodes::SqlLiteral.new(conn.quote(tz))
-
-      at_utc = Arel::Nodes::InfixOperation.new('AT TIME ZONE', arel_column, utc_tz)
-      at_local = Arel::Nodes::InfixOperation.new('AT TIME ZONE', at_utc, local_tz)
-
-      Arel::Nodes::NamedFunction.new('CAST', [Arel::Nodes::As.new(at_local, Arel.sql('DATE'))])
-    end
-
     # Clear pending deletion for warehouse rows where the incoming DateUpdated
     # (by local-timezone date) is strictly older than the warehouse value.
     # The warehouse copy is newer, so we keep it and skip the incoming row.
@@ -1222,9 +1208,8 @@ module HmisCsvImporter::Importer
       incoming_scope = klass.should_import.where(importer_log_id: @importer_log.id).
         where.not(DateUpdated: nil)
 
-      conn = klass.connection
-      staging_date = local_date_cast_arel(conn, staging[:DateUpdated])
-      wh_date      = local_date_cast_arel(conn, wh[:DateUpdated])
+      staging_date = local_date(staging[:DateUpdated])
+      wh_date      = local_date(wh[:DateUpdated])
 
       exists = incoming_scope.
         where(staging[klass.hud_key].eq(wh[klass.hud_key])).
