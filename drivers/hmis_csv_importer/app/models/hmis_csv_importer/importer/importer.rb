@@ -151,6 +151,7 @@ module HmisCsvImporter::Importer
       return pause_import if @dry_run
 
       ingest!
+      log_timing :post_ingest_cleanup!
       log_timing :invalidate_aggregated_enrollments!
       complete_import
       post_process
@@ -165,6 +166,7 @@ module HmisCsvImporter::Importer
       # and we may have paused for a significant amount of time
       @started_at = Time.current
       ingest!
+      log_timing :post_ingest_cleanup!
       log_timing :invalidate_aggregated_enrollments!
       complete_import
       post_process
@@ -600,6 +602,9 @@ module HmisCsvImporter::Importer
 
         log("Cleaning #{klass.name}")
         cleanups.each do |cleanup_klass|
+          # Post-ingest cleanups run later, against warehouse data, in post_ingest_cleanup!
+          next if cleanup_klass.post_ingest?
+
           cleanup = cleanup_klass.new(
             importer_log: @importer_log,
             date_range: date_range,
@@ -607,6 +612,40 @@ module HmisCsvImporter::Importer
           )
           cleanup.cleanup!
         end
+      end
+    end
+
+    # Run any configured post-ingest cleanups against warehouse data. Unlike
+    # cleanup_data_set! (which operates on staging before ingest!), these run
+    # after ingest! and are scoped to the data source and involved projects.
+    def post_ingest_cleanup!
+      cleanup_klasses = importable_files.each_value.flat_map do |klass|
+        cleanups_from_class(klass, @data_source)
+      end.compact.uniq.select(&:post_ingest?)
+
+      cleanup_klasses.each do |cleanup_klass|
+        log("Post-ingest cleanup #{cleanup_klass.name}")
+        cleanup_klass.new(
+          importer_log: @importer_log,
+          data_source: @data_source,
+          project_ids: involved_project_ids,
+          version: @current_version,
+        ).cleanup!
+      rescue StandardError => e
+        # If any errors arose during post-ingest cleanup, capture in Sentry
+        # but don't re-raise, so that the import is still considered complete.
+        message = "Post-ingest cleanup #{cleanup_klass.name} failed: #{e.message}"
+        log(message)
+        Sentry.capture_exception_with_info(
+          e,
+          'Post-ingest cleanup failed',
+          {
+            cleanup_class: cleanup_klass.name,
+            data_source_id: @data_source.id,
+            importer_log_id: @importer_log.id,
+            project_ids: involved_project_ids,
+          },
+        )
       end
     end
 
