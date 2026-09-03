@@ -10,6 +10,18 @@ module AccessLogs::WarehouseReports
   class ReportsController < ApplicationController
     include WarehouseReportAuthorization
     include BaseFilters
+    extend BackgroundRenderAction
+
+    background_render_action(:render_report_usage, BackgroundRender::AccessLogsReportUsageJob) do
+      {
+        filters: @filter.for_params[:filters].to_json,
+        user_id: current_user.id,
+      }
+    end
+
+    def report_usage
+      @per_page_js = ['access_logs_usage_report']
+    end
 
     def index
       @exports = AccessLogs::Export.diet_select.where(user_id: current_user.id).

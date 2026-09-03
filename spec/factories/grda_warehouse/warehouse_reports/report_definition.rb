@@ -48,4 +48,11 @@ FactoryBot.define do
     name { 'Client PersonalID Lookup' }
     description { 'Mapping table to translate warehouse IDs to HMIS Personal IDs' }
   end
+
+  factory :access_logs_report, class: 'GrdaWarehouse::WarehouseReports::ReportDefinition' do
+    report_group { 'Audit' }
+    url { 'access_logs/warehouse_reports/reports' }
+    name { 'User Access Logs' }
+    description { 'Download access logs for offline analysis' }
+  end
 end

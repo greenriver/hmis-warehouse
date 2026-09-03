@@ -6,14 +6,6 @@
 
 # frozen_string_literal: true
 
-# The core app (or other drivers) can check the presence of the
-# VeteransSubPop driver with the following code snippet
-#
-#   do_something if RailsDrivers.loaded.include(:veterans_sub_pop)
-#
-# use with caution!
-RailsDrivers.loaded << :veterans_sub_pop
-
 Rails.application.reloader.to_prepare do
   AvailableSubPopulations.add_sub_population(
     'Veterans',

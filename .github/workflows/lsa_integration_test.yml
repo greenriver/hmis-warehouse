@@ -1,6 +1,6 @@
 name: LSA Integration Test
 
-# Runs the FY2026 HUD LSA end-to-end against a real SQL Server 2022 service
+# Runs the FY2027 HUD LSA end-to-end against a real SQL Server 2022 service
 # container (test mode, bundled HMIS fixtures) and compares the output to
 # fixtures. This is the automated replacement for the manual LSA smoke test.
 on:
@@ -83,6 +83,7 @@ jobs:
     permissions:
       contents: read
       packages: read
+      id-token: write
 
     services:
       postgres:
@@ -152,23 +153,28 @@ jobs:
           chmod 600 ~/.pgpass
           bin/db_prep
 
+      - name: Configure AWS credentials for OIDC (LSA sample data S3)
+        uses: aws-actions/configure-aws-credentials@e6de054238d6b7531b4efff3b6587d9aade6a06c # v6.2.3
+        with:
+          aws-region: us-east-1
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/${{ secrets.AWS_ROLE_NAME }}
+          role-session-name: warehouse-lsa-integration-s3
+
       # LSA sample data (input + expected output) is gitignored; fetch it from S3
       # like the datalab testkit. The bucket path must contain sample_hmis_export/,
       # sample_results/, and sample_hic_results/ subdirectories.
       - name: "Fetch LSA sample data"
         env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_S3_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_S3_SECRET_ACCESS_KEY }}
-          SOURCE: ${{ secrets.AWS_S3_ACTION_BUCKET }}${{ vars.AWS_S3_ACTIONS_LSA_SAMPLE_PATH_FY_2026 }}
-          DESTINATION: ./drivers/hud_lsa/spec/fixtures/files/lsa/fy2026/
+          SOURCE: ${{ secrets.AWS_S3_ACTION_BUCKET }}${{ vars.AWS_S3_ACTIONS_LSA_SAMPLE_PATH_FY_2027 }}
+          DESTINATION: ./drivers/hud_lsa/spec/fixtures/files/lsa/fy2027/
         run: aws s3 cp --no-progress "$SOURCE" "$DESTINATION" --recursive --region us-east-1
 
       - name: Run LSA integration test
         env:
           # MinIO placeholder creds for the app's own S3-backed storage; scoped to
-          # this step only so they don't shadow the real AWS_S3_* secrets used by
-          # the "Fetch LSA sample data" step above (AWS CLI env vars take
-          # precedence over the `aws configure set` credentials that step writes).
+          # this step only so they don't shadow the OIDC session credentials used
+          # by the "Fetch LSA sample data" step above (AWS CLI env vars take
+          # precedence over the shared credentials file those steps rely on).
           AWS_ACCESS_KEY_ID: local_access_key
           AWS_SECRET_ACCESS_KEY: local_secret_key
           AWS_REGION: us-east-1

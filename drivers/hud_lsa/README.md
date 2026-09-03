@@ -4,7 +4,8 @@ This module generates HUD LSA (Longitudinal System Analysis) reports by exportin
 
 ## Active and Retired Generators
 
-- **FY2026** — the active generator. This is the only version that can run new reports.
+- **FY2027** — the default generator, and the version new reports use unless another active version is selected.
+- **FY2026** — still active and selectable from the version dropdown.
 - **FY2022, FY2023, FY2024** — read-only stubs. Historical reports are still viewable and downloadable, but these versions can no longer generate new reports. The generation concerns, SQL wrappers, and HUD sample code for these years have been removed.
 
 ## Architecture
@@ -21,7 +22,7 @@ The LSA report generation process runs as a background job using Delayed Job. Ea
 
 ### Key Components
 
-- `HudLsa::Generators::Fy2026::Lsa`: Main report generator class
+- `HudLsa::Generators::Fy2027::Lsa`: Main report generator class
 - `HudLsa::RunReportJob`: Background job handler
 - `RdsConcern`: Manages RDS instance lifecycle
 - `SqlServerBase`: Handles SQL Server connections
@@ -137,21 +138,21 @@ aws-vault exec openpath -- docker compose up -d
 
 Sample source and result files for the LSA are provided by HUD as part of the [LSA Sample Code](https://github.com/HMIS/LSASampleCode).
 
-For FY2026, you can download:
+For FY2027, you can download:
 - [Sample Output](https://github.com/HMIS/LSASampleCode/blob/master/Sample%20Data/Sample%20LSA%20Output.zip)
 - [Sample Input](https://github.com/HMIS/LSASampleCode/blob/master/Sample%20Data/Sample%20HMIS%20Data.zip)
 
 ### Setting Up Sample Data
 
-1. Expand the input into `drivers/hud_lsa/spec/fixtures/files/lsa/fy2026/sample_hmis_export`
-2. Expand the output into `drivers/hud_lsa/spec/fixtures/files/lsa/fy2026/sample_results`
+1. Expand the input into `drivers/hud_lsa/spec/fixtures/files/lsa/fy2027/sample_hmis_export`
+2. Expand the output into `drivers/hud_lsa/spec/fixtures/files/lsa/fy2027/sample_results`
 
 ### Running Tests
 
 Tests can be run by re-using a previous run:
 
 ```ruby
-report = HudLsa::Generators::Fy2026::Lsa.last
+report = HudLsa::Generators::Fy2027::Lsa.last
 report.test = true
 # report.test_type = :hic # to test the HIC version
 # report.destroy_rds = false # uncomment to keep the RDS server alive after completion
@@ -167,8 +168,8 @@ You can compare the test results to the sample results with the provided LSA Com
 1. Download and expand the results from the test run to `var/lsa/generated`
 2. Run the comparison:
 ```ruby
-checker = HudLsa::Generators::Fy2026::LsaComparisonTool.new(
-  'drivers/hud_lsa/spec/fixtures/files/lsa/fy2026/sample_results',
+checker = HudLsa::Generators::Fy2027::LsaComparisonTool.new(
+  'drivers/hud_lsa/spec/fixtures/files/lsa/fy2027/sample_results',
   'var/lsa/generated'
 )
 checker.compare

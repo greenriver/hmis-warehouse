@@ -78,6 +78,8 @@ class Hmis::ClientMergeAudit < Hmis::HmisBase
     'contact_points' => 'PersonalID',
     'custom_data_elements' => 'owner_id',
     'files' => 'client_id',
+    'ce_referrals' => 'client_id',
+    'client_alerts' => 'client_id',
     'mci_ids' => 'source_id',
     'mci_unique_ids' => 'source_id',
     'scan_cards' => 'client_id',

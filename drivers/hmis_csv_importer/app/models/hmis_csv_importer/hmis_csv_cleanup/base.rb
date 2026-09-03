@@ -29,6 +29,13 @@ module HmisCsvImporter::HmisCsvCleanup
       raise 'cleanup! must be implemented'
     end
 
+    # Pre-ingest cleanups run against staging data in cleanup_data_set!.
+    # Post-ingest cleanups (see HmisCsvImporter::PostIngestCleanup::Base) run
+    # against warehouse data after ingest!.
+    def self.post_ingest?
+      false
+    end
+
     def self.description
       name.split('::').last.underscore.humanize
     end

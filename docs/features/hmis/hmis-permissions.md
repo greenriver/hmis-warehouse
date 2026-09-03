@@ -151,6 +151,8 @@ Because a global policy reads `UserContext#global_permissions`, it must never au
 
 ### GraphQL
 
+Schema-level patterns (where to put `viewable_by`, `authorized?`, resolver checks, access objects, pagination preloads) are documented in [Application Code Patterns and Conventions — GraphQL](../../code_patterns_and_conventions.md#graphql). This section is the permission-model view of the same API.
+
 Four conventions apply to the GraphQL API:
 
 - **Resolving records**: fields and mutations that look up or filter records do so through a `viewable_by` scope, so visibility is enforced by the query itself rather than by a later check.
@@ -186,6 +188,7 @@ Roles, Collections, UserGroups, and AccessControls are versioned with `paper_tra
 
 ## Related Documentation
 
+- [Application Code Patterns and Conventions — GraphQL](../../code_patterns_and_conventions.md#graphql) — where authorization belongs in schema code
 - [HMIS Authorization Policy Architecture](hmis-auth-policies.md) — policies, `UserContext`, and context loaders
 - [Warehouse Permissions](../warehouse/warehouse-permissions.md) — the parallel system on the warehouse side
 - [Warehouse Auth Policies](../warehouse/warehouse-auth-policies.md) — policy pattern in the warehouse

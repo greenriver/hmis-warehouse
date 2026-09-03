@@ -1,0 +1,53 @@
+- user_directory = @users.transform_values { |u| { label: u.name_with_email, edit_url: edit_admin_user_path(u) } }
+- payload = { reports: @summary[:reports], user_totals: @summary[:user_totals], users: user_directory, date_range: @summary[:date_range], generated_at: Time.current.to_fs(:db) }
+#access-logs-usage-report{ data: { controller: 'access-logs-usage-report', access_logs_usage_report_data_value: payload.to_json } }
+  .row.mb-4{ data: { access_logs_usage_report_target: 'kpis' } }
+
+  .card.mb-4
+    .card-header
+      %h2 Counting Visit-Days
+    .card-body
+      %p.mb-0 A visit-day counts a user once per report per calendar day they accessed it — reloading or revisiting the same report later that day doesn't add another.
+
+  .card.mb-4
+    .card-header
+      %h2 Report Usage
+      %p.text-muted.mb-0 Unique visit-days per report. Click a row to see who used it.
+    .card-body
+      .mb-3
+        %input.form-control{ type: 'search', placeholder: 'Filter reports by name…', style: 'width: 20rem', data: { access_logs_usage_report_target: 'reportSearch', action: 'input->access-logs-usage-report#filterReports' } }
+      .table-responsive
+        %table.table.table-hover.align-middle
+          %thead
+            %tr
+              %th.usage-report-sortable{ data: { key: 'name', action: 'click->access-logs-usage-report#sortReports' } } Report
+              %th.usage-report-sortable.text-end{ data: { key: 'unique_users', action: 'click->access-logs-usage-report#sortReports' } } Users
+              %th.usage-report-sortable.text-end{ data: { key: 'unique_visits', action: 'click->access-logs-usage-report#sortReports' } } Visit-days
+              %th.text-end Avg/user
+              %th.text-end Share
+              %th
+          %tbody{ data: { access_logs_usage_report_target: 'reportsBody' } }
+
+  .card.mb-4
+    .card-header
+      %h2 Most Active Users
+      %p.text-muted.mb-0 Total unique visit-days across all reports.
+    .card-body
+      .table-responsive
+        %table.table
+          %thead
+            %tr
+              %th.text-end Rank
+              %th User
+              %th.text-end Visit-days
+              %th.text-end Share
+          %tbody{ data: { access_logs_usage_report_target: 'usersBody' } }
+      %button.btn.btn-outline-secondary.btn-sm{ type: 'button', data: { access_logs_usage_report_target: 'showMoreUsers', action: 'click->access-logs-usage-report#showAllUsers' } }
+
+  .card
+    .card-header
+      %h2 Usage Concentration
+      %p.text-muted.mb-0 Reports ranked from most to least used, showing what share of total activity the top reports account for.
+    .card-body
+      %div{ data: { access_logs_usage_report_target: 'chart' } }
+      %p.text-muted.mt-2.mb-0{ data: { access_logs_usage_report_target: 'chartInsight' } }
