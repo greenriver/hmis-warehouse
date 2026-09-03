@@ -31,9 +31,11 @@
           %th Trigger
       %tbody
         - @missing_in_cas.each do |client|
+          - policy = current_user.reporting_policy_for_project(project_id: nil, mode: :browse, client_id: client[:client_id])
+          - pii = GrdaWarehouse::PiiProvider.from_attributes(policy: policy, first_name: client[:first_name], last_name: client[:last_name])
           %tr
             %td
-              = link_to_if can_view_clients?, "#{client[:first_name]} #{client[:last_name]}", appropriate_client_path(client[:client_id])
+              = link_to_if can_view_clients?, pii.brief_name, appropriate_client_path(client[:client_id])
             %td
               = client[:days]
             %td
@@ -55,11 +57,12 @@
           %th Trigger
       %tbody
         - @not_on_list.each do |client|
+          - pii = client.pii_provider(user: current_user)
           %tr.jClient
             %td
               = link_to 'Remove', cas_active_path(id: client[:id]), method: :patch, remote: true, class: 'btn btn-sm btn-secondary jRemoveCasActive'
             %td
-              = link_to_if can_view_clients?, "#{client[:FirstName]} #{client[:LastName]}", appropriate_client_path(client[:id])
+              = link_to_if can_view_clients?, pii.brief_name, appropriate_client_path(client[:id])
             %td
               = client.site_chronics.find_by_date(@date)&.days_in_last_three_years
             %td
