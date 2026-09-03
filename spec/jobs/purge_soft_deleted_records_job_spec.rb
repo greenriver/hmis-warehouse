@@ -80,34 +80,33 @@ RSpec.describe PurgeSoftDeletedRecordsJob, type: :job do
     end
   end
 
-  describe '#perform on enrollments' do
+  describe '#perform on enrollments referenced by a CE referral' do
     let!(:ce_referral) { create(:hmis_ce_referral) }
-    let!(:referral_note) { create(:hmis_ce_referral_note, referral: ce_referral) }
-    let!(:referral_participant) { create(:hmis_ce_referral_participant, referral: ce_referral) }
 
     # the target enrollment must be in the referral's project, the source enrollment need not be
-    let(:target_enrollment) do
+    let!(:target_enrollment) do
       create(
         :hmis_hud_enrollment,
         data_source: ce_referral.data_source,
         project: ce_referral.target_project,
-        date_deleted: target_date_deleted,
+        date_deleted: today - 2.years,
       )
     end
-    let(:source_enrollment) do
-      create(:hmis_hud_enrollment, data_source: ce_referral.data_source, date_deleted: source_date_deleted)
+    let!(:source_enrollment) do
+      create(:hmis_hud_enrollment, data_source: ce_referral.data_source, date_deleted: today - 2.years)
+    end
+    let!(:unreferenced_enrollment) do
+      create(:hmis_hud_enrollment, data_source: ce_referral.data_source, date_deleted: today - 2.years)
     end
 
-    let(:old) { today - 2.years }
-    let(:recent) { today - 2.months }
+    # a referral that holds neither foreign key must not prevent unreferenced enrollments from being purged
+    let!(:referral_without_enrollments) { create(:hmis_ce_referral) }
 
-    # Enrollment declares dependent: :destroy only on the source side (has_many :outgoing_ce_referrals), so a
-    # referral pointing at a soft-deleted enrollment is frequently still live itself
-    let(:referral_soft_deleted) { true }
+    # a soft-deleted referral still holds the foreign keys
+    let(:referral_soft_deleted) { false }
 
     before do
       ce_referral.update!(target_enrollment: target_enrollment, source_enrollment: source_enrollment)
-      # a soft-deleted referral still holds the foreign key
       ce_referral.destroy! if referral_soft_deleted
     end
 
@@ -119,111 +118,27 @@ RSpec.describe PurgeSoftDeletedRecordsJob, type: :job do
       )
     end
 
-    context 'when both enrollments are purged' do
-      let(:target_date_deleted) { old }
-      let(:source_date_deleted) { old }
+    it 'skips referenced enrollments and purges the rest' do
+      expect(referral_without_enrollments.target_enrollment_id).to be_nil
+      expect(referral_without_enrollments.source_enrollment_id).to be_nil
 
-      it 'clears both references and leaves the referral to its own retention date' do
-        expect { run_purge }.to change { GrdaWarehouse::Hud::Enrollment.with_deleted.count }.by(-2)
+      run_purge
 
-        expect(Hmis::Ce::Referral.with_deleted.exists?(ce_referral.id)).to be true
-        ce_referral.reload
-        expect(ce_referral.target_enrollment_id).to be_nil
-        expect(ce_referral.source_enrollment_id).to be_nil
-      end
+      with_deleted = GrdaWarehouse::Hud::Enrollment.with_deleted
+      expect(with_deleted.exists?(target_enrollment.id)).to be true
+      expect(with_deleted.exists?(source_enrollment.id)).to be true
+      expect(with_deleted.exists?(unreferenced_enrollment.id)).to be false
     end
 
-    context 'when only the target enrollment is purged' do
-      let(:target_date_deleted) { old }
-      let(:source_date_deleted) { recent }
+    context 'when the referral is soft-deleted' do
+      let(:referral_soft_deleted) { true }
 
-      it 'keeps the referral and clears target_enrollment_id' do
-        expect { run_purge }.to change { GrdaWarehouse::Hud::Enrollment.with_deleted.count }.by(-1)
+      it 'still skips referenced enrollments' do
+        run_purge
 
-        expect(GrdaWarehouse::Hud::Enrollment.with_deleted.exists?(source_enrollment.id)).to be true
-
-        ce_referral.reload
-        expect(ce_referral.target_enrollment_id).to be_nil
-        expect(ce_referral.source_enrollment_id).to eq(source_enrollment.id)
-      end
-    end
-
-    context 'when the referral is live and its target enrollment is purged' do
-      let(:referral_soft_deleted) { false }
-      let(:target_date_deleted) { old }
-      let(:source_date_deleted) { recent }
-
-      it 'keeps the referral and clears target_enrollment_id' do
-        expect { run_purge }.to change { GrdaWarehouse::Hud::Enrollment.with_deleted.count }.by(-1)
-
-        ce_referral.reload
-        expect(ce_referral.deleted_at).to be_nil
-        expect(ce_referral.target_enrollment_id).to be_nil
-      end
-    end
-
-    context 'when the referral is itself soft-deleted past the retention date' do
-      let(:target_date_deleted) { old }
-      let(:source_date_deleted) { old }
-
-      before do
-        ce_referral.update_column(:deleted_at, old)
-        [referral_note, referral_participant].each { |record| record.update_column(:deleted_at, old) }
-      end
-
-      # run the real model list so its ordering (dependents before referral) is covered too
-      it 'purges the referral and its dependents' do
-        described_class.new.perform(retain_at: today - 1.year, dry_run: false)
-
-        expect(Hmis::Ce::Referral.with_deleted.exists?(ce_referral.id)).to be false
-        expect(Hmis::Ce::ReferralNote.with_deleted.exists?(referral_note.id)).to be false
-        expect(Hmis::Ce::ReferralParticipant.with_deleted.exists?(referral_participant.id)).to be false
-        expect(GrdaWarehouse::Hud::Enrollment.with_deleted.exists?(target_enrollment.id)).to be false
-      end
-    end
-
-    context 'when only the source enrollment is purged' do
-      let(:target_date_deleted) { recent }
-      let(:source_date_deleted) { old }
-
-      it 'keeps the referral and clears source_enrollment_id' do
-        expect { run_purge }.to change { GrdaWarehouse::Hud::Enrollment.with_deleted.count }.by(-1)
-
-        expect(GrdaWarehouse::Hud::Enrollment.with_deleted.exists?(target_enrollment.id)).to be true
-
-        ce_referral.reload
-        expect(ce_referral.source_enrollment_id).to be_nil
-        expect(ce_referral.target_enrollment_id).to eq(target_enrollment.id)
-      end
-    end
-
-    context 'when neither enrollment is purged' do
-      let(:target_date_deleted) { recent }
-      let(:source_date_deleted) { recent }
-
-      it 'leaves the referral untouched' do
-        expect { run_purge }.not_to(change { GrdaWarehouse::Hud::Enrollment.with_deleted.count })
-
-        ce_referral.reload
-        expect(ce_referral.target_enrollment_id).to eq(target_enrollment.id)
-        expect(ce_referral.source_enrollment_id).to eq(source_enrollment.id)
-      end
-    end
-
-    context 'on a dry run' do
-      let(:target_date_deleted) { old }
-      let(:source_date_deleted) { recent }
-
-      it 'does not clear the reference' do
-        described_class.new.perform(
-          retain_at: today - 1.year,
-          models: [GrdaWarehouse::Hud::Enrollment],
-          dry_run: true,
-        )
-
-        expect(GrdaWarehouse::Hud::Enrollment.with_deleted.exists?(target_enrollment.id)).to be true
-        ce_referral.reload
-        expect(ce_referral.target_enrollment_id).to eq(target_enrollment.id)
+        with_deleted = GrdaWarehouse::Hud::Enrollment.with_deleted
+        expect(with_deleted.exists?(target_enrollment.id)).to be true
+        expect(with_deleted.exists?(source_enrollment.id)).to be true
       end
     end
   end

@@ -38,12 +38,10 @@ class PurgeSoftDeletedRecordsJob < BaseJob
       @retain_at = retain_at
       @dry_run = dry_run
       catch(:halt) do
-        models.each do |model|
-          model.unscoped do
-            if scoped_by_data_source?(model)
-              data_sources.order(:id).each { |data_source| process_model(model, data_source: data_source) }
-            else
-              process_model(model)
+        data_sources.order(:id).each do |data_source|
+          models.each do |model|
+            model.unscoped do
+              process_model(model, data_source: data_source)
             end
           end
         end
@@ -82,24 +80,10 @@ class PurgeSoftDeletedRecordsJob < BaseJob
       Hmis::Hud::CustomClientContactPoint,
       Hmis::Hud::CustomClientName,
       Hmis::Hud::CustomDataElement,
-      # CE referrals; dependents first
-      Hmis::Ce::ReferralNote,
-      Hmis::Ce::ReferralParticipant,
-      Hmis::Ce::Referral,
-      # the workflow instance behind a CE referral, once the referral that holds the FK to it is gone
-      Hmis::WorkflowExecution::StepAssignment,
-      Hmis::WorkflowExecution::Step,
-      Hmis::WorkflowExecution::Instance,
       # purge these last
       GrdaWarehouse::Hud::Enrollment,
       GrdaWarehouse::Hud::Client,
     ]
-  end
-
-  # CE referrals and their dependents reach their data source only through several paranoid joins, so they're
-  # purged across all data sources at once
-  def scoped_by_data_source?(model)
-    model.column_names.include?('data_source_id')
   end
 
   # tables with FK relationships need to be deleted. Choosing to leave other dangling references to client
@@ -117,33 +101,17 @@ class PurgeSoftDeletedRecordsJob < BaseJob
     ]
   end
 
-  # CE referrals hold FKs to Enrollment on target_enrollment_id and source_enrollment_id. Drop those references
-  # before the enrollments go; the referrals themselves are purged on their own retention date.
-  # Referrals are paranoid, and a soft-deleted referral still holds the foreign key, so include those here.
-  def clear_enrollment_references(enrollment_scope)
-    return if @dry_run
-
-    enrollment_ids = enrollment_scope.pluck(:id)
+  # CE referrals hold FKs to enrollments (target_enrollment_id, source_enrollment_id), and a soft-deleted
+  # referral still holds them. Skip those enrollments rather than untangling the referral graph.
+  #
+  # FUTURE: these enrollments are never purged, since nothing purges CE referrals or the workflow execution
+  # records behind them. Rare enough today to leave; a full fix means adding referrals, their notes and
+  # participants, and the workflow instance/step/assignment/audit-event tree to the purge in dependency order.
+  def exclude_ce_referral_enrollments(enrollment_scope)
     referrals = Hmis::Ce::Referral.with_deleted
-    referrals.where(target_enrollment_id: enrollment_ids).update_all(target_enrollment_id: nil)
-    referrals.where(source_enrollment_id: enrollment_ids).update_all(source_enrollment_id: nil)
-  end
-
-  # wfe_audit_events is not paranoid, so audit events never get a deleted_at of their own to age out on. They
-  # hold FKs to both the step and the instance, so delete them with whichever one is being purged.
-  def workflow_step_dependents(step_scope)
-    [Hmis::WorkflowExecution::AuditEvent.where(step_id: step_scope.pluck(:id))]
-  end
-
-  def workflow_instance_dependents(instance_scope)
-    [Hmis::WorkflowExecution::AuditEvent.where(instance_id: instance_scope.pluck(:id))]
-  end
-
-  def delete_dependents(dependent_scopes)
-    dependent_scopes.each do |dependent_scope|
-      check_max_deleted(dependent_scope.size)
-      dependent_scope.delete_all unless @dry_run
-    end
+    enrollment_scope.
+      where.not(id: referrals.where.not(target_enrollment_id: nil).select(:target_enrollment_id)).
+      where.not(id: referrals.where.not(source_enrollment_id: nil).select(:source_enrollment_id))
   end
 
   def with_lock(&block)
@@ -151,18 +119,23 @@ class PurgeSoftDeletedRecordsJob < BaseJob
     GrdaWarehouseBase.with_advisory_lock(lock_name, timeout_seconds: 0, &block)
   end
 
-  def process_model(model, data_source: nil)
+  def process_model(model, data_source:)
     arel = model.arel_table
     paranoia_col = arel[model.paranoia_column.to_sym]
-    scope = model.where(paranoia_col.lt(@retain_at))
-    scope = scope.where(data_source: data_source) if data_source
+    scope = model.
+      where(data_source: data_source).
+      where(paranoia_col.lt(@retain_at))
+    # Hmis::Hud::Enrollment and GrdaWarehouse::Hud::Enrollment back the same table, so match on the table name
+    scope = exclude_ce_referral_enrollments(scope) if model.table_name == GrdaWarehouse::Hud::Enrollment.table_name
 
     scope.in_batches(of: 5_000).each do |batch|
       model.transaction do
-        delete_dependents(client_dependents(batch)) if model == GrdaWarehouse::Hud::Client
-
-
-        clear_enrollment_references(batch) if model == GrdaWarehouse::Hud::Enrollment
+        if model == GrdaWarehouse::Hud::Client
+          client_dependents(batch).each do |dependent_scope|
+            check_max_deleted(dependent_scope.size)
+            dependent_scope.delete_all unless @dry_run
+          end
+        end
 
         # even though this throws, it does not rollback the transaction so we could delete more records than the max
         check_max_deleted(batch.size)
