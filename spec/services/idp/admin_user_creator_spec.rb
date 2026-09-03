@@ -12,14 +12,17 @@ require 'rails_helper'
 # boot (AUTH_METHOD=jwt); under Devise, User is :secure_validatable and requires one.
 RSpec.describe Idp::AdminUserCreator, :jwt_only do
   let(:connector_id) { 'kc' }
+  let(:agency) { create(:agency) }
   let(:service) { instance_double(Idp::KeycloakService, supports_user_creation?: true, idp_name: 'Keycloak') }
 
   before do
     allow(Idp::ServiceFactory).to receive(:for_connector).with(connector_id).and_return(service)
   end
 
-  def call(email: 'newbie@example.com')
-    described_class.call(connector_id: connector_id, email: email, first_name: 'New', last_name: 'User')
+  def call(email: 'newbie@example.com', **overrides)
+    described_class.call(
+      **{ connector_id: connector_id, email: email, first_name: 'New', last_name: 'User', agency_id: agency.id }.merge(overrides),
+    )
   end
 
   context 'when the email is new to the IdP' do
@@ -32,9 +35,49 @@ RSpec.describe Idp::AdminUserCreator, :jwt_only do
       user = call
 
       expect(user).to be_persisted
+      expect(user.agency_id).to eq(agency.id)
       expect(user.last_connector_id).to eq(connector_id)
       expect(user.user_authentication_sources.pluck(:connector_id, :connector_user_id)).to eq([[connector_id, 'kc-new']])
       expect(service).to have_received(:create_user).with(email: 'newbie@example.com', first_name: 'New', last_name: 'User')
+    end
+
+    it 'rejects a blank agency before provisioning anything remotely' do
+      expect { call(agency_id: nil) }.to raise_error(ActiveRecord::RecordInvalid)
+      expect(service).not_to have_received(:create_user)
+    end
+  end
+
+  # 'None' in the admin form: a realm we can't provision into (Okta, say). The account is matched
+  # by email on first sign-in, so no service is built and no connector link is written.
+  context 'when no connector is chosen' do
+    before { allow(Idp::ServiceFactory).to receive(:for_connector).with(nil).and_call_original }
+
+    it 'resolves a NullService and creates a local-only user with no remote call' do
+      user = call(connector_id: nil)
+
+      expect(user).to be_persisted
+      expect(user.last_connector_id).to be_nil
+      expect(user.user_authentication_sources).to be_empty
+    end
+
+    # payload_email is downcased and stripped to match
+    it 'normalizes the email so first sign-in links the same account instead of duplicating it' do
+      user = call(connector_id: nil, email: '  Mixed.Case@Example.com  ')
+      expect(user.email).to eq('mixed.case@example.com')
+
+      jwt_helper = instance_double(
+        Idp::JwtHelper,
+        token?: true,
+        valid?: true,
+        connector_id: nil,
+        connector_user_id: nil,
+        payload_email: 'mixed.case@example.com',
+        first_name: 'Mixed',
+        last_name: 'Case',
+      )
+
+      expect { User.find_or_create_from_jwt(jwt_helper) }.not_to change(User, :count)
+      expect(User.find_or_create_from_jwt(jwt_helper)).to eq(user)
     end
   end
 
@@ -49,6 +92,39 @@ RSpec.describe Idp::AdminUserCreator, :jwt_only do
 
       expect(user.user_authentication_sources.pluck(:connector_user_id)).to eq(['kc-existing'])
       expect(service).not_to have_received(:create_user)
+    end
+  end
+
+  # A match with no id is contradictory: the IdP claims the email exists but gives us nothing to
+  # link on. We raise rather than create a duplicate remote account, and the local user rolls back.
+  context 'when the IdP lookup returns a match with no usable id' do
+    before do
+      allow(service).to receive(:find_user_by_email).and_return('id' => '')
+      allow(service).to receive(:create_user)
+    end
+
+    it 'raises and does not provision or persist a local user' do
+      expect { call }.to raise_error(Idp::ServiceError, /no id/)
+      expect(service).not_to have_received(:create_user)
+      expect(User.where(email: 'newbie@example.com')).to be_empty
+    end
+  end
+
+  # Provisioning claims the email locally first, then calls the remote IdP. A failure after that
+  # local save must roll the local user back, or a failed attempt permanently owns the unique email
+  # and no retry for that address can ever succeed.
+  context 'when the remote provisioning call fails' do
+    before do
+      allow(service).to receive(:find_user_by_email).and_return(nil)
+      allow(service).to receive(:create_user).
+        and_raise(Idp::ServiceError.new('boom', idp_name: 'Keycloak', operation: :create_user, transient: true))
+    end
+
+    it 'rolls the local user back and re-raises, leaving the email free to retry' do
+      expect { call }.to raise_error(Idp::ServiceError)
+
+      expect(User.find_by(email: 'newbie@example.com')).to be_nil
+      expect(Idp::UserAuthenticationSource.where(connector_id: connector_id)).to be_empty
     end
   end
 
@@ -77,12 +153,6 @@ RSpec.describe Idp::AdminUserCreator, :jwt_only do
       expect(user.user_authentication_sources).to be_empty
       expect(service).not_to have_received(:find_user_by_email)
     end
-
-    it 'still enforces local email uniqueness' do
-      create(:user, email: 'dup@example.com')
-
-      expect { call(email: 'dup@example.com') }.to raise_error(ActiveRecord::RecordInvalid)
-    end
   end
 
   # The HMIS admin arm provisions Hmis::User (same table, different mapping) through the same
@@ -94,7 +164,7 @@ RSpec.describe Idp::AdminUserCreator, :jwt_only do
     end
 
     it 'persists and links an instance of the given class' do
-      user = described_class.call(connector_id: connector_id, email: 'hmis@example.com', first_name: 'H', last_name: 'M', user_class: Hmis::User)
+      user = call(email: 'hmis@example.com', first_name: 'H', last_name: 'M', user_class: Hmis::User)
 
       expect(user).to be_a(Hmis::User)
       expect(user).to be_persisted

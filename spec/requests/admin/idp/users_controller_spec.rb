@@ -70,7 +70,8 @@ RSpec.describe Admin::Idp::UsersController, :jwt_only, type: :request do
     let(:new_email) { 'newbie@example.com' }
     let(:new_kc_id) { 'kc-new-id' }
     let(:actions_url) { "#{users_url}/#{new_kc_id}/execute-actions-email" }
-    let(:params) { { user: { first_name: 'New', last_name: 'Bie', email: new_email, connector_id: connector_id } } }
+    let(:agency) { create(:agency) }
+    let(:params) { { user: { first_name: 'New', last_name: 'Bie', email: new_email, agency_id: agency.id, idp_connector_id: connector_id } } }
 
     describe 'GET index' do
       it 'offers an "Add a User Account" button linking to the create form' do
@@ -79,22 +80,52 @@ RSpec.describe Admin::Idp::UsersController, :jwt_only, type: :request do
       end
 
       it 'still offers the create button when the connector has no management API (local-only pre-create)' do
-        allow_any_instance_of(::Idp::KeycloakService).to receive(:supports_user_creation?).and_return(false)
+        Idp::ServiceConfig.find_by(connector_id: connector_id).update!(manage_users: false)
         get admin_users_path
         expect(response.body).to include(new_admin_user_path)
       end
 
-      it 'omits the create button when there are no active connectors' do
+      it 'still offers the create button when there are no active connectors' do
         ::Idp::ServiceConfig.update_all(active: false)
         get admin_users_path
-        expect(response.body).not_to include(new_admin_user_path)
+        expect(response.body).to include(new_admin_user_path)
       end
     end
 
     describe 'GET new' do
-      it 'renders the create form' do
+      it 'offers an agency select' do
+        agency # created so it can be selected
         get new_admin_user_path
-        expect(response).to have_http_status(:ok)
+
+        html = Nokogiri::HTML(response.body)
+        expect(html.css('select#user_agency_id option').map { |o| o['value'] }).to include(agency.id.to_s)
+      end
+
+      it 'offers a "Local account only" checkbox that defaults to the sole connector' do
+        get new_admin_user_path
+
+        html = Nokogiri::HTML(response.body)
+        expect(html.css('input[type=radio][name="user[idp_connector_id]"]')).to be_empty
+        checkbox = html.at_css('input[type=checkbox][name="user[idp_connector_id]"]')
+        expect(checkbox['value']).to eq(described_class::LOCAL_ONLY_CONNECTOR)
+        expect(checkbox['checked']).to be_nil
+        expect(html.at_css('input[type=hidden][name="user[idp_connector_id]"]')['value']).to eq(connector_id)
+      end
+
+      context 'with several creation-capable connectors' do
+        let!(:other_config) do
+          create(:idp_service_config, connector_id: 'other', provider: 'keycloak', api_url: api_url, keycloak_realm: realm, name: 'Other realm')
+        end
+
+        it 'offers a radio per connector plus local-only, with nothing pre-selected' do
+          get new_admin_user_path
+
+          html = Nokogiri::HTML(response.body)
+          radios = html.css('input[type=radio][name="user[idp_connector_id]"]')
+          # Connectors ordered by name, then the local-only option.
+          expect(radios.map { |r| r['value'] }).to eq([connector_id, other_config.connector_id, described_class::LOCAL_ONLY_CONNECTOR])
+          expect(radios.select { |r| r['checked'] }).to be_empty
+        end
       end
     end
 
@@ -117,6 +148,24 @@ RSpec.describe Admin::Idp::UsersController, :jwt_only, type: :request do
           expect(response).to redirect_to(edit_admin_user_path(user))
           expect(flash[:notice]).to match(/setup email has been sent/)
           expect(flash[:notice]).to match(/roles and access/i)
+        end
+      end
+
+      context 'when the email is entered with mixed case' do
+        let(:params) { { user: { first_name: 'New', last_name: 'Bie', email: 'Newbie@Example.com', agency_id: agency.id, idp_connector_id: connector_id } } }
+
+        before do
+          stub_request(:get, users_url).with(query: { email: new_email, exact: 'true' }).to_return(status: 200, body: [].to_json)
+          stub_request(:post, users_url).to_return(status: 201, headers: { 'Location' => "#{users_url}/#{new_kc_id}" })
+          stub_request(:put, actions_url).to_return(status: 204)
+        end
+
+        it 'stores the downcased address locally and looks the IdP up by it' do
+          post admin_users_path, params: params
+
+          expect(User.find_by(email: new_email)).to be_present
+          expect(User.where(email: 'Newbie@Example.com')).to be_empty
+          expect(a_request(:get, users_url).with(query: { email: new_email, exact: 'true' })).to have_been_made
         end
       end
 
@@ -161,6 +210,51 @@ RSpec.describe Admin::Idp::UsersController, :jwt_only, type: :request do
         end
       end
 
+      context 'when the local-only option is chosen' do
+        let(:params) { { user: { first_name: 'New', last_name: 'Bie', email: new_email, agency_id: agency.id, idp_connector_id: described_class::LOCAL_ONLY_CONNECTOR } } }
+
+        # The local-only radio is for a realm we can't provision into (an Okta one, say). It must not
+        # silently fall back to the sole configured connector and create the account in that realm.
+        it 'creates a local-only user with no remote call and no connector link' do
+          expect { post admin_users_path, params: params }.to change(User, :count).by(1)
+
+          user = User.find_by(email: new_email)
+          expect(user.agency_id).to eq(agency.id)
+          expect(user.user_authentication_sources).to be_empty
+          expect(user.last_connector_id).to be_nil
+          expect(a_request(:get, users_url)).not_to have_been_made
+          expect(a_request(:post, users_url)).not_to have_been_made
+          expect(response).to redirect_to(edit_admin_user_path(user))
+        end
+      end
+
+      context 'when the identity provider radio is left untouched' do
+        let!(:other_config) do
+          create(:idp_service_config, connector_id: 'other', provider: 'keycloak', api_url: api_url, keycloak_realm: realm, name: 'Other realm')
+        end
+        let(:params) { { user: { first_name: 'New', last_name: 'Bie', email: new_email, agency_id: agency.id } } }
+
+        it 're-renders the form with an error and provisions nothing' do
+          expect { post admin_users_path, params: params }.not_to change(User, :count)
+
+          expect(response).to have_http_status(:ok)
+          expect(response.body).to include('must be chosen')
+          expect(a_request(:get, users_url)).not_to have_been_made
+          expect(a_request(:post, users_url)).not_to have_been_made
+        end
+      end
+
+      context 'when no agency is chosen' do
+        let(:params) { { user: { first_name: 'New', last_name: 'Bie', email: new_email, agency_id: '', idp_connector_id: connector_id } } }
+
+        it 're-renders the form and never provisions the IdP' do
+          expect { post admin_users_path, params: params }.not_to change(User, :count)
+
+          expect(response).to have_http_status(:ok)
+          expect(a_request(:post, users_url)).not_to have_been_made
+        end
+      end
+
       context 'when the email already exists locally' do
         let!(:dup) { create(:acl_user, email: new_email) }
 
@@ -193,13 +287,16 @@ RSpec.describe Admin::Idp::UsersController, :jwt_only, type: :request do
 
     describe 'when the connector has no management API' do
       before do
-        allow_any_instance_of(::Idp::KeycloakService).to receive(:supports_user_creation?).and_return(false)
+        Idp::ServiceConfig.find_by(connector_id: connector_id).update!(manage_users: false)
       end
 
-      it 'renders GET new (the form is available for local-only pre-create)' do
+      it 'renders GET new with no identity provider radios (the form is available for local-only pre-create)' do
         get new_admin_user_path
 
         expect(response).to have_http_status(:ok)
+        html = Nokogiri::HTML(response.body)
+        expect(html.css('input[type=radio][name="user[idp_connector_id]"]')).to be_empty
+        expect(html.css('select#user_agency_id')).to be_present
       end
 
       it 'POST create makes a local-only user with no remote call and no connector link' do
@@ -213,23 +310,54 @@ RSpec.describe Admin::Idp::UsersController, :jwt_only, type: :request do
       end
     end
 
-    # No active connector at all: nothing to provision against, so the form is unavailable.
+    # No active connector at all: nothing to provision against, so the form offers no identity
+    # provider choice and every account it makes is local-only.
     describe 'when there are no active connectors' do
       before { ::Idp::ServiceConfig.update_all(active: false) }
 
-      it 'redirects GET new to the index with an unavailable alert' do
+      it 'renders GET new with no identity provider radios' do
         get new_admin_user_path
 
-        expect(response).to redirect_to(admin_users_path)
-        expect(flash[:alert]).to match(/not available/i)
+        expect(response).to have_http_status(:ok)
+        html = Nokogiri::HTML(response.body)
+        expect(html.css('input[type=radio][name="user[idp_connector_id]"]')).to be_empty
+        expect(html.css('select#user_agency_id')).to be_present
       end
 
-      it 'redirects POST create to the index without creating a user' do
-        expect { post admin_users_path, params: params }.not_to change(User, :count)
+      # The submitted connector_id names a config that is no longer active, so it must not be used
+      # to provision: create_connector_id constrains it to available_connectors.
+      it 'creates a local-only user and ignores the submitted connector_id' do
+        expect { post admin_users_path, params: params }.to change(User, :count).by(1)
 
-        expect(response).to redirect_to(admin_users_path)
-        expect(flash[:alert]).to match(/not available/i)
+        user = User.find_by(email: new_email)
+        expect(user.agency_id).to eq(agency.id)
+        expect(user.user_authentication_sources).to be_empty
+        expect(user.last_connector_id).to be_nil
+        expect(a_request(:post, users_url)).not_to have_been_made
+        expect(response).to redirect_to(edit_admin_user_path(user))
       end
+    end
+  end
+
+  describe 'editing an account with no IdP link' do
+    let!(:unlinked) { create(:acl_user, first_name: 'Un', last_name: 'Linked', email: 'unlinked@example.com') }
+
+    it 'leaves the identity fields editable on the form' do
+      get edit_admin_user_path(unlinked)
+
+      html = Nokogiri::HTML(response.body)
+      ['first_name', 'last_name', 'email'].each do |field|
+        expect(html.at_css("input#user_#{field}")['disabled']).to be_nil
+      end
+    end
+
+    it 'saves an identity change locally with no remote call' do
+      patch admin_user_path(unlinked), params: { user: { first_name: 'Renamed', email: 'renamed@example.com' } }
+
+      unlinked.reload
+      expect(unlinked.first_name).to eq('Renamed')
+      expect(unlinked.email).to eq('renamed@example.com')
+      expect(a_request(:put, /\/admin\/realms\//)).not_to have_been_made
     end
   end
 
@@ -590,21 +718,6 @@ RSpec.describe Admin::Idp::UsersController, :jwt_only, type: :request do
       end
     end
 
-    it 'strips crafted name/email params for a locked (unlinked) profile and never calls Keycloak' do
-      unlinked = create(:acl_user, first_name: 'Locked', last_name: 'User', email: 'locked@example.com')
-
-      patch admin_user_path(unlinked), params: {
-        user: { first_name: 'Hacked', last_name: 'Hacked', email: 'hacked@example.com', notify_on_client_added: '1' },
-      }
-
-      unlinked.reload
-      expect(unlinked.first_name).to eq('Locked')
-      expect(unlinked.last_name).to eq('User')
-      expect(unlinked.email).to eq('locked@example.com')
-      expect(unlinked.notify_on_client_added).to be true
-      expect(a_request(:put, /#{Regexp.escape(api_url)}/)).not_to have_been_made
-    end
-
     it 'ignores expired_at (the IdP does not honor local account expiry)' do
       patch admin_user_path(target), params: {
         user: { expired_at: 1.day.ago.to_date.to_s, notify_on_client_added: '1' },
@@ -648,8 +761,8 @@ RSpec.describe Admin::Idp::UsersController, :jwt_only, type: :request do
       expect(flash[:alert]).to include(refusal)
     end
 
-    # new and create carry require_user_creation_available! of their own, and create provisions an
-    # account in the remote IdP, so require_can_edit_users! has to be the filter that runs first.
+    # create provisions an account in the remote IdP, so require_can_edit_users! has to run before
+    # any of the create path's own filters.
     it 'refuses to render the create form' do
       get new_admin_user_path
 
@@ -659,7 +772,7 @@ RSpec.describe Admin::Idp::UsersController, :jwt_only, type: :request do
 
     it 'refuses to create a user and provisions nothing in the IdP' do
       expect do
-        post admin_users_path, params: { user: { first_name: 'New', last_name: 'Bie', email: 'newbie@example.com', connector_id: connector_id } }
+        post admin_users_path, params: { user: { first_name: 'New', last_name: 'Bie', email: 'newbie@example.com', idp_connector_id: connector_id } }
       end.not_to change(User, :count)
 
       expect(a_request(:get, users_url)).not_to have_been_made

@@ -13,8 +13,7 @@ module Idp::JwtUser
 
   class_methods do
     def find_or_create_from_jwt(jwt_helper)
-      allow_create = AppConfigProperty.find_by(key: 'idp/auto_create_user')&.value == 'true'
-      Idp::UserProvisioner.call(jwt_helper: jwt_helper, user_class: self, allow_create: allow_create, learn: true)
+      Idp::UserProvisioner.call(jwt_helper: jwt_helper, user_class: self, allow_create: true, learn: true)
     end
 
     def find_from_jwt(jwt_helper)
