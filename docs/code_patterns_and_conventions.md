@@ -309,7 +309,7 @@ access_field do
 end
 ```
 
-This is the current standard for new access fields ([ADR 0006](adr/0006-policy-based-graphql-access-fields.md)). Legacy `root_can` / `composite_perm` / `can` still exist — don't flag them on sight, but write new fields this way. `current_permission?` is likewise legacy; don't add new usages.
+This is the current standard for new access fields ([ADR 0006](adr/0006-policy-based-graphql-access-fields.md)). Legacy `can` still exists — don't flag it on sight, but write new fields this way. `current_permission?` is likewise legacy; don't add new usages.
 
 ### Mutation authorization
 
