@@ -411,8 +411,9 @@ module GrdaWarehouse::WarehouseReports
       enrollments_for(key).values.each do |enrollments|
         enrollments.each do |enrollment|
           client = enrollment.client
+          pii = GrdaWarehouse::PiiProvider.new(client, policy: @user.reporting_policy_for_client(client: client, mode: :download))
           row = [client.id]
-          row += [client.FirstName, client.LastName] if ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
+          row += [pii.first_name, pii.last_name] if ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
           row += [
             enrollment.project_name,
             enrollment.service_type_brief,
