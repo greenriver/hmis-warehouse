@@ -86,6 +86,10 @@ class PurgeSoftDeletedRecordsJob < BaseJob
       Hmis::Ce::ReferralNote,
       Hmis::Ce::ReferralParticipant,
       Hmis::Ce::Referral,
+      # the workflow instance behind a CE referral, once the referral that holds the FK to it is gone
+      Hmis::WorkflowExecution::StepAssignment,
+      Hmis::WorkflowExecution::Step,
+      Hmis::WorkflowExecution::Instance,
       # purge these last
       GrdaWarehouse::Hud::Enrollment,
       GrdaWarehouse::Hud::Client,
@@ -125,6 +129,16 @@ class PurgeSoftDeletedRecordsJob < BaseJob
     referrals.where(source_enrollment_id: enrollment_ids).update_all(source_enrollment_id: nil)
   end
 
+  # wfe_audit_events is not paranoid, so audit events never get a deleted_at of their own to age out on. They
+  # hold FKs to both the step and the instance, so delete them with whichever one is being purged.
+  def workflow_step_dependents(step_scope)
+    [Hmis::WorkflowExecution::AuditEvent.where(step_id: step_scope.pluck(:id))]
+  end
+
+  def workflow_instance_dependents(instance_scope)
+    [Hmis::WorkflowExecution::AuditEvent.where(instance_id: instance_scope.pluck(:id))]
+  end
+
   def delete_dependents(dependent_scopes)
     dependent_scopes.each do |dependent_scope|
       check_max_deleted(dependent_scope.size)
@@ -146,6 +160,8 @@ class PurgeSoftDeletedRecordsJob < BaseJob
     scope.in_batches(of: 5_000).each do |batch|
       model.transaction do
         delete_dependents(client_dependents(batch)) if model == GrdaWarehouse::Hud::Client
+
+
         clear_enrollment_references(batch) if model == GrdaWarehouse::Hud::Enrollment
 
         # even though this throws, it does not rollback the transaction so we could delete more records than the max
