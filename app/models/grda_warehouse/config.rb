@@ -333,6 +333,7 @@ module GrdaWarehouse
         :enable_external_data_sharing_exclusion,
         :rds_s3_integration_role_arn,
         :relevant_state_codes,
+        :dob_dq_demotion_enabled,
         client_details: [],
         client_demographic_columns: [],
       ]

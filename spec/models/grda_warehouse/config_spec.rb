@@ -26,6 +26,17 @@ RSpec.describe GrdaWarehouse::Config, type: :model do
     end
   end
 
+  describe 'dob_dq_demotion_enabled' do
+    it 'is a known config so it can be set from the admin form' do
+      expect(described_class.known_configs).to include(:dob_dq_demotion_enabled)
+    end
+
+    it 'defaults to off, preserving the legacy DOB selection' do
+      config = create(:config)
+      expect(config.dob_dq_demotion_enabled).to be(false)
+    end
+  end
+
   describe 'PaperTrail' do
     it 'creates a version on update' do
       PaperTrailHelper.with_paper_trail do

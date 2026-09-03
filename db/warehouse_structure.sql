@@ -27100,7 +27100,8 @@ CREATE TABLE public.configs (
     enable_external_data_sharing_exclusion boolean DEFAULT false NOT NULL,
     client_demographic_columns jsonb,
     created_at timestamp(6) without time zone,
-    updated_at timestamp(6) without time zone
+    updated_at timestamp(6) without time zone,
+    dob_dq_demotion_enabled boolean DEFAULT false NOT NULL
 );
 
 
@@ -359988,6 +359989,7 @@ ALTER TABLE ONLY public.import_logs
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260831120000'),
 ('20260819120200'),
 ('20260819120000'),
 ('20260818130528'),
