@@ -16,8 +16,12 @@ module DataSourceReport::WarehouseReports
     def index
       @data_sources = data_source_scope.order(name: :asc)
       @pagy, @data_sources = pagy(@data_sources)
-      @client_counts = @data_sources.map { |ds| [ds.id, ds.client_count] }.to_h
-      @project_counts = @data_sources.map { |ds| [ds.id, ds.project_count] }.to_h
+      data_source_ids = @data_sources.map(&:id)
+      @client_counts = GrdaWarehouse::DataSource.client_counts_by_id(data_source_ids)
+      @project_counts = GrdaWarehouse::DataSource.project_counts_by_id(data_source_ids)
+      @unprocessed_enrollment_counts = GrdaWarehouse::DataSource.unprocessed_enrollment_counts_by_id(data_source_ids)
+      @last_import_completed_ats = GrdaWarehouse::DataSource.last_import_completed_ats_by_id(data_source_ids)
+      @stalled_dates = GrdaWarehouse::DataSource.stalled_dates_by_id(data_source_ids)
     end
 
     private def data_source_source
