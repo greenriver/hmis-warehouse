@@ -106,8 +106,10 @@ module GrdaWarehouse::WarehouseReports::Youth
 
     def rows_for_export
       clients.map do |client|
-        row = [client.client.id]
-        row += [client.client.FirstName, client.client.LastName] if ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
+        real_client = client.client
+        pii = GrdaWarehouse::PiiProvider.new(real_client, policy: filter.user.reporting_policy_for_client(client: real_client, mode: :download))
+        row = [real_client.id]
+        row += [pii.first_name, pii.last_name] if ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
         row + [
           client.intake.engagement_date,
           client.case_mangement&.to_date,

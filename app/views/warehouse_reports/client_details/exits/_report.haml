@@ -52,11 +52,14 @@
           %th Destination
           %th Exit From
       %tbody
+        :ruby
+          current_user.policy_context.preload_project_dependencies(@report.clients.map { |e| e.project.id })
         - @report.clients.each do |enrollment|
           - client = enrollment.client
           - project = enrollment.project
+          - pii = client.project_pii_provider(project: project, user: current_user, mode: :browse)
           %tr
-            %td= link_to_if current_user.can_view_clients?, "#{client.FirstName} #{client.LastName}", appropriate_client_path(id: enrollment.client_id)
+            %td= link_to_if current_user.can_view_clients?, pii.brief_name, appropriate_client_path(id: enrollment.client_id)
             %td= enrollment.last_date_in_program
             %td= HudHelper.util.destination(enrollment.destination)
             %td= enrollment.project.name(current_user)

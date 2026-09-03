@@ -428,6 +428,27 @@ RSpec.describe User, type: :model do
       policy = user.reporting_policy_for_project(project_id: project.id, client_id: 42)
       expect(policy).to be_a(GrdaWarehouse::AuthPolicies::ProjectPiiPolicy)
     end
+
+    context 'when project_id is nil and mode is :download' do
+      it 'denies name access when include_pii_in_detail_downloads is off' do
+        allow(GrdaWarehouse::Config).to receive(:get).with(:include_pii_in_detail_downloads).and_return(false)
+        policy = user.reporting_policy_for_project(project_id: nil, mode: :download)
+        expect(policy.can_view_name?).to eq(false)
+      end
+
+      it 'allows name access when include_pii_in_detail_downloads is on' do
+        allow(GrdaWarehouse::Config).to receive(:get).with(:include_pii_in_detail_downloads).and_return(true)
+        policy = user.reporting_policy_for_project(project_id: nil, mode: :download)
+        expect(policy.can_view_name?).to eq(true)
+      end
+
+      it 'denies name access for a restricted client even when include_pii_in_detail_downloads is on' do
+        allow(GrdaWarehouse::Config).to receive(:get).with(:include_pii_in_detail_downloads).and_return(true)
+        allow(user.policy_context).to receive(:client_restricted?).with(42).and_return(true)
+        policy = user.reporting_policy_for_project(project_id: nil, mode: :download, client_id: 42)
+        expect(policy.can_view_name?).to eq(false)
+      end
+    end
   end
 
   describe '#reporting_policy_for_client' do
