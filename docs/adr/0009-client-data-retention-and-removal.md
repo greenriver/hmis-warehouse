@@ -3,7 +3,7 @@
 ## Status
 
 - Current Status: Proposed
-- Date of last update: 2026-09-02
+- Date of last update: 2026-09-03
 - Decision-makers: OP engineering team, OP support team
 
 ## Context
@@ -20,9 +20,9 @@ long client data is kept.
 - Removal of aged-out data is available as a one-off manual process today. The
   motivation for this ADR is customer demand and obligation to protect client
   data.
-- Communities may make different choices on redaction, masking, or removal. There are
-  real use cases for all three strategies.
-- Communities may want different retention periods for different project types.
+- Communities may make different choices on masking or removal. There are
+  real use cases for both.
+- Communities may want different retention periods for different data sources.
 - Without a shared position, new data-retaining features may each approach the
   question differently.
 - ADR [0002 (PII Management Strategy)](0002-pii-management-strategy.md) covers PII
@@ -42,12 +42,17 @@ how it runs.
   that client's records, however old. Aging is never decided record by record.
 - **Configurable window.** The retention window is community configuration with
   no fixed floor or ceiling. Seven years is a reference point, not a default
-  the platform imposes. Windows may be set per project type.
-- **Three strategies.** A community selects how aged-out clients are handled:
+  the platform imposes. Windows are set per data source. Per project type
+  windows are not offered; they may be revisited if a community demonstrates a
+  real need.
+- **Two strategies.** A community selects how aged-out clients are handled:
   - **Delete**: remove the records outright.
   - **Mask**: overwrite PII in place, retaining the non-identifying structure
     for audit and reporting continuity.
-  - **Redact**: view-layer only redaction of sensitive fields.
+- **Masked fields.** Mask overwrites first, middle, and last name and SSN. DOB
+  is retained because household composition and age-based bucketing depend on
+  it. Fuzzing DOB to a consistent day within the month was considered and
+  judged not worth the effort.
 - **Backups are out of scope.** Deletion and masking act on the live database
   only. Backups retain data for their own retention period. The customer-facing
   help text for the retention settings must state this.
@@ -59,18 +64,8 @@ cover.
 
 These must be settled before implementation and recorded here on acceptance.
 
-1. **Per project type windows.** Whether a community may set a different window
-   per project type, or a single window per community. Per project type adds
-   configuration surface and complicates client-scoped aging when a client
-   spans project types with different windows.
-2. **Fields affected by mask.** Which fields count as PII for masking. Whether
-   the PII inventory from ADR 0002 is the authoritative list or a separate
-   retention list is needed.
-3. **Downstream systems.** Whether removal propagates to CAS and other
+1. **Downstream systems.** Whether removal propagates to CAS and other
    integrations.
-4. **Redact as a strategy.** Whether view-layer redaction belongs alongside
-   delete and mask. It is the only reversible option, but PII remains in the
-   database and it cannot answer a removal request.
 
 ## Consequences
 
@@ -80,8 +75,10 @@ These must be settled before implementation and recorded here on acceptance.
   application. Recovery is only possible from backups. Delete breaks report
   traceability for removed clients by design, which a community accepts when
   it selects it. Masked records still count in historical reports, which may
-  not match regenerated figures. Redaction is reversible and leaves PII in the
-  database, so it does not satisfy a removal request on its own.
+  not match regenerated figures.
+- **Negative:** Masked clients retain DOB, so a masked record is not fully
+  de-identified. Communities selecting mask accept this in exchange for
+  reporting continuity.
 - **Negative:** Removal from the live database does not remove data from
   backups. Customers who expect complete erasure must be told this.
 - **Neutral:** Communities must act to move off the default.
@@ -99,6 +96,13 @@ These must be settled before implementation and recorded here on acceptance.
   deletion is the wrong default for irreversible operations.
 - **Delete as the only mechanism.** Rejected: hard deletion breaks the audit
   trail unconditionally, and some communities prefer masking.
+- **View-layer redaction.** Rejected: PII stays in the database, so it cannot
+  satisfy a removal request. Reversibility is its only advantage, and that is
+  not enough to justify a third strategy.
+- **Per project type retention windows.** Rejected for now: it adds
+  configuration surface and complicates client-scoped aging when a client spans
+  project types with different windows. Data source scoping covers the known
+  cases. Revisit if a real need is demonstrated.
 - **Crypto-shredding.** Encrypt PII per client and destroy the key to age out,
   which would also cover backups. Deferred: PII is stored in plaintext across
   many tables and the HUD models, so per-client encryption is a data model
