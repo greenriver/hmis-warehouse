@@ -9,7 +9,7 @@
 module HmisUtil
   class HudDataCollectionGapAnalyzer
     # One scannable HUD data element: a single form item that stores a value on a HUD
-    # sub-record table.
+    # table (assessment sub-record, Enrollment, or Exit).
     #
     # Deliberately carries no rule. HUD rules attach to ancestor groups, and whether this
     # element is collected is decided by filtering the whole definition tree for a project
@@ -59,6 +59,24 @@ module HmisUtil
         'cobra' => :COBRA,
         'adap' => :ADAP,
         'noAdapReason' => :NoADAPReason,
+        'enrollmentCoc' => :EnrollmentCoC,
+        'dateToStreetEssh' => :DateToStreetESSH,
+        'losUnderThreshold' => :LOSUnderThreshold,
+        'previousStreetEssh' => :PreviousStreetESSH,
+        'dateOfBcpStatus' => :DateOfBCPStatus,
+        'eligibleForRhy' => :EligibleForRHY,
+        'vamcStation' => :VAMCStation,
+        'percentAmi' => :PercentAMI,
+        'annualPercentAmi' => :AnnualPercentAMI,
+        'hohLeaseholder' => :HOHLeaseholder,
+        'disabledHoh' => :DisabledHoH,
+        'hh5Plus' => :HH5Plus,
+        'cocPrioritized' => :CoCPrioritized,
+        'hpScreeningScore' => :HPScreeningScore,
+        'cmExitReason' => :CMExitReason,
+        # Multi-selects stored across several HUD columns; counting any one is enough for presence.
+        'counselingMethods' => :IndividualCounseling,
+        'aftercareMethods' => :Telephone,
       }.freeze
 
       MODEL_NAMES = {
@@ -67,6 +85,8 @@ module HmisUtil
         'HEALTH_AND_DV' => 'GrdaWarehouse::Hud::HealthAndDv',
         'EMPLOYMENT_EDUCATION' => 'GrdaWarehouse::Hud::EmploymentEducation',
         'YOUTH_EDUCATION_STATUS' => 'GrdaWarehouse::Hud::YouthEducationStatus',
+        'ENROLLMENT' => 'GrdaWarehouse::Hud::Enrollment',
+        'EXIT' => 'GrdaWarehouse::Hud::Exit',
       }.freeze
 
       def disability?
@@ -94,6 +114,11 @@ module HmisUtil
 
       def association_name
         ElementRegistry::RECORD_TYPE_ASSOCIATIONS.fetch(record_type)
+      end
+
+      # Same HUD column under different link ids (e.g. 3.917A vs 3.917B livingSituation).
+      def column_key
+        [record_type, disability_type, column]
       end
 
       # Whether a value of 99 means "data not collected" for this element. Only true for

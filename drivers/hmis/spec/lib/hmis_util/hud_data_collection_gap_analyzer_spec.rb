@@ -109,12 +109,18 @@ RSpec.describe HmisUtil::HudDataCollectionGapAnalyzer do
       )
       enroll(project, EntryDate: Date.new(2025, 5, 1))
 
-      row = analyzer.perform.summary_rows.find { |r| r[:project_id] == project.id }
+      result = analyzer.perform
+      row = result.summary_rows.find { |r| r[:project_id] == project.id }
 
       expect(row).to include(
         enrollment_move_in_date_count: 1,
         enrollment_date_of_engagement_count: 1,
         enrollment_client_enrolled_in_path_count: 1,
+      )
+      expect(result.form_gap_rows.map { |r| r[:form] }).to include(
+        'Move-in Date',
+        'Date of Engagement',
+        'PATH Status',
       )
     end
   end
@@ -221,6 +227,23 @@ RSpec.describe HmisUtil::HudDataCollectionGapAnalyzer do
       expect(field_names).not_to include('viralLoad')
     end
 
+    it 'reports a sexual orientation gap for a non-RHY project that records it' do
+      project = build_project(funders: [])
+      enroll(project, EntryDate: Date.new(2025, 3, 1), SexualOrientation: 1)
+
+      gaps = analyzer.perform.field_gap_rows.select { |row| row[:field_name] == 'sexualOrientation' }
+
+      expect(gaps.map { |row| row[:role] }).to contain_exactly(:INTAKE)
+    end
+
+    it 'does not report livingSituation as a gap when 3.917B is already on the intake form' do
+      # Project type 2 (ES Entry/Exit) shows 917B, not 917A; both map LivingSituation.
+      project = build_project(project_type: 2, funders: [])
+      enroll(project, EntryDate: Date.new(2025, 3, 1), LivingSituation: 16)
+
+      expect(analyzer.perform.field_gap_rows.map { |row| row[:field_name] }).not_to include('livingSituation')
+    end
+
     it 'decides requiredness separately for each project in a single run' do
       # Three funder profiles at one project type. Requiredness is cached across projects,
       # and the rule filter rewrites the definition tree in place, so whatever the first
@@ -293,7 +316,7 @@ RSpec.describe HmisUtil::HudDataCollectionGapAnalyzer do
 
     it 'reports no CLS gap for a PATH-funded project, where HUD requires CLS' do
       project = build_project(project_type: 4, funders: [path_funder])
-      enrollment = enroll(project)
+      enrollment = enroll(project, EntryDate: Date.new(2025, 3, 1), ClientEnrolledInPATH: 1)
       create(
         :hud_current_living_situation,
         data_source_id: data_source.id,
@@ -302,9 +325,17 @@ RSpec.describe HmisUtil::HudDataCollectionGapAnalyzer do
         InformationDate: Date.new(2025, 5, 1),
       )
 
-      gaps = analyzer.perform.form_gap_rows.select { |row| row[:form] == 'Current Living Situation' }
+      forms = analyzer.perform.form_gap_rows.map { |row| row[:form] }
 
-      expect(gaps).to be_empty
+      expect(forms).not_to include('Current Living Situation')
+      expect(forms).not_to include('PATH Status')
+    end
+
+    it 'reports no Move-in Date gap for a PH project, where HUD requires it' do
+      project = build_project(project_type: 3)
+      enroll(project, EntryDate: Date.new(2025, 3, 1), MoveInDate: Date.new(2025, 4, 1))
+
+      expect(analyzer.perform.form_gap_rows.map { |row| row[:form] }).not_to include('Move-in Date')
     end
   end
 end

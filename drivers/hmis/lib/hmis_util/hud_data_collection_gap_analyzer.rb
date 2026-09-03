@@ -24,9 +24,20 @@ module HmisUtil
 
     CURRENT_LIVING_SITUATION_FORM = 'Current Living Situation'
     SERVICE_FORM = 'Service'
-    SUMMARY_ASSOCIATIONS = (
-      ElementRegistry::RECORD_TYPE_ASSOCIATIONS.values + [:current_living_situations, :services]
-    ).freeze
+    MOVE_IN_DATE_FORM = 'Move-in Date'
+    DATE_OF_ENGAGEMENT_FORM = 'Date of Engagement'
+    PATH_STATUS_FORM = 'PATH Status'
+    # Sub-record tables plus CLS/services. Enrollment/Exit columns are scanned as field or
+    # form gaps; they are not rolled up here (every project has enrollments).
+    SUMMARY_ASSOCIATIONS = [
+      :income_benefits,
+      :disabilities,
+      :health_and_dvs,
+      :employment_educations,
+      :youth_education_statuses,
+      :current_living_situations,
+      :services,
+    ].freeze
 
     # Enrollment fields with no sub-record of their own, reported as [key prefix, column,
     # coded?] rather than through SUMMARY_ASSOCIATIONS.
@@ -111,12 +122,22 @@ module HmisUtil
       required = required_link_ids(project)
 
       elements_by_role.flat_map do |role, elements|
+        required_ids = required.fetch(role)
+        # 3.917A/B (and similar) share a HUD column under different link ids. If either
+        # variant survives the filter, the column is already on the form.
+        shown_columns = elements.select { |element| element.link_id.in?(required_ids) }.
+          to_set(&:column_key)
+        seen_gap_columns = Set.new
+
         elements.filter_map do |element|
-          next if element.link_id.in?(required.fetch(role))
+          next if element.link_id.in?(required_ids)
+          next if shown_columns.include?(element.column_key)
+          next if seen_gap_columns.include?(element.column_key)
 
           presence = scanner.field_presence(element)
           next unless presence.any?
 
+          seen_gap_columns << element.column_key
           project_identity(project).merge(
             role: role,
             link_id: element.link_id,
@@ -161,7 +182,29 @@ module HmisUtil
         )
       end
 
+      occurrence_point_form_gaps(project, scanner, matcher, rows)
       rows
+    end
+
+    def occurrence_point_form_gaps(project, scanner, matcher, rows)
+      {
+        MOVE_IN_DATE_FORM => [matcher.move_in_date_required?, :MoveInDate, false],
+        DATE_OF_ENGAGEMENT_FORM => [matcher.date_of_engagement_required?, :DateOfEngagement, false],
+        PATH_STATUS_FORM => [matcher.path_status_required?, :ClientEnrolledInPATH, true],
+      }.each do |form, (required, column, coded)|
+        next if required
+
+        presence = scanner.column_presence(:enrollments, column, coded: coded)
+        next unless presence.any?
+
+        rows << project_identity(project).merge(
+          form: form,
+          record_type: nil,
+          count: presence.count,
+          earliest: presence.earliest,
+          latest: presence.latest,
+        )
+      end
     end
 
     # Which link ids HUD requires for this project, per assessment role.
