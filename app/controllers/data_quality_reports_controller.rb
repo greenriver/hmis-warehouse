@@ -8,6 +8,7 @@
 
 class DataQualityReportsController < ApplicationController
   include AjaxModalRails::Controller
+  include WarehouseReports::PiiDetailRows
   skip_before_action :authenticate_user!, only: [:show, :answers]
   before_action :require_valid_token_or_report_access!, except: [:index]
   before_action :require_valid_token_or_project_access!
@@ -66,9 +67,11 @@ class DataQualityReportsController < ApplicationController
       @method = params[:method]
       respond_to do |format|
         format.xlsx do
+          @data[:counts] = @data[:counts].map { |row| redact_pii_in_row(row, headers: @data[:headers], user: current_user, mode: :download) }
           render support_render_path, filename: "support-#{@method}.xlsx"
         end
         format.html do
+          @data[:counts] = @data[:counts].map { |row| redact_pii_in_row(row, headers: @data[:headers], user: current_user, mode: :browse) }
           set_client_path
           # The view is versioned using the model name
           layout = if request.xhr?
@@ -126,9 +129,11 @@ class DataQualityReportsController < ApplicationController
       @data = support[@key].with_indifferent_access
       respond_to do |format|
         format.xlsx do
+          @data[:counts] = @data[:counts].map { |row| redact_pii_in_row(row, headers: @data[:headers], user: current_user, mode: :download) }
           render xlsx: 'index', filename: "support-#{@key}.xlsx"
         end
         format.html do
+          @data[:counts] = @data[:counts].map { |row| redact_pii_in_row(row, headers: @data[:headers], user: current_user, mode: :browse) }
           render layout: 'ajax_modal_rails/content' if params[:layout].present? && params[:layout] == 'false'
         end
         format.js {}

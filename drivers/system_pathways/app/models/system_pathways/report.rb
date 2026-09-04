@@ -207,7 +207,7 @@ module SystemPathways
       [0, 1, 2, 3, 4, 8, 9, 10, 13, 14]
     end
 
-    def detail_headers
+    def detail_headers(user:)
       {
         'Warehouse ID' => ->(en) {
           en.client.client_id
@@ -216,10 +216,10 @@ module SystemPathways
           en.client.personal_ids
         },
         'First Name' => ->(en) {
-          en.client.first_name
+          detail_pii_provider(en.client, user: user).first_name
         },
         'Last Name' => ->(en) {
-          en.client.last_name
+          detail_pii_provider(en.client, user: user).last_name
         },
         'Race' => ->(en) {
           races = []
@@ -251,6 +251,14 @@ module SystemPathways
           yn(en.client.ce_assessment)
         },
       }
+    end
+
+    private def detail_pii_provider(client, user:)
+      @detail_pii_providers ||= {}
+      @detail_pii_providers[client.client_id] ||= begin
+        policy = user.reporting_policy_for_project(project_id: nil, client_id: client.client_id)
+        GrdaWarehouse::PiiProvider.from_attributes(policy: policy, first_name: client.first_name, last_name: client.last_name)
+      end
     end
 
     def race_columns
