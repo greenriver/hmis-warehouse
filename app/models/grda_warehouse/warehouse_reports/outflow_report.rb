@@ -399,6 +399,7 @@ module GrdaWarehouse::WarehouseReports
       headers += ['First Name', 'Last Name'] if ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
       headers += [
         'Project Name',
+        'Project Type',
         'First Date In Program',
         'Last Date In Program',
         'Destination',

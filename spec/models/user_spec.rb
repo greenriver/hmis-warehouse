@@ -449,6 +449,48 @@ RSpec.describe User, type: :model do
         expect(policy.can_view_name?).to eq(false)
       end
     end
+
+    context 'with a real HMIS-restricted client and project-level name access' do
+      let(:acl_user) { create(:acl_user) }
+      let(:role) { create(:role, can_view_client_name: true) }
+      let(:collection) { create(:collection) }
+      let!(:hmis_ds) { create(:hmis_primary_data_source) }
+      let!(:hmis_user) { create(:hmis_user, data_source: hmis_ds) }
+      let!(:restricted_source_client) { create(:hmis_hud_client, data_source: hmis_ds) }
+      let!(:restricted_destination_client) { create(:grda_warehouse_hud_client) }
+      let!(:open_source_client) { create(:hmis_hud_client, data_source: hmis_ds) }
+      let!(:open_destination_client) { create(:grda_warehouse_hud_client) }
+
+      before do
+        Collection.maintain_system_groups
+        collection.set_viewables({ projects: [project.id] })
+        setup_access_control(acl_user, role, collection)
+        GrdaWarehouse::WarehouseClient.create!(destination_id: restricted_destination_client.id, source_id: restricted_source_client.id, data_source_id: hmis_ds.id, id_in_source: restricted_source_client.id.to_s)
+        GrdaWarehouse::WarehouseClient.create!(destination_id: open_destination_client.id, source_id: open_source_client.id, data_source_id: hmis_ds.id, id_in_source: open_source_client.id.to_s)
+        restricted_source_client.mark_as_restricted!(user: hmis_user)
+      end
+
+      after { GrdaWarehouse::Config.invalidate_cache }
+
+      it 'denies name access for the restricted client and allows it for the unrestricted client in browse mode' do
+        restricted_policy = acl_user.reporting_policy_for_project(project_id: project.id, client_id: restricted_destination_client.id)
+        open_policy = acl_user.reporting_policy_for_project(project_id: project.id, client_id: open_destination_client.id)
+
+        expect(restricted_policy.can_view_name?).to eq(false)
+        expect(open_policy.can_view_name?).to eq(true)
+      end
+
+      it 'denies name access for the restricted client in download mode with include_pii_in_detail_downloads on, and allows it for the unrestricted client' do
+        GrdaWarehouse::Config.first_or_create.update!(include_pii_in_detail_downloads: true)
+        GrdaWarehouse::Config.invalidate_cache
+
+        restricted_policy = acl_user.reporting_policy_for_project(project_id: project.id, mode: :download, client_id: restricted_destination_client.id)
+        open_policy = acl_user.reporting_policy_for_project(project_id: project.id, mode: :download, client_id: open_destination_client.id)
+
+        expect(restricted_policy.can_view_name?).to eq(false)
+        expect(open_policy.can_view_name?).to eq(true)
+      end
+    end
   end
 
   describe '#reporting_policy_for_client' do
