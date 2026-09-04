@@ -19,7 +19,7 @@
   .col-sm-6
     %h3
       Chronic Clients with 365 Days on
-      = @date
+      = @filter.date
       Not Flagged for CAS
       = "(#{@missing_in_cas.count})"
     %table.table.table-sm.table-hover
@@ -45,7 +45,7 @@
   .col-sm-6
     %h3
       Clients Flagged for CAS, Not in Chronic List with more than 365 days from
-      = @date
+      = @filter.date
       = "(#{@not_on_list.count})"
     %table.table.table-sm.table-hover
       %thead
@@ -64,16 +64,15 @@
             %td
               = link_to_if can_view_clients?, pii.brief_name, appropriate_client_path(client[:id])
             %td
-              = client.site_chronics.find_by_date(@date)&.days_in_last_three_years
+              = client.site_chronics.find_by_date(@filter.date)&.days_in_last_three_years
             %td
-              = client.site_chronics.find_by_date(@date)&.months_in_last_three_years
+              = client.site_chronics.find_by_date(@filter.date)&.months_in_last_three_years
             %td
-              = client.site_chronics.find_by_date(@date)&.trigger
+              = client.site_chronics.find_by_date(@filter.date)&.trigger
 
 = content_for :page_js do
   %script{ nonce: content_security_policy_nonce }
     :plain
-      console.log('test');
       $(document).on('ajax:success', '.jRemoveCasActive', function(evt, data, status, xhr){
         $(evt.currentTarget).closest('.jClient').fadeOut();
       }).on('ajax:error', '.jRemoveCasActive', function(evt, data, status, xhr){

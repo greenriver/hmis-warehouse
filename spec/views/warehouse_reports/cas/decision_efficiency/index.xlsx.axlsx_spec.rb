@@ -8,18 +8,17 @@
 
 require 'rails_helper'
 
-# The full report (WarehouseReports::Cas::DecisionEfficiencyController#index) reads from
-# a mirrored CAS database (CasAccess::Reporting::Decisions joined to Program/Agency/Client
-# via a CAS user's role) with no factories in this codebase to build that graph. This spec
-# instead renders the partial directly against plain row hashes -- the same shape
-# `report_scope` plucks into `@data` -- to cover the PII redaction this batch adds to it.
-RSpec.describe 'warehouse_reports/cas/decision_efficiency/_table', type: :view do
+# Same rationale as _table.haml_spec.rb: the report's @data comes from the CAS database, which
+# is a no-op stub in test, so the xlsx template is rendered directly against plain row hashes.
+RSpec.describe 'warehouse_reports/cas/decision_efficiency/index', type: :view do
   let!(:user) { create(:acl_user) }
   let!(:hmis_ds) { create(:hmis_primary_data_source) }
   let!(:hmis_user) { create(:hmis_user, data_source: hmis_ds) }
   let!(:restricted_source_client) { create(:hmis_hud_client, data_source: hmis_ds) }
   let!(:restricted_destination_client) { create(:grda_warehouse_hud_client) }
   let!(:open_destination_client) { create(:grda_warehouse_hud_client) }
+
+  after { GrdaWarehouse::Config.invalidate_cache }
 
   def row(client, first_name:, last_name:)
     {
@@ -49,21 +48,41 @@ RSpec.describe 'warehouse_reports/cas/decision_efficiency/_table', type: :view d
              row(open_destination_client, first_name: 'Openfirst', last_name: 'Openlast'),
            ])
     assign(:filter, double(first_step: 'Selected', second_step: 'Approved'))
-    # `can_view_clients?` and `link_params` only satisfy the partial's link helpers; they don't
-    # gate the redaction under test.
     without_partial_double_verification do
       allow(view).to receive(:current_user).and_return(user)
-      allow(view).to receive(:can_view_clients?).and_return(true)
-      allow(view).to receive(:link_params).and_return({})
     end
   end
 
-  it 'redacts only the restricted client name' do
-    render
+  def render_workbook
+    render template: 'warehouse_reports/cas/decision_efficiency/index', formats: [:xlsx], handlers: [:axlsx]
+    excel_file = Tempfile.new(['decision_efficiency', '.xlsx'])
+    excel_file.binmode
+    excel_file.write(rendered)
+    excel_file.close
+    Roo::Excelx.new(excel_file.path)
+  ensure
+    excel_file&.unlink
+  end
 
-    expect(rendered).not_to include('Restrictedfirst')
-    expect(rendered).not_to include('Restrictedlast')
-    expect(rendered).to include('Name Redacted')
-    expect(rendered).to include('Openfirst Openlast')
+  # Column layout: index 9 = Client (brief name), index 10 = Warehouse Client ID.
+  def rows_by_client_id
+    sheet = render_workbook.sheet(0)
+    (sheet.first_row..sheet.last_row).map { |i| sheet.row(i) }.index_by { |r| r[10] }
+  end
+
+  it 'redacts only the restricted client name when the download toggle is on' do
+    GrdaWarehouse::Config.first_or_create.update!(include_pii_in_detail_downloads: true)
+
+    rows = rows_by_client_id
+    expect(rows.fetch(restricted_destination_client.id)[9]).to eq('Name Redacted')
+    expect(rows.fetch(open_destination_client.id)[9]).to eq('Openfirst Openlast')
+  end
+
+  it 'redacts every client name when the download toggle is off' do
+    GrdaWarehouse::Config.first_or_create.update!(include_pii_in_detail_downloads: false)
+
+    rows = rows_by_client_id
+    expect(rows.fetch(restricted_destination_client.id)[9]).to eq('Name Redacted')
+    expect(rows.fetch(open_destination_client.id)[9]).to eq('Name Redacted')
   end
 end

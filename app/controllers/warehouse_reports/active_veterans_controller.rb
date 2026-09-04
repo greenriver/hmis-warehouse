@@ -28,6 +28,10 @@ module WarehouseReports
 
     def show
       @clients = @report.data
+      @clients_by_id = GrdaWarehouse::Hud::Client.
+        where(id: @clients.map { |client| client['id'] }).
+        preload(:source_clients).
+        index_by(&:id)
       @sort_options = sort_options
 
       respond_to do |format|
