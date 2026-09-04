@@ -15,4 +15,5 @@
     = f.input :enable_youth_hrp, label: 'Enable Youth Housing Resolution Plans'
     = f.input :enable_youth_unstably_housed, label: 'Enable youth Unstably Housed option'
     = f.input :warehouse_client_name_order, label: 'How should the names on clients be calculated?', collection: GrdaWarehouse::Config.available_warehouse_client_name_orders, as: :select_two
+    = f.input :dob_dq_demotion_enabled, label: 'Should impossible dates of birth be demoted when calculating client DOB?', hint: 'When enabled, a DOB that postdates its own record, or precedes it by more than 150 years, is treated as approximate rather than full.'
     = f.input :supplemental_enrollment_importer, label: 'What version of the supplemental enrollment importer should we use.', collection: GrdaWarehouse::Config.available_supplemental_enrollment_importers, as: :select_two

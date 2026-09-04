@@ -635,6 +635,108 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
       end
     end
   end
+
+  describe 'choose_best_dob method' do
+    let(:cleanup) { GrdaWarehouse::Tasks::ClientCleanup.new }
+    let(:dest_attr) { { DOB: nil, DOBDataQuality: nil } }
+    let(:flag) { false }
+
+    before do
+      allow(GrdaWarehouse::Config).to receive(:get).and_call_original
+      allow(GrdaWarehouse::Config).to receive(:get).with(:dob_dq_demotion_enabled).and_return(flag)
+    end
+
+    # Source A's DOB postdates its own DateCreated, so it is impossible. It is
+    # nonetheless the older record.
+    let(:qa_source_clients) do
+      [
+        { DOB: Date.new(2022, 6, 1), DOBDataQuality: 1, DateCreated: Time.zone.local(2021, 1, 1), id: 1 },
+        { DOB: Date.new(2002, 1, 1), DOBDataQuality: 1, DateCreated: Time.zone.local(2022, 1, 1), id: 2 },
+      ]
+    end
+
+    context 'when dob_dq_demotion_enabled is off' do
+      let(:flag) { false }
+
+      it 'pins the legacy outcome: the older record wins even with an impossible DOB' do
+        result = cleanup.choose_best_dob(dest_attr, qa_source_clients)
+
+        expect(result[:DOB]).to eq(Date.new(2022, 6, 1))
+        expect(result[:DOBDataQuality]).to eq(1)
+      end
+
+      it 'prefers the better data quality over the older record' do
+        source_clients = [
+          { DOB: Date.new(1990, 1, 1), DOBDataQuality: 2, DateCreated: Time.zone.local(2021, 1, 1), id: 1 },
+          { DOB: Date.new(1991, 1, 1), DOBDataQuality: 1, DateCreated: Time.zone.local(2022, 1, 1), id: 2 },
+        ]
+
+        result = cleanup.choose_best_dob(dest_attr, source_clients)
+
+        expect(result[:DOB]).to eq(Date.new(1991, 1, 1))
+        expect(result[:DOBDataQuality]).to eq(1)
+      end
+
+      it 'breaks a data quality tie on the oldest DateCreated' do
+        source_clients = [
+          { DOB: Date.new(1990, 1, 1), DOBDataQuality: 1, DateCreated: Time.zone.local(2022, 1, 1), id: 1 },
+          { DOB: Date.new(1991, 1, 1), DOBDataQuality: 1, DateCreated: Time.zone.local(2021, 1, 1), id: 2 },
+        ]
+
+        result = cleanup.choose_best_dob(dest_attr, source_clients)
+
+        expect(result[:DOB]).to eq(Date.new(1991, 1, 1))
+      end
+
+      it 'clears an existing destination DOB when no source has one' do
+        dest_attr = { DOB: Date.new(1975, 5, 5), DOBDataQuality: 1 }
+        source_clients = [
+          { DOB: nil, DOBDataQuality: 1, DateCreated: Time.zone.local(2021, 1, 1), id: 1 },
+        ]
+
+        result = cleanup.choose_best_dob(dest_attr, source_clients)
+
+        expect(result[:DOB]).to be_nil
+        expect(result[:DOBDataQuality]).to eq(99)
+      end
+
+      it 'does not delegate to DOBSelector' do
+        expect(GrdaWarehouse::DOBSelector).not_to receive(:call)
+
+        cleanup.choose_best_dob(dest_attr, qa_source_clients)
+      end
+    end
+
+    context 'when dob_dq_demotion_enabled is on' do
+      let(:flag) { true }
+
+      it 'prefers the newer record whose DOB is possible' do
+        result = cleanup.choose_best_dob(dest_attr, qa_source_clients)
+
+        expect(result[:DOB]).to eq(Date.new(2002, 1, 1))
+        expect(result[:DOBDataQuality]).to eq(1)
+      end
+
+      it 'exposes the demotion when every candidate has an impossible DOB' do
+        source_clients = [
+          { DOB: Date.new(2022, 6, 1), DOBDataQuality: 1, DateCreated: Time.zone.local(2021, 1, 1), id: 1 },
+        ]
+
+        result = cleanup.choose_best_dob(dest_attr, source_clients)
+
+        expect(result[:DOB]).to eq(Date.new(2022, 6, 1))
+        expect(result[:DOBDataQuality]).to eq(2)
+      end
+
+      it 'delegates to DOBSelector, preferring the oldest record' do
+        expect(GrdaWarehouse::DOBSelector).to receive(:call).
+          with(dest_attr: dest_attr, source_clients: qa_source_clients, use_oldest: true).
+          and_call_original
+
+        cleanup.choose_best_dob(dest_attr, qa_source_clients)
+      end
+    end
+  end
   describe 'When Updating destination records from client sources' do
     let!(:destination_client) { create(:grda_warehouse_hud_client) }
     let!(:source_1) { create(:grda_warehouse_hud_client) }
