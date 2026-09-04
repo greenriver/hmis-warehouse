@@ -79,6 +79,7 @@ module
     def column_objects_for(key)
       raw = detail_hash.dig(key, :headers) || []
       project_id_index = raw.index('_project_id')
+      client_id_index = raw.index('Client ID')
       raw.map.with_index do |label, index|
         next if index == project_id_index # we don't show project id, it's just for permissions
 
@@ -87,6 +88,7 @@ module
           index: index,
           user: filter.user,
           project_id_index: project_id_index,
+          client_id_index: client_id_index,
         )
       end.compact
     end
@@ -109,7 +111,7 @@ module
       end
     end
 
-    def detail_column_display(header:, column:, project_id:)
+    def detail_column_display(header:, column:, project_id:, client_id:)
       case header
       when 'Project Type'
         HudHelper.util.project_type(column)
@@ -125,6 +127,7 @@ module
         HudHelper.util.destination(column)
       else
         pii_policy = filter.user.policy_for(project_id, policy_class: GrdaWarehouse::AuthPolicies::ProjectPiiPolicy)
+        pii_policy = GrdaWarehouse::PiiProvider.restrict(pii_policy, restricted: filter.user.policy_context.client_restricted?(client_id))
         pii_value(col: header, raw_value: column, pii_policy: pii_policy)
       end
     end

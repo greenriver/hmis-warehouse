@@ -1263,11 +1263,12 @@ class WarehouseReport::Outcomes::Base
       pii_policy = if project_id.present?
         user.policy_for(project_id.to_i, policy_class: GrdaWarehouse::AuthPolicies::ProjectPiiPolicy)
       elsif client_id.present?
-        client = GrdaWarehouse::Hud::Client.find(client_id)
-        user.policy_for(client, policy_class: GrdaWarehouse::AuthPolicies::DestinationClientPolicy)
+        user.policy_for(destination_clients_by_id.fetch(client_id.to_i), policy_class: GrdaWarehouse::AuthPolicies::DestinationClientPolicy)
       else
         GrdaWarehouse::AuthPolicies::AllowPiiPolicy.instance
       end
+
+      pii_policy = GrdaWarehouse::PiiProvider.restrict(pii_policy, restricted: user.policy_context.client_restricted?(client_id.to_i)) if client_id.present?
 
       pii_value(col: header, raw_value: value, pii_policy: pii_policy)
     end
@@ -1309,6 +1310,14 @@ class WarehouseReport::Outcomes::Base
           value
         end
       end
+    end
+
+    private def rows_client_ids
+      @rows_client_ids ||= @rows.map(&:first)
+    end
+
+    private def destination_clients_by_id
+      @destination_clients_by_id ||= GrdaWarehouse::Hud::Client.where(id: rows_client_ids).index_by(&:id)
     end
   end
 

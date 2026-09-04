@@ -1420,6 +1420,10 @@ module GrdaWarehouse::Hud
       user.policy_context.client_restricted?(id)
     end
 
+    def destination_client_id_for_restriction
+      destination?(strict: true) ? id : destination_client&.id
+    end
+
     def name
       # Deprecated
       # skip deprecations to avoid test failures. Suggest uncommenting when we are ready to implement pii globally

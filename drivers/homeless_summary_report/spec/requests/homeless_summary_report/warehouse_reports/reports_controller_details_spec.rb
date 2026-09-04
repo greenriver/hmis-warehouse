@@ -105,6 +105,24 @@ RSpec.describe 'HomelessSummaryReport::WarehouseReports::Reports#details', type:
         expect(response.body).not_to include('Realname')
       end
     end
+
+    context 'when the client is HMIS-restricted, even though the user has full project access' do
+      let!(:hmis_ds) { create(:hmis_primary_data_source) }
+      let!(:hmis_user) { create(:hmis_user, data_source: hmis_ds) }
+
+      before do
+        Hmis::Hud::Client.find(source_client.id).mark_as_restricted!(user: hmis_user)
+      end
+
+      it 'redacts the client name' do
+        get details_homeless_summary_report_warehouse_reports_report_path(report, cell: 'm1b_es_sh_ph_days', variant: 'spm_all_persons__all')
+
+        expect(response).to have_http_status(:success)
+        expect(response.body).to include('Redacted')
+        expect(response.body).not_to include('Alix')
+        expect(response.body).not_to include('Realname')
+      end
+    end
   end
 
   describe 'xlsx format' do

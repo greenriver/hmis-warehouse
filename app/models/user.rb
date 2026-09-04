@@ -291,7 +291,7 @@ class User < ApplicationRecord
   # to policy_for(client), which resolves to DestinationClientPolicy/SourceClientPolicy based
   # on Client#policy_class.
   def reporting_policy_for_client(client:, mode: :browse)
-    return GrdaWarehouse::AuthPolicies::AllowPiiPolicy.instance if client.nil?
+    return GrdaWarehouse::AuthPolicies::DenyPiiPolicy.instance if client.nil?
 
     allowed = false
     case mode.to_sym
@@ -304,7 +304,8 @@ class User < ApplicationRecord
     end
 
     policy = policy_for(client) if allowed
-    policy || GrdaWarehouse::AuthPolicies::DenyPiiPolicy.instance
+    policy ||= GrdaWarehouse::AuthPolicies::DenyPiiPolicy.instance
+    GrdaWarehouse::PiiProvider.restrict(policy, restricted: policy_context.client_restricted?(client.destination_client_id_for_restriction))
   end
 
   # @see docs/features/warehouse/warehouse-auth-policies.md
