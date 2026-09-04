@@ -37,6 +37,7 @@ module WarehouseReports
           @data = @enrollments.pluck(*columns.values).map { |r| row_to_hash(r) }
         end
       end
+      current_user.policy_context.preload_project_dependencies(@data.map { |row| row[:project_id] }.uniq)
     end
 
     private def row_to_hash(row)

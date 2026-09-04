@@ -53,6 +53,10 @@ RSpec.describe InactiveClientReport::DocumentExports::ReportExcelExport, type: :
   after { GrdaWarehouse::Config.invalidate_cache }
 
   before do
+    # Some ACL/report-scoping lookups (e.g. `Project.viewable_by`) are cached in `Rails.cache`,
+    # which lives outside each example's DB transaction rollback -- a value cached while another
+    # spec file's now-rolled-back fixtures were live can otherwise leak in here.
+    Rails.cache.clear
     Collection.maintain_system_groups
     collection.set_viewables({ reports: [report_definition.id], projects: [project.id] })
     setup_access_control(user, role, collection)

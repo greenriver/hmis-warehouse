@@ -15,13 +15,15 @@ module GrdaWarehouse::WarehouseReports
       headers
     end
 
-    def rows_for_export
+    def rows_for_export(user:)
       data.map do |client|
         chronic = client['hud_chronic']
         disabilities = client['source_disabilities'].gsub('<br />', ', ')
         data_sources = client['data_sources']
+        policy = user.reporting_policy_for_project(project_id: nil, mode: :download, client_id: client['id'])
+        pii = GrdaWarehouse::PiiProvider.from_attributes(policy: policy, first_name: client['FirstName'], last_name: client['LastName'], dob: client['DOB'])
         row = [client['id']]
-        row += [client['FirstName'], client['LastName'], client['DOB']] if ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
+        row += [pii.first_name, pii.last_name, GrdaWarehouse::PiiProvider.viewable_dob(client['DOB'], policy: policy)] if ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
         row + [
           chronic['homeless_since'],
           chronic['days_in_last_three_years'],
