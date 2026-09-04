@@ -10,7 +10,7 @@ A user attempts to access the HMIS Warehouse. The request is intercepted by the 
 ## Involved Building Blocks
 - **User (Browser)**: The client initiating the request.
 - **[Authentication Layer](../05-building-blocks/05-2-3-authentication.md)**: OAuth2-Proxy and Dex working together to validate and broker identity.
-- **[Identity Providers](../05-building-blocks/05-2-3-authentication.md)**: Keycloak (Internal Staff IdP), customer-org IdPs, or GitHub — connected as Dex connectors.
+- **[Identity Providers](../05-building-blocks/05-2-3-authentication.md)**: Keycloak (Internal Staff IdP) or customer-org IdPs — connected as Dex connectors.
 - **[Warehouse Application](../05-building-blocks/05-2-1-warehouse.md)**: The Rails backend that validates the Dex-issued token and provisions/authorizes the user.
 
 ## Sequence Diagram
@@ -73,7 +73,7 @@ sequenceDiagram
 ```
 
 ## Notable Aspects
-1. **Token-Based Identity**: The Warehouse validates the Dex-issued token forwarded by OAuth2-Proxy rather than trusting headers as a primary control. The validation mechanics and header handling are documented in [§8.2 Security](../08-concepts/08-2-security.md); proxy-to-Warehouse network isolation in [§7 Deployment](../07-deployment-view.md).
+1. **Token-Based Identity**: The Warehouse validates the Dex-issued token forwarded by OAuth2-Proxy rather than trusting headers as a primary control. The validation mechanics and header handling are documented in [§8.2 Security](../08-concepts/08-2-security.md); proxy-to-Warehouse network isolation in [§7 Deployment](../07-deployment.md).
 2. **Transparent Refresh**: OAuth2-Proxy refreshes tokens before expiry for session continuity. Lifetime/refresh policy: [§8.2 Security](../08-concepts/08-2-security.md); revocation-propagation risk: [§11 Risks](../11-risks.md).
 3. **JIT Provisioning**: On first login the Warehouse provisions a local User from token claims. The claim-to-permission and agency-isolation model is described in [§5.2.1 Warehouse](../05-building-blocks/05-2-1-warehouse.md) / [§8.2 Security](../08-concepts/08-2-security.md).
 4. **Three Session Layers**: A successful login establishes sessions at the IdP, Dex, and OAuth2-Proxy. Tearing down all three is architecturally significant — see [Logout](#logout-scenario) below.
