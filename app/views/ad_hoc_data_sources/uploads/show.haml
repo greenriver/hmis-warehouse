@@ -55,8 +55,7 @@
                 %tr{class: odd_class}
                   %td
                     - if client.client_id.present?
-                      -# Since the goal of this upload is to match clients, we need to display the name if allowed
-                      - pii = GrdaWarehouse::PiiProvider.new(client, policy: GrdaWarehouse::PiiProvider.restrict(GrdaWarehouse::AuthPolicies::AllowPiiPolicy.instance, restricted: current_user.policy_context.client_restricted?(client.client_id)))
+                      - pii = matched_client.pii_provider(user: current_user)
                       - if pii.first_name
                         = link_to pii.first_name, client_path(client.client_id), target: :_blank
                       - else
