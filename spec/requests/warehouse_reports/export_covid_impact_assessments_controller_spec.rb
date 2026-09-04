@@ -28,9 +28,11 @@ RSpec.describe 'WarehouseReports::ExportCovidImpactAssessmentsController', type:
   let!(:organization) { create(:hud_organization, data_source: hmis_ds) }
   let!(:project) { create(:grda_warehouse_hud_project, organization: organization, data_source: hmis_ds) }
   # `can_view_client_name` is granted per client through the client's enrolled project's
-  # collection, so the open source client needs a real enrollment in the viewable project --
+  # collection, so each source client needs a real enrollment in the viewable project --
   # unlike the `WarehouseClient` link below, which only maps identity. The restricted client
-  # doesn't need one: `mark_as_restricted!` overrides name visibility regardless.
+  # needs one too: without it, the missing permission alone hides the name, and the redaction
+  # assertions below would pass with `mark_as_restricted!` removed.
+  let!(:restricted_enrollment) { create(:hud_enrollment, client: GrdaWarehouse::Hud::Client.find(restricted_source_client.id), data_source: hmis_ds, project: project) }
   let!(:open_enrollment) { create(:hud_enrollment, client: GrdaWarehouse::Hud::Client.find(open_source_client.id), data_source: hmis_ds, project: project) }
 
   let!(:hmis_assessment_row) do

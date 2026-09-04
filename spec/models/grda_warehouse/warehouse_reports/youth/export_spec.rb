@@ -68,11 +68,11 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Youth::Export, type: :model do
       GrdaWarehouse::Config.first_or_create.update!(include_pii_in_detail_downloads: true)
 
       rows = export.rows_for_export
-      restricted_row = rows.find { |r| r[0] == restricted_destination_client.id }
-      open_row = rows.find { |r| r[0] == open_destination_client.id }
+      restricted_row = row_by_header(export.headers_for_report, rows, key: restricted_destination_client.id)
+      open_row = row_by_header(export.headers_for_report, rows, key: open_destination_client.id)
 
-      expect(restricted_row[1..2]).to eq(['Name Redacted', 'Name Redacted'])
-      expect(open_row[1..2]).to eq(['Open', 'Client'])
+      expect(restricted_row.values_at('First Name', 'Last Name')).to eq(['Name Redacted', 'Name Redacted'])
+      expect(open_row.values_at('First Name', 'Last Name')).to eq(['Open', 'Client'])
     end
 
     it 'omits the name columns entirely when the download toggle is off' do
@@ -80,9 +80,9 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Youth::Export, type: :model do
       GrdaWarehouse::Config.invalidate_cache
 
       rows = export.rows_for_export
-      restricted_row = rows.find { |r| r[0] == restricted_destination_client.id }
+      restricted_row = row_by_header(export.headers_for_report, rows, key: restricted_destination_client.id)
 
-      expect(restricted_row.size).to eq(43)
+      expect(restricted_row.keys).not_to include('First Name', 'Last Name')
     end
   end
 end
