@@ -21,6 +21,6 @@ wb.add_worksheet name: title[0..30] do |sheet|
   sheet.add_row(summary, style: title_style)
   sheet.add_row(headers, style: title_style)
   rows.each do |row|
-    sheet.add_row row
+    sheet.add_row @report.redact_pii_in_row(row, headers: headers, user: current_user, mode: :download)
   end
 end
