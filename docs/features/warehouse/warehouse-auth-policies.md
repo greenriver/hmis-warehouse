@@ -131,13 +131,20 @@ Restricted clients are also excluded from every warehouse-side client search pat
 
 The Scenic view `analytics.client_piis` (`db/views/analytics_client_piis_v02.sql`) enforces PII redaction for HMIS Restricted clients.  The view joins `hmis_restricted_records` and replaces `FirstName`, `MiddleName`, `LastName`, `NameSuffix`, and `SSN` with the literal `'Redacted'` when an active restriction row exists for the source client (`restrictable_type = 'Hmis::Hud::Client'`, `restrictable_id` matching the source `Client` id, `deleted_at IS NULL`). `DOB` is not redacted in this view so that the transformations can calculate age. Row-level security in the `superset-sync` repository governs which clients a given Superset user can query.
 
+### HMIS CSV Export
+
+`Export::RestrictedClientPiiTransform` (`app/models/export/restricted_client_pii_transform.rb`) is a Kiba transform appended last in the FY2022/2024/2026 client exporters' `Client.transforms` (`drivers/hmis_csv_twenty_twenty_{two,four,six}/app/models/hmis_csv_twenty_twenty_*/exporter/client.rb`). For a restricted client's row, it replaces `FirstName`, `MiddleName`, `LastName`, and `NameSuffix` with `GrdaWarehouse::PiiProvider::REDACTED` and blanks `SSN`, setting `SSNDataQuality` to 99 so the column stays import-valid. `DOB` is left untouched, matching `analytics.client_piis`.
+
+Hashed (`hash_status == 4`) and faked (`faked_pii`) exports are **not** redacted — the transform returns the row unchanged in either case. A SHA-256 hash of a restricted client's name/SSN is already irreversible, and a faked value can't be reversed without access to the database that still holds the real PII, so redacting on top of either would add no protection.
+
 ### Known limitations
 
 Coverage is bounded by what actually calls into `PiiProvider`/the `reporting_policy_for_*` methods. The following do not honor restriction, and continue to show a restricted client's real PII:
 
-- Toggle-gated exports whose rows are plucked hashes/arrays rather than `Client` AR records (tracked for follow-up batches; see `dev/build_docs/restricted_clients/`) still show a restricted client's real PII regardless of the toggle — only `Client`-AR-record rows were converted to per-client restriction so far.
-- `ApplicationHelper#ssn`/`#dob_or_age` — gate only on the viewer's general permission on an already-extracted raw value, with no per-client hook (used outside report/dashboard/cohort contexts, e.g. client edit forms).
-- The global `User#can_view_hiv_status?` role permission (distinct from `PiiProvider`'s HIV redaction) — used in roughly ten places (disability rollup views, CAS export, report filters, HUD report cell/drilldown gating) with no client-level scoping at all.
+- `drivers/ma_reports/app/models/ma_reports/csg_engage/report_components/household_member.rb` — external state submission; a product decision on how (or whether) to redact restricted clients there is pending.
+- `ApplicationHelper#ssn`/`#dob_or_age`, used by the ad-hoc upload review (`app/views/ad_hoc_data_sources/uploads/show.haml`) for unmatched rows — that workflow needs the real name, SSN, and DOB to let staff match a row by hand.
+- Hashed and faked HMIS CSV exports (see "HMIS CSV Export" above) are not redacted — the hash is irreversible on its own, and a faked value is only reversible with access to the source database.
+- Aggregate `can_view_hiv_status?` gates (`filter_base`, `push_clients_to_cas`, `disability_summary`, HUD PIT/DQ cells, `ce_performance` populations) — they gate counts, not a named client's row, so restriction doesn't apply. The per-client disability rollup views (`clients/rollup/_disabilities`, `clients/rollup/_disability_types`) and the CAS readiness forms do honor restriction.
 - `warehouse_reports/cas/non_hmis_clients` renders raw candidate name/SSN/DOB from an external CAS import with no warehouse client id to gate on — these rows aren't yet linked to any warehouse identity, so there's no restriction to check.
 
 ### Report detail rows
