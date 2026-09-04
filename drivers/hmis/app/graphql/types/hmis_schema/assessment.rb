@@ -89,6 +89,10 @@ module Types
     end
 
     # EXPENSIVE! Do not use in batch
+    #
+    # Assessments are unique in upgrading to the latest published form when edited. Record forms (case notes,
+    # services, CLS, etc) always edit with the definition on their form processor.
+    # @see docs/features/hmis/hmis-form-resolution.md#choosing-a-definition-for-an-existing-record
     def upgraded_definition_for_editing
       return if object.in_progress? # WIP assessments should use the original form for editing
       return unless form_processor.definition_id # tiny optimization: avoid calling 'definition' if it will invoke find_definition_for_role twice

@@ -2,6 +2,8 @@
 
 The word "assessment" can refer to several related but distinct record types. This document clarifies what "assessment" may mean in different contexts.
 
+Every assessment is collected with a form definition. See [Form definitions](hmis-form-definitions.md) for what a definition and role are and how statuses work, and [Form resolution](hmis-form-resolution.md#choosing-a-definition-for-an-existing-record) for why unlocking a submitted assessment can switch it to a newer version of the form.
+
 The UI instructions below are developer documentation, intended to help new developers orient themselves in a local environment. They should not be taken as-is for customer-facing feature documentation.
 
 ## Quick reference
