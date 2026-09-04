@@ -44,6 +44,28 @@ RSpec.describe 'DataQualityReportsController#support', type: :request do
     }
   end
 
+  after { GrdaWarehouse::Config.invalidate_cache }
+
+  def configure_download_toggle(enabled)
+    GrdaWarehouse::Config.first_or_create.update!(include_pii_in_detail_downloads: enabled)
+    GrdaWarehouse::Config.invalidate_cache
+  end
+
+  def table_cells
+    Nokogiri::HTML(response.body).css('table.table-hover tbody td').map { |td| td.text.strip }
+  end
+
+  def xlsx_rows
+    excel_file = Tempfile.new(['data_quality_support', '.xlsx'])
+    excel_file.binmode
+    excel_file.write(response.body)
+    excel_file.close
+    sheet = Roo::Excelx.new(excel_file.path).sheet(0)
+    (sheet.first_row + 1..sheet.last_row).map { |i| sheet.row(i) }
+  ensure
+    excel_file&.unlink
+  end
+
   before do
     Collection.maintain_system_groups
     collection.set_viewables({ reports: [report_definition.id], projects: [project.id] })
@@ -54,31 +76,47 @@ RSpec.describe 'DataQualityReportsController#support', type: :request do
     sign_in(user)
   end
 
-  it 'redacts the restricted client and shows the unrestricted client in the HTML view' do
+  it 'redacts the restricted client name, DOB, and SSN and shows the unrestricted client in the HTML view' do
     get support_project_data_quality_report_path(project, report, individual: true, method: 'test')
 
     expect(response).to have_http_status(:success)
-    expect(response.body).not_to include('Restricted')
-    expect(response.body).to include(GrdaWarehouse::PiiProvider::NAME_REDACTED)
-    expect(response.body).to include('Open')
+    cells = table_cells
+    expect(cells).to include('Open', 'Doe', '987-65-4321')
+    expect(cells.join(' ')).to include('1985')
+    expect(cells).not_to include('Restricted', 'Client', '123-45-6789')
+    expect(cells.join(' ')).not_to include('1990')
+    expect(cells.count(GrdaWarehouse::PiiProvider::NAME_REDACTED)).to eq(2)
+    expect(cells.count(GrdaWarehouse::PiiProvider::REDACTED)).to eq(2)
   end
 
-  it 'redacts the restricted client and shows the unrestricted client in the Excel export' do
-    get support_project_data_quality_report_path(project, report, individual: true, method: 'test', format: :xlsx)
+  context 'in the Excel export' do
+    it 'redacts only the restricted client when include_pii_in_detail_downloads is on' do
+      configure_download_toggle(true)
 
-    expect(response).to have_http_status(:success)
-    excel_file = Tempfile.new(['data_quality_support', '.xlsx'])
-    excel_file.binmode
-    excel_file.write(response.body)
-    excel_file.close
-    sheet = Roo::Excelx.new(excel_file.path).sheet(0)
-    rows = (sheet.first_row + 1..sheet.last_row).map { |i| sheet.row(i) }
-    restricted_row = rows.find { |r| r[0] == restricted_destination_client.id }
-    open_row = rows.find { |r| r[0] == open_destination_client.id }
+      get support_project_data_quality_report_path(project, report, individual: true, method: 'test', format: :xlsx)
 
-    expect(restricted_row[1]).to eq(GrdaWarehouse::PiiProvider::NAME_REDACTED)
-    expect(open_row[1]).to eq('Open')
-  ensure
-    excel_file&.unlink
+      expect(response).to have_http_status(:success)
+      rows = xlsx_rows
+      restricted_row = rows.find { |r| r[0] == restricted_destination_client.id }
+      open_row = rows.find { |r| r[0] == open_destination_client.id }
+
+      expect(restricted_row[1..4]).to eq([GrdaWarehouse::PiiProvider::NAME_REDACTED, GrdaWarehouse::PiiProvider::NAME_REDACTED, GrdaWarehouse::PiiProvider::REDACTED, GrdaWarehouse::PiiProvider::REDACTED])
+      expect(open_row[1..2]).to eq(['Open', 'Doe'])
+      expect(open_row[3].to_date).to eq(Date.new(1985, 6, 15))
+      expect(open_row[4]).to eq('987-65-4321')
+    end
+
+    it 'redacts every client when include_pii_in_detail_downloads is off' do
+      configure_download_toggle(false)
+
+      get support_project_data_quality_report_path(project, report, individual: true, method: 'test', format: :xlsx)
+
+      expect(response).to have_http_status(:success)
+      rows = xlsx_rows
+      open_row = rows.find { |r| r[0] == open_destination_client.id }
+
+      expect(open_row[0]).to eq(open_destination_client.id)
+      expect(open_row[1..4]).to eq([GrdaWarehouse::PiiProvider::NAME_REDACTED, GrdaWarehouse::PiiProvider::NAME_REDACTED, GrdaWarehouse::PiiProvider::REDACTED, GrdaWarehouse::PiiProvider::REDACTED])
+    end
   end
 end
