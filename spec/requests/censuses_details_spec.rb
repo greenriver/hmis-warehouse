@@ -19,15 +19,20 @@ RSpec.describe 'CensusesController#details', type: :request do
 
   let!(:hmis_user) { create(:hmis_user, data_source: destination_data_source) }
   let!(:project) { create_project(project_type: 1) } # ES Night-by-Night
-  let!(:restricted_client) { create_client_with_warehouse_link(first_name: 'Restricted', last_name: 'Client') }
-  let!(:enrollment) { create_enrollment(client: restricted_client, project: project, entry_date: Date.current) }
+  let!(:restricted_client) { create_client_with_warehouse_link(first_name: 'Restrictedfirst', last_name: 'Restrictedlast') }
+  let!(:open_client) { create_client_with_warehouse_link(first_name: 'Openfirst', last_name: 'Openlast') }
+  let!(:restricted_enrollment) { create_enrollment(client: restricted_client, project: project, entry_date: Date.current) }
+  let!(:open_enrollment) { create_enrollment(client: open_client, project: project, entry_date: Date.current) }
+
+  after { GrdaWarehouse::Config.invalidate_cache }
 
   before do
     Collection.maintain_system_groups
     collection.set_viewables({ reports: [report.id], projects: [project.id] })
     setup_access_control(user, role, collection)
 
-    create_bed_night_service(enrollment: enrollment, date: Date.current)
+    create_bed_night_service(enrollment: restricted_enrollment, date: Date.current)
+    create_bed_night_service(enrollment: open_enrollment, date: Date.current)
     GrdaWarehouse::Tasks::ServiceHistory::Enrollment.find_each(&:rebuild_service_history!)
 
     Hmis::Hud::Client.find(restricted_client.id).mark_as_restricted!(user: hmis_user)
@@ -44,11 +49,14 @@ RSpec.describe 'CensusesController#details', type: :request do
     }
   end
 
-  it 'redacts the restricted client name in the html view' do
+  it 'redacts only the restricted client name in the html view' do
     get details_censuses_path(details_params)
 
-    expect(response.body).not_to include('Restricted')
+    expect(response.body).not_to include('Restrictedfirst')
+    expect(response.body).not_to include('Restrictedlast')
     expect(response.body).to include('Name Redacted')
+    expect(response.body).to include('Openfirst')
+    expect(response.body).to include('Openlast')
   end
 
   def rendered_workbook
@@ -61,13 +69,14 @@ RSpec.describe 'CensusesController#details', type: :request do
     excel_file&.unlink
   end
 
-  it 'redacts the restricted client name in the Excel export' do
+  it 'redacts only the restricted client name in the Excel export' do
     get details_censuses_path(details_params(format: :xlsx))
 
     expect(response).to have_http_status(:success)
     sheet = rendered_workbook.sheet(0)
     rows = (sheet.first_row..sheet.last_row).map { |i| sheet.row(i) }
-    expect(rows.flatten).not_to include('Restricted')
+    expect(rows.flatten).not_to include('Restrictedfirst', 'Restrictedlast')
     expect(rows.flatten).to include('Name Redacted')
+    expect(rows.flatten).to include('Openfirst', 'Openlast')
   end
 end

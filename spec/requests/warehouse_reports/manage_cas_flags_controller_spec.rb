@@ -16,8 +16,10 @@ RSpec.describe 'WarehouseReports::ManageCasFlagsController#index', type: :reques
 
   let!(:hmis_ds) { create(:hmis_primary_data_source) }
   let!(:hmis_user) { create(:hmis_user, data_source: hmis_ds) }
-  let!(:restricted_source_client) { create(:hmis_hud_client, data_source: hmis_ds, first_name: 'Restricted', last_name: 'Client') }
-  let!(:restricted_destination_client) { create(:grda_warehouse_hud_client, FirstName: 'Restricted', LastName: 'Client', sync_with_cas: true) }
+  let!(:restricted_source_client) { create(:hmis_hud_client, data_source: hmis_ds, first_name: 'Restrictedfirst', last_name: 'Restrictedlast') }
+  let!(:restricted_destination_client) { create(:grda_warehouse_hud_client, FirstName: 'Restrictedfirst', LastName: 'Restrictedlast', sync_with_cas: true) }
+  let!(:open_source_client) { create(:hmis_hud_client, data_source: hmis_ds, first_name: 'Openfirst', last_name: 'Openlast') }
+  let!(:open_destination_client) { create(:grda_warehouse_hud_client, FirstName: 'Openfirst', LastName: 'Openlast', sync_with_cas: true) }
 
   after { GrdaWarehouse::Config.invalidate_cache }
 
@@ -26,14 +28,18 @@ RSpec.describe 'WarehouseReports::ManageCasFlagsController#index', type: :reques
     collection.set_viewables({ reports: [report.id] })
     setup_access_control(user, role, collection)
     GrdaWarehouse::WarehouseClient.create!(destination_id: restricted_destination_client.id, source_id: restricted_source_client.id, data_source_id: hmis_ds.id, id_in_source: restricted_source_client.id.to_s)
+    GrdaWarehouse::WarehouseClient.create!(destination_id: open_destination_client.id, source_id: open_source_client.id, data_source_id: hmis_ds.id, id_in_source: open_source_client.id.to_s)
     restricted_source_client.mark_as_restricted!(user: hmis_user)
     sign_in user
   end
 
-  it 'redacts the restricted client name' do
+  it 'redacts only the restricted client name' do
     get warehouse_reports_manage_cas_flags_path
 
-    expect(response.body).not_to include('Restricted Client')
+    expect(response.body).not_to include('Restrictedfirst')
+    expect(response.body).not_to include('Restrictedlast')
     expect(response.body).to include('Name Redacted')
+    expect(response.body).to include('Openfirst')
+    expect(response.body).to include('Openlast')
   end
 end

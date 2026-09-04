@@ -14,7 +14,7 @@ wb.add_worksheet(name: 'Active Veterans') do |sheet|
       'Warehouse Client ID',
       'First Name',
       'Last Name',
-      if can_view_full_dob? then 'DOB' else 'Age' end,
+      'DOB / Age',
       'SSN',
       'Veteran in',
       'First Date Homeless',
@@ -29,7 +29,7 @@ wb.add_worksheet(name: 'Active Veterans') do |sheet|
   )
 
   @clients.each do |client|
-    policy = current_user.reporting_policy_for_project(project_id: nil, mode: :download, client_id: client['id'])
+    policy = current_user.reporting_policy_for_client(client: @clients_by_id[client['id']], mode: :download)
     pii = GrdaWarehouse::PiiProvider.from_attributes(policy: policy, first_name: client['FirstName'], last_name: client['LastName'], dob: client['DOB']&.to_date, ssn: client['SSN'])
     row = [
       client['id'],

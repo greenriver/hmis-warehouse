@@ -16,22 +16,17 @@ RSpec.describe 'WarehouseReports::YouthFollowUpsController#index', type: :reques
 
   let!(:hmis_ds) { create(:hmis_primary_data_source) }
   let!(:hmis_user) { create(:hmis_user, data_source: hmis_ds) }
-  let!(:restricted_source_client) { create(:hmis_hud_client, data_source: hmis_ds, first_name: 'Restricted', last_name: 'Client') }
-  let!(:restricted_destination_client) { create(:grda_warehouse_hud_client, FirstName: 'Restricted', LastName: 'Client') }
+  let!(:restricted_source_client) { create(:hmis_hud_client, data_source: hmis_ds, first_name: 'Restrictedfirst', last_name: 'Restrictedlast') }
+  let!(:restricted_destination_client) { create(:grda_warehouse_hud_client, FirstName: 'Restrictedfirst', LastName: 'Restrictedlast') }
+  let!(:open_source_client) { create(:hmis_hud_client, data_source: hmis_ds, first_name: 'Openfirst', last_name: 'Openlast') }
+  let!(:open_destination_client) { create(:grda_warehouse_hud_client, FirstName: 'Openfirst', LastName: 'Openlast') }
 
-  before do
-    Collection.maintain_system_groups
-    collection.set_viewables({ reports: [report.id] })
-    setup_access_control(user, role, collection)
-    GrdaWarehouse::WarehouseClient.create!(destination_id: restricted_destination_client.id, source_id: restricted_source_client.id, data_source_id: hmis_ds.id, id_in_source: restricted_source_client.id.to_s)
-    restricted_source_client.mark_as_restricted!(user: hmis_user)
-
-    # `open_between` matches an intake with no exit and an engagement_date before the
-    # report window; keeping it before the report's own cutoff also keeps this client out
-    # of `ids_for_seen`, so it lands in the "seen a while ago, follow-up due" result set.
+  # Column values are the minimum GrdaWarehouse::YouthIntake::Entry accepts; only client and dates
+  # matter to this report.
+  def create_intake(client, engagement_date:)
     GrdaWarehouse::YouthIntake::Entry.create!(
-      client: restricted_destination_client,
-      engagement_date: 6.months.ago.to_date,
+      client: client,
+      engagement_date: engagement_date,
       exit_date: nil,
       turned_away: false,
       staff_name: 'Staff',
@@ -55,14 +50,32 @@ RSpec.describe 'WarehouseReports::YouthFollowUpsController#index', type: :reques
       disabilities: 'none',
       requesting_financial_assistance: false,
     )
+  end
+
+  before do
+    Collection.maintain_system_groups
+    collection.set_viewables({ reports: [report.id] })
+    setup_access_control(user, role, collection)
+    GrdaWarehouse::WarehouseClient.create!(destination_id: restricted_destination_client.id, source_id: restricted_source_client.id, data_source_id: hmis_ds.id, id_in_source: restricted_source_client.id.to_s)
+    GrdaWarehouse::WarehouseClient.create!(destination_id: open_destination_client.id, source_id: open_source_client.id, data_source_id: hmis_ds.id, id_in_source: open_source_client.id.to_s)
+    restricted_source_client.mark_as_restricted!(user: hmis_user)
+
+    # `open_between` matches an intake with no exit and an engagement_date before the
+    # report window; keeping it before the report's own cutoff also keeps these clients out
+    # of `ids_for_seen`, so they land in the "seen a while ago, follow-up due" result set.
+    create_intake(restricted_destination_client, engagement_date: 6.months.ago.to_date)
+    create_intake(open_destination_client, engagement_date: 6.months.ago.to_date)
 
     sign_in user
   end
 
-  it 'redacts the restricted client name' do
+  it 'redacts only the restricted client name' do
     get warehouse_reports_youth_follow_ups_path
 
-    expect(response.body).not_to include('Restricted')
+    expect(response.body).not_to include('Restrictedfirst')
+    expect(response.body).not_to include('Restrictedlast')
     expect(response.body).to include('Name Redacted')
+    expect(response.body).to include('Openfirst')
+    expect(response.body).to include('Openlast')
   end
 end
