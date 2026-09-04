@@ -65,23 +65,61 @@ context.preload_some_dependencies(resource_ids)
 context.some_loader.preload(resource_ids)
 ```
 
+## PII Provider Instantiation
+
+`GrdaWarehouse::PiiProvider` is built a few different ways depending on whether a policy already exists and whether restriction still needs to be applied.
+
+`Client#pii_provider(user:)` is the standard entry point for a single client shown in isolation (e.g. the client dashboard). It resolves the user's policy for the client and applies restriction in one call.
+
+```ruby
+pii = client.pii_provider(user: current_user)
+```
+
+`Client#project_pii_provider(project:, user:, mode:)` is the entry point for project-scoped reporting, where `User#reporting_policy_for_project` already wraps the resolved policy with `PiiProvider.restrict`.
+
+```ruby
+pii = client.project_pii_provider(project: project, user: current_user, mode: :browse)
+```
+
+`GrdaWarehouse::PiiProvider.new(client, policy: GrdaWarehouse::PiiProvider.restrict(allow_policy, restricted: ...))` is used instead of `client.pii_provider(user:)` when the policy isn't sourced from resolving a `User` against the client. This occurs when a `CohortPiiPolicy` or `AllowPiiPolicy` is applied per row of a cohort or bulk report, or when restriction must be preloaded and checked across many rows rather than recomputed per client.
+
+```ruby
+policy = GrdaWarehouse::PiiProvider.restrict(
+  GrdaWarehouse::AuthPolicies::CohortPiiPolicy.new(user: current_user),
+  restricted: current_user.policy_context.client_restricted?(client_id),
+)
+pii = GrdaWarehouse::PiiProvider.new(client, policy: policy)
+```
+
+Most HUD report drilldowns and exports (APR, HOPWA CAPER, PIT, SPM, PATH, HMIS Data Quality Tool) don't have a live `Client` record, they render a denormalized, per-report `HudReports::ReportClientBase` subclass row snapshotted when the report ran. Instead of using the client PII provider they call `User#reporting_policy_for_project(project_id:, mode:, client_id:)` and pass the resulting policy to that row's own `#display_value`, which fans it out per column into `PiiProvider.viewable_name`/`viewable_ssn`/`viewable_dob`/`viewable_hiv_status`, without ever constructing a `PiiProvider` instance.
+
+```ruby
+pii_policy = current_user.reporting_policy_for_project(project_id: client.project_id, client_id: client.destination_client_id_for_pii)
+client.display_value(:first_name, pii_policy: pii_policy)
+```
+
+`GrdaWarehouse::PiiProvider.from_attributes(policy:, first_name:, last_name:, middle_name:, dob:, ssn:, image:)` is used when there's no AR client record to wrap. For a plucked hash row a `PiiProviderRecordAdapter` is used so the same `policy`-driven redaction can be applied.
+
+```ruby
+policy = GrdaWarehouse::PiiProvider.restrict(GrdaWarehouse::AuthPolicies::CohortPiiPolicy.new(user: current_user), restricted: restricted)
+provider = GrdaWarehouse::PiiProvider.from_attributes(policy: policy, first_name: c[:FirstName], last_name: c[:LastName], dob: c[:DOB], ssn: c[:SSN])
+```
+
 ## PII Redaction
 
-`GrdaWarehouse::PiiProvider` (`app/models/grda_warehouse/pii_provider.rb`) mediates name, SSN, DOB, photo, and HIV status display for a client, given a duck-typed `policy:` object (any object implementing `can_view_name?`, `can_view_full_ssn?`, `can_view_partial_ssn?`, `can_view_full_dob?`, `can_view_photo?`, `can_view_hiv_status?`, `can_view?`). Nearly every PII display path in the app — the client dashboard, HUD report drilldowns/exports (APR, CAPER, HOPWA CAPER, PIT, SPM, PATH, HMIS Data Quality Tool), and cohort grids — resolves a policy object and asks it these questions before showing a value.
+`GrdaWarehouse::PiiProvider` (`app/models/grda_warehouse/pii_provider.rb`) mediates name, SSN, DOB, photo, and HIV status display for a client, given a duck-typed `policy:` object (any object implementing `can_view_name?`, `can_view_full_ssn?`, `can_view_partial_ssn?`, `can_view_full_dob?`, `can_view_photo?`, `can_view_hiv_status?`, `can_view?`). Most PII display paths in the app, including the client dashboard, HUD report drilldowns/exports (APR, CAPER, HOPWA CAPER, PIT, SPM, PATH, HMIS Data Quality Tool), and cohort grids, resolve a policy object and ask it these questions before showing a value.
 
-`can_view_partial_ssn?` gates the masked (`XXX-XX-1234`) SSN, distinct from `can_view_full_ssn?`'s unmasked one. It is `true` for every policy except a restricted client's — restriction means no SSN at all, matching `Hmis::AuthPolicies::HmisClientPolicy::Instance#can_view_partial_ssn?`.
+`can_view_partial_ssn?` gates the masked (`XXX-XX-1234`) SSN, distinct from `can_view_full_ssn?`'s unmasked one. It is `true` for every policy except a restricted client's. Restriction means no SSN at all, matching `Hmis::AuthPolicies::HmisClientPolicy::Instance#can_view_partial_ssn?`.
 
 ### HMIS client restriction
 
-An HMIS source client marked restricted (see [HMIS Restricted Records](../hmis/hmis-restricted-records.md)) is treated as an absolute PII block in the warehouse: `GrdaWarehouse::PiiProvider.restrict(policy, restricted:)` wraps any resolved policy in a `RestrictedPolicy` that forces every PII predicate to `false`, regardless of what the underlying policy would otherwise grant. There is no warehouse-side override permission — the only way to restore visibility is for HMIS staff to unmark the client. A `RestrictedRecord` placed directly on the destination client id (there's no UI for this today, but the polymorphic `restrictable_id` doesn't prevent it) restricts the same way.
+An HMIS source client marked restricted (see [HMIS Restricted Records](../hmis/hmis-restricted-records.md)) is treated as a PII block in the warehouse: `GrdaWarehouse::PiiProvider.restrict(policy, restricted:)` wraps any resolved policy in a `RestrictedPolicy` that forces every PII predicate to `false`, regardless of what the underlying policy would grant. There is no warehouse-side override permission; the only way to restore visibility is for HMIS staff to unmark the client. A `RestrictedRecord` placed directly on the destination client id (there is no UI for this today, but the polymorphic `restrictable_id` allows it) restricts the same way.
 
-**Loading strategy.** Restriction is documented as "for the occasional client whose record needs extra protection, not a bulk visibility mechanism" — so rather than looking up restriction per batch of ids (the earlier design), `GrdaWarehouse::AuthPolicies::ContextLoaders::RestrictedClientLoader` loads the *entire* restricted-client id set once, in three bounded queries, the first time any lookup is made. It's memoized on `UserBaseContext` (itself memoized on `User#policy_context`), so a request or background job pays the load at most once. `client_restricted?`/`restricted?` then become a plain Set membership test — no preloading step is needed anywhere, unlike `preload_project_dependencies`. A source id, a destination id, and an *unmerged* source id (one with no `warehouse_clients` row at all) all answer correctly, because the loader expands the raw `Hmis::RestrictedRecord` ids by one hop across `warehouse_clients` to their destination and back out to sibling source ids. Soft-deleted `warehouse_clients` rows are excluded from that expansion, matching how the destination side of the old per-client query filtered via `acts_as_paranoid`.
+**Loading strategy.** Restriction are expected to be applied infrequently and is not a bulk visibility mechanism. `GrdaWarehouse::AuthPolicies::ContextLoaders::RestrictedClientLoader` loads the full set of restricted client ids the first time a lookup occurs. This process uses three bounded queries. The data is memoized on `UserBaseContext`, which is memoized on `User#policy_context`. This ensures a request or background job only performs the load one time. The methods `client_restricted?` and `restricted?` function as a standard Set membership test.
 
-`User#reporting_policy_for_project` accepts an optional `client_id:` to apply this wrap; omitting it (every call site not explicitly wired for restriction) leaves behavior completely unchanged. When a report row has no `project_id` at all, `reporting_policy_for_project` still returns the pre-existing `AllowPiiPolicy` fallback (predates the restriction feature), but wraps it with the same restriction check applied to every other path — a restricted `client_id` still forces PII off even without a `project_id`.
+**Per-request snapshot** The set of restricted clients is memoized on the `User` instance for the life of a request or job.  Client's who are marked restricted during a long-running task (HMIS CSV export, or similar) will remain unrestricted in that export.
 
-**Per-request snapshot, deliberately not kept fresh.** Because the loaded set is memoized on the `User` instance for the life of the request/job, a client restricted mid-request may still have already-read data reflect the old state (e.g. mid-export). This is intentional: a client in an earlier batch of the same export would have been included regardless of when the toggle happened, so re-checking partway through buys nothing but the appearance of coverage. There is no `reload!`/cache-busting hook, unlike HMIS's own `clear_client_restriction_cache!` (`hmis/auth_policies/user_context.rb`) — that one exists because an HMIS mutation can mark a client restricted mid-request; nothing in the warehouse writes restriction, so there's no equivalent need.
-
-**Cannot bound by data source.** Unlike HMIS's `restricted_ids_in_data_source`, the warehouse loader cannot scope its query to a single data source — the merge graph linking source clients to a destination is inherently cross-data-source, and restricting the query would silently miss siblings merged from elsewhere.
+**Not bounded data source.** HMIS's `restricted_ids_in_data_source` is limited to the data in a single data source on the HMIS front-end.  When we extend the client restriction to the warehouse, we restrict any related source and destination record.
 
 ### Known limitations
 
