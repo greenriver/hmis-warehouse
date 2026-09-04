@@ -25,6 +25,33 @@ RSpec.describe HmisCsvImporter::Cleanup::ExpireImportersJob, type: :model do
     HmisCsvImporter::Cleanup::ExpireImportersJob.new.perform(**default_options.merge(options))
   end
 
+  describe 'source-data display after expiration' do
+    let(:base_time) { DateTime.current.beginning_of_hour }
+
+    # Every import predates the cutoff, so only retain_item_count keeps anything.
+    before do
+      [7, 6, 5].each { |days_ago| import_csv_records(run_at: base_time - days_ago.days) }
+    end
+
+    it 'leaves the warehouse record resolving to its newest staging rows' do
+      organization = GrdaWarehouse::Hud::Organization.where(data_source_id: data_source.id).sole
+      newest_importer_row_id = organization.imported_items_2024.maximum(:id)
+      newest_loader_row_id = organization.loaded_items_2024.maximum(:id)
+
+      HmisCsvImporter::Cleanup::ExpireLoadersJob.new.perform(
+        model_name: 'HmisCsvTwentyTwentyFour::Loader::Organization',
+        dry_run: false,
+        retain_after_date: base_time + 10.years,
+        retain_item_count: 1,
+      )
+      run_job(retain_after_date: base_time + 10.years, retain_item_count: 1)
+
+      expect(organization.imported_items_2024.pluck(:id)).to eq([newest_importer_row_id])
+      expect(organization.loaded_items_2024.pluck(:id)).to eq([newest_loader_row_id])
+      expect(organization.most_recent_import_year).to eq('2024')
+    end
+  end
+
   describe '#models' do
     let(:job) { described_class.new }
 

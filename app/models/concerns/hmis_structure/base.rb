@@ -16,19 +16,19 @@ module HmisStructure::Base
       where.not(pending_date_deleted: nil)
     end
 
-    # Find the spec year of this record's own most-recent surviving imported_items_YYYY
-    # or loaded_items_YYYY staging row -- regardless of which importer/loader run created
-    # it, and regardless of whether that run is still "recent." Returns nil if no staging
-    # row survives for this record in any known year.
-    #
-    # `find` short-circuits at the first matching year, so a record that's still current
-    # only ever costs an .exists? query against the newest year or two -- it does NOT scan
-    # every known spec year unless nothing survives anywhere.
+    # Spec year of this record's newest surviving importer or loader staging row, or nil
+    # when none survives in any registered year. Soft-deleted loader rows count: the loader
+    # table mirrors the CSV as received, so a row the HMIS marked deleted is still the CSV value.
     def most_recent_import_year
       known_years.find do |year|
         (respond_to?("imported_items_#{year}") && public_send("imported_items_#{year}").exists?) ||
-          (respond_to?("loaded_items_#{year}") && public_send("loaded_items_#{year}").exists?)
+          (respond_to?("loaded_items_#{year}") && surviving_loaded_items(year).exists?)
       end
+    end
+
+    private def surviving_loaded_items(year)
+      scope = public_send("loaded_items_#{year}")
+      scope.respond_to?(:with_deleted) ? scope.with_deleted : scope
     end
 
     private def known_years

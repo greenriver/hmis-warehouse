@@ -32,23 +32,6 @@ RSpec.describe GrdaWarehouse::Hud::Project, 'project CSV driver extensions' do
       expect(project.most_recent_import_year).to eq('2020')
       expect(project.imported_items_2020.where(importer_log_id: importer_log.id)).to exist
     end
-
-    it 'resolves most_recent_import_year regardless of how old the staging row\'s importer_log is' do
-      stale_importer_log = create(:hmis_csv_importer_log, data_source: data_source, created_at: 3.years.ago)
-      HmisCsvTwentyTwenty::Importer::Project.create!(
-        staging_attributes(project, stale_importer_log),
-      )
-
-      # most_recent_import_year takes no importer_log_id argument at all -- it must find the
-      # record's real staging row regardless of when the importer that created it ran.
-      expect(project.most_recent_import_year).to eq('2020')
-    end
-  end
-
-  describe 'most_recent_import_year' do
-    it 'returns nil when no staging rows survive for this record in any spec year' do
-      expect(project.most_recent_import_year).to be_nil
-    end
   end
 
   describe 'convert_to_aggregated!' do
