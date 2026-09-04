@@ -92,5 +92,37 @@ RSpec.describe HudReports::CellDrilldownConcern, type: :controller do
       expect(response).to redirect_to('/cell')
       expect(flash[:error]).to eq('Search query not found')
     end
+
+    context 'with a restricted client in the drilldown scope' do
+      let!(:hmis_ds) { create(:hmis_primary_data_source) }
+      let!(:hmis_user) { create(:hmis_user, data_source: hmis_ds) }
+      let!(:restricted_client) { create(:hmis_hud_client, data_source: hmis_ds, first_name: 'Restrictedfirst', last_name: 'Restrictedlast') }
+      let!(:restricted_apr_client) do
+        create(
+          :hud_report_apr_client, first_name: restricted_client.first_name, last_name: restricted_client.last_name,
+                                  personal_id: restricted_client.personal_id, client_id: restricted_client.id,
+                                  destination_client_id: restricted_client.id
+        )
+      end
+
+      before do
+        restricted_client.mark_as_restricted!(user: hmis_user)
+        allow(controller).to(receive(:pagy).and_wrap_original { |_original, scope, **| [double('pagy', offset: 0), scope] })
+      end
+
+      it 'excludes the restricted client when searching by name' do
+        search_query = create(:grda_warehouse_client_search_query, created_by: user, params: { q: 'Restrictedlast' })
+
+        get :search, params: { report_id: 1, id: 'A1', table: 'T1', query_id: search_query.id }
+        expect(assigns(:clients)).not_to include(restricted_apr_client)
+      end
+
+      it 'still returns the restricted client when searching by personal_id' do
+        search_query = create(:grda_warehouse_client_search_query, created_by: user, params: { q: restricted_apr_client.personal_id })
+
+        get :search, params: { report_id: 1, id: 'A1', table: 'T1', query_id: search_query.id }
+        expect(assigns(:clients)).to include(restricted_apr_client)
+      end
+    end
   end
 end

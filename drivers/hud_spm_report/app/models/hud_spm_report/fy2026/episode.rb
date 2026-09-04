@@ -55,6 +55,14 @@ module HudSpmReport::Fy2026
       HudSpmReport::Fy2026::SpmEnrollment.search_columns
     end
 
+    def self.pii_search_columns
+      HudSpmReport::Fy2026::SpmEnrollment.pii_search_columns
+    end
+
+    def self.restricted_client_id_columns
+      HudSpmReport::Fy2026::SpmEnrollment.restricted_client_id_columns
+    end
+
     def self.pluck_project_ids
       project_table = GrdaWarehouse::Hud::Project.arel_table
       joins(enrollments: { enrollment: :project }).distinct.pluck(project_table[:id])

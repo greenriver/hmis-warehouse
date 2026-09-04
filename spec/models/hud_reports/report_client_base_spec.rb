@@ -149,6 +149,53 @@ RSpec.describe HudReports::ReportClientBase, type: :model do
     end
   end
 
+  describe '.search_clients' do
+    let!(:hmis_ds) { create(:hmis_primary_data_source) }
+    let!(:hmis_user) { create(:hmis_user, data_source: hmis_ds) }
+    let!(:restricted_client) { create(:hmis_hud_client, data_source: hmis_ds, first_name: 'Restrictedfirst', last_name: 'Restrictedlast') }
+    let!(:open_client) { create(:hmis_hud_client, data_source: hmis_ds, first_name: 'Openfirst', last_name: 'Openlast') }
+    let!(:restricted_apr_client) do
+      create(
+        :hud_report_apr_client, first_name: restricted_client.first_name, last_name: restricted_client.last_name,
+                                personal_id: restricted_client.personal_id, client_id: restricted_client.id,
+                                destination_client_id: restricted_client.id
+      )
+    end
+    let!(:open_apr_client) do
+      create(
+        :hud_report_apr_client, first_name: open_client.first_name, last_name: open_client.last_name,
+                                personal_id: open_client.personal_id, client_id: open_client.id,
+                                destination_client_id: open_client.id
+      )
+    end
+
+    before { restricted_client.mark_as_restricted!(user: hmis_user) }
+
+    it 'excludes a restricted client from a name search' do
+      results = HudApr::Fy2020::AprClient.search_clients(HudApr::Fy2020::AprClient.all, 'Restrictedlast')
+      expect(results).not_to include(restricted_apr_client)
+    end
+
+    it 'still returns a non-restricted client from a name search' do
+      results = HudApr::Fy2020::AprClient.search_clients(HudApr::Fy2020::AprClient.all, 'Openlast')
+      expect(results).to include(open_apr_client)
+    end
+
+    it 'still returns a restricted client from an exact personal_id search' do
+      results = HudApr::Fy2020::AprClient.search_clients(HudApr::Fy2020::AprClient.all, restricted_apr_client.personal_id)
+      expect(results).to include(restricted_apr_client)
+    end
+
+    it 'still returns a restricted client from an exact destination_client_id search' do
+      results = HudApr::Fy2020::AprClient.search_clients(HudApr::Fy2020::AprClient.all, restricted_apr_client.destination_client_id.to_s)
+      expect(results).to include(restricted_apr_client)
+    end
+
+    it 'does not filter models that do not declare pii_search_columns' do
+      expect(HudSpmReport::Fy2020::SpmClient.pii_search_columns).to eq([])
+    end
+  end
+
   describe '#destination_client_id_for_pii' do
     it 'returns destination_client_id when the column exists' do
       apr_client = HudApr::Fy2020::AprClient.new(destination_client_id: 42)
