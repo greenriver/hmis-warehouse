@@ -1426,6 +1426,20 @@ module GrdaWarehouse::Hud
       destination_client&.id
     end
 
+    # All currently HMIS-restricted client ids (source and destination alike -- restriction
+    # applies to the whole warehouse identity, see RestrictedClientLoader).
+    def self.hmis_restricted_source_client_ids
+      GrdaWarehouse::AuthPolicies::ContextLoaders::RestrictedClientLoader.new.restricted_client_ids
+    end
+
+    # The subset of the given destination client ids that are HMIS-restricted.
+    def self.hmis_restricted_destination_client_ids(destination_client_ids)
+      return Set.new if destination_client_ids.blank?
+
+      loader = GrdaWarehouse::AuthPolicies::ContextLoaders::RestrictedClientLoader.new
+      destination_client_ids.select { |id| loader.restricted?(id) }.to_set
+    end
+
     def name
       # Deprecated
       # skip deprecations to avoid test failures. Suggest uncommenting when we are ready to implement pii globally
@@ -1835,7 +1849,7 @@ module GrdaWarehouse::Hud
       # Get search results from client scope. Then return the unique destination client records that map to those matching source records
       relation = (client_scope || self) # rubocop:disable Style/RedundantParentheses
       # with resolve_for_join_query, results are client.scope.select(:client_id, :score) suitable for subquery
-      results = relation.searchable.text_searcher(text, sorted: sorted, resolve_for_join_query: true)
+      results = relation.searchable.text_searcher(text, sorted: sorted, resolve_for_join_query: true, exclude_ids_for_name_and_ssn: hmis_restricted_source_client_ids)
       return relation.none if results.nil?
 
       grouped = GrdaWarehouse::WarehouseClient.
@@ -1912,6 +1926,7 @@ module GrdaWarehouse::Hud
         where(id: matching_ids).
         preload(:destination_client).
         map { |m| m.destination_client.id }
+      ids -= hmis_restricted_destination_client_ids(ids).to_a
       where(id: ids)
     end
 

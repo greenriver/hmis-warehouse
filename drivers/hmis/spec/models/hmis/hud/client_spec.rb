@@ -48,6 +48,14 @@ RSpec.describe Hmis::Hud::Client, type: :model do
         expect(scope.pluck(:id)).to eq(expected_result.map(&:id)) if expected_result.any?
       end
     end
+
+    it 'still matches a client the warehouse excludes from name/SSN search' do
+      c2.mark_as_restricted!(user: hmis_user)
+
+      scope = Hmis::Hud::Client.matching_search_term('jelly bean')
+
+      expect(scope.pluck(:id)).to eq([c2.id])
+    end
   end
 
   describe 'with multiple names' do
