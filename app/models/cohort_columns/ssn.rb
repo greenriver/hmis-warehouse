@@ -19,7 +19,11 @@ module CohortColumns
     end
 
     def value(cohort_client)
-      content_tag(:span, pii_provider(cohort_client).ssn)
+      content_tag(:span, text_value(cohort_client))
+    end
+
+    def text_value(cohort_client)
+      pii_provider(cohort_client).ssn
     end
 
     # Don't report PII in Cohort Data, this can be obtained from the PII store
