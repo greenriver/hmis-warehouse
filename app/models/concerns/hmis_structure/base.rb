@@ -16,18 +16,23 @@ module HmisStructure::Base
       where.not(pending_date_deleted: nil)
     end
 
-    def imported_item_type(importer_log_id)
-      # NOTE: add additional years here as the spec changes, always the newest first for performance
-      return '2026' if imported_items_2026.where(importer_log_id: importer_log_id).exists?
-      return '2024' if imported_items_2024.where(importer_log_id: importer_log_id).exists?
-      # Handle classes that didn't exist previously
-      return '2024' if self.class.in?([GrdaWarehouse::Hud::HmisParticipation, GrdaWarehouse::Hud::CeParticipation])
+    # Find the spec year of this record's own most-recent surviving imported_items_YYYY
+    # or loaded_items_YYYY staging row -- regardless of which importer/loader run created
+    # it, and regardless of whether that run is still "recent." Returns nil if no staging
+    # row survives for this record in any known year.
+    #
+    # `find` short-circuits at the first matching year, so a record that's still current
+    # only ever costs an .exists? query against the newest year or two -- it does NOT scan
+    # every known spec year unless nothing survives anywhere.
+    def most_recent_import_year
+      known_years.find do |year|
+        (respond_to?("imported_items_#{year}") && public_send("imported_items_#{year}").exists?) ||
+          (respond_to?("loaded_items_#{year}") && public_send("loaded_items_#{year}").exists?)
+      end
+    end
 
-      return '2022' if imported_items_2022.where(importer_log_id: importer_log_id).exists?
-      # Handle classes that didn't exist previously
-      return '2022' if self.class.in?([GrdaWarehouse::Hud::YouthEducationStatus])
-
-      '2020'
+    private def known_years
+      Rails.application.config.hmis_data_lakes.keys.sort_by(&:to_i).reverse
     end
   end
 

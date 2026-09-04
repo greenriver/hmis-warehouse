@@ -120,6 +120,36 @@ RSpec.shared_examples 'HmisCsvImporter cleanup record expiration' do
       end
     end
 
+    describe 'never deletes the newest row for a key (rank-1 protection)' do
+      # All 5 imports are older than any plausible retention window.
+      before do
+        [7, 6, 5, 4, 3].each { |days_ago| import_csv_records(run_at: base_time - days_ago.days) }
+      end
+
+      it 'keeps the newest row for the key even when age-based protection protects nothing' do
+        ordered_ids = records.order(:id).pluck(:id)
+
+        # Pushing retain_after_date far into the future means every existing log predates the
+        # cutoff, so age-based protection (rule 2) protects nothing here -- everything depends
+        # on count-based protection (rule 1) alone. retain_item_count: 1 is the minimum count
+        # production ever configures (the rake task defaults to 5); this asserts that as long as
+        # count-based retention is enabled at all, the newest row for a key is always rank 1 and
+        # so can never exceed retain_item_count, regardless of how old it is. This is the
+        # invariant that makes it safe for cleanup to run against a data source where a record
+        # hasn't been re-imported in years: its current staging row is never swept.
+        #
+        # NOTE: this protection depends on retain_item_count being >= 1. retain_item_count: 0
+        # disables count-based protection entirely and deletes every row once it's older than
+        # retain_after_date, including the newest one -- that is a real, intentional behavior of
+        # the job, not a bug, but it means "the newest row is always safe" is only true under the
+        # production configuration (retain_item_count >= 1), not universally.
+        expect do
+          run_job(retain_after_date: base_time + 10.years, retain_item_count: 1)
+        end.to change { records.count }.from(5).to(1)
+        expect(records.pluck(:id)).to eq([ordered_ids.last])
+      end
+    end
+
     describe 'multi-data-source isolation' do
       let(:second_data_source) do
         GrdaWarehouse::DataSource.create(name: 'Other Source', short_name: 'OS', source_type: :sftp)

@@ -109,13 +109,47 @@ RSpec.describe SourceDataController, type: :request do
         end
 
         context 'with imported data source' do
-          let!(:importer_log) { create(:hmis_csv_importer_log, data_source: data_source) }
-
-          it 'assigns importer variables' do
+          it 'assigns falsy imported/csv values when no staging rows survive for this record' do
             get source_datum_path(id: item.id, type: 'Client')
+            expect(response).to have_http_status(:success)
             expect(assigns(:hmis)).to be_falsy
-            expect(assigns(:importers)).to be_present
-            expect(assigns(:importer)).to eq(importer_log)
+            expect(assigns(:imported)).to be_nil
+            expect(assigns(:csv)).to be_nil
+          end
+
+          context 'and the record has a staging row from an importer run that is no longer "recent"' do
+            let!(:stale_importer_log) { create(:hmis_csv_importer_log, data_source: data_source, created_at: 3.years.ago) }
+            let!(:staging_row) do
+              HmisCsvTwentyTwentyFour::Importer::Client.create!(
+                PersonalID: item.PersonalID,
+                data_source_id: item.data_source_id,
+                importer_log_id: stale_importer_log.id,
+                source_id: item.id,
+                source_type: item.class.name,
+                pre_processed_at: stale_importer_log.created_at,
+              )
+            end
+            let!(:loaded_row) do
+              HmisCsvTwentyTwentyFour::Loader::Client.create!(
+                PersonalID: item.PersonalID,
+                data_source_id: item.data_source_id,
+                loader_id: stale_importer_log.id,
+                loaded_at: stale_importer_log.created_at,
+              )
+            end
+            before do
+              # simulate a data source with many imports since this record's staging row was created,
+              # so the old "last 10 importer logs" window would have missed it entirely
+              create_list(:hmis_csv_importer_log, 10, data_source: data_source)
+            end
+
+            it 'still finds and assigns the record\'s real staging row, however old' do
+              get source_datum_path(id: item.id, type: 'Client')
+              expect(assigns(:hmis)).to be_falsy
+              expect(assigns(:year)).to eq('2024')
+              expect(assigns(:imported)).to eq(staging_row)
+              expect(assigns(:csv)).to eq(loaded_row)
+            end
           end
         end
       end
