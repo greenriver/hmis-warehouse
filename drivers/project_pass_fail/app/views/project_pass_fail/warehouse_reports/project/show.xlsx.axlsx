@@ -11,7 +11,7 @@ wb.add_worksheet(name: @project.project&.name.slice(0,30)) do |sheet|
   @clients.each.with_index do |client, i|
     row = [client.client.destination_client&.id]
     ProjectPassFail::Client.detail_headers_for_export(include_gender_data: @report.include_gender_data?).each_key do |k|
-      row << client[k]
+      row << client.detail_value(k, user: current_user, mode: :download)
     end
     sheet.add_row(row)
   end

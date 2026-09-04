@@ -37,7 +37,7 @@ module GrdaWarehouse::Youth
           name += ' (HMIS)' if intake.hmis_client?
           name += '.xlsx'
           filename = File.join(@file_path, name)
-          File.open(filename, 'w') { |file| file.write(contents) }
+          File.open(filename, 'wb') { |file| file.write(contents) }
         end
         file = create_zip_file
       ensure
