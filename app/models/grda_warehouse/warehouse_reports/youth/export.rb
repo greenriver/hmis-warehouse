@@ -12,6 +12,7 @@ module GrdaWarehouse::WarehouseReports::Youth
     include ArelHelper
     include Rails.application.routes.url_helpers
     include ::WarehouseReports::Export
+    include Memery
 
     acts_as_paranoid
 
@@ -48,8 +49,9 @@ module GrdaWarehouse::WarehouseReports::Youth
         client_scope.in_batches do |batch|
           report_calculator = WarehouseReport::ExportEnrollmentCalculator.new(batch_scope: batch, filter: filter)
           batch.find_each do |client|
+            pii = GrdaWarehouse::PiiProvider.new(client, policy: export_user&.reporting_policy_for_client(client: client, mode: :download) || GrdaWarehouse::AuthPolicies::DenyPiiPolicy.instance)
             row = [client.id]
-            row += [client.FirstName, client.LastName] if ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
+            row += [pii.first_name, pii.last_name] if ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
             row += [
               client.race_description,
               client.gender,
@@ -152,6 +154,10 @@ module GrdaWarehouse::WarehouseReports::Youth
       return headers if ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
 
       headers.excluding('First Name', 'Last Name')
+    end
+
+    memoize private def export_user
+      User.find_by(id: user_id)
     end
   end
 end

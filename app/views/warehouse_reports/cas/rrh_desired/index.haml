@@ -21,7 +21,7 @@
         - client = assessment.destination_client
         %tr
           %td
-            = link_to_if can_view_clients?, "#{client.FirstName} #{client.LastName}", appropriate_client_path(client)
+            = link_to_if can_view_clients?, client.pii_provider(user: current_user).full_name, appropriate_client_path(client)
           %td= assessment.collected_at.to_date
           %td= assessment.collection_location
           %td= assessment.staff

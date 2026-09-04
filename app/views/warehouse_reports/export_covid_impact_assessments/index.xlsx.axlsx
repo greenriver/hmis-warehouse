@@ -27,13 +27,14 @@ wb.add_worksheet(name: 'COVID-19 Impact Assessment Export'[0, 30]) do |sheet|
   )
   @clients.each do |client|
     assessment = @assessments[client.id]
+    pii = GrdaWarehouse::PiiProvider.new(client, policy: current_user.reporting_policy_for_client(client: client, mode: :download))
     tenant_payment = 0
     if assessment.total_subsidy && assessment.subsidy_months && assessment.monthly_rent_total && assessment.subsidy_months.positive? && assessment.monthly_rent_total.positive?
       tenant_payment = assessment.monthly_rent_total - (assessment.total_subsidy / assessment.subsidy_months)
     end
     sheet.add_row [
-      ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads) ? client.LastName : 'Redacted',
-      ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads) ? client.FirstName : 'Redacted',
+      pii.last_name,
+      pii.first_name,
       assessment.number_of_bedrooms,
       tenant_payment,
       assessment.total_subsidy,

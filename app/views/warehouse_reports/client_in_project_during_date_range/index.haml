@@ -23,9 +23,10 @@
           %th= "Days Homeless in The Past Three Years as of #{Date.current}"
       %tbody
         - @clients.each do |client|
+          - pii = GrdaWarehouse::PiiProvider.new(client, policy: current_user.reporting_policy_for_project(project_id: nil, mode: :browse, client_id: client.id))
           %tr
-            %td= link_to_if can_view_clients?, client.LastName, appropriate_client_path(client)
-            %td= link_to_if can_view_clients?, client.FirstName, appropriate_client_path(client)
+            %td= link_to_if can_view_clients?, pii.last_name, appropriate_client_path(client)
+            %td= link_to_if can_view_clients?, pii.first_name, appropriate_client_path(client)
             %th= client.age
             %th= HudHelper.util.veteran_status(client.VeteranStatus)
             %td.text-center= client.days_homeless

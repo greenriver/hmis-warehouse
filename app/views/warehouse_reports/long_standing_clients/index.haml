@@ -32,9 +32,10 @@
         - @entries.each do |entry|
           - client = @clients[entry[:client_id]]
           - safe_project_name = GrdaWarehouse::Hud::Project.confidentialize_name(current_user, entry.project_name, entry.confidential)
+          - pii = GrdaWarehouse::PiiProvider.new(client, policy: current_user.reporting_policy_for_project(project_id: nil, mode: :browse, client_id: client.id))
           %tr
-            %td= link_to_if can_view_clients?, client.LastName, appropriate_client_path(client)
-            %td= link_to_if can_view_clients?, client.FirstName, appropriate_client_path(client)
+            %td= link_to_if can_view_clients?, pii.last_name, appropriate_client_path(client)
+            %td= link_to_if can_view_clients?, pii.first_name, appropriate_client_path(client)
             %td= entry.first_date_in_program
             %td= safe_project_name
             %td= client.source_clients.map{|m| m.data_source&.short_name}.compact.uniq.join(', ')
