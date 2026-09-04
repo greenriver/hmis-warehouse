@@ -9,6 +9,12 @@
 # Stores the actual data that was collected during an assessment. 1:1 with CustomAssessments.
 #   If the assessment is WIP: The data is stored exclusively as JSON blobs in the "values”/”hud_values" cols.
 #   If the assessment is non-WIP: The HUD data is stored in records (IncomeBenefit, HealthAndDv, etc) that are referenced by this form_processor directly. (health_and_dv_id etc)
+#
+# The `definition` reference is what lets a record be re-rendered later in the shape it was collected in,
+# and is why published and retired definitions cannot be deleted.
+#
+# @see docs/features/hmis/hmis-form-processing.md For the submission path and how values become records
+# @see docs/features/hmis/hmis-form-resolution.md For which definition is used when editing an existing record
 class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
   self.table_name = :hmis_form_processors
   has_paper_trail

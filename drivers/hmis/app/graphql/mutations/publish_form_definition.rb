@@ -7,6 +7,9 @@
 # frozen_string_literal: true
 
 module Mutations
+  # Publishes a draft definition and retires the previously published version of the same identifier.
+  #
+  # @see docs/features/hmis/hmis-form-definitions.md#lifecycle For the full status lifecycle
   class PublishFormDefinition < CleanBaseMutation
     argument :id, ID, required: true
 
