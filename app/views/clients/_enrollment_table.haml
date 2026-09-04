@@ -119,10 +119,11 @@
                   - tooltip += "Move-in-Date: #{c['move_in_date']}<br />"
                 - if c['last_date_in_program']
                   - tooltip += "Exit: #{c['last_date_in_program']}<br />"
+                - member_pii_provider = GrdaWarehouse::Hud::Client.find_by(id: c['client_id'])&.pii_provider(user: current_user)
                 .mb-2.mt-2{ data: { 'bs-toggle' => :tooltip, 'bs-title' => tooltip, 'bs-html' => 'true', boundary: :window } }
                   = link_to client_path(c['client_id']), class: 'd-block' do
-                    - if @client.pii_provider(user: current_user).redact_name?
-                      = @client.pii_provider(user: current_user).first_name
+                    - if member_pii_provider&.redact_name?
+                      = member_pii_provider.first_name
                     - else
                       #{c['FirstName']} #{c['LastName']}
                     - if c['head_of_household']

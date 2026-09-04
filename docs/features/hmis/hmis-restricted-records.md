@@ -54,6 +54,10 @@ The PII predicates on `HmisClientPolicy::Instance` (e.g. `can_view_name?`) each 
 
 Not redacted: `age`, alerts, and any associated records to the client that the user otherwise has permission to view (e.g. enrollments, assessments, files).
 
+### Downstream effects in the Warehouse
+
+Restricting an HMIS client also redacts their name, SSN, DOB, photo, and HIV status on the warehouse side — the client dashboard, HUD report drilldowns and detail exports, and cohort grids — for every warehouse user, regardless of role, with no override permission. See [Warehouse Auth Policies → PII Redaction](../warehouse/warehouse-auth-policies.md#pii-redaction) for how this is implemented and its documented coverage limitations (several warehouse reports and exports, and the Superset `analytics.client_piis` view, are not mediated by this mechanism and will continue to show the client's real PII).
+
 ## Architecture
 
 - **`Hmis::RestrictedRecord`**: ActiveRecord model for the table.

@@ -31,6 +31,7 @@ RSpec.describe 'GrdaWarehouse::PiiProvider', type: :model do
       can_view_photo?: false,
       can_view_full_dob?: false,
       can_view_full_ssn?: false,
+      can_view_partial_ssn?: true,
       can_view_hiv_status?: false,
     }
 
@@ -64,6 +65,10 @@ RSpec.describe 'GrdaWarehouse::PiiProvider', type: :model do
       actual = GrdaWarehouse::PiiProvider.viewable_name(pii_attributes[:first_name], policy: policy)
       expect(actual).to eq(pii_attributes[:first_name])
     end
+    it('still redacts ssn and dob, which this policy does not grant') do
+      expect(pii.ssn).to eq(masked_ssn)
+      expect(pii.dob).to be_nil
+    end
   end
 
   context('pii with view dob permission') do
@@ -82,6 +87,19 @@ RSpec.describe 'GrdaWarehouse::PiiProvider', type: :model do
       expect(pii.dob_and_age).to eq(expected)
     end
     it('displays force-masked dob') { expect(pii.dob_and_age(force_year_only: true)).to eq(age_with_year_only) }
+    it('still redacts name and ssn, which this policy does not grant') do
+      expect(pii.first_name).to eq('Name Redacted')
+      expect(pii.ssn).to eq(masked_ssn)
+    end
+  end
+
+  context('pii with view hiv status permission') do
+    let(:policy) { new_policy(can_view_hiv_status: true) }
+
+    it('displays viewable hiv status') do
+      actual = GrdaWarehouse::PiiProvider.viewable_hiv_status('Y', policy: policy)
+      expect(actual).to eq('Y')
+    end
   end
 
   context('pii with view photo permission') do
@@ -89,6 +107,9 @@ RSpec.describe 'GrdaWarehouse::PiiProvider', type: :model do
     let(:pii) { GrdaWarehouse::PiiProvider.from_attributes(policy: policy, **pii_attributes) }
 
     it('displays image') { expect(pii.image).to eq(pii_attributes[:image]) }
+    it('still redacts name, which this policy does not grant') do
+      expect(pii.first_name).to eq('Name Redacted')
+    end
   end
 
   context('pii with vew ssn permission') do
@@ -97,6 +118,16 @@ RSpec.describe 'GrdaWarehouse::PiiProvider', type: :model do
 
     it('displays ssn') { expect(pii.ssn).to eq(pii_attributes[:ssn]) }
     it('displays force-masked ssn') { expect(pii.ssn(force_mask: true)).to eq(masked_ssn) }
+    it('still redacts name and dob, which this policy does not grant') do
+      expect(pii.first_name).to eq('Name Redacted')
+      expect(pii.dob).to be_nil
+    end
+
+    it 'still shows the full ssn even if can_view_partial_ssn? is (incorrectly) false -- full access implies partial' do
+      full_only_policy = new_policy(can_view_full_ssn: true, can_view_partial_ssn: false)
+      pii = GrdaWarehouse::PiiProvider.from_attributes(policy: full_only_policy, **pii_attributes)
+      expect(pii.ssn).to eq(pii_attributes[:ssn])
+    end
   end
 
   context('pii without permissions') do
@@ -124,6 +155,55 @@ RSpec.describe 'GrdaWarehouse::PiiProvider', type: :model do
     it('redacts viewable name') do
       actual = GrdaWarehouse::PiiProvider.viewable_name(pii_attributes[:first_name], policy: policy)
       expect(actual).to eq('Redacted')
+    end
+    it('redacts viewable hiv status') do
+      actual = GrdaWarehouse::PiiProvider.viewable_hiv_status('Y', policy: policy)
+      expect(actual).to eq('Redacted')
+    end
+  end
+
+  describe '.restrict' do
+    let(:policy) { new_policy(can_view: true, can_view_name: true, can_view_full_ssn: true, can_view_full_dob: true, can_view_photo: true, can_view_hiv_status: true) }
+
+    it 'returns the original policy unchanged when not restricted' do
+      expect(GrdaWarehouse::PiiProvider.restrict(policy, restricted: false)).to eq(policy)
+    end
+
+    context 'when restricted' do
+      subject(:restricted_policy) { GrdaWarehouse::PiiProvider.restrict(policy, restricted: true) }
+
+      it 'preserves general visibility' do
+        expect(restricted_policy.can_view?).to eq(true)
+      end
+
+      it 'redacts name, ssn, dob, photo, and hiv status regardless of the underlying policy' do
+        expect(restricted_policy.can_view_name?).to eq(false)
+        expect(restricted_policy.can_view_full_ssn?).to eq(false)
+        expect(restricted_policy.can_view_full_dob?).to eq(false)
+        expect(restricted_policy.can_view_photo?).to eq(false)
+        expect(restricted_policy.can_view_hiv_status?).to eq(false)
+      end
+
+      it 'blocks the partial (masked) SSN too -- restricted means no SSN at all' do
+        expect(restricted_policy.can_view_partial_ssn?).to eq(false)
+
+        pii = GrdaWarehouse::PiiProvider.from_attributes(policy: restricted_policy, **pii_attributes)
+        expect(pii.ssn).to eq(GrdaWarehouse::PiiProvider::REDACTED)
+      end
+
+      it 'still shows blank rather than "Redacted" when the client has no SSN' do
+        pii = GrdaWarehouse::PiiProvider.from_attributes(policy: restricted_policy, **pii_attributes.merge(ssn: nil))
+        expect(pii.ssn).to be_nil
+      end
+    end
+
+    context 'when restricted and the wrapped policy denies general visibility' do
+      let(:policy) { new_policy(can_view: false, can_view_name: true, can_view_full_ssn: true, can_view_full_dob: true, can_view_photo: true, can_view_hiv_status: true) }
+      subject(:restricted_policy) { GrdaWarehouse::PiiProvider.restrict(policy, restricted: true) }
+
+      it 'still delegates can_view? to the wrapped policy' do
+        expect(restricted_policy.can_view?).to eq(false)
+      end
     end
   end
 end

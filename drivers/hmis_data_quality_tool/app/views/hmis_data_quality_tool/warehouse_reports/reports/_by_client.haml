@@ -21,7 +21,7 @@
       - current_user.policy_context.preload_project_dependencies(client_ids_per_project.keys)
       - @clients.each do |client|
         - project_id = client_ids_per_project.find { |k, v| v.flatten.include?(client.destination_client_id) }&.first
-        - pii_policy = current_user.reporting_policy_for_project(project_id: project_id)
+        - pii_policy = current_user.reporting_policy_for_project(project_id: project_id, client_id: client.destination_client_id_for_pii)
         %tr
           - if @pivot_details.clients_with_flags.include?([client.personal_id, client.data_source_id])
             %td.text-warning.icon-warning

@@ -1,5 +1,5 @@
 - demographic_columns = GrdaWarehouse::ClientDemographicColumns.visible
-= cache(['clients', 'demographics', @client, controller_path, current_user, current_user.load_effective_permissions, demographic_columns.map { |column| column[:key] }], expires_in: GrdaWarehouse::Hud::Client::CACHE_EXPIRY) do
+= cache(['clients', 'demographics', @client, controller_path, current_user, current_user.load_effective_permissions, demographic_columns.map { |column| column[:key] }, current_user.policy_context.restricted_clients_cache_token], expires_in: GrdaWarehouse::Hud::Client::CACHE_EXPIRY) do
   - authoritative_data_source_ids = GrdaWarehouse::DataSource.authoritative.pluck(:id)
   - source_clients = @client.source_clients.source_visible_to(current_user, client_ids: @client.source_client_ids)
   - pii = @client.pii_provider(user: current_user)

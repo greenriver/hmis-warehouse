@@ -1266,7 +1266,7 @@ class WarehouseReport::Outcomes::Base
         client = GrdaWarehouse::Hud::Client.find(client_id)
         user.policy_for(client, policy_class: GrdaWarehouse::AuthPolicies::DestinationClientPolicy)
       else
-        GrdaWarehouse::AuthPolicies::AllowPolicy.new(user: user, resource: nil)
+        GrdaWarehouse::AuthPolicies::AllowPiiPolicy.instance
       end
 
       pii_value(col: header, raw_value: value, pii_policy: pii_policy)
