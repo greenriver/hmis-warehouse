@@ -548,9 +548,16 @@ module CePerformance
     end
 
     CLIENT_PII_COLUMNS = ['first_name', 'last_name', 'dob'].freeze
+    # Read directly off the warehouse client, bypassing client_pii_provider — non-PII columns only.
+    SOURCE_CLIENT_COLUMNS = ['race_description'].freeze
 
     def client_value(client, column, user:, mode:)
-      return client.source_client.public_send(column.gsub('source_client.', '')) if column.include?('source_client')
+      if column.start_with?('source_client.')
+        attribute = column.delete_prefix('source_client.')
+        raise ArgumentError, "#{column} is not in SOURCE_CLIENT_COLUMNS" unless attribute.in?(SOURCE_CLIENT_COLUMNS)
+
+        return client.source_client.public_send(attribute)
+      end
       return client.public_send(column) unless column.in?(CLIENT_PII_COLUMNS)
 
       pii = client_pii_provider(client, user: user, mode: mode)

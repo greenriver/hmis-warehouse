@@ -22,6 +22,25 @@ RSpec.describe IncomeBenefitsReport::Details, type: :model do
   let!(:hmis_user) { create(:hmis_user, data_source: hmis_ds) }
   let!(:restricted_source_client) { create(:hmis_hud_client, data_source: hmis_ds, first_name: 'Restricted', last_name: 'Client') }
   let!(:restricted_destination_client) { create(:grda_warehouse_hud_client, FirstName: 'Restricted', LastName: 'Client') }
+  let!(:open_destination_client) { create(:grda_warehouse_hud_client, FirstName: 'Open', LastName: 'Doe') }
+
+  let(:restricted_values) do
+    { 'Client ID' => restricted_destination_client.id, 'First Name' => 'Restricted', 'Last Name' => 'Client', 'DOB' => Date.new(1990, 1, 1), 'Age' => 34 }
+  end
+  let(:open_values) do
+    { 'Client ID' => open_destination_client.id, 'First Name' => 'Open', 'Last Name' => 'Doe', 'DOB' => Date.new(1985, 6, 15), 'Age' => 39 }
+  end
+
+  after { GrdaWarehouse::Config.invalidate_cache }
+
+  def configure_download_toggle(enabled)
+    GrdaWarehouse::Config.first_or_create.update!(include_pii_in_detail_downloads: enabled)
+    GrdaWarehouse::Config.invalidate_cache
+  end
+
+  def row_for(headers, values)
+    headers.map { |header| values.fetch(header, 0) }
+  end
 
   before do
     GrdaWarehouse::WarehouseClient.create!(destination_id: restricted_destination_client.id, source_id: restricted_source_client.id, data_source_id: hmis_ds.id, id_in_source: restricted_source_client.id.to_s)
@@ -29,17 +48,65 @@ RSpec.describe IncomeBenefitsReport::Details, type: :model do
   end
 
   describe '#redact_pii_in_row' do
-    it 'redacts the restricted client name and DOB in a client_columns-shaped row, leaving other columns intact' do
-      headers = ['Client ID', 'First Name', 'Last Name', 'DOB', 'Age', 'IncomeFromAnySource']
-      row = [restricted_destination_client.id, 'Restricted', 'Client', Date.new(1990, 1, 1), 34, true]
+    it 'reads the client id from the first column' do
+      expect(report.header_for(nil).first).to eq('Client ID')
+      expect(report.headers_for_export(nil).first).to eq('Client ID')
+    end
 
-      result = report.redact_pii_in_row(row, headers: headers, user: user, mode: :browse)
+    context 'with mode: :browse' do
+      let(:headers) { report.header_for(nil) }
 
-      expect(result[headers.index('First Name')]).to eq(GrdaWarehouse::PiiProvider::NAME_REDACTED)
-      expect(result[headers.index('Last Name')]).to eq(GrdaWarehouse::PiiProvider::NAME_REDACTED)
-      expect(result[headers.index('DOB')]).to eq(GrdaWarehouse::PiiProvider::REDACTED)
-      expect(result[headers.index('Client ID')]).to eq(restricted_destination_client.id)
-      expect(result[headers.index('IncomeFromAnySource')]).to eq(true)
+      it 'redacts the restricted client name and DOB, leaving other columns intact' do
+        result = report.redact_pii_in_row(row_for(headers, restricted_values), headers: headers, user: user, mode: :browse)
+
+        expect(result[headers.index('First Name')]).to eq(GrdaWarehouse::PiiProvider::NAME_REDACTED)
+        expect(result[headers.index('Last Name')]).to eq(GrdaWarehouse::PiiProvider::NAME_REDACTED)
+        expect(result[headers.index('DOB')]).to eq(GrdaWarehouse::PiiProvider::REDACTED)
+        expect(result[headers.index('Client ID')]).to eq(restricted_destination_client.id)
+        expect(result[headers.index('Age')]).to eq(34)
+      end
+
+      it 'passes an unrestricted client row through unchanged' do
+        row = row_for(headers, open_values)
+
+        expect(report.redact_pii_in_row(row, headers: headers, user: user, mode: :browse)).to eq(row)
+      end
+    end
+
+    context 'with mode: :download and include_pii_in_detail_downloads on' do
+      let(:headers) { report.headers_for_export(nil) }
+
+      before { configure_download_toggle(true) }
+
+      it 'keeps the PII columns in the export headers' do
+        expect(headers).to eq(report.header_for(nil))
+      end
+
+      it 'redacts the restricted client and passes the unrestricted client through' do
+        restricted_result = report.redact_pii_in_row(row_for(headers, restricted_values), headers: headers, user: user, mode: :download)
+        open_row = row_for(headers, open_values)
+
+        expect(restricted_result[headers.index('First Name')]).to eq(GrdaWarehouse::PiiProvider::NAME_REDACTED)
+        expect(restricted_result[headers.index('DOB')]).to eq(GrdaWarehouse::PiiProvider::REDACTED)
+        expect(report.redact_pii_in_row(open_row, headers: headers, user: user, mode: :download)).to eq(open_row)
+      end
+    end
+
+    context 'with mode: :download and include_pii_in_detail_downloads off' do
+      let(:headers) { report.headers_for_export(nil) }
+
+      before { configure_download_toggle(false) }
+
+      it 'omits the PII columns from the export headers' do
+        expect(headers & ['First Name', 'Last Name', 'DOB']).to be_empty
+        expect(headers).to include('Client ID', 'Age')
+      end
+
+      it 'returns the PII-free row unchanged' do
+        row = row_for(headers, open_values)
+
+        expect(report.redact_pii_in_row(row, headers: headers, user: user, mode: :download)).to eq(row)
+      end
     end
   end
 end

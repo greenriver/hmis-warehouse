@@ -72,5 +72,58 @@ RSpec.describe WarehouseReports::PiiDetailRows, type: :model do
         expect(result).to eq([GrdaWarehouse::PiiProvider::NAME_REDACTED, GrdaWarehouse::PiiProvider::NAME_REDACTED, 42])
       end
     end
+
+    context 'with mode: :download' do
+      let(:redacted_row) do
+        [42, GrdaWarehouse::PiiProvider::NAME_REDACTED, GrdaWarehouse::PiiProvider::NAME_REDACTED, GrdaWarehouse::PiiProvider::REDACTED, GrdaWarehouse::PiiProvider::REDACTED, 'Shelter A']
+      end
+
+      before do
+        allow(GrdaWarehouse::Config).to receive(:get).and_call_original
+        allow(GrdaWarehouse::Config).to receive(:get).with(:include_pii_in_detail_downloads).and_return(download_toggle)
+      end
+
+      context 'when include_pii_in_detail_downloads is off and the client is not restricted' do
+        let(:download_toggle) { false }
+
+        before { allow(user.policy_context).to receive(:client_restricted?).with(42).and_return(false) }
+
+        it 'redacts name, dob, and ssn' do
+          result = host.redact_pii_in_row(row, headers: headers, user: user, mode: :download)
+
+          expect(result).to eq(redacted_row)
+        end
+
+        it 'leaves the same row untouched in mode: :browse' do
+          result = host.redact_pii_in_row(row, headers: headers, user: user, mode: :browse)
+
+          expect(result).to eq(row)
+        end
+      end
+
+      context 'when include_pii_in_detail_downloads is on and the client is not restricted' do
+        let(:download_toggle) { true }
+
+        before { allow(user.policy_context).to receive(:client_restricted?).with(42).and_return(false) }
+
+        it 'passes pii columns through unchanged' do
+          result = host.redact_pii_in_row(row, headers: headers, user: user, mode: :download)
+
+          expect(result).to eq(row)
+        end
+      end
+
+      context 'when include_pii_in_detail_downloads is on and the client is restricted' do
+        let(:download_toggle) { true }
+
+        before { allow(user.policy_context).to receive(:client_restricted?).with(42).and_return(true) }
+
+        it 'redacts name, dob, and ssn' do
+          result = host.redact_pii_in_row(row, headers: headers, user: user, mode: :download)
+
+          expect(result).to eq(redacted_row)
+        end
+      end
+    end
   end
 end

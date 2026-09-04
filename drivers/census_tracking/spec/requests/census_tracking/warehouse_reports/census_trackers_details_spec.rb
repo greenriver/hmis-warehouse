@@ -41,13 +41,32 @@ RSpec.describe 'CensusTracking::WarehouseReports::CensusTrackers#details', type:
     sign_in(user)
   end
 
-  it 'redacts the restricted client and shows the unrestricted client' do
-    get details_census_tracking_warehouse_reports_census_trackers_path(project: project.id, key: 'test')
+  def name_cells
+    Nokogiri::HTML(response.body).css('table.table-sm tbody td').map { |td| td.text.strip }
+  end
 
-    expect(response).to have_http_status(:success)
-    expect(response.body).not_to include('Restricted')
-    expect(response.body).to include(GrdaWarehouse::PiiProvider::NAME_REDACTED)
-    expect(response.body).to include('Open')
-    expect(response.body).to include('Doe')
+  context 'when the role grants can_view_client_name' do
+    it 'redacts the restricted client and shows the unrestricted client' do
+      get details_census_tracking_warehouse_reports_census_trackers_path(project: project.id, key: 'test')
+
+      expect(response).to have_http_status(:success)
+      cells = name_cells
+      expect(cells).to include('Open', 'Doe')
+      expect(cells).not_to include('Restricted', 'Client')
+      expect(cells.count(GrdaWarehouse::PiiProvider::NAME_REDACTED)).to eq(2)
+    end
+  end
+
+  context 'when the role lacks can_view_client_name' do
+    let!(:role) { create(:role, can_view_assigned_reports: true, can_view_clients: true) }
+
+    it 'redacts both clients' do
+      get details_census_tracking_warehouse_reports_census_trackers_path(project: project.id, key: 'test')
+
+      expect(response).to have_http_status(:success)
+      cells = name_cells
+      expect(cells).not_to include('Open', 'Doe', 'Restricted', 'Client')
+      expect(cells.count(GrdaWarehouse::PiiProvider::NAME_REDACTED)).to eq(4)
+    end
   end
 end

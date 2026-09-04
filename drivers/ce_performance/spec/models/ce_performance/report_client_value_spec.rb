@@ -10,7 +10,7 @@ require 'rails_helper'
 
 RSpec.describe CePerformance::Report, type: :model do
   let(:report) { described_class.create!(user_id: User.system_user.id) }
-  let(:destination_client) { create(:grda_warehouse_hud_client, FirstName: 'Destination', LastName: 'Client') }
+  let(:destination_client) { create(:grda_warehouse_hud_client, FirstName: 'Destination', LastName: 'Client', White: 1) }
   let(:user) { create(:user) }
   let(:client_row) do
     CePerformance::Client.create!(
@@ -51,8 +51,16 @@ RSpec.describe CePerformance::Report, type: :model do
       expect(report.client_value(client_row, 'household_size', user: user, mode: :browse)).to eq(2)
     end
 
-    it 'resolves source_client-prefixed columns via the source client association' do
-      expect(report.client_value(client_row, 'source_client.first_name', user: user, mode: :browse)).to eq('Destination')
+    describe 'source_client-prefixed columns' do
+      it 'resolves an allow-listed column via the source client association' do
+        expect(report.client_value(client_row, 'source_client.race_description', user: user, mode: :browse)).to eq('White')
+      end
+
+      it 'raises for a source_client column that is not allow-listed' do
+        expect do
+          report.client_value(client_row, 'source_client.first_name', user: user, mode: :browse)
+        end.to raise_error(ArgumentError, /source_client\.first_name/)
+      end
     end
   end
 end
