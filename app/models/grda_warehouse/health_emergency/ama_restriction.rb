@@ -9,6 +9,7 @@
 module GrdaWarehouse::HealthEmergency
   class AmaRestriction < GrdaWarehouseBase
     include ::HealthEmergency
+    belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client'
 
     scope :visible_to, -> (user) do
       return current_scope if user.can_see_health_emergency_clinical?

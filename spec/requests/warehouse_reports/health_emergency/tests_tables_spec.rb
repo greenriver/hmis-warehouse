@@ -30,8 +30,7 @@ RSpec.describe 'Health Emergency clinical tables', type: :request do
   end
 
   let!(:unmatched_uploaded_test) do
-    GrdaWarehouse::HealthEmergency::UploadedTest.new(batch: batch, first_name: 'Unmatched', last_name: 'Person', dob: Date.new(1985, 5, 5), ssn: '444556666', tested_on: Date.current, test_result: 'Negative', test_location: 'Clinic B').
-      tap { |t| t.save!(validate: false) }
+    GrdaWarehouse::HealthEmergency::UploadedTest.create!(batch: batch, first_name: 'Unmatched', last_name: 'Person', dob: Date.new(1985, 5, 5), ssn: '444556666', tested_on: Date.current, test_result: 'Negative', test_location: 'Clinic B')
   end
 
   before do
@@ -41,10 +40,16 @@ RSpec.describe 'Health Emergency clinical tables', type: :request do
     GrdaWarehouse::WarehouseClient.create!(destination_id: restricted_destination_client.id, source_id: restricted_source_client.id, data_source_id: hmis_ds.id, id_in_source: restricted_source_client.id.to_s)
     restricted_source_client.mark_as_restricted!(user: hmis_user)
     # `require_health_emergency!` (`WarehouseReportsHealthEmergencyController`) additionally
-    # requires a truthy `GrdaWarehouse::Config#health_emergency`.
+    # requires a truthy `GrdaWarehouse::Config#health_emergency`. `Config.get` caches the
+    # settings row at the class level for 30 seconds, independent of each example's DB
+    # transaction rollback — invalidate so this value can't leak to/from another spec file
+    # running in the same process (matches the pattern in `chronic_housed_controller_spec.rb`).
     GrdaWarehouse::Config.first_or_create.update!(health_emergency: 'boston_covid_19')
+    GrdaWarehouse::Config.invalidate_cache
     sign_in user
   end
+
+  after { GrdaWarehouse::Config.invalidate_cache }
 
   it 'redacts the uploaded test row name for a restricted client' do
     get warehouse_reports_health_emergency_uploaded_result_path(batch)
