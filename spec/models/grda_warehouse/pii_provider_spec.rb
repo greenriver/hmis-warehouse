@@ -206,4 +206,37 @@ RSpec.describe 'GrdaWarehouse::PiiProvider', type: :model do
       end
     end
   end
+
+  describe '.restrict' do
+    let(:policy) { new_policy(can_view: true, can_view_name: true, can_view_full_ssn: true, can_view_full_dob: true, can_view_photo: true, can_view_hiv_status: true) }
+
+    it 'returns the original policy unchanged when not restricted' do
+      expect(GrdaWarehouse::PiiProvider.restrict(policy, restricted: false)).to eq(policy)
+    end
+
+    context 'when restricted' do
+      subject(:restricted_policy) { GrdaWarehouse::PiiProvider.restrict(policy, restricted: true) }
+
+      it 'preserves general visibility' do
+        expect(restricted_policy.can_view?).to eq(true)
+      end
+
+      it 'redacts name, ssn, dob, photo, and hiv status regardless of the underlying policy' do
+        expect(restricted_policy.can_view_name?).to eq(false)
+        expect(restricted_policy.can_view_full_ssn?).to eq(false)
+        expect(restricted_policy.can_view_full_dob?).to eq(false)
+        expect(restricted_policy.can_view_photo?).to eq(false)
+        expect(restricted_policy.can_view_hiv_status?).to eq(false)
+      end
+    end
+
+    context 'when restricted and the wrapped policy denies general visibility' do
+      let(:policy) { new_policy(can_view: false, can_view_name: true, can_view_full_ssn: true, can_view_full_dob: true, can_view_photo: true, can_view_hiv_status: true) }
+      subject(:restricted_policy) { GrdaWarehouse::PiiProvider.restrict(policy, restricted: true) }
+
+      it 'still delegates can_view? to the wrapped policy' do
+        expect(restricted_policy.can_view?).to eq(false)
+      end
+    end
+  end
 end

@@ -54,22 +54,40 @@
                 - possible_matching_clients = @possible_matches[client.id]
                 %tr{class: odd_class}
                   %td
-                    - if client.client_id && client.first_name
-                      = link_to client.first_name, client_path(client.client_id), target: :_blank
+                    - if client.client_id.present?
+                      - pii = matched_client.pii_provider(user: current_user)
+                      - if pii.first_name
+                        = link_to pii.first_name, client_path(client.client_id), target: :_blank
+                      - else
+                        = pii.first_name
                     - else
                       = client.first_name
                   %td
-                    - if client.client_id && client.middle_name
-                      = link_to client.middle_name, client_path(client.client_id), target: :_blank
+                    - if client.client_id.present?
+                      - if pii.middle_name
+                        = link_to pii.middle_name, client_path(client.client_id), target: :_blank
+                      - else
+                        = pii.middle_name
                     - else
                       = client.middle_name
                   %td
-                    - if client.client_id && client.last_name
-                      = link_to client.last_name, client_path(client.client_id), target: :_blank
+                    - if client.client_id.present?
+                      - if pii.last_name
+                        = link_to pii.last_name, client_path(client.client_id), target: :_blank
+                      - else
+                        = pii.last_name
                     - else
                       = client.last_name
-                  %td= ssn(client.ssn)
-                  %td= dob_or_age(client.dob)
+                  %td
+                    - if client.client_id.present?
+                      = pii.ssn
+                    - else
+                      = ssn(client.ssn)
+                  %td
+                    - if client.client_id.present?
+                      = pii.dob_or_age
+                    - else
+                      = dob_or_age(client.dob)
                   %td
                     - if client.client_id.present?
                       Exact match

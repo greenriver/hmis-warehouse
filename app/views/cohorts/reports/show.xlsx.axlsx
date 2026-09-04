@@ -27,11 +27,10 @@ wb.add_worksheet(name: "Changes to #{@cohort.sanitized_name}".slice(0,30)) do |s
   )
   @changes.each do |change|
     next unless change.cohort_client.present? && change.cohort_client.client.present?
-    client = change.cohort_client.client
     sheet.add_row(
       [
-        client.id,
-        ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads) ? client.full_name : 'Redacted',
+        change.cohort_client.client.id,
+        change.cohort_client.pii_provider(user: current_user, mode: :download).full_name,
         change.change,
         change.reason,
         change.changed_at.to_date,

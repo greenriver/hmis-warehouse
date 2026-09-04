@@ -19,10 +19,10 @@
     %tbody
       - @changes.each do |change|
         - next unless change.cohort_client.present? && change.cohort_client.client.present?
-        - client = change.cohort_client.client
+        - client_name = change.cohort_client.pii_provider(user: current_user).full_name
         %tr
           %td
-            = link_to client.full_name, client_path(client)
+            = link_to client_name, client_path(change.cohort_client.client)
           %td= change.change
           %td= change.reason
           %td= change.changed_at.to_date

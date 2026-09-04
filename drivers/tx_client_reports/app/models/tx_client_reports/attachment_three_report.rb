@@ -192,6 +192,7 @@ module TxClientReports
         else
           [client]
         end
+        policy = GrdaWarehouse::PiiProvider.restrict(GrdaWarehouse::AuthPolicies::AllowPiiPolicy.instance, restricted: @filter.user.policy_context.client_restricted?(client.id))
         {
           project_id: project.id,
           project_name: project.name(@filter.user),
@@ -200,7 +201,7 @@ module TxClientReports
           entry_after_start: enrollment.first_date_in_program > @filter.start,
           fort_worth_resident: nil, # leave blank
           service_location: nil, # leave blank
-          client_name: client.name,
+          client_name: GrdaWarehouse::PiiProvider.new(client, policy: policy).full_name,
           client_id: client.id,
           street_address: enrollment.project.project_cocs&.first&.Address1, # Shelter address
           age: enrollment.age, # Age at project entry to keep report stable

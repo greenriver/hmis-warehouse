@@ -672,5 +672,26 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
         expect(provider.first_name).to eq('Name Redacted')
       end
     end
+
+    context 'a destination client with no source clients' do
+      let!(:unlinked_destination_client) { create(:grda_warehouse_hud_client, FirstName: 'Jamie') }
+
+      it 'shows PII when the client is not restricted' do
+        provider = unlinked_destination_client.pii_provider(user: user)
+        expect(provider.first_name).to eq('Jamie')
+      end
+
+      it 'redacts PII when the client is restricted directly on its own id' do
+        Hmis::RestrictedRecord.create!(
+          restrictable_id: unlinked_destination_client.id,
+          restrictable_type: 'Hmis::Hud::Client',
+          data_source_id: unlinked_destination_client.data_source_id,
+          created_by: hmis_user,
+        )
+
+        provider = unlinked_destination_client.pii_provider(user: user)
+        expect(provider.first_name).to eq('Name Redacted')
+      end
+    end
   end
 end

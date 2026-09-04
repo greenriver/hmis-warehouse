@@ -12,9 +12,11 @@
         %th Service Detail
     %tbody
       - @services.each do |service|
+        - policy = current_user.reporting_policy_for_project(project_id: service.project_id, mode: :browse, client_id: service.client_id)
+        - pii = GrdaWarehouse::PiiProvider.new(service.client, policy: policy)
         %tr
           %td= service.provided_at
-          %td= link_to(service.client.name, client_path(service.client), target: :_blank)
+          %td= link_to(pii.full_name, client_path(service.client), target: :_blank)
           %th= service.client.age
           %td= service.title_only
           %td= service.other_type

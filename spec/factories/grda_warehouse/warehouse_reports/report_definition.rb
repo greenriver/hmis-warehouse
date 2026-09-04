@@ -14,6 +14,12 @@ FactoryBot.define do
     description { '' }
   end
 
+  factory :touch_point_report_instance, class: 'GrdaWarehouse::WarehouseReports::TouchPoint' do
+    user { nil }
+    parameters { {} }
+    data { {} }
+  end
+
   factory :core_demographics_report, class: 'GrdaWarehouse::WarehouseReports::ReportDefinition' do
     report_group { 'Reports' }
     url { 'core_demographics_report/warehouse_reports/core' }
