@@ -27,7 +27,7 @@ module HmisStructure::Base
       # Handle classes that didn't exist previously
       return '2022' if self.class.in?([GrdaWarehouse::Hud::YouthEducationStatus])
 
-      '2020'
+      self.class.hud_csv_version
     end
   end
 
