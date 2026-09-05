@@ -55,6 +55,17 @@ RSpec.describe 'Delete Form Rule Mutation', type: :request do
     end.to change { form_instance.reload.active }.from(true).to(false)
   end
 
+  context 'when deleting a rule for a CASE_NOTE form' do
+    let!(:form_definition) { create(:hmis_form_definition, identifier: 'test-case-note', role: :CASE_NOTE, status: :published, data_source: ds1) }
+
+    it 'marks the form rule as inactive' do
+      expect do
+        response, result = post_graphql(input) { mutation }
+        expect(response.status).to eq(200), result.inspect
+      end.to change { form_instance.reload.active }.from(true).to(false)
+    end
+  end
+
   context 'when deleting a system rule' do
     let!(:form_instance) { create(:hmis_form_instance, definition: form_definition, entity: p1, active: true, system: true, data_source: ds1) }
 

@@ -40,13 +40,13 @@ class Hmis::AuthPolicies::FormDefinitionPolicy < Hmis::AuthPolicies::ResourcePol
     end
 
     # Whether the user can configure this form in the form editor.
-    def can_configure_form? = can_configure_data_collection_for_form_by_role?
+    def can_configure_form? = can_configure_data_collection_for_form?
 
     # Whether the user can add a new Hmis::Form::Instance to the form definition
-    def can_add_form_rule? = can_configure_data_collection_for_form_by_role?
+    def can_add_form_rule? = can_configure_data_collection_for_form?
 
     # Whether the user can delete a Hmis::Form::Instance rule from the form definition
-    def can_delete_form_rule? = can_configure_data_collection_for_form_by_role?
+    def can_delete_form_rule? = can_configure_data_collection_for_form?
 
     protected
 
@@ -62,8 +62,14 @@ class Hmis::AuthPolicies::FormDefinitionPolicy < Hmis::AuthPolicies::ResourcePol
     end
 
     # Determines if the current user can view and manage form rules for a given form.
-    def can_configure_data_collection_for_form_by_role?
-      in_data_source? && global_permissions.include?(:can_configure_data_collection) && manageable_form_role?
+    def can_configure_data_collection_for_form?
+      in_data_source? &&
+        global_permissions.include?(:can_configure_data_collection) &&
+        configurable_form_role?
+    end
+
+    def configurable_form_role?
+      Hmis::Form::Definition::NON_CONFIGURABLE_FORM_ROLES.exclude?(form_definition.role.to_s)
     end
 
     # Determines if the form role is considered a non-super-admin form or a super-admin form

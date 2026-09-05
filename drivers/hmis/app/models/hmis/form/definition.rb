@@ -209,12 +209,24 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   }.freeze
   NON_QUESTION_ITEM_TYPES = ['DISPLAY', 'GROUP'].freeze
 
-  # Forms that are editable by users with can_manage_forms permission, and viewable/configurable (e.g. form rules)
-  # by users with can_configure_data_collection (without needing the 'super-admin' permission can_administrate_config)
+  # Forms whose content can be managed by users with can_manage_forms without
+  # needing the super-admin permission can_administrate_config.
   NON_ADMIN_FORM_ROLES = [
     'SERVICE',
     'CUSTOM_ASSESSMENT',
   ].freeze
+
+  # Forms that are not managed by the Forms admin tool. Form rules do not
+  # affect these roles, so they should not be listed or configurable.
+  UNMANAGED_FORM_ROLES = [
+    'REFERRAL',
+    'REFERRAL_REQUEST',
+    'CE_REFERRAL_STEP',
+  ].freeze
+
+  # Roles that nobody can configure in the Forms admin tool, including super-admins.
+  # Static forms are always present and enabled, so they take no form rules either.
+  NON_CONFIGURABLE_FORM_ROLES = [*UNMANAGED_FORM_ROLES, *STATIC_FORM_ROLES.map(&:to_s)].freeze
 
   # All form roles
   use_enum_with_same_key :form_role_enum_map, FORM_ROLES.excluding(:CE)
@@ -243,12 +255,9 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   end
 
   # Forms which this user can resolve and configure in the form editor.
+  # Mirrors FormDefinitionPolicy#can_configure_form?, so that every listed form can be opened.
   scope :configurable_by, ->(user) do
-    # Must be in the user's data source
-    scope = in_data_source(user.hmis_data_source_id)
-    # Must be a non-admin form role, unless the user is a super-admin
-    scope = scope.with_role(Hmis::Form::Definition::NON_ADMIN_FORM_ROLES) unless user.policy_for(Hmis::Form::Definition, policy_type: :form_definition).can_administrate_config?
-    scope
+    in_data_source(user.hmis_data_source_id).where.not(role: NON_CONFIGURABLE_FORM_ROLES)
   end
 
   before_destroy :can_be_destroyed, prepend: true
