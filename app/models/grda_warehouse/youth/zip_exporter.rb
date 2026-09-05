@@ -58,7 +58,7 @@ module GrdaWarehouse::Youth
 
     def create_zip_file
       files = Dir.glob(File.join(@file_path, '*')).map { |path| File.basename(path) }
-      Zip::File.open(zip_path, Zip::File::CREATE) do |zip_file|
+      Zip::File.open(zip_path, create: true) do |zip_file|
         files.each do |file_name|
           zip_file.add(
             file_name,

@@ -124,4 +124,38 @@ RSpec.describe GrdaWarehouse::RecurringHmisExport, type: :model do
       expect(export.object_name(report)).to match(/nightly-.*-999\.zip/)
     end
   end
+
+  # encrypt_seven_zip unzips the export into a scratch directory beside its own
+  # Tempfile and then re-archives "#{destination_path}/*.csv" with the 7z
+  # binary, so the CSVs having made it into the returned archive is the proof
+  # that entry.extract honored destination_directory:. rubyzip 3 joins the
+  # entry path onto destination_directory (default '.'), so dropping that
+  # argument sends the CSVs to Dir.pwd, leaves the glob matching nothing, and
+  # fails both examples.
+  describe '#encrypt_seven_zip' do
+    include_context 'a zip file to extract'
+
+    let(:export) { create(:recurring_hmis_export, :with_zip_encryption, user: user, encryption_type: '7z') }
+
+    after(:each) do
+      extracted_names.each { |name| FileUtils.rm_f(File.join(Dir.pwd, name)) }
+    end
+
+    it 'returns 7z content holding every CSV from the source zip' do
+      encrypted_path = File.join(scratch_dir, 'encrypted.7z')
+      File.binwrite(encrypted_path, export.send(:encrypt_seven_zip, File.binread(zip_source)))
+
+      listing = `7z l -p#{export.zip_password} #{encrypted_path}`
+      extracted_names.each { |name| expect(listing).to include(name) }
+    end
+
+    it 'writes nothing into the working directory' do
+      export.send(:encrypt_seven_zip, File.binread(zip_source))
+
+      extracted_names.each do |name|
+        expect(File.exist?(File.join(Dir.pwd, name))).to be(false),
+                                                         "#{name} leaked into #{Dir.pwd}; the call site is missing destination_directory:"
+      end
+    end
+  end
 end
