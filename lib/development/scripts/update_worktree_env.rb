@@ -158,9 +158,9 @@ rewrite(override) do |content|
   #    copies. The `hmis-warehouse_` prefix keeps them from colliding with other
   #    apps' identically-named volumes.
   {
-    'bundle_bookworm' => 'hmis-warehouse_bundle_bookworm',
-    'node_modules_bookworm' => 'hmis-warehouse_node_modules_bookworm',
-    'rails_cache_bookworm' => 'hmis-warehouse_rails_cache_bookworm',
+    'bundle_trixie' => 'hmis-warehouse_bundle_trixie',
+    'node_modules_trixie' => 'hmis-warehouse_node_modules_trixie',
+    'rails_cache_trixie' => 'hmis-warehouse_rails_cache_trixie',
   }.each do |vol, external_name|
     vidx = lines.index { |l| l.match?(/^ {2}#{Regexp.escape(vol)}:\s*$/) }
     next unless vidx
