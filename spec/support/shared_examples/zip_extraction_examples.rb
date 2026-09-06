@@ -39,16 +39,16 @@ RSpec.shared_examples 'extracts entries into the destination directory' do
   end
 end
 
-# Both HMIS CSV loaders expose the same #expand(file_path:) writing to
-# @local_path, which the class never assigns -- callers set it.
+# The loader exposes #expand(file_path:) writing to @local_path, which the class
+# never assigns -- callers set it.
 RSpec.shared_examples 'an HMIS CSV loader that expands into @local_path' do
   include_context 'a zip file to extract'
 
   let(:data_source) { create(:grda_warehouse_data_source) }
 
   let(:loader) do
-    # The initializer needs a directory; the 2026 loader also reads Export.csv
-    # from it to calculate the current version.
+    # The initializer needs a directory, and the loader reads Export.csv from it
+    # to calculate the current version.
     csv_dir = File.join(scratch_dir, 'csvs')
     FileUtils.mkdir_p(csv_dir)
     File.write(File.join(csv_dir, 'Export.csv'), "ExportID,CSVVersion\nEX-1,2026\n")
