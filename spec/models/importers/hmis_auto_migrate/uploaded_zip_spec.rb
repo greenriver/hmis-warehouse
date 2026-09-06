@@ -47,21 +47,13 @@ RSpec.describe Importers::HmisAutoMigrate::UploadedZip do
 
     after(:each) do
       FileUtils.remove_entry(source_dir) if File.exist?(source_dir)
-      remove_leaked_files(hud_csv_entries.keys)
     end
 
-    it 'replaces the upload with a readable zip' do
+    # force_standard_zip nests every entry under the 7z file's basename.
+    it 'replaces the upload with a zip holding every entry under the extraction folder basename' do
       importer.pre_process
 
       expect(upload.reload.hmis_zip.filename.to_s).to end_with('.zip')
-      expect { zip_entry_names(downloaded_zip) }.not_to raise_error
-    end
-
-    # force_standard_zip adds each file under File.basename(tmp_folder), which
-    # is the 7z file's basename.
-    it 'prefixes every entry with the extraction folder basename' do
-      importer.pre_process
-
       expect(zip_entry_names(downloaded_zip)).to match_array(hud_csv_entries.keys.map { |name| File.join('hmis_upload', name) })
     end
   end
