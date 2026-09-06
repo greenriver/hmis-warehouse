@@ -19,7 +19,8 @@ RSpec.describe Importers::HmisAutoMigrate::Local do
         allow(instance).to receive(:upload)
       end
     end
-    # compress_and_upload names the archive itself.
+    # compress_and_upload names the archive itself, so this only resolves once
+    # the archive exists.
     let(:archive_path) { Dir.glob(File.join(zip_directory, '*.zip')).first }
 
     def archive!
