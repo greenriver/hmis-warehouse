@@ -14,8 +14,7 @@ RSpec.describe HmisCsvImporter::Loader::Loader, type: :model do
 
     let(:data_source) { create(:grda_warehouse_data_source) }
 
-    # #expand reads @local_path, which the class itself never assigns, so set
-    # it here the way a caller would have to.
+    # @local_path is never assigned by the class; callers set it.
     let(:loader) do
       csv_dir = File.join(scratch_dir, 'csvs')
       FileUtils.mkdir_p(csv_dir)
@@ -25,8 +24,8 @@ RSpec.describe HmisCsvImporter::Loader::Loader, type: :model do
       end
     end
 
-    # The loader's own Export.csv directory has to sit outside the extraction
-    # target, or it would show up in the flattening assertion.
+    # Kept out of the loader's own Export.csv dir so the flattening assertion
+    # only sees extracted entries.
     let(:destination_dir) { File.join(scratch_dir, 'expanded').tap { |dir| FileUtils.mkdir_p(dir) } }
 
     def extract!

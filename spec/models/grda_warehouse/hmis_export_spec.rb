@@ -72,8 +72,7 @@ RSpec.describe GrdaWarehouse::HmisExport, type: :model do
       end
     end
     let(:unzip_root) { File.join(scratch_dir, 'unzipped') }
-    # save_zip_to writes <path>/<export_file_name>, and unzip_to builds the
-    # extract path by stripping .zip off that.
+    # unzip_to extracts to <path>/<export_file_name minus .zip>.
     let(:destination_dir) { File.join(unzip_root, export.export_file_name.sub(/\.zip\z/, '')) }
 
     def extract!

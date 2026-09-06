@@ -125,13 +125,10 @@ RSpec.describe GrdaWarehouse::RecurringHmisExport, type: :model do
     end
   end
 
-  # encrypt_seven_zip unzips the export into a scratch directory beside its own
-  # Tempfile and then re-archives "#{destination_path}/*.csv" with the 7z
-  # binary, so the CSVs having made it into the returned archive is the proof
-  # that entry.extract honored destination_directory:. rubyzip 3 joins the
-  # entry path onto destination_directory (default '.'), so dropping that
-  # argument sends the CSVs to Dir.pwd, leaves the glob matching nothing, and
-  # fails both examples.
+  # encrypt_seven_zip unzips the export to a scratch directory and re-archives
+  # "#{destination_path}/*.csv" with the 7z binary. Without
+  # destination_directory: the CSVs land in Dir.pwd, the glob matches nothing,
+  # and both examples fail.
   describe '#encrypt_seven_zip' do
     include_context 'a zip file to extract'
 

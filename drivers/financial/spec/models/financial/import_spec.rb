@@ -12,7 +12,7 @@ RSpec.describe Financial::Import, type: :model do
   describe '#expand' do
     include_context 'a zip file to extract'
 
-    # The names fetch_and_push then looks for as File.join(extract_path, name).
+    # The names fetch_and_push looks for under extract_path.
     let(:zip_entries) do
       {
         'Clients.csv' => "ClientID\n1\n",
@@ -22,8 +22,7 @@ RSpec.describe Financial::Import, type: :model do
     end
     let(:nested_entry_name) { 'nested/Adjustments.csv' }
 
-    # #expand takes its destination as an argument and touches no other state,
-    # so an unsaved record is enough.
+    # #expand takes its destination as an argument, so an unsaved record is enough.
     let(:import) { described_class.new }
 
     def extract!

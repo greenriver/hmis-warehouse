@@ -9,10 +9,9 @@
 require 'rails_helper'
 
 RSpec.describe Export::Exporter do
-  # The concern is mixed into the per-year exporter bases
-  # (HmisCsvTwentyTwentySix::Exporter::Base and friends), all of which need a
-  # data source, a user and a full Kiba run to instantiate. #zip_archive only
-  # reads @file_path and #zip_path, so exercise it through a bare includer.
+  # The real includers (HmisCsvTwentyTwentySix::Exporter::Base and friends)
+  # need a data source, a user and a full Kiba run to instantiate; #zip_archive
+  # only reads @file_path and #zip_path.
   let(:including_class) do
     Class.new do
       include ::Export::Exporter
@@ -38,8 +37,8 @@ RSpec.describe Export::Exporter do
   end
 
   describe '#zip_archive' do
-    # rubyzip 3 removed Zip::File::CREATE in favor of create: true; without a
-    # truthy create the open call raises Errno::ENOENT for a missing file.
+    # rubyzip 3 replaced Zip::File::CREATE with create: true; without it the
+    # open call raises Errno::ENOENT for a missing file.
     it 'creates the zip file at zip_path' do
       expect(File.exist?(zip_path)).to be false
 

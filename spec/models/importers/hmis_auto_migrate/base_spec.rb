@@ -23,8 +23,7 @@ RSpec.describe Importers::HmisAutoMigrate::Base do
       end
     end
 
-    # Base has no initializer of its own -- the subclasses set @upload and
-    # @local_path -- and expand_upload reads nothing else.
+    # Base has no initializer; subclasses set @upload and @local_path.
     let(:importer) do
       described_class.new.tap do |instance|
         instance.instance_variable_set(:@upload, upload)

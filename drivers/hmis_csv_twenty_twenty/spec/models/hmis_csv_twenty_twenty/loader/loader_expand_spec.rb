@@ -14,8 +14,7 @@ RSpec.describe HmisCsvTwentyTwenty::Loader::Loader, type: :model do
 
     let(:data_source) { create(:grda_warehouse_data_source) }
 
-    # #expand reads @local_path, which the class itself never assigns, so set
-    # it here the way a caller would have to.
+    # @local_path is never assigned by the class; callers set it.
     let(:loader) do
       csv_dir = File.join(scratch_dir, 'csvs')
       FileUtils.mkdir_p(csv_dir)

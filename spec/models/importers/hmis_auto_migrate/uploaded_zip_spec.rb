@@ -10,10 +10,8 @@ require 'English'
 require 'rails_helper'
 
 RSpec.describe Importers::HmisAutoMigrate::UploadedZip do
-  # #pre_process normalizes a .7z upload into a plain zip by shelling out to
-  # the 7z binary and re-zipping the results, which exercises both rubyzip 3
-  # changes: Zip::File.open(..., create: true) in place of the removed
-  # Zip::File::CREATE, and entries added under a nested path.
+  # #pre_process normalizes a .7z upload into a plain zip, exercising
+  # Zip::File.open(..., create: true) and entries added under a nested path.
   describe '#pre_process for a .7z upload' do
     let(:source_dir) { Dir.mktmpdir('uploaded-zip-source') }
     let(:data_source) { create(:source_data_source) }
@@ -39,8 +37,7 @@ RSpec.describe Importers::HmisAutoMigrate::UploadedZip do
       path
     end
 
-    # force_standard_zip shells out to 7z, so the binary has to be installed
-    # wherever this runs (p7zip-full in the app image, 7zip in CI).
+    # Needs the 7z binary (p7zip-full in the app image, 7zip in CI).
     def build_seven_zip
       csv_dir = write_files(File.join(source_dir, 'csvs'), hud_csv_entries)
       system("7z a #{seven_zip_path} #{csv_dir}/*.csv", out: File::NULL) ||
@@ -60,8 +57,8 @@ RSpec.describe Importers::HmisAutoMigrate::UploadedZip do
       expect { zip_entry_names(downloaded_zip) }.not_to raise_error
     end
 
-    # force_standard_zip adds each file as File.join(File.basename(tmp_folder),
-    # filename), so every entry carries the 7z file's basename as a directory.
+    # force_standard_zip adds each file under File.basename(tmp_folder), which
+    # is the 7z file's basename.
     it 'prefixes every entry with the extraction folder basename' do
       importer.pre_process
 
