@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+require 'English'
 require 'rails_helper'
 
 RSpec.describe Importers::HmisAutoMigrate::UploadedZip do
@@ -38,10 +39,12 @@ RSpec.describe Importers::HmisAutoMigrate::UploadedZip do
       path
     end
 
+    # force_standard_zip shells out to 7z, so the binary has to be installed
+    # wherever this runs (p7zip-full in the app image, 7zip in CI).
     def build_seven_zip
       csv_dir = write_files(File.join(source_dir, 'csvs'), hud_csv_entries)
       system("7z a #{seven_zip_path} #{csv_dir}/*.csv", out: File::NULL) ||
-        raise('unable to build the .7z fixture')
+        raise("unable to build the .7z fixture; 7z exited #{$CHILD_STATUS.inspect}")
       seven_zip_path
     end
 
