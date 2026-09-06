@@ -63,12 +63,7 @@ RSpec.describe GrdaWarehouse::HmisExport, type: :model do
 
     let(:export) do
       create(:grda_warehouse_hmis_export, user_id: user.id).tap do |record|
-        record.hmis_zip.attach(
-          io: File.open(zip_source),
-          filename: record.export_file_name,
-          content_type: 'application/zip',
-        )
-        record.save!
+        attach_hmis_zip(record, zip_source, filename: record.export_file_name)
       end
     end
     let(:unzip_root) { File.join(scratch_dir, 'unzipped') }

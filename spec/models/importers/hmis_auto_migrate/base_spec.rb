@@ -14,12 +14,7 @@ RSpec.describe Importers::HmisAutoMigrate::Base do
 
     let(:upload) do
       create(:grda_warehouse_upload).tap do |record|
-        record.hmis_zip.attach(
-          io: File.open(zip_source),
-          filename: 'upload.zip',
-          content_type: 'application/zip',
-        )
-        record.save!
+        attach_hmis_zip(record, zip_source, filename: 'upload.zip')
       end
     end
 

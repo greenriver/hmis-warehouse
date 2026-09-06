@@ -35,6 +35,26 @@ module ZipFixtureHelper
     Zip::File.open(path) { |zipfile| zipfile.map(&:name) }
   end
 
+  # Attach an archive to a record's hmis_zip and save it.
+  def attach_hmis_zip(record, path, filename:, content_type: 'application/zip')
+    record.hmis_zip.attach(io: File.open(path), filename: filename, content_type: content_type)
+    record.save!
+    record
+  end
+
+  def expect_no_leaked_files(names)
+    names.each do |name|
+      expect(File.exist?(File.join(Dir.pwd, name))).to be(false),
+                                                       "#{name} leaked into #{Dir.pwd}; the call site is missing destination_directory:"
+    end
+  end
+
+  # Clean up after a regressed call site so leaked files don't trip up the
+  # next example.
+  def remove_leaked_files(names)
+    names.each { |name| FileUtils.rm_f(File.join(Dir.pwd, name)) }
+  end
+
   # Minimal HUD CSV content, keyed by names GrdaWarehouse::Hud.hud_filename_to_model
   # recognizes.
   def hud_csv_entries

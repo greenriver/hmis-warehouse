@@ -134,9 +134,7 @@ RSpec.describe GrdaWarehouse::RecurringHmisExport, type: :model do
 
     let(:export) { create(:recurring_hmis_export, :with_zip_encryption, user: user, encryption_type: '7z') }
 
-    after(:each) do
-      extracted_names.each { |name| FileUtils.rm_f(File.join(Dir.pwd, name)) }
-    end
+    after(:each) { remove_leaked_files(extracted_names) }
 
     it 'returns 7z content holding every CSV from the source zip' do
       encrypted_path = File.join(scratch_dir, 'encrypted.7z')
@@ -149,10 +147,7 @@ RSpec.describe GrdaWarehouse::RecurringHmisExport, type: :model do
     it 'writes nothing into the working directory' do
       export.send(:encrypt_seven_zip, File.binread(zip_source))
 
-      extracted_names.each do |name|
-        expect(File.exist?(File.join(Dir.pwd, name))).to be(false),
-                                                         "#{name} leaked into #{Dir.pwd}; the call site is missing destination_directory:"
-      end
+      expect_no_leaked_files(extracted_names)
     end
   end
 end

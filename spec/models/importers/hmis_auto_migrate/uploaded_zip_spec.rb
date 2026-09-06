@@ -18,12 +18,12 @@ RSpec.describe Importers::HmisAutoMigrate::UploadedZip do
     let(:seven_zip_path) { File.join(source_dir, 'hmis_upload.7z') }
     let(:upload) do
       create(:grda_warehouse_upload, data_source: data_source).tap do |record|
-        record.hmis_zip.attach(
-          io: File.open(build_seven_zip),
+        attach_hmis_zip(
+          record,
+          build_seven_zip,
           filename: File.basename(seven_zip_path),
           content_type: 'application/x-7z-compressed',
         )
-        record.save!
       end
     end
     let(:importer) do
@@ -47,7 +47,7 @@ RSpec.describe Importers::HmisAutoMigrate::UploadedZip do
 
     after(:each) do
       FileUtils.remove_entry(source_dir) if File.exist?(source_dir)
-      hud_csv_entries.each_key { |name| FileUtils.rm_f(File.join(Dir.pwd, name)) }
+      remove_leaked_files(hud_csv_entries.keys)
     end
 
     it 'replaces the upload with a readable zip' do
