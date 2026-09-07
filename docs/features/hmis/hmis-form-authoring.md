@@ -67,7 +67,7 @@ Valid `record_type` values are defined in `Hmis::Form::RecordType`: `ASSESSMENT`
 "mapping": { "custom_field_key": "tb_flagged_date" }
 ```
 
-The owner is `RecordType.find(record_type).owner_type` when `record_type` is set, otherwise the form role's `owner_class`. A CDED is then looked up by owner type, key, and data source. **Keys are unique per owner type, not globally** — the same key on `Client` and on `CustomAssessment` is two unrelated CDEDs.
+The owner is `RecordType.find!(record_type).owner_type` when `record_type` is set, otherwise the form role's `owner_class`. A CDED is then looked up by owner type, key, and data source. **Keys are unique per owner type, not globally** — the same key on `Client` and on `CustomAssessment` is two unrelated CDEDs.
 
 What happens when the CDED is missing depends on how the form arrives. `PublishFormDefinition` creates it, deriving the key from the link ID if none was given. Seeding does not create it, so a version-controlled form must name a `custom_field_key` that already exists. The CDED's `reporting_key` is always derived, never authored.
 
@@ -174,7 +174,6 @@ A `pick_list_reference` is either a `Types::Forms::Enums::PickListType` value, r
 The schema and validator catch malformed JSON on their own, so this list covers only what they *don't*.
 
 - **Only the first `initial` entry applies.** Extra entries are silently ignored, so multiple initial values for a multi-select do not work.
-- **Four `record_type` values are schema-valid but unimplemented.** `PROJECT`, `ORGANIZATION`, `CE PARTICIPATION`, and `SERVICE` pass schema validation and then raise `NoMethodError` during CDED generation, because `Hmis::Form::RecordType` doesn't define them. Don't use them.
 - **Most bounds are not enforced server-side.** `NumericInputValidator` checks only `INTEGER` and `CURRENCY`, only non-warning severity, and only bounds expressed as a literal `value_number`. A bound against another question, a local constant, or a date is front-end only.
 - **Neither is conditional logic.** `enable_when` and item-level `data_collected_about` are evaluated in the browser and never re-checked on submit, so a non-UI caller can write values for questions the form would have hidden. See [Form processing](hmis-form-processing.md#who-enforces-what).
 - **`set_hud_requirements` overwrites what you wrote.** On HUD assessment forms it rewrites `rule` — so don't hand-author it there — and relaxes `data_collected_about` to the less strict of the HUD requirement and yours. It never tightens.
