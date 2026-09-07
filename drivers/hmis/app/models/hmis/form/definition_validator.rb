@@ -27,6 +27,8 @@ class Hmis::Form::DefinitionValidator
 
     # Validate JSON shape against JSON Schema
     check_json_schema(document)
+    # Check that item mappings reference record types we actually implement
+    invalid_record_types = check_record_types(document)
     # Check Link IDs
     all_ids = check_ids(document)
     # Check references
@@ -45,7 +47,8 @@ class Hmis::Form::DefinitionValidator
     # Check HUD requirements
     check_hud_requirements(all_ids, role) if role
 
-    check_cdeds(document, role) if role && !skip_cded_validation
+    # Skipped when a record type is invalid, because CDED lookup raises on one and would mask the error above
+    check_cdeds(document, role) if role && !skip_cded_validation && invalid_record_types.none?
 
     @issues.errors
   end
@@ -115,6 +118,25 @@ class Hmis::Form::DefinitionValidator
         @issues.add(e.to_s)
       end
     end
+  end
+
+  # Returns the invalid record types found, so the caller can skip CDED validation rather than let it raise.
+  def check_record_types(document)
+    invalid = []
+
+    recur_check = lambda do |item|
+      (item['item'] || []).each do |child_item|
+        record_type = child_item.dig('mapping', 'record_type')
+        if record_type.present? && Hmis::Form::RecordType.find(record_type).nil?
+          invalid << record_type
+          add_issue("Invalid record type on item '#{child_item['link_id']}': #{record_type}. Valid record types: #{Hmis::Form::RecordType.all.map(&:id).join(', ')}")
+        end
+
+        recur_check.call(child_item)
+      end
+    end
+    recur_check.call(document)
+    invalid
   end
 
   def check_ids(document)
@@ -370,7 +392,7 @@ class Hmis::Form::DefinitionValidator
     cded_key, record_type = item['mapping'].values_at('custom_field_key', 'record_type')
     possible_owner_types = []
     if record_type
-      possible_owner_types = [Hmis::Form::RecordType.find(record_type).owner_type]
+      possible_owner_types = [Hmis::Form::RecordType.find!(record_type).owner_type]
     else
       case role.to_sym
       when :SERVICE

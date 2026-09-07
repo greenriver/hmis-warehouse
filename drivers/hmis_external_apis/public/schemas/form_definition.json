@@ -50,10 +50,6 @@
             "EXIT",
             "HEALTH_AND_DV",
             "INCOME_BENEFIT",
-            "PROJECT",
-            "ORGANIZATION",
-            "CE PARTICIPATION",
-            "SERVICE",
             "YOUTH_EDUCATION_STATUS",
             "GEOLOCATION"
           ]

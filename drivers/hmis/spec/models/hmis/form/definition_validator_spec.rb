@@ -68,6 +68,37 @@ RSpec.describe Hmis::Form::DefinitionValidator, type: :model do
     end
   end
 
+  describe 'with an unimplemented record type' do
+    def definition_with_mapping(mapping)
+      {
+        'item': [
+          {
+            'type': 'STRING',
+            'link_id': 'a_string',
+            'text': 'A string',
+            'mapping': mapping,
+          },
+        ],
+      }.deep_stringify_keys
+    end
+
+    it 'errors with a message naming the item and the value' do
+      errors = described_class.perform(definition_with_mapping({ 'record_type': 'PROJECT', 'field_name': 'description' }), :CUSTOM_ASSESSMENT)
+
+      expect(errors.map(&:full_message)).to include(match(/Invalid record type on item 'a_string': PROJECT/))
+    end
+
+    # CDED validation looks up the record type's owner, and used to fail with a nil error before reporting anything
+    it 'errors rather than raising when the item has a custom field key' do
+      errors = nil
+      expect do
+        errors = described_class.perform(definition_with_mapping({ 'record_type': 'PROJECT', 'custom_field_key': 'a_key' }), :CUSTOM_ASSESSMENT)
+      end.not_to raise_error
+
+      expect(errors.map(&:full_message)).to include(match(/Invalid record type on item 'a_string': PROJECT/))
+    end
+  end
+
   context 'with duplicated link ID' do
     let(:definition) do
       { "item": [valid_display_item, valid_display_item] }.deep_stringify_keys

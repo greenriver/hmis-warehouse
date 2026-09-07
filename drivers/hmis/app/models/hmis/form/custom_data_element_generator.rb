@@ -189,7 +189,7 @@ module Hmis
 
       def determine_owner_type(item)
         owner_type = if item.mapping&.record_type
-          Hmis::Form::RecordType.find(item.mapping.record_type).owner_type
+          Hmis::Form::RecordType.find!(item.mapping.record_type).owner_type
         else
           @definition.owner_class.sti_name # inferred from form 'role'
         end

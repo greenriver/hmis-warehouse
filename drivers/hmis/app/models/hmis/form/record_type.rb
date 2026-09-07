@@ -19,6 +19,12 @@ module Hmis::Form
       @by_id[id]
     end
 
+    # For callers that would otherwise fail with a nil error further downstream. The JSON schema's record_type
+    # enum is maintained by hand and has drifted from this list before.
+    def self.find!(id)
+      find(id) || raise("Invalid record type '#{id}'. Valid record types: #{all.map(&:id).join(', ')}")
+    end
+
     def self.all
       @all ||= [
         new(
