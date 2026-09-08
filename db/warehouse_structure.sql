@@ -213597,6 +213597,13 @@ CREATE INDEX idx_client_custom_names_last_idx ON public."CustomClientName" USING
 
 
 --
+-- Name: idx_client_dob; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_client_dob ON public."Client" USING btree ("DOB");
+
+
+--
 -- Name: idx_client_name_full_gin; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -359988,6 +359995,7 @@ ALTER TABLE ONLY public.import_logs
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260908120000'),
 ('20260819120200'),
 ('20260819120000'),
 ('20260818130528'),

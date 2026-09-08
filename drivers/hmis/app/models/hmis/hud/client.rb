@@ -91,7 +91,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   validates_with Hmis::Hud::Validators::ClientValidator, on: [:client_form, :new_client_enrollment_form]
 
   # Order is: before_save => save => after_create|after_update > after_save
-  after_create :warehouse_identify_duplicate_clients
+  after_commit :warehouse_identify_duplicates_for_new_client, on: :create # using after_commit `on: :create` because Delayed::Job enqueues to a different database.  `after_create` calls are run before the transaction is committed, and could lead to a missing client record.
   after_update :warehouse_match_existing_clients
   before_save :set_source_hash
 
@@ -401,15 +401,16 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     GrdaWarehouse::Tasks::IdentifyDuplicates.new.delay(queue: ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)).match_existing!
   end
 
+  # Bulk callers (fake enrollment generation, MCI imports, undo-merge) enqueue a full run of identify duplicates.
   def self.warehouse_identify_duplicate_clients
-    return if Delayed::Job.where(failed_at: nil, locked_at: nil).jobs_for_class('GrdaWarehouse::Tasks::IdentifyDuplicates').jobs_for_class('run!').exists?
-
-    GrdaWarehouse::Tasks::IdentifyDuplicates.new.delay(queue: ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)).run!
+    GrdaWarehouse::Tasks::IdentifyDuplicates.enqueue_full_run!
   end
 
-  # Run when we add a new client to the system
-  private def warehouse_identify_duplicate_clients
-    self.class.warehouse_identify_duplicate_clients
+  # After creation of a single client run a more efficient per-client identify duplicates.
+  private def warehouse_identify_duplicates_for_new_client
+    GrdaWarehouse::Tasks::IdentifyDuplicates.new.
+      delay(queue: ENV.fetch('DJ_SHORT_QUEUE_NAME', :short_running)).
+      process_source_client!(id)
   end
 
   private def warehouse_columns_changed?

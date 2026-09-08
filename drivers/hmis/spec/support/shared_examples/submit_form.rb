@@ -30,16 +30,21 @@ RSpec.shared_examples 'submit form marks enrollment for re-processing' do
 end
 
 # Required lets: input.
-# Include for roles that trigger IdentifyDuplicates job: CLIENT, NEW_CLIENT_ENROLLMENT.
+# Include for roles that create a client: CLIENT, NEW_CLIENT_ENROLLMENT.
 RSpec.shared_examples 'submit form triggers IdentifyDuplicates job' do
-  it 'triggers IdentifyDuplicates job' do
+  it 'enqueues a per-client IdentifyDuplicates job on the short queue and no full run' do
     Delayed::Job.jobs_for_class(['GrdaWarehouse::Tasks::IdentifyDuplicates']).delete_all
 
-    expect do
-      submit_form(input)
-    end.to change(Delayed::Job, :count)
+    expect { submit_form(input) }.to change(Delayed::Job, :count)
 
-    expect(Delayed::Job.jobs_for_class('GrdaWarehouse::Tasks::IdentifyDuplicates').count).to be_positive
+    jobs = Delayed::Job.jobs_for_class('GrdaWarehouse::Tasks::IdentifyDuplicates')
+    per_client_jobs = jobs.jobs_for_class('process_source_client!')
+    expect(per_client_jobs.count).to eq(1)
+    expect(jobs.jobs_for_class('run!')).to be_empty
+
+    job = per_client_jobs.first
+    expect(job.queue).to eq(ENV.fetch('DJ_SHORT_QUEUE_NAME', 'short_running'))
+    expect(job.handler).to include("- #{Hmis::Hud::Client.order(:id).last.id}\n")
   end
 end
 
