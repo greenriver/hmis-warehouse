@@ -1,0 +1,58 @@
+vulnerabilities:
+  - id: CVE-2024-49761
+    statement: ""
+
+  - id: CVE-2025-43857
+    statement: >-
+      This version of net-imap is included with the default ruby in the container, but not used
+      as we install a newer version for the application (fixed in net-imap 0.2.5, 0.3.9, 0.4.20,
+      0.5.7 or later).
+
+  - id: CVE-2025-22874
+    statement: >-
+      Owner of esbuild indicates this is a false-positive; esbuild doesn't use crypto/x509.
+      https://github.com/evanw/esbuild/issues/4204
+
+  - id: CVE-2025-47906
+    statement: "This go vuln is not exploitable. The esbuild package is not yet updated."
+  - id: CVE-2025-47907
+    statement: "This go vuln is not exploitable. The esbuild package is not yet updated."
+
+  - id: CVE-2025-58767
+    statement: >-
+      This version of rexml is included with the default ruby in the container, but not used
+      as we install a newer version for the application (fixed in rexml 3.4.2 or later).
+
+  - id: CVE-2025-47912
+    statement: "Owner of esbuild indicates this is a false-positive. https://github.com/evanw/esbuild/issues/4311"
+  - id: CVE-2025-58183
+    statement: "Owner of esbuild indicates this is a false-positive. https://github.com/evanw/esbuild/issues/4311"
+  - id: CVE-2025-58186
+    statement: "Owner of esbuild indicates this is a false-positive. https://github.com/evanw/esbuild/issues/4311"
+  - id: CVE-2025-58187
+    statement: "Owner of esbuild indicates this is a false-positive. https://github.com/evanw/esbuild/issues/4311"
+  - id: CVE-2025-58188
+    statement: "Owner of esbuild indicates this is a false-positive. https://github.com/evanw/esbuild/issues/4311"
+  - id: CVE-2025-61724
+    statement: "Owner of esbuild indicates this is a false-positive. https://github.com/evanw/esbuild/issues/4311"
+  - id: CVE-2025-61723
+    statement: "Owner of esbuild indicates this is a false-positive. https://github.com/evanw/esbuild/issues/4311"
+  - id: CVE-2025-58189
+    statement: "Owner of esbuild indicates this is a false-positive. https://github.com/evanw/esbuild/issues/4311"
+  - id: CVE-2025-61729
+    statement: "Owner of esbuild indicates this is a false-positive. https://github.com/evanw/esbuild/issues/4311"
+
+  - id: CVE-2026-32700
+    statement: >-
+      Devise, we monkey patched the user model; avoids major version upgrade as we will replace
+      devise with SSO in the near future.
+  - id: CVE-2026-40295
+    statement: "Devise, solved with monkey patch to avoid major version upgrade."
+
+  - id: CVE-2026-41316
+    statement: >-
+      Our app code is patched but the built-in gem for ruby 3.4 remains. Currently ruby 3.4 has
+      no patch to bump the dependency. Can be removed after we upgrade to ruby 4.
+
+  - id: CVE-2026-38969
+    statement: "Webrick is only used internally, no patch available yet."

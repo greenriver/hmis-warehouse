@@ -31,15 +31,19 @@ class SeedMaker
     agency = Agency.where(name: 'Green River').first_or_create
 
     # Setup an initial user
-    initial_password = Faker::Internet.password(min_length: 16)
     user = User.new
     user.email = email
     user.first_name = first_name
     user.last_name = last_name
-    user.password = user.password_confirmation = initial_password
-    user.confirmed_at = Time.now
     user.permission_context = 'acls'
     user.agency_id = agency.id
+    # Under AUTH_METHOD=jwt, UserConcern includes Idp::JwtUser instead of DeviseUser, so User has
+    # no password or confirmation modules at all.
+    unless AuthMethod.jwt?
+      initial_password = Faker::Internet.password(min_length: 16)
+      user.password = user.password_confirmation = initial_password
+      user.confirmed_at = Time.now
+    end
     user.save!
 
     # legacy access
@@ -51,7 +55,11 @@ class SeedMaker
     all_ds_entity_collection = Collection.system_collection(:data_sources)
     AccessControl.create(role: developer, collection: all_ds_entity_collection, user_group: user_group)
 
-    puts "Created initial admin email: #{user.email}  password: #{user.password}"
+    if initial_password
+      puts "Created initial admin email: #{user.email}  password: #{initial_password}"
+    else
+      puts "Created initial admin email: #{user.email} (sign in through the identity provider)"
+    end
     user
   end
 
@@ -111,6 +119,7 @@ class SeedMaker
 
   def maintain_db_monitor_defaults
     AppConfigProperty.where(key: 'wh_db_space_monitor/alert_threshold_pct').first_or_create!(value: 10)
+    AppConfigProperty.where(key: 'wh_db_space_monitor/block_threshold_pct').first_or_create!(value: 5)
   end
 
   def maintain_lookups

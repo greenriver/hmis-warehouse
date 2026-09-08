@@ -43,15 +43,18 @@ class AccessControlUpload < ApplicationRecord
     update(status: PROCESSED)
   end
 
+  # NOTE: this runs in a Delayed::Job. Set whodunnit explicitly
   def import!
-    self.class.transaction do
-      import_roles!
-      import_agencies! # NOTE: agencies need to be imported before users
-      import_users! # NOTE: users need to be imported before user groups
-      import_user_groups!
-      import_collections!
-      import_access_controls! # NOTE: this must come last
-      update(status: IMPORT_COMPLETE)
+    PaperTrail.request(whodunnit: user_id.to_s, controller_info: { user_id: user_id }) do
+      self.class.transaction do
+        import_roles!
+        import_agencies! # NOTE: agencies need to be imported before users
+        import_users! # NOTE: users need to be imported before user groups
+        import_user_groups!
+        import_collections!
+        import_access_controls! # NOTE: this must come last
+        update(status: IMPORT_COMPLETE)
+      end
     end
   end
 

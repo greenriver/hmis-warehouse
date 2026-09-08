@@ -583,8 +583,8 @@ module GrdaWarehouse::WarehouseReports
             # sub-routes when they were actually referred from the report page itself; a plain
             # /censuses visit always counts. Used by AccessLogs::WarehouseReports::UsageSummary.
             reporting_query: ->(at) {
-              at[:path].eq('/censuses').or(
-                at[:path].matches('/censuses/%').and(
+              at[:reporting_path].eq('/censuses').or(
+                at[:reporting_path].matches('/censuses/%').and(
                   at[:referrer].matches('%/censuses').
                     or(at[:referrer].matches('%/censuses/%')).
                     or(at[:referrer].matches('%/censuses?%')),

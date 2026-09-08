@@ -6,6 +6,7 @@ custom_files:
     description: "Definitions for custom data elements"
     warehouse_key: "CustomDataElementDefinitionID"
     warehouse_class_name: "GrdaWarehouse::Hud::CustomDataElementDefinition"
+    hmis_owned: true
     columns:
       - name: "CustomDataElementDefinitionID"
         type: "string"

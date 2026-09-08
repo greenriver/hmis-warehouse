@@ -34,6 +34,7 @@ docker-compose.override.yml
 !/.eslintrc.js
 !/.rspec.sample
 !/.trivyignore
+!/.trivyignore.yaml
 !/.claude_config.json
 # Worktrunk project config (hooks) — track just this one file under .config/
 !/.config
