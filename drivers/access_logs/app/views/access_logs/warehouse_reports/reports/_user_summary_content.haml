@@ -55,20 +55,20 @@
               %td= yes_no(row[:warehouse])
               - if hmis
                 %td= yes_no(row[:hmis])
-= render 'common/panel_collapse', id: 'user-summary-created', title: 'Created Users Details', content: '_created', wrapper_class: 'mb-4'
+  = render 'common/panel_collapse', id: 'user-summary-created', title: 'Created Users Details', content: '_created', wrapper_class: 'mb-4'
 
-- if cas
-  - content_for :panel_collapse_content_cas_created do
-    %p.text-muted CAS accounts are separate from warehouse accounts.
-    .table-responsive
-      %table.table.table-sm
-        %thead
-          %tr
-            %th CAS User
-            %th Created
-        %tbody
-          - @summary[:created][:cas].each do |row|
+  - if cas
+    - content_for :panel_collapse_content_cas_created do
+      %p.text-muted CAS accounts are separate from warehouse accounts.
+      .table-responsive
+        %table.table.table-sm
+          %thead
             %tr
-              %td= cas_user_cell.call(row[:cas_user_id])
-              %td= row[:created_at].to_date.to_fs
-  = render 'common/panel_collapse', id: 'user-summary-cas-created', title: 'Created CAS Users Details', content: '_cas_created', wrapper_class: 'mb-4'
+              %th CAS User
+              %th Created
+          %tbody
+            - @summary[:created][:cas].each do |row|
+              %tr
+                %td= cas_user_cell.call(row[:cas_user_id])
+                %td= row[:created_at].to_date.to_fs
+    = render 'common/panel_collapse', id: 'user-summary-cas-created', title: 'Created CAS Users Details', content: '_cas_created', wrapper_class: 'mb-4'

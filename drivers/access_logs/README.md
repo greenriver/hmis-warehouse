@@ -9,8 +9,9 @@ report in the Audit group; every tab is gated by that report definition's visibi
   (the CAS database's `activity_logs`), and HMIS (`hmis_activity_logs`).
 - **Report Usage** — visit-days per warehouse report, bucketed by `ActivityLog.warehouse_report_conditions`.
 - **User Access Summary** — for a date range: users who accessed the Warehouse, the HMIS, and the CAS
-  (first and latest access each), and users created in the range with the access they hold today. CAS
-  accounts are separate from warehouse accounts and are listed by CAS name only, with no link.
+  (first and latest access each), users created in the range with the access they hold today, and CAS
+  users created in the range. CAS accounts are separate from warehouse accounts and are listed by CAS
+  name only, with no link.
   Access counts read the log tables directly, so users whose grants were later revoked or who were deleted
   still appear.
 
