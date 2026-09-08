@@ -27,10 +27,12 @@ module AccessLogs::WarehouseReports
     end
 
     def user_summary
+      @inline_html = inline_render(BackgroundRender::AccessLogsUserSummaryJob)
     end
 
     def report_usage
       @per_page_js = ['access_logs_usage_report']
+      @inline_html = inline_render(BackgroundRender::AccessLogsReportUsageJob)
     end
 
     def index
@@ -58,6 +60,14 @@ module AccessLogs::WarehouseReports
       flash[:notice] = 'Access Log file generation queued'
       redirect_to access_logs_warehouse_reports_reports_path
       # respond_with(file, location: access_logs_warehouse_reports_reports_path)
+    end
+
+    # Development escape hatch: `?inline=1` renders the tab's content in the request instead of via
+    # the CableReady background job, for local setups where the websocket round-trip is unreliable.
+    private def inline_render(job_class)
+      return unless Rails.env.development? && params[:inline].present?
+
+      job_class.new.render_html(filters: @filter.for_params[:filters].to_json, user_id: current_user.id).html_safe
     end
 
     private def filter_class

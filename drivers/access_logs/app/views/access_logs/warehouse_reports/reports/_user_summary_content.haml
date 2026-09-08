@@ -1,57 +1,74 @@
 - hmis = @summary[:hmis_enabled]
+- cas = @summary[:cas_enabled]
 - user_cell = ->(id) { (u = @users[id]) ? link_to(u.name_with_email, edit_admin_user_path(u)) : "User ##{id} (deleted)" }
+- cas_user_cell = ->(id) { @summary[:cas_user_names].fetch(id) { "CAS User ##{id} (deleted)" } }
 - created_sub = [content_tag(:span, @summary[:created][:warehouse_count], data: { summary_count: 'warehouse-created' }), ' Warehouse']
 - created_sub += [' · ', content_tag(:span, @summary[:created][:hmis_count], data: { summary_count: 'hmis-created' }), ' HMIS'] if hmis
+- access_sections = [['warehouse', 'Warehouse', user_cell]]
+- access_sections << ['hmis', 'HMIS', user_cell] if hmis
+- access_sections << ['cas', 'CAS', cas_user_cell] if cas
 
 #access-logs-user-summary
   %p.text-muted= "#{@summary[:date_range][:start].to_fs} – #{@summary[:date_range][:end].to_fs}"
 
-  .row.row-cols-1.row-cols-md-3.g-3.mb-4
-    = render 'access_logs/warehouse_reports/reports/user_summary_count', label: 'Users who accessed the Warehouse', count: @summary[:access][:warehouse].size, key: 'warehouse-access', target: 'user-summary-warehouse-access'
-    - if hmis
-      = render 'access_logs/warehouse_reports/reports/user_summary_count', label: 'Users who accessed the HMIS', count: @summary[:access][:hmis].size, key: 'hmis-access', target: 'user-summary-hmis-access'
-    = render 'access_logs/warehouse_reports/reports/user_summary_count', label: 'Users created', count: @summary[:created][:all].size, key: 'created', target: 'user-summary-created', sub: safe_join(created_sub)
+  .row.row-cols-1.row-cols-md-3.row-cols-xl-5.g-3.mb-4
+    - access_sections.each do |key, label, _cell|
+      = render 'access_logs/warehouse_reports/reports/user_summary_count', label: "Users who accessed the #{label}", count: @summary[:access][key.to_sym].size, key: "#{key}-access"
+    = render 'access_logs/warehouse_reports/reports/user_summary_count', label: 'Users created', count: @summary[:created][:all].size, key: 'created', sub: safe_join(created_sub)
+    - if cas
+      = render 'access_logs/warehouse_reports/reports/user_summary_count', label: 'CAS users created', count: @summary[:created][:cas].size, key: 'cas-created'
 
-  - [['warehouse', 'Warehouse'], ['hmis', 'HMIS']].each do |key, label|
-    - next if key == 'hmis' && !hmis
-    .collapse.mb-4{ id: "user-summary-#{key}-access" }
-      .card
-        .card-header
-          %h2= "#{label} access"
-          %p.text-muted.mb-0 One row per user active in the range, with their first and most recent access.
-        .card-body.table-responsive
-          %table.table.table-sm
-            %thead
-              %tr
-                %th User
-                %th First access
-                %th Latest access
-            %tbody
-              - @summary[:access][key.to_sym].each do |row|
-                %tr
-                  %td= user_cell.call(row[:user_id])
-                  %td= row[:first_access].to_fs(:db)
-                  %td= row[:last_access].to_fs(:db)
-
-  .collapse.mb-4#user-summary-created
-    .card
-      .card-header
-        %h2 Users created
-        %p.text-muted.mb-0 Access columns show what each user holds today, not what they held when created.
-      .card-body.table-responsive
+  - access_sections.each do |key, label, cell|
+    - content_for "panel_collapse_content_#{key}_access".to_sym do
+      %p.text-muted One row per user active in the range, with their first and most recent access.
+      .table-responsive
         %table.table.table-sm
           %thead
             %tr
               %th User
-              %th Created
-              %th Warehouse access
-              - if hmis
-                %th HMIS access
+              %th First access
+              %th Latest access
           %tbody
-            - @summary[:created][:all].each do |row|
+            - @summary[:access][key.to_sym].each do |row|
               %tr
-                %td= user_cell.call(row[:user_id])
-                %td= row[:created_at].to_date.to_fs
-                %td= yes_no(row[:warehouse])
-                - if hmis
-                  %td= yes_no(row[:hmis])
+                %td= cell.call(row[:user_id])
+                %td= row[:first_access].to_fs(:db)
+                %td= row[:last_access].to_fs(:db)
+    = render 'common/panel_collapse', id: "user-summary-#{key}-access", title: "#{label} Access Details", content: "_#{key}_access", wrapper_class: 'mb-4'
+
+  - content_for :panel_collapse_content_created do
+    %p.text-muted Access columns show what each user holds today, not what they held when created.
+    .table-responsive
+      %table.table.table-sm
+        %thead
+          %tr
+            %th User
+            %th Created
+            %th Warehouse access
+            - if hmis
+              %th HMIS access
+        %tbody
+          - @summary[:created][:all].each do |row|
+            %tr
+              %td= user_cell.call(row[:user_id])
+              %td= row[:created_at].to_date.to_fs
+              %td= yes_no(row[:warehouse])
+              - if hmis
+                %td= yes_no(row[:hmis])
+= render 'common/panel_collapse', id: 'user-summary-created', title: 'Created Users Details', content: '_created', wrapper_class: 'mb-4'
+
+- if cas
+  - content_for :panel_collapse_content_cas_created do
+    %p.text-muted CAS accounts are separate from warehouse accounts.
+    .table-responsive
+      %table.table.table-sm
+        %thead
+          %tr
+            %th CAS User
+            %th Created
+        %tbody
+          - @summary[:created][:cas].each do |row|
+            %tr
+              %td= cas_user_cell.call(row[:cas_user_id])
+              %td= row[:created_at].to_date.to_fs
+  = render 'common/panel_collapse', id: 'user-summary-cas-created', title: 'Created CAS Users Details', content: '_cas_created', wrapper_class: 'mb-4'

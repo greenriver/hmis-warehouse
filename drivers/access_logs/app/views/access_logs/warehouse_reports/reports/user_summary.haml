@@ -5,6 +5,9 @@
 %h1.mb-3= title
 = render 'tabs'
 = render 'date_range_filter', url: user_summary_access_logs_warehouse_reports_reports_path
-= render 'background_render', url: render_user_summary_access_logs_warehouse_reports_reports_path, fetch_params: { filters: @filter.for_params[:filters] } do
-  .rollup
-    .rollup-container.well
+- if @inline_html
+  = @inline_html
+- else
+  = render 'background_render', url: render_user_summary_access_logs_warehouse_reports_reports_path, fetch_params: { filters: @filter.for_params[:filters] } do
+    .rollup
+      .rollup-container.well

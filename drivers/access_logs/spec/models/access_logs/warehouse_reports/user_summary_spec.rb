@@ -109,4 +109,39 @@ RSpec.describe AccessLogs::WarehouseReports::UserSummary do
       expect(summary[:created][:hmis_count]).to eq(2)
     end
   end
+
+  # The CAS database is not configured in the test environment, so the enabled path stubs the CAS
+  # models at the database boundary; the disabled path runs for real.
+  describe 'CAS access' do
+    it 'marks CAS disabled and reports no CAS access or created CAS users when the CAS database is absent' do
+      expect(summary[:cas_enabled]).to be(false)
+      expect(summary[:access][:cas]).to eq([])
+      expect(summary[:created][:cas]).to eq([])
+    end
+
+    context 'when the CAS is enabled' do
+      let(:first) { 2.days.ago.noon }
+      let(:last) { 1.day.ago.noon }
+
+      before do
+        allow(GrdaWarehouse::Config).to receive(:cas_enabled?).and_return(true)
+        access_scope = double('cas activity scope', klass: double('cas activity model', arel_table: Arel::Table.new(:activity_logs)))
+        allow(access_scope).to receive(:group).with(:user_id).and_return(access_scope)
+        allow(access_scope).to receive(:pluck).and_return([[42, first, last]])
+        allow(CasAccess::ActivityLog).to receive(:created_in_range).with(range: range).and_return(access_scope)
+        created_scope = double('cas user scope')
+        allow(created_scope).to receive(:order).with(created_at: :desc).and_return(created_scope)
+        allow(created_scope).to receive(:pluck).with(:id, :created_at).and_return([[42, first]])
+        allow(CasAccess::User).to receive(:created_in_range).with(range: range).and_return(created_scope)
+        allow(CasAccess::User).to receive(:name_with_email_by_id).with([42]).and_return(42 => 'Cas Person <cas@example.com>')
+      end
+
+      it 'reports CAS users by CAS user id with first and last access, and CAS users created in range' do
+        expect(summary[:cas_enabled]).to be(true)
+        expect(summary[:access][:cas]).to eq([{ user_id: 42, first_access: first, last_access: last }])
+        expect(summary[:created][:cas]).to eq([{ cas_user_id: 42, created_at: first }])
+        expect(summary[:cas_user_names]).to eq(42 => 'Cas Person <cas@example.com>')
+      end
+    end
+  end
 end

@@ -11,6 +11,14 @@ module CasAccess
     self.table_name = :activity_logs
     belongs_to :user
 
+    # `range` is a Date..Date; created_at is a UTC instant, so bare Date bounds would drop
+    # evening (Eastern) activity on the last day.
+    # A class method rather than a scope so it is also defined when the CAS database is absent and
+    # CasBase is the non-ActiveRecord stub.
+    def self.created_in_range(range:)
+      where(created_at: range.begin.beginning_of_day..range.end.end_of_day)
+    end
+
     def self.to_a(user_id: nil, range: 1.years.ago..Time.current)
       return nil unless db_exists?
 
