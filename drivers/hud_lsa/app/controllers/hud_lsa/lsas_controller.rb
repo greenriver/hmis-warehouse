@@ -84,12 +84,9 @@ module HudLsa
       raise ActiveRecord::RecordNotFound if export.blank?
 
       zip = export.hmis_zip
-      # Use the ActiveStorage version if we have it, otherwise the db attachment.
-      if zip.present?
-        send_data(zip.download, type: zip.content_type, filename: export.export_file_name)
-      else
-        send_data(export.content, filename: export.export_file_name, type: export.content_type, disposition: 'attachment')
-      end
+      raise ActiveRecord::RecordNotFound if zip.blank?
+
+      send_data(zip.download, type: zip.content_type, filename: export.export_file_name, disposition: 'attachment')
     end
 
     private def report

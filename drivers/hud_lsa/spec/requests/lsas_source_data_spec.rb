@@ -108,6 +108,19 @@ RSpec.describe 'LSA source data download', type: :request do
       end
     end
 
+    # can_download_lsa_source_data is additive -- HudReports::BaseController's
+    # require_can_view_hud_reports! still has to be satisfied to reach the action.
+    context 'holding can_download_lsa_source_data but no HUD report permission' do
+      let(:permissions) { { can_download_lsa_source_data: true } }
+
+      it 'redirects and sends no export content' do
+        get download_source_data_hud_reports_lsa_path(report)
+
+        expect(response).to have_http_status(:redirect)
+        expect(response.body).not_to include('zip-data')
+      end
+    end
+
     context 'without can_download_lsa_source_data' do
       it 'redirects and sends no export content' do
         get download_source_data_hud_reports_lsa_path(report)
