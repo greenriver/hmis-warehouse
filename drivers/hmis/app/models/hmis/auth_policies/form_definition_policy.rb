@@ -69,7 +69,7 @@ class Hmis::AuthPolicies::FormDefinitionPolicy < Hmis::AuthPolicies::ResourcePol
     end
 
     def configurable_form_role?
-      Hmis::Form::Definition::NON_CONFIGURABLE_FORM_ROLES.exclude?(form_definition.role.to_s)
+      Hmis::Form::Definition::NON_CONFIGURABLE_FORM_ROLES.exclude?(form_definition.role.to_sym)
     end
 
     # Determines if the form role is considered a non-super-admin form or a super-admin form

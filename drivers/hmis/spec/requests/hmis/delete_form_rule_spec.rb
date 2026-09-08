@@ -86,6 +86,20 @@ RSpec.describe 'Delete Form Rule Mutation', type: :request do
     end
   end
 
+  # Referral roles are not managed in the Forms admin tool, and static admin forms take no rules.
+  # These examples grant can_administrate_config so that the denial is attributable to the form role
+  # rather than to a missing permission.
+  [:REFERRAL, :PROJECT_CONFIG].each do |role|
+    context "when deleting a rule for the non-configurable #{role} form role" do
+      let!(:access_control) { create_access_control(hmis_user, ds1, with_permission: [:can_configure_data_collection, :can_administrate_config]) }
+      let!(:form_definition) { create(:hmis_form_definition, identifier: "test-#{role.to_s.downcase}", role: role, status: :published, data_source: ds1) }
+
+      it 'raises access denied error even for a super-admin' do
+        expect_access_denied post_graphql(input) { mutation }
+      end
+    end
+  end
+
   context 'without permissions' do
     let!(:access_control) { create_access_control(hmis_user, ds1, without_permission: [:can_configure_data_collection]) }
 

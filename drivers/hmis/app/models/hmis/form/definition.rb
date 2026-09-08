@@ -219,14 +219,14 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   # Forms that are not managed by the Forms admin tool. Form rules do not
   # affect these roles, so they should not be listed or configurable.
   UNMANAGED_FORM_ROLES = [
-    'REFERRAL',
-    'REFERRAL_REQUEST',
-    'CE_REFERRAL_STEP',
+    :REFERRAL,
+    :REFERRAL_REQUEST,
+    :CE_REFERRAL_STEP,
   ].freeze
 
   # Roles that nobody can configure in the Forms admin tool, including super-admins.
   # Static forms are always present and enabled, so they take no form rules either.
-  NON_CONFIGURABLE_FORM_ROLES = [*UNMANAGED_FORM_ROLES, *STATIC_FORM_ROLES.map(&:to_s)].freeze
+  NON_CONFIGURABLE_FORM_ROLES = [*UNMANAGED_FORM_ROLES, *STATIC_FORM_ROLES].freeze
 
   # All form roles
   use_enum_with_same_key :form_role_enum_map, FORM_ROLES.excluding(:CE)
@@ -255,9 +255,12 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   end
 
   # Forms which this user can resolve and configure in the form editor.
-  # Mirrors FormDefinitionPolicy#can_configure_form?, so that every listed form can be opened.
+  # Applies the role denylist from FormDefinitionPolicy#can_configure_form?, so that every listed
+  # form can be opened. Callers are responsible for the can_configure_data_collection check.
+  # `valid` drops legacy roles outside FORM_ROLES, which cannot be resolved at all because
+  # FormDefinition#role is a non-null GraphQL enum.
   scope :configurable_by, ->(user) do
-    in_data_source(user.hmis_data_source_id).where.not(role: NON_CONFIGURABLE_FORM_ROLES)
+    in_data_source(user.hmis_data_source_id).valid.where.not(role: NON_CONFIGURABLE_FORM_ROLES)
   end
 
   before_destroy :can_be_destroyed, prepend: true
