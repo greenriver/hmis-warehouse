@@ -117,19 +117,22 @@ module GrdaWarehouse
       end
     end
 
+    # min_by picks the lowest key, so the direction is expressed in the sign:
+    #   use_oldest  - the earliest timestamp is already the lowest, leave it be.
+    #   otherwise   - negate, which makes the latest timestamp the lowest.
+    # Infinity is returned before the negation and sits above every real key
+    # either way, so a record with no DateCreated always loses this rank rather
+    # than winning it.
     def date_key_for(created_at)
-      timestamp = created_at&.to_i
-      timestamp ||= default_date_key
+      return Float::INFINITY if created_at.nil?
+
+      timestamp = created_at.to_i
       timestamp *= -1 unless use_oldest?
       timestamp
     end
 
     def use_oldest?
       @use_oldest
-    end
-
-    def default_date_key
-      use_oldest? ? Float::INFINITY : -Float::INFINITY
     end
 
     def source_identifier_for(source)
