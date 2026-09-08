@@ -300,6 +300,8 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   # This is just to help with local development when switching between branches that support different roles.
   scope :valid, -> { where(role: FORM_ROLES) }
 
+  # Currently has no callers. The Forms admin tool denies static roles through
+  # NON_CONFIGURABLE_FORM_ROLES instead, so nothing depends on this scope.
   scope :non_static, -> { where.not(role: STATIC_FORM_ROLES) }
 
   scope :active, -> do

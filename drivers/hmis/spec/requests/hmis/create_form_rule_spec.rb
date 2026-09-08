@@ -84,6 +84,23 @@ RSpec.describe 'Create Form Rule Mutation', type: :request do
         end.to change(Hmis::Form::Instance, :count).by(1)
       end
     end
+
+    # HUD assessments are the newly configurable roles that carry HUD-compliance risk, so the
+    # rules-only persona is asserted against one at the mutation layer, not just in the policy spec.
+    context 'when creating a rule for an INTAKE form' do
+      let!(:form_definition) { create(:hmis_form_definition, identifier: 'test-intake', role: :INTAKE, status: :published, data_source: ds1) }
+
+      it 'creates a rule for the form' do
+        expect do
+          response, result = post_graphql(input) { mutation }
+          expect(response.status).to eq(200), result.inspect
+
+          form_rule = result.dig('data', 'createFormRule', 'formRule')
+          expect(form_rule).to be_present
+          expect(form_rule['definitionRole']).to eq('INTAKE')
+        end.to change(Hmis::Form::Instance, :count).by(1)
+      end
+    end
   end
 
   context 'when creating an organization-level rule' do
