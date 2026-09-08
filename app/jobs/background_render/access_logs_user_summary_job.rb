@@ -15,7 +15,7 @@ class BackgroundRender::AccessLogsUserSummaryJob < BackgroundRenderJob
 
     AccessLogs::WarehouseReports::ReportsController.render(
       partial: 'access_logs/warehouse_reports/reports/user_summary_content',
-      assigns: { summary: summary, users: users },
+      assigns: { summary: summary, users: users, link_users: User.find(user_id).can_edit_users? },
     )
   end
 end

@@ -10,9 +10,18 @@ require 'rails_helper'
 
 RSpec.describe BackgroundRender::AccessLogsUserSummaryJob do
   include Rails.application.routes.url_helpers
+  include AccessControlSetup
 
-  let(:requesting_user) { create(:user, created_at: 1.year.ago) }
-  let(:filters) { { start: 5.days.ago.to_date, end: Date.current }.to_json }
+  let(:requesting_user) { create(:acl_user, created_at: 1.year.ago) }
+  let(:role) { create(:role, can_edit_users: true) }
+  let(:range) { 5.days.ago.to_date..Date.current }
+  let(:filters) { { start: range.begin, end: range.end }.to_json }
+
+  before { setup_access_control(requesting_user, role, create(:collection)) }
+
+  def access_time(time)
+    time.in_time_zone.strftime('%Y-%m-%d %H:%M %Z')
+  end
 
   def render
     Nokogiri::HTML5.fragment(described_class.new.render_html(filters: filters, user_id: requesting_user.id))
@@ -31,8 +40,33 @@ RSpec.describe BackgroundRender::AccessLogsUserSummaryJob do
     row = html.at_css('#user-summary-warehouse-access tbody tr')
 
     expect(row.at_css('a')['href']).to eq(edit_admin_user_path(visitor))
-    expect(row.css('td').map { |td| td.text.strip }).to eq([visitor.name_with_email, 2.days.ago.noon.to_fs(:db), 1.day.ago.noon.to_fs(:db)])
+    expect(row.css('td').map { |td| td.text.strip }).to eq([visitor.name_with_email, access_time(2.days.ago.noon), access_time(1.day.ago.noon)])
     expect(html.at_css('[data-summary-count="warehouse-access"]').text.strip).to eq('1')
+  end
+
+  it 'shows access times in the application time zone, so a late visit stays on the last day of the range' do
+    visitor = create(:user, created_at: 1.year.ago)
+    late = range.end.in_time_zone.change(hour: 23)
+    warehouse_visit(visitor, late)
+
+    cells = render.at_css('#user-summary-warehouse-access tbody tr').css('td').map { |td| td.text.strip }
+
+    expect(cells[1]).to start_with(range.end.to_fs(:db))
+    expect(cells[1]).to eq(access_time(late))
+  end
+
+  context 'when the requesting user cannot edit users' do
+    let(:role) { create(:role, can_edit_users: false) }
+
+    it 'shows warehouse user names as plain text' do
+      visitor = create(:user, created_at: 1.year.ago)
+      warehouse_visit(visitor, 1.day.ago.noon)
+
+      row = render.at_css('#user-summary-warehouse-access tbody tr')
+
+      expect(row.at_css('a')).to be_nil
+      expect(row.at_css('td').text.strip).to eq(visitor.name_with_email)
+    end
   end
 
   it 'labels a deleted user by id instead of dropping their access row' do
@@ -105,7 +139,7 @@ RSpec.describe BackgroundRender::AccessLogsUserSummaryJob do
       row = html.at_css('#user-summary-cas-access tbody tr')
 
       expect(row.at_css('a')).to be_nil
-      expect(row.css('td').map { |td| td.text.strip }).to eq(['Cas Person <cas@example.com>', visited_at.to_fs(:db), visited_at.to_fs(:db)])
+      expect(row.css('td').map { |td| td.text.strip }).to eq(['Cas Person <cas@example.com>', access_time(visited_at), access_time(visited_at)])
       expect(html.at_css('[data-summary-count="cas-access"]').text.strip).to eq('1')
       expect(html.at_css('#user-summary-cas-created tbody tr td').text.strip).to eq('Cas Person <cas@example.com>')
       expect(html.at_css('[data-summary-count="cas-created"]').text.strip).to eq('1')

@@ -94,7 +94,9 @@ class ActivityLog < ApplicationRecord
     ['minute', 'hour', 'day', 'week', 'month', 'year']
   end
 
-  def self.to_a(user_id: nil, range: 1.years.ago..Time.current)
+  # Spreadsheet rows for the User Access Logs export: the header, then one row per log, streamed
+  # in batches so the caller never holds the whole table in memory.
+  def self.export_rows(user_id: nil, range: 1.years.ago..Time.current, limit: nil)
     columns = {
       user_id: 'User ID',
       agency_name_column => 'Agency Name',
@@ -106,15 +108,13 @@ class ActivityLog < ApplicationRecord
     }
     scope = where(created_at: range).left_outer_joins(user: :agency)
     scope = scope.where(user_id: user_id) if user_id.present?
-    rows = [columns.values]
-    scope.in_batches do |batch|
-      data = pluck_to_hash(columns, batch)
-      data = scrub(data)
-      data.each do |row|
-        rows << row.values
+    scope = scope.limit(limit) if limit
+    Enumerator.new do |rows|
+      rows << columns.values
+      scope.in_batches do |batch|
+        scrub(pluck_to_hash(columns, batch)).each { |row| rows << row.values }
       end
     end
-    rows
   end
 
   def self.agency_name_column

@@ -1,6 +1,7 @@
 - hmis = @summary[:hmis_enabled]
 - cas = @summary[:cas_enabled]
-- user_cell = ->(id) { (u = @users[id]) ? link_to(u.name_with_email, edit_admin_user_path(u)) : "User ##{id} (deleted)" }
+- user_cell = ->(id) { (u = @users[id]) ? (@link_users ? link_to(u.name_with_email, edit_admin_user_path(u)) : u.name_with_email) : "User ##{id} (deleted)" }
+- access_time = ->(time) { time.in_time_zone.strftime('%Y-%m-%d %H:%M %Z') }
 - cas_user_cell = ->(id) { @summary[:cas_user_names].fetch(id) { "CAS User ##{id} (deleted)" } }
 - created_sub = [content_tag(:span, @summary[:created][:warehouse_count], data: { summary_count: 'warehouse-created' }), ' Warehouse']
 - created_sub += [' · ', content_tag(:span, @summary[:created][:hmis_count], data: { summary_count: 'hmis-created' }), ' HMIS'] if hmis
@@ -32,8 +33,8 @@
             - @summary[:access][key.to_sym].each do |row|
               %tr
                 %td= cell.call(row[:user_id])
-                %td= row[:first_access].to_fs(:db)
-                %td= row[:last_access].to_fs(:db)
+                %td= access_time.call(row[:first_access])
+                %td= access_time.call(row[:last_access])
     = render 'common/panel_collapse', id: "user-summary-#{key}-access", title: "#{label} Access Details", content: "_#{key}_access", wrapper_class: 'mb-4'
 
   - content_for :panel_collapse_content_created do

@@ -77,15 +77,19 @@ RSpec.describe AccessLogs::WarehouseReports::ReportsController, type: :request d
 
     context 'when the HMIS is enabled' do
       let!(:hmis_user) { create(:hmis_user, first_name: 'Ada', last_name: 'Lovelace') }
+      let!(:former_hmis_user) { create(:hmis_user, first_name: 'Grace', last_name: 'Hopper') }
       let!(:non_hmis_user) { create(:user, first_name: 'Zed', last_name: 'Nohmis') }
 
-      before { create(:hmis_access_control, with_users: [hmis_user]) }
+      before do
+        create(:hmis_access_control, with_users: [hmis_user])
+        create(:hmis_access_control, with_users: [former_hmis_user]).destroy!
+      end
 
-      it 'offers only HMIS users in the HMIS user select' do
+      it 'offers current and former HMIS users in the HMIS user select, but not users who never had HMIS access' do
         get access_logs_warehouse_reports_reports_path
 
         select = Nokogiri::HTML5(response.body).at_css('select[name="filters[hmis_user_id]"]')
-        expect(select.css('option').map(&:text)).to contain_exactly('All', hmis_user.name_with_email)
+        expect(select.css('option').map(&:text)).to contain_exactly('All', hmis_user.name_with_email, former_hmis_user.name_with_email)
       end
     end
   end

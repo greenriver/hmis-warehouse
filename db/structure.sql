@@ -3722,13 +3722,6 @@ CREATE INDEX index_hmis_activity_logs_enrollments_on_project_id ON public.hmis_a
 
 
 --
--- Name: index_hmis_activity_logs_on_created_at_and_user_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_activity_logs_on_created_at_and_user_id ON public.hmis_activity_logs USING btree (created_at, user_id);
-
-
---
 -- Name: index_hmis_activity_logs_on_user_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -4251,7 +4244,6 @@ ALTER TABLE ONLY public.oauth_access_tokens
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
-('20260908185916'),
 ('20260827151000'),
 ('20260827150000'),
 ('20260820120000'),

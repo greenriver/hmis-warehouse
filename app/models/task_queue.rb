@@ -117,5 +117,10 @@ class TaskQueue < ApplicationRecord
     config.queued_tasks[:backfill_activity_log_reporting_path] = -> do
       ActivityLog.backfill_reporting_path!
     end
+
+    # Index behind the User Access Summary report's HMIS access query
+    config.queued_tasks[:hmis_activity_log_user_summary_index] = -> do
+      Hmis::ActivityLog.ensure_user_summary_index!
+    end
   end
 end

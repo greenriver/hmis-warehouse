@@ -13,7 +13,7 @@
           = f.input :cas_user_id, as: :select_two, collection: CasAccess::User.all.map { |u| [u.name_with_email, u.id] }, label: 'CAS User', include_blank: 'All', selected: nil
       - if hmis_enabled?
         .col-sm-4
-          = f.input :hmis_user_id, as: :select_two, collection: User.hmis_users.map { |u| [u.name_with_email, u.id] }, label: 'HMIS User', include_blank: 'All', selected: nil
+          = f.input :hmis_user_id, as: :select_two, collection: User.current_or_former_hmis_users.map { |u| [u.name_with_email, u.id] }, label: 'HMIS User', include_blank: 'All', selected: nil
 
   - content_for :filter_actions do
     = f.submit 'Generate Download', class: ['btn', 'btn-primary'], data: { disable_with: false }

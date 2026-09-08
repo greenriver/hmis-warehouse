@@ -19,7 +19,8 @@ module CasAccess
       where(created_at: range.begin.beginning_of_day..range.end.end_of_day)
     end
 
-    def self.to_a(user_id: nil, range: 1.years.ago..Time.current)
+    # Same shape as ActivityLog.export_rows. Nil when the CAS database is not configured.
+    def self.export_rows(user_id: nil, range: 1.years.ago..Time.current, limit: nil)
       return nil unless db_exists?
 
       columns = {
@@ -33,16 +34,13 @@ module CasAccess
       }
       scope = where(created_at: range).left_outer_joins(user: :agency)
       scope = scope.where(user_id: user_id) if user_id.present?
-      data = pluck_to_hash(columns, scope)
-      data = scrub(data)
-
-      rows = []
-      rows << columns.values
-      data.each do |row|
-        rows << row.values_at(*columns.keys)
+      scope = scope.limit(limit) if limit
+      Enumerator.new do |rows|
+        rows << columns.values
+        scope.in_batches do |batch|
+          scrub(pluck_to_hash(columns, batch)).each { |row| rows << row.values_at(*columns.keys) }
+        end
       end
-
-      rows
     end
 
     def self.agency_name_column

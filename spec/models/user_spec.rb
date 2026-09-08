@@ -412,6 +412,26 @@ RSpec.describe User, type: :model do
     end
   end
 
+  describe '.current_or_former_hmis_users' do
+    let!(:hmis_user) { create(:user) }
+    let!(:revoked_grant_user) { create(:user) }
+    let!(:removed_member_user) { create(:user) }
+    let!(:group_only_user) { create(:user) }
+    let!(:plain_user) { create(:user) }
+
+    before do
+      create(:hmis_access_control, with_users: [hmis_user])
+      create(:hmis_access_control, with_users: [revoked_grant_user]).destroy!
+      create(:hmis_access_control, with_users: [removed_member_user])
+      Hmis::UserGroupMember.where(user_id: removed_member_user.id).destroy_all
+      create(:hmis_user_group).add([group_only_user])
+    end
+
+    it 'includes users whose HMIS grant or group membership was later removed, but not users who never held one' do
+      expect(User.current_or_former_hmis_users).to contain_exactly(hmis_user, revoked_grant_user, removed_member_user)
+    end
+  end
+
   describe '.warehouse_users' do
     let!(:acl_user) { create(:acl_user) }
     let!(:legacy_role_user) { create(:user) }
@@ -428,6 +448,10 @@ RSpec.describe User, type: :model do
 
     it 'returns users with a warehouse access control or a legacy role, but not HMIS-only users' do
       expect(User.warehouse_users).to contain_exactly(acl_user, legacy_role_user)
+    end
+
+    it 'chains with other User scopes' do
+      expect(User.where(id: [acl_user.id, legacy_role_user.id, hmis_only_user.id]).where.not(id: legacy_role_user.id).warehouse_users).to contain_exactly(acl_user)
     end
   end
 end
