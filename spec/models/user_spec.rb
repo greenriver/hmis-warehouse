@@ -390,4 +390,44 @@ RSpec.describe User, type: :model do
       expect(user).to be_valid
     end
   end
+
+  describe '.hmis_users' do
+    let!(:hmis_user) { create(:user) }
+    let!(:group_only_user) { create(:user) }
+    let!(:plain_user) { create(:user) }
+    let!(:revoked_user) { create(:user) }
+
+    before do
+      create(:hmis_access_control, with_users: [hmis_user])
+      create(:hmis_user_group).add([group_only_user])
+      create(:hmis_access_control, with_users: [revoked_user]).destroy!
+    end
+
+    it 'returns only users reachable from a live Hmis::AccessControl through a user group' do
+      expect(User.hmis_users).to contain_exactly(hmis_user)
+    end
+
+    it 'chains with other User scopes' do
+      expect(User.where(id: [hmis_user.id, plain_user.id]).hmis_users).to contain_exactly(hmis_user)
+    end
+  end
+
+  describe '.warehouse_users' do
+    let!(:acl_user) { create(:acl_user) }
+    let!(:legacy_role_user) { create(:user) }
+    let!(:hmis_only_user) { create(:user) }
+    let!(:plain_user) { create(:user) }
+
+    before do
+      user_group = create(:user_group)
+      user_group.add([acl_user])
+      create(:access_control, user_group: user_group, role: create(:role), collection: create(:collection))
+      legacy_role_user.legacy_roles << create(:role)
+      create(:hmis_access_control, with_users: [hmis_only_user])
+    end
+
+    it 'returns users with a warehouse access control or a legacy role, but not HMIS-only users' do
+      expect(User.warehouse_users).to contain_exactly(acl_user, legacy_role_user)
+    end
+  end
 end

@@ -5,11 +5,15 @@
         = f.input :start, as: :date_picker
       .col-sm-3
         = f.input :end, as: :date_picker
-      .col-sm-3
+    .row
+      .col-sm-4
         = f.input :user_id, as: :select_two, collection: User.all.map { |u| [u.name_with_email, u.id] }, label: 'Warehouse User', include_blank: 'All', selected: nil
-      .col-sm-3
-        - if GrdaWarehouse::Config.cas_enabled?
+      - if GrdaWarehouse::Config.cas_enabled?
+        .col-sm-4
           = f.input :cas_user_id, as: :select_two, collection: CasAccess::User.all.map { |u| [u.name_with_email, u.id] }, label: 'CAS User', include_blank: 'All', selected: nil
+      - if hmis_enabled?
+        .col-sm-4
+          = f.input :hmis_user_id, as: :select_two, collection: User.hmis_users.map { |u| [u.name_with_email, u.id] }, label: 'HMIS User', include_blank: 'All', selected: nil
 
   - content_for :filter_actions do
     = f.submit 'Generate Download', class: ['btn', 'btn-primary'], data: { disable_with: false }

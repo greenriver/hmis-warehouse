@@ -1,0 +1,8 @@
+- sub ||= nil
+.col
+  %button.card.h-100.w-100.text-start.shadow-sm{ type: 'button', data: { 'bs-toggle' => 'collapse', 'bs-target' => "##{target}" }, aria: { expanded: false, controls: target } }
+    .card-body
+      .small= label
+      .fs-2.fw-bolder{ data: { summary_count: key } }= count
+      - if sub
+        .small.text-muted= sub

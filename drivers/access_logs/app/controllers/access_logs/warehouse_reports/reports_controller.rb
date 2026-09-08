@@ -19,6 +19,16 @@ module AccessLogs::WarehouseReports
       }
     end
 
+    background_render_action(:render_user_summary, BackgroundRender::AccessLogsUserSummaryJob) do
+      {
+        filters: @filter.for_params[:filters].to_json,
+        user_id: current_user.id,
+      }
+    end
+
+    def user_summary
+    end
+
     def report_usage
       @per_page_js = ['access_logs_usage_report']
     end
@@ -41,7 +51,8 @@ module AccessLogs::WarehouseReports
         filter_params: @filter.to_h,
         filter_user_id: filter_params[:filters][:user_id],
         current_user_id: current_user.id,
-        cas_user_id: filter_params[:filters]['cas_user_id'],
+        cas_user_id: filter_params[:filters][:cas_user_id],
+        hmis_user_id: filter_params[:filters][:hmis_user_id],
         file_id: file.id,
       )
       flash[:notice] = 'Access Log file generation queued'
@@ -56,7 +67,7 @@ module AccessLogs::WarehouseReports
     def filter_params
       return { filters: { start: 3.months.ago.to_date, end: 1.days.ago.to_date } } unless params[:filters].present?
 
-      clean = params.permit(filters: [:user_id, :cas_user_id] + @filter.known_params)
+      clean = params.permit(filters: [:user_id, :cas_user_id, :hmis_user_id] + @filter.known_params)
       clean[:filters][:enforce_one_year_range] = false
       clean
     end

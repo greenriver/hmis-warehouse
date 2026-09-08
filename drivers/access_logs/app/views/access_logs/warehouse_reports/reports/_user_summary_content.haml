@@ -1,0 +1,57 @@
+- hmis = @summary[:hmis_enabled]
+- user_cell = ->(id) { (u = @users[id]) ? link_to(u.name_with_email, edit_admin_user_path(u)) : "User ##{id} (deleted)" }
+- created_sub = [content_tag(:span, @summary[:created][:warehouse_count], data: { summary_count: 'warehouse-created' }), ' Warehouse']
+- created_sub += [' · ', content_tag(:span, @summary[:created][:hmis_count], data: { summary_count: 'hmis-created' }), ' HMIS'] if hmis
+
+#access-logs-user-summary
+  %p.text-muted= "#{@summary[:date_range][:start].to_fs} – #{@summary[:date_range][:end].to_fs}"
+
+  .row.row-cols-1.row-cols-md-3.g-3.mb-4
+    = render 'access_logs/warehouse_reports/reports/user_summary_count', label: 'Users who accessed the Warehouse', count: @summary[:access][:warehouse].size, key: 'warehouse-access', target: 'user-summary-warehouse-access'
+    - if hmis
+      = render 'access_logs/warehouse_reports/reports/user_summary_count', label: 'Users who accessed the HMIS', count: @summary[:access][:hmis].size, key: 'hmis-access', target: 'user-summary-hmis-access'
+    = render 'access_logs/warehouse_reports/reports/user_summary_count', label: 'Users created', count: @summary[:created][:all].size, key: 'created', target: 'user-summary-created', sub: safe_join(created_sub)
+
+  - [['warehouse', 'Warehouse'], ['hmis', 'HMIS']].each do |key, label|
+    - next if key == 'hmis' && !hmis
+    .collapse.mb-4{ id: "user-summary-#{key}-access" }
+      .card
+        .card-header
+          %h2= "#{label} access"
+          %p.text-muted.mb-0 One row per user active in the range, with their first and most recent access.
+        .card-body.table-responsive
+          %table.table.table-sm
+            %thead
+              %tr
+                %th User
+                %th First access
+                %th Latest access
+            %tbody
+              - @summary[:access][key.to_sym].each do |row|
+                %tr
+                  %td= user_cell.call(row[:user_id])
+                  %td= row[:first_access].to_fs(:db)
+                  %td= row[:last_access].to_fs(:db)
+
+  .collapse.mb-4#user-summary-created
+    .card
+      .card-header
+        %h2 Users created
+        %p.text-muted.mb-0 Access columns show what each user holds today, not what they held when created.
+      .card-body.table-responsive
+        %table.table.table-sm
+          %thead
+            %tr
+              %th User
+              %th Created
+              %th Warehouse access
+              - if hmis
+                %th HMIS access
+          %tbody
+            - @summary[:created][:all].each do |row|
+              %tr
+                %td= user_cell.call(row[:user_id])
+                %td= row[:created_at].to_date.to_fs
+                %td= yes_no(row[:warehouse])
+                - if hmis
+                  %td= yes_no(row[:hmis])

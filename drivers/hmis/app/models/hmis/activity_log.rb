@@ -58,6 +58,43 @@ class Hmis::ActivityLog < ApplicationRecord
 
   scope :unprocessed, -> { where(processed_at: nil) }
 
+  # `range` is a Date..Date; created_at is a UTC instant, so bare Date bounds would drop
+  # evening (Eastern) activity on the last day.
+  scope :created_in_range, ->(range:) do
+    where(created_at: range.begin.beginning_of_day..range.end.end_of_day)
+  end
+
+  # Spreadsheet rows for the User Access Logs export, same shape as ActivityLog.to_a.
+  # data_source lives in the warehouse database, so its name is mapped in Ruby rather than joined.
+  def self.to_a(user_id: nil, range: 1.years.ago..Time.current)
+    columns = {
+      user_id: 'HMIS User ID',
+      data_source_id: 'Data Source',
+      operation_name: 'Operation',
+      header_page_path: 'Page',
+      created_at: 'Access Time',
+      session_hash: 'Session',
+      ip_address: 'IP Address',
+      referer: 'Referrer',
+    }
+    scope = where(created_at: range)
+    scope = scope.where(user_id: user_id) if user_id.present?
+    data_source_names = GrdaWarehouse::DataSource.hmis.pluck(:id, :name).to_h
+
+    rows = [columns.values]
+    scope.in_batches do |batch|
+      batch.pluck(*columns.keys).each do |values|
+        row = columns.keys.zip(values).to_h
+        row[:data_source_id] = data_source_names[row[:data_source_id]]
+        row[:header_page_path] = row[:header_page_path]&.gsub(/\?.*/, '')
+        row[:referer] = row[:referer]&.gsub(/\?.*/, '')
+        row[:created_at] = row[:created_at].to_fs(:db)
+        rows << row.values
+      end
+    end
+    rows
+  end
+
   # Logically HmisActivityLog is HABTM to clients and enrollments. However due to the database boundary, we do not
   # define active record associations for those; the joins from such associations would be invalid sql.
   #
