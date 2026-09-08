@@ -639,11 +639,11 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
   describe 'choose_best_dob method' do
     let(:cleanup) { GrdaWarehouse::Tasks::ClientCleanup.new }
     let(:dest_attr) { { DOB: nil, DOBDataQuality: nil } }
-    let(:flag) { false }
+    let(:selection_method) { :legacy }
 
     before do
       allow(GrdaWarehouse::Config).to receive(:get).and_call_original
-      allow(GrdaWarehouse::Config).to receive(:get).with(:dob_dq_demotion_enabled).and_return(flag)
+      allow(GrdaWarehouse::Config).to receive(:get).with(:dob_selection_method).and_return(selection_method)
     end
 
     # Source A's DOB postdates its own DateCreated, so it is impossible. It is
@@ -655,8 +655,8 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
       ]
     end
 
-    context 'when dob_dq_demotion_enabled is off' do
-      let(:flag) { false }
+    context 'when dob_selection_method is legacy' do
+      let(:selection_method) { :legacy }
 
       it 'pins the legacy outcome: the older record wins even with an impossible DOB' do
         result = cleanup.choose_best_dob(dest_attr, qa_source_clients)
@@ -707,8 +707,8 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
       end
     end
 
-    context 'when dob_dq_demotion_enabled is on' do
-      let(:flag) { true }
+    context 'when dob_selection_method is demote_oldest' do
+      let(:selection_method) { :demote_oldest }
 
       it 'prefers the newer record whose DOB is possible' do
         result = cleanup.choose_best_dob(dest_attr, qa_source_clients)
@@ -734,6 +734,51 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
           and_call_original
 
         cleanup.choose_best_dob(dest_attr, qa_source_clients)
+      end
+    end
+
+    context 'when dob_selection_method is demote_newest' do
+      let(:selection_method) { :demote_newest }
+
+      it 'delegates to DOBSelector, preferring the newest record' do
+        expect(GrdaWarehouse::DOBSelector).to receive(:call).
+          with(dest_attr: dest_attr, source_clients: qa_source_clients, use_oldest: false).
+          and_call_original
+
+        cleanup.choose_best_dob(dest_attr, qa_source_clients)
+      end
+
+      it 'breaks a tie on the newest record rather than the oldest' do
+        source_clients = [
+          { DOB: Date.new(1980, 1, 1), DOBDataQuality: 1, DateCreated: Time.zone.local(2021, 1, 1), id: 1 },
+          { DOB: Date.new(1990, 1, 1), DOBDataQuality: 1, DateCreated: Time.zone.local(2022, 1, 1), id: 2 },
+        ]
+
+        result = cleanup.choose_best_dob(dest_attr, source_clients)
+
+        expect(result[:DOB]).to eq(Date.new(1990, 1, 1))
+      end
+
+      it 'still demotes an impossible DOB' do
+        source_clients = [
+          { DOB: Date.new(2023, 6, 1), DOBDataQuality: 1, DateCreated: Time.zone.local(2022, 1, 1), id: 1 },
+        ]
+
+        result = cleanup.choose_best_dob(dest_attr, source_clients)
+
+        expect(result[:DOB]).to eq(Date.new(2023, 6, 1))
+        expect(result[:DOBDataQuality]).to eq(2)
+      end
+    end
+
+    context 'when dob_selection_method holds an unrecognized value' do
+      let(:selection_method) { 'something_else' }
+
+      it 'falls back to the legacy selection rather than demoting' do
+        result = cleanup.choose_best_dob(dest_attr, qa_source_clients)
+
+        expect(result[:DOB]).to eq(Date.new(2022, 6, 1))
+        expect(result[:DOBDataQuality]).to eq(1)
       end
     end
   end

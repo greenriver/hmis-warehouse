@@ -26,14 +26,19 @@ RSpec.describe GrdaWarehouse::Config, type: :model do
     end
   end
 
-  describe 'dob_dq_demotion_enabled' do
+  describe 'dob_selection_method' do
     it 'is a known config so it can be set from the admin form' do
-      expect(described_class.known_configs).to include(:dob_dq_demotion_enabled)
+      expect(described_class.known_configs).to include(:dob_selection_method)
     end
 
-    it 'defaults to off, preserving the legacy DOB selection' do
+    it 'defaults to legacy, preserving the previous DOB selection' do
       config = create(:config)
-      expect(config.dob_dq_demotion_enabled).to be(false)
+      expect(config.dob_selection_method).to eq('legacy')
+    end
+
+    it 'offers a legacy option plus one per sort direction' do
+      expect(described_class.available_dob_selection_methods.values).
+        to contain_exactly(:legacy, :demote_oldest, :demote_newest)
     end
   end
 

@@ -522,9 +522,14 @@ module GrdaWarehouse::Tasks
     end
 
     def choose_best_dob dest_attr, source_clients
-      return choose_best_dob_legacy(dest_attr, source_clients) unless GrdaWarehouse::Config.get(:dob_dq_demotion_enabled)
-
-      GrdaWarehouse::DOBSelector.call(dest_attr: dest_attr, source_clients: source_clients, use_oldest: true)
+      case GrdaWarehouse::Config.get(:dob_selection_method).to_s
+      when 'demote_oldest'
+        GrdaWarehouse::DOBSelector.call(dest_attr: dest_attr, source_clients: source_clients, use_oldest: true)
+      when 'demote_newest'
+        GrdaWarehouse::DOBSelector.call(dest_attr: dest_attr, source_clients: source_clients, use_oldest: false)
+      else
+        choose_best_dob_legacy(dest_attr, source_clients)
+      end
     end
 
     def choose_best_dob_legacy dest_attr, source_clients

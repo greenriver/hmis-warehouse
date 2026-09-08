@@ -6,8 +6,8 @@
 
 # frozen_string_literal: true
 
-class AddDOBDqDemotionEnabledToConfigs < ActiveRecord::Migration[8.1]
+class AddDOBSelectionMethodToConfigs < ActiveRecord::Migration[8.1]
   def change
-    add_column :configs, :dob_dq_demotion_enabled, :boolean, default: false, null: false
+    add_column :configs, :dob_selection_method, :string, default: 'legacy', null: false
   end
 end

@@ -27101,7 +27101,7 @@ CREATE TABLE public.configs (
     client_demographic_columns jsonb,
     created_at timestamp(6) without time zone,
     updated_at timestamp(6) without time zone,
-    dob_dq_demotion_enabled boolean DEFAULT false NOT NULL
+    dob_selection_method character varying DEFAULT 'legacy'::character varying NOT NULL
 );
 
 
