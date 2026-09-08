@@ -131,6 +131,219 @@ RSpec.describe GrdaWarehouse::Tasks::IdentifyDuplicates, type: :model do
       end
     end
 
+    describe 'identify_duplicates with a concurrently linked source' do
+      let(:processor) { GrdaWarehouse::Tasks::IdentifyDuplicates.new(run_post_processing: false) }
+
+      it 'skips a source that was linked after the unprocessed list was computed' do
+        # The list still names the source, but a per-client run has linked it in the meantime.
+        allow(processor).to receive(:unprocessed_ids).and_return([client_in_source.id])
+        create :warehouse_client, source: client_in_source, destination: client_in_destination, data_source: source_data_source
+
+        expect { processor.identify_duplicates }.
+          to not_change(destination_scope, :count).
+          and not_change(GrdaWarehouse::WarehouseClient, :count)
+      end
+    end
+
+    describe '#process_source_client!' do
+      let(:processor) { GrdaWarehouse::Tasks::IdentifyDuplicates.new(run_post_processing: false) }
+      let(:warehouse_client) { GrdaWarehouse::WarehouseClient.find_by(source_id: client_in_source.id) }
+      let(:last_log) { GrdaWarehouse::IdentifyDuplicatesLog.order(:id).last }
+
+      def set_pii(client, first_name:, last_name:, ssn:, dob:)
+        client.update_columns(FirstName: first_name, LastName: last_name, SSN: ssn, DOB: dob)
+      end
+
+      before { set_pii(client_in_source, first_name: 'Ada', last_name: 'Lovelace', ssn: '212345678', dob: '1985-03-04') }
+
+      shared_examples 'creates a new destination' do
+        it 'creates a destination in the warehouse data source and links the source to it' do
+          expect { processor.process_source_client!(client_in_source.id) }.
+            to change(destination_scope, :count).by(1).
+            and change(GrdaWarehouse::WarehouseClient, :count).by(1)
+
+          expect(warehouse_client.destination_id).not_to eq(client_in_destination.id)
+          expect(client_in_source.reload.destination_client.data_source_id).to eq(destination_data_source.id)
+          expect(warehouse_client.id_in_source).to eq(client_in_source.PersonalID)
+          expect(last_log).to have_attributes(to_match: 1, matched: 0, new_created: 1)
+        end
+      end
+
+      shared_examples 'links to the existing destination' do
+        it 'links the source without creating a destination' do
+          expect { processor.process_source_client!(client_in_source.id) }.
+            to change(GrdaWarehouse::WarehouseClient, :count).by(1).
+            and not_change(destination_scope, :count)
+
+          expect(warehouse_client.destination_id).to eq(client_in_destination.id)
+          expect(last_log).to have_attributes(to_match: 1, matched: 1, new_created: 0)
+        end
+      end
+
+      context 'when no destination shares two of SSN, name, and DOB' do
+        before { set_pii(client_in_destination, first_name: 'Grace', last_name: 'Hopper', ssn: '312345678', dob: '1985-03-04') }
+        include_examples 'creates a new destination'
+      end
+
+      context 'when a destination matches by SSN and DOB' do
+        before { set_pii(client_in_destination, first_name: 'Other', last_name: 'Person', ssn: '212345678', dob: '1985-03-04') }
+        include_examples 'links to the existing destination'
+      end
+
+      context 'when a destination matches by SSN and name' do
+        before { set_pii(client_in_destination, first_name: 'Ada', last_name: 'Lovelace', ssn: '212345678', dob: '1970-01-01') }
+        include_examples 'links to the existing destination'
+      end
+
+      context 'when a destination matches by DOB and a name that differs only in case, punctuation, and accents' do
+        before { set_pii(client_in_destination, first_name: ' adá ', last_name: 'love-lace', ssn: nil, dob: '1985-03-04') }
+        include_examples 'links to the existing destination'
+      end
+
+      context 'when a placeholder SSN is the only second match' do
+        before do
+          set_pii(client_in_source, first_name: 'Zed', last_name: 'Zeta', ssn: '123456789', dob: '1985-03-04')
+          set_pii(client_in_destination, first_name: 'Ada', last_name: 'Lovelace', ssn: '123456789', dob: '1985-03-04')
+        end
+        include_examples 'creates a new destination'
+      end
+
+      context 'when a DOB from 1920 is the only second match' do
+        before do
+          set_pii(client_in_source, first_name: 'Zed', last_name: 'Zeta', ssn: '212345678', dob: '1920-06-01')
+          set_pii(client_in_destination, first_name: 'Ada', last_name: 'Lovelace', ssn: '212345678', dob: '1920-06-01')
+        end
+        include_examples 'creates a new destination'
+      end
+
+      context 'when the only matching destination is soft-deleted' do
+        before do
+          set_pii(client_in_destination, first_name: 'Ada', last_name: 'Lovelace', ssn: '212345678', dob: '1985-03-04')
+          client_in_destination.update_columns(DateDeleted: 1.day.ago)
+        end
+
+        it 'creates a new destination' do
+          expect { processor.process_source_client!(client_in_source.id) }.to change(GrdaWarehouse::WarehouseClient, :count).by(1)
+          expect(warehouse_client.destination_id).not_to eq(client_in_destination.id)
+        end
+      end
+
+      context 'when another source client has identical PII' do
+        before do
+          set_pii(client_in_destination, first_name: 'Other', last_name: 'Person', ssn: '312345678', dob: '1970-01-01')
+          create :grda_warehouse_hud_client, data_source: source_data_source, FirstName: 'Ada', LastName: 'Lovelace', SSN: '212345678', DOB: '1985-03-04'
+        end
+        include_examples 'creates a new destination'
+      end
+
+      context 'when several destinations match' do
+        let!(:second_destination) do
+          create :grda_warehouse_hud_client, data_source: destination_data_source, FirstName: 'Ada', LastName: 'Lovelace', SSN: '212345678', DOB: '1985-03-04'
+        end
+        before { set_pii(client_in_destination, first_name: 'Ada', last_name: 'Lovelace', ssn: '212345678', dob: '1985-03-04') }
+
+        it 'links to the highest destination id, as the full run does' do
+          processor.process_source_client!(client_in_source.id)
+
+          expect(warehouse_client.destination_id).to eq([client_in_destination.id, second_destination.id].max)
+        end
+      end
+
+      context 'when linking to an existing destination' do
+        # Name + DOB match (2 of 3 criteria); SSN is left blank so the fill-in below is meaningful.
+        before { set_pii(client_in_destination, first_name: 'Ada', last_name: 'Lovelace', ssn: nil, dob: '1985-03-04') }
+
+        it 'fills missing PII on the destination without overwriting existing values' do
+          processor.process_source_client!(client_in_source.id)
+
+          expect(client_in_destination.reload).to have_attributes(SSN: '212345678', FirstName: 'Ada', LastName: 'Lovelace')
+        end
+
+        it 'invalidates the destination service history' do
+          create :grda_warehouse_warehouse_clients_processed, client: client_in_destination
+
+          processor.process_source_client!(client_in_source.id)
+
+          expect(client_in_destination.reload.processed_service_history).to be_nil
+        end
+
+        it 'marks the destination dirty for CE' do
+          allow_any_instance_of(Hmis::Ce::Configuration).to receive(:enabled?).and_return(true)
+
+          processor.process_source_client!(client_in_source.id)
+
+          expect(Hmis::Ce::ChangeMarker.where(trackable_type: 'GrdaWarehouse::Hud::Client', trackable_id: client_in_destination.id)).to exist
+        end
+
+        it 'queues a background service history rebuild for the destination' do
+          Delayed::Job.jobs_for_class('GrdaWarehouse::Tasks::ServiceHistory::Add').delete_all
+
+          processor.process_source_client!(client_in_source.id)
+
+          job = Delayed::Job.jobs_for_class('GrdaWarehouse::Tasks::ServiceHistory::Add').jobs_for_class('queue_clients').first
+          expect(job).to be_present
+          expect(job.handler).to include("- #{client_in_destination.id}\n")
+          expect(job.queue).to eq(ENV.fetch('DJ_LONG_QUEUE_NAME', 'long_running'))
+        end
+      end
+
+      context 'when auto deduplication is disabled' do
+        before do
+          @config.update(enable_auto_deduplication: false)
+          @config.invalidate_cache
+          set_pii(client_in_destination, first_name: 'Ada', last_name: 'Lovelace', ssn: '212345678', dob: '1985-03-04')
+        end
+        include_examples 'creates a new destination'
+      end
+
+      context 'when there is nothing to do' do
+        it 'is a no-op for a source that is already linked' do
+          create :warehouse_client, source: client_in_source, destination: client_in_destination, data_source: source_data_source
+
+          expect { processor.process_source_client!(client_in_source.id) }.
+            to not_change(GrdaWarehouse::WarehouseClient, :count).
+            and not_change(destination_scope, :count).
+            and not_change(GrdaWarehouse::IdentifyDuplicatesLog, :count).
+            and not_change(Delayed::Job, :count)
+        end
+
+        it 'is a no-op for a soft-deleted source' do
+          client_in_source.update_columns(DateDeleted: 1.day.ago)
+
+          expect { processor.process_source_client!(client_in_source.id) }.to not_change(GrdaWarehouse::WarehouseClient, :count)
+        end
+
+        it 'is a no-op for a destination client id' do
+          expect { processor.process_source_client!(client_in_destination.id) }.to not_change(GrdaWarehouse::WarehouseClient, :count)
+        end
+
+        it 'is a no-op for an unknown id' do
+          expect { processor.process_source_client!(-1) }.to not_change(GrdaWarehouse::WarehouseClient, :count)
+        end
+      end
+
+      context 'when the advisory lock is held by a full run' do
+        before do
+          allow(GrdaWarehouseBase).to receive(:with_advisory_lock).
+            with('identify_duplicates', hash_including(timeout_seconds: GrdaWarehouse::Tasks::IdentifyDuplicates::PER_CLIENT_LOCK_TIMEOUT_SECONDS)).
+            and_return(false)
+          Delayed::Job.jobs_for_class('GrdaWarehouse::Tasks::IdentifyDuplicates').delete_all
+        end
+
+        it 'enqueues a full run instead of linking' do
+          expect { processor.process_source_client!(client_in_source.id) }.to not_change(GrdaWarehouse::WarehouseClient, :count)
+
+          expect(Delayed::Job.jobs_for_class('GrdaWarehouse::Tasks::IdentifyDuplicates').jobs_for_class('run!').count).to eq(1)
+        end
+
+        it 'does not enqueue a second full run when one is waiting' do
+          processor.process_source_client!(client_in_source.id)
+
+          expect { processor.process_source_client!(client_in_source.id) }.to not_change(Delayed::Job, :count)
+        end
+      end
+    end
+
     describe 'When the client has non-ascii characters in their name' do
       before do
         client_in_destination.update(first_name: 'José')

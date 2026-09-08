@@ -17,10 +17,19 @@ module GrdaWarehouse::Tasks
     include NotifierConfig
     include Memery
     MAX_SOURCE_CLIENTS = 50
+    # Yield the advisory lock, and re-queue after PER_CLIENT_LOCK_TIMEOUT_SECONDS when procssing a single source client
+    PER_CLIENT_LOCK_TIMEOUT_SECONDS = 5
 
     def initialize(run_post_processing: true)
       setup_notifier('IdentifyDuplicates')
       @run_post_processing = run_post_processing
+    end
+
+    # Helper method to enqueue a run unless one is already enqueued
+    def self.enqueue_full_run!
+      return if Delayed::Job.queued?(['GrdaWarehouse::Tasks::IdentifyDuplicates', 'run!'])
+
+      new.delay(queue: ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)).run!
     end
 
     def run!
@@ -30,6 +39,18 @@ module GrdaWarehouse::Tasks
       msg = 'Skipping identify duplicates, all ready running.'
       Rails.logger.warn msg
       @notifier.ping(msg) if @send_notifications
+    end
+
+    # For a given source client, run identify duplicates against existing destination clients
+    def process_source_client!(source_client_id)
+      acquired = GrdaWarehouseBase.with_advisory_lock('identify_duplicates', timeout_seconds: PER_CLIENT_LOCK_TIMEOUT_SECONDS) do
+        identify_duplicates_for_source(source_client_id)
+        true
+      end
+      return if acquired
+
+      Rails.logger.warn "IdentifyDuplicates: Waited #{PER_CLIENT_LOCK_TIMEOUT_SECONDS} seconds lock was not acquired, enqueueing a full run instead of processing client #{source_client_id}"
+      self.class.enqueue_full_run!
     end
 
     # Deduplicates client records by:
@@ -45,7 +66,7 @@ module GrdaWarehouse::Tasks
       restore_previously_deleted_destinations
 
       Rails.logger.info 'Loading unprocessed clients'
-      started_at = DateTime.now
+      started_at = DateTime.current
 
       @dnd_warehouse_data_source = GrdaWarehouse::DataSource.destination.first
       return unless @dnd_warehouse_data_source
@@ -68,94 +89,17 @@ module GrdaWarehouse::Tasks
       # ===========================================================================
 
       # Find all potential matches
-      more_than_one_match = find_merge_candidates_for_unprocessed.sort
-      more_than_one_match = more_than_one_match.map(&:reverse).to_h
-
-      # At this point more_than_one_match contains pairs of source client id and destination client id where the
-      # source client should be merged into the destination client.
-      # If the source client does not exist in any of the pairs, a new destination client should be created for it.
-      destination_clients_by_id = GrdaWarehouse::Hud::Client.destination.where(id: more_than_one_match.values).index_by(&:id)
+      matched_destinations = matched_destinations_by_source_id
 
       unprocessed.find_in_batches do |batch|
-        matched_ids = []
-        destination_client_updates = []
-        new_destination_clients = []
-        new_warehouse_clients = {}
-        source_client_ids_with_new_destination_clients = []
-
-        batch.each do |client|
-          destination_client = nil
-          if more_than_one_match.key?(client.id)
-            matched += 1
-            # Pick the first matching pair that includes this unmatched client
-            # Scenarios:
-            # 1. Simple: 1 destination, 1 unmatched source client with matching PII (will find the one pair)
-            # 2. 2 destinations share one of three PII fields, 1 source client that matches one of the two destinations (will find the matching destination)
-            # 3. 2 with identical PII, previously split to indicate they are not the same person, 1 source client with matching PII (will create a single pair with one of the destination clients).  This is ok, because we know the destination clients are not the same, but we don't know which the source should be connected to, so just pick one (we're sorting above to always pick the same one)
-            destination_id = more_than_one_match[client.id]
-            matched_ids << destination_id
-            new_warehouse_clients[client.id] = GrdaWarehouse::WarehouseClient.new(
-              id_in_source: client.personal_id,
-              source_id: client.id,
-              destination_id: destination_id,
-              data_source_id: client.data_source_id,
-            )
-
-            destination_client = destination_clients_by_id[destination_id]
-            # Set SSN & DOB if we have it in the incoming client, but not in the destination
-            destination_client.dob ||= client.dob if client&.dob.present?
-            destination_client.ssn ||= client.ssn if client&.ssn.present?
-            destination_client.first_name ||= client.first_name if client&.first_name.present?
-            destination_client.last_name ||= client.last_name if client&.last_name.present?
-
-            # set non-nullable fields, these aren't used because of the column limitation on import
-            # but Postgres complains if they aren't there
-            destination_client.personal_id = client.personal_id
-            destination_client.data_source_id = @dnd_warehouse_data_source.id
-            destination_client_updates << destination_client if destination_client.changed?
-          else
-            new_created += 1
-            destination_client = client.dup
-            destination_client.data_source_id = @dnd_warehouse_data_source.id
-            destination_client.apply_housing_release_status
-            new_destination_clients << destination_client
-            source_client_ids_with_new_destination_clients << client.id
-
-            new_warehouse_clients[client.id] = GrdaWarehouse::WarehouseClient.new(
-              id_in_source: client.personal_id,
-              source_id: client.id,
-              destination_id: nil, # Destination client hasn't been saved, so has no id yet
-              data_source_id: client.data_source_id,
-            )
-          end
-        end
-        # Persist any updates to destination clients
-        GrdaWarehouse::Hud::Client.import(
-          destination_client_updates.uniq { |m| m[:id] }, # ensure no duplicate rows
-          on_duplicate_key_update: {
-            conflict_target: [:id],
-            columns: [:SSN, :DOB, :FirstName, :LastName],
-          },
-          validate: false,
-        )
-        # Create new destination clients
-        new_destination_ids = GrdaWarehouse::Hud::Client.import(new_destination_clients).ids
-
-        # Update warehouse clients with new destination IDs
-        source_client_ids_with_new_destination_clients.zip(new_destination_ids).each do |source_id, destination_id|
-          new_warehouse_clients[source_id][:destination_id] = destination_id
-        end
-        GrdaWarehouse::WarehouseClient.import(new_warehouse_clients.values)
-
-        post_process_clients(
-          client_ids: destination_client_updates.map(&:id) + matched_ids + new_destination_ids,
-        )
-        GrdaWarehouse::Hud::Client.where(id: matched_ids).find_each(&:invalidate_service_history)
+        result = process_unprocessed_batch(batch, matched_destinations)
+        matched += result[:matched]
+        new_created += result[:new_created]
       end
       # Cleanup any proposed matches that might have been affected
       GrdaWarehouse::ClientMatch.accept_exact_matches!
       # Record completed run
-      completed_at = DateTime.now
+      completed_at = DateTime.current
       GrdaWarehouse::IdentifyDuplicatesLog.create!(
         started_at: started_at,
         completed_at: completed_at,
@@ -230,6 +174,144 @@ module GrdaWarehouse::Tasks
       return unless @run_post_processing
 
       GrdaWarehouse::Tasks::ServiceHistory::Add.new(force_sequential_processing: true).run!
+    end
+
+    # Called when a single source client is being processed.
+    # Returns early if the client already has a destination client.
+    # Finds possible matches more efficiently for a single client than the full batch mode.
+    private def identify_duplicates_for_source(source_client_id)
+      client = GrdaWarehouse::Hud::Client.source.find_by(id: source_client_id)
+      return if client.nil? || client.DateDeleted.present?
+      return if GrdaWarehouse::WarehouseClient.where(source_id: client.id).exists?
+
+      @dnd_warehouse_data_source = GrdaWarehouse::DataSource.destination.first
+      return unless @dnd_warehouse_data_source
+
+      started_at = DateTime.current
+      # Every 2-of-3 match shares SSN or DOB, so only destinations with one of those in common
+      # can qualify. Restricting the existing queries to them avoids scanning every destination.
+      @restrict_to_source_ids = [client.id]
+      @candidate_destination_ids = candidate_destination_ids_for(client)
+      matched_destinations = @candidate_destination_ids.any? ? matched_destinations_by_source_id : {}
+
+      result = process_unprocessed_batch([client], matched_destinations)
+      return if result[:destination_ids].empty?
+
+      GrdaWarehouse::IdentifyDuplicatesLog.create!(
+        started_at: started_at,
+        completed_at: DateTime.current,
+        to_match: 1,
+        matched: result[:matched],
+        new_created: result[:new_created],
+      )
+      # Rebuild service history for the destination in the background; the full run's
+      # accept_exact_matches! does this for everyone, which is far more than one client needs.
+      GrdaWarehouse::Tasks::ServiceHistory::Add.
+        delay(queue: ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)).
+        queue_clients(result[:destination_ids])
+    end
+
+    # Destination clients sharing the source's usable SSN or DOB. A superset of what can match:
+    # the match queries still apply their own filters.
+    private def candidate_destination_ids_for(client)
+      destinations = GrdaWarehouse::Hud::Client.destination.where(DateDeleted: nil)
+      ids = []
+      ids += destinations.where(SSN: client.ssn).pluck(:id) if ::HudHelper.util.valid_social?(client.ssn)
+      ids += destinations.where(DOB: client.dob).pluck(:id) if client.dob.present?
+      ids.uniq
+    end
+
+    # Pairs each unprocessed source with a candidate destination. When several
+    # destinations qualify, sorts by [destination, source] pairs and then builds a hash
+    # keeping the highest destination id, so the choice is deterministic.
+    private def matched_destinations_by_source_id
+      find_merge_candidates_for_unprocessed.sort.map(&:reverse).to_h
+    end
+
+    # Links or creates destinations for one batch of source clients. Sources that gained a
+    # warehouse_clients row since the batch was selected are skipped, and the final import
+    # ignores duplicates, so a concurrent per-client run does not raise.
+    # @return [Hash] matched and new_created counts plus the destination ids touched
+    private def process_unprocessed_batch(batch, matched_destinations_by_source_id)
+      already_linked = GrdaWarehouse::WarehouseClient.where(source_id: batch.map(&:id)).pluck(:source_id).to_set
+      batch = batch.reject { |client| already_linked.include?(client.id) }
+      return { matched: 0, new_created: 0, destination_ids: [] } if batch.empty?
+
+      destination_ids = batch.filter_map { |client| matched_destinations_by_source_id[client.id] }
+      destination_clients_by_id = GrdaWarehouse::Hud::Client.destination.where(id: destination_ids).index_by(&:id)
+
+      matched = 0
+      new_created = 0
+      matched_ids = []
+      destination_client_updates = []
+      new_destination_clients = []
+      new_warehouse_clients = {}
+      source_client_ids_with_new_destination_clients = []
+
+      batch.each do |client|
+        destination_client = nil
+        if matched_destinations_by_source_id.key?(client.id)
+          matched += 1
+          destination_id = matched_destinations_by_source_id[client.id]
+          matched_ids << destination_id
+          new_warehouse_clients[client.id] = GrdaWarehouse::WarehouseClient.new(
+            id_in_source: client.personal_id,
+            source_id: client.id,
+            destination_id: destination_id,
+            data_source_id: client.data_source_id,
+          )
+
+          destination_client = destination_clients_by_id[destination_id]
+          # Set SSN & DOB if we have it in the incoming client, but not in the destination
+          destination_client.dob ||= client.dob if client&.dob.present?
+          destination_client.ssn ||= client.ssn if client&.ssn.present?
+          destination_client.first_name ||= client.first_name if client&.first_name.present?
+          destination_client.last_name ||= client.last_name if client&.last_name.present?
+
+          # set non-nullable fields, these aren't used because of the column limitation on import
+          # but Postgres complains if they aren't there
+          destination_client.personal_id = client.personal_id
+          destination_client.data_source_id = @dnd_warehouse_data_source.id
+          destination_client_updates << destination_client if destination_client.changed?
+        else
+          new_created += 1
+          destination_client = client.dup
+          destination_client.data_source_id = @dnd_warehouse_data_source.id
+          destination_client.apply_housing_release_status
+          new_destination_clients << destination_client
+          source_client_ids_with_new_destination_clients << client.id
+
+          new_warehouse_clients[client.id] = GrdaWarehouse::WarehouseClient.new(
+            id_in_source: client.personal_id,
+            source_id: client.id,
+            destination_id: nil, # Destination client hasn't been saved, so has no id yet
+            data_source_id: client.data_source_id,
+          )
+        end
+      end
+      # Persist any updates to destination clients
+      GrdaWarehouse::Hud::Client.import(
+        destination_client_updates.uniq { |m| m[:id] }, # ensure no duplicate rows
+        on_duplicate_key_update: {
+          conflict_target: [:id],
+          columns: [:SSN, :DOB, :FirstName, :LastName],
+        },
+        validate: false,
+      )
+      # Create new destination clients
+      new_destination_ids = GrdaWarehouse::Hud::Client.import(new_destination_clients).ids
+
+      # Update warehouse clients with new destination IDs
+      source_client_ids_with_new_destination_clients.zip(new_destination_ids).each do |source_id, destination_id|
+        new_warehouse_clients[source_id][:destination_id] = destination_id
+      end
+      GrdaWarehouse::WarehouseClient.import(new_warehouse_clients.values, on_duplicate_key_ignore: true)
+
+      touched_destination_ids = destination_client_updates.map(&:id) + matched_ids + new_destination_ids
+      post_process_clients(client_ids: touched_destination_ids)
+      GrdaWarehouse::Hud::Client.where(id: matched_ids).find_each(&:invalidate_service_history)
+
+      { matched: matched, new_created: new_created, destination_ids: touched_destination_ids.uniq }
     end
 
     # Marks given clients as dirty for future re-processing for CE
@@ -309,6 +391,7 @@ module GrdaWarehouse::Tasks
         match_type: :unprocessed,
         destination_data_source_ids: GrdaWarehouse::DataSource.destination_data_source_ids,
         unprocessed_ids: unprocessed_ids,
+        destination_ids: @candidate_destination_ids,
       ).execute
     end
 
@@ -325,6 +408,7 @@ module GrdaWarehouse::Tasks
         match_type: :unprocessed,
         destination_data_source_ids: GrdaWarehouse::DataSource.destination_data_source_ids,
         unprocessed_ids: unprocessed_ids,
+        destination_ids: @candidate_destination_ids,
       ).execute
     end
 
@@ -341,6 +425,7 @@ module GrdaWarehouse::Tasks
         match_type: :unprocessed,
         destination_data_source_ids: GrdaWarehouse::DataSource.destination_data_source_ids,
         unprocessed_ids: unprocessed_ids,
+        destination_ids: @candidate_destination_ids,
       ).execute
     end
 
@@ -492,6 +577,7 @@ module GrdaWarehouse::Tasks
             from "Client" as clients
             #{limits}
             and clients.data_source_id in (#{GrdaWarehouse::DataSource.destination_data_source_ids.join(',')})
+            #{candidate_destination_restriction_sql}
           ),
           client_two as (
           SELECT clients.id as source_client_id,
@@ -535,6 +621,7 @@ module GrdaWarehouse::Tasks
           from "Client" as clients
           #{limits}
           and clients.data_source_id in (#{GrdaWarehouse::DataSource.destination_data_source_ids.join(',')})
+          #{candidate_destination_restriction_sql}
         ),
         client_two_name as (
         SELECT clients.id as source_client_id,
@@ -574,6 +661,7 @@ module GrdaWarehouse::Tasks
             "Client" as clients
             #{limits}
             and clients.data_source_id in (#{GrdaWarehouse::DataSource.destination_data_source_ids.join(',')})
+            #{candidate_destination_restriction_sql}
         ),
         client_two_dob as (
           SELECT clients.id as source_client_id,
@@ -789,7 +877,16 @@ module GrdaWarehouse::Tasks
     end
 
     private def unprocessed_ids
+      return @restrict_to_source_ids if @restrict_to_source_ids.present?
+
       GrdaWarehouse::Hud::Client.source.pluck(:id) - GrdaWarehouse::WarehouseClient.pluck(:source_id)
+    end
+
+    # SQL fragment limiting the destination side of the legacy unprocessed queries; empty means no restriction.
+    private def candidate_destination_restriction_sql
+      return '' if @candidate_destination_ids.blank?
+
+      "and clients.id in (#{@candidate_destination_ids.map(&:to_i).join(',')})"
     end
 
     # fetch a list of existing clients from the DND Warehouse DataSource (current destinations)

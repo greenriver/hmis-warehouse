@@ -59,9 +59,9 @@ Each matching criterion has two implementations with different return types:
 
 Similar method pairs exist for name and DOB matching. The different return types reflect different architectural needs: linking new clients vs merging existing ones.
 
-## Two Main Operations
+## Main Operations
 
-The system provides two distinct operations that handle different deduplication scenarios:
+The system provides three operations that handle different deduplication scenarios:
 
 ### Operation 1: `identify_duplicates` - Process New/Unprocessed Clients
 
@@ -99,7 +99,23 @@ The system provides two distinct operations that handle different deduplication 
 5. Executes the merge by transferring all associated data and records from one client to another. After the core merge operation, a separate background job handles cleanup tasks, such as removing the now-redundant client record and updating related data to ensure consistency.
 6. Invalidates the existing service history for all clients involved in a merge. A background process is then initiated to rebuild a new, consolidated service history, ensuring all historical service events are accurately linked to the final destination client.
 
-### Why Two Separate Operations?
+### Operation 3: `process_source_client!` - Link One New Client
+
+**Purpose**: Links a single newly created source client to an existing destination or creates one for it.
+
+**When `process_source_client!` runs**:
+- After an HMIS client is created (enqueued from `after_commit` on the `short_running` queue, one job per client)
+
+**What `process_source_client!` does**:
+1. Returns immediately if the source is already linked, soft-deleted, or not a source client.
+2. Takes the same `identify_duplicates` advisory lock as the full run, waiting up to 5 seconds. If a full run holds the lock, it enqueues a full run instead so the client is still processed.
+3. Runs the same **Matching Criteria** queries as the full run, restricted to this source and to destination clients that share its SSN or DOB.
+4. Processes the newly matched client as with the batch process if a match is found, otherwise create a new destination from the source.
+5. Marks the destination dirty for Coordinated Entry, writes an `identify_duplicates_log` row with `to_match: 1`, and queues a background service history rebuild for the destination.
+
+It does not restore deleted destinations or accept pending `ClientMatch` candidates; the full run still handles those.
+
+### Why Separate Operations?
 
 **Logical Separation**:
 - **New client processing**: Handles incremental addition of clients over time, and additional bulk imports of client data.
@@ -136,6 +152,7 @@ The system requires **2 of 3** exact matches across these normalized fields:
 - Advisory locks prevent concurrent execution
 - Respects manual administrative decisions about client splits
 - Maintains audit trails of operations
+- The full run skips sources linked by a per-client run after its unprocessed list was computed, and its `warehouse_clients` insert ignores duplicates.
 
 ## Performance Optimizations
 
