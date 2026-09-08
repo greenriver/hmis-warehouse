@@ -11,7 +11,9 @@ module HudLsa
     include AjaxModalRails::Controller
     include ArelHelper
     before_action :filter
-    before_action :set_report, only: [:show, :destroy, :running, :download, :download_intermediate, :restore]
+    # Declared above set_report so the permission is checked before any record lookup.
+    before_action :require_can_download_lsa_source_data!, only: [:download_source_data]
+    before_action :set_report, only: [:show, :destroy, :running, :download, :download_intermediate, :download_source_data, :restore]
     before_action :set_reports, except: [:index, :running_all_questions]
 
     private def report_scope
@@ -73,6 +75,20 @@ module HudLsa
           filename = "Support for #{@report.class.generic_title}-#{@report.created_at.to_fs(:db)}.zip"
           send_data file.download, filename: filename, type: file.content_type, disposition: 'attachment'
         end
+      end
+    end
+
+    # The source HMIS data is an un-hashed HMIS CSV export produced by the LSA run.
+    def download_source_data
+      export = @report.export
+      raise ActiveRecord::RecordNotFound if export.blank?
+
+      zip = export.hmis_zip
+      # Use the ActiveStorage version if we have it, otherwise the db attachment.
+      if zip.present?
+        send_data(zip.download, type: zip.content_type, filename: export.export_file_name)
+      else
+        send_data(export.content, filename: export.export_file_name, type: export.content_type, disposition: 'attachment')
       end
     end
 

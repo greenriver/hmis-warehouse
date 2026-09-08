@@ -707,6 +707,12 @@ class Role < ApplicationRecord
         category: 'Reporting',
         sub_category: 'Exporting',
       },
+      can_download_lsa_source_data: {
+        description: 'Ability to download the source HMIS data attached to an LSA report run',
+        administrative: false,
+        category: 'Reporting',
+        sub_category: 'Exporting',
+      },
       can_export_anonymous_hmis_data: {
         description: 'Fake data exports for developers',
         administrative: true,
