@@ -41,10 +41,13 @@ module HmisUtil
     # Emails HMIS users whose account was created with skip_invitation and never activated.
     #
     # HmisUtil::BatchUserInvite.send_pending_invitations(dry_run: true)
+    #
+    # Returns the pending users, whether or not they were emailed.
     def self.send_pending_invitations(dry_run: true)
       invited_by = User.system_user
-      pending_hmis_users.order(:email).to_a.each do |user|
-        puts "#{dry_run ? '' : 'Inviting user:'} #{user.name}, Email: #{user.email}"
+      users = pending_hmis_users.order(:email).to_a
+      users.each do |user|
+        puts "#{dry_run ? 'Would invite:' : 'Inviting user:'} #{user.name}, Email: #{user.email}"
         next if dry_run
 
         # The instance-level invite! resets invitation_created_at, which invitation_due_at is
@@ -52,6 +55,7 @@ module HmisUtil
         user.invite!(invited_by)
         puts "Failed to invite #{user.email}: #{user.errors.full_messages.to_sentence}" if user.errors.any?
       end
+      users
     end
 
     def self.pending_hmis_users
