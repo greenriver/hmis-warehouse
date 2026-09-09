@@ -136,11 +136,13 @@ export default class extends Controller {
       return { locale, format };
     };
 
-    // Try the original parsing first (handles the expected format)
+    // Try the original parsing first (handles the expected format). Validity is the static
+    // DateTime.isValid; instances carry no isValid property, and a falsy check here would send
+    // every good parse through the date-only fallbacks below, which drop the time.
     const tryOriginalParse = (candidate) => {
       try {
         const result = originalParseInput(candidate);
-        if (result && result.isValid) {
+        if (result && DateTime.isValid(result)) {
           return result;
         }
       } catch (_) {

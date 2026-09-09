@@ -442,13 +442,14 @@ RSpec.describe DataSourcesController, type: :request do
       expect(hmis_data_source.reload.hmis_go_live_at).to be_nil
     end
 
-    it 'renders the saved go-live time with hours and minutes on the edit form' do
+    it 'renders the saved go-live time as a two-digit 12-hour clock beside the calendar on the edit form' do
       hmis_data_source.update!(hmis_go_live_at: Time.zone.local(2026, 10, 1, 6, 30))
 
       get edit_data_source_path(hmis_data_source)
 
       expect(response).to have_http_status(:ok)
-      expect(response.body).to include('value="Oct 1, 2026 6:30 AM"')
+      expect(response.body).to include('value="Oct 1, 2026 06:30 AM"')
+      expect(response.body).to include('&quot;sideBySide&quot;:true')
     end
   end
 end
