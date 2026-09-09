@@ -42,6 +42,8 @@ module GrdaWarehouse::Hud
     has_many :employment_educations, through: :enrollments, source: :employment_educations
     has_many :health_and_dvs, through: :enrollments, source: :health_and_dvs
     has_many :services, through: :enrollments, source: :services
+    has_many :current_living_situations, through: :enrollments, source: :current_living_situations
+    has_many :youth_education_statuses, through: :enrollments, source: :youth_education_statuses
     has_many :exits, through: :enrollments, source: :exit
     # has_many :inventories, through: :project_cocs, source: :inventories
     has_many :inventories, **hud_assoc(:ProjectID, 'Inventory'), inverse_of: :project
