@@ -215,6 +215,14 @@ class User < ApplicationRecord
     as_hmis_user&.can_access_hmis_data_source?(data_source_id)
   end
 
+  # Should the warehouse show this user a link into the HMIS at this data_source?
+  def can_use_hmis_data_source?(data_source)
+    hmis_user = as_hmis_user
+    return false unless hmis_user&.can_access_hmis_data_source?(data_source.id)
+
+    hmis_user.hmis_access_error_for(data_source).nil?
+  end
+
   # list any cohort this user has some level of access to
   def cohorts
     GrdaWarehouse::Cohort.where(id: ids_for_relations(:cohort_ids))

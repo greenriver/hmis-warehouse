@@ -191,4 +191,48 @@ RSpec.describe Hmis::User, type: :model do
       end
     end
   end
+
+  describe '#can_administer_hmis_in_data_source?' do
+    let(:other_ds) { create(:hmis_data_source) }
+    let(:user) { create(:hmis_user) }
+
+    it 'is true through an access control that grants the permission on an entity in the data source' do
+      create_access_control(user, ds1, with_permission: [:can_administer_hmis])
+      expect(user.can_administer_hmis_in_data_source?(ds1)).to eq(true)
+    end
+
+    it 'is false when the permission is granted only in another HMIS data source' do
+      create_access_control(user, other_ds, with_permission: [:can_administer_hmis])
+      create_access_control(user, ds1, without_permission: [:can_administer_hmis])
+      expect(user.can_administer_hmis?).to eq(true)
+      expect(user.can_administer_hmis_in_data_source?(ds1)).to eq(false)
+    end
+
+    it 'is false when the user has every other permission in the data source' do
+      create_access_control(user, ds1, without_permission: [:can_administer_hmis])
+      expect(user.can_administer_hmis_in_data_source?(ds1)).to eq(false)
+    end
+  end
+
+  describe '#hmis_access_error_for' do
+    let(:user) { create(:hmis_user) }
+
+    it 'is nil for any user while the HMIS is live' do
+      expect(user.hmis_access_error_for(ds1)).to be_nil
+    end
+
+    context 'before the go-live time' do
+      before { ds1.update!(hmis_go_live_at: 1.day.from_now) }
+
+      it 'returns no_hmis_access for a user who cannot administer HMIS, even with HMIS access in the data source' do
+        create_access_control(user, ds1, without_permission: [:can_administer_hmis])
+        expect(user.hmis_access_error_for(ds1)).to eq(:no_hmis_access)
+      end
+
+      it 'is nil for a user who can administer HMIS in that data source' do
+        create_access_control(user, ds1, with_permission: [:can_administer_hmis])
+        expect(user.hmis_access_error_for(ds1)).to be_nil
+      end
+    end
+  end
 end

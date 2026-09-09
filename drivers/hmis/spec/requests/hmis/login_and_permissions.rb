@@ -10,7 +10,7 @@ module LoginAndPermissionsSpecHelper
   def hmis_login(user)
     return sign_in(user) if AuthMethod.jwt?
 
-    post hmis_user_session_path(hmis_user: { email: user.email, password: user.password })
+    post hmis_user_session_path(hmis_user: { email: user.email, password: user.password }), headers: { 'HOST' => GraphqlHelpers::HMIS_HOSTNAME }
   end
 
   # Under JWT the credential is the forwarded token, not a cookie the response can clear, so the

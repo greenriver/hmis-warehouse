@@ -67,7 +67,7 @@ RSpec.describe 'Hmis::SessionsController', :devise_only, type: :request do
       end
 
       def do_failed_login
-        post hmis_user_session_path(hmis_user: { email: user.email, password: 'incorrect' })
+        post hmis_user_session_path(hmis_user: { email: user.email, password: 'incorrect' }), headers: { 'HOST' => GraphqlHelpers::HMIS_HOSTNAME }
       end
 
       let(:post_auth_user) { hmis_user }
@@ -77,7 +77,7 @@ RSpec.describe 'Hmis::SessionsController', :devise_only, type: :request do
 
   describe 'Un-successful login' do
     before(:each) do
-      post hmis_user_session_path(hmis_user: { email: user.email, password: 'incorrect' })
+      post hmis_user_session_path(hmis_user: { email: user.email, password: 'incorrect' }), headers: { 'HOST' => GraphqlHelpers::HMIS_HOSTNAME }
     end
 
     it 'denies API access' do
@@ -110,11 +110,11 @@ RSpec.describe 'Hmis::SessionsController', :devise_only, type: :request do
     end
 
     def do_failed_login
-      post hmis_user_session_path(hmis_user: { email: user.email, password: 'incorrect' })
+      post hmis_user_session_path(hmis_user: { email: user.email, password: 'incorrect' }), headers: { 'HOST' => GraphqlHelpers::HMIS_HOSTNAME }
     end
 
     def do_nonexistent_user_login
-      post hmis_user_session_path(hmis_user: { email: 'nonexistent@example.com', password: 'password' })
+      post hmis_user_session_path(hmis_user: { email: 'nonexistent@example.com', password: 'password' }), headers: { 'HOST' => GraphqlHelpers::HMIS_HOSTNAME }
     end
 
     def assert_success
@@ -136,7 +136,7 @@ RSpec.describe 'Hmis::SessionsController', :devise_only, type: :request do
     end
 
     def do_failed_login
-      post hmis_user_session_path(hmis_user: { email: user.email, password: 'incorrect' })
+      post hmis_user_session_path(hmis_user: { email: user.email, password: 'incorrect' }), headers: { 'HOST' => GraphqlHelpers::HMIS_HOSTNAME }
     end
     include_context 'with login activity tracking'
   end
@@ -175,14 +175,14 @@ RSpec.describe 'Hmis::SessionsController', :devise_only, type: :request do
     before(:each) do
       # Devise.maximum_attempts is twice what it should be (see Devise 2FA bug above)
       ((Devise.maximum_attempts / 2) - 1).times do
-        post hmis_user_session_path(hmis_user: { email: user.email, password: 'incorrect' })
+        post hmis_user_session_path(hmis_user: { email: user.email, password: 'incorrect' }), headers: { 'HOST' => GraphqlHelpers::HMIS_HOSTNAME }
       end
     end
     it 'user should not be locked' do
       expect(user.reload.access_locked?).to be_falsey
     end
     it 'after 10, the user should be locked' do
-      post hmis_user_session_path(hmis_user: { email: user.email, password: 'incorrect' })
+      post hmis_user_session_path(hmis_user: { email: user.email, password: 'incorrect' }), headers: { 'HOST' => GraphqlHelpers::HMIS_HOSTNAME }
       expect(user.reload.access_locked?).to be_truthy
     end
   end
@@ -212,7 +212,7 @@ RSpec.describe 'Hmis::SessionsController', :devise_only, type: :request do
 
   describe 'Login with 2FA enabled' do
     before(:each) do
-      post hmis_user_session_path(hmis_user: { email: user_2fa.email, password: user_2fa.password })
+      post hmis_user_session_path(hmis_user: { email: user_2fa.email, password: user_2fa.password }), headers: { 'HOST' => GraphqlHelpers::HMIS_HOSTNAME }
     end
 
     it 'user failed_attempts should not increment' do
@@ -231,7 +231,7 @@ RSpec.describe 'Hmis::SessionsController', :devise_only, type: :request do
     end
 
     it 'user logs in when correct 2fa entered' do
-      post hmis_user_session_path(hmis_user: { otp_attempt: user_2fa.current_otp })
+      post hmis_user_session_path(hmis_user: { otp_attempt: user_2fa.current_otp }), headers: { 'HOST' => GraphqlHelpers::HMIS_HOSTNAME }
       aggregate_failures 'checking response' do
         expect(response.status).to eq 200
         expect(user_2fa.reload.failed_attempts).to eq 0
@@ -239,7 +239,7 @@ RSpec.describe 'Hmis::SessionsController', :devise_only, type: :request do
     end
 
     it 'user does not log in when incorrect 2fa entered' do
-      post hmis_user_session_path(hmis_user: { otp_attempt: '-1' })
+      post hmis_user_session_path(hmis_user: { otp_attempt: '-1' }), headers: { 'HOST' => GraphqlHelpers::HMIS_HOSTNAME }
       aggregate_failures 'checking response' do
         expect(response.status).to eq 403
         expect(response.body).to include 'invalid_code'
@@ -249,9 +249,9 @@ RSpec.describe 'Hmis::SessionsController', :devise_only, type: :request do
 
     describe 'User does not remember 2FA device' do
       before(:each) do
-        post hmis_user_session_path(hmis_user: { otp_attempt: user_2fa.current_otp, remember_device: nil })
+        post hmis_user_session_path(hmis_user: { otp_attempt: user_2fa.current_otp, remember_device: nil }), headers: { 'HOST' => GraphqlHelpers::HMIS_HOSTNAME }
         sign_out(user_2fa)
-        post hmis_user_session_path(hmis_user: { email: user_2fa.email, password: user_2fa.password })
+        post hmis_user_session_path(hmis_user: { email: user_2fa.email, password: user_2fa.password }), headers: { 'HOST' => GraphqlHelpers::HMIS_HOSTNAME }
       end
 
       it 'user is expected to enter 2fa' do
@@ -284,10 +284,10 @@ RSpec.describe 'Hmis::SessionsController', :devise_only, type: :request do
       end
 
       before(:each) do
-        post hmis_user_session_path(hmis_user: { otp_attempt: user_2fa.current_otp, remember_device: true, device_name: 'Test Device' })
+        post hmis_user_session_path(hmis_user: { otp_attempt: user_2fa.current_otp, remember_device: true, device_name: 'Test Device' }), headers: { 'HOST' => GraphqlHelpers::HMIS_HOSTNAME }
         delete destroy_hmis_user_session_path
         expect(response.status).to eq 204
-        post hmis_user_session_path(hmis_user: { email: user_2fa.email, password: user_2fa.password })
+        post hmis_user_session_path(hmis_user: { email: user_2fa.email, password: user_2fa.password }), headers: { 'HOST' => GraphqlHelpers::HMIS_HOSTNAME }
       end
 
       it 'user failed_attempts should not increment' do
@@ -325,7 +325,7 @@ RSpec.describe 'Hmis::SessionsController', :devise_only, type: :request do
           delete destroy_hmis_user_session_path
           aggregate_failures 'checking response' do
             expect(response.status).to eq 204
-            post hmis_user_session_path(hmis_user: { email: user_2fa.email, password: user_2fa.password })
+            post hmis_user_session_path(hmis_user: { email: user_2fa.email, password: user_2fa.password }), headers: { 'HOST' => GraphqlHelpers::HMIS_HOSTNAME }
             expect(response.status).to eq 200
           end
         end
@@ -336,7 +336,7 @@ RSpec.describe 'Hmis::SessionsController', :devise_only, type: :request do
           delete destroy_hmis_user_session_path
           aggregate_failures 'checking response' do
             expect(response.status).to eq 204
-            post hmis_user_session_path(hmis_user: { email: user_2fa.email, password: user_2fa.password })
+            post hmis_user_session_path(hmis_user: { email: user_2fa.email, password: user_2fa.password }), headers: { 'HOST' => GraphqlHelpers::HMIS_HOSTNAME }
             expect(response.status).to eq 403
             expect(response.body).to include 'mfa_required'
           end
@@ -357,5 +357,41 @@ RSpec.describe 'Hmis::SessionsController', :devise_only, type: :request do
     GRAPHQL
     response, = post_graphql(input: { first_name: 'Tester' }) { query }
     response
+  end
+
+  describe 'before the HMIS go-live time' do
+    before do
+      create_access_control(hmis_user, ds1, without_permission: [:can_administer_hmis])
+      ds1.update!(hmis_go_live_at: 1.day.from_now)
+    end
+
+    it 'refuses the login with 403 no_hmis_access and leaves no HMIS session' do
+      hmis_login(user)
+
+      expect(response).to have_http_status(:forbidden)
+      expect(JSON.parse(response.body)).to eq('error' => { 'type' => 'no_hmis_access' })
+      expect(api_query_response.status).to eq 401
+    end
+
+    it 'refuses a two-factor user after a valid code the same way' do
+      create_access_control(user_2fa.as_hmis_user, ds1, without_permission: [:can_administer_hmis])
+      post hmis_user_session_path(hmis_user: { email: user_2fa.email, password: user_2fa.password }), headers: { 'HOST' => GraphqlHelpers::HMIS_HOSTNAME }
+      expect(JSON.parse(response.body).dig('error', 'type')).to eq('mfa_required')
+
+      post hmis_user_session_path(hmis_user: { otp_attempt: user_2fa.current_otp }), headers: { 'HOST' => GraphqlHelpers::HMIS_HOSTNAME }
+
+      expect(response).to have_http_status(:forbidden)
+      expect(JSON.parse(response.body).dig('error', 'type')).to eq('no_hmis_access')
+      expect(api_query_response.status).to eq 401
+    end
+
+    it 'signs in a user who can administer HMIS' do
+      add_permissions(hmis_user.access_controls.first, :can_administer_hmis)
+
+      hmis_login(user)
+
+      expect(response).to have_http_status(:ok)
+      expect(api_query_response.status).to eq 200
+    end
   end
 end

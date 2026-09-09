@@ -897,4 +897,26 @@ RSpec.describe model, type: :model do
       end
     end
   end
+
+  describe '#hmis_live?' do
+    let(:data_source) { create(:hmis_primary_data_source) }
+
+    it 'is live when no go-live time is set' do
+      expect(data_source.hmis_live?).to eq(true)
+    end
+
+    it 'is not live while the go-live time is in the future' do
+      travel_to Time.zone.local(2026, 10, 1, 5, 59) do
+        data_source.update!(hmis_go_live_at: Time.zone.local(2026, 10, 1, 6, 0))
+        expect(data_source.hmis_live?).to eq(false)
+      end
+    end
+
+    it 'becomes live at exactly the go-live time' do
+      travel_to Time.zone.local(2026, 10, 1, 6, 0) do
+        data_source.update!(hmis_go_live_at: Time.zone.local(2026, 10, 1, 6, 0))
+        expect(data_source.hmis_live?).to eq(true)
+      end
+    end
+  end
 end

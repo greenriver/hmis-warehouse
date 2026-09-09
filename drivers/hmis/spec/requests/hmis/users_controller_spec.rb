@@ -17,7 +17,7 @@ RSpec.describe Hmis::UsersController, type: :request do
     context 'when authenticated' do
       before do
         hmis_login(user)
-        get hmis_user_path
+        get hmis_user_path, headers: { 'HOST' => ds1.hmis }
       end
 
       it 'includes a primaryIdp key (nil under Devise, since there is no connector)', :devise_only do
@@ -53,7 +53,7 @@ RSpec.describe Hmis::UsersController, type: :request do
 
     context 'when not authenticated' do
       it 'is reachable without authentication (skip_before_action), and omits primaryIdp' do
-        get hmis_user_path
+        get hmis_user_path, headers: { 'HOST' => ds1.hmis }
 
         expect(response).to have_http_status(:ok)
         parsed = JSON.parse(response.body)

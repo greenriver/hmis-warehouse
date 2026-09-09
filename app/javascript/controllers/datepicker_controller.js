@@ -59,8 +59,20 @@ export default class extends Controller {
     // Get options from the data attribute, parsed from JSON
     const elementOptions = this.element.dataset.dateOptions ? JSON.parse(this.element.dataset.dateOptions) : {};
 
-    // Merge the default options with the options from the HTML
-    const finalOptions = { ...defaultOptions, ...elementOptions };
+    // Merge the default options with the options from the HTML. `display` merges one level deeper so
+    // an input can enable clock components without restating the icons and buttons.
+    const finalOptions = {
+      ...defaultOptions,
+      ...elementOptions,
+      display: {
+        ...defaultOptions.display,
+        ...(elementOptions.display || {}),
+        components: {
+          ...defaultOptions.display.components,
+          ...(elementOptions.display?.components || {}),
+        },
+      },
+    };
 
     this.datepicker = new TempusDominus(this.element, finalOptions);
 

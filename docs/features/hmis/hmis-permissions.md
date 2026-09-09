@@ -149,6 +149,8 @@ Because a global policy reads `UserContext#global_permissions`, it must never au
 
 `Hmis::User` defines `can_<permission>`, `can_<permission>?`, and `can_<permission>_for?(entity)` for every permission, plus `permission?`, `permissions?`, and `permissions_for?`. The flag forms answer "does this user have X anywhere?", ignoring both entity scope and data source, which makes them unsafe in a multi-HMIS installation. The `_for?` forms are entity-scoped (they resolve through `Hmis::BaseAccessLoader` subclasses), but check a single raw permission and bypass requirement resolution. Prefer a policy predicate in all of these cases: a global policy for "anywhere in this data source" questions, an instance policy for a specific record.
 
+`Hmis::User#can_administer_hmis_in_data_source?(data_source)` is the data-source-scoped form of `can_administer_hmis?`: it requires an access control whose role grants the permission and whose collection reaches an entity in that data source. The HMIS go-live gate uses it (see [Multi-HMIS support](multi-hmis-support.md#go-live-gate)).
+
 ### GraphQL
 
 Schema-level patterns (where to put `viewable_by`, `authorized?`, resolver checks, access objects, pagination preloads) are documented in [Application Code Patterns and Conventions — GraphQL](../../code_patterns_and_conventions.md#graphql). This section is the permission-model view of the same API.
