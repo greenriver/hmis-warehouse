@@ -36,8 +36,8 @@ class Hmis::SessionsController < Devise::SessionsController
     if resource
       access_error = resource.hmis_access_error_for(current_data_source)
       if access_error
-        # The two-factor before_action may already have signed the user in. Signing out resets
-        # the session, so the CSRF cookie is reissued for the terminal page's sign-out request.
+        # The two-factor before_action may already have signed the user in. The terminal page's
+        # sign-out request sends the CSRF-Token cookie, so it is reissued on this refusal.
         sign_out(:hmis_user)
         set_csrf_cookie
         return render_json_error(:forbidden, access_error)

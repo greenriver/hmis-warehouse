@@ -599,7 +599,7 @@ class Menu::Menu
       default_link_text = hmis_data_sources.size == 1 ? 'Open HMIS' : "Open #{hmis_ds.short_name}"
       Menu::Item.new(
         user: user,
-        visible: ->(user) { user.can_use_hmis_data_source?(hmis_ds) },
+        visible: ->(user) { user.can_sign_in_to_hmis_data_source?(hmis_ds) },
         path: hmis_ds.hmis_login_url(user: user),
         title: Translation.translate(default_link_text),
         icon: 'icon-link-ext',

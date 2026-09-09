@@ -99,7 +99,7 @@ Devise `POST /hmis/login` answers 403, and `attach_data_source_id` answers 403 o
 The SPA renders these as its terminal "no access" page.
 
 Warehouse sign-in and permissions are not consulted, and the warehouse hides its "Open HMIS" link
-for blocked users (`User#can_use_hmis_data_source?`). The check runs per request against `true_hmis_user`,
+for blocked users (`User#can_sign_in_to_hmis_data_source?`). The check runs per request against `true_hmis_user`,
 and does not block an admin who is impersonating a non-admin to test the site. Operators set the time on the
 Edit Data Source page.
 

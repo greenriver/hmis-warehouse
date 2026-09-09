@@ -27,9 +27,11 @@ module Hmis::Concerns::RequestDataSource
   end
 
   def current_data_source
-    data_source = GrdaWarehouse::DataSource.hmis.find_by(hmis: current_hmis_host)
-    raise "HMIS data source not configured: #{current_hmis_host}" unless data_source.present?
+    @current_data_source ||= begin
+      data_source = GrdaWarehouse::DataSource.hmis.find_by(hmis: current_hmis_host)
+      raise "HMIS data source not configured: #{current_hmis_host}" unless data_source.present?
 
-    data_source
+      data_source
+    end
   end
 end

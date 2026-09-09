@@ -216,7 +216,7 @@ class User < ApplicationRecord
   end
 
   # Should the warehouse show this user a link into the HMIS at this data_source?
-  def can_use_hmis_data_source?(data_source)
+  def can_sign_in_to_hmis_data_source?(data_source)
     hmis_user = as_hmis_user
     return false unless hmis_user&.can_access_hmis_data_source?(data_source.id)
 
