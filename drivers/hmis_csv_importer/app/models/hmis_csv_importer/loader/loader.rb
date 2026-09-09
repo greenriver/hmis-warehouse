@@ -152,7 +152,7 @@ module HmisCsvImporter::Loader
       Zip::File.open(file_path) do |zipped_file|
         zipped_file.each do |entry|
           Rails.logger.info entry.name
-          entry.extract([@local_path, File.basename(entry.name)].join('/'))
+          entry.extract(File.basename(entry.name), destination_directory: @local_path)
         end
       end
       FileUtils.rm(file_path)

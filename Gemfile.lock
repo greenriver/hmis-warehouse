@@ -839,13 +839,17 @@ GEM
       rgeo (~> 3.0.0)
     roda (3.96.0)
       rack
-    roo (2.10.1)
+    roo (3.0.0)
+      base64 (~> 0.2)
+      csv (~> 3)
+      logger (~> 1)
       nokogiri (~> 1)
-      rubyzip (>= 1.3.0, < 3.0.0)
-    roo-xls (1.2.0)
+      rubyzip (>= 3.0.0, < 4.0.0)
+    roo-xls (2.0.0)
+      csv
       nokogiri
-      roo (>= 2.0.0, < 3)
-      spreadsheet (> 0.9.0)
+      roo (>= 2.0.0, < 4)
+      spreadsheet (>= 1.3.4, < 2)
     rotp (6.3.0)
     rqrcode (3.1.0)
       chunky_png (~> 1.0)
@@ -913,7 +917,7 @@ GEM
     ruby_parser (3.22.0)
       racc (~> 1.5)
       sexp_processor (~> 4.16)
-    rubyzip (2.4.1)
+    rubyzip (3.6.0)
     sanitize (7.0.0)
       crass (~> 1.0.2)
       nokogiri (>= 1.16.8)
@@ -1628,8 +1632,8 @@ CHECKSUMS
   rgeo-geojson (2.2.0) sha256=ceed2ce1bd4c43efe9fcc494c6fec8708ec1438073425e5805d2c27fb671b210
   rgeo-proj4 (4.0.0) sha256=91b110abc3c8d65b5d471a030278a3a6b4282bc9bf2ea2af44b6ea797b788dda
   roda (3.96.0) sha256=e89397269a2713c3ce8e95156c7579309e514e808dc124b50657c7bdadff90df
-  roo (2.10.1) sha256=cbb43bc955f9c110e74b721c835fb9bd3515b63af88ec709ac87fbf30f8be70e
-  roo-xls (1.2.0) sha256=e340d7458d5f084e30f5eb4dc80925b047ecc7802a09115eaaba11bd4e8384cd
+  roo (3.0.0) sha256=6fdd7a9158d657c69768b4168754ff2110cc21fdc01a1bec1010820cb05c91b1
+  roo-xls (2.0.0) sha256=72a6ac126e3fd140f3fb105097e5b212deb9419eb7e100abd72e0f7a94048f01
   rotp (6.3.0) sha256=75d40087e65ed0d8022c33055a6306c1c400d1c12261932533b5d6cbcd868854
   rqrcode (3.1.0) sha256=e2d5996375f6e9a013823c289ed575dbea678b8e0388574302c1fac563f098af
   rqrcode_core (2.0.0) sha256=1e40b823ab57a96482a417fff5dd5c33645a00cea6ef5d9e342fecc5ef91d9ab
@@ -1655,7 +1659,7 @@ CHECKSUMS
   ruby2_keywords (0.0.5) sha256=ffd13740c573b7301cf7a2e61fc857b2a8e3d3aff32545d6f8300d8bae10e3ef
   rubyXL (3.4.33) sha256=dc2732dacf5f963fdd9732eb36b3342cb240414371ed8d9f327f667d2b286d2e
   ruby_parser (3.22.0) sha256=1eb4937cd9eb220aa2d194e352a24dba90aef00751e24c8dfffdb14000f15d23
-  rubyzip (2.4.1) sha256=8577c88edc1fde8935eb91064c5cb1aef9ad5494b940cf19c775ee833e075615
+  rubyzip (3.6.0) sha256=268994d44d62282d1cfd99bf10eae48d7267199158ad7ea3e1fee2da9458b695
   sanitize (7.0.0) sha256=269d1b9d7326e69307723af5643ec032ff86ad616e72a3b36d301ac75a273984
   sassc (2.4.0) sha256=4c60a2b0a3b36685c83b80d5789401c2f678c1652e3288315a1551d811d9f83e
   sassc-rails (2.1.2) sha256=5f4fdf3881fc9bdc8e856ffbd9850d70a2878866feae8114aa45996179952db5
