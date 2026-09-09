@@ -393,5 +393,29 @@ RSpec.describe 'Hmis::SessionsController', :devise_only, type: :request do
       expect(response).to have_http_status(:ok)
       expect(api_query_response.status).to eq 200
     end
+
+    # The terminal page's only action is sign-out, sent with the CSRF-Token cookie. Refusing the
+    # login resets the session, so the cookie has to be reissued on the refusal or that sign-out
+    # fails CSRF. allow_forgery_protection is off in test, so it is turned on here.
+    it 'reissues the CSRF cookie on a refused login so the terminal page can sign out' do
+      ActionController::Base.allow_forgery_protection = true
+      begin
+        get hmis_user_path, headers: { 'HOST' => ds1.hmis }
+        login_token = cookies['CSRF-Token']
+        expect(login_token).to be_present
+
+        post hmis_user_session_path(hmis_user: { email: user.email, password: user.password }),
+             headers: { 'HOST' => GraphqlHelpers::HMIS_HOSTNAME, 'X-CSRF-Token' => login_token }
+        expect(response).to have_http_status(:forbidden)
+        refusal_token = cookies['CSRF-Token']
+        expect(refusal_token).to be_present
+
+        delete destroy_hmis_user_session_path, headers: { 'X-CSRF-Token' => refusal_token }
+
+        expect(response).to have_http_status(:no_content)
+      ensure
+        ActionController::Base.allow_forgery_protection = false
+      end
+    end
   end
 end
