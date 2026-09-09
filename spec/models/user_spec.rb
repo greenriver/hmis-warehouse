@@ -540,6 +540,18 @@ RSpec.describe User, type: :model do
         expect(restricted_policy.can_view_name?).to eq(false)
         expect(open_policy.can_view_name?).to eq(true)
       end
+
+      it 'redacts PII for a restricted source client that has no destination client yet' do
+        unmerged_restricted = create(:hmis_hud_client, data_source: hmis_ds)
+        unmerged_open = create(:hmis_hud_client, data_source: hmis_ds)
+        unmerged_restricted.mark_as_restricted!(user: hmis_user)
+
+        restricted_policy = user.reporting_policy_for_client(client: unmerged_restricted, mode: :browse)
+        open_policy = user.reporting_policy_for_client(client: unmerged_open, mode: :browse)
+
+        expect(restricted_policy.can_view_name?).to eq(false)
+        expect(open_policy.can_view_name?).to eq(true)
+      end
     end
   end
 end

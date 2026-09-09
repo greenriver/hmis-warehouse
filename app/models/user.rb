@@ -305,7 +305,7 @@ class User < ApplicationRecord
 
     policy = policy_for(client) if allowed
     policy ||= GrdaWarehouse::AuthPolicies::DenyPiiPolicy.instance
-    GrdaWarehouse::PiiProvider.restrict(policy, restricted: policy_context.client_restricted?(client.destination_client_id_for_restriction))
+    GrdaWarehouse::PiiProvider.restrict(policy, restricted: policy_context.client_restricted?(client.id))
   end
 
   # @see docs/features/warehouse/warehouse-auth-policies.md
