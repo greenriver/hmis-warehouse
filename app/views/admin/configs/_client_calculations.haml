@@ -15,4 +15,5 @@
     = f.input :enable_youth_hrp, label: 'Enable Youth Housing Resolution Plans'
     = f.input :enable_youth_unstably_housed, label: 'Enable youth Unstably Housed option'
     = f.input :warehouse_client_name_order, label: 'How should the names on clients be calculated?', collection: GrdaWarehouse::Config.available_warehouse_client_name_orders, as: :select_two
+    = f.input :dob_selection_method, label: 'How should the client DOBs be calculated?', hint: 'An impossible DOB is one that postdates the record reporting it, or precedes it by more than 150 years. Demoting marks it approximate rather than full, so a possible date from another record can be used instead.', collection: GrdaWarehouse::Config.available_dob_selection_methods, as: :select_two
     = f.input :supplemental_enrollment_importer, label: 'What version of the supplemental enrollment importer should we use.', collection: GrdaWarehouse::Config.available_supplemental_enrollment_importers, as: :select_two
