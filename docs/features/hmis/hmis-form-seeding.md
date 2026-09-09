@@ -11,22 +11,11 @@ This pipeline can also be manually invoked with task `rails driver:hmis:seed_def
 
 ### `Hmis::Form::Definition`
 
-A versioned form schema. The `definition` column holds a recursive JSON structure (based on FHIR Questionnaire) that describes inputs, labels, validation, and mappings to HMIS fields. Each definition has a stable `identifier`, a version, a role (`SERVICE`, `CLIENT`, `ENROLLMENT`, etc.), a status (`published`, `draft`, `retired`), and a reference to its `data_source` (to support isolated configuration for multi-HMIS). Definitions that originate from JSON files on disk have `managed_in_version_control: true` and are limited to a single published version per identifier.
-
-- Model: `drivers/hmis/app/models/hmis/form/definition.rb`
-- Table: `hmis_form_definitions`
+The versioned form schema itself (`drivers/hmis/app/models/hmis/form/definition.rb`, table `hmis_form_definitions`). Definitions loaded by this pipeline have `managed_in_version_control: true` and are limited to a single published version per identifier. See [Form definitions](hmis-form-definitions.md) for columns, roles, and the status lifecycle — noting that seeded forms bypass that lifecycle, since they are always published and overwritten in place on every run.
 
 ### `Hmis::Form::Instance`
 
-An applicability rule (“Form Rule” in the UI) that binds a form definition to a scope: project, organization, funder, project type, service category, or combinations. Instances control which projects and enrollments use a given form. Matching logic lives in `Hmis::Form::InstanceProjectMatch` and `Hmis::Form::InstanceEnrollmentMatch`.
-
-- **Exclusive** roles (e.g. Project, Client, Enrollment): the single best-matching instance wins.
-- **Inclusive** roles (e.g. Services, custom assessments): all matching instances apply.
-
-**System** instances (`system: true`, `active: true`) are created by `HudComplianceFormInstanceMaintainer` and cannot be removed through the admin UI. **Non-system** instances are user-created configuration.
-
-- Model: `drivers/hmis/app/models/hmis/form/instance.rb`
-- Table: `hmis_form_instances`
+An applicability rule ("Form Rule" in the UI) binding a definition to a scope such as a project, organization, funder, or project type (`drivers/hmis/app/models/hmis/form/instance.rb`, table `hmis_form_instances`). This pipeline creates the **system** instances (`system: true`) that HUD compliance requires; everything else is user-created configuration. See [Form resolution](hmis-form-resolution.md) for the scope columns, rule ranking, and how the app picks a form.
 
 ## Seeding pipeline
 
@@ -38,15 +27,11 @@ The task **`rails driver:hmis:seed_definitions`** ([`drivers/hmis/lib/tasks/setu
 
 3. `HudUtility2026`: Source of truth for which funder / project-type combinations require which forms for HUD compliance.
 
-## Version control vs Form Builder
+## Which forms belong here
 
-Forms can either be managed in version control (JSON files under `drivers/hmis/lib/form_data/`) or managed in the Form Builder in-app.
+Not every form should be seeded from JSON. That decision, and its consequences, are covered in [Form definitions — Version control or Form Builder?](hmis-form-definitions.md#version-control-or-form-builder). In short: HUD-compliant and application-critical forms belong in version control; customer-specific non-HUD forms belong in the Form Builder.
 
-**Prefer version control** for anything that collects **HUD fields** and must **stay HUD-compliant over time**—for example: Client form, HUD Service collection form, Current Living Situation, intake and exit assessments, Project form, and other definitions that ship under `default/` and are seeded as `managed_in_version_control`. In addition to HUD-related forms, any form that is essential to application function (aka it would crash without it) should be seeded from version control.
-
-**Do not manage in version control** forms that are **customer-specific and non-HUD**. Create and maintain those with the **Form Builder** admin tool instead. For example: custom assessments, service forms for **custom (non-HUD) services**, case note forms, **non-HUD** occurrence point forms, client details forms, and similar tenant-only content.
-
-**Patches and environment overrides** are for when you need a **customer-specific change to a HUD-compliant** form. For example: an extra field on the Client form, CLS, or HUD Service form; or extra sections/fields on HUD assessments. Those patches live under the client’s directory (see below) and are applied according to `ENV['CLIENT']` and the `form_data/` layout.
+**Patches and environment overrides** are for when you need a customer-specific change to a HUD-compliant form — an extra field on the Client form, CLS, or HUD Service form, or extra sections on a HUD assessment. Those patches live under the client's directory and are applied according to `ENV['CLIENT']` and the `form_data/` layout.
 
 ## Environment-specific overrides
 

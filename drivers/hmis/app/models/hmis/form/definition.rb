@@ -8,7 +8,8 @@
 
 # Versioned form definition. Contains a structured list of questions, information about how to render them, and information about available options and initial values. Nested recursive structure similar to FHIR Questionnaire.
 #
-# The canonical definitions are in json files under drivers/hmis/lib/form_data. When the json definitions changes, run the following command to freshen these db records
+# Forms managed in version control have their canonical definitions in json files under drivers/hmis/lib/form_data.
+# When the json definitions change, run the following command to freshen these db records
 #   rails driver:hmis:seed_definitions
 #
 # Table: hmis_form_definitions
@@ -19,12 +20,17 @@
 #   role
 #     the significance of this form within the system (INTAKE, EXIT, etc)
 #   status
-#     NOT IMPLEMENTED: aspirational support for draft status
+#     draft, published, or retired. At most one published version per identifier; publishing a draft retires
+#     the previous published version. Retired forms can still be submitted, so existing records stay editable.
 #   definition
 #     JSON field defines the inputs, labels, validation, and mapping to HMIS fields. A JSON-schema exists to validate
 #     the format of the definition
 #   title
 #     User-facing title of the form definition
+#
+# @see docs/features/hmis/hmis-form-definitions.md For roles and the status lifecycle
+# @see docs/features/hmis/hmis-form-resolution.md For how a definition is chosen, and how retired forms behave when editing existing records
+# @see docs/features/hmis/hmis-form-seeding.md For loading definitions from version-controlled JSON
 class Hmis::Form::Definition < ::GrdaWarehouseBase
   self.table_name = :hmis_form_definitions
   acts_as_paranoid
