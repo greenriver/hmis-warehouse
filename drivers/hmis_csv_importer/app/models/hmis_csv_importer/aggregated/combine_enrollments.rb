@@ -17,6 +17,12 @@ module HmisCsvImporter::Aggregated
       mark_incoming_data_as_do_not_import
 
       # Combine enrollments from the import data source
+      # TLDR:
+      # This has to be setup in two places before it works.
+      # 1. Make sure you have the projects you want to aggregate in the data source.  You can upload a file without any enrollment or client data to get them in quickly if you don't have them already.
+      # 2. Enable the import "Cleanup Routine" called "Replace multiple contiguous enrollments..."
+      # 3. From the console, call `GrdaWarehouse::Hud::Project.find(id).convert_to_aggregated!` for each project that needs aggregation
+      #
       # NOTE: this operates on a single client at a single project, so there should be no overlapping enrollments
       # This will loop through all enrollments for a client and send back to the import tables any that overlap the import range
       # in an aggregated form.
