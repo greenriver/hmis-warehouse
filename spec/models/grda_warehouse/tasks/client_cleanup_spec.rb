@@ -707,8 +707,8 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
       end
     end
 
-    context 'when dob_selection_method is demote_oldest' do
-      let(:selection_method) { :demote_oldest }
+    context 'when dob_selection_method is oldest' do
+      let(:selection_method) { :oldest }
 
       it 'prefers the newer record whose DOB is possible' do
         result = cleanup.choose_best_dob(dest_attr, qa_source_clients)
@@ -737,8 +737,8 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
       end
     end
 
-    context 'when dob_selection_method is demote_newest' do
-      let(:selection_method) { :demote_newest }
+    context 'when dob_selection_method is newest' do
+      let(:selection_method) { :newest }
 
       it 'delegates to DOBSelector, preferring the newest record' do
         expect(GrdaWarehouse::DOBSelector).to receive(:call).

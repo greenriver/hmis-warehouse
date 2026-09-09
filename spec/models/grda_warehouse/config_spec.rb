@@ -38,7 +38,7 @@ RSpec.describe GrdaWarehouse::Config, type: :model do
 
     it 'offers a legacy option plus one per sort direction' do
       expect(described_class.available_dob_selection_methods.values).
-        to contain_exactly(:legacy, :demote_oldest, :demote_newest)
+        to contain_exactly(:legacy, :oldest, :newest)
     end
   end
 

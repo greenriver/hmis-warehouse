@@ -162,8 +162,8 @@ module GrdaWarehouse
     def self.available_dob_selection_methods
       {
         'Use the oldest record, and trust the date of birth it reports' => :legacy,
-        'Use the oldest record, but demote impossible dates' => :demote_oldest,
-        'Use the newest record, but demote impossible dates' => :demote_newest,
+        'Use the oldest record, but demote impossible dates' => :oldest,
+        'Use the newest record, but demote impossible dates' => :newest,
       }
     end
 
