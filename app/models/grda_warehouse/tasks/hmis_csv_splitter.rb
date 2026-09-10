@@ -29,9 +29,6 @@ require 'memery'
 module GrdaWarehouse::Tasks
   class HmisCsvSplitter
     include Memery
-    # Defined here rather than borrowed from AutoEncodingCsv so splitting doesn't depend on
-    # charlock_holmes, whose native extension isn't always loadable.
-    UTF8_BOM = "\xEF\xBB\xBF".b.freeze
     attr_accessor :project_ids, :enrollment_ids, :personal_ids, :export_id, :source_path, :destination_path, :organization_ids, :results, :unenrolled_clients_personal_ids, :include_unenrolled_clients
     def initialize(source_path:, destination_path:, project_ids:, include_unenrolled_clients: false)
       @source_path = source_path
@@ -156,15 +153,10 @@ module GrdaWarehouse::Tasks
       open_source_csv(source_file_path) { |csv| csv.each(&block) }
     end
 
-    # Rows are copied byte for byte. Only the ASCII ID columns are ever inspected, so the splitter
-    # doesn't need to know the source encoding, and the split files keep whatever encoding the
-    # source had for the importer to detect. Reading through a transcode is what mangled UTF-8
-    # punctuation.
-    private def open_source_csv(source_file_path, headers: true)
-      File.open(source_file_path, mode: 'rb') do |io|
-        io.rewind unless io.read(UTF8_BOM.bytesize) == UTF8_BOM
-        yield ::CSV.new(io, headers: headers, liberal_parsing: true)
-      end
+    # HMIS CSVs come in all sorts of encodings.
+    # Detect the source's actual encoding (BOM or statistical) and eventually writes it out as UTF-8.
+    private def open_source_csv(source_file_path, headers: true, &block)
+      AutoEncodingCsv.open(source_file_path, headers: headers, liberal_parsing: true, &block)
     end
 
     private def manually_processed
