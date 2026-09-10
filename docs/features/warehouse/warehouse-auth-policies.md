@@ -129,7 +129,7 @@ Restricted clients are also excluded from every warehouse-side client search pat
 
 ### OP Analytics and Superset `analytics.client_piis`
 
-The Scenic view `analytics.client_piis` (`db/views/analytics_client_piis_v02.sql`) enforces PII redaction for HMIS Restricted clients.  The view joins `hmis_restricted_records` and replaces `FirstName`, `MiddleName`, `LastName`, `NameSuffix`, and `SSN` with the literal `'Redacted'` when an active restriction row exists for the source client (`restrictable_type = 'Hmis::Hud::Client'`, `restrictable_id` matching the source `Client` id, `deleted_at IS NULL`). `DOB` is not redacted in this view so that the transformations can calculate age. Row-level security in the `superset-sync` repository governs which clients a given Superset user can query.
+The Scenic view `analytics.client_piis` (`db/views/analytics_client_piis_v02.sql`) enforces PII redaction for HMIS Restricted clients. The view computes the restricted id set in SQL in the same way `RestrictedClientLoader` does in Ruby.  Directly restricted source clients, their destination clients, and sibling source clients all have their name and SSN fields redacted. `DOB` is not redacted in this view so that the transformations can calculate age. Row-level security in the `superset-sync` repository governs which clients a given Superset user can query.
 
 ### Known limitations
 
