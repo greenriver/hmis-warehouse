@@ -78,7 +78,7 @@ module Importers::HmisAutoMigrate
       zip_file = reconstitute_upload
       Zip::File.open(zip_file) do |zipped_file|
         zipped_file.each do |entry|
-          entry.extract([@local_path, File.basename(entry.name)].join('/'))
+          entry.extract(File.basename(entry.name), destination_directory: @local_path)
         end
       end
     ensure

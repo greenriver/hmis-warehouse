@@ -61,6 +61,7 @@ runs:
 
         # Install packages with retry
         retry apt-get install -y --no-install-recommends \
+          7zip \
           build-essential \
           dbus \
           packagekit \
