@@ -1,5 +1,5 @@
 - client = cohort_client.client
-= cache(['cohort_clients', @cohort, cohort_client, client, cohort_client.cohort_client_notes.length, current_user.can_view_clients?], expires_in: 8.hours) do
+= cache(['cohort_clients', @cohort, cohort_client, client, cohort_client.cohort_client_notes.length, current_user.can_view_clients?, current_user.policy_context.restricted_clients_cache_token], expires_in: 8.hours) do
   - last_activity = cohort_client.client.service_history_services.homeless.maximum(:date)
   - inactivity_class = if Date.current - @cohort.days_of_inactivity > last_activity then 'homeless_inactive' else '' end rescue 'homeless_inactive'
   - ineligible_class = if cohort_client.ineligible? then 'cohort_client_ineligible' else '' end rescue ''

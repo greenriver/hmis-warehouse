@@ -89,6 +89,20 @@ Granting a user access to the **wrong** data source (e.g. an admin mistake) is a
 
 **As implemented today**, if that mistake happens: the user may be able to log in and act on a **different** HMIS (another data source), but they are not accidentally exposed to data in what they consider “their own” system. The failure mode is “user sees another HMIS” rather than “user sees wrong data inside their HMIS.”
 
+### Go-live gate
+
+`data_sources.hmis_go_live_at` schedules an HMIS launch. Blank or a timestamp in the past means the site is live.
+While the time is in the future, `Hmis::User#hmis_access_error_for(data_source)` returns `:no_hmis_access` for anyone
+who does not hold the `can_administer_hmis` permission through an access control tied to that data source
+(`Hmis::User#can_administer_hmis_in_data_source?`). `GET /hmis/user.json` answers with `accountError`,
+Devise `POST /hmis/login` answers 403, and `attach_data_source_id` answers 403 on guarded routes.
+The SPA renders these as its terminal "no access" page.
+
+Warehouse sign-in and permissions are not consulted, and the warehouse hides its "Open HMIS" link
+for blocked users (`User#can_sign_in_to_hmis_data_source?`). The check runs per request against `true_hmis_user`,
+and does not block an admin who is impersonating a non-admin to test the site. Operators set the time on the
+Edit Data Source page.
+
 ---
 
 ## Behavior summary
@@ -103,6 +117,7 @@ Granting a user access to the **wrong** data source (e.g. an admin mistake) is a
 | **User lists / admin** | User lists and selectors in an HMIS instance show only users active in that data source. (🟠TODO#8831)|
 | **CoCs** | Each data source can define and manage its relevant CoCs independently. (🟠TODO#8829)|
 | **Visual** | Each HMIS instance can have its own name and theme so users can tell which environment they’re in. (🟠TODO#8830)|
+| **Go-live** | Per data source, `hmis_go_live_at`; before it only users with `can_administer_hmis` in that data source can use that HMIS. |
 
 ## Future possibilities
 

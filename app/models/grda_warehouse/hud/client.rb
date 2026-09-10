@@ -1404,13 +1404,34 @@ module GrdaWarehouse::Hud
     # pii provider for use on client dashboard
     memoize def pii_provider(user:)
       policy = user.policy_for(self)
+      policy = GrdaWarehouse::PiiProvider.restrict(policy, restricted: pii_restricted?(user: user))
       GrdaWarehouse::PiiProvider.new(self, policy: policy)
     end
 
     # pii provider for use in reports and bulk view
     def project_pii_provider(project:, user:, mode:)
-      policy = user.reporting_policy_for_project(project_id: project.id, mode: mode)
+      policy = user.reporting_policy_for_project(project_id: project.id, mode: mode, client_id: id)
       GrdaWarehouse::PiiProvider.new(self, policy: policy)
+    end
+
+    # Whether this client's PII is blocked because they, or a client sharing their warehouse
+    # identity, is marked restricted in HMIS. Absolute: no warehouse permission overrides it.
+    def pii_restricted?(user:)
+      user.policy_context.client_restricted?(id)
+    end
+
+    # All currently HMIS-restricted client ids (source and destination alike -- restriction
+    # applies to the whole warehouse identity, see RestrictedClientLoader).
+    def self.hmis_restricted_source_client_ids
+      GrdaWarehouse::AuthPolicies::ContextLoaders::RestrictedClientLoader.new.restricted_client_ids
+    end
+
+    # The subset of the given destination client ids that are HMIS-restricted.
+    def self.hmis_restricted_destination_client_ids(destination_client_ids)
+      return Set.new if destination_client_ids.blank?
+
+      loader = GrdaWarehouse::AuthPolicies::ContextLoaders::RestrictedClientLoader.new
+      destination_client_ids.select { |id| loader.restricted?(id) }.to_set
     end
 
     def name
@@ -1818,11 +1839,13 @@ module GrdaWarehouse::Hud
     # @param client_scope [GrdaWarehouse::Hud::Client.source] source clients to search in
     # @param sorted [Boolean] order results by closest match to text
     # @param with_score [Boolean] add the match score as a #score attribute on results.
-    def self.text_search(text, client_scope: nil, sorted: false, with_score: false)
+    # @param restricted_source_ids [Set<Integer>] source client ids hidden from name/SSN matching;
+    #   pass a preloaded set when calling repeatedly, otherwise it is loaded per call
+    def self.text_search(text, client_scope: nil, sorted: false, with_score: false, restricted_source_ids: hmis_restricted_source_client_ids)
       # Get search results from client scope. Then return the unique destination client records that map to those matching source records
       relation = (client_scope || self) # rubocop:disable Style/RedundantParentheses
       # with resolve_for_join_query, results are client.scope.select(:client_id, :score) suitable for subquery
-      results = relation.searchable.text_searcher(text, sorted: sorted, resolve_for_join_query: true)
+      results = relation.searchable.text_searcher(text, sorted: sorted, resolve_for_join_query: true, exclude_ids_for_name_and_ssn: restricted_source_ids)
       return relation.none if results.nil?
 
       grouped = GrdaWarehouse::WarehouseClient.
@@ -1899,6 +1922,7 @@ module GrdaWarehouse::Hud
         where(id: matching_ids).
         preload(:destination_client).
         map { |m| m.destination_client.id }
+      ids -= hmis_restricted_destination_client_ids(ids).to_a
       where(id: ids)
     end
 
@@ -2189,8 +2213,9 @@ module GrdaWarehouse::Hud
     def potential_matches
       @potential_matches ||= {}.tap do |m|
         scores_by_id = {}
+        restricted_source_ids = self.class.hmis_restricted_source_client_ids
         potential_match_search_queries.each do |query|
-          self.class.text_search(query, client_scope: self.class, sorted: true, with_score: true).where.not(id: id).each do |candidate|
+          self.class.text_search(query, client_scope: self.class, sorted: true, with_score: true, restricted_source_ids: restricted_source_ids).where.not(id: id).each do |candidate|
             score = candidate.score.to_f
             scores_by_id[candidate.id] = score if scores_by_id[candidate.id].nil? || score > scores_by_id[candidate.id]
           end

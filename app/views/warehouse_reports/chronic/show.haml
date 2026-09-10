@@ -27,10 +27,12 @@
   - @clients.each do |client|
     - chronic = client['chronic']
     - source_clients = client['source_clients']
+    - policy = current_user.reporting_policy_for_project(project_id: nil, mode: :browse, client_id: client['id'])
+    - pii = GrdaWarehouse::PiiProvider.from_attributes(policy: policy, first_name: client['FirstName'], last_name: client['LastName'])
     .warehouse-reports__client
       .warehouse-reports__client-name
         %h4
-          = link_to_if can_view_clients?, client.slice("FirstName", "LastName").values.join(' '), appropriate_client_path(id: client['id'])
+          = link_to_if can_view_clients?, pii.full_name, appropriate_client_path(id: client['id'])
           Age:
           =client['age']
       .row

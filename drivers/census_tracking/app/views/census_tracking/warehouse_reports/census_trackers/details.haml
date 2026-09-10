@@ -12,9 +12,10 @@
         %th= name
   %tbody
     - @clients.each do |client|
+      - pii = GrdaWarehouse::PiiProvider.from_attributes(policy: current_user.reporting_policy_for_project(project_id: @project_id, client_id: client.client_id), first_name: client.first_name, last_name: client.last_name)
       %tr
         - detail_columns.each do |key, field|
-          - value = client.public_send(field)
+          - value = field.in?([:first_name, :last_name]) ? pii.public_send(field) : client.public_send(field)
           %td
             - if field == :client_id
               = link_to value, client_path(value)

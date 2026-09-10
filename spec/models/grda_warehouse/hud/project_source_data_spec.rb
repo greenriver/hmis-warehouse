@@ -24,13 +24,22 @@ RSpec.describe GrdaWarehouse::Hud::Project, 'project CSV driver extensions' do
       end
     end
 
-    it 'resolves imported_item_type to 2020 when FY2020 staging rows exist' do
+    it 'falls back to the current default HUD CSV version even when FY2020 staging rows exist' do
       HmisCsvTwentyTwenty::Importer::Project.create!(
         staging_attributes(project, importer_log),
       )
+      allow(HudHelper).to receive(:hud_csv_version).and_return('2099')
 
-      expect(project.imported_item_type(importer_log.id)).to eq('2020')
+      expect(project.imported_item_type(importer_log.id)).to eq('2099')
       expect(project.imported_items_2020.where(importer_log_id: importer_log.id)).to exist
+    end
+  end
+
+  describe 'imported_item_type fallback' do
+    it 'falls back to the current default HUD CSV version when no imported_items_* row matches' do
+      allow(HudHelper).to receive(:hud_csv_version).and_return('2099')
+
+      expect(project.imported_item_type(importer_log.id)).to eq('2099')
     end
   end
 

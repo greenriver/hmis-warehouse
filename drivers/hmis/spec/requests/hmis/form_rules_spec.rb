@@ -75,7 +75,26 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     it 'should filter form rules' do
       rules = query_form_rules(id: assessment.id, filters: { activeStatus: [:ACTIVE] })
       expect(rules.count).to eq(1)
-      expect(rules.pluck('id')).not_to include(inactive_rule.id)
+      expect(rules.pluck('id')).not_to include(inactive_rule.id.to_s)
+    end
+
+    # A community admin has can_configure_data_collection but neither can_manage_forms nor
+    # can_administrate_config. They can open any configurable form to manage its rules, including
+    # HUD assessments, whose content they still cannot edit.
+    context 'when the user can configure form rules but not manage form content' do
+      let!(:access_control) { create_access_control(hmis_user, ds1, with_permission: [:can_configure_data_collection]) }
+      let!(:intake) { create :hmis_form_definition, identifier: 'test-intake', role: :INTAKE, data_source: ds1 }
+      let!(:intake_rule) { create :hmis_form_instance, definition_identifier: 'test-intake', entity: p1, active: true, data_source: ds1 }
+
+      it 'resolves a HUD assessment form and its rules' do
+        response, result = post_graphql(id: intake.id) { query }
+        expect(response.status).to eq(200), result.inspect
+
+        definition = result.dig('data', 'formDefinition')
+        expect(definition).to be_present
+        expect(definition['id']).to eq(intake.id.to_s)
+        expect(definition.dig('formRules', 'nodes').pluck('id')).to contain_exactly(intake_rule.id.to_s)
+      end
     end
 
     context 'when there are many form rules' do

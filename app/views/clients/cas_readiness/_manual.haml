@@ -8,7 +8,7 @@
             = f.input column, as: :boolean, label: GrdaWarehouse::Hud::Client.cas_columns[column], wrapper_html: check_wrapper_class
 
         .form-group.mb-6.col-md-4
-          - if can_view_hiv_status?
+          - if can_view_hiv_status? && !@client.pii_restricted?(user: current_user)
             - if GrdaWarehouse::Config.get(:client_details).include?('hiv_positive')
               = f.input :hiv_positive, as: :boolean, label: GrdaWarehouse::Hud::Client.cas_columns[:hiv_positive], wrapper_html: check_wrapper_class
             - if GrdaWarehouse::Config.get(:client_details).include?('hues_eligible')

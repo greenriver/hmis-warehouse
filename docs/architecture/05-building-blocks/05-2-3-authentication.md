@@ -4,7 +4,9 @@
 
 This document opens the Authentication Layer container to show its internal components.
 
-> **Transition note:** This section describes the target SSO architecture. Some deployments are still in the process of migrating from Devise-based local authentication to the Keycloak / Dex / OAuth2-Proxy stack described here. See [D-1 in Section 11](../11-risks.md) for status.
+The described components below are split by trust boundary: a proxy that terminates sessions and injects headers, a broker that normalizes many identity sources into a single OIDC flow, and the identity providers that hold credentials. Splitting the broker from the providers is what lets customer-org IdPs be added or swapped as Dex connectors without any change to the applications behind them.
+
+> **Transition note:** This section describes the target SSO architecture. During the migration period the platform supports two authentication arms: the legacy Devise arm (local accounts) and the JWT/SSO arm described here. Devise is sunsetting; deployments move to the SSO arm as the required IdP infrastructure is provisioned. See [D-1 in Section 11](../11-risks.md) for status.
 
 ## Component Diagram
 
@@ -42,10 +44,10 @@ graph TB
 
 | Component | Technology | Responsibilities |
 | --- | --- | --- |
-| **OAuth2-Proxy** | Go | Reverse proxy that handles JWT validation and session management. Injects user headers into upstream requests. |
+| **OAuth2-Proxy** | Go | Reverse proxy that manages the user session and forwards the IdP access token to upstream requests as the `X-Forwarded-Access-Token` header. |
 | **Dex** | Go / OIDC | Identity broker that normalizes multiple authentication sources into a single OIDC flow. Customer-org IdPs attach as additional Dex connectors. |
 | **Keycloak** (Internal Staff IdP) | Java / PostgreSQL | Primary Identity Provider for internal staff user management and credential storage. |
 
 ## Key Interaction: Token-Based Trust
 
-The Warehouse Application does not perform its own authentication challenge — credential handling is delegated to the IdP via Dex. Rather than trusting forwarded headers as a primary control, it validates the Dex-issued token; forwarded headers (`X-Forwarded-User`, `X-Forwarded-Groups`) are convenience hints. The validation mechanics, header handling, and session policy are crosscutting security concerns documented in [§8.2 Security](../08-concepts/08-2-security.md); network isolation between the proxy and the Warehouse is described in [§7 Deployment View](../07-deployment-view.md).
+The Warehouse Application does not perform its own authentication challenge — credential handling is delegated to the IdP via Dex. Rather than trusting a forwarded header on its face, it validates the JWT that OAuth2-Proxy forwards in the `X-Forwarded-Access-Token` header — signature against the IdP's JWKS, plus issuer, audience, and expiry. The validation mechanics, header handling, and session policy are crosscutting security concerns documented in [§8.2 Security](../08-concepts/08-2-security.md); network isolation between the proxy and the Warehouse is described in [§7 Deployment View](../07-deployment.md).

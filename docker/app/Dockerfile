@@ -102,18 +102,18 @@ RUN apt-get update && apt-get upgrade -y \
   gpg \
   imagemagick \
   less \
-  libcurl4 \
+  libcurl4t64 \
   libcurl4-openssl-dev \
   libffi-dev \
   libfreetype-dev \
   libfreetype6 \
   libgeos-dev \
-  libglib2.0-0 \
+  libglib2.0-0t64 \
   libharfbuzz-dev \
   libheif1 \
   libicu-dev \
   libmagic-dev \
-  libmagic1 \
+  libmagic1t64 \
   libpq-dev \
   libsodium23 \
   libsodium-dev \
@@ -135,7 +135,8 @@ RUN apt-get update && apt-get upgrade -y \
   p7zip-full \
   packagekit \
   packagekit-tools \
-  policykit-1 \
+  pkexec \
+  polkitd \
   poppler-utils \
   postgresql-client \
   postgresql-server-dev-all \
@@ -143,7 +144,6 @@ RUN apt-get update && apt-get upgrade -y \
   pinentry-tty \
   shared-mime-info \
   ssh \
-  software-properties-common \
   tar \
   tini \
   tmux \
@@ -152,11 +152,6 @@ RUN apt-get update && apt-get upgrade -y \
   vim \
   zip \
   && rm -rf /var/lib/apt/lists/* \
-  && if [ "$(uname -m)" = "aarch64" ]; then \
-       ln -s /usr/lib/aarch64-linux-gnu/libproj.so /usr/lib/libproj.so.20; \
-     else \
-       ln -s /usr/lib/x86_64-linux-gnu/libproj.so /usr/lib/libproj.so.20; \
-     fi \
   && npm install -g yarn@1.22.22
 
 # Install custom pg_repack versions

@@ -124,4 +124,23 @@ RSpec.describe GrdaWarehouse::RecurringHmisExport, type: :model do
       expect(export.object_name(report)).to match(/nightly-.*-999\.zip/)
     end
   end
+
+  # encrypt_seven_zip unzips the export to a scratch directory and re-archives
+  # "#{destination_path}/*.csv" with the 7z binary. Without
+  # destination_directory: the CSVs land in Dir.pwd and the glob matches
+  # nothing.
+  describe '#encrypt_seven_zip' do
+    include_context 'a zip file to extract'
+
+    let(:export) { create(:recurring_hmis_export, :with_zip_encryption, user: user, encryption_type: '7z') }
+
+    it 'returns 7z content holding every CSV from the source zip' do
+      encrypted_path = File.join(scratch_dir, 'encrypted.7z')
+      File.binwrite(encrypted_path, export.send(:encrypt_seven_zip, File.binread(zip_source)))
+
+      listing = `7z l -p#{export.zip_password} #{encrypted_path}`
+      extracted_names.each { |name| expect(listing).to include(name) }
+      expect_no_leaked_files(extracted_names)
+    end
+  end
 end

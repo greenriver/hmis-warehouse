@@ -9,6 +9,7 @@
 module GrdaWarehouse::HealthEmergency
   class IsolationBase < GrdaWarehouseBase
     include ::HealthEmergency
+    belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client'
     self.table_name = 'health_emergency_isolations'
 
     def visible_to?(user)

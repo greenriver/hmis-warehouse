@@ -17,6 +17,8 @@ OpenPath::Application.routes.draw do
         collection do
           get :report_usage
           post :render_report_usage
+          get :user_summary
+          post :render_user_summary
         end
       end
     end
