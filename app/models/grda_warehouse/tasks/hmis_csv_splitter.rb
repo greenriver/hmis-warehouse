@@ -25,9 +25,13 @@
 
 require 'csv'
 require 'memery'
+
 module GrdaWarehouse::Tasks
   class HmisCsvSplitter
     include Memery
+    # Defined here rather than borrowed from AutoEncodingCsv so splitting doesn't depend on
+    # charlock_holmes, whose native extension isn't always loadable.
+    UTF8_BOM = "\xEF\xBB\xBF".b.freeze
     attr_accessor :project_ids, :enrollment_ids, :personal_ids, :export_id, :source_path, :destination_path, :organization_ids, :results, :unenrolled_clients_personal_ids, :include_unenrolled_clients
     def initialize(source_path:, destination_path:, project_ids:, include_unenrolled_clients: false)
       @source_path = source_path
@@ -78,7 +82,7 @@ module GrdaWarehouse::Tasks
 
         ::CSV.open(destination_file_path, 'wb') do |output|
           output << headers
-          ::CSV.foreach(source_file_path, **csv_options).each do |row|
+          each_source_row(source_file_path) do |row|
             results[filename][:original] += 1
             # Add project limited
             if filename.in?(project_related)
@@ -112,7 +116,7 @@ module GrdaWarehouse::Tasks
 
     # Find relevant OrganizationIDs in Project.csv and make note
     private def capture_relevant_organization_ids
-      ::CSV.foreach(File.join(source_path, 'Project.csv'), **csv_options).each do |row|
+      each_source_row(File.join(source_path, 'Project.csv')) do |row|
         next unless row['ProjectID'].in?(project_ids)
 
         organization_ids << row['OrganizationID']
@@ -121,7 +125,7 @@ module GrdaWarehouse::Tasks
 
     # Find relevant EnrollmentID and PersonalIDs in Enrollment.csv and make note
     private def capture_relevant_enrollment_ids
-      ::CSV.foreach(File.join(source_path, 'Enrollment.csv'), **csv_options).each do |row|
+      each_source_row(File.join(source_path, 'Enrollment.csv')) do |row|
         next unless row['ProjectID'].in?(project_ids)
 
         enrollment_ids << row['EnrollmentID']
@@ -131,11 +135,11 @@ module GrdaWarehouse::Tasks
 
     private def capture_unenrolled_clients
       all_enrolled_clients = Set.new
-      ::CSV.foreach(File.join(source_path, 'Enrollment.csv'), **csv_options).each do |row|
+      each_source_row(File.join(source_path, 'Enrollment.csv')) do |row|
         all_enrolled_clients.add(row['PersonalID'])
       end
 
-      ::CSV.foreach(File.join(source_path, 'Client.csv'), **csv_options).each do |row|
+      each_source_row(File.join(source_path, 'Client.csv')) do |row|
         next if all_enrolled_clients.include?(row['PersonalID'])
 
         unenrolled_clients_personal_ids.add(row['PersonalID'])
@@ -145,19 +149,22 @@ module GrdaWarehouse::Tasks
     # Headers can't come from the data rows; a source file may legitimately contain only a header
     # line, and the destination file still needs that header to be importable.
     private def source_headers(source_file_path)
-      ::CSV.foreach(source_file_path, **csv_options.merge(headers: false)).first
+      open_source_csv(source_file_path, headers: false, &:shift)
     end
 
-    private def csv_options
-      {
-        headers: true,
-        liberal_parsing: true,
-        encoding: 'iso-8859-1:utf-8',
-      }
+    private def each_source_row(source_file_path, &block)
+      open_source_csv(source_file_path) { |csv| csv.each(&block) }
     end
 
-    private def downcase_converter
-      ->(header) { header.downcase }
+    # Rows are copied byte for byte. Only the ASCII ID columns are ever inspected, so the splitter
+    # doesn't need to know the source encoding, and the split files keep whatever encoding the
+    # source had for the importer to detect. Reading through a transcode is what mangled UTF-8
+    # punctuation.
+    private def open_source_csv(source_file_path, headers: true)
+      File.open(source_file_path, mode: 'rb') do |io|
+        io.rewind unless io.read(UTF8_BOM.bytesize) == UTF8_BOM
+        yield ::CSV.new(io, headers: headers, liberal_parsing: true)
+      end
     end
 
     private def manually_processed
