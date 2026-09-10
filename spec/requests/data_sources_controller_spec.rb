@@ -235,6 +235,144 @@ RSpec.describe DataSourcesController, type: :request do
     end
   end
 
+  describe 'GET #index' do
+    let(:destination_data_source) { create(:destination_data_source) }
+
+    def create_linked_client(within_data_source)
+      source_client = create(:grda_warehouse_hud_client, data_source: within_data_source)
+      destination_client = source_client.dup
+      destination_client.data_source = destination_data_source
+      destination_client.save!
+      create(:warehouse_client, destination_id: destination_client.id, source_id: source_client.id)
+      source_client
+    end
+
+    def build_data_source_with_data(name:)
+      ds = create(:source_data_source, name: name)
+      org = create(:hud_organization, data_source: ds)
+      project = create(:hud_project, data_source: ds, OrganizationID: org.OrganizationID)
+      create_list(:hud_client, 2, data_source: ds)
+      create(:hud_enrollment, data_source: ds, project: project, client: create_linked_client(ds), processed_as: nil)
+      ds
+    end
+
+    # The first cell of each data source row links to that data source; the leading
+    # warehouse-totals row has no link.
+    def rendered_data_source_names(body)
+      Nokogiri::HTML(body).css('tbody tr').filter_map { |row| row.at_css('td a')&.text&.strip }
+    end
+
+    context 'with counts to render' do
+      let!(:ds_with_data) { create(:source_data_source, name: 'Alpha Vendor') }
+      let!(:ds_without_data) { create(:source_data_source, name: 'Zeta Vendor') }
+      let!(:org) { create(:hud_organization, data_source: ds_with_data) }
+      let!(:project) { create(:hud_project, data_source: ds_with_data, OrganizationID: org.OrganizationID) }
+      let!(:clients) { create_list(:hud_client, 2, data_source: ds_with_data) }
+      let!(:eligible_enrollment) do
+        create(:hud_enrollment, data_source: ds_with_data, project: project, client: create_linked_client(ds_with_data), processed_as: nil)
+      end
+      let!(:processed_enrollment) do
+        create(:hud_enrollment, data_source: ds_with_data, project: project, client: create_linked_client(ds_with_data), processed_as: { 'a' => 1 })
+      end
+
+      before do
+        collection.set_viewables({ data_sources: [ds_with_data.id, ds_without_data.id] })
+        setup_access_control(user, role, collection)
+        sign_in user
+      end
+
+      it 'shows accurate client, project, and unprocessed-enrollment counts per data source, including a data source with none' do
+        get data_sources_path
+        expect(response).to have_http_status(:ok)
+
+        doc = Nokogiri::HTML(response.body)
+        rows = doc.css('tbody tr')
+
+        row_with_data = rows.find { |r| r.at_css('td a')&.text == 'Alpha Vendor' }
+        cells = row_with_data.css('td')
+        # 2 explicit clients plus the 2 source clients created by create_linked_client
+        # for the eligible/processed enrollments below.
+        expect(cells[2].text.strip).to eq('4')
+        expect(cells[3].text.strip).to eq('1')
+        expect(row_with_data.text).to include('Enrollments remaining to process: 1')
+
+        row_without_data = rows.find { |r| r.at_css('td a')&.text == 'Zeta Vendor' }
+        cells = row_without_data.css('td')
+        expect(cells[2].text.strip).to eq('0')
+        expect(cells[3].text.strip).to eq('0')
+        expect(row_without_data.text).not_to include('Enrollments remaining to process')
+      end
+
+      it 'shows the stalled-import label only for a data source whose most recent import is stale' do
+        ds_with_data.update!(last_imported_at: 30.hours.ago)
+        create(:grda_warehouse_hmis_import_config, data_source: ds_with_data, file_count: 1)
+        create(:grda_warehouse_upload, data_source: ds_with_data, user: User.system_user, percent_complete: 100, completed_at: 30.hours.ago)
+
+        # Zeta has imported too, so its row reaches the same stall check Alpha's does and the
+        # label's absence there is attributable to the stall rule rather than to the outer
+        # `last_imported_at.present?` gate in the view.
+        ds_without_data.update!(last_imported_at: 2.hours.ago)
+        create(:grda_warehouse_hmis_import_config, data_source: ds_without_data, file_count: 1)
+        create(:grda_warehouse_upload, data_source: ds_without_data, user: User.system_user, percent_complete: 100, completed_at: 2.hours.ago)
+
+        get data_sources_path
+        expect(response).to have_http_status(:ok)
+
+        doc = Nokogiri::HTML(response.body)
+        rows = doc.css('tbody tr')
+
+        row_with_data = rows.find { |r| r.at_css('td a')&.text == 'Alpha Vendor' }
+        expect(row_with_data.text).to include('same file since:')
+
+        row_without_data = rows.find { |r| r.at_css('td a')&.text == 'Zeta Vendor' }
+        expect(row_without_data.text).not_to include('same file since:')
+      end
+    end
+
+    context 'query efficiency' do
+      it 'runs a bounded number of queries regardless of how many data sources are on the page' do
+        count_queries = lambda do |&block|
+          count = 0
+          callback = ->(*) { count += 1 }
+          ActiveSupport::Notifications.subscribed(callback, 'sql.active_record', &block)
+          count
+        end
+
+        small_batch = Array.new(3) { |i| build_data_source_with_data(name: "Small Vendor #{i}") }
+        collection.set_viewables({ data_sources: small_batch.map(&:id) })
+        setup_access_control(user, role, collection)
+        sign_in user
+
+        # Warm up one-time schema-cache/connection-setup queries so they don't confound
+        # the small-vs-large comparison below.
+        get data_sources_path
+        expect(response).to have_http_status(:ok)
+
+        small_queries = count_queries.call { get data_sources_path }
+        expect(rendered_data_source_names(response.body)).to match_array(small_batch.map(&:name))
+
+        large_batch = small_batch + Array.new(9) { |i| build_data_source_with_data(name: "Large Vendor #{i}") }
+        collection.set_viewables({ data_sources: large_batch.map(&:id) })
+        # This comparison only holds if every data source in large_batch lands on page 1;
+        # otherwise large_queries would undercount and the assertion below would pass for
+        # the wrong reason.
+        expect(large_batch.size).to be <= Pagy::DEFAULT[:items]
+
+        large_queries = count_queries.call { get data_sources_path }
+        # The query comparison below is only meaningful if the nine additional data sources
+        # actually rendered; a page that kept showing three rows would match on query count
+        # while exercising none of the added load.
+        expect(rendered_data_source_names(response.body)).to match_array(large_batch.map(&:name))
+
+        # A regression to the old per-row query pattern (client/project/unprocessed-enrollment
+        # counts each queried once per row) would make large_queries scale with data source
+        # count (9 more data sources here); a small constant tolerance accommodates incidental
+        # preload-boundary variance without masking that regression.
+        expect(large_queries).to be_within(5).of(small_queries)
+      end
+    end
+  end
+
   describe 'with permission to edit the data source' do
     let(:edit_role) { create(:role, can_view_projects: true, can_edit_data_sources: true) }
 

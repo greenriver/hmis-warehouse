@@ -78,6 +78,49 @@ RSpec.describe AccessLogs::WarehouseReports::UsageSummary do
     expect(summary[:reports].map { |r| r[:key] }).to eq(['warehouse_reports/chronic'])
   end
 
+  # created_at is a timestamp column. Both bounds of the Date range must expand to whole
+  # local days, or same-day activity logged after midnight UTC (evening Eastern) is dropped
+  # and pre-range activity logged after midnight UTC is counted.
+  it 'counts a visit logged on the last day of the range after midnight UTC' do
+    travel_to Time.zone.local(2026, 8, 31, 22, 15) do
+      log_visit(user: user_1, path: chronic_path, visited_at: Time.current)
+
+      report = summary[:reports].find { |r| r[:key] == 'warehouse_reports/chronic' }
+
+      expect(report&.dig(:user_visits, user_1.id.to_s)).to eq(1)
+    end
+  end
+
+  it 'excludes a visit from the day before the range starts even when it falls after midnight UTC' do
+    log_visit(user: user_1, path: chronic_path, visited_at: range.begin.beginning_of_day + 21.hours)
+    log_visit(user: user_1, path: chronic_path, visited_at: range.begin.beginning_of_day - 3.hours)
+
+    report = summary[:reports].find { |r| r[:key] == 'warehouse_reports/chronic' }
+
+    expect(report[:user_visits][user_1.id.to_s]).to eq(1)
+  end
+
+  # visit days are counted per local calendar day, so a day boundary in UTC must not split or
+  # merge a user's visits.
+  it 'counts two same-day Eastern visits that straddle midnight UTC as one visit day' do
+    log_visit(user: user_1, path: chronic_path, visited_at: 1.day.ago.beginning_of_day + 19.hours)
+    log_visit(user: user_1, path: chronic_path, visited_at: 1.day.ago.beginning_of_day + 21.hours)
+
+    report = summary[:reports].find { |r| r[:key] == 'warehouse_reports/chronic' }
+
+    expect(report[:user_visits][user_1.id.to_s]).to eq(1)
+    expect(report[:unique_visits]).to eq(1)
+  end
+
+  it 'counts an 11pm visit and a 1am visit on consecutive Eastern days as two visit days' do
+    log_visit(user: user_1, path: chronic_path, visited_at: 2.days.ago.beginning_of_day + 23.hours)
+    log_visit(user: user_1, path: chronic_path, visited_at: 1.day.ago.beginning_of_day + 1.hour)
+
+    report = summary[:reports].find { |r| r[:key] == 'warehouse_reports/chronic' }
+
+    expect(report[:user_visits][user_1.id.to_s]).to eq(2)
+  end
+
   # Nightly Census's sub-routes (/censuses/date_range, /censuses/details) are also used by an
   # AJAX widget embedded on the project show page (app/views/projects/show.haml), so path alone
   # can't tell "visited the report" from "opened a project page that happens to embed its chart."
