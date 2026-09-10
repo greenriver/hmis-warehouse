@@ -27,7 +27,7 @@ module CohortColumns
     end
 
     def value(cohort_client) # OK
-      cohort_client.client.LastName
+      pii_provider(cohort_client).last_name
     end
 
     def display_for(user)

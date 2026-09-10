@@ -1404,13 +1404,20 @@ module GrdaWarehouse::Hud
     # pii provider for use on client dashboard
     memoize def pii_provider(user:)
       policy = user.policy_for(self)
+      policy = GrdaWarehouse::PiiProvider.restrict(policy, restricted: pii_restricted?(user: user))
       GrdaWarehouse::PiiProvider.new(self, policy: policy)
     end
 
     # pii provider for use in reports and bulk view
     def project_pii_provider(project:, user:, mode:)
-      policy = user.reporting_policy_for_project(project_id: project.id, mode: mode)
+      policy = user.reporting_policy_for_project(project_id: project.id, mode: mode, client_id: id)
       GrdaWarehouse::PiiProvider.new(self, policy: policy)
+    end
+
+    # Whether this client's PII is blocked because they, or a client sharing their warehouse
+    # identity, is marked restricted in HMIS. Absolute: no warehouse permission overrides it.
+    def pii_restricted?(user:)
+      user.policy_context.client_restricted?(id)
     end
 
     def name
