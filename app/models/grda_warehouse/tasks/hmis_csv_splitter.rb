@@ -61,19 +61,25 @@ module GrdaWarehouse::Tasks
         Rails.logger.debug "Found #{unenrolled_clients_personal_ids.size} unenrolled clients"
       end
 
-      HmisCsvTwentyTwentyTwo.importable_files_map.each_key do |filename|
+      HmisCsvTwentyTwentySix.importable_files_map.each_key do |filename|
         next if filename.in?(manually_processed)
 
         Rails.logger.debug "Splitting #{filename}"
         source_file_path = File.join(source_path, filename)
         destination_file_path = File.join(destination_path, filename)
-        next unless File.exist?(source_file_path)
+        unless File.exist?(source_file_path)
+          Rails.logger.debug "Skipping #{filename}, does not exist in source path"
+          next
+        end
 
         results[filename] = { added: 0, original: 0 }
+        headers = source_headers(source_file_path)
+        raise "Headers are blank for #{filename}" if headers.blank?
+
         ::CSV.open(destination_file_path, 'wb') do |output|
-          ::CSV.foreach(source_file_path, **csv_options).each.with_index do |row, i|
+          output << headers
+          ::CSV.foreach(source_file_path, **csv_options).each do |row|
             results[filename][:original] += 1
-            output << row.headers if i.zero? # Include the header
             # Add project limited
             if filename.in?(project_related)
               if row['ProjectID'].in?(project_ids)
@@ -92,7 +98,7 @@ module GrdaWarehouse::Tasks
               end
             else
               # Add enrollment limited
-              if row['EnrollmentID'].in?(enrollment_ids) # rubocop:disable Style/IfInsideElse
+              if row['EnrollmentID'].in?(enrollment_ids)
                 output << row
                 results[filename][:added] += 1
               end
@@ -136,10 +142,15 @@ module GrdaWarehouse::Tasks
       end
     end
 
+    # Headers can't come from the data rows; a source file may legitimately contain only a header
+    # line, and the destination file still needs that header to be importable.
+    private def source_headers(source_file_path)
+      ::CSV.foreach(source_file_path, **csv_options.merge(headers: false)).first
+    end
+
     private def csv_options
       {
         headers: true,
-        # header_converters: downcase_converter,
         liberal_parsing: true,
         encoding: 'iso-8859-1:utf-8',
       }
@@ -163,6 +174,8 @@ module GrdaWarehouse::Tasks
         'ProjectCoC.csv',
         'Affiliation.csv',
         'Funder.csv',
+        'HMISParticipation.csv',
+        'CEParticipation.csv',
       ]
     end
   end
