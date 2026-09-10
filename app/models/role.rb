@@ -702,7 +702,7 @@ class Role < ApplicationRecord
         sub_category: 'Relationships',
       },
       can_export_hmis_data: {
-        description: 'When combined with assignment of the appropriate report, allows a user to export HMIS data',
+        description: 'When combined with assignment of the appropriate report, allows a user to export HMIS data.  Note PII protections, other than HMIS Restricted clients, are not applied to exported data.',
         administrative: false,
         category: 'Reporting',
         sub_category: 'Exporting',

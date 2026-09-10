@@ -2193,21 +2193,101 @@ CREATE TABLE public."Client" (
 
 
 --
+-- Name: hmis_restricted_records; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_restricted_records (
+    id bigint NOT NULL,
+    restrictable_type character varying NOT NULL,
+    restrictable_id bigint NOT NULL,
+    data_source_id bigint NOT NULL,
+    created_by_id bigint NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp(6) without time zone
+);
+
+
+--
+-- Name: warehouse_clients; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.warehouse_clients (
+    id bigint NOT NULL,
+    id_in_source character varying NOT NULL,
+    data_source_id bigint,
+    proposed_at timestamp without time zone,
+    reviewed_at timestamp without time zone,
+    reviewd_by character varying,
+    approved_at timestamp without time zone,
+    rejected_at timestamp without time zone,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL,
+    deleted_at timestamp without time zone,
+    source_id bigint,
+    destination_id bigint,
+    client_match_id bigint,
+    source_hash character varying
+);
+
+
+--
 -- Name: client_piis; Type: VIEW; Schema: analytics; Owner: -
 --
 
 CREATE VIEW analytics.client_piis AS
- SELECT id,
-    data_source_id,
-    "PersonalID",
-    "FirstName",
-    "MiddleName",
-    "LastName",
-    "NameSuffix",
-    "SSN",
-    "DOB"
-   FROM public."Client"
-  WHERE ("DateDeleted" IS NULL);
+ WITH directly_restricted AS (
+         SELECT hmis_restricted_records.restrictable_id AS client_id
+           FROM public.hmis_restricted_records
+          WHERE (((hmis_restricted_records.restrictable_type)::text = 'Hmis::Hud::Client'::text) AND (hmis_restricted_records.deleted_at IS NULL))
+        ), restricted_destinations AS (
+         SELECT DISTINCT warehouse_clients.destination_id AS client_id
+           FROM (public.warehouse_clients
+             JOIN directly_restricted ON (((directly_restricted.client_id = warehouse_clients.source_id) OR (directly_restricted.client_id = warehouse_clients.destination_id))))
+          WHERE (warehouse_clients.deleted_at IS NULL)
+        ), restricted_clients AS (
+         SELECT directly_restricted.client_id
+           FROM directly_restricted
+        UNION
+         SELECT restricted_destinations.client_id
+           FROM restricted_destinations
+        UNION
+         SELECT warehouse_clients.source_id
+           FROM (public.warehouse_clients
+             JOIN restricted_destinations ON ((restricted_destinations.client_id = warehouse_clients.destination_id)))
+          WHERE (warehouse_clients.deleted_at IS NULL)
+        )
+ SELECT "Client".id,
+    "Client".data_source_id,
+    "Client"."PersonalID",
+    (
+        CASE
+            WHEN (restricted_clients.client_id IS NOT NULL) THEN 'Redacted'::character varying
+            ELSE "Client"."FirstName"
+        END)::character varying(150) AS "FirstName",
+    (
+        CASE
+            WHEN (restricted_clients.client_id IS NOT NULL) THEN 'Redacted'::character varying
+            ELSE "Client"."MiddleName"
+        END)::character varying(150) AS "MiddleName",
+    (
+        CASE
+            WHEN (restricted_clients.client_id IS NOT NULL) THEN 'Redacted'::character varying
+            ELSE "Client"."LastName"
+        END)::character varying(150) AS "LastName",
+    (
+        CASE
+            WHEN (restricted_clients.client_id IS NOT NULL) THEN 'Redacted'::character varying
+            ELSE "Client"."NameSuffix"
+        END)::character varying(50) AS "NameSuffix",
+        CASE
+            WHEN (restricted_clients.client_id IS NOT NULL) THEN 'Redacted'::character varying
+            ELSE "Client"."SSN"
+        END AS "SSN",
+    "Client"."DOB"
+   FROM (public."Client"
+     LEFT JOIN restricted_clients ON ((restricted_clients.client_id = "Client".id)))
+  WHERE ("Client"."DateDeleted" IS NULL);
 
 
 --
@@ -5717,29 +5797,6 @@ CREATE VIEW analytics.users AS
     source_hash
    FROM public."User"
   WHERE ("DateDeleted" IS NULL);
-
-
---
--- Name: warehouse_clients; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.warehouse_clients (
-    id bigint NOT NULL,
-    id_in_source character varying NOT NULL,
-    data_source_id bigint,
-    proposed_at timestamp without time zone,
-    reviewed_at timestamp without time zone,
-    reviewd_by character varying,
-    approved_at timestamp without time zone,
-    rejected_at timestamp without time zone,
-    created_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL,
-    deleted_at timestamp without time zone,
-    source_id bigint,
-    destination_id bigint,
-    client_match_id bigint,
-    source_hash character varying
-);
 
 
 --
@@ -43267,22 +43324,6 @@ CREATE SEQUENCE public.hmis_project_unit_type_mappings_id_seq
 --
 
 ALTER SEQUENCE public.hmis_project_unit_type_mappings_id_seq OWNED BY public.hmis_project_unit_type_mappings.id;
-
-
---
--- Name: hmis_restricted_records; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.hmis_restricted_records (
-    id bigint NOT NULL,
-    restrictable_type character varying NOT NULL,
-    restrictable_id bigint NOT NULL,
-    data_source_id bigint NOT NULL,
-    created_by_id bigint NOT NULL,
-    created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL,
-    deleted_at timestamp(6) without time zone
-);
 
 
 --
@@ -214155,6 +214196,13 @@ CREATE INDEX idx_client_custom_names_last_idx ON public."CustomClientName" USING
 
 
 --
+-- Name: idx_client_dob; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_client_dob ON public."Client" USING btree ("DOB");
+
+
+--
 -- Name: idx_client_name_full_gin; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -360548,6 +360596,7 @@ SET search_path TO "$user", public;
 INSERT INTO "schema_migrations" (version) VALUES
 ('20260908120000'),
 ('20260831120000'),
+('20260827120000'),
 ('20260819120200'),
 ('20260819120000'),
 ('20260818130528'),

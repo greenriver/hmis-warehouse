@@ -104,4 +104,40 @@ RSpec.describe HudSpmReport::Fy2026::SpmEnrollment, type: :model, exclude_fixpoi
       expect(spm_enrollments[ds2.id].age).to eq(52)
     end
   end
+
+  describe '.search_clients' do
+    let!(:hmis_ds) { create(:hmis_primary_data_source) }
+    let!(:hmis_user) { create(:hmis_user, data_source: hmis_ds) }
+    let!(:restricted_client) { create(:hmis_hud_client, data_source: hmis_ds, first_name: 'Restrictedfirst', last_name: 'Restrictedlast') }
+    let!(:open_client) { create(:hmis_hud_client, data_source: hmis_ds, first_name: 'Openfirst', last_name: 'Openlast') }
+    let!(:restricted_enrollment) do
+      HudSpmReport::Fy2026::SpmEnrollment.new(
+        first_name: restricted_client.first_name, last_name: restricted_client.last_name,
+        personal_id: restricted_client.personal_id, client_id: restricted_client.id
+      ).tap { |record| record.save!(validate: false) }
+    end
+    let!(:open_enrollment) do
+      HudSpmReport::Fy2026::SpmEnrollment.new(
+        first_name: open_client.first_name, last_name: open_client.last_name,
+        personal_id: open_client.personal_id, client_id: open_client.id
+      ).tap { |record| record.save!(validate: false) }
+    end
+
+    before { restricted_client.mark_as_restricted!(user: hmis_user) }
+
+    it 'excludes a restricted client from a name search' do
+      results = HudSpmReport::Fy2026::SpmEnrollment.search_clients(HudSpmReport::Fy2026::SpmEnrollment.all, 'Restrictedlast')
+      expect(results).not_to include(restricted_enrollment)
+    end
+
+    it 'still returns a non-restricted client from a name search' do
+      results = HudSpmReport::Fy2026::SpmEnrollment.search_clients(HudSpmReport::Fy2026::SpmEnrollment.all, 'Openlast')
+      expect(results).to include(open_enrollment)
+    end
+
+    it 'still returns a restricted client from an exact personal_id search' do
+      results = HudSpmReport::Fy2026::SpmEnrollment.search_clients(HudSpmReport::Fy2026::SpmEnrollment.all, restricted_enrollment.personal_id)
+      expect(results).to include(restricted_enrollment)
+    end
+  end
 end

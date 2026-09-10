@@ -13,8 +13,10 @@
         %th Name
     %tbody
       - @clients.each do |id, first_name, last_name|
+        - policy = current_user.reporting_policy_for_project(project_id: nil, mode: :browse, client_id: id)
+        - pii = GrdaWarehouse::PiiProvider.from_attributes(policy: policy, first_name: first_name, last_name: last_name)
         %tr
           %td= link_to id, client_youth_intakes_path(id)
-          %td= "#{first_name} #{last_name}"
+          %td= pii.brief_name
 - else
   No clients.
