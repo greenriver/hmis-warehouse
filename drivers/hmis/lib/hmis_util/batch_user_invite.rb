@@ -38,7 +38,9 @@ module HmisUtil
       end
     end
 
-    # Emails HMIS users whose account was created with skip_invitation and never activated.
+    # Emails users whose account was created with skip_invitation and never activated.
+    # Recipients must have a live Hmis::AccessControl (enforced by User.hmis_users), not merely
+    # Hmis::UserGroup membership. Pending users without ACL membership are skipped.
     #
     # HmisUtil::BatchUserInvite.send_pending_invitations(dry_run: true)
     #
