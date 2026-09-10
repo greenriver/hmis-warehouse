@@ -791,25 +791,29 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
   end
 
   # A data source's show page renders every project at once unless the list is
-  # large *and* picking a CoC would meaningfully shrink it. A CoC choice is only required when
-  # there are at least two CoCs, the project count reaches SMALL_ENOUGH_PROJECT_COUNT,
-  # the projects outside the largest CoC together reach SMALL_ENOUGH_FRAGMENT_COUNT, and the
-  # largest CoC holds less than DOMINANT_COC_SHARE of the total.
-  SMALL_ENOUGH_PROJECT_COUNT = Rails.env.development? ? 100 : 1000
-  SMALL_ENOUGH_FRAGMENT_COUNT = Rails.env.development? ? 5 : 50
+  # large and picking a CoC would meaningfully shrink it. A CoC choice is only required when
+  # there are at least two CoCs, the project count reaches MIN_PROJECT_COUNT_FOR_COC_CHOICE,
+  # the projects outside the largest CoC together reach MIN_FRAGMENT_COUNT_FOR_COC_CHOICE, and
+  # the largest CoC holds less than DOMINANT_COC_SHARE of the total.
+  #
+  # Counts are distinct projects per CoC, the same figures coc_summaries puts on the picker
+  # cards: a project with several ProjectCoc rows in one CoC counts once there, and a project
+  # in several CoCs counts once in each.
+  MIN_PROJECT_COUNT_FOR_COC_CHOICE = Rails.env.development? ? 100 : 1000
+  MIN_FRAGMENT_COUNT_FOR_COC_CHOICE = Rails.env.development? ? 5 : 50
   DOMINANT_COC_SHARE = Rails.env.development? ? 0.90 : 0.75
 
   # project_scope must be a viewable-projects scope (e.g. GrdaWarehouse::Hud::Project.viewable_by(...)),
   # not yet narrowed to this data source or any particular CoC code — the point here is deciding
   # whether a CoC choice is needed at all, based on what this user could otherwise see all at once.
   def require_coc_choice?(project_scope)
-    counts = coc_code_bucket_scope(project_scope.where(data_source_id: id)).count.values
+    counts = coc_code_bucket_scope(project_scope.where(data_source_id: id)).count(DISTINCT_PROJECT_ID).values
     return false if counts.size < 2
 
     total = counts.sum
     dominant = counts.max
-    return false if total < SMALL_ENOUGH_PROJECT_COUNT
-    return false if total - dominant < SMALL_ENOUGH_FRAGMENT_COUNT
+    return false if total < MIN_PROJECT_COUNT_FOR_COC_CHOICE
+    return false if total - dominant < MIN_FRAGMENT_COUNT_FOR_COC_CHOICE
 
     dominant.to_f / total < DOMINANT_COC_SHARE
   end
@@ -822,7 +826,7 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
   # scope not yet narrowed to this data source or any particular CoC code.
   def coc_summaries(project_scope)
     scope = coc_code_bucket_scope(project_scope)
-    project_counts = scope.count('DISTINCT "Project"."id"')
+    project_counts = scope.count(DISTINCT_PROJECT_ID)
     org_counts = scope.count('DISTINCT "Project"."OrganizationID"')
 
     project_counts.map do |code, project_count|
@@ -850,6 +854,9 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
       GrdaWarehouse::DataSource.viewable_by(user, permission: :can_view_clients).exists?(id: id)
     end
   end
+
+  DISTINCT_PROJECT_ID = 'DISTINCT "Project"."id"'
+  private_constant :DISTINCT_PROJECT_ID
 
   # Group nil, empty, and whitespace-only CoC codes into a single bucket, matching
   # ProjectCoc.unknown_coc.

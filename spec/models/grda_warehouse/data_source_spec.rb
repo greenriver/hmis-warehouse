@@ -716,12 +716,12 @@ RSpec.describe model, type: :model do
     let!(:org) { create(:hud_organization, data_source_id: ds.id) }
     let(:all_projects) { GrdaWarehouse::Hud::Project.all }
 
-    # Small thresholds keep fixtures cheap while still letting each rule be crossed independently:
-    # with 4 total and 3 fragments, a source can be at the size gate with fragments under the
-    # fragment gate (2/1/1) while still being under the dominance threshold.
+    # With a size gate of 6 and a fragment gate of 3, each gate can be the only rule that
+    # blocks a choice: 2/2/1 fails size alone, 4/1/1 fails fragments alone, 9/3 fails
+    # dominance alone.
     before do
-      stub_const('GrdaWarehouse::DataSource::SMALL_ENOUGH_PROJECT_COUNT', 4)
-      stub_const('GrdaWarehouse::DataSource::SMALL_ENOUGH_FRAGMENT_COUNT', 3)
+      stub_const('GrdaWarehouse::DataSource::MIN_PROJECT_COUNT_FOR_COC_CHOICE', 6)
+      stub_const('GrdaWarehouse::DataSource::MIN_FRAGMENT_COUNT_FOR_COC_CHOICE', 3)
     end
 
     def add_projects_with_coc(coc_code, count)
@@ -731,19 +731,21 @@ RSpec.describe model, type: :model do
     end
 
     it 'does not require a choice for a large data source with a single CoC' do
-      add_projects_with_coc('XX-500', 5)
+      add_projects_with_coc('XX-500', 7)
       expect(ds.require_coc_choice?(all_projects)).to eq(false)
     end
 
-    it 'does not require a choice under the size threshold, even when fragmented' do
+    it 'does not require a choice under the size threshold when the fragment and dominance rules would require one' do
+      # 2/2/1: 3 fragment projects and 40% dominance, but only 5 projects.
       add_projects_with_coc('XX-500', 2)
-      add_projects_with_coc('XX-502', 1)
+      add_projects_with_coc('XX-502', 2)
+      add_projects_with_coc('XX-503', 1)
       expect(ds.require_coc_choice?(all_projects)).to eq(false)
     end
 
     it 'does not require a choice when the non-dominant fragments total under the fragment threshold' do
-      # 2/1/1: at the size gate and only 50% dominant, but the two fragments together are under 3.
-      add_projects_with_coc('XX-500', 2)
+      # 4/1/1: at the size gate and 66.7% dominant, but only 2 fragment projects.
+      add_projects_with_coc('XX-500', 4)
       add_projects_with_coc('XX-502', 1)
       add_projects_with_coc('XX-503', 1)
       expect(ds.require_coc_choice?(all_projects)).to eq(false)
@@ -763,8 +765,25 @@ RSpec.describe model, type: :model do
       expect(ds.require_coc_choice?(all_projects)).to eq(false)
     end
 
+    it 'counts a project once in a CoC no matter how many ProjectCoc rows it has there' do
+      # 8/2 by project, 8/3 by ProjectCoc row: only row counting would reach the fragment gate.
+      add_projects_with_coc('XX-500', 8)
+      duplicated, _single = add_projects_with_coc('XX-502', 2)
+      create(:hud_project_coc, data_source_id: ds.id, ProjectID: duplicated.ProjectID, CoCCode: 'XX-502')
+      expect(ds.require_coc_choice?(all_projects)).to eq(false)
+    end
+
+    it 'counts a project in each CoC it belongs to' do
+      # 8 projects, 3 of them in both CoCs: 8/3 by CoC, so a choice is required.
+      projects = add_projects_with_coc('XX-500', 8)
+      projects.first(3).each do |project|
+        create(:hud_project_coc, data_source_id: ds.id, ProjectID: project.ProjectID, CoCCode: 'XX-502')
+      end
+      expect(ds.require_coc_choice?(all_projects)).to eq(true)
+    end
+
     it 'does not require a choice when there is no CoC data at all' do
-      create_list(:hud_project, 5, data_source_id: ds.id, OrganizationID: org.OrganizationID)
+      create_list(:hud_project, 7, data_source_id: ds.id, OrganizationID: org.OrganizationID)
       expect(ds.require_coc_choice?(all_projects)).to eq(false)
     end
 
@@ -780,14 +799,14 @@ RSpec.describe model, type: :model do
       expect(ds.require_coc_choice?(restricted_scope)).to eq(false)
     end
 
-    it 'treats nil, empty, and whitespace-only CoC codes as a single dominance bucket' do
+    it 'groups nil, empty, and whitespace-only CoC codes into one bucket' do
       add_projects_with_coc('XX-500', 1)
-      add_projects_with_coc(nil, 1)
-      add_projects_with_coc('', 1)
+      add_projects_with_coc(nil, 2)
+      add_projects_with_coc('', 2)
       add_projects_with_coc('   ', 1)
-      # Grouped as one "unknown" bucket: two buckets with a single fragment project, so no choice
-      # is needed. If nil/''/'   ' were instead counted as three separate one-project buckets, there
-      # would be 3 fragment projects and 25% dominance, and a choice would wrongly be required.
+      # Grouped as one "unknown" bucket: 5/1 with a single fragment project, so no choice is
+      # needed. If nil/''/'   ' were instead counted as three separate buckets, there would be
+      # 4 fragment projects and 33% dominance, and a choice would wrongly be required.
       expect(ds.require_coc_choice?(all_projects)).to eq(false)
     end
   end
