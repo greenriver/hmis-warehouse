@@ -417,4 +417,39 @@ RSpec.describe DataSourcesController, type: :request do
       expect(response.body).to include('id="grda_warehouse_data_source_munged_personal_id"')
     end
   end
+
+  describe 'PATCH #update for an Open Path HMIS data source' do
+    let(:role) { create(:role, can_view_projects: true, can_edit_projects: true, can_edit_data_sources: true) }
+    let(:hmis_data_source) { create(:hmis_primary_data_source) }
+
+    before do
+      collection.set_viewables({ data_sources: [hmis_data_source.id] })
+      setup_access_control(user, role, collection)
+      sign_in user
+    end
+
+    it 'stores the go-live time in the app time zone' do
+      patch data_source_path(hmis_data_source), params: { grda_warehouse_data_source: { hmis_go_live_at: 'Oct 1, 2026 6:00 AM' } }
+
+      expect(hmis_data_source.reload.hmis_go_live_at).to eq(Time.zone.local(2026, 10, 1, 6, 0))
+    end
+
+    it 'clears the go-live time when the field is blank' do
+      hmis_data_source.update!(hmis_go_live_at: 1.day.from_now)
+
+      patch data_source_path(hmis_data_source), params: { grda_warehouse_data_source: { hmis_go_live_at: '' } }
+
+      expect(hmis_data_source.reload.hmis_go_live_at).to be_nil
+    end
+
+    it 'renders the saved go-live time as a two-digit 12-hour clock beside the calendar on the edit form' do
+      hmis_data_source.update!(hmis_go_live_at: Time.zone.local(2026, 10, 1, 6, 30))
+
+      get edit_data_source_path(hmis_data_source)
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include('value="Oct 1, 2026 06:30 AM"')
+      expect(response.body).to include('&quot;sideBySide&quot;:true')
+    end
+  end
 end

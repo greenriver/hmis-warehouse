@@ -870,6 +870,13 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     hmis.present?
   end
 
+  # Pre-launch gate for an Open Path HMIS.
+  # * Blank or a timestamp in the past means live
+  # * A future timestamp keeps everyone except users who can administer HMIS out.
+  def hmis_live?
+    hmis_go_live_at.nil? || hmis_go_live_at <= Time.current
+  end
+
   def importable?
     self.class.importable.where(id: id).exists?
   end

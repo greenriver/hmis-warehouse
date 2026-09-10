@@ -7,6 +7,7 @@
 # frozen_string_literal: true
 
 require 'rails_helper'
+require_relative '../../drivers/hmis/spec/requests/hmis/login_and_permissions'
 
 RSpec.describe User, type: :model do
   let(:user) { create :user }
@@ -388,6 +389,28 @@ RSpec.describe User, type: :model do
       user = build(:user, password: 'alllowercase123', password_confirmation: 'alllowercase123')
 
       expect(user).to be_valid
+    end
+  end
+
+  describe '#can_sign_in_to_hmis_data_source?' do
+    include LoginAndPermissionsSpecHelper
+
+    let(:ds) { create(:hmis_primary_data_source) }
+    let(:user) { create(:user) }
+
+    before { create_access_control(user.as_hmis_user, ds, without_permission: [:can_administer_hmis]) }
+
+    it 'is true for a user with HMIS access in a live HMIS' do
+      expect(user.can_sign_in_to_hmis_data_source?(ds)).to eq(true)
+    end
+
+    it 'is false before the go-live time for a user who cannot administer HMIS' do
+      ds.update!(hmis_go_live_at: 1.day.from_now)
+      expect(user.can_sign_in_to_hmis_data_source?(ds)).to eq(false)
+    end
+
+    it 'is false for a user with no HMIS access in the data source' do
+      expect(create(:user).can_sign_in_to_hmis_data_source?(ds)).to eq(false)
     end
   end
 
