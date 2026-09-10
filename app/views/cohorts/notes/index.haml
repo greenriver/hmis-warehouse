@@ -15,4 +15,4 @@
   .none-found No notes found.
 
 - content_for :modal_title do
-  Notes for #{@cohort_client.client.full_name}
+  Notes for #{@cohort_client.client.pii_provider(user: current_user).full_name}
