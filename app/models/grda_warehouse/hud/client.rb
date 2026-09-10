@@ -1839,11 +1839,13 @@ module GrdaWarehouse::Hud
     # @param client_scope [GrdaWarehouse::Hud::Client.source] source clients to search in
     # @param sorted [Boolean] order results by closest match to text
     # @param with_score [Boolean] add the match score as a #score attribute on results.
-    def self.text_search(text, client_scope: nil, sorted: false, with_score: false)
+    # @param restricted_source_ids [Set<Integer>] source client ids hidden from name/SSN matching;
+    #   pass a preloaded set when calling repeatedly, otherwise it is loaded per call
+    def self.text_search(text, client_scope: nil, sorted: false, with_score: false, restricted_source_ids: hmis_restricted_source_client_ids)
       # Get search results from client scope. Then return the unique destination client records that map to those matching source records
       relation = (client_scope || self) # rubocop:disable Style/RedundantParentheses
       # with resolve_for_join_query, results are client.scope.select(:client_id, :score) suitable for subquery
-      results = relation.searchable.text_searcher(text, sorted: sorted, resolve_for_join_query: true, exclude_ids_for_name_and_ssn: hmis_restricted_source_client_ids)
+      results = relation.searchable.text_searcher(text, sorted: sorted, resolve_for_join_query: true, exclude_ids_for_name_and_ssn: restricted_source_ids)
       return relation.none if results.nil?
 
       grouped = GrdaWarehouse::WarehouseClient.
@@ -2211,8 +2213,9 @@ module GrdaWarehouse::Hud
     def potential_matches
       @potential_matches ||= {}.tap do |m|
         scores_by_id = {}
+        restricted_source_ids = self.class.hmis_restricted_source_client_ids
         potential_match_search_queries.each do |query|
-          self.class.text_search(query, client_scope: self.class, sorted: true, with_score: true).where.not(id: id).each do |candidate|
+          self.class.text_search(query, client_scope: self.class, sorted: true, with_score: true, restricted_source_ids: restricted_source_ids).where.not(id: id).each do |candidate|
             score = candidate.score.to_f
             scores_by_id[candidate.id] = score if scores_by_id[candidate.id].nil? || score > scores_by_id[candidate.id]
           end

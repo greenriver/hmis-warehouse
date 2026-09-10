@@ -204,6 +204,12 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
       it 'still finds a restricted client by exact PersonalID' do
         expect(GrdaWarehouse::Hud::Client.text_search(restricted_source_client.PersonalID).to_a).to eq([restricted_destination_client])
       end
+
+      it 'excludes the caller-supplied restricted_source_ids instead of loading the restricted set' do
+        results = GrdaWarehouse::Hud::Client.text_search('Zzclient', restricted_source_ids: Set[unrestricted_source_client.id])
+
+        expect(results.to_a).to eq([restricted_destination_client])
+      end
     end
 
     describe 'strict_search with HMIS restriction' do
