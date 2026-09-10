@@ -9,6 +9,7 @@
 module GrdaWarehouse::HealthEmergency
   class ClinicalTriage < GrdaWarehouseBase
     include ::HealthEmergency
+    belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client'
 
     def visible_to?(user)
       user.can_see_health_emergency_clinical?

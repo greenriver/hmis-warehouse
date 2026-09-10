@@ -83,8 +83,9 @@ module WarehouseReports
         client = enrollment.client
         re_entry = @re_entries[enrollment.id]
         project = enrollment.project
+        pii = client.project_pii_provider(project: project, user: current_user, mode: :download)
         row = [client.id]
-        row += [client.FirstName, client.LastName] if ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
+        row += [pii.first_name, pii.last_name] if ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
         row += [
           HudHelper.util.no_yes_reasons_for_missing_data(client.VeteranStatus),
           enrollment.first_date_in_program,

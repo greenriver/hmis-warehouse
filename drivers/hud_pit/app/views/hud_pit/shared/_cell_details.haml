@@ -30,7 +30,7 @@
       %tbody
         - current_user.policy_context.preload_project_dependencies(@clients.distinct.pluck(:project_id))
         - @clients.preload(:source_client, :data_source).each.with_index do |client, i|
-          - pii_policy = current_user.reporting_policy_for_project(project_id: client.project_id)
+          - pii_policy = current_user.reporting_policy_for_project(project_id: client.project_id, client_id: client.destination_client_id_for_pii)
           %tr
             %th.table-dark= i + 1
             - column_headings.each_key do |k|

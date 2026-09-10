@@ -74,6 +74,8 @@ class Hmis::AuthPolicies::FormDefinitionPolicy < Hmis::AuthPolicies::ResourcePol
 
     # Determines if the form role is considered a non-super-admin form or a super-admin form
     def manageable_form_role?
+      return false unless configurable_form_role? # disallow editing for static/non-configurable forms
+
       form_definition.role.to_s.in?(Hmis::Form::Definition::NON_ADMIN_FORM_ROLES) || global_permissions.include?(:can_administrate_config)
     end
 
@@ -115,8 +117,11 @@ class Hmis::AuthPolicies::FormDefinitionPolicy < Hmis::AuthPolicies::ResourcePol
       global_permissions.include?(:can_manage_forms) && manageable_form_role?(role: role)
     end
 
+    # Whether the user can edit form definition content for a form with this role.
     def manageable_form_role?(role:)
       return false if role.nil?
+      # NON_CONFIGURABLE_FORM_ROLES cannot be listed or opened in Admin → Forms, even by super-admins
+      return false if Hmis::Form::Definition::NON_CONFIGURABLE_FORM_ROLES.include?(role.to_sym)
 
       role.to_s.in?(Hmis::Form::Definition::NON_ADMIN_FORM_ROLES) || global_permissions.include?(:can_administrate_config)
     end

@@ -222,11 +222,16 @@ RSpec.describe Hmis::AuthPolicies::FormDefinitionPolicy, type: :model do
 
       context 'when user has can_administrate_config permission' do
         let!(:access_control) { create_access_control(user, data_source, with_permission: [:can_manage_forms, :can_configure_data_collection, :can_administrate_config]) }
-        it 'returns true for all form roles' do
+        it 'returns true for roles that can be listed in Admin → Forms' do
           expect(policy.can_create?(role: 'SERVICE')).to be true
           expect(policy.can_create?(role: 'CUSTOM_ASSESSMENT')).to be true
-          expect(policy.can_create?(role: 'CE_REFERRAL_STEP')).to be true
           expect(policy.can_create?(role: 'CURRENT_LIVING_SITUATION')).to be true
+        end
+
+        it 'returns false for roles that cannot be listed or opened in Admin → Forms' do
+          expect(policy.can_create?(role: 'CE_REFERRAL_STEP')).to be false
+          expect(policy.can_create?(role: 'REFERRAL')).to be false
+          expect(policy.can_create?(role: 'PROJECT_CONFIG')).to be false
         end
       end
 
