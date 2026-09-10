@@ -5,6 +5,9 @@
   - if visible && total > visible
     %p.text-right.mt-2.mr-2
       %em Showing #{pluralize(visible, 'enrollment')} of #{pluralize(total, 'total enrollment')}
+  - hmis_source_visible = @client.hmis_source_visible_by?(current_user)
+  - household_member_ids = enrollments.flat_map { |e| Array.wrap(e[:household]).map { |c| c['client_id'] } }.compact.uniq
+  - household_members = GrdaWarehouse::Hud::Client.where(id: household_member_ids).index_by(&:id)
   %table.table
     %thead
       %tr
@@ -22,7 +25,7 @@
             Adjusted Days
         %th.text-right Months Served
         %th Household Members
-        - if @client.hmis_source_visible_by?(current_user)
+        - if hmis_source_visible
           %th
       - total_days = @client.total_days(enrollments)
       - total_homeless = @days_homeless || @client.days_homeless
@@ -40,111 +43,111 @@
             = total_adjusted_days
         %th.num-cell= total_months
         %th
-        - if @client.hmis_source_visible_by?(current_user)
+        - if hmis_source_visible
           %th
     %tbody
-    - enrollments.each do |e|
-      - episode_class = ''
-      - if e[:new_episode]
-        - episode_class = 'enrollment__new-episode'
-      %tr{class: episode_class}
-        %td.nobr
-          .ds.jClickToCopy{class: "ds-color-#{e[:data_source_id]}", data: { 'bs-toggle' => :tooltip, 'bs-html' => 'true', 'bs-title' => ds_tooltip_content(e[:client_source_id], e[:data_source_id]).html_safe }}= ds_short_name_for(e[:client_source_id])
-          .enrollment__project_type{class: e[:class]}
-            %span.service-type__program-type{data: { 'bs-toggle' => :tooltip, 'bs-title' => HudHelper.util.project_type_with_sub_type(e[:project_type_id], e[:rrh_sub_type])}}
-              = HudHelper.util.brief_project_type_with_sub_type(e[:project_type_id], e[:rrh_sub_type])
-          - if e[:confidential_project] && can_view_confidential_project_names?
-            .confidential_project{data: { 'bs-toggle' => :tooltip, 'bs-title' => GrdaWarehouse::Hud::Project.confidential_project_name}}
-              CP
-        %td
-          %span{data: @client.program_tooltip_data_for_enrollment(e, current_user)}
-            - if include_links
-              - can_view_project_page = current_user.can_edit_projects?
-              - can_view_project_page ||=  e[:project_name] != GrdaWarehouse::Hud::Project.confidential_project_name && current_user.can_view_projects?
-              = link_to_if can_view_project_page, e[:project_name], project_path(id: e[:project_id])
-            - else
-              = e[:project_name]
-
-        %td
-          - living_situation = HudHelper.util.living_situation(e[:living_situation])
-          - if living_situation == e[:living_situation]
-            - living_situation = 'Unknown'
-          - title = "<b>Prior Living Situation:</b> #{living_situation}"
-          - move_in_date = e[:move_in_date]
-          - if move_in_date.present?
-            - title += ";<br /><b>Move-in Date:</b> #{move_in_date}"
-            - if e[:move_in_date_inherited]
-              - title += '<br />(inherited from HoH)'
-          - elsif e[:project_type_id].in?(HudHelper.util.project_types_with_move_in_dates)
-            - title += ";<br /><b>Move-in Date:</b> No move-in date"
-          %span{data: { 'bs-toggle' => :tooltip, 'bs-title' => title.html_safe, 'bs-html' => 'true' }}
-            - include_link = current_user.can_view_enrollment_details?
-            = link_to_if include_link, e[:entry_date], client_enrollment_path(@client.id, e[:hmis_id])
-          - if e[:chronically_homeless_at_start]
-            %i.icon-passport{data: { 'bs-toggle' => :tooltip, 'bs-title' => 'Chronic at entry'}}
-          - if move_in_date.present?
-            - title = "<b>Move-in Date:</b> #{move_in_date}"
-            - if e[:move_in_date_inherited]
-              - title += '<br />(inherited from HoH)'
-            %i.icon-house{data: { 'bs-toggle' => :tooltip, 'bs-title' => title.html_safe, 'bs-html' => 'true' }}
-        %td
-          - destination = HudHelper.util.destination(e[:destination])
-          - if destination == e[:destination]
-            - destination = 'Unknown'
-          %span{data: { 'bs-toggle' => :tooltip, 'bs-title' => "Destination: #{destination}"}}
-            = e[:exit_date]
-        %td
-          = e[:most_recent_service]
-          - if e[:chronically_homeless_at_most_recent]
-            %i.icon-passport{data: { 'bs-toggle' => :tooltip, 'bs-title' => 'Chronic at most recent day served'}}
-        %td.num-cell= e[:days]
-        %td.num-cell
-          - if e[:homeless]
-            = e[:homeless_days]
-            \/
-            = e[:adjusted_days]
-          - else
-            = e[:adjusted_days]
-        %td.num-cell
-          = e[:months_served].size
-        %td
-          .client__enrollment--household
-            - if e[:household].present?
-              - e[:household].each do |c|
-                - tooltip = ''
-                - if c['head_of_household']
-                  - tooltip += 'Head of Household<br />'
-                - tooltip += "Entry: #{c['first_date_in_program']}<br />"
-                - if c['move_in_date']
-                  - tooltip += "Move-in-Date: #{c['move_in_date']}<br />"
-                - if c['last_date_in_program']
-                  - tooltip += "Exit: #{c['last_date_in_program']}<br />"
-                - member_pii_provider = GrdaWarehouse::Hud::Client.find_by(id: c['client_id'])&.pii_provider(user: current_user)
-                .mb-2.mt-2{ data: { 'bs-toggle' => :tooltip, 'bs-title' => tooltip, 'bs-html' => 'true', boundary: :window } }
-                  = link_to client_path(c['client_id']), class: 'd-block' do
-                    - if member_pii_provider&.redact_name?
-                      = member_pii_provider.first_name
-                    - else
-                      #{c['FirstName']} #{c['LastName']}
-                    - if c['head_of_household']
-                      %i.icon-user
-                    %br
-                    Age:
-                    = c['age']
-                %br
-        - if @client.hmis_source_visible_by?(current_user)
+      - enrollments.each do |e|
+        - episode_class = ''
+        - if e[:new_episode]
+          - episode_class = 'enrollment__new-episode'
+        %tr{class: episode_class}
+          %td.nobr
+            .ds.jClickToCopy{class: "ds-color-#{e[:data_source_id]}", data: { 'bs-toggle' => :tooltip, 'bs-html' => 'true', 'bs-title' => ds_tooltip_content(e[:client_source_id], e[:data_source_id]).html_safe }}= ds_short_name_for(e[:client_source_id])
+            .enrollment__project_type{class: e[:class]}
+              %span.service-type__program-type{data: { 'bs-toggle' => :tooltip, 'bs-title' => HudHelper.util.project_type_with_sub_type(e[:project_type_id], e[:rrh_sub_type])}}
+                = HudHelper.util.brief_project_type_with_sub_type(e[:project_type_id], e[:rrh_sub_type])
+            - if e[:confidential_project] && can_view_confidential_project_names?
+              .confidential_project{data: { 'bs-toggle' => :tooltip, 'bs-title' => GrdaWarehouse::Hud::Project.confidential_project_name}}
+                CP
           %td
-            - if e[:hmis_id]
-              - title = 'HMIS Enrollment'
-              = link_to title, source_datum_path(e[:hmis_id], type: 'Enrollment'), class: 'btn btn-xs btn-secondary btn-muted btn-hmis mb-2'
-            - if e[:hmis_exit_id]
-              - title = 'HMIS Exit'
-              = link_to title, source_datum_path(e[:hmis_exit_id], type: 'Exit'), class: 'btn btn-xs btn-secondary btn-muted btn-hmis mb-2'
-            .text-teeny.font-weight-light
-              .text-nowrap
-                Created: #{e[:created_at]}
-              .text-nowrap
-                Updated: #{e[:updated_at]}
+            %span{data: @client.program_tooltip_data_for_enrollment(e, current_user)}
+              - if include_links
+                - can_view_project_page = current_user.can_edit_projects?
+                - can_view_project_page ||=  e[:project_name] != GrdaWarehouse::Hud::Project.confidential_project_name && current_user.can_view_projects?
+                = link_to_if can_view_project_page, e[:project_name], project_path(id: e[:project_id])
+              - else
+                = e[:project_name]
+
+          %td
+            - living_situation = HudHelper.util.living_situation(e[:living_situation])
+            - if living_situation == e[:living_situation]
+              - living_situation = 'Unknown'
+            - title = "<b>Prior Living Situation:</b> #{living_situation}"
+            - move_in_date = e[:move_in_date]
+            - if move_in_date.present?
+              - title += ";<br /><b>Move-in Date:</b> #{move_in_date}"
+              - if e[:move_in_date_inherited]
+                - title += '<br />(inherited from HoH)'
+            - elsif e[:project_type_id].in?(HudHelper.util.project_types_with_move_in_dates)
+              - title += ";<br /><b>Move-in Date:</b> No move-in date"
+            %span{data: { 'bs-toggle' => :tooltip, 'bs-title' => title.html_safe, 'bs-html' => 'true' }}
+              - include_link = current_user.can_view_enrollment_details?
+              = link_to_if include_link, e[:entry_date], client_enrollment_path(@client.id, e[:hmis_id])
+            - if e[:chronically_homeless_at_start]
+              %i.icon-passport{data: { 'bs-toggle' => :tooltip, 'bs-title' => 'Chronic at entry'}}
+            - if move_in_date.present?
+              - title = "<b>Move-in Date:</b> #{move_in_date}"
+              - if e[:move_in_date_inherited]
+                - title += '<br />(inherited from HoH)'
+              %i.icon-house{data: { 'bs-toggle' => :tooltip, 'bs-title' => title.html_safe, 'bs-html' => 'true' }}
+          %td
+            - destination = HudHelper.util.destination(e[:destination])
+            - if destination == e[:destination]
+              - destination = 'Unknown'
+            %span{data: { 'bs-toggle' => :tooltip, 'bs-title' => "Destination: #{destination}"}}
+              = e[:exit_date]
+          %td
+            = e[:most_recent_service]
+            - if e[:chronically_homeless_at_most_recent]
+              %i.icon-passport{data: { 'bs-toggle' => :tooltip, 'bs-title' => 'Chronic at most recent day served'}}
+          %td.num-cell= e[:days]
+          %td.num-cell
+            - if e[:homeless]
+              = e[:homeless_days]
+              \/
+              = e[:adjusted_days]
+            - else
+              = e[:adjusted_days]
+          %td.num-cell
+            = e[:months_served].size
+          %td
+            .client__enrollment--household
+              - if e[:household].present?
+                - e[:household].each do |c|
+                  - tooltip = ''
+                  - if c['head_of_household']
+                    - tooltip += 'Head of Household<br />'
+                  - tooltip += "Entry: #{c['first_date_in_program']}<br />"
+                  - if c['move_in_date']
+                    - tooltip += "Move-in-Date: #{c['move_in_date']}<br />"
+                  - if c['last_date_in_program']
+                    - tooltip += "Exit: #{c['last_date_in_program']}<br />"
+                  - member_pii_provider = household_members[c['client_id']]&.pii_provider(user: current_user)
+                  .mb-2.mt-2{ data: { 'bs-toggle' => :tooltip, 'bs-title' => tooltip, 'bs-html' => 'true', boundary: :window } }
+                    = link_to client_path(c['client_id']), class: 'd-block' do
+                      - if member_pii_provider&.redact_name?
+                        = member_pii_provider.first_name
+                      - else
+                        #{c['FirstName']} #{c['LastName']}
+                      - if c['head_of_household']
+                        %i.icon-user
+                      %br
+                      Age:
+                      = c['age']
+                  %br
+          - if hmis_source_visible
+            %td
+              - if e[:hmis_id]
+                - title = 'HMIS Enrollment'
+                = link_to title, source_datum_path(e[:hmis_id], type: 'Enrollment'), class: 'btn btn-xs btn-secondary btn-muted btn-hmis mb-2'
+              - if e[:hmis_exit_id]
+                - title = 'HMIS Exit'
+                = link_to title, source_datum_path(e[:hmis_exit_id], type: 'Exit'), class: 'btn btn-xs btn-secondary btn-muted btn-hmis mb-2'
+              .text-teeny.font-weight-light
+                .text-nowrap
+                  Created: #{e[:created_at]}
+                .text-nowrap
+                  Updated: #{e[:updated_at]}
 - else
   %p.ml-3.mt-3
     No enrollments on file
