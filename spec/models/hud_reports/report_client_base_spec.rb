@@ -181,6 +181,12 @@ RSpec.describe HudReports::ReportClientBase, type: :model do
       expect(results).to include(open_apr_client)
     end
 
+    it 'still returns a name match whose client id columns are null' do
+      orphan_apr_client = create(:hud_report_apr_client, first_name: 'Orphanfirst', last_name: 'Orphanlast', client_id: nil, destination_client_id: nil)
+      results = HudApr::Fy2020::AprClient.search_clients(HudApr::Fy2020::AprClient.all, 'Orphanlast')
+      expect(results).to include(orphan_apr_client)
+    end
+
     it 'still returns a restricted client from an exact personal_id search' do
       results = HudApr::Fy2020::AprClient.search_clients(HudApr::Fy2020::AprClient.all, restricted_apr_client.personal_id)
       expect(results).to include(restricted_apr_client)

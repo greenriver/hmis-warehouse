@@ -51,13 +51,14 @@ module HudReports
 
     # A client that is restricted from search must not be discoverable via name/SSN matches
     # (see app/models/concerns/client_search.rb), even though exact-ID matches remain allowed.
+    # `NOT IN` is NULL for a NULL column, which would silently drop rows with no client id
     def self.restricted_condition
       return nil if pii_search_columns.empty? || restricted_client_id_columns.empty?
 
       restricted_ids = GrdaWarehouse::Hud::Client.hmis_restricted_source_client_ids
       return nil if restricted_ids.blank?
 
-      restricted_client_id_columns.map { |col| col.not_in(restricted_ids.to_a) }.inject(:and)
+      restricted_client_id_columns.map { |col| col.not_in(restricted_ids.to_a).or(col.eq(nil)) }.inject(:and)
     end
 
     def self.searchable?
