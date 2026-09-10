@@ -32,7 +32,7 @@ class ClientHistory::EnrollmentView
   end
 
   private def affiliated_str(project_names)
-    return nil if project_names.blank?
+    return nil if project_names.compact.blank?
 
     "Affiliated with #{project_names.to_sentence}"
   end

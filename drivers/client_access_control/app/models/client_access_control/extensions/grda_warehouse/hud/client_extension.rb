@@ -193,8 +193,8 @@ module ClientAccessControl::GrdaWarehouse::Hud
               enrollment: [:enrollment_cocs, :exit, :ch_enrollment, :project, :disabilities_at_entry],
             ).
             order(first_date_in_program: :desc)
-          visible_enrollment_count = enrollments.count
           enrollments = enrollments.to_a
+          visible_enrollment_count = enrollments.size
           calculator = ClientHistory::Calculator.new(client: self, enrollments: enrollments)
           residential_dates = calculator.residential_dates
           expose_coc_code = ::GrdaWarehouse::Config.get(:expose_coc_code)
