@@ -456,7 +456,7 @@ module Types
       access_denied! unless policy_for(Hmis::Form::Definition, policy_type: :form_definition).can_configure_forms?
 
       definition = Hmis::Form::Definition.configurable_by(current_user).
-        non_static.latest_versions.where(identifier: identifier).first
+        latest_versions.where(identifier: identifier).first
 
       # Return nil (Not Found in the UI) if the user doesn't have permission to access this form
       return nil unless definition && policy_for(definition, policy_type: :form_definition).can_configure_form?
@@ -470,7 +470,7 @@ module Types
     def form_identifiers(filters: nil)
       access_denied! unless policy_for(Hmis::Form::Definition, policy_type: :form_definition).can_configure_forms?
 
-      scope = Hmis::Form::Definition.configurable_by(current_user).non_static.valid.latest_versions
+      scope = Hmis::Form::Definition.configurable_by(current_user).latest_versions
       scope = scope.apply_filters(filters) if filters
       # Sort system-managed forms last, because they aren't edited through the config tool. Then sort by most recently updated.
       scope.order(managed_in_version_control: :asc, updated_at: :desc, id: :desc)
