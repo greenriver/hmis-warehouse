@@ -30,7 +30,7 @@ module WarehouseReports
           row[:client_id]
         end
       mode = request.format.symbol == :html ? :browse : :download
-      @pii_providers = client_source.where(id: @clients.keys).index_by(&:id).
+      @pii_providers = client_source.where(id: @clients.keys).preload(:source_clients).index_by(&:id).
         transform_values do |client|
           GrdaWarehouse::PiiProvider.new(client, policy: current_user.reporting_policy_for_client(client: client, mode: mode))
         end
