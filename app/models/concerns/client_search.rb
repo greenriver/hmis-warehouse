@@ -12,7 +12,9 @@ module ClientSearch
     # @param text [String] search term
     # @param sorted [Boolean] will attempt ordering against search term it seems to be free-text
     # @param resolve_for_join_query [Boolean] return results as sub query of (client_id, score) suitable for joins
-    def self.text_searcher(text, sorted:, resolve_for_join_query: false)
+    # @param exclude_ids_for_name_and_ssn [Enumerable, nil] ids to exclude from the SSN-exact-match and
+    #   free-text name-matching branches only; no-op unless passed
+    def self.text_searcher(text, sorted:, resolve_for_join_query: false, exclude_ids_for_name_and_ssn: nil)
       return none unless text.present?
 
       text = text.strip
@@ -38,6 +40,7 @@ module ClientSearch
         where = sa[:PersonalID].matches(text.gsub('-', ''))
       elsif social
         where = sa[:SSN].eq(text.gsub('-', ''))
+        where = where.and(sa[:id].not_in(exclude_ids_for_name_and_ssn.to_a)) if exclude_ids_for_name_and_ssn.present?
       elsif date
         (month, day, year) = text.split('/')
         where = sa[:DOB].eq("#{year}-#{month}-#{day}")
@@ -70,9 +73,10 @@ module ClientSearch
         unless matches_external_ids
           # short circuit the rest of search. Since no external IDS are found, this seems to be free text and we can just return
           # name search results
-          return ClientSearchUtil::NameSearch.perform_as_joinable_query(term: text, clients: self) if resolve_for_join_query
+          name_search_scope = exclude_ids_for_name_and_ssn.present? ? self.where.not(id: exclude_ids_for_name_and_ssn) : self
+          return ClientSearchUtil::NameSearch.perform_as_joinable_query(term: text, clients: name_search_scope) if resolve_for_join_query
 
-          return ClientSearchUtil::NameSearch.perform(term: text, clients: self, sorted: sorted)
+          return ClientSearchUtil::NameSearch.perform(term: text, clients: name_search_scope, sorted: sorted)
         end
       end
 

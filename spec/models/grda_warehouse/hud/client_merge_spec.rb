@@ -419,5 +419,37 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
 
       expect(matches.count).to eq(GrdaWarehouse::Hud::Client::POTENTIAL_MATCHES_LIMIT)
     end
+
+    context 'with HMIS-restricted candidates' do
+      let!(:hmis_ds) { create(:hmis_primary_data_source) }
+      let!(:hmis_user) { create(:hmis_user, data_source: hmis_ds) }
+
+      before do
+        own_source = create(:hud_client, FirstName: 'Roberta', LastName: 'Smithers', data_source_id: source_ds.id)
+        GrdaWarehouse::WarehouseClient.create!(destination_id: client.id, source_id: own_source.id, id_in_source: own_source.PersonalID)
+      end
+
+      it 'excludes candidates whose source client is restricted' do
+        restricted_source = create(:hmis_hud_client, data_source: hmis_ds, first_name: 'Roberta', last_name: 'Smithers')
+        restricted_destination = create(:hud_client, data_source_id: destination_ds.id)
+        GrdaWarehouse::WarehouseClient.create!(destination_id: restricted_destination.id, source_id: restricted_source.id, id_in_source: restricted_source.PersonalID)
+        restricted_source.mark_as_restricted!(user: hmis_user)
+
+        open_source = create(:hud_client, FirstName: 'Roberta', LastName: 'Smithers', data_source_id: source_ds.id)
+        open_destination = create(:hud_client, data_source_id: destination_ds.id)
+        GrdaWarehouse::WarehouseClient.create!(destination_id: open_destination.id, source_id: open_source.id, id_in_source: open_source.PersonalID)
+
+        expect(client.potential_matches[:by_name].to_a).to eq([open_destination])
+      end
+
+      it 'loads the restricted client set once, not once per source-name search' do
+        second_name_source = create(:hud_client, FirstName: 'Zachary', LastName: 'Quinnson', data_source_id: source_ds.id)
+        GrdaWarehouse::WarehouseClient.create!(destination_id: client.id, source_id: second_name_source.id, id_in_source: second_name_source.PersonalID)
+
+        expect(GrdaWarehouse::AuthPolicies::ContextLoaders::RestrictedClientLoader).to receive(:new).once.and_call_original
+
+        client.potential_matches
+      end
+    end
   end
 end
