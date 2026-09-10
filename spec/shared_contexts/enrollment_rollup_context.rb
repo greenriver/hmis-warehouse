@@ -74,7 +74,7 @@ RSpec.shared_context 'enrollment rollup context' do
     rebuild_service_history!
   end
 
-  def create_project(name, project_type:)
+  def create_project(name, project_type:, **attrs)
     create(
       :hud_project,
       data_source_id: data_source.id,
@@ -82,7 +82,16 @@ RSpec.shared_context 'enrollment rollup context' do
       ProjectName: name,
       ProjectType: project_type,
       ExportID: export.ExportID,
+      **attrs,
     )
+  end
+
+  # An ACL user holding only `role` over the window data sources; contrast with `user`,
+  # who also has source-data editing access.
+  def create_user_with_role(role)
+    acl_user = create :acl_user
+    setup_access_control(acl_user, role, Collection.system_collection(:window_data_sources))
+    acl_user
   end
 
   def create_linked_source_client(destination, first_name:, last_name:, dob: '1980-01-01')
@@ -98,9 +107,8 @@ RSpec.shared_context 'enrollment rollup context' do
       PersonalID: client.PersonalID,
       ProjectID: project.ProjectID,
       EntryDate: Date.parse(entry),
-      DisablingCondition: 0,
       ExportID: export.ExportID,
-      **attrs,
+      **{ DisablingCondition: 0 }.merge(attrs),
     )
     create(
       :hud_exit,

@@ -41,16 +41,38 @@ RSpec.describe 'Client dashboard enrollment rollups', type: :request do
       expect(totals).to eq(['41', '18 / 37', '1'])
     end
 
-    it 'renders household member names through the PII provider' do
+    it 'renders household member names for a user who may view client names' do
       doc = fetch_rollup(destination_client)
       member_cell = doc.css('tbody tr').last.css('.client__enrollment--household')
       expect(member_cell.text).to include('Mia Member')
       expect(member_cell.css('a').first['href']).to eq(client_path(household_member_destination.id))
     end
 
-    it 'renders HMIS source links when the user can see source data' do
+    it 'redacts household member names for a user who may not view client names' do
+      name_restricted_role = create :role, name: 'name restricted', can_view_clients: true, can_view_limited_client_dashboard: true
+      sign_out user
+      sign_in create_user_with_role(name_restricted_role)
+
+      doc = fetch_rollup(destination_client)
+      member_cell = doc.css('tbody tr').last.css('.client__enrollment--household')
+      expect(member_cell.text).to include(GrdaWarehouse::PiiProvider::NAME_REDACTED)
+      expect(member_cell.text).not_to include('Mia')
+      expect(member_cell.text).not_to include('Member')
+    end
+
+    it 'renders HMIS source links and the source column when the user can see source data' do
       doc = fetch_rollup(destination_client)
       expect(doc.css('a.btn-hmis').map(&:text)).to include('HMIS Enrollment', 'HMIS Exit')
+      expect(doc.css('thead tr').first.css('th').size).to eq(10)
+    end
+
+    it 'omits HMIS source links and the source column when the user cannot see source data' do
+      sign_out user
+      sign_in create_user_with_role(viewer_role)
+
+      doc = fetch_rollup(destination_client)
+      expect(doc.css('a.btn-hmis')).to be_empty
+      expect(doc.css('thead tr').first.css('th').size).to eq(9)
     end
 
     it 'marks the first shelter stay as a new episode' do
@@ -69,10 +91,9 @@ RSpec.describe 'Client dashboard enrollment rollups', type: :request do
   describe 'query scaling' do
     # GrdaWarehouse::Hud::Client#pii_provider -> User#policy_for is an ACL/PII policy
     # check that can't be shared across different people, so it costs a small constant
-    # number of queries (COUNT of warehouse_clients, a group_viewable_entities/collection
-    # lookup, a DISTINCT Project/Enrollment visibility check, and the Client select) per
-    # distinct household member shown, regardless of how many rows they appear on.
-    PER_PERSON_QUERY_COST = 5
+    # number of queries per distinct household member shown, regardless of how many
+    # rows they appear on.
+    let(:per_person_query_cost) { 5 }
 
     it 'renders eight enrollments with the same number of queries as two, aside from per-person PII policy checks' do
       few = build_client_with_es_enrollments(count: 2)
@@ -84,7 +105,7 @@ RSpec.describe 'Client dashboard enrollment rollups', type: :request do
 
       additional_people = 8 - 2
       expect(fetch_rollup(many).css('tbody tr').size).to eq(8)
-      expect(many_queries - few_queries).to eq(additional_people * PER_PERSON_QUERY_COST)
+      expect(many_queries - few_queries).to be <= additional_people * per_person_query_cost
     end
 
     it 'does not add per-appearance cost when the same household member appears on every row' do

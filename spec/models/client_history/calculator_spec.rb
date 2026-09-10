@@ -48,6 +48,23 @@ RSpec.describe ClientHistory::Calculator, type: :model do
     it 'is false for permanent housing regardless of history' do
       expect(calculator.new_episode?(enrollment: housing_she)).to eq(false)
     end
+
+    # The fixture's last homeless night is 2021-01-19 (Shelter B, exited 01-20).
+    def new_episode_for_shelter_entry_on(entry)
+      create_enrollment(source_client, shelter_a, entry: entry.to_s, exit_date: (entry + 2.days).to_s)
+      rebuild_service_history!
+      entries = destination_client.service_history_enrollments.entry.to_a
+      described_class.new(client: destination_client, enrollments: entries).
+        new_episode?(enrollment: entries.detect { |e| e.entry_date == entry })
+    end
+
+    it 'is false when the last homeless night is exactly 30 days before entry' do
+      expect(new_episode_for_shelter_entry_on(Date.new(2021, 2, 18))).to eq(false)
+    end
+
+    it 'is true when the last homeless night is 31 days before entry' do
+      expect(new_episode_for_shelter_entry_on(Date.new(2021, 2, 19))).to eq(true)
+    end
   end
 
   describe 'query behaviour' do

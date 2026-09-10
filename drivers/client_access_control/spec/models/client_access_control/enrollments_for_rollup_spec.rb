@@ -128,6 +128,55 @@ RSpec.describe 'GrdaWarehouse::Hud::Client#enrollments_for_rollup', type: :model
     end
   end
 
+  describe 'confidential projects' do
+    let!(:confidential_project) { create_project('Secret Shelter', project_type: 0, confidential: true) }
+    let!(:confidential_enrollment) do
+      create_enrollment(source_client, confidential_project, entry: '2020-06-01', exit_date: '2020-06-05')
+    end
+
+    before { rebuild_service_history! }
+
+    def confidential_row
+      residential_rollup(destination_client).detect { |e| e[:ProjectID] == confidential_project.ProjectID }
+    end
+
+    it 'replaces the project name for a user without access to confidential project names' do
+      expect(confidential_row).to include(
+        project_name: GrdaWarehouse::Hud::Project.confidential_project_name,
+        confidential_project: true,
+      )
+    end
+
+    it 'shows the project name to a user granted confidential project names on that project' do
+      role = create :role, name: 'confidential names', can_view_confidential_project_names: true
+      collection = create :collection, name: 'Confidential project'
+      collection.set_viewables({ projects: [confidential_project.id] })
+      setup_access_control(user, role, collection)
+
+      expect(confidential_row).to include(project_name: 'Secret Shelter < Test Org ', confidential_project: true)
+    end
+  end
+
+  describe 'chronic homelessness at entry' do
+    let!(:chronic_enrollment) do
+      create_enrollment(
+        source_client,
+        shelter_b,
+        entry: '2020-03-01',
+        exit_date: '2020-03-10',
+        DisablingCondition: 1,
+        DateToStreetESSH: Date.new(2019, 1, 1),
+      )
+    end
+
+    before { rebuild_service_history! }
+
+    it 'flags an entry with a disabling condition and a year or more on the street or in shelter' do
+      row = residential_rollup(destination_client).detect { |e| e[:entry_date] == Date.new(2020, 3, 1) }
+      expect(row).to include(chronically_homeless_at_start: true, chronically_homeless_at_most_recent: true)
+    end
+  end
+
   describe 'only_ongoing' do
     it 'drops exited enrollments' do
       rollup = destination_client.enrollments_for_rollup(
