@@ -216,12 +216,12 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     'CUSTOM_ASSESSMENT',
   ].freeze
 
-  # Forms that are not managed by the Forms admin tool. Form rules do not
-  # affect these roles, so they should not be listed or configurable.
+  # Forms that are not currently managed by the Forms admin tool, so they should not be
+  # listed or configurable (including for super-admins).
   UNMANAGED_FORM_ROLES = [
-    :REFERRAL,
-    :REFERRAL_REQUEST,
     :CE_REFERRAL_STEP,
+    :REFERRAL, # Deprecated (external ReferralPostings)
+    :REFERRAL_REQUEST, # Deprecated (external ReferralRequests)
   ].freeze
 
   # Roles that nobody can configure in the Forms admin tool, including super-admins.
