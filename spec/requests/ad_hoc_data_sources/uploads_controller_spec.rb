@@ -62,6 +62,38 @@ RSpec.describe 'AdHocDataSources::UploadsController', type: :request do
     expect(response.body).not_to include('1990-01-01')
   end
 
+  # `update_client_ids` used to write any typed id straight through, so a row could hold a
+  # `client_id` with no matching `Client`. The page must render that row from its own
+  # uploaded values instead of raising on the missing match.
+  context 'when a row holds a client_id that no client has' do
+    let!(:dangling_row) { GrdaWarehouse::AdHocClient.create!(batch_id: batch.id, first_name: 'Dangling', last_name: 'Row', client_id: 999_999_999) }
+
+    it 'renders the row from its uploaded values and offers the client id input' do
+      get ad_hoc_data_source_upload_path(data_source, batch)
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include('Dangling')
+      expect(response.body).to include('No match found')
+      expect(response.body).to include("clients[#{dangling_row.id}][client_id]")
+    end
+  end
+
+  describe 'PATCH update' do
+    let!(:unmatched_row) { GrdaWarehouse::AdHocClient.create!(batch_id: batch.id, ad_hoc_data_source_id: data_source.id, first_name: 'Unmatched', last_name: 'Row') }
+
+    it 'links the row to an existing client' do
+      patch ad_hoc_data_source_upload_path(data_source, batch), params: { clients: { unmatched_row.id => { client_id: unrestricted_destination_client.id } } }
+
+      expect(unmatched_row.reload.client_id).to eq(unrestricted_destination_client.id)
+    end
+
+    it 'ignores a client id that no client has' do
+      patch ad_hoc_data_source_upload_path(data_source, batch), params: { clients: { unmatched_row.id => { client_id: 999_999_999 } } }
+
+      expect(unmatched_row.reload.client_id).to be_nil
+    end
+  end
+
   context 'when the user lacks client PII view permissions' do
     let!(:role) { create(:role, can_manage_ad_hoc_data_sources: true) }
 

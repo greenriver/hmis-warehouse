@@ -54,7 +54,7 @@
                 - possible_matching_clients = @possible_matches[client.id]
                 %tr{class: odd_class}
                   %td
-                    - if client.client_id.present?
+                    - if matched_client
                       - pii = matched_client.pii_provider(user: current_user)
                       - if pii.first_name
                         = link_to pii.first_name, client_path(client.client_id), target: :_blank
@@ -63,7 +63,7 @@
                     - else
                       = client.first_name
                   %td
-                    - if client.client_id.present?
+                    - if matched_client
                       - if pii.middle_name
                         = link_to pii.middle_name, client_path(client.client_id), target: :_blank
                       - else
@@ -71,7 +71,7 @@
                     - else
                       = client.middle_name
                   %td
-                    - if client.client_id.present?
+                    - if matched_client
                       - if pii.last_name
                         = link_to pii.last_name, client_path(client.client_id), target: :_blank
                       - else
@@ -79,17 +79,17 @@
                     - else
                       = client.last_name
                   %td
-                    - if client.client_id.present?
+                    - if matched_client
                       = pii.ssn
                     - else
                       = ssn(client.ssn)
                   %td
-                    - if client.client_id.present?
+                    - if matched_client
                       = pii.dob_or_age
                     - else
                       = dob_or_age(client.dob)
                   %td
-                    - if client.client_id.present?
+                    - if matched_client
                       Exact match
                     - elsif possible_matching_clients.present?
                       = f.input :client_id, label: 'No exact match found', required: false, input_html: { name: "clients[#{client.id}][client_id]", style: 'width: 8em;', placeholder: 'Client ID' }
@@ -97,8 +97,8 @@
                       = f.input :client_id, label: 'No match found', required: false, input_html: { name: "clients[#{client.id}][client_id]", style: 'width: 8em;', placeholder: 'Client ID' }
                   %td.text-center
                     - if matched_client
-                      = f.input :health_prioritized, as: :boolean, label: false, input_html: { name: "clients[#{matched_client.id}][health_prioritized]", checked: matched_client.health_prioritized_for_cas? } if matched_client
-                - if client.client_id.blank?
+                      = f.input :health_prioritized, as: :boolean, label: false, input_html: { name: "clients[#{matched_client.id}][health_prioritized]", checked: matched_client.health_prioritized_for_cas? }
+                - unless matched_client
                   - possible_matching_clients.each do |possible|
                     %tr{class: odd_class}
                       %td{colspan: 5}
