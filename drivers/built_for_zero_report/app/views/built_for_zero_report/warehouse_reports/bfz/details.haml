@@ -11,10 +11,15 @@
           %th= key.to_s.humanize
     %tbody
       - @data.each do |id, values|
+        - pii = GrdaWarehouse::PiiProvider.from_attributes(policy: current_user.reporting_policy_for_project(project_id: nil, client_id: id), first_name: values[:first_name], last_name: values[:last_name])
         %tr
         - columns.each do |key|
           - if key == :client_id
             %td= link_to id, client_path(id)
+          - elsif key == :first_name
+            %td= pii.first_name
+          - elsif key == :last_name
+            %td= pii.last_name
           -elsif key == :changed_at
             %td= values[key]&.to_date
           - else
