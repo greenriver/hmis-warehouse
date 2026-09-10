@@ -14,7 +14,7 @@ wb.add_worksheet(name: ws_title.slice(0, 30).gsub(':', ' ')) do |sheet|
   @clients.each do |client|
     row = []
     headers.each_key do |k|
-      row << @report.client_value(client, k)
+      row << @report.client_value(client, k, user: current_user, mode: :download)
     end
     sheet.add_row(row)
   end

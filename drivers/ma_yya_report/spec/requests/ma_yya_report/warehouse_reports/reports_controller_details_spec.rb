@@ -84,4 +84,27 @@ RSpec.describe 'MaYyaReport::WarehouseReports::Reports#details', type: :request 
     expect(response.body).not_to include('Restricted')
     expect(response.body).to include('Open')
   end
+
+  it 'redacts the restricted client and leaves the unrestricted client intact in the Excel export' do
+    get details_ma_yya_report_warehouse_reports_report_path(report, cell: 'A1a', format: :xlsx)
+
+    expect(response).to have_http_status(:success)
+    excel_file = Tempfile.new(['ma_yya_report_details', '.xlsx'])
+    excel_file.binmode
+    excel_file.write(response.body)
+    excel_file.close
+    sheet = Roo::Excelx.new(excel_file.path)
+    rows = (sheet.first_row + 1..sheet.last_row).map { |i| sheet.row(i) }
+    headers = sheet.row(1)
+    first_name_index = headers.index(report.detail_header_for(:first_name))
+    client_id_index = headers.index(report.detail_header_for(:client_id))
+
+    restricted_row = rows.find { |r| r[client_id_index] == restricted_destination_client.id }
+    open_row = rows.find { |r| r[client_id_index] == open_destination_client.id }
+
+    expect(restricted_row[first_name_index]).to eq('Redacted')
+    expect(open_row[first_name_index]).to eq('Open')
+  ensure
+    excel_file&.unlink
+  end
 end
