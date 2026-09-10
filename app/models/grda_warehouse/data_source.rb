@@ -790,28 +790,28 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     )
   end
 
-  # Below this size and dominance, a data source's organizations page can render
-  # everything at once; otherwise it's large or fragmented enough that the user
-  # should pick a CoC to filter by first.
+  # A data source's show page renders every project at once unless the list is
+  # large *and* picking a CoC would meaningfully shrink it. A CoC choice is only required when
+  # there are at least two CoCs, the project count reaches SMALL_ENOUGH_PROJECT_COUNT,
+  # the projects outside the largest CoC together reach SMALL_ENOUGH_FRAGMENT_COUNT, and the
+  # largest CoC holds less than DOMINANT_COC_SHARE of the total.
   SMALL_ENOUGH_PROJECT_COUNT = Rails.env.development? ? 100 : 1000
+  SMALL_ENOUGH_FRAGMENT_COUNT = Rails.env.development? ? 5 : 50
   DOMINANT_COC_SHARE = Rails.env.development? ? 0.90 : 0.75
 
   # project_scope must be a viewable-projects scope (e.g. GrdaWarehouse::Hud::Project.viewable_by(...)),
   # not yet narrowed to this data source or any particular CoC code — the point here is deciding
   # whether a CoC choice is needed at all, based on what this user could otherwise see all at once.
   def require_coc_choice?(project_scope)
-    project_scope = project_scope.where(data_source_id: id)
-    return true if project_scope.count >= SMALL_ENOUGH_PROJECT_COUNT
+    counts = coc_code_bucket_scope(project_scope.where(data_source_id: id)).count.values
+    return false if counts.size < 2
 
-    dominant_coc_share(project_scope) < DOMINANT_COC_SHARE
-  end
-
-  private def dominant_coc_share(project_scope)
-    counts = coc_code_bucket_scope(project_scope).count.values
     total = counts.sum
-    return 1.0 if total.zero?
+    dominant = counts.max
+    return false if total < SMALL_ENOUGH_PROJECT_COUNT
+    return false if total - dominant < SMALL_ENOUGH_FRAGMENT_COUNT
 
-    counts.max.to_f / total
+    dominant.to_f / total < DOMINANT_COC_SHARE
   end
 
   # One summary row per distinct CoC code (plus an "unknown" bucket for projects with
