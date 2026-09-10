@@ -94,7 +94,10 @@ class AdHocDataSources::UploadsController < ApplicationController
 
   private def update_client_ids
     to_update = update_params[:clients].select { |_, opts| opts[:client_id].present? }
+    existing_client_ids = GrdaWarehouse::Hud::Client.where(id: to_update.values.map { |opts| opts[:client_id] }).pluck(:id)
     to_update.each do |id, opts|
+      next unless existing_client_ids.include?(opts[:client_id].to_i)
+
       GrdaWarehouse::AdHocClient.where(id: id, ad_hoc_data_source_id: @data_source.id, batch_id: @upload.id).update_all(client_id: opts[:client_id])
     end
   end

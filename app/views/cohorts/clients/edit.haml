@@ -1,6 +1,6 @@
 - client = @cohort_client.client
 - content_for :modal_title do
-  Editing #{@cohort_client.name}
+  Editing #{@cohort_client.pii_provider(user: current_user).full_name}
 = simple_form_for @cohort_client, url: cohort_cohort_client_path(@cohort, @cohort_client), method: :patch do |f|
   - @cohort.visible_columns(user: current_user).in_groups_of(1).each do |group|
     .row
@@ -10,7 +10,7 @@
           .form-group
             - column.cohort = @cohort
             - column.cohort_names = @cohort_names
-            - if column.display_for_user(current_user).to_s == 'read_only'
+            - if column.input_type.to_s == 'read_only'
               %label= column.title
               %br
               - # treat booleans differently

@@ -38,5 +38,14 @@ module HudSpmReport::Fy2024
         Arel::Nodes::NamedFunction.new('CAST', [t[:client_id].as('TEXT')])
       ]
     end
+
+    def self.pii_search_columns
+      t = arel_table
+      [t[:first_name], t[:last_name]]
+    end
+
+    def self.restricted_client_id_columns
+      [arel_table[:client_id]]
+    end
   end
 end

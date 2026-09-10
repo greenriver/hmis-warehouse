@@ -310,6 +310,26 @@ class Hmis::User < ApplicationRecord
     can_access_ds
   end
 
+  # Check the ability of the user to administer HMIS in a data source.
+  def can_administer_hmis_in_data_source?(data_source)
+    admin_collection_ids = access_controls.
+      joins(:role).
+      merge(Hmis::Role.with_permissions(:can_administer_hmis)).
+      pluck(:access_group_id)
+
+    Hmis::GroupViewableEntity.
+      where(collection_id: admin_collection_ids).
+      includes_any_entity_in_data_source(data_source).
+      exists?
+  end
+
+  # Terminal error type the HMIS shows, or nil when this user may use the HMIS at a data source
+  def hmis_access_error_for(data_source)
+    return nil if data_source.hmis_live? || can_administer_hmis_in_data_source?(data_source)
+
+    :no_hmis_access
+  end
+
   memoize def policy_for(resource, policy_type:)
     policy_name = "#{policy_type.to_s.camelize}Policy"
     policy_class = "Hmis::AuthPolicies::#{policy_name}".safe_constantize
