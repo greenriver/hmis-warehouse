@@ -22,26 +22,6 @@ module Types
       end
     end
 
-    # Legacy: exposes a raw user-level permission flag. Prefer {#bool_field} using policies, see HmisSchema::Organization for an example.
-    # Note: this is not compatible with multi-HMIS because it reflects truly global permission rather than data-source permission.
-    def self.root_can(permission, **field_attrs)
-      field permission, Boolean, null: false, **field_attrs
-      define_method(permission) do
-        current_user.send(permission) || false
-      end
-    end
-
-    # Legacy: combines raw user-level permissions. Prefer policy predicates.
-    def self.root_can_composite(name, permissions:, mode:, **field_attrs)
-      field name, Boolean, null: false, **field_attrs
-
-      raise 'unrecognized permission mode' unless [:any, :all].include?(mode)
-
-      define_method(name) do
-        current_user.permissions?(*permissions, mode: mode)
-      end
-    end
-
     # Legacy: resolves a single raw permission on `object` via {GraphqlPermissionChecker}. Prefer policy predicates.
     #
     # @param permission [Symbol] suffix after `can_` (e.g. `:view_partial_ssn` → permission `can_view_partial_ssn`)
@@ -53,28 +33,6 @@ module Types
 
       define_method(field_name) do
         current_permission?(permission: :"can_#{permission}", entity: object)
-      end
-    end
-
-    # Legacy: OR/AND of raw permissions on `object`. Prefer a single policy method.
-    def self.composite_perm(field_name, permissions:, mode:, **field_attrs)
-      field field_name, Boolean, null: false, **field_attrs
-
-      case mode
-      when :any
-        define_method(field_name) do
-          permissions.any? do |permission|
-            current_permission?(permission: :"can_#{permission}", entity: object)
-          end
-        end
-      when :all
-        define_method(field_name) do
-          permissions.all? do |permission|
-            current_permission?(permission: :"can_#{permission}", entity: object)
-          end
-        end
-      else
-        raise 'unrecognized permission mode'
       end
     end
 
