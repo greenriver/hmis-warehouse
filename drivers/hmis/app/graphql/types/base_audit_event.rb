@@ -55,6 +55,7 @@ module Types
     end
 
     def client_name
+      # intentionally bypasses can_view_client_name permission check, auditing is an admin permission that grants access to view all PII
       client = load_ar_association(object, :hmis_client)
       client&.full_name
     end

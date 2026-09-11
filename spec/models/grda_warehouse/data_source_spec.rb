@@ -51,6 +51,19 @@ RSpec.describe model, type: :model do
   user_ids = ->(user) { model.viewable_by(user, permission: :can_view_projects).pluck(:id).sort }
   ids = ->(*sources) { sources.map(&:id).sort }
 
+  # A fixed instant clear of midnight and of any daylight-saving transition, so the 24-hour
+  # stall boundary and the `.to_date` assertions in the stall examples can't drift.
+  def import_stall_evaluated_at
+    Time.zone.local(2026, 6, 15, 12, 0, 0)
+  end
+
+  def build_data_source_with_upload(file_count:, completed_at:)
+    data_source = create(:source_data_source)
+    create(:grda_warehouse_hmis_import_config, data_source: data_source, file_count: file_count)
+    create(:grda_warehouse_upload, data_source: data_source, user: User.system_user, percent_complete: 100, completed_at: completed_at)
+    data_source
+  end
+
   describe 'scopes' do
     describe 'viewability' do
       describe 'ordinary user' do
@@ -140,56 +153,394 @@ RSpec.describe model, type: :model do
     end
   end
 
-  describe 'importer' do
-    let!(:imports) { create_list :grda_warehouse_upload, 12, data_source_id: ds1.id, user_id: User.system_user.id, percent_complete: 100, completed_at: 2.years.ago }
+  describe '.stalled_dates_by_id' do
+    around do |example|
+      travel_to(import_stall_evaluated_at) { example.run }
+    end
 
     describe 'when expecting one file' do
-      let!(:import_config) { create :grda_warehouse_hmis_import_config, file_count: 1, data_source_id: ds1.id }
       it 'is not stalled when there are no prior imports in the past 6 months' do
-        expect(ds1.stalled_date).to eq(nil)
+        create(:grda_warehouse_hmis_import_config, data_source: ds1, file_count: 1)
+        create(:grda_warehouse_upload, data_source: ds1, user: User.system_user, percent_complete: 100, completed_at: 7.months.ago)
+
+        expect(GrdaWarehouse::DataSource.stalled_dates_by_id([ds1.id])[ds1.id]).to eq(nil)
       end
 
-      it 'is stalled when the last import was over 24 hours ago' do
-        imports.each.with_index { |import, i| import.update(completed_at: (i + 1).days.ago - 2.minutes) }
-        expect(ds1.stalled_date).to_not eq(nil)
+      it 'is stalled, since its single most recent upload, when the last import was over 24 hours ago' do
+        create(:grda_warehouse_hmis_import_config, data_source: ds1, file_count: 1)
+        most_recent_completed_at = 30.hours.ago
+        create(:grda_warehouse_upload, data_source: ds1, user: User.system_user, percent_complete: 100, completed_at: most_recent_completed_at)
+        create(:grda_warehouse_upload, data_source: ds1, user: User.system_user, percent_complete: 100, completed_at: 50.hours.ago)
+
+        expect(GrdaWarehouse::DataSource.stalled_dates_by_id([ds1.id])[ds1.id]).to eq(most_recent_completed_at.to_date)
       end
 
-      it 'is not stalled when there was an import yesterday' do
-        # 2-hour buffer so tests don't fail across DST boundaries
-        imports.each.with_index { |import, i| import.update(completed_at: i.days.ago + 2.hours) }
-        expect(ds1.stalled_date).to eq(nil)
-      end
+      it 'is not stalled when there was an import within the last 24 hours' do
+        create(:grda_warehouse_hmis_import_config, data_source: ds1, file_count: 1)
+        create(:grda_warehouse_upload, data_source: ds1, user: User.system_user, percent_complete: 100, completed_at: 2.hours.ago)
 
-      it 'is stalled when the last import was 26 hours ago' do
-        imports.each.with_index do |import, i|
-          time = i.days.ago - 26.hours
-          import.update(completed_at: time)
-        end
-        expect(ds1.stalled_date).to_not eq(nil)
+        expect(GrdaWarehouse::DataSource.stalled_dates_by_id([ds1.id])[ds1.id]).to eq(nil)
       end
     end
 
-    describe 'when expecting multiple file' do
-      let!(:import_config) { create :grda_warehouse_hmis_import_config, file_count: 3, data_source_id: ds1.id }
+    describe 'when expecting multiple files' do
       it 'is not stalled when there are no prior imports in the past 6 months' do
-        expect(ds1.stalled_date).to eq(nil)
+        create(:grda_warehouse_hmis_import_config, data_source: ds1, file_count: 3)
+        create(:grda_warehouse_upload, data_source: ds1, user: User.system_user, percent_complete: 100, completed_at: 7.months.ago)
+
+        expect(GrdaWarehouse::DataSource.stalled_dates_by_id([ds1.id])[ds1.id]).to eq(nil)
       end
 
-      it 'is stalled when there was a partial import yesterday' do
-        # Move one file into the expected range
-        imports.each.with_index { |import, i| import.update(completed_at: i.days.ago) }
-        expect(ds1.stalled_date).to_not eq(nil)
+      it 'is stalled since the oldest of the most recent N uploads, when they span more than 24 hours' do
+        create(:grda_warehouse_hmis_import_config, data_source: ds1, file_count: 3)
+        oldest_of_the_three = 50.hours.ago
+        create(:grda_warehouse_upload, data_source: ds1, user: User.system_user, percent_complete: 100, completed_at: 2.hours.ago)
+        create(:grda_warehouse_upload, data_source: ds1, user: User.system_user, percent_complete: 100, completed_at: 26.hours.ago)
+        create(:grda_warehouse_upload, data_source: ds1, user: User.system_user, percent_complete: 100, completed_at: oldest_of_the_three)
+
+        expect(GrdaWarehouse::DataSource.stalled_dates_by_id([ds1.id])[ds1.id]).to eq(oldest_of_the_three.to_date)
       end
 
-      it 'is stalled when there was a full import recently, but nothing in the past 24 hours' do
-        imports.first(3).each { |import| import.update(completed_at: 25.hours.ago) }
-        expect(ds1.stalled_date).to_not eq(nil)
+      it 'is stalled when a full set of uploads arrived recently, but not within the last 24 hours' do
+        create(:grda_warehouse_hmis_import_config, data_source: ds1, file_count: 3)
+        all_three_completed_at = 25.hours.ago
+        create_list(:grda_warehouse_upload, 3, data_source: ds1, user: User.system_user, percent_complete: 100, completed_at: all_three_completed_at)
+
+        expect(GrdaWarehouse::DataSource.stalled_dates_by_id([ds1.id])[ds1.id]).to eq(all_three_completed_at.to_date)
       end
 
-      it 'is not stalled when there was a full import within the last 24 hours' do
-        imports.first(3).each { |import| import.update(completed_at: 23.hours.ago) }
-        expect(ds1.stalled_date).to eq(nil)
+      it 'is not stalled when a full set of uploads arrived within the last 24 hours' do
+        create(:grda_warehouse_hmis_import_config, data_source: ds1, file_count: 3)
+        create_list(:grda_warehouse_upload, 3, data_source: ds1, user: User.system_user, percent_complete: 100, completed_at: 23.hours.ago)
+
+        expect(GrdaWarehouse::DataSource.stalled_dates_by_id([ds1.id])[ds1.id]).to eq(nil)
       end
+
+      it 'is stalled when fewer than the expected number of uploads arrived, even though all of them arrived within the last 24 hours' do
+        create(:grda_warehouse_hmis_import_config, data_source: ds1, file_count: 3)
+        oldest_of_the_two = 5.hours.ago
+        create(:grda_warehouse_upload, data_source: ds1, user: User.system_user, percent_complete: 100, completed_at: 2.hours.ago)
+        create(:grda_warehouse_upload, data_source: ds1, user: User.system_user, percent_complete: 100, completed_at: oldest_of_the_two)
+
+        # Both uploads are recent, so recency alone would clear this data source; only the
+        # count check distinguishes a partial delivery from a complete one.
+        expect(GrdaWarehouse::DataSource.stalled_dates_by_id([ds1.id])[ds1.id]).to eq(oldest_of_the_two.to_date)
+      end
+    end
+
+    it 'is not stalled when the import is paused, regardless of upload history' do
+      create(:grda_warehouse_hmis_import_config, data_source: ds1, file_count: 1)
+      create(:grda_warehouse_upload, data_source: ds1, user: User.system_user, percent_complete: 100, completed_at: 30.hours.ago)
+      ds1.update!(import_paused: true)
+
+      expect(GrdaWarehouse::DataSource.stalled_dates_by_id([ds1.id])[ds1.id]).to eq(nil)
+    end
+
+    it 'is not stalled when the import config is inactive, regardless of upload history' do
+      create(:grda_warehouse_hmis_import_config, data_source: ds1, file_count: 1, active: false)
+      create(:grda_warehouse_upload, data_source: ds1, user: User.system_user, percent_complete: 100, completed_at: 30.hours.ago)
+
+      expect(GrdaWarehouse::DataSource.stalled_dates_by_id([ds1.id])[ds1.id]).to eq(nil)
+    end
+
+    it 'ignores uploads brought in by anyone other than the system user' do
+      create(:grda_warehouse_hmis_import_config, data_source: ds1, file_count: 1)
+      system_user_completed_at = 30.hours.ago
+      create(:grda_warehouse_upload, data_source: ds1, user: User.system_user, percent_complete: 100, completed_at: system_user_completed_at)
+      create(:grda_warehouse_upload, data_source: ds1, user: user, percent_complete: 100, completed_at: 2.hours.ago)
+
+      # The hand-uploaded file is the more recent of the two, so without the system-user
+      # filter it would take rn=1 and clear the data source.
+      expect(GrdaWarehouse::DataSource.stalled_dates_by_id([ds1.id])[ds1.id]).to eq(system_user_completed_at.to_date)
+    end
+
+    it 'ignores an upload that has not finished importing' do
+      create(:grda_warehouse_hmis_import_config, data_source: ds1, file_count: 1)
+      finished_completed_at = 30.hours.ago
+      create(:grda_warehouse_upload, data_source: ds1, user: User.system_user, percent_complete: 100, completed_at: finished_completed_at)
+      create(:grda_warehouse_upload, data_source: ds1, user: User.system_user, percent_complete: 50, completed_at: 2.hours.ago)
+
+      # The in-flight upload is the more recent of the two, so without the completed filter
+      # it would take rn=1 and clear the data source.
+      expect(GrdaWarehouse::DataSource.stalled_dates_by_id([ds1.id])[ds1.id]).to eq(finished_completed_at.to_date)
+    end
+
+    it "trims each data source to its own file_count instead of the batch's shared cap, when file counts differ" do
+      # file_count: 1, but has 3 historical uploads - only the single most recent may count.
+      single_file_ds = create(:source_data_source)
+      create(:grda_warehouse_hmis_import_config, data_source: single_file_ds, file_count: 1)
+      most_recent_for_single_file_ds = 30.hours.ago
+      create(:grda_warehouse_upload, data_source: single_file_ds, user: User.system_user, percent_complete: 100, completed_at: most_recent_for_single_file_ds)
+      create(:grda_warehouse_upload, data_source: single_file_ds, user: User.system_user, percent_complete: 100, completed_at: 50.hours.ago)
+      create(:grda_warehouse_upload, data_source: single_file_ds, user: User.system_user, percent_complete: 100, completed_at: 70.hours.ago)
+
+      # file_count: 3, sets the batch's shared row cap above 1.
+      multi_file_ds = build_data_source_with_upload(file_count: 3, completed_at: 1.hour.ago)
+      create(:grda_warehouse_upload, data_source: multi_file_ds, user: User.system_user, percent_complete: 100, completed_at: 2.hours.ago)
+      create(:grda_warehouse_upload, data_source: multi_file_ds, user: User.system_user, percent_complete: 100, completed_at: 3.hours.ago)
+
+      result = GrdaWarehouse::DataSource.stalled_dates_by_id([single_file_ds.id, multi_file_ds.id])
+
+      # If the shared cap (3, from multi_file_ds) leaked into single_file_ds's own calculation
+      # instead of being trimmed back down to its file_count of 1, this would incorrectly equal
+      # 70.hours.ago.to_date (the oldest of all three uploads) instead of the single most recent one.
+      expect(result[single_file_ds.id]).to eq(most_recent_for_single_file_ds.to_date)
+      expect(result[multi_file_ds.id]).to eq(nil)
+    end
+
+    it "returns each requested id's own result independently in one call, without cross-contamination" do
+      stalled_ds = build_data_source_with_upload(file_count: 1, completed_at: 30.hours.ago)
+      fresh_ds = build_data_source_with_upload(file_count: 1, completed_at: 2.hours.ago)
+
+      result = GrdaWarehouse::DataSource.stalled_dates_by_id([stalled_ds.id, fresh_ds.id])
+
+      expect(result[stalled_ds.id]).to eq(30.hours.ago.to_date)
+      expect(result[fresh_ds.id]).to eq(nil)
+    end
+
+    it 'excludes a soft-deleted upload from the ranking' do
+      create(:grda_warehouse_hmis_import_config, data_source: ds1, file_count: 1)
+      real_completed_at = 30.hours.ago
+      create(:grda_warehouse_upload, data_source: ds1, user: User.system_user, percent_complete: 100, completed_at: real_completed_at)
+      deleted_upload = create(:grda_warehouse_upload, data_source: ds1, user: User.system_user, percent_complete: 100, completed_at: 2.hours.ago)
+      deleted_upload.destroy
+
+      # The deleted upload is more recent than the real one, so if it leaked into the
+      # ranking (e.g. an `.unscoped` applied too broadly), rn=1 would pick it instead and
+      # this would incorrectly return nil (not stalled) rather than the real upload's date.
+      expect(GrdaWarehouse::DataSource.stalled_dates_by_id([ds1.id])[ds1.id]).to eq(real_completed_at.to_date)
+    end
+  end
+
+  describe '.stalled_dates_by_id query efficiency' do
+    it 'runs a bounded number of queries regardless of how many data sources are checked' do
+      count_queries = lambda do |&block|
+        count = 0
+        callback = ->(*) { count += 1 }
+        ActiveSupport::Notifications.subscribed(callback, 'sql.active_record', &block)
+        count
+      end
+
+      small_batch = Array.new(3) { build_data_source_with_upload(file_count: 1, completed_at: 30.hours.ago) }
+
+      # Warm up one-time schema-cache/connection-setup queries so they don't confound
+      # the small-vs-large comparison below.
+      GrdaWarehouse::DataSource.stalled_dates_by_id(small_batch.map(&:id))
+
+      small_queries = count_queries.call { GrdaWarehouse::DataSource.stalled_dates_by_id(small_batch.map(&:id)) }
+
+      large_batch = small_batch + Array.new(9) { build_data_source_with_upload(file_count: 1, completed_at: 30.hours.ago) }
+      large_queries = count_queries.call { GrdaWarehouse::DataSource.stalled_dates_by_id(large_batch.map(&:id)) }
+
+      # A regression to a per-row query pattern would make large_queries scale with data
+      # source count (9 more data sources here); a small constant tolerance accommodates
+      # incidental variance without masking that regression.
+      expect(large_queries).to be_within(2).of(small_queries)
+    end
+  end
+
+  describe '.stalled_imports?' do
+    around do |example|
+      travel_to(import_stall_evaluated_at) { example.run }
+    end
+
+    def make_stalled(data_source)
+      create(:grda_warehouse_hmis_import_config, data_source: data_source, file_count: 1)
+      create(:grda_warehouse_upload, data_source: data_source, user: User.system_user, percent_complete: 100, completed_at: 30.hours.ago)
+      GrdaWarehouse::ImportLog.create!(data_source: data_source, completed_at: 30.hours.ago)
+    end
+
+    def make_fresh(data_source)
+      create(:grda_warehouse_hmis_import_config, data_source: data_source, file_count: 1)
+      create(:grda_warehouse_upload, data_source: data_source, user: User.system_user, percent_complete: 100, completed_at: 2.hours.ago)
+      GrdaWarehouse::ImportLog.create!(data_source: data_source, completed_at: 2.hours.ago)
+    end
+
+    it 'returns true when a data source the user can view has a stalled import' do
+      make_stalled(ds1)
+      empty_collection.set_viewables({ data_sources: [ds1.id] })
+      setup_access_control(user, can_view_projects, empty_collection)
+
+      expect(GrdaWarehouse::DataSource.stalled_imports?(user)).to eq(true)
+    end
+
+    it 'returns false when the only stalled data source is outside what the user can view' do
+      make_stalled(ds1)
+      empty_collection.set_viewables({ data_sources: [ds2.id] })
+      setup_access_control(user, can_view_projects, empty_collection)
+
+      expect(GrdaWarehouse::DataSource.stalled_imports?(user)).to eq(false)
+    end
+
+    it 'returns false when the viewable data source has recent, non-stalled imports' do
+      make_fresh(ds1)
+      empty_collection.set_viewables({ data_sources: [ds1.id] })
+      setup_access_control(user, can_view_projects, empty_collection)
+
+      expect(GrdaWarehouse::DataSource.stalled_imports?(user)).to eq(false)
+    end
+
+    # The test environment uses config.cache_store = :null_store (config/environments/test.rb),
+    # so Rails.cache.fetch always re-runs its block. Swap in a real store here so these examples
+    # can actually observe caching behavior instead of it being a no-op.
+    describe 'caching' do
+      around do |example|
+        original_cache_store = Rails.cache
+        Rails.cache = ActiveSupport::Cache::MemoryStore.new
+        example.run
+      ensure
+        Rails.cache = original_cache_store
+      end
+
+      def count_queries(&block)
+        count = 0
+        callback = ->(*) { count += 1 }
+        ActiveSupport::Notifications.subscribed(callback, 'sql.active_record', &block)
+        count
+      end
+
+      it 'reuses the cached result on a second call instead of recomputing it' do
+        make_stalled(ds1)
+
+        expect(GrdaWarehouse::DataSource.stalled_data_source_ids).to eq([ds1.id])
+
+        queries_on_second_call = count_queries { GrdaWarehouse::DataSource.stalled_data_source_ids }
+
+        expect(queries_on_second_call).to eq(0)
+      end
+
+      it 'shares one cached set of stalled ids across users rather than computing one per user' do
+        other_user = create(:acl_user)
+        other_collection = create(:collection)
+        empty_collection.set_viewables({ data_sources: [ds1.id] })
+        other_collection.set_viewables({ data_sources: [ds2.id] })
+        setup_access_control(user, can_view_projects, empty_collection)
+        setup_access_control(other_user, can_view_projects, other_collection)
+
+        # Warms the cache while ds1 is the only stalled data source.
+        make_stalled(ds1)
+        expect(GrdaWarehouse::DataSource.stalled_imports?(user)).to eq(true)
+
+        # ds2 stalls only after that warm-up, and other_user can view ds2 alone. Under a
+        # per-user cache key other_user would compute a fresh set and see ds2; one shared
+        # entry keeps ds2 out until the entry expires.
+        make_stalled(ds2)
+
+        expect(GrdaWarehouse::DataSource.stalled_imports?(other_user)).to eq(false)
+      end
+    end
+  end
+
+  describe '.stalled_imports? query efficiency' do
+    it 'runs a bounded number of queries regardless of how many data sources the user can view' do
+      count_queries = lambda do |&block|
+        count = 0
+        callback = ->(*) { count += 1 }
+        ActiveSupport::Notifications.subscribed(callback, 'sql.active_record', &block)
+        count
+      end
+
+      small_batch = Array.new(3) { create(:source_data_source) }
+      empty_collection.set_viewables({ data_sources: small_batch.map(&:id) })
+      setup_access_control(user, can_view_projects, empty_collection)
+
+      # Warm up one-time schema-cache/connection-setup queries so they don't confound
+      # the small-vs-large comparison below.
+      GrdaWarehouse::DataSource.stalled_imports?(user)
+      small_queries = count_queries.call { GrdaWarehouse::DataSource.stalled_imports?(user) }
+
+      large_batch = small_batch + Array.new(9) { create(:source_data_source) }
+      empty_collection.set_viewables({ data_sources: large_batch.map(&:id) })
+      large_queries = count_queries.call { GrdaWarehouse::DataSource.stalled_imports?(user) }
+
+      expect(large_queries).to be_within(3).of(small_queries)
+    end
+  end
+
+  describe '.last_import_completed_ats_by_id' do
+    it 'returns the most recent completed_at per data source, keyed by id' do
+      GrdaWarehouse::ImportLog.create!(data_source: ds1, completed_at: 2.days.ago)
+      GrdaWarehouse::ImportLog.create!(data_source: ds1, completed_at: 1.day.ago)
+      GrdaWarehouse::ImportLog.create!(data_source: ds2, completed_at: 3.days.ago)
+
+      result = GrdaWarehouse::DataSource.last_import_completed_ats_by_id([ds1.id, ds2.id])
+
+      expect(result[ds1.id]).to be_within(1.second).of(1.day.ago)
+      expect(result[ds2.id]).to be_within(1.second).of(3.days.ago)
+    end
+
+    it 'omits an id with no import logs at all, so callers can tell "never imported" apart from "imported long ago"' do
+      result = GrdaWarehouse::DataSource.last_import_completed_ats_by_id([ds1.id])
+
+      expect(result).not_to have_key(ds1.id)
+    end
+  end
+
+  describe '.client_counts_by_id' do
+    it "matches each data source's own #client_count" do
+      create_list(:hud_client, 2, data_source_id: ds1.id)
+      create(:hud_client, data_source_id: ds2.id)
+
+      result = GrdaWarehouse::DataSource.client_counts_by_id([ds1.id, ds2.id])
+
+      expect(result[ds1.id]).to eq(ds1.client_count)
+      expect(result[ds2.id]).to eq(ds2.client_count)
+      expect(result[ds1.id]).to eq(2)
+      expect(result[ds2.id]).to eq(1)
+    end
+
+    it 'defaults to 0 for a data source with no clients, rather than omitting its key' do
+      result = GrdaWarehouse::DataSource.client_counts_by_id([ds1.id])
+
+      expect(result[ds1.id]).to eq(0)
+    end
+  end
+
+  describe '.project_counts_by_id' do
+    it "matches each data source's own #project_count" do
+      result = GrdaWarehouse::DataSource.project_counts_by_id([ds1.id, ds2.id])
+
+      # ds1 has p1-p4, ds2 has p5-p8 (see the fixture hierarchy at the top of this file).
+      expect(result[ds1.id]).to eq(ds1.project_count)
+      expect(result[ds2.id]).to eq(ds2.project_count)
+      expect(result[ds1.id]).to eq(4)
+      expect(result[ds2.id]).to eq(4)
+    end
+
+    it 'defaults to 0 for a data source with no projects, rather than omitting its key' do
+      empty_ds = create(:source_data_source)
+
+      result = GrdaWarehouse::DataSource.project_counts_by_id([empty_ds.id])
+
+      expect(result[empty_ds.id]).to eq(0)
+    end
+  end
+
+  describe '.unprocessed_enrollment_counts_by_id' do
+    def create_resolvable_enrollment(data_source:, project:, processed_as:)
+      source_client = create(:hud_client, data_source: data_source)
+      destination_client = source_client.dup
+      destination_client.data_source = create(:destination_data_source)
+      destination_client.save!
+      create(:warehouse_client, destination_id: destination_client.id, source_id: source_client.id)
+      create(:hud_enrollment, data_source: data_source, project: project, client: source_client, processed_as: processed_as)
+    end
+
+    it "matches each data source's own #unprocessed_enrollment_count" do
+      create_resolvable_enrollment(data_source: ds1, project: p1, processed_as: nil)
+      create_resolvable_enrollment(data_source: ds1, project: p1, processed_as: { 'a' => 1 })
+
+      result = GrdaWarehouse::DataSource.unprocessed_enrollment_counts_by_id([ds1.id, ds2.id])
+
+      expect(result[ds1.id]).to eq(ds1.unprocessed_enrollment_count)
+      expect(result[ds1.id]).to eq(1)
+      expect(result[ds2.id]).to eq(0)
+    end
+
+    it 'defaults to 0 for a data source with no unprocessed enrollments, rather than omitting its key' do
+      result = GrdaWarehouse::DataSource.unprocessed_enrollment_counts_by_id([ds1.id])
+
+      expect(result[ds1.id]).to eq(0)
     end
   end
 
@@ -365,63 +716,199 @@ RSpec.describe model, type: :model do
     let!(:org) { create(:hud_organization, data_source_id: ds.id) }
     let(:all_projects) { GrdaWarehouse::Hud::Project.all }
 
+    # With a size gate of 6 and a fragment gate of 3, each gate can be the only rule that
+    # blocks a choice: 2/2/1 fails size alone, 4/1/1 fails fragments alone, 9/3 fails
+    # dominance alone.
+    before do
+      stub_const('GrdaWarehouse::DataSource::MIN_PROJECT_COUNT_FOR_COC_CHOICE', 6)
+      stub_const('GrdaWarehouse::DataSource::MIN_FRAGMENT_COUNT_FOR_COC_CHOICE', 3)
+    end
+
     def add_projects_with_coc(coc_code, count)
       create_list(:hud_project, count, data_source_id: ds.id, OrganizationID: org.OrganizationID).each do |project|
         create(:hud_project_coc, data_source_id: ds.id, ProjectID: project.ProjectID, CoCCode: coc_code)
       end
     end
 
+    it 'does not require a choice for a large data source with a single CoC' do
+      add_projects_with_coc('XX-500', 7)
+      expect(ds.require_coc_choice?(all_projects)).to eq(false)
+    end
+
+    it 'does not require a choice under the size threshold when the fragment and dominance rules would require one' do
+      # 2/2/1: 3 fragment projects and 40% dominance, but only 5 projects.
+      add_projects_with_coc('XX-500', 2)
+      add_projects_with_coc('XX-502', 2)
+      add_projects_with_coc('XX-503', 1)
+      expect(ds.require_coc_choice?(all_projects)).to eq(false)
+    end
+
+    it 'does not require a choice when the non-dominant fragments total under the fragment threshold' do
+      # 4/1/1: at the size gate and 66.7% dominant, but only 2 fragment projects.
+      add_projects_with_coc('XX-500', 4)
+      add_projects_with_coc('XX-502', 1)
+      add_projects_with_coc('XX-503', 1)
+      expect(ds.require_coc_choice?(all_projects)).to eq(false)
+    end
+
+    it 'requires a choice when large, fragmented at the fragment threshold, and under the dominance threshold' do
+      # 8/3 =~ 72.7% dominance with exactly 3 fragment projects.
+      add_projects_with_coc('XX-500', 8)
+      add_projects_with_coc('XX-502', 3)
+      expect(ds.require_coc_choice?(all_projects)).to eq(true)
+    end
+
     it 'does not require a choice when one CoC has exactly the dominance threshold share' do
-      add_projects_with_coc('XX-500', 3)
-      add_projects_with_coc('XX-502', 1)
+      # 9/3 = 75%.
+      add_projects_with_coc('XX-500', 9)
+      add_projects_with_coc('XX-502', 3)
       expect(ds.require_coc_choice?(all_projects)).to eq(false)
     end
 
-    it 'requires a choice when just under the dominance threshold' do
-      add_projects_with_coc('XX-500', 2)
-      add_projects_with_coc('XX-502', 1)
-      expect(ds.require_coc_choice?(all_projects)).to eq(true)
-    end
-
-    it 'requires a choice once project count reaches the size threshold, even when fully concentrated' do
-      stub_const('GrdaWarehouse::DataSource::SMALL_ENOUGH_PROJECT_COUNT', 3)
-      add_projects_with_coc('XX-500', 3)
-      expect(ds.require_coc_choice?(all_projects)).to eq(true)
-    end
-
-    it 'does not require a choice just under the size threshold when fully concentrated' do
-      stub_const('GrdaWarehouse::DataSource::SMALL_ENOUGH_PROJECT_COUNT', 3)
-      add_projects_with_coc('XX-500', 2)
+    it 'counts a project once in a CoC no matter how many ProjectCoc rows it has there' do
+      # 8/2 by project, 8/3 by ProjectCoc row: only row counting would reach the fragment gate.
+      add_projects_with_coc('XX-500', 8)
+      duplicated, _single = add_projects_with_coc('XX-502', 2)
+      create(:hud_project_coc, data_source_id: ds.id, ProjectID: duplicated.ProjectID, CoCCode: 'XX-502')
       expect(ds.require_coc_choice?(all_projects)).to eq(false)
+    end
+
+    it 'counts a project in each CoC it belongs to' do
+      # 8 projects, 3 of them in both CoCs: 8/3 by CoC, so a choice is required.
+      projects = add_projects_with_coc('XX-500', 8)
+      projects.first(3).each do |project|
+        create(:hud_project_coc, data_source_id: ds.id, ProjectID: project.ProjectID, CoCCode: 'XX-502')
+      end
+      expect(ds.require_coc_choice?(all_projects)).to eq(true)
     end
 
     it 'does not require a choice when there is no CoC data at all' do
-      create_list(:hud_project, 3, data_source_id: ds.id, OrganizationID: org.OrganizationID)
+      create_list(:hud_project, 7, data_source_id: ds.id, OrganizationID: org.OrganizationID)
       expect(ds.require_coc_choice?(all_projects)).to eq(false)
     end
 
     it 'only counts CoC data for projects included in the given project scope' do
-      add_projects_with_coc('XX-500', 2)
-      add_projects_with_coc('XX-502', 1)
-      # Unscoped: 2/3 =~ 66.7% dominance, under the 75% threshold, so a choice is required.
+      add_projects_with_coc('XX-500', 8)
+      add_projects_with_coc('XX-502', 3)
+      # Unscoped: 8/11 =~ 72.7% dominance, under the 75% threshold, so a choice is required.
       expect(ds.require_coc_choice?(all_projects)).to eq(true)
 
       visible_project_ids = GrdaWarehouse::Hud::ProjectCoc.where(data_source_id: ds.id, CoCCode: 'XX-500').pluck(:ProjectID)
       restricted_scope = GrdaWarehouse::Hud::Project.where(data_source_id: ds.id, ProjectID: visible_project_ids)
-      # Restricted to only the projects with a visible CoC: fully concentrated, so no choice is needed.
+      # Restricted to only the projects with a visible CoC: a single bucket, so no choice is needed.
       expect(ds.require_coc_choice?(restricted_scope)).to eq(false)
     end
 
-    it 'treats nil, empty, and whitespace-only CoC codes as a single dominance bucket' do
+    it 'groups nil, empty, and whitespace-only CoC codes into one bucket' do
       add_projects_with_coc('XX-500', 1)
-      add_projects_with_coc(nil, 1)
-      add_projects_with_coc('', 1)
+      add_projects_with_coc(nil, 2)
+      add_projects_with_coc('', 2)
       add_projects_with_coc('   ', 1)
-      # Grouped as one "unknown" bucket: 3/4 = 75%, meeting the threshold, so no choice is needed.
-      # If nil/''/'   ' were instead counted as three separate one-project buckets, the largest
-      # bucket would be XX-500 with 1/4 = 25%, well under the threshold, and a choice would wrongly
-      # be required.
+      # Grouped as one "unknown" bucket: 5/1 with a single fragment project, so no choice is
+      # needed. If nil/''/'   ' were instead counted as three separate buckets, there would be
+      # 4 fragment projects and 33% dominance, and a choice would wrongly be required.
       expect(ds.require_coc_choice?(all_projects)).to eq(false)
+    end
+  end
+
+  describe '#coc_summaries' do
+    let!(:ds) { create(:source_data_source) }
+    let!(:org1) { create(:hud_organization, data_source_id: ds.id) }
+    let!(:org2) { create(:hud_organization, data_source_id: ds.id) }
+    let(:all_projects) { GrdaWarehouse::Hud::Project.all }
+
+    def add_project_with_coc(coc_code, organization:, site_count: 1)
+      project = create(:hud_project, data_source_id: ds.id, OrganizationID: organization.OrganizationID)
+      create_list(:hud_project_coc, site_count, data_source_id: ds.id, ProjectID: project.ProjectID, CoCCode: coc_code)
+      project
+    end
+
+    it 'summarizes distinct project and organization counts per CoC, sorted by code with unknown last' do
+      # multi_site_project has two ProjectCoC rows for the same CoC (HUD allows multiple
+      # site records per project/CoC) - it must still only count once toward project_count.
+      multi_site_project = add_project_with_coc('XX-501', organization: org1, site_count: 2)
+      add_project_with_coc('XX-501', organization: org1)
+      add_project_with_coc('XX-500', organization: org2)
+      add_project_with_coc(nil, organization: org2)
+
+      summaries = ds.coc_summaries(all_projects)
+
+      expect(summaries).to eq([
+                                { code: 'XX-500', name: HudHelper.util.coc_name('XX-500'), project_count: 1, org_count: 1 },
+                                { code: 'XX-501', name: HudHelper.util.coc_name('XX-501'), project_count: 2, org_count: 1 },
+                                { code: 'unknown', name: Translation.translate('Unknown CoC'), project_count: 1, org_count: 1 },
+                              ])
+      expect(GrdaWarehouse::Hud::ProjectCoc.where(ProjectID: multi_site_project.ProjectID).count).to eq(2)
+    end
+
+    it 'treats nil, empty, and whitespace-only CoC codes as a single unknown bucket' do
+      add_project_with_coc(nil, organization: org1)
+      add_project_with_coc('', organization: org1)
+      add_project_with_coc('   ', organization: org2)
+
+      summaries = ds.coc_summaries(all_projects)
+
+      expect(summaries).to contain_exactly(
+        { code: 'unknown', name: Translation.translate('Unknown CoC'), project_count: 3, org_count: 2 },
+      )
+    end
+
+    it 'only counts projects included in the given project scope' do
+      add_project_with_coc('XX-500', organization: org1)
+      excluded_project = add_project_with_coc('XX-501', organization: org2)
+
+      restricted_scope = GrdaWarehouse::Hud::Project.where.not(ProjectID: excluded_project.ProjectID)
+
+      expect(ds.coc_summaries(restricted_scope).map { |s| s[:code] }).to contain_exactly('XX-500')
+    end
+  end
+
+  describe '#users_with_view_access' do
+    # A can_view_clients grant only counts if it actually reaches this data source.
+    # Legacy users (using_acls? false) reach it via AccessGroup#add_viewable; ACL users
+    # (using_acls? true) reach it via a Collection whose set_viewables covers this data
+    # source (directly or via its organizations/projects/etc) - a role granting
+    # can_view_clients through some OTHER, unrelated collection must NOT count, since
+    # that collection was never given access to this data source.
+    let!(:ds) { create(:source_data_source) }
+    # Distinct names matter here: setup_access_control keys its UserGroup lookup by
+    # "#{role.name} x #{collection.name}" - two same-named roles sharing a collection
+    # would collapse into one UserGroup, and its members would inherit both roles.
+    let!(:viewer_role) { create(:role, name: 'viewer', can_view_clients: true) }
+    let!(:non_viewing_role) { create(:role, name: 'non_viewer', can_view_clients: false) }
+    let!(:legacy_viewer) { create(:user) }
+    let!(:legacy_wrong_role_user) { create(:user) }
+    let!(:acl_viewer) { create(:acl_user) }
+    let!(:acl_wrong_collection_user) { create(:acl_user) }
+    let!(:acl_wrong_role_user) { create(:acl_user) }
+
+    before do
+      legacy_viewer.add_viewable(ds)
+      legacy_viewer.legacy_roles << viewer_role
+
+      legacy_wrong_role_user.add_viewable(ds)
+      legacy_wrong_role_user.legacy_roles << non_viewing_role
+
+      covering_collection = create(:collection)
+      covering_collection.set_viewables({ data_sources: [ds.id] })
+      setup_access_control(acl_viewer, viewer_role, covering_collection)
+
+      unrelated_collection = create(:collection)
+      unrelated_collection.set_viewables({ data_sources: [create(:source_data_source).id] })
+      setup_access_control(acl_wrong_collection_user, viewer_role, unrelated_collection)
+
+      setup_access_control(acl_wrong_role_user, non_viewing_role, covering_collection)
+    end
+
+    it 'includes legacy and ACL users whose can_view_clients grant actually reaches this data source' do
+      expect(ds.users_with_view_access).to contain_exactly(legacy_viewer, acl_viewer)
+    end
+  end
+
+  describe '#pre_process_hooks' do
+    it 'defaults pre_process_hooks to an empty hash' do
+      data_source = create(:source_data_source)
+      expect(data_source.pre_process_hooks).to eq({})
     end
   end
 
@@ -442,6 +929,28 @@ RSpec.describe model, type: :model do
         expect do
           ds.update!(last_imported_at: Time.current)
         end.to_not change(ds.versions, :count)
+      end
+    end
+  end
+
+  describe '#hmis_live?' do
+    let(:data_source) { create(:hmis_primary_data_source) }
+
+    it 'is live when no go-live time is set' do
+      expect(data_source.hmis_live?).to eq(true)
+    end
+
+    it 'is not live while the go-live time is in the future' do
+      travel_to Time.zone.local(2026, 10, 1, 5, 59) do
+        data_source.update!(hmis_go_live_at: Time.zone.local(2026, 10, 1, 6, 0))
+        expect(data_source.hmis_live?).to eq(false)
+      end
+    end
+
+    it 'becomes live at exactly the go-live time' do
+      travel_to Time.zone.local(2026, 10, 1, 6, 0) do
+        data_source.update!(hmis_go_live_at: Time.zone.local(2026, 10, 1, 6, 0))
+        expect(data_source.hmis_live?).to eq(true)
       end
     end
   end

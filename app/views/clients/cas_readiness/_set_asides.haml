@@ -12,5 +12,5 @@
     .row
       .col-sm-4
         - neighborhoods = []
-        - neighborhoods = CasAccess::Neighborhood.order(:name).pluck(:id, :name) if CasBase.db_exists? && RailsDrivers.loaded.include?(:cas_access)
+        - neighborhoods = CasAccess::Neighborhood.order(:name).pluck(:id, :name) if CasBase.db_exists?
         = f.input :neighborhood_interests, collection: neighborhoods, label_method: :second, value_method: :first, label: nil, include_blank: 'Select neighborhoods', required: false, input_html: {multiple: :multiple, style: 'width: 100%;'}, as: :select_two

@@ -102,18 +102,18 @@ RUN apt-get update && apt-get upgrade -y \
   gpg \
   imagemagick \
   less \
-  libcurl4 \
+  libcurl4t64 \
   libcurl4-openssl-dev \
   libffi-dev \
   libfreetype-dev \
   libfreetype6 \
   libgeos-dev \
-  libglib2.0-0 \
+  libglib2.0-0t64 \
   libharfbuzz-dev \
   libheif1 \
   libicu-dev \
   libmagic-dev \
-  libmagic1 \
+  libmagic1t64 \
   libpq-dev \
   libsodium23 \
   libsodium-dev \
@@ -135,7 +135,8 @@ RUN apt-get update && apt-get upgrade -y \
   p7zip-full \
   packagekit \
   packagekit-tools \
-  policykit-1 \
+  pkexec \
+  polkitd \
   poppler-utils \
   postgresql-client \
   postgresql-server-dev-all \
@@ -143,7 +144,6 @@ RUN apt-get update && apt-get upgrade -y \
   pinentry-tty \
   shared-mime-info \
   ssh \
-  software-properties-common \
   tar \
   tini \
   tmux \
@@ -152,11 +152,6 @@ RUN apt-get update && apt-get upgrade -y \
   vim \
   zip \
   && rm -rf /var/lib/apt/lists/* \
-  && if [ "$(uname -m)" = "aarch64" ]; then \
-       ln -s /usr/lib/aarch64-linux-gnu/libproj.so /usr/lib/libproj.so.20; \
-     else \
-       ln -s /usr/lib/x86_64-linux-gnu/libproj.so /usr/lib/libproj.so.20; \
-     fi \
   && npm install -g yarn@1.22.22
 
 # Install custom pg_repack versions
@@ -174,10 +169,16 @@ ENV RUBYOPT="-r/usr/local/lib/ruby/has_rdoc_patch.rb ${RUBYOPT}"
 
 # rexml: CVE-2025-58767, rack: CVE in system gem shipped with base image — both must be explicitly updated since they're bundled with ruby
 # gem cleanup removes old gemspecs that vulnerability scanners (e.g. Trivy) would otherwise flag
+# net-imap and resolv are default gems baked into the Ruby install; Bundler pinning a newer
+# version in the Gemfile doesn't remove the old default-gem copy, so Trivy keeps flagging it.
+# RubyGems refuses `gem uninstall` for resolv ("cannot be uninstalled because it is a default
+# gem"), so its gemspec is removed directly instead -- the actual stdlib source stays on disk
+# but is shadowed by the Bundler-pinned version at load time, same as net-imap/rexml/rack above
 RUN gem update --system \
   && gem update rexml rack erb \
   && gem cleanup rexml rack erb \
   && gem uninstall -i /usr/local/lib/ruby/gems/3.4.0 net-imap -v 0.5.8 \
+  && rm -f /usr/local/lib/ruby/gems/3.4.0/specifications/default/resolv-0.6.2.gemspec \
   && gem install bundler --version=${BUNDLER_VERSION} \
   && bundle config set --local path /bundle \
   && chown -R app-user:app-user /bundle \

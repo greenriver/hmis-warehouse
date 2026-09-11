@@ -9,8 +9,8 @@
 class DataSourcesController < ApplicationController
   before_action :require_can_edit_projects!, only: [:update]
   before_action :require_can_edit_data_sources!, only: [:new, :create, :destroy, :edit, :update]
-  before_action :require_can_view_imports_projects_or_organizations!, only: [:show, :index, :organizations]
-  before_action :set_data_source, only: [:show, :edit, :update, :destroy, :organizations]
+  before_action :require_can_view_imports_projects_or_organizations!, only: [:show, :index]
+  before_action :set_data_source, only: [:show, :edit, :update, :destroy]
   before_action :load_hmis_hostname_options, only: [:new, :create, :edit, :update]
 
   def index
@@ -21,25 +21,31 @@ class DataSourcesController < ApplicationController
       data_source_scope
     end
     @pagy, @data_sources = pagy(@data_sources.order(name: :asc))
-    # @data_spans_by_id = GrdaWarehouse::DataSource.data_spans_by_id
-    @client_counts = @data_sources.map { |ds| [ds.id, ds.client_count] }.to_h
-    @project_counts = @data_sources.map { |ds| [ds.id, ds.project_count] }.to_h
+    data_source_ids = @data_sources.map(&:id)
+    @client_counts = GrdaWarehouse::DataSource.client_counts_by_id(data_source_ids)
+    @project_counts = GrdaWarehouse::DataSource.project_counts_by_id(data_source_ids)
+    @unprocessed_enrollment_counts = GrdaWarehouse::DataSource.unprocessed_enrollment_counts_by_id(data_source_ids)
+    @stalled_dates = GrdaWarehouse::DataSource.stalled_dates_by_id(data_source_ids)
   end
 
   def show
     @readonly = ! (can_edit_data_sources? || can_edit_projects?)
     load_overrides
-    @coc_code_options = coc_code_options
+    params[:coc_code] = nil unless valid_coc_code_param?
     @require_coc_choice = @data_source.require_coc_choice?(viewable_projects)
-    @organizations = load_organizations unless @require_coc_choice && params[:coc_code].blank?
-  end
-
-  def organizations
-    load_overrides
-    return head(:bad_request) if @data_source.require_coc_choice?(viewable_projects) && params[:coc_code].blank?
-
-    @organizations = load_organizations
-    render layout: false
+    if @require_coc_choice && params[:coc_code].blank?
+      @coc_summaries = @data_source.coc_summaries(viewable_projects)
+    else
+      @organizations = load_organizations.to_a
+      if @require_coc_choice
+        @coc_display_name = params[:coc_code] == 'unknown' ? Translation.translate('Unknown CoC') : HudHelper.util.coc_name(params[:coc_code])
+        @coc_project_count = project_scope.count
+        @coc_org_count = @organizations.size
+        @coc_project_types = @organizations.flat_map(&:projects).map(&:ProjectType).uniq
+      else
+        @project_types = @organizations.flat_map(&:projects).map(&:ProjectType).uniq
+      end
+    end
   end
 
   def new
@@ -106,6 +112,7 @@ class DataSourcesController < ApplicationController
         :service_scannable,
         :obey_consent,
         :hmis,
+        :hmis_go_live_at,
         projects_attributes:
         [
           :id,
@@ -134,6 +141,7 @@ class DataSourcesController < ApplicationController
         :service_scannable,
         :obey_consent,
         :hmis,
+        :hmis_go_live_at,
       )
   end
 
@@ -155,20 +163,6 @@ class DataSourcesController < ApplicationController
       sorted
   end
 
-  private def coc_code_options
-    @coc_code_options ||= begin
-      codes = GrdaWarehouse::Hud::ProjectCoc.
-        where(data_source_id: @data_source.id).
-        joins(:project).
-        merge(viewable_projects).
-        distinct.
-        pluck(:CoCCode)
-      options = codes.reject(&:blank?).sort.map { |code| [code, code] }
-      options << [Translation.translate('Unknown CoC'), 'unknown'] if codes.any?(&:blank?)
-      options
-    end
-  end
-
   private def load_organizations
     p_t = GrdaWarehouse::Hud::Project.arel_table
     o_t = GrdaWarehouse::Hud::Organization.arel_table
@@ -176,6 +170,12 @@ class DataSourcesController < ApplicationController
       eager_load(:data_source, projects: :data_source).
       merge(project_scope).
       order(o_t[:OrganizationName].asc, p_t[:ProjectName].asc)
+  end
+
+  # 'unknown' is this feature's own bucket for projects with a blank/whitespace CoC
+  # code (see GrdaWarehouse::DataSource#coc_summaries), not a real HUD CoC code.
+  private def valid_coc_code_param?
+    params[:coc_code].blank? || params[:coc_code] == 'unknown' || HudHelper.util.valid_coc?(params[:coc_code])
   end
 
   private def viewable_projects

@@ -543,7 +543,7 @@ module Types
         open_excluding_wip.
         heads_of_households.
         preload(:client).
-        preload(household: :enrollments).
+        preload(household: { enrollments: :exit }).
         sort_by_option(:most_recent).
         to_a
 
@@ -552,8 +552,8 @@ module Types
 
       enrollments.map do |en|
         client = en.client
-        household_size = en.household&.enrollments&.size || 0
-        other_size = household_size - 1 # more than hoh
+        open_household_size = en.household&.enrollments&.count { |household_enrollment| household_enrollment.exit&.exit_date.nil? } || 0
+        other_size = open_household_size - 1 # more than hoh
         desc = other_size.positive? ? "and #{other_size} #{'other'.pluralize(other_size)}" : ''
         name = user.policy_for(client, policy_type: :hmis_client).can_view_name? ? client.brief_name : client.masked_name
         {

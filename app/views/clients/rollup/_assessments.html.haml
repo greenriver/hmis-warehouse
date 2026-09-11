@@ -2,8 +2,7 @@
 - hmis_forms = @client.source_hmis_forms.select(*hmis_forms_columms).sort.group_by(&:assessment_type)
 - eccovia_assessments = []
 - ce_assessments = []
-- if RailsDrivers.loaded.include?(:eccovia_data)
-  - eccovia_assessments = @client.source_eccovia_assessments
+- eccovia_assessments = @client.source_eccovia_assessments
 - if @client.source_assessments.exists?
   - ce_assessments = @client.source_assessments.order(assessment_date: :desc).preload(:assessment_questions).to_a
 - custom_hmis_assessments = []

@@ -349,6 +349,8 @@ module Types
     end
 
     def audit_history(filters: nil)
+      access_denied! unless policy.can_audit?
+
       audited_record_types = [
         Hmis::Hud::Client.sti_name,
         Hmis::Hud::CustomClientName.sti_name,

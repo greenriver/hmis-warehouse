@@ -1,0 +1,24 @@
+- if can_edit_data_sources?
+  .dropdown
+    %button.btn.btn-sm.btn-outline-secondary.dropdown-toggle{ type: :button, data: { 'bs-toggle' => :dropdown, 'bs-boundary' => 'viewport' }, aria: { expanded: false } }
+      More
+      %i.ml-2.icon-angle-down
+    .dropdown-menu.dropdown-menu-right
+      %h6.dropdown-header ONE-TIME SETUP
+      = link_to 'External HMIS Configuration', data_source_external_hmis_configuration_path(data_source_id: @data_source), class: 'dropdown-item'
+      - if @data_source.importable_by?(current_user)
+        = link_to 'Import Cleanup Routines', edit_hmis_csv_importer_importer_extension_path(@data_source), class: 'dropdown-item'
+        = link_to 'Import Alert Configuration', data_source_import_threshold_path(data_source_id: @data_source), class: 'dropdown-item'
+        = link_to 'Automate HMIS CSV Loads', new_data_source_hmis_import_config_path(data_source_id: @data_source), class: 'dropdown-item'
+      - if GrdaWarehouse::Config.get(:eto_api_available)
+        = link_to 'Configure ETO API', new_data_source_api_config_path(data_source_id: @data_source), class: 'dropdown-item'
+      - if Rails.application.config.custom_imports.any?
+        = link_to 'Custom Imports', data_source_custom_imports_path(@data_source), class: 'dropdown-item'
+      - if can_manage_config? || can_upload_dashboard_extras?
+        .dropdown-divider
+        %h6.dropdown-header RARELY CHANGED
+        - if can_manage_config?
+          = link_to 'Supplemental Data Sets', data_source_hmis_supplemental_data_sets_path(data_source_id: @data_source.id), class: 'dropdown-item'
+        - if can_upload_dashboard_extras?
+          = link_to new_data_source_non_hmis_upload_path(@data_source), class: 'dropdown-item' do
+            = "Upload #{GrdaWarehouse::Config.active_supplemental_enrollment_importer_class.title}"

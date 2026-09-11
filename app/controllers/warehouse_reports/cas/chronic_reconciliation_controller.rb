@@ -23,7 +23,7 @@ module WarehouseReports::Cas
 
       cas_ids = client_source.cas_active.pluck(:id)
       @missing_in_cas = client_source.joins(site_chronics_table).
-        merge(site_chronic_source.on_date(date: @date)).
+        merge(site_chronic_source.on_date(date: @filter.date)).
         where(id: (chronic_ids - cas_ids)).
         order(last_name: :asc, first_name: :asc).
         pluck(*client_columns.values).

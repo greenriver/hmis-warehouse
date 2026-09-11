@@ -325,7 +325,6 @@ namespace :grda_warehouse do
 
     # disabled tasks from COVID
     # Rake::Task['grda_warehouse:send_health_emergency_notifications'].invoke
-    # TextMessage::Message.send_pending! if GrdaWarehouse::Config.get(:send_sms_for_covid_reminders) && RailsDrivers.loaded.include?(:text_message)
 
     safely_execute do
       GrdaWarehouse::CustomImports::Config.active.each do |config|
@@ -367,21 +366,21 @@ namespace :grda_warehouse do
     end
 
     # Run CSG Engage export if ready
-    MaReports::CsgEngage::Report.run_if_ready if RailsDrivers.loaded.include?(:ma_reports)
+    MaReports::CsgEngage::Report.run_if_ready
 
-    if DateTime.current.hour == 20 && HmisEnforcement.hmis_enabled? && GrdaWarehouse::DataSource.hmis.exists? && RailsDrivers.loaded.include?(:hmis_external_apis)
+    if DateTime.current.hour == 20 && HmisEnforcement.hmis_enabled? && GrdaWarehouse::DataSource.hmis.exists?
       # Run AC Data Warehouse exports to SFTP server at 8pm
       Rake::Task['driver:hmis_external_apis:export:ac_clients'].invoke
     end
 
-    if DateTime.current.hour == 4 && RailsDrivers.loaded.include?(:hmis_supplemental)
+    if DateTime.current.hour == 4
       HmisSupplemental::DataSet.where(sync_enabled: true).order(:id).each do |data_set|
         HmisSupplemental::ImportJob.perform_later(data_set_id: data_set.id)
       end
     end
 
     safely_execute do
-      HmisExternalApis::ConsumeExternalFormSubmissionsJob.new.perform if HmisEnforcement.hmis_enabled? && GrdaWarehouse::DataSource.hmis.exists? && RailsDrivers.loaded.include?(:hmis_external_apis)
+      HmisExternalApis::ConsumeExternalFormSubmissionsJob.new.perform if HmisEnforcement.hmis_enabled? && GrdaWarehouse::DataSource.hmis.exists?
     end
 
     if DateTime.current.hour == 20
@@ -398,7 +397,7 @@ namespace :grda_warehouse do
     end
 
     # This should be very fast, no need to background
-    if DateTime.current.hour == 17 && RailsDrivers.loaded.include?(:hmis_csv_importer)
+    if DateTime.current.hour == 17
       safely_execute do
         HmisCsvImporter::ImportOverride.remove_expired!
       end

@@ -215,6 +215,14 @@ class User < ApplicationRecord
     as_hmis_user&.can_access_hmis_data_source?(data_source_id)
   end
 
+  # Should the warehouse show this user a link into the HMIS at this data_source?
+  def can_sign_in_to_hmis_data_source?(data_source)
+    hmis_user = as_hmis_user
+    return false unless hmis_user&.can_access_hmis_data_source?(data_source.id)
+
+    hmis_user.hmis_access_error_for(data_source).nil?
+  end
+
   # list any cohort this user has some level of access to
   def cohorts
     GrdaWarehouse::Cohort.where(id: ids_for_relations(:cohort_ids))
@@ -258,8 +266,9 @@ class User < ApplicationRecord
   end
 
   # Retrieve the user's PII Policy for a specific project. To account for reports where the project record
-  # does not exist or did not at the time the report was run, a blank project_id will return the AllowPiiPolicy.
-  # This is to remain consistent with the how reports were responding prior to the PII policies being implemented.
+  # does not exist or did not at the time the report was run, a blank project_id returns AllowPiiPolicy for
+  # mode: :browse, and for mode: :download follows GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
+  # (AllowPiiPolicy when the toggle is on, DenyPiiPolicy when it's off).
   #
   # Note: if multiple projects will need retrieving, preloading the policies may be helpful
   # preloaded projects example:
@@ -267,8 +276,8 @@ class User < ApplicationRecord
   #   project_ids.each do |project_id|
   #     pii_policy = current_user.reporting_policy_for_project(project_id)
   #   end
-  def reporting_policy_for_project(project_id:, mode: :browse)
-    return GrdaWarehouse::AuthPolicies::AllowPiiPolicy.instance if project_id.nil?
+  def reporting_policy_for_project(project_id:, mode: :browse, client_id: nil)
+    restricted = policy_context.client_restricted?(client_id)
 
     allowed = false
     case mode.to_sym
@@ -280,8 +289,14 @@ class User < ApplicationRecord
       raise ArgumentError, "Bad mode #{mode}"
     end
 
+    if project_id.nil?
+      policy = allowed ? GrdaWarehouse::AuthPolicies::AllowPiiPolicy.instance : GrdaWarehouse::AuthPolicies::DenyPiiPolicy.instance
+      return GrdaWarehouse::PiiProvider.restrict(policy, restricted: restricted)
+    end
+
     policy = policy_for(project_id, policy_class: GrdaWarehouse::AuthPolicies::ProjectPiiPolicy) if allowed
-    policy || GrdaWarehouse::AuthPolicies::DenyPiiPolicy.instance
+    policy ||= GrdaWarehouse::AuthPolicies::DenyPiiPolicy.instance
+    GrdaWarehouse::PiiProvider.restrict(policy, restricted: restricted)
   end
 
   # Retrieve the user's PII Policy for a specific client (used by reports whose detail rows
@@ -289,7 +304,7 @@ class User < ApplicationRecord
   # to policy_for(client), which resolves to DestinationClientPolicy/SourceClientPolicy based
   # on Client#policy_class.
   def reporting_policy_for_client(client:, mode: :browse)
-    return GrdaWarehouse::AuthPolicies::AllowPiiPolicy.instance if client.nil?
+    return GrdaWarehouse::AuthPolicies::DenyPiiPolicy.instance if client.nil?
 
     allowed = false
     case mode.to_sym
@@ -302,7 +317,8 @@ class User < ApplicationRecord
     end
 
     policy = policy_for(client) if allowed
-    policy || GrdaWarehouse::AuthPolicies::DenyPiiPolicy.instance
+    policy ||= GrdaWarehouse::AuthPolicies::DenyPiiPolicy.instance
+    GrdaWarehouse::PiiProvider.restrict(policy, restricted: policy_context.client_restricted?(client.id))
   end
 
   # @see docs/features/warehouse/warehouse-auth-policies.md

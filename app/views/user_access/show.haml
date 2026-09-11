@@ -1,0 +1,11 @@
+= content_for :modal_title do
+  = "Users with access to #{@data_source.name}"
+.card.mb-4
+  %table.table.table-striped
+    %thead
+      %tr
+        %th Name
+    %tbody
+      - @users.each do |user|
+        %tr
+          %td= link_to_if can_edit_users?, user.name, edit_admin_user_path(user)

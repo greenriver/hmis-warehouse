@@ -868,5 +868,102 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
         expect(response.body).not_to include(client_coordinated_entry_hud_assessment_path(window_destination_client, pathways_assessment))
       end
     end
+
+    context 'household member name redaction' do
+      before { window_project.update!(ProjectType: 1, OrganizationID: window_organization.OrganizationID) }
+
+      let!(:household_member_a_destination) { create :grda_warehouse_hud_client, data_source_id: warehouse_data_source.id, FirstName: 'Alpha', LastName: 'Member' }
+      let!(:household_member_a_source) { create :grda_warehouse_hud_client, data_source_id: window_visible_data_source.id }
+      let!(:household_member_a_warehouse_client) do
+        create(
+          :warehouse_client,
+          data_source_id: window_visible_data_source.id,
+          id_in_source: household_member_a_source.PersonalID,
+          source_id: household_member_a_source.id,
+          destination_id: household_member_a_destination.id,
+        )
+      end
+      let!(:household_member_a_enrollment) do
+        create(
+          :grda_warehouse_hud_enrollment,
+          data_source_id: window_visible_data_source.id,
+          PersonalID: household_member_a_source.PersonalID,
+          ProjectID: window_project.ProjectID,
+          EntryDate: 1.month.ago.to_date,
+        )
+      end
+      let!(:household_member_a_service_history_entry) do
+        create(
+          :grda_warehouse_service_history,
+          :service_history_entry,
+          project_id: window_project.ProjectID,
+          organization_id: window_organization.OrganizationID,
+          client_id: household_member_a_destination.id,
+          enrollment_group_id: household_member_a_enrollment.EnrollmentID,
+          first_date_in_program: household_member_a_enrollment.EntryDate,
+          data_source_id: window_visible_data_source.id,
+          household_id: 'shared-household',
+        )
+      end
+
+      let!(:household_member_b_destination) { create :grda_warehouse_hud_client, data_source_id: warehouse_data_source.id, FirstName: 'Bravo', LastName: 'Restricted' }
+      let!(:household_member_b_source) { create :grda_warehouse_hud_client, data_source_id: window_visible_data_source.id }
+      let!(:household_member_b_warehouse_client) do
+        create(
+          :warehouse_client,
+          data_source_id: window_visible_data_source.id,
+          id_in_source: household_member_b_source.PersonalID,
+          source_id: household_member_b_source.id,
+          destination_id: household_member_b_destination.id,
+        )
+      end
+      let!(:household_member_b_enrollment) do
+        create(
+          :grda_warehouse_hud_enrollment,
+          data_source_id: window_visible_data_source.id,
+          PersonalID: household_member_b_source.PersonalID,
+          ProjectID: window_project.ProjectID,
+          EntryDate: 1.month.ago.to_date,
+        )
+      end
+      let!(:household_member_b_service_history_entry) do
+        create(
+          :grda_warehouse_service_history,
+          :service_history_entry,
+          project_id: window_project.ProjectID,
+          organization_id: window_organization.OrganizationID,
+          client_id: household_member_b_destination.id,
+          enrollment_group_id: household_member_b_enrollment.EnrollmentID,
+          first_date_in_program: household_member_b_enrollment.EntryDate,
+          data_source_id: window_visible_data_source.id,
+          household_id: 'shared-household',
+        )
+      end
+
+      before do
+        Hmis::RestrictedRecord.mark!(Hmis::Hud::Client.find(household_member_b_source.id), user: create(:hmis_user, data_source: window_visible_data_source))
+        setup_access_control(user, can_view_clients, Collection.system_collection(:window_data_sources))
+        setup_access_control(user, can_search_own_clients, Collection.system_collection(:window_data_sources))
+        setup_access_control(user, can_view_full_client_dashboard, Collection.system_collection(:window_data_sources))
+        sign_in user
+      end
+
+      def household_names_shown(response_body)
+        Nokogiri::HTML(response_body).css('.client__enrollment--household a').map { |node| node.text.strip }
+      end
+
+      it "shows the real name of a non-restricted household member on a restricted client's dashboard" do
+        get rollup_client_path(household_member_b_destination, partial: :residential_enrollments)
+
+        expect(household_names_shown(response.body).join).to include('Alpha Member')
+      end
+
+      it "redacts the name of a restricted household member on a non-restricted member's dashboard" do
+        get rollup_client_path(household_member_a_destination, partial: :residential_enrollments)
+
+        expect(household_names_shown(response.body).join).to include('Name Redacted')
+        expect(household_names_shown(response.body).join).not_to include('Bravo')
+      end
+    end
   end
 end

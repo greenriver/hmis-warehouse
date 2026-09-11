@@ -76,7 +76,7 @@ class Menu::Menu
   def op_analytics_menu
     Menu::Item.new(
       user: user,
-      visible: ->(user) { RailsDrivers.loaded.include?(:superset) && Superset.available_to_user?(user) },
+      visible: ->(user) { Superset.available_to_user?(user) },
       path: Superset.warehouse_login_url(user),
       title: Translation.translate('OP Analytics'),
       id: 'superset',
@@ -471,7 +471,7 @@ class Menu::Menu
         title: 'Imports',
       ),
     )
-    if RailsDrivers.loaded.include?(:ma_reports) && MaReports::CsgEngage::Credential.active.present?
+    if MaReports::CsgEngage::Credential.active.present?
       menu.add_child(
         Menu::Item.new(
           user: user,
@@ -599,7 +599,7 @@ class Menu::Menu
       default_link_text = hmis_data_sources.size == 1 ? 'Open HMIS' : "Open #{hmis_ds.short_name}"
       Menu::Item.new(
         user: user,
-        visible: ->(user) { user.can_access_hmis_data_source?(hmis_ds.id) },
+        visible: ->(user) { user.can_sign_in_to_hmis_data_source?(hmis_ds) },
         path: hmis_ds.hmis_login_url(user: user),
         title: Translation.translate(default_link_text),
         icon: 'icon-link-ext',

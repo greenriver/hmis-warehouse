@@ -9,7 +9,8 @@
 #   pre-remove = "bash lib/development/scripts/worktree_pre_remove.sh {{ worktree_path }} {{ branch }}"
 #
 # Runs in the worktree being removed (its env files still exist), so exact DB
-# names are read back from .env.local / .env.test.local rather than recomputed.
+# names are read back from .env.local / .env.development.local / .env.test.local
+# rather than recomputed.
 
 # Note: no `set -e` — we want to continue past individual drop failures.
 set -uo pipefail
@@ -62,7 +63,7 @@ db_names_from() {
     | sed -E 's/^[^=]+=//' | tr -d "\"'"
 }
 
-for f in "$worktree_path/.env.local" "$worktree_path/.env.test.local"; do
+for f in "$worktree_path/.env.local" "$worktree_path/.env.development.local" "$worktree_path/.env.test.local"; do
   while IFS= read -r dbname; do
     drop_db "$dbname"
   done < <(db_names_from "$f")

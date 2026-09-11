@@ -57,4 +57,30 @@ RSpec.describe GrdaWarehouse::HmisExport, type: :model do
       expect(export.describe_filter_as_html).to include(project.ProjectName)
     end
   end
+
+  describe '#unzip_to' do
+    include_context 'a zip file to extract'
+
+    let(:export) do
+      create(:grda_warehouse_hmis_export, user_id: user.id).tap do |record|
+        attach_hmis_zip(record, zip_source, filename: record.export_file_name)
+      end
+    end
+    let(:unzip_root) { File.join(scratch_dir, 'unzipped') }
+    # unzip_to extracts to <path>/<export_file_name minus .zip>.
+    let(:destination_dir) { File.join(unzip_root, export.export_file_name.sub(/\.zip\z/, '')) }
+
+    def extract!
+      @extract_path = export.unzip_to(unzip_root)
+    end
+
+    include_examples 'extracts entries into the destination directory'
+
+    it 'returns the extract path and deletes the reconstituted zip' do
+      extract!
+
+      expect(@extract_path).to eq(destination_dir)
+      expect(File.exist?(File.join(unzip_root, export.export_file_name))).to be false
+    end
+  end
 end

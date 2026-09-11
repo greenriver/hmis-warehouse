@@ -1,0 +1,2 @@
+CEParticipationID,ProjectID,AccessPoint,PreventionAssessment,CrisisAssessment,HousingAssessment,DirectServices,ReceivesReferrals,CEParticipationStatusStartDate,CEParticipationStatusEndDate,DateCreated,DateUpdated,UserID,DateDeleted,ExportID
+CEP-1,ES,,,,,,,,,2012-10-01 12:00:00,2012-10-01 12:00:00,user,,TEST

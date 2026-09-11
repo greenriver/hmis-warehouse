@@ -12,10 +12,13 @@ module Types
       extend ActiveSupport::Concern
 
       class_methods do
+        # Declares a paginated audit-history field. The including type must define the resolver, and
+        # it must start by denying access unless its own `can_audit?` policy check passes. Audit
+        # history reports raw before/after values for every audited column; permission to view a
+        # record does not imply permission to audit it.
         def audit_history_field(
           name = :audit_history,
           description = nil,
-          association_name: :versions,
           excluded_keys: nil,
           transform_changes: nil,
           filter_args: {},
@@ -34,13 +37,7 @@ module Types
           end
 
           define_method(name) do
-            resolve_audit_history
-          end
-
-          # Override "resolve_audit_history" to override default scope behavior
-          define_method(:resolve_audit_history) do
-            # Unscope to remove default order, otherwise it will conflict
-            object.send(association_name).where.not(object_changes: nil, event: 'update').unscope(:order).order(created_at: :desc)
+            raise 'must be implemented by the including type, with a can_audit? policy check'
           end
         end
       end

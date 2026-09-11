@@ -14,7 +14,6 @@ RSpec.describe Menu::Menu, type: :model do
   let(:menu) { described_class.new(user: user, context: context) }
 
   before do
-    allow(RailsDrivers).to receive(:loaded).and_return([:superset])
     allow(Superset).to receive(:available?).and_return(true)
   end
 

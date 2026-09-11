@@ -159,6 +159,14 @@ module GrdaWarehouse
       }
     end
 
+    def self.available_dob_selection_methods
+      {
+        'Use the oldest record, and trust the date of birth it reports' => :legacy,
+        'Use the oldest record, but demote impossible dates' => :oldest,
+        'Use the newest record, but demote impossible dates' => :newest,
+      }
+    end
+
     def self.available_cas_calculators
       {
         'Boston Pathways' => 'GrdaWarehouse::CasProjectClientCalculator::Boston',
@@ -333,6 +341,7 @@ module GrdaWarehouse
         :enable_external_data_sharing_exclusion,
         :rds_s3_integration_role_arn,
         :relevant_state_codes,
+        :dob_selection_method,
         client_details: [],
         client_demographic_columns: [],
       ]
@@ -340,7 +349,7 @@ module GrdaWarehouse
 
     def self.arbiter_class
       # FIXME: for now, just return the one known one
-      ClientAccessControl::EnrollmentArbiter if RailsDrivers.loaded.include?(:client_access_control)
+      ClientAccessControl::EnrollmentArbiter
     end
 
     def self.active_supplemental_enrollment_importer_class

@@ -211,6 +211,10 @@ module GrdaWarehouse::Hud
       where.not(processed_as: nil)
     end
 
+    scope :unprocessed_with_resolvable_project_and_client, -> do
+      unprocessed.joins(:project, :destination_client)
+    end
+
     scope :unassigned, -> do
       jobs = GrdaWarehouse::Tasks::ServiceHistory::Enrollment.batch_job_ids
       return current_scope unless jobs.present?

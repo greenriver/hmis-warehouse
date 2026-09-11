@@ -19,6 +19,12 @@ module Types
     connection_type_class(Types::BaseConnection)
     field_class Types::BaseField
 
+    # Safe today because each node type uses one include_search_query_id setting
+    # everywhere. Types that always pass true: Client (HasClients), CeReferral
+    # (HasCeReferrals), CeClient (QueryType#ce_clients).
+    # Future footgun: @page_type ||= remembers only the first call. If the same
+    # node type were later called with both true and false, the first caller would
+    # win forever and the other setting would be silently ignored.
     def self.page_type(include_search_query_id: false)
       @page_type ||= BasePaginated.build(self, include_search_query_id: include_search_query_id)
     end
@@ -42,6 +48,15 @@ module Types
 
     def self.audit_event_type(**args)
       @audit_event_type ||= BaseAuditEvent.build(self, **args)
+    end
+
+    # Find or create an Hmis::ClientSearchQuery for the given params and stash its id on
+    # the GraphQL context so BaseField can expose it as searchQueryId on the paginated result.
+    private def persist_client_search_query(params)
+      query = Hmis::ClientSearchQuery.find_or_create_by_params(params, user: current_user)
+      raise query.errors.full_messages.join(', ') unless query.valid?
+
+      context[:search_query_id] = query.id
     end
 
     def load_last_user_from_versions(object)

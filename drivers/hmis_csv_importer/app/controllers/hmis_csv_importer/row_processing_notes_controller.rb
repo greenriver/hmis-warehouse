@@ -1,0 +1,22 @@
+###
+# Copyright Green River Data Group, Inc.
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
+# frozen_string_literal: true
+
+class HmisCsvImporter::RowProcessingNotesController < ApplicationController
+  before_action :require_can_view_imports!
+
+  def show
+    loader_log = HmisCsvImporter::Loader::LoaderLog.find(params[:id].to_i)
+    @import = GrdaWarehouse::ImportLog.viewable_by(current_user).
+      find_by(loader_log_id: loader_log.id)
+    raise ActiveRecord::RecordNotFound unless @import
+
+    @filename = loader_log.summary.keys.detect { |v| v == params[:file] }
+    @notes = loader_log.row_processing_notes.where(file_name: @filename)
+    @pagy, @notes = pagy(@notes, items: 200)
+  end
+end

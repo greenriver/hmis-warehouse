@@ -2,7 +2,7 @@
 -# confidentiality status ignored because page is not visible to users who can't see confidential project names
 - content_for :title, "Edit #{@project.name(ignore_confidential_status: true)} at #{@project.organization.name(ignore_confidential_status: true)}"
 %h1= content_for :title
-= simple_form_for @project, as: :project, url: project_path(@project) do |f|
+= simple_form_for @project, as: :project, url: project_path(@project, coc_code: params[:coc_code]) do |f|
   .row
     .col-sm-6
       = f.input :active_homeless_status_override, label: 'Consider enrolled clients as actively homeless for CAS and Cohorts?', hint: 'Active state does not require this to have a homeless project type'

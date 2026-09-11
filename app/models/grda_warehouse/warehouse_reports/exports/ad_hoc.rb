@@ -15,6 +15,7 @@ module GrdaWarehouse::WarehouseReports::Exports
     include ArelHelper
     include Rails.application.routes.url_helpers
     include ::WarehouseReports::Export
+    include Memery
 
     acts_as_paranoid
 
@@ -76,10 +77,11 @@ module GrdaWarehouse::WarehouseReports::Exports
         client_scope.distinct.in_batches(of: 100) do |batch|
           report_calculator = WarehouseReport::ExportEnrollmentCalculator.new(batch_scope: batch, filter: filter)
           batch.find_each do |client|
+            pii = GrdaWarehouse::PiiProvider.new(client, policy: export_user&.reporting_policy_for_client(client: client, mode: :download) || GrdaWarehouse::AuthPolicies::DenyPiiPolicy.instance)
             rows << [
               client.id,
-              client.FirstName,
-              client.LastName,
+              pii.first_name,
+              pii.last_name,
               client.age(filter.end),
               race_for_client(client),
               client.gender,
@@ -127,6 +129,10 @@ module GrdaWarehouse::WarehouseReports::Exports
         'VI-SPDAT Score',
         'Household Members from Most Recent Enrollment',
       ]
+    end
+
+    memoize private def export_user
+      User.find_by(id: user_id)
     end
   end
 end

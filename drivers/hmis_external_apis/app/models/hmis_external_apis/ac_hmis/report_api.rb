@@ -67,8 +67,6 @@ module HmisExternalApis::AcHmis
     end
 
     def conn
-      raise 'HmisExternalApis driver is not loaded' unless RailsDrivers.loaded.include?(:hmis_external_apis)
-
       @conn ||= HmisExternalApis::OauthClientConnection.new(creds, connection_timeout: CONNECTION_TIMEOUT_SECONDS)
     end
   end

@@ -21,11 +21,12 @@
       %tbody
         - @results.each do |result|
           - client = result.client
+          - pii = client.pii_provider(user: current_user)
           - batch_class = if result.in_batch?(params[:batch_id]) then 'report-hightlight' else '' end
           %tr
             %td{class: batch_class}= link_to client.id, polymorphic_path(['client_he', health_emergency], client_id: client)
-            %td= link_to client.name, polymorphic_path(['client_he', health_emergency], client_id: client)
-            %td= client.DOB
+            %td= link_to pii.full_name, polymorphic_path(['client_he', health_emergency], client_id: client)
+            %td= GrdaWarehouse::PiiProvider.viewable_dob(client.DOB, policy: pii.policy)
             %td= result.tested_on
             %td= result.result
             %td= simple_format(result.notes)

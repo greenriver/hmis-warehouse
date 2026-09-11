@@ -6,8 +6,6 @@
 
 # frozen_string_literal: true
 
-RailsDrivers.loaded << :hopwa_caper
-
 Rails.application.config.hud_reports['HopwaCaper::Generators::Fy2024::Generator'] = {
   title: 'HOPWA CAPER',
   helper: 'hud_reports_hopwa_capers_path',

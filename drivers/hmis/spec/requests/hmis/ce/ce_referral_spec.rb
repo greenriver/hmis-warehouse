@@ -47,6 +47,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
                 clientId
                 clientName
                 relationshipToHoH
+                exitDate
                 access {
                   canViewClients
                 }
@@ -133,6 +134,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       context 'with source enrollment and household members' do
         let!(:source_project) { create(:hmis_hud_project, data_source: ds1, user: u1, project_name: 'Source Project') }
         let!(:household_id) { 'referred_household_id' }
+        let!(:household_member_exit_date) { Date.current }
 
         # Create additional clients for household members
         let!(:household_client_2) { create(:hmis_hud_client, data_source: ds1, first_name: 'Jane', last_name: 'Doe') }
@@ -158,6 +160,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             data_source: ds1,
             household_id: household_id,
             relationship_to_hoh: 2, # Child
+            exit_date: household_member_exit_date,
           )
         end
 
@@ -189,6 +192,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
               'clientName' => client.brief_name,
               'access' => { 'canViewClients' => true },
               'clientId' => client.id.to_s,
+              'exitDate' => nil,
             ),
             a_hash_including(
               'id' => household_enrollment_2.id.to_s,
@@ -196,6 +200,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
               'clientName' => household_client_2.brief_name,
               'access' => { 'canViewClients' => true },
               'clientId' => household_client_2.id.to_s,
+              'exitDate' => household_member_exit_date.iso8601,
             ),
           )
         end

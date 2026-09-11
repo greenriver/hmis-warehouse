@@ -38,18 +38,16 @@ module HudTwentyTwentyTwoToTwentyTwentyFour
         # HudTwentyTwentyTwoToTwentyTwentyFour::Service::Db, # Only adds nils, so processing not required
       }
 
-      if RailsDrivers.loaded.include?(:hmis_csv_importer)
-        classes.merge!(
-          {
-            HudTwentyTwentyTwoToTwentyTwentyFour::AggregatedEnrollment::Db => {
-              enrollment_coc: {
-                model: GrdaWarehouse::Hud::EnrollmentCoc,
-              },
+      classes.merge!(
+        {
+          HudTwentyTwentyTwoToTwentyTwentyFour::AggregatedEnrollment::Db => {
+            enrollment_coc: {
+              model: GrdaWarehouse::Hud::EnrollmentCoc,
             },
-            HudTwentyTwentyTwoToTwentyTwentyFour::AggregatedExit::Db => {},
           },
-        )
-      end
+          HudTwentyTwentyTwoToTwentyTwentyFour::AggregatedExit::Db => {},
+        },
+      )
 
       classes.each do |klass, references|
         puts klass

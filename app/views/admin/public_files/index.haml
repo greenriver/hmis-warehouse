@@ -29,5 +29,5 @@
     %h4 Upload
     = simple_form_for @file, url: admin_public_files_path do |f|
       = f.input :name, collection: @file.class.known_locations.invert, label: false, as: :select_two, include_blank: 'Select a file type'
-      = f.input :file, label: false
+      = f.input :file, label: false, as: :file
       = f.button :submit, value: 'Upload File'

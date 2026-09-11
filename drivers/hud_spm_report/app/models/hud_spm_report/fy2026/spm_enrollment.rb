@@ -204,6 +204,15 @@ module HudSpmReport::Fy2026
       ]
     end
 
+    def self.pii_search_columns
+      table = arel_table
+      [table[:first_name], table[:last_name]]
+    end
+
+    def self.restricted_client_id_columns
+      [arel_table[:client_id]]
+    end
+
     private_class_method def self.current_income_benefits(enrollment, end_date)
       # Exit assessment for leavers, or most recent annual update within report range for stayers
       if enrollment.exit.present? && enrollment.exit.exit_date <= end_date

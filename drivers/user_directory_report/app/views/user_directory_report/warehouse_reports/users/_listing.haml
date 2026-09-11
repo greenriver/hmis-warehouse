@@ -1,3 +1,5 @@
+- show_hmis_column = warehouse_user_source? && hmis_data_sources.any?
+- single_hmis = show_hmis_column && hmis_data_sources.one?
 - if @pagy.count.positive?
   .text-right.mb-4
     = render 'report_downloads/report_download', export: @pdf_export, excel_export: @excel_export, excel_download_path: nil
@@ -12,6 +14,8 @@
           %th Agency
           %th Roles 
           %th Status
+          - if show_hmis_column
+            %th HMIS Access
           %th Last Login
       %tbody
         - @users.each do |user|
@@ -25,6 +29,16 @@
                 .role-name= name
               
             %td= @user_source == 'inactive' ? 'Inactive' : (user.active ? 'Active': 'Inactive')
+            - if show_hmis_column
+              %td
+                - user_hmis_data_sources = hmis_data_sources_for(user)
+                - if single_hmis
+                  - if user_hmis_data_sources.any?
+                    %i.icon-checkmark.o-color--positive
+                - else
+                  - user_hmis_data_sources.each do |hmis_ds|
+                    .hmis-data-source
+                      = link_to_if hmis_data_source_linkable?(hmis_ds), hmis_ds.name, data_source_path(hmis_ds)
             %td= user.last_sign_in_at
   = render 'common/pagination_bottom', item_name: 'user'
 - else

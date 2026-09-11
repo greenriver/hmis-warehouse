@@ -65,31 +65,29 @@ module WarehouseReports
         'GrdaWarehouse::WarehouseReports::Exports::AdHocAnon' => GrdaWarehouse::WarehouseReports::Exports::AdHocAnon,
       }
 
-      reports['ProjectPassFail::ProjectPassFail'] = ProjectPassFail::ProjectPassFail if RailsDrivers.loaded.include?(:project_pass_fail)
-      reports['ProjectScorecard::Report'] = ProjectScorecard::Report if RailsDrivers.loaded.include?(:project_scorecard)
-      reports['BostonProjectScorecard::Report'] = BostonProjectScorecard::Report if RailsDrivers.loaded.include?(:boston_project_scorecard)
-      if RailsDrivers.loaded.include?(:public_reports)
-        reports['PublicReports::PointInTime'] = PublicReports::PointInTime
-        reports['PublicReports::PitByMonth'] = PublicReports::PitByMonth
-        reports['PublicReports::NumberHoused'] = PublicReports::NumberHoused
-        reports['PublicReports::HomelessCount'] = PublicReports::HomelessCount
-        reports['PublicReports::HomelessCountComparison'] = PublicReports::HomelessCountComparison
-        reports['PublicReports::HomelessPopulation'] = PublicReports::HomelessPopulation
-        reports['PublicReports::StateLevelHomelessness'] = PublicReports::StateLevelHomelessness
-      end
-      reports['IncomeBenefitsReport::Report'] = IncomeBenefitsReport::Report if RailsDrivers.loaded.include?(:income_benefits_report)
-      reports['HapReport::Report'] = HapReport::Report if RailsDrivers.loaded.include?(:hap_report)
-      reports['PerformanceMetrics::Report'] = PerformanceMetrics::Report if RailsDrivers.loaded.include?(:performance_metrics)
-      reports['HomelessSummaryReport::Report'] = HomelessSummaryReport::Report if RailsDrivers.loaded.include?(:homeless_summary_report)
-      reports['PerformanceMeasurement::Report'] = PerformanceMeasurement::Report if RailsDrivers.loaded.include?(:performance_measurement)
-      reports['LongitudinalSpm::Report'] = LongitudinalSpm::Report if RailsDrivers.loaded.include?(:longitudinal_spm)
-      reports['CePerformance::Report'] = CePerformance::Report if RailsDrivers.loaded.include?(:ce_performance)
-      reports['TxClientReports::ResearchExport'] = TxClientReports::ResearchExport if RailsDrivers.loaded.include?(:tx_client_reports)
-      reports['HmisDataQualityTool::Report'] = HmisDataQualityTool::Report if RailsDrivers.loaded.include?(:hmis_data_quality_tool)
-      reports['MaYyaReport::Report'] = MaYyaReport::Report if RailsDrivers.loaded.include?(:ma_yya_report)
-      reports['MaReports::MonthlyPerformance::Report'] = MaReports::MonthlyPerformance::Report if RailsDrivers.loaded.include?(:ma_reports)
-      reports['SystemPathways::Report'] = SystemPathways::Report if RailsDrivers.loaded.include?(:system_pathways)
-      reports['AllNeighborsSystemDashboard::Report'] = AllNeighborsSystemDashboard::Report if RailsDrivers.loaded.include?(:all_neighbors_system_dashboard)
+      reports['ProjectPassFail::ProjectPassFail'] = ProjectPassFail::ProjectPassFail
+      reports['ProjectScorecard::Report'] = ProjectScorecard::Report
+      reports['BostonProjectScorecard::Report'] = BostonProjectScorecard::Report
+      reports['PublicReports::PointInTime'] = PublicReports::PointInTime
+      reports['PublicReports::PitByMonth'] = PublicReports::PitByMonth
+      reports['PublicReports::NumberHoused'] = PublicReports::NumberHoused
+      reports['PublicReports::HomelessCount'] = PublicReports::HomelessCount
+      reports['PublicReports::HomelessCountComparison'] = PublicReports::HomelessCountComparison
+      reports['PublicReports::HomelessPopulation'] = PublicReports::HomelessPopulation
+      reports['PublicReports::StateLevelHomelessness'] = PublicReports::StateLevelHomelessness
+      reports['IncomeBenefitsReport::Report'] = IncomeBenefitsReport::Report
+      reports['HapReport::Report'] = HapReport::Report
+      reports['PerformanceMetrics::Report'] = PerformanceMetrics::Report
+      reports['HomelessSummaryReport::Report'] = HomelessSummaryReport::Report
+      reports['PerformanceMeasurement::Report'] = PerformanceMeasurement::Report
+      reports['LongitudinalSpm::Report'] = LongitudinalSpm::Report
+      reports['CePerformance::Report'] = CePerformance::Report
+      reports['TxClientReports::ResearchExport'] = TxClientReports::ResearchExport
+      reports['HmisDataQualityTool::Report'] = HmisDataQualityTool::Report
+      reports['MaYyaReport::Report'] = MaYyaReport::Report
+      reports['MaReports::MonthlyPerformance::Report'] = MaReports::MonthlyPerformance::Report
+      reports['SystemPathways::Report'] = SystemPathways::Report
+      reports['AllNeighborsSystemDashboard::Report'] = AllNeighborsSystemDashboard::Report
 
       reports
     end

@@ -53,11 +53,6 @@ driver's feature initializer (`drivers/<name>/config/initializers/<name>_feature
 driver hooks into core **extension points** — registering sub-populations, monthly-report types,
 census factories, and similar — typically inside `Rails.application.reloader.to_prepare do … end`.
 
-> **Legacy note:** older code guards optional behavior with
-> `RailsDrivers.loaded.include?(:some_driver)` (a registry from the former driver gem, kept as a
-> shim in `lib/rails_drivers.rb`). Because every driver is now always loaded, those checks are
-> always true — don't add new ones; assume drivers are present.
-
 ## Extending core models (extensions)
 
 A driver can add behavior to a **core** model (e.g. `GrdaWarehouse::Hud::Client`, `User`) via an

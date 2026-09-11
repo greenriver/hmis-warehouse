@@ -38,7 +38,7 @@ RSpec.describe 'Client Audit History Query', type: :request do
   end
 
   let!(:access_control) do
-    create_access_control(hmis_user, ds1, with_permission: [:can_view_clients, :can_view_dob, :can_view_project, :can_view_enrollment_details])
+    create_access_control(hmis_user, ds1, with_permission: [:can_audit_clients, :can_view_clients, :can_view_dob, :can_view_project, :can_view_enrollment_details])
   end
   let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1 }
 
@@ -106,6 +106,34 @@ RSpec.describe 'Client Audit History Query', type: :request do
         expect(records.dig(0, 'objectChanges', 'race', 'values')).to eq([nil, ['HISPANIC_LATINAEO']])
         expect(records.dig(1, 'objectChanges', 'race', 'values')).to be_nil
       end
+    end
+  end
+
+  describe 'authorization' do
+    let!(:c1) { create :hmis_hud_client, data_source: ds1, Man: 1 }
+    before(:each) { c1.update!(Man: 0) }
+
+    it 'denies access when the user cannot audit clients, even though they can view the client' do
+      remove_permissions(access_control, :can_audit_clients)
+      expect_access_denied post_graphql(id: c1.id, filters: nil) { query }
+    end
+
+    it 'resolves audit history when the user can audit clients' do
+      expect(run_query(id: c1.id)).to be_present
+    end
+  end
+
+  # can_audit_clients is documented as granting visibility into DOB, SSN, and name changes even when
+  # the user lacks the field-level permissions for those attributes on the Client (see Hmis::Role).
+  describe 'PII in objectChanges' do
+    let!(:c1) { create :hmis_hud_client, data_source: ds1, SSN: '123456789', DOB: '1980-01-01' }
+    before(:each) { c1.update!(SSN: '987654321', DOB: '1990-02-02') }
+
+    it 'reports SSN and DOB changes without the field-level client permissions' do
+      remove_permissions(access_control, :can_view_dob)
+
+      keys = run_query(id: c1.id).flat_map { |record| record['objectChanges']&.keys || [] }
+      expect(keys).to include('ssn', 'dob')
     end
   end
 end

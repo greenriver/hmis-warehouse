@@ -13,14 +13,15 @@ Inside each parallel CI job, the `ci:update_spec_tags` rake task runs *before* t
 ### 3. Matrix Routing (`bin/ci_matrix_router.rb`)
 A standalone Ruby script determines which test categories (Unit, HMIS System, Warehouse System) should run.
 *   **Sharding**: It reads the buckets file and creates one job per bucket.
-*   **Coverage**: It always adds a "default" job with the `~ci_bucket` tag to catch any tests not explicitly assigned to a bucket, ensuring no tests are skipped.
+*   **Coverage**: It always adds a "default" job with the `~ci_bucket` tag to catch any tests not explicitly assigned to a bucket, ensuring no tests are skipped. `ci_default` is sized by whatever the buckets file leaves over, so it grows as the file goes stale — see *Maintenance* below.
+*   **Arms**: It also adds a `ci_auth` job carrying an `auth` flag and **no tag**. The "Run tests" step is gated on a tag (or a focus path) being present, so `ci_auth` skips it and runs only the auth/logging arms. Do not give this entry a tag: an empty `--tag` widens the run to the whole suite.
 *   **Logic**: It determines the matrix based on the event type and commit message flags.
 
 ### 4. Auth Arms (`AUTH_METHOD`)
 
 Devise is being sunset, so **CI's default arm is JWT**: every bucket's "Run tests" step sets
 `AUTH_METHOD=jwt` plus the IdP env, and `spec/rails_helper.rb` excludes `:devise_only` from such a
-run. One extra step on `ci_default`, gated on the `devise` matrix flag, runs `--tag devise_only`
+run. A step on `ci_auth`, gated on the `auth` matrix flag, runs `--tag devise_only`
 under `AUTH_METHOD=devise`, and fails if the tag selects nothing. An arm-specific spec — or
 `describe`, or single `it` — carries `:devise_only` or `:jwt_only` and nothing else. Do not add an
 `if: AuthMethod.devise?` or `if: AuthMethod.jwt?` gate; `spec/lib/auth_method_arm_tags_spec.rb`

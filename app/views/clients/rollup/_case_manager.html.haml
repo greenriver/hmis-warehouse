@@ -1,7 +1,6 @@
 - caseworkers = @client.caseworkers(can_view_client_user_assignments: current_user.can_view_client_user_assignments)
 - eccovia_case_managers = []
-- if RailsDrivers.loaded.include?(:eccovia_data)
-  - eccovia_case_managers = @client.source_eccovia_case_managers
+- eccovia_case_managers = @client.source_eccovia_case_managers
 - if caseworkers.any? || eccovia_case_managers.any?
   - if caseworkers.any?
     %table.table.table-striped

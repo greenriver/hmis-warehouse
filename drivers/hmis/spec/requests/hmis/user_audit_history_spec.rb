@@ -77,4 +77,47 @@ RSpec.describe 'User Audit History Query', type: :request do
       expect(records.pluck('recordName')).to include('A very custom assessment')
     end
   end
+
+  # authorization should behave the same whether a user is attempting to audit themselves or another user
+  describe 'authorization' do
+    context 'when querying their own audit history' do
+      before(:each) do
+        PaperTrail.request(controller_info: { true_user_id: hmis_user.id }) do
+          c1.update!(Man: 0)
+        end
+      end
+
+      it 'denies access when the user cannot audit users' do
+        remove_permissions(access_control, :can_audit_users)
+        expect_access_denied post_graphql(id: hmis_user.id, filters: nil) { query }
+      end
+
+      it 'resolves audit history when the user can audit users' do
+        expect(run_query(id: hmis_user.id).size).to eq(1)
+      end
+    end
+
+    context 'when querying another user\'s audit history' do
+      let!(:other_hmis_user) do
+        hmis_user2 = create(:user).related_hmis_user(ds1)
+        create_access_control(hmis_user2, ds1)
+        hmis_user2
+      end
+
+      before(:each) do
+        PaperTrail.request(controller_info: { true_user_id: other_hmis_user.id }) do
+          c1.update!(Man: 0)
+        end
+      end
+
+      it 'resolves audit history when the caller can audit users' do
+        expect(run_query(id: other_hmis_user.id).size).to eq(1)
+      end
+
+      it 'denies access when the caller can impersonate but not audit' do
+        remove_permissions(access_control, :can_audit_users)
+        expect_access_denied post_graphql(id: other_hmis_user.id, filters: nil) { query }
+      end
+    end
+  end
 end
