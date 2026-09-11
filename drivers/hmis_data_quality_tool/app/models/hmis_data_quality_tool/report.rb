@@ -237,7 +237,8 @@ module HmisDataQualityTool
       project_ids = items.flat_map { |item| item.try(:outside_report_project_ids) || [] }.uniq
       return {} if project_ids.empty?
 
-      reportable_ids = user.viewable_project_ids(:can_view_assigned_reports).to_set
+      # Project.viewable_by resolves access for both ACL and legacy users
+      reportable_ids = GrdaWarehouse::Hud::Project.viewable_by(user, permission: :can_view_assigned_reports).where(id: project_ids).pluck(:id).to_set
       GrdaWarehouse::Hud::Project.where(id: project_ids).to_h do |project|
         name = reportable_ids.include?(project.id) ? project.name(user) : HmisDataQualityTool::Client::REDACTED_PROJECT_NAME
         [project.id, name]

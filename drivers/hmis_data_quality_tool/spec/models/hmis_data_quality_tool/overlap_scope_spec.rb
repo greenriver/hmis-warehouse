@@ -85,6 +85,16 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
             expect(outside).not_to have_key('project_id')
           end
 
+          it 'shows the real project name to a legacy (non-ACL) user whose access group includes that project' do
+            legacy_user = create(:user)
+            legacy_user.legacy_roles << create(:role, name: 'DQ Tool Test Legacy Role', can_view_assigned_reports: true, can_view_projects: true)
+            legacy_user.add_viewable(outside_project)
+
+            outside = displayed_outside_entry(legacy_user)
+
+            expect(outside['project']).to eq(outside_project.ProjectName)
+          end
+
           it 'redacts the project name for a user whose access is limited to the report project' do
             limited_user = create(:acl_user)
             limited_role = create(:role, name: 'DQ Tool Test Role - One Project', can_view_assigned_reports: true, can_view_projects: true, can_view_project_related_filters: true)
