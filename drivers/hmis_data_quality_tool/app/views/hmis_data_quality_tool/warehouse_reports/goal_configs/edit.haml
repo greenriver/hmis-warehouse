@@ -31,7 +31,15 @@
         = f.input :show_annual_assessments, label: 'Show Timeliness of Annual Assessments?', as: :pretty_boolean
       %h3 Overlapping Enrollments
       .well
-        = f.input :global_overlap_checks, label: 'Compare against all of a client\'s enrollments?', as: :pretty_boolean, hint: 'When enabled, the overlapping enrollment sections compare enrollments in the report\'s projects against every enrollment for the same client, including projects outside the report and outside the user\'s access. Names of projects the viewer cannot report on are redacted in the details.'
+        .alert.alert-danger
+
+          %i.icon-warning.icon-lg.me-4
+          When enabled, the overlapping enrollment sections compare enrollments in the report's projects against every enrollment for the same client.
+          This may include projects outside the the user's usual access.
+          Names of projects the user cannot report on are redacted in the details, but this will reveal when a client
+          was enrolled in overlapping projects.
+        = f.input :global_overlap_checks, label: 'Compare against all of a client\'s enrollments?', as: :pretty_boolean
+
 
   %p The following section can be used to setup a grading scale for the #{@report.title}.  The name will be displayed with a background of the chosen color for any percentage that falls within the low and high values provided.  For example, you could set "Good" to be green for any percentage between 90 and 100, and "OK" to be yellow for any range between 50 and 89, and "Bad" to be any percentage between 0 and 49.  High and low values should not overlap and should not leave any gaps and should cover 0 to 100 as in the previous example (0-49, 50-89, 90-100).
   %p Because the colors are used as background colors, you probably want to choose colors with fairly low saturation such as #ceebd7.
