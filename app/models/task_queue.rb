@@ -122,5 +122,16 @@ class TaskQueue < ApplicationRecord
     config.queued_tasks[:hmis_activity_log_user_summary_index] = -> do
       Hmis::ActivityLog.ensure_user_summary_index!
     end
+
+    # Replace the single-column importer_log_id and DateUpdated indexes on each FY2026
+    # importer/staging table with one composite index, so set_effective_export_end_date's
+    # per-table MAX(DateUpdated) WHERE importer_log_id = ? query stops degrading as these
+    # tables accumulate rows across many retained imports. Run as a single task so the
+    # CREATE INDEX CONCURRENTLY builds happen one table at a time instead of all at once.
+    config.queued_tasks[:hmis_csv_2026_importer_log_id_date_updated_index] = -> do
+      HmisCsvTwentyTwentySix.base_importable_files_map.except('Export.csv').each_value do |name|
+        HmisCsvTwentyTwentySix.data_lake_file_class(name, 'Importer').ensure_importer_log_id_date_updated_index!
+      end
+    end
   end
 end
