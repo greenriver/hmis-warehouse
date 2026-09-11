@@ -170,6 +170,86 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
         whitespace_strict_search_expects(client_leading_whitespace)
       end
     end
+
+    describe 'text_search with HMIS restriction' do
+      let!(:hmis_ds) { create(:hmis_primary_data_source) }
+      let!(:hmis_user) { create(:hmis_user, data_source: hmis_ds) }
+      let!(:restricted_source_client) { create(:hmis_hud_client, data_source: hmis_ds, first_name: 'Zzrestrict', last_name: 'Zzclient', ssn: '999887777', dob: Date.new(1980, 5, 5)) }
+      let!(:restricted_destination_client) { create(:grda_warehouse_hud_client) }
+      let!(:unrestricted_source_client) { create(:hmis_hud_client, data_source: hmis_ds, first_name: 'Zzopen', last_name: 'Zzclient', ssn: '111223333', dob: Date.new(1981, 6, 6)) }
+      let!(:unrestricted_destination_client) { create(:grda_warehouse_hud_client) }
+
+      before do
+        GrdaWarehouse::WarehouseClient.create!(destination_id: restricted_destination_client.id, source_id: restricted_source_client.id, data_source_id: hmis_ds.id, id_in_source: restricted_source_client.id.to_s)
+        GrdaWarehouse::WarehouseClient.create!(destination_id: unrestricted_destination_client.id, source_id: unrestricted_source_client.id, data_source_id: hmis_ds.id, id_in_source: unrestricted_source_client.id.to_s)
+        restricted_source_client.mark_as_restricted!(user: hmis_user)
+      end
+
+      it 'does not find a restricted client by SSN' do
+        expect(GrdaWarehouse::Hud::Client.text_search('999-88-7777').to_a).to eq([])
+      end
+
+      it 'still finds an unrestricted client by SSN' do
+        expect(GrdaWarehouse::Hud::Client.text_search('111-22-3333').to_a).to eq([unrestricted_destination_client])
+      end
+
+      it 'does not find a restricted client by name' do
+        expect(GrdaWarehouse::Hud::Client.text_search('Zzrestrict Zzclient').to_a).to eq([])
+      end
+
+      it 'still finds a restricted client by DOB' do
+        expect(GrdaWarehouse::Hud::Client.text_search('05/05/1980').to_a).to eq([restricted_destination_client])
+      end
+
+      it 'still finds a restricted client by exact PersonalID' do
+        expect(GrdaWarehouse::Hud::Client.text_search(restricted_source_client.PersonalID).to_a).to eq([restricted_destination_client])
+      end
+
+      it 'excludes the caller-supplied restricted_source_ids instead of loading the restricted set' do
+        results = GrdaWarehouse::Hud::Client.text_search('Zzclient', restricted_source_ids: Set[unrestricted_source_client.id])
+
+        expect(results.to_a).to eq([restricted_destination_client])
+      end
+    end
+
+    describe 'strict_search with HMIS restriction' do
+      let!(:hmis_ds) { create(:hmis_primary_data_source) }
+      let!(:hmis_user) { create(:hmis_user, data_source: hmis_ds) }
+      let!(:restricted_source_client) { create(:hmis_hud_client, data_source: hmis_ds, first_name: 'Zzrestrict', last_name: 'Zzclient', ssn: '999887777', dob: Date.new(1980, 5, 5)) }
+      let!(:restricted_destination_client) { create(:grda_warehouse_hud_client) }
+      let!(:unrestricted_source_client) { create(:hmis_hud_client, data_source: hmis_ds, first_name: 'Zzopen', last_name: 'Zzclient', ssn: '111223333', dob: Date.new(1981, 6, 6)) }
+      let!(:unrestricted_destination_client) { create(:grda_warehouse_hud_client) }
+
+      before do
+        GrdaWarehouse::WarehouseClient.create!(destination_id: restricted_destination_client.id, source_id: restricted_source_client.id, data_source_id: hmis_ds.id, id_in_source: restricted_source_client.id.to_s)
+        GrdaWarehouse::WarehouseClient.create!(destination_id: unrestricted_destination_client.id, source_id: unrestricted_source_client.id, data_source_id: hmis_ds.id, id_in_source: unrestricted_source_client.id.to_s)
+        restricted_source_client.mark_as_restricted!(user: hmis_user)
+      end
+
+      it 'excludes a restricted client matching on name and SSN' do
+        criteria = { first_name: 'Zzrestrict', last_name: 'Zzclient', ssn: '999887777', dob: nil }
+
+        expect(GrdaWarehouse::Hud::Client.strict_search(criteria, client_scope: GrdaWarehouse::Hud::Client).to_a).to eq([])
+      end
+
+      it 'excludes a restricted client matching on name and DOB' do
+        criteria = { first_name: 'Zzrestrict', last_name: 'Zzclient', ssn: nil, dob: Date.new(1980, 5, 5) }
+
+        expect(GrdaWarehouse::Hud::Client.strict_search(criteria, client_scope: GrdaWarehouse::Hud::Client).to_a).to eq([])
+      end
+
+      it 'excludes a restricted client matching on SSN, DOB, and last name' do
+        criteria = { first_name: 'Nomatch', last_name: 'Zzclient', ssn: '999887777', dob: Date.new(1980, 5, 5) }
+
+        expect(GrdaWarehouse::Hud::Client.strict_search(criteria, client_scope: GrdaWarehouse::Hud::Client).to_a).to eq([])
+      end
+
+      it 'still returns an unrestricted client matching the same shape of criteria' do
+        criteria = { first_name: 'Zzopen', last_name: 'Zzclient', ssn: '111223333', dob: nil }
+
+        expect(GrdaWarehouse::Hud::Client.strict_search(criteria, client_scope: GrdaWarehouse::Hud::Client).to_a).to eq([unrestricted_destination_client])
+      end
+    end
   end
 
   describe 'scopes' do
@@ -626,6 +706,71 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
             expect(c.reload.housing_release_status).to eq(GrdaWarehouse::Config.active_consent_class.no_release_string)
           end
         end
+      end
+    end
+  end
+
+  describe '#pii_provider' do
+    let!(:hmis_ds) { create(:hmis_primary_data_source) }
+    let!(:hmis_user) { create(:hmis_user, data_source: hmis_ds) }
+    let!(:source_client) { create(:hmis_hud_client, data_source: hmis_ds, first_name: 'Jamie') }
+    let!(:destination_client) { create(:grda_warehouse_hud_client, FirstName: 'Jamie') }
+    let(:user) { create(:user) }
+
+    before do
+      GrdaWarehouse::WarehouseClient.create!(destination_id: destination_client.id, source_id: source_client.id, data_source_id: hmis_ds.id, id_in_source: source_client.id.to_s)
+      allow(user).to receive(:policy_for).and_return(GrdaWarehouse::AuthPolicies::AllowPiiPolicy.instance)
+    end
+
+    it 'shows PII when the client is not restricted' do
+      provider = destination_client.pii_provider(user: user)
+      expect(provider.first_name).to eq('Jamie')
+    end
+
+    it 'redacts PII when the client is restricted, regardless of the underlying policy' do
+      source_client.mark_as_restricted!(user: hmis_user)
+
+      provider = destination_client.pii_provider(user: user)
+      expect(provider.first_name).to eq('Name Redacted')
+    end
+
+    context 'called on the source client rather than the destination client' do
+      # GrdaWarehouse::Hud::Client and Hmis::Hud::Client both map to the `Client` table by id,
+      # so the warehouse-side source client is the same row as `source_client`, loaded through
+      # the warehouse model that defines #pii_provider.
+      let(:warehouse_source_client) { GrdaWarehouse::Hud::Client.find(source_client.id) }
+
+      it 'shows PII when the client is not restricted' do
+        provider = warehouse_source_client.pii_provider(user: user)
+        expect(provider.first_name).to eq('Jamie')
+      end
+
+      it 'redacts PII when the mapped destination client is restricted' do
+        source_client.mark_as_restricted!(user: hmis_user)
+
+        provider = warehouse_source_client.pii_provider(user: user)
+        expect(provider.first_name).to eq('Name Redacted')
+      end
+    end
+
+    context 'a destination client with no source clients' do
+      let!(:unlinked_destination_client) { create(:grda_warehouse_hud_client, FirstName: 'Jamie') }
+
+      it 'shows PII when the client is not restricted' do
+        provider = unlinked_destination_client.pii_provider(user: user)
+        expect(provider.first_name).to eq('Jamie')
+      end
+
+      it 'redacts PII when the client is restricted directly on its own id' do
+        Hmis::RestrictedRecord.create!(
+          restrictable_id: unlinked_destination_client.id,
+          restrictable_type: 'Hmis::Hud::Client',
+          data_source_id: unlinked_destination_client.data_source_id,
+          created_by: hmis_user,
+        )
+
+        provider = unlinked_destination_client.pii_provider(user: user)
+        expect(provider.first_name).to eq('Name Redacted')
       end
     end
   end

@@ -114,7 +114,7 @@ module GrdaWarehouse
             Rails.logger.info "To: #{extract_path}"
             unzip_parent = ::File.dirname(unzip_path)
             FileUtils.mkdir_p(unzip_parent) unless ::File.directory?(unzip_parent)
-            entry.extract(unzip_path)
+            entry.extract(file_name, destination_directory: extract_path)
             unzipped_files << [GrdaWarehouse::Hud.hud_filename_to_model(file_name).name, unzip_path] if file_name.include?('.csv')
           end
         end

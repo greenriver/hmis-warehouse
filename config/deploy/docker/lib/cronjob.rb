@@ -44,19 +44,18 @@ class Cronjob
   def clear!
     cron_list.each do |cron|
       Rails.logger.info "Deleting #{cron.metadata.namespace}/#{cron.metadata.name} (#{cron.metadata.annotations&.description})"
-      crons.delete(cron.name)
     end
+    crons.delete_collection(labelSelector: { 'cron-source' => 'rails' })
   end
 
   def clear_defunct_vpas!
     Rails.logger.info 'Looking for orphaned VPAs'
     existing_crons = Set.new(cron_list.map { |cron| cron.metadata.name })
-
     vpa_list.each do |vpa|
-      if existing_crons.exclude?(vpa.metadata.labels['cronjob-name'])
-        Rails.logger.warn "Deleting #{vpa.metadata.name} which is orphaned"
-        vpas.delete(vpa.name)
-      end
+      next if existing_crons.include?(vpa.metadata.labels['cronjob-name'])
+
+      Rails.logger.warn "Deleting #{vpa.metadata.name} which is orphaned"
+      vpas.delete_resource(vpa) # was: vpas.delete(vpa.name) -> nil -> wiped every VPA
     end
   end
 

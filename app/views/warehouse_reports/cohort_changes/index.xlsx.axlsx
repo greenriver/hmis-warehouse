@@ -29,6 +29,7 @@ wb.add_worksheet(name: "Youth #{@filter.start}-#{@filter.end}"[0,30]) do |sheet|
   @enrollments.each do |c_en|
     client = c_en.cohort_client.client
     cohort_client = c_en.cohort_client
+    pii = cohort_client.pii_provider(user: current_user, mode: :download)
     vispdat = client.most_recent_vispdat
 
     time_to_housed = nil
@@ -45,8 +46,8 @@ wb.add_worksheet(name: "Youth #{@filter.start}-#{@filter.end}"[0,30]) do |sheet|
     sheet.add_row(
       [
         client.id,
-        ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads) ? client.FirstName : 'Redacted',
-        ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads) ? client.LastName : 'Redacted',
+        pii.first_name,
+        pii.last_name,
         client.age_on(c_en.entry_date.to_date),
         client.gender,
         client.source_clients.map(&:race_fields)&.flatten&.uniq&.sort&.join(' '),

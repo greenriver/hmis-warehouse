@@ -522,6 +522,17 @@ module GrdaWarehouse::Tasks
     end
 
     def choose_best_dob dest_attr, source_clients
+      case GrdaWarehouse::Config.get(:dob_selection_method).to_s
+      when 'oldest'
+        GrdaWarehouse::DOBSelector.call(dest_attr: dest_attr, source_clients: source_clients, use_oldest: true)
+      when 'newest'
+        GrdaWarehouse::DOBSelector.call(dest_attr: dest_attr, source_clients: source_clients, use_oldest: false)
+      else
+        choose_best_dob_legacy(dest_attr, source_clients)
+      end
+    end
+
+    def choose_best_dob_legacy dest_attr, source_clients
       # Get the best DOB (has value and quality is full or partial, oldest breaks the tie)
       non_blank_dob = source_clients.select { |sc| sc[:DOB].present? }
       if non_blank_dob.any?

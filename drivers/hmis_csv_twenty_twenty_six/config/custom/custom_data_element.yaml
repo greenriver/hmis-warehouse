@@ -7,6 +7,7 @@ custom_files:
     warehouse_key: "CustomDataElementID"
     warehouse_class_name: "GrdaWarehouse::Hud::CustomDataElement"
     export_limiting_column: "RecordType"
+    hmis_owned: true
     columns:
       - name: "CustomDataElementID"
         type: "string"

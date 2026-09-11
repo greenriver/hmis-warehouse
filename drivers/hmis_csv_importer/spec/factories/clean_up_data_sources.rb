@@ -112,6 +112,17 @@ FactoryBot.define do
     source_type { :sftp }
   end
 
+  factory :importer_fix_incorrect_personal_ids_ds, class: 'GrdaWarehouse::DataSource' do
+    name { 'Fix Incorrect Personal IDs' }
+    short_name { 'Personal IDs' }
+    source_type { :sftp }
+    import_cleanups do
+      {
+        'Enrollment': ['HmisCsvImporter::PostIngestCleanup::FixIncorrectPersonalIdReferences'],
+      }
+    end
+  end
+
   factory :fix_blank_household_ids, class: 'GrdaWarehouse::DataSource' do
     name { 'Fix blank household ids' }
     short_name { 'Household IDs' }

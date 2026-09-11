@@ -39,6 +39,10 @@ module HmisCsvTwentyTwentySix
         @config_data['required'] == true
       end
 
+      def hmis_owned?
+        @config_data['hmis_owned'] == true
+      end
+
       def description
         @config_data['description']
       end

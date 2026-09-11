@@ -26,4 +26,4 @@
     - if HmisCsvImporter::ImportOverride.any_apply?(project, @overrides)
       %i.icon-info{data: { 'bs-toggle' => :tooltip, 'bs-title' => "Overrides Active"}}
     - if @data_source.hmis_link_available?
-      = hmis_external_link(project, user: current_user, wrapper_class: 'mb-2 mt-2 text-teeny')
+      = hmis_external_link(project, user: current_user, wrapper_class: 'ml-1 d-inline text-teeny')

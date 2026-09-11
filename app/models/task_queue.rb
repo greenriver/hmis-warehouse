@@ -111,5 +111,16 @@ class TaskQueue < ApplicationRecord
     config.queued_tasks[:repair_cohort_column_state] = -> do
       GrdaWarehouse::Cohorts::RepairColumnState.run!
     end
+
+    # Backfill ActivityLog#reporting_path for rows that predate it (see
+    # db/migrate/20260827150000_add_reporting_path_to_activity_logs.rb)
+    config.queued_tasks[:backfill_activity_log_reporting_path] = -> do
+      ActivityLog.backfill_reporting_path!
+    end
+
+    # Index behind the User Access Summary report's HMIS access query
+    config.queued_tasks[:hmis_activity_log_user_summary_index] = -> do
+      Hmis::ActivityLog.ensure_user_summary_index!
+    end
   end
 end

@@ -13,7 +13,7 @@ This directory contains the architectural documentation for the **entire Open Pa
 7. [**7 Deployment View**](07-deployment.md): Technical infrastructure and mapping.
 8. [**8 Cross-cutting Concepts**](08-concepts/08-0-concepts.md): Cross-cutting concerns and patterns.
 9. [**9 Architecture Decisions**](09-decisions.md): References to Architecture Decision Records (ADRs).
-10. [**10 Quality Requirements**](10-quality.md): Quality goals and scenarios.
+10. [**10 Quality Requirements**](10-quality.md): The full set of quality requirements — the ranked quality goals plus the secondary ones — and the scenarios that make each testable.
 11. [**11 Risks and Technical Debts**](11-risks.md): Identified risks and debts.
 12. [**12 Glossary**](12-glossary.md): Important domain and technical terms.
 

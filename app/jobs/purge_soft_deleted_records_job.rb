@@ -101,6 +101,19 @@ class PurgeSoftDeletedRecordsJob < BaseJob
     ]
   end
 
+  # CE referrals hold FKs to enrollments (target_enrollment_id, source_enrollment_id), and a soft-deleted
+  # referral still holds them. Skip those enrollments rather than untangling the referral graph.
+  #
+  # FUTURE: these enrollments are never purged, since nothing purges CE referrals or the workflow execution
+  # records behind them. Rare enough today to leave; a full fix means adding referrals, their notes and
+  # participants, and the workflow instance/step/assignment/audit-event tree to the purge in dependency order.
+  def exclude_ce_referral_enrollments(enrollment_scope)
+    referrals = Hmis::Ce::Referral.with_deleted
+    enrollment_scope.
+      where.not(id: referrals.where.not(target_enrollment_id: nil).select(:target_enrollment_id)).
+      where.not(id: referrals.where.not(source_enrollment_id: nil).select(:source_enrollment_id))
+  end
+
   def with_lock(&block)
     lock_name = self.class.name.demodulize
     GrdaWarehouseBase.with_advisory_lock(lock_name, timeout_seconds: 0, &block)
@@ -112,6 +125,8 @@ class PurgeSoftDeletedRecordsJob < BaseJob
     scope = model.
       where(data_source: data_source).
       where(paranoia_col.lt(@retain_at))
+    # Hmis::Hud::Enrollment and GrdaWarehouse::Hud::Enrollment back the same table, so match on the table name
+    scope = exclude_ce_referral_enrollments(scope) if model.table_name == GrdaWarehouse::Hud::Enrollment.table_name
 
     scope.in_batches(of: 5_000).each do |batch|
       model.transaction do

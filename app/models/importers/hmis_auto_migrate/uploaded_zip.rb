@@ -74,7 +74,7 @@ module Importers::HmisAutoMigrate
         # Make sure we don't have any old zip files around
         FileUtils.rm(dest_file) if File.exist? dest_file
         files = Dir.glob(File.join(tmp_folder, '*')).map { |f| File.basename(f) }
-        Zip::File.open(dest_file, Zip::File::CREATE) do |zipfile|
+        Zip::File.open(dest_file, create: true) do |zipfile|
           files.each do |filename|
             zipfile.add(
               File.join(File.basename(tmp_folder), filename),
@@ -125,7 +125,7 @@ module Importers::HmisAutoMigrate
       # rezip files
       zip_file_path = File.join(@local_path, @upload.hmis_zip.filename.to_s)
       files = Dir.glob(File.join(@local_path, '*')).map { |f| File.basename(f) }
-      Zip::File.open(zip_file_path, Zip::File::CREATE) do |zipfile|
+      Zip::File.open(zip_file_path, create: true) do |zipfile|
         files.each do |filename|
           zipfile.add(
             filename,
