@@ -25,6 +25,7 @@
 
 require 'csv'
 require 'memery'
+
 module GrdaWarehouse::Tasks
   class HmisCsvSplitter
     include Memery
@@ -61,19 +62,25 @@ module GrdaWarehouse::Tasks
         Rails.logger.debug "Found #{unenrolled_clients_personal_ids.size} unenrolled clients"
       end
 
-      HmisCsvTwentyTwentyTwo.importable_files_map.each_key do |filename|
+      HmisCsvTwentyTwentySix.importable_files_map.each_key do |filename|
         next if filename.in?(manually_processed)
 
         Rails.logger.debug "Splitting #{filename}"
         source_file_path = File.join(source_path, filename)
         destination_file_path = File.join(destination_path, filename)
-        next unless File.exist?(source_file_path)
+        unless File.exist?(source_file_path)
+          Rails.logger.debug "Skipping #{filename}, does not exist in source path"
+          next
+        end
 
         results[filename] = { added: 0, original: 0 }
+        headers = source_headers(source_file_path)
+        raise "Headers are blank for #{filename}" if headers.blank?
+
         ::CSV.open(destination_file_path, 'wb') do |output|
-          ::CSV.foreach(source_file_path, **csv_options).each.with_index do |row, i|
+          output << headers
+          each_source_row(source_file_path) do |row|
             results[filename][:original] += 1
-            output << row.headers if i.zero? # Include the header
             # Add project limited
             if filename.in?(project_related)
               if row['ProjectID'].in?(project_ids)
@@ -92,7 +99,7 @@ module GrdaWarehouse::Tasks
               end
             else
               # Add enrollment limited
-              if row['EnrollmentID'].in?(enrollment_ids) # rubocop:disable Style/IfInsideElse
+              if row['EnrollmentID'].in?(enrollment_ids)
                 output << row
                 results[filename][:added] += 1
               end
@@ -106,7 +113,7 @@ module GrdaWarehouse::Tasks
 
     # Find relevant OrganizationIDs in Project.csv and make note
     private def capture_relevant_organization_ids
-      ::CSV.foreach(File.join(source_path, 'Project.csv'), **csv_options).each do |row|
+      each_source_row(File.join(source_path, 'Project.csv')) do |row|
         next unless row['ProjectID'].in?(project_ids)
 
         organization_ids << row['OrganizationID']
@@ -115,7 +122,7 @@ module GrdaWarehouse::Tasks
 
     # Find relevant EnrollmentID and PersonalIDs in Enrollment.csv and make note
     private def capture_relevant_enrollment_ids
-      ::CSV.foreach(File.join(source_path, 'Enrollment.csv'), **csv_options).each do |row|
+      each_source_row(File.join(source_path, 'Enrollment.csv')) do |row|
         next unless row['ProjectID'].in?(project_ids)
 
         enrollment_ids << row['EnrollmentID']
@@ -125,28 +132,31 @@ module GrdaWarehouse::Tasks
 
     private def capture_unenrolled_clients
       all_enrolled_clients = Set.new
-      ::CSV.foreach(File.join(source_path, 'Enrollment.csv'), **csv_options).each do |row|
+      each_source_row(File.join(source_path, 'Enrollment.csv')) do |row|
         all_enrolled_clients.add(row['PersonalID'])
       end
 
-      ::CSV.foreach(File.join(source_path, 'Client.csv'), **csv_options).each do |row|
+      each_source_row(File.join(source_path, 'Client.csv')) do |row|
         next if all_enrolled_clients.include?(row['PersonalID'])
 
         unenrolled_clients_personal_ids.add(row['PersonalID'])
       end
     end
 
-    private def csv_options
-      {
-        headers: true,
-        # header_converters: downcase_converter,
-        liberal_parsing: true,
-        encoding: 'iso-8859-1:utf-8',
-      }
+    # Headers can't come from the data rows; a source file may legitimately contain only a header
+    # line, and the destination file still needs that header to be importable.
+    private def source_headers(source_file_path)
+      open_source_csv(source_file_path, headers: false, &:shift)
     end
 
-    private def downcase_converter
-      ->(header) { header.downcase }
+    private def each_source_row(source_file_path, &block)
+      open_source_csv(source_file_path) { |csv| csv.each(&block) }
+    end
+
+    # HMIS CSVs come in all sorts of encodings.
+    # Detect the source's actual encoding (BOM or statistical) and eventually writes it out as UTF-8.
+    private def open_source_csv(source_file_path, headers: true, &block)
+      AutoEncodingCsv.open(source_file_path, headers: headers, liberal_parsing: true, &block)
     end
 
     private def manually_processed
@@ -163,6 +173,8 @@ module GrdaWarehouse::Tasks
         'ProjectCoC.csv',
         'Affiliation.csv',
         'Funder.csv',
+        'HMISParticipation.csv',
+        'CEParticipation.csv',
       ]
     end
   end
