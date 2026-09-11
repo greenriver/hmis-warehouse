@@ -68,12 +68,18 @@ module HmisDataQualityTool::DqConcern
       end
     end
 
-    def download_value(key, pii_policy:)
+    def download_value(key, pii_policy:, project_names: nil)
       translator = self.class.detail_headers[key][:translator]
       value = transform_value(key, public_send(key), pii_policy)
+      value = resolve_project_names(key, value, project_names) if project_names
       return translator.call(value) if translator.present?
       return value == true ? 'Yes' : 'No' if value.in?([true, false])
 
+      value
+    end
+
+    # Item classes whose details reference projects outside the report redefine this
+    def resolve_project_names(_key, value, _project_names)
       value
     end
 

@@ -231,6 +231,19 @@ module HmisDataQualityTool
       user.can_access_some_version_of_clients?
     end
 
+    # Names for projects referenced by overlap details but outside the report's projects,
+    # redacted unless the user can report on the project.
+    def outside_report_project_names(items:, user:)
+      project_ids = items.flat_map { |item| item.try(:outside_report_project_ids) || [] }.uniq
+      return {} if project_ids.empty?
+
+      reportable_ids = user.viewable_project_ids(:can_view_assigned_reports).to_set
+      GrdaWarehouse::Hud::Project.where(id: project_ids).to_h do |project|
+        name = reportable_ids.include?(project.id) ? project.name(user) : HmisDataQualityTool::Client::REDACTED_PROJECT_NAME
+        [project.id, name]
+      end
+    end
+
     def pivot_details
       @pivot_details ||= OpenStruct.new.tap do |struct|
         struct.groups = results.each_with_object({}) do |result, groups|

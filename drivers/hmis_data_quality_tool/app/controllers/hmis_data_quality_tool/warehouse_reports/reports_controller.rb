@@ -118,6 +118,7 @@ module HmisDataQualityTool::WarehouseReports
       # Preload project dependencies for PII policy checks
       all_project_ids = all_project_ids_from_items(@items)
       current_user.policy_context.preload_project_dependencies(all_project_ids)
+      @project_names = @report.outside_report_project_names(items: @items, user: current_user)
 
       respond_to do |format|
         format.html {}

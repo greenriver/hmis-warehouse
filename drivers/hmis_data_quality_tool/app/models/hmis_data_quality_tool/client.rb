@@ -22,6 +22,14 @@ module HmisDataQualityTool
 
     attr_accessor :enrollments
 
+    REDACTED_PROJECT_NAME = '(Project Name Redacted)'
+    OVERLAP_DETAIL_COLUMNS = [
+      :overlapping_entry_exit_details,
+      :overlapping_nbn_details,
+      :overlapping_pre_move_in_details,
+      :overlapping_post_move_in_details,
+    ].freeze
+
     has_many :hud_reports_universe_members, inverse_of: :universe_membership, class_name: 'HudReports::UniverseMember', foreign_key: :universe_membership_id
     belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client', optional: true
     belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource', optional: true
@@ -36,6 +44,32 @@ module HmisDataQualityTool
         []
       else
         enrollments.map { |en| en.project&.id }.compact.uniq
+      end
+    end
+
+    def resolve_project_names(key, value, project_names)
+      return value unless key.to_sym.in?(OVERLAP_DETAIL_COLUMNS)
+
+      self.class.resolve_outside_report_projects(value, project_names)
+    end
+
+    def outside_report_project_ids
+      OVERLAP_DETAIL_COLUMNS.flat_map do |column|
+        Array.wrap(public_send(column)).flatten.map { |en| en.transform_keys(&:to_s) }.
+          select { |en| en['outside_report'] }.map { |en| en['project_id'] }
+      end.compact.uniq
+    end
+
+    # Swaps each outside-report project_id for the name the viewing user may see.
+    def self.resolve_outside_report_projects(details, project_names)
+      Array.wrap(details).map do |pair|
+        pair.map do |en|
+          en = en.transform_keys(&:to_s)
+          next en unless en['outside_report']
+
+          project_id = en.delete('project_id')
+          en.merge('project' => project_names.fetch(project_id, REDACTED_PROJECT_NAME))
+        end
       end
     end
 
@@ -199,21 +233,26 @@ module HmisDataQualityTool
       report_item.ssn_data_quality = source_client.SSNDataQuality
       # we need these for calculations, but don't want to store them permanently,
       # also, limit them to those that overlap the projects included and the date range of the report
-      report_item.enrollments = destination_client.source_enrollments.select do |en|
+      in_range_enrollments = destination_client.source_enrollments.select do |en|
         # sometimes this loads source enrollments that are missing a project
-        en.open_during_range?(report.filter.range) && en.project&.id&.in?(report.filter.effective_project_ids)
+        en.project.present? && en.open_during_range?(report.filter.range)
       end.uniq
-      overlaps = overlapping_entry_exit(enrollments: report_item.enrollments, report: report)
+      report_item.enrollments = in_range_enrollments.select { |en| en.project.id.in?(report.filter.effective_project_ids) }
+      # Overlap checks may compare against the client's enrollments outside the report's projects;
+      # everything else on the report item stays limited to the report's projects.
+      overlap_enrollments = report.goal_config.global_overlap_checks ? in_range_enrollments : report_item.enrollments
+      in_report_ids = report_item.enrollments.map(&:id).to_set
+      overlaps = overlapping_entry_exit(enrollments: overlap_enrollments, report: report, in_report_ids: in_report_ids)
       report_item.overlapping_entry_exit = overlaps.count
       report_item.overlapping_entry_exit_details = overlaps.uniq
-      overlaps = overlapping_nbn(enrollments: report_item.enrollments, report: report)
+      overlaps = overlapping_nbn(enrollments: overlap_enrollments, report: report, in_report_ids: in_report_ids)
       report_item.overlapping_nbn = overlaps.count
       report_item.overlapping_nbn_details = overlaps
       # NOTE: this is incorrectly named, this is homeless overlapping PH post move-in
-      overlaps = overlapping_homeless_post_move_in(enrollments: report_item.enrollments, report: report)
+      overlaps = overlapping_homeless_post_move_in(enrollments: overlap_enrollments, report: report, in_report_ids: in_report_ids)
       report_item.overlapping_pre_move_in = overlaps.count
       report_item.overlapping_pre_move_in_details = overlaps
-      overlaps = overlapping_post_move_in(enrollments: report_item.enrollments, report: report)
+      overlaps = overlapping_post_move_in(enrollments: overlap_enrollments, report: report, in_report_ids: in_report_ids)
       report_item.overlapping_post_move_in = overlaps.count
       report_item.overlapping_post_move_in_details = overlaps.uniq
       report_item.ch_at_most_recent_entry = report_item.enrollments&.max_by(&:EntryDate)&.chronically_homeless_at_start?
@@ -222,18 +261,18 @@ module HmisDataQualityTool
     end
 
     # check for overlapping ES entry exit, TH, SH
-    def self.overlapping_entry_exit(enrollments:, report:)
+    def self.overlapping_entry_exit(enrollments:, report:, in_report_ids:)
       involved_enrollments = enrollments.select do |en|
         en.project&.es_entry_exit? || en.project&.sh? || en.project&.th?
       end
 
       return [] if involved_enrollments.blank? || involved_enrollments.count == 1
 
-      ranges_overlap(enrollments: involved_enrollments, report: report)
+      ranges_overlap(enrollments: involved_enrollments, report: report, in_report_ids: in_report_ids)
     end
 
     # check for overlapping PH post-move-in
-    def self.overlapping_post_move_in(enrollments:, report:)
+    def self.overlapping_post_move_in(enrollments:, report:, in_report_ids:)
       involved_enrollments = enrollments.select do |en|
         (en.project&.ph? && ! en.project&.rrh_sso_only?) ||
           (en.project&.other? && en.project.pay_for_success?)
@@ -241,11 +280,11 @@ module HmisDataQualityTool
 
       return [] if involved_enrollments.blank? || involved_enrollments.count == 1
 
-      ranges_overlap(enrollments: involved_enrollments, report: report, start_date_method: :MoveInDate)
+      ranges_overlap(enrollments: involved_enrollments, report: report, in_report_ids: in_report_ids, start_date_method: :MoveInDate)
     end
 
     # Unique set of enrollments that overlap based on service records
-    def self.overlapping_nbn(enrollments:, report:)
+    def self.overlapping_nbn(enrollments:, report:, in_report_ids:)
       nbn_enrollments = enrollments.select do |en|
         en.project&.es_nbn?
       end
@@ -270,13 +309,14 @@ module HmisDataQualityTool
             # The en enrollment is not a NBN enrollment, so we need to check for the NBN services overlapping the en enrollment date range
             nbn_en.services.where(RecordType: 200, DateProvided: en.EntryDate..end_date).pluck(:DateProvided)
           end
-          overlaps << [simple_enrollment(nbn_en), simple_enrollment(en)].sort_by { |m| m[:id] } if services_in_range.any?
+          pair = overlap_pair(nbn_en, en, in_report_ids: in_report_ids)
+          overlaps << pair if pair && services_in_range.any?
         end
       end
       overlaps
     end
 
-    def self.overlapping_homeless_post_move_in(enrollments:, report:)
+    def self.overlapping_homeless_post_move_in(enrollments:, report:, in_report_ids:)
       homeless_enrollments = enrollments.select do |en|
         en.project&.es? || en.project&.sh? || en.project&.th?
       end
@@ -300,14 +340,15 @@ module HmisDataQualityTool
         end
         involved_enrollments.each do |en|
           housed_dates = en.EntryDate..[en.exit&.ExitDate, report.filter.end].compact.min
-          overlaps << [simple_enrollment(h_en), simple_enrollment(en)].sort_by { |m| m[:id] } if (homeless_dates.to_a & housed_dates.to_a).any?
+          pair = overlap_pair(h_en, en, in_report_ids: in_report_ids)
+          overlaps << pair if pair && (homeless_dates.to_a & housed_dates.to_a).any?
         end
       end
       overlaps
     end
 
     # compare each enrollment to every other one and see if there are overlaps
-    def self.ranges_overlap(enrollments:, report:, start_date_method: :EntryDate)
+    def self.ranges_overlap(enrollments:, report:, in_report_ids:, start_date_method: :EntryDate)
       overlaps = Set.new
       enrollments.product(enrollments).each do |batch|
         batch.each do |en|
@@ -325,28 +366,46 @@ module HmisDataQualityTool
 
             end_date2 = en2.exit&.ExitDate || report.filter.end
             # three dots because starting on the end date is allowed, sorted by id so we can distinct later
-            overlaps << [simple_enrollment(en), simple_enrollment(en2)].sort_by { |m| m[:id] } if (start_date...end_date).overlaps?(start_date2...end_date2)
+            pair = overlap_pair(en, en2, in_report_ids: in_report_ids)
+            overlaps << pair if pair && (start_date...end_date).overlaps?(start_date2...end_date2)
           end
         end
       end
       overlaps
     end
 
-    def self.simple_enrollment(enrollment)
+    # A pair is only reported when at least one enrollment is in the report's projects;
+    # sorted by id so identical pairs found from either side dedupe.
+    def self.overlap_pair(en_a, en_b, in_report_ids:)
+      a_in_report = in_report_ids.include?(en_a.id)
+      b_in_report = in_report_ids.include?(en_b.id)
+      return unless a_in_report || b_in_report
+
+      [
+        simple_enrollment(en_a, in_report: a_in_report),
+        simple_enrollment(en_b, in_report: b_in_report),
+      ].sort_by { |m| m[:id] }
+    end
+
+    # Enrollments outside the report's projects carry project_id instead of a name so the
+    # name can be resolved against the viewing user's access when displayed.
+    def self.simple_enrollment(enrollment, in_report: true)
       # Using hash access to accommodate both objects and hashes
-      project_name = if enrollment.is_a?(GrdaWarehouse::Hud::Enrollment)
-        enrollment.project&.name # always confidentialized
+      project_name, project_id = if enrollment.is_a?(GrdaWarehouse::Hud::Enrollment)
+        [enrollment.project&.name, enrollment.project&.id] # name always confidentialized
       else
-        enrollment[:project]
+        [enrollment[:project], enrollment[:project_id]]
       end
 
-      {
+      simple = {
         id: enrollment[:id],
         entry_date: enrollment[:entry_date],
         move_in_date: enrollment[:move_in_date],
         exit_date: enrollment.try(:[], :exit_date) || enrollment.exit&.exit_date,
-        project: project_name,
       }
+      return simple.merge(project: project_name) if in_report
+
+      simple.merge(project_id: project_id, outside_report: true)
     end
 
     def self.sections(_)
