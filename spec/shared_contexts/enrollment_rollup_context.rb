@@ -100,7 +100,7 @@ RSpec.shared_context 'enrollment rollup context' do
     source
   end
 
-  def create_enrollment(client, project, entry:, exit_date:, **attrs)
+  def create_enrollment(client, project, entry:, exit_date:, destination: 10, **attrs)
     enrollment = create(
       :hud_enrollment,
       data_source_id: data_source.id,
@@ -116,7 +116,7 @@ RSpec.shared_context 'enrollment rollup context' do
       PersonalID: client.PersonalID,
       EnrollmentID: enrollment.EnrollmentID,
       ExitDate: Date.parse(exit_date),
-      Destination: 10,
+      Destination: destination,
     )
     enrollment
   end

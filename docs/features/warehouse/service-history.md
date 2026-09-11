@@ -30,11 +30,11 @@ Each `ServiceHistoryService` row carries two boolean flags — `homeless` and `l
 | Project type | `homeless` | `literally_homeless` |
 |---|---|---|
 | ES, SO, SH, TH | `true` | `true` for ES/SO/SH; `false` for TH |
-| PH before move-in date | `nil` | `nil` |
-| PH on or after move-in date | `false` | `false` |
+| PH on or before move-in date | `nil` | `nil` |
+| PH after move-in date | `false` | `false` |
 | Services Only, Other, Day Shelter, CE | `nil` | `nil` |
 
-A `nil` value means the day is neither homeless nor not-homeless — it will not appear in `homeless` or `non_homeless` scopes. This three-state design lets reports distinguish "known homeless," "known housed," and "not categorized" service days.
+A `nil` value means the day is neither homeless nor not-homeless — it will not appear in `homeless` or `non_homeless` scopes. This three-state design lets reports distinguish "known homeless," "known housed," and "not categorized" service days. The episode rules in [Homeless Episodes](homeless-episodes.md) read these flags directly: `literally_homeless = true` nights keep an episode open, `homeless = false` and TH nights count toward a housed break.
 
 The `ProjectCleanup` daily task (see "Automatic Rebuild via Daily Project Cleanup Task" below) detects mismatches between these flags and the current project type configuration, triggering rebuilds when needed.
 

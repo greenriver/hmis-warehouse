@@ -441,7 +441,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
       let(:dates) do
         [
           {
-            ProjectType: 1,
+            ProjectType: 0, # ES entry-exit
             EntryDate: '2015-03-04',
             ExitDate: '2015-04-12',
             new_episode_expected: true,
@@ -456,16 +456,16 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
             ProjectType: 4,
             EntryDate: '2015-06-04',
             ExitDate: '2015-08-12',
-            new_episode_expected: true,
+            new_episode_expected: false,
           },
           {
-            ProjectType: 1,
+            ProjectType: 0, # ES entry-exit
             EntryDate: '2015-07-04',
             ExitDate: '2015-09-12',
             new_episode_expected: false,
           },
           {
-            ProjectType: 1,
+            ProjectType: 0, # ES entry-exit
             EntryDate: '2016-03-04',
             ExitDate: '2016-04-12',
             new_episode_expected: true,
@@ -483,7 +483,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
         FactoryBot.reload
       end
 
-      it 'should find 3 new episodes' do
+      it 'finds 2 new episodes' do
         GrdaWarehouse::Tasks::IdentifyDuplicates.new.run!
         enrollments.each_with_index do |en, i|
           date = dates[i]
@@ -504,8 +504,8 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
         end
 
         aggregate_failures 'checking' do
-          expect(enrollments.map(&:new_episode?).count(true)).to eq(3)
-          expect(client_with_enrollments.destination_client.homeless_episodes_between(start_date: '2014-01-01'.to_date, end_date: '2018-01-01'.to_date)).to eq(3)
+          expect(enrollments.map(&:new_episode?)).to eq(dates.map { |d| d[:new_episode_expected] })
+          expect(client_with_enrollments.destination_client.homeless_episodes_between(start_date: '2014-01-01'.to_date, end_date: '2018-01-01'.to_date)).to eq(2)
           expect(client_with_enrollments.destination_client.homeless_episodes_between(start_date: '2015-05-01'.to_date, end_date: '2018-01-01'.to_date)).to eq(2)
         end
       end
@@ -536,7 +536,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
             ProjectType: 4,
             EntryDate: '2015-06-04',
             ExitDate: '2015-12-12',
-            new_episode_expected: false,
+            new_episode_expected: true,
           },
           {
             ProjectType: 0,
@@ -548,7 +548,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
             ProjectType: 0,
             EntryDate: '2016-03-04',
             ExitDate: '2016-04-12',
-            new_episode_expected: true,
+            new_episode_expected: false,
           },
         ]
       end
@@ -557,7 +557,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
       let!(:exits) { create_list :hud_exit, dates.count, PersonalID: client_with_enrollments.PersonalID, data_source_id: client_with_enrollments.data_source_id }
       let!(:projects) { create_list :hud_project, dates.count, data_source_id: client_with_enrollments.data_source_id }
 
-      it 'should find 2 new episodes' do
+      it 'finds 2 new episodes' do
         GrdaWarehouse::Tasks::IdentifyDuplicates.new.run!
         enrollments.each_with_index do |en, i|
           date = dates[i]
@@ -578,7 +578,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
           GrdaWarehouse::Tasks::ServiceHistory::Enrollment.find(en.id).rebuild_service_history!
         end
         aggregate_failures 'checking' do
-          expect(enrollments.map(&:new_episode?).count(true)).to eq(2)
+          expect(enrollments.map(&:new_episode?)).to eq(dates.map { |d| d[:new_episode_expected] })
           expect(client_with_enrollments.destination_client.homeless_episodes_between(start_date: '2014-01-01'.to_date, end_date: '2018-01-01'.to_date)).to eq(2)
           expect(client_with_enrollments.destination_client.homeless_episodes_between(start_date: '2015-05-01'.to_date, end_date: '2018-01-01'.to_date)).to eq(2)
         end

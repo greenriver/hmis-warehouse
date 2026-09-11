@@ -76,3 +76,4 @@ Within either variant, each section is a placeholder div/article with a `data-pa
 | Permission flags | `app/models/role.rb` (`can_view_full_client_dashboard`, `can_view_limited_client_dashboard`) |
 | Combined permission + controller gate | `app/models/concerns/user_permissions.rb`, `ClientShowPages` / `ClientAccessControl::ClientsController` |
 | Individual rollup partial allowlist + AJAX endpoint | `app/controllers/concerns/client_show_pages.rb` |
+| "New episode" row highlight in the enrollment roll-up | `ClientHistory::Calculator#new_episode?`; rules and HUD sources in [Homeless Episodes](homeless-episodes.md) |
