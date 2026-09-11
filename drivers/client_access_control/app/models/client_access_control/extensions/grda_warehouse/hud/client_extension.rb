@@ -186,44 +186,63 @@ module ClientAccessControl::GrdaWarehouse::Hud
           total_enrollment_count = en_scope.joins(:project, :source_client, :enrollment).count
           en_scope = en_scope.joins(:enrollment).merge(::GrdaWarehouse::Hud::Enrollment.visible_to(user)) unless user == User.setup_system_user
           enrollments = en_scope.joins(:project, :source_client, :enrollment).
-            includes(:organization, :source_client, project: :project_cocs, enrollment: [:enrollment_cocs, :exit, :ch_enrollment]).
+            includes(
+              :organization,
+              :source_client,
+              project: :project_cocs,
+              enrollment: [:enrollment_cocs, :exit, :ch_enrollment, :project, :disabilities_at_entry],
+            ).
             order(first_date_in_program: :desc)
-          visible_enrollment_count = enrollments.count
-          enrollments.map do |entry|
-            project = entry.project
-            organization = entry.organization
-            dates_served = entry.service_history_services.where(record_type: service_types).distinct.pluck(:date)
-            project_name = if project.confidential_for_user?(user)
-              project.safe_project_name
-            else
+          enrollments = enrollments.to_a
+          visible_enrollment_count = enrollments.size
+          calculator = ClientHistory::Calculator.new(client: self, enrollments: enrollments)
+          residential_dates = calculator.residential_dates
+          expose_coc_code = ::GrdaWarehouse::Config.get(:expose_coc_code)
+          # Preload dedupes rows, not AR objects, so entries sharing a project each get
+          # their own Project instance; compute its (cached) confidentiality once per
+          # distinct project rather than once per enrollment.
+          project_data_by_key = {}
+          project_data_for = lambda do |entry|
+            key = [entry.data_source_id, entry.project_id, entry.organization_id]
+            project_data_by_key[key] ||= begin
+              project = entry.project
               cocs = ''
-              if ::GrdaWarehouse::Config.get(:expose_coc_code)
-                cocs = project.project_cocs&.pluck(GrdaWarehouse::Hud::ProjectCoc.coc_code_coalesce)&.reject(&:blank?)&.uniq&.join(', ')
+              if expose_coc_code
+                cocs = project.project_cocs.map(&:CoCCode).reject(&:blank?).uniq.join(', ')
                 cocs = " (#{cocs})" if cocs.present?
               end
-              "#{entry.project_name} < #{organization.OrganizationName} #{cocs}"
+              {
+                project: project,
+                confidential_for_user: project.confidential_for_user?(user),
+                confidential: project.confidential,
+                cocs: cocs,
+              }
+            end
+          end
+          enrollments.map do |entry|
+            project_data = project_data_for.call(entry)
+            project = project_data[:project]
+            organization = entry.organization
+            dates_served = calculator.dates_served(entry)
+            project_name = if project_data[:confidential_for_user]
+              project.safe_project_name
+            else
+              "#{entry.project_name} < #{organization.OrganizationName} #{project_data[:cocs]}"
             end
             count_until = calculated_end_of_enrollment(enrollment: entry, enrollments: enrollments)
             # days included in adjusted days that are not also served by a residential project
             adjusted_dates_for_similar_programs = adjusted_dates(dates: dates_served, stop_date: count_until)
-            homeless_dates_for_enrollment = adjusted_dates_for_similar_programs - ClientHistory::Calculator.new(client: self).residential_dates(enrollments: enrollments)
-            # extrapolated days may extend beyond the actual last contact, turning off ineligible_uses_extrapolated_days means
-            # we only count actual contacts
-            most_recent_service = if GrdaWarehouse::Config.get(:ineligible_uses_extrapolated_days)
-              dates_served.max
-            else
-              entry.service_history_services.service_excluding_extrapolated.maximum(:date)
-            end
+            homeless_dates_for_enrollment = adjusted_dates_for_similar_programs - residential_dates
             # default to entry date if we don't have any services
-            most_recent_service ||= entry.entry_date
+            most_recent_service = calculator.most_recent_service_date(entry) || entry.entry_date
 
-            new_episode = new_episode?(residential_enrollments: enrollments, enrollment: entry)
+            new_episode = calculator.new_episode?(enrollment: entry)
             {
               client_source_id: entry.source_client.id,
               project_id: project.id,
               ProjectID: project.ProjectID,
               project_name: project_name,
-              confidential_project: project.confidential,
+              confidential_project: project_data[:confidential],
               entry_date: entry.entry_date,
               living_situation: entry.enrollment.LivingSituation,
               chronically_homeless_at_start: entry.enrollment.chronically_homeless_at_start?,
