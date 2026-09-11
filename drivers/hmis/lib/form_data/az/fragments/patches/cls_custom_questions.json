@@ -57,7 +57,7 @@
             "id": "latitude33xxxxxuseexa_1_max_len",
             "type": "MAX",
             "severity": "error",
-            "value_number": 10
+            "value_number": 8
           }
         ],
         "custom_rule": {
