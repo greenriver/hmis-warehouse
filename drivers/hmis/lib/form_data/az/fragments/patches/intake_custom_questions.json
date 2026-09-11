@@ -9,6 +9,7 @@
         "required": false,
         "warn_if_empty": false,
         "mapping": {
+          "record_type": "ENROLLMENT",
           "custom_field_key": "mar_primaryreasonforhomle"
         },
         "pick_list_options": [
@@ -81,6 +82,7 @@
         "required": false,
         "warn_if_empty": false,
         "mapping": {
+          "record_type": "ENROLLMENT",
           "custom_field_key": "mar_locationofpriorreside"
         },
         "pick_list_options": [
@@ -156,6 +158,7 @@
         "required": false,
         "warn_if_empty": false,
         "mapping": {
+          "record_type": "ENROLLMENT",
           "custom_field_key": "mar_hud_zipcodelastpermaddr"
         }
       },
@@ -163,9 +166,11 @@
         "type": "CHOICE",
         "link_id": "didyouexperienceanevi",
         "text": "Did you experience an eviction from housing in the last 12 months?",
+        "brief_text": "Eviction in Last 12 Months",
         "required": false,
         "warn_if_empty": false,
         "mapping": {
+          "record_type": "ENROLLMENT",
           "custom_field_key": "mar_didyouexperienceanevi"
         },
         "pick_list_options": [
@@ -185,6 +190,7 @@
         "required": false,
         "warn_if_empty": false,
         "mapping": {
+          "record_type": "ENROLLMENT",
           "custom_field_key": "mar_ifyespleaseselectthet"
         },
         "enable_behavior": "ALL",
