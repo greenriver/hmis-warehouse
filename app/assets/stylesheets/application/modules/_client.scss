@@ -613,6 +613,12 @@ $client-match-action-row-height: 22px;
   width: 100%;
 }
 
+// Accept-tooltip line breaks are plain "\n" (see _client_match.haml) rather than <br> tags,
+// since the tooltip is rendered as text, not HTML.
+.tooltip.client-match-tooltip .tooltip-inner {
+  white-space: pre-line;
+}
+
 .client__aliases {
   display: flex;
   align-items: cetner;
