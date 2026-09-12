@@ -219,6 +219,24 @@ RSpec.describe 'Client dashboard demographic table', type: :request do
           to eq('Client prefers not to answer')
       end
 
+      # Marking a client restricted touches neither the client nor any record already in the
+      # cache key, so the key must carry an explicit restriction token or a fragment rendered
+      # before the restriction keeps serving the real name.
+      it 'invalidates the cached fragment when the client becomes restricted' do
+        get_demographics
+        expect(demographics_table.text).not_to include(GrdaWarehouse::PiiProvider::NAME_REDACTED)
+
+        Hmis::RestrictedRecord.create!(
+          restrictable_id: window_source_client.id,
+          restrictable_type: 'Hmis::Hud::Client',
+          data_source_id: window_source_client.data_source_id,
+          created_by: Hmis::User.find(user.id),
+        )
+        get_demographics
+
+        expect(demographics_table.text).to include(GrdaWarehouse::PiiProvider::NAME_REDACTED)
+      end
+
       # The configured keys are part of the cache key, so a config change must not serve the
       # fragment built from the previous column set.
       it 'reflects a changed column set instead of serving the previous fragment' do

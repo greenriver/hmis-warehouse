@@ -128,6 +128,25 @@ module UserConcern
       where(permission_context: [nil, 'role_based'])
     end
 
+    # HMIS access is only ever granted through Hmis::AccessControl (docs/features/hmis/hmis-permissions.md),
+    # so one live grant, in any data source, is sufficient to indicate a user is a HMIS user.
+    scope :hmis_users, -> do
+      where(id: Hmis::AccessControl.joins(:users).select(Hmis::User.arel_table[:id]))
+    end
+
+    # Includes soft-deleted grants and memberships, for audit filters that must be able to name a
+    # user whose HMIS access has since been removed.
+    scope :current_or_former_hmis_users, -> do
+      group_ids = Hmis::AccessControl.with_deleted.select(:user_group_id)
+      where(id: Hmis::UserGroupMember.with_deleted.where(user_group_id: group_ids).select(:user_id))
+    end
+
+    # Warehouse access is identifiable as any user with a legacy role or an Access Control.
+    scope :warehouse_users, -> do
+      where(id: AccessControl.joins(:users).select(User.arel_table[:id])).
+        or(where(id: UserRole.select(:user_id)))
+    end
+
     def using_acls?
       # Note using hash syntax to get around lack of column for some data migrations
       self[:permission_context].to_s == 'acls'

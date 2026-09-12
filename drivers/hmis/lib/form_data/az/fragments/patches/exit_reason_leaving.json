@@ -1,0 +1,94 @@
+[
+  {
+    "link_id": "destination",
+    "append_items": [
+      {
+        "link_id": "exit_reason_group",
+        "type": "GROUP",
+        "item": [
+          {
+            "link_id": "reason_leaving",
+            "type": "CHOICE",
+            "required": false,
+            "text": "Reason Leaving",
+            "mapping": {
+              "record_type": "ENROLLMENT",
+              "custom_field_key": "mar_exit_reason_leaving"
+            },
+            "pick_list_options": [
+              {
+                "code": "Unknown/Disappeared"
+              },
+              {
+                "code": "Non-compliance with program"
+              },
+              {
+                "code": "Completed program"
+              },
+              {
+                "code": "Criminal activity / violence"
+              },
+              {
+                "code": "Disagreement with rules/persons"
+              },
+              {
+                "code": "Needs could not be met"
+              },
+              {
+                "code": "Left for housing opp. before completing program"
+              },
+              {
+                "code": "Non-payment of rent"
+              },
+              {
+                "code": "Eviction"
+              },
+              {
+                "code": "Reached maximum time allowed"
+              },
+              {
+                "code": "Diverted from homeless services"
+              },
+              {
+                "code": "Death"
+              },
+              {
+                "code": "Client moved with parent out of state to live with family"
+              },
+              {
+                "code": "Declined services/participation"
+              },
+              {
+                "code": "Lease Non-Renewal / Mutual Rescission"
+              },
+              {
+                "code": "Determined Ineligible"
+              },
+              {
+                "code": "Other"
+              }
+            ]
+          },
+          {
+            "link_id": "reason_leaving_other",
+            "type": "STRING",
+            "required": false,
+            "text": "Other Reason Leaving",
+            "mapping": {
+              "record_type": "ENROLLMENT",
+              "custom_field_key": "mar_exit_reason_leaving_other"
+            },
+            "enable_behavior": "ALL",
+            "enable_when": [
+              {
+                "question": "reason_leaving",
+                "operator": "EQUAL",
+                "answer_code": "Other"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+]

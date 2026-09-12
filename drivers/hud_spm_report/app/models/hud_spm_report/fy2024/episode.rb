@@ -23,6 +23,8 @@ module HudSpmReport::Fy2024
 
     def self.apply_search_scope(scope) = scope.joins(:enrollments)
     def self.search_columns = HudSpmReport::Fy2024::SpmEnrollment.search_columns
+    def self.pii_search_columns = HudSpmReport::Fy2024::SpmEnrollment.pii_search_columns
+    def self.restricted_client_id_columns = HudSpmReport::Fy2024::SpmEnrollment.restricted_client_id_columns
 
     def self.detail_headers
       client_columns = ['client_id', 'enrollment.first_name', 'enrollment.last_name', 'enrollment.personal_id']

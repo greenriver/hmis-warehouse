@@ -89,10 +89,13 @@ module ServiceScanning::WarehouseReports
 
     private def set_data
       @dates = begin
+        # provided_at is a datetime column; comparing it to bare Date bounds casts the upper bound
+        # to midnight, silently excluding same-day services provided after midnight UTC (i.e.
+        # evening Eastern).
         date_scope = service_class.
           joins(:project).
           preload(:project).
-          where(project_id: @filter.effective_project_ids, provided_at: @filter.range)
+          where(project_id: @filter.effective_project_ids, provided_at: @filter.start.beginning_of_day..@filter.end.end_of_day)
         date_scope = date_scope.where(type: @filter.service_type_class) if @filter.service_type.present?
         date_scope = date_scope.where(other_type: @filter.other_type) if @filter.other_type.present?
         dates = {}

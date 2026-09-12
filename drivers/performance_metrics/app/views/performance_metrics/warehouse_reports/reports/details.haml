@@ -38,4 +38,4 @@
                   - elsif k.include?('caper_id') && client[k]
                     = link_to formatted_cell(client[k]), hud_reports_caper_path(client[k]), target: :_blank
                   - else
-                    = formatted_cell(client[k])
+                    = formatted_cell(client.detail_value(k, user: current_user))

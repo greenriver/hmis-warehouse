@@ -13,12 +13,14 @@ wb.add_worksheet(name: "Potentially Chronic Clients") do |sheet|
     chronic = client['chronic']
     disabilities = client['source_disabilities'].gsub('<br />', ', ')
     data_sources = client['data_sources']
+    policy = current_user.reporting_policy_for_project(project_id: nil, mode: :download, client_id: client['id'])
+    pii = GrdaWarehouse::PiiProvider.from_attributes(policy: policy, first_name: client['FirstName'], last_name: client['LastName'], dob: client['DOB'])
     sheet.add_row([
-      client['id'], 
-      ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads) ? client['FirstName'] : 'Redacted',
-      ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads) ? client['LastName'] : 'Redacted',
-      ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads) ? client['DOB'] : 'Redacted',
-      chronic['homeless_since'], 
+      client['id'],
+      pii.first_name,
+      pii.last_name,
+      GrdaWarehouse::PiiProvider.viewable_dob(client['DOB'], policy: policy),
+      chronic['homeless_since'],
       chronic['days_in_last_three_years'], 
       chronic['months_in_last_three_years'], 
       chronic['trigger'],

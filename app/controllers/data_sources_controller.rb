@@ -112,6 +112,7 @@ class DataSourcesController < ApplicationController
         :service_scannable,
         :obey_consent,
         :hmis,
+        :hmis_go_live_at,
         projects_attributes:
         [
           :id,
@@ -140,6 +141,7 @@ class DataSourcesController < ApplicationController
         :service_scannable,
         :obey_consent,
         :hmis,
+        :hmis_go_live_at,
       )
   end
 

@@ -55,6 +55,17 @@ RSpec.describe 'Delete Form Rule Mutation', type: :request do
     end.to change { form_instance.reload.active }.from(true).to(false)
   end
 
+  context 'when deleting a rule for a CASE_NOTE form' do
+    let!(:form_definition) { create(:hmis_form_definition, identifier: 'test-case-note', role: :CASE_NOTE, status: :published, data_source: ds1) }
+
+    it 'marks the form rule as inactive' do
+      expect do
+        response, result = post_graphql(input) { mutation }
+        expect(response.status).to eq(200), result.inspect
+      end.to change { form_instance.reload.active }.from(true).to(false)
+    end
+  end
+
   context 'when deleting a system rule' do
     let!(:form_instance) { create(:hmis_form_instance, definition: form_definition, entity: p1, active: true, system: true, data_source: ds1) }
 
@@ -72,6 +83,20 @@ RSpec.describe 'Delete Form Rule Mutation', type: :request do
 
     it 'raises an error' do
       expect_gql_error post_graphql(input) { mutation }, message: 'not found'
+    end
+  end
+
+  # Referral roles are not managed in the Forms admin tool, and static admin forms take no rules.
+  # These examples grant can_administrate_config so that the denial is attributable to the form role
+  # rather than to a missing permission.
+  [:REFERRAL, :PROJECT_CONFIG].each do |role|
+    context "when deleting a rule for the non-configurable #{role} form role" do
+      let!(:access_control) { create_access_control(hmis_user, ds1, with_permission: [:can_configure_data_collection, :can_administrate_config]) }
+      let!(:form_definition) { create(:hmis_form_definition, identifier: "test-#{role.to_s.downcase}", role: role, status: :published, data_source: ds1) }
+
+      it 'raises access denied error even for a super-admin' do
+        expect_access_denied post_graphql(input) { mutation }
+      end
     end
   end
 
