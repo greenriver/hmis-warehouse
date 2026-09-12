@@ -9,25 +9,6 @@
 require 'rails_helper'
 
 RSpec.describe GrdaWarehouse::Tasks::HmisCsvSplitter do
-  let(:source_path) { Dir.mktmpdir('splitter-source') }
-  let(:destination_path) { Dir.mktmpdir('splitter-dest') }
-
-  after do
-    FileUtils.rm_rf(source_path)
-    FileUtils.rm_rf(destination_path)
-  end
-
-  def write_csv(dir, filename, headers, rows)
-    CSV.open(File.join(dir, filename), 'wb') do |csv|
-      csv << headers
-      rows.each { |row| csv << row }
-    end
-  end
-
-  def read_column(path, column)
-    CSV.read(path, headers: true).map { |row| row[column] }
-  end
-
   describe '.balance_projects' do
     it 'isolates a dominant project and pairs the remaining projects across the other parts' do
       counts = { 'P1' => 75, 'P2' => 6, 'P3' => 6, 'P4' => 7, 'P5' => 6 }
@@ -74,6 +55,25 @@ RSpec.describe GrdaWarehouse::Tasks::HmisCsvSplitter do
   end
 
   describe '#run!' do
+    let(:source_path) { Dir.mktmpdir('splitter-source') }
+    let(:destination_path) { Dir.mktmpdir('splitter-dest') }
+
+    after do
+      FileUtils.rm_rf(source_path)
+      FileUtils.rm_rf(destination_path)
+    end
+
+    def write_csv(dir, filename, headers, rows)
+      CSV.open(File.join(dir, filename), 'wb') do |csv|
+        csv << headers
+        rows.each { |row| csv << row }
+      end
+    end
+
+    def read_column(path, column)
+      CSV.read(path, headers: true).map { |row| row[column] }
+    end
+
     # 6 projects: P1 holds 12 of 16 enrollments, P2..P5 hold 1 each, P6 has none.
     # Expected grouping for 3 parts: [P1], [P2, P4, P6], [P3, P5].
     let(:projects) do
@@ -160,6 +160,12 @@ RSpec.describe GrdaWarehouse::Tasks::HmisCsvSplitter do
 
       expect(client_ids_by_part.map { |ids| ids.include?('UNENROLLED') }).to eq([true, false, false])
       expect(client_ids_by_part.flatten).to contain_exactly(*enrolled_client_ids, 'UNENROLLED')
+    end
+
+    it 'treats a client enrolled only in filtered-out projects as enrolled, not unenrolled, when include_unenrolled_clients is true' do
+      run_splitter(project_ids: ['P2'], parts: 1, include_unenrolled_clients: true)
+
+      expect(read_column(File.join(part_dir(1), 'Client.csv'), 'PersonalID')).to contain_exactly('C2', 'UNENROLLED')
     end
 
     it 'writes a client enrolled in projects from different parts to each of those parts' do
