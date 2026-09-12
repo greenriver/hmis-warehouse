@@ -73,29 +73,7 @@ RSpec.describe GrdaWarehouse::Tasks::HmisCsvSplitter do
     end
   end
 
-  describe '.project_enrollment_counts' do
-    it 'counts enrollments per ProjectID, including zero for projects with none and projects only seen in Enrollment.csv' do
-      projects = [
-        ['P1', 'O1', 'One'],
-        ['P2', 'O1', 'Two'],
-        ['EMPTY', 'O2', 'No enrollments'],
-      ]
-      enrollments = [
-        ['E1', 'C1', 'P1'],
-        ['E2', 'C2', 'P1'],
-        ['E3', 'C3', 'P2'],
-        ['E4', 'C4', 'ORPHAN'],
-      ]
-      write_csv(source_path, 'Project.csv', ['ProjectID', 'OrganizationID', 'ProjectName'], projects)
-      write_csv(source_path, 'Enrollment.csv', ['EnrollmentID', 'PersonalID', 'ProjectID'], enrollments)
-
-      counts = described_class.project_enrollment_counts(source_path)
-
-      expect(counts).to eq('P1' => 2, 'P2' => 1, 'EMPTY' => 0, 'ORPHAN' => 1)
-    end
-  end
-
-  describe '.split_evenly' do
+  describe '#run!' do
     # 6 projects: P1 holds 12 of 16 enrollments, P2..P5 hold 1 each, P6 has none.
     # Expected grouping for 3 parts: [P1], [P2, P4, P6], [P3, P5].
     let(:projects) do
@@ -106,13 +84,14 @@ RSpec.describe GrdaWarehouse::Tasks::HmisCsvSplitter do
       p1 + [['E2', 'C2', 'P2'], ['E3', 'C3', 'P3'], ['E4', 'C4', 'P4'], ['E5', 'C5', 'P5']]
     end
     let(:enrolled_client_ids) { enrollments.map { |row| row[1] } }
+    let(:enrollment_headers) { ['EnrollmentID', 'PersonalID', 'ProjectID'] }
 
     before do
       write_csv(source_path, 'Export.csv', ['ExportID', 'SourceType'], [['EX1', '3']])
       write_csv(source_path, 'User.csv', ['UserID', 'UserFirstName'], [['U1', 'Pat']])
       write_csv(source_path, 'Organization.csv', ['OrganizationID', 'OrganizationName'], [['O1', 'One'], ['O2', 'Two'], ['O3', 'Three']])
       write_csv(source_path, 'Project.csv', ['ProjectID', 'OrganizationID', 'ProjectName'], projects.map { |id, org| [id, org, id] })
-      write_csv(source_path, 'Enrollment.csv', ['EnrollmentID', 'PersonalID', 'ProjectID'], enrollments)
+      write_csv(source_path, 'Enrollment.csv', enrollment_headers, enrollments)
       write_csv(source_path, 'Client.csv', ['PersonalID', 'FirstName'], (enrolled_client_ids + ['UNENROLLED']).map { |id| [id, id] })
       write_csv(source_path, 'Exit.csv', ['ExitID', 'EnrollmentID', 'PersonalID'], enrollments.map { |e, c, _| ["X-#{e}", e, c] })
     end
@@ -121,8 +100,18 @@ RSpec.describe GrdaWarehouse::Tasks::HmisCsvSplitter do
       File.join(destination_path, "part_#{index}")
     end
 
+    def run_splitter(**options)
+      splitter = described_class.new(source_path: source_path, destination_path: destination_path, **options)
+      splitter.run!
+      splitter
+    end
+
+    def column_by_part(filename, column, parts)
+      (1..parts).map { |i| read_column(File.join(part_dir(i), filename), column) }
+    end
+
     it 'writes one directory per part with the dominant project alone and the rest balanced' do
-      described_class.split_evenly(source_path: source_path, destination_path: destination_path, parts: 3)
+      run_splitter(parts: 3)
 
       expect(Dir.children(destination_path)).to contain_exactly('part_1', 'part_2', 'part_3')
       expect(read_column(File.join(part_dir(1), 'Project.csv'), 'ProjectID')).to contain_exactly('P1')
@@ -131,10 +120,10 @@ RSpec.describe GrdaWarehouse::Tasks::HmisCsvSplitter do
     end
 
     it 'partitions enrollment-scoped rows so every source row appears in exactly one part' do
-      described_class.split_evenly(source_path: source_path, destination_path: destination_path, parts: 3)
+      run_splitter(parts: 3)
 
-      enrollment_ids_by_part = (1..3).map { |i| read_column(File.join(part_dir(i), 'Enrollment.csv'), 'EnrollmentID') }
-      exit_ids_by_part = (1..3).map { |i| read_column(File.join(part_dir(i), 'Exit.csv'), 'EnrollmentID') }
+      enrollment_ids_by_part = column_by_part('Enrollment.csv', 'EnrollmentID', 3)
+      exit_ids_by_part = column_by_part('Exit.csv', 'EnrollmentID', 3)
 
       expect(enrollment_ids_by_part.flatten).to contain_exactly(*enrollments.map(&:first))
       expect(enrollment_ids_by_part.map(&:size)).to eq([12, 2, 2])
@@ -142,7 +131,7 @@ RSpec.describe GrdaWarehouse::Tasks::HmisCsvSplitter do
     end
 
     it 'limits Organization.csv in each part to the organizations of that part\'s projects' do
-      described_class.split_evenly(source_path: source_path, destination_path: destination_path, parts: 3)
+      run_splitter(parts: 3)
 
       expect(read_column(File.join(part_dir(1), 'Organization.csv'), 'OrganizationID')).to contain_exactly('O1')
       expect(read_column(File.join(part_dir(2), 'Organization.csv'), 'OrganizationID')).to contain_exactly('O1', 'O2', 'O3')
@@ -150,7 +139,7 @@ RSpec.describe GrdaWarehouse::Tasks::HmisCsvSplitter do
     end
 
     it 'copies Export.csv and User.csv unchanged into every part' do
-      described_class.split_evenly(source_path: source_path, destination_path: destination_path, parts: 3)
+      run_splitter(parts: 3)
 
       (1..3).each do |i|
         expect(File.read(File.join(part_dir(i), 'Export.csv'))).to eq(File.read(File.join(source_path, 'Export.csv')))
@@ -159,37 +148,80 @@ RSpec.describe GrdaWarehouse::Tasks::HmisCsvSplitter do
     end
 
     it 'excludes unenrolled clients from every part by default' do
-      described_class.split_evenly(source_path: source_path, destination_path: destination_path, parts: 3)
+      run_splitter(parts: 3)
 
-      client_ids_by_part = (1..3).map { |i| read_column(File.join(part_dir(i), 'Client.csv'), 'PersonalID') }
-
-      expect(client_ids_by_part.flatten).to contain_exactly(*enrolled_client_ids)
+      expect(column_by_part('Client.csv', 'PersonalID', 3).flatten).to contain_exactly(*enrolled_client_ids)
     end
 
     it 'adds unenrolled clients to part 1 only when include_unenrolled_clients is true' do
-      described_class.split_evenly(source_path: source_path, destination_path: destination_path, parts: 3, include_unenrolled_clients: true)
+      run_splitter(parts: 3, include_unenrolled_clients: true)
 
-      client_ids_by_part = (1..3).map { |i| read_column(File.join(part_dir(i), 'Client.csv'), 'PersonalID') }
+      client_ids_by_part = column_by_part('Client.csv', 'PersonalID', 3)
 
-      expect(client_ids_by_part[0]).to include('UNENROLLED')
-      expect(client_ids_by_part[1]).not_to include('UNENROLLED')
-      expect(client_ids_by_part[2]).not_to include('UNENROLLED')
+      expect(client_ids_by_part.map { |ids| ids.include?('UNENROLLED') }).to eq([true, false, false])
       expect(client_ids_by_part.flatten).to contain_exactly(*enrolled_client_ids, 'UNENROLLED')
     end
 
-    it 'returns one run splitter per part so results can be reconciled against the source' do
-      splitters = described_class.split_evenly(source_path: source_path, destination_path: destination_path, parts: 3)
+    it 'writes a client enrolled in projects from different parts to each of those parts' do
+      # C2 is enrolled in P2 (part 3) and P3 (part 2) once P3 gains a second enrollment.
+      # Grouping becomes [P1], [P3, P5], [P2, P4, P6].
+      write_csv(source_path, 'Enrollment.csv', enrollment_headers, enrollments + [['E6', 'C2', 'P3']])
 
-      expect(splitters.map(&:project_ids)).to eq([['P1'], ['P2', 'P4', 'P6'], ['P3', 'P5']])
-      added = splitters.sum { |s| s.results['Enrollment.csv'][:added] }
-      expect(added).to eq(enrollments.size)
-      expect(splitters.first.results['Enrollment.csv'][:original]).to eq(enrollments.size)
+      run_splitter(parts: 3)
+
+      client_ids_by_part = column_by_part('Client.csv', 'PersonalID', 3)
+      expect(client_ids_by_part.map { |ids| ids.include?('C2') }).to eq([false, true, true])
+      expect(read_column(File.join(part_dir(2), 'Project.csv'), 'ProjectID')).to contain_exactly('P3', 'P5')
+    end
+
+    it 'reports source, written, and per-part row counts for each file' do
+      splitter = run_splitter(parts: 3)
+
+      expect(splitter.results['Enrollment.csv']).to eq(original: 16, added: 16, by_part: [12, 2, 2])
+      expect(splitter.results['Project.csv']).to eq(original: 6, added: 6, by_part: [1, 3, 2])
+      expect(splitter.project_groups).to eq([['P1'], ['P2', 'P4', 'P6'], ['P3', 'P5']])
+    end
+
+    it 'restricts every file to the project_ids filter when parts is 1' do
+      splitter = run_splitter(project_ids: ['P2', 'P3'], parts: 1)
+
+      expect(Dir.children(destination_path)).to contain_exactly('part_1')
+      expect(read_column(File.join(part_dir(1), 'Project.csv'), 'ProjectID')).to contain_exactly('P2', 'P3')
+      expect(read_column(File.join(part_dir(1), 'Organization.csv'), 'OrganizationID')).to contain_exactly('O1', 'O2')
+      expect(read_column(File.join(part_dir(1), 'Enrollment.csv'), 'EnrollmentID')).to contain_exactly('E2', 'E3')
+      expect(read_column(File.join(part_dir(1), 'Exit.csv'), 'EnrollmentID')).to contain_exactly('E2', 'E3')
+      expect(read_column(File.join(part_dir(1), 'Client.csv'), 'PersonalID')).to contain_exactly('C2', 'C3')
+      expect(splitter.results['Enrollment.csv']).to eq(original: 16, added: 2, by_part: [2])
+    end
+
+    it 'balances only the filtered projects when project_ids and parts are both given' do
+      splitter = run_splitter(project_ids: ['P1', 'P2', 'P3'], parts: 2)
+
+      expect(splitter.project_groups).to eq([['P1'], ['P2', 'P3']])
+      expect(column_by_part('Project.csv', 'ProjectID', 2).flatten).to contain_exactly('P1', 'P2', 'P3')
+    end
+
+    it 'includes enrollments whose ProjectID is absent from Project.csv when there is no filter' do
+      write_csv(source_path, 'Enrollment.csv', enrollment_headers, enrollments + [['E9', 'C9', 'ORPHAN']])
+
+      splitter = run_splitter(parts: 1)
+
+      expect(read_column(File.join(part_dir(1), 'Enrollment.csv'), 'EnrollmentID')).to include('E9')
+      expect(splitter.results['Enrollment.csv']).to eq(original: 17, added: 17, by_part: [17])
+    end
+
+    it 'drops enrollments whose ProjectID is outside the filter' do
+      write_csv(source_path, 'Enrollment.csv', enrollment_headers, enrollments + [['E9', 'C9', 'ORPHAN']])
+
+      run_splitter(project_ids: ['P1'], parts: 1)
+
+      expect(read_column(File.join(part_dir(1), 'Enrollment.csv'), 'ProjectID').uniq).to eq(['P1'])
     end
 
     it 'raises ArgumentError when parts is not a positive integer' do
-      expect { described_class.split_evenly(source_path: source_path, destination_path: destination_path, parts: 0) }.
+      expect { described_class.new(source_path: source_path, destination_path: destination_path, parts: 0) }.
         to raise_error(ArgumentError, /parts/)
-      expect { described_class.split_evenly(source_path: source_path, destination_path: destination_path, parts: '3') }.
+      expect { described_class.new(source_path: source_path, destination_path: destination_path, parts: '3') }.
         to raise_error(ArgumentError, /parts/)
     end
   end
