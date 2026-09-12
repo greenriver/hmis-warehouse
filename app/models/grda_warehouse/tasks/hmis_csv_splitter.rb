@@ -18,8 +18,22 @@
 #
 # Checking the results: each entry has the source row count, the rows written across all parts, and
 # the per-part breakdown. With no project_ids filter, original - added is 0 for every file except
-# Client.csv, where a client enrolled in projects that landed in different parts is written to each.
-#   splitter.results.transform_values { |r| r[:original] - r[:added] }
+# Client.csv and Organization.csv.
+# A client enrolled in projects that landed in different parts is written to each.
+# An Organization with projects that landed in different parts is written to each.
+#
+# splitter.results.transform_values { |r| r[:original] - r[:added] }
+#
+# To confirm client and organization counts, the following should output the numbers in the initial files:
+#
+# destination_path = '/path/to/destination'
+# %w[Organization.csv Client.csv].each do |filename|
+#   column = filename == 'Client.csv' ? 'PersonalID' : 'OrganizationID'
+#   ids = (1..5).flat_map do |i|
+#     CSV.read(File.join(destination_path, "part_#{i}", filename), headers: true).map { |r| r[column] }
+#   end
+#   puts "#{filename}: #{ids.uniq.size} distinct ids across parts"
+# end
 
 require 'csv'
 
