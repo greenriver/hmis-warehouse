@@ -10,6 +10,10 @@
 # Run like so:
 # splitter = GrdaWarehouse::Tasks::HmisCsvSplitter.new(source_path: '/path/to/source/data', destination_path: '/path/to/destination/data', project_ids: ['P-1', 'P-2', 'P-3'])
 # splitter.run!
+#
+# To split into N parts with roughly even enrollment counts (writes destination/part_1 .. part_N):
+# splitters = GrdaWarehouse::Tasks::HmisCsvSplitter.split_evenly(source_path: '/path/to/source/data', destination_path: '/path/to/destination', parts: 3)
+# splitters.sum { |s| s.results['Enrollment.csv'][:added] } # should equal splitters.first.results['Enrollment.csv'][:original]
 
 ###  Checking the results:
 ### if you split the file into two and ran `splitter` and `splitter2`
@@ -40,6 +44,62 @@ module GrdaWarehouse::Tasks
       @unenrolled_clients_personal_ids = Set.new
       @results = {}
       self.include_unenrolled_clients = include_unenrolled_clients
+    end
+
+    # Splits the source into `parts` file sets under destination_path/part_1 .. part_N, grouping
+    # projects so enrollment counts are roughly even across parts. Unenrolled clients, when
+    # requested, are written to part_1 only so no Client.csv row appears in more than one part.
+    # Returns the splitters, one per part, after each has run.
+    def self.split_evenly(source_path:, destination_path:, parts:, include_unenrolled_clients: false)
+      raise ArgumentError, "parts must be a positive Integer, got #{parts.inspect}" unless parts.is_a?(Integer) && parts.positive?
+
+      groups = balance_projects(project_enrollment_counts(source_path), parts)
+      groups.each_with_index.map do |project_ids, index|
+        splitter = new(
+          source_path: source_path,
+          destination_path: File.join(destination_path, "part_#{index + 1}"),
+          project_ids: project_ids,
+          include_unenrolled_clients: include_unenrolled_clients && index.zero?,
+        )
+        splitter.run!
+        splitter
+      end
+    end
+
+    # Greedy longest-processing-time assignment: largest project first, each into the part
+    # with the smallest running enrollment total. Ties fall to the part with fewer projects,
+    # then the lower index, so equal inputs always produce the same grouping.
+    def self.balance_projects(enrollment_counts, parts)
+      buckets = Array.new(parts) { { total: 0, project_ids: [] } }
+      ordered = enrollment_counts.sort_by { |project_id, count| [-count, project_id] }
+      ordered.each do |project_id, count|
+        bucket = buckets.each_with_index.min_by { |b, i| [b[:total], b[:project_ids].size, i] }.first
+        bucket[:project_ids] << project_id
+        bucket[:total] += count
+      end
+      buckets.map { |b| b[:project_ids] }
+    end
+
+    def self.project_enrollment_counts(source_path)
+      counts = Hash.new(0)
+      each_source_row(File.join(source_path, 'Project.csv')) do |row|
+        # Registers the key at 0 so projects with no enrollments still appear in the hash.
+        counts[row['ProjectID']] += 0
+      end
+      each_source_row(File.join(source_path, 'Enrollment.csv')) do |row|
+        counts[row['ProjectID']] += 1
+      end
+      counts
+    end
+
+    def self.each_source_row(source_file_path, &block)
+      open_source_csv(source_file_path) { |csv| csv.each(&block) }
+    end
+
+    # HMIS CSVs come in all sorts of encodings.
+    # Detect the source's actual encoding (BOM or statistical) and eventually writes it out as UTF-8.
+    def self.open_source_csv(source_file_path, headers: true, &block)
+      AutoEncodingCsv.open(source_file_path, headers: headers, liberal_parsing: true, &block)
     end
 
     def run!
@@ -150,13 +210,11 @@ module GrdaWarehouse::Tasks
     end
 
     private def each_source_row(source_file_path, &block)
-      open_source_csv(source_file_path) { |csv| csv.each(&block) }
+      self.class.each_source_row(source_file_path, &block)
     end
 
-    # HMIS CSVs come in all sorts of encodings.
-    # Detect the source's actual encoding (BOM or statistical) and eventually writes it out as UTF-8.
     private def open_source_csv(source_file_path, headers: true, &block)
-      AutoEncodingCsv.open(source_file_path, headers: headers, liberal_parsing: true, &block)
+      self.class.open_source_csv(source_file_path, headers: headers, &block)
     end
 
     private def manually_processed
