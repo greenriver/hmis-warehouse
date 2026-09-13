@@ -180,6 +180,38 @@ RSpec.describe HmisUtil::BedNightBackfill do
       expect { run!(batch_size: 3) }.to raise_error(ActiveRecord::StatementInvalid, 'simulated failure')
       expect(GrdaWarehouse::Hud::Service.bed_night.count).to eq(0)
     end
+
+    it 'invalidates processing for clients whose nights committed before a later insert fails' do
+      GrdaWarehouse::Hud::Enrollment.where(id: [long_stay.id, short_stay.id]).update_all(processed_as: 'stale')
+      calls = 0
+      allow(GrdaWarehouse::Hud::Service).to receive(:insert_all).and_wrap_original do |original, *args, **kwargs|
+        calls += 1
+        # long_stay flushes in three statements; the fourth is short_stay
+        raise ActiveRecord::StatementInvalid, 'simulated failure' if calls == 4
+
+        original.call(*args, **kwargs)
+      end
+
+      expect { run!(batch_size: 3) }.to raise_error(ActiveRecord::StatementInvalid, 'simulated failure')
+      expect(bed_night_dates(long_stay).size).to eq(7)
+      expect(long_stay.reload.processed_as).to be_nil
+      expect(short_stay.reload.processed_as).to eq('stale')
+    end
+  end
+
+  describe 'an enrollment without a UserID' do
+    let!(:enrollment) { create_enrollment(entry_date: Date.new(2026, 3, 1), exit_date: Date.new(2026, 3, 3), user_id: nil) }
+    let!(:blank_user_enrollment) do
+      create_enrollment(entry_date: Date.new(2026, 3, 1), exit_date: Date.new(2026, 3, 3), user_id: '', client: create(:hud_client, data_source_id: data_source.id, PersonalID: 'C3'))
+    end
+
+    it 'stamps the data source system user on the bed nights' do
+      run!
+      system_user_id = Hmis::Hud::User.system_user(data_source_id: data_source.id).UserID
+      expect(system_user_id).to be_present
+      expect(GrdaWarehouse::Hud::Service.bed_night.where(EnrollmentID: enrollment.EnrollmentID).pluck(:UserID).uniq).to eq([system_user_id])
+      expect(GrdaWarehouse::Hud::Service.bed_night.where(EnrollmentID: blank_user_enrollment.EnrollmentID).pluck(:UserID).uniq).to eq([system_user_id])
+    end
   end
 
   describe 'dry run' do

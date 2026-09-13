@@ -38,13 +38,11 @@ module HmisUtil
       @dry_run = dry_run
       @batch_size = batch_size
       @today = today
-      @touched_enrollment_pks = []
     end
 
     def run!
       projects = GrdaWarehouse::Hud::Project.find(@project_pks)
       summaries = projects.map { |project| process_project(project) }
-      finalize! unless @dry_run
       summary = Summary.new(projects: summaries, inserted: summaries.sum(&:inserted), dry_run: @dry_run)
       puts "#{prefix}Total: #{summary.inserted} bed nights across #{summaries.size} projects"
       summary
@@ -61,6 +59,7 @@ module HmisUtil
       report_scope(project, counts)
       inserted = 0
       pending_rows = []
+      pending_enrollment_pks = []
 
       personal_ids = enrollment_scope(project).distinct.order(:PersonalID).pluck(:PersonalID)
       personal_ids.each_slice(CLIENT_FETCH_SIZE) do |ids|
@@ -72,14 +71,15 @@ module HmisUtil
           next if client_rows.empty?
 
           pending_rows.concat(client_rows)
-          @touched_enrollment_pks.concat(client_enrollments.map(&:pk))
+          pending_enrollment_pks.concat(client_enrollments.map(&:pk))
           next if pending_rows.size < @batch_size
 
-          inserted += flush!(pending_rows)
+          inserted += flush!(pending_rows, pending_enrollment_pks)
           pending_rows = []
+          pending_enrollment_pks = []
         end
       end
-      inserted += flush!(pending_rows)
+      inserted += flush!(pending_rows, pending_enrollment_pks)
 
       ProjectSummary.new(
         project_pk: project.id,
@@ -127,6 +127,12 @@ module HmisUtil
         map { |values| EnrollmentRow.new(*values) }
     end
 
+    # Enrollments imported without a UserID get the data source's HMIS system user.
+    def system_user_id(data_source_id)
+      @system_user_ids ||= {}
+      @system_user_ids[data_source_id] ||= Hmis::Hud::User.system_user(data_source_id: data_source_id).UserID
+    end
+
     # { EnrollmentID => Set[Date] } of bed nights already present for these enrollments
     def existing_bed_nights(project, enrollments)
       GrdaWarehouse::Hud::Service.bed_night.
@@ -145,37 +151,34 @@ module HmisUtil
         next if taken.include?(date)
 
         {
-          ServicesID: SecureRandom.uuid.delete('-'),
+          ServicesID: Hmis::Hud::Base.generate_uuid,
           EnrollmentID: enrollment.enrollment_id,
           PersonalID: enrollment.personal_id,
           data_source_id: data_source_id,
           DateProvided: date,
           RecordType: BED_NIGHT,
           TypeProvided: BED_NIGHT,
-          UserID: enrollment.user_id,
+          UserID: enrollment.user_id.presence || system_user_id(data_source_id),
           DateCreated: now,
           DateUpdated: now,
         }
       end
     end
 
-    # One transaction per call; callers only flush at client boundaries.
-    def flush!(rows)
+    # One transaction per call; callers only flush at client boundaries. Invalidating
+    # service history inside the transaction keeps it paired with the rows that committed
+    # even when a later flush fails.
+    def flush!(rows, enrollment_pks)
       return 0 if rows.empty?
       return rows.size if @dry_run
 
       GrdaWarehouse::Hud::Service.transaction do
         rows.each_slice(@batch_size) { |slice| GrdaWarehouse::Hud::Service.insert_all(slice, returning: false) }
+        GrdaWarehouse::Hud::Enrollment.where(id: enrollment_pks.uniq).invalidate_processing!
       end
-      rows.size
-    end
-
-    def finalize!
-      return if @touched_enrollment_pks.empty?
-
-      GrdaWarehouse::Hud::Enrollment.where(id: @touched_enrollment_pks.uniq).in_batches.update_all(processed_as: nil, processed_hash: nil)
       # Shared queuer; it dedupes against an already-queued service history job.
       Hmis::Hud::Service.queue_service_history_processing!
+      rows.size
     end
   end
 end
