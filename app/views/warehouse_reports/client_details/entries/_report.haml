@@ -16,6 +16,8 @@
 = render 'common/population_warnings'
 = render 'warehouse_reports/limited_by_project_note'
 
+:ruby
+  current_user.policy_context.preload_project_dependencies(@report.enrollments.values.flatten.map { |e| e.project.id })
 - @report.buckets.each do |group, clients|
   .mb-1
     %h3
@@ -37,9 +39,11 @@
             - client = meta.client
             - enrollments = @report.enrollments[client_id]
             - odd_class = if i % 2 == 0 then 'odd' else 'even' end
+            :ruby
+              pii = client.project_pii_provider(project: meta.project, user: current_user, mode: :browse)
             %tr{class: odd_class}
               %td{rowspan: enrollments.count + 1}
-                = link_to_if current_user.can_view_clients?, "#{client.FirstName} #{client.LastName}", appropriate_client_path(client_id)
+                = link_to_if current_user.can_view_clients?, pii.brief_name, appropriate_client_path(client_id)
             - enrollments.each_with_index do |enrollment, index|
               - project = enrollment.project
               - highlight = ''

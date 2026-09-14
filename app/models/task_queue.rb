@@ -14,7 +14,6 @@
 # If there is a record for that class in the table with no queued_at, then queue a job (and mark it queued)
 # To re-run a task, insert a new row with a blank queued_at value
 class TaskQueue < ApplicationRecord
-  # Marking something as inactive indicates that it should be re-queued
   scope :active, -> do
     where(active: true)
   end
@@ -23,15 +22,35 @@ class TaskQueue < ApplicationRecord
     where(queued_at: nil)
   end
 
+  # helper to synchronize metadata around the task queue between async workers
+  def self.with_task_lock!(task_key, timeout_seconds: 10, &block)
+    with_advisory_lock!("#{name}:#{task_key}", timeout_seconds: timeout_seconds, &block)
+  end
+
+  def with_task_lock!(&block)
+    self.class.with_task_lock!(task_key, &block)
+  end
+
+  private def stalled?
+    created_at < 3.days.ago && !completed_at
+  end
+
+  # enqueue jobs, using TaskQueue for messaging and synchronization.
+  # Runs from rake `grda_warehouse:hourly`
   # The expectation is that if the task is in available_tasks, then it should be in the queue
   def self.queue_unprocessed!
-    done = active.pluck(:task_key, :queued_at).to_h
-    available_tasks.each_key do |task_key|
-      next if done[task_key.to_s].present?
+    task_keys = available_tasks.keys.map(&:to_s)
 
-      t = TaskQueue.create(task_key: task_key)
-      t.delay(queue: ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)).run!
-      t.update(queued_at: Time.current, active: true)
+    task_keys.each do |task_key|
+      with_task_lock!(task_key) do
+        # task_key is not unique; a key gets a new row each time the task is re-run.
+        task = active.where(task_key: task_key).order(:id).last
+        next if task&.queued_at
+
+        task ||= TaskQueue.new(task_key: task_key)
+        task.update!(queued_at: Time.current)
+        task.delay(queue: ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)).run!
+      end
     end
   end
 
@@ -42,15 +61,36 @@ class TaskQueue < ApplicationRecord
   def run!
     to_run = self.class.available_tasks[task_key.to_sym]
     if to_run.blank?
-      # Re-queue the task, it's possible we are just running on old code
-      update(queued_at: nil)
-      # But also notify that we had a potentially serious problem
-      raise "Unknown task key: #{task_key}"
+      handle_unknown_task_key!
+      return
     end
 
-    update(started_at: Time.current)
+    # A failure in to_run bubbles to Delayed Job, which owns retrying and reporting it.
+    update!(started_at: Time.current)
     to_run.call
-    update(completed_at: Time.current)
+    update!(completed_at: Time.current)
+  end
+
+  # A worker running older code can pick up a job whose key it doesn't have registered. This job has
+  # to re-queue itself for a potential future worker on fresh code that can handle the task key
+  private def handle_unknown_task_key!
+    Rails.logger.warn("TaskQueue: unknown task key #{task_key} (TaskQueue id: #{id})")
+
+    if stalled?
+      # if no worker found the job definition for stale task record, it's likely not going to. Mark
+      # the record inactive so `queue_unprocessed!` starts a fresh row if the key ever comes back,
+      # and notify sentry. The job will complete and not retry.
+      with_task_lock! { update!(active: false) }
+      Sentry.capture_message(
+        "TaskQueue: task \"#{task_key}\" abandoned, key is not registered",
+        level: :warning,
+        extra: { task_id: id },
+      )
+      return
+    end
+
+    # signal to `queue_unprocessed!` that a new job should be enqueued
+    with_task_lock! { update!(queued_at: nil) }
   end
 
   # Register all one-time tasks that should be queued
@@ -116,6 +156,22 @@ class TaskQueue < ApplicationRecord
     # db/migrate/20260827150000_add_reporting_path_to_activity_logs.rb)
     config.queued_tasks[:backfill_activity_log_reporting_path] = -> do
       ActivityLog.backfill_reporting_path!
+    end
+
+    # Index behind the User Access Summary report's HMIS access query
+    config.queued_tasks[:hmis_activity_log_user_summary_index] = -> do
+      Hmis::ActivityLog.ensure_user_summary_index!
+    end
+
+    # Replace the single-column importer_log_id and DateUpdated indexes on each FY2026
+    # importer/staging table with one composite index, so set_effective_export_end_date's
+    # per-table MAX(DateUpdated) WHERE importer_log_id = ? query stops degrading as these
+    # tables accumulate rows across many retained imports. Run as a single task so the
+    # CREATE INDEX CONCURRENTLY builds happen one table at a time instead of all at once.
+    config.queued_tasks[:hmis_csv_2026_importer_log_id_date_updated_index] = -> do
+      HmisCsvTwentyTwentySix.base_importable_files_map.except('Export.csv').each_value do |name|
+        HmisCsvTwentyTwentySix.data_lake_file_class(name, 'Importer').ensure_importer_log_id_date_updated_index!
+      end
     end
   end
 end

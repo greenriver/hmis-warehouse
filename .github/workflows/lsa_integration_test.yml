@@ -78,7 +78,7 @@ env:
 jobs:
   lsa_integration_test:
     runs-on: ubuntu-24.04
-    container: ruby:3.4.9-slim-bookworm
+    container: ruby:3.4.9-slim-trixie
 
     permissions:
       contents: read

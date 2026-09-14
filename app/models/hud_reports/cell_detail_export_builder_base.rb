@@ -79,6 +79,7 @@ module HudReports
               pii_policy = user.reporting_policy_for_project(
                 project_id: client.project_id,
                 mode: :download,
+                client_id: client.destination_client_id_for_pii,
               )
 
               row = headers.keys.map do |key|

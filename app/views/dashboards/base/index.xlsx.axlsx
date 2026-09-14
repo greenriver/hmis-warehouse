@@ -34,12 +34,14 @@ wb.add_worksheet(name: "#{@report.sub_population_title} Dashboard"[0, 30]) do |s
     client = @clients[en.client_id]
     project_name = @projects[en[:project_id]]&.name(current_user)
     organization_name = @organizations[en[:organization_id]]&.name(current_user)
+    policy = current_user.reporting_policy_for_project(project_id: en[:project_id], mode: :download, client_id: client.id)
+    pii = GrdaWarehouse::PiiProvider.new(client, policy: policy)
 
     sheet.add_row(
       [
         client.id,
-        ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads) ? client.FirstName : 'Redacted',
-        ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads) ? client.LastName : 'Redacted',
+        pii.first_name,
+        pii.last_name,
         en.head_of_household,
         en.household_id,
         project_name,

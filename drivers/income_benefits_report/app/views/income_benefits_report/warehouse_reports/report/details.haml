@@ -8,16 +8,18 @@
       Download Excel
 
 - rows = @report.columns_for(@key)
+- headers = @report.header_for(@key)
 %p Showing #{pluralize(rows.count, 'client')}.
 .card
   .overflow-x-scroll{style: "height: 800px"}
     %table.table.table-sm.table-bordered.table-fixed.mb-0
       %thead.table-dark
         %tr
-          - @report.header_for(@key).each do |title|
+          - headers.each do |title|
             %th= title
       %tbody
         - rows.each do |row|
+          - row = @report.redact_pii_in_row(row, headers: headers, user: current_user, mode: :browse)
           %tr
             - row.each.with_index do |col, index|
               - if index.zero?

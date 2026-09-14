@@ -30,11 +30,14 @@ wb.add_worksheet(name: 'Services') do |sheet|
     client = service.client
     next unless client
 
+    policy = current_user.reporting_policy_for_project(project_id: service.project_id, mode: :download, client_id: service.client_id)
+    pii = GrdaWarehouse::PiiProvider.new(client, policy: policy)
+
     row = [
       client.id,
-      client.FirstName,
-      client.LastName,
-      dob_or_age(client.DOB&.to_date),
+      pii.first_name,
+      pii.last_name,
+      pii.dob_or_age,
       service.project.name(current_user),
       service.provided_at,
       service.title_only,

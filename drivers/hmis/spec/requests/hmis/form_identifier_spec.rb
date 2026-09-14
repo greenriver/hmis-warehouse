@@ -92,6 +92,39 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       identifiers = result.dig('data', 'formIdentifiers', 'nodes')
       expect(identifiers.count).to eq(1)
     end
+
+    it 'includes forms whose content community admins cannot edit' do
+      create(
+        :hmis_form_definition,
+        identifier: 'external_form_identifier',
+        status: Hmis::Form::Definition::PUBLISHED,
+        role: 'EXTERNAL_FORM',
+        data_source: ds1,
+      )
+      remove_permissions(access_control, :can_administrate_config, :can_manage_forms)
+
+      response, result = post_graphql { query }
+      expect(response.status).to eq(200), result.inspect
+      identifiers = result.dig('data', 'formIdentifiers', 'nodes').pluck('identifier')
+      expect(identifiers).to include('external_form_identifier')
+    end
+
+    it 'excludes unmanaged form roles for super-admins' do
+      ['REFERRAL', 'REFERRAL_REQUEST', 'CE_REFERRAL_STEP'].each do |role|
+        create(
+          :hmis_form_definition,
+          identifier: "unmanaged_#{role.downcase}",
+          status: Hmis::Form::Definition::PUBLISHED,
+          role: role,
+          data_source: ds1,
+        )
+      end
+
+      response, result = post_graphql { query }
+      expect(response.status).to eq(200), result.inspect
+      identifiers = result.dig('data', 'formIdentifiers', 'nodes').pluck('identifier')
+      expect(identifiers).not_to include('unmanaged_referral', 'unmanaged_referral_request', 'unmanaged_ce_referral_step')
+    end
   end
 
   describe 'Form identifier query' do
@@ -132,7 +165,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect(result.dig('data', 'formIdentifier')).to be_nil
     end
 
-    it 'returns null for admin-only form roles when user lacks can_administrate_config' do
+    it 'returns a form whose content the user cannot edit' do
       create(
         :hmis_form_definition,
         identifier: 'external_form_identifier',
@@ -142,10 +175,27 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         role: 'EXTERNAL_FORM',
         data_source: ds1,
       )
-      remove_permissions(access_control, :can_administrate_config)
+      remove_permissions(access_control, :can_administrate_config, :can_manage_forms)
       response, result = post_graphql(identifier: 'external_form_identifier') { query }
       expect(response.status).to eq(200), result.inspect
-      expect(result.dig('data', 'formIdentifier')).to be_nil
+      expect(result.dig('data', 'formIdentifier', 'identifier')).to eq('external_form_identifier')
+    end
+
+    ['REFERRAL', 'REFERRAL_REQUEST', 'CE_REFERRAL_STEP'].each do |role|
+      it "returns null for the unmanaged #{role} role" do
+        identifier = "unmanaged_#{role.downcase}"
+        create(
+          :hmis_form_definition,
+          identifier: identifier,
+          status: Hmis::Form::Definition::PUBLISHED,
+          role: role,
+          data_source: ds1,
+        )
+
+        response, result = post_graphql(identifier: identifier) { query }
+        expect(response.status).to eq(200), result.inspect
+        expect(result.dig('data', 'formIdentifier')).to be_nil
+      end
     end
   end
 end

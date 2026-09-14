@@ -14,13 +14,6 @@ module SimilarityMetric
     # or if the metric has been assigned a weight of 0, then it is not usable
     scope :usable, -> { where arel_table[:n].gt(0).and( arel_table[:weight].gt 0 ) }
 
-    MD = Redcarpet::Markdown.new(
-      Redcarpet::Render::HTML,
-      autolink:  true,
-      hard_wrap: false,
-      quote: true
-    )
-
     # override this as appropriate in subclasses
     #
     # Strings inside {{{ }}} are methods whose value will be interpolated into the description.
@@ -43,7 +36,7 @@ module SimilarityMetric
           method = Regexp.last_match[1]
           send(method)
         end
-        MD.render(str).strip.html_safe
+        SafeUserMarkdown.render(str, quote: true).strip.html_safe
       end
     end
 
