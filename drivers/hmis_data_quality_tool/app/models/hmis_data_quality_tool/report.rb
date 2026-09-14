@@ -246,6 +246,8 @@ module HmisDataQualityTool
       project_ids = (in_report_ids | outside_ids).to_a
       return {} if project_ids.empty?
 
+      user.policy_context.preload_project_dependencies(project_ids)
+
       # Project.viewable_by resolves access for both ACL and legacy users; confidential projects are
       # kept in scope so Project#name can apply the user's confidential-name access.
       reportable_ids = GrdaWarehouse::Hud::Project.
