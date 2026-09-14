@@ -53,7 +53,7 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
           expect_result(key: :overlapping_entry_exit_issues, invalid_count: 1)
         end
 
-        it 'stores the outside enrollment with its project id and dates but no project name' do
+        it 'stores both enrollments with project ids and dates but no project names' do
           pair = client_item(@report).overlapping_entry_exit_details.first
           outside, inside = pair.partition { |en| en['outside_report'] }.map(&:first)
 
@@ -64,18 +64,26 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
             'exit_date' => '2023-01-15',
           )
           expect(outside).not_to have_key('project')
-          expect(inside).to include('project' => report_project.ProjectName)
-          expect(inside.keys).not_to include('outside_report', 'project_id')
+          expect(inside).to include('project_id' => report_project.id)
+          expect(inside.keys).not_to include('outside_report', 'project')
         end
 
         describe 'display-time project name resolution' do
           let(:item) { client_item(@report) }
           let(:pii_policy) { user_with_client_access.reporting_policy_for_project(project_id: report_project.id, client_id: item.destination_client_id_for_pii) }
 
-          def displayed_outside_entry(user)
-            project_names = @report.outside_report_project_names(items: [item], user: user)
+          def displayed_pair(user)
+            project_names = @report.overlap_project_names(items: [item], user: user)
             details = item.download_value(:overlapping_entry_exit_details, pii_policy: pii_policy, project_names: project_names)
-            details.first.detect { |en| en['outside_report'] }
+            details.first
+          end
+
+          def displayed_outside_entry(user)
+            displayed_pair(user).detect { |en| en['outside_report'] }
+          end
+
+          def displayed_inside_entry(user)
+            displayed_pair(user).detect { |en| ! en['outside_report'] }
           end
 
           it 'shows the real project name to a user who can report on that project' do
@@ -83,6 +91,30 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
 
             expect(outside['project']).to eq(outside_project.ProjectName)
             expect(outside).not_to have_key('project_id')
+          end
+
+          it 'shows the in-report project name resolved for the viewing user' do
+            inside = displayed_inside_entry(user_with_client_access)
+
+            expect(inside['project']).to eq(report_project.ProjectName)
+            expect(inside).not_to have_key('project_id')
+          end
+
+          it 'shows the confidential placeholder for an in-report confidential project when the user cannot view confidential names' do
+            report_project.update!(confidential: true)
+
+            inside = displayed_inside_entry(user_with_client_access)
+
+            expect(inside['project']).to eq(GrdaWarehouse::Hud::Project.confidential_project_name)
+          end
+
+          it 'passes through details stored with a project name and no project id' do
+            legacy_details = [[{ 'id' => 1, 'project' => 'Stored Name' }, { 'id' => 2, 'project' => 'Other Stored Name' }]]
+            item.overlapping_entry_exit_details = legacy_details
+
+            details = item.download_value(:overlapping_entry_exit_details, pii_policy: pii_policy, project_names: {})
+
+            expect(details).to eq(legacy_details)
           end
 
           it 'shows the real project name to a legacy (non-ACL) user whose access group includes that project' do
@@ -155,6 +187,23 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
 
       it 'flags the overlap' do
         expect_result(key: :overlapping_nbn_issues, invalid_count: 1)
+      end
+    end
+
+    context 'when NbN bed nights overlap only an ES enrollment that is also outside the report' do
+      before do
+        nbn_project = create_project(project_type: 1)
+        outside_nbn_project = create_project(project_type: 1)
+        create_enrollment(client: client, project: nbn_project, entry_date: '2022-10-01'.to_date, exit_date: '2022-10-02'.to_date)
+        outside_nbn_enrollment = create_enrollment(client: client, project: outside_nbn_project, entry_date: '2022-12-14'.to_date, exit_date: '2022-12-15'.to_date)
+        create_enrollment(client: client, project: outside_project, entry_date: '2022-12-01'.to_date, exit_date: '2023-01-15'.to_date)
+        create_bed_night_service(enrollment: outside_nbn_enrollment, date: '2022-12-14'.to_date)
+        enable_global_overlap_checks
+        @report = setup_report([nbn_project.id])
+      end
+
+      it 'does not flag the client' do
+        expect_result(key: :overlapping_nbn_issues, invalid_count: 0)
       end
     end
 

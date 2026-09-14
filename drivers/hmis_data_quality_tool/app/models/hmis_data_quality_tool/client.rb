@@ -50,24 +50,30 @@ module HmisDataQualityTool
     def resolve_project_names(key, value, project_names)
       return value unless key.to_sym.in?(OVERLAP_DETAIL_COLUMNS)
 
-      self.class.resolve_outside_report_projects(value, project_names)
+      self.class.resolve_overlap_project_names(value, project_names)
     end
 
-    def outside_report_project_ids
-      OVERLAP_DETAIL_COLUMNS.flat_map do |column|
-        Array.wrap(public_send(column)).flatten.map { |en| en.transform_keys(&:to_s) }.
-          select { |en| en['outside_report'] }.map { |en| en['project_id'] }
-      end.compact.uniq
+    # Project ids referenced by the overlap details, split by whether the enrollment was in the report's projects
+    def overlap_project_ids
+      entries = OVERLAP_DETAIL_COLUMNS.flat_map do |column|
+        Array.wrap(public_send(column)).flatten.map { |en| en.transform_keys(&:to_s) }
+      end
+      outside, inside = entries.partition { |en| en['outside_report'] }
+      {
+        in_report: inside.map { |en| en['project_id'] }.compact.uniq,
+        outside_report: outside.map { |en| en['project_id'] }.compact.uniq,
+      }
     end
 
-    # Swaps each outside-report project_id for the name the viewing user may see.
-    def self.resolve_outside_report_projects(details, project_names)
+    # Swaps each project_id for the name the viewing user may see.
+    # Entries without a project_id were stored with a name and pass through unchanged.
+    def self.resolve_overlap_project_names(details, project_names)
       Array.wrap(details).map do |pair|
         pair.map do |en|
           en = en.transform_keys(&:to_s)
-          next en unless en['outside_report']
-
           project_id = en.delete('project_id')
+          next en unless project_id
+
           en.merge('project' => project_names.fetch(project_id, REDACTED_PROJECT_NAME))
         end
       end
@@ -234,10 +240,9 @@ module HmisDataQualityTool
       # we need these for calculations, but don't want to store them permanently,
       # also, limit them to those that overlap the projects included and the date range of the report
       in_range_enrollments = destination_client.source_enrollments.select do |en|
-        # sometimes this loads source enrollments that are missing a project
         en.project.present? && en.open_during_range?(report.filter.range)
       end.uniq
-      report_item.enrollments = in_range_enrollments.select { |en| en.project.id.in?(report.filter.effective_project_ids) }
+      report_item.enrollments = in_range_enrollments.select { |en| en.project&.id&.in?(report.filter.effective_project_ids) }
       # Overlap checks may compare against the client's enrollments outside the report's projects;
       # everything else on the report item stays limited to the report's projects.
       overlap_enrollments = report.goal_config.global_overlap_checks ? in_range_enrollments : report_item.enrollments
@@ -301,6 +306,9 @@ module HmisDataQualityTool
         involved_enrollments.each do |en|
           next if nbn_en.id == en.id
 
+          pair = overlap_pair(nbn_en, en, in_report_ids: in_report_ids)
+          next unless pair
+
           end_date = en.exit&.ExitDate || report.filter.end
           services_in_range = if en.project&.es_nbn?
             en_services = en.services.where(RecordType: 200, DateProvided: [en.EntryDate, end_date]).pluck(:DateProvided)
@@ -309,8 +317,7 @@ module HmisDataQualityTool
             # The en enrollment is not a NBN enrollment, so we need to check for the NBN services overlapping the en enrollment date range
             nbn_en.services.where(RecordType: 200, DateProvided: en.EntryDate..end_date).pluck(:DateProvided)
           end
-          pair = overlap_pair(nbn_en, en, in_report_ids: in_report_ids)
-          overlaps << pair if pair && services_in_range.any?
+          overlaps << pair if services_in_range.any?
         end
       end
       overlaps
@@ -332,16 +339,21 @@ module HmisDataQualityTool
 
       overlaps = Set.new
       homeless_enrollments.each do |h_en|
+        pairs = involved_enrollments.filter_map do |en|
+          pair = overlap_pair(h_en, en, in_report_ids: in_report_ids)
+          [en, pair] if pair
+        end
+        next if pairs.empty?
+
         homeless_end_date = [h_en.exit&.ExitDate, report.filter.end].compact.min
         homeless_dates = if h_en.project&.es? && h_en.project.bed_night_tracking?
           h_en.services.where(RecordType: 200, DateProvided: [h_en.EntryDate, homeless_end_date]).pluck(:DateProvided)
         else
           h_en.EntryDate...homeless_end_date
         end
-        involved_enrollments.each do |en|
+        pairs.each do |en, pair|
           housed_dates = en.EntryDate..[en.exit&.ExitDate, report.filter.end].compact.min
-          pair = overlap_pair(h_en, en, in_report_ids: in_report_ids)
-          overlaps << pair if pair && (homeless_dates.to_a & housed_dates.to_a).any?
+          overlaps << pair if (homeless_dates.to_a & housed_dates.to_a).any?
         end
       end
       overlaps
@@ -387,25 +399,18 @@ module HmisDataQualityTool
       ].sort_by { |m| m[:id] }
     end
 
-    # Enrollments outside the report's projects carry project_id instead of a name so the
-    # name can be resolved against the viewing user's access when displayed.
+    # Stores project_id rather than a name so the name can be resolved against the viewing user when displayed.
     def self.simple_enrollment(enrollment, in_report: true)
-      # Using hash access to accommodate both objects and hashes
-      project_name, project_id = if enrollment.is_a?(GrdaWarehouse::Hud::Enrollment)
-        [enrollment.project&.name, enrollment.project&.id] # name always confidentialized
-      else
-        [enrollment[:project], enrollment[:project_id]]
-      end
-
       simple = {
-        id: enrollment[:id],
-        entry_date: enrollment[:entry_date],
-        move_in_date: enrollment[:move_in_date],
-        exit_date: enrollment.try(:[], :exit_date) || enrollment.exit&.exit_date,
+        id: enrollment.id,
+        entry_date: enrollment.EntryDate,
+        move_in_date: enrollment.MoveInDate,
+        exit_date: enrollment.exit&.ExitDate,
+        project_id: enrollment.project&.id,
       }
-      return simple.merge(project: project_name) if in_report
+      return simple if in_report
 
-      simple.merge(project_id: project_id, outside_report: true)
+      simple.merge(outside_report: true)
     end
 
     def self.sections(_)

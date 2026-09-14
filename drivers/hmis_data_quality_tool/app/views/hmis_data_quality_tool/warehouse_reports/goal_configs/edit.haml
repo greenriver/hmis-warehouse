@@ -35,9 +35,11 @@
 
           %i.icon-warning.icon-lg.me-4
           When enabled, the overlapping enrollment sections compare enrollments in the report's projects against every enrollment for the same client.
-          This may include projects outside the the user's usual access.
+          This may include projects outside the user's usual access.
           Names of projects the user cannot report on are redacted in the details, but this will reveal when a client
           was enrolled in overlapping projects.
+          A CoC's setting applies when a report is run for that CoC alone; the default configuration applies
+          when a report is run for a CoC with no explicit configuration or when more than one CoC selected.
         = f.input :global_overlap_checks, label: 'Compare against all of a client\'s enrollments?', as: :pretty_boolean
 
 
