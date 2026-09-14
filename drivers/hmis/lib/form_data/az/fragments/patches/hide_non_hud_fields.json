@@ -1,0 +1,27 @@
+[
+  {
+    "link_id": "gender",
+    "hidden": true,
+    "_comment": "Hidden because it is a retired FY2024 field"
+  },
+  {
+    "link_id": "gender_conditionals",
+    "hidden": true,
+    "_comment": "Hidden because it is a retired FY2024 field"
+  },
+  {
+    "link_id": "pronouns",
+    "hidden": true,
+    "_comment": "Hidden because it is non-HUD field"
+  },
+  {
+    "link_id": "R3",
+    "hidden": true,
+    "_comment": "Hidden because it is a retired FY2024 field (R3 Sexual Orientation fields)"
+  },
+  {
+    "link_id": "C4_group",
+    "hidden": true,
+    "_comment": "Hidden because it is a retired FY2024 field (C4 Preferred Language fields)"
+  }
+]
