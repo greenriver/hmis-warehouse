@@ -32,7 +32,7 @@ class TaskQueue < ApplicationRecord
   end
 
   private def stalled?
-    created_at < 2.days.ago && !completed_at
+    created_at < 3.days.ago && !completed_at
   end
 
   # enqueue jobs, using TaskQueue for messaging and synchronization.
