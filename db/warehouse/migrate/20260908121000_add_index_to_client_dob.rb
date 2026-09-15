@@ -15,6 +15,7 @@ class AddIndexToClientDOB < ActiveRecord::Migration[8.1]
         :Client,
         :DOB,
         name: :idx_client_dob,
+        if_not_exists: true,
       )
     end
   end
