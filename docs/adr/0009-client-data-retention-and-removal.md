@@ -54,7 +54,7 @@ how it runs.
     strategies on the same machinery. Their order, scope, and timing are not
     decided.
 - **Opt-in and user-triggered.** Retention processing is off by default. A
-  community may enable it, disable it, or run it on demand.
+  community may enable or disable it.
 - **Client-scoped aging.** Aging is never decided record by record. The unit is
   the destination client and every source client rolled into it: one record
   inside the window, in any of those sources, keeps the whole rollup, however
@@ -159,9 +159,9 @@ except where a point states that it is accepted as a limitation for now.
    - Alerts.
    - Contact and referral activity recorded outside an enrollment. (CE data)
 
-   This is a trade-off: the broader the definition, the fewer clients ever age out,
-   and a definition wide enough to include incidental activity could keep a client
-   indefinitely.
+   Some discovery needed, on overly-broad definition might keep a client record
+   "active" for longer than is desired. Check production data o see what it can
+   tell us about real-world use or if these are even relevant.
 5. **Secondary copies of client data.** The HUD data is not the only place a
    client's PII lives. Each of these needs a retention decision:
    - **HUD report source data.** These tables hold names, SSN, and DOB
