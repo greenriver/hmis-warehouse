@@ -17,7 +17,7 @@ module GrdaWarehouse::Tasks
     include NotifierConfig
     include Memery
     MAX_SOURCE_CLIENTS = 50
-    # Yield the advisory lock, and re-queue after PER_CLIENT_LOCK_TIMEOUT_SECONDS when procssing a single source client
+    # How long run! and ensure_source_client_linked! wait for the advisory lock before enqueueing a full run
     PER_CLIENT_LOCK_TIMEOUT_SECONDS = 5
 
     def initialize(run_post_processing: true)
@@ -32,17 +32,24 @@ module GrdaWarehouse::Tasks
       new.delay(queue: ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)).run!
     end
 
+    # Waits long enough for a per-client run to finish; if the lock is still held (a full run),
+    # enqueues another full run so the current unprocessed set is not left until the next schedule.
     def run!
-      # with_advisory lock with a timeout returns false if the lock was not acquired
-      return if GrdaWarehouseBase.with_advisory_lock('identify_duplicates', timeout_seconds: 0) { identify_duplicates }
+      acquired = GrdaWarehouseBase.with_advisory_lock('identify_duplicates', timeout_seconds: PER_CLIENT_LOCK_TIMEOUT_SECONDS) do
+        identify_duplicates
+        true
+      end
+      return if acquired
 
-      msg = 'Skipping identify duplicates, all ready running.'
+      msg = 'Identify duplicates already running, enqueueing a full run instead.'
       Rails.logger.warn msg
       @notifier.ping(msg) if @send_notifications
+      self.class.enqueue_full_run!
     end
 
-    # For a given source client, run identify duplicates against existing destination clients
-    def process_source_client!(source_client_id)
+    # Links one source client to a matching destination, or creates one. No-op if the source
+    # is missing, deleted, or already linked. Enqueues a full run! instead if the lock is held.
+    def ensure_source_client_linked!(source_client_id)
       acquired = GrdaWarehouseBase.with_advisory_lock('identify_duplicates', timeout_seconds: PER_CLIENT_LOCK_TIMEOUT_SECONDS) do
         identify_duplicates_for_source(source_client_id)
         true
@@ -232,12 +239,12 @@ module GrdaWarehouse::Tasks
     # warehouse_clients row since the batch was selected are skipped, and the final import
     # ignores duplicates, so a concurrent per-client run does not raise.
     # @return [Hash] matched and new_created counts plus the destination ids touched
-    private def process_unprocessed_batch(batch, matched_destinations_by_source_id)
+    private def process_unprocessed_batch(batch, matched_destinations)
       already_linked = GrdaWarehouse::WarehouseClient.where(source_id: batch.map(&:id)).pluck(:source_id).to_set
       batch = batch.reject { |client| already_linked.include?(client.id) }
       return { matched: 0, new_created: 0, destination_ids: [] } if batch.empty?
 
-      destination_ids = batch.filter_map { |client| matched_destinations_by_source_id[client.id] }
+      destination_ids = batch.filter_map { |client| matched_destinations[client.id] }
       destination_clients_by_id = GrdaWarehouse::Hud::Client.destination.where(id: destination_ids).index_by(&:id)
 
       matched = 0
@@ -250,9 +257,9 @@ module GrdaWarehouse::Tasks
 
       batch.each do |client|
         destination_client = nil
-        if matched_destinations_by_source_id.key?(client.id)
+        if matched_destinations.key?(client.id)
           matched += 1
-          destination_id = matched_destinations_by_source_id[client.id]
+          destination_id = matched_destinations[client.id]
           matched_ids << destination_id
           new_warehouse_clients[client.id] = GrdaWarehouse::WarehouseClient.new(
             id_in_source: client.personal_id,

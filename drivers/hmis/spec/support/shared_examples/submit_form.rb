@@ -38,7 +38,7 @@ RSpec.shared_examples 'submit form triggers IdentifyDuplicates job' do
     expect { submit_form(input) }.to change(Delayed::Job, :count)
 
     jobs = Delayed::Job.jobs_for_class('GrdaWarehouse::Tasks::IdentifyDuplicates')
-    per_client_jobs = jobs.jobs_for_class('process_source_client!')
+    per_client_jobs = jobs.jobs_for_class('ensure_source_client_linked!')
     expect(per_client_jobs.count).to eq(1)
     expect(jobs.jobs_for_class('run!')).to be_empty
 

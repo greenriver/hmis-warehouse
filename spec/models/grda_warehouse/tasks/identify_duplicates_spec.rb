@@ -145,7 +145,33 @@ RSpec.describe GrdaWarehouse::Tasks::IdentifyDuplicates, type: :model do
       end
     end
 
-    describe '#process_source_client!' do
+    describe '#run!' do
+      let(:processor) { GrdaWarehouse::Tasks::IdentifyDuplicates.new(run_post_processing: false) }
+
+      before { Delayed::Job.jobs_for_class('GrdaWarehouse::Tasks::IdentifyDuplicates').delete_all }
+
+      it 'links unprocessed clients and does not enqueue a full run' do
+        expect { processor.run! }.to change(GrdaWarehouse::WarehouseClient, :count).by(1)
+
+        expect(Delayed::Job.jobs_for_class('GrdaWarehouse::Tasks::IdentifyDuplicates').count).to eq(0)
+      end
+
+      context 'when the advisory lock is held by a per-client run' do
+        before do
+          allow(GrdaWarehouseBase).to receive(:with_advisory_lock).
+            with('identify_duplicates', hash_including(timeout_seconds: GrdaWarehouse::Tasks::IdentifyDuplicates::PER_CLIENT_LOCK_TIMEOUT_SECONDS)).
+            and_return(false)
+        end
+
+        it 'enqueues a full run instead of skipping' do
+          expect { processor.run! }.to not_change(GrdaWarehouse::WarehouseClient, :count)
+
+          expect(Delayed::Job.jobs_for_class('GrdaWarehouse::Tasks::IdentifyDuplicates').jobs_for_class('run!').count).to eq(1)
+        end
+      end
+    end
+
+    describe '#ensure_source_client_linked!' do
       let(:processor) { GrdaWarehouse::Tasks::IdentifyDuplicates.new(run_post_processing: false) }
       let(:warehouse_client) { GrdaWarehouse::WarehouseClient.find_by(source_id: client_in_source.id) }
       let(:last_log) { GrdaWarehouse::IdentifyDuplicatesLog.order(:id).last }
@@ -158,7 +184,7 @@ RSpec.describe GrdaWarehouse::Tasks::IdentifyDuplicates, type: :model do
 
       shared_examples 'creates a new destination' do
         it 'creates a destination in the warehouse data source and links the source to it' do
-          expect { processor.process_source_client!(client_in_source.id) }.
+          expect { processor.ensure_source_client_linked!(client_in_source.id) }.
             to change(destination_scope, :count).by(1).
             and change(GrdaWarehouse::WarehouseClient, :count).by(1)
 
@@ -171,7 +197,7 @@ RSpec.describe GrdaWarehouse::Tasks::IdentifyDuplicates, type: :model do
 
       shared_examples 'links to the existing destination' do
         it 'links the source without creating a destination' do
-          expect { processor.process_source_client!(client_in_source.id) }.
+          expect { processor.ensure_source_client_linked!(client_in_source.id) }.
             to change(GrdaWarehouse::WarehouseClient, :count).by(1).
             and not_change(destination_scope, :count)
 
@@ -223,7 +249,7 @@ RSpec.describe GrdaWarehouse::Tasks::IdentifyDuplicates, type: :model do
         end
 
         it 'creates a new destination' do
-          expect { processor.process_source_client!(client_in_source.id) }.to change(GrdaWarehouse::WarehouseClient, :count).by(1)
+          expect { processor.ensure_source_client_linked!(client_in_source.id) }.to change(GrdaWarehouse::WarehouseClient, :count).by(1)
           expect(warehouse_client.destination_id).not_to eq(client_in_destination.id)
         end
       end
@@ -243,7 +269,7 @@ RSpec.describe GrdaWarehouse::Tasks::IdentifyDuplicates, type: :model do
         before { set_pii(client_in_destination, first_name: 'Ada', last_name: 'Lovelace', ssn: '212345678', dob: '1985-03-04') }
 
         it 'links to the highest destination id, as the full run does' do
-          processor.process_source_client!(client_in_source.id)
+          processor.ensure_source_client_linked!(client_in_source.id)
 
           expect(warehouse_client.destination_id).to eq([client_in_destination.id, second_destination.id].max)
         end
@@ -254,7 +280,7 @@ RSpec.describe GrdaWarehouse::Tasks::IdentifyDuplicates, type: :model do
         before { set_pii(client_in_destination, first_name: 'Ada', last_name: 'Lovelace', ssn: nil, dob: '1985-03-04') }
 
         it 'fills missing PII on the destination without overwriting existing values' do
-          processor.process_source_client!(client_in_source.id)
+          processor.ensure_source_client_linked!(client_in_source.id)
 
           expect(client_in_destination.reload).to have_attributes(SSN: '212345678', FirstName: 'Ada', LastName: 'Lovelace')
         end
@@ -262,7 +288,7 @@ RSpec.describe GrdaWarehouse::Tasks::IdentifyDuplicates, type: :model do
         it 'invalidates the destination service history' do
           create :grda_warehouse_warehouse_clients_processed, client: client_in_destination
 
-          processor.process_source_client!(client_in_source.id)
+          processor.ensure_source_client_linked!(client_in_source.id)
 
           expect(client_in_destination.reload.processed_service_history).to be_nil
         end
@@ -270,7 +296,7 @@ RSpec.describe GrdaWarehouse::Tasks::IdentifyDuplicates, type: :model do
         it 'marks the destination dirty for CE' do
           allow_any_instance_of(Hmis::Ce::Configuration).to receive(:enabled?).and_return(true)
 
-          processor.process_source_client!(client_in_source.id)
+          processor.ensure_source_client_linked!(client_in_source.id)
 
           expect(Hmis::Ce::ChangeMarker.where(trackable_type: 'GrdaWarehouse::Hud::Client', trackable_id: client_in_destination.id)).to exist
         end
@@ -278,7 +304,7 @@ RSpec.describe GrdaWarehouse::Tasks::IdentifyDuplicates, type: :model do
         it 'queues a background service history rebuild for the destination' do
           Delayed::Job.jobs_for_class('GrdaWarehouse::Tasks::ServiceHistory::Add').delete_all
 
-          processor.process_source_client!(client_in_source.id)
+          processor.ensure_source_client_linked!(client_in_source.id)
 
           job = Delayed::Job.jobs_for_class('GrdaWarehouse::Tasks::ServiceHistory::Add').jobs_for_class('queue_clients').first
           expect(job).to be_present
@@ -300,7 +326,7 @@ RSpec.describe GrdaWarehouse::Tasks::IdentifyDuplicates, type: :model do
         it 'is a no-op for a source that is already linked' do
           create :warehouse_client, source: client_in_source, destination: client_in_destination, data_source: source_data_source
 
-          expect { processor.process_source_client!(client_in_source.id) }.
+          expect { processor.ensure_source_client_linked!(client_in_source.id) }.
             to not_change(GrdaWarehouse::WarehouseClient, :count).
             and not_change(destination_scope, :count).
             and not_change(GrdaWarehouse::IdentifyDuplicatesLog, :count).
@@ -310,15 +336,15 @@ RSpec.describe GrdaWarehouse::Tasks::IdentifyDuplicates, type: :model do
         it 'is a no-op for a soft-deleted source' do
           client_in_source.update_columns(DateDeleted: 1.day.ago)
 
-          expect { processor.process_source_client!(client_in_source.id) }.to not_change(GrdaWarehouse::WarehouseClient, :count)
+          expect { processor.ensure_source_client_linked!(client_in_source.id) }.to not_change(GrdaWarehouse::WarehouseClient, :count)
         end
 
         it 'is a no-op for a destination client id' do
-          expect { processor.process_source_client!(client_in_destination.id) }.to not_change(GrdaWarehouse::WarehouseClient, :count)
+          expect { processor.ensure_source_client_linked!(client_in_destination.id) }.to not_change(GrdaWarehouse::WarehouseClient, :count)
         end
 
         it 'is a no-op for an unknown id' do
-          expect { processor.process_source_client!(-1) }.to not_change(GrdaWarehouse::WarehouseClient, :count)
+          expect { processor.ensure_source_client_linked!(-1) }.to not_change(GrdaWarehouse::WarehouseClient, :count)
         end
       end
 
@@ -331,15 +357,15 @@ RSpec.describe GrdaWarehouse::Tasks::IdentifyDuplicates, type: :model do
         end
 
         it 'enqueues a full run instead of linking' do
-          expect { processor.process_source_client!(client_in_source.id) }.to not_change(GrdaWarehouse::WarehouseClient, :count)
+          expect { processor.ensure_source_client_linked!(client_in_source.id) }.to not_change(GrdaWarehouse::WarehouseClient, :count)
 
           expect(Delayed::Job.jobs_for_class('GrdaWarehouse::Tasks::IdentifyDuplicates').jobs_for_class('run!').count).to eq(1)
         end
 
         it 'does not enqueue a second full run when one is waiting' do
-          processor.process_source_client!(client_in_source.id)
+          processor.ensure_source_client_linked!(client_in_source.id)
 
-          expect { processor.process_source_client!(client_in_source.id) }.to not_change(Delayed::Job, :count)
+          expect { processor.ensure_source_client_linked!(client_in_source.id) }.to not_change(Delayed::Job, :count)
         end
       end
     end

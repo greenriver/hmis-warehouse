@@ -410,7 +410,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   private def warehouse_identify_duplicates_for_new_client
     GrdaWarehouse::Tasks::IdentifyDuplicates.new.
       delay(queue: ENV.fetch('DJ_SHORT_QUEUE_NAME', :short_running)).
-      process_source_client!(id)
+      ensure_source_client_linked!(id)
   end
 
   private def warehouse_columns_changed?
