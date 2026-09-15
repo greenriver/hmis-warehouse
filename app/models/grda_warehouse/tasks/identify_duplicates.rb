@@ -75,8 +75,8 @@ module GrdaWarehouse::Tasks
       Rails.logger.info 'Loading unprocessed clients'
       started_at = DateTime.current
 
-      @dnd_warehouse_data_source = GrdaWarehouse::DataSource.destination.first
-      return unless @dnd_warehouse_data_source
+      @warehouse_destination_data_source = GrdaWarehouse::DataSource.destination.first
+      return unless @warehouse_destination_data_source
 
       # compare unprocessed to destinations, looking for a match
       # If we don't find a match:
@@ -191,8 +191,8 @@ module GrdaWarehouse::Tasks
       return if client.nil? || client.DateDeleted.present?
       return if GrdaWarehouse::WarehouseClient.where(source_id: client.id).exists?
 
-      @dnd_warehouse_data_source = GrdaWarehouse::DataSource.destination.first
-      return unless @dnd_warehouse_data_source
+      @warehouse_destination_data_source = GrdaWarehouse::DataSource.destination.first
+      return unless @warehouse_destination_data_source
 
       started_at = DateTime.current
       # Every 2-of-3 match shares SSN or DOB, so only destinations with one of those in common
@@ -216,6 +216,10 @@ module GrdaWarehouse::Tasks
       GrdaWarehouse::Tasks::ServiceHistory::Add.
         delay(queue: ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)).
         queue_clients(result[:destination_ids])
+    ensure
+      # These narrow the shared match queries; a later run! on this instance must see every unprocessed client.
+      @restrict_to_source_ids = nil
+      @candidate_destination_ids = nil
     end
 
     # Destination clients sharing the source's usable SSN or DOB. A superset of what can match:
@@ -259,6 +263,11 @@ module GrdaWarehouse::Tasks
         destination_client = nil
         if matched_destinations.key?(client.id)
           matched += 1
+          # Pick the first matching pair that includes this unmatched client
+          # Scenarios:
+          # 1. Simple: 1 destination, 1 unmatched source client with matching PII (will find the one pair)
+          # 2. 2 destinations share one of three PII fields, 1 source client that matches one of the two destinations (will find the matching destination)
+          # 3. 2 with identical PII, previously split to indicate they are not the same person, 1 source client with matching PII (will create a single pair with one of the destination clients).  This is ok, because we know the destination clients are not the same, but we don't know which the source should be connected to, so just pick one (we're sorting above to always pick the same one)
           destination_id = matched_destinations[client.id]
           matched_ids << destination_id
           new_warehouse_clients[client.id] = GrdaWarehouse::WarehouseClient.new(
@@ -278,12 +287,12 @@ module GrdaWarehouse::Tasks
           # set non-nullable fields, these aren't used because of the column limitation on import
           # but Postgres complains if they aren't there
           destination_client.personal_id = client.personal_id
-          destination_client.data_source_id = @dnd_warehouse_data_source.id
+          destination_client.data_source_id = @warehouse_destination_data_source.id
           destination_client_updates << destination_client if destination_client.changed?
         else
           new_created += 1
           destination_client = client.dup
-          destination_client.data_source_id = @dnd_warehouse_data_source.id
+          destination_client.data_source_id = @warehouse_destination_data_source.id
           destination_client.apply_housing_release_status
           new_destination_clients << destination_client
           source_client_ids_with_new_destination_clients << client.id

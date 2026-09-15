@@ -348,6 +348,16 @@ RSpec.describe GrdaWarehouse::Tasks::IdentifyDuplicates, type: :model do
         end
       end
 
+      context 'when the same instance then runs a full run' do
+        let!(:second_client_in_source) { create :grda_warehouse_hud_client, data_source: source_data_source }
+
+        it 'links the remaining unprocessed clients, not just the one it was given' do
+          processor.ensure_source_client_linked!(client_in_source.id)
+
+          expect { processor.run! }.to change { GrdaWarehouse::WarehouseClient.where(source_id: second_client_in_source.id).count }.by(1)
+        end
+      end
+
       context 'when the advisory lock is held by a full run' do
         before do
           allow(GrdaWarehouseBase).to receive(:with_advisory_lock).
