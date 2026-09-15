@@ -1911,7 +1911,8 @@ CREATE TABLE public.roles (
     can_view_project_locations boolean DEFAULT false,
     can_view_supplemental_client_data boolean DEFAULT false,
     can_edit_cohort_columns boolean DEFAULT false,
-    can_receive_cohort_note_notifications boolean DEFAULT false
+    can_receive_cohort_note_notifications boolean DEFAULT false,
+    can_download_lsa_source_data boolean DEFAULT false
 );
 
 
@@ -4244,6 +4245,7 @@ ALTER TABLE ONLY public.oauth_access_tokens
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260908120000'),
 ('20260827151000'),
 ('20260827150000'),
 ('20260820120000'),
@@ -4252,7 +4254,6 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20260804120000'),
 ('20260803120000'),
 ('20260724120000'),
-('20260720000000'),
 ('20260715120000'),
 ('20260623120001'),
 ('20260620000000'),

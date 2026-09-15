@@ -32,7 +32,7 @@
             %tr
               %th= i + 1
               - headers.each_key do |k|
-                - value = @report.client_value(client, k)
+                - value = @report.client_value(client, k, user: current_user, mode: :browse)
                 %td
                   - if k.to_s == 'client_id'
                     = link_to value, from_source_client_path(client[k])

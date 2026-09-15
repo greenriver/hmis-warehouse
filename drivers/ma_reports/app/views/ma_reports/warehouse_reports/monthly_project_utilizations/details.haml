@@ -20,7 +20,7 @@
           %tr
             - MaReports::MonthlyPerformance::Enrollment.detail_headers(@report).each_key do |column|
               - # TODO: these should probably get formatted, but we'd like to confirm contents first
-              %td= enrollment.public_send(column)
+              %td= enrollment.detail_value(column, user: current_user)
 
   = content_for :page_js do
     %script{ nonce: content_security_policy_nonce }
