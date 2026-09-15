@@ -3,7 +3,7 @@
 ## Status
 
 - Current Status: Proposed
-- Date of last update: 2026-09-03
+- Date of last update: 2026-09-15
 - Decision-makers: OP engineering team, OP support team
 
 ## Context
@@ -14,15 +14,22 @@ records behind it. Client privacy asks for the opposite: hold the least PII for
 the shortest time we can. Today the warehouse keeps everything it ingests,
 indefinitely, with no way to say how long client data should stay.
 
-- HUD does not mandate a retention period. Customers set their own, and
-  communities differ in legal obligations and local policy, so a single global
-  rule does not fit.
+- HUD reporting compliance requires a minimum of seven years of retention.
+  Above that floor, customers set their own period. Communities differ in legal
+  obligations and local policy, and may want different periods for different
+  data sources, so a period imposed platform-wide does not fit.
 - Removal of aged-out data is available as a one-off manual process today. The
   motivation for this ADR is customer demand and obligation to protect client
   data.
-- Communities may make different choices on masking or removal. There are
+- The HUD 2004 HMIS Data and Technical Standards define protected personal
+  information (PPI) as name, SSN, date of birth, ZIP code of last permanent
+  address, program entry date, program exit date, unique person identification
+  number, and program identification number. That list is wider than the fields
+  scrubbing can plausibly clear: the last four are the structure reporting is
+  built on, and scrubbing them would leave nothing to report against, which is the
+  whole point of choosing Scrub over Delete.
+- Communities may make different choices on scrubbing or removal. There are
   real use cases for both.
-- Communities may want different retention periods for different data sources.
 - Without a shared position, new data-retaining features may each approach the
   question differently.
 - ADR [0002 (PII Management Strategy)](0002-pii-management-strategy.md) covers PII
@@ -37,23 +44,56 @@ how it runs.
 
 - **Opt-in and user-triggered.** Retention processing is off by default. A
   community may enable it, disable it, or run it on demand.
-- **Client-scoped aging.** A client ages out only when none of their records
-  fall inside the retention window. One service inside the window keeps all of
-  that client's records, however old. Aging is never decided record by record.
-- **Configurable window.** The retention window is community configuration with
-  no fixed floor or ceiling. Seven years is a reference point, not a default
-  the platform imposes. Windows are set per data source. Per project type
-  windows are not offered; they may be revisited if a community demonstrates a
-  real need.
+- **Client-scoped aging.** Aging is never decided record by record. The unit is
+  the destination client and every source client rolled into it: one record
+  inside the window, in any of those sources, keeps the whole rollup, however
+  old the rest of it is. Evaluation checks each source client against the window
+  for its own data source, falling back to the global window, and the rollup
+  ages out only when all of them have. Whatever is then applied, Scrub or
+  Delete, is applied to the rollup as a whole.
+  - **Scrubbed rollups are held together by their links, not by their data.**
+    Blanking name and SSN destroys the evidence the rollup was built from, so
+    the existing links between the sources and their destination become the
+    only record that these are one person, and they must be preserved and
+    treated as settled. Scrubbed clients are marked as such and taken out of
+    matching entirely: they are never re-evaluated against the rollup they are
+    in, and never considered for new ones.
+- **Configurable window, global with per data source overrides.** The retention
+  window is community configuration, with a floor of seven years and no
+  ceiling. A community may retain longer but never shorter: a five year window
+  is not a valid configuration. The floor is HUD's reporting compliance
+  requirement, which a community cannot opt out of by shortening its window.
+  One global window applies everywhere, overridden on individual data sources
+  that need something different. The global window is the catch-all, held as
+  the window on the warehouse data source itself, so a source client with no
+  window of its own falls back to the destination's.
 - **Two strategies.** A community selects how aged-out clients are handled:
   - **Delete**: remove the records outright.
-  - **Mask**: overwrite PII in place, retaining the non-identifying structure
-    for audit and reporting continuity.
-- **Masked fields.** Mask overwrites first, middle, and last name and SSN. DOB
-  is retained because household composition and age-based bucketing depend on
-  it. Fuzzing DOB to a consistent day within the month was considered and
-  judged not worth the effort.
-- **Backups are out of scope.** Deletion and masking act on the live database
+  - **Scrub**: destructively overwrite PII in the database, retaining the
+    non-identifying structure for audit and reporting continuity. The original
+    values are gone, not hidden. This is deliberately not called masking, which
+    elsewhere in the platform means concealing values at the display layer
+    while they remain in storage.
+- **Scrubbed fields.** At minimum, scrub overwrites first, middle, and last name
+  and SSN. DOB is retained because household composition and age-based
+  bucketing depend on it. Fuzzing DOB to a consistent day within the month was
+  considered and judged not worth the effort. The full scope beyond that
+  minimum is an open decision point below.
+- **Every run is logged and reportable.** Each retention run records what it
+  did: when it ran, who triggered it, the configuration in force (window, data
+  source, strategy), each client identified as aged out, the strategy applied
+  to them, and a count of records affected. A community can report on this to
+  answer what was removed and when, which the one-off manual process today
+  cannot.
+  - The log records client identifiers, never the PII that was scrubbed or
+    deleted. A retention log that preserves the names it just cleared defeats
+    the purpose.
+  - Log entries outlive the records they describe. Under Delete the client row
+    is gone, so entries keep plain identifying values (warehouse client id,
+    data source, HUD `PersonalID`) rather than foreign keys to deleted rows.
+  - The log is retained independently of the retention window: it is a record
+    of platform action, not client data, and is not itself subject to aging out.
+- **Backups are out of scope.** Deletion and scrubbing act on the live database
   only. Backups retain data for their own retention period. The customer-facing
   help text for the retention settings must state this.
 
@@ -62,25 +102,106 @@ cover.
 
 ### Open decision points
 
-These must be settled before implementation and recorded here on acceptance.
+These must be settled before implementation and recorded here on acceptance,
+except where a point states that it is accepted as a limitation for now.
 
 1. **Downstream systems.** Whether removal propagates to CAS and other
    integrations.
+2. **Scope of Scrub.** Which data Scrub actually clears. The underlying question
+   is which of two postures we take:
+   - **Scrub name and SSN, keep everything else.** A narrow, well-understood
+     overwrite of the fields that most directly identify a client.
+   - **Keep only what reporting continuity requires, clear the rest.** Scrub
+     becomes a de-identification pass over the client's whole footprint, and
+     anything not needed to reproduce a report figure is a candidate for
+     removal.
+
+   The second posture is the stronger privacy position, but it requires an
+   inventory of what reporting actually depends on. Categories to settle either
+   way:
+   - Client photos and uploaded files.
+   - Contact information: phone, email, address, emergency contacts.
+   - HMIS custom records — case notes, custom assessments, custom services —
+     which carry free-text that may name the client or third parties and is not
+     structured enough to scrub field by field.
+   - Custom fields and other customer-defined data, whose contents the platform
+     does not know in advance.
+
+   Free text is the hard case: it cannot be scrubbed selectively, so for those
+   records the choice is realistically delete or retain. The HUD PPI definition
+   in the Context above is the other hard case: several of those fields cannot
+   be scrubbed while keeping a reportable record. Either Scrub is explicitly a
+   partial measure that leaves some PPI in place, or a community wanting those
+   fields gone has to choose Delete.
+3. **Definition of activity.** What counts as a record that keeps a client
+   inside the retention window. Client-scoped aging depends on this definition.
+   The obvious records are enrollments, services, exits, and the rest of the HUD
+   data. But this may be too narrow. Data is collected about a client outside of
+   any enrollment, and some of it is a reasonable signal that the client is still
+   being worked with:
+   - Uploaded files and client documents.
+   - Notes and case notes.
+   - Alerts.
+   - Contact and referral activity recorded outside an enrollment. (CE data)
+
+   This is a trade-off: the broader the definition, the fewer clients ever age out,
+   and a definition wide enough to include incidental activity could keep a client
+   indefinitely.
+4. **Secondary copies of client data.** The HUD data is not the only place a
+   client's PII lives. Each of these needs a retention decision:
+   - **HUD report source data.** These tables hold names, SSN, and DOB
+     directly. They are already archived and cleared on their own schedule, but
+     the archives go to S3, so the PII moves rather than goes away.
+   - **CSV loader and importer tables.** Expired automatically for recent
+     importer versions only (2024+). Older versions (2022) may need to be purged
+     by hand.
+   - **Importer logs and errors.** Never purged, and rejected rows are kept as
+     raw CSV text, so a failed import retains whole client records
+     indefinitely.
+   - **Files on S3.** Retained, with no expiration. This covers import source
+     files and report archives alike. S3 is where PII the database has finished
+     with tends to end up, so it needs a position of its own rather than being
+     left to whichever feature wrote there.
+   - **Version history.** Whole row snapshots of the versioned client models,
+     never pruned and untouched by existing purges, so they outlive the records
+     they describe.
+   - **Activity logs.** Not ID-only, as is sometimes assumed: they record client
+     names and the search terms staff typed, which include name, SSN, and DOB.
+     Nothing purges them.
+5. **Re-import of aged-out clients.** Accepted as a known limitation for the
+   first release; the durable fix open. Nothing stops a later import from
+   bringing an aged-out client back. Routine imports carry only recently
+   active clients, so in the normal case a expired client is not re-imported.
+   The case that needs an answer is a full historical upload, say a ten year
+   lookback: those clients import, then age out again on the next run. This might
+   temporarily expose data for clients who have aged out, before the records are
+   deleted. In the case of scrubbing, it might also create permanent duplicate
+   records. We may need a marker recording that a client was aged out, checked on
+   import so the record is skipped rather than recreated.
 
 ## Consequences
 
 - **Positive:** Communities that want rolling cleanup can have it without
   imposing it on communities that do not.
-- **Negative:** Deletion and masking are irreversible from within the
+- **Positive:** The run log gives a community an answer to "what happened to
+  this client's record," which is otherwise unrecoverable once data is deleted.
+- **Negative:** Deletion and scrubbing are irreversible from within the
   application. Recovery is only possible from backups. Delete breaks report
   traceability for removed clients by design, which a community accepts when
-  it selects it. Masked records still count in historical reports, which may
+  it selects it. Scrubbed records still count in historical reports, which may
   not match regenerated figures.
-- **Negative:** Masked clients retain DOB, so a masked record is not fully
-  de-identified. Communities selecting mask accept this in exchange for
+- **Negative:** A rollup is only as removable as its most recent source. A
+  client active in one data source last year keeps their records in every other
+  data source they appear in, however old, and a shorter window set on one of
+  those data sources will not reach them. Over-retention is the deliberate
+  trade for keeping rollups whole.
+- **Negative:** Scrubbed clients retain DOB, so a scrubbed record is not fully
+  de-identified. Communities selecting scrub accept this in exchange for
   reporting continuity.
 - **Negative:** Removal from the live database does not remove data from
   backups. Customers who expect complete erasure must be told this.
+- **Negative:** A community that wants a window shorter than seven years cannot
+  have one. The floor takes that choice off the table.
 - **Neutral:** Communities must act to move off the default.
 
 ## Alternatives Considered
@@ -88,21 +209,28 @@ These must be settled before implementation and recorded here on acceptance.
 - **Continue one-off manual removal only (status quo).** Rejected: each request
   is a bespoke engineering task with no shared procedure and no record of what
   was removed.
-- **A single global retention position.** Rejected: HUD leaves the period to
-  customers, and obligations differ by community. One rule would over-retain
-  for some and under-retain for others.
+- **One retention period imposed by the platform.** Rejected: above the HUD
+  floor, obligations differ by community and by data source. A single period
+  would over-retain for some and under-retain for others, which is why the
+  window is configurable and the global setting is a community's own default
+  rather than ours.
+- **Aging source clients individually.** Rejected: it would age out part of a
+  rollup while the rest remains. Scrubbing a single source destroys the name and
+  SSN its match was based on, so it would fall out of the rollup and reappear as
+  a duplicate, and the destination's demographics would churn as sources dropped
+  away one at a time. Holding the rollup together costs some over-retention and
+  avoids all of it.
 - **Automated rolling cleanup enforced by the platform.** Rejected: it is clear that
   communities need to turn this on and off and run it manually. Silent automated
   deletion is the wrong default for irreversible operations.
 - **Delete as the only mechanism.** Rejected: hard deletion breaks the audit
-  trail unconditionally, and some communities prefer masking.
+  trail unconditionally, and some communities prefer scrubbing.
 - **View-layer redaction.** Rejected: PII stays in the database, so it cannot
   satisfy a removal request. Reversibility is its only advantage, and that is
   not enough to justify a third strategy.
-- **Per project type retention windows.** Rejected for now: it adds
-  configuration surface and complicates client-scoped aging when a client spans
-  project types with different windows. Data source scoping covers the known
-  cases. Revisit if a real need is demonstrated.
+- **Per project type retention windows.** Rejected: it adds configuration
+  surface and complicates client-scoped aging when a client spans project types
+  with different windows. Data source scoping covers the known cases.
 - **Crypto-shredding.** Encrypt PII per client and destroy the key to age out,
   which would also cover backups. Deferred: PII is stored in plaintext across
   many tables and the HUD models, so per-client encryption is a data model
@@ -112,3 +240,4 @@ These must be settled before implementation and recorded here on acceptance.
 ## Additional Info
 
 - Related: ADR [0002 (PII Management Strategy)](0002-pii-management-strategy.md).
+- [2004 HMIS Data & Technical Standards](https://www.govinfo.gov/content/pkg/FR-2004-07-30/pdf/04-17097.pdf) §2.1.4, §4.2.2, §5.2.1.
