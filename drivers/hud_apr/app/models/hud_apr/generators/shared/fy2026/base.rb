@@ -71,8 +71,6 @@ module HudApr::Generators::Shared::Fy2026
         # Pre-calculate some values
         household_types = {}
         household_assessment_required = {}
-        times_to_move_in = {}
-        move_in_dates = {}
         approximate_move_in_dates = {}
         dates_to_street = {}
         enrollments_by_client_id.each do |_, enrollments|
@@ -101,8 +99,6 @@ module HudApr::Generators::Shared::Fy2026
             end_date,
           ].max
           household_types[hh_id] = household_makeup(hh_id, date)
-          times_to_move_in[last_service_history_enrollment.client_id] = time_to_move_in(last_service_history_enrollment)
-          move_in_dates[last_service_history_enrollment.client_id] = appropriate_move_in_date(last_service_history_enrollment)
           approximate_move_in_dates[last_service_history_enrollment.client_id] = approximate_time_to_move_in(last_service_history_enrollment, age, hoh_enrollment)
           dates_to_street[last_service_history_enrollment.client_id] = date_to_street(last_service_history_enrollment, age, hoh_enrollment)
         end
@@ -234,6 +230,9 @@ module HudApr::Generators::Shared::Fy2026
           is_ph_or_pfs_project = last_service_history_enrollment.ph? ||
             (last_service_history_enrollment.other? && last_service_history_enrollment.project.pay_for_success?)
           adjusted_move_in_date = calculated_move_in_date || (is_ph_or_pfs_project ? nil : last_service_history_enrollment.first_date_in_program)
+          # From calculated_move_in_date, the date Q22c/Q27k filter their rows on, rather than
+          # HudReports::LengthOfStays, which carries only part of the glossary inheritance rules.
+          calculated_time_to_move_in = (calculated_move_in_date - last_service_history_enrollment.first_date_in_program).to_i if calculated_move_in_date.present?
           hoh_move_in_date = calculate_move_in_date(hh_id, hoh_enrollment)
           processed_source_clients << source_client.id
 
@@ -399,7 +398,7 @@ module HudApr::Generators::Shared::Fy2026
             substance_abuse_exit: disabilities_at_exit.detect(&:substance?)&.DisabilityResponse,
             substance_abuse_latest: disabilities_latest_in_report.detect(&:substance?)&.DisabilityResponse,
             substance_abuse: disabilities.detect(&:substance?).present?,
-            time_to_move_in: times_to_move_in[last_service_history_enrollment.client_id],
+            time_to_move_in: calculated_time_to_move_in,
             times_homeless: enrollment.TimesHomelessPastThreeYears,
             translation_needed: enrollment.TranslationNeeded,
             preferred_language: enrollment.PreferredLanguage,
