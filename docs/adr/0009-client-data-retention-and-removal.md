@@ -8,11 +8,11 @@
 
 ## Context
 
-Two obligations pull in opposite directions. Auditability favours retaining
-data so that any report figure stays traceable to the records that produced it.
-Client privacy favours retaining the minimum PII for the minimum time. The
-warehouse retains all ingested data indefinitely and has no provision for how
-long client data is kept.
+We have two obligations that pull against each other. Auditability asks us to
+keep data around, so that any figure in a report can be traced back to the
+records behind it. Client privacy asks for the opposite: hold the least PII for
+the shortest time we can. Today the warehouse keeps everything it ingests,
+indefinitely, with no way to say how long client data should stay.
 
 - HUD does not mandate a retention period. Customers set their own, and
   communities differ in legal obligations and local policy, so a single global
