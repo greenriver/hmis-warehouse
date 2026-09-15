@@ -28,8 +28,8 @@ indefinitely, with no way to say how long client data should stay.
   scrubbing can plausibly clear: the last four are the structure reporting is
   built on, and scrubbing them would leave nothing to report against, which is the
   whole point of choosing Scrub over Delete.
-- Communities may make different choices on scrubbing or removal. There are
-  real use cases for both.
+- Communities may make different choices on hiding, scrubbing, or removal.
+  There are real use cases for each.
 - Without a shared position, new data-retaining features may each approach the
   question differently.
 - ADR [0002 (PII Management Strategy)](0002-pii-management-strategy.md) covers PII
@@ -42,6 +42,17 @@ Provide a per-community, opt-in client data retention capability that is user
 configurable. The platform supplies the mechanism; the community decides if and
 how it runs.
 
+- **Phased delivery.** Scrub and Delete are not achievable in the short term.
+  The rest of this ADR describes the capability whole; phase boundaries are
+  called out where they matter.
+  - **Phase 1: aging plus Hide.** Build the machinery that identifies expired
+    clients automatically — the configurable window and its per data source
+    overrides, client-scoped aging across the rollup, the opt-in switch and
+    on-demand run, and the run log. implement Hide as the only strategy it
+    can apply.
+  - **Later phases.** Scrub and Delete become available as additional
+    strategies on the same machinery. Their order, scope, and timing are not
+    decided.
 - **Opt-in and user-triggered.** Retention processing is off by default. A
   community may enable it, disable it, or run it on demand.
 - **Client-scoped aging.** Aging is never decided record by record. The unit is
@@ -49,8 +60,8 @@ how it runs.
   inside the window, in any of those sources, keeps the whole rollup, however
   old the rest of it is. Evaluation checks each source client against the window
   for its own data source, falling back to the global window, and the rollup
-  ages out only when all of them have. Whatever is then applied, Scrub or
-  Delete, is applied to the rollup as a whole.
+  ages out only when all of them have. Whatever is then applied — Hide, Scrub,
+  or Delete — is applied to the rollup as a whole.
   - **Scrubbed rollups are held together by their links, not by their data.**
     Blanking name and SSN destroys the evidence the rollup was built from, so
     the existing links between the sources and their destination become the
@@ -67,24 +78,25 @@ how it runs.
   that need something different. The global window is the catch-all, held as
   the window on the warehouse data source itself, so a source client with no
   window of its own falls back to the destination's.
-- **Two strategies.** A community selects how aged-out clients are handled:
-  - **Delete**: remove the records outright.
+- **Three strategies.** A community selects how aged-out clients are handled:
+  - **Hide**: conceal the client's PII everywhere the application presents it
+    (screens, search, exports) while the records stay in the database exactly as
+    they are. Nothing is overwritten, so Hide is reversible.
   - **Scrub**: destructively overwrite PII in the database, retaining the
     non-identifying structure for audit and reporting continuity. The original
-    values are gone, not hidden. This is deliberately not called masking, which
-    elsewhere in the platform means concealing values at the display layer
-    while they remain in storage.
-- **Scrubbed fields.** At minimum, scrub overwrites first, middle, and last name
-  and SSN. DOB is retained because household composition and age-based
-  bucketing depend on it. Fuzzing DOB to a consistent day within the month was
-  considered and judged not worth the effort. The full scope beyond that
-  minimum is an open decision point below.
+    values are gone, not hidden.
+  - **Delete**: remove the records outright.
+- **Fields in scope.** One set of fields counts as PII, and both strategies act
+  on it: Hide conceals them, Scrub overwrites them. At minimum that is first,
+  middle, and last name and SSN. Scrub retains DOB, because household
+  composition and age-based bucketing depend on it; fuzzing DOB to a consistent
+  day within the month was considered and judged not worth the effort. Hide is
+  under no such constraint, since concealing a value leaves it in place for the
+  calculation. The full scope beyond that minimum is an open decision point
+  below.
 - **Every run is logged and reportable.** Each retention run records what it
-  did: when it ran, who triggered it, the configuration in force (window, data
-  source, strategy), each client identified as aged out, the strategy applied
-  to them, and a count of records affected. A community can report on this to
-  answer what was removed and when, which the one-off manual process today
-  cannot.
+  did. Each client identified as aged out, the strategy applied A community can
+  report on this.
   - The log records client identifiers, never the PII that was scrubbed or
     deleted. A retention log that preserves the names it just cleared defeats
     the purpose.
@@ -93,7 +105,7 @@ how it runs.
     data source, HUD `PersonalID`) rather than foreign keys to deleted rows.
   - The log is retained independently of the retention window: it is a record
     of platform action, not client data, and is not itself subject to aging out.
-- **Backups are out of scope.** Deletion and scrubbing act on the live database
+- **Backups are out of scope.** Scrubbing and deletion act on the live database
   only. Backups retain data for their own retention period. The customer-facing
   help text for the retention settings must state this.
 
@@ -107,33 +119,36 @@ except where a point states that it is accepted as a limitation for now.
 
 1. **Downstream systems.** Whether removal propagates to CAS and other
    integrations.
-2. **Scope of Scrub.** Which data Scrub actually clears. The underlying question
-   is which of two postures we take:
-   - **Scrub name and SSN, keep everything else.** A narrow, well-understood
-     overwrite of the fields that most directly identify a client.
-   - **Keep only what reporting continuity requires, clear the rest.** Scrub
-     becomes a de-identification pass over the client's whole footprint, and
-     anything not needed to reproduce a report figure is a candidate for
-     removal.
+2. **How far the inventory departs from HUD's PPI definition.** We are not
+   inventing a definition: the 2004 standards define PPI. A question is how
+   we deviate from this definition.
+   - **Narrower.** The working minimum is name and SSN. DOB is PPI and is
+     deliberately kept for reporting, so the minimum already falls short of the
+     definition on purpose.
+   - **Wider.** HUD's list names no free text and nothing customer-defined,
+     though both are potentially identifying. Categories to
+     settle:
+     - Client photos and uploaded files.
+     - Contact information: phone, email, address, emergency contacts.
+     - HMIS custom records — case notes, custom assessments, custom services —
+       which carry free text that may name the client or third parties and is
+       not structured enough to handle field by field.
+     - Custom fields and other customer-defined data, whose contents the
+       platform does not know in advance.
 
-   The second posture is the stronger privacy position, but it requires an
-   inventory of what reporting actually depends on. Categories to settle either
-   way:
-   - Client photos and uploaded files.
-   - Contact information: phone, email, address, emergency contacts.
-   - HMIS custom records — case notes, custom assessments, custom services —
-     which carry free-text that may name the client or third parties and is not
-     structured enough to scrub field by field.
-   - Custom fields and other customer-defined data, whose contents the platform
-     does not know in advance.
-
-   Free text is the hard case: it cannot be scrubbed selectively, so for those
-   records the choice is realistically delete or retain. The HUD PPI definition
-   in the Context above is the other hard case: several of those fields cannot
-   be scrubbed while keeping a reportable record. Either Scrub is explicitly a
-   partial measure that leaves some PPI in place, or a community wanting those
-   fields gone has to choose Delete.
-3. **Definition of activity.** What counts as a record that keeps a client
+   Settling the inventory does not settle how far each strategy reaches into it.
+   Hide can conceal all of it: nothing it hides is needed to compute a report,
+   because the values stay in the database. Scrub may be more limited, for example
+   leaving DOB if it still needs to serve for reporting. Scrub may employ hidden
+   fields that it cannot easily overwrite.
+3. **Visibility and matching under Hide.** Two questions the field inventory
+   does not answer:
+   - Whether an override exists for privileged roles, and whether using one is
+     logged.
+   - Whether a hidden client is still available for matching, which under Scrub
+     they are not. Hide leaves the underlying data intact, so keeping them in
+     matching is possible; whether it is wanted is the question.
+4. **Definition of activity.** What counts as a record that keeps a client
    inside the retention window. Client-scoped aging depends on this definition.
    The obvious records are enrollments, services, exits, and the rest of the HUD
    data. But this may be too narrow. Data is collected about a client outside of
@@ -147,7 +162,7 @@ except where a point states that it is accepted as a limitation for now.
    This is a trade-off: the broader the definition, the fewer clients ever age out,
    and a definition wide enough to include incidental activity could keep a client
    indefinitely.
-4. **Secondary copies of client data.** The HUD data is not the only place a
+5. **Secondary copies of client data.** The HUD data is not the only place a
    client's PII lives. Each of these needs a retention decision:
    - **HUD report source data.** These tables hold names, SSN, and DOB
      directly. They are already archived and cleared on their own schedule, but
@@ -168,8 +183,8 @@ except where a point states that it is accepted as a limitation for now.
    - **Activity logs.** Not ID-only, as is sometimes assumed: they record client
      names and the search terms staff typed, which include name, SSN, and DOB.
      Nothing purges them.
-5. **Re-import of aged-out clients.** Accepted as a known limitation for the
-   first release; the durable fix open. Nothing stops a later import from
+6. **Re-import of aged-out clients.** Accepted as a known limitation for the
+   first phase; the durable fix open. Nothing stops a later import from
    bringing an aged-out client back. Routine imports carry only recently
    active clients, so in the normal case a expired client is not re-imported.
    The case that needs an answer is a full historical upload, say a ten year
@@ -183,6 +198,9 @@ except where a point states that it is accepted as a limitation for now.
 
 - **Positive:** Communities that want rolling cleanup can have it without
   imposing it on communities that do not.
+- **Positive:** Hide is reversible, which neither other strategy is, and it
+  gives communities a retention posture in the near term while Scrub and Delete
+  are out of reach.
 - **Positive:** The run log gives a community an answer to "what happened to
   this client's record," which is otherwise unrecoverable once data is deleted.
 - **Negative:** Deletion and scrubbing are irreversible from within the
@@ -198,6 +216,10 @@ except where a point states that it is accepted as a limitation for now.
 - **Negative:** Scrubbed clients retain DOB, so a scrubbed record is not fully
   de-identified. Communities selecting scrub accept this in exchange for
   reporting continuity.
+- **Negative:** Hide leaves every byte of PII in the database. It does not
+  satisfy a removal request, does not reduce what a breach or a database-level
+  query would expose, and does not meet the 2004 HMIS Data & Technical
+  Standards guidance.
 - **Negative:** Removal from the live database does not remove data from
   backups. Customers who expect complete erasure must be told this.
 - **Negative:** A community that wants a window shorter than seven years cannot
@@ -224,10 +246,7 @@ except where a point states that it is accepted as a limitation for now.
   communities need to turn this on and off and run it manually. Silent automated
   deletion is the wrong default for irreversible operations.
 - **Delete as the only mechanism.** Rejected: hard deletion breaks the audit
-  trail unconditionally, and some communities prefer scrubbing.
-- **View-layer redaction.** Rejected: PII stays in the database, so it cannot
-  satisfy a removal request. Reversibility is its only advantage, and that is
-  not enough to justify a third strategy.
+  trail unconditionally, and some communities prefer scrubbing or hiding.
 - **Per project type retention windows.** Rejected: it adds configuration
   surface and complicates client-scoped aging when a client spans project types
   with different windows. Data source scoping covers the known cases.
