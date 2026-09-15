@@ -130,6 +130,19 @@ RSpec.describe HudApr::Generators::Apr::Fy2026::QuestionTwentyTwo, type: :model,
       @report.answer(question: 'Q22c', cell: cell).summary
     end
 
+    # Q22f reports the same population as Q22c broken out by race and ethnicity, one column per
+    # group across B through K. The specs below sum a row across every column so they assert
+    # counts without depending on which race group the factory puts a client in.
+    Q22F_COLUMNS = ('B'..'K').to_a.freeze
+
+    def q22f_row_total(row)
+      Q22F_COLUMNS.sum { |letter| @report.answer(question: 'Q22f', cell: "#{letter}#{row}").summary.to_i }
+    end
+
+    def q22f_row_values(row)
+      Q22F_COLUMNS.map { |letter| @report.answer(question: 'Q22f', cell: "#{letter}#{row}").summary }.compact
+    end
+
     describe 'a member who exited before the household moved into housing' do
       # HoH: entry 2025-10-01, move-in 2025-12-01 => 61 days.
       # Member: entry 2025-10-01, exited 2025-11-01, before the household was housed,
@@ -201,6 +214,14 @@ RSpec.describe HudApr::Generators::Apr::Fy2026::QuestionTwentyTwo, type: :model,
 
       it 'averages 31 days (B12)' do
         expect(answer('B12')).to eq(31)
+      end
+
+      it 'counts both clients as moved into housing in Q22f (row 2)' do
+        expect(q22f_row_total(2)).to eq(2)
+      end
+
+      it 'averages 31 days in Q22f for the group holding both clients (row 4)' do
+        expect(q22f_row_values(4)).to eq([31.0])
       end
     end
 
