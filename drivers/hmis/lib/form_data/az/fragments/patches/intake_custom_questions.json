@@ -214,5 +214,115 @@
         ]
       }
     ]
+  },
+  {
+    "form_identifier": "base-intake",
+    "append_items": [
+      {
+        "type": "GROUP",
+        "link_id": "az_path_smi",
+        "text": "PATH SMI",
+        "custom_rule": {
+          "operator": "ANY",
+          "parts": [
+            {
+              "_comment": "PATH",
+              "variable": "projectFunderComponents",
+              "operator": "INCLUDE",
+              "value": "HHS: PATH"
+            }
+          ]
+        },
+        "item": [
+          {
+            "type": "CHOICE",
+            "link_id": "clienthasbeensmideter",
+            "text": "Client has been SMI Determined",
+            "required": false,
+            "warn_if_empty": false,
+            "mapping": {
+              "record_type": "ENROLLMENT",
+              "custom_field_key": "mar_clienthasbeensmideter"
+            },
+            "pick_list_options": [
+              {
+                "code": "Yes"
+              },
+              {
+                "code": "No"
+              }
+            ]
+          },
+          {
+            "type": "DATE",
+            "link_id": "ifyessmidetermineddat",
+            "text": "If Yes SMI Determined, date of determination:",
+            "brief_text": "SMI Determination Date",
+            "required": false,
+            "warn_if_empty": false,
+            "mapping": {
+              "record_type": "ENROLLMENT",
+              "custom_field_key": "mar_ifyessmidetermineddat"
+            },
+            "enable_behavior": "ALL",
+            "enable_when": [
+              {
+                "question": "clienthasbeensmideter",
+                "operator": "EQUAL",
+                "answer_code": "Yes"
+              }
+            ]
+          },
+          {
+            "type": "CHOICE",
+            "link_id": "ifnosmidetermineddidc",
+            "text": "If No SMI Determined, did client appeal?",
+            "brief_text": "SMI Appeal",
+            "required": false,
+            "warn_if_empty": false,
+            "mapping": {
+              "record_type": "ENROLLMENT",
+              "custom_field_key": "mar_ifnosmidetermineddidc"
+            },
+            "enable_behavior": "ALL",
+            "enable_when": [
+              {
+                "question": "clienthasbeensmideter",
+                "operator": "EQUAL",
+                "answer_code": "No"
+              }
+            ],
+            "pick_list_options": [
+              {
+                "code": "Yes"
+              },
+              {
+                "code": "No"
+              }
+            ]
+          },
+          {
+            "type": "DATE",
+            "link_id": "ifyesclientappealedda",
+            "text": "If Yes client appealed, date of appeal:",
+            "brief_text": "SMI Appeal Date",
+            "required": false,
+            "warn_if_empty": false,
+            "mapping": {
+              "record_type": "ENROLLMENT",
+              "custom_field_key": "mar_ifyesclientappealedda"
+            },
+            "enable_behavior": "ALL",
+            "enable_when": [
+              {
+                "question": "ifnosmidetermineddidc",
+                "operator": "EQUAL",
+                "answer_code": "Yes"
+              }
+            ]
+          }
+        ]
+      }
+    ]
   }
 ]
