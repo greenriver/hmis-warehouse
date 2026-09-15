@@ -291,7 +291,7 @@ module HudLsa::Generators::Fy2026
 
     def zip_report_folder
       files = Dir.glob(File.join(unzip_path, '*')).map { |f| File.basename(f) }
-      Zip::File.open(zip_path, Zip::File::CREATE) do |zipfile|
+      Zip::File.open(zip_path, create: true) do |zipfile|
         files.each do |file_name|
           zipfile.add(
             file_name,

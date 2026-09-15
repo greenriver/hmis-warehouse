@@ -1,5 +1,14 @@
 .history__pdf
+  - # This PDF is generated in the background and can be queued from the Warehouse or CAS
+  - # When queued from the Warehouse, a requesting_user is present, and we'll obey their PII policy
+  - # When queued from CAS, requesting_user is nil and we'll use the Allow PII policy, risking potential PII exposure
+  - # if someone views the PDF who does not have access to the client's PII.
+  - # The goal of this PDF is to document a client's homeless history, potentially for sharing.  Most of the time,
+  - # it is desireable to include the client's PII in the PDF.
   - client = @client_history.client
+  - requesting_user = @client_history.requesting_user
+  - restricted = GrdaWarehouse::AuthPolicies::ContextLoaders::RestrictedClientLoader.new.restricted?(client.id)
+  - pii = requesting_user ? client.pii_provider(user: requesting_user) : GrdaWarehouse::PiiProvider.new(client, policy: GrdaWarehouse::PiiProvider.restrict(GrdaWarehouse::AuthPolicies::AllowPiiPolicy.instance, restricted: restricted))
   = inline_stylesheet_link_tag 'print'
   - title = "#{Translation.translate('HMIS Data Warehouse')} Homeless History for Residential Programs"
   - content_for :title, title
@@ -12,7 +21,7 @@
   .history__title
     %h1= content_for :title
   .history__summary
-    %p Snapshot for #{client.name} (#{client.id}) taken on #{Date.current}
+    %p Snapshot for #{pii.full_name} (#{client.id}) taken on #{Date.current}
     %ul
       %li= "Days Homeless in the past three years: #{client.days_homeless_in_last_three_years} (seen in ES, SO, SH, TH with no overlapping PH)"
       %li= "Days Literally Homeless in the past three years: #{client.literally_homeless_last_three_years} (seen in ES, SO, SH with no overlapping TH or PH)"

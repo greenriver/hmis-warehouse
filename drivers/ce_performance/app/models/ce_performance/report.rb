@@ -547,10 +547,29 @@ module CePerformance
       detail_headers(key: key).except('first_name', 'last_name', 'dob')
     end
 
-    def client_value(client, column)
-      return client.public_send(column) unless column.include?('source_client')
+    CLIENT_PII_COLUMNS = ['first_name', 'last_name', 'dob'].freeze
+    # Read directly off the warehouse client, bypassing client_pii_provider — non-PII columns only.
+    SOURCE_CLIENT_COLUMNS = ['race_description'].freeze
 
-      client.source_client.public_send(column.gsub('source_client.', ''))
+    def client_value(client, column, user:, mode:)
+      if column.start_with?('source_client.')
+        attribute = column.delete_prefix('source_client.')
+        raise ArgumentError, "#{column} is not in SOURCE_CLIENT_COLUMNS" unless attribute.in?(SOURCE_CLIENT_COLUMNS)
+
+        return client.source_client.public_send(attribute)
+      end
+      return client.public_send(column) unless column.in?(CLIENT_PII_COLUMNS)
+
+      pii = client_pii_provider(client, user: user, mode: mode)
+      column == 'dob' ? GrdaWarehouse::PiiProvider.viewable_dob(client.dob, policy: pii.policy) : pii.public_send(column)
+    end
+
+    private def client_pii_provider(client, user:, mode:)
+      @client_pii_providers ||= {}
+      @client_pii_providers[[client.id, mode]] ||= begin
+        policy = user.reporting_policy_for_project(project_id: nil, mode: mode, client_id: client.destination_client_id)
+        GrdaWarehouse::PiiProvider.from_attributes(policy: policy, first_name: client.first_name, last_name: client.last_name, dob: client.dob)
+      end
     end
 
     def available_periods

@@ -128,7 +128,7 @@ module GrdaWarehouse
       FileUtils.mkdir(destination_path) unless ::File.exist?(destination_path)
       Zip::File.open(source_path) do |zipped_file|
         zipped_file.each do |entry|
-          entry.extract(::File.join(destination_path, ::File.basename(entry.name)))
+          entry.extract(::File.basename(entry.name), destination_directory: destination_path)
         end
       end
 

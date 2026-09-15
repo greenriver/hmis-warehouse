@@ -16,6 +16,19 @@ RSpec.describe Hmis::AuthPolicies::FormDefinitionPolicy, type: :model do
   let!(:access_control) { create_access_control(user, data_source, with_permission: [:can_view_clients]) }
 
   describe 'Instance' do
+    # Content editing and duplication, which can_configure_data_collection must never grant.
+    # Declared here so the form rule examples below can assert the two permission paths stay separate.
+    shared_examples 'cannot manage form content' do
+      it 'does not allow managing or duplicating form content' do
+        expect(policy.can_manage_form?).to be false
+        expect(policy.can_create_draft?).to be false
+        expect(policy.can_edit_draft?).to be false
+        expect(policy.can_publish?).to be false
+        expect(policy.can_delete?).to be false
+        expect(policy.can_duplicate?).to be false
+      end
+    end
+
     describe '#can_manage_form? and other form management permissions' do
       shared_examples 'returns false' do
         it 'returns false' do
@@ -56,7 +69,7 @@ RSpec.describe Hmis::AuthPolicies::FormDefinitionPolicy, type: :model do
         end
 
         context 'when the form is a super-admin-only form role' do
-          let(:form_definition) { create(:hmis_form_definition, role: 'CE_REFERRAL_STEP', status: 'draft', data_source: data_source) }
+          let(:form_definition) { create(:hmis_form_definition, role: 'INTAKE', status: 'draft', data_source: data_source) }
           include_examples 'returns false'
 
           context 'when the user has can_administrate_config permission' do
@@ -101,7 +114,7 @@ RSpec.describe Hmis::AuthPolicies::FormDefinitionPolicy, type: :model do
         end
 
         context 'when the form is a super-admin-only form role' do
-          let(:form_definition) { create(:hmis_form_definition, role: 'CE_REFERRAL_STEP', data_source: data_source) }
+          let(:form_definition) { create(:hmis_form_definition, role: 'INTAKE', data_source: data_source) }
           it 'returns false' do
             expect(policy.can_duplicate?).to be false
           end
@@ -142,13 +155,41 @@ RSpec.describe Hmis::AuthPolicies::FormDefinitionPolicy, type: :model do
         include_examples 'returns true'
       end
 
-      context 'when the form is a super-admin-only form role' do
-        let(:form_definition) { create(:hmis_form_definition, role: 'CE_REFERRAL_STEP', data_source: data_source) }
+      # can_manage_forms governs form content, and must not grant form rule access on its own
+      context 'when the user has can_manage_forms but not can_configure_data_collection' do
+        let!(:access_control) { create_access_control(user, data_source, with_permission: [:can_manage_forms]) }
         include_examples 'returns false'
+      end
 
-        context 'when the user has can_administrate_config permission' do
+      # INTAKE is a HUD assessment: newly configurable, but never editable without can_administrate_config.
+      # This example grants can_manage_forms so that the content lock is attributable to the form role
+      # rather than to a missing permission.
+      context 'when a non-super-admin configures rules for an INTAKE form' do
+        let(:form_definition) { create(:hmis_form_definition, role: 'INTAKE', status: 'draft', data_source: data_source) }
+        let!(:access_control) { create_access_control(user, data_source, with_permission: [:can_configure_data_collection, :can_manage_forms]) }
+
+        include_examples 'returns true'
+        include_examples 'cannot manage form content'
+      end
+
+      # These examples grant can_administrate_config so that the denial is attributable to the form role
+      # rather than to a missing permission. Referral roles are not managed in this tool.
+      ['REFERRAL', 'REFERRAL_REQUEST', 'CE_REFERRAL_STEP'].each do |role|
+        context "when the form role is #{role}" do
+          let(:form_definition) { create(:hmis_form_definition, role: role, data_source: data_source) }
           let!(:access_control) { create_access_control(user, data_source, with_permission: [:can_configure_data_collection, :can_manage_forms, :can_administrate_config]) }
-          include_examples 'returns true'
+
+          include_examples 'returns false'
+        end
+      end
+
+      # Static admin forms are always present and enabled, so they take no form rules
+      ['FORM_RULE', 'PROJECT_CONFIG', 'CLIENT_ALERT', 'FORM_DEFINITION'].each do |role|
+        context "when the form role is the static #{role} role" do
+          let(:form_definition) { create(:hmis_form_definition, role: role, data_source: data_source) }
+          let!(:access_control) { create_access_control(user, data_source, with_permission: [:can_configure_data_collection, :can_manage_forms, :can_administrate_config]) }
+
+          include_examples 'returns false'
         end
       end
     end

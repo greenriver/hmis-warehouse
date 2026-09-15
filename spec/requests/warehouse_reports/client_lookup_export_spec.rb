@@ -115,6 +115,15 @@ RSpec.describe GrdaWarehouse::WarehouseReports::DocumentExports::ClientLookupExp
     { destination_id: destination_client.id, enrollment: enrollment }
   end
 
+  def restrict_client!(destination_id)
+    Hmis::RestrictedRecord.create!(
+      restrictable_id: destination_id,
+      restrictable_type: 'Hmis::Hud::Client',
+      data_source_id: destination_ds.id,
+      created_by: Hmis::User.find(user.id),
+    )
+  end
+
   # The exact params the filter form serializes into `data-query-string`. Building the
   # export from a query string (rather than handing it a ready-made filter) is
   # deliberate: reconstructing the filter -- and `map_enrollments`, which travels
@@ -640,6 +649,38 @@ RSpec.describe GrdaWarehouse::WarehouseReports::DocumentExports::ClientLookupExp
       row = @rows.find { |r| r[2] == destination_id }
       expect(row[3]).to eq('Ada')
       expect(row[4]).to eq('Lovelace')
+    end
+
+    it 'redacts a restricted client\'s name even though the role allows viewing it, with map_enrollments off' do
+      permissive_role = create(:role, can_view_assigned_reports: true, can_view_client_name: true)
+      setup_access_control(user, permissive_role, collection)
+      destination_id = create_crosswalk.fetch(:destination_id)
+      restrict_client!(destination_id)
+
+      get_report(project_ids: [viewable_project.id])
+
+      expect(@export).to be_authorized
+      row = @rows.find { |r| r[2] == destination_id }
+      expect(row[3]).to eq(GrdaWarehouse::PiiProvider::REDACTED)
+      expect(row[4]).to eq(GrdaWarehouse::PiiProvider::REDACTED)
+    end
+
+    it 'redacts a restricted client\'s name per row, with map_enrollments on, leaving an unrestricted client\'s row intact' do
+      permissive_role = create(:role, can_view_assigned_reports: true, can_view_client_name: true)
+      setup_access_control(user, permissive_role, collection)
+      restricted_id = create_crosswalk(personal_id: 'PID-RESTRICTED').fetch(:destination_id)
+      restrict_client!(restricted_id)
+      unrestricted_id = create_crosswalk(personal_id: 'PID-UNRESTRICTED').fetch(:destination_id)
+
+      get_report(project_ids: [viewable_project.id], map_enrollments: true)
+
+      expect(@export).to be_authorized
+      restricted_row = @rows.find { |r| r[2] == restricted_id }
+      unrestricted_row = @rows.find { |r| r[2] == unrestricted_id }
+      expect(restricted_row[3]).to eq(GrdaWarehouse::PiiProvider::REDACTED)
+      expect(restricted_row[4]).to eq(GrdaWarehouse::PiiProvider::REDACTED)
+      expect(unrestricted_row[3]).to eq('Ada')
+      expect(unrestricted_row[4]).to eq('Lovelace')
     end
 
     context 'when the org has disabled PII in detail downloads' do

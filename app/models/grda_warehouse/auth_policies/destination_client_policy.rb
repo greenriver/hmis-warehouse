@@ -28,6 +28,12 @@ class GrdaWarehouse::AuthPolicies::DestinationClientPolicy < GrdaWarehouse::Auth
     memoize method_name
   end
 
+  # Hand-written, not delegated: a destination client with no visible source clients would
+  # otherwise return false via the delegation loop above and lose its masked SSN.
+  def can_view_partial_ssn?
+    true
+  end
+
   protected
 
   def validate_resource!(arg)

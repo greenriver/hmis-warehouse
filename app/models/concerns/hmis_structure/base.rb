@@ -16,18 +16,23 @@ module HmisStructure::Base
       where.not(pending_date_deleted: nil)
     end
 
-    def imported_item_type(importer_log_id)
-      # NOTE: add additional years here as the spec changes, always the newest first for performance
-      return '2026' if imported_items_2026.where(importer_log_id: importer_log_id).exists?
-      return '2024' if imported_items_2024.where(importer_log_id: importer_log_id).exists?
-      # Handle classes that didn't exist previously
-      return '2024' if self.class.in?([GrdaWarehouse::Hud::HmisParticipation, GrdaWarehouse::Hud::CeParticipation])
+    # Spec year of this record's newest surviving importer or loader staging row, or nil
+    # when none survives in any registered year. Soft-deleted loader rows count: the loader
+    # table mirrors the CSV as received, so a row the HMIS marked deleted is still the CSV value.
+    def most_recent_import_year
+      known_years.find do |year|
+        (respond_to?("imported_items_#{year}") && public_send("imported_items_#{year}").exists?) ||
+          (respond_to?("loaded_items_#{year}") && surviving_loaded_items(year).exists?)
+      end
+    end
 
-      return '2022' if imported_items_2022.where(importer_log_id: importer_log_id).exists?
-      # Handle classes that didn't exist previously
-      return '2022' if self.class.in?([GrdaWarehouse::Hud::YouthEducationStatus])
+    private def surviving_loaded_items(year)
+      scope = public_send("loaded_items_#{year}")
+      scope.respond_to?(:with_deleted) ? scope.with_deleted : scope
+    end
 
-      '2020'
+    private def known_years
+      Rails.application.config.hmis_data_lakes.keys.sort_by(&:to_i).reverse
     end
   end
 
