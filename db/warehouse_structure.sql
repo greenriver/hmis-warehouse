@@ -42493,7 +42493,8 @@ CREATE TABLE public.hmis_dqt_goals (
     entry_date_entered_length integer DEFAULT 6,
     exit_date_entered_length integer DEFAULT 6,
     expose_ch_calculations boolean DEFAULT true NOT NULL,
-    show_annual_assessments boolean DEFAULT true
+    show_annual_assessments boolean DEFAULT true,
+    global_overlap_checks boolean DEFAULT false NOT NULL
 );
 
 
@@ -360594,6 +360595,7 @@ ALTER TABLE ONLY public.import_logs
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260911120000'),
 ('20260908120000'),
 ('20260831120000'),
 ('20260827120000'),

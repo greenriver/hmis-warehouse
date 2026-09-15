@@ -332,7 +332,7 @@ namespace :grda_warehouse do
       end
     end
 
-    TaskQueue.queue_unprocessed!
+    safely_execute { TaskQueue.queue_unprocessed! }
     GrdaWarehouse::ProjectGroup.maintain_project_lists!
 
     safely_execute do
