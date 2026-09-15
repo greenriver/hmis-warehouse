@@ -320,8 +320,8 @@ inner join tlsa_HHID qx on qx.HouseholdID = ex.QualifyingExitHHID
 	set episodeEnd = 
 		(select min(chix.ESSHStreetDate)
 		from ch_Include_exit chix
-		where chix.PersonalID = chep.PersonalID 
-			and chix.ESSHStreetDate > chep.episodeStart
+		where chix.PersonalID = chep.PersonalID
+			and chix.ESSHStreetDate >= chep.episodeStart
 			and not exists	
 			(select 1 
 			from ch_Include_exit
