@@ -307,6 +307,37 @@ module HmisCsvTwentyTwentySix::Importer::ImportConcern
       self.source_hash = calculate_source_hash
     end
 
+    def self.importer_log_id_date_updated_index_name
+      table_name.gsub(/[^0-9a-z ]/i, '') + '_' + Digest::MD5.hexdigest('importer_log_id_DateUpdated')[0, 4]
+    end
+
+    # Build this index via a TaskQueue task rather than a migration because these
+    # staging tables can grow to tens of millions of rows across many retained
+    # imports, and CREATE INDEX CONCURRENTLY can't run inside a migration's
+    # transaction. Replaces the single-column importer_log_id and DateUpdated
+    # indexes, which a composite index leading with importer_log_id already
+    # serves for every existing importer_log_id-only lookup.
+    # This is an idempotent build:
+    # If the index exists and is valid, do nothing
+    # If the index is invalid, drop it and rebuild it
+    # If the index does not exist, create it
+    def self.ensure_importer_log_id_date_updated_index!
+      index_name = importer_log_id_date_updated_index_name
+      valid = connection.select_value(<<~SQL)
+        SELECT i.indisvalid FROM pg_index i JOIN pg_class c ON c.oid = i.indexrelid WHERE c.relname = #{connection.quote(index_name)}
+      SQL
+      return if valid == true
+
+      connection.remove_index(table_name, name: index_name, algorithm: :concurrently) if valid == false
+      connection.add_index(table_name, [:importer_log_id, :DateUpdated], name: index_name, algorithm: :concurrently)
+
+      importer_log_id_only_index = "index_#{table_name}_on_importer_log_id"
+      connection.remove_index(table_name, name: importer_log_id_only_index, algorithm: :concurrently) if connection.index_name_exists?(table_name, importer_log_id_only_index)
+
+      date_updated_only_index = table_name.gsub(/[^0-9a-z ]/i, '') + '_' + Digest::MD5.hexdigest('DateUpdated')[0, 4]
+      connection.remove_index(table_name, name: date_updated_only_index, algorithm: :concurrently) if connection.index_name_exists?(table_name, date_updated_only_index)
+    end
+
     def self.run_complex_validations!(importer_log, filename)
       failures = []
       complex_validations.each do |check|

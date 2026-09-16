@@ -39,7 +39,7 @@ class Hmis::AuthPolicies::FormDefinitionPolicy < Hmis::AuthPolicies::ResourcePol
       form_definition.draft? && can_manage_form?
     end
 
-    # Whether the user can configure this form in the form editor.
+    # Whether the user can configure this form in the admin tool (add/remove rules, not edit form content)
     def can_configure_form? = can_configure_data_collection_for_form?
 
     # Whether the user can add a new Hmis::Form::Instance to the form definition

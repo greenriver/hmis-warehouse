@@ -10,6 +10,7 @@ class Hmis::SessionsController < Devise::SessionsController
   include Hmis::Concerns::JsonErrors
   include AuthenticatesWithTwoFactor
   include Hmis::Concerns::DeviseHmisCurrentUser
+  include Hmis::Concerns::RequestDataSource
 
   # Only respond to JSON requests
   clear_respond_to
@@ -33,6 +34,15 @@ class Hmis::SessionsController < Devise::SessionsController
 
     self.resource = warden.authenticate(auth_options)
     if resource
+      access_error = resource.hmis_access_error_for(current_data_source)
+      if access_error
+        # The two-factor before_action may already have signed the user in. The terminal page's
+        # sign-out request sends the CSRF-Token cookie, so it is reissued on this refusal.
+        sign_out(:hmis_user)
+        set_csrf_cookie
+        return render_json_error(:forbidden, access_error)
+      end
+
       sign_in(:hmis_user, resource)
       # Successful login activity is automatically recorded by authtrail gem via devise hooks
       clear_reset_password_state(resource)

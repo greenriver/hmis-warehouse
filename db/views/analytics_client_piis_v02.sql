@@ -32,7 +32,7 @@ SELECT "Client"."id",
   CASE WHEN restricted_clients.client_id IS NOT NULL THEN 'Redacted' ELSE "Client"."MiddleName" END::character varying(150) AS "MiddleName",
   CASE WHEN restricted_clients.client_id IS NOT NULL THEN 'Redacted' ELSE "Client"."LastName" END::character varying(150) AS "LastName",
   CASE WHEN restricted_clients.client_id IS NOT NULL THEN 'Redacted' ELSE "Client"."NameSuffix" END::character varying(50) AS "NameSuffix",
-  CASE WHEN restricted_clients.client_id IS NOT NULL THEN 'Redacted' ELSE "Client"."SSN" END::character varying AS "SSN",
+  CASE WHEN restricted_clients.client_id IS NOT NULL THEN 'Redacted' ELSE "Client"."SSN" END AS "SSN",
   "Client"."DOB"
 FROM "Client"
 LEFT JOIN restricted_clients ON restricted_clients.client_id = "Client"."id"
