@@ -10,10 +10,11 @@
 class HmisExternalApis::ConsumeExternalFormSubmissionsJob < BaseJob
   queue_as ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
 
+  LOCK_NAME = 'consume_external_form_submissions'
+
   def perform(...)
     instrument_as_maintenance_task do |run|
-      _perform(...)
-      run.complete!
+      run.complete! if _perform(...)
     end
   end
 
@@ -21,27 +22,32 @@ class HmisExternalApis::ConsumeExternalFormSubmissionsJob < BaseJob
     s3 = GrdaWarehouse::RemoteCredentials::S3.for_active_slug('hmis_external_form_submissions')&.s3
     encryption_key = GrdaWarehouse::RemoteCredentials::SymmetricEncryptionKey.for_active_slug('hmis_external_forms_shared_key')
 
-    return unless s3 && encryption_key
+    return false unless s3 && encryption_key
 
-    # This job is run hourly, so 10,000 is an unexpected amount to pile up between runs.
-    # Raise so that Sentry alerts and we can investigate malicious activity.
-    raise 'Unexpectedly high number of external submissions' if s3.count > 10_000
+    did_run = false
+    GrdaWarehouseBase.with_advisory_lock(LOCK_NAME, timeout_seconds: 0) do
+      # This job is run hourly, so 10,000 is an unexpected amount to pile up between runs.
+      # Raise so that Sentry alerts and we can investigate malicious activity.
+      raise 'Unexpectedly high number of external submissions' if s3.count > 10_000
 
-    # list_objects_v2 only fetches 1000 at a time, but this uses our internal AwsS3 client, which paginates
-    s3.list_objects(10_000).each do |object|
-      raw_data_string = s3.get_as_io(key: object.key)&.read
-      raw_data = raw_data_string ? parse_json(raw_data_string) : nil
-      if !raw_data
-        log_error('invalid JSON content', object_key: object.key)
-        next
+      # list_objects_v2 only fetches 1000 at a time, but this uses our internal AwsS3 client, which paginates
+      s3.list_objects(10_000).each do |object|
+        raw_data_string = s3.get_as_io(key: object.key)&.read
+        raw_data = raw_data_string ? parse_json(raw_data_string) : nil
+        if !raw_data
+          log_error('invalid JSON content', object_key: object.key)
+          next
+        end
+
+        submission = submission_class.transaction do
+          process_submission(raw_data, object, encryption_key: encryption_key)
+        end
+        # if we successfully processed the submission, delete it
+        s3.delete(key: object.key) if submission
       end
-
-      submission = submission_class.transaction do
-        process_submission(raw_data, object, encryption_key: encryption_key)
-      end
-      # if we successfully processed the submission, delete it
-      s3.delete(key: object.key) if submission
+      did_run = true
     end
+    did_run
   end
 
   protected

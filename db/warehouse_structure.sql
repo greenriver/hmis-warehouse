@@ -219432,6 +219432,13 @@ CREATE INDEX index_hmis_external_form_submissions_on_enrollment_id ON public.hmi
 
 
 --
+-- Name: index_hmis_external_form_submissions_on_object_key; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_hmis_external_form_submissions_on_object_key ON public.hmis_external_form_submissions USING btree (object_key);
+
+
+--
 -- Name: index_hmis_external_referral_postings_on_project_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -360594,6 +360601,7 @@ ALTER TABLE ONLY public.import_logs
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260916120000'),
 ('20260908120000'),
 ('20260831120000'),
 ('20260827120000'),

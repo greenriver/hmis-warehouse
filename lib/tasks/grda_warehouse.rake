@@ -384,7 +384,7 @@ namespace :grda_warehouse do
     end
 
     safely_execute do
-      HmisExternalApis::ConsumeExternalFormSubmissionsJob.new.perform if HmisEnforcement.hmis_enabled? && GrdaWarehouse::DataSource.hmis.exists?
+      HmisExternalApis::ConsumeExternalFormSubmissionsJob.perform_later if HmisEnforcement.hmis_enabled? && GrdaWarehouse::DataSource.hmis.exists?
     end
 
     if DateTime.current.hour == 20
