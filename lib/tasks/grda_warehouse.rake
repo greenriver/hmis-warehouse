@@ -334,11 +334,7 @@ namespace :grda_warehouse do
 
     TaskQueue.queue_unprocessed!
     safely_execute do
-      GrdaWarehouse::ProjectGroup.maintain_project_lists!
-    end
-
-    safely_execute do
-      Hmis::ProjectGroup.maintain_project_lists! if HmisEnforcement.hmis_enabled?
+      MaintainProjectGroupListsJob.perform_later
     end
 
     # Run HMIS Auto-Exit daily in the early morning. This is running here instead of the daily tasks because of the daily task is bloated.
@@ -351,11 +347,7 @@ namespace :grda_warehouse do
     if DateTime.current.hour == 23 && HmisEnforcement.hmis_enabled? && GrdaWarehouse::DataSource.hmis.exists? && Hmis::Ce.configuration.enabled?
       # Catch-all CE reprocessing. Ensures we don't miss changes that could impact eligibility
       safely_execute do
-        Hmis::Ce::Match::CandidatePool.transaction do
-          Hmis::Ce::Match::CandidatePool.lock_for_maintenance!(timeout_seconds: 5.minutes) do
-            Hmis::Ce::Match::CandidatePoolBuilder.call(force_reprocessing: true)
-          end
-        end
+        Hmis::Ce::Match::CandidatePoolBuilderJob.perform_later(force_reprocessing: true)
       end
     end
 
@@ -420,7 +412,7 @@ namespace :grda_warehouse do
     end
 
     safely_execute do
-      GrdaWarehouse::Tasks::SyncAnalysisDataTask.perform
+      SyncAnalysisDataTaskJob.perform_later
     end
 
     safely_execute do

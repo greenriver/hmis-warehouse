@@ -15,6 +15,7 @@ require 'rake'
 # own specs' responsibility.
 RSpec.describe 'grda_warehouse:hourly', type: :task do
   include ActiveSupport::Testing::TimeHelpers
+  include ActiveJob::TestHelper
 
   let(:task_name) { 'grda_warehouse:hourly' }
 
@@ -33,10 +34,8 @@ RSpec.describe 'grda_warehouse:hourly', type: :task do
     allow_any_instance_of(CheckJobQueue).to receive(:perform)
     allow(GrdaWarehouse::CustomImports::Config).to receive(:active).and_return([])
     allow(TaskQueue).to receive(:queue_unprocessed!)
-    allow(GrdaWarehouse::ProjectGroup).to receive(:maintain_project_lists!)
     allow(MaReports::CsgEngage::Report).to receive(:run_if_ready)
     allow_any_instance_of(AppResourceMonitor::CollectStatsJob).to receive(:should_enqueue?).and_return(false)
-    allow(GrdaWarehouse::Tasks::SyncAnalysisDataTask).to receive(:perform)
     allow(GrdaWarehouse::Tasks::CleanupClientSearchQueriesTask).to receive(:perform)
     allow(BuildTranslationCacheJob).to receive(:perform_later)
   end
@@ -50,8 +49,15 @@ RSpec.describe 'grda_warehouse:hourly', type: :task do
     expect { Rake::Task[task_name].invoke }.not_to raise_error
   end
 
+  it 'enqueues the jobs for the inline maintenance items covered by this epic' do
+    Rake::Task[task_name].invoke
+
+    expect(MaintainProjectGroupListsJob).to have_been_enqueued
+    expect(SyncAnalysisDataTaskJob).to have_been_enqueued
+  end
+
   it 'does not let a raise in one step abort the rest of the run' do
-    allow(GrdaWarehouse::ProjectGroup).to receive(:maintain_project_lists!).and_raise('boom')
+    allow(GrdaWarehouse::Tasks::CleanupClientSearchQueriesTask).to receive(:perform).and_raise('boom')
     expect(Sentry).to receive(:capture_exception).with(instance_of(RuntimeError))
 
     expect { Rake::Task[task_name].invoke }.not_to raise_error
