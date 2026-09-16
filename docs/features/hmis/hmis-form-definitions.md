@@ -40,7 +40,7 @@ A definition's `role` determines what record the form owns, which mutation submi
 | --- | --- | --- |
 | Assessment | `INTAKE`, `UPDATE`, `ANNUAL`, `EXIT`, `POST_EXIT`, `CUSTOM_ASSESSMENT` | Own a `CustomAssessment`; submitted via `SubmitAssessment`. Only these support save-in-progress. See [HMIS assessments](hmis-assessments.md) |
 | System record | `PROJECT`, `ORGANIZATION`, `PROJECT_COC`, `FUNDER`, `INVENTORY`, `CLIENT`, `NEW_CLIENT_ENROLLMENT`, `ENROLLMENT`, `HMIS_PARTICIPATION`, `CE_PARTICIPATION` | Required for basic HMIS function. Resolution raises if one is missing |
-| Data collection feature | `CURRENT_LIVING_SITUATION`, `SERVICE`, `CE_EVENT`, `CE_ASSESSMENT`, `CASE_NOTE`, `EXTERNAL_FORM`, `REFERRAL`, `REFERRAL_REQUEST` | Optional per-project features, toggled on by an active form rule. The two referral roles are deprecated |
+| Data collection feature | `CURRENT_LIVING_SITUATION`, `SERVICE`, `CE_EVENT`, `CE_ASSESSMENT`, `CASE_NOTE`, `EXTERNAL_FORM` | Optional per-project features, toggled on by an active form rule. |
 | Static | `FORM_RULE`, `PROJECT_CONFIG`, `CLIENT_ALERT`, `FORM_DEFINITION` | Admin config forms. Not configurable, need no rule, submitted by bespoke mutations |
 | Other | `OCCURRENCE_POINT`, `CLIENT_DETAIL`, `FILE`, `CE_REFERRAL_STEP` | |
 

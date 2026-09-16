@@ -37,7 +37,7 @@ Files on disk may use a `fragment` key in place of an item. That is a seeding-ti
 - Uploads: `FILE`, `IMAGE`. A form containing either cannot be saved in progress.
 - Composite: `OBJECT`, rendered by `component` as `NAME`, `ADDRESS`, `PHONE`, or `EMAIL`. `GEOLOCATION` for captured coordinates.
 
-Set `assessment_date: true` on the one `DATE` item that is the assessment date. (Only for Custom Assessment forms).
+Set `assessment_date: true` on the one `DATE` item that is the assessment date (for assessment-role forms only).
 
 ## `link_id`
 
@@ -63,7 +63,7 @@ Valid `record_type` values are defined in `Hmis::Form::RecordType`. Each targets
 "mapping": { "custom_field_key": "tb_flagged_date" }
 ```
 
-The owner is `RecordType.find!(record_type).owner_type` when `record_type` is set, otherwise the form role's `owner_class`. A CDED is then looked up by owner type, key, and data source. **Keys are unique per owner type, not globally** — the same key on `Client` and on `CustomAssessment` is two unrelated CDEDs.
+The owner is `RecordType.find(record_type).owner_type` when `record_type` is set, otherwise the form role's `owner_class`. A CDED is then looked up by owner type, key, and data source. **Keys are unique per owner type, not globally** — the same key on `Client` and on `CustomAssessment` is two unrelated CDEDs.
 
 When authoring a form in the Form Builder UI, there is no need to specify the mapping. `PublishFormDefinition` will create a CDED for the field, deriving the key from link ID if none was given.
 
@@ -102,7 +102,7 @@ A disabled item is still in the definition and returns as soon as its dependency
 
 Putting the condition on a wrapping group, as above, is the idiomatic way to show or hide several items together.
 
-`local_constant` names a value supplied by the rendering context, written with a leading `$`. Real forms use `$today`, `$entryDate`, `$exitDate`, `$hudRecordType`, and `$hudTypeProvided`. Which are available depends on where the form is rendered, so copy from a form of the same role rather than guessing.
+`local_constant` names a value supplied by the rendering context, written with a leading `$`. The most used are `$today`, `$entryDate`, `$exitDate`; seeded forms also use `$projectStartDate`, `$projectEndDate`, `$projectType`, `$householdId`, and several user and project fields. Which are available depends on where the form is rendered.
 
 `disabled_display` decides what a *disabled* item looks like and whether its answer survives. It has no effect while the item is enabled.
 
@@ -146,7 +146,7 @@ A `DISPLAY` item may carry either, to show a computed value.
 
 `CHOICE` and `OPEN_CHOICE` require exactly one of `pick_list_options` or `pick_list_reference`.
 
-Static options need only `code`, which is what gets stored. `label`, `helper_text`, `numeric_value` for scoring, and `group_code` / `group_label` for grouping are optional — a `group_code` is what `enable_when.answer_group_code` compares against.
+Static options need only `code`, which is what gets stored. `label`, `secondary_label`, `helper_text`, `initial_selected`, `numeric_value` for scoring, and `group_code` / `group_label` for grouping are optional.
 
 ```json
 "pick_list_options": [{ "code": "YES", "label": "Yes" }, { "code": "NO", "label": "No" }]
@@ -163,7 +163,6 @@ A `pick_list_reference` is either a `Types::Forms::Enums::PickListType` value, r
 | `bounds` | Min/max, see below |
 | `repeats` | Value is an array, aka multi-select. Must match the CDED's `repeats` when mapped to a custom field |
 | `read_only` | No human editing |
-| `hidden` | Always hidden |
 
 `required` and `warn_if_empty` are only checked for link IDs actually present in the submission, so an item removed by a rule or by `data_collected_about` never blocks submission.
 
