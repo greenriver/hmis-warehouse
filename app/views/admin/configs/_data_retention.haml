@@ -1,5 +1,10 @@
 %section.o-section-card
   %h3 Client Data Retention
   .c-card.c-card--flush.c-card--padded.flex-wrap
-    - hint = "Clients whose newest activity across all of their merged records is older than this window are marked inactive by a nightly job. A marked client's name, SSN, date of birth and photo are redacted throughout the warehouse and the client is excluded from name and SSN search. No records are deleted and database backups are not affected. HUD requires HMIS data be retained for at least seven years (#{link_to 'HUD Exchange FAQ 3304', 'https://www.hudexchange.info/faqs/3304/what-are-the-minimum-and-maximum-data-retention-requirements-for-hmis-data/', target: :_blank, rel: :noopener}). Individual data sources may set their own window; when a client spans several data sources, the longest window applies."
+    %p
+      Use this section to set the window for marking clients inactive. Client activity is determined by looking across all of their records.  An inactive client's PII are redacted throughout the warehouse and the client is excluded from name and SSN search. At this time, no records are deleted.
+    %p
+      Individual data sources may set their own window; when a client spans several data sources, the longest window applies.
+
+    - hint = "Clients whose newest activity is older than this window are marked inactive by a nightly job."
     = f.input :client_retention_years, label: 'Mark clients inactive after', collection: GrdaWarehouse::Config.available_client_retention_years(current: f.object.client_retention_years), as: :select_two, include_blank: false, hint: hint.html_safe
