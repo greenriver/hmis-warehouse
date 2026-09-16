@@ -333,7 +333,9 @@ namespace :grda_warehouse do
     end
 
     TaskQueue.queue_unprocessed!
-    GrdaWarehouse::ProjectGroup.maintain_project_lists!
+    safely_execute do
+      GrdaWarehouse::ProjectGroup.maintain_project_lists!
+    end
 
     safely_execute do
       Hmis::ProjectGroup.maintain_project_lists! if HmisEnforcement.hmis_enabled?
@@ -366,7 +368,9 @@ namespace :grda_warehouse do
     end
 
     # Run CSG Engage export if ready
-    MaReports::CsgEngage::Report.run_if_ready
+    safely_execute do
+      MaReports::CsgEngage::Report.run_if_ready
+    end
 
     if DateTime.current.hour == 20 && HmisEnforcement.hmis_enabled? && GrdaWarehouse::DataSource.hmis.exists?
       # Run AC Data Warehouse exports to SFTP server at 8pm
