@@ -370,4 +370,28 @@ RSpec.describe Hmis::AutoExitJob, type: :model do
       end.not_to(change { e1.exit }.from(nil))
     end
   end
+
+  describe 'advisory lock' do
+    let!(:p1) { create :hmis_hud_project, data_source: ds1, organization: o1, user: u1, project_type: 6 }
+    let!(:c1) { create :hmis_hud_client, data_source: ds1, user: u1 }
+    let!(:aec) { create :hmis_project_auto_exit_config, length_of_absence_days: 30, project: p1 }
+    let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, user: u1, entry_date: Date.current - 2.months }
+
+    it 'does not exit any enrollment when a second copy runs while the lock is held' do
+      allow(GrdaWarehouseBase).to receive(:with_advisory_lock).with(Hmis::AutoExitJob::LOCK_NAME, timeout_seconds: 0).and_return(false)
+
+      expect do
+        Hmis::AutoExitJob.perform_now
+      end.not_to(change { e1.reload.exit })
+    end
+
+    it 'creates no second Exit when the job runs twice against the same project' do
+      Hmis::AutoExitJob.perform_now
+      expect(e1.reload.exit).to be_present
+
+      expect do
+        Hmis::AutoExitJob.perform_now
+      end.not_to(change { Hmis::Hud::Exit.where(enrollment_id: e1.enrollment_id, data_source_id: e1.data_source_id).count })
+    end
+  end
 end

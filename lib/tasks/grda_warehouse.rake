@@ -344,7 +344,7 @@ namespace :grda_warehouse do
     # Run HMIS Auto-Exit daily in the early morning. This is running here instead of the daily tasks because of the daily task is bloated.
     if DateTime.current.hour == 5 && HmisEnforcement.hmis_enabled? && GrdaWarehouse::DataSource.hmis.exists?
       safely_execute do
-        Hmis::AutoExitJob.perform_now
+        Hmis::AutoExitJob.perform_later
       end
     end
 
