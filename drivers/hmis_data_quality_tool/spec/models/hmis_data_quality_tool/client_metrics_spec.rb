@@ -70,13 +70,81 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
           expect_result(key: :name_issues, invalid_count: 1)
         end
       end
+
+      context 'with blank last name but DQ indicates partial, street, or code name reported' do
+        before do
+          @project = create_project(project_type: 1) # ES
+          @client = create_client_with_warehouse_link(
+            first_name: 'John',
+            last_name: nil,
+            name_data_quality: 2,
+          )
+          create_enrollment(client: @client, project: @project)
+          @report = setup_report([@project.id])
+        end
+
+        it 'flags name issues' do
+          expect_result(key: :name_issues, invalid_count: 1)
+        end
+      end
+
+      context 'with Name Data Quality "doesn\'t know" (8) and both names present' do
+        before do
+          @project = create_project(project_type: 1) # ES
+          @client = create_client_with_warehouse_link(
+            first_name: 'John',
+            last_name: 'Doe',
+            name_data_quality: 8,
+          )
+          create_enrollment(client: @client, project: @project)
+          @report = setup_report([@project.id])
+        end
+
+        it 'flags name issues' do
+          expect_result(key: :name_issues, invalid_count: 1)
+        end
+      end
+
+      context 'with Name Data Quality "prefers not to answer" (9) and both names present' do
+        before do
+          @project = create_project(project_type: 1) # ES
+          @client = create_client_with_warehouse_link(
+            first_name: 'John',
+            last_name: 'Doe',
+            name_data_quality: 9,
+          )
+          create_enrollment(client: @client, project: @project)
+          @report = setup_report([@project.id])
+        end
+
+        it 'flags name issues' do
+          expect_result(key: :name_issues, invalid_count: 1)
+        end
+      end
+
+      context 'with Name Data Quality "approximate or partial" (2) and both names present' do
+        before do
+          @project = create_project(project_type: 1) # ES
+          @client = create_client_with_warehouse_link(
+            first_name: 'John',
+            last_name: 'Doe',
+            name_data_quality: 2,
+          )
+          create_enrollment(client: @client, project: @project)
+          @report = setup_report([@project.id])
+        end
+
+        it 'flags name issues' do
+          expect_result(key: :name_issues, invalid_count: 1)
+        end
+      end
     end
 
     describe 'SSN Issues' do
       context 'with valid SSN data' do
         before do
           @project = create_project(project_type: 1) # ES
-          @client = create_client_with_warehouse_link(ssn: '123456789')
+          @client = create_client_with_warehouse_link(ssn: '123456780')
           @client.update(SSNDataQuality: 1) # Full SSN reported
           create_enrollment(client: @client, project: @project)
           @report = setup_report([@project.id])
@@ -120,6 +188,86 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
           @project = create_project(project_type: 1) # ES
           @client = create_client_with_warehouse_link(ssn: '112233445')
           @client.update(SSNDataQuality: 99) # Data not collected
+          create_enrollment(client: @client, project: @project)
+          @report = setup_report([@project.id])
+        end
+
+        it 'flags SSN issues' do
+          expect_result(key: :ssn_issues, invalid_count: 1)
+        end
+      end
+
+      context 'with blank SSN but DQ indicates approximate or partial SSN reported' do
+        before do
+          @project = create_project(project_type: 1) # ES
+          @client = create_client_with_warehouse_link(ssn: nil, ssn_data_quality: 2)
+          create_enrollment(client: @client, project: @project)
+          @report = setup_report([@project.id])
+        end
+
+        it 'flags SSN issues' do
+          expect_result(key: :ssn_issues, invalid_count: 1)
+        end
+      end
+
+      context 'with SSN Data Quality "doesn\'t know" (8) and SSN present' do
+        before do
+          @project = create_project(project_type: 1) # ES
+          @client = create_client_with_warehouse_link(ssn: '123456780', ssn_data_quality: 8)
+          create_enrollment(client: @client, project: @project)
+          @report = setup_report([@project.id])
+        end
+
+        it 'flags SSN issues' do
+          expect_result(key: :ssn_issues, invalid_count: 1)
+        end
+      end
+
+      context 'with SSN Data Quality "prefers not to answer" (9) and SSN present' do
+        before do
+          @project = create_project(project_type: 1) # ES
+          @client = create_client_with_warehouse_link(ssn: '123456780', ssn_data_quality: 9)
+          create_enrollment(client: @client, project: @project)
+          @report = setup_report([@project.id])
+        end
+
+        it 'flags SSN issues' do
+          expect_result(key: :ssn_issues, invalid_count: 1)
+        end
+      end
+
+      context 'with SSN Data Quality "approximate or partial" (2) and SSN present' do
+        before do
+          @project = create_project(project_type: 1) # ES
+          @client = create_client_with_warehouse_link(ssn: '123456780', ssn_data_quality: 2)
+          create_enrollment(client: @client, project: @project)
+          @report = setup_report([@project.id])
+        end
+
+        it 'flags SSN issues' do
+          expect_result(key: :ssn_issues, invalid_count: 1)
+        end
+      end
+
+      context 'with a published-invalid SSN' do
+        before do
+          @project = create_project(project_type: 1) # ES
+          @client = create_client_with_warehouse_link(ssn: '123456789')
+          @client.update(SSNDataQuality: 1)
+          create_enrollment(client: @client, project: @project)
+          @report = setup_report([@project.id])
+        end
+
+        it 'flags SSN issues' do
+          expect_result(key: :ssn_issues, invalid_count: 1)
+        end
+      end
+
+      context 'with an SSN that is not 9 digits' do
+        before do
+          @project = create_project(project_type: 1) # ES
+          @client = create_client_with_warehouse_link(ssn: '12345678')
+          @client.update(SSNDataQuality: 1)
           create_enrollment(client: @client, project: @project)
           @report = setup_report([@project.id])
         end
@@ -183,6 +331,89 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
 
         it 'flags DOB issues' do
           expect_result(key: :dob_issues, invalid_count: 1)
+        end
+      end
+
+      context 'with DOB Data Quality "doesn\'t know" (8) and DOB present' do
+        before do
+          @project = create_project(project_type: 1) # ES
+          @client = create_client_with_warehouse_link(dob: '1990-01-01'.to_date, dob_data_quality: 8)
+          create_enrollment(client: @client, project: @project)
+          @report = setup_report([@project.id])
+        end
+
+        it 'flags DOB issues' do
+          expect_result(key: :dob_issues, invalid_count: 1)
+        end
+      end
+
+      context 'with DOB Data Quality "prefers not to answer" (9) and DOB present' do
+        before do
+          @project = create_project(project_type: 1) # ES
+          @client = create_client_with_warehouse_link(dob: '1990-01-01'.to_date, dob_data_quality: 9)
+          create_enrollment(client: @client, project: @project)
+          @report = setup_report([@project.id])
+        end
+
+        it 'flags DOB issues' do
+          expect_result(key: :dob_issues, invalid_count: 1)
+        end
+      end
+
+      context 'with DOB Data Quality "approximate or partial" (2) and DOB present' do
+        before do
+          @project = create_project(project_type: 1) # ES
+          @client = create_client_with_warehouse_link(dob: '1990-01-01'.to_date, dob_data_quality: 2)
+          create_enrollment(client: @client, project: @project)
+          @report = setup_report([@project.id])
+        end
+
+        it 'flags DOB issues' do
+          expect_result(key: :dob_issues, invalid_count: 1)
+        end
+      end
+
+      context 'with DOB before the Jan. 1 1915 cutoff' do
+        before do
+          @project = create_project(project_type: 1) # ES
+          @client = create_client_with_warehouse_link(dob: '1914-12-31'.to_date)
+          @client.update(DOBDataQuality: 1)
+          create_enrollment(client: @client, project: @project)
+          @report = setup_report([@project.id])
+        end
+
+        it 'flags DOB issues' do
+          expect_result(key: :dob_issues, invalid_count: 1)
+        end
+      end
+
+      context 'with DOB after the client record was created' do
+        before do
+          @project = create_project(project_type: 1) # ES
+          @client = create_client_with_warehouse_link(dob: '2023-01-20'.to_date)
+          @client.update(DOBDataQuality: 1, DateCreated: '2023-01-01'.to_date)
+          # Entry date and enrollment DateCreated fall after the DOB, so only the
+          # client_created_at rule is what flags this client.
+          create_enrollment(client: @client, project: @project, entry_date: '2023-02-01'.to_date)
+          @report = setup_report([@project.id])
+        end
+
+        it 'flags DOB issues' do
+          expect_result(key: :dob_issues, invalid_count: 1)
+        end
+      end
+
+      context 'with a valid DOB, Data Quality, and entry date' do
+        before do
+          @project = create_project(project_type: 1) # ES
+          @client = create_client_with_warehouse_link(dob: '1990-01-01'.to_date)
+          @client.update(DOBDataQuality: 1)
+          create_enrollment(client: @client, project: @project, entry_date: '2023-01-15'.to_date)
+          @report = setup_report([@project.id])
+        end
+
+        it 'does not flag DOB issues' do
+          expect_result(key: :dob_issues, invalid_count: 0)
         end
       end
     end
