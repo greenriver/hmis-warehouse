@@ -310,6 +310,8 @@ module LsaSqlServer
         :ReportRow,
         :ReportID,
       ]
+      # Don't include the Step column in production as the HDX doesn't support it.
+      # Use ,[^,]*$ to strip out the trailing column if you need to send it to the HDX
       cols << :Step if Rails.env.development?
       cols
     end
