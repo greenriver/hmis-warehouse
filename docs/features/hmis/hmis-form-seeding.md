@@ -44,7 +44,6 @@ drivers/hmis/lib/form_data/
 ├── default/
 │   ├── assessments/
 │   ├── fragments/
-│   │   └── patches/
 │   ├── occurrence_point_forms/
 │   ├── records/
 │   └── services/
