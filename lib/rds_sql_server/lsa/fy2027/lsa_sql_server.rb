@@ -299,7 +299,7 @@ module LsaSqlServer
     include TsqlImport
 
     def self.csv_columns
-      [
+      cols = [
         :Value,
         :Cohort,
         :Universe,
@@ -309,8 +309,9 @@ module LsaSqlServer
         :ProjectID,
         :ReportRow,
         :ReportID,
-        :Step,
       ]
+      cols << :Step if Rails.env.development?
+      cols
     end
   end
 
