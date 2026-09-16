@@ -172,14 +172,8 @@ CREATE TYPE public.record_type AS ENUM (
 
 CREATE FUNCTION public.f_unaccent(text) RETURNS text
     LANGUAGE sql IMMUTABLE STRICT PARALLEL SAFE
-    AS $_$
-
-
-
-SELECT public.unaccent('public.unaccent', $1)  -- schema-qualify function and dictionary
-
-
-
+    AS $_$
+SELECT public.unaccent('public.unaccent', $1)  -- schema-qualify function and dictionary
 $_$;
 
 
@@ -202,666 +196,116 @@ $$;
 
 CREATE FUNCTION public.service_history_service_insert_trigger() RETURNS trigger
     LANGUAGE plpgsql
-    AS $$
-
-
-
-
-
-      BEGIN
-
-
-
-
-
-      IF  ( NEW.date BETWEEN DATE '2050-01-01' AND DATE '2050-12-31' ) THEN
-
-
-
-
-
-            INSERT INTO service_history_services_2050 VALUES (NEW.*);
-
-
-
-
-
-         ELSIF  ( NEW.date BETWEEN DATE '2049-01-01' AND DATE '2049-12-31' ) THEN
-
-
-
-
-
-            INSERT INTO service_history_services_2049 VALUES (NEW.*);
-
-
-
-
-
-         ELSIF  ( NEW.date BETWEEN DATE '2048-01-01' AND DATE '2048-12-31' ) THEN
-
-
-
-
-
-            INSERT INTO service_history_services_2048 VALUES (NEW.*);
-
-
-
-
-
-         ELSIF  ( NEW.date BETWEEN DATE '2047-01-01' AND DATE '2047-12-31' ) THEN
-
-
-
-
-
-            INSERT INTO service_history_services_2047 VALUES (NEW.*);
-
-
-
-
-
-         ELSIF  ( NEW.date BETWEEN DATE '2046-01-01' AND DATE '2046-12-31' ) THEN
-
-
-
-
-
-            INSERT INTO service_history_services_2046 VALUES (NEW.*);
-
-
-
-
-
-         ELSIF  ( NEW.date BETWEEN DATE '2045-01-01' AND DATE '2045-12-31' ) THEN
-
-
-
-
-
-            INSERT INTO service_history_services_2045 VALUES (NEW.*);
-
-
-
-
-
-         ELSIF  ( NEW.date BETWEEN DATE '2044-01-01' AND DATE '2044-12-31' ) THEN
-
-
-
-
-
-            INSERT INTO service_history_services_2044 VALUES (NEW.*);
-
-
-
-
-
-         ELSIF  ( NEW.date BETWEEN DATE '2043-01-01' AND DATE '2043-12-31' ) THEN
-
-
-
-
-
-            INSERT INTO service_history_services_2043 VALUES (NEW.*);
-
-
-
-
-
-         ELSIF  ( NEW.date BETWEEN DATE '2042-01-01' AND DATE '2042-12-31' ) THEN
-
-
-
-
-
-            INSERT INTO service_history_services_2042 VALUES (NEW.*);
-
-
-
-
-
-         ELSIF  ( NEW.date BETWEEN DATE '2041-01-01' AND DATE '2041-12-31' ) THEN
-
-
-
-
-
-            INSERT INTO service_history_services_2041 VALUES (NEW.*);
-
-
-
-
-
-         ELSIF  ( NEW.date BETWEEN DATE '2040-01-01' AND DATE '2040-12-31' ) THEN
-
-
-
-
-
-            INSERT INTO service_history_services_2040 VALUES (NEW.*);
-
-
-
-
-
-         ELSIF  ( NEW.date BETWEEN DATE '2039-01-01' AND DATE '2039-12-31' ) THEN
-
-
-
-
-
-            INSERT INTO service_history_services_2039 VALUES (NEW.*);
-
-
-
-
-
-         ELSIF  ( NEW.date BETWEEN DATE '2038-01-01' AND DATE '2038-12-31' ) THEN
-
-
-
-
-
-            INSERT INTO service_history_services_2038 VALUES (NEW.*);
-
-
-
-
-
-         ELSIF  ( NEW.date BETWEEN DATE '2037-01-01' AND DATE '2037-12-31' ) THEN
-
-
-
-
-
-            INSERT INTO service_history_services_2037 VALUES (NEW.*);
-
-
-
-
-
-         ELSIF  ( NEW.date BETWEEN DATE '2036-01-01' AND DATE '2036-12-31' ) THEN
-
-
-
-
-
-            INSERT INTO service_history_services_2036 VALUES (NEW.*);
-
-
-
-
-
-         ELSIF  ( NEW.date BETWEEN DATE '2035-01-01' AND DATE '2035-12-31' ) THEN
-
-
-
-
-
-            INSERT INTO service_history_services_2035 VALUES (NEW.*);
-
-
-
-
-
-         ELSIF  ( NEW.date BETWEEN DATE '2034-01-01' AND DATE '2034-12-31' ) THEN
-
-
-
-
-
-            INSERT INTO service_history_services_2034 VALUES (NEW.*);
-
-
-
-
-
-         ELSIF  ( NEW.date BETWEEN DATE '2033-01-01' AND DATE '2033-12-31' ) THEN
-
-
-
-
-
-            INSERT INTO service_history_services_2033 VALUES (NEW.*);
-
-
-
-
-
-         ELSIF  ( NEW.date BETWEEN DATE '2032-01-01' AND DATE '2032-12-31' ) THEN
-
-
-
-
-
-            INSERT INTO service_history_services_2032 VALUES (NEW.*);
-
-
-
-
-
-         ELSIF  ( NEW.date BETWEEN DATE '2031-01-01' AND DATE '2031-12-31' ) THEN
-
-
-
-
-
-            INSERT INTO service_history_services_2031 VALUES (NEW.*);
-
-
-
-
-
-         ELSIF  ( NEW.date BETWEEN DATE '2030-01-01' AND DATE '2030-12-31' ) THEN
-
-
-
-
-
-            INSERT INTO service_history_services_2030 VALUES (NEW.*);
-
-
-
-
-
-         ELSIF  ( NEW.date BETWEEN DATE '2029-01-01' AND DATE '2029-12-31' ) THEN
-
-
-
-
-
-            INSERT INTO service_history_services_2029 VALUES (NEW.*);
-
-
-
-
-
-         ELSIF  ( NEW.date BETWEEN DATE '2028-01-01' AND DATE '2028-12-31' ) THEN
-
-
-
-
-
-            INSERT INTO service_history_services_2028 VALUES (NEW.*);
-
-
-
-
-
-         ELSIF  ( NEW.date BETWEEN DATE '2027-01-01' AND DATE '2027-12-31' ) THEN
-
-
-
-
-
-            INSERT INTO service_history_services_2027 VALUES (NEW.*);
-
-
-
-
-
-         ELSIF  ( NEW.date BETWEEN DATE '2026-01-01' AND DATE '2026-12-31' ) THEN
-
-
-
-
-
-            INSERT INTO service_history_services_2026 VALUES (NEW.*);
-
-
-
-
-
-         ELSIF  ( NEW.date BETWEEN DATE '2025-01-01' AND DATE '2025-12-31' ) THEN
-
-
-
-
-
-            INSERT INTO service_history_services_2025 VALUES (NEW.*);
-
-
-
-
-
-         ELSIF  ( NEW.date BETWEEN DATE '2024-01-01' AND DATE '2024-12-31' ) THEN
-
-
-
-
-
-            INSERT INTO service_history_services_2024 VALUES (NEW.*);
-
-
-
-
-
-         ELSIF  ( NEW.date BETWEEN DATE '2023-01-01' AND DATE '2023-12-31' ) THEN
-
-
-
-
-
-            INSERT INTO service_history_services_2023 VALUES (NEW.*);
-
-
-
-
-
-         ELSIF  ( NEW.date BETWEEN DATE '2022-01-01' AND DATE '2022-12-31' ) THEN
-
-
-
-
-
-            INSERT INTO service_history_services_2022 VALUES (NEW.*);
-
-
-
-
-
-         ELSIF  ( NEW.date BETWEEN DATE '2021-01-01' AND DATE '2021-12-31' ) THEN
-
-
-
-
-
-            INSERT INTO service_history_services_2021 VALUES (NEW.*);
-
-
-
-
-
-         ELSIF  ( NEW.date BETWEEN DATE '2020-01-01' AND DATE '2020-12-31' ) THEN
-
-
-
-
-
-            INSERT INTO service_history_services_2020 VALUES (NEW.*);
-
-
-
-
-
-         ELSIF  ( NEW.date BETWEEN DATE '2019-01-01' AND DATE '2019-12-31' ) THEN
-
-
-
-
-
-            INSERT INTO service_history_services_2019 VALUES (NEW.*);
-
-
-
-
-
-         ELSIF  ( NEW.date BETWEEN DATE '2018-01-01' AND DATE '2018-12-31' ) THEN
-
-
-
-
-
-            INSERT INTO service_history_services_2018 VALUES (NEW.*);
-
-
-
-
-
-         ELSIF  ( NEW.date BETWEEN DATE '2017-01-01' AND DATE '2017-12-31' ) THEN
-
-
-
-
-
-            INSERT INTO service_history_services_2017 VALUES (NEW.*);
-
-
-
-
-
-         ELSIF  ( NEW.date BETWEEN DATE '2016-01-01' AND DATE '2016-12-31' ) THEN
-
-
-
-
-
-            INSERT INTO service_history_services_2016 VALUES (NEW.*);
-
-
-
-
-
-         ELSIF  ( NEW.date BETWEEN DATE '2015-01-01' AND DATE '2015-12-31' ) THEN
-
-
-
-
-
-            INSERT INTO service_history_services_2015 VALUES (NEW.*);
-
-
-
-
-
-         ELSIF  ( NEW.date BETWEEN DATE '2014-01-01' AND DATE '2014-12-31' ) THEN
-
-
-
-
-
-            INSERT INTO service_history_services_2014 VALUES (NEW.*);
-
-
-
-
-
-         ELSIF  ( NEW.date BETWEEN DATE '2013-01-01' AND DATE '2013-12-31' ) THEN
-
-
-
-
-
-            INSERT INTO service_history_services_2013 VALUES (NEW.*);
-
-
-
-
-
-         ELSIF  ( NEW.date BETWEEN DATE '2012-01-01' AND DATE '2012-12-31' ) THEN
-
-
-
-
-
-            INSERT INTO service_history_services_2012 VALUES (NEW.*);
-
-
-
-
-
-         ELSIF  ( NEW.date BETWEEN DATE '2011-01-01' AND DATE '2011-12-31' ) THEN
-
-
-
-
-
-            INSERT INTO service_history_services_2011 VALUES (NEW.*);
-
-
-
-
-
-         ELSIF  ( NEW.date BETWEEN DATE '2010-01-01' AND DATE '2010-12-31' ) THEN
-
-
-
-
-
-            INSERT INTO service_history_services_2010 VALUES (NEW.*);
-
-
-
-
-
-         ELSIF  ( NEW.date BETWEEN DATE '2009-01-01' AND DATE '2009-12-31' ) THEN
-
-
-
-
-
-            INSERT INTO service_history_services_2009 VALUES (NEW.*);
-
-
-
-
-
-         ELSIF  ( NEW.date BETWEEN DATE '2008-01-01' AND DATE '2008-12-31' ) THEN
-
-
-
-
-
-            INSERT INTO service_history_services_2008 VALUES (NEW.*);
-
-
-
-
-
-         ELSIF  ( NEW.date BETWEEN DATE '2007-01-01' AND DATE '2007-12-31' ) THEN
-
-
-
-
-
-            INSERT INTO service_history_services_2007 VALUES (NEW.*);
-
-
-
-
-
-         ELSIF  ( NEW.date BETWEEN DATE '2006-01-01' AND DATE '2006-12-31' ) THEN
-
-
-
-
-
-            INSERT INTO service_history_services_2006 VALUES (NEW.*);
-
-
-
-
-
-         ELSIF  ( NEW.date BETWEEN DATE '2005-01-01' AND DATE '2005-12-31' ) THEN
-
-
-
-
-
-            INSERT INTO service_history_services_2005 VALUES (NEW.*);
-
-
-
-
-
-         ELSIF  ( NEW.date BETWEEN DATE '2004-01-01' AND DATE '2004-12-31' ) THEN
-
-
-
-
-
-            INSERT INTO service_history_services_2004 VALUES (NEW.*);
-
-
-
-
-
-         ELSIF  ( NEW.date BETWEEN DATE '2003-01-01' AND DATE '2003-12-31' ) THEN
-
-
-
-
-
-            INSERT INTO service_history_services_2003 VALUES (NEW.*);
-
-
-
-
-
-         ELSIF  ( NEW.date BETWEEN DATE '2002-01-01' AND DATE '2002-12-31' ) THEN
-
-
-
-
-
-            INSERT INTO service_history_services_2002 VALUES (NEW.*);
-
-
-
-
-
-         ELSIF  ( NEW.date BETWEEN DATE '2001-01-01' AND DATE '2001-12-31' ) THEN
-
-
-
-
-
-            INSERT INTO service_history_services_2001 VALUES (NEW.*);
-
-
-
-
-
-         ELSIF  ( NEW.date BETWEEN DATE '2000-01-01' AND DATE '2000-12-31' ) THEN
-
-
-
-
-
-            INSERT INTO service_history_services_2000 VALUES (NEW.*);
-
-
-
-
-
-        
-
-
-
-
-
-      ELSE
-
-
-
-
-
-        INSERT INTO service_history_services_remainder VALUES (NEW.*);
-
-
-
-
-
-        END IF;
-
-
-
-
-
-        RETURN NULL;
-
-
-
-
-
-    END;
-
-
-
-
-
+    AS $$
+      BEGIN
+      IF  ( NEW.date BETWEEN DATE '2050-01-01' AND DATE '2050-12-31' ) THEN
+            INSERT INTO service_history_services_2050 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2049-01-01' AND DATE '2049-12-31' ) THEN
+            INSERT INTO service_history_services_2049 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2048-01-01' AND DATE '2048-12-31' ) THEN
+            INSERT INTO service_history_services_2048 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2047-01-01' AND DATE '2047-12-31' ) THEN
+            INSERT INTO service_history_services_2047 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2046-01-01' AND DATE '2046-12-31' ) THEN
+            INSERT INTO service_history_services_2046 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2045-01-01' AND DATE '2045-12-31' ) THEN
+            INSERT INTO service_history_services_2045 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2044-01-01' AND DATE '2044-12-31' ) THEN
+            INSERT INTO service_history_services_2044 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2043-01-01' AND DATE '2043-12-31' ) THEN
+            INSERT INTO service_history_services_2043 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2042-01-01' AND DATE '2042-12-31' ) THEN
+            INSERT INTO service_history_services_2042 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2041-01-01' AND DATE '2041-12-31' ) THEN
+            INSERT INTO service_history_services_2041 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2040-01-01' AND DATE '2040-12-31' ) THEN
+            INSERT INTO service_history_services_2040 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2039-01-01' AND DATE '2039-12-31' ) THEN
+            INSERT INTO service_history_services_2039 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2038-01-01' AND DATE '2038-12-31' ) THEN
+            INSERT INTO service_history_services_2038 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2037-01-01' AND DATE '2037-12-31' ) THEN
+            INSERT INTO service_history_services_2037 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2036-01-01' AND DATE '2036-12-31' ) THEN
+            INSERT INTO service_history_services_2036 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2035-01-01' AND DATE '2035-12-31' ) THEN
+            INSERT INTO service_history_services_2035 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2034-01-01' AND DATE '2034-12-31' ) THEN
+            INSERT INTO service_history_services_2034 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2033-01-01' AND DATE '2033-12-31' ) THEN
+            INSERT INTO service_history_services_2033 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2032-01-01' AND DATE '2032-12-31' ) THEN
+            INSERT INTO service_history_services_2032 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2031-01-01' AND DATE '2031-12-31' ) THEN
+            INSERT INTO service_history_services_2031 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2030-01-01' AND DATE '2030-12-31' ) THEN
+            INSERT INTO service_history_services_2030 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2029-01-01' AND DATE '2029-12-31' ) THEN
+            INSERT INTO service_history_services_2029 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2028-01-01' AND DATE '2028-12-31' ) THEN
+            INSERT INTO service_history_services_2028 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2027-01-01' AND DATE '2027-12-31' ) THEN
+            INSERT INTO service_history_services_2027 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2026-01-01' AND DATE '2026-12-31' ) THEN
+            INSERT INTO service_history_services_2026 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2025-01-01' AND DATE '2025-12-31' ) THEN
+            INSERT INTO service_history_services_2025 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2024-01-01' AND DATE '2024-12-31' ) THEN
+            INSERT INTO service_history_services_2024 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2023-01-01' AND DATE '2023-12-31' ) THEN
+            INSERT INTO service_history_services_2023 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2022-01-01' AND DATE '2022-12-31' ) THEN
+            INSERT INTO service_history_services_2022 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2021-01-01' AND DATE '2021-12-31' ) THEN
+            INSERT INTO service_history_services_2021 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2020-01-01' AND DATE '2020-12-31' ) THEN
+            INSERT INTO service_history_services_2020 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2019-01-01' AND DATE '2019-12-31' ) THEN
+            INSERT INTO service_history_services_2019 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2018-01-01' AND DATE '2018-12-31' ) THEN
+            INSERT INTO service_history_services_2018 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2017-01-01' AND DATE '2017-12-31' ) THEN
+            INSERT INTO service_history_services_2017 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2016-01-01' AND DATE '2016-12-31' ) THEN
+            INSERT INTO service_history_services_2016 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2015-01-01' AND DATE '2015-12-31' ) THEN
+            INSERT INTO service_history_services_2015 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2014-01-01' AND DATE '2014-12-31' ) THEN
+            INSERT INTO service_history_services_2014 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2013-01-01' AND DATE '2013-12-31' ) THEN
+            INSERT INTO service_history_services_2013 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2012-01-01' AND DATE '2012-12-31' ) THEN
+            INSERT INTO service_history_services_2012 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2011-01-01' AND DATE '2011-12-31' ) THEN
+            INSERT INTO service_history_services_2011 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2010-01-01' AND DATE '2010-12-31' ) THEN
+            INSERT INTO service_history_services_2010 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2009-01-01' AND DATE '2009-12-31' ) THEN
+            INSERT INTO service_history_services_2009 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2008-01-01' AND DATE '2008-12-31' ) THEN
+            INSERT INTO service_history_services_2008 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2007-01-01' AND DATE '2007-12-31' ) THEN
+            INSERT INTO service_history_services_2007 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2006-01-01' AND DATE '2006-12-31' ) THEN
+            INSERT INTO service_history_services_2006 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2005-01-01' AND DATE '2005-12-31' ) THEN
+            INSERT INTO service_history_services_2005 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2004-01-01' AND DATE '2004-12-31' ) THEN
+            INSERT INTO service_history_services_2004 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2003-01-01' AND DATE '2003-12-31' ) THEN
+            INSERT INTO service_history_services_2003 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2002-01-01' AND DATE '2002-12-31' ) THEN
+            INSERT INTO service_history_services_2002 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2001-01-01' AND DATE '2001-12-31' ) THEN
+            INSERT INTO service_history_services_2001 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2000-01-01' AND DATE '2000-12-31' ) THEN
+            INSERT INTO service_history_services_2000 VALUES (NEW.*);
+        
+      ELSE
+        INSERT INTO service_history_services_remainder VALUES (NEW.*);
+        END IF;
+        RETURN NULL;
+    END;
     $$;
 
 
@@ -2438,7 +1882,7 @@ CREATE TABLE public.cohort_client_data (
     id bigint NOT NULL,
     cohort_id bigint NOT NULL,
     cohort_client_id bigint NOT NULL,
-    column_name character varying NOT NULL,
+    column_name character varying,
     value_integer integer,
     value_boolean boolean,
     value_string character varying,
@@ -2735,8 +2179,7 @@ CREATE TABLE public.cohort_clients (
     most_recent_household_type character varying,
     most_recent_self_report_months_homeless character varying,
     most_recent_disabling_condition character varying
-)
-WITH (autovacuum_analyze_threshold='25', autovacuum_analyze_scale_factor='0.050000', autovacuum_vacuum_threshold='25', autovacuum_vacuum_scale_factor='0.100000');
+);
 
 
 --
@@ -5719,8 +5162,7 @@ CREATE TABLE public."Services" (
     "FAStartDate" date,
     "FAEndDate" date,
     "InformationDate" date
-)
-WITH (autovacuum_analyze_threshold='25', autovacuum_analyze_scale_factor='0.050000', autovacuum_vacuum_threshold='25', autovacuum_vacuum_scale_factor='0.100000');
+);
 
 
 --
@@ -25065,7 +24507,7 @@ CREATE TABLE public.boston_project_scorecard_reports (
     comparison_apr_id bigint,
     returns_to_homelessness numeric,
     substance_use_treatment_service jsonb,
-    supportive_services boolean DEFAULT false NOT NULL
+    supportive_services boolean DEFAULT false
 );
 
 
@@ -27710,11 +27152,11 @@ CREATE TABLE public.configs (
     number_lms_courses_required integer DEFAULT '-1'::integer,
     rds_s3_integration_role_arn character varying,
     default_lms_email_to_warehouse_email boolean,
-    relevant_state_codes character varying DEFAULT 'MA'::character varying NOT NULL,
+    relevant_state_codes character varying DEFAULT 'MA,VA'::character varying NOT NULL,
     enable_external_data_sharing_exclusion boolean DEFAULT false NOT NULL,
-    client_demographic_columns jsonb,
     created_at timestamp(6) without time zone,
     updated_at timestamp(6) without time zone,
+    client_demographic_columns jsonb,
     dob_selection_method character varying DEFAULT 'legacy'::character varying NOT NULL
 );
 
@@ -34243,7 +33685,8 @@ CREATE TABLE public.hmis_2024_projects (
     source_type character varying NOT NULL,
     dirty_at timestamp without time zone,
     clean_at timestamp without time zone,
-    should_import boolean DEFAULT true
+    should_import boolean DEFAULT true,
+    expired boolean
 );
 
 
@@ -40211,7 +39654,8 @@ CREATE TABLE public.hmis_csv_2024_projects (
     "ExportID" character varying,
     data_source_id bigint NOT NULL,
     loaded_at timestamp without time zone NOT NULL,
-    loader_id bigint NOT NULL
+    loader_id bigint NOT NULL,
+    expired boolean
 );
 
 
@@ -44866,6 +44310,9 @@ CREATE TABLE public.hud_report_apr_clients (
     hoh_move_in_date date,
     adjusted_move_in_date date,
     sex integer,
+    income_total_at_annual_assessment_raw integer,
+    income_total_at_exit_raw integer,
+    income_total_at_start_raw integer,
     income_from_any_source_at_annual_assessment_raw integer,
     income_from_any_source_at_exit_raw integer,
     income_from_any_source_at_start_raw integer
@@ -45510,8 +44957,6 @@ CREATE TABLE public.hud_report_instances (
     export_id bigint,
     type character varying DEFAULT 'HudReports::ReportInstance'::character varying NOT NULL,
     error_details text,
-    artifacts_stored_at timestamp(6) without time zone,
-    generator_class_name character varying,
     snapshot_status character varying,
     household_context_count integer,
     archival_metadata jsonb
@@ -50032,7 +49477,6 @@ CREATE TABLE public.recent_report_enrollments (
     "VAMCStation" character varying,
     "LivingSituation2022" integer,
     project_pk bigint,
-    "MentalHealthConsultation" integer,
     demographic_id bigint,
     client_id bigint
 );
@@ -51233,8 +50677,7 @@ CREATE TABLE public.service_history_services_2013 (
     project_type smallint,
     homeless boolean,
     literally_homeless boolean
-)
-WITH (autovacuum_analyze_threshold='25', autovacuum_analyze_scale_factor='0.050000', autovacuum_vacuum_threshold='25', autovacuum_vacuum_scale_factor='0.100000');
+);
 
 
 --
@@ -51252,8 +50695,7 @@ CREATE TABLE public.service_history_services_2014 (
     project_type smallint,
     homeless boolean,
     literally_homeless boolean
-)
-WITH (autovacuum_analyze_threshold='25', autovacuum_analyze_scale_factor='0.050000', autovacuum_vacuum_threshold='25', autovacuum_vacuum_scale_factor='0.100000');
+);
 
 
 --
@@ -52886,6 +52328,18 @@ ALTER SEQUENCE public.talentlms_logins_id_seq OWNED BY public.talentlms_logins.i
 
 
 --
+-- Name: temp_export_disabilities_336s_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.temp_export_disabilities_336s_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
 -- Name: temp_export_enrollment_186s_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
@@ -52895,16 +52349,6 @@ CREATE SEQUENCE public.temp_export_enrollment_186s_id_seq
     NO MINVALUE
     NO MAXVALUE
     CACHE 1;
-
-
---
--- Name: temp_export_enrollment_186s; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.temp_export_enrollment_186s (
-    id bigint DEFAULT nextval('public.temp_export_enrollment_186s_id_seq'::regclass) NOT NULL,
-    source_id bigint
-);
 
 
 --
@@ -52920,16 +52364,6 @@ CREATE SEQUENCE public.temp_export_enrollment_187s_id_seq
 
 
 --
--- Name: temp_export_enrollment_187s; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.temp_export_enrollment_187s (
-    id bigint DEFAULT nextval('public.temp_export_enrollment_187s_id_seq'::regclass) NOT NULL,
-    source_id bigint
-);
-
-
---
 -- Name: temp_export_enrollment_189s_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
@@ -52939,16 +52373,6 @@ CREATE SEQUENCE public.temp_export_enrollment_189s_id_seq
     NO MINVALUE
     NO MAXVALUE
     CACHE 1;
-
-
---
--- Name: temp_export_enrollment_189s; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.temp_export_enrollment_189s (
-    id bigint DEFAULT nextval('public.temp_export_enrollment_189s_id_seq'::regclass) NOT NULL,
-    source_id bigint
-);
 
 
 --
@@ -52964,13 +52388,15 @@ CREATE SEQUENCE public.temp_export_enrollment_222s_id_seq
 
 
 --
--- Name: temp_export_enrollment_222s; Type: TABLE; Schema: public; Owner: -
+-- Name: temp_export_enrollment_432s_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.temp_export_enrollment_222s (
-    id bigint DEFAULT nextval('public.temp_export_enrollment_222s_id_seq'::regclass) NOT NULL,
-    source_id bigint
-);
+CREATE SEQUENCE public.temp_export_enrollment_432s_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
 
 
 --
@@ -52986,13 +52412,15 @@ CREATE SEQUENCE public.temp_export_exit_188s_id_seq
 
 
 --
--- Name: temp_export_exit_188s; Type: TABLE; Schema: public; Owner: -
+-- Name: temp_export_hmis_2026_custom_genders_404s_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.temp_export_exit_188s (
-    id bigint DEFAULT nextval('public.temp_export_exit_188s_id_seq'::regclass) NOT NULL,
-    source_id bigint
-);
+CREATE SEQUENCE public.temp_export_hmis_2026_custom_genders_404s_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
 
 
 --
@@ -69036,46 +68464,6 @@ ALTER TABLE ONLY public.talentlms_logins
 
 
 --
--- Name: temp_export_enrollment_186s temp_export_enrollment_186s_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.temp_export_enrollment_186s
-    ADD CONSTRAINT temp_export_enrollment_186s_pkey PRIMARY KEY (id);
-
-
---
--- Name: temp_export_enrollment_187s temp_export_enrollment_187s_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.temp_export_enrollment_187s
-    ADD CONSTRAINT temp_export_enrollment_187s_pkey PRIMARY KEY (id);
-
-
---
--- Name: temp_export_enrollment_189s temp_export_enrollment_189s_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.temp_export_enrollment_189s
-    ADD CONSTRAINT temp_export_enrollment_189s_pkey PRIMARY KEY (id);
-
-
---
--- Name: temp_export_enrollment_222s temp_export_enrollment_222s_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.temp_export_enrollment_222s
-    ADD CONSTRAINT temp_export_enrollment_222s_pkey PRIMARY KEY (id);
-
-
---
--- Name: temp_export_exit_188s temp_export_exit_188s_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.temp_export_exit_188s
-    ADD CONSTRAINT temp_export_exit_188s_pkey PRIMARY KEY (id);
-
-
---
 -- Name: text_message_messages text_message_messages_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -69913,6 +69301,20 @@ CREATE INDEX "hmis_2022_clients_partitioned_0_VeteranStatus_idx4" ON hmis.hmis_2
 
 
 --
+-- Name: index_hmis_2022_clients_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_2022_clients_on_data_source_id ON ONLY public.hmis_2022_clients USING btree (data_source_id);
+
+
+--
+-- Name: hmis_2022_clients_partitioned_0_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_clients_partitioned_0_data_source_id_idx ON hmis.hmis_2022_clients_partitioned_0 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_clients_partitioned_importer_log_id_idx; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -70228,6 +69630,13 @@ CREATE INDEX "hmis_2022_clients_partitioned_10_VeteranStatus_idx4" ON hmis.hmis_
 
 
 --
+-- Name: hmis_2022_clients_partitioned_10_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_clients_partitioned_10_data_source_id_idx ON hmis.hmis_2022_clients_partitioned_10 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_clients_partitioned_10_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -70526,6 +69935,13 @@ CREATE INDEX "hmis_2022_clients_partitioned_11_VeteranStatus_idx3" ON hmis.hmis_
 --
 
 CREATE INDEX "hmis_2022_clients_partitioned_11_VeteranStatus_idx4" ON hmis.hmis_2022_clients_partitioned_11 USING btree ("VeteranStatus");
+
+
+--
+-- Name: hmis_2022_clients_partitioned_11_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_clients_partitioned_11_data_source_id_idx ON hmis.hmis_2022_clients_partitioned_11 USING btree (data_source_id);
 
 
 --
@@ -70830,6 +70246,13 @@ CREATE INDEX "hmis_2022_clients_partitioned_12_VeteranStatus_idx4" ON hmis.hmis_
 
 
 --
+-- Name: hmis_2022_clients_partitioned_12_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_clients_partitioned_12_data_source_id_idx ON hmis.hmis_2022_clients_partitioned_12 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_clients_partitioned_12_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -71128,6 +70551,13 @@ CREATE INDEX "hmis_2022_clients_partitioned_13_VeteranStatus_idx3" ON hmis.hmis_
 --
 
 CREATE INDEX "hmis_2022_clients_partitioned_13_VeteranStatus_idx4" ON hmis.hmis_2022_clients_partitioned_13 USING btree ("VeteranStatus");
+
+
+--
+-- Name: hmis_2022_clients_partitioned_13_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_clients_partitioned_13_data_source_id_idx ON hmis.hmis_2022_clients_partitioned_13 USING btree (data_source_id);
 
 
 --
@@ -71432,6 +70862,13 @@ CREATE INDEX "hmis_2022_clients_partitioned_14_VeteranStatus_idx4" ON hmis.hmis_
 
 
 --
+-- Name: hmis_2022_clients_partitioned_14_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_clients_partitioned_14_data_source_id_idx ON hmis.hmis_2022_clients_partitioned_14 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_clients_partitioned_14_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -71730,6 +71167,13 @@ CREATE INDEX "hmis_2022_clients_partitioned_15_VeteranStatus_idx3" ON hmis.hmis_
 --
 
 CREATE INDEX "hmis_2022_clients_partitioned_15_VeteranStatus_idx4" ON hmis.hmis_2022_clients_partitioned_15 USING btree ("VeteranStatus");
+
+
+--
+-- Name: hmis_2022_clients_partitioned_15_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_clients_partitioned_15_data_source_id_idx ON hmis.hmis_2022_clients_partitioned_15 USING btree (data_source_id);
 
 
 --
@@ -72034,6 +71478,13 @@ CREATE INDEX "hmis_2022_clients_partitioned_16_VeteranStatus_idx4" ON hmis.hmis_
 
 
 --
+-- Name: hmis_2022_clients_partitioned_16_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_clients_partitioned_16_data_source_id_idx ON hmis.hmis_2022_clients_partitioned_16 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_clients_partitioned_16_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -72332,6 +71783,13 @@ CREATE INDEX "hmis_2022_clients_partitioned_17_VeteranStatus_idx3" ON hmis.hmis_
 --
 
 CREATE INDEX "hmis_2022_clients_partitioned_17_VeteranStatus_idx4" ON hmis.hmis_2022_clients_partitioned_17 USING btree ("VeteranStatus");
+
+
+--
+-- Name: hmis_2022_clients_partitioned_17_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_clients_partitioned_17_data_source_id_idx ON hmis.hmis_2022_clients_partitioned_17 USING btree (data_source_id);
 
 
 --
@@ -72636,6 +72094,13 @@ CREATE INDEX "hmis_2022_clients_partitioned_18_VeteranStatus_idx4" ON hmis.hmis_
 
 
 --
+-- Name: hmis_2022_clients_partitioned_18_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_clients_partitioned_18_data_source_id_idx ON hmis.hmis_2022_clients_partitioned_18 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_clients_partitioned_18_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -72934,6 +72399,13 @@ CREATE INDEX "hmis_2022_clients_partitioned_19_VeteranStatus_idx3" ON hmis.hmis_
 --
 
 CREATE INDEX "hmis_2022_clients_partitioned_19_VeteranStatus_idx4" ON hmis.hmis_2022_clients_partitioned_19 USING btree ("VeteranStatus");
+
+
+--
+-- Name: hmis_2022_clients_partitioned_19_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_clients_partitioned_19_data_source_id_idx ON hmis.hmis_2022_clients_partitioned_19 USING btree (data_source_id);
 
 
 --
@@ -73238,6 +72710,13 @@ CREATE INDEX "hmis_2022_clients_partitioned_1_VeteranStatus_idx4" ON hmis.hmis_2
 
 
 --
+-- Name: hmis_2022_clients_partitioned_1_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_clients_partitioned_1_data_source_id_idx ON hmis.hmis_2022_clients_partitioned_1 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_clients_partitioned_1_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -73536,6 +73015,13 @@ CREATE INDEX "hmis_2022_clients_partitioned_20_VeteranStatus_idx3" ON hmis.hmis_
 --
 
 CREATE INDEX "hmis_2022_clients_partitioned_20_VeteranStatus_idx4" ON hmis.hmis_2022_clients_partitioned_20 USING btree ("VeteranStatus");
+
+
+--
+-- Name: hmis_2022_clients_partitioned_20_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_clients_partitioned_20_data_source_id_idx ON hmis.hmis_2022_clients_partitioned_20 USING btree (data_source_id);
 
 
 --
@@ -73840,6 +73326,13 @@ CREATE INDEX "hmis_2022_clients_partitioned_21_VeteranStatus_idx4" ON hmis.hmis_
 
 
 --
+-- Name: hmis_2022_clients_partitioned_21_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_clients_partitioned_21_data_source_id_idx ON hmis.hmis_2022_clients_partitioned_21 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_clients_partitioned_21_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -74138,6 +73631,13 @@ CREATE INDEX "hmis_2022_clients_partitioned_22_VeteranStatus_idx3" ON hmis.hmis_
 --
 
 CREATE INDEX "hmis_2022_clients_partitioned_22_VeteranStatus_idx4" ON hmis.hmis_2022_clients_partitioned_22 USING btree ("VeteranStatus");
+
+
+--
+-- Name: hmis_2022_clients_partitioned_22_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_clients_partitioned_22_data_source_id_idx ON hmis.hmis_2022_clients_partitioned_22 USING btree (data_source_id);
 
 
 --
@@ -74442,6 +73942,13 @@ CREATE INDEX "hmis_2022_clients_partitioned_23_VeteranStatus_idx4" ON hmis.hmis_
 
 
 --
+-- Name: hmis_2022_clients_partitioned_23_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_clients_partitioned_23_data_source_id_idx ON hmis.hmis_2022_clients_partitioned_23 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_clients_partitioned_23_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -74740,6 +74247,13 @@ CREATE INDEX "hmis_2022_clients_partitioned_24_VeteranStatus_idx3" ON hmis.hmis_
 --
 
 CREATE INDEX "hmis_2022_clients_partitioned_24_VeteranStatus_idx4" ON hmis.hmis_2022_clients_partitioned_24 USING btree ("VeteranStatus");
+
+
+--
+-- Name: hmis_2022_clients_partitioned_24_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_clients_partitioned_24_data_source_id_idx ON hmis.hmis_2022_clients_partitioned_24 USING btree (data_source_id);
 
 
 --
@@ -75044,6 +74558,13 @@ CREATE INDEX "hmis_2022_clients_partitioned_25_VeteranStatus_idx4" ON hmis.hmis_
 
 
 --
+-- Name: hmis_2022_clients_partitioned_25_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_clients_partitioned_25_data_source_id_idx ON hmis.hmis_2022_clients_partitioned_25 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_clients_partitioned_25_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -75342,6 +74863,13 @@ CREATE INDEX "hmis_2022_clients_partitioned_26_VeteranStatus_idx3" ON hmis.hmis_
 --
 
 CREATE INDEX "hmis_2022_clients_partitioned_26_VeteranStatus_idx4" ON hmis.hmis_2022_clients_partitioned_26 USING btree ("VeteranStatus");
+
+
+--
+-- Name: hmis_2022_clients_partitioned_26_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_clients_partitioned_26_data_source_id_idx ON hmis.hmis_2022_clients_partitioned_26 USING btree (data_source_id);
 
 
 --
@@ -75646,6 +75174,13 @@ CREATE INDEX "hmis_2022_clients_partitioned_27_VeteranStatus_idx4" ON hmis.hmis_
 
 
 --
+-- Name: hmis_2022_clients_partitioned_27_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_clients_partitioned_27_data_source_id_idx ON hmis.hmis_2022_clients_partitioned_27 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_clients_partitioned_27_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -75944,6 +75479,13 @@ CREATE INDEX "hmis_2022_clients_partitioned_28_VeteranStatus_idx3" ON hmis.hmis_
 --
 
 CREATE INDEX "hmis_2022_clients_partitioned_28_VeteranStatus_idx4" ON hmis.hmis_2022_clients_partitioned_28 USING btree ("VeteranStatus");
+
+
+--
+-- Name: hmis_2022_clients_partitioned_28_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_clients_partitioned_28_data_source_id_idx ON hmis.hmis_2022_clients_partitioned_28 USING btree (data_source_id);
 
 
 --
@@ -76248,6 +75790,13 @@ CREATE INDEX "hmis_2022_clients_partitioned_29_VeteranStatus_idx4" ON hmis.hmis_
 
 
 --
+-- Name: hmis_2022_clients_partitioned_29_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_clients_partitioned_29_data_source_id_idx ON hmis.hmis_2022_clients_partitioned_29 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_clients_partitioned_29_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -76546,6 +76095,13 @@ CREATE INDEX "hmis_2022_clients_partitioned_2_VeteranStatus_idx3" ON hmis.hmis_2
 --
 
 CREATE INDEX "hmis_2022_clients_partitioned_2_VeteranStatus_idx4" ON hmis.hmis_2022_clients_partitioned_2 USING btree ("VeteranStatus");
+
+
+--
+-- Name: hmis_2022_clients_partitioned_2_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_clients_partitioned_2_data_source_id_idx ON hmis.hmis_2022_clients_partitioned_2 USING btree (data_source_id);
 
 
 --
@@ -76850,6 +76406,13 @@ CREATE INDEX "hmis_2022_clients_partitioned_30_VeteranStatus_idx4" ON hmis.hmis_
 
 
 --
+-- Name: hmis_2022_clients_partitioned_30_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_clients_partitioned_30_data_source_id_idx ON hmis.hmis_2022_clients_partitioned_30 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_clients_partitioned_30_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -77148,6 +76711,13 @@ CREATE INDEX "hmis_2022_clients_partitioned_31_VeteranStatus_idx3" ON hmis.hmis_
 --
 
 CREATE INDEX "hmis_2022_clients_partitioned_31_VeteranStatus_idx4" ON hmis.hmis_2022_clients_partitioned_31 USING btree ("VeteranStatus");
+
+
+--
+-- Name: hmis_2022_clients_partitioned_31_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_clients_partitioned_31_data_source_id_idx ON hmis.hmis_2022_clients_partitioned_31 USING btree (data_source_id);
 
 
 --
@@ -77452,6 +77022,13 @@ CREATE INDEX "hmis_2022_clients_partitioned_32_VeteranStatus_idx4" ON hmis.hmis_
 
 
 --
+-- Name: hmis_2022_clients_partitioned_32_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_clients_partitioned_32_data_source_id_idx ON hmis.hmis_2022_clients_partitioned_32 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_clients_partitioned_32_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -77750,6 +77327,13 @@ CREATE INDEX "hmis_2022_clients_partitioned_33_VeteranStatus_idx3" ON hmis.hmis_
 --
 
 CREATE INDEX "hmis_2022_clients_partitioned_33_VeteranStatus_idx4" ON hmis.hmis_2022_clients_partitioned_33 USING btree ("VeteranStatus");
+
+
+--
+-- Name: hmis_2022_clients_partitioned_33_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_clients_partitioned_33_data_source_id_idx ON hmis.hmis_2022_clients_partitioned_33 USING btree (data_source_id);
 
 
 --
@@ -78054,6 +77638,13 @@ CREATE INDEX "hmis_2022_clients_partitioned_34_VeteranStatus_idx4" ON hmis.hmis_
 
 
 --
+-- Name: hmis_2022_clients_partitioned_34_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_clients_partitioned_34_data_source_id_idx ON hmis.hmis_2022_clients_partitioned_34 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_clients_partitioned_34_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -78352,6 +77943,13 @@ CREATE INDEX "hmis_2022_clients_partitioned_35_VeteranStatus_idx3" ON hmis.hmis_
 --
 
 CREATE INDEX "hmis_2022_clients_partitioned_35_VeteranStatus_idx4" ON hmis.hmis_2022_clients_partitioned_35 USING btree ("VeteranStatus");
+
+
+--
+-- Name: hmis_2022_clients_partitioned_35_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_clients_partitioned_35_data_source_id_idx ON hmis.hmis_2022_clients_partitioned_35 USING btree (data_source_id);
 
 
 --
@@ -78656,6 +78254,13 @@ CREATE INDEX "hmis_2022_clients_partitioned_36_VeteranStatus_idx4" ON hmis.hmis_
 
 
 --
+-- Name: hmis_2022_clients_partitioned_36_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_clients_partitioned_36_data_source_id_idx ON hmis.hmis_2022_clients_partitioned_36 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_clients_partitioned_36_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -78954,6 +78559,13 @@ CREATE INDEX "hmis_2022_clients_partitioned_37_VeteranStatus_idx3" ON hmis.hmis_
 --
 
 CREATE INDEX "hmis_2022_clients_partitioned_37_VeteranStatus_idx4" ON hmis.hmis_2022_clients_partitioned_37 USING btree ("VeteranStatus");
+
+
+--
+-- Name: hmis_2022_clients_partitioned_37_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_clients_partitioned_37_data_source_id_idx ON hmis.hmis_2022_clients_partitioned_37 USING btree (data_source_id);
 
 
 --
@@ -79258,6 +78870,13 @@ CREATE INDEX "hmis_2022_clients_partitioned_38_VeteranStatus_idx4" ON hmis.hmis_
 
 
 --
+-- Name: hmis_2022_clients_partitioned_38_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_clients_partitioned_38_data_source_id_idx ON hmis.hmis_2022_clients_partitioned_38 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_clients_partitioned_38_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -79556,6 +79175,13 @@ CREATE INDEX "hmis_2022_clients_partitioned_39_VeteranStatus_idx3" ON hmis.hmis_
 --
 
 CREATE INDEX "hmis_2022_clients_partitioned_39_VeteranStatus_idx4" ON hmis.hmis_2022_clients_partitioned_39 USING btree ("VeteranStatus");
+
+
+--
+-- Name: hmis_2022_clients_partitioned_39_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_clients_partitioned_39_data_source_id_idx ON hmis.hmis_2022_clients_partitioned_39 USING btree (data_source_id);
 
 
 --
@@ -79860,6 +79486,13 @@ CREATE INDEX "hmis_2022_clients_partitioned_3_VeteranStatus_idx4" ON hmis.hmis_2
 
 
 --
+-- Name: hmis_2022_clients_partitioned_3_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_clients_partitioned_3_data_source_id_idx ON hmis.hmis_2022_clients_partitioned_3 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_clients_partitioned_3_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -80158,6 +79791,13 @@ CREATE INDEX "hmis_2022_clients_partitioned_40_VeteranStatus_idx3" ON hmis.hmis_
 --
 
 CREATE INDEX "hmis_2022_clients_partitioned_40_VeteranStatus_idx4" ON hmis.hmis_2022_clients_partitioned_40 USING btree ("VeteranStatus");
+
+
+--
+-- Name: hmis_2022_clients_partitioned_40_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_clients_partitioned_40_data_source_id_idx ON hmis.hmis_2022_clients_partitioned_40 USING btree (data_source_id);
 
 
 --
@@ -80462,6 +80102,13 @@ CREATE INDEX "hmis_2022_clients_partitioned_41_VeteranStatus_idx4" ON hmis.hmis_
 
 
 --
+-- Name: hmis_2022_clients_partitioned_41_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_clients_partitioned_41_data_source_id_idx ON hmis.hmis_2022_clients_partitioned_41 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_clients_partitioned_41_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -80760,6 +80407,13 @@ CREATE INDEX "hmis_2022_clients_partitioned_42_VeteranStatus_idx3" ON hmis.hmis_
 --
 
 CREATE INDEX "hmis_2022_clients_partitioned_42_VeteranStatus_idx4" ON hmis.hmis_2022_clients_partitioned_42 USING btree ("VeteranStatus");
+
+
+--
+-- Name: hmis_2022_clients_partitioned_42_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_clients_partitioned_42_data_source_id_idx ON hmis.hmis_2022_clients_partitioned_42 USING btree (data_source_id);
 
 
 --
@@ -81064,6 +80718,13 @@ CREATE INDEX "hmis_2022_clients_partitioned_43_VeteranStatus_idx4" ON hmis.hmis_
 
 
 --
+-- Name: hmis_2022_clients_partitioned_43_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_clients_partitioned_43_data_source_id_idx ON hmis.hmis_2022_clients_partitioned_43 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_clients_partitioned_43_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -81362,6 +81023,13 @@ CREATE INDEX "hmis_2022_clients_partitioned_44_VeteranStatus_idx3" ON hmis.hmis_
 --
 
 CREATE INDEX "hmis_2022_clients_partitioned_44_VeteranStatus_idx4" ON hmis.hmis_2022_clients_partitioned_44 USING btree ("VeteranStatus");
+
+
+--
+-- Name: hmis_2022_clients_partitioned_44_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_clients_partitioned_44_data_source_id_idx ON hmis.hmis_2022_clients_partitioned_44 USING btree (data_source_id);
 
 
 --
@@ -81666,6 +81334,13 @@ CREATE INDEX "hmis_2022_clients_partitioned_45_VeteranStatus_idx4" ON hmis.hmis_
 
 
 --
+-- Name: hmis_2022_clients_partitioned_45_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_clients_partitioned_45_data_source_id_idx ON hmis.hmis_2022_clients_partitioned_45 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_clients_partitioned_45_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -81964,6 +81639,13 @@ CREATE INDEX "hmis_2022_clients_partitioned_46_VeteranStatus_idx3" ON hmis.hmis_
 --
 
 CREATE INDEX "hmis_2022_clients_partitioned_46_VeteranStatus_idx4" ON hmis.hmis_2022_clients_partitioned_46 USING btree ("VeteranStatus");
+
+
+--
+-- Name: hmis_2022_clients_partitioned_46_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_clients_partitioned_46_data_source_id_idx ON hmis.hmis_2022_clients_partitioned_46 USING btree (data_source_id);
 
 
 --
@@ -82268,6 +81950,13 @@ CREATE INDEX "hmis_2022_clients_partitioned_47_VeteranStatus_idx4" ON hmis.hmis_
 
 
 --
+-- Name: hmis_2022_clients_partitioned_47_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_clients_partitioned_47_data_source_id_idx ON hmis.hmis_2022_clients_partitioned_47 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_clients_partitioned_47_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -82566,6 +82255,13 @@ CREATE INDEX "hmis_2022_clients_partitioned_48_VeteranStatus_idx3" ON hmis.hmis_
 --
 
 CREATE INDEX "hmis_2022_clients_partitioned_48_VeteranStatus_idx4" ON hmis.hmis_2022_clients_partitioned_48 USING btree ("VeteranStatus");
+
+
+--
+-- Name: hmis_2022_clients_partitioned_48_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_clients_partitioned_48_data_source_id_idx ON hmis.hmis_2022_clients_partitioned_48 USING btree (data_source_id);
 
 
 --
@@ -82870,6 +82566,13 @@ CREATE INDEX "hmis_2022_clients_partitioned_49_VeteranStatus_idx4" ON hmis.hmis_
 
 
 --
+-- Name: hmis_2022_clients_partitioned_49_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_clients_partitioned_49_data_source_id_idx ON hmis.hmis_2022_clients_partitioned_49 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_clients_partitioned_49_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -83168,6 +82871,13 @@ CREATE INDEX "hmis_2022_clients_partitioned_4_VeteranStatus_idx3" ON hmis.hmis_2
 --
 
 CREATE INDEX "hmis_2022_clients_partitioned_4_VeteranStatus_idx4" ON hmis.hmis_2022_clients_partitioned_4 USING btree ("VeteranStatus");
+
+
+--
+-- Name: hmis_2022_clients_partitioned_4_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_clients_partitioned_4_data_source_id_idx ON hmis.hmis_2022_clients_partitioned_4 USING btree (data_source_id);
 
 
 --
@@ -83472,6 +83182,13 @@ CREATE INDEX "hmis_2022_clients_partitioned_50_VeteranStatus_idx4" ON hmis.hmis_
 
 
 --
+-- Name: hmis_2022_clients_partitioned_50_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_clients_partitioned_50_data_source_id_idx ON hmis.hmis_2022_clients_partitioned_50 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_clients_partitioned_50_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -83770,6 +83487,13 @@ CREATE INDEX "hmis_2022_clients_partitioned_51_VeteranStatus_idx3" ON hmis.hmis_
 --
 
 CREATE INDEX "hmis_2022_clients_partitioned_51_VeteranStatus_idx4" ON hmis.hmis_2022_clients_partitioned_51 USING btree ("VeteranStatus");
+
+
+--
+-- Name: hmis_2022_clients_partitioned_51_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_clients_partitioned_51_data_source_id_idx ON hmis.hmis_2022_clients_partitioned_51 USING btree (data_source_id);
 
 
 --
@@ -84074,6 +83798,13 @@ CREATE INDEX "hmis_2022_clients_partitioned_52_VeteranStatus_idx4" ON hmis.hmis_
 
 
 --
+-- Name: hmis_2022_clients_partitioned_52_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_clients_partitioned_52_data_source_id_idx ON hmis.hmis_2022_clients_partitioned_52 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_clients_partitioned_52_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -84372,6 +84103,13 @@ CREATE INDEX "hmis_2022_clients_partitioned_53_VeteranStatus_idx3" ON hmis.hmis_
 --
 
 CREATE INDEX "hmis_2022_clients_partitioned_53_VeteranStatus_idx4" ON hmis.hmis_2022_clients_partitioned_53 USING btree ("VeteranStatus");
+
+
+--
+-- Name: hmis_2022_clients_partitioned_53_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_clients_partitioned_53_data_source_id_idx ON hmis.hmis_2022_clients_partitioned_53 USING btree (data_source_id);
 
 
 --
@@ -84676,6 +84414,13 @@ CREATE INDEX "hmis_2022_clients_partitioned_54_VeteranStatus_idx4" ON hmis.hmis_
 
 
 --
+-- Name: hmis_2022_clients_partitioned_54_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_clients_partitioned_54_data_source_id_idx ON hmis.hmis_2022_clients_partitioned_54 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_clients_partitioned_54_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -84974,6 +84719,13 @@ CREATE INDEX "hmis_2022_clients_partitioned_55_VeteranStatus_idx3" ON hmis.hmis_
 --
 
 CREATE INDEX "hmis_2022_clients_partitioned_55_VeteranStatus_idx4" ON hmis.hmis_2022_clients_partitioned_55 USING btree ("VeteranStatus");
+
+
+--
+-- Name: hmis_2022_clients_partitioned_55_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_clients_partitioned_55_data_source_id_idx ON hmis.hmis_2022_clients_partitioned_55 USING btree (data_source_id);
 
 
 --
@@ -85278,6 +85030,13 @@ CREATE INDEX "hmis_2022_clients_partitioned_56_VeteranStatus_idx4" ON hmis.hmis_
 
 
 --
+-- Name: hmis_2022_clients_partitioned_56_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_clients_partitioned_56_data_source_id_idx ON hmis.hmis_2022_clients_partitioned_56 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_clients_partitioned_56_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -85576,6 +85335,13 @@ CREATE INDEX "hmis_2022_clients_partitioned_57_VeteranStatus_idx3" ON hmis.hmis_
 --
 
 CREATE INDEX "hmis_2022_clients_partitioned_57_VeteranStatus_idx4" ON hmis.hmis_2022_clients_partitioned_57 USING btree ("VeteranStatus");
+
+
+--
+-- Name: hmis_2022_clients_partitioned_57_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_clients_partitioned_57_data_source_id_idx ON hmis.hmis_2022_clients_partitioned_57 USING btree (data_source_id);
 
 
 --
@@ -85880,6 +85646,13 @@ CREATE INDEX "hmis_2022_clients_partitioned_58_VeteranStatus_idx4" ON hmis.hmis_
 
 
 --
+-- Name: hmis_2022_clients_partitioned_58_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_clients_partitioned_58_data_source_id_idx ON hmis.hmis_2022_clients_partitioned_58 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_clients_partitioned_58_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -86178,6 +85951,13 @@ CREATE INDEX "hmis_2022_clients_partitioned_59_VeteranStatus_idx3" ON hmis.hmis_
 --
 
 CREATE INDEX "hmis_2022_clients_partitioned_59_VeteranStatus_idx4" ON hmis.hmis_2022_clients_partitioned_59 USING btree ("VeteranStatus");
+
+
+--
+-- Name: hmis_2022_clients_partitioned_59_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_clients_partitioned_59_data_source_id_idx ON hmis.hmis_2022_clients_partitioned_59 USING btree (data_source_id);
 
 
 --
@@ -86482,6 +86262,13 @@ CREATE INDEX "hmis_2022_clients_partitioned_5_VeteranStatus_idx4" ON hmis.hmis_2
 
 
 --
+-- Name: hmis_2022_clients_partitioned_5_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_clients_partitioned_5_data_source_id_idx ON hmis.hmis_2022_clients_partitioned_5 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_clients_partitioned_5_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -86780,6 +86567,13 @@ CREATE INDEX "hmis_2022_clients_partitioned_60_VeteranStatus_idx3" ON hmis.hmis_
 --
 
 CREATE INDEX "hmis_2022_clients_partitioned_60_VeteranStatus_idx4" ON hmis.hmis_2022_clients_partitioned_60 USING btree ("VeteranStatus");
+
+
+--
+-- Name: hmis_2022_clients_partitioned_60_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_clients_partitioned_60_data_source_id_idx ON hmis.hmis_2022_clients_partitioned_60 USING btree (data_source_id);
 
 
 --
@@ -87084,6 +86878,13 @@ CREATE INDEX "hmis_2022_clients_partitioned_61_VeteranStatus_idx4" ON hmis.hmis_
 
 
 --
+-- Name: hmis_2022_clients_partitioned_61_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_clients_partitioned_61_data_source_id_idx ON hmis.hmis_2022_clients_partitioned_61 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_clients_partitioned_61_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -87382,6 +87183,13 @@ CREATE INDEX "hmis_2022_clients_partitioned_62_VeteranStatus_idx3" ON hmis.hmis_
 --
 
 CREATE INDEX "hmis_2022_clients_partitioned_62_VeteranStatus_idx4" ON hmis.hmis_2022_clients_partitioned_62 USING btree ("VeteranStatus");
+
+
+--
+-- Name: hmis_2022_clients_partitioned_62_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_clients_partitioned_62_data_source_id_idx ON hmis.hmis_2022_clients_partitioned_62 USING btree (data_source_id);
 
 
 --
@@ -87686,6 +87494,13 @@ CREATE INDEX "hmis_2022_clients_partitioned_63_VeteranStatus_idx4" ON hmis.hmis_
 
 
 --
+-- Name: hmis_2022_clients_partitioned_63_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_clients_partitioned_63_data_source_id_idx ON hmis.hmis_2022_clients_partitioned_63 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_clients_partitioned_63_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -87984,6 +87799,13 @@ CREATE INDEX "hmis_2022_clients_partitioned_64_VeteranStatus_idx3" ON hmis.hmis_
 --
 
 CREATE INDEX "hmis_2022_clients_partitioned_64_VeteranStatus_idx4" ON hmis.hmis_2022_clients_partitioned_64 USING btree ("VeteranStatus");
+
+
+--
+-- Name: hmis_2022_clients_partitioned_64_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_clients_partitioned_64_data_source_id_idx ON hmis.hmis_2022_clients_partitioned_64 USING btree (data_source_id);
 
 
 --
@@ -88288,6 +88110,13 @@ CREATE INDEX "hmis_2022_clients_partitioned_65_VeteranStatus_idx4" ON hmis.hmis_
 
 
 --
+-- Name: hmis_2022_clients_partitioned_65_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_clients_partitioned_65_data_source_id_idx ON hmis.hmis_2022_clients_partitioned_65 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_clients_partitioned_65_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -88586,6 +88415,13 @@ CREATE INDEX "hmis_2022_clients_partitioned_66_VeteranStatus_idx3" ON hmis.hmis_
 --
 
 CREATE INDEX "hmis_2022_clients_partitioned_66_VeteranStatus_idx4" ON hmis.hmis_2022_clients_partitioned_66 USING btree ("VeteranStatus");
+
+
+--
+-- Name: hmis_2022_clients_partitioned_66_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_clients_partitioned_66_data_source_id_idx ON hmis.hmis_2022_clients_partitioned_66 USING btree (data_source_id);
 
 
 --
@@ -88890,6 +88726,13 @@ CREATE INDEX "hmis_2022_clients_partitioned_67_VeteranStatus_idx4" ON hmis.hmis_
 
 
 --
+-- Name: hmis_2022_clients_partitioned_67_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_clients_partitioned_67_data_source_id_idx ON hmis.hmis_2022_clients_partitioned_67 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_clients_partitioned_67_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -89188,6 +89031,13 @@ CREATE INDEX "hmis_2022_clients_partitioned_68_VeteranStatus_idx3" ON hmis.hmis_
 --
 
 CREATE INDEX "hmis_2022_clients_partitioned_68_VeteranStatus_idx4" ON hmis.hmis_2022_clients_partitioned_68 USING btree ("VeteranStatus");
+
+
+--
+-- Name: hmis_2022_clients_partitioned_68_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_clients_partitioned_68_data_source_id_idx ON hmis.hmis_2022_clients_partitioned_68 USING btree (data_source_id);
 
 
 --
@@ -89492,6 +89342,13 @@ CREATE INDEX "hmis_2022_clients_partitioned_69_VeteranStatus_idx4" ON hmis.hmis_
 
 
 --
+-- Name: hmis_2022_clients_partitioned_69_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_clients_partitioned_69_data_source_id_idx ON hmis.hmis_2022_clients_partitioned_69 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_clients_partitioned_69_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -89790,6 +89647,13 @@ CREATE INDEX "hmis_2022_clients_partitioned_6_VeteranStatus_idx3" ON hmis.hmis_2
 --
 
 CREATE INDEX "hmis_2022_clients_partitioned_6_VeteranStatus_idx4" ON hmis.hmis_2022_clients_partitioned_6 USING btree ("VeteranStatus");
+
+
+--
+-- Name: hmis_2022_clients_partitioned_6_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_clients_partitioned_6_data_source_id_idx ON hmis.hmis_2022_clients_partitioned_6 USING btree (data_source_id);
 
 
 --
@@ -90094,6 +89958,13 @@ CREATE INDEX "hmis_2022_clients_partitioned_70_VeteranStatus_idx4" ON hmis.hmis_
 
 
 --
+-- Name: hmis_2022_clients_partitioned_70_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_clients_partitioned_70_data_source_id_idx ON hmis.hmis_2022_clients_partitioned_70 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_clients_partitioned_70_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -90392,6 +90263,13 @@ CREATE INDEX "hmis_2022_clients_partitioned_7_VeteranStatus_idx3" ON hmis.hmis_2
 --
 
 CREATE INDEX "hmis_2022_clients_partitioned_7_VeteranStatus_idx4" ON hmis.hmis_2022_clients_partitioned_7 USING btree ("VeteranStatus");
+
+
+--
+-- Name: hmis_2022_clients_partitioned_7_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_clients_partitioned_7_data_source_id_idx ON hmis.hmis_2022_clients_partitioned_7 USING btree (data_source_id);
 
 
 --
@@ -90696,6 +90574,13 @@ CREATE INDEX "hmis_2022_clients_partitioned_8_VeteranStatus_idx4" ON hmis.hmis_2
 
 
 --
+-- Name: hmis_2022_clients_partitioned_8_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_clients_partitioned_8_data_source_id_idx ON hmis.hmis_2022_clients_partitioned_8 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_clients_partitioned_8_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -90994,6 +90879,13 @@ CREATE INDEX "hmis_2022_clients_partitioned_9_VeteranStatus_idx3" ON hmis.hmis_2
 --
 
 CREATE INDEX "hmis_2022_clients_partitioned_9_VeteranStatus_idx4" ON hmis.hmis_2022_clients_partitioned_9 USING btree ("VeteranStatus");
+
+
+--
+-- Name: hmis_2022_clients_partitioned_9_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_clients_partitioned_9_data_source_id_idx ON hmis.hmis_2022_clients_partitioned_9 USING btree (data_source_id);
 
 
 --
@@ -105221,6 +105113,20 @@ CREATE INDEX "hmis_2022_enrollments_partitioned_0_RelationshipToHoH_idx5" ON hmi
 
 
 --
+-- Name: index_hmis_2022_enrollments_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_2022_enrollments_on_data_source_id ON ONLY public.hmis_2022_enrollments USING btree (data_source_id);
+
+
+--
+-- Name: hmis_2022_enrollments_partitioned_0_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_enrollments_partitioned_0_data_source_id_idx ON hmis.hmis_2022_enrollments_partitioned_0 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_enrollments_partitioned_importer_log_id_idx; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -105676,6 +105582,13 @@ CREATE INDEX "hmis_2022_enrollments_partitioned_10_RelationshipToHoH_idx5" ON hm
 
 
 --
+-- Name: hmis_2022_enrollments_partitioned_10_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_enrollments_partitioned_10_data_source_id_idx ON hmis.hmis_2022_enrollments_partitioned_10 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_enrollments_partitioned_10_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -106114,6 +106027,13 @@ CREATE INDEX "hmis_2022_enrollments_partitioned_11_RelationshipToHoH_idx4" ON hm
 --
 
 CREATE INDEX "hmis_2022_enrollments_partitioned_11_RelationshipToHoH_idx5" ON hmis.hmis_2022_enrollments_partitioned_11 USING btree ("RelationshipToHoH");
+
+
+--
+-- Name: hmis_2022_enrollments_partitioned_11_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_enrollments_partitioned_11_data_source_id_idx ON hmis.hmis_2022_enrollments_partitioned_11 USING btree (data_source_id);
 
 
 --
@@ -106558,6 +106478,13 @@ CREATE INDEX "hmis_2022_enrollments_partitioned_12_RelationshipToHoH_idx5" ON hm
 
 
 --
+-- Name: hmis_2022_enrollments_partitioned_12_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_enrollments_partitioned_12_data_source_id_idx ON hmis.hmis_2022_enrollments_partitioned_12 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_enrollments_partitioned_12_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -106996,6 +106923,13 @@ CREATE INDEX "hmis_2022_enrollments_partitioned_13_RelationshipToHoH_idx4" ON hm
 --
 
 CREATE INDEX "hmis_2022_enrollments_partitioned_13_RelationshipToHoH_idx5" ON hmis.hmis_2022_enrollments_partitioned_13 USING btree ("RelationshipToHoH");
+
+
+--
+-- Name: hmis_2022_enrollments_partitioned_13_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_enrollments_partitioned_13_data_source_id_idx ON hmis.hmis_2022_enrollments_partitioned_13 USING btree (data_source_id);
 
 
 --
@@ -107440,6 +107374,13 @@ CREATE INDEX "hmis_2022_enrollments_partitioned_14_RelationshipToHoH_idx5" ON hm
 
 
 --
+-- Name: hmis_2022_enrollments_partitioned_14_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_enrollments_partitioned_14_data_source_id_idx ON hmis.hmis_2022_enrollments_partitioned_14 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_enrollments_partitioned_14_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -107878,6 +107819,13 @@ CREATE INDEX "hmis_2022_enrollments_partitioned_15_RelationshipToHoH_idx4" ON hm
 --
 
 CREATE INDEX "hmis_2022_enrollments_partitioned_15_RelationshipToHoH_idx5" ON hmis.hmis_2022_enrollments_partitioned_15 USING btree ("RelationshipToHoH");
+
+
+--
+-- Name: hmis_2022_enrollments_partitioned_15_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_enrollments_partitioned_15_data_source_id_idx ON hmis.hmis_2022_enrollments_partitioned_15 USING btree (data_source_id);
 
 
 --
@@ -108322,6 +108270,13 @@ CREATE INDEX "hmis_2022_enrollments_partitioned_16_RelationshipToHoH_idx5" ON hm
 
 
 --
+-- Name: hmis_2022_enrollments_partitioned_16_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_enrollments_partitioned_16_data_source_id_idx ON hmis.hmis_2022_enrollments_partitioned_16 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_enrollments_partitioned_16_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -108760,6 +108715,13 @@ CREATE INDEX "hmis_2022_enrollments_partitioned_17_RelationshipToHoH_idx4" ON hm
 --
 
 CREATE INDEX "hmis_2022_enrollments_partitioned_17_RelationshipToHoH_idx5" ON hmis.hmis_2022_enrollments_partitioned_17 USING btree ("RelationshipToHoH");
+
+
+--
+-- Name: hmis_2022_enrollments_partitioned_17_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_enrollments_partitioned_17_data_source_id_idx ON hmis.hmis_2022_enrollments_partitioned_17 USING btree (data_source_id);
 
 
 --
@@ -109204,6 +109166,13 @@ CREATE INDEX "hmis_2022_enrollments_partitioned_18_RelationshipToHoH_idx5" ON hm
 
 
 --
+-- Name: hmis_2022_enrollments_partitioned_18_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_enrollments_partitioned_18_data_source_id_idx ON hmis.hmis_2022_enrollments_partitioned_18 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_enrollments_partitioned_18_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -109642,6 +109611,13 @@ CREATE INDEX "hmis_2022_enrollments_partitioned_19_RelationshipToHoH_idx4" ON hm
 --
 
 CREATE INDEX "hmis_2022_enrollments_partitioned_19_RelationshipToHoH_idx5" ON hmis.hmis_2022_enrollments_partitioned_19 USING btree ("RelationshipToHoH");
+
+
+--
+-- Name: hmis_2022_enrollments_partitioned_19_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_enrollments_partitioned_19_data_source_id_idx ON hmis.hmis_2022_enrollments_partitioned_19 USING btree (data_source_id);
 
 
 --
@@ -110093,6 +110069,13 @@ CREATE INDEX "hmis_2022_enrollments_partitioned_1_RelationshipToHoH_idx5" ON hmi
 
 
 --
+-- Name: hmis_2022_enrollments_partitioned_1_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_enrollments_partitioned_1_data_source_id_idx ON hmis.hmis_2022_enrollments_partitioned_1 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_enrollments_partitioned_1_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -110531,6 +110514,13 @@ CREATE INDEX "hmis_2022_enrollments_partitioned_20_RelationshipToHoH_idx4" ON hm
 --
 
 CREATE INDEX "hmis_2022_enrollments_partitioned_20_RelationshipToHoH_idx5" ON hmis.hmis_2022_enrollments_partitioned_20 USING btree ("RelationshipToHoH");
+
+
+--
+-- Name: hmis_2022_enrollments_partitioned_20_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_enrollments_partitioned_20_data_source_id_idx ON hmis.hmis_2022_enrollments_partitioned_20 USING btree (data_source_id);
 
 
 --
@@ -110975,6 +110965,13 @@ CREATE INDEX "hmis_2022_enrollments_partitioned_21_RelationshipToHoH_idx5" ON hm
 
 
 --
+-- Name: hmis_2022_enrollments_partitioned_21_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_enrollments_partitioned_21_data_source_id_idx ON hmis.hmis_2022_enrollments_partitioned_21 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_enrollments_partitioned_21_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -111413,6 +111410,13 @@ CREATE INDEX "hmis_2022_enrollments_partitioned_22_RelationshipToHoH_idx4" ON hm
 --
 
 CREATE INDEX "hmis_2022_enrollments_partitioned_22_RelationshipToHoH_idx5" ON hmis.hmis_2022_enrollments_partitioned_22 USING btree ("RelationshipToHoH");
+
+
+--
+-- Name: hmis_2022_enrollments_partitioned_22_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_enrollments_partitioned_22_data_source_id_idx ON hmis.hmis_2022_enrollments_partitioned_22 USING btree (data_source_id);
 
 
 --
@@ -111857,6 +111861,13 @@ CREATE INDEX "hmis_2022_enrollments_partitioned_23_RelationshipToHoH_idx5" ON hm
 
 
 --
+-- Name: hmis_2022_enrollments_partitioned_23_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_enrollments_partitioned_23_data_source_id_idx ON hmis.hmis_2022_enrollments_partitioned_23 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_enrollments_partitioned_23_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -112295,6 +112306,13 @@ CREATE INDEX "hmis_2022_enrollments_partitioned_24_RelationshipToHoH_idx4" ON hm
 --
 
 CREATE INDEX "hmis_2022_enrollments_partitioned_24_RelationshipToHoH_idx5" ON hmis.hmis_2022_enrollments_partitioned_24 USING btree ("RelationshipToHoH");
+
+
+--
+-- Name: hmis_2022_enrollments_partitioned_24_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_enrollments_partitioned_24_data_source_id_idx ON hmis.hmis_2022_enrollments_partitioned_24 USING btree (data_source_id);
 
 
 --
@@ -112739,6 +112757,13 @@ CREATE INDEX "hmis_2022_enrollments_partitioned_25_RelationshipToHoH_idx5" ON hm
 
 
 --
+-- Name: hmis_2022_enrollments_partitioned_25_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_enrollments_partitioned_25_data_source_id_idx ON hmis.hmis_2022_enrollments_partitioned_25 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_enrollments_partitioned_25_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -113177,6 +113202,13 @@ CREATE INDEX "hmis_2022_enrollments_partitioned_26_RelationshipToHoH_idx4" ON hm
 --
 
 CREATE INDEX "hmis_2022_enrollments_partitioned_26_RelationshipToHoH_idx5" ON hmis.hmis_2022_enrollments_partitioned_26 USING btree ("RelationshipToHoH");
+
+
+--
+-- Name: hmis_2022_enrollments_partitioned_26_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_enrollments_partitioned_26_data_source_id_idx ON hmis.hmis_2022_enrollments_partitioned_26 USING btree (data_source_id);
 
 
 --
@@ -113621,6 +113653,13 @@ CREATE INDEX "hmis_2022_enrollments_partitioned_27_RelationshipToHoH_idx5" ON hm
 
 
 --
+-- Name: hmis_2022_enrollments_partitioned_27_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_enrollments_partitioned_27_data_source_id_idx ON hmis.hmis_2022_enrollments_partitioned_27 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_enrollments_partitioned_27_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -114062,6 +114101,13 @@ CREATE INDEX "hmis_2022_enrollments_partitioned_28_RelationshipToHoH_idx5" ON hm
 
 
 --
+-- Name: hmis_2022_enrollments_partitioned_28_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_enrollments_partitioned_28_data_source_id_idx ON hmis.hmis_2022_enrollments_partitioned_28 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_enrollments_partitioned_28_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -114500,6 +114546,13 @@ CREATE INDEX "hmis_2022_enrollments_partitioned_29_RelationshipToHoH_idx4" ON hm
 --
 
 CREATE INDEX "hmis_2022_enrollments_partitioned_29_RelationshipToHoH_idx5" ON hmis.hmis_2022_enrollments_partitioned_29 USING btree ("RelationshipToHoH");
+
+
+--
+-- Name: hmis_2022_enrollments_partitioned_29_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_enrollments_partitioned_29_data_source_id_idx ON hmis.hmis_2022_enrollments_partitioned_29 USING btree (data_source_id);
 
 
 --
@@ -114951,6 +115004,13 @@ CREATE INDEX "hmis_2022_enrollments_partitioned_2_RelationshipToHoH_idx5" ON hmi
 
 
 --
+-- Name: hmis_2022_enrollments_partitioned_2_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_enrollments_partitioned_2_data_source_id_idx ON hmis.hmis_2022_enrollments_partitioned_2 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_enrollments_partitioned_2_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -115389,6 +115449,13 @@ CREATE INDEX "hmis_2022_enrollments_partitioned_30_RelationshipToHoH_idx4" ON hm
 --
 
 CREATE INDEX "hmis_2022_enrollments_partitioned_30_RelationshipToHoH_idx5" ON hmis.hmis_2022_enrollments_partitioned_30 USING btree ("RelationshipToHoH");
+
+
+--
+-- Name: hmis_2022_enrollments_partitioned_30_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_enrollments_partitioned_30_data_source_id_idx ON hmis.hmis_2022_enrollments_partitioned_30 USING btree (data_source_id);
 
 
 --
@@ -115833,6 +115900,13 @@ CREATE INDEX "hmis_2022_enrollments_partitioned_31_RelationshipToHoH_idx5" ON hm
 
 
 --
+-- Name: hmis_2022_enrollments_partitioned_31_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_enrollments_partitioned_31_data_source_id_idx ON hmis.hmis_2022_enrollments_partitioned_31 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_enrollments_partitioned_31_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -116271,6 +116345,13 @@ CREATE INDEX "hmis_2022_enrollments_partitioned_32_RelationshipToHoH_idx4" ON hm
 --
 
 CREATE INDEX "hmis_2022_enrollments_partitioned_32_RelationshipToHoH_idx5" ON hmis.hmis_2022_enrollments_partitioned_32 USING btree ("RelationshipToHoH");
+
+
+--
+-- Name: hmis_2022_enrollments_partitioned_32_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_enrollments_partitioned_32_data_source_id_idx ON hmis.hmis_2022_enrollments_partitioned_32 USING btree (data_source_id);
 
 
 --
@@ -116715,6 +116796,13 @@ CREATE INDEX "hmis_2022_enrollments_partitioned_33_RelationshipToHoH_idx5" ON hm
 
 
 --
+-- Name: hmis_2022_enrollments_partitioned_33_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_enrollments_partitioned_33_data_source_id_idx ON hmis.hmis_2022_enrollments_partitioned_33 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_enrollments_partitioned_33_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -117153,6 +117241,13 @@ CREATE INDEX "hmis_2022_enrollments_partitioned_34_RelationshipToHoH_idx4" ON hm
 --
 
 CREATE INDEX "hmis_2022_enrollments_partitioned_34_RelationshipToHoH_idx5" ON hmis.hmis_2022_enrollments_partitioned_34 USING btree ("RelationshipToHoH");
+
+
+--
+-- Name: hmis_2022_enrollments_partitioned_34_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_enrollments_partitioned_34_data_source_id_idx ON hmis.hmis_2022_enrollments_partitioned_34 USING btree (data_source_id);
 
 
 --
@@ -117597,6 +117692,13 @@ CREATE INDEX "hmis_2022_enrollments_partitioned_35_RelationshipToHoH_idx5" ON hm
 
 
 --
+-- Name: hmis_2022_enrollments_partitioned_35_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_enrollments_partitioned_35_data_source_id_idx ON hmis.hmis_2022_enrollments_partitioned_35 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_enrollments_partitioned_35_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -118035,6 +118137,13 @@ CREATE INDEX "hmis_2022_enrollments_partitioned_36_RelationshipToHoH_idx4" ON hm
 --
 
 CREATE INDEX "hmis_2022_enrollments_partitioned_36_RelationshipToHoH_idx5" ON hmis.hmis_2022_enrollments_partitioned_36 USING btree ("RelationshipToHoH");
+
+
+--
+-- Name: hmis_2022_enrollments_partitioned_36_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_enrollments_partitioned_36_data_source_id_idx ON hmis.hmis_2022_enrollments_partitioned_36 USING btree (data_source_id);
 
 
 --
@@ -118479,6 +118588,13 @@ CREATE INDEX "hmis_2022_enrollments_partitioned_37_RelationshipToHoH_idx5" ON hm
 
 
 --
+-- Name: hmis_2022_enrollments_partitioned_37_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_enrollments_partitioned_37_data_source_id_idx ON hmis.hmis_2022_enrollments_partitioned_37 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_enrollments_partitioned_37_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -118920,6 +119036,13 @@ CREATE INDEX "hmis_2022_enrollments_partitioned_38_RelationshipToHoH_idx5" ON hm
 
 
 --
+-- Name: hmis_2022_enrollments_partitioned_38_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_enrollments_partitioned_38_data_source_id_idx ON hmis.hmis_2022_enrollments_partitioned_38 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_enrollments_partitioned_38_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -119358,6 +119481,13 @@ CREATE INDEX "hmis_2022_enrollments_partitioned_39_RelationshipToHoH_idx4" ON hm
 --
 
 CREATE INDEX "hmis_2022_enrollments_partitioned_39_RelationshipToHoH_idx5" ON hmis.hmis_2022_enrollments_partitioned_39 USING btree ("RelationshipToHoH");
+
+
+--
+-- Name: hmis_2022_enrollments_partitioned_39_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_enrollments_partitioned_39_data_source_id_idx ON hmis.hmis_2022_enrollments_partitioned_39 USING btree (data_source_id);
 
 
 --
@@ -119809,6 +119939,13 @@ CREATE INDEX "hmis_2022_enrollments_partitioned_3_RelationshipToHoH_idx5" ON hmi
 
 
 --
+-- Name: hmis_2022_enrollments_partitioned_3_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_enrollments_partitioned_3_data_source_id_idx ON hmis.hmis_2022_enrollments_partitioned_3 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_enrollments_partitioned_3_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -120247,6 +120384,13 @@ CREATE INDEX "hmis_2022_enrollments_partitioned_40_RelationshipToHoH_idx4" ON hm
 --
 
 CREATE INDEX "hmis_2022_enrollments_partitioned_40_RelationshipToHoH_idx5" ON hmis.hmis_2022_enrollments_partitioned_40 USING btree ("RelationshipToHoH");
+
+
+--
+-- Name: hmis_2022_enrollments_partitioned_40_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_enrollments_partitioned_40_data_source_id_idx ON hmis.hmis_2022_enrollments_partitioned_40 USING btree (data_source_id);
 
 
 --
@@ -120691,6 +120835,13 @@ CREATE INDEX "hmis_2022_enrollments_partitioned_41_RelationshipToHoH_idx5" ON hm
 
 
 --
+-- Name: hmis_2022_enrollments_partitioned_41_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_enrollments_partitioned_41_data_source_id_idx ON hmis.hmis_2022_enrollments_partitioned_41 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_enrollments_partitioned_41_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -121129,6 +121280,13 @@ CREATE INDEX "hmis_2022_enrollments_partitioned_42_RelationshipToHoH_idx4" ON hm
 --
 
 CREATE INDEX "hmis_2022_enrollments_partitioned_42_RelationshipToHoH_idx5" ON hmis.hmis_2022_enrollments_partitioned_42 USING btree ("RelationshipToHoH");
+
+
+--
+-- Name: hmis_2022_enrollments_partitioned_42_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_enrollments_partitioned_42_data_source_id_idx ON hmis.hmis_2022_enrollments_partitioned_42 USING btree (data_source_id);
 
 
 --
@@ -121573,6 +121731,13 @@ CREATE INDEX "hmis_2022_enrollments_partitioned_43_RelationshipToHoH_idx5" ON hm
 
 
 --
+-- Name: hmis_2022_enrollments_partitioned_43_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_enrollments_partitioned_43_data_source_id_idx ON hmis.hmis_2022_enrollments_partitioned_43 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_enrollments_partitioned_43_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -122011,6 +122176,13 @@ CREATE INDEX "hmis_2022_enrollments_partitioned_44_RelationshipToHoH_idx4" ON hm
 --
 
 CREATE INDEX "hmis_2022_enrollments_partitioned_44_RelationshipToHoH_idx5" ON hmis.hmis_2022_enrollments_partitioned_44 USING btree ("RelationshipToHoH");
+
+
+--
+-- Name: hmis_2022_enrollments_partitioned_44_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_enrollments_partitioned_44_data_source_id_idx ON hmis.hmis_2022_enrollments_partitioned_44 USING btree (data_source_id);
 
 
 --
@@ -122455,6 +122627,13 @@ CREATE INDEX "hmis_2022_enrollments_partitioned_45_RelationshipToHoH_idx5" ON hm
 
 
 --
+-- Name: hmis_2022_enrollments_partitioned_45_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_enrollments_partitioned_45_data_source_id_idx ON hmis.hmis_2022_enrollments_partitioned_45 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_enrollments_partitioned_45_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -122893,6 +123072,13 @@ CREATE INDEX "hmis_2022_enrollments_partitioned_46_RelationshipToHoH_idx4" ON hm
 --
 
 CREATE INDEX "hmis_2022_enrollments_partitioned_46_RelationshipToHoH_idx5" ON hmis.hmis_2022_enrollments_partitioned_46 USING btree ("RelationshipToHoH");
+
+
+--
+-- Name: hmis_2022_enrollments_partitioned_46_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_enrollments_partitioned_46_data_source_id_idx ON hmis.hmis_2022_enrollments_partitioned_46 USING btree (data_source_id);
 
 
 --
@@ -123337,6 +123523,13 @@ CREATE INDEX "hmis_2022_enrollments_partitioned_47_RelationshipToHoH_idx5" ON hm
 
 
 --
+-- Name: hmis_2022_enrollments_partitioned_47_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_enrollments_partitioned_47_data_source_id_idx ON hmis.hmis_2022_enrollments_partitioned_47 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_enrollments_partitioned_47_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -123778,6 +123971,13 @@ CREATE INDEX "hmis_2022_enrollments_partitioned_48_RelationshipToHoH_idx5" ON hm
 
 
 --
+-- Name: hmis_2022_enrollments_partitioned_48_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_enrollments_partitioned_48_data_source_id_idx ON hmis.hmis_2022_enrollments_partitioned_48 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_enrollments_partitioned_48_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -124216,6 +124416,13 @@ CREATE INDEX "hmis_2022_enrollments_partitioned_49_RelationshipToHoH_idx4" ON hm
 --
 
 CREATE INDEX "hmis_2022_enrollments_partitioned_49_RelationshipToHoH_idx5" ON hmis.hmis_2022_enrollments_partitioned_49 USING btree ("RelationshipToHoH");
+
+
+--
+-- Name: hmis_2022_enrollments_partitioned_49_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_enrollments_partitioned_49_data_source_id_idx ON hmis.hmis_2022_enrollments_partitioned_49 USING btree (data_source_id);
 
 
 --
@@ -124667,6 +124874,13 @@ CREATE INDEX "hmis_2022_enrollments_partitioned_4_RelationshipToHoH_idx5" ON hmi
 
 
 --
+-- Name: hmis_2022_enrollments_partitioned_4_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_enrollments_partitioned_4_data_source_id_idx ON hmis.hmis_2022_enrollments_partitioned_4 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_enrollments_partitioned_4_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -125105,6 +125319,13 @@ CREATE INDEX "hmis_2022_enrollments_partitioned_50_RelationshipToHoH_idx4" ON hm
 --
 
 CREATE INDEX "hmis_2022_enrollments_partitioned_50_RelationshipToHoH_idx5" ON hmis.hmis_2022_enrollments_partitioned_50 USING btree ("RelationshipToHoH");
+
+
+--
+-- Name: hmis_2022_enrollments_partitioned_50_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_enrollments_partitioned_50_data_source_id_idx ON hmis.hmis_2022_enrollments_partitioned_50 USING btree (data_source_id);
 
 
 --
@@ -125549,6 +125770,13 @@ CREATE INDEX "hmis_2022_enrollments_partitioned_51_RelationshipToHoH_idx5" ON hm
 
 
 --
+-- Name: hmis_2022_enrollments_partitioned_51_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_enrollments_partitioned_51_data_source_id_idx ON hmis.hmis_2022_enrollments_partitioned_51 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_enrollments_partitioned_51_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -125987,6 +126215,13 @@ CREATE INDEX "hmis_2022_enrollments_partitioned_52_RelationshipToHoH_idx4" ON hm
 --
 
 CREATE INDEX "hmis_2022_enrollments_partitioned_52_RelationshipToHoH_idx5" ON hmis.hmis_2022_enrollments_partitioned_52 USING btree ("RelationshipToHoH");
+
+
+--
+-- Name: hmis_2022_enrollments_partitioned_52_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_enrollments_partitioned_52_data_source_id_idx ON hmis.hmis_2022_enrollments_partitioned_52 USING btree (data_source_id);
 
 
 --
@@ -126431,6 +126666,13 @@ CREATE INDEX "hmis_2022_enrollments_partitioned_53_RelationshipToHoH_idx5" ON hm
 
 
 --
+-- Name: hmis_2022_enrollments_partitioned_53_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_enrollments_partitioned_53_data_source_id_idx ON hmis.hmis_2022_enrollments_partitioned_53 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_enrollments_partitioned_53_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -126869,6 +127111,13 @@ CREATE INDEX "hmis_2022_enrollments_partitioned_54_RelationshipToHoH_idx4" ON hm
 --
 
 CREATE INDEX "hmis_2022_enrollments_partitioned_54_RelationshipToHoH_idx5" ON hmis.hmis_2022_enrollments_partitioned_54 USING btree ("RelationshipToHoH");
+
+
+--
+-- Name: hmis_2022_enrollments_partitioned_54_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_enrollments_partitioned_54_data_source_id_idx ON hmis.hmis_2022_enrollments_partitioned_54 USING btree (data_source_id);
 
 
 --
@@ -127313,6 +127562,13 @@ CREATE INDEX "hmis_2022_enrollments_partitioned_55_RelationshipToHoH_idx5" ON hm
 
 
 --
+-- Name: hmis_2022_enrollments_partitioned_55_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_enrollments_partitioned_55_data_source_id_idx ON hmis.hmis_2022_enrollments_partitioned_55 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_enrollments_partitioned_55_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -127751,6 +128007,13 @@ CREATE INDEX "hmis_2022_enrollments_partitioned_56_RelationshipToHoH_idx4" ON hm
 --
 
 CREATE INDEX "hmis_2022_enrollments_partitioned_56_RelationshipToHoH_idx5" ON hmis.hmis_2022_enrollments_partitioned_56 USING btree ("RelationshipToHoH");
+
+
+--
+-- Name: hmis_2022_enrollments_partitioned_56_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_enrollments_partitioned_56_data_source_id_idx ON hmis.hmis_2022_enrollments_partitioned_56 USING btree (data_source_id);
 
 
 --
@@ -128195,6 +128458,13 @@ CREATE INDEX "hmis_2022_enrollments_partitioned_57_RelationshipToHoH_idx5" ON hm
 
 
 --
+-- Name: hmis_2022_enrollments_partitioned_57_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_enrollments_partitioned_57_data_source_id_idx ON hmis.hmis_2022_enrollments_partitioned_57 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_enrollments_partitioned_57_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -128636,6 +128906,13 @@ CREATE INDEX "hmis_2022_enrollments_partitioned_58_RelationshipToHoH_idx5" ON hm
 
 
 --
+-- Name: hmis_2022_enrollments_partitioned_58_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_enrollments_partitioned_58_data_source_id_idx ON hmis.hmis_2022_enrollments_partitioned_58 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_enrollments_partitioned_58_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -129074,6 +129351,13 @@ CREATE INDEX "hmis_2022_enrollments_partitioned_59_RelationshipToHoH_idx4" ON hm
 --
 
 CREATE INDEX "hmis_2022_enrollments_partitioned_59_RelationshipToHoH_idx5" ON hmis.hmis_2022_enrollments_partitioned_59 USING btree ("RelationshipToHoH");
+
+
+--
+-- Name: hmis_2022_enrollments_partitioned_59_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_enrollments_partitioned_59_data_source_id_idx ON hmis.hmis_2022_enrollments_partitioned_59 USING btree (data_source_id);
 
 
 --
@@ -129525,6 +129809,13 @@ CREATE INDEX "hmis_2022_enrollments_partitioned_5_RelationshipToHoH_idx5" ON hmi
 
 
 --
+-- Name: hmis_2022_enrollments_partitioned_5_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_enrollments_partitioned_5_data_source_id_idx ON hmis.hmis_2022_enrollments_partitioned_5 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_enrollments_partitioned_5_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -129963,6 +130254,13 @@ CREATE INDEX "hmis_2022_enrollments_partitioned_60_RelationshipToHoH_idx4" ON hm
 --
 
 CREATE INDEX "hmis_2022_enrollments_partitioned_60_RelationshipToHoH_idx5" ON hmis.hmis_2022_enrollments_partitioned_60 USING btree ("RelationshipToHoH");
+
+
+--
+-- Name: hmis_2022_enrollments_partitioned_60_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_enrollments_partitioned_60_data_source_id_idx ON hmis.hmis_2022_enrollments_partitioned_60 USING btree (data_source_id);
 
 
 --
@@ -130407,6 +130705,13 @@ CREATE INDEX "hmis_2022_enrollments_partitioned_61_RelationshipToHoH_idx5" ON hm
 
 
 --
+-- Name: hmis_2022_enrollments_partitioned_61_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_enrollments_partitioned_61_data_source_id_idx ON hmis.hmis_2022_enrollments_partitioned_61 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_enrollments_partitioned_61_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -130845,6 +131150,13 @@ CREATE INDEX "hmis_2022_enrollments_partitioned_62_RelationshipToHoH_idx4" ON hm
 --
 
 CREATE INDEX "hmis_2022_enrollments_partitioned_62_RelationshipToHoH_idx5" ON hmis.hmis_2022_enrollments_partitioned_62 USING btree ("RelationshipToHoH");
+
+
+--
+-- Name: hmis_2022_enrollments_partitioned_62_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_enrollments_partitioned_62_data_source_id_idx ON hmis.hmis_2022_enrollments_partitioned_62 USING btree (data_source_id);
 
 
 --
@@ -131289,6 +131601,13 @@ CREATE INDEX "hmis_2022_enrollments_partitioned_63_RelationshipToHoH_idx5" ON hm
 
 
 --
+-- Name: hmis_2022_enrollments_partitioned_63_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_enrollments_partitioned_63_data_source_id_idx ON hmis.hmis_2022_enrollments_partitioned_63 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_enrollments_partitioned_63_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -131727,6 +132046,13 @@ CREATE INDEX "hmis_2022_enrollments_partitioned_64_RelationshipToHoH_idx4" ON hm
 --
 
 CREATE INDEX "hmis_2022_enrollments_partitioned_64_RelationshipToHoH_idx5" ON hmis.hmis_2022_enrollments_partitioned_64 USING btree ("RelationshipToHoH");
+
+
+--
+-- Name: hmis_2022_enrollments_partitioned_64_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_enrollments_partitioned_64_data_source_id_idx ON hmis.hmis_2022_enrollments_partitioned_64 USING btree (data_source_id);
 
 
 --
@@ -132171,6 +132497,13 @@ CREATE INDEX "hmis_2022_enrollments_partitioned_65_RelationshipToHoH_idx5" ON hm
 
 
 --
+-- Name: hmis_2022_enrollments_partitioned_65_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_enrollments_partitioned_65_data_source_id_idx ON hmis.hmis_2022_enrollments_partitioned_65 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_enrollments_partitioned_65_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -132609,6 +132942,13 @@ CREATE INDEX "hmis_2022_enrollments_partitioned_66_RelationshipToHoH_idx4" ON hm
 --
 
 CREATE INDEX "hmis_2022_enrollments_partitioned_66_RelationshipToHoH_idx5" ON hmis.hmis_2022_enrollments_partitioned_66 USING btree ("RelationshipToHoH");
+
+
+--
+-- Name: hmis_2022_enrollments_partitioned_66_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_enrollments_partitioned_66_data_source_id_idx ON hmis.hmis_2022_enrollments_partitioned_66 USING btree (data_source_id);
 
 
 --
@@ -133053,6 +133393,13 @@ CREATE INDEX "hmis_2022_enrollments_partitioned_67_RelationshipToHoH_idx5" ON hm
 
 
 --
+-- Name: hmis_2022_enrollments_partitioned_67_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_enrollments_partitioned_67_data_source_id_idx ON hmis.hmis_2022_enrollments_partitioned_67 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_enrollments_partitioned_67_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -133494,6 +133841,13 @@ CREATE INDEX "hmis_2022_enrollments_partitioned_68_RelationshipToHoH_idx5" ON hm
 
 
 --
+-- Name: hmis_2022_enrollments_partitioned_68_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_enrollments_partitioned_68_data_source_id_idx ON hmis.hmis_2022_enrollments_partitioned_68 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_enrollments_partitioned_68_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -133932,6 +134286,13 @@ CREATE INDEX "hmis_2022_enrollments_partitioned_69_RelationshipToHoH_idx4" ON hm
 --
 
 CREATE INDEX "hmis_2022_enrollments_partitioned_69_RelationshipToHoH_idx5" ON hmis.hmis_2022_enrollments_partitioned_69 USING btree ("RelationshipToHoH");
+
+
+--
+-- Name: hmis_2022_enrollments_partitioned_69_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_enrollments_partitioned_69_data_source_id_idx ON hmis.hmis_2022_enrollments_partitioned_69 USING btree (data_source_id);
 
 
 --
@@ -134383,6 +134744,13 @@ CREATE INDEX "hmis_2022_enrollments_partitioned_6_RelationshipToHoH_idx5" ON hmi
 
 
 --
+-- Name: hmis_2022_enrollments_partitioned_6_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_enrollments_partitioned_6_data_source_id_idx ON hmis.hmis_2022_enrollments_partitioned_6 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_enrollments_partitioned_6_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -134821,6 +135189,13 @@ CREATE INDEX "hmis_2022_enrollments_partitioned_70_RelationshipToHoH_idx4" ON hm
 --
 
 CREATE INDEX "hmis_2022_enrollments_partitioned_70_RelationshipToHoH_idx5" ON hmis.hmis_2022_enrollments_partitioned_70 USING btree ("RelationshipToHoH");
+
+
+--
+-- Name: hmis_2022_enrollments_partitioned_70_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_enrollments_partitioned_70_data_source_id_idx ON hmis.hmis_2022_enrollments_partitioned_70 USING btree (data_source_id);
 
 
 --
@@ -135272,6 +135647,13 @@ CREATE INDEX "hmis_2022_enrollments_partitioned_7_RelationshipToHoH_idx5" ON hmi
 
 
 --
+-- Name: hmis_2022_enrollments_partitioned_7_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_enrollments_partitioned_7_data_source_id_idx ON hmis.hmis_2022_enrollments_partitioned_7 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_enrollments_partitioned_7_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -135720,6 +136102,13 @@ CREATE INDEX "hmis_2022_enrollments_partitioned_8_RelationshipToHoH_idx5" ON hmi
 
 
 --
+-- Name: hmis_2022_enrollments_partitioned_8_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_enrollments_partitioned_8_data_source_id_idx ON hmis.hmis_2022_enrollments_partitioned_8 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_enrollments_partitioned_8_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -136165,6 +136554,13 @@ CREATE INDEX "hmis_2022_enrollments_partitioned_9_RelationshipToHoH_idx4" ON hmi
 --
 
 CREATE INDEX "hmis_2022_enrollments_partitioned_9_RelationshipToHoH_idx5" ON hmis.hmis_2022_enrollments_partitioned_9 USING btree ("RelationshipToHoH");
+
+
+--
+-- Name: hmis_2022_enrollments_partitioned_9_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_enrollments_partitioned_9_data_source_id_idx ON hmis.hmis_2022_enrollments_partitioned_9 USING btree (data_source_id);
 
 
 --
@@ -137491,6 +137887,20 @@ CREATE INDEX "hmis_2022_exits_partitioned_0_PersonalID_idx4" ON hmis.hmis_2022_e
 
 
 --
+-- Name: index_hmis_2022_exits_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_2022_exits_on_data_source_id ON ONLY public.hmis_2022_exits USING btree (data_source_id);
+
+
+--
+-- Name: hmis_2022_exits_partitioned_0_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_exits_partitioned_0_data_source_id_idx ON hmis.hmis_2022_exits_partitioned_0 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_exits_partitioned_importer_log_id_idx; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -137813,6 +138223,13 @@ CREATE INDEX "hmis_2022_exits_partitioned_10_PersonalID_idx4" ON hmis.hmis_2022_
 
 
 --
+-- Name: hmis_2022_exits_partitioned_10_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_exits_partitioned_10_data_source_id_idx ON hmis.hmis_2022_exits_partitioned_10 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_exits_partitioned_10_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -138118,6 +138535,13 @@ CREATE INDEX "hmis_2022_exits_partitioned_11_PersonalID_idx3" ON hmis.hmis_2022_
 --
 
 CREATE INDEX "hmis_2022_exits_partitioned_11_PersonalID_idx4" ON hmis.hmis_2022_exits_partitioned_11 USING btree ("PersonalID");
+
+
+--
+-- Name: hmis_2022_exits_partitioned_11_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_exits_partitioned_11_data_source_id_idx ON hmis.hmis_2022_exits_partitioned_11 USING btree (data_source_id);
 
 
 --
@@ -138429,6 +138853,13 @@ CREATE INDEX "hmis_2022_exits_partitioned_12_PersonalID_idx4" ON hmis.hmis_2022_
 
 
 --
+-- Name: hmis_2022_exits_partitioned_12_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_exits_partitioned_12_data_source_id_idx ON hmis.hmis_2022_exits_partitioned_12 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_exits_partitioned_12_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -138734,6 +139165,13 @@ CREATE INDEX "hmis_2022_exits_partitioned_13_PersonalID_idx3" ON hmis.hmis_2022_
 --
 
 CREATE INDEX "hmis_2022_exits_partitioned_13_PersonalID_idx4" ON hmis.hmis_2022_exits_partitioned_13 USING btree ("PersonalID");
+
+
+--
+-- Name: hmis_2022_exits_partitioned_13_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_exits_partitioned_13_data_source_id_idx ON hmis.hmis_2022_exits_partitioned_13 USING btree (data_source_id);
 
 
 --
@@ -139045,6 +139483,13 @@ CREATE INDEX "hmis_2022_exits_partitioned_14_PersonalID_idx4" ON hmis.hmis_2022_
 
 
 --
+-- Name: hmis_2022_exits_partitioned_14_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_exits_partitioned_14_data_source_id_idx ON hmis.hmis_2022_exits_partitioned_14 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_exits_partitioned_14_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -139350,6 +139795,13 @@ CREATE INDEX "hmis_2022_exits_partitioned_15_PersonalID_idx3" ON hmis.hmis_2022_
 --
 
 CREATE INDEX "hmis_2022_exits_partitioned_15_PersonalID_idx4" ON hmis.hmis_2022_exits_partitioned_15 USING btree ("PersonalID");
+
+
+--
+-- Name: hmis_2022_exits_partitioned_15_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_exits_partitioned_15_data_source_id_idx ON hmis.hmis_2022_exits_partitioned_15 USING btree (data_source_id);
 
 
 --
@@ -139661,6 +140113,13 @@ CREATE INDEX "hmis_2022_exits_partitioned_16_PersonalID_idx4" ON hmis.hmis_2022_
 
 
 --
+-- Name: hmis_2022_exits_partitioned_16_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_exits_partitioned_16_data_source_id_idx ON hmis.hmis_2022_exits_partitioned_16 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_exits_partitioned_16_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -139966,6 +140425,13 @@ CREATE INDEX "hmis_2022_exits_partitioned_17_PersonalID_idx3" ON hmis.hmis_2022_
 --
 
 CREATE INDEX "hmis_2022_exits_partitioned_17_PersonalID_idx4" ON hmis.hmis_2022_exits_partitioned_17 USING btree ("PersonalID");
+
+
+--
+-- Name: hmis_2022_exits_partitioned_17_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_exits_partitioned_17_data_source_id_idx ON hmis.hmis_2022_exits_partitioned_17 USING btree (data_source_id);
 
 
 --
@@ -140277,6 +140743,13 @@ CREATE INDEX "hmis_2022_exits_partitioned_18_PersonalID_idx4" ON hmis.hmis_2022_
 
 
 --
+-- Name: hmis_2022_exits_partitioned_18_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_exits_partitioned_18_data_source_id_idx ON hmis.hmis_2022_exits_partitioned_18 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_exits_partitioned_18_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -140582,6 +141055,13 @@ CREATE INDEX "hmis_2022_exits_partitioned_19_PersonalID_idx3" ON hmis.hmis_2022_
 --
 
 CREATE INDEX "hmis_2022_exits_partitioned_19_PersonalID_idx4" ON hmis.hmis_2022_exits_partitioned_19 USING btree ("PersonalID");
+
+
+--
+-- Name: hmis_2022_exits_partitioned_19_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_exits_partitioned_19_data_source_id_idx ON hmis.hmis_2022_exits_partitioned_19 USING btree (data_source_id);
 
 
 --
@@ -140963,6 +141443,13 @@ CREATE INDEX "hmis_2022_exits_partitioned_1_PersonalID_idx4" ON hmis.hmis_2022_e
 
 
 --
+-- Name: hmis_2022_exits_partitioned_1_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_exits_partitioned_1_data_source_id_idx ON hmis.hmis_2022_exits_partitioned_1 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_exits_partitioned_1_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -141268,6 +141755,13 @@ CREATE INDEX "hmis_2022_exits_partitioned_20_PersonalID_idx3" ON hmis.hmis_2022_
 --
 
 CREATE INDEX "hmis_2022_exits_partitioned_20_PersonalID_idx4" ON hmis.hmis_2022_exits_partitioned_20 USING btree ("PersonalID");
+
+
+--
+-- Name: hmis_2022_exits_partitioned_20_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_exits_partitioned_20_data_source_id_idx ON hmis.hmis_2022_exits_partitioned_20 USING btree (data_source_id);
 
 
 --
@@ -141579,6 +142073,13 @@ CREATE INDEX "hmis_2022_exits_partitioned_21_PersonalID_idx4" ON hmis.hmis_2022_
 
 
 --
+-- Name: hmis_2022_exits_partitioned_21_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_exits_partitioned_21_data_source_id_idx ON hmis.hmis_2022_exits_partitioned_21 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_exits_partitioned_21_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -141884,6 +142385,13 @@ CREATE INDEX "hmis_2022_exits_partitioned_22_PersonalID_idx3" ON hmis.hmis_2022_
 --
 
 CREATE INDEX "hmis_2022_exits_partitioned_22_PersonalID_idx4" ON hmis.hmis_2022_exits_partitioned_22 USING btree ("PersonalID");
+
+
+--
+-- Name: hmis_2022_exits_partitioned_22_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_exits_partitioned_22_data_source_id_idx ON hmis.hmis_2022_exits_partitioned_22 USING btree (data_source_id);
 
 
 --
@@ -142195,6 +142703,13 @@ CREATE INDEX "hmis_2022_exits_partitioned_23_PersonalID_idx4" ON hmis.hmis_2022_
 
 
 --
+-- Name: hmis_2022_exits_partitioned_23_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_exits_partitioned_23_data_source_id_idx ON hmis.hmis_2022_exits_partitioned_23 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_exits_partitioned_23_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -142500,6 +143015,13 @@ CREATE INDEX "hmis_2022_exits_partitioned_24_PersonalID_idx3" ON hmis.hmis_2022_
 --
 
 CREATE INDEX "hmis_2022_exits_partitioned_24_PersonalID_idx4" ON hmis.hmis_2022_exits_partitioned_24 USING btree ("PersonalID");
+
+
+--
+-- Name: hmis_2022_exits_partitioned_24_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_exits_partitioned_24_data_source_id_idx ON hmis.hmis_2022_exits_partitioned_24 USING btree (data_source_id);
 
 
 --
@@ -142811,6 +143333,13 @@ CREATE INDEX "hmis_2022_exits_partitioned_25_PersonalID_idx4" ON hmis.hmis_2022_
 
 
 --
+-- Name: hmis_2022_exits_partitioned_25_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_exits_partitioned_25_data_source_id_idx ON hmis.hmis_2022_exits_partitioned_25 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_exits_partitioned_25_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -143116,6 +143645,13 @@ CREATE INDEX "hmis_2022_exits_partitioned_26_PersonalID_idx3" ON hmis.hmis_2022_
 --
 
 CREATE INDEX "hmis_2022_exits_partitioned_26_PersonalID_idx4" ON hmis.hmis_2022_exits_partitioned_26 USING btree ("PersonalID");
+
+
+--
+-- Name: hmis_2022_exits_partitioned_26_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_exits_partitioned_26_data_source_id_idx ON hmis.hmis_2022_exits_partitioned_26 USING btree (data_source_id);
 
 
 --
@@ -143427,6 +143963,13 @@ CREATE INDEX "hmis_2022_exits_partitioned_27_PersonalID_idx4" ON hmis.hmis_2022_
 
 
 --
+-- Name: hmis_2022_exits_partitioned_27_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_exits_partitioned_27_data_source_id_idx ON hmis.hmis_2022_exits_partitioned_27 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_exits_partitioned_27_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -143735,6 +144278,13 @@ CREATE INDEX "hmis_2022_exits_partitioned_28_PersonalID_idx4" ON hmis.hmis_2022_
 
 
 --
+-- Name: hmis_2022_exits_partitioned_28_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_exits_partitioned_28_data_source_id_idx ON hmis.hmis_2022_exits_partitioned_28 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_exits_partitioned_28_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -144040,6 +144590,13 @@ CREATE INDEX "hmis_2022_exits_partitioned_29_PersonalID_idx3" ON hmis.hmis_2022_
 --
 
 CREATE INDEX "hmis_2022_exits_partitioned_29_PersonalID_idx4" ON hmis.hmis_2022_exits_partitioned_29 USING btree ("PersonalID");
+
+
+--
+-- Name: hmis_2022_exits_partitioned_29_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_exits_partitioned_29_data_source_id_idx ON hmis.hmis_2022_exits_partitioned_29 USING btree (data_source_id);
 
 
 --
@@ -144421,6 +144978,13 @@ CREATE INDEX "hmis_2022_exits_partitioned_2_PersonalID_idx4" ON hmis.hmis_2022_e
 
 
 --
+-- Name: hmis_2022_exits_partitioned_2_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_exits_partitioned_2_data_source_id_idx ON hmis.hmis_2022_exits_partitioned_2 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_exits_partitioned_2_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -144726,6 +145290,13 @@ CREATE INDEX "hmis_2022_exits_partitioned_30_PersonalID_idx3" ON hmis.hmis_2022_
 --
 
 CREATE INDEX "hmis_2022_exits_partitioned_30_PersonalID_idx4" ON hmis.hmis_2022_exits_partitioned_30 USING btree ("PersonalID");
+
+
+--
+-- Name: hmis_2022_exits_partitioned_30_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_exits_partitioned_30_data_source_id_idx ON hmis.hmis_2022_exits_partitioned_30 USING btree (data_source_id);
 
 
 --
@@ -145037,6 +145608,13 @@ CREATE INDEX "hmis_2022_exits_partitioned_31_PersonalID_idx4" ON hmis.hmis_2022_
 
 
 --
+-- Name: hmis_2022_exits_partitioned_31_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_exits_partitioned_31_data_source_id_idx ON hmis.hmis_2022_exits_partitioned_31 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_exits_partitioned_31_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -145342,6 +145920,13 @@ CREATE INDEX "hmis_2022_exits_partitioned_32_PersonalID_idx3" ON hmis.hmis_2022_
 --
 
 CREATE INDEX "hmis_2022_exits_partitioned_32_PersonalID_idx4" ON hmis.hmis_2022_exits_partitioned_32 USING btree ("PersonalID");
+
+
+--
+-- Name: hmis_2022_exits_partitioned_32_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_exits_partitioned_32_data_source_id_idx ON hmis.hmis_2022_exits_partitioned_32 USING btree (data_source_id);
 
 
 --
@@ -145653,6 +146238,13 @@ CREATE INDEX "hmis_2022_exits_partitioned_33_PersonalID_idx4" ON hmis.hmis_2022_
 
 
 --
+-- Name: hmis_2022_exits_partitioned_33_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_exits_partitioned_33_data_source_id_idx ON hmis.hmis_2022_exits_partitioned_33 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_exits_partitioned_33_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -145958,6 +146550,13 @@ CREATE INDEX "hmis_2022_exits_partitioned_34_PersonalID_idx3" ON hmis.hmis_2022_
 --
 
 CREATE INDEX "hmis_2022_exits_partitioned_34_PersonalID_idx4" ON hmis.hmis_2022_exits_partitioned_34 USING btree ("PersonalID");
+
+
+--
+-- Name: hmis_2022_exits_partitioned_34_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_exits_partitioned_34_data_source_id_idx ON hmis.hmis_2022_exits_partitioned_34 USING btree (data_source_id);
 
 
 --
@@ -146269,6 +146868,13 @@ CREATE INDEX "hmis_2022_exits_partitioned_35_PersonalID_idx4" ON hmis.hmis_2022_
 
 
 --
+-- Name: hmis_2022_exits_partitioned_35_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_exits_partitioned_35_data_source_id_idx ON hmis.hmis_2022_exits_partitioned_35 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_exits_partitioned_35_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -146574,6 +147180,13 @@ CREATE INDEX "hmis_2022_exits_partitioned_36_PersonalID_idx3" ON hmis.hmis_2022_
 --
 
 CREATE INDEX "hmis_2022_exits_partitioned_36_PersonalID_idx4" ON hmis.hmis_2022_exits_partitioned_36 USING btree ("PersonalID");
+
+
+--
+-- Name: hmis_2022_exits_partitioned_36_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_exits_partitioned_36_data_source_id_idx ON hmis.hmis_2022_exits_partitioned_36 USING btree (data_source_id);
 
 
 --
@@ -146885,6 +147498,13 @@ CREATE INDEX "hmis_2022_exits_partitioned_37_PersonalID_idx4" ON hmis.hmis_2022_
 
 
 --
+-- Name: hmis_2022_exits_partitioned_37_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_exits_partitioned_37_data_source_id_idx ON hmis.hmis_2022_exits_partitioned_37 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_exits_partitioned_37_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -147193,6 +147813,13 @@ CREATE INDEX "hmis_2022_exits_partitioned_38_PersonalID_idx4" ON hmis.hmis_2022_
 
 
 --
+-- Name: hmis_2022_exits_partitioned_38_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_exits_partitioned_38_data_source_id_idx ON hmis.hmis_2022_exits_partitioned_38 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_exits_partitioned_38_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -147498,6 +148125,13 @@ CREATE INDEX "hmis_2022_exits_partitioned_39_PersonalID_idx3" ON hmis.hmis_2022_
 --
 
 CREATE INDEX "hmis_2022_exits_partitioned_39_PersonalID_idx4" ON hmis.hmis_2022_exits_partitioned_39 USING btree ("PersonalID");
+
+
+--
+-- Name: hmis_2022_exits_partitioned_39_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_exits_partitioned_39_data_source_id_idx ON hmis.hmis_2022_exits_partitioned_39 USING btree (data_source_id);
 
 
 --
@@ -147879,6 +148513,13 @@ CREATE INDEX "hmis_2022_exits_partitioned_3_PersonalID_idx4" ON hmis.hmis_2022_e
 
 
 --
+-- Name: hmis_2022_exits_partitioned_3_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_exits_partitioned_3_data_source_id_idx ON hmis.hmis_2022_exits_partitioned_3 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_exits_partitioned_3_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -148184,6 +148825,13 @@ CREATE INDEX "hmis_2022_exits_partitioned_40_PersonalID_idx3" ON hmis.hmis_2022_
 --
 
 CREATE INDEX "hmis_2022_exits_partitioned_40_PersonalID_idx4" ON hmis.hmis_2022_exits_partitioned_40 USING btree ("PersonalID");
+
+
+--
+-- Name: hmis_2022_exits_partitioned_40_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_exits_partitioned_40_data_source_id_idx ON hmis.hmis_2022_exits_partitioned_40 USING btree (data_source_id);
 
 
 --
@@ -148495,6 +149143,13 @@ CREATE INDEX "hmis_2022_exits_partitioned_41_PersonalID_idx4" ON hmis.hmis_2022_
 
 
 --
+-- Name: hmis_2022_exits_partitioned_41_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_exits_partitioned_41_data_source_id_idx ON hmis.hmis_2022_exits_partitioned_41 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_exits_partitioned_41_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -148800,6 +149455,13 @@ CREATE INDEX "hmis_2022_exits_partitioned_42_PersonalID_idx3" ON hmis.hmis_2022_
 --
 
 CREATE INDEX "hmis_2022_exits_partitioned_42_PersonalID_idx4" ON hmis.hmis_2022_exits_partitioned_42 USING btree ("PersonalID");
+
+
+--
+-- Name: hmis_2022_exits_partitioned_42_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_exits_partitioned_42_data_source_id_idx ON hmis.hmis_2022_exits_partitioned_42 USING btree (data_source_id);
 
 
 --
@@ -149111,6 +149773,13 @@ CREATE INDEX "hmis_2022_exits_partitioned_43_PersonalID_idx4" ON hmis.hmis_2022_
 
 
 --
+-- Name: hmis_2022_exits_partitioned_43_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_exits_partitioned_43_data_source_id_idx ON hmis.hmis_2022_exits_partitioned_43 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_exits_partitioned_43_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -149416,6 +150085,13 @@ CREATE INDEX "hmis_2022_exits_partitioned_44_PersonalID_idx3" ON hmis.hmis_2022_
 --
 
 CREATE INDEX "hmis_2022_exits_partitioned_44_PersonalID_idx4" ON hmis.hmis_2022_exits_partitioned_44 USING btree ("PersonalID");
+
+
+--
+-- Name: hmis_2022_exits_partitioned_44_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_exits_partitioned_44_data_source_id_idx ON hmis.hmis_2022_exits_partitioned_44 USING btree (data_source_id);
 
 
 --
@@ -149727,6 +150403,13 @@ CREATE INDEX "hmis_2022_exits_partitioned_45_PersonalID_idx4" ON hmis.hmis_2022_
 
 
 --
+-- Name: hmis_2022_exits_partitioned_45_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_exits_partitioned_45_data_source_id_idx ON hmis.hmis_2022_exits_partitioned_45 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_exits_partitioned_45_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -150032,6 +150715,13 @@ CREATE INDEX "hmis_2022_exits_partitioned_46_PersonalID_idx3" ON hmis.hmis_2022_
 --
 
 CREATE INDEX "hmis_2022_exits_partitioned_46_PersonalID_idx4" ON hmis.hmis_2022_exits_partitioned_46 USING btree ("PersonalID");
+
+
+--
+-- Name: hmis_2022_exits_partitioned_46_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_exits_partitioned_46_data_source_id_idx ON hmis.hmis_2022_exits_partitioned_46 USING btree (data_source_id);
 
 
 --
@@ -150343,6 +151033,13 @@ CREATE INDEX "hmis_2022_exits_partitioned_47_PersonalID_idx4" ON hmis.hmis_2022_
 
 
 --
+-- Name: hmis_2022_exits_partitioned_47_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_exits_partitioned_47_data_source_id_idx ON hmis.hmis_2022_exits_partitioned_47 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_exits_partitioned_47_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -150651,6 +151348,13 @@ CREATE INDEX "hmis_2022_exits_partitioned_48_PersonalID_idx4" ON hmis.hmis_2022_
 
 
 --
+-- Name: hmis_2022_exits_partitioned_48_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_exits_partitioned_48_data_source_id_idx ON hmis.hmis_2022_exits_partitioned_48 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_exits_partitioned_48_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -150956,6 +151660,13 @@ CREATE INDEX "hmis_2022_exits_partitioned_49_PersonalID_idx3" ON hmis.hmis_2022_
 --
 
 CREATE INDEX "hmis_2022_exits_partitioned_49_PersonalID_idx4" ON hmis.hmis_2022_exits_partitioned_49 USING btree ("PersonalID");
+
+
+--
+-- Name: hmis_2022_exits_partitioned_49_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_exits_partitioned_49_data_source_id_idx ON hmis.hmis_2022_exits_partitioned_49 USING btree (data_source_id);
 
 
 --
@@ -151337,6 +152048,13 @@ CREATE INDEX "hmis_2022_exits_partitioned_4_PersonalID_idx4" ON hmis.hmis_2022_e
 
 
 --
+-- Name: hmis_2022_exits_partitioned_4_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_exits_partitioned_4_data_source_id_idx ON hmis.hmis_2022_exits_partitioned_4 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_exits_partitioned_4_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -151642,6 +152360,13 @@ CREATE INDEX "hmis_2022_exits_partitioned_50_PersonalID_idx3" ON hmis.hmis_2022_
 --
 
 CREATE INDEX "hmis_2022_exits_partitioned_50_PersonalID_idx4" ON hmis.hmis_2022_exits_partitioned_50 USING btree ("PersonalID");
+
+
+--
+-- Name: hmis_2022_exits_partitioned_50_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_exits_partitioned_50_data_source_id_idx ON hmis.hmis_2022_exits_partitioned_50 USING btree (data_source_id);
 
 
 --
@@ -151953,6 +152678,13 @@ CREATE INDEX "hmis_2022_exits_partitioned_51_PersonalID_idx4" ON hmis.hmis_2022_
 
 
 --
+-- Name: hmis_2022_exits_partitioned_51_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_exits_partitioned_51_data_source_id_idx ON hmis.hmis_2022_exits_partitioned_51 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_exits_partitioned_51_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -152258,6 +152990,13 @@ CREATE INDEX "hmis_2022_exits_partitioned_52_PersonalID_idx3" ON hmis.hmis_2022_
 --
 
 CREATE INDEX "hmis_2022_exits_partitioned_52_PersonalID_idx4" ON hmis.hmis_2022_exits_partitioned_52 USING btree ("PersonalID");
+
+
+--
+-- Name: hmis_2022_exits_partitioned_52_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_exits_partitioned_52_data_source_id_idx ON hmis.hmis_2022_exits_partitioned_52 USING btree (data_source_id);
 
 
 --
@@ -152569,6 +153308,13 @@ CREATE INDEX "hmis_2022_exits_partitioned_53_PersonalID_idx4" ON hmis.hmis_2022_
 
 
 --
+-- Name: hmis_2022_exits_partitioned_53_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_exits_partitioned_53_data_source_id_idx ON hmis.hmis_2022_exits_partitioned_53 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_exits_partitioned_53_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -152874,6 +153620,13 @@ CREATE INDEX "hmis_2022_exits_partitioned_54_PersonalID_idx3" ON hmis.hmis_2022_
 --
 
 CREATE INDEX "hmis_2022_exits_partitioned_54_PersonalID_idx4" ON hmis.hmis_2022_exits_partitioned_54 USING btree ("PersonalID");
+
+
+--
+-- Name: hmis_2022_exits_partitioned_54_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_exits_partitioned_54_data_source_id_idx ON hmis.hmis_2022_exits_partitioned_54 USING btree (data_source_id);
 
 
 --
@@ -153185,6 +153938,13 @@ CREATE INDEX "hmis_2022_exits_partitioned_55_PersonalID_idx4" ON hmis.hmis_2022_
 
 
 --
+-- Name: hmis_2022_exits_partitioned_55_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_exits_partitioned_55_data_source_id_idx ON hmis.hmis_2022_exits_partitioned_55 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_exits_partitioned_55_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -153490,6 +154250,13 @@ CREATE INDEX "hmis_2022_exits_partitioned_56_PersonalID_idx3" ON hmis.hmis_2022_
 --
 
 CREATE INDEX "hmis_2022_exits_partitioned_56_PersonalID_idx4" ON hmis.hmis_2022_exits_partitioned_56 USING btree ("PersonalID");
+
+
+--
+-- Name: hmis_2022_exits_partitioned_56_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_exits_partitioned_56_data_source_id_idx ON hmis.hmis_2022_exits_partitioned_56 USING btree (data_source_id);
 
 
 --
@@ -153801,6 +154568,13 @@ CREATE INDEX "hmis_2022_exits_partitioned_57_PersonalID_idx4" ON hmis.hmis_2022_
 
 
 --
+-- Name: hmis_2022_exits_partitioned_57_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_exits_partitioned_57_data_source_id_idx ON hmis.hmis_2022_exits_partitioned_57 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_exits_partitioned_57_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -154109,6 +154883,13 @@ CREATE INDEX "hmis_2022_exits_partitioned_58_PersonalID_idx4" ON hmis.hmis_2022_
 
 
 --
+-- Name: hmis_2022_exits_partitioned_58_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_exits_partitioned_58_data_source_id_idx ON hmis.hmis_2022_exits_partitioned_58 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_exits_partitioned_58_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -154414,6 +155195,13 @@ CREATE INDEX "hmis_2022_exits_partitioned_59_PersonalID_idx3" ON hmis.hmis_2022_
 --
 
 CREATE INDEX "hmis_2022_exits_partitioned_59_PersonalID_idx4" ON hmis.hmis_2022_exits_partitioned_59 USING btree ("PersonalID");
+
+
+--
+-- Name: hmis_2022_exits_partitioned_59_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_exits_partitioned_59_data_source_id_idx ON hmis.hmis_2022_exits_partitioned_59 USING btree (data_source_id);
 
 
 --
@@ -154795,6 +155583,13 @@ CREATE INDEX "hmis_2022_exits_partitioned_5_PersonalID_idx4" ON hmis.hmis_2022_e
 
 
 --
+-- Name: hmis_2022_exits_partitioned_5_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_exits_partitioned_5_data_source_id_idx ON hmis.hmis_2022_exits_partitioned_5 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_exits_partitioned_5_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -155100,6 +155895,13 @@ CREATE INDEX "hmis_2022_exits_partitioned_60_PersonalID_idx3" ON hmis.hmis_2022_
 --
 
 CREATE INDEX "hmis_2022_exits_partitioned_60_PersonalID_idx4" ON hmis.hmis_2022_exits_partitioned_60 USING btree ("PersonalID");
+
+
+--
+-- Name: hmis_2022_exits_partitioned_60_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_exits_partitioned_60_data_source_id_idx ON hmis.hmis_2022_exits_partitioned_60 USING btree (data_source_id);
 
 
 --
@@ -155411,6 +156213,13 @@ CREATE INDEX "hmis_2022_exits_partitioned_61_PersonalID_idx4" ON hmis.hmis_2022_
 
 
 --
+-- Name: hmis_2022_exits_partitioned_61_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_exits_partitioned_61_data_source_id_idx ON hmis.hmis_2022_exits_partitioned_61 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_exits_partitioned_61_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -155716,6 +156525,13 @@ CREATE INDEX "hmis_2022_exits_partitioned_62_PersonalID_idx3" ON hmis.hmis_2022_
 --
 
 CREATE INDEX "hmis_2022_exits_partitioned_62_PersonalID_idx4" ON hmis.hmis_2022_exits_partitioned_62 USING btree ("PersonalID");
+
+
+--
+-- Name: hmis_2022_exits_partitioned_62_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_exits_partitioned_62_data_source_id_idx ON hmis.hmis_2022_exits_partitioned_62 USING btree (data_source_id);
 
 
 --
@@ -156027,6 +156843,13 @@ CREATE INDEX "hmis_2022_exits_partitioned_63_PersonalID_idx4" ON hmis.hmis_2022_
 
 
 --
+-- Name: hmis_2022_exits_partitioned_63_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_exits_partitioned_63_data_source_id_idx ON hmis.hmis_2022_exits_partitioned_63 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_exits_partitioned_63_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -156332,6 +157155,13 @@ CREATE INDEX "hmis_2022_exits_partitioned_64_PersonalID_idx3" ON hmis.hmis_2022_
 --
 
 CREATE INDEX "hmis_2022_exits_partitioned_64_PersonalID_idx4" ON hmis.hmis_2022_exits_partitioned_64 USING btree ("PersonalID");
+
+
+--
+-- Name: hmis_2022_exits_partitioned_64_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_exits_partitioned_64_data_source_id_idx ON hmis.hmis_2022_exits_partitioned_64 USING btree (data_source_id);
 
 
 --
@@ -156643,6 +157473,13 @@ CREATE INDEX "hmis_2022_exits_partitioned_65_PersonalID_idx4" ON hmis.hmis_2022_
 
 
 --
+-- Name: hmis_2022_exits_partitioned_65_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_exits_partitioned_65_data_source_id_idx ON hmis.hmis_2022_exits_partitioned_65 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_exits_partitioned_65_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -156948,6 +157785,13 @@ CREATE INDEX "hmis_2022_exits_partitioned_66_PersonalID_idx3" ON hmis.hmis_2022_
 --
 
 CREATE INDEX "hmis_2022_exits_partitioned_66_PersonalID_idx4" ON hmis.hmis_2022_exits_partitioned_66 USING btree ("PersonalID");
+
+
+--
+-- Name: hmis_2022_exits_partitioned_66_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_exits_partitioned_66_data_source_id_idx ON hmis.hmis_2022_exits_partitioned_66 USING btree (data_source_id);
 
 
 --
@@ -157259,6 +158103,13 @@ CREATE INDEX "hmis_2022_exits_partitioned_67_PersonalID_idx4" ON hmis.hmis_2022_
 
 
 --
+-- Name: hmis_2022_exits_partitioned_67_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_exits_partitioned_67_data_source_id_idx ON hmis.hmis_2022_exits_partitioned_67 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_exits_partitioned_67_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -157567,6 +158418,13 @@ CREATE INDEX "hmis_2022_exits_partitioned_68_PersonalID_idx4" ON hmis.hmis_2022_
 
 
 --
+-- Name: hmis_2022_exits_partitioned_68_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_exits_partitioned_68_data_source_id_idx ON hmis.hmis_2022_exits_partitioned_68 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_exits_partitioned_68_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -157872,6 +158730,13 @@ CREATE INDEX "hmis_2022_exits_partitioned_69_PersonalID_idx3" ON hmis.hmis_2022_
 --
 
 CREATE INDEX "hmis_2022_exits_partitioned_69_PersonalID_idx4" ON hmis.hmis_2022_exits_partitioned_69 USING btree ("PersonalID");
+
+
+--
+-- Name: hmis_2022_exits_partitioned_69_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_exits_partitioned_69_data_source_id_idx ON hmis.hmis_2022_exits_partitioned_69 USING btree (data_source_id);
 
 
 --
@@ -158253,6 +159118,13 @@ CREATE INDEX "hmis_2022_exits_partitioned_6_PersonalID_idx4" ON hmis.hmis_2022_e
 
 
 --
+-- Name: hmis_2022_exits_partitioned_6_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_exits_partitioned_6_data_source_id_idx ON hmis.hmis_2022_exits_partitioned_6 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_exits_partitioned_6_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -158558,6 +159430,13 @@ CREATE INDEX "hmis_2022_exits_partitioned_70_PersonalID_idx3" ON hmis.hmis_2022_
 --
 
 CREATE INDEX "hmis_2022_exits_partitioned_70_PersonalID_idx4" ON hmis.hmis_2022_exits_partitioned_70 USING btree ("PersonalID");
+
+
+--
+-- Name: hmis_2022_exits_partitioned_70_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_exits_partitioned_70_data_source_id_idx ON hmis.hmis_2022_exits_partitioned_70 USING btree (data_source_id);
 
 
 --
@@ -158897,6 +159776,13 @@ CREATE INDEX "hmis_2022_exits_partitioned_7_PersonalID_idx4" ON hmis.hmis_2022_e
 
 
 --
+-- Name: hmis_2022_exits_partitioned_7_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_exits_partitioned_7_data_source_id_idx ON hmis.hmis_2022_exits_partitioned_7 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_exits_partitioned_7_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -159219,6 +160105,13 @@ CREATE INDEX "hmis_2022_exits_partitioned_8_PersonalID_idx4" ON hmis.hmis_2022_e
 
 
 --
+-- Name: hmis_2022_exits_partitioned_8_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_exits_partitioned_8_data_source_id_idx ON hmis.hmis_2022_exits_partitioned_8 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_exits_partitioned_8_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -159538,6 +160431,13 @@ CREATE INDEX "hmis_2022_exits_partitioned_9_PersonalID_idx3" ON hmis.hmis_2022_e
 --
 
 CREATE INDEX "hmis_2022_exits_partitioned_9_PersonalID_idx4" ON hmis.hmis_2022_exits_partitioned_9 USING btree ("PersonalID");
+
+
+--
+-- Name: hmis_2022_exits_partitioned_9_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_exits_partitioned_9_data_source_id_idx ON hmis.hmis_2022_exits_partitioned_9 USING btree (data_source_id);
 
 
 --
@@ -165981,6 +166881,20 @@ CREATE INDEX "hmis_2022_services_partitioned_0_ServicesID_importer_log_id_idx" O
 
 
 --
+-- Name: index_hmis_2022_services_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_2022_services_on_data_source_id ON ONLY public.hmis_2022_services USING btree (data_source_id);
+
+
+--
+-- Name: hmis_2022_services_partitioned_0_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_services_partitioned_0_data_source_id_idx ON hmis.hmis_2022_services_partitioned_0 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_services_partitioned_importer_log_id_idx; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -166443,6 +167357,13 @@ CREATE INDEX "hmis_2022_services_partitioned_10_ServicesID_idx4" ON hmis.hmis_20
 
 
 --
+-- Name: hmis_2022_services_partitioned_10_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_services_partitioned_10_data_source_id_idx ON hmis.hmis_2022_services_partitioned_10 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_services_partitioned_10_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -166888,6 +167809,13 @@ CREATE INDEX "hmis_2022_services_partitioned_11_ServicesID_idx3" ON hmis.hmis_20
 --
 
 CREATE INDEX "hmis_2022_services_partitioned_11_ServicesID_idx4" ON hmis.hmis_2022_services_partitioned_11 USING btree ("ServicesID");
+
+
+--
+-- Name: hmis_2022_services_partitioned_11_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_services_partitioned_11_data_source_id_idx ON hmis.hmis_2022_services_partitioned_11 USING btree (data_source_id);
 
 
 --
@@ -167339,6 +168267,13 @@ CREATE INDEX "hmis_2022_services_partitioned_12_ServicesID_idx4" ON hmis.hmis_20
 
 
 --
+-- Name: hmis_2022_services_partitioned_12_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_services_partitioned_12_data_source_id_idx ON hmis.hmis_2022_services_partitioned_12 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_services_partitioned_12_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -167784,6 +168719,13 @@ CREATE INDEX "hmis_2022_services_partitioned_13_ServicesID_idx3" ON hmis.hmis_20
 --
 
 CREATE INDEX "hmis_2022_services_partitioned_13_ServicesID_idx4" ON hmis.hmis_2022_services_partitioned_13 USING btree ("ServicesID");
+
+
+--
+-- Name: hmis_2022_services_partitioned_13_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_services_partitioned_13_data_source_id_idx ON hmis.hmis_2022_services_partitioned_13 USING btree (data_source_id);
 
 
 --
@@ -168235,6 +169177,13 @@ CREATE INDEX "hmis_2022_services_partitioned_14_ServicesID_idx4" ON hmis.hmis_20
 
 
 --
+-- Name: hmis_2022_services_partitioned_14_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_services_partitioned_14_data_source_id_idx ON hmis.hmis_2022_services_partitioned_14 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_services_partitioned_14_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -168680,6 +169629,13 @@ CREATE INDEX "hmis_2022_services_partitioned_15_ServicesID_idx3" ON hmis.hmis_20
 --
 
 CREATE INDEX "hmis_2022_services_partitioned_15_ServicesID_idx4" ON hmis.hmis_2022_services_partitioned_15 USING btree ("ServicesID");
+
+
+--
+-- Name: hmis_2022_services_partitioned_15_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_services_partitioned_15_data_source_id_idx ON hmis.hmis_2022_services_partitioned_15 USING btree (data_source_id);
 
 
 --
@@ -169131,6 +170087,13 @@ CREATE INDEX "hmis_2022_services_partitioned_16_ServicesID_idx4" ON hmis.hmis_20
 
 
 --
+-- Name: hmis_2022_services_partitioned_16_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_services_partitioned_16_data_source_id_idx ON hmis.hmis_2022_services_partitioned_16 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_services_partitioned_16_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -169576,6 +170539,13 @@ CREATE INDEX "hmis_2022_services_partitioned_17_ServicesID_idx3" ON hmis.hmis_20
 --
 
 CREATE INDEX "hmis_2022_services_partitioned_17_ServicesID_idx4" ON hmis.hmis_2022_services_partitioned_17 USING btree ("ServicesID");
+
+
+--
+-- Name: hmis_2022_services_partitioned_17_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_services_partitioned_17_data_source_id_idx ON hmis.hmis_2022_services_partitioned_17 USING btree (data_source_id);
 
 
 --
@@ -170027,6 +170997,13 @@ CREATE INDEX "hmis_2022_services_partitioned_18_ServicesID_idx4" ON hmis.hmis_20
 
 
 --
+-- Name: hmis_2022_services_partitioned_18_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_services_partitioned_18_data_source_id_idx ON hmis.hmis_2022_services_partitioned_18 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_services_partitioned_18_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -170472,6 +171449,13 @@ CREATE INDEX "hmis_2022_services_partitioned_19_ServicesID_idx3" ON hmis.hmis_20
 --
 
 CREATE INDEX "hmis_2022_services_partitioned_19_ServicesID_idx4" ON hmis.hmis_2022_services_partitioned_19 USING btree ("ServicesID");
+
+
+--
+-- Name: hmis_2022_services_partitioned_19_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_services_partitioned_19_data_source_id_idx ON hmis.hmis_2022_services_partitioned_19 USING btree (data_source_id);
 
 
 --
@@ -170930,6 +171914,13 @@ CREATE INDEX "hmis_2022_services_partitioned_1_ServicesID_importer_log_id_idx" O
 
 
 --
+-- Name: hmis_2022_services_partitioned_1_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_services_partitioned_1_data_source_id_idx ON hmis.hmis_2022_services_partitioned_1 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_services_partitioned_1_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -171375,6 +172366,13 @@ CREATE INDEX "hmis_2022_services_partitioned_20_ServicesID_idx3" ON hmis.hmis_20
 --
 
 CREATE INDEX "hmis_2022_services_partitioned_20_ServicesID_idx4" ON hmis.hmis_2022_services_partitioned_20 USING btree ("ServicesID");
+
+
+--
+-- Name: hmis_2022_services_partitioned_20_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_services_partitioned_20_data_source_id_idx ON hmis.hmis_2022_services_partitioned_20 USING btree (data_source_id);
 
 
 --
@@ -171826,6 +172824,13 @@ CREATE INDEX "hmis_2022_services_partitioned_21_ServicesID_idx4" ON hmis.hmis_20
 
 
 --
+-- Name: hmis_2022_services_partitioned_21_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_services_partitioned_21_data_source_id_idx ON hmis.hmis_2022_services_partitioned_21 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_services_partitioned_21_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -172271,6 +173276,13 @@ CREATE INDEX "hmis_2022_services_partitioned_22_ServicesID_idx3" ON hmis.hmis_20
 --
 
 CREATE INDEX "hmis_2022_services_partitioned_22_ServicesID_idx4" ON hmis.hmis_2022_services_partitioned_22 USING btree ("ServicesID");
+
+
+--
+-- Name: hmis_2022_services_partitioned_22_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_services_partitioned_22_data_source_id_idx ON hmis.hmis_2022_services_partitioned_22 USING btree (data_source_id);
 
 
 --
@@ -172722,6 +173734,13 @@ CREATE INDEX "hmis_2022_services_partitioned_23_ServicesID_idx4" ON hmis.hmis_20
 
 
 --
+-- Name: hmis_2022_services_partitioned_23_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_services_partitioned_23_data_source_id_idx ON hmis.hmis_2022_services_partitioned_23 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_services_partitioned_23_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -173167,6 +174186,13 @@ CREATE INDEX "hmis_2022_services_partitioned_24_ServicesID_idx3" ON hmis.hmis_20
 --
 
 CREATE INDEX "hmis_2022_services_partitioned_24_ServicesID_idx4" ON hmis.hmis_2022_services_partitioned_24 USING btree ("ServicesID");
+
+
+--
+-- Name: hmis_2022_services_partitioned_24_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_services_partitioned_24_data_source_id_idx ON hmis.hmis_2022_services_partitioned_24 USING btree (data_source_id);
 
 
 --
@@ -173618,6 +174644,13 @@ CREATE INDEX "hmis_2022_services_partitioned_25_ServicesID_idx4" ON hmis.hmis_20
 
 
 --
+-- Name: hmis_2022_services_partitioned_25_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_services_partitioned_25_data_source_id_idx ON hmis.hmis_2022_services_partitioned_25 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_services_partitioned_25_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -174063,6 +175096,13 @@ CREATE INDEX "hmis_2022_services_partitioned_26_ServicesID_idx3" ON hmis.hmis_20
 --
 
 CREATE INDEX "hmis_2022_services_partitioned_26_ServicesID_idx4" ON hmis.hmis_2022_services_partitioned_26 USING btree ("ServicesID");
+
+
+--
+-- Name: hmis_2022_services_partitioned_26_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_services_partitioned_26_data_source_id_idx ON hmis.hmis_2022_services_partitioned_26 USING btree (data_source_id);
 
 
 --
@@ -174514,6 +175554,13 @@ CREATE INDEX "hmis_2022_services_partitioned_27_ServicesID_idx4" ON hmis.hmis_20
 
 
 --
+-- Name: hmis_2022_services_partitioned_27_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_services_partitioned_27_data_source_id_idx ON hmis.hmis_2022_services_partitioned_27 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_services_partitioned_27_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -174962,6 +176009,13 @@ CREATE INDEX "hmis_2022_services_partitioned_28_ServicesID_idx4" ON hmis.hmis_20
 
 
 --
+-- Name: hmis_2022_services_partitioned_28_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_services_partitioned_28_data_source_id_idx ON hmis.hmis_2022_services_partitioned_28 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_services_partitioned_28_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -175407,6 +176461,13 @@ CREATE INDEX "hmis_2022_services_partitioned_29_ServicesID_idx3" ON hmis.hmis_20
 --
 
 CREATE INDEX "hmis_2022_services_partitioned_29_ServicesID_idx4" ON hmis.hmis_2022_services_partitioned_29 USING btree ("ServicesID");
+
+
+--
+-- Name: hmis_2022_services_partitioned_29_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_services_partitioned_29_data_source_id_idx ON hmis.hmis_2022_services_partitioned_29 USING btree (data_source_id);
 
 
 --
@@ -175865,6 +176926,13 @@ CREATE INDEX "hmis_2022_services_partitioned_2_ServicesID_importer_log_id_idx" O
 
 
 --
+-- Name: hmis_2022_services_partitioned_2_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_services_partitioned_2_data_source_id_idx ON hmis.hmis_2022_services_partitioned_2 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_services_partitioned_2_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -176310,6 +177378,13 @@ CREATE INDEX "hmis_2022_services_partitioned_30_ServicesID_idx3" ON hmis.hmis_20
 --
 
 CREATE INDEX "hmis_2022_services_partitioned_30_ServicesID_idx4" ON hmis.hmis_2022_services_partitioned_30 USING btree ("ServicesID");
+
+
+--
+-- Name: hmis_2022_services_partitioned_30_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_services_partitioned_30_data_source_id_idx ON hmis.hmis_2022_services_partitioned_30 USING btree (data_source_id);
 
 
 --
@@ -176761,6 +177836,13 @@ CREATE INDEX "hmis_2022_services_partitioned_31_ServicesID_idx4" ON hmis.hmis_20
 
 
 --
+-- Name: hmis_2022_services_partitioned_31_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_services_partitioned_31_data_source_id_idx ON hmis.hmis_2022_services_partitioned_31 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_services_partitioned_31_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -177206,6 +178288,13 @@ CREATE INDEX "hmis_2022_services_partitioned_32_ServicesID_idx3" ON hmis.hmis_20
 --
 
 CREATE INDEX "hmis_2022_services_partitioned_32_ServicesID_idx4" ON hmis.hmis_2022_services_partitioned_32 USING btree ("ServicesID");
+
+
+--
+-- Name: hmis_2022_services_partitioned_32_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_services_partitioned_32_data_source_id_idx ON hmis.hmis_2022_services_partitioned_32 USING btree (data_source_id);
 
 
 --
@@ -177657,6 +178746,13 @@ CREATE INDEX "hmis_2022_services_partitioned_33_ServicesID_idx4" ON hmis.hmis_20
 
 
 --
+-- Name: hmis_2022_services_partitioned_33_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_services_partitioned_33_data_source_id_idx ON hmis.hmis_2022_services_partitioned_33 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_services_partitioned_33_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -178102,6 +179198,13 @@ CREATE INDEX "hmis_2022_services_partitioned_34_ServicesID_idx3" ON hmis.hmis_20
 --
 
 CREATE INDEX "hmis_2022_services_partitioned_34_ServicesID_idx4" ON hmis.hmis_2022_services_partitioned_34 USING btree ("ServicesID");
+
+
+--
+-- Name: hmis_2022_services_partitioned_34_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_services_partitioned_34_data_source_id_idx ON hmis.hmis_2022_services_partitioned_34 USING btree (data_source_id);
 
 
 --
@@ -178553,6 +179656,13 @@ CREATE INDEX "hmis_2022_services_partitioned_35_ServicesID_idx4" ON hmis.hmis_20
 
 
 --
+-- Name: hmis_2022_services_partitioned_35_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_services_partitioned_35_data_source_id_idx ON hmis.hmis_2022_services_partitioned_35 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_services_partitioned_35_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -178998,6 +180108,13 @@ CREATE INDEX "hmis_2022_services_partitioned_36_ServicesID_idx3" ON hmis.hmis_20
 --
 
 CREATE INDEX "hmis_2022_services_partitioned_36_ServicesID_idx4" ON hmis.hmis_2022_services_partitioned_36 USING btree ("ServicesID");
+
+
+--
+-- Name: hmis_2022_services_partitioned_36_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_services_partitioned_36_data_source_id_idx ON hmis.hmis_2022_services_partitioned_36 USING btree (data_source_id);
 
 
 --
@@ -179449,6 +180566,13 @@ CREATE INDEX "hmis_2022_services_partitioned_37_ServicesID_idx4" ON hmis.hmis_20
 
 
 --
+-- Name: hmis_2022_services_partitioned_37_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_services_partitioned_37_data_source_id_idx ON hmis.hmis_2022_services_partitioned_37 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_services_partitioned_37_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -179897,6 +181021,13 @@ CREATE INDEX "hmis_2022_services_partitioned_38_ServicesID_idx4" ON hmis.hmis_20
 
 
 --
+-- Name: hmis_2022_services_partitioned_38_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_services_partitioned_38_data_source_id_idx ON hmis.hmis_2022_services_partitioned_38 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_services_partitioned_38_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -180342,6 +181473,13 @@ CREATE INDEX "hmis_2022_services_partitioned_39_ServicesID_idx3" ON hmis.hmis_20
 --
 
 CREATE INDEX "hmis_2022_services_partitioned_39_ServicesID_idx4" ON hmis.hmis_2022_services_partitioned_39 USING btree ("ServicesID");
+
+
+--
+-- Name: hmis_2022_services_partitioned_39_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_services_partitioned_39_data_source_id_idx ON hmis.hmis_2022_services_partitioned_39 USING btree (data_source_id);
 
 
 --
@@ -180800,6 +181938,13 @@ CREATE INDEX "hmis_2022_services_partitioned_3_ServicesID_importer_log_id_idx" O
 
 
 --
+-- Name: hmis_2022_services_partitioned_3_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_services_partitioned_3_data_source_id_idx ON hmis.hmis_2022_services_partitioned_3 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_services_partitioned_3_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -181245,6 +182390,13 @@ CREATE INDEX "hmis_2022_services_partitioned_40_ServicesID_idx3" ON hmis.hmis_20
 --
 
 CREATE INDEX "hmis_2022_services_partitioned_40_ServicesID_idx4" ON hmis.hmis_2022_services_partitioned_40 USING btree ("ServicesID");
+
+
+--
+-- Name: hmis_2022_services_partitioned_40_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_services_partitioned_40_data_source_id_idx ON hmis.hmis_2022_services_partitioned_40 USING btree (data_source_id);
 
 
 --
@@ -181696,6 +182848,13 @@ CREATE INDEX "hmis_2022_services_partitioned_41_ServicesID_idx4" ON hmis.hmis_20
 
 
 --
+-- Name: hmis_2022_services_partitioned_41_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_services_partitioned_41_data_source_id_idx ON hmis.hmis_2022_services_partitioned_41 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_services_partitioned_41_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -182141,6 +183300,13 @@ CREATE INDEX "hmis_2022_services_partitioned_42_ServicesID_idx3" ON hmis.hmis_20
 --
 
 CREATE INDEX "hmis_2022_services_partitioned_42_ServicesID_idx4" ON hmis.hmis_2022_services_partitioned_42 USING btree ("ServicesID");
+
+
+--
+-- Name: hmis_2022_services_partitioned_42_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_services_partitioned_42_data_source_id_idx ON hmis.hmis_2022_services_partitioned_42 USING btree (data_source_id);
 
 
 --
@@ -182592,6 +183758,13 @@ CREATE INDEX "hmis_2022_services_partitioned_43_ServicesID_idx4" ON hmis.hmis_20
 
 
 --
+-- Name: hmis_2022_services_partitioned_43_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_services_partitioned_43_data_source_id_idx ON hmis.hmis_2022_services_partitioned_43 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_services_partitioned_43_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -183037,6 +184210,13 @@ CREATE INDEX "hmis_2022_services_partitioned_44_ServicesID_idx3" ON hmis.hmis_20
 --
 
 CREATE INDEX "hmis_2022_services_partitioned_44_ServicesID_idx4" ON hmis.hmis_2022_services_partitioned_44 USING btree ("ServicesID");
+
+
+--
+-- Name: hmis_2022_services_partitioned_44_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_services_partitioned_44_data_source_id_idx ON hmis.hmis_2022_services_partitioned_44 USING btree (data_source_id);
 
 
 --
@@ -183488,6 +184668,13 @@ CREATE INDEX "hmis_2022_services_partitioned_45_ServicesID_idx4" ON hmis.hmis_20
 
 
 --
+-- Name: hmis_2022_services_partitioned_45_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_services_partitioned_45_data_source_id_idx ON hmis.hmis_2022_services_partitioned_45 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_services_partitioned_45_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -183933,6 +185120,13 @@ CREATE INDEX "hmis_2022_services_partitioned_46_ServicesID_idx3" ON hmis.hmis_20
 --
 
 CREATE INDEX "hmis_2022_services_partitioned_46_ServicesID_idx4" ON hmis.hmis_2022_services_partitioned_46 USING btree ("ServicesID");
+
+
+--
+-- Name: hmis_2022_services_partitioned_46_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_services_partitioned_46_data_source_id_idx ON hmis.hmis_2022_services_partitioned_46 USING btree (data_source_id);
 
 
 --
@@ -184384,6 +185578,13 @@ CREATE INDEX "hmis_2022_services_partitioned_47_ServicesID_idx4" ON hmis.hmis_20
 
 
 --
+-- Name: hmis_2022_services_partitioned_47_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_services_partitioned_47_data_source_id_idx ON hmis.hmis_2022_services_partitioned_47 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_services_partitioned_47_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -184832,6 +186033,13 @@ CREATE INDEX "hmis_2022_services_partitioned_48_ServicesID_idx4" ON hmis.hmis_20
 
 
 --
+-- Name: hmis_2022_services_partitioned_48_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_services_partitioned_48_data_source_id_idx ON hmis.hmis_2022_services_partitioned_48 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_services_partitioned_48_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -185277,6 +186485,13 @@ CREATE INDEX "hmis_2022_services_partitioned_49_ServicesID_idx3" ON hmis.hmis_20
 --
 
 CREATE INDEX "hmis_2022_services_partitioned_49_ServicesID_idx4" ON hmis.hmis_2022_services_partitioned_49 USING btree ("ServicesID");
+
+
+--
+-- Name: hmis_2022_services_partitioned_49_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_services_partitioned_49_data_source_id_idx ON hmis.hmis_2022_services_partitioned_49 USING btree (data_source_id);
 
 
 --
@@ -185735,6 +186950,13 @@ CREATE INDEX "hmis_2022_services_partitioned_4_ServicesID_importer_log_id_idx" O
 
 
 --
+-- Name: hmis_2022_services_partitioned_4_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_services_partitioned_4_data_source_id_idx ON hmis.hmis_2022_services_partitioned_4 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_services_partitioned_4_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -186180,6 +187402,13 @@ CREATE INDEX "hmis_2022_services_partitioned_50_ServicesID_idx3" ON hmis.hmis_20
 --
 
 CREATE INDEX "hmis_2022_services_partitioned_50_ServicesID_idx4" ON hmis.hmis_2022_services_partitioned_50 USING btree ("ServicesID");
+
+
+--
+-- Name: hmis_2022_services_partitioned_50_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_services_partitioned_50_data_source_id_idx ON hmis.hmis_2022_services_partitioned_50 USING btree (data_source_id);
 
 
 --
@@ -186631,6 +187860,13 @@ CREATE INDEX "hmis_2022_services_partitioned_51_ServicesID_idx4" ON hmis.hmis_20
 
 
 --
+-- Name: hmis_2022_services_partitioned_51_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_services_partitioned_51_data_source_id_idx ON hmis.hmis_2022_services_partitioned_51 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_services_partitioned_51_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -187076,6 +188312,13 @@ CREATE INDEX "hmis_2022_services_partitioned_52_ServicesID_idx3" ON hmis.hmis_20
 --
 
 CREATE INDEX "hmis_2022_services_partitioned_52_ServicesID_idx4" ON hmis.hmis_2022_services_partitioned_52 USING btree ("ServicesID");
+
+
+--
+-- Name: hmis_2022_services_partitioned_52_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_services_partitioned_52_data_source_id_idx ON hmis.hmis_2022_services_partitioned_52 USING btree (data_source_id);
 
 
 --
@@ -187527,6 +188770,13 @@ CREATE INDEX "hmis_2022_services_partitioned_53_ServicesID_idx4" ON hmis.hmis_20
 
 
 --
+-- Name: hmis_2022_services_partitioned_53_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_services_partitioned_53_data_source_id_idx ON hmis.hmis_2022_services_partitioned_53 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_services_partitioned_53_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -187972,6 +189222,13 @@ CREATE INDEX "hmis_2022_services_partitioned_54_ServicesID_idx3" ON hmis.hmis_20
 --
 
 CREATE INDEX "hmis_2022_services_partitioned_54_ServicesID_idx4" ON hmis.hmis_2022_services_partitioned_54 USING btree ("ServicesID");
+
+
+--
+-- Name: hmis_2022_services_partitioned_54_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_services_partitioned_54_data_source_id_idx ON hmis.hmis_2022_services_partitioned_54 USING btree (data_source_id);
 
 
 --
@@ -188423,6 +189680,13 @@ CREATE INDEX "hmis_2022_services_partitioned_55_ServicesID_idx4" ON hmis.hmis_20
 
 
 --
+-- Name: hmis_2022_services_partitioned_55_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_services_partitioned_55_data_source_id_idx ON hmis.hmis_2022_services_partitioned_55 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_services_partitioned_55_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -188868,6 +190132,13 @@ CREATE INDEX "hmis_2022_services_partitioned_56_ServicesID_idx3" ON hmis.hmis_20
 --
 
 CREATE INDEX "hmis_2022_services_partitioned_56_ServicesID_idx4" ON hmis.hmis_2022_services_partitioned_56 USING btree ("ServicesID");
+
+
+--
+-- Name: hmis_2022_services_partitioned_56_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_services_partitioned_56_data_source_id_idx ON hmis.hmis_2022_services_partitioned_56 USING btree (data_source_id);
 
 
 --
@@ -189319,6 +190590,13 @@ CREATE INDEX "hmis_2022_services_partitioned_57_ServicesID_idx4" ON hmis.hmis_20
 
 
 --
+-- Name: hmis_2022_services_partitioned_57_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_services_partitioned_57_data_source_id_idx ON hmis.hmis_2022_services_partitioned_57 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_services_partitioned_57_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -189767,6 +191045,13 @@ CREATE INDEX "hmis_2022_services_partitioned_58_ServicesID_idx4" ON hmis.hmis_20
 
 
 --
+-- Name: hmis_2022_services_partitioned_58_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_services_partitioned_58_data_source_id_idx ON hmis.hmis_2022_services_partitioned_58 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_services_partitioned_58_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -190212,6 +191497,13 @@ CREATE INDEX "hmis_2022_services_partitioned_59_ServicesID_idx3" ON hmis.hmis_20
 --
 
 CREATE INDEX "hmis_2022_services_partitioned_59_ServicesID_idx4" ON hmis.hmis_2022_services_partitioned_59 USING btree ("ServicesID");
+
+
+--
+-- Name: hmis_2022_services_partitioned_59_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_services_partitioned_59_data_source_id_idx ON hmis.hmis_2022_services_partitioned_59 USING btree (data_source_id);
 
 
 --
@@ -190670,6 +191962,13 @@ CREATE INDEX "hmis_2022_services_partitioned_5_ServicesID_importer_log_id_idx" O
 
 
 --
+-- Name: hmis_2022_services_partitioned_5_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_services_partitioned_5_data_source_id_idx ON hmis.hmis_2022_services_partitioned_5 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_services_partitioned_5_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -191115,6 +192414,13 @@ CREATE INDEX "hmis_2022_services_partitioned_60_ServicesID_idx3" ON hmis.hmis_20
 --
 
 CREATE INDEX "hmis_2022_services_partitioned_60_ServicesID_idx4" ON hmis.hmis_2022_services_partitioned_60 USING btree ("ServicesID");
+
+
+--
+-- Name: hmis_2022_services_partitioned_60_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_services_partitioned_60_data_source_id_idx ON hmis.hmis_2022_services_partitioned_60 USING btree (data_source_id);
 
 
 --
@@ -191566,6 +192872,13 @@ CREATE INDEX "hmis_2022_services_partitioned_61_ServicesID_idx4" ON hmis.hmis_20
 
 
 --
+-- Name: hmis_2022_services_partitioned_61_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_services_partitioned_61_data_source_id_idx ON hmis.hmis_2022_services_partitioned_61 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_services_partitioned_61_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -192011,6 +193324,13 @@ CREATE INDEX "hmis_2022_services_partitioned_62_ServicesID_idx3" ON hmis.hmis_20
 --
 
 CREATE INDEX "hmis_2022_services_partitioned_62_ServicesID_idx4" ON hmis.hmis_2022_services_partitioned_62 USING btree ("ServicesID");
+
+
+--
+-- Name: hmis_2022_services_partitioned_62_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_services_partitioned_62_data_source_id_idx ON hmis.hmis_2022_services_partitioned_62 USING btree (data_source_id);
 
 
 --
@@ -192462,6 +193782,13 @@ CREATE INDEX "hmis_2022_services_partitioned_63_ServicesID_idx4" ON hmis.hmis_20
 
 
 --
+-- Name: hmis_2022_services_partitioned_63_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_services_partitioned_63_data_source_id_idx ON hmis.hmis_2022_services_partitioned_63 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_services_partitioned_63_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -192907,6 +194234,13 @@ CREATE INDEX "hmis_2022_services_partitioned_64_ServicesID_idx3" ON hmis.hmis_20
 --
 
 CREATE INDEX "hmis_2022_services_partitioned_64_ServicesID_idx4" ON hmis.hmis_2022_services_partitioned_64 USING btree ("ServicesID");
+
+
+--
+-- Name: hmis_2022_services_partitioned_64_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_services_partitioned_64_data_source_id_idx ON hmis.hmis_2022_services_partitioned_64 USING btree (data_source_id);
 
 
 --
@@ -193358,6 +194692,13 @@ CREATE INDEX "hmis_2022_services_partitioned_65_ServicesID_idx4" ON hmis.hmis_20
 
 
 --
+-- Name: hmis_2022_services_partitioned_65_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_services_partitioned_65_data_source_id_idx ON hmis.hmis_2022_services_partitioned_65 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_services_partitioned_65_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -193803,6 +195144,13 @@ CREATE INDEX "hmis_2022_services_partitioned_66_ServicesID_idx3" ON hmis.hmis_20
 --
 
 CREATE INDEX "hmis_2022_services_partitioned_66_ServicesID_idx4" ON hmis.hmis_2022_services_partitioned_66 USING btree ("ServicesID");
+
+
+--
+-- Name: hmis_2022_services_partitioned_66_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_services_partitioned_66_data_source_id_idx ON hmis.hmis_2022_services_partitioned_66 USING btree (data_source_id);
 
 
 --
@@ -194254,6 +195602,13 @@ CREATE INDEX "hmis_2022_services_partitioned_67_ServicesID_idx4" ON hmis.hmis_20
 
 
 --
+-- Name: hmis_2022_services_partitioned_67_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_services_partitioned_67_data_source_id_idx ON hmis.hmis_2022_services_partitioned_67 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_services_partitioned_67_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -194702,6 +196057,13 @@ CREATE INDEX "hmis_2022_services_partitioned_68_ServicesID_idx4" ON hmis.hmis_20
 
 
 --
+-- Name: hmis_2022_services_partitioned_68_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_services_partitioned_68_data_source_id_idx ON hmis.hmis_2022_services_partitioned_68 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_services_partitioned_68_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -195147,6 +196509,13 @@ CREATE INDEX "hmis_2022_services_partitioned_69_ServicesID_idx3" ON hmis.hmis_20
 --
 
 CREATE INDEX "hmis_2022_services_partitioned_69_ServicesID_idx4" ON hmis.hmis_2022_services_partitioned_69 USING btree ("ServicesID");
+
+
+--
+-- Name: hmis_2022_services_partitioned_69_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_services_partitioned_69_data_source_id_idx ON hmis.hmis_2022_services_partitioned_69 USING btree (data_source_id);
 
 
 --
@@ -195605,6 +196974,13 @@ CREATE INDEX "hmis_2022_services_partitioned_6_ServicesID_importer_log_id_idx" O
 
 
 --
+-- Name: hmis_2022_services_partitioned_6_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_services_partitioned_6_data_source_id_idx ON hmis.hmis_2022_services_partitioned_6 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_services_partitioned_6_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -196050,6 +197426,13 @@ CREATE INDEX "hmis_2022_services_partitioned_70_ServicesID_idx3" ON hmis.hmis_20
 --
 
 CREATE INDEX "hmis_2022_services_partitioned_70_ServicesID_idx4" ON hmis.hmis_2022_services_partitioned_70 USING btree ("ServicesID");
+
+
+--
+-- Name: hmis_2022_services_partitioned_70_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_services_partitioned_70_data_source_id_idx ON hmis.hmis_2022_services_partitioned_70 USING btree (data_source_id);
 
 
 --
@@ -196508,6 +197891,13 @@ CREATE INDEX "hmis_2022_services_partitioned_7_ServicesID_importer_log_id_idx" O
 
 
 --
+-- Name: hmis_2022_services_partitioned_7_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_services_partitioned_7_data_source_id_idx ON hmis.hmis_2022_services_partitioned_7 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_services_partitioned_7_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -196963,6 +198353,13 @@ CREATE INDEX "hmis_2022_services_partitioned_8_ServicesID_importer_log_id_idx" O
 
 
 --
+-- Name: hmis_2022_services_partitioned_8_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_services_partitioned_8_data_source_id_idx ON hmis.hmis_2022_services_partitioned_8 USING btree (data_source_id);
+
+
+--
 -- Name: hmis_2022_services_partitioned_8_importer_log_id_idx; Type: INDEX; Schema: hmis; Owner: -
 --
 
@@ -197415,6 +198812,13 @@ CREATE INDEX "hmis_2022_services_partitioned_9_ServicesID_idx4" ON hmis.hmis_202
 --
 
 CREATE INDEX "hmis_2022_services_partitioned_9_ServicesID_importer_log_id_idx" ON hmis.hmis_2022_services_partitioned_9 USING btree ("ServicesID", importer_log_id);
+
+
+--
+-- Name: hmis_2022_services_partitioned_9_data_source_id_idx; Type: INDEX; Schema: hmis; Owner: -
+--
+
+CREATE INDEX hmis_2022_services_partitioned_9_data_source_id_idx ON hmis.hmis_2022_services_partitioned_9 USING btree (data_source_id);
 
 
 --
@@ -198199,6 +199603,13 @@ CREATE INDEX client_last_name ON public."Client" USING btree ("LastName");
 --
 
 CREATE INDEX client_personal_id ON public."Client" USING btree ("PersonalID");
+
+
+--
+-- Name: client_tt; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX client_tt ON public."Client" USING btree ("DOB", "SSN") WHERE ("DateDeleted" IS NULL);
 
 
 --
@@ -203914,10 +205325,24 @@ CREATE INDEX hmis2026affiliations_634d ON public.hmis_2026_affiliations USING bt
 
 
 --
+-- Name: hmis2026affiliations_9bb7; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmis2026affiliations_9bb7 ON public.hmis_2026_affiliations USING btree (importer_log_id, "DateUpdated");
+
+
+--
 -- Name: hmis2026assessmentquestions_634d; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX hmis2026assessmentquestions_634d ON public.hmis_2026_assessment_questions USING btree ("ExportID");
+
+
+--
+-- Name: hmis2026assessmentquestions_9bb7; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmis2026assessmentquestions_9bb7 ON public.hmis_2026_assessment_questions USING btree (importer_log_id, "DateUpdated");
 
 
 --
@@ -203932,6 +205357,13 @@ CREATE INDEX hmis2026assessmentquestions_da04 ON public.hmis_2026_assessment_que
 --
 
 CREATE INDEX hmis2026assessmentresults_634d ON public.hmis_2026_assessment_results USING btree ("ExportID");
+
+
+--
+-- Name: hmis2026assessmentresults_9bb7; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmis2026assessmentresults_9bb7 ON public.hmis_2026_assessment_results USING btree (importer_log_id, "DateUpdated");
 
 
 --
@@ -203970,6 +205402,13 @@ CREATE INDEX hmis2026assessments_634d ON public.hmis_2026_assessments USING btre
 
 
 --
+-- Name: hmis2026assessments_9bb7; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmis2026assessments_9bb7 ON public.hmis_2026_assessments USING btree (importer_log_id, "DateUpdated");
+
+
+--
 -- Name: hmis2026assessments_da04; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -203998,6 +205437,13 @@ CREATE INDEX hmis2026ceparticipations_634d ON public.hmis_2026_ce_participations
 
 
 --
+-- Name: hmis2026ceparticipations_9bb7; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmis2026ceparticipations_9bb7 ON public.hmis_2026_ce_participations USING btree (importer_log_id, "DateUpdated");
+
+
+--
 -- Name: hmis2026clients_202d; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -204009,13 +205455,6 @@ CREATE INDEX hmis2026clients_202d ON public.hmis_2026_clients USING btree ("DOB"
 --
 
 CREATE INDEX hmis2026clients_20a8 ON public.hmis_2026_clients USING btree ("VeteranStatus");
-
-
---
--- Name: hmis2026clients_42d5; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmis2026clients_42d5 ON public.hmis_2026_clients USING btree ("DateUpdated");
 
 
 --
@@ -204047,6 +205486,13 @@ CREATE INDEX hmis2026clients_634d ON public.hmis_2026_clients USING btree ("Expo
 
 
 --
+-- Name: hmis2026clients_9bb7; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmis2026clients_9bb7 ON public.hmis_2026_clients USING btree (importer_log_id, "DateUpdated");
+
+
+--
 -- Name: hmis2026clients_d381; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -204072,6 +205518,13 @@ CREATE INDEX hmis2026currentlivingsituations_603f ON public.hmis_2026_current_li
 --
 
 CREATE INDEX hmis2026currentlivingsituations_634d ON public.hmis_2026_current_living_situations USING btree ("ExportID");
+
+
+--
+-- Name: hmis2026currentlivingsituations_9bb7; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmis2026currentlivingsituations_9bb7 ON public.hmis_2026_current_living_situations USING btree (importer_log_id, "DateUpdated");
 
 
 --
@@ -204103,13 +205556,6 @@ CREATE INDEX hmis2026disabilities_1873 ON public.hmis_2026_disabilities USING bt
 
 
 --
--- Name: hmis2026disabilities_42d5; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmis2026disabilities_42d5 ON public.hmis_2026_disabilities USING btree ("DateUpdated");
-
-
---
 -- Name: hmis2026disabilities_4337; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -204131,6 +205577,13 @@ CREATE INDEX hmis2026disabilities_634d ON public.hmis_2026_disabilities USING bt
 
 
 --
+-- Name: hmis2026disabilities_9bb7; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmis2026disabilities_9bb7 ON public.hmis_2026_disabilities USING btree (importer_log_id, "DateUpdated");
+
+
+--
 -- Name: hmis2026disabilities_d381; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -204142,13 +205595,6 @@ CREATE INDEX hmis2026disabilities_d381 ON public.hmis_2026_disabilities USING bt
 --
 
 CREATE INDEX hmis2026employmenteducations_350e ON public.hmis_2026_employment_educations USING btree ("EmploymentEducationID");
-
-
---
--- Name: hmis2026employmenteducations_42d5; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmis2026employmenteducations_42d5 ON public.hmis_2026_employment_educations USING btree ("DateUpdated");
 
 
 --
@@ -204170,6 +205616,13 @@ CREATE INDEX hmis2026employmenteducations_603f ON public.hmis_2026_employment_ed
 --
 
 CREATE INDEX hmis2026employmenteducations_634d ON public.hmis_2026_employment_educations USING btree ("ExportID");
+
+
+--
+-- Name: hmis2026employmenteducations_9bb7; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmis2026employmenteducations_9bb7 ON public.hmis_2026_employment_educations USING btree (importer_log_id, "DateUpdated");
 
 
 --
@@ -204205,13 +205658,6 @@ CREATE INDEX hmis2026enrollments_34e3 ON public.hmis_2026_enrollments USING btre
 --
 
 CREATE INDEX hmis2026enrollments_42af ON public.hmis_2026_enrollments USING btree ("ProjectID");
-
-
---
--- Name: hmis2026enrollments_42d5; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmis2026enrollments_42d5 ON public.hmis_2026_enrollments USING btree ("DateUpdated");
 
 
 --
@@ -204299,6 +205745,13 @@ CREATE INDEX hmis2026enrollments_9005 ON public.hmis_2026_enrollments USING btre
 
 
 --
+-- Name: hmis2026enrollments_9bb7; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmis2026enrollments_9bb7 ON public.hmis_2026_enrollments USING btree (importer_log_id, "DateUpdated");
+
+
+--
 -- Name: hmis2026enrollments_c321; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -204383,6 +205836,13 @@ CREATE INDEX hmis2026events_634d ON public.hmis_2026_events USING btree ("Export
 
 
 --
+-- Name: hmis2026events_9bb7; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmis2026events_9bb7 ON public.hmis_2026_events USING btree (importer_log_id, "DateUpdated");
+
+
+--
 -- Name: hmis2026events_ab19; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -204394,13 +205854,6 @@ CREATE INDEX hmis2026events_ab19 ON public.hmis_2026_events USING btree ("EventD
 --
 
 CREATE INDEX hmis2026exits_13dc ON public.hmis_2026_exits USING btree ("ExitDate", "Destination") INCLUDE ("EnrollmentID");
-
-
---
--- Name: hmis2026exits_42d5; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmis2026exits_42d5 ON public.hmis_2026_exits USING btree ("DateUpdated");
 
 
 --
@@ -204432,6 +205885,13 @@ CREATE INDEX hmis2026exits_6f2b ON public.hmis_2026_exits USING btree ("ExitID")
 
 
 --
+-- Name: hmis2026exits_9bb7; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmis2026exits_9bb7 ON public.hmis_2026_exits USING btree (importer_log_id, "DateUpdated");
+
+
+--
 -- Name: hmis2026exits_d381; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -204460,13 +205920,6 @@ CREATE INDEX hmis2026exports_634d ON public.hmis_2026_exports USING btree ("Expo
 
 
 --
--- Name: hmis2026funders_42d5; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmis2026funders_42d5 ON public.hmis_2026_funders USING btree ("DateUpdated");
-
-
---
 -- Name: hmis2026funders_4657; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -204481,6 +205934,13 @@ CREATE INDEX hmis2026funders_634d ON public.hmis_2026_funders USING btree ("Expo
 
 
 --
+-- Name: hmis2026funders_9bb7; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmis2026funders_9bb7 ON public.hmis_2026_funders USING btree (importer_log_id, "DateUpdated");
+
+
+--
 -- Name: hmis2026funders_d381; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -204492,13 +205952,6 @@ CREATE INDEX hmis2026funders_d381 ON public.hmis_2026_funders USING btree ("Date
 --
 
 CREATE INDEX hmis2026healthanddvs_1329 ON public.hmis_2026_health_and_dvs USING btree ("HealthAndDVID");
-
-
---
--- Name: hmis2026healthanddvs_42d5; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmis2026healthanddvs_42d5 ON public.hmis_2026_health_and_dvs USING btree ("DateUpdated");
 
 
 --
@@ -204520,6 +205973,13 @@ CREATE INDEX hmis2026healthanddvs_603f ON public.hmis_2026_health_and_dvs USING 
 --
 
 CREATE INDEX hmis2026healthanddvs_634d ON public.hmis_2026_health_and_dvs USING btree ("ExportID");
+
+
+--
+-- Name: hmis2026healthanddvs_9bb7; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmis2026healthanddvs_9bb7 ON public.hmis_2026_health_and_dvs USING btree (importer_log_id, "DateUpdated");
 
 
 --
@@ -204551,17 +206011,17 @@ CREATE INDEX hmis2026hmisparticipations_827e ON public.hmis_2026_hmis_participat
 
 
 --
+-- Name: hmis2026hmisparticipations_9bb7; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmis2026hmisparticipations_9bb7 ON public.hmis_2026_hmis_participations USING btree (importer_log_id, "DateUpdated");
+
+
+--
 -- Name: hmis2026incomebenefits_16c2; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX hmis2026incomebenefits_16c2 ON public.hmis_2026_income_benefits USING btree ("Earned", "DataCollectionStage");
-
-
---
--- Name: hmis2026incomebenefits_42d5; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmis2026incomebenefits_42d5 ON public.hmis_2026_income_benefits USING btree ("DateUpdated");
 
 
 --
@@ -204583,6 +206043,13 @@ CREATE INDEX hmis2026incomebenefits_603f ON public.hmis_2026_income_benefits USI
 --
 
 CREATE INDEX hmis2026incomebenefits_634d ON public.hmis_2026_income_benefits USING btree ("ExportID");
+
+
+--
+-- Name: hmis2026incomebenefits_9bb7; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmis2026incomebenefits_9bb7 ON public.hmis_2026_income_benefits USING btree (importer_log_id, "DateUpdated");
 
 
 --
@@ -204614,13 +206081,6 @@ CREATE INDEX hmis2026incomebenefits_fabe ON public.hmis_2026_income_benefits USI
 
 
 --
--- Name: hmis2026inventories_42d5; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmis2026inventories_42d5 ON public.hmis_2026_inventories USING btree ("DateUpdated");
-
-
---
 -- Name: hmis2026inventories_634d; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -204632,6 +206092,13 @@ CREATE INDEX hmis2026inventories_634d ON public.hmis_2026_inventories USING btre
 --
 
 CREATE INDEX hmis2026inventories_9529 ON public.hmis_2026_inventories USING btree ("InventoryID");
+
+
+--
+-- Name: hmis2026inventories_9bb7; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmis2026inventories_9bb7 ON public.hmis_2026_inventories USING btree (importer_log_id, "DateUpdated");
 
 
 --
@@ -204656,17 +206123,17 @@ CREATE INDEX hmis2026organizations_634d ON public.hmis_2026_organizations USING 
 
 
 --
+-- Name: hmis2026organizations_9bb7; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmis2026organizations_9bb7 ON public.hmis_2026_organizations USING btree (importer_log_id, "DateUpdated");
+
+
+--
 -- Name: hmis2026organizations_b19d; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX hmis2026organizations_b19d ON public.hmis_2026_organizations USING btree ("OrganizationID");
-
-
---
--- Name: hmis2026projectcocs_42d5; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmis2026projectcocs_42d5 ON public.hmis_2026_project_cocs USING btree ("DateUpdated");
 
 
 --
@@ -204681,6 +206148,13 @@ CREATE INDEX hmis2026projectcocs_634d ON public.hmis_2026_project_cocs USING btr
 --
 
 CREATE INDEX hmis2026projectcocs_787b ON public.hmis_2026_project_cocs USING btree ("ProjectCoCID");
+
+
+--
+-- Name: hmis2026projectcocs_9bb7; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmis2026projectcocs_9bb7 ON public.hmis_2026_project_cocs USING btree (importer_log_id, "DateUpdated");
 
 
 --
@@ -204705,17 +206179,17 @@ CREATE INDEX hmis2026projects_42af ON public.hmis_2026_projects USING btree ("Pr
 
 
 --
--- Name: hmis2026projects_42d5; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmis2026projects_42d5 ON public.hmis_2026_projects USING btree ("DateUpdated");
-
-
---
 -- Name: hmis2026projects_634d; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX hmis2026projects_634d ON public.hmis_2026_projects USING btree ("ExportID");
+
+
+--
+-- Name: hmis2026projects_9bb7; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmis2026projects_9bb7 ON public.hmis_2026_projects USING btree (importer_log_id, "DateUpdated");
 
 
 --
@@ -204744,13 +206218,6 @@ CREATE INDEX hmis2026services_237b ON public.hmis_2026_services USING btree ("Re
 --
 
 CREATE INDEX hmis2026services_3444 ON public.hmis_2026_services USING btree ("DateProvided");
-
-
---
--- Name: hmis2026services_42d5; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmis2026services_42d5 ON public.hmis_2026_services USING btree ("DateUpdated");
 
 
 --
@@ -204810,6 +206277,13 @@ CREATE INDEX hmis2026services_8dbb ON public.hmis_2026_services USING btree ("Re
 
 
 --
+-- Name: hmis2026services_9bb7; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmis2026services_9bb7 ON public.hmis_2026_services USING btree (importer_log_id, "DateUpdated");
+
+
+--
 -- Name: hmis2026services_9c1a; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -204859,6 +206333,13 @@ CREATE INDEX hmis2026users_634d ON public.hmis_2026_users USING btree ("ExportID
 
 
 --
+-- Name: hmis2026users_9bb7; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmis2026users_9bb7 ON public.hmis_2026_users USING btree (importer_log_id, "DateUpdated");
+
+
+--
 -- Name: hmis2026youtheducationstatuses_4337; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -204884,6 +206365,13 @@ CREATE INDEX hmis2026youtheducationstatuses_6049 ON public.hmis_2026_youth_educa
 --
 
 CREATE INDEX hmis2026youtheducationstatuses_634d ON public.hmis_2026_youth_education_statuses USING btree ("ExportID");
+
+
+--
+-- Name: hmis2026youtheducationstatuses_9bb7; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmis2026youtheducationstatuses_9bb7 ON public.hmis_2026_youth_education_statuses USING btree (importer_log_id, "DateUpdated");
 
 
 --
@@ -213175,10 +214663,38 @@ CREATE INDEX hmiscsv2024ceparticipations_634d ON public.hmis_csv_2024_ce_partici
 
 
 --
+-- Name: hmiscsv2024clients_202d; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2024clients_202d ON public.hmis_csv_2024_clients USING btree ("DOB");
+
+
+--
 -- Name: hmiscsv2024clients_20a8; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX hmiscsv2024clients_20a8 ON public.hmis_csv_2024_clients USING btree ("VeteranStatus");
+
+
+--
+-- Name: hmiscsv2024clients_42d5; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2024clients_42d5 ON public.hmis_csv_2024_clients USING btree ("DateUpdated");
+
+
+--
+-- Name: hmiscsv2024clients_5289; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2024clients_5289 ON public.hmis_csv_2024_clients USING btree ("FirstName");
+
+
+--
+-- Name: hmiscsv2024clients_539c; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2024clients_539c ON public.hmis_csv_2024_clients USING btree ("LastName");
 
 
 --
@@ -213193,6 +214709,13 @@ CREATE INDEX hmiscsv2024clients_603f ON public.hmis_csv_2024_clients USING btree
 --
 
 CREATE INDEX hmiscsv2024clients_634d ON public.hmis_csv_2024_clients USING btree ("ExportID");
+
+
+--
+-- Name: hmiscsv2024clients_d381; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2024clients_d381 ON public.hmis_csv_2024_clients USING btree ("DateCreated");
 
 
 --
@@ -213224,6 +214747,13 @@ CREATE INDEX hmiscsv2024disabilities_1873 ON public.hmis_csv_2024_disabilities U
 
 
 --
+-- Name: hmiscsv2024disabilities_42d5; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2024disabilities_42d5 ON public.hmis_csv_2024_disabilities USING btree ("DateUpdated");
+
+
+--
 -- Name: hmiscsv2024disabilities_4337; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -213245,6 +214775,13 @@ CREATE INDEX hmiscsv2024disabilities_634d ON public.hmis_csv_2024_disabilities U
 
 
 --
+-- Name: hmiscsv2024disabilities_d381; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2024disabilities_d381 ON public.hmis_csv_2024_disabilities USING btree ("DateCreated");
+
+
+--
 -- Name: hmiscsv2024employmenteducations_350e; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -213252,10 +214789,38 @@ CREATE INDEX hmiscsv2024employmenteducations_350e ON public.hmis_csv_2024_employ
 
 
 --
+-- Name: hmiscsv2024employmenteducations_42d5; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2024employmenteducations_42d5 ON public.hmis_csv_2024_employment_educations USING btree ("DateUpdated");
+
+
+--
+-- Name: hmiscsv2024employmenteducations_4337; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2024employmenteducations_4337 ON public.hmis_csv_2024_employment_educations USING btree ("EnrollmentID");
+
+
+--
+-- Name: hmiscsv2024employmenteducations_603f; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2024employmenteducations_603f ON public.hmis_csv_2024_employment_educations USING btree ("PersonalID");
+
+
+--
 -- Name: hmiscsv2024employmenteducations_634d; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX hmiscsv2024employmenteducations_634d ON public.hmis_csv_2024_employment_educations USING btree ("ExportID");
+
+
+--
+-- Name: hmiscsv2024employmenteducations_d381; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2024employmenteducations_d381 ON public.hmis_csv_2024_employment_educations USING btree ("DateCreated");
 
 
 --
@@ -213277,6 +214842,13 @@ CREATE INDEX hmiscsv2024enrollments_34e3 ON public.hmis_csv_2024_enrollments USI
 --
 
 CREATE INDEX hmiscsv2024enrollments_42af ON public.hmis_csv_2024_enrollments USING btree ("ProjectID");
+
+
+--
+-- Name: hmiscsv2024enrollments_42d5; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2024enrollments_42d5 ON public.hmis_csv_2024_enrollments USING btree ("DateUpdated");
 
 
 --
@@ -213371,6 +214943,13 @@ CREATE INDEX hmiscsv2024enrollments_c830 ON public.hmis_csv_2024_enrollments USI
 
 
 --
+-- Name: hmiscsv2024enrollments_d381; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2024enrollments_d381 ON public.hmis_csv_2024_enrollments USING btree ("DateCreated");
+
+
+--
 -- Name: hmiscsv2024enrollments_ea7f; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -213462,6 +215041,13 @@ CREATE INDEX hmiscsv2024exits_fa9a ON public.hmis_csv_2024_exits USING btree ("E
 
 
 --
+-- Name: hmiscsv2024exports_634d; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2024exports_634d ON public.hmis_csv_2024_exports USING btree ("ExportID");
+
+
+--
 -- Name: hmiscsv2024funders_4657; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -213546,6 +215132,13 @@ CREATE INDEX hmiscsv2024inventories_9529 ON public.hmis_csv_2024_inventories USI
 
 
 --
+-- Name: hmiscsv2024organizations_634d; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2024organizations_634d ON public.hmis_csv_2024_organizations USING btree ("ExportID");
+
+
+--
 -- Name: hmiscsv2024organizations_b19d; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -213571,6 +215164,34 @@ CREATE INDEX hmiscsv2024projectcocs_787b ON public.hmis_csv_2024_project_cocs US
 --
 
 CREATE INDEX hmiscsv2024projects_42af ON public.hmis_csv_2024_projects USING btree ("ProjectID");
+
+
+--
+-- Name: hmiscsv2024projects_42d5; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2024projects_42d5 ON public.hmis_csv_2024_projects USING btree ("DateUpdated");
+
+
+--
+-- Name: hmiscsv2024projects_634d; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2024projects_634d ON public.hmis_csv_2024_projects USING btree ("ExportID");
+
+
+--
+-- Name: hmiscsv2024projects_d381; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2024projects_d381 ON public.hmis_csv_2024_projects USING btree ("DateCreated");
+
+
+--
+-- Name: hmiscsv2024projects_e4bb; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX hmiscsv2024projects_e4bb ON public.hmis_csv_2024_projects USING btree ("ProjectType");
 
 
 --
@@ -214218,13 +215839,6 @@ CREATE INDEX idx_client_name_last_gin ON public."Client" USING gin (search_name_
 
 
 --
--- Name: idx_client_ssn; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_client_ssn ON public."Client" USING btree ("SSN");
-
-
---
 -- Name: idx_custom_data_element_definitions_id_ds; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -214719,13 +216333,6 @@ CREATE INDEX idx_threshold_notification_logs_user_sent_at ON public.grda_warehou
 --
 
 CREATE UNIQUE INDEX idx_tpc_uniqueness ON public.enrollment_extras USING btree (hud_enrollment_id, entry_date, vispdat_ended_at, project_name, agency_name, community, data_source_id);
-
-
---
--- Name: idx_warehouse_clients_source; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_warehouse_clients_source ON public.warehouse_clients USING btree (source_id, destination_id);
 
 
 --
@@ -217823,10 +219430,157 @@ CREATE INDEX index_helps_on_updated_at ON public.helps USING btree (updated_at);
 
 
 --
+-- Name: index_hmis_2020_affiliations_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_2020_affiliations_on_data_source_id ON public.hmis_2020_affiliations USING btree (data_source_id);
+
+
+--
+-- Name: index_hmis_2020_assessment_questions_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_2020_assessment_questions_on_data_source_id ON public.hmis_2020_assessment_questions USING btree (data_source_id);
+
+
+--
+-- Name: index_hmis_2020_assessment_results_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_2020_assessment_results_on_data_source_id ON public.hmis_2020_assessment_results USING btree (data_source_id);
+
+
+--
+-- Name: index_hmis_2020_assessments_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_2020_assessments_on_data_source_id ON public.hmis_2020_assessments USING btree (data_source_id);
+
+
+--
+-- Name: index_hmis_2020_clients_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_2020_clients_on_data_source_id ON public.hmis_2020_clients USING btree (data_source_id);
+
+
+--
+-- Name: index_hmis_2020_current_living_situations_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_2020_current_living_situations_on_data_source_id ON public.hmis_2020_current_living_situations USING btree (data_source_id);
+
+
+--
+-- Name: index_hmis_2020_disabilities_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_2020_disabilities_on_data_source_id ON public.hmis_2020_disabilities USING btree (data_source_id);
+
+
+--
+-- Name: index_hmis_2020_employment_educations_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_2020_employment_educations_on_data_source_id ON public.hmis_2020_employment_educations USING btree (data_source_id);
+
+
+--
+-- Name: index_hmis_2020_enrollment_cocs_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_2020_enrollment_cocs_on_data_source_id ON public.hmis_2020_enrollment_cocs USING btree (data_source_id);
+
+
+--
+-- Name: index_hmis_2020_enrollments_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_2020_enrollments_on_data_source_id ON public.hmis_2020_enrollments USING btree (data_source_id);
+
+
+--
+-- Name: index_hmis_2020_events_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_2020_events_on_data_source_id ON public.hmis_2020_events USING btree (data_source_id);
+
+
+--
+-- Name: index_hmis_2020_exits_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_2020_exits_on_data_source_id ON public.hmis_2020_exits USING btree (data_source_id);
+
+
+--
 -- Name: index_hmis_2020_exports_on_importer_log_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_hmis_2020_exports_on_importer_log_id ON public.hmis_2020_exports USING btree (importer_log_id);
+
+
+--
+-- Name: index_hmis_2020_funders_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_2020_funders_on_data_source_id ON public.hmis_2020_funders USING btree (data_source_id);
+
+
+--
+-- Name: index_hmis_2020_health_and_dvs_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_2020_health_and_dvs_on_data_source_id ON public.hmis_2020_health_and_dvs USING btree (data_source_id);
+
+
+--
+-- Name: index_hmis_2020_income_benefits_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_2020_income_benefits_on_data_source_id ON public.hmis_2020_income_benefits USING btree (data_source_id);
+
+
+--
+-- Name: index_hmis_2020_inventories_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_2020_inventories_on_data_source_id ON public.hmis_2020_inventories USING btree (data_source_id);
+
+
+--
+-- Name: index_hmis_2020_organizations_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_2020_organizations_on_data_source_id ON public.hmis_2020_organizations USING btree (data_source_id);
+
+
+--
+-- Name: index_hmis_2020_project_cocs_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_2020_project_cocs_on_data_source_id ON public.hmis_2020_project_cocs USING btree (data_source_id);
+
+
+--
+-- Name: index_hmis_2020_services_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_2020_services_on_data_source_id ON public.hmis_2020_services USING btree (data_source_id);
+
+
+--
+-- Name: index_hmis_2020_users_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_2020_users_on_data_source_id ON public.hmis_2020_users USING btree (data_source_id);
+
+
+--
+-- Name: index_hmis_2022_affiliations_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_2022_affiliations_on_data_source_id ON public.hmis_2022_affiliations USING btree (data_source_id);
 
 
 --
@@ -217837,6 +219591,13 @@ CREATE INDEX index_hmis_2022_affiliations_on_importer_log_id ON public.hmis_2022
 
 
 --
+-- Name: index_hmis_2022_assessment_questions_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_2022_assessment_questions_on_data_source_id ON public.hmis_2022_assessment_questions USING btree (data_source_id);
+
+
+--
 -- Name: index_hmis_2022_assessment_questions_on_importer_log_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -217844,10 +219605,24 @@ CREATE INDEX index_hmis_2022_assessment_questions_on_importer_log_id ON public.h
 
 
 --
+-- Name: index_hmis_2022_assessment_results_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_2022_assessment_results_on_data_source_id ON public.hmis_2022_assessment_results USING btree (data_source_id);
+
+
+--
 -- Name: index_hmis_2022_assessment_results_on_importer_log_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_hmis_2022_assessment_results_on_importer_log_id ON public.hmis_2022_assessment_results USING btree (importer_log_id);
+
+
+--
+-- Name: index_hmis_2022_assessments_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_2022_assessments_on_data_source_id ON public.hmis_2022_assessments USING btree (data_source_id);
 
 
 --
@@ -217865,10 +219640,24 @@ CREATE INDEX index_hmis_2022_clients_on_importer_log_id ON public.hmis_2022_clie
 
 
 --
+-- Name: index_hmis_2022_current_living_situations_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_2022_current_living_situations_on_data_source_id ON public.hmis_2022_current_living_situations USING btree (data_source_id);
+
+
+--
 -- Name: index_hmis_2022_current_living_situations_on_importer_log_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_hmis_2022_current_living_situations_on_importer_log_id ON public.hmis_2022_current_living_situations USING btree (importer_log_id);
+
+
+--
+-- Name: index_hmis_2022_disabilities_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_2022_disabilities_on_data_source_id ON public.hmis_2022_disabilities USING btree (data_source_id);
 
 
 --
@@ -217879,10 +219668,24 @@ CREATE INDEX index_hmis_2022_disabilities_on_importer_log_id ON public.hmis_2022
 
 
 --
+-- Name: index_hmis_2022_employment_educations_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_2022_employment_educations_on_data_source_id ON public.hmis_2022_employment_educations USING btree (data_source_id);
+
+
+--
 -- Name: index_hmis_2022_employment_educations_on_importer_log_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_hmis_2022_employment_educations_on_importer_log_id ON public.hmis_2022_employment_educations USING btree (importer_log_id);
+
+
+--
+-- Name: index_hmis_2022_enrollment_cocs_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_2022_enrollment_cocs_on_data_source_id ON public.hmis_2022_enrollment_cocs USING btree (data_source_id);
 
 
 --
@@ -217897,6 +219700,13 @@ CREATE INDEX index_hmis_2022_enrollment_cocs_on_importer_log_id ON public.hmis_2
 --
 
 CREATE INDEX index_hmis_2022_enrollments_on_importer_log_id ON public.hmis_2022_enrollments_saved USING btree (importer_log_id);
+
+
+--
+-- Name: index_hmis_2022_events_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_2022_events_on_data_source_id ON public.hmis_2022_events USING btree (data_source_id);
 
 
 --
@@ -217921,10 +219731,24 @@ CREATE INDEX index_hmis_2022_exports_on_importer_log_id ON public.hmis_2022_expo
 
 
 --
+-- Name: index_hmis_2022_funders_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_2022_funders_on_data_source_id ON public.hmis_2022_funders USING btree (data_source_id);
+
+
+--
 -- Name: index_hmis_2022_funders_on_importer_log_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_hmis_2022_funders_on_importer_log_id ON public.hmis_2022_funders USING btree (importer_log_id);
+
+
+--
+-- Name: index_hmis_2022_health_and_dvs_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_2022_health_and_dvs_on_data_source_id ON public.hmis_2022_health_and_dvs USING btree (data_source_id);
 
 
 --
@@ -217935,10 +219759,24 @@ CREATE INDEX index_hmis_2022_health_and_dvs_on_importer_log_id ON public.hmis_20
 
 
 --
+-- Name: index_hmis_2022_income_benefits_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_2022_income_benefits_on_data_source_id ON public.hmis_2022_income_benefits USING btree (data_source_id);
+
+
+--
 -- Name: index_hmis_2022_income_benefits_on_importer_log_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_hmis_2022_income_benefits_on_importer_log_id ON public.hmis_2022_income_benefits USING btree (importer_log_id);
+
+
+--
+-- Name: index_hmis_2022_inventories_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_2022_inventories_on_data_source_id ON public.hmis_2022_inventories USING btree (data_source_id);
 
 
 --
@@ -217949,10 +219787,24 @@ CREATE INDEX index_hmis_2022_inventories_on_importer_log_id ON public.hmis_2022_
 
 
 --
+-- Name: index_hmis_2022_organizations_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_2022_organizations_on_data_source_id ON public.hmis_2022_organizations USING btree (data_source_id);
+
+
+--
 -- Name: index_hmis_2022_organizations_on_importer_log_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_hmis_2022_organizations_on_importer_log_id ON public.hmis_2022_organizations USING btree (importer_log_id);
+
+
+--
+-- Name: index_hmis_2022_project_cocs_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_2022_project_cocs_on_data_source_id ON public.hmis_2022_project_cocs USING btree (data_source_id);
 
 
 --
@@ -217977,10 +219829,24 @@ CREATE INDEX index_hmis_2022_services_on_importer_log_id ON public.hmis_2022_ser
 
 
 --
+-- Name: index_hmis_2022_users_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_2022_users_on_data_source_id ON public.hmis_2022_users USING btree (data_source_id);
+
+
+--
 -- Name: index_hmis_2022_users_on_importer_log_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_hmis_2022_users_on_importer_log_id ON public.hmis_2022_users USING btree (importer_log_id);
+
+
+--
+-- Name: index_hmis_2022_youth_education_statuses_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_2022_youth_education_statuses_on_data_source_id ON public.hmis_2022_youth_education_statuses USING btree (data_source_id);
 
 
 --
@@ -217991,10 +219857,178 @@ CREATE INDEX index_hmis_2022_youth_education_statuses_on_importer_log_id ON publ
 
 
 --
+-- Name: index_hmis_2024_affiliations_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_2024_affiliations_on_data_source_id ON public.hmis_2024_affiliations USING btree (data_source_id);
+
+
+--
+-- Name: index_hmis_2024_assessment_questions_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_2024_assessment_questions_on_data_source_id ON public.hmis_2024_assessment_questions USING btree (data_source_id);
+
+
+--
+-- Name: index_hmis_2024_assessment_results_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_2024_assessment_results_on_data_source_id ON public.hmis_2024_assessment_results USING btree (data_source_id);
+
+
+--
+-- Name: index_hmis_2024_assessments_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_2024_assessments_on_data_source_id ON public.hmis_2024_assessments USING btree (data_source_id);
+
+
+--
+-- Name: index_hmis_2024_ce_participations_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_2024_ce_participations_on_data_source_id ON public.hmis_2024_ce_participations USING btree (data_source_id);
+
+
+--
+-- Name: index_hmis_2024_clients_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_2024_clients_on_data_source_id ON public.hmis_2024_clients USING btree (data_source_id);
+
+
+--
+-- Name: index_hmis_2024_current_living_situations_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_2024_current_living_situations_on_data_source_id ON public.hmis_2024_current_living_situations USING btree (data_source_id);
+
+
+--
+-- Name: index_hmis_2024_disabilities_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_2024_disabilities_on_data_source_id ON public.hmis_2024_disabilities USING btree (data_source_id);
+
+
+--
+-- Name: index_hmis_2024_employment_educations_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_2024_employment_educations_on_data_source_id ON public.hmis_2024_employment_educations USING btree (data_source_id);
+
+
+--
+-- Name: index_hmis_2024_enrollments_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_2024_enrollments_on_data_source_id ON public.hmis_2024_enrollments USING btree (data_source_id);
+
+
+--
+-- Name: index_hmis_2024_events_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_2024_events_on_data_source_id ON public.hmis_2024_events USING btree (data_source_id);
+
+
+--
+-- Name: index_hmis_2024_exits_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_2024_exits_on_data_source_id ON public.hmis_2024_exits USING btree (data_source_id);
+
+
+--
 -- Name: index_hmis_2024_exits_on_importer_log_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_hmis_2024_exits_on_importer_log_id ON public.hmis_2024_exits USING btree (importer_log_id);
+
+
+--
+-- Name: index_hmis_2024_exports_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_2024_exports_on_data_source_id ON public.hmis_2024_exports USING btree (data_source_id);
+
+
+--
+-- Name: index_hmis_2024_funders_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_2024_funders_on_data_source_id ON public.hmis_2024_funders USING btree (data_source_id);
+
+
+--
+-- Name: index_hmis_2024_health_and_dvs_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_2024_health_and_dvs_on_data_source_id ON public.hmis_2024_health_and_dvs USING btree (data_source_id);
+
+
+--
+-- Name: index_hmis_2024_hmis_participations_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_2024_hmis_participations_on_data_source_id ON public.hmis_2024_hmis_participations USING btree (data_source_id);
+
+
+--
+-- Name: index_hmis_2024_income_benefits_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_2024_income_benefits_on_data_source_id ON public.hmis_2024_income_benefits USING btree (data_source_id);
+
+
+--
+-- Name: index_hmis_2024_inventories_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_2024_inventories_on_data_source_id ON public.hmis_2024_inventories USING btree (data_source_id);
+
+
+--
+-- Name: index_hmis_2024_organizations_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_2024_organizations_on_data_source_id ON public.hmis_2024_organizations USING btree (data_source_id);
+
+
+--
+-- Name: index_hmis_2024_project_cocs_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_2024_project_cocs_on_data_source_id ON public.hmis_2024_project_cocs USING btree (data_source_id);
+
+
+--
+-- Name: index_hmis_2024_projects_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_2024_projects_on_data_source_id ON public.hmis_2024_projects USING btree (data_source_id);
+
+
+--
+-- Name: index_hmis_2024_services_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_2024_services_on_data_source_id ON public.hmis_2024_services USING btree (data_source_id);
+
+
+--
+-- Name: index_hmis_2024_users_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_2024_users_on_data_source_id ON public.hmis_2024_users USING btree (data_source_id);
+
+
+--
+-- Name: index_hmis_2024_youth_education_statuses_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_2024_youth_education_statuses_on_data_source_id ON public.hmis_2024_youth_education_statuses USING btree (data_source_id);
 
 
 --
@@ -218005,24 +220039,10 @@ CREATE INDEX index_hmis_2026_affiliations_on_data_source_id ON public.hmis_2026_
 
 
 --
--- Name: index_hmis_2026_affiliations_on_importer_log_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_2026_affiliations_on_importer_log_id ON public.hmis_2026_affiliations USING btree (importer_log_id);
-
-
---
 -- Name: index_hmis_2026_assessment_questions_on_data_source_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_hmis_2026_assessment_questions_on_data_source_id ON public.hmis_2026_assessment_questions USING btree (data_source_id);
-
-
---
--- Name: index_hmis_2026_assessment_questions_on_importer_log_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_2026_assessment_questions_on_importer_log_id ON public.hmis_2026_assessment_questions USING btree (importer_log_id);
 
 
 --
@@ -218033,24 +220053,10 @@ CREATE INDEX index_hmis_2026_assessment_results_on_data_source_id ON public.hmis
 
 
 --
--- Name: index_hmis_2026_assessment_results_on_importer_log_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_2026_assessment_results_on_importer_log_id ON public.hmis_2026_assessment_results USING btree (importer_log_id);
-
-
---
 -- Name: index_hmis_2026_assessments_on_data_source_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_hmis_2026_assessments_on_data_source_id ON public.hmis_2026_assessments USING btree (data_source_id);
-
-
---
--- Name: index_hmis_2026_assessments_on_importer_log_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_2026_assessments_on_importer_log_id ON public.hmis_2026_assessments USING btree (importer_log_id);
 
 
 --
@@ -218061,13 +220067,6 @@ CREATE INDEX index_hmis_2026_ce_participations_on_data_source_id ON public.hmis_
 
 
 --
--- Name: index_hmis_2026_ce_participations_on_importer_log_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_2026_ce_participations_on_importer_log_id ON public.hmis_2026_ce_participations USING btree (importer_log_id);
-
-
---
 -- Name: index_hmis_2026_clients_on_data_source_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -218075,24 +220074,10 @@ CREATE INDEX index_hmis_2026_clients_on_data_source_id ON public.hmis_2026_clien
 
 
 --
--- Name: index_hmis_2026_clients_on_importer_log_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_2026_clients_on_importer_log_id ON public.hmis_2026_clients USING btree (importer_log_id);
-
-
---
 -- Name: index_hmis_2026_current_living_situations_on_data_source_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_hmis_2026_current_living_situations_on_data_source_id ON public.hmis_2026_current_living_situations USING btree (data_source_id);
-
-
---
--- Name: index_hmis_2026_current_living_situations_on_importer_log_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_2026_current_living_situations_on_importer_log_id ON public.hmis_2026_current_living_situations USING btree (importer_log_id);
 
 
 --
@@ -218145,24 +220130,10 @@ CREATE INDEX index_hmis_2026_disabilities_on_data_source_id ON public.hmis_2026_
 
 
 --
--- Name: index_hmis_2026_disabilities_on_importer_log_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_2026_disabilities_on_importer_log_id ON public.hmis_2026_disabilities USING btree (importer_log_id);
-
-
---
 -- Name: index_hmis_2026_employment_educations_on_data_source_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_hmis_2026_employment_educations_on_data_source_id ON public.hmis_2026_employment_educations USING btree (data_source_id);
-
-
---
--- Name: index_hmis_2026_employment_educations_on_importer_log_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_2026_employment_educations_on_importer_log_id ON public.hmis_2026_employment_educations USING btree (importer_log_id);
 
 
 --
@@ -218173,13 +220144,6 @@ CREATE INDEX index_hmis_2026_enrollments_on_data_source_id ON public.hmis_2026_e
 
 
 --
--- Name: index_hmis_2026_enrollments_on_importer_log_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_2026_enrollments_on_importer_log_id ON public.hmis_2026_enrollments USING btree (importer_log_id);
-
-
---
 -- Name: index_hmis_2026_events_on_data_source_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -218187,24 +220151,10 @@ CREATE INDEX index_hmis_2026_events_on_data_source_id ON public.hmis_2026_events
 
 
 --
--- Name: index_hmis_2026_events_on_importer_log_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_2026_events_on_importer_log_id ON public.hmis_2026_events USING btree (importer_log_id);
-
-
---
 -- Name: index_hmis_2026_exits_on_data_source_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_hmis_2026_exits_on_data_source_id ON public.hmis_2026_exits USING btree (data_source_id);
-
-
---
--- Name: index_hmis_2026_exits_on_importer_log_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_2026_exits_on_importer_log_id ON public.hmis_2026_exits USING btree (importer_log_id);
 
 
 --
@@ -218229,24 +220179,10 @@ CREATE INDEX index_hmis_2026_funders_on_data_source_id ON public.hmis_2026_funde
 
 
 --
--- Name: index_hmis_2026_funders_on_importer_log_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_2026_funders_on_importer_log_id ON public.hmis_2026_funders USING btree (importer_log_id);
-
-
---
 -- Name: index_hmis_2026_health_and_dvs_on_data_source_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_hmis_2026_health_and_dvs_on_data_source_id ON public.hmis_2026_health_and_dvs USING btree (data_source_id);
-
-
---
--- Name: index_hmis_2026_health_and_dvs_on_importer_log_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_2026_health_and_dvs_on_importer_log_id ON public.hmis_2026_health_and_dvs USING btree (importer_log_id);
 
 
 --
@@ -218257,24 +220193,10 @@ CREATE INDEX index_hmis_2026_hmis_participations_on_data_source_id ON public.hmi
 
 
 --
--- Name: index_hmis_2026_hmis_participations_on_importer_log_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_2026_hmis_participations_on_importer_log_id ON public.hmis_2026_hmis_participations USING btree (importer_log_id);
-
-
---
 -- Name: index_hmis_2026_income_benefits_on_data_source_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_hmis_2026_income_benefits_on_data_source_id ON public.hmis_2026_income_benefits USING btree (data_source_id);
-
-
---
--- Name: index_hmis_2026_income_benefits_on_importer_log_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_2026_income_benefits_on_importer_log_id ON public.hmis_2026_income_benefits USING btree (importer_log_id);
 
 
 --
@@ -218285,24 +220207,10 @@ CREATE INDEX index_hmis_2026_inventories_on_data_source_id ON public.hmis_2026_i
 
 
 --
--- Name: index_hmis_2026_inventories_on_importer_log_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_2026_inventories_on_importer_log_id ON public.hmis_2026_inventories USING btree (importer_log_id);
-
-
---
 -- Name: index_hmis_2026_organizations_on_data_source_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_hmis_2026_organizations_on_data_source_id ON public.hmis_2026_organizations USING btree (data_source_id);
-
-
---
--- Name: index_hmis_2026_organizations_on_importer_log_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_2026_organizations_on_importer_log_id ON public.hmis_2026_organizations USING btree (importer_log_id);
 
 
 --
@@ -218313,24 +220221,10 @@ CREATE INDEX index_hmis_2026_project_cocs_on_data_source_id ON public.hmis_2026_
 
 
 --
--- Name: index_hmis_2026_project_cocs_on_importer_log_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_2026_project_cocs_on_importer_log_id ON public.hmis_2026_project_cocs USING btree (importer_log_id);
-
-
---
 -- Name: index_hmis_2026_projects_on_data_source_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_hmis_2026_projects_on_data_source_id ON public.hmis_2026_projects USING btree (data_source_id);
-
-
---
--- Name: index_hmis_2026_projects_on_importer_log_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_2026_projects_on_importer_log_id ON public.hmis_2026_projects USING btree (importer_log_id);
 
 
 --
@@ -218341,13 +220235,6 @@ CREATE INDEX index_hmis_2026_services_on_data_source_id ON public.hmis_2026_serv
 
 
 --
--- Name: index_hmis_2026_services_on_importer_log_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_2026_services_on_importer_log_id ON public.hmis_2026_services USING btree (importer_log_id);
-
-
---
 -- Name: index_hmis_2026_users_on_data_source_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -218355,24 +220242,10 @@ CREATE INDEX index_hmis_2026_users_on_data_source_id ON public.hmis_2026_users U
 
 
 --
--- Name: index_hmis_2026_users_on_importer_log_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_2026_users_on_importer_log_id ON public.hmis_2026_users USING btree (importer_log_id);
-
-
---
 -- Name: index_hmis_2026_youth_education_statuses_on_data_source_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_hmis_2026_youth_education_statuses_on_data_source_id ON public.hmis_2026_youth_education_statuses USING btree (data_source_id);
-
-
---
--- Name: index_hmis_2026_youth_education_statuses_on_importer_log_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_2026_youth_education_statuses_on_importer_log_id ON public.hmis_2026_youth_education_statuses USING btree (importer_log_id);
 
 
 --
@@ -218551,10 +220424,45 @@ CREATE INDEX index_hmis_clients_on_client_id ON public.hmis_clients USING btree 
 
 
 --
+-- Name: index_hmis_csv_2020_affiliations_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_csv_2020_affiliations_on_data_source_id ON public.hmis_csv_2020_affiliations USING btree (data_source_id);
+
+
+--
+-- Name: index_hmis_csv_2020_assessment_questions_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_csv_2020_assessment_questions_on_data_source_id ON public.hmis_csv_2020_assessment_questions USING btree (data_source_id);
+
+
+--
+-- Name: index_hmis_csv_2020_assessment_results_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_csv_2020_assessment_results_on_data_source_id ON public.hmis_csv_2020_assessment_results USING btree (data_source_id);
+
+
+--
 -- Name: index_hmis_csv_2020_assessment_results_on_loader_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_hmis_csv_2020_assessment_results_on_loader_id ON public.hmis_csv_2020_assessment_results USING btree (loader_id);
+
+
+--
+-- Name: index_hmis_csv_2020_assessments_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_csv_2020_assessments_on_data_source_id ON public.hmis_csv_2020_assessments USING btree (data_source_id);
+
+
+--
+-- Name: index_hmis_csv_2020_clients_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_csv_2020_clients_on_data_source_id ON public.hmis_csv_2020_clients USING btree (data_source_id);
 
 
 --
@@ -218565,10 +220473,24 @@ CREATE INDEX index_hmis_csv_2020_clients_on_loader_id ON public.hmis_csv_2020_cl
 
 
 --
+-- Name: index_hmis_csv_2020_current_living_situations_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_csv_2020_current_living_situations_on_data_source_id ON public.hmis_csv_2020_current_living_situations USING btree (data_source_id);
+
+
+--
 -- Name: index_hmis_csv_2020_current_living_situations_on_loader_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_hmis_csv_2020_current_living_situations_on_loader_id ON public.hmis_csv_2020_current_living_situations USING btree (loader_id);
+
+
+--
+-- Name: index_hmis_csv_2020_disabilities_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_csv_2020_disabilities_on_data_source_id ON public.hmis_csv_2020_disabilities USING btree (data_source_id);
 
 
 --
@@ -218579,10 +220501,24 @@ CREATE INDEX index_hmis_csv_2020_disabilities_on_loader_id ON public.hmis_csv_20
 
 
 --
+-- Name: index_hmis_csv_2020_employment_educations_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_csv_2020_employment_educations_on_data_source_id ON public.hmis_csv_2020_employment_educations USING btree (data_source_id);
+
+
+--
 -- Name: index_hmis_csv_2020_employment_educations_on_loader_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_hmis_csv_2020_employment_educations_on_loader_id ON public.hmis_csv_2020_employment_educations USING btree (loader_id);
+
+
+--
+-- Name: index_hmis_csv_2020_enrollment_cocs_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_csv_2020_enrollment_cocs_on_data_source_id ON public.hmis_csv_2020_enrollment_cocs USING btree (data_source_id);
 
 
 --
@@ -218593,10 +220529,31 @@ CREATE INDEX index_hmis_csv_2020_enrollment_cocs_on_loader_id ON public.hmis_csv
 
 
 --
+-- Name: index_hmis_csv_2020_enrollments_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_csv_2020_enrollments_on_data_source_id ON public.hmis_csv_2020_enrollments USING btree (data_source_id);
+
+
+--
 -- Name: index_hmis_csv_2020_enrollments_on_loader_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_hmis_csv_2020_enrollments_on_loader_id ON public.hmis_csv_2020_enrollments USING btree (loader_id);
+
+
+--
+-- Name: index_hmis_csv_2020_events_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_csv_2020_events_on_data_source_id ON public.hmis_csv_2020_events USING btree (data_source_id);
+
+
+--
+-- Name: index_hmis_csv_2020_exits_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_csv_2020_exits_on_data_source_id ON public.hmis_csv_2020_exits USING btree (data_source_id);
 
 
 --
@@ -218607,10 +220564,24 @@ CREATE INDEX index_hmis_csv_2020_exports_on_loader_id ON public.hmis_csv_2020_ex
 
 
 --
+-- Name: index_hmis_csv_2020_funders_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_csv_2020_funders_on_data_source_id ON public.hmis_csv_2020_funders USING btree (data_source_id);
+
+
+--
 -- Name: index_hmis_csv_2020_funders_on_loader_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_hmis_csv_2020_funders_on_loader_id ON public.hmis_csv_2020_funders USING btree (loader_id);
+
+
+--
+-- Name: index_hmis_csv_2020_health_and_dvs_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_csv_2020_health_and_dvs_on_data_source_id ON public.hmis_csv_2020_health_and_dvs USING btree (data_source_id);
 
 
 --
@@ -218621,10 +220592,24 @@ CREATE INDEX index_hmis_csv_2020_health_and_dvs_on_loader_id ON public.hmis_csv_
 
 
 --
+-- Name: index_hmis_csv_2020_income_benefits_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_csv_2020_income_benefits_on_data_source_id ON public.hmis_csv_2020_income_benefits USING btree (data_source_id);
+
+
+--
 -- Name: index_hmis_csv_2020_income_benefits_on_loader_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_hmis_csv_2020_income_benefits_on_loader_id ON public.hmis_csv_2020_income_benefits USING btree (loader_id);
+
+
+--
+-- Name: index_hmis_csv_2020_inventories_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_csv_2020_inventories_on_data_source_id ON public.hmis_csv_2020_inventories USING btree (data_source_id);
 
 
 --
@@ -218635,10 +220620,24 @@ CREATE INDEX index_hmis_csv_2020_inventories_on_loader_id ON public.hmis_csv_202
 
 
 --
+-- Name: index_hmis_csv_2020_organizations_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_csv_2020_organizations_on_data_source_id ON public.hmis_csv_2020_organizations USING btree (data_source_id);
+
+
+--
 -- Name: index_hmis_csv_2020_organizations_on_loader_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_hmis_csv_2020_organizations_on_loader_id ON public.hmis_csv_2020_organizations USING btree (loader_id);
+
+
+--
+-- Name: index_hmis_csv_2020_project_cocs_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_csv_2020_project_cocs_on_data_source_id ON public.hmis_csv_2020_project_cocs USING btree (data_source_id);
 
 
 --
@@ -218656,10 +220655,24 @@ CREATE INDEX index_hmis_csv_2020_projects_on_loader_id ON public.hmis_csv_2020_p
 
 
 --
+-- Name: index_hmis_csv_2020_services_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_csv_2020_services_on_data_source_id ON public.hmis_csv_2020_services USING btree (data_source_id);
+
+
+--
 -- Name: index_hmis_csv_2020_services_on_loader_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_hmis_csv_2020_services_on_loader_id ON public.hmis_csv_2020_services USING btree (loader_id);
+
+
+--
+-- Name: index_hmis_csv_2020_users_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_csv_2020_users_on_data_source_id ON public.hmis_csv_2020_users USING btree (data_source_id);
 
 
 --
@@ -218670,10 +220683,24 @@ CREATE INDEX index_hmis_csv_2020_users_on_loader_id ON public.hmis_csv_2020_user
 
 
 --
+-- Name: index_hmis_csv_2022_affiliations_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_csv_2022_affiliations_on_data_source_id ON public.hmis_csv_2022_affiliations USING btree (data_source_id);
+
+
+--
 -- Name: index_hmis_csv_2022_affiliations_on_loader_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_hmis_csv_2022_affiliations_on_loader_id ON public.hmis_csv_2022_affiliations USING btree (loader_id);
+
+
+--
+-- Name: index_hmis_csv_2022_assessment_questions_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_csv_2022_assessment_questions_on_data_source_id ON public.hmis_csv_2022_assessment_questions USING btree (data_source_id);
 
 
 --
@@ -218684,10 +220711,24 @@ CREATE INDEX index_hmis_csv_2022_assessment_questions_on_loader_id ON public.hmi
 
 
 --
+-- Name: index_hmis_csv_2022_assessment_results_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_csv_2022_assessment_results_on_data_source_id ON public.hmis_csv_2022_assessment_results USING btree (data_source_id);
+
+
+--
 -- Name: index_hmis_csv_2022_assessment_results_on_loader_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_hmis_csv_2022_assessment_results_on_loader_id ON public.hmis_csv_2022_assessment_results USING btree (loader_id);
+
+
+--
+-- Name: index_hmis_csv_2022_assessments_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_csv_2022_assessments_on_data_source_id ON public.hmis_csv_2022_assessments USING btree (data_source_id);
 
 
 --
@@ -218698,10 +220739,24 @@ CREATE INDEX index_hmis_csv_2022_assessments_on_loader_id ON public.hmis_csv_202
 
 
 --
+-- Name: index_hmis_csv_2022_clients_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_csv_2022_clients_on_data_source_id ON public.hmis_csv_2022_clients USING btree (data_source_id);
+
+
+--
 -- Name: index_hmis_csv_2022_clients_on_loader_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_hmis_csv_2022_clients_on_loader_id ON public.hmis_csv_2022_clients USING btree (loader_id);
+
+
+--
+-- Name: index_hmis_csv_2022_current_living_situations_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_csv_2022_current_living_situations_on_data_source_id ON public.hmis_csv_2022_current_living_situations USING btree (data_source_id);
 
 
 --
@@ -218712,10 +220767,24 @@ CREATE INDEX index_hmis_csv_2022_current_living_situations_on_loader_id ON publi
 
 
 --
+-- Name: index_hmis_csv_2022_disabilities_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_csv_2022_disabilities_on_data_source_id ON public.hmis_csv_2022_disabilities USING btree (data_source_id);
+
+
+--
 -- Name: index_hmis_csv_2022_disabilities_on_loader_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_hmis_csv_2022_disabilities_on_loader_id ON public.hmis_csv_2022_disabilities USING btree (loader_id);
+
+
+--
+-- Name: index_hmis_csv_2022_employment_educations_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_csv_2022_employment_educations_on_data_source_id ON public.hmis_csv_2022_employment_educations USING btree (data_source_id);
 
 
 --
@@ -218726,10 +220795,24 @@ CREATE INDEX index_hmis_csv_2022_employment_educations_on_loader_id ON public.hm
 
 
 --
+-- Name: index_hmis_csv_2022_enrollment_cocs_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_csv_2022_enrollment_cocs_on_data_source_id ON public.hmis_csv_2022_enrollment_cocs USING btree (data_source_id);
+
+
+--
 -- Name: index_hmis_csv_2022_enrollment_cocs_on_loader_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_hmis_csv_2022_enrollment_cocs_on_loader_id ON public.hmis_csv_2022_enrollment_cocs USING btree (loader_id);
+
+
+--
+-- Name: index_hmis_csv_2022_enrollments_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_csv_2022_enrollments_on_data_source_id ON public.hmis_csv_2022_enrollments USING btree (data_source_id);
 
 
 --
@@ -218740,10 +220823,24 @@ CREATE INDEX index_hmis_csv_2022_enrollments_on_loader_id ON public.hmis_csv_202
 
 
 --
+-- Name: index_hmis_csv_2022_events_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_csv_2022_events_on_data_source_id ON public.hmis_csv_2022_events USING btree (data_source_id);
+
+
+--
 -- Name: index_hmis_csv_2022_events_on_loader_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_hmis_csv_2022_events_on_loader_id ON public.hmis_csv_2022_events USING btree (loader_id);
+
+
+--
+-- Name: index_hmis_csv_2022_exits_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_csv_2022_exits_on_data_source_id ON public.hmis_csv_2022_exits USING btree (data_source_id);
 
 
 --
@@ -218761,10 +220858,24 @@ CREATE INDEX index_hmis_csv_2022_exports_on_loader_id ON public.hmis_csv_2022_ex
 
 
 --
+-- Name: index_hmis_csv_2022_funders_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_csv_2022_funders_on_data_source_id ON public.hmis_csv_2022_funders USING btree (data_source_id);
+
+
+--
 -- Name: index_hmis_csv_2022_funders_on_loader_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_hmis_csv_2022_funders_on_loader_id ON public.hmis_csv_2022_funders USING btree (loader_id);
+
+
+--
+-- Name: index_hmis_csv_2022_health_and_dvs_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_csv_2022_health_and_dvs_on_data_source_id ON public.hmis_csv_2022_health_and_dvs USING btree (data_source_id);
 
 
 --
@@ -218775,10 +220886,24 @@ CREATE INDEX index_hmis_csv_2022_health_and_dvs_on_loader_id ON public.hmis_csv_
 
 
 --
+-- Name: index_hmis_csv_2022_income_benefits_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_csv_2022_income_benefits_on_data_source_id ON public.hmis_csv_2022_income_benefits USING btree (data_source_id);
+
+
+--
 -- Name: index_hmis_csv_2022_income_benefits_on_loader_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_hmis_csv_2022_income_benefits_on_loader_id ON public.hmis_csv_2022_income_benefits USING btree (loader_id);
+
+
+--
+-- Name: index_hmis_csv_2022_inventories_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_csv_2022_inventories_on_data_source_id ON public.hmis_csv_2022_inventories USING btree (data_source_id);
 
 
 --
@@ -218789,10 +220914,24 @@ CREATE INDEX index_hmis_csv_2022_inventories_on_loader_id ON public.hmis_csv_202
 
 
 --
+-- Name: index_hmis_csv_2022_organizations_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_csv_2022_organizations_on_data_source_id ON public.hmis_csv_2022_organizations USING btree (data_source_id);
+
+
+--
 -- Name: index_hmis_csv_2022_organizations_on_loader_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_hmis_csv_2022_organizations_on_loader_id ON public.hmis_csv_2022_organizations USING btree (loader_id);
+
+
+--
+-- Name: index_hmis_csv_2022_project_cocs_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_csv_2022_project_cocs_on_data_source_id ON public.hmis_csv_2022_project_cocs USING btree (data_source_id);
 
 
 --
@@ -218810,10 +220949,24 @@ CREATE INDEX index_hmis_csv_2022_projects_on_loader_id ON public.hmis_csv_2022_p
 
 
 --
+-- Name: index_hmis_csv_2022_services_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_csv_2022_services_on_data_source_id ON public.hmis_csv_2022_services USING btree (data_source_id);
+
+
+--
 -- Name: index_hmis_csv_2022_services_on_loader_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_hmis_csv_2022_services_on_loader_id ON public.hmis_csv_2022_services USING btree (loader_id);
+
+
+--
+-- Name: index_hmis_csv_2022_users_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_csv_2022_users_on_data_source_id ON public.hmis_csv_2022_users USING btree (data_source_id);
 
 
 --
@@ -218824,10 +220977,185 @@ CREATE INDEX index_hmis_csv_2022_users_on_loader_id ON public.hmis_csv_2022_user
 
 
 --
+-- Name: index_hmis_csv_2022_youth_education_statuses_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_csv_2022_youth_education_statuses_on_data_source_id ON public.hmis_csv_2022_youth_education_statuses USING btree (data_source_id);
+
+
+--
 -- Name: index_hmis_csv_2022_youth_education_statuses_on_loader_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_hmis_csv_2022_youth_education_statuses_on_loader_id ON public.hmis_csv_2022_youth_education_statuses USING btree (loader_id);
+
+
+--
+-- Name: index_hmis_csv_2024_affiliations_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_csv_2024_affiliations_on_data_source_id ON public.hmis_csv_2024_affiliations USING btree (data_source_id);
+
+
+--
+-- Name: index_hmis_csv_2024_assessment_questions_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_csv_2024_assessment_questions_on_data_source_id ON public.hmis_csv_2024_assessment_questions USING btree (data_source_id);
+
+
+--
+-- Name: index_hmis_csv_2024_assessment_results_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_csv_2024_assessment_results_on_data_source_id ON public.hmis_csv_2024_assessment_results USING btree (data_source_id);
+
+
+--
+-- Name: index_hmis_csv_2024_assessments_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_csv_2024_assessments_on_data_source_id ON public.hmis_csv_2024_assessments USING btree (data_source_id);
+
+
+--
+-- Name: index_hmis_csv_2024_ce_participations_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_csv_2024_ce_participations_on_data_source_id ON public.hmis_csv_2024_ce_participations USING btree (data_source_id);
+
+
+--
+-- Name: index_hmis_csv_2024_clients_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_csv_2024_clients_on_data_source_id ON public.hmis_csv_2024_clients USING btree (data_source_id);
+
+
+--
+-- Name: index_hmis_csv_2024_current_living_situations_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_csv_2024_current_living_situations_on_data_source_id ON public.hmis_csv_2024_current_living_situations USING btree (data_source_id);
+
+
+--
+-- Name: index_hmis_csv_2024_disabilities_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_csv_2024_disabilities_on_data_source_id ON public.hmis_csv_2024_disabilities USING btree (data_source_id);
+
+
+--
+-- Name: index_hmis_csv_2024_employment_educations_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_csv_2024_employment_educations_on_data_source_id ON public.hmis_csv_2024_employment_educations USING btree (data_source_id);
+
+
+--
+-- Name: index_hmis_csv_2024_enrollments_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_csv_2024_enrollments_on_data_source_id ON public.hmis_csv_2024_enrollments USING btree (data_source_id);
+
+
+--
+-- Name: index_hmis_csv_2024_events_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_csv_2024_events_on_data_source_id ON public.hmis_csv_2024_events USING btree (data_source_id);
+
+
+--
+-- Name: index_hmis_csv_2024_exits_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_csv_2024_exits_on_data_source_id ON public.hmis_csv_2024_exits USING btree (data_source_id);
+
+
+--
+-- Name: index_hmis_csv_2024_exports_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_csv_2024_exports_on_data_source_id ON public.hmis_csv_2024_exports USING btree (data_source_id);
+
+
+--
+-- Name: index_hmis_csv_2024_funders_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_csv_2024_funders_on_data_source_id ON public.hmis_csv_2024_funders USING btree (data_source_id);
+
+
+--
+-- Name: index_hmis_csv_2024_health_and_dvs_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_csv_2024_health_and_dvs_on_data_source_id ON public.hmis_csv_2024_health_and_dvs USING btree (data_source_id);
+
+
+--
+-- Name: index_hmis_csv_2024_hmis_participations_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_csv_2024_hmis_participations_on_data_source_id ON public.hmis_csv_2024_hmis_participations USING btree (data_source_id);
+
+
+--
+-- Name: index_hmis_csv_2024_income_benefits_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_csv_2024_income_benefits_on_data_source_id ON public.hmis_csv_2024_income_benefits USING btree (data_source_id);
+
+
+--
+-- Name: index_hmis_csv_2024_inventories_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_csv_2024_inventories_on_data_source_id ON public.hmis_csv_2024_inventories USING btree (data_source_id);
+
+
+--
+-- Name: index_hmis_csv_2024_organizations_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_csv_2024_organizations_on_data_source_id ON public.hmis_csv_2024_organizations USING btree (data_source_id);
+
+
+--
+-- Name: index_hmis_csv_2024_project_cocs_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_csv_2024_project_cocs_on_data_source_id ON public.hmis_csv_2024_project_cocs USING btree (data_source_id);
+
+
+--
+-- Name: index_hmis_csv_2024_projects_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_csv_2024_projects_on_data_source_id ON public.hmis_csv_2024_projects USING btree (data_source_id);
+
+
+--
+-- Name: index_hmis_csv_2024_services_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_csv_2024_services_on_data_source_id ON public.hmis_csv_2024_services USING btree (data_source_id);
+
+
+--
+-- Name: index_hmis_csv_2024_users_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_csv_2024_users_on_data_source_id ON public.hmis_csv_2024_users USING btree (data_source_id);
+
+
+--
+-- Name: index_hmis_csv_2024_youth_education_statuses_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_csv_2024_youth_education_statuses_on_data_source_id ON public.hmis_csv_2024_youth_education_statuses USING btree (data_source_id);
 
 
 --
@@ -220301,13 +222629,6 @@ CREATE INDEX index_hud_report_household_contexts_on_source_enrollment_id ON publ
 
 
 --
--- Name: index_hud_report_instances_on_artifacts_stored_at; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hud_report_instances_on_artifacts_stored_at ON public.hud_report_instances USING btree (artifacts_stored_at);
-
-
---
 -- Name: index_hud_report_instances_on_export_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -220396,6 +222717,34 @@ CREATE INDEX index_hud_report_pit_clients_on_data_source_id ON public.hud_report
 --
 
 CREATE INDEX index_hud_report_pit_clients_on_report_instance_id ON public.hud_report_pit_clients USING btree (report_instance_id);
+
+
+--
+-- Name: index_hud_report_spm_bed_nights_on_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hud_report_spm_bed_nights_on_client_id ON public.hud_report_spm_bed_nights USING btree (client_id);
+
+
+--
+-- Name: index_hud_report_spm_bed_nights_on_enrollment_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hud_report_spm_bed_nights_on_enrollment_id ON public.hud_report_spm_bed_nights USING btree (enrollment_id);
+
+
+--
+-- Name: index_hud_report_spm_bed_nights_on_episode_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hud_report_spm_bed_nights_on_episode_id ON public.hud_report_spm_bed_nights USING btree (episode_id);
+
+
+--
+-- Name: index_hud_report_spm_bed_nights_on_service_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hud_report_spm_bed_nights_on_service_id ON public.hud_report_spm_bed_nights USING btree (service_id);
 
 
 --
@@ -225131,6 +227480,13 @@ CREATE INDEX index_tx_research_exports_on_user_id ON public.tx_research_exports 
 
 
 --
+-- Name: index_universe_type_and_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_universe_type_and_id ON public.hud_report_universe_members USING btree (universe_membership_type, universe_membership_id);
+
+
+--
 -- Name: index_uploads_on_deleted_at; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -227525,6 +229881,13 @@ ALTER INDEX public."hmis_2022_clients_partitioned_VeteranStatus_idx4" ATTACH PAR
 
 
 --
+-- Name: hmis_2022_clients_partitioned_0_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_clients_on_data_source_id ATTACH PARTITION hmis.hmis_2022_clients_partitioned_0_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_clients_partitioned_0_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -227830,6 +230193,13 @@ ALTER INDEX public."hmis_2022_clients_partitioned_VeteranStatus_idx3" ATTACH PAR
 --
 
 ALTER INDEX public."hmis_2022_clients_partitioned_VeteranStatus_idx4" ATTACH PARTITION hmis."hmis_2022_clients_partitioned_10_VeteranStatus_idx4";
+
+
+--
+-- Name: hmis_2022_clients_partitioned_10_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_clients_on_data_source_id ATTACH PARTITION hmis.hmis_2022_clients_partitioned_10_data_source_id_idx;
 
 
 --
@@ -228141,6 +230511,13 @@ ALTER INDEX public."hmis_2022_clients_partitioned_VeteranStatus_idx4" ATTACH PAR
 
 
 --
+-- Name: hmis_2022_clients_partitioned_11_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_clients_on_data_source_id ATTACH PARTITION hmis.hmis_2022_clients_partitioned_11_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_clients_partitioned_11_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -228446,6 +230823,13 @@ ALTER INDEX public."hmis_2022_clients_partitioned_VeteranStatus_idx3" ATTACH PAR
 --
 
 ALTER INDEX public."hmis_2022_clients_partitioned_VeteranStatus_idx4" ATTACH PARTITION hmis."hmis_2022_clients_partitioned_12_VeteranStatus_idx4";
+
+
+--
+-- Name: hmis_2022_clients_partitioned_12_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_clients_on_data_source_id ATTACH PARTITION hmis.hmis_2022_clients_partitioned_12_data_source_id_idx;
 
 
 --
@@ -228757,6 +231141,13 @@ ALTER INDEX public."hmis_2022_clients_partitioned_VeteranStatus_idx4" ATTACH PAR
 
 
 --
+-- Name: hmis_2022_clients_partitioned_13_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_clients_on_data_source_id ATTACH PARTITION hmis.hmis_2022_clients_partitioned_13_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_clients_partitioned_13_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -229062,6 +231453,13 @@ ALTER INDEX public."hmis_2022_clients_partitioned_VeteranStatus_idx3" ATTACH PAR
 --
 
 ALTER INDEX public."hmis_2022_clients_partitioned_VeteranStatus_idx4" ATTACH PARTITION hmis."hmis_2022_clients_partitioned_14_VeteranStatus_idx4";
+
+
+--
+-- Name: hmis_2022_clients_partitioned_14_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_clients_on_data_source_id ATTACH PARTITION hmis.hmis_2022_clients_partitioned_14_data_source_id_idx;
 
 
 --
@@ -229373,6 +231771,13 @@ ALTER INDEX public."hmis_2022_clients_partitioned_VeteranStatus_idx4" ATTACH PAR
 
 
 --
+-- Name: hmis_2022_clients_partitioned_15_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_clients_on_data_source_id ATTACH PARTITION hmis.hmis_2022_clients_partitioned_15_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_clients_partitioned_15_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -229678,6 +232083,13 @@ ALTER INDEX public."hmis_2022_clients_partitioned_VeteranStatus_idx3" ATTACH PAR
 --
 
 ALTER INDEX public."hmis_2022_clients_partitioned_VeteranStatus_idx4" ATTACH PARTITION hmis."hmis_2022_clients_partitioned_16_VeteranStatus_idx4";
+
+
+--
+-- Name: hmis_2022_clients_partitioned_16_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_clients_on_data_source_id ATTACH PARTITION hmis.hmis_2022_clients_partitioned_16_data_source_id_idx;
 
 
 --
@@ -229989,6 +232401,13 @@ ALTER INDEX public."hmis_2022_clients_partitioned_VeteranStatus_idx4" ATTACH PAR
 
 
 --
+-- Name: hmis_2022_clients_partitioned_17_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_clients_on_data_source_id ATTACH PARTITION hmis.hmis_2022_clients_partitioned_17_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_clients_partitioned_17_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -230294,6 +232713,13 @@ ALTER INDEX public."hmis_2022_clients_partitioned_VeteranStatus_idx3" ATTACH PAR
 --
 
 ALTER INDEX public."hmis_2022_clients_partitioned_VeteranStatus_idx4" ATTACH PARTITION hmis."hmis_2022_clients_partitioned_18_VeteranStatus_idx4";
+
+
+--
+-- Name: hmis_2022_clients_partitioned_18_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_clients_on_data_source_id ATTACH PARTITION hmis.hmis_2022_clients_partitioned_18_data_source_id_idx;
 
 
 --
@@ -230605,6 +233031,13 @@ ALTER INDEX public."hmis_2022_clients_partitioned_VeteranStatus_idx4" ATTACH PAR
 
 
 --
+-- Name: hmis_2022_clients_partitioned_19_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_clients_on_data_source_id ATTACH PARTITION hmis.hmis_2022_clients_partitioned_19_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_clients_partitioned_19_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -230910,6 +233343,13 @@ ALTER INDEX public."hmis_2022_clients_partitioned_VeteranStatus_idx3" ATTACH PAR
 --
 
 ALTER INDEX public."hmis_2022_clients_partitioned_VeteranStatus_idx4" ATTACH PARTITION hmis."hmis_2022_clients_partitioned_1_VeteranStatus_idx4";
+
+
+--
+-- Name: hmis_2022_clients_partitioned_1_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_clients_on_data_source_id ATTACH PARTITION hmis.hmis_2022_clients_partitioned_1_data_source_id_idx;
 
 
 --
@@ -231221,6 +233661,13 @@ ALTER INDEX public."hmis_2022_clients_partitioned_VeteranStatus_idx4" ATTACH PAR
 
 
 --
+-- Name: hmis_2022_clients_partitioned_20_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_clients_on_data_source_id ATTACH PARTITION hmis.hmis_2022_clients_partitioned_20_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_clients_partitioned_20_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -231526,6 +233973,13 @@ ALTER INDEX public."hmis_2022_clients_partitioned_VeteranStatus_idx3" ATTACH PAR
 --
 
 ALTER INDEX public."hmis_2022_clients_partitioned_VeteranStatus_idx4" ATTACH PARTITION hmis."hmis_2022_clients_partitioned_21_VeteranStatus_idx4";
+
+
+--
+-- Name: hmis_2022_clients_partitioned_21_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_clients_on_data_source_id ATTACH PARTITION hmis.hmis_2022_clients_partitioned_21_data_source_id_idx;
 
 
 --
@@ -231837,6 +234291,13 @@ ALTER INDEX public."hmis_2022_clients_partitioned_VeteranStatus_idx4" ATTACH PAR
 
 
 --
+-- Name: hmis_2022_clients_partitioned_22_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_clients_on_data_source_id ATTACH PARTITION hmis.hmis_2022_clients_partitioned_22_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_clients_partitioned_22_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -232142,6 +234603,13 @@ ALTER INDEX public."hmis_2022_clients_partitioned_VeteranStatus_idx3" ATTACH PAR
 --
 
 ALTER INDEX public."hmis_2022_clients_partitioned_VeteranStatus_idx4" ATTACH PARTITION hmis."hmis_2022_clients_partitioned_23_VeteranStatus_idx4";
+
+
+--
+-- Name: hmis_2022_clients_partitioned_23_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_clients_on_data_source_id ATTACH PARTITION hmis.hmis_2022_clients_partitioned_23_data_source_id_idx;
 
 
 --
@@ -232453,6 +234921,13 @@ ALTER INDEX public."hmis_2022_clients_partitioned_VeteranStatus_idx4" ATTACH PAR
 
 
 --
+-- Name: hmis_2022_clients_partitioned_24_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_clients_on_data_source_id ATTACH PARTITION hmis.hmis_2022_clients_partitioned_24_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_clients_partitioned_24_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -232758,6 +235233,13 @@ ALTER INDEX public."hmis_2022_clients_partitioned_VeteranStatus_idx3" ATTACH PAR
 --
 
 ALTER INDEX public."hmis_2022_clients_partitioned_VeteranStatus_idx4" ATTACH PARTITION hmis."hmis_2022_clients_partitioned_25_VeteranStatus_idx4";
+
+
+--
+-- Name: hmis_2022_clients_partitioned_25_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_clients_on_data_source_id ATTACH PARTITION hmis.hmis_2022_clients_partitioned_25_data_source_id_idx;
 
 
 --
@@ -233069,6 +235551,13 @@ ALTER INDEX public."hmis_2022_clients_partitioned_VeteranStatus_idx4" ATTACH PAR
 
 
 --
+-- Name: hmis_2022_clients_partitioned_26_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_clients_on_data_source_id ATTACH PARTITION hmis.hmis_2022_clients_partitioned_26_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_clients_partitioned_26_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -233374,6 +235863,13 @@ ALTER INDEX public."hmis_2022_clients_partitioned_VeteranStatus_idx3" ATTACH PAR
 --
 
 ALTER INDEX public."hmis_2022_clients_partitioned_VeteranStatus_idx4" ATTACH PARTITION hmis."hmis_2022_clients_partitioned_27_VeteranStatus_idx4";
+
+
+--
+-- Name: hmis_2022_clients_partitioned_27_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_clients_on_data_source_id ATTACH PARTITION hmis.hmis_2022_clients_partitioned_27_data_source_id_idx;
 
 
 --
@@ -233685,6 +236181,13 @@ ALTER INDEX public."hmis_2022_clients_partitioned_VeteranStatus_idx4" ATTACH PAR
 
 
 --
+-- Name: hmis_2022_clients_partitioned_28_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_clients_on_data_source_id ATTACH PARTITION hmis.hmis_2022_clients_partitioned_28_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_clients_partitioned_28_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -233990,6 +236493,13 @@ ALTER INDEX public."hmis_2022_clients_partitioned_VeteranStatus_idx3" ATTACH PAR
 --
 
 ALTER INDEX public."hmis_2022_clients_partitioned_VeteranStatus_idx4" ATTACH PARTITION hmis."hmis_2022_clients_partitioned_29_VeteranStatus_idx4";
+
+
+--
+-- Name: hmis_2022_clients_partitioned_29_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_clients_on_data_source_id ATTACH PARTITION hmis.hmis_2022_clients_partitioned_29_data_source_id_idx;
 
 
 --
@@ -234301,6 +236811,13 @@ ALTER INDEX public."hmis_2022_clients_partitioned_VeteranStatus_idx4" ATTACH PAR
 
 
 --
+-- Name: hmis_2022_clients_partitioned_2_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_clients_on_data_source_id ATTACH PARTITION hmis.hmis_2022_clients_partitioned_2_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_clients_partitioned_2_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -234606,6 +237123,13 @@ ALTER INDEX public."hmis_2022_clients_partitioned_VeteranStatus_idx3" ATTACH PAR
 --
 
 ALTER INDEX public."hmis_2022_clients_partitioned_VeteranStatus_idx4" ATTACH PARTITION hmis."hmis_2022_clients_partitioned_30_VeteranStatus_idx4";
+
+
+--
+-- Name: hmis_2022_clients_partitioned_30_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_clients_on_data_source_id ATTACH PARTITION hmis.hmis_2022_clients_partitioned_30_data_source_id_idx;
 
 
 --
@@ -234917,6 +237441,13 @@ ALTER INDEX public."hmis_2022_clients_partitioned_VeteranStatus_idx4" ATTACH PAR
 
 
 --
+-- Name: hmis_2022_clients_partitioned_31_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_clients_on_data_source_id ATTACH PARTITION hmis.hmis_2022_clients_partitioned_31_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_clients_partitioned_31_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -235222,6 +237753,13 @@ ALTER INDEX public."hmis_2022_clients_partitioned_VeteranStatus_idx3" ATTACH PAR
 --
 
 ALTER INDEX public."hmis_2022_clients_partitioned_VeteranStatus_idx4" ATTACH PARTITION hmis."hmis_2022_clients_partitioned_32_VeteranStatus_idx4";
+
+
+--
+-- Name: hmis_2022_clients_partitioned_32_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_clients_on_data_source_id ATTACH PARTITION hmis.hmis_2022_clients_partitioned_32_data_source_id_idx;
 
 
 --
@@ -235533,6 +238071,13 @@ ALTER INDEX public."hmis_2022_clients_partitioned_VeteranStatus_idx4" ATTACH PAR
 
 
 --
+-- Name: hmis_2022_clients_partitioned_33_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_clients_on_data_source_id ATTACH PARTITION hmis.hmis_2022_clients_partitioned_33_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_clients_partitioned_33_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -235838,6 +238383,13 @@ ALTER INDEX public."hmis_2022_clients_partitioned_VeteranStatus_idx3" ATTACH PAR
 --
 
 ALTER INDEX public."hmis_2022_clients_partitioned_VeteranStatus_idx4" ATTACH PARTITION hmis."hmis_2022_clients_partitioned_34_VeteranStatus_idx4";
+
+
+--
+-- Name: hmis_2022_clients_partitioned_34_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_clients_on_data_source_id ATTACH PARTITION hmis.hmis_2022_clients_partitioned_34_data_source_id_idx;
 
 
 --
@@ -236149,6 +238701,13 @@ ALTER INDEX public."hmis_2022_clients_partitioned_VeteranStatus_idx4" ATTACH PAR
 
 
 --
+-- Name: hmis_2022_clients_partitioned_35_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_clients_on_data_source_id ATTACH PARTITION hmis.hmis_2022_clients_partitioned_35_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_clients_partitioned_35_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -236454,6 +239013,13 @@ ALTER INDEX public."hmis_2022_clients_partitioned_VeteranStatus_idx3" ATTACH PAR
 --
 
 ALTER INDEX public."hmis_2022_clients_partitioned_VeteranStatus_idx4" ATTACH PARTITION hmis."hmis_2022_clients_partitioned_36_VeteranStatus_idx4";
+
+
+--
+-- Name: hmis_2022_clients_partitioned_36_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_clients_on_data_source_id ATTACH PARTITION hmis.hmis_2022_clients_partitioned_36_data_source_id_idx;
 
 
 --
@@ -236765,6 +239331,13 @@ ALTER INDEX public."hmis_2022_clients_partitioned_VeteranStatus_idx4" ATTACH PAR
 
 
 --
+-- Name: hmis_2022_clients_partitioned_37_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_clients_on_data_source_id ATTACH PARTITION hmis.hmis_2022_clients_partitioned_37_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_clients_partitioned_37_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -237070,6 +239643,13 @@ ALTER INDEX public."hmis_2022_clients_partitioned_VeteranStatus_idx3" ATTACH PAR
 --
 
 ALTER INDEX public."hmis_2022_clients_partitioned_VeteranStatus_idx4" ATTACH PARTITION hmis."hmis_2022_clients_partitioned_38_VeteranStatus_idx4";
+
+
+--
+-- Name: hmis_2022_clients_partitioned_38_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_clients_on_data_source_id ATTACH PARTITION hmis.hmis_2022_clients_partitioned_38_data_source_id_idx;
 
 
 --
@@ -237381,6 +239961,13 @@ ALTER INDEX public."hmis_2022_clients_partitioned_VeteranStatus_idx4" ATTACH PAR
 
 
 --
+-- Name: hmis_2022_clients_partitioned_39_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_clients_on_data_source_id ATTACH PARTITION hmis.hmis_2022_clients_partitioned_39_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_clients_partitioned_39_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -237686,6 +240273,13 @@ ALTER INDEX public."hmis_2022_clients_partitioned_VeteranStatus_idx3" ATTACH PAR
 --
 
 ALTER INDEX public."hmis_2022_clients_partitioned_VeteranStatus_idx4" ATTACH PARTITION hmis."hmis_2022_clients_partitioned_3_VeteranStatus_idx4";
+
+
+--
+-- Name: hmis_2022_clients_partitioned_3_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_clients_on_data_source_id ATTACH PARTITION hmis.hmis_2022_clients_partitioned_3_data_source_id_idx;
 
 
 --
@@ -237997,6 +240591,13 @@ ALTER INDEX public."hmis_2022_clients_partitioned_VeteranStatus_idx4" ATTACH PAR
 
 
 --
+-- Name: hmis_2022_clients_partitioned_40_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_clients_on_data_source_id ATTACH PARTITION hmis.hmis_2022_clients_partitioned_40_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_clients_partitioned_40_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -238302,6 +240903,13 @@ ALTER INDEX public."hmis_2022_clients_partitioned_VeteranStatus_idx3" ATTACH PAR
 --
 
 ALTER INDEX public."hmis_2022_clients_partitioned_VeteranStatus_idx4" ATTACH PARTITION hmis."hmis_2022_clients_partitioned_41_VeteranStatus_idx4";
+
+
+--
+-- Name: hmis_2022_clients_partitioned_41_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_clients_on_data_source_id ATTACH PARTITION hmis.hmis_2022_clients_partitioned_41_data_source_id_idx;
 
 
 --
@@ -238613,6 +241221,13 @@ ALTER INDEX public."hmis_2022_clients_partitioned_VeteranStatus_idx4" ATTACH PAR
 
 
 --
+-- Name: hmis_2022_clients_partitioned_42_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_clients_on_data_source_id ATTACH PARTITION hmis.hmis_2022_clients_partitioned_42_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_clients_partitioned_42_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -238918,6 +241533,13 @@ ALTER INDEX public."hmis_2022_clients_partitioned_VeteranStatus_idx3" ATTACH PAR
 --
 
 ALTER INDEX public."hmis_2022_clients_partitioned_VeteranStatus_idx4" ATTACH PARTITION hmis."hmis_2022_clients_partitioned_43_VeteranStatus_idx4";
+
+
+--
+-- Name: hmis_2022_clients_partitioned_43_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_clients_on_data_source_id ATTACH PARTITION hmis.hmis_2022_clients_partitioned_43_data_source_id_idx;
 
 
 --
@@ -239229,6 +241851,13 @@ ALTER INDEX public."hmis_2022_clients_partitioned_VeteranStatus_idx4" ATTACH PAR
 
 
 --
+-- Name: hmis_2022_clients_partitioned_44_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_clients_on_data_source_id ATTACH PARTITION hmis.hmis_2022_clients_partitioned_44_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_clients_partitioned_44_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -239534,6 +242163,13 @@ ALTER INDEX public."hmis_2022_clients_partitioned_VeteranStatus_idx3" ATTACH PAR
 --
 
 ALTER INDEX public."hmis_2022_clients_partitioned_VeteranStatus_idx4" ATTACH PARTITION hmis."hmis_2022_clients_partitioned_45_VeteranStatus_idx4";
+
+
+--
+-- Name: hmis_2022_clients_partitioned_45_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_clients_on_data_source_id ATTACH PARTITION hmis.hmis_2022_clients_partitioned_45_data_source_id_idx;
 
 
 --
@@ -239845,6 +242481,13 @@ ALTER INDEX public."hmis_2022_clients_partitioned_VeteranStatus_idx4" ATTACH PAR
 
 
 --
+-- Name: hmis_2022_clients_partitioned_46_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_clients_on_data_source_id ATTACH PARTITION hmis.hmis_2022_clients_partitioned_46_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_clients_partitioned_46_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -240150,6 +242793,13 @@ ALTER INDEX public."hmis_2022_clients_partitioned_VeteranStatus_idx3" ATTACH PAR
 --
 
 ALTER INDEX public."hmis_2022_clients_partitioned_VeteranStatus_idx4" ATTACH PARTITION hmis."hmis_2022_clients_partitioned_47_VeteranStatus_idx4";
+
+
+--
+-- Name: hmis_2022_clients_partitioned_47_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_clients_on_data_source_id ATTACH PARTITION hmis.hmis_2022_clients_partitioned_47_data_source_id_idx;
 
 
 --
@@ -240461,6 +243111,13 @@ ALTER INDEX public."hmis_2022_clients_partitioned_VeteranStatus_idx4" ATTACH PAR
 
 
 --
+-- Name: hmis_2022_clients_partitioned_48_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_clients_on_data_source_id ATTACH PARTITION hmis.hmis_2022_clients_partitioned_48_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_clients_partitioned_48_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -240766,6 +243423,13 @@ ALTER INDEX public."hmis_2022_clients_partitioned_VeteranStatus_idx3" ATTACH PAR
 --
 
 ALTER INDEX public."hmis_2022_clients_partitioned_VeteranStatus_idx4" ATTACH PARTITION hmis."hmis_2022_clients_partitioned_49_VeteranStatus_idx4";
+
+
+--
+-- Name: hmis_2022_clients_partitioned_49_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_clients_on_data_source_id ATTACH PARTITION hmis.hmis_2022_clients_partitioned_49_data_source_id_idx;
 
 
 --
@@ -241077,6 +243741,13 @@ ALTER INDEX public."hmis_2022_clients_partitioned_VeteranStatus_idx4" ATTACH PAR
 
 
 --
+-- Name: hmis_2022_clients_partitioned_4_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_clients_on_data_source_id ATTACH PARTITION hmis.hmis_2022_clients_partitioned_4_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_clients_partitioned_4_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -241382,6 +244053,13 @@ ALTER INDEX public."hmis_2022_clients_partitioned_VeteranStatus_idx3" ATTACH PAR
 --
 
 ALTER INDEX public."hmis_2022_clients_partitioned_VeteranStatus_idx4" ATTACH PARTITION hmis."hmis_2022_clients_partitioned_50_VeteranStatus_idx4";
+
+
+--
+-- Name: hmis_2022_clients_partitioned_50_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_clients_on_data_source_id ATTACH PARTITION hmis.hmis_2022_clients_partitioned_50_data_source_id_idx;
 
 
 --
@@ -241693,6 +244371,13 @@ ALTER INDEX public."hmis_2022_clients_partitioned_VeteranStatus_idx4" ATTACH PAR
 
 
 --
+-- Name: hmis_2022_clients_partitioned_51_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_clients_on_data_source_id ATTACH PARTITION hmis.hmis_2022_clients_partitioned_51_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_clients_partitioned_51_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -241998,6 +244683,13 @@ ALTER INDEX public."hmis_2022_clients_partitioned_VeteranStatus_idx3" ATTACH PAR
 --
 
 ALTER INDEX public."hmis_2022_clients_partitioned_VeteranStatus_idx4" ATTACH PARTITION hmis."hmis_2022_clients_partitioned_52_VeteranStatus_idx4";
+
+
+--
+-- Name: hmis_2022_clients_partitioned_52_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_clients_on_data_source_id ATTACH PARTITION hmis.hmis_2022_clients_partitioned_52_data_source_id_idx;
 
 
 --
@@ -242309,6 +245001,13 @@ ALTER INDEX public."hmis_2022_clients_partitioned_VeteranStatus_idx4" ATTACH PAR
 
 
 --
+-- Name: hmis_2022_clients_partitioned_53_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_clients_on_data_source_id ATTACH PARTITION hmis.hmis_2022_clients_partitioned_53_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_clients_partitioned_53_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -242614,6 +245313,13 @@ ALTER INDEX public."hmis_2022_clients_partitioned_VeteranStatus_idx3" ATTACH PAR
 --
 
 ALTER INDEX public."hmis_2022_clients_partitioned_VeteranStatus_idx4" ATTACH PARTITION hmis."hmis_2022_clients_partitioned_54_VeteranStatus_idx4";
+
+
+--
+-- Name: hmis_2022_clients_partitioned_54_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_clients_on_data_source_id ATTACH PARTITION hmis.hmis_2022_clients_partitioned_54_data_source_id_idx;
 
 
 --
@@ -242925,6 +245631,13 @@ ALTER INDEX public."hmis_2022_clients_partitioned_VeteranStatus_idx4" ATTACH PAR
 
 
 --
+-- Name: hmis_2022_clients_partitioned_55_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_clients_on_data_source_id ATTACH PARTITION hmis.hmis_2022_clients_partitioned_55_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_clients_partitioned_55_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -243230,6 +245943,13 @@ ALTER INDEX public."hmis_2022_clients_partitioned_VeteranStatus_idx3" ATTACH PAR
 --
 
 ALTER INDEX public."hmis_2022_clients_partitioned_VeteranStatus_idx4" ATTACH PARTITION hmis."hmis_2022_clients_partitioned_56_VeteranStatus_idx4";
+
+
+--
+-- Name: hmis_2022_clients_partitioned_56_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_clients_on_data_source_id ATTACH PARTITION hmis.hmis_2022_clients_partitioned_56_data_source_id_idx;
 
 
 --
@@ -243541,6 +246261,13 @@ ALTER INDEX public."hmis_2022_clients_partitioned_VeteranStatus_idx4" ATTACH PAR
 
 
 --
+-- Name: hmis_2022_clients_partitioned_57_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_clients_on_data_source_id ATTACH PARTITION hmis.hmis_2022_clients_partitioned_57_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_clients_partitioned_57_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -243846,6 +246573,13 @@ ALTER INDEX public."hmis_2022_clients_partitioned_VeteranStatus_idx3" ATTACH PAR
 --
 
 ALTER INDEX public."hmis_2022_clients_partitioned_VeteranStatus_idx4" ATTACH PARTITION hmis."hmis_2022_clients_partitioned_58_VeteranStatus_idx4";
+
+
+--
+-- Name: hmis_2022_clients_partitioned_58_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_clients_on_data_source_id ATTACH PARTITION hmis.hmis_2022_clients_partitioned_58_data_source_id_idx;
 
 
 --
@@ -244157,6 +246891,13 @@ ALTER INDEX public."hmis_2022_clients_partitioned_VeteranStatus_idx4" ATTACH PAR
 
 
 --
+-- Name: hmis_2022_clients_partitioned_59_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_clients_on_data_source_id ATTACH PARTITION hmis.hmis_2022_clients_partitioned_59_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_clients_partitioned_59_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -244462,6 +247203,13 @@ ALTER INDEX public."hmis_2022_clients_partitioned_VeteranStatus_idx3" ATTACH PAR
 --
 
 ALTER INDEX public."hmis_2022_clients_partitioned_VeteranStatus_idx4" ATTACH PARTITION hmis."hmis_2022_clients_partitioned_5_VeteranStatus_idx4";
+
+
+--
+-- Name: hmis_2022_clients_partitioned_5_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_clients_on_data_source_id ATTACH PARTITION hmis.hmis_2022_clients_partitioned_5_data_source_id_idx;
 
 
 --
@@ -244773,6 +247521,13 @@ ALTER INDEX public."hmis_2022_clients_partitioned_VeteranStatus_idx4" ATTACH PAR
 
 
 --
+-- Name: hmis_2022_clients_partitioned_60_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_clients_on_data_source_id ATTACH PARTITION hmis.hmis_2022_clients_partitioned_60_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_clients_partitioned_60_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -245078,6 +247833,13 @@ ALTER INDEX public."hmis_2022_clients_partitioned_VeteranStatus_idx3" ATTACH PAR
 --
 
 ALTER INDEX public."hmis_2022_clients_partitioned_VeteranStatus_idx4" ATTACH PARTITION hmis."hmis_2022_clients_partitioned_61_VeteranStatus_idx4";
+
+
+--
+-- Name: hmis_2022_clients_partitioned_61_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_clients_on_data_source_id ATTACH PARTITION hmis.hmis_2022_clients_partitioned_61_data_source_id_idx;
 
 
 --
@@ -245389,6 +248151,13 @@ ALTER INDEX public."hmis_2022_clients_partitioned_VeteranStatus_idx4" ATTACH PAR
 
 
 --
+-- Name: hmis_2022_clients_partitioned_62_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_clients_on_data_source_id ATTACH PARTITION hmis.hmis_2022_clients_partitioned_62_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_clients_partitioned_62_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -245694,6 +248463,13 @@ ALTER INDEX public."hmis_2022_clients_partitioned_VeteranStatus_idx3" ATTACH PAR
 --
 
 ALTER INDEX public."hmis_2022_clients_partitioned_VeteranStatus_idx4" ATTACH PARTITION hmis."hmis_2022_clients_partitioned_63_VeteranStatus_idx4";
+
+
+--
+-- Name: hmis_2022_clients_partitioned_63_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_clients_on_data_source_id ATTACH PARTITION hmis.hmis_2022_clients_partitioned_63_data_source_id_idx;
 
 
 --
@@ -246005,6 +248781,13 @@ ALTER INDEX public."hmis_2022_clients_partitioned_VeteranStatus_idx4" ATTACH PAR
 
 
 --
+-- Name: hmis_2022_clients_partitioned_64_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_clients_on_data_source_id ATTACH PARTITION hmis.hmis_2022_clients_partitioned_64_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_clients_partitioned_64_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -246310,6 +249093,13 @@ ALTER INDEX public."hmis_2022_clients_partitioned_VeteranStatus_idx3" ATTACH PAR
 --
 
 ALTER INDEX public."hmis_2022_clients_partitioned_VeteranStatus_idx4" ATTACH PARTITION hmis."hmis_2022_clients_partitioned_65_VeteranStatus_idx4";
+
+
+--
+-- Name: hmis_2022_clients_partitioned_65_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_clients_on_data_source_id ATTACH PARTITION hmis.hmis_2022_clients_partitioned_65_data_source_id_idx;
 
 
 --
@@ -246621,6 +249411,13 @@ ALTER INDEX public."hmis_2022_clients_partitioned_VeteranStatus_idx4" ATTACH PAR
 
 
 --
+-- Name: hmis_2022_clients_partitioned_66_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_clients_on_data_source_id ATTACH PARTITION hmis.hmis_2022_clients_partitioned_66_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_clients_partitioned_66_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -246926,6 +249723,13 @@ ALTER INDEX public."hmis_2022_clients_partitioned_VeteranStatus_idx3" ATTACH PAR
 --
 
 ALTER INDEX public."hmis_2022_clients_partitioned_VeteranStatus_idx4" ATTACH PARTITION hmis."hmis_2022_clients_partitioned_67_VeteranStatus_idx4";
+
+
+--
+-- Name: hmis_2022_clients_partitioned_67_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_clients_on_data_source_id ATTACH PARTITION hmis.hmis_2022_clients_partitioned_67_data_source_id_idx;
 
 
 --
@@ -247237,6 +250041,13 @@ ALTER INDEX public."hmis_2022_clients_partitioned_VeteranStatus_idx4" ATTACH PAR
 
 
 --
+-- Name: hmis_2022_clients_partitioned_68_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_clients_on_data_source_id ATTACH PARTITION hmis.hmis_2022_clients_partitioned_68_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_clients_partitioned_68_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -247542,6 +250353,13 @@ ALTER INDEX public."hmis_2022_clients_partitioned_VeteranStatus_idx3" ATTACH PAR
 --
 
 ALTER INDEX public."hmis_2022_clients_partitioned_VeteranStatus_idx4" ATTACH PARTITION hmis."hmis_2022_clients_partitioned_69_VeteranStatus_idx4";
+
+
+--
+-- Name: hmis_2022_clients_partitioned_69_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_clients_on_data_source_id ATTACH PARTITION hmis.hmis_2022_clients_partitioned_69_data_source_id_idx;
 
 
 --
@@ -247853,6 +250671,13 @@ ALTER INDEX public."hmis_2022_clients_partitioned_VeteranStatus_idx4" ATTACH PAR
 
 
 --
+-- Name: hmis_2022_clients_partitioned_6_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_clients_on_data_source_id ATTACH PARTITION hmis.hmis_2022_clients_partitioned_6_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_clients_partitioned_6_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -248158,6 +250983,13 @@ ALTER INDEX public."hmis_2022_clients_partitioned_VeteranStatus_idx3" ATTACH PAR
 --
 
 ALTER INDEX public."hmis_2022_clients_partitioned_VeteranStatus_idx4" ATTACH PARTITION hmis."hmis_2022_clients_partitioned_70_VeteranStatus_idx4";
+
+
+--
+-- Name: hmis_2022_clients_partitioned_70_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_clients_on_data_source_id ATTACH PARTITION hmis.hmis_2022_clients_partitioned_70_data_source_id_idx;
 
 
 --
@@ -248469,6 +251301,13 @@ ALTER INDEX public."hmis_2022_clients_partitioned_VeteranStatus_idx4" ATTACH PAR
 
 
 --
+-- Name: hmis_2022_clients_partitioned_7_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_clients_on_data_source_id ATTACH PARTITION hmis.hmis_2022_clients_partitioned_7_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_clients_partitioned_7_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -248777,6 +251616,13 @@ ALTER INDEX public."hmis_2022_clients_partitioned_VeteranStatus_idx4" ATTACH PAR
 
 
 --
+-- Name: hmis_2022_clients_partitioned_8_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_clients_on_data_source_id ATTACH PARTITION hmis.hmis_2022_clients_partitioned_8_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_clients_partitioned_8_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -249082,6 +251928,13 @@ ALTER INDEX public."hmis_2022_clients_partitioned_VeteranStatus_idx3" ATTACH PAR
 --
 
 ALTER INDEX public."hmis_2022_clients_partitioned_VeteranStatus_idx4" ATTACH PARTITION hmis."hmis_2022_clients_partitioned_9_VeteranStatus_idx4";
+
+
+--
+-- Name: hmis_2022_clients_partitioned_9_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_clients_on_data_source_id ATTACH PARTITION hmis.hmis_2022_clients_partitioned_9_data_source_id_idx;
 
 
 --
@@ -262693,6 +265546,13 @@ ALTER INDEX public.hmis2022enrollments_3328 ATTACH PARTITION hmis."hmis_2022_enr
 
 
 --
+-- Name: hmis_2022_enrollments_partitioned_0_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_enrollments_on_data_source_id ATTACH PARTITION hmis.hmis_2022_enrollments_partitioned_0_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_enrollments_partitioned_0_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -263138,6 +265998,13 @@ ALTER INDEX public."hmis_2022_enrollments_partitioned_RelationshipToHoH_idx4" AT
 --
 
 ALTER INDEX public.hmis2022enrollments_3328 ATTACH PARTITION hmis."hmis_2022_enrollments_partitioned_10_RelationshipToHoH_idx5";
+
+
+--
+-- Name: hmis_2022_enrollments_partitioned_10_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_enrollments_on_data_source_id ATTACH PARTITION hmis.hmis_2022_enrollments_partitioned_10_data_source_id_idx;
 
 
 --
@@ -263589,6 +266456,13 @@ ALTER INDEX public.hmis2022enrollments_3328 ATTACH PARTITION hmis."hmis_2022_enr
 
 
 --
+-- Name: hmis_2022_enrollments_partitioned_11_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_enrollments_on_data_source_id ATTACH PARTITION hmis.hmis_2022_enrollments_partitioned_11_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_enrollments_partitioned_11_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -264034,6 +266908,13 @@ ALTER INDEX public."hmis_2022_enrollments_partitioned_RelationshipToHoH_idx4" AT
 --
 
 ALTER INDEX public.hmis2022enrollments_3328 ATTACH PARTITION hmis."hmis_2022_enrollments_partitioned_12_RelationshipToHoH_idx5";
+
+
+--
+-- Name: hmis_2022_enrollments_partitioned_12_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_enrollments_on_data_source_id ATTACH PARTITION hmis.hmis_2022_enrollments_partitioned_12_data_source_id_idx;
 
 
 --
@@ -264485,6 +267366,13 @@ ALTER INDEX public.hmis2022enrollments_3328 ATTACH PARTITION hmis."hmis_2022_enr
 
 
 --
+-- Name: hmis_2022_enrollments_partitioned_13_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_enrollments_on_data_source_id ATTACH PARTITION hmis.hmis_2022_enrollments_partitioned_13_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_enrollments_partitioned_13_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -264930,6 +267818,13 @@ ALTER INDEX public."hmis_2022_enrollments_partitioned_RelationshipToHoH_idx4" AT
 --
 
 ALTER INDEX public.hmis2022enrollments_3328 ATTACH PARTITION hmis."hmis_2022_enrollments_partitioned_14_RelationshipToHoH_idx5";
+
+
+--
+-- Name: hmis_2022_enrollments_partitioned_14_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_enrollments_on_data_source_id ATTACH PARTITION hmis.hmis_2022_enrollments_partitioned_14_data_source_id_idx;
 
 
 --
@@ -265381,6 +268276,13 @@ ALTER INDEX public.hmis2022enrollments_3328 ATTACH PARTITION hmis."hmis_2022_enr
 
 
 --
+-- Name: hmis_2022_enrollments_partitioned_15_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_enrollments_on_data_source_id ATTACH PARTITION hmis.hmis_2022_enrollments_partitioned_15_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_enrollments_partitioned_15_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -265826,6 +268728,13 @@ ALTER INDEX public."hmis_2022_enrollments_partitioned_RelationshipToHoH_idx4" AT
 --
 
 ALTER INDEX public.hmis2022enrollments_3328 ATTACH PARTITION hmis."hmis_2022_enrollments_partitioned_16_RelationshipToHoH_idx5";
+
+
+--
+-- Name: hmis_2022_enrollments_partitioned_16_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_enrollments_on_data_source_id ATTACH PARTITION hmis.hmis_2022_enrollments_partitioned_16_data_source_id_idx;
 
 
 --
@@ -266277,6 +269186,13 @@ ALTER INDEX public.hmis2022enrollments_3328 ATTACH PARTITION hmis."hmis_2022_enr
 
 
 --
+-- Name: hmis_2022_enrollments_partitioned_17_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_enrollments_on_data_source_id ATTACH PARTITION hmis.hmis_2022_enrollments_partitioned_17_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_enrollments_partitioned_17_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -266725,6 +269641,13 @@ ALTER INDEX public.hmis2022enrollments_3328 ATTACH PARTITION hmis."hmis_2022_enr
 
 
 --
+-- Name: hmis_2022_enrollments_partitioned_18_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_enrollments_on_data_source_id ATTACH PARTITION hmis.hmis_2022_enrollments_partitioned_18_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_enrollments_partitioned_18_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -267170,6 +270093,13 @@ ALTER INDEX public."hmis_2022_enrollments_partitioned_RelationshipToHoH_idx4" AT
 --
 
 ALTER INDEX public.hmis2022enrollments_3328 ATTACH PARTITION hmis."hmis_2022_enrollments_partitioned_19_RelationshipToHoH_idx5";
+
+
+--
+-- Name: hmis_2022_enrollments_partitioned_19_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_enrollments_on_data_source_id ATTACH PARTITION hmis.hmis_2022_enrollments_partitioned_19_data_source_id_idx;
 
 
 --
@@ -267628,6 +270558,13 @@ ALTER INDEX public.hmis2022enrollments_3328 ATTACH PARTITION hmis."hmis_2022_enr
 
 
 --
+-- Name: hmis_2022_enrollments_partitioned_1_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_enrollments_on_data_source_id ATTACH PARTITION hmis.hmis_2022_enrollments_partitioned_1_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_enrollments_partitioned_1_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -268073,6 +271010,13 @@ ALTER INDEX public."hmis_2022_enrollments_partitioned_RelationshipToHoH_idx4" AT
 --
 
 ALTER INDEX public.hmis2022enrollments_3328 ATTACH PARTITION hmis."hmis_2022_enrollments_partitioned_20_RelationshipToHoH_idx5";
+
+
+--
+-- Name: hmis_2022_enrollments_partitioned_20_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_enrollments_on_data_source_id ATTACH PARTITION hmis.hmis_2022_enrollments_partitioned_20_data_source_id_idx;
 
 
 --
@@ -268524,6 +271468,13 @@ ALTER INDEX public.hmis2022enrollments_3328 ATTACH PARTITION hmis."hmis_2022_enr
 
 
 --
+-- Name: hmis_2022_enrollments_partitioned_21_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_enrollments_on_data_source_id ATTACH PARTITION hmis.hmis_2022_enrollments_partitioned_21_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_enrollments_partitioned_21_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -268969,6 +271920,13 @@ ALTER INDEX public."hmis_2022_enrollments_partitioned_RelationshipToHoH_idx4" AT
 --
 
 ALTER INDEX public.hmis2022enrollments_3328 ATTACH PARTITION hmis."hmis_2022_enrollments_partitioned_22_RelationshipToHoH_idx5";
+
+
+--
+-- Name: hmis_2022_enrollments_partitioned_22_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_enrollments_on_data_source_id ATTACH PARTITION hmis.hmis_2022_enrollments_partitioned_22_data_source_id_idx;
 
 
 --
@@ -269420,6 +272378,13 @@ ALTER INDEX public.hmis2022enrollments_3328 ATTACH PARTITION hmis."hmis_2022_enr
 
 
 --
+-- Name: hmis_2022_enrollments_partitioned_23_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_enrollments_on_data_source_id ATTACH PARTITION hmis.hmis_2022_enrollments_partitioned_23_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_enrollments_partitioned_23_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -269865,6 +272830,13 @@ ALTER INDEX public."hmis_2022_enrollments_partitioned_RelationshipToHoH_idx4" AT
 --
 
 ALTER INDEX public.hmis2022enrollments_3328 ATTACH PARTITION hmis."hmis_2022_enrollments_partitioned_24_RelationshipToHoH_idx5";
+
+
+--
+-- Name: hmis_2022_enrollments_partitioned_24_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_enrollments_on_data_source_id ATTACH PARTITION hmis.hmis_2022_enrollments_partitioned_24_data_source_id_idx;
 
 
 --
@@ -270316,6 +273288,13 @@ ALTER INDEX public.hmis2022enrollments_3328 ATTACH PARTITION hmis."hmis_2022_enr
 
 
 --
+-- Name: hmis_2022_enrollments_partitioned_25_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_enrollments_on_data_source_id ATTACH PARTITION hmis.hmis_2022_enrollments_partitioned_25_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_enrollments_partitioned_25_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -270761,6 +273740,13 @@ ALTER INDEX public."hmis_2022_enrollments_partitioned_RelationshipToHoH_idx4" AT
 --
 
 ALTER INDEX public.hmis2022enrollments_3328 ATTACH PARTITION hmis."hmis_2022_enrollments_partitioned_26_RelationshipToHoH_idx5";
+
+
+--
+-- Name: hmis_2022_enrollments_partitioned_26_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_enrollments_on_data_source_id ATTACH PARTITION hmis.hmis_2022_enrollments_partitioned_26_data_source_id_idx;
 
 
 --
@@ -271212,6 +274198,13 @@ ALTER INDEX public.hmis2022enrollments_3328 ATTACH PARTITION hmis."hmis_2022_enr
 
 
 --
+-- Name: hmis_2022_enrollments_partitioned_27_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_enrollments_on_data_source_id ATTACH PARTITION hmis.hmis_2022_enrollments_partitioned_27_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_enrollments_partitioned_27_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -271660,6 +274653,13 @@ ALTER INDEX public.hmis2022enrollments_3328 ATTACH PARTITION hmis."hmis_2022_enr
 
 
 --
+-- Name: hmis_2022_enrollments_partitioned_28_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_enrollments_on_data_source_id ATTACH PARTITION hmis.hmis_2022_enrollments_partitioned_28_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_enrollments_partitioned_28_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -272105,6 +275105,13 @@ ALTER INDEX public."hmis_2022_enrollments_partitioned_RelationshipToHoH_idx4" AT
 --
 
 ALTER INDEX public.hmis2022enrollments_3328 ATTACH PARTITION hmis."hmis_2022_enrollments_partitioned_29_RelationshipToHoH_idx5";
+
+
+--
+-- Name: hmis_2022_enrollments_partitioned_29_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_enrollments_on_data_source_id ATTACH PARTITION hmis.hmis_2022_enrollments_partitioned_29_data_source_id_idx;
 
 
 --
@@ -272563,6 +275570,13 @@ ALTER INDEX public.hmis2022enrollments_3328 ATTACH PARTITION hmis."hmis_2022_enr
 
 
 --
+-- Name: hmis_2022_enrollments_partitioned_2_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_enrollments_on_data_source_id ATTACH PARTITION hmis.hmis_2022_enrollments_partitioned_2_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_enrollments_partitioned_2_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -273008,6 +276022,13 @@ ALTER INDEX public."hmis_2022_enrollments_partitioned_RelationshipToHoH_idx4" AT
 --
 
 ALTER INDEX public.hmis2022enrollments_3328 ATTACH PARTITION hmis."hmis_2022_enrollments_partitioned_30_RelationshipToHoH_idx5";
+
+
+--
+-- Name: hmis_2022_enrollments_partitioned_30_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_enrollments_on_data_source_id ATTACH PARTITION hmis.hmis_2022_enrollments_partitioned_30_data_source_id_idx;
 
 
 --
@@ -273459,6 +276480,13 @@ ALTER INDEX public.hmis2022enrollments_3328 ATTACH PARTITION hmis."hmis_2022_enr
 
 
 --
+-- Name: hmis_2022_enrollments_partitioned_31_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_enrollments_on_data_source_id ATTACH PARTITION hmis.hmis_2022_enrollments_partitioned_31_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_enrollments_partitioned_31_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -273904,6 +276932,13 @@ ALTER INDEX public."hmis_2022_enrollments_partitioned_RelationshipToHoH_idx4" AT
 --
 
 ALTER INDEX public.hmis2022enrollments_3328 ATTACH PARTITION hmis."hmis_2022_enrollments_partitioned_32_RelationshipToHoH_idx5";
+
+
+--
+-- Name: hmis_2022_enrollments_partitioned_32_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_enrollments_on_data_source_id ATTACH PARTITION hmis.hmis_2022_enrollments_partitioned_32_data_source_id_idx;
 
 
 --
@@ -274355,6 +277390,13 @@ ALTER INDEX public.hmis2022enrollments_3328 ATTACH PARTITION hmis."hmis_2022_enr
 
 
 --
+-- Name: hmis_2022_enrollments_partitioned_33_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_enrollments_on_data_source_id ATTACH PARTITION hmis.hmis_2022_enrollments_partitioned_33_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_enrollments_partitioned_33_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -274800,6 +277842,13 @@ ALTER INDEX public."hmis_2022_enrollments_partitioned_RelationshipToHoH_idx4" AT
 --
 
 ALTER INDEX public.hmis2022enrollments_3328 ATTACH PARTITION hmis."hmis_2022_enrollments_partitioned_34_RelationshipToHoH_idx5";
+
+
+--
+-- Name: hmis_2022_enrollments_partitioned_34_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_enrollments_on_data_source_id ATTACH PARTITION hmis.hmis_2022_enrollments_partitioned_34_data_source_id_idx;
 
 
 --
@@ -275251,6 +278300,13 @@ ALTER INDEX public.hmis2022enrollments_3328 ATTACH PARTITION hmis."hmis_2022_enr
 
 
 --
+-- Name: hmis_2022_enrollments_partitioned_35_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_enrollments_on_data_source_id ATTACH PARTITION hmis.hmis_2022_enrollments_partitioned_35_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_enrollments_partitioned_35_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -275696,6 +278752,13 @@ ALTER INDEX public."hmis_2022_enrollments_partitioned_RelationshipToHoH_idx4" AT
 --
 
 ALTER INDEX public.hmis2022enrollments_3328 ATTACH PARTITION hmis."hmis_2022_enrollments_partitioned_36_RelationshipToHoH_idx5";
+
+
+--
+-- Name: hmis_2022_enrollments_partitioned_36_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_enrollments_on_data_source_id ATTACH PARTITION hmis.hmis_2022_enrollments_partitioned_36_data_source_id_idx;
 
 
 --
@@ -276147,6 +279210,13 @@ ALTER INDEX public.hmis2022enrollments_3328 ATTACH PARTITION hmis."hmis_2022_enr
 
 
 --
+-- Name: hmis_2022_enrollments_partitioned_37_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_enrollments_on_data_source_id ATTACH PARTITION hmis.hmis_2022_enrollments_partitioned_37_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_enrollments_partitioned_37_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -276595,6 +279665,13 @@ ALTER INDEX public.hmis2022enrollments_3328 ATTACH PARTITION hmis."hmis_2022_enr
 
 
 --
+-- Name: hmis_2022_enrollments_partitioned_38_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_enrollments_on_data_source_id ATTACH PARTITION hmis.hmis_2022_enrollments_partitioned_38_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_enrollments_partitioned_38_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -277040,6 +280117,13 @@ ALTER INDEX public."hmis_2022_enrollments_partitioned_RelationshipToHoH_idx4" AT
 --
 
 ALTER INDEX public.hmis2022enrollments_3328 ATTACH PARTITION hmis."hmis_2022_enrollments_partitioned_39_RelationshipToHoH_idx5";
+
+
+--
+-- Name: hmis_2022_enrollments_partitioned_39_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_enrollments_on_data_source_id ATTACH PARTITION hmis.hmis_2022_enrollments_partitioned_39_data_source_id_idx;
 
 
 --
@@ -277498,6 +280582,13 @@ ALTER INDEX public.hmis2022enrollments_3328 ATTACH PARTITION hmis."hmis_2022_enr
 
 
 --
+-- Name: hmis_2022_enrollments_partitioned_3_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_enrollments_on_data_source_id ATTACH PARTITION hmis.hmis_2022_enrollments_partitioned_3_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_enrollments_partitioned_3_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -277943,6 +281034,13 @@ ALTER INDEX public."hmis_2022_enrollments_partitioned_RelationshipToHoH_idx4" AT
 --
 
 ALTER INDEX public.hmis2022enrollments_3328 ATTACH PARTITION hmis."hmis_2022_enrollments_partitioned_40_RelationshipToHoH_idx5";
+
+
+--
+-- Name: hmis_2022_enrollments_partitioned_40_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_enrollments_on_data_source_id ATTACH PARTITION hmis.hmis_2022_enrollments_partitioned_40_data_source_id_idx;
 
 
 --
@@ -278394,6 +281492,13 @@ ALTER INDEX public.hmis2022enrollments_3328 ATTACH PARTITION hmis."hmis_2022_enr
 
 
 --
+-- Name: hmis_2022_enrollments_partitioned_41_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_enrollments_on_data_source_id ATTACH PARTITION hmis.hmis_2022_enrollments_partitioned_41_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_enrollments_partitioned_41_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -278839,6 +281944,13 @@ ALTER INDEX public."hmis_2022_enrollments_partitioned_RelationshipToHoH_idx4" AT
 --
 
 ALTER INDEX public.hmis2022enrollments_3328 ATTACH PARTITION hmis."hmis_2022_enrollments_partitioned_42_RelationshipToHoH_idx5";
+
+
+--
+-- Name: hmis_2022_enrollments_partitioned_42_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_enrollments_on_data_source_id ATTACH PARTITION hmis.hmis_2022_enrollments_partitioned_42_data_source_id_idx;
 
 
 --
@@ -279290,6 +282402,13 @@ ALTER INDEX public.hmis2022enrollments_3328 ATTACH PARTITION hmis."hmis_2022_enr
 
 
 --
+-- Name: hmis_2022_enrollments_partitioned_43_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_enrollments_on_data_source_id ATTACH PARTITION hmis.hmis_2022_enrollments_partitioned_43_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_enrollments_partitioned_43_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -279735,6 +282854,13 @@ ALTER INDEX public."hmis_2022_enrollments_partitioned_RelationshipToHoH_idx4" AT
 --
 
 ALTER INDEX public.hmis2022enrollments_3328 ATTACH PARTITION hmis."hmis_2022_enrollments_partitioned_44_RelationshipToHoH_idx5";
+
+
+--
+-- Name: hmis_2022_enrollments_partitioned_44_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_enrollments_on_data_source_id ATTACH PARTITION hmis.hmis_2022_enrollments_partitioned_44_data_source_id_idx;
 
 
 --
@@ -280186,6 +283312,13 @@ ALTER INDEX public.hmis2022enrollments_3328 ATTACH PARTITION hmis."hmis_2022_enr
 
 
 --
+-- Name: hmis_2022_enrollments_partitioned_45_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_enrollments_on_data_source_id ATTACH PARTITION hmis.hmis_2022_enrollments_partitioned_45_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_enrollments_partitioned_45_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -280631,6 +283764,13 @@ ALTER INDEX public."hmis_2022_enrollments_partitioned_RelationshipToHoH_idx4" AT
 --
 
 ALTER INDEX public.hmis2022enrollments_3328 ATTACH PARTITION hmis."hmis_2022_enrollments_partitioned_46_RelationshipToHoH_idx5";
+
+
+--
+-- Name: hmis_2022_enrollments_partitioned_46_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_enrollments_on_data_source_id ATTACH PARTITION hmis.hmis_2022_enrollments_partitioned_46_data_source_id_idx;
 
 
 --
@@ -281082,6 +284222,13 @@ ALTER INDEX public.hmis2022enrollments_3328 ATTACH PARTITION hmis."hmis_2022_enr
 
 
 --
+-- Name: hmis_2022_enrollments_partitioned_47_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_enrollments_on_data_source_id ATTACH PARTITION hmis.hmis_2022_enrollments_partitioned_47_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_enrollments_partitioned_47_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -281530,6 +284677,13 @@ ALTER INDEX public.hmis2022enrollments_3328 ATTACH PARTITION hmis."hmis_2022_enr
 
 
 --
+-- Name: hmis_2022_enrollments_partitioned_48_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_enrollments_on_data_source_id ATTACH PARTITION hmis.hmis_2022_enrollments_partitioned_48_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_enrollments_partitioned_48_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -281975,6 +285129,13 @@ ALTER INDEX public."hmis_2022_enrollments_partitioned_RelationshipToHoH_idx4" AT
 --
 
 ALTER INDEX public.hmis2022enrollments_3328 ATTACH PARTITION hmis."hmis_2022_enrollments_partitioned_49_RelationshipToHoH_idx5";
+
+
+--
+-- Name: hmis_2022_enrollments_partitioned_49_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_enrollments_on_data_source_id ATTACH PARTITION hmis.hmis_2022_enrollments_partitioned_49_data_source_id_idx;
 
 
 --
@@ -282433,6 +285594,13 @@ ALTER INDEX public.hmis2022enrollments_3328 ATTACH PARTITION hmis."hmis_2022_enr
 
 
 --
+-- Name: hmis_2022_enrollments_partitioned_4_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_enrollments_on_data_source_id ATTACH PARTITION hmis.hmis_2022_enrollments_partitioned_4_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_enrollments_partitioned_4_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -282878,6 +286046,13 @@ ALTER INDEX public."hmis_2022_enrollments_partitioned_RelationshipToHoH_idx4" AT
 --
 
 ALTER INDEX public.hmis2022enrollments_3328 ATTACH PARTITION hmis."hmis_2022_enrollments_partitioned_50_RelationshipToHoH_idx5";
+
+
+--
+-- Name: hmis_2022_enrollments_partitioned_50_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_enrollments_on_data_source_id ATTACH PARTITION hmis.hmis_2022_enrollments_partitioned_50_data_source_id_idx;
 
 
 --
@@ -283329,6 +286504,13 @@ ALTER INDEX public.hmis2022enrollments_3328 ATTACH PARTITION hmis."hmis_2022_enr
 
 
 --
+-- Name: hmis_2022_enrollments_partitioned_51_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_enrollments_on_data_source_id ATTACH PARTITION hmis.hmis_2022_enrollments_partitioned_51_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_enrollments_partitioned_51_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -283774,6 +286956,13 @@ ALTER INDEX public."hmis_2022_enrollments_partitioned_RelationshipToHoH_idx4" AT
 --
 
 ALTER INDEX public.hmis2022enrollments_3328 ATTACH PARTITION hmis."hmis_2022_enrollments_partitioned_52_RelationshipToHoH_idx5";
+
+
+--
+-- Name: hmis_2022_enrollments_partitioned_52_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_enrollments_on_data_source_id ATTACH PARTITION hmis.hmis_2022_enrollments_partitioned_52_data_source_id_idx;
 
 
 --
@@ -284225,6 +287414,13 @@ ALTER INDEX public.hmis2022enrollments_3328 ATTACH PARTITION hmis."hmis_2022_enr
 
 
 --
+-- Name: hmis_2022_enrollments_partitioned_53_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_enrollments_on_data_source_id ATTACH PARTITION hmis.hmis_2022_enrollments_partitioned_53_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_enrollments_partitioned_53_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -284670,6 +287866,13 @@ ALTER INDEX public."hmis_2022_enrollments_partitioned_RelationshipToHoH_idx4" AT
 --
 
 ALTER INDEX public.hmis2022enrollments_3328 ATTACH PARTITION hmis."hmis_2022_enrollments_partitioned_54_RelationshipToHoH_idx5";
+
+
+--
+-- Name: hmis_2022_enrollments_partitioned_54_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_enrollments_on_data_source_id ATTACH PARTITION hmis.hmis_2022_enrollments_partitioned_54_data_source_id_idx;
 
 
 --
@@ -285121,6 +288324,13 @@ ALTER INDEX public.hmis2022enrollments_3328 ATTACH PARTITION hmis."hmis_2022_enr
 
 
 --
+-- Name: hmis_2022_enrollments_partitioned_55_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_enrollments_on_data_source_id ATTACH PARTITION hmis.hmis_2022_enrollments_partitioned_55_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_enrollments_partitioned_55_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -285566,6 +288776,13 @@ ALTER INDEX public."hmis_2022_enrollments_partitioned_RelationshipToHoH_idx4" AT
 --
 
 ALTER INDEX public.hmis2022enrollments_3328 ATTACH PARTITION hmis."hmis_2022_enrollments_partitioned_56_RelationshipToHoH_idx5";
+
+
+--
+-- Name: hmis_2022_enrollments_partitioned_56_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_enrollments_on_data_source_id ATTACH PARTITION hmis.hmis_2022_enrollments_partitioned_56_data_source_id_idx;
 
 
 --
@@ -286017,6 +289234,13 @@ ALTER INDEX public.hmis2022enrollments_3328 ATTACH PARTITION hmis."hmis_2022_enr
 
 
 --
+-- Name: hmis_2022_enrollments_partitioned_57_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_enrollments_on_data_source_id ATTACH PARTITION hmis.hmis_2022_enrollments_partitioned_57_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_enrollments_partitioned_57_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -286465,6 +289689,13 @@ ALTER INDEX public.hmis2022enrollments_3328 ATTACH PARTITION hmis."hmis_2022_enr
 
 
 --
+-- Name: hmis_2022_enrollments_partitioned_58_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_enrollments_on_data_source_id ATTACH PARTITION hmis.hmis_2022_enrollments_partitioned_58_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_enrollments_partitioned_58_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -286910,6 +290141,13 @@ ALTER INDEX public."hmis_2022_enrollments_partitioned_RelationshipToHoH_idx4" AT
 --
 
 ALTER INDEX public.hmis2022enrollments_3328 ATTACH PARTITION hmis."hmis_2022_enrollments_partitioned_59_RelationshipToHoH_idx5";
+
+
+--
+-- Name: hmis_2022_enrollments_partitioned_59_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_enrollments_on_data_source_id ATTACH PARTITION hmis.hmis_2022_enrollments_partitioned_59_data_source_id_idx;
 
 
 --
@@ -287368,6 +290606,13 @@ ALTER INDEX public.hmis2022enrollments_3328 ATTACH PARTITION hmis."hmis_2022_enr
 
 
 --
+-- Name: hmis_2022_enrollments_partitioned_5_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_enrollments_on_data_source_id ATTACH PARTITION hmis.hmis_2022_enrollments_partitioned_5_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_enrollments_partitioned_5_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -287813,6 +291058,13 @@ ALTER INDEX public."hmis_2022_enrollments_partitioned_RelationshipToHoH_idx4" AT
 --
 
 ALTER INDEX public.hmis2022enrollments_3328 ATTACH PARTITION hmis."hmis_2022_enrollments_partitioned_60_RelationshipToHoH_idx5";
+
+
+--
+-- Name: hmis_2022_enrollments_partitioned_60_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_enrollments_on_data_source_id ATTACH PARTITION hmis.hmis_2022_enrollments_partitioned_60_data_source_id_idx;
 
 
 --
@@ -288264,6 +291516,13 @@ ALTER INDEX public.hmis2022enrollments_3328 ATTACH PARTITION hmis."hmis_2022_enr
 
 
 --
+-- Name: hmis_2022_enrollments_partitioned_61_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_enrollments_on_data_source_id ATTACH PARTITION hmis.hmis_2022_enrollments_partitioned_61_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_enrollments_partitioned_61_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -288709,6 +291968,13 @@ ALTER INDEX public."hmis_2022_enrollments_partitioned_RelationshipToHoH_idx4" AT
 --
 
 ALTER INDEX public.hmis2022enrollments_3328 ATTACH PARTITION hmis."hmis_2022_enrollments_partitioned_62_RelationshipToHoH_idx5";
+
+
+--
+-- Name: hmis_2022_enrollments_partitioned_62_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_enrollments_on_data_source_id ATTACH PARTITION hmis.hmis_2022_enrollments_partitioned_62_data_source_id_idx;
 
 
 --
@@ -289160,6 +292426,13 @@ ALTER INDEX public.hmis2022enrollments_3328 ATTACH PARTITION hmis."hmis_2022_enr
 
 
 --
+-- Name: hmis_2022_enrollments_partitioned_63_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_enrollments_on_data_source_id ATTACH PARTITION hmis.hmis_2022_enrollments_partitioned_63_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_enrollments_partitioned_63_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -289605,6 +292878,13 @@ ALTER INDEX public."hmis_2022_enrollments_partitioned_RelationshipToHoH_idx4" AT
 --
 
 ALTER INDEX public.hmis2022enrollments_3328 ATTACH PARTITION hmis."hmis_2022_enrollments_partitioned_64_RelationshipToHoH_idx5";
+
+
+--
+-- Name: hmis_2022_enrollments_partitioned_64_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_enrollments_on_data_source_id ATTACH PARTITION hmis.hmis_2022_enrollments_partitioned_64_data_source_id_idx;
 
 
 --
@@ -290056,6 +293336,13 @@ ALTER INDEX public.hmis2022enrollments_3328 ATTACH PARTITION hmis."hmis_2022_enr
 
 
 --
+-- Name: hmis_2022_enrollments_partitioned_65_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_enrollments_on_data_source_id ATTACH PARTITION hmis.hmis_2022_enrollments_partitioned_65_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_enrollments_partitioned_65_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -290501,6 +293788,13 @@ ALTER INDEX public."hmis_2022_enrollments_partitioned_RelationshipToHoH_idx4" AT
 --
 
 ALTER INDEX public.hmis2022enrollments_3328 ATTACH PARTITION hmis."hmis_2022_enrollments_partitioned_66_RelationshipToHoH_idx5";
+
+
+--
+-- Name: hmis_2022_enrollments_partitioned_66_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_enrollments_on_data_source_id ATTACH PARTITION hmis.hmis_2022_enrollments_partitioned_66_data_source_id_idx;
 
 
 --
@@ -290952,6 +294246,13 @@ ALTER INDEX public.hmis2022enrollments_3328 ATTACH PARTITION hmis."hmis_2022_enr
 
 
 --
+-- Name: hmis_2022_enrollments_partitioned_67_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_enrollments_on_data_source_id ATTACH PARTITION hmis.hmis_2022_enrollments_partitioned_67_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_enrollments_partitioned_67_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -291400,6 +294701,13 @@ ALTER INDEX public.hmis2022enrollments_3328 ATTACH PARTITION hmis."hmis_2022_enr
 
 
 --
+-- Name: hmis_2022_enrollments_partitioned_68_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_enrollments_on_data_source_id ATTACH PARTITION hmis.hmis_2022_enrollments_partitioned_68_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_enrollments_partitioned_68_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -291845,6 +295153,13 @@ ALTER INDEX public."hmis_2022_enrollments_partitioned_RelationshipToHoH_idx4" AT
 --
 
 ALTER INDEX public.hmis2022enrollments_3328 ATTACH PARTITION hmis."hmis_2022_enrollments_partitioned_69_RelationshipToHoH_idx5";
+
+
+--
+-- Name: hmis_2022_enrollments_partitioned_69_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_enrollments_on_data_source_id ATTACH PARTITION hmis.hmis_2022_enrollments_partitioned_69_data_source_id_idx;
 
 
 --
@@ -292303,6 +295618,13 @@ ALTER INDEX public.hmis2022enrollments_3328 ATTACH PARTITION hmis."hmis_2022_enr
 
 
 --
+-- Name: hmis_2022_enrollments_partitioned_6_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_enrollments_on_data_source_id ATTACH PARTITION hmis.hmis_2022_enrollments_partitioned_6_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_enrollments_partitioned_6_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -292748,6 +296070,13 @@ ALTER INDEX public."hmis_2022_enrollments_partitioned_RelationshipToHoH_idx4" AT
 --
 
 ALTER INDEX public.hmis2022enrollments_3328 ATTACH PARTITION hmis."hmis_2022_enrollments_partitioned_70_RelationshipToHoH_idx5";
+
+
+--
+-- Name: hmis_2022_enrollments_partitioned_70_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_enrollments_on_data_source_id ATTACH PARTITION hmis.hmis_2022_enrollments_partitioned_70_data_source_id_idx;
 
 
 --
@@ -293206,6 +296535,13 @@ ALTER INDEX public.hmis2022enrollments_3328 ATTACH PARTITION hmis."hmis_2022_enr
 
 
 --
+-- Name: hmis_2022_enrollments_partitioned_7_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_enrollments_on_data_source_id ATTACH PARTITION hmis.hmis_2022_enrollments_partitioned_7_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_enrollments_partitioned_7_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -293661,6 +296997,13 @@ ALTER INDEX public.hmis2022enrollments_3328 ATTACH PARTITION hmis."hmis_2022_enr
 
 
 --
+-- Name: hmis_2022_enrollments_partitioned_8_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_enrollments_on_data_source_id ATTACH PARTITION hmis.hmis_2022_enrollments_partitioned_8_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_enrollments_partitioned_8_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -294113,6 +297456,13 @@ ALTER INDEX public."hmis_2022_enrollments_partitioned_RelationshipToHoH_idx4" AT
 --
 
 ALTER INDEX public.hmis2022enrollments_3328 ATTACH PARTITION hmis."hmis_2022_enrollments_partitioned_9_RelationshipToHoH_idx5";
+
+
+--
+-- Name: hmis_2022_enrollments_partitioned_9_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_enrollments_on_data_source_id ATTACH PARTITION hmis.hmis_2022_enrollments_partitioned_9_data_source_id_idx;
 
 
 --
@@ -295138,6 +298488,13 @@ ALTER INDEX public."hmis_2022_exits_partitioned_PersonalID_idx4" ATTACH PARTITIO
 
 
 --
+-- Name: hmis_2022_exits_partitioned_0_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_exits_on_data_source_id ATTACH PARTITION hmis.hmis_2022_exits_partitioned_0_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_exits_partitioned_0_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -295450,6 +298807,13 @@ ALTER INDEX public."hmis_2022_exits_partitioned_PersonalID_idx3" ATTACH PARTITIO
 --
 
 ALTER INDEX public."hmis_2022_exits_partitioned_PersonalID_idx4" ATTACH PARTITION hmis."hmis_2022_exits_partitioned_10_PersonalID_idx4";
+
+
+--
+-- Name: hmis_2022_exits_partitioned_10_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_exits_on_data_source_id ATTACH PARTITION hmis.hmis_2022_exits_partitioned_10_data_source_id_idx;
 
 
 --
@@ -295768,6 +299132,13 @@ ALTER INDEX public."hmis_2022_exits_partitioned_PersonalID_idx4" ATTACH PARTITIO
 
 
 --
+-- Name: hmis_2022_exits_partitioned_11_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_exits_on_data_source_id ATTACH PARTITION hmis.hmis_2022_exits_partitioned_11_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_exits_partitioned_11_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -296080,6 +299451,13 @@ ALTER INDEX public."hmis_2022_exits_partitioned_PersonalID_idx3" ATTACH PARTITIO
 --
 
 ALTER INDEX public."hmis_2022_exits_partitioned_PersonalID_idx4" ATTACH PARTITION hmis."hmis_2022_exits_partitioned_12_PersonalID_idx4";
+
+
+--
+-- Name: hmis_2022_exits_partitioned_12_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_exits_on_data_source_id ATTACH PARTITION hmis.hmis_2022_exits_partitioned_12_data_source_id_idx;
 
 
 --
@@ -296398,6 +299776,13 @@ ALTER INDEX public."hmis_2022_exits_partitioned_PersonalID_idx4" ATTACH PARTITIO
 
 
 --
+-- Name: hmis_2022_exits_partitioned_13_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_exits_on_data_source_id ATTACH PARTITION hmis.hmis_2022_exits_partitioned_13_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_exits_partitioned_13_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -296710,6 +300095,13 @@ ALTER INDEX public."hmis_2022_exits_partitioned_PersonalID_idx3" ATTACH PARTITIO
 --
 
 ALTER INDEX public."hmis_2022_exits_partitioned_PersonalID_idx4" ATTACH PARTITION hmis."hmis_2022_exits_partitioned_14_PersonalID_idx4";
+
+
+--
+-- Name: hmis_2022_exits_partitioned_14_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_exits_on_data_source_id ATTACH PARTITION hmis.hmis_2022_exits_partitioned_14_data_source_id_idx;
 
 
 --
@@ -297028,6 +300420,13 @@ ALTER INDEX public."hmis_2022_exits_partitioned_PersonalID_idx4" ATTACH PARTITIO
 
 
 --
+-- Name: hmis_2022_exits_partitioned_15_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_exits_on_data_source_id ATTACH PARTITION hmis.hmis_2022_exits_partitioned_15_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_exits_partitioned_15_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -297340,6 +300739,13 @@ ALTER INDEX public."hmis_2022_exits_partitioned_PersonalID_idx3" ATTACH PARTITIO
 --
 
 ALTER INDEX public."hmis_2022_exits_partitioned_PersonalID_idx4" ATTACH PARTITION hmis."hmis_2022_exits_partitioned_16_PersonalID_idx4";
+
+
+--
+-- Name: hmis_2022_exits_partitioned_16_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_exits_on_data_source_id ATTACH PARTITION hmis.hmis_2022_exits_partitioned_16_data_source_id_idx;
 
 
 --
@@ -297658,6 +301064,13 @@ ALTER INDEX public."hmis_2022_exits_partitioned_PersonalID_idx4" ATTACH PARTITIO
 
 
 --
+-- Name: hmis_2022_exits_partitioned_17_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_exits_on_data_source_id ATTACH PARTITION hmis.hmis_2022_exits_partitioned_17_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_exits_partitioned_17_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -297973,6 +301386,13 @@ ALTER INDEX public."hmis_2022_exits_partitioned_PersonalID_idx4" ATTACH PARTITIO
 
 
 --
+-- Name: hmis_2022_exits_partitioned_18_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_exits_on_data_source_id ATTACH PARTITION hmis.hmis_2022_exits_partitioned_18_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_exits_partitioned_18_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -298285,6 +301705,13 @@ ALTER INDEX public."hmis_2022_exits_partitioned_PersonalID_idx3" ATTACH PARTITIO
 --
 
 ALTER INDEX public."hmis_2022_exits_partitioned_PersonalID_idx4" ATTACH PARTITION hmis."hmis_2022_exits_partitioned_19_PersonalID_idx4";
+
+
+--
+-- Name: hmis_2022_exits_partitioned_19_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_exits_on_data_source_id ATTACH PARTITION hmis.hmis_2022_exits_partitioned_19_data_source_id_idx;
 
 
 --
@@ -298673,6 +302100,13 @@ ALTER INDEX public."hmis_2022_exits_partitioned_PersonalID_idx4" ATTACH PARTITIO
 
 
 --
+-- Name: hmis_2022_exits_partitioned_1_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_exits_on_data_source_id ATTACH PARTITION hmis.hmis_2022_exits_partitioned_1_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_exits_partitioned_1_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -298985,6 +302419,13 @@ ALTER INDEX public."hmis_2022_exits_partitioned_PersonalID_idx3" ATTACH PARTITIO
 --
 
 ALTER INDEX public."hmis_2022_exits_partitioned_PersonalID_idx4" ATTACH PARTITION hmis."hmis_2022_exits_partitioned_20_PersonalID_idx4";
+
+
+--
+-- Name: hmis_2022_exits_partitioned_20_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_exits_on_data_source_id ATTACH PARTITION hmis.hmis_2022_exits_partitioned_20_data_source_id_idx;
 
 
 --
@@ -299303,6 +302744,13 @@ ALTER INDEX public."hmis_2022_exits_partitioned_PersonalID_idx4" ATTACH PARTITIO
 
 
 --
+-- Name: hmis_2022_exits_partitioned_21_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_exits_on_data_source_id ATTACH PARTITION hmis.hmis_2022_exits_partitioned_21_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_exits_partitioned_21_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -299615,6 +303063,13 @@ ALTER INDEX public."hmis_2022_exits_partitioned_PersonalID_idx3" ATTACH PARTITIO
 --
 
 ALTER INDEX public."hmis_2022_exits_partitioned_PersonalID_idx4" ATTACH PARTITION hmis."hmis_2022_exits_partitioned_22_PersonalID_idx4";
+
+
+--
+-- Name: hmis_2022_exits_partitioned_22_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_exits_on_data_source_id ATTACH PARTITION hmis.hmis_2022_exits_partitioned_22_data_source_id_idx;
 
 
 --
@@ -299933,6 +303388,13 @@ ALTER INDEX public."hmis_2022_exits_partitioned_PersonalID_idx4" ATTACH PARTITIO
 
 
 --
+-- Name: hmis_2022_exits_partitioned_23_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_exits_on_data_source_id ATTACH PARTITION hmis.hmis_2022_exits_partitioned_23_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_exits_partitioned_23_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -300245,6 +303707,13 @@ ALTER INDEX public."hmis_2022_exits_partitioned_PersonalID_idx3" ATTACH PARTITIO
 --
 
 ALTER INDEX public."hmis_2022_exits_partitioned_PersonalID_idx4" ATTACH PARTITION hmis."hmis_2022_exits_partitioned_24_PersonalID_idx4";
+
+
+--
+-- Name: hmis_2022_exits_partitioned_24_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_exits_on_data_source_id ATTACH PARTITION hmis.hmis_2022_exits_partitioned_24_data_source_id_idx;
 
 
 --
@@ -300563,6 +304032,13 @@ ALTER INDEX public."hmis_2022_exits_partitioned_PersonalID_idx4" ATTACH PARTITIO
 
 
 --
+-- Name: hmis_2022_exits_partitioned_25_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_exits_on_data_source_id ATTACH PARTITION hmis.hmis_2022_exits_partitioned_25_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_exits_partitioned_25_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -300875,6 +304351,13 @@ ALTER INDEX public."hmis_2022_exits_partitioned_PersonalID_idx3" ATTACH PARTITIO
 --
 
 ALTER INDEX public."hmis_2022_exits_partitioned_PersonalID_idx4" ATTACH PARTITION hmis."hmis_2022_exits_partitioned_26_PersonalID_idx4";
+
+
+--
+-- Name: hmis_2022_exits_partitioned_26_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_exits_on_data_source_id ATTACH PARTITION hmis.hmis_2022_exits_partitioned_26_data_source_id_idx;
 
 
 --
@@ -301193,6 +304676,13 @@ ALTER INDEX public."hmis_2022_exits_partitioned_PersonalID_idx4" ATTACH PARTITIO
 
 
 --
+-- Name: hmis_2022_exits_partitioned_27_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_exits_on_data_source_id ATTACH PARTITION hmis.hmis_2022_exits_partitioned_27_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_exits_partitioned_27_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -301508,6 +304998,13 @@ ALTER INDEX public."hmis_2022_exits_partitioned_PersonalID_idx4" ATTACH PARTITIO
 
 
 --
+-- Name: hmis_2022_exits_partitioned_28_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_exits_on_data_source_id ATTACH PARTITION hmis.hmis_2022_exits_partitioned_28_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_exits_partitioned_28_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -301820,6 +305317,13 @@ ALTER INDEX public."hmis_2022_exits_partitioned_PersonalID_idx3" ATTACH PARTITIO
 --
 
 ALTER INDEX public."hmis_2022_exits_partitioned_PersonalID_idx4" ATTACH PARTITION hmis."hmis_2022_exits_partitioned_29_PersonalID_idx4";
+
+
+--
+-- Name: hmis_2022_exits_partitioned_29_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_exits_on_data_source_id ATTACH PARTITION hmis.hmis_2022_exits_partitioned_29_data_source_id_idx;
 
 
 --
@@ -302208,6 +305712,13 @@ ALTER INDEX public."hmis_2022_exits_partitioned_PersonalID_idx4" ATTACH PARTITIO
 
 
 --
+-- Name: hmis_2022_exits_partitioned_2_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_exits_on_data_source_id ATTACH PARTITION hmis.hmis_2022_exits_partitioned_2_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_exits_partitioned_2_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -302520,6 +306031,13 @@ ALTER INDEX public."hmis_2022_exits_partitioned_PersonalID_idx3" ATTACH PARTITIO
 --
 
 ALTER INDEX public."hmis_2022_exits_partitioned_PersonalID_idx4" ATTACH PARTITION hmis."hmis_2022_exits_partitioned_30_PersonalID_idx4";
+
+
+--
+-- Name: hmis_2022_exits_partitioned_30_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_exits_on_data_source_id ATTACH PARTITION hmis.hmis_2022_exits_partitioned_30_data_source_id_idx;
 
 
 --
@@ -302838,6 +306356,13 @@ ALTER INDEX public."hmis_2022_exits_partitioned_PersonalID_idx4" ATTACH PARTITIO
 
 
 --
+-- Name: hmis_2022_exits_partitioned_31_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_exits_on_data_source_id ATTACH PARTITION hmis.hmis_2022_exits_partitioned_31_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_exits_partitioned_31_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -303150,6 +306675,13 @@ ALTER INDEX public."hmis_2022_exits_partitioned_PersonalID_idx3" ATTACH PARTITIO
 --
 
 ALTER INDEX public."hmis_2022_exits_partitioned_PersonalID_idx4" ATTACH PARTITION hmis."hmis_2022_exits_partitioned_32_PersonalID_idx4";
+
+
+--
+-- Name: hmis_2022_exits_partitioned_32_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_exits_on_data_source_id ATTACH PARTITION hmis.hmis_2022_exits_partitioned_32_data_source_id_idx;
 
 
 --
@@ -303468,6 +307000,13 @@ ALTER INDEX public."hmis_2022_exits_partitioned_PersonalID_idx4" ATTACH PARTITIO
 
 
 --
+-- Name: hmis_2022_exits_partitioned_33_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_exits_on_data_source_id ATTACH PARTITION hmis.hmis_2022_exits_partitioned_33_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_exits_partitioned_33_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -303780,6 +307319,13 @@ ALTER INDEX public."hmis_2022_exits_partitioned_PersonalID_idx3" ATTACH PARTITIO
 --
 
 ALTER INDEX public."hmis_2022_exits_partitioned_PersonalID_idx4" ATTACH PARTITION hmis."hmis_2022_exits_partitioned_34_PersonalID_idx4";
+
+
+--
+-- Name: hmis_2022_exits_partitioned_34_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_exits_on_data_source_id ATTACH PARTITION hmis.hmis_2022_exits_partitioned_34_data_source_id_idx;
 
 
 --
@@ -304098,6 +307644,13 @@ ALTER INDEX public."hmis_2022_exits_partitioned_PersonalID_idx4" ATTACH PARTITIO
 
 
 --
+-- Name: hmis_2022_exits_partitioned_35_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_exits_on_data_source_id ATTACH PARTITION hmis.hmis_2022_exits_partitioned_35_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_exits_partitioned_35_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -304410,6 +307963,13 @@ ALTER INDEX public."hmis_2022_exits_partitioned_PersonalID_idx3" ATTACH PARTITIO
 --
 
 ALTER INDEX public."hmis_2022_exits_partitioned_PersonalID_idx4" ATTACH PARTITION hmis."hmis_2022_exits_partitioned_36_PersonalID_idx4";
+
+
+--
+-- Name: hmis_2022_exits_partitioned_36_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_exits_on_data_source_id ATTACH PARTITION hmis.hmis_2022_exits_partitioned_36_data_source_id_idx;
 
 
 --
@@ -304728,6 +308288,13 @@ ALTER INDEX public."hmis_2022_exits_partitioned_PersonalID_idx4" ATTACH PARTITIO
 
 
 --
+-- Name: hmis_2022_exits_partitioned_37_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_exits_on_data_source_id ATTACH PARTITION hmis.hmis_2022_exits_partitioned_37_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_exits_partitioned_37_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -305043,6 +308610,13 @@ ALTER INDEX public."hmis_2022_exits_partitioned_PersonalID_idx4" ATTACH PARTITIO
 
 
 --
+-- Name: hmis_2022_exits_partitioned_38_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_exits_on_data_source_id ATTACH PARTITION hmis.hmis_2022_exits_partitioned_38_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_exits_partitioned_38_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -305355,6 +308929,13 @@ ALTER INDEX public."hmis_2022_exits_partitioned_PersonalID_idx3" ATTACH PARTITIO
 --
 
 ALTER INDEX public."hmis_2022_exits_partitioned_PersonalID_idx4" ATTACH PARTITION hmis."hmis_2022_exits_partitioned_39_PersonalID_idx4";
+
+
+--
+-- Name: hmis_2022_exits_partitioned_39_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_exits_on_data_source_id ATTACH PARTITION hmis.hmis_2022_exits_partitioned_39_data_source_id_idx;
 
 
 --
@@ -305743,6 +309324,13 @@ ALTER INDEX public."hmis_2022_exits_partitioned_PersonalID_idx4" ATTACH PARTITIO
 
 
 --
+-- Name: hmis_2022_exits_partitioned_3_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_exits_on_data_source_id ATTACH PARTITION hmis.hmis_2022_exits_partitioned_3_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_exits_partitioned_3_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -306055,6 +309643,13 @@ ALTER INDEX public."hmis_2022_exits_partitioned_PersonalID_idx3" ATTACH PARTITIO
 --
 
 ALTER INDEX public."hmis_2022_exits_partitioned_PersonalID_idx4" ATTACH PARTITION hmis."hmis_2022_exits_partitioned_40_PersonalID_idx4";
+
+
+--
+-- Name: hmis_2022_exits_partitioned_40_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_exits_on_data_source_id ATTACH PARTITION hmis.hmis_2022_exits_partitioned_40_data_source_id_idx;
 
 
 --
@@ -306373,6 +309968,13 @@ ALTER INDEX public."hmis_2022_exits_partitioned_PersonalID_idx4" ATTACH PARTITIO
 
 
 --
+-- Name: hmis_2022_exits_partitioned_41_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_exits_on_data_source_id ATTACH PARTITION hmis.hmis_2022_exits_partitioned_41_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_exits_partitioned_41_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -306685,6 +310287,13 @@ ALTER INDEX public."hmis_2022_exits_partitioned_PersonalID_idx3" ATTACH PARTITIO
 --
 
 ALTER INDEX public."hmis_2022_exits_partitioned_PersonalID_idx4" ATTACH PARTITION hmis."hmis_2022_exits_partitioned_42_PersonalID_idx4";
+
+
+--
+-- Name: hmis_2022_exits_partitioned_42_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_exits_on_data_source_id ATTACH PARTITION hmis.hmis_2022_exits_partitioned_42_data_source_id_idx;
 
 
 --
@@ -307003,6 +310612,13 @@ ALTER INDEX public."hmis_2022_exits_partitioned_PersonalID_idx4" ATTACH PARTITIO
 
 
 --
+-- Name: hmis_2022_exits_partitioned_43_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_exits_on_data_source_id ATTACH PARTITION hmis.hmis_2022_exits_partitioned_43_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_exits_partitioned_43_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -307315,6 +310931,13 @@ ALTER INDEX public."hmis_2022_exits_partitioned_PersonalID_idx3" ATTACH PARTITIO
 --
 
 ALTER INDEX public."hmis_2022_exits_partitioned_PersonalID_idx4" ATTACH PARTITION hmis."hmis_2022_exits_partitioned_44_PersonalID_idx4";
+
+
+--
+-- Name: hmis_2022_exits_partitioned_44_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_exits_on_data_source_id ATTACH PARTITION hmis.hmis_2022_exits_partitioned_44_data_source_id_idx;
 
 
 --
@@ -307633,6 +311256,13 @@ ALTER INDEX public."hmis_2022_exits_partitioned_PersonalID_idx4" ATTACH PARTITIO
 
 
 --
+-- Name: hmis_2022_exits_partitioned_45_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_exits_on_data_source_id ATTACH PARTITION hmis.hmis_2022_exits_partitioned_45_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_exits_partitioned_45_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -307945,6 +311575,13 @@ ALTER INDEX public."hmis_2022_exits_partitioned_PersonalID_idx3" ATTACH PARTITIO
 --
 
 ALTER INDEX public."hmis_2022_exits_partitioned_PersonalID_idx4" ATTACH PARTITION hmis."hmis_2022_exits_partitioned_46_PersonalID_idx4";
+
+
+--
+-- Name: hmis_2022_exits_partitioned_46_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_exits_on_data_source_id ATTACH PARTITION hmis.hmis_2022_exits_partitioned_46_data_source_id_idx;
 
 
 --
@@ -308263,6 +311900,13 @@ ALTER INDEX public."hmis_2022_exits_partitioned_PersonalID_idx4" ATTACH PARTITIO
 
 
 --
+-- Name: hmis_2022_exits_partitioned_47_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_exits_on_data_source_id ATTACH PARTITION hmis.hmis_2022_exits_partitioned_47_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_exits_partitioned_47_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -308578,6 +312222,13 @@ ALTER INDEX public."hmis_2022_exits_partitioned_PersonalID_idx4" ATTACH PARTITIO
 
 
 --
+-- Name: hmis_2022_exits_partitioned_48_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_exits_on_data_source_id ATTACH PARTITION hmis.hmis_2022_exits_partitioned_48_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_exits_partitioned_48_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -308890,6 +312541,13 @@ ALTER INDEX public."hmis_2022_exits_partitioned_PersonalID_idx3" ATTACH PARTITIO
 --
 
 ALTER INDEX public."hmis_2022_exits_partitioned_PersonalID_idx4" ATTACH PARTITION hmis."hmis_2022_exits_partitioned_49_PersonalID_idx4";
+
+
+--
+-- Name: hmis_2022_exits_partitioned_49_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_exits_on_data_source_id ATTACH PARTITION hmis.hmis_2022_exits_partitioned_49_data_source_id_idx;
 
 
 --
@@ -309278,6 +312936,13 @@ ALTER INDEX public."hmis_2022_exits_partitioned_PersonalID_idx4" ATTACH PARTITIO
 
 
 --
+-- Name: hmis_2022_exits_partitioned_4_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_exits_on_data_source_id ATTACH PARTITION hmis.hmis_2022_exits_partitioned_4_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_exits_partitioned_4_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -309590,6 +313255,13 @@ ALTER INDEX public."hmis_2022_exits_partitioned_PersonalID_idx3" ATTACH PARTITIO
 --
 
 ALTER INDEX public."hmis_2022_exits_partitioned_PersonalID_idx4" ATTACH PARTITION hmis."hmis_2022_exits_partitioned_50_PersonalID_idx4";
+
+
+--
+-- Name: hmis_2022_exits_partitioned_50_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_exits_on_data_source_id ATTACH PARTITION hmis.hmis_2022_exits_partitioned_50_data_source_id_idx;
 
 
 --
@@ -309908,6 +313580,13 @@ ALTER INDEX public."hmis_2022_exits_partitioned_PersonalID_idx4" ATTACH PARTITIO
 
 
 --
+-- Name: hmis_2022_exits_partitioned_51_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_exits_on_data_source_id ATTACH PARTITION hmis.hmis_2022_exits_partitioned_51_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_exits_partitioned_51_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -310220,6 +313899,13 @@ ALTER INDEX public."hmis_2022_exits_partitioned_PersonalID_idx3" ATTACH PARTITIO
 --
 
 ALTER INDEX public."hmis_2022_exits_partitioned_PersonalID_idx4" ATTACH PARTITION hmis."hmis_2022_exits_partitioned_52_PersonalID_idx4";
+
+
+--
+-- Name: hmis_2022_exits_partitioned_52_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_exits_on_data_source_id ATTACH PARTITION hmis.hmis_2022_exits_partitioned_52_data_source_id_idx;
 
 
 --
@@ -310538,6 +314224,13 @@ ALTER INDEX public."hmis_2022_exits_partitioned_PersonalID_idx4" ATTACH PARTITIO
 
 
 --
+-- Name: hmis_2022_exits_partitioned_53_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_exits_on_data_source_id ATTACH PARTITION hmis.hmis_2022_exits_partitioned_53_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_exits_partitioned_53_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -310850,6 +314543,13 @@ ALTER INDEX public."hmis_2022_exits_partitioned_PersonalID_idx3" ATTACH PARTITIO
 --
 
 ALTER INDEX public."hmis_2022_exits_partitioned_PersonalID_idx4" ATTACH PARTITION hmis."hmis_2022_exits_partitioned_54_PersonalID_idx4";
+
+
+--
+-- Name: hmis_2022_exits_partitioned_54_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_exits_on_data_source_id ATTACH PARTITION hmis.hmis_2022_exits_partitioned_54_data_source_id_idx;
 
 
 --
@@ -311168,6 +314868,13 @@ ALTER INDEX public."hmis_2022_exits_partitioned_PersonalID_idx4" ATTACH PARTITIO
 
 
 --
+-- Name: hmis_2022_exits_partitioned_55_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_exits_on_data_source_id ATTACH PARTITION hmis.hmis_2022_exits_partitioned_55_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_exits_partitioned_55_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -311480,6 +315187,13 @@ ALTER INDEX public."hmis_2022_exits_partitioned_PersonalID_idx3" ATTACH PARTITIO
 --
 
 ALTER INDEX public."hmis_2022_exits_partitioned_PersonalID_idx4" ATTACH PARTITION hmis."hmis_2022_exits_partitioned_56_PersonalID_idx4";
+
+
+--
+-- Name: hmis_2022_exits_partitioned_56_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_exits_on_data_source_id ATTACH PARTITION hmis.hmis_2022_exits_partitioned_56_data_source_id_idx;
 
 
 --
@@ -311798,6 +315512,13 @@ ALTER INDEX public."hmis_2022_exits_partitioned_PersonalID_idx4" ATTACH PARTITIO
 
 
 --
+-- Name: hmis_2022_exits_partitioned_57_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_exits_on_data_source_id ATTACH PARTITION hmis.hmis_2022_exits_partitioned_57_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_exits_partitioned_57_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -312113,6 +315834,13 @@ ALTER INDEX public."hmis_2022_exits_partitioned_PersonalID_idx4" ATTACH PARTITIO
 
 
 --
+-- Name: hmis_2022_exits_partitioned_58_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_exits_on_data_source_id ATTACH PARTITION hmis.hmis_2022_exits_partitioned_58_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_exits_partitioned_58_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -312425,6 +316153,13 @@ ALTER INDEX public."hmis_2022_exits_partitioned_PersonalID_idx3" ATTACH PARTITIO
 --
 
 ALTER INDEX public."hmis_2022_exits_partitioned_PersonalID_idx4" ATTACH PARTITION hmis."hmis_2022_exits_partitioned_59_PersonalID_idx4";
+
+
+--
+-- Name: hmis_2022_exits_partitioned_59_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_exits_on_data_source_id ATTACH PARTITION hmis.hmis_2022_exits_partitioned_59_data_source_id_idx;
 
 
 --
@@ -312813,6 +316548,13 @@ ALTER INDEX public."hmis_2022_exits_partitioned_PersonalID_idx4" ATTACH PARTITIO
 
 
 --
+-- Name: hmis_2022_exits_partitioned_5_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_exits_on_data_source_id ATTACH PARTITION hmis.hmis_2022_exits_partitioned_5_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_exits_partitioned_5_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -313125,6 +316867,13 @@ ALTER INDEX public."hmis_2022_exits_partitioned_PersonalID_idx3" ATTACH PARTITIO
 --
 
 ALTER INDEX public."hmis_2022_exits_partitioned_PersonalID_idx4" ATTACH PARTITION hmis."hmis_2022_exits_partitioned_60_PersonalID_idx4";
+
+
+--
+-- Name: hmis_2022_exits_partitioned_60_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_exits_on_data_source_id ATTACH PARTITION hmis.hmis_2022_exits_partitioned_60_data_source_id_idx;
 
 
 --
@@ -313443,6 +317192,13 @@ ALTER INDEX public."hmis_2022_exits_partitioned_PersonalID_idx4" ATTACH PARTITIO
 
 
 --
+-- Name: hmis_2022_exits_partitioned_61_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_exits_on_data_source_id ATTACH PARTITION hmis.hmis_2022_exits_partitioned_61_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_exits_partitioned_61_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -313755,6 +317511,13 @@ ALTER INDEX public."hmis_2022_exits_partitioned_PersonalID_idx3" ATTACH PARTITIO
 --
 
 ALTER INDEX public."hmis_2022_exits_partitioned_PersonalID_idx4" ATTACH PARTITION hmis."hmis_2022_exits_partitioned_62_PersonalID_idx4";
+
+
+--
+-- Name: hmis_2022_exits_partitioned_62_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_exits_on_data_source_id ATTACH PARTITION hmis.hmis_2022_exits_partitioned_62_data_source_id_idx;
 
 
 --
@@ -314073,6 +317836,13 @@ ALTER INDEX public."hmis_2022_exits_partitioned_PersonalID_idx4" ATTACH PARTITIO
 
 
 --
+-- Name: hmis_2022_exits_partitioned_63_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_exits_on_data_source_id ATTACH PARTITION hmis.hmis_2022_exits_partitioned_63_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_exits_partitioned_63_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -314385,6 +318155,13 @@ ALTER INDEX public."hmis_2022_exits_partitioned_PersonalID_idx3" ATTACH PARTITIO
 --
 
 ALTER INDEX public."hmis_2022_exits_partitioned_PersonalID_idx4" ATTACH PARTITION hmis."hmis_2022_exits_partitioned_64_PersonalID_idx4";
+
+
+--
+-- Name: hmis_2022_exits_partitioned_64_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_exits_on_data_source_id ATTACH PARTITION hmis.hmis_2022_exits_partitioned_64_data_source_id_idx;
 
 
 --
@@ -314703,6 +318480,13 @@ ALTER INDEX public."hmis_2022_exits_partitioned_PersonalID_idx4" ATTACH PARTITIO
 
 
 --
+-- Name: hmis_2022_exits_partitioned_65_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_exits_on_data_source_id ATTACH PARTITION hmis.hmis_2022_exits_partitioned_65_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_exits_partitioned_65_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -315015,6 +318799,13 @@ ALTER INDEX public."hmis_2022_exits_partitioned_PersonalID_idx3" ATTACH PARTITIO
 --
 
 ALTER INDEX public."hmis_2022_exits_partitioned_PersonalID_idx4" ATTACH PARTITION hmis."hmis_2022_exits_partitioned_66_PersonalID_idx4";
+
+
+--
+-- Name: hmis_2022_exits_partitioned_66_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_exits_on_data_source_id ATTACH PARTITION hmis.hmis_2022_exits_partitioned_66_data_source_id_idx;
 
 
 --
@@ -315333,6 +319124,13 @@ ALTER INDEX public."hmis_2022_exits_partitioned_PersonalID_idx4" ATTACH PARTITIO
 
 
 --
+-- Name: hmis_2022_exits_partitioned_67_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_exits_on_data_source_id ATTACH PARTITION hmis.hmis_2022_exits_partitioned_67_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_exits_partitioned_67_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -315648,6 +319446,13 @@ ALTER INDEX public."hmis_2022_exits_partitioned_PersonalID_idx4" ATTACH PARTITIO
 
 
 --
+-- Name: hmis_2022_exits_partitioned_68_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_exits_on_data_source_id ATTACH PARTITION hmis.hmis_2022_exits_partitioned_68_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_exits_partitioned_68_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -315960,6 +319765,13 @@ ALTER INDEX public."hmis_2022_exits_partitioned_PersonalID_idx3" ATTACH PARTITIO
 --
 
 ALTER INDEX public."hmis_2022_exits_partitioned_PersonalID_idx4" ATTACH PARTITION hmis."hmis_2022_exits_partitioned_69_PersonalID_idx4";
+
+
+--
+-- Name: hmis_2022_exits_partitioned_69_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_exits_on_data_source_id ATTACH PARTITION hmis.hmis_2022_exits_partitioned_69_data_source_id_idx;
 
 
 --
@@ -316348,6 +320160,13 @@ ALTER INDEX public."hmis_2022_exits_partitioned_PersonalID_idx4" ATTACH PARTITIO
 
 
 --
+-- Name: hmis_2022_exits_partitioned_6_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_exits_on_data_source_id ATTACH PARTITION hmis.hmis_2022_exits_partitioned_6_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_exits_partitioned_6_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -316660,6 +320479,13 @@ ALTER INDEX public."hmis_2022_exits_partitioned_PersonalID_idx3" ATTACH PARTITIO
 --
 
 ALTER INDEX public."hmis_2022_exits_partitioned_PersonalID_idx4" ATTACH PARTITION hmis."hmis_2022_exits_partitioned_70_PersonalID_idx4";
+
+
+--
+-- Name: hmis_2022_exits_partitioned_70_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_exits_on_data_source_id ATTACH PARTITION hmis.hmis_2022_exits_partitioned_70_data_source_id_idx;
 
 
 --
@@ -317006,6 +320832,13 @@ ALTER INDEX public."hmis_2022_exits_partitioned_PersonalID_idx4" ATTACH PARTITIO
 
 
 --
+-- Name: hmis_2022_exits_partitioned_7_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_exits_on_data_source_id ATTACH PARTITION hmis.hmis_2022_exits_partitioned_7_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_exits_partitioned_7_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -317335,6 +321168,13 @@ ALTER INDEX public."hmis_2022_exits_partitioned_PersonalID_idx4" ATTACH PARTITIO
 
 
 --
+-- Name: hmis_2022_exits_partitioned_8_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_exits_on_data_source_id ATTACH PARTITION hmis.hmis_2022_exits_partitioned_8_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_exits_partitioned_8_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -317661,6 +321501,13 @@ ALTER INDEX public."hmis_2022_exits_partitioned_PersonalID_idx3" ATTACH PARTITIO
 --
 
 ALTER INDEX public."hmis_2022_exits_partitioned_PersonalID_idx4" ATTACH PARTITION hmis."hmis_2022_exits_partitioned_9_PersonalID_idx4";
+
+
+--
+-- Name: hmis_2022_exits_partitioned_9_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_exits_on_data_source_id ATTACH PARTITION hmis.hmis_2022_exits_partitioned_9_data_source_id_idx;
 
 
 --
@@ -323600,6 +327447,13 @@ ALTER INDEX public."hmis_2022_services_partitioned_ServicesID_importer_log_id_id
 
 
 --
+-- Name: hmis_2022_services_partitioned_0_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_services_on_data_source_id ATTACH PARTITION hmis.hmis_2022_services_partitioned_0_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_services_partitioned_0_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -324052,6 +327906,13 @@ ALTER INDEX public."hmis_2022_services_partitioned_ServicesID_idx3" ATTACH PARTI
 --
 
 ALTER INDEX public."hmis_2022_services_partitioned_ServicesID_idx4" ATTACH PARTITION hmis."hmis_2022_services_partitioned_10_ServicesID_idx4";
+
+
+--
+-- Name: hmis_2022_services_partitioned_10_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_services_on_data_source_id ATTACH PARTITION hmis.hmis_2022_services_partitioned_10_data_source_id_idx;
 
 
 --
@@ -324510,6 +328371,13 @@ ALTER INDEX public."hmis_2022_services_partitioned_ServicesID_idx4" ATTACH PARTI
 
 
 --
+-- Name: hmis_2022_services_partitioned_11_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_services_on_data_source_id ATTACH PARTITION hmis.hmis_2022_services_partitioned_11_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_services_partitioned_11_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -324962,6 +328830,13 @@ ALTER INDEX public."hmis_2022_services_partitioned_ServicesID_idx3" ATTACH PARTI
 --
 
 ALTER INDEX public."hmis_2022_services_partitioned_ServicesID_idx4" ATTACH PARTITION hmis."hmis_2022_services_partitioned_12_ServicesID_idx4";
+
+
+--
+-- Name: hmis_2022_services_partitioned_12_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_services_on_data_source_id ATTACH PARTITION hmis.hmis_2022_services_partitioned_12_data_source_id_idx;
 
 
 --
@@ -325420,6 +329295,13 @@ ALTER INDEX public."hmis_2022_services_partitioned_ServicesID_idx4" ATTACH PARTI
 
 
 --
+-- Name: hmis_2022_services_partitioned_13_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_services_on_data_source_id ATTACH PARTITION hmis.hmis_2022_services_partitioned_13_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_services_partitioned_13_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -325872,6 +329754,13 @@ ALTER INDEX public."hmis_2022_services_partitioned_ServicesID_idx3" ATTACH PARTI
 --
 
 ALTER INDEX public."hmis_2022_services_partitioned_ServicesID_idx4" ATTACH PARTITION hmis."hmis_2022_services_partitioned_14_ServicesID_idx4";
+
+
+--
+-- Name: hmis_2022_services_partitioned_14_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_services_on_data_source_id ATTACH PARTITION hmis.hmis_2022_services_partitioned_14_data_source_id_idx;
 
 
 --
@@ -326330,6 +330219,13 @@ ALTER INDEX public."hmis_2022_services_partitioned_ServicesID_idx4" ATTACH PARTI
 
 
 --
+-- Name: hmis_2022_services_partitioned_15_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_services_on_data_source_id ATTACH PARTITION hmis.hmis_2022_services_partitioned_15_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_services_partitioned_15_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -326782,6 +330678,13 @@ ALTER INDEX public."hmis_2022_services_partitioned_ServicesID_idx3" ATTACH PARTI
 --
 
 ALTER INDEX public."hmis_2022_services_partitioned_ServicesID_idx4" ATTACH PARTITION hmis."hmis_2022_services_partitioned_16_ServicesID_idx4";
+
+
+--
+-- Name: hmis_2022_services_partitioned_16_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_services_on_data_source_id ATTACH PARTITION hmis.hmis_2022_services_partitioned_16_data_source_id_idx;
 
 
 --
@@ -327240,6 +331143,13 @@ ALTER INDEX public."hmis_2022_services_partitioned_ServicesID_idx4" ATTACH PARTI
 
 
 --
+-- Name: hmis_2022_services_partitioned_17_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_services_on_data_source_id ATTACH PARTITION hmis.hmis_2022_services_partitioned_17_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_services_partitioned_17_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -327695,6 +331605,13 @@ ALTER INDEX public."hmis_2022_services_partitioned_ServicesID_idx4" ATTACH PARTI
 
 
 --
+-- Name: hmis_2022_services_partitioned_18_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_services_on_data_source_id ATTACH PARTITION hmis.hmis_2022_services_partitioned_18_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_services_partitioned_18_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -328147,6 +332064,13 @@ ALTER INDEX public."hmis_2022_services_partitioned_ServicesID_idx3" ATTACH PARTI
 --
 
 ALTER INDEX public."hmis_2022_services_partitioned_ServicesID_idx4" ATTACH PARTITION hmis."hmis_2022_services_partitioned_19_ServicesID_idx4";
+
+
+--
+-- Name: hmis_2022_services_partitioned_19_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_services_on_data_source_id ATTACH PARTITION hmis.hmis_2022_services_partitioned_19_data_source_id_idx;
 
 
 --
@@ -328612,6 +332536,13 @@ ALTER INDEX public."hmis_2022_services_partitioned_ServicesID_importer_log_id_id
 
 
 --
+-- Name: hmis_2022_services_partitioned_1_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_services_on_data_source_id ATTACH PARTITION hmis.hmis_2022_services_partitioned_1_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_services_partitioned_1_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -329064,6 +332995,13 @@ ALTER INDEX public."hmis_2022_services_partitioned_ServicesID_idx3" ATTACH PARTI
 --
 
 ALTER INDEX public."hmis_2022_services_partitioned_ServicesID_idx4" ATTACH PARTITION hmis."hmis_2022_services_partitioned_20_ServicesID_idx4";
+
+
+--
+-- Name: hmis_2022_services_partitioned_20_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_services_on_data_source_id ATTACH PARTITION hmis.hmis_2022_services_partitioned_20_data_source_id_idx;
 
 
 --
@@ -329522,6 +333460,13 @@ ALTER INDEX public."hmis_2022_services_partitioned_ServicesID_idx4" ATTACH PARTI
 
 
 --
+-- Name: hmis_2022_services_partitioned_21_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_services_on_data_source_id ATTACH PARTITION hmis.hmis_2022_services_partitioned_21_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_services_partitioned_21_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -329974,6 +333919,13 @@ ALTER INDEX public."hmis_2022_services_partitioned_ServicesID_idx3" ATTACH PARTI
 --
 
 ALTER INDEX public."hmis_2022_services_partitioned_ServicesID_idx4" ATTACH PARTITION hmis."hmis_2022_services_partitioned_22_ServicesID_idx4";
+
+
+--
+-- Name: hmis_2022_services_partitioned_22_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_services_on_data_source_id ATTACH PARTITION hmis.hmis_2022_services_partitioned_22_data_source_id_idx;
 
 
 --
@@ -330432,6 +334384,13 @@ ALTER INDEX public."hmis_2022_services_partitioned_ServicesID_idx4" ATTACH PARTI
 
 
 --
+-- Name: hmis_2022_services_partitioned_23_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_services_on_data_source_id ATTACH PARTITION hmis.hmis_2022_services_partitioned_23_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_services_partitioned_23_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -330884,6 +334843,13 @@ ALTER INDEX public."hmis_2022_services_partitioned_ServicesID_idx3" ATTACH PARTI
 --
 
 ALTER INDEX public."hmis_2022_services_partitioned_ServicesID_idx4" ATTACH PARTITION hmis."hmis_2022_services_partitioned_24_ServicesID_idx4";
+
+
+--
+-- Name: hmis_2022_services_partitioned_24_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_services_on_data_source_id ATTACH PARTITION hmis.hmis_2022_services_partitioned_24_data_source_id_idx;
 
 
 --
@@ -331342,6 +335308,13 @@ ALTER INDEX public."hmis_2022_services_partitioned_ServicesID_idx4" ATTACH PARTI
 
 
 --
+-- Name: hmis_2022_services_partitioned_25_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_services_on_data_source_id ATTACH PARTITION hmis.hmis_2022_services_partitioned_25_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_services_partitioned_25_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -331794,6 +335767,13 @@ ALTER INDEX public."hmis_2022_services_partitioned_ServicesID_idx3" ATTACH PARTI
 --
 
 ALTER INDEX public."hmis_2022_services_partitioned_ServicesID_idx4" ATTACH PARTITION hmis."hmis_2022_services_partitioned_26_ServicesID_idx4";
+
+
+--
+-- Name: hmis_2022_services_partitioned_26_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_services_on_data_source_id ATTACH PARTITION hmis.hmis_2022_services_partitioned_26_data_source_id_idx;
 
 
 --
@@ -332252,6 +336232,13 @@ ALTER INDEX public."hmis_2022_services_partitioned_ServicesID_idx4" ATTACH PARTI
 
 
 --
+-- Name: hmis_2022_services_partitioned_27_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_services_on_data_source_id ATTACH PARTITION hmis.hmis_2022_services_partitioned_27_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_services_partitioned_27_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -332707,6 +336694,13 @@ ALTER INDEX public."hmis_2022_services_partitioned_ServicesID_idx4" ATTACH PARTI
 
 
 --
+-- Name: hmis_2022_services_partitioned_28_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_services_on_data_source_id ATTACH PARTITION hmis.hmis_2022_services_partitioned_28_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_services_partitioned_28_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -333159,6 +337153,13 @@ ALTER INDEX public."hmis_2022_services_partitioned_ServicesID_idx3" ATTACH PARTI
 --
 
 ALTER INDEX public."hmis_2022_services_partitioned_ServicesID_idx4" ATTACH PARTITION hmis."hmis_2022_services_partitioned_29_ServicesID_idx4";
+
+
+--
+-- Name: hmis_2022_services_partitioned_29_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_services_on_data_source_id ATTACH PARTITION hmis.hmis_2022_services_partitioned_29_data_source_id_idx;
 
 
 --
@@ -333624,6 +337625,13 @@ ALTER INDEX public."hmis_2022_services_partitioned_ServicesID_importer_log_id_id
 
 
 --
+-- Name: hmis_2022_services_partitioned_2_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_services_on_data_source_id ATTACH PARTITION hmis.hmis_2022_services_partitioned_2_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_services_partitioned_2_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -334076,6 +338084,13 @@ ALTER INDEX public."hmis_2022_services_partitioned_ServicesID_idx3" ATTACH PARTI
 --
 
 ALTER INDEX public."hmis_2022_services_partitioned_ServicesID_idx4" ATTACH PARTITION hmis."hmis_2022_services_partitioned_30_ServicesID_idx4";
+
+
+--
+-- Name: hmis_2022_services_partitioned_30_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_services_on_data_source_id ATTACH PARTITION hmis.hmis_2022_services_partitioned_30_data_source_id_idx;
 
 
 --
@@ -334534,6 +338549,13 @@ ALTER INDEX public."hmis_2022_services_partitioned_ServicesID_idx4" ATTACH PARTI
 
 
 --
+-- Name: hmis_2022_services_partitioned_31_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_services_on_data_source_id ATTACH PARTITION hmis.hmis_2022_services_partitioned_31_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_services_partitioned_31_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -334986,6 +339008,13 @@ ALTER INDEX public."hmis_2022_services_partitioned_ServicesID_idx3" ATTACH PARTI
 --
 
 ALTER INDEX public."hmis_2022_services_partitioned_ServicesID_idx4" ATTACH PARTITION hmis."hmis_2022_services_partitioned_32_ServicesID_idx4";
+
+
+--
+-- Name: hmis_2022_services_partitioned_32_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_services_on_data_source_id ATTACH PARTITION hmis.hmis_2022_services_partitioned_32_data_source_id_idx;
 
 
 --
@@ -335444,6 +339473,13 @@ ALTER INDEX public."hmis_2022_services_partitioned_ServicesID_idx4" ATTACH PARTI
 
 
 --
+-- Name: hmis_2022_services_partitioned_33_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_services_on_data_source_id ATTACH PARTITION hmis.hmis_2022_services_partitioned_33_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_services_partitioned_33_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -335896,6 +339932,13 @@ ALTER INDEX public."hmis_2022_services_partitioned_ServicesID_idx3" ATTACH PARTI
 --
 
 ALTER INDEX public."hmis_2022_services_partitioned_ServicesID_idx4" ATTACH PARTITION hmis."hmis_2022_services_partitioned_34_ServicesID_idx4";
+
+
+--
+-- Name: hmis_2022_services_partitioned_34_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_services_on_data_source_id ATTACH PARTITION hmis.hmis_2022_services_partitioned_34_data_source_id_idx;
 
 
 --
@@ -336354,6 +340397,13 @@ ALTER INDEX public."hmis_2022_services_partitioned_ServicesID_idx4" ATTACH PARTI
 
 
 --
+-- Name: hmis_2022_services_partitioned_35_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_services_on_data_source_id ATTACH PARTITION hmis.hmis_2022_services_partitioned_35_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_services_partitioned_35_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -336806,6 +340856,13 @@ ALTER INDEX public."hmis_2022_services_partitioned_ServicesID_idx3" ATTACH PARTI
 --
 
 ALTER INDEX public."hmis_2022_services_partitioned_ServicesID_idx4" ATTACH PARTITION hmis."hmis_2022_services_partitioned_36_ServicesID_idx4";
+
+
+--
+-- Name: hmis_2022_services_partitioned_36_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_services_on_data_source_id ATTACH PARTITION hmis.hmis_2022_services_partitioned_36_data_source_id_idx;
 
 
 --
@@ -337264,6 +341321,13 @@ ALTER INDEX public."hmis_2022_services_partitioned_ServicesID_idx4" ATTACH PARTI
 
 
 --
+-- Name: hmis_2022_services_partitioned_37_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_services_on_data_source_id ATTACH PARTITION hmis.hmis_2022_services_partitioned_37_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_services_partitioned_37_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -337719,6 +341783,13 @@ ALTER INDEX public."hmis_2022_services_partitioned_ServicesID_idx4" ATTACH PARTI
 
 
 --
+-- Name: hmis_2022_services_partitioned_38_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_services_on_data_source_id ATTACH PARTITION hmis.hmis_2022_services_partitioned_38_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_services_partitioned_38_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -338171,6 +342242,13 @@ ALTER INDEX public."hmis_2022_services_partitioned_ServicesID_idx3" ATTACH PARTI
 --
 
 ALTER INDEX public."hmis_2022_services_partitioned_ServicesID_idx4" ATTACH PARTITION hmis."hmis_2022_services_partitioned_39_ServicesID_idx4";
+
+
+--
+-- Name: hmis_2022_services_partitioned_39_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_services_on_data_source_id ATTACH PARTITION hmis.hmis_2022_services_partitioned_39_data_source_id_idx;
 
 
 --
@@ -338636,6 +342714,13 @@ ALTER INDEX public."hmis_2022_services_partitioned_ServicesID_importer_log_id_id
 
 
 --
+-- Name: hmis_2022_services_partitioned_3_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_services_on_data_source_id ATTACH PARTITION hmis.hmis_2022_services_partitioned_3_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_services_partitioned_3_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -339088,6 +343173,13 @@ ALTER INDEX public."hmis_2022_services_partitioned_ServicesID_idx3" ATTACH PARTI
 --
 
 ALTER INDEX public."hmis_2022_services_partitioned_ServicesID_idx4" ATTACH PARTITION hmis."hmis_2022_services_partitioned_40_ServicesID_idx4";
+
+
+--
+-- Name: hmis_2022_services_partitioned_40_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_services_on_data_source_id ATTACH PARTITION hmis.hmis_2022_services_partitioned_40_data_source_id_idx;
 
 
 --
@@ -339546,6 +343638,13 @@ ALTER INDEX public."hmis_2022_services_partitioned_ServicesID_idx4" ATTACH PARTI
 
 
 --
+-- Name: hmis_2022_services_partitioned_41_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_services_on_data_source_id ATTACH PARTITION hmis.hmis_2022_services_partitioned_41_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_services_partitioned_41_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -339998,6 +344097,13 @@ ALTER INDEX public."hmis_2022_services_partitioned_ServicesID_idx3" ATTACH PARTI
 --
 
 ALTER INDEX public."hmis_2022_services_partitioned_ServicesID_idx4" ATTACH PARTITION hmis."hmis_2022_services_partitioned_42_ServicesID_idx4";
+
+
+--
+-- Name: hmis_2022_services_partitioned_42_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_services_on_data_source_id ATTACH PARTITION hmis.hmis_2022_services_partitioned_42_data_source_id_idx;
 
 
 --
@@ -340456,6 +344562,13 @@ ALTER INDEX public."hmis_2022_services_partitioned_ServicesID_idx4" ATTACH PARTI
 
 
 --
+-- Name: hmis_2022_services_partitioned_43_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_services_on_data_source_id ATTACH PARTITION hmis.hmis_2022_services_partitioned_43_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_services_partitioned_43_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -340908,6 +345021,13 @@ ALTER INDEX public."hmis_2022_services_partitioned_ServicesID_idx3" ATTACH PARTI
 --
 
 ALTER INDEX public."hmis_2022_services_partitioned_ServicesID_idx4" ATTACH PARTITION hmis."hmis_2022_services_partitioned_44_ServicesID_idx4";
+
+
+--
+-- Name: hmis_2022_services_partitioned_44_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_services_on_data_source_id ATTACH PARTITION hmis.hmis_2022_services_partitioned_44_data_source_id_idx;
 
 
 --
@@ -341366,6 +345486,13 @@ ALTER INDEX public."hmis_2022_services_partitioned_ServicesID_idx4" ATTACH PARTI
 
 
 --
+-- Name: hmis_2022_services_partitioned_45_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_services_on_data_source_id ATTACH PARTITION hmis.hmis_2022_services_partitioned_45_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_services_partitioned_45_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -341818,6 +345945,13 @@ ALTER INDEX public."hmis_2022_services_partitioned_ServicesID_idx3" ATTACH PARTI
 --
 
 ALTER INDEX public."hmis_2022_services_partitioned_ServicesID_idx4" ATTACH PARTITION hmis."hmis_2022_services_partitioned_46_ServicesID_idx4";
+
+
+--
+-- Name: hmis_2022_services_partitioned_46_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_services_on_data_source_id ATTACH PARTITION hmis.hmis_2022_services_partitioned_46_data_source_id_idx;
 
 
 --
@@ -342276,6 +346410,13 @@ ALTER INDEX public."hmis_2022_services_partitioned_ServicesID_idx4" ATTACH PARTI
 
 
 --
+-- Name: hmis_2022_services_partitioned_47_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_services_on_data_source_id ATTACH PARTITION hmis.hmis_2022_services_partitioned_47_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_services_partitioned_47_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -342731,6 +346872,13 @@ ALTER INDEX public."hmis_2022_services_partitioned_ServicesID_idx4" ATTACH PARTI
 
 
 --
+-- Name: hmis_2022_services_partitioned_48_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_services_on_data_source_id ATTACH PARTITION hmis.hmis_2022_services_partitioned_48_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_services_partitioned_48_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -343183,6 +347331,13 @@ ALTER INDEX public."hmis_2022_services_partitioned_ServicesID_idx3" ATTACH PARTI
 --
 
 ALTER INDEX public."hmis_2022_services_partitioned_ServicesID_idx4" ATTACH PARTITION hmis."hmis_2022_services_partitioned_49_ServicesID_idx4";
+
+
+--
+-- Name: hmis_2022_services_partitioned_49_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_services_on_data_source_id ATTACH PARTITION hmis.hmis_2022_services_partitioned_49_data_source_id_idx;
 
 
 --
@@ -343648,6 +347803,13 @@ ALTER INDEX public."hmis_2022_services_partitioned_ServicesID_importer_log_id_id
 
 
 --
+-- Name: hmis_2022_services_partitioned_4_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_services_on_data_source_id ATTACH PARTITION hmis.hmis_2022_services_partitioned_4_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_services_partitioned_4_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -344100,6 +348262,13 @@ ALTER INDEX public."hmis_2022_services_partitioned_ServicesID_idx3" ATTACH PARTI
 --
 
 ALTER INDEX public."hmis_2022_services_partitioned_ServicesID_idx4" ATTACH PARTITION hmis."hmis_2022_services_partitioned_50_ServicesID_idx4";
+
+
+--
+-- Name: hmis_2022_services_partitioned_50_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_services_on_data_source_id ATTACH PARTITION hmis.hmis_2022_services_partitioned_50_data_source_id_idx;
 
 
 --
@@ -344558,6 +348727,13 @@ ALTER INDEX public."hmis_2022_services_partitioned_ServicesID_idx4" ATTACH PARTI
 
 
 --
+-- Name: hmis_2022_services_partitioned_51_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_services_on_data_source_id ATTACH PARTITION hmis.hmis_2022_services_partitioned_51_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_services_partitioned_51_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -345010,6 +349186,13 @@ ALTER INDEX public."hmis_2022_services_partitioned_ServicesID_idx3" ATTACH PARTI
 --
 
 ALTER INDEX public."hmis_2022_services_partitioned_ServicesID_idx4" ATTACH PARTITION hmis."hmis_2022_services_partitioned_52_ServicesID_idx4";
+
+
+--
+-- Name: hmis_2022_services_partitioned_52_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_services_on_data_source_id ATTACH PARTITION hmis.hmis_2022_services_partitioned_52_data_source_id_idx;
 
 
 --
@@ -345468,6 +349651,13 @@ ALTER INDEX public."hmis_2022_services_partitioned_ServicesID_idx4" ATTACH PARTI
 
 
 --
+-- Name: hmis_2022_services_partitioned_53_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_services_on_data_source_id ATTACH PARTITION hmis.hmis_2022_services_partitioned_53_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_services_partitioned_53_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -345920,6 +350110,13 @@ ALTER INDEX public."hmis_2022_services_partitioned_ServicesID_idx3" ATTACH PARTI
 --
 
 ALTER INDEX public."hmis_2022_services_partitioned_ServicesID_idx4" ATTACH PARTITION hmis."hmis_2022_services_partitioned_54_ServicesID_idx4";
+
+
+--
+-- Name: hmis_2022_services_partitioned_54_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_services_on_data_source_id ATTACH PARTITION hmis.hmis_2022_services_partitioned_54_data_source_id_idx;
 
 
 --
@@ -346378,6 +350575,13 @@ ALTER INDEX public."hmis_2022_services_partitioned_ServicesID_idx4" ATTACH PARTI
 
 
 --
+-- Name: hmis_2022_services_partitioned_55_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_services_on_data_source_id ATTACH PARTITION hmis.hmis_2022_services_partitioned_55_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_services_partitioned_55_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -346830,6 +351034,13 @@ ALTER INDEX public."hmis_2022_services_partitioned_ServicesID_idx3" ATTACH PARTI
 --
 
 ALTER INDEX public."hmis_2022_services_partitioned_ServicesID_idx4" ATTACH PARTITION hmis."hmis_2022_services_partitioned_56_ServicesID_idx4";
+
+
+--
+-- Name: hmis_2022_services_partitioned_56_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_services_on_data_source_id ATTACH PARTITION hmis.hmis_2022_services_partitioned_56_data_source_id_idx;
 
 
 --
@@ -347288,6 +351499,13 @@ ALTER INDEX public."hmis_2022_services_partitioned_ServicesID_idx4" ATTACH PARTI
 
 
 --
+-- Name: hmis_2022_services_partitioned_57_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_services_on_data_source_id ATTACH PARTITION hmis.hmis_2022_services_partitioned_57_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_services_partitioned_57_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -347743,6 +351961,13 @@ ALTER INDEX public."hmis_2022_services_partitioned_ServicesID_idx4" ATTACH PARTI
 
 
 --
+-- Name: hmis_2022_services_partitioned_58_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_services_on_data_source_id ATTACH PARTITION hmis.hmis_2022_services_partitioned_58_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_services_partitioned_58_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -348195,6 +352420,13 @@ ALTER INDEX public."hmis_2022_services_partitioned_ServicesID_idx3" ATTACH PARTI
 --
 
 ALTER INDEX public."hmis_2022_services_partitioned_ServicesID_idx4" ATTACH PARTITION hmis."hmis_2022_services_partitioned_59_ServicesID_idx4";
+
+
+--
+-- Name: hmis_2022_services_partitioned_59_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_services_on_data_source_id ATTACH PARTITION hmis.hmis_2022_services_partitioned_59_data_source_id_idx;
 
 
 --
@@ -348660,6 +352892,13 @@ ALTER INDEX public."hmis_2022_services_partitioned_ServicesID_importer_log_id_id
 
 
 --
+-- Name: hmis_2022_services_partitioned_5_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_services_on_data_source_id ATTACH PARTITION hmis.hmis_2022_services_partitioned_5_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_services_partitioned_5_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -349112,6 +353351,13 @@ ALTER INDEX public."hmis_2022_services_partitioned_ServicesID_idx3" ATTACH PARTI
 --
 
 ALTER INDEX public."hmis_2022_services_partitioned_ServicesID_idx4" ATTACH PARTITION hmis."hmis_2022_services_partitioned_60_ServicesID_idx4";
+
+
+--
+-- Name: hmis_2022_services_partitioned_60_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_services_on_data_source_id ATTACH PARTITION hmis.hmis_2022_services_partitioned_60_data_source_id_idx;
 
 
 --
@@ -349570,6 +353816,13 @@ ALTER INDEX public."hmis_2022_services_partitioned_ServicesID_idx4" ATTACH PARTI
 
 
 --
+-- Name: hmis_2022_services_partitioned_61_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_services_on_data_source_id ATTACH PARTITION hmis.hmis_2022_services_partitioned_61_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_services_partitioned_61_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -350022,6 +354275,13 @@ ALTER INDEX public."hmis_2022_services_partitioned_ServicesID_idx3" ATTACH PARTI
 --
 
 ALTER INDEX public."hmis_2022_services_partitioned_ServicesID_idx4" ATTACH PARTITION hmis."hmis_2022_services_partitioned_62_ServicesID_idx4";
+
+
+--
+-- Name: hmis_2022_services_partitioned_62_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_services_on_data_source_id ATTACH PARTITION hmis.hmis_2022_services_partitioned_62_data_source_id_idx;
 
 
 --
@@ -350480,6 +354740,13 @@ ALTER INDEX public."hmis_2022_services_partitioned_ServicesID_idx4" ATTACH PARTI
 
 
 --
+-- Name: hmis_2022_services_partitioned_63_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_services_on_data_source_id ATTACH PARTITION hmis.hmis_2022_services_partitioned_63_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_services_partitioned_63_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -350932,6 +355199,13 @@ ALTER INDEX public."hmis_2022_services_partitioned_ServicesID_idx3" ATTACH PARTI
 --
 
 ALTER INDEX public."hmis_2022_services_partitioned_ServicesID_idx4" ATTACH PARTITION hmis."hmis_2022_services_partitioned_64_ServicesID_idx4";
+
+
+--
+-- Name: hmis_2022_services_partitioned_64_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_services_on_data_source_id ATTACH PARTITION hmis.hmis_2022_services_partitioned_64_data_source_id_idx;
 
 
 --
@@ -351390,6 +355664,13 @@ ALTER INDEX public."hmis_2022_services_partitioned_ServicesID_idx4" ATTACH PARTI
 
 
 --
+-- Name: hmis_2022_services_partitioned_65_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_services_on_data_source_id ATTACH PARTITION hmis.hmis_2022_services_partitioned_65_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_services_partitioned_65_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -351842,6 +356123,13 @@ ALTER INDEX public."hmis_2022_services_partitioned_ServicesID_idx3" ATTACH PARTI
 --
 
 ALTER INDEX public."hmis_2022_services_partitioned_ServicesID_idx4" ATTACH PARTITION hmis."hmis_2022_services_partitioned_66_ServicesID_idx4";
+
+
+--
+-- Name: hmis_2022_services_partitioned_66_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_services_on_data_source_id ATTACH PARTITION hmis.hmis_2022_services_partitioned_66_data_source_id_idx;
 
 
 --
@@ -352300,6 +356588,13 @@ ALTER INDEX public."hmis_2022_services_partitioned_ServicesID_idx4" ATTACH PARTI
 
 
 --
+-- Name: hmis_2022_services_partitioned_67_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_services_on_data_source_id ATTACH PARTITION hmis.hmis_2022_services_partitioned_67_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_services_partitioned_67_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -352755,6 +357050,13 @@ ALTER INDEX public."hmis_2022_services_partitioned_ServicesID_idx4" ATTACH PARTI
 
 
 --
+-- Name: hmis_2022_services_partitioned_68_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_services_on_data_source_id ATTACH PARTITION hmis.hmis_2022_services_partitioned_68_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_services_partitioned_68_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -353207,6 +357509,13 @@ ALTER INDEX public."hmis_2022_services_partitioned_ServicesID_idx3" ATTACH PARTI
 --
 
 ALTER INDEX public."hmis_2022_services_partitioned_ServicesID_idx4" ATTACH PARTITION hmis."hmis_2022_services_partitioned_69_ServicesID_idx4";
+
+
+--
+-- Name: hmis_2022_services_partitioned_69_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_services_on_data_source_id ATTACH PARTITION hmis.hmis_2022_services_partitioned_69_data_source_id_idx;
 
 
 --
@@ -353672,6 +357981,13 @@ ALTER INDEX public."hmis_2022_services_partitioned_ServicesID_importer_log_id_id
 
 
 --
+-- Name: hmis_2022_services_partitioned_6_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_services_on_data_source_id ATTACH PARTITION hmis.hmis_2022_services_partitioned_6_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_services_partitioned_6_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -354124,6 +358440,13 @@ ALTER INDEX public."hmis_2022_services_partitioned_ServicesID_idx3" ATTACH PARTI
 --
 
 ALTER INDEX public."hmis_2022_services_partitioned_ServicesID_idx4" ATTACH PARTITION hmis."hmis_2022_services_partitioned_70_ServicesID_idx4";
+
+
+--
+-- Name: hmis_2022_services_partitioned_70_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_services_on_data_source_id ATTACH PARTITION hmis.hmis_2022_services_partitioned_70_data_source_id_idx;
 
 
 --
@@ -354589,6 +358912,13 @@ ALTER INDEX public."hmis_2022_services_partitioned_ServicesID_importer_log_id_id
 
 
 --
+-- Name: hmis_2022_services_partitioned_7_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_services_on_data_source_id ATTACH PARTITION hmis.hmis_2022_services_partitioned_7_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_services_partitioned_7_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -355051,6 +359381,13 @@ ALTER INDEX public."hmis_2022_services_partitioned_ServicesID_importer_log_id_id
 
 
 --
+-- Name: hmis_2022_services_partitioned_8_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_services_on_data_source_id ATTACH PARTITION hmis.hmis_2022_services_partitioned_8_data_source_id_idx;
+
+
+--
 -- Name: hmis_2022_services_partitioned_8_importer_log_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
 --
 
@@ -355510,6 +359847,13 @@ ALTER INDEX public."hmis_2022_services_partitioned_ServicesID_idx4" ATTACH PARTI
 --
 
 ALTER INDEX public."hmis_2022_services_partitioned_ServicesID_importer_log_id_idx" ATTACH PARTITION hmis."hmis_2022_services_partitioned_9_ServicesID_importer_log_id_idx";
+
+
+--
+-- Name: hmis_2022_services_partitioned_9_data_source_id_idx; Type: INDEX ATTACH; Schema: hmis; Owner: -
+--
+
+ALTER INDEX public.index_hmis_2022_services_on_data_source_id ATTACH PARTITION hmis.hmis_2022_services_partitioned_9_data_source_id_idx;
 
 
 --
@@ -360719,10 +365063,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20250820220743'),
 ('20250818183500'),
 ('20250818171810'),
-('20250813185234'),
-('20250813185233'),
 ('20250807182745'),
-('20250807151559'),
 ('20250807112429'),
 ('20250804124300'),
 ('20250804124243'),
@@ -360795,7 +365136,6 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20250304143714'),
 ('20250304143654'),
 ('20250304143644'),
-('20250304143108'),
 ('20250304141815'),
 ('20250304141538'),
 ('20250304140538'),
@@ -360926,6 +365266,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240717205642'),
 ('20240711183824'),
 ('20240710012703'),
+('20240628180603'),
 ('20240628145249'),
 ('20240605155445'),
 ('20240603191721'),
