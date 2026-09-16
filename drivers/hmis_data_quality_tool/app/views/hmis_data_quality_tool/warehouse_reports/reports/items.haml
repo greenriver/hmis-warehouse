@@ -38,7 +38,7 @@
               - data_source_link_available = item.data_source.present? && item.data_source.hmis_link_available?
               - headers.each_key do |k|
                 -# - value = item.public_send(k)
-                - value = item.download_value(k, pii_policy: pii_policy)
+                - value = item.download_value(k, pii_policy: pii_policy, project_names: @project_names)
                 - formatted_value = formatted_cell(value)
                 %td
                   - if k.to_s == 'destination_client_id'

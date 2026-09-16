@@ -165,7 +165,7 @@ jobs:
       # sample_results/, and sample_hic_results/ subdirectories.
       - name: "Fetch LSA sample data"
         env:
-          SOURCE: ${{ secrets.AWS_S3_ACTION_BUCKET }}${{ vars.AWS_S3_ACTIONS_LSA_SAMPLE_PATH_FY_2027 }}
+          SOURCE: ${{ secrets.AWS_S3_ACTION_BUCKET }}lsa-sample-09-2026/
           DESTINATION: ./drivers/hud_lsa/spec/fixtures/files/lsa/fy2027/
         run: aws s3 cp --no-progress "$SOURCE" "$DESTINATION" --recursive --region us-east-1
 
