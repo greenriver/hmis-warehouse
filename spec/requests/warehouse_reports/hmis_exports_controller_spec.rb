@@ -145,6 +145,55 @@ RSpec.describe WarehouseReports::HmisExportsController, type: :request do
       end
     end
 
+    context 'with a recurring export' do
+      let(:recurrence_params) do
+        {
+          every_n_days: 7,
+          reporting_range: 'fixed',
+          encryption_type: 'zip',
+          zip_password: 'a-good-password',
+        }
+      end
+
+      it 'stores the recurrence and schedules the export' do
+        post warehouse_reports_hmis_exports_path, params: base_params.deep_merge(filter: recurrence_params)
+
+        expect(response).to redirect_to(warehouse_reports_hmis_exports_path)
+        expect(GrdaWarehouse::RecurringHmisExport.last.zip_password).to eq('a-good-password')
+      end
+
+      # zipcloak rejects a password past its limit, so without this the export
+      # is scheduled against a recurrence that was never saved, and the user
+      # hears nothing until the run fails.
+      it 'reports the error and saves nothing when the zip password is too long' do
+        params = base_params.deep_merge(
+          filter: recurrence_params.merge(zip_password: 'p' * (ZipCloak::MAX_PASSWORD_LENGTH + 1)),
+        )
+
+        post warehouse_reports_hmis_exports_path, params: params
+
+        expect(response).to have_http_status(:success)
+        expect(response).to render_template(:index)
+        expect(flash[:error]).to include('Zip password')
+        expect(GrdaWarehouse::RecurringHmisExport.count).to eq(0)
+      end
+
+      # 7z takes the longer password, so the limit only applies to the zipcloak path.
+      it 'allows a longer password for the 7z encryption type' do
+        params = base_params.deep_merge(
+          filter: recurrence_params.merge(
+            encryption_type: '7z',
+            zip_password: 'p' * (ZipCloak::MAX_PASSWORD_LENGTH + 1),
+          ),
+        )
+
+        post warehouse_reports_hmis_exports_path, params: params
+
+        expect(response).to redirect_to(warehouse_reports_hmis_exports_path)
+        expect(GrdaWarehouse::RecurringHmisExport.count).to eq(1)
+      end
+    end
+
     context 'job scheduling with custom files' do
       let(:mock_filter) { instance_double(Filters::HmisExport) }
 

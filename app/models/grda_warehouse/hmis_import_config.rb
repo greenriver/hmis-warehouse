@@ -13,6 +13,10 @@ class GrdaWarehouse::HmisImportConfig < GrdaWarehouseBase
 
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
   validates :s3_region, presence: true
+  # The importer hands this to zipcloak for a .zip upload, which rejects a
+  # longer password. The upload's type isn't known until the import runs, so
+  # hold every password to the stricter of the two limits.
+  validates :zip_file_password, length: { maximum: ZipCloak::MAX_PASSWORD_LENGTH }, allow_nil: true
 
   after_initialize :set_default_region, if: :new_record?
 

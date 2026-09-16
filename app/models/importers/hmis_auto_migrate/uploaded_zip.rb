@@ -7,8 +7,6 @@
 # frozen_string_literal: true
 
 require 'zip'
-require 'pty'
-require 'expect'
 module Importers::HmisAutoMigrate
   class UploadedZip < Base
     def initialize(
@@ -58,12 +56,11 @@ module Importers::HmisAutoMigrate
 
         # options = {}
         # options = { password: @file_password } if @file_password.present?
-        cmd = if @file_password.present?
-          "7z e -p#{@file_password} -o#{tmp_folder} \"#{zip_file}\""
-        else
-          "7z e -o#{tmp_folder} \"#{zip_file}\""
-        end
-        system(cmd)
+        # Array form, so the password and the paths reach 7z as arguments rather
+        # than as a string a shell re-parses.
+        args = ['e']
+        args << "-p#{@file_password}" if @file_password.present?
+        system('7z', *args, "-o#{tmp_folder}", zip_file)
         # File.open(zip_file, 'rb') do |seven_zip|
         #   SevenZipRuby::Reader.open(seven_zip, options) do |szr|
         #     szr.extract_all(tmp_folder)
@@ -86,36 +83,11 @@ module Importers::HmisAutoMigrate
       else # for now, assume standard zip is the only other option
         dest_file = zip_file.gsub('.zip', '_decrypted.zip')
 
-        Tempfile.create('expect', Rails.root.join(::File.dirname(zip_file)).to_s) do |expect_script|
-          expect_content = <<~EXPECT
-            #!/usr/bin/expect -f
-
-            set force_conservative 0  ;# set to 1 to force conservative mode even if
-                                      ;# script wasn't run conservatively originally
-            if {$force_conservative} {
-              set send_slow {1 .1}
-              proc send {ignore arg} {
-                sleep .1
-                exp_send -s -- $arg
-              }
-            }
-
-            set timeout -1
-            spawn zipcloak -d --output-file "#{Rails.root.join(dest_file)}" "#{Rails.root.join(zip_file)}"
-            match_max 100000
-            expect -exact "Enter password: "
-            send -- "#{@file_password}\r"
-            expect eof
-
-            send_user "\n $expect_out(buffer) \n"
-          EXPECT
-          expect_script.write(expect_content)
-          expect_script.close
-          FileUtils.chmod(0o770, expect_script.path)
-          system(expect_script.path)
-        end
-        # for some reason we need a bit of sand after talking to zipcloak
-        sleep(5)
+        ZipCloak.decrypt(
+          source: Rails.root.join(zip_file),
+          destination: Rails.root.join(dest_file),
+          password: @file_password,
+        )
       end
 
       add_content_to_upload_and_save(file_path: dest_file)

@@ -39,6 +39,31 @@ RSpec.describe GrdaWarehouse::RecurringHmisExport, type: :model do
     end
   end
 
+  describe 'zip password length' do
+    it 'accepts a password zipcloak will take' do
+      export = build(:recurring_hmis_export, user: user, encryption_type: 'zip', zip_password: 'p' * ZipCloak::MAX_PASSWORD_LENGTH)
+      expect(export).to be_valid
+    end
+
+    it 'rejects a password longer than zipcloak accepts' do
+      export = build(:recurring_hmis_export, user: user, encryption_type: 'zip', zip_password: 'p' * (ZipCloak::MAX_PASSWORD_LENGTH + 1))
+
+      expect(export).not_to be_valid
+      expect(export.errors[:zip_password]).to be_present
+    end
+
+    # The limit is zipcloak's; the 7z path takes a longer password.
+    it 'leaves the 7z encryption type alone' do
+      export = build(:recurring_hmis_export, user: user, encryption_type: '7z', zip_password: 'p' * (ZipCloak::MAX_PASSWORD_LENGTH + 1))
+      expect(export).to be_valid
+    end
+
+    it 'allows no password at all' do
+      export = build(:recurring_hmis_export, user: user, encryption_type: 'zip', zip_password: nil)
+      expect(export).to be_valid
+    end
+  end
+
   describe '#filter_hash' do
     it 'includes the stored options merged with recurrence attributes' do
       export = create(
@@ -141,6 +166,33 @@ RSpec.describe GrdaWarehouse::RecurringHmisExport, type: :model do
       listing = `7z l -p#{export.zip_password} #{encrypted_path}`
       extracted_names.each { |name| expect(listing).to include(name) }
       expect_no_leaked_files(extracted_names)
+    end
+  end
+
+  describe '#encrypt_zipcloak' do
+    include_context 'a zip file to extract'
+
+    let(:export) { create(:recurring_hmis_export, :with_zip_encryption, user: user) }
+
+    it 'returns a password protected copy of the export' do
+      encrypted_path = File.join(scratch_dir, 'encrypted.zip')
+      File.binwrite(encrypted_path, export.send(:encrypt_zipcloak, File.binread(zip_source)))
+
+      expect(Zip::File.open(encrypted_path) { |zip| zip.map(&:encrypted?) }).to all(be true)
+    end
+
+    # The password used to be interpolated into a generated expect script, so a
+    # Tcl metacharacter in it escaped the string and ran as script. The canary
+    # is relative to keep the password under zipcloak's length limit.
+    it 'does not run a password holding Tcl metacharacters' do
+      export.update(zip_password: %(p"; exec sh -c {touch canary}; #))
+
+      encrypted_path = File.join(scratch_dir, 'encrypted.zip')
+      content = Dir.chdir(scratch_dir) { export.send(:encrypt_zipcloak, File.binread(zip_source)) }
+      File.binwrite(encrypted_path, content)
+
+      expect(File.exist?(File.join(scratch_dir, 'canary'))).to be false
+      expect(Zip::File.open(encrypted_path) { |zip| zip.map(&:encrypted?) }).to all(be true)
     end
   end
 end

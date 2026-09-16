@@ -60,6 +60,11 @@ module WarehouseReports
         frequency = recurrence_params[:every_n_days].to_i || 0
         if frequency.positive?
           recurring_export = GrdaWarehouse::RecurringHmisExport.create(recurrence_params.merge(user_id: current_user.id, options: @filter.to_h))
+          unless recurring_export.persisted?
+            flash[:error] = recurring_export.errors.full_messages.to_sentence
+            return render :index
+          end
+
           @filter.recurring_hmis_export_id = recurring_export.id
         end
         @filter.adjust_reporting_period

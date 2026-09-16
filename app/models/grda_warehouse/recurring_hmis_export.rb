@@ -6,9 +6,6 @@
 
 # frozen_string_literal: true
 
-require 'pty'
-require 'expect'
-
 # See docs/features/warehouse/recurring-hmis-exports.md for feature overview and operational notes.
 module GrdaWarehouse
   class RecurringHmisExport < GrdaWarehouseBase
@@ -19,6 +16,14 @@ module GrdaWarehouse
     attr_encrypted :zip_password, key: ENV['ENCRYPTION_KEY'][0..31]
 
     acts_as_paranoid
+
+    # Only the zipcloak path is limited; 7z takes a longer password. Catching it
+    # here means the user hears about it on the form rather than losing a
+    # background export to a password zipcloak will not accept.
+    validates :zip_password,
+              length: { maximum: ZipCloak::MAX_PASSWORD_LENGTH },
+              allow_nil: true,
+              if: -> { encryption_type == 'zip' }
 
     belongs_to :user, optional: true
     has_many :recurring_hmis_export_links
@@ -73,37 +78,7 @@ module GrdaWarehouse
       tmp.write(content)
       tmp.close
 
-      Tempfile.create('expect', export_dir.to_s) do |expect_script|
-        expect_content = <<~EXPECT
-          #!/usr/bin/expect -f
-
-          set force_conservative 0  ;# set to 1 to force conservative mode even if
-                                    ;# script wasn't run conservatively originally
-          if {$force_conservative} {
-            set send_slow {1 .1}
-            proc send {ignore arg} {
-              sleep .1
-              exp_send -s -- $arg
-            }
-          }
-
-          set timeout -1
-          spawn zipcloak --output-file #{destination_path} #{source_path}
-          match_max 100000
-          expect -exact "Enter password: "
-          send -- "#{zip_password}\r"
-          expect -exact "\r
-          Verify password: "
-          send -- "#{zip_password}\r"
-          expect eof
-
-          send_user "\n $expect_out(buffer) \n"
-        EXPECT
-        expect_script.write(expect_content)
-        expect_script.close
-        FileUtils.chmod(0o770, expect_script.path)
-        system(expect_script.path)
-      end
+      ZipCloak.encrypt(source: source_path, destination: destination_path, password: zip_password)
 
       # return the encrypted content
       encrypted_content = ::File.open(destination_path, binmode: true).read
@@ -132,8 +107,9 @@ module GrdaWarehouse
         end
       end
 
-      cmd = "7z a -mx9 -p#{zip_password} #{destination_file} #{destination_path}/*.csv"
-      system(cmd)
+      # Array form, so the password and the paths reach 7z as arguments rather
+      # than as a string a shell re-parses.
+      system('7z', 'a', '-mx9', "-p#{zip_password}", destination_file, *Dir.glob("#{destination_path}/*.csv"))
 
       # ::File.open(destination_file, 'wb') do |file|
       #   SevenZipRuby::SevenZipWriter.open(file, password: zip_password) do |szw|
