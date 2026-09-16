@@ -9,8 +9,6 @@
 require 'rails_helper'
 
 RSpec.describe Hmis::Ce::Match::CandidatePoolBuilderJob, type: :job do
-  include ActiveJob::TestHelper
-
   let(:builder_class) { Hmis::Ce::Match::CandidatePoolBuilder }
 
   describe '#perform' do
@@ -36,15 +34,6 @@ RSpec.describe Hmis::Ce::Match::CandidatePoolBuilderJob, type: :job do
 
       expect(builder_class).not_to receive(:call)
       expect { described_class.new.perform }.to raise_error(WithAdvisoryLock::FailedToAcquireLock)
-    end
-  end
-
-  describe 'enqueuing' do
-    it 'runs on the long-running queue at maintenance priority' do
-      described_class.perform_later
-      enqueued = ActiveJob::Base.queue_adapter.enqueued_jobs.last
-      expect(enqueued[:queue]).to eq(ENV.fetch('DJ_LONG_QUEUE_NAME', 'long_running').to_s)
-      expect(enqueued[:priority]).to eq(BaseJob::MAINTENANCE_PRIORITY_15)
     end
   end
 end

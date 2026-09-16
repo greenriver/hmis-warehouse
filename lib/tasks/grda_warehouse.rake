@@ -312,7 +312,9 @@ namespace :grda_warehouse do
   desc 'Hourly tasks'
   task hourly: [:environment, 'log:info_to_stdout'] do
     safely_execute do
-      MaintenanceTasksLifecycleJob.perform_later
+      # Runs inline: this job processes the completion alerts for the background queues, so it
+      # shouldn't depend on those queues being healthy to run.
+      MaintenanceTasksLifecycleJob.new.perform
     end
 
     safely_execute do
@@ -366,7 +368,9 @@ namespace :grda_warehouse do
 
     if DateTime.current.hour == 20 && HmisEnforcement.hmis_enabled? && GrdaWarehouse::DataSource.hmis.exists?
       # Run AC Data Warehouse exports to SFTP server at 8pm
-      Rake::Task['driver:hmis_external_apis:export:ac_clients'].invoke
+      safely_execute do
+        Rake::Task['driver:hmis_external_apis:export:ac_clients'].invoke
+      end
     end
 
     if DateTime.current.hour == 4
@@ -376,7 +380,7 @@ namespace :grda_warehouse do
     end
 
     safely_execute do
-      HmisExternalApis::ConsumeExternalFormSubmissionsJob.perform_later if HmisEnforcement.hmis_enabled? && GrdaWarehouse::DataSource.hmis.exists?
+      HmisExternalApis::ConsumeExternalFormSubmissionsJob.perform_later if HmisExternalApis::ConsumeExternalFormSubmissionsJob.enabled?
     end
 
     if DateTime.current.hour == 20
@@ -412,7 +416,7 @@ namespace :grda_warehouse do
     end
 
     safely_execute do
-      SyncAnalysisDataTaskJob.perform_later
+      SyncAnalysisDataJob.perform_later
     end
 
     safely_execute do

@@ -6,10 +6,12 @@
 
 # frozen_string_literal: true
 
-# Rebuild candidate pools for all unit groups in the background, under the CE maintenance lock.
+# Rebuild candidate pools for all unit groups, under the CE maintenance lock.
 #
-# Runs inside the rake task today, holding the maintenance lock from the cron process for as
-# long as it takes to acquire it (up to 5 minutes) plus however long the build takes.
+# Enqueued from the hourly rake task so the cron process doesn't wait on the lock (up to 5
+# minutes) plus however long the build takes. If another holder has the lock,
+# lock_for_maintenance! raises WithAdvisoryLock::FailedToAcquireLock, so a contending copy fails
+# and is retried by Delayed::Job rather than silently doing nothing.
 # @see Hmis::Ce::Match::CandidatePoolBuilder
 module Hmis::Ce::Match
   class CandidatePoolBuilderJob < BaseJob
@@ -18,22 +20,20 @@ module Hmis::Ce::Match
 
     def perform(...)
       instrument_as_maintenance_task do |run|
-        run.complete! if _perform(...)
+        _perform(...)
+        run.complete!
       end
     end
 
     def _perform(**args)
-      did_run = false
       # lock_for_maintenance!'s transaction-scoped lock is released as soon as its own transaction
       # ends, so it needs an explicit transaction here to stay held for the block's duration -- unlike
       # its other callers, which run inside an AR callback's save transaction already.
       CandidatePool.transaction do
         CandidatePool.lock_for_maintenance!(timeout_seconds: 5.minutes) do
           CandidatePoolBuilder.call(**args)
-          did_run = true
         end
       end
-      did_run
     end
   end
 end

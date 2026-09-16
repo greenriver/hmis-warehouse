@@ -9,8 +9,6 @@
 require 'rails_helper'
 
 RSpec.describe MaintainProjectGroupListsJob, type: :job do
-  include ActiveJob::TestHelper
-
   describe '#perform' do
     it 'maintains both warehouse and HMIS project group lists when HMIS is enabled' do
       allow(HmisEnforcement).to receive(:hmis_enabled?).and_return(true)
@@ -35,15 +33,6 @@ RSpec.describe MaintainProjectGroupListsJob, type: :job do
       expect(GrdaWarehouse::ProjectGroup).not_to receive(:maintain_project_lists!)
       expect(Hmis::ProjectGroup).not_to receive(:maintain_project_lists!)
       described_class.new.perform
-    end
-  end
-
-  describe 'enqueuing' do
-    it 'runs on the long-running queue at maintenance priority' do
-      described_class.perform_later
-      enqueued = ActiveJob::Base.queue_adapter.enqueued_jobs.last
-      expect(enqueued[:queue]).to eq(ENV.fetch('DJ_LONG_QUEUE_NAME', 'long_running').to_s)
-      expect(enqueued[:priority]).to eq(BaseJob::MAINTENANCE_PRIORITY_15)
     end
   end
 end

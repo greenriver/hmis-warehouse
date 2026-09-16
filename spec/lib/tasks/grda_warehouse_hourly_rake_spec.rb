@@ -53,7 +53,7 @@ RSpec.describe 'grda_warehouse:hourly', type: :task do
     Rake::Task[task_name].invoke
 
     expect(MaintainProjectGroupListsJob).to have_been_enqueued
-    expect(SyncAnalysisDataTaskJob).to have_been_enqueued
+    expect(SyncAnalysisDataJob).to have_been_enqueued
   end
 
   it 'does not let a raise in one step abort the rest of the run' do

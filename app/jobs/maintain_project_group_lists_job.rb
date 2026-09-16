@@ -18,9 +18,9 @@ class MaintainProjectGroupListsJob < BaseJob
 
   LOCK_NAME = 'maintain_project_group_lists'
 
-  def perform(...)
+  def perform
     instrument_as_maintenance_task do |run|
-      run.complete! if _perform(...)
+      run.complete! if _perform
     end
   end
 

@@ -11,6 +11,20 @@ class HmisExternalApis::ConsumeExternalFormSubmissionsJob < BaseJob
   queue_as ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
 
   LOCK_NAME = 'consume_external_form_submissions'
+  SUBMISSIONS_CREDENTIAL_SLUG = 'hmis_external_form_submissions'
+  ENCRYPTION_KEY_CREDENTIAL_SLUG = 'hmis_external_forms_shared_key'
+
+  # Checked before enqueuing, so we don't record a maintenance run that can never complete
+  def self.enabled?
+    new.enabled?
+  end
+
+  # Needs an HMIS to file submissions against, plus both credentials
+  def enabled?
+    return false unless HmisEnforcement.hmis_enabled? && GrdaWarehouse::DataSource.hmis.exists?
+
+    s3_credential.present? && encryption_key.present?
+  end
 
   def perform(...)
     instrument_as_maintenance_task do |run|
@@ -19,11 +33,9 @@ class HmisExternalApis::ConsumeExternalFormSubmissionsJob < BaseJob
   end
 
   def _perform
-    s3 = GrdaWarehouse::RemoteCredentials::S3.for_active_slug('hmis_external_form_submissions')&.s3
-    encryption_key = GrdaWarehouse::RemoteCredentials::SymmetricEncryptionKey.for_active_slug('hmis_external_forms_shared_key')
+    return false unless enabled?
 
-    return false unless s3 && encryption_key
-
+    s3 = s3_credential.s3
     did_run = false
     GrdaWarehouseBase.with_advisory_lock(LOCK_NAME, timeout_seconds: 0) do
       # This job is run hourly, so 10,000 is an unexpected amount to pile up between runs.
@@ -51,6 +63,14 @@ class HmisExternalApis::ConsumeExternalFormSubmissionsJob < BaseJob
   end
 
   protected
+
+  def s3_credential
+    @s3_credential ||= GrdaWarehouse::RemoteCredentials::S3.for_active_slug(SUBMISSIONS_CREDENTIAL_SLUG)
+  end
+
+  def encryption_key
+    @encryption_key ||= GrdaWarehouse::RemoteCredentials::SymmetricEncryptionKey.for_active_slug(ENCRYPTION_KEY_CREDENTIAL_SLUG)
+  end
 
   def log_error(message, object_key:)
     Sentry.capture_message("external form submission #{object_key}: #{message}")
