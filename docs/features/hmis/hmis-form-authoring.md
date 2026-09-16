@@ -21,9 +21,7 @@ The top level has exactly two allowed keys: `item`, required, with at least one 
 
 Everything else lives in the recursive `item` tree. Each node has a `link_id`, a `type`, and type-specific properties. A node with `"type": "GROUP"` may carry a child `item` array; that is the only nesting mechanism.
 
-Groups are structure and layout only. They hold children, collect no value, may not have a `mapping`, and are skipped by `Hmis::Form::Definition#link_id_item_hash` — which value validation, assessment-date lookup, and numeric validation all iterate. Groups are also the unit of visibility: if filtering removes every child, the group goes too.
-
-Group-only properties are `prefill`, which adds the "fill from a previous assessment" button on top-level groups of HUD assessments, and `component` for layout (`TABLE`, `HORIZONTAL_GROUP`, `INPUT_GROUP`, `INFO_GROUP`, `DISABILITY_TABLE`, `SIGNATURE`, `SIGNATURE_GROUP`).
+Groups are structure and layout only. They hold children, collect no value, may not have a `mapping`, and are skipped by `Hmis::Form::Definition#link_id_item_hash`. Groups are also the unit of visibility: if filtering removes every child, the group goes too.
 
 Files on disk may use a `fragment` key in place of an item. That is a seeding-time construct resolved before validation — see [Form seeding](hmis-form-seeding.md).
 
@@ -39,15 +37,13 @@ Files on disk may use a `fragment` key in place of an item. That is a seeding-ti
 - Uploads: `FILE`, `IMAGE`. A form containing either cannot be saved in progress.
 - Composite: `OBJECT`, rendered by `component` as `NAME`, `ADDRESS`, `PHONE`, or `EMAIL`. `GEOLOCATION` for captured coordinates.
 
-Set `assessment_date: true` on the one `DATE` item that is the assessment date.
+Set `assessment_date: true` on the one `DATE` item that is the assessment date. (Only for Custom Assessment forms).
 
 ## `link_id`
 
-Required on every node, groups included. Pattern is `^[a-zA-Z_$][a-zA-Z0-9_$]*$`: letters, digits, underscore, `$`, never leading with a digit. No dashes, dots, or spaces. Must be unique across the whole tree, not just within a group.
+Required on every node, groups included. It must be unique for each item within the Form Definition.
 
 `link_id` is the stable handle for everything that refers to an item: stored answers are keyed by it; `enable_when.question`, `bounds.question`, and `autofill_values.value_question` reference it; environment patches target it; HUD assessments must contain specific ones for their role; and an auto-created Custom Data Element derives its key from it.
-
-Renaming a link ID on a published form is therefore permanent damage — it orphans every stored answer under the old ID. Nothing validates this.
 
 ## `mapping`
 
@@ -59,7 +55,7 @@ Renaming a link ID on a published form is therefore permanent damage — it orph
 "mapping": { "record_type": "HEALTH_AND_DV", "field_name": "pregnancyStatus" }
 ```
 
-Valid `record_type` values are defined in `Hmis::Form::RecordType`: `ASSESSMENT` (the HUD CE assessment), `CLIENT`, `CURRENT_LIVING_SITUATION`, `DISABILITY_GROUP`, `EMPLOYMENT_EDUCATION`, `ENROLLMENT`, `EVENT`, `EXIT`, `HEALTH_AND_DV`, `INCOME_BENEFIT`, `YOUTH_EDUCATION_STATUS`, and `GEOLOCATION`. Each targets the same-named model, with two exceptions: `DISABILITY_GROUP` fans out to several `Disabilities` records, and `GEOLOCATION` writes to the `Enrollment`.
+Valid `record_type` values are defined in `Hmis::Form::RecordType`. Each targets the same-named model, with two exceptions: `DISABILITY_GROUP` fans out to several `Disabilities` records, and `GEOLOCATION` writes to the `Enrollment`.
 
 **A Custom Data Element.** The answer is stored as a `CustomDataElement` against a `CustomDataElementDefinition` (CDED) with that key. Add `record_type` alongside it to move the CDED's owner off the form's default owner.
 
@@ -69,21 +65,26 @@ Valid `record_type` values are defined in `Hmis::Form::RecordType`: `ASSESSMENT`
 
 The owner is `RecordType.find!(record_type).owner_type` when `record_type` is set, otherwise the form role's `owner_class`. A CDED is then looked up by owner type, key, and data source. **Keys are unique per owner type, not globally** — the same key on `Client` and on `CustomAssessment` is two unrelated CDEDs.
 
-What happens when the CDED is missing depends on how the form arrives. `PublishFormDefinition` creates it, deriving the key from the link ID if none was given. Seeding does not create it, so a version-controlled form must name a `custom_field_key` that already exists. The CDED's `reporting_key` is always derived, never authored.
+When authoring a form in the Form Builder UI, there is no need to specify the mapping. `PublishFormDefinition` will create a CDED for the field, deriving the key from link ID if none was given.
 
-**No mapping.** Omit `mapping` for display and layout items. An *input* item with no mapping collects a value that is persisted nowhere, and nothing warns you.
+**No mapping.** Omit `mapping` for display and layout items.
 
 ## Conditional logic and filtering
 
-Three mechanisms decide whether a user sees an item. They are not interchangeable.
+Four mechanisms decide whether a user sees an item. They are not interchangeable.
 
 | Property | Evaluated | Against | Effect |
 | --- | --- | --- | --- |
+| `hidden` | Front-end, unconditionally | Nothing — a static flag, not a condition | Item is never rendered, but still submits a value |
 | `enable_when` | Front-end, live as the user types | Other answers on this form, or a local constant | Item is disabled; `disabled_display` decides whether it hides |
 | `rule` / `custom_rule` | Server, when the definition is served | The project, its type, and its funders | Item is removed from the returned definition |
 | `data_collected_about` | Front-end, when the form is rendered | The client and their relationship to head of household | Item is removed from the rendered definition |
 
 A disabled item is still in the definition and returns as soon as its dependency changes. A filtered item is gone for that project or client, and no answer for it can be submitted.
+
+### `hidden`
+
+`hidden: true` takes an item out of the UI permanently. Use it for a calculated field whose value comes from `initial` or `autofill_values` and that the user should never see or edit — `LOS Under Threshold` is the canonical example. The value is still computed and still submitted, which is the point; only the rendering is suppressed. Submission-time exclusion keys off `enable_when` and `disabled_display`, not off `hidden`.
 
 ### `enable_when` and `enable_behavior`
 
@@ -103,7 +104,15 @@ Putting the condition on a wrapping group, as above, is the idiomatic way to sho
 
 `local_constant` names a value supplied by the rendering context, written with a leading `$`. Real forms use `$today`, `$entryDate`, `$exitDate`, `$hudRecordType`, and `$hudTypeProvided`. Which are available depends on where the form is rendered, so copy from a form of the same role rather than guessing.
 
-`disabled_display` is `HIDDEN` (the default), `PROTECTED`, or `PROTECTED_WITH_VALUE`.
+`disabled_display` decides what a *disabled* item looks like and whether its answer survives. It has no effect while the item is enabled.
+
+| `disabled_display` | Rendering when disabled | Answer submitted? |
+| --- | --- | --- |
+| `HIDDEN` (the default) | Not rendered | No |
+| `PROTECTED` | Rendered, read-only, value blanked | No |
+| `PROTECTED_WITH_VALUE` | Rendered, read-only, value shown | Yes |
+
+`PROTECTED_WITH_VALUE` is the only one that keeps the value. Under the other two the field is unregistered from form state when it becomes disabled, so a previously-entered answer is dropped from the submission rather than persisted — use `PROTECTED_WITH_VALUE` when a conditionally locked field still needs to record what it holds.
 
 ### `rule` and `custom_rule`
 
@@ -145,18 +154,16 @@ Static options need only `code`, which is what gets stored. `label`, `helper_tex
 
 A `pick_list_reference` is either a `Types::Forms::Enums::PickListType` value, resolved server-side and often needing project or client context (see `pick_list_type.rb` and `pick_list_option.rb`), or any GraphQL enum name such as `NoYesReasonsForMissingData`, resolved in the front-end. The two share one namespace and the validator accepts the union.
 
-`component` narrows rendering: `DROPDOWN`, `RADIO_BUTTONS`, `RADIO_BUTTONS_VERTICAL`, `CHECKBOX`.
-
 ## Validation-affecting properties
 
 | Property | Effect |
 | --- | --- |
 | `required` | Missing or empty value is an error at submit |
-| `warn_if_empty` | Missing value, or `DATA_NOT_COLLECTED`, is a warning instead |
+| `warn_if_empty` | Missing value, or `DATA_NOT_COLLECTED`, is a warning at submit |
 | `bounds` | Min/max, see below |
-| `repeats` | Value is an array. Must match the CDED's `repeats` when mapped to a custom field |
+| `repeats` | Value is an array, aka multi-select. Must match the CDED's `repeats` when mapped to a custom field |
 | `read_only` | No human editing |
-| `hidden` | Always hidden, and exempt from the `text` requirement |
+| `hidden` | Always hidden |
 
 `required` and `warn_if_empty` are only checked for link IDs actually present in the submission, so an item removed by a rule or by `data_collected_about` never blocks submission.
 
@@ -179,19 +186,9 @@ The schema and validator catch malformed JSON on their own, so this list covers 
 - **`set_hud_requirements` overwrites what you wrote.** On HUD assessment forms it rewrites `rule` — so don't hand-author it there — and relaxes `data_collected_about` to the less strict of the HUD requirement and yours. It never tightens.
 - **An input item with no `mapping` silently discards its answer.** Valid JSON, no warning, no persisted value.
 - **`DATA_NOT_COLLECTED` and `_HIDDEN` bypass numeric validation** rather than failing format checks.
-- **A CDED key may contain dashes; a `link_id` may not.** So an auto-generated key can never have one, but a hand-authored key can.
 - **Don't let every item be filtered out.** A form whose questions are all ruled out for a project fails the GraphQL query at runtime, not at authoring time. See [Form resolution](hmis-form-resolution.md#item-level-filtering).
 
-Use `_comment` to leave notes. It is accepted on the item, `mapping`, `bounds`, `rule`, `initial`, `enable_when`, and `autofill_values` objects, and it is the only free-form key the schema allows anywhere.
-
-## Real forms to copy from
-
-Prefer copying a form of the same role over writing from scratch, since local constants and required link IDs vary by role. Under `drivers/hmis/lib/form_data/`:
-
-- `default/fragments/r10_pregnancy_status.json` — a group scoped with `data_collected_about`, a `CHOICE` mapped to `HealthAndDv`, and a conditional child group with a date bound
-- `tarrant_county/fragments/client_tb_dates.json` — several items mapped to Custom Data Elements with no `record_type`
-- `test/custom_assessments/cls_assessment.json` — one form mixing an assessment date, HUD `CurrentLivingSituation` fields, and a CDE
-- `default/records/` — the system record forms (Client, Project, Funder, Inventory)
+Use `_comment` to leave notes. It is accepted on most objects, and it is the only free-form key the schema allows anywhere.
 
 ## Related
 
