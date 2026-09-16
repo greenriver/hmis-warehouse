@@ -3534,7 +3534,8 @@ CREATE TABLE public.data_sources (
     obey_consent boolean DEFAULT true,
     disable_imports boolean DEFAULT false NOT NULL,
     pre_process_hooks jsonb DEFAULT '{}'::jsonb NOT NULL,
-    hmis_go_live_at timestamp without time zone
+    hmis_go_live_at timestamp without time zone,
+    client_retention_years integer
 );
 
 
@@ -26506,6 +26507,78 @@ CREATE TABLE public.census_variables (
     census_attributes character varying NOT NULL,
     internal_name character varying,
     created_on date NOT NULL
+--
+-- Name: client_retention_log_entries; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.client_retention_log_entries (
+    id bigint NOT NULL,
+    run_id bigint NOT NULL,
+    action character varying NOT NULL,
+    destination_client_id bigint NOT NULL,
+    source_clients jsonb DEFAULT '[]'::jsonb NOT NULL,
+    last_activity_on date,
+    retention_years integer,
+    created_at timestamp without time zone NOT NULL
+);
+
+
+--
+-- Name: client_retention_log_entries_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.client_retention_log_entries_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: client_retention_log_entries_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.client_retention_log_entries_id_seq OWNED BY public.client_retention_log_entries.id;
+
+
+--
+-- Name: client_retention_runs; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.client_retention_runs (
+    id bigint NOT NULL,
+    started_at timestamp without time zone NOT NULL,
+    completed_at timestamp without time zone,
+    global_retention_years integer NOT NULL,
+    data_source_overrides jsonb DEFAULT '{}'::jsonb NOT NULL,
+    evaluated_count integer DEFAULT 0 NOT NULL,
+    marked_count integer DEFAULT 0 NOT NULL,
+    unmarked_count integer DEFAULT 0 NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: client_retention_runs_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.client_retention_runs_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: client_retention_runs_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.client_retention_runs_id_seq OWNED BY public.client_retention_runs.id;
+
+
 );
 
 
@@ -27715,7 +27788,8 @@ CREATE TABLE public.configs (
     client_demographic_columns jsonb,
     created_at timestamp(6) without time zone,
     updated_at timestamp(6) without time zone,
-    dob_selection_method character varying DEFAULT 'legacy'::character varying NOT NULL
+    dob_selection_method character varying DEFAULT 'legacy'::character varying NOT NULL,
+    client_retention_years integer
 );
 
 
@@ -45679,6 +45753,41 @@ CREATE TABLE public.hud_report_pit_clients (
     deleted_at timestamp without time zone,
     personal_id character varying,
     hoh_age integer,
+--
+-- Name: inactive_clients; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.inactive_clients (
+    id bigint NOT NULL,
+    client_id bigint NOT NULL,
+    destination_client_id bigint NOT NULL,
+    marked_on date NOT NULL,
+    last_activity_on date NOT NULL,
+    retention_years integer NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: inactive_clients_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.inactive_clients_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: inactive_clients_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.inactive_clients_id_seq OWNED BY public.inactive_clients.id;
+
+
     household_member_count integer,
     culturally_specific integer,
     different_identity integer,
@@ -57187,6 +57296,20 @@ ALTER TABLE ONLY public."Exit" ALTER COLUMN id SET DEFAULT nextval('public."Exit
 -- Name: Export id; Type: DEFAULT; Schema: public; Owner: -
 --
 
+--
+-- Name: client_retention_log_entries id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.client_retention_log_entries ALTER COLUMN id SET DEFAULT nextval('public.client_retention_log_entries_id_seq'::regclass);
+
+
+--
+-- Name: client_retention_runs id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.client_retention_runs ALTER COLUMN id SET DEFAULT nextval('public.client_retention_runs_id_seq'::regclass);
+
+
 ALTER TABLE ONLY public."Export" ALTER COLUMN id SET DEFAULT nextval('public."Export_id_seq"'::regclass);
 
 
@@ -59867,6 +59990,13 @@ ALTER TABLE ONLY public.hmis_dqt_events ALTER COLUMN id SET DEFAULT nextval('pub
 --
 -- Name: hmis_dqt_goals id; Type: DEFAULT; Schema: public; Owner: -
 --
+
+--
+-- Name: inactive_clients id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.inactive_clients ALTER COLUMN id SET DEFAULT nextval('public.inactive_clients_id_seq'::regclass);
+
 
 ALTER TABLE ONLY public.hmis_dqt_goals ALTER COLUMN id SET DEFAULT nextval('public.hmis_dqt_goals_id_seq'::regclass);
 
@@ -63855,6 +63985,22 @@ ALTER TABLE ONLY public."User"
 -- Name: YouthEducationStatus YouthEducationStatus_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
+--
+-- Name: client_retention_log_entries client_retention_log_entries_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.client_retention_log_entries
+    ADD CONSTRAINT client_retention_log_entries_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: client_retention_runs client_retention_runs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.client_retention_runs
+    ADD CONSTRAINT client_retention_runs_pkey PRIMARY KEY (id);
+
+
 ALTER TABLE ONLY public."YouthEducationStatus"
     ADD CONSTRAINT "YouthEducationStatus_pkey" PRIMARY KEY (id);
 
@@ -66942,6 +67088,14 @@ ALTER TABLE ONLY public.hmis_form_definitions
 --
 -- Name: hmis_form_instances hmis_form_instances_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
+
+--
+-- Name: inactive_clients inactive_clients_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.inactive_clients
+    ADD CONSTRAINT inactive_clients_pkey PRIMARY KEY (id);
+
 
 ALTER TABLE ONLY public.hmis_form_instances
     ADD CONSTRAINT hmis_form_instances_pkey PRIMARY KEY (id);
@@ -214417,6 +214571,13 @@ CREATE INDEX idx_hmis_2020_enrollment_cocs_imid_du ON public.hmis_2020_enrollmen
 -- Name: idx_hmis_2020_enrollments_imid_du; Type: INDEX; Schema: public; Owner: -
 --
 
+--
+-- Name: index_CustomAssessments_on_data_source_id_and_PersonalID; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "index_CustomAssessments_on_data_source_id_and_PersonalID" ON public."CustomAssessments" USING btree (data_source_id, "PersonalID");
+
+
 CREATE INDEX idx_hmis_2020_enrollments_imid_du ON public.hmis_2020_enrollments USING btree (importer_log_id, "DateUpdated");
 
 
@@ -216125,6 +216286,20 @@ CREATE INDEX index_cas_vacancies_on_program_id ON public.cas_vacancies USING btr
 -- Name: index_cas_vacancies_on_sub_program_id; Type: INDEX; Schema: public; Owner: -
 --
 
+--
+-- Name: index_client_retention_log_entries_on_destination_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_client_retention_log_entries_on_destination_client_id ON public.client_retention_log_entries USING btree (destination_client_id);
+
+
+--
+-- Name: index_client_retention_log_entries_on_run_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_client_retention_log_entries_on_run_id ON public.client_retention_log_entries USING btree (run_id);
+
+
 CREATE INDEX index_cas_vacancies_on_sub_program_id ON public.cas_vacancies USING btree (sub_program_id);
 
 
@@ -216894,6 +217069,13 @@ CREATE INDEX index_contacts_on_entity_type_and_entity_id ON public.contacts USIN
 --
 -- Name: index_contacts_on_type; Type: INDEX; Schema: public; Owner: -
 --
+
+--
+-- Name: index_files_on_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_files_on_client_id ON public.files USING btree (client_id);
+
 
 CREATE INDEX index_contacts_on_type ON public.contacts USING btree (type);
 
@@ -219988,6 +220170,20 @@ CREATE INDEX index_homeless_summary_report_clients_on_client_id ON public.homele
 --
 -- Name: index_homeless_summary_report_clients_on_created_at; Type: INDEX; Schema: public; Owner: -
 --
+
+--
+-- Name: index_inactive_clients_on_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_inactive_clients_on_client_id ON public.inactive_clients USING btree (client_id);
+
+
+--
+-- Name: index_inactive_clients_on_destination_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_inactive_clients_on_destination_client_id ON public.inactive_clients USING btree (destination_client_id);
+
 
 CREATE INDEX index_homeless_summary_report_clients_on_created_at ON public.homeless_summary_report_clients USING btree (created_at);
 
@@ -360039,6 +360235,8 @@ ALTER TABLE ONLY public.hmis_external_unit_availability_syncs
 --
 -- Name: Affiliation fk_rails_81babe0602; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
+('20260916121000'),
+('20260916120000'),
 
 ALTER TABLE ONLY public."Affiliation"
     ADD CONSTRAINT fk_rails_81babe0602 FOREIGN KEY (data_source_id) REFERENCES public.data_sources(id);

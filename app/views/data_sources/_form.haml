@@ -20,6 +20,11 @@
 
   = f.input :obey_consent, label: 'Should this data source be exposed if a client has a consent (ROI) on file?', hint: 'If unchecked, only users with this data source assigned directly to them will be able to see the source client details.'
 
+  - if @data_source.client_retention_override_available?
+    - global_years = GrdaWarehouse::Config.get(:client_retention_years)
+    - retention_options = GrdaWarehouse::Config.available_client_retention_years(current: @data_source.client_retention_years).transform_keys { |label| label == 'Disabled' ? "Use global setting (#{global_years} years)" : label }
+    = f.input :client_retention_years, label: 'Mark clients inactive after', collection: retention_options, as: :select_two, include_blank: false, hint: "Overrides the site-wide window of #{global_years} years for clients from this data source. When a warehouse client has records in several data sources, the longest window applies."
+
   -# Vendor / external HMIS settings. Hidden when this data source is linked to Open Path HMIS,
   -# because OP HMIS uses fixed values for these fields.
   %div{ data: { data_source_form_target: 'nonHmisQuestions' } }
