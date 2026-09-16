@@ -312,7 +312,7 @@ namespace :grda_warehouse do
   desc 'Hourly tasks'
   task hourly: [:environment, 'log:info_to_stdout'] do
     safely_execute do
-      MaintenanceTasksLifecycleJob.new.perform
+      MaintenanceTasksLifecycleJob.perform_later
     end
 
     safely_execute do
@@ -320,7 +320,7 @@ namespace :grda_warehouse do
     end
 
     safely_execute do
-      Rake::Task['driver:hmis:process_activity_logs'].invoke if HmisEnforcement.hmis_enabled?
+      Hmis::ActivityLogProcessorJob.perform_later if HmisEnforcement.hmis_enabled?
     end
 
     # disabled tasks from COVID

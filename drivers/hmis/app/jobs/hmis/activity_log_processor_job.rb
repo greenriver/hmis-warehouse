@@ -13,6 +13,8 @@
 #
 module Hmis
   class ActivityLogProcessorJob < ::BaseJob
+    queue_as ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
+
     def perform(force: false)
       instrument_as_maintenance_task do |run|
         lock_name = 'AccessLogProcessorLock'
