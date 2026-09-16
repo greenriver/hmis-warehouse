@@ -238,8 +238,6 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   use_enum_with_same_key :data_collection_feature_role_enum_map, DATA_COLLECTION_FEATURE_ROLES
   # Form roles that are static
   use_enum_with_same_key :static_form_role_enum_map, STATIC_FORM_ROLES
-  # Form roles that are non-admin; see comment above on NON_ADMIN_FORM_ROLES
-  use_enum_with_same_key :non_admin_form_role_enum_map, NON_ADMIN_FORM_ROLES
 
   scope :exclude_definition_from_select, -> {
     # Get all column names except 'definition'
