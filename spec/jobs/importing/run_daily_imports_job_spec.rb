@@ -51,6 +51,7 @@ RSpec.describe Importing::RunDailyImportsJob, type: :job do
     allow(GrdaWarehouse::Tasks::CleanupOrphanedSystemCollections).to receive(:new).and_return(double(delay: double(run!: true)))
     allow(GrdaWarehouse::Cohort).to receive(:delay).and_return(double(maintain_auto_maintained!: true))
     allow(SyncSyntheticDataJob).to receive(:perform_later)
+    allow(ClientRetentionJob).to receive(:set).and_return(double(perform_later: true))
     allow(CasBase).to receive(:db_exists?).and_return(false)
     allow(job).to receive(:create_statistical_matches)
     allow(job).to receive(:generate_logging_info)
@@ -112,6 +113,12 @@ RSpec.describe Importing::RunDailyImportsJob, type: :job do
           expect(run.started_at).to be_present
           expect(run.completed_at).to be_present
         end
+      end
+
+      it 'queues the client retention pass at maintenance priority instead of running it inline' do
+        job.perform
+
+        expect(ClientRetentionJob).to have_received(:set).with(priority: BaseJob::MAINTENANCE_PRIORITY_15)
       end
 
       it 'sends completion notification' do

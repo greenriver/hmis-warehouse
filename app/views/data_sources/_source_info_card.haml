@@ -26,6 +26,16 @@
           %th Does the Personal ID column contain a UUID?
           %td= yes_no(@data_source.munged_personal_id)
       %tr
+        %th Mark clients inactive after
+        %td
+          - years = @data_source.effective_client_retention_years
+          - if years.nil?
+            Disabled
+          - elsif @data_source.client_retention_years.present?
+            = "#{years} years"
+          - else
+            = "Global setting (#{years} years)"
+      %tr
         %th Exposed with ROI?
         %td= yes_no(@data_source.obey_consent?)
       - unless @data_source.hmis?
