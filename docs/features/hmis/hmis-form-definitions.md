@@ -44,7 +44,7 @@ A definition's `role` determines what record the form owns, which mutation submi
 | Static | `FORM_RULE`, `PROJECT_CONFIG`, `CLIENT_ALERT`, `FORM_DEFINITION` | Admin config forms. Not configurable, need no rule, submitted by bespoke mutations |
 | Other | `OCCURRENCE_POINT`, `CLIENT_DETAIL`, `FILE`, `CE_REFERRAL_STEP` | |
 
-Everything except the assessment and static groups is a "record form," submitted via `SubmitForm`. `FORM_ROLE_CONFIG` maps each of those roles to its `owner_class` — the record type the form creates or edits.
+The system record and data collection feature roles are "record forms," submitted via `SubmitForm`. `FORM_ROLE_CONFIG` maps each role to its `owner_class` — the record type the form creates or edits. Two roles in those groups are exceptions: `CE_REFERRAL_STEP` has its own mutation, and `EXTERNAL_FORM` arrives through the external pipeline rather than a submit mutation. See [Form processing](hmis-form-processing.md#submission-approaches).
 
 `EXTERNAL_FORM` is the one public-facing role. Those forms are filled out by the public rather than by staff, arrive through an S3 pipeline instead of a GraphQL mutation, and are reviewed in the HMIS before their data is accepted.
 
@@ -60,7 +60,7 @@ Multiple published definitions can share a role. Which one applies to a given pr
 
 \* Resolution only ever returns published definitions, so a retired form is never *offered*. It is not, however, refused: the front-end will open a new assessment against a retired definition if navigated to one directly by id (`NewIndividualAssessmentPage.tsx` accepts `Published` or `Retired`).
 
-Only one version per identifier can be `published` at a time. Publishing a draft (`PublishFormDefinition`) retires the previously published version in the same transaction. Editing a published form means creating the next draft version (`CreateNextDraftFormDefinition`), then publishing that. The Form Builder refuses to open anything but a draft.
+Only one version per identifier can be `published` at a time, and only one can be `draft`; both are enforced by partial unique indexes, as is `identifier` + `version`. Publishing a draft (`PublishFormDefinition`) retires the previously published version in the same transaction. Editing a published form means creating the next draft version (`CreateNextDraftFormDefinition`), then publishing that. The Form Builder refuses to open anything but a draft.
 
 Deletion is restricted to drafts (`DeleteFormDefinition`), because published and retired definitions are referenced by `hmis_form_processors` rows on existing records. Retiring is the only way to take a form out of circulation.
 

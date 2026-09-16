@@ -23,9 +23,9 @@ The task **`rails driver:hmis:seed_definitions`** ([`drivers/hmis/lib/tasks/setu
 
 1. `HmisUtil::JsonForms`: Loads JSON form files, resolves fragments, applies environment-specific patches, validates each definition, and upserts `Form::Definition` records for forms that are `managed_in_version_control`. After definitions are loaded, it invokes `HudComplianceFormInstanceMaintainer` to ensure all system form rules exist.
 
-2. `HmisUtil::HudComplianceFormInstanceMaintainer`: Creates or updates system `Form::Instance` records for HUD-required forms and assessments, using applicability declared in `HudUtility2026` (e.g. `current_living_situation_funder_applicability_requirements`, `service_form_funder_applicability_requirements`). Changes are logged and may be sent via the configured notifier.
+2. `HmisUtil::HudComplianceFormInstanceMaintainer`: Creates or updates system `Form::Instance` records for HUD-required forms and assessments, using applicability declared on the HUD utility (e.g. `current_living_situation_funder_applicability_requirements`, `service_form_funder_applicability_requirements`). Changes are logged and may be sent via the configured notifier.
 
-3. `HudUtility2026`: Source of truth for which funder / project-type combinations require which forms for HUD compliance.
+3. `HudHelper.util`: Returns the HUD utility for the active spec year — `HudUtility2026` today — which is the source of truth for which funder / project-type combinations require which forms. Go through `HudHelper.util` rather than naming a year's class directly.
 
 ## Which forms belong here
 
@@ -47,9 +47,8 @@ drivers/hmis/lib/form_data/
 │   │   └── patches/
 │   ├── occurrence_point_forms/
 │   ├── records/
-│   ├── services/
-│   ├── ce_referral_steps/
-│   └── ...
+│   └── services/
+├── static/                      # static admin forms, by role; not under default/
 ├── communityxyz/
 │   ├── fragments/               # JSON fragments that can be referenced from forms
 │   │   └── patches/             # JSON patches merged into matching forms
@@ -60,4 +59,6 @@ drivers/hmis/lib/form_data/
 
 ## Related
 
+- [Form definitions](hmis-form-definitions.md) — columns, roles, and the status lifecycle seeded forms bypass
+- [Form resolution](hmis-form-resolution.md) — scope columns and rule ranking for the system instances created here
 - TODO **#8955**: support overrides/patches per data source to support isolated configuration for multi-HMIS

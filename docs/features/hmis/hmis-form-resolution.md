@@ -73,9 +73,9 @@ Service forms resolve by service type through `Definition.for_service_type`, whi
 
 ### When nothing matches
 
-For system roles (Client, Project, Enrollment, and the rest), finding nothing is a fatal misconfiguration and raises. For optional roles like Current Living Situation, finding nothing simply means the feature is off in that project.
+For system roles, finding nothing is a fatal misconfiguration and raises. For optional roles like Current Living Situation, finding nothing simply means the feature is off in that project.
 
-The GraphQL resolvers go a step further: if no rule matches, `recordFormDefinition` and `serviceFormDefinition` fall back to *any* version-controlled published form for the role, on the reasoning that showing data with an imperfect form beats erroring. This is a deliberate safety net, and it also means a misconfigured project can look like it is working.
+The GraphQL resolvers go a step further: if no rule matches, `recordFormDefinition` falls back to *any* version-controlled published form for the role, on the reasoning that showing data with an imperfect form beats erroring. This is a deliberate safety net, and it also means a misconfigured project can look like it is working.
 
 ## Choosing a definition for an existing record
 
@@ -103,7 +103,7 @@ This has a sharp edge: **if every item is filtered out for a project, the GraphQ
 
 The same name is used at two layers, with different jobs:
 
-- **On a form rule**, it decides which household members the whole form is collected for. This is the `InstanceEnrollmentMatch` behavior above, and it is the only place `ALL_VETERANS` and `VETERAN_HOH` exist.
+- **On a form rule**, it decides which household members the whole form is collected for. This is the `InstanceEnrollmentMatch` behavior above.
 - **On an item**, it is a HUD requirement about which clients a specific question applies to. `set_hud_requirements` reconciles the HUD requirement with whatever the form specifies and keeps the *less* strict of the two — so HUD does not simply win.
 
 `filter_context` is the ephemeral carrier for all of this: an attribute set on the definition by GraphQL resolvers, holding the project and sometimes an active date. It is easy to forget when exercising definitions outside of GraphQL, and it participates in the definition's cache key.
