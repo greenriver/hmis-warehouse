@@ -41,7 +41,6 @@ module Hmis
     def perform(**args)
       return unless self.class.enabled?
 
-      # Set up outside the lock so with_lock can report a skip
       setup_notifier('HMIS Auto-Exit')
 
       # don't track if there are arguments
@@ -115,9 +114,6 @@ module Hmis
 
     private
 
-    # Skips rather than waits: a copy that starts while another is still running would make a
-    # second pass over the same projects.
-    # @return [Boolean] whether the lock was acquired and the scan ran
     def with_lock
       lock_name = self.class.name.demodulize
       did_run = false

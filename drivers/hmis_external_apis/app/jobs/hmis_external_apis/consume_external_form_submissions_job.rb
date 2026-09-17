@@ -13,7 +13,6 @@ class HmisExternalApis::ConsumeExternalFormSubmissionsJob < BaseJob
   SUBMISSIONS_CREDENTIAL_SLUG = 'hmis_external_form_submissions'
   ENCRYPTION_KEY_CREDENTIAL_SLUG = 'hmis_external_forms_shared_key'
 
-  # Checked before enqueuing, so we don't record a maintenance run that can never complete
   def self.enabled?
     new.enabled?
   end
@@ -62,8 +61,6 @@ class HmisExternalApis::ConsumeExternalFormSubmissionsJob < BaseJob
 
   protected
 
-  # Skips rather than waits: a second copy would re-read the same objects the holder is still
-  # processing and deleting.
   def with_lock(&block)
     lock_name = self.class.name.demodulize
     GrdaWarehouseBase.with_advisory_lock(lock_name, timeout_seconds: 0, &block)
