@@ -17,7 +17,9 @@ module GrdaWarehouse
       # https://epsg.io/4326
       DEFAULT_SRID = 4326
 
-      DEFAULT_METERS_SRID = 32618
+      # https://epsg.io/5070 NAD83 Conus Albers: equal-area across the continental US.
+      # A single UTM zone folds polygons from other zones into self-intersecting rings.
+      DEFAULT_METERS_SRID = 5070
 
       def self.default
         where(srid: DEFAULT_SRID).first!
@@ -35,7 +37,9 @@ module GrdaWarehouse
 
       def self.to_meters(geom)
         if RGeo::CoordSys::Proj4.supported?
-          RGeo::Feature.cast(geom, :factory => meters_factory, :project => true)
+          # Projection rounding can turn thin boundary slivers into self-intersecting rings,
+          # which rgeo refuses to measure.
+          RGeo::Feature.cast(geom, :factory => meters_factory, :project => true).make_valid
         else
           Rails.logger.error "Cannot convert to meters since rgeo was not compiled with proj support. You're computing with degrees now."
           geom
