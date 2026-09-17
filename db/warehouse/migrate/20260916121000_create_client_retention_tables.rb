@@ -10,7 +10,7 @@ class CreateClientRetentionTables < ActiveRecord::Migration[7.2]
   def change
     # One row per client id in an aged-out warehouse identity (the destination and every
     # source client), so bulk queries can anti-join on client_id without walking warehouse_clients.
-    create_table :inactive_clients, if_not_exists: true do |t|
+    create_table :inactive_clients do |t|
       t.bigint :client_id, null: false
       t.bigint :destination_client_id, null: false
       t.date :marked_on, null: false
@@ -21,7 +21,7 @@ class CreateClientRetentionTables < ActiveRecord::Migration[7.2]
       t.index :destination_client_id
     end
 
-    create_table :client_retention_runs, if_not_exists: true do |t|
+    create_table :client_retention_runs do |t|
       t.timestamp :started_at, null: false
       t.timestamp :completed_at
       t.integer :global_retention_years, null: false
@@ -34,7 +34,7 @@ class CreateClientRetentionTables < ActiveRecord::Migration[7.2]
 
     # Plain identifiers only, never names, SSN or DOB, so the log outlives the client rows
     # without becoming a copy of the PII it records the removal of.
-    create_table :client_retention_log_entries, if_not_exists: true do |t|
+    create_table :client_retention_log_entries do |t|
       t.references :run, null: false, index: true
       t.string :action, null: false
       t.bigint :destination_client_id, null: false, index: true

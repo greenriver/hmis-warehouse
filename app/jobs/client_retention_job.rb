@@ -114,8 +114,6 @@ class ClientRetentionJob < BaseJob
         marked_on: @today,
         last_activity_on: row[:last_activity_on],
         retention_years: row[:retention_years],
-        created_at: now,
-        updated_at: now,
       }
     end
   end

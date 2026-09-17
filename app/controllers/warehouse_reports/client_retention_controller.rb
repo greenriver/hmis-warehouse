@@ -21,8 +21,6 @@ module WarehouseReports
       @expiring = if @global_years.nil?
         []
       else
-        # ponytail: live scan of every linked destination on an admin page; persist the
-        # expiring set from the nightly run if this gets slow.
         GrdaWarehouse::InactiveClient.
           rollup_activity(destination_ids: nil, global_years: @global_years, expiring_within: EXPIRING_WITHIN_DAYS).
           sort_by { |row| [row[:last_activity_on], row[:destination_id]] }
