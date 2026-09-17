@@ -1,0 +1,21 @@
+.card
+  %table.table.table-striped
+    %thead
+      %tr
+        %th Started
+        %th Completed
+        %th Global window
+        %th Data source overrides
+        %th.text-right Evaluated
+        %th.text-right Marked
+        %th.text-right Unmarked
+    %tbody
+      - list.each do |run|
+        %tr
+          %td= run.started_at.to_fs(:db)
+          %td= run.completed_at&.to_fs(:db) || 'In progress'
+          %td= "#{run.global_retention_years} years"
+          %td= run.data_source_overrides.map { |ds_id, years| "DS #{ds_id}: #{years} years" }.join(', ').presence || 'None'
+          %td.text-right= run.evaluated_count
+          %td.text-right= run.marked_count
+          %td.text-right= run.unmarked_count

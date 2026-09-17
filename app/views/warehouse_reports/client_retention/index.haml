@@ -1,0 +1,3 @@
+= render 'header'
+%h2.h4= "Records expiring within #{WarehouseReports::ClientRetentionController::EXPIRING_WITHIN_DAYS} days"
+= render_paginated_list(scope: @expiring, item_name: 'client', list_partial: 'expiring_list', empty_message: 'No records are expiring soon')
