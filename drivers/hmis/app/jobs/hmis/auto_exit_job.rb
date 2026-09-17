@@ -51,11 +51,17 @@ module Hmis
       end
     end
 
+    # The hourly rake task re-enqueues this
+    def supports_idempotent_retry?
+      false
+    end
+
     # @return [Boolean] whether the lock was acquired and the scan ran
     def _perform(project_ids: nil, data_source_id: nil)
+      # Set up outside the lock so the skip below can report itself
+      setup_notifier('HMIS Auto-Exit')
       did_run = false
       GrdaWarehouseBase.with_advisory_lock(LOCK_NAME, timeout_seconds: 0) do
-        setup_notifier('HMIS Auto-Exit')
         auto_exit_projects = Set.new
         auto_exit_count = 0
         now = DateTime.current
@@ -108,6 +114,7 @@ module Hmis
         @notifier&.ping("Auto-exited #{auto_exit_count} Enrollments in #{auto_exit_projects.size} Projects")
         did_run = true
       end
+      @notifier&.ping("Skipped: another run holds the #{LOCK_NAME} lock") unless did_run
       did_run
     end
 

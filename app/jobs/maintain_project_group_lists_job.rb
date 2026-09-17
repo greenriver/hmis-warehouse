@@ -24,6 +24,11 @@ class MaintainProjectGroupListsJob < BaseJob
     end
   end
 
+  # The hourly rake task re-enqueues this
+  def supports_idempotent_retry?
+    false
+  end
+
   def _perform
     did_run = false
     GrdaWarehouseBase.with_advisory_lock(LOCK_NAME, timeout_seconds: 0) do

@@ -17,4 +17,9 @@ class SyncAnalysisDataJob < BaseJob
   def perform(...)
     GrdaWarehouse::Tasks::SyncAnalysisDataTask.perform(...)
   end
+
+  # The hourly rake task re-enqueues this
+  def supports_idempotent_retry?
+    false
+  end
 end

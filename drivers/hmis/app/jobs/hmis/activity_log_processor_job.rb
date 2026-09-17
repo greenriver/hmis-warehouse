@@ -27,6 +27,11 @@ module Hmis
       end
     end
 
+    # The hourly rake task re-enqueues this
+    def supports_idempotent_retry?
+      false
+    end
+
     protected
 
     RESOLVE_ENROLLMENT_IDS = ->(enrollment_ids) {
