@@ -11,8 +11,8 @@ class MaintainProjectGroupListsJob < BaseJob
   queue_with_priority MAINTENANCE_PRIORITY_15
 
   def perform
-    instrument_as_maintenance_task do |run|
-      with_lock do
+    with_lock do
+      instrument_as_maintenance_task(name: 'maintain project lists') do |run|
         _perform
         run.complete!
       end

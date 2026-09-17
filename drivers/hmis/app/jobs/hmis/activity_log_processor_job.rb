@@ -17,9 +17,9 @@ module Hmis
     queue_with_priority MAINTENANCE_PRIORITY_15
 
     def perform(force: false)
-      instrument_as_maintenance_task do |run|
-        lock_name = 'AccessLogProcessorLock'
-        Hmis::ActivityLog.with_advisory_lock(lock_name, timeout_seconds: 0) do
+      lock_name = 'AccessLogProcessorLock'
+      Hmis::ActivityLog.with_advisory_lock(lock_name, timeout_seconds: 0) do
+        instrument_as_maintenance_task(name: 'process activity logs') do |run|
           scope = Hmis::ActivityLog.all
           scope = scope.unprocessed unless force
           process_records(scope)

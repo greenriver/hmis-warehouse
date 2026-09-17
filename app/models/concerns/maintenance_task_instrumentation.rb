@@ -7,6 +7,12 @@
 # frozen_string_literal: true
 
 # Provides instrumentation for maintenance tasks to track execution and alert on failures
+#
+# Alerting is completion-based: the task alerts when no run completes inside its threshold. So when
+# the work is behind an advisory lock, call this from inside the lock -- a run that never gets the
+# lock then records nothing at all, rather than leaving behind a started run that did no work and
+# is indistinguishable from a crash. Callers inside a block need an explicit `name:`, since the
+# name derived from `caller_locations` picks up the block and that name identifies the task.
 module MaintenanceTaskInstrumentation
   extend ActiveSupport::Concern
 

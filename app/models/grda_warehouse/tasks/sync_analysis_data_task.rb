@@ -21,8 +21,8 @@ module GrdaWarehouse::Tasks
     end
 
     def perform
-      instrument_as_maintenance_task do |run|
-        with_lock do
+      with_lock do
+        instrument_as_maintenance_task(name: 'sync app users') do |run|
           GrdaWarehouseBase.transaction do
             sync_app_users
             # TODO: #7600 - delete breaks for some reason

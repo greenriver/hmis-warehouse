@@ -27,8 +27,8 @@ class HmisExternalApis::ConsumeExternalFormSubmissionsJob < BaseJob
   def perform(...)
     return unless enabled?
 
-    instrument_as_maintenance_task do |run|
-      with_lock do
+    with_lock do
+      instrument_as_maintenance_task(name: 'consume submissions') do |run|
         _perform(...)
         run.complete!
       end
