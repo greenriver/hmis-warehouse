@@ -8,19 +8,13 @@
 
 module GrdaWarehouse::AuthPolicies::ContextLoaders
   class RestrictedClientLoader
-    include ArelHelper
-
     RESTRICTED_POPULATION_WARN_THRESHOLD = 50_000
 
     # Two sources of truth, looked up differently because their sizes differ by orders of magnitude.
     #
     # HMIS restriction is expected to apply to a small fraction of clients (see
     # docs/features/hmis/hmis-restricted-records.md), so we load the whole set once rather than
-    # batching per page. Everything sharing a destination identity with a restricted client is
-    # restricted, so a source id, a destination id, and an unmerged source id all answer correctly.
-    # One hop only: a row that is both a source and a destination (bad data, see
-    # GrdaWarehouse::Hud::Client#destination?) does not pull in its grandparent. That matches the
-    # behavior this replaced -- don't "fix" it without deciding what the right answer is.
+    # batching per page. The set is defined by GrdaWarehouse::HiddenClients.
     #
     # Retention marks (GrdaWarehouse::InactiveClient) can cover a large share of an old warehouse,
     # so they are never loaded whole: each id is checked against the table's unique index and
@@ -66,21 +60,9 @@ module GrdaWarehouse::AuthPolicies::ContextLoaders
     end
 
     private def load_restricted_client_ids
-      ids = Hmis::RestrictedRecord.for_clients.pluck(:restrictable_id)
-      return Set.new if ids.empty?
-
+      ids = GrdaWarehouse::HiddenClients.restricted_ids
       warn_if_unexpectedly_large(ids)
-      destination_ids = merge_links.where(wc_t[:source_id].in(ids).or(wc_t[:destination_id].in(ids))).
-        pluck(:destination_id)
-      sibling_source_ids = merge_links.where(destination_id: destination_ids).pluck(:source_id)
-      (ids + destination_ids + sibling_source_ids).to_set
-    end
-
-    # WarehouseClient has acts_as_paranoid commented out but ClientCleanup
-    # marks rows whose destination was emptied with a deleted_at timestamp.
-    # This ignores marked rows.
-    private def merge_links
-      GrdaWarehouse::WarehouseClient.where(deleted_at: nil)
+      ids
     end
 
     private def warn_if_unexpectedly_large(ids)

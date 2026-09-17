@@ -81,7 +81,7 @@ RSpec.describe GrdaWarehouse::AuthPolicies::ContextLoaders::RestrictedClientLoad
     end
 
     it 'issues zero queries for a nil id, and does not load until the first real lookup' do
-      expect(Hmis::RestrictedRecord).not_to receive(:for_clients)
+      expect(GrdaWarehouse::HiddenClients).not_to receive(:restricted_ids)
       loader.restricted?(nil)
     end
 
@@ -98,8 +98,8 @@ RSpec.describe GrdaWarehouse::AuthPolicies::ContextLoaders::RestrictedClientLoad
         other_ids.each { |id| loader.restricted?(id) }
       end
 
-      # three for the restricted set, one for the preloaded inactive lookups
-      expect(query_count).to eq(4)
+      # one for the restricted set, one for the preloaded inactive lookups
+      expect(query_count).to eq(2)
     end
   end
 

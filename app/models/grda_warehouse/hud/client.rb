@@ -1420,33 +1420,6 @@ module GrdaWarehouse::Hud
       user.policy_context.client_restricted?(id)
     end
 
-    # All currently HMIS-restricted client ids (source and destination alike -- restriction
-    # applies to the whole warehouse identity, see RestrictedClientLoader). Retention-inactive
-    # clients are not in this set; use search_hidden_client_ids for anything query-shaped.
-    def self.hmis_restricted_source_client_ids
-      GrdaWarehouse::AuthPolicies::ContextLoaders::RestrictedClientLoader.new.restricted_client_ids
-    end
-
-    # Client ids that name and SSN search must not return: HMIS-restricted (small, in memory)
-    # plus retention-inactive (potentially large, so left as a subquery and never loaded).
-    # @return [ActiveRecord::Relation] a select(:id) relation usable in `where.not(id: ...)`
-    def self.search_hidden_client_ids
-      unscoped.where(
-        arel_table[:id].in(hmis_restricted_source_client_ids.to_a).
-          or(arel_table[:id].in(GrdaWarehouse::InactiveClient.select(:client_id).arel)),
-      ).select(:id)
-    end
-
-    # The subset of the given destination client ids that are hidden, whether HMIS-restricted
-    # or retention-inactive.
-    def self.hmis_restricted_destination_client_ids(destination_client_ids)
-      return Set.new if destination_client_ids.blank?
-
-      loader = GrdaWarehouse::AuthPolicies::ContextLoaders::RestrictedClientLoader.new
-      loader.preload(destination_client_ids)
-      destination_client_ids.select { |id| loader.restricted?(id) }.to_set
-    end
-
     def name
       # Deprecated
       # skip deprecations to avoid test failures. Suggest uncommenting when we are ready to implement pii globally
@@ -1852,13 +1825,11 @@ module GrdaWarehouse::Hud
     # @param client_scope [GrdaWarehouse::Hud::Client.source] source clients to search in
     # @param sorted [Boolean] order results by closest match to text
     # @param with_score [Boolean] add the match score as a #score attribute on results.
-    # @param restricted_source_ids [Set<Integer>, ActiveRecord::Relation] client ids hidden from
-    #   name/SSN matching; defaults to the HMIS-restricted and retention-inactive ids as a subquery
-    def self.text_search(text, client_scope: nil, sorted: false, with_score: false, restricted_source_ids: search_hidden_client_ids)
+    def self.text_search(text, client_scope: nil, sorted: false, with_score: false)
       # Get search results from client scope. Then return the unique destination client records that map to those matching source records
       relation = (client_scope || self) # rubocop:disable Style/RedundantParentheses
       # with resolve_for_join_query, results are client.scope.select(:client_id, :score) suitable for subquery
-      results = relation.searchable.text_searcher(text, sorted: sorted, resolve_for_join_query: true, exclude_ids_for_name_and_ssn: restricted_source_ids)
+      results = relation.searchable.text_searcher(text, sorted: sorted, resolve_for_join_query: true, name_and_ssn_filter: GrdaWarehouse::HiddenClients.not_hidden(arel_table[:id]))
       return relation.none if results.nil?
 
       grouped = GrdaWarehouse::WarehouseClient.
@@ -1935,8 +1906,7 @@ module GrdaWarehouse::Hud
         where(id: matching_ids).
         preload(:destination_client).
         map { |m| m.destination_client.id }
-      ids -= hmis_restricted_destination_client_ids(ids).to_a
-      where(id: ids)
+      where(id: ids).where(GrdaWarehouse::HiddenClients.not_hidden(arel_table[:id]))
     end
 
     def gender
@@ -2226,9 +2196,8 @@ module GrdaWarehouse::Hud
     def potential_matches
       @potential_matches ||= {}.tap do |m|
         scores_by_id = {}
-        restricted_source_ids = self.class.search_hidden_client_ids
         potential_match_search_queries.each do |query|
-          self.class.text_search(query, client_scope: self.class, sorted: true, with_score: true, restricted_source_ids: restricted_source_ids).where.not(id: id).each do |candidate|
+          self.class.text_search(query, client_scope: self.class, sorted: true, with_score: true).where.not(id: id).each do |candidate|
             score = candidate.score.to_f
             scores_by_id[candidate.id] = score if scores_by_id[candidate.id].nil? || score > scores_by_id[candidate.id]
           end
