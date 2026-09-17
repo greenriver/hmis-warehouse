@@ -6,9 +6,11 @@
 
 # frozen_string_literal: true
 
-# One-time grant run from a migration: every user who could reach HUD reports
-# through a role flag keeps that reach once access moves to report definitions
-# in collections. Uses a companion role so no existing role's flags change.
+# Idempotent grant run from db:seed on every deploy: every user who can reach HUD
+# reports through a role flag keeps that reach now that access comes from report
+# definitions in collections. Uses a companion role so no existing role's flags
+# change. Seeding runs after every database has migrated, which a primary
+# migration cannot rely on for the warehouse tables this touches.
 module GrdaWarehouse::Tasks
   class GrantAllHudReports
     def run!
