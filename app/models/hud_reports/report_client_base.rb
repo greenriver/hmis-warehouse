@@ -51,13 +51,11 @@ module HudReports
 
     # A hidden client (HMIS-restricted or retention-inactive) must not be discoverable via
     # name/SSN matches (see app/models/concerns/client_search.rb), even though exact-ID matches
-    # remain allowed. The hidden set stays a subquery because it can be large.
-    # `NOT IN` is NULL for a NULL column, which would silently drop rows with no client id
+    # remain allowed.
     def self.restricted_condition
       return nil if pii_search_columns.empty? || restricted_client_id_columns.empty?
 
-      hidden_ids = GrdaWarehouse::Hud::Client.search_hidden_client_ids.arel
-      restricted_client_id_columns.map { |col| col.not_in(hidden_ids).or(col.eq(nil)) }.inject(:and)
+      restricted_client_id_columns.map { |col| GrdaWarehouse::HiddenClients.not_hidden(col) }.inject(:and)
     end
 
     def self.searchable?
