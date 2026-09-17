@@ -21,10 +21,8 @@ class ReportResultsSummary < ApplicationRecord
   scope :viewable_by, -> (user) do
     if user.can_view_all_hud_reports?
       all
-    elsif user.can_view_own_hud_reports?
-      joins(:report_results).merge(ReportResult.viewable_by(user))
     else
-      none
+      joins(:report_results).merge(ReportResult.viewable_by(user))
     end
   end
 end

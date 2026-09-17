@@ -332,6 +332,10 @@ class Collection < ApplicationRecord
         g.system = ['Entities']
         g.collection_type = 'Reports'
       end,
+      hud_reports: Collection.where(name: 'All HUD Reports', must_exist: true).first_or_create do |g|
+        g.system = ['Entities']
+        g.collection_type = 'Reports'
+      end,
       cohorts: Collection.where(name: 'All Cohorts', must_exist: true).first_or_create do |g|
         g.system = ['Entities']
         g.collection_type = 'Cohorts'
@@ -387,6 +391,7 @@ class Collection < ApplicationRecord
       ids = all_reports.pluck(:id)
       all_hmis_reports.set_viewables({ reports: ids })
       system_user_access_group.set_viewables({ reports: ids })
+      system_collection(:hud_reports).set_viewables({ reports: all_reports.hud.pluck(:id) })
     end
 
     if group.blank? || group == :cohorts

@@ -8,7 +8,11 @@
 
 module HudDataQualityReport
   class LegacyDqsController < ApplicationController
-    before_action :require_can_view_hud_reports!
+    include WarehouseReportAuthorization
+
+    def related_report
+      GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: 'hud_reports/dqs')
+    end
 
     LEGACY_DQ_TYPES = (1..7).map { |n| "Reports::DataQuality::Fy2017::Q#{n}" }.freeze
 

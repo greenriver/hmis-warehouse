@@ -7,6 +7,7 @@
 # frozen_string_literal: true
 
 class ReportsController < ApplicationController
+  include HudReports::ReportUrls
   before_action :require_can_view_hud_reports!
   before_action :set_report, only: [:show, :edit, :update, :destroy]
   helper_method :sort_column, :sort_direction
@@ -96,9 +97,5 @@ class ReportsController < ApplicationController
     end
 
     grouped_reports
-  end
-
-  def report_urls
-    @report_urls ||= Rails.application.config.hud_reports.values.map { |report| [report[:title], public_send(report[:helper])] }.uniq
   end
 end

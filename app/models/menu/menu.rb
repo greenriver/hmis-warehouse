@@ -46,21 +46,10 @@ class Menu::Menu
       match_pattern: GrdaWarehouse::WarehouseReports::ReportDefinition.pluck(:url).map { |u| "^/#{u}.*" }.join('|'),
       match_pattern_terminator: '.*',
     )
-    menu.add_child(hud_reports_menu)
     menu.add_child(warehouse_reports_menu)
     menu.add_child(op_analytics_menu)
     menu.add_child(favorites_menu)
     menu
-  end
-
-  def hud_reports_menu
-    Menu::Item.new(
-      user: user,
-      path: hud_reports_path,
-      visible: ->(user) { user.can_view_hud_reports? }, # rubocop:disable Style/SymbolProc
-      title: Translation.translate('HUD Reports'),
-      id: 'hud-reports',
-    )
   end
 
   def warehouse_reports_menu
@@ -68,7 +57,7 @@ class Menu::Menu
       user: user,
       visible: ->(user) { user.can_view_any_reports? }, # rubocop:disable Style/SymbolProc
       path: warehouse_reports_path,
-      title: Translation.translate('Warehouse Reports'),
+      title: Translation.translate('Reports'),
       id: 'warehouse-reports',
     )
   end

@@ -13,7 +13,7 @@
     %h3 Universe
     = @report.describe_filter_as_html
   .ml-auto
-    - if can_view_all_hud_reports? || can_view_own_hud_reports?
+    - if hud_report_viewable?('hud_reports/spms')
       %h3 SPM Reports
       - purged_spm_ids = @report.purged_spms.map(&:id).to_set
       - @report.spms.order(start_date: :asc).each do |spm|

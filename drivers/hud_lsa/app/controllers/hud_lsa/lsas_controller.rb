@@ -11,6 +11,12 @@ module HudLsa
     include AjaxModalRails::Controller
     include ArelHelper
     before_action :filter
+
+    # LSA generators predate HudReports::GeneratorBase, so name the definition directly.
+    # LsaHicsController inherits this: the LSA-derived HIC follows LSA access.
+    def related_report
+      GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: 'hud_reports/lsas')
+    end
     # Declared above set_report so the permission is checked before any record lookup.
     before_action :require_can_download_lsa_source_data!, only: [:download_source_data]
     before_action :set_report, only: [:show, :destroy, :running, :download, :download_intermediate, :download_source_data, :restore]

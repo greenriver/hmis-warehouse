@@ -193,5 +193,13 @@ RSpec.describe Menu::Menu, type: :model do
 
       expect(collect_titles(tree)).not_to include('Care Hub')
     end
+
+    it 'lists HUD reports under Reports rather than a separate HUD Reports item' do
+      grant_hud_report(user, 'hud_reports/aprs')
+      titles = collect_titles([menu.reports_menu])
+
+      expect(titles).to include('Reports')
+      expect(titles).not_to include('HUD Reports', 'Warehouse Reports')
+    end
   end
 end
