@@ -21,6 +21,12 @@ module GrdaWarehouse
       # A single UTM zone folds polygons from other zones into self-intersecting rings.
       DEFAULT_METERS_SRID = 5070
 
+      # Padded area of use for EPSG 5070; Alaska, Hawaii, and the territories fall outside it.
+      METERS_LON_RANGE = (-126.0..-66.0)
+      METERS_LAT_RANGE = (24.0..50.0)
+
+      OutsideProjectionArea = Class.new(StandardError)
+
       def self.default
         where(srid: DEFAULT_SRID).first!
       end
@@ -36,6 +42,8 @@ module GrdaWarehouse
       end
 
       def self.to_meters(geom)
+        check_projection_area!(geom)
+
         if RGeo::CoordSys::Proj4.supported?
           # Projection rounding can turn thin boundary slivers into self-intersecting rings,
           # which rgeo refuses to measure.
@@ -44,6 +52,15 @@ module GrdaWarehouse
           Rails.logger.error "Cannot convert to meters since rgeo was not compiled with proj support. You're computing with degrees now."
           geom
         end
+      end
+
+      def self.check_projection_area!(geom)
+        return if geom.empty?
+
+        center = geom.centroid
+        return if METERS_LON_RANGE.cover?(center.x) && METERS_LAT_RANGE.cover?(center.y)
+
+        raise OutsideProjectionArea, "Geometry centered at (#{center.x}, #{center.y}) is outside the EPSG #{DEFAULT_METERS_SRID} area; add a projection for it before computing areas"
       end
     end
   end
