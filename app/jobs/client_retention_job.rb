@@ -105,7 +105,6 @@ class ClientRetentionJob < BaseJob
   end
 
   private def mark_rows_for(row)
-    now = Time.current
     member_ids = [row[:destination_id]] + row[:source_clients].map { |sc| sc['client_id'] }
     member_ids.uniq.map do |client_id|
       {
