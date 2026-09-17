@@ -1,0 +1,141 @@
+{
+  "item": [
+    {
+      "text": "Referral Review Start",
+      "type": "DATE",
+      "link_id": "referral_review_start",
+      "required": true,
+      "initial": [
+        {
+          "initial_behavior": "IF_EMPTY",
+          "value_local_constant": "$today"
+        }
+      ],
+      "mapping": {
+        "custom_field_key": "mc_direct_referral_acknowledgement_review_start"
+      }
+    },
+    {
+      "text": "Initial Decision",
+      "type": "CHOICE",
+      "link_id": "initial_decision",
+      "required": true,
+      "component": "RADIO_BUTTONS",
+      "mapping": {
+        "custom_field_key": "mc_direct_referral_acknowledgement_initial_decision"
+      },
+      "pick_list_options": [
+        { "code": "under_review", "label": "Under Review" },
+        { "code": "declined", "label": "Declined" },
+        { "code": "cancelled", "label": "Cancelled" }
+      ]
+    },
+    {
+      "text": "Declined Reason",
+      "type": "CHOICE",
+      "link_id": "declined_reason",
+      "required": true,
+      "component": "RADIO_BUTTONS",
+      "mapping": {
+        "custom_field_key": "mc_direct_referral_acknowledgement_declined_reason"
+      },
+      "enable_when": [
+        {
+          "operator": "EQUAL",
+          "question": "initial_decision",
+          "answer_code": "declined"
+        }
+      ],
+      "enable_behavior": "ALL",
+      "pick_list_options": [
+        { "code": "program_declines_to_accept", "label": "Declined: Program declines to accept" },
+        { "code": "referral_not_acted_on", "label": "Declined: Referral not acted on" }
+      ]
+    },
+    {
+      "text": "Cancelled Reason",
+      "type": "CHOICE",
+      "link_id": "cancelled_reason",
+      "required": true,
+      "component": "DROPDOWN",
+      "mapping": {
+        "custom_field_key": "mc_direct_referral_acknowledgement_cancelled_reason"
+      },
+      "enable_when": [
+        {
+          "operator": "EQUAL",
+          "question": "initial_decision",
+          "answer_code": "cancelled"
+        }
+      ],
+      "enable_behavior": "ALL",
+      "pick_list_options": [
+        { "code": "already_obtained_permanent_housing", "label": "Cancelled: Already obtained permanent housing" },
+        { "code": "multiple_outreach_attempts_unsuccessful", "label": "Cancelled: Multiple outreach attempts unsuccessful" },
+        { "code": "cancelled_other", "label": "Cancelled: Other" },
+        { "code": "ineligible_background_check", "label": "Client Ineligible: Background Check" },
+        { "code": "ineligible_clinical_determination", "label": "Client Ineligible: Clinical Determination" },
+        { "code": "ineligible_credit_check", "label": "Client Ineligible: Credit Check" },
+        { "code": "ineligible_immigration_status", "label": "Client Ineligible: Immigration Status" },
+        { "code": "ineligible_income_criteria", "label": "Client Ineligible: Income criteria" },
+        { "code": "ineligible_third_party_verification_chronicity", "label": "Client Ineligible: Third Party Verification (Chronicity)" },
+        { "code": "ineligible_unable_to_obtain_required_documentation", "label": "Client Ineligible: Unable to Obtain Required Documentation" },
+        { "code": "ineligible_other", "label": "Client Ineligible: Other" },
+        { "code": "client_refused_didnt_want_unit_program", "label": "Client Refused: Didn't want unit / program" },
+        { "code": "client_refused_safety_concerns", "label": "Client Refused: Safety Concerns" },
+        { "code": "client_refused_other", "label": "Client Refused: Other" }
+      ]
+    },
+    {
+      "type": "CHOICE",
+      "link_id": "decline_reason",
+      "hidden": true,
+      "_comment": "Not shown to users. Hmis::Ce::ReferralMessageHandler reads the decline reason from this one link_id, so it mirrors whichever of the two visible reason lists was answered. Mapping is required: createValuesForSubmit drops items with no fieldName, so without it the autofilled value never reaches submitted_values. Its options must be the union of the two visible lists, because the CE template validator checks these codes against ReferralDeclineReason.",
+      "mapping": {
+        "custom_field_key": "mc_direct_referral_acknowledgement_decline_reason"
+      },
+      "autofill_values": [
+        {
+          "value_question": "declined_reason",
+          "autofill_behavior": "ALL",
+          "autofill_when": [
+            {
+              "operator": "EQUAL",
+              "question": "initial_decision",
+              "answer_code": "declined"
+            }
+          ]
+        },
+        {
+          "value_question": "cancelled_reason",
+          "autofill_behavior": "ALL",
+          "autofill_when": [
+            {
+              "operator": "EQUAL",
+              "question": "initial_decision",
+              "answer_code": "cancelled"
+            }
+          ]
+        }
+      ],
+      "pick_list_options": [
+        { "code": "program_declines_to_accept", "label": "Declined: Program declines to accept" },
+        { "code": "referral_not_acted_on", "label": "Declined: Referral not acted on" },
+        { "code": "already_obtained_permanent_housing", "label": "Cancelled: Already obtained permanent housing" },
+        { "code": "multiple_outreach_attempts_unsuccessful", "label": "Cancelled: Multiple outreach attempts unsuccessful" },
+        { "code": "cancelled_other", "label": "Cancelled: Other" },
+        { "code": "ineligible_background_check", "label": "Client Ineligible: Background Check" },
+        { "code": "ineligible_clinical_determination", "label": "Client Ineligible: Clinical Determination" },
+        { "code": "ineligible_credit_check", "label": "Client Ineligible: Credit Check" },
+        { "code": "ineligible_immigration_status", "label": "Client Ineligible: Immigration Status" },
+        { "code": "ineligible_income_criteria", "label": "Client Ineligible: Income criteria" },
+        { "code": "ineligible_third_party_verification_chronicity", "label": "Client Ineligible: Third Party Verification (Chronicity)" },
+        { "code": "ineligible_unable_to_obtain_required_documentation", "label": "Client Ineligible: Unable to Obtain Required Documentation" },
+        { "code": "ineligible_other", "label": "Client Ineligible: Other" },
+        { "code": "client_refused_didnt_want_unit_program", "label": "Client Refused: Didn't want unit / program" },
+        { "code": "client_refused_safety_concerns", "label": "Client Refused: Safety Concerns" },
+        { "code": "client_refused_other", "label": "Client Refused: Other" }
+      ]
+    }
+  ]
+}

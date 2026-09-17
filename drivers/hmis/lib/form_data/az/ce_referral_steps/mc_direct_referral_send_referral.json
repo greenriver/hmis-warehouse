@@ -1,12 +1,53 @@
 {
   "item": [
     {
-      "text": "Notes",
-      "type": "TEXT",
-      "link_id": "send_referral_notes",
+      "text": "Referral Date",
+      "type": "DATE",
+      "link_id": "referral_date",
+      "required": true,
+      "initial": [
+        {
+          "initial_behavior": "IF_EMPTY",
+          "value_local_constant": "$today"
+        }
+      ],
+      "mapping": {
+        "custom_field_key": "mc_direct_referral_send_referral_date"
+      }
+    },
+    {
+      "text": "Refer To Provider",
+      "type": "CHOICE",
+      "link_id": "refer_to_provider",
+      "required": true,
+      "component": "DROPDOWN",
+      "pick_list_reference": "PROJECT",
+      "mapping": {
+        "custom_field_key": "mc_direct_referral_send_referral_refer_to_provider"
+      }
+    },
+    {
+      "text": "Referral Type",
+      "type": "CHOICE",
+      "link_id": "referral_type",
+      "required": true,
+      "component": "RADIO_BUTTONS",
+      "mapping": {
+        "custom_field_key": "mc_direct_referral_send_referral_referral_type"
+      },
+      "pick_list_options": [
+        { "code": "rrh", "label": "RRH" },
+        { "code": "psh", "label": "PSH" },
+        { "code": "oph", "label": "OPH" }
+      ]
+    },
+    {
+      "text": "Case Manager",
+      "type": "STRING",
+      "link_id": "case_manager",
       "required": true,
       "mapping": {
-        "custom_field_key": "mc_direct_referral_send_referral_notes"
+        "custom_field_key": "mc_direct_referral_send_referral_case_manager"
       }
     }
   ]
