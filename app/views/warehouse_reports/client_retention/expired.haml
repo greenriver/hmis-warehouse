@@ -1,0 +1,10 @@
+= render 'header'
+
+= form_tag expired_warehouse_reports_client_retention_index_path, method: :get, class: 'form-inline mb-3' do
+  .row
+    .col-sm-4
+      = label_tag :destination_client_id, 'Warehouse client id', class: 'form-label'
+      = number_field_tag :destination_client_id, @destination_client_id, class: 'form-control'
+    .col-sm-4
+      = submit_tag 'Filter', class: 'btn btn-secondary mt-no-label', name: nil
+= render_paginated_list(scope: @entries, item_name: 'record', list_partial: 'expired_list', empty_message: 'No expired records')

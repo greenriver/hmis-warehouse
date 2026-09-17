@@ -1,0 +1,17 @@
+.card
+  %table.table.table-striped
+    %thead
+      %tr
+        %th Warehouse client
+        %th Source client ids
+        %th Last activity
+        %th Window
+        %th Expires
+    %tbody
+      - list.each do |row|
+        %tr
+          %td= link_to row[:destination_id], client_path(row[:destination_id])
+          %td= row[:source_clients].map { |sc| sc['client_id'] }.join(', ')
+          %td= row[:last_activity_on]
+          %td= "#{row[:retention_years]} years"
+          %td= row[:last_activity_on] + row[:retention_years].years
