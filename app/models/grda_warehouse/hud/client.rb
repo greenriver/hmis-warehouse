@@ -2764,9 +2764,10 @@ module GrdaWarehouse::Hud
 
       chronic_enrollments ||= service_history_enrollments.entry.
         open_between(start_date: start_date, end_date: end_date).
-        hud_homeless(chronic_types_only: true).
-        order(first_date_in_program: :asc).to_a
+        hud_homeless(chronic_types_only: true).to_a
       return 0 unless chronic_enrollments.any?
+
+      chronic_enrollments = in_episode_order(chronic_enrollments)
 
       # Need to add one to the count of new episodes if the first enrollment in
       # chronic_enrollments doesn't count as a new episode.
@@ -2784,9 +2785,10 @@ module GrdaWarehouse::Hud
 
       chronic_enrollments ||= service_history_enrollments.entry.
         open_between(start_date: start_date, end_date: end_date).
-        hud_homeless(chronic_types_only: true).
-        order(first_date_in_program: :asc, last_date_in_program: :asc).to_a
+        hud_homeless(chronic_types_only: true).to_a
       return [] unless chronic_enrollments.any?
+
+      chronic_enrollments = in_episode_order(chronic_enrollments)
 
       episodes = []
       initial_chronic_enrollment = chronic_enrollments.first
@@ -2871,6 +2873,12 @@ module GrdaWarehouse::Hud
     def new_episode?(residential_enrollments:, enrollment:)
       ClientHistory::Calculator.new(client: self, enrollments: residential_enrollments).
         new_episode?(enrollment: enrollment)
+    end
+
+    # The calculator marks the lowest-id of several same-day entries as the episode start, so
+    # the first record skipped by the counters must be that one.
+    private def in_episode_order(enrollments)
+      enrollments.sort_by { |e| [e.first_date_in_program, e.id] }
     end
 
     # Include extensions at the end so they can override default behavior

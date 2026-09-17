@@ -71,6 +71,15 @@ RSpec.describe ClientHistory::Calculator, type: :model do
         create_enrollment(source_client, shelter_a, entry: '2021-01-26', exit_date: '2021-01-28')
         expect(new_episode_for_entry(destination_client, Date.new(2021, 1, 26))).to eq(false)
       end
+
+      it 'is false when seven housed nights are split by a shelter night' do
+        create_enrollment(source, shelter_a, entry: '2020-01-01', exit_date: '2020-01-02', destination: nil)
+        create_enrollment(source, housing, entry: '2020-01-02', exit_date: '2020-01-06', MoveInDate: '2020-01-02')
+        create_enrollment(source, shelter_a, entry: '2020-01-06', exit_date: '2020-01-07', destination: nil)
+        create_enrollment(source, housing, entry: '2020-01-07', exit_date: '2020-01-11', MoveInDate: '2020-01-07')
+        create_enrollment(source, shelter_a, entry: '2020-01-11', exit_date: '2020-01-13')
+        expect(new_episode_for_entry(destination, Date.new(2020, 1, 11))).to eq(false)
+      end
     end
 
     context 'nights in transitional housing' do
@@ -153,6 +162,12 @@ RSpec.describe ClientHistory::Calculator, type: :model do
         create_enrollment(source, housing, entry: '2020-02-01', exit_date: '2020-02-15', LivingSituation: homeless_prior_situation)
         create_enrollment(source, shelter_a, entry: '2020-05-01', exit_date: '2020-05-03')
         expect(new_episode_for_entry(destination, Date.new(2020, 5, 1))).to eq(false)
+      end
+
+      it 'counts PH nights after move-in as housed even when the client entered from a homeless situation' do
+        create_enrollment(source, housing, entry: '2020-02-01', exit_date: '2020-02-15', MoveInDate: '2020-02-05', LivingSituation: homeless_prior_situation)
+        create_enrollment(source, shelter_a, entry: '2020-02-13', exit_date: '2020-02-15')
+        expect(new_episode_for_entry(destination, Date.new(2020, 2, 13))).to eq(true)
       end
 
       it 'ignores PH nights before move-in when the prior living situation is not recorded' do

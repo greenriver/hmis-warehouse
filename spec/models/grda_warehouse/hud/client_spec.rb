@@ -7,6 +7,7 @@
 # frozen_string_literal: true
 
 require 'rails_helper'
+require 'shared_contexts/enrollment_rollup_context'
 include ActiveJob::TestHelper
 
 RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
@@ -507,6 +508,37 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
           expect(enrollments.map(&:new_episode?)).to eq(dates.map { |d| d[:new_episode_expected] })
           expect(client_with_enrollments.destination_client.homeless_episodes_between(start_date: '2014-01-01'.to_date, end_date: '2018-01-01'.to_date)).to eq(2)
           expect(client_with_enrollments.destination_client.homeless_episodes_between(start_date: '2015-05-01'.to_date, end_date: '2018-01-01'.to_date)).to eq(2)
+        end
+      end
+    end
+
+    describe 'same-day duplicate enrollments' do
+      include_context 'enrollment rollup context'
+
+      let(:destination) { create :hud_client, data_source_id: warehouse_data_source.id, FirstName: 'Dup', LastName: 'Client' }
+      let(:source) { create_linked_source_client(destination, first_name: 'Dup', last_name: 'Source') }
+      let(:start_date) { Date.new(2019, 1, 1) }
+      let(:end_date) { Date.new(2021, 1, 1) }
+      let(:residential) { destination.service_history_enrollments.residential.entry.includes(:enrollment).to_a }
+      let(:chronic_by_id) do
+        destination.service_history_enrollments.entry.
+          open_between(start_date: start_date, end_date: end_date).
+          hud_homeless(chronic_types_only: true).order(:id).to_a
+      end
+
+      before do
+        create_enrollment(source, shelter_a, entry: '2020-01-01', exit_date: '2020-01-10')
+        create_enrollment(source, shelter_a, entry: '2020-01-01', exit_date: '2020-01-10')
+        create_enrollment(source, shelter_a, entry: '2020-06-01', exit_date: '2020-06-05')
+        rebuild_service_history!
+      end
+
+      it 'counts the duplicated stay once whichever duplicate the query returns first' do
+        expect(chronic_by_id.size).to eq(3)
+        [chronic_by_id, [chronic_by_id[1], chronic_by_id[0], chronic_by_id[2]]].each do |ordered|
+          expect(destination.homeless_episodes_between(start_date: start_date, end_date: end_date, residential_enrollments: residential, chronic_enrollments: ordered)).to eq(2)
+          starts = destination.length_of_episodes(start_date: start_date, end_date: end_date, residential_enrollments: residential, chronic_enrollments: ordered).map { |e| e[:start_date] }
+          expect(starts).to eq([Date.new(2020, 1, 1), Date.new(2020, 6, 1)])
         end
       end
     end
