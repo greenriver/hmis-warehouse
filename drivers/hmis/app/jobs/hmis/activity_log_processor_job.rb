@@ -14,6 +14,7 @@
 module Hmis
   class ActivityLogProcessorJob < ::BaseJob
     queue_as ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
+    queue_with_priority MAINTENANCE_PRIORITY_15
 
     def perform(force: false)
       instrument_as_maintenance_task do |run|

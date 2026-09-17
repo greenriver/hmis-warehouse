@@ -14,7 +14,6 @@ require 'rake'
 # assert anything about what the individual jobs/tasks do -- that's their
 # own specs' responsibility.
 RSpec.describe 'grda_warehouse:hourly', type: :task do
-  include ActiveSupport::Testing::TimeHelpers
   include ActiveJob::TestHelper
 
   let(:task_name) { 'grda_warehouse:hourly' }
@@ -27,7 +26,7 @@ RSpec.describe 'grda_warehouse:hourly', type: :task do
     Rake::Task[task_name].reenable
     Rake::Task['jobs:check_queue'].reenable
 
-    # Skip every HMIS- and hour-gated branch so only the unconditional steps run.
+    # Skip every HMIS-gated branch so only the unconditional steps run.
     allow(HmisEnforcement).to receive(:hmis_enabled?).and_return(false)
 
     allow_any_instance_of(MaintenanceTasksLifecycleJob).to receive(:perform)
@@ -38,11 +37,6 @@ RSpec.describe 'grda_warehouse:hourly', type: :task do
     allow_any_instance_of(AppResourceMonitor::CollectStatsJob).to receive(:should_enqueue?).and_return(false)
     allow(GrdaWarehouse::Tasks::CleanupClientSearchQueriesTask).to receive(:perform)
     allow(BuildTranslationCacheJob).to receive(:perform_later)
-  end
-
-  around do |example|
-    # An hour that avoids every hour-gated branch in the task body (3, 4, 5, 17, 20, 23, and the metrics COLLECTION_HOUR).
-    travel_to(Time.zone.parse('2026-01-01 10:00:00')) { example.run }
   end
 
   it 'completes without raising when every step succeeds' do
@@ -65,8 +59,8 @@ RSpec.describe 'grda_warehouse:hourly', type: :task do
     expect(SyncAnalysisDataJob).not_to have_been_enqueued
   end
 
-  # TaskQueue.queue_unprocessed! is the first step in the task body, so every later step doubles as
-  # evidence the run kept going. BuildTranslationCacheJob is the last one.
+  # TaskQueue.queue_unprocessed! sits in the middle of the task body, so each step asserted below
+  # comes after it and doubles as evidence the run kept going. BuildTranslationCacheJob is the last one.
   it 'does not let a raise in the first step abort the rest of the run' do
     allow(TaskQueue).to receive(:queue_unprocessed!).and_raise('boom')
     expect(Sentry).to receive(:capture_exception).with(instance_of(RuntimeError))

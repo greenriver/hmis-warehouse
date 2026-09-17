@@ -54,7 +54,8 @@ module Hmis
       end
     end
 
-    # The hourly rake task re-enqueues this
+    # A partial run leaves some enrollments exited and the rest untouched; a retry would redo the
+    # scan from the top. The daily grda_warehouse:hmis_auto_exit task runs this again the next night.
     def supports_idempotent_retry?
       false
     end
