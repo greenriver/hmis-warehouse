@@ -8,7 +8,7 @@
 
 class AddClientRetentionYears < ActiveRecord::Migration[7.2]
   def change
-    add_column :configs, :client_retention_years, :integer, if_not_exists: true
-    add_column :data_sources, :client_retention_years, :integer, if_not_exists: true
+    add_column :configs, :client_retention_years, :integer
+    add_column :data_sources, :client_retention_years, :integer
   end
 end
