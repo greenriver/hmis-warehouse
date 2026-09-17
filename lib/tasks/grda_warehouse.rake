@@ -344,9 +344,7 @@ namespace :grda_warehouse do
       end
     end
 
-    safely_execute do
-      TaskQueue.queue_unprocessed!
-    end
+    safely_execute { TaskQueue.queue_unprocessed! }
 
     safely_execute do
       enqueue_unless_queued(MaintainProjectGroupListsJob)

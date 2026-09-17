@@ -2860,12 +2860,17 @@ module GrdaWarehouse::Hud
     end
 
     def program_tooltip_data_for_enrollment(enrollment, user)
-      ClientHistory::EnrollmentView.new(enrollment: enrollment, user: user).program_tooltip_data_for_enrollment
+      enrollment_view_for(user).program_tooltip_data_for_enrollment(enrollment)
+    end
+
+    private def enrollment_view_for(user)
+      @enrollment_views ||= {}
+      @enrollment_views[user.id] ||= ClientHistory::EnrollmentView.new(user: user)
     end
 
     def new_episode?(residential_enrollments:, enrollment:)
-      ClientHistory::Calculator.new(client: self).
-        new_episode?(residential_enrollments: residential_enrollments, enrollment: enrollment)
+      ClientHistory::Calculator.new(client: self, enrollments: residential_enrollments).
+        new_episode?(enrollment: enrollment)
     end
 
     # Include extensions at the end so they can override default behavior
