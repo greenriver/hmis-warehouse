@@ -18,8 +18,6 @@ module Types
 
     available_filter_options do
       arg :search_term, String
-      # ADD: role
-      # ADD: status
     end
 
     field :id, ID, null: false

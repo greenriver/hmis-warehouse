@@ -35,7 +35,7 @@ RSpec.describe Hmis::Filter::FormDefinitionFilter, type: :model do
     end
 
     it 'returns no rows when no form has the selected type' do
-      expect(filtered_identifiers(form_type: ['PROJECT_CONFIG'])).to be_empty
+      expect(filtered_identifiers(form_type: ['CURRENT_LIVING_SITUATION'])).to be_empty
     end
 
     it 'leaves the scope unchanged when unset' do

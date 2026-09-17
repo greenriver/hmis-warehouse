@@ -2512,6 +2512,133 @@ enum Component {
   VISIONLINK
 }
 
+enum ConfigurableFormRole {
+  """
+  Annual
+  """
+  ANNUAL
+
+  """
+  Case note
+  """
+  CASE_NOTE
+
+  """
+  CE assessment
+  """
+  CE_ASSESSMENT
+
+  """
+  CE event
+  """
+  CE_EVENT
+
+  """
+  CE participation
+  """
+  CE_PARTICIPATION
+
+  """
+  Client
+  """
+  CLIENT
+
+  """
+  Client detail
+  """
+  CLIENT_DETAIL
+
+  """
+  Current living situation
+  """
+  CURRENT_LIVING_SITUATION
+
+  """
+  Custom assessment
+  """
+  CUSTOM_ASSESSMENT
+
+  """
+  Enrollment
+  """
+  ENROLLMENT
+
+  """
+  Exit
+  """
+  EXIT
+
+  """
+  External form
+  """
+  EXTERNAL_FORM
+
+  """
+  File
+  """
+  FILE
+
+  """
+  Funder
+  """
+  FUNDER
+
+  """
+  HMIS participation
+  """
+  HMIS_PARTICIPATION
+
+  """
+  Intake
+  """
+  INTAKE
+
+  """
+  Inventory
+  """
+  INVENTORY
+
+  """
+  New client enrollment
+  """
+  NEW_CLIENT_ENROLLMENT
+
+  """
+  Occurrence point
+  """
+  OCCURRENCE_POINT
+
+  """
+  Organization
+  """
+  ORGANIZATION
+
+  """
+  Post exit
+  """
+  POST_EXIT
+
+  """
+  Project
+  """
+  PROJECT
+
+  """
+  Project CoC
+  """
+  PROJECT_COC
+
+  """
+  Service
+  """
+  SERVICE
+
+  """
+  Update
+  """
+  UPDATE
+}
+
 enum CounselingMethod {
   """
   Family
@@ -5184,7 +5311,7 @@ type FormIdentifierAccess {
 }
 
 input FormIdentifierFilterOptions {
-  formType: [FormRole!]
+  formType: [ConfigurableFormRole!]
   searchTerm: String
 }
 
