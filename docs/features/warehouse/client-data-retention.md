@@ -1,0 +1,76 @@
+# Client Data Retention
+
+Aging out of client data for warehouse identities that have had no activity for a configurable
+number of years. Phase 1 marks and hides; nothing is overwritten or deleted. The position and its
+trade-offs are in [ADR 0009](../../adr/0009-client-data-retention-and-removal.md).
+
+## Settings
+
+- **Global window**: `GrdaWarehouse::Config` `client_retention_years`. `nil` (the default) turns the
+  whole feature off. The admin form offers 7 through 20 years; HUD requires at least seven. Any
+  positive whole number is valid so a shorter window can be set from the console, and the form
+  includes that value so re-saving the page keeps it.
+- **Per data source override**: `GrdaWarehouse::DataSource` `client_retention_years`, same rule,
+  `nil` means "use the global window". The field is only shown when the global window is set.
+
+## What counts as activity
+
+`GrdaWarehouse::InactiveClient.rollup_activity` computes, per destination client, the newest date
+across the destination and every source client linked through a live (`deleted_at IS NULL`)
+`warehouse_clients` row:
+
+- `Client` DateUpdated and DateCreated
+- `Enrollment` EntryDate and DateUpdated; `Exit` ExitDate and DateUpdated
+- `Services` DateProvided; `CurrentLivingSituation` InformationDate; `Event`
+  EventDate; `Assessment` AssessmentDate (each also DateUpdated)
+- HMIS `CustomServices`, `CustomAssessments` and `CustomCaseNote` dates
+- `ce_referrals.updated_at` and `hmis_client_alerts.created_at` on the source client
+- `files.created_at` and `client_notes.created_at` on the destination client
+
+Rows with `DateDeleted` or `deleted_at` set are ignored.
+
+## Window rule
+
+The window for an identity is the **longest** among its source data sources, each using its
+override or falling back to the global window. A client in a 7-year and a 10-year data source ages
+out at 10; a client only in a 7-year data source ages out at 7 even when the global is 10. An
+identity is inactive when its newest activity is strictly older than today minus that window.
+
+## Nightly job
+
+`ClientRetentionJob` is enqueued from `Importing::RunDailyImportsJob` after service history is
+generated, at maintenance priority on the long-running queue, under an advisory lock and a
+maintenance-task record. It does nothing when the global window is `nil`. Each run:
+
+1. Creates a `GrdaWarehouse::ClientRetentionRun` with the global window and a snapshot of the data
+   source overrides.
+2. Evaluates destinations in batches, inserting `inactive_clients` rows for every member of an
+   aged-out identity (unique on `client_id`, so existing rows are left alone) and deleting rows for
+   identities that have fresh activity or members that left the identity.
+3. Logs `marked` and `unmarked` entries in `client_retention_log_entries` with plain identifiers
+   (warehouse ids, data source ids, PersonalIDs) and never names, SSN or DOB.
+4. Logs `destination_removed` for marks whose destination row no longer exists, then drops them.
+5. Records evaluated, marked and unmarked counts on the run.
+
+## What "hidden" means
+
+An id in `inactive_clients` is treated exactly like an HMIS-restricted client on the warehouse
+side; see [Warehouse Auth Policies](warehouse-auth-policies.md#client-restriction). PII is redacted
+everywhere `PiiProvider` is consulted, name and SSN search skip the client, the Superset
+`analytics.client_piis` view and the HMIS CSV export transform redact name and SSN. DOB and exact
+id lookups still work. There is no override permission; visibility returns when the identity has
+new activity and the next run clears the marks. Disabling the global window stops the job but
+leaves existing marks in place; clear them from `inactive_clients` in the console.
+
+## Limitations
+
+- A marked identity touched by an import stays hidden until the next nightly run.
+- The OP HMIS frontend does not yet honour these marks. To extend it:
+  `Hmis::AuthPolicies::UserContext#pii_redacted_for_client?` should return true for an id in
+  `inactive_clients` with no permission override (a per-id or preloaded lookup added to
+  `Hmis::AuthPolicies::ContextLoaders::RestrictedClientLoader`), and `Hmis::Hud::Client.searchable_to`
+  should anti-join `inactive_clients`.
+- Marks are rebuilt from the current identity each night, so a split or merge after marking is
+  reflected on the following run, not immediately.
+- Nothing is scrubbed or deleted, and a later full historical import re-creates aged-out clients
+  until the next run marks them again.

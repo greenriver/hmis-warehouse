@@ -1716,6 +1716,9 @@ CREATE TABLE public.ce_referrals (
 
 CREATE TABLE public.wfd_nodes (
     id bigint NOT NULL,
+        UNION
+         SELECT inactive_clients.client_id
+           FROM public.inactive_clients
     template_id bigint NOT NULL,
     type character varying NOT NULL,
     trigger_config jsonb,
@@ -360235,6 +360238,9 @@ ALTER TABLE ONLY public.hmis_external_unit_availability_syncs
 --
 -- Name: Affiliation fk_rails_81babe0602; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
+('20260916122000'),
+('20260916121000'),
+('20260916120000'),
 ('20260916121000'),
 ('20260916120000'),
 

@@ -111,7 +111,7 @@ module ClientController
     end
 
     def look_for_existing_match(attr)
-      restricted_ids = GrdaWarehouse::Hud::Client.hmis_restricted_source_client_ids
+      restricted_ids = GrdaWarehouse::Hud::Client.search_hidden_client_ids
 
       name_matches = client_search_scope.
         where(

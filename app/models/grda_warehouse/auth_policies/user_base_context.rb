@@ -36,6 +36,11 @@ class GrdaWarehouse::AuthPolicies::UserBaseContext
     restricted_client_loader.restricted?(client_id)
   end
 
+  # Call before checking client_restricted? across a page of clients.
+  def preload_client_restrictions(client_ids)
+    restricted_client_loader.preload(client_ids)
+  end
+
   def restricted_clients_cache_token
     restricted_client_loader.cache_token
   end
