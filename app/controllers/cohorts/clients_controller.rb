@@ -184,6 +184,7 @@ module Cohorts
       # We use CohortPiiPolicy so all other clients' PII, regardless of the user's access are still
       # visible, while a restricted client's SSN is redacted here in the hash rather than left raw
       # for a view to redact later.
+      current_user.policy_context.preload_client_restrictions(@clients.map { |c| c[:id] })
       @clients = @clients.map do |c|
         restricted = current_user.policy_context.client_restricted?(c[:id])
         policy = GrdaWarehouse::PiiProvider.restrict(GrdaWarehouse::AuthPolicies::CohortPiiPolicy.new(user: current_user), restricted: restricted)
