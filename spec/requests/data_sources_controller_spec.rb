@@ -34,6 +34,10 @@ RSpec.describe DataSourcesController, type: :request do
       collection.set_viewables({ data_sources: [data_source.id] })
       setup_access_control(user, role, collection)
       sign_in user
+      # Thresholds low enough that a handful of projects decides the CoC picker on
+      # fragmentation and dominance alone.
+      stub_const('GrdaWarehouse::DataSource::MIN_PROJECT_COUNT_FOR_COC_CHOICE', 2)
+      stub_const('GrdaWarehouse::DataSource::MIN_FRAGMENT_COUNT_FOR_COC_CHOICE', 1)
     end
 
     context 'when the data source has more than two CoC codes' do
@@ -153,7 +157,7 @@ RSpec.describe DataSourcesController, type: :request do
       end
     end
 
-    context 'when the data source is small and one CoC dominates' do
+    context 'when one CoC holds the dominance share' do
       let!(:org) { create(:hud_organization, data_source: data_source, OrganizationName: 'Dominant Coc Org') }
       let!(:project_one) do
         create(:hud_project, data_source: data_source, OrganizationID: org.OrganizationID, ProjectName: 'First Dominant Coc Project')
@@ -184,7 +188,7 @@ RSpec.describe DataSourcesController, type: :request do
       end
     end
 
-    context 'when the data source is small but CoC codes are evenly split' do
+    context 'when CoC codes are evenly split' do
       let!(:org) { create(:hud_organization, data_source: data_source, OrganizationName: 'Split Coc Org') }
       let!(:project_one) do
         create(:hud_project, data_source: data_source, OrganizationID: org.OrganizationID, ProjectName: 'First Split Coc Project')

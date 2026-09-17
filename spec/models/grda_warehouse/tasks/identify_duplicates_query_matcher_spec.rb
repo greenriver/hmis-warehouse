@@ -94,6 +94,35 @@ RSpec.describe GrdaWarehouse::Tasks::IdentifyDuplicatesQueryMatcher, type: :mode
         )
       end
     end
+
+    describe 'for unprocessed matches restricted to destination ids' do
+      let(:source_data_source) { create :source_data_source }
+      let(:destination_data_source) { create :grda_warehouse_data_source }
+      let!(:unprocessed) { create :grda_warehouse_hud_client, data_source: source_data_source, SSN: '212345678' }
+      let!(:destination_one) { create :grda_warehouse_hud_client, data_source: destination_data_source, SSN: '212345678' }
+      let!(:destination_two) { create :grda_warehouse_hud_client, data_source: destination_data_source, SSN: '212345678' }
+
+      it 'returns only pairs whose destination is in destination_ids' do
+        results = described_class.for_ssn_matches(
+          match_type: :unprocessed,
+          destination_data_source_ids: [destination_data_source.id],
+          unprocessed_ids: [unprocessed.id],
+          destination_ids: [destination_two.id],
+        ).execute(warehouse_id: destination_data_source.id)
+
+        expect(results).to eq([[destination_two.id, unprocessed.id]])
+      end
+
+      it 'returns every destination when destination_ids is nil' do
+        results = described_class.for_ssn_matches(
+          match_type: :unprocessed,
+          destination_data_source_ids: [destination_data_source.id],
+          unprocessed_ids: [unprocessed.id],
+        ).execute(warehouse_id: destination_data_source.id)
+
+        expect(results).to contain_exactly([destination_one.id, unprocessed.id], [destination_two.id, unprocessed.id])
+      end
+    end
   end
 
   describe '#execute' do
