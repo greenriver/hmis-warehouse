@@ -7,6 +7,16 @@
 # frozen_string_literal: true
 
 namespace :grda_warehouse do
+  # Enqueue a job unless a copy is already waiting to run. The hourly task runs on a schedule
+  # regardless of how far behind the queue is, so without this the copies stack up and each one
+  # redoes the same work when the queue finally drains. A copy that is already running doesn't
+  # count -- Delayed::Job.queued? ignores locked rows -- so the next hour's work still gets queued.
+  def self.enqueue_unless_queued(job_class)
+    return if Delayed::Job.queued?(job_class.name)
+
+    job_class.perform_later
+  end
+
   def self.safely_execute(&block)
     block.call
   rescue StandardError => e
@@ -322,7 +332,7 @@ namespace :grda_warehouse do
     end
 
     safely_execute do
-      Hmis::ActivityLogProcessorJob.perform_later if HmisEnforcement.hmis_enabled?
+      enqueue_unless_queued(Hmis::ActivityLogProcessorJob) if HmisEnforcement.hmis_enabled?
     end
 
     # disabled tasks from COVID
@@ -334,9 +344,12 @@ namespace :grda_warehouse do
       end
     end
 
-    TaskQueue.queue_unprocessed!
     safely_execute do
-      MaintainProjectGroupListsJob.perform_later
+      TaskQueue.queue_unprocessed!
+    end
+
+    safely_execute do
+      enqueue_unless_queued(MaintainProjectGroupListsJob)
     end
 
     # Run HMIS Auto-Exit daily in the early morning. This is running here instead of the daily tasks because of the daily task is bloated.
@@ -374,13 +387,15 @@ namespace :grda_warehouse do
     end
 
     if DateTime.current.hour == 4
-      HmisSupplemental::DataSet.where(sync_enabled: true).order(:id).each do |data_set|
-        HmisSupplemental::ImportJob.perform_later(data_set_id: data_set.id)
+      safely_execute do
+        HmisSupplemental::DataSet.where(sync_enabled: true).order(:id).each do |data_set|
+          HmisSupplemental::ImportJob.perform_later(data_set_id: data_set.id)
+        end
       end
     end
 
     safely_execute do
-      HmisExternalApis::ConsumeExternalFormSubmissionsJob.perform_later if HmisExternalApis::ConsumeExternalFormSubmissionsJob.enabled?
+      enqueue_unless_queued(HmisExternalApis::ConsumeExternalFormSubmissionsJob) if HmisExternalApis::ConsumeExternalFormSubmissionsJob.enabled?
     end
 
     if DateTime.current.hour == 20
@@ -403,27 +418,32 @@ namespace :grda_warehouse do
       end
     end
 
-    stats_collector = AppResourceMonitor::CollectStatsJob.new
     safely_execute do
-      AppResourceMonitor::CollectStatsJob.perform_later if stats_collector.should_enqueue?
+      AppResourceMonitor::CollectStatsJob.perform_later if AppResourceMonitor::CollectStatsJob.new.should_enqueue?
     end
 
-    # Queue the cohort analytics generation job if it's not already queued
-    if DateTime.current.hour == 3 && ! Delayed::Job.queued?('GrdaWarehouse::Cohorts::CohortAnalyticsGeneration')
-      GrdaWarehouse::Cohorts::CohortAnalyticsGeneration.
-        delay(queue: ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running), attempts: 1).
-        maintain_cohort_intermediate_data
+    if DateTime.current.hour == 3
+      safely_execute do
+        # Queue the cohort analytics generation job if it's not already queued
+        unless Delayed::Job.queued?('GrdaWarehouse::Cohorts::CohortAnalyticsGeneration')
+          GrdaWarehouse::Cohorts::CohortAnalyticsGeneration.
+            delay(queue: ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running), attempts: 1).
+            maintain_cohort_intermediate_data
+        end
+      end
     end
 
     safely_execute do
-      SyncAnalysisDataJob.perform_later
+      enqueue_unless_queued(SyncAnalysisDataJob)
     end
 
     safely_execute do
       GrdaWarehouse::Tasks::CleanupClientSearchQueriesTask.perform
     end
 
-    BuildTranslationCacheJob.perform_later
+    safely_execute do
+      BuildTranslationCacheJob.perform_later
+    end
 
     if HmisEnforcement.hmis_enabled? && GrdaWarehouse::DataSource.hmis.exists? && Hmis::Ce.configuration.enabled?
       safely_execute do

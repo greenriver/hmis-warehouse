@@ -56,13 +56,27 @@ RSpec.describe 'grda_warehouse:hourly', type: :task do
     expect(SyncAnalysisDataJob).to have_been_enqueued
   end
 
-  it 'does not let a raise in one step abort the rest of the run' do
-    allow(GrdaWarehouse::Tasks::CleanupClientSearchQueriesTask).to receive(:perform).and_raise('boom')
+  it 'does not enqueue a second copy of a job that is already waiting in the queue' do
+    allow(Delayed::Job).to receive(:queued?).and_return(true)
+
+    Rake::Task[task_name].invoke
+
+    expect(MaintainProjectGroupListsJob).not_to have_been_enqueued
+    expect(SyncAnalysisDataJob).not_to have_been_enqueued
+  end
+
+  # TaskQueue.queue_unprocessed! is the first step in the task body, so every later step doubles as
+  # evidence the run kept going. BuildTranslationCacheJob is the last one.
+  it 'does not let a raise in the first step abort the rest of the run' do
+    allow(TaskQueue).to receive(:queue_unprocessed!).and_raise('boom')
     expect(Sentry).to receive(:capture_exception).with(instance_of(RuntimeError))
 
     expect { Rake::Task[task_name].invoke }.not_to raise_error
 
+    expect(MaintainProjectGroupListsJob).to have_been_enqueued
     expect(MaReports::CsgEngage::Report).to have_received(:run_if_ready)
+    expect(SyncAnalysisDataJob).to have_been_enqueued
+    expect(GrdaWarehouse::Tasks::CleanupClientSearchQueriesTask).to have_received(:perform)
     expect(BuildTranslationCacheJob).to have_received(:perform_later)
   end
 end
