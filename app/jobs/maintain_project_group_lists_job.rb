@@ -16,11 +16,12 @@ class MaintainProjectGroupListsJob < BaseJob
   queue_as ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
   queue_with_priority MAINTENANCE_PRIORITY_15
 
-  LOCK_NAME = 'maintain_project_group_lists'
-
   def perform
     instrument_as_maintenance_task do |run|
-      run.complete! if _perform
+      with_lock do
+        _perform
+        run.complete!
+      end
     end
   end
 
@@ -30,12 +31,14 @@ class MaintainProjectGroupListsJob < BaseJob
   end
 
   def _perform
-    did_run = false
-    GrdaWarehouseBase.with_advisory_lock(LOCK_NAME, timeout_seconds: 0) do
-      GrdaWarehouse::ProjectGroup.maintain_project_lists!
-      Hmis::ProjectGroup.maintain_project_lists! if HmisEnforcement.hmis_enabled?
-      did_run = true
-    end
-    did_run
+    GrdaWarehouse::ProjectGroup.maintain_project_lists!
+    Hmis::ProjectGroup.maintain_project_lists! if HmisEnforcement.hmis_enabled?
+  end
+
+  private
+
+  def with_lock(&block)
+    lock_name = self.class.name.demodulize
+    GrdaWarehouseBase.with_advisory_lock(lock_name, timeout_seconds: 0, &block)
   end
 end

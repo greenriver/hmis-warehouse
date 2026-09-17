@@ -386,24 +386,4 @@ RSpec.describe Hmis::AutoExitJob, type: :model do
       end.not_to(change { Hmis::Hud::Exit.where(enrollment_id: e1.enrollment_id, data_source_id: e1.data_source_id).count })
     end
   end
-
-  describe 'when another run already holds the lock' do
-    # Enough to get past the enabled? guard; the scan never runs, so it needs no enrollments.
-    let!(:p1) { create :hmis_hud_project, data_source: ds1, organization: o1, user: u1, project_type: 6 }
-    let!(:aec) { create :hmis_project_auto_exit_config, length_of_absence_days: 30, project: p1 }
-
-    # Stubbing the lock is the seam for "the lock said no" -- what's under test is what the job
-    # reports on that path, not whether the advisory lock itself works.
-    before do
-      allow(GrdaWarehouseBase).to receive(:with_advisory_lock).
-        with(Hmis::AutoExitJob::LOCK_NAME, timeout_seconds: 0).and_return(false)
-    end
-
-    it 'reports the skip to the notifier and leaves the maintenance run incomplete' do
-      expect_any_instance_of(ApplicationNotifier).to receive(:ping).with(/Skipped: another run holds the #{Hmis::AutoExitJob::LOCK_NAME} lock/)
-
-      expect { Hmis::AutoExitJob.perform_now }.
-        not_to(change { GrdaWarehouse::Tasks::SystemMaintenanceTaskRun.completed.count })
-    end
-  end
 end

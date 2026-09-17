@@ -34,8 +34,6 @@ module Hmis
 
     queue_as ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
 
-    LOCK_NAME = 'hmis_auto_exit'
-
     def self.enabled?
       Hmis::ProjectAutoExitConfig.exists?
     end
@@ -43,11 +41,17 @@ module Hmis
     def perform(**args)
       return unless self.class.enabled?
 
+      # Set up outside the lock so with_lock can report a skip
+      setup_notifier('HMIS Auto-Exit')
+
       # don't track if there are arguments
-      return _perform(**args) if args.present?
+      return with_lock { _perform(**args) } if args.present?
 
       instrument_as_maintenance_task do |run|
-        run.complete! if _perform(**args)
+        with_lock do
+          _perform(**args)
+          run.complete!
+        end
       end
     end
 
@@ -56,69 +60,74 @@ module Hmis
       false
     end
 
-    # @return [Boolean] whether the lock was acquired and the scan ran
     def _perform(project_ids: nil, data_source_id: nil)
-      # Set up outside the lock so the skip below can report itself
-      setup_notifier('HMIS Auto-Exit')
-      did_run = false
-      GrdaWarehouseBase.with_advisory_lock(LOCK_NAME, timeout_seconds: 0) do
-        auto_exit_projects = Set.new
-        auto_exit_count = 0
-        now = DateTime.current
+      auto_exit_projects = Set.new
+      auto_exit_count = 0
+      now = DateTime.current
 
-        project_scope = if project_ids.present?
-          Hmis::Hud::Project.hmis.where(id: project_ids)
-        elsif data_source_id
-          Hmis::Hud::Project.hmis.where(data_source_id: data_source_id)
-        else
-          # By default, run against all HMIS data sources
-          Hmis::Hud::Project.hmis
-        end
-
-        project_scope.each do |project|
-          config = Hmis::ProjectAutoExitConfig.detect_best_config_for_project(project)
-          next unless config.present?
-          raise "Auto-exit config unusually low: #{config.length_of_absence_days}" if config.length_of_absence_days < 30
-
-          project.households.active.not_in_progress.preload(:enrollments).each do |household|
-            # Skip auto-exit if any household member has an active CE referral that references
-            # one of the household enrollments as either the source or target enrollment.
-            next if household_has_active_ce_referral?(household)
-
-            # Get the most recent contact date for the whole household
-            most_recent_contact = household.enrollments.
-              map { |hhm| get_most_recent_contact(hhm, project) }.
-              max_by { |entity| Hmis::Hud::Enrollment.contact_date_for_entity(entity) }
-
-            most_recent_contact_date = Hmis::Hud::Enrollment.contact_date_for_entity(most_recent_contact)
-            next unless most_recent_contact_date.present?
-            # If any household member has a most recent contact that's within the length_of_absence_days, don't exit anyone in the household
-            next unless (Date.current - most_recent_contact_date).to_i >= config.length_of_absence_days
-
-            auto_exit_count += household.enrollments.size
-            auto_exit_projects.add(project.id)
-
-            # choose any open enrollment, we will exit the whole household
-            first_open_enrollment = household.enrollments.find { |e| e.exit.blank? }
-            exit_date = compute_exit_date(most_recent_contact)
-
-            Hmis::EnrollmentExitCreator.call(
-              enrollment_id: first_open_enrollment.id,
-              exit_date: exit_date,
-              exit_household_members: true,
-              auto_exited: now, # set timestamp for Exit.auto_exited
-            )
-          end
-        end
-
-        @notifier&.ping("Auto-exited #{auto_exit_count} Enrollments in #{auto_exit_projects.size} Projects")
-        did_run = true
+      project_scope = if project_ids.present?
+        Hmis::Hud::Project.hmis.where(id: project_ids)
+      elsif data_source_id
+        Hmis::Hud::Project.hmis.where(data_source_id: data_source_id)
+      else
+        # By default, run against all HMIS data sources
+        Hmis::Hud::Project.hmis
       end
-      @notifier&.ping("Skipped: another run holds the #{LOCK_NAME} lock") unless did_run
-      did_run
+
+      project_scope.each do |project|
+        config = Hmis::ProjectAutoExitConfig.detect_best_config_for_project(project)
+        next unless config.present?
+        raise "Auto-exit config unusually low: #{config.length_of_absence_days}" if config.length_of_absence_days < 30
+
+        project.households.active.not_in_progress.preload(:enrollments).each do |household|
+          # Skip auto-exit if any household member has an active CE referral that references
+          # one of the household enrollments as either the source or target enrollment.
+          next if household_has_active_ce_referral?(household)
+
+          # Get the most recent contact date for the whole household
+          most_recent_contact = household.enrollments.
+            map { |hhm| get_most_recent_contact(hhm, project) }.
+            max_by { |entity| Hmis::Hud::Enrollment.contact_date_for_entity(entity) }
+
+          most_recent_contact_date = Hmis::Hud::Enrollment.contact_date_for_entity(most_recent_contact)
+          next unless most_recent_contact_date.present?
+          # If any household member has a most recent contact that's within the length_of_absence_days, don't exit anyone in the household
+          next unless (Date.current - most_recent_contact_date).to_i >= config.length_of_absence_days
+
+          auto_exit_count += household.enrollments.size
+          auto_exit_projects.add(project.id)
+
+          # choose any open enrollment, we will exit the whole household
+          first_open_enrollment = household.enrollments.find { |e| e.exit.blank? }
+          exit_date = compute_exit_date(most_recent_contact)
+
+          Hmis::EnrollmentExitCreator.call(
+            enrollment_id: first_open_enrollment.id,
+            exit_date: exit_date,
+            exit_household_members: true,
+            auto_exited: now, # set timestamp for Exit.auto_exited
+          )
+        end
+      end
+
+      @notifier&.ping("Auto-exited #{auto_exit_count} Enrollments in #{auto_exit_projects.size} Projects")
     end
 
     private
+
+    # Skips rather than waits: a copy that starts while another is still running would make a
+    # second pass over the same projects.
+    # @return [Boolean] whether the lock was acquired and the scan ran
+    def with_lock
+      lock_name = self.class.name.demodulize
+      did_run = false
+      GrdaWarehouseBase.with_advisory_lock(lock_name, timeout_seconds: 0) do
+        yield
+        did_run = true
+      end
+      @notifier&.ping("Skipped: another run holds the #{lock_name} lock") unless did_run
+      did_run
+    end
 
     def household_has_active_ce_referral?(household)
       return false unless Hmis::Ce.configuration.enabled?
