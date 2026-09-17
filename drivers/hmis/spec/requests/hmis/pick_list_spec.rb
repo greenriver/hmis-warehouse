@@ -627,6 +627,29 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     end
   end
 
+  describe 'FORM_TYPES' do
+    def form_type_codes
+      response, result = post_graphql(pick_list_type: 'FORM_TYPES') { query }
+      expect(response.status).to eq 200
+      result.dig('data', 'pickList').pluck('code')
+    end
+
+    # Default access_control is all permissions (super-admin).
+    it 'includes roles that can be listed in Admin → Forms and excludes those that cannot' do
+      codes = form_type_codes
+      expect(codes).to include('SERVICE', 'CUSTOM_ASSESSMENT', 'INTAKE', 'CURRENT_LIVING_SITUATION')
+      expect(codes).not_to include('REFERRAL', 'REFERRAL_REQUEST', 'CE_REFERRAL_STEP', 'PROJECT_CONFIG', 'FORM_RULE')
+    end
+
+    context 'when the user cannot administrate config' do
+      before { remove_permissions(access_control, :can_administrate_config) }
+
+      it 'includes only forms creatable by non-super-admins' do
+        expect(form_type_codes).to contain_exactly('SERVICE', 'CUSTOM_ASSESSMENT')
+      end
+    end
+  end
+
   describe 'CE_REFERRAL_STATUSES' do
     before(:each) do
       allow_any_instance_of(Hmis::Ce::Configuration).to receive(:enabled?).and_return(true)

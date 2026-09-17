@@ -131,7 +131,7 @@ RSpec.feature 'Restricted clients', type: :system do
 
       expect(page).to have_text('Restricted Record')
       expect(page).not_to have_button('Restrict Client Record')
-      expect(page).not_to have_button('Remove Client Record Restriction')
+      expect(page).not_to have_button('Unrestrict Client Record')
     end
 
     it 'loads with masked PII and still shows the Restricted Record chip explaining the redaction' do
@@ -170,7 +170,7 @@ RSpec.feature 'Restricted clients', type: :system do
       within('[role="dialog"]') { click_button 'Restrict' }
 
       expect(page).to have_text('Restricted Record') # chip present
-      expect(page).to have_button('Remove Client Record Restriction')
+      expect(page).to have_button('Unrestrict Client Record')
       expect(normal_client.reload.restricted?).to be true
       expect(Hmis::RestrictedRecord.for_clients.find_by(restrictable: normal_client)).to be_present
     end
@@ -179,8 +179,8 @@ RSpec.feature 'Restricted clients', type: :system do
       visit "/client/#{restricted_at_p1.id}/profile"
 
       expect(page).to have_text('Restricted Record')
-      click_button 'Remove Client Record Restriction'
-      expect(page).to have_css('[role="dialog"]', text: 'Remove Client Record Restriction')
+      click_button 'Unrestrict Client Record'
+      expect(page).to have_css('[role="dialog"]', text: 'Unrestrict Client Record')
       within('[role="dialog"]') { click_button 'Remove Restriction' }
 
       expect(page).not_to have_text('Restricted Record')

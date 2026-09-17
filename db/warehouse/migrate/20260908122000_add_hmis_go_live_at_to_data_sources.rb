@@ -8,6 +8,6 @@
 
 class AddHmisGoLiveAtToDataSources < ActiveRecord::Migration[7.2]
   def change
-    add_column :data_sources, :hmis_go_live_at, :timestamp
+    add_column :data_sources, :hmis_go_live_at, :timestamp, if_not_exists: true
   end
 end
