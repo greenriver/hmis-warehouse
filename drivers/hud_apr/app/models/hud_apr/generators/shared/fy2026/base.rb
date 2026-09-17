@@ -232,7 +232,7 @@ module HudApr::Generators::Shared::Fy2026
           adjusted_move_in_date = calculated_move_in_date || (is_ph_or_pfs_project ? nil : last_service_history_enrollment.first_date_in_program)
           # From calculated_move_in_date, the date Q22c/Q27k filter their rows on, rather than
           # HudReports::LengthOfStays, which carries only part of the glossary inheritance rules.
-          calculated_time_to_move_in = (calculated_move_in_date - last_service_history_enrollment.first_date_in_program).to_i if calculated_move_in_date.present?
+          calculated_time_to_move_in = (calculated_move_in_date - last_service_history_enrollment.first_date_in_program).to_i if calculated_move_in_date.present? && calculated_move_in_date >= last_service_history_enrollment.first_date_in_program
           hoh_move_in_date = calculate_move_in_date(hh_id, hoh_enrollment)
           processed_source_clients << source_client.id
 
