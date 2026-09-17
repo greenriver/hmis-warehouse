@@ -170,32 +170,28 @@ tasks = [
     at: '2:00 am',
     interruptable: true,
   },
-  # Daily maintenance that used to ride on grda_warehouse:hourly behind an hour gate. Each one gets
-  # its own entry so the cron pod can be sized to that task. The work runs inline in the pod, so none
-  # of these are interruptable -- a spot interruption would kill the run with no retry behind it.
   {
     task: 'grda_warehouse:collect_client_metrics',
     frequency: 1.day,
-    # matches GrdaWarehouse::Monitoring::MetricDefinition::COLLECTION_HOUR
-    at: '2:00 am',
+    at: '2:15 am',
     interruptable: false,
   },
   {
     task: 'grda_warehouse:maintain_cohort_intermediate_data',
     frequency: 1.day,
-    at: '3:00 am',
+    at: '2:45 am',
     interruptable: false,
   },
   {
     task: 'grda_warehouse:hmis_supplemental_import',
     frequency: 1.day,
-    at: '4:00 am',
+    at: '4:15 am',
     interruptable: false,
   },
   {
     task: 'grda_warehouse:hmis_auto_exit',
     frequency: 1.day,
-    at: '5:00 am',
+    at: '5:10 am',
     interruptable: false,
   },
   {
@@ -207,13 +203,13 @@ tasks = [
   {
     task: 'grda_warehouse:remove_expired_import_overrides',
     frequency: 1.day,
-    at: '5:00 pm',
+    at: '5:05 pm',
     interruptable: false,
   },
   {
     task: 'driver:hmis_external_apis:export:ac_clients',
     frequency: 1.day,
-    at: '8:00 pm',
+    at: '8:10 pm',
     interruptable: false,
   },
   {
@@ -225,7 +221,7 @@ tasks = [
   {
     task: 'grda_warehouse:ce_candidate_pool_builder',
     frequency: 1.day,
-    at: '11:00 pm',
+    at: '11:15 pm',
     interruptable: false,
   },
   # HMIS simulation — only runs on servers where ENABLE_HMIS_SIMULATION=true (for demo) or any staging environment

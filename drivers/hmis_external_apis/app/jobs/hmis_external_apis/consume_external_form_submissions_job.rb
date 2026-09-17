@@ -35,6 +35,12 @@ class HmisExternalApis::ConsumeExternalFormSubmissionsJob < BaseJob
     end
   end
 
+  # Retrying is safe, but the hourly rake task re-enqueues this, so a retry would only race the
+  # next run for the lock.
+  def supports_idempotent_retry?
+    false
+  end
+
   def _perform
     s3 = s3_credential.s3
 

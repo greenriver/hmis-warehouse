@@ -219,7 +219,7 @@ Only calculate metrics for entities with recent activity:
 
 ### Scheduled Execution
 
-Collection runs once per day at 2:00 AM. The `grda_warehouse:collect_client_metrics` rake task (`lib/tasks/grda_warehouse.rake`) runs `CollectClientMetricsJob` inline, and `config/schedule.rb` schedules it for the hour named by `MetricDefinition::COLLECTION_HOUR` (`2`).
+Collection runs once per day; `config/schedule.rb` is the authority on when: it schedules the `grda_warehouse:collect_client_metrics` rake task (`lib/tasks/grda_warehouse.rake`), which runs `CollectClientMetricsJob` inline.
 
 Integrated with TaskQueue for initialization: `MetricDefinition.maintain!` creates/updates metric definitions on startup
 

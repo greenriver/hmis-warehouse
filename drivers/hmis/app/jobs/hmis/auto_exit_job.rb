@@ -54,12 +54,6 @@ module Hmis
       end
     end
 
-    # A partial run leaves some enrollments exited and the rest untouched; a retry would redo the
-    # scan from the top. The daily grda_warehouse:hmis_auto_exit task runs this again the next night.
-    def supports_idempotent_retry?
-      false
-    end
-
     def _perform(project_ids: nil, data_source_id: nil)
       auto_exit_projects = Set.new
       auto_exit_count = 0
