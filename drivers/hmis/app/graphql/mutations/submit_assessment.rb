@@ -110,7 +110,7 @@ module Mutations
       errors.deduplicate!
       return { errors: errors } if errors.any?
 
-      return { assessments: assessments, errors: [] } if input.validate_only
+      return { assessment: assessment, errors: [] } if input.validate_only
 
       if is_valid
         assessment.save_submitted_assessment!(current_user: current_user)
