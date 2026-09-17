@@ -50,10 +50,21 @@ wb.add_worksheet(name: 'Youth Intakes') do |sheet|
     :client_id,
   ]
   bold = sheet.styles.add_style(sz: 12, b: true)
+  pii_policy = current_user.reporting_policy_for_project(project_id: nil, mode: :download, client_id: client_intake.client_id)
   intake = GrdaWarehouse::YouthIntake::Base.export_headers.zip(client_intake.for_export).
     select { |k, _v| intake_order.include?(k.to_sym) }.
     sort_by { |k, _v| intake_order.find_index(k.to_sym) }
   intake.each do |k, v|
+    v = case k.to_sym
+        when :first_name, :last_name
+          GrdaWarehouse::PiiProvider.viewable_name(v, policy: pii_policy)
+        when :ssn
+          GrdaWarehouse::PiiProvider.viewable_ssn(v, policy: pii_policy)
+        when :client_dob
+          GrdaWarehouse::PiiProvider.viewable_dob(v, policy: pii_policy)
+        else
+          v
+        end
     sheet.add_row([k.titleize, v], style: [bold, nil])
   end
 end

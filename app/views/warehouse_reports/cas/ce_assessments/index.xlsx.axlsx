@@ -25,12 +25,13 @@ wb.add_worksheet(name: 'CE Assessment Status') do |sheet|
   @report.clients.each do |client|
     enrollment = @report.max_enrollment_for(@report.clients, client.id)
     safe_project_name = enrollment ? GrdaWarehouse::Hud::Project.confidentialize_name(current_user, enrollment.project_name, enrollment.confidential) : nil
+    pii = GrdaWarehouse::PiiProvider.new(client, policy: current_user.reporting_policy_for_client(client: client, mode: :download))
     row = [
       client.id,
-      ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads) ? client.FirstName : 'Redacted',
-      ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads) ? client.LastName : 'Redacted',
-      ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads) ? strip_tags(ssn(client.SSN)) : 'Redacted',
-      client.DOB&.year,
+      pii.first_name,
+      pii.last_name,
+      pii.ssn,
+      GrdaWarehouse::PiiProvider.viewable_dob(client.DOB, policy: pii.policy, replacement: nil)&.year,
       client.processed_service_history.days_homeless_last_three_years,
       @report.max_pathways_date(@report.clients, client.id),
       safe_project_name,

@@ -26,12 +26,13 @@
       %tbody
         - @clients.each do |client|
           - assessment = @assessments[client.id]
+          - pii = client.pii_provider(user: current_user)
           - tenant_payment = 0
           - if assessment.total_subsidy && assessment.subsidy_months && assessment.monthly_rent_total && assessment.subsidy_months.positive? && assessment.monthly_rent_total.positive?
             - tenant_payment = assessment.monthly_rent_total - (assessment.total_subsidy / assessment.subsidy_months)
           %tr
-            %td= client.LastName
-            %td= client.FirstName
+            %td= pii.last_name
+            %td= pii.first_name
             %td= assessment.number_of_bedrooms
             %td= tenant_payment
             %td= assessment.total_subsidy

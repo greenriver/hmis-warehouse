@@ -23,7 +23,7 @@ module CohortColumns
     end
 
     def value(cohort_client) # OK
-      cohort_client.client.DOB
+      pii_provider(cohort_client).dob
     end
 
     # Don't report PII in Cohort Data, this can be obtained from the PII store

@@ -15,10 +15,12 @@ wb.add_worksheet(name: "Entry=Exit=Service") do |sheet|
     else
       client[:PersonalID]
     end
+    policy = current_user.reporting_policy_for_project(project_id: client[:project_id], mode: :download, client_id: client[:destination_id])
+    pii = GrdaWarehouse::PiiProvider.from_attributes(policy: policy, first_name: client[:FirstName], last_name: client[:LastName])
     sheet.add_row [
       uuid,
-      ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads) ? client[:FirstName] : 'Redacted',
-      ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads) ? client[:LastName] : 'Redacted',
+      pii.first_name,
+      pii.last_name,
       client[:EntryDate],
       client[:ExitDate],
       client[:DateProvided],

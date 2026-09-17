@@ -146,5 +146,20 @@ module PerformanceMetrics
         ]
       end.to_h
     end
+
+    PII_KEYS = ['first_name', 'last_name'].freeze
+
+    def detail_value(key, user:)
+      return self[key] unless key.in?(PII_KEYS)
+
+      pii_provider(user: user).public_send(key)
+    end
+
+    private def pii_provider(user:)
+      @pii_provider ||= begin
+        policy = user.reporting_policy_for_project(project_id: nil, client_id: client_id)
+        GrdaWarehouse::PiiProvider.from_attributes(policy: policy, first_name: first_name, last_name: last_name)
+      end
+    end
   end
 end

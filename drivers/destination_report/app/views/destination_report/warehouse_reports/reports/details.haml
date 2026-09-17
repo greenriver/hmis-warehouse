@@ -23,6 +23,7 @@
             %th= header
       %tbody
         - scope.pluck(*@report.columns_for(@key)).each do |row|
+          - row = @report.redact_pii_in_row(row, headers: headers, user: current_user, mode: :browse)
           %tr
             - row.each_with_index do |col, i|
               %td

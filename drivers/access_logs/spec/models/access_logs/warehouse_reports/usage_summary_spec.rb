@@ -21,6 +21,9 @@ RSpec.describe AccessLogs::WarehouseReports::UsageSummary do
     ActivityLog.create!(user: user, path: path, controller_name: 'warehouse_reports', action_name: 'show', ip_address: '127.0.0.1', created_at: visited_at)
   end
 
+  after { GrdaWarehouse::Config.invalidate_cache }
+  before { Rails.cache.clear }
+
   subject(:summary) { described_class.new(range: range).call }
 
   it "counts a user's distinct calendar days per report, deduping same-day visits" do
