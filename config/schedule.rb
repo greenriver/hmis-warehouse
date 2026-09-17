@@ -183,13 +183,13 @@ tasks = [
     interruptable: false,
   },
   {
-    task: 'grda_warehouse:hmis_supplemental_import',
+    task: 'driver:hmis_supplemental:import',
     frequency: 1.day,
     at: '4:15 am',
     interruptable: false,
   },
   {
-    task: 'grda_warehouse:hmis_auto_exit',
+    task: 'driver:hmis:auto_exit',
     frequency: 1.day,
     at: '5:10 am',
     interruptable: false,
@@ -201,7 +201,7 @@ tasks = [
     interruptable: false,
   },
   {
-    task: 'grda_warehouse:remove_expired_import_overrides',
+    task: 'driver:hmis_csv_importer:cleanup:remove_expired_import_overrides',
     frequency: 1.day,
     at: '5:05 pm',
     interruptable: false,
@@ -219,7 +219,7 @@ tasks = [
     interruptable: false,
   },
   {
-    task: 'grda_warehouse:ce_candidate_pool_builder',
+    task: 'driver:hmis:ce_candidate_pool_builder',
     frequency: 1.day,
     at: '11:15 pm',
     interruptable: false,

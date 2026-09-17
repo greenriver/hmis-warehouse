@@ -387,44 +387,10 @@ namespace :grda_warehouse do
   # The tasks below each have their own entry in config/schedule.rb. They do their work inline
   # rather than enqueuing it so the cron pod can be sized to the task it actually runs.
 
-  desc 'Auto-exit HMIS enrollments in projects configured for it'
-  task hmis_auto_exit: [:environment, 'log:info_to_stdout'] do
-    next unless HmisEnforcement.hmis_enabled? && GrdaWarehouse::DataSource.hmis.exists?
-
-    Hmis::AutoExitJob.new.perform
-  end
-
-  desc 'Rebuild the CE match candidate pools'
-  task ce_candidate_pool_builder: [:environment, 'log:info_to_stdout'] do
-    next unless HmisEnforcement.hmis_enabled? && GrdaWarehouse::DataSource.hmis.exists? && Hmis::Ce.configuration.enabled?
-
-    # Catch-all CE reprocessing. Ensures we don't miss changes that could impact eligibility
-    GrdaWarehouse::Tasks::TaskInstrumentation.call(
-      'Hmis::Ce::Match::CandidatePoolBuilder',
-      alert_threshold: 36.hours,
-    ) do |run|
-      # lock_for_maintenance!'s transaction-scoped lock is released as soon as its own transaction
-      # ends, so it needs an explicit transaction here to stay held for the block's duration
-      Hmis::Ce::Match::CandidatePool.transaction do
-        Hmis::Ce::Match::CandidatePool.lock_for_maintenance!(timeout_seconds: 5.minutes) do
-          Hmis::Ce::Match::CandidatePoolBuilder.call(force_reprocessing: true)
-        end
-      end
-      run.complete!
-    end
-  end
-
   desc 'Purge old soft-deleted records (guarded by SoftDeleteRetentionConfiguration#enabled?)'
   task purge_soft_deleted_records: [:environment, 'log:info_to_stdout'] do
     PurgeSoftDeletedRecordsJob.new.perform(dry_run: false)
     PurgeSoftDeletedClientFilesJob.new.perform
-  end
-
-  desc 'Import supplemental data for every sync-enabled data set'
-  task hmis_supplemental_import: [:environment, 'log:info_to_stdout'] do
-    HmisSupplemental::DataSet.where(sync_enabled: true).order(:id).each do |data_set|
-      HmisSupplemental::ImportJob.new.perform(data_set_id: data_set.id)
-    end
   end
 
   desc 'Rebuild ROI authorization records for destination clients'
@@ -435,11 +401,6 @@ namespace :grda_warehouse do
   desc 'Collect threshold monitoring data for clients'
   task collect_client_metrics: [:environment, 'log:info_to_stdout'] do
     CollectClientMetricsJob.new.perform
-  end
-
-  desc 'Remove expired HMIS CSV import overrides'
-  task remove_expired_import_overrides: [:environment, 'log:info_to_stdout'] do
-    HmisCsvImporter::ImportOverride.remove_expired!
   end
 
   desc 'Maintain the intermediate data backing cohort analytics'

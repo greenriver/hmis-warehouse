@@ -35,8 +35,7 @@ class HmisExternalApis::ConsumeExternalFormSubmissionsJob < BaseJob
     end
   end
 
-  # Retrying is safe, but the hourly rake task re-enqueues this, so a retry would only race the
-  # next run for the lock.
+  # Retrying is safe, but the hourly rake task re-enqueues this
   def supports_idempotent_retry?
     false
   end
