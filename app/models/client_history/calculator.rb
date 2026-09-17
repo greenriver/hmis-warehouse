@@ -45,7 +45,7 @@ class ClientHistory::Calculator
   # separated from it by a full 7-night break: 7+ consecutive nights housed in PH/TH, a gap of
   # 7+ nights in presumed permanent housing (exit destination or prior living situation),
   # or a gap of 90+ nights with nothing recorded.
-  # When several ES/SH/SO records share the entry date, the lowest-id record is marked as the episode start.
+  # When several ES/SH/SO entries share the entry date, at any projects, only the lowest-id record is marked.
   #
   # @param enrollment [GrdaWarehouse::ServiceHistoryEnrollment] the entry being evaluated
   # @return [Boolean]
@@ -80,20 +80,23 @@ class ClientHistory::Calculator
   # client entered PH from a homeless situation.
   # TH nights are housed (see #housed_dates).
   private def episode_homeless_dates
-    @episode_homeless_dates ||= begin
-      ph_types = HudHelper.util.residential_project_type_numbers_by_code[:ph]
-      homeless_prior = HudHelper.util.homeless_situations(as: :prior)
-      enrollments.flat_map do |e|
-        rows = service_rows_for(e)
-        if ph_types.include?(e.project_type)
-          next [] unless homeless_prior.include?(living_situation_for(e))
+    @episode_homeless_dates ||= enrollments.flat_map { |e| homeless_dates_for(e) }.uniq
+  end
 
+  private def homeless_dates_for(enrollment)
+    @homeless_dates_for ||= {}
+    @homeless_dates_for[enrollment.id] ||= begin
+      rows = service_rows_for(enrollment)
+      if HudHelper.util.residential_project_type_numbers_by_code[:ph].include?(enrollment.project_type)
+        if HudHelper.util.homeless_situations(as: :prior).include?(living_situation_for(enrollment))
           # homeless is nil for PH nights before move-in, false after
           rows.select { |r| r.homeless.nil? }.map(&:date)
         else
-          rows.select { |r| r.literally_homeless == true }.map(&:date)
+          []
         end
-      end.uniq
+      else
+        rows.select { |r| r.literally_homeless == true }.map(&:date)
+      end
     end
   end
 
@@ -128,8 +131,8 @@ class ClientHistory::Calculator
     (entry_date - last_homeless_night).to_i - 1
   end
 
-  # Two records of one stay (for example, the same enrollment in two data sources) share an
-  # entry date and would otherwise both qualify; the earliest-built record is marked as the episode start.
+  # Same-day ES/SH/SO entries, whether one stay recorded twice or distinct projects, would all
+  # qualify; the lowest-id record is marked as the episode start.
   private def same_day_duplicate?(enrollment)
     chronic_types = HudHelper.util.chronic_project_types
     enrollments.any? do |e|
@@ -144,7 +147,7 @@ class ClientHistory::Calculator
 
     permanent_destinations = HudHelper.util.permanent_destinations
     enrollments.any? do |e|
-      permanent_destinations.include?(e.destination) && rows_for(e).any? { |r| r.date == last_homeless_night }
+      permanent_destinations.include?(e.destination) && homeless_dates_for(e).include?(last_homeless_night)
     end
   end
 

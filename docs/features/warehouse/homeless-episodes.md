@@ -13,7 +13,7 @@ An **episode** is a continuous period of homelessness. The warehouse has multipl
 | **Potentially Chronic Clients** report — `GrdaWarehouse::Tasks::ChronicallyHomeless#chronic?`, listed at `warehouse_reports/chronic` and stored as `GrdaWarehouse::Chronic` | For clients with 12+ homeless months in the last 36 who were not homeless in every one of the last 12, counts `homeless_episodes_between` over three years and marks them potentially chronic when there are 4 or more. This is the pre-3.917, data-based chronic list; the CAS sync includes everyone on the most recent list (`clients/cas_readiness/_chronic.haml`) |
 | Per-client chronic calculator — `app/views/clients/chronic/_chronic_calculator.haml` | Shows "Homeless episodes in the last 3 years" |
 | Ad-hoc, anonymized ad-hoc, and youth exports — `WarehouseReport::ExportEnrollmentCalculator` (`episode_counts_past_3_years_for`, `episode_length_for`, `average_episode_length_for`), used by `GrdaWarehouse::WarehouseReports::Exports::AdHoc`, `Exports::AdHocAnon`, `Youth::Export` | Episode count and episode-length columns |
-| `GrdaWarehouse::Hud::Client#homeless_episodes_between`, `#length_of_episodes`, `#new_episode?`; `GrdaWarehouse::Hud::Enrollment#new_episode?` | Wrappers the consumers above call |
+| `GrdaWarehouse::Hud::Client#homeless_episodes_between`, `#length_of_episodes`, `#new_episode?`; `GrdaWarehouse::Hud::Enrollment#new_episode?` | Wrappers the consumers above call. `Enrollment#new_episode?` requires a built service history and returns `false` when the enrollment has no entry record |
 
 ## HUD's definition
 
@@ -58,7 +58,7 @@ The entry starts a new episode when any one of these holds:
 
 Otherwise the entry continues the previous episode. Entries into non-chronic project types (TH, PH, services-only, etc.) are never flagged as a new episode.
 
-**(e) Same-day tie-break.** Rules (a)–(d) only look at nights before the entry date. Two ES/SH/SO records with the same entry date, one stay present in two data sources, or entered twice in one, both qualify. The record with the lowest `ServiceHistoryEnrollment#id` starts the episode. The enrollment roll-up sorts rows by entry date descending and then id descending, so the marked row is the lowest of the same-day rows in the table.
+**(e) Same-day tie-break.** Rules (a)–(d) only look at nights before the entry date. Any ES/SH/SO records with the same entry date, whether one stay present in two data sources, entered twice in one, or genuinely separate projects (an SO contact and an ES entry the same day), all qualify. The record with the lowest `ServiceHistoryEnrollment#id` starts the episode. The enrollment roll-up sorts rows by entry date descending and then id descending, so the marked row is the lowest of the same-day rows in the table.
 
 ## The official calculation
 

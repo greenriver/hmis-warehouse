@@ -58,11 +58,8 @@ RSpec.describe ClientHistory::Calculator, type: :model do
         new_episode?(enrollment: entries.detect { |e| e.entry_date == entry_date })
     end
 
-    def build_episode_client
-      destination = create :hud_client, data_source_id: warehouse_data_source.id, FirstName: 'Gap', LastName: 'Client'
-      source = create_linked_source_client(destination, first_name: 'Gap', last_name: 'Source')
-      [destination, source]
-    end
+    let(:destination) { create :hud_client, data_source_id: warehouse_data_source.id, FirstName: 'Gap', LastName: 'Client' }
+    let(:source) { create_linked_source_client(destination, first_name: 'Gap', last_name: 'Source') }
 
     context 'housed nights in permanent housing' do
       it 'is true when the gap holds seven consecutive nights housed after move-in' do
@@ -78,9 +75,6 @@ RSpec.describe ClientHistory::Calculator, type: :model do
 
     context 'nights in transitional housing' do
       let!(:transitional) { create_project('Transitional', project_type: HudHelper.util.residential_project_type_numbers_by_code[:th].first) }
-      let(:episode_client) { build_episode_client }
-      let(:destination) { episode_client.first }
-      let(:source) { episode_client.last }
 
       before do
         create_enrollment(source, shelter_a, entry: '2020-01-01', exit_date: '2020-01-10')
@@ -99,9 +93,6 @@ RSpec.describe ClientHistory::Calculator, type: :model do
     end
 
     context 'presumed permanent housing between stays' do
-      let(:episode_client) { build_episode_client }
-      let(:destination) { episode_client.first }
-      let(:source) { episode_client.last }
       let(:permanent_destination) { HudHelper.util.permanent_destinations.first }
       let(:temporary_destination) { HudHelper.util.temporary_destinations.first }
       let(:permanent_prior_situation) { HudHelper.util.permanent_situations(as: :prior).first }
@@ -124,6 +115,14 @@ RSpec.describe ClientHistory::Calculator, type: :model do
         expect(new_episode_for_entry(destination, Date.new(2020, 1, 17))).to eq(false)
       end
 
+      it 'is false when an overlapping transitional stay covering the last homeless night exits to a permanent destination' do
+        transitional = create_project('Transitional', project_type: HudHelper.util.residential_project_type_numbers_by_code[:th].first)
+        create_enrollment(source, shelter_a, entry: '2020-01-01', exit_date: '2020-01-10', destination: nil)
+        create_enrollment(source, transitional, entry: '2020-01-05', exit_date: '2020-01-10', destination: permanent_destination)
+        create_enrollment(source, shelter_a, entry: '2020-01-17', exit_date: '2020-01-19')
+        expect(new_episode_for_entry(destination, Date.new(2020, 1, 17))).to eq(false)
+      end
+
       it 'is true when the new entry reports a permanent prior living situation across a seven-night gap' do
         create_enrollment(source, shelter_a, entry: '2020-01-01', exit_date: '2020-01-10', destination: nil)
         create_enrollment(source, shelter_a, entry: '2020-01-17', exit_date: '2020-01-19', LivingSituation: permanent_prior_situation)
@@ -132,10 +131,6 @@ RSpec.describe ClientHistory::Calculator, type: :model do
     end
 
     context 'gaps with no recorded nights' do
-      let(:episode_client) { build_episode_client }
-      let(:destination) { episode_client.first }
-      let(:source) { episode_client.last }
-
       before { create_enrollment(source, shelter_a, entry: '2020-01-01', exit_date: '2020-01-10', destination: nil) }
 
       it 'is true when ninety nights pass with nothing recorded' do
@@ -150,9 +145,6 @@ RSpec.describe ClientHistory::Calculator, type: :model do
     end
 
     context 'permanent housing nights before move-in' do
-      let(:episode_client) { build_episode_client }
-      let(:destination) { episode_client.first }
-      let(:source) { episode_client.last }
       let(:homeless_prior_situation) { HudHelper.util.homeless_situations(as: :prior).first }
 
       before { create_enrollment(source, shelter_a, entry: '2020-01-01', exit_date: '2020-01-10', destination: nil) }
@@ -171,10 +163,6 @@ RSpec.describe ClientHistory::Calculator, type: :model do
     end
 
     context 'two records of the same stay' do
-      let(:episode_client) { build_episode_client }
-      let(:destination) { episode_client.first }
-      let(:source) { episode_client.last }
-
       it 'marks only the earliest-built record as the new episode' do
         create_enrollment(source, shelter_a, entry: '2020-01-01', exit_date: '2020-01-10')
         create_enrollment(source, shelter_a, entry: '2020-01-01', exit_date: '2020-01-10')

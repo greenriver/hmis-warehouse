@@ -360,12 +360,14 @@ module GrdaWarehouse::Hud
         merge(GrdaWarehouse::Hud::Enrollment.where(data_source_id: data_source_id, household_id: household_id))
     end
 
+    # Requires a built service history; an enrollment with no entry record reads as
+    # continuing an episode.
     def new_episode?
       entry = service_history_enrollment
       return false if entry.nil?
 
       destination = client.destination_client
-      residential_enrollments = destination.service_history_enrollments.residential.entry.to_a
+      residential_enrollments = destination.service_history_enrollments.residential.entry.includes(:enrollment).to_a
       ClientHistory::Calculator.new(client: destination, enrollments: residential_enrollments).
         new_episode?(enrollment: entry)
     end

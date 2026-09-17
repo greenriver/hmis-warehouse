@@ -2759,7 +2759,7 @@ module GrdaWarehouse::Hud
 
     # NOTE: if you are calculating these in batches, you should pass in arrays of enrollments and chronic enrollments
     def homeless_episodes_between start_date:, end_date:, residential_enrollments: nil, chronic_enrollments: nil
-      residential_enrollments ||= service_history_enrollments.residential.entry.order(first_date_in_program: :asc)
+      residential_enrollments ||= service_history_enrollments.residential.entry.includes(:enrollment).order(first_date_in_program: :asc)
       return 0 unless residential_enrollments.any?
 
       chronic_enrollments ||= service_history_enrollments.entry.
@@ -2779,7 +2779,7 @@ module GrdaWarehouse::Hud
     end
 
     def length_of_episodes start_date:, end_date:, residential_enrollments: nil, chronic_enrollments: nil
-      residential_enrollments ||= service_history_enrollments.residential.entry.order(first_date_in_program: :asc)
+      residential_enrollments ||= service_history_enrollments.residential.entry.includes(:enrollment).order(first_date_in_program: :asc)
       return [] unless residential_enrollments.any?
 
       chronic_enrollments ||= service_history_enrollments.entry.
