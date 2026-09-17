@@ -240,9 +240,6 @@ RSpec.describe 'DQ Tool and APR Q6a PII alignment', type: :model, exclude_fixpoi
     end
   end
 
-  # The DQ Tool deliberately flags these; Q6a's Arel cannot. Both are documented in
-  # docs/superpowers/specs/2026-09-15-dq-tool-apr-q6a-pii-alignment-design.md as divergences
-  # to keep, so they are asserted rather than left to drift.
   context 'with clients the DQ Tool flags but Q6a cannot' do
     before do
       @project = create_project(project_type: es_project_type)
