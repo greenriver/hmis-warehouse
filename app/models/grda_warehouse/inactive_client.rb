@@ -18,18 +18,16 @@ class GrdaWarehouse::InactiveClient < GrdaWarehouseBase
   # The window is the longest of the source data sources' windows, each falling back to
   # global_years, so a longer policy anywhere keeps the whole person.
   #
-  # @param destination_ids [Array<Integer>, nil] nil evaluates every destination with links
+  # @param destination_ids [Array<Integer>]
   # @param global_years [Integer] the site-wide window (GrdaWarehouse::Config
   #   client_retention_years); the fallback for any data source without its own override
-  # @param expiring_within [Integer, nil] when set, only rollups whose window ends within this
-  #   many days from today
   # @return [Array<Hash>] :destination_id, :last_activity_on (Date), :retention_years,
   #   :basis ('exited' or 'open_enrollment'),
   #   :source_clients ([{ 'client_id', 'data_source_id', 'personal_id' }])
-  def self.rollup_activity(destination_ids:, global_years:, expiring_within: nil)
-    return [] if destination_ids && destination_ids.empty?
+  def self.rollup_activity(destination_ids:, global_years:)
+    return [] if destination_ids.empty?
 
-    result = connection.select_all(rollup_activity_sql(destination_ids: destination_ids, global_years: global_years, expiring_within: expiring_within))
+    result = connection.select_all(rollup_activity_sql(destination_ids: destination_ids, global_years: global_years))
     result.cast_values.map do |values|
       row = result.columns.zip(values).to_h
       {
@@ -42,14 +40,12 @@ class GrdaWarehouse::InactiveClient < GrdaWarehouseBase
     end
   end
 
-  # The assembled statement behind rollup_activity, for EXPLAIN.
+  # The assembled statement behind rollup_activity.
+  # @param explain [Boolean] prefix with EXPLAIN (ANALYZE, BUFFERS)
   # @return [String]
-  def self.rollup_activity_sql(destination_ids:, global_years:, expiring_within: nil)
-    today = Date.current
-    sql = sanitize_sql_array([ROLLUP_ACTIVITY_SQL, global_years: global_years, today: today])
-    id_filter = destination_ids.nil? ? '' : sanitize_sql_array(['AND wc.destination_id IN (:ids)', ids: destination_ids])
-    having = expiring_within.nil? ? '' : sanitize_sql_array([EXPIRING_HAVING_SQL, global_years: global_years, within: expiring_within, today: today])
-    sql.sub('/*ID_FILTER*/', id_filter).sub('/*HAVING*/', having)
+  def self.rollup_activity_sql(destination_ids:, global_years:, explain: false)
+    statement = explain ? "EXPLAIN (ANALYZE, BUFFERS) #{ROLLUP_ACTIVITY_SQL}" : ROLLUP_ACTIVITY_SQL
+    sanitize_sql_array([statement, global_years: global_years, today: Date.current, ids: destination_ids])
   end
 
   # Two rules, chosen per identity. An identity with no open enrollment is judged on its
@@ -63,7 +59,7 @@ class GrdaWarehouse::InactiveClient < GrdaWarehouseBase
       SELECT wc.destination_id, wc.source_id, c."PersonalID", c.data_source_id
       FROM warehouse_clients wc
       JOIN "Client" c ON c.id = wc.source_id AND c."DateDeleted" IS NULL
-      WHERE wc.deleted_at IS NULL /*ID_FILTER*/
+      WHERE wc.deleted_at IS NULL AND wc.destination_id IN (:ids)
     ),
     enrollments AS (
       SELECT l.destination_id, e."EnrollmentID", e."PersonalID", e.data_source_id,
@@ -121,11 +117,5 @@ class GrdaWarehouse::InactiveClient < GrdaWarehouseBase
     JOIN data_sources ds ON ds.id = l.data_source_id
     WHERE a.last_activity_on IS NOT NULL
     GROUP BY l.destination_id, a.last_activity_on, a.basis
-    /*HAVING*/
-  SQL
-
-  EXPIRING_HAVING_SQL = <<~SQL.squish
-    HAVING a.last_activity_on + make_interval(years => MAX(COALESCE(ds.client_retention_years, :global_years)))
-      BETWEEN :today::date AND :today::date + :within
   SQL
 end

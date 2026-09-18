@@ -18,19 +18,29 @@ RSpec.describe WarehouseReports::ClientRetentionController, type: :request do
 
   let!(:warehouse_ds) { create(:destination_data_source) }
   let!(:source_ds) { create(:source_data_source) }
-  # Newest activity 30 days short of the 7-year window, so this identity is about to expire.
-  let!(:expiring_destination) { create(:grda_warehouse_hud_client, data_source: warehouse_ds, FirstName: 'Zzexpiring', LastName: 'Zzsoon', DateUpdated: 8.years.ago) }
-  let!(:expiring_source) { create(:grda_warehouse_hud_client, data_source: source_ds, FirstName: 'Zzexpiring', LastName: 'Zzsoon', DateUpdated: 7.years.ago + 30.days) }
-  # Active last year: never expiring soon.
-  let!(:active_destination) { create(:grda_warehouse_hud_client, data_source: warehouse_ds, DateUpdated: 1.year.ago) }
-  let!(:active_source) { create(:grda_warehouse_hud_client, data_source: source_ds, DateUpdated: 1.year.ago) }
+  let!(:expiring_destination) { create(:grda_warehouse_hud_client, data_source: warehouse_ds, FirstName: 'Zzexpiring', LastName: 'Zzsoon') }
+  let!(:expiring_source) { create(:grda_warehouse_hud_client, data_source: source_ds, FirstName: 'Zzexpiring', LastName: 'Zzsoon') }
+  let!(:active_destination) { create(:grda_warehouse_hud_client, data_source: warehouse_ds) }
   let!(:marked_destination) { create(:grda_warehouse_hud_client, data_source: warehouse_ds, FirstName: 'Zzmarked', LastName: 'Zzclient', DateUpdated: 10.years.ago) }
   let!(:older_run) { GrdaWarehouse::ClientRetentionRun.create!(started_at: 2.days.ago, completed_at: 2.days.ago + 10.minutes, global_retention_years: 7, evaluated_count: 2, marked_count: 1) }
   let!(:newer_run) { GrdaWarehouse::ClientRetentionRun.create!(started_at: 1.hour.ago, completed_at: 30.minutes.ago, global_retention_years: 7, evaluated_count: 2, marked_count: 0) }
 
+  def expiring_row(run, destination, source, expires_on:)
+    GrdaWarehouse::ClientRetentionExpiringClient.create!(
+      run: run,
+      destination_client_id: destination.id,
+      source_clients: [{ 'client_id' => source.id, 'data_source_id' => source.data_source_id, 'personal_id' => source.PersonalID }],
+      last_activity_on: expires_on - 7.years,
+      retention_years: 7,
+      basis: 'exited',
+      expires_on: expires_on,
+    )
+  end
+
   before do
-    GrdaWarehouse::WarehouseClient.create!(destination_id: expiring_destination.id, source_id: expiring_source.id, data_source_id: source_ds.id, id_in_source: expiring_source.PersonalID)
-    GrdaWarehouse::WarehouseClient.create!(destination_id: active_destination.id, source_id: active_source.id, data_source_id: source_ds.id, id_in_source: active_source.PersonalID)
+    expiring_row(newer_run, expiring_destination, expiring_source, expires_on: 30.days.from_now.to_date)
+    # Left over from the older run: never shown, whichever tab is open.
+    expiring_row(older_run, active_destination, expiring_source, expires_on: 10.days.from_now.to_date)
     GrdaWarehouse::ClientRetentionLogEntry.create!(run: older_run, action: 'marked', destination_client_id: marked_destination.id, source_clients: [{ 'client_id' => 999_001, 'data_source_id' => source_ds.id, 'personal_id' => 'P1' }], last_activity_on: 10.years.ago.to_date, retention_years: 7, created_at: 2.days.ago)
     GrdaWarehouse::ClientRetentionLogEntry.create!(run: newer_run, action: 'unmarked', destination_client_id: active_destination.id, created_at: 30.minutes.ago)
     GrdaWarehouse::Config.first_or_create.update!(client_retention_years: 7)
@@ -61,24 +71,35 @@ RSpec.describe WarehouseReports::ClientRetentionController, type: :request do
     before { collection.set_viewables(reports: [report_definition.id]) }
 
     describe 'Records Expiring Soon' do
-      it 'lists only identities whose window ends within 90 days, by id and never by name' do
+      it 'lists the latest completed run\'s rows only, by id and never by name' do
         get warehouse_reports_client_retention_index_path
 
         expect(response).to have_http_status(:ok)
         expect(response.body).to include(client_path(expiring_destination.id))
         expect(response.body).to include(expiring_source.id.to_s)
+        expect(response.body).to include("As of the run completed #{newer_run.completed_at.to_fs(:db)}")
         expect(response.body).not_to include(client_path(active_destination.id))
         expect(response.body).not_to include('Zzexpiring')
       end
 
-      it 'shows the disabled notice and no clients when retention is off' do
+      it 'shows nothing from a run that has not completed' do
+        GrdaWarehouse::ClientRetentionRun.destroy_all
+        pending_run = GrdaWarehouse::ClientRetentionRun.create!(started_at: 1.minute.ago, global_retention_years: 7)
+        expiring_row(pending_run, expiring_destination, expiring_source, expires_on: 30.days.from_now.to_date)
+
+        get warehouse_reports_client_retention_index_path
+
+        expect(response.body).to include('No records are expiring soon')
+        expect(response.body).not_to include(client_path(expiring_destination.id))
+      end
+
+      it 'shows the disabled notice when retention is off' do
         GrdaWarehouse::Config.first_or_create.update!(client_retention_years: nil)
         GrdaWarehouse::Config.invalidate_cache
 
         get warehouse_reports_client_retention_index_path
 
         expect(response.body).to include('Client data retention is disabled')
-        expect(response.body).not_to include(client_path(expiring_destination.id))
       end
     end
 

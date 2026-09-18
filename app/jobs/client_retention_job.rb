@@ -14,6 +14,7 @@ class ClientRetentionJob < BaseJob
   queue_as ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
 
   BATCH_SIZE = 5_000
+  EXPIRING_WITHIN_DAYS = 90
 
   def perform
     global_years = GrdaWarehouse::Config.get(:client_retention_years)
@@ -45,6 +46,7 @@ class ClientRetentionJob < BaseJob
         process_batch(batch.pluck(:id))
       end
       @run.update!(completed_at: Time.current, **count_attributes)
+      GrdaWarehouse::ClientRetentionExpiringClient.where.not(run_id: @run.id).delete_all
     ensure
       # Marks written by completed batches stand; the error itself goes to Sentry.
       @run.update!(failed_at: Time.current, **count_attributes) if @run.completed_at.nil?
@@ -87,6 +89,27 @@ class ClientRetentionJob < BaseJob
     log('unmarked', cleared, rows_by_destination)
     @counts[:marked] += newly_marked.size
     @counts[:unmarked] += cleared.size
+
+    record_expiring(rows - inactive)
+  end
+
+  # Identities still active whose window ends within EXPIRING_WITHIN_DAYS, for the report.
+  private def record_expiring(active_rows)
+    expiring = active_rows.filter_map do |row|
+      expires_on = row[:last_activity_on] + row[:retention_years].years
+      next unless expires_on <= @today + EXPIRING_WITHIN_DAYS
+
+      {
+        run_id: @run.id,
+        destination_client_id: row[:destination_id],
+        source_clients: row[:source_clients],
+        last_activity_on: row[:last_activity_on],
+        retention_years: row[:retention_years],
+        basis: row[:basis],
+        expires_on: expires_on,
+      }
+    end
+    GrdaWarehouse::ClientRetentionExpiringClient.insert_all(expiring) if expiring.any?
   end
 
   private def source_ids_for(row)

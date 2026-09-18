@@ -1,3 +1,5 @@
 = render 'header'
-%h2.h4= "Records expiring within #{WarehouseReports::ClientRetentionController::EXPIRING_WITHIN_DAYS} days"
+%h2.h4= "Records expiring within #{ClientRetentionJob::EXPIRING_WITHIN_DAYS} days"
+- if @run
+  %p.text-muted= "As of the run completed #{@run.completed_at.to_fs(:db)}"
 = render_paginated_list(scope: @expiring, item_name: 'client', list_partial: 'expiring_list', empty_message: 'No records are expiring soon')

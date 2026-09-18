@@ -30,8 +30,7 @@ Rows with `DateDeleted` set are ignored (a soft-deleted `Exit` leaves its enroll
 soft-deleted source `Client` contributes nothing and is not marked). Dates after today are ignored.
 An identity with no enrollments and no `Client` DateUpdated on any source has no activity date at
 all: it is skipped entirely, never marked, never unmarked, and not included in the run's
-evaluated count. The expiring-soon report shows which rule applied as the
-"Basis" column.
+evaluated count. The expiring-soon report shows which rule applied as the "Basis" column.
 
 ## Window rule
 
@@ -54,7 +53,11 @@ maintenance-task record. It does nothing when the global window is `nil`. Each r
    since moved into an active identity.
 3. Logs `marked` and `unmarked` entries in `client_retention_log_entries` with plain identifiers
    (warehouse ids, data source ids, PersonalIDs) and never names, SSN or DOB.
-4. Records evaluated, marked and unmarked counts on the run.
+4. Writes one `client_retention_expiring_clients` row per active identity whose window ends
+   within 90 days, then drops the rows of earlier runs once the run completes. The "Records
+   Expiring Soon" report reads the latest completed run's rows by `run_id` and touches no HUD
+   tables.
+5. Records evaluated, marked and unmarked counts on the run.
 
 ## Sizing before enabling
 

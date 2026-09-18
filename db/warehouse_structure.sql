@@ -27085,6 +27085,41 @@ ALTER SEQUENCE public.client_notes_id_seq OWNED BY public.client_notes.id;
 
 
 --
+-- Name: client_retention_expiring_clients; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.client_retention_expiring_clients (
+    id bigint NOT NULL,
+    run_id bigint NOT NULL,
+    destination_client_id bigint NOT NULL,
+    source_clients jsonb DEFAULT '[]'::jsonb NOT NULL,
+    last_activity_on date NOT NULL,
+    retention_years integer NOT NULL,
+    basis character varying NOT NULL,
+    expires_on date NOT NULL
+);
+
+
+--
+-- Name: client_retention_expiring_clients_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.client_retention_expiring_clients_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: client_retention_expiring_clients_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.client_retention_expiring_clients_id_seq OWNED BY public.client_retention_expiring_clients.id;
+
+
+--
 -- Name: client_retention_log_entries; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -57859,6 +57894,13 @@ ALTER TABLE ONLY public.client_notes ALTER COLUMN id SET DEFAULT nextval('public
 
 
 --
+-- Name: client_retention_expiring_clients id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.client_retention_expiring_clients ALTER COLUMN id SET DEFAULT nextval('public.client_retention_expiring_clients_id_seq'::regclass);
+
+
+--
 -- Name: client_retention_log_entries id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -64545,6 +64587,14 @@ ALTER TABLE ONLY public.client_merge_histories
 
 ALTER TABLE ONLY public.client_notes
     ADD CONSTRAINT client_notes_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: client_retention_expiring_clients client_retention_expiring_clients_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.client_retention_expiring_clients
+    ADD CONSTRAINT client_retention_expiring_clients_pkey PRIMARY KEY (id);
 
 
 --
@@ -216842,6 +216892,13 @@ CREATE INDEX index_client_notes_on_user_id ON public.client_notes USING btree (u
 
 
 --
+-- Name: index_client_retention_expiring_on_run_id_and_expires_on; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_client_retention_expiring_on_run_id_and_expires_on ON public.client_retention_expiring_clients USING btree (run_id, expires_on);
+
+
+--
 -- Name: index_client_retention_log_entries_on_destination_client_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -360776,6 +360833,7 @@ ALTER TABLE ONLY public.import_logs
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260918121000'),
 ('20260916122000'),
 ('20260916121000'),
 ('20260916120000'),

@@ -166,23 +166,5 @@ RSpec.describe GrdaWarehouse::InactiveClient, type: :model do
         { 'client_id' => source_two.id, 'data_source_id' => ds_two.id, 'personal_id' => source_two.PersonalID },
       )
     end
-
-    it 'limits to rollups whose window ends within the given days when expiring_within is set' do
-      freeze_time do
-        enroll(source_one, entry_on: 12.years.ago.to_date, exit_on: 10.years.ago.to_date)
-        # Global 7 years, latest exit 10 years ago: this rollup expired 3 years ago.
-        expect(rollup(expiring_within: 90)).to be_nil
-
-        GrdaWarehouse::Hud::Exit.where(PersonalID: source_one.PersonalID).update_all(ExitDate: (7.years.ago + 30.days).to_date)
-        expect(rollup(expiring_within: 90)[:destination_id]).to eq(destination.id)
-        expect(rollup(expiring_within: 10)).to be_nil
-      end
-    end
-
-    it 'evaluates every linked destination when destination_ids is nil' do
-      rows = described_class.rollup_activity(destination_ids: nil, global_years: 7)
-
-      expect(rows.map { |row| row[:destination_id] }).to include(destination.id)
-    end
   end
 end

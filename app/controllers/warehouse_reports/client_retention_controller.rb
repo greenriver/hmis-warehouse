@@ -12,19 +12,12 @@ module WarehouseReports
   class ClientRetentionController < ApplicationController
     include WarehouseReportAuthorization
 
-    EXPIRING_WITHIN_DAYS = 90
-
     before_action :set_global_years
 
-    # Records Expiring Soon. The views paginate via render_paginated_list.
+    # Records Expiring Soon, as computed by the latest completed run.
     def index
-      @expiring = if @global_years.nil?
-        []
-      else
-        GrdaWarehouse::InactiveClient.
-          rollup_activity(destination_ids: nil, global_years: @global_years, expiring_within: EXPIRING_WITHIN_DAYS).
-          sort_by { |row| [row[:last_activity_on], row[:destination_id]] }
-      end
+      @run = GrdaWarehouse::ClientRetentionRun.latest_completed
+      @expiring = @run ? @run.expiring_clients.ordered : GrdaWarehouse::ClientRetentionExpiringClient.none
     end
 
     # Expired Records: the mark/unmark log, newest first
