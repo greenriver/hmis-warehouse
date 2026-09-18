@@ -23,7 +23,9 @@ class Hmis::Hud::CustomServiceType < Hmis::Hud::Base
   end
 
   has_many :custom_services
-  has_many :form_instances, class_name: 'Hmis::Form::Instance'
+  # Deleting a form rule in the frontend marks it inactive rather than destroying it, so only
+  # active rules indicate that a form is currently enabled for this service type.
+  has_many :form_instances, -> { active }, class_name: 'Hmis::Form::Instance'
   has_many :definitions, through: :form_instances, source: :definitions
 
   validates :hud_record_type, uniqueness: { scope: [:hud_type_provided, :data_source_id] }, allow_nil: true
