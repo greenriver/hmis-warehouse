@@ -5,6 +5,7 @@
         %th Warehouse client
         %th Source client ids
         %th Last activity
+        %th Basis
         %th Window
         %th Expires
     %tbody
@@ -13,5 +14,6 @@
           %td= link_to row[:destination_id], client_path(row[:destination_id])
           %td= row[:source_clients].map { |sc| sc['client_id'] }.join(', ')
           %td= row[:last_activity_on]
+          %td= row[:basis].humanize
           %td= "#{row[:retention_years]} years"
           %td= row[:last_activity_on] + row[:retention_years].years

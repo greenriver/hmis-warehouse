@@ -13,13 +13,13 @@ RSpec.describe ClientRetentionJob, type: :job do
   let!(:ds_one) { create(:source_data_source, name: 'Vendor One', short_name: 'V1') }
   let!(:ds_two) { create(:source_data_source, name: 'Vendor Two', short_name: 'V2') }
 
-  let!(:destination) { create(:grda_warehouse_hud_client, data_source: warehouse_ds, DateUpdated: 12.years.ago) }
-  let!(:source_one) { create(:grda_warehouse_hud_client, data_source: ds_one, DateUpdated: 8.years.ago) }
-  let!(:source_two) { create(:grda_warehouse_hud_client, data_source: ds_two, DateUpdated: 8.years.ago) }
+  let!(:destination) { create(:grda_warehouse_hud_client, data_source: warehouse_ds, DateUpdated: 12.years.ago.to_date) }
+  let!(:source_one) { create(:grda_warehouse_hud_client, data_source: ds_one, DateUpdated: 8.years.ago.to_date) }
+  let!(:source_two) { create(:grda_warehouse_hud_client, data_source: ds_two, DateUpdated: 8.years.ago.to_date) }
 
   # An identity nobody should touch: exited last year.
-  let!(:active_destination) { create(:grda_warehouse_hud_client, data_source: warehouse_ds, DateUpdated: 1.year.ago) }
-  let!(:active_source) { create(:grda_warehouse_hud_client, data_source: ds_one, DateUpdated: 1.year.ago) }
+  let!(:active_destination) { create(:grda_warehouse_hud_client, data_source: warehouse_ds, DateUpdated: 1.year.ago.to_date) }
+  let!(:active_source) { create(:grda_warehouse_hud_client, data_source: ds_one, DateUpdated: 1.year.ago.to_date) }
 
   before do
     link(destination, source_one)
@@ -84,7 +84,7 @@ RSpec.describe ClientRetentionJob, type: :job do
     end
 
     it 'keeps an identity whose newest activity is exactly at the window edge' do
-      source_one.update!(DateUpdated: 7.years.ago)
+      source_one.update!(DateUpdated: 7.years.ago.to_date)
 
       described_class.perform_now
 
@@ -93,7 +93,7 @@ RSpec.describe ClientRetentionJob, type: :job do
 
     it 'clears the mark and logs an unmark once the identity has fresh activity' do
       described_class.perform_now
-      create(:hud_service, data_source_id: ds_one.id, PersonalID: source_one.PersonalID, DateProvided: Date.current, DateUpdated: Time.current)
+      create(:hud_enrollment, data_source_id: ds_one.id, PersonalID: source_one.PersonalID, EntryDate: Date.current, DateUpdated: Date.current)
 
       described_class.perform_now
 
@@ -105,7 +105,7 @@ RSpec.describe ClientRetentionJob, type: :job do
 
     it 'does not re-log an identity that stays marked, and adds a row for a newly merged source' do
       described_class.perform_now
-      late_source = create(:grda_warehouse_hud_client, data_source: ds_two, DateUpdated: 9.years.ago)
+      late_source = create(:grda_warehouse_hud_client, data_source: ds_two, DateUpdated: 9.years.ago.to_date)
       link(destination, late_source)
 
       described_class.perform_now
@@ -135,6 +135,16 @@ RSpec.describe ClientRetentionJob, type: :job do
       entry = GrdaWarehouse::ClientRetentionLogEntry.where(action: 'unmarked').sole
       expect(entry.destination_client_id).to eq(active_destination.id)
       expect(entry.source_clients.map { |sc| sc['client_id'] }).to contain_exactly(active_source.id, source_two.id)
+    end
+
+    it 'judges an exited identity on its exit date and client row, not on records under the exited enrollment' do
+      enrollment = create(:hud_enrollment, data_source_id: ds_one.id, PersonalID: source_one.PersonalID, EntryDate: 12.years.ago.to_date)
+      create(:hud_exit, data_source_id: ds_one.id, PersonalID: source_one.PersonalID, EnrollmentID: enrollment.EnrollmentID, ExitDate: 9.years.ago.to_date)
+      create(:hud_service, data_source_id: ds_one.id, PersonalID: source_one.PersonalID, EnrollmentID: enrollment.EnrollmentID, DateProvided: 1.year.ago.to_date)
+
+      described_class.perform_now
+
+      expect(marked_ids).to contain_exactly(source_one.id, source_two.id)
     end
 
     it 'keeps the identity when one of its data sources has a longer window' do
