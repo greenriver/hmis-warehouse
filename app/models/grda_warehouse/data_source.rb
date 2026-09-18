@@ -873,8 +873,6 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
       group(bucket)
   end
 
-  # True when this data source is an Open Path HMIS installation
-  # @see docs/features/hmis/multi-hmis-support.md
   # A per-source window only means something while global retention is on, and the
   # warehouse (destination) data source has no source clients for a window to apply to.
   def client_retention_override_available?
@@ -891,6 +889,8 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     client_retention_years || global
   end
 
+  # True when this data source is an Open Path HMIS installation
+  # @see docs/features/hmis/multi-hmis-support.md
   def hmis?
     hmis.present?
   end

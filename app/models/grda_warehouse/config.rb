@@ -156,12 +156,12 @@ module GrdaWarehouse
       }
     end
 
-    # Options for the retention selects. A console-set window outside 7..20 is added so
-    # re-saving the form keeps it instead of posting a different option.
+    # Options for the retention selects. A console-set window outside 7..20 is listed first,
+    # labelled "(current)", so re-saving the form keeps it instead of posting a different option.
     def self.available_client_retention_years(current: nil)
-      years = (7..20).to_a
-      years.unshift(current) if current.present? && !years.include?(current)
-      { 'Disabled' => nil }.merge(years.to_h { |y| ["#{y} years", y] })
+      options = { 'Disabled' => nil }
+      options["#{current} years (current)"] = current if current.present? && !(7..20).cover?(current)
+      options.merge((7..20).to_h { |y| ["#{y} years", y] })
     end
 
     def self.available_warehouse_client_name_orders

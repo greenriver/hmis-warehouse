@@ -26,8 +26,11 @@ row. Which fields count depends on whether the identity has an open enrollment:
   `Enrollment` EntryDate and DateUpdated, `Exit` ExitDate on the other enrollments,
   `Services` DateProvided, `CurrentLivingSituation` InformationDate and `IncomeBenefits`
   InformationDate. These are the fields every project type keeps writing during a stay.
-Rows with `DateDeleted` set are ignored, so a soft-deleted `Exit` leaves its enrollment open.
-Dates after today are ignored. The expiring-soon report shows which rule applied as the
+Rows with `DateDeleted` set are ignored (a soft-deleted `Exit` leaves its enrollment open, and a
+soft-deleted source `Client` contributes nothing and is not marked). Dates after today are ignored.
+An identity with no enrollments and no `Client` DateUpdated on any source has no activity date at
+all: it is skipped entirely, never marked, never unmarked, and not included in the run's
+evaluated count. The expiring-soon report shows which rule applied as the
 "Basis" column.
 
 ## Window rule

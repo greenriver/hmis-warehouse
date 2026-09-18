@@ -67,8 +67,9 @@ RSpec.describe GrdaWarehouse::Config, type: :model do
       expect(options.values.compact).to eq((7..20).to_a)
     end
 
-    it 'adds a console-set window below seven to the options so the form can keep it' do
-      expect(described_class.available_client_retention_years(current: 3).values.compact).to eq([3] + (7..20).to_a)
+    it 'lists a console-set window outside 7..20 first, labelled as current, so the form can keep it' do
+      expect(described_class.available_client_retention_years(current: 3).to_a.second).to eq(['3 years (current)', 3])
+      expect(described_class.available_client_retention_years(current: 25).to_a.second).to eq(['25 years (current)', 25])
       expect(described_class.available_client_retention_years(current: 10).values.compact).to eq((7..20).to_a)
     end
   end

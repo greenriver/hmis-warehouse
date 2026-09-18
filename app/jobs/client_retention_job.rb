@@ -40,16 +40,23 @@ class ClientRetentionJob < BaseJob
     # Full scan of every destination each night; if it outgrows the maintenance
     # window, restrict to rollups with an Exit.DateUpdated since the previous run plus those
     # already marked.
-    GrdaWarehouse::Hud::Client.destination.in_batches(of: BATCH_SIZE) do |batch|
-      process_batch(batch.pluck(:id))
+    begin
+      GrdaWarehouse::Hud::Client.destination.in_batches(of: BATCH_SIZE) do |batch|
+        process_batch(batch.pluck(:id))
+      end
+      @run.update!(completed_at: Time.current, **count_attributes)
+    ensure
+      # Marks written by completed batches stand; the error itself goes to Sentry.
+      @run.update!(failed_at: Time.current, **count_attributes) if @run.completed_at.nil?
     end
+  end
 
-    @run.update!(
-      completed_at: Time.current,
+  private def count_attributes
+    {
       evaluated_count: @counts[:evaluated],
       marked_count: @counts[:marked],
       unmarked_count: @counts[:unmarked],
-    )
+    }
   end
 
   private def process_batch(destination_ids)

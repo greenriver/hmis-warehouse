@@ -63,6 +63,7 @@ module Cohorts
       end
       @visible_columns << delete_column if current_user.can_add_cohort_clients?
 
+      current_user.policy_context.preload_client_restrictions(@cohort_clients.map(&:client_id))
       @cohort_clients.each do |cohort_client|
         client = cohort_client.client
         next if client.blank?

@@ -62,7 +62,7 @@ class GrdaWarehouse::InactiveClient < GrdaWarehouseBase
     WITH links AS (
       SELECT wc.destination_id, wc.source_id, c."PersonalID", c.data_source_id
       FROM warehouse_clients wc
-      JOIN "Client" c ON c.id = wc.source_id
+      JOIN "Client" c ON c.id = wc.source_id AND c."DateDeleted" IS NULL
       WHERE wc.deleted_at IS NULL /*ID_FILTER*/
     ),
     enrollments AS (

@@ -318,6 +318,14 @@ RSpec.describe Cohorts::ClientsController, type: :request do
       expect(open_row['ssnumber']['value']).to include('XXX-XX-6666')
     end
 
+    it 'resolves retention marks for the page in one query, not once per client' do
+      3.times { cohort.cohort_clients.create!(client_id: create(:hud_client, FirstName: 'CohortClient').id) }
+
+      expect do
+        get cohort_cohort_clients_path(cohort, format: :json), params: { content: true, page: 1, per: 50 }
+      end.to make_database_queries(matching: /FROM "inactive_clients"/, count: 1)
+    end
+
     it 'wires current_user onto every visible column' do
       # GrdaWarehouse::Cohort#visible_columns sets current_user on each column; without
       # that, CohortColumns::Base#client_restricted? raises on a nil current_user.

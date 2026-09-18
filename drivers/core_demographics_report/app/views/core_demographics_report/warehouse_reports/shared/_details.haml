@@ -18,6 +18,8 @@
 - else
   - columns = @report.column_objects_for(@key)
   - rows = scope.pluck(*@report.columns_for(@key))
+  - client_id_index = @report.header_for(@key).index('Client ID')
+  - current_user.policy_context.preload_client_restrictions(rows.map { |row| row[client_id_index] }) if client_id_index
   %p Showing #{pluralize(number_with_delimiter(scope.distinct.select(:client_id).count), 'client')}.
   .card.overflow-x-scroll{style: "height: 800px"}
     %table.table.table-sm.table-bordered.table-fixed.datatable{ style: 'margin-top: 0 !important;'}

@@ -102,6 +102,15 @@ RSpec.describe WarehouseReports::ClientRetentionController, type: :request do
     end
 
     describe 'Retention Run History' do
+      it 'shows a failed run as failed rather than in progress' do
+        GrdaWarehouse::ClientRetentionRun.create!(started_at: 10.minutes.ago, failed_at: 5.minutes.ago, global_retention_years: 7)
+
+        get runs_warehouse_reports_client_retention_index_path
+
+        expect(response.body).to include('Failed')
+        expect(response.body).not_to include('In progress')
+      end
+
       it 'lists runs newest first with their counts' do
         get runs_warehouse_reports_client_retention_index_path
 
