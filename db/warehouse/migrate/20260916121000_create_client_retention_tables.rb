@@ -40,12 +40,5 @@ class CreateClientRetentionTables < ActiveRecord::Migration[7.2]
       t.integer :retention_years
       t.timestamp :created_at, null: false
     end
-
-    # Not concurrent, so the migration stays in one transaction (see the
-    # warehouse_clients_processed unique-index migration for why).
-    safety_assured do
-      add_index :files, :client_id, if_not_exists: true
-      add_index :CustomAssessments, [:data_source_id, :PersonalID], if_not_exists: true
-    end
   end
 end

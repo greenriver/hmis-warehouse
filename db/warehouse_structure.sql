@@ -214579,13 +214579,6 @@ CREATE INDEX "index_CustomAssessments_on_created_by_hud_user_id" ON public."Cust
 
 
 --
--- Name: index_CustomAssessments_on_data_source_id_and_PersonalID; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "index_CustomAssessments_on_data_source_id_and_PersonalID" ON public."CustomAssessments" USING btree (data_source_id, "PersonalID");
-
-
---
 -- Name: index_CustomAssessments_on_updated_by_hud_user_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -217075,13 +217068,6 @@ CREATE INDEX index_favorites_on_updated_at ON public.favorites USING btree (upda
 --
 
 CREATE INDEX index_favorites_on_user_id ON public.favorites USING btree (user_id);
-
-
---
--- Name: index_files_on_client_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_files_on_client_id ON public.files USING btree (client_id);
 
 
 --
