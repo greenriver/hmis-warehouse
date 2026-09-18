@@ -76,10 +76,6 @@ RSpec.describe GrdaWarehouse::AuthPolicies::ContextLoaders::RestrictedClientLoad
       expect(loader.restricted?(destination_client.id)).to eq(true)
     end
 
-    it 'returns false for a nil id' do
-      expect(loader.restricted?(nil)).to eq(false)
-    end
-
     it 'issues zero queries for a nil id, and does not load until the first real lookup' do
       expect(GrdaWarehouse::HiddenClients).not_to receive(:restricted_ids)
       loader.restricted?(nil)

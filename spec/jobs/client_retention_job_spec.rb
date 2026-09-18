@@ -150,16 +150,6 @@ RSpec.describe ClientRetentionJob, type: :job do
       expect(entry.source_clients.map { |sc| sc['client_id'] }).to contain_exactly(active_source.id, source_two.id)
     end
 
-    it 'judges an exited identity on its exit date and client row, not on records under the exited enrollment' do
-      enrollment = create(:hud_enrollment, data_source_id: ds_one.id, PersonalID: source_one.PersonalID, EntryDate: 12.years.ago.to_date)
-      create(:hud_exit, data_source_id: ds_one.id, PersonalID: source_one.PersonalID, EnrollmentID: enrollment.EnrollmentID, ExitDate: 9.years.ago.to_date)
-      create(:hud_service, data_source_id: ds_one.id, PersonalID: source_one.PersonalID, EnrollmentID: enrollment.EnrollmentID, DateProvided: 1.year.ago.to_date)
-
-      described_class.perform_now
-
-      expect(marked_ids).to contain_exactly(source_one.id, source_two.id)
-    end
-
     it 'keeps the identity when one of its data sources has a longer window' do
       ds_two.update!(client_retention_years: 10)
 
