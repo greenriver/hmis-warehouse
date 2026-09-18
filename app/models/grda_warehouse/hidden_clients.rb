@@ -23,6 +23,13 @@ module GrdaWarehouse::HiddenClients
     GrdaWarehouseBase.connection.select_values(inactive_ids_union.to_sql).to_set
   end
 
+  # Only the destinations reached from marked sources, for callers whose rows are all
+  # destination clients (the HMIS CSV export).
+  # @return [Set<Integer>]
+  def self.inactive_destination_ids
+    GrdaWarehouseBase.connection.select_values(inactive_destinations.distinct.to_sql).to_set
+  end
+
   # The members of +client_ids+ (source or destination ids) that are inactive, in one query.
   # @param client_ids [Enumerable<Integer>]
   # @return [Set<Integer>]
@@ -87,16 +94,19 @@ module GrdaWarehouse::HiddenClients
   # warehouse_clients rows, as a single client_id column.
   # @return [Arel::Nodes::Union]
   def self.inactive_ids_union
+    sources = GrdaWarehouse::InactiveClient.arel_table.project(GrdaWarehouse::InactiveClient.arel_table[:client_id])
+    Arel::Nodes::Union.new(sources, inactive_destinations)
+  end
+
+  # @return [Arel::SelectManager] destination_id of every live warehouse_clients row whose source is marked
+  def self.inactive_destinations
     ic_t = GrdaWarehouse::InactiveClient.arel_table
     wc_t = GrdaWarehouse::WarehouseClient.arel_table
 
-    sources = ic_t.project(ic_t[:client_id])
-    destinations = wc_t.
+    wc_t.
       project(wc_t[:destination_id]).
       join(ic_t).on(ic_t[:client_id].eq(wc_t[:source_id])).
       where(wc_t[:deleted_at].eq(nil))
-
-    Arel::Nodes::Union.new(sources, destinations)
   end
-  private_class_method :restricted_ids_union, :inactive_ids_union
+  private_class_method :restricted_ids_union, :inactive_ids_union, :inactive_destinations
 end

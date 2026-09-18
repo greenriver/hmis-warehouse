@@ -13,16 +13,17 @@ class Export::RestrictedClientPiiTransform
 
   def initialize(options)
     @export = options[:export]
-    @loader = GrdaWarehouse::AuthPolicies::ContextLoaders::RestrictedClientLoader.new
-    # Rows arrive one at a time, so resolve the inactive identities once for the whole export.
-    # Job-scoped Set of integer ids; move to a LEFT JOIN flag on the export scope if
-    # the inactive population reaches millions.
-    @inactive_ids = GrdaWarehouse::HiddenClients.inactive_ids
+    # Kiba hands us one row at a time, so both hidden sets are loaded once per export and held
+    # as Sets for the job's lifetime. Export rows are destination clients (Export::Scopes
+    # #client_scope), so only inactive destinations are loaded. If that set ever reaches millions of
+    # ids, move the check into the exporter's client scope as a LEFT JOIN flag instead to avoid memory bloat.
+    @restricted_ids = GrdaWarehouse::AuthPolicies::ContextLoaders::RestrictedClientLoader.new.restricted_client_ids
+    @inactive_ids = GrdaWarehouse::HiddenClients.inactive_destination_ids
   end
 
   def process(row)
     return row if @export.hash_status == 4 || @export.faked_pii
-    return row unless @inactive_ids.include?(row.id) || @loader.restricted?(row.id)
+    return row unless @inactive_ids.include?(row.id) || @restricted_ids.include?(row.id)
 
     row.FirstName = row.MiddleName = row.LastName = row.NameSuffix = REDACTED
     row.SSN = nil

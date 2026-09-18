@@ -38,8 +38,17 @@ RSpec.describe Export::RestrictedClientPiiTransform, type: :model do
     expect(row.DOB).to eq(aged_destination.DOB)
   end
 
-  it 'redacts the retention-marked source row itself' do
-    expect(transform.process(aged_source)).to have_attributes(FirstName: redacted, LastName: redacted, SSN: nil, SSNDataQuality: 99)
+  it 'covers destination rows only: a marked source row, which the exporter never emits, passes through' do
+    expect(transform.process(aged_source)).to have_attributes(FirstName: 'Zzaged', SSN: '999887777')
+  end
+
+  it 'issues no queries per row once the sets are loaded' do
+    transform
+
+    expect do
+      transform.process(aged_destination)
+      transform.process(current_destination)
+    end.not_to make_database_queries
   end
 
   it 'leaves an unmarked client in the same export untouched' do

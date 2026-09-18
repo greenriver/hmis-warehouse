@@ -58,6 +58,12 @@ RSpec.describe GrdaWarehouse::HiddenClients, type: :model do
     end
   end
 
+  describe '.inactive_destination_ids' do
+    it 'returns the destinations of marked sources and not the sources themselves' do
+      expect(described_class.inactive_destination_ids).to eq(Set[inactive_destination.id])
+    end
+  end
+
   describe '.inactive_subset' do
     it 'returns only the given ids that are inactive, for a source id and a destination id alike' do
       asked = [inactive_source.id, inactive_destination.id, open_client.id, restricted_source.id]
