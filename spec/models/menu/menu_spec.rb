@@ -194,12 +194,24 @@ RSpec.describe Menu::Menu, type: :model do
       expect(collect_titles(tree)).not_to include('Care Hub')
     end
 
-    it 'lists HUD reports under Reports rather than a separate HUD Reports item' do
-      grant_hud_report(user, 'hud_reports/aprs')
-      titles = collect_titles([menu.reports_menu])
+    describe 'HUD Reports item' do
+      let(:hud_item) { menu.reports_menu.children.to_a.find { |item| item.id == 'hud-reports' } }
 
-      expect(titles).to include('Reports')
-      expect(titles).not_to include('HUD Reports', 'Warehouse Reports')
+      it 'points at the HUD Reports section of the warehouse reports page for a user granted a HUD report' do
+        grant_hud_report(user, 'hud_reports/aprs')
+
+        expect(hud_item.path).to eq('/warehouse_reports#hud-reports')
+        expect(collect_titles([menu.reports_menu])).to include('HUD Reports', 'Warehouse Reports')
+      end
+
+      it 'is absent for a user whose reports include no HUD report' do
+        collection = create(:collection, collection_type: 'Reports')
+        collection.set_viewables(reports: [analytics_report.id])
+        setup_access_control(user, create(:role, can_view_assigned_reports: true), collection)
+
+        expect(hud_item).to be_nil
+        expect(collect_titles([menu.reports_menu])).to include('Warehouse Reports')
+      end
     end
   end
 end

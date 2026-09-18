@@ -46,10 +46,22 @@ class Menu::Menu
       match_pattern: GrdaWarehouse::WarehouseReports::ReportDefinition.pluck(:url).map { |u| "^/#{u}.*" }.join('|'),
       match_pattern_terminator: '.*',
     )
+    menu.add_child(hud_reports_menu)
     menu.add_child(warehouse_reports_menu)
     menu.add_child(op_analytics_menu)
     menu.add_child(favorites_menu)
     menu
+  end
+
+  # HUD reports are a section of the warehouse reports page; this is a shortcut to it.
+  def hud_reports_menu
+    Menu::Item.new(
+      user: user,
+      path: warehouse_reports_path(anchor: GrdaWarehouse::WarehouseReports::ReportDefinition::HUD_REPORT_GROUP.parameterize),
+      visible: ->(user) { GrdaWarehouse::WarehouseReports::ReportDefinition.viewable_by(user).hud.exists? },
+      title: Translation.translate('HUD Reports'),
+      id: 'hud-reports',
+    )
   end
 
   def warehouse_reports_menu
@@ -57,7 +69,7 @@ class Menu::Menu
       user: user,
       visible: ->(user) { user.can_view_any_reports? }, # rubocop:disable Style/SymbolProc
       path: warehouse_reports_path,
-      title: Translation.translate('Reports'),
+      title: Translation.translate('Warehouse Reports'),
       id: 'warehouse-reports',
     )
   end
