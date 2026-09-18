@@ -15,6 +15,7 @@
         - project_id_index = headers.index('_project_id')
         - client_id_index = headers.index('Client ID')
         - rows = scope.pluck(*@report.columns_for(@key))
+        - current_user.policy_context.preload_client_restrictions(rows.map { |row| row[client_id_index] }) if client_id_index
         - rows.each do |row|
           %tr
             - row.each_with_index do |col, i|

@@ -16,6 +16,10 @@ module GrdaWarehouse
     serialize :client_details, type: Array
     validates :cas_sync_project_group_id, presence: { message: 'is required for the selected sync method.' }, if: ->(o) { o.cas_available_method.to_sym.in?([:project_group, :boston]) }
 
+    # nil turns retention processing off. Any positive number of years is valid; the admin UI
+    # offers only 7 and up (HUD's minimum), shorter windows are set from the console.
+    validates :client_retention_years, numericality: { only_integer: true, greater_than: 0 }, allow_nil: true
+
     after_save :invalidate_cache
 
     # The multi-select posts a hidden blank alongside the real selections, and that
@@ -150,6 +154,14 @@ module GrdaWarehouse
         '15 Days' => 15,
         '30 Days' => 30,
       }
+    end
+
+    # Options for the retention selects. A console-set window outside 7..20 is listed first,
+    # labelled "(current)", so re-saving the form keeps it instead of posting a different option.
+    def self.available_client_retention_years(current: nil)
+      options = { 'Disabled' => nil }
+      options["#{current} years (current)"] = current if current.present? && !(7..20).cover?(current)
+      options.merge((7..20).to_h { |y| ["#{y} years", y] })
     end
 
     def self.available_warehouse_client_name_orders
@@ -342,6 +354,7 @@ module GrdaWarehouse
         :rds_s3_integration_role_arn,
         :relevant_state_codes,
         :dob_selection_method,
+        :client_retention_years,
         client_details: [],
         client_demographic_columns: [],
       ]

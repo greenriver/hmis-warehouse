@@ -169,11 +169,33 @@ RSpec.describe HudReports::ReportClientBase, type: :model do
       )
     end
 
-    before { restricted_client.mark_as_restricted!(user: hmis_user) }
+    let!(:inactive_client) { create(:hmis_hud_client, data_source: hmis_ds, first_name: 'Inactivefirst', last_name: 'Inactivelast') }
+    let!(:inactive_apr_client) do
+      create(
+        :hud_report_apr_client, first_name: inactive_client.first_name, last_name: inactive_client.last_name,
+                                personal_id: inactive_client.personal_id, client_id: inactive_client.id,
+                                destination_client_id: inactive_client.id
+      )
+    end
+
+    before do
+      restricted_client.mark_as_restricted!(user: hmis_user)
+      GrdaWarehouse::InactiveClient.create!(client_id: inactive_client.id, marked_on: Date.current, last_activity_on: 10.years.ago.to_date, retention_years: 7)
+    end
 
     it 'excludes a restricted client from a name search' do
       results = HudApr::Fy2020::AprClient.search_clients(HudApr::Fy2020::AprClient.all, 'Restrictedlast')
       expect(results).not_to include(restricted_apr_client)
+    end
+
+    it 'excludes a retention-inactive client from a name search' do
+      results = HudApr::Fy2020::AprClient.search_clients(HudApr::Fy2020::AprClient.all, 'Inactivelast')
+      expect(results).not_to include(inactive_apr_client)
+    end
+
+    it 'still returns a retention-inactive client from an exact destination_client_id search' do
+      results = HudApr::Fy2020::AprClient.search_clients(HudApr::Fy2020::AprClient.all, inactive_apr_client.destination_client_id.to_s)
+      expect(results).to include(inactive_apr_client)
     end
 
     it 'still returns a non-restricted client from a name search' do

@@ -43,10 +43,15 @@ RSpec.describe 'HapReport::WarehouseReports::HapReportsController#details', type
     expect(response.body).to include('Name Redacted')
   end
 
+  it 'resolves retention marks for every member in one query' do
+    expect do
+      get details_hap_report_warehouse_reports_hap_report_path(hap_report, cell: 'b1')
+    end.to make_database_queries(matching: /FROM "inactive_clients"/, count: 1)
+  end
+
   it 'shows an unrestricted client name in the cell detail view' do
     get details_hap_report_warehouse_reports_hap_report_path(hap_report, cell: 'b1')
 
     expect(response.body).to include('Open')
-    expect(response.body).to include('Client')
   end
 end

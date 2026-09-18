@@ -104,6 +104,11 @@ module Importing
         @notifier.ping('Updated service history summaries')
       end
 
+      # Queued rather than run inline so the scan never holds up the rest of the nightly work;
+      # it goes here because IdentifyDuplicates and ClientCleanup have finished rewriting
+      # warehouse_clients by this point.
+      ClientRetentionJob.set(priority: BaseJob::MAINTENANCE_PRIORITY_15).perform_later
+
       run_maintenance_task('Maintain name search maintenance') do
         Nickname.populate!
         @notifier.ping('Nicknames updated')
