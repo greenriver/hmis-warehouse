@@ -2,9 +2,8 @@
   %h3 Client Data Retention
   .c-card.c-card--flush.c-card--padded.flex-wrap
     %p
-      Use this section to set the window for marking clients inactive. Client activity is determined by looking across all of their records.  An inactive client's PII are redacted throughout the warehouse and the client is excluded from name and SSN search. At this time, no records are deleted.
+      Use this section to set the window for marking clients inactive. Client activity is determined by looking across all of their records. An inactive client's PII is redacted throughout the warehouse and the client is excluded from name and SSN search. At this time, no records are deleted.
     %p
       Individual data sources may set their own window; when a client spans several data sources, the longest window applies.
 
-    - hint = "Clients whose newest activity is older than this window are marked inactive by a nightly job."
-    = f.input :client_retention_years, label: 'Mark clients inactive after', collection: GrdaWarehouse::Config.available_client_retention_years(current: f.object.client_retention_years), as: :select_two, include_blank: false, hint: hint.html_safe
+    = f.input :client_retention_years, label: 'Mark clients inactive after', collection: GrdaWarehouse::Config.available_client_retention_years(current: f.object.client_retention_years), as: :select_two, include_blank: false, hint: 'Clients whose newest activity is older than this window are marked inactive by a nightly job.'

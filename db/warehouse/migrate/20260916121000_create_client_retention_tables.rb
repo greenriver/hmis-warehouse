@@ -21,6 +21,7 @@ class CreateClientRetentionTables < ActiveRecord::Migration[7.2]
     create_table :client_retention_runs do |t|
       t.timestamp :started_at, null: false
       t.timestamp :completed_at
+      t.timestamp :failed_at
       t.integer :global_retention_years, null: false
       t.jsonb :data_source_overrides, null: false, default: {}
       t.integer :evaluated_count, null: false, default: 0

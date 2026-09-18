@@ -132,10 +132,12 @@ RSpec.describe GrdaWarehouse::InactiveClient, type: :model do
         expect(rollup[:last_activity_on]).to eq(1.year.ago.to_date)
       end
 
-      it 'ignores soft-deleted records and links' do
+      it 'ignores soft-deleted records, links and source clients' do
         create(:hud_service, data_source_id: ds_one.id, PersonalID: source_one.PersonalID, DateProvided: 1.day.ago.to_date, DateDeleted: Time.current)
         recent_source = create(:grda_warehouse_hud_client, data_source: ds_one, DateUpdated: 1.day.ago.to_date)
         link(recent_source, deleted_at: Time.current)
+        deleted_source = create(:grda_warehouse_hud_client, data_source: ds_one, DateUpdated: 1.day.ago.to_date, DateDeleted: Time.current)
+        link(deleted_source)
 
         expect(rollup[:last_activity_on]).to eq(8.years.ago.to_date)
         expect(rollup[:source_clients].map { |sc| sc['client_id'] }).to contain_exactly(source_one.id, source_two.id)

@@ -27127,6 +27127,7 @@ CREATE TABLE public.client_retention_runs (
     id bigint NOT NULL,
     started_at timestamp without time zone NOT NULL,
     completed_at timestamp without time zone,
+    failed_at timestamp without time zone,
     global_retention_years integer NOT NULL,
     data_source_overrides jsonb DEFAULT '{}'::jsonb NOT NULL,
     evaluated_count integer DEFAULT 0 NOT NULL,

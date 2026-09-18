@@ -93,6 +93,7 @@ RSpec.describe Admin::ConfigsController, type: :request do
 
         expect(select.css('option').map { |option| option['value'] }.compact_blank).to eq(['3'] + (7..20).map(&:to_s))
         expect(select.at_css('option[selected]')['value']).to eq('3')
+        expect(select.at_css('option[selected]').text).to eq('3 years (current)')
       end
     end
 

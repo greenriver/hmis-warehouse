@@ -177,7 +177,9 @@ module TxClientReports
     def rows
       return [] unless @filter.project_ids.any? || @filter.project_group_ids.any?
 
-      client_scope.map do |client|
+      clients = client_scope.to_a
+      @filter.user.policy_context.preload_client_restrictions(clients.map(&:id))
+      clients.map do |client|
         enrollment = enrollments[client.id]
         next unless enrollment.present?
 

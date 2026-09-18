@@ -1268,7 +1268,10 @@ class WarehouseReport::Outcomes::Base
         GrdaWarehouse::AuthPolicies::AllowPiiPolicy.instance
       end
 
-      pii_policy = GrdaWarehouse::PiiProvider.restrict(pii_policy, restricted: user.policy_context.client_restricted?(client_id.to_i)) if client_id.present?
+      if client_id.present?
+        preload_client_restrictions(user)
+        pii_policy = GrdaWarehouse::PiiProvider.restrict(pii_policy, restricted: user.policy_context.client_restricted?(client_id.to_i))
+      end
 
       pii_value(col: header, raw_value: value, pii_policy: pii_policy)
     end
@@ -1314,6 +1317,14 @@ class WarehouseReport::Outcomes::Base
 
     private def rows_client_ids
       @rows_client_ids ||= @rows.map(&:first)
+    end
+
+    # Once per row set: display_value is called per cell.
+    private def preload_client_restrictions(user)
+      return if @client_restrictions_preloaded
+
+      user.policy_context.preload_client_restrictions(rows_client_ids.map(&:to_i))
+      @client_restrictions_preloaded = true
     end
 
     private def destination_clients_by_id

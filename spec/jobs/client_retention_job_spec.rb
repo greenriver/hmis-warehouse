@@ -83,6 +83,17 @@ RSpec.describe ClientRetentionJob, type: :job do
       expect(entry.attributes.to_json).not_to include(destination.FirstName)
     end
 
+    it 'records failed_at on the run and re-raises when a batch fails' do
+      allow(GrdaWarehouse::InactiveClient).to receive(:rollup_activity).and_raise(ActiveRecord::StatementInvalid, 'boom')
+
+      expect { described_class.perform_now }.to raise_error(ActiveRecord::StatementInvalid)
+
+      run = GrdaWarehouse::ClientRetentionRun.sole
+      expect(run.failed_at).to be_present
+      expect(run.completed_at).to be_nil
+      expect(GrdaWarehouse::ClientRetentionRun.completed).to be_empty
+    end
+
     it 'keeps an identity whose newest activity is exactly at the window edge' do
       freeze_time do
         source_one.update!(DateUpdated: 7.years.ago.to_date)
