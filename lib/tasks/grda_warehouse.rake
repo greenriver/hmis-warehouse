@@ -384,9 +384,6 @@ namespace :grda_warehouse do
     end
   end
 
-  # The tasks below each have their own entry in config/schedule.rb. They do their work inline
-  # rather than enqueuing it so the cron pod can be sized to the task it actually runs.
-
   desc 'Purge old soft-deleted records (guarded by SoftDeleteRetentionConfiguration#enabled?)'
   task purge_soft_deleted_records: [:environment, 'log:info_to_stdout'] do
     PurgeSoftDeletedRecordsJob.new.perform(dry_run: false)
@@ -409,8 +406,6 @@ namespace :grda_warehouse do
       'GrdaWarehouse::Cohorts::CohortAnalyticsGeneration',
       alert_threshold: 36.hours,
     ) do |run|
-      # Leaving the run incomplete is how a skipped night becomes visible: the task alerts when
-      # nothing completes inside the threshold, so a lock we never get back stops being silent.
       run.complete! if GrdaWarehouse::Cohorts::CohortAnalyticsGeneration.maintain_cohort_intermediate_data
     end
   end

@@ -40,6 +40,8 @@ class HmisExternalApis::ConsumeExternalFormSubmissionsJob < BaseJob
     false
   end
 
+  protected
+
   def _perform
     s3 = s3_credential.s3
 
@@ -63,8 +65,6 @@ class HmisExternalApis::ConsumeExternalFormSubmissionsJob < BaseJob
       s3.delete(key: object.key) if submission
     end
   end
-
-  protected
 
   def with_lock(&block)
     lock_name = self.class.name.demodulize
