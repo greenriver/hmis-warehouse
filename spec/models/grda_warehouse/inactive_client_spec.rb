@@ -13,9 +13,9 @@ RSpec.describe GrdaWarehouse::InactiveClient, type: :model do
   let!(:ds_one) { create(:source_data_source, name: 'Vendor One', short_name: 'V1') }
   let!(:ds_two) { create(:source_data_source, name: 'Vendor Two', short_name: 'V2') }
 
-  let!(:destination) { create(:grda_warehouse_hud_client, data_source: warehouse_ds, DateUpdated: 12.years.ago) }
-  let!(:source_one) { create(:grda_warehouse_hud_client, data_source: ds_one, DateUpdated: 10.years.ago) }
-  let!(:source_two) { create(:grda_warehouse_hud_client, data_source: ds_two, DateUpdated: 10.years.ago) }
+  let!(:destination) { create(:grda_warehouse_hud_client, data_source: warehouse_ds, DateUpdated: 12.years.ago.to_date) }
+  let!(:source_one) { create(:grda_warehouse_hud_client, data_source: ds_one, DateUpdated: 10.years.ago.to_date) }
+  let!(:source_two) { create(:grda_warehouse_hud_client, data_source: ds_two, DateUpdated: 10.years.ago.to_date) }
 
   before do
     link(source_one)
@@ -30,41 +30,110 @@ RSpec.describe GrdaWarehouse::InactiveClient, type: :model do
     described_class.rollup_activity(destination_ids: [destination.id], global_years: 7, **options).find { |row| row[:destination_id] == destination.id }
   end
 
+  def enroll(source, entry_on:, exit_on: nil, updated_at: entry_on)
+    enrollment = create(:hud_enrollment, data_source_id: source.data_source_id, PersonalID: source.PersonalID, EntryDate: entry_on, DateUpdated: updated_at)
+    create(:hud_exit, data_source_id: source.data_source_id, PersonalID: source.PersonalID, EnrollmentID: enrollment.EnrollmentID, ExitDate: exit_on, DateUpdated: exit_on) if exit_on
+    enrollment
+  end
+
   describe '.rollup_activity' do
-    it 'reports the newest activity across both sources, taking the later of record date and DateUpdated' do
-      create(:hud_enrollment, data_source_id: ds_one.id, PersonalID: source_one.PersonalID, EntryDate: 9.years.ago.to_date, DateUpdated: 9.years.ago)
-      create(:hud_exit, data_source_id: ds_two.id, PersonalID: source_two.PersonalID, ExitDate: 9.years.ago.to_date, DateUpdated: 8.years.ago)
+    context 'when every enrollment has exited' do
+      before do
+        enroll(source_one, entry_on: 12.years.ago.to_date, exit_on: 9.years.ago.to_date)
+        enroll(source_two, entry_on: 11.years.ago.to_date, exit_on: 8.years.ago.to_date)
+      end
 
-      expect(rollup[:last_activity_on]).to eq(8.years.ago.to_date)
+      it 'uses the latest exit date across the sources and reports the exited basis' do
+        expect(rollup).to include(last_activity_on: 8.years.ago.to_date, basis: 'exited')
+      end
+
+      it 'ignores services, living situations and income records under exited enrollments' do
+        create(:hud_service, data_source_id: ds_one.id, PersonalID: source_one.PersonalID, DateProvided: 1.year.ago.to_date)
+        create(:hud_current_living_situation, data_source_id: ds_one.id, PersonalID: source_one.PersonalID, InformationDate: 1.year.ago.to_date)
+        create(:hud_income_benefit, data_source_id: ds_one.id, PersonalID: source_one.PersonalID, InformationDate: 1.year.ago.to_date)
+
+        expect(rollup[:last_activity_on]).to eq(8.years.ago.to_date)
+      end
+
+      it 'counts an update to the source client row' do
+        source_one.update_columns(DateUpdated: 1.year.ago.to_date)
+
+        expect(rollup[:last_activity_on]).to eq(1.year.ago.to_date)
+      end
+
+      it 'ignores an exit dated in the future' do
+        GrdaWarehouse::Hud::Exit.where(PersonalID: source_two.PersonalID).update_all(ExitDate: 1.year.from_now.to_date)
+
+        expect(rollup[:last_activity_on]).to eq(9.years.ago.to_date)
+      end
+
+      it 'ignores a soft-deleted exit\'s enrollment date but treats the enrollment as still open' do
+        enrollment = enroll(source_one, entry_on: 2.years.ago.to_date, exit_on: 1.year.ago.to_date)
+        GrdaWarehouse::Hud::Exit.where(EnrollmentID: enrollment.EnrollmentID).update_all(DateDeleted: Time.current)
+
+        expect(rollup).to include(last_activity_on: 2.years.ago.to_date, basis: 'open_enrollment')
+      end
     end
 
-    it 'ignores soft-deleted HUD records and links' do
-      create(:hud_enrollment, data_source_id: ds_one.id, PersonalID: source_one.PersonalID, EntryDate: 1.day.ago.to_date, DateDeleted: Time.current)
-      recent_source = create(:grda_warehouse_hud_client, data_source: ds_one, DateUpdated: 1.day.ago)
-      link(recent_source, deleted_at: Time.current)
+    context 'when an enrollment is open' do
+      let!(:open_enrollment) { enroll(source_one, entry_on: 9.years.ago.to_date) }
 
-      expect(rollup[:last_activity_on]).to eq(10.years.ago.to_date)
-      expect(rollup[:source_clients].map { |sc| sc['client_id'] }).to contain_exactly(source_one.id, source_two.id)
+      before { enroll(source_two, entry_on: 11.years.ago.to_date, exit_on: 8.years.ago.to_date) }
+
+      it 'reports the open_enrollment basis and the latest of the entry and sibling exit dates' do
+        expect(rollup).to include(last_activity_on: 8.years.ago.to_date, basis: 'open_enrollment')
+      end
+
+      it 'counts a service under the open enrollment' do
+        create(:hud_service, data_source_id: ds_one.id, PersonalID: source_one.PersonalID, EnrollmentID: open_enrollment.EnrollmentID, DateProvided: 3.years.ago.to_date)
+
+        expect(rollup[:last_activity_on]).to eq(3.years.ago.to_date)
+      end
+
+      it 'counts a current living situation' do
+        create(:hud_current_living_situation, data_source_id: ds_one.id, PersonalID: source_one.PersonalID, EnrollmentID: open_enrollment.EnrollmentID, InformationDate: 4.years.ago.to_date)
+
+        expect(rollup[:last_activity_on]).to eq(4.years.ago.to_date)
+      end
+
+      it 'counts an income record' do
+        create(:hud_income_benefit, data_source_id: ds_one.id, PersonalID: source_one.PersonalID, EnrollmentID: open_enrollment.EnrollmentID, InformationDate: 5.years.ago.to_date)
+
+        expect(rollup[:last_activity_on]).to eq(5.years.ago.to_date)
+      end
+
+      it 'counts an update to the enrollment row' do
+        open_enrollment.update_columns(DateUpdated: 2.years.ago.to_date)
+
+        expect(rollup[:last_activity_on]).to eq(2.years.ago.to_date)
+      end
+
+      it 'counts an update to the source client row' do
+        source_two.update_columns(DateUpdated: 6.years.ago.to_date)
+
+        expect(rollup[:last_activity_on]).to eq(6.years.ago.to_date)
+      end
+
+      it 'counts the exit date of a sibling exited enrollment' do
+        GrdaWarehouse::Hud::Exit.where(PersonalID: source_two.PersonalID).update_all(ExitDate: 1.year.ago.to_date)
+
+        expect(rollup[:last_activity_on]).to eq(1.year.ago.to_date)
+      end
+
+      it 'ignores soft-deleted records and links' do
+        create(:hud_service, data_source_id: ds_one.id, PersonalID: source_one.PersonalID, DateProvided: 1.day.ago.to_date, DateDeleted: Time.current)
+        recent_source = create(:grda_warehouse_hud_client, data_source: ds_one, DateUpdated: 1.day.ago.to_date)
+        link(recent_source, deleted_at: Time.current)
+
+        expect(rollup[:last_activity_on]).to eq(8.years.ago.to_date)
+        expect(rollup[:source_clients].map { |sc| sc['client_id'] }).to contain_exactly(source_one.id, source_two.id)
+      end
     end
 
-    it 'ignores files and notes attached to the destination client' do
-      create(:client_file, client: destination, created_at: 2.years.ago)
-      create(:grda_warehouse_client_notes_window_note, client: destination, created_at: 1.year.ago)
-
-      expect(rollup[:last_activity_on]).to eq(10.years.ago.to_date)
-    end
-
-    it 'counts HMIS custom services and alerts on a source client as activity' do
-      hmis_ds = create(:hmis_data_source)
-      hmis_client = create(:hmis_hud_client, data_source: hmis_ds)
-      link(hmis_client)
-      enrollment = create(:hmis_hud_enrollment, data_source: hmis_ds, client: hmis_client, EntryDate: 10.years.ago.to_date)
-      service = create(:hmis_custom_service, data_source: hmis_ds, client: hmis_client, enrollment: enrollment, DateProvided: 5.years.ago.to_date)
-      create(:hmis_client_alert, client: hmis_client, created_by: create(:hmis_user, data_source: hmis_ds), created_at: 3.years.ago)
-      # HMIS models stamp DateCreated and DateUpdated on save, so backdate the fixtures after creation.
-      [hmis_client, enrollment, service].each { |record| record.update_columns(DateCreated: 10.years.ago, DateUpdated: 10.years.ago) }
-
-      expect(rollup[:last_activity_on]).to eq(3.years.ago.to_date)
+    context 'when the sources have no enrollments' do
+      it 'uses the client rows under the exited rule' do
+        expect(rollup).to include(last_activity_on: 10.years.ago.to_date, basis: 'exited')
+      end
     end
 
     it 'uses the longest window across the sources, each falling back to the global window' do
@@ -85,10 +154,11 @@ RSpec.describe GrdaWarehouse::InactiveClient, type: :model do
     end
 
     it 'limits to rollups whose window ends within the given days when expiring_within is set' do
-      # Global 7 years, newest activity 10 years ago: this rollup expired 3 years ago.
+      enroll(source_one, entry_on: 12.years.ago.to_date, exit_on: 10.years.ago.to_date)
+      # Global 7 years, latest exit 10 years ago: this rollup expired 3 years ago.
       expect(rollup(expiring_within: 90)).to be_nil
 
-      create(:hud_service, data_source_id: ds_one.id, PersonalID: source_one.PersonalID, DateProvided: (7.years.ago + 30.days).to_date, DateUpdated: 8.years.ago)
+      GrdaWarehouse::Hud::Exit.where(PersonalID: source_one.PersonalID).update_all(ExitDate: (7.years.ago + 30.days).to_date)
       expect(rollup(expiring_within: 90)[:destination_id]).to eq(destination.id)
       expect(rollup(expiring_within: 10)).to be_nil
     end

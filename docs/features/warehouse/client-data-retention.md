@@ -15,18 +15,20 @@ trade-offs are in [ADR 0009](../../adr/0009-client-data-retention-and-removal.md
 
 ## What counts as activity
 
-`GrdaWarehouse::InactiveClient.rollup_activity` computes, per destination client, the newest date
-across every source client linked through a live (`deleted_at IS NULL`) `warehouse_clients` row.
-Only data attached to a source client counts:
+`GrdaWarehouse::InactiveClient.rollup_activity` computes, per destination client, one activity
+date from the source clients linked through a live (`deleted_at IS NULL`) `warehouse_clients`
+row. Which fields count depends on whether the identity has an open enrollment:
 
-- `Client` DateUpdated and DateCreated of each source client
-- `Enrollment` EntryDate and DateUpdated; `Exit` ExitDate and DateUpdated
-- `Services` DateProvided; `CurrentLivingSituation` InformationDate; `Event`
-  EventDate; `Assessment` AssessmentDate (each also DateUpdated)
-- HMIS `CustomServices`, `CustomAssessments` and `CustomCaseNote` dates
-- `ce_referrals.updated_at` and `hmis_client_alerts.created_at` on the source client
-
-Rows with `DateDeleted` or `deleted_at` set are ignored.
+- **No open enrollment** (every `Enrollment` has a live `Exit`, or there are no enrollments):
+  the latest of `Exit.ExitDate` and `Client` DateUpdated. Nothing else recorded after an exit
+  counts.
+- **An open enrollment anywhere in the identity**: the latest of `Client` DateUpdated,
+  `Enrollment` EntryDate and DateUpdated, `Exit` ExitDate on the other enrollments,
+  `Services` DateProvided, `CurrentLivingSituation` InformationDate and `IncomeBenefits`
+  InformationDate. These are the fields every project type keeps writing during a stay.
+Rows with `DateDeleted` set are ignored, so a soft-deleted `Exit` leaves its enrollment open.
+Dates after today are ignored. The expiring-soon report shows which rule applied as the
+"Basis" column.
 
 ## Window rule
 
@@ -50,6 +52,18 @@ maintenance-task record. It does nothing when the global window is `nil`. Each r
 3. Logs `marked` and `unmarked` entries in `client_retention_log_entries` with plain identifiers
    (warehouse ids, data source ids, PersonalIDs) and never names, SSN or DOB.
 4. Records evaluated, marked and unmarked counts on the run.
+
+## Sizing before enabling
+
+`GrdaWarehouse::ClientRetentionDryRun` runs the same batches and rollup as the nightly job and
+writes nothing. From a console:
+
+    GrdaWarehouse::ClientRetentionDryRun.new(global_years: 7).run
+    GrdaWarehouse::ClientRetentionDryRun.new(global_years: 7).explain
+
+`run` returns destination and batch counts, total and slowest-batch seconds, evaluated and
+would-mark counts by basis, and a sample of destination ids that would be marked. `explain`
+returns `EXPLAIN (ANALYZE, BUFFERS)` for one job-sized batch. Pass `limit:` for a quick sample.
 
 ## What "hidden" means
 

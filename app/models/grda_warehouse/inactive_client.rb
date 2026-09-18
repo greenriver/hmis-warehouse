@@ -24,31 +24,38 @@ class GrdaWarehouse::InactiveClient < GrdaWarehouseBase
   # @param expiring_within [Integer, nil] when set, only rollups whose window ends within this
   #   many days from today
   # @return [Array<Hash>] :destination_id, :last_activity_on (Date), :retention_years,
+  #   :basis ('exited' or 'open_enrollment'),
   #   :source_clients ([{ 'client_id', 'data_source_id', 'personal_id' }])
   def self.rollup_activity(destination_ids:, global_years:, expiring_within: nil)
     return [] if destination_ids && destination_ids.empty?
 
-    sql = sanitize_sql_array([ROLLUP_ACTIVITY_SQL, global_years: global_years, within: expiring_within])
-    id_filter = destination_ids.nil? ? '' : sanitize_sql_array(['AND wc.destination_id IN (:ids)', ids: destination_ids])
-    having = expiring_within.nil? ? '' : sanitize_sql_array([EXPIRING_HAVING_SQL, global_years: global_years, within: expiring_within])
-    sql = sql.sub('/*ID_FILTER*/', id_filter).sub('/*HAVING*/', having)
-
-    result = connection.select_all(sql)
+    result = connection.select_all(rollup_activity_sql(destination_ids: destination_ids, global_years: global_years, expiring_within: expiring_within))
     result.cast_values.map do |values|
       row = result.columns.zip(values).to_h
       {
         destination_id: row['destination_id'],
         last_activity_on: row['last_activity_on'],
         retention_years: row['retention_years'],
+        basis: row['basis'],
         source_clients: row['source_clients'],
       }
     end
   end
 
-  # Each UNION ALL arm yields (destination_id, activity date) from data attached to a source
-  # client. HUD and HMIS custom tables are keyed by PersonalID + data_source_id like their
-  # models. Soft-deleted rows are skipped everywhere: deleting a record is not serving the
-  # client.
+  # The assembled statement behind rollup_activity, for EXPLAIN.
+  # @return [String]
+  def self.rollup_activity_sql(destination_ids:, global_years:, expiring_within: nil)
+    sql = sanitize_sql_array([ROLLUP_ACTIVITY_SQL, global_years: global_years, within: expiring_within])
+    id_filter = destination_ids.nil? ? '' : sanitize_sql_array(['AND wc.destination_id IN (:ids)', ids: destination_ids])
+    having = expiring_within.nil? ? '' : sanitize_sql_array([EXPIRING_HAVING_SQL, global_years: global_years, within: expiring_within])
+    sql.sub('/*ID_FILTER*/', id_filter).sub('/*HAVING*/', having)
+  end
+
+  # Two rules, chosen per identity. An identity with no open enrollment is judged on its
+  # latest exit date and client row update: nothing else after an exit is service. An identity
+  # with an open enrollment is judged on the HUD fields every project type keeps writing during
+  # a stay, plus exit dates from its other enrollments. Soft-deleted rows and dates after today
+  # are skipped everywhere.
   ROLLUP_ACTIVITY_SQL = <<~SQL.squish
     WITH links AS (
       SELECT wc.destination_id, wc.source_id, c."PersonalID", c.data_source_id
@@ -56,55 +63,62 @@ class GrdaWarehouse::InactiveClient < GrdaWarehouseBase
       JOIN "Client" c ON c.id = wc.source_id
       WHERE wc.deleted_at IS NULL /*ID_FILTER*/
     ),
-    activity AS (
-      SELECT destination_id, MAX(activity_on) AS last_activity_on FROM (
-        SELECT l.destination_id, GREATEST(c."DateUpdated", c."DateCreated")::date AS activity_on
-          FROM links l JOIN "Client" c ON c.id = l.source_id
+    enrollments AS (
+      SELECT l.destination_id, e."EnrollmentID", e."PersonalID", e.data_source_id,
+        e."EntryDate", e."DateUpdated", x."ExitDate"
+      FROM links l
+      JOIN "Enrollment" e ON e."PersonalID" = l."PersonalID" AND e.data_source_id = l.data_source_id AND e."DateDeleted" IS NULL
+      LEFT JOIN "Exit" x ON x."EnrollmentID" = e."EnrollmentID" AND x."PersonalID" = e."PersonalID" AND x.data_source_id = e.data_source_id AND x."DateDeleted" IS NULL
+    ),
+    status AS (
+      SELECT destination_id,
+        BOOL_OR("ExitDate" IS NULL) AS has_open,
+        MAX("ExitDate") FILTER (WHERE "ExitDate" <= CURRENT_DATE) AS last_exit_on
+      FROM enrollments
+      GROUP BY destination_id
+    ),
+    client_activity AS (
+      SELECT l.destination_id, MAX(c."DateUpdated"::date) FILTER (WHERE c."DateUpdated"::date <= CURRENT_DATE) AS activity_on
+      FROM links l JOIN "Client" c ON c.id = l.source_id
+      GROUP BY l.destination_id
+    ),
+    open_activity AS (
+      SELECT destination_id, MAX(activity_on) AS activity_on FROM (
+        SELECT destination_id, GREATEST("EntryDate", "DateUpdated"::date, "ExitDate") AS activity_on FROM enrollments
         UNION ALL
-        SELECT l.destination_id, GREATEST(e."EntryDate", e."DateUpdated"::date)
-          FROM links l JOIN "Enrollment" e ON e."PersonalID" = l."PersonalID" AND e.data_source_id = l.data_source_id AND e."DateDeleted" IS NULL
-        UNION ALL
-        SELECT l.destination_id, GREATEST(x."ExitDate", x."DateUpdated"::date)
-          FROM links l JOIN "Exit" x ON x."PersonalID" = l."PersonalID" AND x.data_source_id = l.data_source_id AND x."DateDeleted" IS NULL
-        UNION ALL
-        SELECT l.destination_id, GREATEST(s."DateProvided", s."DateUpdated"::date)
+        SELECT l.destination_id, s."DateProvided"
           FROM links l JOIN "Services" s ON s."PersonalID" = l."PersonalID" AND s.data_source_id = l.data_source_id AND s."DateDeleted" IS NULL
         UNION ALL
-        SELECT l.destination_id, GREATEST(cls."InformationDate", cls."DateUpdated"::date)
+        SELECT l.destination_id, cls."InformationDate"
           FROM links l JOIN "CurrentLivingSituation" cls ON cls."PersonalID" = l."PersonalID" AND cls.data_source_id = l.data_source_id AND cls."DateDeleted" IS NULL
         UNION ALL
-        SELECT l.destination_id, GREATEST(ev."EventDate", ev."DateUpdated"::date)
-          FROM links l JOIN "Event" ev ON ev."PersonalID" = l."PersonalID" AND ev.data_source_id = l.data_source_id AND ev."DateDeleted" IS NULL
-        UNION ALL
-        SELECT l.destination_id, GREATEST(a."AssessmentDate", a."DateUpdated"::date)
-          FROM links l JOIN "Assessment" a ON a."PersonalID" = l."PersonalID" AND a.data_source_id = l.data_source_id AND a."DateDeleted" IS NULL
-        UNION ALL
-        SELECT l.destination_id, GREATEST(cs."DateProvided", cs."DateUpdated"::date)
-          FROM links l JOIN "CustomServices" cs ON cs."PersonalID" = l."PersonalID" AND cs.data_source_id = l.data_source_id AND cs."DateDeleted" IS NULL
-        UNION ALL
-        SELECT l.destination_id, GREATEST(ca."AssessmentDate", ca."DateUpdated"::date)
-          FROM links l JOIN "CustomAssessments" ca ON ca."PersonalID" = l."PersonalID" AND ca.data_source_id = l.data_source_id AND ca."DateDeleted" IS NULL
-        UNION ALL
-        SELECT l.destination_id, GREATEST(cn.information_date, cn."DateUpdated"::date)
-          FROM links l JOIN "CustomCaseNote" cn ON cn."PersonalID" = l."PersonalID" AND cn.data_source_id = l.data_source_id AND cn."DateDeleted" IS NULL
-        UNION ALL
-        SELECT l.destination_id, r.updated_at::date
-          FROM links l JOIN ce_referrals r ON r.client_id = l.source_id AND r.deleted_at IS NULL
-        UNION ALL
-        SELECT l.destination_id, al.created_at::date
-          FROM links l JOIN hmis_client_alerts al ON al.client_id = l.source_id AND al.deleted_at IS NULL
+        SELECT l.destination_id, ib."InformationDate"
+          FROM links l JOIN "IncomeBenefits" ib ON ib."PersonalID" = l."PersonalID" AND ib.data_source_id = l.data_source_id AND ib."DateDeleted" IS NULL
       ) u
-      WHERE activity_on IS NOT NULL
+      WHERE activity_on IS NOT NULL AND activity_on <= CURRENT_DATE
       GROUP BY destination_id
+    ),
+    activity AS (
+      SELECT ca.destination_id,
+        CASE
+          WHEN s.has_open THEN GREATEST(oa.activity_on, ca.activity_on)
+          ELSE GREATEST(s.last_exit_on, ca.activity_on)
+        END AS last_activity_on,
+        CASE WHEN s.has_open THEN 'open_enrollment' ELSE 'exited' END AS basis
+      FROM client_activity ca
+      LEFT JOIN status s ON s.destination_id = ca.destination_id
+      LEFT JOIN open_activity oa ON oa.destination_id = ca.destination_id
     )
     SELECT l.destination_id,
       a.last_activity_on,
+      a.basis,
       MAX(COALESCE(ds.client_retention_years, :global_years)) AS retention_years,
       jsonb_agg(jsonb_build_object('client_id', l.source_id, 'data_source_id', l.data_source_id, 'personal_id', l."PersonalID")) AS source_clients
     FROM links l
     JOIN activity a ON a.destination_id = l.destination_id
     JOIN data_sources ds ON ds.id = l.data_source_id
-    GROUP BY l.destination_id, a.last_activity_on
+    WHERE a.last_activity_on IS NOT NULL
+    GROUP BY l.destination_id, a.last_activity_on, a.basis
     /*HAVING*/
   SQL
 
