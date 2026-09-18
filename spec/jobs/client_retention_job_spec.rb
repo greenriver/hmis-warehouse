@@ -57,12 +57,11 @@ RSpec.describe ClientRetentionJob, type: :job do
   context 'with a seven-year global window' do
     before { configure_global_retention(7) }
 
-    it 'marks the aged-out destination and each of its sources, leaving the active identity alone' do
+    it 'marks each source of the aged-out identity, never the destination, and leaves the active identity alone' do
       described_class.perform_now
 
-      expect(marked_ids).to contain_exactly(destination.id, source_one.id, source_two.id)
+      expect(marked_ids).to contain_exactly(source_one.id, source_two.id)
       mark = GrdaWarehouse::InactiveClient.find_by(client_id: source_two.id)
-      expect(mark.destination_client_id).to eq(destination.id)
       expect(mark.last_activity_on).to eq(8.years.ago.to_date)
       expect(mark.retention_years).to eq(7)
     end
@@ -111,23 +110,31 @@ RSpec.describe ClientRetentionJob, type: :job do
 
       described_class.perform_now
 
-      expect(marked_ids).to contain_exactly(destination.id, source_one.id, source_two.id, late_source.id)
+      expect(marked_ids).to contain_exactly(source_one.id, source_two.id, late_source.id)
       expect(GrdaWarehouse::ClientRetentionLogEntry.where(destination_client_id: destination.id).count).to eq(1)
     end
 
-    it 'logs destination_removed and drops the marks when a marked destination has been hard-deleted' do
+    it 'leaves a mark in place when its source loses its warehouse_clients link' do
       described_class.perform_now
-      GrdaWarehouse::WarehouseClient.where(destination_id: destination.id).delete_all
-      destination.delete
+      GrdaWarehouse::WarehouseClient.where(source_id: source_two.id).delete_all
 
       described_class.perform_now
 
-      expect(marked_ids).to be_empty
-      entry = GrdaWarehouse::ClientRetentionLogEntry.where(action: 'destination_removed').sole
-      expect(entry.destination_client_id).to eq(destination.id)
-      expect(entry.source_clients.map { |sc| sc['client_id'] }).to contain_exactly(source_one.id, source_two.id)
-      expect(entry.last_activity_on).to eq(8.years.ago.to_date)
-      expect(GrdaWarehouse::ClientRetentionRun.order(:id).last.unmarked_count).to eq(1)
+      expect(marked_ids).to contain_exactly(source_one.id, source_two.id)
+      expect(GrdaWarehouse::ClientRetentionLogEntry.where(destination_client_id: destination.id).count).to eq(1)
+    end
+
+    it 'clears the mark of a source that moves into an active identity and logs the unmark against that identity' do
+      described_class.perform_now
+      GrdaWarehouse::WarehouseClient.where(source_id: source_two.id).delete_all
+      link(active_destination, source_two)
+
+      described_class.perform_now
+
+      expect(marked_ids).to contain_exactly(source_one.id)
+      entry = GrdaWarehouse::ClientRetentionLogEntry.where(action: 'unmarked').sole
+      expect(entry.destination_client_id).to eq(active_destination.id)
+      expect(entry.source_clients.map { |sc| sc['client_id'] }).to contain_exactly(active_source.id, source_two.id)
     end
 
     it 'keeps the identity when one of its data sources has a longer window' do
@@ -157,8 +164,8 @@ RSpec.describe ClientRetentionJob, type: :job do
 
       described_class.perform_now
 
-      expect(marked_ids).to contain_exactly(destination.id, source_one.id)
-      expect(GrdaWarehouse::InactiveClient.find_by(client_id: destination.id).retention_years).to eq(7)
+      expect(marked_ids).to contain_exactly(source_one.id)
+      expect(GrdaWarehouse::InactiveClient.find_by(client_id: source_one.id).retention_years).to eq(7)
     end
   end
 end

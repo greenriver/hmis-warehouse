@@ -7,13 +7,32 @@
 # frozen_string_literal: true
 
 # Client ids whose PII is hidden warehouse-wide: every member of a warehouse identity touched by
-# an HMIS restriction, plus retention-inactive marks (GrdaWarehouse::InactiveClient). The
-# restricted set is defined here in SQL so RestrictedClientLoader and query-shaped callers share
-# one definition; analytics.client_piis (db/views) repeats it and must stay in step.
+# an HMIS restriction, plus every member of an identity with a retention mark
+# (GrdaWarehouse::InactiveClient, one row per source client). Both sets are defined here in SQL so
+# RestrictedClientLoader and query-shaped callers share one definition; analytics.client_piis
+# (db/views) repeats them and must stay in step.
 module GrdaWarehouse::HiddenClients
   # @return [Set<Integer>]
   def self.restricted_ids
     GrdaWarehouseBase.connection.select_values(restricted_ids_union.to_sql).to_set
+  end
+
+  # Marked source ids plus the destinations they are linked to.
+  # @return [Set<Integer>]
+  def self.inactive_ids
+    GrdaWarehouseBase.connection.select_values(inactive_ids_union.to_sql).to_set
+  end
+
+  # The members of +client_ids+ (source or destination ids) that are inactive, in one query.
+  # @param client_ids [Enumerable<Integer>]
+  # @return [Set<Integer>]
+  def self.inactive_subset(client_ids)
+    ids = client_ids.to_a.compact.uniq
+    return Set.new if ids.empty?
+
+    inactive = Arel::Nodes::TableAlias.new(inactive_ids_union, :inactive_ids)
+    sql = Arel::SelectManager.new.from(inactive).project(inactive[:client_id]).where(inactive[:client_id].in(ids)).to_sql
+    GrdaWarehouseBase.connection.select_values(sql).to_set
   end
 
   # Predicate that is true when +column+ is not a hidden client id. Both halves are correlated
@@ -28,8 +47,12 @@ module GrdaWarehouse::HiddenClients
       where(restricted[:client_id].eq(column)).
       exists.not
 
-    ic_t = GrdaWarehouse::InactiveClient.arel_table
-    not_inactive = ic_t.project(Arel.sql('1')).where(ic_t[:client_id].eq(column)).exists.not
+    inactive = Arel::Nodes::TableAlias.new(inactive_ids_union, :inactive_clients_union)
+    not_inactive = Arel::SelectManager.new.
+      from(inactive).
+      project(Arel.sql('1')).
+      where(inactive[:client_id].eq(column)).
+      exists.not
 
     not_restricted.and(not_inactive)
   end
@@ -59,5 +82,21 @@ module GrdaWarehouse::HiddenClients
 
     Arel::Nodes::Union.new(direct, Arel::Nodes::Union.new(destinations, siblings))
   end
-  private_class_method :restricted_ids_union
+
+  # UNION of the marked source ids and the destinations reachable from them through live
+  # warehouse_clients rows, as a single client_id column.
+  # @return [Arel::Nodes::Union]
+  def self.inactive_ids_union
+    ic_t = GrdaWarehouse::InactiveClient.arel_table
+    wc_t = GrdaWarehouse::WarehouseClient.arel_table
+
+    sources = ic_t.project(ic_t[:client_id])
+    destinations = wc_t.
+      project(wc_t[:destination_id]).
+      join(ic_t).on(ic_t[:client_id].eq(wc_t[:source_id])).
+      where(wc_t[:deleted_at].eq(nil))
+
+    Arel::Nodes::Union.new(sources, destinations)
+  end
+  private_class_method :restricted_ids_union, :inactive_ids_union
 end

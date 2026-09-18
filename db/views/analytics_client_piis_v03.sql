@@ -1,8 +1,9 @@
--- Redaction mirrors GrdaWarehouse::AuthPolicies::ContextLoaders::RestrictedClientLoader.
+-- Redaction mirrors GrdaWarehouse::HiddenClients.
 -- HMIS restriction applies to the whole warehouse identity: a restricted source client
 -- redacts its destination client and every sibling source merged into that destination,
 -- one hop only, through non-deleted warehouse_clients rows. Retention marks
--- (inactive_clients) already hold one row per identity member, so they join directly.
+-- (inactive_clients) hold one row per source client; their destinations are reached the
+-- same way.
 WITH directly_restricted AS (
   SELECT "hmis_restricted_records"."restrictable_id" AS client_id
   FROM "hmis_restricted_records"
@@ -27,6 +28,11 @@ restricted_clients AS (
   WHERE "warehouse_clients"."deleted_at" IS NULL
   UNION
   SELECT "inactive_clients"."client_id" FROM "inactive_clients"
+  UNION
+  SELECT "warehouse_clients"."destination_id"
+  FROM "warehouse_clients"
+  JOIN "inactive_clients" ON "inactive_clients"."client_id" = "warehouse_clients"."source_id"
+  WHERE "warehouse_clients"."deleted_at" IS NULL
 )
 SELECT "Client"."id",
   "Client"."data_source_id",

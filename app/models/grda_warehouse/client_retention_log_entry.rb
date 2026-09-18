@@ -7,7 +7,7 @@
 # frozen_string_literal: true
 
 class GrdaWarehouse::ClientRetentionLogEntry < GrdaWarehouseBase
-  ACTIONS = ['marked', 'unmarked', 'destination_removed'].freeze
+  ACTIONS = ['marked', 'unmarked'].freeze
 
   belongs_to :run, class_name: 'GrdaWarehouse::ClientRetentionRun', inverse_of: :log_entries
 

@@ -8,17 +8,14 @@
 
 class CreateClientRetentionTables < ActiveRecord::Migration[7.2]
   def change
-    # One row per client id in an aged-out warehouse identity (the destination and every
-    # source client), so bulk queries can anti-join on client_id without walking warehouse_clients.
+    # One row per aged-out source client. Destination clients are resolved through
+    # warehouse_clients at query time (see GrdaWarehouse::HiddenClients).
     create_table :inactive_clients do |t|
       t.bigint :client_id, null: false
-      t.bigint :destination_client_id, null: false
       t.date :marked_on, null: false
       t.date :last_activity_on, null: false
       t.integer :retention_years, null: false
-      t.timestamps
       t.index :client_id, unique: true
-      t.index :destination_client_id
     end
 
     create_table :client_retention_runs do |t|

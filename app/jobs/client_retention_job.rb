@@ -6,8 +6,8 @@
 
 # frozen_string_literal: true
 
-# Nightly pass that marks warehouse identities whose newest activity is older than their
-# retention window, and clears marks for identities with fresh activity. Marks live in
+# Nightly pass that marks the source clients of warehouse identities whose newest activity is
+# older than their retention window, and clears marks for identities with fresh activity. Marks live in
 # GrdaWarehouse::InactiveClient; every mark and unmark is logged with identifiers only.
 # See docs/features/warehouse/client-data-retention.md.
 class ClientRetentionJob < BaseJob
@@ -44,8 +44,6 @@ class ClientRetentionJob < BaseJob
       process_batch(batch.pluck(:id))
     end
 
-    remove_orphaned_marks
-
     @run.update!(
       completed_at: Time.current,
       evaluated_count: @counts[:evaluated],
@@ -60,16 +58,22 @@ class ClientRetentionJob < BaseJob
 
     inactive = rows.select { |row| row[:last_activity_on] < @today - row[:retention_years].years }
     inactive_ids = inactive.map { |row| row[:destination_id] }
-    already_marked = GrdaWarehouse::InactiveClient.where(destination_client_id: destination_ids).distinct.pluck(:destination_client_id)
+
+    # Marks are all-or-none per identity, so one marked source means the identity was marked.
+    evaluated_source_ids = rows.flat_map { |row| source_ids_for(row) }
+    marked_source_ids = GrdaWarehouse::InactiveClient.where(client_id: evaluated_source_ids).pluck(:client_id).to_set
+    already_marked = rows.select { |row| source_ids_for(row).any? { |id| marked_source_ids.include?(id) } }.map { |row| row[:destination_id] }
     newly_marked = inactive_ids - already_marked
     cleared = already_marked - inactive_ids
 
     mark_rows = inactive.flat_map { |row| mark_rows_for(row) }
-    # Insert for every inactive rollup, not only new ones, so a source client merged into an
+    # Insert for every inactive rollup, not only new ones, so a source merged into an
     # already-marked identity gets its own row; the unique index makes repeats no-ops.
     GrdaWarehouse::InactiveClient.insert_all(mark_rows, unique_by: :client_id) if mark_rows.any?
-    GrdaWarehouse::InactiveClient.where(destination_client_id: inactive_ids).where.not(client_id: mark_rows.map { |r| r[:client_id] }).delete_all if inactive_ids.any?
-    GrdaWarehouse::InactiveClient.where(destination_client_id: cleared).delete_all if cleared.any?
+    # Every live source of an evaluated identity that is not inactive loses its mark: sources of
+    # cleared identities, and sources that moved from a marked identity into an active one.
+    stale = evaluated_source_ids - mark_rows.map { |r| r[:client_id] }
+    GrdaWarehouse::InactiveClient.where(client_id: stale).delete_all if stale.any?
 
     rows_by_destination = rows.index_by { |row| row[:destination_id] }
     log('marked', newly_marked, rows_by_destination)
@@ -78,38 +82,14 @@ class ClientRetentionJob < BaseJob
     @counts[:unmarked] += cleared.size
   end
 
-  # A destination removed outside this job (ClientCleanup, a hard delete) leaves marks nothing
-  # will re-evaluate. Log the removal from the marks themselves before dropping them so the
-  # history still closes for that client.
-  private def remove_orphaned_marks
-    orphans = GrdaWarehouse::InactiveClient.
-      where.not(destination_client_id: GrdaWarehouse::Hud::Client.destination.select(:id)).
-      group_by(&:destination_client_id)
-    return if orphans.empty?
-
-    entries = orphans.map do |destination_id, marks|
-      source_ids = marks.map(&:client_id) - [destination_id]
-      {
-        run_id: @run.id,
-        action: 'destination_removed',
-        destination_client_id: destination_id,
-        source_clients: source_ids.map { |id| { 'client_id' => id } },
-        last_activity_on: marks.first.last_activity_on,
-        retention_years: marks.first.retention_years,
-        created_at: Time.current,
-      }
-    end
-    GrdaWarehouse::ClientRetentionLogEntry.insert_all(entries)
-    GrdaWarehouse::InactiveClient.where(destination_client_id: orphans.keys).delete_all
-    @counts[:unmarked] += orphans.size
+  private def source_ids_for(row)
+    row[:source_clients].map { |sc| sc['client_id'] }
   end
 
   private def mark_rows_for(row)
-    member_ids = [row[:destination_id]] + row[:source_clients].map { |sc| sc['client_id'] }
-    member_ids.uniq.map do |client_id|
+    source_ids_for(row).uniq.map do |client_id|
       {
         client_id: client_id,
-        destination_client_id: row[:destination_id],
         marked_on: @today,
         last_activity_on: row[:last_activity_on],
         retention_years: row[:retention_years],

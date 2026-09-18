@@ -6,9 +6,10 @@
 
 # frozen_string_literal: true
 
-# A client id whose warehouse identity has aged out of the retention window. Rows exist for the
-# destination client and every source client merged into it, and are rebuilt by
-# ClientRetentionJob. Presence here redacts the client the same way an HMIS restriction does
+# A source client whose warehouse identity has aged out of the retention window. One row per
+# source client, written all-or-none per identity by ClientRetentionJob; destination clients
+# are resolved through warehouse_clients (GrdaWarehouse::HiddenClients). Presence here redacts
+# the identity the same way an HMIS restriction does
 # (see docs/features/warehouse/client-data-retention.md).
 class GrdaWarehouse::InactiveClient < GrdaWarehouseBase
   # Newest activity date and applicable retention window for each destination client, rolled
@@ -29,9 +30,8 @@ class GrdaWarehouse::InactiveClient < GrdaWarehouseBase
 
     sql = sanitize_sql_array([ROLLUP_ACTIVITY_SQL, global_years: global_years, within: expiring_within])
     id_filter = destination_ids.nil? ? '' : sanitize_sql_array(['AND wc.destination_id IN (:ids)', ids: destination_ids])
-    dest_filter = destination_ids.nil? ? '' : sanitize_sql_array(['WHERE id IN (:ids)', ids: destination_ids])
     having = expiring_within.nil? ? '' : sanitize_sql_array([EXPIRING_HAVING_SQL, global_years: global_years, within: expiring_within])
-    sql = sql.sub('/*ID_FILTER*/', id_filter).sub('/*DEST_FILTER*/', dest_filter).sub('/*HAVING*/', having)
+    sql = sql.sub('/*ID_FILTER*/', id_filter).sub('/*HAVING*/', having)
 
     result = connection.select_all(sql)
     result.cast_values.map do |values|
@@ -45,10 +45,10 @@ class GrdaWarehouse::InactiveClient < GrdaWarehouseBase
     end
   end
 
-  # Each UNION ALL arm yields (destination_id, activity date). HUD and HMIS custom tables are
-  # keyed by PersonalID + data_source_id like their models; files and client_notes hang off the
-  # destination client directly. Soft-deleted rows are skipped everywhere: deleting a record is
-  # not serving the client.
+  # Each UNION ALL arm yields (destination_id, activity date) from data attached to a source
+  # client. HUD and HMIS custom tables are keyed by PersonalID + data_source_id like their
+  # models. Soft-deleted rows are skipped everywhere: deleting a record is not serving the
+  # client.
   ROLLUP_ACTIVITY_SQL = <<~SQL.squish
     WITH links AS (
       SELECT wc.destination_id, wc.source_id, c."PersonalID", c.data_source_id
@@ -56,16 +56,10 @@ class GrdaWarehouse::InactiveClient < GrdaWarehouseBase
       JOIN "Client" c ON c.id = wc.source_id
       WHERE wc.deleted_at IS NULL /*ID_FILTER*/
     ),
-    destinations AS (
-      SELECT id FROM "Client" /*DEST_FILTER*/
-    ),
     activity AS (
       SELECT destination_id, MAX(activity_on) AS last_activity_on FROM (
         SELECT l.destination_id, GREATEST(c."DateUpdated", c."DateCreated")::date AS activity_on
           FROM links l JOIN "Client" c ON c.id = l.source_id
-        UNION ALL
-        SELECT d.id, GREATEST(c."DateUpdated", c."DateCreated")::date
-          FROM destinations d JOIN "Client" c ON c.id = d.id
         UNION ALL
         SELECT l.destination_id, GREATEST(e."EntryDate", e."DateUpdated"::date)
           FROM links l JOIN "Enrollment" e ON e."PersonalID" = l."PersonalID" AND e.data_source_id = l.data_source_id AND e."DateDeleted" IS NULL
@@ -99,12 +93,6 @@ class GrdaWarehouse::InactiveClient < GrdaWarehouseBase
         UNION ALL
         SELECT l.destination_id, al.created_at::date
           FROM links l JOIN hmis_client_alerts al ON al.client_id = l.source_id AND al.deleted_at IS NULL
-        UNION ALL
-        SELECT d.id, f.created_at::date
-          FROM destinations d JOIN files f ON f.client_id = d.id AND f.deleted_at IS NULL
-        UNION ALL
-        SELECT d.id, n.created_at::date
-          FROM destinations d JOIN client_notes n ON n.client_id = d.id AND n.deleted_at IS NULL
       ) u
       WHERE activity_on IS NOT NULL
       GROUP BY destination_id

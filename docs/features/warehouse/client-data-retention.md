@@ -16,16 +16,15 @@ trade-offs are in [ADR 0009](../../adr/0009-client-data-retention-and-removal.md
 ## What counts as activity
 
 `GrdaWarehouse::InactiveClient.rollup_activity` computes, per destination client, the newest date
-across the destination and every source client linked through a live (`deleted_at IS NULL`)
-`warehouse_clients` row:
+across every source client linked through a live (`deleted_at IS NULL`) `warehouse_clients` row.
+Only data attached to a source client counts:
 
-- `Client` DateUpdated and DateCreated
+- `Client` DateUpdated and DateCreated of each source client
 - `Enrollment` EntryDate and DateUpdated; `Exit` ExitDate and DateUpdated
 - `Services` DateProvided; `CurrentLivingSituation` InformationDate; `Event`
   EventDate; `Assessment` AssessmentDate (each also DateUpdated)
 - HMIS `CustomServices`, `CustomAssessments` and `CustomCaseNote` dates
 - `ce_referrals.updated_at` and `hmis_client_alerts.created_at` on the source client
-- `files.created_at` and `client_notes.created_at` on the destination client
 
 Rows with `DateDeleted` or `deleted_at` set are ignored.
 
@@ -44,18 +43,19 @@ maintenance-task record. It does nothing when the global window is `nil`. Each r
 
 1. Creates a `GrdaWarehouse::ClientRetentionRun` with the global window and a snapshot of the data
    source overrides.
-2. Evaluates destinations in batches, inserting `inactive_clients` rows for every member of an
-   aged-out identity (unique on `client_id`, so existing rows are left alone) and deleting rows for
-   identities that have fresh activity or members that left the identity.
+2. Evaluates destinations in batches, inserting one `inactive_clients` row per source client of
+   an aged-out identity (unique on `client_id`, so existing rows are left alone) and deleting rows
+   for sources of evaluated identities that are not aged out, including a marked source that has
+   since moved into an active identity.
 3. Logs `marked` and `unmarked` entries in `client_retention_log_entries` with plain identifiers
    (warehouse ids, data source ids, PersonalIDs) and never names, SSN or DOB.
-4. Logs `destination_removed` for marks whose destination row no longer exists, then drops them.
-5. Records evaluated, marked and unmarked counts on the run.
+4. Records evaluated, marked and unmarked counts on the run.
 
 ## What "hidden" means
 
-An id in `inactive_clients` is treated exactly like an HMIS-restricted client on the warehouse
-side; see [Warehouse Auth Policies](warehouse-auth-policies.md#client-restriction). PII is redacted
+A source client in `inactive_clients`, and every destination it is linked to through a live
+`warehouse_clients` row, is treated exactly like an HMIS-restricted client on the warehouse side
+(`GrdaWarehouse::HiddenClients`); see [Warehouse Auth Policies](warehouse-auth-policies.md#client-restriction). PII is redacted
 everywhere `PiiProvider` is consulted, name and SSN search skip the client, the Superset
 `analytics.client_piis` view and the HMIS CSV export transform redact name and SSN. DOB and exact
 id lookups still work. There is no override permission; visibility returns when the identity has
@@ -70,7 +70,7 @@ leaves existing marks in place; clear them from `inactive_clients` in the consol
   `inactive_clients` with no permission override (a per-id or preloaded lookup added to
   `Hmis::AuthPolicies::ContextLoaders::RestrictedClientLoader`), and `Hmis::Hud::Client.searchable_to`
   should anti-join `inactive_clients`.
-- Marks are rebuilt from the current identity each night, so a split or merge after marking is
-  reflected on the following run, not immediately.
+- A source whose `warehouse_clients` link is removed keeps its mark until it is linked again and
+  re-evaluated.
 - Nothing is scrubbed or deleted, and a later full historical import re-creates aged-out clients
   until the next run marks them again.
