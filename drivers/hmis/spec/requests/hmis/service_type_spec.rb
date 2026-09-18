@@ -11,11 +11,11 @@ require_relative 'login_and_permissions'
 require_relative '../../support/hmis_base_setup'
 
 RSpec.describe Hmis::GraphqlController, type: :request do
+  include_context 'hmis base setup'
+
   before(:each) do
     hmis_login(user)
   end
-
-  include_context 'hmis base setup'
 
   let(:create_service_type) do
     <<~GRAPHQL
@@ -24,7 +24,11 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           serviceType {
             id
             name
-            category
+            serviceCategory {
+              id
+              name
+              __typename
+            }
           }
         #{error_fields}
         }
@@ -39,7 +43,11 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           serviceType {
             id,
             name,
-            category,
+            serviceCategory {
+              id
+              name
+              __typename
+            }
             supportsBulkAssignment
           }
           #{error_fields}
@@ -123,7 +131,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       service_type = result.dig('data', 'updateServiceType', 'serviceType')
       expect(service_type['name']).to eq('A renamed type')
       expect(service_type['supportsBulkAssignment']).to eq(true)
-      expect(service_type['category']).to eq('A new service category')
+      expect(service_type['serviceCategory']['name']).to eq('A new service category')
       custom_type.reload
       expect(custom_type.name).to eq('A renamed type')
       expect(custom_type.supports_bulk_assignment).to eq(true)
