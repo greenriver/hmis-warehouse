@@ -47,10 +47,11 @@ RSpec.describe GrdaWarehouse::InactiveClient, type: :model do
       expect(rollup[:source_clients].map { |sc| sc['client_id'] }).to contain_exactly(source_one.id, source_two.id)
     end
 
-    it 'counts a file uploaded to the destination client as activity' do
+    it 'ignores files and notes attached to the destination client' do
       create(:client_file, client: destination, created_at: 2.years.ago)
+      create(:grda_warehouse_client_notes_window_note, client: destination, created_at: 1.year.ago)
 
-      expect(rollup[:last_activity_on]).to eq(2.years.ago.to_date)
+      expect(rollup[:last_activity_on]).to eq(10.years.ago.to_date)
     end
 
     it 'counts HMIS custom services and alerts on a source client as activity' do

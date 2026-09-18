@@ -2215,12 +2215,9 @@ CREATE TABLE public.hmis_restricted_records (
 CREATE TABLE public.inactive_clients (
     id bigint NOT NULL,
     client_id bigint NOT NULL,
-    destination_client_id bigint NOT NULL,
     marked_on date NOT NULL,
     last_activity_on date NOT NULL,
-    retention_years integer NOT NULL,
-    created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    retention_years integer NOT NULL
 );
 
 
@@ -2275,6 +2272,11 @@ CREATE VIEW analytics.client_piis AS
         UNION
          SELECT inactive_clients.client_id
            FROM public.inactive_clients
+        UNION
+         SELECT warehouse_clients.destination_id
+           FROM (public.warehouse_clients
+             JOIN public.inactive_clients ON ((inactive_clients.client_id = warehouse_clients.source_id)))
+          WHERE (warehouse_clients.deleted_at IS NULL)
         )
  SELECT "Client".id,
     "Client".data_source_id,
@@ -220735,13 +220737,6 @@ CREATE INDEX index_import_thresholds_on_data_source_id ON public.import_threshol
 --
 
 CREATE UNIQUE INDEX index_inactive_clients_on_client_id ON public.inactive_clients USING btree (client_id);
-
-
---
--- Name: index_inactive_clients_on_destination_client_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_inactive_clients_on_destination_client_id ON public.inactive_clients USING btree (destination_client_id);
 
 
 --

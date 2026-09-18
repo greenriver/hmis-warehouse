@@ -218,9 +218,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
       before do
         GrdaWarehouse::WarehouseClient.create!(destination_id: inactive_destination.id, source_id: inactive_source.id, data_source_id: source_ds.id, id_in_source: inactive_source.PersonalID)
         GrdaWarehouse::WarehouseClient.create!(destination_id: active_destination.id, source_id: active_source.id, data_source_id: source_ds.id, id_in_source: active_source.PersonalID)
-        [inactive_destination, inactive_source].each do |client|
-          GrdaWarehouse::InactiveClient.create!(client_id: client.id, destination_client_id: inactive_destination.id, marked_on: Date.current, last_activity_on: 10.years.ago.to_date, retention_years: 7)
-        end
+        GrdaWarehouse::InactiveClient.create!(client_id: inactive_source.id, marked_on: Date.current, last_activity_on: 10.years.ago.to_date, retention_years: 7)
       end
 
       # The report path: an allow-everything policy that only the hidden-client check can narrow.

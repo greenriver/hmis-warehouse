@@ -17,8 +17,9 @@ module GrdaWarehouse::AuthPolicies::ContextLoaders
     # batching per page. The set is defined by GrdaWarehouse::HiddenClients.
     #
     # Retention marks (GrdaWarehouse::InactiveClient) can cover a large share of an old warehouse,
-    # so they are never loaded whole: each id is checked against the table's unique index and
-    # memoized, and #preload batches the lookups for a page of clients.
+    # so they are never loaded whole: each id is resolved through GrdaWarehouse::HiddenClients
+    # (marked sources and their destinations) and memoized, and #preload batches the lookups for
+    # a page of clients.
     def restricted_client_ids
       @restricted_client_ids ||= load_restricted_client_ids
     end
@@ -34,7 +35,7 @@ module GrdaWarehouse::AuthPolicies::ContextLoaders
       missing = client_ids.compact.uniq.reject { |id| inactive_lookups.key?(id) }
       return if missing.empty?
 
-      found = GrdaWarehouse::InactiveClient.where(client_id: missing).pluck(:client_id).to_set
+      found = GrdaWarehouse::HiddenClients.inactive_subset(missing)
       missing.each { |id| inactive_lookups[id] = found.include?(id) }
     end
 
@@ -52,7 +53,7 @@ module GrdaWarehouse::AuthPolicies::ContextLoaders
     private def inactive?(client_id)
       return inactive_lookups[client_id] if inactive_lookups.key?(client_id)
 
-      inactive_lookups[client_id] = GrdaWarehouse::InactiveClient.where(client_id: client_id).exists?
+      inactive_lookups[client_id] = GrdaWarehouse::HiddenClients.inactive_subset([client_id]).include?(client_id)
     end
 
     private def inactive_lookups

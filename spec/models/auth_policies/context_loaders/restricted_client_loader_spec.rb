@@ -104,8 +104,8 @@ RSpec.describe GrdaWarehouse::AuthPolicies::ContextLoaders::RestrictedClientLoad
   end
 
   describe 'retention-inactive clients' do
-    def mark_inactive(client_id, destination_id: destination_client.id)
-      GrdaWarehouse::InactiveClient.create!(client_id: client_id, destination_client_id: destination_id, marked_on: Date.current, last_activity_on: 10.years.ago.to_date, retention_years: 7)
+    def mark_inactive(client_id)
+      GrdaWarehouse::InactiveClient.create!(client_id: client_id, marked_on: Date.current, last_activity_on: 10.years.ago.to_date, retention_years: 7)
     end
 
     it 'treats an id in inactive_clients as restricted' do
@@ -114,10 +114,15 @@ RSpec.describe GrdaWarehouse::AuthPolicies::ContextLoaders::RestrictedClientLoad
       expect(loader.restricted?(source_client.id)).to eq(true)
     end
 
-    it 'does not fan out from the marks: a sibling with no row of its own is not hidden' do
-      # ClientRetentionJob writes a row for every member, so the loader relies on that rather
-      # than walking warehouse_clients a second time.
+    it 'hides the destination of a marked source through its live warehouse_clients link' do
       mark_inactive(source_client.id)
+
+      expect(loader.restricted?(destination_client.id)).to eq(true)
+    end
+
+    it 'does not hide a destination whose only link to a marked source is soft-deleted' do
+      mark_inactive(source_client.id)
+      GrdaWarehouse::WarehouseClient.where(source_id: source_client.id).update_all(deleted_at: Time.current)
 
       expect(loader.restricted?(destination_client.id)).to eq(false)
     end

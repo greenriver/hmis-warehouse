@@ -14,10 +14,10 @@ class Export::RestrictedClientPiiTransform
   def initialize(options)
     @export = options[:export]
     @loader = GrdaWarehouse::AuthPolicies::ContextLoaders::RestrictedClientLoader.new
-    # Rows arrive one at a time, so resolve the retention marks once for the whole export.
+    # Rows arrive one at a time, so resolve the inactive identities once for the whole export.
     # Job-scoped Set of integer ids; move to a LEFT JOIN flag on the export scope if
     # the inactive population reaches millions.
-    @inactive_ids = GrdaWarehouse::InactiveClient.pluck(:client_id).to_set
+    @inactive_ids = GrdaWarehouse::HiddenClients.inactive_ids
   end
 
   def process(row)
