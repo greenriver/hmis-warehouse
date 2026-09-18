@@ -21,7 +21,7 @@ module Types
     available_filter_options do
       arg :search_term, String
       # "Form Type" is the user-facing name for the form's role
-      arg :form_type, [Types::Forms::Enums::ConfigurableFormRole]
+      arg :form_type, [Types::Forms::Enums::FormRole]
     end
 
     field :id, String, null: false

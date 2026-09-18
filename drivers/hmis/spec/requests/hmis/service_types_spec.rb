@@ -20,6 +20,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   let!(:rental_assistance) { create :hmis_custom_service_type, data_source: ds1, custom_service_category: financial_category, name: 'Rental Assistance', supports_bulk_assignment: true }
   let!(:security_deposit) { create :hmis_custom_service_type, data_source: ds1, custom_service_category: financial_category, name: 'Security Deposit' }
   let!(:housing_navigation) { create :hmis_custom_service_type, data_source: ds1, custom_service_category: housing_category, name: 'Housing Navigation' }
+  let!(:other_data_source_type) { create :hmis_custom_service_type, name: 'Other Data Source Service' }
 
   before(:each) do
     hmis_login(user)
@@ -71,6 +72,15 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     it 'filters by search term' do
       expect(service_type_names_in_own_categories(search_term: 'Rental')).to contain_exactly('Rental Assistance')
     end
+
+    it 'excludes service types from another data source' do
+      expect(service_type_names).not_to include(other_data_source_type.name)
+    end
+
+    it 'denies access without permission to configure data collection' do
+      remove_permissions(access_control, :can_configure_data_collection)
+      expect_access_denied(post_graphql { query })
+    end
   end
 
   describe 'Service type lookup' do
@@ -89,6 +99,12 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       response, result = post_graphql(id: rental_assistance.id) { query }
       expect(response.status).to eq(200), result.inspect
       expect(result.dig('data', 'serviceType', 'name')).to eq('Rental Assistance')
+    end
+
+    it 'does not resolve a service type from another data source' do
+      response, result = post_graphql(id: other_data_source_type.id) { query }
+      expect(response.status).to eq(200), result.inspect
+      expect(result.dig('data', 'serviceType')).to be_nil
     end
 
     it 'denies access without permission to configure data collection' do

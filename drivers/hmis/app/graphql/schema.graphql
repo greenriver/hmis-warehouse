@@ -2512,133 +2512,6 @@ enum Component {
   VISIONLINK
 }
 
-enum ConfigurableFormRole {
-  """
-  Annual
-  """
-  ANNUAL
-
-  """
-  Case note
-  """
-  CASE_NOTE
-
-  """
-  CE assessment
-  """
-  CE_ASSESSMENT
-
-  """
-  CE event
-  """
-  CE_EVENT
-
-  """
-  CE participation
-  """
-  CE_PARTICIPATION
-
-  """
-  Client
-  """
-  CLIENT
-
-  """
-  Client detail
-  """
-  CLIENT_DETAIL
-
-  """
-  Current living situation
-  """
-  CURRENT_LIVING_SITUATION
-
-  """
-  Custom assessment
-  """
-  CUSTOM_ASSESSMENT
-
-  """
-  Enrollment
-  """
-  ENROLLMENT
-
-  """
-  Exit
-  """
-  EXIT
-
-  """
-  External form
-  """
-  EXTERNAL_FORM
-
-  """
-  File
-  """
-  FILE
-
-  """
-  Funder
-  """
-  FUNDER
-
-  """
-  HMIS participation
-  """
-  HMIS_PARTICIPATION
-
-  """
-  Intake
-  """
-  INTAKE
-
-  """
-  Inventory
-  """
-  INVENTORY
-
-  """
-  New client enrollment
-  """
-  NEW_CLIENT_ENROLLMENT
-
-  """
-  Occurrence point
-  """
-  OCCURRENCE_POINT
-
-  """
-  Organization
-  """
-  ORGANIZATION
-
-  """
-  Post exit
-  """
-  POST_EXIT
-
-  """
-  Project
-  """
-  PROJECT
-
-  """
-  Project CoC
-  """
-  PROJECT_COC
-
-  """
-  Service
-  """
-  SERVICE
-
-  """
-  Update
-  """
-  UPDATE
-}
-
 enum CounselingMethod {
   """
   Family
@@ -5311,7 +5184,7 @@ type FormIdentifierAccess {
 }
 
 input FormIdentifierFilterOptions {
-  formType: [ConfigurableFormRole!]
+  formType: [FormRole!]
   searchTerm: String
 }
 
@@ -8104,6 +7977,11 @@ enum PickListType {
   Continuum Projects
   """
   CONTINUUM_PROJECTS
+
+  """
+  Form types that the user can create
+  """
+  CREATABLE_FORM_TYPES
   CURRENT_LIVING_SITUATION
   CUSTOM_SERVICE_CATEGORIES
   CUSTOM_SERVICE_TYPES
@@ -8136,7 +8014,7 @@ enum PickListType {
   EXTERNAL_FORM_TYPES_FOR_PROJECT
 
   """
-  Form Types
+  Form types visible in the Forms admin tool
   """
   FORM_TYPES
   GEOCODE
