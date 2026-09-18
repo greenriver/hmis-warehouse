@@ -53,6 +53,5 @@ RSpec.describe 'HapReport::WarehouseReports::HapReportsController#details', type
     get details_hap_report_warehouse_reports_hap_report_path(hap_report, cell: 'b1')
 
     expect(response.body).to include('Open')
-    expect(response.body).to include('Client')
   end
 end

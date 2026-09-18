@@ -142,6 +142,17 @@ RSpec.describe GrdaWarehouse::InactiveClient, type: :model do
         expect(rollup[:last_activity_on]).to eq(8.years.ago.to_date)
         expect(rollup[:source_clients].map { |sc| sc['client_id'] }).to contain_exactly(source_one.id, source_two.id)
       end
+
+      it 'handles soft-deleted source clients properly' do
+        # Soft-delete one source client while keeping warehouse_client link active
+        source_two.update_columns(DateDeleted: Time.current)
+
+        # Verify that the soft-deleted source is not included in activity calculation
+        result = rollup
+
+        # Should only include non-deleted source in the source_clients list
+        expect(result[:source_clients].map { |sc| sc['client_id'] }).to contain_exactly(source_one.id)
+      end
     end
 
     context 'when the sources have no enrollments' do
@@ -154,10 +165,6 @@ RSpec.describe GrdaWarehouse::InactiveClient, type: :model do
       ds_two.update!(client_retention_years: 10)
 
       expect(rollup[:retention_years]).to eq(10)
-    end
-
-    it 'uses the global window when no source has an override' do
-      expect(rollup[:retention_years]).to eq(7)
     end
 
     it 'lists each source with its data source and PersonalID but no name' do

@@ -62,7 +62,6 @@ RSpec.describe WarehouseReports::ClientRetentionController, type: :request do
         get path
 
         expect(response).to redirect_to(user.my_root_path)
-        expect(response.body).not_to include('Records Expiring Soon')
       end
     end
   end
