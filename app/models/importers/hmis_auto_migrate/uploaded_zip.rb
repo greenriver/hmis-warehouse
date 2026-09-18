@@ -58,8 +58,8 @@ module Importers::HmisAutoMigrate
 
         # options = {}
         # options = { password: @file_password } if @file_password.present?
-        # @file_password comes from the upload form; the single-string form of system
-        # would hand it to a shell, which runs whatever it contains.
+        # @file_password comes from the data source's HMIS import config; passing
+        # system a single string would hand it to a shell, which runs whatever it contains.
         args = ['e']
         args << "-p#{@file_password}" if @file_password.present?
         # system returns false instead of raising, and a failed extraction leaves
