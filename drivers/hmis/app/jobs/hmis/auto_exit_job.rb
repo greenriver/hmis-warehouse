@@ -46,8 +46,8 @@ module Hmis
       # don't track if there are arguments
       return with_lock { _perform(**args) } if args.present?
 
-      with_lock do
-        instrument_as_maintenance_task(name: 'auto exit') do |run|
+      instrument_as_maintenance_task do |run|
+        with_lock do
           _perform(**args)
           run.complete!
         end

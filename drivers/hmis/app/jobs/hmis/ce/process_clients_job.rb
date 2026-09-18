@@ -42,9 +42,9 @@ module Hmis::Ce
 
       log_info("Starting with next_client_id: #{next_client_id}")
 
-      # ensure only one instance of this job runs simultaneously
-      with_lock do
-        instrument_as_maintenance_task(name: 'process dirty clients') do |run|
+      instrument_as_maintenance_task do |run|
+        # ensure only one instance of this job runs simultaneously
+        with_lock do
           @progress = progress
           log_info('Acquired job lock, starting client processing')
           reconcile_untracked_clients

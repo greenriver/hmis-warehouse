@@ -7,9 +7,6 @@
 # frozen_string_literal: true
 
 # Provides instrumentation for maintenance tasks to track execution and alert on failures
-#
-# Callers inside a block need an explicit `name:`, since the name derived from `caller_locations`
-# picks up the block and that name identifies the task.
 module MaintenanceTaskInstrumentation
   extend ActiveSupport::Concern
 

@@ -20,8 +20,8 @@ module GrdaWarehouse::Tasks
     end
 
     def perform
-      with_lock do
-        instrument_as_maintenance_task(name: 'cleanup old queries') do |run|
+      instrument_as_maintenance_task do |run|
+        with_lock do
           GrdaWarehouseBase.transaction do
             cleanup_old_queries(GrdaWarehouse::ClientSearchQuery)
             cleanup_old_queries(Hmis::ClientSearchQuery)

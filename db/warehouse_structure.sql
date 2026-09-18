@@ -360595,7 +360595,6 @@ ALTER TABLE ONLY public.import_logs
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
-('20260918120000'),
 ('20260911120000'),
 ('20260908122000'),
 ('20260908121000'),

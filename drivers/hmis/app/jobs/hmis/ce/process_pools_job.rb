@@ -43,9 +43,9 @@ module Hmis::Ce
 
       log_info("Starting with next_pool_id: #{next_pool_id}")
 
-      # ensure only one instance of this job runs simultaneously
-      with_lock do
-        instrument_as_maintenance_task(name: 'process dirty pools') do |run|
+      instrument_as_maintenance_task do |run|
+        # ensure only one instance of this job runs simultaneously
+        with_lock do
           @progress = progress
           log_info('Acquired job lock, starting pool processing')
           reconcile_untracked_pools
