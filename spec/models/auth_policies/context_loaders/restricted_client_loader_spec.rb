@@ -140,6 +140,26 @@ RSpec.describe GrdaWarehouse::AuthPolicies::ContextLoaders::RestrictedClientLoad
       expect(query_count).to eq(0)
     end
 
+    it 'answers preloaded ids, marked and unmarked alike, without further queries' do
+      marked_source = create(:grda_warehouse_hud_client)
+      marked_destination = create(:grda_warehouse_hud_client)
+      GrdaWarehouse::WarehouseClient.create!(destination_id: marked_destination.id, source_id: marked_source.id, data_source_id: marked_source.data_source_id, id_in_source: marked_source.id.to_s)
+      mark_inactive(marked_source.id)
+      open_ids = Array.new(3) { create(:grda_warehouse_hud_client).id }
+      asked = [marked_source.id, marked_destination.id] + open_ids
+
+      loader.preload(asked)
+      loader.restricted_client_ids
+      query_count = 0
+      callback = ->(*args) { query_count += 1 unless args.last[:name] == 'SCHEMA' }
+      answers = ActiveSupport::Notifications.subscribed(callback, 'sql.active_record') do
+        asked.index_with { |id| loader.restricted?(id) }
+      end
+
+      expect(answers).to eq({ marked_source.id => true, marked_destination.id => true }.merge(open_ids.index_with { false }))
+      expect(query_count).to eq(0)
+    end
+
     it 'changes the cache token once a retention run completes' do
       before_run = loader.cache_token
       GrdaWarehouse::ClientRetentionRun.create!(started_at: 1.minute.ago, completed_at: Time.current, global_retention_years: 7)

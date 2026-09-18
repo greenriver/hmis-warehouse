@@ -51,7 +51,7 @@ RSpec.describe WarehouseReports::ClientRetentionController, type: :request do
       [warehouse_reports_client_retention_index_path, expired_warehouse_reports_client_retention_index_path, runs_warehouse_reports_client_retention_index_path].each do |path|
         get path
 
-        expect(response).not_to have_http_status(:ok)
+        expect(response).to redirect_to(user.my_root_path)
         expect(response.body).not_to include('Records Expiring Soon')
       end
     end
