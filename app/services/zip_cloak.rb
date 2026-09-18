@@ -8,13 +8,10 @@
 
 require 'pty'
 require 'expect'
+require 'zip'
 
 # Drives the `zipcloak` binary, which takes its password from the controlling
 # terminal rather than an argument, so it has to be run under a pty.
-#
-# The password is written to the child as terminal input. It never reaches a
-# shell command line or a generated script, so it needs no escaping and cannot
-# be used to inject commands.
 class ZipCloak
   class Error < RuntimeError; end
 
@@ -22,26 +19,42 @@ class ZipCloak
   # short enough that a wedged child doesn't hold the job forever.
   PROMPT_TIMEOUT = 5.minutes.to_i
 
-  # zipcloak accepts a password up to this length and rejects anything longer.
   MAX_PASSWORD_LENGTH = 80
-  TOO_LONG = 'line too long'
+  TOO_LONG_MESSAGE = 'line too long'
 
-  # zipcloak asks for the password, then asks again to verify it.
   def self.encrypt(source:, destination:, password:)
-    new(password: password).run(['--output-file', destination.to_s, source.to_s], prompts: 2)
+    new(password: password).encrypt(source: source, destination: destination)
   end
 
-  # Decryption only asks once; a wrong password copies the entries through
-  # unchanged rather than failing.
   def self.decrypt(source:, destination:, password:)
-    new(password: password).run(['-d', '--output-file', destination.to_s, source.to_s], prompts: 1)
+    new(password: password).decrypt(source: source, destination: destination)
   end
 
   def initialize(password:)
+    raise Error, 'the password cannot contain a line break' if password.to_s.match?(/[\r\n]/)
+
     @password = password
   end
 
-  def run(args, prompts:)
+  # zipcloak asks for the password, then asks again to verify it.
+  def encrypt(source:, destination:)
+    run(['--output-file', destination.to_s, source.to_s], prompts: 2)
+  end
+
+  # Decryption asks once. A wrong password is not an error to zipcloak: it copies
+  # the entries through still encrypted and exits 0.
+  def decrypt(source:, destination:)
+    run(['-d', '--output-file', destination.to_s, source.to_s], prompts: 1)
+    raise Error, 'zipcloak left the archive encrypted, so the password is wrong' if encrypted_entries?(destination)
+
+    true
+  end
+
+  private def encrypted_entries?(path)
+    Zip::File.open(path.to_s) { |zip| zip.any?(&:encrypted?) }
+  end
+
+  private def run(args, prompts:)
     status = nil
     PTY.spawn('zipcloak', *args) do |reader, writer, pid|
       answer_prompts(reader, writer, pid, prompts)
@@ -56,20 +69,41 @@ class ZipCloak
     prompts.times do
       match = reader.expect(/password: /, PROMPT_TIMEOUT)
       abort_child(pid, 'timed out waiting for the zipcloak password prompt') if match.nil?
-      # zipcloak re-prompts rather than exiting when the password is too long,
-      # so it would otherwise wait for one it will never be sent.
-      abort_child(pid, "the password is longer than zipcloak's #{MAX_PASSWORD_LENGTH} character limit") if match.first.include?(TOO_LONG)
+      check_password_length(pid, match.first)
 
       # The pty is in canonical mode, so the child reads the line on the return.
       writer.print("#{@password}\r")
       writer.flush
     end
-    reader.read
+    wait_for_exit(reader, pid)
   rescue Errno::EIO
-    # A pty raises EIO rather than returning EOF once the child is gone, which
-    # is how zipcloak bailing out before or between the prompts arrives here.
-    # The exit status checked above says why it did.
+    # A pty raises EIO rather than returning EOF once the child is gone, so zipcloak
+    # exiting before or between the prompts arrives here.
     nil
+  end
+
+  # zipcloak re-prompts rather than exiting on a password it considers too long, so
+  # reading to EOF here would block forever. The decrypt run answers a single prompt,
+  # so this loop is the only place that re-prompt is seen.
+  private def wait_for_exit(reader, pid)
+    deadline = Process.clock_gettime(Process::CLOCK_MONOTONIC) + PROMPT_TIMEOUT
+    buffer = +''
+    loop do
+      check_password_length(pid, buffer)
+      remaining = deadline - Process.clock_gettime(Process::CLOCK_MONOTONIC)
+      abort_child(pid, 'timed out waiting for zipcloak to finish') if remaining <= 0 || IO.select([reader], nil, nil, remaining).nil?
+
+      chunk = reader.read_nonblock(4096, exception: false)
+      break if chunk.nil? # the child closed the pty
+
+      buffer << chunk unless chunk == :wait_readable
+    end
+  end
+
+  private def check_password_length(pid, output)
+    return unless output.include?(TOO_LONG_MESSAGE)
+
+    abort_child(pid, "the password is longer than zipcloak's #{MAX_PASSWORD_LENGTH} character limit")
   end
 
   private def abort_child(pid, message)

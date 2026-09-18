@@ -9,9 +9,6 @@
 require 'rails_helper'
 
 RSpec.describe GrdaWarehouse::HmisImportConfig, type: :model do
-  # The importer hands this password to zipcloak for a .zip upload, and zipcloak
-  # re-prompts rather than failing on one it considers too long, which would
-  # leave the import job waiting on a prompt nothing answers.
   describe 'zip file password length' do
     it 'accepts a password zipcloak will take' do
       config = build(:grda_warehouse_hmis_import_config, zip_file_password: 'p' * ZipCloak::MAX_PASSWORD_LENGTH)

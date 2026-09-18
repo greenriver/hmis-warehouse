@@ -57,4 +57,71 @@ RSpec.describe Importers::HmisAutoMigrate::UploadedZip do
       expect(zip_entry_names(downloaded_zip)).to match_array(hud_csv_entries.keys.map { |name| File.join('hmis_upload', name) })
     end
   end
+
+  describe '#pre_process when the password is wrong' do
+    let(:source_dir) { Dir.mktmpdir('uploaded-zip-source') }
+    let(:data_source) { create(:source_data_source) }
+    let(:upload) { create(:grda_warehouse_upload, data_source: data_source) }
+    let(:importer) do
+      described_class.new(upload_id: upload.id, data_source_id: data_source.id, file_password: 'wrong horse')
+    end
+
+    after(:each) do
+      FileUtils.remove_entry(source_dir) if File.exist?(source_dir)
+    end
+
+    def stored_upload_digest
+      Digest::SHA256.hexdigest(upload.reload.hmis_zip.download)
+    end
+
+    context 'with a .7z upload' do
+      let(:seven_zip_path) do
+        path = File.join(source_dir, 'hmis_upload.7z')
+        csv_dir = write_files(File.join(source_dir, 'csvs'), hud_csv_entries)
+        system('7z', 'a', '-psecret', path, *Dir.glob("#{csv_dir}/*.csv"), out: File::NULL) ||
+          raise("unable to build the encrypted .7z fixture; 7z exited #{$CHILD_STATUS.inspect}")
+        path
+      end
+
+      before(:each) do
+        attach_hmis_zip(
+          upload,
+          seven_zip_path,
+          filename: File.basename(seven_zip_path),
+          content_type: 'application/x-7z-compressed',
+        )
+      end
+
+      it 'raises and leaves the stored upload alone' do
+        digest = stored_upload_digest
+
+        expect { importer.pre_process }.to raise_error(/unable to extract/)
+        expect(upload.reload.hmis_zip.filename.to_s).to eq('hmis_upload.7z')
+        expect(stored_upload_digest).to eq(digest)
+      end
+    end
+
+    context 'with an encrypted .zip upload' do
+      let(:encrypted_zip_path) do
+        path = File.join(source_dir, 'hmis_upload.zip')
+        ZipCloak.encrypt(
+          source: build_zip(File.join(source_dir, 'plain.zip'), hud_csv_entries),
+          destination: path,
+          password: 'secret',
+        )
+        path
+      end
+
+      before(:each) do
+        attach_hmis_zip(upload, encrypted_zip_path, filename: File.basename(encrypted_zip_path))
+      end
+
+      it 'raises and leaves the stored upload alone' do
+        digest = stored_upload_digest
+
+        expect { importer.pre_process }.to raise_error(ZipCloak::Error)
+        expect(stored_upload_digest).to eq(digest)
+      end
+    end
+  end
 end

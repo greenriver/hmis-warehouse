@@ -61,7 +61,7 @@ module WarehouseReports
         if frequency.positive?
           recurring_export = GrdaWarehouse::RecurringHmisExport.create(recurrence_params.merge(user_id: current_user.id, options: @filter.to_h))
           unless recurring_export.persisted?
-            flash[:error] = recurring_export.errors.full_messages.to_sentence
+            flash.now[:error] = recurring_export.errors.full_messages.to_sentence
             return render :index
           end
 
@@ -69,7 +69,7 @@ module WarehouseReports
         end
         @filter.adjust_reporting_period
         if recurring_export&.s3_present? && ! recurring_export.s3_valid?
-          flash[:error] = 'Invalid S3 Configuration'
+          flash.now[:error] = 'Invalid S3 Configuration'
           render :index
         else
           @filter.schedule_job(report_url: warehouse_reports_hmis_exports_url)

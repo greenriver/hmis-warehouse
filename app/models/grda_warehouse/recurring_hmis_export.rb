@@ -17,9 +17,6 @@ module GrdaWarehouse
 
     acts_as_paranoid
 
-    # Only the zipcloak path is limited; 7z takes a longer password. Catching it
-    # here means the user hears about it on the form rather than losing a
-    # background export to a password zipcloak will not accept.
     validates :zip_password,
               length: { maximum: ZipCloak::MAX_PASSWORD_LENGTH },
               allow_nil: true,
@@ -107,8 +104,8 @@ module GrdaWarehouse
         end
       end
 
-      # Array form, so the password and the paths reach 7z as arguments rather
-      # than as a string a shell re-parses.
+      # zip_password comes from the export form; the single-string form of system
+      # would hand it to a shell, which runs whatever it contains.
       system('7z', 'a', '-mx9', "-p#{zip_password}", destination_file, *Dir.glob("#{destination_path}/*.csv"))
 
       # ::File.open(destination_file, 'wb') do |file|

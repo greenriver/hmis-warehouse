@@ -20,8 +20,7 @@ This feature automates the delivery of HMIS CSV exports on a rolling schedule. I
   - `nil`: deliver the raw zip created by the export job.
   - `zip`: re-wrap the archive using `zipcloak` with the supplied `zip_password`.
   - `7z`: expands the zip and rebuilds it as a `.7z` archive protected by the password.
-- `zip_password` comes from the export form, so neither encryption path may put it on a shell command line or in a generated script. The `7z` path passes it as an argument via the array form of `system`; the `zip` path goes through `ZipCloak`, which writes it to the binary's terminal. `Importers::HmisAutoMigrate::UploadedZip` handles the import-side password the same way.
-- `zipcloak` refuses a password over 80 characters (`ZipCloak::MAX_PASSWORD_LENGTH`) by re-prompting rather than exiting, so the `zip` type validates the length on the form. The `7z` type has no such limit and is not validated.
+- `zipcloak` will not take a password longer than 80 characters, so `zip_password` is length-validated for the `zip` type and the user sees the error on the form. The `7z` type has no such limit.
 
 ## Background Processing
 - The rake task `grda_warehouse:process_recurring_hmis_exports` iterates all recurrence definitions and calls `run` for those that return `should_run?`.

@@ -162,9 +162,6 @@ RSpec.describe WarehouseReports::HmisExportsController, type: :request do
         expect(GrdaWarehouse::RecurringHmisExport.last.zip_password).to eq('a-good-password')
       end
 
-      # zipcloak rejects a password past its limit, so without this the export
-      # is scheduled against a recurrence that was never saved, and the user
-      # hears nothing until the run fails.
       it 'reports the error and saves nothing when the zip password is too long' do
         params = base_params.deep_merge(
           filter: recurrence_params.merge(zip_password: 'p' * (ZipCloak::MAX_PASSWORD_LENGTH + 1)),
@@ -178,7 +175,6 @@ RSpec.describe WarehouseReports::HmisExportsController, type: :request do
         expect(GrdaWarehouse::RecurringHmisExport.count).to eq(0)
       end
 
-      # 7z takes the longer password, so the limit only applies to the zipcloak path.
       it 'allows a longer password for the 7z encryption type' do
         params = base_params.deep_merge(
           filter: recurrence_params.merge(

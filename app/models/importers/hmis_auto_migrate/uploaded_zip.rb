@@ -42,6 +42,8 @@ module Importers::HmisAutoMigrate
       force_standard_zip
     end
 
+    # rubyzip, which the rest of the importer uses to read the upload, can open
+    # neither a .7z archive nor an encrypted zip.
     private def force_standard_zip
       zip_file = reconstitute_upload
       return unless @file_password.present? || File.extname(zip_file) == '.7z'
@@ -56,11 +58,15 @@ module Importers::HmisAutoMigrate
 
         # options = {}
         # options = { password: @file_password } if @file_password.present?
-        # Array form, so the password and the paths reach 7z as arguments rather
-        # than as a string a shell re-parses.
+        # @file_password comes from the upload form; the single-string form of system
+        # would hand it to a shell, which runs whatever it contains.
         args = ['e']
         args << "-p#{@file_password}" if @file_password.present?
-        system('7z', *args, "-o#{tmp_folder}", zip_file)
+        # system returns false instead of raising, and a failed extraction leaves
+        # tmp_folder empty for the zip built below, which is then saved over the
+        # stored upload.
+        raise "7z was unable to extract #{File.basename(zip_file)}" unless system('7z', *args, "-o#{tmp_folder}", zip_file)
+
         # File.open(zip_file, 'rb') do |seven_zip|
         #   SevenZipRuby::Reader.open(seven_zip, options) do |szr|
         #     szr.extract_all(tmp_folder)
