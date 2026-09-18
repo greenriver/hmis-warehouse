@@ -116,6 +116,21 @@ RSpec.describe ClientRetentionJob, type: :job do
       expect(second_run.log_entries.sole.action).to eq('unmarked')
     end
 
+    it 'skips an identity with no activity date: not counted, not marked, and an existing mark survives' do
+      silent_destination = create(:grda_warehouse_hud_client, data_source: warehouse_ds)
+      silent_source = create(:grda_warehouse_hud_client, data_source: ds_one)
+      silent_source.update_columns(DateUpdated: nil)
+      link(silent_destination, silent_source)
+      GrdaWarehouse::InactiveClient.create!(client_id: silent_source.id, marked_on: Date.current, last_activity_on: 10.years.ago.to_date, retention_years: 7)
+
+      described_class.perform_now
+
+      expect(marked_ids).to contain_exactly(source_one.id, source_two.id, silent_source.id)
+      run = GrdaWarehouse::ClientRetentionRun.completed.sole
+      expect(run.evaluated_count).to eq(2)
+      expect(run.log_entries.pluck(:destination_client_id)).to eq([destination.id])
+    end
+
     it 'does not re-log an identity that stays marked, and adds a row for a newly merged source' do
       described_class.perform_now
       late_source = create(:grda_warehouse_hud_client, data_source: ds_two, DateUpdated: 9.years.ago.to_date)

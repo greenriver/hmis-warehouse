@@ -79,6 +79,12 @@ RSpec.describe GrdaWarehouse::InactiveClient, type: :model do
 
         expect(rollup).to include(last_activity_on: 2.years.ago.to_date, basis: 'open_enrollment')
       end
+
+      it 'ignores a soft-deleted enrollment, so the identity stays exited' do
+        enroll(source_one, entry_on: 1.year.ago.to_date).update_columns(DateDeleted: Time.current)
+
+        expect(rollup).to include(last_activity_on: 8.years.ago.to_date, basis: 'exited')
+      end
     end
 
     context 'when an enrollment is open' do
@@ -143,6 +149,13 @@ RSpec.describe GrdaWarehouse::InactiveClient, type: :model do
         expect(rollup[:source_clients].map { |sc| sc['client_id'] }).to contain_exactly(source_one.id, source_two.id)
       end
 
+      it 'ignores soft-deleted living situation and income records' do
+        create(:hud_current_living_situation, data_source_id: ds_one.id, PersonalID: source_one.PersonalID, EnrollmentID: open_enrollment.EnrollmentID, InformationDate: 1.day.ago.to_date, DateDeleted: Time.current)
+        create(:hud_income_benefit, data_source_id: ds_one.id, PersonalID: source_one.PersonalID, EnrollmentID: open_enrollment.EnrollmentID, InformationDate: 2.days.ago.to_date, DateDeleted: Time.current)
+
+        expect(rollup[:last_activity_on]).to eq(8.years.ago.to_date)
+      end
+
       it 'handles soft-deleted source clients properly' do
         # Soft-delete one source client while keeping warehouse_client link active
         source_two.update_columns(DateDeleted: Time.current)
@@ -158,6 +171,12 @@ RSpec.describe GrdaWarehouse::InactiveClient, type: :model do
     context 'when the sources have no enrollments' do
       it 'uses the client rows under the exited rule' do
         expect(rollup).to include(last_activity_on: 10.years.ago.to_date, basis: 'exited')
+      end
+
+      it 'returns no row when no source has an activity date' do
+        GrdaWarehouse::Hud::Client.where(id: [source_one.id, source_two.id]).update_all(DateUpdated: nil)
+
+        expect(rollup).to be_nil
       end
     end
 
