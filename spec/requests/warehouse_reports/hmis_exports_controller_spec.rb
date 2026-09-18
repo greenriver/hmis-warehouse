@@ -175,6 +175,24 @@ RSpec.describe WarehouseReports::HmisExportsController, type: :request do
         expect(GrdaWarehouse::RecurringHmisExport.count).to eq(0)
       end
 
+      # The password fields are hidden at a cadence of 0, so a leftover value there is
+      # not something the user is still asking for. Queue the export and drop it.
+      it 'ignores a password given without a cadence' do
+        params = base_params.deep_merge(filter: recurrence_params.merge(every_n_days: 0))
+        scheduled_filter = nil
+        allow_any_instance_of(Filters::HmisExport).to receive(:schedule_job) { |filter, *_| scheduled_filter = filter }
+
+        post warehouse_reports_hmis_exports_path, params: params
+
+        expect(response).to redirect_to(warehouse_reports_hmis_exports_path)
+        expect(flash[:error]).to be_nil
+        # Nowhere to keep the password: no recurrence is stored, and the one-off export
+        # that is queued carries neither the password nor the encryption type.
+        expect(GrdaWarehouse::RecurringHmisExport.count).to eq(0)
+        expect(scheduled_filter.zip_password).to be_blank
+        expect(scheduled_filter.encryption_type).to be_blank
+      end
+
       it 'allows a longer password for the 7z encryption type' do
         params = base_params.deep_merge(
           filter: recurrence_params.merge(

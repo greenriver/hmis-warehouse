@@ -58,9 +58,47 @@ RSpec.describe GrdaWarehouse::RecurringHmisExport, type: :model do
       expect(export).to be_valid
     end
 
-    it 'allows no password at all' do
-      export = build(:recurring_hmis_export, user: user, encryption_type: 'zip', zip_password: nil)
+    it 'allows no password at all when no encryption type is chosen' do
+      export = build(:recurring_hmis_export, user: user, encryption_type: nil, zip_password: nil)
       expect(export).to be_valid
+    end
+  end
+
+  describe 'encryption type' do
+    # The encryption type select posts '' for its unencrypted option, not nil.
+    it 'rejects a password with no encryption type chosen' do
+      export = build(:recurring_hmis_export, user: user, encryption_type: '', zip_password: 'secret123')
+
+      expect(export).not_to be_valid
+      expect(export.errors[:encryption_type]).to be_present
+    end
+
+    it 'rejects an encryption type with no password' do
+      export = build(:recurring_hmis_export, user: user, encryption_type: 'zip', zip_password: nil)
+
+      expect(export).not_to be_valid
+      expect(export.errors[:zip_password]).to be_present
+    end
+
+    it 'rejects an encryption type #encrypt_zip cannot apply' do
+      export = build(:recurring_hmis_export, user: user, encryption_type: 'gzip', zip_password: 'secret123')
+
+      expect(export).not_to be_valid
+      expect(export.errors[:encryption_type]).to be_present
+    end
+
+    it 'raises rather than storing an empty object when a stored record has an unknown encryption type' do
+      export = build(:recurring_hmis_export, user: user, encryption_type: 'gzip', zip_password: 'secret123')
+      export.save(validate: false)
+
+      expect { export.reload.send(:encrypt_zip, 'ZIPBYTES') }.to raise_error(/unknown encryption type/)
+    end
+
+    it 'raises rather than delivering in the clear when a stored record has a password but no encryption type' do
+      export = build(:recurring_hmis_export, user: user, encryption_type: '', zip_password: 'secret123')
+      export.save(validate: false)
+
+      expect { export.reload.send(:encrypt_zip, 'ZIPBYTES') }.to raise_error(/encryption type/)
     end
   end
 

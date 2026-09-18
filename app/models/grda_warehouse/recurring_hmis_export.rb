@@ -19,8 +19,16 @@ module GrdaWarehouse
 
     validates :zip_password,
               length: { maximum: ZipCloak::MAX_PASSWORD_LENGTH },
-              allow_nil: true,
               if: -> { encryption_type == 'zip' }
+
+    # Require both or neither
+    validates :encryption_type,
+              presence: { message: 'must be chosen when a zip password is provided' },
+              if: -> { zip_password.present? }
+
+    validates :zip_password,
+              presence: { message: 'is required when an encryption type is chosen' },
+              if: -> { encryption_type.present? }
 
     belongs_to :user, optional: true
     has_many :recurring_hmis_export_links
@@ -57,13 +65,18 @@ module GrdaWarehouse
     # Temporarily replace the content of the report with a password protected zip
     # which can be sent to S3
     private def encrypt_zip(content)
-      return content unless zip_password.present?
+      return content if zip_password.blank? && encryption_type.blank?
+
+      # Rows predating the validations above can hold one without the other; do not proceed
+      raise "RecurringHmisExport #{id} needs both a zip password and an encryption type" if zip_password.blank? || encryption_type.blank?
 
       case encryption_type
       when 'zip'
         encrypt_zipcloak(content)
       when '7z'
         encrypt_seven_zip(content)
+      else
+        raise "RecurringHmisExport #{id} has an unknown encryption type #{encryption_type.inspect}"
       end
     end
 
@@ -157,6 +170,8 @@ module GrdaWarehouse
     end
 
     validates :reporting_range, inclusion: { in: available_reporting_ranges.values }
+    # Keeps a type #encrypt_zip cannot apply from reaching delivery, where it raises.
+    validates :encryption_type, inclusion: { in: available_encryption_types.values }, allow_blank: true
 
     def aws_s3
       return nil unless s3_present?
