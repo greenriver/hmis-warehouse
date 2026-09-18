@@ -45,9 +45,10 @@ class GrdaWarehouse::InactiveClient < GrdaWarehouseBase
   # The assembled statement behind rollup_activity, for EXPLAIN.
   # @return [String]
   def self.rollup_activity_sql(destination_ids:, global_years:, expiring_within: nil)
-    sql = sanitize_sql_array([ROLLUP_ACTIVITY_SQL, global_years: global_years, within: expiring_within])
+    today = Date.current
+    sql = sanitize_sql_array([ROLLUP_ACTIVITY_SQL, global_years: global_years, today: today])
     id_filter = destination_ids.nil? ? '' : sanitize_sql_array(['AND wc.destination_id IN (:ids)', ids: destination_ids])
-    having = expiring_within.nil? ? '' : sanitize_sql_array([EXPIRING_HAVING_SQL, global_years: global_years, within: expiring_within])
+    having = expiring_within.nil? ? '' : sanitize_sql_array([EXPIRING_HAVING_SQL, global_years: global_years, within: expiring_within, today: today])
     sql.sub('/*ID_FILTER*/', id_filter).sub('/*HAVING*/', having)
   end
 
@@ -55,7 +56,8 @@ class GrdaWarehouse::InactiveClient < GrdaWarehouseBase
   # latest exit date and client row update: nothing else after an exit is service. An identity
   # with an open enrollment is judged on the HUD fields every project type keeps writing during
   # a stay, plus exit dates from its other enrollments. Soft-deleted rows and dates after today
-  # are skipped everywhere.
+  # are skipped everywhere. :today is bound from Date.current so callers comparing in Ruby use
+  # the same day as the SQL.
   ROLLUP_ACTIVITY_SQL = <<~SQL.squish
     WITH links AS (
       SELECT wc.destination_id, wc.source_id, c."PersonalID", c.data_source_id
@@ -73,12 +75,12 @@ class GrdaWarehouse::InactiveClient < GrdaWarehouseBase
     status AS (
       SELECT destination_id,
         BOOL_OR("ExitDate" IS NULL) AS has_open,
-        MAX("ExitDate") FILTER (WHERE "ExitDate" <= CURRENT_DATE) AS last_exit_on
+        MAX("ExitDate") FILTER (WHERE "ExitDate" <= :today::date) AS last_exit_on
       FROM enrollments
       GROUP BY destination_id
     ),
     client_activity AS (
-      SELECT l.destination_id, MAX(c."DateUpdated"::date) FILTER (WHERE c."DateUpdated"::date <= CURRENT_DATE) AS activity_on
+      SELECT l.destination_id, MAX(c."DateUpdated"::date) FILTER (WHERE c."DateUpdated"::date <= :today::date) AS activity_on
       FROM links l JOIN "Client" c ON c.id = l.source_id
       GROUP BY l.destination_id
     ),
@@ -95,7 +97,7 @@ class GrdaWarehouse::InactiveClient < GrdaWarehouseBase
         SELECT l.destination_id, ib."InformationDate"
           FROM links l JOIN "IncomeBenefits" ib ON ib."PersonalID" = l."PersonalID" AND ib.data_source_id = l.data_source_id AND ib."DateDeleted" IS NULL
       ) u
-      WHERE activity_on IS NOT NULL AND activity_on <= CURRENT_DATE
+      WHERE activity_on IS NOT NULL AND activity_on <= :today::date
       GROUP BY destination_id
     ),
     activity AS (
@@ -124,6 +126,6 @@ class GrdaWarehouse::InactiveClient < GrdaWarehouseBase
 
   EXPIRING_HAVING_SQL = <<~SQL.squish
     HAVING a.last_activity_on + make_interval(years => MAX(COALESCE(ds.client_retention_years, :global_years)))
-      BETWEEN CURRENT_DATE AND CURRENT_DATE + :within
+      BETWEEN :today::date AND :today::date + :within
   SQL
 end

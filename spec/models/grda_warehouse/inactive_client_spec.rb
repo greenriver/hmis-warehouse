@@ -61,6 +61,12 @@ RSpec.describe GrdaWarehouse::InactiveClient, type: :model do
         expect(rollup[:last_activity_on]).to eq(1.year.ago.to_date)
       end
 
+      it 'ignores a client row update dated in the future' do
+        source_one.update_columns(DateUpdated: 1.year.from_now.to_date)
+
+        expect(rollup[:last_activity_on]).to eq(8.years.ago.to_date)
+      end
+
       it 'ignores an exit dated in the future' do
         GrdaWarehouse::Hud::Exit.where(PersonalID: source_two.PersonalID).update_all(ExitDate: 1.year.from_now.to_date)
 
@@ -88,6 +94,12 @@ RSpec.describe GrdaWarehouse::InactiveClient, type: :model do
         create(:hud_service, data_source_id: ds_one.id, PersonalID: source_one.PersonalID, EnrollmentID: open_enrollment.EnrollmentID, DateProvided: 3.years.ago.to_date)
 
         expect(rollup[:last_activity_on]).to eq(3.years.ago.to_date)
+      end
+
+      it 'ignores a service dated in the future' do
+        create(:hud_service, data_source_id: ds_one.id, PersonalID: source_one.PersonalID, EnrollmentID: open_enrollment.EnrollmentID, DateProvided: 1.year.from_now.to_date)
+
+        expect(rollup[:last_activity_on]).to eq(8.years.ago.to_date)
       end
 
       it 'counts a current living situation' do
@@ -154,13 +166,15 @@ RSpec.describe GrdaWarehouse::InactiveClient, type: :model do
     end
 
     it 'limits to rollups whose window ends within the given days when expiring_within is set' do
-      enroll(source_one, entry_on: 12.years.ago.to_date, exit_on: 10.years.ago.to_date)
-      # Global 7 years, latest exit 10 years ago: this rollup expired 3 years ago.
-      expect(rollup(expiring_within: 90)).to be_nil
+      freeze_time do
+        enroll(source_one, entry_on: 12.years.ago.to_date, exit_on: 10.years.ago.to_date)
+        # Global 7 years, latest exit 10 years ago: this rollup expired 3 years ago.
+        expect(rollup(expiring_within: 90)).to be_nil
 
-      GrdaWarehouse::Hud::Exit.where(PersonalID: source_one.PersonalID).update_all(ExitDate: (7.years.ago + 30.days).to_date)
-      expect(rollup(expiring_within: 90)[:destination_id]).to eq(destination.id)
-      expect(rollup(expiring_within: 10)).to be_nil
+        GrdaWarehouse::Hud::Exit.where(PersonalID: source_one.PersonalID).update_all(ExitDate: (7.years.ago + 30.days).to_date)
+        expect(rollup(expiring_within: 90)[:destination_id]).to eq(destination.id)
+        expect(rollup(expiring_within: 10)).to be_nil
+      end
     end
 
     it 'evaluates every linked destination when destination_ids is nil' do

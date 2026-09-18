@@ -84,11 +84,13 @@ RSpec.describe ClientRetentionJob, type: :job do
     end
 
     it 'keeps an identity whose newest activity is exactly at the window edge' do
-      source_one.update!(DateUpdated: 7.years.ago.to_date)
+      freeze_time do
+        source_one.update!(DateUpdated: 7.years.ago.to_date)
 
-      described_class.perform_now
+        described_class.perform_now
 
-      expect(marked_ids).to be_empty
+        expect(marked_ids).to be_empty
+      end
     end
 
     it 'clears the mark and logs an unmark once the identity has fresh activity' do
