@@ -69,8 +69,8 @@ class GrdaWarehouse::ClientRetentionDryRun
   # @return [String]
   def explain
     ids = scope.limit(@batch_size).pluck(:id)
-    sql = GrdaWarehouse::InactiveClient.rollup_activity_sql(destination_ids: ids, global_years: @global_years)
-    GrdaWarehouseBase.connection.select_all("EXPLAIN (ANALYZE, BUFFERS) #{sql}").rows.flatten.join("\n")
+    sql = GrdaWarehouse::InactiveClient.rollup_activity_sql(destination_ids: ids, global_years: @global_years, explain: true)
+    GrdaWarehouseBase.connection.select_all(sql).rows.flatten.join("\n")
   end
 
   private def scope

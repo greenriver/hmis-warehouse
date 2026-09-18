@@ -170,6 +170,61 @@ RSpec.describe ClientRetentionJob, type: :job do
     end
   end
 
+  describe 'expiring-soon rows' do
+    before { configure_global_retention(7) }
+
+    def expiring_destination_ids
+      GrdaWarehouse::ClientRetentionExpiringClient.pluck(:destination_client_id)
+    end
+
+    it 'records an active identity whose window ends within 90 days, with its expiry date, and skips one that does not' do
+      freeze_time do
+        active_source.update_columns(DateUpdated: (7.years.ago + 30.days).to_date)
+
+        described_class.perform_now
+
+        expect(expiring_destination_ids).to contain_exactly(active_destination.id)
+        row = GrdaWarehouse::ClientRetentionExpiringClient.sole
+        expect(row.expires_on).to eq(30.days.from_now.to_date)
+        expect(row.basis).to eq('exited')
+        expect(row.source_clients.map { |sc| sc['client_id'] }).to eq([active_source.id])
+      end
+    end
+
+    it 'skips an identity whose window ends 91 days out and never records an aged-out identity' do
+      freeze_time do
+        active_source.update_columns(DateUpdated: (7.years.ago + 91.days).to_date)
+
+        described_class.perform_now
+
+        expect(expiring_destination_ids).to be_empty
+        expect(marked_ids).to contain_exactly(source_one.id, source_two.id)
+      end
+    end
+
+    it 'replaces the previous run\'s rows once a run completes' do
+      active_source.update_columns(DateUpdated: (7.years.ago + 30.days).to_date)
+      described_class.perform_now
+      first_run = GrdaWarehouse::ClientRetentionRun.sole
+
+      described_class.perform_now
+
+      expect(GrdaWarehouse::ClientRetentionExpiringClient.where(run_id: first_run.id)).to be_empty
+      expect(GrdaWarehouse::ClientRetentionExpiringClient.sole.run_id).to eq(GrdaWarehouse::ClientRetentionRun.order(:id).last.id)
+    end
+
+    it 'keeps the previous run\'s rows when a run fails' do
+      active_source.update_columns(DateUpdated: (7.years.ago + 30.days).to_date)
+      described_class.perform_now
+      first_run = GrdaWarehouse::ClientRetentionRun.sole
+      allow(GrdaWarehouse::InactiveClient).to receive(:rollup_activity).and_raise(ActiveRecord::StatementInvalid, 'boom')
+
+      expect { described_class.perform_now }.to raise_error(ActiveRecord::StatementInvalid)
+
+      expect(GrdaWarehouse::ClientRetentionExpiringClient.pluck(:run_id)).to eq([first_run.id])
+    end
+  end
+
   context 'with a ten-year global window and a shorter override on one source' do
     before do
       configure_global_retention(10)
