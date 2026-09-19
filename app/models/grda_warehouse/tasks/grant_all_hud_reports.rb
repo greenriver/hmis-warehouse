@@ -15,6 +15,10 @@
 # touches.
 module GrdaWarehouse::Tasks
   class GrantAllHudReports
+    # Delete this class, its spec, and the call in SeedMaker#run_all. Every install
+    # has seeded by then, so the companion role already exists everywhere.
+    TodoOrDie('Delete GrantAllHudReports one-shot grant', by: Date.new(2027, 1, 15))
+
     def run!
       return if Role.hud_report_viewer_role_exists?
 

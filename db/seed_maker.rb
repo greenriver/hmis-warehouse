@@ -253,6 +253,7 @@ class SeedMaker
     maintain_data_sources
     maintain_db_monitor_defaults
     GrdaWarehouse::WarehouseReports::ReportDefinition.maintain_report_definitions
+    # Remove with the GrantAllHudReports class; see its TodoOrDie.
     GrdaWarehouse::Tasks::GrantAllHudReports.new.run!
     maintain_cp_seed
     setup_hmis_admin_access
