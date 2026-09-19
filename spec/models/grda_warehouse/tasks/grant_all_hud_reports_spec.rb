@@ -16,6 +16,8 @@ RSpec.describe GrdaWarehouse::Tasks::GrantAllHudReports do
   let(:acl_plain_user) { create(:acl_user) }
   let(:legacy_hud_user) { create(:user) }
   let(:legacy_plain_user) { create(:user) }
+  # permission_context is nullable; User#using_acls? treats nil as legacy.
+  let(:null_context_hud_user) { create(:user, permission_context: nil) }
   let(:hud_role_collection) { create(:collection) }
   let!(:project) { create(:hud_project) }
 
@@ -26,6 +28,7 @@ RSpec.describe GrdaWarehouse::Tasks::GrantAllHudReports do
     setup_access_control(acl_plain_user, plain_role, create(:collection))
     legacy_hud_user.legacy_roles << hud_role
     legacy_plain_user.legacy_roles << plain_role
+    null_context_hud_user.legacy_roles << hud_role
     described_class.new.run!
   end
 
@@ -45,7 +48,7 @@ RSpec.describe GrdaWarehouse::Tasks::GrantAllHudReports do
   end
 
   it 'adds legacy HUD users, and only them, to the All HUD Reports group' do
-    expect(AccessGroup.system_group(:hud_reports).users).to contain_exactly(legacy_hud_user)
+    expect(AccessGroup.system_group(:hud_reports).users).to contain_exactly(legacy_hud_user, null_context_hud_user)
   end
 
   it 'lets a legacy HUD user see every HUD definition' do
@@ -54,5 +57,22 @@ RSpec.describe GrdaWarehouse::Tasks::GrantAllHudReports do
 
   it 'is idempotent' do
     expect { described_class.new.run! }.not_to change(AccessControl, :count)
+  end
+
+  it 'does not re-grant access an admin has since removed' do
+    AccessControl.where(role_id: Role.hud_report_viewer_role.id).destroy_all
+
+    described_class.new.run!
+
+    expect(definitions.viewable_by(acl_hud_user.reload)).to be_empty
+  end
+
+  it 'does not grant a role that gains a HUD flag after the one-time run' do
+    late_user = create(:acl_user)
+    setup_access_control(late_user, create(:role, can_view_all_hud_reports: true), create(:collection))
+
+    described_class.new.run!
+
+    expect(definitions.viewable_by(late_user.reload)).to be_empty
   end
 end

@@ -51,7 +51,7 @@ class Report < ApplicationRecord
   end
 
   def last_result(user)
-    @last_result ||= ReportResult.viewable_by(user).where(report: self).order(created_at: :desc).limit(1).first
+    @last_result ||= ReportResult.runs_visible_to(user).where(report: self).order(created_at: :desc).limit(1).first
   end
 
   # Build a two dimensional array of values from the results, return as a csv string

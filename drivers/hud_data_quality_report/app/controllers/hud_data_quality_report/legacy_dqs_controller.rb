@@ -36,7 +36,7 @@ module HudDataQualityReport
     end
 
     private def report_results(report_id)
-      report_result_source.viewable_by(current_user).
+      report_result_source.runs_visible_to(current_user).
         joins(:user).
         where(report_id: report_id)
     end

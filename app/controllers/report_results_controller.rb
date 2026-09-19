@@ -152,7 +152,7 @@ class ReportResultsController < ApplicationController
   end
 
   private def report_result_scope
-    report_result_source.viewable_by(current_user).
+    report_result_source.runs_visible_to(current_user).
       joins(:user).
       where(report_id: params[:report_id].to_i)
   end
@@ -170,12 +170,16 @@ class ReportResultsController < ApplicationController
     ReportResult
   end
 
+  private def report
+    @report ||= Report.find(params[:report_id].to_i)
+  end
+
   private def set_report
-    @report = Report.find(params[:report_id].to_i)
+    report
   end
 
   def related_report
-    GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: Report.find(params[:report_id].to_i).report_definition_url)
+    GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: report.report_definition_url)
   end
 
   # Only allow a trusted parameter "white list" through.

@@ -28,17 +28,20 @@ module ReportResults
       end
     end
 
-    # viewable_by narrows to the user's own results unless they can view all HUD reports.
     def set_report_result
-      @result = @report.report_results.viewable_by(current_user).find(params[:report_result_id].to_i)
+      @result = @report.report_results.runs_visible_to(current_user).find(params[:report_result_id].to_i)
+    end
+
+    def report
+      @report ||= Report.find(params[:report_id].to_i)
     end
 
     def set_report
-      @report = Report.find(params[:report_id].to_i)
+      report
     end
 
     def related_report
-      GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: Report.find(params[:report_id].to_i).report_definition_url)
+      GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: report.report_definition_url)
     end
   end
 end

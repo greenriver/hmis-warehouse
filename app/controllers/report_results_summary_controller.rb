@@ -10,8 +10,11 @@ class ReportResultsSummaryController < ApplicationController
   include WarehouseReportAuthorization
   before_action :set_report_results_summary, :set_report_results, only: [:show]
 
+  # Only the STI type is needed to find the governing definition; the summary itself
+  # is loaded (narrowed to visible runs) by set_report_results_summary.
   def related_report
-    GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: ReportResultsSummary.find(params[:id].to_i).report_definition_url)
+    type = ReportResultsSummary.where(id: params[:id].to_i).pick(:type)
+    GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: Report.hud_definition_url_for(type))
   end
 
   def show
@@ -37,14 +40,14 @@ class ReportResultsSummaryController < ApplicationController
 
   # Use callbacks to share common setup or constraints between actions.
   def set_report_results
-    most_recent_results = @report_results_summary.report_results.viewable_by(current_user).most_recent
+    most_recent_results = @report_results_summary.report_results.runs_visible_to(current_user).most_recent
     @results = most_recent_results.map { |t, d| ReportResult.where(report_id: Report.where(type: t).first, updated_at: d).first }
-    @options = @report_results_summary.report_results.viewable_by(current_user).first&.options
+    @options = @report_results_summary.report_results.runs_visible_to(current_user).first&.options
   end
 
   def set_report_results_summary
     @report_results_summary = report_results_summary_source.
-      viewable_by(current_user).
+      runs_visible_to(current_user).
       find(params[:id].to_i)
   end
 end

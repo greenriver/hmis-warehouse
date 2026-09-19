@@ -6,14 +6,18 @@
 
 # frozen_string_literal: true
 
-# Idempotent grant run from db:seed on every deploy: every user who can reach HUD
-# reports through a role flag keeps that reach now that access comes from report
-# definitions in collections. Uses a companion role so no existing role's flags
-# change. Seeding runs after every database has migrated, which a primary
-# migration cannot rely on for the warehouse tables this touches.
+# One-shot grant run from db:seed: every user who could reach HUD reports through a
+# role flag keeps that reach now that access comes from report definitions in
+# collections. Uses a companion role so no existing role's flags change, and the
+# presence of that role marks the grant as done so later deploys do not re-grant
+# access an admin has since removed. Seeding runs after every database has
+# migrated, which a primary migration cannot rely on for the warehouse tables this
+# touches.
 module GrdaWarehouse::Tasks
   class GrantAllHudReports
     def run!
+      return if Role.hud_report_viewer_role_exists?
+
       GrdaWarehouse::WarehouseReports::ReportDefinition.maintain_report_definitions
       Collection.maintain_system_groups(group: :reports)
       AccessGroup.maintain_system_groups(group: :reports)
@@ -33,8 +37,11 @@ module GrdaWarehouse::Tasks
       end
     end
 
+    # permission_context is nullable and User#using_acls? treats nil as legacy, so
+    # `where.not` alone would drop those users.
     private def grant_legacy_users
-      user_ids = User.where.not(permission_context: 'acls').joins(:legacy_roles).merge(hud_roles).distinct.pluck(:id)
+      legacy_users = User.where(permission_context: nil).or(User.where.not(permission_context: 'acls'))
+      user_ids = legacy_users.joins(:legacy_roles).merge(hud_roles).distinct.pluck(:id)
       AccessGroup.system_group(:hud_reports).add(User.where(id: user_ids).to_a)
     end
   end

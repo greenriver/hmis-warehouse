@@ -114,8 +114,16 @@ class Role < ApplicationRecord
 
   # Companion role for granting HUD report definitions without altering any
   # existing role's flags (project scope would widen otherwise).
+  HUD_REPORT_VIEWER_ROLE_NAME = 'HUD Report Viewer'
+
   def self.hud_report_viewer_role
-    where(system: true, name: 'HUD Report Viewer', can_view_assigned_reports: true).first_or_create
+    where(system: true, name: HUD_REPORT_VIEWER_ROLE_NAME).first_or_create do |role|
+      role.can_view_assigned_reports = true
+    end
+  end
+
+  def self.hud_report_viewer_role_exists?
+    where(system: true, name: HUD_REPORT_VIEWER_ROLE_NAME).exists?
   end
 
   def editable?

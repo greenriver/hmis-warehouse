@@ -64,7 +64,7 @@ RSpec.describe HudDataQualityReport::LegacyResultsController, type: :request do
       before { sign_in_with(create(:role, can_view_assigned_reports: true)) }
 
       it "does not serve another user's result" do
-        # ReportResult.viewable_by is what draws the own/all distinction; without it,
+        # ReportResult.runs_visible_to is what draws the own/all distinction; without it,
         # holding either HUD report permission exposed every user's saved results.
         download(another_users_result)
 
