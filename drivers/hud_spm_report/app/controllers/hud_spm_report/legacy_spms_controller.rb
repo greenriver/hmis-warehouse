@@ -8,7 +8,9 @@
 
 module HudSpmReport
   class LegacySpmsController < BaseController
-    before_action :require_can_view_hud_reports!
+    def related_report
+      GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: 'hud_reports/spms')
+    end
 
     LEGACY_REPORT_TYPES = [
       'Reports::SystemPerformance::Fy2019::MeasureOne',

@@ -112,6 +112,12 @@ class Role < ApplicationRecord
     ).first_or_create
   end
 
+  # Companion role for granting HUD report definitions without altering any
+  # existing role's flags (project scope would widen otherwise).
+  def self.hud_report_viewer_role
+    where(system: true, name: 'HUD Report Viewer', can_view_assigned_reports: true).first_or_create
+  end
+
   def editable?
     system == false
   end
@@ -841,13 +847,13 @@ class Role < ApplicationRecord
         sub_category: 'Site Configuration',
       },
       can_view_all_hud_reports: {
-        description: 'This permission grants access to run all HUD reports, limited by data access assignments.  In addition, this grants access to all HUD reports that have ever been run regardless of access assignments.',
+        description: 'This permission grants access to all HUD report runs regardless of who initiated them. Access to run a HUD report is granted by assigning the report to a collection.',
         administrative: true,
         category: 'Reporting',
         sub_category: 'HUD Reports',
       },
       can_view_own_hud_reports: {
-        description: 'This permission grants access to run all HUD reports, limited by data access assignments.  Users can only see results for HUD reports they initiated.',
+        description: 'DEPRECATED: access to run a HUD report is granted by assigning the report to a collection; users see their own runs by default.',
         administrative: false,
         category: 'Reporting',
         sub_category: 'HUD Reports',

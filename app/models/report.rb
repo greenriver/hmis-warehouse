@@ -27,6 +27,25 @@ class Report < ApplicationRecord
     where(arel_table[:type].matches("%::#{sanitize_sql_like(query)}::%"))
   end
 
+  # Pre-framework report families (the second segment of the STI type, shared with
+  # ReportResultsSummary) and the current report definition that now governs access
+  # to them. AHAR is deliberately absent: it has no current counterpart.
+  HUD_DEFINITION_URLS_BY_FAMILY = {
+    'DataQuality' => 'hud_reports/dqs',
+    'Pit' => 'hud_reports/pits',
+    'SystemPerformance' => 'hud_reports/spms',
+    'Lsa' => 'hud_reports/lsas',
+    'Hic' => 'hud_reports/hics',
+  }.freeze
+
+  def self.hud_definition_url_for(type)
+    HUD_DEFINITION_URLS_BY_FAMILY[type.to_s.split('::')[1]]
+  end
+
+  def report_definition_url
+    self.class.hud_definition_url_for(type)
+  end
+
   def model_name
     ActiveModel::Name.new self, nil, 'report'
   end

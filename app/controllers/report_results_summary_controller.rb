@@ -7,8 +7,12 @@
 # frozen_string_literal: true
 
 class ReportResultsSummaryController < ApplicationController
-  before_action :require_can_view_hud_reports!
+  include WarehouseReportAuthorization
   before_action :set_report_results_summary, :set_report_results, only: [:show]
+
+  def related_report
+    GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: ReportResultsSummary.find(params[:id].to_i).report_definition_url)
+  end
 
   def show
     @all_results = @results.map(&:results).reduce({}, :merge).deep_symbolize_keys!
