@@ -24,11 +24,17 @@ RSpec.describe 'WarehouseReports::YouthActivityController#index', type: :request
   let(:restricted_destination_client) { restricted_source_client.destination_client }
   let(:open_destination_client) { open_source_client.destination_client }
 
-  # Helper to create an intake with a specific updated_at datetime
-  def create_intake(client, updated_at:, engagement_date: Date.current)
-    GrdaWarehouse::YouthIntake::Entry.create!(
+  # Rails only honors an explicit updated_at when nothing touches the row afterward; the reload check
+  # keeps the timestamp-boundary examples from silently degrading to "created now".
+  def with_updated_at(record, updated_at)
+    expect(record.reload.updated_at).to be_within(1.second).of(updated_at)
+    record
+  end
+
+  def create_intake(client, updated_at:)
+    intake = GrdaWarehouse::YouthIntake::Entry.create!(
       client: client,
-      engagement_date: engagement_date,
+      engagement_date: Date.current,
       exit_date: nil,
       turned_away: false,
       staff_name: 'Staff',
@@ -53,29 +59,52 @@ RSpec.describe 'WarehouseReports::YouthActivityController#index', type: :request
       requesting_financial_assistance: false,
       updated_at: updated_at,
     )
+    with_updated_at(intake, updated_at)
   end
 
-  # Helper to create a DirectFinancialAssistance with a specific updated_at datetime
-  def create_dfa(client, updated_at:, provided_on: Date.current)
-    GrdaWarehouse::Youth::DirectFinancialAssistance.create!(
+  def create_dfa(client, updated_at:)
+    dfa = GrdaWarehouse::Youth::DirectFinancialAssistance.create!(
       client: client,
       user: user,
       type_provided: 'Rent',
-      provided_on: provided_on,
+      provided_on: Date.current,
       updated_at: updated_at,
     )
+    with_updated_at(dfa, updated_at)
   end
 
-  # Helper to create a CaseManagement with a specific updated_at datetime
-  def create_case_management(client, updated_at:, engaged_on: Date.current)
-    GrdaWarehouse::Youth::YouthCaseManagement.create!(
+  def create_case_management(client, updated_at:)
+    case_management = GrdaWarehouse::Youth::YouthCaseManagement.create!(
       client: client,
       user: user,
       activity: 'Prevention',
       housing_status: 'foo',
-      engaged_on: engaged_on,
+      engaged_on: Date.current,
       updated_at: updated_at,
     )
+    with_updated_at(case_management, updated_at)
+  end
+
+  def create_follow_up(client, updated_at:)
+    follow_up = GrdaWarehouse::Youth::YouthFollowUp.create!(
+      client: client,
+      user: user,
+      contacted_on: Date.current,
+      required_on: Date.current,
+      updated_at: updated_at,
+    )
+    with_updated_at(follow_up, updated_at)
+  end
+
+  def create_referral(client, updated_at:)
+    referral = GrdaWarehouse::Youth::YouthReferral.create!(
+      client: client,
+      user: user,
+      referred_on: Date.current,
+      referred_to: 'Shelter',
+      updated_at: updated_at,
+    )
+    with_updated_at(referral, updated_at)
   end
 
   before do
@@ -94,88 +123,51 @@ RSpec.describe 'WarehouseReports::YouthActivityController#index', type: :request
 
   let(:filter_params) { { start: Date.current.to_s, end: Date.current.to_s } }
 
-  context 'when activity was updated on the same day (datetime comparison)' do
-    it 'includes intakes updated in the evening (after midnight UTC)' do
-      evening_timestamp = Time.current.change(hour: 20, minute: 0, second: 0)
-
-      create_intake(restricted_destination_client, updated_at: evening_timestamp)
-      create_intake(open_destination_client, updated_at: evening_timestamp)
-
-      get warehouse_reports_youth_activity_index_path(filter: filter_params)
-
-      expect(response).to have_http_status(:ok)
-      expect(response.body).to include('Name Redacted')
-      expect(response.body).to include('Open Client')
-    end
-
-    it 'includes DFA updated in the evening (after midnight UTC)' do
-      evening_timestamp = Time.current.change(hour: 22, minute: 30, second: 0)
-
-      create_dfa(restricted_destination_client, updated_at: evening_timestamp)
-      create_dfa(open_destination_client, updated_at: evening_timestamp)
+  # One example per query in the controller; each compares updated_at (a datetime) against the Date filter.
+  {
+    'intakes' => :create_intake,
+    'direct financial assistance' => :create_dfa,
+    'case management' => :create_case_management,
+    'follow-ups' => :create_follow_up,
+    'referrals' => :create_referral,
+  }.each do |label, builder|
+    it "includes #{label} updated at the end of the end date" do
+      send(builder, open_destination_client, updated_at: Time.current.change(hour: 23, minute: 59, second: 59))
 
       get warehouse_reports_youth_activity_index_path(filter: filter_params)
 
       expect(response).to have_http_status(:ok)
-      expect(response.body).to include('Name Redacted')
-      expect(response.body).to include('Open Client')
-    end
-
-    it 'includes case management updated in the evening (after midnight UTC)' do
-      evening_timestamp = Time.current.change(hour: 23, minute: 59, second: 59)
-
-      create_case_management(restricted_destination_client, updated_at: evening_timestamp)
-      create_case_management(open_destination_client, updated_at: evening_timestamp)
-
-      get warehouse_reports_youth_activity_index_path(filter: filter_params)
-
-      expect(response).to have_http_status(:ok)
-      expect(response.body).to include('Name Redacted')
-      expect(response.body).to include('Open Client')
-    end
-
-    it 'includes records updated at exactly midnight' do
-      midnight_timestamp = Time.current.change(hour: 0, minute: 0, second: 0)
-
-      create_intake(restricted_destination_client, updated_at: midnight_timestamp)
-      create_intake(open_destination_client, updated_at: midnight_timestamp)
-
-      get warehouse_reports_youth_activity_index_path(filter: filter_params)
-
-      expect(response).to have_http_status(:ok)
-      expect(response.body).to include('Name Redacted')
       expect(response.body).to include('Open Client')
     end
   end
 
-  context 'when records are outside the date range' do
-    it 'excludes intakes updated before the start date' do
-      old_timestamp = 2.days.ago.change(hour: 23, minute: 59, second: 59)
+  it 'includes intakes updated at the start of the start date' do
+    create_intake(open_destination_client, updated_at: Time.current.change(hour: 0, minute: 0, second: 0))
 
-      create_intake(restricted_destination_client, updated_at: old_timestamp)
-      create_intake(open_destination_client, updated_at: old_timestamp)
+    get warehouse_reports_youth_activity_index_path(filter: filter_params)
 
-      get warehouse_reports_youth_activity_index_path(filter: filter_params)
+    expect(response).to have_http_status(:ok)
+    expect(response.body).to include('Open Client')
+  end
 
-      expect(response).to have_http_status(:ok)
-      expect(response.body).to include('No modifications were made')
-      expect(response.body).not_to include('Name Redacted')
-      expect(response.body).not_to include('Open Client')
-    end
+  it 'excludes intakes updated at the end of the day before the start date' do
+    create_intake(open_destination_client, updated_at: 1.day.ago.change(hour: 23, minute: 59, second: 59))
 
-    it 'excludes intakes updated after the end date' do
-      future_timestamp = 2.days.from_now.change(hour: 0, minute: 0, second: 0)
+    get warehouse_reports_youth_activity_index_path(filter: filter_params)
 
-      create_intake(restricted_destination_client, updated_at: future_timestamp)
-      create_intake(open_destination_client, updated_at: future_timestamp)
+    expect(response).to have_http_status(:ok)
+    expect(response.body).to include('No modifications were made')
+    expect(response.body).not_to include('Open Client')
+  end
 
-      get warehouse_reports_youth_activity_index_path(filter: filter_params)
+  it 'excludes intakes updated at the start of the day after the end date' do
+    create_intake(open_destination_client, updated_at: 1.day.from_now.change(hour: 0, minute: 0, second: 0))
 
-      expect(response).to have_http_status(:ok)
-      expect(response.body).to include('No modifications were made')
-      expect(response.body).not_to include('Name Redacted')
-      expect(response.body).not_to include('Open Client')
-    end
+    get warehouse_reports_youth_activity_index_path(filter: filter_params)
+
+    expect(response).to have_http_status(:ok)
+    expect(response.body).to include('No modifications were made')
+    expect(response.body).not_to include('Open Client')
   end
 
   it 'redacts the restricted client name' do
