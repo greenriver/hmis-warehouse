@@ -67,7 +67,8 @@ Rails.application.routes.draw do
 
   match 'filter', to: 'filters#show', via: [:post]
 
-  resources :reports do
+  # Pre-framework HUD report results; the catalog page itself is gone.
+  resources :reports, only: [] do
     resources :report_results, path: 'results', only: [:index, :show, :create, :update, :destroy] do
       get :download_support, on: :member
       resources :support, only: [:index], controller: 'report_results/support'

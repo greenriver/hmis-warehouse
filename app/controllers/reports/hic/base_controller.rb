@@ -8,8 +8,12 @@
 
 module Reports
   class Hic::BaseController < ApplicationController
-    before_action :require_can_view_hud_reports!
+    include WarehouseReportAuthorization
     before_action :set_filter
+
+    def related_report
+      GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: 'hud_reports/hics')
+    end
     # ES (1), TH (2), SH (8), PSH (3), RRH (13), PH (10), PH (9)
     PROJECT_TYPES = [1, 2, 3, 8, 9, 10, 13].freeze
 

@@ -18,6 +18,10 @@ class ReportResultsSummary < ApplicationRecord
     nil
   end
 
+  def report_definition_url
+    Report.hud_definition_url_for(type)
+  end
+
   scope :viewable_by, -> (user) do
     if user.can_view_all_hud_reports?
       all
