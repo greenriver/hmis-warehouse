@@ -16,9 +16,14 @@ RSpec.shared_examples 'a hud cell detail export' do
       GrdaWarehouse::WarehouseReports::ReportDefinition.find_by!(url: definition_url)
     end
 
-    def grant(role_attrs)
+    let(:sibling_definition) do
+      GrdaWarehouse::WarehouseReports::ReportDefinition.maintain_report_definitions
+      GrdaWarehouse::WarehouseReports::ReportDefinition.hud.where.not(url: definition_url).order(:url).first!
+    end
+
+    def grant(role_attrs, granted_definition = definition)
       user.legacy_roles << create(:role, can_view_assigned_reports: true, **role_attrs)
-      user.add_viewable(definition)
+      user.add_viewable(granted_definition)
     end
 
     it 'is authorized if the user owns the report' do
@@ -41,6 +46,14 @@ RSpec.shared_examples 'a hud cell detail export' do
 
     it 'is not authorized when the report definition has not been granted' do
       user.legacy_roles << create(:role, can_view_assigned_reports: true, can_view_all_hud_reports: true)
+      report.update!(user_id: user.id)
+      expect(export.authorized?).to be false
+    end
+
+    # The gate names this export's own definition url, so holding a different HUD
+    # report is not enough.
+    it 'is not authorized when only a different HUD report definition has been granted' do
+      grant({ can_view_all_hud_reports: true }, sibling_definition)
       report.update!(user_id: user.id)
       expect(export.authorized?).to be false
     end

@@ -29,10 +29,19 @@ RSpec.describe HudSpmReport::CellsController, type: :request do
     context 'with unauthorized user' do
       let(:other_user) { create(:user) }
 
-      it 'denies access to another user\'s report' do
+      it 'denies a user who has not been granted the SPM definition' do
         sign_in(other_user)
         get hud_reports_spm_measure_cell_path(spm_id: report.id, measure_id: 'Measure 1', id: 'B2', table: '1a')
         expect(response).to redirect_to(root_url)
+      end
+
+      # Reaching the page and reaching another user's run are separate gates; the
+      # definition grant only satisfies the first.
+      it 'denies a user granted the SPM definition without can_view_all_hud_reports' do
+        grant_hud_report(other_user, 'hud_reports/spms')
+        sign_in(other_user)
+        get hud_reports_spm_measure_cell_path(spm_id: report.id, measure_id: 'Measure 1', id: 'B2', table: '1a')
+        expect(response).to have_http_status(:not_found)
       end
 
       it 'allows access if user has can_view_all_hud_reports permission' do

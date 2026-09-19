@@ -117,6 +117,24 @@ RSpec.describe HudApr::DocumentExports::HudAprExport, type: :model do
       end
     end
 
+    # APR and CAPER are served by the same driver off the same generator registry, so
+    # the gate has to name the APR definition rather than settle for any report.
+    context 'when only the CAPER definition is granted' do
+      let(:caper_definition) do
+        GrdaWarehouse::WarehouseReports::ReportDefinition.maintain_report_definitions
+        GrdaWarehouse::WarehouseReports::ReportDefinition.find_by!(url: 'hud_reports/capers')
+      end
+
+      before do
+        user.legacy_roles << create(:role, can_view_assigned_reports: true, can_view_all_hud_reports: true)
+        user.add_viewable(caper_definition)
+      end
+
+      it 'is not authorized' do
+        expect(export.authorized?).to eq(false)
+      end
+    end
+
     context 'when the owner has been granted the APR definition' do
       before do
         user.legacy_roles << create(:role, can_view_assigned_reports: true)

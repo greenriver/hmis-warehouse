@@ -52,6 +52,20 @@ RSpec.describe 'HUD report access plumbing' do
       expect(HudApr::Generators::Caper::Fy2026::Generator.report_definition_url).to eq('hud_reports/capers')
       expect(HudApr::Generators::Apr::Fy2026::Generator.report_definition_url).to eq('hud_reports/aprs')
     end
+
+    # Drilldown controllers and PDF exports gate on whichever generator of the family
+    # `possible_generator_classes` yields first, so a family spanning two definitions
+    # would gate the whole family on an arbitrary one of them.
+    it 'maps every fiscal year of a report family to one definition url' do
+      families = registry.group_by { |name, _| name.sub(/::Fy\d+::\w+\z/, '') }
+
+      expect(families['HudApr::Generators::Apr'].size).to be > 1
+      families.each do |family, entries|
+        urls = entries.map { |_, entry| Rails.application.routes.url_helpers.public_send(entry[:helper]).delete_prefix('/') }.uniq
+
+        expect(urls.size).to eq(1), "#{family} spans #{urls.inspect}"
+      end
+    end
   end
 
   describe 'system groups for reports' do
