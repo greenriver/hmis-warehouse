@@ -64,6 +64,22 @@ RSpec.describe 'HUD report authorization', type: :request do
     end
   end
 
+  describe 'warehouse reports index for a legacy user with only a HUD flag' do
+    let(:user) { create(:user) }
+    let(:other_report) { GrdaWarehouse::WarehouseReports::ReportDefinition.find_by!(url: 'warehouse_reports/client_lookups') }
+
+    it 'lists granted HUD reports but not other reports sitting in the same access group' do
+      grant_hud_report(user, 'hud_reports/aprs', role: create(:role, can_view_own_hud_reports: true))
+      user.access_group.add_viewable(other_report)
+
+      get warehouse_reports_path
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include('Annual Performance Report')
+      expect(response.body).not_to include(other_report.name)
+    end
+  end
+
   it 'gates the LSA-derived HIC on the LSA definition' do
     grant_hud_report(user, 'hud_reports/lsas')
 
