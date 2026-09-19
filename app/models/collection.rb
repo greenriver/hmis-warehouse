@@ -387,11 +387,12 @@ class Collection < ApplicationRecord
       # Reports
       all_reports = GrdaWarehouse::WarehouseReports::ReportDefinition.enabled
 
-      all_hmis_reports = system_collection(:hmis_reports)
-      ids = all_reports.pluck(:id)
-      all_hmis_reports.set_viewables({ reports: ids })
-      system_user_access_group.set_viewables({ reports: ids })
-      system_collection(:hud_reports).set_viewables({ reports: all_reports.hud.pluck(:id) })
+      # HUD reports have their own system collection; All HMIS Reports excludes them so
+      # granting it does not also grant HUD reports. The system user still gets everything.
+      hud_ids = all_reports.hud.pluck(:id)
+      system_collection(:hmis_reports).set_viewables({ reports: all_reports.pluck(:id) - hud_ids })
+      system_user_access_group.set_viewables({ reports: all_reports.pluck(:id) })
+      system_collection(:hud_reports).set_viewables({ reports: hud_ids })
     end
 
     if group.blank? || group == :cohorts

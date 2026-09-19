@@ -156,14 +156,15 @@ class AccessGroup < ApplicationRecord
       # Reports
       all_reports = GrdaWarehouse::WarehouseReports::ReportDefinition.enabled
 
+      # HUD reports have their own system group; All HMIS Reports excludes them.
+      hud_ids = all_reports.hud.pluck(:id)
       all_hmis_reports = system_group(:hmis_reports)
       all_hmis_reports.update(system: ['Entities'], must_exist: true)
-      ids = all_reports.pluck(:id)
-      all_hmis_reports.set_viewables({ reports: ids })
+      all_hmis_reports.set_viewables({ reports: all_reports.pluck(:id) - hud_ids })
 
       all_hud_reports = system_group(:hud_reports)
       all_hud_reports.update(system: ['Entities'], must_exist: true)
-      all_hud_reports.set_viewables({ reports: all_reports.hud.pluck(:id) })
+      all_hud_reports.set_viewables({ reports: hud_ids })
     end
 
     if group.blank? || group == :cohorts

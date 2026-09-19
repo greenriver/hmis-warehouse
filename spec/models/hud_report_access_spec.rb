@@ -58,11 +58,14 @@ RSpec.describe 'HUD report access plumbing' do
       expect(AccessGroup.system_group(:hud_reports).report_ids).to match_array(hud_ids)
     end
 
-    it 'keeps All HMIS Reports as a superset that includes the HUD definitions' do
-      hmis_ids = Collection.system_collection(:hmis_reports).report_ids
+    it 'keeps HUD definitions out of All HMIS Reports so that grant does not carry HUD access' do
+      expect(Collection.system_collection(:hmis_reports).report_ids).not_to be_empty
+      expect(Collection.system_collection(:hmis_reports).report_ids & hud_ids).to be_empty
+      expect(AccessGroup.system_group(:hmis_reports).report_ids & hud_ids).to be_empty
+    end
 
-      expect(hmis_ids).to include(*hud_ids)
-      expect(hmis_ids.size).to be > hud_ids.size
+    it 'still gives the system user every report, HUD included' do
+      expect(Collection.system_collection(:system_user).report_ids).to include(*hud_ids)
     end
   end
 end

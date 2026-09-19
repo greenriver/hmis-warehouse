@@ -99,7 +99,7 @@ See also: [Warehouse Auth Policies](warehouse-auth-policies.md)
 
 ### HUD report access
 
-HUD reports are ordinary report definitions in the `HUD Reports` report group (`GrdaWarehouse::WarehouseReports::ReportDefinition.hud`). Access to run one is granted like any other report: put the definition in a Collection bound to a Role with `can_view_assigned_reports`. The system Collection "All HUD Reports" (and the legacy AccessGroup of the same name) always holds every HUD definition. The system Role "HUD Report Viewer" (`Role.hud_report_viewer_role`) holds only `can_view_assigned_reports` and was bound to that Collection for every user group that had a HUD flag when access moved to collections.
+HUD reports are ordinary report definitions in the `HUD Reports` report group (`GrdaWarehouse::WarehouseReports::ReportDefinition.hud`). Access to run one is granted like any other report: put the definition in a Collection bound to a Role with `can_view_assigned_reports`. The system Collection "All HUD Reports" (and the legacy AccessGroup of the same name) always holds every HUD definition, and "All HMIS Reports" excludes them, so granting the latter does not carry HUD access. The system Role "HUD Report Viewer" (`Role.hud_report_viewer_role`) holds only `can_view_assigned_reports` and was bound to that Collection for every user group that had a HUD flag when access moved to collections.
 
 `can_view_all_hud_reports` only widens which report *runs* a user can see (everyone's instead of their own). `can_view_own_hud_reports` is deprecated; own-run visibility is the default. Project scoping inside a HUD report comes from `can_view_assigned_reports` collections, the same as other reports.
 
