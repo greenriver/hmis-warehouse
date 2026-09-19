@@ -10,7 +10,9 @@ module HudSpmReport
   class LegacyResultsController < BaseController
     def show
       @report = Report.find(params[:legacy_spm_id].to_i)
-      @result = ReportResult.find(params[:id].to_i)
+      # viewable_by narrows to the user's own results unless they can view all HUD
+      # reports; going through @report also keeps a mismatched id pair from resolving.
+      @result = @report.report_results.viewable_by(current_user).find(params[:id].to_i)
       respond_to do |format|
         format.html {} # render the default template
         format.csv do
