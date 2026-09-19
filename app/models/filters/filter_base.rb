@@ -505,6 +505,11 @@ module Filters
       start .. self.end
     end
 
+    # For datetime columns. A Date upper bound casts to midnight and drops the end day.
+    def time_range
+      start.beginning_of_day .. self.end.end_of_day
+    end
+
     def as_date_range
       DateRange.new(start: start, end: self.end)
     end

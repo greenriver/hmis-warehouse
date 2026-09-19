@@ -24,6 +24,12 @@ RSpec.describe Filters::FilterBase, type: :model do
   end
 
   describe 'FilterBase' do
+    it 'time_range spans the whole end day, unlike range' do
+      filter = Filters::FilterBase.new(user_id: user.id, start: Date.new(2026, 9, 1), end: Date.new(2026, 9, 19))
+      expect(filter.range).to eq(Date.new(2026, 9, 1)..Date.new(2026, 9, 19))
+      expect(filter.time_range).to eq(Time.zone.local(2026, 9, 1)..Time.zone.local(2026, 9, 19).end_of_day)
+    end
+
     it 'defaults to nothing if nothing is specified' do
       filter_params = {}
       filter = Filters::FilterBase.new(user_id: user.id).update(filter_params)

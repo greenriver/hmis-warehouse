@@ -248,7 +248,7 @@ class WarehouseReport::ExportEnrollmentCalculator < OpenStruct
       vispdats = {}
       clients.joins(:vispdats).
         includes(:vispdats).
-        merge(GrdaWarehouse::Vispdat::Base.completed.where(submitted_at: filter.range)).
+        merge(GrdaWarehouse::Vispdat::Base.completed.where(submitted_at: filter.time_range)).
         find_each do |client_record|
           vispdats[client_record.id] = client_record.vispdats.completed.max_by(&:submitted_at)
         end
