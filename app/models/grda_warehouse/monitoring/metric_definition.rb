@@ -11,7 +11,6 @@ module GrdaWarehouse::Monitoring
   class MetricDefinition < GrdaWarehouseBase
     include ArelHelper
     VALID_CATEGORIES = ['client_services', 'household_calculations', 'csv_import'].freeze
-    COLLECTION_HOUR = 2 # Hour of day (0-23) to run daily metric collection
 
     has_many :metric_snapshots,
              class_name: 'GrdaWarehouse::Monitoring::MetricSnapshot',
