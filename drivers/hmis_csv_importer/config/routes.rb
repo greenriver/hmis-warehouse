@@ -9,6 +9,7 @@
 OpenPath::Application.routes.draw do
   namespace :hmis_csv_importer do
     resources :loader_errors, only: [:show]
+    resources :row_processing_notes, only: [:show]
     get 'importer_validations/:id/:file', to: 'importer_validations#show', as: :importer_validation
     get 'importer_validation_errors/:id/:file', to: 'importer_validation_errors#show', as: :importer_validation_error
     # NOTE: importer_errors/:id/download must come before importer_errors/:id/:file

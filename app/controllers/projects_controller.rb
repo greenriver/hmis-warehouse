@@ -32,14 +32,14 @@ class ProjectsController < ApplicationControllerV2
 
   def update
     @project.update(project_params)
-    respond_with @project, location: project_path(@project)
+    respond_with @project, location: project_path(@project, coc_code: params[:coc_code])
   end
 
   def destroy
     name = @project.ProjectName
     DeleteItemJob.perform_later(item_id: @project.id, item_class: @project.class.name)
     flash[:notice] = "Project: #{name} was successfully queued for removal.  Please check back in a few minutes."
-    respond_with @project, location: data_source_path(@project.data_source)
+    respond_with @project, location: data_source_path(@project.data_source, coc_code: params[:coc_code])
   end
 
   private def project_params

@@ -6,14 +6,6 @@
 
 # frozen_string_literal: true
 
-# The core app (or other drivers) can check the presence of the
-# HudTwentyTwentyTwoToTwentyTwentyFour driver with the following code snippet
-#
-#   do_something if RailsDrivers.loaded.include(:hud_twenty_twenty_two_to_twenty_twenty_four)
-#
-# use with caution!
-RailsDrivers.loaded << :hud_twenty_twenty_two_to_twenty_twenty_four
-
 Rails.application.reloader.to_prepare do
   # All of the CSVVersions we have seen for HUD 2022 files
   [

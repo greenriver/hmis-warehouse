@@ -48,12 +48,7 @@ module Types
       has_service_filter = args[:filters]&.service_in_range&.project_id.present?
       raise 'Invalid search. At least 1 search param is required.' unless has_search_term || has_service_filter
 
-      # Find or create a ClientSearchQuery for the given params and user.
-      query = Hmis::ClientSearchQuery.find_or_create_by_params(input.to_h, user: current_user)
-      raise query.errors.full_messages.join(', ') unless query.valid?
-
-      # Add the ClientSearchQuery ID to the context so it can be returned on the Paginated object
-      context[:search_query_id] = query.id
+      persist_client_search_query(input.to_h)
 
       # if the search should also sort by rank
       sorted = args[:sort_order] == :best_match
@@ -78,10 +73,7 @@ module Types
     end
 
     def client_omni_search(text_search:)
-      query = Hmis::ClientSearchQuery.find_or_create_by_params({ 'text_search' => text_search }, user: current_user)
-      raise query.errors.full_messages.join(', ') unless query.valid?
-
-      context[:search_query_id] = query.id
+      persist_client_search_query({ 'text_search' => text_search })
 
       Hmis::Hud::Client.searchable_to(current_user).
         matching_search_term(text_search).
@@ -464,7 +456,7 @@ module Types
       access_denied! unless policy_for(Hmis::Form::Definition, policy_type: :form_definition).can_configure_forms?
 
       definition = Hmis::Form::Definition.configurable_by(current_user).
-        non_static.latest_versions.where(identifier: identifier).first
+        latest_versions.where(identifier: identifier).first
 
       # Return nil (Not Found in the UI) if the user doesn't have permission to access this form
       return nil unless definition && policy_for(definition, policy_type: :form_definition).can_configure_form?
@@ -478,7 +470,7 @@ module Types
     def form_identifiers(filters: nil)
       access_denied! unless policy_for(Hmis::Form::Definition, policy_type: :form_definition).can_configure_forms?
 
-      scope = Hmis::Form::Definition.configurable_by(current_user).non_static.valid.latest_versions
+      scope = Hmis::Form::Definition.configurable_by(current_user).latest_versions
       scope = scope.apply_filters(filters) if filters
       # Sort system-managed forms last, because they aren't edited through the config tool. Then sort by most recently updated.
       scope.order(managed_in_version_control: :asc, updated_at: :desc, id: :desc)
@@ -603,6 +595,11 @@ module Types
     # Omit assigned_to_user for now. Enabling it will require a frontend change to map the filter to a user picklist
     ce_referrals_field(filter_args: { omit: [:assigned_to_user], type_name: 'CeReferral' })
     def ce_referrals(**args)
+      # Persist text search for top-level CE Referrals URL restore only.
+      # Nested ce_referrals resolvers do not call this method, so they won't create search rows.
+      search_term = args[:filters]&.search_term.to_s.strip
+      persist_client_search_query({ 'text_search' => search_term }) if search_term.present?
+
       resolve_ce_referrals(Hmis::Ce::Referral.viewable_by(current_user), **args)
     end
 
@@ -628,11 +625,15 @@ module Types
       { project_group_id: project_group_id }
     end
 
-    field :ce_clients, HmisSchema::CeClient.page_type, null: false, description: 'Clients who belong to at least one CE candidate pool', nodes_count: ->(all_nodes) { all_nodes.count(:id) } do
+    # Keep include_search_query_id consistent for CeClient; BaseObject.page_type memoizes its first setting.
+    field :ce_clients, HmisSchema::CeClient.page_type(include_search_query_id: true), null: false, description: 'Clients who belong to at least one CE candidate pool', nodes_count: ->(all_nodes) { all_nodes.count(:id) } do
       filters_argument HmisSchema::CeClient
     end
     def ce_clients(filters: nil)
       access_denied! unless current_user.can_administrate_coordinated_entry?
+
+      search_term = filters&.search_term.to_s.strip
+      persist_client_search_query({ 'text_search' => search_term }) if search_term.present?
 
       scope = Hmis::Ce::ClientProxy.for_warehouse_clients.
         joins(ce_match_candidates: :candidate_pool).

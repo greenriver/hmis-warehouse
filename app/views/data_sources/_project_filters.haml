@@ -1,0 +1,18 @@
+.row.table-utilities.mb-3
+  .col-sm-3
+    %label{ for: 'project_type_filter' } Project Type
+    .form-group{ data: { controller: 'stimulus-select' } }
+      %select#project_type_filter.form-control.stimulus-select{ data: { 'stimulus-select-target' => 'element', action: 'change->table-filter#filter', 'table-filter-target' => 'select', 'table-filter-field' => 'projectType' } }
+        %option{ value: '' } All project types
+        - HudHelper.util.project_type_briefs.select { |value, _| project_types.include?(value) }.each do |value, label|
+          %option{ value: value }= label
+  .col-sm-3
+    %label{ for: 'confidential_filter' } Confidential?
+    .form-group{ data: { controller: 'stimulus-select' } }
+      %select#confidential_filter.form-control.stimulus-select{ data: { 'stimulus-select-target' => 'element', action: 'change->table-filter#filter', 'table-filter-target' => 'select', 'table-filter-field' => 'confidential' } }
+        %option{ value: '' } Any
+        %option{ value: 'true' } Confidential
+        %option{ value: 'false' } Not confidential
+  .col-sm-3
+    %label{ for: 'search_filter' } Search
+    %input#search_filter.form-control{ type: 'text', placeholder: 'Search by project name', data: { action: 'input->table-filter#debouncedFilter', 'table-filter-target' => 'searchInput' } }

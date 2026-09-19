@@ -1,0 +1,21 @@
+.row.mt-4.mb-2.align-items-center
+  .col
+    %h2 Continuums of Care
+  .col-auto.text-muted
+    = "#{pluralize(@coc_summaries.size, 'CoC')} on this data source"
+.row
+  - @coc_summaries.each do |summary|
+    - unknown = summary[:code] == 'unknown'
+    .col-md-3.col-sm-4.mb-4
+      = link_to data_source_with_coc_code_path(@data_source, summary[:code]), class: "c-card--flush p-3 d-block text-decoration-none#{' border-danger' if unknown}" do
+        - if unknown
+          %h4.text-danger Unassigned
+          .text-muted.mb-2 Projects missing a CoC code
+        - else
+          %h4= summary[:code]
+          .text-muted.mb-2= summary[:name]
+        .d-flex.justify-content-between
+          %span= pluralize(summary[:project_count], 'project')
+          %span= pluralize(summary[:org_count], 'organization')
+        - if unknown
+          .text-danger.small.mt-1 needs cleanup

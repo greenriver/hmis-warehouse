@@ -8,16 +8,19 @@
 
 module HmisCsvImporter::Loader
   class ProjectFilter
-    def self.filter(source_dir, data_source_id, post_processor = nil)
-      remove_disallowed_client_data(source_dir, calculate_allowed_personal_ids(source_dir, data_source_id))
+    def self.filter(source_dir, data_source_id, post_processor = nil, remap_source_id: nil)
+      remove_disallowed_client_data(source_dir, calculate_allowed_personal_ids(source_dir, data_source_id, remap_source_id: remap_source_id))
       post_processor.call(source_dir) if post_processor.present?
     end
 
-    def self.calculate_allowed_personal_ids(source_dir, data_source_id)
+    # remap_source_id: the Export SourceID, when HudKeyRemapper has already hashed the CSVs.
+    def self.calculate_allowed_personal_ids(source_dir, data_source_id, remap_source_id: nil)
       allowed_project_ids = GrdaWarehouse::WhitelistedProjectsForClients.
         where(data_source_id: data_source_id).
         pluck(:ProjectID).
         to_set
+
+      allowed_project_ids = allowed_project_ids.map { |project_id| HudKeyRemapper.remap_value('ProjectID', remap_source_id, project_id) }.to_set if remap_source_id.present?
 
       # 1. See if we have you in the database already (which would mean you were in one of those projects previously)
       allowed_personal_ids = GrdaWarehouse::Hud::Client.

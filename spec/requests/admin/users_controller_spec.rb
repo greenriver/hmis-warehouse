@@ -82,6 +82,25 @@ RSpec.describe Admin::UsersController, type: :request do
       end
     end
 
+    context 'when the submitted agency does not exist' do
+      let!(:agency) { create(:agency) }
+      let(:updated_user) { create(:acl_user, agency_id: agency.id) }
+
+      it 'keeps the existing agency and re-renders the form' do
+        patch admin_user_path(updated_user), params: { user: { agency_id: agency.id + 1_000 } }
+
+        expect(updated_user.reload.agency_id).to eq(agency.id)
+        expect(response).to render_template :edit
+      end
+
+      it 'accepts a real agency' do
+        other = create(:agency)
+        patch admin_user_path(updated_user), params: { user: { agency_id: other.id } }
+
+        expect(updated_user.reload.agency_id).to eq(other.id)
+      end
+    end
+
     context 'when updating new client notifications' do
       let(:updated_user) { User.not_system.first }
 

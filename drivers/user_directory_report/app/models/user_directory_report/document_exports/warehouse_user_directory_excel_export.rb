@@ -9,20 +9,39 @@
 module UserDirectoryReport::DocumentExports
   class WarehouseUserDirectoryExcelExport < ::GrdaWarehouse::DocumentExport
     include ApplicationHelper
+    include UserDirectoryReport::DirectoryUsers
+
     def authorized?
       user.can_view_any_reports?
     end
 
-    private def _users(user_model)
-      if params[:q].present?
-        users = user_model.in_directory.
-          text_search(params[:q]).
-          order(:last_name, :first_name)
-      else
-        users = user_model.in_directory.
-          order(:last_name, :first_name)
-      end
-      return users
+    # Column title => how to fill that cell for one user, in spreadsheet column order: a
+    # symbol to read the attribute, or a lambda for anything computed. The header and every
+    # row are both derived from this, so a column can be added, reordered, or dropped in
+    # one place. 'Status' is fixed per sheet.
+    private def columns_for(status)
+      columns = {
+        'Name' => :name,
+        'Email' => :email,
+        'Phone' => :phone_for_directory,
+        'Agency' => :agency_name,
+        'Roles' => ->(directory_user) { directory_user.unique_role_names&.sort&.join('; ') },
+        'Status' => ->(_directory_user) { status },
+        'HMIS Access' => ->(directory_user) { hmis_cell_for(directory_user) },
+        'Last Login' => :last_sign_in_at,
+      }
+      columns.delete('HMIS Access') if hmis_data_sources.none?
+      columns
+    end
+
+    # Yes for a single HMIS installation, standing in for the check the screen shows;
+    # the name of each data source when there are several, matching its links.
+    private def hmis_cell_for(user)
+      accessible = hmis_data_sources_for(user)
+      return '' if accessible.none?
+      return 'Yes' if hmis_data_sources.one?
+
+      accessible.map(&:name).join('; ')
     end
 
     def perform
@@ -36,32 +55,18 @@ module UserDirectoryReport::DocumentExports
     private def excel_package
       Axlsx::Package.new do |package|
         wb = package.workbook
-        wb.add_worksheet(name: 'Warehouse Users'[0, 30]) do |sheet|
-          title = sheet.styles.add_style(sz: 12, b: true, alignment: { horizontal: :center })
-          sheet.add_row(
-            [
-              'Name',
-              'Email',
-              'Phone',
-              'Agency',
-              'Roles',
-              'Status',
-              'Last Login',
-            ], style: title
-          )
-          _users(User).each do |user|
-            sheet.add_row(
-              [
-                user.name,
-                user.email,
-                user.phone_for_directory,
-                user.agency_name,
-                user.unique_role_names&.sort&.join('; '),
-                user.active ? 'Active' : 'Inactive',
-                user.last_sign_in_at,
-              ],
-            )
-          end
+        add_sheet(wb, 'Active Warehouse Users', directory_users(User), 'Active')
+        add_sheet(wb, 'Inactive Warehouse Users', directory_users(User, active: false), 'Inactive')
+      end
+    end
+
+    private def add_sheet(workbook, name, users, status)
+      columns = columns_for(status)
+      workbook.add_worksheet(name: name[0, 30]) do |sheet|
+        title = sheet.styles.add_style(sz: 12, b: true, alignment: { horizontal: :center })
+        sheet.add_row(columns.keys, style: title)
+        users.each do |directory_user|
+          sheet.add_row(columns.each_value.map { |cell| cell.to_proc.call(directory_user) })
         end
       end
     end

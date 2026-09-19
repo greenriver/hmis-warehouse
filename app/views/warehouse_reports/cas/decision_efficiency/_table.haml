@@ -23,6 +23,8 @@
           %th= "#{Translation.translate('Housing Search Provider')} Agencies"
       %tbody
         - @data.each do |row|
+          - policy = current_user.reporting_policy_for_project(project_id: nil, mode: :browse, client_id: row[:warehouse_client_id])
+          - pii = GrdaWarehouse::PiiProvider.from_attributes(policy: policy, first_name: row[:first_name], last_name: row[:last_name])
           %tr
             %td= row[:days]
             %td= row[:first_ended_at]&.to_date
@@ -32,7 +34,7 @@
             %td= row[:sub_program_name]
             %td= link_to(row[:match_stated_at]&.to_date, GrdaWarehouse::Config.get(:cas_url) + "/matches/#{row[:match_id]}",  target: '_blank')
             %td= row[:client_move_in_date]&.to_date
-            %td= link_to_if row[:warehouse_client_id].present?, "#{row[:first_name]} #{row[:last_name]}", appropriate_client_path(row[:warehouse_client_id])
+            %td= link_to_if row[:warehouse_client_id].present?, pii.brief_name, appropriate_client_path(row[:warehouse_client_id])
             %td= row[:hsa_contacts]&.map { |m| "#{m['name']} <#{m['email']}>" }.join(', ') if row[:hsa_contacts].present?
             %td= row[:hsp_contacts]&.map { |m| "#{m['name']} <#{m['email']}>" }.join(', ') if row[:hsp_contacts].present?
             %td= row[:hsp_contacts]&.map { |m| m['agency'] }.join(', ') if row[:hsp_contacts].present?

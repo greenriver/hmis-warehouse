@@ -8,7 +8,38 @@ When clients are merged:
 - One client is selected as the **retained client** (the oldest by `DateCreated`, then by ID)
 - Other clients are **soft-deleted**
 - Related records are updated to point to the retained client
+- Demographics on the retained record are not kept as-is. `MergeClientsJob` calls the same warehouse `ClientCleanup#choose_attributes_from_sources` used for destination-client rollup to select which values to keep (name, SSN, DOB, veteran status, gender, etc).
 - An audit trail is maintained
+
+## FAQ (External)
+
+**When you merge records, how is the primary record determined? Can users specify a primary record?**
+
+No. Users cannot choose which record is kept, and they cannot influence how values are selected.
+
+The **oldest** client record is retained (by creation date). That only determines which HMIS client ID survives. It does **not** mean every demographic field from that oldest record is kept.
+
+A separate process chooses the “best” value for each attribute (name, date of birth, SSN, and other demographic fields), based on data quality and other considerations. That logic is the same as the warehouse uses when it rolls several source clients up into one destination client.
+
+All names from the merged clients are kept on the resulting HMIS record. One name is marked primary; other distinct names remain as additional names.
+
+**If I start a merge from a client profile, does that client act as the primary, and do its values override the record I searched for?**
+
+No. Merge behavior is the same regardless of how the merge was started (from a client profile or from the admin tool). The record you are viewing does not automatically win, and searching for a second client does not make that record secondary.
+
+**When merging, which name and demographic information is retained?**
+
+Attribute selection follows the standard warehouse deduplication logic: the “best” value for each field is chosen from all records being merged, based on data quality and other considerations.
+
+If the merged clients had different names, all of those names are preserved on the HMIS record.
+
+**How do I search for a client that has been merged?**
+
+After a merge, the retained HMIS client can still be found by previous HMIS client IDs (the numeric ID shown in HMIS, not the HUD Personal ID). For example, if clients 1 and 2 are merged and client 2 is retained, searching by ID 1 or ID 2 should return client 2. The same is true for names: if the merged clients had different names, searching by either name should find the retained client.
+
+**Why did merging result in duplicate open enrollments in a project?**
+
+A merge moves all current and historical enrollments onto the retained client. That can leave the retained client with two open enrollments in the same project, which is invalid. After merging, the person who performed the merge should review enrollments and close or delete any duplicates.
 
 ## Key Concepts
 
@@ -48,7 +79,7 @@ The following table lists all record types that are updated during a merge, alon
 | **Names** (CustomClientName) | `PersonalID` | Deduplicated |
 | **Addresses** (CustomClientAddress) | `PersonalID` | Deduplicated |
 | **Contact Points** (CustomClientContactPoint) | `PersonalID` | Deduplicated |
-| **Custom Data Elements** | `owner_id` | Non-repeating CDEDs are deduplicated |
+| **Custom Data Elements** | `owner_id` | Deduplicated — see below |
 | **Files** | `client_id` | |
 | **CE Referrals** | `client_id` | |
 | **Client Alerts** | `client_id` | Includes expired alerts; not soft-deleted alerts; not deduplicated |
@@ -77,9 +108,9 @@ The following table lists all record types that are updated during a merge, alon
 
 Some record types are **deduplicated** during the merge process to avoid having multiple identical records on the retained client:
 
-- **Names**: Duplicate names are identified and removed. The retained client's name becomes the primary name.
+- **Names**: Duplicate names are identified and removed. The name that matches the chosen “best” name on the Client record is marked primary; other distinct names remain as additional names.
 - **Addresses**: Addresses with matching attributes (address_type, line1, line2, city, state, etc.) are deduplicated.
-- **Contact Points**: Contact points with matching system, use, and value are deduplicated. Email comparisons are case-insensitive.
+- **Contact Points**: Contact points (phone/email) with matching system and value are deduplicated (case-insensitive)
 - **Custom Data Elements**: Only **non-repeating** custom data elements are deduplicated. The newest value (by `DateUpdated`) is kept.
 - **MCI IDs**: External IDs with duplicate values are deduplicated.
 

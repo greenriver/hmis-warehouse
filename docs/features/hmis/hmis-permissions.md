@@ -149,14 +149,18 @@ Because a global policy reads `UserContext#global_permissions`, it must never au
 
 `Hmis::User` defines `can_<permission>`, `can_<permission>?`, and `can_<permission>_for?(entity)` for every permission, plus `permission?`, `permissions?`, and `permissions_for?`. The flag forms answer "does this user have X anywhere?", ignoring both entity scope and data source, which makes them unsafe in a multi-HMIS installation. The `_for?` forms are entity-scoped (they resolve through `Hmis::BaseAccessLoader` subclasses), but check a single raw permission and bypass requirement resolution. Prefer a policy predicate in all of these cases: a global policy for "anywhere in this data source" questions, an instance policy for a specific record.
 
+`Hmis::User#can_administer_hmis_in_data_source?(data_source)` is the data-source-scoped form of `can_administer_hmis?`: it requires an access control whose role grants the permission and whose collection reaches an entity in that data source. The HMIS go-live gate uses it (see [Multi-HMIS support](multi-hmis-support.md#go-live-gate)).
+
 ### GraphQL
+
+Schema-level patterns (where to put `viewable_by`, `authorized?`, resolver checks, access objects, pagination preloads) are documented in [Application Code Patterns and Conventions — GraphQL](../../code_patterns_and_conventions.md#graphql). This section is the permission-model view of the same API.
 
 Four conventions apply to the GraphQL API:
 
 - **Resolving records**: fields and mutations that look up or filter records do so through a `viewable_by` scope, so visibility is enforced by the query itself rather than by a later check.
 - **Object-level**: `self.authorized?(object, ctx)` on a type, typically delegating to a policy. This is a secondary guard that raises an exception if unauthorized.
 - **Field-level**: `Types::BaseField` accepts `authorize_with:` (a lambda receiving user and object) or the deprecated `permissions:` kwarg, which routes through `GraphqlPermissionChecker`. Unauthorized fields resolve to `null` rather than erroring. See `HmisSchema::Enrollment` for an example, which differentiates between `field` and `summary_field`.
-- **Access objects**: the nested `access { ... }` objects the frontend uses to decide what to render. New fields should use `bool_field` with a memoized `policy` helper; the legacy `can`, `composite_perm`, and `root_can` helpers expose raw permissions and are not data-source safe. See [ADR 0006](../../adr/0006-policy-based-graphql-access-fields.md).
+- **Access objects**: the nested `access { ... }` objects the frontend uses to decide what to render. New fields should use `bool_field` with a memoized `policy` helper; the legacy `can` helper exposes raw permissions and is not data-source safe. See [ADR 0006](../../adr/0006-policy-based-graphql-access-fields.md).
 - **`current_permission?` (legacy, avoid in new code)**: `current_permission?(permission:, entity:)` from `GraphqlApplicationHelper` checks one raw permission against one entity through `GraphqlPermissionChecker`, and is what the deprecated `permissions:` kwarg and `can` access-object helper use under the hood. It bypasses requirement resolution and reads as a permission flag rather than a domain question. It is being phased out in favor of instance policy checks — don't add new usages, and replace them when touching nearby code.
 
 ## Caching
@@ -186,6 +190,7 @@ Roles, Collections, UserGroups, and AccessControls are versioned with `paper_tra
 
 ## Related Documentation
 
+- [Application Code Patterns and Conventions — GraphQL](../../code_patterns_and_conventions.md#graphql) — where authorization belongs in schema code
 - [HMIS Authorization Policy Architecture](hmis-auth-policies.md) — policies, `UserContext`, and context loaders
 - [Warehouse Permissions](../warehouse/warehouse-permissions.md) — the parallel system on the warehouse side
 - [Warehouse Auth Policies](../warehouse/warehouse-auth-policies.md) — policy pattern in the warehouse

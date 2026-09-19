@@ -25,6 +25,12 @@ RSpec.describe Hmis::UndoMergeClientsJob, type: :job do
   end
 
   describe '#perform' do
+    let!(:deleted_client_service) { create(:hmis_hud_service, client: deleted_client, enrollment: deleted_client_enrollment, data_source: data_source) }
+    let!(:deleted_client_exit) { create(:hmis_hud_exit, client: deleted_client, enrollment: deleted_client_enrollment, data_source: data_source) }
+    let!(:retained_client_enrollment) { create(:hmis_hud_enrollment, client: retained_client, project: project, data_source: data_source) }
+    # PersonalID mismatch on an enrollment outside the un-merge; the undo must not touch it
+    let!(:out_of_scope_service) { create(:hmis_hud_service, :skip_validate, enrollment: retained_client_enrollment, PersonalID: 'not-in-scope', data_source: data_source) }
+
     before do
       Hmis::MergeClientsJob.perform_now(
         client_ids: [retained_client.id, deleted_client.id],
@@ -132,6 +138,20 @@ RSpec.describe Hmis::UndoMergeClientsJob, type: :job do
       deleted_client_enrollment.reload
       expect(deleted_client_enrollment.personal_id).to eq(deleted_client.personal_id)
       expect(deleted_client_enrollment.client).to eq(deleted_client)
+    end
+
+    it 'moves enrollment-related records back with their enrollment, leaving other enrollments alone' do
+      expect(deleted_client_service.reload.personal_id).to eq(retained_client.personal_id), 'merge should have moved service to retained client'
+      expect(deleted_client_exit.reload.personal_id).to eq(retained_client.personal_id), 'merge should have moved exit to retained client'
+
+      described_class.perform_now(
+        retained_client_id: retained_client.id,
+        deleted_client_id: deleted_client.id,
+      )
+
+      expect(deleted_client_service.reload.personal_id).to eq(deleted_client.personal_id)
+      expect(deleted_client_exit.reload.personal_id).to eq(deleted_client.personal_id)
+      expect(out_of_scope_service.reload.personal_id).to eq('not-in-scope')
     end
 
     it 'restores names to deleted client' do

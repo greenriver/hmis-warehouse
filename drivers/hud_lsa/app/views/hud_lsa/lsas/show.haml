@@ -21,9 +21,9 @@
         = link_to({ action: :download_intermediate, format: :zip}, {class: 'btn btn-secondary'}) do
           %span.icon-download2
           Supporting Files
-    - if @report.export_id
+    - if @report.export_id && current_user.can_download_lsa_source_data?
       .mt-2
-        = link_to(warehouse_reports_hmis_export_path(@report.export_id), {class: 'btn btn-secondary'}) do
+        = link_to({ action: :download_source_data }, {class: 'btn btn-secondary'}) do
           %span.icon-download2
           Source HMIS Data
 - if @report.purged?

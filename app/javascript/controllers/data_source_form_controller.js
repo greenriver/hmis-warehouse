@@ -9,6 +9,7 @@ export default class extends Controller {
     "nonHmisQuestions",
     "authoritativeQuestions",
     "importerQuestions",
+    "hmisQuestions",
     "authoritativeType",
     "hmisHostname",
     "authoritative",
@@ -65,6 +66,11 @@ export default class extends Controller {
         this.importerQuestionsTarget,
         !showImporterQuestions,
       )
+    }
+
+    if (this.hasHmisQuestionsTarget) {
+      this.toggleSection(this.hmisQuestionsTarget, hasHmis)
+      this.setInputsDisabled(this.hmisQuestionsTarget, !hasHmis)
     }
 
     if (this.hasAuthoritativeTypeTarget) {

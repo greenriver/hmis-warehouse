@@ -1,0 +1,34 @@
+.c-card--flush.mb-4
+  %header.c-card__header.align-items-center
+    .text-muted.text-uppercase.small.fw-bold.mb-1 Source Info
+    .d-flex
+      %h3.mb-0 Details & visibility
+      .d-flex.ml-auto
+        - if can_edit_data_sources?
+          = link_to edit_data_source_path, class: 'btn btn-secondary btn-sm mr-2' do
+            Edit
+        = render 'more_actions_menu'
+  .p-3
+    %table.table.table-sm{style: 'table-layout: fixed; width: 100%;'}
+      %tr
+        %th Date Span
+        %td
+          - if data_span = @data_source.data_span
+            = "#{data_span[:start_date]} - #{data_span[:end_date]}"
+      %tr
+        %th HMIS Export SourceID
+        %td= @data_source.source_id.presence || 'Unset'
+      %tr
+        %th.text-wrap Visible in the Window into the Warehouse?
+        %td= yes_no(@data_source.visible_in_window)
+      - unless @data_source.hmis?
+        %tr
+          %th Does the Personal ID column contain a UUID?
+          %td= yes_no(@data_source.munged_personal_id)
+      %tr
+        %th Exposed with ROI?
+        %td= yes_no(@data_source.obey_consent?)
+      - unless @data_source.hmis?
+        %tr
+          %th Service Scanning Enabled?
+          %td= yes_no(@data_source.service_scannable)

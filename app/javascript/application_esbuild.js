@@ -24,9 +24,16 @@ function waitForJQuery() {
   }
 }
 
-// Enable tooltips
+// Enable tooltips and prevent a missing/invalid title from breaking JS on the remainder of the page.
 const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
-const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
+const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => {
+  try {
+    return new bootstrap.Tooltip(tooltipTriggerEl)
+  } catch (error) {
+    console.error('Failed to initialize tooltip', tooltipTriggerEl, error)
+    return null
+  }
+})
 
 // Make both Bootstrap and Popper globally available for legacy scripts.
 window.bootstrap = bootstrap

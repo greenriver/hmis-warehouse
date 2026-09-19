@@ -66,7 +66,7 @@ module TextMessage::GrdaWarehouse::HealthEmergency
           subscriber.update(
             first_name: client.FirstName,
             last_name: client.LastName,
-            phone_number: follow_up_cell_phone.tr('^0-9', ''),
+            phone_number: follow_up_cell_phone.to_s.tr('^0-9', ''),
             subscribed_at: Time.current,
             preferred_language: preferred_language,
           )

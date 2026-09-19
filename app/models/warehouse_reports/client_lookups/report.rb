@@ -54,7 +54,7 @@ module WarehouseReports
 
         each_batch do |batch|
           if map_enrollments?
-            batch.each { |row| result << redact_row(row, policy_for_project(row.project_id)) }
+            batch.each { |row| result << redact_row(row, policy_for_project(row.project_id, client_id: row.destination_id)) }
           else
             batch.each do |row|
               if pending_key && row.display_key != pending_key
@@ -114,7 +114,8 @@ module WarehouseReports
 
       def flush_group(group)
         policy = group.any? { |row| policy_for_project(row.project_id).can_view_name? } ? allow_pii_policy : deny_pii_policy
-        redact_row(group.first, policy)
+        restricted = user.policy_context.client_restricted?(group.first.destination_id)
+        redact_row(group.first, GrdaWarehouse::PiiProvider.restrict(policy, restricted: restricted))
       end
 
       # The candidate project ids are bounded by the filter's selection (data
@@ -136,8 +137,8 @@ module WarehouseReports
         @authorized_project_ids ||= project_source.where(id: filter.effective_project_ids).pluck(:id)
       end
 
-      def policy_for_project(project_id)
-        user.reporting_policy_for_project(project_id: project_id, mode: :download)
+      def policy_for_project(project_id, client_id: nil)
+        user.reporting_policy_for_project(project_id: project_id, mode: :download, client_id: client_id)
       end
 
       def allow_pii_policy

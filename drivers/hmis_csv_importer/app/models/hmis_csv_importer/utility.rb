@@ -22,6 +22,7 @@ class HmisCsvImporter::Utility
       HmisCsvImporter::Aggregated::Exit,
       HmisCsvImporter::Loader::LoaderLog,
       HmisCsvImporter::Loader::LoadError,
+      HmisCsvImporter::Loader::RowProcessingNote,
       HmisCsvImporter::Importer::ImporterLog,
       HmisCsvImporter::Importer::ImportError,
       HmisCsvImporter::HmisCsvValidation::Base,

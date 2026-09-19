@@ -42,7 +42,7 @@ namespace :eto do
         )
       end
       # Eccovia too!
-      EccoviaData::Fetch.all.each(&:fetch_updated) if RailsDrivers.loaded.include?(:eccovia_data)
+      EccoviaData::Fetch.all.each(&:fetch_updated)
     end
   end
 end

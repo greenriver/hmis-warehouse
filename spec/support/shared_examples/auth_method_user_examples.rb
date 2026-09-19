@@ -473,9 +473,24 @@ RSpec.shared_examples 'an auth-method-aware user' do |factory, model|
     end
 
     describe 'profile_managed_by_idp?' do
-      it 'follows idp_service.supports_profile_updates?: locked when unlinked (NullService can\'t accept writes)' do
+      # An account created local-only has no connector until its first sign-in links it. Nothing
+      # else owns the profile in the meantime, so the local fields must stay editable.
+      it 'is false when the record names no connector, even though NullService can\'t accept writes' do
         user = model.new
+        expect(user.primary_idp).to be_blank
         expect(user.idp_service.supports_profile_updates?).to be false
+        expect(user.profile_managed_by_idp?).to be false
+      end
+
+      it 'is true when the linked IdP service cannot accept profile writes' do
+        user = model.new(last_connector_id: 'authenticate-only')
+        allow(user).to receive(:idp_service).and_return(instance_double(Idp::KeycloakService, supports_profile_updates?: false))
+        expect(user.profile_managed_by_idp?).to be true
+      end
+
+      it 'is true when the service cannot be built, so a misconfigured connector locks rather than opens the fields' do
+        user = model.new(last_connector_id: 'broken')
+        allow(user).to receive(:idp_service).and_raise(Idp::ServiceError.new('boom', idp_name: 'Keycloak', operation: :get_user))
         expect(user.profile_managed_by_idp?).to be true
       end
 

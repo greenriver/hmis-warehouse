@@ -128,9 +128,12 @@ class CiMatrixRouter
         }
       end
     end
-    # okta, logging and devise each gate a once-per-run step in
-    # .github/workflows/rails_tests.yml; ci_default is the one job that opts into them.
-    groups << { id: 'ci_default', tag: '~ci_bucket', okta: true, logging: true, devise: true }
+    # ci_default catches every spec no bucket claims.
+    groups << { id: 'ci_default', tag: '~ci_bucket' }
+    # The okta, logging and devise arms re-run specs under env the bucketed run cannot use, so they
+    # are not bucketable and get their own matrix entry. It carries no tag: the main rspec step is
+    # gated on one, so this entry runs the arms alone rather than extending a bucket's wall clock.
+    groups << { id: 'ci_auth', auth: true }
     groups
   end
 

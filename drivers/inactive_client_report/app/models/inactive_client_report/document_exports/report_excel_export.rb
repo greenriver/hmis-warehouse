@@ -56,9 +56,10 @@ module InactiveClientReport::DocumentExports
           sheet.add_row(header, style: header_style)
           report.clients.find_each do |client|
             projects = client.last_intentional_contacts(user, include_confidential_names: false, include_dates: true).select(&:present?)
+            pii = GrdaWarehouse::PiiProvider.new(client, policy: user.reporting_policy_for_client(client: client, mode: :download))
             row = [client.id]
-            row += [client.last_name, client.first_name] if GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
-            row << client.dob if user.can_view_full_dob? && GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
+            row += [pii.last_name, pii.first_name] if GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
+            row << pii.dob if user.can_view_full_dob? && GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
             row << GrdaWarehouse::Hud::Client.age(date: Date.current, dob: client.dob)
             row << projects.join('; ')
             row << client.service_history_entry_ongoing.map { |en| en&.project&.name(user, include_project_type: true) }.compact.join('; ')

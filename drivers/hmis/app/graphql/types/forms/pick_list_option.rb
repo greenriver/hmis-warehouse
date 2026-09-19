@@ -163,17 +163,11 @@ module Types
       when 'PROJECTS_RECEIVING_REFERRALS'
         projects_receiving_referrals(user.hmis_data_source_id)
       when 'FORM_TYPES'
-        # Used in the dropdown of form roles when creating/editing a form. We need a permission check here because
-        # not all users can access all form types:
-        form_types = if user.policy_for(Hmis::Form::Definition, policy_type: :form_definition).can_administrate_config?
-          # Super-admins should be able to select any form type when creating a form
-          Hmis::Form::Definition.form_role_enum_map.members
-        else
-          # Other users should only see the limited list roles that we have designated for general editing, like service and custom assessment
-          Hmis::Form::Definition.non_admin_form_role_enum_map.members
-        end
-
-        form_types.map { |ft| { code: ft[:value], label: ft[:desc] } }
+        # Form Types that the current user can create forms for
+        policy = user.policy_for(Hmis::Form::Definition, policy_type: :form_definition)
+        Hmis::Form::Definition.form_role_enum_map.members.
+          select { |ft| policy.can_create?(role: ft[:value]) }.
+          map { |ft| { code: ft[:value], label: ft[:desc] } }
       when 'CONTINUUM_PROJECTS'
         Hmis::Hud::Project.
           where(data_source_id: user.hmis_data_source_id, continuum_project: true).
@@ -543,7 +537,7 @@ module Types
         open_excluding_wip.
         heads_of_households.
         preload(:client).
-        preload(household: :enrollments).
+        preload(household: { enrollments: :exit }).
         sort_by_option(:most_recent).
         to_a
 
@@ -552,8 +546,8 @@ module Types
 
       enrollments.map do |en|
         client = en.client
-        household_size = en.household&.enrollments&.size || 0
-        other_size = household_size - 1 # more than hoh
+        open_household_size = en.household&.enrollments&.count { |household_enrollment| household_enrollment.exit&.exit_date.nil? } || 0
+        other_size = open_household_size - 1 # more than hoh
         desc = other_size.positive? ? "and #{other_size} #{'other'.pluralize(other_size)}" : ''
         name = user.policy_for(client, policy_type: :hmis_client).can_view_name? ? client.brief_name : client.masked_name
         {

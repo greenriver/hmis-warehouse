@@ -10,10 +10,12 @@
         %th Veteran Status
     %tbody
       - @clients.each do |client|
+        - policy = current_user.reporting_policy_for_project(project_id: nil, mode: :browse, client_id: client[:id])
+        - pii = GrdaWarehouse::PiiProvider.from_attributes(policy: policy, first_name: client[:FirstName], last_name: client[:LastName], dob: client[:DOB], ssn: client[:SSN])
         %tr
           %td= client[:id]
-          %td= client[:FirstName]
-          %td= client[:LastName]
-          %td= ssn(client[:SSN])
-          %td= client[:DOB]
+          %td= pii.last_name
+          %td= pii.first_name
+          %td= pii.ssn
+          %td= GrdaWarehouse::PiiProvider.viewable_dob(client[:DOB], policy: policy)
           %td= HudHelper.util.no_yes_missing(client[:VeteranStatus])

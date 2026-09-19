@@ -86,4 +86,17 @@ class Hmis::AuthPolicies::HmisProjectPolicy < Hmis::AuthPolicies::ResourcePolicy
 
     def validate_resource!(arg) = ensure_arg_type!(arg, Hmis::Hud::Project)
   end
+
+  class Global < Hmis::AuthPolicies::BasePolicy
+    # Whether the user can manage external form submissions at any project in the data source.
+    # Used to authorize actions that operate across projects and therefore have no single
+    # project to check against, such as re-processing the external submission queue.
+    def can_manage_external_form_submissions?
+      global_permissions.include?(:can_manage_external_form_submissions)
+    end
+
+    protected
+
+    def validate_resource!(arg) = ensure_arg_class!(arg, Hmis::Hud::Project)
+  end
 end

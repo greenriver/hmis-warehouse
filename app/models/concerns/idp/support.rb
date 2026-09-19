@@ -10,6 +10,11 @@
 module Idp::Support
   extend ActiveSupport::Concern
 
+  included do
+    # Virtual: the IdP connector an admin picks on the account-create form.
+    attr_accessor :idp_connector_id
+  end
+
   def idp_service
     return @idp_service if defined?(@idp_service)
 
@@ -32,6 +37,9 @@ module Idp::Support
   # default that keeps the admin form renderable; management actions surface the real config
   # error through their own soft-failure handling.
   def profile_managed_by_idp?
+    # No connection to external IdP so fields stay editable
+    return false if primary_idp.blank?
+
     !idp_service.supports_profile_updates?
   rescue Idp::ServiceError
     true

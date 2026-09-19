@@ -82,14 +82,18 @@ def rewrite(path)
   end
 end
 
-# --- .env.local (development databases) -------------------------------------
-env_local = File.join(worktree_path, '.env.local')
-rewrite(env_local) do |content|
-  DEV_DB_KEYS.each { |key| content = append_db_suffix(content, key, db_suffix) }
-  # CAS is the external boston-cas database; disable it in worktrees so the
-  # database.yml `cas:` section (guarded by .present?) is dropped entirely.
-  content = set_value(content, 'DATABASE_CAS_DB', '')
-  content
+# --- .env.local / .env.development.local (development databases) ----------
+# Checkouts diverge on which of these two gitignored files actually defines
+# the DEV_DB_KEYS/DATABASE_CAS_DB values (dotenv-rails reads both), so rewrite
+# whichever one(s) each worktree actually has them in.
+['.env.local', '.env.development.local'].each do |filename|
+  rewrite(File.join(worktree_path, filename)) do |content|
+    DEV_DB_KEYS.each { |key| content = append_db_suffix(content, key, db_suffix) }
+    # CAS is the external boston-cas database; disable it in worktrees so the
+    # database.yml `cas:` section (guarded by .present?) is dropped entirely.
+    content = set_value(content, 'DATABASE_CAS_DB', '')
+    content
+  end
 end
 
 # --- .env.test.local (test databases) --------------------------------------
@@ -154,9 +158,9 @@ rewrite(override) do |content|
   #    copies. The `hmis-warehouse_` prefix keeps them from colliding with other
   #    apps' identically-named volumes.
   {
-    'bundle_bookworm' => 'hmis-warehouse_bundle_bookworm',
-    'node_modules_bookworm' => 'hmis-warehouse_node_modules_bookworm',
-    'rails_cache_bookworm' => 'hmis-warehouse_rails_cache_bookworm',
+    'bundle_trixie' => 'hmis-warehouse_bundle_trixie',
+    'node_modules_trixie' => 'hmis-warehouse_node_modules_trixie',
+    'rails_cache_trixie' => 'hmis-warehouse_rails_cache_trixie',
   }.each do |vol, external_name|
     vidx = lines.index { |l| l.match?(/^ {2}#{Regexp.escape(vol)}:\s*$/) }
     next unless vidx

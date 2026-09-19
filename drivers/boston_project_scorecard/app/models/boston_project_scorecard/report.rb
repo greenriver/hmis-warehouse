@@ -186,13 +186,8 @@ module BostonProjectScorecard
     def run_and_save!
       update(started_at: Time.current)
 
-      apr = nil
-      comparison_apr = nil
-
-      if RailsDrivers.loaded.include?(:hud_apr)
-        apr = apr_report
-        comparison_apr = apr_compmarison_report
-      end
+      apr = apr_report
+      comparison_apr = apr_compmarison_report
       project_type = if project_id.present?
         project.project_type
       else

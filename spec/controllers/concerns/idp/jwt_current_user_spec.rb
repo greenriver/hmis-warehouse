@@ -286,10 +286,10 @@ RSpec.describe Idp::JwtCurrentUser, :jwt_only, type: :controller do
       expect { get :auth }.to raise_error(Idp::UnauthenticatedRequestError, /\/auth/)
     end
 
-    # The other way current_user comes back nil: Idp::UserProvisioner returns nil for a good token
-    # with no matching user row when idp/auto_create_user is off, which is routine on a realm shared
-    # with other apps. A real person who needs an account, so a terminal page — not a 500, and not a
-    # redirect the proxy would bounce straight back with the same token.
+    # Second case where current_user is nil: the token is valid but Idp::UserProvisioner returned
+    # nil. Provisioning is unconditional, so this means only a token that carries no email claim.
+    # Render a terminal 403, not a 500 and not a redirect — a redirect would send the same token
+    # back to the proxy and loop.
     it 'renders a terminal 403 for a good token whose holder has no warehouse account' do
       allow(User).to receive(:find_or_create_from_jwt).and_return(nil)
 

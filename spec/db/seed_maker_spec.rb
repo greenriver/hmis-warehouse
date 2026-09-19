@@ -67,11 +67,13 @@ RSpec.describe SeedMaker do
   end
 
   describe '#maintain_db_monitor_defaults' do
-    it 'creates the alert threshold with a default that reads as 10' do
+    it 'creates the alert and block thresholds' do
       expect { seed_maker.maintain_db_monitor_defaults }.
-        to change { AppConfigProperty.where(key: 'wh_db_space_monitor/alert_threshold_pct').count }.by(1)
+        to change { AppConfigProperty.where("key LIKE 'wh_db_space_monitor/%'").count }.by(2)
 
-      expect(GrdaWarehouse::DbMonitor::FreeStorageSpaceConfiguration.new.alert_threshold_pct).to eq(10)
+      config = GrdaWarehouse::DbMonitor::FreeStorageSpaceConfiguration.new
+      expect(config.alert_threshold_pct).to eq(10)
+      expect(config.block_threshold_pct).to eq(5)
     end
 
     it 'does not override an existing value' do
@@ -81,6 +83,86 @@ RSpec.describe SeedMaker do
         not_to(change { AppConfigProperty.find_by(key: 'wh_db_space_monitor/alert_threshold_pct').value })
 
       expect(GrdaWarehouse::DbMonitor::FreeStorageSpaceConfiguration.new.alert_threshold_pct).to eq(20)
+    end
+  end
+
+  describe '#seed_roles' do
+    let(:default_role_count) { YAML.load_file(Rails.root.join('db/seeds/roles.yaml')).size }
+
+    it 'creates the default roles with exactly the permissions named in db/seeds/roles.yaml' do
+      expect { seed_maker.seed_roles }.to change(Role, :count).by(default_role_count)
+
+      developer = Role.find_by(name: 'Open Path Developer')
+      expect(developer.can_edit_roles).to be true
+      expect(developer.can_delete_data_sources).to be true
+      # not in the developer's list; a role that grants everything would be a real access problem
+      expect(developer.can_view_clients).to be false
+    end
+
+    it 'does not touch an existing role, which may have been tuned in the UI' do
+      create(:role, name: 'Open Path Developer', can_edit_roles: false, can_view_clients: true)
+
+      expect { seed_maker.seed_roles }.to change(Role, :count).by(default_role_count - 1)
+
+      developer = Role.find_by(name: 'Open Path Developer')
+      expect(developer.can_edit_roles).to be false
+      expect(developer.can_view_clients).to be true
+    end
+
+    it 'is a no-op once more than three roles exist' do
+      4.times { |i| create(:role, name: "existing #{i}") }
+
+      expect { seed_maker.seed_roles }.not_to change(Role, :count)
+      expect(Role.find_by(name: 'Open Path Developer')).to be_nil
+    end
+
+    it 'reset_permissions rewrites an existing role to the yaml, clearing permissions it does not name' do
+      4.times { |i| create(:role, name: "existing #{i}") }
+      create(:role, name: 'Report Runner', can_edit_roles: true, enforced_2fa: false)
+
+      seed_maker.seed_roles(reset_permissions: true)
+
+      runner = Role.find_by(name: 'Report Runner')
+      expect(runner.enforced_2fa).to be true
+      expect(runner.can_edit_roles).to be false
+    end
+  end
+
+  describe '#production_seed_first_user' do
+    it 'grants the new user developer permissions over all data sources' do
+      user = seed_maker.production_seed_first_user(email: 'seeded@example.com', first_name: 'Sample', last_name: 'Admin')
+
+      expect(user).to be_active
+      expect(user.permission_context).to eq('acls')
+      expect(UserGroup.find_by(name: 'Open Path Developers').users).to include(user)
+      expect(
+        AccessControl.find_by(
+          role: Role.find_by(name: 'Open Path Developer'),
+          collection: Collection.system_collection(:data_sources),
+          user_group: UserGroup.find_by(name: 'Open Path Developers'),
+        ),
+      ).to be_present
+      expect(user.can_edit_data_sources?).to be true
+      expect(user.can_view_clients?).to be false
+    end
+
+    # CI's default arm is jwt, so this is the only coverage of the Devise branch in
+    # production_seed_first_user: the seeded admin needs a generated password and a confirmed_at, or
+    # they cannot sign in on a new deployment.
+    it 'sets a password and confirms the user', :devise_only do
+      user = seed_maker.production_seed_first_user(email: 'seeded@example.com', first_name: 'Sample', last_name: 'Admin')
+
+      expect(user.encrypted_password).to be_present
+      expect(user.confirmed_at).to be_present
+    end
+
+    it 'refuses to re-seed over an existing email rather than granting a second developer ACL' do
+      seed_maker.production_seed_first_user(email: 'seeded@example.com', first_name: 'Sample', last_name: 'Admin')
+
+      expect do
+        expect { seed_maker.production_seed_first_user(email: 'seeded@example.com', first_name: 'Other', last_name: 'Admin') }.
+          to raise_error(/already exists/)
+      end.not_to change(AccessControl, :count)
     end
   end
 end

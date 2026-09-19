@@ -15,6 +15,7 @@ module Types
     field :relationship_to_ho_h, Types::HmisSchema::Enums::Hud::RelationshipToHoH, null: false
     field :client_id, ID, null: false
     field :client_name, String, null: false, description: 'The name of the client. Returns masked name if the user does not have permission to view the client name.'
+    field :exit_date, GraphQL::Types::ISO8601Date, null: true
 
     # Access field informs whether the frontend can display a link to the Client profile for this household member.
     # Use plural "can view clients" to match the permission name resolved elsewhere in application
@@ -32,6 +33,10 @@ module Types
       else
         client.masked_name
       end
+    end
+
+    def exit_date
+      load_ar_association(object, :exit)&.exit_date
     end
 
     def access

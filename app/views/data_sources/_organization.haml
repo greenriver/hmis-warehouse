@@ -1,29 +1,30 @@
-.c-card--flush.mb-5
+.c-card--flush.mb-5{ data: { 'table-filter-target' => 'group' } }
   %header.row.c-card__header
-    .col-sm-8
-      %h3
-        = org.name(current_user, ignore_confidential_status: can_edit_organizations?)
+    .col-md
+      .d-md-flex
+        %h3.me-auto
+          = org.name(current_user, ignore_confidential_status: can_edit_organizations?)
+
+          - if org.confidential?
+            .mt-2.mb-auto.me-2.py-2.badge.badge-info.text-bg-info.badge-pill.c-tag-pill Confidential Organization
+          - if org.dmh
+            .mt-2.mb-auto.me-2.py-2.badge.badge-warning.text-bg-warning.badge-pill.c-tag-pill Treated as DMH for chronic calculations
+        - if can_edit_organizations?
+          .mb-4.me-2
+            = link_to edit_organization_path(org, coc_code: params[:coc_code]), class: 'btn btn-secondary btn-sm' do
+              %i.icon-pencil
+              Edit Organization
+          .mb-4.me-2
+            = link_to organization_contacts_path(organization_id: org.id, coc_code: params[:coc_code]), class: 'btn btn-secondary btn-sm' do
+              %i.icon-users
+              View/Edit Organization Contacts
+        - if can_delete_data_sources?
+          .mb-4.me-2
+            = link_to organization_path(org, coc_code: params[:coc_code]), method: :delete, class: ['btn', 'btn-sm', 'btn-danger'], data: { confirm: "Deleting #{org.OrganizationName} will delete ALL associated data.  Do you want to proceed?"} do
+              %i.icon-cross
+              Delete Organization
         - if can_see_raw_hmis_data?
-          = link_to 'HMIS', source_datum_path(org.id, type: 'Organization'), class: 'btn btn-xs btn-secondary btn-hmis ml-2'
-      - if org.confidential?
-        .mb-1.badge.badge-info.text-bg-info.badge-pill.c-tag-pill Confidential Organization
-      - if org.dmh
-        Treated as DMH for chronic calculations
-    .col-sm-4.text-end
-      - if can_edit_organizations?
-        .mb-4
-          = link_to edit_organization_path(org), class: 'btn btn-secondary btn-sm' do
-            %i.icon-pencil
-            Edit Organization
-        .mb-4
-          = link_to organization_contacts_path(organization_id: org.id), class: 'btn btn-secondary btn-sm' do
-            %i.icon-users
-            View/Edit Organization Contacts
-      - if can_delete_data_sources?
-        .mb-4
-          = link_to organization_path(org), method: :delete, class: ['btn', 'btn-sm', 'btn-danger'], data: { confirm: "Deleting #{org.OrganizationName} will delete ALL associated data.  Do you want to proceed?"} do
-            %i.icon-cross
-            Delete Organization
+          = link_to 'HMIS', source_datum_path(org.id, type: 'Organization'), class: 'btn btn-sm btn-secondary mb-auto'
   %table.table-responsive.table.table-sm
     %thead
       %tr

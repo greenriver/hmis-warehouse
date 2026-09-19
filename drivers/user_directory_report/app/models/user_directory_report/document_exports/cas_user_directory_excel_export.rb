@@ -9,20 +9,10 @@
 module UserDirectoryReport::DocumentExports
   class CasUserDirectoryExcelExport < ::GrdaWarehouse::DocumentExport
     include ApplicationHelper
+    include UserDirectoryReport::DirectoryUsers
+
     def authorized?
       user.can_view_any_reports?
-    end
-
-    private def _users(user_model)
-      if params[:q].present?
-        users = user_model.in_directory.
-          text_search(params[:q]).
-          order(:last_name, :first_name)
-      else
-        users = user_model.in_directory.
-          order(:last_name, :first_name)
-      end
-      return users
     end
 
     def perform
@@ -51,7 +41,7 @@ module UserDirectoryReport::DocumentExports
               'Count of Closed Matches',
             ], style: title
           )
-          _users(CasAccess::User).each do |user|
+          directory_users(CasAccess::User).each do |user|
             sheet.add_row(
               [
                 user.name,
