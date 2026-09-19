@@ -31,12 +31,26 @@ RSpec.describe 'HUD report access plumbing' do
   end
 
   describe 'HudReports::GeneratorBase.report_definition_url' do
-    it 'maps a generator to the report definition url of its controller' do
-      expect(HudApr::Generators::Apr::Fy2026::Generator.report_definition_url).to eq('hud_reports/aprs')
+    let(:registry) { Rails.application.config.hud_reports }
+    let(:hud_urls) do
+      definitions.maintain_report_definitions
+      definitions.hud.pluck(:url)
+    end
+
+    # The LSA generator is a ReportInstance, not a GeneratorBase; its controller
+    # names the definition directly, so only the registry check applies to it.
+    it 'resolves every registered generator to a seeded HUD definition' do
+      generators = registry.keys.map(&:constantize).select { |klass| klass < HudReports::GeneratorBase }
+      registry_urls = registry.values.map { |entry| Rails.application.routes.url_helpers.public_send(entry[:helper]).delete_prefix('/') }
+
+      expect(generators).not_to be_empty
+      expect(generators.map(&:report_definition_url).uniq).to all(be_in(hud_urls))
+      expect(registry_urls.uniq).to all(be_in(hud_urls))
     end
 
     it 'distinguishes reports that share a driver' do
       expect(HudApr::Generators::Caper::Fy2026::Generator.report_definition_url).to eq('hud_reports/capers')
+      expect(HudApr::Generators::Apr::Fy2026::Generator.report_definition_url).to eq('hud_reports/aprs')
     end
   end
 

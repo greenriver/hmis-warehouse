@@ -52,21 +52,51 @@ RSpec.describe 'Legacy HUD report pages', type: :request do
     end
   end
 
-  describe 'GET /reports/:report_id/results/:report_result_id/support' do
+  describe "another user's result without can_view_all_hud_reports" do
     let(:results) { { 'q1' => { 'title' => 'Clients', 'value' => 7, 'support' => {} } } }
+    let!(:other_result) { create(:report_result, report: dq_report, user: other_user, percent_complete: 100, results: results, support: { 'k' => {} }) }
 
-    it "does not serve another user's result without can_view_all_hud_reports" do
-      grant_hud_report(user, 'hud_reports/dqs')
-      other_result = create(:report_result, report: dq_report, user: other_user, percent_complete: 100, results: results, support: { 'k' => {} })
+    before { grant_hud_report(user, 'hud_reports/dqs') }
 
+    it 'is not served as support' do
       get report_report_result_support_index_path(dq_report, other_result, key: 'k')
 
       expect(response).to have_http_status(:not_found)
+    end
+
+    it 'is not served as CSV' do
+      get report_report_result_path(dq_report, other_result, format: :csv)
+
+      expect(response).to have_http_status(:not_found)
+    end
+
+    it 'is not served as a support download' do
+      get download_support_report_report_result_path(dq_report, other_result, format: :zip)
+
+      expect(response).to have_http_status(:not_found)
+    end
+
+    it 'is not destroyed' do
+      delete report_report_result_path(dq_report, other_result)
+
+      expect(response).to have_http_status(:not_found)
+      expect(ReportResult.exists?(other_result.id)).to be true
+    end
+
+    it 'is served on the same path when it is their own' do
+      own_result = create(:report_result, report: dq_report, user: user, percent_complete: 100, results: results)
+
+      get report_report_result_path(dq_report, own_result, format: :csv)
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include('7')
     end
   end
 
   describe 'GET /report_results_summary/:id' do
     let!(:summary) { ReportResultsSummary.create!(type: 'ReportResultsSummaries::SystemPerformance::Base', name: 'SPM FY2019') }
+
+    before { spm_report.update!(report_results_summary: summary) }
 
     it 'allows a user granted the current SPM definition' do
       grant_hud_report(user, 'hud_reports/spms', role: all_hud_role)
@@ -82,6 +112,61 @@ RSpec.describe 'Legacy HUD report pages', type: :request do
       get report_results_summary_path(summary)
 
       expect(response).to have_http_status(:redirect)
+    end
+
+    context 'without can_view_all_hud_reports' do
+      let!(:other_run) { create(:report_result, report: spm_report, user: other_user, percent_complete: 100, results: {}, updated_at: 1.day.ago) }
+
+      before { grant_hud_report(user, 'hud_reports/spms') }
+
+      it "is not found when only other users' runs exist" do
+        get report_results_summary_path(summary)
+
+        expect(response).to have_http_status(:not_found)
+      end
+
+      it 'lists their own run, not the newer run of another user' do
+        own_run = create(:report_result, report: spm_report, user: user, percent_complete: 100, results: {}, updated_at: 2.days.ago)
+
+        get report_results_summary_path(summary)
+
+        expect(response).to have_http_status(:ok)
+        expect(response.body).to include("completed on #{own_run.reload.updated_at}")
+        expect(response.body).not_to include("completed on #{other_run.reload.updated_at}")
+      end
+    end
+  end
+
+  describe 'pages gated by a sibling definition' do
+    let(:pages) do
+      {
+        'hud_reports/pits' => [hud_reports_historic_pits_path],
+        'hud_reports/lsas' => [hud_reports_historic_lsas_path],
+        'hud_reports/dqs' => [hud_reports_past_dqs_path, hud_reports_legacy_dqs_path, hud_reports_legacy_dq_path(dq_report)],
+        'hud_reports/spms' => [hud_reports_legacy_spms_path],
+      }
+    end
+
+    it 'open when that definition is granted' do
+      grant_every_hud_report
+
+      pages.each_value do |paths|
+        paths.each do |path|
+          get path
+          expect(response).to have_http_status(:ok), "expected #{path} to render"
+        end
+      end
+    end
+
+    it 'redirect when only a different HUD definition is granted' do
+      grant_hud_report(user, 'hud_reports/hopwa_capers')
+
+      pages.each_value do |paths|
+        paths.each do |path|
+          get path
+          expect(response).to have_http_status(:redirect), "expected #{path} to redirect"
+        end
+      end
     end
   end
 

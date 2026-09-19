@@ -25,6 +25,8 @@ RSpec.describe GrdaWarehouse::Tasks::GrantAllHudReports do
     # A project in the HUD role's collection proves the grant does not make it reportable.
     hud_role_collection.set_viewables(projects: [project.id])
     setup_access_control(acl_hud_user, hud_role, hud_role_collection)
+    # A stale legacy role on an ACL user must not route them through the legacy grant.
+    acl_hud_user.legacy_roles << hud_role
     setup_access_control(acl_plain_user, plain_role, create(:collection))
     legacy_hud_user.legacy_roles << hud_role
     legacy_plain_user.legacy_roles << plain_role

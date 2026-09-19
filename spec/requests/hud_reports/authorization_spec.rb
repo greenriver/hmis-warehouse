@@ -30,8 +30,8 @@ RSpec.describe 'HUD report authorization', type: :request do
     get hud_reports_aprs_path
 
     expect(response).to have_http_status(:ok)
-    expect(response.body).to include('Annual Performance Report')
-    expect(response.body).not_to include('System Performance Measures')
+    expect(response.body).to include(hud_reports_aprs_path)
+    expect(response.body).not_to include(hud_reports_spms_path)
   end
 
   it 'does not let an APR grant open the SPM report' do
@@ -80,11 +80,21 @@ RSpec.describe 'HUD report authorization', type: :request do
     end
   end
 
-  it 'gates the LSA-derived HIC on the LSA definition' do
-    grant_hud_report(user, 'hud_reports/lsas')
+  describe 'LSA-derived HIC' do
+    it 'opens with the LSA definition' do
+      grant_hud_report(user, 'hud_reports/lsas')
 
-    get hud_reports_lsa_hics_path
+      get hud_reports_lsa_hics_path
 
-    expect(response).to have_http_status(:ok)
+      expect(response).to have_http_status(:ok)
+    end
+
+    it 'does not open with only the HIC definition' do
+      grant_hud_report(user, 'hud_reports/hics')
+
+      get hud_reports_lsa_hics_path
+
+      expect(response).to have_http_status(:redirect)
+    end
   end
 end
