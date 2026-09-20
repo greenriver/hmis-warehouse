@@ -19,6 +19,9 @@ RSpec.describe 'WarehouseReports::ExpiringConsentController', type: :request do
   # independent of each example's DB transaction rollback.
   after { GrdaWarehouse::Config.invalidate_cache }
 
+  # Fixture dates and the controller's cutoffs are both derived from the clock.
+  around { |example| freeze_time { example.run } }
+
   before do
     GrdaWarehouse::Config.first_or_create.update!(release_duration: release_duration)
     GrdaWarehouse::Config.invalidate_cache
@@ -33,7 +36,6 @@ RSpec.describe 'WarehouseReports::ExpiringConsentController', type: :request do
   end
 
   # Tables render in page order: unconfirmed, expiring within 30 days, expired.
-  # Names are redacted for a report viewer, so rows are identified by their client link.
   def sections
     tables = Nokogiri::HTML(response.body).css('.warehouse-reports__expiring-consent table')
     [:unconfirmed, :expiring, :expired].zip(tables).to_h
@@ -41,6 +43,11 @@ RSpec.describe 'WarehouseReports::ExpiringConsentController', type: :request do
 
   def client_ids_in(table)
     table.css('tbody a').map { |a| a['href'][/\/clients\/(\d+)/, 1].to_i }
+  end
+
+  def expiration_cell_for(table, client)
+    row = table.css('tbody tr').find { |tr| tr.at_css('a')['href'].match?(/\/clients\/#{client.id}(\D|\z)/) }
+    row.css('td')[1].text.strip
   end
 
   context 'with release_duration Use Expiration Date' do
@@ -52,20 +59,23 @@ RSpec.describe 'WarehouseReports::ExpiringConsentController', type: :request do
     # A signed form that has not been confirmed has no expiration date yet.
     let!(:unconfirmed_without_expiration) { consented(signed_on: 1.month.ago.to_date) }
     let!(:confirmed_past_expiration) { consented(signed_on: 2.years.ago.to_date, expires_on: Date.current - 1.day, status: confirmed) }
+    let!(:expires_today) { consented(signed_on: 1.year.ago.to_date, expires_on: Date.current) }
+    let!(:expires_today_confirmed) { consented(signed_on: 1.year.ago.to_date, expires_on: Date.current, status: confirmed) }
+    let!(:expires_in_30_days_confirmed) { consented(signed_on: 1.year.ago.to_date, expires_on: Date.current + 30.days, status: confirmed) }
 
     it 'places clients by their stored expiration date' do
       get warehouse_reports_expiring_consent_index_path
 
       expect(response).to have_http_status(:ok)
       expect(client_ids_in(sections[:expired])).to contain_exactly(expired.id)
-      expect(client_ids_in(sections[:expiring])).to contain_exactly(expiring.id)
-      expect(client_ids_in(sections[:unconfirmed])).to contain_exactly(unconfirmed.id, unconfirmed_without_expiration.id)
+      expect(client_ids_in(sections[:expiring])).to contain_exactly(expiring.id, expires_today_confirmed.id)
+      expect(client_ids_in(sections[:unconfirmed])).to contain_exactly(unconfirmed.id, unconfirmed_without_expiration.id, expires_today.id)
     end
 
     it 'shows the stored expiration date' do
       get warehouse_reports_expiring_consent_index_path
 
-      expect(sections[:expiring].text).to include((Date.current + 10.days).to_s)
+      expect(expiration_cell_for(sections[:expiring], expiring)).to eq((Date.current + 10.days).to_s)
     end
   end
 
@@ -76,20 +86,23 @@ RSpec.describe 'WarehouseReports::ExpiringConsentController', type: :request do
     let!(:unconfirmed) { consented(signed_on: 1.month.ago.to_date) }
     let!(:current) { consented(signed_on: 1.month.ago.to_date, status: confirmed) }
     let!(:confirmed_past_expiration) { consented(signed_on: 13.months.ago.to_date, status: confirmed) }
+    let!(:expires_today) { consented(signed_on: 1.year.ago.to_date) }
+    let!(:expires_today_confirmed) { consented(signed_on: 1.year.ago.to_date, status: confirmed) }
+    let!(:expires_in_30_days_confirmed) { consented(signed_on: (1.year.ago + 30.days).to_date, status: confirmed) }
 
     it 'places clients by signed date plus one year' do
       get warehouse_reports_expiring_consent_index_path
 
       expect(response).to have_http_status(:ok)
       expect(client_ids_in(sections[:expired])).to contain_exactly(expired.id)
-      expect(client_ids_in(sections[:expiring])).to contain_exactly(expiring.id)
-      expect(client_ids_in(sections[:unconfirmed])).to contain_exactly(unconfirmed.id)
+      expect(client_ids_in(sections[:expiring])).to contain_exactly(expiring.id, expires_today_confirmed.id)
+      expect(client_ids_in(sections[:unconfirmed])).to contain_exactly(unconfirmed.id, expires_today.id)
     end
 
     it 'shows signed date plus one year as the expiration date' do
       get warehouse_reports_expiring_consent_index_path
 
-      expect(sections[:unconfirmed].text).to include((1.month.ago.to_date + 1.year).to_s)
+      expect(expiration_cell_for(sections[:unconfirmed], unconfirmed)).to eq((1.month.ago.to_date + 1.year).to_s)
     end
   end
 
@@ -119,6 +132,12 @@ RSpec.describe 'WarehouseReports::ExpiringConsentController', type: :request do
       expect(client_ids_in(sections[:unconfirmed])).to contain_exactly(old.id)
       expect(client_ids_in(sections[:expiring])).to be_empty
       expect(client_ids_in(sections[:expired])).to be_empty
+    end
+
+    it 'leaves the expiration date blank' do
+      get warehouse_reports_expiring_consent_index_path
+
+      expect(expiration_cell_for(sections[:unconfirmed], old)).to eq('')
     end
   end
 end
