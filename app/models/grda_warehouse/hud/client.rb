@@ -1101,6 +1101,15 @@ module GrdaWarehouse::Hud
       end
     end
 
+    def consent_expiration_date
+      case release_duration
+      when 'One Year', 'Two Years'
+        consent_form_signed_on && consent_form_signed_on + self.class.consent_validity_period
+      when 'Use Expiration Date'
+        consent_expires_on
+      end
+    end
+
     def consent_confirmed?
       if release_duration == 'Use Expiration Date'
         consent_form_signed_on.present? && consent_form_valid?
