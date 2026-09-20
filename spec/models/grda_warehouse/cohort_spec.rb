@@ -207,6 +207,26 @@ RSpec.describe GrdaWarehouse::Cohort, type: :model do
     end
   end
 
+  describe '.editable_by for an ACL user' do
+    let!(:acl_user) { create :acl_user }
+    let!(:target_cohort) { create :cohort }
+    let!(:collection) { create :collection, collection_type: 'Cohorts' }
+
+    before { collection.set_viewables({ cohorts: [target_cohort.id] }) }
+
+    it 'includes a cohort granted through a collection whose role can edit' do
+      setup_access_control(acl_user, create(:cohort_client_editor), collection)
+
+      expect(GrdaWarehouse::Cohort.editable_by(acl_user).pluck(:id)).to contain_exactly(target_cohort.id)
+    end
+
+    it 'excludes a cohort whose granting role can only view' do
+      setup_access_control(acl_user, create(:cohort_client_viewer), collection)
+
+      expect(GrdaWarehouse::Cohort.editable_by(acl_user).pluck(:id)).to be_empty
+    end
+  end
+
   describe '#owner_name' do
     context 'when no owner is assigned' do
       it 'returns Unassigned by default' do
