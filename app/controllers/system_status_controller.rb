@@ -118,8 +118,6 @@ class SystemStatusController < ActionController::Base
       cache: cache_message,
       user_count_positive: User.all.any?,
       data_source_count_positive: GrdaWarehouse::DataSource.any?,
-      # Equal to `revision` once deploy tasks have finished for the code this pod is serving.
-      registered_deployment_id: Rails.cache.read('registered-deployment-id'),
       last_migration: {
         app: app,
         warehouse: warehouse,
