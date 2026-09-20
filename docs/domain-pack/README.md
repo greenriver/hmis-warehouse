@@ -31,7 +31,8 @@ presumed stale. List files, never directories or globs. Never list a gitignored 
 
 `## Purpose`, `## Entry points`, `## How it works`, `## Key files`, `## Gotchas`,
 `## Do not repeat`, `## Related`. Each section must read on its own: no "above" or "below",
-roughly 300 words or fewer. Long topics become two docs.
+roughly 300 words or fewer. A large `## How it works` is split into `###` sub-sections of that
+size, each also self-contained; a topic that still does not fit becomes two docs.
 
 ## Keeping it current
 
