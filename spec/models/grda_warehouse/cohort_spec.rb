@@ -225,9 +225,21 @@ RSpec.describe GrdaWarehouse::Cohort, type: :model do
       setup_access_control(acl_user, create(:cohort_client_editor), edit_collection)
     end
 
-    it 'allows editing only the cohort reached through the editing collection' do
+    it 'allows editing the cohort reached through the editing collection' do
       expect(editable_cohort.user_can_edit_cohort_clients(acl_user)).to be true
+    end
+
+    it 'denies editing the cohort reached only through the viewing collection' do
       expect(view_only_cohort.user_can_edit_cohort_clients(acl_user)).to be false
+    end
+
+    it 'denies editing when the granting role has only a feature permission such as can_add_cohort_clients' do
+      feature_only_cohort = create :cohort
+      feature_collection = create :collection, collection_type: 'Cohorts'
+      feature_collection.set_viewables({ cohorts: [feature_only_cohort.id] })
+      setup_access_control(acl_user, create(:cohort_client_viewer, can_add_cohort_clients: true), feature_collection)
+
+      expect(feature_only_cohort.user_can_edit_cohort_clients(acl_user)).to be false
     end
   end
 
@@ -244,8 +256,26 @@ RSpec.describe GrdaWarehouse::Cohort, type: :model do
       expect(GrdaWarehouse::Cohort.editable_by(acl_user).pluck(:id)).to contain_exactly(target_cohort.id)
     end
 
+    it 'includes a cohort granted through a role that can manage cohort data but cannot view cohorts' do
+      setup_access_control(acl_user, create(:cohort_client_viewer, can_view_cohorts: false, can_manage_cohort_data: true), collection)
+
+      expect(GrdaWarehouse::Cohort.editable_by(acl_user).pluck(:id)).to contain_exactly(target_cohort.id)
+    end
+
     it 'excludes a cohort whose granting role can only view' do
       setup_access_control(acl_user, create(:cohort_client_viewer), collection)
+
+      expect(GrdaWarehouse::Cohort.editable_by(acl_user).pluck(:id)).to be_empty
+    end
+
+    it 'excludes a cohort whose granting role has only feature permissions and no edit permission' do
+      role = create(
+        :cohort_client_viewer,
+        can_configure_cohorts: true,
+        can_add_cohort_clients: true,
+        can_manage_inactive_cohort_clients: true,
+      )
+      setup_access_control(acl_user, role, collection)
 
       expect(GrdaWarehouse::Cohort.editable_by(acl_user).pluck(:id)).to be_empty
     end
