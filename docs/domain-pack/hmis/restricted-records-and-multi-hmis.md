@@ -211,9 +211,9 @@ check uses `true_hmis_user`, so an admin impersonating a blocked user is not loc
   set (`hmis_hostname_immutable`).
 - The go-live gate runs in `attach_data_source_id`, `Hmis::SessionsController#create`, and
   `Hmis::UsersController#show`. A new HMIS controller that skips `attach_data_source_id` is not gated.
-- Known gaps the human docs track as open issues: configuration tables not yet scoped by
-  `data_source_id` (#6612), user lists not filtered to the current data source (#8831), per-data-source
-  CoC management (#8829), per-instance name and theme (#8830).
+- Known gaps as of 2026-09: configuration tables not yet scoped by `data_source_id`, user lists not
+  filtered to the current data source, no per-data-source CoC management, no per-instance name and
+  theme.
 
 ## Do not repeat
 

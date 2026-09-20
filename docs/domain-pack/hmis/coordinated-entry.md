@@ -278,8 +278,8 @@ own assigned or swimlane steps with `can_view_own_referrals`, and source-project
   applicability logic; change both.
 - `SqlExpressionTranslator` replaces functions and untranslatable fields with `1 = 1`, so the
   prefilter is a superset; correctness comes from `ClientPoolEvaluator`.
-- `UnitGroup.candidate_pool_id` may remain set after a project stops supporting waitlists
-  (tracked as issue 8555); `CandidatePool.active` filters through `with_ce_waitlists_enabled`.
+- `UnitGroup.candidate_pool_id` may remain set after a project stops supporting waitlists;
+  `CandidatePool.active` filters through `with_ce_waitlists_enabled`.
 - Draft templates cannot drive referrals; there is no admin UI for templates. Templates are
   published from builder scripts. Unit groups reference templates by `identifier`, referrals by
   `id`, so republishing does not move in-flight referrals.
@@ -288,7 +288,7 @@ own assigned or swimlane steps with `can_view_own_referrals`, and source-project
 - `Opportunity.ignored_columns` includes `project_id`, `candidate_pool_id`, `stale`,
   `assignment_rules`; go through `unit`.
 - `Referral#resolve_match_rule_fields` intentionally bypasses `viewable_by` scopes.
-- `MarkUnitsAvailable` still enforces a legacy `ReferralPosting` count check (issue 8359) for
+- `MarkUnitsAvailable` still enforces a legacy `ReferralPosting` count check for
   installations running both systems.
 
 ## Do not repeat
