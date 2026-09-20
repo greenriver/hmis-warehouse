@@ -37,7 +37,12 @@ module DomainPack
     match = text.match(FRONTMATTER)
     return Doc.new(path: path, frontmatter: {}, errors: ["#{path}: missing frontmatter"]) unless match
 
-    frontmatter = YAML.safe_load(match[1]) || {}
+    begin
+      frontmatter = YAML.safe_load(match[1]) || {}
+    rescue Psych::SyntaxError
+      return Doc.new(path: path, frontmatter: {}, errors: ["#{path}: frontmatter is not valid YAML (quote values containing `: `)"])
+    end
+
     errors = REQUIRED_KEYS.reject { |key| frontmatter.key?(key) }.map { |key| "#{path}: frontmatter missing `#{key}`" }
     errors << "#{path}: `area` must be one of #{AREAS.join(', ')}" if frontmatter.key?('area') && !AREAS.include?(frontmatter['area'])
     errors << "#{path}: `sources` must be a non-empty list" if frontmatter.key?('sources') && !(frontmatter['sources'].is_a?(Array) && frontmatter['sources'].any?)
