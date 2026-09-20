@@ -36,7 +36,7 @@ to add one more. Do not refactor legacy occurrences on sight; only avoid new one
 ## How it works
 
 ### 1. `before_action :require_can_*!`
-- Pattern: controller gated by a generated `require_can_<permission>!` method. About 204 controller files still do this.
+- Pattern: controller gated by a generated `require_can_<permission>!` method. Over 200 controller files under `app` and `drivers` still do this.
 - Why: too coarse; checks a role flag with no entity scope, and does not work for users on Access Controls.
 - Instead: subclass `ApplicationControllerV2` and declare `authorize_with { policy.can_x? }`; for a record, `user.policy_for(record)` then `not_authorized!`.
 - Example: legacy in most of `app/controllers/`; replacement pattern in `docs/code_patterns_and_conventions.md` "Authorization on a controller action".
@@ -99,7 +99,7 @@ to add one more. Do not refactor legacy occurrences on sight; only avoid new one
 ### 13. GraphQL `BaseMutation`
 - Pattern: `class Foo < BaseMutation` (32 mutations; 47 use the replacement).
 - Why: legacy Relay-style scaffolding (`drivers/hmis/app/graphql/mutations/base_mutation.rb`).
-- Instead: `CleanBaseMutation` (`drivers/hmis/app/graphql/mutations/clean_base_mutation.rb`), for example `drivers/hmis/app/graphql/mutations/delete_project.rb`.
+- Instead: `CleanBaseMutation` (`drivers/hmis/app/graphql/mutations/clean_base_mutation.rb`), for example `drivers/hmis/app/graphql/mutations/delete_unit_group.rb`. `delete_project.rb` is a legacy example.
 
 ### 14. Raw-permission GraphQL access helpers
 - Pattern: `Types::BaseAccess.can :permission` (marked legacy in `drivers/hmis/app/graphql/types/base_access.rb`), the `permissions:` kwarg on `Types::BaseField`, and `current_permission?` (16 files), all routed through `GraphqlPermissionChecker`. `composite_perm` and `root_can`, named in ADR 0006, no longer exist.
