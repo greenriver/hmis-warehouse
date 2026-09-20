@@ -176,7 +176,11 @@ module HmisExternalApis
           }
         end
 
-        groups.first['item'].unshift(assessment_date_item(used_link_ids))
+        if groups.size > 1
+          groups.unshift(details_group(used_link_ids))
+        else
+          groups.first['item'].unshift(assessment_date_item(used_link_ids))
+        end
 
         document = {
           'name' => title,
@@ -530,6 +534,17 @@ module HmisExternalApis
             { 'initial_behavior' => 'IF_EMPTY', 'value_local_constant' => '$today' },
           ],
           'mapping' => { 'field_name' => 'assessmentDate' },
+        }
+      end
+
+      # For forms with more than one group, the assessment date gets its own leading
+      # "Details" group rather than being tacked onto the front of the first real group.
+      def details_group(used_link_ids)
+        {
+          'type' => 'GROUP',
+          'link_id' => unique_link_id(slug('Details'), used_link_ids),
+          'text' => 'Details',
+          'item' => [assessment_date_item(used_link_ids)],
         }
       end
 

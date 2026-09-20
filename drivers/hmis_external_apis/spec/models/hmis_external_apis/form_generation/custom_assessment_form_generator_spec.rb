@@ -32,7 +32,7 @@ RSpec.describe HmisExternalApis::FormGeneration::CustomAssessmentFormGenerator, 
         expect(document['name']).to eq('Test Assessment')
 
         items = document['item'].sole['item']
-        # An "Assessment Date" item is always inserted first.
+        # For a single-group form, "Assessment Date" is inserted first in that group.
         expect(items[0]).to include('type' => 'DATE', 'assessment_date' => true)
         expect(items[1]).to include(
           'type' => 'STRING',
@@ -49,6 +49,34 @@ RSpec.describe HmisExternalApis::FormGeneration::CustomAssessmentFormGenerator, 
         )
 
         expect(File.exist?(overlay_path)).to eq(true)
+      end
+    end
+
+    it 'gives multi-group forms a leading "Details" group holding just the assessment date' do
+      Dir.mktmpdir do |dir|
+        csv_path = File.join(dir, 'source.csv')
+        output_dir = File.join(dir, 'generated')
+        overlay_path = File.join(dir, 'overlay.yml')
+
+        File.write(csv_path, <<~CSV)
+          form_definition_identifier,legacy_assessment_name,form_group_name,link_id,label,key,form_item_type,pick_list_options
+          test_form,Test Assessment,Section A,q1,First Question,test_form_q1,STRING,
+          test_form,Test Assessment,Section B,q2,Second Question,test_form_q2,STRING,
+        CSV
+
+        result = described_class.call(csv_path: csv_path, output_dir: output_dir, overlay_path: overlay_path)
+
+        expect(result[:success]).to eq(true)
+        document = JSON.parse(File.read(File.join(output_dir, 'test_form.json')))
+        groups = document['item']
+
+        expect(groups.size).to eq(3)
+        expect(groups[0]).to include('type' => 'GROUP', 'text' => 'Details')
+        expect(groups[0]['item'].sole).to include('type' => 'DATE', 'assessment_date' => true)
+        expect(groups[1]).to include('text' => 'Section A')
+        expect(groups[1]['item'].map { |i| i['link_id'] }).to eq(['q1'])
+        expect(groups[2]).to include('text' => 'Section B')
+        expect(groups[2]['item'].map { |i| i['link_id'] }).to eq(['q2'])
       end
     end
 
