@@ -54,6 +54,7 @@ module HmisExternalApis
         @warnings = []
         @validator_errors = []
         @form_titles = {}
+        @skipped_rows = 0
       end
 
       def call
@@ -93,7 +94,10 @@ module HmisExternalApis
         grouped = {}
         CSV.foreach(@csv_path, headers: true, encoding: 'bom|utf-8') do |row|
           identifier = row['form_definition_identifier']&.strip
-          next if identifier.blank?
+          if identifier.blank?
+            @skipped_rows += 1
+            next
+          end
 
           grouped[identifier] ||= []
           @form_titles[identifier] ||= row['legacy_assessment_name'].to_s.strip
@@ -331,9 +335,11 @@ module HmisExternalApis
       def question_item(identifier, row)
         title = @form_titles[identifier]
         options = parse_pick_list(row['pick_list_options'])
-        type = row['form_item_type']
+        original_type = row['form_item_type']
+        type = original_type
         type = 'CHOICE' if type.blank? && options.any?
         missing_choice = type == 'CHOICE' && options.empty?
+        unrecognized_type = original_type.present? && ALLOWED_TYPES.exclude?(original_type)
         type = 'STRING' if missing_choice || type.blank? || ALLOWED_TYPES.exclude?(type)
 
         if missing_choice || (row['form_item_type'].blank? && options.empty?)
@@ -344,6 +350,17 @@ module HmisExternalApis
             link_id: row['link_id'],
             label: row['label'],
             detail: 'CHOICE missing pick list (or blank type); emitted as STRING',
+          )
+        end
+
+        if unrecognized_type
+          @warnings << Warning.new(
+            kind: :unrecognized_type,
+            identifier: identifier,
+            title: title,
+            link_id: row['link_id'],
+            label: row['label'],
+            detail: "form_item_type #{original_type.inspect} not recognized; emitted as STRING",
           )
         end
 
@@ -376,6 +393,7 @@ module HmisExternalApis
           'mapping' => { 'custom_field_key' => row['key'] },
         }
         item['_comment'] = 'CHOICE converted to STRING; pick list pending' if missing_choice || (row['form_item_type'].blank? && options.empty?)
+        item['_comment'] = "form_item_type #{original_type.inspect} not recognized; emitted as STRING" if unrecognized_type
         item['pick_list_options'] = order_pick_list(options).map { |code| { 'code' => code } } if type == 'CHOICE'
         item
       end
@@ -593,8 +611,10 @@ module HmisExternalApis
       def print_summary(form_count, zip_path)
         puts "Wrote #{form_count} form definition(s) to #{@output_dir}"
         puts "Zipped forms to #{zip_path}" if zip_path
+        puts "Skipped #{@skipped_rows} row(s) with a blank form_definition_identifier" if @skipped_rows.positive?
         print_warning_section('Inferred conditional logic', :inferred_enable_when, use_detail_only: true)
         print_warning_section('CHOICE converted to STRING', :choice_to_string)
+        print_warning_section('Unrecognized form_item_type converted to STRING', :unrecognized_type, use_detail_only: true)
         print_warning_section('Implied multi-select kept single-select', :implied_multiselect)
         print_warning_section('Do-not-use / ignore / disregard fields', :do_not_use)
         print_warning_section('Invented groups', :invented_group)

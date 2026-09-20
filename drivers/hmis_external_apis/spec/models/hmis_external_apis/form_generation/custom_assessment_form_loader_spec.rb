@@ -116,6 +116,31 @@ RSpec.describe HmisExternalApis::FormGeneration::CustomAssessmentFormLoader, typ
       end
     end
 
+    context 'when a draft exists and the publish fails' do
+      let!(:published) do
+        create(:hmis_form_definition, identifier: identifier, data_source: data_source, role: 'CUSTOM_ASSESSMENT', version: 0, status: Hmis::Form::Definition::PUBLISHED)
+      end
+      let!(:draft) do
+        create(:hmis_form_definition, identifier: identifier, data_source: data_source, role: 'CUSTOM_ASSESSMENT', version: 1, status: Hmis::Form::Definition::DRAFT)
+      end
+      let!(:conflicting_cded) do
+        create(:hmis_custom_data_element_definition, key: 'mar_q1_key', data_source: data_source, owner_type: 'Hmis::Hud::CustomAssessment', field_type: 'integer')
+      end
+
+      it 'leaves the draft and the published version untouched' do
+        Dir.mktmpdir do |dir|
+          write_form_json(dir, identifier, definition_json)
+
+          result = described_class.call(dir: dir, data_source_id: data_source.id)
+
+          expect(result[:success]).to eq(false)
+          expect(Hmis::Form::Definition.exists?(draft.id)).to eq(true)
+          expect(published_definition).to be_present
+          expect(published_definition.version).to eq(0)
+        end
+      end
+    end
+
     context 'when re-publishing the same custom_field_key' do
       it 'reuses the existing CDED instead of creating a duplicate' do
         Dir.mktmpdir do |dir|

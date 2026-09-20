@@ -91,14 +91,7 @@ module HmisExternalApis
         draft = versions.find(&:draft?)
         previous_published = versions.find(&:published?)
 
-        if draft
-          if @dry_run
-            log_result(:draft_exists, identifier, title, "draft v#{draft.version} exists and would be deleted (its edits would be lost)")
-          else
-            draft.destroy!
-            log_result(:deleted_draft, identifier, title, "deleted draft v#{draft.version} id=#{draft.id}")
-          end
-        end
+        log_result(:draft_exists, identifier, title, "draft v#{draft.version} exists and would be deleted (its edits would be lost)") if draft && @dry_run
 
         next_version = previous_published ? previous_published.version + 1 : 0
         if @dry_run
@@ -110,10 +103,13 @@ module HmisExternalApis
           return log_result(:publish, identifier, title, detail)
         end
 
-        publish!(identifier: identifier, title: title, definition: definition_json, version: next_version, previous_published: previous_published)
+        publish!(identifier: identifier, title: title, definition: definition_json, version: next_version, previous_published: previous_published, draft: draft)
       end
 
-      def publish!(identifier:, title:, definition:, version:, previous_published:)
+      # draft, if present, is only destroyed once the transaction below actually commits a new
+      # published version — a failed publish (invalid definition, JSON-form validation errors)
+      # rolls back the draft destroy along with everything else, so it isn't lost for nothing.
+      def publish!(identifier:, title:, definition:, version:, previous_published:, draft:)
         new_definition = ::Hmis::Form::Definition.new(
           identifier: identifier,
           title: title,
@@ -132,6 +128,7 @@ module HmisExternalApis
         errors = []
         ::Hmis::Form::Definition.transaction do
           previous_published&.update!(status: ::Hmis::Form::Definition::RETIRED)
+          draft&.destroy!
           cdeds = ::Hmis::Form::CustomDataElementGenerator.new(
             definition: new_definition,
             create_missing_mappings: true,
@@ -150,6 +147,7 @@ module HmisExternalApis
           return
         end
 
+        log_result(:deleted_draft, identifier, title, "deleted draft v#{draft.version} id=#{draft.id}") if draft
         log_result(:publish, identifier, title, "published v#{version} id=#{new_definition.id}")
       end
 

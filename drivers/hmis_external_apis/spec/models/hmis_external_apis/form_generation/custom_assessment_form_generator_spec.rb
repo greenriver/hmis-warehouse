@@ -52,6 +52,46 @@ RSpec.describe HmisExternalApis::FormGeneration::CustomAssessmentFormGenerator, 
       end
     end
 
+    it 'warns and falls back to STRING for an unrecognized form_item_type' do
+      Dir.mktmpdir do |dir|
+        csv_path = File.join(dir, 'source.csv')
+        output_dir = File.join(dir, 'generated')
+        overlay_path = File.join(dir, 'overlay.yml')
+
+        File.write(csv_path, <<~CSV)
+          form_definition_identifier,legacy_assessment_name,form_group_name,link_id,label,key,form_item_type,pick_list_options
+          test_form,Test Assessment,,q1,First Question,test_form_q1,MULTISELECT,
+        CSV
+
+        result = described_class.call(csv_path: csv_path, output_dir: output_dir, overlay_path: overlay_path)
+
+        expect(result[:warnings].map(&:kind)).to include(:unrecognized_type)
+        document = JSON.parse(File.read(File.join(output_dir, 'test_form.json')))
+        item = document['item'].sole['item'][1]
+        expect(item['type']).to eq('STRING')
+        expect(item['_comment']).to match(/"MULTISELECT" not recognized/)
+      end
+    end
+
+    it 'skips rows with a blank form_definition_identifier' do
+      Dir.mktmpdir do |dir|
+        csv_path = File.join(dir, 'source.csv')
+        output_dir = File.join(dir, 'generated')
+        overlay_path = File.join(dir, 'overlay.yml')
+
+        File.write(csv_path, <<~CSV)
+          form_definition_identifier,legacy_assessment_name,form_group_name,link_id,label,key,form_item_type,pick_list_options
+          ,Stray Row,,q0,Stray Question,stray_q0,STRING,
+          test_form,Test Assessment,,q1,First Question,test_form_q1,STRING,
+        CSV
+
+        result = described_class.call(csv_path: csv_path, output_dir: output_dir, overlay_path: overlay_path)
+
+        expect(result[:success]).to eq(true)
+        expect(Dir.glob(File.join(output_dir, '*.json')).map { |f| File.basename(f, '.json') }).to eq(['test_form'])
+      end
+    end
+
     context 'with zip: true' do
       it 'also writes a timestamped zip of the generated JSON' do
         Dir.mktmpdir do |dir|
