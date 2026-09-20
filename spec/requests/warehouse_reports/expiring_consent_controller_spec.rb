@@ -49,6 +49,9 @@ RSpec.describe 'WarehouseReports::ExpiringConsentController', type: :request do
     let!(:expiring) { consented(signed_on: 1.year.ago.to_date, expires_on: Date.current + 10.days, status: confirmed) }
     let!(:unconfirmed) { consented(signed_on: 1.month.ago.to_date, expires_on: Date.current + 60.days) }
     let!(:current) { consented(signed_on: 1.month.ago.to_date, expires_on: Date.current + 60.days, status: confirmed) }
+    # A signed form that has not been confirmed has no expiration date yet.
+    let!(:unconfirmed_without_expiration) { consented(signed_on: 1.month.ago.to_date) }
+    let!(:confirmed_past_expiration) { consented(signed_on: 2.years.ago.to_date, expires_on: Date.current - 1.day, status: confirmed) }
 
     it 'places clients by their stored expiration date' do
       get warehouse_reports_expiring_consent_index_path
@@ -56,7 +59,7 @@ RSpec.describe 'WarehouseReports::ExpiringConsentController', type: :request do
       expect(response).to have_http_status(:ok)
       expect(client_ids_in(sections[:expired])).to contain_exactly(expired.id)
       expect(client_ids_in(sections[:expiring])).to contain_exactly(expiring.id)
-      expect(client_ids_in(sections[:unconfirmed])).to contain_exactly(unconfirmed.id)
+      expect(client_ids_in(sections[:unconfirmed])).to contain_exactly(unconfirmed.id, unconfirmed_without_expiration.id)
     end
 
     it 'shows the stored expiration date' do
@@ -72,6 +75,7 @@ RSpec.describe 'WarehouseReports::ExpiringConsentController', type: :request do
     let!(:expiring) { consented(signed_on: (1.year.ago + 10.days).to_date, status: confirmed) }
     let!(:unconfirmed) { consented(signed_on: 1.month.ago.to_date) }
     let!(:current) { consented(signed_on: 1.month.ago.to_date, status: confirmed) }
+    let!(:confirmed_past_expiration) { consented(signed_on: 13.months.ago.to_date, status: confirmed) }
 
     it 'places clients by signed date plus one year' do
       get warehouse_reports_expiring_consent_index_path

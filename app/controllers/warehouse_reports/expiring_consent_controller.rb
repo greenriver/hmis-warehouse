@@ -15,6 +15,7 @@ module WarehouseReports
       unconfirmed = consented_clients.where(housing_release_status: [nil, ''])
       confirmed = consented_clients.where.not(housing_release_status: [nil, ''])
       # Consent has expired when `column` falls before `expired_at`; Indefinite consent has no such date.
+      # A NULL `column` (a signed form awaiting confirmation has no expiration date yet) never counts as expired.
       column, expired_at = case client_source.release_duration
       when 'Use Expiration Date'
         [c_t[:consent_expires_on], Date.current]
@@ -23,8 +24,8 @@ module WarehouseReports
       end
       if column
         @expired_clients = unconfirmed.where(column.lt(expired_at)).preload(:user_clients)
-        @expiring_clients = confirmed.where(column.lt(expired_at + 30.days)).preload(:user_clients)
-        @unconfirmed = unconfirmed.where(column.gteq(expired_at)).preload(:user_clients)
+        @expiring_clients = confirmed.where(column.between(expired_at...expired_at + 30.days)).preload(:user_clients)
+        @unconfirmed = unconfirmed.where(column.gteq(expired_at).or(column.eq(nil))).preload(:user_clients)
       else
         @expired_clients = []
         @expiring_clients = []
