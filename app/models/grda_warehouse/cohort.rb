@@ -86,9 +86,9 @@ module GrdaWarehouse
     end
 
     # @param permission [Symbol, Array<Symbol>] despite the singular name, this accepts either
-    #   a single permission or an array of permissions to OR together (defaults to
-    #   +viewable_permissions+, i.e. every permission that currently grants cohort visibility)
-    scope :viewable_by, ->(user, permission: viewable_permissions) do
+    #   a single permission or an array of permissions to OR together (defaults to every
+    #   view or edit permission, since being able to edit a cohort implies being able to see it)
+    scope :viewable_by, ->(user, permission: viewable_permissions + editable_permissions) do
       return none unless user.present?
 
       permissions = Array.wrap(permission)
@@ -121,7 +121,6 @@ module GrdaWarehouse
 
     scope :editable_by, ->(user) do
       return none unless user.present?
-      return none if user.using_acls? && viewable_permissions.map { |perm| user.send("#{perm}?") }.none? # TODO: START_ACL cleanup after permission migration is complete
 
       # TODO: START_ACL cleanup after permission migration is complete
       if user.using_acls?
@@ -286,7 +285,7 @@ module GrdaWarehouse
     end
 
     def user_can_edit_cohort_clients user
-      user.can_edit_some_cohorts && user.cohorts.where(id: id).exists?
+      self.class.editable_by(user).where(id: id).exists?
     end
     memoize :user_can_edit_cohort_clients
 

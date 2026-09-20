@@ -33,6 +33,23 @@ RSpec.describe GrdaWarehouse::Cohort, type: :model do
     admin.add_viewable(cohort)
   end
 
+  describe '#user_can_edit_cohort_clients' do
+    before do
+      editor.add_viewable(cohort)
+      editor.add_viewable(cohort_2)
+      viewer.add_viewable(cohort)
+    end
+
+    it 'allows a user whose role can edit to edit every cohort they can see' do
+      expect(cohort.user_can_edit_cohort_clients(editor)).to be true
+      expect(cohort_2.user_can_edit_cohort_clients(editor)).to be true
+    end
+
+    it 'denies a user whose role can only view' do
+      expect(cohort.user_can_edit_cohort_clients(viewer)).to be false
+    end
+  end
+
   describe 'when a user with no roles accesses a cohort column' do
     it 'display_as_editable? should always return false' do
       expect(adjusted_days_homeless.display_as_editable?(user, cohort_client)).to be_falsey

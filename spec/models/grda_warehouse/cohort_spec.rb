@@ -204,6 +204,30 @@ RSpec.describe GrdaWarehouse::Cohort, type: :model do
       it 'excludes the cohort when checking only a permission the granting role lacks' do
         expect(GrdaWarehouse::Cohort.viewable_by(acl_user, permission: :can_view_cohorts).pluck(:id)).to be_empty
       end
+
+      it 'includes the cohort by default because an edit permission alone grants visibility' do
+        expect(GrdaWarehouse::Cohort.viewable_by(acl_user).pluck(:id)).to contain_exactly(target_cohort.id)
+      end
+    end
+  end
+
+  describe '#user_can_edit_cohort_clients for an ACL user' do
+    let!(:acl_user) { create :acl_user }
+    let!(:view_only_cohort) { create :cohort }
+    let!(:editable_cohort) { create :cohort }
+    let!(:view_collection) { create :collection, collection_type: 'Cohorts' }
+    let!(:edit_collection) { create :collection, collection_type: 'Cohorts' }
+
+    before do
+      view_collection.set_viewables({ cohorts: [view_only_cohort.id] })
+      setup_access_control(acl_user, create(:cohort_client_viewer), view_collection)
+      edit_collection.set_viewables({ cohorts: [editable_cohort.id] })
+      setup_access_control(acl_user, create(:cohort_client_editor), edit_collection)
+    end
+
+    it 'allows editing only the cohort reached through the editing collection' do
+      expect(editable_cohort.user_can_edit_cohort_clients(acl_user)).to be true
+      expect(view_only_cohort.user_can_edit_cohort_clients(acl_user)).to be false
     end
   end
 
