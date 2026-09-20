@@ -9,8 +9,9 @@
 # rails driver:hmis_external_apis:generate_custom_assessment_forms
 desc 'Generate Custom Assessment form-definition JSON from a legacy field-export CSV'
 task generate_custom_assessment_forms: [:environment] do
-  csv_path = ENV.fetch('CSV_PATH') { abort('Usage: CSV_PATH=/path/to/source.csv rails driver:hmis_external_apis:generate_custom_assessment_forms [ZIP=true]') }
-  root = Rails.root.join('drivers/hmis_external_apis/lib/form_generation')
+  usage = 'Usage: CSV_PATH=/path/to/source.csv OUTPUT_DIR=/path/to/output rails driver:hmis_external_apis:generate_custom_assessment_forms [ZIP=true]'
+  csv_path = ENV.fetch('CSV_PATH') { abort(usage) }
+  root = Pathname.new(ENV.fetch('OUTPUT_DIR') { abort(usage) })
   result = HmisExternalApis::FormGeneration::CustomAssessmentFormGenerator.call(
     csv_path: csv_path,
     output_dir: root.join('generated-custom-assessment-forms'),
