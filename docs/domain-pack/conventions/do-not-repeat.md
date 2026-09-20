@@ -48,7 +48,7 @@ to add one more. Do not refactor legacy occurrences on sight; only avoid new one
 
 ### 3. Gating behavior on driver loading
 - Pattern: `RailsDrivers.loaded.include?(...)` or any check that a driver "is loaded".
-- Why: all drivers always load; the `RailsDrivers` shim was removed repo-wide. Such a check is dead code that can silently disable a feature.
+- Why: all drivers always load; the `RailsDrivers` shim was removed repo-wide, so any reference to the constant raises `NameError`.
 - Instead: call the driver's code directly.
 
 ### 4. New JavaScript under `app/assets/javascripts`
