@@ -385,7 +385,7 @@ namespace :grda_warehouse do
 
     if DateTime.current.hour == 20
       safely_execute do
-        GrdaWarehouse::Tasks::GenerateClientRoiAuthorizationsTask.perform
+        GenerateClientRoiAuthorizationsJob.perform_later
       end
     end
 
