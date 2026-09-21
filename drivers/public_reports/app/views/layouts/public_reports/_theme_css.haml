@@ -1,0 +1,17 @@
+- settings = @report.settings
+- theme = settings.theme
+:css
+  @import url("#{theme[:font_url]}");
+  :root {
+    --font-body: #{theme[:font_body]};
+    --font-heading: #{theme[:font_heading]};
+    --color-primary: #{theme[:primary]};
+    --color-secondary: #{theme[:secondary]};
+    --color-heading: #{theme[:heading]};
+    --color-text: #{theme[:text]};
+    --color-border: #{theme[:border]};
+    --color-surface-tint: #{theme[:surface_tint]};
+    --color-focus: #{theme[:focus]};
+    --color-sheltered: #{settings.color(0, :location_type)};
+    --color-unsheltered: #{settings.color(1, :location_type)};
+  }

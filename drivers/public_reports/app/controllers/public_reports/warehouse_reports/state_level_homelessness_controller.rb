@@ -13,31 +13,31 @@ module PublicReports::WarehouseReports
     include PublicReports::WarehouseReports::PublicReportsControllerConcern
 
     def pit
-      render(layout: 'raw_public_report')
+      render(layout: @report.raw_layout)
     end
 
     def summary
-      render(layout: 'raw_public_report')
+      render(layout: @report.raw_layout)
     end
 
     def entering_exiting
-      render(layout: 'raw_public_report')
+      render(layout: @report.raw_layout)
     end
 
     def map
-      render(layout: 'raw_public_report')
+      render(layout: @report.raw_layout)
     end
 
     def who
-      render(layout: 'raw_public_report')
+      render(layout: @report.raw_layout)
     end
 
     def race
-      render(layout: 'raw_public_report')
+      render(layout: @report.raw_layout)
     end
 
     def raw
-      render(layout: 'raw_public_report')
+      render(layout: @report.raw_layout)
     end
 
     private def path_to_report_index

@@ -1,0 +1,14 @@
+!!!
+%html{ lang: 'en' }
+  %head
+    %meta{ charset: 'utf-8' }
+    %meta{ name: 'viewport', content: 'width=device-width, initial-scale=1' }
+    %title= @report.instance_title
+    = render 'layouts/public_reports/theme_css'
+    %style= public_report_asset('public_report.css')
+  %body
+    .container
+      = yield
+    %p.data-note
+      Data updated through
+      = @report.filter_object.end.to_date

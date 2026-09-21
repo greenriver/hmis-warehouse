@@ -49792,7 +49792,14 @@ CREATE TABLE public.public_report_settings (
     veterans_primary_color character varying,
     map_type character varying DEFAULT 'coc'::character varying NOT NULL,
     map_overall_population_method character varying DEFAULT 'state'::character varying NOT NULL,
-    iteration_type character varying DEFAULT 'quarter'::character varying NOT NULL
+    iteration_type character varying DEFAULT 'quarter'::character varying NOT NULL,
+    secondary_color character varying,
+    heading_color character varying,
+    text_color character varying,
+    border_color character varying,
+    surface_tint_color character varying,
+    focus_color character varying,
+    map_not_reporting_color character varying
 );
 
 
@@ -360595,6 +360602,7 @@ ALTER TABLE ONLY public.import_logs
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260921142542'),
 ('20260911120000'),
 ('20260908122000'),
 ('20260908121000'),

@@ -11,6 +11,45 @@ module PublicReports
     attr_encrypted :s3_access_key_id, key: ENV['ENCRYPTION_KEY'][0..31]
     attr_encrypted :s3_secret, key: ENV['ENCRYPTION_KEY'][0..31]
 
+    INK_COLOR = '#1b1b1b'
+
+    THEME_DEFAULTS = {
+      font_url: 'https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;600;700&display=swap',
+      font_body: '"Noto Sans", "Helvetica Neue", Arial, sans-serif',
+      font_heading: nil,
+      primary: '#14558f',
+      secondary: '#2d6a46',
+      heading: nil,
+      text: '#262626',
+      border: '#cccccc',
+      surface_tint: '#e7eef4',
+      focus: '#0088ff',
+      not_reporting: '#EDEDED',
+    }.freeze
+
+    THEME_COLUMNS = {
+      font_url: :font_url,
+      font_body: :font_family_0,
+      font_heading: :font_family_1,
+      primary: :summary_color,
+      secondary: :secondary_color,
+      heading: :heading_color,
+      text: :text_color,
+      border: :border_color,
+      surface_tint: :surface_tint_color,
+      focus: :focus_color,
+      not_reporting: :map_not_reporting_color,
+    }.freeze
+
+    def theme
+      theme = THEME_COLUMNS.each_with_object({}) do |(key, column), hash|
+        hash[key] = self[column].presence || THEME_DEFAULTS[key]
+      end
+      theme[:heading] = theme[:heading].presence || INK_COLOR
+      theme[:font_heading] = theme[:font_heading].presence || theme[:font_body]
+      theme
+    end
+
     def self.available_map_types
       types = {
         coc: 'Continuum of Care',
@@ -182,7 +221,7 @@ module PublicReports
     end
 
     def default_font_path
-      '//fonts.googleapis.com/css?family=Open+Sans:300,400,400italic,600,700|Open+Sans+Condensed:700|Poppins:400,300,500,700'
+      'https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;600;700&display=swap'
     end
 
     def font_family
@@ -190,7 +229,7 @@ module PublicReports
     end
 
     def default_font_family
-      'Poppins'
+      '"Noto Sans", "Helvetica Neue", Arial, sans-serif'
     end
 
     def font_size

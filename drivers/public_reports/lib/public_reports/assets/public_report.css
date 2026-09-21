@@ -1,0 +1,1289 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-body);
+  font-weight: var(--weight-body);
+  font-size: var(--type-200);
+  line-height: var(--line-height-body);
+  color: var(--color-text);
+  background: var(--color-surface);
+  /* WCAG 1.4.10 Reflow: chart tooltips (.chart-tooltip / .chart-tooltip--html)
+     stay opacity:0 rather than display:none so they can fade in on
+     hover/focus, but opacity doesn't remove them from layout — a tooltip
+     anchored to a segment near the right edge can still push past the
+     viewport and widen the page's own horizontal scroll region even while
+     invisible. They're aria-hidden and pointer-events:none, so clipping
+     the sliver that pokes off-screen costs nothing real. */
+  overflow-x: hidden;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-weight: var(--weight-heading);
+  line-height: 1.25;
+  margin: 0 0 var(--space-3);
+  color: var(--color-ink);
+}
+
+h1, h2, h3, h4 {
+  color: var(--color-heading);
+  font-family: var(--font-heading);
+}
+
+h1 {
+  font-size: var(--type-450);
+}
+
+h2 {
+  font-size: var(--type-350);
+  margin-top: var(--space-4);
+}
+
+h3 {
+  font-size: var(--type-275);
+  margin-top: var(--space-3);
+}
+
+p {
+  margin: 0 0 var(--space-3);
+  max-width: 75ch;
+}
+
+a {
+  color: var(--color-primary);
+}
+
+a:hover {
+  color: var(--color-bay-blue-hover);
+}
+
+a:focus-visible,
+button:focus-visible,
+summary:focus-visible,
+[tabindex]:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+ul,
+ol {
+  padding-left: 1.25em;
+}
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+img {
+  max-width: 100%;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  background: var(--color-primary);
+  color: #fff;
+  padding: var(--space-2) var(--space-4);
+  z-index: 100;
+}
+
+.skip-link:focus {
+  left: var(--space-3);
+  top: var(--space-3);
+}
+
+/* Layout container, matching the design system's content max-width */
+.container {
+  max-width: var(--content-max-width);
+  margin: 0 auto;
+  padding: 0 var(--space-5);
+}
+
+/* Card, used for stat tiles and section wrappers */
+.card {
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+  /* "Subtle elevation" per design.md — separates this panel from the plain
+     page content around it (charts/viz are intentionally NOT cards, so they
+     stay left-aligned with headings/body text; see charts.css). */
+  box-shadow: var(--elevation-1);
+}
+
+.section {
+  margin-bottom: var(--space-7);
+}
+
+/* Short green accent under each top-level section heading (mirrors the
+   live dashboard's look under "Introduction" etc.) — excludes the
+   "Statewide summary" .overline, which is already styled as a small label
+   rather than a full heading. Purely decorative (no text content), so it
+   needs no aria-hidden treatment of its own. */
+.section > h2:not(.overline)::after {
+  content: "";
+  display: block;
+  width: 48px;
+  height: 4px;
+  margin-top: var(--space-2);
+  background: var(--color-secondary);
+}
+
+@media (min-width: 48rem) {
+  /* The "Statewide summary" overline is short and small, so at the same
+     grid-row start as the (larger, taller) "Introduction" heading it reads
+     as floating noticeably higher. Nudge it down to roughly where the
+     Introduction's body copy begins instead of its heading. Only at the
+     two-column breakpoint — stacked on narrow screens, it should stay put. */
+  .stat-summary {
+    margin-top: var(--space-8);
+  }
+}
+
+/* Wraps a heading (h2/.overline) with its trailing .info-icon so the icon
+   sits inline next to the text instead of wrapping onto its own line below
+   (the heading is block-level by default). */
+.heading-with-icon {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+}
+
+.heading-with-icon > :first-child {
+  margin: 0;
+}
+
+/* Small uppercase label standing in for a full heading (e.g. "Statewide
+   summary" above the KPI tiles) — still a real heading element for the
+   document outline/aria-labelledby, just styled down from the h2 default. */
+.overline {
+  font-size: var(--type-175);
+  font-weight: var(--weight-heading);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-muted);
+  margin: 0 0 var(--space-3);
+}
+
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--space-7);
+  margin: var(--space-5) 0;
+}
+
+/* Standalone summary page (summary.njk) — a 1:1 replacement for the live
+   site's summary iframe, laid out flush against the page (no .card) with a
+   fixed 1-column/3-column breakpoint instead of the sidebar version's
+   auto-fit, since here the grid spans the full .container width. */
+.stat-summary--standalone .stat-grid {
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 40rem) {
+  .stat-summary--standalone .stat-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.stat-tile {
+  text-align: left;
+}
+
+/* Assumes a single column (always true here — the sidebar column is never
+   wide enough for the 220px auto-fit tracks to wrap side by side). 
+.stat-tile + .stat-tile {
+  border-top: 1px solid var(--color-border);
+  padding-top: var(--space-5);
+}*/
+
+.stat-tile__value {
+  font-size: var(--type-600);
+  font-weight: var(--weight-heading);
+  color: var(--color-primary);
+  line-height: 1.1;
+}
+
+.stat-tile__label {
+  margin-top: var(--space-2);
+  font-size: var(--type-225);
+  font-weight: var(--weight-heading);
+  color: var(--color-ink);
+  line-height: 1.25; /* was inheriting body's 1.8, way too loose once this wraps to 2 lines */
+}
+
+.stat-tile__note {
+  font-size: var(--type-175);
+  color: var(--color-text-muted);
+  line-height: 1.25;
+}
+
+/* Secondary/caption text under a chart or figure (previously unstyled —
+   fell back to plain body text, out of step with every other secondary
+   caption on the page, e.g. .stat-tile__note/.data-note). */
+.note {
+  font-size: var(--type-175);
+  color: var(--color-text-muted);
+}
+
+/* Data-currency inline message */
+.data-note {
+  font-size: var(--type-175);
+  color: var(--color-text-muted);
+  text-align: right;
+  margin-top: var(--space-2);
+}
+
+.data-note--left {
+  text-align: left;
+}
+
+.inline-message {
+  border-left: 4px solid var(--color-primary);
+  background: var(--color-surface-tint);
+  padding: var(--space-4);
+  border-radius: 0 var(--radius-md) var(--radius-md) 0;
+  font-size: var(--type-175);
+}
+
+/* Details toggle used for the glossary (native <details>, zero JS) */
+.glossary {
+  border-top: 1px solid var(--color-border);
+  margin-top: var(--space-5);
+  padding-top: var(--space-2);
+}
+
+.glossary summary {
+  cursor: pointer;
+  font-weight: var(--weight-heading);
+  padding: var(--space-3) 0;
+  list-style: none;
+}
+
+.glossary summary::-webkit-details-marker {
+  display: none;
+}
+
+.glossary summary::before {
+  content: "+ ";
+  color: var(--color-primary);
+  font-weight: var(--weight-heading);
+}
+
+.glossary[open] summary::before {
+  content: "\2212 "; /* minus sign */
+}
+
+.glossary dt {
+  font-weight: var(--weight-heading);
+  margin-top: var(--space-4);
+}
+
+.glossary dd {
+  margin: var(--space-1) 0 0;
+  color: var(--color-text);
+}
+
+/* Info icon — a small "i" badge that links straight to a term's definition
+   in the glossary (or the glossary itself) and previews it on hover/focus.
+   Recreates the info-icon affordance the live Mass.gov dashboard's summary
+   panel had (a glossary flyout trigger) but as a plain anchor link + CSS
+   tooltip instead of JS, consistent with this project's near-zero-JS goal —
+   the browser natively expands a closed <details> when a link targets it or
+   a descendant, so this works with no client-side script. */
+.info-icon {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--color-surface-alt);
+  border: 1px solid var(--color-border);
+  color: var(--color-primary);
+  font-size: 14px;
+  font-style: italic;
+  font-weight: var(--weight-heading);
+  font-family: Georgia, "Times New Roman", serif;
+  line-height: 1;
+  text-decoration: none;
+  text-transform: none;
+  letter-spacing: normal;
+  vertical-align: middle;
+  cursor: pointer;
+}
+
+.info-icon:hover,
+.info-icon:focus-visible {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: #fff;
+}
+
+.info-icon__tooltip {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translate(-50%, 4px);
+  margin-bottom: var(--space-2);
+  width: max-content;
+  max-width: 240px;
+  background: var(--color-ink);
+  color: #fff;
+  font-size: var(--type-175);
+  font-weight: var(--weight-body);
+  font-style: normal;
+  line-height: 1.4;
+  text-align: left;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 120ms ease, transform 120ms ease;
+  z-index: 5;
+}
+
+.info-icon:hover .info-icon__tooltip,
+.info-icon:focus-visible .info-icon__tooltip {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+/* "Below" placement — for an icon that sits low in a tightly-packed block
+   (e.g. a stat tile late in a KPI list), where the default "above"
+   placement would render the tooltip over the previous tile's value.
+   Found by screenshotting the hover state, not visible from markup alone.
+   The hover/focus end-state transform above already resolves to the same
+   translate(-50%, 0) regardless of direction, so only the resting state
+   needs to differ here. */
+.info-icon--below .info-icon__tooltip {
+  bottom: auto;
+  top: 100%;
+  transform: translate(-50%, -4px);
+  margin-bottom: 0;
+  margin-top: var(--space-2);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .info-icon__tooltip {
+    transition: none;
+  }
+}
+
+/* Resource / callout links */
+.resource-list {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  gap: var(--space-3);
+}
+
+.resource-list a {
+  display: block;
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  text-decoration: none;
+  font-weight: var(--weight-heading);
+}
+
+.resource-list a:hover {
+  border-color: var(--color-primary);
+  background: var(--color-surface-tint);
+}
+
+.resource-list a::after {
+  content: " \2192"; /* rightwards arrow — Action Link's default icon for a page destination */
+}
+
+/* Action Link's icon is contextual to destination type; the one resource
+   that's a document download (not a page) gets the document icon instead
+   of the generic arrow, per design.md's "Figma Core Components specs". */
+.resource-list a.resource-list__link--document::after {
+  content: " \1F4C4"; /* page facing up */
+}
+
+@media (max-width: 600px) {
+  .container {
+    padding: 0 var(--space-4);
+  }
+}
+
+.chart-grid {
+  display: grid;
+  gap: var(--space-5);
+}
+
+.chart-grid--2 {
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+}
+
+.chart-grid--stack {
+  grid-template-columns: 1fr;
+}
+
+.chart-grid--3 {
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+}
+
+.chart {
+  margin: 0;
+}
+
+.chart-title {
+  font-weight: var(--weight-heading);
+  font-size: var(--type-200);
+  margin: var(--space-2) 0;
+  text-align: center;
+}
+
+.chart-svg {
+  width: 100%;
+  height: auto;
+  display: block;
+  overflow: visible; /* lets point tooltips/focus rings clear the viewBox */
+}
+
+/* Line charts ("Trends over time"): title reads as a left-aligned heading
+   above a wide, short plot — closer to the live dashboard's billboard.js
+   layout than the centered figcaption used under the donuts/stacked bars. */
+.chart--line .chart-title {
+  text-align: left;
+  font-size: var(--type-225);
+  color: var(--color-ink);
+  margin: 0 0 var(--space-4);
+}
+
+.chart--line .chart-legend {
+  justify-content: flex-start;
+}
+
+.chart--line + .chart--line {
+  margin-top: var(--space-7);
+}
+
+/* Line-chart data points are decorative only (aria-hidden, not focusable) —
+   the interactive/accessible layer is the full-height per-year column below
+   (.chart-point--column), not the dots themselves. */
+.chart-dot {
+  pointer-events: none;
+}
+
+/* Wrapping element for a line chart's plot: establishes the positioning
+   context the per-year hover/focus columns (position:absolute) size
+   themselves against, in percent, so they line up with the SVG regardless
+   of its rendered pixel width. */
+.chart--line-plot {
+  position: relative;
+}
+
+.chart-point--column {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  cursor: pointer;
+}
+
+/* Vertical guide line at the column's center, shown on hover/focus — the
+   line-chart equivalent of the live dashboard's billboard.js crosshair
+   (confirmed from its source). */
+.chart-point--column::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: var(--color-border);
+  opacity: 0;
+  transition: opacity 120ms ease;
+  pointer-events: none;
+}
+
+.chart-point--column:hover::before,
+.chart-point--column:focus-within::before {
+  opacity: 1;
+}
+
+/* The per-year tooltip anchors inside the top of its (full plot height)
+   column instead of the shared .chart-tooltip--html's default "bottom:100%
+   of the anchor" — the column spans the whole plot, so "100% above the
+   anchor" would mean 100% above the *entire chart*, landing on the title
+   above it. Content length varies a lot here (a 1-series chart's short
+   label vs. a 2-series chart's two long, wrapping labels), so reserving a
+   fixed margin above the chart to fit the tallest case is fragile; anchoring
+   inside the plot's own (generous, fixed) height instead means the tooltip
+   can grow taller without ever reaching the title, at the cost of
+   overlapping the chart's own gridlines/lines while open — an accepted
+   trade-off other charting libraries make too. */
+.chart-point--column .chart-tooltip--table {
+  bottom: auto;
+  top: var(--space-3);
+  transform: translate(-50%, -4px);
+  margin-bottom: 0;
+}
+
+.chart-point--column:hover .chart-tooltip--table,
+.chart-point--column:focus-within .chart-tooltip--table {
+  transform: translate(-50%, 0);
+}
+
+.chart-tooltip {
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity 120ms ease, transform 120ms ease;
+  pointer-events: none;
+}
+
+.chart-point:hover .chart-tooltip,
+.chart-point:focus-within .chart-tooltip {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.chart-tooltip rect {
+  fill: var(--color-ink);
+}
+
+.chart-tooltip text {
+  fill: #fff;
+  font-size: 13px;
+  font-family: var(--font-body);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chart-tooltip,
+  .chart-point--column::before {
+    transition: none;
+  }
+}
+
+/* Data table fallback (native <details>, zero JS) — the definitive accessible
+   equivalent to the visual chart, independent of hover/focus tooltips. */
+.chart-data {
+  margin-top: var(--space-3);
+  font-size: var(--type-175);
+}
+
+.chart-data summary {
+  cursor: pointer;
+  font-weight: var(--weight-heading);
+  color: var(--color-primary);
+}
+
+.chart-data table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: var(--space-2);
+}
+
+.chart-data th,
+.chart-data td {
+  text-align: right;
+  padding: var(--space-1) var(--space-2);
+  border-bottom: 1px solid var(--color-border);
+  font-variant-numeric: tabular-nums;
+}
+
+.chart-data th[scope="row"] {
+  text-align: left;
+  font-weight: var(--weight-body);
+}
+
+.chart-data thead th {
+  font-weight: var(--weight-heading);
+  text-align: right;
+}
+
+.chart-data thead th:first-child {
+  text-align: left;
+}
+
+/* Shared by every chart type whose data table doubles as its legend
+   (Racial Composition's stacked bar, the "Who" donuts) — no <summary>
+   toggle (always shown, see the markup comments in charts.js), and each
+   row repeats its chart swatch next to the category name. */
+.chart-data--legend th[scope="row"] {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.chart-gridline {
+  stroke: var(--color-border);
+  stroke-width: 1;
+}
+
+.chart-axis-label {
+  /* SVG user units on a 620x280 viewBox scaled to the chart's rendered
+     width — effectively close to real px at typical card widths. Pushed
+     down to 8px, close to the practical floor for on-screen legibility —
+     any smaller and the labels stop reading as text at a glance. */
+  font-size: 8px;
+  fill: var(--color-text-muted);
+  font-family: var(--font-body);
+}
+
+/* Donut */
+.chart--donut {
+  text-align: center;
+}
+
+.chart-svg--donut {
+  max-width: 180px;
+  margin: 0 auto;
+}
+
+.donut-segment {
+  transform: rotate(0deg);
+  transform-origin: 21px 21px;
+  cursor: pointer;
+  transition: stroke-width 120ms ease;
+}
+
+/* Thin white dividers between adjacent slices. */
+.donut-divider {
+  stroke: var(--color-surface);
+  stroke-width: 0.6;
+  stroke-linecap: round;
+}
+
+/* Focus indicator: thicken the arc itself rather than the default
+   rectangular outline (which would box the whole donut, since the focused
+   element is a full circle clipped to an arc via stroke-dasharray). This is
+   a deliberate substitute visible indicator, not a removal (WCAG 2.4.7). */
+/* stylelint-disable-next-line a11y/no-outline-none */
+.donut-segment:focus-visible {
+  outline: none;
+  stroke-width: 10;
+  /* stroke-width growth alone is hard to notice on a very thin slice (e.g. a
+     1%-wide segment) since there's barely any arc to thicken — a drop-shadow
+     "halo" stays equally visible regardless of how thin the arc is. */
+  filter: drop-shadow(0 0 2px var(--color-focus)) drop-shadow(0 0 2px var(--color-focus));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .donut-segment {
+    transition: none;
+  }
+}
+
+.donut-ring {
+  stroke: var(--color-surface-tint);
+}
+
+.donut-total-value {
+  /* viewBox is 0 0 42 42, rendered at up to 180px wide (~4.3x scale),
+     so 5.4 units renders around 23px on screen — down from 7 units (~30px),
+     which crowded 6-digit totals against the ring. Same color as the body
+     text (--color-text) rather than an accent color, so the number reads
+     as content rather than a call-to-action. */
+  font-size: 5.4px;
+  font-weight: 700;
+  fill: var(--color-text);
+  font-family: var(--font-body);
+}
+
+.donut-total-label {
+  font-size: 2.6px;
+  fill: var(--color-text);
+  font-family: var(--font-body);
+}
+
+/* The shared .chart-tooltip sizing (charts.js estimates a rect width/x
+   assuming ~13px text in a large viewBox) is tuned for the line chart's
+   620x280 viewBox. The donut's 42x42 viewBox needs a much smaller font so
+   the tooltip doesn't dwarf the chart. */
+.chart--donut .chart-tooltip text {
+  font-size: 2.6px;
+}
+
+.chart--donut .chart-tooltip {
+  transform: translateY(1px);
+}
+
+.chart--donut .chart-point:hover .chart-tooltip,
+.chart--donut .chart-point:focus-within .chart-tooltip {
+  transform: translateY(0);
+}
+
+/* Legends (shared by line + donut charts) */
+.chart-legend {
+  list-style: none;
+  padding: 0;
+  margin: var(--space-2) 0 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-1) var(--space-4);
+  font-size: var(--type-175);
+}
+
+.chart-legend li {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.swatch {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: var(--radius-sm);
+  flex: none;
+}
+
+/* Stacked bars (Racial Composition — mirrors the live dashboard's two
+   100%-stacked horizontal bars, one per population, shared category
+   colors). */
+.chart--stacked-bar {
+  margin-top: var(--space-4);
+}
+
+.chart--stacked-bar .chart-title {
+  text-align: left;
+}
+
+.stacked-bar {
+  margin-bottom: var(--space-4);
+}
+
+.stacked-bar__label {
+  font-weight: var(--weight-heading);
+  font-size: var(--type-175);
+  margin: 0 0 var(--space-1);
+}
+
+.stacked-bar__track {
+  display: flex;
+  width: 100%;
+  height: 50px;
+  background: var(--color-surface-alt);
+  border: 1px solid var(--color-border);
+}
+
+.stacked-bar__segment {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+  overflow: hidden;
+  white-space: nowrap;
+  font-size: var(--type-175);
+  font-weight: var(--weight-heading);
+}
+
+.stacked-bar__segment:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: -2px;
+  position: relative;
+  z-index: 1;
+}
+
+/* Thin divider between adjacent segments in the same bar — every segment
+   after the first gets a left border in the track's own background color,
+   so it reads as a gap rather than a colored line. */
+.chart--stacked-bar .chart-point:not(:first-child) .stacked-bar__segment {
+  border-left: 2px solid var(--color-surface-alt);
+}
+
+/* .chart-point here is a flex item (its inline flex-basis is the segment's
+   share of the bar), sized to fill the bar's height so the tooltip can
+   anchor to it. Shares the hover/focus-within tooltip-reveal rules defined
+   above for the line/donut charts. */
+.chart--stacked-bar .chart-point {
+  display: flex;
+  min-width: 2px;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.chart-tooltip--html {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translate(-50%, 4px);
+  margin-bottom: var(--space-2);
+  background: var(--color-ink);
+  color: #fff;
+  font-size: var(--type-175);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  white-space: nowrap;
+  z-index: 2;
+}
+
+.chart-point:hover .chart-tooltip--html,
+.chart-point:focus-within .chart-tooltip--html {
+  transform: translate(-50%, 0);
+}
+
+/* Multi-row variant (line-chart per-year tooltip: one row per series,
+   grouped under a bold year header) — mirrors the live dashboard's
+   billboard.js tooltip table, confirmed from its source. */
+.chart-tooltip--table {
+  white-space: normal;
+  min-width: 200px;
+  padding: var(--space-2) var(--space-3);
+  text-align: left;
+  /* Without this, the tooltip inherits body's 1.8 line-height (meant for
+     long-form paragraphs) and ends up roughly twice as tall as its content
+     needs — found by measuring the rendered box, not visible from the CSS
+     alone. 1.3 is still comfortably readable for these short label/value
+     rows. */
+  line-height: 1.3;
+}
+
+.chart-tooltip__header {
+  font-weight: var(--weight-heading);
+  margin-bottom: var(--space-1);
+  padding-bottom: var(--space-1);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.chart-tooltip__row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 2px 0;
+}
+
+.chart-tooltip__row .swatch {
+  flex: none;
+}
+
+.chart-tooltip__label {
+  flex: 1 1 auto;
+}
+
+.chart-tooltip__value {
+  flex: none;
+  margin-left: var(--space-3);
+  font-weight: var(--weight-heading);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Town map ("where is the need") */
+.town-map__controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  margin-bottom: var(--space-4);
+}
+
+.town-map__field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  font-size: var(--type-175);
+  font-weight: var(--weight-heading);
+}
+
+.town-map__field select {
+  font: inherit;
+  font-weight: var(--weight-body);
+  padding: var(--space-2) var(--space-3);
+  /* See .who-controls__field select above re: --color-text-muted vs
+     --color-border for a control's boundary (WCAG 1.4.11). */
+  border: 1px solid var(--color-text-muted);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+
+/* Map + info box: stacked (info below the map) on narrow viewports, side by
+   side (info box to the right, at a fixed narrow width) once there's room. */
+.town-map__layout {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.town-map__figure {
+  margin: 0;
+}
+
+@media (min-width: 48rem) {
+  .town-map__layout {
+    flex-direction: row;
+    align-items: flex-start;
+  }
+
+  .town-map__figure {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .town-map__info {
+    flex: 0 0 220px;
+  }
+}
+
+.town-map__svg {
+  width: 100%;
+  max-width: 640px;
+  height: auto;
+  display: block;
+  margin: 0 auto;
+}
+
+.town-map__town {
+  /* Not --color-surface (white): a 0%-rate town's fill is also white
+     (BANDS' first band, townMap.js), which combined with a white stroke
+     would make that town's boundary vanish entirely against the white page
+     background. */
+  stroke: var(--color-border);
+  stroke-width: 0.5;
+  transition: stroke 120ms ease, stroke-width 120ms ease;
+}
+
+/* Highlights the town under the pointer as the mouse moves — the info box
+   below (and the table, for non-mouse users) already surfaces the same
+   town's details, this is purely the visual "what am I looking at" cue. */
+.town-map__town:hover {
+  stroke: var(--color-ink);
+  stroke-width: 2;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .town-map__town {
+    transition: none;
+  }
+}
+
+.town-map__note {
+  font-size: var(--type-175);
+  color: var(--color-text-muted);
+  text-align: center;
+  margin: var(--space-2) 0 0;
+}
+
+.town-map__table-wrap {
+  max-height: 22rem;
+  overflow-y: auto;
+  margin-top: var(--space-5);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.town-map__table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.town-map__table th,
+.town-map__table td {
+  text-align: left;
+  padding: var(--space-2) var(--space-3);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.town-map__table td:not(:first-child),
+.town-map__table th:not(:first-child) {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Hover/focus info box — mirrors the live dashboard's fixed info panel (see
+   the markup comment in townMap.js), sized down to sit as a narrow sidebar
+   next to the map. Fixed min-height keeps the surrounding layout from
+   jumping as the placeholder text is swapped for real content. */
+.town-map__info {
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-alt);
+  min-height: 96px;
+}
+
+.town-map__info-placeholder {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--type-175);
+}
+
+.town-map__info-name {
+  margin: 0 0 var(--space-2);
+  font-size: var(--type-175);
+  color: var(--color-ink);
+}
+
+.town-map__info-stats {
+  margin: 0;
+}
+
+.town-map__info-stats > div {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding: var(--space-1) 0;
+  border-bottom: 1px solid var(--color-border);
+  font-size: var(--type-175);
+}
+
+.town-map__info-stats > div:last-child {
+  border-bottom: none;
+}
+
+.town-map__info-stats dt {
+  color: var(--color-text-muted);
+}
+
+.town-map__info-stats dd {
+  margin: 0;
+  font-weight: var(--weight-heading);
+  font-variant-numeric: tabular-nums;
+}
+
+.town-map__statewide {
+  font-size: var(--type-175);
+  color: var(--color-text-muted);
+  margin: var(--space-4) 0 0;
+}
+
+.town-map__table thead th {
+  position: sticky;
+  top: 0;
+  background: var(--color-surface-alt);
+  font-size: var(--type-175);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  color: var(--color-text-muted);
+}
+
+/* Who-section shared controls ("Choose time period" / "Choose grouping") */
+.who-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  margin-bottom: var(--space-2);
+}
+
+.who-controls__field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  font-size: var(--type-175);
+  font-weight: var(--weight-heading);
+}
+
+.who-controls__field select {
+  font: inherit;
+  font-size: var(--type-225);
+  font-weight: var(--weight-body);
+  padding: var(--space-3) var(--space-4);
+  /* --color-border (#cccccc) is only 1.6:1 against white — well under the
+     3:1 WCAG 1.4.11 non-text-contrast guideline for identifying a UI
+     component's boundary — so form controls use the stronger
+     --color-text-muted (7.2:1) instead; --color-border stays reserved for
+     purely decorative dividers (table rows, card edges) where 1.4.11
+     doesn't apply. */
+  border: 1px solid var(--color-text-muted);
+  /* At this font-size + the inherited 1.8 line-height, this control renders
+     well past 44px tall — the >=44x44 bucket per design.md, hence radius-lg
+     rather than radius-md. */
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+
+.who-controls__hint {
+  font-size: var(--type-175);
+  color: var(--color-text-muted);
+  margin: 0 0 var(--space-5);
+}
+
+/* Overrides the shared .chart-legend's centering — this key sits directly
+   under the left-aligned "Choose grouping" field above it, not under a
+   centered chart. */
+.breakdown-legend {
+  justify-content: flex-start;
+}
+
+.breakdown-chronic-info {
+  font-size: var(--type-175);
+  color: var(--color-text-muted);
+  margin: var(--space-2) 0 var(--space-5);
+}
+
+.who-controls__period-note {
+  font-size: var(--type-175);
+  color: var(--color-text-muted);
+  margin: 0 0 var(--space-4);
+}
+
+/* Extra breathing room below the Racial Composition data table, which sits
+   directly above this heading. */
+.breakdown-heading {
+  margin-top: var(--space-8);
+}
+
+/* Extra separation between the who-section's own major subsections
+   (Population Sheltered vs. Unsheltered / Household Type / Racial
+   Composition) — each one's chart + data table sits directly above the
+   next heading, so the default h3 margin-top reads as too tight. */
+.who-section-heading {
+  margin-top: var(--space-8);
+}
+
+/* Demographic breakdown rows */
+.breakdown-section--hidden {
+  display: none;
+}
+
+.breakdown-section__heading {
+  font-size: var(--type-225);
+  margin: var(--space-6) 0 var(--space-3);
+}
+
+.breakdown-row {
+  display: grid;
+  grid-template-columns: minmax(140px, 200px) minmax(140px, 1fr) 120px 140px;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.breakdown-row__label {
+  font-size: var(--type-175);
+}
+
+.breakdown-row__total {
+  font-size: var(--type-175);
+  font-variant-numeric: tabular-nums;
+  /* "less than 100 People" (the redacted case) wraps to two lines — same
+     line-height fix as .breakdown-row__chronic-pct below, for the same
+     reason. */
+  line-height: 1.2;
+}
+
+.breakdown-row__chronic {
+  text-align: right;
+}
+
+.breakdown-row__chronic-pct {
+  display: block;
+  font-size: var(--type-300);
+  font-weight: var(--weight-heading);
+  color: var(--color-primary);
+  font-variant-numeric: tabular-nums;
+  /* Overrides the page's 1.8 body line-height — at two stacked lines per
+     row across ~14 rows, that default was most of each row's height. */
+  line-height: 1.2;
+}
+
+.breakdown-row__chronic-label {
+  display: block;
+  font-size: var(--type-150);
+  color: var(--color-text-muted);
+  line-height: 1.2;
+}
+
+.breakdown-bar__track {
+  display: flex;
+  width: 100%;
+  height: 24px;
+  background: var(--color-surface-alt);
+  border: 1px solid var(--color-border);
+}
+
+.breakdown-bar__segment {
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+}
+
+.breakdown-bar__segment--sheltered {
+  background: var(--color-primary);
+}
+
+.breakdown-bar__segment--unsheltered {
+  background: var(--color-unsheltered);
+}
+
+.breakdown-bar__segment--redacted {
+  background: var(--color-redacted);
+  cursor: default;
+}
+
+.breakdown-bar__segment:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: -2px;
+  position: relative;
+  z-index: 1;
+}
+
+.breakdown-bar .chart-point {
+  display: flex;
+  min-width: 2px;
+  flex-shrink: 0;
+  position: relative;
+}
+
+@media (max-width: 700px) {
+  .breakdown-row {
+    grid-template-columns: 1fr 1fr;
+    grid-template-areas:
+      "label label"
+      "bar bar"
+      "total chronic";
+    gap: var(--space-2);
+  }
+
+  .breakdown-row__label {
+    grid-area: label;
+  }
+
+  .breakdown-row__bar {
+    grid-area: bar;
+  }
+
+  .breakdown-row__total {
+    grid-area: total;
+  }
+
+  .breakdown-row__chronic {
+    grid-area: chronic;
+    text-align: left;
+  }
+}
+
+/* Axis labels live inside an SVG that's scaled by viewBox to fill its
+   container (chart-svg: width 100%) — unlike every other px/rem-sized label
+   on the page, its rendered size shrinks along with the container. On a
+   narrow phone viewport that container is roughly half its desktop width,
+   which would otherwise put axis labels below ~7px. Bumping the user-unit
+   font size here keeps them legible. (Line-chart tooltips are plain HTML —
+   see .chart-tooltip--table — so they already use rem-based sizing and
+   don't need this.) */
+@media (max-width: 600px) {
+  .chart-axis-label {
+    font-size: 22px;
+  }
+}
+
