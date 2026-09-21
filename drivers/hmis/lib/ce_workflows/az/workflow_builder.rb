@@ -18,11 +18,10 @@
 #   `decline_reason` item that autofills from whichever list was answered. That hidden item needs a
 #   `mapping` so the frontend includes it in valuesByLinkId (createValuesForSubmit drops unmapped
 #   items). Gateways route on `cancelled_reason` directly rather than on the autofilled value.
-# - A referral only reaches Accepted after Post Referral Review reports Successful = Yes. Provider
-#   Decision = Accepted creates an incomplete enrollment in the receiving project and closes the CE
-#   Event as successful (1), but deliberately leaves the referral open.
-# - 'Successful = No' declines the referral with no decline reason, and intentionally leaves the CE
-#   Event result as successful, since the client was in fact enrolled. Flagged for customer follow-up.
+# - A referral reaches Accepted once Post Referral Review is submitted, regardless of the 'successful'
+#   answer. Provider Decision = Accepted creates an incomplete enrollment in the receiving project and
+#   closes the CE Event as successful (1); acceptance already happened at that point, so Post Referral
+#   Review's 'successful' field only tracks post-acceptance problems and never gates referral status.
 # - Declined and Canceled are distinct terminal statuses. Canceled is applied by a trigger that runs
 #   *after* reject_referral, which sets the state-machine derived 'rejected' status, so the trigger
 #   order on that end event matters.
@@ -182,7 +181,6 @@ module CeWorkflows::Az
 
       acknowledgement_gateway = CeWorkflows::Shared::CeBuilderUtils.create_gateway(template, 'initial_decision')
       decision_gateway = CeWorkflows::Shared::CeBuilderUtils.create_gateway(template, 'referral_outcome')
-      post_review_gateway = CeWorkflows::Shared::CeBuilderUtils.create_gateway(template, 'post_referral_review')
 
       start_event.connect_to!(send_referral_task)
       send_referral_task.connect_to!(create_ce_event_task)
@@ -206,12 +204,11 @@ module CeWorkflows::Az
       canceled_by_client_ce_event_task.connect_to!(canceled_event)
       canceled_by_provider_ce_event_task.connect_to!(canceled_event)
 
-      # The client is already enrolled by this point, so an unsuccessful review declines the referral
-      # but leaves the CE Event closed as successful.
+      # Acceptance already happened at Provider Decision, so Post Referral Review always ends the
+      # referral as Accepted once submitted. 'successful' is tracked on the step for post-acceptance
+      # problems but no longer gates the terminal status.
       enroll_task.connect_to!(post_review_task)
-      post_review_task.connect_to!(post_review_gateway)
-      post_review_gateway.connect_to!(declined_event, condition: 'successful = false')
-      post_review_gateway.connect_to!(accept_event)
+      post_review_task.connect_to!(accept_event)
 
       template.validate!
       template

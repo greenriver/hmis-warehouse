@@ -58,10 +58,8 @@ flowchart TD
   gwDec -->|"cancelled + Client Refused reason"| setRes2
   gwDec -->|"cancelled, any other reason"| setRes3c
   enroll --> post["Post Referral Review<br/>status: In Progress"]
-  post --> gwPost{"successful"}
-  gwPost -->|"Yes"| accept(["Accept<br/>status: Accepted"])
-  gwPost -->|"No"| declined(["Decline<br/>status: Declined"])
-  setRes3 --> declined
+  post --> accept(["Accept<br/>status: Accepted"])
+  setRes3 --> declined(["Decline<br/>status: Declined"])
   setRes2 --> canceled(["Decline<br/>status: Canceled"])
   setRes3c --> canceled
 ```
@@ -78,10 +76,10 @@ gateways route on `cancelled_reason` directly, which makes a client-rejected res
 a Declined decision. The reason list lives in `CeWorkflows::Az::WorkflowBuilder::DECLINE_REASONS`;
 a spec asserts the form pick lists match it.
 
-A referral is only Accepted after Post Referral Review reports Successful = Yes. Provider Decision =
-Accepted enrolls the client as Incomplete and closes the CE Event as successful, but leaves the
-referral open. Successful = No declines the referral and leaves the CE Event result as successful,
-since the client was in fact enrolled.
+Provider Decision = Accepted enrolls the client as Incomplete and closes the CE Event as successful,
+but leaves the referral open. Post Referral Review always ends the referral as Accepted once
+submitted, regardless of the Successful answer -- acceptance already happened at Provider Decision, so
+Successful only tracks post-acceptance problems for reporting.
 
 #### Updates
 

@@ -317,13 +317,12 @@ RSpec.describe CeWorkflows::Az::WorkflowBuilder do
       expect(engine.active_steps).to be_empty
     end
 
-    # The client is already enrolled by this point, so the CE Event stays closed as successful.
-    it 'declines the referral when the review is unsuccessful, leaving the CE Event successful' do
+    # Acceptance already happened at Provider Decision, so an unsuccessful review still ends the
+    # referral as Accepted -- 'successful' only tracks post-acceptance problems, it doesn't decline.
+    it 'accepts the referral even when the review is unsuccessful' do
       complete_user_step!(engine, 'Post Referral Review', submitted_values: post_review(false), user: user)
 
-      expect_rejected(referral, result: 1)
-      expect(referral.custom_status).to eq(declined_status)
-      expect(referral.decline_reason).to be_nil
+      expect_accepted(referral)
       expect(engine.active_steps).to be_empty
     end
   end
