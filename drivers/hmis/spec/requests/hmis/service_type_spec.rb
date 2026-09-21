@@ -11,11 +11,12 @@ require_relative 'login_and_permissions'
 require_relative '../../support/hmis_base_setup'
 
 RSpec.describe Hmis::GraphqlController, type: :request do
+  include_context 'hmis base setup'
+
+  # Must come after 'hmis base setup', since logging in resolves the data source that it creates
   before(:each) do
     hmis_login(user)
   end
-
-  include_context 'hmis base setup'
 
   let(:create_service_type) do
     <<~GRAPHQL
@@ -162,6 +163,51 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
       it 'should not allow deleting' do
         expect_gql_error(post_graphql(id: hud_type.id) { delete_service_type })
+      end
+    end
+  end
+
+  describe 'formDefinitions' do
+    let(:query) do
+      <<~GRAPHQL
+        query GetServiceType($id: ID!) {
+          serviceType(id: $id) {
+            id
+            formDefinitions {
+              id
+              identifier
+            }
+          }
+        }
+      GRAPHQL
+    end
+
+    let!(:access_control) { create_access_control(hmis_user, ds1, with_permission: [:can_configure_data_collection]) }
+
+    let!(:type_form) { create :hmis_form_definition, identifier: 'type-service-form', role: :SERVICE, status: :published, data_source: ds1 }
+    let!(:category_form) { create :hmis_form_definition, identifier: 'category-service-form', role: :SERVICE, status: :published, data_source: ds1 }
+
+    def identifiers
+      response, result = post_graphql(id: custom_type.id) { query }
+      expect(response.status).to eq(200), result.inspect
+      result.dig('data', 'serviceType', 'formDefinitions').map { |d| d['identifier'] }
+    end
+
+    context 'when the rules are active' do
+      let!(:type_rule) { create :hmis_form_instance, definition: type_form, entity: nil, custom_service_type: custom_type, active: true, data_source: ds1 }
+      let!(:category_rule) { create :hmis_form_instance, definition: category_form, entity: nil, custom_service_category: custom_category, active: true, data_source: ds1 }
+
+      it 'includes forms enabled by service type and by service category' do
+        expect(identifiers).to contain_exactly('type-service-form', 'category-service-form')
+      end
+    end
+
+    context 'when the rules are inactive' do
+      let!(:type_rule) { create :hmis_form_instance, definition: type_form, entity: nil, custom_service_type: custom_type, active: false, data_source: ds1 }
+      let!(:category_rule) { create :hmis_form_instance, definition: category_form, entity: nil, custom_service_category: custom_category, active: false, data_source: ds1 }
+
+      it 'excludes forms whose rules were deactivated' do
+        expect(identifiers).to be_empty
       end
     end
   end

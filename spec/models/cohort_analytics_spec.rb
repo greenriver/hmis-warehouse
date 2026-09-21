@@ -36,7 +36,11 @@ RSpec.describe GrdaWarehouse::Cohorts::CohortAnalyticsGeneration, type: :model d
   describe 'Processes cohort data into tables that back views' do
     before(:each) do
       GrdaWarehouse::Cohort.prepare_active_cohorts
-      described_class.maintain_cohort_intermediate_data
+      @did_run = described_class.maintain_cohort_intermediate_data
+    end
+
+    it 'reports that it ran' do
+      expect(@did_run).to eq(true)
     end
 
     it 'places data as expected' do

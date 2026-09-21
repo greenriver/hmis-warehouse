@@ -1040,7 +1040,7 @@ module GrdaWarehouse::Hud
     def self.revoke_expired_consent
       if release_duration.in?(['One Year', 'Two Years'])
         # This doesn't trigger callbacks (e.g., papertrail)
-        where(c_t[:consent_form_signed_on].lteq(consent_validity_period.ago.to_date)).
+        where(c_t[:consent_form_signed_on].lt(consent_validity_period.ago.to_date)).
           update_all(
             housing_release_status: nil,
             consented_coc_codes: [],
@@ -1098,6 +1098,15 @@ module GrdaWarehouse::Hud
         release_valid? && consent_expires_on.present? && consent_expires_on >= Date.current
       else
         release_valid?
+      end
+    end
+
+    def consent_expiration_date
+      case release_duration
+      when 'One Year', 'Two Years'
+        consent_form_signed_on && consent_form_signed_on + self.class.consent_validity_period
+      when 'Use Expiration Date'
+        consent_expires_on
       end
     end
 
