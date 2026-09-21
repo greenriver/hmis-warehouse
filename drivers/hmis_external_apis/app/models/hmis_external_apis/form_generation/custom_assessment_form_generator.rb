@@ -21,10 +21,18 @@ require 'yaml'
 # `rails driver:hmis_external_apis:generate_custom_assessment_forms` so
 # Rails (and ::Hmis::Form::DefinitionValidator) are loaded.
 #
-# overlay_path is a YAML sidecar (invented group titles, enable_when,
-# item_order, hidden). It is loaded first and applied to this run's JSON.
-# After generation the file is rewritten: your keys win over inferred
-# ones, new form identifiers are appended, and stale keys are not removed.
+# Overlay (overlay_path): a YAML file of hand corrections keyed by form
+# identifier. The generator guesses things the CSV cannot say, such as a
+# title for rows with no form_group_name, or that "If Other, specify" is
+# shown only when the previous question is "Other". The overlay lets you
+# override those guesses without editing the CSV or the generated JSON.
+# See overlay.example.yml for an example.
+#
+# The overlay is read before generation and applied to the output. After
+# generation it is written back with the guesses filled in, so the first
+# run produces a starting point you can edit. On write-back, keys you
+# edited win over guesses, forms new to the CSV are added, and nothing is
+# removed.
 module HmisExternalApis
   module FormGeneration
     class CustomAssessmentFormGenerator
