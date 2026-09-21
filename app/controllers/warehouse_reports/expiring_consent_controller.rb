@@ -12,20 +12,29 @@ module WarehouseReports
     include ArelHelper
     def index
       consented_clients = client_source.where.not(consent_form_signed_on: nil)
-      @expired_clients = []
-      @expiring_clients = []
-      if client_source.release_duration != 'Indefinite'
-        @expired_clients = consented_clients.
-          where(housing_release_status: [nil, '']).
-          where(c_t[:consent_form_signed_on].lt(client_source.consent_validity_period.ago.to_date)).
-          preload(:user_clients)
-        @expiring_clients = consented_clients.where.not(housing_release_status: [nil, '']).
-          where(c_t[:consent_form_signed_on].lt(client_source.consent_validity_period.ago + 30.days)).
-          preload(:user_clients)
+      unconfirmed = consented_clients.where(housing_release_status: [nil, ''])
+      confirmed = consented_clients.where.not(housing_release_status: [nil, ''])
+      # Consent has expired when `column` falls before `expired_at`; Indefinite consent has no such date.
+      # A NULL `column` (a signed form awaiting confirmation has no expiration date yet) never counts as expired.
+      column, expired_at = case client_source.release_duration
+      when 'Use Expiration Date'
+        [c_t[:consent_expires_on], Date.current]
+      when 'One Year', 'Two Years'
+        [c_t[:consent_form_signed_on], client_source.consent_validity_period.ago.to_date]
+      when 'Indefinite'
+        [nil, nil]
+      else
+        raise "Unknown Release Duration: #{client_source.release_duration.inspect}"
       end
-      @unconfirmed = consented_clients.where(housing_release_status: [nil, '']).
-        where(c_t[:consent_form_signed_on].gteq(client_source.consent_validity_period.ago.to_date)).
-        preload(:user_clients)
+      if column
+        @expired_clients = consented_clients.where(column.lt(expired_at)).preload(:user_clients)
+        @expiring_clients = confirmed.where(column.between(expired_at...expired_at + 30.days)).preload(:user_clients)
+        @unconfirmed = unconfirmed.where(column.gteq(expired_at).or(column.eq(nil))).preload(:user_clients)
+      else
+        @expired_clients = []
+        @expiring_clients = []
+        @unconfirmed = unconfirmed.preload(:user_clients)
+      end
       # These exist in a different database, so we'll need to fetch them separately
       @users = (@expired_clients + @expiring_clients).map do |client|
         users = User.where(id: client.user_clients.non_confidential.active.pluck(:user_id))
