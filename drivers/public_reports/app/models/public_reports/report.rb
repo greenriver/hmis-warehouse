@@ -37,10 +37,6 @@ module PublicReports
       settings.color_pattern(category).to_json.html_safe
     end
 
-    def chart_color_shades(category = nil)
-      (settings.color_shades(category) + ['#FFFFFF']).reverse
-    end
-
     def filter_object
       @filter_object ||= begin
         f = ::Filters::FilterBase.new(user_id: user.id).set_from_params(filter['filters'].merge(enforce_one_year_range: false).with_indifferent_access)
@@ -97,7 +93,7 @@ module PublicReports
       update(completed_at: Time.current, state: 'pre-computed')
     end
 
-    def enforce_min_threshold(data, key) # rubocop:disable Metrics/PerceivedComplexity, Metrics/CyclomaticComplexity
+    def enforce_min_threshold(data, key)
       case key
       when 'min_threshold'
         data = MIN_THRESHOLD if data.positive? && data < MIN_THRESHOLD
@@ -175,28 +171,6 @@ module PublicReports
           end
         end
         data
-      when 'need_map'
-        # Convert all rates to the upper limit of the range of map_colors the rate falls into
-        # ensure overall population is at least 100
-        # {"homeless_map"=>{"2018-01-01"=>{"ROCKPORT"=>{"count"=>62, "overall_population"=>500, "rate"=>12.4}, "COLRAIN"=>{"count"=>95, "overall_population"=>500, "rate"=>19.0}...
-        data.each do |_, date_data|
-          date_data.each do |_, count_data|
-            count_data.each do |_, c_data|
-              c_data[:count] = 'less than 100' if c_data[:count].positive? && c_data[:count] < 100
-              top_of_range = map_colors.values.detect { |bucket| bucket[:range].cover?(c_data[:rate]) }.try(:[], :range)&.last
-              c_data[:rate] = top_of_range || 0 unless top_of_range == 100
-            end
-          end
-        end
-      when 'homeless_row'
-        data.each do |_, chart_data|
-          next unless chart_data['data'].map(&:last).any? { |count| count < MIN_THRESHOLD }
-
-          chart_data['data'].each do |row|
-            row[1] = 0
-          end
-          chart_data['data'] << ['Redacted', 100]
-        end
       when 'chronic_percents'
         (chronic_count, total_count) = data
         return 0 unless total_count.positive?

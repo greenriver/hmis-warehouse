@@ -1,0 +1,82 @@
+- include_breakdown = local_assigns.fetch(:include_breakdown, true)
+- current_index = who['currentIndex']
+- current_period_label = who['periods'][current_index]
+- all_people = who['donuts']['all-people']
+- veterans = who['donuts']['veterans']
+- household_type = who['donuts']['household-type']
+
+%div{ data: { component: 'who-section' } }
+  .who-controls
+    %label.who-controls__field
+      %span Choose time period
+      = render 'public_reports/shared/period_select', periods: who['periods'], current_index: current_index, data_attr: 'who-period'
+  %p.who-controls__hint Select a time period; this selection affects all charts below.
+  %p.visually-hidden{ role: 'status', 'aria-live' => 'polite', data: { 'who-period-status' => true } }
+
+  %h3.who-section-heading Population Sheltered vs. Unsheltered
+  %p.who-controls__period-note
+    Showing data for
+    %strong{ data: { 'who-current-period' => true } }= current_period_label
+    \—
+    %a{ href: '#who-period' }
+      change time period
+      %span.visually-hidden for Population Sheltered vs. Unsheltered
+  .chart-grid.chart-grid--2
+    %figure.chart.chart--donut{ data: { component: 'donut', 'donut-id' => 'all-people' } }
+    %figure.chart.chart--donut{ data: { component: 'donut', 'donut-id' => 'veterans' } }
+
+  %h3.who-section-heading= household_type['title']
+  %p.who-controls__period-note
+    Showing data for
+    %strong{ data: { 'who-current-period' => true } }= current_period_label
+    \—
+    %a{ href: '#who-period' }
+      change time period
+      %span.visually-hidden= " for #{household_type['title']}"
+  .chart.chart--stacked-bar.chart--composition-bar{ data: { component: 'composition-bar', 'chart-id' => 'household-type' } }
+
+  %h3.who-section-heading= Translation.translate('Racial Composition')
+  %p.who-controls__period-note
+    Showing data for
+    %strong{ data: { 'who-current-period' => true } }= current_period_label
+    \—
+    %a{ href: '#who-period' }
+      change time period
+      %span.visually-hidden= " for #{Translation.translate('Racial Composition')}"
+  .chart.chart--stacked-bar{ data: { component: 'stacked-bar', 'chart-id' => 'race' } }
+
+  - if include_breakdown
+    - default_grouping_label = who['breakdownGroupings']['household_type']['label']
+    %h3.breakdown-heading= "#{default_grouping_label} breakdown"
+    %p.who-controls__period-note
+      Showing data for
+      %strong{ data: { 'who-current-period' => true } }= current_period_label
+      \—
+      %a{ href: '#who-period' }
+        change time period
+        %span.visually-hidden= " for #{default_grouping_label} breakdown"
+    .who-controls
+      %label.who-controls__field
+        %span Choose grouping
+        %select{ data: { 'who-grouping' => true } }
+          - who['breakdownGroupings'].each do |key, grouping|
+            %option{ value: key, selected: key == 'household_type' }= grouping['label']
+
+    %ul.chart-legend.breakdown-legend
+      %li
+        %span.swatch{ style: 'background:var(--color-sheltered)' }
+        Sheltered
+      %li
+        %span.swatch{ style: 'background:var(--color-unsheltered)' }
+        Unsheltered
+      %li
+        %span.swatch{ style: 'background:var(--color-redacted)' }
+        Data suppressed (too few to report)
+    %p.breakdown-chronic-info Chronically homeless people have been homeless for 12 months in the past 3 years and have a long-term disability.
+
+    = render 'public_reports/shared/breakdown', breakdown: who['breakdown'], breakdown_groupings: who['breakdownGroupings'], current_index: current_index
+
+  %script{ type: 'application/json', data: { 'who-data' => true } }= who.to_json.html_safe
+  %script{ nonce: content_security_policy_nonce }= public_report_asset('charts.js')
+  %script{ nonce: content_security_policy_nonce }= public_report_asset('who_section.js')
+  %script{ nonce: content_security_policy_nonce }= public_report_asset('who_page.js')

@@ -42,15 +42,13 @@ module PublicReports
       else
         'people'
       end
-      x = ['x']
-      pit_count = ["Average #{client_title} homeless per day"]
-      new_count = ['Average newly homeless per day']
-      pit_counts.each do |date, (pit, newly)|
-        x << date
-        pit_count << pit
-        new_count << newly
-      end
-      [x, pit_count, new_count].to_json
+      {
+        labels: pit_counts.map { |date, _counts| date.strftime('%b %Y') },
+        series: [
+          { label: "Average #{client_title} homeless per day", values: pit_counts.map { |_date, (pit, _newly)| pit } },
+          { label: 'Average newly homeless per day', values: pit_counts.map { |_date, (_pit, newly)| newly } },
+        ],
+      }.to_json
     end
 
     private def pre_calculate_data

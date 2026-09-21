@@ -1,0 +1,89 @@
+{
+  "schema_version": 2,
+  "periods": ["2025 Q3", "2025 Q4"],
+  "summary": {
+    "year": 2025,
+    "tiles": [
+      { "value": "10,214", "label": "Homeless Households" },
+      { "value": "13,939", "label": "People Experiencing Homelessness" },
+      { "value": "13%", "label": "Unsheltered" }
+    ]
+  },
+  "pit_chart": {
+    "labels": ["2024", "2025*"],
+    "series": [{ "label": "People served in ES, SO, SH, or TH", "values": [33048, 13939] }],
+    "note": "2025 reflects data through Mar 31, 2025"
+  },
+  "inflow_outflow": {
+    "labels": ["2024", "2025*"],
+    "series": [
+      { "label": "People entering ES, SO, SH, or TH (first time homeless)", "values": [1000, 500] },
+      { "label": "People exiting ES, SO, SH, or TH to a permanent destination", "values": [900, 450] }
+    ]
+  },
+  "who": {
+    "periods": ["2025 Q3", "2025 Q4"],
+    "currentIndex": 1,
+    "donuts": {
+      "all-people": {
+        "title": "All People",
+        "unit": "People",
+        "labels": ["Sheltered", "Unsheltered"],
+        "colors": ["#14558F", "#3E94CF"],
+        "values": [[86, 14], [85, 15]],
+        "totals": [19914, 19000]
+      },
+      "veterans": {
+        "title": "Veterans",
+        "unit": "Veterans",
+        "labels": ["Sheltered", "Unsheltered"],
+        "colors": ["#14558F", "#3E94CF"],
+        "values": [[90, 10], [90, 10]],
+        "totals": [833, null]
+      },
+      "household-type": {
+        "title": "13,755 Households",
+        "unit": "Households",
+        "labels": ["Adult Only", "Adults with Children", "Children-Only Households"],
+        "colors": ["#680A1D", "#C08497", "#F6C51B"],
+        "values": [[79, 20, 1], [79, 20, 1]],
+        "totals": [13755, 13755]
+      }
+    },
+    "race": {
+      "labels": ["White", "Other or Unknown"],
+      "colors": { "White": "#3E94CF", "Other or Unknown": "#C98DFF" },
+      "overall": [71.4, null],
+      "homeless": [[44.5, 0.9], [44.5, 0.9]],
+      "totals": [19914, 19914]
+    },
+    "raceTitleCategories": ["Homeless Population", "Overall Population"],
+    "breakdown": {
+      "household_type__0__0": { "totals": [718, 718], "chronic": [20, 21], "sheltered": [700, 700], "unsheltered": [18, 18] },
+      "household_type__0__1": { "totals": [null, null], "chronic": [0, 0], "sheltered": null, "unsheltered": [null, null] }
+    },
+    "breakdownGroupings": {
+      "household_type": { "label": "Household Type", "sections": [{ "heading": "Persons in Households Without Children", "rows": ["Persons Age 18 to 24", "Persons over age 24"] }] },
+      "gender": { "label": "Gender", "sections": [{ "heading": null, "rows": [] }] },
+      "race": { "label": "Race", "sections": [{ "heading": null, "rows": [] }] }
+    }
+  },
+  "map": {
+    "towns": ["Abington", "Acton"],
+    "periods": ["2025 Q3", "2025 Q4"],
+    "groups": ["All Homeless", "Youth and Young Adults (age 18-24)", "Adults in Adult Only Households (age 18+)", "Adults with Children", "Veterans"],
+    "values": [
+      [[10.0, null], [0.0, 10.0], [0.0, 0.0], [0.0, 0.0], [0.0, 0.0]],
+      [[10.0, null], [0.0, 10.0], [0.0, 0.0], [0.0, 0.0], [0.0, 0.0]]
+    ],
+    "populations": [17062, 24021],
+    "statewideTotals": [[13939, 2091, 9060, 4879, 1115], [14000, 2100, 9100, 4900, 1120]],
+    "bands": [
+      { "max": 0, "color": "#FFFFFF", "label": "0%" },
+      { "max": 10.0, "color": "#D7E0E9", "label": "Any - 10%" },
+      { "max": 100.0, "color": "#0B2D4C", "label": "26%+" }
+    ],
+    "notReportingColor": "#EDEDED",
+    "unit": "Percentage of homeless population"
+  }
+}

@@ -36,7 +36,7 @@
         var segments = d.labels.map(function (label, i) {
           return { label: label, value: values[i] };
         });
-        var total = formatNumber(d.totals[periodIdx]) + " " + d.unit;
+        var total = window.WhoSection.formatTotal(d.totals[periodIdx], d.unit);
         figure.outerHTML = window.Charts.donutChart(segments, {
           title: d.title,
           total: total,
@@ -58,7 +58,7 @@
       var segments = d.labels.map(function (label, i) {
         return { label: label, value: values[i] };
       });
-      var total = formatNumber(d.totals[periodIdx]) + " " + d.unit;
+      var total = window.WhoSection.formatTotal(d.totals[periodIdx], d.unit);
       chart.outerHTML = window.Charts.compositionBarChart(segments, {
         title: total,
         id: id,
@@ -80,10 +80,11 @@
           overallPct: data.race.overall[i],
         };
       });
-      var total = formatNumber(data.race.totals[periodIdx]) + " People";
+      var total = window.WhoSection.formatTotal(data.race.totals[periodIdx], "People");
       chart.outerHTML = window.Charts.stackedBarChart(rows, {
         title: total,
         categories: data.raceTitleCategories,
+        colors: data.race.colors,
         id: "race",
       });
     }
@@ -107,47 +108,31 @@
         );
         if (chronicFullEl) chronicFullEl.textContent = chronicPct + "% Chronically Homeless";
 
-        if (row.sheltered) {
-          var sheltered = row.sheltered[periodIdx];
-          var unsheltered = 100 - sheltered;
-          var shelteredCount = Math.round((total * sheltered) / 100);
-          var unshelteredCount = total - shelteredCount;
+        var bar = root.querySelector(
+          '.breakdown-bar[data-row-id="' + rowId + '"]'
+        );
+        if (bar) {
+          // Read the row's own demographic label from its sibling in the
+          // DOM (not part of the JSON payload) so the aria-label can name
+          // it — otherwise every row's bar re-announces as the same
+          // generic "Sheltered: 8,460" with nothing to tell rows apart.
+          var rowEl = bar.closest(".breakdown-row");
+          var rowLabelEl = rowEl && rowEl.querySelector(".breakdown-row__label");
+          var rowLabel = rowLabelEl ? rowLabelEl.textContent : "";
 
-          var bar = root.querySelector(
-            '.breakdown-bar[data-row-id="' + rowId + '"]'
+          var shelteredCount = row.sheltered ? row.sheltered[periodIdx] : null;
+          var unshelteredCount = row.unsheltered ? row.unsheltered[periodIdx] : null;
+          var redacted = shelteredCount == null || unshelteredCount == null;
+
+          bar.outerHTML = window.WhoSection.renderBreakdownBar(
+            rowId,
+            rowLabel,
+            shelteredCount,
+            unshelteredCount,
+            redacted
           );
-          if (bar) {
-            // Read the row's own demographic label from its sibling in the
-            // DOM (not part of the JSON payload) so the aria-label can name
-            // it — otherwise every row's bar re-announces as the same
-            // generic "Sheltered: 8,460" with nothing to tell rows apart.
-            var rowEl = bar.closest(".breakdown-row");
-            var rowLabelEl = rowEl && rowEl.querySelector(".breakdown-row__label");
-            var rowLabel = rowLabelEl ? rowLabelEl.textContent : "";
-
-            var shelteredPoint = bar.querySelector('[data-segment="sheltered"]');
-            var unshelteredPoint = bar.querySelector('[data-segment="unsheltered"]');
-            if (shelteredPoint) {
-              shelteredPoint.style.flexBasis = sheltered + "%";
-              var shelteredSeg = shelteredPoint.querySelector(".breakdown-bar__segment");
-              var shelteredLabel = "Sheltered: " + formatNumber(shelteredCount);
-              shelteredSeg.setAttribute("aria-label", rowLabel + ", " + shelteredLabel);
-              shelteredPoint.querySelector(".chart-tooltip").textContent = shelteredLabel;
-            }
-            if (unshelteredPoint) {
-              unshelteredPoint.style.flexBasis = unsheltered + "%";
-              var unshelteredSeg = unshelteredPoint.querySelector(".breakdown-bar__segment");
-              var unshelteredLabel = "Unsheltered: " + formatNumber(unshelteredCount);
-              unshelteredSeg.setAttribute("aria-label", rowLabel + ", " + unshelteredLabel);
-              unshelteredPoint.querySelector(".chart-tooltip").textContent = unshelteredLabel;
-            }
-          }
         }
       });
-    }
-
-    function formatNumber(value) {
-      return new Intl.NumberFormat("en-US").format(value);
     }
 
     function updateCurrentPeriodLabels(periodIdx) {
@@ -161,14 +146,17 @@
       if (status) status.textContent = "Showing data for " + data.periods[periodIdx] + ".";
     }
 
-    function updatePeriod() {
+    function updatePeriod(isInitial) {
       var periodIdx = Number(periodSelect.value);
       updateDonuts(periodIdx);
       updateHouseholdType(periodIdx);
       updateRace(periodIdx);
       updateBreakdownRows(periodIdx);
       updateCurrentPeriodLabels(periodIdx);
-      announcePeriod(periodIdx);
+      // The initial render fills placeholders on load, not a real change —
+      // the live region stays silent until the reader actually picks a
+      // different period (see the markup comment on data-who-period-status).
+      if (!isInitial) announcePeriod(periodIdx);
     }
 
     function updateGrouping() {
@@ -181,8 +169,10 @@
       });
     }
 
-    if (periodSelect) periodSelect.addEventListener("change", updatePeriod);
+    if (periodSelect) periodSelect.addEventListener("change", function () { updatePeriod(false); });
     if (groupingSelect) groupingSelect.addEventListener("change", updateGrouping);
+
+    updatePeriod(true);
   });
 })();
 

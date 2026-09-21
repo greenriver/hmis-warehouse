@@ -1,0 +1,37 @@
+- default_grouping = 'household_type'
+- breakdown_groupings.each do |grouping_key, grouping|
+  .breakdown-section{ class: ('breakdown-section--hidden' unless grouping_key == default_grouping), data: { grouping: grouping_key } }
+    - grouping['sections'].each_with_index do |section, section_index|
+      .breakdown-section__group
+        - if section['heading']
+          %h4.breakdown-section__heading= section['heading']
+        - section['rows'].each_with_index do |label, row_index|
+          - row_id = "#{grouping_key}__#{section_index}__#{row_index}"
+          - row_data = breakdown[row_id]
+          - total = row_data['totals'][current_index]
+          - chronic_pct = row_data['chronic'][current_index]
+          - sheltered_count = row_data['sheltered'] && row_data['sheltered'][current_index]
+          - unsheltered_count = row_data['unsheltered'] && row_data['unsheltered'][current_index]
+          - redacted = sheltered_count.nil?
+          .breakdown-row
+            .breakdown-row__label= label
+            .breakdown-row__bar
+              .breakdown-bar{ data: { 'row-id' => row_id } }
+                .breakdown-bar__track
+                  - if redacted
+                    .breakdown-bar__segment.breakdown-bar__segment--redacted{ style: 'flex-basis:100%', tabindex: 0, role: 'img', 'aria-label' => "#{label}: sheltered/unsheltered breakdown unavailable for this group" }
+                  - else
+                    - total_su = sheltered_count + unsheltered_count
+                    - sheltered_pct = total_su.positive? ? ((sheltered_count.to_f / total_su) * 100).round : 0
+                    - unsheltered_pct = 100 - sheltered_pct
+                    .chart-point{ data: { segment: 'sheltered' }, style: "flex-basis:#{sheltered_pct}%" }
+                      .breakdown-bar__segment.breakdown-bar__segment--sheltered{ tabindex: 0, role: 'img', 'aria-label' => "#{label}, Sheltered: #{number_with_delimiter(sheltered_count)}" }
+                      .chart-tooltip.chart-tooltip--html{ 'aria-hidden' => 'true' }= "Sheltered: #{number_with_delimiter(sheltered_count)}"
+                    .chart-point{ data: { segment: 'unsheltered' }, style: "flex-basis:#{unsheltered_pct}%" }
+                      .breakdown-bar__segment.breakdown-bar__segment--unsheltered{ tabindex: 0, role: 'img', 'aria-label' => "#{label}, Unsheltered: #{number_with_delimiter(unsheltered_count)}" }
+                      .chart-tooltip.chart-tooltip--html{ 'aria-hidden' => 'true' }= "Unsheltered: #{number_with_delimiter(unsheltered_count)}"
+            .breakdown-row__total{ data: { 'row-total' => row_id } }= total.nil? ? 'less than 100 People' : "#{number_with_delimiter(total)} People"
+            .breakdown-row__chronic
+              %span.visually-hidden{ data: { 'row-chronic-full' => row_id } }= "#{chronic_pct}% Chronically Homeless"
+              %span.breakdown-row__chronic-pct{ data: { 'row-chronic' => row_id }, 'aria-hidden' => 'true' }= "#{chronic_pct}%"
+              %span.breakdown-row__chronic-label{ 'aria-hidden' => 'true' } Chronically Homeless

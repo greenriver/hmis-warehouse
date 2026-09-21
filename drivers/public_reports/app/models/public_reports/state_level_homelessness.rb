@@ -26,8 +26,6 @@ module PublicReports
 
     MIN_THRESHOLD = 11
 
-    attr_accessor :map_max_rate, :map_max_count
-
     def title
       Translation.translate('State-Level Homelessness Report Generator')
     end
@@ -152,23 +150,6 @@ module PublicReports
         :raw,
       ].
         freeze
-    end
-
-    def populations
-      {
-        youth: Translation.translate('Youth and Young Adults'),
-        adults: Translation.translate('Adult-Only Households'),
-        adults_with_children: Translation.translate('Adults with Children'),
-        veterans: Translation.translate('Veterans'),
-      }
-    end
-
-    def household_types
-      {
-        adults: Translation.translate('Adult-Only Households'),
-        adults_with_children: Translation.translate('Adults with Children'),
-        children: Translation.translate('Child-Only Households'),
-      }
     end
 
     SCHEMA_VERSION = 2
@@ -1013,41 +994,50 @@ module PublicReports
     end
     memoize :adult_only_household_ids
 
-    private def total_for(scope, population)
-      count = scope.select(:client_id).distinct.count
-      count = enforce_min_threshold(count, 'min_threshold')
-
-      word = case population
-      when :veterans
-        'Veteran'
-      when :adults_with_children, :hoh_from_adults_with_children
-        'Household'
-      else
-        'Person'
-      end
-
-      return pluralize(number_with_delimiter(count), word) if count > 100 || count.zero?
-
-      "less than #{pluralize(100, word)}"
-    end
-
-    def map_shapes
-      if map_by_zip?
-        GrdaWarehouse::Shape.geo_collection_hash(state_zip_shapes)
-      elsif map_by_place?
-        GrdaWarehouse::Shape.geo_collection_hash(state_place_shapes)
-      elsif map_by_county?
-        GrdaWarehouse::Shape.geo_collection_hash(state_county_shapes)
-      else
-        GrdaWarehouse::Shape.geo_collection_hash(state_coc_shapes)
-      end
-    end
-
-    def map_shape_json
-      cache_key = "map-shape-json-#{settings.map_type}-#{GrdaWarehouse::Config.relevant_state_codes.join('_')}"
+    # Pre-projected SVG paths for the current map type, one per map_geography
+    # entry (same order). No per-vertex Ruby: the projection, translation and
+    # scaling happen in PostGIS.
+    def map_svg
+      cache_key = "map-svg-#{settings.map_type}-#{GrdaWarehouse::Config.relevant_state_codes.join('_')}"
       Rails.cache.fetch(cache_key, expires_in: 4.hours) do
-        Oj.dump(map_shapes, mode: :compat).html_safe
+        calculate_map_svg
       end
+    end
+
+    private def map_shape_class
+      return GrdaWarehouse::Shape::ZipCode if map_by_zip?
+      return GrdaWarehouse::Shape::Town if map_by_place?
+      return GrdaWarehouse::Shape::County if map_by_county?
+
+      GrdaWarehouse::Shape::Coc
+    end
+
+    private def map_geometry_code_column
+      return 'zcta5ce10' if map_by_zip?
+      return 'town' if map_by_place?
+      return 'namelsad' if map_by_county?
+
+      'cocnum'
+    end
+
+    private def calculate_map_svg
+      scope = map_shape_class.my_states
+
+      extent = scope.pick(Arel.sql('ST_Extent(ST_Transform(COALESCE(simplified_geom, geom), 3857))'))
+      xmin, ymin, xmax, ymax = extent.scan(/[-\d.]+/).map(&:to_f)
+      scale = 720.0 / (xmax - xmin)
+      height = ((ymax - ymin) * scale).round(2)
+
+      d_by_code = scope.pluck(
+        Arel.sql(map_geometry_code_column),
+        Arel.sql("ST_AsSVG(ST_TransScale(ST_Transform(COALESCE(simplified_geom, geom), 3857), #{-xmin}, #{-ymax}, #{scale}, #{scale}), 0, 1)"),
+      ).to_h
+
+      paths = map_geography.each_with_index.map do |code, index|
+        [index, code.to_s.parameterize, d_by_code[code]]
+      end
+
+      { view_box: "0 0 720 #{height}", paths: paths }
     end
 
     private def get_us_census_population_by_race(race_code: 'All', year:)
@@ -1079,17 +1069,6 @@ module PublicReports
       end
 
       results.map(&:val).sum
-    end
-
-    def state_shape
-      GrdaWarehouse::Shape.geo_collection_hash(GrdaWarehouse::Shape::State.my_states)
-    end
-
-    def state_shape_json
-      cache_key = "state-shape-json-#{GrdaWarehouse::Config.relevant_state_codes.join('_')}"
-      Rails.cache.fetch(cache_key, expires_in: 4.hours) do
-        Oj.dump(state_shape, mode: :compat).html_safe
-      end
     end
 
     # COC CODES
@@ -1127,14 +1106,6 @@ module PublicReports
 
     def map_by_county?
       settings.map_type == 'county'
-    end
-
-    def map_type
-      return 'map_zip_js' if map_by_zip?
-      return 'map_place_js' if map_by_place?
-      return 'map_county_js' if map_by_county?
-
-      'map_js' # CoC
     end
 
     def map_type_human

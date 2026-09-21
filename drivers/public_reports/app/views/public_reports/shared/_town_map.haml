@@ -1,0 +1,60 @@
+- current_index = map['periods'].size - 1
+- current_period = map['periods'][current_index]
+- rates = map['values'][current_index][0]
+- statewide_total = map['statewideTotals'][current_index][0]
+- percentage_unit = map['unit'].start_with?('Percentage')
+- display_number = ->(n) { n == n.to_i ? n.to_i : n }
+- format_rate = ->(rate) { rate.nil? ? 'Not reporting' : (percentage_unit ? "#{display_number.call(rate)}%" : display_number.call(rate).to_s) }
+- band_color = ->(rate) { rate.nil? ? map['notReportingColor'] : (map['bands'].find { |b| b['max'] == rate } || {})['color'] }
+
+.town-map{ data: { component: 'town-map' } }
+  .town-map__controls
+    %label.town-map__field
+      %span Time period
+      = render 'public_reports/shared/period_select', periods: map['periods'], current_index: current_index, data_attr: 'town-map-period'
+    %label.town-map__field
+      %span Population group
+      %select{ id: 'town-map-group', data: { 'town-map-group' => true } }
+        - map['groups'].each_with_index do |group, index|
+          %option{ value: index, selected: index.zero? }= group
+
+  .town-map__layout
+    %figure.town-map__figure
+      %svg.town-map__svg{ viewBox: svg[:view_box], role: 'img', 'aria-labelledby' => 'town-map-title', 'fill-rule' => 'evenodd', data: { 'town-map-svg' => true } }
+        %title#town-map-title= "#{map['unit']} by #{@report.map_type_human}"
+        - svg[:paths].each do |index, slug, d|
+          %path.town-map__town{ id: "town-#{slug}", d: d, data: { index: index }, style: "fill:#{band_color.call(rates[index])}" }
+            %title= "#{map['towns'][index]}: #{format_rate.call(rates[index])}"
+      %figcaption
+        %ul.chart-legend.town-map__legend
+          - map['bands'].each do |band|
+            %li
+              %span.swatch{ style: "background:#{band['color']};border:1px solid var(--color-border)" }
+              = band['label']
+          %li
+            %span.swatch{ style: "background:#{map['notReportingColor']};border:1px solid var(--color-border)" }
+            Not reporting
+        %p.town-map__note= "#{map['unit']}, by the #{@report.map_type_human} of the service provider's principal site."
+
+    .town-map__info{ data: { 'town-map-info' => true }, 'aria-live' => 'polite' }
+      %p.town-map__info-placeholder{ data: { 'town-map-info-placeholder' => true } } Point at a location on the map for its details — every figure shown here is also in the table below.
+
+  %p.town-map__statewide{ data: { 'town-map-statewide' => true } }= "Statewide total, #{map['groups'].first}, #{current_period}: #{statewide_total.nil? ? 'less than 100' : number_with_delimiter(statewide_total)} people"
+
+  .town-map__table-wrap{ tabindex: 0, role: 'region', data: { 'town-map-table-wrap' => true }, 'aria-label' => "#{map['unit']} by #{@report.map_type_human}, #{map['groups'].first}, #{current_period}. Scrollable table." }
+    %table.town-map__table{ data: { 'town-map-table' => true } }
+      %caption.visually-hidden= "#{map['unit']} and census population by #{@report.map_type_human}"
+      %thead
+        %tr
+          %th{ scope: 'col' }= @report.map_type_human.capitalize
+          %th{ scope: 'col' }= map['unit']
+          %th{ scope: 'col' } Census population
+      %tbody{ data: { 'town-map-tbody' => true } }
+        - map['towns'].each_index.sort_by { |i| -(rates[i] || -1) }.each do |i|
+          %tr
+            %td= map['towns'][i]
+            %td= format_rate.call(rates[i])
+            %td= map['populations'][i].nil? ? 'Not reporting' : number_with_delimiter(map['populations'][i])
+
+  %script{ type: 'application/json', data: { 'town-map-data' => true } }= map.to_json.html_safe
+  %script{ nonce: content_security_policy_nonce }= public_report_asset('town_map.js')

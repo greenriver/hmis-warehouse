@@ -1,0 +1,3 @@
+%select{ id: data_attr, "data-#{data_attr}" => true }
+  - periods.each_with_index do |period, index|
+    %option{ value: index, selected: index == current_index }= period

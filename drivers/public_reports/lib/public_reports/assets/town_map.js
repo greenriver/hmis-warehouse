@@ -6,30 +6,20 @@
 (function () {
   "use strict";
 
-  // Rate per 10,000 residents, live THDSN map's own real bands — see the
-  // matching comment on BANDS in src/lib/townMap.js for the source.
-  var BANDS = [
-    { max: 0, color: "#FFFFFF", label: "0 per 10,000" },
-    { max: 3, color: "#D7E1FF", label: "Any – 3 per 10,000" },
-    { max: 6, color: "#A7B5DC", label: "4 – 6 per 10,000" },
-    { max: 9, color: "#778ABA", label: "7 – 9 per 10,000" },
-    { max: 12, color: "#476299", label: "10 – 12 per 10,000" },
-    { max: 15, color: "#003D79", label: "13 – 15 per 10,000" },
-    { max: 18, color: "#CC7E6E", label: "16 – 18 per 10,000" },
-    { max: Infinity, color: "#FB6CCF", label: "19+ per 10,000" },
-  ];
-
-  var NOT_REPORTING_COLOR = "#EDEDED";
-
-  function bandFor(rate) {
-    for (var i = 0; i < BANDS.length; i++) {
-      if (rate <= BANDS[i].max) return BANDS[i];
+  // Bands and the "not reporting" color are Rails-supplied (data.bands /
+  // data.notReportingColor) rather than hard-coded, so they track the
+  // report's own map_colors palette. A null max (none sent today, but the
+  // shape allows it) means "no upper bound".
+  function bandFor(rate, bands) {
+    for (var i = 0; i < bands.length; i++) {
+      var max = bands[i].max == null ? Infinity : bands[i].max;
+      if (rate <= max) return bands[i];
     }
-    return BANDS[BANDS.length - 1];
+    return bands[bands.length - 1];
   }
 
-  function bandColor(rate) {
-    return rate == null ? NOT_REPORTING_COLOR : bandFor(rate).color;
+  function bandColor(rate, bands, notReportingColor) {
+    return rate == null ? notReportingColor : bandFor(rate, bands).color;
   }
 
   // Full rate, for the always-visible data table (this build's sample data
@@ -43,8 +33,14 @@
   // THDSN map's own privacy design (confirmed from its source, 2026-09-18:
   // its info box shows a grouped category, e.g. "13 - 15 per 10,000", never
   // an exact per-county figure) rather than the precise sample number.
-  function formatRateBand(rate) {
-    return rate == null ? "Not currently reporting to THDSN" : bandFor(rate).label;
+  function formatRateBand(rate, bands) {
+    return rate == null ? "Not currently reporting to THDSN" : bandFor(rate, bands).label;
+  }
+
+  // Statewide totals follow the same "less than 100" redaction convention
+  // as the rest of the report, rather than the generic "—" placeholder.
+  function formatStatewideTotal(total) {
+    return total == null ? "less than 100" : total.toLocaleString("en-US");
   }
 
   function escapeHtml(value) {
@@ -84,13 +80,13 @@
       paths.forEach(function (path) {
         var i = Number(path.dataset.index);
         var rate = rates[i];
-        path.style.fill = bandColor(rate);
+        path.style.fill = bandColor(rate, data.bands, data.notReportingColor);
         var title = path.querySelector("title");
         if (title) {
           title.textContent =
             rate == null
               ? data.towns[i] + ": not currently reporting to THDSN"
-              : data.towns[i] + ": " + rate + " per 10,000 residents (" + bandFor(rate).label + ")";
+              : data.towns[i] + ": " + rate + " per 10,000 residents (" + bandFor(rate, data.bands).label + ")";
         }
       });
 
@@ -123,7 +119,7 @@
           ", statewide, " +
           data.periods[periodIdx] +
           ": " +
-          formatNumber(total) +
+          formatStatewideTotal(total) +
           " people";
       }
 
@@ -170,12 +166,12 @@
         " within " +
         escapeHtml(name) +
         "</dt><dd>" +
-        formatRateBand(rate) +
+        formatRateBand(rate, data.bands) +
         "</dd></div>" +
         "<div><dt>" +
         escapeHtml(groupLabel) +
         ", statewide</dt><dd>" +
-        formatNumber(statewideTotal) +
+        formatStatewideTotal(statewideTotal) +
         " people</dd></div>" +
         "<div><dt>Census population</dt><dd>" +
         formatNumber(population) +

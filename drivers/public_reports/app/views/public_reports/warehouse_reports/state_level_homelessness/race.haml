@@ -1,11 +1,8 @@
-= render 'chart_css'
-- data = @report.parsed_pre_calculated_data
-%section.position-relative
-  = render 'slider', data: data['quarters']
-  = render 'location', data: data
-
-  .mb-4
-    - chart_class = "race-chart"
-    = render 'race_chart', data: data['race_chart'], chart_class: chart_class, category: :race, groups: ::HudHelper.util.races(multi_racial: true).values + ['Other or Unknown']
-
-  = render 'glossary_content'
+- if @report.renderable?
+  - data = @report.parsed_pre_calculated_data
+  - who = data['who'].merge('breakdown' => {})
+  %section
+    = render 'public_reports/shared/who_section', who: who, include_breakdown: false
+    = render 'public_reports/shared/glossary'
+- else
+  = render 'public_reports/shared/stale'

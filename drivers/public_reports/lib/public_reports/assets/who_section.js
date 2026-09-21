@@ -28,7 +28,7 @@ function formatNumber(value) {
 }
 
 function formatTotal(n, unit) {
-  if (n < 100) return `less than 100 ${unit}`;
+  if (n == null || n < 100) return `less than 100 ${unit}`;
   return `${formatNumber(n)} ${unit}`;
 }
 
@@ -57,7 +57,7 @@ function periodNote(currentPeriodLabel, sectionName) {
 // "Unsheltered: …" with nothing to tell them apart. The adjacent visible
 // tooltip can stay shorter since it sits directly under this row's own
 // `.breakdown-row__label` text.
-function renderBreakdownBar(rowId, label, sheltered, total, redacted) {
+function renderBreakdownBar(rowId, label, shelteredCount, unshelteredCount, redacted) {
   if (redacted) {
     return `<div class="breakdown-bar" data-row-id="${rowId}">
       <div class="breakdown-bar__track">
@@ -67,12 +67,12 @@ function renderBreakdownBar(rowId, label, sheltered, total, redacted) {
       </div>
     </div>`;
   }
-  const shelteredCount = Math.round((total * sheltered) / 100);
-  const unshelteredCount = total - shelteredCount;
-  const unshelteredPct = 100 - sheltered;
+  const total = shelteredCount + unshelteredCount;
+  const shelteredPct = total > 0 ? Math.round((shelteredCount / total) * 100) : 0;
+  const unshelteredPct = 100 - shelteredPct;
   return `<div class="breakdown-bar" data-row-id="${rowId}">
     <div class="breakdown-bar__track">
-      <div class="chart-point" data-segment="sheltered" style="flex-basis:${sheltered}%">
+      <div class="chart-point" data-segment="sheltered" style="flex-basis:${shelteredPct}%">
         <div class="breakdown-bar__segment breakdown-bar__segment--sheltered" tabindex="0" role="img" aria-label="${escapeHtml(
           label
         )}, Sheltered: ${formatNumber(shelteredCount)}"></div>
@@ -93,17 +93,18 @@ function renderBreakdownBar(rowId, label, sheltered, total, redacted) {
 }
 
 function renderBreakdownRow(rowId, label, rowData, periodIdx) {
-  const total = rowData.totalByPeriod[periodIdx];
-  const chronicPct = rowData.chronicByPeriod[periodIdx];
-  const redacted = rowData.shelteredByPeriod === null;
-  const sheltered = redacted ? null : rowData.shelteredByPeriod[periodIdx];
+  const total = rowData.totals[periodIdx];
+  const chronicPct = rowData.chronic[periodIdx];
+  const shelteredCount = rowData.sheltered ? rowData.sheltered[periodIdx] : null;
+  const unshelteredCount = rowData.unsheltered ? rowData.unsheltered[periodIdx] : null;
+  const redacted = shelteredCount == null || unshelteredCount == null;
   return `<div class="breakdown-row">
     <div class="breakdown-row__label">${escapeHtml(label)}</div>
     <div class="breakdown-row__bar">${renderBreakdownBar(
       rowId,
       label,
-      sheltered,
-      total,
+      shelteredCount,
+      unshelteredCount,
       redacted
     )}</div>
     <div class="breakdown-row__total" data-row-total="${rowId}">${escapeHtml(

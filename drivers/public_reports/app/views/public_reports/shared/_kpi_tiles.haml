@@ -1,0 +1,7 @@
+.stat-grid
+  - tiles.each do |tile|
+    .stat-tile{ class: tile['class'] }
+      %span.visually-hidden= "#{tile['value']} #{tile['label']} #{note}"
+      .stat-tile__value{ 'aria-hidden' => 'true' }= tile['value']
+      .stat-tile__label{ 'aria-hidden' => 'true' }= tile['label']
+      .stat-tile__note{ 'aria-hidden' => 'true' }= note

@@ -1,19 +1,16 @@
-= render 'chart_css'
-- data = @report.parsed_pre_calculated_data
-%section.position-relative
-  %h3
-    = Translation.translate('Total Number of People Experiencing Homelessness')
-    = render 'glossary_button'
-  - chart_class = 'pit-chart'
-  %div{ class: chart_class }
-  .d-flex.legend-wrapper-horizontal.ml-2.legend-wrapper{ class: ["#{chart_class}_legend"] }
-  = render 'line_chart', chart_class: chart_class, data: data['pit_chart'], category: :population
+- if @report.renderable?
+  - data = @report.parsed_pre_calculated_data
+  - pit_chart = data['pit_chart']
+  - inflow_outflow = data['inflow_outflow']
+  %section
+    = render 'public_reports/shared/line_chart', chart: PublicReports::LineChart.new(labels: pit_chart['labels'], series: pit_chart['series']), title: Translation.translate('Total Number of People Experiencing Homelessness'), colors: [@report.settings.color(0, :population)]
+    - if pit_chart['note']
+      %p.chart-note= pit_chart['note']
 
-  %h3
-    = Translation.translate('Total Number of People Entering and Exiting Homelessness')
-    = render 'glossary_button'
-  - chart_class = 'inflow-outflow-chart'
-  %div{ class: chart_class }
-  .d-flex.legend-wrapper-horizontal.ml-2.legend-wrapper{ class: ["#{chart_class}_legend"] }
-  = render 'line_chart', chart_class: chart_class, data: data['inflow_outflow'], category: :population
-  = render 'glossary_content'
+    = render 'public_reports/shared/line_chart', chart: PublicReports::LineChart.new(labels: inflow_outflow['labels'], series: inflow_outflow['series']), title: Translation.translate('Total Number of People Entering and Exiting Homelessness'), colors: [@report.settings.color(1, :population), @report.settings.color(2, :population)]
+    - if inflow_outflow['note']
+      %p.chart-note= inflow_outflow['note']
+
+    = render 'public_reports/shared/glossary'
+- else
+  = render 'public_reports/shared/stale'

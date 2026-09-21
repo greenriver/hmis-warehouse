@@ -1,0 +1,47 @@
+%figure.chart.chart--line
+  %figcaption.chart-title= title
+  .chart--line-plot
+    %svg.chart-svg{ viewBox: "0 0 #{PublicReports::LineChart::WIDTH} #{PublicReports::LineChart::HEIGHT}", preserveAspectRatio: 'xMidYMid meet', 'aria-hidden' => 'true', focusable: 'false' }
+      - chart.gridlines.each do |gridline|
+        %line.chart-gridline{ x1: 56, y1: gridline[:y], x2: 620, y2: gridline[:y], 'aria-hidden' => 'true' }
+        %text.chart-axis-label{ x: 48, y: gridline[:y] + 4, 'text-anchor' => 'end' }= number_with_delimiter(gridline[:value])
+      - chart.series.each_with_index do |s, i|
+        - color = colors[i % colors.size]
+        %polyline{ points: chart.points_for(s['values']), fill: 'none', stroke: color, 'stroke-width' => 2.5, 'stroke-dasharray' => chart.dash_for(i) }
+        - s['values'].each_with_index do |v, idx|
+          %circle.chart-dot{ cx: chart.x_at(idx).round(1), cy: chart.y_at(v).round(1), r: 4, fill: color }
+      - chart.labels.each_with_index do |label, idx|
+        %text.chart-axis-label{ x: chart.x_at(idx).round(1), y: 190, 'text-anchor' => 'middle' }= label
+    - chart.column_bounds.each_with_index do |bounds, idx|
+      .chart-point.chart-point--column{ style: "left:#{bounds[:left_pct]}%;width:#{bounds[:width_pct]}%", tabindex: 0, role: 'img', 'aria-label' => "#{chart.labels[idx]}: #{chart.series.map { |s| "#{s['label']}: #{number_with_delimiter(s['values'][idx])}" }.join('; ')}" }
+        .chart-tooltip.chart-tooltip--html.chart-tooltip--table{ 'aria-hidden' => 'true' }
+          .chart-tooltip__header= chart.labels[idx]
+          - chart.series.each_with_index do |s, i|
+            .chart-tooltip__row
+              %span.swatch{ style: "background:#{colors[i % colors.size]};" }
+              %span.chart-tooltip__label= s['label']
+              %span.chart-tooltip__value= number_with_delimiter(s['values'][idx])
+  %ul.chart-legend
+    - chart.series.each_with_index do |s, i|
+      - color = colors[i % colors.size]
+      - dash = chart.dash_for(i)
+      %li
+        - if dash
+          %span.swatch{ style: "background:repeating-linear-gradient(90deg,#{color} 0 3px,transparent 3px 5px)" }
+        - else
+          %span.swatch{ style: "background:#{color}" }
+        = s['label']
+  .chart-data
+    %table
+      %caption.visually-hidden= "#{title} — data table"
+      %thead
+        %tr
+          %th{ scope: 'col' } Year
+          - chart.series.each do |s|
+            %th{ scope: 'col' }= s['label']
+      %tbody
+        - chart.labels.each_with_index do |label, idx|
+          %tr
+            %th{ scope: 'row' }= label
+            - chart.series.each do |s|
+              %td= number_with_delimiter(s['values'][idx])
