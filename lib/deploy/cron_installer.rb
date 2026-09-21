@@ -8,41 +8,18 @@
 
 # frozen_string_literal: true
 
-require_relative 'scheduled_task'
 require_relative 'cronjob'
-require_relative 'aws_sdk_helpers'
 require 'time'
 
 # Run from rails root
 
 class CronInstaller
-  include AwsSdkHelpers::Helpers
-
-  attr_accessor :cluster_type
-
   MAX_DESCRIPTION_LENGTH = 512
 
   AMOUNT_OF_JITTER_IN_MINUTES = 10
 
-  def initialize(cluster_type = nil)
-    if cluster_type.present?
-      self.cluster_type = cluster_type.to_sym
-    elsif ENV['EKS'] == 'true'
-      self.cluster_type = :eks_mode
-    else
-      self.cluster_type = :ecs_mode
-    end
-  end
-
   def run!
     Rails.logger.info "The current time is #{Time.now} and the current time in zone is #{Time.zone.now}"
-    send(cluster_type)
-  end
-
-  private
-
-  def eks_mode
-    entry_number = 0
 
     Cronjob.clear!
 
@@ -67,104 +44,13 @@ class CronInstaller
         capacity_type: capacity_type,
       }
 
-      cronjob = Cronjob.new(**params)
-      cronjob.run!
-
-      entry_number += 1
+      Cronjob.new(**params).run!
     end
 
     Cronjob.clear_defunct_vpas!
   end
 
-  def ecs_mode
-    entry_number = 0
-
-    ScheduledTask.clear!(target_group_name)
-
-    each_cron_entry do |cron_expression, command|
-      capacity_provider_strategy = _choose_capacity_provider_strategy(command)
-      command.delete('#capacity_provider:short-term')
-      description = command.join(' ').sub(/ --silent/, '').sub(/bundle exec /, '')[0, MAX_DESCRIPTION_LENGTH]
-
-      params = {
-        target_group_name: target_group_name,
-        schedule_expression: cron_expression,
-        description: description,
-        offset: entry_number,
-        cluster_name: ENV.fetch('CLUSTER_NAME'),
-        role_arn: role_arn,
-        task_definition_arn: task_definition_arn,
-        command: command,
-        capacity_provider_strategy: capacity_provider_strategy,
-      }
-
-      scheduled_task = ScheduledTask.new(params)
-      scheduled_task.run!
-
-      entry_number += 1
-    end
-  end
-
-  def target_group_name
-    ENV.fetch('TARGET_GROUP_NAME')
-  end
-
-  def role_arn
-    @role_arn ||= iam.get_role(role_name: 'ecsEventsRole').role.arn
-  end
-
-  def _choose_capacity_provider_strategy(command)
-    return _short_term_capacity_provider_strategy if command.include?('#capacity_provider:short-term')
-
-    _long_term_capacity_provider_strategy
-  end
-
-  def _short_term_capacity_provider_strategy
-    [
-      {
-        capacity_provider: _short_term_capacity_provider_name(target_group_name),
-        weight: 1,
-        base: 1,
-      },
-    ]
-  end
-
-  def _long_term_capacity_provider_strategy
-    [
-      {
-        capacity_provider: _long_term_capacity_provider_name(target_group_name),
-        weight: 1,
-        base: 1,
-      },
-    ]
-  end
-
-  def task_definition_arn
-    return @task_definition_arn unless @task_definition_arn.nil?
-
-    families = ecs.list_task_definition_families(family_prefix: target_group_name).families
-
-    raise "No families found for #{target_group_name}" if families == []
-
-    family = families.find { |x| x.match(/cron-worker/) }
-
-    raise "No family found for #{target_group_name} that looks like a worker" if family.nil?
-
-    puts "[INFO] Using #{family}"
-
-    task_definition = ecs.list_task_definitions(
-      status: 'ACTIVE',
-      family_prefix: family,
-      sort: 'DESC',
-      max_results: 1,
-    ).task_definition_arns.first
-
-    raise 'No task definition found' if task_definition.nil?
-
-    puts "[INFO] Using #{task_definition}"
-
-    @task_definition_arn = task_definition
-  end
+  private
 
   def each_cron_entry(add_jitter: true)
     `whenever`.each_line do |line|
@@ -179,8 +65,6 @@ class CronInstaller
     tokens = line.split(' ')
 
     (minute, hour, day_of_month, month, day_of_week) = tokens[0, 5]
-
-    year = '*'
 
     # https://docs.aws.amazon.com/AmazonCloudWatch/latest/events/ScheduledEvents.html#CronExpressions
     if day_of_week.to_i.to_s == day_of_week && day_of_week.to_i < 7 # it's an integer and looks like a day
@@ -235,11 +119,7 @@ class CronInstaller
         raise 'Implement jitter for slash-based cron entries'
       end
 
-    if cluster_type == :eks_mode
-      "#{minute_with_jitter} #{utc_hour} #{day_of_month} #{month} #{day_of_week}".tr('?', '*')
-    else
-      "cron(#{minute_with_jitter}, #{utc_hour}, #{day_of_month}, #{month}, #{day_of_week}, #{year})"
-    end
+    "#{minute_with_jitter} #{utc_hour} #{day_of_month} #{month} #{day_of_week}".tr('?', '*')
   end
 
   def get_command(line)

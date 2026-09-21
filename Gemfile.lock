@@ -193,9 +193,6 @@ GEM
     aws-sdk-ecr (1.110.0)
       aws-sdk-core (~> 3, >= 3.231.0)
       aws-sigv4 (~> 1.5)
-    aws-sdk-ecs (1.205.0)
-      aws-sdk-core (~> 3, >= 3.231.0)
-      aws-sigv4 (~> 1.5)
     aws-sdk-elasticloadbalancingv2 (1.139.0)
       aws-sdk-core (~> 3, >= 3.231.0)
       aws-sigv4 (~> 1.5)
@@ -1110,7 +1107,6 @@ DEPENDENCIES
   aws-sdk-dynamodb
   aws-sdk-ec2 (~> 1)
   aws-sdk-ecr (~> 1)
-  aws-sdk-ecs (~> 1)
   aws-sdk-elasticloadbalancingv2 (~> 1)
   aws-sdk-glacier (~> 1)
   aws-sdk-iam (~> 1)
@@ -1358,7 +1354,6 @@ CHECKSUMS
   aws-sdk-dynamodb (1.153.0) sha256=a67cacd6ee01cc6ee04365fc254915f97ee8d3a981535cefdda2516420472866
   aws-sdk-ec2 (1.557.0) sha256=c94173f719cba15be9cce33cbbbf0541b379ea903fd862c7963d1d28277ddf5c
   aws-sdk-ecr (1.110.0) sha256=9c58992c96e9b522deb86421d0fd8ee39d3e327130165495f00b79dfe11f75ff
-  aws-sdk-ecs (1.205.0) sha256=3de0a12f463411d0ca733e911dfb7088742aeb76fac91e009c16d85d72eba37f
   aws-sdk-elasticloadbalancingv2 (1.139.0) sha256=b80e75de788f90c479c8687d01c284e9f2756c691333176b34efdec8d0c101f5
   aws-sdk-glacier (1.83.0) sha256=a749c8a3ea208f0616014a8e074451aade3360ed77043ccadc91d9b1b3a7fd6e
   aws-sdk-iam (1.129.0) sha256=3126c4398352005b64569b94359a200ae6c8979f3c741e635690fa62d88e224c

@@ -75,12 +75,6 @@ tasks = [
     frequency: 5.minutes,
     interruptable: false,
   },
-  {
-    task: 'jobs:arbitrate_workoff',
-    frequency: 2.minutes,
-    trigger: ENV['ECS'] == 'true',
-    interruptable: true,
-  },
   # {
   #   task: 'grda_warehouse:save_service_history_snapshots',
   #   frequency: 4.hours,
@@ -234,7 +228,6 @@ tasks = [
   },
 ]
 
-job_type :rake_short, 'cd :path && :environment_variable=:environment bundle exec rake :task --silent #capacity_provider:short-term'
 job_type :rake_eks, 'bundle exec rake :task --silent ##interruptable=:interruptable##'
 
 tasks.each do |task|
@@ -243,14 +236,6 @@ tasks.each do |task|
   options = {}
   options[:at] = task[:at] if task[:at].present?
   every task[:frequency], options do
-    if ENV['EKS'] == 'true'
-      rake_eks task[:task], interruptable: task[:interruptable].to_s
-    elsif ENV['ECS'] == 'true' && task[:interruptable]
-      rake_short task[:task]
-    else
-      # For the time being, move all cron tasks to the "short-term" capacity provider
-      rake_short task[:task]
-      # rake task[:task]
-    end
+    rake_eks task[:task], interruptable: task[:interruptable].to_s
   end
 end
