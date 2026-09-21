@@ -21,9 +21,13 @@ module WarehouseReports
         [c_t[:consent_expires_on], Date.current]
       when 'One Year', 'Two Years'
         [c_t[:consent_form_signed_on], client_source.consent_validity_period.ago.to_date]
+      when 'Indefinite'
+        [nil, nil]
+      else
+        raise "Unknown Release Duration: #{client_source.release_duration.inspect}"
       end
       if column
-        @expired_clients = unconfirmed.where(column.lt(expired_at)).preload(:user_clients)
+        @expired_clients = consented_clients.where(column.lt(expired_at)).preload(:user_clients)
         @expiring_clients = confirmed.where(column.between(expired_at...expired_at + 30.days)).preload(:user_clients)
         @unconfirmed = unconfirmed.where(column.gteq(expired_at).or(column.eq(nil))).preload(:user_clients)
       else

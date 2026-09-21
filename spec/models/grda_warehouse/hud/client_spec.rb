@@ -415,8 +415,9 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
 
       it 'after revoking consent, only one should have a full housing release string' do
         client_signed_yesterday.save
-        client_signed_2_years_ago.save
-        client_signed_2_years_ago_short_consent.save
+        # Consent signed exactly two years ago expires tomorrow; back-date so these have expired.
+        client_signed_2_years_ago.update(consent_form_signed_on: 2.years.ago.to_date - 1.day)
+        client_signed_2_years_ago_short_consent.update(consent_form_signed_on: 2.years.ago.to_date - 1.day)
         client_signed_3_years_ago_short_consent.save
 
         config = GrdaWarehouse::Config.first
@@ -427,6 +428,31 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
         end
         GrdaWarehouse::Hud::Client.revoke_expired_consent
         expect(GrdaWarehouse::Hud::Client.full_housing_release_on_file.count).to eq(1)
+      end
+    end
+
+    # Consent signed exactly one year ago is still valid today (`consent_form_valid?` uses >=),
+    # so revocation must only clear consent that expired before today.
+    describe 'revoke_expired_consent boundary' do
+      let(:full_release) { GrdaWarehouse::Hud::Client.full_release_string }
+      let!(:signed_one_year_ago_today) { create(:grda_warehouse_hud_client, consent_form_signed_on: 1.year.ago.to_date, housing_release_status: full_release) }
+      let!(:signed_one_year_and_a_day_ago) { create(:grda_warehouse_hud_client, consent_form_signed_on: 1.year.ago.to_date - 1.day, housing_release_status: full_release) }
+
+      around { |example| freeze_time { example.run } }
+      after { GrdaWarehouse::Config.invalidate_cache }
+
+      before do
+        GrdaWarehouse::Config.first_or_create.update!(release_duration: 'One Year')
+        GrdaWarehouse::Config.invalidate_cache
+        GrdaWarehouse::Hud::Client.revoke_expired_consent
+      end
+
+      it 'keeps consent that expires today' do
+        expect(signed_one_year_ago_today.reload.housing_release_status).to eq(full_release)
+      end
+
+      it 'clears consent that expired yesterday' do
+        expect(signed_one_year_and_a_day_ago.reload.housing_release_status).to be_nil
       end
     end
   end

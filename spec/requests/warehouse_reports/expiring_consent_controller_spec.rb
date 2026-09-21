@@ -67,7 +67,7 @@ RSpec.describe 'WarehouseReports::ExpiringConsentController', type: :request do
       get warehouse_reports_expiring_consent_index_path
 
       expect(response).to have_http_status(:ok)
-      expect(client_ids_in(sections[:expired])).to contain_exactly(expired.id)
+      expect(client_ids_in(sections[:expired])).to contain_exactly(expired.id, confirmed_past_expiration.id)
       expect(client_ids_in(sections[:expiring])).to contain_exactly(expiring.id, expires_today_confirmed.id)
       expect(client_ids_in(sections[:unconfirmed])).to contain_exactly(unconfirmed.id, unconfirmed_without_expiration.id, expires_today.id)
     end
@@ -94,7 +94,7 @@ RSpec.describe 'WarehouseReports::ExpiringConsentController', type: :request do
       get warehouse_reports_expiring_consent_index_path
 
       expect(response).to have_http_status(:ok)
-      expect(client_ids_in(sections[:expired])).to contain_exactly(expired.id)
+      expect(client_ids_in(sections[:expired])).to contain_exactly(expired.id, confirmed_past_expiration.id)
       expect(client_ids_in(sections[:expiring])).to contain_exactly(expiring.id, expires_today_confirmed.id)
       expect(client_ids_in(sections[:unconfirmed])).to contain_exactly(unconfirmed.id, expires_today.id)
     end
