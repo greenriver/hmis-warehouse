@@ -20,6 +20,7 @@ This feature automates the delivery of HMIS CSV exports on a rolling schedule. I
   - `nil`: deliver the raw zip created by the export job.
   - `zip`: re-wrap the archive using `zipcloak` with the supplied `zip_password`.
   - `7z`: expands the zip and rebuilds it as a `.7z` archive protected by the password.
+- `zipcloak` will not take a password longer than 80 characters, so `zip_password` is length-validated for the `zip` type and the user sees the error on the form. The `7z` type has no such limit.
 
 ## Background Processing
 - The rake task `grda_warehouse:process_recurring_hmis_exports` iterates all recurrence definitions and calls `run` for those that return `should_run?`.
@@ -36,3 +37,4 @@ This feature automates the delivery of HMIS CSV exports on a rolling schedule. I
 - Controller: `app/controllers/warehouse_reports/hmis_exports_controller.rb`
 - Model: `app/models/grda_warehouse/recurring_hmis_export.rb`
 - Task runner: `app/models/grda_warehouse/tasks/process_recurring_hmis_exports.rb`
+- Zip encryption: `app/services/zip_cloak.rb`
