@@ -171,22 +171,31 @@ module PublicReports
       }
     end
 
+    SCHEMA_VERSION = 2
+
     private def chart_data
       {
-        date_range: filter_object.date_range_words,
-        quarters: iteration_dates,
+        schema_version: SCHEMA_VERSION,
+        periods: period_labels,
         summary: summary,
         pit_chart: pit_chart,
         inflow_outflow: inflow_outflow,
-        location_chart: location_chart,
-        household_type: household_type,
-        race_chart: race_chart,
-        need_map: enforce_min_threshold(need_map, 'need_map'),
-        homeless_breakdowns: homeless_breakdowns,
-        map_max_rate: map_max_rate,
-        map_max_count: map_max_count,
+        who: who_json,
+        map: map_json,
       }.
         to_json
+    end
+
+    def renderable?
+      parsed_pre_calculated_data&.dig('schema_version') == SCHEMA_VERSION
+    end
+
+    private def period_labels
+      iteration_dates.map do |date|
+        next date.year.to_s if yearly?
+
+        "#{date.year} Q#{((date.month - 1) / 3) + 1}"
+      end
     end
 
     def parsed_pre_calculated_data
@@ -263,12 +272,18 @@ module PublicReports
       households = scope.heads_of_households.select(:client_id).distinct.count
       homeless_clients = scope.select(:client_id).distinct.count
       unsheltered = scope.hud_project_type(4).select(:client_id).distinct.count
+      counts = {
+        'homeless_households' => households,
+        'homeless_clients' => homeless_clients,
+        'unsheltered_clients' => unsheltered,
+      }
       {
         year: date.year,
-        date: date,
-        homeless_households: households,
-        homeless_clients: homeless_clients,
-        unsheltered_clients: unsheltered,
+        tiles: [
+          { value: enforce_min_threshold(counts, 'homeless_households'), label: 'Homeless Households' },
+          { value: enforce_min_threshold(counts, 'homeless_clients'), label: 'People Experiencing Homelessness' },
+          { value: enforce_min_threshold(counts, 'unsheltered_percent'), label: 'Unsheltered' },
+        ],
       }
     end
 
@@ -298,26 +313,50 @@ module PublicReports
       end
     end
 
-    private def pit_chart
-      x = ['x']
-      y = ['People served in ES, SO, SH, or TH']
-      pit_counts.each do |date, count|
-        x << date
-        y << enforce_min_threshold(count, 'pit_chart')
+    # Returns [labels, note]. A label carries a trailing "*" when its PIT
+    # year extends beyond the report's end date (a partial year); note
+    # explains the asterisk when any label carries one.
+    private def year_labels_and_note(dates)
+      labels = []
+      partial_year_date = nil
+      dates.each do |date|
+        if date.end_of_year > filter_object.end_date
+          labels << "#{date.year}*"
+          partial_year_date ||= date
+        else
+          labels << date.year.to_s
+        end
       end
-      [x, y].to_json
+      note = "#{partial_year_date.year} reflects data through #{filter_object.end_date.strftime('%b %-d, %Y')}" if partial_year_date
+      [labels, note]
+    end
+
+    private def pit_chart
+      dates = pit_counts.map(&:first)
+      labels, note = year_labels_and_note(dates)
+      values = pit_counts.map { |_date, count| enforce_min_threshold(count, 'pit_chart') }
+      chart = {
+        labels: labels,
+        series: [{ label: 'People served in ES, SO, SH, or TH', values: values }],
+      }
+      chart[:note] = note if note
+      chart
     end
 
     private def inflow_outflow
-      x = ['x']
-      ins = ['People entering ES, SO, SH, or TH (first time homeless)']
-      outs = ['People exiting ES, SO, SH, or TH to a permanent destination']
-      inflow_out_flow_counts.each do |date, in_count, out_count|
-        x << date
-        ins << enforce_min_threshold(in_count, 'inflow_outflow')
-        outs << enforce_min_threshold(out_count, 'inflow_outflow')
-      end
-      [x, ins, outs].to_json
+      dates = inflow_out_flow_counts.map(&:first)
+      labels, note = year_labels_and_note(dates)
+      ins = inflow_out_flow_counts.map { |_date, in_count, _out_count| enforce_min_threshold(in_count, 'inflow_outflow') }
+      outs = inflow_out_flow_counts.map { |_date, _in_count, out_count| enforce_min_threshold(out_count, 'inflow_outflow') }
+      chart = {
+        labels: labels,
+        series: [
+          { label: 'People entering ES, SO, SH, or TH (first time homeless)', values: ins },
+          { label: 'People exiting ES, SO, SH, or TH to a permanent destination', values: outs },
+        ],
+      }
+      chart[:note] = note if note
+      chart
     end
 
     private def pit_count_dates
@@ -374,183 +413,279 @@ module PublicReports
       end
     end
 
-    private def location_chart
-      {}.tap do |charts|
-        charts[:all_homeless] = {}
-        charts[:homeless_veterans] = {}
-        iteration_dates.each do |date|
-          start_date = beginning_iteration(date)
-          end_date = end_iteration(date)
-          scope = homeless_scope.with_service_between(
-            start_date: start_date,
-            end_date: end_date,
-          )
-          sheltered = scope.homeless_sheltered.select(:client_id).distinct.count
-          unsheltered = scope.homeless_unsheltered.select(:client_id).distinct.count
-          (sheltered, unsheltered) = enforce_min_threshold([sheltered, unsheltered], 'location')
-
-          charts[:all_homeless][date.iso8601] = {
-            data: [
-              ['Sheltered', sheltered],
-              ['Unsheltered', unsheltered],
-            ],
-            total: total_for(scope, nil),
-          }
-          sheltered = scope.homeless_sheltered.veteran.select(:client_id).distinct.count
-          unsheltered = scope.homeless_unsheltered.veteran.select(:client_id).distinct.count
-          (sheltered, unsheltered) = enforce_min_threshold([sheltered, unsheltered], 'location')
-          charts[:homeless_veterans][date.iso8601] = {
-            data: [
-              ['Sheltered', sheltered],
-              ['Unsheltered', unsheltered],
-            ],
-            total: total_for(scope.veteran, :veterans),
-          }
-        end
+    # counts_by_period: one raw-count array per iteration_dates entry, in labels order.
+    private def donut(title:, unit:, labels:, colors:, counts_by_period:, threshold_key:)
+      values = []
+      totals = []
+      counts_by_period.each do |counts|
+        total = counts.sum
+        totals << (total.positive? && total <= 100 ? nil : total)
+        values << enforce_min_threshold(counts.dup, threshold_key)
       end
-    end
-
-    private def household_type
-      {}.tap do |charts|
-        iteration_dates.each do |date|
-          start_date = beginning_iteration(date)
-          end_date = end_iteration(date)
-
-          # Only count unique HoHs
-          adult = adult_only_household_ids(start_date, end_date).values.uniq.count
-          both = adult_and_child_household_ids(start_date, end_date).values.uniq.count
-          child = child_only_household_ids(start_date, end_date).values.uniq.count
-          total = adult + both + child
-          (adult, both, child) = enforce_min_threshold([adult, both, child], 'household_type')
-          word = 'Household'
-          total = if total < 100
-            "less than #{pluralize(100, word)}"
-          else
-            pluralize(number_with_delimiter(total), word)
-          end
-          charts[date.iso8601] = {
-            data: [
-              ['Adult Only', adult],
-              ['Adults with Children', both],
-              ['Children-Only Households', child],
-            ],
-            total: total,
-          }
-        end
-      end
-    end
-
-    private def race_chart
-      {}.tap do |charts|
-        client_cache = GrdaWarehouse::Hud::Client.new
-        # Manually do HUD race lookup to avoid a bunch of unnecessary mapping and lookups
-        # NOTE: HispanicLatinaeo and MidEastNAfrican are not included in the census data, so we're ignoring them
-        races = ::HudHelper.util.races(multi_racial: true).except('HispanicLatinaeo', 'MidEastNAfrican')
-        iteration_dates.each do |date|
-          start_date = beginning_iteration(date)
-          end_date = end_iteration(date)
-          client_ids = Set.new
-          data = {}
-          census_data = {}
-          # Add census info
-          races.each do |race_code, label|
-            census_data[label] = 0
-            data[races[race_code]] ||= Set.new
-            year = date.year
-            full_pop = get_us_census_population_by_race(year: year) || 0
-            race_pop = get_us_census_population_by_race(race_code: race_code, year: year) || 0
-            census_data[label] = race_pop / full_pop.to_f if full_pop.positive?
-          end
-
-          scope = homeless_scope.with_service_between(
-            start_date: start_date,
-            end_date: end_date,
-          )
-          scope.joins(:client).preload(:client).
-            order(first_date_in_program: :desc). # Use the newest start
-            find_each do |enrollment|
-              client = enrollment.client
-              race_code = client_cache.race_string(destination_id: client.id)
-              data[races[race_code]] << client.id unless client_ids.include?(client.id) || data[races[race_code]].nil?
-              client_ids << client.id
-            end
-          total_count = data.map { |_, ids| ids.count }.sum
-          data = enforce_min_threshold(data, 'race')
-          # Format:
-          # [["Black or African American",38, 53],["White",53, 76],["Native Hawaiian or Other Pacific Islander",1, 12],["Multi-Racial",4, 10],["Asian",1, 5],["American Indian or Alaska Native",1, 1]]
-          combined_data = data.map do |race, ids|
-            label = if race == 'None'
-              'Other or Unknown'
-            else
-              race
-            end
-            [
-              label,
-              ids.count / total_count.to_f, # Homeless Data
-              census_data[race], # Federal Census Data
-            ]
-          end
-          charts[date.iso8601] = {
-            # then the title for the tooltip needs to be adjusted for 0, 1 where 0 is homeless population, 1 is whole population
-            # data for census population is stored in GrdaWarehouse::FederalCensusBreakdowns:Coc
-            # get distinct on max date prior to date in question with identifier and measure
-            # use distinct ProjectCoC.CoCCodes to determine the scope for census data
-            # sum value after getting appropriate set of rows
-            # add index on [accurate_on, identifier, type, measure]
-            data: combined_data,
-            title: Translation.translate('Racial Composition'),
-            total: total_for(scope, nil),
-            categories: ['Homeless Population', 'Overall Population'],
-          }
-        end
-      end
-    end
-
-    private def need_map
       {
-        homeless_map: homeless_map,
-        youth_homeless_map: youth_homeless_map,
-        adults_homeless_map: adults_homeless_map,
-        adults_with_children_homeless_map: adults_with_children_homeless_map,
-        veterans_homeless_map: veterans_homeless_map,
+        title: title,
+        unit: unit,
+        labels: labels,
+        colors: colors,
+        values: values,
+        totals: totals,
       }
     end
 
-    # Counts and rate of homeless individuals by CoC
-    private def homeless_map
-      scope = homeless_scope
-      census_comparison_map_data(scope)
+    private def all_people_donut
+      counts_by_period = iteration_dates.map do |date|
+        scope = homeless_scope.with_service_between(
+          start_date: beginning_iteration(date),
+          end_date: end_iteration(date),
+        )
+        [
+          scope.homeless_sheltered.select(:client_id).distinct.count,
+          scope.homeless_unsheltered.select(:client_id).distinct.count,
+        ]
+      end
+      donut(
+        title: 'All People',
+        unit: 'People',
+        labels: ['Sheltered', 'Unsheltered'],
+        colors: [settings.color(0, :location_type), settings.color(1, :location_type)],
+        counts_by_period: counts_by_period,
+        threshold_key: 'location',
+      )
     end
 
-    private def youth_homeless_map
-      @filter = filter_object.deep_dup
-      @filter.age_ranges = [:eighteen_to_twenty_four]
-      scope = filter_for_age(homeless_scope)
-      service_scope = GrdaWarehouse::ServiceHistoryService.aged(18..24)
-      census_comparison_map_data(scope, service_scope: service_scope)
+    private def veterans_donut
+      counts_by_period = iteration_dates.map do |date|
+        scope = homeless_scope.with_service_between(
+          start_date: beginning_iteration(date),
+          end_date: end_iteration(date),
+        ).veteran
+        [
+          scope.homeless_sheltered.select(:client_id).distinct.count,
+          scope.homeless_unsheltered.select(:client_id).distinct.count,
+        ]
+      end
+      donut(
+        title: 'Veterans',
+        unit: 'Veterans',
+        labels: ['Sheltered', 'Unsheltered'],
+        colors: [settings.color(0, :location_type), settings.color(1, :location_type)],
+        counts_by_period: counts_by_period,
+        threshold_key: 'location',
+      )
     end
 
-    private def adults_homeless_map
-      scope = homeless_scope.adult_only_households
-      census_comparison_map_data(scope)
+    private def household_type_donut
+      counts_by_period = iteration_dates.map do |date|
+        start_date = beginning_iteration(date)
+        end_date = end_iteration(date)
+        [
+          adult_only_household_ids(start_date, end_date).values.uniq.count,
+          adult_and_child_household_ids(start_date, end_date).values.uniq.count,
+          child_only_household_ids(start_date, end_date).values.uniq.count,
+        ]
+      end
+      donut(
+        title: 'Household Type',
+        unit: 'Households',
+        labels: ['Adult Only', 'Adults with Children', 'Children-Only Households'],
+        colors: (0..2).map { |i| settings.color(i, :household_composition) },
+        counts_by_period: counts_by_period,
+        threshold_key: 'household_type',
+      )
     end
 
-    private def adults_with_children_homeless_map
-      scope = homeless_scope.adults_with_children
-      census_comparison_map_data(scope)
+    private def who_json
+      {
+        periods: period_labels,
+        currentIndex: period_labels.size - 1,
+        donuts: {
+          'all-people' => all_people_donut,
+          'veterans' => veterans_donut,
+          'household-type' => household_type_donut,
+        },
+        race: race_chart,
+        raceTitleCategories: ['Homeless Population', 'Overall Population'],
+        breakdown: homeless_breakdowns,
+        breakdownGroupings: breakdown_groupings,
+      }
     end
 
-    private def veterans_homeless_map
-      scope = homeless_scope.veterans
-      census_comparison_map_data(scope)
+    private def race_chart
+      # Manually do HUD race lookup to avoid a bunch of unnecessary mapping and lookups
+      # NOTE: HispanicLatinaeo and MidEastNAfrican are not included in the census data, so we're ignoring them
+      races = ::HudHelper.util.races(multi_racial: true).except('HispanicLatinaeo', 'MidEastNAfrican')
+      client_cache = GrdaWarehouse::Hud::Client.new
+
+      labels = nil
+      colors = nil
+      overall = nil
+      homeless_rows = []
+      totals = []
+
+      dates = iteration_dates
+      dates.each_with_index do |date, index|
+        start_date = beginning_iteration(date)
+        end_date = end_iteration(date)
+        client_ids = Set.new
+        data = {}
+        census_data = {}
+        races.each do |race_code, label|
+          data[label] ||= Set.new
+          full_pop = get_us_census_population_by_race(year: date.year) || 0
+          race_pop = get_us_census_population_by_race(race_code: race_code, year: date.year) || 0
+          census_data[label] = full_pop.positive? ? (race_pop / full_pop.to_f) * 100.0 : 0.0
+        end
+
+        scope = homeless_scope.with_service_between(
+          start_date: start_date,
+          end_date: end_date,
+        )
+        scope.joins(:client).preload(:client).
+          order(first_date_in_program: :desc). # Use the newest start
+          find_each do |enrollment|
+            client = enrollment.client
+            race_code = client_cache.race_string(destination_id: client.id)
+            race_label = races[race_code]
+            data[race_label] << client.id if race_label && ! client_ids.include?(client.id)
+            client_ids << client.id
+          end
+        total_count = data.map { |_, ids| ids.count }.sum
+        data = enforce_min_threshold(data, 'race')
+
+        labels ||= data.keys.map { |race| race == 'None' ? 'Other or Unknown' : race }
+        colors ||= labels.each_with_index.to_h { |label, i| [label, settings.color(i, :race)] }
+
+        homeless_rows << data.map do |_race, ids|
+          total_count.positive? ? ((ids.count * 100.0) / total_count).round(1) : 0.0
+        end
+        totals << total_count
+
+        overall = data.keys.map { |race| race == 'None' ? nil : census_data[race]&.round(1) } if index == dates.size - 1
+      end
+
+      {
+        labels: labels,
+        colors: colors,
+        overall: overall,
+        homeless: homeless_rows,
+        totals: totals,
+      }
     end
 
+    MAP_GROUP_LABELS = [
+      'All Homeless',
+      'Youth and Young Adults (age 18-24)',
+      'Adults in Adult Only Households (age 18+)',
+      'Adults with Children',
+      'Veterans',
+    ].freeze
+
+    # [scope, service_scope] for one map group, index-aligned with MAP_GROUP_LABELS.
+    private def map_group_scope(index)
+      case index
+      when 0
+        [homeless_scope, :current_scope]
+      when 1
+        @filter = filter_object.deep_dup
+        @filter.age_ranges = [:eighteen_to_twenty_four]
+        [filter_for_age(homeless_scope), GrdaWarehouse::ServiceHistoryService.aged(18..24)]
+      when 2
+        [homeless_scope.adult_only_households, :current_scope]
+      when 3
+        [homeless_scope.adults_with_children, :current_scope]
+      when 4
+        [homeless_scope.veterans, :current_scope]
+      end
+    end
+
+    # Snaps a rate to the upper bound of the map_colors bucket it falls into.
+    private def snap_rate(rate)
+      bucket = map_colors.values.detect { |b| rate <= b[:high] }
+      (bucket || map_colors.values.last)[:high]
+    end
+
+    private def map_json
+      dates = iteration_dates
+      geographies = map_geography
+      towns = geographies.map { |code| map_geography_display_name(code) }
+      populations = geographies.map { |code| overall_population_geography(dates.last.year, code) }
+      group_scopes = (0...MAP_GROUP_LABELS.size).map { |i| map_group_scope(i) }
+
+      values = []
+      statewide_totals = []
+
+      dates.each do |date|
+        start_date = beginning_iteration(date)
+        end_date = end_iteration(date)
+        period_values = []
+        period_totals = []
+
+        group_scopes.each do |scope, service_scope|
+          overall_homeless_population = homeless_population_overall(
+            scope: scope,
+            start_date: start_date,
+            end_date: end_date,
+            service_scope: service_scope,
+            population_overall: populations.first,
+          )
+          period_totals << (overall_homeless_population.positive? && overall_homeless_population <= 100 ? nil : overall_homeless_population)
+
+          period_values << geographies.map do |code|
+            population_overall = overall_population_geography(date.year, code)
+            next nil if settings.map_overall_geography_census? && population_overall.to_i.zero?
+
+            homeless_count = count_homeless_population(
+              scope: scope,
+              start_date: start_date,
+              end_date: end_date,
+              service_scope: service_scope,
+              overall_homeless_population: overall_homeless_population,
+              code: code,
+            )
+            homeless_count = enforce_min_threshold(homeless_count, 'min_threshold') unless settings.map_overall_geography_census?
+
+            denominator = map_tooltip_denominator(population_overall, overall_homeless_population)
+            rate = denominator&.positive? ? (homeless_count / denominator.to_f) * 100.0 : 0.0
+            snap_rate(rate.round(1))
+          end
+        end
+
+        values << period_values
+        statewide_totals << period_totals
+      end
+
+      {
+        towns: towns,
+        periods: period_labels,
+        groups: MAP_GROUP_LABELS,
+        values: values,
+        populations: populations,
+        statewideTotals: statewide_totals,
+        bands: map_colors.map { |color, info| { max: info[:high], color: color, label: info[:description] } },
+        notReportingColor: settings.theme[:not_reporting],
+        unit: settings.map_overall_geography_census? ? 'Rate per 10,000 population' : 'Percentage of homeless population',
+      }
+    end
+
+    # Geography codes, ordered by display name (Task 3.9). Code and display
+    # name are the same value for zip/place/county; only CoC differs
+    # (code is cocnum, display name is "name (cocnum)").
     private def map_geography
-      return zip_codes if map_by_zip?
-      return place_codes if map_by_place?
-      return county_codes if map_by_county?
+      return state_zip_shapes.map(&:zcta5ce10).sort if map_by_zip?
+      return state_place_shapes.map(&:name).sort if map_by_place?
+      return state_county_shapes.map(&:name).sort if map_by_county?
 
-      coc_codes
+      state_coc_shapes.sort_by(&:number_and_name).map(&:cocnum)
+    end
+
+    private def map_geography_display_name(code)
+      return code if map_by_zip? || map_by_place? || map_by_county?
+
+      coc_display_names[code] || code
+    end
+
+    private def coc_display_names
+      @coc_display_names ||= state_coc_shapes.index_by(&:cocnum).transform_values(&:number_and_name)
     end
 
     private def overall_population_geography(year, code)
@@ -612,51 +747,6 @@ module PublicReports
       end
     end
 
-    private def census_comparison_map_data(scope, service_scope: :current_scope)
-      self.map_max_rate ||= 0
-      self.map_max_count ||= 0
-      {}.tap do |charts|
-        iteration_dates.each do |date|
-          iso_date = date.iso8601
-          start_date = beginning_iteration(date)
-          end_date = end_iteration(date)
-          charts[iso_date] = {}
-          map_geography.each do |code|
-            population_overall = overall_population_geography(date.year, code)
-            overall_homeless_population = homeless_population_overall(
-              scope: scope,
-              start_date: start_date,
-              end_date: end_date,
-              service_scope: service_scope,
-              population_overall: population_overall,
-            )
-            homeless_count = count_homeless_population(
-              scope: scope,
-              start_date: start_date,
-              end_date: end_date,
-              service_scope: service_scope,
-              overall_homeless_population: overall_homeless_population,
-              code: code,
-            )
-
-            homeless_count = enforce_min_threshold(homeless_count, 'min_threshold') unless settings.map_overall_geography_census?
-            # % of homeless population or rate per 10,000 of overall population
-            denominator = map_tooltip_denominator(population_overall, overall_homeless_population)
-            rate = 0
-            rate = homeless_count / denominator.to_f * 100.0 if denominator&.positive?
-            charts[iso_date][code] = {
-              count: overall_homeless_population,
-              overall_population: population_overall.to_i,
-              rate: rate.round(1),
-              homeless_count: homeless_count,
-            }
-            self.map_max_rate = rate if rate > self.map_max_rate
-            self.map_max_count = homeless_count if homeless_count > self.map_max_count
-          end
-        end
-      end
-    end
-
     # denominator is either state-wide homeless population
     # or census population for chosen geography
     private def map_tooltip_denominator(population_overall, overall_homeless_population)
@@ -665,244 +755,203 @@ module PublicReports
       overall_homeless_population.to_f
     end
 
+    # rowId => { totals:, chronic:, sheltered:, unsheltered: }, one array entry per iteration_dates period.
     private def homeless_breakdowns
-      {
-        adult_only: adult_only_household_breakdowns,
-        adult_and_child: adult_and_child_household_breakdowns,
-        child_only: child_only_household_breakdowns,
-        gender: gender_breakdowns,
-        race: race_breakdowns,
-      }
+      dates = iteration_dates
+      num_periods = dates.size
+      rows = {}
+
+      dates.each_with_index do |date, date_index|
+        start_date = beginning_iteration(date)
+        end_date = end_iteration(date)
+        shs_scope = GrdaWarehouse::ServiceHistoryService.where(date: start_date..end_date)
+        base_scope = homeless_scope.with_service_between(
+          start_date: start_date,
+          end_date: end_date,
+          service_scope: shs_scope,
+        ).joins(:client)
+
+        household_type_setups.each do |section_index, section|
+          quarter_setup = section[:rows].transform_values { |client_scope| client_scope.merge(shs_scope) }
+          household_ids = case section_index
+          when 0 then adult_only_household_ids(start_date, end_date).keys
+          when 1 then adult_and_child_household_ids(start_date, end_date).keys
+          when 2 then child_only_household_ids(start_date, end_date).keys
+          end
+          section_scope = base_scope.where(household_id: household_ids)
+          # NOTE: for adults with children we sum all categories together
+          compute_breakdown_rows(
+            rows: rows,
+            grouping: 'household_type',
+            section_index: section_index,
+            setup: quarter_setup,
+            scope: section_scope,
+            date_index: date_index,
+            num_periods: num_periods,
+            combine_rows: section_index == 1,
+          )
+        end
+
+        gender_setups.each do |section_index, section|
+          compute_breakdown_rows(
+            rows: rows,
+            grouping: 'gender',
+            section_index: section_index,
+            setup: section[:rows],
+            scope: base_scope,
+            date_index: date_index,
+            num_periods: num_periods,
+            combine_rows: false,
+          )
+        end
+
+        race_setups.each do |section_index, section|
+          compute_breakdown_rows(
+            rows: rows,
+            grouping: 'race',
+            section_index: section_index,
+            setup: section[:rows],
+            scope: base_scope,
+            date_index: date_index,
+            num_periods: num_periods,
+            combine_rows: false,
+          )
+        end
+      end
+
+      rows.each_value { |row| row[:sheltered] = nil if row[:sheltered].all?(&:nil?) }
+      rows
     end
 
-    private def homeless_chart_breakdowns(section_title:, charts:, setup:, scope:, date:)
-      iso_date = date.iso8601
-      section_chronic_count = 0
-      section_total_count = 0
+    private def compute_breakdown_rows(rows:, grouping:, section_index:, setup:, scope:, date_index:, num_periods:, combine_rows:)
       chronic_scope = scope.joins(enrollment: :ch_enrollment).
         merge(GrdaWarehouse::ChEnrollment.chronically_homeless)
 
-      # NOTE: for adults with children we sum all categories together
-      if section_title.downcase == 'Persons in households with at least one child and one adult'.downcase
-        setup.each do |_, client_scope|
-          section_chronic_count += chronic_scope.where(client_id: scope.merge(client_scope).distinct.pluck(:client_id)).count
-          section_total_count += scope.merge(client_scope).distinct.select(:client_id).count
+      combined_chronic_count = nil
+      combined_total_count = nil
+      if combine_rows
+        combined_chronic_count = 0
+        combined_total_count = 0
+        setup.each_value do |client_scope|
+          combined_chronic_count += chronic_scope.where(client_id: scope.merge(client_scope).distinct.pluck(:client_id)).count
+          combined_total_count += scope.merge(client_scope).distinct.select(:client_id).count
         end
       end
 
-      setup.each do |title, client_scope|
+      setup.keys.each_with_index do |title, row_index|
+        client_scope = setup[title]
+        row_id = "#{grouping}__#{section_index}__#{row_index}"
+        rows[row_id] ||= {
+          totals: Array.new(num_periods),
+          chronic: Array.new(num_periods),
+          sheltered: Array.new(num_periods),
+          unsheltered: Array.new(num_periods),
+        }
+
         chronic_count = chronic_scope.where(client_id: scope.merge(client_scope).distinct.pluck(:client_id)).count
+        total_count = scope.merge(client_scope).distinct.select(:client_id).count
         sheltered_count = scope.homeless_sheltered.merge(client_scope).select(:client_id).distinct.count
         unsheltered_count = scope.homeless_unsheltered.merge(client_scope).select(:client_id).distinct.count
-        charts[section_title] ||= {
-          'sub_sections' => {},
-          'chronic_counts' => {},
-          'total_counts' => {},
-          'chronic_percents' => {},
-        }
 
-        total_string = total_for(scope.merge(client_scope), nil)
-        total_count = scope.merge(client_scope).distinct.select(:client_id).count
-
-        if section_title.downcase == 'Persons in households with at least one child and one adult'.downcase
-          chronic_count = section_chronic_count
-          total_count = section_total_count
+        if combine_rows
+          chronic_count = combined_chronic_count
+          total_count = combined_total_count
         end
-        charts[section_title]['chronic_counts'][iso_date] ||= {}
-        charts[section_title]['chronic_counts'][iso_date][title] ||= 0
-        charts[section_title]['chronic_counts'][iso_date][title] = chronic_count
-        charts[section_title]['chronic_percents'][iso_date] ||= {}
-        charts[section_title]['chronic_percents'][iso_date][title] ||= 0
-        charts[section_title]['chronic_percents'][iso_date][title] = enforce_min_threshold([chronic_count, total_count], 'chronic_percents')
-        charts[section_title]['sub_sections'][title] ||= {}
-        charts[section_title]['sub_sections'][title][iso_date] = {
-          total: total_string,
-          data: [
-            ['Sheltered', sheltered_count],
-            ['Unsheltered', unsheltered_count],
-          ],
-          categories: [title],
-        }
+
+        rows[row_id][:totals][date_index] = total_count.positive? && total_count <= 100 ? nil : total_count
+        rows[row_id][:chronic][date_index] = enforce_min_threshold([chronic_count, total_count], 'chronic_percents')
+
+        if sheltered_count < MIN_THRESHOLD || unsheltered_count < MIN_THRESHOLD
+          rows[row_id][:sheltered][date_index] = nil
+          rows[row_id][:unsheltered][date_index] = nil
+        else
+          rows[row_id][:sheltered][date_index] = sheltered_count
+          rows[row_id][:unsheltered][date_index] = unsheltered_count
+        end
       end
     end
 
-    private def adult_only_household_breakdowns
-      setup = {
-        'Persons Age 18 to 24' => GrdaWarehouse::ServiceHistoryEnrollment.joins(:service_history_services).merge(GrdaWarehouse::ServiceHistoryService.aged(18..24)),
-        'Persons over age 24' => GrdaWarehouse::ServiceHistoryEnrollment.joins(:service_history_services).merge(GrdaWarehouse::ServiceHistoryService.aged(24..105)),
-        'Persons of unknown age' => GrdaWarehouse::ServiceHistoryEnrollment.joins(:service_history_services).merge(GrdaWarehouse::ServiceHistoryService.unknown_age),
+    private def household_type_setups
+      {
+        0 => {
+          heading: 'Persons in Households Without Children',
+          rows: {
+            'Persons Age 18 to 24' => GrdaWarehouse::ServiceHistoryEnrollment.joins(:service_history_services).merge(GrdaWarehouse::ServiceHistoryService.aged(18..24)),
+            'Persons over age 24' => GrdaWarehouse::ServiceHistoryEnrollment.joins(:service_history_services).merge(GrdaWarehouse::ServiceHistoryService.aged(24..105)),
+            'Persons of unknown age' => GrdaWarehouse::ServiceHistoryEnrollment.joins(:service_history_services).merge(GrdaWarehouse::ServiceHistoryService.unknown_age),
+          },
+        },
+        1 => {
+          heading: 'Persons in households with at least one child and one adult',
+          rows: {
+            'Children under 18' => GrdaWarehouse::ServiceHistoryEnrollment.joins(:service_history_services).merge(GrdaWarehouse::ServiceHistoryService.aged(0..17)),
+            'Persons Age 18 to 24' => GrdaWarehouse::ServiceHistoryEnrollment.joins(:service_history_services).merge(GrdaWarehouse::ServiceHistoryService.aged(18..24)),
+            'Persons over age 24' => GrdaWarehouse::ServiceHistoryEnrollment.joins(:service_history_services).merge(GrdaWarehouse::ServiceHistoryService.aged(24..105)),
+            'Persons of unknown age' => GrdaWarehouse::ServiceHistoryEnrollment.joins(:service_history_services).merge(GrdaWarehouse::ServiceHistoryService.unknown_age),
+          },
+        },
+        2 => {
+          heading: 'Persons in Child-Only Households',
+          rows: {
+            'Children under 18' => GrdaWarehouse::ServiceHistoryEnrollment.joins(:service_history_services).merge(GrdaWarehouse::ServiceHistoryService.aged(0..17)),
+          },
+        },
       }
-      {}.tap do |charts|
-        iteration_dates.each do |date|
-          start_date = beginning_iteration(date)
-          end_date = end_iteration(date)
-
-          shs_scope = GrdaWarehouse::ServiceHistoryService.
-            where(date: start_date..end_date)
-          quarter_setup = {}
-          setup.each do |k, v|
-            quarter_setup[k] = v.merge(shs_scope)
-          end
-          scope = homeless_scope.with_service_between(
-            start_date: start_date,
-            end_date: end_date,
-            service_scope: shs_scope,
-          ).
-            joins(:client)
-          adult_only_scope = scope.where(household_id: adult_only_household_ids(start_date, end_date).keys)
-
-          homeless_chart_breakdowns(
-            section_title: 'Persons in Households Without Children',
-            charts: charts,
-            setup: quarter_setup,
-            scope: adult_only_scope,
-            date: date,
-          )
-        end
-      end
     end
 
-    private def adult_and_child_household_breakdowns
-      setup = {
-        'Children under 18' => GrdaWarehouse::ServiceHistoryEnrollment.joins(:service_history_services).merge(GrdaWarehouse::ServiceHistoryService.aged(0..17)),
-        'Persons Age 18 to 24' => GrdaWarehouse::ServiceHistoryEnrollment.joins(:service_history_services).merge(GrdaWarehouse::ServiceHistoryService.aged(18..24)),
-        'Persons over age 24' => GrdaWarehouse::ServiceHistoryEnrollment.joins(:service_history_services).merge(GrdaWarehouse::ServiceHistoryService.aged(24..105)),
-        'Persons of unknown age' => GrdaWarehouse::ServiceHistoryEnrollment.joins(:service_history_services).merge(GrdaWarehouse::ServiceHistoryService.unknown_age),
-      }
-      {}.tap do |charts|
-        iteration_dates.each do |date|
-          start_date = beginning_iteration(date)
-          end_date = end_iteration(date)
-
-          shs_scope = GrdaWarehouse::ServiceHistoryService.
-            where(date: start_date..end_date)
-          quarter_setup = {}
-          setup.each do |k, v|
-            quarter_setup[k] = v.merge(shs_scope)
-          end
-          scope = homeless_scope.with_service_between(
-            start_date: start_date,
-            end_date: end_date,
-            service_scope: shs_scope,
-          ).
-            joins(:client)
-          adult_and_child_scope = scope.where(household_id: adult_and_child_household_ids(start_date, end_date).keys)
-
-          homeless_chart_breakdowns(
-            section_title: 'Persons in households with at least one child and one adult',
-            charts: charts,
-            setup: quarter_setup,
-            scope: adult_and_child_scope,
-            date: date,
-          )
-        end
-      end
-    end
-
-    private def child_only_household_breakdowns
-      setup = {
-        'Children under 18' => GrdaWarehouse::ServiceHistoryEnrollment.joins(:service_history_services).merge(GrdaWarehouse::ServiceHistoryService.aged(0..17)),
-      }
-      {}.tap do |charts|
-        iteration_dates.each do |date|
-          start_date = beginning_iteration(date)
-          end_date = end_iteration(date)
-
-          shs_scope = GrdaWarehouse::ServiceHistoryService.
-            where(date: start_date..end_date)
-          quarter_setup = {}
-          setup.each do |k, v|
-            quarter_setup[k] = v.merge(shs_scope)
-          end
-          scope = homeless_scope.with_service_between(
-            start_date: start_date,
-            end_date: end_date,
-            service_scope: shs_scope,
-          ).
-            joins(:client)
-          child_only_scope = scope.where(household_id: child_only_household_ids(start_date, end_date).keys)
-          homeless_chart_breakdowns(
-            section_title: 'Persons in Child-Only Households',
-            charts: charts,
-            setup: quarter_setup,
-            scope: child_only_scope,
-            date: date,
-          )
-        end
-      end
-    end
-
-    private def gender_breakdowns
+    private def gender_setups
       # NOTE: only minorly updating this for now.  Since these are published publicly, we'll wait until we
       # have better direction on the scope of what's desired
-      setup = {
-        'Woman' => GrdaWarehouse::Hud::Client.gender_woman,
-        'Man' => GrdaWarehouse::Hud::Client.gender_man,
-        'Transgender' => GrdaWarehouse::Hud::Client.gender_transgender,
-        'Non-Binary' => GrdaWarehouse::Hud::Client.gender_non_binary,
-        'Other or Unknown' => GrdaWarehouse::Hud::Client.gender_unknown.or(GrdaWarehouse::Hud::Client.questioning),
+      {
+        0 => {
+          heading: nil,
+          rows: {
+            'Woman' => GrdaWarehouse::Hud::Client.gender_woman,
+            'Man' => GrdaWarehouse::Hud::Client.gender_man,
+            'Transgender' => GrdaWarehouse::Hud::Client.gender_transgender,
+            'Non-Binary' => GrdaWarehouse::Hud::Client.gender_non_binary,
+            'Other or Unknown' => GrdaWarehouse::Hud::Client.gender_unknown.or(GrdaWarehouse::Hud::Client.questioning),
+          },
+        },
       }
-      {}.tap do |charts|
-        iteration_dates.each do |date|
-          start_date = beginning_iteration(date)
-          end_date = end_iteration(date)
-
-          shs_scope = GrdaWarehouse::ServiceHistoryService.
-            where(date: start_date..end_date)
-          scope = homeless_scope.with_service_between(
-            start_date: start_date,
-            end_date: end_date,
-            service_scope: shs_scope,
-          ).
-            joins(:client)
-
-          homeless_chart_breakdowns(
-            section_title: 'Gender',
-            charts: charts,
-            setup: setup,
-            scope: scope,
-            date: date,
-          )
-        end
-      end
     end
 
-    private def race_breakdowns
+    private def race_setups
       # TODO: DEPRECATED_FY2024 need to revisit this since race and ethnicity have been combined.
       # We need to figure out how we'll represent that given the census data has a different shape.
-      setup = {
-        'American Indian or Alaska Native' => GrdaWarehouse::Hud::Client.with_races(['AmIndAKNative']),
-        'Asian' => GrdaWarehouse::Hud::Client.with_races(['Asian']),
-        'Black or African American' => GrdaWarehouse::Hud::Client.with_races(['BlackAfAmerican']),
-        'Native Hawaiian or Pacific Islander' => GrdaWarehouse::Hud::Client.with_races(['NativeHIPacific']),
-        # NOTE: these two are not included in the census data, so we're ignoring them
-        # 'Hispanic/Latina/e/o' => GrdaWarehouse::Hud::Client.with_races(['HispanicLatinaeo']),
-        # 'Middle Eastern or North African' => GrdaWarehouse::Hud::Client.with_races(['MidEastNAfrican']),
-        'White' => GrdaWarehouse::Hud::Client.with_races(['White']),
-        'Other or Unknown' => GrdaWarehouse::Hud::Client.with_race_none,
+      {
+        0 => {
+          heading: nil,
+          rows: {
+            'American Indian or Alaska Native' => GrdaWarehouse::Hud::Client.with_races(['AmIndAKNative']),
+            'Asian' => GrdaWarehouse::Hud::Client.with_races(['Asian']),
+            'Black or African American' => GrdaWarehouse::Hud::Client.with_races(['BlackAfAmerican']),
+            'Native Hawaiian or Pacific Islander' => GrdaWarehouse::Hud::Client.with_races(['NativeHIPacific']),
+            # NOTE: these two are not included in the census data, so we're ignoring them
+            # 'Hispanic/Latina/e/o' => GrdaWarehouse::Hud::Client.with_races(['HispanicLatinaeo']),
+            # 'Middle Eastern or North African' => GrdaWarehouse::Hud::Client.with_races(['MidEastNAfrican']),
+            'White' => GrdaWarehouse::Hud::Client.with_races(['White']),
+            'Other or Unknown' => GrdaWarehouse::Hud::Client.with_race_none,
+          },
+        },
       }
-      {}.tap do |charts|
-        iteration_dates.each do |date|
-          start_date = beginning_iteration(date)
-          end_date = end_iteration(date)
+    end
 
-          shs_scope = GrdaWarehouse::ServiceHistoryService.
-            where(date: start_date..end_date)
-          scope = homeless_scope.with_service_between(
-            start_date: start_date,
-            end_date: end_date,
-            service_scope: shs_scope,
-          ).
-            joins(:client)
-          homeless_chart_breakdowns(
-            section_title: 'Race',
-            charts: charts,
-            setup: setup,
-            scope: scope,
-            date: date,
-          )
-        end
-      end
+    private def breakdown_groupings
+      {
+        household_type: {
+          label: 'Household Type',
+          sections: household_type_setups.values.map { |section| { heading: section[:heading], rows: section[:rows].keys } },
+        },
+        gender: {
+          label: 'Gender',
+          sections: gender_setups.values.map { |section| { heading: section[:heading], rows: section[:rows].keys } },
+        },
+        race: {
+          label: 'Race',
+          sections: race_setups.values.map { |section| { heading: section[:heading], rows: section[:rows].keys } },
+        },
+      }
     end
 
     private def households(start_date, end_date)
