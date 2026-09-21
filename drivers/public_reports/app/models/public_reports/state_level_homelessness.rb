@@ -1023,7 +1023,12 @@ module PublicReports
     private def calculate_map_svg
       scope = map_shape_class.my_states
 
-      extent = scope.pick(Arel.sql('ST_Extent(ST_Transform(COALESCE(simplified_geom, geom), 3857))'))
+      # Cast to text: ST_Extent returns Postgres's `box` type, which the PG
+      # adapter has no OID mapping for. Left uncast, the adapter's fallback
+      # to treating it as a string emits a Ruby warning -- harmless on its
+      # own, but this app's Warning.process (custom_deprecation_handler.rb)
+      # turns every warning into a hard raise in development.
+      extent = scope.pick(Arel.sql('ST_Extent(ST_Transform(COALESCE(simplified_geom, geom), 3857))::text'))
       xmin, ymin, xmax, ymax = extent.scan(/[-\d.]+/).map(&:to_f)
       scale = 720.0 / (xmax - xmin)
       height = ((ymax - ymin) * scale).round(2)
