@@ -33,7 +33,7 @@ There is no staging step. The initial load is run directly in production, becaus
 3. **On the production server, download it**:
 
    ```bash
-   dcr shell bundle exec rake "secure_files:download_from_secure_files[<timestamp>_custom_forms.zip]"
+   rake "secure_files:download_from_secure_files[<timestamp>_custom_forms.zip]"
    ```
 
    Lands at `var/<timestamp>_custom_forms.zip`.
@@ -42,13 +42,13 @@ There is no staging step. The initial load is run directly in production, becaus
 
    ```bash
    # preview
-   dcr shell bundle exec rails driver:hmis_external_apis:load_custom_assessment_forms ZIP_PATH=var/<timestamp>_custom_forms.zip DRY_RUN=true
+   rails driver:hmis_external_apis:load_custom_assessment_forms ZIP_PATH=var/<timestamp>_custom_forms.zip DRY_RUN=true
 
    # publish for real
-   dcr shell bundle exec rails driver:hmis_external_apis:load_custom_assessment_forms ZIP_PATH=var/<timestamp>_custom_forms.zip
+   rails driver:hmis_external_apis:load_custom_assessment_forms ZIP_PATH=var/<timestamp>_custom_forms.zip
 
    # one form
-   dcr shell bundle exec rails driver:hmis_external_apis:load_custom_assessment_forms ZIP_PATH=var/<timestamp>_custom_forms.zip ONLY=form_identifier_xyz
+   rails driver:hmis_external_apis:load_custom_assessment_forms ZIP_PATH=var/<timestamp>_custom_forms.zip ONLY=form_identifier_xyz
    ```
 
    This publishes every form directly — there is no draft step, and CDEDs are minted immediately. Form rules are not created; the form will not appear under New Assessment until a rule exists.
@@ -82,11 +82,7 @@ Only re-run the generate + publish steps if you found a bug in generation and ne
 
 Publishing an identifier that already has a published version **retires the old published version and publishes a new one** (version + 1) from the freshly generated JSON. It does not merge with or preserve whatever is currently published — if a customer admin has already published their own edits (reordering, relabeling, new questions) for that identifier, **re-running this tool discards those edits.** There is no way to recover a retired version's edits through this tool.
 
-If a customer has an in-progress **draft** for an identifier (created in Form Builder, not yet published), publishing that identifier again deletes the draft first. In `DRY_RUN=true`, existing drafts are only reported, not deleted — always dry-run before a re-run so you know what you are about to discard:
-
-```bash
-dcr shell bundle exec rails driver:hmis_external_apis:load_custom_assessment_forms ZIP_PATH=var/<timestamp>_custom_forms.zip DRY_RUN=true
-```
+If a customer has an in-progress **draft** for an identifier (created in Form Builder, not yet published), publishing that identifier again deletes the draft first. In `DRY_RUN=true`, existing drafts are only reported, not deleted — always dry-run before a re-run so you know what you are about to discard.
 
 CDEDs are keyed by the legacy `custom_field_key` in the CSV, which is stable across runs, so re-generating and re-publishing reuses the same CDEDs (and therefore the same migrated data linkage) rather than creating duplicates — as long as the CSV `key` values themselves haven't changed.
 
@@ -100,25 +96,4 @@ To suppress an inferred condition, set that `link_id` under `forms.<identifier>.
 
 ## Overlay
 
-```yaml
-forms:
-  example_form:
-    invented_group_names:
-      ungrouped_0: Additional Questions
-    flattened_subassessments:
-      - Client Notes subassessment
-    enable_when:
-      ifotherdescribe:
-        enable_behavior: ALL
-        enable_when:
-          - question: some_choice
-            operator: EQUAL
-            answer_code: Other
-    item_order:
-      VI-FSPDAT v2.0:
-        vifspdat2_scoringtotal:
-          after: vifspdat2_scoringsectione
-      VI-SPDAT v2.0:
-        vispdat2_scoringtotal:
-          after: vispdat2_scoringsectiond
-```
+See [overlay.example.yml](overlay.example.yml) for an annotated example of each kind of correction with fake identifiers.
