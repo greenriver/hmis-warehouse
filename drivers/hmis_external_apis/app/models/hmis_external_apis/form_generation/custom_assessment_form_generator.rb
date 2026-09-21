@@ -34,7 +34,7 @@ module HmisExternalApis
       NUMBERED_LABEL = /\A\s*(\d+)\s*[.)]\s*(?:([a-zA-Z])\s*[.)])?/
       START_DATE_LABEL = /\A\s*start date\b/i
       PRE_SURVEY_LABEL = /\A\s*PRE[- ]?SURVEY\b/i
-      LETTERED_SECTION_LABEL = /\A\s*([A-E])\.\s+\S/i
+      LETTERED_SECTION_LABEL = /\A\s*([A-Z])\.\s+\S/i
       NUMBERED_UNIQUE_RATIO = 0.9
       OTHER_LABEL = /if other|please specify|please describe/i
       IF_YES_LABEL = /if yes/i
