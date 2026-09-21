@@ -42,11 +42,15 @@ RSpec.describe ZipCloak do
     expect(zip_entry_names(decrypted)).to match_array(hud_csv_entries.keys)
   end
 
-  it 'rejects a password holding a line break rather than sending half of it' do
-    ["pass\rword", "pass\nword", "password\n"].each do |password|
+  # The pty is in canonical mode, so the line discipline rewrites the line before
+  # zipcloak reads it: a kill erases what came before, an erase drops a character,
+  # EOF submits early. Encrypt answers both prompts alike, so the verify prompt
+  # would still match and the archive would take a password nobody has on record.
+  it 'rejects a password holding a control character rather than encrypting under a different one' do
+    ["pass\rword", "pass\nword", "password\n", "pass\u0015word", "pass\u007fword", "pass\u0004word"].each do |password|
       expect do
         described_class.encrypt(source: source, destination: encrypted, password: password)
-      end.to raise_error(ZipCloak::Error, /line break/)
+      end.to raise_error(ZipCloak::Error, /control characters/)
     end
   end
 

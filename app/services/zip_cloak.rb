@@ -22,6 +22,14 @@ class ZipCloak
   MAX_PASSWORD_LENGTH = 80
   TOO_LONG_MESSAGE = 'line too long'
 
+  # The pty below runs in canonical mode, so the line discipline acts on control
+  # characters before zipcloak ever reads them: erase and kill rewrite the line,
+  # EOF submits it early, interrupt kills the child. A six character password
+  # holding a kill and an erase arrives as one character. Encryption would then
+  # succeed under a password that is not the one on record, since both prompts
+  # are rewritten alike and the verify prompt still matches.
+  CONTROL_CHARACTERS = /[[:cntrl:]]/
+
   def self.encrypt(source:, destination:, password:)
     new(password: password).encrypt(source: source, destination: destination)
   end
@@ -31,7 +39,7 @@ class ZipCloak
   end
 
   def initialize(password:)
-    raise Error, 'the password cannot contain a line break' if password.to_s.match?(/[\r\n]/)
+    raise Error, 'the password cannot contain control characters, including a line break' if password.to_s.match?(CONTROL_CHARACTERS)
 
     @password = password
   end

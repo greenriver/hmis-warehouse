@@ -11,6 +11,11 @@ require 'rails_helper'
 RSpec.describe GrdaWarehouse::RecurringHmisExport, type: :model do
   let(:user) { create(:user) }
 
+  # Both encrypt paths stage the export, unencrypted, under Rails.root/tmp.
+  def tmp_export_files
+    Dir.glob(Rails.root.join('tmp', 'hmis_export*').to_s)
+  end
+
   describe '#should_run?' do
     context 'when export has never run' do
       it 'returns true if the record was last updated before today' do
@@ -56,6 +61,15 @@ RSpec.describe GrdaWarehouse::RecurringHmisExport, type: :model do
     it 'leaves the 7z encryption type alone' do
       export = build(:recurring_hmis_export, user: user, encryption_type: '7z', zip_password: 'p' * (ZipCloak::MAX_PASSWORD_LENGTH + 1))
       expect(export).to be_valid
+    end
+
+    # zipcloak's pty would rewrite the line rather than reject it, encrypting the
+    # export under a password the operator never chose; see ZipCloak.
+    it 'rejects a password holding a control character' do
+      export = build(:recurring_hmis_export, user: user, encryption_type: 'zip', zip_password: "secret\u0015123")
+
+      expect(export).not_to be_valid
+      expect(export.errors[:zip_password]).to be_present
     end
 
     it 'allows no password at all when no encryption type is chosen' do
@@ -204,6 +218,17 @@ RSpec.describe GrdaWarehouse::RecurringHmisExport, type: :model do
       listing = `7z l -p#{export.zip_password} #{encrypted_path}`
       extracted_names.each { |name| expect(listing).to include(name) }
       expect_no_leaked_files(extracted_names)
+      expect(tmp_export_files).to be_empty
+    end
+
+    # The scratch directory holds the export's CSVs in the clear, so a failed run
+    # must not leave them sitting in tmp.
+    it 'raises and removes the unencrypted CSVs when the 7z run fails' do
+      staged = tmp_export_files
+      allow(export).to receive(:system).and_return(false)
+
+      expect { export.send(:encrypt_seven_zip, File.binread(zip_source)) }.to raise_error(/could not 7z/)
+      expect(tmp_export_files).to match_array(staged)
     end
   end
 
@@ -231,6 +256,16 @@ RSpec.describe GrdaWarehouse::RecurringHmisExport, type: :model do
 
       expect(File.exist?(File.join(scratch_dir, 'canary'))).to be false
       expect(Zip::File.open(encrypted_path) { |zip| zip.map(&:encrypted?) }).to all(be true)
+    end
+
+    # The staged copy is the export in the clear, so a failed run must not leave
+    # it sitting in tmp.
+    it 'raises and removes the unencrypted copy when zipcloak fails' do
+      staged = tmp_export_files
+      allow(ZipCloak).to receive(:encrypt).and_raise(ZipCloak::Error, 'zipcloak exited 1')
+
+      expect { export.send(:encrypt_zipcloak, File.binread(zip_source)) }.to raise_error(ZipCloak::Error)
+      expect(tmp_export_files).to match_array(staged)
     end
   end
 end

@@ -17,8 +17,13 @@ module GrdaWarehouse
 
     acts_as_paranoid
 
+    # Both limits belong to the pty zipcloak reads its password through; see ZipCloak.
     validates :zip_password,
               length: { maximum: ZipCloak::MAX_PASSWORD_LENGTH },
+              format: {
+                without: ZipCloak::CONTROL_CHARACTERS,
+                message: 'cannot contain control characters, including a line break',
+              },
               if: -> { encryption_type == 'zip' }
 
     # Require both or neither
@@ -91,10 +96,11 @@ module GrdaWarehouse
       ZipCloak.encrypt(source: source_path, destination: destination_path, password: zip_password)
 
       # return the encrypted content
-      encrypted_content = ::File.open(destination_path, binmode: true).read
-      FileUtils.rm(destination_path)
-      tmp.unlink
-      encrypted_content
+      ::File.binread(destination_path)
+    ensure
+      # tmp holds the export unencrypted, so no failure above may leave it on disk
+      FileUtils.rm_f(destination_path) if destination_path
+      tmp&.unlink
     end
 
     # Write out the zip file
@@ -119,7 +125,11 @@ module GrdaWarehouse
 
       # zip_password comes from the export form; the single-string form of system
       # would hand it to a shell, which runs whatever it contains.
-      system('7z', 'a', '-mx9', "-p#{zip_password}", destination_file, *Dir.glob("#{destination_path}/*.csv"))
+      #
+      # system returns false rather than raising, and a failed run leaves no
+      # destination file for the read below, so check it here where the reason is known.
+      raise "RecurringHmisExport #{id} could not 7z the export" unless
+        system('7z', 'a', '-mx9', "-p#{zip_password}", destination_file, *Dir.glob("#{destination_path}/*.csv"))
 
       # ::File.open(destination_file, 'wb') do |file|
       #   SevenZipRuby::SevenZipWriter.open(file, password: zip_password) do |szw|
@@ -134,14 +144,14 @@ module GrdaWarehouse
       #     end
       #   end
       # end
-      # for some reason we need a bit of sand after talking to zipcloak
-      sleep(5) unless ::File.exist?(destination_file)
       # return the encrypted content
-      encrypted_content = ::File.open(destination_file, binmode: true).read
-      FileUtils.rm_rf(destination_path)
-      FileUtils.rm(destination_file)
-      tmp.unlink
-      encrypted_content
+      ::File.binread(destination_file)
+    ensure
+      # destination_path holds the export's CSVs unencrypted and tmp the whole
+      # export, so no failure above may leave either on disk
+      FileUtils.rm_rf(destination_path) if destination_path
+      FileUtils.rm_f(destination_file) if destination_file
+      tmp&.unlink
     end
 
     def object_name(report)
