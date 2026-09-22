@@ -15,8 +15,23 @@ class ClientHistory::Calculator
 
   # HUD 3.917 treats 90+ days in an institution as a full break. Enrollment data cannot
   # tell an institutional stay from an unrecorded one, so the same threshold ends an
-  # episode across any gap with no recorded nights.
+  # episode across any gap this long with no recorded nights.
   UNACCOUNTED_BREAK_NIGHTS = 90
+
+  # Only one of several entries sharing an entry date starts an episode. The episode counters
+  # in GrdaWarehouse::Hud::Client walk enrollments in this order and treat the first as an
+  # episode already in progress, so they have to agree with #same_day_duplicate?
+  def self.in_episode_order(enrollments)
+    enrollments.sort_by { |e| [e.entry_date, *episode_tie_break_key(e)] }
+  end
+
+  private_class_method def self.episode_tie_break_key(enrollment)
+    [
+      enrollment.data_source_id.to_i,
+      enrollment.enrollment_group_id.to_s,
+      enrollment.id,
+    ]
+  end
 
   attr_reader :client, :enrollments
 
@@ -45,7 +60,7 @@ class ClientHistory::Calculator
   # separated from it by a full 7-night break: 7+ consecutive nights housed in PH/TH, a gap of
   # 7+ nights in presumed permanent housing (exit destination or prior living situation),
   # or a gap of 90+ nights with nothing recorded.
-  # When several ES/SH/SO entries share the entry date, at any projects, only the lowest-id record is marked.
+  # When several ES/SH/SO entries share the entry date, at any projects, only the record .in_episode_order puts first is marked.
   #
   # @param enrollment [GrdaWarehouse::ServiceHistoryEnrollment] the entry being evaluated
   # @return [Boolean]
@@ -132,12 +147,16 @@ class ClientHistory::Calculator
   end
 
   # Same-day ES/SH/SO entries, whether one stay recorded twice or distinct projects, would all
-  # qualify; the lowest-id record is marked as the episode start.
+  # qualify; only the one .in_episode_order puts first starts the episode. Asking the ordering
+  # rather than repeating its rule is what keeps this in step with the episode counters.
   private def same_day_duplicate?(enrollment)
     chronic_types = HudHelper.util.chronic_project_types
-    enrollments.any? do |e|
-      e.id < enrollment.id && e.entry_date == enrollment.entry_date && chronic_types.include?(e.project_type)
+    same_day = enrollments.select do |e|
+      e.entry_date == enrollment.entry_date && chronic_types.include?(e.project_type)
     end
+    first = self.class.in_episode_order(same_day).first
+
+    first.present? && first.id != enrollment.id
   end
 
   # Permanent housing that is not an HMIS enrollment from the new entry's prior living

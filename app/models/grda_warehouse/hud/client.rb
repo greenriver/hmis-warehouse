@@ -2767,7 +2767,9 @@ module GrdaWarehouse::Hud
         hud_homeless(chronic_types_only: true).to_a
       return 0 unless chronic_enrollments.any?
 
-      chronic_enrollments = in_episode_order(chronic_enrollments)
+      # The calculator marks only one of several entries sharing an entry date; ordering
+      # through it keeps the record dropped below in agreement with the record it marks.
+      chronic_enrollments = ClientHistory::Calculator.in_episode_order(chronic_enrollments)
 
       # Need to add one to the count of new episodes if the first enrollment in
       # chronic_enrollments doesn't count as a new episode.
@@ -2788,7 +2790,9 @@ module GrdaWarehouse::Hud
         hud_homeless(chronic_types_only: true).to_a
       return [] unless chronic_enrollments.any?
 
-      chronic_enrollments = in_episode_order(chronic_enrollments)
+      # Same ordering requirement as homeless_episodes_between; the first record is treated as
+      # an episode already under way rather than being asked about.
+      chronic_enrollments = ClientHistory::Calculator.in_episode_order(chronic_enrollments)
 
       episodes = []
       initial_chronic_enrollment = chronic_enrollments.first
@@ -2813,7 +2817,6 @@ module GrdaWarehouse::Hud
           episodes << {
             start_date: current_start,
             end_date: current_end,
-            days: days_served.count,
             months: (current_start..current_end).map(&:month).uniq.count,
           }
           current_start = enrollment.first_date_in_program
@@ -2825,7 +2828,6 @@ module GrdaWarehouse::Hud
       episodes << {
         start_date: current_start,
         end_date: current_end,
-        days: days_served.count,
         months: (current_start..current_end).map(&:month).uniq.count,
       }
       episodes
@@ -2873,12 +2875,6 @@ module GrdaWarehouse::Hud
     def new_episode?(residential_enrollments:, enrollment:)
       ClientHistory::Calculator.new(client: self, enrollments: residential_enrollments).
         new_episode?(enrollment: enrollment)
-    end
-
-    # The calculator marks the lowest-id of several same-day entries as the episode start, so
-    # the first record skipped by the counters must be that one.
-    private def in_episode_order(enrollments)
-      enrollments.sort_by { |e| [e.first_date_in_program, e.id] }
     end
 
     # Include extensions at the end so they can override default behavior

@@ -58,7 +58,9 @@ The entry starts a new episode when any one of these holds:
 
 Otherwise the entry continues the previous episode. Entries into non-chronic project types (TH, PH, services-only, etc.) are never flagged as a new episode.
 
-**(e) Same-day tie-break.** Rules (a)–(d) only look at nights before the entry date. Any ES/SH/SO records with the same entry date, whether one stay present in two data sources, entered twice in one, or genuinely separate projects (an SO contact and an ES entry the same day), all qualify. The record with the lowest `ServiceHistoryEnrollment#id` starts the episode. The enrollment roll-up sorts rows by entry date descending and then id descending, so the marked row is the lowest of the same-day rows in the table.
+**(e) Same-day tie-break.** Rules (a)–(d) only look at nights before the entry date. Any ES/SH/SO records with the same entry date, whether one stay present in two data sources, entered twice in one, or genuinely separate projects (an SO contact and an ES entry the same day), all qualify. The one that starts the episode is the first in `ClientHistory::Calculator.in_episode_order`, which sorts on `data_source_id`, then `EnrollmentID`, with `ServiceHistoryEnrollment#id` only as a final tie-break — service history rows are re-inserted on every rebuild, so ordering on `id` alone would let the marked record change between imports with no change in source data.
+
+The episode counters order through that same method: they treat the first record as an episode already in progress rather than asking about it, so the record they skip has to be the record the calculator marks, or a duplicated stay counts twice.
 
 ## The official calculation
 
@@ -97,7 +99,8 @@ The **LSA** computes chronic status inside its own SQL (`drivers/hud_lsa/.../tab
 | Concern | Location |
 |---|---|
 | Rule implementation | `app/models/client_history/calculator.rb` — `#new_episode?`, `HOUSED_BREAK_NIGHTS`, `UNACCOUNTED_BREAK_NIGHTS` |
-| Same-day row ordering that pairs with rule (e) | `client_extension.rb#enrollments_for` — `order(first_date_in_program: :desc, id: :desc)` |
+| Same-day tie-break, rule (e) | `app/models/client_history/calculator.rb` — `.in_episode_order`, used by the calculator and by both episode counters |
+| Same-day row ordering in the roll-up table (display only) | `client_extension.rb#enrollments_for` — `order(first_date_in_program: :desc, id: :desc)` |
 | Night classification consumed by the rules | `GrdaWarehouse::Tasks::ServiceHistory::Enrollment#build_service_days`; see [Service History › Homelessness Classification](service-history.md#homelessness-classification) |
 | HUD code lists | `HudHelper.util` — `chronic_project_types`, `residential_project_type_numbers_by_code`, `permanent_destinations`, `permanent_situations(as: :prior)`, `homeless_situations(as: :prior)` |
 | Dashboard consumer | `drivers/client_access_control/app/models/client_access_control/extensions/grda_warehouse/hud/client_extension.rb` (`enrollments_for`), `app/views/clients/_enrollment_table.haml`; see [Client Dashboards](client-dashboards.md) |
