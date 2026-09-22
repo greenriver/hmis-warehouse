@@ -11,10 +11,20 @@
 # existing cohort data into the expected shape.
 module GrdaWarehouse::Cohorts
   class CohortAnalyticsGeneration < GrdaWarehouseBase
+    # @return [Boolean] false if another run held the lock and this one did no work
     def self.maintain_cohort_intermediate_data
-      maintain_titles
-      maintain_tabs
-      maintain_data
+      did_run = false
+      with_lock do
+        maintain_titles
+        maintain_tabs
+        maintain_data
+        did_run = true
+      end
+      did_run
+    end
+
+    private_class_method def self.with_lock(&block)
+      GrdaWarehouseBase.with_advisory_lock(name.demodulize, timeout_seconds: 0, &block)
     end
 
     def self.maintain_titles
