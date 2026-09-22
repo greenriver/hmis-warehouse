@@ -9,7 +9,6 @@ sources:
   - drivers/hmis/app/models/hmis/access_group.rb
   - drivers/hmis/app/models/hmis/user_group.rb
   - drivers/hmis/app/models/hmis/user_group_member.rb
-  - drivers/hmis/app/models/hmis/user_access_control.rb
   - drivers/hmis/app/models/hmis/group_viewable_entity.rb
   - drivers/hmis/app/models/hmis/project_access_group_member.rb
   - drivers/hmis/app/models/hmis/base_access_loader.rb
@@ -70,8 +69,7 @@ that asks whether an HMIS user may do something. The GraphQL-layer conventions (
 A grant is one `Hmis::AccessControl` row joining one `Hmis::Role` (what), one Collection
 (`Hmis::AccessGroup`, which entities), and one `Hmis::UserGroup` (who). `Hmis::User` reaches
 grants `has_many :access_controls, through: :user_groups`; membership rows are
-`Hmis::UserGroupMember`. `Hmis::UserAccessControl` records a direct user-to-AccessControl
-assignment for admin audit history only; permission evaluation never reads it.
+`Hmis::UserGroupMember`.
 
 A Collection (`Hmis::AccessGroup`) holds `Hmis::GroupViewableEntity` rows (`collection_id`,
 polymorphic `entity`) for Data Sources, Organizations, Projects, and `Hmis::ProjectGroup`s.
@@ -118,7 +116,6 @@ access_denied! unless record && current_user.policy_for(record, policy_type: :hm
 - `drivers/hmis/app/models/hmis/role.rb`: `permissions_with_descriptions`, `grants?`, `required_permissions_for`, `ensure_permissions_exist`, `with_permissions` scope.
 - `drivers/hmis/app/models/hmis/access_group.rb`: Collection; `set_viewables`, `add_viewable`, `contains_with_inherited`.
 - `drivers/hmis/app/models/hmis/user_group.rb`, `user_group_member.rb`: who receives a grant; `add`/`remove` keep paper_trail rows.
-- `drivers/hmis/app/models/hmis/user_access_control.rb`: audit-only direct assignment.
 - `drivers/hmis/app/models/hmis/group_viewable_entity.rb`: `includes_entity`, `includes_any_entity_in_data_source`.
 - `drivers/hmis/app/models/hmis/project_access_group_member.rb`: DB view of project to access group, direct and inherited.
 - `drivers/hmis/app/models/hmis/base_access_loader.rb`: `fetch_one(entity, permission)` behind `can_x_for?`; raw role match, no requirements.
