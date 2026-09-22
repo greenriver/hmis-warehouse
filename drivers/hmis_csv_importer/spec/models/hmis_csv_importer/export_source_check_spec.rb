@@ -108,6 +108,18 @@ RSpec.describe HmisCsvImporter::ExportSourceCheck do
       expect(described_class.new(file_path: path).run.error).to eq(:unverifiable)
     end
 
+    # Reading past MAX_EXPORT_FILE_BYTES leaves 7z with more to write. This
+    # example hangs rather than fails if the read stops being bounded or the
+    # child stops being closed out.
+    it 'gives up on an Export.csv larger than the read cap instead of blocking' do
+      oversized = export_csv + ("x,1,MA-500,Vendor,2026-01-01,2026-06-30\n" * 40_000)
+      path = seven_zip(contents: oversized, name: 'oversized.7z')
+
+      result = Timeout.timeout(60) { described_class.new(file_path: path).run }
+
+      expect(result.error).to eq(:unverifiable)
+    end
+
     # The extension test matches UploadedZip#force_standard_zip exactly, so the
     # check and the import job never disagree about which archives 7z handles.
     it 'does not treat an uppercase .7Z extension as a 7z archive' do

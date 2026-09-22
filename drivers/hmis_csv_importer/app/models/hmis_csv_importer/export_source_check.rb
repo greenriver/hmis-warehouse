@@ -102,20 +102,20 @@ module HmisCsvImporter
     # @return [String, nil] stdout, or nil when 7z failed, timed out, or is absent
     private def run_seven_zip(*args)
       output = nil
-      # -p with no value supplies an empty password, so an encrypted archive fails
-      # instead of blocking on a prompt
-      Open3.popen3(SEVEN_ZIP_BIN, *args, '-p') do |stdin, stdout, stderr, wait_thread|
+      Open3.popen2(SEVEN_ZIP_BIN, *args, '-p', err: File::NULL) do |stdin, stdout, wait_thread|
         stdin.close
         output = stdout.read(MAX_EXPORT_FILE_BYTES)
-        stderr.close
+        # Past the cap 7z still has more to write; closing ends it now rather
+        # than leaving it blocked on a full pipe until the timeout expires
+        stdout.close
         unless wait_thread.join(SEVEN_ZIP_TIMEOUT_SECONDS)
           Process.kill('KILL', wait_thread.pid)
           return nil
         end
         return nil unless wait_thread.value.success?
       end
-      output
-    rescue Errno::ENOENT, Errno::EPIPE
+      output.to_s
+    rescue Errno::ENOENT, Errno::EPIPE, Errno::ESRCH
       nil
     end
 
