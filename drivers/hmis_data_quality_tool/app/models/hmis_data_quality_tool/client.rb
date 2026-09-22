@@ -20,7 +20,15 @@ module HmisDataQualityTool
     pii_attr :reporting_age, as: :age
     pii_attr :ssn
 
-    attr_accessor :enrollments
+    attr_accessor :enrollments, :client_created_at
+
+    REDACTED_PROJECT_NAME = '(Project Name Redacted)'
+    OVERLAP_DETAIL_COLUMNS = [
+      :overlapping_entry_exit_details,
+      :overlapping_nbn_details,
+      :overlapping_pre_move_in_details,
+      :overlapping_post_move_in_details,
+    ].freeze
 
     has_many :hud_reports_universe_members, inverse_of: :universe_membership, class_name: 'HudReports::UniverseMember', foreign_key: :universe_membership_id
     belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client', optional: true
@@ -36,6 +44,38 @@ module HmisDataQualityTool
         []
       else
         enrollments.map { |en| en.project&.id }.compact.uniq
+      end
+    end
+
+    def resolve_project_names(key, value, project_names)
+      return value unless key.to_sym.in?(OVERLAP_DETAIL_COLUMNS)
+
+      self.class.resolve_overlap_project_names(value, project_names)
+    end
+
+    # Project ids referenced by the overlap details, split by whether the enrollment was in the report's projects
+    def overlap_project_ids
+      entries = OVERLAP_DETAIL_COLUMNS.flat_map do |column|
+        Array.wrap(public_send(column)).flatten.map { |en| en.transform_keys(&:to_s) }
+      end
+      outside, inside = entries.partition { |en| en['outside_report'] }
+      {
+        in_report: inside.map { |en| en['project_id'] }.compact.uniq,
+        outside_report: outside.map { |en| en['project_id'] }.compact.uniq,
+      }
+    end
+
+    # Swaps each project_id for the name the viewing user may see.
+    # Entries without a project_id were stored with a name and pass through unchanged.
+    def self.resolve_overlap_project_names(details, project_names)
+      Array.wrap(details).map do |pair|
+        pair.map do |en|
+          en = en.transform_keys(&:to_s)
+          project_id = en.delete('project_id')
+          next en unless project_id
+
+          en.merge('project' => project_names.fetch(project_id, REDACTED_PROJECT_NAME))
+        end
       end
     end
 
@@ -181,6 +221,8 @@ module HmisDataQualityTool
       report_item.name_data_quality = source_client.NameDataQuality
       report_item.dob = source_client.DOB
       report_item.dob_data_quality = source_client.DOBDataQuality
+      # Same fallback chain the APR uses, so the DOB validity checks match Q6a
+      report_item.client_created_at = source_client.DateCreated || source_client.DateUpdated || DateTime.current
       # for simplicity, since we don't have a specific enrollment, calculate age as of the end of the reporting period
       report_item.reporting_age = source_client.age_on(report.filter.end)
       report_item.personal_id = source_client.PersonalID
@@ -199,21 +241,25 @@ module HmisDataQualityTool
       report_item.ssn_data_quality = source_client.SSNDataQuality
       # we need these for calculations, but don't want to store them permanently,
       # also, limit them to those that overlap the projects included and the date range of the report
-      report_item.enrollments = destination_client.source_enrollments.select do |en|
-        # sometimes this loads source enrollments that are missing a project
-        en.open_during_range?(report.filter.range) && en.project&.id&.in?(report.filter.effective_project_ids)
+      in_range_enrollments = destination_client.source_enrollments.select do |en|
+        en.project.present? && en.open_during_range?(report.filter.range)
       end.uniq
-      overlaps = overlapping_entry_exit(enrollments: report_item.enrollments, report: report)
+      report_item.enrollments = in_range_enrollments.select { |en| en.project&.id&.in?(report.filter.effective_project_ids) }
+      # Overlap checks may compare against the client's enrollments outside the report's projects;
+      # everything else on the report item stays limited to the report's projects.
+      overlap_enrollments = report.goal_config.global_overlap_checks ? in_range_enrollments : report_item.enrollments
+      in_report_ids = report_item.enrollments.map(&:id).to_set
+      overlaps = overlapping_entry_exit(enrollments: overlap_enrollments, report: report, in_report_ids: in_report_ids)
       report_item.overlapping_entry_exit = overlaps.count
       report_item.overlapping_entry_exit_details = overlaps.uniq
-      overlaps = overlapping_nbn(enrollments: report_item.enrollments, report: report)
+      overlaps = overlapping_nbn(enrollments: overlap_enrollments, report: report, in_report_ids: in_report_ids)
       report_item.overlapping_nbn = overlaps.count
       report_item.overlapping_nbn_details = overlaps
       # NOTE: this is incorrectly named, this is homeless overlapping PH post move-in
-      overlaps = overlapping_homeless_post_move_in(enrollments: report_item.enrollments, report: report)
+      overlaps = overlapping_homeless_post_move_in(enrollments: overlap_enrollments, report: report, in_report_ids: in_report_ids)
       report_item.overlapping_pre_move_in = overlaps.count
       report_item.overlapping_pre_move_in_details = overlaps
-      overlaps = overlapping_post_move_in(enrollments: report_item.enrollments, report: report)
+      overlaps = overlapping_post_move_in(enrollments: overlap_enrollments, report: report, in_report_ids: in_report_ids)
       report_item.overlapping_post_move_in = overlaps.count
       report_item.overlapping_post_move_in_details = overlaps.uniq
       report_item.ch_at_most_recent_entry = report_item.enrollments&.max_by(&:EntryDate)&.chronically_homeless_at_start?
@@ -222,18 +268,18 @@ module HmisDataQualityTool
     end
 
     # check for overlapping ES entry exit, TH, SH
-    def self.overlapping_entry_exit(enrollments:, report:)
+    def self.overlapping_entry_exit(enrollments:, report:, in_report_ids:)
       involved_enrollments = enrollments.select do |en|
         en.project&.es_entry_exit? || en.project&.sh? || en.project&.th?
       end
 
       return [] if involved_enrollments.blank? || involved_enrollments.count == 1
 
-      ranges_overlap(enrollments: involved_enrollments, report: report)
+      ranges_overlap(enrollments: involved_enrollments, report: report, in_report_ids: in_report_ids)
     end
 
     # check for overlapping PH post-move-in
-    def self.overlapping_post_move_in(enrollments:, report:)
+    def self.overlapping_post_move_in(enrollments:, report:, in_report_ids:)
       involved_enrollments = enrollments.select do |en|
         (en.project&.ph? && ! en.project&.rrh_sso_only?) ||
           (en.project&.other? && en.project.pay_for_success?)
@@ -241,11 +287,11 @@ module HmisDataQualityTool
 
       return [] if involved_enrollments.blank? || involved_enrollments.count == 1
 
-      ranges_overlap(enrollments: involved_enrollments, report: report, start_date_method: :MoveInDate)
+      ranges_overlap(enrollments: involved_enrollments, report: report, in_report_ids: in_report_ids, start_date_method: :MoveInDate)
     end
 
     # Unique set of enrollments that overlap based on service records
-    def self.overlapping_nbn(enrollments:, report:)
+    def self.overlapping_nbn(enrollments:, report:, in_report_ids:)
       nbn_enrollments = enrollments.select do |en|
         en.project&.es_nbn?
       end
@@ -262,6 +308,9 @@ module HmisDataQualityTool
         involved_enrollments.each do |en|
           next if nbn_en.id == en.id
 
+          pair = overlap_pair(nbn_en, en, in_report_ids: in_report_ids)
+          next unless pair
+
           end_date = en.exit&.ExitDate || report.filter.end
           services_in_range = if en.project&.es_nbn?
             en_services = en.services.where(RecordType: 200, DateProvided: [en.EntryDate, end_date]).pluck(:DateProvided)
@@ -270,13 +319,13 @@ module HmisDataQualityTool
             # The en enrollment is not a NBN enrollment, so we need to check for the NBN services overlapping the en enrollment date range
             nbn_en.services.where(RecordType: 200, DateProvided: en.EntryDate..end_date).pluck(:DateProvided)
           end
-          overlaps << [simple_enrollment(nbn_en), simple_enrollment(en)].sort_by { |m| m[:id] } if services_in_range.any?
+          overlaps << pair if services_in_range.any?
         end
       end
       overlaps
     end
 
-    def self.overlapping_homeless_post_move_in(enrollments:, report:)
+    def self.overlapping_homeless_post_move_in(enrollments:, report:, in_report_ids:)
       homeless_enrollments = enrollments.select do |en|
         en.project&.es? || en.project&.sh? || en.project&.th?
       end
@@ -292,22 +341,28 @@ module HmisDataQualityTool
 
       overlaps = Set.new
       homeless_enrollments.each do |h_en|
+        pairs = involved_enrollments.filter_map do |en|
+          pair = overlap_pair(h_en, en, in_report_ids: in_report_ids)
+          [en, pair] if pair
+        end
+        next if pairs.empty?
+
         homeless_end_date = [h_en.exit&.ExitDate, report.filter.end].compact.min
         homeless_dates = if h_en.project&.es? && h_en.project.bed_night_tracking?
           h_en.services.where(RecordType: 200, DateProvided: [h_en.EntryDate, homeless_end_date]).pluck(:DateProvided)
         else
           h_en.EntryDate...homeless_end_date
         end
-        involved_enrollments.each do |en|
+        pairs.each do |en, pair|
           housed_dates = en.EntryDate..[en.exit&.ExitDate, report.filter.end].compact.min
-          overlaps << [simple_enrollment(h_en), simple_enrollment(en)].sort_by { |m| m[:id] } if (homeless_dates.to_a & housed_dates.to_a).any?
+          overlaps << pair if (homeless_dates.to_a & housed_dates.to_a).any?
         end
       end
       overlaps
     end
 
     # compare each enrollment to every other one and see if there are overlaps
-    def self.ranges_overlap(enrollments:, report:, start_date_method: :EntryDate)
+    def self.ranges_overlap(enrollments:, report:, in_report_ids:, start_date_method: :EntryDate)
       overlaps = Set.new
       enrollments.product(enrollments).each do |batch|
         batch.each do |en|
@@ -325,28 +380,39 @@ module HmisDataQualityTool
 
             end_date2 = en2.exit&.ExitDate || report.filter.end
             # three dots because starting on the end date is allowed, sorted by id so we can distinct later
-            overlaps << [simple_enrollment(en), simple_enrollment(en2)].sort_by { |m| m[:id] } if (start_date...end_date).overlaps?(start_date2...end_date2)
+            pair = overlap_pair(en, en2, in_report_ids: in_report_ids)
+            overlaps << pair if pair && (start_date...end_date).overlaps?(start_date2...end_date2)
           end
         end
       end
       overlaps
     end
 
-    def self.simple_enrollment(enrollment)
-      # Using hash access to accommodate both objects and hashes
-      project_name = if enrollment.is_a?(GrdaWarehouse::Hud::Enrollment)
-        enrollment.project&.name # always confidentialized
-      else
-        enrollment[:project]
-      end
+    # A pair is only reported when at least one enrollment is in the report's projects;
+    # sorted by id so identical pairs found from either side dedupe.
+    def self.overlap_pair(en_a, en_b, in_report_ids:)
+      a_in_report = in_report_ids.include?(en_a.id)
+      b_in_report = in_report_ids.include?(en_b.id)
+      return unless a_in_report || b_in_report
 
-      {
-        id: enrollment[:id],
-        entry_date: enrollment[:entry_date],
-        move_in_date: enrollment[:move_in_date],
-        exit_date: enrollment.try(:[], :exit_date) || enrollment.exit&.exit_date,
-        project: project_name,
+      [
+        simple_enrollment(en_a, in_report: a_in_report),
+        simple_enrollment(en_b, in_report: b_in_report),
+      ].sort_by { |m| m[:id] }
+    end
+
+    # Stores project_id rather than a name so the name can be resolved against the viewing user when displayed.
+    def self.simple_enrollment(enrollment, in_report: true)
+      simple = {
+        id: enrollment.id,
+        entry_date: enrollment.EntryDate,
+        move_in_date: enrollment.MoveInDate,
+        exit_date: enrollment.exit&.ExitDate,
+        project_id: enrollment.project&.id,
       }
+      return simple if in_report
+
+      simple.merge(outside_report: true)
     end
 
     def self.sections(_)
@@ -422,7 +488,7 @@ module HmisDataQualityTool
         },
         dob_issues: {
           title: 'DOB',
-          description: 'DOB is blank, before Oct. 10 1910, DOB is after an entry date, or DOB Data Quality is not collected, but DOB is present',
+          description: 'DOB is blank, DOB Data Quality is not "Full DOB reported" (1), DOB is before Jan. 1 1915, or DOB is after the client record was created, an enrollment record was created, or an entry date',
           required_for: 'All',
           detail_columns: [
             :destination_client_id,
@@ -436,14 +502,16 @@ module HmisDataQualityTool
           ],
           denominator: ->(_item) { true },
           limiter: ->(item) {
-            # DOB is Blank
+            # DOB is blank; the APR counts these regardless of DOB Data Quality
             return true if item.dob.blank?
-            # DOB Quality is 99 or blank but dob is present?
-            return true if item.dob.present? && (item.dob_data_quality.blank? || item.dob_data_quality == 99)
-            # before 10/10/1910
-            return true if item.dob.present? && item.dob <= '1910-10-10'.to_date
-            # in the future
-            return true if item.dob >= Date.tomorrow
+            # Any response other than "Full DOB reported" is an error when a DOB is present.
+            # The APR normalizes 8, 9 and any unexpected value to 99 before counting Q6a.
+            return true unless item.dob_data_quality == 1
+            # before 1/1/1915
+            return true if item.dob < '1915-01-01'.to_date
+            # recorded before the client or the enrollment existed
+            return true if item.dob > item.client_created_at
+            return true if item.enrollments.any? { |en| en.DateCreated.present? && item.dob > en.DateCreated }
             # after any entry date
             return true if item.enrollments.any? { |en| en.EntryDate < item.dob }
 
@@ -452,7 +520,7 @@ module HmisDataQualityTool
         },
         ssn_issues: {
           title: 'Social Security Number',
-          description: 'SSN is blank but SSN Data Quality is "Full SSN reported" (1), SSN is present but SSN Data Quality is not 1 or "Approximate or partial SSN reported" (2), or SSN Data Quality is "Data not collected" (99) or blank, or SSN is all zeros',
+          description: 'SSN is blank, SSN Data Quality is not "Full SSN reported" (1), or the value is not a valid Social Security Number',
           required_for: 'All',
           detail_columns: [
             :destination_client_id,
@@ -466,21 +534,19 @@ module HmisDataQualityTool
           ],
           denominator: ->(_item) { true },
           limiter: ->(item) {
-            # SSN DQ is 99
-            return true if item.ssn_data_quality == 99 || item.ssn_data_quality.blank?
-            # SSN is Blank, but indicated it should be there
-            return true if item.ssn.blank? && item.ssn_data_quality == 1
-            # SSN is present but DQ indicates it shouldn't be
-            return true if item.ssn.present? && ! item.ssn_data_quality.in?([1, 2])
-            # SSN all zeros
-            return true if (item.ssn =~ /^0+$/).present?
+            # SSN is blank; the APR counts these regardless of SSN Data Quality
+            return true if item.ssn.blank?
+            # Any response other than "Full SSN reported" is an error when an SSN is present
+            return true unless item.ssn_data_quality == 1
+            # Full SSN reported, but the value isn't one
+            return true unless HudHelper.util.valid_social?(item.ssn)
 
             false
           },
         },
         name_issues: {
           title: 'Name',
-          description: 'First or last name is blank but Name Data Quality is "Full name reported" (1), name is present but Name Data Quality is not 1 or "Partial, street name, or code name reported" (2), or Name Data Quality is "Data not collected" (99) or blank',
+          description: 'First or last name is blank, or Name Data Quality is not "Full name reported" (1)',
           required_for: 'All',
           detail_columns: [
             :destination_client_id,
@@ -493,12 +559,10 @@ module HmisDataQualityTool
           ],
           denominator: ->(_item) { true },
           limiter: ->(item) {
-            # Name DQ is 99
-            return true if item.name_data_quality == 99 || item.name_data_quality.blank?
-            # Name is Blank, but indicated it should be there
-            return true if [item.first_name, item.last_name].any?(nil) && item.name_data_quality == 1
-            # Name is present but DQ indicates it shouldn't be
-            return true if [item.first_name, item.last_name].all?(&:present?) && ! item.name_data_quality.in?([1, 2])
+            # A missing name is an error regardless of Name Data Quality
+            return true if item.first_name.blank? || item.last_name.blank?
+            # Any response other than "Full name reported" is an error
+            return true unless item.name_data_quality == 1
 
             false
           },

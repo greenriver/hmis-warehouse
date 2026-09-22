@@ -12,7 +12,9 @@ module ClientSearch
     # @param text [String] search term
     # @param sorted [Boolean] will attempt ordering against search term it seems to be free-text
     # @param resolve_for_join_query [Boolean] return results as sub query of (client_id, score) suitable for joins
-    def self.text_searcher(text, sorted:, resolve_for_join_query: false)
+    # @param exclude_ids_for_name_and_ssn [Enumerable, nil] ids to exclude from the SSN-exact-match and
+    #   free-text name-matching branches only; no-op unless passed
+    def self.text_searcher(text, sorted:, resolve_for_join_query: false, exclude_ids_for_name_and_ssn: nil)
       return none unless text.present?
 
       text = text.strip
@@ -38,6 +40,7 @@ module ClientSearch
         where = sa[:PersonalID].matches(text.gsub('-', ''))
       elsif social
         where = sa[:SSN].eq(text.gsub('-', ''))
+        where = where.and(sa[:id].not_in(exclude_ids_for_name_and_ssn.to_a)) if exclude_ids_for_name_and_ssn.present?
       elsif date
         (month, day, year) = text.split('/')
         where = sa[:DOB].eq("#{year}-#{month}-#{day}")
@@ -66,20 +69,20 @@ module ClientSearch
         ## At this point, term could be an alpha-numeric ID or a human name. To avoid having to combine fuzzy name
         ## search with these other conditions, first check if the term matches external ids. If no matches are
         ## found, we do an early return with name-search results.
-        # matches_external_ids = where(search_by_external_id(never_cond, text)).any? if ENV['ALPHANUMERIC_HMIS_EXTERNAL_IDS'] && alpha_numeric && respond_to?(:search_by_external_id) && RailsDrivers.loaded.include?(:hmis_external_apis)
         matches_external_ids = false
         unless matches_external_ids
           # short circuit the rest of search. Since no external IDS are found, this seems to be free text and we can just return
           # name search results
-          return ClientSearchUtil::NameSearch.perform_as_joinable_query(term: text, clients: self) if resolve_for_join_query
+          name_search_scope = exclude_ids_for_name_and_ssn.present? ? self.where.not(id: exclude_ids_for_name_and_ssn) : self
+          return ClientSearchUtil::NameSearch.perform_as_joinable_query(term: text, clients: name_search_scope) if resolve_for_join_query
 
-          return ClientSearchUtil::NameSearch.perform(term: text, clients: self, sorted: sorted)
+          return ClientSearchUtil::NameSearch.perform(term: text, clients: name_search_scope, sorted: sorted)
         end
       end
 
       # dummy condition to start the OR chain. This method needs refactoring
       where ||= never_cond
-      where = search_by_external_id(where, text) if alpha_numeric && respond_to?(:search_by_external_id) && RailsDrivers.loaded.include?(:hmis_external_apis) && HmisExternalApis::AcHmis::Mci.enabled?
+      where = search_by_external_id(where, text) if alpha_numeric && respond_to?(:search_by_external_id) && HmisExternalApis::AcHmis::Mci.enabled?
 
       results = nil
       if numeric && term_is_possibly_pk

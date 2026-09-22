@@ -875,6 +875,7 @@ type CeClientsPaginated {
   nodesCount: Int!
   offset: Int!
   pagesCount: Int!
+  searchQueryId: String
 }
 
 type CeCustomReferralStatus {
@@ -1564,6 +1565,7 @@ type CeReferralSourceHouseholdMember {
   The name of the client. Returns masked name if the user does not have permission to view the client name.
   """
   clientName: String!
+  exitDate: ISO8601Date
   id: ID!
   relationshipToHoH: RelationshipToHoH!
 }
@@ -1691,6 +1693,7 @@ type CeReferralsPaginated {
   nodesCount: Int!
   offset: Int!
   pagesCount: Int!
+  searchQueryId: String
 }
 
 type CeSwimlane {
@@ -5181,6 +5184,7 @@ type FormIdentifierAccess {
 }
 
 input FormIdentifierFilterOptions {
+  formType: [FormRole!]
   searchTerm: String
 }
 
@@ -7973,6 +7977,11 @@ enum PickListType {
   Continuum Projects
   """
   CONTINUUM_PROJECTS
+
+  """
+  Form types that the user can create
+  """
+  CREATABLE_FORM_TYPES
   CURRENT_LIVING_SITUATION
   CUSTOM_SERVICE_CATEGORIES
   CUSTOM_SERVICE_TYPES
@@ -8005,7 +8014,7 @@ enum PickListType {
   EXTERNAL_FORM_TYPES_FOR_PROJECT
 
   """
-  Form Types
+  Form types visible in the Forms admin tool
   """
   FORM_TYPES
   GEOCODE
@@ -11970,7 +11979,6 @@ enum ServiceSubTypeProvided {
 }
 
 type ServiceType {
-  category: String!
   createdBy: ApplicationUser
   dateCreated: ISO8601DateTime
   dateDeleted: ISO8601DateTime
@@ -11990,9 +11998,23 @@ type ServiceType {
   user: ApplicationUser
 }
 
+enum ServiceTypeFilterOptionSupportsBulkAssignment {
+  """
+  No
+  """
+  NO
+
+  """
+  Yes
+  """
+  YES
+}
+
 input ServiceTypeFilterOptions {
   includeHudServices: Boolean
   searchTerm: String
+  serviceCategory: [ID!]
+  supportsBulkAssignment: ServiceTypeFilterOptionSupportsBulkAssignment
 }
 
 """

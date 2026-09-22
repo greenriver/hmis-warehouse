@@ -14,6 +14,12 @@ FactoryBot.define do
     description { '' }
   end
 
+  factory :touch_point_report_instance, class: 'GrdaWarehouse::WarehouseReports::TouchPoint' do
+    user { nil }
+    parameters { {} }
+    data { {} }
+  end
+
   factory :core_demographics_report, class: 'GrdaWarehouse::WarehouseReports::ReportDefinition' do
     report_group { 'Reports' }
     url { 'core_demographics_report/warehouse_reports/core' }
@@ -47,6 +53,13 @@ FactoryBot.define do
     url { 'warehouse_reports/client_lookups' }
     name { 'Client PersonalID Lookup' }
     description { 'Mapping table to translate warehouse IDs to HMIS Personal IDs' }
+  end
+
+  factory :data_source_report, class: 'GrdaWarehouse::WarehouseReports::ReportDefinition' do
+    report_group { 'Operational Reports' }
+    url { 'data_source_report/warehouse_reports/reports' }
+    name { 'Data Source Report' }
+    description { '' }
   end
 
   factory :access_logs_report, class: 'GrdaWarehouse::WarehouseReports::ReportDefinition' do

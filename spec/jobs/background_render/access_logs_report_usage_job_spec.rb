@@ -20,6 +20,9 @@ RSpec.describe BackgroundRender::AccessLogsReportUsageJob do
     JSON.parse(node['data-access-logs-usage-report-data-value'])
   end
 
+  after { GrdaWarehouse::Config.invalidate_cache }
+  before { Rails.cache.clear }
+
   it 'renders the usage-report content with a resolved report name and a linked user label' do
     ActivityLog.create!(
       user: target_user,

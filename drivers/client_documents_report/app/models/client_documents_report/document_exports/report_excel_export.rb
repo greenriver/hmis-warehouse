@@ -58,8 +58,9 @@ module ClientDocumentsReport::DocumentExports
           # find_each doesn't support ordering the SQL, so we'll pluck the ids and loop over slices
           report.clients.order(:last_name, :first_name).pluck(:id).each_slice(1_000) do |slice|
             report.clients.where(id: slice).order(:last_name, :first_name).each do |client|
+              pii = GrdaWarehouse::PiiProvider.new(client, policy: user.reporting_policy_for_client(client: client, mode: :download))
               row = [client.id]
-              row += [client.last_name, client.first_name] if GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
+              row += [pii.last_name, pii.first_name] if GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
               row << report.required_documents(client).count
               row << report.optional_documents(client).count
               row << report.overall_documents(client).count

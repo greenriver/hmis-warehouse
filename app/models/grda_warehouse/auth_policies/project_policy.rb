@@ -29,8 +29,6 @@ class GrdaWarehouse::AuthPolicies::ProjectPolicy < GrdaWarehouse::AuthPolicies::
 
   # can the user see the project locations (on a map)
   memoize def can_view_project_locations?
-    return false unless RailsDrivers.loaded.include?(:client_location_history)
-
     resource_permissions.include?(:can_view_project_locations)
   end
 

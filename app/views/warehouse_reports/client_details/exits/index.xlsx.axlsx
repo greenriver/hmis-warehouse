@@ -15,12 +15,14 @@ wb.add_worksheet(name: "Exit Detail #{GrdaWarehouse::WarehouseReports::Dashboard
     'Destination',
     'Exit From',
   ] + GrdaWarehouse::Hud::Client.race_fields.map { |m| HudHelper.util.race(m).gsub('None', 'Race None') }, style: title)
+  current_user.policy_context.preload_project_dependencies(@report.clients.map { |e| e.project.id })
   @report.clients.each do |enrollment|
     client = enrollment.client
+    pii = client.project_pii_provider(project: enrollment.project, user: current_user, mode: :download)
     row = [
       enrollment.client_id,
-      ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads) ? client.FirstName : 'Redacted',
-      ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads) ? client.LastName : 'Redacted',
+      pii.first_name,
+      pii.last_name,
       enrollment.last_date_in_program,
       enrollment.destination,
       enrollment.project.name(current_user),

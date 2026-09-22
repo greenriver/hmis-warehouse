@@ -1,6 +1,6 @@
 {
   "$id": "open-path-schemas/csv-2026-custom-file-schema.json",
-  "$schema": "http://json-schema.org/draft-06/schema#",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "additionalProperties": false,
   "title": "HMIS CSV Twenty Twenty Six Custom File Configuration",
   "type": "object",
@@ -36,6 +36,11 @@
           "description": "Whether this file is required in imports",
           "default": false
         },
+        "hmis_owned": {
+          "type": "boolean",
+          "description": "Whether this file's warehouse table is owned by the HMIS app for HMIS-backed data sources, and should be excluded from loading/importing for them",
+          "default": false
+        },
         "description": {
           "type": "string",
           "description": "Human-readable description of the file's purpose"
@@ -62,6 +67,15 @@
           "type": "string",
           "description": "Full class name of the importer to use for augmentation",
           "pattern": "^[A-Z][A-Za-z0-9:]*$"
+        },
+        "augments_export_class": {
+          "type": "string",
+          "description": "Full class name of the exporter to use for augmentation",
+          "pattern": "^[A-Z][A-Za-z0-9:]*$"
+        },
+        "export_limiting_column": {
+          "type": "string",
+          "description": "Name of the column whose warehouse_column_mapping.value_mappings limits which rows are exported"
         },
         "columns": {
           "type": "array",
@@ -183,6 +197,14 @@
           "type": "string",
           "description": "Target column name in the warehouse table"
         },
+        "export_type": {
+          "type": "string",
+          "description": "Export-specific mapping type; takes precedence over 'type' when exporting (e.g. 'lookup' for a dynamic association join)"
+        },
+        "target_related_column": {
+          "type": "string",
+          "description": "Column on the joined association to select, for an export_type: lookup mapping"
+        },
         "value_mappings": {
           "oneOf": [
             {
@@ -270,20 +292,6 @@
         "type"
       ],
       "allOf": [
-        {
-          "if": {
-            "properties": {
-              "type": {
-                "const": "direct"
-              }
-            }
-          },
-          "then": {
-            "required": [
-              "target_column"
-            ]
-          }
-        },
         {
           "if": {
             "properties": {

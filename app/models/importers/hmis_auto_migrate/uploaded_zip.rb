@@ -7,8 +7,6 @@
 # frozen_string_literal: true
 
 require 'zip'
-require 'pty'
-require 'expect'
 module Importers::HmisAutoMigrate
   class UploadedZip < Base
     def initialize(
@@ -44,6 +42,8 @@ module Importers::HmisAutoMigrate
       force_standard_zip
     end
 
+    # rubyzip, which the rest of the importer uses to read the upload, can open
+    # neither a .7z archive nor an encrypted zip.
     private def force_standard_zip
       zip_file = reconstitute_upload
       return unless @file_password.present? || File.extname(zip_file) == '.7z'
@@ -58,12 +58,15 @@ module Importers::HmisAutoMigrate
 
         # options = {}
         # options = { password: @file_password } if @file_password.present?
-        cmd = if @file_password.present?
-          "7z e -p#{@file_password} -o#{tmp_folder} \"#{zip_file}\""
-        else
-          "7z e -o#{tmp_folder} \"#{zip_file}\""
-        end
-        system(cmd)
+        # @file_password comes from the data source's HMIS import config; passing
+        # system a single string would hand it to a shell, which runs whatever it contains.
+        args = ['e']
+        args << "-p#{@file_password}" if @file_password.present?
+        # system returns false instead of raising, and a failed extraction leaves
+        # tmp_folder empty for the zip built below, which is then saved over the
+        # stored upload.
+        raise "7z was unable to extract #{File.basename(zip_file)}" unless system('7z', *args, "-o#{tmp_folder}", zip_file)
+
         # File.open(zip_file, 'rb') do |seven_zip|
         #   SevenZipRuby::Reader.open(seven_zip, options) do |szr|
         #     szr.extract_all(tmp_folder)
@@ -74,7 +77,7 @@ module Importers::HmisAutoMigrate
         # Make sure we don't have any old zip files around
         FileUtils.rm(dest_file) if File.exist? dest_file
         files = Dir.glob(File.join(tmp_folder, '*')).map { |f| File.basename(f) }
-        Zip::File.open(dest_file, Zip::File::CREATE) do |zipfile|
+        Zip::File.open(dest_file, create: true) do |zipfile|
           files.each do |filename|
             zipfile.add(
               File.join(File.basename(tmp_folder), filename),
@@ -86,36 +89,11 @@ module Importers::HmisAutoMigrate
       else # for now, assume standard zip is the only other option
         dest_file = zip_file.gsub('.zip', '_decrypted.zip')
 
-        Tempfile.create('expect', Rails.root.join(::File.dirname(zip_file)).to_s) do |expect_script|
-          expect_content = <<~EXPECT
-            #!/usr/bin/expect -f
-
-            set force_conservative 0  ;# set to 1 to force conservative mode even if
-                                      ;# script wasn't run conservatively originally
-            if {$force_conservative} {
-              set send_slow {1 .1}
-              proc send {ignore arg} {
-                sleep .1
-                exp_send -s -- $arg
-              }
-            }
-
-            set timeout -1
-            spawn zipcloak -d --output-file "#{Rails.root.join(dest_file)}" "#{Rails.root.join(zip_file)}"
-            match_max 100000
-            expect -exact "Enter password: "
-            send -- "#{@file_password}\r"
-            expect eof
-
-            send_user "\n $expect_out(buffer) \n"
-          EXPECT
-          expect_script.write(expect_content)
-          expect_script.close
-          FileUtils.chmod(0o770, expect_script.path)
-          system(expect_script.path)
-        end
-        # for some reason we need a bit of sand after talking to zipcloak
-        sleep(5)
+        ZipCloak.decrypt(
+          source: Rails.root.join(zip_file),
+          destination: Rails.root.join(dest_file),
+          password: @file_password,
+        )
       end
 
       add_content_to_upload_and_save(file_path: dest_file)
@@ -125,7 +103,7 @@ module Importers::HmisAutoMigrate
       # rezip files
       zip_file_path = File.join(@local_path, @upload.hmis_zip.filename.to_s)
       files = Dir.glob(File.join(@local_path, '*')).map { |f| File.basename(f) }
-      Zip::File.open(zip_file_path, Zip::File::CREATE) do |zipfile|
+      Zip::File.open(zip_file_path, create: true) do |zipfile|
         files.each do |filename|
           zipfile.add(
             filename,

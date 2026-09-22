@@ -54,5 +54,39 @@ RSpec.describe AccessControlUpload, type: :model do
         expect(Collection.find_by_name('Approved Reports').reports.count).to eq(2)
       end
     end
+    # import! runs in a Delayed::Job, so nothing sets whodunnit for it the way
+    # ApplicationController does for a request
+    it 'attributes the versions it writes to the uploading user' do
+      GrdaWarehouse::WarehouseReports::ReportDefinition.maintain_report_definitions
+      access_control_upload.pre_process!
+      # Only inspect versions this import wrote, rather than relying on PaperTrail
+      # being disabled for everything that ran before it
+      max_version_id = GrPaperTrail::Version.maximum(:id) || 0
+      PaperTrailHelper.with_paper_trail do
+        # nothing outside the request cycle sets these
+        PaperTrail.request(whodunnit: nil, controller_info: {}) do
+          access_control_upload.import!
+        end
+      end
+
+      versioned_types = [
+        Role.sti_name,
+        UserGroup.sti_name,
+        UserGroupMember.sti_name,
+        AccessControl.sti_name,
+        Collection.sti_name,
+        Agency.sti_name,
+        User.sti_name,
+      ]
+      versions = GrPaperTrail::Version.
+        where(id: (max_version_id + 1)..).
+        where(item_type: versioned_types, event: 'create')
+      aggregate_failures do
+        expect(versions.count).to be > 0
+        expect(versions.map(&:item_type).uniq).to contain_exactly(*versioned_types)
+        expect(versions.pluck(:whodunnit).uniq).to eq([access_control_upload.user_id.to_s])
+        expect(versions.pluck(:user_id).uniq).to eq([access_control_upload.user_id])
+      end
+    end
   end
 end

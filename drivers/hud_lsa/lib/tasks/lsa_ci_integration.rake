@@ -8,11 +8,11 @@
 
 # Requires `docker compose --profile lsa up -d mssql`
 # run with: rails driver:hud_lsa:ci_integration_test
-desc 'Run the FY2026 LSA end-to-end against SQL Server and compare output to fixtures'
+desc 'Run the FY2027 LSA end-to-end against SQL Server and compare output to fixtures'
 task ci_integration_test: :environment do
   scopes = [:lsa, :hic]
   passed = scopes.map do |scope|
-    HudLsa::Fy2026::CiIntegrationCheck.run!(scope: scope)
+    HudLsa::Fy2027::CiIntegrationCheck.run!(scope: scope)
   end
 
   if passed.all?

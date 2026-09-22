@@ -1040,7 +1040,7 @@ module GrdaWarehouse::Hud
     def self.revoke_expired_consent
       if release_duration.in?(['One Year', 'Two Years'])
         # This doesn't trigger callbacks (e.g., papertrail)
-        where(c_t[:consent_form_signed_on].lteq(consent_validity_period.ago.to_date)).
+        where(c_t[:consent_form_signed_on].lt(consent_validity_period.ago.to_date)).
           update_all(
             housing_release_status: nil,
             consented_coc_codes: [],
@@ -1098,6 +1098,15 @@ module GrdaWarehouse::Hud
         release_valid? && consent_expires_on.present? && consent_expires_on >= Date.current
       else
         release_valid?
+      end
+    end
+
+    def consent_expiration_date
+      case release_duration
+      when 'One Year', 'Two Years'
+        consent_form_signed_on && consent_form_signed_on + self.class.consent_validity_period
+      when 'Use Expiration Date'
+        consent_expires_on
       end
     end
 
@@ -1404,13 +1413,34 @@ module GrdaWarehouse::Hud
     # pii provider for use on client dashboard
     memoize def pii_provider(user:)
       policy = user.policy_for(self)
+      policy = GrdaWarehouse::PiiProvider.restrict(policy, restricted: pii_restricted?(user: user))
       GrdaWarehouse::PiiProvider.new(self, policy: policy)
     end
 
     # pii provider for use in reports and bulk view
     def project_pii_provider(project:, user:, mode:)
-      policy = user.reporting_policy_for_project(project_id: project.id, mode: mode)
+      policy = user.reporting_policy_for_project(project_id: project.id, mode: mode, client_id: id)
       GrdaWarehouse::PiiProvider.new(self, policy: policy)
+    end
+
+    # Whether this client's PII is blocked because they, or a client sharing their warehouse
+    # identity, is marked restricted in HMIS. Absolute: no warehouse permission overrides it.
+    def pii_restricted?(user:)
+      user.policy_context.client_restricted?(id)
+    end
+
+    # All currently HMIS-restricted client ids (source and destination alike -- restriction
+    # applies to the whole warehouse identity, see RestrictedClientLoader).
+    def self.hmis_restricted_source_client_ids
+      GrdaWarehouse::AuthPolicies::ContextLoaders::RestrictedClientLoader.new.restricted_client_ids
+    end
+
+    # The subset of the given destination client ids that are HMIS-restricted.
+    def self.hmis_restricted_destination_client_ids(destination_client_ids)
+      return Set.new if destination_client_ids.blank?
+
+      loader = GrdaWarehouse::AuthPolicies::ContextLoaders::RestrictedClientLoader.new
+      destination_client_ids.select { |id| loader.restricted?(id) }.to_set
     end
 
     def name
@@ -1818,11 +1848,13 @@ module GrdaWarehouse::Hud
     # @param client_scope [GrdaWarehouse::Hud::Client.source] source clients to search in
     # @param sorted [Boolean] order results by closest match to text
     # @param with_score [Boolean] add the match score as a #score attribute on results.
-    def self.text_search(text, client_scope: nil, sorted: false, with_score: false)
+    # @param restricted_source_ids [Set<Integer>] source client ids hidden from name/SSN matching;
+    #   pass a preloaded set when calling repeatedly, otherwise it is loaded per call
+    def self.text_search(text, client_scope: nil, sorted: false, with_score: false, restricted_source_ids: hmis_restricted_source_client_ids)
       # Get search results from client scope. Then return the unique destination client records that map to those matching source records
       relation = (client_scope || self) # rubocop:disable Style/RedundantParentheses
       # with resolve_for_join_query, results are client.scope.select(:client_id, :score) suitable for subquery
-      results = relation.searchable.text_searcher(text, sorted: sorted, resolve_for_join_query: true)
+      results = relation.searchable.text_searcher(text, sorted: sorted, resolve_for_join_query: true, exclude_ids_for_name_and_ssn: restricted_source_ids)
       return relation.none if results.nil?
 
       grouped = GrdaWarehouse::WarehouseClient.
@@ -1899,6 +1931,7 @@ module GrdaWarehouse::Hud
         where(id: matching_ids).
         preload(:destination_client).
         map { |m| m.destination_client.id }
+      ids -= hmis_restricted_destination_client_ids(ids).to_a
       where(id: ids)
     end
 
@@ -2189,8 +2222,9 @@ module GrdaWarehouse::Hud
     def potential_matches
       @potential_matches ||= {}.tap do |m|
         scores_by_id = {}
+        restricted_source_ids = self.class.hmis_restricted_source_client_ids
         potential_match_search_queries.each do |query|
-          self.class.text_search(query, client_scope: self.class, sorted: true, with_score: true).where.not(id: id).each do |candidate|
+          self.class.text_search(query, client_scope: self.class, sorted: true, with_score: true, restricted_source_ids: restricted_source_ids).where.not(id: id).each do |candidate|
             score = candidate.score.to_f
             scores_by_id[candidate.id] = score if scores_by_id[candidate.id].nil? || score > scores_by_id[candidate.id]
           end
@@ -2734,14 +2768,17 @@ module GrdaWarehouse::Hud
 
     # NOTE: if you are calculating these in batches, you should pass in arrays of enrollments and chronic enrollments
     def homeless_episodes_between start_date:, end_date:, residential_enrollments: nil, chronic_enrollments: nil
-      residential_enrollments ||= service_history_enrollments.residential.entry.order(first_date_in_program: :asc)
+      residential_enrollments ||= service_history_enrollments.residential.entry.includes(:enrollment).order(first_date_in_program: :asc)
       return 0 unless residential_enrollments.any?
 
       chronic_enrollments ||= service_history_enrollments.entry.
         open_between(start_date: start_date, end_date: end_date).
-        hud_homeless(chronic_types_only: true).
-        order(first_date_in_program: :asc).to_a
+        hud_homeless(chronic_types_only: true).to_a
       return 0 unless chronic_enrollments.any?
+
+      # The calculator marks only one of several entries sharing an entry date; ordering
+      # through it keeps the record dropped below in agreement with the record it marks.
+      chronic_enrollments = ClientHistory::Calculator.in_episode_order(chronic_enrollments)
 
       # Need to add one to the count of new episodes if the first enrollment in
       # chronic_enrollments doesn't count as a new episode.
@@ -2754,14 +2791,17 @@ module GrdaWarehouse::Hud
     end
 
     def length_of_episodes start_date:, end_date:, residential_enrollments: nil, chronic_enrollments: nil
-      residential_enrollments ||= service_history_enrollments.residential.entry.order(first_date_in_program: :asc)
+      residential_enrollments ||= service_history_enrollments.residential.entry.includes(:enrollment).order(first_date_in_program: :asc)
       return [] unless residential_enrollments.any?
 
       chronic_enrollments ||= service_history_enrollments.entry.
         open_between(start_date: start_date, end_date: end_date).
-        hud_homeless(chronic_types_only: true).
-        order(first_date_in_program: :asc, last_date_in_program: :asc).to_a
+        hud_homeless(chronic_types_only: true).to_a
       return [] unless chronic_enrollments.any?
+
+      # Same ordering requirement as homeless_episodes_between; the first record is treated as
+      # an episode already under way rather than being asked about.
+      chronic_enrollments = ClientHistory::Calculator.in_episode_order(chronic_enrollments)
 
       episodes = []
       initial_chronic_enrollment = chronic_enrollments.first
@@ -2786,7 +2826,6 @@ module GrdaWarehouse::Hud
           episodes << {
             start_date: current_start,
             end_date: current_end,
-            days: days_served.count,
             months: (current_start..current_end).map(&:month).uniq.count,
           }
           current_start = enrollment.first_date_in_program
@@ -2798,7 +2837,6 @@ module GrdaWarehouse::Hud
       episodes << {
         start_date: current_start,
         end_date: current_end,
-        days: days_served.count,
         months: (current_start..current_end).map(&:month).uniq.count,
       }
       episodes
@@ -2835,12 +2873,17 @@ module GrdaWarehouse::Hud
     end
 
     def program_tooltip_data_for_enrollment(enrollment, user)
-      ClientHistory::EnrollmentView.new(enrollment: enrollment, user: user).program_tooltip_data_for_enrollment
+      enrollment_view_for(user).program_tooltip_data_for_enrollment(enrollment)
+    end
+
+    private def enrollment_view_for(user)
+      @enrollment_views ||= {}
+      @enrollment_views[user.id] ||= ClientHistory::EnrollmentView.new(user: user)
     end
 
     def new_episode?(residential_enrollments:, enrollment:)
-      ClientHistory::Calculator.new(client: self).
-        new_episode?(residential_enrollments: residential_enrollments, enrollment: enrollment)
+      ClientHistory::Calculator.new(client: self, enrollments: residential_enrollments).
+        new_episode?(enrollment: enrollment)
     end
 
     # Include extensions at the end so they can override default behavior

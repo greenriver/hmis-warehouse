@@ -32,6 +32,25 @@ For a collection of resources on an index page, prefer using a helper to render 
   render_paginated_list(scope: @data_sets, item_name: 'data set', list_partial: 'list')
 ```
 
+### Preloading auth dependencies on paginated warehouse views
+
+A project-access policy check per row on a page of records N+1s unless data is preloaded first. When the page is paginated, it must be preloaded against the **paginated** page, not the full unpaginated relation — calling `.to_a`/`pluck` on the pre-pagination scope just to gather ids for a preload materializes the whole result set and defeats the pagination.
+
+Where pagination happens depends on who owns it, and the preload call goes wherever the paginated set becomes known:
+
+- **Controller paginates** (e.g. via `pagy`) — preload right after, before rendering:
+
+  ```ruby
+  @pagy, @clients = pagy(scope, items: pagination_limit)
+  current_user.policy_context.preload_project_dependencies(@clients.map(&:project_id).compact.uniq)
+  ```
+
+- **View paginates** (e.g. `render_paginated_list`, which calls `pagy` internally and passes the resulting page as `list` to the partial) — preload inside the partial that receives `list`, not in the controller action that built the pre-pagination scope.
+
+  A download/export format serving the full (unpaginated) list is a separate code path with its own preload over the full set it actually iterates — don't try to share one preload call between a paginated html view and an unpaginated xlsx export of the same action.
+
+Client restriction needs no preload of this kind. `client_restricted?` is backed by `RestrictedClientLoader`, which loads the whole restricted-client set once per request (memoized on `User#policy_context`) rather than per page — see [PII Redaction](features/warehouse/warehouse-auth-policies.md#pii-redaction). Just call `pii_provider`/`client_restricted?` per row; there's nothing to preload first.
+
 ### View Helper methods
 
 Avoid defining global view helpers on ApplicationHelper unless the helper is truly global in scope. Instead constrain the helper to just the controllers where it is used.
@@ -240,10 +259,6 @@ A new report driver adds its own `belongs_to` to the shared `HudReports::Univers
 
 HUD-report drivers define their own `<Driver>::BaseController < ::HudReports::BaseController` (not `ApplicationController` directly), and all other controllers in that driver inherit from it. Drivers outside the report framework may inherit `ApplicationController` directly instead — follow whichever base your driver extends.
 
-### `RailsDrivers.loaded` is legacy
-
-`RailsDrivers.loaded << :driver_name` in a driver's feature initializer is boilerplate carried forward through technical debt — all drivers are always loaded. `RailsDrivers.loaded.include?(...)` is legacy code slated for cleanup; do not write new code that gates behavior on it.
-
 ## GraphQL
 
 HMIS GraphQL authorization is documented in detail in [HMIS Permissions](features/hmis/hmis-permissions.md). That page is the accurate description of the RBAC model (roles, collections, policies, requirements). This section is the prescriptive pattern for *where* checks belong in schema code.
@@ -313,7 +328,7 @@ access_field do
 end
 ```
 
-This is the current standard for new access fields ([ADR 0006](adr/0006-policy-based-graphql-access-fields.md)). Legacy `root_can` / `composite_perm` / `can` still exist — don't flag them on sight, but write new fields this way. `current_permission?` is likewise legacy; don't add new usages.
+This is the current standard for new access fields ([ADR 0006](adr/0006-policy-based-graphql-access-fields.md)). Legacy `can` still exists — don't flag it on sight, but write new fields this way. `current_permission?` is likewise legacy; don't add new usages.
 
 ### Mutation authorization
 

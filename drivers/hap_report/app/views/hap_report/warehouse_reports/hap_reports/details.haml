@@ -12,9 +12,11 @@
         %th= name.humanize
     %tbody
       - @members.each do |member|
+        - policy = GrdaWarehouse::PiiProvider.restrict(GrdaWarehouse::AuthPolicies::AllowPiiPolicy.instance, restricted: current_user.policy_context.client_restricted?(member.client_id))
+        - pii = GrdaWarehouse::PiiProvider.new(member, policy: policy)
         %tr
-          %td= member[:first_name]
-          %td= member[:last_name]
+          %td= pii.first_name
+          %td= pii.last_name
           - client_details = member.universe_membership
           - attributes.each do |attribute|
             %td= client_details[attribute]

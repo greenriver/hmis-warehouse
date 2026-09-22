@@ -74,7 +74,7 @@
       %h3 Permission Scheme
       .well
         = f.input :permission_context, as: :select_two, label: 'Permission Version', hint: 'Unless you know what you are doing, you should leave this as "Role-Based Access" for the time-being.', collection: User.available_permission_contexts.invert, include_blank: false
-    - if RailsDrivers.loaded.include?(:superset) && Superset.available?
+    - if Superset.available?
       .form-access-control
         %h3 OP Analytics Superset Configuration
         .well

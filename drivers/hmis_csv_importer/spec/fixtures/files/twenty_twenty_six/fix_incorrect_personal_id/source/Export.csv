@@ -1,0 +1,2 @@
+ExportID,SourceType,SourceID,SourceName,SourceContactFirst,SourceContactLast,SourceContactPhone,SourceContactExtension,SourceContactEmail,ExportDate,ExportStartDate,ExportEndDate,SoftwareName,SoftwareVersion,CSVVersion,ExportPeriodType,ExportDirective,HashStatus,ImplementationID
+PERSONALID-TEST,3,,Fix Incorrect Personal IDs,Automated,Export,,,,2020-07-07 00:00:00,2020-01-01	,2020-06-30,Test HMIS,1,2026 v1.0,3,3,1,Fix Incorrect Personal IDs

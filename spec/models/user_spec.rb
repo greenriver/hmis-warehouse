@@ -7,6 +7,7 @@
 # frozen_string_literal: true
 
 require 'rails_helper'
+require_relative '../../drivers/hmis/spec/requests/hmis/login_and_permissions'
 
 RSpec.describe User, type: :model do
   let(:user) { create :user }
@@ -388,6 +389,255 @@ RSpec.describe User, type: :model do
       user = build(:user, password: 'alllowercase123', password_confirmation: 'alllowercase123')
 
       expect(user).to be_valid
+    end
+  end
+
+  describe '#can_sign_in_to_hmis_data_source?' do
+    include LoginAndPermissionsSpecHelper
+
+    let(:ds) { create(:hmis_primary_data_source) }
+    let(:user) { create(:user) }
+
+    before { create_access_control(user.as_hmis_user, ds, without_permission: [:can_administer_hmis]) }
+
+    it 'is true for a user with HMIS access in a live HMIS' do
+      expect(user.can_sign_in_to_hmis_data_source?(ds)).to eq(true)
+    end
+
+    it 'is false before the go-live time for a user who cannot administer HMIS' do
+      ds.update!(hmis_go_live_at: 1.day.from_now)
+      expect(user.can_sign_in_to_hmis_data_source?(ds)).to eq(false)
+    end
+
+    it 'is false for a user with no HMIS access in the data source' do
+      expect(create(:user).can_sign_in_to_hmis_data_source?(ds)).to eq(false)
+    end
+  end
+
+  describe '.hmis_users' do
+    let!(:hmis_user) { create(:user) }
+    let!(:group_only_user) { create(:user) }
+    let!(:plain_user) { create(:user) }
+    let!(:revoked_user) { create(:user) }
+
+    before do
+      create(:hmis_access_control, with_users: [hmis_user])
+      create(:hmis_user_group).add([group_only_user])
+      create(:hmis_access_control, with_users: [revoked_user]).destroy!
+    end
+
+    it 'returns only users reachable from a live Hmis::AccessControl through a user group' do
+      expect(User.hmis_users).to contain_exactly(hmis_user)
+    end
+
+    it 'chains with other User scopes' do
+      expect(User.where(id: [hmis_user.id, plain_user.id]).hmis_users).to contain_exactly(hmis_user)
+    end
+  end
+
+  describe '.current_or_former_hmis_users' do
+    let!(:hmis_user) { create(:user) }
+    let!(:revoked_grant_user) { create(:user) }
+    let!(:removed_member_user) { create(:user) }
+    let!(:group_only_user) { create(:user) }
+    let!(:plain_user) { create(:user) }
+
+    before do
+      create(:hmis_access_control, with_users: [hmis_user])
+      create(:hmis_access_control, with_users: [revoked_grant_user]).destroy!
+      create(:hmis_access_control, with_users: [removed_member_user])
+      Hmis::UserGroupMember.where(user_id: removed_member_user.id).destroy_all
+      create(:hmis_user_group).add([group_only_user])
+    end
+
+    it 'includes users whose HMIS grant or group membership was later removed, but not users who never held one' do
+      expect(User.current_or_former_hmis_users).to contain_exactly(hmis_user, revoked_grant_user, removed_member_user)
+    end
+  end
+
+  describe '.warehouse_users' do
+    let!(:acl_user) { create(:acl_user) }
+    let!(:legacy_role_user) { create(:user) }
+    let!(:hmis_only_user) { create(:user) }
+    let!(:plain_user) { create(:user) }
+
+    before do
+      user_group = create(:user_group)
+      user_group.add([acl_user])
+      create(:access_control, user_group: user_group, role: create(:role), collection: create(:collection))
+      legacy_role_user.legacy_roles << create(:role)
+      create(:hmis_access_control, with_users: [hmis_only_user])
+    end
+
+    it 'returns users with a warehouse access control or a legacy role, but not HMIS-only users' do
+      expect(User.warehouse_users).to contain_exactly(acl_user, legacy_role_user)
+    end
+
+    it 'chains with other User scopes' do
+      expect(User.where(id: [acl_user.id, legacy_role_user.id, hmis_only_user.id]).where.not(id: legacy_role_user.id).warehouse_users).to contain_exactly(acl_user)
+    end
+  end
+
+  describe '#reporting_policy_for_project' do
+    let(:data_source) { create(:data_source_fixed_id) }
+    let(:organization) { create(:hud_organization, data_source: data_source) }
+    let(:project) { create(:grda_warehouse_hud_project, organization: organization, data_source: data_source) }
+
+    it 'returns AllowPiiPolicy when project_id is nil' do
+      expect(user.reporting_policy_for_project(project_id: nil)).to eq(GrdaWarehouse::AuthPolicies::AllowPiiPolicy.instance)
+    end
+
+    it 'wraps AllowPiiPolicy when project_id is nil and the given client is restricted' do
+      allow(user.policy_context).to receive(:client_restricted?).with(42).and_return(true)
+      policy = user.reporting_policy_for_project(project_id: nil, client_id: 42)
+      expect(policy).to be_a(GrdaWarehouse::PiiProvider::RestrictedPolicy)
+      expect(policy.can_view_name?).to eq(false)
+    end
+
+    it 'does not wrap AllowPiiPolicy when project_id is nil and the given client is not restricted' do
+      allow(user.policy_context).to receive(:client_restricted?).with(42).and_return(false)
+      policy = user.reporting_policy_for_project(project_id: nil, client_id: 42)
+      expect(policy).to eq(GrdaWarehouse::AuthPolicies::AllowPiiPolicy.instance)
+    end
+
+    it 'is unaffected by restriction when client_id is not provided' do
+      expect(user.reporting_policy_for_project(project_id: project.id)).to be_a(GrdaWarehouse::AuthPolicies::ProjectPiiPolicy)
+    end
+
+    it 'wraps the resolved policy when the given client is restricted' do
+      allow(user.policy_context).to receive(:client_restricted?).with(42).and_return(true)
+      policy = user.reporting_policy_for_project(project_id: project.id, client_id: 42)
+      expect(policy).to be_a(GrdaWarehouse::PiiProvider::RestrictedPolicy)
+    end
+
+    it 'does not wrap the resolved policy when the given client is not restricted' do
+      allow(user.policy_context).to receive(:client_restricted?).with(42).and_return(false)
+      policy = user.reporting_policy_for_project(project_id: project.id, client_id: 42)
+      expect(policy).to be_a(GrdaWarehouse::AuthPolicies::ProjectPiiPolicy)
+    end
+
+    context 'when project_id is nil and mode is :download' do
+      it 'denies name access when include_pii_in_detail_downloads is off' do
+        allow(GrdaWarehouse::Config).to receive(:get).with(:include_pii_in_detail_downloads).and_return(false)
+        policy = user.reporting_policy_for_project(project_id: nil, mode: :download)
+        expect(policy.can_view_name?).to eq(false)
+      end
+
+      it 'allows name access when include_pii_in_detail_downloads is on' do
+        allow(GrdaWarehouse::Config).to receive(:get).with(:include_pii_in_detail_downloads).and_return(true)
+        policy = user.reporting_policy_for_project(project_id: nil, mode: :download)
+        expect(policy.can_view_name?).to eq(true)
+      end
+
+      it 'denies name access for a restricted client even when include_pii_in_detail_downloads is on' do
+        allow(GrdaWarehouse::Config).to receive(:get).with(:include_pii_in_detail_downloads).and_return(true)
+        allow(user.policy_context).to receive(:client_restricted?).with(42).and_return(true)
+        policy = user.reporting_policy_for_project(project_id: nil, mode: :download, client_id: 42)
+        expect(policy.can_view_name?).to eq(false)
+      end
+    end
+
+    context 'with a real HMIS-restricted client and project-level name access' do
+      let(:acl_user) { create(:acl_user) }
+      let(:role) { create(:role, can_view_client_name: true) }
+      let(:collection) { create(:collection) }
+      let!(:hmis_ds) { create(:hmis_primary_data_source) }
+      let!(:hmis_user) { create(:hmis_user, data_source: hmis_ds) }
+      let!(:restricted_source_client) { create(:hmis_hud_client, data_source: hmis_ds) }
+      let!(:restricted_destination_client) { create(:grda_warehouse_hud_client) }
+      let!(:open_source_client) { create(:hmis_hud_client, data_source: hmis_ds) }
+      let!(:open_destination_client) { create(:grda_warehouse_hud_client) }
+
+      before do
+        Collection.maintain_system_groups
+        collection.set_viewables({ projects: [project.id] })
+        setup_access_control(acl_user, role, collection)
+        GrdaWarehouse::WarehouseClient.create!(destination_id: restricted_destination_client.id, source_id: restricted_source_client.id, data_source_id: hmis_ds.id, id_in_source: restricted_source_client.id.to_s)
+        GrdaWarehouse::WarehouseClient.create!(destination_id: open_destination_client.id, source_id: open_source_client.id, data_source_id: hmis_ds.id, id_in_source: open_source_client.id.to_s)
+        restricted_source_client.mark_as_restricted!(user: hmis_user)
+      end
+
+      after { GrdaWarehouse::Config.invalidate_cache }
+
+      it 'denies name access for the restricted client and allows it for the unrestricted client in browse mode' do
+        restricted_policy = acl_user.reporting_policy_for_project(project_id: project.id, client_id: restricted_destination_client.id)
+        open_policy = acl_user.reporting_policy_for_project(project_id: project.id, client_id: open_destination_client.id)
+
+        expect(restricted_policy.can_view_name?).to eq(false)
+        expect(open_policy.can_view_name?).to eq(true)
+      end
+
+      it 'denies name access for the restricted client in download mode with include_pii_in_detail_downloads on, and allows it for the unrestricted client' do
+        GrdaWarehouse::Config.first_or_create.update!(include_pii_in_detail_downloads: true)
+        GrdaWarehouse::Config.invalidate_cache
+
+        restricted_policy = acl_user.reporting_policy_for_project(project_id: project.id, mode: :download, client_id: restricted_destination_client.id)
+        open_policy = acl_user.reporting_policy_for_project(project_id: project.id, mode: :download, client_id: open_destination_client.id)
+
+        expect(restricted_policy.can_view_name?).to eq(false)
+        expect(open_policy.can_view_name?).to eq(true)
+      end
+    end
+  end
+
+  describe '#reporting_policy_for_client' do
+    let(:destination_data_source) { create(:destination_data_source) }
+    let(:client) { create(:grda_warehouse_hud_client, data_source: destination_data_source) }
+    let!(:warehouse_client) { create(:warehouse_client, destination: client) }
+
+    it 'returns DenyPiiPolicy when client is nil' do
+      expect(user.reporting_policy_for_client(client: nil)).to eq(GrdaWarehouse::AuthPolicies::DenyPiiPolicy.instance)
+    end
+
+    it 'wraps the resolved policy when the given client is restricted' do
+      allow(user.policy_context).to receive(:client_restricted?).with(client.id).and_return(true)
+      policy = user.reporting_policy_for_client(client: client, mode: :browse)
+      expect(policy).to be_a(GrdaWarehouse::PiiProvider::RestrictedPolicy)
+    end
+
+    it 'does not wrap the resolved policy when the given client is not restricted' do
+      allow(user.policy_context).to receive(:client_restricted?).with(client.id).and_return(false)
+      policy = user.reporting_policy_for_client(client: client, mode: :browse)
+      expect(policy).not_to be_a(GrdaWarehouse::PiiProvider::RestrictedPolicy)
+    end
+
+    context 'with a real HMIS-restricted client' do
+      let!(:hmis_ds) { create(:hmis_primary_data_source) }
+      let!(:hmis_user) { create(:hmis_user, data_source: hmis_ds) }
+      let!(:restricted_source_client) { create(:hmis_hud_client, data_source: hmis_ds) }
+      let!(:restricted_destination_client) { create(:grda_warehouse_hud_client) }
+      let!(:open_source_client) { create(:hmis_hud_client, data_source: hmis_ds) }
+      let!(:open_destination_client) { create(:grda_warehouse_hud_client) }
+
+      before do
+        GrdaWarehouse::WarehouseClient.create!(destination_id: restricted_destination_client.id, source_id: restricted_source_client.id, data_source_id: hmis_ds.id, id_in_source: restricted_source_client.id.to_s)
+        GrdaWarehouse::WarehouseClient.create!(destination_id: open_destination_client.id, source_id: open_source_client.id, data_source_id: hmis_ds.id, id_in_source: open_source_client.id.to_s)
+        restricted_source_client.mark_as_restricted!(user: hmis_user)
+        # Stub the base PII policy permissive so the assertions below are attributable
+        # only to the real Hmis::RestrictedRecord -> client_restricted? chain, not to
+        # this permission-less user's underlying (also-denying) DestinationClientPolicy.
+        allow(user).to receive(:policy_for).and_return(GrdaWarehouse::AuthPolicies::AllowPiiPolicy.instance)
+      end
+
+      it 'redacts PII for a client restricted via a real Hmis::RestrictedRecord, but not for an unrestricted one' do
+        restricted_policy = user.reporting_policy_for_client(client: restricted_destination_client, mode: :browse)
+        open_policy = user.reporting_policy_for_client(client: open_destination_client, mode: :browse)
+
+        expect(restricted_policy.can_view_name?).to eq(false)
+        expect(open_policy.can_view_name?).to eq(true)
+      end
+
+      it 'redacts PII for a restricted source client that has no destination client yet' do
+        unmerged_restricted = create(:hmis_hud_client, data_source: hmis_ds)
+        unmerged_open = create(:hmis_hud_client, data_source: hmis_ds)
+        unmerged_restricted.mark_as_restricted!(user: hmis_user)
+
+        restricted_policy = user.reporting_policy_for_client(client: unmerged_restricted, mode: :browse)
+        open_policy = user.reporting_policy_for_client(client: unmerged_open, mode: :browse)
+
+        expect(restricted_policy.can_view_name?).to eq(false)
+        expect(open_policy.can_view_name?).to eq(true)
+      end
     end
   end
 end

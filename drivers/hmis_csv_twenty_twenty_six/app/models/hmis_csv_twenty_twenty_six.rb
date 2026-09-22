@@ -61,6 +61,10 @@ module HmisCsvTwentyTwentySix
     base_importable_files_map.merge(custom_importable_files_map)
   end
 
+  def self.hmis_owned_filenames
+    custom_files_config.hmis_owned_filenames
+  end
+
   def self.required_files
     ['Export.csv', 'Project.csv', 'Organization.csv'] + custom_files_config.required_filenames
   end

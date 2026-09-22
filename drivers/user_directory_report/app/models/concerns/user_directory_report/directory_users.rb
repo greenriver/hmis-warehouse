@@ -24,4 +24,22 @@ module UserDirectoryReport::DirectoryUsers
     scope = scope.text_search(params[:q]) if params[:q].present?
     scope.order(:last_name, :first_name)
   end
+
+  # Every HMIS installation on this deployment; empty when HMIS is off, which is what
+  # hides the HMIS column from both the screen and the spreadsheet.
+  private def hmis_data_sources
+    @hmis_data_sources ||= GrdaWarehouse::DataSource.enabled_hmis_data_sources
+  end
+
+  # The HMIS installations this user can reach, empty when they can reach none.
+  private def hmis_data_sources_for(user)
+    accessible_ids = hmis_access_by_user_id.fetch(user.id, [])
+    hmis_data_sources.select { |hmis_ds| accessible_ids.include?(hmis_ds.id) }
+  end
+
+  private def hmis_access_by_user_id
+    return @hmis_access_by_user_id if defined?(@hmis_access_by_user_id)
+
+    @hmis_access_by_user_id = hmis_data_sources.any? ? Hmis::User.accessible_hmis_data_source_ids_by_user_id : {}
+  end
 end

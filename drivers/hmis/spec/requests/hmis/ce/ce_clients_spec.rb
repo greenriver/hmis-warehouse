@@ -42,6 +42,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             offset
             limit
             nodesCount
+            searchQueryId
             nodes {
               id
               destinationClientId
@@ -148,6 +149,74 @@ RSpec.describe Hmis::GraphqlController, type: :request do
                            'viewableSourceClientIds' => [client_proxy_in_pool_1_and_2.client.source_clients.sole.id.to_s],
                            'clientName' => 'Alex Ocean'),
         )
+      end
+
+      describe 'searchQueryId persistence' do
+        let(:persisted_params_query) do
+          <<~GRAPHQL
+            query GetPersistedClientSearchParams($id: ID!) {
+              persistedClientSearchParams(id: $id) {
+                id
+                textSearch
+              }
+            }
+          GRAPHQL
+        end
+
+        it 'does not create a ClientSearchQuery when searchTerm is absent' do
+          expect do
+            response, result = post_graphql(**variables) { query }
+            expect(response.status).to eq(200), result.inspect
+            expect(result.dig('data', 'ceClients', 'searchQueryId')).to be_nil
+          end.not_to change(Hmis::ClientSearchQuery, :count)
+        end
+
+        it 'creates a ClientSearchQuery and returns searchQueryId when searching by name' do
+          expect do
+            response, result = post_graphql(filters: { searchTerm: 'Clearwater' }) { query }
+            expect(response.status).to eq(200), result.inspect
+
+            expect(result.dig('data', 'ceClients', 'nodes')).to contain_exactly(
+              a_hash_including('id' => client_proxy_in_pool_1.id.to_s),
+            )
+
+            query_id = result.dig('data', 'ceClients', 'searchQueryId')
+            expect(query_id).to be_present
+
+            search_query = Hmis::ClientSearchQuery.find(query_id)
+            expect(search_query.params).to eq('text_search' => 'Clearwater')
+            expect(search_query.created_by).to eq(hmis_user)
+            expect(search_query.data_source_id).to eq(ds1.id)
+          end.to change(Hmis::ClientSearchQuery, :count).by(1)
+        end
+
+        it 'reuses an existing ClientSearchQuery for the same term and user' do
+          existing = create(
+            :hmis_client_search_query,
+            created_by: hmis_user,
+            data_source: ds1,
+            params: { 'text_search' => 'Clearwater' },
+          )
+
+          expect do
+            response, result = post_graphql(filters: { searchTerm: 'Clearwater' }) { query }
+            expect(response.status).to eq(200), result.inspect
+            expect(result.dig('data', 'ceClients', 'searchQueryId')).to eq(existing.id)
+          end.not_to change(Hmis::ClientSearchQuery, :count)
+        end
+
+        it 'restores textSearch through persistedClientSearchParams for the creating user' do
+          response, result = post_graphql(filters: { searchTerm: 'Ocean' }) { query }
+          expect(response.status).to eq(200), result.inspect
+          query_id = result.dig('data', 'ceClients', 'searchQueryId')
+
+          response, result = post_graphql(id: query_id) { persisted_params_query }
+          expect(response.status).to eq(200), result.inspect
+          expect(result.dig('data', 'persistedClientSearchParams')).to include(
+            'id' => query_id,
+            'textSearch' => 'Ocean',
+          )
+        end
       end
 
       context 'with ce waitlist configuration disabled for p1' do

@@ -410,6 +410,65 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     end
   end
 
+  describe 'OPEN_HOH_ENROLLMENTS_FOR_PROJECT' do
+    let!(:exited_household_member) do
+      create(
+        :hmis_hud_enrollment,
+        data_source: ds1,
+        project: p1,
+        household_id: e1.household_id,
+        relationship_to_ho_h: 3,
+        user: u1,
+        exit_date: Date.current,
+      )
+    end
+
+    let!(:mixed_hoh_client) do
+      create(:hmis_hud_client, data_source: ds1, user: u1, first_name: 'Mira', last_name: 'Mixedhh')
+    end
+    let!(:mixed_hoh) do
+      create(
+        :hmis_hud_enrollment,
+        data_source: ds1,
+        project: p1,
+        client: mixed_hoh_client,
+        household_id: 'mixed-household',
+        relationship_to_ho_h: 1,
+        user: u1,
+      )
+    end
+    let!(:open_mixed_household_member) do
+      create(
+        :hmis_hud_enrollment,
+        data_source: ds1,
+        project: p1,
+        household_id: mixed_hoh.household_id,
+        relationship_to_ho_h: 3,
+        user: u1,
+      )
+    end
+    let!(:exited_mixed_household_member) do
+      create(
+        :hmis_hud_enrollment,
+        data_source: ds1,
+        project: p1,
+        household_id: mixed_hoh.household_id,
+        relationship_to_ho_h: 3,
+        user: u1,
+        exit_date: Date.current,
+      )
+    end
+
+    it 'counts only open household members in enrollment labels' do
+      response, result = post_graphql(pick_list_type: 'OPEN_HOH_ENROLLMENTS_FOR_PROJECT', project_id: p1.id.to_s) { query }
+      expect(response.status).to eq 200
+
+      options = result.dig('data', 'pickList').index_by { |option| option['code'] }
+      expect(options.fetch(e1.id.to_s)['label']).not_to include('and')
+      expect(options.fetch(mixed_hoh.id.to_s)['label']).to include("#{mixed_hoh_client.brief_name} and 1 other")
+    end
+  end
+
   describe 'PROJECTS_RECEIVING_DIRECT_CE_REFERRALS' do
     let!(:sending_project) { create(:hmis_hud_project, data_source: ds1, organization: o1, user: u1) }
     let!(:receiving_project) { create(:hmis_hud_project, data_source: ds1, user: u1) }
@@ -565,6 +624,54 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       let!(:workflow_template) { create(:hmis_workflow_definition_template, data_source: ce_project.data_source, template_type: 'ce_referral', status: 'published') }
 
       it_behaves_like 'returns empty pick list'
+    end
+  end
+
+  describe 'FORM_TYPES' do
+    def form_type_codes(pick_list_type = 'FORM_TYPES')
+      response, result = post_graphql(pick_list_type: pick_list_type) { query }
+      expect(response.status).to eq 200
+      result.dig('data', 'pickList').pluck('code')
+    end
+
+    it 'includes distinct form roles visible in Admin → Forms' do
+      create(:hmis_form_definition, data_source: ds1, identifier: 'visible_service', role: 'SERVICE')
+      create(:hmis_form_definition, data_source: ds1, identifier: 'visible_update', role: 'UPDATE')
+      create(:hmis_form_definition, data_source: ds1, identifier: 'hidden_static', role: 'PROJECT_CONFIG')
+      create(:hmis_form_definition, identifier: 'other_data_source', role: 'CASE_NOTE')
+
+      codes = form_type_codes
+      expect(codes).to include('SERVICE', 'UPDATE')
+      expect(codes).not_to include('PROJECT_CONFIG', 'CASE_NOTE')
+    end
+
+    it 'returns no roles without permission to configure data collection' do
+      create(:hmis_form_definition, data_source: ds1, identifier: 'visible_service', role: 'SERVICE')
+      remove_permissions(access_control, :can_configure_data_collection)
+      expect(form_type_codes).to be_empty
+    end
+  end
+
+  describe 'CREATABLE_FORM_TYPES' do
+    def form_type_codes
+      response, result = post_graphql(pick_list_type: 'CREATABLE_FORM_TYPES') { query }
+      expect(response.status).to eq 200
+      result.dig('data', 'pickList').pluck('code')
+    end
+
+    # Default access_control is all permissions (super-admin).
+    it 'includes roles that the user can create' do
+      codes = form_type_codes
+      expect(codes).to include('SERVICE', 'CUSTOM_ASSESSMENT', 'INTAKE', 'CURRENT_LIVING_SITUATION')
+      expect(codes).not_to include('REFERRAL', 'REFERRAL_REQUEST', 'CE_REFERRAL_STEP', 'PROJECT_CONFIG', 'FORM_RULE')
+    end
+
+    context 'when the user cannot administrate config' do
+      before { remove_permissions(access_control, :can_administrate_config) }
+
+      it 'includes only forms creatable by non-super-admins' do
+        expect(form_type_codes).to contain_exactly('SERVICE', 'CUSTOM_ASSESSMENT')
+      end
     end
   end
 

@@ -464,6 +464,7 @@ module Admin
             # User params will never include system user groups in user_group_ids, re-add any of those before saving
             result[:user_group_ids] ||= []
             result[:user_group_ids] += @user.user_groups.system.pluck(:id)
+            result[:agency_id] = agency_scope.where(id: result[:agency_id]).pick(:id) if result.key?(:agency_id)
           end.
           except(*externally_managed_param_keys)
       end
@@ -505,7 +506,15 @@ module Admin
       private def set_user
         @user = User.find(params[:id].to_i)
 
-        @agencies = Agency.order(:name)
+        set_agencies
+      end
+
+      private def set_agencies
+        @agencies = agency_scope.order(:name)
+      end
+
+      private def agency_scope
+        Agency.all
       end
 
       private def perform_search(search_params = {})

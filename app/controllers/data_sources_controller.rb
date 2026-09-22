@@ -21,9 +21,11 @@ class DataSourcesController < ApplicationController
       data_source_scope
     end
     @pagy, @data_sources = pagy(@data_sources.order(name: :asc))
-    # @data_spans_by_id = GrdaWarehouse::DataSource.data_spans_by_id
-    @client_counts = @data_sources.map { |ds| [ds.id, ds.client_count] }.to_h
-    @project_counts = @data_sources.map { |ds| [ds.id, ds.project_count] }.to_h
+    data_source_ids = @data_sources.map(&:id)
+    @client_counts = GrdaWarehouse::DataSource.client_counts_by_id(data_source_ids)
+    @project_counts = GrdaWarehouse::DataSource.project_counts_by_id(data_source_ids)
+    @unprocessed_enrollment_counts = GrdaWarehouse::DataSource.unprocessed_enrollment_counts_by_id(data_source_ids)
+    @stalled_dates = GrdaWarehouse::DataSource.stalled_dates_by_id(data_source_ids)
   end
 
   def show
@@ -34,13 +36,14 @@ class DataSourcesController < ApplicationController
     if @require_coc_choice && params[:coc_code].blank?
       @coc_summaries = @data_source.coc_summaries(viewable_projects)
     else
-      @organizations = load_organizations
+      @organizations = load_organizations.to_a
       if @require_coc_choice
         @coc_display_name = params[:coc_code] == 'unknown' ? Translation.translate('Unknown CoC') : HudHelper.util.coc_name(params[:coc_code])
         @coc_project_count = project_scope.count
-        @organizations = @organizations.to_a
         @coc_org_count = @organizations.size
         @coc_project_types = @organizations.flat_map(&:projects).map(&:ProjectType).uniq
+      else
+        @project_types = @organizations.flat_map(&:projects).map(&:ProjectType).uniq
       end
     end
   end
@@ -109,6 +112,7 @@ class DataSourcesController < ApplicationController
         :service_scannable,
         :obey_consent,
         :hmis,
+        :hmis_go_live_at,
         projects_attributes:
         [
           :id,
@@ -137,6 +141,7 @@ class DataSourcesController < ApplicationController
         :service_scannable,
         :obey_consent,
         :hmis,
+        :hmis_go_live_at,
       )
   end
 

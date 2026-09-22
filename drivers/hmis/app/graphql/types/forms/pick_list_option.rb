@@ -163,17 +163,9 @@ module Types
       when 'PROJECTS_RECEIVING_REFERRALS'
         projects_receiving_referrals(user.hmis_data_source_id)
       when 'FORM_TYPES'
-        # Used in the dropdown of form roles when creating/editing a form. We need a permission check here because
-        # not all users can access all form types:
-        form_types = if user.policy_for(Hmis::Form::Definition, policy_type: :form_definition).can_administrate_config?
-          # Super-admins should be able to select any form type when creating a form
-          Hmis::Form::Definition.form_role_enum_map.members
-        else
-          # Other users should only see the limited list roles that we have designated for general editing, like service and custom assessment
-          Hmis::Form::Definition.non_admin_form_role_enum_map.members
-        end
-
-        form_types.map { |ft| { code: ft[:value], label: ft[:desc] } }
+        visible_form_types_picklist(user: user)
+      when 'CREATABLE_FORM_TYPES'
+        creatable_form_types_picklist(user: user)
       when 'CONTINUUM_PROJECTS'
         Hmis::Hud::Project.
           where(data_source_id: user.hmis_data_source_id, continuum_project: true).
@@ -401,6 +393,27 @@ module Types
       end
     end
 
+    # Form types that appear in the Forms admin table, for filtering that table
+    def self.visible_form_types_picklist(user:)
+      return [] unless user.policy_for(Hmis::Form::Definition, policy_type: :form_definition).can_configure_forms?
+
+      visible_roles = Hmis::Form::Definition.configurable_by(user).latest_versions.distinct.pluck(:role)
+      form_types_picklist { |form_type| visible_roles.include?(form_type[:value]) }
+    end
+
+    # Form types the user can create, for the dropdown when creating a new form
+    def self.creatable_form_types_picklist(user:)
+      policy = user.policy_for(Hmis::Form::Definition, policy_type: :form_definition)
+      form_types_picklist { |form_type| policy.can_create?(role: form_type[:value]) }
+    end
+
+    def self.form_types_picklist(&included)
+      Hmis::Form::Definition.form_role_enum_map.members.
+        select(&included).
+        map { |form_type| { code: form_type[:value], label: form_type[:desc] } }
+    end
+    private_class_method :form_types_picklist
+
     def self.hud_service_types_picklist(user:)
       scope = Hmis::Hud::CustomServiceType.in_data_source(user.hmis_data_source_id).hud
       service_types_picklist(scope: scope)
@@ -543,7 +556,7 @@ module Types
         open_excluding_wip.
         heads_of_households.
         preload(:client).
-        preload(household: :enrollments).
+        preload(household: { enrollments: :exit }).
         sort_by_option(:most_recent).
         to_a
 
@@ -552,8 +565,8 @@ module Types
 
       enrollments.map do |en|
         client = en.client
-        household_size = en.household&.enrollments&.size || 0
-        other_size = household_size - 1 # more than hoh
+        open_household_size = en.household&.enrollments&.count { |household_enrollment| household_enrollment.exit&.exit_date.nil? } || 0
+        other_size = open_household_size - 1 # more than hoh
         desc = other_size.positive? ? "and #{other_size} #{'other'.pluralize(other_size)}" : ''
         name = user.policy_for(client, policy_type: :hmis_client).can_view_name? ? client.brief_name : client.masked_name
         {

@@ -139,6 +139,13 @@ RSpec.describe HmisUtil::JsonForms do
       end.to change(Hmis::Form::Definition.where(role: :CUSTOM_ASSESSMENT, identifier: 'cls_assessment'), :count).from(0).to(1)
     end
 
+    it 'does not seed custom assessments in production' do
+      allow(Rails).to receive(:env).and_return(ActiveSupport::EnvironmentInquirer.new('production'))
+      expect do
+        described_class.new(env_key: 'test', generate_cdeds: false, data_source_id: data_source.id).seed_all
+      end.to not_change(Hmis::Form::Definition.where(role: :CUSTOM_ASSESSMENT), :count).from(0)
+    end
+
     it 'does not load test form data when env_key is not test' do
       expect do
         described_class.new(env_key: 'qa_hmis', data_source_id: data_source.id).seed_all

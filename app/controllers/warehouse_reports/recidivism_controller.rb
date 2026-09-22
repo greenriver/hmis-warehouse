@@ -91,10 +91,11 @@ module WarehouseReports
     private def rows_for_export
       rows = []
       @clients.each do |client|
+        pii = GrdaWarehouse::PiiProvider.new(client, policy: current_user.reporting_policy_for_client(client: client, mode: :download))
         @ph_clients[client.id].each do |ph_enrollment|
           @homeless_clients[client.id].each do |enrollment|
             row = [client.id]
-            row += [client.FirstName, client.LastName] if ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
+            row += [pii.first_name, pii.last_name] if ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
             row += [
               ph_enrollment[:project_name],
               ph_enrollment[:first_date_in_program],

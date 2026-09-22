@@ -226,8 +226,6 @@ module ProjectPassFail
     end
 
     private def run_apr(pf_project)
-      return unless RailsDrivers.loaded.include?(:hud_apr)
-
       # We need to pass the correct CoC code to the APR, if we've chosen to run for a CoC, just use that always, otherwise, pull the CoC Codes from the project
       coc_codes = filter[:coc_codes].presence || pf_project.project&.project_cocs&.map(&:effective_coc_code)
       apr_filter = ::Filters::HudFilterBase.new(

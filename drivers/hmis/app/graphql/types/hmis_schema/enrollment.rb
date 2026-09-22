@@ -265,6 +265,8 @@ module Types
     end
 
     def audit_history(filters: nil)
+      access_denied! unless enrollment_policy.can_audit?
+
       scope = GrdaWarehouse.paper_trail_versions.
         where(enrollment_id: object.id).
         where.not(object_changes: nil, event: 'update').

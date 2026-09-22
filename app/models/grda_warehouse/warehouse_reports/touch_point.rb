@@ -51,8 +51,10 @@ module GrdaWarehouse::WarehouseReports
         # NOTE: this is still a second query, but should not bring back the big answers blob a second time
         limited_responses.find_each do |response|
           row = []
-          client_id = response.client.destination_client.id
-          client_name = response.client.destination_client.name
+          destination_client = response.client.destination_client
+          client_id = destination_client.id
+          policy = user.reporting_policy_for_client(client: destination_client, mode: :download)
+          client_name = GrdaWarehouse::PiiProvider.new(destination_client, policy: policy).full_name
           row << client_id
           row << client_name
           row << response.collected_at

@@ -21,5 +21,8 @@
             = Translation.translate('Organizations')
             &amp;
             = Translation.translate('Projects')
-      .table-responsive
-        = render 'organizations'
+      %div{ data: { controller: 'table-filter' } }
+        = render 'project_filters', project_types: @project_types
+        .table-responsive
+          = render 'organizations'
+        .none-found.hide{ data: { 'table-filter-target' => 'noResults' } } No projects found.

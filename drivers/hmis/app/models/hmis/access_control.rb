@@ -17,7 +17,6 @@ class Hmis::AccessControl < ApplicationRecord
   belongs_to :role, class_name: 'Hmis::Role'
   belongs_to :user_group, class_name: '::Hmis::UserGroup', required: false, inverse_of: :access_controls
   has_many :users, through: :user_group
-  has_many :user_access_controls, class_name: 'Hmis::UserAccessControl', inverse_of: :access_control, dependent: :destroy
 
   def entity_name
     "#{role&.name || 'missing role'} x #{access_group&.name || 'missing collection'} x #{user_group&.name || 'missing user group'}"

@@ -141,7 +141,7 @@ module Hmis
       log('Generating Intake/Exit Assessments...')
       Hmis::MigrateAssessmentsJob.perform_now(
         data_source_id: @data_source.id,
-        enrollments: enrollments,
+        enrollment_ids: enrollments.pluck(:id),
         generate_empty_intakes: true,
       )
 

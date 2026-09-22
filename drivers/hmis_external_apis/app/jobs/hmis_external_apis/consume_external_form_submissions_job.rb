@@ -10,18 +10,40 @@
 class HmisExternalApis::ConsumeExternalFormSubmissionsJob < BaseJob
   queue_as ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
 
+  SUBMISSIONS_CREDENTIAL_SLUG = 'hmis_external_form_submissions'
+  ENCRYPTION_KEY_CREDENTIAL_SLUG = 'hmis_external_forms_shared_key'
+
+  def self.enabled?
+    new.enabled?
+  end
+
+  # Needs an HMIS to file submissions against, plus both credentials
+  def enabled?
+    return false unless HmisEnforcement.hmis_enabled? && GrdaWarehouse::DataSource.hmis.exists?
+
+    s3_credential.present? && encryption_key.present?
+  end
+
   def perform(...)
+    return unless enabled?
+
     instrument_as_maintenance_task do |run|
-      _perform(...)
-      run.complete!
+      with_lock do
+        _perform(...)
+        run.complete!
+      end
     end
   end
 
-  def _perform
-    s3 = GrdaWarehouse::RemoteCredentials::S3.for_active_slug('hmis_external_form_submissions')&.s3
-    encryption_key = GrdaWarehouse::RemoteCredentials::SymmetricEncryptionKey.for_active_slug('hmis_external_forms_shared_key')
+  # Retrying is safe, but the hourly rake task re-enqueues this
+  def supports_idempotent_retry?
+    false
+  end
 
-    return unless s3 && encryption_key
+  protected
+
+  def _perform
+    s3 = s3_credential.s3
 
     # This job is run hourly, so 10,000 is an unexpected amount to pile up between runs.
     # Raise so that Sentry alerts and we can investigate malicious activity.
@@ -44,7 +66,18 @@ class HmisExternalApis::ConsumeExternalFormSubmissionsJob < BaseJob
     end
   end
 
-  protected
+  def with_lock(&block)
+    lock_name = self.class.name.demodulize
+    GrdaWarehouseBase.with_advisory_lock(lock_name, timeout_seconds: 0, &block)
+  end
+
+  def s3_credential
+    @s3_credential ||= GrdaWarehouse::RemoteCredentials::S3.for_active_slug(SUBMISSIONS_CREDENTIAL_SLUG)
+  end
+
+  def encryption_key
+    @encryption_key ||= GrdaWarehouse::RemoteCredentials::SymmetricEncryptionKey.for_active_slug(ENCRYPTION_KEY_CREDENTIAL_SLUG)
+  end
 
   def log_error(message, object_key:)
     Sentry.capture_message("external form submission #{object_key}: #{message}")
