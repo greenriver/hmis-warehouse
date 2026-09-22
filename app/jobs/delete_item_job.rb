@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/warehouse/data-sources-and-imports.md
 class DeleteItemJob < BaseJob
   queue_as ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
 

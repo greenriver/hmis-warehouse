@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/warehouse/reports-framework.md
 # abstraction that encapsulates filter behavior previously managed by instance variables and params
 
 class Filters::Criteria::Configuration

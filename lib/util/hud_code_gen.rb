@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hud-reporting/hud-utility-versions.md
 require 'roo'
 module HudCodeGen
   CODEGEN_FILE_HEADER = '# THIS FILE IS GENERATED, DO NOT EDIT DIRECTLY'

@@ -6,6 +6,8 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/authorization/warehouse-policies.md
+# See: docs/domain-pack/authorization/warehouse-legacy-roles.md
 class NotAuthorizedError < StandardError
   attr_reader :message
 

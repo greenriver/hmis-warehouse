@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hmis/forms.md
 module Mutations
   class SubmitForm < BaseMutation
     description 'Submit a form to create/update HUD record(s)'

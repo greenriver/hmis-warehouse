@@ -6,6 +6,9 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hud-reporting/hud-utility-versions.md
+# See: docs/domain-pack/conventions/house-style.md
+# See: docs/domain-pack/conventions/do-not-repeat.md
 # This module provides version-aware access to HUD utility classes and manages
 # the transition between different HUD specification versions. It automatically
 # selects the appropriate utility class based on environment-specific cutoff dates

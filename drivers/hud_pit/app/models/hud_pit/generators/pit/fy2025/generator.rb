@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hud-reporting/report-drivers.md
 # @see docs/features/warehouse/hud-pit-report.md
 module  HudPit::Generators::Pit::Fy2025
   class Generator < ::HudReports::GeneratorBase

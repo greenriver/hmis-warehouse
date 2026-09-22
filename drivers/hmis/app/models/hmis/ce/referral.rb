@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hmis/coordinated-entry.md
 # A referral of an individual client to an opportunity
 module Hmis::Ce
   class Referral < GrdaWarehouseBase

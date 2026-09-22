@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hud-reporting/report-drivers.md
 Rails.application.config.hud_reports['HudSpmReport::Generators::Fy2020::Generator'] = {
   title: 'System Performance Measures',
   helper: 'hud_reports_spms_path',

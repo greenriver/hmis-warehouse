@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hmis/external-apis.md
 module HmisExternalApis::AcHmis
   # A proposed fulfillment of a referral request
   class ReferralPosting < ::HmisExternalApis::HmisExternalApisBase

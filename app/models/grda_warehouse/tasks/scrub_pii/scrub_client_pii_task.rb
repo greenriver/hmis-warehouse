@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/warehouse/pii-and-restricted-clients.md
 module GrdaWarehouse::Tasks::ScrubPii
   # Scrub personally identifiable information (PII) for selected HMIS client-related records.
   # * Selectively scrub personally identifiable information (PII) for HMIS Clients

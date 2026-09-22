@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/authorization/warehouse-access-controls.md
 ##
 # The +EntityAccess+ concern provides methods for managing user access (either
 # viewable or editable) to a given model. It is currently in-use in ProjectGroups and Cohorts

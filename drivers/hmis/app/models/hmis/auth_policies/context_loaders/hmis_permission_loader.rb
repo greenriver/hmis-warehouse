@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/authorization/hmis-permissions.md
 require 'memery'
 
 # Resolves access group IDs into final permission sets for a user.

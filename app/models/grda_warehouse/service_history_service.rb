@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hud-reporting/service-history.md
 # = GrdaWarehouse::ServiceHistoryService
 #
 # ServiceHistoryService flatten HUD Service and related records to serve reporting needs. These records are generated

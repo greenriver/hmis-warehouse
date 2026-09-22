@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/authorization/warehouse-policies.md
 # @see docs/features/warehouse/warehouse-auth-policies.md
 require 'memery'
 

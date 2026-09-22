@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hmis/forms.md
 # Builds an unsaved record for form submission (create path). Resolves associations from input
 # using user (viewable_by). Used by SubmitForm mutation before authorizing create.
 #

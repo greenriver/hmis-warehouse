@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/warehouse/files-and-documents.md
 module TxClientReports
   class ResearchExports::Export < GrdaWarehouse::File
     belongs_to :user

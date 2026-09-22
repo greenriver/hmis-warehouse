@@ -6,6 +6,12 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/warehouse/jobs-and-configuration.md
+# See: docs/domain-pack/warehouse/client-identity.md
+# See: docs/domain-pack/roi/consent-records.md
+# See: docs/domain-pack/roi/consent-from-external-sources.md
+# See: docs/domain-pack/hud-reporting/service-history.md
+# See: docs/domain-pack/hud-reporting/report-framework.md
 module Importing
   class RunDailyImportsJob < BaseJob
     include ActionView::Helpers::DateHelper

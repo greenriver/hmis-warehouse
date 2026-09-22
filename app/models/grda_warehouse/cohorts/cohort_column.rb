@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/warehouse/cohorts.md
 module GrdaWarehouse::Cohorts
   class CohortColumn < GrdaWarehouseBase
     validates :class_name, presence: true, uniqueness: true

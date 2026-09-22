@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hud-reporting/service-history.md
 module ServiceHistory
   class RebuildEnrollmentsByBatchJob < BaseJob
     include ArelHelper

@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hmis/external-apis.md
 module HmisExternalApis
   # https://gitlab.com/oauth-xx/oauth2/
   class OauthClientConnection < ExternalApiConnection

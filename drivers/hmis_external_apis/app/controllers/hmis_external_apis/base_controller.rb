@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hmis/external-apis.md
 module HmisExternalApis
   class BaseController < ApplicationController
     before_action :authorize_request

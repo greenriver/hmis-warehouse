@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/warehouse/pii-and-restricted-clients.md
 # = Hmis::ActivityLog
 #
 # Tracks HMIS request activity for auditing and downstream access summaries.

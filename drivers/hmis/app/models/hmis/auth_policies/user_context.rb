@@ -6,6 +6,8 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hmis/restricted-records-and-multi-hmis.md
+# See: docs/domain-pack/authorization/hmis-permissions.md
 require 'memery'
 
 # Facade that provides authorization context for policy objects.

@@ -6,6 +6,9 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/warehouse/data-sources-and-imports.md
+# See: docs/domain-pack/roi/roi-authorizations-and-visibility.md
+# See: docs/domain-pack/authorization/warehouse-policies.md
 class GrdaWarehouse::AuthPolicies::SourceClientPolicy < GrdaWarehouse::AuthPolicies::BasePolicy
   # expose role permissions. Optionally rename the permission
   [

@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hmis/forms.md
 # Versioned form definition. Contains a structured list of questions, information about how to render them, and information about available options and initial values. Nested recursive structure similar to FHIR Questionnaire.
 #
 # Forms managed in version control have their canonical definitions in json files under drivers/hmis/lib/form_data.

@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/warehouse/data-sources-and-imports.md
 module DataSources
   class CustomImportsController < ApplicationController
     before_action :require_can_edit_data_sources!

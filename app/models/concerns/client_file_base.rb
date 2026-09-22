@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/warehouse/files-and-documents.md
 module ClientFileBase
   extend ActiveSupport::Concern
   include ArelHelper

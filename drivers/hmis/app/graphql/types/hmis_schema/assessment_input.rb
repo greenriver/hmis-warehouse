@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hmis/assessments.md
 module Types
   class HmisSchema::AssessmentInput < Types::BaseInputObject
     argument :form_definition_id, ID, 'Form Definition that was used to perform this assessment', required: true

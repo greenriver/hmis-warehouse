@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hmis/external-apis.md
 module HmisExternalApis::AcHmis
   class ReferralsController < HmisExternalApis::BaseController
     MAX_SIZE = 1_024_000

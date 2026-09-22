@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/warehouse/jobs-and-configuration.md
 class BaseJob < ApplicationJob
   include NotifierConfig
   include MaintenanceTaskInstrumentation

@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hud-reporting/report-framework.md
 module HudReports
   class ReportCheckpoint < GrdaWarehouseBase
     self.table_name = 'hud_report_checkpoints'

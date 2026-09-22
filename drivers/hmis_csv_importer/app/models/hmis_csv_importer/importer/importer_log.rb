@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hud-reporting/csv-import.md
 module HmisCsvImporter::Importer
   class ImporterLog < GrdaWarehouseBase
     include ActionView::Helpers::DateHelper

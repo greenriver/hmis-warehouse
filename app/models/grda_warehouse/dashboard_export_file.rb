@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/warehouse/files-and-documents.md
 module GrdaWarehouse
   class DashboardExportFile < GrdaWarehouse::File
     has_one_attached :dashboard_export_file, dependent: false

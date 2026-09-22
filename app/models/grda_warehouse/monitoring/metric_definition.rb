@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/warehouse/jobs-and-configuration.md
 # @see docs/features/warehouse/metric-tracking.md
 module GrdaWarehouse::Monitoring
   class MetricDefinition < GrdaWarehouseBase

@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hmis/coordinated-entry.md
 module Hmis::Ce::Match::Internal
   # Responsible for translating a pool's `requirement_expression` into a SQL
   # `WHERE` clause to efficiently filter out non-matching clients at the

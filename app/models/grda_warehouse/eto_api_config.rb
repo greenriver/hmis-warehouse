@@ -6,6 +6,8 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/warehouse/data-sources-and-imports.md
+# See: docs/domain-pack/roi/consent-from-external-sources.md
 module GrdaWarehouse
   class EtoApiConfig < GrdaWarehouseBase
     has_paper_trail

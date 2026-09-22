@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hmis/restricted-records-and-multi-hmis.md
 # Resolves the HMIS data source for the request from its host. Included by Hmis::BaseController
 # and by the Devise Hmis::SessionsController, which does not inherit from BaseController.
 module Hmis::Concerns::RequestDataSource

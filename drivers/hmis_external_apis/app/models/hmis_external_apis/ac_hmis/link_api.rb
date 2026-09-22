@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hmis/external-apis.md
 #####
 # DEPRECATED 🚨
 # The LinkApi class has been deprecated. Most methods in this class are deprecated and

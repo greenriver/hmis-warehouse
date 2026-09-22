@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hud-reporting/csv-export.md
 class ExportBaseJob < BaseJob
   include ::ArelHelper
 

@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hud-reporting/csv-import.md
 # Per-CSV import monitoring: alerts when row counts for a specific CSV file change
 # beyond configured numeric thresholds.
 # @see docs/features/warehouse/import-csv-monitoring.md

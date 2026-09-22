@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hud-reporting/hud-utility-versions.md
 module HudUtility2026
   # these modules define class methods (essentially extend)
   include ::Concerns::HudValidationUtil

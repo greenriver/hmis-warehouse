@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hmis/graphql-layer.md
 class Sources::ActiveRecordScope < ::GraphQL::Dataloader::Source
   def initialize(scope, onload: nil)
     @scope = scope

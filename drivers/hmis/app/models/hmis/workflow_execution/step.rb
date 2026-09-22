@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hmis/coordinated-entry.md
 # Represents an individual task instance within a workflow execution.
 # Tracks the state, assignments, and completion data for a specific
 # task node.

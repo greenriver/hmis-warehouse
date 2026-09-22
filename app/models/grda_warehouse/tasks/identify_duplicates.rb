@@ -6,6 +6,8 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/warehouse/client-identity.md
+# See: docs/domain-pack/roi/consent-from-external-sources.md
 # frozen_string_literal: true
 
 require 'memery'

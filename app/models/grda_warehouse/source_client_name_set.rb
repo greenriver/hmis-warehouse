@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/warehouse/client-identity.md
 # SourceClientNameSet aggregates client names from multiple source clients.
 # It provides a unified interface for iterating over all valid client names.
 #

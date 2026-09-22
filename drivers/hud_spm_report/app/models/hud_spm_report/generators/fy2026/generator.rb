@@ -6,6 +6,8 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hud-reporting/report-framework.md
+# See: docs/domain-pack/hud-reporting/report-drivers.md
 module HudSpmReport::Generators::Fy2026
   class Generator < ::HudReports::GeneratorBase
     cattr_accessor :write_detail_path

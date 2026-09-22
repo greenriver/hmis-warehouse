@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/warehouse/client-identity.md
 # NOTE: To force a rebuild that includes data that isn't the dates involved, you need to
 # also set the processed_hash on the enrollment to nil
 

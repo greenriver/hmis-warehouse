@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/authorization/warehouse-access-controls.md
 # @see docs/features/warehouse/warehouse-permissions.md
 #
 # AccessControl is part of the "new" permissions system

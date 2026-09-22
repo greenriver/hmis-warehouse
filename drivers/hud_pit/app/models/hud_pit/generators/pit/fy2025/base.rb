@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hud-reporting/report-drivers.md
 # frozen_string_literal: true
 
 # @see docs/features/warehouse/hud-pit-report.md

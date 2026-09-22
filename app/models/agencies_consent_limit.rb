@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/roi/roi-authorizations-and-visibility.md
 class AgenciesConsentLimit < ApplicationRecord
   belongs_to :agency, optional: true
   belongs_to :consent_limit, optional: true

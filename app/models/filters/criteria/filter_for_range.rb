@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/warehouse/reports-framework.md
 class Filters::Criteria::FilterForRange < Filters::Criteria::Base
   def applies?
     config.include_date_range

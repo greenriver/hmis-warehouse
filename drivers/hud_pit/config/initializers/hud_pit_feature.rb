@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hud-reporting/report-drivers.md
 Rails.application.config.hud_reports['HudPit::Generators::Pit::Fy2022::Generator'] = {
   title: 'Point in Time Count',
   helper: 'hud_reports_pits_path',

@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/warehouse/client-identity.md
 class GrdaWarehouse::IdentifyDuplicatesLog < GrdaWarehouseBase
   self.table_name = 'identify_duplicates_log'
   include ActionView::Helpers::DateHelper

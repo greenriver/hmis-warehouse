@@ -6,6 +6,8 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hmis/graphql-layer.md
+# See: docs/domain-pack/authorization/hmis-graphql-authorization.md
 # Concern shared across query resolves (BaseObject) and mutations (BaseMutation/CleanBaseMutation)
 module GraphqlApplicationHelper
   extend ActiveSupport::Concern

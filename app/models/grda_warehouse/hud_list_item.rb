@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hud-reporting/hud-utility-versions.md
 module GrdaWarehouse
   class HudListItem < GrdaWarehouseBase
     # Maintains a warehouse copy of HUD reference lists for SQL consumers, including

@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hud-reporting/report-drivers.md
 # NOTE: this is a legacy controller and is only used to show previous versions of the HUD Data Quality Report.
 module HudDataQualityReport
   class BaseController < ::HudReports::BaseController

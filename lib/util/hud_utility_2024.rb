@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hud-reporting/hud-utility-versions.md
 module HudUtility2024
   include ::Concerns::HudValidationUtil
   include ::Concerns::HudLists2024

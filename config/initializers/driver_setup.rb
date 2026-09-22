@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/warehouse/driver-architecture.md
 # Replaces the rails_drivers gem's Railtie setup for Zeitwerk and view paths.
 
 # Collapse top-level concerns directories under each driver's app/models, app/controllers,

@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/authorization/warehouse-policies.md
 # PII policy for the cohort grid: name, DOB, photo, and HIV status have always been shown
 # to anyone who can see the cohort, so those stay allowed. The full SSN is gated behind the
 # viewer's global permission -- the same check ApplicationHelper#ssn applies elsewhere -- and

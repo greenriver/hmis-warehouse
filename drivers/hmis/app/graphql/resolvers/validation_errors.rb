@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hmis/graphql-layer.md
 module Resolvers
   class ValidationErrors < Resolvers::Base
     type [Types::HmisSchema::ValidationError], null: false

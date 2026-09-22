@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hmis/assessments.md
 # CE Assessment
 class Hmis::Hud::Assessment < Hmis::Hud::Base
   self.table_name = :Assessment

@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/authorization/hmis-permissions.md
 # Access Loaders allow the efficient loading and caching of a user's permissions for
 # a collection of entities. This is most useful for graphql data loaders
 

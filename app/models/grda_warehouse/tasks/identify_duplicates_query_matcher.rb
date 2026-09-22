@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/warehouse/client-identity.md
 module GrdaWarehouse
   module Tasks
     class IdentifyDuplicatesQueryMatcher

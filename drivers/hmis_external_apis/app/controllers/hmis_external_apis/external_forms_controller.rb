@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hmis/external-apis.md
 class HmisExternalApis::ExternalFormsController < ActionController::Base
   include ::HmisExternalApis::ExternalFormsHelper
   include LogRagePayloadBehavior

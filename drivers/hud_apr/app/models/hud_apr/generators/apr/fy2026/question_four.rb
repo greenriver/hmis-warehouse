@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hud-reporting/report-framework.md
 module HudApr::Generators::Apr::Fy2026
   class QuestionFour < HudApr::Generators::Shared::Fy2026::QuestionFour
     QUESTION_TABLE_NUMBERS = ['Q4a'].freeze

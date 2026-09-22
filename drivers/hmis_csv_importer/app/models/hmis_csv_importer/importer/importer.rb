@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hud-reporting/csv-import.md
 # Reconciles staged HUD CSV data (from the Loader) with the warehouse.
 #
 # The import is authoritative for the projects in Project.csv and the date

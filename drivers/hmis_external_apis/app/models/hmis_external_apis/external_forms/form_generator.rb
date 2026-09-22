@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hmis/external-apis.md
 # render html from a from definition
 module HmisExternalApis::ExternalForms
   class FormGenerator

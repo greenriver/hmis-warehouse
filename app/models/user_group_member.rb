@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/authorization/warehouse-access-controls.md
 class UserGroupMember < ApplicationRecord
   acts_as_paranoid
   has_paper_trail

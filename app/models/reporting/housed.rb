@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/warehouse/driver-architecture.md
 # For now, this only deals with RRH projects
 # require 'get_process_mem'
 module Reporting

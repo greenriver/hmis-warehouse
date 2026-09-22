@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hmis/coordinated-entry.md
 ##
 # Utility for building Coordinated Entry (CE) workflow definitions specific to the AC implementation.
 # Intended for use in scripts and Rake tasks that automate the setup or teardown of AC CE workflows.

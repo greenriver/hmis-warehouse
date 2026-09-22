@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hmis/forms.md
 module Mutations
   # This mutation is only for creating a new draft of a published form.
   # To create a brand-new form, use CreateFormDefinition

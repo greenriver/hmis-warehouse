@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hmis/graphql-layer.md
 module Hmis
   class GraphqlController < Hmis::BaseController
     # If accessing from outside this domain, nullify the session

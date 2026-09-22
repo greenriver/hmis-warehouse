@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/authorization/hmis-permissions.md
 require 'memery'
 
 # @see docs/features/hmis/hmis-auth-policies.md

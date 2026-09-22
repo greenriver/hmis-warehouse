@@ -6,6 +6,8 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/warehouse/pii-and-restricted-clients.md
+# See: docs/domain-pack/authorization/warehouse-policies.md
 # Bag of PII accessors. Attributes are masked conditionally based on the policy
 class GrdaWarehouse::PiiProvider
   attr_reader :policy, :record

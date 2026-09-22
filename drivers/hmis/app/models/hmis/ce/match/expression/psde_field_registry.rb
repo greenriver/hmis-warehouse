@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hmis/coordinated-entry.md
 module Hmis::Ce::Match::Expression
   # Static registry of HUD table fields exposed as flat psde.* CE match expression keys
   # (e.g. psde.total_monthly_income).

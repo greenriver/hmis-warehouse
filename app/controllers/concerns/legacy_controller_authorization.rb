@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/authorization/warehouse-legacy-roles.md
 module LegacyControllerAuthorization
   extend ActiveSupport::Concern
 

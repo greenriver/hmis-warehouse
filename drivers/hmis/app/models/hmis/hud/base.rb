@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hmis/data-model.md
 # frozen_string_literal: true
 
 class Hmis::Hud::Base < ::GrdaWarehouseBase

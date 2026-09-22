@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hmis/forms.md
 # CustomDataElementGenerator is responsible for generating and validating
 # CustomDataElementDefinitions (CDEDs) for a given form definition.
 #

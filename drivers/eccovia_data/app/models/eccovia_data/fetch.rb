@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/warehouse/data-sources-and-imports.md
 module EccoviaData
   class Fetch < GrdaWarehouseBase
     self.table_name = :eccovia_fetches

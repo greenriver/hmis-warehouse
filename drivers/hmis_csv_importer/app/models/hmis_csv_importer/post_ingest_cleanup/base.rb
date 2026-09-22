@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hud-reporting/csv-import.md
 # Base class for cleanups that run *after* ingest! against warehouse data
 # (not the staging tables that HmisCsvCleanup::Base operates on).
 #

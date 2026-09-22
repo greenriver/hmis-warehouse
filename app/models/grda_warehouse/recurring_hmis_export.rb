@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hud-reporting/csv-export.md
 # See docs/features/warehouse/recurring-hmis-exports.md for feature overview and operational notes.
 module GrdaWarehouse
   class RecurringHmisExport < GrdaWarehouseBase

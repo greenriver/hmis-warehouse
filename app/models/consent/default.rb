@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/roi/consent-records.md
 class Consent::Default
   def initialize(client:)
     @client = client

@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/authorization/warehouse-legacy-roles.md
 class AccessGroupMember < ApplicationRecord
   acts_as_paranoid
   has_paper_trail(

@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/warehouse/jobs-and-configuration.md
 # frozen_string_literal: true
 
 # warm cache from db translations

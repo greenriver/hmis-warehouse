@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hmis/restricted-records-and-multi-hmis.md
 # Loads which clients are marked as restricted, in bulk.
 #
 # Only restricted clients have a row in hmis_restricted_records, so any client that has been loaded

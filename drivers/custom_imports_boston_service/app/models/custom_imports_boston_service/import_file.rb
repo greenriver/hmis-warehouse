@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/warehouse/data-sources-and-imports.md
 module CustomImportsBostonService
   class ImportFile < ::GrdaWarehouse::CustomImports::ImportFile
     has_many :rows

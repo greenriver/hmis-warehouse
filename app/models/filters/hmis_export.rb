@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hud-reporting/csv-export.md
 require 'memery'
 
 # @see docs/features/warehouse/hmis-csv-export.md

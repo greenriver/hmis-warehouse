@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/warehouse/files-and-documents.md
 module GrdaWarehouse
   class ReportResultFile < GrdaWarehouse::File
     has_one_attached :report_result_file, dependent: false

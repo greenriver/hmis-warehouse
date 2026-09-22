@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/authorization/warehouse-policies.md
 module ControllerAuthorizationV2
   extend ActiveSupport::Concern
 

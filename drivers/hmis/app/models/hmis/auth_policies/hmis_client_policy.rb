@@ -6,6 +6,8 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hmis/restricted-records-and-multi-hmis.md
+# See: docs/domain-pack/authorization/hmis-permissions.md
 class Hmis::AuthPolicies::HmisClientPolicy < Hmis::AuthPolicies::ResourcePolicy
   class Instance < Hmis::AuthPolicies::BasePolicy
     def can_view?

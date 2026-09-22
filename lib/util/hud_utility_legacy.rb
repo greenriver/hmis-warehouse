@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hud-reporting/hud-utility-versions.md
 # a general clearing house to translate HUD ids of various sorts into strings
 # further access or translation logic can also go here
 # information from HMIS CSV format specifications version 5

@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/warehouse/files-and-documents.md
 class PublicFilesController < ApplicationController
   before_action :load_file
 

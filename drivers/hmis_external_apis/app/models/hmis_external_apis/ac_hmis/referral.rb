@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hmis/external-apis.md
 module HmisExternalApis::AcHmis
   # A request for a service for a household. The service is not necessarily housing.
   class Referral < ::HmisExternalApis::HmisExternalApisBase

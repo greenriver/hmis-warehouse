@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hud-reporting/csv-import.md
 class GrdaWarehouse::HmisImportConfig < GrdaWarehouseBase
   has_paper_trail
   attr_encrypted :s3_secret_access_key, key: ENV['ENCRYPTION_KEY'][0..31]

@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hud-reporting/csv-export.md
 module HmisCsvTwentyTwentySix::Exporter::ExportConcern
   extend ActiveSupport::Concern
   included do

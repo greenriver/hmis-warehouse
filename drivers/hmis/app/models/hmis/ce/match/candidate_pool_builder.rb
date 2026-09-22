@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hmis/coordinated-entry.md
 # Manages the lifecycle of Candidate Pools, which are driven by rules associated with Unit Groups.
 # This class ensures that pools are created for all unique rule sets, associates Unit Groups with
 # the correct pools, and maintains data integrity across related records.

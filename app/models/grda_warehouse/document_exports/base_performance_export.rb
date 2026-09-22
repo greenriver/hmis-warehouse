@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/warehouse/reports-framework.md
 module GrdaWarehouse::DocumentExports
   class BasePerformanceExport < ::GrdaWarehouse::DocumentExport
     def authorized?

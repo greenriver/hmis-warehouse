@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hmis/forms.md
 # determine if enrollment is a valid match for a form instance
 #
 require 'memery'

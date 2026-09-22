@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hmis/external-apis.md
 module HmisExternalApis::TcHmis::Importers::Loaders
   class CustomDataElementHelper
     attr_accessor :data_source, :system_user, :today

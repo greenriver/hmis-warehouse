@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hud-reporting/csv-export.md
 require 'faker'
 class GrdaWarehouse::FakeData < GrdaWarehouseBase
   serialize :map, coder: JSON

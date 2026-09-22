@@ -6,6 +6,9 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/warehouse/client-identity.md
+# See: docs/domain-pack/hmis/restricted-records-and-multi-hmis.md
+# See: docs/domain-pack/hmis/data-model.md
 class Hmis::Hud::Client < Hmis::Hud::Base
   self.table_name = :Client
   self.sequence_name = "public.\"#{table_name}_id_seq\""

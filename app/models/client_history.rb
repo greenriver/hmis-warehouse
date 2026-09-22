@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/warehouse/files-and-documents.md
 class ClientHistory
   attr_reader :client, :user, :requesting_user, :years
   def initialize(client_id:, user_id:, years: 3)

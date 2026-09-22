@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/warehouse/cas-integration.md
 if ENV['DATABASE_CAS_DB'].present?
   class CasBase < ActiveRecord::Base
     include CustomApplicationRecord

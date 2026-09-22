@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hmis/data-model.md
 module Hmis
   class UnitType < HmisBase
     acts_as_paranoid

@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/warehouse/cas-integration.md
 module GrdaWarehouse
   class CasHoused < GrdaWarehouseBase
     belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client', optional: true

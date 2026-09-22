@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hmis/forms.md
 class Hmis::Form::DefinitionValidator
   def self.perform(...)
     new.perform(...)

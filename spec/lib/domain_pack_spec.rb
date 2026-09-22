@@ -130,6 +130,21 @@ RSpec.describe DomainPack, type: :lib do
 
       expect(DomainPack.check(@root)).to eq([])
     end
+
+    it 'prints the review reminder when problems are found' do
+      write('app/a.rb', 'x')
+      write_doc(doc_path, sources: ['app/a.rb'])
+
+      expect { DomainPack.check(@root) }.to output(/#{Regexp.escape(DomainPack::REVIEW_REMINDER)}/).to_stdout
+    end
+
+    it 'does not print the review reminder when the pack is clean' do
+      write('app/a.rb', 'x')
+      write_doc(doc_path, sources: ['app/a.rb'])
+      DomainPack.stamp(@root)
+
+      expect { DomainPack.check(@root) }.not_to output.to_stdout
+    end
   end
 
   describe '.stamp' do
@@ -144,6 +159,58 @@ RSpec.describe DomainPack, type: :lib do
       expect(manifest.keys).to eq(['app/a.rb', 'app/b.rb'])
       expect(manifest['app/a.rb']).to eq(Digest::SHA256.hexdigest('x'))
       expect(JSON.parse(File.read(File.join(@root, DomainPack::MANIFEST)))).to eq(manifest)
+    end
+
+    it 'inserts a back-link comment into a referenced Ruby source after frozen_string_literal' do
+      write('app/a.rb', "# frozen_string_literal: true\n\nclass A; end\n")
+      write_doc(doc_path, sources: ['app/a.rb'])
+
+      DomainPack.stamp(@root)
+
+      expect(File.read(File.join(@root, 'app/a.rb'))).to eq(
+        "# frozen_string_literal: true\n\n# See: #{doc_path}\nclass A; end\n",
+      )
+    end
+
+    it 'does not duplicate the back-link when stamped twice' do
+      write('app/a.rb', "# frozen_string_literal: true\n\nclass A; end\n")
+      write_doc(doc_path, sources: ['app/a.rb'])
+
+      DomainPack.stamp(@root)
+      DomainPack.stamp(@root)
+
+      expect(File.read(File.join(@root, 'app/a.rb')).scan("# See: #{doc_path}").size).to eq(1)
+    end
+
+    it 'adds one back-link per doc when two docs list the same Ruby source' do
+      other_doc_path = "#{DomainPack::DOCS_DIR}/warehouse/other.md"
+      write('app/a.rb', "# frozen_string_literal: true\n\nclass A; end\n")
+      write_doc(doc_path, sources: ['app/a.rb'])
+      write_doc(other_doc_path, sources: ['app/a.rb'])
+
+      DomainPack.stamp(@root)
+
+      content = File.read(File.join(@root, 'app/a.rb'))
+      expect(content).to include("# See: #{doc_path}\n")
+      expect(content).to include("# See: #{other_doc_path}\n")
+    end
+
+    it 'leaves non-Ruby sources untouched' do
+      write('app/a.rb.erb', "# frozen_string_literal: true\n\n<%= 1 %>\n")
+      write_doc(doc_path, sources: ['app/a.rb.erb'])
+
+      DomainPack.stamp(@root)
+
+      expect(File.read(File.join(@root, 'app/a.rb.erb'))).to eq("# frozen_string_literal: true\n\n<%= 1 %>\n")
+    end
+
+    it 'leaves a Ruby source without a frozen_string_literal anchor untouched' do
+      write('app/a.rb', 'x')
+      write_doc(doc_path, sources: ['app/a.rb'])
+
+      DomainPack.stamp(@root)
+
+      expect(File.read(File.join(@root, 'app/a.rb'))).to eq('x')
     end
   end
 end

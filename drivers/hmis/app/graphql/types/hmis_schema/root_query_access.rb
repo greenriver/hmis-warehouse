@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/authorization/hmis-graphql-authorization.md
 # Root-level access object resolved from Query.access.
 #
 # These fields reflect the user's global (data-source-scoped) permissions — whether they can do

@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/warehouse/jobs-and-configuration.md
 class ApplicationJob < ActiveJob::Base
   # Custom error to signal that a job should be stopped and discarded or retried
   class JobCancelled < StandardError; end

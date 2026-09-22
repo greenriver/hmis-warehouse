@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/warehouse/cas-integration.md
 module CasCeData::Synthetic
   class Event < ::GrdaWarehouse::Synthetic::Event
     include ArelHelper

@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/warehouse/jobs-and-configuration.md
 # Register one-time queued tasks
 # See TaskQueue.register_tasks for task definitions
 Rails.application.config.after_initialize do

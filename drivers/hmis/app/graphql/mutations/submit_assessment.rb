@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hmis/assessments.md
 # ==  Mutations::SubmitAssessment
 #
 # This mutation creates or updates a custom assessment, form processor, and related HUD records.

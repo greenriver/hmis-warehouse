@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hmis/graphql-layer.md
 module GraphqlHelpers
   HMIS_ORIGIN = 'https://hmis.dev.test:5173/'
   HMIS_HOSTNAME = 'hmis.dev.test'

@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hmis/coordinated-entry.md
 module Mutations
   class Ce::CreateCeReferral < CleanBaseMutation
     argument :opportunity_id, ID, required: true

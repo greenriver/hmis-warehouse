@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/warehouse/client-identity.md
 module SimilarityMetric::Tasks
   class GenerateCandidates
    def initialize batch_size:10000, threshold:-1.45, run_length:240

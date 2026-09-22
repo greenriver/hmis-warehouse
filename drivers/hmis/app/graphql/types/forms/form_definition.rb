@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hmis/forms.md
 module Types
   class Forms::FormDefinition < Types::BaseObject
     include ::Hmis::Concerns::HmisArelHelper

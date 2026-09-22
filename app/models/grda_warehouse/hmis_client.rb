@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/roi/consent-from-external-sources.md
 class GrdaWarehouse::HmisClient < GrdaWarehouseBase
   include NotifierConfig
 

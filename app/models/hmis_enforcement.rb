@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/warehouse/data-sources-and-imports.md
 class HmisEnforcement
   def self.hmis_enabled?
     ENV['ENABLE_HMIS_API'] == 'true'

@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/warehouse/cohorts.md
 module Audit
   module CohortAccess
     # Cohort access audit for the ACL permission model:

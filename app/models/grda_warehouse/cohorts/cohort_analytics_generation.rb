@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/warehouse/cohorts.md
 # This model holds metadata around runs of maintaining intermediate data in the shape cohort data
 # is expected to take in the future.  Additionally, this model provides the logic for converting
 # existing cohort data into the expected shape.

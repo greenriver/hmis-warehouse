@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/authorization/warehouse-policies.md
 # Some reports now require a pii policy. In cases where that is not available, this policy matches
 # the system behavior prior to this implementation, allowing all fields to be visible.
 class GrdaWarehouse::AuthPolicies::AllowPiiPolicy

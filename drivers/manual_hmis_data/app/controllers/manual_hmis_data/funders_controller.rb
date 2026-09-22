@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/warehouse/data-sources-and-imports.md
 module ManualHmisData
   class FundersController < ApplicationController
     before_action :require_can_view_projects!

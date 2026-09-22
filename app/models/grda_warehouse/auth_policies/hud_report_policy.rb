@@ -6,6 +6,8 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hud-reporting/report-framework.md
+# See: docs/domain-pack/authorization/warehouse-policies.md
 class GrdaWarehouse::AuthPolicies::HudReportPolicy < GrdaWarehouse::AuthPolicies::BasePolicy
   # For future use
   # def can_view?

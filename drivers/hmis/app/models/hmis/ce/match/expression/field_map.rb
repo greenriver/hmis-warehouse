@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hmis/coordinated-entry.md
 # Routes field references to the appropriate resolver based on field naming conventions.
 #
 # This class acts as a dispatcher that parses field names and delegates to specialized

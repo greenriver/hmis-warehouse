@@ -6,6 +6,8 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/warehouse/pii-and-restricted-clients.md
+# See: docs/domain-pack/authorization/warehouse-policies.md
 module GrdaWarehouse::AuthPolicies::ContextLoaders
   class RestrictedClientLoader
     include ArelHelper

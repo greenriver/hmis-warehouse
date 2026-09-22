@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/warehouse/jobs-and-configuration.md
 # Used to enqueue tasks that should be run once.
 # The pattern is something like:
 #

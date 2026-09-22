@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hmis/external-apis.md
 module HmisExternalApis::AcHmis
   class DataWarehouseApi
     SYSTEM_ID = 'ac_hmis_warehouse_api'.freeze

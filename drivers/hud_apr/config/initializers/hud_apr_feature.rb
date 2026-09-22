@@ -6,6 +6,9 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/warehouse/driver-architecture.md
+# See: docs/domain-pack/hud-reporting/report-framework.md
+# See: docs/domain-pack/hud-reporting/report-drivers.md
 Rails.application.config.hud_reports['HudApr::Generators::Apr::Fy2020::Generator'] = {
   title: 'Annual Performance Report',
   helper: 'hud_reports_aprs_path',

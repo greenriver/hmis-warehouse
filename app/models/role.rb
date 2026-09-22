@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/authorization/warehouse-legacy-roles.md
 # @see docs/features/warehouse/warehouse-permissions.md
 #
 # Participates in both the "new" and "legacy" permissions systems

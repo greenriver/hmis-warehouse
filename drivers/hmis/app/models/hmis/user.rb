@@ -6,6 +6,8 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hmis/restricted-records-and-multi-hmis.md
+# See: docs/domain-pack/authorization/hmis-permissions.md
 # NOTE:
 # r = Hmis::Role.create(name: 'test')
 # u = Hmis::User.first; u.hmis_data_source_id = 3

@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/warehouse/reports-framework.md
 # Filters::Criteria provides a modular system for building and applying filter conditions to HMIS reporting queries.
 # It uses a factory pattern to instantiate criteria objects based on filter definitions, and provides utilities
 # for working with groups of related criteria.

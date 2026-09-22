@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/warehouse/cohorts.md
 require 'json/ext'
 module Cohorts
   class ClientsController < ApplicationController

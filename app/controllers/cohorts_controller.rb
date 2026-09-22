@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/warehouse/cohorts.md
 class CohortsController < ApplicationController
   include AjaxModalRails::Controller
   include CohortAuthorization

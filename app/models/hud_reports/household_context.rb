@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hud-reporting/report-framework.md
 module HudReports
   # Represents a "Logic Snapshot" for a specific report instance.
   #

@@ -6,6 +6,8 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/roi/roi-authorizations-and-visibility.md
+# See: docs/domain-pack/authorization/warehouse-policies.md
 # @see docs/features/warehouse/warehouse-auth-policies.md
 
 require 'memery'

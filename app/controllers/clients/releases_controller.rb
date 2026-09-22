@@ -6,6 +6,8 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/warehouse/files-and-documents.md
+# See: docs/domain-pack/roi/consent-records.md
 module Clients
   class ReleasesController < FilesController
     include ClientPathGenerator

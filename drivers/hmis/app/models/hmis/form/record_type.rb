@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hmis/forms.md
 module Hmis::Form
   RecordType = Struct.new(:id, :owner_type, :processor_name, keyword_init: true) do
     extend Enumerable

@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/warehouse/pii-and-restricted-clients.md
 module GrdaWarehouse
   # Represents a client search query with associated parameters
   #

@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hud-reporting/csv-export.md
 require 'dotenv'
 require 'active_support/core_ext/object/blank'
 Dotenv.load('.env', '.env.local')

@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/warehouse/driver-architecture.md
 module HmisCsvImporter::GrdaWarehouse
   module UploadExtension
     extend ActiveSupport::Concern

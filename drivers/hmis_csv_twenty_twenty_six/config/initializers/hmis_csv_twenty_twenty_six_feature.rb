@@ -6,6 +6,8 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/warehouse/driver-architecture.md
+# See: docs/domain-pack/hud-reporting/csv-export.md
 Rails.application.reloader.to_prepare do
   Filters::HmisExport.register_version('HMIS 2026', '2026', 'HmisCsvTwentyTwentySix::ExportJob')
 end

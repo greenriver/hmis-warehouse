@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/authorization/warehouse-policies.md
 # this subclass supports the migration away from deprecated authorization methods. See
 # conditional include in ApplicationController
 class ApplicationControllerV2 < ApplicationController

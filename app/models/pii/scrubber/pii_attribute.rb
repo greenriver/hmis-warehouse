@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/warehouse/pii-and-restricted-clients.md
 # wrapper for a attribute to assist with PII field scrubbing
 module Pii::Scrubber
   class PiiAttribute

@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/warehouse/reports-framework.md
 class BackgroundRenderJob < BaseJob
   include CableReady::Broadcaster
   queue_as ENV.fetch('DJ_SHORT_QUEUE_NAME', :short_running)

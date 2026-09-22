@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/warehouse/pii-and-restricted-clients.md
 module GrdaWarehouse::Tasks::ScrubPii
   # Best-effort to scrub personally identifiable information (PII) from all warehouse and reporting tables
   # * Suitable for sanitizing a production database for staging/development use

@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hud-reporting/report-framework.md
 # Shared route patterns for HUD reports across driver modules.
 module HudReports
   module RouteConcerns

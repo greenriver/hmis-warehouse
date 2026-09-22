@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hmis/restricted-records-and-multi-hmis.md
 # Links a retained client to each client deleted in a merge (for search and UI).
 # Destroyed by UndoMergeClientsJob when a merge is "undone"; the associated ClientMergeAudit preserves the audit trail.
 #

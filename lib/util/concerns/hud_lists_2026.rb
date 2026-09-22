@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hud-reporting/hud-utility-versions.md
 # THIS FILE IS GENERATED, DO NOT EDIT DIRECTLY
 module Concerns::HudLists2026
   extend ActiveSupport::Concern

@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hmis/data-model.md
 # The `Hmis::Unit` model represents a generic unit of capacity in a project.
 # A unit is a resource that can be provided to a household or individual being served by the program.
 # Units can represent physical or virtual resources.

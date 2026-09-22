@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/conventions/house-style.md
 module RuboCop
   module Cop
     module Migrations

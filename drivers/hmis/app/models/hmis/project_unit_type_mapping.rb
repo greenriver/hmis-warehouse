@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hmis/data-model.md
 # exported data from ACHMIS that describes the unit types and capacity for each project (called program)
 class Hmis::ProjectUnitTypeMapping < Hmis::HmisBase
   self.table_name = :hmis_project_unit_type_mappings

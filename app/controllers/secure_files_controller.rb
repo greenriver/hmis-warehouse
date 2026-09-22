@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/warehouse/files-and-documents.md
 class SecureFilesController < ApplicationControllerV2
   authorize_with { current_user.can_view_some_secure_files? }
   authorize_with(only: :all_files) { current_user.can_view_all_secure_uploads? }

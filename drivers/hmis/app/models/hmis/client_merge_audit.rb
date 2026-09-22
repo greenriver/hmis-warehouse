@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hmis/restricted-records-and-multi-hmis.md
 # See docs/features/hmis/hmis-client-merges.md
 
 class Hmis::ClientMergeAudit < Hmis::HmisBase

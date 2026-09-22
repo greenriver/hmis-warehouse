@@ -1,3 +1,4 @@
+#!/usr/bin/env ruby
 ###
 # Copyright Green River Data Group, Inc.
 #
@@ -6,6 +7,4 @@
 
 # frozen_string_literal: true
 
-# See: docs/domain-pack/authorization/warehouse-policies.md
-class AuthorizationNotPerformedError < StandardError
-end
+exec('docker', 'compose', 'run', '--rm', '-T', '--no-deps', 'spec', 'ruby', 'bin/domain_pack', 'check')

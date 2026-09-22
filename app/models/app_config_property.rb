@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/warehouse/jobs-and-configuration.md
 # generic key value store for db-managed config
 # @see docs/features/warehouse/app-config-property.md
 class AppConfigProperty < ApplicationRecord

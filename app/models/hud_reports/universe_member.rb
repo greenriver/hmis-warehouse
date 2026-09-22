@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hud-reporting/report-framework.md
 # Polymorphic join to connect report cells, to a particular report type's clients
 module HudReports
   class UniverseMember < GrdaWarehouseBase

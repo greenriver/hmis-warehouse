@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/authorization/hmis-permissions.md
 # Shared selector for policies that split into:
 # - `Global` policy when the "resource" is a Class (i.e., the model class)
 # - `Instance` policy when the "resource" is a record instance

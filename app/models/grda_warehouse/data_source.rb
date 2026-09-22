@@ -6,6 +6,9 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/warehouse/data-sources-and-imports.md
+# See: docs/domain-pack/hud-reporting/csv-import.md
+# See: docs/domain-pack/hmis/restricted-records-and-multi-hmis.md
 require 'memery'
 
 class GrdaWarehouse::DataSource < GrdaWarehouseBase

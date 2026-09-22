@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hmis/external-apis.md
 ###
 # WarehouseChangesJob is responsible for fetching changes to client MCI Unique IDs
 # from the AC Data Warehouse Changes API. It processes these changes and

@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hmis/external-apis.md
 # To connect to the API, you need a remote credential labeled 'mci'. Replace
 # the empty strings below with values from the documentation.
 #

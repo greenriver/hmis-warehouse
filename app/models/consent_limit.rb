@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/roi/roi-authorizations-and-visibility.md
 class ConsentLimit < ApplicationRecord
   has_paper_trail
   acts_as_paranoid

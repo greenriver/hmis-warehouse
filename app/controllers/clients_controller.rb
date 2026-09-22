@@ -6,6 +6,8 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/warehouse/pii-and-restricted-clients.md
+# See: docs/domain-pack/warehouse/client-identity.md
 class ClientsController < ApplicationController
   before_action :handle_unused_search, only: [:index]
 

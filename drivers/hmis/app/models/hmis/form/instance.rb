@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hmis/forms.md
 # Form Instance (called "Form Rule" in the frontend)
 #
 # A Form Instance/Form Rule specifies which projects (or other entities) a given

@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/authorization/warehouse-legacy-roles.md
 # Part of the "legacy" permissions system
 class UserRole < ApplicationRecord
   has_paper_trail(

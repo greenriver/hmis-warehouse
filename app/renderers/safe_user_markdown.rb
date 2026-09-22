@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/conventions/house-style.md
 # Renders markdown authored by end users or admins — project group notes, content pages,
 # translation overrides. Raw HTML is either escaped or stripped (never emitted) and
 # non-http(s) link schemes are dropped, so the result is safe to mark html_safe at the

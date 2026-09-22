@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hmis/forms.md
 module Mutations
   # Publishes a draft definition and retires the previously published version of the same identifier.
   #

@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hud-reporting/report-drivers.md
 module HudSpmReport
   def self.current_generator
     active_version = ::HudReports::BaseController.new.default_report_version

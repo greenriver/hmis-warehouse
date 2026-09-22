@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hmis/restricted-records-and-multi-hmis.md
 class Hmis::UsersController < Hmis::BaseController
   skip_before_action :authenticate_hmis_user!, only: [:show]
   prepend_before_action :skip_timeout, only: [:show]

@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hud-reporting/report-framework.md
 require 'memery'
 # @see docs/features/warehouse/hud-report-framework.md
 module HudReports

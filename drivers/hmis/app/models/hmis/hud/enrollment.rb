@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hmis/data-model.md
 class Hmis::Hud::Enrollment < Hmis::Hud::Base
   self.table_name = :Enrollment
   self.sequence_name = "public.\"#{table_name}_id_seq\""

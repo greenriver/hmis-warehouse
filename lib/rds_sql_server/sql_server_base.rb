@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hud-reporting/report-drivers.md
 class SqlServerBase < ActiveRecord::Base
   cattr_accessor :rds, :host, :database
 

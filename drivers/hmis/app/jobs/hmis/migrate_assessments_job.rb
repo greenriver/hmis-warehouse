@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hmis/assessments.md
 # == Hmis::MigrateAssessmentsJob
 #
 # Auto-enqueued in import post-processing for OP HMIS data sources.

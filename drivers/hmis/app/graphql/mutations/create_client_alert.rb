@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hmis/graphql-layer.md
 module Mutations
   class CreateClientAlert < CleanBaseMutation
     argument :input, Types::HmisSchema::ClientAlertInput, required: true

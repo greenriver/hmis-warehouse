@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/warehouse/files-and-documents.md
 class DocumentExportJob < ApplicationJob
   include DocumentExportJobBehavior
   queue_as ENV.fetch('DJ_SHORT_QUEUE_NAME', :short_running)

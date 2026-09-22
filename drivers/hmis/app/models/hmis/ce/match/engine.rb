@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hmis/coordinated-entry.md
 require 'progress_bar'
 
 # The Coordinated Entry (CE) Match Engine is responsible for evaluating a universe of clients

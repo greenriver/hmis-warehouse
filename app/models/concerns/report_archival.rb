@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/warehouse/reports-framework.md
 # Concern for report CSV archival functionality
 # Provides methods for checking archival status, generating helper methods, and managing CSV backups
 # Usage:

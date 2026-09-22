@@ -6,6 +6,9 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/authorization/warehouse-policies.md
+# See: docs/domain-pack/authorization/warehouse-legacy-roles.md
+# See: docs/domain-pack/authorization/warehouse-access-controls.md
 require 'memery'
 class User < ApplicationRecord
   include Memery

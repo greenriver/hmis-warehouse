@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hmis/forms.md
 # SubmitFormAuthorizer answers whether the user may submit a form to create or edit a record.
 # Caller finds or builds the record, then calls authorized_to_create?(record) or authorized_to_edit?(record).
 #

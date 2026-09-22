@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/warehouse/cohorts.md
 module GrdaWarehouse
   # @see docs/features/warehouse/cohorts.md
   class CohortClient < GrdaWarehouseBase

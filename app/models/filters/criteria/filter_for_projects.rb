@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/warehouse/reports-framework.md
 class Filters::Criteria::FilterForProjects < Filters::Criteria::Base
   def applies?
     input.project_ids.present? || input.project_group_ids.present?

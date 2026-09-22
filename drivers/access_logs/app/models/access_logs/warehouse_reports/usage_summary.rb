@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/warehouse/pii-and-restricted-clients.md
 class AccessLogs::WarehouseReports::UsageSummary
   include ArelHelper
 

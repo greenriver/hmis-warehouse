@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/warehouse/driver-architecture.md
 Rails.application.reloader.to_prepare do
   AvailableSubPopulations.add_sub_population(
     'Veterans',

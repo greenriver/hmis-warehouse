@@ -6,6 +6,8 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hmis/forms.md
+# See: docs/domain-pack/hmis/data-model.md
 # ==  Hmis::Hud::Processors::Base
 #
 # Base class for field processors. Responsible for processing a single form input

@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hmis/data-model.md
 class Hmis::ProjectConfig < Hmis::HmisBase
   self.table_name = 'hmis_project_configs'
 

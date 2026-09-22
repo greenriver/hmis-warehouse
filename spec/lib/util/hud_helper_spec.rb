@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hud-reporting/hud-utility-versions.md
 require 'rails_helper'
 
 # Tests for the Hud module, specifically for the util method to prove it chooses the correct version

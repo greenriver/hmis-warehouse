@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hmis/coordinated-entry.md
 class Hmis::ProjectCeConfig < Hmis::ProjectConfig
   def config_type = 'COORDINATED_ENTRY'
 

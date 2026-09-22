@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hmis/restricted-records-and-multi-hmis.md
 class Hmis::SessionsController < Devise::SessionsController
   include Hmis::Concerns::JsonErrors
   include AuthenticatesWithTwoFactor

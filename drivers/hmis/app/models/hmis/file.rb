@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/warehouse/files-and-documents.md
 class Hmis::File < GrdaWarehouse::File
   include ClientFileBase
   include ::Hmis::Hud::Concerns::FormSubmittable

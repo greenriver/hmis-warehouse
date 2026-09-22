@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hud-reporting/csv-import.md
 module Importers::HmisAutoMigrate
   # This method allows us to prevent auto migrating data past a specific version.
   # Specifically, it allow us to support import of a newer version, but deployment

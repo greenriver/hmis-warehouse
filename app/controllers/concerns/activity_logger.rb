@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/warehouse/pii-and-restricted-clients.md
 # This concern audits user activity.
 # Place the following in a controller (or ApplicationController)
 #

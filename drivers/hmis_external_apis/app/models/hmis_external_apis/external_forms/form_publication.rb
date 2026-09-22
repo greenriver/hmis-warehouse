@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hmis/external-apis.md
 # track external publication of a form definition
 module HmisExternalApis::ExternalForms
   class FormPublication < ::HmisExternalApis::HmisExternalApisBase

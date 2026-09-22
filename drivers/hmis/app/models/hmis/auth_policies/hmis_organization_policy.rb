@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/authorization/hmis-permissions.md
 class Hmis::AuthPolicies::HmisOrganizationPolicy < Hmis::AuthPolicies::ResourcePolicy
   class Instance < Hmis::AuthPolicies::BasePolicy
     def can_edit? # Whether the user can edit this organization

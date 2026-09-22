@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hmis/graphql-layer.md
 # https://gist.github.com/itkrt2y/1e1a947c71772044f5d67f358b4772fc
 
 class Sources::ActiveRecordAssociation < ::GraphQL::Dataloader::Source

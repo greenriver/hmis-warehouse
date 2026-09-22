@@ -6,5 +6,6 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/warehouse/cas-integration.md
 Rails.application.config.synthetic_event_types << 'CasCeData::Synthetic::Event'
 Rails.application.config.synthetic_assessment_types << 'CasCeData::Synthetic::Assessment'

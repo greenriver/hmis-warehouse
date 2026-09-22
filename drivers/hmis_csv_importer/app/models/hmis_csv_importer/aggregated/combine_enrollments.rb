@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hud-reporting/csv-import.md
 module HmisCsvImporter::Aggregated
   class CombineEnrollments < Base
     INSERT_BATCH_SIZE = 2_000

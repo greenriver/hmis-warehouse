@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hmis/coordinated-entry.md
 module Hmis::Ce::Match
   # Encapsulates persistence and lookup for CandidatePools with process-local caching.
   class CandidatePoolRepository

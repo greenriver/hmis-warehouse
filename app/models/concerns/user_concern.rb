@@ -6,6 +6,9 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/roi/roi-authorizations-and-visibility.md
+# See: docs/domain-pack/authorization/warehouse-legacy-roles.md
+# See: docs/domain-pack/authorization/warehouse-access-controls.md
 module UserConcern
   extend ActiveSupport::Concern
   include HasPiiAttributes

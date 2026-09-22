@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/authorization/hmis-permissions.md
 # This DB view finds project and access group relationships. It includes access groups that relate to the project
 # indirectly (via organization, project groups, etc)
 module Hmis

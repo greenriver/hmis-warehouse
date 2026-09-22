@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/warehouse/reports-framework.md
 class WarehouseReportsController < ApplicationController
   include WarehouseReportAuthorization
   # This page just lists the available reports, each report is responsible for access

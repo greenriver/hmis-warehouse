@@ -6,6 +6,8 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hmis/restricted-records-and-multi-hmis.md
+# See: docs/domain-pack/hmis/graphql-layer.md
 class Hmis::BaseController < ActionController::Base
   include HmisBaseApplicationControllerBehavior
   include LogRagePayloadBehavior

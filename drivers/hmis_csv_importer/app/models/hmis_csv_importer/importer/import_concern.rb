@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hud-reporting/csv-import.md
 module HmisCsvImporter::Importer::ImportConcern
   extend ActiveSupport::Concern
   SELECT_BATCH_SIZE = 10_000

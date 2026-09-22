@@ -6,6 +6,8 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/warehouse/reports-framework.md
+# See: docs/domain-pack/warehouse/files-and-documents.md
 #
 # @see docs/features/warehouse/document-export.md
 

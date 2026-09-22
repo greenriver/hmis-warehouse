@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/warehouse/client-identity.md
 # frozen_string_literal: true
 
 module GrdaWarehouse

@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/conventions/house-style.md
 class TranslatedHtml < Redcarpet::Render::HTML
   TRANSLATION_PATTERN = /{{(.*?)}}/
 

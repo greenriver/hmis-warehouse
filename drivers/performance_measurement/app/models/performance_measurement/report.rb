@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hud-reporting/report-drivers.md
 # See @docs/features/warehouse/coc-performance-measurement-dashboard.md
 require 'memery'
 

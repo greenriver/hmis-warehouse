@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hud-reporting/service-history.md
 class GrdaWarehouse::ServiceHistoryServiceMaterialized < GrdaWarehouseBase
   self.table_name = :service_history_services_materialized
   include ArelHelper

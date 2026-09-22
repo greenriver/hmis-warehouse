@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hud-reporting/csv-export.md
 module HmisCsvTwentyTwentySix::Exporter
   class Export
     def self.export_scope(export:, hmis_class:, **_)

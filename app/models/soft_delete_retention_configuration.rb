@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/warehouse/files-and-documents.md
 # Shared retention configuration for soft-delete purge jobs.
 # Values are managed via AppConfigProperty and editable in the admin UI.
 #

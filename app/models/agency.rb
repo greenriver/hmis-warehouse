@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/roi/roi-authorizations-and-visibility.md
 class Agency < ApplicationRecord
   has_paper_trail
   has_many :users, dependent: :nullify

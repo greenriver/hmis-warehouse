@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/warehouse/cas-integration.md
 module CasAccess
   class ProjectClient < CasBase
     self.table_name = :project_clients

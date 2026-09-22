@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/warehouse/reports-framework.md
 module GrdaWarehouse::WarehouseReports
   class ReportDefinition < GrdaWarehouseBase
     # Column pending removal in a later deploy; see db/warehouse/migrate/20260804130000_remove_health_only_columns_from_warehouse.rb

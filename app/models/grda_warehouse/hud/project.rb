@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/authorization/warehouse-access-controls.md
 # these are also sometimes called programs
 module GrdaWarehouse::Hud
   class Project < Base

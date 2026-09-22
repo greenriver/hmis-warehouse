@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/warehouse/pii-and-restricted-clients.md
 class AccessLogs::Report < OpenStruct
   include ArelHelper
   include Rails.application.routes.url_helpers

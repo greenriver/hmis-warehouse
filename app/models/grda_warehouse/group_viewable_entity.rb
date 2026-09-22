@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/authorization/warehouse-access-controls.md
 # Participates in both the "new" and "legacy" permissions system
 # * A GroupViewableEntity maps an "entity" (project, organization, etc) to a Collection (new) or an AccessGroup (legacy)
 # * should have either an access_group_id or a collection_id but not both

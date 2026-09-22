@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hud-reporting/report-framework.md
 require 'axlsx'
 module HudReports
   # Base class for building Excel exports of HUD report cell details.

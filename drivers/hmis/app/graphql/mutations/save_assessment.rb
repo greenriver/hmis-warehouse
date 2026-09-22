@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hmis/assessments.md
 module Mutations
   class SaveAssessment < BaseMutation
     description 'Create/Save assessment as work-in-progress'

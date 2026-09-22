@@ -6,6 +6,8 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/conventions/do-not-repeat.md
+# See: docs/domain-pack/authorization/hmis-graphql-authorization.md
 module GraphqlPermissionChecker
   # Does the current user have the given permission on entity?
   #

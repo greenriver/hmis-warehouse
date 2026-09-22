@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hmis/external-apis.md
 # accessor API for general HMIS configuration
 module HmisExternalApis::AcHmis
   class Configuration

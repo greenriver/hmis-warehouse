@@ -6,6 +6,8 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hmis/graphql-layer.md
+# See: docs/domain-pack/authorization/hmis-graphql-authorization.md
 module Types
   class BaseObject < GraphQL::Schema::Object
     include GraphqlApplicationHelper

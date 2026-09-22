@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/roi/roi-authorizations-and-visibility.md
 # Currently this is 1:1 with client records; it is automatically generated from canonical ROIs attrs the client
 # However in the future we plan to support multiple ROIs and this will likely become the canonical source for ROI
 module GrdaWarehouse

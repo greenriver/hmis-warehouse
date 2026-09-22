@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hud-reporting/csv-export.md
 # Agencies can mark individual clients to be excluded from exports. When a client
 # is flagged, they are omitted from both the client and enrollment rows of every
 # affected HMIS CSV export.

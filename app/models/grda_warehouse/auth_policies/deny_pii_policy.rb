@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/authorization/warehouse-policies.md
 # Policy that always denys PII access.
 # Used in cases where we never want to show PII (see include_pii_in_detail_downloads config)
 class GrdaWarehouse::AuthPolicies::DenyPiiPolicy

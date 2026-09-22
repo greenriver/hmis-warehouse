@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/authorization/warehouse-legacy-roles.md
 module UserPermissions
   extend ActiveSupport::Concern
   include ArelHelper

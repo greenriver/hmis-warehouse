@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/warehouse/cohorts.md
 module Audit
   module CohortAccess
     # Reconstructs the history of which users could access a cohort from PaperTrail history.

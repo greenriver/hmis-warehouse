@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/warehouse/reports-framework.md
 #
 # provides a class method for defining actions to initiate background
 # background render jobs.  extend this module in a Rails controller

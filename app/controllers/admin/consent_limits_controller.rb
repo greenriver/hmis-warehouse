@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/roi/roi-authorizations-and-visibility.md
 module Admin
   class ConsentLimitsController < ApplicationController
     before_action :require_can_edit_users!

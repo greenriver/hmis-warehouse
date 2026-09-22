@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/warehouse/data-sources-and-imports.md
 module GrdaWarehouse::CustomImports
   class Config < GrdaWarehouseBase
     acts_as_paranoid

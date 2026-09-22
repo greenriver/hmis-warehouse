@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/warehouse/jobs-and-configuration.md
 class SignalHandlerPlugin < Delayed::Plugin
   class << self
     def current_worker_stopping?

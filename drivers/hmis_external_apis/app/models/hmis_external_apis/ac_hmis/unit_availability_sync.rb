@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hmis/external-apis.md
 #####
 # DEPRECATED 🚨
 # The UnitAvailabilitySync class has been deprecated. This model is no longer used

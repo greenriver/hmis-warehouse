@@ -6,6 +6,9 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hmis/graphql-layer.md
+# See: docs/domain-pack/conventions/do-not-repeat.md
+# See: docs/domain-pack/authorization/hmis-graphql-authorization.md
 module Mutations
   # Generally, use CleanBaseMutation instead of this since we don't need Relay.
   # We may clean up the old BaseMutation later

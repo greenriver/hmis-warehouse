@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hmis/external-apis.md
 # https://github.com/greenriver/hmis-warehouse/pull/2933/files#r1164091887
 # A local entity's identity in an external system (such as an MCI ID)
 # NOTE: The ID values are not necessarily unique. For example two clients

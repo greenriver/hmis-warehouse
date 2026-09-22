@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/authorization/hmis-permissions.md
 # HMIS uses similar but separate permissions system from the warehouse
 # @see docs/features/hmis/hmis-permissions.md
 

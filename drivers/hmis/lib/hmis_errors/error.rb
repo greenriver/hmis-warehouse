@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hmis/graphql-layer.md
 module HmisErrors
   class Error
     def initialize(attribute, type = :invalid, severity: :error, message: nil, full_message: nil, readable_attribute: nil, **kwargs)

@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hud-reporting/report-drivers.md
 # run manually with
 # Reporting::Hud::RunReportJob.new.perform(HopwaCaper::Generators::Fy2026::Generator.name, HudReports::ReportInstance.last, email:false)
 # @see docs/features/warehouse/hopwa-caper.md

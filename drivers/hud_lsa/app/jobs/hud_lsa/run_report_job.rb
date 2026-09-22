@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hud-reporting/report-drivers.md
 module HudLsa
   class RunReportJob < ::BaseJob
     queue_as ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)

@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hud-reporting/report-drivers.md
 Rails.application.config.hud_reports['HopwaCaper::Generators::Fy2024::Generator'] = {
   title: 'HOPWA CAPER',
   helper: 'hud_reports_hopwa_capers_path',

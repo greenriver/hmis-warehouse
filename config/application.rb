@@ -6,6 +6,8 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/warehouse/driver-architecture.md
+# See: docs/domain-pack/hud-reporting/report-framework.md
 require_relative 'boot'
 
 require 'rails/all'

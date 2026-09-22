@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hud-reporting/csv-import.md
 # Collects per-CSV row count metrics after each import.
 # Uses MetricSnapshot for storage, ImportCsvMonitor for config.
 # Triggered from importer post_process.

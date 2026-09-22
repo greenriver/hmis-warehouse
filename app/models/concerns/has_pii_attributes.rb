@@ -7,6 +7,7 @@
 #
 # frozen_string_literal: true
 
+# See: docs/domain-pack/warehouse/pii-and-restricted-clients.md
 # HasPiiAttributes is a concern that provides a declarative interface for models
 # to specify which attributes contain Personally Identifiable Information (PII).
 # This allows for systematic handling of sensitive data across the application.

@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hmis/coordinated-entry.md
 # The `MatchApplicability` class determines whether a Coordinated Entry (CE) rule applies to a given entity
 # (e.g., Unit Group, Project, or Organization) based on project criteria.
 #

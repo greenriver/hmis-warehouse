@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/warehouse/pii-and-restricted-clients.md
 require 'faker'
 
 # helper for generating static / fake values for the PII scrubbers

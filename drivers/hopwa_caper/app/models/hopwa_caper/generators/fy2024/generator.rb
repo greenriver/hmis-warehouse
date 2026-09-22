@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hud-reporting/report-drivers.md
 # Minimal FY 2024 generator retained solely for viewing historical reports.
 # The implementation intentionally avoids any data processing so that legacy
 # report instances can be rendered without supporting new executions.

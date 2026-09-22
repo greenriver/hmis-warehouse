@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/warehouse/reports-framework.md
 module GrdaWarehouse::WarehouseReports
   class Base < GrdaWarehouseBase
     include ActionView::Helpers::DateHelper

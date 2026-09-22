@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hud-reporting/report-drivers.md
 Rails.application.config.hud_reports['HudPathReport::Generators::Fy2020::Generator'] = {
   title: 'Annual PATH Report',
   helper: 'hud_reports_paths_path',

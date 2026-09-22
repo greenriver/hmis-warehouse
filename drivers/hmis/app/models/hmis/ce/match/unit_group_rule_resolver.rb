@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hmis/coordinated-entry.md
 module Hmis::Ce::Match
   # Resolves rule-derived keys for UnitGroup contexts.
   # Returns nil when no specific rules apply.

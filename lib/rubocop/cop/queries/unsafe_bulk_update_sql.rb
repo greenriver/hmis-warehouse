@@ -6,6 +6,8 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/conventions/house-style.md
+# See: docs/domain-pack/conventions/do-not-repeat.md
 module RuboCop
   module Cop
     module Queries

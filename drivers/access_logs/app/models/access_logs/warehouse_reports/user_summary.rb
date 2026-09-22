@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/warehouse/pii-and-restricted-clients.md
 class AccessLogs::WarehouseReports::UserSummary
   # Bump whenever the shape of the returned hash changes, so cached summaries built by older code
   # are not served to a renderer expecting the new keys.

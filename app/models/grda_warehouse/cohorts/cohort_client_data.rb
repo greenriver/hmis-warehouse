@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/warehouse/cohorts.md
 # This model is an intermediate model used to hold data generated from existing cohorts.
 # The table is maintained by a script and is in the shape we expect to exist after the
 # next cohort rewrite.

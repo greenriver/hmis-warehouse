@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hud-reporting/csv-import.md
 require 'memery'
 
 # This defines two thresholds for imports that will potentially trigger notifications

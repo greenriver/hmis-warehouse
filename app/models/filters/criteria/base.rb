@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/warehouse/reports-framework.md
 class Filters::Criteria::Base
   attr_accessor :input, :config
 

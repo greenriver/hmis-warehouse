@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/warehouse/files-and-documents.md
 # Purge soft-deleted ClientFile records whose retention window has expired.
 # For each record: purges the ActiveStorage blob from S3, then hard-deletes
 # the database record (including taggings).

@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hud-reporting/report-drivers.md
 module HudLsa
   class LsasController < ::HudReports::BaseController
     include AjaxModalRails::Controller

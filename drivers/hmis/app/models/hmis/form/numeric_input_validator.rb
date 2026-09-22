@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hmis/forms.md
 class Hmis::Form::NumericInputValidator
   CURRENCY_RGX = /\A-?(?:[1-9]\d*|0)(?:\.\d{1,2})?\z/
   INTEGER_RGX = /\A-?(?:[1-9]\d*|0)\z/

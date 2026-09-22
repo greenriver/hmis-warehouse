@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hmis/coordinated-entry.md
 # requirement configuration for opportunities
 
 # This model represents a Rule for Coordinated Entry (CE) matching, such as eligibility requirements

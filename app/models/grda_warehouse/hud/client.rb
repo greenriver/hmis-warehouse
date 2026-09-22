@@ -6,6 +6,10 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/warehouse/pii-and-restricted-clients.md
+# See: docs/domain-pack/warehouse/client-identity.md
+# See: docs/domain-pack/roi/consent-records.md
+# See: docs/domain-pack/roi/consent-from-external-sources.md
 require 'memery'
 require 'restclient'
 

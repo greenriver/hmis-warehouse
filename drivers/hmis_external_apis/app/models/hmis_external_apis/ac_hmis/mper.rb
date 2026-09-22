@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hmis/external-apis.md
 ## MPER (to be removed)
 #
 # Note: this class may still be used for external ID lookups even if the MPER credential is no longer active.

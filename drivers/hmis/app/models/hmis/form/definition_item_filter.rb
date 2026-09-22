@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hmis/forms.md
 # Dynamic filter form definition items based on item.rule.
 class Hmis::Form::DefinitionItemFilter
   def self.perform(...)

@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/authorization/hmis-permissions.md
 # Determines a user's permissions for CE Referrals.
 # Key rules:
 # - A user can view a referral if they have broad `:can_view_referrals` permission on the target project.

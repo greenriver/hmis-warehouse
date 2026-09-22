@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/warehouse/reports-framework.md
 class BackgroundRender::EntryClientsReportJob < BackgroundRenderJob
   def render_html(filter:, user_id:)
     current_user = User.find(user_id)

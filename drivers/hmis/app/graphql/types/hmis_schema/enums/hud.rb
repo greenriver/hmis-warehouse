@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hud-reporting/hud-utility-versions.md
 # THIS FILE WAS GENERATED but we may need manual edits after generation. (Generation should only happen when data standards change).
 
 module Types::HmisSchema::Enums::Hud

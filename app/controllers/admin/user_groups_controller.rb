@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/authorization/warehouse-access-controls.md
 module Admin
   class UserGroupsController < ApplicationController
     before_action :require_can_edit_users!

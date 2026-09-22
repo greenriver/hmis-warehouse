@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/warehouse/driver-architecture.md
 module AdultsWithChildrenSubPop::Reporting
   module HousedExtension
     extend ActiveSupport::Concern

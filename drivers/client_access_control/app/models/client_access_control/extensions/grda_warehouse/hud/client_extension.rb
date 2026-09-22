@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/roi/roi-authorizations-and-visibility.md
 module ClientAccessControl::GrdaWarehouse::Hud
   module ClientExtension
     extend ActiveSupport::Concern

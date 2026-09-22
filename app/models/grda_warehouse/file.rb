@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/warehouse/files-and-documents.md
 # @see docs/features/warehouse/warehouse-files-model.md
 module GrdaWarehouse
   class File < GrdaWarehouseBase

@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/authorization/warehouse-policies.md
 # Often reports display client PII from the destination client (sometimes the source client for DQ). Using this project
 # PII policy grants access to PII based only on the client/project which may be more restrictive than permissions
 # granted through the full set of source clients

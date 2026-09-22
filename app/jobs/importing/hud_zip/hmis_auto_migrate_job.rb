@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hud-reporting/csv-import.md
 module Importing::HudZip
   # @see docs/features/warehouse/hmis-csv-importer.md
   class HmisAutoMigrateJob < BaseJob

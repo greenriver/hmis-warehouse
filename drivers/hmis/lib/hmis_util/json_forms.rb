@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hmis/forms.md
 module HmisUtil
   # Loads HMIS form definitions from version-controlled JSON files into the database.
   #

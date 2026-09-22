@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hmis/assessments.md
 module Mutations
   class SubmitHouseholdAssessments < BaseMutation
     description 'Submit multiple assessments in a household'

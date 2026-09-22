@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/warehouse/pii-and-restricted-clients.md
 # Delete paper trail versions for a model
 # * handle versions for aliases (GrdaWarehouse::Hud::Client and Hmis::Hud::Client)
 # * accounts for different version backing tables

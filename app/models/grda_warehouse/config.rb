@@ -6,6 +6,8 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/warehouse/jobs-and-configuration.md
+# See: docs/domain-pack/roi/consent-records.md
 module GrdaWarehouse
   class Config < GrdaWarehouseBase
     # Column pending removal in a later deploy; see db/warehouse/migrate/20260804130000_remove_health_only_columns_from_warehouse.rb

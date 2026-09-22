@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hmis/restricted-records-and-multi-hmis.md
 # Manual/support tool to undo a single HMIS client merge performed by MergeClientsJob.
 # May later be exposed in the UI.
 #

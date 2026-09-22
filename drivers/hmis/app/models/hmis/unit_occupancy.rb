@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hmis/data-model.md
 # Links an enrollment to a unit with a date range, tracking when a client/household member occupies a unit.
 #
 # @see docs/features/hmis/hmis-units.md For detailed documentation on unit occupancy workflows and household unit occupancy

@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/warehouse/cas-integration.md
 module Clients
   class CasReadinessController < ApplicationController
     include ClientPathGenerator

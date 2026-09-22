@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hud-reporting/csv-import.md
 module HmisCsvImporter::Loader
   class LoaderLog < GrdaWarehouseBase
     include HmisCsvImporter::HmisCsv

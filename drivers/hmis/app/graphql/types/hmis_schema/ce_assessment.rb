@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hmis/assessments.md
 module Types
   class HmisSchema::CeAssessment < Types::BaseObject
     include Types::HmisSchema::HasHudMetadata

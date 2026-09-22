@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hmis/forms.md
 module HmisUtil
   # Encapsulates HUD compliance rules for form system instances. Creates (or in dry run, reports)
   # the system form instances required for record forms and assessments.

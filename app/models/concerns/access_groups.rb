@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/authorization/warehouse-legacy-roles.md
 # TODO: START_ACL remove when ACL transition complete
 module AccessGroups
   extend ActiveSupport::Concern

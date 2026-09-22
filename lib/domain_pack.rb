@@ -19,6 +19,10 @@ module DomainPack
   REQUIRED_KEYS = ['title', 'summary', 'area', 'tags', 'sources'].freeze
   AREAS = ['conventions', 'authorization', 'roi', 'hmis', 'hud-reporting', 'warehouse'].freeze
   FRONTMATTER = /\A---\n(.*?)\n---\n/m
+  FROZEN_STRING_LITERAL_LINE = /^# frozen_string_literal: true\n\n/
+  REVIEW_REMINDER = 'If this failed, review the domain pack docs for the sources that changed ' \
+    'and update their content to match the code — stamping only re-records digests, it does not ' \
+    'confirm the docs are still accurate.'
 
   Doc = Struct.new(:path, :frontmatter, :errors, keyword_init: true)
 
@@ -59,9 +63,27 @@ module DomainPack
 
   def stamp(root)
     root = Pathname(root)
+    puts REVIEW_REMINDER
+    ensure_backlinks(root, docs(root))
     manifest = sources(root).select { |source| root.join(source).file? }.to_h { |source| [source, digest(root, source)] }
     File.write(root.join(MANIFEST).to_s, "#{JSON.pretty_generate(manifest)}\n")
     manifest
+  end
+
+  def ensure_backlinks(root, all_docs)
+    all_docs.each do |doc|
+      Array(doc.frontmatter['sources']).select { |source| source.end_with?('.rb') }.each do |source|
+        path = root.join(source)
+        next unless path.file?
+
+        backlink = "# See: #{doc.path}\n"
+        content = path.read
+        next if content.include?(backlink)
+        next unless content.match?(FROZEN_STRING_LITERAL_LINE)
+
+        path.write(content.sub(FROZEN_STRING_LITERAL_LINE) { "#{Regexp.last_match(0)}#{backlink}" })
+      end
+    end
   end
 
   def check(root)
@@ -90,6 +112,8 @@ module DomainPack
     (manifest.keys - sources(root)).each do |orphan|
       problems << "#{MANIFEST}: `#{orphan}` is not listed by any doc; run bin/domain_pack stamp"
     end
-    problems.uniq
+    problems = problems.uniq
+    puts REVIEW_REMINDER if problems.any?
+    problems
   end
 end

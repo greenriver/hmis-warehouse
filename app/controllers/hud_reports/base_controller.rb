@@ -6,6 +6,9 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/warehouse/driver-architecture.md
+# See: docs/domain-pack/hud-reporting/report-framework.md
+# See: docs/domain-pack/hud-reporting/report-drivers.md
 module HudReports
   class BaseController < ApplicationController
     before_action :require_can_view_hud_reports!

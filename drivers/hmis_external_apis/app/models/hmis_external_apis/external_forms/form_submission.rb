@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hmis/external-apis.md
 module HmisExternalApis::ExternalForms
   class FormSubmission < ::HmisExternalApis::HmisExternalApisBase
     include ::Hmis::Hud::Concerns::FormSubmittable

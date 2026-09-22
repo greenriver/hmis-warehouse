@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hud-reporting/report-framework.md
 module HudReports
   # Encapsulates the state and logic for a HUD report cell drill-down.
   # This avoids polluting controllers with numerous instance variables and

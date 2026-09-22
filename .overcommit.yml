@@ -29,6 +29,10 @@ PreCommit:
     enabled: true
     description: Update Rubocop TODO
     required_executable: './bin/update_rubocop_todo.rb'
+  DomainPackCheck:
+    enabled: true
+    description: Domain pack docs are in sync with their sources
+    required_executable: './bin/domain_pack_precommit'
   TrailingWhitespace:
     enabled: false
     exclude:

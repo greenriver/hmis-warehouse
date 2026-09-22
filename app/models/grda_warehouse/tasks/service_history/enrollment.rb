@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hud-reporting/service-history.md
 # require 'newrelic_rpm'
 module GrdaWarehouse::Tasks::ServiceHistory
   class Enrollment < GrdaWarehouse::Hud::Enrollment

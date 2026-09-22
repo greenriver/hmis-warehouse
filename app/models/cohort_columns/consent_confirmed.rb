@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/roi/roi-authorizations-and-visibility.md
 module CohortColumns
   class ConsentConfirmed < ReadOnly
     attribute :column, String, lazy: true, default: :consent_confirmed

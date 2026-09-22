@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/warehouse/reports-framework.md
 module WarehouseReports
   class ChronicController < ApplicationController
     include ArelHelper

@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/warehouse/data-sources-and-imports.md
 module ManualHmisData
   def self.table_name_prefix
     'manual_hmis_datum_'

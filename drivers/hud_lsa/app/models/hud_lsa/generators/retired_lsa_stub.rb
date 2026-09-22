@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hud-reporting/report-drivers.md
 # Shared behavior for retired LSA generator stubs. These classes exist solely for
 # STI resolution, file downloads, and archival support — they cannot generate new reports.
 #

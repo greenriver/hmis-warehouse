@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hud-reporting/csv-export.md
 require 'zip'
 require 'csv'
 require 'kiba-common/sources/enumerable'

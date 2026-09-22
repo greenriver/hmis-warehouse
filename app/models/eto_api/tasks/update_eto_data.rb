@@ -6,6 +6,8 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/warehouse/data-sources-and-imports.md
+# See: docs/domain-pack/roi/consent-from-external-sources.md
 # Tool to update data via the ETO API based on results from QaaWS via Bo::ClientIdLookup
 # require 'newrelic_rpm'
 module EtoApi::Tasks

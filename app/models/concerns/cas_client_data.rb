@@ -6,6 +6,8 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/warehouse/cas-integration.md
+# See: docs/domain-pack/roi/roi-authorizations-and-visibility.md
 module CasClientData
   extend ActiveSupport::Concern
   included do

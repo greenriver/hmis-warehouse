@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/authorization/hmis-permissions.md
 # Loads and caches access group IDs for projects, including via organizations, data sources,
 # and project groups.
 module Hmis::AuthPolicies::ContextLoaders

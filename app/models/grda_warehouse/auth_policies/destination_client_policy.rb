@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/authorization/warehouse-policies.md
 class GrdaWarehouse::AuthPolicies::DestinationClientPolicy < GrdaWarehouse::AuthPolicies::BasePolicy
   # delegate some methods to source clients
   [

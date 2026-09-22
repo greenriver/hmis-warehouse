@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/warehouse/client-identity.md
 class ClientMatchesController < ApplicationController
   before_action :require_can_edit_clients!
   include ClientPathGenerator

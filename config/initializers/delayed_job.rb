@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/warehouse/jobs-and-configuration.md
 Delayed::Worker.destroy_failed_jobs = false
 Delayed::Worker.sleep_delay = 5
 Delayed::Worker.max_attempts = 3

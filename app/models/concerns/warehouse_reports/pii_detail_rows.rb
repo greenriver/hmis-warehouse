@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/warehouse/reports-framework.md
 module WarehouseReports::PiiDetailRows
   PII_HEADERS = { 'First Name' => :first_name, 'Last Name' => :last_name, 'DOB' => :dob, 'SSN' => :ssn }.freeze
 

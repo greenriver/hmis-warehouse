@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/authorization/warehouse-access-controls.md
 class Admin::AccessControlsController < ApplicationController
   include ViewableEntities
   include ArelHelper

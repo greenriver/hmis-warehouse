@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hmis/coordinated-entry.md
 module Mutations
   class Ce::MarkUnitsAvailable < CleanBaseMutation
     argument :unit_ids, [ID], required: true

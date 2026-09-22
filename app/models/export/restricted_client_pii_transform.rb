@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hud-reporting/csv-export.md
 # Kiba transform for the HMIS CSV client exporters; appended last in each FY driver's
 # Client.transforms to avoid stepping on the hashed or faked row when those transforms.
 class Export::RestrictedClientPiiTransform

@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/warehouse/files-and-documents.md
 module Admin
   class AvailableFileTagsController < ApplicationController
     before_action :require_can_manage_config!

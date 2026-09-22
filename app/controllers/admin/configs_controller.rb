@@ -6,6 +6,8 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/warehouse/jobs-and-configuration.md
+# See: docs/domain-pack/roi/consent-records.md
 module Admin
   class ConfigsController < ApplicationController
     before_action :require_can_manage_config!

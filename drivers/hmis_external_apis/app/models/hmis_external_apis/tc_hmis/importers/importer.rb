@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hmis/external-apis.md
 # HmisExternalApis::TcHmis::Importers::Importer.perform(dir: '/host/tc', clobber: true, log_file: '/app/log/tc.log')
 module HmisExternalApis::TcHmis::Importers
   class Importer

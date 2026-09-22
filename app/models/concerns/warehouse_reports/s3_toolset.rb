@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/warehouse/reports-framework.md
 module WarehouseReports::S3Toolset
   extend ActiveSupport::Concern
   # Setup the S3 configuration if not setup if possible

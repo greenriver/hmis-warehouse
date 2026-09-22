@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hud-reporting/report-drivers.md
 module HudApr::Generators::Caper::Fy2026
   class Generator < ::HudReports::GeneratorBase
     include HudApr::CellDetailsConcern

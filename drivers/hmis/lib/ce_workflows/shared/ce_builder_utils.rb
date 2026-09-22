@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hmis/coordinated-entry.md
 ##
 # Utility class for scripts that build Coordinated Entry (CE) workflow definitions,
 # and any scripts we need to run manually/locally until all CE configuration functionality is in place.

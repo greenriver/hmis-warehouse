@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/authorization/hmis-graphql-authorization.md
 module Types
   class HmisSchema::Enrollment < Types::BaseObject
     EXCLUDED_KEYS_FOR_AUDIT = ['owner_type', 'enrollment_address_type', 'wip'].freeze

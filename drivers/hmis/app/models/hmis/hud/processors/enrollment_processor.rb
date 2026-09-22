@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hmis/data-model.md
 module Hmis::Hud::Processors
   class EnrollmentProcessor < Base
     def process(field, value)

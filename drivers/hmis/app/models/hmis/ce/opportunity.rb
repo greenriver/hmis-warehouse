@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hmis/coordinated-entry.md
 # An opportunity is the availability of a unit (housing or other services)
 #
 # @see docs/features/hmis/hmis-units.md For detailed documentation on CE opportunities and the unit occupancy workflow

@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/warehouse/client-identity.md
 class GrdaWarehouse::WarehouseClient < GrdaWarehouseBase
   include ArelHelper
   has_paper_trail

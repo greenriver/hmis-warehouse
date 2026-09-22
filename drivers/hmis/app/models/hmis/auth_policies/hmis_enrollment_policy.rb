@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/authorization/hmis-permissions.md
 class Hmis::AuthPolicies::HmisEnrollmentPolicy < Hmis::AuthPolicies::ResourcePolicy
   class Instance < Hmis::AuthPolicies::BasePolicy
     # Whether the user can view the full enrollment details (grants access to the Enrollment Dashboard).

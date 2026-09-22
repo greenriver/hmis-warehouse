@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/warehouse/cohorts.md
 # Shared behavior for the cohort access audit pages. Each including controller supplies its own
 # audit_service_class (the Legacy or Acl reconstruction service). Access requires BOTH the cohort
 # edit permission and the user-auditing permission, and the cohort must already be viewable by the

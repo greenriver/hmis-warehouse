@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hmis/forms.md
 # determine if project is a valid match for a form instance. The match is ranked so that when there are multiple form
 # definitions that match a project, we can take the definition with the best rank
 #

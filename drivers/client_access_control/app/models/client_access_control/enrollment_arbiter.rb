@@ -6,6 +6,9 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/warehouse/data-sources-and-imports.md
+# See: docs/domain-pack/roi/roi-authorizations-and-visibility.md
+# See: docs/domain-pack/authorization/warehouse-access-controls.md
 module ClientAccessControl
   class EnrollmentArbiter
     include ArelHelper

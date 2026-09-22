@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hmis/data-model.md
 module Hmis::Hud::Processors
   class ClientProcessor < Base
     # DO NOT CHANGE: Frontend code sends these values

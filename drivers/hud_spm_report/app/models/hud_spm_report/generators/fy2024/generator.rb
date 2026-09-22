@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hud-reporting/report-drivers.md
 module HudSpmReport::Generators::Fy2024
   class Generator < ::HudReports::GeneratorBase
     def self.fiscal_year = 'FY 2024'

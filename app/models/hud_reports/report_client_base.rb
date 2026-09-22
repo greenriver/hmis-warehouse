@@ -6,6 +6,8 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/warehouse/pii-and-restricted-clients.md
+# See: docs/domain-pack/hud-reporting/report-framework.md
 # Base class for a report type's clients.
 module HudReports
   class ReportClientBase < GrdaWarehouseBase

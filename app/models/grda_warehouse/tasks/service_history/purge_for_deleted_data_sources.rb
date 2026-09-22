@@ -6,6 +6,8 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/warehouse/data-sources-and-imports.md
+# See: docs/domain-pack/hud-reporting/service-history.md
 # Purges service history records (ServiceHistoryEnrollment and ServiceHistoryService)
 # for soft-deleted data sources.
 #

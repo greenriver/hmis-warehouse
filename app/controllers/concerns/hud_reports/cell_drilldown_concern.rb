@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hud-reporting/report-framework.md
 module HudReports
   # This Concern provides standardized behavior for HUD report cell drill-down views.
   # It handles HTML display with pagination.

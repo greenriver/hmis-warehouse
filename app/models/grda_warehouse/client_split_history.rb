@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/warehouse/client-identity.md
 module GrdaWarehouse
   # Tracks the history of client record splits in the HMIS warehouse.
   # When a client record is split, this model maintains the relationship between

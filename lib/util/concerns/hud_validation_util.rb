@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hud-reporting/hud-utility-versions.md
 module Concerns::HudValidationUtil
   extend ActiveSupport::Concern
   class_methods do

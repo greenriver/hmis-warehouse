@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/warehouse/cohorts.md
 module Audit
   module CohortAccess
     # Pure interval algebra used to reconstruct and combine access windows.

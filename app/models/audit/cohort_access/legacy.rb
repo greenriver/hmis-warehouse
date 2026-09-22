@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/warehouse/cohorts.md
 module Audit
   module CohortAccess
     # TODO: START_ACL remove this whole file when the legacy permission model is removed.

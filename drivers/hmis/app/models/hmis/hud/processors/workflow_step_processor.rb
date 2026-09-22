@@ -6,6 +6,7 @@
 
 # frozen_string_literal: true
 
+# See: docs/domain-pack/hmis/coordinated-entry.md
 module Hmis::Hud::Processors
   class WorkflowStepProcessor < Base
     def factory_name
