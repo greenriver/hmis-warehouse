@@ -67,6 +67,7 @@ module Importers::HmisAutoMigrate
         project_cleanup: @project_cleanup,
         stop_version: @stop_version,
         dry_run: @dry_run,
+        source_id_override: @source_id_override || false,
       )
 
       loader.import!(log)
