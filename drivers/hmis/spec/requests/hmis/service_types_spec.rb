@@ -107,9 +107,11 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect(result.dig('data', 'serviceType')).to be_nil
     end
 
-    it 'denies access without permission to configure data collection' do
+    it 'resolves the service type without permission to configure data collection' do
       remove_permissions(access_control, :can_configure_data_collection)
-      expect_access_denied(post_graphql(id: rental_assistance.id) { query })
+      response, result = post_graphql(id: rental_assistance.id) { query }
+      expect(response.status).to eq(200), result.inspect
+      expect(result.dig('data', 'serviceType', 'name')).to eq('Rental Assistance')
     end
   end
 end

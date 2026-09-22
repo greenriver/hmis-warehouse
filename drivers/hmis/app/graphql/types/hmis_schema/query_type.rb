@@ -181,8 +181,6 @@ module Types
       argument :id, ID, required: true
     end
     def service_type(id:)
-      access_denied! unless policy_for(Hmis::Hud::CustomServiceType, policy_type: :service_type).can_manage?
-
       Hmis::Hud::CustomServiceType.in_data_source(current_user.hmis_data_source_id).find_by(id: id)
     end
 
