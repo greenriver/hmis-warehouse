@@ -85,6 +85,15 @@ class UploadsController < ApplicationController
 
   # Acknowledge a SourceID the export source check could not match, and queue the import.
   def confirm
+    # A confirmed upload has already been queued; re-posting would enqueue a
+    # second import of the same file, which the job's advisory lock serializes
+    # but does not discard.
+    unless @upload.awaiting_confirmation?
+      flash[:alert] = Translation.translate('That upload is no longer waiting for confirmation.')
+      redirect_to action: :index
+      return
+    end
+
     unless params[:acknowledge] == '1'
       @export_source = run_export_source_check(@upload)
       @dry_run = dry_run_param

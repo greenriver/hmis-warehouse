@@ -104,7 +104,7 @@ Manual uploads do not support password-protected archives; only the automated S3
 
 The soft delete leaves the `hmis_zip` blob in storage — nothing in the application purges upload attachments, for manual uploads or any other kind.
 
-The Upload record and its `hmis_zip` attachment are created on the first POST, because an HTTP file input cannot repopulate across a re-render. The confirmation form posts back only the upload id plus the acknowledgment. `dry_run` rides along as a hidden field — it is not a column on `uploads`. An upload with `delayed_job_id IS NULL` and no acknowledgment was never enqueued; the uploads index labels it *Not confirmed*.
+The Upload record and its `hmis_zip` attachment are created on the first POST, because an HTTP file input cannot repopulate across a re-render. The confirmation form posts back only the upload id plus the acknowledgment. `dry_run` rides along as a hidden field — it is not a column on `uploads`. An upload with `delayed_job_id IS NULL` and no acknowledgment was never enqueued; the uploads index labels it *Not confirmed*. That same condition (`Upload#awaiting_confirmation?`) gates `#confirm`, so a confirmation cannot be re-posted to queue a second import of a file that was already acknowledged or already queued. Abandoning the confirmation screen leaves the record and its attachment in place; re-uploading the same file creates a second record rather than replacing the first.
 
 ### Overriding a `SourceID` mismatch
 

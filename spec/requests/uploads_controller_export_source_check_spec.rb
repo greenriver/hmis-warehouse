@@ -222,6 +222,33 @@ RSpec.describe UploadsController, type: :request do
       expect(seven_zip.source_id_overridden?).to be false
     end
 
+    # Re-posting would queue a second import of the same file; the job's advisory
+    # lock serializes the two but runs both.
+    it 'refuses a second confirmation of the same upload' do
+      expect(Importing::HudZip::HmisAutoMigrateJob).to receive(:perform_later).
+        once.and_return(enqueued_job)
+
+      post_confirm
+      post_confirm
+
+      expect(response).to redirect_to(action: :index)
+      expect(flash[:alert]).to include('no longer waiting for confirmation')
+    end
+
+    it 'refuses to confirm an upload that was queued without a confirmation' do
+      allow(Importing::HudZip::HmisAutoMigrateJob).to receive(:perform_later).and_return(enqueued_job)
+      post_create(file: zip_upload)
+      matched = GrdaWarehouse::Upload.order(:id).last
+      expect(matched.delayed_job_id).to eq(42)
+
+      expect(Importing::HudZip::HmisAutoMigrateJob).not_to receive(:perform_later)
+
+      post confirm_data_source_upload_path(data_source, matched), params: { acknowledge: '1' }
+
+      expect(response).to redirect_to(action: :index)
+      expect(matched.reload.export_source_check).to be_nil
+    end
+
     it 'refuses without the acknowledgment' do
       expect(Importing::HudZip::HmisAutoMigrateJob).not_to receive(:perform_later)
 
