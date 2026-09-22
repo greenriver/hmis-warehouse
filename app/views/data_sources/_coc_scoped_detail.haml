@@ -6,7 +6,7 @@
     - else
       = "#{params[:coc_code]} · #{@coc_display_name}"
   %p.text-muted
-    = "#{pluralize(@coc_project_count, 'project')} across #{pluralize(@coc_org_count, 'organization')}. Only this CoC is loaded, so the rest of the data source never has to render at once."
+    = "#{pluralize(@coc_project_count, 'project')} across #{pluralize(@coc_org_count, 'organization')} in the CoC"
 %div{ data: { controller: 'table-filter' } }
   = render 'project_filters', project_types: @coc_project_types
   .table-responsive
