@@ -327,7 +327,7 @@ class WarehouseReport::ExportEnrollmentCalculator < OpenStruct
   def residential_enrollments_for(client)
     @residential_enrollments_for ||= GrdaWarehouse::ServiceHistoryEnrollment.residential.
       entry.
-      preload(:service_history_services).
+      preload(:service_history_services, :enrollment).
       open_between(start_date: filter.start, end_date: filter.end).
       where(client_id: clients.select(:id)).
       order(first_date_in_program: :asc).
@@ -340,7 +340,7 @@ class WarehouseReport::ExportEnrollmentCalculator < OpenStruct
     @chronic_enrollments_for ||= GrdaWarehouse::ServiceHistoryEnrollment.
       hud_homeless(chronic_types_only: true).
       entry.
-      preload(:service_history_services).
+      preload(:service_history_services, :enrollment).
       open_between(start_date: filter.start, end_date: filter.end).
       where(client_id: clients.select(:id)).
       order(first_date_in_program: :asc).

@@ -7,6 +7,16 @@
 # frozen_string_literal: true
 
 namespace :grda_warehouse do
+  # Enqueue a job unless a copy is already waiting to run. The hourly task runs on a schedule
+  # regardless of how far behind the queue is, so without this the copies stack up and each one
+  # redoes the same work when the queue finally drains. A copy that is already running doesn't
+  # count -- Delayed::Job.queued? ignores locked rows -- so the next hour's work still gets queued.
+  def self.enqueue_unless_queued(job_class)
+    return if Delayed::Job.queued?(job_class.name)
+
+    job_class.perform_later
+  end
+
   def self.safely_execute(&block)
     block.call
   rescue StandardError => e
@@ -312,6 +322,8 @@ namespace :grda_warehouse do
   desc 'Hourly tasks'
   task hourly: [:environment, 'log:info_to_stdout'] do
     safely_execute do
+      # Runs inline: this job processes the completion alerts for the background queues, so it
+      # shouldn't depend on those queues being healthy to run.
       MaintenanceTasksLifecycleJob.new.perform
     end
 
@@ -320,7 +332,7 @@ namespace :grda_warehouse do
     end
 
     safely_execute do
-      Rake::Task['driver:hmis:process_activity_logs'].invoke if HmisEnforcement.hmis_enabled?
+      enqueue_unless_queued(Hmis::ActivityLogProcessorJob) if HmisEnforcement.hmis_enabled?
     end
 
     # disabled tasks from COVID
@@ -333,97 +345,35 @@ namespace :grda_warehouse do
     end
 
     safely_execute { TaskQueue.queue_unprocessed! }
-    GrdaWarehouse::ProjectGroup.maintain_project_lists!
 
     safely_execute do
-      Hmis::ProjectGroup.maintain_project_lists! if HmisEnforcement.hmis_enabled?
-    end
-
-    # Run HMIS Auto-Exit daily in the early morning. This is running here instead of the daily tasks because of the daily task is bloated.
-    if DateTime.current.hour == 5 && HmisEnforcement.hmis_enabled? && GrdaWarehouse::DataSource.hmis.exists?
-      safely_execute do
-        Hmis::AutoExitJob.perform_now
-      end
-    end
-
-    if DateTime.current.hour == 23 && HmisEnforcement.hmis_enabled? && GrdaWarehouse::DataSource.hmis.exists? && Hmis::Ce.configuration.enabled?
-      # Catch-all CE reprocessing. Ensures we don't miss changes that could impact eligibility
-      safely_execute do
-        Hmis::Ce::Match::CandidatePool.transaction do
-          Hmis::Ce::Match::CandidatePool.lock_for_maintenance!(timeout_seconds: 5.minutes) do
-            Hmis::Ce::Match::CandidatePoolBuilder.call(force_reprocessing: true)
-          end
-        end
-      end
-    end
-
-    # Purge old soft-deleted records (guarded by SoftDeleteRetentionConfiguration#enabled?)
-    safely_execute do
-      if DateTime.current.hour == 5
-        PurgeSoftDeletedRecordsJob.set(priority: BaseJob::MAINTENANCE_PRIORITY_15).perform_later(dry_run: false)
-        PurgeSoftDeletedClientFilesJob.set(priority: BaseJob::MAINTENANCE_PRIORITY_15).perform_later
-      end
+      enqueue_unless_queued(MaintainProjectGroupListsJob)
     end
 
     # Run CSG Engage export if ready
-    MaReports::CsgEngage::Report.run_if_ready
-
-    if DateTime.current.hour == 20 && HmisEnforcement.hmis_enabled? && GrdaWarehouse::DataSource.hmis.exists?
-      # Run AC Data Warehouse exports to SFTP server at 8pm
-      Rake::Task['driver:hmis_external_apis:export:ac_clients'].invoke
-    end
-
-    if DateTime.current.hour == 4
-      HmisSupplemental::DataSet.where(sync_enabled: true).order(:id).each do |data_set|
-        HmisSupplemental::ImportJob.perform_later(data_set_id: data_set.id)
-      end
+    safely_execute do
+      MaReports::CsgEngage::Report.run_if_ready
     end
 
     safely_execute do
-      HmisExternalApis::ConsumeExternalFormSubmissionsJob.new.perform if HmisEnforcement.hmis_enabled? && GrdaWarehouse::DataSource.hmis.exists?
-    end
-
-    if DateTime.current.hour == 20
-      safely_execute do
-        GrdaWarehouse::Tasks::GenerateClientRoiAuthorizationsTask.perform
-      end
-    end
-
-    # Collect threshold monitoring data daily
-    if DateTime.current.hour == GrdaWarehouse::Monitoring::MetricDefinition::COLLECTION_HOUR
-      safely_execute do
-        CollectClientMetricsJob.perform_later
-      end
-    end
-
-    # This should be very fast, no need to background
-    if DateTime.current.hour == 17
-      safely_execute do
-        HmisCsvImporter::ImportOverride.remove_expired!
-      end
-    end
-
-    stats_collector = AppResourceMonitor::CollectStatsJob.new
-    safely_execute do
-      AppResourceMonitor::CollectStatsJob.perform_later if stats_collector.should_enqueue?
-    end
-
-    # Queue the cohort analytics generation job if it's not already queued
-    if DateTime.current.hour == 3 && ! Delayed::Job.queued?('GrdaWarehouse::Cohorts::CohortAnalyticsGeneration')
-      GrdaWarehouse::Cohorts::CohortAnalyticsGeneration.
-        delay(queue: ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running), attempts: 1).
-        maintain_cohort_intermediate_data
+      enqueue_unless_queued(HmisExternalApis::ConsumeExternalFormSubmissionsJob) if HmisExternalApis::ConsumeExternalFormSubmissionsJob.enabled?
     end
 
     safely_execute do
-      GrdaWarehouse::Tasks::SyncAnalysisDataTask.perform
+      AppResourceMonitor::CollectStatsJob.perform_later if AppResourceMonitor::CollectStatsJob.new.should_enqueue?
+    end
+
+    safely_execute do
+      enqueue_unless_queued(SyncAnalysisDataJob)
     end
 
     safely_execute do
       GrdaWarehouse::Tasks::CleanupClientSearchQueriesTask.perform
     end
 
-    BuildTranslationCacheJob.perform_later
+    safely_execute do
+      BuildTranslationCacheJob.perform_later
+    end
 
     if HmisEnforcement.hmis_enabled? && GrdaWarehouse::DataSource.hmis.exists? && Hmis::Ce.configuration.enabled?
       safely_execute do
@@ -431,6 +381,32 @@ namespace :grda_warehouse do
         # ProcessClientsJob handles fast client processing on a short interval
         Hmis::Ce::ProcessClientsJob.enqueue_if_not_already_running(wait_time: 2.minutes)
       end
+    end
+  end
+
+  desc 'Purge old soft-deleted records (guarded by SoftDeleteRetentionConfiguration#enabled?)'
+  task purge_soft_deleted_records: [:environment, 'log:info_to_stdout'] do
+    PurgeSoftDeletedRecordsJob.new.perform(dry_run: false)
+    PurgeSoftDeletedClientFilesJob.new.perform
+  end
+
+  desc 'Rebuild ROI authorization records for destination clients'
+  task generate_client_roi_authorizations: [:environment, 'log:info_to_stdout'] do
+    GrdaWarehouse::Tasks::GenerateClientRoiAuthorizationsTask.perform
+  end
+
+  desc 'Collect threshold monitoring data for clients'
+  task collect_client_metrics: [:environment, 'log:info_to_stdout'] do
+    CollectClientMetricsJob.new.perform
+  end
+
+  desc 'Maintain the intermediate data backing cohort analytics'
+  task maintain_cohort_intermediate_data: [:environment, 'log:info_to_stdout'] do
+    GrdaWarehouse::Tasks::TaskInstrumentation.call(
+      'GrdaWarehouse::Cohorts::CohortAnalyticsGeneration',
+      alert_threshold: 36.hours,
+    ) do |run|
+      run.complete! if GrdaWarehouse::Cohorts::CohortAnalyticsGeneration.maintain_cohort_intermediate_data
     end
   end
 

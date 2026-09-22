@@ -20,7 +20,7 @@ module HmisDataQualityTool
     pii_attr :reporting_age, as: :age
     pii_attr :ssn
 
-    attr_accessor :enrollments
+    attr_accessor :enrollments, :client_created_at
 
     REDACTED_PROJECT_NAME = '(Project Name Redacted)'
     OVERLAP_DETAIL_COLUMNS = [
@@ -221,6 +221,8 @@ module HmisDataQualityTool
       report_item.name_data_quality = source_client.NameDataQuality
       report_item.dob = source_client.DOB
       report_item.dob_data_quality = source_client.DOBDataQuality
+      # Same fallback chain the APR uses, so the DOB validity checks match Q6a
+      report_item.client_created_at = source_client.DateCreated || source_client.DateUpdated || DateTime.current
       # for simplicity, since we don't have a specific enrollment, calculate age as of the end of the reporting period
       report_item.reporting_age = source_client.age_on(report.filter.end)
       report_item.personal_id = source_client.PersonalID
@@ -486,7 +488,7 @@ module HmisDataQualityTool
         },
         dob_issues: {
           title: 'DOB',
-          description: 'DOB is blank, before Oct. 10 1910, DOB is after an entry date, or DOB Data Quality is not collected, but DOB is present',
+          description: 'DOB is blank, DOB Data Quality is not "Full DOB reported" (1), DOB is before Jan. 1 1915, or DOB is after the client record was created, an enrollment record was created, or an entry date',
           required_for: 'All',
           detail_columns: [
             :destination_client_id,
@@ -500,14 +502,16 @@ module HmisDataQualityTool
           ],
           denominator: ->(_item) { true },
           limiter: ->(item) {
-            # DOB is Blank
+            # DOB is blank; the APR counts these regardless of DOB Data Quality
             return true if item.dob.blank?
-            # DOB Quality is 99 or blank but dob is present?
-            return true if item.dob.present? && (item.dob_data_quality.blank? || item.dob_data_quality == 99)
-            # before 10/10/1910
-            return true if item.dob.present? && item.dob <= '1910-10-10'.to_date
-            # in the future
-            return true if item.dob >= Date.tomorrow
+            # Any response other than "Full DOB reported" is an error when a DOB is present.
+            # The APR normalizes 8, 9 and any unexpected value to 99 before counting Q6a.
+            return true unless item.dob_data_quality == 1
+            # before 1/1/1915
+            return true if item.dob < '1915-01-01'.to_date
+            # recorded before the client or the enrollment existed
+            return true if item.dob > item.client_created_at
+            return true if item.enrollments.any? { |en| en.DateCreated.present? && item.dob > en.DateCreated }
             # after any entry date
             return true if item.enrollments.any? { |en| en.EntryDate < item.dob }
 
@@ -516,7 +520,7 @@ module HmisDataQualityTool
         },
         ssn_issues: {
           title: 'Social Security Number',
-          description: 'SSN is blank but SSN Data Quality is "Full SSN reported" (1), SSN is present but SSN Data Quality is not 1 or "Approximate or partial SSN reported" (2), or SSN Data Quality is "Data not collected" (99) or blank, or SSN is all zeros',
+          description: 'SSN is blank, SSN Data Quality is not "Full SSN reported" (1), or the value is not a valid Social Security Number',
           required_for: 'All',
           detail_columns: [
             :destination_client_id,
@@ -530,21 +534,19 @@ module HmisDataQualityTool
           ],
           denominator: ->(_item) { true },
           limiter: ->(item) {
-            # SSN DQ is 99
-            return true if item.ssn_data_quality == 99 || item.ssn_data_quality.blank?
-            # SSN is Blank, but indicated it should be there
-            return true if item.ssn.blank? && item.ssn_data_quality == 1
-            # SSN is present but DQ indicates it shouldn't be
-            return true if item.ssn.present? && ! item.ssn_data_quality.in?([1, 2])
-            # SSN all zeros
-            return true if (item.ssn =~ /^0+$/).present?
+            # SSN is blank; the APR counts these regardless of SSN Data Quality
+            return true if item.ssn.blank?
+            # Any response other than "Full SSN reported" is an error when an SSN is present
+            return true unless item.ssn_data_quality == 1
+            # Full SSN reported, but the value isn't one
+            return true unless HudHelper.util.valid_social?(item.ssn)
 
             false
           },
         },
         name_issues: {
           title: 'Name',
-          description: 'First or last name is blank but Name Data Quality is "Full name reported" (1), name is present but Name Data Quality is not 1 or "Partial, street name, or code name reported" (2), or Name Data Quality is "Data not collected" (99) or blank',
+          description: 'First or last name is blank, or Name Data Quality is not "Full name reported" (1)',
           required_for: 'All',
           detail_columns: [
             :destination_client_id,
@@ -557,12 +559,10 @@ module HmisDataQualityTool
           ],
           denominator: ->(_item) { true },
           limiter: ->(item) {
-            # Name DQ is 99
-            return true if item.name_data_quality == 99 || item.name_data_quality.blank?
-            # Name is Blank, but indicated it should be there
-            return true if [item.first_name, item.last_name].any?(nil) && item.name_data_quality == 1
-            # Name is present but DQ indicates it shouldn't be
-            return true if [item.first_name, item.last_name].all?(&:present?) && ! item.name_data_quality.in?([1, 2])
+            # A missing name is an error regardless of Name Data Quality
+            return true if item.first_name.blank? || item.last_name.blank?
+            # Any response other than "Full name reported" is an error
+            return true unless item.name_data_quality == 1
 
             false
           },

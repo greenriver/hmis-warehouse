@@ -92,6 +92,7 @@ runs:
           python3-venv \
           shared-mime-info \
           unzip \
+          zip \
           zlib1g-dev \
           ${{ inputs.additional_packages }}
         apt-get clean
