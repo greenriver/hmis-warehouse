@@ -32,7 +32,7 @@ module ServiceHistory
       enrollment.update_column(:processing_error, nil) if enrollment.processing_error.present?
     rescue StandardError => e
       Rails.logger.error "===RebuildEnrollmentsByBatchJob=== Enrollment #{id} failed: #{e.class}: #{e.message}"
-      enrollment&.update_column(:processing_error, "#{e.class}: #{e.message}")
+      enrollment&.update_column(:processing_error, "#{e.class}: #{e.message.lines.first&.strip}".truncate(500))
       Sentry.capture_exception_with_info(e, "RebuildEnrollmentsByBatchJob failed for enrollment #{id}", { enrollment_id: id })
     end
 
