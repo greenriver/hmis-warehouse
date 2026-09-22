@@ -31,7 +31,19 @@ presumed stale. List files, never directories or globs. Never list a gitignored 
 
 `## Purpose`, `## Entry points`, `## How it works`, `## Key files`, `## Gotchas`,
 `## Do not repeat`, `## Related`. Each section must read on its own: no "above" or "below",
-roughly 300 words or fewer. Long topics become two docs.
+roughly 300 words or fewer. A large `## How it works` is split into `###` sub-sections of that
+size, each also self-contained; a topic that still does not fit becomes two docs.
+
+## Citing code
+
+Reference a method or constant name, not a line number: `Client#consent_form_valid?`, not
+`client.rb:1040`. `check` already flags the whole file on any change to it, so a line number buys
+no earlier warning — it only adds a value that drifts on any unrelated edit above it and has to be
+re-verified by hand every time the doc comes up for review.
+
+For cron/schedule timing, state the cadence (`daily`, `hourly`) and relative ordering when that's
+the fact that matters (`runs after the nightly import`); skip the exact clock time unless two
+schedule entries' relative timing is itself what's being documented.
 
 ## Keeping it current
 

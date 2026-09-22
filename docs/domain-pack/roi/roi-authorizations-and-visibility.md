@@ -6,9 +6,9 @@ tags: [roi, consent, ClientRoiAuthorization, roi_authorized?, ClientRoiLoader, E
 sources:
   - app/models/grda_warehouse/client_roi_authorization.rb
   - app/models/grda_warehouse/tasks/generate_client_roi_authorizations_task.rb
-  - app/jobs/generate_client_roi_authorizations_job.rb
   - app/models/grda_warehouse/tasks/update_housing_release_statuses.rb
   - lib/tasks/grda_warehouse.rake
+  - config/schedule.rb
   - app/models/grda_warehouse/auth_policies/source_client_policy.rb
   - app/models/grda_warehouse/auth_policies/context_loaders/client_roi_loader.rb
   - app/models/grda_warehouse/auth_policies/user_base_context.rb
@@ -79,8 +79,10 @@ about consent.
   `drivers/client_access_control/.../client_extension.rb`.
 - `Filters::Criteria::FilterForActiveRoi`: report filter keyed by `FilterBase#active_roi`.
 - `GrdaWarehouse::Tasks::PushClientsToCas`: field map that sends release status to CAS.
-- `GenerateClientRoiAuthorizationsJob.perform_later`, queued from `lib/tasks/grda_warehouse.rake`
-  when the hourly task runs at hour 20; `GrdaWarehouse::Tasks::UpdateHousingReleaseStatuses`
+- `grda_warehouse:generate_client_roi_authorizations` rake task (`lib/tasks/grda_warehouse.rake`),
+  calling `GrdaWarehouse::Tasks::GenerateClientRoiAuthorizationsTask.perform` directly, scheduled
+  daily via `config/schedule.rb` (no longer a background job — the queue-backed
+  `GenerateClientRoiAuthorizationsJob` was removed). `GrdaWarehouse::Tasks::UpdateHousingReleaseStatuses`
   calls the task inline for clients whose status changed.
 - Admin: `Admin::ConsentLimitsController` ("CoCs for Consent" tab), `require_can_edit_users!`.
 
@@ -138,11 +140,11 @@ client's `roi_authorizations` dates.
   `with_invalid_client`, `active?`, `date_in_valid_range?`, `matches_coc_codes?`.
 - `app/models/grda_warehouse/tasks/generate_client_roi_authorizations_task.rb`: `_perform`,
   `process_client`, `roi_status`, `roi_expiry_date`, `roi_coc_codes`, `with_lock`.
-- `app/jobs/generate_client_roi_authorizations_job.rb`: long-running queue,
-  `supports_idempotent_retry?` false.
 - `app/models/grda_warehouse/tasks/update_housing_release_statuses.rb`: calls the task for
   clients whose `housing_release_status` changed.
-- `lib/tasks/grda_warehouse.rake`: enqueues `GenerateClientRoiAuthorizationsJob` at hour 20.
+- `lib/tasks/grda_warehouse.rake`: `generate_client_roi_authorizations` task, calls the Task class
+  directly.
+- `config/schedule.rb`: daily cron entry for `grda_warehouse:generate_client_roi_authorizations`.
 - `app/models/grda_warehouse/auth_policies/source_client_policy.rb`: `can_view?`,
   `can_view_supplemental_data?`, `roi_authorized?`, `add_legacy_data_source_permissions`.
 - `app/models/grda_warehouse/auth_policies/context_loaders/client_roi_loader.rb`: `get`,
@@ -178,8 +180,8 @@ client's `roi_authorizations` dates.
   (`Consent::Implied` matches full and partial). Do not "fix" one side without deciding the
   intended behavior for both.
 - `ClientRoiAuthorization` rows lag the client columns until the task runs: inline from
-  `UpdateHousingReleaseStatuses` for status changes it detects, otherwise the hour-20 job. A
-  spec that writes consent columns and then checks `roi_authorized?` must run the task.
+  `UpdateHousingReleaseStatuses` for status changes it detects, otherwise the nightly cron task.
+  A spec that writes consent columns and then checks `roi_authorized?` must run the task.
 - `ClientRoiLoader` is memoized on the policy context for the request or job. Call
   `preload(client_ids)` before per-row policy checks in a list to avoid one query per client.
 - `user.coc_codes` is `Rails.cache`d for one minute (deleted in test) and comes from the user's
@@ -191,8 +193,7 @@ client's `roi_authorizations` dates.
   requesting user.
 - `roi_expiry_date` raises when the duration is time-based and `consent_form_signed_on` is
   blank, but `roi_status` returns nil first for that case, so the raise is unreachable from
-  `process_client`. A retry of the job re-runs the full scan (`supports_idempotent_retry?` is
-  false).
+  `process_client`.
 
 ## Do not repeat
 
