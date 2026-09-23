@@ -151,6 +151,63 @@ RSpec.describe model, type: :model do
         end
       end
     end
+
+    describe 'editability' do
+      let!(:can_edit_data_sources_role) { create :role, name: 'can edit data sources', can_edit_data_sources: true }
+
+      editable_ids = ->(user) { model.editable_by(user).pluck(:id).sort }
+
+      describe 'ordinary user' do
+        it 'sees nothing' do
+          expect(model.editable_by(user).exists?).to be false
+        end
+      end
+
+      describe 'user with a view-only role granted access to the data source' do
+        it 'is excluded, since editable_by requires can_edit_data_sources' do
+          empty_collection.set_viewables({ data_sources: [ds1.id] })
+          setup_access_control(user, can_view_projects, empty_collection)
+          expect(model.editable_by(user).exists?).to be false
+        end
+      end
+
+      describe 'user with edit permission assigned to a data source' do
+        it 'sees ds1, excluding ds2' do
+          empty_collection.set_viewables({ data_sources: [ds1.id] })
+          setup_access_control(user, can_edit_data_sources_role, empty_collection)
+          expect(editable_ids[user]).to eq ids[ds1]
+        end
+      end
+
+      describe 'user with edit permission assigned to an organization' do
+        it 'does not grant access to the organization\'s data source, unlike viewable_by' do
+          empty_collection.set_viewables({ organizations: [o1.id] })
+          setup_access_control(user, can_edit_data_sources_role, empty_collection)
+          expect(model.editable_by(user).exists?).to be false
+        end
+      end
+
+      describe 'user with edit permission assigned to a project' do
+        it 'does not grant access to the project\'s data source, unlike viewable_by' do
+          empty_collection.set_viewables({ projects: [p1.id] })
+          setup_access_control(user, can_edit_data_sources_role, empty_collection)
+          expect(model.editable_by(user).exists?).to be false
+        end
+      end
+
+      describe 'admin user' do
+        before do
+          Collection.maintain_system_groups
+          setup_access_control(user, admin_role, Collection.system_collection(:data_sources))
+        end
+        after do
+          user.user_group_members.destroy_all
+        end
+        it 'sees both' do
+          expect(editable_ids[user]).to eq ids[ds1, ds2]
+        end
+      end
+    end
   end
 
   describe '.stalled_dates_by_id' do
