@@ -19,14 +19,32 @@ module GrdaWarehouse::Tasks
     # has seeded by then, so the companion role already exists everywhere.
     TodoOrDie('Delete GrantAllHudReports one-shot grant', by: Date.new(2027, 1, 15))
 
+    # Companion role for granting HUD report definitions without altering any
+    # existing role's flags (project scope would widen otherwise).
+    VIEWER_ROLE_NAME = 'HUD Report Viewer'
+
+    def self.viewer_role
+      viewer_roles.first_or_create do |role|
+        role.can_view_assigned_reports = true
+      end
+    end
+
+    def self.viewer_roles
+      Role.where(system: true, name: VIEWER_ROLE_NAME)
+    end
+
     def run!
-      return if Role.hud_report_viewer_role_exists?
+      return if self.class.viewer_roles.exists?
 
       GrdaWarehouse::WarehouseReports::ReportDefinition.maintain_report_definitions
       Collection.maintain_system_groups(group: :reports)
       AccessGroup.maintain_system_groups(group: :reports)
-      grant_acl_users
-      grant_legacy_users
+      # The viewer role marks the grant as done, so it must roll back with a failed
+      # grant or the next run would skip the users never granted.
+      ApplicationRecord.transaction do
+        grant_acl_users
+        grant_legacy_users
+      end
     end
 
     private def hud_roles
@@ -34,7 +52,7 @@ module GrdaWarehouse::Tasks
     end
 
     private def grant_acl_users
-      viewer_role = Role.hud_report_viewer_role
+      viewer_role = self.class.viewer_role
       collection = Collection.system_collection(:hud_reports)
       AccessControl.where(role_id: hud_roles.select(:id)).distinct.pluck(:user_group_id).each do |user_group_id|
         AccessControl.where(role_id: viewer_role.id, collection_id: collection.id, user_group_id: user_group_id).first_or_create!

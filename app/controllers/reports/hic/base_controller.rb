@@ -12,7 +12,7 @@ module Reports
     before_action :set_filter
 
     def related_report
-      GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: 'hud_reports/hics')
+      GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: GrdaWarehouse::WarehouseReports::ReportDefinition.hud_url(:hics))
     end
     # ES (1), TH (2), SH (8), PSH (3), RRH (13), PH (10), PH (9)
     PROJECT_TYPES = [1, 2, 3, 8, 9, 10, 13].freeze

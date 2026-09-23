@@ -12,7 +12,7 @@ module HudReports
     include HudReports::ReportUrls
 
     def related_report
-      GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: 'hud_reports/pits')
+      GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: GrdaWarehouse::WarehouseReports::ReportDefinition.hud_url(:pits))
     end
 
     def index

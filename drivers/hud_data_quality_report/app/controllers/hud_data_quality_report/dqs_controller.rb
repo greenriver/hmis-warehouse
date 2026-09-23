@@ -15,7 +15,7 @@ module HudDataQualityReport
 
     # Mounted at hud_reports/past_dqs; access follows the current DQ report.
     def related_report
-      GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: 'hud_reports/dqs')
+      GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: GrdaWarehouse::WarehouseReports::ReportDefinition.hud_url(:dqs))
     end
   end
 end

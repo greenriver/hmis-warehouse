@@ -20,9 +20,9 @@ RSpec.describe 'HUD report access plumbing' do
     end
   end
 
-  describe 'Role.hud_report_viewer_role' do
+  describe 'GrdaWarehouse::Tasks::GrantAllHudReports.viewer_role' do
     it 'is a system role with only can_view_assigned_reports' do
-      role = Role.hud_report_viewer_role
+      role = GrdaWarehouse::Tasks::GrantAllHudReports.viewer_role
       granted = Role.permissions.select { |permission| role.send(permission) }
 
       expect(role.system).to be true
@@ -46,6 +46,16 @@ RSpec.describe 'HUD report access plumbing' do
       expect(generators).not_to be_empty
       expect(generators.map(&:report_definition_url).uniq).to all(be_in(hud_urls))
       expect(registry_urls.uniq).to all(be_in(hud_urls))
+    end
+
+    it 'defines every HUD definition url in HUD_URLS' do
+      expect(hud_urls).to match_array(definitions::HUD_URLS.values)
+    end
+
+    it 'maps every HUD_URLS entry to a route' do
+      definitions::HUD_URLS.each_value do |url|
+        expect(Rails.application.routes.recognize_path("/#{url}")).to include(action: 'index'), url
+      end
     end
 
     it 'distinguishes reports that share a driver' do

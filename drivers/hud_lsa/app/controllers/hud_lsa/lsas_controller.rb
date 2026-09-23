@@ -15,7 +15,7 @@ module HudLsa
     # LSA generators predate HudReports::GeneratorBase, so name the definition directly.
     # LsaHicsController inherits this: the LSA-derived HIC follows LSA access.
     def related_report
-      GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: 'hud_reports/lsas')
+      GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: GrdaWarehouse::WarehouseReports::ReportDefinition.hud_url(:lsas))
     end
     # Declared above set_report so the permission is checked before any record lookup.
     before_action :require_can_download_lsa_source_data!, only: [:download_source_data]

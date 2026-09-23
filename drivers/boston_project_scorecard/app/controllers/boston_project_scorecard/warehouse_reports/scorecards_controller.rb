@@ -101,7 +101,7 @@ module BostonProjectScorecard::WarehouseReports
 
     def link_to_apr(text, question, comparison: false)
       apr_id = comparison ? @report.comparison_apr_id : @report.apr_id
-      helpers.link_to_if(GrdaWarehouse::WarehouseReports::ReportDefinition.url_viewable_by?('hud_reports/aprs', current_user) && apr_id.present?, text, result_hud_reports_apr_question_path(apr_id || 0, question), target: :blank)
+      helpers.link_to_if(helpers.hud_report_viewable?(:aprs) && apr_id.present?, text, result_hud_reports_apr_question_path(apr_id || 0, question), target: :blank)
     end
     helper_method :link_to_apr
 

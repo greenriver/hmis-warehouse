@@ -20,8 +20,9 @@ module ApplicationHelper
     end
   end
 
-  def hud_report_viewable?(url)
-    GrdaWarehouse::WarehouseReports::ReportDefinition.url_viewable_by?(url, current_user)
+  def hud_report_viewable?(key)
+    definitions = GrdaWarehouse::WarehouseReports::ReportDefinition
+    definitions.url_viewable_by?(definitions.hud_url(key), current_user)
   end
 
   # END Permissions

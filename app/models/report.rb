@@ -31,11 +31,11 @@ class Report < ApplicationRecord
   # ReportResultsSummary) and the current report definition that now governs access
   # to them. AHAR is deliberately absent: it has no current counterpart.
   HUD_DEFINITION_URLS_BY_FAMILY = {
-    'DataQuality' => 'hud_reports/dqs',
-    'Pit' => 'hud_reports/pits',
-    'SystemPerformance' => 'hud_reports/spms',
-    'Lsa' => 'hud_reports/lsas',
-    'Hic' => 'hud_reports/hics',
+    'DataQuality' => GrdaWarehouse::WarehouseReports::ReportDefinition.hud_url(:dqs),
+    'Pit' => GrdaWarehouse::WarehouseReports::ReportDefinition.hud_url(:pits),
+    'SystemPerformance' => GrdaWarehouse::WarehouseReports::ReportDefinition.hud_url(:spms),
+    'Lsa' => GrdaWarehouse::WarehouseReports::ReportDefinition.hud_url(:lsas),
+    'Hic' => GrdaWarehouse::WarehouseReports::ReportDefinition.hud_url(:hics),
   }.freeze
 
   def self.hud_definition_url_for(type)

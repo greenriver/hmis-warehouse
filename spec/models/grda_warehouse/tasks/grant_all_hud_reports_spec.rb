@@ -62,7 +62,7 @@ RSpec.describe GrdaWarehouse::Tasks::GrantAllHudReports do
   end
 
   it 'does not re-grant access an admin has since removed' do
-    AccessControl.where(role_id: Role.hud_report_viewer_role.id).destroy_all
+    AccessControl.where(role_id: described_class.viewer_role.id).destroy_all
 
     described_class.new.run!
 
@@ -76,5 +76,31 @@ RSpec.describe GrdaWarehouse::Tasks::GrantAllHudReports do
     described_class.new.run!
 
     expect(definitions.viewable_by(late_user.reload)).to be_empty
+  end
+end
+
+RSpec.describe GrdaWarehouse::Tasks::GrantAllHudReports, 'when the grant fails partway' do
+  let(:hud_role) { create(:role, can_view_own_hud_reports: true) }
+  let(:acl_hud_user) { create(:acl_user) }
+  let(:legacy_hud_user) { create(:user) }
+
+  before do
+    setup_access_control(acl_hud_user, hud_role, create(:collection))
+    legacy_hud_user.legacy_roles << hud_role
+    failing_task = described_class.new
+    allow(failing_task).to receive(:grant_legacy_users).and_raise(ActiveRecord::StatementInvalid)
+
+    expect { failing_task.run! }.to raise_error(ActiveRecord::StatementInvalid)
+  end
+
+  it 'rolls back the ACL grant and the viewer role' do
+    expect(described_class.viewer_roles).not_to exist
+    expect(AccessControl.where(user_group_id: acl_hud_user.user_groups.select(:id)).pluck(:role_id)).to eq([hud_role.id])
+  end
+
+  it 'grants the legacy users on the next run' do
+    described_class.new.run!
+
+    expect(AccessGroup.system_group(:hud_reports).users).to contain_exactly(legacy_hud_user)
   end
 end

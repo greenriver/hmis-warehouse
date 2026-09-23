@@ -8,7 +8,7 @@
 
 module HudDataQualityReport
   class LegacyResultsController < ApplicationControllerV2
-    authorize_with { GrdaWarehouse::WarehouseReports::ReportDefinition.url_viewable_by?('hud_reports/dqs', current_user) }
+    authorize_with { GrdaWarehouse::WarehouseReports::ReportDefinition.url_viewable_by?(GrdaWarehouse::WarehouseReports::ReportDefinition.hud_url(:dqs), current_user) }
 
     def show
       @report = Report.find(params[:legacy_dq_id].to_i)

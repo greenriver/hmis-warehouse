@@ -156,7 +156,7 @@ module PerformanceMeasurement
     end
 
     def show_spm_link?
-      return false unless GrdaWarehouse::WarehouseReports::ReportDefinition.url_viewable_by?('hud_reports/spms', user)
+      return false unless GrdaWarehouse::WarehouseReports::ReportDefinition.url_viewable_by?(GrdaWarehouse::WarehouseReports::ReportDefinition.hud_url(:spms), user)
 
       user.can_view_all_hud_reports? || PerformanceMeasurement::Goal.include_project_options?
     end

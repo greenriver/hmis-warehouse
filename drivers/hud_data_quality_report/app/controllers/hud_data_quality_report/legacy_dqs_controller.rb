@@ -11,7 +11,7 @@ module HudDataQualityReport
     include WarehouseReportAuthorization
 
     def related_report
-      GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: 'hud_reports/dqs')
+      GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: GrdaWarehouse::WarehouseReports::ReportDefinition.hud_url(:dqs))
     end
 
     LEGACY_DQ_TYPES = (1..7).map { |n| "Reports::DataQuality::Fy2017::Q#{n}" }.freeze

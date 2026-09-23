@@ -112,23 +112,9 @@ class Role < ApplicationRecord
     ).first_or_create
   end
 
-  # Companion role for granting HUD report definitions without altering any
-  # existing role's flags (project scope would widen otherwise).
-  HUD_REPORT_VIEWER_ROLE_NAME = 'HUD Report Viewer'
-
   # Remove the `can_view_own_hud_reports` entry from permissions_with_descriptions
   # and write a migration dropping the `roles.can_view_own_hud_reports` column.
   TodoOrDie('Remove the can_view_own_hud_reports permission and column', by: Date.new(2027, 1, 15))
-
-  def self.hud_report_viewer_role
-    where(system: true, name: HUD_REPORT_VIEWER_ROLE_NAME).first_or_create do |role|
-      role.can_view_assigned_reports = true
-    end
-  end
-
-  def self.hud_report_viewer_role_exists?
-    where(system: true, name: HUD_REPORT_VIEWER_ROLE_NAME).exists?
-  end
 
   def editable?
     system == false
