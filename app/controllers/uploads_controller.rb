@@ -33,14 +33,6 @@ class UploadsController < ApplicationController
       return
     end
 
-    # Confirm the destination before touching the file
-    unless typed_short_name_matches?
-      @upload = upload_source.new
-      flash.now[:alert] = Translation.translate('The data source name you typed does not match this data source.')
-      render :new
-      return
-    end
-
     # Prevent create if user forgot to include file
     file = upload_params[:hmis_zip]
     unless file
@@ -82,7 +74,8 @@ class UploadsController < ApplicationController
     render :confirm
   end
 
-  # Acknowledge a SourceID the upload validity check could not match, and queue the import.
+  # Name the destination data source to accept a SourceID the upload validity check
+  # could not match, and queue the import.
   def confirm
     # A confirmed upload has already been queued; re-posting would enqueue a
     # second import of the same file, which the job's advisory lock serializes
@@ -97,15 +90,17 @@ class UploadsController < ApplicationController
     # form cannot post back something different and the archive is not read again.
     @export_source = HmisCsvImporter::UploadValidityCheck::Result.from_audit_h(@upload.export_source_check)
 
-    unless params[:acknowledge] == '1'
+    # The SourceID did not vouch for the destination, so the user names it instead
+    unless typed_short_name_matches?
       @dry_run = dry_run_param
-      flash.now[:alert] = Translation.translate('You must acknowledge the mismatch to continue.')
+      flash.now[:alert] = Translation.translate('The data source name you typed does not match this data source.')
       render :confirm
       return
     end
 
     @upload.update!(
       export_source_check: @upload.export_source_check.merge(
+        'typed_short_name' => typed_short_name,
         'acknowledged_at' => Time.current,
         'acknowledged_by_user_id' => current_user.id,
       ),
@@ -130,15 +125,14 @@ class UploadsController < ApplicationController
   end
 
   # The audit row read by the confirmation screen and Upload#source_id_overridden?.
+  # #confirm adds the typed name and the acknowledgment to it.
   private def export_source_check_attributes
-    @export_source.to_audit_h.merge(
-      'typed_short_name' => typed_short_name,
-      'data_source_source_id' => @data_source.source_id,
-    )
+    @export_source.to_audit_h.merge('data_source_source_id' => @data_source.source_id)
   end
 
+  # A data source with no short name would otherwise be confirmed by an empty box
   private def typed_short_name_matches?
-    typed_short_name.casecmp(@data_source.short_name.to_s.strip).zero?
+    typed_short_name.present? && typed_short_name.casecmp(@data_source.short_name.to_s.strip).zero?
   end
 
   private def typed_short_name

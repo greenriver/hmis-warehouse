@@ -16,10 +16,6 @@ module GrdaWarehouse
     # if the import should be paused before overwriting the existing warehouse data
     attr_accessor :dry_run
 
-    # Typed by the user to confirm the upload destination; checked by
-    # UploadsController#create and not persisted
-    attr_accessor :short_name_confirmation
-
     belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
     belongs_to :user, optional: true
 

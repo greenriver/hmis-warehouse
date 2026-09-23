@@ -44,9 +44,9 @@ RSpec.describe UploadsController, type: :request do
     Rack::Test::UploadedFile.new(path, 'application/zip')
   end
 
-  def post_create(file:, short_name: 'HV')
+  def post_create(file:)
     post data_source_uploads_path(data_source), params: {
-      grda_warehouse_upload: { hmis_zip: file, short_name_confirmation: short_name, dry_run: '0' },
+      grda_warehouse_upload: { hmis_zip: file, dry_run: '0' },
     }
   end
 
@@ -73,21 +73,15 @@ RSpec.describe UploadsController, type: :request do
   end
 
   describe 'POST create' do
-    it 'rejects a mismatched short_name without creating an Upload' do
-      expect do
-        post_create(file: zip_upload, short_name: 'WRONG')
-      end.not_to change(GrdaWarehouse::Upload, :count)
-
-      expect(response).to have_http_status(:ok)
-      expect(response.body).to include('does not match this data source')
-    end
-
-    it 'accepts the short_name case-insensitively and with surrounding whitespace' do
+    # A matching SourceID is itself evidence the file belongs here, so nothing else
+    # is asked for.
+    it 'queues a matching SourceID without asking the user to name the data source' do
       allow(Importing::HudZip::HmisAutoMigrateJob).to receive(:perform_later).and_return(enqueued_job)
 
-      expect { post_create(file: zip_upload, short_name: ' hv ') }.to change(GrdaWarehouse::Upload, :count).by(1)
+      expect { post_create(file: zip_upload) }.to change(GrdaWarehouse::Upload, :count).by(1)
 
       expect(response).to redirect_to(action: :index)
+      expect(GrdaWarehouse::Upload.order(:id).last.export_source_check['typed_short_name']).to be_nil
     end
 
     it 'enqueues when the SourceID matches' do
@@ -160,7 +154,6 @@ RSpec.describe UploadsController, type: :request do
       post data_source_uploads_path(data_source), params: {
         grda_warehouse_upload: {
           hmis_zip: zip_upload(contents: export_csv(source_id: 'MA-999')),
-          short_name_confirmation: 'HV',
           dry_run: '1',
         },
       }
@@ -185,7 +178,7 @@ RSpec.describe UploadsController, type: :request do
       expect(check['file_source_name']).to eq('Example Vendor')
       expect(check['file_export_start_date']).to eq('2026-01-01')
       expect(check['data_source_source_id']).to eq('MA-500')
-      expect(check['typed_short_name']).to eq('HV')
+      expect(check['typed_short_name']).to be_nil
       expect(check['acknowledged_at']).to be_nil
     end
 
@@ -196,7 +189,7 @@ RSpec.describe UploadsController, type: :request do
 
       post_create(file: zip_upload(contents: export_csv(source_id: 'MA-999')))
       created = GrdaWarehouse::Upload.order(:id).last
-      post confirm_data_source_upload_path(data_source, created), params: { acknowledge: '1' }
+      post confirm_data_source_upload_path(data_source, created), params: { grda_warehouse_upload: { short_name_confirmation: 'HV' } }
 
       expect(response).to redirect_to(action: :index)
     end
@@ -208,10 +201,9 @@ RSpec.describe UploadsController, type: :request do
       GrdaWarehouse::Upload.order(:id).last
     end
 
-    def post_confirm(acknowledge: '1')
+    def post_confirm(short_name: 'HV')
       post confirm_data_source_upload_path(data_source, upload), params: {
-        acknowledge: acknowledge,
-        grda_warehouse_upload: { dry_run: '1' },
+        grda_warehouse_upload: { short_name_confirmation: short_name, dry_run: '1' },
       }
     end
 
@@ -244,7 +236,7 @@ RSpec.describe UploadsController, type: :request do
       expect(Importing::HudZip::HmisAutoMigrateJob).to receive(:perform_later).
         with(hash_including(source_id_override: false)).and_return(enqueued_job)
 
-      post confirm_data_source_upload_path(data_source, seven_zip), params: { acknowledge: '1' }
+      post confirm_data_source_upload_path(data_source, seven_zip), params: { grda_warehouse_upload: { short_name_confirmation: 'HV' } }
 
       expect(seven_zip.reload.export_source_check['file_source_id']).to be_nil
       expect(seven_zip.export_source_check['check_error']).to eq('unverifiable')
@@ -272,7 +264,7 @@ RSpec.describe UploadsController, type: :request do
 
       expect(Importing::HudZip::HmisAutoMigrateJob).not_to receive(:perform_later)
 
-      post confirm_data_source_upload_path(data_source, matched), params: { acknowledge: '1' }
+      post confirm_data_source_upload_path(data_source, matched), params: { grda_warehouse_upload: { short_name_confirmation: 'HV' } }
 
       expect(response).to redirect_to(action: :index)
       expect(matched.reload.export_source_check['acknowledged_at']).to be_nil
@@ -287,21 +279,40 @@ RSpec.describe UploadsController, type: :request do
       expect(automated.delayed_job_id).to be_nil
       expect(Importing::HudZip::HmisAutoMigrateJob).not_to receive(:perform_later)
 
-      post confirm_data_source_upload_path(data_source, automated), params: { acknowledge: '1' }
+      post confirm_data_source_upload_path(data_source, automated), params: { grda_warehouse_upload: { short_name_confirmation: 'HV' } }
 
       expect(response).to redirect_to(action: :index)
       expect(flash[:alert]).to include('no longer waiting for confirmation')
       expect(automated.reload.export_source_check).to be_nil
     end
 
-    it 'refuses without the acknowledgment' do
+    it 'refuses a data source name that does not match' do
       expect(Importing::HudZip::HmisAutoMigrateJob).not_to receive(:perform_later)
 
-      post_confirm(acknowledge: '0')
+      post_confirm(short_name: 'WRONG')
 
       expect(response).to have_http_status(:ok)
-      expect(response.body).to include('must acknowledge')
+      expect(response.body).to include('does not match this data source')
       expect(upload.reload.delayed_job_id).to be_nil
+    end
+
+    # An empty box would otherwise confirm a data source that has no short name.
+    it 'refuses an empty data source name' do
+      expect(Importing::HudZip::HmisAutoMigrateJob).not_to receive(:perform_later)
+
+      post_confirm(short_name: '')
+
+      expect(response).to have_http_status(:ok)
+      expect(upload.reload.delayed_job_id).to be_nil
+    end
+
+    it 'accepts the name case-insensitively and with surrounding whitespace' do
+      expect(Importing::HudZip::HmisAutoMigrateJob).to receive(:perform_later).and_return(enqueued_job)
+
+      post_confirm(short_name: ' hv ')
+
+      expect(response).to redirect_to(action: :index)
+      expect(upload.reload.export_source_check['typed_short_name']).to eq('hv')
     end
 
     it 'does not reach an upload belonging to another data source' do
@@ -309,7 +320,7 @@ RSpec.describe UploadsController, type: :request do
       upload.update_column(:data_source_id, other.id)
       expect(Importing::HudZip::HmisAutoMigrateJob).not_to receive(:perform_later)
 
-      post confirm_data_source_upload_path(data_source, upload), params: { acknowledge: '1' }
+      post confirm_data_source_upload_path(data_source, upload), params: { grda_warehouse_upload: { short_name_confirmation: 'HV' } }
 
       expect(response).to have_http_status(:not_found)
       expect(upload.reload.export_source_check['acknowledged_at']).to be_nil

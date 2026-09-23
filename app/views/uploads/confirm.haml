@@ -39,10 +39,11 @@
     = form_tag confirm_data_source_upload_path(@data_source, @upload) do
       = hidden_field_tag 'grda_warehouse_upload[dry_run]', @dry_run ? '1' : '0'
       .mb-4
-        %label
-          = check_box_tag :acknowledge, '1'
-          I have reviewed the details above and want to import this file into
+        %label{ for: 'short_name_confirmation' }
+          Type
           %strong= @data_source.short_name
+          to confirm you want to import this file into that data source
+        = text_field_tag 'grda_warehouse_upload[short_name_confirmation]', nil, id: 'short_name_confirmation', class: 'form-control', autocomplete: 'off'
       .form-actions
         = submit_tag 'Confirm and Import', class: 'btn btn-primary'
         = link_to 'Cancel', data_source_uploads_path(@data_source), class: 'btn btn-secondary'

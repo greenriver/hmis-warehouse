@@ -14,8 +14,6 @@
             .mb-4
               = f.file_field :hmis_zip
             .mb-4
-              = f.input :short_name_confirmation, label: "Type the data source name to confirm the destination", hint: "Enter #{@data_source.short_name} exactly. The upload will be rejected if it does not match.", input_html: { value: nil, autocomplete: 'off' }
-            .mb-4
               = f.input :dry_run, as: :pretty_boolean, label: "Pause for review?", hint: "If checked, the import will pause before overwriting the existing warehouse data.  This is useful if you want to review the import for data quality."
             - if can_upload_deidentified_hud_hmis_files?
               = f.input :deidentified, as: :pretty_boolean, label: "Are all of the Client Names in Client.csv blank?"
