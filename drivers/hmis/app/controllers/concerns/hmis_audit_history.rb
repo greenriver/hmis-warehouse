@@ -23,9 +23,6 @@ module HmisAuditHistory
         { class: Hmis::UserGroupMember, parent_association: :user_group, nested_association: :user_group_members },
         { class: Hmis::GroupViewableEntity, parent_association: :access_group, nested_association: :group_viewable_entities },
       ],
-      referenced_models: [
-        { class: Hmis::UserAccessControl, association: :user_access_controls },
-      ],
       excluded_fields: ['updated_at'],
     }
   end

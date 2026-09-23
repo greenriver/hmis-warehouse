@@ -11,4 +11,16 @@ namespace :cleanup do
     # Determine if we should expire any new data and delete it
     HmisCsvImporter::Cleanup::ExpireImportersAndLoadersJob.perform_now(dry_run: false)
   end
+
+  # rails driver:hmis_csv_importer:cleanup:remove_expired_import_overrides
+  desc 'Remove expired HMIS CSV import overrides'
+  task remove_expired_import_overrides: [:environment, 'log:info_to_stdout'] do
+    GrdaWarehouse::Tasks::TaskInstrumentation.call(
+      'HmisCsvImporter::ImportOverride.remove_expired!',
+      alert_threshold: 36.hours,
+    ) do |run|
+      HmisCsvImporter::ImportOverride.remove_expired!
+      run.complete!
+    end
+  end
 end

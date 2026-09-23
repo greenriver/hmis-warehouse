@@ -15,7 +15,6 @@ module HmisAccessControlAuditData
       :user_group,
       :role,
       :access_group,
-      :user_access_controls,
       { user_group: :user_group_members },
       { access_group: :group_viewable_entities },
     ]
