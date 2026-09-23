@@ -225,7 +225,7 @@ RSpec.describe GrdaWarehouse::RecurringHmisExport, type: :model do
     # must not leave them sitting in tmp.
     it 'raises and removes the unencrypted CSVs when the 7z run fails' do
       staged = tmp_export_files
-      allow(export).to receive(:system).and_return(false)
+      allow(SevenZip).to receive(:create).and_return(false)
 
       expect { export.send(:encrypt_seven_zip, File.binread(zip_source)) }.to raise_error(/could not 7z/)
       expect(tmp_export_files).to match_array(staged)

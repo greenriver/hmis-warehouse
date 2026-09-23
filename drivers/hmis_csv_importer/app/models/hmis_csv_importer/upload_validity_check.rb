@@ -8,7 +8,6 @@
 
 require 'zip'
 require 'csv'
-require 'open3'
 
 # Reads the source identity out of an uploaded HMIS CSV archive's Export.csv without
 # expanding the archive, so an upload can be compared against its destination data
@@ -19,9 +18,6 @@ module HmisCsvImporter
   class UploadValidityCheck
     EXPORT_FILE_NAME = 'export.csv'
     SEVEN_ZIP_EXTENSION = '.7z'
-    # Same binary Importers::HmisAutoMigrate::UploadedZip#force_standard_zip uses
-    SEVEN_ZIP_BIN = '7z'
-    SEVEN_ZIP_TIMEOUT_SECONDS = 30
     # Export.csv is a header and one row; the cap stops a crafted archive from
     # streaming an unbounded member into a web request
     MAX_EXPORT_FILE_BYTES = 1_000_000
@@ -108,14 +104,14 @@ module HmisCsvImporter
       Result.new(error: :malformed_zip)
     end
 
-    # 7z is a different container format, so rubyzip cannot read it. Shell out to
-    # the same binary the import job uses rather than leaving the SourceID unknown.
+    # 7z is a different container format, so rubyzip cannot read it. Reach for the same
+    # wrapper the import job uses rather than leaving the SourceID unknown.
     # @return [String, Result]
     private def seven_zip_contents
       entry = seven_zip_entry_name
       return entry if entry.is_a?(Result)
 
-      contents = run_seven_zip('e', '-so', @file_path, entry)
+      contents = SevenZip.read_entry(source: @file_path, entry: entry, max_bytes: MAX_EXPORT_FILE_BYTES)
       return Result.new(error: :unverifiable) if contents.nil?
 
       contents
@@ -123,34 +119,13 @@ module HmisCsvImporter
 
     # @return [String, Result] the archive-relative path of Export.csv
     private def seven_zip_entry_name
-      listing = run_seven_zip('l', '-ba', '-slt', @file_path)
-      return Result.new(error: :unverifiable) if listing.nil?
+      names = SevenZip.entries(source: @file_path)
+      return Result.new(error: :unverifiable) if names.nil?
 
-      names = listing.lines.filter_map { |line| line[/\APath = (.+?)\s*\z/, 1] }
       name = names.find { |n| File.basename(n).casecmp(EXPORT_FILE_NAME).zero? }
       return Result.new(error: :missing_export_file) if name.nil?
 
       name
-    end
-
-    # @return [String, nil] stdout, or nil when 7z failed, timed out, or is absent
-    private def run_seven_zip(*args)
-      output = nil
-      Open3.popen2(SEVEN_ZIP_BIN, *args, '-p', err: File::NULL) do |stdin, stdout, wait_thread|
-        stdin.close
-        output = stdout.read(MAX_EXPORT_FILE_BYTES)
-        # Past the cap 7z still has more to write; closing ends it now rather
-        # than leaving it blocked on a full pipe until the timeout expires
-        stdout.close
-        unless wait_thread.join(SEVEN_ZIP_TIMEOUT_SECONDS)
-          Process.kill('KILL', wait_thread.pid)
-          return nil
-        end
-        return nil unless wait_thread.value.success?
-      end
-      output.to_s
-    rescue Errno::ENOENT, Errno::EPIPE, Errno::ESRCH
-      nil
     end
 
     private def parse_export(contents)
