@@ -177,24 +177,56 @@ RSpec.describe HmisCsvImporter::UploadValidityCheck do
       expect(HmisCsvImporter::UploadValidityCheck::ERROR_MESSAGES.keys).
         to match_array(HmisCsvImporter::UploadValidityCheck::HARD_REJECT_ERRORS)
     end
-  end
 
-  describe '.for_upload' do
-    let(:data_source) { create(:source_data_source) }
-    let(:upload) { create(:grda_warehouse_upload, data_source: data_source) }
+    # #confirm acts on the stored row instead of opening the archive a second time.
+    it 'round trips through the audit row' do
+      original = described_class.new(
+        source_id: 'MA-500',
+        source_name: 'Example Vendor',
+        export_start_date: Date.new(2026, 1, 1),
+        export_end_date: Date.new(2026, 6, 30),
+      )
 
-    it 'reads Export.csv out of the stored attachment' do
-      attach_hmis_zip(upload, build_zip({ 'Export.csv' => export_csv }), filename: 'export.zip')
+      restored = described_class.from_audit_h(original.to_audit_h)
 
-      expect(described_class.for_upload(upload).source_id).to eq('MA-500')
+      expect(restored.source_id).to eq('MA-500')
+      expect(restored.source_name).to eq('Example Vendor')
+      expect(restored.export_start_date).to eq(Date.new(2026, 1, 1))
+      expect(restored.export_end_date).to eq(Date.new(2026, 6, 30))
+      expect(restored).to be_ok
     end
 
-    # The blob is written to a tempfile named with the original extension, which is
-    # what decides whether the archive is handed to rubyzip or to 7z.
-    it 'keeps the original extension so a .7z is still recognized' do
-      attach_hmis_zip(upload, seven_zip, filename: 'export.7z', content_type: 'application/x-7z-compressed')
+    it 'restores the error as a symbol' do
+      restored = described_class.from_audit_h(described_class.new(error: :unverifiable).to_audit_h)
 
-      expect(described_class.for_upload(upload).source_id).to eq('MA-500')
+      expect(restored.error).to eq(:unverifiable)
+      expect(restored).not_to be_ok
+    end
+
+    it 'tolerates a missing audit row' do
+      expect(described_class.from_audit_h(nil).error).to be_nil
+    end
+  end
+
+  describe '.for_uploaded_file' do
+    def uploaded(path, name)
+      ActionDispatch::Http::UploadedFile.new(tempfile: File.open(path), filename: name)
+    end
+
+    it 'reads Export.csv off the request tempfile' do
+      file = uploaded(build_zip({ 'Export.csv' => export_csv }), 'export.zip')
+
+      expect(described_class.for_uploaded_file(file).source_id).to eq('MA-500')
+    end
+
+    # A request tempfile is not named after the upload, and the extension is what
+    # decides whether the archive goes to rubyzip or to 7z.
+    it 'picks the reader from the uploaded name, not the tempfile path' do
+      scratch = File.join(tmp_dir, 'RackMultipart-no-extension')
+      FileUtils.cp(seven_zip, scratch)
+
+      expect(described_class.for_uploaded_file(uploaded(scratch, 'export.7z')).source_id).to eq('MA-500')
+      expect(described_class.new(file_path: scratch).run.error).to eq(:malformed_zip)
     end
   end
 end

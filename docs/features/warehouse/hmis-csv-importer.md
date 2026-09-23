@@ -97,26 +97,24 @@ Manual uploads (`UploadsController#create`) are checked before any job is queued
 Two independent checks:
 
 - **Typed data source name.** The user types the data source `short_name`. Compared case-insensitively and stripped, before any file work. A mismatch re-renders the form.
-- **`SourceID` in `Export.csv`.** `HmisCsvImporter::UploadValidityCheck` reads only the `Export.csv` entry out of the uploaded zip, without expanding the archive. Entry lookup is case-insensitive and tolerates a nested directory.
+- **`SourceID` in `Export.csv`.** `HmisCsvImporter::UploadValidityCheck` reads only the `Export.csv` entry out of the uploaded zip, without expanding the archive. Entry lookup is case-insensitive and tolerates a nested directory. It runs against the request's own tempfile, before the attachment is stored, so no part of the archive is fetched back from storage during the request.
 
 Four outcomes:
 
 | Source check result | Outcome |
 |------------------|---------|
 | `SourceID` matches `data_source.source_id` | Enqueued, as before |
-| Malformed zip, missing `Export.csv`, unparseable row | Upload soft-deleted, form re-rendered |
+| Malformed zip, missing `Export.csv`, unparseable row | No Upload created, form re-rendered |
 | File's `SourceID` blank, data source's `source_id` blank, or the two differ | Confirmation screen |
 | Unverifiable — the archive could not be read | Confirmation screen |
 
 Manual uploads do not support password-protected archives; only the automated S3 path supplies a password (`HmisImportConfig#zip_file_password`).
 
-The soft delete leaves the `hmis_zip` blob in storage — nothing in the application purges upload attachments, for manual uploads or any other kind.
-
-The Upload record and its `hmis_zip` attachment are created on the first POST, because an HTTP file input cannot repopulate across a re-render. The confirmation form posts back only the upload id plus the acknowledgment. `dry_run` rides along as a hidden field — it is not a column on `uploads`. An upload with `delayed_job_id IS NULL` and no acknowledgment was never enqueued; the uploads index labels it *Not confirmed*. That same condition (`Upload#awaiting_confirmation?`) gates `#confirm`, so a confirmation cannot be re-posted to queue a second import of a file that was already acknowledged or already queued. Abandoning the confirmation screen leaves the record and its attachment in place; re-uploading the same file creates a second record rather than replacing the first.
+The Upload record and its `hmis_zip` attachment are created on the first POST, because an HTTP file input cannot repopulate across a re-render. The confirmation form posts back only the upload id plus the acknowledgment. What the check observed is written to `uploads.export_source_check` on that first POST, so `#confirm` reads a stored server-side row rather than posted values or a second read of the archive. `dry_run` rides along as a hidden field — it is not a column on `uploads`. An upload with `delayed_job_id IS NULL` and no acknowledgment was never enqueued; the uploads index labels it *Not confirmed*. That same condition (`Upload#awaiting_confirmation?`) gates `#confirm`, so a confirmation cannot be re-posted to queue a second import of a file that was already acknowledged or already queued. Abandoning the confirmation screen leaves the record and its attachment in place; re-uploading the same file creates a second record rather than replacing the first.
 
 ### Overriding a `SourceID` mismatch
 
-Acknowledging the confirmation screen writes the `uploads.export_source_check` jsonb audit record (expected and observed `SourceID`, `SourceName`, typed short name, `check_error`, user, timestamp) and enqueues with `source_id_override: true`. That kwarg threads down through `Importing::HudZip::HmisAutoMigrateJob` → `Importers::HmisAutoMigrate::UploadedZip` → `Importers::HmisAutoMigrate::Base` → `HmisCsvImporter::Loader::Loader`, where `export_file_valid?` skips its own comparison and logs both values. It defaults to `false` at every level, so automated imports and any in-flight serialized jobs keep the check.
+The `uploads.export_source_check` jsonb audit record (expected and observed `SourceID`, `SourceName`, export date range, typed short name, `check_error`) is written when the upload is created; acknowledging the confirmation screen adds the user and timestamp and enqueues with `source_id_override: true`. That kwarg threads down through `Importing::HudZip::HmisAutoMigrateJob` → `Importers::HmisAutoMigrate::UploadedZip` → `Importers::HmisAutoMigrate::Base` → `HmisCsvImporter::Loader::Loader`, where `export_file_valid?` skips its own comparison and logs both values. It defaults to `false` at every level, so automated imports and any in-flight serialized jobs keep the check.
 
 No separate permission gates the override: anyone with `can_upload_hud_zips` can confirm past a mismatch. The file check is therefore advisory and the typed short name is the binding guard. The uploads index shows a *SourceID overridden* badge whose tooltip carries the expected and observed values; the rest of the audit record — typed short name, user, timestamp — is written to the column but not displayed anywhere.
 

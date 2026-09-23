@@ -58,22 +58,56 @@ module HmisCsvImporter
 
         Translation.translate(message)
       end
-    end
 
-    # Reads Export.csv out of an upload's persisted attachment. #open streams the
-    # blob to a tempfile in chunks rather than holding the whole zip in memory, and
-    # names it with the original extension so a .7z is still recognized.
-    # @param upload [GrdaWarehouse::Upload]
-    # @return [Result]
-    def self.for_upload(upload)
-      upload.hmis_zip.open do |file|
-        return new(file_path: file.path).run
+      # What gets stored on uploads.export_source_check.
+      # @return [Hash]
+      def to_audit_h
+        {
+          'file_source_id' => source_id,
+          'file_source_name' => source_name,
+          'file_export_start_date' => export_start_date&.iso8601,
+          'file_export_end_date' => export_end_date&.iso8601,
+          'check_error' => error&.to_s,
+        }
+      end
+
+      # Rebuilds a Result from a stored audit row.
+      # @param hash [Hash, nil]
+      # @return [Result]
+      def self.from_audit_h(hash)
+        hash = hash.presence || {}
+        new(
+          source_id: hash['file_source_id'],
+          source_name: hash['file_source_name'],
+          export_start_date: parse_stored_date(hash['file_export_start_date']),
+          export_end_date: parse_stored_date(hash['file_export_end_date']),
+          error: hash['check_error'].presence&.to_sym,
+        )
+      end
+
+      def self.parse_stored_date(value)
+        return nil if value.blank?
+
+        Date.parse(value)
+      rescue Date::Error
+        nil
       end
     end
 
-    # @param file_path [String] path to the uploaded archive on disk
-    def initialize(file_path:)
+    # Reads Export.csv out of a file that was just uploaded, while it is still the
+    # request's own tempfile on local disk.
+    # @param file [ActionDispatch::Http::UploadedFile]
+    # @return [Result]
+    def self.for_uploaded_file(file)
+      new(file_path: file.tempfile.path, filename: file.original_filename).run
+    end
+
+    # @param file_path [String] path to the archive on disk
+    # @param filename [String] the name the archive was uploaded under. A request
+    #   tempfile is not named after it, and the extension decides which reader applies.
+    def initialize(file_path:, filename: nil)
       @file_path = file_path
+      @filename = filename.presence || file_path
     end
 
     # @return [Result]
@@ -87,7 +121,7 @@ module HmisCsvImporter
     # Case-sensitive to match UploadedZip#force_standard_zip, so this check and the
     # import job always agree on which archives get unpacked with 7z
     private def seven_zip?
-      File.extname(@file_path) == SEVEN_ZIP_EXTENSION
+      File.extname(@filename) == SEVEN_ZIP_EXTENSION
     end
 
     # @return [String, Result] the Export.csv contents, or a Result carrying the failure

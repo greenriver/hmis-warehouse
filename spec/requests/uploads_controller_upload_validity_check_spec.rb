@@ -131,7 +131,9 @@ RSpec.describe UploadsController, type: :request do
       expect(response.body).to include('SourceID could not be read from this file')
     end
 
-    it 'destroys the Upload when the zip is malformed' do
+    # The check runs before the attachment is stored, so a rejected archive never
+    # reaches storage at all.
+    it 'does not create an Upload when the zip is malformed' do
       path = File.join(tmp_dir, 'broken.zip')
       File.binwrite(path, 'this is not a zip file')
 
@@ -139,6 +141,7 @@ RSpec.describe UploadsController, type: :request do
 
       expect(response.body).to include('could not be read as a zip archive')
       expect(GrdaWarehouse::Upload.count).to eq(0)
+      expect(ActiveStorage::Blob.count).to eq(0)
     end
 
     it 'refuses when imports are disabled for the data source' do
@@ -165,11 +168,37 @@ RSpec.describe UploadsController, type: :request do
       expect(response.body).to match(/<input[^>]*name="grda_warehouse_upload\[dry_run\]"[^>]*value="1"/)
     end
 
-    it 'destroys the Upload when Export.csv is missing' do
+    it 'does not create an Upload when Export.csv is missing' do
       post_create(file: zip_upload(contents: "PersonalID\n1\n", entry: 'Client.csv'))
 
       expect(response.body).to include('does not contain an Export.csv')
       expect(GrdaWarehouse::Upload.count).to eq(0)
+      expect(ActiveStorage::Blob.count).to eq(0)
+    end
+
+    # #confirm acts on this row rather than on posted values or a second read.
+    it 'records what the check observed when the upload is created' do
+      post_create(file: zip_upload(contents: export_csv(source_id: 'MA-999')))
+
+      check = GrdaWarehouse::Upload.order(:id).last.export_source_check
+      expect(check['file_source_id']).to eq('MA-999')
+      expect(check['file_source_name']).to eq('Example Vendor')
+      expect(check['file_export_start_date']).to eq('2026-01-01')
+      expect(check['data_source_source_id']).to eq('MA-500')
+      expect(check['typed_short_name']).to eq('HV')
+      expect(check['acknowledged_at']).to be_nil
+    end
+
+    # Pulling the archive back out of storage to read one member is what this avoids.
+    it 'reads the archive once across upload and confirmation' do
+      allow(Importing::HudZip::HmisAutoMigrateJob).to receive(:perform_later).and_return(enqueued_job)
+      expect(HmisCsvImporter::UploadValidityCheck).to receive(:new).once.and_call_original
+
+      post_create(file: zip_upload(contents: export_csv(source_id: 'MA-999')))
+      created = GrdaWarehouse::Upload.order(:id).last
+      post confirm_data_source_upload_path(data_source, created), params: { acknowledge: '1' }
+
+      expect(response).to redirect_to(action: :index)
     end
   end
 
@@ -246,7 +275,23 @@ RSpec.describe UploadsController, type: :request do
       post confirm_data_source_upload_path(data_source, matched), params: { acknowledge: '1' }
 
       expect(response).to redirect_to(action: :index)
-      expect(matched.reload.export_source_check).to be_nil
+      expect(matched.reload.export_source_check['acknowledged_at']).to be_nil
+    end
+
+    # Importers::HmisAutoMigrate::Base#upload creates records with no check, no job id
+    # and nothing imported yet. Confirming one would act on an upload that was never
+    # offered a confirmation, and there is no stored row to merge an acknowledgment into.
+    it 'refuses to confirm an upload the automated importers created' do
+      automated = create(:grda_warehouse_upload, data_source: data_source, user: user)
+      expect(automated.export_source_check).to be_nil
+      expect(automated.delayed_job_id).to be_nil
+      expect(Importing::HudZip::HmisAutoMigrateJob).not_to receive(:perform_later)
+
+      post confirm_data_source_upload_path(data_source, automated), params: { acknowledge: '1' }
+
+      expect(response).to redirect_to(action: :index)
+      expect(flash[:alert]).to include('no longer waiting for confirmation')
+      expect(automated.reload.export_source_check).to be_nil
     end
 
     it 'refuses without the acknowledgment' do
@@ -267,7 +312,7 @@ RSpec.describe UploadsController, type: :request do
       post confirm_data_source_upload_path(data_source, upload), params: { acknowledge: '1' }
 
       expect(response).to have_http_status(:not_found)
-      expect(upload.reload.export_source_check).to be_nil
+      expect(upload.reload.export_source_check['acknowledged_at']).to be_nil
     end
   end
 

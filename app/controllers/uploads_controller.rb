@@ -42,34 +42,33 @@ class UploadsController < ApplicationController
     end
 
     # Prevent create if user forgot to include file
-    unless upload_params[:hmis_zip]
+    file = upload_params[:hmis_zip]
+    unless file
       @upload = upload_source.new
       flash.now[:alert] = Translation.translate('You must attach a file in the form.')
       render :new
       return
     end
+
+    # Checked while the archive is still the request's own tempfile. Storing it first
+    # and reading it back would pull the whole thing down again to read one member.
+    @export_source = HmisCsvImporter::UploadValidityCheck.for_uploaded_file(file)
+    if @export_source.hard_reject?
+      @upload = upload_source.new
+      flash.now[:alert] = @export_source.error_message
+      render :new
+      return
+    end
+
     @upload = upload_source.create!(
       upload_params.merge(
         percent_complete: 0.0,
         data_source_id: @data_source.id,
         user_id: current_user.id,
         file: 'See S3', # Temporary until we remove the column
+        export_source_check: export_source_check_attributes,
       ),
     )
-    unless @upload.persisted?
-      flash.now[:alert] = Translation.translate('Upload failed to queue, did you attach a file?')
-      render :new
-      return
-    end
-
-    @export_source = HmisCsvImporter::UploadValidityCheck.for_upload(@upload)
-    if @export_source.hard_reject?
-      @upload.destroy
-      @upload = upload_source.new
-      flash.now[:alert] = @export_source.error_message
-      render :new
-      return
-    end
 
     if @export_source.source_id_matches?(@data_source.source_id)
       enqueue_import(@upload, source_id_override: false)
@@ -94,34 +93,22 @@ class UploadsController < ApplicationController
       return
     end
 
+    # The stored row records what the check read from the file at upload time, so the
+    # form cannot post back something different and the archive is not read again.
+    @export_source = HmisCsvImporter::UploadValidityCheck::Result.from_audit_h(@upload.export_source_check)
+
     unless params[:acknowledge] == '1'
-      @export_source = HmisCsvImporter::UploadValidityCheck.for_upload(@upload)
       @dry_run = dry_run_param
       flash.now[:alert] = Translation.translate('You must acknowledge the mismatch to continue.')
       render :confirm
       return
     end
 
-    # Re-read the file rather than trusting values posted back from the form
-    @export_source = HmisCsvImporter::UploadValidityCheck.for_upload(@upload)
-    if @export_source.hard_reject?
-      @upload.destroy
-      @upload = upload_source.new
-      flash.now[:alert] = @export_source.error_message
-      render :new
-      return
-    end
-
     @upload.update!(
-      export_source_check: {
-        'typed_short_name' => @data_source.short_name,
-        'data_source_source_id' => @data_source.source_id,
-        'file_source_id' => @export_source.source_id,
-        'file_source_name' => @export_source.source_name,
-        'check_error' => @export_source.error&.to_s,
+      export_source_check: @upload.export_source_check.merge(
         'acknowledged_at' => Time.current,
         'acknowledged_by_user_id' => current_user.id,
-      },
+      ),
     )
 
     enqueue_import(@upload, source_id_override: @upload.source_id_overridden?)
@@ -142,9 +129,20 @@ class UploadsController < ApplicationController
     upload.update(delayed_job_id: job.provider_job_id)
   end
 
+  # The audit row read by the confirmation screen and Upload#source_id_overridden?.
+  private def export_source_check_attributes
+    @export_source.to_audit_h.merge(
+      'typed_short_name' => typed_short_name,
+      'data_source_source_id' => @data_source.source_id,
+    )
+  end
+
   private def typed_short_name_matches?
-    typed = params.dig(:grda_warehouse_upload, :short_name_confirmation).to_s.strip
-    typed.casecmp(@data_source.short_name.to_s.strip).zero?
+    typed_short_name.casecmp(@data_source.short_name.to_s.strip).zero?
+  end
+
+  private def typed_short_name
+    params.dig(:grda_warehouse_upload, :short_name_confirmation).to_s.strip
   end
 
   private def stop_version

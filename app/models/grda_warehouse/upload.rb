@@ -86,8 +86,11 @@ module GrdaWarehouse
 
     # Written by UploadsController#confirm when a user acknowledged a SourceID
     # HmisCsvImporter::UploadValidityCheck could not match against the data source.
+    # What the check observed is written when the upload is created; the
+    # acknowledgment keys are added by UploadsController#confirm.
     # Keys: typed_short_name, data_source_source_id, file_source_id,
-    # file_source_name, check_error, acknowledged_at, acknowledged_by_user_id.
+    # file_source_name, file_export_start_date, file_export_end_date, check_error,
+    # acknowledged_at, acknowledged_by_user_id.
     def export_source_acknowledged?
       export_source_check.present? && export_source_check['acknowledged_at'].present?
     end
@@ -112,9 +115,15 @@ module GrdaWarehouse
       !expected.casecmp(observed).zero?
     end
 
-    # Created but never enqueued: the user abandoned the confirmation step.
+    # Went through UploadsController#create's check, was held for acknowledgment, and
+    # was then abandoned. The automated importers build their own Upload records
+    # without a check, so export_source_check is what separates an upload that stopped
+    # at the confirmation screen from one that was never offered it.
     def awaiting_confirmation?
-      delayed_job_id.nil? && !export_source_acknowledged? && percent_complete.to_f.zero?
+      export_source_check.present? &&
+        !export_source_acknowledged? &&
+        delayed_job_id.nil? &&
+        percent_complete.to_f.zero?
     end
 
     def export_source_expected_id
