@@ -6,6 +6,14 @@ This feature imports, normalizes, and validates HMIS CSV data in the HUD standar
 
 The importer operates in two distinct phases: Loading and Importing.
 
+### Upload normalization
+
+Before the Loader runs, the uploaded file is normalized into a plain, unencrypted zip. The rest of the importer reads uploads with rubyzip, which can open neither a `.7z` archive nor an encrypted zip.
+
+- An encrypted zip is decrypted with `ZipCloak`.
+- A `.7z` archive is extracted and rebuilt as a zip with the `7z` binary.
+- A plain zip is left alone.
+
 ### Loader
 
 The Loader (`HmisCsvImporter::Loader`) ingests raw CSV files from a directory. It normalizes file names and headers, detects the HUD CSV version, and loads the raw data into staging tables. It handles:

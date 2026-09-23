@@ -163,11 +163,9 @@ module Types
       when 'PROJECTS_RECEIVING_REFERRALS'
         projects_receiving_referrals(user.hmis_data_source_id)
       when 'FORM_TYPES'
-        # Form Types that the current user can create forms for
-        policy = user.policy_for(Hmis::Form::Definition, policy_type: :form_definition)
-        Hmis::Form::Definition.form_role_enum_map.members.
-          select { |ft| policy.can_create?(role: ft[:value]) }.
-          map { |ft| { code: ft[:value], label: ft[:desc] } }
+        visible_form_types_picklist(user: user)
+      when 'CREATABLE_FORM_TYPES'
+        creatable_form_types_picklist(user: user)
       when 'CONTINUUM_PROJECTS'
         Hmis::Hud::Project.
           where(data_source_id: user.hmis_data_source_id, continuum_project: true).
@@ -394,6 +392,27 @@ module Types
         }
       end
     end
+
+    # Form types that appear in the Forms admin table, for filtering that table
+    def self.visible_form_types_picklist(user:)
+      return [] unless user.policy_for(Hmis::Form::Definition, policy_type: :form_definition).can_configure_forms?
+
+      visible_roles = Hmis::Form::Definition.configurable_by(user).latest_versions.distinct.pluck(:role)
+      form_types_picklist { |form_type| visible_roles.include?(form_type[:value]) }
+    end
+
+    # Form types the user can create, for the dropdown when creating a new form
+    def self.creatable_form_types_picklist(user:)
+      policy = user.policy_for(Hmis::Form::Definition, policy_type: :form_definition)
+      form_types_picklist { |form_type| policy.can_create?(role: form_type[:value]) }
+    end
+
+    def self.form_types_picklist(&included)
+      Hmis::Form::Definition.form_role_enum_map.members.
+        select(&included).
+        map { |form_type| { code: form_type[:value], label: form_type[:desc] } }
+    end
+    private_class_method :form_types_picklist
 
     def self.hud_service_types_picklist(user:)
       scope = Hmis::Hud::CustomServiceType.in_data_source(user.hmis_data_source_id).hud

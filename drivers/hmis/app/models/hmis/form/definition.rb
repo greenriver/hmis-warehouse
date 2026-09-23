@@ -235,7 +235,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   NON_CONFIGURABLE_FORM_ROLES = [*UNMANAGED_FORM_ROLES, *STATIC_FORM_ROLES].freeze
 
   # All form roles
-  use_enum_with_same_key :form_role_enum_map, FORM_ROLES.excluding(:CE)
+  use_enum_with_same_key :form_role_enum_map, FORM_ROLES
   # Form roles that can be used with SubmitForm for editing records
   use_enum_with_same_key :record_form_role_enum_map, FORM_ROLES.excluding(*ASSESSMENT_FORM_ROLES, *STATIC_FORM_ROLES)
   # Form roles for Assessments
