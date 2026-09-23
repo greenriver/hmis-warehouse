@@ -97,6 +97,7 @@ RSpec.describe 'HudPathReport paths#new project picker', type: :request, exclude
     before do
       collection.set_viewables(projects: [so_path_project.id, so_project_without_path_funder.id, es_path_funded_project.id])
       setup_access_control(user, role, collection)
+      grant_hud_report(user, 'hud_reports/paths', role: role)
       sign_in(user)
     end
 
@@ -108,7 +109,7 @@ RSpec.describe 'HudPathReport paths#new project picker', type: :request, exclude
     let(:role) { create(:role, can_view_assigned_reports: true, can_view_all_hud_reports: true) }
 
     before do
-      user.legacy_roles << role
+      grant_hud_report(user, 'hud_reports/paths', role: role)
       user.add_viewable(data_source)
       sign_in(user)
     end

@@ -19,12 +19,8 @@ RSpec.describe HudPathReport::BaseController, type: :controller do
   let(:organization) { create :grda_warehouse_hud_organization }
   let(:config) { create :config }
   let(:site_coc_codes) { ['XX-500'] }
-  # We don't actually need the HMIS reports collection as we don't check that for HUD reports yet, but we need A collection.
-  let(:all_reports_collection) { Collection.system_collection(:hmis_reports) }
-
   before do
-    Collection.maintain_system_groups
-    setup_access_control(user, role, all_reports_collection)
+    grant_hud_report(user, 'hud_reports/paths', role: role)
     sign_in user
   end
 

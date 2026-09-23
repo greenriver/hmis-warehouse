@@ -6,6 +6,13 @@
 
 # frozen_string_literal: true
 
+# Registry of warehouse reports: one row per report, keyed by its index route (`url`).
+# Rows back the Warehouse Reports index page and gate report access via access through
+# assignment via groups or collections (`viewable_by`, `url_viewable_by?`).
+# Access to the report type is gated by `viewable_by`, this does not gate data used within the report.
+
+# `report_list` holds the list of report definitions. `maintain_report_definitions`
+# syncs the list into the database (run by seeds and GrantAllHudReports), and `cleanup_unused_reports`
 module GrdaWarehouse::WarehouseReports
   class ReportDefinition < GrdaWarehouseBase
     # Column pending removal in a later deploy; see db/warehouse/migrate/20260804130000_remove_health_only_columns_from_warehouse.rb
@@ -13,6 +20,35 @@ module GrdaWarehouse::WarehouseReports
 
     acts_as_paranoid
     has_many :group_viewable_entities, as: :entity, class_name: 'GrdaWarehouse::GroupViewableEntity'
+
+    HUD_REPORT_GROUP = 'HUD Reports'
+
+    HUD_URLS = {
+      aprs: 'hud_reports/aprs',
+      capers: 'hud_reports/capers',
+      ce_aprs: 'hud_reports/ce_aprs',
+      dqs: 'hud_reports/dqs',
+      spms: 'hud_reports/spms',
+      pits: 'hud_reports/pits',
+      hics: 'hud_reports/hics',
+      lsas: 'hud_reports/lsas',
+      paths: 'hud_reports/paths',
+      hopwa_capers: 'hud_reports/hopwa_capers',
+    }.freeze
+
+    # Raises KeyError on an unknown key; a mistyped url string would instead
+    # match no definition and silently deny access.
+    def self.hud_url(key)
+      HUD_URLS.fetch(key)
+    end
+
+    scope :hud, -> { where(report_group: HUD_REPORT_GROUP) }
+
+    # Report-level gate for code that knows a report only by its index url
+    # (HUD sub-pages, exports, cross-report links).
+    def self.url_viewable_by?(url, user)
+      viewable_by(user).where(url: url).exists?
+    end
 
     scope :enabled, -> do
       where(enabled: true)
@@ -41,6 +77,10 @@ module GrdaWarehouse::WarehouseReports
         # (via collections/access groups). can_view_all_reports additionally allows
         # seeing report runs by other users (handled elsewhere, not in this method).
         where(id: user.reports.pluck(:id))
+      # Legacy flags are a union applied to every entity, so a HUD flag alone must not
+      # unlock non-HUD reports that happen to be in the user's access groups.
+      elsif user.can_view_hud_reports?
+        hud.where(id: user.reports.pluck(:id))
       else
         none
       end
@@ -600,6 +640,68 @@ module GrdaWarehouse::WarehouseReports
           },
         ],
         'Population Dashboards' => [],
+        HUD_REPORT_GROUP => [
+          {
+            url: hud_url(:aprs),
+            name: 'Annual Performance Report',
+            description: 'HUD APR for CoC-funded projects.',
+            limitable: true,
+          },
+          {
+            url: hud_url(:capers),
+            name: 'Consolidated Annual Performance and Evaluation Report',
+            description: 'HUD CAPER for ESG-funded projects.',
+            limitable: true,
+          },
+          {
+            url: hud_url(:ce_aprs),
+            name: 'Coordinated Entry Annual Performance Report',
+            description: 'HUD CE-APR for coordinated entry projects.',
+            limitable: true,
+          },
+          {
+            url: hud_url(:dqs),
+            name: 'HMIS Data Quality Report',
+            description: 'HUD HMIS Data Quality Report.',
+            limitable: true,
+          },
+          {
+            url: hud_url(:spms),
+            name: 'System Performance Measures',
+            description: 'HUD System Performance Measures.',
+            limitable: true,
+          },
+          {
+            url: hud_url(:pits),
+            name: 'Point in Time Count',
+            description: 'HUD PIT count.',
+            limitable: true,
+          },
+          {
+            url: hud_url(:hics),
+            name: 'Housing Inventory Count',
+            description: 'HUD HIC.',
+            limitable: true,
+          },
+          {
+            url: hud_url(:lsas),
+            name: 'Longitudinal System Analysis',
+            description: 'HUD LSA, including the LSA-derived HIC.',
+            limitable: true,
+          },
+          {
+            url: hud_url(:paths),
+            name: 'Annual PATH Report',
+            description: 'HUD PATH annual report.',
+            limitable: true,
+          },
+          {
+            url: hud_url(:hopwa_capers),
+            name: 'HOPWA CAPER',
+            description: 'HUD HOPWA CAPER.',
+            limitable: true,
+          },
+        ],
       }
       r_list['Operational'] << {
         url: 'ma_yya_report/warehouse_reports/reports',

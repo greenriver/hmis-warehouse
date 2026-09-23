@@ -62,35 +62,35 @@ module WarehouseReports
     end
 
     private def intakes_in_range
-      scope = GrdaWarehouse::YouthIntake::Base.where(updated_at: @filter.range)
+      scope = GrdaWarehouse::YouthIntake::Base.where(updated_at: @filter.time_range)
       scope = scope.where(user_id: user_ids_at_agency) if @filter.agency_id.present?
       scope = scope.where(user_id: @filter.user_id) if @filter.user_id.present?
       scope
     end
 
     private def dfa_in_range
-      scope = GrdaWarehouse::Youth::DirectFinancialAssistance.where(updated_at: @filter.range)
+      scope = GrdaWarehouse::Youth::DirectFinancialAssistance.where(updated_at: @filter.time_range)
       scope = scope.where(user_id: user_ids_at_agency) if @filter.agency_id.present?
       scope = scope.where(user_id: @filter.user_id) if @filter.user_id.present?
       scope
     end
 
     private def case_management_in_range
-      scope = GrdaWarehouse::Youth::YouthCaseManagement.where(updated_at: @filter.range)
+      scope = GrdaWarehouse::Youth::YouthCaseManagement.where(updated_at: @filter.time_range)
       scope = scope.where(user_id: user_ids_at_agency) if @filter.agency_id.present?
       scope = scope.where(user_id: @filter.user_id) if @filter.user_id.present?
       scope
     end
 
     private def follow_ups_in_range
-      scope = GrdaWarehouse::Youth::YouthFollowUp.where(updated_at: @filter.range)
+      scope = GrdaWarehouse::Youth::YouthFollowUp.where(updated_at: @filter.time_range)
       scope = scope.where(user_id: user_ids_at_agency) if @filter.agency_id.present?
       scope = scope.where(user_id: @filter.user_id) if @filter.user_id.present?
       scope
     end
 
     private def referrals_in_range
-      scope = GrdaWarehouse::Youth::YouthReferral.where(updated_at: @filter.range)
+      scope = GrdaWarehouse::Youth::YouthReferral.where(updated_at: @filter.time_range)
       scope = scope.where(user_id: user_ids_at_agency) if @filter.agency_id.present?
       scope = scope.where(user_id: @filter.user_id) if @filter.user_id.present?
       scope

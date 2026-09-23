@@ -53,11 +53,12 @@ class Menu::Menu
     menu
   end
 
+  # HUD reports are a section of the warehouse reports page; this is a shortcut to it.
   def hud_reports_menu
     Menu::Item.new(
       user: user,
-      path: hud_reports_path,
-      visible: ->(user) { user.can_view_hud_reports? }, # rubocop:disable Style/SymbolProc
+      path: warehouse_reports_path(anchor: GrdaWarehouse::WarehouseReports::ReportDefinition::HUD_REPORT_GROUP.parameterize),
+      visible: ->(user) { GrdaWarehouse::WarehouseReports::ReportDefinition.viewable_by(user).hud.exists? },
       title: Translation.translate('HUD Reports'),
       id: 'hud-reports',
     )
