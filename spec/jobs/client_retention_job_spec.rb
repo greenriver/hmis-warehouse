@@ -40,7 +40,7 @@ RSpec.describe ClientRetentionJob, type: :job do
   end
 
   def marked_ids
-    GrdaWarehouse::InactiveClient.pluck(:client_id)
+    GrdaWarehouse::ClientRetentionMark.pluck(:client_id)
   end
 
   context 'when retention is disabled' do
@@ -61,7 +61,7 @@ RSpec.describe ClientRetentionJob, type: :job do
       described_class.perform_now
 
       expect(marked_ids).to contain_exactly(source_one.id, source_two.id)
-      mark = GrdaWarehouse::InactiveClient.find_by(client_id: source_two.id)
+      mark = GrdaWarehouse::ClientRetentionMark.find_by(client_id: source_two.id)
       expect(mark.last_activity_on).to eq(8.years.ago.to_date)
       expect(mark.retention_years).to eq(7)
     end
@@ -84,7 +84,7 @@ RSpec.describe ClientRetentionJob, type: :job do
     end
 
     it 'records failed_at on the run and re-raises when a batch fails' do
-      allow(GrdaWarehouse::InactiveClient).to receive(:rollup_activity).and_raise(ActiveRecord::StatementInvalid, 'boom')
+      allow(GrdaWarehouse::ClientRetentionMark).to receive(:rollup_activity).and_raise(ActiveRecord::StatementInvalid, 'boom')
 
       expect { described_class.perform_now }.to raise_error(ActiveRecord::StatementInvalid)
 
@@ -121,7 +121,7 @@ RSpec.describe ClientRetentionJob, type: :job do
       silent_source = create(:grda_warehouse_hud_client, data_source: ds_one)
       silent_source.update_columns(DateUpdated: nil)
       link(silent_destination, silent_source)
-      GrdaWarehouse::InactiveClient.create!(client_id: silent_source.id, marked_on: Date.current, last_activity_on: 10.years.ago.to_date, retention_years: 7)
+      GrdaWarehouse::ClientRetentionMark.create!(client_id: silent_source.id, marked_on: Date.current, last_activity_on: 10.years.ago.to_date, retention_years: 7)
 
       described_class.perform_now
 
@@ -222,7 +222,7 @@ RSpec.describe ClientRetentionJob, type: :job do
       active_source.update_columns(DateUpdated: (7.years.ago + 30.days).to_date)
       described_class.perform_now
       first_run = GrdaWarehouse::ClientRetentionRun.sole
-      allow(GrdaWarehouse::InactiveClient).to receive(:rollup_activity).and_raise(ActiveRecord::StatementInvalid, 'boom')
+      allow(GrdaWarehouse::ClientRetentionMark).to receive(:rollup_activity).and_raise(ActiveRecord::StatementInvalid, 'boom')
 
       expect { described_class.perform_now }.to raise_error(ActiveRecord::StatementInvalid)
 
@@ -248,7 +248,7 @@ RSpec.describe ClientRetentionJob, type: :job do
       described_class.perform_now
 
       expect(marked_ids).to contain_exactly(source_one.id)
-      expect(GrdaWarehouse::InactiveClient.find_by(client_id: source_one.id).retention_years).to eq(7)
+      expect(GrdaWarehouse::ClientRetentionMark.find_by(client_id: source_one.id).retention_years).to eq(7)
     end
   end
 end

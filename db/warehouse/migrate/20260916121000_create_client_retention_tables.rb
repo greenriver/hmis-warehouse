@@ -10,7 +10,7 @@ class CreateClientRetentionTables < ActiveRecord::Migration[7.2]
   def change
     # One row per aged-out source client. Destination clients are resolved through
     # warehouse_clients at query time (see GrdaWarehouse::HiddenClients).
-    create_table :inactive_clients do |t|
+    create_table :client_retention_marks do |t|
       t.bigint :client_id, null: false
       t.date :marked_on, null: false
       t.date :last_activity_on, null: false

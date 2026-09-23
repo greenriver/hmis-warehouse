@@ -16,7 +16,7 @@ module GrdaWarehouse::AuthPolicies::ContextLoaders
     # docs/features/hmis/hmis-restricted-records.md), so we load the whole set once rather than
     # batching per page. The set is defined by GrdaWarehouse::HiddenClients.
     #
-    # Retention marks (GrdaWarehouse::InactiveClient) can cover a large share of an old warehouse,
+    # Retention marks (GrdaWarehouse::ClientRetentionMark) can cover a large share of an old warehouse,
     # so they are never loaded whole: each id is resolved through GrdaWarehouse::HiddenClients
     # (marked sources and their destinations) and memoized, and #preload batches the lookups for
     # a page of clients.

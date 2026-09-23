@@ -33,7 +33,7 @@ RSpec.describe GrdaWarehouse::HiddenClients, type: :model do
   end
 
   def mark_inactive(client)
-    GrdaWarehouse::InactiveClient.create!(client_id: client.id, marked_on: Date.current, last_activity_on: 10.years.ago.to_date, retention_years: 7)
+    GrdaWarehouse::ClientRetentionMark.create!(client_id: client.id, marked_on: Date.current, last_activity_on: 10.years.ago.to_date, retention_years: 7)
   end
 
   def visible_ids

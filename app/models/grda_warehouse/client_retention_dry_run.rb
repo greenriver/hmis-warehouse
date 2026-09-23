@@ -39,7 +39,7 @@ class GrdaWarehouse::ClientRetentionDryRun
       break if ids.empty?
 
       batch_started = Process.clock_gettime(Process::CLOCK_MONOTONIC)
-      rows = GrdaWarehouse::InactiveClient.rollup_activity(destination_ids: ids, global_years: @global_years)
+      rows = GrdaWarehouse::ClientRetentionMark.rollup_activity(destination_ids: ids, global_years: @global_years)
       slowest = [slowest, Process.clock_gettime(Process::CLOCK_MONOTONIC) - batch_started].max
 
       destinations += ids.size
@@ -69,7 +69,7 @@ class GrdaWarehouse::ClientRetentionDryRun
   # @return [String]
   def explain
     ids = scope.limit(@batch_size).pluck(:id)
-    sql = GrdaWarehouse::InactiveClient.rollup_activity_sql(destination_ids: ids, global_years: @global_years, explain: true)
+    sql = GrdaWarehouse::ClientRetentionMark.rollup_activity_sql(destination_ids: ids, global_years: @global_years, explain: true)
     GrdaWarehouseBase.connection.select_all(sql).rows.flatten.join("\n")
   end
 

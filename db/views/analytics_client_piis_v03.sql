@@ -2,7 +2,7 @@
 -- HMIS restriction applies to the whole warehouse identity: a restricted source client
 -- redacts its destination client and every sibling source merged into that destination,
 -- one hop only, through non-deleted warehouse_clients rows. Retention marks
--- (inactive_clients) hold one row per source client; their destinations are reached the
+-- (client_retention_marks) hold one row per source client; their destinations are reached the
 -- same way.
 WITH directly_restricted AS (
   SELECT "hmis_restricted_records"."restrictable_id" AS client_id
@@ -27,11 +27,11 @@ restricted_clients AS (
   JOIN restricted_destinations ON restricted_destinations.client_id = "warehouse_clients"."destination_id"
   WHERE "warehouse_clients"."deleted_at" IS NULL
   UNION
-  SELECT "inactive_clients"."client_id" FROM "inactive_clients"
+  SELECT "client_retention_marks"."client_id" FROM "client_retention_marks"
   UNION
   SELECT "warehouse_clients"."destination_id"
   FROM "warehouse_clients"
-  JOIN "inactive_clients" ON "inactive_clients"."client_id" = "warehouse_clients"."source_id"
+  JOIN "client_retention_marks" ON "client_retention_marks"."client_id" = "warehouse_clients"."source_id"
   WHERE "warehouse_clients"."deleted_at" IS NULL
 )
 SELECT "Client"."id",

@@ -323,7 +323,7 @@ RSpec.describe Cohorts::ClientsController, type: :request do
 
       expect do
         get cohort_cohort_clients_path(cohort, format: :json), params: { content: true, page: 1, per: 50 }
-      end.to make_database_queries(matching: /FROM "inactive_clients"/, count: 1)
+      end.to make_database_queries(matching: /FROM "client_retention_marks"/, count: 1)
     end
 
     it 'wires current_user onto every visible column' do

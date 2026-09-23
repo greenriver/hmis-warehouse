@@ -219,7 +219,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
       before do
         GrdaWarehouse::WarehouseClient.create!(destination_id: inactive_destination.id, source_id: inactive_source.id, data_source_id: source_ds.id, id_in_source: inactive_source.PersonalID)
         GrdaWarehouse::WarehouseClient.create!(destination_id: active_destination.id, source_id: active_source.id, data_source_id: source_ds.id, id_in_source: active_source.PersonalID)
-        GrdaWarehouse::InactiveClient.create!(client_id: inactive_source.id, marked_on: Date.current, last_activity_on: 10.years.ago.to_date, retention_years: 7)
+        GrdaWarehouse::ClientRetentionMark.create!(client_id: inactive_source.id, marked_on: Date.current, last_activity_on: 10.years.ago.to_date, retention_years: 7)
       end
 
       # The report path: an allow-everything policy that only the hidden-client check can narrow.
@@ -253,7 +253,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
         expect(report_name_for(inactive_destination)).to eq(GrdaWarehouse::PiiProvider::NAME_REDACTED)
         expect(report_name_for(inactive_source)).to eq(GrdaWarehouse::PiiProvider::NAME_REDACTED)
 
-        GrdaWarehouse::InactiveClient.delete_all
+        GrdaWarehouse::ClientRetentionMark.delete_all
         # a fresh User instance, since lookups are memoized per policy context
         expect(report_name_for(inactive_destination, as_user: User.find(user.id))).to eq('Zzaged Zzout')
       end

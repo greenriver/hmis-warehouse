@@ -114,7 +114,7 @@ RSpec.describe 'analytics.client_piis view' do
 
     before do
       GrdaWarehouse::WarehouseClient.create!(destination_id: destination_client.id, source_id: client.id, data_source_id: client.data_source_id, id_in_source: client.id.to_s)
-      GrdaWarehouse::InactiveClient.create!(client_id: client.id, marked_on: Date.current, last_activity_on: 10.years.ago.to_date, retention_years: 7)
+      GrdaWarehouse::ClientRetentionMark.create!(client_id: client.id, marked_on: Date.current, last_activity_on: 10.years.ago.to_date, retention_years: 7)
     end
 
     it 'redacts the marked source' do

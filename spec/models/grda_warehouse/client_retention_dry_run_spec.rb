@@ -45,7 +45,7 @@ RSpec.describe GrdaWarehouse::ClientRetentionDryRun, type: :model do
   end
 
   it 'writes nothing' do
-    expect { summary }.not_to(change { [GrdaWarehouse::InactiveClient.count, GrdaWarehouse::ClientRetentionRun.count, GrdaWarehouse::ClientRetentionLogEntry.count] })
+    expect { summary }.not_to(change { [GrdaWarehouse::ClientRetentionMark.count, GrdaWarehouse::ClientRetentionRun.count, GrdaWarehouse::ClientRetentionLogEntry.count] })
   end
 
   it 'stops after the limit' do

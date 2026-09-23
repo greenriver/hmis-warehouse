@@ -2209,10 +2209,10 @@ CREATE TABLE public.hmis_restricted_records (
 
 
 --
--- Name: inactive_clients; Type: TABLE; Schema: public; Owner: -
+-- Name: client_retention_marks; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.inactive_clients (
+CREATE TABLE public.client_retention_marks (
     id bigint NOT NULL,
     client_id bigint NOT NULL,
     marked_on date NOT NULL,
@@ -2270,12 +2270,12 @@ CREATE VIEW analytics.client_piis AS
              JOIN restricted_destinations ON ((restricted_destinations.client_id = warehouse_clients.destination_id)))
           WHERE (warehouse_clients.deleted_at IS NULL)
         UNION
-         SELECT inactive_clients.client_id
-           FROM public.inactive_clients
+         SELECT client_retention_marks.client_id
+           FROM public.client_retention_marks
         UNION
          SELECT warehouse_clients.destination_id
            FROM (public.warehouse_clients
-             JOIN public.inactive_clients ON ((inactive_clients.client_id = warehouse_clients.source_id)))
+             JOIN public.client_retention_marks ON ((client_retention_marks.client_id = warehouse_clients.source_id)))
           WHERE (warehouse_clients.deleted_at IS NULL)
         )
  SELECT "Client".id,
@@ -46367,10 +46367,10 @@ ALTER SEQUENCE public.import_thresholds_id_seq OWNED BY public.import_thresholds
 
 
 --
--- Name: inactive_clients_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+-- Name: client_retention_marks_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.inactive_clients_id_seq
+CREATE SEQUENCE public.client_retention_marks_id_seq
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -46379,10 +46379,10 @@ CREATE SEQUENCE public.inactive_clients_id_seq
 
 
 --
--- Name: inactive_clients_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+-- Name: client_retention_marks_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
-ALTER SEQUENCE public.inactive_clients_id_seq OWNED BY public.inactive_clients.id;
+ALTER SEQUENCE public.client_retention_marks_id_seq OWNED BY public.client_retention_marks.id;
 
 
 --
@@ -60596,10 +60596,10 @@ ALTER TABLE ONLY public.import_thresholds ALTER COLUMN id SET DEFAULT nextval('p
 
 
 --
--- Name: inactive_clients id; Type: DEFAULT; Schema: public; Owner: -
+-- Name: client_retention_marks id; Type: DEFAULT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.inactive_clients ALTER COLUMN id SET DEFAULT nextval('public.inactive_clients_id_seq'::regclass);
+ALTER TABLE ONLY public.client_retention_marks ALTER COLUMN id SET DEFAULT nextval('public.client_retention_marks_id_seq'::regclass);
 
 
 --
@@ -67702,11 +67702,11 @@ ALTER TABLE ONLY public.import_thresholds
 
 
 --
--- Name: inactive_clients inactive_clients_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: client_retention_marks client_retention_marks_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.inactive_clients
-    ADD CONSTRAINT inactive_clients_pkey PRIMARY KEY (id);
+ALTER TABLE ONLY public.client_retention_marks
+    ADD CONSTRAINT client_retention_marks_pkey PRIMARY KEY (id);
 
 
 --
@@ -220777,10 +220777,10 @@ CREATE INDEX index_import_thresholds_on_data_source_id ON public.import_threshol
 
 
 --
--- Name: index_inactive_clients_on_client_id; Type: INDEX; Schema: public; Owner: -
+-- Name: index_client_retention_marks_on_client_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX index_inactive_clients_on_client_id ON public.inactive_clients USING btree (client_id);
+CREATE UNIQUE INDEX index_client_retention_marks_on_client_id ON public.client_retention_marks USING btree (client_id);
 
 
 --
