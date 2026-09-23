@@ -19,6 +19,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
     SO_PROJECT_TYPES = HudHelper.util.residential_project_type_numbers_by_code[:so]
     PH_PROJECT_TYPES = HudHelper.util.residential_project_type_numbers_by_code[:ph]
     TH_PROJECT_TYPES = HudHelper.util.residential_project_type_numbers_by_code[:th]
+    EARLIEST_ALLOWED_DATE = '1970-01-01'.to_date
 
     def self.batch_job_ids
       builder_batch_job_scope.pluck(:id)
@@ -117,9 +118,8 @@ module GrdaWarehouse::Tasks::ServiceHistory
     # use patch_service_history! or create_service_history! directly
     def rebuild_service_history!
       reset_service_history_memos!
-      return false if self.EntryDate < '1970-01-01'.to_date
-      return false if destination_client.blank? || project.blank?
-      return false if data_source.blank?
+      return false if self.EntryDate < EARLIEST_ALLOWED_DATE
+      return false if structural_issue?
       return false if already_processed?
 
       self.history_generated_on = Date.current
@@ -130,6 +130,10 @@ module GrdaWarehouse::Tasks::ServiceHistory
       end
 
       action
+    end
+
+    def structural_issue?
+      destination_client.blank? || project.blank? || data_source.blank?
     end
 
     # Appends new service-day rows to an existing service history without

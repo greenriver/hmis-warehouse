@@ -70,5 +70,31 @@ RSpec.describe ServiceHistory::RebuildEnrollmentsByBatchJob, type: :job do
       expect { described_class.new(enrollment_ids: [missing_id, healthy.id]).perform }.not_to raise_error
       expect(GrdaWarehouse::Hud::Enrollment.find(healthy.id).processed_as).to be_present
     end
+
+    it 'records a specific error for an enrollment with an EntryDate before 1970-01-01, without raising' do
+      enrollment = create_processable_enrollment
+      enrollment.update_column(:EntryDate, '1969-12-31')
+
+      expect { described_class.new(enrollment_ids: [enrollment.id]).perform }.not_to raise_error
+
+      reloaded = GrdaWarehouse::Hud::Enrollment.find(enrollment.id)
+      expect(reloaded.processing_error).to eq("Start date before #{GrdaWarehouse::Tasks::ServiceHistory::Enrollment::EARLIEST_ALLOWED_DATE}")
+      expect(reloaded.processed_as).to be_nil
+    end
+
+    it 'records a structural-issue error when destination_client, project, or data_source is missing, without raising' do
+      enrollment = create_processable_enrollment
+      broken_record = GrdaWarehouse::Tasks::ServiceHistory::Enrollment.find(enrollment.id)
+      allow(GrdaWarehouse::Tasks::ServiceHistory::Enrollment).to receive(:find_by).and_call_original
+      allow(GrdaWarehouse::Tasks::ServiceHistory::Enrollment).to receive(:find_by).
+        with(id: enrollment.id).and_return(broken_record)
+      allow(broken_record).to receive(:destination_client).and_return(nil)
+
+      expect { described_class.new(enrollment_ids: [enrollment.id]).perform }.not_to raise_error
+
+      reloaded = GrdaWarehouse::Hud::Enrollment.find(enrollment.id)
+      expect(reloaded.processing_error).to eq('Missing project, client, or data source')
+      expect(reloaded.processed_as).to be_nil
+    end
   end
 end
