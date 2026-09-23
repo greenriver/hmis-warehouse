@@ -21,11 +21,11 @@ RSpec.describe 'HUD report access plumbing' do
   end
 
   describe 'GrdaWarehouse::Tasks::GrantAllHudReports.viewer_role' do
-    it 'is a system role with only can_view_assigned_reports' do
+    it 'is an editable role with only can_view_assigned_reports' do
       role = GrdaWarehouse::Tasks::GrantAllHudReports.viewer_role
       granted = Role.permissions.select { |permission| role.send(permission) }
 
-      expect(role.system).to be true
+      expect(role.system).to be false
       expect(granted).to eq([:can_view_assigned_reports])
     end
   end
