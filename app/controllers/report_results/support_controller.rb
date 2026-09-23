@@ -9,7 +9,7 @@
 module ReportResults
   class SupportController < ApplicationController
     include AjaxModalRails::Controller
-    before_action :require_can_view_hud_reports!
+    include WarehouseReportAuthorization
     before_action :set_report, only: [:index]
     before_action :set_report_result, only: [:index]
 
@@ -29,11 +29,19 @@ module ReportResults
     end
 
     def set_report_result
-      @result = ReportResult.find(params[:report_result_id].to_i)
+      @result = @report.report_results.runs_visible_to(current_user).find(params[:report_result_id].to_i)
+    end
+
+    def report
+      @report ||= Report.find(params[:report_id].to_i)
     end
 
     def set_report
-      @report = Report.find(params[:report_id].to_i)
+      report
+    end
+
+    def related_report
+      GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: report.report_definition_url)
     end
   end
 end
