@@ -6,13 +6,5 @@
       "_comment": "collect 4.05-4.10 Disability Types for all projects regardless of funder or type.",
       "parts": []
     }
-  },
-  {
-    "link_id": "disability_table_r4",
-    "custom_rule": {
-      "operator": "ALL",
-      "_comment": "collect 4.08 HIV/AIDS status for all projects regardless of funder or type.",
-      "parts": []
-    }
   }
 ]
