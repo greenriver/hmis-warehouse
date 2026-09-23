@@ -6,6 +6,7 @@
         %th Client
         %th Project
         %th Entry Date
+        %th Processing Status
     %tbody
       - list.each do |enrollment|
         %tr
@@ -17,3 +18,10 @@
           %td
             = link_to enrollment.project.name(current_user), project_path(enrollment.project.id)
           %td= enrollment.EntryDate
+          %td
+            - if enrollment.processing_error.present?
+              %span.text-danger
+                Errored on last attempt:
+                = enrollment.processing_error
+            - else
+              %span.text-muted Not yet attempted

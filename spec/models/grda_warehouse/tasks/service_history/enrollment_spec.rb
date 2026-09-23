@@ -210,6 +210,27 @@ RSpec.describe GrdaWarehouse::Tasks::ServiceHistory::Enrollment, type: :model do
       end
     end
 
+    describe '#structural_issue?' do
+      it 'returns false when destination_client, project, and data_source are all present' do
+        expect(enrollment.structural_issue?).to be false
+      end
+
+      it 'returns true when destination_client is missing' do
+        allow(enrollment).to receive(:destination_client).and_return(nil)
+        expect(enrollment.structural_issue?).to be true
+      end
+
+      it 'returns true when project is missing' do
+        allow(enrollment).to receive(:project).and_return(nil)
+        expect(enrollment.structural_issue?).to be true
+      end
+
+      it 'returns true when data_source is missing' do
+        allow(enrollment).to receive(:data_source).and_return(nil)
+        expect(enrollment.structural_issue?).to be true
+      end
+    end
+
     context 'when enrollment needs full rebuild' do
       let!(:exit) { create :hud_exit, data_source_id: data_source.id, EnrollmentID: enrollment.EnrollmentID, PersonalID: client.PersonalID, ExitDate: '2023-01-03' }
 

@@ -97,6 +97,28 @@ RSpec.describe DataSources::UnprocessedEnrollmentsController, type: :request do
         end
       end
 
+      describe 'processing status column' do
+        let!(:not_yet_attempted) do
+          create(:hud_enrollment, data_source: data_source, project: project, client: create_linked_client(data_source), processed_as: nil, processing_error: nil)
+        end
+        let!(:errored_last_attempt) do
+          create(:hud_enrollment, data_source: data_source, project: project, client: create_linked_client(data_source), processed_as: nil, processing_error: 'RuntimeError: boom')
+        end
+
+        it 'shows "Not yet attempted" for an enrollment with no recorded error' do
+          get data_source_unprocessed_enrollments_path(data_source)
+
+          expect(response.body).to include('Not yet attempted')
+        end
+
+        it 'shows the recorded error for an enrollment that errored on its last attempt' do
+          get data_source_unprocessed_enrollments_path(data_source)
+
+          expect(response.body).to include('Errored on last attempt:')
+          expect(response.body).to include('RuntimeError: boom')
+        end
+      end
+
       describe 'source data link' do
         let!(:enrollment) do
           create(:hud_enrollment, data_source: data_source, project: project, client: create_linked_client(data_source), processed_as: nil)
