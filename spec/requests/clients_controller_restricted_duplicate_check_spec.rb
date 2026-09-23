@@ -46,6 +46,19 @@ RSpec.describe ClientsController, '#create restricted client duplicate check', t
     expect(flash[:notice]).to match(/created/)
   end
 
+  it 'creates the client outright when name and DOB match only a retention-inactive client' do
+    aged_source = create(:grda_warehouse_hud_client, data_source: source_ds, FirstName: 'Zzaged', LastName: 'Zzclient', SSN: '444556666', DOB: Date.new(1982, 7, 7))
+    aged_destination = create(:grda_warehouse_hud_client, FirstName: 'Zzaged', LastName: 'Zzclient', SSN: '444556666', DOB: Date.new(1982, 7, 7))
+    GrdaWarehouse::WarehouseClient.create!(destination_id: aged_destination.id, source_id: aged_source.id, data_source_id: source_ds.id, id_in_source: aged_source.PersonalID)
+    GrdaWarehouse::ClientRetentionMark.create!(client_id: aged_source.id, marked_on: Date.current, last_activity_on: 10.years.ago.to_date, retention_years: 7)
+
+    expect do
+      post clients_path, params: base_params(FirstName: 'Zzaged', LastName: 'Zzclient', SSN: '999-99-9999', DOB: '1982-07-07')
+    end.to change(GrdaWarehouse::Hud::Client, :count).by(2)
+
+    expect(flash[:notice]).to match(/created/)
+  end
+
   it 'still flags an obvious duplicate for an unrestricted client matching on name and DOB' do
     unrestricted_source_client = create(:hmis_hud_client, data_source: hmis_ds, first_name: 'Zzopen', last_name: 'Zzclient', ssn: '444556666', dob: Date.new(1982, 7, 7))
     unrestricted_destination_client = create(:grda_warehouse_hud_client, FirstName: 'Zzopen', LastName: 'Zzclient', SSN: '444556666', DOB: Date.new(1982, 7, 7))

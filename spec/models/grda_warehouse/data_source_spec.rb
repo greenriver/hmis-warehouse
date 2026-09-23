@@ -954,4 +954,19 @@ RSpec.describe model, type: :model do
       end
     end
   end
+  describe 'client_retention_years' do
+    it 'accepts nil (use the global window) and any whole number of years, including console-set windows under seven' do
+      [nil, 3, 7, 20].each do |years|
+        expect(build(:source_data_source, client_retention_years: years)).to be_valid
+      end
+    end
+
+    it 'rejects zero and fractional windows' do
+      [0, 7.5].each do |years|
+        data_source = build(:source_data_source, client_retention_years: years)
+        expect(data_source).not_to be_valid
+        expect(data_source.errors[:client_retention_years]).to be_present
+      end
+    end
+  end
 end

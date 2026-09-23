@@ -75,6 +75,28 @@ RSpec.describe Admin::ConfigsController, type: :request do
       end
     end
 
+    describe 'PATCH #update for client_retention_years' do
+      it 'stores nil when the admin picks Disabled, which posts a blank' do
+        config.update!(client_retention_years: 7)
+
+        patch admin_configs_path, params: { grda_warehouse_config: { client_retention_years: '' } }
+
+        expect(config.reload.client_retention_years).to be_nil
+      end
+
+      it 'offers only seven years and up, but keeps a console-set shorter window selected' do
+        config.update!(client_retention_years: 3)
+        GrdaWarehouse::Config.invalidate_cache
+
+        get admin_configs_path
+        select = Nokogiri::HTML(response.body).at_css("select[name='grda_warehouse_config[client_retention_years]']")
+
+        expect(select.css('option').map { |option| option['value'] }.compact_blank).to eq(['3'] + (7..20).map(&:to_s))
+        expect(select.at_css('option[selected]')['value']).to eq('3')
+        expect(select.at_css('option[selected]').text).to eq('3 years (current)')
+      end
+    end
+
     describe 'GET #index' do
       it 'renders a multi-select offering every configurable demographic column' do
         get admin_configs_path

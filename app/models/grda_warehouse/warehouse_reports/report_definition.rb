@@ -509,6 +509,12 @@ module GrdaWarehouse::WarehouseReports
             limitable: false,
           },
           {
+            url: 'warehouse_reports/client_retention',
+            name: 'Client Data Retention',
+            description: 'Nightly retention runs, clients marked inactive or unmarked, and clients whose retention window ends within 90 days',
+            limitable: false,
+          },
+          {
             url: 'access_logs/warehouse_reports/reports',
             name: 'User Access Logs',
             description: 'Download access logs for offline analysis',
