@@ -110,6 +110,8 @@ Rails.application.configure do
       authentication: :login,
       enable_starttls_auto: true,
     }
+  elsif deliver_method == :ses
+    config.action_mailer.ses_settings = { region: ENV.fetch('AWS_REGION', 'us-east-1') }
   end
 
   cache_ssl = ENV.fetch('CACHE_SSL') { 'false' } == 'true'
