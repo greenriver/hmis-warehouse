@@ -8,7 +8,7 @@
 
 require 'rails_helper'
 
-RSpec.describe GrdaWarehouse::InactiveClient, type: :model do
+RSpec.describe GrdaWarehouse::ClientRetentionMark, type: :model do
   let!(:warehouse_ds) { create(:destination_data_source) }
   let!(:ds_one) { create(:source_data_source, name: 'Vendor One', short_name: 'V1') }
   let!(:ds_two) { create(:source_data_source, name: 'Vendor Two', short_name: 'V2') }

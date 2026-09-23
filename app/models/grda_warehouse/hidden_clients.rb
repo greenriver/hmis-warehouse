@@ -8,7 +8,7 @@
 
 # Client ids whose PII is hidden warehouse-wide: every member of a warehouse identity touched by
 # an HMIS restriction, plus every member of an identity with a retention mark
-# (GrdaWarehouse::InactiveClient, one row per source client). Both sets are defined here in SQL so
+# (GrdaWarehouse::ClientRetentionMark, one row per source client). Both sets are defined here in SQL so
 # RestrictedClientLoader and query-shaped callers share one definition; analytics.client_piis
 # (db/views) repeats them and must stay in step.
 module GrdaWarehouse::HiddenClients
@@ -94,18 +94,18 @@ module GrdaWarehouse::HiddenClients
   # warehouse_clients rows, as a single client_id column.
   # @return [Arel::Nodes::Union]
   def self.inactive_ids_union
-    sources = GrdaWarehouse::InactiveClient.arel_table.project(GrdaWarehouse::InactiveClient.arel_table[:client_id])
+    sources = GrdaWarehouse::ClientRetentionMark.arel_table.project(GrdaWarehouse::ClientRetentionMark.arel_table[:client_id])
     Arel::Nodes::Union.new(sources, inactive_destinations)
   end
 
   # @return [Arel::SelectManager] destination_id of every live warehouse_clients row whose source is marked
   def self.inactive_destinations
-    ic_t = GrdaWarehouse::InactiveClient.arel_table
+    marks_t = GrdaWarehouse::ClientRetentionMark.arel_table
     wc_t = GrdaWarehouse::WarehouseClient.arel_table
 
     wc_t.
       project(wc_t[:destination_id]).
-      join(ic_t).on(ic_t[:client_id].eq(wc_t[:source_id])).
+      join(marks_t).on(marks_t[:client_id].eq(wc_t[:source_id])).
       where(wc_t[:deleted_at].eq(nil))
   end
   private_class_method :restricted_ids_union, :inactive_ids_union, :inactive_destinations

@@ -24,7 +24,7 @@ RSpec.describe Export::RestrictedClientPiiTransform, type: :model do
   before do
     link(aged_destination, aged_source)
     link(current_destination, current_source)
-    GrdaWarehouse::InactiveClient.create!(client_id: aged_source.id, marked_on: Date.current, last_activity_on: 10.years.ago.to_date, retention_years: 7)
+    GrdaWarehouse::ClientRetentionMark.create!(client_id: aged_source.id, marked_on: Date.current, last_activity_on: 10.years.ago.to_date, retention_years: 7)
   end
 
   def link(destination, source)

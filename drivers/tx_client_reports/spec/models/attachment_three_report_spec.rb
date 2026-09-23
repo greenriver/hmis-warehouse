@@ -55,7 +55,7 @@ RSpec.describe TxClientReports::AttachmentThreeReport, type: :model do
     end
 
     it 'resolves retention marks for the client scope in one query' do
-      expect { described_class.new(filter).rows }.to make_database_queries(matching: /FROM "inactive_clients"/, count: 1)
+      expect { described_class.new(filter).rows }.to make_database_queries(matching: /FROM "client_retention_marks"/, count: 1)
     end
 
     it 'redacts the restricted client and leaves the unrestricted client intact' do

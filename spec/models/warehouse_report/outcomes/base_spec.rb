@@ -50,7 +50,7 @@ RSpec.describe WarehouseReport::Outcomes::Base::Support, type: :model do
         expect do
           support.display_value(header: 'first_name', value: 'Restricted', project_id: nil, client_id: restricted_destination_client.id, user: user)
           support.display_value(header: 'first_name', value: 'Open', project_id: nil, client_id: open_destination_client.id, user: user)
-        end.to make_database_queries(matching: /FROM "inactive_clients"/, count: 1)
+        end.to make_database_queries(matching: /FROM "client_retention_marks"/, count: 1)
       end
 
       it 'looks up destination clients once for the row set rather than once per display_value call' do

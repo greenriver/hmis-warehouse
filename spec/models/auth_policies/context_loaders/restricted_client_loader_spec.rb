@@ -101,10 +101,10 @@ RSpec.describe GrdaWarehouse::AuthPolicies::ContextLoaders::RestrictedClientLoad
 
   describe 'retention-inactive clients' do
     def mark_inactive(client_id)
-      GrdaWarehouse::InactiveClient.create!(client_id: client_id, marked_on: Date.current, last_activity_on: 10.years.ago.to_date, retention_years: 7)
+      GrdaWarehouse::ClientRetentionMark.create!(client_id: client_id, marked_on: Date.current, last_activity_on: 10.years.ago.to_date, retention_years: 7)
     end
 
-    it 'treats an id in inactive_clients as restricted' do
+    it 'treats an id in client_retention_marks as restricted' do
       mark_inactive(source_client.id)
 
       expect(loader.restricted?(source_client.id)).to eq(true)

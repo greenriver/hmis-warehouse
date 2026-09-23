@@ -11,7 +11,7 @@
 # are resolved through warehouse_clients (GrdaWarehouse::HiddenClients). Presence here redacts
 # the identity the same way an HMIS restriction does
 # (see docs/features/warehouse/client-data-retention.md).
-class GrdaWarehouse::InactiveClient < GrdaWarehouseBase
+class GrdaWarehouse::ClientRetentionMark < GrdaWarehouseBase
   # Newest activity date and applicable retention window for each destination client, rolled
   # up across every source client linked through a live warehouse_clients row.
   #

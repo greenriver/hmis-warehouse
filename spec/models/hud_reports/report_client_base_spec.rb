@@ -180,7 +180,7 @@ RSpec.describe HudReports::ReportClientBase, type: :model do
 
     before do
       restricted_client.mark_as_restricted!(user: hmis_user)
-      GrdaWarehouse::InactiveClient.create!(client_id: inactive_client.id, marked_on: Date.current, last_activity_on: 10.years.ago.to_date, retention_years: 7)
+      GrdaWarehouse::ClientRetentionMark.create!(client_id: inactive_client.id, marked_on: Date.current, last_activity_on: 10.years.ago.to_date, retention_years: 7)
     end
 
     it 'excludes a restricted client from a name search' do
