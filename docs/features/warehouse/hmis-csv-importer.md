@@ -97,7 +97,7 @@ Manual uploads (`UploadsController#create`) are checked before any job is queued
 Two independent checks:
 
 - **Typed data source name.** The user types the data source `short_name`. Compared case-insensitively and stripped, before any file work. A mismatch re-renders the form.
-- **`SourceID` in `Export.csv`.** `HmisCsvImporter::ExportSourceCheck` reads only the `Export.csv` entry out of the uploaded zip, without expanding the archive. Entry lookup is case-insensitive and tolerates a nested directory.
+- **`SourceID` in `Export.csv`.** `HmisCsvImporter::UploadValidityCheck` reads only the `Export.csv` entry out of the uploaded zip, without expanding the archive. Entry lookup is case-insensitive and tolerates a nested directory.
 
 Four outcomes:
 

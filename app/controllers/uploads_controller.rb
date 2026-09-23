@@ -62,11 +62,11 @@ class UploadsController < ApplicationController
       return
     end
 
-    @export_source = run_export_source_check(@upload)
-    if hard_reject_error?(@export_source.error)
+    @export_source = HmisCsvImporter::UploadValidityCheck.for_upload(@upload)
+    if @export_source.hard_reject?
       @upload.destroy
       @upload = upload_source.new
-      flash.now[:alert] = export_source_error_message(@export_source.error)
+      flash.now[:alert] = @export_source.error_message
       render :new
       return
     end
@@ -83,7 +83,7 @@ class UploadsController < ApplicationController
     render :confirm
   end
 
-  # Acknowledge a SourceID the export source check could not match, and queue the import.
+  # Acknowledge a SourceID the upload validity check could not match, and queue the import.
   def confirm
     # A confirmed upload has already been queued; re-posting would enqueue a
     # second import of the same file, which the job's advisory lock serializes
@@ -95,7 +95,7 @@ class UploadsController < ApplicationController
     end
 
     unless params[:acknowledge] == '1'
-      @export_source = run_export_source_check(@upload)
+      @export_source = HmisCsvImporter::UploadValidityCheck.for_upload(@upload)
       @dry_run = dry_run_param
       flash.now[:alert] = Translation.translate('You must acknowledge the mismatch to continue.')
       render :confirm
@@ -103,11 +103,11 @@ class UploadsController < ApplicationController
     end
 
     # Re-read the file rather than trusting values posted back from the form
-    @export_source = run_export_source_check(@upload)
-    if hard_reject_error?(@export_source.error)
+    @export_source = HmisCsvImporter::UploadValidityCheck.for_upload(@upload)
+    if @export_source.hard_reject?
       @upload.destroy
       @upload = upload_source.new
-      flash.now[:alert] = export_source_error_message(@export_source.error)
+      flash.now[:alert] = @export_source.error_message
       render :new
       return
     end
@@ -140,32 +140,6 @@ class UploadsController < ApplicationController
       source_id_override: source_id_override,
     )
     upload.update(delayed_job_id: job.provider_job_id)
-  end
-
-  # Reads Export.csv out of the persisted attachment without expanding the
-  # archive. #open streams the blob to a tempfile in chunks rather than holding
-  # the whole zip in memory, and names it with the original extension so a .7z
-  # is still recognized.
-  private def run_export_source_check(upload)
-    upload.hmis_zip.open do |file|
-      return HmisCsvImporter::ExportSourceCheck.new(file_path: file.path).run
-    end
-  end
-
-  # Nothing to confirm -- the Loader would fail on these anyway
-  private def hard_reject_error?(error)
-    [:malformed_zip, :missing_export_file, :unparseable_export_file].include?(error)
-  end
-
-  private def export_source_error_message(error)
-    case error
-    when :malformed_zip
-      Translation.translate('The uploaded file could not be read as a zip archive.')
-    when :missing_export_file
-      Translation.translate('The uploaded zip does not contain an Export.csv.')
-    when :unparseable_export_file
-      Translation.translate('The Export.csv in the uploaded zip could not be read.')
-    end
   end
 
   private def typed_short_name_matches?

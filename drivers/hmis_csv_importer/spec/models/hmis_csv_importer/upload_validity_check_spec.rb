@@ -8,8 +8,8 @@
 
 require 'rails_helper'
 
-RSpec.describe HmisCsvImporter::ExportSourceCheck do
-  let(:tmp_dir) { Dir.mktmpdir('export-source-check') }
+RSpec.describe HmisCsvImporter::UploadValidityCheck do
+  let(:tmp_dir) { Dir.mktmpdir('upload-validity-check') }
 
   after(:each) { FileUtils.remove_entry(tmp_dir) }
 
@@ -20,6 +20,18 @@ RSpec.describe HmisCsvImporter::ExportSourceCheck do
         zip.get_output_stream(entry_name) { |f| f.write(contents) }
       end
     end
+    path
+  end
+
+  def seven_zip(entry_path: 'Export.csv', contents: export_csv, name: 'export.7z')
+    staging = File.join(tmp_dir, 'staging')
+    target = File.join(staging, entry_path)
+    FileUtils.mkdir_p(File.dirname(target))
+    File.write(target, contents)
+    path = File.join(tmp_dir, name)
+    system('7z', 'a', '-bso0', '-bsp0', path, File.join(staging, entry_path.split('/').first),
+           out: File::NULL, err: File::NULL)
+    FileUtils.rm_rf(staging)
     path
   end
 
@@ -68,18 +80,6 @@ RSpec.describe HmisCsvImporter::ExportSourceCheck do
   end
 
   describe '7z archives' do
-    def seven_zip(entry_path: 'Export.csv', contents: export_csv, name: 'export.7z')
-      staging = File.join(tmp_dir, 'staging')
-      target = File.join(staging, entry_path)
-      FileUtils.mkdir_p(File.dirname(target))
-      File.write(target, contents)
-      path = File.join(tmp_dir, name)
-      system('7z', 'a', '-bso0', '-bsp0', path, File.join(staging, entry_path.split('/').first),
-             out: File::NULL, err: File::NULL)
-      FileUtils.rm_rf(staging)
-      path
-    end
-
     it 'reads the SourceID out of a .7z' do
       result = described_class.new(file_path: seven_zip).run
 
@@ -145,6 +145,56 @@ RSpec.describe HmisCsvImporter::ExportSourceCheck do
 
       expect(blank.source_id_matches?('MA-500')).to be false
       expect(result.source_id_matches?('')).to be false
+    end
+  end
+
+  describe described_class::Result do
+    def result_with(error)
+      described_class.new(error: error)
+    end
+
+    # The list used to live in UploadsController, which meant the controller knew
+    # the check's error vocabulary.
+    it 'hard rejects only what the Loader would fail on anyway' do
+      expect(result_with(:malformed_zip)).to be_hard_reject
+      expect(result_with(:missing_export_file)).to be_hard_reject
+      expect(result_with(:unparseable_export_file)).to be_hard_reject
+      expect(result_with(:unverifiable)).not_to be_hard_reject
+      expect(result_with(nil)).not_to be_hard_reject
+    end
+
+    it 'has a message for every hard reject and none otherwise' do
+      expect(result_with(:malformed_zip).error_message).to include('could not be read as a zip archive')
+      expect(result_with(:missing_export_file).error_message).to include('does not contain an Export.csv')
+      expect(result_with(:unparseable_export_file).error_message).to include('could not be read')
+      expect(result_with(:unverifiable).error_message).to be_nil
+      expect(result_with(nil).error_message).to be_nil
+    end
+
+    # Every hard reject needs something to show the user, and nothing else may
+    # claim one, or #create would re-render the form with a blank alert.
+    it 'covers exactly the hard rejects' do
+      expect(HmisCsvImporter::UploadValidityCheck::ERROR_MESSAGES.keys).
+        to match_array(HmisCsvImporter::UploadValidityCheck::HARD_REJECT_ERRORS)
+    end
+  end
+
+  describe '.for_upload' do
+    let(:data_source) { create(:source_data_source) }
+    let(:upload) { create(:grda_warehouse_upload, data_source: data_source) }
+
+    it 'reads Export.csv out of the stored attachment' do
+      attach_hmis_zip(upload, build_zip({ 'Export.csv' => export_csv }), filename: 'export.zip')
+
+      expect(described_class.for_upload(upload).source_id).to eq('MA-500')
+    end
+
+    # The blob is written to a tempfile named with the original extension, which is
+    # what decides whether the archive is handed to rubyzip or to 7z.
+    it 'keeps the original extension so a .7z is still recognized' do
+      attach_hmis_zip(upload, seven_zip, filename: 'export.7z', content_type: 'application/x-7z-compressed')
+
+      expect(described_class.for_upload(upload).source_id).to eq('MA-500')
     end
   end
 end

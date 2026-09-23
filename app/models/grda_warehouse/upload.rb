@@ -85,7 +85,7 @@ module GrdaWarehouse
     end
 
     # Written by UploadsController#confirm when a user acknowledged a SourceID
-    # HmisCsvImporter::ExportSourceCheck could not match against the data source.
+    # HmisCsvImporter::UploadValidityCheck could not match against the data source.
     # Keys: typed_short_name, data_source_source_id, file_source_id,
     # file_source_name, check_error, acknowledged_at, acknowledged_by_user_id.
     def export_source_acknowledged?

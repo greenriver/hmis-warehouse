@@ -14,7 +14,7 @@ RSpec.describe UploadsController, type: :request do
   let(:collection) { create(:collection) }
   let(:user) { create(:acl_user) }
   def tmp_dir
-    @tmp_dir ||= Dir.mktmpdir('uploads-export-source-check')
+    @tmp_dir ||= Dir.mktmpdir('uploads-validity-check')
   end
 
   let(:enqueued_job) { instance_double(Importing::HudZip::HmisAutoMigrateJob, provider_job_id: 42) }
