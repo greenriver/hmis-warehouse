@@ -2,289 +2,289 @@
   {
     "link_id": "q_4_11",
     "custom_rule": {
-      "variable": "projectId",
-      "operator": "NOT_EQUAL",
-      "value": "non-existent-project-id"
+      "operator": "ALL",
+      "_comment": "enable this item for all projects/contexts in the QA environment",
+      "parts": []
     }
   },
   {
     "link_id": "c3_youth_education_status",
     "custom_rule": {
-      "variable": "projectId",
-      "operator": "NOT_EQUAL",
-      "value": "non-existent-project-id"
+      "operator": "ALL",
+      "_comment": "enable this item for all projects/contexts in the QA environment",
+      "parts": []
     }
   },
   {
     "link_id": "C4_group",
     "custom_rule": {
-      "variable": "projectId",
-      "operator": "NOT_EQUAL",
-      "value": "non-existent-project-id"
+      "operator": "ALL",
+      "_comment": "enable this item for all projects/contexts in the QA environment",
+      "parts": []
     }
   },
   {
     "link_id": "disability_table",
     "custom_rule": {
-      "variable": "projectId",
-      "operator": "NOT_EQUAL",
-      "value": "non-existent-project-id"
+      "operator": "ALL",
+      "_comment": "enable this item for all projects/contexts in the QA environment",
+      "parts": []
     }
   },
   {
     "link_id": "disability_table_r4",
     "custom_rule": {
-      "variable": "projectId",
-      "operator": "NOT_EQUAL",
-      "value": "non-existent-project-id"
+      "operator": "ALL",
+      "_comment": "enable this item for all projects/contexts in the QA environment",
+      "parts": []
     }
   },
   {
     "link_id": "health_insurance",
     "custom_rule": {
-      "variable": "projectId",
-      "operator": "NOT_EQUAL",
-      "value": "non-existent-project-id"
+      "operator": "ALL",
+      "_comment": "enable this item for all projects/contexts in the QA environment",
+      "parts": []
     }
   },
   {
     "link_id": "income_and_sources",
     "custom_rule": {
-      "variable": "projectId",
-      "operator": "NOT_EQUAL",
-      "value": "non-existent-project-id"
+      "operator": "ALL",
+      "_comment": "enable this item for all projects/contexts in the QA environment",
+      "parts": []
     }
   },
   {
     "link_id": "non_cash_benefits",
     "custom_rule": {
-      "variable": "projectId",
-      "operator": "NOT_EQUAL",
-      "value": "non-existent-project-id"
+      "operator": "ALL",
+      "_comment": "enable this item for all projects/contexts in the QA environment",
+      "parts": []
     }
   },
   {
     "link_id": "P4_1",
     "custom_rule": {
-      "variable": "projectId",
-      "operator": "NOT_EQUAL",
-      "value": "non-existent-project-id"
+      "operator": "ALL",
+      "_comment": "enable this item for all projects/contexts in the QA environment",
+      "parts": []
     }
   },
   {
     "link_id": "R1",
     "custom_rule": {
-      "variable": "projectId",
-      "operator": "NOT_EQUAL",
-      "value": "non-existent-project-id"
+      "operator": "ALL",
+      "_comment": "enable this item for all projects/contexts in the QA environment",
+      "parts": []
     }
   },
   {
     "link_id": "R2",
     "custom_rule": {
-      "variable": "projectId",
-      "operator": "NOT_EQUAL",
-      "value": "non-existent-project-id"
+      "operator": "ALL",
+      "_comment": "enable this item for all projects/contexts in the QA environment",
+      "parts": []
     }
   },
   {
     "link_id": "R3",
     "custom_rule": {
-      "variable": "projectId",
-      "operator": "NOT_EQUAL",
-      "value": "non-existent-project-id"
+      "operator": "ALL",
+      "_comment": "enable this item for all projects/contexts in the QA environment",
+      "parts": []
     }
   },
   {
     "link_id": "R4",
     "custom_rule": {
-      "variable": "projectId",
-      "operator": "NOT_EQUAL",
-      "value": "non-existent-project-id"
+      "operator": "ALL",
+      "_comment": "enable this item for all projects/contexts in the QA environment",
+      "parts": []
     }
   },
   {
     "link_id": "R5",
     "custom_rule": {
-      "variable": "projectId",
-      "operator": "NOT_EQUAL",
-      "value": "non-existent-project-id"
+      "operator": "ALL",
+      "_comment": "enable this item for all projects/contexts in the QA environment",
+      "parts": []
     }
   },
   {
     "link_id": "R6",
     "custom_rule": {
-      "variable": "projectId",
-      "operator": "NOT_EQUAL",
-      "value": "non-existent-project-id"
+      "operator": "ALL",
+      "_comment": "enable this item for all projects/contexts in the QA environment",
+      "parts": []
     }
   },
   {
     "link_id": "R7",
     "custom_rule": {
-      "variable": "projectId",
-      "operator": "NOT_EQUAL",
-      "value": "non-existent-project-id"
+      "operator": "ALL",
+      "_comment": "enable this item for all projects/contexts in the QA environment",
+      "parts": []
     }
   },
   {
     "link_id": "R8",
     "custom_rule": {
-      "variable": "projectId",
-      "operator": "NOT_EQUAL",
-      "value": "non-existent-project-id"
+      "operator": "ALL",
+      "_comment": "enable this item for all projects/contexts in the QA environment",
+      "parts": []
     }
   },
   {
     "link_id": "R9",
     "custom_rule": {
-      "variable": "projectId",
-      "operator": "NOT_EQUAL",
-      "value": "non-existent-project-id"
+      "operator": "ALL",
+      "_comment": "enable this item for all projects/contexts in the QA environment",
+      "parts": []
     }
   },
   {
     "link_id": "R10",
     "custom_rule": {
-      "variable": "projectId",
-      "operator": "NOT_EQUAL",
-      "value": "non-existent-project-id"
+      "operator": "ALL",
+      "_comment": "enable this item for all projects/contexts in the QA environment",
+      "parts": []
     }
   },
   {
     "link_id": "R11",
     "custom_rule": {
-      "variable": "projectId",
-      "operator": "NOT_EQUAL",
-      "value": "non-existent-project-id"
+      "operator": "ALL",
+      "_comment": "enable this item for all projects/contexts in the QA environment",
+      "parts": []
     }
   },
   {
     "link_id": "R12",
     "custom_rule": {
-      "variable": "projectId",
-      "operator": "NOT_EQUAL",
-      "value": "non-existent-project-id"
+      "operator": "ALL",
+      "_comment": "enable this item for all projects/contexts in the QA environment",
+      "parts": []
     }
   },
   {
     "link_id": "family_critical_issues",
     "custom_rule": {
-      "variable": "projectId",
-      "operator": "NOT_EQUAL",
-      "value": "non-existent-project-id"
+      "operator": "ALL",
+      "_comment": "enable this item for all projects/contexts in the QA environment",
+      "parts": []
     }
   },
   {
     "link_id": "R15",
     "custom_rule": {
-      "variable": "projectId",
-      "operator": "NOT_EQUAL",
-      "value": "non-existent-project-id"
+      "operator": "ALL",
+      "_comment": "enable this item for all projects/contexts in the QA environment",
+      "parts": []
     }
   },
   {
     "link_id": "R16",
     "custom_rule": {
-      "variable": "projectId",
-      "operator": "NOT_EQUAL",
-      "value": "non-existent-project-id"
+      "operator": "ALL",
+      "_comment": "enable this item for all projects/contexts in the QA environment",
+      "parts": []
     }
   },
   {
     "link_id": "R17",
     "custom_rule": {
-      "variable": "projectId",
-      "operator": "NOT_EQUAL",
-      "value": "non-existent-project-id"
+      "operator": "ALL",
+      "_comment": "enable this item for all projects/contexts in the QA environment",
+      "parts": []
     }
   },
   {
     "link_id": "R18",
     "custom_rule": {
-      "variable": "projectId",
-      "operator": "NOT_EQUAL",
-      "value": "non-existent-project-id"
+      "operator": "ALL",
+      "_comment": "enable this item for all projects/contexts in the QA environment",
+      "parts": []
     }
   },
   {
     "link_id": "R19",
     "custom_rule": {
-      "variable": "projectId",
-      "operator": "NOT_EQUAL",
-      "value": "non-existent-project-id"
+      "operator": "ALL",
+      "_comment": "enable this item for all projects/contexts in the QA environment",
+      "parts": []
     }
   },
   {
     "link_id": "R20",
     "custom_rule": {
-      "variable": "projectId",
-      "operator": "NOT_EQUAL",
-      "value": "non-existent-project-id"
+      "operator": "ALL",
+      "_comment": "enable this item for all projects/contexts in the QA environment",
+      "parts": []
     }
   },
   {
     "link_id": "V1",
     "custom_rule": {
-      "variable": "projectId",
-      "operator": "NOT_EQUAL",
-      "value": "non-existent-project-id"
+      "operator": "ALL",
+      "_comment": "enable this item for all projects/contexts in the QA environment",
+      "parts": []
     }
   },
   {
     "link_id": "V4",
     "custom_rule": {
-      "variable": "projectId",
-      "operator": "NOT_EQUAL",
-      "value": "non-existent-project-id"
+      "operator": "ALL",
+      "_comment": "enable this item for all projects/contexts in the QA environment",
+      "parts": []
     }
   },
   {
     "link_id": "V6",
     "custom_rule": {
-      "variable": "projectId",
-      "operator": "NOT_EQUAL",
-      "value": "non-existent-project-id"
+      "operator": "ALL",
+      "_comment": "enable this item for all projects/contexts in the QA environment",
+      "parts": []
     }
   },
   {
     "link_id": "V7",
     "custom_rule": {
-      "variable": "projectId",
-      "operator": "NOT_EQUAL",
-      "value": "non-existent-project-id"
+      "operator": "ALL",
+      "_comment": "enable this item for all projects/contexts in the QA environment",
+      "parts": []
     }
   },
   {
     "link_id": "V9",
     "custom_rule": {
-      "variable": "projectId",
-      "operator": "NOT_EQUAL",
-      "value": "non-existent-project-id"
+      "operator": "ALL",
+      "_comment": "enable this item for all projects/contexts in the QA environment",
+      "parts": []
     }
   },
   {
     "link_id": "V10",
     "custom_rule": {
-      "variable": "projectId",
-      "operator": "NOT_EQUAL",
-      "value": "non-existent-project-id"
+      "operator": "ALL",
+      "_comment": "enable this item for all projects/contexts in the QA environment",
+      "parts": []
     }
   },
   {
     "link_id": "medical_assistance",
     "custom_rule": {
-      "variable": "projectId",
-      "operator": "NOT_EQUAL",
-      "value": "non-existent-project-id"
+      "operator": "ALL",
+      "_comment": "enable this item for all projects/contexts in the QA environment",
+      "parts": []
     }
   },
   {
     "link_id": "W4",
     "custom_rule": {
-      "variable": "projectId",
-      "operator": "NOT_EQUAL",
-      "value": "non-existent-project-id"
+      "operator": "ALL",
+      "_comment": "enable this item for all projects/contexts in the QA environment",
+      "parts": []
     }
   }
 ]
