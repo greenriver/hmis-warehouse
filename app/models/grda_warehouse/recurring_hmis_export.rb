@@ -123,13 +123,15 @@ module GrdaWarehouse
         end
       end
 
-      # zip_password comes from the export form; the single-string form of system
-      # would hand it to a shell, which runs whatever it contains.
-      #
-      # system returns false rather than raising, and a failed run leaves no
+      # SevenZip returns false rather than raising, and a failed run leaves no
       # destination file for the read below, so check it here where the reason is known.
       raise "RecurringHmisExport #{id} could not 7z the export" unless
-        system('7z', 'a', '-mx9', "-p#{zip_password}", destination_file, *Dir.glob("#{destination_path}/*.csv"))
+        SevenZip.create(
+          destination: destination_file,
+          sources: Dir.glob("#{destination_path}/*.csv"),
+          password: zip_password,
+          level: 9,
+        )
 
       # ::File.open(destination_file, 'wb') do |file|
       #   SevenZipRuby::SevenZipWriter.open(file, password: zip_password) do |szw|
