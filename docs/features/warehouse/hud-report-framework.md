@@ -185,6 +185,12 @@ generator = HopwaCaper::Generators::Fy2026::Generator
 Reporting::Hud::RunReportJob.new.perform(generator.name, instance, email: false)
 ```
 
+## Access
+
+Each HUD report controller has a `ReportDefinition` keyed by its index url (`hud_reports/aprs`, `hud_reports/spms`, ...). `HudReports::BaseController` includes `WarehouseReportAuthorization` and resolves the definition from the generator (`HudReports::GeneratorBase.report_definition_url`, which reads the `Rails.application.config.hud_reports` registry). Pages served under a different url than their report (`past_dqs`, `lsa_hics`, the historic PIT/LSA lists, the legacy DQ/SPM result pages) override `related_report` to point at the parent report's definition. Exports check the same definition through `ReportDefinition.url_viewable_by?`.
+
+See [Warehouse Permissions](warehouse-permissions.md#hud-report-access) for how access is granted and what the HUD role flags still mean.
+
 ## Supported Reports
 
 The framework supports the following HUD reports:

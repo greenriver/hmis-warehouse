@@ -18,13 +18,13 @@ class ReportResultsSummary < ApplicationRecord
     nil
   end
 
-  scope :viewable_by, -> (user) do
+  # Not an access check: reaching a summary is gated by its report definition. This
+  # only keeps summaries with at least one run the user may see.
+  scope :runs_visible_to, -> (user) do
     if user.can_view_all_hud_reports?
       all
-    elsif user.can_view_own_hud_reports?
-      joins(:report_results).merge(ReportResult.viewable_by(user))
     else
-      none
+      joins(:report_results).merge(ReportResult.runs_visible_to(user))
     end
   end
 end

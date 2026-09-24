@@ -13,6 +13,15 @@ class GrdaWarehouse::HmisImportConfig < GrdaWarehouseBase
 
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
   validates :s3_region, presence: true
+  # 7z takes a longer password than zipcloak, but a config's archives may arrive
+  # as either type and which one is not known until the import fetches the file.
+  validates :zip_file_password,
+            length: { maximum: ZipCloak::MAX_PASSWORD_LENGTH },
+            format: {
+              without: ZipCloak::CONTROL_CHARACTERS,
+              message: 'cannot contain control characters, including a line break',
+            },
+            allow_nil: true
 
   after_initialize :set_default_region, if: :new_record?
 

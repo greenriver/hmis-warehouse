@@ -6,6 +6,14 @@ This feature imports, normalizes, and validates HMIS CSV data in the HUD standar
 
 The importer operates in two distinct phases: Loading and Importing.
 
+### Upload normalization
+
+Before the Loader runs, the uploaded file is normalized into a plain, unencrypted zip. The rest of the importer reads uploads with rubyzip, which can open neither a `.7z` archive nor an encrypted zip.
+
+- An encrypted zip is decrypted with `ZipCloak`.
+- A `.7z` archive is extracted and rebuilt as a zip with the `7z` binary.
+- A plain zip is left alone.
+
 ### Loader
 
 The Loader (`HmisCsvImporter::Loader`) ingests raw CSV files from a directory. It normalizes file names and headers, detects the HUD CSV version, and loads the raw data into staging tables. It handles:
@@ -81,6 +89,38 @@ Ingestion reconciles staged data with the warehouse in four passes:
 ### Post-process
 
 After `ingest!` finishes and the import is marked complete (`complete_import`), `import!` and `resume!` call `post_process`. This runs **once per data source** (not per file), **only on successful imports** (not dry runs or paused imports), and handles data-source-level follow-up work such as service history rebuild, duplicate detection, CH enrollment maintenance, and CSV monitors; as well as OP HMIS-specific post-import work, such as queueing `Hmis::MigrateAssessmentsJob`.
+
+## Manual Upload Source Check
+
+Manual uploads (`UploadsController#create`) are checked before any job is queued. Automated S3 imports (`Importing::HudZip::FetchAndImportJob`) never reach the controller and are unaffected.
+
+The destination is checked in two stages. A matching `SourceID` is itself evidence the file belongs to this data source, so nothing more is asked for. When it does not match, the user names the data source on the confirmation screen.
+
+- **`SourceID` in `Export.csv`.** `HmisCsvImporter::UploadValidityCheck` reads only the `Export.csv` entry out of the uploaded zip, without expanding the archive. Entry lookup is case-insensitive and tolerates a nested directory. It runs against the request's own tempfile, before the attachment is stored, so no part of the archive is fetched back from storage during the request.
+- **Typed data source name.** Asked for only on the confirmation screen, so only when the `SourceID` did not match. The user types the data source `short_name`; it is compared case-insensitively and stripped, and an empty box is rejected so a data source with no `short_name` cannot be confirmed by leaving it blank.
+
+Four outcomes:
+
+| Source check result | Outcome |
+|------------------|---------|
+| `SourceID` matches `data_source.source_id` | Enqueued, as before |
+| Malformed zip, missing `Export.csv`, unparseable row | No Upload created, form re-rendered |
+| File's `SourceID` blank, data source's `source_id` blank, or the two differ | Confirmation screen |
+| Unverifiable — the archive could not be read | Confirmation screen |
+
+Manual uploads do not support password-protected archives; only the automated S3 path supplies a password (`HmisImportConfig#zip_file_password`).
+
+The Upload record and its `hmis_zip` attachment are created on the first POST, because an HTTP file input cannot repopulate across a re-render. The confirmation form posts back only the upload id plus the typed data source name. What the check observed is written to `uploads.export_source_check` on that first POST, so `#confirm` reads a stored server-side row rather than posted values or a second read of the archive. `dry_run` rides along as a hidden field — it is not a column on `uploads`. An upload with `delayed_job_id IS NULL` and no acknowledgment was never enqueued; the uploads index labels it *Not confirmed*. That same condition (`Upload#awaiting_confirmation?`) gates `#confirm`, so a confirmation cannot be re-posted to queue a second import of a file that was already acknowledged or already queued. Abandoning the confirmation screen leaves the record and its attachment in place; re-uploading the same file creates a second record rather than replacing the first.
+
+### Overriding a `SourceID` mismatch
+
+The `uploads.export_source_check` jsonb audit record (expected and observed `SourceID`, `SourceName`, export date range, `check_error`) is written when the upload is created; confirming adds the typed short name, the user and the timestamp and enqueues with `source_id_override: true`. That kwarg threads down through `Importing::HudZip::HmisAutoMigrateJob` → `Importers::HmisAutoMigrate::UploadedZip` → `Importers::HmisAutoMigrate::Base` → `HmisCsvImporter::Loader::Loader`, where `export_file_valid?` skips its own comparison and logs both values. It defaults to `false` at every level, so automated imports and any in-flight serialized jobs keep the check.
+
+No separate permission gates the override: anyone with `can_upload_hud_zips` can confirm past a mismatch. The file check is therefore advisory, and the typed short name is what a user has to get right to push a mismatch through. The uploads index shows a *SourceID overridden* badge whose tooltip carries the expected and observed values; the rest of the audit record — typed short name, user, timestamp — is written to the column but not displayed anywhere.
+
+An unverifiable archive does not set `source_id_override`. The check could not open it, but the Loader expands the archive before `export_file_valid?` runs and can read `Export.csv` itself, so its comparison is left in place. The acknowledgment records `check_error` alongside the rest of the audit row, which is how `Upload#source_id_overridden?` tells an unreadable archive from an `Export.csv` whose `SourceID` column is genuinely blank -- the latter does need the override, because the Loader rejects a blank value when the data source has a `source_id` configured.
+
+A blank `SourceID` is a legitimate export, not an error. Per the FY2026 HMIS CSV spec, `SourceID` may be null when `SourceType <> 1`, in which case `SourceName` identifies the responsible organization.
 
 ## Validation
 

@@ -18,13 +18,13 @@ class ReportResult < ApplicationRecord
     where(percent_complete: 100).group(:type).maximum(:updated_at)
   end
 
-  scope :viewable_by, -> (user) do
+  # Not an access check: reaching a result page is gated by the report definition.
+  # This only draws the own/all line.
+  scope :runs_visible_to, -> (user) do
     if user.can_view_all_hud_reports?
       all
-    elsif user.can_view_own_hud_reports?
-      where(user_id: user.id)
     else
-      none
+      where(user_id: user.id)
     end
   end
 

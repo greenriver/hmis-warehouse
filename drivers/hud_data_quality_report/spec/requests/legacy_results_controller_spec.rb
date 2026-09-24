@@ -22,8 +22,14 @@ RSpec.describe HudDataQualityReport::LegacyResultsController, type: :request do
     create(:report_result, report: report, user: another_user, percent_complete: 100, results: results)
   end
 
-  def sign_in_with(role)
-    setup_access_control(user, role, collection)
+  # Reaching the page needs the DQ report definition in one of the user's collections;
+  # the HUD flags only draw the own/all results distinction.
+  def sign_in_with(role, grant_report: true)
+    if grant_report
+      grant_hud_report(user, 'hud_reports/dqs', role: role)
+    else
+      setup_access_control(user, role, collection)
+    end
     sign_in(user)
   end
 
@@ -33,7 +39,7 @@ RSpec.describe HudDataQualityReport::LegacyResultsController, type: :request do
 
   describe 'GET /hud_reports/legacy_dqs/:legacy_dq_id/legacy_results/:id.csv' do
     it 'denies a signed-in user with no HUD report permission' do
-      sign_in_with(create(:role, can_view_clients: true))
+      sign_in_with(create(:role, can_view_clients: true, can_view_assigned_reports: true), grant_report: false)
 
       download(another_users_result)
 
@@ -44,7 +50,7 @@ RSpec.describe HudDataQualityReport::LegacyResultsController, type: :request do
     end
 
     it 'allows a user who can view all HUD reports' do
-      sign_in_with(create(:role, can_view_all_hud_reports: true))
+      sign_in_with(create(:role, can_view_assigned_reports: true, can_view_all_hud_reports: true))
 
       download(another_users_result)
 
@@ -55,10 +61,10 @@ RSpec.describe HudDataQualityReport::LegacyResultsController, type: :request do
     end
 
     context 'when the user can only view their own HUD reports' do
-      before { sign_in_with(create(:role, can_view_own_hud_reports: true)) }
+      before { sign_in_with(create(:role, can_view_assigned_reports: true)) }
 
       it "does not serve another user's result" do
-        # ReportResult.viewable_by is what draws the own/all distinction; without it,
+        # ReportResult.runs_visible_to is what draws the own/all distinction; without it,
         # holding either HUD report permission exposed every user's saved results.
         download(another_users_result)
 
@@ -80,7 +86,7 @@ RSpec.describe HudDataQualityReport::LegacyResultsController, type: :request do
     it 'does not serve a result belonging to a different report' do
       # The id pair comes straight from the url; a result from another report must not
       # resolve just because both ids exist.
-      sign_in_with(create(:role, can_view_all_hud_reports: true))
+      sign_in_with(create(:role, can_view_assigned_reports: true, can_view_all_hud_reports: true))
       other_report = Report.create!(name: 'Other Legacy DQ', type: 'Reports::DataQuality::Fy2017::Q2')
       other_reports_result = create(
         :report_result,
