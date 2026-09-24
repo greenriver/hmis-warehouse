@@ -1008,39 +1008,6 @@ ALTER SEQUENCE public.hmis_roles_id_seq OWNED BY public.hmis_roles.id;
 
 
 --
--- Name: hmis_user_access_controls; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.hmis_user_access_controls (
-    id bigint NOT NULL,
-    access_control_id bigint,
-    user_id bigint,
-    deleted_at timestamp without time zone,
-    created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
-);
-
-
---
--- Name: hmis_user_access_controls_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.hmis_user_access_controls_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: hmis_user_access_controls_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public.hmis_user_access_controls_id_seq OWNED BY public.hmis_user_access_controls.id;
-
-
---
 -- Name: hmis_user_client_activity_log_summaries; Type: VIEW; Schema: public; Owner: -
 --
 
@@ -2726,13 +2693,6 @@ ALTER TABLE ONLY public.hmis_roles ALTER COLUMN id SET DEFAULT nextval('public.h
 
 
 --
--- Name: hmis_user_access_controls id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.hmis_user_access_controls ALTER COLUMN id SET DEFAULT nextval('public.hmis_user_access_controls_id_seq'::regclass);
-
-
---
 -- Name: hmis_user_group_members id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -3151,14 +3111,6 @@ ALTER TABLE ONLY public.hmis_activity_logs
 
 ALTER TABLE ONLY public.hmis_roles
     ADD CONSTRAINT hmis_roles_pkey PRIMARY KEY (id);
-
-
---
--- Name: hmis_user_access_controls hmis_user_access_controls_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.hmis_user_access_controls
-    ADD CONSTRAINT hmis_user_access_controls_pkey PRIMARY KEY (id);
 
 
 --
@@ -3730,20 +3682,6 @@ CREATE INDEX index_hmis_activity_logs_on_user_id ON public.hmis_activity_logs US
 
 
 --
--- Name: index_hmis_user_access_controls_on_access_control_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_user_access_controls_on_access_control_id ON public.hmis_user_access_controls USING btree (access_control_id);
-
-
---
--- Name: index_hmis_user_access_controls_on_user_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_user_access_controls_on_user_id ON public.hmis_user_access_controls USING btree (user_id);
-
-
---
 -- Name: index_hmis_user_group_members_on_user_group_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -4245,6 +4183,7 @@ ALTER TABLE ONLY public.oauth_access_tokens
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260917120000'),
 ('20260908120000'),
 ('20260827151000'),
 ('20260827150000'),

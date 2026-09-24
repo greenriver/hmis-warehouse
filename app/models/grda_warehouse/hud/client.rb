@@ -1040,7 +1040,7 @@ module GrdaWarehouse::Hud
     def self.revoke_expired_consent
       if release_duration.in?(['One Year', 'Two Years'])
         # This doesn't trigger callbacks (e.g., papertrail)
-        where(c_t[:consent_form_signed_on].lteq(consent_validity_period.ago.to_date)).
+        where(c_t[:consent_form_signed_on].lt(consent_validity_period.ago.to_date)).
           update_all(
             housing_release_status: nil,
             consented_coc_codes: [],
@@ -1098,6 +1098,15 @@ module GrdaWarehouse::Hud
         release_valid? && consent_expires_on.present? && consent_expires_on >= Date.current
       else
         release_valid?
+      end
+    end
+
+    def consent_expiration_date
+      case release_duration
+      when 'One Year', 'Two Years'
+        consent_form_signed_on && consent_form_signed_on + self.class.consent_validity_period
+      when 'Use Expiration Date'
+        consent_expires_on
       end
     end
 
@@ -2759,14 +2768,17 @@ module GrdaWarehouse::Hud
 
     # NOTE: if you are calculating these in batches, you should pass in arrays of enrollments and chronic enrollments
     def homeless_episodes_between start_date:, end_date:, residential_enrollments: nil, chronic_enrollments: nil
-      residential_enrollments ||= service_history_enrollments.residential.entry.order(first_date_in_program: :asc)
+      residential_enrollments ||= service_history_enrollments.residential.entry.includes(:enrollment).order(first_date_in_program: :asc)
       return 0 unless residential_enrollments.any?
 
       chronic_enrollments ||= service_history_enrollments.entry.
         open_between(start_date: start_date, end_date: end_date).
-        hud_homeless(chronic_types_only: true).
-        order(first_date_in_program: :asc).to_a
+        hud_homeless(chronic_types_only: true).to_a
       return 0 unless chronic_enrollments.any?
+
+      # The calculator marks only one of several entries sharing an entry date; ordering
+      # through it keeps the record dropped below in agreement with the record it marks.
+      chronic_enrollments = ClientHistory::Calculator.in_episode_order(chronic_enrollments)
 
       # Need to add one to the count of new episodes if the first enrollment in
       # chronic_enrollments doesn't count as a new episode.
@@ -2779,14 +2791,17 @@ module GrdaWarehouse::Hud
     end
 
     def length_of_episodes start_date:, end_date:, residential_enrollments: nil, chronic_enrollments: nil
-      residential_enrollments ||= service_history_enrollments.residential.entry.order(first_date_in_program: :asc)
+      residential_enrollments ||= service_history_enrollments.residential.entry.includes(:enrollment).order(first_date_in_program: :asc)
       return [] unless residential_enrollments.any?
 
       chronic_enrollments ||= service_history_enrollments.entry.
         open_between(start_date: start_date, end_date: end_date).
-        hud_homeless(chronic_types_only: true).
-        order(first_date_in_program: :asc, last_date_in_program: :asc).to_a
+        hud_homeless(chronic_types_only: true).to_a
       return [] unless chronic_enrollments.any?
+
+      # Same ordering requirement as homeless_episodes_between; the first record is treated as
+      # an episode already under way rather than being asked about.
+      chronic_enrollments = ClientHistory::Calculator.in_episode_order(chronic_enrollments)
 
       episodes = []
       initial_chronic_enrollment = chronic_enrollments.first
@@ -2811,7 +2826,6 @@ module GrdaWarehouse::Hud
           episodes << {
             start_date: current_start,
             end_date: current_end,
-            days: days_served.count,
             months: (current_start..current_end).map(&:month).uniq.count,
           }
           current_start = enrollment.first_date_in_program
@@ -2823,7 +2837,6 @@ module GrdaWarehouse::Hud
       episodes << {
         start_date: current_start,
         end_date: current_end,
-        days: days_served.count,
         months: (current_start..current_end).map(&:month).uniq.count,
       }
       episodes
