@@ -98,13 +98,25 @@ class UploadsController < ApplicationController
       return
     end
 
-    @upload.update!(
-      export_source_check: @upload.export_source_check.merge(
-        'typed_short_name' => typed_short_name,
-        'acknowledged_at' => Time.current,
-        'acknowledged_by_user_id' => current_user.id,
-      ),
-    )
+    # with_lock reloads the row, so a second confirm posted alongside this one sees the
+    # acknowledgment and is turned away instead of enqueuing a duplicate import.
+    claimed = @upload.with_lock do
+      next false unless @upload.awaiting_confirmation?
+
+      @upload.update!(
+        export_source_check: @upload.export_source_check.merge(
+          'typed_short_name' => typed_short_name,
+          'acknowledged_at' => Time.current,
+          'acknowledged_by_user_id' => current_user.id,
+        ),
+      )
+      true
+    end
+    unless claimed
+      flash[:alert] = Translation.translate('That upload is no longer waiting for confirmation.')
+      redirect_to action: :index
+      return
+    end
 
     enqueue_import(@upload, source_id_override: @upload.source_id_overridden?)
     flash[:notice] = Translation.translate('Upload queued to start.')
