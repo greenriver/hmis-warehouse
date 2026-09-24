@@ -171,16 +171,16 @@ RSpec.describe AwsS3, 'minio roundtrip' do
       # webmock not loaded
     end
 
-    previous_use_minio = ENV['USE_MINIO_ENDPOINT']
-    previous_minio_endpoint = ENV['MINIO_ENDPOINT']
+    previous_use_local_s3 = ENV['USE_LOCAL_S3_ENDPOINT']
+    previous_local_s3_endpoint = ENV['LOCAL_S3_ENDPOINT']
     previous_ssl_verify = Aws.config[:ssl_verify_peer]
     prev_env_access = ENV['AWS_ACCESS_KEY_ID']
     prev_env_secret = ENV['AWS_SECRET_ACCESS_KEY']
     prev_env_region = ENV['AWS_REGION']
 
-    ENV['USE_MINIO_ENDPOINT'] = 'true'
-    endpoint = ENV['MINIO_ENDPOINT'].presence || 'https://s3.dev.test:9000'
-    ENV['MINIO_ENDPOINT'] = endpoint
+    ENV['USE_LOCAL_S3_ENDPOINT'] = 'true'
+    endpoint = ENV['LOCAL_S3_ENDPOINT'].presence || 'https://s3.dev.test:9000'
+    ENV['LOCAL_S3_ENDPOINT'] = endpoint
     Aws.config[:ssl_verify_peer] = false
     access_key_id = ENV['AWS_ACCESS_KEY_ID'].presence || 'local_access_key'
     secret_access_key = ENV['AWS_SECRET_ACCESS_KEY'].presence || 'local_secret_key'
@@ -212,8 +212,8 @@ RSpec.describe AwsS3, 'minio roundtrip' do
 
       expect(File.read(download_path)).to eq(content)
     ensure
-      ENV['USE_MINIO_ENDPOINT'] = previous_use_minio
-      ENV['MINIO_ENDPOINT'] = previous_minio_endpoint
+      ENV['USE_LOCAL_S3_ENDPOINT'] = previous_use_local_s3
+      ENV['LOCAL_S3_ENDPOINT'] = previous_local_s3_endpoint
       Aws.config[:ssl_verify_peer] = previous_ssl_verify
       ENV['AWS_ACCESS_KEY_ID'] = prev_env_access
       ENV['AWS_SECRET_ACCESS_KEY'] = prev_env_secret

@@ -23,11 +23,11 @@ jobs:
     strategy:
       matrix:
         include:
-          - name: Minio
-            image: ghcr.io/greenriver/openpath-minio:1.0
-            context: docker/minio
-            dockerfile: docker/minio/Dockerfile
-            cache_key: minio
+          - name: SeaweedFS
+            image: ghcr.io/greenriver/openpath-seaweedfs:1.0
+            context: docker/s3
+            dockerfile: docker/s3/Dockerfile
+            cache_key: seaweedfs
           - name: sftp
             image: ghcr.io/greenriver/openpath-sftp:1.0
             context: docker/sftp

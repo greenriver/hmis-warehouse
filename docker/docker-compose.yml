@@ -73,8 +73,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_started
-      minio:
-        condition: service_started
+      s3:
+        condition: service_healthy
     env_file:
       - .env.local
       - .env.test
@@ -97,8 +97,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_started
-      minio:
-        condition: service_started
+      s3:
+        condition: service_healthy
 
   dj:
     <<: *backend
@@ -109,8 +109,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_started
-      minio:
-        condition: service_started
+      s3:
+        condition: service_healthy
 
   # once we're fully on EKS, we can refactor this into the main dj service.
   dj-eks:
@@ -134,8 +134,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_started
-      minio:
-        condition: service_started
+      s3:
+        condition: service_healthy
 
   yarn:
     <<: *backend
@@ -148,8 +148,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_started
-      minio:
-        condition: service_started
+      s3:
+        condition: service_healthy
 
   web:
     <<: *backend
@@ -185,8 +185,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_started
-      minio:
-        condition: service_started
+      s3:
+        condition: service_healthy
       yarn:
         condition: service_started
 
@@ -307,30 +307,17 @@ services:
     #- ./tmp/sftp_spec:/home/user/sftp
 
   # See config/storage.yml for setup
-  minio:
+  s3:
     container_name: s3
-    image: minio/minio
+    build:
+      context: docker/s3
     volumes:
-      - ./dev/minio/data:/data
+      - ./dev/seaweedfs/data:/data
+      # Kept at the old minio path so existing dev certs keep working
       - ./dev/minio/certs:/certs
     hostname: s3.dev.test
-    environment:
-      MINIO_ROOT_USER: local_access_key
-      MINIO_ROOT_PASSWORD: local_secret_key
     ports:
       - 9000:9000
-      - 9001:9001 # enable for UI access
-    command: server --certs-dir /certs /data --console-address ":9001"
-    labels:
-      - traefik.enable=${TRAEFIK_ENABLED:-false}
-      - traefik.http.routers.minio.entrypoints=web
-      - traefik.http.routers.minio.rule=Host(`${MINIO_DOMAIN:-s3.dev.test}`)
-      - traefik.http.services.minio_https.loadbalancer.server.port=9000
-      - traefik.http.routers.minio_https.rule=Host(`${MINIO_DOMAIN:-s3.dev.test}`)
-      - traefik.http.routers.minio_https.tls=true
-      - traefik.http.routers.minio_https.entrypoints=web-secure
-      - traefik.http.middlewares.minio_https.redirectscheme.scheme=https
-      - traefik.http.routers.minio.middlewares=op_https
 
 volumes:
   bundle_trixie:

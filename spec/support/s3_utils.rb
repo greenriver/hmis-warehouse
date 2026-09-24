@@ -15,7 +15,7 @@ RSpec.configure do |config|
       # services' config structs, and a global default raises when any non-S3
       # client is constructed in a spec.
       s3: {
-        endpoint: ENV.fetch('MINIO_ENDPOINT', 'http://s3.dev.test:9000'),
+        endpoint: ENV.fetch('LOCAL_S3_ENDPOINT', 'http://s3.dev.test:9000'),
         force_path_style: true,
       },
     )
