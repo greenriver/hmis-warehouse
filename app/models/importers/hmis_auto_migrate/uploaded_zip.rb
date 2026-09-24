@@ -63,8 +63,8 @@ module Importers::HmisAutoMigrate
         # SevenZip returns false instead of raising, and a failed extraction leaves
         # tmp_folder empty for the zip built below, which is then saved over the
         # stored upload.
-        raise "7z was unable to extract #{File.basename(zip_file)}" unless
-          SevenZip.extract_all(source: zip_file, destination: tmp_folder, password: @file_password)
+        extracted = SevenZip.extract_all(source: zip_file, destination: tmp_folder, password: @file_password)
+        raise "7z was unable to extract #{File.basename(zip_file)}" unless extracted
 
         # File.open(zip_file, 'rb') do |seven_zip|
         #   SevenZipRuby::Reader.open(seven_zip, options) do |szr|
