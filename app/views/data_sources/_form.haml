@@ -39,6 +39,6 @@
   -# hidden for authoritative non-HMIS sources where data is entered manually.
   %div{ data: { data_source_form_target: 'importerQuestions' } }
     %h3.h5-prs1 Import settings
-    = f.input :source_id, label: 'Source ID', hint: 'Expected SourceID from Export.csv. If set, imports are rejected when it does not match. If left blank, any SourceID in the export file is accepted.'
+    = f.input :source_id, label: 'Source ID', hint: 'Expected SourceID from Export.csv. If set, imports are rejected when it does not match. If left blank, automated imports accept any SourceID, and manual uploads ask the user to name this data source before queuing.'
     = f.input :disable_imports, as: :boolean, label: 'Disable HUD CSV imports', hint: 'When checked, manual uploads and automated daily imports are not allowed for this data source.'
     = f.input :import_paused, label: 'Pause automated daily imports?'

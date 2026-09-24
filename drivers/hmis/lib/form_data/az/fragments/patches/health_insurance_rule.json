@@ -1,0 +1,10 @@
+[
+  {
+    "link_id": "health_insurance",
+    "custom_rule": {
+      "operator": "ALL",
+      "_comment": "collect 4.04 Health Insurance for all projects regardless of funder or type.",
+      "parts": []
+    }
+  }
+]
