@@ -34,6 +34,7 @@ Match on the subject matter of the code in front of you — whether you're writi
 - **New subsystems, major refactors, or system-level decisions** → read `docs/architecture/README.md`
 - **HAML, the warehouse frontend, or GraphQL** → read `docs/code_patterns_and_conventions.md`
 - **Database queries** — Arel vs. raw SQL, HUD case-sensitive columns, date/time comparisons → read `docs/active-record-arel-and-queries.md`
+- **Agent-oriented implementation docs** — how features are built, source manifest, deny-list of patterns not to repeat → `docs/domain-pack/README.md`. When you edit a file listed in `docs/domain-pack/manifest.json`, update the matching doc and run `ruby bin/domain_pack stamp`.
 
 ## Conventions
 
