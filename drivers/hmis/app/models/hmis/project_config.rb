@@ -143,4 +143,13 @@ class Hmis::ProjectConfig < Hmis::HmisBase
     merged_options = options ? options.merge(new_options) : new_options
     self.config_options = merged_options.to_json
   end
+
+  # Remove an option entirely rather than storing null for it. An absent key and a null one are
+  # equivalent to every reader, but the admin config table renders a row per key present, so a
+  # null would show up as a labeled blank.
+  def unset_config_option(key)
+    return unless options&.key?(key.to_s)
+
+    self.config_options = options.except(key.to_s).to_json
+  end
 end
