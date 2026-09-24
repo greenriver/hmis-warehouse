@@ -180,7 +180,7 @@ jobs:
         ports:
           - "2222:22"
       s3: &s3
-        image: ghcr.io/greenriver/openpath-seaweedfs:1.0
+        image: ghcr.io/greenriver/openpath-rustfs:1.0
         credentials:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}

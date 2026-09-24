@@ -1,8 +1,12 @@
 #!/bin/sh
-# Serve TLS when /certs/public.crt and /certs/private.key are mounted (dev); plain HTTP otherwise (CI)
+# Serve TLS when /certs/public.crt and /certs/private.key are mounted (dev); plain HTTP otherwise (CI).
+# RustFS expects rustfs_cert.pem/rustfs_key.pem in RUSTFS_TLS_PATH, so link the minio-named certs there.
 set -e
-tls=""
 if [ -f /certs/public.crt ] && [ -f /certs/private.key ]; then
-  tls="-s3.cert.file=/certs/public.crt -s3.key.file=/certs/private.key"
+  mkdir -p /tmp/tls
+  ln -sf /certs/public.crt /tmp/tls/rustfs_cert.pem
+  ln -sf /certs/private.key /tmp/tls/rustfs_key.pem
+  export RUSTFS_TLS_PATH=/tmp/tls
 fi
-exec weed server -dir=/data -s3 -s3.port=9000 -s3.config=/etc/seaweedfs/s3.json $tls
+# /entrypoint.sh is the upstream rustfs/rustfs image's entrypoint; re-check it exists when bumping the base tag
+exec /entrypoint.sh rustfs

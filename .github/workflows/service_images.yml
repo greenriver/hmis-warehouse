@@ -23,11 +23,11 @@ jobs:
     strategy:
       matrix:
         include:
-          - name: SeaweedFS
-            image: ghcr.io/greenriver/openpath-seaweedfs:1.0
+          - name: RustFS
+            image: ghcr.io/greenriver/openpath-rustfs:1.0
             context: docker/s3
             dockerfile: docker/s3/Dockerfile
-            cache_key: seaweedfs
+            cache_key: rustfs
           - name: sftp
             image: ghcr.io/greenriver/openpath-sftp:1.0
             context: docker/sftp

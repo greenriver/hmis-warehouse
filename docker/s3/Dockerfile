@@ -1,8 +1,12 @@
-FROM chrislusf/seaweedfs:4.47@sha256:ce9e796f1fe6f06968f4c04bdaf8f678dad9c8acdfef3d244133d71bfa6bf882
+FROM rustfs/rustfs:1.0.0@sha256:8cc9801755448b71a786705ce76692c77e14936cccd87cf2fc31842e58f4d1ff
 
 LABEL org.opencontainers.image.source="https://github.com/greenriver/hmis-warehouse"
 
-COPY s3.json /etc/seaweedfs/s3.json
+ENV RUSTFS_ACCESS_KEY=local_access_key \
+    RUSTFS_SECRET_KEY=local_secret_key \
+    RUSTFS_ADDRESS=:9000 \
+    RUSTFS_VOLUMES=/data
+
 COPY entrypoint.sh /entrypoint-s3.sh
 COPY healthcheck.sh /healthcheck-s3.sh
 

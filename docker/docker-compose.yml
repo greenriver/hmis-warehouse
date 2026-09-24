@@ -311,8 +311,8 @@ services:
     container_name: s3
     build: ./s3
     volumes:
-      - ./dev/seaweedfs/data:/data
-      # Kept at the old minio path so existing dev certs keep working
+      # Kept at the old minio paths so existing dev data and certs keep working
+      - ./dev/minio/data:/data
       - ./dev/minio/certs:/certs
     hostname: s3.dev.test
     ports:
