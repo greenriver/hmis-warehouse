@@ -13,7 +13,6 @@ module Hmis
 
     has_many :unit_groups, class_name: 'Hmis::UnitGroup'
     has_many :units, class_name: 'Hmis::Unit'
-    has_many :unit_type_mappings, dependent: :destroy, class_name: 'Hmis::ProjectUnitTypeMapping'
     alias_attribute :date_updated, :updated_at
     alias_attribute :date_created, :created_at
 
