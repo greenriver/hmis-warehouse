@@ -54,9 +54,11 @@ class Hmis::ProjectCeConfig < Hmis::ProjectConfig
   # them into project 0 and quietly make the allowlist non-blank.
   def receives_direct_referrals_from=(value)
     ids = Array.wrap(value).compact_blank.filter_map { |id| Integer(id, exception: false) }
-    return unset_config_option(RECEIVES_DIRECT_REFERRALS_FROM) if ids.empty?
-
-    set_config_option(RECEIVES_DIRECT_REFERRALS_FROM, ids)
+    if ids.empty?
+      unset_config_option(RECEIVES_DIRECT_REFERRALS_FROM)
+    else
+      set_config_option(RECEIVES_DIRECT_REFERRALS_FROM, ids)
+    end
   end
 
   private
