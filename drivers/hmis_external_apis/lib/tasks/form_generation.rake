@@ -9,13 +9,14 @@
 # rails driver:hmis_external_apis:generate_custom_assessment_forms
 desc 'Generate Custom Assessment form-definition JSON from a legacy field-export CSV'
 task generate_custom_assessment_forms: [:environment] do
-  usage = 'Usage: CSV_PATH=/path/to/source.csv OUTPUT_DIR=/path/to/output rails driver:hmis_external_apis:generate_custom_assessment_forms [ZIP=true]'
+  usage = 'Usage: CSV_PATH=/path/to/source.csv OVERLAY_PATH=/path/to/overlay.yml OUTPUT_DIR=/path/to/output rails driver:hmis_external_apis:generate_custom_assessment_forms [ZIP=true]'
   csv_path = ENV.fetch('CSV_PATH') { abort(usage) }
-  root = Pathname.new(ENV.fetch('OUTPUT_DIR') { abort(usage) })
+  output_dir = ENV.fetch('OUTPUT_DIR') { abort(usage) }
+  overlay_path = ENV.fetch('OVERLAY_PATH') { abort(usage) }
   result = HmisExternalApis::FormGeneration::CustomAssessmentFormGenerator.call(
     csv_path: csv_path,
-    output_dir: root.join('generated-custom-assessment-forms'),
-    overlay_path: root.join('overlay.yml'),
+    output_dir: output_dir,
+    overlay_path: overlay_path,
     zip: ENV['ZIP'] == 'true',
   )
   abort('Form generation failed validation') unless result[:success]
@@ -23,6 +24,9 @@ task generate_custom_assessment_forms: [:environment] do
   next unless result[:zip_path]
 
   puts
+  puts "Source file used: #{csv_path}"
+  puts "Overlay file used: #{overlay_path}"
+  puts "Form generation completed. Output written to #{output_dir}"
   puts "Upload this file to Secure Files (Account > Secure Files) in the target environment: #{result[:zip_path]}"
 end
 
