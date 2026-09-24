@@ -15,6 +15,7 @@ module WarehouseReports
       @new = anomaly_scope.newly_minted.order(created_at: :asc).preload(:client, :user)
       @unresolved = anomaly_scope.unresolved.order(created_at: :asc).preload(:client, :user)
       @resolved = anomaly_scope.resolved.order(created_at: :asc).preload(:client, :user)
+      current_user.policy_context.preload_client_dependencies((@new + @unresolved + @resolved).map(&:client_id))
     end
 
     def anomaly_source
