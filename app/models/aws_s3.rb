@@ -50,13 +50,13 @@ class AwsS3
     }
 
     # In development setup local access
-    if ENV['USE_MINIO_ENDPOINT'] == 'true' && ENV['MINIO_ENDPOINT'].present?
+    if ENV['USE_LOCAL_S3_ENDPOINT'] == 'true' && ENV['LOCAL_S3_ENDPOINT'].present?
       access_key_id = ENV['AWS_ACCESS_KEY_ID'] unless access_key_id.present?
       secret_access_key = ENV['AWS_SECRET_ACCESS_KEY'] unless secret_access_key.present?
 
       client_options = {
         force_path_style: true, # don't force dns hoop jumping
-        endpoint: ENV.fetch('MINIO_ENDPOINT'),
+        endpoint: ENV.fetch('LOCAL_S3_ENDPOINT'),
         region: region,
         credentials: Aws::Credentials.new(access_key_id, secret_access_key),
       }
