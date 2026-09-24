@@ -1,0 +1,39 @@
+# Example overlay.yml showing the kinds of corrections you can hand-edit.
+# Real form identifiers and link_ids replaced with obviously fake
+# placeholders — this file is just a reference.
+forms:
+  my_form_identifier:
+    # Renames an "invented" (ungrouped) section. Keyed by section_<N>, the
+    # index of that ungrouped run within the form (0-based, counting only
+    # ungrouped rows). Only applies to sections with no form_group_name in
+    # the source CSV — named groups keep their CSV name as-is.
+    invented_group_names:
+      section_0: Client Background
+      section_1: Additional Notes
+
+    # Hides a question from the form. The mapping (and therefore the CDED)
+    # stays, so migrated data is retained even though the field isn't shown.
+    hidden:
+      question_2_link_id: true
+
+    # Overrides or adds conditional visibility for a question, keyed by the
+    # link_id of the question that should be conditionally shown. Set the
+    # value to {} or [] to suppress an inferred enable_when instead of
+    # overriding it.
+    enable_when:
+      question_3_other_explanation_link_id:
+        enable_behavior: ALL
+        enable_when:
+          - question: question_3_link_id
+            operator: EQUAL
+            answer_code: Other
+      question_4_link_id: {} # suppresses an inferred enable_when for this item
+
+    # Reorders questions within one group. Keyed by the group's text/name
+    # (its form_group_name in the CSV, or the invented section title set
+    # above). Each entry moves that link_id to right after another link_id
+    # within the same group.
+    item_order:
+      Client Background:
+        question_5_link_id:
+          after: question_2_link_id
