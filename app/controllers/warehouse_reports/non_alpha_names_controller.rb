@@ -23,6 +23,7 @@ module WarehouseReports
           headers['Content-Disposition'] = 'attachment; filename=Non-Alpha-Names.xlsx'
         end
       end
+      current_user.policy_context.preload_client_dependencies(@clients.map(&:id))
     end
 
     # dbms-agnostic code in place of LastName like '[^a-Z]%' or FirstName like '[^a-Z]%'

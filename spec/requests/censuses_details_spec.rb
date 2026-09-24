@@ -79,4 +79,17 @@ RSpec.describe 'CensusesController#details', type: :request do
     expect(rows.flatten).to include('Name Redacted')
     expect(rows.flatten).to include('Openfirst', 'Openlast')
   end
+
+  it 'renders more clients than the preload miss threshold without raising' do
+    4.times do |i|
+      client = create_client_with_warehouse_link(first_name: "Extra#{i}", last_name: 'Client')
+      enrollment = create_enrollment(client: client, project: project, entry_date: Date.current)
+      create_bed_night_service(enrollment: enrollment, date: Date.current)
+    end
+    GrdaWarehouse::Tasks::ServiceHistory::Enrollment.find_each(&:rebuild_service_history!)
+
+    get details_censuses_path(details_params)
+
+    expect(response).to have_http_status(:success)
+  end
 end

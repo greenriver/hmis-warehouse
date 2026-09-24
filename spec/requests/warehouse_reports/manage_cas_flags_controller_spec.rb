@@ -42,4 +42,12 @@ RSpec.describe 'WarehouseReports::ManageCasFlagsController#index', type: :reques
     expect(response.body).to include('Openfirst')
     expect(response.body).to include('Openlast')
   end
+
+  it 'renders the flagged client list without raising when it has more clients than the preload miss threshold' do
+    create_list(:grda_warehouse_hud_client, 4, sync_with_cas: true)
+
+    get warehouse_reports_manage_cas_flags_path
+
+    expect(response).to have_http_status(:success)
+  end
 end

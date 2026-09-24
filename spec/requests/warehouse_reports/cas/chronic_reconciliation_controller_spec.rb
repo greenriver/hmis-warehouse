@@ -85,4 +85,16 @@ RSpec.describe 'WarehouseReports::Cas::ChronicReconciliationController#index', t
 
     expect(response.body.scan(Date.current.strftime(Date::DATE_FORMATS[:default])).size).to be >= 2
   end
+
+  it 'renders the flagged-but-not-chronic list without raising when it has more clients than the preload miss threshold' do
+    4.times do |i|
+      source = create_client_with_warehouse_link(first_name: "Extra#{i}", last_name: 'Client')
+      create_enrollment(client: source, project: project, entry_date: Date.current)
+      source.destination_client.update!(sync_with_cas: true)
+    end
+
+    get warehouse_reports_cas_chronic_reconciliation_index_path
+
+    expect(response).to have_http_status(:success)
+  end
 end

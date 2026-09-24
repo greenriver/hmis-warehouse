@@ -65,6 +65,7 @@ class DataQualityReportsController < ApplicationController
 
       @details_title = @data[:title] || 'Supporting Data'
       @method = params[:method]
+      current_user.policy_context.preload_client_dependencies(@data[:counts].map { |row| row[0] })
       respond_to do |format|
         format.xlsx do
           @data[:counts] = @data[:counts].map { |row| redact_pii_in_row(row, headers: @data[:headers], user: current_user, mode: :download) }
