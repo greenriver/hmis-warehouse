@@ -419,7 +419,7 @@ RSpec.describe HopwaCaper::Generators::Fy2026::Sheets::AccessToCareSheet, type: 
 
       total_households = row_for(rows, 'Total Households Served in ALL Activities from this report for each Activity.')
       # Column index: 1 is TBRA, 2 is P-FBH, 3 is ST-TFBH
-      expect(total_households[1]).to eq(1) # TBRA (overlaps with P-FBH)
+      expect(total_households[1]).to eq(0) # TBRA excludes facility-based projects
       expect(total_households[2]).to eq(1) # P-FBH
       expect(total_households[3]).to eq(1) # ST-TFBH
 
@@ -427,18 +427,35 @@ RSpec.describe HopwaCaper::Generators::Fy2026::Sheets::AccessToCareSheet, type: 
         rows,
         'Total Housing Subsidy Assistance (from the TBRA, P-FBH, ST-TFBH, STRMU, PHP, Other Competitive Activity counts above)',
       )
-      # 1 TBRA + 1 P-FBH + 1 ST-TFBH = 3
-      expect(housing_subsidy_total[1]).to eq(3)
+      # 1 P-FBH + 1 ST-TFBH = 2
+      expect(housing_subsidy_total[1]).to eq(2)
 
       duplicated_households = row_for(
         rows,
         'How many households received more than one type of HOPWA Housing Subsidy Assistance for TBRA, P-FBH, ST-TFBH, STRMU, PHP, Other Competitive Activity?',
       )
-      # The same household is in TBRA, P-FBH, and ST-TFBH
+      # The same household is in P-FBH and ST-TFBH
       expect(duplicated_households[1]).to eq(1)
 
       unduplicated_households = row_for(rows, 'Total Unduplicated Housing Subsidy Assistance Household Count')
       expect(unduplicated_households[1]).to eq(1)
+    end
+
+    it 'counts scattered-site projects under TBRA alongside FBH projects' do
+      scattered_site_project = create_hopwa_project(funder: tbra_funder).tap { |p| p.update!(HousingType: 3) }
+      create_hiv_positive_enrollment(
+        client: create(:hud_client, data_source: data_source),
+        project: scattered_site_project,
+        entry_date: report_start_date + 1.day,
+        household_id: Hmis::Hud::Base.generate_uuid,
+      )
+      report = create_report([p_fbh_project, st_tfbh_project, scattered_site_project])
+      run_report(report)
+
+      rows = question_as_rows(question_number: 'Q7', report: report)
+      total_households = row_for(rows, 'Total Households Served in ALL Activities from this report for each Activity.')
+      expect(total_households[1]).to eq(1) # TBRA
+      expect(total_households[2]).to eq(1) # P-FBH
     end
   end
 end
