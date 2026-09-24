@@ -67,7 +67,8 @@ Rails.application.routes.draw do
 
   match 'filter', to: 'filters#show', via: [:post]
 
-  resources :reports do
+  # Pre-framework HUD report results
+  resources :reports, only: [] do
     resources :report_results, path: 'results', only: [:index, :show, :create, :update, :destroy] do
       get :download_support, on: :member
       resources :support, only: [:index], controller: 'report_results/support'
@@ -96,7 +97,7 @@ Rails.application.routes.draw do
       resource :project_coc, only: [:show]
     end
   end
-  resources :hud_reports, only: [:index]
+  get 'hud_reports', to: redirect('/warehouse_reports') # bookmarks from the removed HUD Reports index
   namespace :hud_reports do
     resources :historic_pits, only: [:index]
     resources :historic_lsas, only: [:index], controller: 'lsas'
@@ -481,7 +482,9 @@ Rails.application.routes.draw do
   resources :match_logs, only: [:index]
   resources :service_history_logs, only: [:index]
   resources :data_sources do
-    resources :uploads, except: [:update, :destroy, :edit]
+    resources :uploads, except: [:update, :destroy, :edit] do
+      post :confirm, on: :member
+    end
     resources :non_hmis_uploads, except: [:update, :destroy, :edit]
     resources :custom_imports, controller: 'data_sources/custom_imports' do
       get :download, on: :member

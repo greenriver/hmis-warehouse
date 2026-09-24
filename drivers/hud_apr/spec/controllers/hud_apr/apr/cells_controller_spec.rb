@@ -13,7 +13,7 @@ RSpec.describe HudApr::Apr::CellsController, type: :request do
   let(:report) { create(:hud_reports_report_instance, user: user, options: { 'report_version' => 'fy2026' }, report_name: 'Annual Performance Report - FY 2026') }
 
   before do
-    user.legacy_roles << create(:role, can_view_own_hud_reports: true)
+    grant_hud_report(user, 'hud_reports/aprs')
     sign_in(user)
   end
 
@@ -29,14 +29,23 @@ RSpec.describe HudApr::Apr::CellsController, type: :request do
     context 'with unauthorized user' do
       let(:other_user) { create(:user) }
 
-      it 'denies access to another user\'s report' do
+      it 'denies a user who has not been granted the APR definition' do
         sign_in(other_user)
         get hud_reports_apr_question_cell_path(apr_id: report.id, question_id: 'Question 5', id: 'B2', table: '5a')
         expect(response).to redirect_to(root_url)
       end
 
+      # Reaching the page and reaching another user's run are separate gates; the
+      # definition grant only satisfies the first.
+      it 'denies a user granted the APR definition without can_view_all_hud_reports' do
+        grant_hud_report(other_user, 'hud_reports/aprs')
+        sign_in(other_user)
+        get hud_reports_apr_question_cell_path(apr_id: report.id, question_id: 'Question 5', id: 'B2', table: '5a')
+        expect(response).to have_http_status(:not_found)
+      end
+
       it 'allows access if user has can_view_all_hud_reports permission' do
-        other_user.legacy_roles << create(:role, can_view_all_hud_reports: true)
+        grant_hud_report(other_user, 'hud_reports/aprs', role: create(:role, can_view_assigned_reports: true, can_view_all_hud_reports: true))
         sign_in(other_user)
         get hud_reports_apr_question_cell_path(apr_id: report.id, question_id: 'Question 5', id: 'B2', table: '5a')
         expect(response).to be_successful

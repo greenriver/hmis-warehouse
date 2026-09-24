@@ -41,17 +41,11 @@ class AccessLogs::Report < OpenStruct
   def sheet_rows
     fetch_limit = EXPORT_ROW_LIMIT + 1
     sheets = {
-      'Warehouse' => ActivityLog.export_rows(user_id: filter.user_id, range: export_range, limit: fetch_limit),
-      'CAS' => CasAccess::ActivityLog.export_rows(user_id: @cas_user_id, range: export_range, limit: fetch_limit),
+      'Warehouse' => ActivityLog.export_rows(user_id: filter.user_id, range: filter.time_range, limit: fetch_limit),
+      'CAS' => CasAccess::ActivityLog.export_rows(user_id: @cas_user_id, range: filter.time_range, limit: fetch_limit),
     }
-    sheets['HMIS'] = Hmis::ActivityLog.export_rows(user_id: @hmis_user_id, range: export_range, limit: fetch_limit) if HmisEnforcement.hmis_enabled?
+    sheets['HMIS'] = Hmis::ActivityLog.export_rows(user_id: @hmis_user_id, range: filter.time_range, limit: fetch_limit) if HmisEnforcement.hmis_enabled?
     sheets
-  end
-
-  # filter.range is Date..Date; the log tables store UTC instants, so a bare Date upper bound
-  # drops evening (Eastern) activity on the last day.
-  private def export_range
-    filter.start.beginning_of_day..filter.end.end_of_day
   end
 
   def as_excel

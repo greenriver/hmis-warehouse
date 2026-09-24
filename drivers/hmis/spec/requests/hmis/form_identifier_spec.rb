@@ -86,11 +86,19 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect(identifiers.first['allVersions']['nodesCount']).to eq(4)
     end
 
-    it 'should filter correctly' do
+    it 'filters by search term' do
       response, result = post_graphql(filters: { search_term: 'identifier_1' }) { query }
       expect(response.status).to eq(200), result.inspect
       identifiers = result.dig('data', 'formIdentifiers', 'nodes')
       expect(identifiers.count).to eq(1)
+    end
+
+    it 'filters by form type' do
+      create(:hmis_form_definition, identifier: 'a_service_form', role: 'SERVICE', data_source: ds1)
+
+      response, result = post_graphql(filters: { form_type: ['SERVICE'] }) { query }
+      expect(response.status).to eq(200), result.inspect
+      expect(result.dig('data', 'formIdentifiers', 'nodes').pluck('identifier')).to contain_exactly('a_service_form')
     end
 
     it 'includes forms whose content community admins cannot edit' do

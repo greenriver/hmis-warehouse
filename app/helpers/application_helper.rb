@@ -20,6 +20,11 @@ module ApplicationHelper
     end
   end
 
+  def hud_report_viewable?(key)
+    definitions = GrdaWarehouse::WarehouseReports::ReportDefinition
+    definitions.url_viewable_by?(definitions.hud_url(key), current_user)
+  end
+
   # END Permissions
 
   # Backwards compatible translations for views so we don't have to

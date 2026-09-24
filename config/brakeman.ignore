@@ -1,29 +1,6 @@
 {
   "ignored_warnings": [
     {
-      "warning_type": "Command Injection",
-      "warning_code": 14,
-      "fingerprint": "023c724508b4c341ebb8aae1c407e91e113c05bccffe0dca58702f276fbe1dd0",
-      "check_name": "Execute",
-      "message": "Possible command injection",
-      "file": "config/deploy/docker/lib/command_args.rb",
-      "line": 40,
-      "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
-      "code": "`diff #{path} #{tmppath}`",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "CommandArgs",
-        "method": "initialize"
-      },
-      "user_input": "path",
-      "confidence": "Medium",
-      "cwe_id": [
-        77
-      ],
-      "note": ""
-    },
-    {
       "warning_type": "HTTP Verb Confusion",
       "warning_code": 118,
       "fingerprint": "05a3960f7236c0da86510f0fb7338b584ba226de1b321eaefe4ef493408c38dc",
@@ -318,29 +295,6 @@
       "confidence": "Weak",
       "cwe_id": [
         89
-      ],
-      "note": ""
-    },
-    {
-      "warning_type": "Command Injection",
-      "warning_code": 14,
-      "fingerprint": "272bd9135442f395012a87ac47a02fe2dcaa8bf8f7db7b78b079036a4279e439",
-      "check_name": "Execute",
-      "message": "Possible command injection",
-      "file": "config/deploy/docker/lib/ecs_tools.rb",
-      "line": 33,
-      "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
-      "code": "system(\"ssh #{\"ecs0.openpath.host\"} 'docker commit #{`ssh #{\"ecs0.openpath.host\"} \"docker ps -a -n 10\"`.split(/\\n/).grep(/#{IMAGE}/).first.split(/\\s/).first} shell'\")",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "EcsTools",
-        "method": "shell"
-      },
-      "user_input": "`ssh #{\"ecs0.openpath.host\"} \"docker ps -a -n 10\"`.split(/\\n/).grep(/#{IMAGE}/).first.split(/\\s/).first",
-      "confidence": "Medium",
-      "cwe_id": [
-        77
       ],
       "note": ""
     },
@@ -779,29 +733,6 @@
       "note": ""
     },
     {
-      "warning_type": "Command Injection",
-      "warning_code": 14,
-      "fingerprint": "5499b637b8348aa1e36c39c76eedd901c66563518a8514361499efb75c9b0b43",
-      "check_name": "Execute",
-      "message": "Possible command injection",
-      "file": "app/jobs/worker_status.rb",
-      "line": 111,
-      "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
-      "code": "`curl #{ENV[\"ECS_CONTAINER_METADATA_URI_V4\"]}/task`",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "WorkerStatus",
-        "method": "task_metadata"
-      },
-      "user_input": "ENV[\"ECS_CONTAINER_METADATA_URI_V4\"]",
-      "confidence": "Medium",
-      "cwe_id": [
-        77
-      ],
-      "note": "Considering AWS provided URI okay to inject"
-    },
-    {
       "warning_type": "SQL Injection",
       "warning_code": 0,
       "fingerprint": "560654d4119023b98ace9aa621f8578d4bbf9842e89acc251bda37a3ca2476ab",
@@ -844,29 +775,6 @@
       "confidence": "Medium",
       "cwe_id": [
         470
-      ],
-      "note": ""
-    },
-    {
-      "warning_type": "Command Injection",
-      "warning_code": 14,
-      "fingerprint": "615f7900b129c22f4d71c443ead85e0694fc30435dfdc15e52ec03a94d2a3057",
-      "check_name": "Execute",
-      "message": "Possible command injection",
-      "file": "config/deploy/docker/lib/ecs_tools.rb",
-      "line": 46,
-      "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
-      "code": "exec(\"awslogs get #{group} ALL --watch\")",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "EcsTools",
-        "method": "logs"
-      },
-      "user_input": "group",
-      "confidence": "Medium",
-      "cwe_id": [
-        77
       ],
       "note": ""
     },
@@ -1655,29 +1563,6 @@
         89
       ],
       "note": "Injection from internal sources"
-    },
-    {
-      "warning_type": "Command Injection",
-      "warning_code": 14,
-      "fingerprint": "b86000207c4fe44ca5dd3bcc3d9a87789cfaab516d90a3c76a5b4a25d8e91e55",
-      "check_name": "Execute",
-      "message": "Possible command injection",
-      "file": "app/jobs/worker_status.rb",
-      "line": 69,
-      "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
-      "code": "`curl -k https://#{ENV[\"FQDN\"]}/system_status/details`",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "WorkerStatus",
-        "method": "latest_deployment_is_at_least_partially_finished"
-      },
-      "user_input": "ENV[\"FQDN\"]",
-      "confidence": "Medium",
-      "cwe_id": [
-        77
-      ],
-      "note": "Injected value is from the environment"
     },
     {
       "warning_type": "Cross-Site Scripting",

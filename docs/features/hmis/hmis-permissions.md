@@ -73,12 +73,6 @@ Polymorphic join table associating a `(collection_id, entity_type, entity_id)` t
 
 `Hmis::GroupViewableEntityProject` is a read-only database view that expands each row into the projects it covers, so project-level access can be resolved in SQL without walking associations.
 
-### UserAccessControl
-
-`drivers/hmis/app/models/hmis/user_access_control.rb`
-
-Records a direct user-to-AccessControl assignment and appears in admin audit history. Note that permission evaluation does not read it — users reach AccessControls through UserGroups.
-
 ## Permission Requirements
 
 Some permissions are meaningless alone: `can_view_enrollment_details` grants nothing unless the user can also see the project and the client. Dependencies are declared with `requirements` in `permissions_with_descriptions`, and **only direct requirements belong there** — resolution is recursive, so `can_edit_enrollments` declares one requirement and inherits the rest of the chain through it:

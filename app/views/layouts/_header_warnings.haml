@@ -18,8 +18,6 @@
         .navbar-text
           .label.label-info
             = ENV['CLIENT']
-            - if ENV['EKS']
-              (EKS)
       .git-branch.ml-4
         = branch_info 
       - if release_info

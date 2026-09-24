@@ -7,8 +7,6 @@
 # frozen_string_literal: true
 
 require 'zip'
-require 'pty'
-require 'expect'
 module Importers::HmisAutoMigrate
   class UploadedZip < Base
     def initialize(
@@ -20,7 +18,8 @@ module Importers::HmisAutoMigrate
       file_password: nil,
       project_cleanup: true,
       stop_version: nil,
-      dry_run: false
+      dry_run: false,
+      source_id_override: false
     )
       setup_notifier('HMIS Upload AutoMigrate Importer')
       @data_source_id = data_source_id
@@ -33,6 +32,7 @@ module Importers::HmisAutoMigrate
       @project_cleanup = project_cleanup
       @stop_version = stop_version
       @dry_run = dry_run
+      @source_id_override = source_id_override
       @post_processor = if @allowed_projects
         ->(_) { replace_original_upload_file }
       else
@@ -44,6 +44,8 @@ module Importers::HmisAutoMigrate
       force_standard_zip
     end
 
+    # rubyzip, which the rest of the importer uses to read the upload, can open
+    # neither a .7z archive nor an encrypted zip.
     private def force_standard_zip
       zip_file = reconstitute_upload
       return unless @file_password.present? || File.extname(zip_file) == '.7z'
@@ -58,12 +60,12 @@ module Importers::HmisAutoMigrate
 
         # options = {}
         # options = { password: @file_password } if @file_password.present?
-        cmd = if @file_password.present?
-          "7z e -p#{@file_password} -o#{tmp_folder} \"#{zip_file}\""
-        else
-          "7z e -o#{tmp_folder} \"#{zip_file}\""
-        end
-        system(cmd)
+        # SevenZip returns false instead of raising, and a failed extraction leaves
+        # tmp_folder empty for the zip built below, which is then saved over the
+        # stored upload.
+        extracted = SevenZip.extract_all(source: zip_file, destination: tmp_folder, password: @file_password)
+        raise "7z was unable to extract #{File.basename(zip_file)}" unless extracted
+
         # File.open(zip_file, 'rb') do |seven_zip|
         #   SevenZipRuby::Reader.open(seven_zip, options) do |szr|
         #     szr.extract_all(tmp_folder)
@@ -86,36 +88,11 @@ module Importers::HmisAutoMigrate
       else # for now, assume standard zip is the only other option
         dest_file = zip_file.gsub('.zip', '_decrypted.zip')
 
-        Tempfile.create('expect', Rails.root.join(::File.dirname(zip_file)).to_s) do |expect_script|
-          expect_content = <<~EXPECT
-            #!/usr/bin/expect -f
-
-            set force_conservative 0  ;# set to 1 to force conservative mode even if
-                                      ;# script wasn't run conservatively originally
-            if {$force_conservative} {
-              set send_slow {1 .1}
-              proc send {ignore arg} {
-                sleep .1
-                exp_send -s -- $arg
-              }
-            }
-
-            set timeout -1
-            spawn zipcloak -d --output-file "#{Rails.root.join(dest_file)}" "#{Rails.root.join(zip_file)}"
-            match_max 100000
-            expect -exact "Enter password: "
-            send -- "#{@file_password}\r"
-            expect eof
-
-            send_user "\n $expect_out(buffer) \n"
-          EXPECT
-          expect_script.write(expect_content)
-          expect_script.close
-          FileUtils.chmod(0o770, expect_script.path)
-          system(expect_script.path)
-        end
-        # for some reason we need a bit of sand after talking to zipcloak
-        sleep(5)
+        ZipCloak.decrypt(
+          source: Rails.root.join(zip_file),
+          destination: Rails.root.join(dest_file),
+          password: @file_password,
+        )
       end
 
       add_content_to_upload_and_save(file_path: dest_file)

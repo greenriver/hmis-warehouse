@@ -14,8 +14,9 @@ module HudReports
   # - builder: Returns a CellDetailExportBuilder instance
   class CellDetailExportBase < ::GrdaWarehouse::DocumentExport
     def authorized?
-      # User must have HUD report permissions AND either own the report or have view-all permission
-      user.can_view_hud_reports? && (report.user_id == user_id || user.can_view_all_hud_reports?)
+      return false unless report.user_id == user_id || user.can_view_all_hud_reports?
+
+      GrdaWarehouse::WarehouseReports::ReportDefinition.url_viewable_by?(builder.generator_for_report.report_definition_url, user)
     end
 
     def perform
