@@ -163,4 +163,25 @@ RSpec.describe GrdaWarehouse::AuthPolicies::ContextLoaders::RestrictedClientLoad
       expect(described_class.new.cache_token).not_to eq(before_run)
     end
   end
+
+  describe 'miss tracking' do
+    let(:tracker) { GrdaWarehouse::AuthPolicies::PreloadMissTracker.new }
+    let(:tracked_loader) { described_class.new(miss_tracker: tracker) }
+    let(:client_ids) { create_list(:warehouse_client, 4).map(&:destination_id) }
+
+    it 'raises once more clients than the threshold are checked without a preload' do
+      expect { client_ids.each { |id| tracked_loader.restricted?(id) } }.
+        to raise_error(GrdaWarehouse::AuthPolicies::PreloadMissTracker::PreloadMissError, /client_restrictions/)
+    end
+
+    it 'answers preloaded clients with no queries and no misses' do
+      tracked_loader.preload(client_ids)
+
+      answers = nil
+      queries = count_database_queries { answers = client_ids.map { |id| tracked_loader.restricted?(id) } }
+
+      expect(answers).to eq([false] * 4)
+      expect(queries).to eq(0)
+    end
+  end
 end

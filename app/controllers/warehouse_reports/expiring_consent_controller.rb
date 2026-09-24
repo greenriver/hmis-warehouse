@@ -35,6 +35,7 @@ module WarehouseReports
         @expiring_clients = []
         @unconfirmed = unconfirmed.preload(:user_clients)
       end
+      current_user.policy_context.preload_client_dependencies((@expired_clients + @expiring_clients + @unconfirmed).map(&:id))
       # These exist in a different database, so we'll need to fetch them separately
       @users = (@expired_clients + @expiring_clients).map do |client|
         users = User.where(id: client.user_clients.non_confidential.active.pluck(:user_id))

@@ -131,6 +131,7 @@ class ClientAccessControl::ClientsController < ApplicationController
       preload(preloads)
 
     @pagy, @clients = pagy(@clients)
+    current_user.policy_context.preload_client_dependencies(@clients.map(&:id))
   end
 
   def show

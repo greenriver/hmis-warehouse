@@ -24,6 +24,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :controller do
       clients = double('clients')
       allow(clients).to receive(:destination).and_return(clients)
       allow(clients).to receive(:preload).and_return(clients)
+      allow(clients).to receive(:map).and_return([])
 
       allow(controller).to receive(:pagy).and_return([double('pagy'), clients])
       allow(controller).to receive(:health_emergency?).and_return(true)
@@ -46,6 +47,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :controller do
       clients = double('clients')
       allow(clients).to receive(:destination).and_return(clients)
       allow(clients).to receive(:preload).and_return(clients)
+      allow(clients).to receive(:map).and_return([])
 
       allow(controller).to receive(:pagy).and_return([double('pagy'), clients])
       allow(controller).to receive(:health_emergency?).and_return(false)

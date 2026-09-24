@@ -11,6 +11,7 @@
       :ruby
         list = list.preload(:client)
         current_user.policy_context.preload_project_dependencies(list.map { |e| e.project.id })
+        current_user.policy_context.preload_client_dependencies(list.map(&:client_id))
       - list.each do |enrollment|
         :ruby
           client = enrollment.client

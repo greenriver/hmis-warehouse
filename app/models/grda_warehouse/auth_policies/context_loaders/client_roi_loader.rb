@@ -8,17 +8,21 @@
 
 module GrdaWarehouse::AuthPolicies::ContextLoaders
   class ClientRoiLoader
-    def initialize(user)
+    def initialize(user, miss_tracker: nil)
       # { client_id => bool }
       @cache = {}
       @today = Date.current
       @user_coc_codes = user.coc_codes
+      @miss_tracker = miss_tracker
     end
 
     def get(client_id)
       return unless client_id
 
-      preload([client_id]) unless @cache.key?(client_id)
+      unless @cache.key?(client_id)
+        @miss_tracker&.record(:client_roi, client_id)
+        preload([client_id])
+      end
       @cache[client_id]
     end
 

@@ -67,4 +67,21 @@ RSpec.describe GrdaWarehouse::AuthPolicies::ContextLoaders::ClientRoiLoader, typ
       loader.get(client2.destination_id)
     end
   end
+
+  describe 'miss tracking' do
+    let(:tracker) { GrdaWarehouse::AuthPolicies::PreloadMissTracker.new }
+    let(:tracked_loader) { described_class.new(user, miss_tracker: tracker) }
+    let(:destination_ids) { create_list(:warehouse_client, 4).map(&:destination_id) }
+
+    it 'raises once more clients than the threshold are checked without a preload' do
+      expect { destination_ids.each { |id| tracked_loader.get(id) } }.
+        to raise_error(GrdaWarehouse::AuthPolicies::PreloadMissTracker::PreloadMissError, /client_roi/)
+    end
+
+    it 'does not count preloaded clients as misses' do
+      tracked_loader.preload(destination_ids)
+
+      expect(destination_ids.map { |id| tracked_loader.get(id) }).to eq([false] * 4)
+    end
+  end
 end
