@@ -84,12 +84,20 @@ class SevenZip
     output = nil
     Open3.popen2(BIN, *args, err: File::NULL) do |stdin, stdout, wait_thread|
       stdin.close
+      # Kills 7z at the deadline, which closes stdout and so also ends a read that is
+      # still waiting on it.
+      watchdog = timeout && Thread.new do
+        unless wait_thread.join(timeout)
+          begin
+            Process.kill('KILL', wait_thread.pid)
+          rescue Errno::ESRCH
+            nil
+          end
+        end
+      end
       output = max_bytes ? stdout.read(max_bytes) : stdout.read
       stdout.close
-      if timeout && !wait_thread.join(timeout)
-        Process.kill('KILL', wait_thread.pid)
-        return ['', false]
-      end
+      watchdog&.join
 
       return [output.to_s, false] unless wait_thread.value.success?
     end

@@ -89,6 +89,18 @@ RSpec.describe SevenZip do
       end.not_to raise_error
     end
 
+    it 'gives up at the timeout when 7z stalls before writing anything' do
+      stalled = File.join(tmp_dir, 'stalled-7z')
+      # exec, so the kill reaches the process holding stdout open
+      File.write(stalled, "#!/bin/sh\nexec sleep 30\n")
+      File.chmod(0o755, stalled)
+      stub_const("#{described_class}::BIN", stalled)
+
+      started = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+      expect(described_class.read_entry(source: 'unused.7z', entry: 'Export.csv', max_bytes: 1_000, timeout: 1)).to be_nil
+      expect(Process.clock_gettime(Process::CLOCK_MONOTONIC) - started).to be < 10
+    end
+
     # 7z treats a member that isn't there as nothing to extract rather than an error,
     # which is why UploadValidityCheck looks the name up in .entries first.
     it 'returns an empty string for a member that is not in the archive' do
