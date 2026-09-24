@@ -27,7 +27,7 @@
       "pick_list_options": [
         { "code": "accepted", "label": "Accepted" },
         { "code": "declined", "label": "Declined" },
-        { "code": "cancelled", "label": "Cancelled" }
+        { "code": "canceled", "label": "Canceled" }
       ]
     },
     {
@@ -67,26 +67,26 @@
       ]
     },
     {
-      "text": "Cancelled Reason",
+      "text": "Canceled Reason",
       "type": "CHOICE",
-      "link_id": "cancelled_reason",
+      "link_id": "canceled_reason",
       "required": true,
       "component": "DROPDOWN",
       "mapping": {
-        "custom_field_key": "mc_direct_referral_decision_cancelled_reason"
+        "custom_field_key": "mc_direct_referral_decision_canceled_reason"
       },
       "enable_when": [
         {
           "operator": "EQUAL",
           "question": "referral_outcome",
-          "answer_code": "cancelled"
+          "answer_code": "canceled"
         }
       ],
       "enable_behavior": "ALL",
       "pick_list_options": [
-        { "code": "already_obtained_permanent_housing", "label": "Cancelled: Already obtained permanent housing" },
-        { "code": "multiple_outreach_attempts_unsuccessful", "label": "Cancelled: Multiple outreach attempts unsuccessful" },
-        { "code": "cancelled_other", "label": "Cancelled: Other" },
+        { "code": "already_obtained_permanent_housing", "label": "Canceled: Already obtained permanent housing" },
+        { "code": "multiple_outreach_attempts_unsuccessful", "label": "Canceled: Multiple outreach attempts unsuccessful" },
+        { "code": "canceled_other", "label": "Canceled: Other" },
         { "code": "ineligible_background_check", "label": "Client Ineligible: Background Check" },
         { "code": "ineligible_clinical_determination", "label": "Client Ineligible: Clinical Determination" },
         { "code": "ineligible_credit_check", "label": "Client Ineligible: Credit Check" },
@@ -121,13 +121,13 @@
           ]
         },
         {
-          "value_question": "cancelled_reason",
+          "value_question": "canceled_reason",
           "autofill_behavior": "ALL",
           "autofill_when": [
             {
               "operator": "EQUAL",
               "question": "referral_outcome",
-              "answer_code": "cancelled"
+              "answer_code": "canceled"
             }
           ]
         }
@@ -135,9 +135,9 @@
       "pick_list_options": [
         { "code": "program_declines_to_accept", "label": "Declined: Program declines to accept" },
         { "code": "referral_not_acted_on", "label": "Declined: Referral not acted on" },
-        { "code": "already_obtained_permanent_housing", "label": "Cancelled: Already obtained permanent housing" },
-        { "code": "multiple_outreach_attempts_unsuccessful", "label": "Cancelled: Multiple outreach attempts unsuccessful" },
-        { "code": "cancelled_other", "label": "Cancelled: Other" },
+        { "code": "already_obtained_permanent_housing", "label": "Canceled: Already obtained permanent housing" },
+        { "code": "multiple_outreach_attempts_unsuccessful", "label": "Canceled: Multiple outreach attempts unsuccessful" },
+        { "code": "canceled_other", "label": "Canceled: Other" },
         { "code": "ineligible_background_check", "label": "Client Ineligible: Background Check" },
         { "code": "ineligible_clinical_determination", "label": "Client Ineligible: Clinical Determination" },
         { "code": "ineligible_credit_check", "label": "Client Ineligible: Credit Check" },

@@ -10,14 +10,14 @@
 #
 # Business rules worth knowing before changing this:
 # - The HUD CE Event referral result on a decline is driven by the *reason* the provider picks, not
-#   by the Declined vs Cancelled decision. Any "Client Refused" reason reports client rejected (2);
+#   by the Declined vs Canceled decision. Any "Client Refused" reason reports client rejected (2);
 #   every other reason reports provider rejected (3). See DECLINE_REASONS.
 # - The Acknowledgement and Decision forms each offer two reason pick lists, Declined Reason and
-#   Cancelled Reason, so the provider only ever sees the reasons valid for the decision they made.
+#   Canceled Reason, so the provider only ever sees the reasons valid for the decision they made.
 #   set_referral_decline_reason reads a single hardcoded link ID, so each form also carries a hidden
 #   `decline_reason` item that autofills from whichever list was answered. That hidden item needs a
 #   `mapping` so the frontend includes it in valuesByLinkId (createValuesForSubmit drops unmapped
-#   items). Gateways route on `cancelled_reason` directly rather than on the autofilled value.
+#   items). Gateways route on `canceled_reason` directly rather than on the autofilled value.
 # - A referral reaches Accepted once Post Referral Review is submitted, regardless of the 'successful'
 #   answer. Provider Decision = Accepted creates an incomplete enrollment in the receiving project and
 #   closes the CE Event as successful (1); acceptance already happened at that point, so Post Referral
@@ -45,12 +45,12 @@ module CeWorkflows::Az
     CLIENT_REJECTED = '2'
     PROVIDER_REJECTED = '3'
 
-    # Link ID of the Cancelled reason pick list, which the gateways read to decide whether HUD sees a
+    # Link ID of the Canceled reason pick list, which the gateways read to decide whether HUD sees a
     # client rejection. Its sibling `declined_reason` needs no constant: the Declined branch routes on
     # the decision alone, since every Declined reason reports provider rejected.
-    CANCELLED_REASON_LINK_ID = 'cancelled_reason'
+    CANCELED_REASON_LINK_ID = 'canceled_reason'
 
-    # A reason the provider can give for declining or cancelling a referral. `decision` is the Initial
+    # A reason the provider can give for declining or canceling a referral. `decision` is the Initial
     # Decision / Referral Outcome value that offers it, which also determines which form field it
     # lives on. `referral_result` is the HUD CE Event ReferralResult reported when it is chosen.
     # Keys and labels must stay in sync with the pick lists on the Provider Acknowledgement and
@@ -60,20 +60,20 @@ module CeWorkflows::Az
     DECLINE_REASONS = [
       DeclineReason.new(key: 'program_declines_to_accept', name: 'Declined: Program declines to accept', decision: 'declined', referral_result: PROVIDER_REJECTED),
       DeclineReason.new(key: 'referral_not_acted_on', name: 'Declined: Referral not acted on', decision: 'declined', referral_result: PROVIDER_REJECTED),
-      DeclineReason.new(key: 'already_obtained_permanent_housing', name: 'Cancelled: Already obtained permanent housing', decision: 'cancelled', referral_result: PROVIDER_REJECTED),
-      DeclineReason.new(key: 'multiple_outreach_attempts_unsuccessful', name: 'Cancelled: Multiple outreach attempts unsuccessful', decision: 'cancelled', referral_result: PROVIDER_REJECTED),
-      DeclineReason.new(key: 'cancelled_other', name: 'Cancelled: Other', decision: 'cancelled', referral_result: PROVIDER_REJECTED),
-      DeclineReason.new(key: 'ineligible_background_check', name: 'Client Ineligible: Background Check', decision: 'cancelled', referral_result: PROVIDER_REJECTED),
-      DeclineReason.new(key: 'ineligible_clinical_determination', name: 'Client Ineligible: Clinical Determination', decision: 'cancelled', referral_result: PROVIDER_REJECTED),
-      DeclineReason.new(key: 'ineligible_credit_check', name: 'Client Ineligible: Credit Check', decision: 'cancelled', referral_result: PROVIDER_REJECTED),
-      DeclineReason.new(key: 'ineligible_immigration_status', name: 'Client Ineligible: Immigration Status', decision: 'cancelled', referral_result: PROVIDER_REJECTED),
-      DeclineReason.new(key: 'ineligible_income_criteria', name: 'Client Ineligible: Income criteria', decision: 'cancelled', referral_result: PROVIDER_REJECTED),
-      DeclineReason.new(key: 'ineligible_third_party_verification_chronicity', name: 'Client Ineligible: Third Party Verification (Chronicity)', decision: 'cancelled', referral_result: PROVIDER_REJECTED),
-      DeclineReason.new(key: 'ineligible_unable_to_obtain_required_documentation', name: 'Client Ineligible: Unable to Obtain Required Documentation', decision: 'cancelled', referral_result: PROVIDER_REJECTED),
-      DeclineReason.new(key: 'ineligible_other', name: 'Client Ineligible: Other', decision: 'cancelled', referral_result: PROVIDER_REJECTED),
-      DeclineReason.new(key: 'client_refused_didnt_want_unit_program', name: "Client Refused: Didn't want unit / program", decision: 'cancelled', referral_result: CLIENT_REJECTED),
-      DeclineReason.new(key: 'client_refused_safety_concerns', name: 'Client Refused: Safety Concerns', decision: 'cancelled', referral_result: CLIENT_REJECTED),
-      DeclineReason.new(key: 'client_refused_other', name: 'Client Refused: Other', decision: 'cancelled', referral_result: CLIENT_REJECTED),
+      DeclineReason.new(key: 'already_obtained_permanent_housing', name: 'Canceled: Already obtained permanent housing', decision: 'canceled', referral_result: PROVIDER_REJECTED),
+      DeclineReason.new(key: 'multiple_outreach_attempts_unsuccessful', name: 'Canceled: Multiple outreach attempts unsuccessful', decision: 'canceled', referral_result: PROVIDER_REJECTED),
+      DeclineReason.new(key: 'canceled_other', name: 'Canceled: Other', decision: 'canceled', referral_result: PROVIDER_REJECTED),
+      DeclineReason.new(key: 'ineligible_background_check', name: 'Client Ineligible: Background Check', decision: 'canceled', referral_result: PROVIDER_REJECTED),
+      DeclineReason.new(key: 'ineligible_clinical_determination', name: 'Client Ineligible: Clinical Determination', decision: 'canceled', referral_result: PROVIDER_REJECTED),
+      DeclineReason.new(key: 'ineligible_credit_check', name: 'Client Ineligible: Credit Check', decision: 'canceled', referral_result: PROVIDER_REJECTED),
+      DeclineReason.new(key: 'ineligible_immigration_status', name: 'Client Ineligible: Immigration Status', decision: 'canceled', referral_result: PROVIDER_REJECTED),
+      DeclineReason.new(key: 'ineligible_income_criteria', name: 'Client Ineligible: Income criteria', decision: 'canceled', referral_result: PROVIDER_REJECTED),
+      DeclineReason.new(key: 'ineligible_third_party_verification_chronicity', name: 'Client Ineligible: Third Party Verification (Chronicity)', decision: 'canceled', referral_result: PROVIDER_REJECTED),
+      DeclineReason.new(key: 'ineligible_unable_to_obtain_required_documentation', name: 'Client Ineligible: Unable to Obtain Required Documentation', decision: 'canceled', referral_result: PROVIDER_REJECTED),
+      DeclineReason.new(key: 'ineligible_other', name: 'Client Ineligible: Other', decision: 'canceled', referral_result: PROVIDER_REJECTED),
+      DeclineReason.new(key: 'client_refused_didnt_want_unit_program', name: "Client Refused: Didn't want unit / program", decision: 'canceled', referral_result: CLIENT_REJECTED),
+      DeclineReason.new(key: 'client_refused_safety_concerns', name: 'Client Refused: Safety Concerns', decision: 'canceled', referral_result: CLIENT_REJECTED),
+      DeclineReason.new(key: 'client_refused_other', name: 'Client Refused: Other', decision: 'canceled', referral_result: CLIENT_REJECTED),
     ].freeze
 
     def self.reasons_for(decision)
@@ -191,14 +191,14 @@ module CeWorkflows::Az
       # The remaining branches are terminal, and pick a CE Event result from the reason given.
       acknowledgement_gateway.connect_to!(decision_task, condition: "initial_decision = 'under_review'")
       acknowledgement_gateway.connect_to!(declined_ce_event_task, condition: "initial_decision = 'declined'")
-      acknowledgement_gateway.connect_to!(canceled_by_client_ce_event_task, condition: cancelled_by_client_condition)
-      acknowledgement_gateway.connect_to!(canceled_by_provider_ce_event_task) # Cancelled for any other reason
+      acknowledgement_gateway.connect_to!(canceled_by_client_ce_event_task, condition: canceled_by_client_condition)
+      acknowledgement_gateway.connect_to!(canceled_by_provider_ce_event_task) # Canceled for any other reason
 
       decision_task.connect_to!(decision_gateway)
       decision_gateway.connect_to!(enroll_task, condition: "referral_outcome = 'accepted'")
       decision_gateway.connect_to!(declined_ce_event_task, condition: "referral_outcome = 'declined'")
-      decision_gateway.connect_to!(canceled_by_client_ce_event_task, condition: cancelled_by_client_condition)
-      decision_gateway.connect_to!(canceled_by_provider_ce_event_task) # Cancelled for any other reason
+      decision_gateway.connect_to!(canceled_by_client_ce_event_task, condition: canceled_by_client_condition)
+      decision_gateway.connect_to!(canceled_by_provider_ce_event_task) # Canceled for any other reason
 
       declined_ce_event_task.connect_to!(declined_event)
       canceled_by_client_ce_event_task.connect_to!(canceled_event)
@@ -206,7 +206,7 @@ module CeWorkflows::Az
 
       # Acceptance already happened at Provider Decision, so Post Referral Review always ends the
       # referral as Accepted once submitted. 'successful' is tracked on the step for post-acceptance
-      # problems but no longer gates the terminal status.
+      # problems but does not gate the terminal status.
       enroll_task.connect_to!(post_review_task)
       post_review_task.connect_to!(accept_event)
 
@@ -260,14 +260,14 @@ module CeWorkflows::Az
       )
     end
 
-    # Dentaku expression for the Cancelled branch that HUD considers a client rejection. Reads the
-    # Cancelled field rather than the autofilled decline_reason, so a client-refused result is
+    # Dentaku expression for the Canceled branch that HUD considers a client rejection. Reads the
+    # Canceled field rather than the autofilled decline_reason, so a client-refused result is
     # unreachable from a Declined decision by construction. Both step forms use this same link ID;
     # the engine evaluates conditions against the most recently submitted value.
-    def cancelled_by_client_condition
-      self.class.reasons_for('cancelled').
+    def canceled_by_client_condition
+      self.class.reasons_for('canceled').
         select { |reason| reason.referral_result == CLIENT_REJECTED }.
-        map { |reason| "#{CANCELLED_REASON_LINK_ID} = '#{reason.key}'" }.
+        map { |reason| "#{CANCELED_REASON_LINK_ID} = '#{reason.key}'" }.
         join(' OR ')
     end
   end

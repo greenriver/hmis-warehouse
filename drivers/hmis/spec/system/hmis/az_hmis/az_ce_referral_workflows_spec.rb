@@ -14,7 +14,7 @@ require_relative '../../../support/ce_system_test_helper'
 # The unit spec (workflow_builder_spec) already walks every gateway branch by posting
 # submitted_values directly. This file exists because that bypasses the frontend: the
 # hidden `decline_reason` field is autofilled in the browser from whichever of
-# `declined_reason` / `cancelled_reason` the user answered, and only then submitted.
+# `declined_reason` / `canceled_reason` the user answered, and only then submitted.
 # If the autofill breaks, ReferralMessageHandler never records a ReferralDeclineReason
 # even though the unit spec would still pass.
 #
@@ -22,10 +22,10 @@ require_relative '../../../support/ce_system_test_helper'
 #   1. full accept (no decline reason; Post Referral Review Successful = Yes)
 #   2. decline at Provider Acknowledgement  -> declined_reason autofill on the ack form
 #   3. cancel at Provider Acknowledgement with a Client Refused reason
-#        -> cancelled_reason autofill on the ack form, HUD result 2
+#        -> canceled_reason autofill on the ack form, HUD result 2
 #   4. decline at Provider Decision         -> declined_reason autofill on the decision form
 #   5. cancel at Provider Decision with a non-client-refused reason
-#        -> cancelled_reason autofill on the decision form, HUD result 3
+#        -> canceled_reason autofill on the decision form, HUD result 3
 RSpec.feature 'AZ CE Referral Workflows', type: :system do
   include_context 'ce system test helper'
 
@@ -124,9 +124,9 @@ RSpec.feature 'AZ CE Referral Workflows', type: :system do
     complete_ce_step('Provider Acknowledgement') do
       # Referral Review Start defaults to today.
       mui_radio_choose 'Under Review', from: 'Initial Decision'
-      # Neither reason list should appear: both are enable_when'd on declined/cancelled.
+      # Neither reason list should appear: both are enable_when'd on declined/canceled.
       expect(page).not_to have_content('Declined Reason')
-      expect(page).not_to have_content('Cancelled Reason')
+      expect(page).not_to have_content('Canceled Reason')
     end
     expect(page).to have_content('Provider Decision Available Today')
   end
@@ -154,7 +154,7 @@ RSpec.feature 'AZ CE Referral Workflows', type: :system do
       expect(page).to have_content('The client will be added to the project as Incomplete.')
       # Accepting does not ask for a reason.
       expect(page).not_to have_content('Declined Reason')
-      expect(page).not_to have_content('Cancelled Reason')
+      expect(page).not_to have_content('Canceled Reason')
     end
 
     expect(page).to have_content('Post Referral Review Available Today')
@@ -190,7 +190,7 @@ RSpec.feature 'AZ CE Referral Workflows', type: :system do
     complete_ce_step('Provider Acknowledgement') do
       mui_radio_choose 'Declined', from: 'Initial Decision'
       expect(page).to have_content('Declined Reason')
-      expect(page).not_to have_content('Cancelled Reason')
+      expect(page).not_to have_content('Canceled Reason')
       expect(page).not_to have_content('Client Refused')
       mui_radio_choose 'Declined: Program declines to accept', from: 'Declined Reason'
     end
@@ -204,16 +204,16 @@ RSpec.feature 'AZ CE Referral Workflows', type: :system do
   end
 
   it 'cancels at Provider Acknowledgement with a Client Refused reason' do
-    # Covers the acknowledgement form's autofill_when on initial_decision = cancelled,
-    # plus the client-rejected (2) gateway branch that reads cancelled_reason directly.
+    # Covers the acknowledgement form's autofill_when on initial_decision = canceled,
+    # plus the client-rejected (2) gateway branch that reads canceled_reason directly.
     send_direct_referral!
 
     complete_ce_step('Provider Acknowledgement') do
-      mui_radio_choose 'Cancelled', from: 'Initial Decision'
-      expect(page).to have_content('Cancelled Reason')
+      mui_radio_choose 'Canceled', from: 'Initial Decision'
+      expect(page).to have_content('Canceled Reason')
       expect(page).not_to have_content('Declined Reason')
       expect(page).not_to have_content('Program declines to accept')
-      mui_select "Client Refused: Didn't want unit / program", from: 'Cancelled Reason'
+      mui_select "Client Refused: Didn't want unit / program", from: 'Canceled Reason'
     end
 
     expect_closed_with_reason(
@@ -234,7 +234,7 @@ RSpec.feature 'AZ CE Referral Workflows', type: :system do
     complete_ce_step('Provider Decision') do
       mui_radio_choose 'Declined', from: 'Referral Outcome'
       expect(page).to have_content('Declined Reason')
-      expect(page).not_to have_content('Cancelled Reason')
+      expect(page).not_to have_content('Canceled Reason')
       expect(page).not_to have_content('Client Refused')
       mui_radio_choose 'Declined: Referral not acted on', from: 'Declined Reason'
     end
@@ -248,17 +248,17 @@ RSpec.feature 'AZ CE Referral Workflows', type: :system do
   end
 
   it 'cancels at Provider Decision with a non-client-refused reason' do
-    # Covers the decision form's cancelled_reason autofill and the default cancel
+    # Covers the decision form's canceled_reason autofill and the default cancel
     # gateway (provider rejected, 3). Together with the Client Refused acknowledgement
     # path, this is the pair of cancel branches without walking every reason code.
     send_direct_referral!
     acknowledge_under_review!
 
     complete_ce_step('Provider Decision') do
-      mui_radio_choose 'Cancelled', from: 'Referral Outcome'
-      expect(page).to have_content('Cancelled Reason')
+      mui_radio_choose 'Canceled', from: 'Referral Outcome'
+      expect(page).to have_content('Canceled Reason')
       expect(page).not_to have_content('Declined Reason')
-      mui_select 'Client Ineligible: Income criteria', from: 'Cancelled Reason'
+      mui_select 'Client Ineligible: Income criteria', from: 'Canceled Reason'
     end
 
     expect_closed_with_reason(

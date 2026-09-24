@@ -61,7 +61,7 @@ RSpec.describe CeWorkflows::Az::WorkflowBuilder do
   def reason_values(decision, reason)
     return {} if reason.nil?
 
-    link_id = decision == 'declined' ? 'declined_reason' : 'cancelled_reason'
+    link_id = decision == 'declined' ? 'declined_reason' : 'canceled_reason'
     { link_id => reason, 'decline_reason' => reason }
   end
 
@@ -145,7 +145,7 @@ RSpec.describe CeWorkflows::Az::WorkflowBuilder do
   # builds the gateway conditions) and the step form JSON. These guard against the two drifting.
   describe 'reason pick lists' do
     let(:declined_keys) { described_class.reasons_for('declined').map(&:key) }
-    let(:cancelled_keys) { described_class.reasons_for('cancelled').map(&:key) }
+    let(:canceled_keys) { described_class.reasons_for('canceled').map(&:key) }
 
     def option_codes(identifier, link_id)
       definition = Hmis::Form::Definition.in_data_source(data_source.id).find_by!(identifier: identifier, role: 'CE_REFERRAL_STEP')
@@ -158,8 +158,8 @@ RSpec.describe CeWorkflows::Az::WorkflowBuilder do
           expect(option_codes(identifier, 'declined_reason')).to eq(declined_keys)
         end
 
-        it 'offers only the Cancelled reasons under Cancelled' do
-          expect(option_codes(identifier, 'cancelled_reason')).to eq(cancelled_keys)
+        it 'offers only the Canceled reasons under Canceled' do
+          expect(option_codes(identifier, 'canceled_reason')).to eq(canceled_keys)
         end
 
         # The hidden field feeds set_referral_decline_reason, so it has to accept either list.
@@ -244,7 +244,7 @@ RSpec.describe CeWorkflows::Az::WorkflowBuilder do
       complete_user_step!(
         engine,
         'Provider Acknowledgement',
-        submitted_values: acknowledgement('cancelled', 'client_refused_safety_concerns'),
+        submitted_values: acknowledgement('canceled', 'client_refused_safety_concerns'),
         user: user,
       )
 
@@ -257,7 +257,7 @@ RSpec.describe CeWorkflows::Az::WorkflowBuilder do
       complete_user_step!(
         engine,
         'Provider Acknowledgement',
-        submitted_values: acknowledgement('cancelled', 'ineligible_income_criteria'),
+        submitted_values: acknowledgement('canceled', 'ineligible_income_criteria'),
         user: user,
       )
 
@@ -291,14 +291,14 @@ RSpec.describe CeWorkflows::Az::WorkflowBuilder do
     end
 
     it 'cancels with client rejected (2) when the reason is a Client Refused reason' do
-      complete_user_step!(engine, 'Provider Decision', submitted_values: decision('cancelled', 'client_refused_other'), user: user)
+      complete_user_step!(engine, 'Provider Decision', submitted_values: decision('canceled', 'client_refused_other'), user: user)
 
       expect_rejected(referral, result: 2)
       expect(referral.custom_status).to eq(canceled_status)
     end
 
     it 'cancels with provider rejected (3) for any other cancellation reason' do
-      complete_user_step!(engine, 'Provider Decision', submitted_values: decision('cancelled', 'cancelled_other'), user: user)
+      complete_user_step!(engine, 'Provider Decision', submitted_values: decision('canceled', 'canceled_other'), user: user)
 
       expect_rejected(referral, result: 3)
       expect(referral.custom_status).to eq(canceled_status)

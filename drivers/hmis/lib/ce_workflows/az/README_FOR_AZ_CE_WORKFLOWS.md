@@ -50,13 +50,13 @@ flowchart TD
   ack --> gwAck{"initial_decision"}
   gwAck -->|"under_review"| decision["Provider Decision<br/>status: In Progress"]
   gwAck -->|"declined"| setRes3["CE Event result 3"]
-  gwAck -->|"cancelled + Client Refused reason"| setRes2["CE Event result 2"]
-  gwAck -->|"cancelled, any other reason"| setRes3c["CE Event result 3"]
+  gwAck -->|"canceled + Client Refused reason"| setRes2["CE Event result 2"]
+  gwAck -->|"canceled, any other reason"| setRes3c["CE Event result 3"]
   decision --> gwDec{"referral_outcome"}
   gwDec -->|"accepted"| enroll["Create Enrollment<br/>CE Event result 1"]
   gwDec -->|"declined"| setRes3
-  gwDec -->|"cancelled + Client Refused reason"| setRes2
-  gwDec -->|"cancelled, any other reason"| setRes3c
+  gwDec -->|"canceled + Client Refused reason"| setRes2
+  gwDec -->|"canceled, any other reason"| setRes3c
   enroll --> post["Post Referral Review<br/>status: In Progress"]
   post --> accept(["Accept<br/>status: Accepted"])
   setRes3 --> declined(["Decline<br/>status: Declined"])
@@ -65,14 +65,14 @@ flowchart TD
 ```
 
 The CE Event result on a decline comes from the reason the provider picks, not from the Declined vs
-Cancelled decision: any `Client Refused:*` reason reports client rejected (2), everything else
+Canceled decision: any `Client Refused:*` reason reports client rejected (2), everything else
 reports provider rejected (3).
 
 The Acknowledgement and Decision forms each offer two reason pick lists — `declined_reason` (2
-options) and `cancelled_reason` (14 options) — so the provider only ever sees the reasons valid for
+options) and `canceled_reason` (14 options) — so the provider only ever sees the reasons valid for
 the decision they made. `set_referral_decline_reason` reads a single hardcoded link ID, so each form
 also carries a hidden `decline_reason` item that autofills from whichever list was answered. The
-gateways route on `cancelled_reason` directly, which makes a client-rejected result unreachable from
+gateways route on `canceled_reason` directly, which makes a client-rejected result unreachable from
 a Declined decision. The reason list lives in `CeWorkflows::Az::WorkflowBuilder::DECLINE_REASONS`;
 a spec asserts the form pick lists match it.
 
