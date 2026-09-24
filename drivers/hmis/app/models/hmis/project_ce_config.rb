@@ -14,6 +14,7 @@ class Hmis::ProjectCeConfig < Hmis::ProjectConfig
   RECEIVES_DIRECT_REFERRALS_FROM = 'receives_direct_referrals_from'
 
   validate :either_direct_or_waitlist_referrals
+  before_save :clear_referral_sources_unless_receiving
   after_save :rebuild_candidate_pool, if: :supports_waitlist_referrals?
 
   # "waitlist referrals" are referrals initiated from within a unit's waitlist.
@@ -46,8 +47,16 @@ class Hmis::ProjectCeConfig < Hmis::ProjectConfig
     options[RECEIVES_DIRECT_REFERRALS_FROM]
   end
 
+  # Stored as Rails project primary keys, because receives_direct_ce_referrals_from? compares with
+  # include?(source_project.id). A GraphQL [ID!] argument arrives as strings, and storing those
+  # would make enforcement silently reject every sender, so cast here rather than at a single call
+  # site. Ids that are not numeric are dropped rather than coerced, since String#to_i would turn
+  # them into project 0 and quietly make the allowlist non-blank.
   def receives_direct_referrals_from=(value)
-    set_config_option(RECEIVES_DIRECT_REFERRALS_FROM, value)
+    ids = Array.wrap(value).compact_blank.filter_map { |id| Integer(id, exception: false) }
+    return unset_config_option(RECEIVES_DIRECT_REFERRALS_FROM) if ids.empty?
+
+    set_config_option(RECEIVES_DIRECT_REFERRALS_FROM, ids)
   end
 
   private
@@ -57,6 +66,17 @@ class Hmis::ProjectCeConfig < Hmis::ProjectConfig
     return if supports_waitlist_referrals? || receives_direct_referrals?
 
     errors.add(:base, 'Project must either receive direct referrals or support waitlist referrals, or both')
+  end
+
+  # An allowlist of senders is meaningless when the project does not receive direct referrals at
+  # all, and leaving a stale one behind means it comes back to life the moment the flag is
+  # re-enabled. Done in the model so it holds for the admin form, the console, and the CSV importer
+  # alike; the importer can write an allowlist on a waitlist-only config, which this now clears.
+  def clear_referral_sources_unless_receiving
+    return if receives_direct_referrals?
+    return if receives_direct_referrals_from.nil?
+
+    self.receives_direct_referrals_from = nil
   end
 
   # If Config was saved and it is marked as supporting waitlist referrals, rebuild all candidate pools

@@ -90,6 +90,31 @@
       ]
     },
     {
+      "link_id": "receivesDirectReferralsFrom",
+      "required": false,
+      "type": "CHOICE",
+      "repeats": true,
+      "text": "Receives direct referrals from",
+      "helper_text": "(Optional) Limit which projects can send direct referrals to this project. Leave blank to accept direct referrals from all sending projects.",
+      "pick_list_reference": "PROJECTS_SENDING_DIRECT_CE_REFERRALS",
+      "mapping": {
+        "field_name": "receivesDirectReferralsFrom"
+      },
+      "enable_behavior": "ALL",
+      "enable_when": [
+        {
+          "question": "configType",
+          "operator": "EQUAL",
+          "answer_code": "COORDINATED_ENTRY"
+        },
+        {
+          "question": "receivesDirectReferrals",
+          "operator": "EQUAL",
+          "answer_boolean": true
+        }
+      ]
+    },
+    {
       "link_id": "supportsWaitlistReferrals",
       "required": true,
       "type": "BOOLEAN",

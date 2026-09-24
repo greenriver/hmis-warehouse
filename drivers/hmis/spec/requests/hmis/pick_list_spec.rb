@@ -554,6 +554,90 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     end
   end
 
+  describe 'PROJECTS_SENDING_DIRECT_CE_REFERRALS' do
+    let!(:project_scoped_sender) { create(:hmis_hud_project, data_source: ds1, organization: o1, user: u1) }
+    let!(:project_scoped_config) { create(:hmis_project_sends_direct_ce_referrals_config, project: project_scoped_sender) }
+
+    let!(:sending_org) { create(:hmis_hud_organization, data_source: ds1, user: u1) }
+    let!(:org_scoped_sender) { create(:hmis_hud_project, data_source: ds1, organization: sending_org, user: u1) }
+    let!(:org_scoped_config) { create(:hmis_project_sends_direct_ce_referrals_config, organization: sending_org) }
+
+    let!(:project_type_sender) { create(:hmis_hud_project, data_source: ds1, organization: o1, user: u1, project_type: 4) }
+    let!(:project_type_config) { create(:hmis_project_sends_direct_ce_referrals_config, data_source: ds1, project_type: 4) }
+
+    # Receives direct referrals but cannot send them, so it must not appear.
+    let!(:receiving_only_project) { create(:hmis_hud_project, data_source: ds1, organization: o1, user: u1) }
+    let!(:receiving_only_config) { create(:hmis_project_ce_config, project: receiving_only_project, receives_direct_referrals: true) }
+
+    before(:each) do
+      allow_any_instance_of(Hmis::Ce::Configuration).to receive(:enabled?).and_return(true)
+    end
+
+    def sender_codes
+      response, result = post_graphql(pick_list_type: 'PROJECTS_SENDING_DIRECT_CE_REFERRALS') { query }
+      expect(response.status).to eq 200
+      result.dig('data', 'pickList').map { |option| option['code'] }
+    end
+
+    it 'returns projects matched by project-, organization-, and project-type-scoped sending configs' do
+      expect(sender_codes).to contain_exactly(
+        project_scoped_sender.id.to_s,
+        org_scoped_sender.id.to_s,
+        project_type_sender.id.to_s,
+      )
+    end
+
+    it 'excludes a project with no config at all' do
+      expect(sender_codes).not_to include(p1.id.to_s)
+    end
+
+    it 'excludes a project whose only config is a CE receiving config' do
+      expect(sender_codes).not_to include(receiving_only_project.id.to_s)
+    end
+
+    it 'identifies each option by the project primary key' do
+      response, result = post_graphql(pick_list_type: 'PROJECTS_SENDING_DIRECT_CE_REFERRALS') { query }
+      expect(response.status).to eq 200
+
+      option = result.dig('data', 'pickList').find { |o| o['code'] == project_scoped_sender.id.to_s }
+      expect(option['label']).to eq(project_scoped_sender.project_name)
+    end
+
+    context 'when a sending project is closed' do
+      let!(:closed_sender) { create(:hmis_hud_project, data_source: ds1, organization: o1, user: u1, operating_end_date: 1.week.ago) }
+      let!(:closed_sender_config) { create(:hmis_project_sends_direct_ce_referrals_config, project: closed_sender) }
+
+      # This list configures an allowlist rather than driving an operational send flow, so a
+      # closed sender stays selectable and an existing restriction naming it stays readable.
+      it 'still offers it' do
+        expect(sender_codes).to include(closed_sender.id.to_s)
+      end
+    end
+
+    context 'when another data source has a project-type-scoped sending config' do
+      # Deliberately project-type-scoped. Project and organization primary keys are globally
+      # unique, so a config scoped to either cannot leak across data sources no matter how the
+      # scope is written, and a spec built on one would pass against the unscoped version too.
+      let!(:ds2) { create(:hmis_data_source) }
+      let!(:ds2_config) { create(:hmis_project_sends_direct_ce_referrals_config, data_source: ds2, project_type: 9) }
+      let!(:same_project_type_in_ds1) { create(:hmis_hud_project, data_source: ds1, organization: o1, user: u1, project_type: 9) }
+
+      it 'does not treat a project in this data source as a sender' do
+        expect(sender_codes).not_to include(same_project_type_in_ds1.id.to_s)
+      end
+    end
+
+    context 'when Coordinated Entry is disabled' do
+      before(:each) do
+        allow_any_instance_of(Hmis::Ce::Configuration).to receive(:enabled?).and_return(false)
+      end
+
+      it 'returns no options' do
+        expect(sender_codes).to be_empty
+      end
+    end
+  end
+
   describe 'UNIT_GROUPS_FOR_PROJECT_DIRECT_CE_REFERRAL' do
     let!(:ce_project) { create(:hmis_hud_project, data_source: ds1, organization: o1, user: u1) }
     let!(:ce_config) { create(:hmis_project_ce_config, project: ce_project, receives_direct_referrals: true) }
