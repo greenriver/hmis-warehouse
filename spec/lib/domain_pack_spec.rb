@@ -61,6 +61,12 @@ RSpec.describe DomainPack, type: :lib do
       expect(DomainPack.check(@root)).to eq(["#{doc_path}: missing frontmatter"])
     end
 
+    it 'reports frontmatter that is not valid YAML instead of raising' do
+      write(doc_path, "---\ntitle: Bad\nsummary: Colon: space breaks it\n---\n\nbody\n")
+
+      expect(DomainPack.check(@root)).to eq(["#{doc_path}: frontmatter is not valid YAML (quote values containing `: `)"])
+    end
+
     it 'rejects an area outside the allowed list' do
       write('app/a.rb', 'x')
       write_doc(doc_path, sources: ['app/a.rb'], area: 'misc')
