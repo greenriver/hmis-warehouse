@@ -61,7 +61,7 @@ A Collection groups the entities that a permission applies to. It holds referenc
 
 Project-scoped rules are inclusive: a project is included if it appears directly in the Collection, or if its parent organization or data source is included.
 
-**System Collections** (e.g., "All Data Sources", "All HMIS Reports") are auto-maintained by `Collection.maintain_system_groups`. Their entity membership is locked.
+**System Collections** (e.g., "All Data Sources", "All HMIS Reports", "All HUD Reports") are auto-maintained by `Collection.maintain_system_groups`. Their entity membership is locked.
 
 **Source-backed Collections** are created by the `EntityAccess` concern as side-effects when entities like Cohorts or ProjectGroups manage per-entity access. These are hidden from admin views.
 
@@ -96,6 +96,14 @@ Key method: `User#collections_for_permission(permission)` returns the Collection
 Policies are the intended uniform API for authorization checks. New code should use `policy_for` rather than calling `can_*` directly on the User. Over time, direct boolean flag access from application code will be replaced by policy methods.
 
 See also: [Warehouse Auth Policies](warehouse-auth-policies.md)
+
+### HUD report access
+
+HUD reports are ordinary report definitions in the `HUD Reports` report group (`GrdaWarehouse::WarehouseReports::ReportDefinition.hud`). Access to run one is granted like any other report: put the definition in a Collection bound to a Role with `can_view_assigned_reports`. The system Collection "All HUD Reports" (and the legacy AccessGroup of the same name) always holds every HUD definition, and "All HMIS Reports" excludes them, so granting the latter does not carry HUD access. The system Role "HUD Report Viewer" holds only `can_view_assigned_reports` and was bound to that Collection for every user group that had a HUD flag when access moved to collections.
+
+`can_view_all_hud_reports` only widens which report *runs* a user can see (everyone's instead of their own). `can_view_own_hud_reports` is deprecated; own-run visibility is the default. Project scoping inside a HUD report comes from `can_view_assigned_reports` collections, the same as other reports.
+
+Legacy users: a HUD flag on a legacy role counts as report access for HUD definitions only, so users who never had `can_view_assigned_reports` do not gain other reports that happen to be in their access groups.
 
 ### Controller authorization
 
@@ -156,4 +164,4 @@ Super-admin permissions (`can_edit_roles`, `can_edit_users`, `can_manage_config`
 
 ## HMIS Permissions
 
-The HMIS front-end (`drivers/hmis/`) uses a structurally similar but separate permissions system with its own `Hmis::AccessControl`, `Hmis::UserAccessControl`, and `Hmis::Role` models. See [HMIS Permissions](../hmis/hmis-permissions.md).
+The HMIS front-end (`drivers/hmis/`) uses a structurally similar but separate permissions system with its own `Hmis::AccessControl` and `Hmis::Role` models. See [HMIS Permissions](../hmis/hmis-permissions.md).

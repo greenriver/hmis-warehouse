@@ -52,7 +52,7 @@ set rpt.NotOneHoH = (select count (distinct n.HouseholdID)
 			inner join (select hh.HouseholdID
 				from hmis_Enrollment hh
 				inner join lsa_Report coc on coc.ReportCoC = hh.EnrollmentCoC
-				where hh.DateDeleted is null
+				where hh.DateDeleted is null and hh.RelationshipToHoH = 1
 				) coc on coc.HouseholdID = n.HouseholdID
 			left outer join hmis_Exit x on x.EnrollmentID = n.EnrollmentID 
 				and x.DateDeleted is null

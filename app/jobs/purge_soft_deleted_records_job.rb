@@ -24,27 +24,16 @@ class PurgeSoftDeletedRecordsJob < BaseJob
   def perform(retain_at: nil, max_deleted: nil, models: warehouse_models, dry_run: true)
     raise 'all models must be paranoid' unless models.all?(&:paranoid?)
 
-    config = SoftDeleteRetentionConfiguration.new
-    return 0 unless config.enabled?
-
-    retain_at ||= config.retain_at
-    max_deleted ||= config.max_deleted_per_run
-
-    Rails.logger.info "Purging soft-deleted records (#{dry_run ? 'dry run' : 'live run'})"
+    @total_deleted = 0
+    @dry_run = dry_run
 
     with_lock do
-      @total_deleted = 0
-      @max_deleted = max_deleted
-      @retain_at = retain_at
-      @dry_run = dry_run
-      catch(:halt) do
-        data_sources.order(:id).each do |data_source|
-          models.each do |model|
-            model.unscoped do
-              process_model(model, data_source: data_source)
-            end
-          end
-        end
+      instrument_as_maintenance_task(name: 'purge') do |run|
+        config = SoftDeleteRetentionConfiguration.new
+        # A disabled config is still a completed run: purging is off on purpose here, so there is
+        # nothing to do and nothing worth alerting about.
+        purge(retain_at: retain_at, max_deleted: max_deleted, models: models, config: config) if config.enabled?
+        run.complete!
       end
     end
 
@@ -53,6 +42,23 @@ class PurgeSoftDeletedRecordsJob < BaseJob
   end
 
   protected
+
+  def purge(retain_at:, max_deleted:, models:, config:)
+    @max_deleted = max_deleted || config.max_deleted_per_run
+    @retain_at = retain_at || config.retain_at
+
+    Rails.logger.info "Purging soft-deleted records (#{@dry_run ? 'dry run' : 'live run'})"
+
+    catch(:halt) do
+      data_sources.order(:id).each do |data_source|
+        models.each do |model|
+          model.unscoped do
+            process_model(model, data_source: data_source)
+          end
+        end
+      end
+    end
+  end
 
   def data_sources
     GrdaWarehouse::DataSource

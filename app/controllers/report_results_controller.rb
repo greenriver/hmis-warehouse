@@ -7,7 +7,7 @@
 # frozen_string_literal: true
 
 class ReportResultsController < ApplicationController
-  before_action :require_can_view_hud_reports!
+  include WarehouseReportAuthorization
   before_action :set_report
   before_action :set_report_result, only: [:show, :edit, :update, :destroy, :download_support]
   helper_method :sort_column, :sort_direction
@@ -152,7 +152,7 @@ class ReportResultsController < ApplicationController
   end
 
   private def report_result_scope
-    report_result_source.viewable_by(current_user).
+    report_result_source.runs_visible_to(current_user).
       joins(:user).
       where(report_id: params[:report_id].to_i)
   end
@@ -170,8 +170,16 @@ class ReportResultsController < ApplicationController
     ReportResult
   end
 
+  private def report
+    @report ||= Report.find(params[:report_id].to_i)
+  end
+
   private def set_report
-    @report = Report.find(params[:report_id].to_i)
+    report
+  end
+
+  def related_report
+    GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: report.report_definition_url)
   end
 
   # Only allow a trusted parameter "white list" through.

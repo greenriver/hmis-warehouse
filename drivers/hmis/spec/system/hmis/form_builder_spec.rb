@@ -124,41 +124,41 @@ RSpec.feature 'HMIS Form Builder', type: :system do
 
         find("button[aria-label='Add Text item']").click
         assert_text 'ADD NEW FORM ITEM Text Item'
-        find("input[name='text']").fill_in(with: 'What is the answer to this question?')
+        find("[name='text']").fill_in(with: 'What is the answer to this question?')
         find("button[type='submit']").trigger('click')
         assert_text 'Text: What is the answer to this question?'
 
         find("button[aria-label='Add Paragraph item']").click
         assert_text 'ADD NEW FORM ITEM Paragraph Item'
-        find("input[name='text']").fill_in(with: 'What about this long paragraph?')
+        find("[name='text']").fill_in(with: 'What about this long paragraph?')
         find("button[type='submit']").trigger('click')
         assert_text 'Paragraph: What about this long paragraph?'
 
         find("button[aria-label='Add Choice item']").click
         assert_text 'ADD NEW FORM ITEM Choice Item'
-        find("input[name='text']").fill_in(with: 'Which option?')
-        click_button 'Add Choice'
-        fill_in 'Choice 1', with: 'One'
-        click_button 'Add Choice'
-        fill_in 'Choice 2', with: 'Two'
+        find("[name='text']").fill_in(with: 'Which option?')
+        find_button('Add Option').trigger('click')
+        find("[name='pickListOptions.0.code']").fill_in(with: 'One')
+        find_button('Add Option').trigger('click')
+        find("[name='pickListOptions.1.code']").fill_in(with: 'Two')
         find("button[type='submit']").trigger('click')
         assert_text 'Choice: Which option?'
 
         find("button[aria-label='Add Date item']").click
         assert_text 'ADD NEW FORM ITEM Date Item'
-        find("input[name='text']").fill_in(with: 'What day?')
+        find("[name='text']").fill_in(with: 'What day?')
         find("button[type='submit']").trigger('click')
         assert_text 'Date: What day?'
 
         find("button[aria-label='Add Number item']").click
         assert_text 'ADD NEW FORM ITEM Number Item'
-        find("input[name='text']").fill_in(with: 'How many?')
+        find("[name='text']").fill_in(with: 'How many?')
         find("button[type='submit']").trigger('click')
         assert_text 'Number: How many?'
 
         find("button[aria-label='Add Checkbox item']").click
         assert_text 'ADD NEW FORM ITEM Checkbox Item'
-        find("input[name='text']").fill_in(with: 'Yes or no?')
+        find("[name='text']").fill_in(with: 'Yes or no?')
         find("button[type='submit']").trigger('click')
         assert_text 'Checkbox: Yes or no?'
 
