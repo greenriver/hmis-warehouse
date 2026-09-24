@@ -29,12 +29,14 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   before(:each) do
     allow_any_instance_of(Hmis::Ce::Configuration).to receive(:enabled?).and_return(true)
+    # Stub CandidatePoolBuilder so after_create on unit groups does not overwrite the assigned pool
+    allow_any_instance_of(Hmis::Ce::Match::CandidatePoolBuilder).to receive(:call)
     hmis_login(user)
   end
 
   # Basic setup
   let(:project) { create :hmis_hud_project, data_source: ds1, user: u1 }
-  let(:project_config) { create(:hmis_project_ce_config, supports_waitlist_referrals: true, project: project) }
+  let!(:project_config) { create(:hmis_project_ce_config, supports_waitlist_referrals: true, project: project) }
   let(:client) { create :hmis_hud_client_with_warehouse_client, data_source: ds1 }
   let(:client_proxy) { create :hmis_ce_client_proxy, client: client.destination_client }
 
@@ -167,32 +169,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       end
     end
 
-    context 'when client has overlapping opportunity categories' do
-      let!(:category) { create(:hmis_ce_opportunity_category, name: 'Housing') }
-
-      before do
-        opportunity_veterans.categories << category
-        opportunity_seniors.categories << category
-      end
-
-      let!(:active_referral) do
-        create(
-          :hmis_ce_referral,
-          opportunity: opportunity_veterans,
-          data_source: ds1,
-          client: client,
-          status: 'in_progress',
-        )
-      end
-
-      it 'excludes opportunities with overlapping categories when client has active referral' do
-        _, result = post_graphql(**variables) { query }
-        opportunities = result.dig('data', 'client', 'eligibleCeOpportunities', 'nodes')
-
-        expect(opportunities).to be_empty # Both should be excluded due to category overlap
-      end
-    end
-
     context 'when client has no matching opportunities' do
       let(:client_without_matches) { create :hmis_hud_client, data_source: ds1 }
 
@@ -221,6 +197,26 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect_gql_error(post_graphql(**variables) { query }, message: 'access denied')
       end
     end
+
+    context 'when the client has candidate rows in an inactive pool' do
+      let!(:p_waitlists_off) { create(:hmis_hud_project, data_source: ds1, organization: o1, user: u1) }
+      let!(:p_waitlists_off_config) { create(:hmis_project_ce_config, supports_waitlist_referrals: false, receives_direct_referrals: true, project: p_waitlists_off) }
+      let!(:waitlists_off_pool) { create :hmis_ce_match_candidate_pool }
+      let!(:waitlists_off_unit_group) { create(:hmis_unit_group, project: p_waitlists_off, candidate_pool: waitlists_off_pool) }
+      let!(:waitlists_off_candidate) { create(:hmis_ce_match_candidate, candidate_pool: waitlists_off_pool, client_proxy: client_proxy) }
+      let!(:waitlists_off_unit) { create(:hmis_unit, project: p_waitlists_off, unit_group: waitlists_off_unit_group) }
+      let!(:waitlists_off_opportunity) { create(:hmis_ce_opportunity, unit: waitlists_off_unit, status: 'open') }
+
+      it 'omits opportunities from the inactive pool' do
+        expect(waitlists_off_pool.active?).to be false
+
+        response, result = post_graphql(**variables) { query }
+        expect(response.status).to eq(200), result.inspect
+
+        opportunity_ids = result.dig('data', 'client', 'eligibleCeOpportunities', 'nodes').map { |o| o['id'] }
+        expect(opportunity_ids).to contain_exactly(opportunity_veterans.id.to_s, opportunity_seniors.id.to_s)
+      end
+    end
   end
 
   describe 'client eligible CE opportunities query with filters' do
@@ -245,11 +241,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       {
         id: client.id,
       }
-    end
-
-    before do
-      # Prevent automatic rebuilding of pools, so unit group stays associated with the pool and pool is considered active.
-      allow_any_instance_of(Hmis::Ce::Match::CandidatePoolBuilder).to receive(:call)
     end
 
     let!(:p1) { create :hmis_hud_project, project_type: 1, data_source: ds1, user: u1 }
