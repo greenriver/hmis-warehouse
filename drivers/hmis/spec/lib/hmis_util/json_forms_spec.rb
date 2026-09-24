@@ -169,6 +169,42 @@ RSpec.describe HmisUtil::JsonForms do
     end
   end
 
+  describe 'patches result in universal item visibility' do
+    # Walks a form definition tree and returns all present link_ids
+    def all_link_ids(tree)
+      ids = []
+      walker = lambda do |node|
+        ids << node['link_id'] if node['link_id'].present?
+        node['item']&.each { |child| walker.call(child) }
+      end
+      walker.call(tree)
+      ids
+    end
+
+    def visible_link_ids(definition, project)
+      filtered = Hmis::Form::DefinitionItemFilter.perform(
+        definition: definition.definition.deep_dup,
+        project: project,
+        project_funders: [],
+        active_date: Date.current,
+      )
+      all_link_ids(filtered)
+    end
+
+    it 'enable_everything_patch (qa_hmis) collects income_and_sources for any project type' do
+      described_class.new(env_key: 'qa_hmis', data_source_id: data_source.id).seed_all
+
+      intake_definition = Hmis::Form::Definition.managed_in_version_control.
+        where(identifier: 'base-intake', role: :INTAKE).sole
+
+      # A representative sample of project types, including ones with HUD rule exclusions elsewhere in the form
+      [1, 2, 3, 4, 8, 13].each do |project_type|
+        project = create(:hmis_hud_project, project_type: project_type)
+        expect(visible_link_ids(intake_definition, project)).to include('income_and_sources'), "Expected income_and_sources to be visible for project_type #{project_type}"
+      end
+    end
+  end
+
   describe 'fragment resolution' do
     it 'resolves fragments in form definitions (smoke-test)' do
       described_class.new(data_source_id: data_source.id).seed_all
