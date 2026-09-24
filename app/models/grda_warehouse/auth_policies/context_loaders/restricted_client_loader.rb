@@ -10,6 +10,11 @@ module GrdaWarehouse::AuthPolicies::ContextLoaders
   class RestrictedClientLoader
     RESTRICTED_POPULATION_WARN_THRESHOLD = 50_000
 
+    # @param miss_tracker [GrdaWarehouse::AuthPolicies::PreloadMissTracker, nil]
+    def initialize(miss_tracker: nil)
+      @miss_tracker = miss_tracker
+    end
+
     # Two sources of truth, looked up differently because their sizes differ by orders of magnitude.
     #
     # HMIS restriction is expected to apply to a small fraction of clients (see
@@ -32,6 +37,7 @@ module GrdaWarehouse::AuthPolicies::ContextLoaders
 
     # Resolves the inactive lookups for many ids in one query.
     def preload(client_ids)
+      restricted_client_ids
       missing = client_ids.compact.uniq.reject { |id| inactive_lookups.key?(id) }
       return if missing.empty?
 
@@ -53,6 +59,7 @@ module GrdaWarehouse::AuthPolicies::ContextLoaders
     private def inactive?(client_id)
       return inactive_lookups[client_id] if inactive_lookups.key?(client_id)
 
+      @miss_tracker&.record(:client_restrictions, client_id)
       inactive_lookups[client_id] = GrdaWarehouse::HiddenClients.inactive_subset([client_id]).include?(client_id)
     end
 

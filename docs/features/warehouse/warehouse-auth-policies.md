@@ -53,17 +53,22 @@ pii_policy.can_view_full_ssn?
 
 ### Preloading
 
-When checking policies for multiple resources (e.g., in a list view), the context provides helpers to preload dependencies to avoid N+1 queries.
+`policy_context.preload_client_dependencies(client_ids)` is the one call to make before checking policies, PII, or restriction across a list of clients. It takes source or destination ids and widens them to the warehouse identity (the destination and every source under it), then warms grants, enrolled projects (and their project caches), HMIS restriction, retention marks, and ROI in a small constant number of queries.
 
 ```ruby
 context = current_user.policy_context
-
-# Preload resource permissions
-context.preload_some_dependencies(resource_ids)
-
-# Preload through a context loader
-context.some_loader.preload(resource_ids)
+context.preload_client_dependencies(client_ids)
 ```
+
+`preload_project_dependencies(project_ids)` remains for project-keyed report rows, where there's no client list to preload from.
+
+```ruby
+context.preload_project_dependencies(project_ids)
+```
+
+`DestinationClientPolicy` preloads its own client's identity, so single-client pages such as the client dashboard need no preload call of their own.
+
+Once a context falls back to single-id lookups for more distinct clients of one kind than `PreloadMissTracker::THRESHOLD` (3 in development and test, 10 elsewhere), it raises `PreloadMissError` in development and test and sends a Sentry warning in staging and production. The fix is a preload at the point where the list is loaded, not a higher threshold.
 
 ## PII Provider Instantiation
 
@@ -120,7 +125,7 @@ Two states hide a client's PII in the warehouse, and both flow through `UserBase
 
 Either one is treated as a PII block: `GrdaWarehouse::PiiProvider.restrict(policy, restricted:)` wraps any resolved policy in a `RestrictedPolicy` that forces every PII predicate to `false`, regardless of what the underlying policy would grant. There is no warehouse-side override permission. Visibility returns when HMIS staff unmark the client, or when the identity has new activity and the next retention run clears its marks.
 
-**Loading strategy.** HMIS restriction is expected to be applied infrequently and is not a bulk visibility mechanism. `GrdaWarehouse::AuthPolicies::ContextLoaders::RestrictedClientLoader` loads the full set of restricted client ids the first time a lookup occurs, in one query (see `GrdaWarehouse::HiddenClients`), and answers with a Set membership test. Retention marks can cover a large share of an old warehouse, so they are never loaded whole: the loader resolves each id through `GrdaWarehouse::HiddenClients.inactive_subset` (marked source ids and the destinations they link to) and memoizes the answer, and `UserBaseContext#preload_client_restrictions(client_ids)` resolves a page of ids in one query before a loop of `client_restricted?` calls. Any code that checks restriction for a list of clients (a grid, a report drilldown, an export) must call it first; the cohort grid, `WarehouseReports::ClientLookups::Report`, the Outcomes support rows, the Core Demographics and HAP report drilldowns, and the TX Attachment Three report do. Both live on `UserBaseContext`, which is memoized on `User#policy_context`, so a request or background job pays for each lookup once.
+**Loading strategy.** HMIS restriction is expected to be applied infrequently and is not a bulk visibility mechanism. `GrdaWarehouse::AuthPolicies::ContextLoaders::RestrictedClientLoader` loads the full set of restricted client ids the first time a lookup occurs, in one query (see `GrdaWarehouse::HiddenClients`), and answers with a Set membership test. Retention marks can cover a large share of an old warehouse, so they are never loaded whole: the loader resolves each id through `GrdaWarehouse::HiddenClients.inactive_subset` (marked source ids and the destinations they link to) and memoizes the answer. Any code that checks restriction for a list of clients (a grid, a report drilldown, an export) must call `preload_client_dependencies` first; `preload_client_restrictions(client_ids)` remains for callers that only need restriction redaction and have no other client-keyed lookups to warm. Both live on `UserBaseContext`, which is memoized on `User#policy_context`, so a request or background job pays for each lookup once.
 
 **Per-request snapshot** The restricted set and the inactive lookups are memoized on the `User` instance for the life of a request or job.  Clients who are marked restricted or inactive during a long-running task (HMIS CSV export, or similar) will remain unrestricted in that export. Fragment caches key on `restricted_clients_cache_token`, which digests the restricted set together with the latest completed retention run.
 
