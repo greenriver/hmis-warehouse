@@ -66,8 +66,8 @@ env:
   HEALTH_DATABASE_PASS: postgres
   HEALTH_DATABASE_USER: postgres
   HOSTNAME: openpath.host
-  MINIO_ENDPOINT: http://minio:9000
-  USE_MINIO_ENDPOINT: true
+  LOCAL_S3_ENDPOINT: http://s3:9000
+  USE_LOCAL_S3_ENDPOINT: true
   PORT: 80
   RAILS_ENV: test
   CACHE_HOST: redis
@@ -90,7 +90,7 @@ env:
   PUPPETEER_EXECUTABLE_PATH: /usr/bin/chromium
   FERRUM_PROCESS_TIMEOUT: 45
   FERRUM_DEFAULT_TIMEOUT: 45
-  # Minio and test configuration
+  # Local S3 (SeaweedFS) and test configuration
   GROVER_NO_SANDBOX: true
   CHROMIUM_PATH: /usr/bin/chromium
   LOG_LEVEL: INFO
@@ -179,14 +179,11 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
         ports:
           - "2222:22"
-      minio: &minio
-        image: ghcr.io/greenriver/openpath-minio:1.0
+      s3: &s3
+        image: ghcr.io/greenriver/openpath-seaweedfs:1.0
         credentials:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-        env:
-          MINIO_ACCESS_KEY: local_access_key
-          MINIO_SECRET_KEY: local_secret_key
         ports:
           - "9000:9000"
 
@@ -371,7 +368,7 @@ jobs:
       postgres: *postgres
       redis: *redis
       hmis-warehouse-sftp: *sftp
-      minio: *minio
+      s3: *s3
 
     steps:
       - name: Checkout
@@ -447,7 +444,7 @@ jobs:
       postgres: *postgres
       redis: *redis
       hmis-warehouse-sftp: *sftp
-      minio: *minio
+      s3: *s3
 
     steps:
       - name: Checkout

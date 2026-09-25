@@ -50,13 +50,13 @@ class AwsS3
     }
 
     # In development setup local access
-    if ENV['USE_MINIO_ENDPOINT'] == 'true' && ENV['MINIO_ENDPOINT'].present?
+    if ENV['USE_LOCAL_S3_ENDPOINT'] == 'true' && ENV['LOCAL_S3_ENDPOINT'].present?
       access_key_id = ENV['AWS_ACCESS_KEY_ID'] unless access_key_id.present?
       secret_access_key = ENV['AWS_SECRET_ACCESS_KEY'] unless secret_access_key.present?
 
       client_options = {
         force_path_style: true, # don't force dns hoop jumping
-        endpoint: ENV.fetch('MINIO_ENDPOINT'),
+        endpoint: ENV.fetch('LOCAL_S3_ENDPOINT'),
         region: region,
         credentials: Aws::Credentials.new(access_key_id, secret_access_key),
       }
@@ -179,7 +179,7 @@ class AwsS3
     obj = @bucket.object(name)
     args = { body: content }
     args.merge!(content_type: content_type) if content_type
-    # we're skipping server side encryption for test and development because it hard to support in minio
+    # we're skipping server side encryption for test and development because it is hard to support in the local S3 (SeaweedFS)
     args.merge!(server_side_encryption: 'AES256') unless Rails.env.development? || Rails.env.test?
     obj.put(**args)
   end

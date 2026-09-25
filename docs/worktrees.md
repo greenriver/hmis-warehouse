@@ -4,7 +4,7 @@ Run multiple isolated copies of hmis-warehouse at once — each on its own branc
 with its own databases and web domain — using [worktrunk](https://worktrunk.dev)
 (`wt`) and this repo's worktree hooks.
 
-Each worktree shares the **one** postgres/redis/minio container stack from the main
+Each worktree shares the **one** postgres/redis/s3 container stack from the main
 tree but talks to **separate databases** (a `_wt_<name>` suffix), so work in a
 worktree never touches your main development or test databases. Multiple worktree
 web servers can run concurrently, each at `hmis-warehouse-<name>.dev.test`.
@@ -15,7 +15,7 @@ web servers can run concurrently, each at `hmis-warehouse-<name>.dev.test`.
 - [direnv](https://direnv.net/) installed and hooked into your shell
 - The main tree's backing services running (worktrees share them):
   ```sh
-  docker compose -p hmis-warehouse up -d db redis minio
+  docker compose -p hmis-warehouse up -d db redis s3
   ```
 
 ## Files involved
@@ -38,7 +38,7 @@ below; they are personal (user-level) and not shipped in this repo.
   `hmis-warehouse-db` container. `bin/db_prep` and `db:setup_test` create them.
 - **Web domain:** `hmis-warehouse-<name>.dev.test` via traefik (per-worktree router).
 - **Compose project:** `hmis-warehouse-<name>` so app containers coexist.
-- **Shared (not isolated):** the `db`/`redis`/`minio` containers, the bundle /
+- **Shared (not isolated):** the `db`/`redis`/`s3` containers, the bundle /
   node_modules / rails_cache volumes, and the CAS database (disabled in worktrees).
 
 ## Manual workflow
