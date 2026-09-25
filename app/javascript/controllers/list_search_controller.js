@@ -44,6 +44,16 @@ export default class extends Controller {
     this.initCategories();
   }
 
+  // Links to a category from elsewhere on the page (e.g. the site menu) only change the hash.
+  connect() {
+    this.onHashChange = () => this.initCategories();
+    window.addEventListener('hashchange', this.onHashChange);
+  }
+
+  disconnect() {
+    window.removeEventListener('hashchange', this.onHashChange);
+  }
+
   initCategories() {
     this.selectedCategories = this.activeCategories();
     const activeCategoryHash = window.location.hash;

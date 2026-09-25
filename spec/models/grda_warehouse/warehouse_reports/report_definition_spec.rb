@@ -29,6 +29,14 @@ RSpec.describe model, type: :model do
   user_ids = ->(user) { model.viewable_by(user).pluck(:id).sort }
   ids      = ->(*reports) { reports.map(&:id).sort }
 
+  describe '#new_report?' do
+    it 'is true for recently created reports but never for HUD reports' do
+      expect(r1.new_report?).to be true
+      r1.update!(report_group: model::HUD_REPORT_GROUP)
+      expect(r1.new_report?).to be false
+    end
+  end
+
   describe 'scopes' do
     describe 'viewability' do
       describe 'ordinary user' do
