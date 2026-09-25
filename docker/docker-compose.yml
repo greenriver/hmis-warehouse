@@ -312,12 +312,22 @@ services:
     build:
       context: docker/s3
     volumes:
-      - ./dev/seaweedfs/data:/data
-      # Kept at the old minio path so existing dev certs keep working
-      - ./dev/minio/certs:/certs
+      - ./dev/s3/data:/data
+      - ./dev/s3/certs:/certs
     hostname: s3.dev.test
     ports:
       - 9000:9000
+      - 8888:8888 # filer web UI for browsing buckets (http://localhost:8888/buckets/), stands in for the minio console
+    labels:
+      - traefik.enable=${TRAEFIK_ENABLED:-false}
+      - traefik.http.routers.s3.entrypoints=web
+      - traefik.http.routers.s3.rule=Host(`${LOCAL_S3_DOMAIN:-s3.dev.test}`)
+      - traefik.http.services.s3_https.loadbalancer.server.port=9000
+      - traefik.http.routers.s3_https.rule=Host(`${LOCAL_S3_DOMAIN:-s3.dev.test}`)
+      - traefik.http.routers.s3_https.tls=true
+      - traefik.http.routers.s3_https.entrypoints=web-secure
+      - traefik.http.middlewares.s3_https.redirectscheme.scheme=https
+      - traefik.http.routers.s3.middlewares=op_https
 
 volumes:
   bundle_trixie:
