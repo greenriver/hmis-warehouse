@@ -152,6 +152,18 @@ RSpec.describe HopwaCaper::Generators::Fy2026::Sheets::PFbhSheet, type: :model d
       expect(exiting_record.total_project_cost).to eq(0)
     end
 
+    it 'excludes zero-cost households from the leasing expenditure drilldown' do
+      # funder is active only after exiting_enrollment exits, so only hoh_enrollment has a cost
+      project.funders.first.update!(start_date: report_end_date - 2.months, end_date: report_end_date)
+      label = "What were the HOPWA funds expended for #{activity_label} Facility-Based Housing Leasing Costs for each facility?"
+
+      report = create_report([project])
+      run_report(report)
+
+      members = members_for_label(report: report, question_number: 'Q10', label: label)
+      expect(members.map(&:enrollment_id)).to contain_exactly(hoh_enrollment.id)
+    end
+
     it 'assigns zero cost to non-head-of-household members' do
       non_hoh_client = create(:hud_client, data_source: data_source)
       create_hiv_positive_enrollment(

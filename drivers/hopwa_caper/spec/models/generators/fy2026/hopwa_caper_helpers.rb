@@ -137,6 +137,12 @@ module HopwaCaperHelpers
     [report, rows]
   end
 
+  # Report members behind the column B cell of the row with the given label
+  def members_for_label(report:, question_number:, label:)
+    row_number = question_as_rows(question_number: question_number, report: report).index { |row| row.first == label } + 1
+    report.answer(question: question_number, cell: "B#{row_number}").universe_members.map(&:universe_membership)
+  end
+
   # Run report and extract FBH rows (label => [values...])
   def run_and_extract_fbh_rows(projects, question_number)
     report = create_report(projects)
