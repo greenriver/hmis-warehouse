@@ -23,7 +23,6 @@
       "type": "BOOLEAN",
       "link_id": "successful",
       "required": true,
-      "helper_text": "Tracks whether the placement is working out after acceptance. Doesn't change the referral's status.",
       "mapping": {
         "custom_field_key": "mc_direct_referral_post_review_successful"
       }
