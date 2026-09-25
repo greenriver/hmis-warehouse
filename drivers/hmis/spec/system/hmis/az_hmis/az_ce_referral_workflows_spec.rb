@@ -102,9 +102,7 @@ RSpec.feature 'AZ CE Referral Workflows', type: :system do
     mui_select(target_project.project_name, from: 'Project')
     mui_select(unit_group.name, from: 'Unit Group')
 
-    # Referral Date defaults to today via $today. Refer To Provider is a free PROJECT pick list
-    # (not the receiving-project list above); we point it at the same target for convenience.
-    mui_select(target_project.project_name, from: 'Refer To Provider')
+    # Referral Date defaults to today via $today.
     mui_radio_choose 'PSH', from: 'Referral Type'
     fill_in 'Case Manager', with: 'Casey Manager'
     click_button 'Refer Household'

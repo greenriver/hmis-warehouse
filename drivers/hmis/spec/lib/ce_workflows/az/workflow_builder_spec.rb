@@ -49,7 +49,6 @@ RSpec.describe CeWorkflows::Az::WorkflowBuilder do
   let(:send_referral_values) do
     {
       'referral_date' => Date.current.iso8601,
-      'refer_to_provider' => project.id.to_s,
       'referral_type' => 'psh',
       'case_manager' => 'Casey Manager',
     }
