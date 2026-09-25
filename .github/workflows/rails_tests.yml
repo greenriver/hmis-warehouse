@@ -90,7 +90,7 @@ env:
   PUPPETEER_EXECUTABLE_PATH: /usr/bin/chromium
   FERRUM_PROCESS_TIMEOUT: 45
   FERRUM_DEFAULT_TIMEOUT: 45
-  # Minio and test configuration
+  # Local S3 (SeaweedFS) and test configuration
   GROVER_NO_SANDBOX: true
   CHROMIUM_PATH: /usr/bin/chromium
   LOG_LEVEL: INFO

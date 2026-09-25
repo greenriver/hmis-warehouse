@@ -162,9 +162,9 @@ RSpec.describe AwsS3, 'deprecation warnings' do
   end
 end
 
-RSpec.describe AwsS3, 'minio roundtrip' do
+RSpec.describe AwsS3, 'local S3 roundtrip' do
   it 'uploads then downloads the file and matches contents' do
-    # Allow real HTTP to MinIO inside the docker network for this example
+    # Allow real HTTP to local S3 inside the docker network for this example
     begin
       WebMock.allow_net_connect!
     rescue NameError

@@ -17,7 +17,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  # Postgres / Redis / MinIO config (mirrors rails_tests.yml)
+  # Postgres / Redis / local S3 config (mirrors rails_tests.yml)
   CLIENT: test
   ENABLE_HMIS_API: "true"
   DATABASE_ADAPTER: postgresql
@@ -168,7 +168,7 @@ jobs:
 
       - name: Run LSA integration test
         env:
-          # MinIO placeholder creds for the app's own S3-backed storage; scoped to
+          # Local S3 placeholder creds for the app's own S3-backed storage; scoped to
           # this step only so they don't shadow the OIDC session credentials used
           # by the "Fetch LSA sample data" step above (AWS CLI env vars take
           # precedence over the shared credentials file those steps rely on).

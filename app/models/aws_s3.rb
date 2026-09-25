@@ -179,7 +179,7 @@ class AwsS3
     obj = @bucket.object(name)
     args = { body: content }
     args.merge!(content_type: content_type) if content_type
-    # we're skipping server side encryption for test and development because it hard to support in minio
+    # we're skipping server side encryption for test and development because it is hard to support in the local S3 (SeaweedFS)
     args.merge!(server_side_encryption: 'AES256') unless Rails.env.development? || Rails.env.test?
     obj.put(**args)
   end
