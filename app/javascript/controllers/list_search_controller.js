@@ -57,23 +57,20 @@ export default class extends Controller {
   initCategories() {
     this.selectedCategories = this.activeCategories();
     const activeCategoryHash = window.location.hash;
-    if (activeCategoryHash) {
-      this.changeCategory(
-        null,
-        this.categoryTargets.find((el) => {
-          return el.dataset.hash === activeCategoryHash.substring(1);
-        })
-      );
-    }
+    // An empty hash (e.g. navigating back to the "All" view) selects the first ("all") category.
+    const target = activeCategoryHash
+      ? this.categoryTargets.find((el) => el.dataset.hash === activeCategoryHash.substring(1))
+      : this.categoryTargets[0];
+    this.changeCategory(null, target);
   }
 
   changeCategory(event, categoryTarget = null) {
     const el = categoryTarget || event.target;
     if (!el) return;
-    if (this.selectedCategories === el) {
+    const { category, hash } = el.dataset;
+    if (this.selectedCategories.length === 1 && this.selectedCategories[0] === category) {
       return;
     }
-    const { category, hash } = el.dataset;
     if (hash) {
       window.location.hash = hash;
     }
