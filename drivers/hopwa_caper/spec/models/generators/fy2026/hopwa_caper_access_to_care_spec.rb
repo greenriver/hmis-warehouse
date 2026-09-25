@@ -457,5 +457,21 @@ RSpec.describe HopwaCaper::Generators::Fy2026::Sheets::AccessToCareSheet, type: 
       expect(total_households[1]).to eq(1) # TBRA
       expect(total_households[2]).to eq(1) # P-FBH
     end
+
+    it 'counts projects with no housing type under TBRA' do
+      untyped_project = create_hopwa_project(funder: tbra_funder).tap { |p| p.update!(HousingType: nil) }
+      create_hiv_positive_enrollment(
+        client: create(:hud_client, data_source: data_source),
+        project: untyped_project,
+        entry_date: report_start_date + 1.day,
+        household_id: Hmis::Hud::Base.generate_uuid,
+      )
+      report = create_report([p_fbh_project, st_tfbh_project, untyped_project])
+      run_report(report)
+
+      rows = question_as_rows(question_number: 'Q7', report: report)
+      total_households = row_for(rows, 'Total Households Served in ALL Activities from this report for each Activity.')
+      expect(total_households[1]).to eq(1) # TBRA
+    end
   end
 end
