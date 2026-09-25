@@ -241,17 +241,19 @@ RSpec.describe HopwaCaper::Generators::Fy2026::Sheets::PFbhSheet, type: :model d
   it 'deduplicates households correctly' do
     # Add another member to the same household
     other_member = create(:hud_client, data_source: data_source)
-    create_hiv_positive_enrollment(
+    other_enrollment = create_hiv_positive_enrollment(
       client: other_member,
       project: project,
       entry_date: report_start_date + 1.day,
       household_id: household_id,
       relationship_to_ho_h: 2,
     )
+    create_leasing_service(other_enrollment)
 
     _, rows = run_and_extract_rows([project], 'Q10')
-    # Total Deduplicated Household Count should be 2 (hoh_client and exiting_client), not 3 (including other_member)
-    expect(rows.fetch('Total Deduplicated Household Count')).to eq(2)
+    # Only households with leasing services count; hoh_client and other_member share one household.
+    # exiting_client has no leasing service.
+    expect(rows.fetch('Total Deduplicated Household Count')).to eq(1)
   end
 
   it 'correctly attributes data to multiple facilities' do
@@ -262,12 +264,13 @@ RSpec.describe HopwaCaper::Generators::Fy2026::Sheets::PFbhSheet, type: :model d
 
     # Enroll a DIFFERENT client in project2
     client2 = create(:hud_client, data_source: data_source)
-    create_hiv_positive_enrollment(
+    enrollment2 = create_hiv_positive_enrollment(
       client: client2,
       project: project2,
       entry_date: report_start_date + 1.day,
       household_id: Hmis::Hud::Base.generate_uuid,
     )
+    create_leasing_service(enrollment2)
 
     _, rows = run_and_extract_fbh_rows([project, project2], 'Q10')
 
@@ -275,8 +278,8 @@ RSpec.describe HopwaCaper::Generators::Fy2026::Sheets::PFbhSheet, type: :model d
     expect(rows.fetch('What is the name of the housing facility?')).to eq([project.project_name, project2.project_name])
 
     # Counts should be isolated per facility
-    # Project 1 has 2 households (hoh_client and exiting_client)
+    # Project 1 has 1 leasing household (hoh_client)
     # Project 2 has 1 household (client2)
-    expect(rows.fetch('Total Deduplicated Household Count')).to eq([2, 1])
+    expect(rows.fetch('Total Deduplicated Household Count')).to eq([1, 1])
   end
 end

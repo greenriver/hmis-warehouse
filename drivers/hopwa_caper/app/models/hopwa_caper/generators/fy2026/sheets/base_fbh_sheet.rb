@@ -89,17 +89,8 @@ module HopwaCaper::Generators::Fy2026::Sheets
     def facility_leasing_expenditures(sheet, fbh_activity_label:)
       sheet.append_row(label: 'Leasing -- Households and Expenditures Served by this Activity Expenditures total should include overhead (staff costs, fringe, etc.).')
 
-      # 2: 'Security deposits'
-      # 3: 'Utility deposits'
-      leasing_services = relevant_services.where(type_provided: [2, 3])
       facility_row(sheet, label: "How many households received #{fbh_activity_label} Facility-Based Housing Leasing support for each facility?") do |fac, row|
-        services = leasing_services.
-          joins(:enrollment).
-          where(enrollment: { project_id: fac.id }).
-          select(:report_household_id).
-          distinct
-
-        members = heads_of_household_for(services)
+        members = heads_of_household_for(leasing_household_ids(fac))
         row.append_cell_members(members: members)
       end
 
@@ -225,11 +216,22 @@ module HopwaCaper::Generators::Fy2026::Sheets
 
       empty_row(sheet, label: "How many households received more than one type of #{fbh_activity_label} for each facility?")
 
+      # Template formula is the deduplicated sum of the leasing, operating, hotel-motel, and other
+      # household rows. Only leasing is sourced from HMIS, so it is the only contributor.
       facility_row(sheet, label: 'Total Deduplicated Household Count') do |fac, row|
-        cell_scope = relevant_enrollments.where(project_id: fac.id)
-        members = heads_of_household_for(cell_scope)
+        members = heads_of_household_for(leasing_household_ids(fac))
         row.append_cell_members(members: members)
       end
+    end
+
+    # 2: 'Security deposits'
+    # 3: 'Utility deposits'
+    def leasing_household_ids(fac)
+      relevant_services.where(type_provided: [2, 3]).
+        joins(:enrollment).
+        where(enrollment: { project_id: fac.id }).
+        select(:report_household_id).
+        distinct
     end
 
     def add_filtered_enrollment_facilities(sheet, filters:, start_index: nil)
