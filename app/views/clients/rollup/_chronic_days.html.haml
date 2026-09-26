@@ -1,13 +1,3 @@
 - if @client.processed_service_history.present? && @client.ever_chronic?
-  .jChronic-chart.mt-4.mb-4
+  .jChronic-chart.mt-4.mb-4{ data: { controller: 'chronic-days-chart', chronic_days_chart_url_value: chronic_days_client_path(@client) } }
     .jLoading Loading
-
-  %script{ nonce: content_security_policy_nonce }
-    :plain
-      $(document).ready(function() {
-        chart = new App.ChartsScatterByDate.ChronicForClient(
-          $('.jChronic-chart'),
-          '#{chronic_days_client_path(@client)}'
-        );
-        chart.load();
-      });
