@@ -82,6 +82,32 @@ RSpec.describe GrdaWarehouse::WarehouseReports::TouchPoint, type: :model do
       restricted_source_client.mark_as_restricted!(user: hmis_user)
     end
 
+    def build_preload_client(index)
+      source = create(:hmis_hud_client, data_source: hmis_ds, first_name: "Preload#{index}", last_name: 'Coverage')
+      destination = create(:grda_warehouse_hud_client, FirstName: "Preload#{index}", LastName: 'Coverage')
+      GrdaWarehouse::WarehouseClient.create!(destination_id: destination.id, source_id: source.id, data_source_id: hmis_ds.id, id_in_source: source.id.to_s)
+      create(:hud_enrollment, client: GrdaWarehouse::Hud::Client.find(source.id), project: project, data_source: hmis_ds)
+      GrdaWarehouse::HmisForm.create!(
+        client_id: source.id,
+        data_source_id: hmis_ds.id,
+        site_id: 1,
+        assessment_id: 1,
+        name: 'Intake',
+        collected_at: Date.current,
+        staff: 'Staff Member',
+        answers: { sections: [] },
+      )
+      destination
+    end
+
+    it 'includes every client when more clients than the preload miss threshold have responses' do
+      extra = Array.new(preload_miss_client_count) { |i| build_preload_client(i) }
+
+      rows = report.clean_data(report.computed_data)[:data]
+
+      extra.each { |client| expect(rows.map(&:second)).to include(a_string_including(client.FirstName)) }
+    end
+
     it 'redacts the client name for a restricted client and leaves the unrestricted client intact' do
       rows = report.clean_data(report.computed_data)[:data]
       restricted_row = rows.find { |row| row[0] == restricted_destination_client.id }

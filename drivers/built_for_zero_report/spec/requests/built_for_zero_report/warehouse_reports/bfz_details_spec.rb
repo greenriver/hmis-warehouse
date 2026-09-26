@@ -37,6 +37,26 @@ RSpec.describe 'BuiltForZeroReport::WarehouseReports::Bfz#details', type: :reque
     sign_in(user)
   end
 
+  def stub_source_data(clients)
+    allow_any_instance_of(BuiltForZeroReport::Calculator).to receive(:source_data).and_return(
+      clients.index_by(&:id).transform_values { |c| { client_id: c.id, first_name: c.FirstName, last_name: c.LastName, change: 'create', reason: 'Newly identified', changed_at: Date.current } },
+    )
+  end
+
+  def build_preload_client(index)
+    create(:grda_warehouse_hud_client, FirstName: "Preload#{index}", LastName: 'Coverage')
+  end
+
+  it 'lists every client when more clients than the preload miss threshold changed status' do
+    extra = Array.new(preload_miss_client_count) { |i| build_preload_client(i) }
+    stub_source_data(extra)
+
+    get details_built_for_zero_report_warehouse_reports_bfz_index_path(report: { section: 'adults', key: 'actively_homeless' })
+
+    expect(response).to have_http_status(:ok)
+    extra.each { |client| expect(response.body).to include(client.FirstName) }
+  end
+
   it 'redacts the restricted client and shows the unrestricted client' do
     get details_built_for_zero_report_warehouse_reports_bfz_index_path(report: { section: 'adults', key: 'actively_homeless' })
 

@@ -76,6 +76,36 @@ RSpec.describe 'MaYyaReport::WarehouseReports::Reports#details', type: :request 
     sign_in(user)
   end
 
+  def build_preload_client(index)
+    destination = create(:grda_warehouse_hud_client, FirstName: "Preload#{index}", LastName: 'Coverage')
+    report_client = MaYyaReport::Client.create!(report: report, client_id: destination.id, project: project, age: 20)
+    SimpleReports::UniverseMember.create!(
+      report_cell: report_cell,
+      client_id: destination.id,
+      first_name: "Preload#{index}",
+      last_name: 'Coverage',
+      universe_membership: report_client,
+    )
+  end
+
+  it 'lists every client when more clients than the preload miss threshold are in the cell' do
+    extra = Array.new(preload_miss_client_count) { |i| build_preload_client(i) }
+
+    get details_ma_yya_report_warehouse_reports_report_path(report, cell: 'A1a')
+
+    expect(response).to have_http_status(:ok)
+    extra.each { |member| expect(response.body).to include(member.first_name) }
+  end
+
+  it 'exports every client when more clients than the preload miss threshold are in the cell' do
+    extra = Array.new(preload_miss_client_count) { |i| build_preload_client(i) }
+
+    get details_ma_yya_report_warehouse_reports_report_path(report, cell: 'A1a', format: :xlsx)
+
+    expect(response).to have_http_status(:ok)
+    expect(xlsx_cell_values(response)).to include(*extra.map(&:first_name))
+  end
+
   it 'redacts the restricted client and leaves the unrestricted client intact in the rendered table' do
     get details_ma_yya_report_warehouse_reports_report_path(report, cell: 'A1a')
 

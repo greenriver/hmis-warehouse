@@ -41,6 +41,35 @@ RSpec.describe 'WarehouseReports::CohortChangesController', type: :request do
     sign_in user
   end
 
+  def build_preload_client(index)
+    source = create(:hmis_hud_client, data_source: hmis_ds, first_name: "Preload#{index}", last_name: 'Coverage')
+    destination = create(:grda_warehouse_hud_client, FirstName: "Preload#{index}", LastName: 'Coverage')
+    GrdaWarehouse::WarehouseClient.create!(destination_id: destination.id, source_id: source.id, data_source_id: hmis_ds.id, id_in_source: source.id.to_s)
+    cohort_client = GrdaWarehouse::CohortClient.create!(cohort: cohort, client: destination)
+    GrdaWarehouse::CohortClientChange.create!(cohort: cohort, cohort_client: cohort_client, user: user, change: 'create', changed_at: 1.week.ago)
+    destination
+  end
+
+  it 'lists every client when more clients than the preload miss threshold changed cohorts' do
+    extra = Array.new(preload_miss_client_count) { |i| build_preload_client(i) }
+
+    get warehouse_reports_cohort_changes_path(filter: filter_params)
+
+    expect(response).to have_http_status(:ok)
+    extra.each { |client| expect(response.body).to include(client.FirstName) }
+  end
+
+  it 'exports every client when more clients than the preload miss threshold changed cohorts' do
+    GrdaWarehouse::Config.first_or_create.update!(include_pii_in_detail_downloads: true)
+    GrdaWarehouse::Config.invalidate_cache
+    extra = Array.new(preload_miss_client_count) { |i| build_preload_client(i) }
+
+    get warehouse_reports_cohort_changes_path(filter: filter_params, format: :xlsx)
+
+    expect(response).to have_http_status(:ok)
+    expect(xlsx_cell_values(response)).to include(*extra.map(&:FirstName))
+  end
+
   it 'redacts the client name in the HTML view' do
     get warehouse_reports_cohort_changes_path(filter: filter_params)
 

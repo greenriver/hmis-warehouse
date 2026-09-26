@@ -67,6 +67,42 @@ RSpec.describe 'ProjectPassFail::WarehouseReports::Project#show', type: :request
 
   # `.xlsx` responses are a compressed OOXML zip, not plain text — parse the actual
   # workbook, matching the pattern in spec/requests/warehouse_reports/open_enrollments_no_service_controller_spec.rb.
+  def build_preload_client(index)
+    source = create(:hmis_hud_client, data_source: hmis_ds, first_name: "Preload#{index}", last_name: 'Coverage')
+    destination = create(:grda_warehouse_hud_client, FirstName: "Preload#{index}", LastName: 'Coverage')
+    GrdaWarehouse::WarehouseClient.create!(destination_id: destination.id, source_id: source.id, data_source_id: hmis_ds.id, id_in_source: source.id.to_s)
+    ProjectPassFail::Client.create!(
+      project_pass_fail: report,
+      project: pf_project,
+      client_id: source.id,
+      first_name: "Preload#{index}",
+      last_name: 'Coverage',
+      dob: Date.new(1985, 6, 15),
+      ssn: '987654321',
+      days_served: 5,
+    )
+  end
+
+  it 'lists every client when more clients than the preload miss threshold are in the project' do
+    extra = Array.new(preload_miss_client_count) { |i| build_preload_client(i) }
+
+    get project_pass_fail_warehouse_reports_project_pass_fail_project_path(report, pf_project)
+
+    expect(response).to have_http_status(:ok)
+    extra.each { |row| expect(response.body).to include(row.first_name) }
+  end
+
+  it 'exports every client when more clients than the preload miss threshold are in the project' do
+    GrdaWarehouse::Config.first_or_create.update!(include_pii_in_detail_downloads: true)
+    GrdaWarehouse::Config.invalidate_cache
+    extra = Array.new(preload_miss_client_count) { |i| build_preload_client(i) }
+
+    get project_pass_fail_warehouse_reports_project_pass_fail_project_path(report, pf_project, format: :xlsx)
+
+    expect(response).to have_http_status(:ok)
+    expect(xlsx_cell_values(response)).to include(*extra.map(&:first_name))
+  end
+
   def rendered_workbook
     excel_file = Tempfile.new(['project_pass_fail', '.xlsx'])
     excel_file.binmode

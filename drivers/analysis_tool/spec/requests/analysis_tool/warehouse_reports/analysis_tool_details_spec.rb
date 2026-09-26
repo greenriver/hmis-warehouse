@@ -38,6 +38,39 @@ RSpec.describe 'AnalysisTool::WarehouseReports::AnalysisTool#details', type: :re
     sign_in(user)
   end
 
+  def stub_support_for(relation)
+    allow_any_instance_of(AnalysisTool::Report).to receive(:support_for).and_return(relation)
+  end
+
+  def build_preload_client(index)
+    source = create(:hud_client, data_source: window_data_source, FirstName: "Preload#{index}", LastName: 'Coverage')
+    destination = create(:grda_warehouse_hud_client, FirstName: "Preload#{index}", LastName: 'Coverage')
+    GrdaWarehouse::WarehouseClient.create!(destination_id: destination.id, source_id: source.id, data_source_id: window_data_source.id, id_in_source: source.id.to_s)
+    destination
+  end
+
+  it 'lists every client when more clients than the preload miss threshold support the cell' do
+    extra = Array.new(preload_miss_client_count) { |i| build_preload_client(i) }
+    stub_support_for(GrdaWarehouse::Hud::Client.where(id: extra.map(&:id)))
+
+    get details_analysis_tool_warehouse_reports_analysis_tool_index_path(cell: [0, 0])
+
+    expect(response).to have_http_status(:ok)
+    extra.each { |client| expect(response.body).to include(client.FirstName) }
+  end
+
+  it 'exports every client when more clients than the preload miss threshold support the cell' do
+    GrdaWarehouse::Config.first_or_create.update!(include_pii_in_detail_downloads: true)
+    GrdaWarehouse::Config.invalidate_cache
+    extra = Array.new(preload_miss_client_count) { |i| build_preload_client(i) }
+    stub_support_for(GrdaWarehouse::Hud::Client.where(id: extra.map(&:id)))
+
+    get details_analysis_tool_warehouse_reports_analysis_tool_index_path(cell: [0, 0], format: :xlsx)
+
+    expect(response).to have_http_status(:ok)
+    expect(xlsx_cell_values(response)).to include(*extra.map(&:FirstName))
+  end
+
   it 'redacts the restricted client name and DOB and shows the unrestricted client in the HTML view' do
     get details_analysis_tool_warehouse_reports_analysis_tool_index_path(cell: [0, 0])
 
