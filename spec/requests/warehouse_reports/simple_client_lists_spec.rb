@@ -88,6 +88,25 @@ RSpec.describe 'WarehouseReports::LongStandingClientsController', type: :request
     expect(response.body).to include('>Open<')
     expect(response.body).to include('>OClient<')
   end
+
+  it 'lists every client when more clients than the preload miss threshold have long-standing enrollments' do
+    extra = Array.new(preload_miss_client_count) { |i| build_preload_client(i) }
+
+    get warehouse_reports_long_standing_clients_path
+
+    expect(response).to have_http_status(:ok)
+    extra.each { |client| expect(response.body).to include(client.FirstName) }
+  end
+
+  def build_preload_client(index)
+    source = create(:hmis_hud_client, data_source: hmis_ds, first_name: "Preload#{index}", last_name: 'Coverage')
+    destination = create(:grda_warehouse_hud_client, FirstName: "Preload#{index}", LastName: 'Coverage')
+    GrdaWarehouse::WarehouseClient.create!(destination_id: destination.id, source_id: source.id, data_source_id: hmis_ds.id, id_in_source: source.id.to_s)
+    create(:she_entry, client: destination, project: project,
+                        record_type: :entry, project_type: 1, date: 6.years.ago.to_date, first_date_in_program: 6.years.ago.to_date, last_date_in_program: nil)
+
+    destination
+  end
 end
 
 RSpec.describe 'WarehouseReports::ReallyOldEnrollmentsController', type: :request do
@@ -125,5 +144,23 @@ RSpec.describe 'WarehouseReports::ReallyOldEnrollmentsController', type: :reques
     expect(response.body).to include('Name⎵Redacted')
     expect(response.body).to include('>Open<')
     expect(response.body).to include('>OClient<')
+  end
+
+  it 'lists every client when more clients than the preload miss threshold have really old enrollments' do
+    extra = Array.new(preload_miss_client_count) { |i| build_preload_client(i) }
+
+    get warehouse_reports_really_old_enrollments_path
+
+    expect(response).to have_http_status(:ok)
+    extra.each { |client| expect(response.body).to include(client.FirstName) }
+  end
+
+  def build_preload_client(index)
+    source = create(:hmis_hud_client, data_source: hmis_ds, first_name: "Preload#{index}", last_name: 'Coverage')
+    destination = create(:grda_warehouse_hud_client, FirstName: "Preload#{index}", LastName: 'Coverage')
+    GrdaWarehouse::WarehouseClient.create!(destination_id: destination.id, source_id: source.id, data_source_id: hmis_ds.id, id_in_source: source.id.to_s)
+    create(:hud_enrollment, client: GrdaWarehouse::Hud::Client.find(source.id), data_source: hmis_ds, project: project, EntryDate: '1975-01-01'.to_date)
+
+    destination
   end
 end

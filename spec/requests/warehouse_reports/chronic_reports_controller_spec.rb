@@ -70,6 +70,14 @@ RSpec.describe 'Chronic and HUD Chronic warehouse reports', type: :request do
     (sheet.first_row..sheet.last_row).map { |i| sheet.row(i) }
   end
 
+  def build_preload_client(index)
+    source = create(:hmis_hud_client, data_source: hmis_ds, first_name: "Preload#{index}", last_name: 'Coverage')
+    destination = create(:grda_warehouse_hud_client, FirstName: "Preload#{index}", LastName: 'Coverage', DOB: Date.new(1980, 1, 1))
+    GrdaWarehouse::WarehouseClient.create!(destination_id: destination.id, source_id: source.id, data_source_id: hmis_ds.id, id_in_source: source.id.to_s)
+
+    destination
+  end
+
   shared_examples 'redacts only the restricted client in the html view' do |path_helper|
     it 'redacts only the restricted client name in the html view' do
       get send(path_helper, report_record)
@@ -127,6 +135,32 @@ RSpec.describe 'Chronic and HUD Chronic warehouse reports', type: :request do
         expect(row[3]).to eq('Redacted')
       end
     end
+
+    def add_preload_rows(clients, chronic_key:)
+      report_record.update!(data: report_record.data + clients.map { |c| client_row(c, chronic_key: chronic_key) })
+    end
+
+    it 'lists every client when more clients than the preload miss threshold are in the report' do
+      extra = Array.new(preload_miss_client_count) { |i| build_preload_client(i) }
+      add_preload_rows(extra, chronic_key: 'chronic')
+
+      get warehouse_reports_chronic_path(report_record)
+
+      expect(response).to have_http_status(:ok)
+      extra.each { |client| expect(response.body).to include(client.FirstName) }
+    end
+
+    it 'exports every client when more clients than the preload miss threshold are in the report' do
+      GrdaWarehouse::Config.first_or_create.update!(include_pii_in_detail_downloads: true)
+      GrdaWarehouse::Config.invalidate_cache
+      extra = Array.new(preload_miss_client_count) { |i| build_preload_client(i) }
+      add_preload_rows(extra, chronic_key: 'chronic')
+
+      get warehouse_reports_chronic_path(report_record, format: :xlsx)
+
+      expect(response).to have_http_status(:ok)
+      expect(xlsx_cell_values(response)).to include(*extra.map(&:FirstName))
+    end
   end
 
   describe 'WarehouseReports::HudChronicsController#show' do
@@ -179,6 +213,32 @@ RSpec.describe 'Chronic and HUD Chronic warehouse reports', type: :request do
         expect(row.size).to eq(header.size)
         expect(row).not_to include('Restrictedfirst', 'Restrictedlast', 'Openfirst', 'Openlast', 'Name Redacted')
       end
+    end
+
+    def add_preload_rows(clients, chronic_key:)
+      report_record.update!(data: report_record.data + clients.map { |c| client_row(c, chronic_key: chronic_key) })
+    end
+
+    it 'lists every client when more clients than the preload miss threshold are in the report' do
+      extra = Array.new(preload_miss_client_count) { |i| build_preload_client(i) }
+      add_preload_rows(extra, chronic_key: 'hud_chronic')
+
+      get warehouse_reports_hud_chronic_path(report_record)
+
+      expect(response).to have_http_status(:ok)
+      extra.each { |client| expect(response.body).to include(client.FirstName) }
+    end
+
+    it 'exports every client when more clients than the preload miss threshold are in the report' do
+      GrdaWarehouse::Config.first_or_create.update!(include_pii_in_detail_downloads: true)
+      GrdaWarehouse::Config.invalidate_cache
+      extra = Array.new(preload_miss_client_count) { |i| build_preload_client(i) }
+      add_preload_rows(extra, chronic_key: 'hud_chronic')
+
+      get warehouse_reports_hud_chronic_path(report_record, format: :xlsx)
+
+      expect(response).to have_http_status(:ok)
+      expect(xlsx_cell_values(response)).to include(*extra.map(&:FirstName))
     end
   end
 end
