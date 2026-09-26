@@ -45,6 +45,26 @@ RSpec.describe 'CensusTracking::WarehouseReports::CensusTrackers#details', type:
     Nokogiri::HTML(response.body).css('table.table-sm tbody td').map { |td| td.text.strip }
   end
 
+  def stub_clients_by_project(clients)
+    allow_any_instance_of(CensusTracking::Worksheet).to receive(:clients_by_project).and_return(
+      clients.map { |c| census_row.new(c.id, c.FirstName, c.LastName, 40, project.name) },
+    )
+  end
+
+  def build_preload_client(index)
+    create(:grda_warehouse_hud_client, FirstName: "Preload#{index}", LastName: 'Coverage')
+  end
+
+  it 'lists every client when more clients than the preload miss threshold are in the census' do
+    extra = Array.new(preload_miss_client_count) { |i| build_preload_client(i) }
+    stub_clients_by_project(extra)
+
+    get details_census_tracking_warehouse_reports_census_trackers_path(project: project.id, key: 'test')
+
+    expect(response).to have_http_status(:ok)
+    extra.each { |client| expect(response.body).to include(client.FirstName) }
+  end
+
   context 'when the role grants can_view_client_name' do
     it 'redacts the restricted client and shows the unrestricted client' do
       get details_census_tracking_warehouse_reports_census_trackers_path(project: project.id, key: 'test')

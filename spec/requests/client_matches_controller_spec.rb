@@ -86,6 +86,26 @@ RSpec.describe ClientMatchesController, type: :request do
         sign_in user
       end
 
+      def build_preload_match(index)
+        a_source = create(:hmis_hud_client, data_source: hmis_ds, first_name: "PreloadA#{index}", last_name: 'Coverage')
+        a_destination = create(:grda_warehouse_hud_client, FirstName: "PreloadA#{index}", LastName: 'Coverage')
+        GrdaWarehouse::WarehouseClient.create!(destination_id: a_destination.id, source_id: a_source.id, data_source_id: hmis_ds.id, id_in_source: a_source.id.to_s)
+        b_source = create(:hmis_hud_client, data_source: hmis_ds, first_name: "PreloadB#{index}", last_name: 'Coverage')
+        b_destination = create(:grda_warehouse_hud_client, FirstName: "PreloadB#{index}", LastName: 'Coverage')
+        GrdaWarehouse::WarehouseClient.create!(destination_id: b_destination.id, source_id: b_source.id, data_source_id: hmis_ds.id, id_in_source: b_source.id.to_s)
+        GrdaWarehouse::ClientMatch.create!(destination_client_id: a_source.id, source_client_id: b_source.id, status: 'candidate', score: -1.0)
+        [a_destination, b_destination]
+      end
+
+      it 'lists every matched client when more clients than the preload miss threshold are in candidate matches' do
+        pairs = Array.new(preload_miss_client_count) { |i| build_preload_match(i) }
+
+        get client_matches_path
+
+        expect(response).to have_http_status(:ok)
+        pairs.flatten.each { |client| expect(response.body).to include(client.FirstName) }
+      end
+
       it 'redacts the restricted destination client name in the match heading' do
         get client_matches_path
 
