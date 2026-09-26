@@ -17,6 +17,7 @@ module WarehouseReports
       @enrollments = @report.cohort_enrollments.
         order(c_t[:LastName].asc, c_t[:FirstName].asc).
         preload(cohort_client: [client: [:source_clients, :vispdats]])
+      current_user.policy_context.preload_client_dependencies(@enrollments.map { |e| e.cohort_client&.client_id })
       respond_to do |format|
         format.html do
           @pagy, @enrollments = pagy(@enrollments)

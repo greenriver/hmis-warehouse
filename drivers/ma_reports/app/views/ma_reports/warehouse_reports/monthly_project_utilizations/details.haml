@@ -16,7 +16,7 @@
           - MaReports::MonthlyPerformance::Enrollment.detail_headers(@report).each_value do |label|
             %th= label
       %tbody
-        - @report.enrollments_for(@key, @sub_key).each do |enrollment|
+        - @enrollments.each do |enrollment|
           %tr
             - MaReports::MonthlyPerformance::Enrollment.detail_headers(@report).each_key do |column|
               - # TODO: these should probably get formatted, but we'd like to confirm contents first
