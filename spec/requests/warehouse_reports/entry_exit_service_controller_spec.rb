@@ -32,6 +32,8 @@ RSpec.describe 'WarehouseReports::EntryExitServiceController#index', type: :requ
 
   let(:single_day) { Date.current }
 
+  after { GrdaWarehouse::Config.invalidate_cache }
+
   before do
     Collection.maintain_system_groups
     collection.set_viewables({ reports: [report.id], projects: [project.id] })
@@ -81,5 +83,37 @@ RSpec.describe 'WarehouseReports::EntryExitServiceController#index', type: :requ
     expect(rows.flatten).not_to include('Restrictedfirst', 'Restrictedlast')
     expect(rows.flatten).to include('Name Redacted')
     expect(rows.flatten).to include('Openfirst', 'Openlast')
+  end
+
+  it 'lists every client when more clients than the preload miss threshold have single-day enrollments' do
+    extra = Array.new(preload_miss_client_count) { |i| build_preload_client(i) }
+
+    get warehouse_reports_entry_exit_service_index_path
+
+    expect(response).to have_http_status(:ok)
+    extra.each { |client| expect(response.body).to include(client.FirstName) }
+  end
+
+  it 'exports every client when more clients than the preload miss threshold have single-day enrollments' do
+    GrdaWarehouse::Config.first_or_create.update!(include_pii_in_detail_downloads: true)
+    GrdaWarehouse::Config.invalidate_cache
+    extra = Array.new(preload_miss_client_count) { |i| build_preload_client(i) }
+
+    get warehouse_reports_entry_exit_service_index_path(format: :xlsx)
+
+    expect(response).to have_http_status(:ok)
+    expect(xlsx_cell_values(response)).to include(*extra.map(&:FirstName))
+  end
+
+  def build_preload_client(index)
+    destination = create(:grda_warehouse_hud_client, data_source: destination_ds)
+    source = create(:grda_warehouse_hud_client, data_source: source_ds, FirstName: "Preload#{index}", LastName: 'Coverage')
+    GrdaWarehouse::WarehouseClient.create!(destination_id: destination.id, source_id: source.id, data_source_id: source_ds.id, id_in_source: source.id.to_s)
+
+    enrollment = create(:hud_enrollment, data_source_id: source_ds.id, PersonalID: source.PersonalID, ProjectID: project.ProjectID, EntryDate: single_day)
+    create(:hud_exit, data_source_id: source_ds.id, PersonalID: source.PersonalID, EnrollmentID: enrollment.EnrollmentID, ExitDate: single_day)
+    create(:hud_service, data_source_id: source_ds.id, PersonalID: source.PersonalID, EnrollmentID: enrollment.EnrollmentID, DateProvided: single_day, RecordType: 5)
+
+    source
   end
 end
