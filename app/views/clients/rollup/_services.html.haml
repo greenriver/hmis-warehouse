@@ -1,7 +1,11 @@
 = cache(['clients', 'services', @client, can_view_confidential_project_names?, controller_path, current_user], expires_in: GrdaWarehouse::Hud::Client::CACHE_EXPIRY) do
-  - dots = { min: Float::INFINITY, max: -1, points: [] }
+  - services = @client.source_enrollment_services.merge(GrdaWarehouse::Hud::Enrollment.visible_to(current_user))
+  - st = services.arel_table
+  - counts_by_year = services.bed_night.uniqueness_constraint.group(dp( services, 'year', st[:DateProvided] ).to_sql).count.sort_by(&:first).reverse
+  - counts = counts_by_year.map(&:last)
+  - dots = { min: counts.min, max: counts.max, points: counts } if counts.uniq.many?
 
-  %table.table
+  %table.table{ data: ({ controller: 'service-dots', service_dots_dots_value: dots.to_json } if dots) }
     %colgroup
       %col
       %col(style="width:6.5em;")
@@ -12,21 +16,8 @@
         %th Bed Starts
         %th
     %tbody
-      - services = @client.source_enrollment_services.merge(GrdaWarehouse::Hud::Enrollment.visible_to(current_user))
-      - st = services.arel_table
-      - services.bed_night.uniqueness_constraint.group(dp( services, 'year', st[:DateProvided] ).to_sql).count.sort_by(&:first).reverse.each do |year, count|
+      - counts_by_year.each do |year, count|
         %tr
           %td= year.to_i
           %td.num-cell= count
-          - dots[:min] = count if count < dots[:min]
-          - dots[:max] = count if count > dots[:max]
-          - dots[:points] << count
-          %td.dot
-
-  - if dots[:min] < dots[:max]
-    %script{ nonce: content_security_policy_nonce }
-      :plain
-        var dots = #{dots.to_json.html_safe};
-        $('#services td.dot').each(function(i){
-          $(this).append(App.util.colorDot({point:dots.points[i],low:dots.min,high:dots.max,center:true}));
-        });
+          %td.dot{ data: { service_dots_target: 'dot' } }

@@ -40,3 +40,11 @@ application.register("client-lookup-export", ClientLookupExportController)
 import TableFilterController from "./table_filter_controller.js"
 application.register("table-filter", TableFilterController)
 
+import ServiceDotsController from "./service_dots_controller.js"
+application.register("service-dots", ServiceDotsController)
+
+import ChronicDaysChartController from "./chronic_days_chart_controller.js"
+application.register("chronic-days-chart", ChronicDaysChartController)
+
+import ClientTimelineChartController from "./client_timeline_chart_controller.js"
+application.register("client-timeline-chart", ClientTimelineChartController)

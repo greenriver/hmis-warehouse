@@ -7,15 +7,4 @@
         .ml-4.text-right.text-nowrap
           = link_to_if can_view_clients?, 'View client dashboard »', appropriate_client_path(data[:client_id]), class: 'text-semi-bold'
   .h5-prs1.mb-2= data.values_at(*%i/race gender age_group/).select(&:present?).join('; ')
-  .j-chart(id=chart_id)
-- content_for :page_js do
-  %script{ nonce: content_security_policy_nonce }
-    :plain
-      var domain = #{@report.time_range.to_json.html_safe};
-      var enrollments = #{data[:enrollments].to_json.html_safe};
-      App.WarehouseReports.clientTimelineChart({
-        enrollments: enrollments,
-        rootSelector: '#' + #{chart_id.to_json.html_safe},
-        domain: domain,
-        cocs: #{@details[:cocs].to_json.html_safe}
-      });
+  .j-chart{ id: chart_id, data: { controller: 'client-timeline-chart', client_timeline_chart_enrollments_value: data[:enrollments].to_json, client_timeline_chart_domain_value: @report.time_range.to_json, client_timeline_chart_cocs_value: @details[:cocs].to_json } }
