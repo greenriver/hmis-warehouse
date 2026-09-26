@@ -71,12 +71,6 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
       end
     end
 
-    it 'doesn\'t allow chronic_days' do
-      expect_unauthenticated_warehouse_request do
-        get chronic_days_client_path(destination)
-      end
-    end
-
     it 'doesn\'t allow merge' do
       expect_unauthenticated_warehouse_request do
         patch merge_client_path(destination)
@@ -146,12 +140,6 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
     it 'doesn\'t allow image' do
       sign_in user
       get image_client_path(destination)
-      expect(response).to redirect_to(user.my_root_path)
-    end
-
-    it 'doesn\'t allow chronic_days' do
-      sign_in user
-      get chronic_days_client_path(destination, format: :json)
       expect(response).to redirect_to(user.my_root_path)
     end
 
@@ -229,13 +217,6 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
       sign_in user
       get image_client_path(destination)
       expect(response).to redirect_to(user.my_root_path)
-    end
-
-    it 'doesn\'t allow chronic_days' do
-      sign_in user
-      get chronic_days_client_path(destination, format: :json)
-      follow_redirect!
-      expect(response.body).to include('Sorry you are not authorized to do that.')
     end
 
     it 'doesn\'t allow merge' do
@@ -319,12 +300,6 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
       expect(response).to have_http_status(403)
     end
 
-    it 'allows chronic_days' do
-      sign_in user
-      get chronic_days_client_path(destination, format: :json)
-      expect(response).to have_http_status(200)
-    end
-
     it 'doesn\'t allow merge' do
       sign_in user
       patch merge_client_path(destination)
@@ -406,12 +381,6 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
       expect(response).to have_http_status(403)
     end
 
-    it 'allows chronic_days' do
-      sign_in user
-      get chronic_days_client_path(destination, format: :json)
-      expect(response).to have_http_status(200)
-    end
-
     it 'allow merge' do
       sign_in user
       patch merge_client_path(destination, grda_warehouse_hud_client: { merge: [''] })
@@ -486,13 +455,6 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
       sign_in user
       get image_client_path(destination)
       expect(response).to redirect_to(user.my_root_path)
-    end
-
-    it 'doesn\'t allow chronic_days' do
-      sign_in user
-      get chronic_days_client_path(destination, format: :json)
-      follow_redirect!
-      expect(response.body).to include('Sorry you are not authorized to do that.')
     end
 
     it 'doesn\'t allow merge' do

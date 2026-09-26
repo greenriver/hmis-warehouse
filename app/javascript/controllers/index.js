@@ -40,3 +40,5 @@ application.register("client-lookup-export", ClientLookupExportController)
 import TableFilterController from "./table_filter_controller.js"
 application.register("table-filter", TableFilterController)
 
+import ClientTimelineChartController from "./client_timeline_chart_controller.js"
+application.register("client-timeline-chart", ClientTimelineChartController)
