@@ -190,7 +190,7 @@ module TxClientReports
           income_benefits_at_entry&.
           TotalMonthlyIncome
         household = if enrollment.household_id.present?
-          enrollment.household_enrollments&.map(&:client)
+          enrollment.household_enrollments&.map(&:client)&.compact
         else
           [client]
         end

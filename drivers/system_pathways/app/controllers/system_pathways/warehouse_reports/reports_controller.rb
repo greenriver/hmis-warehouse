@@ -122,6 +122,7 @@ module SystemPathways::WarehouseReports
         @details_title = "#{@source_title} → #{@target}"
       end
       @clients = @clients.preload(:client)
+      current_user.policy_context.preload_client_dependencies(@clients.pluck(SystemPathways::Enrollment.arel_table[:client_id]))
     end
 
     private def filtering_show?

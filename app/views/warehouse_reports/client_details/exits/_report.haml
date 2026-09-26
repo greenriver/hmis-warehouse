@@ -53,6 +53,7 @@
           %th Exit From
       %tbody
         - current_user.policy_context.preload_project_dependencies(@report.clients.map { |e| e.project.id })
+        - current_user.policy_context.preload_client_dependencies(@report.clients.map(&:client_id))
         - @report.clients.each do |enrollment|
           - client = enrollment.client
           - project = enrollment.project

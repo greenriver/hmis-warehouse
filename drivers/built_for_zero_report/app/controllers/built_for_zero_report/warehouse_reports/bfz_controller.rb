@@ -33,6 +33,7 @@ module BuiltForZeroReport::WarehouseReports
         :returned_from_inactivity
         @section.data.public_send(report_params[:key])
       end
+      current_user.policy_context.preload_client_dependencies(@data&.keys || [])
     end
 
     def set_report

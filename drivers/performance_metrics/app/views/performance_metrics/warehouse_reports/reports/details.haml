@@ -15,6 +15,7 @@
 -#       Download Excel
 - scope = @report.detail_scope(@key, @sub_key, @comparison)
 - if scope.exists?
+  - current_user.policy_context.preload_client_dependencies(scope.pluck(:client_id))
   %h4= @report.header_for(@key, @sub_key)
   %p Showing #{pluralize(number_with_delimiter(scope.distinct.select(:client_id).count), 'client')}.
   .card

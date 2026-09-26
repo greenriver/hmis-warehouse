@@ -25,6 +25,7 @@ module WarehouseReports
             Hash[columns.zip(row)]
           end
       end
+      current_user.policy_context.preload_client_dependencies(@clients.map { |c| c[:id] })
       respond_to do |format|
         format.html {}
         format.xlsx do

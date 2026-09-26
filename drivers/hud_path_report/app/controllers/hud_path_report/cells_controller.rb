@@ -19,6 +19,8 @@ module HudPathReport
         merge(::HudReports::ReportCell.for_table(@table).for_cell(@cell)).
         merge(::HudReports::ReportInstance.where(id: @report.id))
       @name = "#{generator.file_prefix} #{@question} #{@cell}"
+      current_user.policy_context.preload_project_dependencies(@clients.distinct.pluck(:project_id))
+      current_user.policy_context.preload_client_dependencies(@clients.map(&:destination_client_id_for_pii))
       respond_to do |format|
         format.html {}
         format.xlsx do

@@ -31,9 +31,10 @@ module WarehouseReports
       respond_to do |format|
         format.html do
           @pagy, @clients = pagy(@clients)
+          current_user.policy_context.preload_client_dependencies(@clients.map(&:id))
         end
         format.xlsx do
-          @clients
+          current_user.policy_context.preload_client_dependencies(@clients.pluck(:id))
         end
       end
     end

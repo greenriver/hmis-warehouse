@@ -32,6 +32,7 @@ module WarehouseReports
         where(id: @clients.map { |client| client['id'] }).
         preload(:source_clients).
         index_by(&:id)
+      current_user.policy_context.preload_client_dependencies(@clients_by_id.keys)
       @sort_options = sort_options
 
       respond_to do |format|

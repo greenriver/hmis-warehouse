@@ -188,6 +188,7 @@ module GrdaWarehouse::WarehouseReports
 
     def rows_for_export
       rows = []
+      filter.user.policy_context.preload_client_dependencies(data.map { |client| client.client.id })
       data.each do |client|
         real_client = client.client
         pii = GrdaWarehouse::PiiProvider.new(real_client, policy: filter.user.reporting_policy_for_client(client: real_client, mode: :download))

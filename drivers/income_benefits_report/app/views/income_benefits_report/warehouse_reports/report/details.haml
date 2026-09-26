@@ -18,6 +18,7 @@
           - headers.each do |title|
             %th= title
       %tbody
+        - current_user.policy_context.preload_client_dependencies(rows.map(&:first))
         - rows.each do |row|
           - row = @report.redact_pii_in_row(row, headers: headers, user: current_user, mode: :browse)
           %tr

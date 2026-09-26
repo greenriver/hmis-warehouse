@@ -49,23 +49,26 @@ module GrdaWarehouse::WarehouseReports
         clean[:summary] = ['Selected Range:', start_date, end_date] + section_columns.flatten
         clean[:headers] = ["Client ID", "Client Name", "Collected On", "Location", "Staff"] + all_questions(dirty)
         # NOTE: this is still a second query, but should not bring back the big answers blob a second time
-        limited_responses.find_each do |response|
-          row = []
-          destination_client = response.client.destination_client
-          client_id = destination_client.id
-          policy = user.reporting_policy_for_client(client: destination_client, mode: :download)
-          client_name = GrdaWarehouse::PiiProvider.new(destination_client, policy: policy).full_name
-          row << client_id
-          row << client_name
-          row << response.collected_at
-          row << response.hmis_assessment.site_name
-          row << response.staff
-          sections(dirty).each do |title, questions|
-            questions.each do |question|
-              row << dirty.dig(:sections, title, question, client_id, response.id)
+        limited_responses.find_in_batches do |batch|
+          user.policy_context.preload_client_dependencies(batch.map(&:client_id))
+          batch.each do |response|
+            row = []
+            destination_client = response.client.destination_client
+            client_id = destination_client.id
+            policy = user.reporting_policy_for_client(client: destination_client, mode: :download)
+            client_name = GrdaWarehouse::PiiProvider.new(destination_client, policy: policy).full_name
+            row << client_id
+            row << client_name
+            row << response.collected_at
+            row << response.hmis_assessment.site_name
+            row << response.staff
+            sections(dirty).each do |title, questions|
+              questions.each do |question|
+                row << dirty.dig(:sections, title, question, client_id, response.id)
+              end
             end
+            clean[:data] << row
           end
-          clean[:data] << row
         end
         clean
       end

@@ -37,6 +37,7 @@ module WarehouseReports
       @sort_options = sort_options
 
       sort_clients if @clients&.any?
+      current_user.policy_context.preload_client_dependencies(Array(@clients).map { |client| client['id'] })
 
       respond_to do |format|
         format.html

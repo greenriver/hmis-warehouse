@@ -54,24 +54,27 @@ module InactiveClientReport::DocumentExports
           ]
 
           sheet.add_row(header, style: header_style)
-          report.clients.find_each do |client|
-            projects = client.last_intentional_contacts(user, include_confidential_names: false, include_dates: true).select(&:present?)
-            pii = GrdaWarehouse::PiiProvider.new(client, policy: user.reporting_policy_for_client(client: client, mode: :download))
-            row = [client.id]
-            row += [pii.last_name, pii.first_name] if GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
-            row << pii.dob if user.can_view_full_dob? && GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
-            row << GrdaWarehouse::Hud::Client.age(date: Date.current, dob: client.dob)
-            row << projects.join('; ')
-            row << client.service_history_entry_ongoing.map { |en| en&.project&.name(user, include_project_type: true) }.compact.join('; ')
-            row << client.processed_service_history&.days_homeless_last_three_years
-            row << report.days_since_most_recent_contact(client)
-            row << report.max_entry_date(client)
-            row << report.most_recent_cls(client)
-            row << report.most_recent_bed_night(client)
-            row << report.most_recent_ce_assessment(client)&.dig(:assessment_date)
-            row << report.most_recent_ce_assessment(client)&.dig(:assessor)
+          report.clients.find_in_batches do |batch|
+            user.policy_context.preload_client_dependencies(batch.map(&:id))
+            batch.each do |client|
+              projects = client.last_intentional_contacts(user, include_confidential_names: false, include_dates: true).select(&:present?)
+              pii = GrdaWarehouse::PiiProvider.new(client, policy: user.reporting_policy_for_client(client: client, mode: :download))
+              row = [client.id]
+              row += [pii.last_name, pii.first_name] if GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
+              row << pii.dob if user.can_view_full_dob? && GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
+              row << GrdaWarehouse::Hud::Client.age(date: Date.current, dob: client.dob)
+              row << projects.join('; ')
+              row << client.service_history_entry_ongoing.map { |en| en&.project&.name(user, include_project_type: true) }.compact.join('; ')
+              row << client.processed_service_history&.days_homeless_last_three_years
+              row << report.days_since_most_recent_contact(client)
+              row << report.max_entry_date(client)
+              row << report.most_recent_cls(client)
+              row << report.most_recent_bed_night(client)
+              row << report.most_recent_ce_assessment(client)&.dig(:assessment_date)
+              row << report.most_recent_ce_assessment(client)&.dig(:assessor)
 
-            sheet.add_row(row)
+              sheet.add_row(row)
+            end
           end
         end
       end

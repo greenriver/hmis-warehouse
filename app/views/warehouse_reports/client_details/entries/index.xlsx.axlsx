@@ -19,6 +19,7 @@ wb.add_worksheet(name: "Entry Detail #{GrdaWarehouse::WarehouseReports::Dashboar
     'Group',
   ] + GrdaWarehouse::Hud::Client.race_fields.map { |m| HudHelper.util.race(m).gsub('None', 'Race None') }, style: title)
   current_user.policy_context.preload_project_dependencies(@report.enrollments.values.flatten.map { |e| e.project.id })
+  current_user.policy_context.preload_client_dependencies(@report.enrollments.keys)
   @report.buckets.each do |group, clients|
     section = @report.data[group][:label]
     clients.each do |client_id|
