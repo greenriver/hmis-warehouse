@@ -137,7 +137,7 @@ RSpec.describe 'WarehouseReports::ChronicHousedController', type: :request do
     GrdaWarehouse::WarehouseClient.create!(destination_id: destination.id, source_id: source.id, data_source_id: hmis_ds.id, id_in_source: source.id.to_s)
     create(:hud_enrollment, client: GrdaWarehouse::Hud::Client.find(source.id), project: project, data_source: hmis_ds)
     create(:she_entry, client: destination, project: project,
-                        record_type: :entry, destination: 410, last_date_in_program: 2.months.ago.to_date)
+                       record_type: :entry, destination: 410, last_date_in_program: 2.months.ago.to_date)
     create(:chronic, client_id: destination.id, date: 2.months.ago.to_date)
 
     destination

@@ -136,7 +136,7 @@ RSpec.describe 'WarehouseReports::ClientDetails', type: :request do
       destination = create(:grda_warehouse_hud_client, FirstName: "Preload#{index}", LastName: 'Coverage')
       GrdaWarehouse::WarehouseClient.create!(destination_id: destination.id, source_id: source.id, data_source_id: hmis_ds.id, id_in_source: source.id.to_s)
       entry = create(:she_entry, client: destination, project: project,
-                                  record_type: :entry, project_type: 1, first_date_in_program: 2.years.ago.to_date, last_date_in_program: nil)
+                                 record_type: :entry, project_type: 1, first_date_in_program: 2.years.ago.to_date, last_date_in_program: nil)
       create(
         :service_history_service,
         service_history_enrollment: entry,
@@ -233,8 +233,8 @@ RSpec.describe 'WarehouseReports::ClientDetails', type: :request do
       destination = create(:grda_warehouse_hud_client, FirstName: "Preload#{index}", LastName: 'Coverage')
       GrdaWarehouse::WarehouseClient.create!(destination_id: destination.id, source_id: source.id, data_source_id: hmis_ds.id, id_in_source: source.id.to_s)
       create(:she_entry, client: destination, project: project,
-                          record_type: :exit, project_type: 1, date: 2.years.ago.to_date,
-                          first_date_in_program: 2.years.ago.to_date - 30.days, last_date_in_program: 2.years.ago.to_date, destination: 3)
+                         record_type: :exit, project_type: 1, date: 2.years.ago.to_date,
+                         first_date_in_program: 2.years.ago.to_date - 30.days, last_date_in_program: 2.years.ago.to_date, destination: 3)
 
       destination
     end

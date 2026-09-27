@@ -150,9 +150,9 @@ RSpec.describe 'WarehouseReports::FirstTimeHomelessController', type: :request d
     destination = create(:grda_warehouse_hud_client, FirstName: "Preload#{index}", LastName: 'Coverage')
     GrdaWarehouse::WarehouseClient.create!(destination_id: destination.id, source_id: source.id, data_source_id: hmis_ds.id, id_in_source: source.id.to_s)
     entry_row = create(:she_entry, client: destination, project: project,
-                                    record_type: :entry, project_type: 1, first_date_in_program: entry_date, last_date_in_program: nil)
+                                   record_type: :entry, project_type: 1, first_date_in_program: entry_date, last_date_in_program: nil)
     create(:she_first, client: destination, project: project,
-                        project_type: 1, date: entry_date, first_date_in_program: entry_date)
+                       project_type: 1, date: entry_date, first_date_in_program: entry_date)
     create(:service_history_service, service_history_enrollment: entry_row, client_id: destination.id,
                                      record_type: 'service', date: entry_date, project_type: 1)
 
