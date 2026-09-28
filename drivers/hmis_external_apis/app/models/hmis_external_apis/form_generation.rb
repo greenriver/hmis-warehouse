@@ -4,6 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-# Rails.logger.debug "Running initializer in #{__FILE__}"
+# frozen_string_literal: true
 
-Aws::Rails.add_action_mailer_delivery_method(:aws_sdk, region: "us-east-1")
+module HmisExternalApis::FormGeneration
+end

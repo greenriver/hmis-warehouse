@@ -18,7 +18,8 @@ module Importers::HmisAutoMigrate
       file_password: nil,
       project_cleanup: true,
       stop_version: nil,
-      dry_run: false
+      dry_run: false,
+      source_id_override: false
     )
       setup_notifier('HMIS Upload AutoMigrate Importer')
       @data_source_id = data_source_id
@@ -31,6 +32,7 @@ module Importers::HmisAutoMigrate
       @project_cleanup = project_cleanup
       @stop_version = stop_version
       @dry_run = dry_run
+      @source_id_override = source_id_override
       @post_processor = if @allowed_projects
         ->(_) { replace_original_upload_file }
       else
@@ -58,14 +60,11 @@ module Importers::HmisAutoMigrate
 
         # options = {}
         # options = { password: @file_password } if @file_password.present?
-        # @file_password comes from the data source's HMIS import config; passing
-        # system a single string would hand it to a shell, which runs whatever it contains.
-        args = ['e']
-        args << "-p#{@file_password}" if @file_password.present?
-        # system returns false instead of raising, and a failed extraction leaves
+        # SevenZip returns false instead of raising, and a failed extraction leaves
         # tmp_folder empty for the zip built below, which is then saved over the
         # stored upload.
-        raise "7z was unable to extract #{File.basename(zip_file)}" unless system('7z', *args, "-o#{tmp_folder}", zip_file)
+        extracted = SevenZip.extract_all(source: zip_file, destination: tmp_folder, password: @file_password)
+        raise "7z was unable to extract #{File.basename(zip_file)}" unless extracted
 
         # File.open(zip_file, 'rb') do |seven_zip|
         #   SevenZipRuby::Reader.open(seven_zip, options) do |szr|

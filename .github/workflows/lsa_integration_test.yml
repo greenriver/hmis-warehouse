@@ -17,7 +17,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  # Postgres / Redis / MinIO config (mirrors rails_tests.yml)
+  # Postgres / Redis / local S3 config (mirrors rails_tests.yml)
   CLIENT: test
   ENABLE_HMIS_API: "true"
   DATABASE_ADAPTER: postgresql
@@ -38,8 +38,8 @@ env:
   HEALTH_DATABASE_PASS: postgres
   HEALTH_DATABASE_USER: postgres
   HOSTNAME: openpath.host
-  MINIO_ENDPOINT: http://minio:9000
-  USE_MINIO_ENDPOINT: true
+  LOCAL_S3_ENDPOINT: http://s3:9000
+  USE_LOCAL_S3_ENDPOINT: true
   PORT: 80
   RAILS_ENV: test
   CACHE_HOST: redis
@@ -103,14 +103,11 @@ jobs:
         image: index.docker.io/library/redis@sha256:02419de7eddf55aa5bcf49efb74e88fa8d931b4d77c07eff8a6b2144472b6952 # alpine
         ports:
           - 6379:6379
-      minio:
-        image: ghcr.io/greenriver/openpath-minio:1.0
+      s3:
+        image: ghcr.io/greenriver/openpath-seaweedfs:1.0
         credentials:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-        env:
-          MINIO_ACCESS_KEY: local_access_key
-          MINIO_SECRET_KEY: local_secret_key
         ports:
           - "9000:9000"
       mssql:
@@ -171,7 +168,7 @@ jobs:
 
       - name: Run LSA integration test
         env:
-          # MinIO placeholder creds for the app's own S3-backed storage; scoped to
+          # Local S3 placeholder creds for the app's own S3-backed storage; scoped to
           # this step only so they don't shadow the OIDC session credentials used
           # by the "Fetch LSA sample data" step above (AWS CLI env vars take
           # precedence over the shared credentials file those steps rely on).

@@ -53,14 +53,11 @@ jobs:
         ports:
           - '2222:22'
 
-      minio:
-        image: ghcr.io/greenriver/openpath-minio:1.0
+      s3:
+        image: ghcr.io/greenriver/openpath-seaweedfs:1.0
         credentials:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-        env:
-          MINIO_ACCESS_KEY: local_access_key
-          MINIO_SECRET_KEY: local_secret_key
         ports:
           - '9000:9000'
       chrome:
@@ -95,8 +92,8 @@ jobs:
       HEALTH_DATABASE_PASS: postgres
       HEALTH_DATABASE_USER: postgres
       HOSTNAME: openpath.host
-      MINIO_ENDPOINT: http://minio:9000
-      USE_MINIO_ENDPOINT: true
+      LOCAL_S3_ENDPOINT: http://s3:9000
+      USE_LOCAL_S3_ENDPOINT: true
       PORT: 80
       RAILS_ENV: test
       CACHE_HOST: redis
