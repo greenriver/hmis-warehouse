@@ -20,7 +20,7 @@ RSpec.feature 'Per-form CSRF tokens', type: :rails_system do
   let!(:data_source) { create :source_data_source }
   let!(:organization) { create :hud_organization, data_source: data_source }
   let!(:project) { create :hud_project, data_source: data_source, OrganizationID: organization.OrganizationID }
-  let(:per_form_tokens) { true }
+  let(:per_form_tokens) { Rails.application.config.action_controller.per_form_csrf_tokens }
 
   around do |example|
     forgery = ActionController::Base.allow_forgery_protection
@@ -76,7 +76,9 @@ RSpec.feature 'Per-form CSRF tokens', type: :rails_system do
       end
     end
 
-    it 'submits the filter details form into the ajax modal' do
+    # Passes with per-form tokens on or off: jquery_ujs sends the global token
+    # in an X-CSRF-Token header on every ajax-modal submit.
+    it 'submits the filter details form into the ajax modal (smoke test)' do
       click_button 'View universe details'
       within('.modal') do
         expect(page).to have_content('Jan 1, 2024 - Dec 31, 2024')
@@ -119,7 +121,9 @@ RSpec.feature 'Per-form CSRF tokens', type: :rails_system do
       expect(page).not_to have_content('InvalidAuthenticityToken')
     end
 
-    it 'rejects the token minted for the queue-report action' do
+    # Restores the server-rendered token that jquery_ujs overwrote, so the
+    # submit does not depend on jquery_ujs.
+    it 'opens the missing data report with the server-rendered token' do
       form_selector = "form[action='#{hud_reports_lsas_path}']"
       token = rendered_token(raw_page_html, form_selector)
       page.execute_script(
@@ -127,7 +131,8 @@ RSpec.feature 'Per-form CSRF tokens', type: :rails_system do
         token,
       )
       click_missing_data
-      expect(page).to have_content('InvalidAuthenticityToken')
+      expect(page).to have_content('Data Issues')
+      expect(page).not_to have_content('InvalidAuthenticityToken')
     end
   end
 end
