@@ -115,6 +115,52 @@ RSpec.describe ApplicationJob do
       expect(queued_job_classes).to eq(['NestedOuterTestJob'])
     end
 
+    context 'when SIGTERM arrives while an outer job runs another with perform_now' do
+      let(:outer_interruptible) { false }
+
+      before do
+        stub_const('HaltCheckInnerTestJob', Class.new(BaseJob) do
+          def perform
+          end
+        end)
+        stub_const('HaltCheckOuterTestJob', Class.new(BaseJob) do
+          queue_as :__sigterm_test__
+          cattr_accessor :finished, :interruptible
+
+          def self.interruptible? = interruptible
+
+          def perform
+            HaltCheckInnerTestJob.perform_now
+            self.class.finished = true
+          end
+        end)
+        HaltCheckOuterTestJob.interruptible = outer_interruptible
+        # The outer job's own before_perform check passes; SIGTERM lands before the inner job starts
+        allow(SignalHandlerPlugin).to receive(:current_worker_stopping?).and_return(false, true)
+        HaltCheckOuterTestJob.perform_later
+      end
+
+      it 'lets a non-interruptible outer job finish' do
+        successes, failures = worker.work_off
+
+        expect([successes, failures]).to eq([1, 0])
+        expect(HaltCheckOuterTestJob.finished).to be true
+        expect(queued_job_classes).to be_empty
+      end
+
+      context 'when the outer job is interruptible' do
+        let(:outer_interruptible) { true }
+
+        it 're-enqueues the outer job' do
+          successes, failures = worker.work_off
+
+          expect([successes, failures]).to eq([1, 0])
+          expect(HaltCheckOuterTestJob.finished).to be_nil
+          expect(queued_job_classes).to eq(['HaltCheckOuterTestJob'])
+        end
+      end
+    end
+
     it 'alerts once a job has been interrupted repeatedly' do
       allow(Sentry).to receive(:capture_message)
       stub_const('RepeatInterruptTestJob', Class.new(BaseJob) do

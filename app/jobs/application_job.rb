@@ -19,8 +19,7 @@ class ApplicationJob < ActiveJob::Base
   INTERRUPTION_ALERT_THRESHOLD = 3
 
   rescue_from JobInterrupted do |error|
-    # A job run inline with perform_now (e.g. an SPM backing a Homeless Summary Report)
-    # has no queue row of its own. Let the job that owns the worker requeue itself,
+    # A job run inline with perform_now has no queue row of its own. Let the job that owns the worker requeue itself,
     # rather than requeueing the inner job and letting the outer one carry on.
     raise error if provider_job_id.blank?
 
@@ -51,8 +50,9 @@ class ApplicationJob < ActiveJob::Base
   def check_halt_status!
     return unless self.class.queue_adapter_name == 'delayed_job'
 
-    # Check for SIGTERM first
-    if SignalHandlerPlugin.current_worker_stopping?
+    # Check for SIGTERM first. A job run inline stops only when the queued job running it
+    # is interruptible; otherwise it would stop a job that has already started.
+    if SignalHandlerPlugin.current_worker_stopping? && (provider_job_id.present? || SignalHandlerPlugin.current_job_interruptible?)
       msg = 'Job interrupted by SIGTERM'
       Rails.logger.warn(msg)
       raise JobInterrupted, msg
