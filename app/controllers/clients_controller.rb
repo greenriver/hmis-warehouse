@@ -25,7 +25,7 @@ class ClientsController < ApplicationController
   before_action :require_can_see_this_client_demographics!, except: [:new, :create, :simple, :appropriate, :assessment]
   before_action :require_can_edit_clients!, only: [:edit, :merge, :unmerge]
   before_action :require_can_create_clients!, only: [:new, :create]
-  before_action :set_client, only: [:show, :edit, :merge, :unmerge, :service_range, :rollup, :image, :chronic_days, :enrollment_details]
+  before_action :set_client, only: [:show, :edit, :merge, :unmerge, :service_range, :rollup, :image, :enrollment_details]
   before_action :set_search_client, only: [:simple, :appropriate]
   before_action :set_client_start_date, only: [:show, :edit, :rollup]
   before_action :set_potential_matches, only: [:edit]
@@ -198,22 +198,6 @@ class ClientsController < ApplicationController
     respond_to do |format|
       format.json do
         render json: @range.map(&:to_s)
-      end
-    end
-  end
-
-  # This is only valid for Potentially chronic (not HUD Chronic)
-  def chronic_days
-    days = @client.
-      chronics.
-      # where(date: 1.year.ago.to_date..Date.current).
-      order(date: :asc).
-      map do |c|
-        [c[:date], c[:days_in_last_three_years]]
-      end.to_h
-    respond_to do |format|
-      format.json do
-        render json: days
       end
     end
   end
