@@ -172,14 +172,8 @@ CREATE TYPE public.record_type AS ENUM (
 
 CREATE FUNCTION public.f_unaccent(text) RETURNS text
     LANGUAGE sql IMMUTABLE STRICT PARALLEL SAFE
-    AS $_$
-
-
-
-SELECT public.unaccent('public.unaccent', $1)  -- schema-qualify function and dictionary
-
-
-
+    AS $_$
+SELECT public.unaccent('public.unaccent', $1)  -- schema-qualify function and dictionary
 $_$;
 
 
@@ -202,666 +196,116 @@ $$;
 
 CREATE FUNCTION public.service_history_service_insert_trigger() RETURNS trigger
     LANGUAGE plpgsql
-    AS $$
-
-
-
-
-
-      BEGIN
-
-
-
-
-
-      IF  ( NEW.date BETWEEN DATE '2050-01-01' AND DATE '2050-12-31' ) THEN
-
-
-
-
-
-            INSERT INTO service_history_services_2050 VALUES (NEW.*);
-
-
-
-
-
-         ELSIF  ( NEW.date BETWEEN DATE '2049-01-01' AND DATE '2049-12-31' ) THEN
-
-
-
-
-
-            INSERT INTO service_history_services_2049 VALUES (NEW.*);
-
-
-
-
-
-         ELSIF  ( NEW.date BETWEEN DATE '2048-01-01' AND DATE '2048-12-31' ) THEN
-
-
-
-
-
-            INSERT INTO service_history_services_2048 VALUES (NEW.*);
-
-
-
-
-
-         ELSIF  ( NEW.date BETWEEN DATE '2047-01-01' AND DATE '2047-12-31' ) THEN
-
-
-
-
-
-            INSERT INTO service_history_services_2047 VALUES (NEW.*);
-
-
-
-
-
-         ELSIF  ( NEW.date BETWEEN DATE '2046-01-01' AND DATE '2046-12-31' ) THEN
-
-
-
-
-
-            INSERT INTO service_history_services_2046 VALUES (NEW.*);
-
-
-
-
-
-         ELSIF  ( NEW.date BETWEEN DATE '2045-01-01' AND DATE '2045-12-31' ) THEN
-
-
-
-
-
-            INSERT INTO service_history_services_2045 VALUES (NEW.*);
-
-
-
-
-
-         ELSIF  ( NEW.date BETWEEN DATE '2044-01-01' AND DATE '2044-12-31' ) THEN
-
-
-
-
-
-            INSERT INTO service_history_services_2044 VALUES (NEW.*);
-
-
-
-
-
-         ELSIF  ( NEW.date BETWEEN DATE '2043-01-01' AND DATE '2043-12-31' ) THEN
-
-
-
-
-
-            INSERT INTO service_history_services_2043 VALUES (NEW.*);
-
-
-
-
-
-         ELSIF  ( NEW.date BETWEEN DATE '2042-01-01' AND DATE '2042-12-31' ) THEN
-
-
-
-
-
-            INSERT INTO service_history_services_2042 VALUES (NEW.*);
-
-
-
-
-
-         ELSIF  ( NEW.date BETWEEN DATE '2041-01-01' AND DATE '2041-12-31' ) THEN
-
-
-
-
-
-            INSERT INTO service_history_services_2041 VALUES (NEW.*);
-
-
-
-
-
-         ELSIF  ( NEW.date BETWEEN DATE '2040-01-01' AND DATE '2040-12-31' ) THEN
-
-
-
-
-
-            INSERT INTO service_history_services_2040 VALUES (NEW.*);
-
-
-
-
-
-         ELSIF  ( NEW.date BETWEEN DATE '2039-01-01' AND DATE '2039-12-31' ) THEN
-
-
-
-
-
-            INSERT INTO service_history_services_2039 VALUES (NEW.*);
-
-
-
-
-
-         ELSIF  ( NEW.date BETWEEN DATE '2038-01-01' AND DATE '2038-12-31' ) THEN
-
-
-
-
-
-            INSERT INTO service_history_services_2038 VALUES (NEW.*);
-
-
-
-
-
-         ELSIF  ( NEW.date BETWEEN DATE '2037-01-01' AND DATE '2037-12-31' ) THEN
-
-
-
-
-
-            INSERT INTO service_history_services_2037 VALUES (NEW.*);
-
-
-
-
-
-         ELSIF  ( NEW.date BETWEEN DATE '2036-01-01' AND DATE '2036-12-31' ) THEN
-
-
-
-
-
-            INSERT INTO service_history_services_2036 VALUES (NEW.*);
-
-
-
-
-
-         ELSIF  ( NEW.date BETWEEN DATE '2035-01-01' AND DATE '2035-12-31' ) THEN
-
-
-
-
-
-            INSERT INTO service_history_services_2035 VALUES (NEW.*);
-
-
-
-
-
-         ELSIF  ( NEW.date BETWEEN DATE '2034-01-01' AND DATE '2034-12-31' ) THEN
-
-
-
-
-
-            INSERT INTO service_history_services_2034 VALUES (NEW.*);
-
-
-
-
-
-         ELSIF  ( NEW.date BETWEEN DATE '2033-01-01' AND DATE '2033-12-31' ) THEN
-
-
-
-
-
-            INSERT INTO service_history_services_2033 VALUES (NEW.*);
-
-
-
-
-
-         ELSIF  ( NEW.date BETWEEN DATE '2032-01-01' AND DATE '2032-12-31' ) THEN
-
-
-
-
-
-            INSERT INTO service_history_services_2032 VALUES (NEW.*);
-
-
-
-
-
-         ELSIF  ( NEW.date BETWEEN DATE '2031-01-01' AND DATE '2031-12-31' ) THEN
-
-
-
-
-
-            INSERT INTO service_history_services_2031 VALUES (NEW.*);
-
-
-
-
-
-         ELSIF  ( NEW.date BETWEEN DATE '2030-01-01' AND DATE '2030-12-31' ) THEN
-
-
-
-
-
-            INSERT INTO service_history_services_2030 VALUES (NEW.*);
-
-
-
-
-
-         ELSIF  ( NEW.date BETWEEN DATE '2029-01-01' AND DATE '2029-12-31' ) THEN
-
-
-
-
-
-            INSERT INTO service_history_services_2029 VALUES (NEW.*);
-
-
-
-
-
-         ELSIF  ( NEW.date BETWEEN DATE '2028-01-01' AND DATE '2028-12-31' ) THEN
-
-
-
-
-
-            INSERT INTO service_history_services_2028 VALUES (NEW.*);
-
-
-
-
-
-         ELSIF  ( NEW.date BETWEEN DATE '2027-01-01' AND DATE '2027-12-31' ) THEN
-
-
-
-
-
-            INSERT INTO service_history_services_2027 VALUES (NEW.*);
-
-
-
-
-
-         ELSIF  ( NEW.date BETWEEN DATE '2026-01-01' AND DATE '2026-12-31' ) THEN
-
-
-
-
-
-            INSERT INTO service_history_services_2026 VALUES (NEW.*);
-
-
-
-
-
-         ELSIF  ( NEW.date BETWEEN DATE '2025-01-01' AND DATE '2025-12-31' ) THEN
-
-
-
-
-
-            INSERT INTO service_history_services_2025 VALUES (NEW.*);
-
-
-
-
-
-         ELSIF  ( NEW.date BETWEEN DATE '2024-01-01' AND DATE '2024-12-31' ) THEN
-
-
-
-
-
-            INSERT INTO service_history_services_2024 VALUES (NEW.*);
-
-
-
-
-
-         ELSIF  ( NEW.date BETWEEN DATE '2023-01-01' AND DATE '2023-12-31' ) THEN
-
-
-
-
-
-            INSERT INTO service_history_services_2023 VALUES (NEW.*);
-
-
-
-
-
-         ELSIF  ( NEW.date BETWEEN DATE '2022-01-01' AND DATE '2022-12-31' ) THEN
-
-
-
-
-
-            INSERT INTO service_history_services_2022 VALUES (NEW.*);
-
-
-
-
-
-         ELSIF  ( NEW.date BETWEEN DATE '2021-01-01' AND DATE '2021-12-31' ) THEN
-
-
-
-
-
-            INSERT INTO service_history_services_2021 VALUES (NEW.*);
-
-
-
-
-
-         ELSIF  ( NEW.date BETWEEN DATE '2020-01-01' AND DATE '2020-12-31' ) THEN
-
-
-
-
-
-            INSERT INTO service_history_services_2020 VALUES (NEW.*);
-
-
-
-
-
-         ELSIF  ( NEW.date BETWEEN DATE '2019-01-01' AND DATE '2019-12-31' ) THEN
-
-
-
-
-
-            INSERT INTO service_history_services_2019 VALUES (NEW.*);
-
-
-
-
-
-         ELSIF  ( NEW.date BETWEEN DATE '2018-01-01' AND DATE '2018-12-31' ) THEN
-
-
-
-
-
-            INSERT INTO service_history_services_2018 VALUES (NEW.*);
-
-
-
-
-
-         ELSIF  ( NEW.date BETWEEN DATE '2017-01-01' AND DATE '2017-12-31' ) THEN
-
-
-
-
-
-            INSERT INTO service_history_services_2017 VALUES (NEW.*);
-
-
-
-
-
-         ELSIF  ( NEW.date BETWEEN DATE '2016-01-01' AND DATE '2016-12-31' ) THEN
-
-
-
-
-
-            INSERT INTO service_history_services_2016 VALUES (NEW.*);
-
-
-
-
-
-         ELSIF  ( NEW.date BETWEEN DATE '2015-01-01' AND DATE '2015-12-31' ) THEN
-
-
-
-
-
-            INSERT INTO service_history_services_2015 VALUES (NEW.*);
-
-
-
-
-
-         ELSIF  ( NEW.date BETWEEN DATE '2014-01-01' AND DATE '2014-12-31' ) THEN
-
-
-
-
-
-            INSERT INTO service_history_services_2014 VALUES (NEW.*);
-
-
-
-
-
-         ELSIF  ( NEW.date BETWEEN DATE '2013-01-01' AND DATE '2013-12-31' ) THEN
-
-
-
-
-
-            INSERT INTO service_history_services_2013 VALUES (NEW.*);
-
-
-
-
-
-         ELSIF  ( NEW.date BETWEEN DATE '2012-01-01' AND DATE '2012-12-31' ) THEN
-
-
-
-
-
-            INSERT INTO service_history_services_2012 VALUES (NEW.*);
-
-
-
-
-
-         ELSIF  ( NEW.date BETWEEN DATE '2011-01-01' AND DATE '2011-12-31' ) THEN
-
-
-
-
-
-            INSERT INTO service_history_services_2011 VALUES (NEW.*);
-
-
-
-
-
-         ELSIF  ( NEW.date BETWEEN DATE '2010-01-01' AND DATE '2010-12-31' ) THEN
-
-
-
-
-
-            INSERT INTO service_history_services_2010 VALUES (NEW.*);
-
-
-
-
-
-         ELSIF  ( NEW.date BETWEEN DATE '2009-01-01' AND DATE '2009-12-31' ) THEN
-
-
-
-
-
-            INSERT INTO service_history_services_2009 VALUES (NEW.*);
-
-
-
-
-
-         ELSIF  ( NEW.date BETWEEN DATE '2008-01-01' AND DATE '2008-12-31' ) THEN
-
-
-
-
-
-            INSERT INTO service_history_services_2008 VALUES (NEW.*);
-
-
-
-
-
-         ELSIF  ( NEW.date BETWEEN DATE '2007-01-01' AND DATE '2007-12-31' ) THEN
-
-
-
-
-
-            INSERT INTO service_history_services_2007 VALUES (NEW.*);
-
-
-
-
-
-         ELSIF  ( NEW.date BETWEEN DATE '2006-01-01' AND DATE '2006-12-31' ) THEN
-
-
-
-
-
-            INSERT INTO service_history_services_2006 VALUES (NEW.*);
-
-
-
-
-
-         ELSIF  ( NEW.date BETWEEN DATE '2005-01-01' AND DATE '2005-12-31' ) THEN
-
-
-
-
-
-            INSERT INTO service_history_services_2005 VALUES (NEW.*);
-
-
-
-
-
-         ELSIF  ( NEW.date BETWEEN DATE '2004-01-01' AND DATE '2004-12-31' ) THEN
-
-
-
-
-
-            INSERT INTO service_history_services_2004 VALUES (NEW.*);
-
-
-
-
-
-         ELSIF  ( NEW.date BETWEEN DATE '2003-01-01' AND DATE '2003-12-31' ) THEN
-
-
-
-
-
-            INSERT INTO service_history_services_2003 VALUES (NEW.*);
-
-
-
-
-
-         ELSIF  ( NEW.date BETWEEN DATE '2002-01-01' AND DATE '2002-12-31' ) THEN
-
-
-
-
-
-            INSERT INTO service_history_services_2002 VALUES (NEW.*);
-
-
-
-
-
-         ELSIF  ( NEW.date BETWEEN DATE '2001-01-01' AND DATE '2001-12-31' ) THEN
-
-
-
-
-
-            INSERT INTO service_history_services_2001 VALUES (NEW.*);
-
-
-
-
-
-         ELSIF  ( NEW.date BETWEEN DATE '2000-01-01' AND DATE '2000-12-31' ) THEN
-
-
-
-
-
-            INSERT INTO service_history_services_2000 VALUES (NEW.*);
-
-
-
-
-
-        
-
-
-
-
-
-      ELSE
-
-
-
-
-
-        INSERT INTO service_history_services_remainder VALUES (NEW.*);
-
-
-
-
-
-        END IF;
-
-
-
-
-
-        RETURN NULL;
-
-
-
-
-
-    END;
-
-
-
-
-
+    AS $$
+      BEGIN
+      IF  ( NEW.date BETWEEN DATE '2050-01-01' AND DATE '2050-12-31' ) THEN
+            INSERT INTO service_history_services_2050 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2049-01-01' AND DATE '2049-12-31' ) THEN
+            INSERT INTO service_history_services_2049 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2048-01-01' AND DATE '2048-12-31' ) THEN
+            INSERT INTO service_history_services_2048 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2047-01-01' AND DATE '2047-12-31' ) THEN
+            INSERT INTO service_history_services_2047 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2046-01-01' AND DATE '2046-12-31' ) THEN
+            INSERT INTO service_history_services_2046 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2045-01-01' AND DATE '2045-12-31' ) THEN
+            INSERT INTO service_history_services_2045 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2044-01-01' AND DATE '2044-12-31' ) THEN
+            INSERT INTO service_history_services_2044 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2043-01-01' AND DATE '2043-12-31' ) THEN
+            INSERT INTO service_history_services_2043 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2042-01-01' AND DATE '2042-12-31' ) THEN
+            INSERT INTO service_history_services_2042 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2041-01-01' AND DATE '2041-12-31' ) THEN
+            INSERT INTO service_history_services_2041 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2040-01-01' AND DATE '2040-12-31' ) THEN
+            INSERT INTO service_history_services_2040 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2039-01-01' AND DATE '2039-12-31' ) THEN
+            INSERT INTO service_history_services_2039 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2038-01-01' AND DATE '2038-12-31' ) THEN
+            INSERT INTO service_history_services_2038 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2037-01-01' AND DATE '2037-12-31' ) THEN
+            INSERT INTO service_history_services_2037 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2036-01-01' AND DATE '2036-12-31' ) THEN
+            INSERT INTO service_history_services_2036 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2035-01-01' AND DATE '2035-12-31' ) THEN
+            INSERT INTO service_history_services_2035 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2034-01-01' AND DATE '2034-12-31' ) THEN
+            INSERT INTO service_history_services_2034 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2033-01-01' AND DATE '2033-12-31' ) THEN
+            INSERT INTO service_history_services_2033 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2032-01-01' AND DATE '2032-12-31' ) THEN
+            INSERT INTO service_history_services_2032 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2031-01-01' AND DATE '2031-12-31' ) THEN
+            INSERT INTO service_history_services_2031 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2030-01-01' AND DATE '2030-12-31' ) THEN
+            INSERT INTO service_history_services_2030 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2029-01-01' AND DATE '2029-12-31' ) THEN
+            INSERT INTO service_history_services_2029 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2028-01-01' AND DATE '2028-12-31' ) THEN
+            INSERT INTO service_history_services_2028 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2027-01-01' AND DATE '2027-12-31' ) THEN
+            INSERT INTO service_history_services_2027 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2026-01-01' AND DATE '2026-12-31' ) THEN
+            INSERT INTO service_history_services_2026 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2025-01-01' AND DATE '2025-12-31' ) THEN
+            INSERT INTO service_history_services_2025 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2024-01-01' AND DATE '2024-12-31' ) THEN
+            INSERT INTO service_history_services_2024 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2023-01-01' AND DATE '2023-12-31' ) THEN
+            INSERT INTO service_history_services_2023 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2022-01-01' AND DATE '2022-12-31' ) THEN
+            INSERT INTO service_history_services_2022 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2021-01-01' AND DATE '2021-12-31' ) THEN
+            INSERT INTO service_history_services_2021 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2020-01-01' AND DATE '2020-12-31' ) THEN
+            INSERT INTO service_history_services_2020 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2019-01-01' AND DATE '2019-12-31' ) THEN
+            INSERT INTO service_history_services_2019 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2018-01-01' AND DATE '2018-12-31' ) THEN
+            INSERT INTO service_history_services_2018 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2017-01-01' AND DATE '2017-12-31' ) THEN
+            INSERT INTO service_history_services_2017 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2016-01-01' AND DATE '2016-12-31' ) THEN
+            INSERT INTO service_history_services_2016 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2015-01-01' AND DATE '2015-12-31' ) THEN
+            INSERT INTO service_history_services_2015 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2014-01-01' AND DATE '2014-12-31' ) THEN
+            INSERT INTO service_history_services_2014 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2013-01-01' AND DATE '2013-12-31' ) THEN
+            INSERT INTO service_history_services_2013 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2012-01-01' AND DATE '2012-12-31' ) THEN
+            INSERT INTO service_history_services_2012 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2011-01-01' AND DATE '2011-12-31' ) THEN
+            INSERT INTO service_history_services_2011 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2010-01-01' AND DATE '2010-12-31' ) THEN
+            INSERT INTO service_history_services_2010 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2009-01-01' AND DATE '2009-12-31' ) THEN
+            INSERT INTO service_history_services_2009 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2008-01-01' AND DATE '2008-12-31' ) THEN
+            INSERT INTO service_history_services_2008 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2007-01-01' AND DATE '2007-12-31' ) THEN
+            INSERT INTO service_history_services_2007 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2006-01-01' AND DATE '2006-12-31' ) THEN
+            INSERT INTO service_history_services_2006 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2005-01-01' AND DATE '2005-12-31' ) THEN
+            INSERT INTO service_history_services_2005 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2004-01-01' AND DATE '2004-12-31' ) THEN
+            INSERT INTO service_history_services_2004 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2003-01-01' AND DATE '2003-12-31' ) THEN
+            INSERT INTO service_history_services_2003 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2002-01-01' AND DATE '2002-12-31' ) THEN
+            INSERT INTO service_history_services_2002 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2001-01-01' AND DATE '2001-12-31' ) THEN
+            INSERT INTO service_history_services_2001 VALUES (NEW.*);
+         ELSIF  ( NEW.date BETWEEN DATE '2000-01-01' AND DATE '2000-12-31' ) THEN
+            INSERT INTO service_history_services_2000 VALUES (NEW.*);
+        
+      ELSE
+        INSERT INTO service_history_services_remainder VALUES (NEW.*);
+        END IF;
+        RETURN NULL;
+    END;
     $$;
 
 
@@ -2193,6 +1637,19 @@ CREATE TABLE public."Client" (
 
 
 --
+-- Name: client_retention_marks; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.client_retention_marks (
+    id bigint NOT NULL,
+    client_id bigint NOT NULL,
+    marked_on date NOT NULL,
+    last_activity_on date NOT NULL,
+    retention_years integer NOT NULL
+);
+
+
+--
 -- Name: hmis_restricted_records; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -2205,19 +1662,6 @@ CREATE TABLE public.hmis_restricted_records (
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
     deleted_at timestamp(6) without time zone
-);
-
-
---
--- Name: client_retention_marks; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.client_retention_marks (
-    id bigint NOT NULL,
-    client_id bigint NOT NULL,
-    marked_on date NOT NULL,
-    last_activity_on date NOT NULL,
-    retention_years integer NOT NULL
 );
 
 
@@ -27156,6 +26600,25 @@ ALTER SEQUENCE public.client_retention_log_entries_id_seq OWNED BY public.client
 
 
 --
+-- Name: client_retention_marks_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.client_retention_marks_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: client_retention_marks_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.client_retention_marks_id_seq OWNED BY public.client_retention_marks.id;
+
+
+--
 -- Name: client_retention_runs; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -46368,25 +45831,6 @@ ALTER SEQUENCE public.import_thresholds_id_seq OWNED BY public.import_thresholds
 
 
 --
--- Name: client_retention_marks_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.client_retention_marks_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: client_retention_marks_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public.client_retention_marks_id_seq OWNED BY public.client_retention_marks.id;
-
-
---
 -- Name: inbound_api_configurations; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -53387,7 +52831,8 @@ CREATE TABLE public.uploads (
     deidentified boolean DEFAULT false,
     project_whitelist boolean DEFAULT false,
     encrypted_content text,
-    encrypted_content_iv character varying
+    encrypted_content_iv character varying,
+    export_source_check jsonb
 );
 
 
@@ -57909,6 +57354,13 @@ ALTER TABLE ONLY public.client_retention_log_entries ALTER COLUMN id SET DEFAULT
 
 
 --
+-- Name: client_retention_marks id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.client_retention_marks ALTER COLUMN id SET DEFAULT nextval('public.client_retention_marks_id_seq'::regclass);
+
+
+--
 -- Name: client_retention_runs id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -60594,13 +60046,6 @@ ALTER TABLE ONLY public.import_overrides ALTER COLUMN id SET DEFAULT nextval('pu
 --
 
 ALTER TABLE ONLY public.import_thresholds ALTER COLUMN id SET DEFAULT nextval('public.import_thresholds_id_seq'::regclass);
-
-
---
--- Name: client_retention_marks id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.client_retention_marks ALTER COLUMN id SET DEFAULT nextval('public.client_retention_marks_id_seq'::regclass);
 
 
 --
@@ -64607,6 +64052,14 @@ ALTER TABLE ONLY public.client_retention_log_entries
 
 
 --
+-- Name: client_retention_marks client_retention_marks_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.client_retention_marks
+    ADD CONSTRAINT client_retention_marks_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: client_retention_runs client_retention_runs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -67700,14 +67153,6 @@ ALTER TABLE ONLY public.import_overrides
 
 ALTER TABLE ONLY public.import_thresholds
     ADD CONSTRAINT import_thresholds_pkey PRIMARY KEY (id);
-
-
---
--- Name: client_retention_marks client_retention_marks_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.client_retention_marks
-    ADD CONSTRAINT client_retention_marks_pkey PRIMARY KEY (id);
 
 
 --
@@ -216914,6 +216359,13 @@ CREATE INDEX index_client_retention_log_entries_on_run_id ON public.client_reten
 
 
 --
+-- Name: index_client_retention_marks_on_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_client_retention_marks_on_client_id ON public.client_retention_marks USING btree (client_id);
+
+
+--
 -- Name: index_client_roi_authorizations_on_destination_client_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -220775,13 +220227,6 @@ CREATE INDEX index_import_overrides_on_data_source_id ON public.import_overrides
 --
 
 CREATE INDEX index_import_thresholds_on_data_source_id ON public.import_thresholds USING btree (data_source_id);
-
-
---
--- Name: index_client_retention_marks_on_client_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX index_client_retention_marks_on_client_id ON public.client_retention_marks USING btree (client_id);
 
 
 --
@@ -360835,6 +360280,7 @@ SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
 ('20260918121000'),
+('20260918120000'),
 ('20260916122000'),
 ('20260916121000'),
 ('20260916120000'),

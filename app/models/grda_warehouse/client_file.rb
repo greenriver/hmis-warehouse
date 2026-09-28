@@ -41,7 +41,7 @@ module GrdaWarehouse
 
     private def clear_active_storage_url
       # Only set the URL for S3 storage services
-      return unless Rails.application.config.active_storage.service.in?([:amazon, :minio])
+      return unless Rails.application.config.active_storage.service.in?([:amazon, :local_s3])
 
       self.active_storage_url = nil
     end

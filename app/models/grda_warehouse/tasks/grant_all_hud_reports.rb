@@ -30,7 +30,7 @@ module GrdaWarehouse::Tasks
     end
 
     def self.viewer_roles
-      Role.where(system: true, name: VIEWER_ROLE_NAME)
+      Role.where(system: false, name: VIEWER_ROLE_NAME)
     end
 
     def run!
