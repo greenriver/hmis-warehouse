@@ -53,14 +53,6 @@ module HapReport
       complete
     end
 
-    def start
-      update(started_at: Time.current)
-    end
-
-    def complete
-      update(completed_at: Time.current)
-    end
-
     def title
       'HAP Report'
     end

@@ -54,14 +54,6 @@ module CePerformance
       complete
     end
 
-    def start
-      update(started_at: Time.current)
-    end
-
-    def complete
-      update(completed_at: Time.current)
-    end
-
     def describe_filter_as_html(keys = nil, inline: false)
       keys ||= [
         :project_type_codes,
