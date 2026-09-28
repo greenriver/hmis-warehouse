@@ -75,6 +75,23 @@ RSpec.describe ApplicationJob do
       expect(failure_metric).not_to have_received(:increment)
     end
 
+    it 'discards cancelled jobs without counting a failure' do
+      stub_const('BaseCancelTestJob', Class.new(BaseJob) do
+        queue_as :__sigterm_test__
+
+        def perform
+          raise ApplicationJob::JobCancelled, 'Job cancelled'
+        end
+      end)
+      BaseCancelTestJob.perform_later
+
+      successes, failures = worker.work_off
+
+      expect([successes, failures]).to eq([1, 0])
+      expect(queued_job_classes).to be_empty
+      expect(failure_metric).not_to have_received(:increment)
+    end
+
     it 'counts genuine failures and lets them fail the job' do
       stub_const('BaseFailureTestJob', Class.new(BaseJob) do
         queue_as :__sigterm_test__
