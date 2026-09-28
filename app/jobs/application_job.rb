@@ -15,7 +15,24 @@ class ApplicationJob < ActiveJob::Base
   # When JobCancelled is raised, Active Job catches it and prevents any retries.
   discard_on JobCancelled
 
-  rescue_from JobInterrupted do |_error|
+  # Repeated interruptions of the same job are reported so retry loops stay visible.
+  INTERRUPTION_ALERT_THRESHOLD = 3
+
+  rescue_from JobInterrupted do |error|
+    # A job run inline with perform_now (e.g. an SPM backing a Homeless Summary Report)
+    # has no queue row of its own. Let the job that owns the worker requeue itself,
+    # rather than requeueing the inner job and letting the outer one carry on.
+    raise error if provider_job_id.blank?
+
+    Rails.logger.warn("#{self.class.name} interrupted (execution #{executions}): #{error.message}")
+    if executions >= INTERRUPTION_ALERT_THRESHOLD
+      Sentry.capture_message(
+        "#{self.class.name} interrupted #{executions} times",
+        level: :warning,
+        extra: { job_id: job_id, provider_job_id: provider_job_id },
+      )
+    end
+
     # Re-enqueue on SIGTERM so work resumes after the worker shuts down.
     # Delay to avoid immediately re-running in the same worker loop.
     wait_time = ENV.fetch('RETRY_DELAY_ON_INTERRUPTION', 60).to_i
