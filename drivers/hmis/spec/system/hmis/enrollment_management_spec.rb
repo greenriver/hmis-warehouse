@@ -30,6 +30,7 @@ RSpec.feature 'Enrollment/household management', type: :system do
   end
 
   def search_for_client(client)
+    expect(page).to have_field('Search for Client', disabled: false)
     fill_in 'Search for Client', with: client.last_name
     click_button 'Search'
   end
