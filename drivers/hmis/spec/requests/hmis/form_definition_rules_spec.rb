@@ -103,6 +103,18 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       end
     end
 
+    describe 'form definition with empty ALL custom_rule' do
+      let(:custom_rule) { { operator: 'ALL', parts: [] } }
+
+      it_behaves_like 'context matches rule'
+    end
+
+    describe 'form definition with empty ANY custom_rule' do
+      let(:custom_rule) { { operator: 'ANY', parts: [] } }
+
+      it_behaves_like 'context does not match rule'
+    end
+
     describe 'form definition with projectType rule AND projectType custom_rule' do
       let(:project_type) { 5 }
       let(:project_type_2) { 6 }
