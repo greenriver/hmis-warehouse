@@ -145,10 +145,16 @@
     = render 'common/panel_collapse', id: 'actives', title: 'Clients active within a date range', content: '_actives'
   .col-sm-2= render 'pages'
 %h2 CSRF tokens
-%p Two POST forms to different paths. With per-form tokens enabled their hidden tokens differ.
-= form_tag form_style_guide_path, id: 'csrf-form-a' do
-  = submit_tag 'A', class: 'btn btn-secondary'
-= form_tag datepicker_style_guide_path, id: 'csrf-form-b' do
-  = submit_tag 'B', class: 'btn btn-secondary'
-%p A form that submits into the ajax modal.
+%p
+  Fixtures for
+  %code spec/system/rails/per_form_csrf_tokens_spec.rb.
+%p
+  Forms A and B post to different paths. Their buttons are disabled because neither path accepts a POST.
+  With per-form tokens enabled, each form's hidden token is different.
+.d-flex.mb-4
+  = form_tag form_style_guide_path, id: 'csrf-form-a', class: 'mr-2' do
+    = submit_tag 'Form A', class: 'btn btn-secondary', disabled: true
+  = form_tag datepicker_style_guide_path, id: 'csrf-form-b' do
+    = submit_tag 'Form B', class: 'btn btn-secondary', disabled: true
+%p This form submits into the ajax modal.
 = render 'filters/view_filter_details', filter_hash: { start: '2024-01-01', end: '2024-12-31' }, selected_keys: [:start, :end]
