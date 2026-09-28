@@ -2,10 +2,297 @@
   "realm": "openpath",
   "enabled": true,
   "displayName": "Open Path",
+  "adminTheme": "keycloak.v2",
+  "loginTheme": "keycloak.v2",
+  "accountTheme": "keycloak.v3",
+  "emailTheme": "keycloak",
   "registrationAllowed": false,
   "resetPasswordAllowed": true,
   "loginWithEmailAllowed": true,
   "registrationEmailAsUsername": true,
+  "duplicateEmailsAllowed": false,
+  "verifyEmail": true,
+  "sslRequired": "external",
+  "eventsEnabled": true,
+  "eventsExpiration": 63158400,
+  "eventsListeners": [
+    "jboss-logging",
+    "email"
+  ],
+  "adminEventsEnabled": true,
+  "adminEventsDetailsEnabled": true,
+  "attributes": {
+    "adminEventsExpiration": "63158400"
+  },
+  "bruteForceProtected": true,
+  "failureFactor": 5,
+  "bruteForceStrategy": "LINEAR",
+  "waitIncrementSeconds": 60,
+  "maxFailureWaitSeconds": 86400,
+  "quickLoginCheckMilliSeconds": 1000,
+  "minimumQuickLoginWaitSeconds": 300,
+  "maxDeltaTimeSeconds": 43200,
+  "permanentLockout": true,
+  "maxTemporaryLockouts": 95,
+  "passwordPolicy": "length(15) and notUsername and notEmail and notContainsUsername and passwordHistory(5)",
+  "ssoSessionIdleTimeout": 1800,
+  "ssoSessionMaxLifespan": 28800,
+  "clientSessionIdleTimeout": 1800,
+  "clientSessionMaxLifespan": 28800,
+  "revokeRefreshToken": false,
+  "rememberMe": false,
+  "otpPolicyType": "totp",
+  "otpPolicyAlgorithm": "HmacSHA1",
+  "otpPolicyInitialCounter": 0,
+  "otpPolicyDigits": 6,
+  "otpPolicyLookAheadWindow": 1,
+  "otpPolicyPeriod": 30,
+  "otpPolicyCodeReusable": false,
+  "otpSupportedApplications": [
+    "totpAppGoogleName",
+    "totpAppFreeOTPName",
+    "totpAppMicrosoftAuthenticatorName"
+  ],
+  "webAuthnPolicyRpEntityName": "Open Path",
+  "webAuthnPolicyRpId": "op-keycloak.dev.test",
+  "webAuthnPolicySignatureAlgorithms": [
+    "ES256",
+    "RS256"
+  ],
+  "webAuthnPolicyAttestationConveyancePreference": "not specified",
+  "webAuthnPolicyAuthenticatorAttachment": "not specified",
+  "webAuthnPolicyRequireResidentKey": "not specified",
+  "webAuthnPolicyUserVerificationRequirement": "preferred",
+  "webAuthnPolicyCreateTimeout": 0,
+  "webAuthnPolicyAvoidSameAuthenticatorRegister": false,
+  "webAuthnPolicyAcceptableAaguids": [],
+  "requiredActions": [
+    {
+      "alias": "CONFIGURE_TOTP",
+      "name": "Configure OTP",
+      "providerId": "CONFIGURE_TOTP",
+      "enabled": true,
+      "defaultAction": false,
+      "priority": 10,
+      "config": {}
+    },
+    {
+      "alias": "UPDATE_EMAIL",
+      "name": "Update Email",
+      "providerId": "UPDATE_EMAIL",
+      "enabled": true,
+      "defaultAction": false,
+      "priority": 30,
+      "config": {}
+    },
+    {
+      "alias": "webauthn-register",
+      "name": "Webauthn Register",
+      "providerId": "webauthn-register",
+      "enabled": true,
+      "defaultAction": false,
+      "priority": 70,
+      "config": {}
+    },
+    {
+      "alias": "webauthn-register-passwordless",
+      "name": "Webauthn Register Passwordless",
+      "providerId": "webauthn-register-passwordless",
+      "enabled": false,
+      "defaultAction": false,
+      "priority": 80,
+      "config": {}
+    },
+    {
+      "alias": "CONFIGURE_RECOVERY_AUTHN_CODES",
+      "name": "Recovery Authentication Codes",
+      "providerId": "CONFIGURE_RECOVERY_AUTHN_CODES",
+      "enabled": true,
+      "defaultAction": false,
+      "priority": 90,
+      "config": {}
+    }
+  ],
+  "authenticationFlows": [
+    {
+      "alias": "browser-mfa",
+      "description": "Browser flow: password is sufficient (AAL1); a second factor is offered and, once enrolled, always required",
+      "providerId": "basic-flow",
+      "topLevel": true,
+      "builtIn": false,
+      "authenticationExecutions": [
+        {
+          "authenticator": "auth-cookie",
+          "authenticatorFlow": false,
+          "requirement": "ALTERNATIVE",
+          "priority": 10,
+          "userSetupAllowed": false
+        },
+        {
+          "authenticator": "identity-provider-redirector",
+          "authenticatorFlow": false,
+          "requirement": "ALTERNATIVE",
+          "priority": 20,
+          "userSetupAllowed": false
+        },
+        {
+          "flowAlias": "browser-mfa forms",
+          "authenticatorFlow": true,
+          "requirement": "ALTERNATIVE",
+          "priority": 30,
+          "userSetupAllowed": false
+        }
+      ]
+    },
+    {
+      "alias": "browser-mfa forms",
+      "description": "Username/password, then a second factor only if the user has enrolled one",
+      "providerId": "basic-flow",
+      "topLevel": false,
+      "builtIn": false,
+      "authenticationExecutions": [
+        {
+          "authenticator": "auth-username-password-form",
+          "authenticatorFlow": false,
+          "requirement": "REQUIRED",
+          "priority": 10,
+          "userSetupAllowed": false
+        },
+        {
+          "flowAlias": "browser-mfa mfa",
+          "authenticatorFlow": true,
+          "requirement": "CONDITIONAL",
+          "priority": 20,
+          "userSetupAllowed": false
+        }
+      ]
+    },
+    {
+      "alias": "browser-mfa mfa",
+      "description": "TOTP, WebAuthn or a backup code; skipped when the user has enrolled none of them. Keep all three as direct executions: conditional-user-configured cannot see factors inside a nested sub-flow.",
+      "providerId": "basic-flow",
+      "topLevel": false,
+      "builtIn": false,
+      "authenticationExecutions": [
+        {
+          "authenticator": "conditional-user-configured",
+          "authenticatorFlow": false,
+          "requirement": "REQUIRED",
+          "priority": 5,
+          "userSetupAllowed": false
+        },
+        {
+          "authenticator": "auth-otp-form",
+          "authenticatorFlow": false,
+          "requirement": "ALTERNATIVE",
+          "priority": 10,
+          "userSetupAllowed": false
+        },
+        {
+          "authenticator": "webauthn-authenticator",
+          "authenticatorFlow": false,
+          "requirement": "ALTERNATIVE",
+          "priority": 20,
+          "userSetupAllowed": false
+        },
+        {
+          "authenticator": "auth-recovery-authn-code-form",
+          "authenticatorFlow": false,
+          "requirement": "ALTERNATIVE",
+          "priority": 30,
+          "userSetupAllowed": false
+        }
+      ]
+    },
+    {
+      "alias": "reset-credentials-no-otp",
+      "description": "Forgot-password: reset password, then re-assert a second factor if the user has one enrolled. The alias predates MFA here; renaming it creates a new flow.",
+      "providerId": "basic-flow",
+      "topLevel": true,
+      "builtIn": false,
+      "authenticationExecutions": [
+        {
+          "authenticator": "reset-credentials-choose-user",
+          "authenticatorFlow": false,
+          "requirement": "REQUIRED",
+          "priority": 10,
+          "userSetupAllowed": false
+        },
+        {
+          "authenticator": "reset-credential-email",
+          "authenticatorFlow": false,
+          "requirement": "REQUIRED",
+          "priority": 20,
+          "userSetupAllowed": false
+        },
+        {
+          "authenticator": "reset-password",
+          "authenticatorFlow": false,
+          "requirement": "REQUIRED",
+          "priority": 30,
+          "userSetupAllowed": false
+        },
+        {
+          "flowAlias": "reset-credentials-mfa",
+          "authenticatorFlow": true,
+          "requirement": "CONDITIONAL",
+          "priority": 40,
+          "userSetupAllowed": false
+        }
+      ]
+    },
+    {
+      "alias": "reset-credentials-mfa",
+      "description": "TOTP, WebAuthn or a backup code; skipped when the user has enrolled none of them. Keep all three as direct executions: conditional-user-configured cannot see factors inside a nested sub-flow.",
+      "providerId": "basic-flow",
+      "topLevel": false,
+      "builtIn": false,
+      "authenticationExecutions": [
+        {
+          "authenticator": "conditional-user-configured",
+          "authenticatorFlow": false,
+          "requirement": "REQUIRED",
+          "priority": 5,
+          "userSetupAllowed": false
+        },
+        {
+          "authenticator": "auth-otp-form",
+          "authenticatorFlow": false,
+          "requirement": "ALTERNATIVE",
+          "priority": 10,
+          "userSetupAllowed": false
+        },
+        {
+          "authenticator": "webauthn-authenticator",
+          "authenticatorFlow": false,
+          "requirement": "ALTERNATIVE",
+          "priority": 20,
+          "userSetupAllowed": false
+        },
+        {
+          "authenticator": "auth-recovery-authn-code-form",
+          "authenticatorFlow": false,
+          "requirement": "ALTERNATIVE",
+          "priority": 30,
+          "userSetupAllowed": false
+        }
+      ]
+    }
+  ],
+  "browserFlow": "browser-mfa",
+  "resetCredentialsFlow": "reset-credentials-no-otp",
+  "smtpServer": {
+    "host": "localhost",
+    "port": "1025",
+    "from": "no-reply@dev.test",
+    "fromDisplayName": "Open Path",
+    "replyTo": "no-reply@dev.test",
+    "ssl": "false",
+    "starttls": "false",
+    "auth": "false",
+    "user": "unused",
+    "password": "unused"
+  },
   "clients": [
     {
       "clientId": "dex-connector",
@@ -21,10 +308,17 @@
         "https://dex.dev.test/dex/callback",
         "http://dex.dev.test:4443/dex/callback"
       ],
-      "webOrigins": ["*"],
+      "webOrigins": [
+        "https://hmis-warehouse.dev.test",
+        "https://hmis.dev.test"
+      ],
       "attributes": {
-        "post.logout.redirect.uris": "https://hmis-warehouse.dev.test/oauth2/sign_out##https://hmis.dev.test/oauth2/sign_out"
-      }
+        "post.logout.redirect.uris": "https://hmis-warehouse.dev.test/oauth2/sign_out##https://hmis.dev.test/oauth2/sign_out",
+        "login_theme": "keycloak.v2"
+      },
+      "name": "Open Path Warehouse",
+      "description": "OIDC client for the dex keycloak connector (dev). Dex presents this client to authenticate warehouse and HMIS users against the openpath realm.",
+      "optionalClientScopes": []
     },
     {
       "clientId": "warehouse-account",
@@ -40,21 +334,29 @@
         "https://hmis-warehouse.dev.test/account_email/edit",
         "https://hmis-warehouse.dev.test/account/edit"
       ],
-      "webOrigins": ["https://hmis-warehouse.dev.test"]
+      "webOrigins": [
+        "https://hmis-warehouse.dev.test"
+      ],
+      "name": "Warehouse Account",
+      "description": "Public client that account-console deep-links run under; its Base URL is where the user lands after confirming a new email."
     },
     {
       "clientId": "rails-service-account",
+      "name": "Rails Service Account",
+      "description": "Used for connecting from the warehouse for user sync.",
       "secret": "rails-service-account-secret-dev",
       "protocol": "openid-connect",
       "enabled": true,
       "publicClient": false,
       "standardFlowEnabled": false,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
       "serviceAccountsEnabled": true
+    },
+    {
+      "clientId": "admin-cli",
+      "directAccessGrantsEnabled": false
     }
-  ],
-  "groups": [
-    { "name": "warehouse-users" },
-    { "name": "hmis-users" }
   ],
   "users": [
     {
@@ -62,8 +364,26 @@
       "enabled": true,
       "serviceAccountClientId": "rails-service-account",
       "clientRoles": {
-        "realm-management": ["manage-realm", "manage-users", "view-users", "query-users"]
+        "realm-management": [
+          "manage-users",
+          "view-users",
+          "query-users",
+          "manage-realm"
+        ]
+      },
+      "attributes": {
+        "workflow-exempt": [
+          "true"
+        ]
       }
+    }
+  ],
+  "groups": [
+    {
+      "name": "warehouse-users"
+    },
+    {
+      "name": "hmis-users"
     }
   ]
 }
