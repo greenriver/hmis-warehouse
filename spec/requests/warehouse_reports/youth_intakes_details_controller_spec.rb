@@ -75,4 +75,19 @@ RSpec.describe 'WarehouseReports::YouthIntakesController#details', type: :reques
     expect(response.body).to include('Openfirst')
     expect(response.body).to include('Openlast')
   end
+
+  it 'lists every client when more clients than the preload miss threshold have an intake' do
+    clients = Array.new(preload_miss_client_count) do |i|
+      source = create(:hmis_hud_client, data_source: hmis_ds, first_name: "Preload#{i}", last_name: 'Coverage')
+      destination = create(:grda_warehouse_hud_client, FirstName: "Preload#{i}", LastName: 'Coverage')
+      GrdaWarehouse::WarehouseClient.create!(destination_id: destination.id, source_id: source.id, data_source_id: hmis_ds.id, id_in_source: source.id.to_s)
+      create_intake(destination, engagement_date: Date.current)
+      destination
+    end
+
+    get details_warehouse_reports_youth_intakes_path(key: 'total_client_ids_served', filter: { start: 1.month.ago.to_date, end: Date.current })
+
+    expect(response).to have_http_status(:ok)
+    clients.each { |client| expect(response.body).to include(client.FirstName) }
+  end
 end

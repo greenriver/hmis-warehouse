@@ -6,7 +6,9 @@
         %th Engagement Date
         %th Last Seen
     %tbody
-      - @report.clients.each do |client|
+      - clients = @report.clients
+      - current_user.policy_context.preload_client_dependencies(clients.map { |c| c[:id] })
+      - clients.each do |client|
         - pii = GrdaWarehouse::PiiProvider.from_attributes(policy: current_user.reporting_policy_for_project(project_id: nil, client_id: client[:id]), first_name: client[:first_name], last_name: client[:last_name])
         %tr
           %td= link_to pii.brief_name, client_path(client[:id])

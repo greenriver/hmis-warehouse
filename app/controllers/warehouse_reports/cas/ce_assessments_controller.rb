@@ -20,8 +20,10 @@ module WarehouseReports::Cas
             select(@report.columns).
             order(@report.order)
           @pagy, @clients = pagy(@clients, items: 50)
+          current_user.policy_context.preload_client_dependencies(@clients.map(&:id))
         end
         format.xlsx do
+          current_user.policy_context.preload_client_dependencies(@report.clients.pluck(:id))
           filename = 'CE Assessments.xlsx'
           headers['Content-Disposition'] = "attachment; filename=#{filename}"
         end

@@ -66,4 +66,13 @@ RSpec.describe 'warehouse_reports/cas/decision_efficiency/_table', type: :view d
     expect(rendered).to include('Name Redacted')
     expect(rendered).to include('Openfirst Openlast')
   end
+
+  it 'renders every client when more unrestricted clients than the preload miss threshold are listed' do
+    clients = Array.new(preload_miss_client_count) { |i| create(:grda_warehouse_hud_client, FirstName: "Preload#{i}", LastName: 'Coverage') }
+    assign(:data, clients.map { |client| row(client, first_name: client.FirstName, last_name: client.LastName) })
+
+    render
+
+    clients.each { |client| expect(rendered).to include("#{client.FirstName} #{client.LastName}") }
+  end
 end

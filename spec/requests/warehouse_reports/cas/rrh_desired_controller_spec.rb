@@ -74,4 +74,30 @@ RSpec.describe 'WarehouseReports::Cas::RrhDesiredController', type: :request do
     expect(response.body).to include('Name Redacted')
     expect(response.body).to include('Open Client')
   end
+
+  it 'lists every client when more unrestricted clients than the preload miss threshold are interested in RRH' do
+    clients = Array.new(preload_miss_client_count) do |i|
+      source = create(:hmis_hud_client, data_source: hmis_ds, first_name: "Preload#{i}", last_name: 'Coverage')
+      destination = create(:grda_warehouse_hud_client, FirstName: "Preload#{i}", LastName: 'Coverage')
+      create(:hud_enrollment, client: GrdaWarehouse::Hud::Client.find(source.id), project: project, data_source: hmis_ds)
+      GrdaWarehouse::WarehouseClient.create!(destination_id: destination.id, source_id: source.id, data_source_id: hmis_ds.id, id_in_source: source.id.to_s)
+      GrdaWarehouse::HmisForm.create!(
+        client_id: source.id,
+        data_source_id: hmis_ds.id,
+        assessment_id: pathways_assessment.assessment_id,
+        site_id: pathways_assessment.site_id,
+        collection_location: 'Site A',
+        collected_at: 1.day.ago,
+        staff: 'A Staffer',
+        staff_email: 'staffer@example.com',
+        rrh_desired: 'Yes',
+      )
+      destination
+    end
+
+    get warehouse_reports_cas_rrh_desired_index_path
+
+    expect(response).to have_http_status(:ok)
+    clients.each { |client| expect(response.body).to include("#{client.FirstName} #{client.LastName}") }
+  end
 end

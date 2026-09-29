@@ -161,4 +161,50 @@ RSpec.describe 'WarehouseReports::ExportCovidImpactAssessmentsController', type:
 
     expect(data_rows).to all(satisfy { |r| r.first(2) == ['Name Redacted', 'Name Redacted'] })
   end
+
+  describe 'with more unrestricted clients than the preload miss threshold' do
+    let!(:preload_clients) do
+      Array.new(preload_miss_client_count) do |i|
+        source = create(:hmis_hud_client, data_source: hmis_ds, first_name: "Preload#{i}", last_name: 'Coverage')
+        destination = create(:grda_warehouse_hud_client, FirstName: "Preload#{i}", LastName: 'Coverage')
+        GrdaWarehouse::WarehouseClient.create!(destination_id: destination.id, source_id: source.id, data_source_id: hmis_ds.id, id_in_source: source.id.to_s)
+        create(:hud_enrollment, client: GrdaWarehouse::Hud::Client.find(source.id), data_source: hmis_ds, project: project)
+        GrdaWarehouse::HmisForm.create!(
+          client_id: source.id,
+          data_source_id: hmis_ds.id,
+          site_id: 1,
+          assessment_id: 1,
+          name: 'COVID-19 Impact Assessment',
+          collected_at: Date.current,
+          staff: 'Staff Member',
+          answers: { sections: [] },
+          number_of_bedrooms: 2,
+          total_subsidy: 500,
+          subsidy_months: 12,
+          monthly_rent_total: 1000,
+          percent_ami: 30,
+          household_type: 'Family',
+          household_size: 3,
+        )
+        destination
+      end
+    end
+
+    it 'lists every client in html' do
+      get warehouse_reports_export_covid_impact_assessments_path
+
+      expect(response).to have_http_status(:ok)
+      preload_clients.each { |client| expect(response.body).to include(">#{client.FirstName}<") }
+    end
+
+    it 'lists every client in xlsx' do
+      GrdaWarehouse::Config.first_or_create.update!(include_pii_in_detail_downloads: true)
+      GrdaWarehouse::Config.invalidate_cache
+
+      get warehouse_reports_export_covid_impact_assessments_path(format: :xlsx)
+
+      expect(response).to have_http_status(:success)
+      expect(xlsx_cell_values(response)).to include(*preload_clients.map(&:FirstName))
+    end
+  end
 end

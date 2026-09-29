@@ -1,3 +1,4 @@
+- current_user.policy_context.preload_client_dependencies(list.map { |enrollment| enrollment.destination_client&.id })
 .table-responsive
   %table.table.table-striped
     %thead
