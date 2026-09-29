@@ -50,8 +50,7 @@ class Hmis::ProjectCeConfig < Hmis::ProjectConfig
   # Stored as Rails project primary keys, because receives_direct_ce_referrals_from? compares with
   # include?(source_project.id). A GraphQL [ID!] argument arrives as strings, and storing those
   # would make enforcement silently reject every sender, so cast here rather than at a single call
-  # site. Ids that are not numeric are dropped rather than coerced, since String#to_i would turn
-  # them into project 0 and quietly make the allowlist non-blank.
+  # site. Ids that are not numeric are dropped rather than coerced.
   def receives_direct_referrals_from=(value)
     ids = Array.wrap(value).compact_blank.filter_map { |id| Integer(id.to_s, 10, exception: false) }
     if ids.empty?
