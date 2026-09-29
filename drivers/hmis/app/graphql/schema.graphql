@@ -5044,6 +5044,7 @@ type File {
   access: FileAccess!
   confidential: Boolean
   contentType: String
+  customDataElements: [CustomDataElement!]!
   dateCreated: ISO8601DateTime
   dateUpdated: ISO8601DateTime
   effectiveDate: ISO8601Date

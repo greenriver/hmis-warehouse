@@ -74,6 +74,49 @@ RSpec.describe 'SubmitForm for File', type: :request do
     expect(record.updated_by).to eq(hmis_user) # changed to user who most recently edited
   end
 
+  describe 'custom data elements' do
+    let!(:cded) { create :hmis_custom_data_element_definition, data_source: ds1, owner_type: 'Hmis::File', field_type: :string, key: 'file_reference_number' }
+    before do
+      add_item_to_definition(definition, { type: 'STRING', link_id: 'reference_number', mapping: { custom_field_key: cded.key } })
+    end
+
+    let(:file_query) do
+      <<~GRAPHQL
+        query File($id: ID!) {
+          file(id: $id) {
+            id
+            customDataElements {
+              key
+              value { valueString }
+            }
+          }
+        }
+      GRAPHQL
+    end
+
+    it 'creates a CustomDataElement on a new file and resolves it through the File type' do
+      record, = submit_form(input.merge(hud_values: hud_values.merge(cded.key => 'ABC-123')))
+      file = Hmis::File.find(record['id'])
+      expect(file.custom_data_elements.map { |cde| [cde.data_element_definition, cde.value] }).to eq([[cded, 'ABC-123']])
+
+      _, result = post_graphql(id: file.id) { file_query }
+      expect(result.dig('data', 'file', 'customDataElements')).to eq(
+        [{ 'key' => cded.key, 'value' => { 'valueString' => 'ABC-123' } }],
+      )
+    end
+
+    it 'updates and clears the CustomDataElement on an existing file' do
+      submit_form(input.merge(record_id: file1.id, hud_values: hud_values.merge(cded.key => 'first')))
+      expect(file1.reload.custom_data_elements.map(&:value)).to eq(['first'])
+
+      submit_form(input.merge(record_id: file1.id, hud_values: hud_values.merge(cded.key => 'second')))
+      expect(file1.reload.custom_data_elements.map(&:value)).to eq(['second'])
+
+      submit_form(input.merge(record_id: file1.id, hud_values: hud_values.merge(cded.key => nil)))
+      expect(file1.reload.custom_data_elements).to be_empty
+    end
+  end
+
   describe 'permissions' do
     context 'when user lacks both file management permissions (even if they can still view the file)' do
       before { remove_permissions(access_control, :can_manage_any_client_files, :can_manage_own_client_files) }

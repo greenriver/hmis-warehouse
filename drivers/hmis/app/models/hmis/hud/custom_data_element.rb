@@ -62,7 +62,10 @@ class Hmis::Hud::CustomDataElement < Hmis::Hud::Base
   end
 
   def validate_owner_types_match
-    errors.add(:owner_type, :invalid) if data_element_definition.owner_type != owner_type
+    # `owner_type` is persisted as the STI base class name, which differs from the owner's own class for
+    # STI subclasses (Hmis::File is stored as 'GrdaWarehouse::File'). Definitions use the owner's own class name.
+    owner_class_name = owner&.class&.sti_name || owner_type
+    errors.add(:owner_type, :invalid) if data_element_definition.owner_type != owner_class_name
   end
 
   def validate_exactly_one_value

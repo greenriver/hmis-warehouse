@@ -8,6 +8,8 @@
 
 module Types
   class HmisSchema::File < Types::BaseObject
+    include Types::HmisSchema::HasCustomDataElements
+
     # Object is a Hmis::File
     description 'File'
     field :id, ID, null: false
@@ -28,6 +30,7 @@ module Types
     field :date_updated, GraphQL::Types::ISO8601DateTime, null: true
     field :date_created, GraphQL::Types::ISO8601DateTime, null: true
     hud_field :user, Application::User, null: true
+    custom_data_elements_field
 
     access_field do
       define_method(:policy) { @policy ||= policy_for(object, policy_type: :hmis_file) }
