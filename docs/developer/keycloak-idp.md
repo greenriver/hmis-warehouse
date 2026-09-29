@@ -23,9 +23,10 @@ usually already present; add if not):
 127.0.0.1 op-keycloak.dev.test dex.dev.test
 ```
 
-**2. Cookie secret + config.** The stack needs one secret. Set `OAUTH2_PROXY_COOKIE_SECRET` in
-`.env.development.local` (copy the line from `sample.env.development.local`), then generate the oauth2-proxy
-alpha-config into the gitignored `dev/auth/`:
+**2. Auth method, cookie secret + config.** In `.env.development.local`, set `AUTH_METHOD=jwt` (the
+default, `devise`, ignores the auth stack) and `OAUTH2_PROXY_COOKIE_SECRET` (copy the line from
+`sample.env.development.local`). Then generate the oauth2-proxy alpha-config into the gitignored
+`dev/auth/`:
 
 ```bash
 openssl rand -hex 16   # value for OAUTH2_PROXY_COOKIE_SECRET
@@ -57,6 +58,18 @@ docker compose up
 
 Then log into the Keycloak admin console at `https://op-keycloak.dev.test` (`admin` /
 `AdminPassword1!`); the `openpath` realm should be in the selector.
+
+**6. Service config.** Create the `Idp::ServiceConfig` row that lets Rails manage users in the local
+realm. Run it in `web`, `shell` or `console`, the Rails containers that load
+`docker/auth/keycloak-credentials.env`; anywhere else it silently does nothing:
+
+```bash
+docker compose exec web rails runner 'Idp::ServiceConfig.bootstrap_from_env'
+```
+
+Then check it at `/admin/idp_service_configs` with the row's **Test** button. See
+[Seeding from ENV](#seeding-from-env) for what it does and [the column values](#db-managed-idpserviceconfig)
+to create the row by hand instead.
 
 ## Applying `realm-import.json` changes
 
@@ -149,15 +162,20 @@ account has the Admin-API roles.
 
 ### Seeding from ENV
 
-`SeedMaker#seed_idp_service_config` materializes the row from ENV on deploy, so an existing
-ENV-configured install keeps working without a manual UI step. The dev stack provides the `KEYCLOAK_*`
-values to the `web` container via `docker/auth/keycloak-credentials.env`. Seeding
-is **create-only and idempotent**: it runs on every deploy but never clobbers a later UI edit, never
-resurrects a soft-deleted row, and never reactivates a disabled one. It is gated on the JWT auth method
-and on `KEYCLOAK_API_URL`/`KEYCLOAK_SERVICE_CLIENT_SECRET` being present, so a Devise install or an
-external-IdP customer (no `KEYCLOAK_*`) is a silent no-op. `KEYCLOAK_CONNECTOR_ID` (default `keycloak`)
-sets the row's `connector_id`. After the row exists, credential rotation is a UI/DB operation — ENV is
-not read again.
+`Idp::ServiceConfig.bootstrap_from_env` materializes the row from ENV. `db:seed` calls it through
+`SeedMaker#run_all` on every deploy, so an existing ENV-configured install keeps working without a
+manual UI step. In dev, run it directly (Setup step 6) rather than all of `db:seed`. The dev stack
+provides the `KEYCLOAK_*` values to the `web`, `shell` and `console` containers via
+`docker/auth/keycloak-credentials.env`.
+
+Seeding is **create-only and idempotent**: it never clobbers a later UI edit, never resurrects a
+soft-deleted row, and never reactivates a disabled one. If a row for the connector already exists,
+including a soft-deleted one, it does nothing. It is gated on `AUTH_METHOD=jwt` and on
+`KEYCLOAK_API_URL`, `KEYCLOAK_REALM`, `KEYCLOAK_SERVICE_CLIENT_ID` and
+`KEYCLOAK_SERVICE_CLIENT_SECRET` all being present, so a Devise install or an external-IdP customer
+(no `KEYCLOAK_*`) is a silent no-op. `KEYCLOAK_CONNECTOR_ID` (default `keycloak`) sets the row's
+`connector_id`. After the row exists, credential rotation is a UI/DB operation — ENV is not read
+again.
 
 ### Browser URL vs Admin API URL
 
