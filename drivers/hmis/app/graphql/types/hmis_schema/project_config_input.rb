@@ -14,8 +14,7 @@ module Types
     argument :length_of_absence_days, Int, required: false
     argument :receives_direct_referrals, Boolean, required: false
     # Allowlist of Project primary keys. Optional as a whole, so omitting it leaves any existing
-    # allowlist alone and an explicit empty array clears it. Elements are non-null in the schema
-    # ([ID!]) because the multi-select submits option codes, which are never null.
+    # allowlist alone and an explicit empty array clears it.
     argument :receives_direct_referrals_from, [ID], required: false
     argument :supports_waitlist_referrals, Boolean, required: false
     argument :project_type, Types::HmisSchema::Enums::ProjectType, required: false
