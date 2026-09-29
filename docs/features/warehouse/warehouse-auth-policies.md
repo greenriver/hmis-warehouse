@@ -68,7 +68,7 @@ context.preload_project_dependencies(project_ids)
 
 `DestinationClientPolicy` preloads its own client's identity, so single-client pages such as the client dashboard need no preload call of their own.
 
-Once a context falls back to single-id lookups for more distinct clients of one kind than `PreloadMissTracker::THRESHOLD` (3 in development and test, 10 elsewhere), it raises `PreloadMissError` in development and test and sends a Sentry warning in staging and production. The fix is a preload at the point where the list is loaded, not a higher threshold.
+Once a context falls back to single-id lookups for more distinct clients of one kind than `PreloadMissTracker::THRESHOLD` (10 in production, 3 everywhere else), it raises `PreloadMissError` in development and test and sends a Sentry warning in staging and production. Each warning is grouped by the first app or driver file outside the policy classes (tagged `preload_miss_call_site`) and carries the full backtrace. The fix is a preload at the point where the list is loaded, not a higher threshold.
 
 ## PII Provider Instantiation
 

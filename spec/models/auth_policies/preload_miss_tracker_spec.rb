@@ -41,8 +41,8 @@ RSpec.describe GrdaWarehouse::AuthPolicies::PreloadMissTracker do
   end
 
   context 'outside development and test' do
-    # THRESHOLD is set when the class loads, which is always under test, so the staging and
-    # production value is stubbed alongside Rails.env.local?.
+    # THRESHOLD is set when the class loads, which is always under test, so the production value
+    # is stubbed alongside Rails.env.local?.
     let(:alert_threshold) { 10 }
 
     before do
@@ -63,6 +63,33 @@ RSpec.describe GrdaWarehouse::AuthPolicies::PreloadMissTracker do
       expect(Sentry).to have_received(:capture_message).
         once.
         with(a_string_including('client_roi'), hash_including(level: :warning))
+    end
+
+    it 'groups the warning by the first app file outside the policy plumbing and attaches the backtrace' do
+      frame = ->(path, label) { instance_double(Thread::Backtrace::Location, absolute_path: path, base_label: label) }
+      root = Rails.root.to_s
+      allow(tracker).to receive(:caller_locations).and_return(
+        [
+          frame.call('/usr/local/bundle/gems/memery/lib/memery.rb', 'pii_provider'),
+          frame.call("#{root}/app/models/grda_warehouse/auth_policies/user_base_context.rb", 'preload_client'),
+          frame.call("#{root}/app/models/user.rb", 'policy_for'),
+          frame.call("#{root}/app/models/grda_warehouse/hud/client.rb", 'pii_provider'),
+          frame.call("#{root}/drivers/some_report/app/views/some_report/details.haml", '_render_template'),
+          frame.call("#{root}/app/controllers/some_controller.rb", 'index'),
+        ],
+      )
+
+      record_distinct(:client_roi, alert_threshold + 1)
+
+      site = 'drivers/some_report/app/views/some_report/details.haml'
+      expect(Sentry).to have_received(:capture_message).with(
+        anything,
+        hash_including(
+          fingerprint: ['preload-miss', 'client_roi', site],
+          tags: { preload_miss_call_site: site },
+          backtrace: array_including(a_string_including(__FILE__)),
+        ),
+      )
     end
   end
 end
