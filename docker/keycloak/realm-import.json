@@ -282,7 +282,7 @@
   "browserFlow": "browser-mfa",
   "resetCredentialsFlow": "reset-credentials-no-otp",
   "smtpServer": {
-    "host": "localhost",
+    "host": "mailhog",
     "port": "1025",
     "from": "no-reply@dev.test",
     "fromDisplayName": "Open Path",
