@@ -23,7 +23,9 @@ module WarehouseReports::Cas
           current_user.policy_context.preload_client_dependencies(@clients.map(&:id))
         end
         format.xlsx do
-          current_user.policy_context.preload_client_dependencies(@report.clients.pluck(:id))
+          # Instantiates every row. The xlsx view iterates this same memoized relation, so this adds
+          # no memory beyond what the view loads and avoids running the report query twice.
+          current_user.policy_context.preload_client_dependencies(@report.clients.map(&:id))
           filename = 'CE Assessments.xlsx'
           headers['Content-Disposition'] = "attachment; filename=#{filename}"
         end

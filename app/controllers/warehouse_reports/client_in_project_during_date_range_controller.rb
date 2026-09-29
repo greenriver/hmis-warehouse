@@ -34,7 +34,9 @@ module WarehouseReports
           current_user.policy_context.preload_client_dependencies(@clients.map(&:id))
         end
         format.xlsx do
-          current_user.policy_context.preload_client_dependencies(@clients.pluck(:id))
+          # Instantiates every row. The xlsx view iterates this same relation, so this adds no memory
+          # beyond what the view loads and avoids running the query twice.
+          current_user.policy_context.preload_client_dependencies(@clients.map(&:id))
         end
       end
     end
