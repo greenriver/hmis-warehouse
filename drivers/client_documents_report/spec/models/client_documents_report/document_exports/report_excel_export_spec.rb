@@ -103,4 +103,22 @@ RSpec.describe ClientDocumentsReport::DocumentExports::ReportExcelExport, type: 
     expect(open_row.keys).not_to include('Last Name', 'First Name')
     expect(open_row.keys).to include('Warehouse ID', 'Required Documents', 'Optional Documents', 'All Documents')
   end
+
+  it 'includes every client when more clients than the preload miss threshold are in the report' do
+    GrdaWarehouse::Config.first_or_create.update!(include_pii_in_detail_downloads: true)
+    GrdaWarehouse::Config.invalidate_cache
+    extra = Array.new(preload_miss_client_count) do |i|
+      source = create(:hmis_hud_client, data_source: hmis_ds, first_name: "Preload#{i}", last_name: 'Coverage')
+      destination = create(:grda_warehouse_hud_client, FirstName: "Preload#{i}", LastName: 'Coverage')
+      GrdaWarehouse::WarehouseClient.create!(destination_id: destination.id, source_id: source.id, data_source_id: hmis_ds.id, id_in_source: source.id.to_s)
+      create(:hud_enrollment, client: GrdaWarehouse::Hud::Client.find(source.id), data_source: hmis_ds, project: project)
+      create(:she_entry, client: destination, project: project, record_type: :entry, project_type: 1, first_date_in_program: 6.months.ago.to_date, last_date_in_program: nil)
+      destination
+    end
+
+    export.perform
+
+    expect(export.status).to eq(GrdaWarehouse::DocumentExport::COMPLETED_STATUS)
+    expect(xlsx_cell_values(export.file_data)).to include(*extra.map(&:FirstName))
+  end
 end

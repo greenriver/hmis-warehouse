@@ -104,4 +104,21 @@ RSpec.describe 'AdHocDataSources::UploadsController', type: :request do
       expect(response.body).not_to include('1999-12-01')
     end
   end
+
+  context 'with more matched unrestricted clients than the preload miss threshold' do
+    it 'shows every matched client name' do
+      extra = Array.new(preload_miss_client_count) do |i|
+        source = create(:hmis_hud_client, data_source: hmis_ds, first_name: "Preload#{i}", last_name: 'Coverage')
+        destination = create(:grda_warehouse_hud_client, FirstName: "Preload#{i}", LastName: 'Coverage')
+        GrdaWarehouse::WarehouseClient.create!(destination_id: destination.id, source_id: source.id, data_source_id: hmis_ds.id, id_in_source: source.id.to_s)
+        GrdaWarehouse::AdHocClient.create!(batch_id: batch.id, first_name: "Preload#{i}", last_name: 'Coverage', client_id: destination.id)
+        destination
+      end
+
+      get ad_hoc_data_source_upload_path(data_source, batch)
+
+      expect(response).to have_http_status(:ok)
+      extra.each { |client| expect(response.body).to include(client.FirstName) }
+    end
+  end
 end

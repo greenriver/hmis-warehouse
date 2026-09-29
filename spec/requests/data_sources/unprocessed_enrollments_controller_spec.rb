@@ -97,6 +97,19 @@ RSpec.describe DataSources::UnprocessedEnrollmentsController, type: :request do
         end
       end
 
+      describe 'with more unrestricted clients than the preload miss threshold' do
+        it 'lists every eligible enrollment' do
+          enrollments = Array.new(preload_miss_client_count) do
+            create(:hud_enrollment, data_source: data_source, project: project, client: create_linked_client(data_source), processed_as: nil)
+          end
+
+          get data_source_unprocessed_enrollments_path(data_source)
+
+          expect(response).to have_http_status(:ok)
+          enrollments.each { |enrollment| expect(response.body).to include("<td>#{enrollment.id}</td>") }
+        end
+      end
+
       describe 'processing status column' do
         let!(:not_yet_attempted) do
           create(:hud_enrollment, data_source: data_source, project: project, client: create_linked_client(data_source), processed_as: nil, processing_error: nil)

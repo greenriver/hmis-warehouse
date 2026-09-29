@@ -25,6 +25,7 @@ module WarehouseReports::HealthEmergency
     def show
       @batch = upload_scope.find(params[:id].to_i)
       @results = @batch.uploaded_tests
+      current_user.policy_context.preload_client_dependencies(@results.pluck(:client_id))
     end
 
     def create
