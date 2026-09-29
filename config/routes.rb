@@ -325,7 +325,6 @@ Rails.application.routes.draw do
       get 'rollup/:partial', to: 'clients#rollup', as: :rollup
       get :assessment
       # get :image
-      get :chronic_days
       patch :merge
       patch :unmerge
 

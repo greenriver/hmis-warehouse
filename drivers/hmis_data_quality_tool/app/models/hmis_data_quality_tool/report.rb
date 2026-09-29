@@ -59,7 +59,8 @@ module HmisDataQualityTool
     end
 
     def start
-      update(started_at: Time.current, state: 'Started')
+      # A retry clears the failure left by the previous attempt
+      update(started_at: Time.current, state: 'Started', failed_at: nil)
     end
 
     def complete

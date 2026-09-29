@@ -39,6 +39,15 @@ module SimpleReports
         )
     end
 
+    def start
+      # A retry clears the failure left by the previous attempt
+      update(started_at: Time.current, failed_at: nil)
+    end
+
+    def complete
+      update(completed_at: Time.current)
+    end
+
     def universe
       report_cells.universe.first_or_create # There can only be one universe for a simple report
     end

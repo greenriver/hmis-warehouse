@@ -15,7 +15,23 @@ class ApplicationJob < ActiveJob::Base
   # When JobCancelled is raised, Active Job catches it and prevents any retries.
   discard_on JobCancelled
 
-  rescue_from JobInterrupted do |_error|
+  # Repeated interruptions of the same job are reported so retry loops stay visible.
+  INTERRUPTION_ALERT_THRESHOLD = 3
+
+  rescue_from JobInterrupted do |error|
+    # A job run inline with perform_now has no queue row of its own. Let the job that owns the worker requeue itself,
+    # rather than requeueing the inner job and letting the outer one carry on.
+    raise error if provider_job_id.blank?
+
+    Rails.logger.warn("#{self.class.name} interrupted (execution #{executions}): #{error.message}")
+    if executions >= INTERRUPTION_ALERT_THRESHOLD
+      Sentry.capture_message(
+        "#{self.class.name} interrupted #{executions} times",
+        level: :warning,
+        extra: { job_id: job_id, provider_job_id: provider_job_id },
+      )
+    end
+
     # Re-enqueue on SIGTERM so work resumes after the worker shuts down.
     # Delay to avoid immediately re-running in the same worker loop.
     wait_time = ENV.fetch('RETRY_DELAY_ON_INTERRUPTION', 60).to_i
@@ -34,8 +50,9 @@ class ApplicationJob < ActiveJob::Base
   def check_halt_status!
     return unless self.class.queue_adapter_name == 'delayed_job'
 
-    # Check for SIGTERM first
-    if SignalHandlerPlugin.current_worker_stopping?
+    # Check for SIGTERM first. A job run inline stops only when the queued job running it
+    # is interruptible; otherwise it would stop a job that has already started.
+    if SignalHandlerPlugin.current_worker_stopping? && (provider_job_id.present? || SignalHandlerPlugin.current_job_interruptible?)
       msg = 'Job interrupted by SIGTERM'
       Rails.logger.warn(msg)
       raise JobInterrupted, msg
