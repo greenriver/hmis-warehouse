@@ -53,7 +53,7 @@ class Hmis::ProjectCeConfig < Hmis::ProjectConfig
   # site. Ids that are not numeric are dropped rather than coerced, since String#to_i would turn
   # them into project 0 and quietly make the allowlist non-blank.
   def receives_direct_referrals_from=(value)
-    ids = Array.wrap(value).compact_blank.filter_map { |id| Integer(id, exception: false) }
+    ids = Array.wrap(value).compact_blank.filter_map { |id| Integer(id.to_s, 10, exception: false) }
     if ids.empty?
       unset_config_option(RECEIVES_DIRECT_REFERRALS_FROM)
     else
