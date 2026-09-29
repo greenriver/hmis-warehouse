@@ -131,36 +131,52 @@ end
 # Per-worktree copy (gitignored). Line-based edits preserve the file's comments
 # (a Psych round-trip would strip them). All edits are idempotent.
 override = File.join(worktree_path, 'docker-compose.override.yml')
+
+# Index range of SERVICE's body lines (after its `  service:` line), or nil when
+# the override doesn't mention the service.
+def service_body(lines, service)
+  sidx = lines.index { |l| l.match?(/^ {2}#{Regexp.escape(service)}:\s*$/) }
+  return unless sidx
+
+  block_end = (sidx + 1...lines.size).find { |i| lines[i].match?(/^ {0,2}\S/) } || lines.size
+  (sidx + 1...block_end)
+end
+
+# Adds `  service:` right after the top-level `services:` line; returns its body start.
+def add_service(lines, service)
+  idx = lines.index { |l| l.match?(/^services:\s*$/) }
+  return unless idx
+
+  lines.insert(idx + 1, "  #{service}:\n")
+  idx + 2
+end
+
+# Sets SERVICE's container_name, replacing one the primary's override already sets.
+def set_container_name(lines, service, name)
+  name_line = "    container_name: #{name}\n"
+  body = service_body(lines, service)
+  cidx = body&.find { |i| lines[i].match?(/^ {4}container_name:/) }
+  return lines[cidx] = name_line if cidx
+
+  at = body ? body.first : add_service(lines, service)
+  lines.insert(at, name_line) if at
+end
+
 rewrite(override) do |content|
   lines = content.lines
 
-  # 1. Add `spec` and `yarn` service blocks right after the top-level `services:`
-  #    line (neither exists in the base override, so no duplicate-key risk).
-  #    spec: adds .env.test.local (compose appends it to the base env_file).
-  #    yarn: gives the asset watcher a unique container_name for concurrency.
+  # 1. yarn: a unique container_name so asset watchers can run concurrently.
+  #    spec: load .env.test.local (compose appends it to the base env_file) unless
+  #    the primary's override already does.
+  set_container_name(lines, 'yarn', "#{project}-yarn-#{name_dash}")
   unless content.include?('.env.test.local')
-    idx = lines.index { |l| l.match?(/^services:\s*$/) }
-    if idx
-      block = <<~BLOCK
-        \  spec:
-        \    env_file:
-        \      - .env.test.local
-        \  yarn:
-        \    container_name: #{project}-yarn-#{name_dash}
-      BLOCK
-      lines.insert(idx + 1, block)
-    end
+    body = service_body(lines, 'spec')
+    at = body ? body.first : add_service(lines, 'spec')
+    lines.insert(at, "    env_file:\n      - .env.test.local\n") if at
   end
 
-  # 2. Give the web service a unique container_name (override replaces the base's
-  #    fixed name), replacing one the primary's override already sets.
-  widx = lines.index { |l| l.match?(/^ {2}web:\s*$/) }
-  if widx
-    block_end = (widx + 1...lines.size).find { |i| lines[i].match?(/^ {0,2}\S/) } || lines.size
-    name_line = "    container_name: #{project}-web-#{name_dash}\n"
-    cidx = (widx + 1...block_end).find { |i| lines[i].match?(/^ {4}container_name:/) }
-    cidx ? lines[cidx] = name_line : lines.insert(widx + 1, name_line)
-  end
+  # 2. web: a unique container_name (override replaces the base's fixed name).
+  set_container_name(lines, 'web', "#{project}-web-#{name_dash}")
 
   # 3. Point the shared cache volumes at the primary's existing (project-prefixed)
   #    volumes so worktrees reuse them instead of creating empty per-project

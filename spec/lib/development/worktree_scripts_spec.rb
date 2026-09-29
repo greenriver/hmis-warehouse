@@ -94,6 +94,42 @@ RSpec.describe 'worktree hook scripts' do
         expect(override.dig('services', 'web', 'labels')).to eq(['traefik.docker.network=ai-sandbox'])
       end
     end
+
+    context 'when the primary override already loads .env.test.local into spec' do
+      before do
+        write('.envrc', "export NAME_PREFIX=ai-\n")
+        write('docker-compose.override.yml', <<~YAML)
+          services:
+            spec:
+              env_file:
+                - .env.test.local
+            web:
+              labels:
+                - traefik.docker.network=ai-sandbox
+        YAML
+      end
+
+      it 'still names the yarn container and keeps a single spec env_file entry' do
+        run_update
+        expect(override.dig('services', 'yarn', 'container_name')).to eq('ai-hmis-warehouse-yarn-feature-x')
+        expect(override.dig('services', 'spec', 'env_file')).to eq(['.env.test.local'])
+      end
+    end
+  end
+
+  describe 'worktree_pre_start.sh' do
+    let(:primary) { Dir.mktmpdir }
+
+    after { FileUtils.remove_entry(primary) }
+
+    it 'suffixes the test database names the primary .env.test.local sets' do
+      File.write(File.join(primary, '.env.test.local'), "WAREHOUSE_DATABASE_DB_TEST=ai_warehouse_test\n")
+      write('.env.test', "WAREHOUSE_DATABASE_DB_TEST=warehouse_test\n")
+      _out, err, status = Open3.capture3('bash', scripts.join('worktree_pre_start.sh').to_s, dir, 'feature/X', primary)
+      raise err unless status.success?
+
+      expect(read('.env.test.local')).to eq("WAREHOUSE_DATABASE_DB_TEST=ai_warehouse_test_wt_feature_x\n")
+    end
   end
 
   describe 'worktree_pre_remove.sh' do

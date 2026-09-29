@@ -40,4 +40,11 @@ for f in .env.local .env.development.local .envrc docker-compose.override.yml .p
   fi
 done
 
+# Optional: a primary that sets its own test database names (e.g. a second install
+# using NAME_PREFIX) keeps them here; without it the rewrite starts from .env.test.
+if [ -e "$primary_path/.env.test.local" ] && [ ! -e "$worktree_path/.env.test.local" ]; then
+  cp "$primary_path/.env.test.local" "$worktree_path/.env.test.local"
+  echo "  copied .env.test.local"
+fi
+
 ruby "$script_dir/update_worktree_env.rb" "$worktree_path" "$branch"

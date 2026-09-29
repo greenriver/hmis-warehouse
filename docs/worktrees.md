@@ -128,3 +128,16 @@ Its env files must point at its own containers by name (`DATABASE_HOST=ai-hmis-w
 `docker-compose.override.yml` should move it off the shared `development` network. Otherwise
 the `db` / `redis` service aliases resolve to both installs. Worktrees of that copy pick up the
 prefix from its `.envrc` and share its backing services, not main's.
+
+To make its databases easy to tell apart from main's, give them a prefix too. Set the dev
+names (`DATABASE_APP_DB=ai_development_openpath_app`, and so on) in its `.env.development.local`.
+For the test names, put the `*_DB_TEST` keys in a `.env.test.local` and have `spec` load it:
+
+```yaml
+services:
+  spec:
+    env_file:
+      - .env.test.local
+```
+
+Its worktrees copy that `.env.test.local` and add their `_wt_` suffix to those names.
