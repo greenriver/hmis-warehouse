@@ -8,9 +8,9 @@
 # Wired up in .config/wt.toml:
 #   pre-remove = "bash lib/development/scripts/worktree_pre_remove.sh {{ worktree_path }} {{ branch }}"
 #
-# Runs in the worktree being removed (its env files still exist), so exact DB
-# names are read back from .env.local / .env.development.local / .env.test.local
-# rather than recomputed.
+# Runs in the worktree being removed (its env files still exist), so the compose
+# project and NAME_PREFIX are read back from .envrc, and exact DB names from
+# .env.local / .env.development.local / .env.test.local, rather than recomputed.
 
 # Note: no `set -e` — we want to continue past individual drop failures.
 set -uo pipefail
@@ -19,8 +19,11 @@ worktree_path="${1:?worktree path required}"
 branch="${2:?branch required}"
 
 name_dash="$(printf '%s' "$branch" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9]+/-/g; s/^-+//; s/-+$//')"
-project="hmis-warehouse-${name_dash}"
-db_container="hmis-warehouse-db"
+envrc_value() { sed -nE "s/^export $1=[\"']?([^\"' ]*).*/\1/p" "$worktree_path/.envrc" 2>/dev/null | tail -1; }
+name_prefix="$(envrc_value NAME_PREFIX)"
+project="$(envrc_value COMPOSE_PROJECT_NAME)"
+project="${project:-${name_prefix}hmis-warehouse-${name_dash}}"
+db_container="${name_prefix}hmis-warehouse-db"
 
 # 1. Remove this worktree's app containers (web/yarn/dj). Shared services and the
 #    external cache volumes are not affected (no `-v`).

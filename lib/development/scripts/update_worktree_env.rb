@@ -7,7 +7,7 @@
 # frozen_string_literal: true
 
 # Rewrites a freshly-created git worktree's local environment so it uses isolated
-# databases and its own web domain, without touching the main development/test
+# databases and its own compose project, without touching the main development/test
 # databases. Invoked by lib/development/scripts/worktree_pre_start.sh (the
 # worktrunk pre-start hook).
 #
@@ -26,6 +26,12 @@ abort "worktree path does not exist: #{worktree_path}" unless File.directory?(wo
 #   db_suffix  — for postgres database names, appended after `_wt_` ([a-z0-9_], unquoted-safe)
 name_dash = branch.downcase.gsub(/[^a-z0-9]+/, '-').gsub(/\A-+|-+\z/, '')
 db_suffix = branch.downcase.gsub(/[^a-z0-9]+/, '_').gsub(/\A_+|_+\z/, '')
+
+# NAME_PREFIX (copied in from the primary .envrc) marks a second full install on
+# the same machine; its worktrees must use its containers and volumes, not main's.
+envrc = File.join(worktree_path, '.envrc')
+name_prefix = File.file?(envrc) ? File.read(envrc)[/^export NAME_PREFIX=["']?([a-z0-9-]*)/, 1].to_s : ''
+project = "#{name_prefix}hmis-warehouse"
 
 DEV_DB_KEYS = [
   'DATABASE_APP_DB',
@@ -112,12 +118,12 @@ else
   warn '  WARNING: .env.test not found; skipping .env.test.local'
 end
 
-# --- .envrc (direnv: domain, compose project, traefik router) ---------------
-envrc = File.join(worktree_path, '.envrc')
+# --- .envrc (direnv: compose project, traefik) ------------------------------
+# Traefik stays off: worktree web labels would otherwise register routers that
+# compete with the primary's. Reach a worktree web via `docker compose port web 3000`.
 rewrite(envrc) do |content|
-  content = upsert_export(content, 'FQDN', "hmis-warehouse-#{name_dash}.dev.test")
-  content = upsert_export(content, 'COMPOSE_PROJECT_NAME', "hmis-warehouse-#{name_dash}")
-  content = upsert_export(content, 'TRAEFIK_ROUTER_NAME', "op-#{name_dash}")
+  content = upsert_export(content, 'COMPOSE_PROJECT_NAME', "#{project}-#{name_dash}")
+  content = upsert_export(content, 'TRAEFIK_ENABLED', 'false')
   content
 end
 
@@ -140,36 +146,35 @@ rewrite(override) do |content|
         \    env_file:
         \      - .env.test.local
         \  yarn:
-        \    container_name: hmis-warehouse-yarn-#{name_dash}
+        \    container_name: #{project}-yarn-#{name_dash}
       BLOCK
       lines.insert(idx + 1, block)
     end
   end
 
   # 2. Give the web service a unique container_name (override replaces the base's
-  #    fixed name). Insert into the existing `web:` block if not already present.
-  unless content.match?(/container_name:\s*hmis-warehouse-web-/)
-    widx = lines.index { |l| l.match?(/^ {2}web:\s*$/) }
-    lines.insert(widx + 1, "    container_name: hmis-warehouse-web-#{name_dash}\n") if widx
+  #    fixed name), replacing one the primary's override already sets.
+  widx = lines.index { |l| l.match?(/^ {2}web:\s*$/) }
+  if widx
+    block_end = (widx + 1...lines.size).find { |i| lines[i].match?(/^ {0,2}\S/) } || lines.size
+    name_line = "    container_name: #{project}-web-#{name_dash}\n"
+    cidx = (widx + 1...block_end).find { |i| lines[i].match?(/^ {4}container_name:/) }
+    cidx ? lines[cidx] = name_line : lines.insert(widx + 1, name_line)
   end
 
-  # 3. Point the shared cache volumes at main's existing (project-prefixed)
+  # 3. Point the shared cache volumes at the primary's existing (project-prefixed)
   #    volumes so worktrees reuse them instead of creating empty per-project
-  #    copies. The `hmis-warehouse_` prefix keeps them from colliding with other
-  #    apps' identically-named volumes.
-  {
-    'bundle_trixie' => 'hmis-warehouse_bundle_trixie',
-    'node_modules_trixie' => 'hmis-warehouse_node_modules_trixie',
-    'rails_cache_trixie' => 'hmis-warehouse_rails_cache_trixie',
-  }.each do |vol, external_name|
+  #    copies. The project prefix keeps them from colliding with other apps'
+  #    identically-named volumes.
+  ['bundle_trixie', 'node_modules_trixie', 'rails_cache_trixie'].each do |vol|
     vidx = lines.index { |l| l.match?(/^ {2}#{Regexp.escape(vol)}:\s*$/) }
     next unless vidx
     next if lines[vidx + 1].to_s.match?(/^\s+external:\s*true/)
 
-    lines[vidx] = "  #{vol}:\n    external: true\n    name: #{external_name}\n"
+    lines[vidx] = "  #{vol}:\n    external: true\n    name: #{project}_#{vol}\n"
   end
 
   lines.join
 end
 
-puts "Worktree environment configured for '#{branch}' (db suffix _wt_#{db_suffix}, domain hmis-warehouse-#{name_dash}.dev.test)."
+puts "Worktree environment configured for '#{branch}' (db suffix _wt_#{db_suffix}, compose project #{project}-#{name_dash})."
