@@ -1,16 +1,12 @@
 = cache(['clients', 'services', @client, can_view_confidential_project_names?, controller_path, current_user], expires_in: GrdaWarehouse::Hud::Client::CACHE_EXPIRY) do
-  - dots = { min: Float::INFINITY, max: -1, points: [] }
-
   %table.table
     %colgroup
       %col
       %col(style="width:6.5em;")
-      %col(style="width:12px;")
     %thead
       %tr
         %th Year of Service Start
         %th Bed Starts
-        %th
     %tbody
       - services = @client.source_enrollment_services.merge(GrdaWarehouse::Hud::Enrollment.visible_to(current_user))
       - st = services.arel_table
@@ -18,15 +14,3 @@
         %tr
           %td= year.to_i
           %td.num-cell= count
-          - dots[:min] = count if count < dots[:min]
-          - dots[:max] = count if count > dots[:max]
-          - dots[:points] << count
-          %td.dot
-
-  - if dots[:min] < dots[:max]
-    %script{ nonce: content_security_policy_nonce }
-      :plain
-        var dots = #{dots.to_json.html_safe};
-        $('#services td.dot').each(function(i){
-          $(this).append(App.util.colorDot({point:dots.points[i],low:dots.min,high:dots.max,center:true}));
-        });

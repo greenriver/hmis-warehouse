@@ -56,14 +56,6 @@ module HomelessSummaryReport
       complete
     end
 
-    def start
-      update(started_at: Time.current)
-    end
-
-    def complete
-      update(completed_at: Time.current)
-    end
-
     def describe_filter_as_html
       filter.describe_filter_as_html(
         [
@@ -487,10 +479,10 @@ module HomelessSummaryReport
       # With all the fields populated we need to process `exited_from_homeless_system`
       report_clients = report_clients.transform_values! do |client|
         client.spm_exited_from_homeless_system = (
-            client.spm_m7a1_c3 ||
-            client.spm_m7a1_c4 ||
-            client.spm_m7b1_c3
-          ) && !client.spm_m7b2_c3
+          client.spm_m7a1_c3 ||
+          client.spm_m7a1_c4 ||
+          client.spm_m7b1_c3
+        ) && !client.spm_m7b2_c3
         client
       end
 
