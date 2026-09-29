@@ -45,13 +45,31 @@ RSpec.describe ApplicationJob do
   end
 
   describe 'BaseJob subclasses with DJ metrics enabled' do
-    let(:failure_metric) { double('counter', increment: nil) }
+    let(:recorded_statuses) { [] }
+    let(:status_metric) do
+      instance_double(Prometheus::Client::Counter).tap do |metric|
+        allow(metric).to receive(:increment) { |labels:| recorded_statuses << labels[:status] }
+      end
+    end
     let(:worker) { Delayed::Worker.new(queues: ['__sigterm_test__']) }
+
+    # Delayed::Worker.new rebuilds the lifecycle from Delayed::Worker.plugins
+    around do |example|
+      Delayed::Worker.plugins << DjMetrics::Plugin
+      example.run
+    ensure
+      Delayed::Worker.plugins.delete(DjMetrics::Plugin)
+      Delayed::Worker.setup_lifecycle
+    end
 
     before do
       Delayed::Job.delete_all
-      allow(BaseJob).to receive(:record_dj_metrics?).and_return(true)
-      allow(DjMetrics).to receive(:instance).and_return(double('dj_metrics', dj_job_status_total_metric: failure_metric))
+      allow(DjMetrics.instance).to receive_messages(
+        dj_job_status_total_metric: status_metric,
+        dj_jobs_enqueued_total_metric: instance_double(Prometheus::Client::Counter, increment: nil),
+        dj_workers_busy_metric: instance_double(Prometheus::Client::Gauge, increment: nil, decrement: nil),
+        dj_job_run_length_seconds_metric: instance_double(Prometheus::Client::Histogram, observe: nil),
+      )
     end
 
     def queued_job_classes
@@ -72,7 +90,7 @@ RSpec.describe ApplicationJob do
 
       expect([successes, failures]).to eq([1, 0])
       expect(queued_job_classes).to eq(['BaseInterruptTestJob'])
-      expect(failure_metric).not_to have_received(:increment)
+      expect(recorded_statuses).to eq(['succeeded'])
     end
 
     it 'discards cancelled jobs without counting a failure' do
@@ -89,7 +107,7 @@ RSpec.describe ApplicationJob do
 
       expect([successes, failures]).to eq([1, 0])
       expect(queued_job_classes).to be_empty
-      expect(failure_metric).not_to have_received(:increment)
+      expect(recorded_statuses).to eq(['succeeded'])
     end
 
     it 'counts genuine failures and lets them fail the job' do
@@ -105,7 +123,7 @@ RSpec.describe ApplicationJob do
       _successes, failures = worker.work_off
 
       expect(failures).to eq(1)
-      expect(failure_metric).to have_received(:increment).with(labels: hash_including(status: 'failure', job_name: 'BaseFailureTestJob'))
+      expect(recorded_statuses).to include('errored')
     end
 
     it 're-enqueues the outer job when a job it runs with perform_now is interrupted' do
