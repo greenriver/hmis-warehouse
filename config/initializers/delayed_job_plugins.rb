@@ -13,6 +13,12 @@ class SignalHandlerPlugin < Delayed::Plugin
       worker&.stop? || false
     end
 
+    # A job run inline with perform_now has no queue row of its own, so it takes on the
+    # interruptibility of the queued job running it.
+    def current_job_interruptible?
+      Thread.current[:delayed_job]&.interruptible? || false
+    end
+
     # Tell the worker bound to this thread to stop reserving new jobs and exit
     # after the current one. The process exits, and Kubernetes recreates the pod
     # with a freshly-rotated IRSA web-identity token.
@@ -31,9 +37,11 @@ class SignalHandlerPlugin < Delayed::Plugin
     # the default identity handler only forwards whatever args it's given.
     lifecycle.around(:perform) do |worker, job, &block|
       Thread.current[:delayed_job_worker] = worker
+      Thread.current[:delayed_job] = job
       block&.call(worker, job)
     ensure
       Thread.current[:delayed_job_worker] = nil
+      Thread.current[:delayed_job] = nil
     end
   end
 end

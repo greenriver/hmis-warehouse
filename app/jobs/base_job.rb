@@ -36,6 +36,18 @@ class BaseJob < ApplicationJob
 
   attr_accessor :start_time
 
+  # Counted here rather than with rescue_from StandardError: a later rescue_from takes
+  # precedence over ApplicationJob's JobInterrupted/JobCancelled handlers, which would
+  # turn every interruption or cancellation into a job failure.
+  around_perform do |job, block|
+    block.call
+  rescue JobInterrupted, JobCancelled
+    raise
+  rescue StandardError
+    DjMetrics.instance.dj_job_status_total_metric.increment(labels: { queue: job.queue_name, priority: job.priority, status: 'failure', job_name: job.class.name }) if BaseJob.record_dj_metrics?
+    raise
+  end
+
   # The delayed job worker is the only container that runs the exporter which scrapes
   # these metrics; see the ENABLE_DJ_METRICS branch in docker/app/entrypoint.sh. Keep
   # the two conditions in step, or jobs record metrics nothing reads.
@@ -50,10 +62,6 @@ class BaseJob < ApplicationJob
 
     # The hooks only record what the delayed job worker performs. Jobs that run
     # outside of worker (via EKS cron or perform_now) are not tracked.
-    rescue_from StandardError do |err|
-      DjMetrics.instance.dj_job_status_total_metric.increment(labels: { queue: queue_name, priority: priority, status: 'failure', job_name: self.class.name })
-      raise err
-    end
 
     # When called through Active::Job, uses this hook
     before_perform do |job|
