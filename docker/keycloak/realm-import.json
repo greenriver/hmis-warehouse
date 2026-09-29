@@ -34,7 +34,7 @@
   "maxDeltaTimeSeconds": 43200,
   "permanentLockout": true,
   "maxTemporaryLockouts": 95,
-  "passwordPolicy": "length(15) and notUsername and notEmail and notContainsUsername and passwordHistory(5)",
+  "passwordPolicy": "length(15) and notUsername and notEmail and notContainsUsername and passwordHistory(5) and hibp",
   "ssoSessionIdleTimeout": 1800,
   "ssoSessionMaxLifespan": 28800,
   "clientSessionIdleTimeout": 1800,
