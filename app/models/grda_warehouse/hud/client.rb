@@ -1132,6 +1132,8 @@ module GrdaWarehouse::Hud
     # @param hr_status [String] the housing release status to set, if overriding the default
     def invalidate_consent!(hr_status: nil)
       self.class.invalidate_consent!(id, hr_status: hr_status)
+      # Only the instance method rebuilds: GenerateClientRoiAuthorizationsTask calls the class method
+      GrdaWarehouse::Tasks::GenerateClientRoiAuthorizationsTask.rebuild_clients([id])
     end
 
     # Clear consent fields for one or more clients and invalidate their view caches.

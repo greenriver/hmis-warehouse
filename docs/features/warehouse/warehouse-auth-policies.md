@@ -12,7 +12,7 @@ The system consists of three main components:
 
 - **Entry Point**: `User#policy_for(resource)` or `User#reporting_policy_for_project(project_id)` are the primary ways to obtain a policy.
 - **Context Objects**: `UserAclContext` and `UserLegacyContext` encapsulate permission lookups. They provide a common interface for policies to query permissions without knowing how they are stored or resolved.
-- **Context Loaders**: Specialized objects (e.g., `ClientRoiLoader`) that provide cached data loading for policies to avoid N+1 queries.
+- **Context Loaders**: Specialized objects (e.g., `ClientRoiLoader`) that provide cached data loading for policies to avoid N+1 queries. `ClientRoiLoader` reads `ClientRoiAuthorization.visible_in_cocs`; see [Client ROI and Consent](client-roi-and-consent.md).
 - **Policies**: Concrete classes inheriting from `BasePolicy` that define domain-specific authorization logic.
 
 ### Relationship Diagram

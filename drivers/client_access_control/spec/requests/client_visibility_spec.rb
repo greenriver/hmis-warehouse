@@ -109,6 +109,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
           consent_form_signed_on: past_date,
           consent_expires_on: future_date,
         )
+        GrdaWarehouse::Tasks::GenerateClientRoiAuthorizationsTask.rebuild_clients([both_destination_client.id])
         get client_path(both_destination_client)
         doc = Nokogiri::HTML(response.body)
         expect(response).to have_http_status(200)
@@ -187,6 +188,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
           consent_form_signed_on: past_date,
           consent_expires_on: future_date,
         )
+        GrdaWarehouse::Tasks::GenerateClientRoiAuthorizationsTask.rebuild_clients([window_destination_client.id])
         get client_path(window_destination_client)
         expect(response).to have_http_status(200)
       end
@@ -198,6 +200,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
           consent_form_signed_on: past_date,
           consent_expires_on: future_date,
         )
+        GrdaWarehouse::Tasks::GenerateClientRoiAuthorizationsTask.rebuild_clients([both_destination_client.id])
 
         get client_path(both_destination_client)
         doc = Nokogiri::HTML(response.body)
@@ -491,6 +494,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
           consent_form_signed_on: past_date,
           consent_expires_on: future_date,
         )
+        GrdaWarehouse::Tasks::GenerateClientRoiAuthorizationsTask.rebuild_clients([window_destination_client.id])
         get client_path(window_destination_client)
         expect(response).to have_http_status(200)
       end
@@ -585,6 +589,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
               consent_expires_on: future_date,
               consented_coc_codes: [],
             )
+            GrdaWarehouse::Tasks::GenerateClientRoiAuthorizationsTask.rebuild_clients([non_window_destination_client.id])
           end
           it 'user can see client dashboard for assigned client' do
             get client_path(non_window_destination_client)
@@ -607,6 +612,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
               consent_expires_on: future_date,
               consented_coc_codes: ['ZZ-999'],
             )
+            GrdaWarehouse::Tasks::GenerateClientRoiAuthorizationsTask.rebuild_clients([non_window_destination_client.id])
           end
           it 'user can see client dashboard for assigned client' do
             get client_path(non_window_destination_client)
@@ -629,6 +635,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
               consent_expires_on: future_date,
               consented_coc_codes: ['ZZ-999', 'AA-000'],
             )
+            GrdaWarehouse::Tasks::GenerateClientRoiAuthorizationsTask.rebuild_clients([non_window_destination_client.id])
           end
           it 'user can see client dashboard for assigned client' do
             get client_path(non_window_destination_client)
@@ -651,6 +658,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
               consent_expires_on: future_date,
               consented_coc_codes: ['AA-000'],
             )
+            GrdaWarehouse::Tasks::GenerateClientRoiAuthorizationsTask.rebuild_clients([non_window_destination_client.id])
           end
           it 'user cannot see client dashboard for assigned client' do
             get client_path(non_window_destination_client)
@@ -721,6 +729,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
           consent_form_signed_on: past_date,
           consent_expires_on: future_date,
         )
+        GrdaWarehouse::Tasks::GenerateClientRoiAuthorizationsTask.rebuild_clients([window_destination_client.id])
         get client_path(window_destination_client)
         expect(response).to have_http_status(200)
       end
@@ -811,6 +820,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
               consent_expires_on: future_date,
               consented_coc_codes: [],
             )
+            GrdaWarehouse::Tasks::GenerateClientRoiAuthorizationsTask.rebuild_clients([non_window_destination_client.id])
           end
           it 'user can see client dashboard for assigned client' do
             get client_path(non_window_destination_client)
@@ -831,6 +841,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
               consent_expires_on: future_date,
               consented_coc_codes: ['ZZ-999'],
             )
+            GrdaWarehouse::Tasks::GenerateClientRoiAuthorizationsTask.rebuild_clients([non_window_destination_client.id])
           end
           it 'user can see client dashboard for assigned client' do
             get client_path(non_window_destination_client)
@@ -851,6 +862,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
               consent_expires_on: future_date,
               consented_coc_codes: ['ZZ-999', 'AA-000'],
             )
+            GrdaWarehouse::Tasks::GenerateClientRoiAuthorizationsTask.rebuild_clients([non_window_destination_client.id])
           end
           it 'user can see client dashboard for assigned client' do
             get client_path(non_window_destination_client)
@@ -871,6 +883,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
               consent_expires_on: future_date,
               consented_coc_codes: ['AA-000'],
             )
+            GrdaWarehouse::Tasks::GenerateClientRoiAuthorizationsTask.rebuild_clients([non_window_destination_client.id])
           end
           it 'user cannot see client dashboard for assigned client' do
             get client_path(non_window_destination_client)
@@ -882,6 +895,39 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
           end
         end
       end
+    end
+  end
+
+  context 'when config va (implied consent) is in effect' do
+    let!(:user) { create :acl_user }
+    let(:roi_collection) { create :collection }
+
+    before do
+      GrdaWarehouse::Config.delete_all
+      create :config_va
+      GrdaWarehouse::Config.invalidate_cache
+      roi_collection.set_viewables({ data_sources: [window_visible_data_source.id] })
+      setup_access_control(user, can_view_client_enrollments_with_roi, roi_collection)
+      sign_in user
+    end
+
+    def set_release!(client, status)
+      client.update_columns(housing_release_status: status, consented_coc_codes: [])
+      GrdaWarehouse::Tasks::GenerateClientRoiAuthorizationsTask.rebuild_clients([client.id])
+    end
+
+    it 'renders the dashboard for a client with implied consent' do
+      set_release!(window_destination_client, Consent::Implied.no_release_string)
+      get client_path(window_destination_client)
+      expect(response).to have_http_status(200)
+      expect(response.body).to include(window_destination_client.FirstName)
+    end
+
+    it 'redirects away from the dashboard when consent is revoked' do
+      set_release!(window_destination_client, Consent::Implied.no_release_string)
+      window_destination_client.invalidate_consent!(hr_status: Consent::Implied.revoked_consent_string)
+      get client_path(window_destination_client)
+      expect(response).to redirect_to(user.my_root_path)
     end
   end
 end

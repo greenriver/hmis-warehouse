@@ -371,6 +371,7 @@ module GrdaWarehouse
           client.invalidate_consent!
         end
       end
+      GrdaWarehouse::Tasks::GenerateClientRoiAuthorizationsTask.rebuild_clients([client_id])
     end
 
     private def coc_available?

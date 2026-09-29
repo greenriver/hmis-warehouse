@@ -16,6 +16,12 @@ module GrdaWarehouse::Tasks
       new.perform(...)
     end
 
+    # Rebuilds the given clients immediately after a consent change. Runs outside the task-wide lock;
+    # rebuild_batch's row locks keep it consistent with a concurrent nightly run.
+    def self.rebuild_clients(client_ids)
+      new.rebuild_batch(client_ids)
+    end
+
     def perform(...)
       instrument_as_maintenance_task do |run|
         run.complete! if _perform(...)
@@ -36,29 +42,8 @@ module GrdaWarehouse::Tasks
         did_run = true
         scope = destination_client_scope
         scope = scope.where(id: client_ids) unless client_ids.nil?
-        scope.find_in_batches(batch_size: batch_size) do |batch|
-          values = []
-          # Clients in this batch that have no current ROI status (e.g. data correction removed their consent)
-          no_roi_status_ids = []
-          batch.each do |client|
-            result = process_client(client)
-            no_roi_status_ids << client.id if result.nil?
-            values << result if result
-          end
-
-          GrdaWarehouse::ClientRoiAuthorization.import(
-            values,
-            on_duplicate_key_update: {
-              conflict_target: [:destination_client_id],
-              columns: values.first&.keys&.excluding(:destination_client_id),
-            },
-          )
-
-          # Cleanup auth records for clients that have lost ROI status (but client still exists)
-          GrdaWarehouse::ClientRoiAuthorization.where(destination_client: no_roi_status_ids).delete_all
-          # Clears stale consent_form_id and related fields on the client record. This is a no-op
-          # for clients that never had consent, but necessary for those whose ROI was removed.
-          GrdaWarehouse::Hud::Client.invalidate_consent!(no_roi_status_ids) if no_roi_status_ids.any?
+        scope.in_batches(of: batch_size) do |batch|
+          rebuild_batch(batch.pluck(:id))
         end
 
         # Invalidate consent for clients whose ROI has expired but still have consent_form_id set
@@ -79,6 +64,36 @@ module GrdaWarehouse::Tasks
         end
       end
       did_run
+    end
+
+    # Reads the clients with row locks (id order, held until commit), so consent column writes wait for this
+    # rebuild and a concurrent rebuild always reads the latest committed consent.
+    # @param client_ids [Array<Integer>] destination client ids; others are ignored
+    def rebuild_batch(client_ids)
+      GrdaWarehouseBase.transaction do
+        values = []
+        # Clients in this batch that have no current ROI status (e.g. data correction removed their consent)
+        no_roi_status_ids = []
+        destination_client_scope.where(id: client_ids).order(:id).lock.each do |client|
+          result = process_client(client)
+          no_roi_status_ids << client.id if result.nil?
+          values << result if result
+        end
+
+        GrdaWarehouse::ClientRoiAuthorization.import(
+          values,
+          on_duplicate_key_update: {
+            conflict_target: [:destination_client_id],
+            columns: values.first&.keys&.excluding(:destination_client_id),
+          },
+        )
+
+        # Cleanup auth records for clients that have lost ROI status (but client still exists)
+        GrdaWarehouse::ClientRoiAuthorization.where(destination_client: no_roi_status_ids).delete_all
+        # Clears stale consent_form_id and related fields on the client record. This is a no-op
+        # for clients that never had consent, but necessary for those whose ROI was removed.
+        GrdaWarehouse::Hud::Client.invalidate_consent!(no_roi_status_ids) if no_roi_status_ids.any?
+      end
     end
 
     protected

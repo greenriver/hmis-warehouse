@@ -12,6 +12,13 @@ RSpec.describe GrdaWarehouse::Tasks::GenerateClientRoiAuthorizationsTask, type: 
   let(:task) { described_class.new }
   let(:today) { Date.current }
 
+  # Config.get caches across examples; pin an Indefinite release duration
+  before do
+    GrdaWarehouse::Config.delete_all
+    create(:config_b)
+    GrdaWarehouse::Config.invalidate_cache
+  end
+
   # Shared contexts for common test setups
   shared_context 'with release duration settings' do |duration, period = nil|
     before do
@@ -189,5 +196,39 @@ RSpec.describe GrdaWarehouse::Tasks::GenerateClientRoiAuthorizationsTask, type: 
         expect { expiry_date }.to raise_error(/unknown release duration/)
       end
     end
+  end
+  describe '.rebuild_clients' do
+    let!(:target) { create :grda_warehouse_hud_client, data_source: create(:destination_data_source), housing_release_status: GrdaWarehouse::Hud::Client.full_release_string }
+    let!(:bystander) { create :grda_warehouse_hud_client, data_source: target.data_source, housing_release_status: GrdaWarehouse::Hud::Client.full_release_string }
+
+    it 'builds rows only for the given clients' do
+      described_class.rebuild_clients([target.id])
+      expect(GrdaWarehouse::ClientRoiAuthorization.pluck(:destination_client_id, :status)).to contain_exactly([target.id, 'full'])
+    end
+
+    it 'removes the row when the client no longer has consent' do
+      described_class.rebuild_clients([target.id])
+      target.update_columns(housing_release_status: nil)
+      described_class.rebuild_clients([target.id])
+      expect(GrdaWarehouse::ClientRoiAuthorization.where(destination_client_id: target.id)).to be_empty
+    end
+
+    it 'row-locks the clients it rebuilds' do
+      expect(sql_during { described_class.rebuild_clients([target.id]) }).to include(a_string_matching(/FROM "Client".*FOR UPDATE/m))
+    end
+  end
+
+  describe '#_perform' do
+    it 'rebuilds every destination client under row locks' do
+      client = create :grda_warehouse_hud_client, data_source: create(:destination_data_source), housing_release_status: GrdaWarehouse::Hud::Client.full_release_string
+      expect(sql_during { described_class.new._perform }).to include(a_string_matching(/FROM "Client".*FOR UPDATE/m))
+      expect(GrdaWarehouse::ClientRoiAuthorization.where(destination_client_id: client.id).pluck(:status)).to eq(['full'])
+    end
+  end
+
+  def sql_during(&block)
+    statements = []
+    ActiveSupport::Notifications.subscribed(->(*, payload) { statements << payload[:sql] }, 'sql.active_record', &block)
+    statements
   end
 end

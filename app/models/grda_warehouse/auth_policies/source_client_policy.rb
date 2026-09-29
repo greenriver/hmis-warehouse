@@ -63,17 +63,15 @@ class GrdaWarehouse::AuthPolicies::SourceClientPolicy < GrdaWarehouse::AuthPolic
     resource
   end
 
-  # NOTE: this will query `destination_client.roi_authorizations` which could be a source of N+1 queries if authorizing
-  # multiple clients
+  # NOTE: loads through context.client_roi_loader; preload it when authorizing many clients to avoid N+1 queries
   #
-  # An ROI confers some level of visibility to the client under the following circumstances:
-  # - the source client must be in a data source with `obeys_consent=true`
-  # - the ROI has a valid status (not revoked). ROI fields are stored on the destination client record (for now)
-  # - if the ROI is restricted to certain COCs then the user's COCs must match (ROI may include "All CoCs", which matches like legacy consent)
-  # - the user has a role granting permission on source client project as follows:
-  #   - if the user has `can_search_client_with_roi`, we grant `can_search_own_clients` and `can_search_all_clients`
-  #   - if the user has `can_view_client_enrollments_with_roi`, we grant `can_view_clients`
-  # - ROI does not confer additional permissions. Additional permissions are identical to clients without an ROI, such as via direct assignment
+  # An ROI confers visibility when:
+  # - the source client is in a data source with `obey_consent=true`
+  # - the destination client has a ClientRoiAuthorization.visible_in_cocs row for one of the user's CoCs, or all CoCs.
+  #   Under Consent::Default a partial (CAS-only) release does not count
+  # - the user has a role on the source client's project granting `can_view_client_enrollments_with_roi`
+  #   (view) or `can_search_clients_with_roi` (search)
+  # ROI does not confer additional permissions such as name or SSN visibility.
   def roi_authorized?
     return false unless client.data_source&.obey_consent?
 

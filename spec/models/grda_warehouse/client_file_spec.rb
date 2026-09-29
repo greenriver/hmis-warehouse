@@ -67,6 +67,16 @@ RSpec.describe GrdaWarehouse::ClientFile, type: :model do
           expect(file.active_consent_form?).to be true
         end
 
+        it 'creates a full ROI authorization for the client' do
+          expect(GrdaWarehouse::ClientRoiAuthorization.where(destination_client_id: file.client_id).pluck(:status)).to eq(['full'])
+        end
+
+        it 'removes the visible ROI authorization when the client consent is invalidated' do
+          expect(GrdaWarehouse::ClientRoiAuthorization.visible_in_cocs([]).where(destination_client_id: file.client_id)).to exist
+          file.client.reload.invalidate_consent!
+          expect(GrdaWarehouse::ClientRoiAuthorization.visible_in_cocs([]).where(destination_client_id: file.client_id)).to be_empty
+        end
+
         describe 'when a new non-consent form is uploaded' do
           before :each do
             second_file.tag_list.add(other_tag.name)
