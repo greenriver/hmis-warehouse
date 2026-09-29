@@ -25,7 +25,7 @@ databases and no login, so it has no domain. Reach one with
 | File | Purpose |
 |------|---------|
 | `.config/wt.toml` | worktrunk project hooks (`pre-start`, `pre-remove`) — committed |
-| `lib/development/scripts/worktree_pre_start.sh` | copies gitignored env/compose files into the new worktree, then rewrites them |
+| `lib/development/scripts/worktree_pre_start.sh` | copies gitignored env/compose files (plus `.env.test.local` and `CLAUDE.local.md` when the primary has them) into the new worktree, then rewrites them |
 | `lib/development/scripts/update_worktree_env.rb` | isolates DB names, sets the compose project, turns traefik off, disables CAS |
 | `lib/development/scripts/worktree_pre_remove.sh` | drops the worktree's databases and removes its containers |
 | `docker-compose.yml` | `NAME_PREFIX` prefixes container names and image tags (see [A second full install](#a-second-full-install)) — committed |

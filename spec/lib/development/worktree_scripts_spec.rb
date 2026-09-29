@@ -122,13 +122,32 @@ RSpec.describe 'worktree hook scripts' do
 
     after { FileUtils.remove_entry(primary) }
 
+    def run_pre_start
+      _out, err, status = Open3.capture3('bash', scripts.join('worktree_pre_start.sh').to_s, dir, 'feature/X', primary)
+      raise err unless status.success?
+    end
+
     it 'suffixes the test database names the primary .env.test.local sets' do
       File.write(File.join(primary, '.env.test.local'), "WAREHOUSE_DATABASE_DB_TEST=ai_warehouse_test\n")
       write('.env.test', "WAREHOUSE_DATABASE_DB_TEST=warehouse_test\n")
-      _out, err, status = Open3.capture3('bash', scripts.join('worktree_pre_start.sh').to_s, dir, 'feature/X', primary)
-      raise err unless status.success?
+      run_pre_start
 
       expect(read('.env.test.local')).to eq("WAREHOUSE_DATABASE_DB_TEST=ai_warehouse_test_wt_feature_x\n")
+    end
+
+    it 'copies the primary CLAUDE.local.md into the worktree' do
+      File.write(File.join(primary, 'CLAUDE.local.md'), "primary notes\n")
+      run_pre_start
+
+      expect(read('CLAUDE.local.md')).to eq("primary notes\n")
+    end
+
+    it 'keeps a CLAUDE.local.md the worktree already has' do
+      File.write(File.join(primary, 'CLAUDE.local.md'), "primary notes\n")
+      write('CLAUDE.local.md', "worktree notes\n")
+      run_pre_start
+
+      expect(read('CLAUDE.local.md')).to eq("worktree notes\n")
     end
   end
 
