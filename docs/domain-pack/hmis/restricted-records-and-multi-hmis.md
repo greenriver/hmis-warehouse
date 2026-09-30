@@ -109,7 +109,7 @@ Multi-HMIS:
 7. Soft-delete the rest; mark the retained client's destination dirty for CE when enabled.
 
 Every moved record's prior foreign key is written to `pre_merge_mappings[key][record_id]`;
-`ClientMergeAudit::PRE_MERGE_MAPPING_EXPECTED_FIELDS` lists the 13 keys.
+`ClientMergeAudit::PRE_MERGE_MAPPING_EXPECTED_FIELDS` lists the keys.
 
 `Hmis::UndoMergeClientsJob` requires the `ClientMergeHistory` for the pair, a soft-deleted client,
 and mappings present. It clears `DateDeleted`, walks the mappings back, runs
@@ -211,7 +211,7 @@ check uses `true_hmis_user`, so an admin impersonating a blocked user is not loc
   set (`hmis_hostname_immutable`).
 - The go-live gate runs in `attach_data_source_id`, `Hmis::SessionsController#create`, and
   `Hmis::UsersController#show`. A new HMIS controller that skips `attach_data_source_id` is not gated.
-- Known gaps as of 2026-09: configuration tables not yet scoped by `data_source_id`, user lists not
+- Known gaps: configuration tables not yet scoped by `data_source_id`, user lists not
   filtered to the current data source, no per-data-source CoC management, no per-instance name and
   theme.
 

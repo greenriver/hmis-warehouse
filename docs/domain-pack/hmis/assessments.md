@@ -63,17 +63,17 @@ GraphQL names are inverted from the models: type `Assessment` (`Types::HmisSchem
 
 ## Key files
 
-- `drivers/hmis/app/models/hmis/hud/custom_assessment.rb:19` class; `:69` `in_progress`/stage scopes; `:77` `with_role`; `:108` `save_in_progress`; `:172` `save_submitted_assessment!` (enrollment side effects, LINK hooks); `:206` `new_with_defaults`; `:221` `group_household_assessments`; `:262` `deletion_would_cause_conflicting_enrollments?`.
-- `drivers/hmis/app/models/hmis/hud/assessment.rb:10` `Hmis::Hud::Assessment` (CE); `:30` `assessment_questions`, `assessment_results`.
-- `drivers/hmis/app/models/hmis/hud/validators/custom_assessment_validator.rb:23` `validate_assessment_date` (future, >20 years, before entry, after exit, duplicate annual/update warnings).
-- `drivers/hmis/app/graphql/mutations/submit_assessment.rb:44` `resolve`; `:54` FIXME on duplicated household rules; `:116` save.
-- `drivers/hmis/app/graphql/mutations/submit_household_assessments.rb:41` same-household check; `:45` same-stage check; `:53` FIXME; `:124` single transaction.
-- `drivers/hmis/app/graphql/mutations/save_assessment.rb:23` `supports_save_in_progress?` guard; `:43` `as_wip: true`.
-- `drivers/hmis/app/graphql/types/hmis_schema/assessment_input.rb:20` `find_or_create_assessment` under `with_lock`; `:54` second intake/exit refusal; `:67` `new_with_defaults`.
-- `drivers/hmis/app/graphql/types/hmis_schema/assessment.rb:35` "object is a Hmis::Hud::CustomAssessment"; `:44` `access_field` (one `bool_field`, three deprecated `can`); `:76` `role`; `:81` `definition` (expensive); `:96` `upgraded_definition_for_editing`; `:176` `form_processor` raises when missing.
-- `drivers/hmis/app/graphql/types/hmis_schema/ce_assessment.rb:10` `CeAssessment` wraps `Hmis::Hud::Assessment`; `:32` `form_definition_id` via `form_processor`.
-- `drivers/hmis/app/graphql/types/hmis_schema/has_assessments.rb:15` `assessments_field`; `:36` `scoped_assessments`.
-- `drivers/hmis/app/jobs/hmis/migrate_assessments_job.rb:27` `RELATED_RECORDS`; `:39` disability column map; `:86` `perform`; `:155` `build_assessments`; `:280` WIP skip on upsert; `:326` write transaction; `:339` `generate_empty_intakes`.
+- `drivers/hmis/app/models/hmis/hud/custom_assessment.rb`: class; `in_progress`/stage scopes; `with_role`; `save_in_progress`; `save_submitted_assessment!` (enrollment side effects, LINK hooks); `new_with_defaults`; `group_household_assessments`; `deletion_would_cause_conflicting_enrollments?`.
+- `drivers/hmis/app/models/hmis/hud/assessment.rb`: `Hmis::Hud::Assessment` (CE); `assessment_questions`, `assessment_results`.
+- `drivers/hmis/app/models/hmis/hud/validators/custom_assessment_validator.rb`: `validate_assessment_date` (future, >20 years, before entry, after exit, duplicate annual/update warnings).
+- `drivers/hmis/app/graphql/mutations/submit_assessment.rb`: `resolve`; FIXME on duplicated household rules; save.
+- `drivers/hmis/app/graphql/mutations/submit_household_assessments.rb`: same-household check; same-stage check; FIXME; single transaction.
+- `drivers/hmis/app/graphql/mutations/save_assessment.rb`: `supports_save_in_progress?` guard; `as_wip: true`.
+- `drivers/hmis/app/graphql/types/hmis_schema/assessment_input.rb`: `find_or_create_assessment` under `with_lock`; second intake/exit refusal; `new_with_defaults`.
+- `drivers/hmis/app/graphql/types/hmis_schema/assessment.rb`: "object is a Hmis::Hud::CustomAssessment"; `access_field` (one `bool_field`, the rest deprecated `can`); `role`; `definition` (expensive); `upgraded_definition_for_editing`; `form_processor` raises when missing.
+- `drivers/hmis/app/graphql/types/hmis_schema/ce_assessment.rb`: `CeAssessment` wraps `Hmis::Hud::Assessment`; `form_definition_id` via `form_processor`.
+- `drivers/hmis/app/graphql/types/hmis_schema/has_assessments.rb`: `assessments_field`; `scoped_assessments`.
+- `drivers/hmis/app/jobs/hmis/migrate_assessments_job.rb`: `RELATED_RECORDS`; disability column map; `perform`; `build_assessments`; WIP skip on upsert; write transaction; `generate_empty_intakes`.
 
 ## Gotchas
 
@@ -92,10 +92,10 @@ GraphQL names are inverted from the models: type `Assessment` (`Types::HmisSchem
 
 Repo-wide entries: `conventions/do-not-repeat.md` 13 (`BaseMutation`, which all three assessment mutations still extend) and 14 (raw-permission access helpers).
 
-- A third copy of the household business rules (HoH exit with open members, exit of a WIP enrollment, non-HoH intake before the HoH intake). Two copies exist: `drivers/hmis/app/graphql/mutations/submit_assessment.rb:54` and `drivers/hmis/app/graphql/mutations/submit_household_assessments.rb:53`, each with a FIXME. Instead: add the rule to `Hmis::Hud::Validators::CustomAssessmentValidator` (`drivers/hmis/app/models/hmis/hud/validators/custom_assessment_validator.rb`) so both mutations pick it up through `validates_with`.
+- A third copy of the household business rules (HoH exit with open members, exit of a WIP enrollment, non-HoH intake before the HoH intake). Two copies exist: `drivers/hmis/app/graphql/mutations/submit_assessment.rb` and `drivers/hmis/app/graphql/mutations/submit_household_assessments.rb`, each with a FIXME. Instead: add the rule to `Hmis::Hud::Validators::CustomAssessmentValidator` (`drivers/hmis/app/models/hmis/hud/validators/custom_assessment_validator.rb`) so both mutations pick it up through `validates_with`.
 - Exposing `Hmis::Hud::Assessment` as a GraphQL type or field named `Assessment`, or wrapping `CustomAssessment` in anything named `CeAssessment`. Instead: `Types::HmisSchema::CeAssessment` (`drivers/hmis/app/graphql/types/hmis_schema/ce_assessment.rb`) for the HUD CE record, `Types::HmisSchema::Assessment` for the envelope.
-- `can :x` inside `access_field` (`drivers/hmis/app/graphql/types/hmis_schema/assessment.rb:49`, three deprecated entries). Instead: `bool_field(:can_x) { policy.can_x? }` as at `:47`; see `authorization/hmis-graphql-authorization.md`.
-- Creating a `CustomAssessment` without a `FormProcessor` (a data migration that inserts envelopes alone). Instead: `Hmis::Hud::CustomAssessment.new_with_defaults` (`drivers/hmis/app/models/hmis/hud/custom_assessment.rb:206`) or let `Hmis::MigrateAssessmentsJob` build both.
+- `can :x` inside `access_field` (`drivers/hmis/app/graphql/types/hmis_schema/assessment.rb`, deprecated entries). Instead: `bool_field(:can_x) { policy.can_x? }` as in the same `access_field`; see `authorization/hmis-graphql-authorization.md`.
+- Creating a `CustomAssessment` without a `FormProcessor` (a data migration that inserts envelopes alone). Instead: `Hmis::Hud::CustomAssessment.new_with_defaults` (`drivers/hmis/app/models/hmis/hud/custom_assessment.rb`) or let `Hmis::MigrateAssessmentsJob` build both.
 
 ## Related
 
