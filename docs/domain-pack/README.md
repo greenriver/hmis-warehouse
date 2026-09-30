@@ -33,6 +33,9 @@ presumed stale. List files, never directories or globs. Never list a gitignored 
 `## Do not repeat`, `## Related`. Each section must read on its own: no "above" or "below",
 roughly 300 words or fewer. Long topics become two docs.
 
+Anchor facts to file paths, class, method, and constant names, never line numbers or commit SHAs,
+so a fact stays true until the named code is renamed, removed, or changes behavior.
+
 ## Keeping it current
 
     ruby bin/domain_pack check   # what CI runs on every pull request
@@ -42,6 +45,10 @@ CI fails when a listed source file changed and the manifest was not re-stamped, 
 lists a file that does not exist, when frontmatter is missing a required key, or when the
 manifest holds a file no doc lists. Re-stamping without reading the doc defeats the check;
 reviewers should ask for the doc change when they see a bare manifest change.
+
+In Claude Code, the `domain-pack-maintenance` skill (`.claude/skills/domain-pack-maintenance/`)
+walks through a failed check: give it the failed job URL and it re-verifies the affected docs,
+updates them, and re-stamps.
 
 ## Adding a doc
 
