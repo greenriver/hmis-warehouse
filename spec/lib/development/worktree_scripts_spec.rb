@@ -142,6 +142,25 @@ RSpec.describe 'worktree hook scripts' do
       end
     end
 
+    context 'when a comment indented like a service key sits inside the override web block' do
+      before do
+        write('.envrc', "export NAME_PREFIX=ai-\n")
+        write('docker-compose.override.yml', <<~YAML)
+          services:
+            web:
+            # apple silicon
+              platform: linux/arm64
+              container_name: ai-hmis-warehouse-web
+        YAML
+      end
+
+      it 'replaces the container_name after the comment instead of adding a second one' do
+        run_update
+        expect(read('docker-compose.override.yml').scan(/container_name: .*web.*/)).to eq(['container_name: ai-hmis-warehouse-web-feature-x'])
+        expect(override.dig('services', 'web', 'platform')).to eq('linux/arm64')
+      end
+    end
+
     context 'when the primary override already loads .env.test.local into spec' do
       before do
         write('.envrc', "export NAME_PREFIX=ai-\n")
@@ -235,6 +254,14 @@ RSpec.describe 'worktree hook scripts' do
         'exec ai-hmis-warehouse-db psql -U postgres -tc DROP DATABASE IF EXISTS "development_openpath_warehouse_wt_feature_x" WITH (FORCE);',
         'exec ai-hmis-warehouse-db psql -U postgres -tc DROP DATABASE IF EXISTS "ai_warehouse_test_wt_feature_x" WITH (FORCE);',
       )
+    end
+
+    it 'never runs compose down against the primary project named in a stale .envrc, even when the branch name is its suffix' do
+      write('.envrc', "export NAME_PREFIX=ai-\nexport COMPOSE_PROJECT_NAME=ai-hmis-warehouse\n")
+      env = { 'PATH' => "#{bin}:#{ENV.fetch('PATH')}" }
+      _out, _err, status = Open3.capture3(env, 'bash', scripts.join('worktree_pre_remove.sh').to_s, dir, 'hmis-warehouse')
+      expect(status.success?).to be(true)
+      expect(File.readlines(log, chomp: true).grep(/^compose /)).to eq(['compose -p ai-hmis-warehouse-hmis-warehouse down --remove-orphans'])
     end
   end
 end

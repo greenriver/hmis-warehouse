@@ -149,12 +149,12 @@ end
 override = File.join(worktree_path, 'docker-compose.override.yml')
 
 # Index range of SERVICE's body lines (after its `  service:` line), or nil when
-# the override doesn't mention the service.
+# the override doesn't mention the service. Comments at any indent stay inside the body.
 def service_body(lines, service)
   sidx = lines.index { |l| l.match?(/^ {2}#{Regexp.escape(service)}:\s*$/) }
   return unless sidx
 
-  block_end = (sidx + 1...lines.size).find { |i| lines[i].match?(/^ {0,2}\S/) } || lines.size
+  block_end = (sidx + 1...lines.size).find { |i| lines[i].match?(/^ {0,2}[^\s#]/) } || lines.size
   (sidx + 1...block_end)
 end
 

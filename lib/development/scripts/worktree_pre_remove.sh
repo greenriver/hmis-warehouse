@@ -21,14 +21,12 @@ branch="${2:?branch required}"
 name_dash="$(printf '%s' "$branch" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9]+/-/g; s/^-+//; s/-+$//')"
 envrc_value() { sed -nE "s/^export $1=[\"']?([^\"'[:space:]]*).*/\1/p" "$worktree_path/.envrc" 2>/dev/null | tail -1; }
 name_prefix="$(envrc_value NAME_PREFIX)"
-project="$(envrc_value COMPOSE_PROJECT_NAME)"
-# Only trust .envrc's project name if it is this worktree's. If pre-start aborted
-# before rewriting .envrc, it still holds the primary's COMPOSE_PROJECT_NAME and
-# `compose down` would tear down the primary's stack.
-case "$project" in
-  *"-${name_dash}") ;;
-  *) project="${name_prefix}hmis-warehouse-${name_dash}" ;;
-esac
+project="${name_prefix}hmis-warehouse-${name_dash}"
+# .envrc is the record of what pre-start named this worktree's project, but if
+# pre-start aborted before rewriting it, it still holds the primary's
+# COMPOSE_PROJECT_NAME and `compose down` would tear down the primary's stack.
+[ "$(envrc_value COMPOSE_PROJECT_NAME)" = "$project" ] || \
+  echo "  .envrc COMPOSE_PROJECT_NAME is not this worktree's; using $project"
 db_container="${name_prefix}hmis-warehouse-db"
 
 # 1. Remove this worktree's app containers (web/yarn/dj). Shared services and the
