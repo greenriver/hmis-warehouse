@@ -160,9 +160,9 @@ services:
     tty: true
     command: bin/rails server -b 0.0.0.0
     labels:
-      # Router name defaults to `op` (main). Worktrees set TRAEFIK_ROUTER_NAME=op-<name>
-      # in .envrc so concurrent worktree web containers get unique traefik routers
-      # (labels merge by append, so the name can't be overridden from the override file).
+      # Router name defaults to `op` (main). Worktrees set TRAEFIK_ENABLED=false in
+      # .envrc (they have no web service). A second install sets TRAEFIK_ROUTER_NAME
+      # in .envrc; labels merge by append, so it can't be overridden from the override file.
       - traefik.enable=${TRAEFIK_ENABLED:-false}
       - traefik.http.routers.${TRAEFIK_ROUTER_NAME:-op}.entrypoints=web
       - traefik.http.routers.${TRAEFIK_ROUTER_NAME:-op}.rule=Host(`${FQDN:-hmis-warehouse.dev.test}`)
