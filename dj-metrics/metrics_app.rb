@@ -11,17 +11,26 @@
 # This file is shared across all projects; ignore project-specific RuboCop rules
 # rubocop:disable all
 
-require_relative 'metrics_app'
-require 'prometheus/middleware/exporter'
-require 'prometheus/client/data_stores/direct_file_store'
-require 'prometheus/client/gauge'
-require 'prometheus/client/counter'
-require 'singleton'
-require_relative '../app/models/dj_metrics'
+require 'roda'
 
-DjMetrics.instance.register_metrics_for_metrics_endpoint!
+class MetricsApp < Roda
+  route do |r|
+    r.get 'healthz' do
+      'ok'
+    end
 
-use Rack::Deflater
-use Prometheus::Middleware::Exporter
+    r.get 'bootz' do
+      if File.exist?(DjMetrics::Plugin::FILENAME)
+        'ok'
+      else
+        response.status = 404
+        'error'
+      end
+    end
 
-run MetricsApp.freeze.app
+    # Catch-all route to redirect to /metrics
+    r.get true do
+      r.redirect '/metrics'
+    end
+  end
+end

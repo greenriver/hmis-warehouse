@@ -125,6 +125,7 @@ gem 'logstop'
 
 # Metrics
 gem 'prometheus-client'
+gem 'yabeda-activejob'
 gem 'yabeda-rails'
 gem 'yabeda-prometheus'
 gem 'yabeda-puma-plugin'

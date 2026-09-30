@@ -119,6 +119,9 @@ services:
       - eks
     entrypoint: "tini -- /usr/bin/entrypoint.dj-eks-test.sh"
     command: "delayed_job run --pool=*:1"
+    environment:
+      <<: *env
+      ENABLE_DJ_METRICS: 'true'
     ports:
       # visit localhost:34533/metrics
       - "${DJ_METRICS_PORT:-34533}:9292"
