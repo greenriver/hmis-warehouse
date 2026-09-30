@@ -569,6 +569,32 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
       end
     end
 
+    describe 'homeless_episodes_between over several stays' do
+      include_context 'enrollment rollup context'
+
+      let(:destination) { create :hud_client, data_source_id: warehouse_data_source.id, FirstName: 'Many', LastName: 'Stays' }
+      let(:source) { create_linked_source_client(destination, first_name: 'Many', last_name: 'Source') }
+
+      before do
+        create_enrollment(source, shelter_a, entry: '2020-01-01', exit_date: '2020-01-10')
+        create_enrollment(source, shelter_a, entry: '2020-03-01', exit_date: '2020-03-05')
+        create_enrollment(source, shelter_a, entry: '2020-07-01', exit_date: '2020-07-05')
+        rebuild_service_history!
+      end
+
+      it 'loads service rows once for all of the stays' do
+        episodes = nil
+        queries = 0
+        counter = ->(*, payload) { queries += 1 if payload[:sql].include?('FROM "service_history_services"') }
+        ActiveSupport::Notifications.subscribed(counter, 'sql.active_record') do
+          episodes = destination.homeless_episodes_between(start_date: Date.new(2019, 1, 1), end_date: Date.new(2021, 1, 1))
+        end
+
+        expect(episodes).to eq(2)
+        expect(queries).to eq(1)
+      end
+    end
+
     describe 'triggered by ph' do
       let!(:warehouse) { create :destination_data_source }
       let!(:source_ds) { create :source_data_source }
