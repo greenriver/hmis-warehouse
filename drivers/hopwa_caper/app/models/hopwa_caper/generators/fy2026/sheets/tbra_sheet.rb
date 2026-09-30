@@ -22,16 +22,22 @@ module HopwaCaper::Generators::Fy2026::Sheets
       { method: :housing_outcomes_sheet, label: 'Housing Outcomes for Households Served by this Activity' },
     ].freeze
 
+    # Shared with AccessToCareSheet so both report the same TBRA households
+    def self.relevant_enrollments(report)
+      p_t = Hmis::ArelHelper.instance.p_t
+      tbra_project_ids = GrdaWarehouse::Hud::Project.
+        where(p_t[:HousingType].eq(3).or(p_t[:HousingType].eq(nil))).select(:id)
+
+      HopwaCaper::Generators::Fy2026::EnrollmentFilters::ProjectFunderFilter.
+        tbra_hopwa(range: report.report_range).
+        apply(report.hopwa_caper_enrollments).
+        where(project_id: tbra_project_ids)
+    end
+
     protected
 
     def relevant_enrollments
-      tbra_project_ids = GrdaWarehouse::Hud::Project.
-        where(arel.p_t[:HousingType].eq(3).or(arel.p_t[:HousingType].eq(nil))).select(:id)
-
-      HopwaCaper::Generators::Fy2026::EnrollmentFilters::ProjectFunderFilter.
-        tbra_hopwa(range: @report.report_range).
-        apply(@report.hopwa_caper_enrollments).
-        where(project_id: tbra_project_ids)
+      self.class.relevant_enrollments(@report)
     end
 
     def households_served_sheet(sheet)
