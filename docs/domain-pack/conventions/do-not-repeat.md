@@ -4,7 +4,7 @@ summary: Deny-list of deprecated or unsafe patterns that still exist in the code
 area: conventions
 tags: [deny-list, deprecated, legacy, anti-pattern, require_can, visible_by, RailsDrivers, sprockets, coffeescript, html_safe, enum, update_all, rescue, BaseMutation, permissions-kwarg, current_permission?, is_a?, ENV]
 sources:
-  - CLAUDE.md
+  - AGENTS.md
   - docs/code_patterns_and_conventions.md
   - docs/adr/0006-policy-based-graphql-access-fields.md
   - lib/rubocop/cop/queries/unsafe_bulk_update_sql.rb
@@ -22,8 +22,8 @@ related:
 ## Purpose
 
 A list of patterns an agent will find in this codebase and must not copy. Each entry gives the
-pattern, why it is retired, what to write instead, and where to see each form. Counts are from
-2026-09-19 and show how common the legacy form still is; a common legacy form is not a license
+pattern, why it is retired, what to write instead, and where to see each form. Some entries
+note that the legacy form is still common; a common legacy form is not a license
 to add one more. Do not refactor legacy occurrences on sight; only avoid new ones.
 
 ## Entry points
@@ -36,13 +36,13 @@ to add one more. Do not refactor legacy occurrences on sight; only avoid new one
 ## How it works
 
 ### 1. `before_action :require_can_*!`
-- Pattern: controller gated by a generated `require_can_<permission>!` method. Over 200 controller files under `app` and `drivers` still do this.
+- Pattern: controller gated by a generated `require_can_<permission>!` method. Many controllers still do this.
 - Why: too coarse; checks a role flag with no entity scope, and does not work for users on Access Controls.
 - Instead: subclass `ApplicationControllerV2` and declare `authorize_with { policy.can_x? }`; for a record, `user.policy_for(record)` then `not_authorized!`.
 - Example: legacy in most of `app/controllers/`; replacement pattern in `docs/code_patterns_and_conventions.md` "Authorization on a controller action".
 
-### 2. `visible_by` and other visibility scope variants
-- Pattern: a per-model `visible_by(user)` scope or class method (`app/models/grda_warehouse/client_file.rb`, `app/models/grda_warehouse/client_notes/base.rb`).
+### 2. `visible_to`, `visible_by`, and other visibility scope variants
+- Pattern: a per-model `visible_to(user)` or `visible_by(user)` scope or class method (`visible_to` in `drivers/hmis/app/models/hmis/hud/client.rb` and many report models; `visible_by` in `app/models/grda_warehouse/client_notes/base.rb`; `visible_by?` in `app/models/grda_warehouse/client_file.rb`).
 - Why: predates policy-based authorization; each copy re-derives access rules.
 - Instead: `Model.viewable_by(user)`, backed by the access-control machinery.
 
@@ -52,7 +52,7 @@ to add one more. Do not refactor legacy occurrences on sight; only avoid new one
 - Instead: call the driver's code directly.
 
 ### 4. New JavaScript under `app/assets/javascripts`
-- Pattern: Sprockets assets or CoffeeScript (73 `.coffee` files remain).
+- Pattern: Sprockets assets or CoffeeScript (many `.coffee` files remain).
 - Why: the asset pipeline is deprecated for new code; esbuild builds `app/javascript`.
 - Instead: a Stimulus controller in `app/javascript/controllers/`, registered globally or via a page entry file. See `conventions/house-style.md`.
 
@@ -87,8 +87,8 @@ to add one more. Do not refactor legacy occurrences on sight; only avoid new one
 - Instead: rescue a specific class only when there is a real recovery; otherwise let it raise.
 
 ### 11. Type dispatch with `is_a?`
-- Pattern: `if obj.is_a?(SomeClass)` to choose behavior (71 model files use `is_a?`, many legitimately for value checks).
-- Why: project convention in `CLAUDE.md`: ask what an object can do, not what it is.
+- Pattern: `if obj.is_a?(SomeClass)` to choose behavior (common in models, often legitimately for value checks).
+- Why: project convention in `AGENTS.md` (symlinked as `CLAUDE.md`): ask what an object can do, not what it is.
 - Instead: a capability predicate such as `service.supports_backfill?` defined on each participant.
 
 ### 12. Editing a shipped fiscal-year HUD report generator
@@ -97,12 +97,12 @@ to add one more. Do not refactor legacy occurrences on sight; only avoid new one
 - Instead: a new sibling `FyYYYY` namespace registered in the driver's feature initializer. Detail in `hud-reporting/report-framework.md`.
 
 ### 13. GraphQL `BaseMutation`
-- Pattern: `class Foo < BaseMutation` (32 mutations; 47 use the replacement).
+- Pattern: `class Foo < BaseMutation` (still used by many mutations alongside the replacement).
 - Why: legacy Relay-style scaffolding (`drivers/hmis/app/graphql/mutations/base_mutation.rb`).
 - Instead: `CleanBaseMutation` (`drivers/hmis/app/graphql/mutations/clean_base_mutation.rb`), for example `drivers/hmis/app/graphql/mutations/delete_unit_group.rb`. `delete_project.rb` is a legacy example.
 
 ### 14. Raw-permission GraphQL access helpers
-- Pattern: `Types::BaseAccess.can :permission` (marked legacy in `drivers/hmis/app/graphql/types/base_access.rb`), the `permissions:` kwarg on `Types::BaseField`, and `current_permission?` (16 files), all routed through `GraphqlPermissionChecker`. `composite_perm` and `root_can`, named in ADR 0006, no longer exist.
+- Pattern: `Types::BaseAccess.can :permission` (marked legacy in `drivers/hmis/app/graphql/types/base_access.rb`), the `permissions:` kwarg on `Types::BaseField`, and `current_permission?`, all routed through `GraphqlPermissionChecker`. `composite_perm` and `root_can`, named in ADR 0006, no longer exist.
 - Why: they resolve raw permission flags, bypass policy requirement resolution, and can leak permissions across HMIS data sources.
 - Instead: `bool_field` with a policy predicate, `authorize_with:` on fields, `access_denied!` in mutations (ADR 0006). See `authorization/hmis-graphql-authorization.md`.
 
@@ -126,7 +126,7 @@ to add one more. Do not refactor legacy occurrences on sight; only avoid new one
 
 ## Gotchas
 
-- Legacy forms outnumber the replacement in several entries (1, 13). Follow the replacement even
+- Legacy forms are still common in several entries (1, 13). Follow the replacement even
   when every neighboring file does the old thing.
 - ADR 0006 allows legacy GraphQL helpers to coexist during migration; that permits leaving them,
   not adding them.

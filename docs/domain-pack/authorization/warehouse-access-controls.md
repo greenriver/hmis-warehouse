@@ -85,7 +85,9 @@ replaces membership, restoring soft-deleted rows rather than inserting duplicate
 
 **System collections.** `Collection.maintain_system_groups` keeps the "All ..." collections,
 "Window Data Sources", and the "Hidden System Group" in sync with every record of each type, and
-binds the hidden group to `Role.system_user_role` and `UserGroup.system_user_group`. `system` is
+binds the hidden group to `Role.system_user_role` and `UserGroup.system_user_group`. Reports are
+split: "All HUD Reports" holds `ReportDefinition.hud` and "All HMIS Reports" holds the rest, so
+granting one does not grant the other; the hidden group still gets every report. `system` is
 an array column; `['Entities']` locks membership (`entities_locked?`), `'Hidden'` hides it.
 
 **Per-entity access.** `EntityAccess` (`app/models/concerns/entity_access.rb`), included by
