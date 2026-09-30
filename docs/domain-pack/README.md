@@ -25,7 +25,8 @@ organized around what an agent needs before touching the code.
     ---
 
 `sources` are the repo-relative files this doc describes. When any of them changes, the doc is
-presumed stale. List files, never directories or globs. Never list a gitignored path.
+presumed stale. List files, never directories or globs. Never list a gitignored path. List a
+symlink's target, not the link (`AGENTS.md`, not `CLAUDE.md`), so `git log` shows its changes.
 
 ## Body sections, in this order
 

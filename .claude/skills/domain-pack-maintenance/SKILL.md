@@ -67,6 +67,10 @@ git diff "$base" -- <source>          # includes uncommitted edits
 If the diff is empty or unrelated to the source's current state (e.g. the manifest was stamped on
 another branch), fall back to `git diff $(git merge-base HEAD origin/main) -- <source>`.
 
+A source may be a symlink (`CLAUDE.md` links to `AGENTS.md`). The stamp hashes the target's
+content, but `git log`/`git diff` on the link only show the link itself, so run them on the target
+(`readlink <source>`).
+
 The diff tells you where to look first. It does not bound the review: a doc can also be wrong
 because of code that changed long ago, and a small diff can invalidate a claim far from the hunk.
 
