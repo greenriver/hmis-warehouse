@@ -381,38 +381,38 @@ picked up as `unprocessed` by the nightly `run!`.
 
 - `app/models/grda_warehouse/warehouse_client.rb`: associations, `destination_needs_cleanup`,
   `reset_source_hashes!`.
-- `app/models/grda_warehouse/hud/client.rb:108` `warehouse_client_source`, `destination_client`,
-  `source_clients`; `:272` `destination`/`source` scopes; `:1645` `destination?`, `source?`;
-  `:2274` `split`; `:2349` `merge_from`; `:2477` `move_dependent_items` and
+- `app/models/grda_warehouse/hud/client.rb`: `warehouse_client_source`, `destination_client`,
+  `source_clients`; `destination`/`source` scopes; `destination?`, `source?`;
+  `split`; `merge_from`; `move_dependent_items` and
   `hmis_dependent_items`.
-- `app/models/grda_warehouse/tasks/identify_duplicates.rb:37` `run!`; `:52`
-  `ensure_source_client_linked!`; `:72` `identify_duplicates`; `:132` `match_existing!`; `:246`
-  `process_unprocessed_batch`; `:710` `find_merge_candidates_for_match_existing` (split filter,
-  chain grouping, `MAX_SOURCE_CLIENTS`); `:874` `restore_previously_deleted_destinations`.
+- `app/models/grda_warehouse/tasks/identify_duplicates.rb`: `run!`;
+  `ensure_source_client_linked!`; `identify_duplicates`; `match_existing!`;
+  `process_unprocessed_batch`; `find_merge_candidates_for_match_existing` (split filter,
+  chain grouping, `MAX_SOURCE_CLIENTS`); `restore_previously_deleted_destinations`.
 - `app/models/grda_warehouse/tasks/identify_duplicates_query_matcher.rb`: `SSN_FILTERS`,
   `NAME_PRESENCE_FILTERS`, `DOB_FILTERS`, `NORMALIZED_NAME_SQL`, `existing_sql`, `unprocessed_sql`.
 - `app/models/grda_warehouse/identify_duplicates_log.rb`: `to_match`, `matched`, `new_created`
   per run.
-- `app/models/grda_warehouse/client_match.rb:64` `accept_exact_matches!`; `:88` `auto_process!`;
-  `:118` `create_candidates!`; `:214` `accept!`; `:234` `reject!`.
+- `app/models/grda_warehouse/client_match.rb`: `accept_exact_matches!`; `auto_process!`;
+  `create_candidates!`; `accept!`; `reject!`.
 - `app/models/grda_warehouse/client_merge_history.rb`: `current_destination`.
 - `app/models/grda_warehouse/client_split_history.rb`: `split_from`, `split_into`, `receive_hmis`.
 - `app/models/grda_warehouse/source_client_name_set.rb`: `SourceClientName` struct, `+`.
-- `app/models/grda_warehouse/tasks/client_cleanup.rb:71` `run!`; `:237`
-  `remove_unused_source_clients`; `:263` `find_unused_destination_clients`; `:370`
-  `choose_attributes_from_sources`; `:673` `update_client_demographics_based_on_sources`; `:837`
+- `app/models/grda_warehouse/tasks/client_cleanup.rb`: `run!`;
+  `remove_unused_source_clients`; `find_unused_destination_clients`;
+  `choose_attributes_from_sources`; `update_client_demographics_based_on_sources`;
   `clients_to_munge`.
 - `app/models/similarity_metric/tasks/generate_candidates.rb`: candidate generation loop and the
   `processed_sources` marker row.
-- `app/controllers/clients_controller.rb:154` `merge`; `:175` `unmerge`.
+- `app/controllers/clients_controller.rb`: `merge`; `unmerge`.
 - `app/controllers/client_matches_controller.rb`: `index`, `defer`, `update`.
-- `app/controllers/concerns/client_controller.rb:169` and `:192`: redirect through
+- `app/controllers/concerns/client_controller.rb`: redirect through
   `ClientMergeHistory#current_destination`.
 - `app/jobs/importing/run_identify_duplicates_job.rb`: wrapper job.
-- `app/jobs/importing/run_daily_imports_job.rb:55` `'Identify Duplicates'` task; `:71` and
-  `:147` `ClientCleanup` runs; `:263` `create_statistical_matches`.
-- `drivers/hmis/app/models/hmis/hud/client.rb:94` create and update callbacks; `:397`
-  `warehouse_match_existing_clients`; `:410` `warehouse_identify_duplicates_for_new_client`.
+- `app/jobs/importing/run_daily_imports_job.rb`: `'Identify Duplicates'` task; and
+  `ClientCleanup` runs; `create_statistical_matches`.
+- `drivers/hmis/app/models/hmis/hud/client.rb`: create and update callbacks;
+  `warehouse_match_existing_clients`; `warehouse_identify_duplicates_for_new_client`.
 - `docs/matching_algorithm.md`: the `SimilarityMetric` scoring model behind `ClientMatch`.
 
 ## Gotchas

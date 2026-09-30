@@ -107,31 +107,35 @@ Existing examples: `drivers/hmis/spec/requests/hmis/project_spec.rb`, `client_se
 
 ## Key files
 
-- `drivers/hmis/app/graphql/hmis_schema.rb:14` `max_depth`; `:15` `max_complexity`; `:23` `use GraphQL::Dataloader`; `:25` introspection disabled outside development; `:28` `type_error`; `:37` `resolve_type` raises; `:46` `id_from_object`; `:52` `object_from_id`; `:60` `unauthorized_object`; `:65` `unauthorized_field`.
-- `drivers/hmis/app/controllers/hmis/graphql_controller.rb:16` `execute`; `:24` multiplex vs single; `:59` `query_for_params` builds context; `:95` `handle_graphql_exception`; `:128` activity log attributes.
-- `drivers/hmis/app/controllers/hmis/base_controller.rb:51` `attach_data_source_id`.
-- `drivers/hmis/lib/tasks/graphql.rake:6` `dump_graphql_schema`; `:17` `abort` when the SHA1 changed. `lib/tasks/driver_tasks.rake:14` adds the `driver:<name>:` namespace.
-- `drivers/hmis/app/graphql/types/hmis_schema/query_type.rb:14` Relay `node`/`nodes`, then `Has*` includes. `mutation_type.rb` registers every mutation with `field :x, mutation:`.
-- `drivers/hmis/app/graphql/types/base_object.rb:28` `page_type`; `:32` `array_page_type`; `:85` `hud_field`; `:106` `access_field`; `:133` `activity_log_object_identity`.
-- `drivers/hmis/app/graphql/types/base_field.rb:21` `initialize` (`default_value`, `after_paginate`, `nodes_count`); `:46` `authorized?`; `:65` `PaginationWrapperExtension`; `:91` `after_paginate` call.
-- `drivers/hmis/app/graphql/types/base_paginated.rb:14` `build`; `:35` `ArrayPaginated`. `paginated_scope.rb:13` defaults; `paginated_array.rb:11` array `nodes`.
-- `drivers/hmis/app/graphql/types/base_input_object.rb:17` `transformer`; `:26` `hud_argument`; `:38` `to_params`.
-- `drivers/hmis/app/graphql/concerns/graphql_application_helper.rb:25` `access_denied!`; `:52` `load_ar_client_association`; `:63` `load_ar_association`; `:72` `load_ar_scope`.
-- `drivers/hmis/app/graphql/mutations/clean_base_mutation.rb:14` `errors` field; `base_mutation.rb:12` legacy Relay base; `create_client_alert.rb` worked example.
-- `drivers/hmis/app/graphql/resolvers/validation_errors.rb:14` `resolve`; `resolvers/base.rb` empty `GraphQL::Schema::Resolver` base.
-- `drivers/hmis/app/graphql/types/hmis_schema/validation_error.rb` payload fields.
-- `drivers/hmis/lib/hmis_errors/errors.rb:22` `add_ar_errors`; `:33` `add`; `error.rb:43` `from_ar_error`.
-- `drivers/hmis/app/graphql/sources/active_record_association.rb:19` `fetch` (Preloader); `active_record_scope.rb:15` `fetch`.
-- `drivers/hmis/app/graphql/types/hmis_schema/has_enrollments.rb:27` `after_paginate`.
-- `drivers/hmis/spec/support/graphql_helpers.rb:13` `post_graphql`; `docs/code_patterns_and_conventions.md` GraphQL section.
+- `drivers/hmis/app/graphql/hmis_schema.rb`: `max_depth`; `max_complexity`; `use GraphQL::Dataloader`; introspection disabled outside development; `type_error`; `resolve_type` raises; `id_from_object`; `object_from_id`; `unauthorized_object`; `unauthorized_field`.
+- `drivers/hmis/app/controllers/hmis/graphql_controller.rb`: `execute`; multiplex vs single; `query_for_params` builds context; `handle_graphql_exception`; activity log attributes.
+- `drivers/hmis/app/controllers/hmis/base_controller.rb`: `attach_data_source_id`.
+- `drivers/hmis/lib/tasks/graphql.rake`: `dump_graphql_schema`; `abort` when the SHA1 changed. `lib/tasks/driver_tasks.rake` adds the `driver:<name>:` namespace.
+- `drivers/hmis/app/graphql/types/hmis_schema/query_type.rb`: Relay `node`/`nodes`, then `Has*` includes. `mutation_type.rb` registers every mutation with `field :x, mutation:`.
+- `drivers/hmis/app/graphql/types/base_object.rb`: `page_type`; `array_page_type`; `hud_field`; `access_field`; `activity_log_object_identity`.
+- `drivers/hmis/app/graphql/types/base_field.rb`: `initialize` (`default_value`, `after_paginate`, `nodes_count`); `authorized?`; `PaginationWrapperExtension`; `after_paginate` call.
+- `drivers/hmis/app/graphql/types/base_paginated.rb`: `build`; `ArrayPaginated`. `paginated_scope.rb` defaults; `paginated_array.rb` array `nodes`.
+- `drivers/hmis/app/graphql/types/base_input_object.rb`: `transformer`; `hud_argument`; `to_params`.
+- `drivers/hmis/app/graphql/concerns/graphql_application_helper.rb`: `access_denied!`; `load_ar_client_association`; `load_ar_association`; `load_ar_scope`.
+- `drivers/hmis/app/graphql/mutations/clean_base_mutation.rb`: `errors` field; `base_mutation.rb` legacy Relay base; `create_client_alert.rb` worked example.
+- `drivers/hmis/app/graphql/resolvers/validation_errors.rb`: `resolve`; `resolvers/base.rb` empty `GraphQL::Schema::Resolver` base.
+- `drivers/hmis/app/graphql/types/hmis_schema/validation_error.rb`: payload fields.
+- `drivers/hmis/lib/hmis_errors/errors.rb`: `add_ar_errors`; `add`; `error.rb` `from_ar_error`.
+- `drivers/hmis/app/graphql/sources/active_record_association.rb`: `fetch` (Preloader); `active_record_scope.rb` `fetch`.
+- `drivers/hmis/app/graphql/types/hmis_schema/has_enrollments.rb`: `after_paginate`.
+- `drivers/hmis/spec/support/graphql_helpers.rb`: `post_graphql`; `docs/code_patterns_and_conventions.md` GraphQL section.
 
 ## Gotchas
 
-- Two loading idioms coexist and both are `GraphQL::Dataloader`: the `load_ar_association` / `load_ar_scope` helpers (about 225 call sites) and direct `dataloader.with(Sources::X)` (about 13). A plain `object.assoc` inside a resolver is the N+1; the helpers are the fix.
+- Two loading idioms coexist and both are `GraphQL::Dataloader`: the `load_ar_association` / `load_ar_scope` helpers (the common form) and direct `dataloader.with(Sources::X)` (rare). A plain `object.assoc` inside a resolver is the N+1; the helpers are the fix.
 - `load_ar_association` short-circuits when the association is already loaded, but not when `onload:` is given. `load_ar_client_association` therefore always goes through the dataloader so the client preloader runs.
 - A `null: false` field whose resolver returns nil (for example a filtered-out record) does not raise in Ruby. The gem default `type_error` adds an execution error and nulls the nearest nullable ancestor, which can blank a whole page; `post_graphql` in specs raises on any `errors` entry, so the failure shows up as a raised message, not a status code.
 - `Hmis::GraphqlController#handle_graphql_exception` rescues everything and renders HTTP 500 with a generic message outside development and test; `HmisErrors::ApiError` carries its own `display_message`, and `ActiveRecord::StaleObjectError` maps to `STALE_OBJECT_ERROR`. Requests that crash produce no `Hmis::ActivityLog` row.
 - Any change to a type, argument, enum, or description changes `drivers/hmis/app/graphql/schema.graphql`. Run `bundle exec rake driver:hmis:dump_graphql_schema` and commit the result in the same PR; the task exits 1 when the file changed, which is what CI checks.
+- A root resolver in `query_type.rb` for a model that has no `viewable_by` must scope to
+  `current_user.hmis_data_source_id` itself, as `service_type` and `service_types` do with
+  `Hmis::Hud::CustomServiceType.in_data_source`. A bare `find_by(id:)` or `.all` returns records
+  from other HMIS installations sharing the database.
 - `BaseObject.page_type` memoizes the first `include_search_query_id` value per node type; a later call with a different value is ignored.
 - `hud_field` needs `self.configuration` on the type; without it the call is a plain `field` and a missing `type` raises `No type for ...`.
 - `array_page_type` exists so an in-memory array is paginated deliberately. Returning an array to a scope-paginated field, or the reverse, fails at `offset`/`drop`.
@@ -142,10 +146,10 @@ Existing examples: `drivers/hmis/spec/requests/hmis/project_spec.rb`, `client_se
 
 Repo-wide entry: `conventions/do-not-repeat.md` 13 (`BaseMutation`).
 
-- `class Foo < BaseMutation` (`drivers/hmis/app/graphql/mutations/base_mutation.rb:12`, `GraphQL::Schema::RelayClassicMutation`). Instead: `< CleanBaseMutation` (`clean_base_mutation.rb:11`), for example `drivers/hmis/app/graphql/mutations/create_client_alert.rb`. Roughly thirty legacy subclasses remain; do not add another.
-- A new `Sources::*` class for a plain association or id lookup. Instead: `load_ar_association` / `load_ar_scope` (`drivers/hmis/app/graphql/concerns/graphql_application_helper.rb:63`, `:72`), or the `_client_` variants when the result is a `Client`. Write a source only for a query shape they cannot express (`sources/paper_trail_versions.rb` is an example).
+- `class Foo < BaseMutation` (`drivers/hmis/app/graphql/mutations/base_mutation.rb`, `GraphQL::Schema::RelayClassicMutation`). Instead: `< CleanBaseMutation` (`clean_base_mutation.rb`), for example `drivers/hmis/app/graphql/mutations/create_client_alert.rb`. Legacy subclasses remain; do not add another.
+- A new `Sources::*` class for a plain association or id lookup. Instead: `load_ar_association` / `load_ar_scope` (`drivers/hmis/app/graphql/concerns/graphql_application_helper.rb`), or the `_client_` variants when the result is a `Client`. Write a source only for a query shape they cannot express (`sources/paper_trail_versions.rb` is an example).
 - `raise` for a validation failure in a mutation. Instead: collect in `HmisErrors::Errors` and `return { errors: errors }` so `Resolvers::ValidationErrors` renders it on the payload (`create_client_alert.rb`). `raise` / `access_denied!` is for authorization and unexpected state only.
-- `object.assoc` or `Model.find` inside a resolver or `Has*` concern. Instead: the loader helpers, plus `after_paginate` for policy preloads on paginated fields (`has_enrollments.rb:27`).
+- `object.assoc` or `Model.find` inside a resolver or `Has*` concern. Instead: the loader helpers, plus `after_paginate` for policy preloads on paginated fields (`has_enrollments.rb`).
 - Editing `drivers/hmis/app/graphql/schema.graphql` by hand. Instead: change the Ruby type and run `driver:hmis:dump_graphql_schema`.
 
 ## Related

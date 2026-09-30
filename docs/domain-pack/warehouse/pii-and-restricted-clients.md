@@ -46,7 +46,7 @@ four mechanisms that share one catalog:
 
 - **Cataloging.** `HasPiiAttributes` (`app/models/concerns/has_pii_attributes.rb`) gives any
   model a `pii_attr` class macro that records which columns hold PII, of what type, and at what
-  sensitivity level. Around 40 models declare PII this way, from `GrdaWarehouse::Hud::Client`
+  sensitivity level. Many models declare PII this way, from `GrdaWarehouse::Hud::Client`
   to per-report snapshot tables. This is Phase 1 of `docs/adr/0002-pii-management-strategy.md`.
 - **Display.** `GrdaWarehouse::PiiProvider` decides per field whether a value is shown, masked,
   or replaced with `Redacted`, given a policy object. HMIS client restriction is folded in by
@@ -62,7 +62,7 @@ four mechanisms that share one catalog:
   copy or honoring a one-off removal request. They are console tasks with no UI or scheduler.
 
 **Retention** (hiding or removing clients inactive for N years) is decided in
-`docs/adr/0009-client-data-retention-and-removal.md`, status Proposed as of 2026-09-15. No
+`docs/adr/0009-client-data-retention-and-removal.md`, status Proposed. No
 retention code exists in this repository: there is no `InactiveClient` model, no
 `ClientRetentionJob`, and no `client_retention_years` setting on `GrdaWarehouse::DataSource` or
 `GrdaWarehouse::Config`. This doc summarizes the ADR so an implementer starts from
@@ -277,7 +277,7 @@ client; and deletes `CustomClientAddress`, `CustomClientName`, `CustomClientCont
 delete. `VersionHistoryPruner` resolves the `GrdaWarehouse`/`Hmis` alias pair sharing a table so
 both `item_type` values are removed.
 
-`ScrubAllPiiTask.perform(...)` runs `ScrubModelPii` over an explicit list of 48 models (HUD
+`ScrubAllPiiTask.perform(...)` runs `ScrubModelPii` over an explicit list of models (HUD
 client and user, HMIS custom tables, report snapshot client tables, reporting-db tables, and the
 2020, 2022, and 2024 CSV loader and importer client and user tables) and prunes their versions.
 The list is hand-maintained and is not derived from the catalog. It is the tool for turning a production copy into a staging database. Both
@@ -322,33 +322,33 @@ Phase 1 limitation.
 
 ## Key files
 
-- `app/models/concerns/has_pii_attributes.rb:38` `PII_TYPES`; `:84` `pii_attr`; `:104`
-  `stores_pii?`; `:108` `inherited` deep copy.
+- `app/models/concerns/has_pii_attributes.rb`: `PII_TYPES`; `pii_attr`;
+  `stores_pii?`; `inherited` deep copy.
 - `app/models/concerns/pii_display.rb`: `pii_value` regex dispatch by column label.
-- `app/models/grda_warehouse/pii_provider.rb:20` `RestrictedPolicy`; `:61` `restrict`; `:67`
-  `viewable_name` and siblings; `:102` `from_attributes`; `:170` `dob`; `:179` `ssn` masking.
-- `app/models/grda_warehouse/auth_policies/context_loaders/restricted_client_loader.rb:13`
-  warn threshold; `:23` `restricted_client_ids`; `:37` `cache_token`; `:41` the three queries.
-- `app/models/grda_warehouse/hud/client.rb:1405` `pii_provider`; `:1412`
-  `project_pii_provider`; `:1419` `pii_restricted?`; `:1425` `hmis_restricted_source_client_ids`;
-  `:1430` `hmis_restricted_destination_client_ids`; `:1437` deprecated `name`; `:1844`
-  `text_search`; `:1868` `strict_search`; `:2213` `potential_matches`.
-- `app/models/concerns/client_search.rb:17` `text_searcher`; `:43` SSN branch exclusion; `:76`
+- `app/models/grda_warehouse/pii_provider.rb`: `RestrictedPolicy`; `restrict`;
+  `viewable_name` and siblings; `from_attributes`; `dob`; `ssn` masking.
+- `app/models/grda_warehouse/auth_policies/context_loaders/restricted_client_loader.rb`:
+  warn threshold; `restricted_client_ids`; `cache_token`; the three queries.
+- `app/models/grda_warehouse/hud/client.rb`: `pii_provider`;
+  `project_pii_provider`; `pii_restricted?`; `hmis_restricted_source_client_ids`;
+  `hmis_restricted_destination_client_ids`; deprecated `name`;
+  `text_search`; `strict_search`; `potential_matches`.
+- `app/models/concerns/client_search.rb`: `text_searcher`; SSN branch exclusion;
   name branch exclusion.
-- `app/models/hud_reports/report_client_base.rb:55` `restricted_condition`.
-- `app/controllers/concerns/client_controller.rb:113` `look_for_existing_match`.
-- `app/controllers/clients_controller.rb:32` `after_action :log_client`; `:295`
+- `app/models/hud_reports/report_client_base.rb`: `restricted_condition`.
+- `app/controllers/concerns/client_controller.rb`: `look_for_existing_match`.
+- `app/controllers/clients_controller.rb`: `after_action :log_client`;
   `handle_unused_search` raises because search lives in the driver.
-- `drivers/client_access_control/app/controllers/client_access_control/clients_controller.rb:30`
-  `after_action :log_client`; `:32` `index` redirects to a saved `ClientSearchQuery`; `:59`
+- `drivers/client_access_control/app/controllers/client_access_control/clients_controller.rb`:
+  `after_action :log_client`; `index` redirects to a saved `ClientSearchQuery`;
   `perform_search` chooses strict or text search.
 - `app/models/grda_warehouse/client_search_query.rb`: saved search parameters, UUID id,
   fingerprint upsert; `ALLOWED_CLIENT_PARAMS` is first name, last name, DOB, SSN.
 - `drivers/client_access_control/README.md`: the four sources of client search and view access.
-- `app/controllers/concerns/activity_logger.rb:32` `compose_activity`; `:47` `log_item`; `:52`
-  `log_activity`; `:62` `title_for_show`.
-- `app/models/activity_log.rb:20` `REPORTING_PATH_LENGTH`; `:27` `created_in_range`; `:42`
-  `warehouse_report_conditions`; `:99` `export_rows`; `:124` `scrub`.
+- `app/controllers/concerns/activity_logger.rb`: `compose_activity`; `log_item`;
+  `log_activity`; `title_for_show`.
+- `app/models/activity_log.rb`: `REPORTING_PATH_LENGTH`; `created_in_range`;
+  `warehouse_report_conditions`; `export_rows`; `scrub`.
 - `drivers/hmis/app/models/hmis/activity_log.rb`: header comment documents every column and
   the `resolved_fields` key format.
 - `drivers/access_logs/README.md`: tab list and definitions.
@@ -358,9 +358,9 @@ Phase 1 limitation.
   visit-day query.
 - `drivers/access_logs/app/models/access_logs/warehouse_reports/user_summary.rb`: first and
   last access per user, created users.
-- `app/models/grda_warehouse/tasks/scrub_pii/scrub_client_pii_task.rb:19` `perform`; `:40`
-  `process_client_batch`; `:55` `delete_custom_data_elements_with_pii` label patterns.
-- `app/models/grda_warehouse/tasks/scrub_pii/scrub_all_pii_task.rb:33` `models` list.
+- `app/models/grda_warehouse/tasks/scrub_pii/scrub_client_pii_task.rb`: `perform`;
+  `process_client_batch`; `delete_custom_data_elements_with_pii` label patterns.
+- `app/models/grda_warehouse/tasks/scrub_pii/scrub_all_pii_task.rb`: `models` list.
 - `app/models/pii/scrubber/scrub_model_pii.rb`: three-pass scrub and `import!` upsert.
 - `app/models/pii/scrubber/pii_attribute.rb`: `sensitive?` is `level < 3`.
 - `app/models/pii/scrubber/version_history_pruner.rb`: alias resolution across namespaces.
@@ -407,7 +407,7 @@ Phase 1 limitation.
 
 - `client.name`, `client.FirstName`, `client.SSN`, or `client.DOB` in a view, export, or report
   row without a `PiiProvider`. `GrdaWarehouse::Hud::Client#name`
-  (`app/models/grda_warehouse/hud/client.rb:1437`) is deprecated in a comment. Replacement:
+  (`app/models/grda_warehouse/hud/client.rb`) is deprecated in a comment. Replacement:
   `client.pii_provider(user: current_user).brief_name` on a dashboard,
   `client.project_pii_provider(project:, user:, mode:)` on a report row, or
   `PiiProvider.viewable_name(value, policy:)` for a plucked value. Repo-wide entry:
@@ -415,7 +415,7 @@ Phase 1 limitation.
 - A new column holding name, SSN, DOB, contact, or address data without a `pii_attr`
   declaration. `ScrubAllPiiTask` and `ScrubClientPiiTask` only see cataloged columns, and
   `ScrubModelPii` raises on a model with none. Example of the replacement:
-  `app/models/concerns/hmis_structure/client.rb:28`.
+  `app/models/concerns/hmis_structure/client.rb`.
 - A new client search path that filters restricted clients with its own `where.not(id: ...)`
   instead of `Client.text_search` or `ClientSearch.text_searcher(exclude_ids_for_name_and_ssn:)`.
   `ClientController#look_for_existing_match` is the one sanctioned exception because it does not
@@ -423,7 +423,7 @@ Phase 1 limitation.
   filter to DOB or id lookups.
 - A fragment cache keyed on the client and user but not on
   `current_user.policy_context.restricted_clients_cache_token` when the fragment renders PII.
-  Example of the replacement: `app/views/clients/rollup/_demographics.html.haml:2`.
+  Example of the replacement: `app/views/clients/rollup/_demographics.html.haml`.
 - Calling `Client.hmis_restricted_source_client_ids` inside a per-row loop. Load once and pass
   it down, as `Client#potential_matches` does, or ask `user.policy_context.client_restricted?`.
 - Deleting or nulling client rows to implement retention. ADR 0009 makes Hide the first and only

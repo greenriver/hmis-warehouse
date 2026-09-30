@@ -309,42 +309,42 @@ the following night.
 
 ## Key files
 
-- `app/models/grda_warehouse/data_source.rb:62` `importable`, `:68` `source`, `:72`
-  `destination`, `:88` `obeys_consent`, `:107` `viewable_by`, `:184` `hmis`, `:194`
-  `enabled_hmis_data_sources`, `:204` `visible_in_window`, `:208` `available_for_new_clients`,
-  `:760` `destroy_dependents!`, `:876` `hmis?`, `:883` `hmis_live?`, `:892` `importable_by?`,
-  `:914` `hmis_url_for`, `:939` `enforce_op_hmis_defaults`, `:1059` `health_authoritative_id`.
-- `app/models/hmis_enforcement.rb:10` `hmis_enabled?`, `:24` `configured_hmis_hostnames`.
-- `app/controllers/data_sources_controller.rb:85` `destroy`, `:99` `data_source_params`.
-- `app/models/grda_warehouse/auth_policies/source_client_policy.rb:38`
-  `can_view_supplemental_data?`, `:77` `roi_authorized?`.
-- `drivers/client_access_control/app/models/client_access_control/enrollment_arbiter.rb:303`
-  `window_data_source_ids`, `:307` `potentially_viewable_data_source_ids`, `:312` `project_ids`.
-- `app/jobs/delete_item_job.rb:18` `perform`.
-- `app/models/grda_warehouse/tasks/service_history/purge_for_deleted_data_sources.rb:27`
-  `call`, `:57` `find_deleted_data_sources`.
+- `app/models/grda_warehouse/data_source.rb`: `importable` `source`
+  `destination` `obeys_consent` `viewable_by` `hmis`
+  `enabled_hmis_data_sources` `visible_in_window` `available_for_new_clients`,
+  `destroy_dependents!` `hmis?` `hmis_live?` `importable_by?`,
+  `hmis_url_for` `enforce_op_hmis_defaults` `health_authoritative_id`.
+- `app/models/hmis_enforcement.rb`: `hmis_enabled?` `configured_hmis_hostnames`.
+- `app/controllers/data_sources_controller.rb`: `destroy` `data_source_params`.
+- `app/models/grda_warehouse/auth_policies/source_client_policy.rb`:
+  `can_view_supplemental_data?` `roi_authorized?`.
+- `drivers/client_access_control/app/models/client_access_control/enrollment_arbiter.rb`:
+  `window_data_source_ids` `potentially_viewable_data_source_ids` `project_ids`.
+- `app/jobs/delete_item_job.rb`: `perform`.
+- `app/models/grda_warehouse/tasks/service_history/purge_for_deleted_data_sources.rb`:
+  `call` `find_deleted_data_sources`.
 - `app/models/grda_warehouse/eto_api_config.rb`: the JSON mapping columns.
-- `app/models/eto_api/tasks/update_eto_data.rb:37` `run!`, `:44` `update_demographics!`,
-  `:133` `update_touch_points!`, `:243` `fetch_demographics`, `:328` `fetch_touch_point`.
+- `app/models/eto_api/tasks/update_eto_data.rb`: `run!` `update_demographics!`,
+  `update_touch_points!` `fetch_demographics` `fetch_touch_point`.
 - `app/jobs/importing/eto_update_everything_job.rb`: per-data-source fan-out.
-- `lib/tasks/eto.rake:33` `demographics_and_touch_points`, `:45` Eccovia fetch.
-- `lib/tasks/grda_warehouse.rake:313` `hourly`, `:330` custom imports, `:377` supplemental sync.
-- `app/models/grda_warehouse/custom_imports/config.rb:28` `available_import_types`, `:42` `s3`,
-  `:70` `import!`.
-- `app/models/grda_warehouse/custom_imports/import_file.rb:21` `check_hour`, `:51`
-  `fetch_and_load`, `:101` `most_recent_on_s3`, `:116` `load_csv`.
+- `lib/tasks/eto.rake`: `demographics_and_touch_points` Eccovia fetch.
+- `lib/tasks/grda_warehouse.rake`: `hourly` custom imports supplemental sync.
+- `app/models/grda_warehouse/custom_imports/config.rb`: `available_import_types` `s3`,
+  `import!`.
+- `app/models/grda_warehouse/custom_imports/import_file.rb`: `check_hour`
+  `fetch_and_load` `most_recent_on_s3` `load_csv`.
 - `app/controllers/data_sources/custom_imports_controller.rb`: config CRUD and `download`.
-- `drivers/custom_imports_boston_service/app/models/custom_imports_boston_service/import_file.rb:25`
-  `import!`, `:35` `load_csv`, `:86` `post_process`.
-- `drivers/eccovia_data/app/models/eccovia_data/fetch.rb:14` `fetch_updated`.
+- `drivers/custom_imports_boston_service/app/models/custom_imports_boston_service/import_file.rb`:
+  `import!` `load_csv` `post_process`.
+- `drivers/eccovia_data/app/models/eccovia_data/fetch.rb`: `fetch_updated`.
 - `drivers/manual_hmis_data/app/models/manual_hmis_data.rb`: `table_name_prefix` only.
-- `drivers/manual_hmis_data/app/controllers/manual_hmis_data/funders_controller.rb:23` `create`.
-- `drivers/hmis_supplemental/app/models/hmis_supplemental/data_set.rb:32` `viewable_by`, `:58`
-  `field_config_validation`, `:75` `fields`.
-- `drivers/hmis_supplemental/app/jobs/hmis_supplemental/import_job.rb:20` `_perform`, `:74`
-  `deduplicate_rows`, `:117` `with_lock`.
-- `drivers/hmis_supplemental/app/controllers/hmis_supplemental/client_data_sets_controller.rb:28`
-  `authorized_groups`, `:49` `source_clients`, `:60` `source_enrollments`.
+- `drivers/manual_hmis_data/app/controllers/manual_hmis_data/funders_controller.rb`: `create`.
+- `drivers/hmis_supplemental/app/models/hmis_supplemental/data_set.rb`: `viewable_by`
+  `field_config_validation` `fields`.
+- `drivers/hmis_supplemental/app/jobs/hmis_supplemental/import_job.rb`: `_perform`
+  `deduplicate_rows` `with_lock`.
+- `drivers/hmis_supplemental/app/controllers/hmis_supplemental/client_data_sets_controller.rb`:
+  `authorized_groups` `source_clients` `source_enrollments`.
 - READMEs: `drivers/custom_imports_boston_service/README.md`, `drivers/eccovia_data/README.md`,
   `drivers/manual_hmis_data/README.md`, `drivers/hmis_supplemental/README.md` (each a few lines).
 

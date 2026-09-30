@@ -25,6 +25,7 @@ sources:
   - drivers/hmis/app/models/hmis/ce/referral_message_handler.rb
   - drivers/hmis/app/models/hmis/unit_group.rb
   - drivers/hmis/app/models/hmis/project_ce_config.rb
+  - drivers/hmis/app/models/hmis/hud/project.rb
   - drivers/hmis/app/models/hmis/workflow_definition/template.rb
   - drivers/hmis/app/models/hmis/workflow_execution/step.rb
   - drivers/hmis/app/models/hmis/hud/processors/workflow_step_processor.rb
@@ -243,7 +244,10 @@ own assigned or swimlane steps with `can_view_own_referrals`, and source-project
 - `drivers/hmis/app/models/hmis/unit_group.rb`: `with_ce_waitlists_enabled`,
   `workflow_template`, `direct_referral_workflow_template`, `rebuild_candidate_pool`.
 - `drivers/hmis/app/models/hmis/project_ce_config.rb`: `supports_waitlist_referrals?`,
-  `receives_direct_referrals?`, `rebuild_candidate_pool`.
+  `receives_direct_referrals?`, `receives_direct_referrals_from` (optional sender list),
+  `rebuild_candidate_pool`.
+- `drivers/hmis/app/models/hmis/hud/project.rb`: `receives_direct_ce_referrals_from?(source_project)`,
+  the check that enforces the sender list.
 - `drivers/hmis/app/models/hmis/workflow_definition/template.rb`: state machine,
   `latest_versions`, `graph`, `validate!`, `entry_user_tasks`.
 - `drivers/hmis/app/models/hmis/workflow_execution/step.rb`: state machine, `open`,
@@ -290,14 +294,19 @@ own assigned or swimlane steps with `can_view_own_referrals`, and source-project
 - `Referral#resolve_match_rule_fields` intentionally bypasses `viewable_by` scopes.
 - `MarkUnitsAvailable` still enforces a legacy `ReferralPosting` count check for
   installations running both systems.
+- `ProjectCeConfig#receives_direct_referrals_from` restricts which projects may direct-send to
+  this one; empty means any project. It stores integer project `id`s because
+  `Project#receives_direct_ce_referrals_from?` compares with `include?(source_project.id)`, so the
+  setter casts GraphQL `ID` strings and drops non-numeric values. A `before_save` clears the list
+  when `receives_direct_referrals?` is false, so disabling direct referrals discards it.
 
 ## Do not repeat
 
 - The draft-idempotent builder idiom: `CeBuilderUtils.find_or_create_draft_template` plus
   `FORCE_RECREATE` / `PUBLISH=true` environment flags and `find_or_create_*` node guards.
-  Remaining examples: `drivers/hmis/lib/ce_workflows/standard/workflow_builder.rb:60` and
-  `drivers/hmis/lib/ce_workflows/ph/workflow_builder.rb:89`. New builders use
-  destroy-and-recreate: `drivers/hmis/lib/ce_workflows/ac/workflow_builder.rb:61`
+  Remaining examples: `drivers/hmis/lib/ce_workflows/standard/workflow_builder.rb` and
+  `drivers/hmis/lib/ce_workflows/ph/workflow_builder.rb`. New builders use
+  destroy-and-recreate: `drivers/hmis/lib/ce_workflows/ac/workflow_builder.rb`
   (`delete_template_and_associated_data` unless `unsafe_run_in_production`, then
   `create_template`).
 - Calling classes under `drivers/hmis/app/models/hmis/ce/match/internal/` from outside
@@ -313,7 +322,7 @@ own assigned or swimlane steps with `can_view_own_referrals`, and source-project
 - Writing `ChangeMarker` rows with `create`/`update`. Use `upsert_or_bump_version` and
   `mark_processed`, which sort by conflict target to avoid deadlocks.
 - Calling `CandidatePoolBuilder.call` without `CandidatePool.lock_for_maintenance!`. Every
-  existing caller wraps it: `drivers/hmis/app/models/hmis/ce/match/rule.rb:209`.
+  existing caller wraps it: `drivers/hmis/app/models/hmis/ce/match/rule.rb`.
 
 ## Related
 

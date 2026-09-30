@@ -197,15 +197,15 @@ Adding a policy for a new resource type:
 
 - `before_action :require_can_*!` on a new controller. Replacement: subclass
   `ApplicationControllerV2` and use `authorize_with { policy.can_x? }`. Current example:
-  `app/controllers/projects_controller.rb:13`. Repo-wide entry: `conventions/do-not-repeat.md`,
+  `app/controllers/projects_controller.rb`. Repo-wide entry: `conventions/do-not-repeat.md`,
   entry 1.
 - Direct `client.FirstName`, `client.name`, `client.SSN`, or `client.DOB` in a view, export, or
   report row that can include an HMIS-restricted client. Replacement:
   `client.pii_provider(user: current_user).full_name` (dashboard),
   `client.project_pii_provider(project:, user:, mode:)` (report row with a live client), or
   `PiiProvider.viewable_name(value, policy: current_user.reporting_policy_for_project(...))`
-  (snapshot row with no client record). Current example:
-  `app/models/grda_warehouse/hud/client.rb:1405`.
+  (snapshot row with no client record). Current example: `GrdaWarehouse::Hud::Client#pii_provider`
+  and `#project_pii_provider` in `app/models/grda_warehouse/hud/client.rb`.
 - Reading `user.can_view_clients?` or another flat `can_*?` flag to gate a record. Replacement:
   `user.policy_for(record).can_view?`, which scopes the permission to the record through the
   user's collections or access groups.

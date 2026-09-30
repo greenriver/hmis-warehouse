@@ -212,36 +212,36 @@ list", assessment level housing needs, assessment type virtual.
 
 ## Key files
 
-- `app/models/grda_warehouse/tasks/push_clients_to_cas.rb:22` `sync!`; `:151`
-  `maintain_cas_availability_table`; `:176` `project_client_columns` (the CAS column to client
-  method map); `:311` `attributes_for_cas_project_client`; `:324` `attributes_for_display`;
-  `:433` `skip_for_display` (PII and permission-gated columns hidden on the readiness page);
-  `:460` `calculator_instance`.
-- `app/jobs/cas/sync_to_cas_job.rb:10`: `Cas::SyncToCasJob`.
-- `app/models/cas_base.rb:9`: the `ENV['DATABASE_CAS_DB']` branch that picks the real
+- `app/models/grda_warehouse/tasks/push_clients_to_cas.rb`: `sync!`;
+  `maintain_cas_availability_table`; `project_client_columns` (the CAS column to client
+  method map); `attributes_for_cas_project_client`; `attributes_for_display`;
+  `skip_for_display` (PII and permission-gated columns hidden on the readiness page);
+  `calculator_instance`.
+- `app/jobs/cas/sync_to_cas_job.rb`: `Cas::SyncToCasJob`.
+- `app/models/cas_base.rb`: the `ENV['DATABASE_CAS_DB']` branch that picks the real
   abstract class or the stub.
-- `app/models/concerns/cas_client_data.rb:12` `cas_active`; `:80`
-  `active_clients_project_ids_for_cas_sync`; `:364` `cas_columns_data` (titles and
-  descriptions for flags); `:416` `ignored_for_batch_maintenance`; `:498` `active_in_cas?`;
-  `:569` `force_remove_unavailable_fors`; `:577` `release_status_for_cas`; `:613`
-  `cohort_ids_for_cas`; `:623` `cas_tags`; `:657` `sync_cas_attributes_with_files`; `:888`
+- `app/models/concerns/cas_client_data.rb`: `cas_active`;
+  `active_clients_project_ids_for_cas_sync`; `cas_columns_data` (titles and
+  descriptions for flags); `ignored_for_batch_maintenance`; `active_in_cas?`;
+  `force_remove_unavailable_fors`; `release_status_for_cas`;
+  `cohort_ids_for_cas`; `cas_tags`; `sync_cas_attributes_with_files`;
   `attr_accessor` list of non-persisted payload columns.
-- `app/models/grda_warehouse/cas_project_client_calculator/default.rb:16`
-  `value_for_cas_project_client`; `:21` `handles_days_homeless?`; `:33` `unrelated_columns`.
+- `app/models/grda_warehouse/cas_project_client_calculator/default.rb`:
+  `value_for_cas_project_client`; `handles_days_homeless?`; `unrelated_columns`.
   Sibling calculators in the same directory: `boston.rb`, `mdha.rb`, `springfield.rb`,
   `tc_hat.rb`, `tc_hmis_hat.rb`, all `< Default`.
 - `app/models/grda_warehouse/cas_availability.rb`: warehouse-side availability history.
-- `app/models/grda_warehouse/cas_housed.rb:16` `inactivate_clients`.
-- `app/controllers/warehouse_reports/manage_cas_flags_controller.rb:73` `bulk_update`;
-  `:127` `unflag` (no-op for release types); `:137` `flag`.
-- `app/controllers/clients/cas_readiness_controller.rb:29` `update`.
+- `app/models/grda_warehouse/cas_housed.rb`: `inactivate_clients`.
+- `app/controllers/warehouse_reports/manage_cas_flags_controller.rb`: `bulk_update`;
+  `unflag` (no-op for release types); `flag`.
+- `app/controllers/clients/cas_readiness_controller.rb`: `update`.
 - `drivers/cas_access/app/models/cas_access/project_client.rb`: `table_name :project_clients`.
-- `drivers/cas_access/app/models/cas_access/extensions/user_extension.rb:15` `cas_user`.
+- `drivers/cas_access/app/models/cas_access/extensions/user_extension.rb`: `cas_user`.
 - `drivers/cas_ce_data/config/initializers/cas_ce_data_feature.rb`: synthetic type
   registration.
-- `drivers/cas_ce_data/app/models/cas_ce_data/synthetic/assessment.rb:26` `sync`; `:38`
-  `add_new`; `:49` `find_enrollment`.
-- `drivers/cas_ce_data/app/models/cas_ce_data/synthetic/event.rb:35` `sync`; `:63`
+- `drivers/cas_ce_data/app/models/cas_ce_data/synthetic/assessment.rb`: `sync`;
+  `add_new`; `find_enrollment`.
+- `drivers/cas_ce_data/app/models/cas_ce_data/synthetic/event.rb`: `sync`;
   `find_enrollment`.
 - `drivers/cas_access/README.md`, `drivers/cas_ce_data/README.md`.
 
@@ -282,9 +282,9 @@ list", assessment level housing needs, assessment type virtual.
 - Writing through `CasBase` from anywhere other than `GrdaWarehouse::Tasks::PushClientsToCas`.
   CAS owns its schema and its own writes; the warehouse contributes one table. A report that
   needs to change CAS state should raise the requirement against `boston-cas`. The single
-  existing writer: `app/models/grda_warehouse/tasks/push_clients_to_cas.rb:37`.
+  existing writer: `app/models/grda_warehouse/tasks/push_clients_to_cas.rb`.
 - Duplicating consent or release logic in the push task or a calculator. Release status is
-  read once through `release_status_for_cas` (`app/models/concerns/cas_client_data.rb:577`),
+  read once through `release_status_for_cas` (`app/models/concerns/cas_client_data.rb`),
   which defers to `consent_form_valid?` and `consent_confirmed?` on the client. Calculators
   override how a column is sourced, not what a release means.
 - Adding a payload column by editing the `attr_accessor` list in `CasClientData` without also
@@ -293,14 +293,14 @@ list", assessment level housing needs, assessment type virtual.
   in `ManageCasFlagsController`. Existing pattern: `majority_sheltered` appears in all three.
 - Gating CAS UI on `ENV['DATABASE_CAS_DB']` or a `CasAccess` query. Use
   `GrdaWarehouse::Config.cas_enabled?`; existing example
-  `drivers/access_logs/app/models/access_logs/warehouse_reports/user_summary.rb:87`.
+  `drivers/access_logs/app/models/access_logs/warehouse_reports/user_summary.rb`.
 - Calling `GrdaWarehouse::Tasks::PushClientsToCas.new.sync!` inline from a controller. Enqueue
-  `Cas::SyncToCasJob.perform_later` as `app/controllers/warehouse_reports/manage_cas_flags_controller.rb:85`
+  `Cas::SyncToCasJob.perform_later` as `app/controllers/warehouse_reports/manage_cas_flags_controller.rb`
   does; the task holds an advisory lock and iterates every active client.
 - Instantiating a calculator with a hard-coded class. Read
   `GrdaWarehouse::Config.get(:cas_calculator).constantize.new`, as
-  `app/models/grda_warehouse/tasks/push_clients_to_cas.rb:461` and
-  `app/models/concerns/cas_client_data.rb:357` do; the option list is
+  `app/models/grda_warehouse/tasks/push_clients_to_cas.rb` and
+  `app/models/concerns/cas_client_data.rb` do; the option list is
   `GrdaWarehouse::Config.available_cas_calculators`.
 
 ## Related

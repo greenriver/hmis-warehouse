@@ -33,6 +33,7 @@ sources:
   - app/jobs/document_export_job.rb
   - app/jobs/prune_document_exports_job.rb
   - config/storage.yml
+  - config/environments/development.rb
   - lib/tasks/secure_files.rake
 related:
   - roi/consent-records.md
@@ -97,8 +98,10 @@ pointed at from here.
   that exact `name`.
 - `SecureFilesController` (`app/controllers/secure_files_controller.rb`): Received, Sent, and
   admin-only All Files tabs; `create` writes one `SecureFile` per recipient in a transaction.
-  The developer rake task `secure_files:upload_to_secure_files[filepath,user_id]`
-  (`lib/tasks/secure_files.rake`) attaches a local file to your own account.
+  Developer rake tasks in `lib/tasks/secure_files.rake`:
+  `secure_files:upload_to_secure_files[filepath,user_id]` attaches a local file to your own
+  account; `secure_files:download_from_secure_files[filename,dry_run]` writes the newest
+  unexpired `SecureFile` with that name to `var/`.
 - Programmatic writers: `ClientHistory` (`app/models/client_history.rb`) creates a
   `ClientFile` tagged `Homeless Verification` from the generated service history PDF;
   `ClientImageConsumer` (`app/models/concerns/client_image_consumer.rb`) writes and
@@ -226,7 +229,7 @@ when the `auto_confirm_consent` config is on; `update` additionally allows
 
 Every current write goes through ActiveStorage. The service is chosen per environment:
 `:amazon` (S3) in production and staging, `ENV['ACTIVE_STORAGE_SERVICE']` defaulting to
-`:minio` in development, and `:test` (local disk under `tmp/storage`) in tests
+`:local_s3` in development, and `:test` (local disk under `tmp/storage`) in tests
 (`config/storage.yml`). The `amazon` bucket defaults to
 `#{AWS_CLIENT_NAME}-#{AWS_APP_NAME}-#{Rails.env}-files` unless `ACTIVE_STORAGE_BUCKET` is set.
 Nothing writes the legacy `content` bytea column any more; the `file_data` fallbacks read it
@@ -238,7 +241,7 @@ caching on the file's `updated_at`. `batch_download` builds a zip in memory with
 `Zip::OutputStream` named `<client_id>_files.zip`, one entry per file named from its tags.
 
 `ClientFile#active_storage_url` caches the blob URL for external analytics.
-`before_save :clear_active_storage_url` nulls it when the service is `:amazon` or `:minio`;
+`before_save :clear_active_storage_url` nulls it when the service is `:amazon` or `:local_s3`;
 `ClientFile.maintain_urls` back-fills missing URLs in batches with `upsert_all` and is
 enqueued (delayed) from the `grda_warehouse:every_four_hours` rake task.
 
@@ -330,7 +333,7 @@ answers `regenerate?` true, otherwise saves a pending row and enqueues `Document
 - `app/models/grda_warehouse/document_export.rb`, `app/models/concerns/document_export_behavior.rb`,
   `app/controllers/document_exports_controller_base.rb`, `app/jobs/document_export_job.rb`,
   `app/jobs/prune_document_exports_job.rb`.
-- `config/storage.yml`: `test`, `local`, `amazon`, `minio` services.
+- `config/storage.yml`: `test`, `local`, `amazon`, `local_s3` services.
 
 ## Gotchas
 
@@ -363,7 +366,7 @@ answers `regenerate?` true, otherwise saves a pending row and enqueues `Document
   key (for example `client/hmis_consent`) or the files tab link silently disappears.
 - `ClientFile.maintain_urls` re-raises blob errors outside development; a single missing S3
   object fails the whole batch run.
-- `clear_active_storage_url` only runs when the service is `:amazon` or `:minio`, so in test
+- `clear_active_storage_url` only runs when the service is `:amazon` or `:local_s3`, so in test
   the column keeps whatever a factory set.
 - `SecureFile.viewable_by` follows the role, not ownership: losing
   `can_view_assigned_secure_uploads` hides a user's own past uploads. `expired` compares
@@ -384,13 +387,13 @@ answers `regenerate?` true, otherwise saves a pending row and enqueues `Document
   (`app/models/grda_warehouse/report_result_file.rb`) does. `GrdaWarehouse::SecureFile` is the
   deliberate exception because it is user-to-user, not client-bound.
 - Hard-coding tag names in application code. Existing offenders:
-  `app/models/client_history.rb:80` (`'Homeless Verification'`),
-  `app/models/concerns/cas_client_data.rb:674-681` (`'BHA Eligibility'`,
+  `app/models/client_history.rb` (`'Homeless Verification'`),
+  `app/models/concerns/cas_client_data.rb` (`'BHA Eligibility'`,
   `'Housing Authority Eligibility'`, `'Limited CAS Release'`), and
-  `app/models/concerns/client_image_consumer.rb:127` (`'Client Headshot'`). Use the
+  `app/models/concerns/client_image_consumer.rb` (`'Client Headshot'`). Use the
   `AvailableFileTag` flag scopes (`verified_homeless_history`, `consent_forms`,
   `tag_includes(...)`) or the shared constant `ClientFileBase.headshot_tag_name`. Views already
-  render `file.tag_list` against `@available_tags` (`app/views/clients/files/_file_row.haml:10-13`)
+  render `file.tag_list` against `@available_tags` (`app/views/clients/files/_file_row.haml`)
   rather than naming tags.
 - Deleting a `ClientFile` or `Hmis::File` with `destroy`. Use `soft_delete!`; `destroy` hard
   deletes the taggings and blocks restore. `Clients::FilesController#destroy`

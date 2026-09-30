@@ -14,6 +14,7 @@ sources:
   - lib/tasks/delayed_job.rake
   - lib/tasks/grda_warehouse.rake
   - config/schedule.rb
+  - app/models/dj_metrics.rb
   - app/models/grda_warehouse/config.rb
   - app/controllers/admin/configs_controller.rb
   - app/models/app_config_property.rb
@@ -80,8 +81,12 @@ setting, or a repair should read this doc first to pick the right mechanism.
 
 `ApplicationJob < ActiveJob::Base` defines two exceptions: `JobCancelled` (declared with
 `discard_on`, so raising it ends the job without retry) and `JobInterrupted` (rescued and
-re-enqueued after `RETRY_DELAY_ON_INTERRUPTION` seconds, default 60). A `before_perform` hook,
-`check_halt_status!`, raises `JobInterrupted` when the worker is stopping on SIGTERM and
+re-enqueued after `RETRY_DELAY_ON_INTERRUPTION` seconds, default 60; a warning goes to Sentry once
+a job has been interrupted `INTERRUPTION_ALERT_THRESHOLD` times). A job run inline with
+`perform_now` has no queue row (`provider_job_id` blank), so it re-raises `JobInterrupted` and
+the queued job running it requeues instead. A `before_perform` hook, `check_halt_status!`,
+raises `JobInterrupted` when the worker is stopping on SIGTERM (for an inline job, only when the
+queued job running it is interruptible, `SignalHandlerPlugin.current_job_interruptible?`) and
 `JobCancelled` when the `Delayed::Job` row has `cancellation_requested_at` set. Only jobs
 whose class overrides `self.interruptible?` to `true` can be cancelled after they start.
 
@@ -107,10 +112,10 @@ jobs get one attempt. `requeue_at(timestamp, message)` clones the current `Delay
 with cleared failure fields for a later `run_at`; it is used when an advisory lock is held by
 another worker.
 
-Errors bubble. When running as the delayed_job worker container with metrics enabled
-(`BaseJob.record_dj_metrics?`: `CONTAINER_VARIANT == 'dj' && ENABLE_DJ_METRICS == 'true'`), a
-`rescue_from StandardError` records a Prometheus failure metric and re-raises. Nothing swallows
-exceptions; Sentry sees failed jobs through Delayed Job. Long
+Errors bubble. Job metrics come from `DjMetrics::Plugin` (`app/models/dj_metrics.rb`), a
+`Delayed::Worker` plugin registered in `config/initializers/delayed_job_plugins.rb` only when
+`ENABLE_DJ_METRICS == 'true'` (set on worker pods); it records lifecycle metrics for every job
+the worker runs and forks the `/metrics` exporter. Nothing swallows exceptions; Sentry sees failed jobs through Delayed Job. Long
 jobs wrap phases in `instrument_as_maintenance_task(name:)` from
 `MaintenanceTaskInstrumentation`, which records a `SystemMaintenanceTaskRun` and lets
 `MaintenanceTasksLifecycleJob` alert when a task has not completed within its threshold.
@@ -137,10 +142,10 @@ Two details matter for job authors. Several phases enqueue rather than run:
 `ReportingSetupJob`, `Reporting::PopulationDashboardPopulateJob`, `PruneDocumentExportsJob`,
 `YouthFollowUpsJob`, `SystemCohortsJob`, and others go to the queue with explicit priorities,
 guarded by `Delayed::Job.queued?('ClassName')` so a slow previous night does not double-queue.
-And the nightly job is already long; the hourly task comments say new daily work was moved
-there for that reason. New scheduled work belongs in `grda_warehouse:hourly` behind an hour
-check (`DateTime.current.hour == N`) and `safely_execute`, enqueuing a `BaseJob`, unless it must
-be ordered relative to service history generation.
+And the nightly job is already long. New scheduled work gets its own rake task and an entry in
+`config/schedule.rb`, unless it must be ordered relative to service history generation;
+`grda_warehouse:hourly` has no hour-gated blocks and enqueues most of its work through
+`enqueue_unless_queued` so a backed-up queue does not stack copies.
 
 `grda_warehouse:monthly` runs `GrdaWarehouse::Tasks::ClientCleanup` over every destination
 client in batches of 10,000 to catch merges and splits without open enrollments.
@@ -184,7 +189,7 @@ Do not use `TaskQueue` for recurring work; it has no schedule. Do not delete old
 database's `configs` table with one column per setting. It has `has_paper_trail`, so every
 change is versioned, and `after_save :invalidate_cache`. Reads go through
 `GrdaWarehouse::Config.get(:key)`, which memoizes the row in a class variable for 30 seconds and
-then calls `public_send(key)`. There are around 200 call sites across `app/` and `drivers/`.
+then calls `public_send(key)`. It is called throughout `app/` and `drivers/`.
 Helpers built on `get` include `implied_consent?`, `default_site_coc_codes`, `cas_sync_range`,
 `active_consent_class`, and `active_supplemental_enrollment_importer_class`.
 
@@ -313,9 +318,10 @@ definitions are initialized through `TaskQueue` is stale, the collector seeds th
 - `config/initializers/delayed_job.rb`: worker settings, queue names and priorities,
   `Delayed::Job.queued?` and `running?`.
 - `config/initializers/delayed_job_plugins.rb`: `DelayedJobJobIdProvider` (sets
-  `provider_job_id`), `SignalHandlerPlugin`, AWS credential preflight and failure plugins.
-- `lib/tasks/grda_warehouse.rake`: `daily`, `hourly`, `monthly` tasks; the only schedule
-  definitions in the repository.
+  `provider_job_id`), `SignalHandlerPlugin`, AWS credential preflight and failure plugins, and
+  `DjMetrics::Plugin` when metrics are enabled.
+- `lib/tasks/grda_warehouse.rake`: `daily`, `hourly`, `monthly` tasks and the dedicated tasks
+  that `config/schedule.rb` runs.
 - `lib/tasks/delayed_job.rake`: `delayed_job:prune`, driven by Kubernetes.
 - `app/jobs/importing/run_daily_imports_job.rb`: the nightly pipeline.
 - `app/models/task_queue.rb` and `config/initializers/task_queue.rb`: run-once tasks.
@@ -363,14 +369,13 @@ definitions are initialized through `TaskQueue` is stale, the collector seeds th
   code are the queue-name lookups (`DJ_LONG_QUEUE_NAME`, `DJ_SHORT_QUEUE_NAME`). Catalogued in
   `conventions/do-not-repeat.md`.
 - Bare `rescue` or `rescue StandardError` in a job that logs and continues. Let it raise so
-  Delayed Job records the failure and Sentry sees it. `BaseJob`'s `rescue_from StandardError`
-  (gated by `record_dj_metrics?`) re-raises and is not a precedent for swallowing. Catalogued in
+  Delayed Job records the failure and Sentry sees it. Catalogued in
   `conventions/do-not-repeat.md`.
 - Exceptions for control flow inside jobs. `JobCancelled` and `JobInterrupted` are the two
   sanctioned signals and are raised only by `check_halt_status!`; a job that wants to stop
   early returns.
 - Inheriting from `ActiveJob::Base` or `ApplicationJob` directly. Inherit `BaseJob` so
-  priorities, retry limits, and metrics apply.
+  priorities and retry limits apply.
 - A new phase in `Importing::RunDailyImportsJob` for work that does not depend on service
   history ordering, or a new hour-gated block (`if DateTime.current.hour == N`) inside
   `grda_warehouse:hourly`. Register a dedicated rake task and a daily `config/schedule.rb` cron

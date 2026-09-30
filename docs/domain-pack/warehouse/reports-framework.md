@@ -75,7 +75,7 @@ touch points, and the driver reports) are not described one by one.
 ## Entry points
 
 - `WarehouseReportsController#index` (`app/controllers/warehouse_reports_controller.rb`): lists
-  `current_user.reports.order(name: :asc)` grouped by `report_group`, the seven most recently
+  `ReportDefinition.viewable_by(current_user).order(name: :asc)` grouped by `report_group`, the seven most recently
   viewed from `current_user.activity_logs.warehouse_reports` in the last week, and
   `current_user.favorite_reports`. It skips `report_visible?`; each report page checks itself.
 - `WarehouseReportAuthorization` (`app/controllers/concerns/warehouse_report_authorization.rb`):
@@ -117,13 +117,18 @@ where the S3 bucket exists. An entry may add `reporting_query`, a lambda over th
 usage for the access-log report usage summary. `maintain_report_definitions` runs
 `first_or_initialize` by `url`, copies the other fields, then `cleanup_unused_reports`
 soft-deletes a fixed list of retired URLs. Adding a report means adding an entry and running
-that method.
+that method. HUD reports are entries in the `HUD_REPORT_GROUP` (`'HUD Reports'`) group with urls
+from `ReportDefinition.hud_url(key)`, which reads `HUD_URLS` and raises `KeyError` on an unknown
+key rather than silently matching nothing; the `hud` scope selects that group.
 
 Access is per definition. `has_many :group_viewable_entities, as: :entity` links definitions to
 collections. `viewable_by(user)` has two branches: a user on Access Controls needs
 `can_view_assigned_reports?` and a `GroupViewableEntity` in one of
 `user.collections_for_permission(:can_view_assigned_reports)`; a legacy-role user with
-`can_view_all_reports?` or `can_view_assigned_reports?` gets `where(id: user.reports.pluck(:id))`.
+`can_view_all_reports?` or `can_view_assigned_reports?` gets `where(id: user.reports.pluck(:id))`,
+and one with only `can_view_hud_reports?` gets the HUD definitions among those, because legacy
+flags apply to every entity in the user's groups. `url_viewable_by?(url, user)` is the same check
+for code that knows a report only by its index url.
 `User#reports` (`app/models/user.rb`) collects `report_ids` from collections or access groups.
 `assignable_by(user)` returns everything for `can_assign_reports?` and nothing otherwise.
 `limitable: false` marks reports that cannot be limited to a subset of projects; the collection
@@ -145,7 +150,8 @@ reference in `app`, `drivers`, or `lib`. Favorites use `User#favorite_reports`, 
 ### Filters and criteria
 
 `Filters::FilterBase` (`app/models/filters/filter_base.rb`) is a `ModelForm` holding every
-filter input a warehouse report may take: date range (`start`, `end`, `on`), `project_ids`,
+filter input a warehouse report may take: date range (`start`, `end`, `on`; `time_range` for
+datetime columns, since a `Date` upper bound casts to midnight and drops the last day), `project_ids`,
 `project_group_ids`, `organization_ids`, `data_source_ids`, `funder_ids`, `coc_codes`,
 `project_type_codes` and `project_type_numbers`, demographic arrays, `sub_population`,
 `cohort_ids`, `excluded_project_ids`, `excluded_project_type_numbers`, and more. `user_id` is
@@ -215,7 +221,7 @@ does `User.find(user_id)`, `Filters::FilterBase.new(user_id:).set_from_params(JS
 builds the report object, and renders with
 `WarehouseReports::ClientDetails::EntriesController.render(partial: 'report', assigns: {...},
 locals: { current_user: })`. It recomputes `limited` and `visible_projects` for that user rather
-than trusting anything from the request. Fourteen controller files use this pattern (sixteen call sites), in core and in
+than trusting anything from the request. Several controllers use this pattern, in core and in
 drivers such as `core_demographics_report`, `access_logs`, `boston_reports`, and `analysis_tool`.
 
 ### Persisted results and SimpleReports
@@ -240,8 +246,9 @@ The current shape is `SimpleReports::ReportInstance` (`app/models/simple_reports
 table `simple_report_instances`, STI on `type`). It has `user`, `report_cells`, `options`,
 `started_at`, `completed_at`, `status`, and `archival_metadata`. `viewable_by(user)` returns all
 rows for `can_view_all_reports?`, the user's own rows for `can_view_assigned_reports?`, else
-none. `universe` and `cell(name)` give the cell rows; `running?` turns false after 24 hours
-without completion. Nine driver reports subclass it: `PerformanceMeasurement::Report`,
+none. `start` sets `started_at` and clears `failed_at`, so a retry drops the previous failure;
+`complete` sets `completed_at`. `universe` and `cell(name)` give the cell rows; `running?` turns false after 24 hours
+without completion. Driver reports that subclass it include `PerformanceMeasurement::Report`,
 `SystemPathways::Report`, `CePerformance::Report`, `HomelessSummaryReport::Report`,
 `MaYyaReport::Report`, `MaReports::MonthlyPerformance::Report`, `PerformanceMetrics::Report`,
 `AllNeighborsSystemDashboard::Report`, and `HapReport::Report`.
@@ -343,48 +350,48 @@ flashes counts or errors, and redirects to `reload_from_csv_redirect_path`. A sh
 
 ## Key files
 
-- `app/models/grda_warehouse/warehouse_reports/report_definition.rb:22` `viewable_by`; `:50`
-  `assignable_by`; `:64` `maintain_report_definitions`; `:83` `report_list`; `:953`
+- `app/models/grda_warehouse/warehouse_reports/report_definition.rb`: `viewable_by`;
+  `assignable_by`; `maintain_report_definitions`; `report_list`;
   `cleanup_unused_reports`.
 - `app/models/grda_warehouse/warehouse_reports/report_definitions_user.rb`: unreferenced join
   model.
-- `app/controllers/warehouse_reports_controller.rb:13` `index`.
-- `app/controllers/concerns/warehouse_report_authorization.rb:15` `report_visible?`; `:24`
-  `related_report`; `:32` `set_limited`; `:38` `reload_from_csv`.
-- `app/models/filters/filter_base.rb:116` `update`; `:230` `for_params`; `:597`
-  `effective_project_ids`; `:646` `apply_criteria`; `:667` `apply`; `:785` `all_project_ids`;
-  `:789` `all_project_scope`; `:965` `user`; `:1535` `project_names`.
-- `app/models/filters/criteria.rb:29` `classes_for_tags`; `:43` `factory`; `:71` `DEFINITIONS`.
-- `app/models/filters/criteria/base.rb:16` `applies?`; `:20` `apply`.
-- `app/models/filters/criteria/configuration.rb:14` defaults.
-- `app/models/filters/criteria/filter_for_user_access.rb:12` the ACL join.
-- `app/models/filters/criteria/filter_for_projects.rb:14` `apply`, order-dependent merge.
-- `app/models/filters/criteria/filter_for_range.rb:14` `apply`.
-- `app/controllers/concerns/background_render_action.rb:17` `background_render_action`.
-- `app/jobs/background_render_job.rb:13` `perform` with the stream wait; `:46` `handle_error`.
-- `app/controllers/warehouse_reports/client_details/entries_controller.rb:20` usage.
-- `app/jobs/background_render/entry_clients_report_job.rb:10` `render_html`; `:28`
+- `app/controllers/warehouse_reports_controller.rb`: `index`.
+- `app/controllers/concerns/warehouse_report_authorization.rb`: `report_visible?`;
+  `related_report`; `set_limited`; `reload_from_csv`.
+- `app/models/filters/filter_base.rb`: `update`; `for_params`;
+  `effective_project_ids`; `apply_criteria`; `apply`; `all_project_ids`;
+  `all_project_scope`; `user`; `project_names`.
+- `app/models/filters/criteria.rb`: `classes_for_tags`; `factory`; `DEFINITIONS`.
+- `app/models/filters/criteria/base.rb`: `applies?`; `apply`.
+- `app/models/filters/criteria/configuration.rb`: defaults.
+- `app/models/filters/criteria/filter_for_user_access.rb`: the ACL join.
+- `app/models/filters/criteria/filter_for_projects.rb`: `apply`, order-dependent merge.
+- `app/models/filters/criteria/filter_for_range.rb`: `apply`.
+- `app/controllers/concerns/background_render_action.rb`: `background_render_action`.
+- `app/jobs/background_render_job.rb`: `perform` with the stream wait; `handle_error`.
+- `app/controllers/warehouse_reports/client_details/entries_controller.rb`: usage.
+- `app/jobs/background_render/entry_clients_report_job.rb`: `render_html`;
   `visible_projects`.
-- `app/controllers/warehouse_reports/chronic_controller.rb:17` `index` enqueue; `:40` `show`.
-- `app/jobs/warehouse_reports/run_chronic_job.rb:18` `perform`; `:96` `report.data =`.
-- `app/models/grda_warehouse/warehouse_reports/base.rb:17` `for_list`; `:42` `completed?`.
-- `app/models/simple_reports/report_instance.rb:17` `viewable_by`; `:28` `purge_eligible`;
-  `:50` `running?`.
-- `app/jobs/warehouse_reports/generic_report_job.rb:20` `perform`; `:24` advisory lock; `:60`
+- `app/controllers/warehouse_reports/chronic_controller.rb`: `index` enqueue; `show`.
+- `app/jobs/warehouse_reports/run_chronic_job.rb`: `perform`; `report.data =`.
+- `app/models/grda_warehouse/warehouse_reports/base.rb`: `for_list`; `completed?`.
+- `app/models/simple_reports/report_instance.rb`: `viewable_by`; `purge_eligible`;
+  `running?`.
+- `app/jobs/warehouse_reports/generic_report_job.rb`: `perform`; advisory lock;
   `allowed_reports`.
-- `app/controllers/document_exports_controller_base.rb:13` `create`; `:49` `find_or_create`;
-  `:78` `valid_document_export_classes`.
-- `app/models/grda_warehouse/document_exports/base_performance_export.rb:11` `authorized?`.
-- `app/models/grda_warehouse/document_exports/client_performance_export.rb:11` `perform`.
-- `app/models/concerns/warehouse_reports/export.rb:26` `value_for_display`; `:54` `status`;
-  `:83` `clients_within_projects`.
-- `app/models/concerns/warehouse_reports/publish.rb:79` `publish!`; `:109` `unpublish!`; `:122`
+- `app/controllers/document_exports_controller_base.rb`: `create`; `find_or_create`;
+  `valid_document_export_classes`.
+- `app/models/grda_warehouse/document_exports/base_performance_export.rb`: `authorized?`.
+- `app/models/grda_warehouse/document_exports/client_performance_export.rb`: `perform`.
+- `app/models/concerns/warehouse_reports/export.rb`: `value_for_display`; `status`;
+  `clients_within_projects`.
+- `app/models/concerns/warehouse_reports/publish.rb`: `publish!`; `unpublish!`;
   `as_html`.
-- `app/models/concerns/warehouse_reports/s3_toolset.rb:13` `ready_public_s3_bucket!`; `:67`
-  `s3_bucket`; `:104` `push_all_to_s3`.
-- `app/models/concerns/warehouse_reports/pii_detail_rows.rb:13` `redact_pii_in_row`.
-- `app/models/concerns/report_archival.rb:26` `register_report_type`; `:36`
-  `archival_csv_config`; `:62` `purge_eligible?`; `:169` `archive_and_purge!`.
+- `app/models/concerns/warehouse_reports/s3_toolset.rb`: `ready_public_s3_bucket!`;
+  `s3_bucket`; `push_all_to_s3`.
+- `app/models/concerns/warehouse_reports/pii_detail_rows.rb`: `redact_pii_in_row`.
+- `app/models/concerns/report_archival.rb`: `register_report_type`;
+  `archival_csv_config`; `purge_eligible?`; `archive_and_purge!`.
 
 ## Gotchas
 
@@ -402,7 +409,8 @@ flashes counts or errors, and redirects to `reload_from_csv_redirect_path`. A sh
 - `ReportDefinition.viewable_by` in the legacy branch treats `can_view_all_reports?` and
   `can_view_assigned_reports?` alike. Seeing other users' runs is decided by each report model
   (for example `SimpleReports::ReportInstance.viewable_by`), not by the definition.
-- `maintain_report_definitions` runs only from `db/seed_maker.rb` and the spec helper. A new
+- `maintain_report_definitions` runs only from `db/seed_maker.rb`,
+  `GrdaWarehouse::Tasks::GrantAllHudReports`, and specs. A new
   `report_list` entry does nothing on an existing installation until someone runs it.
 - `FilterBase#effective_project_ids_from_projects` is not ACL-filtered; only
   `FilterForProjects#apply` and `FilterForUserAccess#apply` merge `viewable_project_scope`. A

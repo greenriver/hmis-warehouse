@@ -127,11 +127,12 @@ Cohorts" and "Hidden System Group" system collections. Per-user access is handle
 concern creates per cohort.
 
 `viewable_by(user, permission:)` on the ACL branch resolves `user.collections_for_permission`
-for `can_view_cohorts` and reads cohort ids from `GrdaWarehouse::GroupViewableEntity`
-`where(collection_id:, entity_type: 'GrdaWarehouse::Cohort')`. The legacy branch returns
-`user.cohorts`. `editable_by(user)` on the ACL branch passes the collection ids to
-`where(access_group_id: ...)` rather than `collection_id:`; do not assume it mirrors
-`viewable_by` without reading it.
+and reads cohort ids from `GrdaWarehouse::GroupViewableEntity`
+`where(collection_id:, entity_type: 'GrdaWarehouse::Cohort')`. `permission:` defaults to
+`viewable_permissions + editable_permissions`, because a user who can edit a cohort can see it.
+The legacy branch returns `user.cohorts`. `editable_by(user)` mirrors it on the ACL branch for
+`editable_permissions` (`can_manage_cohort_data`, `can_participate_in_cohorts`) alone; it does not
+also require a view permission.
 
 `GrdaWarehouse::CohortClient` is paranoid and paper-trailed, `belongs_to :cohort` and
 `:client`, has `active` (a user-set boolean, independent of calculated inactivity), and holds
@@ -168,7 +169,7 @@ on it), `cast_value` (used by tab rules), `arel_col`, `value(cohort_client)`, `w
 `CohortString`, `CohortBoolean`, `CohortDate`, `Select`, `Radio`, `Integer`, `Text`, and
 `ReadOnly`. Each `display_for(user)` renders an input when `display_as_editable?` is true and
 falls back to `display_read_only(user)` otherwise. `display_as_editable?` requires
-`cohort.user_can_edit_cohort_clients(user)` and either `can_manage_cohort_data?` or
+`cohort.user_can_edit_cohort_clients(user)` (membership in `Cohort.editable_by(user)`) and either `can_manage_cohort_data?` or
 (`editable` on this cohort's `column_state` entry and `can_participate_in_cohorts?`).
 `ReadOnly` (`app/models/cohort_columns/read_only.rb`) sets `column_editable?` false and returns
 `value(cohort_client)` for both display methods.
@@ -338,46 +339,46 @@ What the reconstruction cannot know, from the code:
 
 ## Key files
 
-- `app/models/grda_warehouse/cohort.rb:91` `viewable_by`; `:122` `editable_by`; `:325`
-  `visible_columns`; `:410` `prepare_active_cohorts`; `:419` `refresh_time_dependant_client_data`;
-  `:449` `with_client_update_lock`; `:655` `maintain_system_group`; `:713` `maintain`; `:764`
-  `add_clients`; `:809` `remove_clients`.
-- `app/models/grda_warehouse/cohort_client.rb:32` `pii_provider(user:, mode:)`.
-- `app/models/grda_warehouse/cohort_client_change.rb:22` `removal`; `:28` `associated_exit`.
-- `app/models/grda_warehouse/cohort_tab.rb:21` `show_for?`; `:37` `rule_query`; `:159`
+- `app/models/grda_warehouse/cohort.rb`: `viewable_by`; `editable_by`;
+  `visible_columns`; `prepare_active_cohorts`; `refresh_time_dependant_client_data`;
+  `with_client_update_lock`; `maintain_system_group`; `maintain`;
+  `add_clients`; `remove_clients`.
+- `app/models/grda_warehouse/cohort_client.rb`: `pii_provider(user:, mode:)`.
+- `app/models/grda_warehouse/cohort_client_change.rb`: `removal`; `associated_exit`.
+- `app/models/grda_warehouse/cohort_tab.rb`: `show_for?`; `rule_query`;
   `default_rules`.
 - `app/models/grda_warehouse/cohort_column_option.rb`: dropdown values per `Select` column.
-- `app/models/grda_warehouse/cohort_copier.rb:21` `copy!`.
-- `app/models/grda_warehouse/cohorts/cohort_column.rb:19` `deactivate`; `:44`
+- `app/models/grda_warehouse/cohort_copier.rb`: `copy!`.
+- `app/models/grda_warehouse/cohorts/cohort_column.rb`: `deactivate`;
   `known_cohort_columns`.
 - `app/models/grda_warehouse/cohorts/cohort_analytics_generation.rb`: orchestrates the three
   analytics tables and logs run times; `maintain_cohort_intermediate_data` takes an advisory
   lock (`with_lock`) so concurrent triggers don't double-run.
-- `app/models/grda_warehouse/cohorts/cohort_client_data.rb:18` `maintain_data`; `:54`
+- `app/models/grda_warehouse/cohorts/cohort_client_data.rb`: `maintain_data`;
   `text_value`, which calls `analytics_value`.
-- `app/models/grda_warehouse/system_cohorts/base.rb:21` `update_system_cohort`; `:59`
-  `ensure_system_cohort`; `:174` `cohort_classes`.
-- `app/models/grda_warehouse/system_cohorts/currently_homeless.rb:15` `sync`.
-- `app/models/cohort_columns/base.rb:78` `display_as_editable?`; `:110` `analytics_data_type`;
-  `:122` `analytics_value`.
+- `app/models/grda_warehouse/system_cohorts/base.rb`: `update_system_cohort`;
+  `ensure_system_cohort`; `cohort_classes`.
+- `app/models/grda_warehouse/system_cohorts/currently_homeless.rb`: `sync`.
+- `app/models/cohort_columns/base.rb`: `display_as_editable?`; `analytics_data_type`;
+  `analytics_value`.
 - `app/models/cohort_columns/read_only.rb`: the read-only type class.
 - `app/models/cohort_columns/cohort_string.rb`: the simplest editable type class.
-- `app/models/cohort_columns/open_enrollments.rb:62` `analytics_value` returning `text_value`.
-- `app/models/cohort_columns/destination_from_homelessness.rb:18` `value` returning stored
+- `app/models/cohort_columns/open_enrollments.rb`: `analytics_value` returning `text_value`.
+- `app/models/cohort_columns/destination_from_homelessness.rb`: `value` returning stored
   markup.
-- `app/models/audit/cohort_access/base.rb:22` `PERMISSIONS_NOTE`.
-- `app/models/audit/cohort_access/intervals.rb:53` `reconstruct`; `:79`
-  `reconcile_with_record`; `:118` `fallback_intervals`.
+- `app/models/audit/cohort_access/base.rb`: `PERMISSIONS_NOTE`.
+- `app/models/audit/cohort_access/intervals.rb`: `reconstruct`;
+  `reconcile_with_record`; `fallback_intervals`.
 - `app/models/audit/cohort_access/legacy.rb`, `app/models/audit/cohort_access/acl.rb`: the two
   path reconstructions.
-- `app/controllers/cohorts_controller.rb:142` `create`; `:166` `update`.
-- `app/controllers/cohorts/clients_controller.rb:593` `cohort_update_params`; `:600`
-  `log_create`; `:650` `client_scope`.
-- `app/controllers/cohorts/columns_controller.rb:20` `update`; `:51` `set_cohort`.
-- `app/controllers/concerns/cohort_authorization.rb:19` `require_can_access_cohort!`; `:31`
+- `app/controllers/cohorts_controller.rb`: `create`; `update`.
+- `app/controllers/cohorts/clients_controller.rb`: `cohort_update_params`;
+  `log_create`; `client_scope`.
+- `app/controllers/cohorts/columns_controller.rb`: `update`; `set_cohort`.
+- `app/controllers/concerns/cohort_authorization.rb`: `require_can_access_cohort!`;
   `cohort_scope`.
-- `app/controllers/concerns/cohort_access_auditing.rb:19-21` the three `before_action`s.
-- `app/jobs/system_cohorts_job.rb:28` `_perform`.
+- `app/controllers/concerns/cohort_access_auditing.rb`: the three `before_action`s.
+- `app/jobs/system_cohorts_job.rb`: `_perform`.
 
 ## Gotchas
 
@@ -400,9 +401,6 @@ What the reconstruction cannot know, from the code:
   re-serialized; `GrdaWarehouse::Cohorts::RepairColumnState` exists to strip that ivar from
   affected rows. Do not call `cohort_column` on objects that will be saved back into
   `column_state`.
-- `Cohort.editable_by` on the ACL branch queries `GroupViewableEntity` by `access_group_id`
-  with collection ids. `viewable_by` queries by `collection_id`. Read both before relying on
-  `editable_by` for an ACL user.
 - Concurrent writers to `cohort_clients` (system cohort sync, `maintain`, cache warm) use
   `with_client_update_lock`, a per-cohort Postgres advisory lock that is non-blocking by
   default. A caller that skips it can deadlock with the jobs.
@@ -418,25 +416,25 @@ What the reconstruction cannot know, from the code:
 
 - A read-only column that returns HTML from `display_read_only` without overriding
   `analytics_value`. `CohortColumns::DestinationFromHomelessness`
-  (`app/models/cohort_columns/destination_from_homelessness.rb:18`) persists markup into
+  (`app/models/cohort_columns/destination_from_homelessness.rb`) persists markup into
   analytics. Replacement: override `analytics_value` to return a plain string, as
-  `CohortColumns::OpenEnrollments` does (`app/models/cohort_columns/open_enrollments.rb:62`).
+  `CohortColumns::OpenEnrollments` does (`app/models/cohort_columns/open_enrollments.rb`).
 - Gating a cohort action on a global `require_can_x!` alone and loading the cohort with
   `GrdaWarehouse::Cohort.find`. `Cohorts::ColumnsController#set_cohort`
-  (`app/controllers/cohorts/columns_controller.rb:51`) does this. Replacement: include
+  (`app/controllers/cohorts/columns_controller.rb`) does this. Replacement: include
   `CohortAuthorization`, load through `cohort_scope.find`, and keep the permission check as
   the second gate, as `Cohorts::ClientsController` and `CohortAccessAuditing`
-  (`app/controllers/concerns/cohort_access_auditing.rb:19-21`) do. `user.can_x?` answers
+  (`app/controllers/concerns/cohort_access_auditing.rb`) do. `user.can_x?` answers
   "anywhere", not "on this cohort"; see `authorization/warehouse-policies.md`.
 - Writing `Collection`, `UserGroup`, `Role`, or `AccessControl` rows to give a user one cohort.
   Replacement: `cohort.replace_access(users, scope:)` as `CohortsController#create`
-  (`app/controllers/cohorts_controller.rb:150`) does.
+  (`app/controllers/cohorts_controller.rb`) does.
 - Changing `cohort_clients` membership without a `GrdaWarehouse::CohortClientChange`. The change
   report, `associated_exit`, and system cohort re-processing depend on one row per event.
   Replacement: `Cohort#add_clients`/`remove_clients` for automated paths, the
   `Cohorts::ClientsController#log_*` methods for user actions.
 - A new visibility scope for cohorts (`visible_to`, `accessible_by`). Replacement:
-  `GrdaWarehouse::Cohort.viewable_by(user)` (`app/models/grda_warehouse/cohort.rb:91`).
+  `GrdaWarehouse::Cohort.viewable_by(user)` (`app/models/grda_warehouse/cohort.rb`).
 
 ## Related
 

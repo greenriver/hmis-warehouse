@@ -1,6 +1,6 @@
 ---
 title: Driver architecture
-summary: "Features live as drivers under drivers/<name>, each mirroring the Rails layout with its own app, lib, config, and spec. Covers how config/application.rb autoloads and eager loads driver code, the feature initializer and the extension points it registers into, the extensions pattern that mixes behavior into core models through explicit includes, driver-local base controllers for HUD reports, the README convention, and a catalog of all 82 drivers grouped by kind."
+summary: "Features live as drivers under drivers/<name>, each mirroring the Rails layout with its own app, lib, config, and spec. Covers how config/application.rb autoloads and eager loads driver code, the feature initializer and the extension points it registers into, the extensions pattern that mixes behavior into core models through explicit includes, driver-local base controllers for HUD reports, the README convention, and a catalog of every driver grouped by kind."
 area: warehouse
 tags: [drivers, driver-architecture, RailsDrivers, feature-initializer, extensions, autoload_paths, eager_load_paths, collapse, hud_reports registration, sub_pop, extension-points, driver_setup, driver rake tasks, README]
 sources:
@@ -41,8 +41,8 @@ This doc covers loading, the feature initializer, the extensions pattern for add
 - `config/application.rb`: the driver block that adds each driver's `app/{models,controllers,mailers,helpers,jobs,graphql}` and `lib` to `autoload_paths` and `eager_load_paths`, declares the `config.*` extension-point registries, and defines the `load_driver_routes` and `load_driver_feature_initializers` initializers.
 - `config/initializers/driver_setup.rb`: collapses `concerns/` and `app/models/<driver>/extensions/` directories in the main Zeitwerk loader and prepends every `drivers/*/app/views` as a view path.
 - `lib/tasks/driver_tasks.rake`: loads `drivers/*/lib/tasks/**/*.rake` under `driver:<name>:`.
-- `drivers/<name>/config/initializers/<name>_feature.rb`: where a driver registers into extension points (36 drivers have one; `drivers/hmis` has two initializer files).
-- `drivers/<name>/app/models/<name>/extensions/**/*_extension.rb`: concerns a core model includes (170 files).
+- `drivers/<name>/config/initializers/<name>_feature.rb`: where a driver registers into extension points (many drivers have one; `drivers/hmis` has two initializer files).
+- `drivers/<name>/app/models/<name>/extensions/**/*_extension.rb`: concerns a core model includes.
 - `spec/spec_helper.rb`: requires `drivers/*/spec/support/*.rb`, adds `drivers/*/spec/factories` to FactoryBot, and adds driver directories to `project_source_dirs`. Specs run with `--pattern "spec/**/*_spec.rb,drivers/*/spec/**/*_spec.rb"`.
 - `docs/developer/drivers.md` (how-to) and `docs/architecture/08-concepts/08-3-driver-module-pattern.md` (design rationale) are the human-facing docs.
 
@@ -62,15 +62,15 @@ Rake tasks are the one place the driver name is used at runtime: `lib/tasks/driv
 
 ### Feature initializer
 
-A driver hooks into core behavior from `drivers/<name>/config/initializers/<name>_feature.rb`. The file is plain Ruby loaded by `load_driver_feature_initializers`; most are a few lines. Two shapes appear. Registrations that only write into a `Rails.application.config.*` hash or array run at top level; registrations that call a core class method are wrapped in `Rails.application.reloader.to_prepare do ... end` so they re-run after a code reload (18 of the 37 files use `to_prepare`).
+A driver hooks into core behavior from `drivers/<name>/config/initializers/<name>_feature.rb`. The file is plain Ruby loaded by `load_driver_feature_initializers`; most are a few lines. Two shapes appear. Registrations that only write into a `Rails.application.config.*` hash or array run at top level; registrations that call a core class method are wrapped in `Rails.application.reloader.to_prepare do ... end` so they re-run after a code reload.
 
-The registries are declared in `config/application.rb` under the comment `# Extension points`: `sub_populations`, `census`, `monthly_reports`, `hud_reports`, `hmis_exporters`, `synthetic_event_types`, `synthetic_assessment_types`, `synthetic_youth_education_status_types`, `patient_dashboards`, `hmis_migrations`, `hmis_data_lakes`, `custom_imports`, `supplemental_enrollment_importers`, `help_links`, `location_processors`, `queued_tasks`, `report_archival_types`. Counting across the 37 feature files as of 2026-09: `hud_reports` (33 writes, from `hopwa_caper`, `hud_apr`, `hud_hic`, `hud_lsa`, `hud_path_report`, `hud_pit`, `hud_spm_report`), `help_links` (11; consumed by `GrdaWarehouse::Help`), `queued_tasks` (5), `hmis_data_lakes` (4), `custom_imports` (4), `synthetic_assessment_types` (3), `synthetic_event_types` (2), `location_processors` (2).
+The registries are declared in `config/application.rb` under the comment `# Extension points`: `sub_populations`, `census`, `monthly_reports`, `hud_reports`, `hmis_exporters`, `synthetic_event_types`, `synthetic_assessment_types`, `synthetic_youth_education_status_types`, `patient_dashboards`, `hmis_migrations`, `hmis_data_lakes`, `custom_imports`, `supplemental_enrollment_importers`, `help_links`, `location_processors`, `queued_tasks`, `report_archival_types`. The most used is `hud_reports` (from `hopwa_caper`, `hud_apr`, `hud_hic`, `hud_lsa`, `hud_path_report`, `hud_pit`, `hud_spm_report`), then `help_links` (consumed by `GrdaWarehouse::Help`); `queued_tasks`, `hmis_data_lakes`, `custom_imports`, `synthetic_assessment_types`, `synthetic_event_types`, and `location_processors` have a few writers each.
 
 Examples, each verified against the file:
 
-- `drivers/hud_apr/config/initializers/hud_apr_feature.rb` sets `Rails.application.config.hud_reports['HudApr::Generators::Apr::Fy2026::Generator'] = { title:, helper: }` once per report type per fiscal year. Year registration and how `HudReports::BaseController` reads it are in `hud-reporting/report-framework.md`.
-- `drivers/veterans_sub_pop/config/initializers/veterans_sub_pop_feature.rb` wraps four class-method calls in `to_prepare`: `AvailableSubPopulations.add_sub_population`, `GrdaWarehouse::Census.add_population`, `SubpopulationHistoryScope.add_sub_population`, and `Reporting::MonthlyReports::Base.add_available_type`. Those methods store into `config.sub_populations`, `config.census`, and `config.monthly_reports`.
-- `drivers/hmis_csv_twenty_twenty_six/config/initializers/hmis_csv_twenty_twenty_six_feature.rb` registers an export version (`Filters::HmisExport.register_version('HMIS 2026', '2026', 'HmisCsvTwentyTwentySix::ExportJob')`), a data lake class name, and, gated on environment and date, a `queued_tasks` lambda.
+- `drivers/hud_apr/config/initializers/hud_apr_feature.rb`: sets `Rails.application.config.hud_reports['HudApr::Generators::Apr::Fy2026::Generator'] = { title:, helper: }` once per report type per fiscal year. Year registration and how `HudReports::BaseController` reads it are in `hud-reporting/report-framework.md`.
+- `drivers/veterans_sub_pop/config/initializers/veterans_sub_pop_feature.rb`: wraps four class-method calls in `to_prepare`: `AvailableSubPopulations.add_sub_population`, `GrdaWarehouse::Census.add_population`, `SubpopulationHistoryScope.add_sub_population`, and `Reporting::MonthlyReports::Base.add_available_type`. Those methods store into `config.sub_populations`, `config.census`, and `config.monthly_reports`.
+- `drivers/hmis_csv_twenty_twenty_six/config/initializers/hmis_csv_twenty_twenty_six_feature.rb`: registers an export version (`Filters::HmisExport.register_version('HMIS 2026', '2026', 'HmisCsvTwentyTwentySix::ExportJob')`), a data lake class name, and, gated on environment and date, a `queued_tasks` lambda.
 - The three `hud_twenty_*_to_twenty_*` drivers call `Importers::HmisAutoMigrate.add_migration(version_string, transformer_class)` for every `CSVVersion` string they have seen.
 
 Menu items are not registered here; a report appears in the UI through `GrdaWarehouse::WarehouseReports::ReportDefinition.report_list` and seeding, as `docs/developer/drivers.md` describes. Nothing in a feature initializer should test whether another driver is present.
@@ -81,8 +81,8 @@ A driver adds associations, scopes, or methods to a core model through an `Activ
 
 Two examples:
 
-- `drivers/hmis_csv_importer/app/models/hmis_csv_importer/extensions/grda_warehouse/upload_extension.rb` defines `HmisCsvImporter::GrdaWarehouse::UploadExtension`. Its `included` block adds `has_one :importer_log, through: :import_log`, `has_one :loader_log, through: :import_log`, and the `status` and `import_time` instance methods that the upload list renders. `app/models/grda_warehouse/upload.rb` includes it, next to `HmisCsvTwentyTwenty::GrdaWarehouse::UploadExtension`, under a comment marking the block as driver extensions.
-- `drivers/adults_with_children_sub_pop/app/models/adults_with_children_sub_pop/extensions/reporting/housed_extension.rb` defines `AdultsWithChildrenSubPop::Reporting::HousedExtension`, whose `included` block defines `client_source` as `GrdaWarehouse::Hud::Client.destination.adults_with_children`. `app/models/reporting/housed.rb` includes all eight `*SubPop::Reporting::HousedExtension` concerns in a row.
+- `drivers/hmis_csv_importer/app/models/hmis_csv_importer/extensions/grda_warehouse/upload_extension.rb`: defines `HmisCsvImporter::GrdaWarehouse::UploadExtension`. Its `included` block adds `has_one :importer_log, through: :import_log`, `has_one :loader_log, through: :import_log`, and the `status` and `import_time` instance methods that the upload list renders. `app/models/grda_warehouse/upload.rb` includes it, next to `HmisCsvTwentyTwenty::GrdaWarehouse::UploadExtension`, under a comment marking the block as driver extensions.
+- `drivers/adults_with_children_sub_pop/app/models/adults_with_children_sub_pop/extensions/reporting/housed_extension.rb`: defines `AdultsWithChildrenSubPop::Reporting::HousedExtension`, whose `included` block defines `client_source` as `GrdaWarehouse::Hud::Client.destination.adults_with_children`. `app/models/reporting/housed.rb` includes all eight `*SubPop::Reporting::HousedExtension` concerns in a row.
 
 Rules that follow from the mechanism:
 
@@ -95,9 +95,9 @@ Rules that follow from the mechanism:
 
 `app/controllers/hud_reports/base_controller.rb` (`HudReports::BaseController < ApplicationController`) holds the shared HUD report actions: `index`, `show`, `running`, `history`, `new`, `create`, and the version-selection helpers `available_report_versions`, `default_report_version`, `active_report_versions`. Each HUD-report driver builds on it in one of two ways.
 
-Five drivers define a driver-local base class and subclass it from their resource controllers: `HudApr::BaseController`, `HopwaCaper::BaseController`, `HudDataQualityReport::BaseController`, `HudPathReport::BaseController`, and `HudSpmReport::BaseController`, each at `drivers/<name>/app/controllers/<name>/base_controller.rb`. `drivers/hud_apr/app/controllers/hud_apr/base_controller.rb` is the smallest useful example: it declares `class BaseController < ::HudReports::BaseController`, adds `before_action :filter`, and overrides `active_report_versions` to return `{ fy2026: 'FY 2026' }.invert.freeze`, which is what limits the "new report" form to the currently active year while `available_report_versions` still lists every registered year for viewing history. The leading `::` matters for the same namespace reason as extensions: `HudApr::HudReports` would otherwise be a candidate constant.
+Some drivers define a driver-local base class and subclass it from their resource controllers: `HudApr::BaseController`, `HopwaCaper::BaseController`, `HudDataQualityReport::BaseController`, `HudPathReport::BaseController`, and `HudSpmReport::BaseController`, each at `drivers/<name>/app/controllers/<name>/base_controller.rb`. `drivers/hud_apr/app/controllers/hud_apr/base_controller.rb` is the smallest useful example: it declares `class BaseController < ::HudReports::BaseController`, adds `before_action :filter`, and overrides `active_report_versions` to return `{ fy2026: 'FY 2026' }.invert.freeze`, which is what limits the "new report" form to the currently active year while `available_report_versions` still lists every registered year for viewing history. The leading `::` matters for the same namespace reason as extensions: `HudApr::HudReports` would otherwise be a candidate constant.
 
-Three drivers skip the intermediate class and subclass `::HudReports::BaseController` directly from the resource controller: `HudHic::HicsController`, `HudLsa::LsasController`, and `HudPit::PitsController` (plus `HudPit::CellsController`).
+Others skip the intermediate class and subclass `::HudReports::BaseController` directly from the resource controller: `HudHic::HicsController`, `HudLsa::LsasController`, and `HudPit::PitsController` (plus `HudPit::CellsController`).
 
 Routes follow one shape. `drivers/hud_apr/config/routes.rb` opens `OpenPath::Application.routes.draw`, calls `extend HudReports::RouteConcerns` (defined in `lib/hud_reports/route_concerns.rb`, which `config/application.rb` requires early to avoid load-order problems in development), then declares `scope module: :hud_apr, path: :hud_reports, as: :hud_reports` with one `resources` block per report type, each using `concerns :hud_report_actions` and a nested `scope module:` with `concerns :hud_drilldown_actions`. The result is URLs under `/hud_reports/<plural>` and helpers such as `hud_reports_aprs_path`, which is the `helper:` string the feature initializer registers.
 
@@ -105,13 +105,13 @@ Authorization for all of these is the legacy `require_can_view_hud_reports!` fla
 
 ### README convention
 
-Every driver except `hmis_csv_importer`, `hmis_simulation`, and `performance_measurement` has a `README.md` (79 of 82 as of 2026-09), but most are two- or three-line stubs, many still containing the template sentence "This README file should be used to explain the functionality of the driver." The eight `*_sub_pop` READMEs are a copy-this-directory template listing the strings to replace. Do not treat a stub as evidence that a driver is trivial; `performance_measurement` has no README and a dozen model files.
+Every driver except `hmis_csv_importer`, `hmis_simulation`, and `performance_measurement` has a `README.md`, but most are two- or three-line stubs, many still containing the template sentence "This README file should be used to explain the functionality of the driver." The `*_sub_pop` READMEs are a copy-this-directory template listing the strings to replace. Do not treat a stub as evidence that a driver is trivial; `performance_measurement` has no README and many model files.
 
 READMEs with substantive content, in decreasing length: `ma_yya_report` (508 lines), `hmis_csv_twenty_twenty_six` (224), `hud_lsa` (176), `core_demographics_report` (71, and it points to `docs/features/warehouse/core-demographics-report.md`), `hmis` (67), the three older `hmis_csv_twenty_twenty*` drivers (57-58 each), `datalab_testkit` (46), and `access_logs` (30). Mid-length READMEs worth opening before touching the driver: `start_date_dq`, `user_directory_report`, `client_access_control`, `cas_ce_data`, the three `hud_twenty_*` translators, and `inactive_client_report`.
 
 `drivers/hmis/README.md` is the operational reference for the HMIS driver: the environment variables that enable the HMIS API locally (`ENABLE_HMIS_API=true`, `HMIS_HOSTNAME=...`, comma-separated for multiple frontends), the multi-HMIS local setup, where end-to-end specs live (`drivers/hmis/spec/system/hmis`), and the manual checklist for a new deployment (HMIS data source, administrator role, permissions, file tags, unit types, custom service types, custom data element definitions, remote credentials, inbound API configurations, theme).
 
-The catalog table records, for each driver, the first sentence of its README so an agent can tell a stub from a described driver without opening 82 files.
+The catalog table records, for each driver, the first sentence of its README so an agent can tell a stub from a described driver without opening each one.
 
 ### Driver catalog
 
@@ -242,18 +242,18 @@ Generated from the `drivers/` directory listing on 2026-09-20 (82 directories). 
 
 ## Key files
 
-- `config/application.rb:170` `driver_app_components`; `:172` autoload and eager-load loop over each driver app directory; `:184` driver lib autoload with the tasks subdirectory ignored; `:210` to `:227` the `config.*` extension-point registries; `:229` `load_driver_routes`; `:235` `load_driver_feature_initializers`.
-- `config/initializers/driver_setup.rb:20` collapse of driver `concerns/`; `:31` collapse of driver extensions directories; `:36` `prepend_view_path`.
-- `lib/tasks/driver_tasks.rake:14` `driver:<name>:` namespacing.
-- `spec/spec_helper.rb:143` driver spec support files; `:146` driver factories; `:149` to `:151` driver `project_source_dirs`.
+- `config/application.rb`: `driver_app_components`; autoload and eager-load loop over each driver app directory; driver lib autoload with the tasks subdirectory ignored; the `config.*` extension-point registries; `load_driver_routes`; `load_driver_feature_initializers`.
+- `config/initializers/driver_setup.rb`: collapse of driver `concerns/`; collapse of driver extensions directories; `prepend_view_path`.
+- `lib/tasks/driver_tasks.rake`: `driver:<name>:` namespacing.
+- `spec/spec_helper.rb`: driver spec support files; driver factories; driver `project_source_dirs`.
 - `drivers/hud_apr/config/initializers/hud_apr_feature.rb`: `config.hud_reports` registration per fiscal year.
 - `drivers/veterans_sub_pop/config/initializers/veterans_sub_pop_feature.rb`: the `to_prepare` registration shape for sub-populations, census, history scopes, monthly reports.
 - `drivers/hmis_csv_twenty_twenty_six/config/initializers/hmis_csv_twenty_twenty_six_feature.rb`: export version, data lake, and gated `queued_tasks` registration.
-- `drivers/hmis_csv_importer/app/models/hmis_csv_importer/extensions/grda_warehouse/upload_extension.rb` and `app/models/grda_warehouse/upload.rb:85`: an extension and its include.
-- `drivers/adults_with_children_sub_pop/app/models/adults_with_children_sub_pop/extensions/reporting/housed_extension.rb` and `app/models/reporting/housed.rb:15`: the sub-population extension shape and its include block.
-- `app/controllers/hud_reports/base_controller.rb:115` `available_report_versions`; `:141` `default_report_version`; `:328` `active_report_versions`.
-- `drivers/hud_apr/app/controllers/hud_apr/base_controller.rb:10` `class BaseController < ::HudReports::BaseController`; `:13` `active_report_versions` override.
-- `drivers/hud_apr/config/routes.rb:10` `extend HudReports::RouteConcerns`; `:12` `scope module: :hud_apr, path: :hud_reports, as: :hud_reports`.
+- `drivers/hmis_csv_importer/app/models/hmis_csv_importer/extensions/grda_warehouse/upload_extension.rb` and `app/models/grda_warehouse/upload.rb`: an extension and its include.
+- `drivers/adults_with_children_sub_pop/app/models/adults_with_children_sub_pop/extensions/reporting/housed_extension.rb` and `app/models/reporting/housed.rb`: the sub-population extension shape and its include block.
+- `app/controllers/hud_reports/base_controller.rb`: `available_report_versions`; `default_report_version`; `active_report_versions`.
+- `drivers/hud_apr/app/controllers/hud_apr/base_controller.rb`: `class BaseController < ::HudReports::BaseController`; `active_report_versions` override.
+- `drivers/hud_apr/config/routes.rb`: `extend HudReports::RouteConcerns`; `scope module: :hud_apr, path: :hud_reports, as: :hud_reports`.
 - `drivers/hmis/README.md`: HMIS driver local setup and deployment checklist.
 - `docs/developer/drivers.md`, `docs/architecture/08-concepts/08-3-driver-module-pattern.md`: human-facing how-to and design rationale.
 
@@ -266,13 +266,13 @@ Generated from the `drivers/` directory listing on 2026-09-20 (82 directories). 
 - The include-block comment in `app/models/reporting/housed.rb` and `app/models/grda_warehouse/upload.rb` reads "Extensions from drivers, see ADR 0007", but `docs/adr/0007-hmis-hud-import-cleanups-via-importer-extensions.md` is about HMIS CSV importer cleanup extensions, a different mechanism. The driver-extension design is documented in `docs/architecture/08-concepts/08-3-driver-module-pattern.md`, not in an ADR.
 - Inside a driver module, `HudReports`, `GrdaWarehouse`, or `Hmis` can resolve to a nested namespace of the same name created by the driver's own extension files. Use `::HudReports::BaseController`, `::Hmis::...` when the target is top-level.
 - Feature initializers load in sorted path order after core initializers. A registration into a `config.*` registry is safe at top level; a call to a core class method belongs in `Rails.application.reloader.to_prepare` or it will not survive a development reload.
-- `spec/rails_helper.rb` treats specs under `hud_path_report`, `hud_spm_report`, and `hud_data_quality_report` specially (fixpoint loading), so moving a spec between those drivers and elsewhere can change its fixtures.
+- `spec/rails_helper.rb`: treats specs under `hud_path_report`, `hud_spm_report`, and `hud_data_quality_report` specially (fixpoint loading), so moving a spec between those drivers and elsewhere can change its fixtures.
 - Most driver READMEs are stubs. Substantive ones exist for `hud_lsa`, `hmis`, `hmis_csv_twenty_twenty_six`, `ma_yya_report`, `core_demographics_report`, `access_logs`, and `datalab_testkit`; do not assume the README describes the current code without checking dates and class names in it.
 
 ## Do not repeat
 
 - Gating behavior on whether a driver is loaded (`RailsDrivers.loaded.include?(...)` or any equivalent). The shim is gone and every driver loads; call the driver's code directly. Repo-wide entry: `conventions/do-not-repeat.md`, entry 3.
-- Reopening a core class from a driver (`class GrdaWarehouse::Hud::Client; def foo ...`) or `class_eval`/`prepend` from an initializer. Instead: an `ActiveSupport::Concern` at `drivers/<driver>/app/models/<driver>/extensions/<path>/<model>_extension.rb`, included from the core model. Example: `HmisCsvImporter::GrdaWarehouse::UploadExtension` included at `app/models/grda_warehouse/upload.rb:85`.
+- Reopening a core class from a driver (`class GrdaWarehouse::Hud::Client; def foo ...`) or `class_eval`/`prepend` from an initializer. Instead: an `ActiveSupport::Concern` at `drivers/<driver>/app/models/<driver>/extensions/<path>/<model>_extension.rb`, included from the core model. Example: `HmisCsvImporter::GrdaWarehouse::UploadExtension` included at `app/models/grda_warehouse/upload.rb`.
 - Loading extension files from a `to_prepare` block or `require`ing them by path. The main Zeitwerk loader owns `app/models/<driver>/extensions/` via the collapse in `config/initializers/driver_setup.rb`; manual loading breaks `reload!`.
 - Putting community-specific reports or importers in `app/`. They belong in a driver (`boston_reports`, `ma_reports`, `tx_client_reports`, `custom_imports_boston_*` are the existing examples). Core `app/` code is what every driver may depend on.
 - A driver reaching into another driver's internals. Depend on core abstractions or the other driver's registered extension point; where a cross-driver include is unavoidable, qualify it with a leading `::`.
