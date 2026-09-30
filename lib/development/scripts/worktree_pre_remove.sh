@@ -19,7 +19,7 @@ worktree_path="${1:?worktree path required}"
 branch="${2:?branch required}"
 
 name_dash="$(printf '%s' "$branch" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9]+/-/g; s/^-+//; s/-+$//')"
-envrc_value() { sed -nE "s/^export $1=[\"']?([^\"' ]*).*/\1/p" "$worktree_path/.envrc" 2>/dev/null | tail -1; }
+envrc_value() { sed -nE "s/^export $1=[\"']?([^\"'[:space:]]*).*/\1/p" "$worktree_path/.envrc" 2>/dev/null | tail -1; }
 name_prefix="$(envrc_value NAME_PREFIX)"
 project="$(envrc_value COMPOSE_PROJECT_NAME)"
 # Only trust .envrc's project name if it is this worktree's. If pre-start aborted

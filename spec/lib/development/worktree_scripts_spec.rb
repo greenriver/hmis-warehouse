@@ -96,6 +96,32 @@ RSpec.describe 'worktree hook scripts' do
       end
     end
 
+    context 'when the primary .env.test.local sets only some test database names' do
+      before do
+        write('.envrc', "export NAME_PREFIX=ai-\n")
+        write('.env.test', "DATABASE_APP_DB_TEST=app_test\nWAREHOUSE_DATABASE_DB_TEST=warehouse_test\n")
+        write('.env.test.local', "WAREHOUSE_DATABASE_DB_TEST=ai_warehouse_test\n")
+      end
+
+      it 'suffixes the keys .env.test.local lacks from .env.test so none fall through to the primary' do
+        run_update
+        expect(read('.env.test.local').lines(chomp: true)).to contain_exactly(
+          'WAREHOUSE_DATABASE_DB_TEST=ai_warehouse_test_wt_feature_x',
+          'DATABASE_APP_DB_TEST=app_test_wt_feature_x',
+        )
+      end
+    end
+
+    context 'when the primary .envrc names a compose project that does not match NAME_PREFIX' do
+      before { write('.envrc', "export NAME_PREFIX=ai-\nexport COMPOSE_PROJECT_NAME=ai-warehouse\n") }
+
+      it 'exits with an error naming both values' do
+        _out, err, status = Open3.capture3('ruby', scripts.join('update_worktree_env.rb').to_s, dir, 'feature/X')
+        expect(status.success?).to be(false)
+        expect(err).to include('COMPOSE_PROJECT_NAME').and include('ai-hmis-warehouse')
+      end
+    end
+
     context 'when the override web block already names a container' do
       before do
         write('.envrc', "export NAME_PREFIX=ai-\n")
@@ -186,11 +212,12 @@ RSpec.describe 'worktree hook scripts' do
         exit 0
       SH
       File.chmod(0o755, File.join(bin, 'docker'))
-      write('.envrc', "export NAME_PREFIX=ai-\nexport COMPOSE_PROJECT_NAME=ai-hmis-warehouse-feature-x\n")
+      write('.envrc', "export NAME_PREFIX=ai-\t\nexport COMPOSE_PROJECT_NAME=ai-hmis-warehouse-feature-x\n")
       write('.env.local', <<~ENV)
         DATABASE_APP_DB=development_openpath_app
         WAREHOUSE_DATABASE_DB=development_openpath_warehouse_wt_feature_x
       ENV
+      write('.env.test.local', "WAREHOUSE_DATABASE_DB_TEST=ai_warehouse_test_wt_feature_x\n")
     end
 
     def run_remove
@@ -201,11 +228,12 @@ RSpec.describe 'worktree hook scripts' do
       File.readlines(log, chomp: true)
     end
 
-    it 'targets the compose project and db container named by the worktree .envrc' do
+    it 'drops the dev and test _wt_ databases in the db container named by the worktree .envrc, ignoring trailing whitespace' do
       calls = run_remove
       expect(calls).to include('compose -p ai-hmis-warehouse-feature-x down --remove-orphans')
       expect(calls.grep(/^exec /)).to contain_exactly(
         'exec ai-hmis-warehouse-db psql -U postgres -tc DROP DATABASE IF EXISTS "development_openpath_warehouse_wt_feature_x" WITH (FORCE);',
+        'exec ai-hmis-warehouse-db psql -U postgres -tc DROP DATABASE IF EXISTS "ai_warehouse_test_wt_feature_x" WITH (FORCE);',
       )
     end
   end

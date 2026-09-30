@@ -35,6 +35,10 @@ name_prefix = File.file?(envrc) ? File.read(envrc).scan(/^export NAME_PREFIX=["'
 # Compose project names must be lowercase.
 abort "NAME_PREFIX must be lowercase letters, digits, and hyphens (got #{name_prefix.inspect})" unless name_prefix.match?(/\A[a-z0-9-]*\z/)
 project = "#{name_prefix}hmis-warehouse"
+# The shared cache volumes below are named after the primary's compose project, so
+# it has to be exactly NAME_PREFIX + hmis-warehouse (or this worktree's own name on a re-run).
+primary_project = File.file?(envrc) ? File.read(envrc).scan(/^export COMPOSE_PROJECT_NAME=["']?([^"'\s]*)/).flatten.last.to_s : ''
+abort "COMPOSE_PROJECT_NAME must be #{project} when NAME_PREFIX is #{name_prefix.inspect} (got #{primary_project.inspect})" unless primary_project.empty? || [project, "#{project}-#{name_dash}"].include?(primary_project)
 
 DEV_DB_KEYS = [
   'DATABASE_APP_DB',
@@ -107,12 +111,21 @@ end
 
 # --- .env.test.local (test databases) --------------------------------------
 # Created from the committed .env.test; the spec service loads it last (added to
-# its env_file in the copied docker-compose.override.yml).
+# its env_file in the copied docker-compose.override.yml). A copy from the primary
+# may set only some keys; the rest are filled in from .env.test so every test
+# database gets the suffix rather than falling through to the primary's.
 env_test = File.join(worktree_path, '.env.test')
 env_test_local = File.join(worktree_path, '.env.test.local')
 if File.file?(env_test)
   File.write(env_test_local, File.read(env_test)) unless File.file?(env_test_local)
   rewrite(env_test_local) do |content|
+    missing = TEST_DB_KEYS.reject { |key| content.match?(/^#{Regexp.escape(key)}=/) }
+    File.read(env_test).each_line do |line|
+      next unless missing.any? { |key| line.start_with?("#{key}=") }
+
+      content += "\n" unless content.empty? || content.end_with?("\n")
+      content += line
+    end
     TEST_DB_KEYS.each { |key| content = append_db_suffix(content, key, db_suffix) }
     content = set_value(content, 'CAS_DATABASE_DB_TEST', '')
     content
