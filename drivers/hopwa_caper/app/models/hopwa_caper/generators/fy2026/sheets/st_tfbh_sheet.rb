@@ -77,7 +77,7 @@ module HopwaCaper::Generators::Fy2026::Sheets
       # row 17
       sheet.append_row(label: 'Other Housing Support -- Households and Expenditures Served by this Activity Expenditures total should include overhead (staff costs, fringe, etc.).')
       # row 18
-      empty_row(sheet, label: 'How many households received Other types of Transitional/Short-Term Facility-Based Housing support for each facility?')
+      facility_other_households(sheet, label: 'How many households received Other types of Transitional/Short-Term Facility-Based Housing support for each facility?')
       # row 19
       empty_row(sheet, label: 'What were the HOPWA funds expended for Other types of Transitional/Short-Term Facility-Based Housing for each facility?')
       # row 20
