@@ -39,12 +39,12 @@ RSpec.describe Hmis::RestrictedRecord, type: :model do
 
       it 'is a no-op rather than raising on the unique index' do
         expect { described_class.mark!(c1.reload, user: user2) }.
-          not_to change { described_class.with_deleted.count }
+          not_to(change { described_class.with_deleted.count })
       end
 
       it 'leaves created_by and the audit trail untouched' do
         expect { described_class.mark!(c1.reload, user: user2) }.
-          not_to change { restriction_versions.count }
+          not_to(change { restriction_versions.count })
 
         expect(existing.reload.created_by_id).to eq(hmis_user.id)
       end
