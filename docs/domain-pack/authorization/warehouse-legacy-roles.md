@@ -52,8 +52,8 @@ working (both paths run in production), and avoid extending it. The legacy path 
   `using_acls?` internally.
 - `require_can_<permission>!` (`app/controllers/concerns/legacy_controller_authorization.rb`):
   generated for every `Role.permissions` key and every `User.additional_permissions` entry.
-  Calls `not_authorized!` unless `current_user` has the flag. Used as `before_action` in 212
-  controller files.
+  Calls `not_authorized!` unless `current_user` has the flag. Still used as a `before_action` in many
+  controllers.
 - `ApplicationController#not_authorized!` raises `NotAuthorizedError`
   (`lib/util/not_authorized_error.rb`); `rescue_from` redirects to the user's root path with the
   message as a flash alert.
@@ -64,9 +64,9 @@ working (both paths run in production), and avoid extending it. The legacy path 
 ## How it works
 
 Permissions are boolean columns on the `roles` table, one per key in
-`Role.permissions_with_descriptions` (126 keys as of 2026-09; `grep -c "can_"
-app/models/role.rb` reports 164 because it also counts 25 retired health columns listed in
-`ignored_columns` and mentions in descriptions). Adding a permission means adding a key to the
+`Role.permissions_with_descriptions`. Count keys in that hash, not `can_` matches in
+`app/models/role.rb`, which also hit retired health columns listed in `ignored_columns` and
+mentions in descriptions. Adding a permission means adding a key to the
 hash and running `Role.ensure_permissions_exist` in a migration, which `add_column`s any
 missing key.
 
@@ -89,8 +89,8 @@ lets an entity list and update the groups that contain it.
 cached entries expire after `User::EXPIRY_MINUTES` (5) and are bypassed in the test environment.
 
 Dual-path code is fenced with `# START_ACL` and `# END_ACL` comments (sometimes
-`TODO: START_ACL remove after ACL migration is complete`). 40 files under `app` and `drivers`
-carry the marker. Code inside a fence is the legacy branch or the switch between branches and
+`TODO: START_ACL remove after ACL migration is complete`). Many files under `app` and
+`drivers` carry the marker. Code inside a fence is the legacy branch or the switch between branches and
 is scheduled for deletion.
 
 ## Key files
