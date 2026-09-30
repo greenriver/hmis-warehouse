@@ -117,6 +117,13 @@ RSpec.describe GrdaWarehouse::ClientRoiAuthorization, type: :model do
       use_config(:config_va)
       expect(described_class.visible_in_cocs([]).pluck(:id)).to contain_exactly(full.id, partial.id, expires_today.id, empty_cocs.id, all_cocs.id)
     end
+
+    it 'treats a CoC code containing a quote as a literal value' do
+      use_config(:config_b)
+      quoted = create(:client_roi_authorization, status: 'full', coc_codes: ["CO-5'00"])
+      expect(described_class.visible_in_cocs(["CO-5'00"]).pluck(:id)).to include(quoted.id)
+      expect(described_class.visible_in_cocs(["' OR 1=1 --"]).pluck(:id)).not_to include(quoted.id, co_500.id)
+    end
   end
 
   describe 'when clients are merged' do

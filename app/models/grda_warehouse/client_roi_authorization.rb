@@ -25,9 +25,8 @@ module GrdaWarehouse
 
     # Blank coc_codes and 'All CoCs' apply in every CoC
     scope :in_coc_codes, ->(coc_codes) {
-      codes = (Array.wrap(coc_codes) + ['All CoCs']).map { |code| connection.quote(code) }.join(',')
       column = "#{quoted_table_name}.coc_codes"
-      where(Arel.sql("#{column} IS NULL OR #{column} = '{}' OR #{column} && ARRAY[#{codes}]::varchar[]"))
+      where("#{column} IS NULL OR #{column} = '{}' OR #{column} && ARRAY[?]::varchar[]", Array.wrap(coc_codes) + ['All CoCs'])
     }
 
     # The ROI rule for warehouse client visibility; EnrollmentArbiter, ClientRoiLoader and
