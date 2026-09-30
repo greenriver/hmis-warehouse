@@ -99,24 +99,24 @@ re-releases it on the next pass.
 
 ## Key files
 
-- `app/models/grda_warehouse/hmis_client.rb:26` `consent_active`, `:33` `consent_inactive`,
-  `:56` `self.maintain_client_consent`, `:64` instance `maintain_client_consent`.
-- `app/models/eto_api/tasks/update_eto_data.rb:243` `fetch_demographics`; `:296` the
+- `app/models/grda_warehouse/hmis_client.rb`: `consent_active`, `consent_inactive`,
+  `self.maintain_client_consent`, instance `maintain_client_consent`.
+- `app/models/eto_api/tasks/update_eto_data.rb`: `fetch_demographics`; the
   `processed_fields` snapshot that includes the three consent values.
 - `app/models/grda_warehouse/eto_api_config.rb`: per-data-source model whose
   `demographic_fields`, `demographic_fields_with_attributes`, and `additional_fields` JSON
   columns decide which ETO values reach which `hmis_clients` columns.
-- `app/models/grda_warehouse/hud/client.rb:1040` `self.revoke_expired_consent`; `:1500`
-  `fetch_updated_source_hmis_clients`; `:1676` `consent_form_status` and
+- `app/models/grda_warehouse/hud/client.rb`: `self.revoke_expired_consent`;
+  `fetch_updated_source_hmis_clients`; `consent_form_status` and
   `signed_consent_form_fully?`.
-- `app/jobs/importing/run_daily_imports_job.rb:35` `'Update Client ROIs'` task (revoke, then
-  guarded reconcile); `:298` second, unguarded reconcile call in `update_from_hmis_forms`; the
+- `app/jobs/importing/run_daily_imports_job.rb`: `'Update Client ROIs'` task (revoke, then
+  guarded reconcile); second, unguarded reconcile call in `update_from_hmis_forms`; the
   `'Identify Duplicates'` task runs after both.
-- `app/jobs/importing/eto_demographics_job.rb:14` calls `update_demographics!` for a slice of
+- `app/jobs/importing/eto_demographics_job.rb`: calls `update_demographics!` for a slice of
   client ids.
 - `app/jobs/importing/eto_update_everything_job.rb`: fans out `EtoDemographicsJob` per 500
   clients for one data source.
-- `lib/tasks/eto.rake:11` `eto:import:maintain_client_consent`; `:33`
+- `lib/tasks/eto.rake`: `eto:import:maintain_client_consent`;
   `eto:import:demographics_and_touch_points`.
 - `app/models/grda_warehouse/tasks/identify_duplicates.rb`: re-links source clients to
   destinations. It does not call `maintain_client_consent`; the daily job order is what

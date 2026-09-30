@@ -79,7 +79,7 @@ project group containing it is listed (`GroupViewableEntity.includes_entity`). T
 `Hmis::AuthPolicies::ContextLoaders::HmisProjectAccessGroupLoader`. Coverage grants nothing on its
 own; the attached Role must grant the permission.
 
-`Hmis::Role` stores each permission as a boolean column on `hmis_roles` (61 permissions today).
+`Hmis::Role` stores each permission as a boolean column on `hmis_roles`.
 `permissions_with_descriptions` carries `description`, `administrative`, `access`
 (`:viewable`/`:editable`), `category`/`sub_category`, `global`, and `requirements`. Declare only
 direct requirements; `Hmis::Role.required_permissions_for(permission)` walks the chain recursively

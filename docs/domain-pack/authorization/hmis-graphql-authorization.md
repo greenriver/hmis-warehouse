@@ -93,17 +93,17 @@ Global questions ("can this user do X anywhere in the current data source?") pas
 
 ## Key files
 
-- `drivers/hmis/app/graphql/types/base_object.rb:106` `self.access_field`, builds the access type and resolves it to `object`.
-- `drivers/hmis/app/graphql/types/base_access.rb:29` legacy `self.can`; `:43` `self.bool_field` (requires a block, strips a trailing `?`).
-- `drivers/hmis/app/graphql/types/base_field.rb:46` `authorized?`: `permissions:` path routes to `GraphqlPermissionChecker`, `authorize_with:` calls the lambda.
-- `drivers/hmis/app/graphql/concerns/graphql_application_helper.rb:25` `access_denied!`; `:29` `policy_for`; `:37` legacy `current_permission?`; `:52` `load_ar_client_association` (preloads client auth dependencies).
-- `drivers/hmis/app/graphql/concerns/graphql_permission_checker.rb:15` `current_permission_for_context?`: raw-permission check; `:40` refuses when the entity's data source is not `current_user.hmis_data_source_id`.
-- `drivers/hmis/app/graphql/hmis_schema.rb:60` `unauthorized_object` raises; `:65` `unauthorized_field` returns nil.
-- `drivers/hmis/app/graphql/mutations/clean_base_mutation.rb:11` `< GraphQL::Schema::Mutation`; `drivers/hmis/app/graphql/mutations/base_mutation.rb:12` legacy `< GraphQL::Schema::RelayClassicMutation`.
-- `drivers/hmis/app/graphql/types/hmis_schema/organization.rb:34` `bool_field` example.
-- `drivers/hmis/app/graphql/mutations/delete_unit_group.rb:16` `viewable_by` + `access_denied!` example.
-- `drivers/hmis/app/graphql/types/hmis_schema/client.rb:32`, `project.rb:36`, `enrollment.rb:30` `self.authorized?` overrides; `enrollment.rb:43` `self.field` override and `:53` `summary_field` (two-level access).
-- `drivers/hmis/app/graphql/types/hmis_schema/has_enrollments.rb:27` `after_paginate` preload.
+- `drivers/hmis/app/graphql/types/base_object.rb`: `self.access_field`, builds the access type and resolves it to `object`.
+- `drivers/hmis/app/graphql/types/base_access.rb`: legacy `self.can`; `self.bool_field` (requires a block, strips a trailing `?`).
+- `drivers/hmis/app/graphql/types/base_field.rb`: `authorized?`: `permissions:` path routes to `GraphqlPermissionChecker`, `authorize_with:` calls the lambda.
+- `drivers/hmis/app/graphql/concerns/graphql_application_helper.rb`: `access_denied!`; `policy_for`; legacy `current_permission?`; `load_ar_client_association` (preloads client auth dependencies).
+- `drivers/hmis/app/graphql/concerns/graphql_permission_checker.rb`: `current_permission_for_context?`: raw-permission check; refuses when the entity's data source is not `current_user.hmis_data_source_id`.
+- `drivers/hmis/app/graphql/hmis_schema.rb`: `unauthorized_object` raises; `unauthorized_field` returns nil.
+- `drivers/hmis/app/graphql/mutations/clean_base_mutation.rb`: `< GraphQL::Schema::Mutation`; `drivers/hmis/app/graphql/mutations/base_mutation.rb` legacy `< GraphQL::Schema::RelayClassicMutation`.
+- `drivers/hmis/app/graphql/types/hmis_schema/organization.rb`: `bool_field` example.
+- `drivers/hmis/app/graphql/mutations/delete_unit_group.rb`: `viewable_by` + `access_denied!` example.
+- `drivers/hmis/app/graphql/types/hmis_schema/client.rb`, `project.rb`, `enrollment.rb` `self.authorized?` overrides; `enrollment.rb` `self.field` override and `summary_field` (two-level access).
+- `drivers/hmis/app/graphql/types/hmis_schema/has_enrollments.rb`: `after_paginate` preload.
 - `docs/adr/0006-policy-based-graphql-access-fields.md` decision record for `bool_field`.
 
 ## Gotchas
@@ -123,9 +123,9 @@ Global questions ("can this user do X anywhere in the current data source?") pas
 Repo-wide entries: `conventions/do-not-repeat.md` 13 (`BaseMutation`) and 14 (raw-permission access helpers).
 
 - `class Foo < BaseMutation` (`drivers/hmis/app/graphql/mutations/base_mutation.rb`, Relay-classic scaffolding). Instead: `< CleanBaseMutation` (`drivers/hmis/app/graphql/mutations/clean_base_mutation.rb`), for example `drivers/hmis/app/graphql/mutations/delete_unit_group.rb`.
-- `permissions: :can_x` on a `field` (`drivers/hmis/app/graphql/types/base_field.rb:46`). Instead: a policy check in the resolver, or `authorize_with:` for two-level access.
-- `current_permission?(permission:, entity:)` (`drivers/hmis/app/graphql/concerns/graphql_application_helper.rb:37`). Instead: `policy_for(entity, policy_type: ...).can_x?`.
-- `can :x` inside `access_field` (`drivers/hmis/app/graphql/types/base_access.rb:29`, still used in `project.rb` and `assessment.rb`). Instead: `bool_field(:can_x) { policy.can_x? }`, for example `drivers/hmis/app/graphql/types/hmis_schema/organization.rb`.
+- `permissions: :can_x` on a `field` (`drivers/hmis/app/graphql/types/base_field.rb`). Instead: a policy check in the resolver, or `authorize_with:` for two-level access.
+- `current_permission?(permission:, entity:)` (`drivers/hmis/app/graphql/concerns/graphql_application_helper.rb`). Instead: `policy_for(entity, policy_type: ...).can_x?`.
+- `can :x` inside `access_field` (`drivers/hmis/app/graphql/types/base_access.rb`, still used in `project.rb` and `assessment.rb`). Instead: `bool_field(:can_x) { policy.can_x? }`, for example `drivers/hmis/app/graphql/types/hmis_schema/organization.rb`.
 - `composite_perm` and `root_can` are named in ADR 0006 but no longer exist; do not reintroduce them.
 
 ## Related

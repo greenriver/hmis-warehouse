@@ -6,7 +6,7 @@ tags: [roi, consent, ClientRoiAuthorization, roi_authorized?, ClientRoiLoader, E
 sources:
   - app/models/grda_warehouse/client_roi_authorization.rb
   - app/models/grda_warehouse/tasks/generate_client_roi_authorizations_task.rb
-  - app/jobs/generate_client_roi_authorizations_job.rb
+  - config/schedule.rb
   - app/models/grda_warehouse/tasks/update_housing_release_statuses.rb
   - lib/tasks/grda_warehouse.rake
   - app/models/grda_warehouse/auth_policies/source_client_policy.rb
@@ -79,9 +79,10 @@ about consent.
   `drivers/client_access_control/.../client_extension.rb`.
 - `Filters::Criteria::FilterForActiveRoi`: report filter keyed by `FilterBase#active_roi`.
 - `GrdaWarehouse::Tasks::PushClientsToCas`: field map that sends release status to CAS.
-- `GenerateClientRoiAuthorizationsJob.perform_later`, queued from `lib/tasks/grda_warehouse.rake`
-  when the hourly task runs at hour 20; `GrdaWarehouse::Tasks::UpdateHousingReleaseStatuses`
-  calls the task inline for clients whose status changed.
+- `rake grda_warehouse:generate_client_roi_authorizations` (`lib/tasks/grda_warehouse.rake`),
+  scheduled daily in `config/schedule.rb`, rebuilds every client;
+  `GrdaWarehouse::Tasks::UpdateHousingReleaseStatuses` calls the task inline for clients whose
+  status changed.
 - Admin: `Admin::ConsentLimitsController` ("CoCs for Consent" tab), `require_can_edit_users!`.
 
 ## How it works
@@ -138,11 +139,10 @@ client's `roi_authorizations` dates.
   `with_invalid_client`, `active?`, `date_in_valid_range?`, `matches_coc_codes?`.
 - `app/models/grda_warehouse/tasks/generate_client_roi_authorizations_task.rb`: `_perform`,
   `process_client`, `roi_status`, `roi_expiry_date`, `roi_coc_codes`, `with_lock`.
-- `app/jobs/generate_client_roi_authorizations_job.rb`: long-running queue,
-  `supports_idempotent_retry?` false.
 - `app/models/grda_warehouse/tasks/update_housing_release_statuses.rb`: calls the task for
   clients whose `housing_release_status` changed.
-- `lib/tasks/grda_warehouse.rake`: enqueues `GenerateClientRoiAuthorizationsJob` at hour 20.
+- `lib/tasks/grda_warehouse.rake`: `grda_warehouse:generate_client_roi_authorizations` runs the
+  task inline; `config/schedule.rb` runs that rake task daily.
 - `app/models/grda_warehouse/auth_policies/source_client_policy.rb`: `can_view?`,
   `can_view_supplemental_data?`, `roi_authorized?`, `add_legacy_data_source_permissions`.
 - `app/models/grda_warehouse/auth_policies/context_loaders/client_roi_loader.rb`: `get`,
@@ -178,7 +178,7 @@ client's `roi_authorizations` dates.
   (`Consent::Implied` matches full and partial). Do not "fix" one side without deciding the
   intended behavior for both.
 - `ClientRoiAuthorization` rows lag the client columns until the task runs: inline from
-  `UpdateHousingReleaseStatuses` for status changes it detects, otherwise the hour-20 job. A
+  `UpdateHousingReleaseStatuses` for status changes it detects, otherwise the daily scheduled rake task. A
   spec that writes consent columns and then checks `roi_authorized?` must run the task.
 - `ClientRoiLoader` is memoized on the policy context for the request or job. Call
   `preload(client_ids)` before per-row policy checks in a list to avoid one query per client.
@@ -191,8 +191,7 @@ client's `roi_authorizations` dates.
   requesting user.
 - `roi_expiry_date` raises when the duration is time-based and `consent_form_signed_on` is
   blank, but `roi_status` returns nil first for that case, so the raise is unreachable from
-  `process_client`. A retry of the job re-runs the full scan (`supports_idempotent_retry?` is
-  false).
+  `process_client`.
 
 ## Do not repeat
 
@@ -200,12 +199,12 @@ client's `roi_authorizations` dates.
   directly, or reading them from code that runs before the task has regenerated them. Write
   consent through `GrdaWarehouse::ClientFile` and the client columns
   (`roi/consent-records.md`), then run `GenerateClientRoiAuthorizationsTask`. Current example
-  of the correct order: `app/models/grda_warehouse/tasks/update_housing_release_statuses.rb:43`.
+  of the correct order: `app/models/grda_warehouse/tasks/update_housing_release_statuses.rb`.
 - Adding ROI logic to one path only. A new rule for CoC matching, validity dates, or partial
   releases goes into `ClientRoiAuthorization` and the task (policy path) and into
   `Client.active_confirmed_consent_in_cocs` and `ClientExtension#valid_in_coc` (scope path).
-  Existing mirror pair: `app/models/grda_warehouse/client_roi_authorization.rb:51` and
-  `drivers/client_access_control/app/models/client_access_control/extensions/grda_warehouse/hud/client_extension.rb:145`.
+  Existing mirror pair: `app/models/grda_warehouse/client_roi_authorization.rb` and
+  `drivers/client_access_control/app/models/client_access_control/extensions/grda_warehouse/hud/client_extension.rb`.
 - New uses of the window data source mechanic (`DataSource.visible_in_window`,
   `window_data_source_ids`, `Config.get(:window_access_requires_release)`). Under ACLs, grant
   `can_view_client_enrollments_with_roi` or `can_search_clients_with_roi` on a collection
