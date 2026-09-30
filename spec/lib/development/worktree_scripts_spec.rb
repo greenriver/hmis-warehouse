@@ -41,7 +41,7 @@ RSpec.describe 'worktree hook scripts' do
     end
 
     context 'when the primary .envrc has no NAME_PREFIX' do
-      before { write('.envrc', "export TRAEFIK_ENABLED=true\n") }
+      before { write('.envrc', "export FQDN=hmis-warehouse.dev.test\nexport TRAEFIK_ENABLED=true\nexport TRAEFIK_ROUTER_NAME=op\n") }
 
       it 'names the compose project and web container after the branch' do
         run_update
@@ -50,9 +50,30 @@ RSpec.describe 'worktree hook scripts' do
         expect(override.dig('volumes', 'bundle_trixie', 'name')).to eq('hmis-warehouse_bundle_trixie')
       end
 
-      it 'turns traefik off so the worktree web cannot claim the primary domain' do
+      it 'turns traefik off when the primary .envrc enables it' do
         run_update
-        expect(read('.envrc').scan(/^export TRAEFIK_(?:ENABLED|ROUTER_NAME)=.*$/)).to eq(['export TRAEFIK_ENABLED=false'])
+        expect(read('.envrc').scan(/^export TRAEFIK_ENABLED=.*$/)).to eq(['export TRAEFIK_ENABLED=false'])
+      end
+    end
+
+    context 'when the primary .envrc exports NAME_PREFIX more than once' do
+      before { write('.envrc', "export NAME_PREFIX=old-\nexport NAME_PREFIX=ai-\n") }
+
+      it 'uses the last value, as direnv does' do
+        run_update
+        expect(read('.envrc')).to include("export COMPOSE_PROJECT_NAME=ai-hmis-warehouse-feature-x\n")
+      end
+    end
+
+    context 'when NAME_PREFIX is not lowercase letters, digits, and hyphens' do
+      before { write('.envrc', "export NAME_PREFIX=AI-\n") }
+
+      it 'exits with an error before rewriting any file' do
+        _out, err, status = Open3.capture3('ruby', scripts.join('update_worktree_env.rb').to_s, dir, 'feature/X')
+        expect(status.success?).to be(false)
+        expect(err).to include('NAME_PREFIX')
+        expect(read('.envrc')).to eq("export NAME_PREFIX=AI-\n")
+        expect(File.exist?(File.join(dir, '.env.test.local'))).to be(false)
       end
     end
 

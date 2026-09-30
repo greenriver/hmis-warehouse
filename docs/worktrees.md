@@ -6,10 +6,10 @@ with its own databases and compose project — using [worktrunk](https://worktru
 
 Each worktree shares the **one** postgres/redis/s3 container stack from the main
 tree but talks to **separate databases** (a `_wt_<name>` suffix), so work in a
-worktree never touches your main development or test databases. Worktree web
-servers are not routed through traefik: a worktree starts with empty `_wt_`
-databases and no login, so it has no domain. Reach one with
-`docker compose port web 3000` if you need it.
+worktree never touches your main development or test databases. Worktrees are
+for code and tests; running the web app in one isn't supported. A worktree
+starts with empty `_wt_` databases and no login, it has no traefik route, and
+Rails keeps the primary's `FQDN`, so cable and absolute URLs point at the primary.
 
 ## Requirements
 
@@ -38,7 +38,7 @@ below; they are personal (user-level) and not shipped in this repo.
 
 - **Databases:** dev + test databases are suffixed `_wt_<name>` in the shared
   `hmis-warehouse-db` container. `bin/db_prep` and `db:setup_test` create them.
-- **Web:** no traefik route (`TRAEFIK_ENABLED=false` in the worktree `.envrc`).
+- **Web:** not supported; no traefik route (`TRAEFIK_ENABLED=false` in the worktree `.envrc`).
 - **Compose project:** `hmis-warehouse-<name>` so app containers coexist.
 - **Shared (not isolated):** the `db`/`redis`/`s3` containers, the bundle /
   node_modules / rails_cache volumes, and the CAS database (disabled in worktrees).
@@ -59,11 +59,7 @@ docker compose run --rm --no-deps spec  bundle exec rails db:setup_test
 # 4. Run tests against the worktree's test databases
 docker compose run --rm --no-deps spec bundle exec rspec path/to/spec.rb
 
-# 5. (Optional) Start the web app — coexists with other worktrees' webs
-docker compose up -d --no-deps web yarn
-docker compose port web 3000   # → the localhost port it was published on
-
-# 6. Tear down when done (runs pre-remove: drops databases, removes containers)
+# 5. Tear down when done (runs pre-remove: drops databases, removes containers)
 wt remove ea-1234-my-feature
 ```
 

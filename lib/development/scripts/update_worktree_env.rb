@@ -30,7 +30,10 @@ db_suffix = branch.downcase.gsub(/[^a-z0-9]+/, '_').gsub(/\A_+|_+\z/, '')
 # NAME_PREFIX (copied in from the primary .envrc) marks a second full install on
 # the same machine; its worktrees must use its containers and volumes, not main's.
 envrc = File.join(worktree_path, '.envrc')
-name_prefix = File.file?(envrc) ? File.read(envrc)[/^export NAME_PREFIX=["']?([a-z0-9-]*)/, 1].to_s : ''
+# Same reading as worktree_pre_remove.sh: the last export wins, as it does for direnv.
+name_prefix = File.file?(envrc) ? File.read(envrc).scan(/^export NAME_PREFIX=["']?([^"'\s]*)/).flatten.last.to_s : ''
+# Compose project names must be lowercase.
+abort "NAME_PREFIX must be lowercase letters, digits, and hyphens (got #{name_prefix.inspect})" unless name_prefix.match?(/\A[a-z0-9-]*\z/)
 project = "#{name_prefix}hmis-warehouse"
 
 DEV_DB_KEYS = [
@@ -120,7 +123,7 @@ end
 
 # --- .envrc (direnv: compose project, traefik) ------------------------------
 # Traefik stays off: worktree web labels would otherwise register routers that
-# compete with the primary's. Reach a worktree web via `docker compose port web 3000`.
+# compete with the primary's.
 rewrite(envrc) do |content|
   content = upsert_export(content, 'COMPOSE_PROJECT_NAME', "#{project}-#{name_dash}")
   content = upsert_export(content, 'TRAEFIK_ENABLED', 'false')
