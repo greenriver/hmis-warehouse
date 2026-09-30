@@ -45,6 +45,7 @@ Group the problems by type:
 | `source X is not in manifest` | Doc newly lists a source | Verify the doc's claims about X (step 3), then stamp |
 | `X is not listed by any doc` | Orphan manifest entry | Stamp only |
 | `frontmatter missing ...` / `area must be ...` | Malformed doc | Fix the frontmatter per the README |
+| `cites line number ...` | A fact is anchored to a line | Replace it with the method, constant, or class name at that line (step 4) |
 
 ## 2. Map changed sources to docs, and see what changed
 

@@ -25,7 +25,7 @@ RSpec.describe DomainPack, type: :lib do
     File.write(path, content)
   end
 
-  def write_doc(rel, sources:, area: 'warehouse')
+  def write_doc(rel, sources:, area: 'warehouse', body: 'Body.')
     write(rel, <<~MD)
       ---
       title: Test doc
@@ -37,7 +37,7 @@ RSpec.describe DomainPack, type: :lib do
       ---
 
       ## Purpose
-      Body.
+      #{body}
     MD
   end
 
@@ -123,6 +123,25 @@ RSpec.describe DomainPack, type: :lib do
       expect(DomainPack.check(@root)).to eq(
         ["#{DomainPack::MANIFEST}: `app/gone.rb` is not listed by any doc; run bin/domain_pack stamp"],
       )
+    end
+
+    it 'reports each line-number citation in a doc body' do
+      write('app/a.rb', 'x')
+      write_doc(doc_path, sources: ['app/a.rb'], body: '`app/a.rb:12` `find`; `:40` `save`.')
+      DomainPack.stamp(@root)
+
+      expect(DomainPack.check(@root)).to contain_exactly(
+        "#{doc_path}: cites line number `app/a.rb:12`; name the method or constant instead",
+        "#{doc_path}: cites line number `:40`; name the method or constant instead",
+      )
+    end
+
+    it 'does not treat paths without a line, clock times, or ratios as line citations' do
+      write('app/a.rb', 'x')
+      write_doc(doc_path, sources: ['app/a.rb'], body: '`app/a.rb` runs at 8:20 pm with a 1:1 mapping.')
+      DomainPack.stamp(@root)
+
+      expect(DomainPack.check(@root)).to eq([])
     end
 
     it 'ignores README.md inside the pack' do

@@ -55,8 +55,9 @@ so a fact stays true until the named code is renamed, removed, or changes behavi
     ruby bin/domain_pack stamp   # after updating a doc, records current source hashes
 
 CI fails when a listed source file changed and the manifest was not re-stamped, when a doc
-lists a file that does not exist, when frontmatter is missing a required key, or when the
-manifest holds a file no doc lists. Re-stamping without reading the doc defeats the check;
+lists a file that does not exist, when frontmatter is missing a required key, when a doc body
+cites a line number in backticks (`app/x.rb:12` or `:12`), or when the manifest holds a file no
+doc lists. Re-stamping without reading the doc defeats the check;
 reviewers should ask for the doc change when they see a bare manifest change.
 
 In Claude Code, the `domain-pack-maintenance` skill (`.claude/skills/domain-pack-maintenance/`)

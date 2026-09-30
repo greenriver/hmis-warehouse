@@ -19,6 +19,10 @@ module DomainPack
   REQUIRED_KEYS = ['title', 'summary', 'area', 'tags', 'sources'].freeze
   AREAS = ['conventions', 'authorization', 'roi', 'hmis', 'hud-reporting', 'warehouse'].freeze
   FRONTMATTER = /\A---\n(.*?)\n---\n/m
+  # `path.rb:12`, `path.rb:12-20`, or a bare `:40` continuing a citation. Line numbers drift
+  # without the source hash changing meaning, so docs name methods and constants instead.
+  # ponytail: backtick spans only; a bare path:NNN in prose is not caught.
+  LINE_CITATION = /`((?:[\w.\/-]+\.\w+)?:\d+(?:-\d+)?)`/
 
   Doc = Struct.new(:path, :frontmatter, :errors, keyword_init: true)
 
@@ -46,6 +50,9 @@ module DomainPack
     errors = REQUIRED_KEYS.reject { |key| frontmatter.key?(key) }.map { |key| "#{path}: frontmatter missing `#{key}`" }
     errors << "#{path}: `area` must be one of #{AREAS.join(', ')}" if frontmatter.key?('area') && !AREAS.include?(frontmatter['area'])
     errors << "#{path}: `sources` must be a non-empty list" if frontmatter.key?('sources') && !(frontmatter['sources'].is_a?(Array) && frontmatter['sources'].any?)
+    text[match.end(0)..].scan(LINE_CITATION).flatten.uniq.each do |citation|
+      errors << "#{path}: cites line number `#{citation}`; name the method or constant instead"
+    end
     Doc.new(path: path, frontmatter: frontmatter, errors: errors)
   end
 
