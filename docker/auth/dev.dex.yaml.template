@@ -25,7 +25,7 @@ oauth2:
   grantTypes:
     - "authorization_code"
     - "refresh_token"
-  responseTypes: ["code", "token", "id_token"]
+  responseTypes: ["code"]
   skipApprovalScreen: true
   alwaysShowLoginScreen: false
 # Mirrors the openpath staging dex expiry. oauth2-proxy keeps its session after a failed
