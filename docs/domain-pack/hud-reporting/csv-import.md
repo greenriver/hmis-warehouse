@@ -94,7 +94,9 @@ domain knowledge MCP server (`search_docs`) for spec content.
 `Export.csv` via `Importers::HmisAutoMigrate.calculate_current_version` (missing `CSVVersion`
 means `2020`). `load!` runs `ensure_file_naming` (case-normalizes file names), reads
 `Export.csv`, and fails the log unless `Export.csv` is valid and its `SourceID` matches
-`data_source.source_id` when one is set.
+`data_source.source_id` when one is set. `source_id_override: true` (accepted by `Loader.new` and
+`Importing::HudZip::HmisAutoMigrateJob#perform`) skips the `SourceID` match and logs both values
+instead.
 
 `load_source_files!` then calls `Importers::HmisAutoMigrate.apply_migrations`, which chains the
 `CsvTransformer` classes registered through `add_migration` (one per `hud_twenty_twenty*_to_*`

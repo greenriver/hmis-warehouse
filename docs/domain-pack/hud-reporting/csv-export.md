@@ -24,6 +24,7 @@ sources:
   - drivers/hmis_csv_twenty_twenty_six/app/models/hmis_csv_twenty_twenty_six/exporter/csv_destination.rb
   - drivers/hmis_csv_twenty_twenty_six/app/jobs/hmis_csv_twenty_twenty_six/export_job.rb
   - app/models/grda_warehouse/recurring_hmis_export.rb
+  - app/services/seven_zip.rb
   - app/services/zip_cloak.rb
   - app/models/grda_warehouse/tasks/process_recurring_hmis_exports.rb
   - lib/tasks/grda_warehouse.rake
@@ -237,8 +238,9 @@ zip when both `zip_password` and `encryption_type` are blank; raises if only one
 the `zipcloak` binary over a `pty` and answers its password prompts directly rather than
 interpolating the password into a shell string or a generated `expect` script; `ZipCloak` also
 rejects a password containing control characters. `'7z'` extracts the CSVs and rebuilds a `.7z`
-via the array form of `system('7z', 'a', '-mx9', "-p#{zip_password}", ...)`, which avoids
-handing the password to a shell. Both need their binary on the worker image. The `HmisExport`
+with `SevenZip.create` (`app/services/seven_zip.rb`), which passes the password to the `7z`
+binary as its own argument, never through a shell, and returns false instead of raising;
+`RecurringHmisExport` raises on false. Both need their binary on the worker image. The `HmisExport`
 row keeps the unencrypted zip; only the S3 copy is encrypted, and both encryption paths clean up
 their temp files in an `ensure` block even on failure.
 
@@ -250,47 +252,47 @@ messages when `RecurringHmisExport.create` fails to persist (e.g. a `zip_passwor
 
 ## Key files
 
-- `app/controllers/warehouse_reports/hmis_exports_controller.rb:55` `create` (recurrence
-  creation, `adjust_reporting_period`, S3 validation, `schedule_job`); `:85` `show` streams the
-  zip; `:165` `report_params`.
-- `app/controllers/warehouse_reports/hashed_only_hmis_exports_controller.rb:13` forces
-  `hash_status: '4'`; `:29` `export_scope` limited to hashed exports; `:33` reduced params.
-- `app/models/filters/hmis_export.rb:118` `register_version`; `:148`
-  `schedule_or_execute_job`; `:187` `effective_project_ids`; `:239` `adjust_reporting_period`.
-- `app/models/grda_warehouse/hmis_export.rb:19` `has_one_attached :hmis_zip`; `:72`
-  `clean_params`; `:100` `unzip_to`.
-- `app/jobs/export_base_job.rb:14` `perform`; `:32` recurring link and S3 store.
-- `app/models/concerns/export/exporter.rb:14` `setup_export`; `:19` `options` and `export_id`
-  MD5; `:67` `zip_archive`; `:101` `set_time_format`.
-- `app/models/concerns/export/scopes.rb:13` `client_scope`; `:31` `enrollment_scope`; `:63`
-  `project_scope`; `:116` `apply_hoh_coc_filter`.
+- `app/controllers/warehouse_reports/hmis_exports_controller.rb`: `create` (recurrence
+  creation, `adjust_reporting_period`, S3 validation, `schedule_job`); `show` streams the
+  zip; `report_params`.
+- `app/controllers/warehouse_reports/hashed_only_hmis_exports_controller.rb`: forces
+  `hash_status: '4'`; `export_scope` limited to hashed exports; reduced params.
+- `app/models/filters/hmis_export.rb`: `register_version`;
+  `schedule_or_execute_job`; `effective_project_ids`; `adjust_reporting_period`.
+- `app/models/grda_warehouse/hmis_export.rb`: `has_one_attached :hmis_zip`;
+  `clean_params`; `unzip_to`.
+- `app/jobs/export_base_job.rb`: `perform`; recurring link and S3 store.
+- `app/models/concerns/export/exporter.rb`: `setup_export`; `options` and `export_id`
+  MD5; `zip_archive`; `set_time_format`.
+- `app/models/concerns/export/scopes.rb`: `client_scope`; `enrollment_scope`;
+  `project_scope`; `apply_hoh_coc_filter`.
 - `app/services/client_external_data_sharing.rb`: `remove_excluded_clients`,
   `remove_excluded_enrollments`, `EXCLUSION_TARGETS`.
-- `drivers/hmis_csv_twenty_twenty_six/config/initializers/hmis_csv_twenty_twenty_six_feature.rb:10`
+- `drivers/hmis_csv_twenty_twenty_six/config/initializers/hmis_csv_twenty_twenty_six_feature.rb`:
   version registration.
-- `drivers/hmis_csv_twenty_twenty_six/app/models/hmis_csv_twenty_twenty_six/exporter/base.rb:78`
-  `export!`; `:163` `class_mappings`; `:261` `custom_file_mappings`; `:325` `hmis_class`
+- `drivers/hmis_csv_twenty_twenty_six/app/models/hmis_csv_twenty_twenty_six/exporter/base.rb`:
+  `export!`; `class_mappings`; `custom_file_mappings`; `hmis_class`
   (`WithDeleted` swap).
-- `drivers/hmis_csv_twenty_twenty_six/app/models/hmis_csv_twenty_twenty_six/exporter/export_concern.rb:142`
-  `process`; `:152` `enforce_lengths`; `:177` `sanitize_string_fields`; `:220` `hashed_column?`.
-- `drivers/hmis_csv_twenty_twenty_six/app/models/hmis_csv_twenty_twenty_six/exporter/export.rb:11`
+- `drivers/hmis_csv_twenty_twenty_six/app/models/hmis_csv_twenty_twenty_six/exporter/export_concern.rb`:
+  `process`; `enforce_lengths`; `sanitize_string_fields`; `hashed_column?`.
+- `drivers/hmis_csv_twenty_twenty_six/app/models/hmis_csv_twenty_twenty_six/exporter/export.rb`:
   the `Export.csv` row.
-- `drivers/hmis_csv_twenty_twenty_six/app/models/hmis_csv_twenty_twenty_six/exporter/client.rb:37`
+- `drivers/hmis_csv_twenty_twenty_six/app/models/hmis_csv_twenty_twenty_six/exporter/client.rb`:
   `transforms` order (`Overrides`, `Client`, `FakeData`, `RestrictedClientPiiTransform`).
-- `drivers/hmis_csv_twenty_twenty_six/app/models/hmis_csv_twenty_twenty_six/exporter/client/overrides.rb:39`
+- `drivers/hmis_csv_twenty_twenty_six/app/models/hmis_csv_twenty_twenty_six/exporter/client/overrides.rb`:
   `apply_hash_status`.
-- `drivers/hmis_csv_twenty_twenty_six/app/models/hmis_csv_twenty_twenty_six/exporter/fake_data.rb:17`
+- `drivers/hmis_csv_twenty_twenty_six/app/models/hmis_csv_twenty_twenty_six/exporter/fake_data.rb`:
   `process`.
-- `drivers/hmis_csv_twenty_twenty_six/app/models/hmis_csv_twenty_twenty_six/exporter/csv_destination.rb:30`
+- `drivers/hmis_csv_twenty_twenty_six/app/models/hmis_csv_twenty_twenty_six/exporter/csv_destination.rb`:
   `write` (second rounding pass, `force_quotes`).
-- `drivers/hmis_csv_twenty_twenty_six/app/jobs/hmis_csv_twenty_twenty_six/export_job.rb:11`
+- `drivers/hmis_csv_twenty_twenty_six/app/jobs/hmis_csv_twenty_twenty_six/export_job.rb`:
   `exporter_base`.
-- `app/models/export/restricted_client_pii_transform.rb:19` `process`.
-- `app/models/grda_warehouse/fake_data.rb:17` `fetch`; `:42` `fake_patterns`.
-- `app/models/grda_warehouse/recurring_hmis_export.rb:27` `should_run?`; `:36` `run`; `:50`
-  `store`; `:57` `encrypt_zip`; `:161` `object_name`; `:226` `filter_hash`.
-- `app/models/grda_warehouse/tasks/process_recurring_hmis_exports.rb:13` `run!`.
-- `lib/tasks/grda_warehouse.rake:484` rake task; `config/schedule.rb:51` daily schedule entry.
+- `app/models/export/restricted_client_pii_transform.rb`: `process`.
+- `app/models/grda_warehouse/fake_data.rb`: `fetch`; `fake_patterns`.
+- `app/models/grda_warehouse/recurring_hmis_export.rb`: `should_run?`; `run`;
+  `store`; `encrypt_zip`; `object_name`; `filter_hash`.
+- `app/models/grda_warehouse/tasks/process_recurring_hmis_exports.rb`: `run!`.
+- `lib/tasks/grda_warehouse.rake`: rake task; `config/schedule.rb` daily schedule entry.
 
 ## Gotchas
 

@@ -217,57 +217,57 @@ importer is not multi-HMIS aware.
 
 ## Key files
 
-- `drivers/hmis_external_apis/app/controllers/hmis_external_apis/base_controller.rb:34`
-  `authorize_request` (Bearer key -> `InboundApiConfiguration.validate`); `:47` `request_log`.
-- `drivers/hmis_external_apis/app/controllers/hmis_external_apis/external_forms_controller.rb:16`
+- `drivers/hmis_external_apis/app/controllers/hmis_external_apis/base_controller.rb`:
+  `authorize_request` (Bearer key -> `InboundApiConfiguration.validate`); `request_log`.
+- `drivers/hmis_external_apis/app/controllers/hmis_external_apis/external_forms_controller.rb`:
   development-only guard; `show` re-publishes and renders; `create` stands in for the S3 presign
   flow.
-- `drivers/hmis_external_apis/app/models/hmis_external_apis/external_forms/config.rb:11`
-  `PROPERTIES` read from `AppConfigProperty`; `:38` `validate_external_forms_setup` lists every
+- `drivers/hmis_external_apis/app/models/hmis_external_apis/external_forms/config.rb`:
+  `PROPERTIES` read from `AppConfigProperty`; `validate_external_forms_setup` lists every
   credential slug the feature needs.
-- `drivers/hmis_external_apis/app/models/hmis_external_apis/external_forms/form_generator.rb:47`
-  `render_node_by_type`; `:127` `node['text'].html_safe` in `render_display_node`; `:200`
-  `node_name`; `:228` `resolve_pick_list`.
+- `drivers/hmis_external_apis/app/models/hmis_external_apis/external_forms/form_generator.rb`:
+  `render_node_by_type`; `node['text'].html_safe` in `render_display_node`;
+  `node_name`; `resolve_pick_list`.
 - `drivers/hmis_external_apis/app/models/hmis_external_apis/external_forms/form_publication.rb`:
   `hmis_external_form_publications`, one row per publish.
-- `drivers/hmis_external_apis/app/models/hmis_external_apis/external_forms/form_submission.rb:34`
-  `SPAM_THRESHOLD`; `:46` `parent_project` (`instances.active.for_projects.sole`); `:54`
-  `from_raw_data`; `:93` `run_form_processor`.
-- `drivers/hmis_external_apis/app/jobs/hmis_external_apis/publish_external_forms_job.rb:53`
-  `process_content`; `:68` `upload_to_s3`.
+- `drivers/hmis_external_apis/app/models/hmis_external_apis/external_forms/form_submission.rb`:
+  `SPAM_THRESHOLD`; `parent_project` (`instances.active.for_projects.sole`);
+  `from_raw_data`; `run_form_processor`.
+- `drivers/hmis_external_apis/app/jobs/hmis_external_apis/publish_external_forms_job.rb`:
+  `process_content`; `upload_to_s3`.
 - `drivers/hmis_external_apis/app/jobs/hmis_external_apis/consume_external_form_submissions_job.rb`:
   `_perform`; `parse_json` preflight.
-- `drivers/hmis_external_apis/app/models/hmis_external_apis/ac_hmis/mci.rb:45` `clearance`;
-  `:99` `create_mci_id`; `:128` `update_client`; `:202` `build_route`.
+- `drivers/hmis_external_apis/app/models/hmis_external_apis/ac_hmis/mci.rb`: `clearance`;
+  `create_mci_id`; `update_client`; `build_route`.
 - `drivers/hmis_external_apis/app/models/hmis_external_apis/ac_hmis/mper.rb`: local lookups only.
-- `drivers/hmis_external_apis/app/models/hmis_external_apis/ac_hmis/referral.rb:29` enrollment
+- `drivers/hmis_external_apis/app/models/hmis_external_apis/ac_hmis/referral.rb`: enrollment
   link is null for LINK-originated referrals.
-- `drivers/hmis_external_apis/app/models/hmis_external_apis/ac_hmis/referral_posting.rb:41` status
-  enum; `:65` `OLD_STATUS_TO_VALID_NEW_STATUS`; `:188` `exit_origin_household`; `:220`
+- `drivers/hmis_external_apis/app/models/hmis_external_apis/ac_hmis/referral_posting.rb`: status
+  enum; `OLD_STATUS_TO_VALID_NEW_STATUS`; `exit_origin_household`;
   `new_with_referral`.
 - `drivers/hmis_external_apis/app/models/hmis_external_apis/ac_hmis/configuration.rb`:
   `AppConfigProperty` keys `ac_hmis/*`; currently only `esg_funding_report_enabled`.
-- `drivers/hmis_external_apis/app/models/hmis_external_apis/ac_hmis/link_api.rb:64` the one
+- `drivers/hmis_external_apis/app/models/hmis_external_apis/ac_hmis/link_api.rb`: the one
   non-deprecated method.
-- `drivers/hmis_external_apis/app/models/hmis_external_apis/ac_hmis/data_warehouse_api.rb:46`
-  `each_change`; `:74` `src_sys_key` from `other_values`.
+- `drivers/hmis_external_apis/app/models/hmis_external_apis/ac_hmis/data_warehouse_api.rb`:
+  `each_change`; `src_sys_key` from `other_values`.
 - `drivers/hmis_external_apis/app/models/hmis_external_apis/ac_hmis/report_api.rb`.
 - `drivers/hmis_external_apis/app/models/hmis_external_apis/ac_hmis/unit_availability_sync.rb`:
   deprecated.
-- `drivers/hmis_external_apis/app/jobs/hmis_external_apis/ac_hmis/warehouse_changes_job.rb:22`
-  `NAMESPACE`; `:138` `merge_clients_by_mci_unique_id`.
-- `drivers/hmis_external_apis/app/controllers/hmis_external_apis/ac_hmis/referrals_controller.rb:45`
+- `drivers/hmis_external_apis/app/jobs/hmis_external_apis/ac_hmis/warehouse_changes_job.rb`:
+  `NAMESPACE`; `merge_clients_by_mci_unique_id`.
+- `drivers/hmis_external_apis/app/controllers/hmis_external_apis/ac_hmis/referrals_controller.rb`:
   JSON schema validation.
 - `drivers/hmis_external_apis/app/models/hmis_external_apis/external_id.rb`: polymorphic
   external identity; values are not unique.
-- `drivers/hmis_external_apis/app/models/hmis_external_apis/oauth_client_connection.rb:62`
+- `drivers/hmis_external_apis/app/models/hmis_external_apis/oauth_client_connection.rb`:
   token cache.
 - `drivers/hmis_external_apis/app/models/hmis_external_apis/extensions/grda_warehouse/remote_credential_extension.rb`:
   `has_many :external_ids, dependent: :restrict_with_exception`.
-- `drivers/hmis_external_apis/app/models/hmis_external_apis/tc_hmis/importers/importer.rb:34`
+- `drivers/hmis_external_apis/app/models/hmis_external_apis/tc_hmis/importers/importer.rb`:
   loader list.
-- `drivers/hmis_external_apis/app/models/hmis_external_apis/tc_hmis/importers/loaders/custom_data_element_helper.rb:24`
-  `find_or_create_cded`; `:46` `new_cde_record`.
+- `drivers/hmis_external_apis/app/models/hmis_external_apis/tc_hmis/importers/loaders/custom_data_element_helper.rb`:
+  `find_or_create_cded`; `new_cde_record`.
 
 ## Gotchas
 

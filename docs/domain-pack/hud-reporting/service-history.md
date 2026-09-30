@@ -82,10 +82,15 @@ covers how the code applies them.
 ### Rebuild vs patch
 
 `rebuild_service_history!` first calls `reset_service_history_memos!`, then returns `false`
-when `EntryDate` is before 1970, when `destination_client`, `project`, or `data_source` is
-missing, or when `already_processed?` (an entry/exit-tracked enrollment with `processed_as`,
+when `EntryDate` is before `EARLIEST_ALLOWED_DATE`, when `structural_issue?` (missing
+`destination_client`, `project`, or `data_source`), or when `already_processed?` (an entry/exit-tracked enrollment with `processed_as`,
 `history_generated_on`, and an `ExitDate` later than `history_generated_on`). It sets
 `history_generated_on = Date.current` and picks an action.
+
+`ServiceHistory::RebuildEnrollmentsByBatchJob` rebuilds each enrollment on its own and records the
+outcome in the enrollment's `processing_error`: cleared on success, the reason when the rebuild
+refused for the start date or a structural issue, and the exception class and message (also sent
+to Sentry) when it raised. One failing enrollment does not stop the rest of the batch.
 
 `should_rebuild?` is `!service_history_valid?`: `processed_as` must be present, equal
 `calculate_hash`, and a `service_history_enrollment` row must exist. The hash is

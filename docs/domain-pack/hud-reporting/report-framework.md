@@ -18,6 +18,9 @@ sources:
   - app/models/hud_reports/cell_detail_export_builder_base.rb
   - app/models/concerns/hud_report_archival.rb
   - app/controllers/hud_reports/base_controller.rb
+  - app/controllers/concerns/warehouse_report_authorization.rb
+  - app/controllers/concerns/hud_reports/report_urls.rb
+  - app/models/grda_warehouse/warehouse_reports/report_definition.rb
   - app/controllers/concerns/hud_reports/cell_drilldown_concern.rb
   - app/jobs/reporting/hud/run_report_job.rb
   - app/jobs/importing/run_daily_imports_job.rb
@@ -71,7 +74,7 @@ HUD specifications (universes, question definitions, enumerations) are out of sc
 
 `Reporting::Hud::RunReportJob` (`app/jobs/reporting/hud/run_report_job.rb`) runs on the long-running queue and declares `self.interruptible? = true`, so `ReportInstance#check_halt_status!` can raise `JobCancelled` between checkpoints. `perform` reloads the instance (returns silently if deleted), sets `report.active_job`, and for `manual` runs takes an advisory lock named after the generator class to count `created_recently.incomplete.started.for_report(report_name)`; more than one means another copy is running and the job is requeued four minutes out with `requeue_at`.
 
-`run_report` fails fast when `report.started_at` is set and the generator does not support idempotent retry (writes `error_details`, raises `NonIdempotentRetryError`). It then wraps `generator.prepare_report` in `report.track_progress('Preparation')`, and for each entry in `generator.class.questions` that is in `build_for_questions` and not already in `completed_questions`, runs `klass.new(generator, report).run!` inside `track_progress(question_number)`. Any exception marks the instance `Failed` and re-raises. Success calls `report.complete_report` and mails `NotifyUser.driver_hud_report_finished`.
+`run_report` fails fast when `report.started_at` is set and the generator does not support idempotent retry (writes `error_details`, raises `NonIdempotentRetryError`). It then wraps `generator.prepare_report` in `report.track_progress('Preparation')`, and for each entry in `generator.class.questions` that is in `build_for_questions` and not already in `completed_questions`, runs `klass.new(generator, report).run!` inside `track_progress(question_number)`. Any exception marks the instance `Failed` and re-raises, except `JobInterrupted` (a worker restart): a generator with `supports_idempotent_retry?` re-raises so the requeued job resumes from its checkpoint; any other generator marks the instance `Failed` with an explanatory `error_details` and raises `JobCancelled`, so the job is discarded and the user creates a new report. Success calls `report.complete_report` and mails `NotifyUser.driver_hud_report_finished`.
 
 `ReportInstance#track_progress(name)` creates a `HudReports::ReportCheckpoint` (`hud_report_checkpoints`, status `running`/`success`/`error`), yields, and records `completed_at`. If a `success` checkpoint with that name already exists it returns it without yielding, which is how a retried run skips Preparation. `ReportCheckpoint.calculate_duration_seconds` merges overlapping intervals; `ReportInstance#total_duration_in_words` prefers it over wall clock.
 
@@ -79,7 +82,9 @@ State is a string column: `Waiting` -> `Started` (`start_report`, which sets `st
 
 ### Fiscal-year registration
 
-A report year is a sibling namespace, not an edit: `HudApr::Generators::Apr::Fy2020`, `Fy2021`, `Fy2023`, `Fy2024`, `Fy2026` each have their own `Generator` and question classes under `drivers/hud_apr/app/models/hud_apr/generators/apr/<fy>/`, usually subclassing shared question logic under `generators/shared/<fy>/`. `drivers/hud_apr/config/initializers/hud_apr_feature.rb` registers every year of APR, CAPER, CE-APR, and DQ with the same `title` and route helper, so the controller can list one link per report type (`report_urls` uniqs on title).
+A report year is a sibling namespace, not an edit: `HudApr::Generators::Apr::Fy2020`, `Fy2021`, `Fy2023`, `Fy2024`, `Fy2026` each have their own `Generator` and question classes under `drivers/hud_apr/app/models/hud_apr/generators/apr/<fy>/`, usually subclassing shared question logic under `generators/shared/<fy>/`. `drivers/hud_apr/config/initializers/hud_apr_feature.rb` registers every year of APR, CAPER, CE-APR, and DQ with the same `title` and route helper, so every year of a report type is served under one route. The report link list,
+`HudReports::ReportUrls#report_urls`, is the HUD `ReportDefinition`s the user can view, not the
+config.
 
 `HudReports::BaseController#available_report_versions` lists the selectable slugs (`fy2020`, `fy2021`, `fy2023`, `fy2024`, `fy2026`) and marks one active based on `default_report_version`, which is `"fy#{HudHelper.hud_csv_version}"`. `generator` resolves `possible_generator_classes[report_version]`, where `report_version` comes from the filter params, the saved instance's `options['report_version']`, or the default. `report_scope` matches `report_name` against every possible generator's `title`, so the history list shows all years of one report.
 
@@ -131,45 +136,45 @@ Archival (`app/models/concerns/hud_report_archival.rb`): a generator's `archival
 
 ### Access
 
-There is no `visible_to`-style scope on `ReportInstance`; visibility is enforced in `HudReports::BaseController`. `before_action :require_can_view_hud_reports!` is generated by `LegacyControllerAuthorization` from `UserPermissions#can_view_hud_reports`, which is `can_view_own_hud_reports? || can_view_all_hud_reports?`. `apply_view_filters` adds `where(user_id: current_user.id)` unless `can_view_all_hud_reports?`, in which case the history view offers a creator filter instead. `set_report` finds the instance in the same scoped relation, so a URL for another user's run 404s for own-only users. `QuestionBase.most_recent_answer(user:, report_name:)` applies the same rule when looking up the latest completed universe cell.
+There is no `visible_to`-style scope on `ReportInstance`; visibility is enforced in `HudReports::BaseController`. Access to a report type is access to its `GrdaWarehouse::WarehouseReports::ReportDefinition`, granted by `ReportDefinition.viewable_by`: a definition in one of the user's collections with `can_view_assigned_reports` (ACL), or in their access groups (legacy, where a HUD-only flag unlocks only HUD definitions). The "All HUD Reports" system collection holds every HUD report; see `authorization/warehouse-access-controls.md`. The controller includes `WarehouseReportAuthorization`, whose `report_visible?` before_action requires `related_report.viewable_by(current_user)`, plus `require_can_view_any_reports!`. `BaseController#related_report` resolves the definition from the generator's `report_definition_url` because drilldown controllers have no index route of their own; a controller outside `GeneratorBase` (LSA) overrides it. Code that knows a report only by URL checks `ReportDefinition.url_viewable_by?(ReportDefinition.hud_url(key), user)`. Which runs a user sees is separate: `apply_view_filters` adds `where(user_id: current_user.id)` unless `can_view_all_hud_reports?`, in which case the history view offers a creator filter instead. `set_report` finds the instance in the same scoped relation, so a URL for another user's run 404s for own-only users. `QuestionBase.most_recent_answer(user:, report_name:)` applies the same rule when looking up the latest completed universe cell.
 
-The two permissions are defined in `app/models/role.rb`: `can_view_all_hud_reports` (administrative; run any HUD report limited by data access, and see every run) and `can_view_own_hud_reports` (run any HUD report, see only own runs). Both are legacy role flags, not access-control-list permissions; `authorization/warehouse-legacy-roles.md` covers that split.
+The run-visibility flags are in `app/models/role.rb`: `can_view_all_hud_reports` (administrative) shows every run regardless of who created it; without it a user sees their own runs. `can_view_own_hud_reports` is deprecated and scheduled for removal; do not gate new code on it. Both are legacy role flags, not access-control-list permissions; `authorization/warehouse-legacy-roles.md` covers that split.
 
-`ReportInstance#policy_class` returns `GrdaWarehouse::AuthPolicies::HudReportPolicy` (`app/models/grda_warehouse/auth_policies/hud_report_policy.rb`). As of 2026-09 it exposes one method, `can_view_checkpoints?` (`can_view_all_hud_reports? && can_manage_config?`), and wraps the user flags because no collection or access group maps to report instances. `authorization/warehouse-policies.md` describes the policy pattern.
+`ReportInstance#policy_class` returns `GrdaWarehouse::AuthPolicies::HudReportPolicy` (`app/models/grda_warehouse/auth_policies/hud_report_policy.rb`). It exposes one method, `can_view_checkpoints?` (`can_view_all_hud_reports? && can_manage_config?`), and wraps the user flags because no collection or access group maps to report instances. `authorization/warehouse-policies.md` describes the policy pattern.
 
 Data inside a run is limited by the filter saved at creation: `GeneratorBase#client_scope` builds `filter_class.new(user_id: report.user_id, ...)` from `report.options`, so project and CoC access is the creator's at run time. Drilldown rows apply the viewer's PII policy per project (`reporting_policy_for_project`), and export headers drop PII columns unless the site config allows them.
 
 ## Key files
 
-- `app/models/hud_reports/generator_base.rb:29` `find_report`; `:48` `supports_idempotent_retry?` default false; `:52` `queue`; `:59` `prepare_report`; `:63` `run!`; `:71` `base_enrollment_scope`; `:82` `client_scope`; `:150` `drilldown_context`; `:169` `allowed_options`.
-- `app/models/hud_reports/question_base.rb:17` `initialize`; `:43` `run!`; `:58` `most_recent_answer`; `:75` `reset_derived_data`; `:83` `prepare_for_run`.
-- `app/models/hud_reports/report_instance.rb:23` driver extension includes; `:60` `policy_class`; `:64` `from_filter`; `:78` `current_status`; `:134` `reset_question`; `:172` `start`; `:176` `start_report`; `:187` `track_progress`; `:214` `complete`; `:259` `answer`; `:276` `universe`; `:283` `_purge_universe`.
-- `app/models/hud_reports/report_cell.rb:23` `value` alias; `:79` `add_universe_members`; `:99` `write_detail`; `:179` `join_universe`.
-- `app/models/hud_reports/universe_member.rb:14` extension includes; `:29` polymorphic `universe_membership`.
-- `app/models/hud_reports/report_client_base.rb:16` `display_value`; `:32` `search_clients`; `:55` `restricted_condition`; `:121` `transform_value`.
-- `app/models/hud_reports/household_context.rb:33` `prune!`; `:44` `copy_subset!`; `:61` `to_legacy_member_hash`.
-- `app/models/hud_reports/household_context_builder.rb:15` `initialize`; `:23` `call`; `:89` `snapshot_universe!`; `:254` `find_anchor_hoh`; `:308` context attributes.
-- `app/models/hud_reports/household_logic.rb:22` `calculate_household_type`; `:46` `calculate_chronic_status`; `:90` `calculate_move_in_date`; `:127` `calculate_date_to_street`; `:148` `calculate_length_of_stay`; `:157` `calculate_is_parenting_youth`.
-- `app/models/hud_reports/report_checkpoint.rb:14` status values; `:20` `calculate_duration_seconds`.
-- `app/models/hud_reports/drilldown_context.rb:28` `build`; `:87` `base_scope`; `:105` `export_headers`; `:112` `filtered_scope`.
-- `app/models/hud_reports/cell_detail_export_builder_base.rb:38` `call`; `:67` `build_package`; `:79` per-row PII policy.
-- `app/models/concerns/hud_report_archival.rb:17` `register_archival_generator`; `:29` `shared_archival_entries`; `:82` `purge_eligible`; `:104` `archived?`; `:228` `archive_and_purge!`.
-- `app/controllers/hud_reports/base_controller.rb:11` `require_can_view_hud_reports!`; `:58` `create`; `:69` `restore`; `:115` `available_report_versions`; `:141` `default_report_version`; `:173` `apply_view_filters`; `:200` `set_report`; `:305` `report_scope`; `:309` `generator`; `:340` `report_version`.
-- `app/controllers/concerns/hud_reports/cell_drilldown_concern.rb:42` `show`; `:51` `search`; `:67` `set_drilldown_context`; `:93` `render_html_response`.
-- `app/jobs/reporting/hud/run_report_job.rb:21` `perform`; `:52` `check_and_requeue_for_running`; `:78` non-idempotent fail-fast; `:85` Preparation checkpoint; `:90` question loop; `:106` `capture_failure`.
-- `app/jobs/importing/run_daily_imports_job.rb:180` `HouseholdContext.prune!`.
-- `app/services/hud_reports/archive_report_service.rb:34` `archive!`.
-- `app/services/hud_reports/restore_archived_report_data_service.rb:32` `restore!`; `:159` `reset_sequences`.
-- `app/models/grda_warehouse/auth_policies/hud_report_policy.rb:17` `can_view_checkpoints?`.
-- `lib/hud_reports/route_concerns.rb:19` `hud_report_actions`; `:30` `hud_drilldown_actions`.
-- `lib/tasks/reports/migrate_to_csv.rake:117` `archive_and_purge_hud_reports`.
-- `config/application.rb:172` driver autoload paths; `:213` `config.hud_reports = {}`; `:235` `load_driver_feature_initializers`.
-- `drivers/hud_apr/config/initializers/hud_apr_feature.rb:29` FY2026 APR registration.
-- `drivers/hud_apr/app/models/hud_apr/extensions/hud_reports/universe_member_extension.rb:14` `belongs_to :apr_client`.
-- `drivers/hud_apr/app/models/hud_apr/generators/apr/fy2026/generator.rb:41` `questions`; `:78` `include HudApr::Archival` last.
-- `drivers/hud_apr/app/models/hud_apr/generators/apr/fy2026/question_four.rb:13` `run_question!` shape.
-- `drivers/hud_spm_report/app/models/hud_spm_report/generators/fy2026/generator.rb:25` `supports_idempotent_retry?`; `:37` `prepare_report` with `HouseholdContextBuilder`; `:91` `archival_csv_config`.
-- `drivers/hud_spm_report/app/models/hud_spm_report/extensions/hud_reports/report_instance_extension.rb:14` `default_report_version` evaluated at include time.
+- `app/models/hud_reports/generator_base.rb`: `find_report`; `report_definition_url`; `supports_idempotent_retry?` default false; `queue`; `prepare_report`; `run!`; `base_enrollment_scope`; `client_scope`; `drilldown_context`; `allowed_options`.
+- `app/models/hud_reports/question_base.rb`: `initialize`; `run!`; `most_recent_answer`; `reset_derived_data`; `prepare_for_run`.
+- `app/models/hud_reports/report_instance.rb`: driver extension includes; `policy_class`; `from_filter`; `current_status`; `reset_question`; `start`; `start_report`; `track_progress`; `complete`; `answer`; `universe`; `_purge_universe`.
+- `app/models/hud_reports/report_cell.rb`: `value` alias; `add_universe_members`; `write_detail`; `join_universe`.
+- `app/models/hud_reports/universe_member.rb`: extension includes; polymorphic `universe_membership`.
+- `app/models/hud_reports/report_client_base.rb`: `display_value`; `search_clients`; `restricted_condition`; `transform_value`.
+- `app/models/hud_reports/household_context.rb`: `prune!`; `copy_subset!`; `to_legacy_member_hash`.
+- `app/models/hud_reports/household_context_builder.rb`: `initialize`; `call`; `snapshot_universe!`; `find_anchor_hoh`; context attributes.
+- `app/models/hud_reports/household_logic.rb`: `calculate_household_type`; `calculate_chronic_status`; `calculate_move_in_date`; `calculate_date_to_street`; `calculate_length_of_stay`; `calculate_is_parenting_youth`.
+- `app/models/hud_reports/report_checkpoint.rb`: status values; `calculate_duration_seconds`.
+- `app/models/hud_reports/drilldown_context.rb`: `build`; `base_scope`; `export_headers`; `filtered_scope`.
+- `app/models/hud_reports/cell_detail_export_builder_base.rb`: `call`; `build_package`; per-row PII policy.
+- `app/models/concerns/hud_report_archival.rb`: `register_archival_generator`; `shared_archival_entries`; `purge_eligible`; `archived?`; `archive_and_purge!`.
+- `app/controllers/hud_reports/base_controller.rb`: `related_report`; `create`; `restore`; `available_report_versions`; `default_report_version`; `apply_view_filters`; `set_report`; `report_scope`; `generator`; `report_version`.
+- `app/controllers/concerns/hud_reports/cell_drilldown_concern.rb`: `show`; `search`; `set_drilldown_context`; `render_html_response`.
+- `app/jobs/reporting/hud/run_report_job.rb`: `perform`; `check_and_requeue_for_running`; non-idempotent fail-fast; Preparation checkpoint; question loop; `capture_failure`.
+- `app/jobs/importing/run_daily_imports_job.rb`: `HouseholdContext.prune!`.
+- `app/services/hud_reports/archive_report_service.rb`: `archive!`.
+- `app/services/hud_reports/restore_archived_report_data_service.rb`: `restore!`; `reset_sequences`.
+- `app/models/grda_warehouse/auth_policies/hud_report_policy.rb`: `can_view_checkpoints?`.
+- `lib/hud_reports/route_concerns.rb`: `hud_report_actions`; `hud_drilldown_actions`.
+- `lib/tasks/reports/migrate_to_csv.rake`: `archive_and_purge_hud_reports`.
+- `config/application.rb`: driver autoload paths; `config.hud_reports = {}`; `load_driver_feature_initializers`.
+- `drivers/hud_apr/config/initializers/hud_apr_feature.rb`: FY2026 APR registration.
+- `drivers/hud_apr/app/models/hud_apr/extensions/hud_reports/universe_member_extension.rb`: `belongs_to :apr_client`.
+- `drivers/hud_apr/app/models/hud_apr/generators/apr/fy2026/generator.rb`: `questions`; `include HudApr::Archival` last.
+- `drivers/hud_apr/app/models/hud_apr/generators/apr/fy2026/question_four.rb`: `run_question!` shape.
+- `drivers/hud_spm_report/app/models/hud_spm_report/generators/fy2026/generator.rb`: `supports_idempotent_retry?`; `prepare_report` with `HouseholdContextBuilder`; `archival_csv_config`.
+- `drivers/hud_spm_report/app/models/hud_spm_report/extensions/hud_reports/report_instance_extension.rb`: `default_report_version` evaluated at include time.
 
 ## Gotchas
 

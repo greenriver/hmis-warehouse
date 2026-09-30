@@ -72,10 +72,10 @@ a warehouse-only concept.
   `UpdateHousingReleaseStatusesJob` by `Admin::ConfigsController#update` when `roi_model`
   changes. There is no scheduled run.
 - `WarehouseReports::ExpiringConsentController#index`: expired, expiring within 30 days, and
-  unconfirmed consent lists, computed against the column and boundary date for the active
-  `release_duration` (`consent_expires_on`/today for `Use Expiration Date`,
-  `consent_form_signed_on`/`consent_validity_period.ago` for the year durations, skipped for
-  `Indefinite`).
+  unconfirmed consent lists. Compares `consent_expires_on` to today under `Use Expiration Date`,
+  `consent_form_signed_on` to `consent_validity_period.ago` under the year durations, and lists
+  only unconfirmed consent under `Indefinite`; raises on an unknown duration. A NULL date (a
+  signed form awaiting confirmation) never counts as expired.
 
 ## How it works
 
@@ -120,12 +120,9 @@ Validity depends on `Config.get(:release_duration)`, one of `Indefinite`, `One Y
 `Use Expiration Date`. `consent_form_valid?` checks `consent_form_signed_on >= period.ago` for
 the year durations, `consent_expires_on >= Date.current` for `Use Expiration Date`, and only
 `release_valid?` for `Indefinite`. `revoke_expired_consent` nulls `housing_release_status`
-and empties `consented_coc_codes` for clients strictly past that window (`<`, not `<=`, so the
-boundary day itself still counts as valid, matching `consent_form_valid?`'s `>=`) with
-`update_all`; it does not clear `consent_form_id` or `consent_form_signed_on`.
-`Hud::Client#consent_expiration_date` returns the same boundary date for display
-(`consent_form_signed_on + consent_validity_period` for the year durations, `consent_expires_on`
-for `Use Expiration Date`, `nil` otherwise) without duplicating the mapping.
+and empties `consented_coc_codes` with `update_all` for clients strictly outside the window
+`consent_form_valid?` accepts, so the boundary day is still valid; it does not
+clear `consent_form_id` or `consent_form_signed_on`.
 
 ### Strategy classes
 
@@ -154,8 +151,9 @@ overridden to the revoked string when `client.newest_consent_form.revoked?`.
   `sync_revokation_info`, `visible_by?` (uses `consent_visible_to_all` and
   `verified_homeless_history_method`).
 - `app/models/grda_warehouse/hud/client.rb`: the release section (`full_release_string`,
-  `consent_validity_period`, `revoke_expired_consent`, `release_valid?`, `consent_form_valid?`,
-  `consent_confirmed?`, `consent_expiration_date`, `newest_consent_form`, `invalidate_consent!`,
+  `consent_validity_period`, `consent_expiration_date`, `revoke_expired_consent`,
+  `release_valid?`, `consent_form_valid?`,
+  `consent_confirmed?`, `newest_consent_form`, `invalidate_consent!`,
   `apply_housing_release_status`), scopes `consent_form_valid`,
   `active_confirmed_consent_in_cocs`, `with_confirmed_consent`, `with_unconfirmed_consent`,
   `has_one :active_consent_form`.
@@ -177,17 +175,12 @@ overridden to the revoked string when `client.newest_consent_form.revoked?`.
 
 ## Gotchas
 
-- The duration-to-expiry mapping exists twice: `Hud::Client.consent_validity_period` (used by
-  `ClientFile#calculated_expiration_date`, `consent_form_valid?`, `revoke_expired_consent`) and
-  `GenerateClientRoiAuthorizationsTask#roi_expiry_date`. Change both together.
-- `WarehouseReports::ExpiringConsentController#index` resolves its own `(column, expired_at)`
-  pair per `release_duration` instead of calling `Hud::Client.consent_validity_period` directly
-  (`consent_expires_on`/`Date.current` for `Use Expiration Date`,
-  `consent_form_signed_on`/`consent_validity_period.ago` for the year durations) — calling
-  `consent_validity_period` directly for the unconfirmed list used to make the report raise
-  under `Use Expiration Date`. `Indefinite` has no expiration column, so it skips expired/
-  expiring but still lists the unconfirmed. `column.lt(expired_at)` excludes a NULL column
-  (a signed-but-unconfirmed form has no expiration date yet) from ever counting as expired.
+- The duration-to-expiry mapping has several copies: `Hud::Client.consent_validity_period`
+  (used by `ClientFile#calculated_expiration_date`, `consent_form_valid?`,
+  `revoke_expired_consent`), `Hud::Client#consent_expiration_date` (the expiring-consent report),
+  and `GenerateClientRoiAuthorizationsTask#roi_expiry_date`. Change them together.
+- `Hud::Client.consent_validity_period` raises for `Use Expiration Date`; call it only under the
+  year durations, as `ExpiringConsentController#index` does.
 - `Hud::Client.release_duration` (class) re-reads config on every call; the instance method
   memoizes per object. Specs that flip the config mid-test must use fresh client instances.
 - `set_client_consent` writes with `update_columns` and `revoke_expired_consent` and
@@ -223,8 +216,9 @@ overridden to the revoked string when `client.newest_consent_form.revoked?`.
   strategy string because `full_housing_release_on_file`, `release_valid?`, and
   `release_string_query` compare against it. CoC detail belongs in `consented_coc_codes` and
   `consent_type_with_extras`. Dead code; do not resurrect.
-- Adding a third copy of the `release_duration` to period mapping. Call
-  `Hud::Client.consent_validity_period` or `ClientFile#calculated_expiration_date`.
+- Adding another copy of the `release_duration` to period mapping. Call
+  `Hud::Client.consent_validity_period`, `Hud::Client#consent_expiration_date`, or
+  `ClientFile#calculated_expiration_date`.
 - Writing `housing_release_status` or the other consent columns from anywhere other than
   `ClientFile#set_client_consent`, `Hud::Client.invalidate_consent!`,
   `Hud::Client.revoke_expired_consent`, `UpdateHousingReleaseStatuses`, or the ETO path

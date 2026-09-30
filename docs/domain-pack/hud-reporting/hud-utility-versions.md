@@ -31,7 +31,7 @@ related:
 ## Purpose
 
 Every HUD-coded value in this codebase (project type, destination, race, gender, funding
-source, data collection stage, and about 200 other lists) is looked up through a fiscal-year
+source, data collection stage, and many other lists) is looked up through a fiscal-year
 utility module: `HudUtility2026`, `HudUtility2024`, or `HudUtilityLegacy`
 (`lib/util/hud_utility_*.rb`). `HudHelper.util` (`lib/util/hud_helper.rb`) is the factory that
 picks one, so calling code does not name a year. `docs/adr/0005-hud-utility-version-management.md`
@@ -86,7 +86,7 @@ returning, so later calls in the same request, job, or thread get the same answe
 clock crosses a cutoff. `ActiveSupport::CurrentAttributes` is reset by the Rails executor
 around each request and job execution; there is no reset in this codebase.
 
-Both cutoffs are in the past as of 2026-09, so every environment resolves to `'2026'`. The
+Both cutoffs are in the past, so every environment resolves to `'2026'`. The
 date branches are not a live switch; they are the template for the next transition, which adds a
 `when` for the new year, moves both cutoffs, and changes the default branch.
 
@@ -179,12 +179,10 @@ utility class" predates the factory; callers on `HudHelper.util` need no edit.
   cutoff; a plain `HudHelper.util` returns whatever `HudHelper::Current` already holds for the
   thread. Test and development always resolve to `'2026'`, so cutoff behavior only appears with
   `Rails.env.production?`/`staging?` stubbed, as `spec/lib/util/hud_helper_spec.rb` does.
-- Direct constant references are rare: `HudUtility2024` or `HudUtility2026` appears in 8 files
-  (the two utilities, `hud_helper.rb`, one JSON comment in `drivers/hmis_simulation`, and four
-  specs), while 258 files call `HudHelper.util(` and 722 mention `HudHelper.util` in any form.
-  Explicit pins are strings: `HudHelper.util('2024')` on 214 lines, `HudHelper.util('legacy')`
-  on 229, `HudHelper.util('2026')` on 222, mostly in `drivers/hud_apr`, `drivers/hmis_csv_*`,
-  and `app/models/report_generators`.
+- Direct constant references are rare: `HudUtility2024` or `HudUtility2026` appears almost only
+  in the utilities themselves, `hud_helper.rb`, and a few specs, while most code calls
+  `HudHelper.util(`. Explicit pins are strings (`HudHelper.util('2024')`, `'legacy'`, `'2026'`),
+  common in `drivers/hud_apr`, `drivers/hmis_csv_*`, and `app/models/report_generators`.
 - `_translate` returns the input unchanged when a code is missing unless `raise_on_missing:
   true`. A typo in a code or a retired value passes through silently as its own label.
 - Reverse lookups (`funding_source('HUD: ESG - RUSH', true)`) match description text. HUD

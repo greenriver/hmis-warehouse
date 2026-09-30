@@ -223,42 +223,42 @@ snapshot models directly. None subclass `HudReports::GeneratorBase` or register 
 
 ## Key files
 
-- `app/controllers/hud_reports/base_controller.rb:115` `available_report_versions`; `:141`
-  `default_report_version`; `:309` `generator` from `possible_generator_classes[report_version]`.
-- `app/jobs/reporting/hud/run_report_job.rb:22` raises for unregistered generator classes.
+- `app/controllers/hud_reports/base_controller.rb`: `available_report_versions`;
+  `default_report_version`; `generator` from `possible_generator_classes[report_version]`.
+- `app/jobs/reporting/hud/run_report_job.rb`: raises for unregistered generator classes.
 - `drivers/hud_apr/config/initializers/hud_apr_feature.rb`: 17 registrations across four families.
-- `drivers/hud_apr/app/models/hud_apr/generators/apr/fy2026/generator.rb` and the sibling `caper`, `ce_apr`, `dq` FY2026 generators:
+- `drivers/hud_apr/app/models/hud_apr/generators/apr/fy2026/generator.rb`: and the sibling `caper`, `ce_apr`, `dq` FY2026 generators:
   templates for a new APR-family year.
-- `drivers/hud_spm_report/app/models/hud_spm_report/generators/fy2026/generator.rb:40`
-  `HouseholdContextBuilder.call`; `:91` `archival_csv_config`.
-- `drivers/hud_spm_report/app/models/hud_spm_report/generators/fy2024/generator.rb:34`
+- `drivers/hud_spm_report/app/models/hud_spm_report/generators/fy2026/generator.rb`:
+  `HouseholdContextBuilder.call`; `archival_csv_config`.
+- `drivers/hud_spm_report/app/models/hud_spm_report/generators/fy2024/generator.rb`:
   `LegacyQuestion` stub pattern.
-- `drivers/hud_spm_report/app/models/hud_spm_report.rb:10` `current_generator`.
-- `drivers/hud_lsa/app/models/hud_lsa/generators/fy2027/lsa.rb:9` conditional `load` of
-  `lib/rds_sql_server/rds.rb` with an `Rds` stub fallback; `:105` `calculate`; `:187`
+- `drivers/hud_spm_report/app/models/hud_spm_report.rb`: `current_generator`.
+- `drivers/hud_lsa/app/models/hud_lsa/generators/fy2027/lsa.rb`: conditional `load` of
+  `lib/rds_sql_server/rds.rb` with an `Rds` stub fallback; `calculate`;
   `run_lsa_queries`.
-- `drivers/hud_lsa/app/models/hud_lsa/generators/fy2027/rds_concern.rb:35` `create_temporary_rds`;
-  `:57` `remove_temporary_rds`.
+- `drivers/hud_lsa/app/models/hud_lsa/generators/fy2027/rds_concern.rb`: `create_temporary_rds`;
+  `remove_temporary_rds`.
 - `drivers/hud_lsa/app/models/hud_lsa/generators/retired_lsa_stub.rb`: what a retired LSA year keeps.
-- `drivers/hud_lsa/app/controllers/hud_lsa/lsas_controller.rb:200` version list; `:213`
+- `drivers/hud_lsa/app/controllers/hud_lsa/lsas_controller.rb`: version list;
   LSA-specific `default_report_version`.
 - `drivers/hud_lsa/app/jobs/hud_lsa/run_report_job.rb`: loads from the STI base, `max_attempts` 1.
-- `lib/rds_sql_server/sql_server_base.rb:10` `cattr_accessor :rds, :host, :database`.
-- `drivers/hud_pit/app/models/hud_pit/generators/pit/fy2025/base.rb:41` lazy `universe`; `:245`
+- `lib/rds_sql_server/sql_server_base.rb`: `cattr_accessor :rds, :host, :database`.
+- `drivers/hud_pit/app/models/hud_pit/generators/pit/fy2025/base.rb`: lazy `universe`;
   `populated?`.
-- `drivers/hud_hic/app/models/hud_hic/generators/hic/fy2022/generator.rb:102` `table_classes`.
+- `drivers/hud_hic/app/models/hud_hic/generators/hic/fy2022/generator.rb`: `table_classes`.
 - `drivers/hud_path_report/app/models/hud_path_report/generators/fy2026/generator.rb`.
-- `drivers/hud_data_quality_report/app/controllers/hud_data_quality_report/base_controller.rb:14`
-  both versions inactive; `:81` `possible_generator_classes`.
-- `drivers/hopwa_caper/app/models/hopwa_caper/generators/fy2026/generator.rb:37` `prepare_report`;
-  `:114` `build_hopwa_caper_models`; `:222` `update_hopwa_eligibility`.
+- `drivers/hud_data_quality_report/app/controllers/hud_data_quality_report/base_controller.rb`:
+  both versions inactive; `possible_generator_classes`.
+- `drivers/hopwa_caper/app/models/hopwa_caper/generators/fy2026/generator.rb`: `prepare_report`;
+  `build_hopwa_caper_models`; `update_hopwa_eligibility`.
 - `drivers/hopwa_caper/app/models/hopwa_caper/generators/fy2024/generator.rb`: read-only stub
   that raises.
 - `drivers/hopwa_caper/app/models/hopwa_caper/extensions/hud_reports/report_instance_extension.rb`:
   staging-table associations with `dependent: :delete_all`.
-- `drivers/hud_twenty_twenty_four_to_twenty_twenty_six/app/models/hud_twenty_twenty_four_to_twenty_twenty_six/csv_transformer.rb:13`
-  `TRANSFORM_TYPES`; `:143` `up`.
-- `drivers/performance_measurement/app/models/performance_measurement/report.rb:13`
+- `drivers/hud_twenty_twenty_four_to_twenty_twenty_six/app/models/hud_twenty_twenty_four_to_twenty_twenty_six/csv_transformer.rb`:
+  `TRANSFORM_TYPES`; `up`.
+- `drivers/performance_measurement/app/models/performance_measurement/report.rb`:
   `SimpleReports::ReportInstance` parent.
 
 ## Gotchas
