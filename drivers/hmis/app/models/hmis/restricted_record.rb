@@ -38,13 +38,17 @@ class Hmis::RestrictedRecord < Hmis::HmisBase
   def self.mark!(record, user:)
     raise ArgumentError, "unsupported restrictable type #{record.class.name}" unless RESTRICTABLE_TYPES.include?(record.class.name)
 
-    existing = with_deleted.find_by(restrictable: record, data_source_id: record.data_source_id)
-    if existing
-      existing.restore if existing.deleted?
-      existing.update!(created_by: user)
-      return existing
-    end
+    # Leave an active restriction alone rather than reassigning created_by, which would put a
+    # change on the audit trail that no user actually performed. Matched on restrictable alone,
+    # the same way as the unique index that would reject the create! below.
+    existing = find_by(restrictable: record)
+    return existing if existing
 
+    # Each restriction gets its own row, even if this record was restricted before. Reviving a
+    # soft-deleted row instead would leave the new restriction unauditable, because Paranoia's
+    # restore writes through update_columns and skips PaperTrail. The unique index is scoped to
+    # deleted_at IS NULL, so a restrictable has at most one active row but any number of
+    # soft-deleted ones; lookups through with_deleted must expect more than one.
     create!(
       restrictable: record,
       data_source_id: record.data_source_id,
