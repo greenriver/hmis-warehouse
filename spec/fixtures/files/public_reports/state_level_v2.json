@@ -60,12 +60,14 @@
     "raceTitleCategories": ["Homeless Population", "Overall Population"],
     "breakdown": {
       "household_type__0__0": { "totals": [718, 718], "chronic": [20, 21], "sheltered": [700, 700], "unsheltered": [18, 18] },
-      "household_type__0__1": { "totals": [null, null], "chronic": [0, 0], "sheltered": null, "unsheltered": [null, null] }
+      "household_type__0__1": { "totals": [null, null], "chronic": [0, 0], "sheltered": null, "unsheltered": [null, null] },
+      "gender__0__0": { "totals": [500, 500], "chronic": [10, 10], "sheltered": [400, 400], "unsheltered": [100, 100] },
+      "race__0__0": { "totals": [600, 600], "chronic": [10, 10], "sheltered": [500, 500], "unsheltered": [100, 100] }
     },
     "breakdownGroupings": {
       "household_type": { "label": "Household Type", "sections": [{ "heading": "Persons in Households Without Children", "rows": ["Persons Age 18 to 24", "Persons over age 24"] }] },
-      "gender": { "label": "Gender", "sections": [{ "heading": null, "rows": [] }] },
-      "race": { "label": "Race", "sections": [{ "heading": null, "rows": [] }] }
+      "gender": { "label": "Gender", "sections": [{ "heading": null, "rows": ["Fixture Gender Row"] }] },
+      "race": { "label": "Race", "sections": [{ "heading": null, "rows": ["Fixture Race Row"] }] }
     }
   },
   "map": {
@@ -74,7 +76,7 @@
     "groups": ["All Homeless", "Youth and Young Adults (age 18-24)", "Adults in Adult Only Households (age 18+)", "Adults with Children", "Veterans"],
     "values": [
       [[10.0, null], [0.0, 10.0], [0.0, 0.0], [0.0, 0.0], [0.0, 0.0]],
-      [[10.0, null], [0.0, 10.0], [0.0, 0.0], [0.0, 0.0], [0.0, 0.0]]
+      [[7.3, null], [0.0, 10.0], [0.0, 0.0], [0.0, 0.0], [0.0, 0.0]]
     ],
     "populations": [17062, 24021],
     "statewideTotals": [[13939, 2091, 9060, 4879, 1115], [14000, 2100, 9100, 4900, 1120]],

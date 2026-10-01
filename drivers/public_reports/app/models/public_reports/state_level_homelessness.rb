@@ -674,7 +674,7 @@ module PublicReports
       # return 10_000 unless Rails.env.production?
       return (500..2_000).to_a.sample unless Rails.env.production?
 
-      count = if map_by_zip?
+      if map_by_zip?
         population_by_zip.try(:[], year).try(:[], code)
       elsif map_by_place?
         population_by_place.try(:[], year).try(:[], code)
@@ -683,8 +683,6 @@ module PublicReports
       else
         population_by_coc.try(:[], year).try(:[], code)
       end
-
-      count || 0
     end
 
     private def homeless_population_overall(scope:, start_date:, end_date:, service_scope:, population_overall:)
@@ -1031,6 +1029,8 @@ module PublicReports
       # own, but this app's Warning.process (custom_deprecation_handler.rb)
       # turns every warning into a hard raise in development.
       extent = scope.pick(Arel.sql('ST_Extent(ST_Transform(COALESCE(simplified_geom, geom), 3857))::text'))
+      return { view_box: '0 0 720 0', paths: [] } if extent.nil?
+
       xmin, ymin, xmax, ymax = extent.scan(/[-\d.]+/).map(&:to_f)
       scale = 720.0 / (xmax - xmin)
       height = ((ymax - ymin) * scale).round(2)

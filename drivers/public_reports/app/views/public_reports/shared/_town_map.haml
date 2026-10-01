@@ -5,7 +5,7 @@
 - percentage_unit = map['unit'].start_with?('Percentage')
 - display_number = ->(n) { n == n.to_i ? n.to_i : n }
 - format_rate = ->(rate) { rate.nil? ? 'Not reporting' : (percentage_unit ? "#{display_number.call(rate)}%" : display_number.call(rate).to_s) }
-- band_color = ->(rate) { rate.nil? ? map['notReportingColor'] : (map['bands'].find { |b| b['max'] == rate } || {})['color'] }
+- band_color = ->(rate) { rate.nil? ? map['notReportingColor'] : (map['bands'].find { |b| b['max'].nil? || rate <= b['max'] } || map['bands'].last)['color'] }
 
 .town-map{ data: { component: 'town-map' } }
   .town-map__controls

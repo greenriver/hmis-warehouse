@@ -86,6 +86,19 @@ RSpec.describe 'PublicReports::WarehouseReports::StateLevelHomelessness sections
     end
   end
 
+  it 'fills a map path whose rate falls between band maxima with the next band up' do
+    # Abington's current-period rate is 7.3, between the 0 and 10.0 bands.
+    get map_public_reports_warehouse_reports_state_level_homelessness_path(report)
+    abington = Nokogiri::HTML(response.body).at_css('path#town-abington')
+    expect(abington['style']).to eq('fill:#D7E0E9')
+  end
+
+  it 'renders breakdown rows for every grouping' do
+    get who_public_reports_warehouse_reports_state_level_homelessness_path(report)
+    labels = Nokogiri::HTML(response.body).css('.breakdown-row__label').map(&:text)
+    expect(labels).to contain_exactly('Persons Age 18 to 24', 'Persons over age 24', 'Fixture Gender Row', 'Fixture Race Row')
+  end
+
   it 'never loads chart assets from a CDN' do
     sections.each do |section|
       get send("#{section}_public_reports_warehouse_reports_state_level_homelessness_path", report)

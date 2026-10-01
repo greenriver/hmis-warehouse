@@ -43,5 +43,14 @@ RSpec.describe PublicReports::StateLevelHomelessness, type: :model do
       expect(xs).to all(be_between(0, 720))
       expect(ys).to all(be_between(0, height))
     end
+
+    it 'returns an empty map when the state has no shapes' do
+      GrdaWarehouse::Shape::Town.instance_variable_set(:@my_fips_state_codes, nil)
+      Rails.cache.clear
+      GrdaWarehouse::Shape::State.create!(stusps: 'MA', geoid: '25')
+      PublicReports::Setting.first_or_create.update!(map_type: 'place')
+
+      expect(described_class.new.map_svg).to eq(view_box: '0 0 720 0', paths: [])
+    end
   end
 end
