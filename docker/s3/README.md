@@ -18,6 +18,9 @@ cp "$TRAEFIK_PATH/traefik/tools/certs/dev.test.key" dev/s3/certs/private.key
 docker compose up -d --force-recreate s3
 ```
 
+The S3 gateway listens on `S3_PORT` (default `9000`) inside the container and on the host,
+so a second install can use another port without colliding with this one.
+
 ## Migrating from MinIO
 
 Rename these in `.env.local` / `.env.development.local` if you set them:
