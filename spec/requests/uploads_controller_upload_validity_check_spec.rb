@@ -148,8 +148,8 @@ RSpec.describe UploadsController, type: :request do
       expect(response).to redirect_to(data_source_uploads_path(data_source))
     end
 
-    # dry_run is not a column on uploads, so the hidden field on the confirmation
-    # form is the only thing carrying it across the two phases.
+    # dry_run is not a column on uploads, so the checkbox on the confirmation form is
+    # the only thing carrying it across the two phases.
     it 'carries dry_run into the confirmation form' do
       post data_source_uploads_path(data_source), params: {
         grda_warehouse_upload: {
@@ -158,7 +158,7 @@ RSpec.describe UploadsController, type: :request do
         },
       }
 
-      expect(response.body).to match(/<input[^>]*name="grda_warehouse_upload\[dry_run\]"[^>]*value="1"/)
+      expect(Nokogiri::HTML(response.body).at_css('input#dry_run')['checked']).to be_present
     end
 
     it 'does not create an Upload when Export.csv is missing' do
@@ -338,6 +338,65 @@ RSpec.describe UploadsController, type: :request do
       get data_source_upload_path(data_source, other_upload)
 
       expect(response).to have_http_status(:not_found)
+    end
+  end
+
+  describe 'GET show' do
+    let!(:upload) do
+      post_create(file: zip_upload(contents: export_csv(source_id: 'MA-999')))
+      GrdaWarehouse::Upload.order(:id).last
+    end
+
+    it 'reopens the confirmation screen from the stored check, and confirming from it queues' do
+      get data_source_upload_path(data_source, upload)
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to match(/Observed SourceID.*?<td>\s*MA-999\s*<\/td>/m)
+
+      expect(Importing::HudZip::HmisAutoMigrateJob).to receive(:perform_later).
+        with(hash_including(upload_id: upload.id, dry_run: true, source_id_override: true)).and_return(enqueued_job)
+      post confirm_data_source_upload_path(data_source, upload), params: {
+        grda_warehouse_upload: { short_name_confirmation: 'HV', dry_run: '1' },
+      }
+
+      expect(response).to redirect_to(action: :index)
+    end
+
+    it 'sends an upload that was already queued back to the index' do
+      upload.update!(delayed_job_id: 42)
+
+      get data_source_upload_path(data_source, upload)
+
+      expect(response).to redirect_to(action: :index)
+    end
+  end
+
+  describe 'GET index' do
+    # Cancelling or navigating away from the confirm screen leaves the
+    # held upload in place; its row links back to the confirmation screen.
+    it 'labels an unconfirmed upload and links to its confirmation screen' do
+      post_create(file: zip_upload(contents: export_csv(source_id: 'MA-999')))
+      upload = GrdaWarehouse::Upload.order(:id).last
+
+      get data_source_uploads_path(data_source)
+
+      row = Nokogiri::HTML(response.body).at_css('tbody tr')
+      expect(row.at_css('.badge.text-bg-secondary').text).to eq('Not confirmed')
+      expect(row.at_css('a', text: 'Review and confirm')['href']).to eq(data_source_upload_path(data_source, upload))
+      expect(row.text).not_to include('processing...')
+    end
+
+    it 'shows a readable badge on an overridden upload' do
+      allow(Importing::HudZip::HmisAutoMigrateJob).to receive(:perform_later).and_return(enqueued_job)
+      post_create(file: zip_upload(contents: export_csv(source_id: 'MA-999')))
+      upload = GrdaWarehouse::Upload.order(:id).last
+      post confirm_data_source_upload_path(data_source, upload), params: {
+        grda_warehouse_upload: { short_name_confirmation: 'HV', dry_run: '0' },
+      }
+
+      get data_source_uploads_path(data_source)
+
+      expect(Nokogiri::HTML(response.body).at_css('tbody tr .badge.text-bg-warning').text).to eq('SourceID overridden')
     end
   end
 end
