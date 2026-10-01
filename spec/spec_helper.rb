@@ -173,6 +173,6 @@ RSpec::Benchmark.configure do |config|
   config.samples = 5
 end
 
-# allow real requests, needed for minio
+# allow real requests, needed for local S3
 require 'webmock/rspec'
 WebMock.allow_net_connect!

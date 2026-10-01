@@ -1,0 +1,28 @@
+#!/usr/bin/env ruby
+###
+# Copyright Green River Data Group, Inc.
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
+# frozen_string_literal: true
+
+require_relative '../lib/domain_pack'
+
+root = File.expand_path('..', __dir__)
+
+case ARGV.first
+when 'stamp'
+  manifest = DomainPack.stamp(root)
+  puts "Stamped #{manifest.size} sources into #{DomainPack::MANIFEST}"
+when 'check'
+  problems = DomainPack.check(root)
+  if problems.empty?
+    puts 'domain pack is in sync'
+  else
+    puts problems
+    exit 1
+  end
+else
+  abort 'usage: bin/domain_pack stamp|check'
+end

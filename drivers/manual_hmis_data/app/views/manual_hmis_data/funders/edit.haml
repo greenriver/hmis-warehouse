@@ -3,4 +3,4 @@
   Edit Funder for #{@funder.project.name(ignore_confidential_status: true)} at #{@funder.project.organization.name(ignore_confidential_status: true)}
 = simple_form_for :funder, url: manual_hmis_data_funder_path, method: :patch do |f|
   = render 'manual_hmis_data/form', form: f
-  = f.submit 'Save Funder'
+  = f.submit 'Save Funder', class: 'btn btn-primary'

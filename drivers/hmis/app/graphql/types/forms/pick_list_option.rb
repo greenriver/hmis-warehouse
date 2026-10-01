@@ -162,6 +162,8 @@ module Types
         client_audit_event_record_type_picklist
       when 'PROJECTS_RECEIVING_REFERRALS'
         projects_receiving_referrals(user.hmis_data_source_id)
+      when 'PROJECTS_SENDING_DIRECT_CE_REFERRALS'
+        projects_sending_direct_ce_referrals(user: user)
       when 'FORM_TYPES'
         visible_form_types_picklist(user: user)
       when 'CREATABLE_FORM_TYPES'
@@ -706,6 +708,20 @@ module Types
     def self.projects_receiving_referrals(data_source_id)
       Hmis::Hud::Project.receiving_legacy_referrals(data_source_id).
         joins(:organization).preload(:organization).
+        sort_by_option(:organization_and_name).
+        map(&:to_pick_list_option)
+    end
+
+    # Projects that an admin can name in a receiving project's "receives direct referrals from"
+    # allowlist. Deliberately filtered by neither viewable_by nor open_on_date: reaching the
+    # Project Config form already requires the global can_configure_data_collection permission,
+    # and PROJECTS_RECEIVING_DIRECT_CE_REFERRALS skips viewable_by for the same reason. Compose
+    # either filter here rather than in the scope if that changes.
+    def self.projects_sending_direct_ce_referrals(user:)
+      return [] unless Hmis::Ce.configuration.enabled?
+
+      Hmis::Hud::Project.sending_direct_ce_referrals(user.hmis_data_source_id).
+        preload(:organization).
         sort_by_option(:organization_and_name).
         map(&:to_pick_list_option)
     end

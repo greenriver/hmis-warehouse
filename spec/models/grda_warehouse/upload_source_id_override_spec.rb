@@ -70,7 +70,7 @@ RSpec.describe GrdaWarehouse::Upload, type: :model do
   end
 
   # This gates UploadsController#confirm, which queues an import, and the "Not
-  # confirmed" badge on the uploads index.
+  # confirmed" badge and confirmation link on the uploads index.
   describe '#awaiting_confirmation?' do
     let(:upload) { create(:grda_warehouse_upload) }
 
