@@ -37,7 +37,9 @@
               (unknown)
 
     = form_tag confirm_data_source_upload_path(@data_source, @upload) do
-      = hidden_field_tag 'grda_warehouse_upload[dry_run]', @dry_run ? '1' : '0'
+      .form-check.mb-4
+        = check_box_tag 'grda_warehouse_upload[dry_run]', '1', @dry_run, id: 'dry_run', class: 'form-check-input'
+        %label.form-check-label{ for: 'dry_run' } Pause for review before overwriting the existing warehouse data
       .mb-4
         %label{ for: 'short_name_confirmation' }
           Type
@@ -46,4 +48,4 @@
         = text_field_tag 'grda_warehouse_upload[short_name_confirmation]', nil, id: 'short_name_confirmation', class: 'form-control', autocomplete: 'off'
       .form-actions
         = submit_tag 'Confirm and Import', class: 'btn btn-primary'
-        = button_tag 'Cancel', type: 'submit', formaction: cancel_data_source_upload_path(@data_source, @upload), class: 'btn btn-secondary'
+        = link_to 'Cancel', data_source_uploads_path(@data_source), class: 'btn btn-secondary'

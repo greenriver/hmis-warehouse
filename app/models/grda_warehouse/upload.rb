@@ -30,13 +30,6 @@ module GrdaWarehouse
       where(percent_complete: 100)
     end
 
-    # Query form of #awaiting_confirmation?; keep the two in step.
-    scope :awaiting_confirmation, -> do
-      where.not(export_source_check: nil).
-        where("export_source_check->>'acknowledged_at' IS NULL").
-        where(delayed_job_id: nil, percent_complete: [0, nil])
-    end
-
     scope :viewable_by, ->(user) do
       where(data_source_id: GrdaWarehouse::DataSource.directly_viewable_by(user, permission: :can_upload_hud_zips).select(:id))
     end
@@ -122,11 +115,8 @@ module GrdaWarehouse
     # was then abandoned. The automated importers build their own Upload records
     # without a check, so export_source_check is what separates an upload that stopped
     # at the confirmation screen from one that was never offered it.
-    # deleted? matters because with_lock reloads unscoped, so a row UploadsController#cancel
-    # removed is still found there; the scope gets the same exclusion from acts_as_paranoid.
     def awaiting_confirmation?
-      !deleted? &&
-        export_source_check.present? &&
+      export_source_check.present? &&
         !export_source_acknowledged? &&
         delayed_job_id.nil? &&
         percent_complete.to_f.zero?

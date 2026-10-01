@@ -69,8 +69,8 @@ RSpec.describe GrdaWarehouse::Upload, type: :model do
     end
   end
 
-  # This gates UploadsController#confirm, which queues an import. Its query form,
-  # .awaiting_confirmation, hides these rows from the uploads index.
+  # This gates UploadsController#confirm, which queues an import, and the "Not
+  # confirmed" badge and confirmation link on the uploads index.
   describe '#awaiting_confirmation?' do
     let(:upload) { create(:grda_warehouse_upload) }
 
@@ -106,17 +106,10 @@ RSpec.describe GrdaWarehouse::Upload, type: :model do
       expect(upload.awaiting_confirmation?).to be false
     end
 
-    # with_lock reloads unscoped, so #confirm's locked re-check sees a row #cancel removed
-    it 'is false once cancelled, even when reloaded unscoped' do
-      observed.destroy!
-
-      expect(upload.reload.awaiting_confirmation?).to be false
-    end
-
     # Importers::HmisAutoMigrate::Base#upload builds records this way for the S3 and
     # Local importers: no check was run, no job id yet, nothing imported yet. Treating
-    # those as awaiting confirmation would hide them from the index and let a posted
-    # confirmation or cancel reach an upload that was never offered one.
+    # those as awaiting confirmation would label them on the index and let a posted
+    # confirmation reach an upload that was never offered one.
     it 'is false for an upload the automated importers created' do
       automated = GrdaWarehouse::Upload.new(
         percent_complete: 0.0,
@@ -128,23 +121,6 @@ RSpec.describe GrdaWarehouse::Upload, type: :model do
       expect(automated.export_source_check).to be_nil
       expect(automated.delayed_job_id).to be_nil
       expect(automated.awaiting_confirmation?).to be false
-    end
-
-    # The index filters with the scope and #confirm gates with the predicate, so a
-    # drift between them would hide a row #confirm refuses, or show one it accepts.
-    it 'agrees with the .awaiting_confirmation scope' do
-      check = { 'file_source_id' => 'MA-999' }
-      held = create(:grda_warehouse_upload, export_source_check: check)
-      uploads = [
-        held,
-        create(:grda_warehouse_upload, export_source_check: check.merge('acknowledged_at' => Time.current)),
-        create(:grda_warehouse_upload, export_source_check: check, delayed_job_id: 42),
-        create(:grda_warehouse_upload, export_source_check: check, percent_complete: 1.0),
-        create(:grda_warehouse_upload),
-      ]
-
-      expect(uploads.select(&:awaiting_confirmation?)).to eq([held])
-      expect(described_class.awaiting_confirmation.where(id: uploads.map(&:id)).to_a).to eq([held])
     end
   end
 end

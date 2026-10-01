@@ -148,8 +148,8 @@ RSpec.describe UploadsController, type: :request do
       expect(response).to redirect_to(data_source_uploads_path(data_source))
     end
 
-    # dry_run is not a column on uploads, so the hidden field on the confirmation
-    # form is the only thing carrying it across the two phases.
+    # dry_run is not a column on uploads, so the checkbox on the confirmation form is
+    # the only thing carrying it across the two phases.
     it 'carries dry_run into the confirmation form' do
       post data_source_uploads_path(data_source), params: {
         grda_warehouse_upload: {
@@ -158,7 +158,7 @@ RSpec.describe UploadsController, type: :request do
         },
       }
 
-      expect(response.body).to match(/<input[^>]*name="grda_warehouse_upload\[dry_run\]"[^>]*value="1"/)
+      expect(Nokogiri::HTML(response.body).at_css('input#dry_run')['checked']).to be_present
     end
 
     it 'does not create an Upload when Export.csv is missing' do
@@ -327,67 +327,6 @@ RSpec.describe UploadsController, type: :request do
     end
   end
 
-  describe 'POST cancel' do
-    include ActiveJob::TestHelper
-
-    let!(:upload) do
-      post_create(file: zip_upload(contents: export_csv(source_id: 'MA-999')))
-      GrdaWarehouse::Upload.order(:id).last
-    end
-
-    it 'removes the held upload and its file without queuing an import' do
-      blob = upload.hmis_zip.blob
-      expect(Importing::HudZip::HmisAutoMigrateJob).not_to receive(:perform_later)
-
-      # The zip is purged by the PurgeJob destroy! enqueues, not inline
-      perform_enqueued_jobs(only: ActiveStorage::PurgeJob) do
-        post cancel_data_source_upload_path(data_source, upload)
-      end
-
-      expect(response).to redirect_to(action: :index)
-      expect(GrdaWarehouse::Upload.with_deleted.find(upload.id).deleted_at).to be_present
-      expect(ActiveStorage::Blob.exists?(blob.id)).to be false
-      expect(blob.service.exist?(blob.key)).to be false
-    end
-
-    it 'refuses to remove an upload that was already queued' do
-      upload.update!(delayed_job_id: 42)
-
-      post cancel_data_source_upload_path(data_source, upload)
-
-      expect(response).to redirect_to(action: :index)
-      expect(upload.reload.deleted_at).to be_nil
-      expect(upload.hmis_zip).to be_attached
-    end
-
-    it 'does not reach an upload belonging to another data source' do
-      other = create(:source_data_source, short_name: 'OT')
-      upload.update_column(:data_source_id, other.id)
-
-      post cancel_data_source_upload_path(data_source, upload)
-
-      expect(response).to have_http_status(:not_found)
-      expect(upload.reload.deleted_at).to be_nil
-    end
-
-    # The cancel lands after #confirm's unlocked check but before its locked one, which
-    # reloads unscoped and so still finds the soft-deleted row.
-    it 'keeps a confirm racing it from queuing the removed file' do
-      allow(HmisCsvImporter::UploadValidityCheck::Result).to receive(:from_audit_h).and_wrap_original do |original, *args|
-        GrdaWarehouse::Upload.find(upload.id).destroy!
-        original.call(*args)
-      end
-      expect(Importing::HudZip::HmisAutoMigrateJob).not_to receive(:perform_later)
-
-      post confirm_data_source_upload_path(data_source, upload), params: {
-        grda_warehouse_upload: { short_name_confirmation: 'HV', dry_run: '0' },
-      }
-
-      expect(response).to redirect_to(action: :index)
-      expect(GrdaWarehouse::Upload.with_deleted.find(upload.id).export_source_check).not_to have_key('acknowledged_at')
-    end
-  end
-
   # set_upload is shared, so scoping it for #confirm tightened these too
   describe 'upload lookup scoping' do
     let!(:other_upload) do
@@ -402,16 +341,49 @@ RSpec.describe UploadsController, type: :request do
     end
   end
 
-  describe 'GET index' do
-    # Navigating away from the confirm screen, rather than pressing Cancel, leaves the
-    # held upload in place; the index still keeps it out of the list.
-    it 'hides an unconfirmed upload' do
+  describe 'GET show' do
+    let!(:upload) do
       post_create(file: zip_upload(contents: export_csv(source_id: 'MA-999')))
-      expect(GrdaWarehouse::Upload.where(data_source: data_source).count).to eq(1)
+      GrdaWarehouse::Upload.order(:id).last
+    end
+
+    it 'reopens the confirmation screen from the stored check, and confirming from it queues' do
+      get data_source_upload_path(data_source, upload)
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to match(/Observed SourceID.*?<td>\s*MA-999\s*<\/td>/m)
+
+      expect(Importing::HudZip::HmisAutoMigrateJob).to receive(:perform_later).
+        with(hash_including(upload_id: upload.id, dry_run: true, source_id_override: true)).and_return(enqueued_job)
+      post confirm_data_source_upload_path(data_source, upload), params: {
+        grda_warehouse_upload: { short_name_confirmation: 'HV', dry_run: '1' },
+      }
+
+      expect(response).to redirect_to(action: :index)
+    end
+
+    it 'sends an upload that was already queued back to the index' do
+      upload.update!(delayed_job_id: 42)
+
+      get data_source_upload_path(data_source, upload)
+
+      expect(response).to redirect_to(action: :index)
+    end
+  end
+
+  describe 'GET index' do
+    # Cancelling or navigating away from the confirm screen leaves the
+    # held upload in place; its row links back to the confirmation screen.
+    it 'labels an unconfirmed upload and links to its confirmation screen' do
+      post_create(file: zip_upload(contents: export_csv(source_id: 'MA-999')))
+      upload = GrdaWarehouse::Upload.order(:id).last
 
       get data_source_uploads_path(data_source)
 
-      expect(response.body).to include('No uploads.')
+      row = Nokogiri::HTML(response.body).at_css('tbody tr')
+      expect(row.at_css('.badge.text-bg-secondary').text).to eq('Not confirmed')
+      expect(row.at_css('a', text: 'Review and confirm')['href']).to eq(data_source_upload_path(data_source, upload))
+      expect(row.text).not_to include('processing...')
     end
 
     it 'shows a readable badge on an overridden upload' do

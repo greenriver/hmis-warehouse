@@ -9,22 +9,18 @@
 class UploadsController < ApplicationController
   before_action :require_can_upload_hud_zips!
   before_action :set_data_source
-  before_action :set_upload, only: [:show, :edit, :confirm, :cancel]
+  before_action :set_upload, only: [:show, :edit, :confirm]
 
   def index
     attributes = GrdaWarehouse::Upload.column_names - ['import_errors', 'content']
     @uploads = upload_source.with_attached_hmis_zip.select(*attributes).
       where(data_source_id: @data_source.id).
-      where.not(id: upload_source.awaiting_confirmation.select(:id)).
       order(created_at: :desc)
     @pagy, @uploads = pagy(@uploads)
   end
 
   def new
     @upload = upload_source.new
-  end
-
-  def show
   end
 
   def create
@@ -75,6 +71,19 @@ class UploadsController < ApplicationController
     render :confirm
   end
 
+  # The only page an upload has is the confirmation screen it was held at; the index
+  # links here so a user who left that screen can come back to it.
+  def show
+    unless @upload.awaiting_confirmation?
+      flash[:alert] = Translation.translate('That upload is no longer waiting for confirmation.')
+      redirect_to action: :index
+      return
+    end
+
+    @export_source = HmisCsvImporter::UploadValidityCheck::Result.from_audit_h(@upload.export_source_check)
+    render :confirm
+  end
+
   # Name the destination data source to accept a SourceID the upload validity check
   # could not match, and queue the import.
   def confirm
@@ -121,25 +130,6 @@ class UploadsController < ApplicationController
 
     enqueue_import(@upload, source_id_override: @upload.source_id_overridden?)
     flash[:notice] = Translation.translate('Upload queued to start.')
-    redirect_to action: :index
-  end
-
-  # Backing out of the confirmation screen removes the held upload and its zip. The
-  # lock keeps a confirm posted alongside this from queuing a file being removed.
-  # destroy! runs has_one_attached's purge_later, so the zip leaves S3 after commit
-  # rather than while the row is locked.
-  def cancel
-    cancelled = @upload.with_lock do
-      next false unless @upload.awaiting_confirmation?
-
-      @upload.destroy!
-      true
-    end
-    if cancelled
-      flash[:notice] = Translation.translate('Upload cancelled and file removed.')
-    else
-      flash[:alert] = Translation.translate('That upload is no longer waiting for confirmation.')
-    end
     redirect_to action: :index
   end
 
