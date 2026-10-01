@@ -23,9 +23,6 @@ class UploadsController < ApplicationController
     @upload = upload_source.new
   end
 
-  def show
-  end
-
   def create
     unless @data_source.importable?
       flash[:alert] = Translation.translate('Imports are disabled for this data source.')
@@ -71,6 +68,19 @@ class UploadsController < ApplicationController
 
     # Blank, mismatched, or unverifiable SourceID: hold the upload for acknowledgment
     @dry_run = dry_run_param
+    render :confirm
+  end
+
+  # The only page an upload has is the confirmation screen it was held at; the index
+  # links here so a user who left that screen can come back to it.
+  def show
+    unless @upload.awaiting_confirmation?
+      flash[:alert] = Translation.translate('That upload is no longer waiting for confirmation.')
+      redirect_to action: :index
+      return
+    end
+
+    @export_source = HmisCsvImporter::UploadValidityCheck::Result.from_audit_h(@upload.export_source_check)
     render :confirm
   end
 
