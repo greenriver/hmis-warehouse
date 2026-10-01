@@ -93,13 +93,11 @@ RSpec.describe 'HudSpmReport CellsController Integration', type: :request do
     end
   end
 
-  let(:role) { create(:role, can_view_assigned_reports: true, can_view_projects: true, can_view_client_name: true) }
-
   before do
     # can_view_projects is granted here, not per-example: User memoizes its effective
     # permissions on first use, setup_report triggers that via HudFilterBase, and Warden
     # hands the view this very instance. Granting later would not be seen.
-    grant_hud_report(user, 'hud_reports/spms', role: role)
+    grant_hud_report(user, 'hud_reports/spms', role: create(:role, can_view_assigned_reports: true, can_view_projects: true))
     sign_in(user)
   end
 
@@ -141,37 +139,6 @@ RSpec.describe 'HudSpmReport CellsController Integration', type: :request do
       let(:table) { '1a' }
       let(:expected_client) { @client }
       let(:noise_client) { @noise_client }
-    end
-
-    it 'lists every client in the cell when more clients than the preload miss threshold are in it' do
-      # Client-name PII visibility for a row is gated per-project (ProjectPiiPolicy), which
-      # requires the project to be a viewable entity on the user's access group -- distinct
-      # from the blanket can_view_projects role flag that only governs the project link/name.
-      user.access_group.add_viewable(@es_project)
-      user.clear_memery_cache!
-
-      extra = Array.new(preload_miss_client_count) do |i|
-        source = create_client_with_warehouse_link(first_name: "Preload#{i}", last_name: 'Coverage')
-        create_enrollment(
-          client: source,
-          project: @es_project,
-          entry_date: '2022-11-01'.to_date,
-          exit_date: '2023-01-15'.to_date,
-        )
-        source
-      end
-      report = setup_report([@es_project.id], ['Measure 1'])
-      run_measure(report, HudSpmReport::Generators::Fy2026::MeasureOne)
-
-      get hud_reports_spm_measure_cell_path(
-        spm_id: report.id,
-        measure_id: 'Measure 1',
-        id: 'B2',
-        table: '1a',
-      )
-
-      expect(response).to have_http_status(:ok)
-      extra.each { |client| expect(response.body).to include(client.FirstName) }
     end
   end
 

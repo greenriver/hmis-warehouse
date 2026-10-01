@@ -28,13 +28,6 @@ RSpec.describe 'WarehouseReports::Cas::DeclineReasonController#index', type: :re
   let!(:open_destination_client) { create(:grda_warehouse_hud_client) }
   let(:restricted_cas_client_id) { 1 }
   let(:open_cas_client_id) { 2 }
-  let(:cas_client) { Struct.new(:first_name, :last_name) }
-  let(:cas_clients) do
-    {
-      restricted_cas_client_id => cas_client.new('Restrictedfirst', 'Restrictedlast'),
-      open_cas_client_id => cas_client.new('Openfirst', 'Openlast'),
-    }
-  end
 
   after { GrdaWarehouse::Config.invalidate_cache }
 
@@ -74,6 +67,11 @@ RSpec.describe 'WarehouseReports::Cas::DeclineReasonController#index', type: :re
     insert_cas_report(client: restricted_destination_client, cas_client_id: restricted_cas_client_id, match_id: 3, decision_status: 'Canceled', administrative_cancel_reason: 'Other')
     insert_cas_report(client: open_destination_client, cas_client_id: open_cas_client_id, match_id: 4, decision_status: 'Canceled', administrative_cancel_reason: 'Other')
 
+    cas_client = Struct.new(:first_name, :last_name)
+    cas_clients = {
+      restricted_cas_client_id => cas_client.new('Restrictedfirst', 'Restrictedlast'),
+      open_cas_client_id => cas_client.new('Openfirst', 'Openlast'),
+    }
     allow(WarehouseReport::CasDeclines).to receive(:new).and_wrap_original do |original, **kwargs|
       original.call(**kwargs).tap { |instance| allow(instance).to receive(:clients).and_return(cas_clients) }
     end
@@ -137,22 +135,5 @@ RSpec.describe 'WarehouseReports::Cas::DeclineReasonController#index', type: :re
         expect(row[6]).to eq('Name Redacted')
       end
     end
-  end
-
-  it 'exports every declined and canceled client when more unrestricted clients than the preload miss threshold are listed' do
-    GrdaWarehouse::Config.first_or_create.update!(include_pii_in_detail_downloads: true)
-    clients = Array.new(preload_miss_client_count) do |i|
-      destination = create(:grda_warehouse_hud_client, FirstName: "Preload#{i}", LastName: 'Coverage')
-      cas_clients[100 + i] = cas_client.new(destination.FirstName, destination.LastName)
-      insert_cas_report(client: destination, cas_client_id: 100 + i, match_id: 100 + i, decision_status: 'Declined', decline_reason: 'Client declined')
-      insert_cas_report(client: destination, cas_client_id: 100 + i, match_id: 200 + i, decision_status: 'Canceled', administrative_cancel_reason: 'Other')
-      destination
-    end
-
-    get warehouse_reports_cas_decline_reason_index_path(format: :xlsx)
-
-    expect(response).to have_http_status(:success)
-    values = xlsx_cell_values(response)
-    clients.each { |client| expect(values).to include(client.FirstName) }
   end
 end

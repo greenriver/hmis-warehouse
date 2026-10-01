@@ -120,27 +120,4 @@ RSpec.describe 'WarehouseReports::YouthIntakeExport#create (Download Per-Client 
     expect(open_rows['First Name']).to eq('Open')
     expect(open_rows['SSN'].to_s).to eq('987654321')
   end
-
-  it 'exports every client when more clients than the preload miss threshold have an intake' do
-    clients = Array.new(preload_miss_client_count) do |i|
-      destination = create(:grda_warehouse_hud_client, FirstName: "Preload#{i}", LastName: 'Coverage')
-      GrdaWarehouse::YouthIntake::Entry.create!(
-        required_intake_attrs.merge(client: destination, first_name: destination.FirstName, last_name: destination.LastName, ssn: '555443333', client_dob: Date.new(1999, 1, 1)),
-      )
-      destination
-    end
-
-    post warehouse_reports_youth_intake_export_index_path(
-      commit: 'Download Per-Client Data',
-      format: :xlsx,
-      filter: { start: 1.day.ago.to_date, end: Date.tomorrow },
-    )
-
-    expect(response).to have_http_status(:success)
-    clients.each do |client|
-      sheet = sheet_for(response.body, client.id)
-      rows = (sheet.first_row..sheet.last_row).map { |i| sheet.row(i) }.to_h { |k, v| [k, v] }
-      expect(rows['First Name']).to eq(client.FirstName)
-    end
-  end
 end

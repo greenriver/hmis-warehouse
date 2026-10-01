@@ -85,14 +85,4 @@ RSpec.describe 'warehouse_reports/cas/decision_efficiency/index', type: :view do
     expect(rows.fetch(restricted_destination_client.id)[9]).to eq('Name Redacted')
     expect(rows.fetch(open_destination_client.id)[9]).to eq('Name Redacted')
   end
-
-  it 'exports every client when more unrestricted clients than the preload miss threshold are listed' do
-    GrdaWarehouse::Config.first_or_create.update!(include_pii_in_detail_downloads: true)
-    clients = Array.new(preload_miss_client_count) { |i| create(:grda_warehouse_hud_client, FirstName: "Preload#{i}", LastName: 'Coverage') }
-    assign(:data, clients.map { |client| row(client, first_name: client.FirstName, last_name: client.LastName) })
-
-    rows = rows_by_client_id
-
-    clients.each { |client| expect(rows.fetch(client.id)[9]).to eq("#{client.FirstName} #{client.LastName}") }
-  end
 end

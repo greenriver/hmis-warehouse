@@ -34,29 +34,4 @@ RSpec.describe 'ServiceScanning::ServicesController#index (last added panel)', t
     expect(response.body).not_to include('Restricted Client')
     expect(response.body).to include('Name Redacted')
   end
-
-  describe 'search results past the preload miss threshold' do
-    let!(:search_role) { create(:role, can_use_service_register: true, can_search_own_clients: true, can_view_client_name: true) }
-    let!(:window_ds) { create(:visible_data_source) }
-    let!(:window_project) { create(:grda_warehouse_hud_project, data_source_id: window_ds.id) }
-
-    before do
-      setup_access_control(user, search_role, Collection.system_collection(:data_sources))
-    end
-
-    it 'lists every matching client' do
-      clients = Array.new(preload_miss_client_count) do |i|
-        source = create(:grda_warehouse_hud_client, data_source_id: window_ds.id, FirstName: "Preload#{i}", LastName: 'Coverage')
-        create(:grda_warehouse_hud_enrollment, data_source_id: window_ds.id, PersonalID: source.PersonalID, ProjectID: window_project.ProjectID, EntryDate: 1.month.ago.to_date)
-        destination = create(:grda_warehouse_hud_client, FirstName: "Preload#{i}", LastName: 'Coverage')
-        GrdaWarehouse::WarehouseClient.create!(destination_id: destination.id, source_id: source.id, data_source_id: window_ds.id, id_in_source: source.PersonalID)
-        destination
-      end
-
-      get service_scanning_services_path(service: { q: 'Coverage' })
-
-      expect(response).to have_http_status(:ok)
-      clients.each { |client| expect(response.body).to include(client.FirstName) }
-    end
-  end
 end

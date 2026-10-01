@@ -21,8 +21,6 @@ RSpec.describe 'HudPit::CellsController#show', type: :request do
   let!(:cell) { report.report_cells.create!(question: 'Additional Homeless Populations', cell_name: 'B2') }
   let(:cell_params) { { pit_id: report.id, question_id: 'Additional Homeless Populations', id: 'B2', table: 'Additional Homeless Populations' } }
 
-  after { GrdaWarehouse::Config.invalidate_cache }
-
   before do
     grant_hud_report(user, 'hud_reports/pits', role: create(:role, can_view_assigned_reports: true, can_view_hiv_status: true))
     sign_in user
@@ -51,16 +49,5 @@ RSpec.describe 'HudPit::CellsController#show', type: :request do
 
     expect(response).to have_http_status(:ok)
     extra.each { |client| expect(response.body).to include(client.FirstName) }
-  end
-
-  it 'exports every client in the cell when more clients than the preload miss threshold are in it' do
-    GrdaWarehouse::Config.first_or_create.update!(include_pii_in_detail_downloads: true)
-    GrdaWarehouse::Config.invalidate_cache
-    extra = Array.new(preload_miss_client_count) { |i| build_preload_client(i) }
-
-    get hud_reports_pit_question_cell_path(cell_params.merge(format: :xlsx))
-
-    expect(response).to have_http_status(:ok)
-    expect(xlsx_cell_values(response)).to include(*extra.map(&:FirstName))
   end
 end

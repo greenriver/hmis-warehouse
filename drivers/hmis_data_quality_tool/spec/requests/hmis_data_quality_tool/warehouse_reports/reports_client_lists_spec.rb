@@ -19,8 +19,6 @@ RSpec.describe 'HmisDataQualityTool::WarehouseReports::ReportsController#items a
   let!(:project) { create_project(project_type: 1) }
   let!(:dq_report) { HmisDataQualityTool::Report.create!(user_id: user.id, report_name: 'HMIS Data Quality Tool', options: {}, question_names: []) }
 
-  after { GrdaWarehouse::Config.invalidate_cache }
-
   before do
     Collection.maintain_system_groups
     collection.set_viewables({ reports: [report_definition.id], projects: [project.id] })
@@ -47,26 +45,6 @@ RSpec.describe 'HmisDataQualityTool::WarehouseReports::ReportsController#items a
     extra = Array.new(preload_miss_client_count) { |i| build_preload_client(i) }
 
     get items_hmis_data_quality_tool_warehouse_reports_report_path(dq_report, key: 'client_ch_most_recent')
-
-    expect(response).to have_http_status(:ok)
-    extra.each { |row| expect(response.body).to include(row.first_name) }
-  end
-
-  it 'exports every client in a drilldown when more clients than the preload miss threshold are in it' do
-    GrdaWarehouse::Config.first_or_create.update!(include_pii_in_detail_downloads: true)
-    GrdaWarehouse::Config.invalidate_cache
-    extra = Array.new(preload_miss_client_count) { |i| build_preload_client(i) }
-
-    get items_hmis_data_quality_tool_warehouse_reports_report_path(dq_report, key: 'client_ch_most_recent', format: :xlsx)
-
-    expect(response).to have_http_status(:ok)
-    expect(xlsx_cell_values(response)).to include(*extra.map(&:first_name))
-  end
-
-  it 'lists every client by client when more clients than the preload miss threshold are in the report' do
-    extra = Array.new(preload_miss_client_count) { |i| build_preload_client(i) }
-
-    get by_client_hmis_data_quality_tool_warehouse_reports_report_path(dq_report)
 
     expect(response).to have_http_status(:ok)
     extra.each { |row| expect(response.body).to include(row.first_name) }

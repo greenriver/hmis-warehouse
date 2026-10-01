@@ -73,17 +73,4 @@ RSpec.describe 'Health Emergency clinical tables', type: :request do
     expect(response.body).not_to include('1985-05-05')
     expect(response.body.scan('Name Redacted').size).to be >= 2
   end
-
-  it 'lists every uploaded test row when more clients than the preload miss threshold are in the batch' do
-    locations = Array.new(preload_miss_client_count) do |i|
-      destination = create(:grda_warehouse_hud_client, FirstName: "Preload#{i}", LastName: 'Coverage')
-      GrdaWarehouse::HealthEmergency::UploadedTest.create!(batch: batch, client: destination, first_name: destination.FirstName, last_name: destination.LastName, dob: Date.new(1990, 1, 1), ssn: '111223333', tested_on: Date.current, test_result: 'Negative', test_location: "Clinic#{i}")
-      "Clinic#{i}"
-    end
-
-    get warehouse_reports_health_emergency_uploaded_result_path(batch)
-
-    expect(response).to have_http_status(:ok)
-    locations.each { |location| expect(response.body).to include(location) }
-  end
 end

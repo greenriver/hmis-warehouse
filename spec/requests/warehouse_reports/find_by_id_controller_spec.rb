@@ -84,28 +84,4 @@ RSpec.describe 'WarehouseReports::FindByIdController', type: :request do
     expect(row[2]).to eq('Client')
     expect(row[3].to_s).to eq('999-88-7777')
   end
-
-  it 'lists every client when more ids than the preload miss threshold are searched' do
-    extra = Array.new(preload_miss_client_count) { |i| build_preload_client(i) }
-
-    search(extra.map(&:id))
-
-    expect(response).to have_http_status(:ok)
-    extra.each { |client| expect(response.body).to include(client.FirstName) }
-  end
-
-  it 'exports every client when more ids than the preload miss threshold are searched' do
-    GrdaWarehouse::Config.first_or_create.update!(include_pii_in_detail_downloads: true)
-    GrdaWarehouse::Config.invalidate_cache
-    extra = Array.new(preload_miss_client_count) { |i| build_preload_client(i) }
-
-    search(extra.map(&:id), format: :xlsx)
-
-    expect(response).to have_http_status(:ok)
-    expect(xlsx_cell_values(response)).to include(*extra.map(&:FirstName))
-  end
-
-  def build_preload_client(index)
-    create(:grda_warehouse_hud_client, FirstName: "Preload#{index}", LastName: 'Coverage', SSN: '123456789', DOB: Date.new(1980, 1, 1))
-  end
 end

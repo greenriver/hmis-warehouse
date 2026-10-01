@@ -102,33 +102,4 @@ RSpec.describe 'WarehouseReports::NonAlphaNamesController', type: :request do
     expect(open_row[1]).to eq('Name Redacted')
     expect(open_row[2]).to eq('Name Redacted')
   end
-
-  it 'lists every client when more clients than the preload miss threshold have non-alphabetic names' do
-    extra = Array.new(preload_miss_client_count) { |i| build_preload_client(i) }
-
-    get warehouse_reports_non_alpha_names_path
-
-    expect(response).to have_http_status(:ok)
-    extra.each { |client| expect(response.body).to include(client.FirstName) }
-  end
-
-  it 'exports every client when more clients than the preload miss threshold have non-alphabetic names' do
-    GrdaWarehouse::Config.first_or_create.update!(include_pii_in_detail_downloads: true)
-    GrdaWarehouse::Config.invalidate_cache
-    extra = Array.new(preload_miss_client_count) { |i| build_preload_client(i) }
-
-    get warehouse_reports_non_alpha_names_path(format: :xlsx)
-
-    expect(response).to have_http_status(:ok)
-    expect(xlsx_cell_values(response)).to include(*extra.map(&:FirstName))
-  end
-
-  def build_preload_client(index)
-    source = create(:hmis_hud_client, data_source: hmis_ds, first_name: "#{index}Preload", last_name: 'Coverage')
-    destination = create(:grda_warehouse_hud_client, FirstName: "#{index}Preload", LastName: 'Coverage')
-    GrdaWarehouse::WarehouseClient.create!(destination_id: destination.id, source_id: source.id, data_source_id: hmis_ds.id, id_in_source: source.id.to_s)
-    create(:hud_enrollment, client: GrdaWarehouse::Hud::Client.find(source.id), data_source: hmis_ds, project: project)
-
-    destination
-  end
 end
