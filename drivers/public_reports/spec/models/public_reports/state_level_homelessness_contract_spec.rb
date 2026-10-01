@@ -163,6 +163,16 @@ RSpec.describe PublicReports::StateLevelHomelessness, type: :model do
     expect(leaks).to eq([])
   end
 
+  # Map counts are random outside production, so the youth group's age
+  # filter can only be observed in the scope it builds.
+  it 'applies the 18-24 age filter to the youth map group' do
+    all_homeless_sql = report.send(:map_group_scope, 0).first.to_sql
+    youth_sql = report.send(:map_group_scope, 1).first.to_sql
+
+    expect(youth_sql).not_to eq(all_homeless_sql)
+    expect(youth_sql).to include('DOB')
+  end
+
   context 'when a row has at least MIN_THRESHOLD sheltered and unsheltered clients but a total of 100 or less' do
     before do
       12.times do |i|

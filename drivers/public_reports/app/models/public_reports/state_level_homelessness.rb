@@ -370,6 +370,7 @@ module PublicReports
         ]
       end
     end
+    memoize :pit_counts
 
     private def inflow_out_flow_counts
       pit_count_dates.map do |date|
@@ -393,6 +394,7 @@ module PublicReports
         ]
       end
     end
+    memoize :inflow_out_flow_counts
 
     # counts_by_period: one raw-count array per iteration_dates entry, in labels order.
     private def donut(title:, unit:, labels:, colors:, counts_by_period:, threshold_key:)
@@ -510,9 +512,9 @@ module PublicReports
         client_ids = Set.new
         data = {}
         census_data = {}
+        full_pop = get_us_census_population_by_race(year: date.year) || 0
         races.each do |race_code, label|
           data[label] ||= Set.new
-          full_pop = get_us_census_population_by_race(year: date.year) || 0
           race_pop = get_us_census_population_by_race(race_code: race_code, year: date.year) || 0
           census_data[label] = full_pop.positive? ? (race_pop / full_pop.to_f) * 100.0 : 0.0
         end
@@ -567,9 +569,10 @@ module PublicReports
       when 0
         [homeless_scope, :current_scope]
       when 1
+        scope = homeless_scope # resets @filter, so it must run before age_ranges is set
         @filter = filter_object.deep_dup
         @filter.age_ranges = [:eighteen_to_twenty_four]
-        [filter_for_age(homeless_scope), GrdaWarehouse::ServiceHistoryService.aged(18..24)]
+        [filter_for_age(scope), GrdaWarehouse::ServiceHistoryService.aged(18..24)]
       when 2
         [homeless_scope.adult_only_households, :current_scope]
       when 3
