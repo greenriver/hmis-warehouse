@@ -76,7 +76,6 @@
 
 
 //= require_directory ./data_quality_reports
-//= require affix
 //= require TableWithToggleRows
 //= require documentExport.js
 //= require file_dropzone
