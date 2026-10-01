@@ -768,7 +768,6 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
             consent_expires_on: Date.current + 1.years,
             consented_coc_codes: ['ZZ-999'],
           )
-          GrdaWarehouse::Tasks::GenerateClientRoiAuthorizationsTask.rebuild_clients([non_window_source_client.id])
         end
         it 'all enrollments included' do
           expect(non_window_source_client.enrollments_for_verified_homeless_history(user: user).count).to eq 1
@@ -786,7 +785,6 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
             consent_expires_on: Date.current + 1.years,
             consented_coc_codes: ['ZZ-999'],
           )
-          GrdaWarehouse::Tasks::GenerateClientRoiAuthorizationsTask.rebuild_clients([non_window_source_client.id])
         end
         it 'enrollments visible to user included' do
           expect(non_window_source_client.enrollments_for_verified_homeless_history(user: user).count).to eq 0
@@ -809,7 +807,6 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
             consent_expires_on: Date.current + 1.years,
             consented_coc_codes: ['ZZ-999'],
           )
-          GrdaWarehouse::Tasks::GenerateClientRoiAuthorizationsTask.rebuild_clients([non_window_source_client.id])
         end
         it 'enrollments visible to user included' do
           expect(non_window_source_client.enrollments_for_verified_homeless_history(user: user).count).to eq 0

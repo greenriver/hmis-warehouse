@@ -152,9 +152,9 @@ module ClientAccessControl::GrdaWarehouse::Hud
         # TODO: START_ACL cleanup after ACL migration is complete
         if user.using_acls?
           return false unless user.can_view_client_enrollments_with_roi?
-          return false unless source_clients.joins(:data_source).merge(::GrdaWarehouse::DataSource.obeys_consent).exists?
+          return false unless roi_authorizations.visible_in_cocs(user.coc_codes).exists?
 
-          return roi_authorizations.visible_in_cocs(user.coc_codes).exists?
+          return source_clients.joins(:data_source).merge(::GrdaWarehouse::DataSource.obeys_consent).exists?
         else
           return false unless user.can_view_clients?
           # access isn't governed by release if a client can only search their assigned clients
