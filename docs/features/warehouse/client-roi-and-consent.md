@@ -29,10 +29,11 @@ Each rebuild reads its clients with row locks (`SELECT ... FOR UPDATE`, in id or
 
 | Client columns | Row status |
 |---|---|
-| Revoked consent (`Client#revoked_consent?`), even with no signature date | `revoked`, with no `expires_at` |
+| Revoked consent (`Client#revoked_consent?`), even with no signature date | `revoked`, with no `starts_at` or `expires_at` |
+| `Implied Consent` under `Consent::Implied`, under every `release_duration` | `partial`, with no `starts_at` or `expires_at` |
 | The consent class's partial release string | `partial` |
 | The consent class's full release string | `full` |
-| Anything else, or a missing signature date when `release_duration` is time-based | no row (and the task clears the consent columns) |
+| Anything else; a missing signature date under `One Year`/`Two Years`; a missing expiration date under `Use Expiration Date` | no row (and the task clears the consent columns; under `Consent::Implied` the client falls back to implied consent) |
 
 `ClientRoiAuthorization.visible_in_cocs(coc_codes)` is the ROI rule for access-control visibility and for `SourceClientPolicy`. Legacy scope code still reads the client columns through `Client.active_confirmed_consent_in_cocs`.
 
@@ -64,7 +65,7 @@ Each consent class lists the row statuses that grant visibility in `visible_roi_
 | `Consent::Default` | `Limited CAS Release` | `partial` | no (CAS only) |
 | `Consent::Default` | blank | no row | no |
 | `Consent::Implied` | `Expanded Consent` | `full` | yes |
-| `Consent::Implied` | `Implied Consent` | `partial` | yes |
+| `Consent::Implied` | `Implied Consent` | `partial` | yes, except the dashboard gate |
 | `Consent::Implied` | `Consent Revoked` | `revoked` | no |
 
 Under `Consent::Implied`, the partial release string is the implied consent itself (`partial_release_string == no_release_string`). `Client.invalidate_consent!` resets a client to `Implied Consent` rather than blank.
@@ -92,9 +93,40 @@ These checks all apply that rule:
 | Search results | `ClientAccessControl::EnrollmentArbiter#searchable_client_scope` → `enrollments_from_rois` |
 | Client and enrollment lists | `EnrollmentArbiter#visible_client_scope`, `#enrollments_visible_to` |
 | Detail pages and supplemental data | `SourceClientPolicy#can_view?`, `#can_view_supplemental_data?` via `ClientRoiLoader` |
-| Dashboard gate | `Client#show_demographics_to?` (`visible_because_of_release?`) |
+| Dashboard gate | `Client#show_demographics_to?` (`visible_because_of_release?`); needs a `full` row |
 
 Access that does not come from an ROI does not depend on `obey_consent`: project access through a collection, authoritative data sources assigned to the user, and direct client assignment.
+
+## ROI-only access by release duration
+
+What an access-control user sees when their only route to a client is `can_search_clients_with_roi` or `can_view_client_enrollments_with_roi`. Assumes the source data source obeys consent and the release covers the user's CoCs. The ROI parity spec (`roi_visibility_parity_spec.rb`, "release duration matrix") checks every cell.
+
+- **all:** search, client and enrollment lists, detail pages, and the dashboard.
+- **except dashboard:** everything in **all** except the dashboard (`show_demographics_to?`). Dashboard sub-tabs that load the client through the search scope stay reachable by URL for users who also hold the tab's own permission (for example `can_manage_window_client_files` for files). Search-level pages such as `clients#simple` and `notes#alerts` need only search access.
+- **none:** hidden everywhere.
+- **(→ implied):** the task cleared the release, and the client fell back to implied consent.
+
+A missing date only matters when the duration computes expiry from it: the signature date under `One Year` and `Two Years`, the expiration date under `Use Expiration Date`. `Indefinite` never expires.
+
+### `Consent::Implied`
+
+| Duration | Implied consent only | Full, signed, with expiration | Full, no signature date | Full, no expiration date | Full, expired |
+|---|---|---|---|---|---|
+| Indefinite | except dashboard | all | all | all | all |
+| Use Expiration Date | except dashboard | all | all | except dashboard (→ implied) | except dashboard (→ implied) |
+| One Year | except dashboard | all | except dashboard (→ implied) | all | except dashboard (→ implied) |
+| Two Years | except dashboard | all | except dashboard (→ implied) | all | except dashboard (→ implied) |
+
+### `Consent::Default`
+
+| Duration | No release | Full, signed, with expiration | Full, no signature date | Full, no expiration date | Full, expired |
+|---|---|---|---|---|---|
+| Indefinite | none | all | all | all | all |
+| Use Expiration Date | none | all | all | none | none |
+| One Year | none | all | none | all | none |
+| Two Years | none | all | none | all | none |
+
+A partial (CAS-only) release under `Consent::Default` grants nothing in the warehouse. Revoked consent grants nothing under either class.
 
 ## Legacy role-based users
 
@@ -142,6 +174,5 @@ See [Client Dashboards](client-dashboards.md) for layout (`default`, `boston`, `
 
 - `Client#consent_form_valid?` and `Client#release_valid?` (without `coc_codes`) accept only the full release string, so under `Consent::Implied` they reject `Implied Consent`. The `consent_form_valid` scope accepts it.
 - Legacy scope code reads the client columns, while legacy policy code reads the ROI row.
-- Dashboard sub-tabs load the client through the search scope, not the view scope.
 - `FilterForActiveRoi` does not match CoCs or check `obey_consent`.
 - `SourceClientsController` and `Clients::ExternalDataSharingController` load clients without a visibility scope and rely on `can_create_clients` and `can_edit_clients`.

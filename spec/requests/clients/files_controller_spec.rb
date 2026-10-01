@@ -176,6 +176,16 @@ RSpec.describe Clients::FilesController, type: :request do
         expect(client.reload.housing_release_status).to be_nil
         expect(roi_row).to be_nil
       end
+
+      it 'keeps the release and the ROI row when the revoked file fails validation' do
+        patch client_file_path(client_id: client.id, id: file.id),
+              params: { grda_warehouse_client_file: { consent_revoked_at: Date.current.to_s, confidential: '1', data_source_id: '', enrollment_id: '' } },
+              xhr: true
+
+        expect(file.reload.consent_revoked_at).to be_nil
+        expect(client.reload.housing_release_status).to eq(GrdaWarehouse::Hud::Client.full_release_string)
+        expect(roi_row.status).to eq('full')
+      end
     end
 
     describe 'DELETE #destroy' do

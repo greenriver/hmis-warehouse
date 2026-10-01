@@ -141,6 +141,21 @@ RSpec.describe GrdaWarehouse::Tasks::GenerateClientRoiAuthorizationsTask, type: 
       expect(roi_row.status).to eq('partial')
     end
 
+    context 'when the client has no recognized release status under implied consent' do
+      before do
+        GrdaWarehouse::Config.delete_all
+        create(:config_va)
+        GrdaWarehouse::Config.invalidate_cache
+        client.update_columns(housing_release_status: '')
+      end
+
+      it 'resets the client to implied consent and builds the partial row in the same rebuild' do
+        described_class.rebuild_clients([client.id])
+        expect(client.reload.housing_release_status).to eq(Consent::Implied.no_release_string)
+        expect(roi_row.status).to eq('partial')
+      end
+    end
+
     context 'when implied consent is revoked under a One Year release duration' do
       before do
         GrdaWarehouse::Config.delete_all

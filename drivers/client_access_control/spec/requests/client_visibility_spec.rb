@@ -916,8 +916,14 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
       GrdaWarehouse::Tasks::GenerateClientRoiAuthorizationsTask.rebuild_clients([client.id])
     end
 
-    it 'renders the dashboard for a client with implied consent' do
+    it 'redirects away from the dashboard for a client with only implied consent' do
       set_release!(window_destination_client, Consent::Implied.no_release_string)
+      get client_path(window_destination_client)
+      expect(response).to redirect_to(user.my_root_path)
+    end
+
+    it 'renders the dashboard for a client with expanded consent' do
+      set_release!(window_destination_client, Consent::Implied.full_release_string)
       get client_path(window_destination_client)
       expect(response).to have_http_status(200)
       expect(response.body).to include(window_destination_client.FirstName)

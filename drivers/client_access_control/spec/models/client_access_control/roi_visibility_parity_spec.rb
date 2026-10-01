@@ -21,10 +21,11 @@ RSpec.describe 'ROI visibility parity', type: :model do
   let(:user) { create :acl_user }
   let(:roi_role) { create :role, can_search_clients_with_roi: true, can_view_client_enrollments_with_roi: true }
   let(:collection) { create :collection }
+  let(:config_attributes) { {} }
 
   before do
     GrdaWarehouse::Config.delete_all
-    create(config_factory)
+    create(config_factory, **config_attributes)
     GrdaWarehouse::Config.invalidate_cache
     collection.set_viewables({ projects: [project.id] })
     setup_access_control(user, roi_role, collection)
@@ -142,11 +143,64 @@ RSpec.describe 'ROI visibility parity', type: :model do
     let(:config_factory) { :config_va }
 
     include_examples 'shared ROI rules'
+  end
 
-    it 'exposes the client on every path with implied consent' do
-      set_release!(Consent::Implied.no_release_string)
-      expect(GrdaWarehouse::ClientRoiAuthorization.find_by(destination_client_id: destination_client.id).status).to eq('partial')
-      expect(visibility).to eq(on_every_path(true))
+  # What each kind of release exposes, by consent class and release duration.
+  # :all is every path, :except_dashboard every path but Client#show_demographics_to?, :none no path.
+  describe 'release duration matrix' do
+    def apply_release!(scenario)
+      consent_class = GrdaWarehouse::Config.active_consent_class
+      full = { housing_release_status: consent_class.full_release_string }
+      attributes = {
+        implied_only: { housing_release_status: consent_class.no_release_string },
+        full: full.merge(consent_form_signed_on: Date.current, consent_expires_on: 1.year.from_now.to_date),
+        full_without_signature: full.merge(consent_expires_on: 1.year.from_now.to_date),
+        full_without_expiration: full.merge(consent_form_signed_on: Date.current),
+        full_expired: full.merge(consent_form_signed_on: 3.years.ago.to_date, consent_expires_on: Date.yesterday, consent_form_id: 1),
+      }.fetch(scenario)
+      destination_client.update_columns(consented_coc_codes: [], **attributes)
+      GrdaWarehouse::Tasks::GenerateClientRoiAuthorizationsTask.new._perform(client_ids: [destination_client.id])
+    end
+
+    def expected_visibility(outcome)
+      {
+        all: on_every_path(true),
+        except_dashboard: on_every_path(true).merge(demographics: false),
+        none: on_every_path(false),
+      }.fetch(outcome)
+    end
+
+    scenarios = [:implied_only, :full, :full_without_signature, :full_without_expiration, :full_expired]
+    {
+      ['Consent::Default', :config_b] => {
+        'Indefinite' => [:none, :all, :all, :all, :all],
+        'Use Expiration Date' => [:none, :all, :all, :none, :none],
+        'One Year' => [:none, :all, :none, :all, :none],
+        'Two Years' => [:none, :all, :none, :all, :none],
+      },
+      ['Consent::Implied', :config_va] => {
+        'Indefinite' => [:except_dashboard, :all, :all, :all, :all],
+        'Use Expiration Date' => [:except_dashboard, :all, :all, :except_dashboard, :except_dashboard],
+        'One Year' => [:except_dashboard, :all, :except_dashboard, :all, :except_dashboard],
+        'Two Years' => [:except_dashboard, :all, :except_dashboard, :all, :except_dashboard],
+      },
+    }.each do |(consent_class_name, factory), durations|
+      context "with #{consent_class_name}" do
+        let(:config_factory) { factory }
+
+        durations.each do |release_duration, outcomes|
+          context "with a #{release_duration} release duration" do
+            let(:config_attributes) { { release_duration: release_duration } }
+
+            scenarios.zip(outcomes).each do |scenario, outcome|
+              it "#{scenario.to_s.tr('_', ' ')}: #{outcome.to_s.tr('_', ' ')}" do
+                apply_release!(scenario)
+                expect(visibility).to eq(expected_visibility(outcome))
+              end
+            end
+          end
+        end
+      end
     end
   end
 end

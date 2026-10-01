@@ -56,6 +56,8 @@ module GrdaWarehouse::Tasks
         expired_scope = expired_scope.where(destination_client_id: client_ids) if client_ids
         expired_client_ids = expired_scope.pluck(:destination_client_id)
         GrdaWarehouse::Hud::Client.invalidate_consent!(expired_client_ids)
+        # Replaces the expired rows; under Consent::Implied the client falls back to implied consent
+        expired_client_ids.each_slice(batch_size) { |ids| rebuild_batch(ids) }
 
         # cleanup orphaned auth records where the client record no-longer exists at all
         orphan_ids = GrdaWarehouse::ClientRoiAuthorization.with_invalid_client.pluck(:id)
@@ -80,23 +82,32 @@ module GrdaWarehouse::Tasks
           values << result if result
         end
 
-        GrdaWarehouse::ClientRoiAuthorization.import(
-          values,
-          on_duplicate_key_update: {
-            conflict_target: [:destination_client_id],
-            columns: values.first&.keys&.excluding(:destination_client_id),
-          },
-        )
+        upsert_authorizations(values)
+        next if no_roi_status_ids.empty?
 
         # Cleanup auth records for clients that have lost ROI status (but client still exists)
         GrdaWarehouse::ClientRoiAuthorization.where(destination_client: no_roi_status_ids).delete_all
         # Clears stale consent_form_id and related fields on the client record. This is a no-op
         # for clients that never had consent, but necessary for those whose ROI was removed.
-        GrdaWarehouse::Hud::Client.invalidate_consent!(no_roi_status_ids) if no_roi_status_ids.any?
+        GrdaWarehouse::Hud::Client.invalidate_consent!(no_roi_status_ids)
+        # Under Consent::Implied, invalidation writes the implied-consent status, which earns a partial row
+        upsert_authorizations(destination_client_scope.where(id: no_roi_status_ids).filter_map { |client| process_client(client) })
       end
     end
 
     protected
+
+    def upsert_authorizations(values)
+      return if values.empty?
+
+      GrdaWarehouse::ClientRoiAuthorization.import(
+        values,
+        on_duplicate_key_update: {
+          conflict_target: [:destination_client_id],
+          columns: values.first.keys.excluding(:destination_client_id),
+        },
+      )
+    end
 
     # @return [ActiveRecord::Relation<GrdaWarehouse::Hud::Client>] destination clients only
     def destination_client_scope
@@ -111,12 +122,13 @@ module GrdaWarehouse::Tasks
 
       return nil unless status
 
+      undated = status == GrdaWarehouse::ClientRoiAuthorization::REVOKED_STATUS || implied_consent?(destination_client)
       {
         status: status,
         destination_client_id: destination_client.id,
         coc_codes: roi_coc_codes(destination_client),
-        starts_at: destination_client.consent_form_signed_on,
-        expires_at: status == GrdaWarehouse::ClientRoiAuthorization::REVOKED_STATUS ? nil : roi_expiry_date(destination_client),
+        starts_at: undated ? nil : destination_client.consent_form_signed_on,
+        expires_at: undated ? nil : roi_expiry_date(destination_client),
       }
     end
 
@@ -153,19 +165,37 @@ module GrdaWarehouse::Tasks
 
     # Determine the ROI authorization status for a client.
     # Returns nil when no authorization record should be created or kept. This happens when:
-    #   - consent is not revoked, the signature date is missing, and the duration mode requires one, or
+    #   - a release lacks the date its duration mode computes expiry from, or
     #   - the client has no active, partial, or revoked consent of any kind.
     # @param client [GrdaWarehouse::Hud::Client]
     # @return [String, nil] one of the ClientRoiAuthorization status constants, or nil
     def roi_status(client)
-      # Revocation clears consent_form_signed_on, so check it before the signature-date guard
+      # Revocation clears consent_form_signed_on, so check it before the date guard
       return GrdaWarehouse::ClientRoiAuthorization::REVOKED_STATUS if client.revoked_consent?
-      return nil if client.consent_form_signed_on.nil? && roi_duration.in?(['One Year', 'Two Years'])
+      return GrdaWarehouse::ClientRoiAuthorization::PARTIAL_STATUS if implied_consent?(client)
+      return nil unless release_dates_present?(client)
 
       if client.partial_release?
         GrdaWarehouse::ClientRoiAuthorization::PARTIAL_STATUS
       elsif client.release_valid?
         GrdaWarehouse::ClientRoiAuthorization::FULL_STATUS
+      end
+    end
+
+    # Implied consent is never signed and never expires, so it is valid under every release duration
+    def implied_consent?(client)
+      GrdaWarehouse::Config.implied_consent? && client.partial_release?
+    end
+
+    # @return [Boolean] whether the client has the date roi_expiry_date needs for the configured duration
+    def release_dates_present?(client)
+      case roi_duration
+      when 'One Year', 'Two Years'
+        client.consent_form_signed_on.present?
+      when 'Use Expiration Date'
+        client.consent_expires_on.present?
+      else
+        true
       end
     end
 
