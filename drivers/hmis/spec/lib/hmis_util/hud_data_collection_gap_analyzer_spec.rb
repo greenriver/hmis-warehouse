@@ -1,0 +1,341 @@
+###
+# Copyright Green River Data Group, Inc.
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
+# frozen_string_literal: true
+
+require 'rails_helper'
+
+RSpec.describe HmisUtil::HudDataCollectionGapAnalyzer do
+  subject(:analyzer) { described_class.new(data_source: data_source, date_range: date_range) }
+
+  let(:date_range) { Date.new(2025, 1, 1)..Date.new(2025, 12, 31) }
+  let(:data_source) { create(:grda_warehouse_data_source) }
+  let(:hud) { HudHelper.util(described_class::HUD_VERSION) }
+  let(:path_funder) do
+    hud.funding_source('HHS: PATH - Street Outreach & Supportive Services Only', true, raise_on_missing: true)
+  end
+  let(:bed_night_record_type) { hud.record_type('Bed Night', true, raise_on_missing: true) }
+
+  # ES Entry/Exit, funded by nothing HUD requires HOPWA or PATH collection for.
+  def build_project(project_type: 2, operating_start: Date.new(2024, 1, 1), operating_end: nil, funders: [])
+    project = create(
+      :hud_project,
+      data_source_id: data_source.id,
+      ProjectType: project_type,
+      OperatingStartDate: operating_start,
+      OperatingEndDate: operating_end,
+    )
+    funders.each do |code|
+      create(
+        :hud_funder,
+        data_source_id: data_source.id,
+        ProjectID: project.ProjectID,
+        Funder: code,
+        StartDate: Date.new(2024, 1, 1),
+      )
+    end
+    project
+  end
+
+  def enroll(project, attrs = {})
+    create(:hud_enrollment, { data_source_id: data_source.id, ProjectID: project.ProjectID }.merge(attrs))
+  end
+
+  describe 'project universe' do
+    it 'includes an in-window project that has no funder records' do
+      project = build_project(funders: [])
+
+      ids = analyzer.perform.summary_rows.map { |row| row[:project_id] }
+
+      expect(ids).to contain_exactly(project.id)
+    end
+
+    it 'includes a project with an open-ended operating period and one with no operating dates' do
+      open_ended = build_project(operating_start: Date.new(2024, 1, 1), operating_end: nil)
+      undated = build_project(operating_start: nil, operating_end: nil)
+
+      ids = analyzer.perform.summary_rows.map { |row| row[:project_id] }
+
+      expect(ids).to contain_exactly(open_ended.id, undated.id)
+    end
+
+    it 'excludes a project whose operating period closed before the window' do
+      build_project(operating_start: Date.new(2020, 1, 1), operating_end: Date.new(2024, 6, 1))
+
+      expect(analyzer.perform.summary_rows).to be_empty
+    end
+
+    it 'excludes projects in another data source' do
+      other_source = create(:grda_warehouse_data_source)
+      create(:hud_project, data_source_id: other_source.id, ProjectType: 2, OperatingStartDate: Date.new(2024, 1, 1))
+      mine = build_project
+
+      ids = analyzer.perform.summary_rows.map { |row| row[:project_id] }
+
+      expect(ids).to contain_exactly(mine.id)
+    end
+  end
+
+  describe 'project identity' do
+    it 'reports the same funders string for two projects with the same funders in a different insertion order' do
+      # The rollup sheet groups gaps by this string; if funder order leaked through, two
+      # projects with an identical funder roster would still land in separate rollup rows.
+      coc_psh_funder = hud.funding_source('HUD: CoC - Permanent Supportive Housing', true, raise_on_missing: true)
+      hopwa_funder = hud.funder_components.fetch('HUD: HOPWA').first
+
+      forward = build_project(funders: [coc_psh_funder, hopwa_funder])
+      reversed = build_project(funders: [hopwa_funder, coc_psh_funder])
+
+      rows = analyzer.perform.summary_rows
+      forward_funders = rows.find { |row| row[:project_id] == forward.id }[:funders]
+      reversed_funders = rows.find { |row| row[:project_id] == reversed.id }[:funders]
+
+      expect(forward_funders).to eq(reversed_funders)
+    end
+  end
+
+  describe 'enrollment field presence' do
+    it 'counts MoveInDate, DateOfEngagement, and ClientEnrolledInPATH on the summary row' do
+      project = build_project
+      enroll(
+        project,
+        EntryDate: Date.new(2025, 3, 1),
+        MoveInDate: Date.new(2025, 4, 1),
+        DateOfEngagement: Date.new(2025, 3, 15),
+        ClientEnrolledInPATH: 1,
+      )
+      enroll(project, EntryDate: Date.new(2025, 5, 1))
+
+      result = analyzer.perform
+      row = result.summary_rows.find { |r| r[:project_id] == project.id }
+
+      expect(row).to include(
+        enrollment_move_in_date_count: 1,
+        enrollment_date_of_engagement_count: 1,
+        enrollment_client_enrolled_in_path_count: 1,
+      )
+      expect(result.form_gap_rows.map { |r| r[:form] }).to include(
+        'Move-in Date',
+        'Date of Engagement',
+        'PATH Status',
+      )
+    end
+  end
+
+  describe 'field-level gaps' do
+    # Verified against the real evaluator at project type 2 (ES Entry/Exit):
+    #   no funders     -> income and HOPWA elements both absent from the form
+    #   HUD: CoC - PSH -> income present, HOPWA viral load still absent
+    #   HUD: HOPWA     -> viral load present
+    # Each pair below holds the data constant and varies only the funder, so the HUD rule
+    # evaluation is the only thing that can explain the difference.
+    let(:coc_psh_funder) do
+      hud.funding_source('HUD: CoC - Permanent Supportive Housing', true, raise_on_missing: true)
+    end
+    let(:hopwa_funder) { hud.funder_components.fetch('HUD: HOPWA').first }
+
+    def add_viral_load(project)
+      enrollment = enroll(project)
+      create(
+        :hud_disability,
+        data_source_id: data_source.id,
+        EnrollmentID: enrollment.EnrollmentID,
+        PersonalID: enrollment.PersonalID,
+        InformationDate: Date.new(2025, 5, 1),
+        DisabilityType: 8,
+        ViralLoad: 400,
+      )
+    end
+
+    def add_income(project)
+      enrollment = enroll(project)
+      create(
+        :hud_income_benefit,
+        data_source_id: data_source.id,
+        EnrollmentID: enrollment.EnrollmentID,
+        PersonalID: enrollment.PersonalID,
+        InformationDate: Date.new(2025, 5, 1),
+        IncomeFromAnySource: 1,
+      )
+    end
+
+    it 'reports a gap when viral load data exists but HUD does not require the element' do
+      project = build_project(funders: [coc_psh_funder])
+      add_viral_load(project)
+
+      gaps = analyzer.perform.field_gap_rows.select { |row| row[:field_name] == 'viralLoad' }
+
+      expect(gaps.map { |row| row[:role] }).to contain_exactly(:INTAKE, :UPDATE, :ANNUAL, :EXIT)
+      expect(gaps).to all(
+        include(
+          project_id: project.id,
+          record_type: 'DISABILITY_GROUP',
+          link_id: 'W4_C',
+          count: 1,
+          earliest: Date.new(2025, 5, 1),
+          latest: Date.new(2025, 5, 1),
+        ),
+      )
+    end
+
+    it 'reports no viral load gap for a HOPWA-funded project, where HUD requires it' do
+      project = build_project(funders: [hopwa_funder])
+      add_viral_load(project)
+
+      field_names = analyzer.perform.field_gap_rows.map { |row| row[:field_name] }
+
+      expect(field_names).not_to include('viralLoad')
+    end
+
+    it 'reports an income gap for an unfunded project that records income' do
+      project = build_project(funders: [])
+      add_income(project)
+
+      gaps = analyzer.perform.field_gap_rows.select { |row| row[:field_name] == 'incomeFromAnySource' }
+
+      expect(gaps.map { |row| row[:role] }).to contain_exactly(:INTAKE, :UPDATE, :ANNUAL, :EXIT)
+      expect(gaps).to all(
+        include(
+          project_id: project.id,
+          record_type: 'INCOME_BENEFIT',
+          link_id: 'q_4_02_2',
+          count: 1,
+          earliest: Date.new(2025, 5, 1),
+          latest: Date.new(2025, 5, 1),
+        ),
+      )
+    end
+
+    it 'reports no income gap for a CoC-funded project, where HUD requires income' do
+      project = build_project(funders: [coc_psh_funder])
+      add_income(project)
+
+      field_names = analyzer.perform.field_gap_rows.map { |row| row[:field_name] }
+
+      expect(field_names).not_to include('incomeFromAnySource')
+    end
+
+    it 'reports no gap for an element with no data at all' do
+      project = build_project(funders: [coc_psh_funder])
+      enroll(project)
+
+      field_names = analyzer.perform.field_gap_rows.map { |row| row[:field_name] }
+
+      expect(field_names).not_to include('viralLoad')
+    end
+
+    it 'reports a sexual orientation gap for a non-RHY project that records it' do
+      project = build_project(funders: [])
+      enroll(project, EntryDate: Date.new(2025, 3, 1), SexualOrientation: 1)
+
+      gaps = analyzer.perform.field_gap_rows.select { |row| row[:field_name] == 'sexualOrientation' }
+
+      expect(gaps.map { |row| row[:role] }).to contain_exactly(:INTAKE)
+    end
+
+    it 'does not report livingSituation as a gap when 3.917B is already on the intake form' do
+      # Project type 2 (ES Entry/Exit) shows 917B, not 917A; both map LivingSituation.
+      project = build_project(project_type: 2, funders: [])
+      enroll(project, EntryDate: Date.new(2025, 3, 1), LivingSituation: 16)
+
+      expect(analyzer.perform.field_gap_rows.map { |row| row[:field_name] }).not_to include('livingSituation')
+    end
+
+    it 'decides requiredness separately for each project in a single run' do
+      # Three funder profiles at one project type. Requiredness is cached across projects,
+      # and the rule filter rewrites the definition tree in place, so whatever the first
+      # project computes or prunes must not reach the second.
+      coc = build_project(funders: [coc_psh_funder])
+      hopwa = build_project(funders: [hopwa_funder])
+      unfunded = build_project(funders: [])
+      [coc, hopwa].each { |project| add_viral_load(project) }
+      [coc, unfunded].each { |project| add_income(project) }
+
+      gaps = analyzer.perform.field_gap_rows.
+        select { |row| row[:field_name].in?(['viralLoad', 'incomeFromAnySource']) }.
+        map { |row| [row[:project_id], row[:field_name]] }.
+        uniq
+
+      expect(gaps).to contain_exactly([coc.id, 'viralLoad'], [unfunded.id, 'incomeFromAnySource'])
+    end
+  end
+
+  describe 'form-level gaps' do
+    it 'reports a Bed Night gap for a non-NbN project that records bed nights' do
+      project = build_project(project_type: 2)
+      enrollment = enroll(project)
+      create(
+        :hud_service,
+        data_source_id: data_source.id,
+        EnrollmentID: enrollment.EnrollmentID,
+        PersonalID: enrollment.PersonalID,
+        DateProvided: Date.new(2025, 5, 1),
+        RecordType: bed_night_record_type,
+      )
+
+      gaps = analyzer.perform.form_gap_rows
+
+      expect(gaps.map { |row| row[:record_type] }).to include(bed_night_record_type)
+    end
+
+    it 'reports no Bed Night gap for an ES NbN project, where HUD requires it' do
+      project = build_project(project_type: 1)
+      enrollment = enroll(project)
+      create(
+        :hud_service,
+        data_source_id: data_source.id,
+        EnrollmentID: enrollment.EnrollmentID,
+        PersonalID: enrollment.PersonalID,
+        DateProvided: Date.new(2025, 5, 1),
+        RecordType: bed_night_record_type,
+      )
+
+      gaps = analyzer.perform.form_gap_rows
+
+      expect(gaps.map { |row| row[:record_type] }).not_to include(bed_night_record_type)
+    end
+
+    it 'reports a CLS gap for a project with situations but no CLS requirement' do
+      project = build_project(project_type: 2, funders: [])
+      enrollment = enroll(project)
+      create(
+        :hud_current_living_situation,
+        data_source_id: data_source.id,
+        EnrollmentID: enrollment.EnrollmentID,
+        PersonalID: enrollment.PersonalID,
+        InformationDate: Date.new(2025, 5, 1),
+      )
+
+      gaps = analyzer.perform.form_gap_rows.select { |row| row[:form] == 'Current Living Situation' }
+
+      expect(gaps.first).to include(project_id: project.id, count: 1)
+    end
+
+    it 'reports no CLS gap for a PATH-funded project, where HUD requires CLS' do
+      project = build_project(project_type: 4, funders: [path_funder])
+      enrollment = enroll(project, EntryDate: Date.new(2025, 3, 1), ClientEnrolledInPATH: 1)
+      create(
+        :hud_current_living_situation,
+        data_source_id: data_source.id,
+        EnrollmentID: enrollment.EnrollmentID,
+        PersonalID: enrollment.PersonalID,
+        InformationDate: Date.new(2025, 5, 1),
+      )
+
+      forms = analyzer.perform.form_gap_rows.map { |row| row[:form] }
+
+      expect(forms).not_to include('Current Living Situation')
+      expect(forms).not_to include('PATH Status')
+    end
+
+    it 'reports no Move-in Date gap for a PH project, where HUD requires it' do
+      project = build_project(project_type: 3)
+      enroll(project, EntryDate: Date.new(2025, 3, 1), MoveInDate: Date.new(2025, 4, 1))
+
+      expect(analyzer.perform.form_gap_rows.map { |row| row[:form] }).not_to include('Move-in Date')
+    end
+  end
+end

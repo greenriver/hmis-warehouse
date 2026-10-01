@@ -20,7 +20,7 @@
             %td
               = link_to_if can_view_clients?, client.pii_provider(user: current_user).full_name, appropriate_client_path(client)
             %td
-              = client.consent_form_signed_on + client.class.consent_validity_period
+              = client.consent_expiration_date
             %td
               - if @users[client.id].present?
                 - @users[client.id].each do |user|
@@ -42,7 +42,7 @@
             %td
               = link_to_if can_view_clients?, client.pii_provider(user: current_user).full_name, appropriate_client_path(client)
             %td
-              = client.consent_form_signed_on + client.class.consent_validity_period
+              = client.consent_expiration_date
             %td
               - if @users[client.id].present?
                 - @users[client.id].each do |user|
@@ -64,7 +64,7 @@
             %td
               = link_to_if can_view_clients?, client.pii_provider(user: current_user).full_name, appropriate_client_path(client)
             %td
-              = client.consent_form_signed_on + client.class.consent_validity_period
+              = client.consent_expiration_date
             %td
               - if @users[client.id].present?
                 - @users[client.id].each do |user|

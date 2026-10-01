@@ -145,6 +145,69 @@ RSpec.describe WarehouseReports::HmisExportsController, type: :request do
       end
     end
 
+    context 'with a recurring export' do
+      let(:recurrence_params) do
+        {
+          every_n_days: 7,
+          reporting_range: 'fixed',
+          encryption_type: 'zip',
+          zip_password: 'a-good-password',
+        }
+      end
+
+      it 'stores the recurrence and schedules the export' do
+        post warehouse_reports_hmis_exports_path, params: base_params.deep_merge(filter: recurrence_params)
+
+        expect(response).to redirect_to(warehouse_reports_hmis_exports_path)
+        expect(GrdaWarehouse::RecurringHmisExport.last.zip_password).to eq('a-good-password')
+      end
+
+      it 'reports the error and saves nothing when the zip password is too long' do
+        params = base_params.deep_merge(
+          filter: recurrence_params.merge(zip_password: 'p' * (ZipCloak::MAX_PASSWORD_LENGTH + 1)),
+        )
+
+        post warehouse_reports_hmis_exports_path, params: params
+
+        expect(response).to have_http_status(:success)
+        expect(response).to render_template(:index)
+        expect(flash[:error]).to include('Zip password')
+        expect(GrdaWarehouse::RecurringHmisExport.count).to eq(0)
+      end
+
+      # The password fields are hidden at a cadence of 0, so a leftover value there is
+      # not something the user is still asking for. Queue the export and drop it.
+      it 'ignores a password given without a cadence' do
+        params = base_params.deep_merge(filter: recurrence_params.merge(every_n_days: 0))
+        scheduled_filter = nil
+        allow_any_instance_of(Filters::HmisExport).to receive(:schedule_job) { |filter, *_| scheduled_filter = filter }
+
+        post warehouse_reports_hmis_exports_path, params: params
+
+        expect(response).to redirect_to(warehouse_reports_hmis_exports_path)
+        expect(flash[:error]).to be_nil
+        # Nowhere to keep the password: no recurrence is stored, and the one-off export
+        # that is queued carries neither the password nor the encryption type.
+        expect(GrdaWarehouse::RecurringHmisExport.count).to eq(0)
+        expect(scheduled_filter.zip_password).to be_blank
+        expect(scheduled_filter.encryption_type).to be_blank
+      end
+
+      it 'allows a longer password for the 7z encryption type' do
+        params = base_params.deep_merge(
+          filter: recurrence_params.merge(
+            encryption_type: '7z',
+            zip_password: 'p' * (ZipCloak::MAX_PASSWORD_LENGTH + 1),
+          ),
+        )
+
+        post warehouse_reports_hmis_exports_path, params: params
+
+        expect(response).to redirect_to(warehouse_reports_hmis_exports_path)
+        expect(GrdaWarehouse::RecurringHmisExport.count).to eq(1)
+      end
+    end
+
     context 'job scheduling with custom files' do
       let(:mock_filter) { instance_double(Filters::HmisExport) }
 

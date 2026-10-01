@@ -628,14 +628,39 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   end
 
   describe 'FORM_TYPES' do
+    def form_type_codes(pick_list_type = 'FORM_TYPES')
+      response, result = post_graphql(pick_list_type: pick_list_type) { query }
+      expect(response.status).to eq 200
+      result.dig('data', 'pickList').pluck('code')
+    end
+
+    it 'includes distinct form roles visible in Admin → Forms' do
+      create(:hmis_form_definition, data_source: ds1, identifier: 'visible_service', role: 'SERVICE')
+      create(:hmis_form_definition, data_source: ds1, identifier: 'visible_update', role: 'UPDATE')
+      create(:hmis_form_definition, data_source: ds1, identifier: 'hidden_static', role: 'PROJECT_CONFIG')
+      create(:hmis_form_definition, identifier: 'other_data_source', role: 'CASE_NOTE')
+
+      codes = form_type_codes
+      expect(codes).to include('SERVICE', 'UPDATE')
+      expect(codes).not_to include('PROJECT_CONFIG', 'CASE_NOTE')
+    end
+
+    it 'returns no roles without permission to configure data collection' do
+      create(:hmis_form_definition, data_source: ds1, identifier: 'visible_service', role: 'SERVICE')
+      remove_permissions(access_control, :can_configure_data_collection)
+      expect(form_type_codes).to be_empty
+    end
+  end
+
+  describe 'CREATABLE_FORM_TYPES' do
     def form_type_codes
-      response, result = post_graphql(pick_list_type: 'FORM_TYPES') { query }
+      response, result = post_graphql(pick_list_type: 'CREATABLE_FORM_TYPES') { query }
       expect(response.status).to eq 200
       result.dig('data', 'pickList').pluck('code')
     end
 
     # Default access_control is all permissions (super-admin).
-    it 'includes roles that can be listed in Admin → Forms and excludes those that cannot' do
+    it 'includes roles that the user can create' do
       codes = form_type_codes
       expect(codes).to include('SERVICE', 'CUSTOM_ASSESSMENT', 'INTAKE', 'CURRENT_LIVING_SITUATION')
       expect(codes).not_to include('REFERRAL', 'REFERRAL_REQUEST', 'CE_REFERRAL_STEP', 'PROJECT_CONFIG', 'FORM_RULE')

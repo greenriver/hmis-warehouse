@@ -64,6 +64,9 @@ en:
         one: 'Missing Project'
         other: 'Missing Projects'
   admin:
+    account_requests:
+      index:
+        title: 'Manage User Accounts'
     roles:
       index:
         title: 'Manage Roles and Permissions'

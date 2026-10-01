@@ -207,12 +207,12 @@ gem 'bcrypt_pbkdf'
 gem 'gpgme'
 
 # AWS SDK is needed for deployment and within the application
-gem 'aws-sdk-rails', '~> 3'
+gem 'aws-sdk-rails', '~> 5'
+gem 'aws-actionmailer-ses', '~> 1' # ActionMailer SES delivery, split out of aws-sdk-rails in v4
 gem 'aws-sdk-autoscaling', '~> 1'
 gem 'aws-sdk-cloudwatchevents', '~> 1'
 gem 'aws-sdk-cloudwatchlogs', '~> 1'
 gem 'aws-sdk-cloudwatch', '~> 1'
-gem 'aws-sdk-ecs', '~> 1'
 gem 'aws-sdk-ec2', '~> 1'
 gem 'aws-sdk-ecr', '~> 1'
 gem 'aws-sdk-elasticloadbalancingv2', '~> 1'

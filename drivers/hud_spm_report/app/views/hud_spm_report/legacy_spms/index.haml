@@ -8,7 +8,11 @@
   %thead
     %tr.report-base
       %th
-        = link_to "HUD System Performance Measures - FY 2019", report_results_summary_path(@reports.first[:report_results_summary_id])
+        - summary_id = @reports.first&.report_results_summary_id
+        - if summary_id
+          = link_to "HUD System Performance Measures - FY 2019", report_results_summary_path(summary_id)
+        - else
+          HUD System Performance Measures - FY 2019
       %th
         Last Run
       %th

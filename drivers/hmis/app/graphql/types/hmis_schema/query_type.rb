@@ -181,7 +181,7 @@ module Types
       argument :id, ID, required: true
     end
     def service_type(id:)
-      Hmis::Hud::CustomServiceType.find_by(id: id)
+      Hmis::Hud::CustomServiceType.in_data_source(current_user.hmis_data_source_id).find_by(id: id)
     end
 
     field :file, Types::HmisSchema::File, null: true do
@@ -421,7 +421,7 @@ module Types
     def service_types(filters: nil)
       access_denied! unless policy_for(Hmis::Hud::CustomServiceType, policy_type: :service_type).can_manage?
 
-      scope = Hmis::Hud::CustomServiceType.all
+      scope = Hmis::Hud::CustomServiceType.in_data_source(current_user.hmis_data_source_id)
       scope = scope.apply_filters(filters) if filters
       scope.order(:name, :id)
     end

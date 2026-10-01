@@ -88,6 +88,23 @@ RSpec.describe 'Client dashboard enrollment rollups', type: :request do
     end
   end
 
+  describe 'duplicated enrollments' do
+    let!(:shelter_a_duplicate) do
+      create_enrollment(source_client, shelter_a, entry: '2021-01-01', exit_date: '2021-01-11', HouseholdID: 'hh-a-dup', RelationshipToHoH: 1)
+    end
+
+    before { rebuild_service_history! }
+
+    it 'marks one of two same-day rows as a new episode, and it is the lower row' do
+      doc = fetch_rollup(destination_client)
+      rows = doc.css('tbody tr')
+      expect(rows.size).to eq(4)
+      expect(doc.css('tbody tr.enrollment__new-episode').size).to eq(1)
+      expect(rows.last['class']).to include('enrollment__new-episode')
+      expect(rows[-2]['class'].to_s).not_to include('enrollment__new-episode')
+    end
+  end
+
   describe 'query scaling' do
     # GrdaWarehouse::Hud::Client#pii_provider -> User#policy_for is an ACL/PII policy
     # check that can't be shared across different people, so it costs a small constant

@@ -43,7 +43,7 @@ module HmisUtil
         seed_record_form_definitions
         # Load the latest assessment definitions from JSON files. (Intake, Exit, Update, Annual, Post-exit)
         seed_assessment_form_definitions
-        # Load custom assessment definitions from JSON files. (Only for testing/QA, typically custom assessments are not managed in version control)
+        # Load custom assessment definitions from JSON files. (Skipped in production; custom assessments are not managed in version control)
         seed_custom_assessment_form_definitions
         # Load static admin forms
         seed_static_forms
@@ -391,7 +391,10 @@ module HmisUtil
       end
     end
 
+    # Custom assessments are managed in the admin UI, not version control. Never overwrite them from disk in production.
     def seed_custom_assessment_form_definitions
+      return if Rails.env.production?
+
       dirname = "#{DATA_DIR}/#{env_key}/custom_assessments"
       return unless Dir.exist?(dirname)
 
@@ -401,7 +404,7 @@ module HmisUtil
         # use file filename as identifier
         identifier = File.basename(filename, File.extname(filename))
         hud_identifiers = [:INTAKE, :EXIT, :UPDATE, :ANNUAL].map { |role| "base-#{role.to_s.downcase}" }
-        raise "custom assessment name \"#{file_name}\" overlaps with HUD assessment" if identifier.in?(hud_identifiers)
+        raise "custom assessment name \"#{identifier}\" overlaps with HUD assessment" if identifier.in?(hud_identifiers)
 
         load_definition(
           form_definition: parse_json_file(filename),

@@ -129,7 +129,7 @@ module UserPermissions
     end
 
     def can_view_any_reports
-      can_view_all_reports? || can_view_assigned_reports?
+      can_view_all_reports? || can_view_assigned_reports? || can_view_hud_reports?
     end
 
     def can_view_user_audit_report
@@ -153,6 +153,10 @@ module UserPermissions
     end
 
     def can_view_hud_reports
+      # Once every install has run GrdaWarehouse::Tasks::GrantAllHudReports, collapse
+      # this to `can_view_all_hud_reports?`. Callers (can_view_any_reports and the
+      # legacy branch of ReportDefinition.viewable_by) need no other change.
+      TodoOrDie('Drop can_view_own_hud_reports from can_view_hud_reports', by: Date.new(2027, 1, 15))
       can_view_own_hud_reports? || can_view_all_hud_reports?
     end
 

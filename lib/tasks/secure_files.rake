@@ -6,18 +6,19 @@
 
 # frozen_string_literal: true
 
-# Developer utility for uploading a file to Secure Files.
-# Uploaded files can be accessed via the warehouse UI (Account => Secure Files) with appropriate permissions.
-# Useful for getting ad-hoc exports, reports, or data dumps into the warehouse
-# without one-off scp file transfers or manual S3 uploads.
-#
-# Only for uploading to your own greenriver account. Out of caution,
-# the task will fail if the user ID provided is not associated with a greenriver account.
-#
-# Examples:
-#   bundle exec rake "secure_files:upload_to_secure_files[/tmp/data.zip,1]"
-#
+# Developer utilities for moving files into and out of Secure Files.
+# Secure Files can be accessed via the warehouse UI (Account => Secure Files) with appropriate permissions.
 namespace :secure_files do
+  # Uploads a local file as a SecureFile.
+  # Useful for getting ad-hoc exports, reports, or data dumps into the warehouse
+  # without one-off scp file transfers or manual S3 uploads.
+  #
+  # Only for uploading to your own greenriver account. Out of caution,
+  # the task will fail if the user ID provided is not associated with a greenriver account.
+  #
+  # Examples:
+  #   bundle exec rake "secure_files:upload_to_secure_files[/tmp/data.zip,1]"
+  #
   desc 'Upload a local file as a SecureFile. Args: filepath, user_id (sender and recipient)'
   task :upload_to_secure_files, [:filepath, :user_id] => :environment do |_task, args|
     filepath = args[:filepath]
@@ -54,5 +55,37 @@ namespace :secure_files do
     puts "  user: #{user.id} (#{user.email})"
     puts "  size: #{secure_file.secure_file.byte_size} bytes"
     puts "  url:  https://#{ENV['FQDN']}/secure_files"
+  end
+
+  # Downloads the most recent unexpired SecureFile with a given name to var/.
+  # Pass dry_run to confirm the file exists and see its size without downloading it.
+  #
+  # Examples:
+  #   bundle exec rake "secure_files:download_from_secure_files[data.zip,true]"
+  #   bundle exec rake "secure_files:download_from_secure_files[data.zip]"
+  #
+  desc 'Download the most recent unexpired SecureFile with a given name to var/. Args: filename, dry_run (true/false, default false)'
+  task :download_from_secure_files, [:filename, :dry_run] => :environment do |_task, args|
+    filename = args[:filename]
+    dry_run = ['true', '1'].include?(args[:dry_run])
+
+    abort 'Usage: rake "secure_files:download_from_secure_files[filename,dry_run]"' if filename.blank?
+
+    secure_file = GrdaWarehouse::SecureFile.unexpired.where(name: filename).order(created_at: :desc).first
+    abort "No unexpired SecureFile found with name: #{filename}" unless secure_file&.secure_file&.attached?
+
+    if dry_run
+      puts "Found SecureFile id=#{secure_file.id}"
+      puts "  name: #{secure_file.name}"
+      puts "  size: #{secure_file.secure_file.byte_size} bytes"
+      next
+    end
+
+    dest = Rails.root.join('var', filename)
+    File.open(dest, 'wb') { |f| f.write(secure_file.secure_file.download) }
+
+    puts "Downloaded to #{dest}"
+    puts "  size: #{secure_file.secure_file.byte_size} bytes"
+    puts "REMINDER: delete #{dest} when you're done with it."
   end
 end

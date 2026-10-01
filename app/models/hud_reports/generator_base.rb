@@ -38,6 +38,12 @@ module HudReports
       "#{generic_title} - #{fiscal_year}"
     end
 
+    # The report definition url (e.g. 'hud_reports/aprs') this generator is served under.
+    def self.report_definition_url
+      helper = Rails.application.config.hud_reports.fetch(name).fetch(:helper)
+      Rails.application.routes.url_helpers.public_send(helper).delete_prefix('/')
+    end
+
     def self.report_year_slug
       fiscal_year.downcase.delete(' ').to_sym
     end

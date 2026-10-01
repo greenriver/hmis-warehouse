@@ -156,10 +156,9 @@ module PerformanceMeasurement
     end
 
     def show_spm_link?
-      return true if user.can_view_all_hud_reports?
-      return true if user.can_view_own_hud_reports? && PerformanceMeasurement::Goal.include_project_options?
+      return false unless GrdaWarehouse::WarehouseReports::ReportDefinition.url_viewable_by?(GrdaWarehouse::WarehouseReports::ReportDefinition.hud_url(:spms), user)
 
-      false
+      user.can_view_all_hud_reports? || PerformanceMeasurement::Goal.include_project_options?
     end
 
     def coc_code
