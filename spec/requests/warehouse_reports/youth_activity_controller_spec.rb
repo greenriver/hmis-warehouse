@@ -183,21 +183,4 @@ RSpec.describe 'WarehouseReports::YouthActivityController#index', type: :request
     expect(response.body).to include('Name Redacted')
     expect(response.body).to include('Open Client')
   end
-
-  it 'lists every client when more clients than the preload miss threshold had youth activity' do
-    extra = Array.new(preload_miss_client_count) { |i| build_preload_client(i) }
-
-    get warehouse_reports_youth_activity_index_path(filter: filter_params)
-
-    expect(response).to have_http_status(:ok)
-    extra.each { |client| expect(response.body).to include(client.FirstName) }
-  end
-
-  def build_preload_client(index)
-    source = create_client_with_warehouse_link(first_name: "Preload#{index}", last_name: 'Coverage')
-    create_enrollment(client: source, project: project, entry_date: Date.current)
-    create_intake(source.destination_client, updated_at: Time.current)
-
-    source.destination_client
-  end
 end

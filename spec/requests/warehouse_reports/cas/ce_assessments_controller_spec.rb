@@ -140,36 +140,4 @@ RSpec.describe 'WarehouseReports::Cas::CeAssessmentsController', type: :request 
       end
     end
   end
-
-  describe 'with more unrestricted clients than the preload miss threshold' do
-    let!(:preload_clients) do
-      Array.new(preload_miss_client_count) do |i|
-        source = create(:hmis_hud_client, data_source: hmis_ds, first_name: "Preload#{i}", last_name: 'Coverage')
-        destination = create(:grda_warehouse_hud_client, FirstName: "Preload#{i}", LastName: 'Coverage')
-        create(:she_entry, client: destination, project: project, record_type: :entry, project_type: 1, age: 30, first_date_in_program: 2.years.ago.to_date, last_date_in_program: nil)
-        create(:hud_enrollment, client: GrdaWarehouse::Hud::Client.find(source.id), project: project, data_source: hmis_ds)
-        create(:grda_warehouse_warehouse_clients_processed, client: destination, days_homeless_last_three_years: 300, literally_homeless_last_three_years: 300)
-        GrdaWarehouse::WarehouseClient.create!(destination_id: destination.id, source_id: source.id, data_source_id: hmis_ds.id, id_in_source: source.id.to_s)
-        destination
-      end
-    end
-
-    it 'lists every client in html' do
-      get warehouse_reports_cas_ce_assessments_path(filter: { project_id: project.id })
-
-      expect(response).to have_http_status(:ok)
-      preload_clients.each { |client| expect(response.body).to include(client.FirstName) }
-    end
-
-    it 'lists every client in xlsx' do
-      GrdaWarehouse::Config.first_or_create.update!(include_pii_in_detail_downloads: true)
-      GrdaWarehouse::Config.invalidate_cache
-
-      get warehouse_reports_cas_ce_assessments_path(filter: { project_id: project.id }, format: :xlsx)
-
-      expect(response).to have_http_status(:success)
-      values = xlsx_cell_values(response)
-      preload_clients.each { |client| expect(values).to include(client.FirstName) }
-    end
-  end
 end

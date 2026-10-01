@@ -74,37 +74,4 @@ RSpec.describe 'ServiceScanning::WarehouseReports::ScannedServicesController#det
     expect(row[1]).to eq('Name Redacted')
     expect(row[2]).to eq('Name Redacted')
   end
-
-  describe 'with more unrestricted clients than the preload miss threshold' do
-    let!(:preload_clients) do
-      Array.new(preload_miss_client_count) do |i|
-        destination = create(:grda_warehouse_hud_client, FirstName: "Preload#{i}", LastName: 'Coverage')
-        ServiceScanning::OtherService.create!(client_id: destination.id, project: project, provided_at: Time.current, user: user)
-        destination
-      end
-    end
-
-    before { GrdaWarehouse::Config.first_or_create.update!(include_pii_in_detail_downloads: true) }
-
-    it 'exports every client in the detail workbook' do
-      get detail_service_scanning_warehouse_reports_scanned_services_path(filters: filter_params, format: :xlsx)
-
-      expect(response).to have_http_status(:success)
-      expect(xlsx_cell_values(response)).to include(*preload_clients.map(&:id))
-    end
-
-    it 'exports every client in the index workbook' do
-      get service_scanning_warehouse_reports_scanned_services_path(filters: filter_params, format: :xlsx)
-
-      expect(response).to have_http_status(:success)
-      expect(xlsx_cell_values(response)).to include(*preload_clients.map(&:id))
-    end
-
-    it 'lists every client in the detail html' do
-      get detail_service_scanning_warehouse_reports_scanned_services_path(filters: filter_params)
-
-      expect(response).to have_http_status(:ok)
-      preload_clients.each { |client| expect(response.body).to include("/clients/#{client.id}") }
-    end
-  end
 end

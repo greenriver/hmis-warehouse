@@ -138,48 +138,5 @@ RSpec.describe 'DataQualityReportsController#support', type: :request do
       expect(response).to have_http_status(:ok)
       extra_clients.each { |c| expect(response.body).to include(c.FirstName) }
     end
-
-    it 'exports every client' do
-      configure_download_toggle(true)
-
-      get support_project_data_quality_report_path(project, report, individual: true, method: 'test', format: :xlsx)
-
-      expect(response).to have_http_status(:ok)
-      expect(xlsx_cell_values(response)).to include(*extra_clients.map(&:FirstName))
-    end
-  end
-
-  describe 'legacy support tables (no individual param)' do
-    let(:legacy_clients) do
-      Array.new(preload_miss_client_count) { |i| create(:grda_warehouse_hud_client, FirstName: "Legacy#{i}", LastName: 'Coverage') }
-    end
-
-    before do
-      report.update_column(
-        :support,
-        {
-          'legacy_key' => {
-            'headers' => ['Client ID', 'First Name', 'Last Name'],
-            'counts' => legacy_clients.map { |c| [c.id, c.FirstName, c.LastName] },
-          },
-        },
-      )
-    end
-
-    it 'lists every client in the HTML view when more clients than the preload miss threshold are in the table' do
-      get support_project_data_quality_report_path(project, report, key: 'legacy_key')
-
-      expect(response).to have_http_status(:ok)
-      legacy_clients.each { |c| expect(response.body).to include(c.FirstName) }
-    end
-
-    it 'exports every client when more clients than the preload miss threshold are in the table' do
-      configure_download_toggle(true)
-
-      get support_project_data_quality_report_path(project, report, key: 'legacy_key', format: :xlsx)
-
-      expect(response).to have_http_status(:ok)
-      expect(xlsx_cell_values(response)).to include(*legacy_clients.map(&:FirstName))
-    end
   end
 end

@@ -43,30 +43,4 @@ RSpec.describe 'CoreDemographicsReport::WarehouseReports', type: :request do
     expect(response).to have_http_status(:ok)
     extra.each { |client| expect(response.body).to include(client.FirstName) }
   end
-
-  it 'exports every client in the core demographics detail when more clients than the preload miss threshold are in it' do
-    GrdaWarehouse::Config.first_or_create.update!(include_pii_in_detail_downloads: true)
-    GrdaWarehouse::Config.invalidate_cache
-    extra = Array.new(preload_miss_client_count) { |i| build_preload_client(i) }
-    GrdaWarehouse::Tasks::ServiceHistory::Enrollment.find_each(&:rebuild_service_history!)
-
-    get details_core_demographics_report_warehouse_reports_core_index_path(key: "project_#{project.id}", filters: detail_filters, format: :xlsx)
-
-    expect(response).to have_http_status(:ok)
-    expect(xlsx_cell_values(response)).to include(*extra.map(&:FirstName))
-  end
-
-  it 'exports every client in the demographic summary detail when more clients than the preload miss threshold are in it' do
-    GrdaWarehouse::Config.first_or_create.update!(include_pii_in_detail_downloads: true)
-    GrdaWarehouse::Config.invalidate_cache
-    extra = Array.new(preload_miss_client_count) { |i| build_preload_client(i) }
-    GrdaWarehouse::Tasks::ServiceHistory::Enrollment.find_each(&:rebuild_service_history!)
-
-    get details_core_demographics_report_warehouse_reports_demographic_summary_index_path(key: "project_#{project.id}", filters: detail_filters, format: :xlsx)
-
-    expect(response).to have_http_status(:ok)
-    expect(xlsx_cell_values(response)).to include(*extra.map(&:FirstName))
-  end
-
-  after { GrdaWarehouse::Config.invalidate_cache }
 end

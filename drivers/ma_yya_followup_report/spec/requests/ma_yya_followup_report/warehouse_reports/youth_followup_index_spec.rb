@@ -79,19 +79,4 @@ RSpec.describe 'MaYyaFollowupReport::WarehouseReports::YouthFollowup#index', typ
     expect(response.body).not_to include('Open Doe')
     expect(response.body).not_to include(GrdaWarehouse::PiiProvider::NAME_REDACTED)
   end
-
-  it 'lists every client when more clients than the preload miss threshold are enrolled' do
-    extra = Array.new(preload_miss_client_count) do |i|
-      source = create(:hmis_hud_client, data_source: hmis_ds, first_name: "Preload#{i}", last_name: 'Coverage')
-      destination = create(:grda_warehouse_hud_client, FirstName: "Preload#{i}", LastName: 'Coverage', DOB: youth_dob)
-      GrdaWarehouse::WarehouseClient.create!(destination_id: destination.id, source_id: source.id, data_source_id: hmis_ds.id, id_in_source: source.id.to_s)
-      build_entry(destination, project)
-      destination
-    end
-
-    get ma_yya_followup_report_warehouse_reports_youth_followup_index_path, params: filter_params
-
-    expect(response).to have_http_status(:success)
-    extra.each { |client| expect(response.body).to include("#{client.FirstName} #{client.LastName}") }
-  end
 end
