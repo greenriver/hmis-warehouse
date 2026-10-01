@@ -31,8 +31,8 @@ RSpec.describe 'ROI visibility parity', type: :model do
   end
 
   # update_columns skips the sync hooks, so build the row the way the nightly task does
-  def set_release!(status)
-    destination_client.update_columns(housing_release_status: status, consented_coc_codes: [])
+  def set_release!(status, coc_codes: [])
+    destination_client.update_columns(housing_release_status: status, consented_coc_codes: coc_codes)
     GrdaWarehouse::Tasks::GenerateClientRoiAuthorizationsTask.new._perform(client_ids: [destination_client.id])
   end
 
@@ -62,6 +62,19 @@ RSpec.describe 'ROI visibility parity', type: :model do
       create(:client_roi_authorization, destination_client: destination_client, status: 'full')
       expect(destination_client.reload.housing_release_status).to be_nil
       expect(visibility).to eq(on_every_path(true))
+    end
+
+    it 'hides the client on every path when only the client columns record a release' do
+      destination_client.update_columns(housing_release_status: GrdaWarehouse::Hud::Client.full_release_string, consented_coc_codes: [])
+      expect(GrdaWarehouse::ClientRoiAuthorization.where(destination_client_id: destination_client.id)).to be_empty
+      expect(visibility).to eq(on_every_path(false))
+    end
+
+    it 'hides the client on every path when the release is limited to a CoC the user lacks' do
+      set_release!(GrdaWarehouse::Hud::Client.full_release_string, coc_codes: ['ZZ-999'])
+      expect(GrdaWarehouse::ClientRoiAuthorization.find_by(destination_client_id: destination_client.id).coc_codes).to eq(['ZZ-999'])
+      expect(User.find(user.id).coc_codes).not_to include('ZZ-999')
+      expect(visibility).to eq(on_every_path(false))
     end
 
     it 'hides the client on every path when the source data source does not obey consent' do

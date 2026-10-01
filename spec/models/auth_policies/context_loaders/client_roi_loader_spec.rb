@@ -67,23 +67,30 @@ RSpec.describe GrdaWarehouse::AuthPolicies::ContextLoaders::ClientRoiLoader, typ
     end
 
     it 'caches the result' do
-      expect(GrdaWarehouse::ClientRoiAuthorization).to receive(:visible_in_cocs).once.and_call_original
-      loader.get(client.destination_id)
-      loader.get(client.destination_id)
+      create(:client_roi_authorization, destination_client: client.destination, status: 'full')
+      expect(roi_queries { loader.get(client.destination_id) }).to eq(1)
+      expect(roi_queries { expect(loader.get(client.destination_id)).to be true }).to eq(0)
     end
   end
 
   describe '#preload' do
     let(:client2) { create(:warehouse_client) }
 
-    it 'loads multiple clients in one query' do
-      expect(GrdaWarehouse::ClientRoiAuthorization).to receive(:visible_in_cocs).once.and_call_original
-      loader.preload([client.destination_id, client2.destination_id])
+    it 'loads multiple clients in one query and caches each result' do
+      create(:client_roi_authorization, destination_client: client.destination, status: 'full')
+      expect(roi_queries { loader.preload([client.destination_id, client2.destination_id]) }).to eq(1)
 
-      # Should not trigger more queries
-      expect(GrdaWarehouse::ClientRoiAuthorization).not_to receive(:visible_in_cocs)
-      loader.get(client.destination_id)
-      loader.get(client2.destination_id)
+      results = nil
+      queries = roi_queries { results = [loader.get(client.destination_id), loader.get(client2.destination_id)] }
+      expect(queries).to eq(0)
+      expect(results).to eq([true, false])
     end
+  end
+
+  def roi_queries(&block)
+    count = 0
+    counter = ->(*, payload) { count += 1 if payload[:sql].include?('client_roi_authorizations') }
+    ActiveSupport::Notifications.subscribed(counter, 'sql.active_record', &block)
+    count
   end
 end

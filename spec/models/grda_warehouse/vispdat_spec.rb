@@ -568,7 +568,6 @@ RSpec.describe GrdaWarehouse::Vispdat::Individual, type: :model do
 
     it 'removes the visible ROI authorization when the release is unconfirmed' do
       vispdat = create :vispdat, client: client, housing_release_confirmed: true
-      GrdaWarehouse::Tasks::GenerateClientRoiAuthorizationsTask.rebuild_clients([client.id])
       expect(GrdaWarehouse::ClientRoiAuthorization.visible_in_cocs([]).where(destination_client_id: client.id)).to exist
       vispdat.update!(housing_release_confirmed: false)
       expect(GrdaWarehouse::ClientRoiAuthorization.visible_in_cocs([]).where(destination_client_id: client.id)).to be_empty
