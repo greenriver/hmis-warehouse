@@ -1,6 +1,7 @@
 - if @report.renderable?
   - data = @report.parsed_pre_calculated_data
-  %section
+  %section{ 'aria-labelledby' => 'summary-heading' }
+    = render 'public_reports/shared/summary_heading'
     = render 'public_reports/shared/kpi_tiles', tiles: data['summary']['tiles'], note: "in #{data['summary']['year']}"
     = render 'public_reports/shared/glossary'
 - else

@@ -41,7 +41,7 @@
 
   %p.town-map__statewide{ data: { 'town-map-statewide' => true } }= "Statewide total, #{map['groups'].first}, #{current_period}: #{statewide_total.nil? ? 'less than 100' : number_with_delimiter(statewide_total)} people"
 
-  .town-map__table-wrap{ tabindex: 0, role: 'region', data: { 'town-map-table-wrap' => true }, 'aria-label' => "#{map['unit']} by #{@report.map_type_human}, #{map['groups'].first}, #{current_period}. Scrollable table." }
+  .town-map__table-wrap{ tabindex: 0, role: 'region', data: { 'town-map-table-wrap' => true, 'label-prefix' => "#{map['unit']} by #{@report.map_type_human}" }, 'aria-label' => "#{map['unit']} by #{@report.map_type_human}, #{map['groups'].first}, #{current_period}. Scrollable table." }
     %table.town-map__table{ data: { 'town-map-table' => true } }
       %caption.visually-hidden= "#{map['unit']} and census population by #{@report.map_type_human}"
       %thead

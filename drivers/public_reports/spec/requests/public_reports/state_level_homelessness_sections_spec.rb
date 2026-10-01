@@ -99,6 +99,31 @@ RSpec.describe 'PublicReports::WarehouseReports::StateLevelHomelessness sections
     expect(labels).to contain_exactly('Persons Age 18 to 24', 'Persons over age 24', 'Fixture Gender Row', 'Fixture Race Row')
   end
 
+  it 'links the summary heading to the glossary on summary and raw' do
+    Translation.create!(key: 'Public Report Glossary', text: '**Sheltered**: staying in ES, SH, or TH.')
+
+    [:summary, :raw].each do |section|
+      get send("#{section}_public_reports_warehouse_reports_state_level_homelessness_path", report)
+      page = Nokogiri::HTML(response.body)
+      expect(page.at_css('.heading-with-icon h2#summary-heading')&.text).to eq('Statewide summary')
+      expect(page.at_css('.heading-with-icon a.info-icon')&.[]('href')).to eq('#glossary')
+      expect(page.css('#glossary').size).to eq(1)
+    end
+  end
+
+  it 'omits the glossary link when no glossary is configured' do
+    get summary_public_reports_warehouse_reports_state_level_homelessness_path(report)
+    page = Nokogiri::HTML(response.body)
+    expect(page.at_css('h2#summary-heading')&.text).to eq('Statewide summary')
+    expect(page.css('#glossary, a.info-icon')).to be_empty
+  end
+
+  it 'keeps deployment-specific wording out of the map script' do
+    get map_public_reports_warehouse_reports_state_level_homelessness_path(report)
+    expect(response.body).not_to include('THDSN')
+    expect(response.body).not_to include('per 10,000 residents by county')
+  end
+
   it 'never loads chart assets from a CDN' do
     sections.each do |section|
       get send("#{section}_public_reports_warehouse_reports_state_level_homelessness_path", report)

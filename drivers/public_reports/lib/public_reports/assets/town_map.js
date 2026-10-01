@@ -29,12 +29,10 @@
     return rate == null ? "Not reporting" : rate.toLocaleString("en-US");
   }
 
-  // Band label only, for the hover/focus info box — mirrors the live
-  // THDSN map's own privacy design (confirmed from its source, 2026-09-18:
-  // its info box shows a grouped category, e.g. "13 - 15 per 10,000", never
-  // an exact per-county figure) rather than the precise sample number.
+  // Band label only, for the hover/focus info box, so it shows a grouped
+  // category rather than an exact per-geography figure.
   function formatRateBand(rate, bands) {
-    return rate == null ? "Not currently reporting to THDSN" : bandFor(rate, bands).label;
+    return rate == null ? "Not currently reporting" : bandFor(rate, bands).label;
   }
 
   // Statewide totals follow the same "less than 100" redaction convention
@@ -71,6 +69,7 @@
     var infoBox = root.querySelector("[data-town-map-info]");
     var infoPlaceholderHtml = infoBox ? infoBox.innerHTML : "";
     var paths = root.querySelectorAll(".town-map__town");
+    var isPercentage = data.unit.indexOf("Percentage") === 0;
 
     function update() {
       var periodIdx = Number(periodSelect.value);
@@ -85,8 +84,8 @@
         if (title) {
           title.textContent =
             rate == null
-              ? data.towns[i] + ": not currently reporting to THDSN"
-              : data.towns[i] + ": " + rate + " per 10,000 residents (" + bandFor(rate, data.bands).label + ")";
+              ? data.towns[i] + ": Not reporting"
+              : data.towns[i] + ": " + rate.toLocaleString("en-US") + (isPercentage ? "%" : "");
         }
       });
 
@@ -105,6 +104,7 @@
             escapeHtml(row.name) +
             "</td><td>" +
             formatRate(row.rate) +
+            (row.rate != null && isPercentage ? "%" : "") +
             "</td><td>" +
             formatNumber(row.population) +
             "</td></tr>"
@@ -131,7 +131,8 @@
       if (tableWrap) {
         tableWrap.setAttribute(
           "aria-label",
-          "Rate per 10,000 residents by county, " +
+          tableWrap.dataset.labelPrefix +
+            ", " +
             data.groups[groupIdx] +
             ", " +
             data.periods[periodIdx] +

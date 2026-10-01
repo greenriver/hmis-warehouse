@@ -1,0 +1,4 @@
+.heading-with-icon
+  %h2#summary-heading.overline Statewide summary
+  - if translated?('Public Report Glossary')
+    = render 'public_reports/shared/info_icon'

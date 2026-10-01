@@ -65,7 +65,7 @@ a {
 }
 
 a:hover {
-  color: var(--color-bay-blue-hover);
+  color: color-mix(in srgb, var(--color-primary) 80%, white);
 }
 
 a:focus-visible,
