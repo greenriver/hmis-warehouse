@@ -38,6 +38,10 @@ docker-compose.override.yml
 !/.config
 /.config/*
 !/.config/wt.toml
+# Claude Code project skills — track only .claude/skills/
+!/.claude
+/.claude/*
+!/.claude/skills
 
 # Ignore operational files
 package.box
