@@ -97,13 +97,13 @@ module HopwaCaper::Generators::Fy2026::Sheets
       empty_row(sheet, label: "What were the HOPWA funds expended for #{fbh_activity_label} Facility-Based Housing Leasing Costs for each facility?")
     end
 
-    # The funder daily rate is the facility's operating cost. Households whose stay was costed at a
-    # daily rate are assumed to have received operating support.
+    # Every enrolled household is reported as receiving operating support. The funder daily rate is
+    # the facility's operating cost.
     def facility_operating_expenditures(sheet, fbh_activity_label:)
       sheet.append_row(label: 'Operating -- Households and Expenditures Served by this Activity Expenditures total should include overhead (staff costs, fringe, etc.).')
 
       facility_row(sheet, label: "How many households received #{fbh_activity_label} Facility-Based Housing Operating support for each facility?") do |fac, row|
-        members = heads_of_household_for(operating_enrollments(fac))
+        members = heads_of_household_for(relevant_enrollments.where(project_id: fac.id))
         row.append_cell_members(members: members)
       end
 
@@ -111,15 +111,11 @@ module HopwaCaper::Generators::Fy2026::Sheets
         sheet,
         label: "What were the HOPWA funds expended for #{fbh_activity_label} Facility-Based Housing Operating Costs for each facility?",
       ) do |fac, row|
-        filtered = operating_enrollments(fac)
+        # total_project_cost is only calculated for heads of household
+        filtered = relevant_enrollments.head_of_household.where(project_id: fac.id).where.not(total_project_cost: [0, nil])
         value = filtered.sum { |e| e.total_project_cost.to_i }
         row.append_cell_members(value: value, members: filtered.as_report_members)
       end
-    end
-
-    # total_project_cost is only calculated for heads of household
-    def operating_enrollments(fac)
-      relevant_enrollments.head_of_household.where(project_id: fac.id).where.not(total_project_cost: [0, nil])
     end
 
     def income_levels(sheet, spreadsheet_row:, data_check_label:)
@@ -225,36 +221,18 @@ module HopwaCaper::Generators::Fy2026::Sheets
     def facility_deduplication(sheet, fbh_activity_label:)
       sheet.append_row(label: "#{fbh_activity_label} Deduplication")
 
+      # Every household receives operating support, so households with leasing support received more than one type.
       facility_row(sheet, label: "How many households received more than one type of #{fbh_activity_label} for each facility?") do |fac, row|
-        enrollments = heads_of_household_scope_for(operating_enrollments(fac)).
-          where(destination_client_id: head_of_household_client_ids(leasing_household_ids(fac)))
-        row.append_cell_members(members: enrollments.as_report_members)
+        members = heads_of_household_for(leasing_household_ids(fac))
+        row.append_cell_members(members: members)
       end
 
       # Template formula is the leasing, operating, hotel-motel, and other household rows, minus
-      # households in more than one. Leasing, operating, and other together cover every enrolled household.
+      # households in more than one. That reduces to the operating row: every enrolled household.
       facility_row(sheet, label: 'Total Deduplicated Household Count') do |fac, row|
         members = heads_of_household_for(relevant_enrollments.where(project_id: fac.id))
         row.append_cell_members(members: members)
       end
-    end
-
-    # Hotel-motel support isn't recorded in HMIS, so enrolled households without leasing or operating
-    # support are reported as "other" support by default.
-    def facility_other_households(sheet, label:)
-      facility_row(sheet, label: label) do |fac, row|
-        supported_client_ids = head_of_household_client_ids(leasing_household_ids(fac)) +
-          head_of_household_client_ids(operating_enrollments(fac))
-        enrollments = heads_of_household_scope_for(relevant_enrollments.where(project_id: fac.id)).
-          where.not(destination_client_id: supported_client_ids)
-        row.append_cell_members(members: enrollments.as_report_members)
-      end
-    end
-
-    # Household rows count distinct head-of-household clients, so rows built from other rows match on
-    # the client. A client can head more than one household in a facility, such as after re-entry.
-    def head_of_household_client_ids(scope)
-      heads_of_household_scope_for(scope).pluck(:destination_client_id)
     end
 
     # 2: 'Security deposits'

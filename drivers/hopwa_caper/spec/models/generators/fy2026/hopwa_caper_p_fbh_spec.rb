@@ -99,7 +99,7 @@ RSpec.describe HopwaCaper::Generators::Fy2026::Sheets::PFbhSheet, type: :model d
       expect(rows.fetch("What were the HOPWA funds expended for #{activity_label} Facility-Based Housing Operating Costs for each facility?")).to eq(expected_total)
       # both households were costed at the daily rate; hoh_client also has a leasing service
       expect(rows.fetch("How many households received #{activity_label} Facility-Based Housing Operating support for each facility?")).to eq(2)
-      expect(rows.fetch("How many households received Other types of #{activity_label} Facility-Based Housing support for each facility?")).to eq(0)
+      expect(rows.fetch("How many households received Other types of #{activity_label} Facility-Based Housing support for each facility?")).to be_blank
       expect(rows.fetch('How many households received more than one type of P-FBH for each facility?')).to eq(1)
       expect(rows.fetch('Total Deduplicated Household Count')).to eq(2)
     end
@@ -256,9 +256,11 @@ RSpec.describe HopwaCaper::Generators::Fy2026::Sheets::PFbhSheet, type: :model d
     create_leasing_service(other_enrollment)
 
     _, rows = run_and_extract_rows([project], 'Q10')
-    # hoh_client and other_member share one leasing household; exiting_client has no leasing service,
-    # so it is reported as other support. other_member is not counted separately.
-    expect(rows.fetch("How many households received Other types of #{activity_label} Facility-Based Housing support for each facility?")).to eq(1)
+    # hoh_client and other_member share one leasing household. Every household gets operating support,
+    # so only hoh_client's household received more than one type. other_member is not counted separately.
+    expect(rows.fetch("How many households received #{activity_label} Facility-Based Housing Operating support for each facility?")).to eq(2)
+    expect(rows.fetch("How many households received Other types of #{activity_label} Facility-Based Housing support for each facility?")).to be_blank
+    expect(rows.fetch('How many households received more than one type of P-FBH for each facility?')).to eq(1)
     expect(rows.fetch('Total Deduplicated Household Count')).to eq(2)
   end
 
@@ -274,12 +276,11 @@ RSpec.describe HopwaCaper::Generators::Fy2026::Sheets::PFbhSheet, type: :model d
     _, rows = run_and_extract_rows([project], 'Q10')
     leasing = rows.fetch("How many households received #{activity_label} Facility-Based Housing Leasing support for each facility?")
     operating = rows.fetch("How many households received #{activity_label} Facility-Based Housing Operating support for each facility?")
-    other = rows.fetch("How many households received Other types of #{activity_label} Facility-Based Housing support for each facility?")
     more_than_one = rows.fetch('How many households received more than one type of P-FBH for each facility?')
 
-    # template formula for the deduplicated count; the hotel-motel row is always blank
-    expect(leasing + operating + other - more_than_one).to eq(rows.fetch('Total Deduplicated Household Count'))
-    expect(other).to eq(1)
+    # template formula for the deduplicated count; the hotel-motel and other rows are always blank
+    expect(leasing + operating - more_than_one).to eq(rows.fetch('Total Deduplicated Household Count'))
+    expect(operating).to eq(2)
   end
 
   it 'correctly attributes data to multiple facilities' do
@@ -307,8 +308,8 @@ RSpec.describe HopwaCaper::Generators::Fy2026::Sheets::PFbhSheet, type: :model d
     # Project 1 has 2 households (hoh_client and exiting_client)
     # Project 2 has 1 household (client2)
     expect(rows.fetch('Total Deduplicated Household Count')).to eq([2, 1])
-    # hoh_client and client2 have leasing services; exiting_client is reported as other support
+    # hoh_client and client2 have leasing services; every household gets operating support
     expect(rows.fetch("How many households received #{activity_label} Facility-Based Housing Leasing support for each facility?")).to eq([1, 1])
-    expect(rows.fetch("How many households received Other types of #{activity_label} Facility-Based Housing support for each facility?")).to eq([1, 0])
+    expect(rows.fetch("How many households received #{activity_label} Facility-Based Housing Operating support for each facility?")).to eq([2, 1])
   end
 end
