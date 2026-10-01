@@ -210,8 +210,9 @@ class AwsCredentialFailurePlugin < Delayed::Plugin
   end
 
   callbacks do |lifecycle|
+    # Forwards job so around(:invoke_job) plugins chained after this one (DjMetrics::Plugin) receive it.
     lifecycle.around(:invoke_job) do |job, &block|
-      block.call
+      block.call(job)
     rescue StandardError => e
       SignalHandlerPlugin.stop_current_worker!("AWS credential failure on job ##{job.id} (#{e.class})") if AwsCredentialFailurePlugin.credential_failure?(e)
       raise # delayed_job reschedules or fails per the job's own attempts budget
@@ -238,3 +239,13 @@ Delayed::Worker.plugins << DelayedJobJobIdProvider unless Delayed::Worker.plugin
 Delayed::Worker.plugins << SignalHandlerPlugin unless Delayed::Worker.plugins.include?(SignalHandlerPlugin)
 Delayed::Worker.plugins << AwsCredentialPreflightPlugin unless Delayed::Worker.plugins.include?(AwsCredentialPreflightPlugin)
 Delayed::Worker.plugins << AwsCredentialFailurePlugin unless Delayed::Worker.plugins.include?(AwsCredentialFailurePlugin)
+
+# DjMetrics::Plugin forks the /metrics exporter from the worker and records job
+# lifecycle metrics. ENABLE_DJ_METRICS is set only on delayed job worker pods.
+if ENV['ENABLE_DJ_METRICS'] == 'true'
+  Rails.application.reloader.to_prepare do
+    FileUtils.mkdir_p(File.dirname(DjMetrics::Plugin::FILENAME))
+    FileUtils.rm_f(DjMetrics::Plugin::FILENAME)
+    Delayed::Worker.plugins << DjMetrics::Plugin unless Delayed::Worker.plugins.include?(DjMetrics::Plugin)
+  end
+end

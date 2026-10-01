@@ -4,4 +4,4 @@ scheme=http
 if [ -f /certs/public.crt ] && [ -f /certs/private.key ]; then
   scheme=https
 fi
-exec curl -skf -o /dev/null "$scheme://localhost:9000/healthz"
+exec curl -skf -o /dev/null "$scheme://localhost:${S3_PORT:-9000}/healthz"
