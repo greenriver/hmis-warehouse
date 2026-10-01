@@ -78,6 +78,7 @@ class GrdaWarehouse::AuthPolicies::UserBaseContext
 
   # [source_id, destination_id] for every live warehouse_clients row in the identities of +ids+.
   private def identity_links(ids)
+    # WarehouseClient doesn't use acts as paranoid
     live_links = GrdaWarehouse::WarehouseClient.where(deleted_at: nil)
     wc_t = GrdaWarehouse::WarehouseClient.arel_table
     destination_ids = live_links.
