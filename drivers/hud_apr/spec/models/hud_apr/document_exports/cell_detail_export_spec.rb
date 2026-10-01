@@ -24,6 +24,8 @@ RSpec.describe HudApr::DocumentExports::CellDetailExport, type: :model do
     )
   end
 
+  let(:definition_url) { 'hud_reports/aprs' }
+
   it_behaves_like 'a hud cell detail export'
 
   describe '#builder' do

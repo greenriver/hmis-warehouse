@@ -39,10 +39,10 @@
               %p= user.agency_name
               %p
                 %em
-                  - if user.active?
-                    Active
-                  - else
+                  - if user.inactive?
                     = render 'admin/inactive_users/user_status', user: user
+                  - else
+                    Active
                 %br
                 - if user.current_sign_in_at.present?
                   Last login: #{user.current_sign_in_at}

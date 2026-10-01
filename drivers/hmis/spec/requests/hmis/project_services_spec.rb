@@ -70,7 +70,11 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           hud
           hudRecordType
           hudTypeProvided
-          category
+          serviceCategory {
+            id
+            name
+            __typename
+          }
           dateCreated
           dateUpdated
           supportsBulkAssignment

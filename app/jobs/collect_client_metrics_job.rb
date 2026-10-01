@@ -15,13 +15,16 @@ class CollectClientMetricsJob < BaseJob
 
   def perform(calculation_date = Date.current, metric_names: nil)
     GrdaWarehouseBase.with_advisory_lock('collect_client_metrics_job', timeout_seconds: 0) do
-      skipped_metric_names = GrdaWarehouse::Monitoring::Tasks::MetricSnapshotCollector.run_daily_collection(
-        entity_type: 'GrdaWarehouse::Hud::Client',
-        calculation_date: calculation_date,
-        metric_names: metric_names,
-      )
+      instrument_as_maintenance_task(name: 'daily collection') do |run|
+        skipped_metric_names = GrdaWarehouse::Monitoring::Tasks::MetricSnapshotCollector.run_daily_collection(
+          entity_type: 'GrdaWarehouse::Hud::Client',
+          calculation_date: calculation_date,
+          metric_names: metric_names,
+        )
 
-      schedule_retry(calculation_date, skipped_metric_names) if skipped_metric_names.any?
+        schedule_retry(calculation_date, skipped_metric_names) if skipped_metric_names.any?
+        run.complete!
+      end
     end
   end
 

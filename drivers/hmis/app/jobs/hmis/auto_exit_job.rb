@@ -32,6 +32,8 @@ module Hmis
     # - Skips enrollments that already have an exit record.
     include NotifierConfig
 
+    queue_as ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
+
     def self.enabled?
       Hmis::ProjectAutoExitConfig.exists?
     end
@@ -39,17 +41,20 @@ module Hmis
     def perform(**args)
       return unless self.class.enabled?
 
+      setup_notifier('HMIS Auto-Exit')
+
       # don't track if there are arguments
-      return _perform(**args) if args.present?
+      return with_lock { _perform(**args) } if args.present?
 
       instrument_as_maintenance_task do |run|
-        _perform(**args)
-        run.complete!
+        with_lock do
+          _perform(**args)
+          run.complete!
+        end
       end
     end
 
     def _perform(project_ids: nil, data_source_id: nil)
-      setup_notifier('HMIS Auto-Exit')
       auto_exit_projects = Set.new
       auto_exit_count = 0
       now = DateTime.current
@@ -103,6 +108,17 @@ module Hmis
     end
 
     private
+
+    def with_lock
+      lock_name = self.class.name.demodulize
+      did_run = false
+      GrdaWarehouseBase.with_advisory_lock(lock_name, timeout_seconds: 0) do
+        yield
+        did_run = true
+      end
+      @notifier&.ping("Skipped: another run holds the #{lock_name} lock") unless did_run
+      did_run
+    end
 
     def household_has_active_ce_referral?(household)
       return false unless Hmis::Ce.configuration.enabled?

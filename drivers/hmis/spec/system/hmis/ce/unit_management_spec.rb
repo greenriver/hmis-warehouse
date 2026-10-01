@@ -97,6 +97,7 @@ RSpec.feature 'CE Unit Management', type: :system do
       select_all_checkbox.click
       click_button 'Start Accepting Referrals (2)'
       click_button 'Yes, start accepting referrals'
+      table = find('table') # re-find after the reload, shadow the outer `table`
       mui_table_expect('Accepting Referrals', row_index: 0, column_header: 'Referral Status', from: table)
       mui_table_expect('Accepting Referrals', row_index: 1, column_header: 'Referral Status', from: table)
 

@@ -1,0 +1,31 @@
+{
+  "item": [
+    {
+      "text": "PSH Documents",
+      "type": "BOOLEAN",
+      "link_id": "psh_documents",
+      "required": true,
+      "mapping": {
+        "custom_field_key": "mc_direct_referral_post_review_psh_documents"
+      }
+    },
+    {
+      "text": "PSH Inspection",
+      "type": "BOOLEAN",
+      "link_id": "psh_inspection",
+      "required": true,
+      "mapping": {
+        "custom_field_key": "mc_direct_referral_post_review_psh_inspection"
+      }
+    },
+    {
+      "text": "Successful",
+      "type": "BOOLEAN",
+      "link_id": "successful",
+      "required": true,
+      "mapping": {
+        "custom_field_key": "mc_direct_referral_post_review_successful"
+      }
+    }
+  ]
+}

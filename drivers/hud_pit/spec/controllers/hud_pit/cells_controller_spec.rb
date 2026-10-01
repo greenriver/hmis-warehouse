@@ -20,7 +20,7 @@ RSpec.describe HudPit::CellsController, type: :request do
   end
 
   before do
-    user.legacy_roles << create(:role, can_view_own_hud_reports: true, can_view_hiv_status: true)
+    grant_hud_report(user, 'hud_reports/pits', role: create(:role, can_view_assigned_reports: true, can_view_hiv_status: true))
     sign_in(user)
   end
 
@@ -44,7 +44,7 @@ RSpec.describe HudPit::CellsController, type: :request do
     context 'user WITHOUT can_view_hiv_status' do
       before do
         user.legacy_roles.destroy_all
-        user.legacy_roles << create(:role, can_view_own_hud_reports: true, can_view_hiv_status: false)
+        user.legacy_roles << create(:role, can_view_assigned_reports: true, can_view_hiv_status: false)
       end
 
       it 'redirects with an alert' do
@@ -105,7 +105,7 @@ RSpec.describe HudPit::CellsController, type: :request do
     context 'user WITHOUT can_view_hiv_status' do
       before do
         user.legacy_roles.destroy_all
-        user.legacy_roles << create(:role, can_view_own_hud_reports: true, can_view_hiv_status: false)
+        user.legacy_roles << create(:role, can_view_assigned_reports: true, can_view_hiv_status: false)
       end
 
       it 'allows access' do

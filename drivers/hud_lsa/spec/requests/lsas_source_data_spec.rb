@@ -17,7 +17,7 @@ RSpec.describe 'LSA source data download', type: :request do
   let(:export) { create(:grda_warehouse_hmis_export, :with_zip, content_type: 'application/zip') }
 
   # Baseline: can reach the LSA report pages, but holds no source-data permission.
-  let(:permissions) { { can_view_own_hud_reports: true } }
+  let(:permissions) { { can_view_assigned_reports: true } }
   let(:role) { create(:role, **permissions) }
 
   # The controller already knows which fiscal year is current (its newest active
@@ -46,7 +46,7 @@ RSpec.describe 'LSA source data download', type: :request do
   end
 
   before do
-    setup_access_control(user, role, collection)
+    grant_hud_report(user, 'hud_reports/lsas', role: role)
     sign_in(user)
   end
 
@@ -54,7 +54,7 @@ RSpec.describe 'LSA source data download', type: :request do
     let!(:report) { create_lsa_report }
 
     context 'with can_download_lsa_source_data' do
-      let(:permissions) { { can_view_own_hud_reports: true, can_download_lsa_source_data: true } }
+      let(:permissions) { { can_view_assigned_reports: true, can_download_lsa_source_data: true } }
 
       it 'sends the export content' do
         get download_source_data_hud_reports_lsa_path(report)
@@ -91,7 +91,7 @@ RSpec.describe 'LSA source data download', type: :request do
       context 'as a report admin' do
         let(:permissions) do
           {
-            can_view_own_hud_reports: true,
+            can_view_assigned_reports: true,
             can_view_all_hud_reports: true,
             can_download_lsa_source_data: true,
           }
@@ -108,9 +108,9 @@ RSpec.describe 'LSA source data download', type: :request do
       end
     end
 
-    # can_download_lsa_source_data is additive -- HudReports::BaseController's
-    # require_can_view_hud_reports! still has to be satisfied to reach the action.
-    context 'holding can_download_lsa_source_data but no HUD report permission' do
+    # can_download_lsa_source_data is additive -- the LSA report definition still has
+    # to be viewable (WarehouseReportAuthorization) to reach the action.
+    context 'holding can_download_lsa_source_data but no report access' do
       let(:permissions) { { can_download_lsa_source_data: true } }
 
       it 'redirects and sends no export content' do
@@ -131,7 +131,7 @@ RSpec.describe 'LSA source data download', type: :request do
 
       # can_export_hmis_data governs the shared HMIS Exports page, not this one.
       context 'even holding can_export_hmis_data' do
-        let(:permissions) { { can_view_own_hud_reports: true, can_export_hmis_data: true } }
+        let(:permissions) { { can_view_assigned_reports: true, can_export_hmis_data: true } }
 
         it 'redirects' do
           get download_source_data_hud_reports_lsa_path(report)
@@ -166,7 +166,7 @@ RSpec.describe 'LSA source data download', type: :request do
     let!(:report) { create_lsa_report }
 
     context 'with can_download_lsa_source_data' do
-      let(:permissions) { { can_view_own_hud_reports: true, can_download_lsa_source_data: true } }
+      let(:permissions) { { can_view_assigned_reports: true, can_download_lsa_source_data: true } }
 
       it 'points at the LSA download action' do
         get hud_reports_lsa_path(report)

@@ -15,7 +15,7 @@ RSpec.describe 'Legacy SPM report history page', type: :request do
 
   ['2020', '2023', '2024'].each do |year|
     before do
-      user.legacy_roles << create(:role, can_view_own_hud_reports: true)
+      grant_hud_report(user, 'hud_reports/spms')
       sign_in(user)
       create(
         :hud_reports_report_instance,

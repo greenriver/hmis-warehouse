@@ -169,4 +169,92 @@ RSpec.describe BaseJob, type: :job do
       expect(Delayed::Job.last.attempts).to eq(max_attempts - 1)
     end
   end
+
+  describe '.record_dj_metrics?' do
+    # This gate decides whether the hooks below are wired up at all, and it has to agree
+    # with the ENABLE_DJ_METRICS branch in docker/app/entrypoint.sh that starts the
+    # exporter. Recording on a container with no exporter writes metrics nothing reads.
+    def with_env(vars)
+      stub_const('ENV', ENV.to_h.merge(vars))
+    end
+
+    it 'records on a delayed job worker with the exporter enabled' do
+      with_env('CONTAINER_VARIANT' => 'dj', 'ENABLE_DJ_METRICS' => 'true')
+
+      expect(described_class.record_dj_metrics?).to be true
+    end
+
+    it 'does not record on a dj container with the exporter turned off' do
+      with_env('CONTAINER_VARIANT' => 'dj', 'ENABLE_DJ_METRICS' => 'false')
+
+      expect(described_class.record_dj_metrics?).to be false
+    end
+
+    it 'does not record on a web container' do
+      with_env('CONTAINER_VARIANT' => 'web', 'ENABLE_DJ_METRICS' => 'true')
+
+      expect(described_class.record_dj_metrics?).to be false
+    end
+
+    it 'does not record on a cron container, which sets no variant' do
+      stub_const('ENV', ENV.to_h.except('CONTAINER_VARIANT').merge('ENABLE_DJ_METRICS' => 'true'))
+
+      expect(described_class.record_dj_metrics?).to be false
+    end
+
+    it 'does not record in development or test, where neither variable is set' do
+      stub_const('ENV', ENV.to_h.except('CONTAINER_VARIANT', 'ENABLE_DJ_METRICS'))
+
+      expect(described_class.record_dj_metrics?).to be false
+    end
+  end
+
+  # The hooks that call these are only wired up when .record_dj_metrics? is true, so the
+  # handlers are exercised directly here.
+  describe 'delayed job metric handlers' do
+    let(:status_metric) { instance_double(Prometheus::Client::Counter, increment: nil) }
+    let(:run_length_metric) { instance_double(Prometheus::Client::Histogram, observe: nil) }
+
+    before do
+      allow(DjMetrics.instance).to receive(:dj_job_status_total_metric).and_return(status_metric)
+      allow(DjMetrics.instance).to receive(:dj_job_run_length_seconds_metric).and_return(run_length_metric)
+    end
+
+    describe '#before_handler' do
+      it 'counts the job as started and records when it started' do
+        job_instance.before_handler(job_instance)
+
+        expect(status_metric).to have_received(:increment).
+          with(labels: { queue: job_instance.queue_name, priority: job_instance.priority, status: 'started', job_name: job_class.name })
+        expect(job_instance.start_time).to be_present
+      end
+    end
+
+    describe '#after_handler' do
+      before do
+        job_instance.start_time = 30.seconds.ago
+      end
+
+      it 'counts the job as successful and observes how long it ran' do
+        job_instance.after_handler(job_instance)
+
+        expect(status_metric).to have_received(:increment).
+          with(labels: { queue: job_instance.queue_name, priority: job_instance.priority, status: 'success', job_name: job_class.name })
+        expect(run_length_metric).to have_received(:observe).
+          with(a_value_within(5).of(30), labels: { job_name: job_class.name })
+      end
+    end
+
+    describe '#job_queue_name' do
+      it 'uses queue_name when handed an ActiveJob instance' do
+        expect(job_instance.send(:job_queue_name, job_instance)).to eq(job_instance.queue_name)
+      end
+
+      it 'falls back to queue when handed a Delayed::Job record' do
+        dj_record = Delayed::Job.create!(handler: 'dummy', queue: 'long_running')
+
+        expect(job_instance.send(:job_queue_name, dj_record)).to eq('long_running')
+      end
+    end
+  end
 end

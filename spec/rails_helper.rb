@@ -100,6 +100,7 @@ RSpec.configure do |config|
   config.include FactoryBot::Syntax::Methods
   config.include HmisCsvFixtures
   config.include AccessControlSetup
+  config.include HudReportAccess
   config.include HeaderKeyedRows
   config.include DelayedJobHelpers
 

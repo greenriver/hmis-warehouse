@@ -36,11 +36,20 @@ class BaseJob < ApplicationJob
 
   attr_accessor :start_time
 
-  if ENV['EKS'] == 'true'
+  # The delayed job worker is the only container that runs the exporter which scrapes
+  # these metrics; see the ENABLE_DJ_METRICS branch in docker/app/entrypoint.sh. Keep
+  # the two conditions in step, or jobs record metrics nothing reads.
+  def self.record_dj_metrics?
+    ENV['CONTAINER_VARIANT'] == 'dj' && ENV['ENABLE_DJ_METRICS'] == 'true'
+  end
+
+  if record_dj_metrics?
     # I can't get this to work correctly from the delayed_job initializer
     Rails.logger.info 'Registering prometheus metrics for delayed jobs'
     DjMetrics.instance.register_metrics_for_delayed_job_worker!
 
+    # The hooks only record what the delayed job worker performs. Jobs that run
+    # outside of worker (via EKS cron or perform_now) are not tracked.
     rescue_from StandardError do |err|
       DjMetrics.instance.dj_job_status_total_metric.increment(labels: { queue: queue_name, priority: priority, status: 'failure', job_name: self.class.name })
       raise err
@@ -63,38 +72,26 @@ class BaseJob < ApplicationJob
     def after(job)
       after_handler(job)
     end
-
-    def before_handler(job)
-      self.start_time = Time.current
-      DjMetrics.instance.dj_job_status_total_metric.increment(labels: { queue: job_queue_name(job), priority: job.priority, status: 'started', job_name: job.class.name })
-    end
-
-    def after_handler(job)
-      DjMetrics.instance.dj_job_status_total_metric.increment(labels: { queue: job_queue_name(job), priority: job.priority, status: 'success', job_name: job.class.name })
-      DjMetrics.instance.dj_job_run_length_seconds_metric.observe(Time.current - start_time, labels: { job_name: job.class.name })
-      # This causes an exception related to string encoding that I couldn't figure out
-      # DjMetrics.instance.refresh_queue_sizes!
-    end
-
-    # Normalize the queue name so calling the job through .perform_later and Delayed::Job.enqueue
-    # are both able to determine the appropriate queue
-    private def job_queue_name(job)
-      return job.queue_name if job.respond_to?(:queue_name)
-
-      job.queue
-    end
   end
 
-  if ENV['ECS'] == 'true'
-    # When called through Delayed::Job, uses this hook
-    def before(job)
-      WorkerStatus.new(job).conditional_exit!
-    end
+  def before_handler(job)
+    self.start_time = Time.current
+    DjMetrics.instance.dj_job_status_total_metric.increment(labels: { queue: job_queue_name(job), priority: job.priority, status: 'started', job_name: job.class.name })
+  end
 
-    # When called through Active::Job, uses this hook
-    before_perform do |job|
-      WorkerStatus.new(job).conditional_exit!
-    end
+  def after_handler(job)
+    DjMetrics.instance.dj_job_status_total_metric.increment(labels: { queue: job_queue_name(job), priority: job.priority, status: 'success', job_name: job.class.name })
+    DjMetrics.instance.dj_job_run_length_seconds_metric.observe(Time.current - start_time, labels: { job_name: job.class.name })
+    # This causes an exception related to string encoding that I couldn't figure out
+    # DjMetrics.instance.refresh_queue_sizes!
+  end
+
+  # Normalize the queue name so calling the job through .perform_later and Delayed::Job.enqueue
+  # are both able to determine the appropriate queue
+  private def job_queue_name(job)
+    return job.queue_name if job.respond_to?(:queue_name)
+
+    job.queue
   end
 
   # attempts to requeue this job for a later time

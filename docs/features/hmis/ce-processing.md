@@ -26,7 +26,8 @@ The following table summarizes the key events that trigger actions within the CE
 | **Client data is updated** (via API or other tasks)      | The `MarkClientAsDirtyBehavior` concern increments the `current_version` on the client's `ChangeMarker` record.                                                                                                | `ProcessClientsJob` is continuously running and will pick up the dirty marker in its next batch.    |
 | **`Rule` or `UnitGroup` is created/updated/destroyed**   | An ActiveRecord callback acquires a lock and runs `CandidatePoolBuilder.call`. The builder creates/updates pools, associates them with unit groups, and marks any newly created pools as dirty.                 | `CandidatePoolBuilder` enqueues `ProcessPoolsJob` to evaluate the newly dirtied pools.              |
 | **`markUnitsAvailable` mutation is called**              | A new `Opportunity` is created. | None directly. The associated pool is processed by `ProcessPoolsJob` when it is marked dirty.     |
-| **Nightly Cron Task** (`grda_warehouse:hourly_maintenance`) | The Rake task acquires a maintenance lock and runs `CandidatePoolBuilder.call(force_reprocessing: true)`. This rebuilds all pool associations and marks all existing `CandidatePool` records as dirty. | The builder enqueues `ProcessPoolsJob` to re-evaluate all pools. The cron also ensures `ProcessClientsJob` is running. |
+| **Nightly Cron Task** (`driver:hmis:ce_candidate_pool_builder`) | The Rake task acquires a maintenance lock and runs `CandidatePoolBuilder.call(force_reprocessing: true)`. This rebuilds all pool associations and marks all existing `CandidatePool` records as dirty. | The builder enqueues `ProcessPoolsJob` to re-evaluate all pools. |
+| **Hourly Cron Task** (`grda_warehouse:hourly`) | None. | Ensures `ProcessClientsJob` is running via `enqueue_if_not_already_running`. |
 
 ### Workflow
 

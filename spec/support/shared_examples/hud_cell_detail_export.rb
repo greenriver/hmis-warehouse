@@ -6,33 +6,55 @@
 
 # frozen_string_literal: true
 
+# Expects `user`, `report`, `export`, and `definition_url` (the report definition
+# url the export belongs to, e.g. 'hud_reports/aprs') from the including spec.
 RSpec.shared_examples 'a hud cell detail export' do
   describe '#authorized?' do
     let(:other_user) { create(:user) }
+    let(:definition) do
+      GrdaWarehouse::WarehouseReports::ReportDefinition.maintain_report_definitions
+      GrdaWarehouse::WarehouseReports::ReportDefinition.find_by!(url: definition_url)
+    end
 
-    before do
-      allow(user).to receive(:can_view_hud_reports?).and_return(true)
+    let(:sibling_definition) do
+      GrdaWarehouse::WarehouseReports::ReportDefinition.maintain_report_definitions
+      GrdaWarehouse::WarehouseReports::ReportDefinition.hud.where.not(url: definition_url).order(:url).first!
+    end
+
+    def grant(role_attrs, granted_definition = definition)
+      user.legacy_roles << create(:role, can_view_assigned_reports: true, **role_attrs)
+      user.add_viewable(granted_definition)
     end
 
     it 'is authorized if the user owns the report' do
+      grant({})
       report.update!(user_id: user.id)
       expect(export.authorized?).to be true
     end
 
-    it 'is authorized if the user can view all reports' do
+    it 'is authorized for another user\'s report with can_view_all_hud_reports' do
+      grant(can_view_all_hud_reports: true)
       report.update!(user_id: other_user.id)
-      allow(user).to receive(:can_view_all_hud_reports?).and_return(true)
       expect(export.authorized?).to be true
     end
 
-    it 'is not authorized if the user does not own the report and cannot view all' do
+    it 'is not authorized for another user\'s report without can_view_all_hud_reports' do
+      grant({})
       report.update!(user_id: other_user.id)
-      allow(user).to receive(:can_view_all_hud_reports?).and_return(false)
       expect(export.authorized?).to be false
     end
 
-    it 'is not authorized if the user cannot view hud reports at all' do
-      allow(user).to receive(:can_view_hud_reports?).and_return(false)
+    it 'is not authorized when the report definition has not been granted' do
+      user.legacy_roles << create(:role, can_view_assigned_reports: true, can_view_all_hud_reports: true)
+      report.update!(user_id: user.id)
+      expect(export.authorized?).to be false
+    end
+
+    # The gate names this export's own definition url, so holding a different HUD
+    # report is not enough.
+    it 'is not authorized when only a different HUD report definition has been granted' do
+      grant({ can_view_all_hud_reports: true }, sibling_definition)
+      report.update!(user_id: user.id)
       expect(export.authorized?).to be false
     end
   end

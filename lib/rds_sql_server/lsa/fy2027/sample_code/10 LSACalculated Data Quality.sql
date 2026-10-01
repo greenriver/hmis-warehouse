@@ -130,7 +130,7 @@ Relevant Sections:
 	from lsa_Report rpt
 	inner join hmis_Enrollment hn on hn.EntryDate <= rpt.ReportEnd
 	inner join lsa_Project p on p.ProjectID = hn.ProjectID
-	inner join hmis_Enrollment coc on coc.HouseholdID = hn.HouseholdID and coc.EnrollmentCoC = rpt.ReportCoC
+	inner join hmis_Enrollment coc on coc.HouseholdID = hn.HouseholdID and coc.RelationshipToHoH = 1 and coc.EnrollmentCoC = rpt.ReportCoC
 	left outer join hmis_Exit hx on hx.EnrollmentID = hn.EnrollmentID 
 		and hx.DateDeleted is null
 	left outer join (select hoh.HouseholdID, count(hoh.PersonalID) as hoh
@@ -155,7 +155,7 @@ Relevant Sections:
 	from lsa_Report rpt
 	inner join hmis_Enrollment hn on hn.EntryDate <= rpt.ReportEnd
 	inner join lsa_Project p on p.ProjectID = hn.ProjectID
-	inner join hmis_Enrollment coc on coc.HouseholdID = hn.HouseholdID and coc.EnrollmentCoC = rpt.ReportCoC
+	inner join hmis_Enrollment coc on coc.HouseholdID = hn.HouseholdID and coc.RelationshipToHoH = 1 and coc.EnrollmentCoC = rpt.ReportCoC
 	left outer join hmis_Exit hx on hx.EnrollmentID = hn.EnrollmentID 
 		and hx.DateDeleted is null
 	where (hn.RelationshipToHoH is null or hn.RelationshipToHoH not between 1 and 5)
