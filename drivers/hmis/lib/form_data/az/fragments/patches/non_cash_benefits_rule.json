@@ -1,0 +1,10 @@
+[
+  {
+    "link_id": "non_cash_benefits",
+    "custom_rule": {
+      "operator": "ALL",
+      "_comment": "collect 4.03 Non-Cash Benefits for all projects regardless of funder or type.",
+      "parts": []
+    }
+  }
+]

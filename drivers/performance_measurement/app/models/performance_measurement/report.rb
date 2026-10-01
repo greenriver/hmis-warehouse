@@ -84,14 +84,6 @@ module PerformanceMeasurement
       complete
     end
 
-    def start
-      update(started_at: Time.current)
-    end
-
-    def complete
-      update(completed_at: Time.current)
-    end
-
     def describe_filter_as_html(keys = nil, inline: false, limited: true)
       keys ||= [
         :project_type_codes,
@@ -156,10 +148,9 @@ module PerformanceMeasurement
     end
 
     def show_spm_link?
-      return true if user.can_view_all_hud_reports?
-      return true if user.can_view_own_hud_reports? && PerformanceMeasurement::Goal.include_project_options?
+      return false unless GrdaWarehouse::WarehouseReports::ReportDefinition.url_viewable_by?(GrdaWarehouse::WarehouseReports::ReportDefinition.hud_url(:spms), user)
 
-      false
+      user.can_view_all_hud_reports? || PerformanceMeasurement::Goal.include_project_options?
     end
 
     def coc_code

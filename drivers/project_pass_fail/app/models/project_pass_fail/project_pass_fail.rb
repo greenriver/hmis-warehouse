@@ -64,7 +64,8 @@ module ProjectPassFail
     end
 
     def run_and_save!
-      update(started_at: Time.current)
+      # A retry clears the failure left by the previous attempt
+      update(started_at: Time.current, failed_at: nil)
       store_thresholds
       populate_projects
       populate_clients

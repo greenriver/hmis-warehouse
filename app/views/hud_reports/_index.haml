@@ -1,6 +1,7 @@
 - content_for :title, Translation.translate("HUD Reports")
 %header.mb-3
   %h1= content_for :title
+= render '/warehouse_reports/breadcrumbs', tab: 'hud-reports'
 
 .row
   .col-sm-3

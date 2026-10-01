@@ -33,6 +33,13 @@ class Hmis::Hud::CustomServiceType < Hmis::Hud::Base
   validates_presence_of :name, allow_blank: false
   validates_with Hmis::Hud::Validators::CustomServiceTypeValidator
 
+  scope :matching_search_term, ->(search_term) do
+    return none unless search_term.present?
+
+    query = "%#{search_term.strip.split(/\W+/).join('%')}%"
+    where(arel_table[:name].matches(query))
+  end
+
   scope :custom, -> { where(hud_record_type: nil) }
   scope :hud, -> { where.not(hud_record_type: nil) }
   scope :in_data_source, ->(data_source_id) { where(data_source_id: data_source_id) }

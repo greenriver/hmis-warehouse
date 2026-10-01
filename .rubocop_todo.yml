@@ -335,7 +335,6 @@ Layout/LeadingCommentSpace:
   Exclude:
     - "app/models/reports/ahar/fy2016/base.rb"
     - "app/models/reports/ahar/fy2017/base.rb"
-    - "bin/containers/list"
 
 # Offense count: 10
 # This cop supports safe autocorrection (--autocorrect).
@@ -400,11 +399,6 @@ Layout/SpaceAroundEqualsInParameterDefault:
     - "app/models/similarity_metric.rb"
     - "app/models/similarity_metric/experiment.rb"
 
-# Offense count: 1
-# This cop supports safe autocorrection (--autocorrect).
-Layout/SpaceAroundKeyword:
-  Exclude:
-    - "config/deploy/docker/lib/aws_sdk_helpers.rb"
 
 # Offense count: 15
 # This cop supports safe autocorrection (--autocorrect).
@@ -708,12 +702,6 @@ Lint/UselessAssignment:
     - "app/models/similarity_metric/experiment.rb"
     - "app/models/similarity_metric/tasks/generate_candidates.rb"
 
-# Offense count: 1
-# This cop supports safe autocorrection (--autocorrect).
-# Configuration parameters: CheckForMethodsWithNoSideEffects.
-Lint/Void:
-  Exclude:
-    - "config/deploy/docker/lib/ecs_tools.rb"
 
 # Offense count: 4
 # Configuration parameters: AllowedMethods, AllowedPatterns, CountRepeatedAttributes, Max.
@@ -905,10 +893,7 @@ Style/FormatString:
 # SupportedStyles: always, always_true, never
 Style/FrozenStringLiteralComment:
   Exclude:
-    - "bin/containers/vault_ssh"
     - "bin/spring"
-    - "bin/vault_deploy"
-    - "config/deploy/docker/vault_deploy"
 
 # Offense count: 21
 # This cop supports safe autocorrection (--autocorrect).
@@ -1101,7 +1086,6 @@ Style/RedundantFreeze:
     - "app/models/concerns/document_export_behavior.rb"
     - "app/models/health/soap/mass_health.rb"
     - "app/models/warehouse_report/overlapping_coc_by_project_type.rb"
-    - "config/deploy/docker/lib/memory_analyzer.rb"
     - "drivers/hmis/app/models/hmis/client_alert.rb"
     - "drivers/hmis/app/models/hmis/enrollment_assessment_eligibility_list.rb"
     - "drivers/hmis/app/models/hmis/hud/custom_client_address.rb"
@@ -1303,7 +1287,6 @@ Style/StringLiterals:
     - "bin/lint"
     - "bin/rspec"
     - "bin/spring"
-    - "bin/test-bg"
     - "bin/yarn"
     - "spec/models/logging_spec.rb"
 

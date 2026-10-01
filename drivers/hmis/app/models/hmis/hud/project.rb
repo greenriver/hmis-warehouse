@@ -195,6 +195,16 @@ class Hmis::Hud::Project < Hmis::Hud::Base
     open_on_date.with_configs(Hmis::ProjectCeConfig.all)
   end
 
+  # Projects that are configured to originate direct CE referrals.
+  # Takes a data source because `with_configs` matches on `project_type`, which is a HUD enum
+  # value that is not unique across data sources. Scoping only the project side would still let a
+  # project-type-scoped config in another data source decide who counts as a sender here.
+  scope :sending_direct_ce_referrals, ->(data_source_id) do
+    configs = Hmis::ProjectSendsDirectCeReferralsConfig.where(data_source_id: data_source_id).to_a
+
+    where(data_source_id: data_source_id).with_configs(configs)
+  end
+
   SORT_OPTIONS = [:organization_and_name, :name].freeze
 
   SORT_OPTION_DESCRIPTIONS = {

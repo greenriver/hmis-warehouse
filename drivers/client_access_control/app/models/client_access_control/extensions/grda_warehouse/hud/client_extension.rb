@@ -192,7 +192,7 @@ module ClientAccessControl::GrdaWarehouse::Hud
               project: :project_cocs,
               enrollment: [:enrollment_cocs, :exit, :ch_enrollment, :project, :disabilities_at_entry],
             ).
-            order(first_date_in_program: :desc)
+            order(first_date_in_program: :desc, id: :desc)
           enrollments = enrollments.to_a
           visible_enrollment_count = enrollments.size
           calculator = ClientHistory::Calculator.new(client: self, enrollments: enrollments)

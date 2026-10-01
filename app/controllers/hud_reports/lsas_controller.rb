@@ -8,7 +8,12 @@
 
 module HudReports
   class LsasController < ApplicationController
-    before_action :require_can_view_hud_reports!
+    include WarehouseReportAuthorization
+    include HudReports::ReportUrls
+
+    def related_report
+      GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: GrdaWarehouse::WarehouseReports::ReportDefinition.hud_url(:lsas))
+    end
 
     def index
       @reports = report_scope.order(weight: :asc, type: :desc)
@@ -35,10 +40,6 @@ module HudReports
       end
 
       grouped_reports
-    end
-
-    def report_urls
-      @report_urls ||= Rails.application.config.hud_reports.values.map { |report| [report[:title], public_send(report[:helper])] }.uniq
     end
   end
 end

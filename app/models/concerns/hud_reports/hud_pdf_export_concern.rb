@@ -10,10 +10,11 @@ module HudReports::HudPdfExportConcern
   extend ActiveSupport::Concern
 
   included do
+    # report_scope already limits users without can_view_all_hud_reports to their own runs.
     def authorized?
-      return true if user.can_view_all_hud_reports?
+      return false if report.blank?
 
-      user.can_view_hud_reports? && report.present?
+      GrdaWarehouse::WarehouseReports::ReportDefinition.url_viewable_by?(possible_generator_classes.first.report_definition_url, user)
     end
 
     private def report_scope

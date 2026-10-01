@@ -162,12 +162,12 @@ module Types
         client_audit_event_record_type_picklist
       when 'PROJECTS_RECEIVING_REFERRALS'
         projects_receiving_referrals(user.hmis_data_source_id)
+      when 'PROJECTS_SENDING_DIRECT_CE_REFERRALS'
+        projects_sending_direct_ce_referrals(user: user)
       when 'FORM_TYPES'
-        # Form Types that the current user can create forms for
-        policy = user.policy_for(Hmis::Form::Definition, policy_type: :form_definition)
-        Hmis::Form::Definition.form_role_enum_map.members.
-          select { |ft| policy.can_create?(role: ft[:value]) }.
-          map { |ft| { code: ft[:value], label: ft[:desc] } }
+        visible_form_types_picklist(user: user)
+      when 'CREATABLE_FORM_TYPES'
+        creatable_form_types_picklist(user: user)
       when 'CONTINUUM_PROJECTS'
         Hmis::Hud::Project.
           where(data_source_id: user.hmis_data_source_id, continuum_project: true).
@@ -394,6 +394,27 @@ module Types
         }
       end
     end
+
+    # Form types that appear in the Forms admin table, for filtering that table
+    def self.visible_form_types_picklist(user:)
+      return [] unless user.policy_for(Hmis::Form::Definition, policy_type: :form_definition).can_configure_forms?
+
+      visible_roles = Hmis::Form::Definition.configurable_by(user).latest_versions.distinct.pluck(:role)
+      form_types_picklist { |form_type| visible_roles.include?(form_type[:value]) }
+    end
+
+    # Form types the user can create, for the dropdown when creating a new form
+    def self.creatable_form_types_picklist(user:)
+      policy = user.policy_for(Hmis::Form::Definition, policy_type: :form_definition)
+      form_types_picklist { |form_type| policy.can_create?(role: form_type[:value]) }
+    end
+
+    def self.form_types_picklist(&included)
+      Hmis::Form::Definition.form_role_enum_map.members.
+        select(&included).
+        map { |form_type| { code: form_type[:value], label: form_type[:desc] } }
+    end
+    private_class_method :form_types_picklist
 
     def self.hud_service_types_picklist(user:)
       scope = Hmis::Hud::CustomServiceType.in_data_source(user.hmis_data_source_id).hud
@@ -687,6 +708,20 @@ module Types
     def self.projects_receiving_referrals(data_source_id)
       Hmis::Hud::Project.receiving_legacy_referrals(data_source_id).
         joins(:organization).preload(:organization).
+        sort_by_option(:organization_and_name).
+        map(&:to_pick_list_option)
+    end
+
+    # Projects that an admin can name in a receiving project's "receives direct referrals from"
+    # allowlist. Deliberately filtered by neither viewable_by nor open_on_date: reaching the
+    # Project Config form already requires the global can_configure_data_collection permission,
+    # and PROJECTS_RECEIVING_DIRECT_CE_REFERRALS skips viewable_by for the same reason. Compose
+    # either filter here rather than in the scope if that changes.
+    def self.projects_sending_direct_ce_referrals(user:)
+      return [] unless Hmis::Ce.configuration.enabled?
+
+      Hmis::Hud::Project.sending_direct_ce_referrals(user.hmis_data_source_id).
+        preload(:organization).
         sort_by_option(:organization_and_name).
         map(&:to_pick_list_option)
     end

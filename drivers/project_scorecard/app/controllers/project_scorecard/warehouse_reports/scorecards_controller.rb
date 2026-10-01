@@ -98,12 +98,12 @@ module ProjectScorecard::WarehouseReports
     helper_method :workflow_action
 
     def link_to_apr(text, question)
-      helpers.link_to_if(current_user.can_view_hud_reports && @report.apr_id.present?, text, result_hud_reports_apr_question_path(@report.apr_id || 0, question), target: :blank)
+      helpers.link_to_if(helpers.hud_report_viewable?(:aprs) && @report.apr_id.present?, text, result_hud_reports_apr_question_path(@report.apr_id || 0, question), target: :blank)
     end
     helper_method :link_to_apr
 
     def link_to_spm(text, measure)
-      helpers.link_to_if(current_user.can_view_hud_reports && @report.spm_id.present?, text, result_hud_reports_spm_measure_path(@report.spm_id || 0, measure), target: :blank)
+      helpers.link_to_if(helpers.hud_report_viewable?(:spms) && @report.spm_id.present?, text, result_hud_reports_spm_measure_path(@report.spm_id || 0, measure), target: :blank)
     end
     helper_method :link_to_spm
 
