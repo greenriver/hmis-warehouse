@@ -1,8 +1,8 @@
 ---
 title: PII handling, restricted clients, access logging, and retention
-summary: "How the warehouse catalogs and protects client PII. pii_attr declarations via HasPiiAttributes, PiiProvider display decisions, HMIS-restricted client redaction and search exclusion on the warehouse side, ActivityLog records of who viewed which client and the AccessLogs audit report, PII scrubbing for non-production copies, and the client data retention decision, which is an ADR with no code yet."
+summary: "How the warehouse catalogs and protects client PII. pii_attr declarations via HasPiiAttributes, PiiProvider display decisions, HMIS-restricted client redaction and search exclusion on the warehouse side, ActivityLog records of who viewed which client and the AccessLogs audit report, PII scrubbing for non-production copies, and client data retention, whose nightly job marks inactive clients that are then hidden like restricted ones."
 area: warehouse
-tags: [pii, HasPiiAttributes, pii_attr, PII_TYPES, PiiProvider, RestrictedPolicy, PiiDisplay, restricted-client, redaction, RestrictedClientLoader, hmis_restricted_source_client_ids, text_search, strict_search, exclude_ids_for_name_and_ssn, access_logs, ActivityLog, ActivityLogger, AccessLogs::Report, UsageSummary, UserSummary, ScrubClientPiiTask, ScrubAllPiiTask, ScrubModelPii, retention, ADR-0002, ADR-0009]
+tags: [pii, HasPiiAttributes, pii_attr, PII_TYPES, PiiProvider, RestrictedPolicy, PiiDisplay, restricted-client, redaction, RestrictedClientLoader, HiddenClients, not_hidden, text_search, strict_search, name_and_ssn_filter, ClientRetentionMark, ClientRetentionJob, access_logs, ActivityLog, ActivityLogger, AccessLogs::Report, UsageSummary, UserSummary, ScrubClientPiiTask, ScrubAllPiiTask, ScrubModelPii, retention, ADR-0002, ADR-0009]
 sources:
   - docs/adr/0002-pii-management-strategy.md
   - docs/adr/0009-client-data-retention-and-removal.md
@@ -10,6 +10,9 @@ sources:
   - app/models/concerns/pii_display.rb
   - app/models/grda_warehouse/pii_provider.rb
   - app/models/grda_warehouse/auth_policies/context_loaders/restricted_client_loader.rb
+  - app/models/grda_warehouse/hidden_clients.rb
+  - app/models/grda_warehouse/client_retention_mark.rb
+  - app/jobs/client_retention_job.rb
   - app/models/grda_warehouse/hud/client.rb
   - app/models/concerns/client_search.rb
   - app/models/hud_reports/report_client_base.rb
@@ -61,12 +64,11 @@ four mechanisms that share one catalog:
   overwrite cataloged PII and delete related free-text records, for producing a non-production
   copy or honoring a one-off removal request. They are console tasks with no UI or scheduler.
 
-**Retention** (hiding or removing clients inactive for N years) is decided in
-`docs/adr/0009-client-data-retention-and-removal.md`, status Proposed. No
-retention code exists in this repository: there is no `InactiveClient` model, no
-`ClientRetentionJob`, and no `client_retention_years` setting on `GrdaWarehouse::DataSource` or
-`GrdaWarehouse::Config`. This doc summarizes the ADR so an implementer starts from
-the agreed constraints.
+**Retention** (hiding clients inactive for N years) follows
+`docs/adr/0009-client-data-retention-and-removal.md`. Phase 1 is built: `ClientRetentionJob`
+writes `GrdaWarehouse::ClientRetentionMark` rows, and a marked (inactive) client is hidden
+exactly like an HMIS-restricted one. `GrdaWarehouse::HiddenClients` is the single definition of
+both hidden sets. Nothing is overwritten or deleted.
 
 ## Entry points
 
@@ -91,12 +93,21 @@ Restriction:
 
 - `user.policy_context.client_restricted?(client_id)` and
   `user.policy_context.restricted_clients_cache_token`.
-- `GrdaWarehouse::Hud::Client.hmis_restricted_source_client_ids` (the full id set as a `Set`),
-  `.hmis_restricted_destination_client_ids(ids)`, `client.pii_restricted?(user:)`.
-- `GrdaWarehouse::Hud::Client.text_search(text, client_scope:, restricted_source_ids:)`,
+- `user.policy_context.preload_client_restrictions(ids)` or `preload_client_dependencies(ids)`
+  before checking a list of clients; see `authorization/warehouse-policies.md`.
+- `client.pii_restricted?(user:)`.
+- `GrdaWarehouse::HiddenClients.not_hidden(column)` (Arel predicate for queries),
+  `.restricted_ids`, `.inactive_ids`, `.inactive_destination_ids`, `.inactive_subset(ids)`.
+- `GrdaWarehouse::Hud::Client.text_search(text, client_scope:)`,
   `.strict_search(criteria, client_scope:)`, `client.potential_matches`;
-  `ClientSearch.text_searcher(text, sorted:, exclude_ids_for_name_and_ssn:)`;
+  `ClientSearch.text_searcher(text, sorted:, name_and_ssn_filter:)`;
   `HudReports::ReportClientBase.restricted_condition`.
+
+Retention:
+
+- `ClientRetentionJob` (nightly), `GrdaWarehouse::ClientRetentionMark.rollup_activity`,
+  `GrdaWarehouse::ClientRetentionDryRun.new(global_years:).run` (console rehearsal),
+  `WarehouseReports::ClientRetentionController` (`index`, `expired`, `runs`).
 
 Access logging:
 
@@ -175,25 +186,31 @@ labeled `project_name` or `Organization Name` is treated as client PII and redac
 Fragment caches that hold rendered PII include
 `current_user.policy_context.restricted_clients_cache_token` in their key (the client dashboard
 rollups under `app/views/clients/rollup/` and `app/views/cohorts/_client_row_editable.haml`).
-The token is an MD5 of the full restricted id set, so marking, unmarking, or merging a
-restricted client invalidates every such fragment.
+The token is an MD5 of the full HMIS restricted id set plus the latest
+`ClientRetentionRun.maximum(:completed_at)`, so marking, unmarking, or merging a restricted
+client, or a completed retention run, invalidates every such fragment.
 
 ### Restricted clients on the warehouse side
 
 Restriction is set in HMIS (`Hmis::RestrictedRecord`, see
 `hmis/restricted-records-and-multi-hmis.md`). The warehouse treats it as an absolute PII block
 with no override permission: the only way to restore visibility is for HMIS staff to unmark the
-client.
+client. A retention-inactive client gets the same treatment until a later run unmarks it.
 
-**Loading.** `GrdaWarehouse::AuthPolicies::ContextLoaders::RestrictedClientLoader` runs three
-queries once: `Hmis::RestrictedRecord.for_clients` ids, the `WarehouseClient` destination ids
-linked to them (rows with `deleted_at: nil` only), and every sibling source id under those
-destinations. The union is a `Set`; `restricted?(id)` is a membership test and `nil` is never
-restricted. It is one hop only: a row that is both a source and a destination does not pull in
-its grandparent. Past 50,000 directly restricted ids it sends a Sentry warning. The loader is
-memoized on `UserBaseContext`, which is memoized on `User#policy_context`, so a request or job
-loads it once and holds a snapshot. `Client.hmis_restricted_source_client_ids` builds a fresh
-loader per call instead.
+**Hidden sets.** `GrdaWarehouse::HiddenClients` defines both in Arel. The restricted set is the
+directly restricted ids, the destinations linked to them through live `WarehouseClient` rows
+(`deleted_at: nil`), and every sibling source of those destinations; one hop only, so a row that
+is both a source and a destination does not pull in its grandparent. The inactive set is the
+marked source ids plus their live destinations. `not_hidden(column)` is two correlated
+`NOT EXISTS` and keeps `NULL` columns.
+
+**Loading.** `GrdaWarehouse::AuthPolicies::ContextLoaders::RestrictedClientLoader` loads the
+restricted set once as a `Set` (Sentry warning past 50,000 ids). Retention marks can cover much
+of an old warehouse, so they are never loaded whole: `restricted?(id)` checks the restricted set,
+then an inactive lookup per id, memoized, and `preload(ids)` batches those lookups through
+`HiddenClients.inactive_subset`. `nil` is never restricted. The loader is memoized on
+`UserBaseContext`, which is memoized on `User#policy_context`, so a request or job holds a
+snapshot.
 
 **Redaction.** Every path that resolves a `PiiProvider` through `pii_provider`,
 `project_pii_provider`, `reporting_policy_for_project`, or an explicit `PiiProvider.restrict`
@@ -202,22 +219,26 @@ only) still render. Paths that do not resolve a policy show real PII; the human 
 `docs/features/warehouse/warehouse-auth-policies.md` lists the known ones (CSG Engage
 submission, ad hoc upload review, aggregate HIV gates, `non_hmis_clients`).
 
-**Search.** Restriction hides a client from search by name or SSN, not from search by DOB,
-warehouse id, or `PersonalID`. `ClientSearch.text_searcher` takes
-`exclude_ids_for_name_and_ssn:` and applies it to the SSN-exact and free-text name branches
-only. `Client.text_search` passes `hmis_restricted_source_client_ids` by default and
-`potential_matches` passes a preloaded set. `Client.strict_search` (3-of-4 match on name, DOB,
-SSN) subtracts `hmis_restricted_destination_client_ids` from its result.
-`ClientController#look_for_existing_match` (new-client duplicate check) applies
-`where.not(id: restricted_ids)` to its name and SSN clauses directly.
-`HudReports::ReportClientBase.restricted_condition` does the same for report drilldown search
-columns, keeping `NULL` client ids. `Hmis::Hud::Client` never passes the keyword; its exclusion
-is `searchable_to`.
+### Hidden clients in search and exports
+
+Hidden means HMIS-restricted or retention-inactive, as defined by `GrdaWarehouse::HiddenClients`.
+
+**Search.** A hidden client is excluded from search by name or SSN, not from search by DOB,
+warehouse id, or `PersonalID`. `ClientSearch.text_searcher` takes `name_and_ssn_filter:` (an
+Arel predicate) and applies it to the SSN-exact and free-text name branches only.
+`Client.text_search` always passes `HiddenClients.not_hidden(arel_table[:id])`, and
+`potential_matches` goes through it. `Client.strict_search` (3-of-4 match on name, DOB, SSN)
+adds `not_hidden` to its result. `ClientController#look_for_existing_match` (new-client
+duplicate check) adds `not_hidden` to its name and SSN clauses directly.
+`HudReports::ReportClientBase.restricted_condition` applies `not_hidden` to each report
+drilldown client id column. `Hmis::Hud::Client` never passes the keyword; its exclusion is
+`searchable_to`.
 
 **Exports.** `Export::RestrictedClientPiiTransform` redacts `Client.csv` in HMIS CSV exports
-unless the export is hashed or faked; see `hud-reporting/csv-export.md`. The Superset view
-`analytics.client_piis` (`db/views/analytics_client_piis_v02.sql`) recomputes the same id set
-in SQL and redacts name and SSN, not DOB.
+for restricted and inactive destination clients unless the export is hashed or faked; see
+`hud-reporting/csv-export.md`. The Superset view `analytics.client_piis`
+(`db/views/analytics_client_piis_v03.sql`) repeats both `HiddenClients` sets in SQL and must
+stay in step with it; it redacts name and SSN, not DOB.
 
 ### Access logging
 
@@ -289,36 +310,30 @@ acts on the live database only; backups and S3 copies are untouched.
 
 ### Retention
 
-`docs/adr/0009-client-data-retention-and-removal.md` (Proposed, 2026-09-15) is the only
-retention artifact in this repository. There is no retention model, job, configuration key, or
-log table; the words "retention" in `app/` refer to unrelated things (soft-delete purge
-configuration, the two-year cleanup of saved `ClientSearchQuery` rows, SPM measure text). An
-implementer should build from these ADR constraints:
+Settings: `GrdaWarehouse::Config` `client_retention_years` is the global window (`nil`, the
+default, turns the feature off); `GrdaWarehouse::DataSource#client_retention_years` overrides it
+per data source. The human doc `docs/features/warehouse/client-data-retention.md` covers the
+settings UI and the activity rules in detail.
 
-- **Opt-in, per community, user-triggered.** Off by default; a community enables it and can run
-  it on demand.
-- **Phase 1 is aging plus Hide.** Hide conceals PII on screens, search, and exports while the
-  rows stay as they are, so it is reversible. Scrub and Delete come later on the same machinery.
-- **Client-scoped aging.** The unit is the destination client and every source client rolled
-  into it. One in-window record in any source keeps the whole rollup. Each source client is
-  checked against its own data source's window, falling back to the global window.
-- **Window: global with per data source overrides, seven-year floor, no ceiling.** The global
-  window is held on the warehouse data source itself. A shorter window is invalid.
-- **Fields in scope:** at minimum first, middle, last name and SSN. Scrub keeps DOB for age
-  bucketing; Hide may conceal it.
-- **Every run is logged.** The log records client identifiers (warehouse id, data source,
-  `PersonalID`), never the PII itself, outlives the records under Delete, and is not itself
-  subject to aging.
-- **Backups are out of scope** and the settings help text must say so.
+`ClientRetentionJob` is enqueued by `Importing::RunDailyImportsJob` and does nothing when the
+global window is `nil`. Under a zero-timeout advisory lock it creates a
+`GrdaWarehouse::ClientRetentionRun`, walks every destination client in batches of `BATCH_SIZE`,
+and calls `ClientRetentionMark.rollup_activity`, which computes per destination the newest
+activity date across live sources and the longest applicable window among their data sources.
+An identity is inactive when that date is older than today minus the window.
 
-Open decision points the ADR leaves for acceptance: propagation to CAS and other integrations;
-how far the field inventory departs from HUD's 2004 PPI list (photos, files, contact info,
-custom case notes, custom fields); whether a privileged override exists under Hide and whether
-hidden clients stay in matching; what counts as activity (enrollments and services at least;
-files, notes, alerts, CE contacts undecided); secondary copies (report source tables, loader and
-importer tables, importer logs with raw rejected rows, S3 files, paper_trail versions, activity
-logs that store names and typed search terms); and re-import of aged-out clients, accepted as a
-Phase 1 limitation.
+Marks are one `ClientRetentionMark` row per source client, written all-or-none per identity
+(`insert_all` unique on `client_id`); sources of evaluated identities that are not inactive lose
+their mark. Each newly marked or cleared identity gets a `ClientRetentionLogEntry` holding only
+identifiers (destination id, source client id, data source, `PersonalID`), never PII. Active
+identities expiring within `EXPIRING_WITHIN_DAYS` go to `ClientRetentionExpiringClient`, read by
+the Records Expiring Soon report. A failed run records `failed_at`; marks from completed batches
+stand.
+
+A mark changes nothing in the client rows. Hiding comes from `GrdaWarehouse::HiddenClients`
+feeding `RestrictedClientLoader`, search, report drilldowns, the CSV export transform, and
+`analytics.client_piis`. Scrub and Delete, propagation to CAS, and a privileged override are
+not built; the ADR (still status Proposed) lists them as later phases or open decisions.
 
 ## Key files
 
@@ -328,17 +343,23 @@ Phase 1 limitation.
 - `app/models/grda_warehouse/pii_provider.rb`: `RestrictedPolicy`; `restrict`;
   `viewable_name` and siblings; `from_attributes`; `dob`; `ssn` masking.
 - `app/models/grda_warehouse/auth_policies/context_loaders/restricted_client_loader.rb`:
-  warn threshold; `restricted_client_ids`; `cache_token`; the three queries.
+  warn threshold; `restricted_client_ids`; `restricted?`; `preload`; `cache_token`.
+- `app/models/grda_warehouse/hidden_clients.rb`: both hidden sets; `not_hidden`;
+  `inactive_subset`.
+- `app/models/grda_warehouse/client_retention_mark.rb`: `rollup_activity`,
+  `ROLLUP_ACTIVITY_SQL`.
+- `app/jobs/client_retention_job.rb`: `BATCH_SIZE`, `EXPIRING_WITHIN_DAYS`, mark and unmark
+  logic.
 - `app/models/grda_warehouse/hud/client.rb`: `pii_provider`;
-  `project_pii_provider`; `pii_restricted?`; `hmis_restricted_source_client_ids`;
-  `hmis_restricted_destination_client_ids`; deprecated `name`;
+  `project_pii_provider`; `pii_restricted?`; deprecated `name`;
   `text_search`; `strict_search`; `potential_matches`.
-- `app/models/concerns/client_search.rb`: `text_searcher`; SSN branch exclusion;
-  name branch exclusion.
+- `app/models/concerns/client_search.rb`: `text_searcher`; `name_and_ssn_filter` on the SSN
+  and name branches.
 - `app/models/hud_reports/report_client_base.rb`: `restricted_condition`.
 - `app/controllers/concerns/client_controller.rb`: `look_for_existing_match`.
 - `app/controllers/clients_controller.rb`: `after_action :log_client`;
-  `handle_unused_search` raises because search lives in the driver.
+  `handle_unused_search` raises because search lives in the driver; `edit` preloads policy data
+  for the client, its potential matches, and split history.
 - `drivers/client_access_control/app/controllers/client_access_control/clients_controller.rb`:
   `after_action :log_client`; `index` redirects to a saved `ClientSearchQuery`;
   `perform_search` chooses strict or text search.
@@ -386,10 +407,12 @@ Phase 1 limitation.
   audit intent, not a bug.
 - `PiiDisplay#pii_value` redacts any column whose lowercased label ends in `name`, including
   project and organization names, when the policy denies client names.
-- `Client.hmis_restricted_source_client_ids` builds a new `RestrictedClientLoader` on every call
-  and runs its three queries. `text_search` uses it as a default argument, so a loop of searches
-  reloads each time; pass a preloaded set as `potential_matches` does, or use
-  `user.policy_context.client_restricted?` when a user is in hand.
+- `client_restricted?` on a list without a preload runs one inactive-status query per client,
+  and past the miss threshold raises `PreloadMissError` in development and test. Call
+  `preload_client_restrictions` or `preload_client_dependencies` on the page's ids first.
+- The inactive set includes marked sources and their destinations but not unmarked sibling
+  sources. The job marks every live source of an identity, so a sibling is unmarked only until
+  the next run after a merge.
 - `Pii::Scrubber::StaticScrubber#perform` calls `ReplacementPii.static_value(field)` without
   the required `id:` keyword, so `custom_scrubber: :static` raises `ArgumentError` on the first
   field. `:fake` and the default (no custom scrubber) work.
@@ -400,8 +423,8 @@ Phase 1 limitation.
   `HmisDataQualityTool::CurrentLivingSituation`, the `hmis_external_apis` form submission and
   referral posting models, and every `HmisCsvTwentyTwentySix` loader and importer table. A
   new snapshot table with PII needs both a `pii_attr` declaration and a line in that list.
-- Retention log tables, when built, must hold identifiers only (warehouse client id, data source,
-  `PersonalID`) per ADR 0009. No such tables exist yet.
+- `ClientRetentionLogEntry` and `ClientRetentionExpiringClient` must hold identifiers only
+  (warehouse client id, data source, `PersonalID`) per ADR 0009. Do not add name, SSN, or DOB.
 
 ## Do not repeat
 
@@ -416,20 +439,19 @@ Phase 1 limitation.
   declaration. `ScrubAllPiiTask` and `ScrubClientPiiTask` only see cataloged columns, and
   `ScrubModelPii` raises on a model with none. Example of the replacement:
   `app/models/concerns/hmis_structure/client.rb`.
-- A new client search path that filters restricted clients with its own `where.not(id: ...)`
-  instead of `Client.text_search` or `ClientSearch.text_searcher(exclude_ids_for_name_and_ssn:)`.
-  `ClientController#look_for_existing_match` is the one sanctioned exception because it does not
-  use `text_searcher`. Restriction hides name and SSN matches only; do not extend an ad hoc
-  filter to DOB or id lookups.
+- A new client search path that filters hidden clients with its own id list or
+  `where.not(id: ...)`. Use `Client.text_search`, `ClientSearch.text_searcher(name_and_ssn_filter:)`,
+  or `GrdaWarehouse::HiddenClients.not_hidden(column)`, as `ClientController#look_for_existing_match`
+  does. Hiding covers name and SSN matches only; do not extend it to DOB or id lookups.
 - A fragment cache keyed on the client and user but not on
   `current_user.policy_context.restricted_clients_cache_token` when the fragment renders PII.
   Example of the replacement: `app/views/clients/rollup/_demographics.html.haml`.
-- Calling `Client.hmis_restricted_source_client_ids` inside a per-row loop. Load once and pass
-  it down, as `Client#potential_matches` does, or ask `user.policy_context.client_restricted?`.
-- Deleting or nulling client rows to implement retention. ADR 0009 makes Hide the first and only
-  Phase 1 strategy and requires client-scoped aging across the whole rollup, a seven-year floor,
-  and an identifier-only run log. Build on those constraints rather than on `ScrubClientPiiTask`,
-  which is a manual one-off tool.
+- Building a hidden-client id list in Ruby and passing it to `where.not(id:)` or `not_in`.
+  Replacement: `GrdaWarehouse::HiddenClients.not_hidden(column)` in the query, or
+  `user.policy_context.client_restricted?` after a preload.
+- Deleting or nulling client rows to implement retention. Phase 1 hides through
+  `ClientRetentionMark` rows; extend `ClientRetentionJob` and `HiddenClients` rather than
+  `ScrubClientPiiTask`, which is a manual one-off tool.
 - Writing PII into `ActivityLog.title` or a new log column beyond what `title_for_show` already
   stores. Log identifiers; resolve names at render time through a `PiiProvider`.
 - Repo-wide patterns are in `conventions/do-not-repeat.md`.
@@ -443,9 +465,10 @@ Phase 1 limitation.
   `pii_redacted_for_client?`, and `Hmis::Hud::Client.searchable_to`, the HMIS half of restriction.
 - `hud-reporting/csv-export.md`: `Export::RestrictedClientPiiTransform` and when hashed or faked
   exports bypass it.
-- `warehouse/client-identity.md`: `WarehouseClient` links that `RestrictedClientLoader` follows
-  and that ADR 0009's client-scoped aging depends on.
+- `warehouse/client-identity.md`: `WarehouseClient` links that `HiddenClients` follows and that
+  retention's client-scoped aging depends on.
 - Human-facing sources: `docs/features/warehouse/warehouse-auth-policies.md` (PII Redaction,
   Search, Known limitations, Report detail rows), `docs/features/hmis/hmis-restricted-records.md`,
-  `docs/features/warehouse/client-dashboards.md`, `docs/adr/0002-pii-management-strategy.md`,
+  `docs/features/warehouse/client-dashboards.md`, `docs/features/warehouse/client-data-retention.md`,
+  `docs/adr/0002-pii-management-strategy.md`,
   `docs/adr/0009-client-data-retention-and-removal.md`.
