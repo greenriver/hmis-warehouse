@@ -28,6 +28,7 @@ RSpec.describe PublicReports::StateLevelHomelessness, type: :model do
   let(:destination_data_source) { create(:grda_warehouse_data_source) }
   let(:organization) { create(:hud_organization, data_source_id: source_data_source.id) }
   let(:project) { create(:hud_project, data_source_id: source_data_source.id, OrganizationID: organization.OrganizationID, ProjectType: 1) }
+  let(:outreach_project) { create(:hud_project, data_source_id: source_data_source.id, OrganizationID: organization.OrganizationID, ProjectType: 4) }
 
   let(:report_start) { Date.parse('2025-01-01') }
   let(:report_end) { Date.parse('2025-12-31') }
@@ -36,7 +37,7 @@ RSpec.describe PublicReports::StateLevelHomelessness, type: :model do
   # resolvable through a WarehouseClient link to a separate "source" client
   # (see Hud::Client's race_white/race_am_ind_ak_native/etc scopes, which
   # join WarehouseClient.source) -- so each of these builds both.
-  def create_homeless_client_and_entry(gender:, race_field:, household_id:)
+  def create_homeless_client_and_entry(gender:, race_field:, household_id:, project: self.project)
     dest_client = create(:hud_client, data_source_id: destination_data_source.id, gender => 1)
     race_source_client = create(:hud_client, data_source_id: source_data_source.id, race_field => 1)
     create(:warehouse_client, destination_id: dest_client.id, source_id: race_source_client.id, data_source_id: source_data_source.id)
@@ -47,7 +48,7 @@ RSpec.describe PublicReports::StateLevelHomelessness, type: :model do
       data_source_id: source_data_source.id,
       project_id: project.project_id,
       organization_id: project.organization_id,
-      project_type: 1,
+      project_type: project.project_type,
       date: Date.parse('2025-10-15'),
       first_date_in_program: Date.parse('2025-10-15'),
       last_date_in_program: report_end,
@@ -60,7 +61,7 @@ RSpec.describe PublicReports::StateLevelHomelessness, type: :model do
         client_id: dest_client.id,
         record_type: 'service',
         date: date,
-        project_type: 1,
+        project_type: project.project_type,
         age: 30,
       )
     end
@@ -114,6 +115,7 @@ RSpec.describe PublicReports::StateLevelHomelessness, type: :model do
       expect(row['totals'].size).to eq(periods_size)
       expect(row['chronic'].size).to eq(periods_size)
       expect(row['unsheltered'].size).to eq(periods_size)
+      expect(row['sheltered'].size).to eq(periods_size) unless row['sheltered'].nil?
     end
     expect(map['values'].size).to eq(periods_size)
     expect(map['statewideTotals'].size).to eq(periods_size)
@@ -150,6 +152,8 @@ RSpec.describe PublicReports::StateLevelHomelessness, type: :model do
       row['totals'].each { |t| leaks << "breakdown.#{row_id}.totals=#{t}" if t&.between?(1, 99) }
     end
 
+    data['who']['race']['totals'].each { |t| leaks << "race.totals=#{t}" if t&.between?(1, 99) }
+
     data['map']['statewideTotals'].each_with_index do |period_totals, period_index|
       period_totals.each_with_index do |t, group_index|
         leaks << "map.statewideTotals[#{period_index}][#{group_index}]=#{t}" if t&.between?(1, 99)
@@ -157,5 +161,27 @@ RSpec.describe PublicReports::StateLevelHomelessness, type: :model do
     end
 
     expect(leaks).to eq([])
+  end
+
+  context 'when a row has at least MIN_THRESHOLD sheltered and unsheltered clients but a total of 100 or less' do
+    before do
+      12.times do |i|
+        create_homeless_client_and_entry(gender: :Woman, race_field: :White, household_id: "sheltered-#{i}")
+        create_homeless_client_and_entry(gender: :Woman, race_field: :White, household_id: "unsheltered-#{i}", project: outreach_project)
+      end
+    end
+
+    it 'suppresses the sheltered and unsheltered counts along with the total' do
+      leaks = data['who']['breakdown'].flat_map do |row_id, row|
+        row['totals'].each_index.filter_map do |i|
+          next unless row['totals'][i].nil?
+
+          located = [row['sheltered']&.at(i), row['unsheltered'][i]].compact
+          "#{row_id}[#{i}]=#{located}" if located.any?
+        end
+      end
+
+      expect(leaks).to eq([])
+    end
   end
 end

@@ -539,7 +539,7 @@ module PublicReports
         homeless_rows << data.map do |_race, ids|
           total_count.positive? ? ((ids.count * 100.0) / total_count).round(1) : 0.0
         end
-        totals << total_count
+        totals << (total_count.positive? && total_count <= 100 ? nil : total_count)
 
         overall = data.keys.map { |race| race == 'None' ? nil : census_data[race]&.round(1) } if index == dates.size - 1
       end
@@ -839,10 +839,12 @@ module PublicReports
           total_count = combined_total_count
         end
 
-        rows[row_id][:totals][date_index] = total_count.positive? && total_count <= 100 ? nil : total_count
+        published_total = total_count.positive? && total_count <= 100 ? nil : total_count
+        rows[row_id][:totals][date_index] = published_total
         rows[row_id][:chronic][date_index] = enforce_min_threshold([chronic_count, total_count], 'chronic_percents')
 
-        if sheltered_count < MIN_THRESHOLD || unsheltered_count < MIN_THRESHOLD
+        # A suppressed total would be recoverable as sheltered + unsheltered.
+        if published_total.nil? || sheltered_count < MIN_THRESHOLD || unsheltered_count < MIN_THRESHOLD
           rows[row_id][:sheltered][date_index] = nil
           rows[row_id][:unsheltered][date_index] = nil
         else
