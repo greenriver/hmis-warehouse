@@ -12,3 +12,4 @@
     %p.data-note
       Data updated through
       = @report.filter_object.end.to_date
+    %script{ nonce: content_security_policy_nonce }= public_report_asset('public_report.js')

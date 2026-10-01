@@ -3,5 +3,8 @@
     .stat-tile{ class: tile['class'] }
       %span.visually-hidden= "#{tile['value']} #{tile['label']} #{note}"
       .stat-tile__value{ 'aria-hidden' => 'true' }= tile['value']
-      .stat-tile__label{ 'aria-hidden' => 'true' }= tile['label']
+      .stat-tile__label
+        %span{ 'aria-hidden' => 'true' }= tile['label']
+        - if tile['term']
+          = render 'public_reports/shared/term_info_icon', term: tile['term'], modifier: 'info-icon--below'
       .stat-tile__note{ 'aria-hidden' => 'true' }= note

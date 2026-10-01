@@ -6,11 +6,11 @@
     = render 'public_reports/shared/summary_heading'
     = render 'public_reports/shared/kpi_tiles', tiles: data['summary']['tiles'], note: "in #{data['summary']['year']}"
 
-    = render 'public_reports/shared/line_chart', chart: PublicReports::LineChart.new(labels: pit_chart['labels'], series: pit_chart['series']), title: Translation.translate('Total Number of People Experiencing Homelessness'), colors: [@report.settings.color(0, :population)]
+    = render 'public_reports/shared/line_chart', chart: PublicReports::LineChart.new(labels: pit_chart['labels'], series: pit_chart['series']), title: Translation.translate('Total Number of People Experiencing Homelessness'), colors: [@report.settings.color(0, :population)], term: PublicReports::StateLevelHomelessness::PROJECT_TYPES_TERM
     - if pit_chart['note']
       %p.chart-note= pit_chart['note']
 
-    = render 'public_reports/shared/line_chart', chart: PublicReports::LineChart.new(labels: inflow_outflow['labels'], series: inflow_outflow['series']), title: Translation.translate('Total Number of People Entering and Exiting Homelessness'), colors: [@report.settings.color(1, :population), @report.settings.color(2, :population)]
+    = render 'public_reports/shared/line_chart', chart: PublicReports::LineChart.new(labels: inflow_outflow['labels'], series: inflow_outflow['series']), title: Translation.translate('Total Number of People Entering and Exiting Homelessness'), colors: [@report.settings.color(1, :population), @report.settings.color(2, :population)], term: PublicReports::StateLevelHomelessness::PROJECT_TYPES_TERM
     - if inflow_outflow['note']
       %p.chart-note= inflow_outflow['note']
 

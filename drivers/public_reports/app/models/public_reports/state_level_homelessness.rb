@@ -25,6 +25,9 @@ module PublicReports
     end
 
     MIN_THRESHOLD = 11
+    # Glossary headings that info icons link to; admins must use these exact headings.
+    PROJECT_TYPES_TERM = 'ES / SO / SH / TH'
+    UNSHELTERED_TERM = 'Unsheltered / Unsheltered Rate'
 
     def title
       Translation.translate('State-Level Homelessness Report Generator')
@@ -135,8 +138,14 @@ module PublicReports
       "#{publish_url}/index.html"
     end
 
+    # The listener sizes the iframe from the height public_report.js posts.
     def generate_embed_code_for(section)
-      "<iframe width='500' height='400' src='#{generate_publish_url_for(section)}' frameborder='0' sandbox='allow-scripts'><a href='#{generate_publish_url_for(section)}'>#{instance_title} -- #{section.to_s.humanize}</a></iframe>"
+      url = generate_publish_url_for(section)
+      frame_id = "public-report-#{id}-#{section}"
+      <<~HTML
+        <iframe id='#{frame_id}' width='100%' height='400' src='#{url}' frameborder='0' sandbox='allow-scripts'><a href='#{url}'>#{instance_title} -- #{section.to_s.humanize}</a></iframe>
+        <script>window.addEventListener('message', function (e) { var f = document.getElementById('#{frame_id}'); if (f && e.source === f.contentWindow && e.data && e.data.type === 'public-report-height' && Number(e.data.height) > 0) f.style.height = Number(e.data.height) + 'px'; });</script>
+      HTML
     end
 
     def sections
@@ -263,7 +272,7 @@ module PublicReports
         tiles: [
           { value: enforce_min_threshold(counts, 'homeless_households'), label: 'Homeless Households' },
           { value: enforce_min_threshold(counts, 'homeless_clients'), label: 'People Experiencing Homelessness' },
-          { value: enforce_min_threshold(counts, 'unsheltered_percent'), label: 'Unsheltered' },
+          { value: enforce_min_threshold(counts, 'unsheltered_percent'), label: 'Unsheltered', term: UNSHELTERED_TERM },
         ],
       }
     end

@@ -10,4 +10,8 @@ module PublicReports::AssetsHelper
   def public_report_asset(name)
     File.read(Rails.root.join('drivers/public_reports/lib/public_reports/assets', name)).html_safe
   end
+
+  def public_report_glossary
+    @public_report_glossary ||= PublicReports::Glossary.from_translation
+  end
 end

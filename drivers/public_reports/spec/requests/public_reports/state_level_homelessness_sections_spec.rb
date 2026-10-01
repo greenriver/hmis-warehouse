@@ -118,6 +118,54 @@ RSpec.describe 'PublicReports::WarehouseReports::StateLevelHomelessness sections
     expect(page.css('#glossary, a.info-icon')).to be_empty
   end
 
+  describe 'per-term glossary links' do
+    before do
+      Translation.create!(
+        key: 'Public Report Glossary',
+        text: "### ES / SO / SH / TH\nEmergency Shelter, Street Outreach, Safe Haven, Transitional Housing.\n\n" \
+              "### Unsheltered / Unsheltered Rate\nPeople sleeping in a place not meant for habitation.\n",
+      )
+    end
+
+    it 'links both pit chart titles to the term, with the definition as a uniquely-identified tooltip' do
+      get pit_public_reports_warehouse_reports_state_level_homelessness_path(report)
+      page = Nokogiri::HTML(response.body)
+
+      expect(page.at_css('#glossary h3#glossary-es-so-sh-th')&.text).to eq('ES / SO / SH / TH')
+      icons = page.css('.chart-title a.info-icon')
+      expect(icons.map { |a| a['href'] }).to eq(['#glossary-es-so-sh-th', '#glossary-es-so-sh-th'])
+      tooltip_ids = icons.map { |a| a['aria-describedby'] }
+      expect(tooltip_ids.uniq.size).to eq(2)
+      tooltip_ids.each do |id|
+        expect(page.at_css("##{id}")&.text).to eq('Emergency Shelter, Street Outreach, Safe Haven, Transitional Housing.')
+      end
+    end
+
+    it 'links the unsheltered tile to its term' do
+      get summary_public_reports_warehouse_reports_state_level_homelessness_path(report)
+      icon = Nokogiri::HTML(response.body).at_css('.stat-tile__label a.info-icon')
+      expect(icon&.[]('href')).to eq('#glossary-unsheltered-unsheltered-rate')
+    end
+
+    it 'omits a term link when the glossary does not define that term' do
+      Translation.find_by(key: 'Public Report Glossary').update!(text: "### Unsheltered / Unsheltered Rate\nPeople outside.\n")
+      get pit_public_reports_warehouse_reports_state_level_homelessness_path(report)
+      expect(Nokogiri::HTML(response.body).css('.chart-title a.info-icon')).to be_empty
+    end
+  end
+
+  it 'gives the embed snippet a listener for the height the published page posts' do
+    snippet = Nokogiri::HTML.fragment(report.generate_embed_code_for(:pit))
+    iframe = snippet.at_css('iframe')
+    expect(iframe['src']).to eq(report.generate_publish_url_for(:pit))
+    expect(snippet.at_css('script').text).to include("getElementById('#{iframe['id']}')")
+    expect(snippet.at_css('script').text).to include("'public-report-height'")
+    expect(report.generate_embed_code_for(:who)).not_to include("id='#{iframe['id']}'")
+
+    get pit_public_reports_warehouse_reports_state_level_homelessness_path(report)
+    expect(response.body).to include('type: "public-report-height"')
+  end
+
   it 'keeps deployment-specific wording out of the map script' do
     get map_public_reports_warehouse_reports_state_level_homelessness_path(report)
     expect(response.body).not_to include('THDSN')

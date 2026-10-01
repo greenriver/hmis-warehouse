@@ -6,7 +6,7 @@
     "tiles": [
       { "value": "10,214", "label": "Homeless Households" },
       { "value": "13,939", "label": "People Experiencing Homelessness" },
-      { "value": "13%", "label": "Unsheltered" }
+      { "value": "13%", "label": "Unsheltered", "term": "Unsheltered / Unsheltered Rate" }
     ]
   },
   "pit_chart": {

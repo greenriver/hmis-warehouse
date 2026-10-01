@@ -1,5 +1,8 @@
 %figure.chart.chart--line
-  %figcaption.chart-title= title
+  %figcaption.chart-title
+    = title
+    - if local_assigns[:term]
+      = render 'public_reports/shared/term_info_icon', term: term
   .chart--line-plot
     %svg.chart-svg{ viewBox: "0 0 #{PublicReports::LineChart::WIDTH} #{PublicReports::LineChart::HEIGHT}", preserveAspectRatio: 'xMidYMid meet', 'aria-hidden' => 'true', focusable: 'false' }
       - chart.gridlines.each do |gridline|

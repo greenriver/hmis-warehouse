@@ -1,5 +1,4 @@
-- if translated?('Public Report Glossary')
+- unless public_report_glossary.blank?
   %details.glossary#glossary
     %summary Glossary of terms
-    - markdown = Redcarpet::Markdown.new(::TranslatedHtml)
-    = raw markdown.render(Translation.translate('Public Report Glossary'))
+    = public_report_glossary.html
