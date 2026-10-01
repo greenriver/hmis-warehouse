@@ -133,7 +133,8 @@ for code that knows a report only by its index url.
 `assignable_by(user)` returns everything for `can_assign_reports?` and nothing otherwise.
 `limitable: false` marks reports that cannot be limited to a subset of projects; the collection
 admin forms pass those ids to the browser as `unlimitable` and show a warning icon. The
-`enabled` scope filters the admin pickers. `new_report?` is true for two weeks after creation.
+`enabled` scope filters the admin pickers. `new_report?` is true for two weeks after creation,
+except for definitions in `HUD_REPORT_GROUP`, which are never flagged as new.
 
 `WarehouseReportAuthorization#report_visible?` calls
 `related_report.viewable_by(current_user).exists?` and otherwise `not_authorized!`.
