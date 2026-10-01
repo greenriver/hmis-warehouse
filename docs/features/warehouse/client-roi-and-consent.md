@@ -15,9 +15,11 @@ Consent-form `ClientFile`s write these columns on the **destination** client:
 `GrdaWarehouse::Tasks::GenerateClientRoiAuthorizationsTask` derives one `GrdaWarehouse::ClientRoiAuthorization` row per destination client from those columns. The row holds a status, CoC codes, `starts_at` and `expires_at`. The task runs:
 
 - per client, via `rebuild_clients`, from:
-  - `ClientFile#set_client_consent`
-  - `Client#invalidate_consent!`
+  - `ClientFile#set_client_consent`, after a consent file is saved
+  - `Clients::FilesController#destroy`, after the active consent file is deleted
   - the VI-SPDAT `housing_release_confirmed` checkbox (`Vispdat::Base`)
+
+`Client#invalidate_consent!` does not rebuild. The files and releases controllers call it before they save the file's `consent_revoked_at`. Under `Consent::Implied`, `revoked_consent?` reads the newest consent file, so a rebuild at that point would not see the revocation and would reset the client to `Implied Consent`.
 - for changed clients, from `UpdateHousingReleaseStatuses`. This goes through the task-wide lock and is skipped while the nightly run holds it.
 - nightly, for every destination client
 
@@ -27,7 +29,7 @@ Each rebuild reads its clients with row locks (`SELECT ... FOR UPDATE`, in id or
 
 | Client columns | Row status |
 |---|---|
-| Revoked consent | `revoked` |
+| Revoked consent (`Client#revoked_consent?`), even with no signature date | `revoked`, with no `expires_at` |
 | The consent class's partial release string | `partial` |
 | The consent class's full release string | `full` |
 | Anything else, or a missing signature date when `release_duration` is time-based | no row (and the task clears the consent columns) |
@@ -63,7 +65,7 @@ Each consent class lists the row statuses that grant visibility in `visible_roi_
 | `Consent::Default` | blank | no row | no |
 | `Consent::Implied` | `Expanded Consent` | `full` | yes |
 | `Consent::Implied` | `Implied Consent` | `partial` | yes |
-| `Consent::Implied` | `Consent Revoked` | `revoked` or no row | no |
+| `Consent::Implied` | `Consent Revoked` | `revoked` | no |
 
 Under `Consent::Implied`, the partial release string is the implied consent itself (`partial_release_string == no_release_string`). `Client.invalidate_consent!` resets a client to `Implied Consent` rather than blank.
 

@@ -71,9 +71,11 @@ RSpec.describe GrdaWarehouse::ClientFile, type: :model do
           expect(GrdaWarehouse::ClientRoiAuthorization.where(destination_client_id: file.client_id).pluck(:status)).to eq(['full'])
         end
 
-        it 'removes the visible ROI authorization when the client consent is invalidated' do
+        it 'removes the visible ROI authorization when the consent form is revoked' do
           expect(GrdaWarehouse::ClientRoiAuthorization.visible_in_cocs([]).where(destination_client_id: file.client_id)).to exist
-          file.client.reload.invalidate_consent!
+          # Same order as Clients::FilesController#update
+          file.client.reload.invalidate_consent!(hr_status: GrdaWarehouse::Config.active_consent_class.revoked_consent_string)
+          file.update!(consent_revoked_at: Time.current)
           expect(GrdaWarehouse::ClientRoiAuthorization.visible_in_cocs([]).where(destination_client_id: file.client_id)).to be_empty
         end
 

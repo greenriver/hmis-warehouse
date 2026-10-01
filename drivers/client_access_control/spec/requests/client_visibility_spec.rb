@@ -923,9 +923,11 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
       expect(response.body).to include(window_destination_client.FirstName)
     end
 
-    it 'redirects away from the dashboard when consent is revoked' do
+    it 'redirects away from the dashboard when the consent form is revoked' do
       set_release!(window_destination_client, Consent::Implied.no_release_string)
+      create :client_file_revoked_consent, client: window_destination_client
       window_destination_client.invalidate_consent!(hr_status: Consent::Implied.revoked_consent_string)
+      GrdaWarehouse::Tasks::GenerateClientRoiAuthorizationsTask.rebuild_clients([window_destination_client.id])
       get client_path(window_destination_client)
       expect(response).to redirect_to(user.my_root_path)
     end

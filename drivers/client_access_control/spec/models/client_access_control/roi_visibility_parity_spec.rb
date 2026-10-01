@@ -36,13 +36,15 @@ RSpec.describe 'ROI visibility parity', type: :model do
     GrdaWarehouse::Tasks::GenerateClientRoiAuthorizationsTask.new._perform(client_ids: [destination_client.id])
   end
 
+  # A fresh user per call: User#policy_for and the client access arbiter are memoized on the instance
   def visibility
+    viewer = User.find(user.id)
     {
-      search: GrdaWarehouse::Hud::Client.searchable_to(user).where(id: source_client.id).exists?,
-      detail_scope: GrdaWarehouse::Hud::Client.source_visible_to(user).where(id: source_client.id).exists?,
-      enrollments: GrdaWarehouse::Hud::Enrollment.visible_to(user).where(id: enrollment.id).exists?,
-      policy: user.policy_for(source_client).can_view?,
-      demographics: destination_client.show_demographics_to?(user),
+      search: GrdaWarehouse::Hud::Client.searchable_to(viewer).where(id: source_client.id).exists?,
+      detail_scope: GrdaWarehouse::Hud::Client.source_visible_to(viewer).where(id: source_client.id).exists?,
+      enrollments: GrdaWarehouse::Hud::Enrollment.visible_to(viewer).where(id: enrollment.id).exists?,
+      policy: viewer.policy_for(source_client).can_view?,
+      demographics: destination_client.reload.show_demographics_to?(viewer),
     }
   end
 
@@ -68,9 +70,18 @@ RSpec.describe 'ROI visibility parity', type: :model do
       expect(visibility).to eq(on_every_path(false))
     end
 
-    it 'hides the client on every path immediately after revoking consent' do
-      set_release!(GrdaWarehouse::Hud::Client.full_release_string)
+    it 'hides the client on every path after its consent form is revoked, including after the nightly rebuild' do
+      consent_tag = create :available_file_tag, consent_form: true, name: 'Consent Form', full_release: true
+      file = create :client_file, client: destination_client, tags: [consent_tag], effective_date: 5.days.ago
+      file.confirm_consent!
+      expect(visibility).to eq(on_every_path(true))
+
+      # Same order as Clients::FilesController#update
       destination_client.invalidate_consent!(hr_status: GrdaWarehouse::Config.active_consent_class.revoked_consent_string)
+      file.update!(consent_revoked_at: Time.current)
+      expect(visibility).to eq(on_every_path(false))
+
+      GrdaWarehouse::Tasks::GenerateClientRoiAuthorizationsTask.new._perform(client_ids: [destination_client.id])
       expect(visibility).to eq(on_every_path(false))
     end
 

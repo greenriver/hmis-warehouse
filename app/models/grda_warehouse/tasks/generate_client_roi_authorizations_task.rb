@@ -116,7 +116,7 @@ module GrdaWarehouse::Tasks
         destination_client_id: destination_client.id,
         coc_codes: roi_coc_codes(destination_client),
         starts_at: destination_client.consent_form_signed_on,
-        expires_at: roi_expiry_date(destination_client),
+        expires_at: status == GrdaWarehouse::ClientRoiAuthorization::REVOKED_STATUS ? nil : roi_expiry_date(destination_client),
       }
     end
 
@@ -153,16 +153,16 @@ module GrdaWarehouse::Tasks
 
     # Determine the ROI authorization status for a client.
     # Returns nil when no authorization record should be created or kept. This happens when:
-    #   - the signature date is missing and the duration mode requires one to compute validity, or
+    #   - consent is not revoked, the signature date is missing, and the duration mode requires one, or
     #   - the client has no active, partial, or revoked consent of any kind.
     # @param client [GrdaWarehouse::Hud::Client]
     # @return [String, nil] one of the ClientRoiAuthorization status constants, or nil
     def roi_status(client)
+      # Revocation clears consent_form_signed_on, so check it before the signature-date guard
+      return GrdaWarehouse::ClientRoiAuthorization::REVOKED_STATUS if client.revoked_consent?
       return nil if client.consent_form_signed_on.nil? && roi_duration.in?(['One Year', 'Two Years'])
 
-      if client.revoked_consent?
-        GrdaWarehouse::ClientRoiAuthorization::REVOKED_STATUS
-      elsif client.partial_release?
+      if client.partial_release?
         GrdaWarehouse::ClientRoiAuthorization::PARTIAL_STATUS
       elsif client.release_valid?
         GrdaWarehouse::ClientRoiAuthorization::FULL_STATUS
