@@ -26,9 +26,7 @@
               %td
                 = upload.hmis_zip.filename
                 - if upload.source_id_overridden?
-                  %span.badge.badge-warning{ title: "Expected SourceID #{upload.export_source_expected_id.presence || '(none)'}, file had #{upload.export_source_file_id.presence || '(blank)'}" } SourceID overridden
-                - elsif upload.awaiting_confirmation?
-                  %span.badge.badge-secondary{ title: 'Uploaded but never confirmed, so it was never queued' } Not confirmed
+                  %span.badge.text-bg-warning{ title: "Expected SourceID #{upload.export_source_expected_id.presence || '(none)'}, file had #{upload.export_source_file_id.presence || '(blank)'}" } SourceID overridden
               %td= upload.user&.name
               %td= upload.created_at
               %td= upload&.import_log&.loader_log&.started_at

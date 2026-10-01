@@ -9,12 +9,13 @@
 class UploadsController < ApplicationController
   before_action :require_can_upload_hud_zips!
   before_action :set_data_source
-  before_action :set_upload, only: [:show, :edit, :confirm]
+  before_action :set_upload, only: [:show, :edit, :confirm, :cancel]
 
   def index
     attributes = GrdaWarehouse::Upload.column_names - ['import_errors', 'content']
     @uploads = upload_source.with_attached_hmis_zip.select(*attributes).
       where(data_source_id: @data_source.id).
+      where.not(id: upload_source.awaiting_confirmation.select(:id)).
       order(created_at: :desc)
     @pagy, @uploads = pagy(@uploads)
   end
@@ -120,6 +121,24 @@ class UploadsController < ApplicationController
 
     enqueue_import(@upload, source_id_override: @upload.source_id_overridden?)
     flash[:notice] = Translation.translate('Upload queued to start.')
+    redirect_to action: :index
+  end
+
+  # Backing out of the confirmation screen removes the held upload and its zip. The
+  # lock keeps a confirm posted alongside this from queuing a file being removed.
+  def cancel
+    cancelled = @upload.with_lock do
+      next false unless @upload.awaiting_confirmation?
+
+      @upload.hmis_zip.purge
+      @upload.destroy!
+      true
+    end
+    if cancelled
+      flash[:notice] = Translation.translate('Upload cancelled and file removed.')
+    else
+      flash[:alert] = Translation.translate('That upload is no longer waiting for confirmation.')
+    end
     redirect_to action: :index
   end
 

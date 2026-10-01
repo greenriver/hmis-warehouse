@@ -327,6 +327,45 @@ RSpec.describe UploadsController, type: :request do
     end
   end
 
+  describe 'POST cancel' do
+    let!(:upload) do
+      post_create(file: zip_upload(contents: export_csv(source_id: 'MA-999')))
+      GrdaWarehouse::Upload.order(:id).last
+    end
+
+    it 'removes the held upload and its file without queuing an import' do
+      blob = upload.hmis_zip.blob
+      expect(Importing::HudZip::HmisAutoMigrateJob).not_to receive(:perform_later)
+
+      post cancel_data_source_upload_path(data_source, upload)
+
+      expect(response).to redirect_to(action: :index)
+      expect(GrdaWarehouse::Upload.with_deleted.find(upload.id).deleted_at).to be_present
+      expect(ActiveStorage::Blob.exists?(blob.id)).to be false
+      expect(blob.service.exist?(blob.key)).to be false
+    end
+
+    it 'refuses to remove an upload that was already queued' do
+      upload.update!(delayed_job_id: 42)
+
+      post cancel_data_source_upload_path(data_source, upload)
+
+      expect(response).to redirect_to(action: :index)
+      expect(upload.reload.deleted_at).to be_nil
+      expect(upload.hmis_zip).to be_attached
+    end
+
+    it 'does not reach an upload belonging to another data source' do
+      other = create(:source_data_source, short_name: 'OT')
+      upload.update_column(:data_source_id, other.id)
+
+      post cancel_data_source_upload_path(data_source, upload)
+
+      expect(response).to have_http_status(:not_found)
+      expect(upload.reload.deleted_at).to be_nil
+    end
+  end
+
   # set_upload is shared, so scoping it for #confirm tightened these too
   describe 'upload lookup scoping' do
     let!(:other_upload) do
@@ -338,6 +377,32 @@ RSpec.describe UploadsController, type: :request do
       get data_source_upload_path(data_source, other_upload)
 
       expect(response).to have_http_status(:not_found)
+    end
+  end
+
+  describe 'GET index' do
+    # Cancel on the confirm screen is a plain link back here, so an upload held for
+    # confirmation and left alone is the cancelled case.
+    it 'hides an unconfirmed upload' do
+      post_create(file: zip_upload(contents: export_csv(source_id: 'MA-999')))
+      expect(GrdaWarehouse::Upload.where(data_source: data_source).count).to eq(1)
+
+      get data_source_uploads_path(data_source)
+
+      expect(response.body).to include('No uploads.')
+    end
+
+    it 'shows a readable badge on an overridden upload' do
+      allow(Importing::HudZip::HmisAutoMigrateJob).to receive(:perform_later).and_return(enqueued_job)
+      post_create(file: zip_upload(contents: export_csv(source_id: 'MA-999')))
+      upload = GrdaWarehouse::Upload.order(:id).last
+      post confirm_data_source_upload_path(data_source, upload), params: {
+        grda_warehouse_upload: { short_name_confirmation: 'HV', dry_run: '0' },
+      }
+
+      get data_source_uploads_path(data_source)
+
+      expect(Nokogiri::HTML(response.body).at_css('tbody tr .badge.text-bg-warning').text).to eq('SourceID overridden')
     end
   end
 end

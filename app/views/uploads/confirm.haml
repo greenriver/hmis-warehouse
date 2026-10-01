@@ -46,4 +46,4 @@
         = text_field_tag 'grda_warehouse_upload[short_name_confirmation]', nil, id: 'short_name_confirmation', class: 'form-control', autocomplete: 'off'
       .form-actions
         = submit_tag 'Confirm and Import', class: 'btn btn-primary'
-        = link_to 'Cancel', data_source_uploads_path(@data_source), class: 'btn btn-secondary'
+        = button_tag 'Cancel', type: 'submit', formaction: cancel_data_source_upload_path(@data_source, @upload), class: 'btn btn-secondary'

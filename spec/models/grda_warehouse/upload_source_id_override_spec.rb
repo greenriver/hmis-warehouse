@@ -69,8 +69,8 @@ RSpec.describe GrdaWarehouse::Upload, type: :model do
     end
   end
 
-  # This gates UploadsController#confirm, which queues an import, and the "Not
-  # confirmed" badge on the uploads index.
+  # This gates UploadsController#confirm, which queues an import. Its query form,
+  # .awaiting_confirmation, hides these rows from the uploads index.
   describe '#awaiting_confirmation?' do
     let(:upload) { create(:grda_warehouse_upload) }
 
@@ -121,6 +121,23 @@ RSpec.describe GrdaWarehouse::Upload, type: :model do
       expect(automated.export_source_check).to be_nil
       expect(automated.delayed_job_id).to be_nil
       expect(automated.awaiting_confirmation?).to be false
+    end
+
+    # The index filters with the scope and #confirm gates with the predicate, so a
+    # drift between them would hide a row #confirm refuses, or show one it accepts.
+    it 'agrees with the .awaiting_confirmation scope' do
+      check = { 'file_source_id' => 'MA-999' }
+      held = create(:grda_warehouse_upload, export_source_check: check)
+      uploads = [
+        held,
+        create(:grda_warehouse_upload, export_source_check: check.merge('acknowledged_at' => Time.current)),
+        create(:grda_warehouse_upload, export_source_check: check, delayed_job_id: 42),
+        create(:grda_warehouse_upload, export_source_check: check, percent_complete: 1.0),
+        create(:grda_warehouse_upload),
+      ]
+
+      expect(uploads.select(&:awaiting_confirmation?)).to eq([held])
+      expect(described_class.awaiting_confirmation.where(id: uploads.map(&:id)).to_a).to eq([held])
     end
   end
 end
