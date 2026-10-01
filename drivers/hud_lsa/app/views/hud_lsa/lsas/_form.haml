@@ -4,7 +4,8 @@
 %h3 Queue Report
 - default_coc_code = GrdaWarehouse::Config.get(:site_coc_codes)
 - report_versions = active_report_versions
-= simple_form_for @filter, as: :filter, url: hud_reports_lsas_path, data: { controller: 'filter-projects', 'filter-projects-supported-project-types-value' => @filter.relevant_project_types } do |f|
+-# The Missing Data button posts to a different path via formaction, which a per-form token would not match.
+= simple_form_for @filter, as: :filter, url: hud_reports_lsas_path, authenticity_token: form_authenticity_token, data: { controller: 'filter-projects', 'filter-projects-supported-project-types-value' => @filter.relevant_project_types } do |f|
   - content_for :filters_col_full do
     - coc_cols = if defined?(:report_versions) && report_versions.count > 1 then 'col-sm-3' else 'col-sm-6' end
     .hud-report-options
