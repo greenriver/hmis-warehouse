@@ -8066,6 +8066,11 @@ enum PickListType {
   Open Projects that can receive referrals
   """
   PROJECTS_RECEIVING_REFERRALS
+
+  """
+  Projects that can send direct CE referrals
+  """
+  PROJECTS_SENDING_DIRECT_CE_REFERRALS
   PROJECT_CONFIG_TYPES
   REFERRAL_OUTCOME
 
@@ -10127,6 +10132,7 @@ input ProjectConfigInput {
   projectId: ID
   projectType: ProjectType
   receivesDirectReferrals: Boolean
+  receivesDirectReferralsFrom: [ID!]
   supportsWaitlistReferrals: Boolean
 }
 
