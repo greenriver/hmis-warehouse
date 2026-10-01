@@ -28,6 +28,9 @@ task ce_define_az_workflows: [:environment] do
   templates = []
   Hmis::Hud::Base.transaction do
     builder = CeWorkflows::Az::WorkflowBuilder.new(data_source)
+    # Must run before the build, since the template validator checks that every decline reason
+    # offered by the step forms exists in the database.
+    builder.ensure_decline_reasons
     templates << builder.build_mc_direct_referral_workflow
   end
 

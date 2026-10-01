@@ -115,7 +115,11 @@ module GrdaWarehouse::WarehouseReports
       cleanup_unused_reports
     end
 
+    # HUD reports long predate their definition rows (added in #9619), so a
+    # recent created_at doesn't mean the report is new.
     def new_report?
+      return false if report_group == HUD_REPORT_GROUP
+
       created_at > Date.current - 2.weeks
     end
 

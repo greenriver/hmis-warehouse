@@ -2766,10 +2766,9 @@ module GrdaWarehouse::Hud
       # chronic_enrollments doesn't count as a new episode.
       # It is equivalent to always count that first enrollment
       # and then ignore it for the calculation
+      calculator = ClientHistory::Calculator.new(client: self, enrollments: residential_enrollments)
       episode_count = 1
-      chronic_enrollments.drop(1).map do |enrollment|
-        new_episode?(residential_enrollments: residential_enrollments, enrollment: enrollment)
-      end.count(true) + episode_count
+      chronic_enrollments.drop(1).count { |enrollment| calculator.new_episode?(enrollment: enrollment) } + episode_count
     end
 
     def length_of_episodes start_date:, end_date:, residential_enrollments: nil, chronic_enrollments: nil
@@ -2785,11 +2784,12 @@ module GrdaWarehouse::Hud
       # an episode already under way rather than being asked about.
       chronic_enrollments = ClientHistory::Calculator.in_episode_order(chronic_enrollments)
 
+      calculator = ClientHistory::Calculator.new(client: self, enrollments: residential_enrollments)
       episodes = []
       initial_chronic_enrollment = chronic_enrollments.first
       current_start = initial_chronic_enrollment.first_date_in_program
       chronic_enrollments.drop(1).map do |enrollment|
-        if new_episode?(residential_enrollments: residential_enrollments, enrollment: enrollment) # rubocop:disable Style/Next
+        if calculator.new_episode?(enrollment: enrollment) # rubocop:disable Style/Next
           days_served = chronic_enrollments.
             select do |e|
               e.last_date_in_program.blank? ||
@@ -2861,11 +2861,6 @@ module GrdaWarehouse::Hud
     private def enrollment_view_for(user)
       @enrollment_views ||= {}
       @enrollment_views[user.id] ||= ClientHistory::EnrollmentView.new(user: user)
-    end
-
-    def new_episode?(residential_enrollments:, enrollment:)
-      ClientHistory::Calculator.new(client: self, enrollments: residential_enrollments).
-        new_episode?(enrollment: enrollment)
     end
 
     # Include extensions at the end so they can override default behavior
