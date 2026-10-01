@@ -106,10 +106,17 @@ RSpec.describe GrdaWarehouse::Upload, type: :model do
       expect(upload.awaiting_confirmation?).to be false
     end
 
+    # with_lock reloads unscoped, so #confirm's locked re-check sees a row #cancel removed
+    it 'is false once cancelled, even when reloaded unscoped' do
+      observed.destroy!
+
+      expect(upload.reload.awaiting_confirmation?).to be false
+    end
+
     # Importers::HmisAutoMigrate::Base#upload builds records this way for the S3 and
     # Local importers: no check was run, no job id yet, nothing imported yet. Treating
-    # those as awaiting confirmation would label them on the index and let a posted
-    # confirmation reach an upload that was never offered one.
+    # those as awaiting confirmation would hide them from the index and let a posted
+    # confirmation or cancel reach an upload that was never offered one.
     it 'is false for an upload the automated importers created' do
       automated = GrdaWarehouse::Upload.new(
         percent_complete: 0.0,

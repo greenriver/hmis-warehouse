@@ -126,11 +126,12 @@ class UploadsController < ApplicationController
 
   # Backing out of the confirmation screen removes the held upload and its zip. The
   # lock keeps a confirm posted alongside this from queuing a file being removed.
+  # destroy! runs has_one_attached's purge_later, so the zip leaves S3 after commit
+  # rather than while the row is locked.
   def cancel
     cancelled = @upload.with_lock do
       next false unless @upload.awaiting_confirmation?
 
-      @upload.hmis_zip.purge
       @upload.destroy!
       true
     end

@@ -328,6 +328,8 @@ RSpec.describe UploadsController, type: :request do
   end
 
   describe 'POST cancel' do
+    include ActiveJob::TestHelper
+
     let!(:upload) do
       post_create(file: zip_upload(contents: export_csv(source_id: 'MA-999')))
       GrdaWarehouse::Upload.order(:id).last
@@ -337,7 +339,10 @@ RSpec.describe UploadsController, type: :request do
       blob = upload.hmis_zip.blob
       expect(Importing::HudZip::HmisAutoMigrateJob).not_to receive(:perform_later)
 
-      post cancel_data_source_upload_path(data_source, upload)
+      # The zip is purged by the PurgeJob destroy! enqueues, not inline
+      perform_enqueued_jobs(only: ActiveStorage::PurgeJob) do
+        post cancel_data_source_upload_path(data_source, upload)
+      end
 
       expect(response).to redirect_to(action: :index)
       expect(GrdaWarehouse::Upload.with_deleted.find(upload.id).deleted_at).to be_present
@@ -364,6 +369,23 @@ RSpec.describe UploadsController, type: :request do
       expect(response).to have_http_status(:not_found)
       expect(upload.reload.deleted_at).to be_nil
     end
+
+    # The cancel lands after #confirm's unlocked check but before its locked one, which
+    # reloads unscoped and so still finds the soft-deleted row.
+    it 'keeps a confirm racing it from queuing the removed file' do
+      allow(HmisCsvImporter::UploadValidityCheck::Result).to receive(:from_audit_h).and_wrap_original do |original, *args|
+        GrdaWarehouse::Upload.find(upload.id).destroy!
+        original.call(*args)
+      end
+      expect(Importing::HudZip::HmisAutoMigrateJob).not_to receive(:perform_later)
+
+      post confirm_data_source_upload_path(data_source, upload), params: {
+        grda_warehouse_upload: { short_name_confirmation: 'HV', dry_run: '0' },
+      }
+
+      expect(response).to redirect_to(action: :index)
+      expect(GrdaWarehouse::Upload.with_deleted.find(upload.id).export_source_check).not_to have_key('acknowledged_at')
+    end
   end
 
   # set_upload is shared, so scoping it for #confirm tightened these too
@@ -381,8 +403,8 @@ RSpec.describe UploadsController, type: :request do
   end
 
   describe 'GET index' do
-    # Cancel on the confirm screen is a plain link back here, so an upload held for
-    # confirmation and left alone is the cancelled case.
+    # Navigating away from the confirm screen, rather than pressing Cancel, leaves the
+    # held upload in place; the index still keeps it out of the list.
     it 'hides an unconfirmed upload' do
       post_create(file: zip_upload(contents: export_csv(source_id: 'MA-999')))
       expect(GrdaWarehouse::Upload.where(data_source: data_source).count).to eq(1)
