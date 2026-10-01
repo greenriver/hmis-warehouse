@@ -43,7 +43,7 @@ module GrdaWarehouse::Tasks
         scope = destination_client_scope
         scope = scope.where(id: client_ids) unless client_ids.nil?
         scope.in_batches(of: batch_size) do |batch|
-          rebuild_batch(batch.pluck(:id))
+          rebuild_batch_with_retry(batch.pluck(:id))
         end
 
         # Invalidate consent for clients whose ROI has expired but still have consent_form_id set
@@ -57,7 +57,7 @@ module GrdaWarehouse::Tasks
         expired_client_ids = expired_scope.pluck(:destination_client_id)
         GrdaWarehouse::Hud::Client.invalidate_consent!(expired_client_ids)
         # Replaces the expired rows; under Consent::Implied the client falls back to implied consent
-        expired_client_ids.each_slice(batch_size) { |ids| rebuild_batch(ids) }
+        expired_client_ids.each_slice(batch_size) { |ids| rebuild_batch_with_retry(ids) }
 
         # cleanup orphaned auth records where the client record no-longer exists at all
         orphan_ids = GrdaWarehouse::ClientRoiAuthorization.with_invalid_client.pluck(:id)
@@ -96,6 +96,21 @@ module GrdaWarehouse::Tasks
     end
 
     protected
+
+    # A batch locks hundreds of client rows in id order; a transaction updating the same clients in another
+    # order (a client merge) can deadlock against it. Postgres aborts one side, so retry the batch once.
+    def rebuild_batch_with_retry(client_ids)
+      attempts = 0
+      begin
+        attempts += 1
+        rebuild_batch(client_ids)
+      rescue ActiveRecord::Deadlocked => e
+        raise if attempts > 1
+
+        Rails.logger.warn("#{self.class.name}: deadlock on batch starting at client #{client_ids.first}, retrying: #{e.message}")
+        retry
+      end
+    end
 
     def upsert_authorizations(values)
       return if values.empty?

@@ -171,6 +171,43 @@ RSpec.describe GrdaWarehouse::Tasks::GenerateClientRoiAuthorizationsTask, type: 
         expect(roi_row).to have_attributes(status: 'revoked', expires_at: nil)
       end
     end
+
+    context 'when a full release has no expiration date under a Use Expiration Date release duration' do
+      before do
+        GrdaWarehouse::Config.delete_all
+        create(:config_b, release_duration: 'Use Expiration Date')
+        GrdaWarehouse::Config.invalidate_cache
+        client.update_columns(housing_release_status: GrdaWarehouse::Hud::Client.full_release_string, consent_form_id: 1, consent_expires_on: nil)
+      end
+
+      it 'builds no row and clears the consent columns on the client' do
+        described_class.rebuild_clients([client.id])
+        expect(roi_row).to be_nil
+        expect(client.reload).to have_attributes(housing_release_status: nil, consent_form_id: nil, consent_form_signed_on: nil)
+      end
+    end
+  end
+
+  describe 'deadlock retry' do
+    let!(:client) { create :grda_warehouse_hud_client, data_source: create(:destination_data_source), housing_release_status: GrdaWarehouse::Hud::Client.full_release_string }
+
+    it 'retries a batch once after a deadlock' do
+      calls = 0
+      allow(task).to receive(:rebuild_batch).and_wrap_original do |original, *args|
+        calls += 1
+        raise ActiveRecord::Deadlocked, 'deadlock detected' if calls == 1
+
+        original.call(*args)
+      end
+      task._perform
+      expect(calls).to eq(2)
+      expect(GrdaWarehouse::ClientRoiAuthorization.where(destination_client_id: client.id).pluck(:status)).to eq(['full'])
+    end
+
+    it 'raises when the retried batch deadlocks again' do
+      allow(task).to receive(:rebuild_batch).and_raise(ActiveRecord::Deadlocked, 'deadlock detected')
+      expect { task._perform }.to raise_error(ActiveRecord::Deadlocked)
+    end
   end
 
   describe '#roi_expiry_date' do

@@ -64,8 +64,8 @@ a warehouse-only concept.
   consent form.
 - `GrdaWarehouse::ClientFile#set_client_consent`, an `after_commit` on create and update. The
   only path from a file to the client consent columns; for consent forms it ends by rebuilding
-  the client's ROI row. `ClientFile#confirm_consent!` calls it directly after setting
-  `consent_form_confirmed`.
+  the client's ROI row. `ClientFile#confirm_consent!` only sets `consent_form_confirmed`; the
+  callbacks do the rest.
 - `GrdaWarehouse::Hud::Client#release_valid?(coc_codes: nil)`: true when
   `housing_release_status` starts with the active full-release string; with `coc_codes`, runs
   the `active_confirmed_consent_in_cocs` scope instead.

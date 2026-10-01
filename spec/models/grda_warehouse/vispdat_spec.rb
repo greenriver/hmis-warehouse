@@ -572,5 +572,22 @@ RSpec.describe GrdaWarehouse::Vispdat::Individual, type: :model do
       vispdat.update!(housing_release_confirmed: false)
       expect(GrdaWarehouse::ClientRoiAuthorization.visible_in_cocs([]).where(destination_client_id: client.id)).to be_empty
     end
+
+    # A VI-SPDAT release carries no signature or expiration date, so a dated release duration cannot compute expiry
+    ['One Year', 'Two Years', 'Use Expiration Date'].each do |release_duration|
+      context "under a #{release_duration} release duration" do
+        before do
+          GrdaWarehouse::Config.delete_all
+          create(:config_b, release_duration: release_duration)
+          GrdaWarehouse::Config.invalidate_cache
+        end
+
+        it 'clears the release from the client and builds no ROI authorization' do
+          create :vispdat, client: client, housing_release_confirmed: true
+          expect(client.reload.housing_release_status).to be_nil
+          expect(GrdaWarehouse::ClientRoiAuthorization.where(destination_client_id: client.id)).to be_empty
+        end
+      end
+    end
   end
 end

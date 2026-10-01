@@ -67,6 +67,13 @@ RSpec.describe GrdaWarehouse::ClientFile, type: :model do
           expect(file.active_consent_form?).to be true
         end
 
+        it 'rebuilds the ROI authorization once per confirmation' do
+          second_file.tag_list.add consent_tag.name
+          second_file.save!
+          expect(GrdaWarehouse::Tasks::GenerateClientRoiAuthorizationsTask).to receive(:rebuild_clients).once.and_call_original
+          second_file.confirm_consent!
+        end
+
         it 'creates a full ROI authorization for the client' do
           expect(GrdaWarehouse::ClientRoiAuthorization.where(destination_client_id: file.client_id).pluck(:status)).to eq(['full'])
         end

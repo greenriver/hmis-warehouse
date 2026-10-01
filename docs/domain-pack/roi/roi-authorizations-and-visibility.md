@@ -100,8 +100,10 @@ when changing what CAS receives about consent.
 
 `GenerateClientRoiAuthorizationsTask#_perform(client_ids: nil, batch_size: 500)` runs under a
 `GrdaWarehouseBase.with_advisory_lock` (timeout 0, so a concurrent run skips) and passes each
-batch of destination client ids to `rebuild_batch`. `rebuild_clients` calls `rebuild_batch`
-directly, outside the advisory lock.
+batch of destination client ids to `rebuild_batch_with_retry`, which retries a batch once on
+`ActiveRecord::Deadlocked` (a transaction updating the same clients in a different order, such as a
+client merge, can deadlock against the batch's row locks). `rebuild_clients` calls `rebuild_batch`
+directly, outside the advisory lock and without the retry.
 
 `rebuild_batch` runs in a `GrdaWarehouseBase.transaction` and reads its clients with
 `SELECT ... FOR UPDATE` in id order, so a consent column write waits for an in-progress rebuild
