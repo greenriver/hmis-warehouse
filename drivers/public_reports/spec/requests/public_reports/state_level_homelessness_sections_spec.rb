@@ -262,6 +262,27 @@ RSpec.describe 'PublicReports::WarehouseReports::StateLevelHomelessness sections
     end
   end
 
+  describe 'server-rendered who charts' do
+    let(:page) do
+      get who_public_reports_warehouse_reports_state_level_homelessness_path(report)
+      Nokogiri::HTML(response.body)
+    end
+
+    it 'renders the current period of each donut with labelled segments and a table' do
+      donut = page.at_css('figure.chart--donut[data-donut-id="all-people"]')
+
+      expect(donut.at_css('svg title').text).to eq('All People: 19,000 People')
+      segments = donut.css('circle.donut-segment')
+      expect(segments.map { |s| s['aria-label'] }).to eq(['All People, Sheltered: 85%', 'All People, Unsheltered: 15%'])
+      expect(segments.map { |s| [s['stroke-dasharray'], s['stroke-dashoffset']] }).to eq([['85 15', '25'], ['15 85', '-60']])
+      expect(donut.css('.chart-data table tbody tr').map { |tr| tr.text.squish }).to eq(['Sheltered People 85%', 'Unsheltered People 15%'])
+    end
+
+    it 'reports a suppressed donut total as less than 100' do
+      expect(page.at_css('figure.chart--donut[data-donut-id="veterans"] svg title').text).to eq('Veterans: less than 100 Veterans')
+    end
+  end
+
   describe 'design tokens' do
     let(:base_css) { File.read(Rails.root.join('drivers/public_reports/lib/public_reports/assets/public_report.css')) }
 

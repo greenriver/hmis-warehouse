@@ -22,8 +22,8 @@
       change time period
       %span.visually-hidden for Population Sheltered vs. Unsheltered
   .chart-grid.chart-grid--2
-    %figure.chart.chart--donut{ data: { component: 'donut', 'donut-id' => 'all-people' } }
-    %figure.chart.chart--donut{ data: { component: 'donut', 'donut-id' => 'veterans' } }
+    = render 'public_reports/shared/donut_chart', id: 'all-people', donut: all_people, period_index: current_index
+    = render 'public_reports/shared/donut_chart', id: 'veterans', donut: veterans, period_index: current_index
 
   %h3.who-section-heading= household_type['title']
   %p.who-controls__period-note
