@@ -36,6 +36,10 @@ RSpec.describe PublicReports::WhoCharts do
     expect(described_class.contrast_ring_style('#14558F')).to eq('')
   end
 
+  it 'gives no ring and no inline label for a colour that is not six-digit hex, as charts.js does' do
+    expect([described_class.contrast_ring_style('#abc'), described_class.inline_label_color(50, 'red')]).to eq(['', nil])
+  end
+
   it 'appends the unit to a row label unless the label already ends with it' do
     expect([described_class.row_label('Sheltered', 'People'), described_class.row_label('Children-Only Households', 'Households')]).to eq(['Sheltered People', 'Children-Only Households'])
   end

@@ -25,7 +25,10 @@ module PublicReports
       value.is_a?(Float) && value == value.truncate ? value.to_i.to_s : value.to_s
     end
 
+    # NaN, like charts.js, so every contrast check fails and no ring or label is drawn.
     def relative_luminance(hex)
+      return Float::NAN unless hex.to_s.match?(/\A#\h{6}\z/)
+
       r, g, b = [1, 3, 5].map do |i|
         c = hex[i, 2].to_i(16) / 255.0
         c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055)**2.4
@@ -34,7 +37,7 @@ module PublicReports
     end
 
     def contrast_ratio(first, second)
-      high, low = [first, second].sort.reverse
+      high, low = first >= second ? [first, second] : [second, first]
       (high + 0.05) / (low + 0.05)
     end
 
