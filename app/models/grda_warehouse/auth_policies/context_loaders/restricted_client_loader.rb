@@ -21,7 +21,7 @@ module GrdaWarehouse::AuthPolicies::ContextLoaders
       return false unless client_id # keep first: callers rely on nil costing no query
       return @hidden[client_id] if @hidden.key?(client_id)
 
-      @miss_tracker&.record(:client_restrictions, client_id)
+      @miss_tracker&.call(:client_restrictions, client_id)
       preload([client_id])
       @hidden[client_id]
     end

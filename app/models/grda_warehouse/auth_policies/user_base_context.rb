@@ -76,7 +76,7 @@ class GrdaWarehouse::AuthPolicies::UserBaseContext
   def preload_client(client_id)
     return if client_id.nil? || preloaded_client_ids.include?(client_id)
 
-    preload_miss_tracker.record(:destination_clients, client_id)
+    preload_miss_tracker.call(:destination_clients, client_id)
     preload_client_dependencies([client_id])
   end
 
