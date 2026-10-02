@@ -46,18 +46,6 @@ RSpec.describe GrdaWarehouse::HiddenClients, type: :model do
     end
   end
 
-  describe '.inactive_ids' do
-    it 'returns the marked sources and the destinations they are linked to' do
-      expect(described_class.inactive_ids).to contain_exactly(inactive_source.id, inactive_destination.id)
-    end
-
-    it 'does not reach a destination through a soft-deleted link' do
-      GrdaWarehouse::WarehouseClient.where(source_id: inactive_source.id).update_all(deleted_at: Time.current)
-
-      expect(described_class.inactive_ids).to contain_exactly(inactive_source.id)
-    end
-  end
-
   describe '.inactive_destination_ids' do
     it 'returns the destinations of marked sources and not the sources themselves' do
       expect(described_class.inactive_destination_ids).to eq(Set[inactive_destination.id])
@@ -69,6 +57,12 @@ RSpec.describe GrdaWarehouse::HiddenClients, type: :model do
       asked = [inactive_source.id, inactive_destination.id, open_client.id, restricted_source.id]
 
       expect(described_class.inactive_subset(asked)).to eq(Set[inactive_source.id, inactive_destination.id])
+    end
+
+    it 'does not reach a destination through a soft-deleted link' do
+      GrdaWarehouse::WarehouseClient.where(source_id: inactive_source.id).update_all(deleted_at: Time.current)
+
+      expect(described_class.inactive_subset([inactive_source.id, inactive_destination.id])).to eq(Set[inactive_source.id])
     end
 
     it 'returns an empty set for no ids without querying' do
