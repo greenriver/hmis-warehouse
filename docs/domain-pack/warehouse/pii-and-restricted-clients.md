@@ -324,7 +324,9 @@ An identity is inactive when that date is older than today minus the window.
 
 Marks are one `ClientRetentionMark` row per source client, written all-or-none per identity
 (`insert_all` unique on `client_id`); sources of evaluated identities that are not inactive lose
-their mark. Each newly marked or cleared identity gets a `ClientRetentionLogEntry` holding only
+their mark. The unmark set comes from the identity's live `warehouse_clients` links, not the
+rollup, so it includes soft-deleted sources: the rollup skips them, but their marks would still
+hide the identity. Each newly marked or cleared identity gets a `ClientRetentionLogEntry` holding only
 identifiers (destination id, source client id, data source, `PersonalID`), never PII. Active
 identities expiring within `EXPIRING_WITHIN_DAYS` go to `ClientRetentionExpiringClient`, read by
 the Records Expiring Soon report. A failed run records `failed_at`; marks from completed batches

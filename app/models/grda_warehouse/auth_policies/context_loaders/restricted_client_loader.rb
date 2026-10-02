@@ -59,7 +59,7 @@ module GrdaWarehouse::AuthPolicies::ContextLoaders
     private def inactive?(client_id)
       return inactive_lookups[client_id] if inactive_lookups.key?(client_id)
 
-      @miss_tracker&.record(:client_restrictions, client_id)
+      @miss_tracker&.call(:client_restrictions, client_id)
       inactive_lookups[client_id] = GrdaWarehouse::HiddenClients.inactive_subset([client_id]).include?(client_id)
     end
 

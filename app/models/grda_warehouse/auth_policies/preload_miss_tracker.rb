@@ -31,7 +31,7 @@ class GrdaWarehouse::AuthPolicies::PreloadMissTracker
     @reported_kinds = Set.new
   end
 
-  def record(kind, id)
+  def call(kind, id)
     ids = @missed_ids[kind]
     ids << id
     return if ids.size <= THRESHOLD || @reported_kinds.include?(kind)

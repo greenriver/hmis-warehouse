@@ -40,7 +40,7 @@ class GrdaWarehouse::AuthPolicies::UserLegacyContext < GrdaWarehouse::AuthPolici
   # policy classes, same as #project_role_permissions/#direct_client_role_permissions).
   def enrolled_project_ids_for_client(client_id)
     unless @enrolled_project_ids_by_client.key?(client_id)
-      preload_miss_tracker.record(:enrolled_projects, client_id)
+      preload_miss_tracker.call(:enrolled_projects, client_id)
       preload_enrolled_project_ids_by_client([client_id])
     end
     @enrolled_project_ids_by_client[client_id] ||= []
@@ -168,7 +168,7 @@ class GrdaWarehouse::AuthPolicies::UserLegacyContext < GrdaWarehouse::AuthPolici
 
   def direct_client_access_group_ids(client_id)
     unless @access_group_ids_by_client.key?(client_id)
-      preload_miss_tracker.record(:direct_client_grants, client_id)
+      preload_miss_tracker.call(:direct_client_grants, client_id)
       preload_access_group_ids_by_client([client_id])
     end
     @access_group_ids_by_client[client_id] ||= []
