@@ -126,6 +126,12 @@ RSpec.describe GrdaWarehouse::ClientRetentionMark, type: :model do
         expect(rollup[:last_activity_on]).to eq(2.years.ago.to_date)
       end
 
+      it 'keeps the entry date of an enrollment whose update is dated in the future' do
+        open_enrollment.update_columns(EntryDate: 2.years.ago.to_date, DateUpdated: 1.year.from_now)
+
+        expect(rollup[:last_activity_on]).to eq(2.years.ago.to_date)
+      end
+
       it 'counts an update to the source client row' do
         source_two.update_columns(DateUpdated: 6.years.ago.to_date)
 
