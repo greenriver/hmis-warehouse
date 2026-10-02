@@ -131,7 +131,7 @@ RSpec.describe 'PublicReports::WarehouseReports::StateLevelHomelessness sections
       get pit_public_reports_warehouse_reports_state_level_homelessness_path(report)
       page = Nokogiri::HTML(response.body)
 
-      expect(page.at_css('#glossary h3#glossary-es-so-sh-th')&.text).to eq('ES / SO / SH / TH')
+      expect(page.at_css('#glossary dt#glossary-es-so-sh-th')&.text).to eq('ES / SO / SH / TH')
       icons = page.css('.chart-title a.info-icon')
       expect(icons.map { |a| a['href'] }).to eq(['#glossary-es-so-sh-th', '#glossary-es-so-sh-th'])
       tooltip_ids = icons.map { |a| a['aria-describedby'] }
