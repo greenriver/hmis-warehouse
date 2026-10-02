@@ -521,11 +521,11 @@ module PublicReports
         client_ids = Set.new
         data = {}
         census_data = {}
-        full_pop = get_us_census_population_by_race(year: date.year) || 0
+        full_pop = (get_us_census_population_by_race(year: date.year) || 0).to_f
         races.each do |race_code, label|
           data[label] ||= Set.new
           race_pop = get_us_census_population_by_race(race_code: race_code, year: date.year) || 0
-          census_data[label] = full_pop.positive? ? (race_pop.to_f / full_pop.to_f) * 100.0 : 0.0
+          census_data[label] = full_pop.positive? ? (race_pop.to_f / full_pop) * 100.0 : 0.0
         end
 
         scope = homeless_scope.with_service_between(
