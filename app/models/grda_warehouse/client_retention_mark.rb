@@ -82,7 +82,7 @@ class GrdaWarehouse::ClientRetentionMark < GrdaWarehouseBase
     ),
     open_activity AS (
       SELECT destination_id, MAX(activity_on) AS activity_on FROM (
-        SELECT destination_id, GREATEST("EntryDate", "DateUpdated"::date, "ExitDate") AS activity_on FROM enrollments
+        SELECT e.destination_id, d.activity_on FROM enrollments e CROSS JOIN LATERAL (VALUES (e."EntryDate"), (e."DateUpdated"::date), (e."ExitDate")) d(activity_on)
         UNION ALL
         SELECT l.destination_id, s."DateProvided"
           FROM links l JOIN "Services" s ON s."PersonalID" = l."PersonalID" AND s.data_source_id = l.data_source_id AND s."DateDeleted" IS NULL
