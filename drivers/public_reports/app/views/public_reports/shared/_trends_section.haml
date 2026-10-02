@@ -1,0 +1,11 @@
+- chart_keys = local_assigns.fetch(:charts, ['pit_chart', 'inflow_outflow'])
+- settings = @report.settings
+- definitions = { 'pit_chart' => { title: Translation.translate('Total Number of People Experiencing Homelessness'), colors: [settings.color(0, :population)] }, 'inflow_outflow' => { title: Translation.translate('Total Number of People Entering and Exiting Homelessness'), colors: [settings.color(1, :population), settings.color(2, :population)] } }
+%section.section{ 'aria-labelledby' => 'trends-heading' }
+  %h2#trends-heading= Translation.translate('Trends over time')
+  .chart-grid.chart-grid--stack
+    - chart_keys.each do |key|
+      = render 'public_reports/shared/line_chart', chart: PublicReports::LineChart.new(labels: data[key]['labels'], series: data[key]['series']), title: definitions[key][:title], colors: definitions[key][:colors], term: PublicReports::StateLevelHomelessness::PROJECT_TYPES_TERM
+  - chart_keys.map { |key| data[key]['note'] }.compact.uniq.each do |note|
+    %p.note= note
+  = render 'public_reports/shared/data_note', left: true

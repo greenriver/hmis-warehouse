@@ -1,8 +1,6 @@
 - if @report.renderable?
-  - data = @report.parsed_pre_calculated_data
-  - who = data['who'].merge('breakdown' => {})
-  %section
-    = render 'public_reports/shared/who_section', who: who, include_breakdown: false
-    = render 'public_reports/shared/glossary'
+  - who = @report.parsed_pre_calculated_data['who'].merge('breakdown' => {})
+  = render 'public_reports/shared/population_section', who: who, include_breakdown: false
+  = render 'public_reports/shared/glossary'
 - else
   = render 'public_reports/shared/stale'

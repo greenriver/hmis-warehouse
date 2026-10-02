@@ -1,7 +1,5 @@
 - if @report.renderable?
-  - data = @report.parsed_pre_calculated_data
-  %section
-    = render 'public_reports/shared/who_section', who: data['who'], include_breakdown: true
-    = render 'public_reports/shared/glossary'
+  = render 'public_reports/shared/population_section', who: @report.parsed_pre_calculated_data['who'], include_breakdown: true
+  = render 'public_reports/shared/glossary'
 - else
   = render 'public_reports/shared/stale'

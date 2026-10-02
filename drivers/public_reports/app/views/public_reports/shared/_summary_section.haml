@@ -1,0 +1,12 @@
+- standalone = local_assigns.fetch(:standalone, false)
+- tiles = data['summary']['tiles']
+- note = "in #{data['summary']['year']}"
+%section.section.stat-summary{ class: ('stat-summary--standalone' if standalone), 'aria-labelledby' => 'summary-heading' }
+  = render 'public_reports/shared/summary_heading'
+  - if standalone
+    = render 'public_reports/shared/kpi_tiles', tiles: tiles, note: note
+    = render 'public_reports/shared/data_note', left: true
+  - else
+    .card
+      = render 'public_reports/shared/kpi_tiles', tiles: tiles, note: note
+      = render 'public_reports/shared/data_note', left: true

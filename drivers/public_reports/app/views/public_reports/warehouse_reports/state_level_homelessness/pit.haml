@@ -1,16 +1,5 @@
 - if @report.renderable?
-  - data = @report.parsed_pre_calculated_data
-  - pit_chart = data['pit_chart']
-  - inflow_outflow = data['inflow_outflow']
-  %section
-    = render 'public_reports/shared/line_chart', chart: PublicReports::LineChart.new(labels: pit_chart['labels'], series: pit_chart['series']), title: Translation.translate('Total Number of People Experiencing Homelessness'), colors: [@report.settings.color(0, :population)], term: PublicReports::StateLevelHomelessness::PROJECT_TYPES_TERM
-    - if pit_chart['note']
-      %p.chart-note= pit_chart['note']
-
-    = render 'public_reports/shared/line_chart', chart: PublicReports::LineChart.new(labels: inflow_outflow['labels'], series: inflow_outflow['series']), title: Translation.translate('Total Number of People Entering and Exiting Homelessness'), colors: [@report.settings.color(1, :population), @report.settings.color(2, :population)], term: PublicReports::StateLevelHomelessness::PROJECT_TYPES_TERM
-    - if inflow_outflow['note']
-      %p.chart-note= inflow_outflow['note']
-
-    = render 'public_reports/shared/glossary'
+  = render 'public_reports/shared/trends_section', data: @report.parsed_pre_calculated_data
+  = render 'public_reports/shared/glossary'
 - else
   = render 'public_reports/shared/stale'

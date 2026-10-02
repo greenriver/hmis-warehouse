@@ -1,0 +1,4 @@
+%section.section{ 'aria-labelledby' => 'need-heading' }
+  %h2#need-heading= Translation.translate('Where is the need?')
+  = render 'public_reports/shared/town_map', map: data['map'], svg: @report.map_svg
+  = render 'public_reports/shared/data_note'

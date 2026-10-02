@@ -208,6 +208,60 @@ RSpec.describe 'PublicReports::WarehouseReports::StateLevelHomelessness sections
     expect(Nokogiri::HTML(response.body).css('select#town-map-period').size).to eq(1)
   end
 
+  describe 'page structure' do
+    it 'gives each topic on the raw page its own labelled section and h2' do
+      get raw_public_reports_warehouse_reports_state_level_homelessness_path(report)
+      page = Nokogiri::HTML(response.body)
+      labels = page.css('section[aria-labelledby]').map { |s| s['aria-labelledby'] }
+
+      expect(labels).to eq(['summary-heading', 'trends-heading', 'need-heading', 'who-heading'])
+      labels.each { |id| expect(page.at_css("section h2##{id}")).not_to be_nil }
+      expect(page.css('section:not([aria-labelledby])')).to be_empty
+    end
+
+    it 'wraps the raw summary tiles in a card and leaves the standalone summary without one' do
+      get raw_public_reports_warehouse_reports_state_level_homelessness_path(report)
+      expect(Nokogiri::HTML(response.body).css('section.stat-summary > .card > .stat-grid').size).to eq(1)
+
+      get summary_public_reports_warehouse_reports_state_level_homelessness_path(report)
+      page = Nokogiri::HTML(response.body)
+      expect(page.css('section.stat-summary.stat-summary--standalone > .stat-grid').size).to eq(1)
+      expect(page.css('.card')).to be_empty
+    end
+
+    it 'stacks the trend charts and states the partial-year note once' do
+      get pit_public_reports_warehouse_reports_state_level_homelessness_path(report)
+      page = Nokogiri::HTML(response.body)
+
+      expect(page.css('.chart-grid--stack > figure.chart--line').size).to eq(2)
+      expect(page.css('#trends-heading ~ p.note').size).to eq(1)
+      expect(page.css('.chart-note')).to be_empty
+    end
+
+    it 'shows only the entering and exiting chart on that section' do
+      get entering_exiting_public_reports_warehouse_reports_state_level_homelessness_path(report)
+      titles = Nokogiri::HTML(response.body).css('figure.chart--line figcaption').map { |f| f.text.strip }
+
+      expect(titles).to eq(['Total Number of People Entering and Exiting Homelessness'])
+    end
+
+    it 'ends each raw-page section with its own data note and none outside the container' do
+      get raw_public_reports_warehouse_reports_state_level_homelessness_path(report)
+      page = Nokogiri::HTML(response.body)
+      notes = page.css('section > p.data-note, section .card > p.data-note').map(&:text)
+
+      expect(notes).to eq(['Data updated through Dec 31, 2025'] * 4)
+      expect(page.css('body > p.data-note')).to be_empty
+    end
+
+    it 'adds the published date after the glossary on the raw page' do
+      report.update_column(:completed_at, Time.zone.parse('2026-01-05 10:00'))
+      get raw_public_reports_warehouse_reports_state_level_homelessness_path(report)
+
+      expect(Nokogiri::HTML(response.body).css('.container > p.data-note').map(&:text)).to eq(['Date published: Jan  5, 2026'])
+    end
+  end
+
   describe 'design tokens' do
     let(:base_css) { File.read(Rails.root.join('drivers/public_reports/lib/public_reports/assets/public_report.css')) }
 
