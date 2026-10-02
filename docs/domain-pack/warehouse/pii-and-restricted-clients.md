@@ -97,7 +97,7 @@ Restriction:
   before checking a list of clients; see `authorization/warehouse-policies.md`.
 - `client.pii_restricted?(user:)`.
 - `GrdaWarehouse::HiddenClients.not_hidden(column)` (Arel predicate for queries),
-  `.restricted_ids`, `.inactive_ids`, `.inactive_destination_ids`, `.inactive_subset(ids)`.
+  `.restricted_ids`, `.inactive_destination_ids`, `.inactive_subset(ids)`.
 - `GrdaWarehouse::Hud::Client.text_search(text, client_scope:)`,
   `.strict_search(criteria, client_scope:)`, `client.potential_matches`;
   `ClientSearch.text_searcher(text, sorted:, name_and_ssn_filter:)`;
@@ -320,6 +320,8 @@ global window is `nil`. Under a zero-timeout advisory lock it creates a
 `GrdaWarehouse::ClientRetentionRun`, walks every destination client in batches of `BATCH_SIZE`,
 and calls `ClientRetentionMark.rollup_activity`, which computes per destination the newest
 activity date across live sources and the longest applicable window among their data sources.
+Soft-deleted rows are skipped, and each date after today is dropped on its own, so one
+future-dated field never hides the other dates on the same row.
 An identity is inactive when that date is older than today minus the window.
 
 Marks are one `ClientRetentionMark` row per source client, written all-or-none per identity
