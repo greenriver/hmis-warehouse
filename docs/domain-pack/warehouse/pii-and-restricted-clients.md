@@ -322,6 +322,8 @@ global window is `nil`. Under a zero-timeout advisory lock it creates a
 `GrdaWarehouse::ClientRetentionRun`, walks every destination client in batches of `BATCH_SIZE`,
 and calls `ClientRetentionMark.rollup_activity`, which computes per destination the newest
 activity date across live sources and the longest applicable window among their data sources.
+Soft-deleted rows are skipped, and each date after today is dropped on its own, so one
+future-dated field never hides the other dates on the same row.
 An identity is inactive when that date is older than today minus the window.
 
 Marks are one `ClientRetentionMark` row per source client, written all-or-none per identity
