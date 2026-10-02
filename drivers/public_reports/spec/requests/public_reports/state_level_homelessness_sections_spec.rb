@@ -292,6 +292,18 @@ RSpec.describe 'PublicReports::WarehouseReports::StateLevelHomelessness sections
       expect(segments.last.at_css('span')).to be_nil
       expect(segments.last['style']).to include('box-shadow:inset 0 0 0 1px var(--color-ink)')
     end
+
+    it 'renders both race bars, leaving out categories with no value but keeping them in the table' do
+      chart = page.at_css('.chart--stacked-bar[data-chart-id="race"][role="group"]')
+      bars = chart.css('.stacked-bar').to_h { |bar| [bar.at_css('.stacked-bar__label').text, bar.css('.stacked-bar__segment').map { |s| s['aria-label'] }] }
+
+      expect(chart.at_css('p#chart-title-race').text).to eq('19,914 People')
+      expect(bars).to eq(
+        'Homeless Population' => ['Homeless Population, White: 44.5%', 'Homeless Population, Other or Unknown: 0.9%'],
+        'Overall Population' => ['Overall Population, White: 71.4%'],
+      )
+      expect(chart.css('tbody tr').map { |tr| tr.css('th, td').map { |c| c.text.squish } }).to eq([['White', '44.5%', '71.4%'], ['Other or Unknown', '0.9%', '—']])
+    end
   end
 
   describe 'design tokens' do

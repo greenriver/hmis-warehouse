@@ -1,0 +1,36 @@
+- homeless = race['homeless'][period_index]
+- rows = race['labels'].each_with_index.map { |label, i| { label: label, homeless: homeless[i], overall: race['overall'][i], color: race['colors'][label] || '#999' } }
+- title = PublicReports::WhoCharts.format_total(race['totals'][period_index], 'People')
+.chart.chart--stacked-bar{ data: { component: 'stacked-bar', 'chart-id' => 'race' }, role: 'group', 'aria-labelledby' => 'chart-title-race' }
+  %p.chart-title#chart-title-race= title
+  - [[:homeless, 'homelessPct', categories[0]], [:overall, 'overallPct', categories[1]]].each do |key, data_key, population_label|
+    .stacked-bar{ data: { key: data_key } }
+      %p.stacked-bar__label= population_label
+      .stacked-bar__track
+        - rows.each_with_index do |row, index|
+          - value = row[key]
+          - next if value.nil? || value <= 0
+          - pct = PublicReports::WhoCharts.js_number(value)
+          - label_text = "#{row[:label]}: #{pct}%"
+          - inline_color = PublicReports::WhoCharts.inline_label_color(value, row[:color])
+          .chart-point{ data: { index: index }, style: "flex-basis:#{pct}%" }
+            .stacked-bar__segment{ style: "background:#{row[:color]};#{PublicReports::WhoCharts.contrast_ring_style(row[:color])}", tabindex: 0, role: 'img', 'aria-label' => "#{population_label}, #{label_text}" }
+              - if inline_color
+                %span{ 'aria-hidden' => 'true', style: "color:#{inline_color}" }= "#{pct}%"
+            .chart-tooltip.chart-tooltip--html{ 'aria-hidden' => 'true' }= label_text
+  .chart-data.chart-data--legend
+    %table
+      %caption.visually-hidden= "#{title} — data table"
+      %thead
+        %tr
+          %th{ scope: 'col' } Category
+          %th{ scope: 'col' }= categories[0]
+          %th{ scope: 'col' }= categories[1]
+      %tbody
+        - rows.each do |row|
+          %tr
+            %th{ scope: 'row' }
+              %span.swatch{ style: "background:#{row[:color]};#{PublicReports::WhoCharts.contrast_ring_style(row[:color])}" }
+              = row[:label]
+            %td= row[:homeless].nil? ? '—' : "#{PublicReports::WhoCharts.js_number(row[:homeless])}%"
+            %td= row[:overall].nil? ? '—' : "#{PublicReports::WhoCharts.js_number(row[:overall])}%"

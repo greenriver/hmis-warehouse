@@ -43,7 +43,7 @@
     %a{ href: '#who-period-select' }
       change time period
       %span.visually-hidden= " for #{Translation.translate('Racial Composition')}"
-  .chart.chart--stacked-bar{ data: { component: 'stacked-bar', 'chart-id' => 'race' } }
+  = render 'public_reports/shared/race_bar_chart', race: who['race'], categories: who['raceTitleCategories'], period_index: current_index
 
   - if include_breakdown
     - default_grouping_label = who['breakdownGroupings']['household_type']['label']

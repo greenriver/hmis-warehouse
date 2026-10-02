@@ -146,17 +146,14 @@
       if (status) status.textContent = "Showing data for " + data.periods[periodIdx] + ".";
     }
 
-    function updatePeriod(isInitial) {
+    function updatePeriod() {
       var periodIdx = Number(periodSelect.value);
       updateDonuts(periodIdx);
       updateHouseholdType(periodIdx);
       updateRace(periodIdx);
       updateBreakdownRows(periodIdx);
       updateCurrentPeriodLabels(periodIdx);
-      // The initial render fills placeholders on load, not a real change —
-      // the live region stays silent until the reader actually picks a
-      // different period (see the markup comment on data-who-period-status).
-      if (!isInitial) announcePeriod(periodIdx);
+      announcePeriod(periodIdx);
     }
 
     function updateGrouping() {
@@ -169,10 +166,8 @@
       });
     }
 
-    if (periodSelect) periodSelect.addEventListener("change", function () { updatePeriod(false); });
+    if (periodSelect) periodSelect.addEventListener("change", updatePeriod);
     if (groupingSelect) groupingSelect.addEventListener("change", updateGrouping);
-
-    updatePeriod(true);
   });
 })();
 
