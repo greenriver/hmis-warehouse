@@ -227,14 +227,16 @@ module HopwaCaper::Generators::Fy2026::Sheets
         row.append_cell_members(members: members)
       end
 
-      # Template formula is the leasing, operating, hotel-motel, and other household rows, minus
-      # households in more than one. That reduces to the operating row: every enrolled household.
+      # Template formula is the leasing, operating, other (and hotel-motel on ST-TFBH) household rows,
+      # minus households in more than one. That reduces to the operating row: every enrolled household.
       facility_row(sheet, label: 'Total Deduplicated Household Count') do |fac, row|
         members = heads_of_household_for(relevant_enrollments.where(project_id: fac.id))
         row.append_cell_members(members: members)
       end
     end
 
+    # Deposits on a facility enrollment count as Leasing support. This is a team decision; the
+    # HOPWA HMIS Manual lists security and utility deposits under Permanent Housing Placement.
     # 2: 'Security deposits'
     # 3: 'Utility deposits'
     def leasing_household_ids(fac)

@@ -103,10 +103,12 @@ RSpec.describe HopwaCaper::Generators::Fy2026::Sheets::StTfbhSheet, type: :model
     create_leasing_service(other_enrollment)
 
     _, rows = run_and_extract_rows([project], 'Q9')
-    # hoh_client and other_member share one leasing household. Every household gets operating support.
-    # other_member is not counted separately.
+    # hoh_client and other_member share one leasing household. Every household gets operating support,
+    # so only hoh_client's household received more than one type. other_member is not counted separately.
+    expect(rows.fetch("How many households received #{activity_label} Facility-Based Housing Leasing support for each facility?")).to eq(1)
     expect(rows.fetch("How many households received #{activity_label} Facility-Based Housing Operating support for each facility?")).to eq(2)
     expect(rows.fetch("How many households received Other types of #{activity_label} Facility-Based Housing support for each facility?")).to be_blank
+    expect(rows.fetch('How many households received more than one type of ST-TFBH for each facility?')).to eq(1)
     expect(rows.fetch('Total Deduplicated Household Count')).to eq(2)
   end
 

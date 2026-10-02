@@ -264,7 +264,7 @@ RSpec.describe HopwaCaper::Generators::Fy2026::Sheets::PFbhSheet, type: :model d
     expect(rows.fetch('Total Deduplicated Household Count')).to eq(2)
   end
 
-  it 'household support rows add up to the deduplicated count when a head of household re-enters' do
+  it 'counts a head of household who re-enters the facility once in each support row' do
     # hoh_client heads a second household in the same facility with no leasing service
     create_hiv_positive_enrollment(
       client: hoh_client,
@@ -274,13 +274,10 @@ RSpec.describe HopwaCaper::Generators::Fy2026::Sheets::PFbhSheet, type: :model d
     )
 
     _, rows = run_and_extract_rows([project], 'Q10')
-    leasing = rows.fetch("How many households received #{activity_label} Facility-Based Housing Leasing support for each facility?")
-    operating = rows.fetch("How many households received #{activity_label} Facility-Based Housing Operating support for each facility?")
-    more_than_one = rows.fetch('How many households received more than one type of P-FBH for each facility?')
-
-    # template formula for the deduplicated count; the hotel-motel and other rows are always blank
-    expect(leasing + operating - more_than_one).to eq(rows.fetch('Total Deduplicated Household Count'))
-    expect(operating).to eq(2)
+    expect(rows.fetch("How many households received #{activity_label} Facility-Based Housing Leasing support for each facility?")).to eq(1)
+    expect(rows.fetch("How many households received #{activity_label} Facility-Based Housing Operating support for each facility?")).to eq(2)
+    expect(rows.fetch('How many households received more than one type of P-FBH for each facility?')).to eq(1)
+    expect(rows.fetch('Total Deduplicated Household Count')).to eq(2)
   end
 
   it 'correctly attributes data to multiple facilities' do
