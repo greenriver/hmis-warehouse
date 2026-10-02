@@ -194,4 +194,35 @@ RSpec.describe PublicReports::StateLevelHomelessness, type: :model do
       expect(leaks).to eq([])
     end
   end
+
+  context 'with census race populations for the state CoC' do
+    before do
+      coc = GrdaWarehouse::Shape::Coc.create!(st: 'MA', cocnum: 'MA-500', full_geoid: 'CUSTOMCOCUSMA-500')
+      populations = {
+        'POP::TOTAL' => 1000,
+        'POP::WHITE_ALONE' => 907,
+        'POP::BLACK_OR_AFRICAN_AMERICAN_ALONE' => 50,
+        'POP::AMERICAN_INDIAN_AND_ALASKA_NATIVE_ALONE' => 2,
+        'POP::ASIAN_ALONE' => 18,
+        'POP::NATIVE_HAWAIIAN_AND_OTHER_PACIFIC_ISLANDER_ALONE' => 1,
+        'POP::SOME_OTHER_RACE_ALONE' => 7,
+        'POP::TWO_OR_MORE_RACES' => 15,
+      }
+      populations.each_with_index do |(internal_name, value), i|
+        variable = GrdaWarehouse::UsCensusApi::CensusVariable.create!(
+          year: 2024, dataset: 'acs5', name: "B0200#{i}_001E", label: internal_name, concept: 'Race',
+          census_group: 'B02001', census_attributes: "B0200#{i}_001EA", internal_name: internal_name, created_on: Date.current
+        )
+        GrdaWarehouse::UsCensusApi::CensusValue.create!(
+          census_variable: variable, value: value, full_geoid: coc.full_geoid, census_level: 'CUSTOM', created_on: Date.current,
+        )
+      end
+    end
+
+    it 'stores the overall population share of each race as a number' do
+      race = data['who']['race']
+
+      expect(race['overall'][race['labels'].index('White')]).to eq(90.7)
+    end
+  end
 end

@@ -304,6 +304,15 @@ RSpec.describe 'PublicReports::WarehouseReports::StateLevelHomelessness sections
       )
       expect(chart.css('tbody tr').map { |tr| tr.css('th, td').map { |c| c.text.squish } }).to eq([['White', '44.5%', '71.4%'], ['Other or Unknown', '0.9%', '—']])
     end
+
+    it 'renders race bars from reports that stored census shares as strings' do
+      stored = JSON.parse(precalculated_data)
+      stored['who']['race']['overall'] = ['71.4', nil]
+      report.update_column(:precalculated_data, stored.to_json)
+
+      bar = page.at_css('.chart--stacked-bar[data-chart-id="race"] .stacked-bar[data-key="overallPct"]')
+      expect(bar.css('.stacked-bar__segment').map { |s| s['aria-label'] }).to eq(['Overall Population, White: 71.4%'])
+    end
   end
 
   describe 'design tokens' do
