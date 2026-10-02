@@ -14,21 +14,21 @@ RSpec.describe GrdaWarehouse::AuthPolicies::PreloadMissTracker do
   let(:threshold) { described_class::THRESHOLD }
 
   def record_distinct(kind, count, offset: 0)
-    count.times { |i| tracker.record(kind, offset + i + 1) }
+    count.times { |i| tracker.call(kind, offset + i + 1) }
   end
 
   it 'raises on the first distinct id past the threshold' do
     record_distinct(:client_roi, threshold)
 
-    expect { tracker.record(:client_roi, threshold + 1) }.
+    expect { tracker.call(:client_roi, threshold + 1) }.
       to raise_error(described_class::PreloadMissError, /client_roi/)
   end
 
   it 'counts a repeated id once' do
-    (threshold * 2).times { tracker.record(:client_roi, 1) }
+    (threshold * 2).times { tracker.call(:client_roi, 1) }
     record_distinct(:client_roi, threshold)
 
-    expect { tracker.record(:client_roi, threshold + 1) }.
+    expect { tracker.call(:client_roi, threshold + 1) }.
       to raise_error(described_class::PreloadMissError)
   end
 
@@ -36,7 +36,7 @@ RSpec.describe GrdaWarehouse::AuthPolicies::PreloadMissTracker do
     record_distinct(:client_roi, threshold)
     record_distinct(:client_restrictions, threshold, offset: 100)
 
-    expect { tracker.record(:client_restrictions, 999) }.
+    expect { tracker.call(:client_restrictions, 999) }.
       to raise_error(described_class::PreloadMissError, /client_restrictions/)
   end
 

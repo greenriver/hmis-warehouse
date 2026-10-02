@@ -20,7 +20,7 @@ module GrdaWarehouse::AuthPolicies::ContextLoaders
       return unless client_id
 
       unless @cache.key?(client_id)
-        @miss_tracker&.record(:client_roi, client_id)
+        @miss_tracker&.call(:client_roi, client_id)
         preload([client_id])
       end
       @cache[client_id]
