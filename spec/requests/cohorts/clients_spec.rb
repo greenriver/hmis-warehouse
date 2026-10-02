@@ -334,4 +334,19 @@ RSpec.describe Cohorts::ClientsController, type: :request do
       expect(response).to have_http_status(:ok)
     end
   end
+
+  describe 'GET /cohorts/:cohort_id/cohort_clients (html)' do
+    before do
+      sign_in user
+      GrdaWarehouse::CohortTab.default_rules.each { |rule| cohort.cohort_tabs.create!(**rule) }
+      create_list(:hud_client, 4).each { |client| cohort.cohort_clients.create!(client_id: client.id) }
+    end
+
+    it 'renders every row with the client restrictions preloaded' do
+      get cohort_cohort_clients_path(cohort_id: cohort.id), params: { page: 1, per: 50 }
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body.scan('jCohortClient').size).to eq(4)
+    end
+  end
 end

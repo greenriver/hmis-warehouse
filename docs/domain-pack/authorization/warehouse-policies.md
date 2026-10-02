@@ -99,8 +99,8 @@ type. `SourceClientPolicy` is the one policy that reads legacy-only data (window
 
 Context loaders live under `auth_policies/context_loaders/`. `ClientRoiLoader` caches active
 ROI matching the user's CoC codes per destination client id, with `preload(client_ids)`.
-`RestrictedClientLoader` loads the full HMIS restricted id set once and looks up retention
-(inactive) status per id, memoized, with `preload(client_ids)` to batch it; see
+`RestrictedClientLoader` keeps a memoized `{client_id => hidden?}` table for HMIS restriction and
+retention (inactive) status, filled per page by `preload(client_ids, links: nil)`; see
 `warehouse/pii-and-restricted-clients.md`.
 
 `ControllerAuthorizationV2` sets `@authorization_performed = true` inside every

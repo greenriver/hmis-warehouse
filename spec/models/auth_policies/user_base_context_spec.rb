@@ -39,4 +39,34 @@ RSpec.describe GrdaWarehouse::AuthPolicies::UserBaseContext do
       expect(context.client_restricted?(nil)).to eq(false)
     end
   end
+
+  describe '#client_restriction_cache_token' do
+    let!(:other_client) { create(:grda_warehouse_hud_client) }
+
+    # Answers are memoized per context, so each "after" reading needs a fresh one.
+    def token_for(client_id)
+      described_class.new(user).client_restriction_cache_token(client_id)
+    end
+
+    it 'changes for a client when that client is restricted' do
+      before = token_for(destination_client.id)
+      source_client.mark_as_restricted!(user: hmis_user)
+
+      expect(token_for(destination_client.id)).not_to eq(before)
+    end
+
+    it 'does not change for an unrelated client when another client is restricted' do
+      before = token_for(other_client.id)
+      source_client.mark_as_restricted!(user: hmis_user)
+
+      expect(token_for(other_client.id)).to eq(before)
+    end
+
+    it 'changes once a retention run completes' do
+      before = token_for(other_client.id)
+      GrdaWarehouse::ClientRetentionRun.create!(started_at: 1.minute.ago, completed_at: Time.current, global_retention_years: 7)
+
+      expect(token_for(other_client.id)).not_to eq(before)
+    end
+  end
 end
