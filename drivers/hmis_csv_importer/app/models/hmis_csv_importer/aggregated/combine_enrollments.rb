@@ -147,14 +147,13 @@ module HmisCsvImporter::Aggregated
 
       ex_t = exit_source.arel_table
 
-      incoming_personal_ids = enrollment_destination.where(
+      incoming_enrollment_keys = enrollment_destination.where(
         ProjectID: project_ids,
         data_source_id: importer_log.data_source_id,
         importer_log_id: importer_log.id,
-      ).pluck(:EnrollmentID, :PersonalID).to_h
-      incoming_enrollment_ids = incoming_personal_ids.keys
+      ).pluck(:EnrollmentID, :PersonalID)
       incoming_exit_ids = exit_destination.where(
-        EnrollmentID: incoming_enrollment_ids,
+        EnrollmentID: incoming_enrollment_keys.map(&:first),
         data_source_id: importer_log.data_source_id,
         importer_log_id: importer_log.id,
       ).pluck(:ExitID)
@@ -163,7 +162,17 @@ module HmisCsvImporter::Aggregated
         ProjectID: project_ids,
         data_source_id: importer_log.data_source_id,
       ).open_during_range(date_range.range).
-        where.not(EnrollmentID: incoming_enrollment_ids).
+        where.not(EnrollmentID: incoming_enrollment_keys.map(&:first)).
+        pluck(:id)
+      # The aggregated unique key includes PersonalID, so a row whose PersonalID
+      # changed upstream is a stale duplicate of an incoming enrollment, not a match.
+      # Its exit still carries the old PersonalID until copy_incoming_data! runs,
+      # so it can look closed; don't limit this to rows open during the range.
+      enrollments_to_delete |= enrollment_source.where(
+        ProjectID: project_ids,
+        data_source_id: importer_log.data_source_id,
+        EnrollmentID: incoming_enrollment_keys.map(&:first),
+      ).where.not([:EnrollmentID, :PersonalID] => incoming_enrollment_keys).
         pluck(:id)
       exits_to_delete = enrollment_source.where(
         ProjectID: project_ids,
@@ -175,20 +184,6 @@ module HmisCsvImporter::Aggregated
 
       enrollment_source.where(id: enrollments_to_delete).delete_all if enrollments_to_delete.any?
       exit_source.where(id: exits_to_delete).delete_all if exits_to_delete.any?
-
-      # The aggregated enrollment conflict target includes PersonalID, so if a source file changes
-      # the PersonalID on an enrollment we get a second row. Remove rows that carry a superseded PersonalID.
-      self.class.delete_superseded_personal_ids!(incoming_personal_ids, data_source_id: importer_log.data_source_id)
-    end
-
-    def self.delete_superseded_personal_ids!(personal_ids_by_enrollment_id, data_source_id:)
-      [HmisCsvImporter::Aggregated::Enrollment, HmisCsvImporter::Aggregated::Exit].each do |klass|
-        stale_ids = klass.where(data_source_id: data_source_id, EnrollmentID: personal_ids_by_enrollment_id.keys).
-          pluck(:id, :EnrollmentID, :PersonalID).
-          reject { |_, enrollment_id, personal_id| personal_ids_by_enrollment_id[enrollment_id] == personal_id }.
-          map(&:first)
-        klass.where(id: stale_ids).delete_all if stale_ids.any?
-      end
     end
 
     def copy_incoming_data!

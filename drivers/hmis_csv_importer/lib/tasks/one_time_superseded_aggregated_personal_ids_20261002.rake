@@ -4,22 +4,30 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # One-time cleanup of aggregated enrollments/exits left behind when a source file changed the PersonalID on an EnrollmentID
 # The PersonalID to keep is the one on the most recent loaded Enrollment row (importer_log_id isn't refreshed on an
 # in-place upsert, so it can't be used to tell which row is current). Rows are only removed when an aggregated row
-# with the current PersonalID exists, and EnrollmentIDs with no loader row are left alone.
+# with the current PersonalID exists. EnrollmentIDs with no loader row in the current HUD version's loader table
+# (loaded before the version switch, or already expired) are left alone and reported as remaining.
 # rails driver:hmis_csv_importer:cleanup_superseded_aggregated_personal_ids_20261002[true] # dry run (default), all data sources
-# rails driver:hmis_csv_importer:cleanup_superseded_aggregated_personal_ids_20261002[true,200040] # dry run, one data source
-# rails driver:hmis_csv_importer:cleanup_superseded_aggregated_personal_ids_20261002[false,200040]
+# rails driver:hmis_csv_importer:cleanup_superseded_aggregated_personal_ids_20261002[true,123] # dry run, data source 123 only
+# rails driver:hmis_csv_importer:cleanup_superseded_aggregated_personal_ids_20261002[false,123]
 desc 'One-time: remove aggregated enrollments/exits whose PersonalID was superseded by a later import'
 task :cleanup_superseded_aggregated_personal_ids_20261002, [:dry_run, :data_source_id] => [:environment] do |_task, args|
   dry_run = args[:dry_run] != 'false'
-  data_source_filter = args[:data_source_id].present? ? "AND data_source_id = #{Integer(args[:data_source_id])}" : ''
+  data_source_filter = if args[:data_source_id].present?
+    "= #{Integer(args[:data_source_id])}"
+  else
+    'IN (SELECT DISTINCT data_source_id FROM hmis_aggregated_enrollments)'
+  end
   latest = <<~SQL
     WITH latest AS (
       SELECT DISTINCT ON (data_source_id, "EnrollmentID") data_source_id, "EnrollmentID", "PersonalID"
       FROM #{HmisCsvTwentyTwentySix::Loader::Enrollment.table_name}
-      WHERE "DateDeleted" IS NULL #{data_source_filter}
+      WHERE "DateDeleted" IS NULL
+        AND data_source_id #{data_source_filter}
       ORDER BY data_source_id, "EnrollmentID", loaded_at DESC, id DESC
     )
   SQL
@@ -36,6 +44,10 @@ task :cleanup_superseded_aggregated_personal_ids_20261002, [:dry_run, :data_sour
   SQL
   connection = GrdaWarehouseBase.connection
   GrdaWarehouseBase.transaction do
+    affected_personal_ids = connection.select_value(<<~SQL)
+      #{latest}
+      SELECT COUNT(DISTINCT (old_e.data_source_id, old_e."PersonalID")) #{superseded}
+    SQL
     exits = connection.delete(<<~SQL)
       #{latest}
       DELETE FROM hmis_aggregated_exits
@@ -52,7 +64,17 @@ task :cleanup_superseded_aggregated_personal_ids_20261002, [:dry_run, :data_sour
       DELETE FROM hmis_aggregated_enrollments
       WHERE id IN (SELECT old_e.id #{superseded})
     SQL
-    puts "#{dry_run ? 'Would delete' : 'Deleted'} #{enrollments} aggregated enrollments and #{exits} aggregated exits"
+    remaining = connection.select_value(<<~SQL)
+      SELECT COUNT(*) FROM (
+        SELECT data_source_id, "EnrollmentID"
+        FROM hmis_aggregated_enrollments
+        WHERE data_source_id #{data_source_filter}
+        GROUP BY data_source_id, "EnrollmentID"
+        HAVING COUNT(DISTINCT "PersonalID") > 1
+      ) duplicated
+    SQL
+    puts "#{dry_run ? 'Would delete' : 'Deleted'} #{enrollments} aggregated enrollments and #{exits} aggregated exits across #{affected_personal_ids} superseded PersonalIDs"
+    puts "#{remaining} EnrollmentIDs would still have more than one PersonalID (no current loader row to pick from)" if remaining.positive?
     raise ActiveRecord::Rollback if dry_run
   end
 end

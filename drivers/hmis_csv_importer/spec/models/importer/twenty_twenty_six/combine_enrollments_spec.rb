@@ -66,6 +66,10 @@ RSpec.describe 'Combine Enrollments when a later import changes the PersonalID',
     expect(aggregated.group(:EnrollmentID).having('COUNT(*) > 1').count).to be_empty
   end
 
+  it 'leaves the superseded PersonalID with no live enrollments' do
+    expect(GrdaWarehouse::Hud::Enrollment.where(PersonalID: 'C-1').count).to eq(0)
+  end
+
   it 'still merges enrollments' do
     expect(GrdaWarehouse::Hud::Enrollment.count).to eq(10)
   end
