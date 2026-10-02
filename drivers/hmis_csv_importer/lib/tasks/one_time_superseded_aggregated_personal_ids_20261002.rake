@@ -8,16 +8,18 @@
 # The PersonalID to keep is the one on the most recent loaded Enrollment row (importer_log_id isn't refreshed on an
 # in-place upsert, so it can't be used to tell which row is current). Rows are only removed when an aggregated row
 # with the current PersonalID exists, and EnrollmentIDs with no loader row are left alone.
-# rails driver:hmis_csv_importer:cleanup_superseded_aggregated_personal_ids_20261002[true] # dry run (default)
-# rails driver:hmis_csv_importer:cleanup_superseded_aggregated_personal_ids_20261002[false]
+# rails driver:hmis_csv_importer:cleanup_superseded_aggregated_personal_ids_20261002[true] # dry run (default), all data sources
+# rails driver:hmis_csv_importer:cleanup_superseded_aggregated_personal_ids_20261002[true,200040] # dry run, one data source
+# rails driver:hmis_csv_importer:cleanup_superseded_aggregated_personal_ids_20261002[false,200040]
 desc 'One-time: remove aggregated enrollments/exits whose PersonalID was superseded by a later import'
-task :cleanup_superseded_aggregated_personal_ids_20261002, [:dry_run] => [:environment] do |_task, args|
+task :cleanup_superseded_aggregated_personal_ids_20261002, [:dry_run, :data_source_id] => [:environment] do |_task, args|
   dry_run = args[:dry_run] != 'false'
+  data_source_filter = args[:data_source_id].present? ? "AND data_source_id = #{Integer(args[:data_source_id])}" : ''
   latest = <<~SQL
     WITH latest AS (
       SELECT DISTINCT ON (data_source_id, "EnrollmentID") data_source_id, "EnrollmentID", "PersonalID"
       FROM #{HmisCsvTwentyTwentySix::Loader::Enrollment.table_name}
-      WHERE "DateDeleted" IS NULL
+      WHERE "DateDeleted" IS NULL #{data_source_filter}
       ORDER BY data_source_id, "EnrollmentID", loaded_at DESC, id DESC
     )
   SQL
