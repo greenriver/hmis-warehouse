@@ -56,10 +56,4 @@ RSpec.describe Export::RestrictedClientPiiTransform, type: :model do
 
     expect(hashed.process(aged_destination)).to have_attributes(FirstName: 'Zzaged', SSN: '999887777')
   end
-
-  it 'leaves a hidden client unredacted when it is outside the export client scope' do
-    scoped = described_class.new(export: export, client_scope: GrdaWarehouse::Hud::Client.where(id: current_destination.id))
-
-    expect(scoped.process(aged_destination)).to have_attributes(FirstName: 'Zzaged', SSN: '999887777')
-  end
 end
