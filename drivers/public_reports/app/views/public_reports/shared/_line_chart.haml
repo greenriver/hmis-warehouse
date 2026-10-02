@@ -10,7 +10,7 @@
         %text.chart-axis-label{ x: 48, y: gridline[:y] + 4, 'text-anchor' => 'end' }= number_with_delimiter(gridline[:value])
       - chart.series.each_with_index do |s, i|
         - color = colors[i % colors.size]
-        %polyline{ points: chart.points_for(s['values']), fill: 'none', stroke: color, 'stroke-width' => 2.5, 'stroke-dasharray' => chart.dash_for(i) }
+        %polyline{ { points: chart.points_for(s['values']), fill: 'none', stroke: color, 'stroke-width' => 2.5, 'stroke-dasharray' => chart.dash_for(i) }.compact }
         - s['values'].each_with_index do |v, idx|
           %circle.chart-dot{ cx: chart.x_at(idx).round(1), cy: chart.y_at(v).round(1), r: 4, fill: color }
       - chart.labels.each_with_index do |label, idx|

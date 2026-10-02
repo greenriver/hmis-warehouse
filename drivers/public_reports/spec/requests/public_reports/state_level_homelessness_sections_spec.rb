@@ -187,6 +187,13 @@ RSpec.describe 'PublicReports::WarehouseReports::StateLevelHomelessness sections
     end
   end
 
+  it 'sets a dash pattern only on line series after the first' do
+    get pit_public_reports_warehouse_reports_state_level_homelessness_path(report)
+    polylines = Nokogiri::HTML(response.body).css('figure.chart--line polyline')
+
+    expect(polylines.map { |p| p['stroke-dasharray'] }).to eq([nil, nil, '7,4'])
+  end
+
   describe 'design tokens' do
     let(:base_css) { File.read(Rails.root.join('drivers/public_reports/lib/public_reports/assets/public_report.css')) }
 
