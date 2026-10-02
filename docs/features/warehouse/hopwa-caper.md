@@ -18,6 +18,8 @@ Household counts follow the HUD HMIS reporting glossary definition: "distinct co
 
 While most activities (TBRA, PHP, Facility) define "served" based on project enrollment dates, **STRMU counts are strictly service-based**. A household is only considered served by STRMU if they received a documented financial assistance payment during the reporting period. This ensures consistency between the expenditure totals and the household counts reported on both the STRMU and Access to Care sheets. Services provided to any member of a household are attributed to the household by joining to the Head of Household's record via the shared `report_household_id`.
 
+On the Facility-Based Housing sheets (ST-TFBH, P-FBH), every enrolled household is counted under Operating support, and the funder daily rate is reported as the Operating cost. A household that received a security or utility deposit (HOPWA Financial Assistance) during the reporting period is also counted under Leasing and under "more than one type". Counting deposits as Leasing is a team decision. The Leasing cost and Other rows are left blank.
+
 ## Question Sheets and Builders
 - **Sheet architecture:** The FY 2026 generator enumerates sheet classes. Each inherits from `HopwaCaper::Generators::Fy2026::Sheets::Base` or `BaseProgramSheet`, which wrap `HudReports::QuestionSheet` and provide helpers for enrollment scoping, cell creation, and household table generation.
 - **Filters:** Enrollment filters (age, gender, income, longevity, prior living situation, housing outcomes) and service filters (record type, STRMU assistance categories) are located under `app/models/hopwa_caper/generators/fy2026/enrollment_filters` and `.../service_filters`. Filters contain the business rules for grouping rows.
