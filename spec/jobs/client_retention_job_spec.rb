@@ -165,6 +165,17 @@ RSpec.describe ClientRetentionJob, type: :job do
       expect(entry.source_clients.map { |sc| sc['client_id'] }).to contain_exactly(active_source.id, source_two.id)
     end
 
+    it 'clears the mark of a soft-deleted source when its identity becomes active again, so the identity is no longer hidden' do
+      described_class.perform_now
+      source_one.update_columns(DateDeleted: Time.current)
+      create(:hud_enrollment, data_source_id: ds_two.id, PersonalID: source_two.PersonalID, EntryDate: Date.current, DateUpdated: Date.current)
+
+      described_class.perform_now
+
+      expect(marked_ids).to be_empty
+      expect(GrdaWarehouse::HiddenClients.inactive_subset([destination.id])).to be_empty
+    end
+
     it 'keeps the identity when one of its data sources has a longer window' do
       ds_two.update!(client_retention_years: 10)
 
