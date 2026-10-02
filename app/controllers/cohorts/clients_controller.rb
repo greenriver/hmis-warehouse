@@ -46,6 +46,7 @@ module Cohorts
         end
         format.html do
           set_cohort_clients
+          current_user.policy_context.preload_client_restrictions(@cohort_clients.map(&:client_id))
           render layout: false
         end
       end

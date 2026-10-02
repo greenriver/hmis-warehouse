@@ -7,80 +7,32 @@
 # frozen_string_literal: true
 
 module GrdaWarehouse::AuthPolicies::ContextLoaders
+  # Answers whether a client is hidden (HMIS-restricted or retention-inactive, see
+  # GrdaWarehouse::HiddenClients). Both populations can be large, so neither is loaded whole:
+  # #preload resolves a page of ids in a fixed number of queries and memoizes each answer.
   class RestrictedClientLoader
-    RESTRICTED_POPULATION_WARN_THRESHOLD = 50_000
-
     # @param miss_tracker [GrdaWarehouse::AuthPolicies::PreloadMissTracker, nil]
     def initialize(miss_tracker: nil)
       @miss_tracker = miss_tracker
-    end
-
-    # Two sources of truth, looked up differently because their sizes differ by orders of magnitude.
-    #
-    # HMIS restriction is expected to apply to a small fraction of clients (see
-    # docs/features/hmis/hmis-restricted-records.md), so we load the whole set once rather than
-    # batching per page. The set is defined by GrdaWarehouse::HiddenClients.
-    #
-    # Retention marks (GrdaWarehouse::ClientRetentionMark) can cover a large share of an old warehouse,
-    # so they are never loaded whole: each id is resolved through GrdaWarehouse::HiddenClients
-    # (marked sources and their destinations) and memoized, and #preload batches the lookups for
-    # a page of clients.
-    def restricted_client_ids
-      @restricted_client_ids ||= load_restricted_client_ids
+      @hidden = {}
     end
 
     def restricted?(client_id)
-      return false unless client_id # keep first: see the laziness note below
-
-      restricted_client_ids.include?(client_id) || inactive?(client_id)
-    end
-
-    # Resolves the inactive lookups for many ids in one query.
-    def preload(client_ids)
-      restricted_client_ids
-      missing = client_ids.compact.uniq.reject { |id| inactive_lookups.key?(id) }
-      return if missing.empty?
-
-      found = GrdaWarehouse::HiddenClients.inactive_subset(missing)
-      missing.each { |id| inactive_lookups[id] = found.include?(id) }
-    end
-
-    # Changes whenever the hidden population changes, so fragment caches holding redacted PII
-    # are invalidated by a restriction that touches none of the records already in their key.
-    # Digests the full restricted set, not just the directly-restricted ids, so a merge that
-    # changes membership busts it too. Retention marks only change inside a ClientRetentionJob
-    # run, so the latest completed run stands in for that table.
-    def cache_token
-      @cache_token ||= Digest::MD5.hexdigest(
-        [restricted_client_ids.to_a.sort.join(','), GrdaWarehouse::ClientRetentionRun.maximum(:completed_at)].join('|'),
-      )
-    end
-
-    private def inactive?(client_id)
-      return inactive_lookups[client_id] if inactive_lookups.key?(client_id)
+      return false unless client_id # keep first: callers rely on nil costing no query
+      return @hidden[client_id] if @hidden.key?(client_id)
 
       @miss_tracker&.call(:client_restrictions, client_id)
-      inactive_lookups[client_id] = GrdaWarehouse::HiddenClients.inactive_subset([client_id]).include?(client_id)
+      preload([client_id])
+      @hidden[client_id]
     end
 
-    private def inactive_lookups
-      @inactive_lookups ||= {}
-    end
+    # @param links [Array<Array(Integer, Integer)>, nil] identity links covering +client_ids+, when the caller has them
+    def preload(client_ids, links: nil)
+      missing = client_ids.compact.uniq.reject { |id| @hidden.key?(id) }
+      return if missing.empty?
 
-    private def load_restricted_client_ids
-      ids = GrdaWarehouse::HiddenClients.restricted_ids
-      warn_if_unexpectedly_large(ids)
-      ids
-    end
-
-    private def warn_if_unexpectedly_large(ids)
-      return if ids.size <= RESTRICTED_POPULATION_WARN_THRESHOLD
-
-      Sentry.capture_message(
-        'RestrictedClientLoader: restricted client population exceeds the threshold this loader assumes',
-        level: :warning,
-        extra: { count: ids.size, threshold: RESTRICTED_POPULATION_WARN_THRESHOLD },
-      )
+      found = GrdaWarehouse::HiddenClients.restricted_subset(missing, links: links) | GrdaWarehouse::HiddenClients.inactive_subset(missing)
+      missing.each { |id| @hidden[id] = found.include?(id) }
     end
   end
 end

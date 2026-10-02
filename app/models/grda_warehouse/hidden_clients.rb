@@ -8,22 +8,16 @@
 
 # Client ids whose PII is hidden warehouse-wide: every member of a warehouse identity touched by
 # an HMIS restriction, plus every member of an identity with a retention mark
-# (GrdaWarehouse::ClientRetentionMark, one row per source client). Both sets are defined here in SQL so
-# RestrictedClientLoader and query-shaped callers share one definition; analytics.client_piis
-# (db/views) repeats them and must stay in step.
+# (GrdaWarehouse::ClientRetentionMark, one row per source client). Both sets are defined here, in the
+# three shapes below, which a spec pins equal; analytics.client_piis (db/views) repeats them and
+# must stay in step.
+#
+# The definition is written in three shapes because Postgres plans them differently:
+# - #restricted_subset / #inactive_subset: a page of ids, indexed lookups on the page's identities.
+# - #hidden_ids_in: a whole scope, so the sets are materialized once as IN (subquery) hashes.
+# - #not_hidden: a row predicate, as correlated NOT EXISTS probes. Postgres does not push the
+#   correlated column into a UNION, so the predicate can't be built from the unions below.
 module GrdaWarehouse::HiddenClients
-  # @return [Set<Integer>]
-  def self.restricted_ids
-    GrdaWarehouseBase.connection.select_values(restricted_ids_union.to_sql).to_set
-  end
-
-  # Only the destinations reached from marked sources, for callers whose rows are all
-  # destination clients (the HMIS CSV export).
-  # @return [Set<Integer>]
-  def self.inactive_destination_ids
-    GrdaWarehouseBase.connection.select_values(inactive_destinations.distinct.to_sql).to_set
-  end
-
   # The members of +client_ids+ (source or destination ids) that are inactive, in one query.
   # @param client_ids [Enumerable<Integer>]
   # @return [Set<Integer>]
@@ -36,26 +30,84 @@ module GrdaWarehouse::HiddenClients
     GrdaWarehouseBase.connection.select_values(sql).to_set
   end
 
-  # Predicate that is true when +column+ is not a hidden client id. Both halves are correlated
-  # NOT EXISTS, so Postgres plans an anti-join and a NULL column is kept.
+  # The members of +client_ids+ (source or destination ids) whose warehouse identity holds an
+  # HMIS restriction. Reads only the identities of the given ids, so the cost follows the page
+  # size and not the restricted population.
+  # @param client_ids [Enumerable<Integer>]
+  # @param links [Array<Array(Integer, Integer)>, nil] identity_links(client_ids), when the caller already has them
+  # @return [Set<Integer>]
+  def self.restricted_subset(client_ids, links: nil)
+    ids = client_ids.to_a.compact.uniq
+    return Set.new if ids.empty?
+
+    links ||= identity_links(ids)
+    direct = Hmis::RestrictedRecord.for_clients.where(restrictable_id: (ids + links.flatten).uniq).pluck(:restrictable_id).to_set
+    return Set.new if direct.empty?
+
+    restricted_destinations = links.select { |source_id, destination_id| direct.include?(source_id) || direct.include?(destination_id) }.map(&:last).to_set
+    hidden = direct + links.select { |_, destination_id| restricted_destinations.include?(destination_id) }.flatten
+    ids.select { |id| hidden.include?(id) }.to_set
+  end
+
+  # [source_id, destination_id] for every live warehouse_clients row in the identities of +ids+.
+  # @param ids [Array<Integer>]
+  # @return [Array<Array(Integer, Integer)>]
+  def self.identity_links(ids)
+    # WarehouseClient doesn't use acts as paranoid
+    live_links = GrdaWarehouse::WarehouseClient.where(deleted_at: nil)
+    wc_t = GrdaWarehouse::WarehouseClient.arel_table
+    destination_ids = live_links.
+      where(wc_t[:source_id].in(ids).or(wc_t[:destination_id].in(ids))).
+      select(:destination_id)
+    live_links.where(destination_id: destination_ids).pluck(:source_id, :destination_id)
+  end
+
+  # Ids in +scope+ that are restricted or inactive, in one query. For batch jobs that walk a
+  # large client scope row by row.
+  # @param scope [ActiveRecord::Relation<GrdaWarehouse::Hud::Client>]
+  # @return [Set<Integer>]
+  def self.hidden_ids_in(scope)
+    id = scope.arel_table[:id]
+    hidden = id.in(Arel::Nodes::Grouping.new(restricted_ids_union)).or(id.in(Arel::Nodes::Grouping.new(inactive_ids_union)))
+    scope.where(hidden).pluck(:id).to_set
+  end
+
+  # Predicate that is true when +column+ is not a hidden client id. Every branch is a correlated
+  # NOT EXISTS over an indexed column, so Postgres plans each as an anti-join probe per candidate
+  # row, and a NULL column is kept.
   # @param column [Arel::Attributes::Attribute, Arel::Nodes::Node]
   # @return [Arel::Nodes::Node]
   def self.not_hidden(column)
-    restricted = Arel::Nodes::TableAlias.new(restricted_ids_union, :restricted_clients)
-    not_restricted = Arel::SelectManager.new.
-      from(restricted).
-      project(Arel.sql('1')).
-      where(restricted[:client_id].eq(column)).
-      exists.not
+    rr_t = Hmis::RestrictedRecord.arel_table
+    marks_t = GrdaWarehouse::ClientRetentionMark.arel_table
+    me = GrdaWarehouse::WarehouseClient.arel_table.alias(:hidden_me)
+    sib = GrdaWarehouse::WarehouseClient.arel_table.alias(:hidden_sib)
+    active_restriction = rr_t[:restrictable_type].eq(Hmis::RestrictedRecord::CLIENT_RESTRICTABLE_TYPE).and(rr_t[:deleted_at].eq(nil))
 
-    inactive = Arel::Nodes::TableAlias.new(inactive_ids_union, :inactive_clients_union)
-    not_inactive = Arel::SelectManager.new.
-      from(inactive).
-      project(Arel.sql('1')).
-      where(inactive[:client_id].eq(column)).
-      exists.not
+    directly_restricted = rr_t.project(Arel.sql('1')).where(active_restriction.and(rr_t[:restrictable_id].eq(column)))
+    # column is a source whose destination has another restricted source
+    sibling_restricted = Arel::SelectManager.new.from(me).project(Arel.sql('1')).
+      join(sib).on(sib[:destination_id].eq(me[:destination_id]).and(sib[:deleted_at].eq(nil))).
+      join(rr_t).on(active_restriction.and(rr_t[:restrictable_id].eq(sib[:source_id]))).
+      where(me[:deleted_at].eq(nil).and(me[:source_id].eq(column)))
+    # column is a destination with a restricted source
+    source_restricted = Arel::SelectManager.new.from(sib).project(Arel.sql('1')).
+      join(rr_t).on(active_restriction.and(rr_t[:restrictable_id].eq(sib[:source_id]))).
+      where(sib[:deleted_at].eq(nil).and(sib[:destination_id].eq(column)))
+    # column is a source whose destination is itself restricted
+    destination_restricted = Arel::SelectManager.new.from(me).project(Arel.sql('1')).
+      join(rr_t).on(active_restriction.and(rr_t[:restrictable_id].eq(me[:destination_id]))).
+      where(me[:deleted_at].eq(nil).and(me[:source_id].eq(column)))
 
-    not_restricted.and(not_inactive)
+    directly_marked = marks_t.project(Arel.sql('1')).where(marks_t[:client_id].eq(column))
+    # column is a destination with a marked source
+    source_marked = Arel::SelectManager.new.from(me).project(Arel.sql('1')).
+      join(marks_t).on(marks_t[:client_id].eq(me[:source_id])).
+      where(me[:deleted_at].eq(nil).and(me[:destination_id].eq(column)))
+
+    [directly_restricted, sibling_restricted, source_restricted, destination_restricted, directly_marked, source_marked].
+      map { |subquery| subquery.exists.not }.
+      inject(:and)
   end
 
   # UNION of the directly restricted client ids, the destinations they merge into, and every
@@ -66,7 +118,7 @@ module GrdaWarehouse::HiddenClients
     wc_t = GrdaWarehouse::WarehouseClient.arel_table
 
     # Pure Arel rather than Hmis::RestrictedRecord.for_clients.arel: a relation's arel carries bind
-    # parameters, which cannot be rendered by to_sql for restricted_ids.
+    # parameters, which cannot be rendered by to_sql.
     direct = rr_t.
       project(rr_t[:restrictable_id].as('client_id')).
       where(rr_t[:restrictable_type].eq(Hmis::RestrictedRecord::CLIENT_RESTRICTABLE_TYPE)).
@@ -88,19 +140,15 @@ module GrdaWarehouse::HiddenClients
   # warehouse_clients rows, as a single client_id column.
   # @return [Arel::Nodes::Union]
   def self.inactive_ids_union
-    sources = GrdaWarehouse::ClientRetentionMark.arel_table.project(GrdaWarehouse::ClientRetentionMark.arel_table[:client_id])
-    Arel::Nodes::Union.new(sources, inactive_destinations)
-  end
-
-  # @return [Arel::SelectManager] destination_id of every live warehouse_clients row whose source is marked
-  def self.inactive_destinations
     marks_t = GrdaWarehouse::ClientRetentionMark.arel_table
     wc_t = GrdaWarehouse::WarehouseClient.arel_table
 
-    wc_t.
+    sources = marks_t.project(marks_t[:client_id])
+    destinations = wc_t.
       project(wc_t[:destination_id]).
       join(marks_t).on(marks_t[:client_id].eq(wc_t[:source_id])).
       where(wc_t[:deleted_at].eq(nil))
+    Arel::Nodes::Union.new(sources, destinations)
   end
-  private_class_method :restricted_ids_union, :inactive_ids_union, :inactive_destinations
+  private_class_method :restricted_ids_union, :inactive_ids_union
 end
