@@ -79,9 +79,14 @@ class ClientRetentionJob < BaseJob
     # Insert for every inactive rollup, not only new ones, so a source merged into an
     # already-marked identity gets its own row; the unique index makes repeats no-ops.
     GrdaWarehouse::ClientRetentionMark.insert_all(mark_rows, unique_by: :client_id) if mark_rows.any?
-    # Every live source of an evaluated identity that is not inactive loses its mark: sources of
-    # cleared identities, and sources that moved from a marked identity into an active one.
-    stale = evaluated_source_ids - mark_rows.map { |r| r[:client_id] }
+    # Every source linked to an evaluated identity that is not inactive loses its mark: sources of
+    # cleared identities, and sources that moved from a marked identity into an active one. The
+    # rollup skips soft-deleted sources, but their marks still hide the identity through the live
+    # link, so the stale set comes from warehouse_clients rather than the rollup.
+    linked_source_ids = GrdaWarehouse::WarehouseClient.
+      where(destination_id: rows.map { |row| row[:destination_id] }, deleted_at: nil).
+      pluck(:source_id)
+    stale = linked_source_ids - mark_rows.map { |r| r[:client_id] }
     GrdaWarehouse::ClientRetentionMark.where(client_id: stale).delete_all if stale.any?
 
     rows_by_destination = rows.index_by { |row| row[:destination_id] }
