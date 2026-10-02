@@ -33,7 +33,7 @@
     %a{ href: '#who-period-select' }
       change time period
       %span.visually-hidden= " for #{household_type['title']}"
-  .chart.chart--stacked-bar.chart--composition-bar{ data: { component: 'composition-bar', 'chart-id' => 'household-type' } }
+  = render 'public_reports/shared/composition_bar_chart', id: 'household-type', donut: household_type, period_index: current_index
 
   %h3.who-section-heading= Translation.translate('Racial Composition')
   %p.who-controls__period-note

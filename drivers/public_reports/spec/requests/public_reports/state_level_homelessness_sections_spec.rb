@@ -281,6 +281,17 @@ RSpec.describe 'PublicReports::WarehouseReports::StateLevelHomelessness sections
     it 'reports a suppressed donut total as less than 100' do
       expect(page.at_css('figure.chart--donut[data-donut-id="veterans"] svg title').text).to eq('Veterans: less than 100 Veterans')
     end
+
+    it 'renders the household-type bar with contrast-checked inline labels' do
+      chart = page.at_css('.chart--composition-bar[data-chart-id="household-type"][role="group"]')
+      segments = chart.css('.stacked-bar__segment')
+
+      expect(chart.at_css("p.chart-title##{chart['aria-labelledby']}").text).to eq('13,755 Households')
+      expect(segments.map { |s| s['aria-label'] }).to eq(['Adult Only: 79%', 'Adults with Children: 20%', 'Children-Only Households: 1%'])
+      expect(segments.first.at_css('span')['style']).to eq('color:#fff')
+      expect(segments.last.at_css('span')).to be_nil
+      expect(segments.last['style']).to include('box-shadow:inset 0 0 0 1px var(--color-ink)')
+    end
   end
 
   describe 'design tokens' do
