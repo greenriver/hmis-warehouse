@@ -9,7 +9,7 @@
   .who-controls
     %label.who-controls__field
       %span Choose time period
-      = render 'public_reports/shared/period_select', periods: who['periods'], current_index: current_index, data_attr: 'who-period'
+      = render 'public_reports/shared/period_select', periods: who['periods'], current_index: current_index, data_attr: 'who-period', id: 'who-period-select'
   %p.who-controls__hint Select a time period; this selection affects all charts below.
   %p.visually-hidden{ role: 'status', 'aria-live' => 'polite', data: { 'who-period-status' => true } }
 
@@ -18,7 +18,7 @@
     Showing data for
     %strong{ data: { 'who-current-period' => true } }= current_period_label
     \—
-    %a{ href: '#who-period' }
+    %a{ href: '#who-period-select' }
       change time period
       %span.visually-hidden for Population Sheltered vs. Unsheltered
   .chart-grid.chart-grid--2
@@ -30,7 +30,7 @@
     Showing data for
     %strong{ data: { 'who-current-period' => true } }= current_period_label
     \—
-    %a{ href: '#who-period' }
+    %a{ href: '#who-period-select' }
       change time period
       %span.visually-hidden= " for #{household_type['title']}"
   .chart.chart--stacked-bar.chart--composition-bar{ data: { component: 'composition-bar', 'chart-id' => 'household-type' } }
@@ -40,7 +40,7 @@
     Showing data for
     %strong{ data: { 'who-current-period' => true } }= current_period_label
     \—
-    %a{ href: '#who-period' }
+    %a{ href: '#who-period-select' }
       change time period
       %span.visually-hidden= " for #{Translation.translate('Racial Composition')}"
   .chart.chart--stacked-bar{ data: { component: 'stacked-bar', 'chart-id' => 'race' } }
@@ -52,7 +52,7 @@
       Showing data for
       %strong{ data: { 'who-current-period' => true } }= current_period_label
       \—
-      %a{ href: '#who-period' }
+      %a{ href: '#who-period-select' }
         change time period
         %span.visually-hidden= " for #{default_grouping_label} breakdown"
     .who-controls

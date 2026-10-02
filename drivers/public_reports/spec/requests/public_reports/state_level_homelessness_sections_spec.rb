@@ -194,6 +194,20 @@ RSpec.describe 'PublicReports::WarehouseReports::StateLevelHomelessness sections
     expect(polylines.map { |p| p['stroke-dasharray'] }).to eq([nil, nil, '7,4'])
   end
 
+  it 'points every change-time-period link at the who period select' do
+    get who_public_reports_warehouse_reports_state_level_homelessness_path(report)
+    page = Nokogiri::HTML(response.body)
+
+    expect(page.at_css('select#who-period-select')&.[]('data-who-period')).not_to be_nil
+    hrefs = page.css('.who-controls__period-note a').map { |a| a['href'] }
+    expect(hrefs).to eq(['#who-period-select'] * 4)
+  end
+
+  it 'keeps the town map period select id' do
+    get map_public_reports_warehouse_reports_state_level_homelessness_path(report)
+    expect(Nokogiri::HTML(response.body).css('select#town-map-period').size).to eq(1)
+  end
+
   describe 'design tokens' do
     let(:base_css) { File.read(Rails.root.join('drivers/public_reports/lib/public_reports/assets/public_report.css')) }
 
