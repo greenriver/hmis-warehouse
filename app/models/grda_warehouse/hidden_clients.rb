@@ -17,12 +17,6 @@ module GrdaWarehouse::HiddenClients
     GrdaWarehouseBase.connection.select_values(restricted_ids_union.to_sql).to_set
   end
 
-  # Marked source ids plus the destinations they are linked to.
-  # @return [Set<Integer>]
-  def self.inactive_ids
-    GrdaWarehouseBase.connection.select_values(inactive_ids_union.to_sql).to_set
-  end
-
   # Only the destinations reached from marked sources, for callers whose rows are all
   # destination clients (the HMIS CSV export).
   # @return [Set<Integer>]
