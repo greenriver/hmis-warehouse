@@ -102,6 +102,10 @@ RSpec.describe PublicReports::StateLevelHomelessness, type: :model do
     expect(data['schema_version']).to eq(2)
   end
 
+  it 'records the data-through date and the map type the map was computed for' do
+    expect([data['data_through'], data['map']['map_type']]).to eq(['2025-12-31', PublicReports::Setting.first_or_create.map_type])
+  end
+
   it 'sizes every per-period array to match periods' do
     periods_size = data['periods'].size
     who = data['who']

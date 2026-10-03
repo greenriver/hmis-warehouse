@@ -167,6 +167,7 @@ module PublicReports
     private def chart_data
       {
         schema_version: SCHEMA_VERSION,
+        data_through: filter_object.end.to_date.iso8601,
         periods: period_labels,
         summary: summary,
         pit_chart: pit_chart,
@@ -666,6 +667,7 @@ module PublicReports
         bands: map_colors.map { |color, info| { max: info[:high], color: color, label: info[:description] } },
         notReportingColor: settings.theme[:not_reporting],
         unit: settings.map_overall_geography_census? ? 'Rate per 10,000 population' : 'Percentage of homeless population',
+        map_type: settings.map_type,
       }
     end
 

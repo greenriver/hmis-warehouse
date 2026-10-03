@@ -209,6 +209,27 @@ RSpec.describe 'PublicReports::WarehouseReports::StateLevelHomelessness sections
     expect(Nokogiri::HTML(response.body).css('select#town-map-period').size).to eq(1)
   end
 
+  context 'when the report owner no longer exists' do
+    let(:role) { create(:role, can_view_assigned_reports: true, can_view_all_reports: true) }
+
+    it 'renders the data note' do
+      report.update_column(:user_id, nil)
+
+      get summary_public_reports_warehouse_reports_state_level_homelessness_path(report)
+
+      expect(Nokogiri::HTML(response.body).css('.data-note').map(&:text).uniq).to eq(['Data updated through Dec 31, 2025'])
+    end
+  end
+
+  it 'replaces the map with a re-run message when the map type changed after the report ran' do
+    PublicReports::Setting.first.update!(map_type: 'county')
+
+    get map_public_reports_warehouse_reports_state_level_homelessness_path(report)
+    page = Nokogiri::HTML(response.body)
+
+    expect([page.css('[data-component="town-map"]').size, page.at_css('.town-map-stale')&.text&.strip]).to eq([0, 'The map type changed after this report ran. Re-run this report to view the map.'])
+  end
+
   describe 'page structure' do
     it 'gives each topic on the raw page its own labelled section and h2' do
       get raw_public_reports_warehouse_reports_state_level_homelessness_path(report)

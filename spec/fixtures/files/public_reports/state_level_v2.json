@@ -1,5 +1,6 @@
 {
   "schema_version": 2,
+  "data_through": "2025-12-31",
   "periods": ["2025 Q3", "2025 Q4"],
   "summary": {
     "year": 2025,
@@ -71,6 +72,7 @@
     }
   },
   "map": {
+    "map_type": "place",
     "towns": ["Abington", "Acton"],
     "periods": ["2025 Q3", "2025 Q4"],
     "groups": ["All Homeless", "Youth and Young Adults (age 18-24)", "Adults in Adult Only Households (age 18+)", "Adults with Children", "Veterans"],
