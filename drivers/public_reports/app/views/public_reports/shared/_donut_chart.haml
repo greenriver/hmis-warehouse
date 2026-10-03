@@ -1,0 +1,22 @@
+- values = donut['values'][period_index]
+- colors = donut['colors']
+- segments = donut['labels'].each_with_index.map { |label, i| { label: label, value: values[i], color: colors[i % colors.size] } }
+- chart = PublicReports::DonutChart.new(segments)
+- total = PublicReports::WhoCharts.format_total(donut['totals'][period_index], donut['unit'])
+- total_value, total_label = total.split(' ', 2)
+%figure.chart.chart--donut{ data: { component: 'donut', 'donut-id' => id } }
+  %figcaption.chart-title= donut['title']
+  %svg.chart-svg.chart-svg--donut{ viewBox: '0 0 42 42' }
+    %title= "#{donut['title']}: #{total}"
+    %circle.donut-ring{ cx: PublicReports::DonutChart::CX, cy: PublicReports::DonutChart::CY, r: PublicReports::DonutChart::R, fill: 'transparent', 'stroke-width' => PublicReports::DonutChart::STROKE_WIDTH }
+    - chart.arcs.each_with_index do |arc, i|
+      - if arc.divider
+        %line.donut-divider{ data: { index: i }, x1: arc.divider[:x1], y1: arc.divider[:y1], x2: arc.divider[:x2], y2: arc.divider[:y2], 'aria-hidden' => 'true' }
+      %g.chart-point{ data: { index: i } }
+        %circle.donut-segment{ cx: PublicReports::DonutChart::CX, cy: PublicReports::DonutChart::CY, r: PublicReports::DonutChart::R, fill: 'transparent', stroke: arc.color, 'stroke-width' => PublicReports::DonutChart::STROKE_WIDTH, 'stroke-dasharray' => arc.dasharray, 'stroke-dashoffset' => arc.dashoffset, tabindex: 0, role: 'img', 'aria-label' => "#{donut['title']}, #{arc.label_text}" }
+        %g.chart-tooltip{ 'aria-hidden' => 'true' }
+          %rect{ x: arc.tooltip[:rect_x], y: arc.tooltip[:rect_y], width: arc.tooltip[:width], height: 5, rx: 1 }
+          %text{ x: arc.tooltip[:text_x], y: arc.tooltip[:text_y], 'text-anchor' => 'middle' }= arc.label_text
+    %text.donut-total-value{ x: 21, y: 19.8, 'text-anchor' => 'middle' }= total_value
+    %text.donut-total-label{ x: 21, y: 24.8, 'text-anchor' => 'middle' }= total_label
+  = render 'public_reports/shared/percent_legend_table', title: donut['title'], rows: segments, unit: donut['unit']

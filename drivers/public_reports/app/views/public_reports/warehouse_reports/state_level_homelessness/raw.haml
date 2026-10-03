@@ -1,34 +1,11 @@
-= render 'chart_css'
-- data = @report.parsed_pre_calculated_data
-
-%section.position-relative
-  = render 'summary_counts', data: data
-
-  %h3
-    = Translation.translate('Total Number of People Experiencing Homelessness')
-    = render 'glossary_button'
-  - chart_class = 'pit-chart'
-  %div{ class: chart_class }
-  .d-flex.legend-wrapper-horizontal.ml-2.legend-wrapper{ class: ["#{chart_class}_legend"] }
-  = render 'line_chart', chart_class: chart_class, data: data['pit_chart'], category: :population
-
-  %h3
-    = Translation.translate('Total Number of People Entering and Exiting Homelessness')
-    = render 'glossary_button'
-  - chart_class = 'inflow-outflow-chart'
-  %div{ class: chart_class }
-  .d-flex.legend-wrapper-horizontal.ml-2.legend-wrapper{ class: ["#{chart_class}_legend"] }
-  = render 'line_chart', chart_class: chart_class, data: data['inflow_outflow'], category: :population
-
-  = render 'slider', data: data['quarters']
-  %h3= Translation.translate('Where is the need?')
-  = render 'need_map', data: data['need_map'], max_rate: data['map_max_rate'], max_count: data['map_max_count']
-
-  %h3= Translation.translate('Who is experiencing homelessness?')
-  = render 'location', data: data
-
-  - chart_class = "race-chart"
-  = render 'race_chart', data: data['race_chart'], chart_class: chart_class, category: :race, groups: ::HudHelper.util.races(multi_racial: true).values + ['Other or Unknown']
-
-  = render 'homeless_breakdowns', data: data['homeless_breakdowns']
-  = render 'glossary_content'
+- if @report.renderable?
+  - data = @report.parsed_pre_calculated_data
+  = render 'public_reports/shared/summary_section', data: data
+  = render 'public_reports/shared/trends_section', data: data
+  = render 'public_reports/shared/need_section', data: data
+  = render 'public_reports/shared/population_section', who: data['who'], include_breakdown: true
+  = render 'public_reports/shared/glossary'
+  - if @report.completed_at
+    %p.data-note= "Date published: #{@report.completed_at.to_date}"
+- else
+  = render 'public_reports/shared/stale'

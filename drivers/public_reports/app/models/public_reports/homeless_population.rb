@@ -24,6 +24,10 @@ module PublicReports
       Translation.translate('Homeless Population Report')
     end
 
+    def raw_layout
+      'raw_public_report'
+    end
+
     private def public_s3_directory
       'homeless-population'
     end

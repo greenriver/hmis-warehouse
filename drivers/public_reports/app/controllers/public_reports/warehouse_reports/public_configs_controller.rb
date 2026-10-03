@@ -16,8 +16,12 @@ module PublicReports::WarehouseReports
 
     def create
       @config = config_source.first_or_create
-      @config.update(config_params)
-      respond_with(@config, location: public_reports_warehouse_reports_public_configs_path)
+      if @config.update(config_params)
+        respond_with(@config, location: public_reports_warehouse_reports_public_configs_path)
+      else
+        flash.now[:error] = @config.errors.full_messages.join('; ')
+        render :index, status: :unprocessable_entity
+      end
     end
 
     def config_params
@@ -36,6 +40,13 @@ module PublicReports::WarehouseReports
         :adults_with_children_primary_color,
         :children_only_primary_color,
         :veterans_primary_color,
+        :secondary_color,
+        :heading_color,
+        :text_color,
+        :border_color,
+        :surface_tint_color,
+        :focus_color,
+        :map_not_reporting_color,
         :color_0,
         :color_1,
         :color_2,

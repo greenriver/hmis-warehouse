@@ -1,3 +1,2 @@
 - data = JSON.parse(@report.precalculated_data)
-.housed-total-count= data['count']
-.housed-total-count-date-range= data['date_range']
+= render 'public_reports/shared/kpi_tiles', tiles: [{ 'value' => data['count'], 'label' => @report.instance_title }], note: data['date_range']

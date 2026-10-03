@@ -11,6 +11,9 @@ module WarehouseReports::S3Toolset
   # Setup the S3 configuration if not setup if possible
   # Returns true if we're good to publish things, false if not
   def ready_public_s3_bucket!
+    # SeaweedFS (the local dev S3) has no bucket website API
+    return bucket_exists? || create_bucket! if AwsS3.local_endpoint?
+
     bucket_there = bucket_exists?
     website_there = bucket_website_configured?
     return true if bucket_there && website_there
@@ -65,18 +68,15 @@ module WarehouseReports::S3Toolset
   end
 
   private def s3_bucket
-    ENV.fetch('S3_PUBLIC_BUCKET', "#{ENV.fetch('CLIENT').gsub('_', '-')}-#{Rails.env}-public")
+    ENV['S3_PUBLIC_BUCKET'].presence || "#{ENV.fetch('CLIENT').gsub('_', '-')}-#{Rails.env}-public"
   end
 
   private def s3_client
-    @s3_client ||= if ENV['S3_PUBLIC_ACCESS_KEY_ID'].present? && ENV['S3_PUBLIC_ACCESS_KEY_SECRET'].present?
-      Aws::S3::Client.new(
-        access_key_id: ENV.fetch('S3_PUBLIC_ACCESS_KEY_ID'),
-        secret_access_key: ENV.fetch('S3_PUBLIC_ACCESS_KEY_SECRET'),
-      )
-    else
-      Aws::S3::Client.new
-    end
+    @s3_client ||= AwsS3.new(
+      bucket_name: s3_bucket,
+      access_key_id: ENV['S3_PUBLIC_ACCESS_KEY_ID'],
+      secret_access_key: ENV['S3_PUBLIC_ACCESS_KEY_SECRET'],
+    ).client
   end
 
   # NOTE: this is duplicated in 2 other reports that differ minimally and is replaced with
