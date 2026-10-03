@@ -107,6 +107,7 @@ RSpec.describe 'PublicReports::WarehouseReports::StateLevelHomelessness sections
       page = Nokogiri::HTML(response.body)
       expect(page.at_css('.heading-with-icon h2#summary-heading')&.text).to eq('Statewide summary')
       expect(page.at_css('.heading-with-icon a.info-icon')&.[]('href')).to eq('#glossary')
+      expect(page.at_css('.heading-with-icon a.info-icon')['class'].split).to include('info-icon--below')
       expect(page.css('#glossary').size).to eq(1)
     end
   end
