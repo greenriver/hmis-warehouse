@@ -87,6 +87,14 @@ RSpec.describe PublicReports::Setting, type: :model do
       expect(setting.errors.attribute_names).to contain_exactly(:color_3, :race_color_2)
     end
 
+    it 'saves other changes when a stored value it is not changing is invalid' do
+      setting = described_class.new(color_3: '#000;}')
+      setting.save!(validate: false)
+
+      expect(setting.update(summary_color: '#abcdef')).to be(true)
+      expect(setting.update(color_3: '#000;}x')).to be(false)
+    end
+
     it 'accepts hex colors and blank values' do
       expect(described_class.new(summary_color: '#abc', secondary_color: '', race_color_2: '#AABBCC').valid?).to be(true)
     end

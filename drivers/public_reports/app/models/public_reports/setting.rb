@@ -178,6 +178,8 @@ module PublicReports
       columns = THEME_COLUMNS.values + num_colors.map { |i| ["color_#{i}", :color] } +
         color_categories.product(num_colors_per_category).map { |category, i| ["#{category}_color_#{i}", :color] }
       columns.each do |column, format|
+        next unless will_save_change_to_attribute?(column)
+
         value = self[column]
         errors.add(column, 'is not a valid CSS value') if value.present? && !value.to_s.match?(CSS_FORMATS.fetch(format))
       end

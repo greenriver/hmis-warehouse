@@ -38,4 +38,10 @@ RSpec.describe 'PublicReports::WarehouseReports::PublicConfigs', type: :request 
     expect(response.body).to include('Summary color is not a valid CSS value')
     expect(PublicReports::Setting.first.summary_color).to eq('#123456')
   end
+
+  it 'keeps the rejected font family in the form so it can be corrected' do
+    post public_reports_warehouse_reports_public_configs_path, params: { config: { font_family_0: 'Georgia;}' } }
+
+    expect(Nokogiri::HTML(response.body).at_css('input[name="config[font_family_0]"]')['value']).to eq('Georgia;}')
+  end
 end
