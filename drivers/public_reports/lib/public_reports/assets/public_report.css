@@ -68,8 +68,8 @@ body {
      hover/focus, but opacity doesn't remove them from layout — a tooltip
      anchored to a segment near the right edge can still push past the
      viewport and widen the page's own horizontal scroll region even while
-     invisible. They're aria-hidden and pointer-events:none, so clipping
-     the sliver that pokes off-screen costs nothing real. */
+     invisible. They're aria-hidden and opacity:0 until shown, so clipping
+     the sliver that pokes off-screen hides nothing a reader needs. */
   overflow-x: hidden;
 }
 
@@ -393,6 +393,29 @@ img {
 .info-icon:focus-visible .info-icon__tooltip {
   opacity: 1;
   transform: translate(-50%, 0);
+  pointer-events: auto;
+}
+
+/* Covers the margin gap so the pointer can move from the icon onto the tooltip. */
+.info-icon__tooltip::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 100%;
+  height: var(--space-2);
+}
+
+.info-icon--below .info-icon__tooltip::before {
+  top: auto;
+  bottom: 100%;
+}
+
+.tooltips-dismissed .info-icon__tooltip,
+.tooltips-dismissed .chart-tooltip,
+.tooltips-dismissed .chart-tooltip--html {
+  opacity: 0 !important;
+  pointer-events: none !important;
 }
 
 /* "Below" placement — for an icon that sits low in a tightly-packed block
