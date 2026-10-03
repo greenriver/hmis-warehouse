@@ -10,7 +10,7 @@ module PublicReports
   # Ported from charts.js / who_section.js: who_page.js re-renders these charts
   # with the JS versions on a period change, so the output must match.
   module WhoCharts
-    INK = '#1B1B1B'
+    INK = PublicReports::Setting::INK_COLOR
     WHITE = '#ffffff'
 
     module_function

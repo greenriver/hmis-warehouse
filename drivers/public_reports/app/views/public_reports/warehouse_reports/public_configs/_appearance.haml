@@ -1,11 +1,11 @@
 %section
   %h3 Appearance
-  %p The following are all optional and will override the appearance of any public report.
+  %p The following are all optional and will override the appearance of any public report. Font size and weight apply to body text.
   = f.input :font_url, input_html: { value: @config.font_path }
   = f.input :font_family_0, label: 'Font family', input_html: { value: @config.font_family }
   = f.input :font_family_1, label: 'Heading font family'
-  = f.input :font_size_0, label: 'Font size', input_html: { value: @config.font_size }
-  = f.input :font_weight_0, label: 'Font weight', input_html: { value: @config.font_weight }
+  = f.input :font_size_0, label: 'Font size', input_html: { placeholder: PublicReports::Setting::THEME_DEFAULTS[:font_size] }
+  = f.input :font_weight_0, label: 'Font weight', input_html: { placeholder: PublicReports::Setting::THEME_DEFAULTS[:font_weight] }
   = f.input :summary_color, input_html: { class: 'colorpicker'}
   = f.input :secondary_color, input_html: { class: 'colorpicker'}
   = f.input :heading_color, input_html: { class: 'colorpicker'}

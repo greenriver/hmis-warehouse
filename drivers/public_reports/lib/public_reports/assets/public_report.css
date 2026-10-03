@@ -6,7 +6,7 @@
   --color-surface-alt: #f5f7fa;
 
   --line-height-body: 1.8;
-  --weight-body: 400;
+  --weight-body: var(--font-weight-body, 400);
   --weight-heading: 600;
 
   --type-150: 0.75rem;
@@ -55,7 +55,7 @@ body {
   margin: 0;
   font-family: var(--font-body);
   font-weight: var(--weight-body);
-  font-size: var(--type-200);
+  font-size: var(--font-size-body, var(--type-200));
   line-height: var(--line-height-body);
   color: var(--color-text);
   background: var(--color-surface);

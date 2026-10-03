@@ -16,8 +16,12 @@ module PublicReports::WarehouseReports
 
     def create
       @config = config_source.first_or_create
-      @config.update(config_params)
-      respond_with(@config, location: public_reports_warehouse_reports_public_configs_path)
+      if @config.update(config_params)
+        respond_with(@config, location: public_reports_warehouse_reports_public_configs_path)
+      else
+        flash.now[:error] = @config.errors.full_messages.join('; ')
+        render :index, status: :unprocessable_entity
+      end
     end
 
     def config_params

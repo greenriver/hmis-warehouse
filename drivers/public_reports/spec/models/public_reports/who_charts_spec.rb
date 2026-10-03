@@ -24,7 +24,7 @@ RSpec.describe PublicReports::WhoCharts do
   end
 
   it 'picks white text on dark fills and ink text on light fills' do
-    expect([described_class.text_color('#14558F')[:color], described_class.text_color('#F6C51B')[:color]]).to eq(['#fff', '#1B1B1B'])
+    expect([described_class.text_color('#14558F')[:color], described_class.text_color('#F6C51B')[:color]]).to eq(['#fff', '#1b1b1b'])
   end
 
   it 'shows an inline label only from 8% wide' do

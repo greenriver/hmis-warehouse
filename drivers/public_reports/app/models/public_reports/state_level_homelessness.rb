@@ -283,7 +283,7 @@ module PublicReports
       @map_colors ||= {}.tap do |m_colors|
         colors = ['#FFFFFF']
         8.times do |i|
-          colors << settings["color_#{i}"]
+          colors << settings.color(i)
         end
         if settings.map_overall_geography_census?
           m_colors[colors[0]] = { description: 'None', range: (0..0), low: 0, high: 0 }
