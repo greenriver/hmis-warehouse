@@ -199,7 +199,7 @@ RSpec.describe PublicReports::StateLevelHomelessness, type: :model do
 
   context 'with real map counts' do
     before do
-      allow_any_instance_of(described_class).to receive(:fake_map_counts?).and_return(false) # rubocop:disable RSpec/AnyInstance
+      allow_any_instance_of(described_class).to receive(:fake_map_counts?).and_return(false)
     end
 
     it 'suppresses a small statewide total and counts no one aged 30 as youth' do

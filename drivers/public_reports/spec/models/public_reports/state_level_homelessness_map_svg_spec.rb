@@ -12,11 +12,10 @@ RSpec.describe PublicReports::StateLevelHomelessness, type: :model do
   describe '#map_svg' do
     it 'builds one path per geography, with coordinates in the 0..720 viewBox and a positive height' do
       # GrdaWarehouse::Shape classes memoize their state-code lookup on the
-      # class object itself (not Rails.cache), so it survives this example's
+      # class object itself, so it survives this example's
       # transaction rollback and can leak a stale (pre-fixture) empty result
       # into a later example. Force a fresh lookup for this run.
       GrdaWarehouse::Shape::Town.instance_variable_set(:@my_fips_state_codes, nil)
-      Rails.cache.clear
 
       state = GrdaWarehouse::Shape::State.create!(stusps: 'MA', geoid: '25')
       GrdaWarehouse::Shape::Town.create!(
@@ -46,7 +45,6 @@ RSpec.describe PublicReports::StateLevelHomelessness, type: :model do
 
     it 'returns an empty map when the state has no shapes' do
       GrdaWarehouse::Shape::Town.instance_variable_set(:@my_fips_state_codes, nil)
-      Rails.cache.clear
       GrdaWarehouse::Shape::State.create!(stusps: 'MA', geoid: '25')
       PublicReports::Setting.first_or_create.update!(map_type: 'place')
 
