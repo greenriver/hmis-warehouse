@@ -47,6 +47,10 @@
   box-sizing: border-box;
 }
 
+[hidden] {
+  display: none !important;
+}
+
 html {
   font-size: 100%;
 }
@@ -606,7 +610,7 @@ img {
 
 /* Shared by every chart type whose data table doubles as its legend
    (Racial Composition's stacked bar, the "Who" donuts) — no <summary>
-   toggle (always shown, see the markup comments in charts.js), and each
+   toggle (always shown), and each
    row repeats its chart swatch next to the category name. */
 .chart-data--legend th[scope="row"] {
   display: flex;
@@ -695,7 +699,7 @@ img {
   font-family: var(--font-body);
 }
 
-/* The shared .chart-tooltip sizing (charts.js estimates a rect width/x
+/* The shared .chart-tooltip sizing (the rect width/x is estimated
    assuming ~13px text in a large viewBox) is tuned for the line chart's
    620x280 viewBox. The donut's 42x42 viewBox needs a much smaller font so
    the tooltip doesn't dwarf the chart. */

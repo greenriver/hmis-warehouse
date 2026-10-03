@@ -7,7 +7,7 @@
 # frozen_string_literal: true
 
 module PublicReports
-  # Donut geometry ported from charts.js donutChart(). segments: [{ label:, value: (percent), color: }].
+  # segments: [{ label:, value: (percent), color: }].
   class DonutChart
     CX = 21
     CY = 21
@@ -59,7 +59,6 @@ module PublicReports
       { x1: fixed(x1), y1: fixed(y1), x2: fixed(x2), y2: fixed(y2) }
     end
 
-    # Width uses the escaped label length, matching charts.js.
     private def tooltip(label_text, mid_pct)
       tx, ty = to_xy(mid_pct, OUTER_R + 3)
       width = [14, ERB::Util.html_escape(label_text).length * 2.1 + 3].max

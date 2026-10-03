@@ -72,10 +72,32 @@ RSpec.describe 'PublicReports::WarehouseReports::StateLevelHomelessness sections
     expect(response.body).to include('stat-tile')
   end
 
-  it 'embeds the who JSON blob on who, race and raw' do
-    [:who, :race, :raw].each do |section|
-      get send("#{section}_public_reports_warehouse_reports_state_level_homelessness_path", report)
-      expect(response.body).to include('data-who-data')
+  describe 'who section periods' do
+    let(:who) { JSON.parse(precalculated_data)['who'] }
+
+    it 'renders every period, showing only the current one, with no JSON for scripts to rebuild charts from' do
+      get who_public_reports_warehouse_reports_state_level_homelessness_path(report)
+      page = Nokogiri::HTML(response.body)
+      panes = page.css('[data-who-period-pane]')
+
+      expect(panes.map { |pane| pane['data-who-period-pane'] }.uniq).to eq(who['periods'].each_index.map(&:to_s))
+      expect(panes.reject { |pane| pane.key?('hidden') }.map { |pane| pane['data-who-period-pane'] }.uniq).to eq([who['currentIndex'].to_s])
+      expect(page.css('[data-who-data]')).to be_empty
+    end
+
+    it 'keeps element ids unique across periods' do
+      get raw_public_reports_warehouse_reports_state_level_homelessness_path(report)
+      ids = Nokogiri::HTML(response.body).css('[id]').map { |el| el['id'] }
+
+      expect(ids.tally.select { |_, count| count > 1 }).to eq({})
+    end
+
+    it 'shows the earlier period donut total in its own hidden pane' do
+      get who_public_reports_warehouse_reports_state_level_homelessness_path(report)
+      earlier = (who['currentIndex'] - 1).to_s
+      title = Nokogiri::HTML(response.body).at_css(%([data-who-period-pane="#{earlier}"] figure.chart--donut[data-donut-id="all-people"] svg title))
+
+      expect(title.text).to eq("#{who['donuts']['all-people']['title']}: #{PublicReports::WhoCharts.format_total(who['donuts']['all-people']['totals'][earlier.to_i], who['donuts']['all-people']['unit'])}")
     end
   end
 
@@ -95,7 +117,7 @@ RSpec.describe 'PublicReports::WarehouseReports::StateLevelHomelessness sections
 
   it 'renders breakdown rows for every grouping' do
     get who_public_reports_warehouse_reports_state_level_homelessness_path(report)
-    labels = Nokogiri::HTML(response.body).css('.breakdown-row__label').map(&:text)
+    labels = Nokogiri::HTML(response.body).css('[data-who-period-pane]:not([hidden]) .breakdown-row__label').map(&:text)
     expect(labels).to contain_exactly('Persons Age 18 to 24', 'Persons over age 24', 'Fixture Gender Row', 'Fixture Race Row')
   end
 
@@ -291,7 +313,7 @@ RSpec.describe 'PublicReports::WarehouseReports::StateLevelHomelessness sections
     end
 
     it 'renders the current period of each donut with labelled segments and a table' do
-      donut = page.at_css('figure.chart--donut[data-donut-id="all-people"]')
+      donut = page.at_css('[data-who-period-pane]:not([hidden]) figure.chart--donut[data-donut-id="all-people"]')
 
       expect(donut.at_css('svg title').text).to eq('All People: 19,000 People')
       segments = donut.css('circle.donut-segment')
@@ -301,11 +323,11 @@ RSpec.describe 'PublicReports::WarehouseReports::StateLevelHomelessness sections
     end
 
     it 'reports a suppressed donut total as 100 or fewer' do
-      expect(page.at_css('figure.chart--donut[data-donut-id="veterans"] svg title').text).to eq('Veterans: 100 or fewer Veterans')
+      expect(page.at_css('[data-who-period-pane]:not([hidden]) figure.chart--donut[data-donut-id="veterans"] svg title').text).to eq('Veterans: 100 or fewer Veterans')
     end
 
     it 'renders the household-type bar with contrast-checked inline labels' do
-      chart = page.at_css('.chart--composition-bar[data-chart-id="household-type"][role="group"]')
+      chart = page.at_css('[data-who-period-pane]:not([hidden]) .chart--composition-bar[data-chart-id="household-type"][role="group"]')
       segments = chart.css('.stacked-bar__segment')
 
       expect(chart.at_css("p.chart-title##{chart['aria-labelledby']}").text).to eq('13,755 Households')
@@ -316,10 +338,10 @@ RSpec.describe 'PublicReports::WarehouseReports::StateLevelHomelessness sections
     end
 
     it 'renders both race bars, leaving out categories with no value but keeping them in the table' do
-      chart = page.at_css('.chart--stacked-bar[data-chart-id="race"][role="group"]')
+      chart = page.at_css('[data-who-period-pane]:not([hidden]) .chart--stacked-bar[data-chart-id="race"][role="group"]')
       bars = chart.css('.stacked-bar').to_h { |bar| [bar.at_css('.stacked-bar__label').text, bar.css('.stacked-bar__segment').map { |s| s['aria-label'] }] }
 
-      expect(chart.at_css('p#chart-title-race').text).to eq('19,914 People')
+      expect(chart.at_css('p.chart-title').text).to eq('19,914 People')
       expect(bars).to eq(
         'Homeless Population' => ['Homeless Population, White: 44.5%', 'Homeless Population, Other or Unknown: 0.9%'],
         'Overall Population' => ['Overall Population, White: 71.4%'],
@@ -332,7 +354,7 @@ RSpec.describe 'PublicReports::WarehouseReports::StateLevelHomelessness sections
       stored['who']['race']['overall'] = ['71.4', nil]
       report.update_column(:precalculated_data, stored.to_json)
 
-      bar = page.at_css('.chart--stacked-bar[data-chart-id="race"] .stacked-bar[data-key="overallPct"]')
+      bar = page.at_css('[data-who-period-pane]:not([hidden]) .chart--stacked-bar[data-chart-id="race"] .stacked-bar[data-key="overallPct"]')
       expect(bar.css('.stacked-bar__segment').map { |s| s['aria-label'] }).to eq(['Overall Population, White: 71.4%'])
     end
   end

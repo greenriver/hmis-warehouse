@@ -36,7 +36,7 @@ RSpec.describe PublicReports::WhoCharts do
     expect(described_class.contrast_ring_style('#14558F')).to eq('')
   end
 
-  it 'gives no ring and no inline label for a colour that is not six-digit hex, as charts.js does' do
+  it 'gives no ring and no inline label for a colour that is not six-digit hex' do
     expect([described_class.contrast_ring_style('#abc'), described_class.inline_label_color(50, 'red')]).to eq(['', nil])
   end
 

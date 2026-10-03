@@ -7,7 +7,7 @@
 # frozen_string_literal: true
 
 module PublicReports::AssetsHelper
-  ASSETS = ['charts.js', 'public_report.css', 'public_report.js', 'town_map.js', 'who_page.js', 'who_section.js'].freeze
+  ASSETS = ['public_report.css', 'public_report.js', 'town_map.js', 'who_page.js'].freeze
 
   def public_report_asset(name)
     raise ArgumentError, "Unknown public report asset: #{name}" unless ASSETS.include?(name)

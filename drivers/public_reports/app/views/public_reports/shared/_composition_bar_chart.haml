@@ -1,7 +1,7 @@
 - values = donut['values'][period_index]
 - colors = donut['colors']
 - segments = donut['labels'].each_with_index.map { |label, i| { label: label, value: values[i], color: colors[i % colors.size] } }
-- title_id = "chart-title-#{id}"
+- title_id = "chart-title-#{id}-#{period_index}"
 - title = PublicReports::WhoCharts.format_total(donut['totals'][period_index], donut['unit'])
 .chart.chart--stacked-bar.chart--composition-bar{ data: { component: 'composition-bar', 'chart-id' => id }, role: 'group', 'aria-labelledby' => title_id }
   %p.chart-title{ id: title_id }= title

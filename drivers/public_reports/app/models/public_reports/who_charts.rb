@@ -7,8 +7,7 @@
 # frozen_string_literal: true
 
 module PublicReports
-  # Ported from charts.js / who_section.js: who_page.js re-renders these charts
-  # with the JS versions on a period change, so the output must match.
+  # Formatting and contrast helpers for the who-section charts.
   module WhoCharts
     INK = PublicReports::Setting::INK_COLOR
     WHITE = '#ffffff'
@@ -25,7 +24,7 @@ module PublicReports
       value.is_a?(Float) && value == value.truncate ? value.to_i.to_s : value.to_s
     end
 
-    # NaN, like charts.js, so every contrast check fails and no ring or label is drawn.
+    # NaN for a non-hex colour, so every contrast check fails and no ring or label is drawn.
     def relative_luminance(hex)
       return Float::NAN unless hex.to_s.match?(/\A#\h{6}\z/)
 

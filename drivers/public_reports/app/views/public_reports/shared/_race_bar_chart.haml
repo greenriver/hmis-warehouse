@@ -1,8 +1,8 @@
 - homeless = race['homeless'][period_index]
 - rows = race['labels'].each_with_index.map { |label, i| { label: label, homeless: homeless[i], overall: race['overall'][i]&.to_f, color: race['colors'][label] || '#999' } }
 - title = PublicReports::WhoCharts.format_total(race['totals'][period_index], 'People')
-.chart.chart--stacked-bar{ data: { component: 'stacked-bar', 'chart-id' => 'race' }, role: 'group', 'aria-labelledby' => 'chart-title-race' }
-  %p.chart-title#chart-title-race= title
+.chart.chart--stacked-bar{ data: { component: 'stacked-bar', 'chart-id' => 'race' }, role: 'group', 'aria-labelledby' => "chart-title-race-#{period_index}" }
+  %p.chart-title{ id: "chart-title-race-#{period_index}" }= title
   - [[:homeless, 'homelessPct', categories[0]], [:overall, 'overallPct', categories[1]]].each do |key, data_key, population_label|
     .stacked-bar{ data: { key: data_key } }
       %p.stacked-bar__label= population_label

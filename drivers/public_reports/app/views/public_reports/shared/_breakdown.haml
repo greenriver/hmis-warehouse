@@ -8,10 +8,10 @@
         - section['rows'].each_with_index do |label, row_index|
           - row_id = "#{grouping_key}__#{section_index}__#{row_index}"
           - row_data = breakdown[row_id]
-          - total = row_data['totals'][current_index]
-          - chronic_pct = row_data['chronic'][current_index]
-          - sheltered_count = row_data['sheltered'] && row_data['sheltered'][current_index]
-          - unsheltered_count = row_data['unsheltered'] && row_data['unsheltered'][current_index]
+          - total = row_data['totals'][period_index]
+          - chronic_pct = row_data['chronic'][period_index]
+          - sheltered_count = row_data['sheltered'] && row_data['sheltered'][period_index]
+          - unsheltered_count = row_data['unsheltered'] && row_data['unsheltered'][period_index]
           - redacted = sheltered_count.nil?
           .breakdown-row
             .breakdown-row__label= label
