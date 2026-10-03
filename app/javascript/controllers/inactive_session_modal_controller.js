@@ -1,4 +1,4 @@
-import { Controller } from "@hotwired/stimulus"
+import { Controller } from '@hotwired/stimulus';
 
 const WARNING_WHEN_REMAINING_SECS = 5 * 60; // 5 minutes
 const DEFAULT_POLL_SECS = 3;
@@ -7,8 +7,9 @@ const MAX_POLL_COUNT = (60 * 60 * 10) / DEFAULT_POLL_SECS; // about 10 hours
 const TS_KEY = 'session_last_request_ts';
 const UID_KEY = 'session_user_id';
 // JWT arm: browser-clock seconds at which the token expires, shared so all tabs count down together.
-// Last write wins, not the max: every tab shares one oauth2-proxy cookie, so the latest response
-// carries the current token, and a failed refresh must be able to pull the expiry earlier.
+// Stored with the start time of the request that reported it, and the newest request wins, not the
+// max: every tab shares one oauth2-proxy cookie, so the newest request carries the current token,
+// and a failed refresh must be able to pull the expiry earlier.
 const EXPIRES_KEY = 'session_expires_at';
 // Server-Timing entry name set by ApplicationController#set_app_user_header.
 const SESSION_TIMING_NAME = 'app-session-remaining';
@@ -27,9 +28,24 @@ const shared = {
   },
 };
 
-const saveExpiry = (remainingSecs, at = getTimestamp()) => {
-  shared.saveValue(EXPIRES_KEY, at + remainingSecs);
+const readExpiry = () => {
+  const stored = shared.getValue(EXPIRES_KEY);
+  return stored ? JSON.parse(stored) : {};
 };
+
+// `requestedAt` is when the request started. The server reads the token's remaining seconds early in
+// the request, so anchoring there errs early by network latency, not late by the action's run time.
+// A write from an older request (a slow response, or a background tab's delayed observer) is dropped.
+const saveExpiry = (remainingSecs, requestedAt) => {
+  if (readExpiry().requestedAt > requestedAt) return;
+  shared.saveValue(EXPIRES_KEY, JSON.stringify({ requestedAt, expiresAt: requestedAt + remainingSecs }));
+};
+
+// Wall-clock seconds `msAgo` milliseconds of monotonic time before now. Every `requestedAt` must be on
+// the wall clock that getTimestamp and mainLoop use. performance.timeOrigin + a monotonic stamp isn't:
+// the monotonic clock stops while the machine sleeps, so on a page loaded before a sleep that sum
+// lags the wall clock by the sleep's length.
+const wallClockSecsAgo = (msAgo) => getTimestamp() - msAgo / 1000;
 
 export default class extends Controller {
   static get targets() {
@@ -43,7 +59,8 @@ export default class extends Controller {
     // subtracts browser time from a server-issued instant. Absent on the Devise arm, which seeds a lifetime.
     const remainingSecs = parseInt(this.data.get('session-remaining-secs-value'));
     this.tokenExpiryDriven = !Number.isNaN(remainingSecs);
-    if (this.tokenExpiryDriven) saveExpiry(remainingSecs);
+    // Navigation start (performance.now() is measured from it), at or before the request that rendered the seed.
+    if (this.tokenExpiryDriven) saveExpiry(remainingSecs, wallClockSecsAgo(performance.now()));
     shared.saveValue(UID_KEY, this.initialUserIdValue);
     if (!this.initialUserIdValue) {
       return;
@@ -89,7 +106,7 @@ export default class extends Controller {
     state.userId = shared.getValue(UID_KEY);
     const ts = parseInt(shared.getValue(TS_KEY));
     if (ts) {
-      const expires = this.tokenExpiryDriven ? parseFloat(shared.getValue(EXPIRES_KEY)) : ts + this.sessionLifetimeSecsValue;
+      const expires = this.tokenExpiryDriven ? readExpiry().expiresAt : ts + this.sessionLifetimeSecsValue;
       // JWT arm with a current_user but no token expiry: no seed to count down, so hold at
       // not-expiring (a NaN countdown would otherwise render a false "session expired").
       const remaining = Number.isFinite(expires) ? Math.max(expires - getTimestamp(), 0) : Number.MAX_VALUE;
@@ -173,18 +190,20 @@ export default class extends Controller {
   // iframes). `buffered` replays requests that finished before this controller connected.
   observeSessionTiming() {
     this.sessionTimingObserver = new PerformanceObserver((list) => {
-      // A batch isn't guaranteed to be in arrival order, and the last response carries the current token.
+      // A batch isn't guaranteed to be in request order, and the newest request carries the current token.
       let latest;
       list.getEntries().forEach((entry) => {
-        const timing = entry.serverTiming.find((t) => t.name === SESSION_TIMING_NAME);
-        if (timing && !Number.isNaN(parseInt(timing.description)) && (!latest || entry.responseEnd > latest.entry.responseEnd)) {
+        // serverTiming is missing in older browsers (e.g. Safari < 16.4): the countdown then moves
+        // only on page load and keepalive.
+        const timing = (entry.serverTiming || []).find((t) => t.name === SESSION_TIMING_NAME);
+        if (timing && !Number.isNaN(parseInt(timing.description)) && (!latest || entry.requestStart > latest.entry.requestStart)) {
           latest = { entry, timing };
         }
       });
       if (!latest) return;
-      // Anchor to when the response arrived; observer callbacks can be delayed, e.g. in background tabs.
-      const arrivedAt = (performance.timeOrigin + latest.entry.responseEnd) / 1000;
-      saveExpiry(parseInt(latest.timing.description), arrivedAt);
+      // Anchor to the entry's own timing, not now: observer callbacks can be delayed, e.g. in background tabs.
+      const requestedAt = wallClockSecsAgo(performance.now() - latest.entry.requestStart);
+      saveExpiry(parseInt(latest.timing.description), requestedAt);
     });
     this.sessionTimingObserver.observe({ type: 'resource', buffered: true });
   }
@@ -197,16 +216,17 @@ export default class extends Controller {
   handleRenewSession(event) {
     event.preventDefault();
     if (this.state.xhr) return;
+    const requestedAt = getTimestamp();
     const success = (data) => {
       this.state.xhr = undefined;
       // The token didn't refresh (the IdP session is likely gone). A reload wouldn't help: oauth2-proxy
       // keeps the old token until it expires. Say so, and let the user close the modal to save their work.
       if (this.tokenExpiryDriven && data && data.remaining_seconds < WARNING_WHEN_REMAINING_SECS) {
-        saveExpiry(data.remaining_seconds);
+        saveExpiry(data.remaining_seconds, requestedAt);
         this.toggleRenewFailed(true);
         return;
       }
-      this.applyKeepaliveExpiry(data);
+      this.applyKeepaliveExpiry(data, requestedAt);
       this.hideWarning();
     };
     const error = () => {
@@ -234,10 +254,10 @@ export default class extends Controller {
     this.hideWarning();
   }
 
-  applyKeepaliveExpiry(data) {
+  applyKeepaliveExpiry(data, requestedAt) {
     if (!this.tokenExpiryDriven || !data || !Number.isFinite(data.remaining_seconds)) return;
     // Browser-clock basis, like connect(): the payload's absolute expiration_time would carry skew.
-    saveExpiry(data.remaining_seconds);
+    saveExpiry(data.remaining_seconds, requestedAt);
     this.state.remaining = Number.MAX_VALUE;
   }
 }

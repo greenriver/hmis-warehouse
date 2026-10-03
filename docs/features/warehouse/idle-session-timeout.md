@@ -14,7 +14,7 @@ On the JWT arm an idle session ends 25–30 minutes after the last request, and 
 
 ## Devise arm
 - `DeviseCurrentUser#inactive_session_countdown_values` seeds the modal with `session_lifetime_secs_value` (`Devise.timeout_in`).
-- Every page load and AJAX response stamps `session_last_request_ts` in localStorage. The countdown is that stamp plus the lifetime, so all tabs share it.
+- Every page load and jQuery AJAX response stamps `session_last_request_ts` in localStorage. The countdown is that stamp plus the lifetime, so all tabs share it.
 - `/messages/poll` and requests with `skip_trackable=true` are not stamped, because they don't extend a Devise session.
 - "I'm still here" POSTs to `Users::SessionsController#keepalive`, which returns `head :ok`. The request alone resets Devise's timer.
 
@@ -30,8 +30,9 @@ In the browser:
 
 - `Idp::JwtCurrentUser#inactive_session_countdown_values` seeds the modal with `session_remaining_secs_value`, the token's remaining seconds.
 - `ApplicationController#set_app_user_header` sends the same value on every response as a `Server-Timing` entry, `app-session-remaining;desc="<secs>"`. Server-Timing is used because the browser's Resource Timing API exposes it for every request type (fetch, XHR, iframes). It is only exposed on HTTPS pages, which every deployment is.
-- The modal turns remaining seconds into a browser-clock expiry and stores it in the `session_expires_at` localStorage key. It does this on page load, on keepalive, and for every response a `PerformanceObserver` sees carrying the entry. The observer is buffered, so it also picks up requests that finished before the modal's controller connected. All tabs read the same key, so they count down together.
-- The newest write wins, not the largest. Every tab shares one oauth2-proxy cookie, so the latest response carries the current token. A failed refresh must be able to pull the expiry earlier.
+- The modal turns remaining seconds into a browser-clock expiry and stores it in the `session_expires_at` localStorage key. It does this on page load, on keepalive, and for every response a `PerformanceObserver` sees carrying the entry. The observer is buffered, so it also picks up requests that finished before the modal's controller connected. All tabs read the same key, so they count down together. Browsers without `serverTiming` (e.g. Safari before 16.4) update the countdown only on page load and keepalive.
+- The expiry is measured from when the request started, not when the response arrived. The server reads the token early in the request, so a slow report page would otherwise push the expiry late by the action's run time.
+- The newest request wins, not the largest expiry. The key stores each value with its request's start time, and a write from an older request is dropped, such as a slow response or a background tab whose observer ran late. Every tab shares one oauth2-proxy cookie, so the newest request carries the current token. A failed refresh must be able to pull the expiry earlier.
 - The server sends seconds rather than a timestamp, so clock skew between browser and server doesn't matter.
 - "I'm still here" POSTs to `Idp::SessionsController#keepalive`, which returns `remaining_seconds`. If the result is still inside the 5-minute warning window, the refresh failed (usually because the Keycloak session is gone). A reload wouldn't help, because oauth2-proxy keeps serving the old token until it expires. So the modal says the session can't be extended and swaps "I'm still here" for a Close button. Closing it keeps the modal shut for the rest of the countdown so the user can save their work. At 0 the page clears as usual.
 
@@ -85,6 +86,7 @@ Background pollers therefore count as activity. A page left open with one of the
 - `app/controllers/idp/sessions_controller.rb` (`keepalive`)
 - `app/controllers/users/sessions_controller.rb` (`keepalive`)
 - `spec/requests/idp/warehouse_jwt_wiring_spec.rb`
+- `spec/system/rails/inactive_session_modal_spec.rb` (runs only with `RUN_RAILS_SYSTEM_TESTS` and `AUTH_METHOD=jwt`)
 
 ## Related
 - [Keycloak IDP Integration (dev stack)](../../developer/keycloak-idp.md): setup, and how to change realm session timeouts.
