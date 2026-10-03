@@ -238,6 +238,15 @@ RSpec.describe 'PublicReports::WarehouseReports::StateLevelHomelessness sections
 
       expect(Nokogiri::HTML(response.body).css('.data-note').map(&:text).uniq).to eq(['Data updated through Dec 31, 2025'])
     end
+
+    it 'lists the report in the history table' do
+      report.update_column(:user_id, nil)
+
+      get public_reports_warehouse_reports_state_level_homelessness_index_path
+
+      expect(response).to have_http_status(:ok)
+      expect(Nokogiri::HTML(response.body).css('td.report-parameters').size).to eq(1)
+    end
   end
 
   it 'replaces the map with a re-run message when the map type changed after the report ran' do
