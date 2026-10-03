@@ -35,6 +35,13 @@ RSpec.describe HopwaCaper::Generators::Fy2026::Sheets::StTfbhSheet, type: :model
     expect(rows.fetch("How many households received #{activity_label} Facility-Based Housing Leasing support for each facility?")).to eq(1)
   end
 
+  it 'excludes zero-cost households from the leasing expenditure drilldown' do
+    label = "What were the HOPWA funds expended for #{activity_label} Facility-Based Housing Leasing Costs for each facility?"
+    report, rows = run_and_extract_rows([project], 'Q9')
+    expect(rows.fetch(label)).to eq(0)
+    expect(members_for_label(report: report, question_number: 'Q9', label: label)).to be_empty
+  end
+
   it 'reports income and insurance correctly' do
     _, rows = run_and_extract_rows([project], 'Q9')
     expect(rows.fetch('Earned Income from Employment')).to eq(1)
