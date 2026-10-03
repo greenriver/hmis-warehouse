@@ -30,7 +30,7 @@
       "check_name": "UnsafeReflection",
       "message": "Unsafe reflection method `safe_constantize` called on model attribute",
       "file": "app/jobs/base_job.rb",
-      "line": 163,
+      "line": 100,
       "link": "https://brakemanscanner.org/docs/warning_types/remote_code_execution/",
       "code": "JobDetail.new(delayed_job).job_class.safe_constantize",
       "render_path": null,
@@ -53,7 +53,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/grda_warehouse/hud/project.rb",
-      "line": 383,
+      "line": 385,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "where(\"#{access_to_project_through_viewable_entities(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{access_to_project_through_organization(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{access_to_project_through_data_source(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{access_to_project_through_coc_codes(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{access_to_project_through_project_access_groups(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)}\")",
       "render_path": null,
@@ -135,28 +135,6 @@
       "confidence": "Medium",
       "cwe_id": [
         77
-      ],
-      "note": ""
-    },
-    {
-      "warning_type": "Cross-Site Scripting",
-      "warning_code": 2,
-      "fingerprint": "11e612be96c2a70a32517cc8f0acdddcc18a1ba89b7c9041d4587e51536e25cd",
-      "check_name": "CrossSiteScripting",
-      "message": "Unescaped model attribute",
-      "file": "app/views/project_groups/_form.haml",
-      "line": 37,
-      "link": "https://brakemanscanner.org/docs/warning_types/cross_site_scripting",
-      "code": "::Haml::AttributeBuilder.build_class(true, ((not User.anyone_using_acls?) and \"d-none\"))",
-      "render_path": null,
-      "location": {
-        "type": "template",
-        "template": "project_groups/_form"
-      },
-      "user_input": "(not User.anyone_using_acls?)",
-      "confidence": "Weak",
-      "cwe_id": [
-        79
       ],
       "note": ""
     },
@@ -609,40 +587,6 @@
       "note": ""
     },
     {
-      "warning_type": "Cross-Site Scripting",
-      "warning_code": 2,
-      "fingerprint": "49810d010cfa79dc72e96028f4d5f620f35c2b542a14f0e529ea3cec5a5a4c2b",
-      "check_name": "CrossSiteScripting",
-      "message": "Unescaped model attribute",
-      "file": "app/views/style_guides/system_colors.haml",
-      "line": 23,
-      "link": "https://brakemanscanner.org/docs/warning_types/cross_site_scripting",
-      "code": "::Haml::AttributeBuilder.build_class(true, \"mb-4 p-4\", \"#{section}-#{(Unresolved Model).new}\")",
-      "render_path": [
-        {
-          "type": "controller",
-          "class": "StyleGuidesController",
-          "method": "system_colors",
-          "line": 69,
-          "file": "app/controllers/style_guides_controller.rb",
-          "rendered": {
-            "name": "style_guides/system_colors",
-            "file": "app/views/style_guides/system_colors.haml"
-          }
-        }
-      ],
-      "location": {
-        "type": "template",
-        "template": "style_guides/system_colors"
-      },
-      "user_input": "(Unresolved Model).new",
-      "confidence": "Weak",
-      "cwe_id": [
-        79
-      ],
-      "note": ""
-    },
-    {
       "warning_type": "SQL Injection",
       "warning_code": 0,
       "fingerprint": "4dbef2124ce5f88d9517b90cfd0933fa92ca9a4353331c92fca66c397e476a6f",
@@ -877,7 +821,7 @@
       "check_name": "CrossSiteScripting",
       "message": "Unescaped model attribute",
       "file": "app/views/warehouse_reports/chronic_housed/index.haml",
-      "line": 40,
+      "line": 41,
       "link": "https://brakemanscanner.org/docs/warning_types/cross_site_scripting",
       "code": "site_chronic_source.where(:date => ::Filters::DateRange.new((params.permit(:range => ([:start, :end]))[:range] or { :start => 3.month.ago.to_date, :end => 1.months.ago.to_date })).range).group_by(&:client_id)[exits.first.client_id].map(&:date).uniq.join(\"<br />\")",
       "render_path": [
@@ -885,7 +829,7 @@
           "type": "controller",
           "class": "WarehouseReports::ChronicHousedController",
           "method": "index",
-          "line": 19,
+          "line": 34,
           "file": "app/controllers/warehouse_reports/chronic_housed_controller.rb",
           "rendered": {
             "name": "warehouse_reports/chronic_housed/index",
@@ -1224,28 +1168,6 @@
       "note": ""
     },
     {
-      "warning_type": "Format Validation",
-      "warning_code": 30,
-      "fingerprint": "8a5e425c96fc24a9ce888fdbeb5dd37f9d6966ec68e39ec3a740096874ca00b6",
-      "check_name": "ValidationRegex",
-      "message": "Insufficient validation for `postal_code` using `/\\A\\d{5}/`. Use `\\A` and `\\z` as anchors",
-      "file": "drivers/hmis/app/models/hmis/hud/custom_client_address.rb",
-      "line": 119,
-      "link": "https://brakemanscanner.org/docs/warning_types/format_validation/",
-      "code": null,
-      "render_path": null,
-      "location": {
-        "type": "model",
-        "model": "Hmis::Hud::CustomClientAddress"
-      },
-      "user_input": null,
-      "confidence": "High",
-      "cwe_id": [
-        777
-      ],
-      "note": ""
-    },
-    {
       "warning_type": "SQL Injection",
       "warning_code": 0,
       "fingerprint": "8b8ecd61fa8a4cdb9ebdb9664f6224ad218f4d82c096d0e20d939ca1839b5eb9",
@@ -1292,46 +1214,13 @@
       "note": ""
     },
     {
-      "warning_type": "Cross-Site Scripting",
-      "warning_code": 2,
-      "fingerprint": "9749bf413b3ba09b35f81ddfd6459b1b31b28a19432d22cfb0daacf0db6e151e",
-      "check_name": "CrossSiteScripting",
-      "message": "Unescaped parameter value",
-      "file": "app/views/cohorts/_client_table.haml",
-      "line": 15,
-      "link": "https://brakemanscanner.org/docs/warning_types/cross_site_scripting",
-      "code": "::Haml::AttributeBuilder.build_class(true, \"cohort-client__table ag-theme-balham datatable\", (:md or params[:size].to_sym))",
-      "render_path": [
-        {
-          "type": "template",
-          "name": "cohorts/show",
-          "line": 65,
-          "file": "app/views/cohorts/show.haml",
-          "rendered": {
-            "name": "cohorts/_client_table",
-            "file": "app/views/cohorts/_client_table.haml"
-          }
-        }
-      ],
-      "location": {
-        "type": "template",
-        "template": "cohorts/_client_table"
-      },
-      "user_input": "params[:size].to_sym",
-      "confidence": "Weak",
-      "cwe_id": [
-        79
-      ],
-      "note": ""
-    },
-    {
       "warning_type": "Remote Code Execution",
       "warning_code": 24,
       "fingerprint": "a018a2a65716f162e78639cf9ecc84440e48c1b4001c80db96d96f5ca82c11ab",
       "check_name": "UnsafeReflection",
       "message": "Unsafe reflection method `constantize` called on model attribute",
       "file": "app/controllers/cohorts/clients_controller.rb",
-      "line": 500,
+      "line": 513,
       "link": "https://brakemanscanner.org/docs/warning_types/remote_code_execution/",
       "code": "GrdaWarehouse::Cohort.available_columns.map(&:class).map(&:name).select do\n (m == params.require(:field))\n end.first.constantize",
       "render_path": null,
@@ -1405,40 +1294,6 @@
       "note": ""
     },
     {
-      "warning_type": "Cross-Site Scripting",
-      "warning_code": 2,
-      "fingerprint": "a3cf7112e750e0b30ab79707cdceb64f667610aad2b9576b8e2563fd69528df1",
-      "check_name": "CrossSiteScripting",
-      "message": "Unescaped model attribute",
-      "file": "app/views/cohorts/edit.haml",
-      "line": 37,
-      "link": "https://brakemanscanner.org/docs/warning_types/cross_site_scripting",
-      "code": "::Haml::AttributeBuilder.build_class(true, ((not User.anyone_using_acls?) and \"d-none\"))",
-      "render_path": [
-        {
-          "type": "controller",
-          "class": "CohortsController",
-          "method": "edit",
-          "line": 134,
-          "file": "app/controllers/cohorts_controller.rb",
-          "rendered": {
-            "name": "cohorts/edit",
-            "file": "app/views/cohorts/edit.haml"
-          }
-        }
-      ],
-      "location": {
-        "type": "template",
-        "template": "cohorts/edit"
-      },
-      "user_input": "(not User.anyone_using_acls?)",
-      "confidence": "Weak",
-      "cwe_id": [
-        79
-      ],
-      "note": ""
-    },
-    {
       "warning_type": "Command Injection",
       "warning_code": 14,
       "fingerprint": "a5ae0e19f1c215e30af6286dee8a557c5215860d59a3a4c4ca3a914e2aadb58e",
@@ -1485,47 +1340,13 @@
       "note": ""
     },
     {
-      "warning_type": "Cross-Site Scripting",
-      "warning_code": 2,
-      "fingerprint": "afd7f9ce76e93b3977595dd02b19aac9e72bc4512363958f23494aa064f1e3d6",
-      "check_name": "CrossSiteScripting",
-      "message": "Unescaped model attribute",
-      "file": "app/views/import_csv_monitors/edit.haml",
-      "line": 13,
-      "link": "https://brakemanscanner.org/docs/warning_types/cross_site_scripting",
-      "code": "::Haml::AttributeBuilder.build_class(true, GrdaWarehouse::ImportCsvMonitor::NOTIFICATION_SLUG.parameterize)",
-      "render_path": [
-        {
-          "type": "controller",
-          "class": "ImportCsvMonitorsController",
-          "method": "edit",
-          "line": 35,
-          "file": "app/controllers/import_csv_monitors_controller.rb",
-          "rendered": {
-            "name": "import_csv_monitors/edit",
-            "file": "app/views/import_csv_monitors/edit.haml"
-          }
-        }
-      ],
-      "location": {
-        "type": "template",
-        "template": "import_csv_monitors/edit"
-      },
-      "user_input": "GrdaWarehouse::ImportCsvMonitor::NOTIFICATION_SLUG.parameterize",
-      "confidence": "Weak",
-      "cwe_id": [
-        79
-      ],
-      "note": ""
-    },
-    {
       "warning_type": "SQL Injection",
       "warning_code": 0,
       "fingerprint": "b16f9b9fa5ec6ee98d24cc67ae42abf131bc179999e5d2a49491b67783f32dce",
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "drivers/homeless_summary_report/app/models/homeless_summary_report/report.rb",
-      "line": 906,
+      "line": 898,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "clients.send(variant).send(\"spm_#{field}\").average(\"spm_#{field}\")",
       "render_path": null,
@@ -1640,6 +1461,28 @@
       "confidence": "Medium",
       "cwe_id": [
         89
+      ],
+      "note": ""
+    },
+    {
+      "warning_type": "Format Validation",
+      "warning_code": 30,
+      "fingerprint": "bc3c6d03a1b8be2b8b8d338452734f650cfafdf4c5888e94c608ceaa1762b88f",
+      "check_name": "ValidationRegex",
+      "message": "Insufficient validation for `postal_code` using `/\\A\\d{5}/`. Use `\\A` and `\\z` as anchors",
+      "file": "drivers/hmis/app/models/hmis/hud/custom_client_address.rb",
+      "line": 119,
+      "link": "https://brakemanscanner.org/docs/warning_types/format_validation/",
+      "code": ":postal_code, { :presence => true, :format => ({ :with => /\\A\\d{5}/, :message => \"should be a valid ZIP Code\" }) }",
+      "render_path": null,
+      "location": {
+        "type": "model",
+        "model": "Hmis::Hud::CustomClientAddress"
+      },
+      "user_input": null,
+      "confidence": "High",
+      "cwe_id": [
+        777
       ],
       "note": ""
     },
@@ -1765,6 +1608,28 @@
       "confidence": "Weak",
       "cwe_id": [
         89
+      ],
+      "note": ""
+    },
+    {
+      "warning_type": "Cross-Site Scripting",
+      "warning_code": 2,
+      "fingerprint": "cc41ce8a33ad8e5d69664654d6ff333b502fc3699b70227fec7db4f05c4a9fad",
+      "check_name": "CrossSiteScripting",
+      "message": "Unescaped model attribute",
+      "file": "drivers/performance_measurement/app/views/layouts/performance_measurement_external.haml",
+      "line": 17,
+      "link": "https://brakemanscanner.org/docs/warning_types/cross_site_scripting",
+      "code": "GrdaWarehouse::Theme.css_file_contents",
+      "render_path": null,
+      "location": {
+        "type": "template",
+        "template": "layouts/performance_measurement_external"
+      },
+      "user_input": null,
+      "confidence": "Medium",
+      "cwe_id": [
+        79
       ],
       "note": ""
     },
@@ -1936,7 +1801,7 @@
       "check_name": "FileAccess",
       "message": "Parameter value used in file name",
       "file": "app/controllers/data_quality_reports_controller.rb",
-      "line": 90,
+      "line": 93,
       "link": "https://brakemanscanner.org/docs/warning_types/file_access/",
       "code": "File.read(\"app/views/data_quality_reports/#{report_scope.where(:project_id => params[:project_id].to_i).find(params[:id].to_i).model_name.element}/project/README.md\")",
       "render_path": null,
@@ -1982,7 +1847,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/grda_warehouse/hud/client.rb",
-      "line": 2211,
+      "line": 2245,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "Arel.sql(\"array_position(ARRAY[#{self.class.where(:id => { candidate.id => candidate.score.to_f }.keys).select do\n active_source_client_ages.include?(c.age)\n end.sort_by do\n -scores_by_id[c.id]\n end.first(20).map(&:id).join(\",\")}]::bigint[], id)\")",
       "render_path": null,
@@ -2028,7 +1893,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/concerns/hmis_structure/base.rb",
-      "line": 171,
+      "line": 176,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "connection.execute(\"CREATE INDEX #{((table_name.gsub(/[^0-9a-z ]/i, \"\") + \"_\") + Digest::MD5.hexdigest(columns.join(\"_\"))[0, 4])} ON #{connection.quote_table_name(table_name)} (#{columns.map do\n connection.quote_column_name(c)\n end.join(\", \")}) INCLUDE (#{details[:include].map do\n connection.quote_column_name(c)\n end.join(\", \")})\")",
       "render_path": null,
@@ -2229,5 +2094,5 @@
       "note": ""
     }
   ],
-  "brakeman_version": "8.0.5"
+  "brakeman_version": "8.1.0"
 }
