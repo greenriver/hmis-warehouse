@@ -23,6 +23,7 @@ module ServiceScanning::WarehouseReports
       respond_to do |format|
         format.html {}
         format.xlsx do
+          current_user.policy_context.preload_client_dependencies(@services.map(&:client_id))
           filename = 'Service Details.xlsx'
           headers['Content-Disposition'] = "attachment; filename=#{filename}"
         end
@@ -35,6 +36,7 @@ module ServiceScanning::WarehouseReports
       ids = @dates[@filter.start].values.flat_map { |m| m[:services] }
       @services = service_class.where(id: ids).
         preload(:project, :client)
+      current_user.policy_context.preload_client_dependencies(@services.map(&:client_id))
       respond_to do |format|
         format.html {}
         format.xlsx do

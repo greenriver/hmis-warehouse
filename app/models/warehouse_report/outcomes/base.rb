@@ -1260,6 +1260,7 @@ class WarehouseReport::Outcomes::Base
       # For performance, we'll default to the project pii policy.
       # If the project_id is not present, we'll use the destination client policy.
       # If neither are present, we'll use the Allow Policy for consistency with how the report worked prior to this change.
+      preload_clients(user) if client_id.present?
       pii_policy = if project_id.present?
         user.policy_for(project_id.to_i, policy_class: GrdaWarehouse::AuthPolicies::ProjectPiiPolicy)
       elsif client_id.present?
@@ -1268,10 +1269,7 @@ class WarehouseReport::Outcomes::Base
         GrdaWarehouse::AuthPolicies::AllowPiiPolicy.instance
       end
 
-      if client_id.present?
-        preload_client_restrictions(user)
-        pii_policy = GrdaWarehouse::PiiProvider.restrict(pii_policy, restricted: user.policy_context.client_restricted?(client_id.to_i))
-      end
+      pii_policy = GrdaWarehouse::PiiProvider.restrict(pii_policy, restricted: user.policy_context.client_restricted?(client_id.to_i)) if client_id.present?
 
       pii_value(col: header, raw_value: value, pii_policy: pii_policy)
     end
@@ -1320,11 +1318,11 @@ class WarehouseReport::Outcomes::Base
     end
 
     # Once per row set: display_value is called per cell.
-    private def preload_client_restrictions(user)
-      return if @client_restrictions_preloaded
+    private def preload_clients(user)
+      return if @clients_preloaded
 
-      user.policy_context.preload_client_restrictions(rows_client_ids.map(&:to_i))
-      @client_restrictions_preloaded = true
+      user.policy_context.preload_client_dependencies(rows_client_ids.map(&:to_i))
+      @clients_preloaded = true
     end
 
     private def destination_clients_by_id

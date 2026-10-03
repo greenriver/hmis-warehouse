@@ -2,7 +2,7 @@
 title: Warehouse authorization policies and PiiProvider
 summary: Policy classes under GrdaWarehouse::AuthPolicies, the UserAclContext/UserLegacyContext split, controller authorize_with blocks with the ensure_authorized after_action, and PiiProvider for name/SSN/DOB display decisions.
 area: authorization
-tags: [authorization, policy, BasePolicy, policy_for, authorize_with, ApplicationControllerV2, ensure_authorized, PiiProvider, AllowPiiPolicy, DenyPiiPolicy, context-loaders]
+tags: [authorization, policy, BasePolicy, policy_for, authorize_with, ApplicationControllerV2, ensure_authorized, PiiProvider, AllowPiiPolicy, DenyPiiPolicy, context-loaders, preload_client_dependencies, PreloadMissTracker, PreloadMissError]
 sources:
   - app/models/grda_warehouse/auth_policies/base_policy.rb
   - app/models/grda_warehouse/auth_policies/user_base_context.rb
@@ -19,6 +19,7 @@ sources:
   - app/models/grda_warehouse/auth_policies/deny_pii_policy.rb
   - app/models/grda_warehouse/auth_policies/context_loaders/client_roi_loader.rb
   - app/models/grda_warehouse/auth_policies/context_loaders/restricted_client_loader.rb
+  - app/models/grda_warehouse/auth_policies/preload_miss_tracker.rb
   - app/models/grda_warehouse/pii_provider.rb
   - app/controllers/application_controller_v2.rb
   - app/controllers/concerns/controller_authorization_v2.rb
@@ -62,7 +63,8 @@ action. This is the replacement for the legacy `before_action :require_can_*!` f
   `GrdaWarehouse::DataSource`, `HudReports::ReportInstance`.
 - `User#policy_context`, memoized. Returns `UserAclContext` when `using_acls?`, else
   `UserLegacyContext`. Exposes `client_restricted?(client_id)`,
-  `preload_project_dependencies(project_ids)`, `preload_client_dependencies(client_ids)`, and
+  `preload_project_dependencies(project_ids)`, `preload_client_dependencies(client_ids)`,
+  `preload_client_restrictions(client_ids)`, `preload_client(client_id)`, and
   `client_roi_loader`.
 - `User#reporting_policy_for_project(project_id:, mode: :browse, client_id: nil)` and
   `User#reporting_policy_for_client(client:, mode: :browse)` return a PII policy already wrapped
@@ -97,8 +99,9 @@ type. `SourceClientPolicy` is the one policy that reads legacy-only data (window
 
 Context loaders live under `auth_policies/context_loaders/`. `ClientRoiLoader` caches active
 ROI matching the user's CoC codes per destination client id, with `preload(client_ids)`.
-`RestrictedClientLoader` loads the full HMIS restricted id set once (direct, destination, and
-sibling source ids) and answers `restricted?(id)` as a Set lookup.
+`RestrictedClientLoader` loads the full HMIS restricted id set once and looks up retention
+(inactive) status per id, memoized, with `preload(client_ids)` to batch it; see
+`warehouse/pii-and-restricted-clients.md`.
 
 `ControllerAuthorizationV2` sets `@authorization_performed = true` inside every
 `authorize_with` block; `after_action :ensure_authorized` raises
@@ -131,21 +134,37 @@ Adding a policy for a new resource type:
    calls `current_user.policy_for(@thing)`.
 7. Spec both context types (a user with `using_acls?` true and one with it false).
 
+### Preloading client lookups
+
+Client-keyed lookups (direct-client grants, enrolled projects, ROI, inactive status) each fall
+back to a single-id query on a cache miss. `UserBaseContext#preload_client_dependencies` fills
+all of them for a list of source or destination ids: it widens the ids to whole warehouse
+identities through live `WarehouseClient` rows, preloads the restriction loader, the ROI loader
+(by destination id), and the subclass's `preload_client_grants`, and skips ids already
+preloaded. Each fallback records its kind and id on a `PreloadMissTracker` memoized on the
+context. `DestinationClientPolicy` predicates call `context.preload_client(client.id)` first,
+which preloads that one identity and records a `:destination_clients` miss when it was not
+already preloaded.
+
 ## Key files
 
 - `app/models/grda_warehouse/auth_policies/base_policy.rb`: constructor, `validate_resource!`,
   `ensure_arg_type!`, Memery.
-- `app/models/grda_warehouse/auth_policies/user_base_context.rb`: loaders, `client_restricted?`.
+- `app/models/grda_warehouse/auth_policies/user_base_context.rb`: loaders, `client_restricted?`,
+  `preload_client_dependencies`, `preload_client`, `identity_links`.
+- `app/models/grda_warehouse/auth_policies/preload_miss_tracker.rb`: `THRESHOLD`,
+  `PreloadMissError`, Sentry fingerprint by call site.
 - `app/models/grda_warehouse/auth_policies/user_acl_context.rb`: ACL permission resolution and
-  preload methods.
+  preload methods, including `preload_client_grants`.
 - `app/models/grda_warehouse/auth_policies/user_legacy_context.rb`: legacy role resolution,
   `legacy_window_data_source_ids`, `legacy_window_access_requires_release?`.
 - `app/models/grda_warehouse/auth_policies/project_policy.rb`: canonical resource policy.
 - `app/models/grda_warehouse/auth_policies/source_client_policy.rb`: `can_view?` with ROI,
   `add_legacy_data_source_permissions`, `add_project_based_permissions`,
   `add_direct_client_permissions`.
-- `app/models/grda_warehouse/auth_policies/destination_client_policy.rb`: delegates each
-  predicate to `user.policy_for(source_client)` across source clients.
+- `app/models/grda_warehouse/auth_policies/destination_client_policy.rb`: calls
+  `context.preload_client`, then delegates each predicate to `user.policy_for(source_client)`
+  across source clients.
 - `app/models/grda_warehouse/auth_policies/project_pii_policy.rb`: accepts a project id or
   project; used by `reporting_policy_for_project`.
 - `app/models/grda_warehouse/auth_policies/data_source_policy.rb`,
@@ -162,7 +181,8 @@ Adding a policy for a new resource type:
 - `lib/util/authorization_not_performed_error.rb`, `lib/util/not_authorized_error.rb`.
 - `app/models/user.rb`: `policy_for`, `policy_context`, `reporting_policy_for_project`,
   `reporting_policy_for_client`.
-- `app/controllers/projects_controller.rb`: working `authorize_with` example.
+- `app/controllers/projects_controller.rb`: working `authorize_with` example; `show` calls
+  `preload_client_dependencies` on the paginated clients.
 
 ## Gotchas
 
@@ -183,7 +203,13 @@ Adding a policy for a new resource type:
 - Per-row policy checks in a list N+1 unless the context is warmed first:
   `current_user.policy_context.preload_project_dependencies(project_ids)` or
   `preload_client_dependencies(client_ids)`, on the paginated page not the full relation.
-  `SourceClientPolicy#roi_authorized?` also hits `ClientRoiLoader`, which preloads per batch.
+- Any code that checks a policy, `pii_provider`, or `client_restricted?` for a list of clients
+  must call `current_user.policy_context.preload_client_dependencies(ids)` first.
+  `preload_client_restrictions(ids)` is enough when restriction is the only client-keyed lookup.
+  Past `PreloadMissTracker::THRESHOLD` distinct single-id misses of one kind (3, or 10 in
+  production), development and test raise `PreloadMissError`; staging and production send one
+  Sentry warning per kind and call site and still answer. A spec with a handful of rows will
+  fail on a missing preload.
 - Restricted client ids are loaded once per `User` instance and memoized for the request or job.
   A client restricted mid-way through a long export stays unrestricted in that export. Do not
   add cache busting for this.

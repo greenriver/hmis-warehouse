@@ -54,7 +54,7 @@ Three concerns are shared across versions and live outside the drivers:
 `GrdaWarehouse::HmisExport` record, zips, and uploads; `Export::Scopes`
 (`app/models/concerns/export/scopes.rb`) builds the project, enrollment, and client scopes;
 `Export::RestrictedClientPiiTransform` (`app/models/export/restricted_client_pii_transform.rb`)
-redacts HMIS-restricted clients in `Client.csv`.
+redacts hidden clients (HMIS-restricted or retention-inactive) in `Client.csv`.
 
 Two de-identification modes exist: `hash_status == 4` (SHA-256 of Soundex for names, SHA-256 of
 SSN) and `faked_pii` (Faker-generated replacements persisted in `GrdaWarehouse::FakeData`).
@@ -186,7 +186,7 @@ Every row in this table was verified against the exporter code.
 |------|-----------|------------------|-----------------|------|
 | HUD "SHA-256 (RHY)" export for external match | `hash_status == 4` | `Exporter::Client::Overrides.apply_hash_status` (`client/overrides.rb`) | `FirstName`, `MiddleName`, `LastName` become `SHA256(Soundex(name))`; `SSN` becomes last four characters of the `x`-padded SSN followed by `SHA256(padded SSN)`; all other columns untouched | Selectable in the full form; forced by `HashedOnlyHmisExportsController` |
 | Developer or staging sample data | `faked_pii == true` | `Exporter::FakeData#process` (`fake_data.rb`), in every file's `transforms` after `adjust_keys` | Each key in `GrdaWarehouse::FakeData#fake_patterns` (names, `SSN`, `DOB` shifted by up to 600 days, `PersonalID` MD5, `UserID`, `CoCCode`, project/organization names, addresses, contact fields, free-text "Other" fields, assessment text) is replaced by a Faker value | Checkbox rendered only for `can_export_anonymous_hmis_data?`; the controller permits the param regardless |
-| Hide HMIS-restricted clients from ordinary exports | always on | `Export::RestrictedClientPiiTransform` (`app/models/export/restricted_client_pii_transform.rb`), last in `Client.transforms` | Names and `NameSuffix` set to `GrdaWarehouse::PiiProvider::REDACTED`, `SSN` nil, `SSNDataQuality` 99, when `RestrictedClientLoader#restricted?(row.id)` | Skipped entirely when `hash_status == 4` or `faked_pii` |
+| Hide restricted and retention-inactive clients from ordinary exports | always on | `Export::RestrictedClientPiiTransform` (`app/models/export/restricted_client_pii_transform.rb`), last in `Client.transforms` | Names and `NameSuffix` set to `GrdaWarehouse::PiiProvider::REDACTED`, `SSN` nil, `SSNDataQuality` 99, when `row.id` is in `RestrictedClientLoader#restricted_client_ids` or `GrdaWarehouse::HiddenClients.inactive_destination_ids` (both loaded once per export as Sets) | Skipped entirely when `hash_status == 4` or `faked_pii` |
 | Hide confidential project/organization names | `confidential == true` | `Project::Overrides` and `Organization::Overrides` `ensure_reasonable_name` | Replaces `ProjectName` / `OrganizationName` with the configured confidential name when the record is flagged confidential | Checkbox rendered only for `can_view_confidential_project_names?` |
 | Exclude clients who opted out of external sharing | config flag | `ClientExternalDataSharing.remove_excluded_clients` / `remove_excluded_enrollments` in `Export::Scopes` | Drops flagged clients and clients inside a one-week embargo from `Client.csv` and enrollment-derived files | `enable_external_data_sharing_exclusion` |
 

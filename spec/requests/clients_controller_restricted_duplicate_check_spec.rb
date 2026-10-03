@@ -70,4 +70,21 @@ RSpec.describe ClientsController, '#create restricted client duplicate check', t
 
     expect(flash[:notice]).to be_nil
   end
+
+  it 'lists every existing match when more unrestricted clients than the preload miss threshold match' do
+    user.legacy_roles << create(:role, can_view_clients: true, can_view_client_name: true)
+    visible_ds = create(:visible_data_source)
+    matches = Array.new(preload_miss_client_count) do |i|
+      source = create(:grda_warehouse_hud_client, data_source: visible_ds, FirstName: 'Zzdup', LastName: 'Zzmatch', DOB: Date.new(1985, 3, 3))
+      destination = create(:grda_warehouse_hud_client, FirstName: 'Zzdup', LastName: 'Zzmatch', DOB: Date.new(1985, 3, 3))
+      GrdaWarehouse::WarehouseClient.create!(destination_id: destination.id, source_id: source.id, data_source_id: visible_ds.id, id_in_source: "dup#{i}")
+      source
+    end
+
+    post clients_path, params: base_params(FirstName: 'Zzdup', LastName: 'Zzmatch', SSN: '999-99-9999', DOB: '1985-03-03')
+
+    expect(response).to have_http_status(:ok)
+    expect(response.body).to include('Existing Clients')
+    expect(response.body.scan('Zzdup Zzmatch').size).to eq(matches.size)
+  end
 end
