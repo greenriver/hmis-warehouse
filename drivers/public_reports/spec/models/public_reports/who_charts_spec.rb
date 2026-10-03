@@ -10,12 +10,12 @@ require 'rails_helper'
 
 RSpec.describe PublicReports::WhoCharts do
   describe '.format_total' do
-    it 'reports suppressed and small counts as less than 100' do
-      expect([described_class.format_total(nil, 'People'), described_class.format_total(99, 'People')]).to eq(['less than 100 People'] * 2)
+    it 'labels a suppressed total as 100 or fewer' do
+      expect(described_class.format_total(nil, 'People')).to eq('100 or fewer People')
     end
 
-    it 'delimits counts of 100 or more' do
-      expect([described_class.format_total(100, 'People'), described_class.format_total(19_000, 'Veterans')]).to eq(['100 People', '19,000 Veterans'])
+    it 'shows zero and published totals as numbers' do
+      expect([0, 101, 19_000].map { |n| described_class.format_total(n, 'People') }).to eq(['0 People', '101 People', '19,000 People'])
     end
   end
 

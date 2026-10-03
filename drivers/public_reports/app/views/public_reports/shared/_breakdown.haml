@@ -30,7 +30,7 @@
                     .chart-point{ data: { segment: 'unsheltered' }, style: "flex-basis:#{unsheltered_pct}%" }
                       .breakdown-bar__segment.breakdown-bar__segment--unsheltered{ tabindex: 0, role: 'img', 'aria-label' => "#{label}, Unsheltered: #{number_with_delimiter(unsheltered_count)}" }
                       .chart-tooltip.chart-tooltip--html{ 'aria-hidden' => 'true' }= "Unsheltered: #{number_with_delimiter(unsheltered_count)}"
-            .breakdown-row__total{ data: { 'row-total' => row_id } }= total.nil? ? 'less than 100 People' : "#{number_with_delimiter(total)} People"
+            .breakdown-row__total{ data: { 'row-total' => row_id } }= PublicReports::WhoCharts.format_total(total, 'People')
             .breakdown-row__chronic
               %span.visually-hidden{ data: { 'row-chronic-full' => row_id } }= "#{chronic_pct}% Chronically Homeless"
               %span.breakdown-row__chronic-pct{ data: { 'row-chronic' => row_id }, 'aria-hidden' => 'true' }= "#{chronic_pct}%"

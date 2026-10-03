@@ -35,10 +35,10 @@
     return rate == null ? "Not currently reporting" : bandFor(rate, bands).label;
   }
 
-  // Statewide totals follow the same "less than 100" redaction convention
+  // Statewide totals follow the same "100 or fewer" redaction convention
   // as the rest of the report, rather than the generic "—" placeholder.
   function formatStatewideTotal(total) {
-    return total == null ? "less than 100" : total.toLocaleString("en-US");
+    return total == null ? "100 or fewer" : total.toLocaleString("en-US");
   }
 
   function escapeHtml(value) {

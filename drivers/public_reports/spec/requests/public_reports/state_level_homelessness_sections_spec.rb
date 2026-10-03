@@ -300,8 +300,8 @@ RSpec.describe 'PublicReports::WarehouseReports::StateLevelHomelessness sections
       expect(donut.css('.chart-data table tbody tr').map { |tr| tr.text.squish }).to eq(['Sheltered People 85%', 'Unsheltered People 15%'])
     end
 
-    it 'reports a suppressed donut total as less than 100' do
-      expect(page.at_css('figure.chart--donut[data-donut-id="veterans"] svg title').text).to eq('Veterans: less than 100 Veterans')
+    it 'reports a suppressed donut total as 100 or fewer' do
+      expect(page.at_css('figure.chart--donut[data-donut-id="veterans"] svg title').text).to eq('Veterans: 100 or fewer Veterans')
     end
 
     it 'renders the household-type bar with contrast-checked inline labels' do

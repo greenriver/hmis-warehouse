@@ -16,7 +16,7 @@ module PublicReports
     module_function
 
     def format_total(count, unit)
-      return "less than 100 #{unit}" if count.nil? || count < 100
+      return "100 or fewer #{unit}" if count.nil?
 
       "#{ActiveSupport::NumberHelper.number_to_delimited(count)} #{unit}"
     end

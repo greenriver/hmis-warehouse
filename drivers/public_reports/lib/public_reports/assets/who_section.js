@@ -28,7 +28,7 @@ function formatNumber(value) {
 }
 
 function formatTotal(n, unit) {
-  if (n == null || n < 100) return `less than 100 ${unit}`;
+  if (n == null) return `100 or fewer ${unit}`;
   return `${formatNumber(n)} ${unit}`;
 }
 

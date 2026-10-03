@@ -103,7 +103,7 @@ module PublicReports
         return 0 if value.zero?
         return number_with_delimiter(value) if value > 100
 
-        under_threshold
+        '100 or fewer'
       when 'unsheltered_percent'
         unsheltered_count = data['unsheltered_clients'].to_f || 0.0
         sheltered_count = data['homeless_clients'] || 0

@@ -1219,7 +1219,7 @@ img {
 .breakdown-row__total {
   font-size: var(--type-175);
   font-variant-numeric: tabular-nums;
-  /* "less than 100 People" (the redacted case) wraps to two lines — same
+  /* "100 or fewer People" (the redacted case) wraps to two lines — same
      line-height fix as .breakdown-row__chronic-pct below, for the same
      reason. */
   line-height: 1.2;
