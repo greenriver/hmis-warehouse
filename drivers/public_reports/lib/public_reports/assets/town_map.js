@@ -1,10 +1,12 @@
-// The only client-side JavaScript in this project. It exists to swap the
-// per-county color/table data when the two dropdowns in the "where is the
-// need" section change — everything else on the page is static HTML/CSS,
-// including the map geometry and the initially-selected period/group, which
-// are rendered server-side by src/lib/townMap.js. See design.md.
+// Swaps the map colors, table and statewide note when the period or group changes.
 (function () {
   "use strict";
+
+  function el(tag, text) {
+    var node = document.createElement(tag);
+    if (text != null) node.textContent = text;
+    return node;
+  }
 
   // Bands and the "not reporting" color are Rails-supplied (data.bands /
   // data.notReportingColor) rather than hard-coded, so they track the
@@ -22,9 +24,7 @@
     return rate == null ? notReportingColor : bandFor(rate, bands).color;
   }
 
-  // Full rate, for the always-visible data table (this build's sample data
-  // is already flagged as illustrative, so there's no real small-number-
-  // suppression reason to hide it there).
+  // Full rate, for the always-visible data table.
   function formatRate(rate) {
     return rate == null ? "Not reporting" : rate.toLocaleString("en-US");
   }
@@ -41,18 +41,8 @@
     return total == null ? "100 or fewer" : total.toLocaleString("en-US");
   }
 
-  function escapeHtml(value) {
-    return String(value).replace(/[&<>"']/g, function (ch) {
-      return (
-        { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[
-          ch
-        ] || ch
-      );
-    });
-  }
-
   function formatNumber(value) {
-    return value == null ? "—" : value.toLocaleString("en-US");
+    return value == null ? "Not reporting" : value.toLocaleString("en-US");
   }
 
   document.querySelectorAll('[data-component="town-map"]').forEach(function (root) {
@@ -67,7 +57,7 @@
     var statewideNote = root.querySelector("[data-town-map-statewide]");
     var svg = root.querySelector("[data-town-map-svg]");
     var infoBox = root.querySelector("[data-town-map-info]");
-    var infoPlaceholderHtml = infoBox ? infoBox.innerHTML : "";
+    var infoPlaceholder = infoBox ? Array.from(infoBox.childNodes, function (n) { return n.cloneNode(true); }) : [];
     var paths = root.querySelectorAll(".town-map__town");
     var isPercentage = data.unit.indexOf("Percentage") === 0;
 
@@ -97,26 +87,25 @@
           return (b.rate == null ? -1 : b.rate) - (a.rate == null ? -1 : a.rate);
         });
 
-      tbody.innerHTML = rows
-        .map(function (row) {
-          return (
-            "<tr><td>" +
-            escapeHtml(row.name) +
-            "</td><td>" +
-            formatRate(row.rate) +
-            (row.rate != null && isPercentage ? "%" : "") +
-            "</td><td>" +
-            formatNumber(row.population) +
-            "</td></tr>"
+      tbody.replaceChildren.apply(
+        tbody,
+        rows.map(function (row) {
+          var tr = el("tr");
+          tr.append(
+            el("td", row.name),
+            el("td", formatRate(row.rate) + (row.rate != null && isPercentage ? "%" : "")),
+            el("td", formatNumber(row.population))
           );
+          return tr;
         })
-        .join("");
+      );
 
       if (statewideNote) {
         var total = data.statewideTotals[periodIdx][groupIdx];
         statewideNote.textContent =
+          "Statewide total, " +
           data.groups[groupIdx] +
-          ", statewide, " +
+          ", " +
           data.periods[periodIdx] +
           ": " +
           formatStatewideTotal(total) +
@@ -159,39 +148,33 @@
       var population = data.populations[index];
 
       infoBox.dataset.activeIndex = String(index);
-      infoBox.innerHTML =
-        '<h4 class="town-map__info-name">' + escapeHtml(name) + "</h4>" +
-        '<dl class="town-map__info-stats">' +
-        "<div><dt>" +
-        escapeHtml(groupLabel) +
-        " within " +
-        escapeHtml(name) +
-        "</dt><dd>" +
-        formatRateBand(rate, data.bands) +
-        "</dd></div>" +
-        "<div><dt>" +
-        escapeHtml(groupLabel) +
-        ", statewide</dt><dd>" +
-        formatStatewideTotal(statewideTotal) +
-        " people</dd></div>" +
-        "<div><dt>Census population</dt><dd>" +
-        formatNumber(population) +
-        "</dd></div>" +
-        "</dl>";
+      var stats = el("dl");
+      stats.className = "town-map__info-stats";
+      [
+        [groupLabel + " within " + name, formatRateBand(rate, data.bands)],
+        [groupLabel + ", statewide", formatStatewideTotal(statewideTotal) + " people"],
+        ["Census population", formatNumber(population)],
+      ].forEach(function (pair) {
+        var div = el("div");
+        div.append(el("dt", pair[0]), el("dd", pair[1]));
+        stats.append(div);
+      });
+      var heading = el("h4", name);
+      heading.className = "town-map__info-name";
+      infoBox.replaceChildren(heading, stats);
     }
 
     function resetTownInfo() {
       if (!infoBox) return;
       delete infoBox.dataset.activeIndex;
-      infoBox.innerHTML = infoPlaceholderHtml;
+      infoBox.replaceChildren.apply(infoBox, infoPlaceholder.map(function (n) { return n.cloneNode(true); }));
     }
 
     periodSelect.addEventListener("change", update);
     groupSelect.addEventListener("change", update);
 
-    // Sighted-mouse-only enhancement (see the markup comment in
-    // townMap.js) — every value shown here also lives in the table, which
-    // needs neither a mouse nor JavaScript to read.
+    // Sighted-mouse-only enhancement: every value shown here also lives in
+    // the table, which needs neither a mouse nor JavaScript to read.
     if (svg && infoBox) {
       svg.addEventListener("mouseover", function (e) {
         var path = e.target.closest(".town-map__town");
