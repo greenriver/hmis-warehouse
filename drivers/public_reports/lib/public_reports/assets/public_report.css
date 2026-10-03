@@ -142,21 +142,6 @@ img {
   white-space: nowrap;
 }
 
-.skip-link {
-  position: absolute;
-  left: -9999px;
-  top: 0;
-  background: var(--color-primary);
-  color: #fff;
-  padding: var(--space-2) var(--space-4);
-  z-index: 100;
-}
-
-.skip-link:focus {
-  left: var(--space-3);
-  top: var(--space-3);
-}
-
 /* Layout container, matching the design system's content max-width */
 .container {
   max-width: var(--content-max-width);
@@ -302,14 +287,6 @@ img {
   text-align: left;
 }
 
-.inline-message {
-  border-left: 4px solid var(--color-primary);
-  background: var(--color-surface-tint);
-  padding: var(--space-4);
-  border-radius: 0 var(--radius-md) var(--radius-md) 0;
-  font-size: var(--type-175);
-}
-
 /* Details toggle used for the glossary (native <details>, zero JS) */
 .glossary {
   border-top: 1px solid var(--color-border);
@@ -435,39 +412,6 @@ img {
   }
 }
 
-/* Resource / callout links */
-.resource-list {
-  list-style: none;
-  padding: 0;
-  display: grid;
-  gap: var(--space-3);
-}
-
-.resource-list a {
-  display: block;
-  padding: var(--space-3) var(--space-4);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  text-decoration: none;
-  font-weight: var(--weight-heading);
-}
-
-.resource-list a:hover {
-  border-color: var(--color-primary);
-  background: var(--color-surface-tint);
-}
-
-.resource-list a::after {
-  content: " \2192"; /* rightwards arrow — Action Link's default icon for a page destination */
-}
-
-/* Action Link's icon is contextual to destination type; the one resource
-   that's a document download (not a page) gets the document icon instead
-   of the generic arrow, per design.md's "Figma Core Components specs". */
-.resource-list a.resource-list__link--document::after {
-  content: " \1F4C4"; /* page facing up */
-}
-
 @media (max-width: 600px) {
   .container {
     padding: 0 var(--space-4);
@@ -485,10 +429,6 @@ img {
 
 .chart-grid--stack {
   grid-template-columns: 1fr;
-}
-
-.chart-grid--3 {
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
 }
 
 .chart {
@@ -1262,7 +1202,7 @@ img {
 }
 
 .breakdown-bar__segment--sheltered {
-  background: var(--color-primary);
+  background: var(--color-sheltered);
 }
 
 .breakdown-bar__segment--unsheltered {

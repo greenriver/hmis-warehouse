@@ -340,6 +340,12 @@ RSpec.describe 'PublicReports::WarehouseReports::StateLevelHomelessness sections
   describe 'design tokens' do
     let(:base_css) { File.read(Rails.root.join('drivers/public_reports/lib/public_reports/assets/public_report.css')) }
 
+    it 'colors the sheltered breakdown bar with the same token as its legend swatch' do
+      bar_rule = base_css[/\.breakdown-bar__segment--sheltered\s*\{[^}]*\}/]
+
+      expect(bar_rule).to include('var(--color-sheltered)')
+    end
+
     it 'defines every custom property the raw page uses' do
       get raw_public_reports_warehouse_reports_state_level_homelessness_path(report)
       css = Nokogiri::HTML(response.body).css('style').map(&:text).join("\n")
