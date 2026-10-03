@@ -7,7 +7,11 @@
 # frozen_string_literal: true
 
 module PublicReports::AssetsHelper
+  ASSETS = ['charts.js', 'public_report.css', 'public_report.js', 'town_map.js', 'who_page.js', 'who_section.js'].freeze
+
   def public_report_asset(name)
+    raise ArgumentError, "Unknown public report asset: #{name}" unless ASSETS.include?(name)
+
     File.read(Rails.root.join('drivers/public_reports/lib/public_reports/assets', name)).html_safe
   end
 
