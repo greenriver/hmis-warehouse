@@ -1,5 +1,5 @@
 - data = Oj.load(@report.precalculated_data)
 - if data.is_a?(Hash)
-  = render 'public_reports/shared/line_chart', chart: PublicReports::LineChart.new(labels: data['labels'], series: data['series']), title: @report.instance_title, colors: [@report.settings.color(0, :population), @report.settings.color(1, :population)]
+  = render 'public_reports/shared/line_chart', chart: PublicReports::LineChart.new(labels: data['labels'], series: data['series']), title: @report.instance_title, colors: [@report.settings.color(0, :population), @report.settings.color(1, :population)], x_label: 'Month'
 - else
   = render 'public_reports/shared/stale'

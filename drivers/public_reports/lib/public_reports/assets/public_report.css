@@ -624,7 +624,7 @@ img {
 }
 
 .chart-axis-label {
-  /* SVG user units on a 620x280 viewBox scaled to the chart's rendered
+  /* SVG user units on a 640x200 viewBox scaled to the chart's rendered
      width — effectively close to real px at typical card widths. Pushed
      down to 8px, close to the practical floor for on-screen legibility —
      any smaller and the labels stop reading as text at a glance. */
@@ -701,7 +701,7 @@ img {
 
 /* The shared .chart-tooltip sizing (the rect width/x is estimated
    assuming ~13px text in a large viewBox) is tuned for the line chart's
-   620x280 viewBox. The donut's 42x42 viewBox needs a much smaller font so
+   640x200 viewBox. The donut's 42x42 viewBox needs a much smaller font so
    the tooltip doesn't dwarf the chart. */
 .chart--donut .chart-tooltip text {
   font-size: 2.6px;
@@ -1271,6 +1271,10 @@ img {
 @media (max-width: 600px) {
   .chart-axis-label {
     font-size: 22px;
+  }
+
+  .chart-axis-label--minor {
+    display: none;
   }
 }
 
