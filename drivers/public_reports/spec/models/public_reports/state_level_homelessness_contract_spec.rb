@@ -11,10 +11,7 @@ require 'rails_helper'
 # Contract spec for PublicReports::StateLevelHomelessness#chart_data (schema_version 2).
 # This is the guard against a client-privacy redaction regression: everything below
 # MIN_THRESHOLD (11) or the 100-person donut/breakdown floor must come back nil, never
-# a raw small integer. Do not assert map rates or counts: overall_population_geography,
-# homeless_population_overall and count_homeless_population all return random numbers
-# outside production (see state_level_homelessness.rb), so the map's *shape* is checked,
-# never its values.
+# a raw small integer. Map counts are random unless fake_map_counts? is stubbed to false.
 RSpec.describe PublicReports::StateLevelHomelessness, type: :model do
   before(:all) do
     HmisCsvImporter::Utility.clear!
@@ -37,8 +34,8 @@ RSpec.describe PublicReports::StateLevelHomelessness, type: :model do
   # resolvable through a WarehouseClient link to a separate "source" client
   # (see Hud::Client's race_white/race_am_ind_ak_native/etc scopes, which
   # join WarehouseClient.source) -- so each of these builds both.
-  def create_homeless_client_and_entry(gender:, race_field:, household_id:, project: self.project)
-    dest_client = create(:hud_client, data_source_id: destination_data_source.id, gender => 1)
+  def create_homeless_client_and_entry(gender:, race_field:, household_id:, project: self.project, age: 30)
+    dest_client = create(:hud_client, data_source_id: destination_data_source.id, gender => 1, DOB: Date.parse('2025-10-15') - age.years)
     race_source_client = create(:hud_client, data_source_id: source_data_source.id, race_field => 1)
     create(:warehouse_client, destination_id: dest_client.id, source_id: race_source_client.id, data_source_id: source_data_source.id)
 
@@ -62,7 +59,7 @@ RSpec.describe PublicReports::StateLevelHomelessness, type: :model do
         record_type: 'service',
         date: date,
         project_type: project.project_type,
-        age: 30,
+        age: age,
       )
     end
   end
@@ -96,6 +93,10 @@ RSpec.describe PublicReports::StateLevelHomelessness, type: :model do
   end
 
   let(:data) { report.parsed_pre_calculated_data }
+
+  around do |example|
+    travel_to(Date.parse('2026-06-15')) { example.run }
+  end
 
   it 'has schema_version 2' do
     expect(data['schema_version']).to eq(2)
@@ -141,36 +142,67 @@ RSpec.describe PublicReports::StateLevelHomelessness, type: :model do
     expect(data['map']['values'].first.size).to eq(5)
   end
 
-  it 'never leaks a raw count between 1 and 99 in a redacted field (the core privacy guard)' do
+  it 'never leaks a raw count between 1 and 100 in a redacted field (the core privacy guard)' do
     leaks = []
 
     data['who']['donuts'].each do |id, donut|
-      donut['totals'].each { |t| leaks << "donuts.#{id}.totals=#{t}" if t&.between?(1, 99) }
+      donut['totals'].each { |t| leaks << "donuts.#{id}.totals=#{t}" if t&.between?(1, 100) }
     end
 
     data['who']['breakdown'].each do |row_id, row|
-      row['totals'].each { |t| leaks << "breakdown.#{row_id}.totals=#{t}" if t&.between?(1, 99) }
+      row['totals'].each { |t| leaks << "breakdown.#{row_id}.totals=#{t}" if t&.between?(1, 100) }
     end
 
-    data['who']['race']['totals'].each { |t| leaks << "race.totals=#{t}" if t&.between?(1, 99) }
+    data['who']['race']['totals'].each { |t| leaks << "race.totals=#{t}" if t&.between?(1, 100) }
 
     data['map']['statewideTotals'].each_with_index do |period_totals, period_index|
       period_totals.each_with_index do |t, group_index|
-        leaks << "map.statewideTotals[#{period_index}][#{group_index}]=#{t}" if t&.between?(1, 99)
+        leaks << "map.statewideTotals[#{period_index}][#{group_index}]=#{t}" if t&.between?(1, 100)
       end
     end
 
     expect(leaks).to eq([])
   end
 
-  # Map counts are random outside production, so the youth group's age
-  # filter can only be observed in the scope it builds.
-  it 'applies the 18-24 age filter to the youth map group' do
-    all_homeless_sql = report.send(:map_group_scope, 0).first.to_sql
-    youth_sql = report.send(:map_group_scope, 1).first.to_sql
+  context 'when the adults-with-children section is over the total threshold but each of its rows is not' do
+    before do
+      stub_const('PublicReports::StateLevelHomelessness::SUPPRESS_TOTALS_AT_OR_BELOW', 5)
+      stub_const('PublicReports::StateLevelHomelessness::MIN_THRESHOLD', 2)
+      # 4 households, each one adult and one child: 2 sheltered, 2 unsheltered.
+      # Children row = 4 and adults-over-24 row = 4 (both at or below 5); section = 8.
+      4.times do |i|
+        project_for_household = i.even? ? project : outreach_project
+        [5, 30].each do |age|
+          create_homeless_client_and_entry(gender: :Woman, race_field: :White, household_id: "family-#{i}", project: project_for_household, age: age)
+        end
+      end
+    end
 
-    expect(youth_sql).not_to eq(all_homeless_sql)
-    expect(youth_sql).to include('DOB')
+    it 'suppresses each row by its own total, not the section total' do
+      children = data['who']['breakdown']['household_type__1__0']
+
+      expect([children['totals'].last, children['sheltered']&.last, children['unsheltered'].last]).to eq([nil, nil, nil])
+    end
+
+    it 'still publishes a row whose own total is over the threshold' do
+      gender_rows = data['who']['breakdownGroupings']['gender']['sections'][0]['rows']
+      woman_row = data['who']['breakdown']["gender__0__#{gender_rows.index { |label| label.match?(/wom/i) }}"]
+
+      # 3 women from the shared setup plus 8 here.
+      expect(woman_row['totals'].last).to eq(11)
+    end
+  end
+
+  context 'with real map counts' do
+    before do
+      allow_any_instance_of(described_class).to receive(:fake_map_counts?).and_return(false) # rubocop:disable RSpec/AnyInstance
+    end
+
+    it 'suppresses a small statewide total and counts no one aged 30 as youth' do
+      all_homeless, youth = data['map']['statewideTotals'].last.first(2)
+
+      expect([all_homeless, youth]).to eq([nil, 0])
+    end
   end
 
   context 'when a row has at least MIN_THRESHOLD sheltered and unsheltered clients but a total of 100 or less' do

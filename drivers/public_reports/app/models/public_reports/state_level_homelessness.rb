@@ -25,6 +25,7 @@ module PublicReports
     end
 
     MIN_THRESHOLD = 11
+    SUPPRESS_TOTALS_AT_OR_BELOW = 100
     # Glossary headings that info icons link to; admins must use these exact headings.
     PROJECT_TYPES_TERM = 'ES / SO / SH / TH'
     UNSHELTERED_TERM = 'Unsheltered / Unsheltered Rate'
@@ -411,7 +412,7 @@ module PublicReports
       totals = []
       counts_by_period.each do |counts|
         total = counts.sum
-        totals << (total.positive? && total <= 100 ? nil : total)
+        totals << published_total(total)
         values << enforce_min_threshold(counts.dup, threshold_key)
       end
       {
@@ -550,7 +551,7 @@ module PublicReports
         homeless_rows << data.map do |_race, ids|
           total_count.positive? ? ((ids.count * 100.0) / total_count).round(1) : 0.0
         end
-        totals << (total_count.positive? && total_count <= 100 ? nil : total_count)
+        totals << published_total(total_count)
 
         overall = data.keys.map { |race| race == 'None' ? nil : census_data[race]&.round(1) } if index == dates.size - 1
       end
@@ -591,6 +592,14 @@ module PublicReports
       end
     end
 
+    private def published_total(count)
+      count.positive? && count <= SUPPRESS_TOTALS_AT_OR_BELOW ? nil : count
+    end
+
+    private def fake_map_counts?
+      !Rails.env.production?
+    end
+
     # Snaps a rate to the upper bound of the map_colors bucket it falls into.
     private def snap_rate(rate)
       bucket = map_colors.values.detect { |b| rate <= b[:high] }
@@ -621,7 +630,7 @@ module PublicReports
             service_scope: service_scope,
             population_overall: populations.first,
           )
-          period_totals << (overall_homeless_population.positive? && overall_homeless_population <= 100 ? nil : overall_homeless_population)
+          period_totals << published_total(overall_homeless_population)
 
           period_values << geographies.map do |code|
             population_overall = overall_population_geography(date.year, code)
@@ -684,7 +693,7 @@ module PublicReports
     private def overall_population_geography(year, code)
       # For testing
       # return 10_000 unless Rails.env.production?
-      return (500..2_000).to_a.sample unless Rails.env.production?
+      return (500..2_000).to_a.sample if fake_map_counts?
 
       if map_by_zip?
         population_by_zip.try(:[], year).try(:[], code)
@@ -698,24 +707,29 @@ module PublicReports
     end
 
     private def homeless_population_overall(scope:, start_date:, end_date:, service_scope:, population_overall:)
-      if Rails.env.production?
-        scope.with_service_between(
-          start_date: start_date,
-          end_date: end_date,
-          service_scope: service_scope,
-        ).count
-      else
+      if fake_map_counts?
         # This should change across quarter, but not geography
         max = [population_overall, 1].compact.max / 3
         @fake_overall_homeless_pop_per_quarter ||= {}
         @fake_overall_homeless_pop_per_quarter[start_date] ||= {}
         @fake_overall_homeless_pop_per_quarter[start_date][scope.to_s] ||= (0..max).to_a.sample
         @fake_overall_homeless_pop_per_quarter[start_date][scope.to_s]
+      else
+        scope.with_service_between(
+          start_date: start_date,
+          end_date: end_date,
+          service_scope: service_scope,
+        ).count
       end
     end
 
     private def count_homeless_population(scope:, start_date:, end_date:, service_scope:, overall_homeless_population:, code:)
-      if Rails.env.production?
+      if fake_map_counts?
+        max = [overall_homeless_population, 1].compact.max / 3
+        (0..max).to_a.sample
+        # for testing
+        # 16
+      else
         enrolled_scope = scope.with_service_between(
           start_date: start_date,
           end_date: end_date,
@@ -730,11 +744,6 @@ module PublicReports
         else
           enrolled_scope.in_coc(coc_code: code).count
         end
-      else
-        max = [overall_homeless_population, 1].compact.max / 3
-        (0..max).to_a.sample
-        # for testing
-        # 16
       end
     end
 
@@ -844,17 +853,14 @@ module PublicReports
         sheltered_count = scope.homeless_sheltered.merge(client_scope).select(:client_id).distinct.count
         unsheltered_count = scope.homeless_unsheltered.merge(client_scope).select(:client_id).distinct.count
 
-        if combine_rows
-          chronic_count = combined_chronic_count
-          total_count = combined_total_count
-        end
+        chronic_count = combined_chronic_count if combine_rows
 
-        published_total = total_count.positive? && total_count <= 100 ? nil : total_count
-        rows[row_id][:totals][date_index] = published_total
-        rows[row_id][:chronic][date_index] = enforce_min_threshold([chronic_count, total_count], 'chronic_percents')
+        row_total = published_total(total_count)
+        rows[row_id][:totals][date_index] = row_total
+        rows[row_id][:chronic][date_index] = enforce_min_threshold([chronic_count, combine_rows ? combined_total_count : total_count], 'chronic_percents')
 
         # A suppressed total would be recoverable as sheltered + unsheltered.
-        if published_total.nil? || sheltered_count < MIN_THRESHOLD || unsheltered_count < MIN_THRESHOLD
+        if row_total.nil? || sheltered_count < MIN_THRESHOLD || unsheltered_count < MIN_THRESHOLD
           rows[row_id][:sheltered][date_index] = nil
           rows[row_id][:unsheltered][date_index] = nil
         else
