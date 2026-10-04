@@ -309,10 +309,9 @@ module GrdaWarehouse
       full_string
     end
 
+    # The after_save and after_commit callbacks sync the client and rebuild its ROI row
     def confirm_consent!
       update(consent_form_confirmed: true)
-      note_changes_in_consent
-      set_client_consent
     end
 
     def adjust_consent_date
@@ -371,6 +370,7 @@ module GrdaWarehouse
           client.invalidate_consent!
         end
       end
+      GrdaWarehouse::Tasks::GenerateClientRoiAuthorizationsTask.rebuild_clients([client_id])
     end
 
     private def coc_available?

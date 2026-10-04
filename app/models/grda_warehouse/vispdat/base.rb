@@ -191,6 +191,7 @@ module GrdaWarehouse::Vispdat
     # Callbacks
     ####################
     before_save :calculate_score, :calculate_priority_score, :set_client_housing_release_status
+    after_commit :rebuild_client_roi_authorization, if: :saved_change_to_housing_release_confirmed?
     after_save :notify_users
     after_save :add_to_cohorts
 
@@ -218,6 +219,10 @@ module GrdaWarehouse::Vispdat
 
       status = housing_release_confirmed? ? GrdaWarehouse::Hud::Client.full_release_string : ''
       client.update_column :housing_release_status, status
+    end
+
+    def rebuild_client_roi_authorization
+      GrdaWarehouse::Tasks::GenerateClientRoiAuthorizationsTask.rebuild_clients([client_id])
     end
 
     def notify_users

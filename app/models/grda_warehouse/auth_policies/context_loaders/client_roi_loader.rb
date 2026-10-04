@@ -9,7 +9,7 @@
 module GrdaWarehouse::AuthPolicies::ContextLoaders
   class ClientRoiLoader
     def initialize(user)
-      # { client_id => bool }
+      # { destination_client_id => bool }
       @cache = {}
       @today = Date.current
       @user_coc_codes = user.coc_codes
@@ -28,13 +28,12 @@ module GrdaWarehouse::AuthPolicies::ContextLoaders
       new_client_ids = client_ids.uniq - @cache.keys
       return if new_client_ids.empty?
 
-      # Default to false so we cache a result for clients without roi records
       new_client_ids.each { |id| @cache[id] = false }
 
-      scope = GrdaWarehouse::ClientRoiAuthorization.active(@today).where(destination_client_id: new_client_ids)
-      scope.order(:id).group_by(&:destination_client_id).each do |id, auths|
-        @cache[id] = auths.any? { |a| a.matches_coc_codes?(@user_coc_codes) }
-      end
+      GrdaWarehouse::ClientRoiAuthorization.visible_in_cocs(@user_coc_codes, @today).
+        where(destination_client_id: new_client_ids).
+        pluck(:destination_client_id).
+        each { |id| @cache[id] = true }
     end
   end
 end

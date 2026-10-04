@@ -100,7 +100,7 @@ module ClientAccessControl
       # Active Record is doing some odd things with some of these, and sometimes
       # "none" is returning as "" which blows things up terribly.
       from_assigned_projects_query = viewable_enrollments_from_access_controls(user).joins(:client).select(c_t[:id]).to_sql
-      from_rois_query = viewable_enrollments_from_rois(user).joins(:client).select(c_t[:id]).to_sql
+      from_rois_query = enrollments_from_rois(user, permission: :can_view_client_enrollments_with_roi).select(c_t[:id]).to_sql
       from_authoritative_ds = authoritative_viewable_ds_ids(user, permission: :can_view_clients)
 
       where_clause = c_t[:id].in([]) # generates 1=0
@@ -126,7 +126,7 @@ module ClientAccessControl
       # "none" is returning as "" which blows things up terribly.
       union_parts = [
         searchable_enrollments_from_access_controls(user).joins(:client),
-        searchable_enrollments_from_rois(user).joins(:client),
+        enrollments_from_rois(user, permission: :can_search_clients_with_roi),
       ]
       from_authoritative_ds = authoritative_viewable_ds_ids(user, permission: :can_search_own_clients).presence
       union_parts << client_scope.where(c_t[:data_source_id].in(from_authoritative_ds)) if from_authoritative_ds
@@ -152,25 +152,29 @@ module ClientAccessControl
         )
     end
 
-    private def viewable_enrollments_from_rois(user)
-      # Consent is always stored on the destination record
-      consented_destination_clients = unscoped_clients.active_confirmed_consent_in_cocs(user.coc_codes).select(c_t[:id]).to_sql
+    # ACL only; legacy ROI access goes through consent_sub_query
+    private def enrollments_from_rois(user, permission:)
+      authorized_destination_clients = ::GrdaWarehouse::ClientRoiAuthorization.
+        visible_in_cocs(user.coc_codes).
+        select(:destination_client_id).to_sql
       consent_query = ::GrdaWarehouse::WarehouseClient.
-        where(wc_t[:destination_id].in(Arel.sql(consented_destination_clients))).
+        where(wc_t[:destination_id].in(Arel.sql(authorized_destination_clients))).
         select(wc_t[:source_id]).to_sql
-      return ::GrdaWarehouse::Hud::Enrollment.none unless consent_query
 
       ::GrdaWarehouse::Hud::Enrollment.joins(:project, :client).
         where(c_t[:id].in(Arel.sql(consent_query))).
+        where(c_t[:data_source_id].in(obeys_consent_data_source_ids)).
         merge(
           ::GrdaWarehouse::Hud::Project.viewable_by(
             user,
             confidential_scope_limiter: :all,
-            permission: :can_view_client_enrollments_with_roi,
-            # FIXME: need a migration to generate appropriate AccessControl
-            # see DataSource obeys_consent, maybe with UserRole where can_view_clients
+            permission: permission,
           ),
         )
+    end
+
+    private def obeys_consent_data_source_ids
+      @obeys_consent_data_source_ids ||= ::GrdaWarehouse::DataSource.obeys_consent.pluck(:id)
     end
 
     # TODO: START_ACL remove after ACL migration is complete
@@ -226,7 +230,7 @@ module ClientAccessControl
         # Active Record is doing some odd things with some of these, and sometimes
         # "none" is returning as "" which blows things up terribly.
         from_assigned_projects_query = viewable_enrollments_from_access_controls(user).select(e_t[:id]).to_sql
-        from_rois_query = viewable_enrollments_from_rois(user).select(e_t[:id]).to_sql
+        from_rois_query = enrollments_from_rois(user, permission: :can_view_client_enrollments_with_roi).select(e_t[:id]).to_sql
 
         where_clause = e_t[:id].in([]) # generates 1=0
         where_clause = where_clause.or(e_t[:id].in(Arel.sql(from_assigned_projects_query))) if from_assigned_projects_query.present?
@@ -243,25 +247,6 @@ module ClientAccessControl
         )
       end
       # END_ACL
-    end
-
-    private def searchable_enrollments_from_rois(user)
-      # Consent is always stored on the destination record
-      consented_destination_clients = unscoped_clients.active_confirmed_consent_in_cocs(user.coc_codes).select(c_t[:id]).to_sql
-      consent_query = ::GrdaWarehouse::WarehouseClient.
-        where(wc_t[:destination_id].in(Arel.sql(consented_destination_clients))).
-        select(wc_t[:source_id]).to_sql
-      return ::GrdaWarehouse::Hud::Enrollment.none unless consent_query
-
-      ::GrdaWarehouse::Hud::Enrollment.joins(:project, :client).
-        where(c_t[:id].in(Arel.sql(consent_query))).
-        merge(
-          ::GrdaWarehouse::Hud::Project.viewable_by(
-            user,
-            confidential_scope_limiter: :all,
-            permission: :can_search_clients_with_roi,
-          ),
-        )
     end
 
     # Given a user, access controls, and consent status of clients

@@ -122,6 +122,7 @@ RSpec.describe GrdaWarehouse::AuthPolicies::SourceClientPolicy, type: :model do
 
       context 'when window access requires release' do
         before do
+          allow(GrdaWarehouse::Config).to receive(:get).and_call_original
           allow(GrdaWarehouse::Config).to receive(:get).with(:window_access_requires_release).and_return(true)
         end
 
@@ -172,6 +173,7 @@ RSpec.describe GrdaWarehouse::AuthPolicies::SourceClientPolicy, type: :model do
 
       context 'when window access does not require release' do
         before do
+          allow(GrdaWarehouse::Config).to receive(:get).and_call_original
           allow(GrdaWarehouse::Config).to receive(:get).with(:window_access_requires_release).and_return(false)
         end
 

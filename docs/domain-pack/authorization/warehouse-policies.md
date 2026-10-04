@@ -95,8 +95,9 @@ matches. Both expose the same public methods (`project_role_permissions`,
 `enrolled_project_ids_for_client`, `legacy_permissions`), so policies do not branch on user
 type. `SourceClientPolicy` is the one policy that reads legacy-only data (window data sources).
 
-Context loaders live under `auth_policies/context_loaders/`. `ClientRoiLoader` caches active
-ROI matching the user's CoC codes per destination client id, with `preload(client_ids)`.
+Context loaders live under `auth_policies/context_loaders/`. `ClientRoiLoader` caches, per
+destination client id, whether a `ClientRoiAuthorization.visible_in_cocs(user.coc_codes)` row
+exists, with `preload(client_ids)`.
 `RestrictedClientLoader` loads the full HMIS restricted id set once (direct, destination, and
 sibling source ids) and answers `restricted?(id)` as a Set lookup.
 

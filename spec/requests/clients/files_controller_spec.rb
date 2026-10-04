@@ -112,4 +112,97 @@ RSpec.describe Clients::FilesController, type: :request do
       end
     end
   end
+
+  describe 'consent revocation and deletion' do
+    let!(:client) { create :grda_warehouse_hud_client, data_source: create(:destination_data_source) }
+    let!(:file) do
+      create :client_file, client: client, tags: [consent_tag], effective_date: 5.days.ago, expiration_date: 1.year.from_now.to_date
+    end
+
+    def use_config(roi_model, release_duration)
+      GrdaWarehouse::Config.delete_all
+      create :config_b, roi_model: roi_model, release_duration: release_duration
+      GrdaWarehouse::Config.invalidate_cache
+    end
+
+    def roi_row
+      GrdaWarehouse::ClientRoiAuthorization.find_by(destination_client_id: client.id)
+    end
+
+    def revoke_consent_form
+      patch client_file_path(client_id: client.id, id: file.id),
+            params: { grda_warehouse_client_file: { consent_revoked_at: Date.current.to_s } },
+            xhr: true
+      expect(response).to have_http_status(:ok)
+    end
+
+    def run_nightly_rebuild
+      GrdaWarehouse::Tasks::GenerateClientRoiAuthorizationsTask.new._perform(client_ids: [client.id])
+    end
+
+    ['Indefinite', 'Use Expiration Date', 'One Year', 'Two Years'].each do |release_duration|
+      context "under implied consent with a #{release_duration} release duration" do
+        before do
+          use_config(:implicit, release_duration)
+          file.confirm_consent!
+        end
+
+        it 'keeps the client marked revoked, with a revoked ROI row, through the nightly rebuild' do
+          expect(roi_row.status).to eq('full')
+
+          revoke_consent_form
+          run_nightly_rebuild
+
+          client.reload
+          expect(client.housing_release_status).to eq(Consent::Implied.revoked_consent_string)
+          expect(roi_row.status).to eq('revoked')
+          expect(client.full_or_partial_release?).to be false
+          expect(GrdaWarehouse::Hud::Client.consent_form_valid.where(id: client.id)).to be_empty
+        end
+      end
+    end
+
+    context 'under default consent' do
+      before do
+        use_config(:explicit, 'Indefinite')
+        file.confirm_consent!
+      end
+
+      it 'clears the release and removes the ROI row when the request completes' do
+        expect(roi_row.status).to eq('full')
+
+        revoke_consent_form
+
+        expect(client.reload.housing_release_status).to be_nil
+        expect(roi_row).to be_nil
+      end
+
+      it 'keeps the release and the ROI row when the revoked file fails validation' do
+        patch client_file_path(client_id: client.id, id: file.id),
+              params: { grda_warehouse_client_file: { consent_revoked_at: Date.current.to_s, confidential: '1', data_source_id: '', enrollment_id: '' } },
+              xhr: true
+
+        expect(file.reload.consent_revoked_at).to be_nil
+        expect(client.reload.housing_release_status).to eq(GrdaWarehouse::Hud::Client.full_release_string)
+        expect(roi_row.status).to eq('full')
+      end
+    end
+
+    describe 'DELETE #destroy' do
+      before do
+        use_config(:explicit, 'Indefinite')
+        file.confirm_consent!
+      end
+
+      it 'removes the ROI row when the active consent form is deleted' do
+        expect(roi_row.status).to eq('full')
+
+        delete client_file_path(client_id: client.id, id: file.id)
+
+        expect(response).to redirect_to(client_files_path(client_id: client.id))
+        expect(client.reload.housing_release_status).to be_nil
+        expect(roi_row).to be_nil
+      end
+    end
+  end
 end

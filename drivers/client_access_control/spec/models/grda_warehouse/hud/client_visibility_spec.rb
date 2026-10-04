@@ -126,6 +126,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
           consent_form_signed_on: past_date,
           consent_expires_on: future_date,
         )
+        GrdaWarehouse::Tasks::GenerateClientRoiAuthorizationsTask.rebuild_clients([window_destination_client.id])
         expect(window_destination_client.show_demographics_to?(user)).to eq true
       end
       it 'user cannot see client dashboard for non-window client' do
@@ -373,6 +374,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
           consent_form_signed_on: past_date,
           consent_expires_on: future_date,
         )
+        GrdaWarehouse::Tasks::GenerateClientRoiAuthorizationsTask.rebuild_clients([window_destination_client.id])
         expect(window_destination_client.show_demographics_to?(user)).to eq true
       end
       it 'user cannot see client dashboard for non-window client' do
@@ -446,6 +448,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
               consent_expires_on: future_date,
               consented_coc_codes: [],
             )
+            GrdaWarehouse::Tasks::GenerateClientRoiAuthorizationsTask.rebuild_clients([non_window_destination_client.id])
           end
           it 'user can see client dashboard for released client' do
             expect(non_window_destination_client.show_demographics_to?(user)).to eq true
@@ -464,6 +467,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
               consent_expires_on: future_date,
               consented_coc_codes: ['ZZ-999'],
             )
+            GrdaWarehouse::Tasks::GenerateClientRoiAuthorizationsTask.rebuild_clients([non_window_destination_client.id])
           end
           it 'user can see client dashboard for assigned client' do
             expect(user.coc_codes).to include('ZZ-999')
@@ -483,6 +487,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
               consent_expires_on: future_date,
               consented_coc_codes: ['ZZ-999', 'AA-000'],
             )
+            GrdaWarehouse::Tasks::GenerateClientRoiAuthorizationsTask.rebuild_clients([non_window_destination_client.id])
           end
           it 'user can see client dashboard for assigned client' do
             expect(non_window_destination_client.show_demographics_to?(user)).to eq true
@@ -501,6 +506,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
               consent_expires_on: future_date,
               consented_coc_codes: ['AA-000'],
             )
+            GrdaWarehouse::Tasks::GenerateClientRoiAuthorizationsTask.rebuild_clients([non_window_destination_client.id])
           end
           it 'user cannot see client dashboard for assigned client' do
             expect(non_window_destination_client.show_demographics_to?(user)).to eq false
@@ -601,6 +607,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
               consent_expires_on: future_date,
               consented_coc_codes: [],
             )
+            GrdaWarehouse::Tasks::GenerateClientRoiAuthorizationsTask.rebuild_clients([non_window_destination_client.id])
           end
           it 'user still cannot see client dashboard for any client' do
             expect(non_window_destination_client.show_demographics_to?(user)).to eq false
@@ -617,6 +624,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
               consent_expires_on: future_date,
               consented_coc_codes: ['ZZ-999'],
             )
+            GrdaWarehouse::Tasks::GenerateClientRoiAuthorizationsTask.rebuild_clients([non_window_destination_client.id])
           end
           it 'user still cannot see client dashboard for any client' do
             expect(non_window_destination_client.show_demographics_to?(user)).to eq false
@@ -633,6 +641,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
               consent_expires_on: future_date,
               consented_coc_codes: ['ZZ-999', 'AA-000'],
             )
+            GrdaWarehouse::Tasks::GenerateClientRoiAuthorizationsTask.rebuild_clients([non_window_destination_client.id])
           end
           it 'user still cannot see client dashboard for any client' do
             expect(non_window_destination_client.show_demographics_to?(user)).to eq false
@@ -649,6 +658,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
               consent_expires_on: future_date,
               consented_coc_codes: ['AA-000'],
             )
+            GrdaWarehouse::Tasks::GenerateClientRoiAuthorizationsTask.rebuild_clients([non_window_destination_client.id])
           end
           it 'user still cannot see client dashboard for any client' do
             expect(non_window_destination_client.show_demographics_to?(user)).to eq false
@@ -663,6 +673,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
               consent_expires_on: nil,
               consented_coc_codes: [],
             )
+            GrdaWarehouse::Tasks::GenerateClientRoiAuthorizationsTask.rebuild_clients([non_window_destination_client.id])
           end
           it 'user still cannot see client dashboard for any client' do
             expect(non_window_destination_client.show_demographics_to?(user)).to eq false
@@ -679,6 +690,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
               consent_expires_on: nil,
               consented_coc_codes: [],
             )
+            GrdaWarehouse::Tasks::GenerateClientRoiAuthorizationsTask.rebuild_clients([non_window_destination_client.id])
             # FIXME
             # non_window_destination_client.source_enrollments.first.update(enrollment_coc: 'ZZ-000')
           end

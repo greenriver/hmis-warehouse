@@ -166,7 +166,8 @@ one row per selectable tag name, `belongs_to :tag` by `name`, and is ordered by 
 `weight`, `name`. Its columns drive behavior:
 
 - `consent_form`, `full_release`, `coc_available`: the file is a consent form; uploading or
-  confirming it writes consent onto the destination client. See `roi/consent-records.md` for
+  confirming it writes consent onto the destination client and rebuilds the client's
+  `ClientRoiAuthorization` row. See `roi/consent-records.md` for
   the full flow (`ClientFile#set_client_consent`, `consent_type`, `calculated_expiration_date`).
 - `verified_homeless_history`: the `ClientFile.verified_homeless_history` scope, used by
   `visible_by?` together with `GrdaWarehouse::Config` `verified_homeless_history_visible_to_all`
@@ -223,7 +224,8 @@ uploads for `can_manage_window_client_files?` or `can_see_own_file_uploads?`. `d
 `create` strips `consent_form_confirmed` unless `can_confirm_housing_release?`, or sets it
 when the `auto_confirm_consent` config is on; `update` additionally allows
 `can_manage_client_files?` without the confirm flag and revokes consent through
-`invalidate_consent!` when `consent_revoked_at` is set on the active consent form.
+`invalidate_consent!` when `consent_revoked_at` is set on the active consent form, in one
+transaction with the file save so a file that fails validation leaves consent unchanged.
 
 ### Storage, soft delete, and purge
 
@@ -250,8 +252,9 @@ from enqueuing `ActiveStorage::PurgeJob`, and `soft_delete!` (an `update!(delete
 avoids `destroy` callbacks that would let `acts_as_taggable` hard-delete the taggings, which
 would make restore impossible. `Clients::FilesController#destroy` records `delete_reason`
 (0 Incomplete Form, 1 Incorrect Client, 2 Incorrectly Categorized, 99 Other) and
-`delete_detail` first, then calls `soft_delete!`, `invalidate_consent!` when the file was the
-active consent form, `clear_view_cache`, and `sync_cas_attributes_with_files`.
+`delete_detail` first, then calls `soft_delete!`, `invalidate_consent!` and
+`GenerateClientRoiAuthorizationsTask.rebuild_clients` when the file was the active consent form,
+`clear_view_cache`, and `sync_cas_attributes_with_files`.
 
 `PurgeSoftDeletedClientFilesJob` (`app/jobs/purge_soft_deleted_client_files_job.rb`) is the
 counterpart: under an advisory lock, wrapped in `instrument_as_maintenance_task(name: 'purge')`,
@@ -342,7 +345,7 @@ answers `regenerate?` true, otherwise saves a pending row and enqueues `Document
   `file_exists_and_not_too_large` to 12 MB. The 100-byte minimum rejects near-empty uploads.
 - `ClientFile#callbacks_skipped = true` disables `notify_users`, `adjust_consent_date`,
   `note_changes_in_consent`, and `set_client_consent`. Bulk writers that set it leave client
-  consent columns stale.
+  consent columns and the ROI row stale.
 - Taggings are stored with `taggable_type = 'GrdaWarehouse::File'`. Direct `Tagging` queries
   must filter on the base class name, not the subclass.
 - The consent, verified-homeless-history, and CE-certification scopes cache tagging ids for

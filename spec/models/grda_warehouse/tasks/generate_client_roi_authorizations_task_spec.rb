@@ -12,6 +12,13 @@ RSpec.describe GrdaWarehouse::Tasks::GenerateClientRoiAuthorizationsTask, type: 
   let(:task) { described_class.new }
   let(:today) { Date.current }
 
+  # Config.get caches across examples; pin an Indefinite release duration
+  before do
+    GrdaWarehouse::Config.delete_all
+    create(:config_b)
+    GrdaWarehouse::Config.invalidate_cache
+  end
+
   # Shared contexts for common test setups
   shared_context 'with release duration settings' do |duration, period = nil|
     before do
@@ -115,46 +122,91 @@ RSpec.describe GrdaWarehouse::Tasks::GenerateClientRoiAuthorizationsTask, type: 
     end
   end
 
-  describe '#process_client' do
-    let(:client) { create(:hud_client, consent_form_signed_on: today) }
-    subject(:processed_result) { task.send(:process_client, client) }
+  describe 'authorization status' do
+    let(:client) { create :grda_warehouse_hud_client, data_source: create(:destination_data_source), consent_form_signed_on: today }
 
-    context 'with different release statuses' do
-      [
-        {
-          scenario: 'full release',
-          release_valid: true,
-          revoked_consent: false,
-          partial_release: false,
-          expected_status: 'full',
-        },
-        {
-          scenario: 'revoked consent',
-          release_valid: false,
-          revoked_consent: true,
-          partial_release: false,
-          expected_status: 'revoked',
-        },
-        {
-          scenario: 'partial release',
-          release_valid: false,
-          revoked_consent: false,
-          partial_release: true,
-          expected_status: 'partial',
-        },
-      ].each do |test_case|
-        context "when client has #{test_case[:scenario]}" do
-          before do
-            allow(client).to receive(:release_valid?).and_return(test_case[:release_valid])
-            allow(client).to receive(:revoked_consent?).and_return(test_case[:revoked_consent])
-            allow(client).to receive(:partial_release?).and_return(test_case[:partial_release])
-          end
+    def roi_row
+      GrdaWarehouse::ClientRoiAuthorization.find_by(destination_client_id: client.id)
+    end
 
-          it 'returns correct status' do
-            expect(processed_result[:status]).to eq(test_case[:expected_status])
-          end
-        end
+    it 'is full for a full release' do
+      client.update_columns(housing_release_status: GrdaWarehouse::Hud::Client.full_release_string)
+      described_class.rebuild_clients([client.id])
+      expect(roi_row.status).to eq('full')
+    end
+
+    it 'is partial for a partial release' do
+      client.update_columns(housing_release_status: Consent::Default.partial_release_string)
+      described_class.rebuild_clients([client.id])
+      expect(roi_row.status).to eq('partial')
+    end
+
+    context 'when the client has no recognized release status under implied consent' do
+      before do
+        GrdaWarehouse::Config.delete_all
+        create(:config_va)
+        GrdaWarehouse::Config.invalidate_cache
+        client.update_columns(housing_release_status: '')
       end
+
+      it 'resets the client to implied consent and builds the partial row in the same rebuild' do
+        described_class.rebuild_clients([client.id])
+        expect(client.reload.housing_release_status).to eq(Consent::Implied.no_release_string)
+        expect(roi_row.status).to eq('partial')
+      end
+    end
+
+    context 'when implied consent is revoked under a One Year release duration' do
+      before do
+        GrdaWarehouse::Config.delete_all
+        create(:config_va, release_duration: 'One Year')
+        GrdaWarehouse::Config.invalidate_cache
+        create :client_file_revoked_consent, client: client
+        client.invalidate_consent!(hr_status: Consent::Implied.revoked_consent_string)
+      end
+
+      it 'is revoked with no expiry, although revocation cleared the signature date' do
+        expect(client.reload.consent_form_signed_on).to be_nil
+        described_class.rebuild_clients([client.id])
+        expect(roi_row).to have_attributes(status: 'revoked', expires_at: nil)
+      end
+    end
+
+    context 'when a full release has no expiration date under a Use Expiration Date release duration' do
+      before do
+        GrdaWarehouse::Config.delete_all
+        create(:config_b, release_duration: 'Use Expiration Date')
+        GrdaWarehouse::Config.invalidate_cache
+        client.update_columns(housing_release_status: GrdaWarehouse::Hud::Client.full_release_string, consent_form_id: 1, consent_expires_on: nil)
+      end
+
+      it 'builds no row and clears the consent columns on the client' do
+        described_class.rebuild_clients([client.id])
+        expect(roi_row).to be_nil
+        expect(client.reload).to have_attributes(housing_release_status: nil, consent_form_id: nil, consent_form_signed_on: nil)
+      end
+    end
+  end
+
+  describe 'deadlock retry' do
+    let!(:client) { create :grda_warehouse_hud_client, data_source: create(:destination_data_source), housing_release_status: GrdaWarehouse::Hud::Client.full_release_string }
+
+    it 'retries a batch once after a deadlock' do
+      calls = 0
+      allow(task).to receive(:rebuild_batch).and_wrap_original do |original, *args|
+        calls += 1
+        raise ActiveRecord::Deadlocked, 'deadlock detected' if calls == 1
+
+        original.call(*args)
+      end
+      task._perform
+      expect(calls).to eq(2)
+      expect(GrdaWarehouse::ClientRoiAuthorization.where(destination_client_id: client.id).pluck(:status)).to eq(['full'])
+    end
+
+    it 'raises when the retried batch deadlocks again' do
+      allow(task).to receive(:rebuild_batch).and_raise(ActiveRecord::Deadlocked, 'deadlock detected')
+      expect { task._perform }.to raise_error(ActiveRecord::Deadlocked)
     end
   end
 
@@ -189,5 +241,51 @@ RSpec.describe GrdaWarehouse::Tasks::GenerateClientRoiAuthorizationsTask, type: 
         expect { expiry_date }.to raise_error(/unknown release duration/)
       end
     end
+  end
+  describe '.rebuild_clients' do
+    let!(:target) { create :grda_warehouse_hud_client, data_source: create(:destination_data_source), housing_release_status: GrdaWarehouse::Hud::Client.full_release_string }
+    let!(:bystander) { create :grda_warehouse_hud_client, data_source: target.data_source, housing_release_status: GrdaWarehouse::Hud::Client.full_release_string }
+
+    it 'builds rows only for the given clients' do
+      described_class.rebuild_clients([target.id])
+      expect(GrdaWarehouse::ClientRoiAuthorization.pluck(:destination_client_id, :status)).to contain_exactly([target.id, 'full'])
+    end
+
+    it 'removes the row when the client no longer has consent' do
+      described_class.rebuild_clients([target.id])
+      target.update_columns(housing_release_status: nil)
+      described_class.rebuild_clients([target.id])
+      expect(GrdaWarehouse::ClientRoiAuthorization.where(destination_client_id: target.id)).to be_empty
+    end
+
+    # Transactional fixtures turn the outermost application transaction into a savepoint
+    it 'holds the client row locks until the authorization rows are written' do
+      statements = sql_during { described_class.rebuild_clients([target.id]) }
+      lock_at = statements.index { |sql| sql.match?(/FROM "Client".*FOR UPDATE/m) }
+      write_at = statements.index { |sql| sql.include?('INSERT INTO "client_roi_authorizations"') }
+      savepoint_at = statements[0...lock_at].rindex { |sql| sql.start_with?('SAVEPOINT ') }
+      expect([lock_at, write_at, savepoint_at]).to all(be_an(Integer))
+
+      release_at = statements.index.with_index { |sql, i| i > lock_at && sql == "RELEASE #{statements[savepoint_at]}" }
+      expect(write_at).to be > lock_at
+      expect(release_at).to be > write_at
+    end
+  end
+
+  describe '#_perform' do
+    it 'rebuilds every destination client under row locks' do
+      client = create :grda_warehouse_hud_client, data_source: create(:destination_data_source), housing_release_status: GrdaWarehouse::Hud::Client.full_release_string
+      expect(sql_during { described_class.new._perform }).to include(a_string_matching(/FROM "Client".*FOR UPDATE/m))
+      expect(GrdaWarehouse::ClientRoiAuthorization.where(destination_client_id: client.id).pluck(:status)).to eq(['full'])
+    end
+  end
+
+  # Warehouse connection only; models such as Translation write through a separate connection
+  def sql_during(&block)
+    connection = GrdaWarehouseBase.connection
+    statements = []
+    recorder = ->(*, payload) { statements << payload[:sql] if payload[:connection].equal?(connection) }
+    ActiveSupport::Notifications.subscribed(recorder, 'sql.active_record', &block)
+    statements
   end
 end

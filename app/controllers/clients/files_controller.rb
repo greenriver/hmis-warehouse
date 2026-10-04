@@ -102,15 +102,18 @@ module Clients
       else
         not_authorized!
       end
-      @client.invalidate_consent!(hr_status: GrdaWarehouse::Config.active_consent_class.revoked_consent_string) if attrs[:consent_revoked_at].present? && @client.consent_form_id == @file.id
+      # The client revocation rolls back with the file, so a file that fails validation leaves consent unchanged
+      GrdaWarehouseBase.transaction do
+        @client.invalidate_consent!(hr_status: GrdaWarehouse::Config.active_consent_class.revoked_consent_string) if attrs[:consent_revoked_at].present? && @client.consent_form_id == @file.id
 
-      if attrs.key?(:consent_form_signed_on)
-        attrs[:effective_date] = attrs[:consent_form_signed_on]
-        attrs[:consent_form_confirmed] = true if GrdaWarehouse::Config.get(:auto_confirm_consent)
+        if attrs.key?(:consent_form_signed_on)
+          attrs[:effective_date] = attrs[:consent_form_signed_on]
+          attrs[:consent_form_confirmed] = true if GrdaWarehouse::Config.get(:auto_confirm_consent)
+        end
+        @file.assign_attributes(attrs)
+        @file.sync_revokation_info(current_user)
+        raise ActiveRecord::Rollback unless @file.save
       end
-      @file.assign_attributes(attrs)
-      @file.sync_revokation_info(current_user)
-      @file.save
     end
 
     def show_delete_modal
@@ -136,7 +139,10 @@ module Clients
 
         flash[:notice] = 'File was successfully deleted.'
         # Keep various client fields in sync with files if appropriate
-        @client.invalidate_consent! if @client.consent_form_id == @file.id
+        if @client.consent_form_id == @file.id
+          @client.invalidate_consent!
+          GrdaWarehouse::Tasks::GenerateClientRoiAuthorizationsTask.rebuild_clients([@client.id])
+        end
         # Remove any view caches for this client since permissions may have changed
         @client.clear_view_cache
         @client.sync_cas_attributes_with_files
