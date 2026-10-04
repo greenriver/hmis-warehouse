@@ -11,8 +11,11 @@ require 'rails_helper'
 RSpec.describe GrdaWarehouse::UsCensusApi::Finder, type: :model do
   let(:county) { GrdaWarehouse::Shape::County.create!(namelsad: 'Chittenden County', full_geoid: '0500000US50007') }
 
+  around do |example|
+    travel_to(Date.new(2026, 10, 2)) { example.run }
+  end
+
   before do
-    travel_to Date.new(2026, 10, 2)
     { 2023 => 100, 2024 => 200 }.each do |year, value|
       variable = GrdaWarehouse::UsCensusApi::CensusVariable.create!(
         year: year,
