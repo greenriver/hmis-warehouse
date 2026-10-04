@@ -63,7 +63,7 @@ RSpec.feature 'Data collection features', type: :system do
 
         click_link 'Current Living Situations'
         assert_current_path("/projects/#{p1.id}/current-living-situations")
-        table_row = find('tbody').find_all('tr').sole.text
+        table_row = find('tbody', text: 'Safe Haven').find_all('tr').sole.text
         expect(table_row).to include(spouse.first_name)
         expect(table_row).to include('Safe Haven')
 
@@ -83,7 +83,7 @@ RSpec.feature 'Data collection features', type: :system do
         click_link 'Current Living Situations'
         assert_current_path("/client/#{spouse.id}/enrollments/#{spouse_enrollment.id}/current-living-situations")
 
-        table_row = find('tbody').find_all('tr').sole.text
+        table_row = find('tbody', text: 'Safe Haven').find_all('tr').sole.text
         expect(table_row).to include('Safe Haven')
         expect(table_row).to include('A comment')
 
@@ -209,7 +209,7 @@ RSpec.feature 'Data collection features', type: :system do
         expect(side_nav_elements).to include('Current Living Situations')
         click_link 'Current Living Situations'
         assert_current_path("/client/#{spouse.id}/enrollments/#{spouse_enrollment.id}/current-living-situations")
-        table_row = find('tbody').find_all('tr').sole.text
+        table_row = find('tbody', text: 'Safe Haven').find_all('tr').sole.text
         expect(table_row).to include('Safe Haven')
         expect(table_row).to include('Legacy!')
         assert_no_text 'Add Current Living Situation'
