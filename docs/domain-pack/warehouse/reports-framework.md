@@ -28,6 +28,7 @@ sources:
   - app/models/concerns/warehouse_reports/export.rb
   - app/models/concerns/warehouse_reports/publish.rb
   - app/models/concerns/warehouse_reports/s3_toolset.rb
+  - app/models/aws_s3.rb
   - app/models/concerns/warehouse_reports/pii_detail_rows.rb
   - app/models/concerns/report_archival.rb
   - app/models/grda_warehouse/document_exports/base_performance_export.rb
@@ -133,7 +134,8 @@ for code that knows a report only by its index url.
 `assignable_by(user)` returns everything for `can_assign_reports?` and nothing otherwise.
 `limitable: false` marks reports that cannot be limited to a subset of projects; the collection
 admin forms pass those ids to the browser as `unlimitable` and show a warning icon. The
-`enabled` scope filters the admin pickers. `new_report?` is true for two weeks after creation.
+`enabled` scope filters the admin pickers. `new_report?` is true for two weeks after creation,
+except for definitions in `HUD_REPORT_GROUP`, which never show as new.
 
 `WarehouseReportAuthorization#report_visible?` calls
 `related_report.viewable_by(current_user).exists?` and otherwise `not_authorized!`.
@@ -305,10 +307,12 @@ Policy detail: `authorization/warehouse-policies.md`.
 with section markers when `view_template` is an array), inlines CSS with Premailer, saves
 `published_url` and an iframe `embed_code`, then `push_all_to_s3` uploads each `publish_files`
 entry with `acl: 'public-read'`. `unpublish!` deletes the objects and clears the row.
-`S3Toolset` supplies `ready_public_s3_bucket!` (creates the bucket and website configuration),
-the bucket name (`S3_PUBLIC_BUCKET` or `<CLIENT>-<env>-public`), the client (explicit
-`S3_PUBLIC_ACCESS_KEY_ID`/`S3_PUBLIC_ACCESS_KEY_SECRET` or the default credential chain), and
-`S3_PUBLIC_URL` as the base for `generate_publish_url`.
+`S3Toolset` supplies `ready_public_s3_bucket!` (creates the bucket and website configuration;
+when `AwsS3.local_endpoint?` is true it only ensures the bucket, since the local S3 has no
+website API), the bucket name (`S3_PUBLIC_BUCKET` when present, else `<CLIENT>-<env>-public`),
+the client (built by `AwsS3.new` with `S3_PUBLIC_ACCESS_KEY_ID`/`S3_PUBLIC_ACCESS_KEY_SECRET`,
+so it gets `AwsS3`'s region default, local-endpoint setup, and default credential chain when the
+keys are blank), and `S3_PUBLIC_URL` as the base for `generate_publish_url`.
 
 ### Archival
 
@@ -388,7 +392,9 @@ flashes counts or errors, and redirects to `reload_from_csv_redirect_path`. A sh
 - `app/models/concerns/warehouse_reports/publish.rb`: `publish!`; `unpublish!`;
   `as_html`.
 - `app/models/concerns/warehouse_reports/s3_toolset.rb`: `ready_public_s3_bucket!`;
-  `s3_bucket`; `push_all_to_s3`.
+  `s3_bucket`; `s3_client`; `push_all_to_s3`.
+- `app/models/aws_s3.rb`: `AwsS3.local_endpoint?`; `initialize` (region default, local endpoint,
+  explicit keys or the default credential chain).
 - `app/models/concerns/warehouse_reports/pii_detail_rows.rb`: `redact_pii_in_row`.
 - `app/models/concerns/report_archival.rb`: `register_report_type`;
   `archival_csv_config`; `purge_eligible?`; `archive_and_purge!`.
