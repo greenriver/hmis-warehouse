@@ -76,4 +76,35 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       GrdaWarehouse.paper_trail_versions.where(item_type: 'Hmis::RestrictedRecord').count
     }.by(1)
   end
+
+  # The two examples above restrict a client that has never been restricted, which is the only
+  # case the old RestrictedRecord.mark! handled with a create. Restricting a second time revived
+  # the soft-deleted row through Paranoia, which writes with update_columns and skips PaperTrail.
+  # The same user restricts in both directions here, so the created_by re-stamp that followed the
+  # revive had nothing to save either, and the second restriction reached the audit trail as
+  # nothing at all.
+  it 'creates an audit trail entry when restricting a client that was restricted once before' do
+    client.mark_as_restricted!(user: hmis_user)
+    client.reload.remove_restriction!
+
+    expect do
+      response, = post_graphql(clientId: client.id.to_s, restricted: true) { mutation }
+      expect(response.status).to eq(200)
+    end.to change {
+      GrdaWarehouse.paper_trail_versions.where(item_type: 'Hmis::RestrictedRecord', event: 'create').count
+    }.by(1)
+  end
+
+  it 'attributes both directions to the acting user' do
+    post_graphql(clientId: client.id.to_s, restricted: true) { mutation }
+    post_graphql(clientId: client.id.to_s, restricted: false) { mutation }
+
+    versions = GrdaWarehouse.paper_trail_versions.
+      where(item_type: 'Hmis::RestrictedRecord', client_id: client.id)
+
+    expect(versions.pluck(:event, :whodunnit)).to contain_exactly(
+      ['create', hmis_user.id.to_s],
+      ['destroy', hmis_user.id.to_s],
+    )
+  end
 end
