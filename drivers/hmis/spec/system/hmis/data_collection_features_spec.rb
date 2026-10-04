@@ -65,7 +65,6 @@ RSpec.feature 'Data collection features', type: :system do
         assert_current_path("/projects/#{p1.id}/current-living-situations")
         table_row = find('tbody', text: 'Safe Haven').find_all('tr').sole.text
         expect(table_row).to include(spouse.first_name)
-        expect(table_row).to include('Safe Haven')
 
         click_link spouse.first_name
         assert_current_path("/client/#{spouse.id}/enrollments/#{spouse_enrollment.id}/current-living-situations")
@@ -84,7 +83,6 @@ RSpec.feature 'Data collection features', type: :system do
         assert_current_path("/client/#{spouse.id}/enrollments/#{spouse_enrollment.id}/current-living-situations")
 
         table_row = find('tbody', text: 'Safe Haven').find_all('tr').sole.text
-        expect(table_row).to include('Safe Haven')
         expect(table_row).to include('A comment')
 
         assert_no_text 'Add Current Living Situation'
@@ -129,8 +127,7 @@ RSpec.feature 'Data collection features', type: :system do
       it 'allows viewing the legacy CLS with the non-default form' do
         visit "/client/#{spouse.id}/enrollments/#{spouse_enrollment.id}/current-living-situations"
 
-        table_row = find('tbody').find_all('tr').sole.text
-        expect(table_row).to include('Safe Haven')
+        expect(find('tbody', text: 'Safe Haven')).to have_css('tr', count: 1)
         assert_no_text 'Add Current Living Situation'
 
         find('tbody').first('tr').trigger(:click)
@@ -155,8 +152,7 @@ RSpec.feature 'Data collection features', type: :system do
       click_link 'Case Notes'
       assert_current_path("/client/#{hoh.id}/enrollments/#{hoh_enrollment.id}/case-notes")
 
-      table_row = find('tbody', text: 'A legacy custom case note').find_all('tr').sole.text
-      expect(table_row).to include('A legacy custom case note')
+      expect(find('tbody', text: 'A legacy custom case note')).to have_css('tr', count: 1)
 
       assert_no_text 'Add Case Note'
 
@@ -210,7 +206,6 @@ RSpec.feature 'Data collection features', type: :system do
         click_link 'Current Living Situations'
         assert_current_path("/client/#{spouse.id}/enrollments/#{spouse_enrollment.id}/current-living-situations")
         table_row = find('tbody', text: 'Safe Haven').find_all('tr').sole.text
-        expect(table_row).to include('Safe Haven')
         expect(table_row).to include('Legacy!')
         assert_no_text 'Add Current Living Situation'
       end
