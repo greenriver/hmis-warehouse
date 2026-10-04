@@ -193,6 +193,9 @@ export default class extends Controller {
       // A batch isn't guaranteed to be in request order, and the newest request carries the current token.
       let latest;
       list.getEntries().forEach((entry) => {
+        // A cache hit (transferSize 0) replays the stored response's stale entry; a 304 revalidation
+        // has transferSize > 0 and carries fresh headers.
+        if (entry.transferSize === 0) return;
         // serverTiming is missing in older browsers (e.g. Safari < 16.4): the countdown then moves
         // only on page load and keepalive.
         const timing = (entry.serverTiming || []).find((t) => t.name === SESSION_TIMING_NAME);
