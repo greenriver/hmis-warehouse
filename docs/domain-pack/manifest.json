@@ -176,7 +176,7 @@
   "app/models/grda_warehouse/fake_data.rb": "0df7a49de4191d74067a5b81a75850a5253abea35c9dd595a0af908b41e40d0e",
   "app/models/grda_warehouse/file.rb": "fb853dc61ac27e7ca0631d5216fe0727539a50e8b008b53d38f7743b997c6737",
   "app/models/grda_warehouse/group_viewable_entity.rb": "b6d5e07f96c6c3deabeb6357de108bb602ffdff7c6f3a48e8fcf67b6f35d3720",
-  "app/models/grda_warehouse/hidden_clients.rb": "6cafbcb4b48988f0d7abb9f7e3f14350dd89ed0fecb5d404fa5cc028ee6c71aa",
+  "app/models/grda_warehouse/hidden_clients.rb": "187cace2b2ffc328a1f10acc65c5f242095159479dc6a51189966df8c3c62176",
   "app/models/grda_warehouse/hmis_client.rb": "85b3322e678172512a43564ccb5e83d90c018e3f58cf7a75f0b155dd2a5756f8",
   "app/models/grda_warehouse/hmis_export.rb": "e27ad3598fb8354999176d04e2b43f6632e967b756f1ece9a038f2bcb15f5d66",
   "app/models/grda_warehouse/hmis_import_config.rb": "458152e0bbc801290723089b8ca373567373b90915913a176d16126f63dffc55",

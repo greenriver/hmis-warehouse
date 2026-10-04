@@ -82,6 +82,7 @@ module GrdaWarehouse::HiddenClients
     marks_t = GrdaWarehouse::ClientRetentionMark.arel_table
     me = GrdaWarehouse::WarehouseClient.arel_table.alias(:hidden_me)
     sib = GrdaWarehouse::WarehouseClient.arel_table.alias(:hidden_sib)
+    src = GrdaWarehouse::WarehouseClient.arel_table.alias(:hidden_source)
     active_restriction = rr_t[:restrictable_type].eq(Hmis::RestrictedRecord::CLIENT_RESTRICTABLE_TYPE).and(rr_t[:deleted_at].eq(nil))
 
     directly_restricted = rr_t.project(Arel.sql('1')).where(active_restriction.and(rr_t[:restrictable_id].eq(column)))
@@ -91,9 +92,9 @@ module GrdaWarehouse::HiddenClients
       join(rr_t).on(active_restriction.and(rr_t[:restrictable_id].eq(sib[:source_id]))).
       where(me[:deleted_at].eq(nil).and(me[:source_id].eq(column)))
     # column is a destination with a restricted source
-    source_restricted = Arel::SelectManager.new.from(sib).project(Arel.sql('1')).
-      join(rr_t).on(active_restriction.and(rr_t[:restrictable_id].eq(sib[:source_id]))).
-      where(sib[:deleted_at].eq(nil).and(sib[:destination_id].eq(column)))
+    source_restricted = Arel::SelectManager.new.from(src).project(Arel.sql('1')).
+      join(rr_t).on(active_restriction.and(rr_t[:restrictable_id].eq(src[:source_id]))).
+      where(src[:deleted_at].eq(nil).and(src[:destination_id].eq(column)))
     # column is a source whose destination is itself restricted
     destination_restricted = Arel::SelectManager.new.from(me).project(Arel.sql('1')).
       join(rr_t).on(active_restriction.and(rr_t[:restrictable_id].eq(me[:destination_id]))).
@@ -101,9 +102,9 @@ module GrdaWarehouse::HiddenClients
 
     directly_marked = marks_t.project(Arel.sql('1')).where(marks_t[:client_id].eq(column))
     # column is a destination with a marked source
-    source_marked = Arel::SelectManager.new.from(me).project(Arel.sql('1')).
-      join(marks_t).on(marks_t[:client_id].eq(me[:source_id])).
-      where(me[:deleted_at].eq(nil).and(me[:destination_id].eq(column)))
+    source_marked = Arel::SelectManager.new.from(src).project(Arel.sql('1')).
+      join(marks_t).on(marks_t[:client_id].eq(src[:source_id])).
+      where(src[:deleted_at].eq(nil).and(src[:destination_id].eq(column)))
 
     [directly_restricted, sibling_restricted, source_restricted, destination_restricted, directly_marked, source_marked].
       map { |subquery| subquery.exists.not }.
