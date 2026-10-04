@@ -1,6 +1,7 @@
 # Idle Session Timeout
 
 ## Overview
+
 An idle warehouse session ends after about 30 minutes without activity. The inactivity modal warns 5 minutes before the end and offers "I'm still here". When the countdown reaches 0, it clears the page so nothing stays on screen once the session is gone.
 
 The server decides when the session ends. The modal only tries to predict that moment. There are two auth arms, chosen by `AuthMethod`, and they track the session in different ways:
@@ -10,15 +11,17 @@ The server decides when the session ends. The modal only tries to predict that m
 | Devise | `Devise.timeout_in` (30m) | Time since the last request, from `X-app-user-id` |
 | JWT | Keycloak idle timeout (30m), through Dex and oauth2-proxy | Forwarded token expiry, from the `app-session-remaining` `Server-Timing` entry |
 
-On the JWT arm an idle session ends 25–30 minutes after the last request, and the warning appears 20–25 minutes after it. The window is fuzzy because oauth2-proxy refreshes the token only once the session cookie is at least 5 minutes old (see [What counts as activity](#what-counts-as-activity)).
+On the JWT arm an idle session ends 25–30 minutes after the last request, and the warning appears 20–25 minutes after it. The window is fuzzy because oauth2-proxy refreshes the token only once the session cookie is at least 5 minutes old.
 
 ## Devise arm
+
 - `DeviseCurrentUser#inactive_session_countdown_values` seeds the modal with `session_lifetime_secs_value` (`Devise.timeout_in`).
 - Every page load and jQuery AJAX response stamps `session_last_request_ts` in localStorage. The countdown is that stamp plus the lifetime, so all tabs share it.
 - `/messages/poll` and requests with `skip_trackable=true` are not stamped, because they don't extend a Devise session.
 - "I'm still here" POSTs to `Users::SessionsController#keepalive`, which returns `head :ok`. The request alone resets Devise's timer.
 
 ## JWT arm
+
 The session is held by three layers. Each refresh restarts both the token's expiry and Keycloak's idle clock, so the token's expiry matches the real logout.
 
 1. A request reaches oauth2-proxy with its session cookie.
@@ -37,6 +40,7 @@ In the browser:
 - "I'm still here" POSTs to `Idp::SessionsController#keepalive`, which returns `remaining_seconds`. If the result is still inside the 5-minute warning window, the refresh failed (usually because the Keycloak session is gone). A reload wouldn't help, because oauth2-proxy keeps serving the old token until it expires. So the modal says the session can't be extended and swaps "I'm still here" for a Close button. Closing it keeps the modal shut for the rest of the countdown so the user can save their work. At 0 the page clears as usual.
 
 ## Settings that must stay consistent
+
 Values are from the dev stack. Check each Deployment's own config before relying on them.
 
 | Layer | Setting | Dev value | File |
@@ -57,27 +61,15 @@ Constraints:
 - Warning window ≤ `idTokens` − `cookie_refresh` (5m ≤ 30m − 5m). Otherwise "I'm still here" can arrive before the cookie is old enough to refresh, and the keepalive fails.
 - Dex `absoluteLifetime` > `cookie_expire`. Otherwise the refresh token dies before the cookie does.
 
-## What counts as activity
-On the JWT arm, activity means any request that carries the oauth2-proxy cookie once the cookie is at least 5 minutes old. That includes XHR, `api_routes` and `skip_auth_routes`: oauth2-proxy loads and refreshes the session before it checks whether a route skips auth. Navigating within 5 minutes of the last refresh extends nothing.
-
-Background pollers therefore count as activity. A page left open with one of these keeps the session alive up to the 8h `ssoSessionMaxLifespan`:
-
-| Poller | Interval | File |
-| --- | --- | --- |
-| `poll_replace_controller` | 30s (default) | `app/javascript/controllers/poll_replace_controller.js` |
-| `App.Rollups.Checker` | 30s | `app/assets/javascripts/rollups/checker.js.coffee` |
-| `documentExport.js` | 3s | `app/assets/javascripts/documentExport.js` |
-| `App.Clients.EtoApiRefresher` | 5s | `app/assets/javascripts/clients/eto_api_refresher.js.coffee` |
-
-`/messages/poll` is fetched once per page load, not on a timer.
-
 ## Known limits
-- Poller pages, above.
+
+- In JWT, a page that polls via XHR/fetch can extend extend the lifetime up to the max (8h). Audit and removal of polling is planned.
 - Within Dex's 30s `reuseInterval`, a refresh reuses the last result and doesn't contact Keycloak.
 - `ssoSessionMaxLifespan` (8h) ends the session however active the user is, which is earlier than `cookie_expire` (12h).
 - The HMIS frontend keeps its own countdown in the `hmis-frontend` repo. Its idle behaviour, and whether it shares the warehouse's Keycloak session, are not documented here yet.
 
 ## Key Files
+
 - `app/views/application/_inactive_session_modal.haml`
 - `app/javascript/controllers/inactive_session_modal_controller.js`
 - `app/controllers/application_controller.rb` (`set_app_user_header`)
@@ -89,4 +81,5 @@ Background pollers therefore count as activity. A page left open with one of the
 - `spec/system/rails/inactive_session_modal_spec.rb` (runs only with `RUN_RAILS_SYSTEM_TESTS` and `AUTH_METHOD=jwt`)
 
 ## Related
+
 - [Keycloak IDP Integration (dev stack)](../../developer/keycloak-idp.md): setup, and how to change realm session timeouts.
