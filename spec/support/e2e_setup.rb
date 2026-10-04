@@ -190,7 +190,7 @@ RSpec.shared_context 'SystemSpecHelper' do
           'X-CSRF-Token': csrfToken,
         },
         body: JSON.stringify({ user_id: #{user.id} })
-      }).then(r => done(r.ok));
+      }).then(r => done(r.ok), () => done(false));
     JS
     expect(ok).to be(true)
 
@@ -211,7 +211,7 @@ RSpec.shared_context 'SystemSpecHelper' do
             'Content-Type': 'application/json',
             'X-CSRF-Token': csrfToken,
           }
-        }).then(r => done(r.ok));
+        }).then(r => done(r.ok), () => done(false));
       JS
 
       visit current_path # reload the page
