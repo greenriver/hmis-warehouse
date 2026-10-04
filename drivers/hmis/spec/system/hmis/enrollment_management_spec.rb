@@ -30,7 +30,13 @@ RSpec.feature 'Enrollment/household management', type: :system do
   end
 
   def search_for_client(client)
-    expect(page).to have_field('Search for Client', disabled: false)
+    begin
+      expect(page).to have_field('Search for Client', disabled: false)
+    rescue RSpec::Expectations::ExpectationNotMetError => e
+      warn "DEBUG FAILURE current_path=#{current_path.inspect} title=#{page.title.inspect}"
+      warn "DEBUG BODY_TEXT=#{page.text[0, 500].inspect}"
+      raise e
+    end
     fill_in 'Search for Client', with: client.last_name
     click_button 'Search'
   end
