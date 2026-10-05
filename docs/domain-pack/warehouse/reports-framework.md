@@ -307,6 +307,9 @@ Policy detail: `authorization/warehouse-policies.md`.
 with section markers when `view_template` is an array), inlines CSS with Premailer, saves
 `published_url` and an iframe `embed_code`, then `push_all_to_s3` uploads each `publish_files`
 entry with `acl: 'public-read'`. `unpublish!` deletes the objects and clears the row.
+`PublicReports::Report.publication_types` lists the types that share a published slot:
+`PublicReports::StateDashboard` and the deprecated `PublicReports::StateLevelHomelessness`
+share one S3 directory, so publishing either unpublishes the other.
 `S3Toolset` supplies `ready_public_s3_bucket!` (creates the bucket and website configuration;
 when `AwsS3.local_endpoint?` is true it only ensures the bucket, since the local S3 has no
 website API), the bucket name (`S3_PUBLIC_BUCKET` when present, else `<CLIENT>-<env>-public`),
