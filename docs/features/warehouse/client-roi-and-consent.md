@@ -23,7 +23,7 @@ Consent-form `ClientFile`s write these columns on the **destination** client:
 - for changed clients, from `UpdateHousingReleaseStatuses`. This goes through the task-wide lock and is skipped while the nightly run holds it.
 - nightly, for every destination client
 
-ETO consent (`HmisClient.maintain_client_consent`) only grants consent. It reaches the table at the next nightly run.
+ETO consent (`HmisClient.maintain_client_consent`) only grants consent. It reaches the table at the next nightly run. It sets no `consent_form_id`, and the nightly run only invalidates expired releases that have one. An expired ETO release therefore keeps its expired `full` row, and the client is hidden on every ROI path (not shown with implied consent) until `revoke_expired_consent` clears the columns and a later rebuild runs.
 
 Each rebuild reads its clients with row locks (`SELECT ... FOR UPDATE`, in id order) held until it commits. A consent column write therefore waits for any rebuild of that client, and a rebuild always reads the latest committed consent.
 
@@ -72,7 +72,7 @@ Under `Consent::Implied`, the partial release string is the implied consent itse
 
 `ClientRoiAuthorization.visible_in_cocs` also requires:
 
-- **Dates:** `starts_at` on or before today and `expires_at` on or after today. Both are checked at query time, so an expiry does not wait for a rebuild.
+- **Dates:** `starts_at` on or before today and `expires_at` on or after today. Both are checked at query time, so an expiry does not wait for a rebuild. A release is valid on its expiration date and expired the day after; the nightly task, `revoke_expired_consent`, and `consent_form_valid?` use the same boundary.
 - **CoC:** the row's `coc_codes` is blank, includes `All CoCs`, or intersects `user.coc_codes`.
 
 Under `Consent::Implied`, `consent_view_permission` also changes which enrollments show on the dashboard. A client with revoked consent needs `can_view_clients`; any other client needs `can_view_client_enrollments_with_roi`.
@@ -93,7 +93,7 @@ These checks all apply that rule:
 | Search results | `ClientAccessControl::EnrollmentArbiter#searchable_client_scope` → `enrollments_from_rois` |
 | Client and enrollment lists | `EnrollmentArbiter#visible_client_scope`, `#enrollments_visible_to` |
 | Detail pages and supplemental data | `SourceClientPolicy#can_view?`, `#can_view_supplemental_data?` via `ClientRoiLoader` |
-| Dashboard gate | `Client#show_demographics_to?` (`visible_because_of_release?`) via `ClientRoiLoader#full_release?`; needs a `full` row |
+| Dashboard gate | `Client#show_demographics_to?` (`visible_because_of_release?`) via `ClientRoiLoader#full_release?`; needs a `full` row and `can_view_client_enrollments_with_roi` on any project, not on one where the client is enrolled. `ClientsController#assessment` authorizes on this gate alone |
 
 Access that does not come from an ROI does not depend on `obey_consent`: project access through a collection, authoritative data sources assigned to the user, and direct client assignment.
 
@@ -125,6 +125,8 @@ A missing date only matters when the duration computes expiry from it: the signa
 | Use Expiration Date | none | all | all | none | none |
 | One Year | none | all | none | all | none |
 | Two Years | none | all | none | all | none |
+
+The parity spec also checks three cases outside these tables. A release on its expiration date is **all** under `One Year` and `Use Expiration Date`, the durations where the fixture falls on that date. A release signed 18 months ago is **all** under `Two Years` and expired under `One Year`. An expired release with no `consent_form_id` (ETO) is **none** under every time-based duration, under both classes.
 
 A partial (CAS-only) release under `Consent::Default` grants nothing in the warehouse. Revoked consent grants nothing under either class.
 

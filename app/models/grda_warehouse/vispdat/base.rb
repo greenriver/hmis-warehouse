@@ -217,8 +217,22 @@ module GrdaWarehouse::Vispdat
     def set_client_housing_release_status
       return unless housing_release_confirmed_changed?
 
-      status = housing_release_confirmed? ? GrdaWarehouse::Hud::Client.full_release_string : ''
+      status = if housing_release_confirmed?
+        GrdaWarehouse::Hud::Client.full_release_string
+      else
+        # A blank status makes the ROI rebuild clear the client's consent file columns
+        unexpired_consent_file&.consent_type || ''
+      end
       client.update_column :housing_release_status, status
+    end
+
+    # The daily expiry job keeps consent_form_id on the client, so an expired form can still be the active one
+    private def unexpired_consent_file
+      file = GrdaWarehouse::ClientFile.consent_forms.confirmed.find_by(id: client.consent_form_id)
+      return unless file
+
+      expires_on = file.calculated_expiration_date
+      file if expires_on.nil? || expires_on >= Date.current
     end
 
     def rebuild_client_roi_authorization

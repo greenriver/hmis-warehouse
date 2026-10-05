@@ -52,7 +52,7 @@ class GrdaWarehouse::AuthPolicies::SourceClientPolicy < GrdaWarehouse::AuthPolic
 
   def validate_resource!(arg)
     ensure_arg_type!(arg, GrdaWarehouse::Hud::Client)
-    raise ArgumentError 'Must be a source client' if arg.destination?
+    raise ArgumentError, 'Must be a source client' if arg.destination?(strict: true)
   end
 
   def client_id

@@ -219,7 +219,9 @@ enrollment, by `data_source_id` of viewable projects. `index` exposes the ids as
 
 `editable_by?` (scope and instance method) allows all for `can_manage_client_files?` and own
 uploads for `can_manage_window_client_files?` or `can_see_own_file_uploads?`. `destroy` and
-`show_delete_modal` use `editable_scope`.
+`show_delete_modal` use `editable_scope`. It does not include `can_use_separated_consent?`, so
+that permission alone lets a user update their own releases (`update` loads through
+`visible_by?`) but not delete them.
 
 `create` strips `consent_form_confirmed` unless `can_confirm_housing_release?`, or sets it
 when the `auto_confirm_consent` config is on; `update` additionally allows

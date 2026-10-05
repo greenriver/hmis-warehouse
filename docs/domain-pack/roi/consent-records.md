@@ -127,12 +127,13 @@ Validity depends on `Config.get(:release_duration)`, one of `Indefinite`, `One Y
 `Two Years`, `Use Expiration Date` (`Config.available_release_durations`).
 `Hud::Client.consent_validity_period` maps `One Year` to `1.years`, `Two Years` to `2.years`,
 `Indefinite` to `100.years`, and raises `Unknown Release Duration` for anything else, including
-`Use Expiration Date`. `consent_form_valid?` checks `consent_form_signed_on >= period.ago` for
-the year durations, `consent_expires_on >= Date.current` for `Use Expiration Date`, and only
-`release_valid?` for `Indefinite`. `revoke_expired_consent` nulls `housing_release_status`
-and empties `consented_coc_codes` with `update_all` for clients strictly outside the window
-`consent_form_valid?` accepts, so the boundary day is still valid; it does not
-clear `consent_form_id` or `consent_form_signed_on`.
+`Use Expiration Date`. `consent_form_valid?` checks `consent_form_signed_on >= period.ago.to_date`
+for the year durations, `consent_expires_on >= Date.current` for `Use Expiration Date`, and only
+`release_valid?` for `Indefinite`. The date comparison matters: comparing the date column with
+`period.ago` (a time) treats the expiration date as expired. `revoke_expired_consent` nulls
+`housing_release_status` and empties `consented_coc_codes` with `update_all` for clients strictly
+outside the window `consent_form_valid?` accepts, so a release is valid on its expiration date;
+it does not clear `consent_form_id` or `consent_form_signed_on`.
 
 ### Strategy classes
 
@@ -182,8 +183,11 @@ overridden to the revoked string when `client.newest_consent_form.revoked?`.
   `rebuild_clients`, called after consent changes, and `roi_expiry_date`, the second copy of the
   duration mapping.
 - `app/models/grda_warehouse/vispdat/base.rb`: `set_client_housing_release_status` writes
-  `housing_release_status` from `housing_release_confirmed`; an `after_commit` rebuilds the ROI
-  row when that flag changes.
+  `housing_release_status` from `housing_release_confirmed`: the full release string on confirm.
+  On un-confirm it writes the `consent_type` of the client's active consent form when that form
+  is in `ClientFile.consent_forms.confirmed` and its `calculated_expiration_date` is not past,
+  else blank (the daily expiry job keeps `consent_form_id`, so the active form may be expired). An `after_commit` rebuilds the ROI row
+  when the flag changes; a blank status there deletes the row and clears the consent columns.
 - `app/jobs/importing/run_daily_imports_job.rb`: nightly `revoke_expired_consent`.
 - `app/controllers/admin/configs_controller.rb`: enqueues the recompute on `roi_model` change.
 - `app/controllers/clients/releases_controller.rb`, `app/controllers/clients/files_controller.rb`:

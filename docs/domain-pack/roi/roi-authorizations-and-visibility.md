@@ -122,9 +122,10 @@ and any resulting row is upserted. Under `Consent::Implied` the reset to `Implie
 produces a `partial` row in the same rebuild.
 
 After the batches, `_perform` (not `rebuild_clients`) invalidates clients with an expired
-`partial`/`full` row and a non-nil `consent_form_id`, then rebuilds them (under `Consent::Implied`
-they fall back to implied consent), and deletes rows whose client no longer
-exists. `Client has_many :roi_authorizations, dependent: :delete_all`.
+`partial`/`full` row (`expires_at` before today; a release is valid on its expiration date) and a
+non-nil `consent_form_id`, then rebuilds them (under `Consent::Implied` they fall back to implied
+consent), and deletes rows whose client no longer exists.
+`Client has_many :roi_authorizations, dependent: :delete_all`.
 
 ### Visibility rule and policy path
 
@@ -157,6 +158,9 @@ client and enrollment visibility scopes pass `:can_view_client_enrollments_with_
 `user.can_view_client_enrollments_with_roi?` and `user.policy_context.client_roi_loader.full_release?(id)`,
 so it reads the same preloaded row as the policy. Implied consent (a `partial` row under
 `Consent::Implied`) grants the lists, enrollments, and policy paths but not the dashboard.
+The gate checks the permission user-wide: unlike the scope and policy paths, it does not require
+the permission at a project where the client is enrolled. This is intended.
+`ClientsController#assessment` authorizes on this gate alone.
 
 Legacy branch: `consent_sub_query` selects from `Client.active_confirmed_consent_in_cocs`
 (`consent_form_valid` plus a `consented_coc_codes` match) limited to
@@ -227,7 +231,10 @@ client's `roi_authorizations` dates.
   client assignment) does not depend on it.
 - Rows lag consent column writes that do not call `rebuild_clients`. `revoke_expired_consent` is
   safe because `expires_at` is checked at query time; ETO consent from
-  `HmisClient.maintain_client_consent` only grants and reaches the row at the nightly run. A spec
+  `HmisClient.maintain_client_consent` only grants and reaches the row at the nightly run.
+  Because ETO sets no `consent_form_id`, `_perform` does not invalidate an expired ETO release; its
+  expired `full` row hides the client on every path (not implied consent) until
+  `revoke_expired_consent` clears the columns and a later rebuild runs. A spec
   that writes consent columns with `update_columns` must call `rebuild_clients` before checking
   visibility.
 - `Client#invalidate_consent!` does not rebuild. Under `Consent::Implied`, `revoked_consent?`

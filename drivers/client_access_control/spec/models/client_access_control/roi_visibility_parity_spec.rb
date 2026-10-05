@@ -8,7 +8,9 @@
 
 require 'rails_helper'
 
-# Every ACL check that can expose a client through an ROI must agree for the same fixtures.
+# Every ACL check that can expose a client through an ROI must agree for the same fixtures, except the
+# dashboard gate (Client#show_demographics_to?): it needs the ROI permission on any project, not on one
+# where the client is enrolled.
 RSpec.describe 'ROI visibility parity', type: :model do
   let(:data_source) { create :source_data_source }
   let(:project) { create :grda_warehouse_hud_project, data_source: data_source }
@@ -21,15 +23,18 @@ RSpec.describe 'ROI visibility parity', type: :model do
   let(:user) { create :acl_user }
   let(:roi_role) { create :role, can_search_clients_with_roi: true, can_view_client_enrollments_with_roi: true }
   let(:collection) { create :collection }
+  let(:user_coc) { create :lookup_coc, coc_code: 'XX-500' }
   let(:config_attributes) { {} }
 
   before do
     GrdaWarehouse::Config.delete_all
     create(config_factory, **config_attributes)
     GrdaWarehouse::Config.invalidate_cache
-    collection.set_viewables({ projects: [project.id] })
+    collection.set_viewables({ projects: [project.id], coc_codes: [user_coc.id] })
     setup_access_control(user, roi_role, collection)
   end
+
+  after { GrdaWarehouse::Config.invalidate_cache }
 
   # update_columns skips the sync hooks, so build the row the way the nightly task does
   def set_release!(status, coc_codes: [])
@@ -38,8 +43,8 @@ RSpec.describe 'ROI visibility parity', type: :model do
   end
 
   # A fresh user per call: User#policy_for and the client access arbiter are memoized on the instance
-  def visibility
-    viewer = User.find(user.id)
+  def visibility(as: user)
+    viewer = User.find(as.id)
     {
       search: GrdaWarehouse::Hud::Client.searchable_to(viewer).where(id: source_client.id).exists?,
       detail_scope: GrdaWarehouse::Hud::Client.source_visible_to(viewer).where(id: source_client.id).exists?,
@@ -71,10 +76,16 @@ RSpec.describe 'ROI visibility parity', type: :model do
       expect(visibility).to eq(on_every_path(false))
     end
 
+    it 'exposes the client on every path when the release is limited to a CoC the user holds' do
+      set_release!(GrdaWarehouse::Hud::Client.full_release_string, coc_codes: ['XX-500'])
+      expect(User.find(user.id).coc_codes).to eq(['XX-500'])
+      expect(visibility).to eq(on_every_path(true))
+    end
+
     it 'hides the client on every path when the release is limited to a CoC the user lacks' do
       set_release!(GrdaWarehouse::Hud::Client.full_release_string, coc_codes: ['ZZ-999'])
       expect(GrdaWarehouse::ClientRoiAuthorization.find_by(destination_client_id: destination_client.id).coc_codes).to eq(['ZZ-999'])
-      expect(User.find(user.id).coc_codes).not_to include('ZZ-999')
+      expect(User.find(user.id).coc_codes).to eq(['XX-500'])
       expect(visibility).to eq(on_every_path(false))
     end
 
@@ -125,6 +136,36 @@ RSpec.describe 'ROI visibility parity', type: :model do
         expect(visibility.except(:demographics)).to eq(on_every_path(true).except(:demographics))
       end
     end
+
+    context 'with users who each hold only one of the two ROI permissions' do
+      let(:search_user) { create :acl_user }
+      let(:view_user) { create :acl_user }
+
+      before do
+        setup_access_control(search_user, create(:role, name: 'ROI search only', can_search_clients_with_roi: true), collection)
+        setup_access_control(view_user, create(:role, name: 'ROI view only', can_view_client_enrollments_with_roi: true), collection)
+        set_release!(GrdaWarehouse::Hud::Client.full_release_string)
+      end
+
+      it 'finds the client only in search for the user with can_search_clients_with_roi' do
+        expect(visibility(as: search_user)).to eq(on_every_path(false).merge(search: true))
+      end
+
+      it 'exposes every path but search to the user with can_view_client_enrollments_with_roi' do
+        expect(visibility(as: view_user)).to eq(on_every_path(true).merge(search: false))
+      end
+    end
+
+    context 'when the user holds the ROI role only on a project where the client has no enrollment' do
+      let(:unrelated_project) { create :grda_warehouse_hud_project, data_source: data_source }
+
+      before { collection.set_viewables({ projects: [unrelated_project.id] }) }
+
+      it 'opens only the dashboard, which is not limited to the projects the ROI role covers' do
+        set_release!(GrdaWarehouse::Hud::Client.full_release_string)
+        expect(visibility).to eq(on_every_path(false).merge(demographics: true))
+      end
+    end
   end
 
   context 'with Consent::Default' do
@@ -148,6 +189,9 @@ RSpec.describe 'ROI visibility parity', type: :model do
   # What each kind of release exposes, by consent class and release duration.
   # :all is every path, :except_dashboard every path but Client#show_demographics_to?, :none no path.
   describe 'release duration matrix' do
+    # A fixed date, so a year-based expiration date is never shifted by Feb 29
+    around { |example| travel_to(Date.new(2026, 10, 5)) { example.run } }
+
     def apply_release!(scenario)
       consent_class = GrdaWarehouse::Config.active_consent_class
       full = { housing_release_status: consent_class.full_release_string }
@@ -157,6 +201,12 @@ RSpec.describe 'ROI visibility parity', type: :model do
         full_without_signature: full.merge(consent_expires_on: 1.year.from_now.to_date),
         full_without_expiration: full.merge(consent_form_signed_on: Date.current),
         full_expired: full.merge(consent_form_signed_on: 3.years.ago.to_date, consent_expires_on: Date.yesterday, consent_form_id: 1),
+        expires_today: full.merge(consent_form_signed_on: 1.year.ago.to_date, consent_expires_on: Date.current, consent_form_id: 1),
+        signed_18_months_ago: full.merge(consent_form_signed_on: 18.months.ago.to_date, consent_expires_on: 1.year.from_now.to_date, consent_form_id: 1),
+        # ETO consent has no consent_form_id, and _perform only invalidates expired releases that have one.
+        # The expired full row stays until revoke_expired_consent clears the columns and a later rebuild
+        # runs, so the client is hidden on every path, even under Consent::Implied.
+        full_expired_without_form: full.merge(consent_form_signed_on: 3.years.ago.to_date, consent_expires_on: Date.yesterday),
       }.fetch(scenario)
       destination_client.update_columns(consented_coc_codes: [], **attributes)
       GrdaWarehouse::Tasks::GenerateClientRoiAuthorizationsTask.new._perform(client_ids: [destination_client.id])
@@ -170,19 +220,22 @@ RSpec.describe 'ROI visibility parity', type: :model do
       }.fetch(outcome)
     end
 
-    scenarios = [:implied_only, :full, :full_without_signature, :full_without_expiration, :full_expired]
+    scenarios = [
+      :implied_only, :full, :full_without_signature, :full_without_expiration, :full_expired,
+      :expires_today, :signed_18_months_ago, :full_expired_without_form
+    ]
     {
       ['Consent::Default', :config_b] => {
-        'Indefinite' => [:none, :all, :all, :all, :all],
-        'Use Expiration Date' => [:none, :all, :all, :none, :none],
-        'One Year' => [:none, :all, :none, :all, :none],
-        'Two Years' => [:none, :all, :none, :all, :none],
+        'Indefinite' => [:none, :all, :all, :all, :all, :all, :all, :all],
+        'Use Expiration Date' => [:none, :all, :all, :none, :none, :all, :all, :none],
+        'One Year' => [:none, :all, :none, :all, :none, :all, :none, :none],
+        'Two Years' => [:none, :all, :none, :all, :none, :all, :all, :none],
       },
       ['Consent::Implied', :config_va] => {
-        'Indefinite' => [:except_dashboard, :all, :all, :all, :all],
-        'Use Expiration Date' => [:except_dashboard, :all, :all, :except_dashboard, :except_dashboard],
-        'One Year' => [:except_dashboard, :all, :except_dashboard, :all, :except_dashboard],
-        'Two Years' => [:except_dashboard, :all, :except_dashboard, :all, :except_dashboard],
+        'Indefinite' => [:except_dashboard, :all, :all, :all, :all, :all, :all, :all],
+        'Use Expiration Date' => [:except_dashboard, :all, :all, :except_dashboard, :except_dashboard, :all, :all, :none],
+        'One Year' => [:except_dashboard, :all, :except_dashboard, :all, :except_dashboard, :all, :except_dashboard, :none],
+        'Two Years' => [:except_dashboard, :all, :except_dashboard, :all, :except_dashboard, :all, :all, :none],
       },
     }.each do |(consent_class_name, factory), durations|
       context "with #{consent_class_name}" do

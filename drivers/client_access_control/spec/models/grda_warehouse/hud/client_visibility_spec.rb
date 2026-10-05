@@ -118,16 +118,18 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
         expect(GrdaWarehouse::Hud::Client.source_visible_to(user).count).to eq(0)
         expect(window_destination_client.show_demographics_to?(user)).to eq false
       end
-      it 'user can see client dashboard for window client with release' do
-        past_date = 5.days.ago
-        future_date = Date.current + 1.years
+      it 'exposes the window source client, its enrollment, and its dashboard after a release' do
+        expect(GrdaWarehouse::Hud::Enrollment.visible_to(user).pluck(:id)).to be_empty
         window_destination_client.update(
           housing_release_status: window_destination_client.class.full_release_string,
-          consent_form_signed_on: past_date,
-          consent_expires_on: future_date,
+          consent_form_signed_on: 5.days.ago,
+          consent_expires_on: Date.current + 1.years,
         )
         GrdaWarehouse::Tasks::GenerateClientRoiAuthorizationsTask.rebuild_clients([window_destination_client.id])
+
         expect(window_destination_client.show_demographics_to?(user)).to eq true
+        expect(GrdaWarehouse::Hud::Client.source_visible_to(user).pluck(:id)).to contain_exactly(window_source_client.id)
+        expect(GrdaWarehouse::Hud::Enrollment.visible_to(user).pluck(:id)).to contain_exactly(window_enrollment.id)
       end
       it 'user cannot see client dashboard for non-window client' do
         expect(non_window_destination_client.show_demographics_to?(user)).to eq false
@@ -388,16 +390,18 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
         expect(window_destination_client.show_demographics_to?(user)).to eq false
         expect(GrdaWarehouse::Hud::Client.source_visible_to(user).count).to eq(0)
       end
-      it 'user can see client dashboard for window client with release' do
-        past_date = 5.days.ago
-        future_date = Date.current + 1.years
+      it 'exposes the window source client, its enrollment, and its dashboard after a release' do
+        expect(GrdaWarehouse::Hud::Enrollment.visible_to(user).pluck(:id)).to be_empty
         window_destination_client.update(
           housing_release_status: window_destination_client.class.full_release_string,
-          consent_form_signed_on: past_date,
-          consent_expires_on: future_date,
+          consent_form_signed_on: 5.days.ago,
+          consent_expires_on: Date.current + 1.years,
         )
         GrdaWarehouse::Tasks::GenerateClientRoiAuthorizationsTask.rebuild_clients([window_destination_client.id])
+
         expect(window_destination_client.show_demographics_to?(user)).to eq true
+        expect(GrdaWarehouse::Hud::Client.source_visible_to(user).pluck(:id)).to contain_exactly(window_source_client.id)
+        expect(GrdaWarehouse::Hud::Enrollment.visible_to(user).pluck(:id)).to contain_exactly(window_enrollment.id)
       end
       it 'user cannot see client dashboard for non-window client' do
         expect(non_window_destination_client.show_demographics_to?(user)).to eq false
@@ -721,6 +725,32 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
           end
           it 'user still cannot see client dashboard for unassigned client' do
             expect(window_destination_client.show_demographics_to?(user)).to eq false
+          end
+        end
+        describe 'and the user also holds the ROI view permission' do
+          before do
+            # The outer before creates a default config row before the config_va let! runs, and Config.get
+            # reads the first row, so replace both to get Consent::Implied
+            GrdaWarehouse::Config.delete_all
+            create :config_va
+            GrdaWarehouse::Config.invalidate_cache
+            setup_access_control(user, can_view_client_enrollments_with_roi, Collection.system_collection(:data_sources))
+          end
+
+          def release!(status)
+            non_window_destination_client.update_columns(housing_release_status: status, consented_coc_codes: [])
+            GrdaWarehouse::Tasks::GenerateClientRoiAuthorizationsTask.rebuild_clients([non_window_destination_client.id])
+          end
+
+          it 'shows the dashboard for a client with expanded consent' do
+            release!(Consent::Implied.full_release_string)
+            expect(non_window_destination_client.show_demographics_to?(user)).to eq true
+          end
+
+          it 'hides the dashboard for a client with only implied consent' do
+            release!(Consent::Implied.no_release_string)
+            expect(GrdaWarehouse::ClientRoiAuthorization.find_by(destination_client_id: non_window_destination_client.id).status).to eq('partial')
+            expect(non_window_destination_client.show_demographics_to?(user)).to eq false
           end
         end
       end

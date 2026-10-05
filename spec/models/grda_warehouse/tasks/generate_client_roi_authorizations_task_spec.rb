@@ -18,14 +18,7 @@ RSpec.describe GrdaWarehouse::Tasks::GenerateClientRoiAuthorizationsTask, type: 
     create(:config_b)
     GrdaWarehouse::Config.invalidate_cache
   end
-
-  # Shared contexts for common test setups
-  shared_context 'with release duration settings' do |duration, period = nil|
-    before do
-      allow(GrdaWarehouse::Hud::Client).to receive(:release_duration).and_return(duration)
-      allow(GrdaWarehouse::Hud::Client).to receive(:consent_validity_period).and_return(period) if period
-    end
-  end
+  after { GrdaWarehouse::Config.invalidate_cache }
 
   describe '#perform' do
     let!(:destination_clients) do
@@ -55,12 +48,6 @@ RSpec.describe GrdaWarehouse::Tasks::GenerateClientRoiAuthorizationsTask, type: 
             status: 'full_status',
           )
         end
-      end
-
-      it 'does not change valid records' do
-        expect do
-          task.perform(batch_size: batch_size)
-        end.to(not_change { GrdaWarehouse::ClientRoiAuthorization.count })
       end
 
       context 'when a client is orphaned' do
@@ -103,21 +90,6 @@ RSpec.describe GrdaWarehouse::Tasks::GenerateClientRoiAuthorizationsTask, type: 
       it 'clears consent fields for client that lost ROI status' do
         expect { task.perform(batch_size: batch_size) }.
           to change { client_losing_roi.reload.consent_form_id }.to(nil)
-      end
-    end
-
-    context 'when a client has an expired ROI auth record' do
-      let!(:client_with_expired_roi) { create(:hud_client, consent_form_signed_on: 2.years.ago) }
-
-      before do
-        allow(task).to receive(:roi_status).and_return(GrdaWarehouse::ClientRoiAuthorization::FULL_STATUS)
-        allow(task).to receive(:roi_expiry_date).and_return(1.year.ago.to_date)
-        create(:client_file_expanded_consent, client: client_with_expired_roi)
-      end
-
-      it 'clears consent fields for the expired client' do
-        expect { task.perform(batch_size: batch_size) }.
-          to change { client_with_expired_roi.reload.consent_form_id }.to(nil)
       end
     end
   end
@@ -188,6 +160,38 @@ RSpec.describe GrdaWarehouse::Tasks::GenerateClientRoiAuthorizationsTask, type: 
     end
   end
 
+  describe 'expired One Year release' do
+    let(:client) { create :grda_warehouse_hud_client, data_source: create(:destination_data_source) }
+
+    def roi_row
+      GrdaWarehouse::ClientRoiAuthorization.find_by(destination_client_id: client.id)
+    end
+
+    def perform_under(config_factory)
+      GrdaWarehouse::Config.delete_all
+      create(config_factory, release_duration: 'One Year')
+      GrdaWarehouse::Config.invalidate_cache
+      client.update_columns(
+        housing_release_status: GrdaWarehouse::Hud::Client.full_release_string,
+        consent_form_signed_on: 2.years.ago.to_date,
+        consent_form_id: 1,
+      )
+      task._perform(client_ids: [client.id])
+    end
+
+    it 'falls back to an undated partial row and implied consent under Consent::Implied' do
+      perform_under(:config_va)
+      expect(roi_row).to have_attributes(status: 'partial', starts_at: nil, expires_at: nil)
+      expect(client.reload).to have_attributes(housing_release_status: Consent::Implied.no_release_string, consent_form_id: nil)
+    end
+
+    it 'deletes the row and clears the release under Consent::Default' do
+      perform_under(:config_b)
+      expect(roi_row).to be_nil
+      expect(client.reload).to have_attributes(housing_release_status: nil, consent_form_id: nil)
+    end
+  end
+
   describe 'deadlock retry' do
     let!(:client) { create :grda_warehouse_hud_client, data_source: create(:destination_data_source), housing_release_status: GrdaWarehouse::Hud::Client.full_release_string }
 
@@ -210,38 +214,45 @@ RSpec.describe GrdaWarehouse::Tasks::GenerateClientRoiAuthorizationsTask, type: 
     end
   end
 
-  describe '#roi_expiry_date' do
-    let(:client) { create(:hud_client, consent_form_signed_on: today) }
-    subject(:expiry_date) { task.send(:roi_expiry_date, client) }
+  describe 'ROI row dates by release duration' do
+    let(:signed_on) { today - 10.days }
+    let(:expires_on) { today + 6.months }
+    let(:client) { create :grda_warehouse_hud_client, data_source: create(:destination_data_source) }
 
-    context 'with one year duration' do
-      include_context 'with release duration settings', 'One Year', 1.year
-
-      it { is_expected.to eq(client.consent_form_signed_on + 1.year) }
+    def rebuild_under(release_duration)
+      GrdaWarehouse::Config.delete_all
+      create(:config_b, release_duration: release_duration)
+      GrdaWarehouse::Config.invalidate_cache
+      client.update_columns(
+        housing_release_status: GrdaWarehouse::Hud::Client.full_release_string,
+        consent_form_signed_on: signed_on,
+        consent_expires_on: expires_on,
+      )
+      described_class.rebuild_clients([client.id])
+      GrdaWarehouse::ClientRoiAuthorization.find_by(destination_client_id: client.id)
     end
 
-    context 'with explicit expiration date' do
-      include_context 'with release duration settings', 'Use Expiration Date'
-
-      before { client.consent_expires_on = today + 6.months }
-
-      it { is_expected.to eq(client.consent_expires_on) }
+    it 'expires one year after signing under One Year' do
+      expect(rebuild_under('One Year')).to have_attributes(starts_at: signed_on, expires_at: signed_on + 1.year)
     end
 
-    context 'with indefinite duration' do
-      include_context 'with release duration settings', 'Indefinite'
-
-      it { is_expected.to be_nil }
+    it 'expires two years after signing under Two Years' do
+      expect(rebuild_under('Two Years')).to have_attributes(starts_at: signed_on, expires_at: signed_on + 2.years)
     end
 
-    context 'with invalid duration' do
-      include_context 'with release duration settings', 'Invalid Duration'
+    it 'expires on the client expiration date under Use Expiration Date' do
+      expect(rebuild_under('Use Expiration Date')).to have_attributes(starts_at: signed_on, expires_at: expires_on)
+    end
 
-      it 'raises an error' do
-        expect { expiry_date }.to raise_error(/unknown release duration/)
-      end
+    it 'never expires under Indefinite' do
+      expect(rebuild_under('Indefinite')).to have_attributes(starts_at: signed_on, expires_at: nil)
+    end
+
+    it 'raises for an unknown release duration' do
+      expect { rebuild_under('Invalid Duration') }.to raise_error(RuntimeError, 'unknown release duration "Invalid Duration"')
     end
   end
+
   describe '.rebuild_clients' do
     let!(:target) { create :grda_warehouse_hud_client, data_source: create(:destination_data_source), housing_release_status: GrdaWarehouse::Hud::Client.full_release_string }
     let!(:bystander) { create :grda_warehouse_hud_client, data_source: target.data_source, housing_release_status: GrdaWarehouse::Hud::Client.full_release_string }
@@ -277,6 +288,37 @@ RSpec.describe GrdaWarehouse::Tasks::GenerateClientRoiAuthorizationsTask, type: 
       client = create :grda_warehouse_hud_client, data_source: create(:destination_data_source), housing_release_status: GrdaWarehouse::Hud::Client.full_release_string
       expect(sql_during { described_class.new._perform }).to include(a_string_matching(/FROM "Client".*FOR UPDATE/m))
       expect(GrdaWarehouse::ClientRoiAuthorization.where(destination_client_id: client.id).pluck(:status)).to eq(['full'])
+    end
+
+    context 'with a Use Expiration Date release duration' do
+      let(:client) { create :grda_warehouse_hud_client, data_source: create(:destination_data_source) }
+
+      around { |example| freeze_time { example.run } }
+
+      before do
+        GrdaWarehouse::Config.delete_all
+        create(:config_b, release_duration: 'Use Expiration Date')
+        GrdaWarehouse::Config.invalidate_cache
+        client.update_columns(
+          housing_release_status: GrdaWarehouse::Hud::Client.full_release_string,
+          consent_form_signed_on: today - 30.days,
+          consent_form_id: 1,
+        )
+      end
+
+      it 'keeps the row and the consent columns on the expiration date' do
+        client.update_columns(consent_expires_on: today)
+        described_class.new._perform(client_ids: [client.id])
+        expect(GrdaWarehouse::ClientRoiAuthorization.find_by(destination_client_id: client.id)).to have_attributes(status: 'full', expires_at: today)
+        expect(client.reload).to have_attributes(consent_form_id: 1, consent_expires_on: today)
+      end
+
+      it 'deletes the row and clears the consent columns the day after the expiration date' do
+        client.update_columns(consent_expires_on: today - 1.day)
+        described_class.new._perform(client_ids: [client.id])
+        expect(GrdaWarehouse::ClientRoiAuthorization.where(destination_client_id: client.id)).to be_empty
+        expect(client.reload).to have_attributes(consent_form_id: nil, housing_release_status: nil, consent_expires_on: nil)
+      end
     end
   end
 

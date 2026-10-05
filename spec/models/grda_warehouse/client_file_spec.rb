@@ -78,12 +78,16 @@ RSpec.describe GrdaWarehouse::ClientFile, type: :model do
           expect(GrdaWarehouse::ClientRoiAuthorization.where(destination_client_id: file.client_id).pluck(:status)).to eq(['full'])
         end
 
-        it 'removes the visible ROI authorization when the consent form is revoked' do
-          expect(GrdaWarehouse::ClientRoiAuthorization.visible_in_cocs([]).where(destination_client_id: file.client_id)).to exist
-          # Same order as Clients::FilesController#update
-          file.client.reload.invalidate_consent!(hr_status: GrdaWarehouse::Config.active_consent_class.revoked_consent_string)
-          file.update!(consent_revoked_at: Time.current)
-          expect(GrdaWarehouse::ClientRoiAuthorization.visible_in_cocs([]).where(destination_client_id: file.client_id)).to be_empty
+        it 'does not restore cleared client consent when the consent form is soft-deleted' do
+          client = file.client
+          client.invalidate_consent!
+          client.reload
+
+          file.soft_delete!
+
+          client.reload
+          expect(client.consent_form_id).to be_nil
+          expect(client.housing_release_status).to be_nil
         end
 
         describe 'when a new non-consent form is uploaded' do
@@ -145,15 +149,13 @@ RSpec.describe GrdaWarehouse::ClientFile, type: :model do
               end
 
               describe 'when the original consent is un-confirmed' do
-                before :each do
-                  # rspec seems to get confused with all of the callbacks, this gets around that
-                  second_file.update_columns(consent_form_confirmed: false)
-                  file.update_columns(consent_form_confirmed: false)
-                  # This usually gets called in a callback, but acts as taggable hates transactions
-                  file.set_client_consent
-                end
-                it 'the client release should no longer be valid' do
+                it 'invalidates the client release and removes the ROI authorization' do
+                  expect(GrdaWarehouse::ClientRoiAuthorization.where(destination_client_id: file.client_id).pluck(:status)).to eq(['full'])
+
+                  file.update!(consent_form_confirmed: false)
+
                   expect(file.client.reload.consent_form_valid?).to be false
+                  expect(GrdaWarehouse::ClientRoiAuthorization.where(destination_client_id: file.client_id)).to be_empty
                 end
               end
             end

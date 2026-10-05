@@ -50,7 +50,7 @@ module GrdaWarehouse::Tasks
         expired_scope = GrdaWarehouse::ClientRoiAuthorization.
           where(status: [GrdaWarehouse::ClientRoiAuthorization::PARTIAL_STATUS, GrdaWarehouse::ClientRoiAuthorization::FULL_STATUS]).
           where.not(expires_at: nil).
-          where(expires_at: ..Date.current).
+          where(expires_at: ...Date.current).
           joins(:destination_client).
           merge(GrdaWarehouse::Hud::Client.where.not(consent_form_id: nil))
         expired_scope = expired_scope.where(destination_client_id: client_ids) if client_ids
