@@ -42,8 +42,8 @@ class Hmis::RestrictedRecord < Hmis::HmisBase
     existing = find_by(restrictable: record)
     return existing if existing
 
-    # Append a new row rather than restoring a soft-deleted one, so the restriction is captured
-    # in PaperTrail history (Paranoia's restore skips callbacks).
+    # Append a new whether a restriction is recreated or added as new, this captures the change
+    # in PaperTrail history.
     create!(
       restrictable: record,
       data_source_id: record.data_source_id,
