@@ -2,7 +2,7 @@
 title: PII handling, restricted clients, access logging, and retention
 summary: "How the warehouse catalogs and protects client PII. pii_attr declarations via HasPiiAttributes, PiiProvider display decisions, HMIS-restricted client redaction and search exclusion on the warehouse side, ActivityLog records of who viewed which client and the AccessLogs audit report, PII scrubbing for non-production copies, and client data retention, whose nightly job marks inactive clients that are then hidden like restricted ones."
 area: warehouse
-tags: [pii, HasPiiAttributes, pii_attr, PII_TYPES, PiiProvider, RestrictedPolicy, PiiDisplay, restricted-client, redaction, RestrictedClientLoader, HiddenClients, not_hidden, restricted_subset, hidden_ids_in, client_restriction_cache_token, text_search, strict_search, name_and_ssn_filter, ClientRetentionMark, ClientRetentionJob, access_logs, ActivityLog, ActivityLogger, AccessLogs::Report, UsageSummary, UserSummary, ScrubClientPiiTask, ScrubAllPiiTask, ScrubModelPii, retention, ADR-0002, ADR-0009]
+tags: [pii, HasPiiAttributes, pii_attr, PII_TYPES, PiiProvider, RestrictedPolicy, PiiDisplay, restricted-client, redaction, RestrictedClientLoader, HiddenClients, not_hidden, restricted_subset, hidden_ids_in, text_search, strict_search, name_and_ssn_filter, ClientRetentionMark, ClientRetentionJob, access_logs, ActivityLog, ActivityLogger, AccessLogs::Report, UsageSummary, UserSummary, ScrubClientPiiTask, ScrubAllPiiTask, ScrubModelPii, retention, ADR-0002, ADR-0009]
 sources:
   - docs/adr/0002-pii-management-strategy.md
   - docs/adr/0009-client-data-retention-and-removal.md
@@ -91,8 +91,7 @@ Display:
 
 Restriction:
 
-- `user.policy_context.client_restricted?(client_id)` and
-  `user.policy_context.client_restriction_cache_token(client_id)`.
+- `user.policy_context.client_restricted?(client_id)`.
 - `user.policy_context.preload_client_restrictions(ids)` or `preload_client_dependencies(ids)`
   before checking a list of clients; see `authorization/warehouse-policies.md`.
 - `client.pii_restricted?(user:)`.
@@ -184,11 +183,10 @@ hashes recurse, using the hash key as the column label. The `name` match is broa
 labeled `project_name` or `Organization Name` is treated as client PII and redacted.
 
 Fragment caches that hold rendered PII include
-`current_user.policy_context.client_restriction_cache_token(client.id)` in their key (the client dashboard
+`current_user.policy_context.client_restricted?(client.id)` in their key (the client dashboard
 rollups under `app/views/clients/rollup/` and `app/views/cohorts/_client_row_editable.haml`).
-The token is `"#{client_restricted?(client_id)}-#{latest_retention_run_at&.to_i}"`, so
-restricting or unrestricting a client busts only that client's fragments; a completed retention
-run busts every such fragment.
+The answer covers both HMIS restriction and retention marks, so restricting, unrestricting,
+marking, or unmarking a client busts only that client's fragments.
 
 ### Restricted clients on the warehouse side
 
@@ -450,7 +448,7 @@ not built; the ADR (still status Proposed) lists them as later phases or open de
   or `GrdaWarehouse::HiddenClients.not_hidden(column)`, as `ClientController#look_for_existing_match`
   does. Hiding covers name and SSN matches only; do not extend it to DOB or id lookups.
 - A fragment cache keyed on the client and user but not on
-  `current_user.policy_context.client_restriction_cache_token(client.id)` when the fragment renders PII.
+  `current_user.policy_context.client_restricted?(client.id)` when the fragment renders PII.
   Example of the replacement: `app/views/clients/rollup/_demographics.html.haml`.
 - Building a hidden-client id list in Ruby and passing it to `where.not(id:)` or `not_in`.
   Replacement: `GrdaWarehouse::HiddenClients.not_hidden(column)` in the query, or

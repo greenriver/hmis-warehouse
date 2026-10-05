@@ -42,18 +42,6 @@ class GrdaWarehouse::AuthPolicies::UserBaseContext
     restricted_client_loader.preload(client_ids)
   end
 
-  # Fragment-cache key part for PII that belongs to one client. Restriction applies to the whole
-  # identity, so the client's own answer changes whenever a restriction or merge affects it.
-  def client_restriction_cache_token(client_id)
-    "#{client_restricted?(client_id)}-#{latest_retention_run_at&.to_i}"
-  end
-
-  # Retention marks only change inside a ClientRetentionJob run, so the latest completed run
-  # stands in for the marks table in fragment cache keys.
-  memoize def latest_retention_run_at
-    GrdaWarehouse::ClientRetentionRun.maximum(:completed_at)
-  end
-
   # Warms every client-keyed lookup a client policy or PII check reads, for a list of clients.
   # Takes source or destination ids and widens them to each whole warehouse identity (the
   # destination and all of its sources): policies check source clients, while restriction and ROI
