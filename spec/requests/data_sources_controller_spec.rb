@@ -7,6 +7,7 @@
 # frozen_string_literal: true
 
 require 'rails_helper'
+require 'nokogiri'
 
 RSpec.describe DataSourcesController, type: :request do
   let(:user) { create(:acl_user) }
@@ -454,6 +455,65 @@ RSpec.describe DataSourcesController, type: :request do
       expect(response).to have_http_status(:ok)
       expect(response.body).to include('value="Oct 1, 2026 06:30 AM"')
       expect(response.body).to include('&quot;sideBySide&quot;:true')
+    end
+  end
+  describe 'client retention override' do
+    let(:role) { create(:role, can_view_projects: true, can_edit_projects: true, can_edit_data_sources: true) }
+    let(:data_source) { create(:source_data_source) }
+
+    def configure_global_retention(years)
+      GrdaWarehouse::Config.first_or_create.update!(client_retention_years: years)
+      GrdaWarehouse::Config.invalidate_cache
+    end
+
+    before do
+      collection.set_viewables({ data_sources: [data_source.id] })
+      setup_access_control(user, role, collection)
+      sign_in user
+    end
+
+    after { GrdaWarehouse::Config.invalidate_cache }
+
+    context 'when the global window is set' do
+      before { configure_global_retention(7) }
+
+      it 'offers the override select with the global value named as the fallback' do
+        get edit_data_source_path(data_source)
+
+        select = Nokogiri::HTML(response.body).at_css("select[name='grda_warehouse_data_source[client_retention_years]']")
+        expect(select).not_to be_nil
+        expect(select.css('option').map(&:text)).to include('Use global setting (7 years)', '10 years')
+      end
+
+      it 'saves the override' do
+        patch data_source_path(data_source), params: { grda_warehouse_data_source: { client_retention_years: 10 } }
+
+        expect(data_source.reload.client_retention_years).to eq(10)
+      end
+
+      it 'reports the global window on the show page when no override is set' do
+        get data_source_path(data_source)
+
+        expect(response.body).to include('Global setting (7 years)')
+      end
+    end
+
+    context 'when global retention is disabled' do
+      before { configure_global_retention(nil) }
+
+      it 'does not render the override select' do
+        get edit_data_source_path(data_source)
+
+        expect(response).to have_http_status(:ok)
+        expect(response.body).not_to include('grda_warehouse_data_source[client_retention_years]')
+      end
+
+      it 'ignores a posted override so a stale form cannot set one' do
+        patch data_source_path(data_source), params: { grda_warehouse_data_source: { client_retention_years: 10, name: 'Renamed' } }
+
+        expect(data_source.reload.name).to eq('Renamed')
+        expect(data_source.client_retention_years).to be_nil
+      end
     end
   end
 end

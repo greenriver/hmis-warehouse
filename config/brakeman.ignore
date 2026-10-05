@@ -1769,6 +1769,28 @@
       "note": ""
     },
     {
+      "warning_type": "Cross-Site Scripting",
+      "warning_code": 2,
+      "fingerprint": "cc41ce8a33ad8e5d69664654d6ff333b502fc3699b70227fec7db4f05c4a9fad",
+      "check_name": "CrossSiteScripting",
+      "message": "Unescaped model attribute",
+      "file": "drivers/performance_measurement/app/views/layouts/performance_measurement_external.haml",
+      "line": 17,
+      "link": "https://brakemanscanner.org/docs/warning_types/cross_site_scripting",
+      "code": "GrdaWarehouse::Theme.css_file_contents",
+      "render_path": null,
+      "location": {
+        "type": "template",
+        "template": "layouts/performance_measurement_external"
+      },
+      "user_input": null,
+      "confidence": "Medium",
+      "cwe_id": [
+        79
+      ],
+      "note": "Theme CSS is admin-authored, same as the application layout entry"
+    },
+    {
       "warning_type": "SQL Injection",
       "warning_code": 0,
       "fingerprint": "cc6ebf15e95f7fb90fd0f2c9861623ef42bfa69d297ee8c0c51583fc7b582cd7",

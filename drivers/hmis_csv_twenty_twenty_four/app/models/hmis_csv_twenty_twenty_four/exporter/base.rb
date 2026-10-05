@@ -111,9 +111,10 @@ module HmisCsvTwentyTwentyFour::Exporter
         end
 
         maybe_in_transaction.call do
+          options[:export] = @export
+          options[:client_scope] = client_scope
           exportable_files.each do |destination_class, opts|
             opts[:export] = @export
-            options[:export] = @export
             tmp_table_prefix = opts[:hmis_class].table_name.downcase
             dest_config = {
               hmis_class: opts[:hmis_class],

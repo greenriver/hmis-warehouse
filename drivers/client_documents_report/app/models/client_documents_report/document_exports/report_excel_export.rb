@@ -57,6 +57,7 @@ module ClientDocumentsReport::DocumentExports
           sheet.add_row(row, style: header_style)
           # find_each doesn't support ordering the SQL, so we'll pluck the ids and loop over slices
           report.clients.order(:last_name, :first_name).pluck(:id).each_slice(1_000) do |slice|
+            user.policy_context.preload_client_dependencies(slice)
             report.clients.where(id: slice).order(:last_name, :first_name).each do |client|
               pii = GrdaWarehouse::PiiProvider.new(client, policy: user.reporting_policy_for_client(client: client, mode: :download))
               row = [client.id]
