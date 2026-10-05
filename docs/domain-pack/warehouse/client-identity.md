@@ -343,7 +343,9 @@ that touch identity are listed with what they call:
 4. `'Identify Duplicates'`: `IdentifyDuplicates.new.run!`, `IdentifyDuplicates.new.match_existing!`,
    `GrdaWarehouse::ClientMatch.auto_process!`.
 5. `'Clean projects & clients'`: `ProjectCleanup`, then `GrdaWarehouse::Tasks::ClientCleanup.new.run!`.
-6. `'Generate service history and related records'`, chronic calculations, and the rest.
+6. `'Generate service history and related records'`, then `ClientRetentionJob` is enqueued
+   (marks or unmarks source clients per warehouse identity, so it is placed after identity
+   rewrites), then chronic calculations and the rest.
 7. `'Finalize client history'`: `ClientCleanup.new.run!` again, then sanity checks.
 8. `'System maintenance'`: `create_statistical_matches` runs
    `SimilarityMetric::Tasks::GenerateCandidates` with threshold `-1.45`, batch 10,000, run
@@ -410,7 +412,7 @@ picked up as `unprocessed` by the nightly `run!`.
   `ClientMergeHistory#current_destination`.
 - `app/jobs/importing/run_identify_duplicates_job.rb`: wrapper job.
 - `app/jobs/importing/run_daily_imports_job.rb`: `'Identify Duplicates'` task; and
-  `ClientCleanup` runs; `create_statistical_matches`.
+  `ClientCleanup` runs; `ClientRetentionJob` enqueue; `create_statistical_matches`.
 - `drivers/hmis/app/models/hmis/hud/client.rb`: create and update callbacks;
   `warehouse_match_existing_clients`; `warehouse_identify_duplicates_for_new_client`.
 - `docs/matching_algorithm.md`: the `SimilarityMetric` scoring model behind `ClientMatch`.
@@ -431,6 +433,11 @@ picked up as `unprocessed` by the nightly `run!`.
   `warehouse_clients` at run time, and the daily job runs consent before `IdentifyDuplicates`,
   so consent follows a moved source the next night; dates already written on the old
   destination are not cleared. See `roi/consent-from-external-sources.md`.
+- The interactive match lookups skip hidden clients (`GrdaWarehouse::HiddenClients.not_hidden`:
+  HMIS-restricted identities and identities with a retention mark) on name and SSN:
+  `Hud::Client.text_search` (so `#potential_matches` on the merge page) and
+  `ClientController#look_for_existing_match` on client create. DOB matching and the nightly
+  `IdentifyDuplicates` / `ClientMatch` paths do not filter them, so hidden clients still merge.
 - `ClientSplitHistory` only blocks `match_existing!`. The unprocessed path can attach a new
   source to either of two split destinations.
 - `MAX_SOURCE_CLIENTS` (50): outside production `split_chains_on_max_source` starts a new

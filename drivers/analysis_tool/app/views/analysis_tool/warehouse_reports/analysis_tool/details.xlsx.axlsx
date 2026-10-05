@@ -20,6 +20,7 @@ wb.add_worksheet(name: @report.support_title(params)[0..30]) do |sheet|
   ]
   sheet.add_row(row, style: title)
   clients = @report.support_for(params)
+  current_user.policy_context.preload_client_dependencies(clients.map(&:id))
   clients.each do |client|
     pii = ::GrdaWarehouse::PiiProvider.new(client, policy: current_user.reporting_policy_for_client(client: client, mode: :download))
     row = [

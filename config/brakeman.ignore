@@ -1631,7 +1631,7 @@
       "cwe_id": [
         79
       ],
-      "note": ""
+      "note": "Theme CSS is admin-authored, same as the application layout entry"
     },
     {
       "warning_type": "SQL Injection",

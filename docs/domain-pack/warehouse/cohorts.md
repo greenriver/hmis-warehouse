@@ -138,8 +138,9 @@ also require a view permission.
 `:client`, has `active` (a user-set boolean, independent of calculated inactivity), and holds
 one physical column per cohort column. `pii_provider(user:, mode: :browse | :download)` returns
 a `GrdaWarehouse::PiiProvider`: browsing allows PII to anyone who can see the cohort, downloads
-additionally require `GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)`, and an
-HMIS-restricted client is always redacted. `available_removal_reasons` is the fixed list offered
+additionally require `GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)`, and a
+client for which `policy_context.client_restricted?` is true (HMIS-restricted or
+retention-marked) is always redacted. `available_removal_reasons` is the fixed list offered
 when removing a client.
 
 `GrdaWarehouse::CohortTab` (`app/models/grda_warehouse/cohort_tab.rb`) is a named, ordered

@@ -180,8 +180,11 @@ client's `roi_authorizations` dates.
 - `ClientRoiAuthorization` rows lag the client columns until the task runs: inline from
   `UpdateHousingReleaseStatuses` for status changes it detects, otherwise the daily scheduled rake task. A
   spec that writes consent columns and then checks `roi_authorized?` must run the task.
-- `ClientRoiLoader` is memoized on the policy context for the request or job. Call
-  `preload(client_ids)` before per-row policy checks in a list to avoid one query per client.
+- `ClientRoiLoader` is memoized on the policy context for the request or job and keyed by
+  destination client id. Before per-row policy checks in a list, call
+  `user.policy_context.preload_client_dependencies(client_ids)`, which preloads the ROI loader
+  along with the other client lookups. A `get` that misses the cache counts toward the context's
+  preload-miss threshold; see `authorization/warehouse-policies.md`.
 - `user.coc_codes` is `Rails.cache`d for one minute (deleted in test) and comes from the user's
   collections (ACL) or access groups (legacy), not from `ConsentLimit`.
 - `window_access_requires_release` and window data sources are a legacy mechanic; under ACLs a
