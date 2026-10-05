@@ -7,7 +7,7 @@
         %th Last Seen
     %tbody
       - @report.clients.each do |client|
-        - pii = GrdaWarehouse::PiiProvider.from_attributes(policy: current_user.reporting_policy_for_project(project_id: nil, client_id: client[:id]), first_name: client[:first_name], last_name: client[:last_name])
+        - pii = GrdaWarehouse::PiiProvider.from_attributes(policy: client[:pii_policy], first_name: client[:first_name], last_name: client[:last_name])
         %tr
           %td= link_to pii.brief_name, client_path(client[:id])
           %td= client[:engagement_date]

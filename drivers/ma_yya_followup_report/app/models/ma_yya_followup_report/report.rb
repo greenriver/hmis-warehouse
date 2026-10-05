@@ -22,14 +22,23 @@ module MaYyaFollowupReport
       filter.update(start: @start_date, end: @end_date)
     end
 
+    # Each row carries `pii_policy` for displaying the client's name
     def clients
-      return [] unless filter.project_ids.any? || filter.age_ranges.any?
+      # A blank form shows no one; otherwise report on the authorized projects
+      return [] if filter.project_ids.blank? && filter.age_ranges.blank?
+      return [] unless any_authorized_projects?
 
-      client_scope.pluck(*columns.values).
-        map do |row|
-          Hash[columns.keys.zip(row)]
-        end.
-        sort_by { |row| row[:last_seen] || row[:engagement_date] }
+      @clients ||= begin
+        rows = client_scope.pluck(*columns.values).map { |row| Hash[columns.keys.zip(row)] }
+        preload_policies
+        project_ids_by_client = authorized_project_ids_by_client
+        rows.each { |row| row[:pii_policy] = name_policy_for(row[:id], project_ids_by_client.fetch(row[:id], [])) }
+        rows.sort_by { |row| row[:last_seen] || row[:engagement_date] }
+      end
+    end
+
+    def any_authorized_projects?
+      authorized_project_ids.present?
     end
 
     def columns
@@ -65,10 +74,50 @@ module MaYyaFollowupReport
     end
 
     private def enrollment_scope
-      scope = ::GrdaWarehouse::ServiceHistoryEnrollment.entry
+      # Selected and authorized projects are applied as one merge; merging them separately
+      # lets the second `where` on the project id replace the first.
+      scope = ::GrdaWarehouse::ServiceHistoryEnrollment.entry.
+        joins(:project).
+        merge(project_source.where(id: authorized_project_ids))
       scope = filter_for_range(scope)
-      scope = filter_for_projects(scope)
       filter_for_age(scope)
+    end
+
+    # The filter's selected projects, narrowed to those the user can report on;
+    # with no projects selected, every project the user can report on
+    private def authorized_project_ids
+      @authorized_project_ids ||= begin
+        projects = project_source
+        projects = projects.where(id: filter.effective_project_ids) if filter.project_ids.present?
+        projects.pluck(:id)
+      end
+    end
+
+    private def project_source
+      ::GrdaWarehouse::Hud::Project.viewable_by(filter.user, permission: :can_view_assigned_reports)
+    end
+
+    private def preload_policies
+      filter.user.policy_context.preload_project_dependencies(authorized_project_ids)
+    end
+
+    # { client id => [authorized project ids of their in-range enrollments] }
+    private def authorized_project_ids_by_client
+      enrollment_scope.
+        where(client_id: client_scope.select(:id)).
+        distinct.
+        pluck(:client_id, p_t[:id]).
+        group_by(&:first).
+        transform_values { |pairs| pairs.map(&:last) }
+    end
+
+    # A row aggregates the client's in-range enrollments, so the name shows if any
+    # authorized project they were enrolled in allows it.
+    private def name_policy_for(client_id, project_ids)
+      user = filter.user
+      allowed = project_ids.any? { |id| user.reporting_policy_for_project(project_id: id, mode: :browse).can_view_name? }
+      policy = allowed ? ::GrdaWarehouse::AuthPolicies::AllowPiiPolicy.instance : ::GrdaWarehouse::AuthPolicies::DenyPiiPolicy.instance
+      ::GrdaWarehouse::PiiProvider.restrict(policy, restricted: user.policy_context.client_restricted?(client_id))
     end
 
     private def contact_scope

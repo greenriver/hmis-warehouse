@@ -79,4 +79,142 @@ RSpec.describe 'MaYyaFollowupReport::WarehouseReports::YouthFollowup#index', typ
     expect(response.body).not_to include('Open Doe')
     expect(response.body).not_to include(GrdaWarehouse::PiiProvider::NAME_REDACTED)
   end
+
+  # Projects the user reaches in different ways, each with one youth enrolled, plus one youth
+  # enrolled in both `project` and `nameless_project`.
+  shared_context 'projects with mixed access' do
+    let(:filter_permission) { true }
+    let!(:nameless_role) { create(:role, can_view_assigned_reports: true, can_view_clients: true, can_view_client_name: false, can_view_project_related_filters: filter_permission) }
+    let!(:nameless_collection) { create(:collection) }
+    # Viewable, but through a role without `can_view_client_name`.
+    let!(:nameless_project) { create(:hud_project, organization: organization, data_source: hmis_ds, ProjectType: 1) }
+    # In the user's collection, but the user can't report on confidential projects.
+    let!(:confidential_project) { create(:hud_project, organization: organization, data_source: hmis_ds, ProjectType: 1, confidential: true) }
+
+    let!(:multi_project_client) { create(:grda_warehouse_hud_client, FirstName: 'Multi', LastName: 'Project', DOB: youth_dob) }
+    let!(:nameless_client) { create(:grda_warehouse_hud_client, FirstName: 'Nameless', LastName: 'Person', DOB: youth_dob) }
+    let!(:confidential_client) { create(:grda_warehouse_hud_client, FirstName: 'Confidential', LastName: 'Person', DOB: youth_dob) }
+
+    let!(:multi_she) { build_entry(multi_project_client, project) }
+    let!(:multi_nameless_she) { build_entry(multi_project_client, nameless_project) }
+    let!(:nameless_she) { build_entry(nameless_client, nameless_project) }
+    let!(:confidential_she) { build_entry(confidential_client, confidential_project) }
+
+    let(:selected_project_ids) { [project.id] }
+    let(:filter_params) do
+      { filter: { on: on_date.to_s, project_ids: selected_project_ids, age_ranges: ['eighteen_to_twenty_four'] } }
+    end
+
+    before do
+      collection.set_viewables({ projects: [project.id, confidential_project.id] })
+      nameless_collection.set_viewables({ projects: [nameless_project.id] })
+      setup_access_control(user, nameless_role, nameless_collection)
+    end
+
+    # Full href so one client id can't match as a prefix of another
+    def client_link(id)
+      %(href="#{client_path(id)}")
+    end
+
+    def run_report(params = filter_params)
+      get ma_yya_followup_report_warehouse_reports_youth_followup_index_path, params: params
+      expect(response).to have_http_status(:success)
+    end
+  end
+
+  describe 'project selection' do
+    include_context 'projects with mixed access'
+
+    context 'when only an age range is selected' do
+      it 'includes youth from every project the user can view' do
+        run_report({ filter: { on: on_date.to_s, age_ranges: ['eighteen_to_twenty_four'] } })
+
+        expect(response.body).to include('Open Doe', 'Multi Project', client_link(nameless_client.id))
+        expect(response.body).not_to include(client_link(other_project_client.id))
+        expect(response.body).not_to include(client_link(confidential_client.id))
+        expect(response.body).not_to include('Older Adult')
+      end
+    end
+
+    context 'when a project outside the user\'s access is selected' do
+      let(:selected_project_ids) { [project.id, other_project.id] }
+
+      it 'excludes clients enrolled only in that project' do
+        run_report
+
+        expect(response.body).to include('Open Doe')
+        expect(response.body).not_to include(client_link(other_project_client.id))
+      end
+    end
+
+    context 'when a confidential project is selected' do
+      let(:selected_project_ids) { [project.id, confidential_project.id] }
+
+      it 'excludes clients enrolled only in that project' do
+        run_report
+
+        expect(response.body).to include('Open Doe')
+        expect(response.body).not_to include(client_link(confidential_client.id))
+      end
+    end
+
+    context 'when the user cannot see project-related filters' do
+      let(:filter_permission) { false }
+      let!(:role) { create(:role, can_view_assigned_reports: true, can_view_clients: true, can_view_client_name: true, can_view_project_related_filters: false) }
+
+      it 'still limits the report to the selected projects' do
+        run_report
+
+        expect(response.body).to include('Open Doe')
+        expect(response.body).not_to include(client_link(nameless_client.id))
+        expect(response.body).not_to include(client_link(other_project_client.id))
+      end
+    end
+  end
+
+  describe 'empty results' do
+    include_context 'projects with mixed access'
+
+    context 'when only unauthorized projects are selected' do
+      let(:selected_project_ids) { [other_project.id, confidential_project.id] }
+
+      it 'renders no clients' do
+        run_report
+
+        expect(response.body).to include('No Clients found.')
+      end
+    end
+  end
+
+  describe 'name visibility across projects' do
+    include_context 'projects with mixed access'
+
+    context 'with both the name-granting and the nameless project selected' do
+      let(:selected_project_ids) { [project.id, nameless_project.id] }
+
+      it 'redacts a client whose only in-range project does not allow names' do
+        run_report
+
+        expect(response.body).to include(client_link(nameless_client.id))
+        expect(response.body).not_to include('Nameless')
+      end
+
+      it 'shows a client\'s name when any of their in-range projects allows it' do
+        run_report
+
+        expect(response.body).to include('Multi Project')
+      end
+    end
+
+    context 'with only the nameless project selected' do
+      let(:selected_project_ids) { [nameless_project.id] }
+
+      it 'redacts a client whose name is only allowed through an unselected project' do
+        run_report
+
+        expect(response.body).to include(client_link(multi_project_client.id))
+        expect(response.body).not_to include('Multi Project')
+      end
+    end
+  end
 end
