@@ -45,6 +45,19 @@ RSpec.describe 'PublicReports::WarehouseReports::PublicConfigs', type: :request 
     expect(Nokogiri::HTML(response.body).at_css('input[name="config[font_family_0]"]')['value']).to eq('Georgia;}')
   end
 
+  it 'shows the theme font defaults as placeholders without filling the font inputs' do
+    PublicReports::Setting.first_or_create.update!(font_url: nil, font_family_0: nil)
+
+    get public_reports_warehouse_reports_public_configs_path
+
+    doc = Nokogiri::HTML(response.body)
+    url_input = doc.at_css('input[name="config[font_url]"]')
+    family_input = doc.at_css('input[name="config[font_family_0]"]')
+    expect(
+      [url_input['value'].presence, url_input['placeholder'], family_input['value'].presence, family_input['placeholder']],
+    ).to eq([nil, PublicReports::Setting::THEME_DEFAULTS[:font_url], nil, PublicReports::Setting::THEME_DEFAULTS[:font_body]])
+  end
+
   it 'saves the per-population colors the pre-redesign reports use' do
     post public_reports_warehouse_reports_public_configs_path, params: { config: { homeless_primary_color: '#112233' } }
     get public_reports_warehouse_reports_public_configs_path
