@@ -2,7 +2,7 @@
 
 `hmis_restricted_records` marks individual HMIS records as **restricted**, so visibility can be limited to staff with the appropriate permission. The table was introduced to support **restricted clients**, with the intention to expand the same pattern to other record types later (for example case notes or assessments).
 
-An active (non-deleted) row means the associated record is restricted. Soft-deleting the row clears the restriction.
+An active (non-deleted) row means the associated record is restricted. Soft-deleting the row clears the restriction. Restricting a record that was restricted before creates a new row rather than reviving the old one, so that each restriction is captured in PaperTrail history — Paranoia's `restore` writes through `update_columns` and skips PaperTrail. The unique index is partial on `deleted_at IS NULL`, so a restrictable has at most one active row and any number of soft-deleted ones.
 
 ## Use Cases
 
