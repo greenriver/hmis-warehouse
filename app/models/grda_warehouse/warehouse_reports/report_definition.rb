@@ -921,8 +921,8 @@ module GrdaWarehouse::WarehouseReports
         }
         r_list['Public'] << {
           url: 'public_reports/warehouse_reports/state_level_homelessness',
-          name: 'State-Level Homelessness Report Generator',
-          description: 'Review and publish the state-level homelessness report for public consumption.',
+          name: 'State-Level Homelessness Report Generator (Deprecated)',
+          description: 'Replaced by the State Dashboard Report Generator.',
           limitable: true,
         }
         r_list['Public'] << {
