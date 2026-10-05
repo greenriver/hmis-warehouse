@@ -7,9 +7,8 @@
 # frozen_string_literal: true
 
 module PublicReports
-  # Geometry for an SVG line chart (points, gridlines, hit-column bounds),
-  # ported from the mockup's lineChart() build-time renderer. labels/series
-  # are the raw JSON-parsed shape from StateLevelHomelessness#pit_chart /
+  # Geometry for an SVG line chart (points, gridlines, hit-column bounds).
+  # labels/series are the raw JSON-parsed shape from StateLevelHomelessness#pit_chart /
   # #inflow_outflow: labels: [String], series: [{ 'label' => String, 'values' => [Numeric] }].
   class LineChart
     WIDTH = 640

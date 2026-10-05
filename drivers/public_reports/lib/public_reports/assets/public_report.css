@@ -158,9 +158,9 @@ img {
   background: var(--color-surface);
   border-radius: var(--radius-lg);
   padding: var(--space-5);
-  /* "Subtle elevation" per design.md — separates this panel from the plain
-     page content around it (charts/viz are intentionally NOT cards, so they
-     stay left-aligned with headings/body text; see charts.css). */
+  /* Separates this panel from the plain page content around it. Charts are
+     intentionally not cards, so they stay left-aligned with headings and
+     body text. */
   box-shadow: var(--elevation-1);
 }
 
@@ -168,8 +168,7 @@ img {
   margin-bottom: var(--space-7);
 }
 
-/* Short green accent under each top-level section heading (mirrors the
-   live dashboard's look under "Introduction" etc.) — excludes the
+/* Short green accent under each top-level section heading — excludes the
    "Statewide summary" .overline, which is already styled as a small label
    rather than a full heading. Purely decorative (no text content), so it
    needs no aria-hidden treatment of its own. */
@@ -225,8 +224,7 @@ img {
   margin: var(--space-5) 0;
 }
 
-/* Standalone summary page (summary.njk) — a 1:1 replacement for the live
-   site's summary iframe, laid out flush against the page (no .card) with a
+/* Standalone summary page, laid out flush against the page (no .card) with a
    fixed 1-column/3-column breakpoint instead of the sidebar version's
    auto-fit, since here the grid spans the full .container width. */
 .stat-summary--standalone .stat-grid {
@@ -271,9 +269,8 @@ img {
   line-height: 1.25;
 }
 
-/* Secondary/caption text under a chart or figure (previously unstyled —
-   fell back to plain body text, out of step with every other secondary
-   caption on the page, e.g. .stat-tile__note/.data-note). */
+/* Secondary/caption text under a chart or figure, matching the other
+   captions on the page (.stat-tile__note, .data-note). */
 .note {
   font-size: var(--type-175);
   color: var(--color-text-muted);
@@ -477,8 +474,8 @@ img {
 }
 
 /* Line charts ("Trends over time"): title reads as a left-aligned heading
-   above a wide, short plot — closer to the live dashboard's billboard.js
-   layout than the centered figcaption used under the donuts/stacked bars. */
+   above a wide, short plot, unlike the centered figcaption used under the
+   donuts/stacked bars. */
 .chart--line .chart-title {
   text-align: left;
   font-size: var(--type-225);
@@ -516,9 +513,7 @@ img {
   cursor: pointer;
 }
 
-/* Vertical guide line at the column's center, shown on hover/focus — the
-   line-chart equivalent of the live dashboard's billboard.js crosshair
-   (confirmed from its source). */
+/* Vertical guide line at the column's center, shown on hover/focus. */
 .chart-point--column::before {
   content: "";
   position: absolute;
@@ -765,9 +760,8 @@ img {
   flex: none;
 }
 
-/* Stacked bars (Racial Composition — mirrors the live dashboard's two
-   100%-stacked horizontal bars, one per population, shared category
-   colors). */
+/* Stacked bars (Racial Composition: two 100%-stacked horizontal bars, one
+   per population, with shared category colors). */
 .chart--stacked-bar {
   margin-top: var(--space-4);
 }
@@ -853,8 +847,7 @@ img {
 }
 
 /* Multi-row variant (line-chart per-year tooltip: one row per series,
-   grouped under a bold year header) — mirrors the live dashboard's
-   billboard.js tooltip table, confirmed from its source. */
+   grouped under a bold year header). */
 .chart-tooltip--table {
   white-space: normal;
   min-width: 200px;
@@ -963,7 +956,7 @@ img {
 
 .town-map__town {
   /* Not --color-surface (white): a 0%-rate town's fill is also white
-     (BANDS' first band, townMap.js), which combined with a white stroke
+     (the first map_colors band in StateLevelHomelessness), which combined with a white stroke
      would make that town's boundary vanish entirely against the white page
      background. */
   stroke: var(--color-border);
@@ -1018,9 +1011,7 @@ img {
   font-variant-numeric: tabular-nums;
 }
 
-/* Hover/focus info box — mirrors the live dashboard's fixed info panel (see
-   the markup comment in townMap.js), sized down to sit as a narrow sidebar
-   next to the map. Fixed min-height keeps the surrounding layout from
+/* Hover/focus info box, sized to sit as a narrow sidebar next to the map. Fixed min-height keeps the surrounding layout from
    jumping as the placeholder text is swapped for real content. */
 .town-map__info {
   padding: var(--space-3);
@@ -1114,7 +1105,7 @@ img {
      doesn't apply. */
   border: 1px solid var(--color-text-muted);
   /* At this font-size + the inherited 1.8 line-height, this control renders
-     well past 44px tall — the >=44x44 bucket per design.md, hence radius-lg
+     well past 44px tall, so it takes radius-lg (for controls 44px or taller)
      rather than radius-md. */
   border-radius: var(--radius-lg);
   background: var(--color-surface);

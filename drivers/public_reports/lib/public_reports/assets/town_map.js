@@ -10,8 +10,7 @@
 
   // Bands and the "not reporting" color are Rails-supplied (data.bands /
   // data.notReportingColor) rather than hard-coded, so they track the
-  // report's own map_colors palette. A null max (none sent today, but the
-  // shape allows it) means "no upper bound".
+  // report's own map_colors palette. A null max means "no upper bound".
   function bandFor(rate, bands) {
     for (var i = 0; i < bands.length; i++) {
       var max = bands[i].max == null ? Infinity : bands[i].max;

@@ -671,9 +671,9 @@ module PublicReports
       }
     end
 
-    # Geography codes, ordered by display name (Task 3.9). Code and display
-    # name are the same value for zip/place/county; only CoC differs
-    # (code is cocnum, display name is "name (cocnum)").
+    # Geography codes, ordered by display name. Code and display name are
+    # the same value for zip/place/county; only CoC differs (code is cocnum,
+    # display name is "name (cocnum)").
     private def map_geography
       return state_zip_shapes.map(&:zcta5ce10).sort if map_by_zip?
       return state_place_shapes.map(&:name).sort if map_by_place?
