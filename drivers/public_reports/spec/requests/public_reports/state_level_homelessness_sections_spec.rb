@@ -228,20 +228,32 @@ RSpec.describe 'PublicReports::WarehouseReports::StateLevelHomelessness sections
     expect(Nokogiri::HTML(response.body).css('select#town-map-period').size).to eq(1)
   end
 
-  context 'when the report owner no longer exists' do
+  context 'when the report owner was deleted' do
     let(:role) { create(:role, can_view_assigned_reports: true, can_view_all_reports: true) }
+    let(:owner) { create(:acl_user) }
 
-    it 'renders the data note' do
+    before do
+      report.update_column(:user_id, owner.id)
+      owner.destroy
+    end
+
+    it 'scopes the filter to the deleted owner' do
+      expect(report.reload.filter_object.user).to eq(owner)
+    end
+
+    it 'raises instead of choosing another user when the report has no owner' do
       report.update_column(:user_id, nil)
 
+      expect { report.reload.filter_object }.to raise_error(ActiveRecord::RecordNotFound)
+    end
+
+    it 'renders the data note' do
       get summary_public_reports_warehouse_reports_state_level_homelessness_path(report)
 
       expect(Nokogiri::HTML(response.body).css('.data-note').map(&:text).uniq).to eq(['Data updated through Dec 31, 2025'])
     end
 
     it 'lists the report in the history table' do
-      report.update_column(:user_id, nil)
-
       get public_reports_warehouse_reports_state_level_homelessness_index_path
 
       expect(response).to have_http_status(:ok)
