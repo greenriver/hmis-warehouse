@@ -125,6 +125,33 @@ RSpec.describe GrdaWarehouse::ClientRoiAuthorization, type: :model do
     end
   end
 
+  describe '.with_consenting_source' do
+    let(:consenting_ds) { create :source_data_source, obey_consent: true }
+    let(:non_consenting_ds) { create :source_data_source, obey_consent: false }
+    let(:destination_ds) { create :destination_data_source }
+
+    def destination_with_source(source_ds)
+      destination = create :hud_client, data_source: destination_ds
+      source = create :hud_client, data_source: source_ds
+      create :warehouse_client, source_id: source.id, destination_id: destination.id
+      destination
+    end
+
+    let!(:consenting) { create :client_roi_authorization, destination_client: destination_with_source(consenting_ds) }
+    let!(:non_consenting) { create :client_roi_authorization, destination_client: destination_with_source(non_consenting_ds) }
+    let!(:no_sources) { create :client_roi_authorization, destination_client: create(:hud_client, data_source: destination_ds) }
+
+    it 'keeps only rows whose destination has a source client in a data source that obeys consent' do
+      expect(described_class.with_consenting_source).to contain_exactly(consenting)
+    end
+
+    it 'keeps a row when any one of several sources obeys consent' do
+      extra_source = create :hud_client, data_source: non_consenting_ds
+      create :warehouse_client, source_id: extra_source.id, destination_id: consenting.destination_client_id
+      expect(described_class.with_consenting_source).to contain_exactly(consenting)
+    end
+  end
+
   describe 'when clients are merged' do
     let!(:warehouse_client_1) { create(:warehouse_client) }
     let!(:warehouse_client_2) { create(:warehouse_client) }

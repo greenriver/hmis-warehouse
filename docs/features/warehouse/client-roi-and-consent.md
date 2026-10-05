@@ -93,7 +93,7 @@ These checks all apply that rule:
 | Search results | `ClientAccessControl::EnrollmentArbiter#searchable_client_scope` → `enrollments_from_rois` |
 | Client and enrollment lists | `EnrollmentArbiter#visible_client_scope`, `#enrollments_visible_to` |
 | Detail pages and supplemental data | `SourceClientPolicy#can_view?`, `#can_view_supplemental_data?` via `ClientRoiLoader` |
-| Dashboard gate | `Client#show_demographics_to?` (`visible_because_of_release?`); needs a `full` row |
+| Dashboard gate | `Client#show_demographics_to?` (`visible_because_of_release?`) via `ClientRoiLoader#full_release?`; needs a `full` row |
 
 Access that does not come from an ROI does not depend on `obey_consent`: project access through a collection, authoritative data sources assigned to the user, and direct client assignment.
 

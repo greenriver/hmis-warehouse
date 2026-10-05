@@ -37,6 +37,17 @@ module GrdaWarehouse
         in_coc_codes(coc_codes)
     }
 
+    # An ROI only exposes source clients from data sources that obey consent, so a destination
+    # with no such source has nothing to show
+    scope :with_consenting_source, -> {
+      consenting_destination_ids = GrdaWarehouse::WarehouseClient.
+        where(deleted_at: nil).
+        joins(source: :data_source).
+        merge(GrdaWarehouse::DataSource.obeys_consent).
+        select(:destination_id)
+      where(destination_client_id: consenting_destination_ids)
+    }
+
     def active?(date: Date.current)
       case status
       when PARTIAL_STATUS, FULL_STATUS

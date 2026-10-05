@@ -138,8 +138,10 @@ a parameter. Dates are checked at query time, so an expiry does not wait for a r
 
 `roi_authorized?` returns false unless the source client's data source has `obey_consent` and
 the client has a destination, then asks `ClientRoiLoader#get(destination.id)`. The loader caches
-`{ destination_client_id => bool }` for the request, defaulting to false, and sets true for ids
-returned by `visible_in_cocs(user.coc_codes, today).where(destination_client_id: ids)`. On the
+`{ destination_client_id => status or nil }` for the request, filled from
+`visible_in_cocs(user.coc_codes, today).with_consenting_source.where(destination_client_id: ids)`;
+`get` is true when a status is cached and `full_release?` when it is `full`. `with_consenting_source`
+keeps destinations with a live `WarehouseClient` whose source data source has `obey_consent`. On the
 legacy branch, `add_legacy_data_source_permissions` also consults `roi_authorized?` for window
 data sources when `Config.get(:window_access_requires_release)` is on.
 
@@ -152,10 +154,9 @@ source clients whose data source is in `DataSource.obeys_consent`, and keeps enr
 client and enrollment visibility scopes pass `:can_view_client_enrollments_with_roi`.
 
 `show_demographics_to?` on the ACL branch (`visible_because_of_release?`) requires
-`user.can_view_client_enrollments_with_roi?`, a `visible_in_cocs(user.coc_codes)` row with status
-`full` among the destination's `roi_authorizations`, and at least one source client in an
-`obey_consent` data source. Implied consent (a `partial` row under `Consent::Implied`) grants the
-lists, enrollments, and policy paths but not the dashboard.
+`user.can_view_client_enrollments_with_roi?` and `user.policy_context.client_roi_loader.full_release?(id)`,
+so it reads the same preloaded row as the policy. Implied consent (a `partial` row under
+`Consent::Implied`) grants the lists, enrollments, and policy paths but not the dashboard.
 
 Legacy branch: `consent_sub_query` selects from `Client.active_confirmed_consent_in_cocs`
 (`consent_form_valid` plus a `consented_coc_codes` match) limited to
@@ -239,8 +240,11 @@ client's `roi_authorizations` dates.
 - `ClientRoiLoader` is memoized on the policy context for the request or job and keyed by
   destination client id. Before per-row policy checks in a list, call
   `user.policy_context.preload_client_dependencies(client_ids)`, which preloads the ROI loader
-  along with the other client lookups. A `get` that misses the cache counts toward the context's
-  preload-miss threshold; see `authorization/warehouse-policies.md`.
+  along with the other client lookups. A `get` or `full_release?` that misses the cache counts
+  toward the context's preload-miss threshold; see `authorization/warehouse-policies.md`.
+  `show_demographics_to?` reads the same loader, so list views that call `appropriate_path_for?`
+  per row (search cards, `assigned/clients/_client_table`) need the same preload;
+  `SourceClientViewAccessor#preload_searchable_clients` performs it.
 - `EnrollmentArbiter#obeys_consent_data_source_ids` is memoized on the arbiter instance, and
   `Client.arbiter(user)` reuses one arbiter per user object (`client_access_arbiter`). Specs that
   flip `obey_consent` need a fresh user object.

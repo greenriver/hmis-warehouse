@@ -152,11 +152,11 @@ module ClientAccessControl::GrdaWarehouse::Hud
         # TODO: START_ACL cleanup after ACL migration is complete
         if user.using_acls?
           return false unless user.can_view_client_enrollments_with_roi?
-          # The dashboard needs a full release; implied consent (a partial row under Consent::Implied)
-          # grants list, enrollment, and policy access only
-          return false unless roi_authorizations.visible_in_cocs(user.coc_codes).where(status: ::GrdaWarehouse::ClientRoiAuthorization::FULL_STATUS).exists?
 
-          return source_clients.joins(:data_source).merge(::GrdaWarehouse::DataSource.obeys_consent).exists?
+          # The dashboard needs a full release; implied consent (a partial row under Consent::Implied)
+          # grants list, enrollment, and policy access only. Preload with
+          # user.policy_context.preload_client_dependencies before calling this in a loop.
+          return user.policy_context.client_roi_loader.full_release?(id)
         else
           return false unless user.can_view_clients?
           # access isn't governed by release if a client can only search their assigned clients

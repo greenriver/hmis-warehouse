@@ -65,6 +65,33 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
         expect(response).to redirect_to(user.my_root_path)
       end
     end
+    describe 'and the user has a role granting view with ROI on window clients' do
+      before do
+        setup_access_control(user, can_search_own_clients, Collection.system_collection(:window_data_sources))
+        setup_access_control(user, can_view_client_enrollments_with_roi, Collection.system_collection(:window_data_sources))
+        window_destination_client.update(
+          housing_release_status: window_destination_client.class.full_release_string,
+          consent_form_signed_on: 5.days.ago,
+          consent_expires_on: Date.current + 1.years,
+        )
+        GrdaWarehouse::Tasks::GenerateClientRoiAuthorizationsTask.rebuild_clients([window_destination_client.id])
+        sign_in user
+      end
+
+      it 'links the released client to the dashboard with no per-card ROI queries' do
+        # The search scope embeds visible_in_cocs as a subquery; only statements that read the
+        # ROI table directly count, which is the policy context's one preload
+        roi_queries = 0
+        counter = ->(*, payload) { roi_queries += 1 if payload[:sql].match?(/\ASELECT [^(]* FROM "client_roi_authorizations"/) }
+        doc = nil
+        ActiveSupport::Notifications.subscribed(counter, 'sql.active_record') do
+          _response, doc = post_search_query({ q: 'bob' })
+        end
+
+        expect(doc.css("a[href='#{client_path(window_destination_client)}']")).not_to be_empty
+        expect(roi_queries).to eq(1)
+      end
+    end
     describe 'and the user has a role granting can search window' do
       before do
         setup_access_control(user, can_search_own_clients, Collection.system_collection(:window_data_sources))

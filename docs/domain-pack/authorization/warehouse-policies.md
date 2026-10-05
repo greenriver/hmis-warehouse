@@ -98,8 +98,9 @@ matches. Both expose the same public methods (`project_role_permissions`,
 type. `SourceClientPolicy` is the one policy that reads legacy-only data (window data sources).
 
 Context loaders live under `auth_policies/context_loaders/`. `ClientRoiLoader` caches, per
-destination client id, whether a `ClientRoiAuthorization.visible_in_cocs(user.coc_codes)` row
-exists, with `preload(client_ids)`.
+destination client id, the status of the
+`ClientRoiAuthorization.visible_in_cocs(user.coc_codes).with_consenting_source` row (nil when none),
+answering `get` and `full_release?`, with `preload(client_ids)`.
 `RestrictedClientLoader` keeps a memoized `{client_id => hidden?}` table for HMIS restriction and
 retention (inactive) status, filled per page by `preload(client_ids, identity_links: nil)`; see
 `warehouse/pii-and-restricted-clients.md`.

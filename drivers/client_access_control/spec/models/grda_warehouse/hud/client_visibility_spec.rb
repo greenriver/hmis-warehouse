@@ -132,6 +132,28 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
       it 'user cannot see client dashboard for non-window client' do
         expect(non_window_destination_client.show_demographics_to?(user)).to eq false
       end
+      it 'answers the dashboard gate from the preloaded policy context without querying' do
+        window_destination_client.update(
+          housing_release_status: window_destination_client.class.full_release_string,
+          consent_form_signed_on: 5.days.ago,
+          consent_expires_on: Date.current + 1.years,
+        )
+        GrdaWarehouse::Tasks::GenerateClientRoiAuthorizationsTask.rebuild_clients([window_destination_client.id])
+        viewer = User.find(user.id)
+        viewer.policy_context.preload_client_dependencies([window_destination_client.id, non_window_destination_client.id])
+
+        # The user's role load and the user_clients relationship check also run here; only the
+        # ROI gate's own tables are counted
+        roi_queries = 0
+        counter = ->(*, payload) { roi_queries += 1 if payload[:sql].match?(/"(client_roi_authorizations|warehouse_clients|data_sources)"/) }
+        answers = nil
+        ActiveSupport::Notifications.subscribed(counter, 'sql.active_record') do
+          answers = [window_destination_client, non_window_destination_client].map { |c| c.show_demographics_to?(viewer) }
+        end
+
+        expect(answers).to eq([true, false])
+        expect(roi_queries).to eq(0)
+      end
     end
     describe 'and the user has a role granting can search window' do
       before do
