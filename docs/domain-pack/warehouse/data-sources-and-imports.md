@@ -64,8 +64,9 @@ restated here. Consent arriving through ETO is in `roi/consent-from-external-sou
 
 - Admin UI: `DataSourcesController` (`app/controllers/data_sources_controller.rb`). Every
   action loads through `GrdaWarehouse::DataSource.viewable_by(current_user)`;
-  `data_source_params` and `new_data_source_params` list the editable columns, and `hmis` is
-  dropped from the update params once set. `destroy` enqueues `DeleteItemJob`.
+  `data_source_params` and `new_data_source_params` list the editable columns; `hmis` is
+  dropped from the update params once set, and `client_retention_years` unless
+  `client_retention_override_available?`. `destroy` enqueues `DeleteItemJob`.
 - HMIS gate: `HmisEnforcement.hmis_enabled?` (`app/models/hmis_enforcement.rb`) returns
   `ENV['ENABLE_HMIS_API'] == 'true'`. `HmisEnforcement.configured_hmis_hostnames` parses
   `HMIS_HOSTNAME`.
@@ -158,6 +159,13 @@ Each flag is a `data_sources` column; every reader named for it was confirmed in
   Manual HUD CSV uploads are still allowed.
 - `disable_imports` (default false). Removes the row from `importable`, so `importable?` and
   `importable_by?` return false and the upload UI hides.
+- `client_retention_years` (nil by default). A per-source override of the global
+  `GrdaWarehouse::Config` `client_retention_years`; `effective_client_retention_years` is nil
+  while the global setting is nil, else the override or the global value.
+  `client_retention_override_available?` is false for the destination data source and while
+  global retention is off. `GrdaWarehouse::ClientRetentionMark.rollup_activity` applies them, taking the longest
+  window among an identity's source data sources; see
+  `docs/features/warehouse/client-data-retention.md`.
 - `source_id`, `import_cleanups`, `import_aggregators`, `pre_process_hooks`. Read only by the
   HUD CSV loader and importer (`pre_process_hooks` by `HmisCsvImporter::Loader::HudKeyRemapper`
   and `UnlinkedRecordFilter`); see `hud-reporting/csv-import.md`.
@@ -317,7 +325,8 @@ the following night.
   `destination` `obeys_consent` `viewable_by` `hmis`
   `enabled_hmis_data_sources` `visible_in_window` `available_for_new_clients`,
   `destroy_dependents!` `hmis?` `hmis_live?` `importable_by?`,
-  `hmis_url_for` `enforce_op_hmis_defaults` `health_authoritative_id`.
+  `hmis_url_for` `enforce_op_hmis_defaults` `health_authoritative_id`,
+  `client_retention_override_available?` `effective_client_retention_years`.
 - `app/models/hmis_enforcement.rb`: `hmis_enabled?` `configured_hmis_hostnames`.
 - `app/controllers/data_sources_controller.rb`: `destroy` `data_source_params`.
 - `app/models/grda_warehouse/auth_policies/source_client_policy.rb`:

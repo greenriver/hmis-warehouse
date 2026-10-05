@@ -236,8 +236,11 @@ client's `roi_authorizations` dates.
 - `rebuild_batch` processes clients a second time after `invalidate_consent!`, because under
   `Consent::Implied` invalidation writes `Implied Consent`, which needs a `partial` row. Dropping
   that pass hides the client from ROI-only users until the next rebuild.
-- `ClientRoiLoader` is memoized on the policy context for the request or job. Call
-  `preload(client_ids)` before per-row policy checks in a list to avoid one query per client.
+- `ClientRoiLoader` is memoized on the policy context for the request or job and keyed by
+  destination client id. Before per-row policy checks in a list, call
+  `user.policy_context.preload_client_dependencies(client_ids)`, which preloads the ROI loader
+  along with the other client lookups. A `get` that misses the cache counts toward the context's
+  preload-miss threshold; see `authorization/warehouse-policies.md`.
 - `EnrollmentArbiter#obeys_consent_data_source_ids` is memoized on the arbiter instance, and
   `Client.arbiter(user)` reuses one arbiter per user object (`client_access_arbiter`). Specs that
   flip `obey_consent` need a fresh user object.

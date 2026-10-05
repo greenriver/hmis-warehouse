@@ -318,12 +318,35 @@ RSpec.describe Cohorts::ClientsController, type: :request do
       expect(open_row['ssnumber']['value']).to include('XXX-XX-6666')
     end
 
+    it 'resolves retention marks for the page in one query, not once per client' do
+      3.times { cohort.cohort_clients.create!(client_id: create(:hud_client, FirstName: 'CohortClient').id) }
+
+      expect do
+        get cohort_cohort_clients_path(cohort, format: :json), params: { content: true, page: 1, per: 50 }
+      end.to make_database_queries(matching: /FROM "client_retention_marks"/, count: 1)
+    end
+
     it 'wires current_user onto every visible column' do
       # GrdaWarehouse::Cohort#visible_columns sets current_user on each column; without
       # that, CohortColumns::Base#client_restricted? raises on a nil current_user.
       get cohort_cohort_clients_path(cohort, format: :json), params: { content: true, page: 1, per: 50 }
 
       expect(response).to have_http_status(:ok)
+    end
+  end
+
+  describe 'GET /cohorts/:cohort_id/cohort_clients (html)' do
+    before do
+      sign_in user
+      GrdaWarehouse::CohortTab.default_rules.each { |rule| cohort.cohort_tabs.create!(**rule) }
+      create_list(:hud_client, 4).each { |client| cohort.cohort_clients.create!(client_id: client.id) }
+    end
+
+    it 'renders every row with the client restrictions preloaded' do
+      get cohort_cohort_clients_path(cohort_id: cohort.id), params: { page: 1, per: 50 }
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body.scan('jCohortClient').size).to eq(4)
     end
   end
 end

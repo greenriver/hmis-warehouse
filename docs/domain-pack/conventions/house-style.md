@@ -46,7 +46,9 @@ in their own area docs (`authorization/`, `hmis/graphql-layer.md`, `warehouse/dr
   the paginated page, not the full relation. Controller-paginated:
   `current_user.policy_context.preload_project_dependencies(ids)` right after `pagy`.
   View-paginated (`render_paginated_list`): preload inside the partial that receives `list`.
-  Client restriction needs no preload; it is loaded once per request.
+  Client restriction is not exempt: a loop calling `pii_provider`, `client_restricted?`, or
+  `reporting_policy_for_project(client_id:)` needs
+  `current_user.policy_context.preload_client_dependencies(ids)` first.
 - View helpers go on the controllers that use them, not `ApplicationHelper`, unless truly global.
 - New JavaScript goes in `app/javascript` and is built by esbuild. Most of it is a Stimulus
   controller: file `snake_case_controller.js`, default-exported `PascalCase` class, `kebab-case`

@@ -113,6 +113,7 @@ class DataSourcesController < ApplicationController
         :obey_consent,
         :hmis,
         :hmis_go_live_at,
+        :client_retention_years,
         projects_attributes:
         [
           :id,
@@ -121,6 +122,7 @@ class DataSourcesController < ApplicationController
         ],
       )
     permitted.delete(:hmis) if @data_source.hmis?
+    permitted.delete(:client_retention_years) unless @data_source.client_retention_override_available?
     permitted
   end
 
