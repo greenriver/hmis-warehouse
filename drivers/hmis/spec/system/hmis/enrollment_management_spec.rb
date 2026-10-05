@@ -29,16 +29,6 @@ RSpec.feature 'Enrollment/household management', type: :system do
     click_button 'Enroll'
   end
 
-  # Navigates to the project's Enrollments page and waits for it to finish loading.
-  # The sidebar link goes to /projects/:id/enrollments, which only redirects (replace) to .../enrollments/households.
-  # If the next click happens before that redirect has run, the redirect replaces the clicked link's navigation
-  # and we end up back on the Enrollments page. The household table's summary only renders once the redirect
-  # has happened and the page has loaded.
-  def go_to_project_enrollments
-    click_link 'Enrollments'
-    expect(page).to have_content(/Displaying \d+ of \d+ households/)
-  end
-
   def search_for_client(client)
     fill_in 'Search for Client', with: client.last_name
     click_button 'Search'

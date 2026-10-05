@@ -45,6 +45,16 @@ RSpec.shared_context 'SystemSpecHelper' do
     assert_text user.full_name
   end
 
+  # Clicks the project's "Enrollments" nav link and waits for the page to finish loading.
+  # The link goes to /projects/:id/enrollments, which only redirects (replace) to .../enrollments/households.
+  # If the next click happens before that redirect has run, the redirect replaces the clicked link's navigation
+  # and we end up back on the Enrollments page. The household table's summary only renders once the redirect
+  # has happened and the page has loaded.
+  def go_to_project_enrollments
+    click_link 'Enrollments'
+    expect(page).to have_content(/Displaying \d+ of \d+ households?/)
+  end
+
   def sign_out
     find('#userMenuToggle').click
     # FIXME: sign out button needs a11y
