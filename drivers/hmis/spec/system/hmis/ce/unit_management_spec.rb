@@ -119,9 +119,6 @@ RSpec.feature 'CE Unit Management', type: :system do
     end
 
     # Admin can see the waitlist
-    # Wait for the reloaded unit page to finish its project/unit data waterfall before
-    # looking for the permission-gated 'Eligible Clients' tab
-    expect(page).to have_content('Eligibility Requirements')
     click_link 'Eligible Clients'
     expect(page).to have_content('Eligible clients are still being calculated for this unit. Please check back later.')
 

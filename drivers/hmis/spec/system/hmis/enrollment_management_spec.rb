@@ -29,14 +29,17 @@ RSpec.feature 'Enrollment/household management', type: :system do
     click_button 'Enroll'
   end
 
+  # Navigates to the project's Enrollments page and waits for it to finish loading.
+  # The sidebar link goes to /projects/:id/enrollments, which only redirects (replace) to .../enrollments/households.
+  # If the next click happens before that redirect has run, the redirect replaces the clicked link's navigation
+  # and we end up back on the Enrollments page. The household table's summary only renders once the redirect
+  # has happened and the page has loaded.
+  def go_to_project_enrollments
+    click_link 'Enrollments'
+    expect(page).to have_content(/Displaying \d+ of \d+ households/)
+  end
+
   def search_for_client(client)
-    begin
-      expect(page).to have_field('Search for Client', disabled: false)
-    rescue RSpec::Expectations::ExpectationNotMetError => e
-      warn "DEBUG FAILURE current_path=#{current_path.inspect} title=#{page.title.inspect}"
-      warn "DEBUG BODY_TEXT=#{page.text[0, 500].inspect}"
-      raise e
-    end
     fill_in 'Search for Client', with: client.last_name
     click_button 'Search'
   end
@@ -46,7 +49,7 @@ RSpec.feature 'Enrollment/household management', type: :system do
       sign_in(hmis_user)
       click_link 'Projects'
       click_link p1.project_name
-      click_link 'Enrollments'
+      go_to_project_enrollments
     end
 
     def make_household(household_id: Hmis::Hud::Base.generate_uuid, enrollment_factory:)
@@ -214,7 +217,7 @@ RSpec.feature 'Enrollment/household management', type: :system do
       sign_in(hmis_user)
       click_link 'Projects'
       click_link p1.project_name
-      click_link 'Enrollments'
+      go_to_project_enrollments
     end
 
     it 'can enroll a household member' do
