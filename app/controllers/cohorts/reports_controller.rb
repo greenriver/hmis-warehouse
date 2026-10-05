@@ -21,6 +21,7 @@ module Cohorts
       @changes = cohort_client_change_scope.where(changed_at: @range.first.beginning_of_day..@range.last.end_of_day).
         order(changed_at: :desc).
         preload(:user, cohort_client: :client)
+      current_user.policy_context.preload_client_dependencies(@changes.map { |c| c.cohort_client&.client_id })
       respond_to do |format|
         format.html
         format.xlsx do

@@ -110,4 +110,36 @@ RSpec.describe GrdaWarehouse::AuthPolicies::DestinationClientPolicy, type: :mode
       include_examples 'pii permission checks without access'
     end
   end
+
+  describe 'identity preloading' do
+    let(:user) { create(:acl_user) }
+
+    def destination_with_sources(count)
+      destination = create(:hud_client, data_source_id: destination_data_source.id)
+      create_list(:hud_client, count, data_source: data_source).each do |source|
+        create(:warehouse_client, source_id: source.id, destination_id: destination.id)
+      end
+      destination
+    end
+
+    it 'resolves a destination with more source clients than the threshold without raising' do
+      destination = destination_with_sources(4)
+
+      expect(user.policy_for(destination).can_view_name?).to eq(false)
+    end
+
+    it 'counts each destination resolved without a preload as one miss' do
+      destinations = Array.new(4) { destination_with_sources(1) }
+
+      expect { destinations.each { |d| user.policy_for(d).can_view_name? } }.
+        to raise_error(GrdaWarehouse::AuthPolicies::PreloadMissTracker::PreloadMissError, /destination_clients/)
+    end
+
+    it 'does not count destinations the caller preloaded' do
+      destinations = Array.new(4) { destination_with_sources(1) }
+      user.policy_context.preload_client_dependencies(destinations.map(&:id))
+
+      expect(destinations.map { |d| user.policy_for(d).can_view_name? }).to eq([false] * 4)
+    end
+  end
 end

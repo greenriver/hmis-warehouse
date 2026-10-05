@@ -19,7 +19,7 @@ RSpec.describe Export::RestrictedClientPiiTransform, type: :model do
   let(:export) { build(:grda_warehouse_hmis_export, hash_status: 1, faked_pii: false) }
   let(:redacted) { GrdaWarehouse::PiiProvider::REDACTED }
 
-  subject(:transform) { described_class.new(export: export) }
+  subject(:transform) { described_class.new(export: export, client_scope: GrdaWarehouse::Hud::Client.all) }
 
   before do
     link(aged_destination, aged_source)
@@ -52,7 +52,7 @@ RSpec.describe Export::RestrictedClientPiiTransform, type: :model do
   end
 
   it 'leaves a marked client alone in a hashed export' do
-    hashed = described_class.new(export: build(:grda_warehouse_hmis_export, hash_status: 4, faked_pii: false))
+    hashed = described_class.new(export: build(:grda_warehouse_hmis_export, hash_status: 4, faked_pii: false), client_scope: GrdaWarehouse::Hud::Client.all)
 
     expect(hashed.process(aged_destination)).to have_attributes(FirstName: 'Zzaged', SSN: '999887777')
   end

@@ -102,6 +102,7 @@ RSpec.configure do |config|
   config.include AccessControlSetup
   config.include HudReportAccess
   config.include HeaderKeyedRows
+  config.include PreloadCoverageHelpers
   config.include DelayedJobHelpers
 
   require_relative 'support/s3_utils'
