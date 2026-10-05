@@ -28,6 +28,10 @@ module PublicReports
 
     attr_accessor :map_max_rate, :map_max_count
 
+    def self.publication_types
+      ['PublicReports::StateLevelHomelessness', 'PublicReports::StateDashboard']
+    end
+
     def title
       Translation.translate('State-Level Homelessness Report Generator')
     end

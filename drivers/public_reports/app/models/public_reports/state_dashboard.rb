@@ -29,6 +29,10 @@ module PublicReports
     PROJECT_TYPES_TERM = 'ES / SO / SH / TH'
     UNSHELTERED_TERM = 'Unsheltered / Unsheltered Rate'
 
+    def self.publication_types
+      ['PublicReports::StateLevelHomelessness', 'PublicReports::StateDashboard']
+    end
+
     def title
       Translation.translate('State Dashboard Report Generator')
     end

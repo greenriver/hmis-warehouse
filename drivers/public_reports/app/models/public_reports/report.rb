@@ -214,8 +214,13 @@ module PublicReports
       updated_at
     end
 
+    # STI types that publish to the same location and so replace each other.
+    def self.publication_types
+      [name]
+    end
+
     def self.published(version_slug)
-      where(version_slug: version_slug).where.not(published_url: nil).first
+      PublicReports::Report.where(type: publication_types, version_slug: version_slug).where.not(published_url: nil).first
     end
 
     def publish_warning
@@ -270,11 +275,10 @@ module PublicReports
     end
 
     private def unpublish_similar
-      self.class.
-        where(version_slug: version_slug).
+      PublicReports::Report.
+        where(type: self.class.publication_types, version_slug: version_slug).
         where.not(id: id).
         update_all(
-          type: type,
           published_url: nil,
           embed_code: nil,
           html: nil,
