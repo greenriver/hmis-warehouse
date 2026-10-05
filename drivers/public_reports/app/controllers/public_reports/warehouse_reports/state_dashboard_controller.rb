@@ -1,0 +1,78 @@
+###
+# Copyright Green River Data Group, Inc.
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
+# frozen_string_literal: true
+
+module PublicReports::WarehouseReports
+  class StateDashboardController < ApplicationController
+    include WarehouseReportAuthorization
+    include ArelHelper
+    include PublicReports::WarehouseReports::PublicReportsControllerConcern
+
+    def pit
+      render(layout: @report.raw_layout)
+    end
+
+    def summary
+      render(layout: @report.raw_layout)
+    end
+
+    def entering_exiting
+      render(layout: @report.raw_layout)
+    end
+
+    def map
+      render(layout: @report.raw_layout)
+    end
+
+    def who
+      render(layout: @report.raw_layout)
+    end
+
+    def race
+      render(layout: @report.raw_layout)
+    end
+
+    def raw
+      render(layout: @report.raw_layout)
+    end
+
+    private def path_to_report_index
+      public_reports_warehouse_reports_state_dashboard_index_path
+    end
+
+    private def path_to_report(report = nil)
+      report ||= @report
+      public_reports_warehouse_reports_state_dashboard_path(report)
+    end
+
+    private def path_to_edit(report)
+      edit_public_reports_warehouse_reports_state_dashboard_path(report)
+    end
+
+    private def report_source
+      PublicReports::StateDashboard
+    end
+
+    private def flash_interpolation_options
+      { resource_name: report_source.new.instance_title }
+    end
+
+    private def default_filter_options
+      if last_report.present?
+        last_report.filter_object.for_params
+      else
+        {
+          filters: {
+            start: 3.years.ago.beginning_of_year.to_date,
+            end: 1.years.ago.end_of_year.to_date,
+            project_type_numbers: [1, 2, 8, 4],
+          },
+        }
+      end
+    end
+  end
+end

@@ -102,7 +102,7 @@ RSpec.describe PublicReports::Setting, type: :model do
 
   describe 'layouts/public_reports/_theme_css partial' do
     def render_theme(setting)
-      report = PublicReports::StateLevelHomelessness.new
+      report = PublicReports::StateDashboard.new
       allow(report).to receive(:settings).and_return(setting)
       ApplicationController.renderer.render(partial: 'layouts/public_reports/theme_css', assigns: { report: report })
     end

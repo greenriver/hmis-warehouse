@@ -39,7 +39,7 @@ Rails.application.config.to_prepare do
       external_url: "#{GrdaWarehouse::Help::DEFAULT_HELP_URL}/Homeless-Populations-Report-Generator",
     },
     {
-      controller_path: 'public_reports/warehouse_reports/state_level_homelessness',
+      controller_path: 'public_reports/warehouse_reports/state_dashboard',
       action_name: 'index',
       external_url: "#{GrdaWarehouse::Help::DEFAULT_HELP_URL}/State-Level-Homelessness-Report-Generator",
     },

@@ -1,6 +1,0 @@
-- if @report.renderable?
-  - data = @report.parsed_pre_calculated_data
-  = render 'public_reports/shared/summary_section', data: data, standalone: true
-  = render 'public_reports/shared/glossary'
-- else
-  = render 'public_reports/shared/stale'

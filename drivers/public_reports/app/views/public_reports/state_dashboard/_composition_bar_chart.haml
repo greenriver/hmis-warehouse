@@ -1,0 +1,19 @@
+- values = donut['values'][period_index]
+- colors = donut['colors']
+- segments = donut['labels'].each_with_index.map { |label, i| { label: label, value: values[i], color: colors[i % colors.size] } }
+- title_id = "chart-title-#{id}-#{period_index}"
+- title = PublicReports::StateDashboard::WhoCharts.format_total(donut['totals'][period_index], donut['unit'])
+.chart.chart--stacked-bar.chart--composition-bar{ data: { component: 'composition-bar', 'chart-id' => id }, role: 'group', 'aria-labelledby' => title_id }
+  %p.chart-title{ id: title_id }= title
+  .stacked-bar
+    .stacked-bar__track
+      - segments.each_with_index do |seg, i|
+        - pct = PublicReports::StateDashboard::WhoCharts.js_number(seg[:value])
+        - label_text = "#{seg[:label]}: #{pct}%"
+        - inline_color = PublicReports::StateDashboard::WhoCharts.inline_label_color(seg[:value], seg[:color])
+        .chart-point{ data: { index: i }, style: "flex-basis:#{pct}%" }
+          .stacked-bar__segment{ style: "background:#{seg[:color]};#{PublicReports::StateDashboard::WhoCharts.contrast_ring_style(seg[:color])}", tabindex: 0, role: 'img', 'aria-label' => label_text }
+            - if inline_color
+              %span{ 'aria-hidden' => 'true', style: "color:#{inline_color}" }= "#{pct}%"
+          .chart-tooltip.chart-tooltip--html{ 'aria-hidden' => 'true' }= label_text
+  = render 'public_reports/state_dashboard/percent_legend_table', title: title, rows: segments, unit: donut['unit']

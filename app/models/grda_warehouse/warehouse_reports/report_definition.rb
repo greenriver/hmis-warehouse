@@ -925,6 +925,12 @@ module GrdaWarehouse::WarehouseReports
           description: 'Review and publish the state-level homelessness report for public consumption.',
           limitable: true,
         }
+        r_list['Public'] << {
+          url: 'public_reports/warehouse_reports/state_dashboard',
+          name: 'State Dashboard Report Generator',
+          description: 'Review and publish the state dashboard for public consumption.',
+          limitable: true,
+        }
       end
       r_list['Population Dashboards'] << {
         url: 'dashboards/adult_only_households',

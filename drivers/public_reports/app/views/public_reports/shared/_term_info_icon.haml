@@ -1,8 +1,0 @@
-- definition = public_report_glossary.definition(term)
-- if definition
-  - anchor = PublicReports::Glossary.anchor(term)
-  - @term_info_icon_count = (@term_info_icon_count || 0) + 1
-  - tooltip_id = "info-tooltip-#{anchor}-#{@term_info_icon_count}"
-  %a.info-icon{ class: local_assigns[:modifier], href: "##{anchor}", 'aria-label' => "Definition: #{term}", 'aria-describedby' => tooltip_id }
-    %span{ 'aria-hidden' => 'true' } i
-    %span.info-icon__tooltip{ id: tooltip_id, role: 'tooltip' }= definition

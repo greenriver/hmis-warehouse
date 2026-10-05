@@ -2,7 +2,7 @@
   "use strict";
 
   // Embedding pages size the iframe from this message; see
-  // StateLevelHomelessness#generate_embed_code_for for the listener.
+  // StateDashboard#generate_embed_code_for for the listener.
   if (window.parent !== window) {
     var postHeight = function () {
       // The <html> box, unlike scrollHeight, can shrink below the iframe's current height.

@@ -1,5 +1,0 @@
-- if @report.renderable?
-  = render 'public_reports/shared/trends_section', data: @report.parsed_pre_calculated_data, charts: ['inflow_outflow']
-  = render 'public_reports/shared/glossary'
-- else
-  = render 'public_reports/shared/stale'

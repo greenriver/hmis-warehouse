@@ -1,0 +1,5 @@
+- if @report.renderable?
+  = render 'public_reports/state_dashboard/trends_section', data: @report.parsed_pre_calculated_data
+  = render 'public_reports/state_dashboard/glossary'
+- else
+  = render 'public_reports/state_dashboard/stale'

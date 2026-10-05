@@ -74,7 +74,7 @@ module WarehouseReports
       reports['PublicReports::HomelessCount'] = PublicReports::HomelessCount
       reports['PublicReports::HomelessCountComparison'] = PublicReports::HomelessCountComparison
       reports['PublicReports::HomelessPopulation'] = PublicReports::HomelessPopulation
-      reports['PublicReports::StateLevelHomelessness'] = PublicReports::StateLevelHomelessness
+      reports['PublicReports::StateDashboard'] = PublicReports::StateDashboard
       reports['IncomeBenefitsReport::Report'] = IncomeBenefitsReport::Report
       reports['HapReport::Report'] = HapReport::Report
       reports['PerformanceMetrics::Report'] = PerformanceMetrics::Report

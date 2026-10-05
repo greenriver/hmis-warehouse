@@ -16,6 +16,6 @@ module PublicReports::AssetsHelper
   end
 
   def public_report_glossary
-    @public_report_glossary ||= PublicReports::Glossary.from_translation
+    @public_report_glossary ||= PublicReports::StateDashboard::Glossary.from_translation
   end
 end

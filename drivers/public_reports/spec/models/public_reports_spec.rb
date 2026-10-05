@@ -48,7 +48,7 @@ RSpec.describe PublicReports::Report, type: :request do
         number_housed: PublicReports::NumberHoused,
         pit_by_month: PublicReports::PitByMonth,
         point_in_time: PublicReports::PointInTime,
-        state_level_homelessness: PublicReports::StateLevelHomelessness,
+        state_dashboard: PublicReports::StateDashboard,
       }
     end
 
@@ -73,7 +73,7 @@ RSpec.describe PublicReports::Report, type: :request do
     end
 
     it 'public reports can build and run with 1 month (including January PIT date) filter' do
-      public_reports.except(:state_level_homelessness).values.each do |report_source|
+      public_reports.except(:state_dashboard).values.each do |report_source|
         run_report(
           report_source: report_source,
           options: get_report_options(options_type: :options_1m_jan),
@@ -85,14 +85,14 @@ RSpec.describe PublicReports::Report, type: :request do
     it 'public reports fail to build and run with 1 month span (including January PIT date) filter' do
       expect do
         run_report(
-          report_source: public_reports[:state_level_homelessness],
+          report_source: public_reports[:state_dashboard],
           options: get_report_options(options_type: :options_1m_jan),
         )
       end.to raise_error(ActiveRecord::RecordInvalid)
     end
 
     it 'public reports can build and run with 1 month (not including a PIT date) filter' do
-      public_reports.except(:state_level_homelessness).values.each do |report_source|
+      public_reports.except(:state_dashboard).values.each do |report_source|
         run_report(
           report_source: report_source,
           options: get_report_options(options_type: :options_1m_may),
@@ -104,7 +104,7 @@ RSpec.describe PublicReports::Report, type: :request do
     it 'public reports fail to build and run with 1 month span (not including a PIT date) filter' do
       expect do
         run_report(
-          report_source: public_reports[:state_level_homelessness],
+          report_source: public_reports[:state_dashboard],
           options: get_report_options(options_type: :options_1m_may),
         )
       end.to raise_error(ActiveRecord::RecordInvalid)
