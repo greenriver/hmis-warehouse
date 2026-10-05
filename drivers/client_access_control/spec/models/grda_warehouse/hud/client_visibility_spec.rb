@@ -548,16 +548,17 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
   context 'when config va is in affect' do
     before do
       GrdaWarehouse::Config.delete_all
+      create :config_va
       GrdaWarehouse::Config.invalidate_cache
-      # mimic implicit consent since we aren't using Identify Duplicates
-      GrdaWarehouse::Hud::Client.destination.update_all(
-        housing_release_status: GrdaWarehouse::Hud::Client.full_release_string,
-      )
+      # Under Consent::Implied every client without a signed release holds implied consent
+      GrdaWarehouse::Hud::Client.destination.update_all(housing_release_status: Consent::Implied.no_release_string)
+      GrdaWarehouse::Tasks::GenerateClientRoiAuthorizationsTask.rebuild_clients(GrdaWarehouse::Hud::Client.destination.pluck(:id))
       # VA has no window visible data sources
       window_visible_data_source.update(visible_in_window: false)
       Collection.maintain_system_groups
     end
-    let!(:config) { create :config_va }
+    after { GrdaWarehouse::Config.invalidate_cache }
+
     let!(:user) { create :acl_user }
 
     describe 'and the user does not have a role' do
@@ -729,11 +730,6 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
         end
         describe 'and the user also holds the ROI view permission' do
           before do
-            # The outer before creates a default config row before the config_va let! runs, and Config.get
-            # reads the first row, so replace both to get Consent::Implied
-            GrdaWarehouse::Config.delete_all
-            create :config_va
-            GrdaWarehouse::Config.invalidate_cache
             setup_access_control(user, can_view_client_enrollments_with_roi, Collection.system_collection(:data_sources))
           end
 
@@ -753,6 +749,45 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
             expect(non_window_destination_client.show_demographics_to?(user)).to eq false
           end
         end
+      end
+    end
+    describe 'and the user holds both ROI permissions on every data source' do
+      let(:roi_role) { create :role, can_search_clients_with_roi: true, can_view_client_enrollments_with_roi: true }
+
+      before { setup_access_control(user, roi_role, Collection.system_collection(:data_sources)) }
+
+      # A fresh user per call: User#policy_for and the client access arbiter are memoized on the instance
+      def visibility
+        viewer = User.find(user.id)
+        {
+          search: GrdaWarehouse::Hud::Client.searchable_to(viewer).where(id: non_window_source_client.id).exists?,
+          detail_scope: GrdaWarehouse::Hud::Client.source_visible_to(viewer).where(id: non_window_source_client.id).exists?,
+          enrollments: GrdaWarehouse::Hud::Enrollment.visible_to(viewer).where(id: non_window_enrollment.id).exists?,
+          demographics: non_window_destination_client.reload.show_demographics_to?(viewer),
+        }
+      end
+
+      it 'exposes a client with implied consent everywhere but the dashboard' do
+        expect(GrdaWarehouse::Config.active_consent_class).to eq(Consent::Implied)
+        expect(GrdaWarehouse::ClientRoiAuthorization.find_by(destination_client_id: non_window_destination_client.id).status).to eq('partial')
+        expect(visibility).to eq(search: true, detail_scope: true, enrollments: true, demographics: false)
+      end
+
+      it 'opens the dashboard once the client gives expanded consent' do
+        non_window_destination_client.update_columns(housing_release_status: Consent::Implied.full_release_string)
+        GrdaWarehouse::Tasks::GenerateClientRoiAuthorizationsTask.rebuild_clients([non_window_destination_client.id])
+        expect(visibility).to eq(search: true, detail_scope: true, enrollments: true, demographics: true)
+      end
+
+      it 'hides a client who revoked consent on every path' do
+        consent_tag = create :available_file_tag, consent_form: true, name: 'Consent Form', full_release: true
+        file = create :client_file, client: non_window_destination_client, tags: [consent_tag], effective_date: 5.days.ago
+        file.confirm_consent!
+        # Same order as Clients::FilesController#update
+        non_window_destination_client.invalidate_consent!(hr_status: Consent::Implied.revoked_consent_string)
+        file.update!(consent_revoked_at: Time.current)
+        expect(GrdaWarehouse::ClientRoiAuthorization.find_by(destination_client_id: non_window_destination_client.id).status).to eq('revoked')
+        expect(visibility).to eq(search: false, detail_scope: false, enrollments: false, demographics: false)
       end
     end
   end
