@@ -54,14 +54,30 @@ module GrdaWarehouse::WarehouseReports::Exports
     end
 
     def client_scope
+      # Nothing selected and nothing authorized both complete as an empty report
+      return GrdaWarehouse::Hud::Client.none unless any_authorized_projects?
+
       @client_scope ||= begin
         clients = clients_within_age_range
         clients = clients_with_ongoing_enrollments(clients)
         clients = heads_of_household(clients)
         clients = filter_for_sub_population(clients)
-        clients = clients.where(id: clients_within_projects.select(:id)) unless filter.project_ids.blank?
+        clients = clients.where(id: clients_within_projects.select(:id))
         clients
       end
+    end
+
+    def any_authorized_projects?
+      authorized_project_ids.present?
+    end
+
+    # The filter's selected projects, narrowed to those the user can report on
+    memoize private def authorized_project_ids
+      project_source.where(id: filter.effective_project_ids).pluck(:id)
+    end
+
+    private def project_source
+      GrdaWarehouse::Hud::Project.viewable_by(filter.user, permission: :can_view_assigned_reports)
     end
 
     private def race_for_client(client)
@@ -74,14 +90,16 @@ module GrdaWarehouse::WarehouseReports::Exports
     def rows_for_export
       @rows_for_export ||= begin
         rows = []
+        preload_policies
         client_scope.distinct.in_batches(of: 100) do |batch|
           report_calculator = WarehouseReport::ExportEnrollmentCalculator.new(batch_scope: batch, filter: filter)
+          project_ids_by_client = authorized_project_ids_by_client(batch)
           batch.find_each do |client|
-            pii = GrdaWarehouse::PiiProvider.new(client, policy: export_user&.reporting_policy_for_client(client: client, mode: :download) || GrdaWarehouse::AuthPolicies::DenyPiiPolicy.instance)
+            policy = name_policy_for(client, project_ids_by_client.fetch(client.id, []))
             rows << [
               client.id,
-              pii.first_name,
-              pii.last_name,
+              GrdaWarehouse::PiiProvider.viewable_name(client.FirstName, policy: policy, replacement: GrdaWarehouse::PiiProvider::NAME_REDACTED),
+              GrdaWarehouse::PiiProvider.viewable_name(client.LastName, policy: policy, replacement: GrdaWarehouse::PiiProvider::NAME_REDACTED),
               client.age(filter.end),
               race_for_client(client),
               client.gender,
@@ -133,6 +151,33 @@ module GrdaWarehouse::WarehouseReports::Exports
 
     memoize private def export_user
       User.find_by(id: user_id)
+    end
+
+    private def preload_policies
+      export_user.policy_context.preload_project_dependencies(authorized_project_ids) if export_user && authorized_project_ids.present?
+    end
+
+    # { destination client id => [authorized project ids they were enrolled in during the range] }
+    private def authorized_project_ids_by_client(batch)
+      GrdaWarehouse::ServiceHistoryEnrollment.entry.
+        open_between(start_date: filter.start, end_date: filter.end).
+        where(client_id: batch.select(:id)).
+        joins(:project).
+        merge(GrdaWarehouse::Hud::Project.where(id: authorized_project_ids)).
+        distinct.
+        pluck(:client_id, p_t[:id]).
+        group_by(&:first).
+        transform_values { |pairs| pairs.map(&:last) }
+    end
+
+    # A row aggregates the client's in-range enrollments, so the name shows if any
+    # authorized project they were enrolled in allows it.
+    private def name_policy_for(client, project_ids)
+      return GrdaWarehouse::AuthPolicies::DenyPiiPolicy.instance unless export_user
+
+      allowed = project_ids.any? { |id| export_user.reporting_policy_for_project(project_id: id, mode: :download).can_view_name? }
+      policy = allowed ? GrdaWarehouse::AuthPolicies::AllowPiiPolicy.instance : GrdaWarehouse::AuthPolicies::DenyPiiPolicy.instance
+      GrdaWarehouse::PiiProvider.restrict(policy, restricted: export_user.policy_context.client_restricted?(client.id))
     end
   end
 end

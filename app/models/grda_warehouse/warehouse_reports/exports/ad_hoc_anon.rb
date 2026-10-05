@@ -18,7 +18,12 @@ module GrdaWarehouse::WarehouseReports::Exports
       warehouse_reports_ad_hoc_anon_analysis_index_url(host: ENV.fetch('FQDN'), protocol: 'https')
     end
 
-    # Don't limit by user visibility, end results are de-identified
+    # Don't limit by user visibility, end results are de-identified. `client_scope`
+    # then only requires that the selection resolves to at least one project.
+    private def project_source
+      GrdaWarehouse::Hud::Project.all
+    end
+
     private def clients_within_projects
       @clients_within_projects ||= GrdaWarehouse::Hud::Client.destination.joins(service_history_enrollments: :project).
         merge(GrdaWarehouse::Hud::Project.where(id: filter.effective_project_ids))
