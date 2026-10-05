@@ -2,7 +2,7 @@
 title: PII handling, restricted clients, access logging, and retention
 summary: "How the warehouse catalogs and protects client PII. pii_attr declarations via HasPiiAttributes, PiiProvider display decisions, HMIS-restricted client redaction and search exclusion on the warehouse side, ActivityLog records of who viewed which client and the AccessLogs audit report, PII scrubbing for non-production copies, and client data retention, whose nightly job marks inactive clients that are then hidden like restricted ones."
 area: warehouse
-tags: [pii, HasPiiAttributes, pii_attr, PII_TYPES, PiiProvider, RestrictedPolicy, PiiDisplay, restricted-client, redaction, RestrictedClientLoader, HiddenClients, not_hidden, text_search, strict_search, name_and_ssn_filter, ClientRetentionMark, ClientRetentionJob, access_logs, ActivityLog, ActivityLogger, AccessLogs::Report, UsageSummary, UserSummary, ScrubClientPiiTask, ScrubAllPiiTask, ScrubModelPii, retention, ADR-0002, ADR-0009]
+tags: [pii, HasPiiAttributes, pii_attr, PII_TYPES, PiiProvider, RestrictedPolicy, PiiDisplay, restricted-client, redaction, RestrictedClientLoader, HiddenClients, not_hidden, restricted_subset, hidden_ids_in, text_search, strict_search, name_and_ssn_filter, ClientRetentionMark, ClientRetentionJob, access_logs, ActivityLog, ActivityLogger, AccessLogs::Report, UsageSummary, UserSummary, ScrubClientPiiTask, ScrubAllPiiTask, ScrubModelPii, retention, ADR-0002, ADR-0009]
 sources:
   - docs/adr/0002-pii-management-strategy.md
   - docs/adr/0009-client-data-retention-and-removal.md
@@ -91,13 +91,12 @@ Display:
 
 Restriction:
 
-- `user.policy_context.client_restricted?(client_id)` and
-  `user.policy_context.restricted_clients_cache_token`.
+- `user.policy_context.client_restricted?(client_id)`.
 - `user.policy_context.preload_client_restrictions(ids)` or `preload_client_dependencies(ids)`
   before checking a list of clients; see `authorization/warehouse-policies.md`.
 - `client.pii_restricted?(user:)`.
 - `GrdaWarehouse::HiddenClients.not_hidden(column)` (Arel predicate for queries),
-  `.restricted_ids`, `.inactive_destination_ids`, `.inactive_subset(ids)`.
+  `.restricted_subset(ids, identity_links:)`, `.identity_links(ids)`, `.inactive_subset(ids)`, `.hidden_ids_in(scope)`.
 - `GrdaWarehouse::Hud::Client.text_search(text, client_scope:)`,
   `.strict_search(criteria, client_scope:)`, `client.potential_matches`;
   `ClientSearch.text_searcher(text, sorted:, name_and_ssn_filter:)`;
@@ -184,11 +183,10 @@ hashes recurse, using the hash key as the column label. The `name` match is broa
 labeled `project_name` or `Organization Name` is treated as client PII and redacted.
 
 Fragment caches that hold rendered PII include
-`current_user.policy_context.restricted_clients_cache_token` in their key (the client dashboard
+`current_user.policy_context.client_restricted?(client.id)` in their key (the client dashboard
 rollups under `app/views/clients/rollup/` and `app/views/cohorts/_client_row_editable.haml`).
-The token is an MD5 of the full HMIS restricted id set plus the latest
-`ClientRetentionRun.maximum(:completed_at)`, so marking, unmarking, or merging a restricted
-client, or a completed retention run, invalidates every such fragment.
+The answer covers both HMIS restriction and retention marks, so restricting, unrestricting,
+marking, or unmarking a client busts only that client's fragments.
 
 ### Restricted clients on the warehouse side
 
@@ -201,14 +199,16 @@ client. A retention-inactive client gets the same treatment until a later run un
 directly restricted ids, the destinations linked to them through live `WarehouseClient` rows
 (`deleted_at: nil`), and every sibling source of those destinations; one hop only, so a row that
 is both a source and a destination does not pull in its grandparent. The inactive set is the
-marked source ids plus their live destinations. `not_hidden(column)` is two correlated
-`NOT EXISTS` and keeps `NULL` columns.
+marked source ids plus their live destinations. `not_hidden(column)` is six correlated
+`NOT EXISTS` clauses, each probing an index per candidate row, and keeps `NULL` columns;
+`hidden_ids_in(scope)` returns the hidden ids inside a `Client` relation in one query.
 
-**Loading.** `GrdaWarehouse::AuthPolicies::ContextLoaders::RestrictedClientLoader` loads the
-restricted set once as a `Set` (Sentry warning past 50,000 ids). Retention marks can cover much
-of an old warehouse, so they are never loaded whole: `restricted?(id)` checks the restricted set,
-then an inactive lookup per id, memoized, and `preload(ids)` batches those lookups through
-`HiddenClients.inactive_subset`. `nil` is never restricted. The loader is memoized on
+**Loading.** `GrdaWarehouse::AuthPolicies::ContextLoaders::RestrictedClientLoader` keeps one memoized
+`{client_id => hidden?}` table covering restriction and retention marks. Neither set is loaded
+whole: `preload(ids, identity_links: nil)` resolves a page of ids in a fixed number of queries through
+`HiddenClients.restricted_subset` and `HiddenClients.inactive_subset`, and `restricted?(id)` answers
+from the table (a miss records `:client_restrictions` on the `PreloadMissTracker` and preloads that
+id). `nil` is never restricted. The loader is memoized on
 `UserBaseContext`, which is memoized on `User#policy_context`, so a request or job holds a
 snapshot.
 
@@ -347,9 +347,9 @@ not built; the ADR (still status Proposed) lists them as later phases or open de
 - `app/models/grda_warehouse/pii_provider.rb`: `RestrictedPolicy`; `restrict`;
   `viewable_name` and siblings; `from_attributes`; `dob`; `ssn` masking.
 - `app/models/grda_warehouse/auth_policies/context_loaders/restricted_client_loader.rb`:
-  warn threshold; `restricted_client_ids`; `restricted?`; `preload`; `cache_token`.
-- `app/models/grda_warehouse/hidden_clients.rb`: both hidden sets; `not_hidden`;
-  `inactive_subset`.
+  `restricted?`; `preload`; the `{client_id => hidden?}` table.
+- `app/models/grda_warehouse/hidden_clients.rb`: `restricted_subset`; `identity_links`;
+  `inactive_subset`; `hidden_ids_in`; `not_hidden`.
 - `app/models/grda_warehouse/client_retention_mark.rb`: `rollup_activity`,
   `ROLLUP_ACTIVITY_SQL`.
 - `app/jobs/client_retention_job.rb`: `BATCH_SIZE`, `EXPIRING_WITHIN_DAYS`, mark and unmark
@@ -448,7 +448,7 @@ not built; the ADR (still status Proposed) lists them as later phases or open de
   or `GrdaWarehouse::HiddenClients.not_hidden(column)`, as `ClientController#look_for_existing_match`
   does. Hiding covers name and SSN matches only; do not extend it to DOB or id lookups.
 - A fragment cache keyed on the client and user but not on
-  `current_user.policy_context.restricted_clients_cache_token` when the fragment renders PII.
+  `current_user.policy_context.client_restricted?(client.id)` when the fragment renders PII.
   Example of the replacement: `app/views/clients/rollup/_demographics.html.haml`.
 - Building a hidden-client id list in Ruby and passing it to `where.not(id:)` or `not_in`.
   Replacement: `GrdaWarehouse::HiddenClients.not_hidden(column)` in the query, or

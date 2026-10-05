@@ -18,7 +18,7 @@ Restricted clients don't appear in client search unless you have permission to f
 
 Restriction is deliberately *not* a denial of access. A restricted client remains a normal, viewable client: their enrollments, households, assessments, services, and files resolve as they would otherwise, and every permission other than the ones listed below behaves the same whether or not the client is restricted.
 
-Restriction is expected to apply to a small fraction of clients in a data source — it's for the occasional client whose record needs extra protection, not a bulk visibility mechanism. The implementation relies on that: excluding restricted clients from search loads every restricted client ID in the data source.
+Restriction is expected to apply to a small fraction of clients in a data source — it's for the occasional client whose record needs extra protection, not a bulk visibility mechanism.
 
 A typical setup for case managers:
 
@@ -64,5 +64,5 @@ The warehouse applies the same redaction and search exclusion to clients whose i
 
 - **`Hmis::RestrictedRecord`**: ActiveRecord model for the table.
 - **`Hmis::Concerns::Restrictable`**: Included on restrictable models (`Hmis::Hud::Client` today). Provides `restricted?`, `mark_as_restricted!`, and `remove_restriction!`.
-- **`Hmis::AuthPolicies::UserContext`**: Owns the visibility rule. `pii_redacted_for_client?` answers it for one client, and `search_hidden_client_ids` applies it to every restricted client in the data source to back the search exclusion.
-- **`Hmis::AuthPolicies::ContextLoaders::RestrictedClientLoader`**: Bulk-loads restriction status, so authorizing a page of clients takes one query. Wired into `UserContext#preload_client_dependencies`, which GraphQL already calls when loading clients.
+- **`Hmis::AuthPolicies::UserContext`**: Owns the visibility rule. `pii_redacted_for_client?` answers it for one client, and `Hmis::Hud::Client.searchable_to` applies the same rule as a SQL predicate on top of `visible_to` to back the search exclusion, so search cost does not depend on how many clients are restricted.
+- **`Hmis::AuthPolicies::ContextLoaders::RestrictedClientLoader`**: Batches restriction status, so authorizing a page of clients takes one query. Wired into `UserContext#preload_client_dependencies`, which GraphQL already calls when loading clients.

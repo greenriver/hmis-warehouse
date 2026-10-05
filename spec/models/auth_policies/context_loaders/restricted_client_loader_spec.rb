@@ -76,8 +76,18 @@ RSpec.describe GrdaWarehouse::AuthPolicies::ContextLoaders::RestrictedClientLoad
       expect(loader.restricted?(destination_client.id)).to eq(true)
     end
 
+    it 'answers a restricted source and its destination with one preload and no further queries' do
+      source_client.mark_as_restricted!(user: hmis_user)
+      loader.preload([destination_client.id, source_client.id])
+
+      answers = nil
+      queries = count_database_queries { answers = [loader.restricted?(destination_client.id), loader.restricted?(source_client.id)] }
+
+      expect([answers, queries]).to eq([[true, true], 0])
+    end
+
     it 'issues zero queries for a nil id, and does not load until the first real lookup' do
-      expect(GrdaWarehouse::HiddenClients).not_to receive(:restricted_ids)
+      expect(GrdaWarehouse::HiddenClients).not_to receive(:restricted_subset)
       loader.restricted?(nil)
     end
 
@@ -94,8 +104,8 @@ RSpec.describe GrdaWarehouse::AuthPolicies::ContextLoaders::RestrictedClientLoad
         other_ids.each { |id| loader.restricted?(id) }
       end
 
-      # one for the restricted set, one for the preloaded inactive lookups
-      expect(query_count).to eq(2)
+      # identity links, restricted records, inactive lookups
+      expect(query_count).to eq(3)
     end
   end
 
@@ -145,7 +155,6 @@ RSpec.describe GrdaWarehouse::AuthPolicies::ContextLoaders::RestrictedClientLoad
       asked = [marked_source.id, marked_destination.id] + open_ids
 
       loader.preload(asked)
-      loader.restricted_client_ids
       query_count = 0
       callback = ->(*args) { query_count += 1 unless args.last[:name] == 'SCHEMA' }
       answers = ActiveSupport::Notifications.subscribed(callback, 'sql.active_record') do
@@ -154,13 +163,6 @@ RSpec.describe GrdaWarehouse::AuthPolicies::ContextLoaders::RestrictedClientLoad
 
       expect(answers).to eq({ marked_source.id => true, marked_destination.id => true }.merge(open_ids.index_with { false }))
       expect(query_count).to eq(0)
-    end
-
-    it 'changes the cache token once a retention run completes' do
-      before_run = loader.cache_token
-      GrdaWarehouse::ClientRetentionRun.create!(started_at: 1.minute.ago, completed_at: Time.current, global_retention_years: 7)
-
-      expect(described_class.new.cache_token).not_to eq(before_run)
     end
   end
 

@@ -144,6 +144,50 @@ RSpec.describe Hmis::Hud::Client, type: :model do
       end
     end
 
+    context 'when a restricted client is enrolled at a permitted and an unpermitted project' do
+      before do
+        create(:hmis_hud_enrollment, client: client_at_p1, data_source: ds1, project: p2)
+        client_at_p1.mark_as_restricted!(user: user_with_access_to_p1_clients)
+      end
+
+      it 'includes them for a user with can_view_restricted_clients at only one of the projects' do
+        expect(Hmis::Hud::Client.searchable_to(user_who_can_view_restricted_at_p1)).to contain_exactly(client_at_p1, unenrolled_client)
+      end
+    end
+
+    context 'when a restricted client has only a WIP enrollment' do
+      let!(:user_who_can_view_restricted_at_p2) do
+        hmis_user = create(:hmis_user, data_source: ds1)
+        create_access_control(hmis_user, p2, with_permission: [:can_view_clients, :can_view_project, :can_view_restricted_clients])
+        hmis_user
+      end
+
+      before { client_at_p2.mark_as_restricted!(user: user_with_access_to_p2_clients) }
+
+      it 'includes them for a user with can_view_restricted_clients at the WIP project' do
+        expect(Hmis::Hud::Client.searchable_to(user_who_can_view_restricted_at_p2)).to contain_exactly(client_at_p2, unenrolled_client)
+      end
+
+      it 'omits them from a user without can_view_restricted_clients at the WIP project' do
+        expect(Hmis::Hud::Client.searchable_to(user_with_access_to_p2_clients)).to contain_exactly(unenrolled_client)
+      end
+    end
+
+    context 'when a restricted client is enrolled only at a deleted project' do
+      let!(:p3) { create :hmis_hud_project, data_source: ds1, organization: o1 }
+      let!(:client_at_p3) { create(:hmis_hud_client, data_source: ds1, with_enrollment_at: p3) }
+
+      before do
+        create_access_control(user_who_can_view_restricted_at_p1, p3, with_permission: [:can_view_clients, :can_view_project, :can_view_restricted_clients])
+        client_at_p3.mark_as_restricted!(user: user_with_access_to_p1_clients)
+        p3.destroy
+      end
+
+      it 'omits them even though the user held can_view_restricted_clients at that project' do
+        expect(Hmis::Hud::Client.searchable_to(user_who_can_view_restricted_at_p1)).not_to include(client_at_p3)
+      end
+    end
+
     context 'when an unenrolled client is restricted' do
       before { unenrolled_client.mark_as_restricted!(user: user_with_access_to_p1_clients) }
 
