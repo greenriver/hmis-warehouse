@@ -220,7 +220,7 @@ module PublicReports
     end
 
     def self.published(version_slug)
-      PublicReports::Report.where(type: publication_types, version_slug: version_slug).where.not(published_url: nil).first
+      PublicReports::Report.where(type: publication_types, version_slug: version_slug, deleted_at: nil).where.not(published_url: nil).first
     end
 
     def publish_warning
@@ -276,7 +276,7 @@ module PublicReports
 
     private def unpublish_similar
       PublicReports::Report.
-        where(type: self.class.publication_types, version_slug: version_slug).
+        where(type: self.class.publication_types, version_slug: version_slug, deleted_at: nil).
         where.not(id: id).
         update_all(
           published_url: nil,

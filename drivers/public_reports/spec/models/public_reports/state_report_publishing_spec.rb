@@ -38,4 +38,11 @@ RSpec.describe 'Publishing the state-level reports', type: :model do
 
     expect(dashboard.publish_warning).to include('Jan  5, 2026')
   end
+
+  it 'ignores a soft-deleted published row when warning' do
+    published(PublicReports::StateLevelHomelessness).destroy
+    dashboard = PublicReports::StateDashboard.new(version_slug: 'state')
+
+    expect(dashboard.publish_warning).to be_nil
+  end
 end
