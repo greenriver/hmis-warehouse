@@ -34,13 +34,13 @@ module GrdaWarehouse::HiddenClients
   # HMIS restriction. Reads only the identities of the given ids, so the cost follows the page
   # size and not the restricted population.
   # @param client_ids [Enumerable<Integer>]
-  # @param links [Array<Array(Integer, Integer)>, nil] identity_links(client_ids), when the caller already has them
+  # @param identity_links [Array<Array(Integer, Integer)>, nil] .identity_links(client_ids), when the caller already has them
   # @return [Set<Integer>]
-  def self.restricted_subset(client_ids, links: nil)
+  def self.restricted_subset(client_ids, identity_links: nil)
     ids = client_ids.to_a.compact.uniq
     return Set.new if ids.empty?
 
-    links ||= identity_links(ids)
+    links = identity_links || self.identity_links(ids)
     direct = Hmis::RestrictedRecord.for_clients.where(restrictable_id: (ids + links.flatten).uniq).pluck(:restrictable_id).to_set
     return Set.new if direct.empty?
 

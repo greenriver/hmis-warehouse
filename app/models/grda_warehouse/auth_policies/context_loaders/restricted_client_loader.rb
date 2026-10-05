@@ -26,12 +26,12 @@ module GrdaWarehouse::AuthPolicies::ContextLoaders
       @hidden[client_id]
     end
 
-    # @param links [Array<Array(Integer, Integer)>, nil] identity links covering +client_ids+, when the caller has them
-    def preload(client_ids, links: nil)
+    # @param identity_links [Array<Array(Integer, Integer)>, nil] identity links covering +client_ids+, when the caller has them
+    def preload(client_ids, identity_links: nil)
       missing = client_ids.compact.uniq.reject { |id| @hidden.key?(id) }
       return if missing.empty?
 
-      found = GrdaWarehouse::HiddenClients.restricted_subset(missing, links: links) | GrdaWarehouse::HiddenClients.inactive_subset(missing)
+      found = GrdaWarehouse::HiddenClients.restricted_subset(missing, identity_links: identity_links) | GrdaWarehouse::HiddenClients.inactive_subset(missing)
       missing.each { |id| @hidden[id] = found.include?(id) }
     end
   end

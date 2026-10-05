@@ -110,7 +110,7 @@ RSpec.describe GrdaWarehouse::HiddenClients, type: :model do
     it 'runs one query when given the identity links' do
       links = described_class.identity_links([restricted_destination.id])
 
-      expect(count_database_queries { described_class.restricted_subset([restricted_destination.id], links: links) }).to eq(1)
+      expect(count_database_queries { described_class.restricted_subset([restricted_destination.id], identity_links: links) }).to eq(1)
     end
   end
 

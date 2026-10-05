@@ -65,7 +65,7 @@ class GrdaWarehouse::AuthPolicies::UserBaseContext
 
     links = GrdaWarehouse::HiddenClients.identity_links(requested)
     ids = (requested + links.flatten).uniq
-    restricted_client_loader.preload(ids, links: links)
+    restricted_client_loader.preload(ids, identity_links: links)
     client_roi_loader.preload(links.map(&:last).uniq)
     preload_client_grants(ids)
     preloaded_client_ids.merge(ids)

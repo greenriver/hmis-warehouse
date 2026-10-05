@@ -97,7 +97,7 @@ Restriction:
   before checking a list of clients; see `authorization/warehouse-policies.md`.
 - `client.pii_restricted?(user:)`.
 - `GrdaWarehouse::HiddenClients.not_hidden(column)` (Arel predicate for queries),
-  `.restricted_subset(ids, links:)`, `.identity_links(ids)`, `.inactive_subset(ids)`, `.hidden_ids_in(scope)`.
+  `.restricted_subset(ids, identity_links:)`, `.identity_links(ids)`, `.inactive_subset(ids)`, `.hidden_ids_in(scope)`.
 - `GrdaWarehouse::Hud::Client.text_search(text, client_scope:)`,
   `.strict_search(criteria, client_scope:)`, `client.potential_matches`;
   `ClientSearch.text_searcher(text, sorted:, name_and_ssn_filter:)`;
@@ -207,7 +207,7 @@ marked source ids plus their live destinations. `not_hidden(column)` is six corr
 
 **Loading.** `GrdaWarehouse::AuthPolicies::ContextLoaders::RestrictedClientLoader` keeps one memoized
 `{client_id => hidden?}` table covering restriction and retention marks. Neither set is loaded
-whole: `preload(ids, links: nil)` resolves a page of ids in a fixed number of queries through
+whole: `preload(ids, identity_links: nil)` resolves a page of ids in a fixed number of queries through
 `HiddenClients.restricted_subset` and `HiddenClients.inactive_subset`, and `restricted?(id)` answers
 from the table (a miss records `:client_restrictions` on the `PreloadMissTracker` and preloads that
 id). `nil` is never restricted. The loader is memoized on
