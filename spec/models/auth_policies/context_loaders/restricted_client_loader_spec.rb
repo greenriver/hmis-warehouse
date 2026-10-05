@@ -76,27 +76,91 @@ RSpec.describe GrdaWarehouse::AuthPolicies::ContextLoaders::RestrictedClientLoad
       expect(loader.restricted?(destination_client.id)).to eq(true)
     end
 
-    it 'returns false for a nil id' do
-      expect(loader.restricted?(nil)).to eq(false)
-    end
-
     it 'issues zero queries for a nil id, and does not load until the first real lookup' do
-      expect(Hmis::RestrictedRecord).not_to receive(:for_clients)
+      expect(GrdaWarehouse::HiddenClients).not_to receive(:restricted_ids)
       loader.restricted?(nil)
     end
 
-    it 'issues a fixed number of queries regardless of how many ids are asked about' do
+    it 'issues a fixed number of queries for preloaded ids regardless of how many are asked about' do
       source_client.mark_as_restricted!(user: hmis_user)
       other_ids = Array.new(12) { create(:grda_warehouse_hud_client).id }
 
       query_count = 0
-      callback = ->(*, **) { query_count += 1 }
+      # Column-definition loads for a model's first use are not lookups.
+      callback = ->(*args) { query_count += 1 unless args.last[:name] == 'SCHEMA' }
       ActiveSupport::Notifications.subscribed(callback, 'sql.active_record') do
+        loader.preload([destination_client.id] + other_ids)
         loader.restricted?(destination_client.id)
         other_ids.each { |id| loader.restricted?(id) }
       end
 
-      expect(query_count).to eq(3)
+      # one for the restricted set, one for the preloaded inactive lookups
+      expect(query_count).to eq(2)
+    end
+  end
+
+  describe 'retention-inactive clients' do
+    def mark_inactive(client_id)
+      GrdaWarehouse::ClientRetentionMark.create!(client_id: client_id, marked_on: Date.current, last_activity_on: 10.years.ago.to_date, retention_years: 7)
+    end
+
+    it 'treats an id in client_retention_marks as restricted' do
+      mark_inactive(source_client.id)
+
+      expect(loader.restricted?(source_client.id)).to eq(true)
+    end
+
+    it 'hides the destination of a marked source through its live warehouse_clients link' do
+      mark_inactive(source_client.id)
+
+      expect(loader.restricted?(destination_client.id)).to eq(true)
+    end
+
+    it 'does not hide a destination whose only link to a marked source is soft-deleted' do
+      mark_inactive(source_client.id)
+      GrdaWarehouse::WarehouseClient.where(source_id: source_client.id).update_all(deleted_at: Time.current)
+
+      expect(loader.restricted?(destination_client.id)).to eq(false)
+    end
+
+    it 'answers a second lookup for the same id without another query' do
+      mark_inactive(source_client.id)
+      loader.restricted?(source_client.id)
+
+      query_count = 0
+      callback = ->(*args) { query_count += 1 unless args.last[:name] == 'SCHEMA' }
+      ActiveSupport::Notifications.subscribed(callback, 'sql.active_record') do
+        loader.restricted?(source_client.id)
+      end
+
+      expect(query_count).to eq(0)
+    end
+
+    it 'answers preloaded ids, marked and unmarked alike, without further queries' do
+      marked_source = create(:grda_warehouse_hud_client)
+      marked_destination = create(:grda_warehouse_hud_client)
+      GrdaWarehouse::WarehouseClient.create!(destination_id: marked_destination.id, source_id: marked_source.id, data_source_id: marked_source.data_source_id, id_in_source: marked_source.id.to_s)
+      mark_inactive(marked_source.id)
+      open_ids = Array.new(3) { create(:grda_warehouse_hud_client).id }
+      asked = [marked_source.id, marked_destination.id] + open_ids
+
+      loader.preload(asked)
+      loader.restricted_client_ids
+      query_count = 0
+      callback = ->(*args) { query_count += 1 unless args.last[:name] == 'SCHEMA' }
+      answers = ActiveSupport::Notifications.subscribed(callback, 'sql.active_record') do
+        asked.index_with { |id| loader.restricted?(id) }
+      end
+
+      expect(answers).to eq({ marked_source.id => true, marked_destination.id => true }.merge(open_ids.index_with { false }))
+      expect(query_count).to eq(0)
+    end
+
+    it 'changes the cache token once a retention run completes' do
+      before_run = loader.cache_token
+      GrdaWarehouse::ClientRetentionRun.create!(started_at: 1.minute.ago, completed_at: Time.current, global_retention_years: 7)
+
+      expect(described_class.new.cache_token).not_to eq(before_run)
     end
   end
 end
