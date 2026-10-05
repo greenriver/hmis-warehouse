@@ -11,7 +11,7 @@ require 'rails_helper'
 # Contract spec for PublicReports::StateLevelHomelessness#chart_data (schema_version 2).
 # This is the guard against a client-privacy redaction regression: everything below
 # MIN_THRESHOLD (11) or the 100-person donut/breakdown floor must come back nil, never
-# a raw small integer. Map counts are random unless fake_map_counts? is stubbed to false.
+# a raw small integer. Map counts are random unless MapData#fake_counts? is stubbed to false.
 RSpec.describe PublicReports::StateLevelHomelessness, type: :model do
   before(:all) do
     HmisCsvImporter::Utility.clear!
@@ -199,7 +199,7 @@ RSpec.describe PublicReports::StateLevelHomelessness, type: :model do
 
   context 'with real map counts' do
     before do
-      allow_any_instance_of(described_class).to receive(:fake_map_counts?).and_return(false)
+      allow_any_instance_of(PublicReports::StateLevelHomelessness::MapData).to receive(:fake_counts?).and_return(false)
     end
 
     it 'suppresses a small statewide total and counts no one aged 30 as youth' do

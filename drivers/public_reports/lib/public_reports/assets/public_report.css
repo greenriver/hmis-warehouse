@@ -956,7 +956,7 @@ img {
 
 .town-map__town {
   /* Not --color-surface (white): a 0%-rate town's fill is also white
-     (the first map_colors band in StateLevelHomelessness), which combined with a white stroke
+     (the first MapData#colors band), which combined with a white stroke
      would make that town's boundary vanish entirely against the white page
      background. */
   stroke: var(--color-border);
