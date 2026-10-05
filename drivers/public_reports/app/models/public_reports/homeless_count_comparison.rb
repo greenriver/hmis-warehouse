@@ -78,15 +78,7 @@ module PublicReports
       # for compatibility with FilterScopes
       @filter = filter_object
       @project_types = @filter.project_type_numbers
-      scope = GrdaWarehouse::ServiceHistoryEnrollment.entry
-      scope = filter_for_user_access(scope)
-      scope = filter_for_range(scope)
-      scope = filter_for_cocs(scope)
-      scope = filter_for_project_type(scope)
-      scope = filter_for_data_sources(scope)
-      scope = filter_for_organizations(scope)
-      scope = filter_for_projects(scope)
-      scope
+      enrollment_scope
     end
 
     private def comparison_scope
@@ -94,14 +86,30 @@ module PublicReports
       filter_object.comparison_pattern = :prior_period
       @filter = filter_object.to_comparison
       @project_types = @filter.project_type_numbers
-      scope = GrdaWarehouse::ServiceHistoryEnrollment.entry
+      enrollment_scope
+    end
+
+    # Both periods count enrollments in the same projects, using whichever filter is in `@filter`.
+    # Selected and viewable projects are applied as one merge; merging them separately lets the
+    # second `where` on the project id replace the first.
+    private def enrollment_scope
+      scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.
+        joins(:project).
+        merge(project_source)
       scope = filter_for_range(scope)
       scope = filter_for_cocs(scope)
       scope = filter_for_project_type(scope)
       scope = filter_for_data_sources(scope)
       scope = filter_for_organizations(scope)
-      scope = filter_for_projects(scope)
       scope
+    end
+
+    # Projects the user can report on, narrowed to the chosen projects and project groups when any are chosen
+    private def project_source
+      projects = GrdaWarehouse::Hud::Project.viewable_by(@filter.user, permission: :can_view_assigned_reports)
+      return projects if @filter.project_ids.blank? && @filter.project_group_ids.blank?
+
+      projects.where(id: @filter.effective_project_ids_from_projects + @filter.effective_project_ids_from_project_groups)
     end
   end
 end
