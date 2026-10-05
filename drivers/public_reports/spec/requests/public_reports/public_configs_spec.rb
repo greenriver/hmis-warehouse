@@ -44,4 +44,11 @@ RSpec.describe 'PublicReports::WarehouseReports::PublicConfigs', type: :request 
 
     expect(Nokogiri::HTML(response.body).at_css('input[name="config[font_family_0]"]')['value']).to eq('Georgia;}')
   end
+
+  it 'saves the per-population colors the pre-redesign reports use' do
+    post public_reports_warehouse_reports_public_configs_path, params: { config: { homeless_primary_color: '#112233' } }
+    get public_reports_warehouse_reports_public_configs_path
+
+    expect(Nokogiri::HTML(response.body).at_css('input[name="config[homeless_primary_color]"]')&.[]('value')).to eq('#112233')
+  end
 end

@@ -18,3 +18,12 @@
     %h4 Colors for #{category.to_s.titleize}
     - @config.num_colors_per_category.each do |i|
       = f.input "#{category}_color_#{i}", input_html: { value: @config["#{category}_color_#{i}"], class: 'colorpicker'}
+
+  %h3.mt-4 Pre-redesign report colors
+  %p Used by the deprecated State-Level Homelessness report.
+  = f.input :homeless_primary_color, input_html: { class: 'colorpicker'}
+  = f.input :youth_primary_color, input_html: { class: 'colorpicker'}
+  = f.input :adults_only_primary_color, input_html: { class: 'colorpicker'}
+  = f.input :adults_with_children_primary_color, input_html: { class: 'colorpicker'}
+  = f.input :children_only_primary_color, input_html: { class: 'colorpicker'}
+  = f.input :veterans_primary_color, input_html: { class: 'colorpicker'}
