@@ -43,10 +43,13 @@ module PublicReports
       else
         'people'
       end
-      {
-        labels: pit_counts.map { |date, _count| date.year.to_s },
-        series: [{ label: "Unique #{client_title} experiencing homelessness", values: pit_counts.map(&:last) }],
-      }.to_json
+      x = ['x']
+      y = ["Unique #{client_title} experiencing homelessness"]
+      pit_counts.each do |date, count|
+        x << date
+        y << count
+      end
+      [x, y].to_json
     end
 
     private def pre_calculate_data

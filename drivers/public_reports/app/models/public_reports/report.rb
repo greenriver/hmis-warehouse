@@ -237,7 +237,7 @@ module PublicReports
     end
 
     def raw_layout
-      'public_report'
+      'raw_public_report'
     end
 
     def publish!

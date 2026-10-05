@@ -41,6 +41,10 @@ module PublicReports
       Translation.translate('State-Level Homelessness Report')
     end
 
+    def raw_layout
+      'public_report'
+    end
+
     private def public_s3_directory
       'state-level-homelessness'
     end
