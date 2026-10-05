@@ -1,0 +1,10 @@
+= render 'chart_css'
+- data = @report.parsed_pre_calculated_data
+%section.position-relative
+  = render 'summary_counts', data: data
+  = render 'glossary_content'
+:css
+  .row {
+    margin-left: 0;
+    margin-right: 0;
+  }

@@ -41,6 +41,15 @@ OpenPath::Application.routes.draw do
         get :who, on: :member
         get :race, on: :member
       end
+      resources :state_level_homelessness do
+        get :raw, on: :member
+        get :pit, on: :member
+        get :summary, on: :member
+        get :entering_exiting, on: :member
+        get :map, on: :member
+        get :who, on: :member
+        get :race, on: :member
+      end
       resources :public_configs, only: [:index, :create]
     end
   end

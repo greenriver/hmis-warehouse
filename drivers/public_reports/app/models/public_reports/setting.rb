@@ -132,6 +132,42 @@ module PublicReports
       safe_css(self[column], :color) || default_colors[number % default_colors.count]
     end
 
+    # Used only by the deprecated StateLevelHomelessness views.
+    def shade(number = 0, category = nil)
+      hex_color = if category.blank? || ! tintable.include?(category.to_sym) || self[category].blank?
+        default_colors[number % default_colors.count]
+      else
+        self[category]
+      end
+      lighten(hex_color, number * 0.1)
+    end
+
+    # Amount is between 0 and 1, closer to 1 lightens more
+    def lighten(hex_color, amount = 0.6)
+      rgb = rgb_from_hex(hex_color)
+      rgb[0] = [(rgb[0].to_i + 255 * amount).round, 255].min
+      rgb[1] = [(rgb[1].to_i + 255 * amount).round, 255].min
+      rgb[2] = [(rgb[2].to_i + 255 * amount).round, 255].min
+      format('#%02x%02x%02x', *rgb)
+    end
+
+    def tintable
+      [
+        :summary_color,
+        :homeless_primary_color,
+        :youth_primary_color,
+        :adults_only_primary_color,
+        :adults_with_children_primary_color,
+        :children_only_primary_color,
+        :veterans_primary_color,
+      ].freeze
+    end
+
+    private def rgb_from_hex(hex)
+      hex = hex.gsub('#', '')
+      hex.scan(/../).map(&:hex)
+    end
+
     def num_colors
       (0..16).to_a
     end
@@ -154,20 +190,35 @@ module PublicReports
     end
 
     def font_path
-      safe_css(font_url, :font_url) || THEME_DEFAULTS[:font_url]
+      safe_css(font_url, :font_url) || default_font_path
     end
 
     def font_family
-      safe_css(font_family_0, :font_family) || THEME_DEFAULTS[:font_body]
+      safe_css(font_family_0, :font_family) || default_font_family
     end
 
     def font_size
-      safe_css(font_size_0, :font_size) || THEME_DEFAULTS[:font_size]
+      safe_css(font_size_0, :font_size) || default_font_size
     end
 
-    # The legacy raw report layout uses a lighter body weight than the theme.
     def font_weight
-      safe_css(font_weight_0, :font_weight) || '300'
+      safe_css(font_weight_0, :font_weight) || default_font_weight
+    end
+
+    def default_font_path
+      '//fonts.googleapis.com/css?family=Open+Sans:300,400,400italic,600,700|Open+Sans+Condensed:700|Poppins:400,300,500,700'
+    end
+
+    def default_font_family
+      'Poppins'
+    end
+
+    def default_font_size
+      '1rem'
+    end
+
+    def default_font_weight
+      '300'
     end
 
     private def safe_css(value, format)
