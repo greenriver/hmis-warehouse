@@ -29,7 +29,8 @@ module HmisCsvTwentyTwentySix::Importer
         date_range: date_range,
       ).with_deleted.
         joins(:exit).
-        # Reporting-period exports exclude exits after ExportEndDate (FY2026 CSV spec, Export Period Types)
+        # Reporting-period exports exclude exits after ExportEndDate (FY2026 CSV spec, Export Period Types).
+        # A source can only remove such an exit with an import whose range covers its ExitDate.
         where(ex_t[:ExitDate].lteq(date_range.end)).
         pluck(ex_t[:id])
       return none unless ids

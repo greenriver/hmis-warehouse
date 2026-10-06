@@ -29,7 +29,8 @@
 #   4. remove_exits_before_export_range — soft-delete exits dated before
 #                            ExportStartDate for enrollments in Enrollment.csv
 #                            whose ExitID is not in Exit.csv (outside the
-#                            involved scope, so passes 0-3 can't reach them)
+#                            involved scope, so passes 0-3 can't reach them);
+#                            reporting-period exports only
 #
 # Terminology:
 #   "involved scope" / "in-scope" — the set of warehouse rows this import is
@@ -307,6 +308,8 @@ module HmisCsvImporter::Importer
         importer_log.summary[file]['removed']     = klass.prevent_import_deletions? ? 0 : removed_count(klass)
         importer_log.summary[file]['total_count'] = existing_data_scope(klass).distinct.count(klass.hud_key)
       end
+      pre_range_exits = exits_before_export_range_scope
+      importer_log.summary['Exit.csv']['removed'] += pre_range_exits.count if pre_range_exits
     end
 
     # Count of incoming hud_keys that do not yet exist in the warehouse.
@@ -992,33 +995,43 @@ module HmisCsvImporter::Importer
       end
     end
 
+    def remove_exits_before_export_range
+      scope = exits_before_export_range_scope
+      return unless scope
+
+      enrollment_ids = scope.pluck(:EnrollmentID)
+      return if enrollment_ids.empty?
+
+      batch_soft_delete(importable_files['Exit.csv'], scope)
+      note_processed('Exit.csv', enrollment_ids.size, 'removed')
+      # Rebuilds service history for the reopened enrollments in post-process
+      GrdaWarehouse::Hud::Enrollment.
+        where(data_source_id: data_source.id, EnrollmentID: enrollment_ids).
+        update_all(processed_as: nil)
+    end
+
     # Enrollment.csv is authoritative for the exit of each enrollment it contains,
     # but exits before ExportStartDate fall outside the involved scope, so passes 0-3 never see them.
+    # Only a reporting-period export guarantees every enrollment it sends is active in the range;
+    # an Updated export sends long-closed enrollments without their unchanged exits.
     # Reads raw staging: a staged enrollment that failed validation, or whose project isn't in
     # Project.csv, still counts, because the source still reports it without an exit.
-    def remove_exits_before_export_range
+    # Returns nil when the import may not delete these exits.
+    private def exits_before_export_range_scope
       klass = importable_files['Exit.csv']
       return unless klass
       return if custom_augmentation?(klass) || klass.prevent_import_deletions?
+      return unless export_record.ExportPeriodType.to_i == HudHelper.util.export_period_type('Reporting period', true)
 
       incoming_enrollment_ids = importable_files['Enrollment.csv'].
         where(importer_log_id: importer_log.id).
         select(:EnrollmentID)
       # NOT IN matches nothing if the subquery holds a NULL
       incoming_exit_ids = klass.where(importer_log_id: importer_log.id).where.not(ExitID: nil).select(:ExitID)
-      scope = GrdaWarehouse::Hud::Exit.
+      GrdaWarehouse::Hud::Exit.
         where(data_source_id: data_source.id, EnrollmentID: incoming_enrollment_ids).
         where(GrdaWarehouse::Hud::Exit.arel_table[:ExitDate].lt(date_range.start)).
         where.not(ExitID: incoming_exit_ids)
-      enrollment_ids = scope.pluck(:EnrollmentID)
-      return if enrollment_ids.empty?
-
-      batch_soft_delete(klass, scope)
-      note_processed('Exit.csv', enrollment_ids.size, 'removed')
-      # Rebuilds service history for the reopened enrollments in post-process
-      GrdaWarehouse::Hud::Enrollment.
-        where(data_source_id: data_source.id, EnrollmentID: enrollment_ids).
-        update_all(processed_as: nil)
     end
 
     def involved_project_ids

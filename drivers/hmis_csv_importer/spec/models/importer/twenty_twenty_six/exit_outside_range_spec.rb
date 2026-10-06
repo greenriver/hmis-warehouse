@@ -9,16 +9,18 @@
 require 'rails_helper'
 
 RSpec.describe 'HMIS CSV import of exits outside the export range', type: :model do
-  fixture_root = 'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_six'
-
-  def import(dir)
-    import_hmis_csv_fixture(dir, version: 'AutoMigrate', run_jobs: false, stop_version: '2026')
+  def fixture_dir(name)
+    "drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_six/#{name}"
   end
 
-  before(:all) do
+  def import(dir, **options)
+    import_hmis_csv_fixture(dir, version: 'AutoMigrate', run_jobs: false, stop_version: '2026', **options)
+  end
+
+  def reset_to_initial_import
     HmisCsvImporter::Utility.clear!
     GrdaWarehouse::Utility.clear!
-    import("#{fixture_root}/exit_outside_range_initial")
+    import(fixture_dir('exit_outside_range_initial'))
   end
 
   after(:all) do
@@ -26,14 +28,19 @@ RSpec.describe 'HMIS CSV import of exits outside the export range', type: :model
     GrdaWarehouse::Utility.clear!
   end
 
-  it 'imports every exit live from the initial file' do
-    expect(GrdaWarehouse::Hud::Exit.pluck(:ExitID)).to contain_exactly('X-A', 'X-B', 'X-C', 'X-D', 'X-E', 'X-F', 'X-G1', 'X-H')
+  describe 'the initial file' do
+    before(:all) { reset_to_initial_import }
+
+    it 'imports every exit live' do
+      expect(GrdaWarehouse::Hud::Exit.pluck(:ExitID)).to contain_exactly('X-A', 'X-B', 'X-C', 'X-D', 'X-E', 'X-F', 'X-G1', 'X-H')
+    end
   end
 
   describe 'after a reporting-period import for 2023-2024' do
     before(:all) do
+      reset_to_initial_import
       GrdaWarehouse::Hud::Enrollment.where(EnrollmentID: ['E-A', 'E-B']).update_all(processed_as: 'stale')
-      import("#{fixture_root}/exit_outside_range_update")
+      import(fixture_dir('exit_outside_range_update'))
     end
 
     # X-C and X-H are off-spec input; see the 'with rows a reporting-period export never contains' context
@@ -71,6 +78,57 @@ RSpec.describe 'HMIS CSV import of exits outside the export range', type: :model
 
     it 'leaves no exits pending deletion' do
       expect(GrdaWarehouse::Hud::Exit.with_deleted.where.not(pending_date_deleted: nil).count).to eq(0)
+    end
+  end
+
+  describe 'a dry run of the reporting-period import with change-count notifications on' do
+    before(:all) do
+      reset_to_initial_import
+      # A nonzero error_percent_threshold turns on precalculate_change_counts without pausing on errors
+      threshold = create(
+        :import_threshold,
+        data_source: GrdaWarehouse::DataSource.find_by!(short_name: 'GR'),
+        pause_on_error_threshold: false,
+        error_percent_threshold: 1,
+        error_count_min_threshold: 1,
+      )
+      import(fixture_dir('exit_outside_range_update'), data_source: threshold.data_source, dry_run: true)
+    end
+
+    it 'includes exits before ExportStartDate in the precalculated Exit.csv removed count' do
+      expect(HmisCsvImporter::Importer::ImporterLog.last.summary['Exit.csv']['removed']).to eq(4)
+    end
+  end
+
+  describe 'after an Updated-period import of the same file' do
+    before(:all) do
+      reset_to_initial_import
+      Dir.mktmpdir do |dir|
+        FileUtils.cp_r("#{fixture_dir('exit_outside_range_update')}/source", dir)
+        export_path = File.join(dir, 'source', 'Export.csv')
+        export = CSV.read(export_path, headers: true)
+        export.each { |row| row['ExportPeriodType'] = HudHelper.util('2026').export_period_type('Updated', true).to_s }
+        File.write(export_path, export.to_csv)
+        import(dir)
+      end
+    end
+
+    it 'soft-deletes only exits inside the export range' do
+      expect(GrdaWarehouse::Hud::Exit.only_deleted.pluck(:ExitID)).to contain_exactly('X-D', 'X-E')
+    end
+  end
+
+  describe 'after a reporting-period import with Exit.csv deletions turned off' do
+    before(:all) do
+      reset_to_initial_import
+      RSpec::Mocks.with_temporary_scope do
+        allow(HmisCsvTwentyTwentySix::Importer::Exit).to receive(:prevent_import_deletions?).and_return(true)
+        import(fixture_dir('exit_outside_range_update'))
+      end
+    end
+
+    it 'soft-deletes no exits' do
+      expect(GrdaWarehouse::Hud::Exit.only_deleted.pluck(:ExitID)).to be_empty
     end
   end
 end
