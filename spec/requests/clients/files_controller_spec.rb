@@ -293,6 +293,20 @@ RSpec.describe Clients::FilesController, type: :request do
         expect(roi_row).to be_nil
       end
 
+      it 'keeps the file, the release, and the ROI row when the active consent form fails validation on delete' do
+        file.update_columns(confidential: true, data_source_id: nil, enrollment_id: nil)
+
+        delete client_file_path(client_id: client.id, id: file.id)
+
+        expect(response).to redirect_to(client_files_path(client_id: client.id))
+        expect(flash[:error]).to eq('File could not be deleted.')
+        expect(GrdaWarehouse::ClientFile.where(id: file.id)).to exist
+        client.reload
+        expect(client.consent_form_id).to eq(file.id)
+        expect(client.housing_release_status).to eq(GrdaWarehouse::Hud::Client.full_release_string)
+        expect(roi_row.status).to eq('full')
+      end
+
       it 'keeps the release and the ROI row when an older, unconfirmed consent form is deleted' do
         older_form = create :client_file, client: client, tags: [consent_tag], effective_date: 1.year.ago
 

@@ -20,6 +20,8 @@ RSpec.describe GrdaWarehouse::AuthPolicies::ContextLoaders::ClientRoiLoader, typ
     GrdaWarehouse::Config.invalidate_cache
   end
 
+  after { GrdaWarehouse::Config.invalidate_cache }
+
   describe '#get' do
     it 'returns false for client without ROI' do
       expect(loader.get(client.destination_id)).to be false

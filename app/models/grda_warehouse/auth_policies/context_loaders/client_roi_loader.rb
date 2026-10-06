@@ -9,7 +9,9 @@
 module GrdaWarehouse::AuthPolicies::ContextLoaders
   class ClientRoiLoader
     def initialize(user, miss_tracker: nil)
-      # { destination_client_id => status or nil }; one visible row per destination
+      # @cache format:
+      # { destination_client_id => visible ROI status, or nil when none is visible }.
+      # client_roi_authorizations is unique on destination_client_id, so each id plucks at most one row.
       @cache = {}
       @today = Date.current
       @user_coc_codes = user.coc_codes

@@ -134,8 +134,8 @@ on or before the date, `expires_at` on or after it), whose status is in the cons
 `visible_roi_statuses`, and that pass `in_coc_codes`. `Consent::Default.visible_roi_statuses` is
 `full` only, because a partial release is CAS-only. `Consent::Implied` returns `partial` and
 `full`, because its partial release string is implied consent. `in_coc_codes` matches rows whose
-`coc_codes` is NULL, empty, or overlaps the given codes plus `'All CoCs'`; the codes are bound as
-a parameter. Dates are checked at query time, so an expiry does not wait for a rebuild.
+`coc_codes` is NULL, empty, or overlaps (Arel `overlaps`, SQL `&&`) the given codes plus
+`'All CoCs'`. Dates are checked at query time, so an expiry does not wait for a rebuild.
 
 `roi_authorized?` returns false unless the source client's data source has `obey_consent` and
 the client has a destination, then asks `ClientRoiLoader#get(destination.id)`. The loader caches

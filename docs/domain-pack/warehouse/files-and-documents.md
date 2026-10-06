@@ -358,7 +358,9 @@ answers `regenerate?` true, otherwise saves a pending row and enqueues `Document
   `confidential_visible_by` itself.
 - `Clients::FilesController#create` rescues `StandardError` and re-renders `new` with no flash,
   so a failed save shows only model errors; a raised exception elsewhere in the block is
-  swallowed. `destroy` rescues `Exception`. Both predate the no-bare-rescue convention.
+  swallowed. This predates the no-bare-rescue convention. `destroy` rescues only
+  `ActiveRecord::RecordInvalid` and `ActiveRecord::RecordNotSaved` from `soft_delete!`, flashes
+  an error, and redirects before touching the client's consent.
 - `PurgeSoftDeletedClientFilesJob` still runs (and completes its maintenance-task tracking)
   when `purge_soft_deleted_records/enabled` is unset outside staging, but does no purging.
   Soft-deleted files and their blobs otherwise persist indefinitely.
