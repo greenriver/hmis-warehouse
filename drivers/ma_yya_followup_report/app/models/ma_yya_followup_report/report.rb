@@ -31,6 +31,7 @@ module MaYyaFollowupReport
       @clients ||= begin
         rows = client_scope.pluck(*columns.values).map { |row| Hash[columns.keys.zip(row)] }
         preload_policies
+        filter.user.policy_context.preload_client_dependencies(rows.map { |row| row[:id] })
         project_ids_by_client = authorized_project_ids_by_client
         rows.each { |row| row[:pii_policy] = name_policy_for(row[:id], project_ids_by_client.fetch(row[:id], [])) }
         rows.sort_by { |row| row[:last_seen] || row[:engagement_date] }
