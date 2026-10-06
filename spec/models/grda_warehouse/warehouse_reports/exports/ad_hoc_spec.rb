@@ -133,6 +133,27 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Exports::AdHoc, type: :model do
     include_context 'ad hoc report setup'
     include_context 'projects with mixed access'
 
+    context 'when nothing is selected' do
+      let(:selection) { {} }
+
+      it 'includes clients enrolled in every project the user can view' do
+        expect(client_ids(ad_hoc)).to contain_exactly(restricted_destination_client.id, open_destination_client.id, multi_project_client.id, nameless_client.id)
+      end
+
+      context 'with a viewable non-residential project' do
+        # The project picker only offers residential projects, so "nothing selected" covers the same set
+        let!(:services_only_project) { create(:hud_project, organization: organization, data_source: hmis_ds, ProjectType: 6) } # SSO
+        let!(:services_only_client) { create(:grda_warehouse_hud_client, FirstName: 'Services', LastName: 'Only', DOB: 20.years.ago.to_date) }
+        let!(:services_only_she) { build_open_enrollment(services_only_client, services_only_project) }
+
+        before { collection.set_viewables({ projects: [project.id, confidential_project.id, services_only_project.id] }) }
+
+        it 'excludes clients enrolled only in that project' do
+          expect(client_ids(ad_hoc)).not_to include(services_only_client.id)
+        end
+      end
+    end
+
     context 'when only a data source is selected' do
       let(:selection) { { data_source_ids: [hmis_ds.id] } }
 
@@ -178,12 +199,6 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Exports::AdHoc, type: :model do
         expect(ad_hoc.rows).to eq([])
         expect(ad_hoc.headers).to eq(ad_hoc.headers_for_report)
       end
-    end
-
-    context 'when nothing is selected' do
-      let(:selection) { {} }
-
-      it_behaves_like 'an empty report'
     end
 
     context 'when only unauthorized projects are selected' do
@@ -249,8 +264,8 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Exports::AdHoc, type: :model do
     context 'when nothing is selected' do
       let(:selection) { {} }
 
-      it 'returns no rows' do
-        expect(ad_hoc_anon.rows_for_export).to eq([])
+      it 'includes clients from every project the user can view' do
+        expect(client_ids(ad_hoc_anon)).to contain_exactly(restricted_destination_client.id, open_destination_client.id, multi_project_client.id, nameless_client.id)
       end
     end
   end

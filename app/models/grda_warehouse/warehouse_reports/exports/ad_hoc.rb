@@ -54,7 +54,7 @@ module GrdaWarehouse::WarehouseReports::Exports
     end
 
     def client_scope
-      # Nothing selected and nothing authorized both complete as an empty report
+      # A selection the user can't report on completes as an empty report
       return GrdaWarehouse::Hud::Client.none unless any_authorized_projects?
 
       @client_scope ||= begin
@@ -71,9 +71,23 @@ module GrdaWarehouse::WarehouseReports::Exports
       authorized_project_ids.present?
     end
 
-    # The filter's selected projects, narrowed to those the user can report on
+    # The filter's selected projects, narrowed to those the user can report on;
+    # with nothing selected, every residential project the user can view (the picker's choices)
     memoize private def authorized_project_ids
-      project_source.where(id: filter.effective_project_ids).pluck(:id)
+      ids = any_project_selection? ? filter.effective_project_ids : filter.all_project_ids
+      project_source.where(id: ids).pluck(:id)
+    end
+
+    # The form's project, organization, and data source pickers all default to "Any"
+    private def any_project_selection?
+      [filter.project_ids, filter.organization_ids, filter.data_source_ids].any? { |ids| ids.compact_blank.present? }
+    end
+
+    private def clients_within_projects
+      @clients_within_projects ||= GrdaWarehouse::Hud::Client.destination.
+        joins(service_history_enrollments: :project).
+        merge(GrdaWarehouse::Hud::Project.where(id: authorized_project_ids)).
+        merge(GrdaWarehouse::ServiceHistoryEnrollment.entry.open_between(start_date: filter.start, end_date: filter.end))
     end
 
     private def project_source

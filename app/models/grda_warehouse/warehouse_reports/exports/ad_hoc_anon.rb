@@ -26,7 +26,7 @@ module GrdaWarehouse::WarehouseReports::Exports
 
     private def clients_within_projects
       @clients_within_projects ||= GrdaWarehouse::Hud::Client.destination.joins(service_history_enrollments: :project).
-        merge(GrdaWarehouse::Hud::Project.where(id: filter.effective_project_ids))
+        merge(GrdaWarehouse::Hud::Project.where(id: authorized_project_ids))
     end
 
     def rows_for_export
