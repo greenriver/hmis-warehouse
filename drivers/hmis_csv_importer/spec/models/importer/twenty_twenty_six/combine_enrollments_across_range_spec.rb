@@ -35,11 +35,12 @@ RSpec.describe 'Combine Enrollments across the export range start', type: :model
   end
 
   it 'stores one combined exit per group from the initial file' do
-    expect(live_exits).to contain_exactly(['N-1', 'XN-2'], ['M-1', 'XM-2'])
+    expect(live_exits).to contain_exactly(['N-1', 'XN-2'], ['M-1', 'XM-2'], ['L-1', 'XL-1'])
   end
 
-  # N-4 is not contiguous with N-3, so the N-1 group closes before the last C-1 enrollment
-  describe 'after a 2023 import that extends the C-1 group and adds a later stay' do
+  # N-4 is not contiguous with N-3, so the N-1 group closes before the last C-1 enrollment.
+  # C-3 has no later stay, so the L-1 group is emitted after the loop.
+  describe 'after a 2023 import that extends the C-1 and C-3 groups and adds a later C-1 stay' do
     before(:all) do
       import_hmis_csv_fixture(
         "#{fixture_root}/combine_enrollments_across_range_update",
@@ -50,8 +51,9 @@ RSpec.describe 'Combine Enrollments across the export range start', type: :model
       )
     end
 
-    it 'replaces the head enrollment exit and leaves groups outside the range alone' do
-      expect(live_exits).to contain_exactly(['N-1', 'XN-3'], ['N-4', 'XN-4'], ['M-1', 'XM-2'])
+    it 'replaces the head enrollment exits and leaves groups outside the range alone' do
+      expect(GrdaWarehouse::Hud::Enrollment.pluck(:EnrollmentID)).to contain_exactly('N-1', 'N-4', 'M-1', 'L-1')
+      expect(live_exits).to contain_exactly(['N-1', 'XN-3'], ['N-4', 'XN-4'], ['M-1', 'XM-2'], ['L-1', 'XL-2'])
     end
 
     describe 'and the same file again' do
@@ -66,8 +68,8 @@ RSpec.describe 'Combine Enrollments across the export range start', type: :model
       end
 
       it 'keeps the head enrollment and its exit live' do
-        expect(GrdaWarehouse::Hud::Enrollment.pluck(:EnrollmentID)).to contain_exactly('N-1', 'N-4', 'M-1')
-        expect(live_exits).to contain_exactly(['N-1', 'XN-3'], ['N-4', 'XN-4'], ['M-1', 'XM-2'])
+        expect(GrdaWarehouse::Hud::Enrollment.pluck(:EnrollmentID)).to contain_exactly('N-1', 'N-4', 'M-1', 'L-1')
+        expect(live_exits).to contain_exactly(['N-1', 'XN-3'], ['N-4', 'XN-4'], ['M-1', 'XM-2'], ['L-1', 'XL-2'])
       end
     end
   end

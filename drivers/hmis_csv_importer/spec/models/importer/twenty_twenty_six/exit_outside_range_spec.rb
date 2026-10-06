@@ -32,7 +32,7 @@ RSpec.describe 'HMIS CSV import of exits outside the export range', type: :model
     before(:all) { reset_to_initial_import }
 
     it 'imports every exit live' do
-      expect(GrdaWarehouse::Hud::Exit.pluck(:ExitID)).to contain_exactly('X-A', 'X-B', 'X-C', 'X-D', 'X-E', 'X-F', 'X-G1', 'X-H')
+      expect(GrdaWarehouse::Hud::Exit.pluck(:ExitID)).to contain_exactly('X-A', 'X-B', 'X-C', 'X-D', 'X-E', 'X-F', 'X-G1', 'X-H', 'X-I')
     end
   end
 
@@ -40,16 +40,30 @@ RSpec.describe 'HMIS CSV import of exits outside the export range', type: :model
     before(:all) do
       reset_to_initial_import
       GrdaWarehouse::Hud::Enrollment.where(EnrollmentID: ['E-A', 'E-B']).update_all(processed_as: 'stale')
+      # HUD keys match E-A and X-A, so only data_source_id keeps the import away from these rows
+      @other_data_source = create(:source_data_source)
+      create(:hud_enrollment, data_source: @other_data_source, EnrollmentID: 'E-A', PersonalID: 'C-1', ProjectID: 'P-1', EntryDate: '2021-01-15', processed_as: 'stale')
+      create(:hud_exit, data_source: @other_data_source, EnrollmentID: 'E-A', ExitID: 'X-A', PersonalID: 'C-1', ExitDate: '2022-06-30')
       import(fixture_dir('exit_outside_range_update'))
     end
 
-    # X-C and X-H are off-spec input; see the 'with rows a reporting-period export never contains' context
+    def imported_exits
+      GrdaWarehouse::Hud::Exit.where.not(data_source: @other_data_source)
+    end
+
+    # X-C and X-H are off-spec input; see the 'with rows a reporting-period export never contains' context.
+    # The file sends E-I under a ProjectID that is not in Project.csv.
     it 'soft-deletes exactly the exits the import is authoritative for and did not send' do
-      expect(GrdaWarehouse::Hud::Exit.only_deleted.pluck(:ExitID)).to contain_exactly('X-A', 'X-D', 'X-E', 'X-G1')
+      expect(imported_exits.only_deleted.pluck(:ExitID)).to contain_exactly('X-A', 'X-D', 'X-E', 'X-G1', 'X-I')
     end
 
     it 'keeps exits of enrollments not in the file, exits sent in the file, and exits after ExportEndDate' do
-      expect(GrdaWarehouse::Hud::Exit.pluck(:ExitID)).to contain_exactly('X-B', 'X-C', 'X-F', 'X-G2', 'X-H')
+      expect(imported_exits.pluck(:ExitID)).to contain_exactly('X-B', 'X-C', 'X-F', 'X-G2', 'X-H')
+    end
+
+    it 'leaves exits and enrollments in another data source untouched' do
+      expect(GrdaWarehouse::Hud::Exit.where(data_source: @other_data_source).pluck(:ExitID)).to eq(['X-A'])
+      expect(GrdaWarehouse::Hud::Enrollment.where(data_source: @other_data_source).pluck(:processed_as)).to eq(['stale'])
     end
 
     # These rows break the FY2026 CSV spec's reporting-period rules. The examples record
@@ -68,12 +82,14 @@ RSpec.describe 'HMIS CSV import of exits outside the export range', type: :model
     # Pass 1 upserts every in-file enrollment with processed_as nil, so E-A can't isolate the
     # new step's reset; E-B catches a reset that reaches enrollments outside the file.
     it 'clears processed_as on enrollments in the file and leaves the rest alone' do
-      processed = GrdaWarehouse::Hud::Enrollment.where(EnrollmentID: ['E-A', 'E-B']).pluck(:EnrollmentID, :processed_as).to_h
+      processed = GrdaWarehouse::Hud::Enrollment.where.not(data_source: @other_data_source).
+        where(EnrollmentID: ['E-A', 'E-B']).
+        pluck(:EnrollmentID, :processed_as).to_h
       expect(processed).to eq('E-A' => nil, 'E-B' => 'stale')
     end
 
     it 'counts every removed exit in the import summary' do
-      expect(HmisCsvImporter::Importer::ImporterLog.last.summary['Exit.csv']['removed']).to eq(4)
+      expect(HmisCsvImporter::Importer::ImporterLog.last.summary['Exit.csv']['removed']).to eq(5)
     end
 
     it 'leaves no exits pending deletion' do
@@ -95,8 +111,11 @@ RSpec.describe 'HMIS CSV import of exits outside the export range', type: :model
       import(fixture_dir('exit_outside_range_update'), data_source: threshold.data_source, dry_run: true)
     end
 
+    # The only example that pins ExitDate < ExportStartDate as strict. In a real import, pass 3
+    # deletes X-D (ExitDate == ExportStartDate) before the pre-range pass runs, so a <= there
+    # changes nothing. Here, a <= would count X-D twice.
     it 'includes exits before ExportStartDate in the precalculated Exit.csv removed count' do
-      expect(HmisCsvImporter::Importer::ImporterLog.last.summary['Exit.csv']['removed']).to eq(4)
+      expect(HmisCsvImporter::Importer::ImporterLog.last.summary['Exit.csv']['removed']).to eq(5)
     end
   end
 
