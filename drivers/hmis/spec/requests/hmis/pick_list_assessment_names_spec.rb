@@ -66,6 +66,12 @@ RSpec.describe 'PickList ASSESSMENT_NAMES', type: :request do
     expect(fetch_options.select { |o| o['code'] == 'versioned' }).to eq([{ 'code' => 'versioned', 'label' => 'New Title' }])
   end
 
+  it 'lists a retired assessment that has no published  and no applicable rules, for legacy data' do
+    create(:hmis_form_definition, data_source: ds1, role: :CUSTOM_ASSESSMENT, identifier: 'retired_only', title: 'Retired Only', status: Hmis::Form::Definition::RETIRED)
+
+    expect(fetch_options).to include({ 'code' => 'retired_only', 'label' => 'Retired Only' })
+  end
+
   it 'lists an assessment with the published title when a newer draft version exists' do
     create(:hmis_form_definition, data_source: ds1, role: :CUSTOM_ASSESSMENT, identifier: 'being_edited', title: 'Published Title', version: 1)
     create(:hmis_form_definition, data_source: ds1, role: :CUSTOM_ASSESSMENT, identifier: 'being_edited', title: 'Draft Title', version: 2, status: Hmis::Form::Definition::DRAFT)
