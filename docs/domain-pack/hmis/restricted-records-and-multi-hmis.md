@@ -122,8 +122,11 @@ not revert retained-client attributes, recreate deduped records, or restore
 
 `hmis_restricted_records` (`Hmis::RestrictedRecord`, `acts_as_paranoid`, `has_paper_trail`) has a
 polymorphic `restrictable`; `RESTRICTABLE_TYPES` is `['Hmis::Hud::Client']` today. An active row
-means restricted. `mark!` restores a soft-deleted row if one exists and validates
-`data_source_id` matches the record. `unmark!` destroys the row.
+means restricted. `mark!` is a no-op when an active row exists, and otherwise appends a new row
+rather than restoring a soft-deleted one, so the restriction lands in PaperTrail history
+(Paranoia's `restore` skips callbacks). The unique index is partial on `deleted_at IS NULL`, so a
+restrictable has at most one active row and any number of soft-deleted ones — `with_deleted`
+lookups must expect more than one. `unmark!` destroys the row.
 
 `UserContext#pii_redacted_for_client?(client_id)` is the one rule: false unless restricted; true
 if the client has no enrollments in the data source (no project through which the permission
@@ -232,7 +235,7 @@ check uses `true_hmis_user`, so an admin impersonating a blocked user is not loc
   `Client.searchable_to(user)`, which derives from `pii_redacted_for_client?` so search and
   redaction cannot drift.
 - Calling `Hmis::RestrictedRecord.create!` or `destroy!` directly. Use
-  `client.mark_as_restricted!(user:)` / `remove_restriction!` so restore-if-deleted and
+  `client.mark_as_restricted!(user:)` / `remove_restriction!` so the already-restricted no-op and
   data-source validation apply.
 - Moving client-owned records in a merge without writing `pre_merge_mappings`. Add the key to
   `ClientMergeAudit::PRE_MERGE_MAPPING_EXPECTED_FIELDS` and a restore step in
