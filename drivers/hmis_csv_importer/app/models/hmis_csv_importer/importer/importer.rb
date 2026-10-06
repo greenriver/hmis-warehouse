@@ -16,7 +16,7 @@
 # Lifecycle:
 #   pre_process! → validate → aggregate → cleanup → ingest! → post_process
 #
-# Ingestion (ingest!) runs four passes per HUD file:
+# Ingestion (ingest!) runs five passes per HUD file:
 #   0. mark_tree_as_dead   — flag all in-scope warehouse rows as pending deletion
 #   1. add_new_data        — upsert staging rows whose hud_key is absent from the
 #                            in-scope warehouse set (upsert handles keys that exist
@@ -26,6 +26,10 @@
 #      b. mark_incoming_older  — staging DateUpdated < warehouse → clear pending deletion
 #      c. apply_updates        — everything still pending → overwrite warehouse from staging
 #   3. remove_pending_deletes — soft-delete anything still flagged
+#   4. remove_exits_before_export_range — soft-delete exits dated before
+#                            ExportStartDate for enrollments in Enrollment.csv
+#                            whose ExitID is not in Exit.csv (outside the
+#                            involved scope, so passes 0-3 can't reach them)
 #
 # Terminology:
 #   "involved scope" / "in-scope" — the set of warehouse rows this import is
@@ -692,6 +696,9 @@ module HmisCsvImporter::Importer
       # Sweep all remaining items in a pending delete state
       log_timing :remove_pending_deletes
 
+      # Remove exits before the export range for enrollments this import sent without them
+      log_timing :remove_exits_before_export_range
+
       # Update the effective export end date of the export
       log_timing :set_effective_export_end_date
 
@@ -983,6 +990,33 @@ module HmisCsvImporter::Importer
           note_processed(file_name, delete_count, 'removed')
         end
       end
+    end
+
+    # Enrollment.csv is authoritative for the exit of each enrollment it contains,
+    # but exits before ExportStartDate fall outside the involved scope, so passes 0-3 never see them.
+    def remove_exits_before_export_range
+      klass = importable_files['Exit.csv']
+      return unless klass
+      return if custom_augmentation?(klass) || klass.prevent_import_deletions?
+
+      incoming_enrollment_ids = importable_files['Enrollment.csv'].
+        where(importer_log_id: importer_log.id).
+        select(:EnrollmentID)
+      # NOT IN matches nothing if the subquery holds a NULL
+      incoming_exit_ids = klass.where(importer_log_id: importer_log.id).where.not(ExitID: nil).select(:ExitID)
+      scope = GrdaWarehouse::Hud::Exit.
+        where(data_source_id: data_source.id, EnrollmentID: incoming_enrollment_ids).
+        where(GrdaWarehouse::Hud::Exit.arel_table[:ExitDate].lt(date_range.start)).
+        where.not(ExitID: incoming_exit_ids)
+      enrollment_ids = scope.pluck(:EnrollmentID)
+      return if enrollment_ids.empty?
+
+      batch_soft_delete(klass, scope)
+      note_processed('Exit.csv', enrollment_ids.size, 'removed')
+      # Rebuilds service history for the reopened enrollments in post-process
+      GrdaWarehouse::Hud::Enrollment.
+        where(data_source_id: data_source.id, EnrollmentID: enrollment_ids).
+        update_all(processed_as: nil)
     end
 
     def involved_project_ids

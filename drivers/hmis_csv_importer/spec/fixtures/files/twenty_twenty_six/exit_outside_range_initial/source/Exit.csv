@@ -1,0 +1,9 @@
+ExitID,EnrollmentID,PersonalID,ExitDate,Destination,DestinationSubsidyType,OtherDestination,HousingAssessment,SubsidyInformation,ProjectCompletionStatus,EarlyExitReason,ExchangeForSex,ExchangeForSexPastThreeMonths,CountOfExchangeForSex,AskedOrForcedToExchangeForSex,AskedOrForcedToExchangeForSexPastThreeMonths,WorkPlaceViolenceThreats,WorkplacePromiseDifference,CoercedToContinueWork,LaborExploitPastThreeMonths,CounselingReceived,IndividualCounseling,FamilyCounseling,GroupCounseling,SessionCountAtExit,PostExitCounselingPlan,SessionsInPlan,DestinationSafeClient,DestinationSafeWorker,PosAdultConnections,PosPeerConnections,PosCommunityConnections,AftercareDate,AftercareProvided,EmailSocialMedia,Telephone,InPersonIndividual,InPersonGroup,CMExitReason,DateCreated,DateUpdated,UserID,DateDeleted,ExportID
+X-A,E-A,C-1,2022-06-30,101,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,2020-01-01 00:00:00,2021-01-15 00:00:00,user,,XR-1
+X-B,E-B,C-1,2022-06-30,101,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,2020-01-01 00:00:00,2021-01-15 00:00:00,user,,XR-1
+X-C,E-C,C-1,2022-06-30,101,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,2020-01-01 00:00:00,2021-01-15 00:00:00,user,,XR-1
+X-D,E-D,C-1,2023-01-01,101,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,2020-01-01 00:00:00,2021-01-15 00:00:00,user,,XR-1
+X-E,E-E,C-1,2024-12-31,101,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,2020-01-01 00:00:00,2021-01-15 00:00:00,user,,XR-1
+X-F,E-F,C-1,2025-03-31,101,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,2020-01-01 00:00:00,2021-01-15 00:00:00,user,,XR-1
+X-G1,E-G,C-1,2022-05-31,101,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,2020-01-01 00:00:00,2021-01-15 00:00:00,user,,XR-1
+X-H,E-H,C-1,2025-03-31,101,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,2020-01-01 00:00:00,2021-01-15 00:00:00,user,,XR-1
