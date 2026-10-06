@@ -117,6 +117,33 @@ RSpec.describe Clients::FilesController, type: :request do
         expect(file.client.consent_form_valid?).to be true
       end
     end
+
+    context 'under a Use Expiration Date release duration' do
+      before do
+        GrdaWarehouse::Config.delete_all
+        create :config_b, release_duration: 'Use Expiration Date'
+        GrdaWarehouse::Config.invalidate_cache
+      end
+
+      it 're-renders the form and saves nothing when a confirmed consent form has no expiration date' do
+        expect do
+          post client_files_path(client_id: client.id), params: {
+            grda_warehouse_client_file: {
+              client_file: file_upload,
+              tag_list: [consent_tag.name],
+              effective_date: Date.current,
+              consent_form_confirmed: '1',
+              coc_codes: [''],
+            },
+          }
+        end.not_to change(GrdaWarehouse::ClientFile, :count)
+
+        expect(response).to have_http_status(:ok)
+        expect(response.body).to include('Expiration date is required')
+        expect(client.reload.consent_form_id).to be_nil
+        expect(GrdaWarehouse::ClientRoiAuthorization.where(destination_client_id: client.id)).to be_empty
+      end
+    end
   end
 
   describe 'consent revocation and deletion' do
@@ -188,6 +215,8 @@ RSpec.describe Clients::FilesController, type: :request do
               params: { grda_warehouse_client_file: { consent_revoked_at: Date.current.to_s, confidential: '1', data_source_id: '', enrollment_id: '' } },
               xhr: true
 
+        expect(response).to have_http_status(:ok)
+        expect(response.body).to include('Data source', 'blank')
         expect(file.reload.consent_revoked_at).to be_nil
         expect(client.reload.housing_release_status).to eq(GrdaWarehouse::Hud::Client.full_release_string)
         expect(roi_row.status).to eq('full')

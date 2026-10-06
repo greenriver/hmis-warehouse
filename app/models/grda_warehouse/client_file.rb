@@ -31,6 +31,9 @@ module GrdaWarehouse
     # because Rails cannot supply two contexts at once
     validates_presence_of :effective_date, on: :requires_expiration_and_effective_dates, message: 'Effective date is required'
     validates_presence_of :expiration_date, on: :requires_expiration_and_effective_dates, message: 'Expiration date is required'
+    # Under a Use Expiration Date release duration the ROI rebuild clears a client's consent when the
+    # confirmed form has no expiration date, so the form must carry one to grant anything
+    validates_presence_of :expiration_date, if: :expiration_date_required_by_release_duration?, message: 'Expiration date is required'
 
     validates :data_source, presence: true, if: ->(o) { o.confidential? && o.enrollment_id.blank? }
     validates :enrollment, presence: true, if: ->(o) { o.confidential? && o.data_source_id.blank? }
@@ -44,6 +47,12 @@ module GrdaWarehouse
       return unless Rails.application.config.active_storage.service.in?([:amazon, :local_s3])
 
       self.active_storage_url = nil
+    end
+
+    private def expiration_date_required_by_release_duration?
+      consent_form_confirmed && consent_revoked_at.blank? &&
+        GrdaWarehouse::Hud::Client.release_duration == 'Use Expiration Date' &&
+        GrdaWarehouse::AvailableFileTag.contains_consent_form?(tag_list)
     end
 
     scope :confidential, -> do

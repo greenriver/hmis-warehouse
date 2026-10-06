@@ -87,6 +87,10 @@ RSpec.describe GrdaWarehouse::ClientRoiAuthorization, type: :model do
   end
 
   describe '.visible_in_cocs' do
+    # The boundary rows are built from Date.current, so the clock must not move between setup and the query
+    around { |example| freeze_time { example.run } }
+    after { GrdaWarehouse::Config.invalidate_cache }
+
     def use_config(factory)
       GrdaWarehouse::Config.delete_all
       create(factory)

@@ -91,6 +91,8 @@ module GrdaWarehouse::Tasks
         # for clients that never had consent, but necessary for those whose ROI was removed.
         GrdaWarehouse::Hud::Client.invalidate_consent!(no_roi_status_ids)
         # Under Consent::Implied, invalidation writes the implied-consent status, which earns a partial row
+        next unless GrdaWarehouse::Config.implied_consent?
+
         upsert_authorizations(destination_client_scope.where(id: no_roi_status_ids).filter_map { |client| process_client(client) })
       end
     end

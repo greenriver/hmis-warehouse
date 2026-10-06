@@ -619,6 +619,30 @@ RSpec.describe GrdaWarehouse::Vispdat::Individual, type: :model do
       end
     end
 
+    context 'when the client holds a revoked consent file' do
+      let(:consent_tag) { create :available_file_tag, consent_form: true, name: 'Consent Form', full_release: true }
+      let!(:file) { create :client_file, client: client, tags: [consent_tag], effective_date: 5.days.ago }
+
+      before do
+        file.confirm_consent!
+        # Same order as Clients::FilesController#update
+        client.invalidate_consent!(hr_status: Consent::Default.revoked_consent_string)
+        file.update!(consent_revoked_at: Time.current)
+      end
+
+      it 'does not restore the revoked release when the release is unconfirmed' do
+        vispdat = create :vispdat, client: client, housing_release_confirmed: true
+        expect(roi_statuses).to eq(['full'])
+
+        vispdat.update!(housing_release_confirmed: false)
+
+        client.reload
+        expect(client.consent_form_id).to be_nil
+        expect(client.housing_release_status).to be_nil
+        expect(roi_statuses).to be_empty
+      end
+    end
+
     context 'when the client has a confirmed partial consent file' do
       let(:partial_tag) { create :available_file_tag, consent_form: true, name: 'Limited Release', full_release: false }
       let!(:file) { create :client_file, client: client, tags: [partial_tag], effective_date: 5.days.ago }

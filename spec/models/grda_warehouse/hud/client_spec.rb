@@ -424,17 +424,12 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
     end
 
     context 'when consent validity is two years' do
-      # The validity period is read from the config, not from the instance variables below
       around { |example| travel_to(Date.new(2026, 10, 5)) { example.run } }
       after { GrdaWarehouse::Config.invalidate_cache }
 
       before(:each) do
         GrdaWarehouse::Config.first_or_create.update!(release_duration: 'Two Years')
         GrdaWarehouse::Config.invalidate_cache
-        client.instance_variable_set(:@release_duration, 'Two Years')
-        client_signed_yesterday.instance_variable_set(:@release_duration, 'Two Years')
-        client_signed_2_years_ago_short_consent.instance_variable_set(:@release_duration, 'Two Years')
-        client_signed_3_years_ago_short_consent.instance_variable_set(:@release_duration, 'Two Years')
       end
       context 'client with signed consent has ' do
         it 'valid consent when signed yesterday' do

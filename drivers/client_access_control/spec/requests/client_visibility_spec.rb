@@ -91,7 +91,8 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
         expect(doc.text).to include('Displaying 2 client')
         expect(doc.css("a[href='#{client_path(window_destination_client)}']")).not_to be_empty
         expect(doc.css("a[href='#{client_path(both_destination_client)}']")).to be_empty
-        expect(roi_queries).to eq(1)
+        # Two cards are displayed, so a per-card lookup would count at least two
+        expect(roi_queries).to be <= 1
       end
     end
     describe 'and the user has a role granting can search window' do
@@ -960,6 +961,8 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
   context 'when config va (implied consent) is in effect' do
     let!(:user) { create :acl_user }
     let(:roi_collection) { create :collection }
+
+    after { GrdaWarehouse::Config.invalidate_cache }
 
     before do
       GrdaWarehouse::Config.delete_all

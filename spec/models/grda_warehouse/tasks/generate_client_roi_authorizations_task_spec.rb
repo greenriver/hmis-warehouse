@@ -157,6 +157,12 @@ RSpec.describe GrdaWarehouse::Tasks::GenerateClientRoiAuthorizationsTask, type: 
         expect(roi_row).to be_nil
         expect(client.reload).to have_attributes(housing_release_status: nil, consent_form_id: nil, consent_form_signed_on: nil)
       end
+
+      it 'reads the client once under Consent::Default' do
+        client_reads = sql_during { described_class.rebuild_clients([client.id]) }.grep(/SELECT .* FROM "Client"/)
+        expect(client_reads.size).to eq(1)
+        expect(client_reads.first).to include('FOR UPDATE')
+      end
     end
   end
 

@@ -117,11 +117,11 @@ RSpec.describe 'Client dashboard preloads', type: :request do
       'hmis_clients', 'gender', 'fy_24_enrollment_details'
     ]
 
-    rollups.each do |partial|
-      it "renders #{partial} with every source client linked" do
+    it 'renders every rollup with every source client linked' do
+      rollups.each do |partial|
         get rollup_client_path(destination, partial: partial), xhr: true
 
-        expect(response).to have_http_status(:ok)
+        expect(response).to have_http_status(:ok), "#{partial} responded #{response.status}"
       end
     end
 
