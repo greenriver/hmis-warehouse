@@ -25,6 +25,7 @@ class ProjectsController < ApplicationControllerV2
       preload(:client).
       order(she_t[:first_date_in_program].desc, she_t[:last_date_in_program].desc)
     @pagy, @clients = pagy(@clients)
+    current_user.policy_context.preload_client_dependencies(@clients.map(&:client_id))
   end
 
   def edit

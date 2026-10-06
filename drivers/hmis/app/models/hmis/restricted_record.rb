@@ -38,13 +38,12 @@ class Hmis::RestrictedRecord < Hmis::HmisBase
   def self.mark!(record, user:)
     raise ArgumentError, "unsupported restrictable type #{record.class.name}" unless RESTRICTABLE_TYPES.include?(record.class.name)
 
-    existing = with_deleted.find_by(restrictable: record, data_source_id: record.data_source_id)
-    if existing
-      existing.restore if existing.deleted?
-      existing.update!(created_by: user)
-      return existing
-    end
+    # Already restricted: no-op, so created_by keeps the original restricting user.
+    existing = find_by(restrictable: record)
+    return existing if existing
 
+    # Append a new whether a restriction is recreated or added as new, this captures the change
+    # in PaperTrail history.
     create!(
       restrictable: record,
       data_source_id: record.data_source_id,
