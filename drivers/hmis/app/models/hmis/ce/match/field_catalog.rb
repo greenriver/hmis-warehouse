@@ -24,7 +24,11 @@ module Hmis::Ce::Match
     # Build this catalog from the registry so newly registered PSDE fields are
     # automatically available through the GraphQL field query.
     def psde_fields
-      Hmis::Ce::Match::Expression::PsdeFieldRegistry::ALL.map { |psde_field| build_psde_field(psde_field) }
+      Hmis::Ce::Match::Expression::PsdeFieldRegistry::ALL.map { |psde_field| build_registry_field(psde_field, Hmis::Ce::Match::Expression::PsdeFieldMap, :PSDE) }
+    end
+
+    def household_fields
+      Hmis::Ce::Match::Expression::HouseholdFieldRegistry::ALL.map { |household_field| build_registry_field(household_field, Hmis::Ce::Match::Expression::HouseholdFieldMap, :HOUSEHOLD) }
     end
 
     def custom_assessment_fields_for(data_source_id:, form_definition_identifier:)
@@ -49,7 +53,10 @@ module Hmis::Ce::Match
         build_client_field(client_field) if client_field
       when Hmis::Ce::Match::Expression::FieldMap::PSDE
         psde_field = Hmis::Ce::Match::Expression::PsdeFieldRegistry[resolved_key]
-        build_psde_field(psde_field) if psde_field
+        build_registry_field(psde_field, Hmis::Ce::Match::Expression::PsdeFieldMap, :PSDE) if psde_field
+      when Hmis::Ce::Match::Expression::FieldMap::HOUSEHOLD
+        household_field = Hmis::Ce::Match::Expression::HouseholdFieldRegistry[resolved_key]
+        build_registry_field(household_field, Hmis::Ce::Match::Expression::HouseholdFieldMap, :HOUSEHOLD) if household_field
       when Hmis::Ce::Match::Expression::FieldMap::CDE
         cded_key = resolved_key.split('.').last
         cded = Hmis::Hud::CustomDataElementDefinition.for_ce_match_conditions.find_by(key: cded_key)
@@ -86,19 +93,20 @@ module Hmis::Ce::Match
       )
     end
 
-    def build_psde_field(psde_field)
-      # Keep the psde.* namespace in both identifiers. Besides matching the
+    # Builds a Field for registry-backed namespaces (psde.*, household.*)
+    def build_registry_field(registry_field, field_map, source)
+      # Keep the namespace (e.g. psde.*) in both identifiers. Besides matching the
       # expression syntax, this prevents collisions with client and CDED fields.
-      field_key = Hmis::Ce::Match::Expression::PsdeFieldMap.field_key_for(psde_field.key)
+      field_key = field_map.field_key_for(registry_field.key)
 
       Field.new(
         id: field_key,
-        label: psde_field.label,
-        description: psde_field.description,
-        item_type: item_type_for_psde_field(psde_field),
-        multiple: psde_field.multiple,
+        label: registry_field.label,
+        description: registry_field.description,
+        item_type: item_type_for_registry_field(registry_field),
+        multiple: registry_field.multiple,
         field_key: field_key,
-        source: :PSDE,
+        source: source,
         form_definition_identifier: nil,
         pick_list_reference: nil,
         pick_list_options: nil,
@@ -138,16 +146,16 @@ module Hmis::Ce::Match
       end
     end
 
-    def item_type_for_psde_field(psde_field)
-      # PSDE registry value types are intentionally storage-agnostic; translate
+    def item_type_for_registry_field(registry_field)
+      # Registry value types are intentionally storage-agnostic; translate
       # them into the form item types understood by the rule editor.
-      case psde_field.value_type
+      case registry_field.value_type
       when :logical
         'BOOLEAN'
       when :numeric
         'INTEGER'
       else
-        raise ArgumentError, "unsupported value type for expression builder field #{psde_field.key}: #{psde_field.value_type}"
+        raise ArgumentError, "unsupported value type for expression builder field #{registry_field.key}: #{registry_field.value_type}"
       end
     end
 

@@ -39,6 +39,15 @@ The classes within this module are organized into several subdirectories to grou
 - **Caching Scope**: `UnitGroupRuleResolver` may memoize within process for performance. Pool caching is encapsulated in `CandidatePoolRepository`.
 - **Per-Unit Rules**: To implement rules that apply to individual units, place each unit in its own separate unit group.
 
+## Household Fields (`household.*`)
+
+`household.size`, `household.youngest_member_age`, and `household.oldest_member_age` describe the client's current household. They are evaluated in Ruby only (no SQL prefilter).
+
+- **Which household**: `HouseholdSelector` considers only open households: the client's own enrollment must be open (WIP included; an `ExitDate` of today counts as exited) and in the global eligibility project group. The eligibility lookback window does not apply. The household with the most open members wins; ties go to the most recent HoH `EntryDate`, then the client's most recently updated enrollment, then the highest enrollment `id`.
+- **Values**: `size` counts open member enrollments, including members with no DOB. Ages use each member's destination client DOB, calculated the same way as `current_age`; members with no DOB are ignored, and ages are `nil` when no member has one. Clients with no open in-scope household get `nil` for all three, so positive household rules don't match them.
+- **DOB caveat**: because DOB-less members are ignored for ages, an adult with a DOB-less child passes `household.youngest_member_age >= 18`. Such households may need manual verification.
+- **Freshness**: saving an Enrollment or Exit marks the other open members of the affected household(s) dirty (`Hmis::MarkClientAsDirtyBehavior#ce_affected_households`). A DOB change marks them dirty when `GrdaWarehouse::Tasks::ClientCleanup` copies it to the destination client, since ages read the destination DOB. A future field that reads another member demographic (e.g. "household contains veteran") must add the same propagation there. Members aging across a band are picked up by the daily full refresh, not instantly.
+
 ## Unit Group–Driven Maintenance
 
 - The `CandidatePoolBuilder` is the primary tool for maintaining pools. It can be invoked for all unit groups to ensure all waitlists are up-to-date, or it can be scoped to a specific set of `unit_group_ids` for more targeted updates. It only maintains pools for Unit Groups that belong to projects where Waitlist-based CE Referrals are enabled, as configured by `Hmis::ProjectCeConfig`, and that have a waitlist workflow template.

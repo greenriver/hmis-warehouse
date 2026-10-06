@@ -35,6 +35,16 @@ class Hmis::Hud::Exit < Hmis::Hud::Base
     HudHelper.util.counseling_method_fields.select { |k| send(k) == 1 }.values
   end
 
+  # Hmis::MarkClientAsDirtyBehavior hook
+  protected def ce_affected_households
+    # warehouse_columns_changed? is broader than needed (e.g. Destination) but skips unrelated edits.
+    # Soft delete writes DateDeleted via update_columns, so it isn't in saved_changes; check deleted? instead.
+    return [] unless deleted? || warehouse_columns_changed?
+    return [] unless enrollment&.household_id
+
+    [[enrollment.data_source_id, enrollment.household_id]]
+  end
+
   private def warehouse_trigger_processing
     return unless enrollment && warehouse_columns_changed?
 

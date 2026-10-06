@@ -406,6 +406,47 @@ RSpec.describe Hmis::Ce::Match::Engine, type: :model do
     end
   end
 
+  context 'when evaluating household-based policies' do
+    let(:today) { Date.current }
+    let!(:hoh) { create(:hmis_hud_client_with_warehouse_client, data_source: data_source, dob: today - 40.years) }
+    let!(:child) { create(:hmis_hud_client_with_warehouse_client, data_source: data_source, dob: today - 18.years + 1.week) }
+    let!(:hoh_enrollment) { create(:hmis_hud_enrollment, data_source: data_source, project: project, client: hoh, household_id: 'HH1', relationship_to_ho_h: 1) }
+    let!(:child_enrollment) { create(:hmis_hud_enrollment, data_source: data_source, project: project, client: child, household_id: 'HH1', relationship_to_ho_h: 2) }
+
+    def candidate_ids(current_date: today)
+      described_class.call(pool, current_date: current_date)
+      pool.reload.candidates.map { |candidate| candidate.client_proxy.client_id }.sort
+    end
+
+    describe 'household.size > 1' do
+      let(:requirement_expression) { 'household.size > 1' }
+
+      it 'un-matches after a member exits' do
+        expect(candidate_ids).to eq([hoh.destination_client.id, child.destination_client.id].sort)
+
+        create(:hmis_hud_exit, enrollment: child_enrollment, client: child, data_source: data_source, exit_date: today - 1.day)
+        expect(candidate_ids).to be_empty
+      end
+    end
+
+    describe 'adult-only household (household.youngest_member_age >= 18)' do
+      let(:requirement_expression) { 'household.youngest_member_age >= 18' }
+
+      it 'matches once the youngest member turns 18' do
+        expect(candidate_ids).to be_empty
+        expect(candidate_ids(current_date: today + 1.week)).to eq([hoh.destination_client.id, child.destination_client.id].sort)
+      end
+    end
+
+    describe 'adult + child household' do
+      let(:requirement_expression) { 'household.youngest_member_age < 18 AND household.oldest_member_age >= 18' }
+
+      it 'matches both members' do
+        expect(candidate_ids).to eq([hoh.destination_client.id, child.destination_client.id].sort)
+      end
+    end
+  end
+
   context 'when destination client has multiple source clients' do
     def create_client_and_deduplicate
       client = create(:hmis_hud_client, personal_id: '100', data_source: data_source, first_name: 'Margaret', last_name: 'Blue', dob: '1999-12-01', ssn: '123-45-6789')

@@ -49,4 +49,74 @@ RSpec.describe Hmis::MarkClientAsDirtyBehavior do
   include_examples 'marks client as dirty', :hmis_hud_assessment
   include_examples 'marks client as dirty', :hmis_hud_enrollment
   include_examples 'marks client as dirty', :hmis_hud_exit
+
+  describe 'household member propagation' do
+    let!(:c2) { create :hmis_hud_client, data_source: ds1, user: u1, first_name: 'Ada', last_name: 'Lovelace', dob: 30.years.ago.to_date }
+    let!(:c3) { create :hmis_hud_client, data_source: ds1, user: u1, first_name: 'Alan', last_name: 'Turing', dob: 50.years.ago.to_date }
+    let!(:c1_enrollment) { create :hmis_hud_enrollment, client: c1, data_source: ds1, household_id: 'HH1' }
+    let!(:c3_enrollment) { create :hmis_hud_enrollment, client: c3, data_source: ds1, household_id: 'HH2' }
+
+    before do
+      GrdaWarehouse::Tasks::IdentifyDuplicates.new.run!
+      Hmis::Ce::ChangeMarker.mark_processed(Hmis::Ce::ChangeMarker.all)
+    end
+
+    def dirty?(client)
+      Hmis::Ce::ChangeMarker.where(trackable_id: client.reload.destination_client.id).dirty.exists?
+    end
+
+    it 'marks household members dirty when a member joins' do
+      create :hmis_hud_enrollment, client: c2, data_source: ds1, household_id: 'HH1'
+      expect(dirty?(c1)).to be true
+      expect(dirty?(c3)).to be false
+    end
+
+    context 'with a second member' do
+      let!(:c2_enrollment) { create :hmis_hud_enrollment, client: c2, data_source: ds1, household_id: 'HH1' }
+
+      before { Hmis::Ce::ChangeMarker.mark_processed(Hmis::Ce::ChangeMarker.all) }
+
+      it 'marks household members dirty when a member exits' do
+        create :hmis_hud_exit, enrollment: c2_enrollment, client: c2, data_source: ds1
+        expect(dirty?(c1)).to be true
+      end
+
+      it 'marks old and new household members dirty when a member moves households' do
+        c2_enrollment.update!(household_id: 'HH2')
+        expect(dirty?(c1)).to be true
+        expect(dirty?(c3)).to be true
+      end
+
+      # Member ages read the destination DOB, so propagation happens when ClientCleanup copies a source DOB change to it
+      it 'marks household members dirty when ClientCleanup updates a member destination DOB' do
+        c2.update!(dob: 5.years.ago.to_date)
+        Hmis::Ce::ChangeMarker.mark_processed(Hmis::Ce::ChangeMarker.all)
+
+        GrdaWarehouse::Tasks::ClientCleanup.new(destination_ids: [c2.reload.destination_client.id]).update_client_demographics_based_on_sources
+        expect(dirty?(c2)).to be true
+        expect(dirty?(c1)).to be true
+        expect(dirty?(c3)).to be false
+      end
+
+      it 'marks household members dirty when a member enrollment is deleted' do
+        c2_enrollment.destroy!
+        expect(dirty?(c1)).to be true
+      end
+
+      it 'marks household members dirty when a member exit is deleted' do
+        exit = create :hmis_hud_exit, enrollment: c2_enrollment, client: c2, data_source: ds1
+        Hmis::Ce::ChangeMarker.mark_processed(Hmis::Ce::ChangeMarker.all)
+        exit.destroy!
+        expect(dirty?(c1)).to be true
+      end
+
+      it 'does not mark household members dirty for unrelated enrollment or exit changes' do
+        exit = create :hmis_hud_exit, enrollment: c2_enrollment, client: c2, data_source: ds1
+        Hmis::Ce::ChangeMarker.mark_processed(Hmis::Ce::ChangeMarker.all)
+        c2_enrollment.update!(date_of_engagement: Date.current)
+        exit.update!(counseling_received: 1)
+        expect(dirty?(c1)).to be false
+      end
+    end
+  end
 end

@@ -590,6 +590,17 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
     ]).any?
   end
 
+  # Hmis::MarkClientAsDirtyBehavior hook: this household, plus the previous one if the enrollment moved
+  protected def ce_affected_households
+    # warehouse_columns_changed? is broader than needed (e.g. MoveInDate) but skips unrelated edits.
+    # Soft delete writes DateDeleted via update_columns, so it isn't in saved_changes; check deleted? instead.
+    return [] unless deleted? || warehouse_columns_changed?
+
+    household_ids = [household_id]
+    household_ids << attribute_before_last_save('HouseholdID') if saved_change_to_attribute?('HouseholdID')
+    household_ids.compact.uniq.map { |id| [data_source_id, id] }
+  end
+
   # Extensions from drivers — see ADR 0007
   include HmisExternalApis::Hmis::Hud::EnrollmentExtension
 end

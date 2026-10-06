@@ -735,6 +735,8 @@ module Types
         catalog.client_fields
       when 'PSDE'
         catalog.psde_fields
+      when 'HOUSEHOLD'
+        catalog.household_fields
       else
         raise HmisErrors::ApiError, "Unsupported CE match field source: #{field_source}"
       end
