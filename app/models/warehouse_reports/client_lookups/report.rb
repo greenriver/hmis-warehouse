@@ -108,7 +108,9 @@ module WarehouseReports
       # decision in `flush_group` and the exported row count.
       def each_batch
         query.pluck_in_batches(pluck_columns, batch_size: BATCH_SIZE) do |batch|
-          yield batch.map { |values| PluckedRow.new(*values) }
+          rows = batch.map { |values| PluckedRow.new(*values) }
+          user.policy_context.preload_client_restrictions(rows.map(&:destination_id))
+          yield rows
         end
       end
 

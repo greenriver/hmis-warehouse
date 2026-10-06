@@ -55,6 +55,13 @@ FactoryBot.define do
     description { 'Mapping table to translate warehouse IDs to HMIS Personal IDs' }
   end
 
+  factory :client_retention_report, class: 'GrdaWarehouse::WarehouseReports::ReportDefinition' do
+    report_group { 'Audit' }
+    url { 'warehouse_reports/client_retention' }
+    name { 'Client Data Retention' }
+    description { 'Retention runs, marked clients and clients expiring soon' }
+  end
+
   factory :data_source_report, class: 'GrdaWarehouse::WarehouseReports::ReportDefinition' do
     report_group { 'Operational Reports' }
     url { 'data_source_report/warehouse_reports/reports' }

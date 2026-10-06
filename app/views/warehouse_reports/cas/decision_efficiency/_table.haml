@@ -1,3 +1,4 @@
+- current_user.policy_context.preload_client_dependencies(@data.map { |row| row[:warehouse_client_id] })
 - if @data.any?
   .d-flex.mb-4
     %h2 Details

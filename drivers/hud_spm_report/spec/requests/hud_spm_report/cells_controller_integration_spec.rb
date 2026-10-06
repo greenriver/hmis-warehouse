@@ -302,9 +302,10 @@ RSpec.describe 'HudSpmReport CellsController Integration', type: :request do
     end
 
     it 'shows the HMIS ProjectID without a link when the user cannot view projects' do
-      # The controller loads current_user fresh from the database each request; it is never this
-      # `user` object. Revoke it on the persisted role instead
       user.legacy_roles.each { |role| role.update!(can_view_projects: false, can_edit_projects: false) }
+      # sign_in hands the controller this exact `user` instance, which memoized its permissions
+      # during setup_report. Sign in a fresh instance so the revoke is seen.
+      sign_in(User.find(user.id))
 
       get hud_reports_spm_measure_cell_path(
         spm_id: @report.id,

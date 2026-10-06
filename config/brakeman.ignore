@@ -872,6 +872,39 @@
       "note": ""
     },
     {
+      "warning_type": "Cross-Site Scripting",
+      "warning_code": 2,
+      "fingerprint": "7c1f3be4bc3c222b890000bc731faebbb80513033b3c9330f0c7b0628be39c5d",
+      "check_name": "CrossSiteScripting",
+      "message": "Unescaped model attribute",
+      "file": "drivers/public_reports/app/views/public_reports/warehouse_reports/state_level_homelessness/_glossary_content.haml",
+      "line": 11,
+      "link": "https://brakemanscanner.org/docs/warning_types/cross_site_scripting",
+      "code": "Redcarpet::Markdown.new(::TranslatedHtml).render(Translation.translate(\"Public Report Glossary\"))",
+      "render_path": [
+        {
+          "type": "template",
+          "name": "public_reports/warehouse_reports/state_level_homelessness/entering_exiting",
+          "line": 11,
+          "file": "drivers/public_reports/app/views/public_reports/warehouse_reports/state_level_homelessness/entering_exiting.haml",
+          "rendered": {
+            "name": "public_reports/warehouse_reports/state_level_homelessness/_glossary_content",
+            "file": "drivers/public_reports/app/views/public_reports/warehouse_reports/state_level_homelessness/_glossary_content.haml"
+          }
+        }
+      ],
+      "location": {
+        "type": "template",
+        "template": "public_reports/warehouse_reports/state_level_homelessness/_glossary_content"
+      },
+      "user_input": "Translation.translate(\"Public Report Glossary\")",
+      "confidence": "Weak",
+      "cwe_id": [
+        79
+      ],
+      "note": ""
+    },
+    {
       "warning_type": "SQL Injection",
       "warning_code": 0,
       "fingerprint": "7c66a105e2dc82603b638726429867081fd7bdfc09b716d4699dcf62401a11e6",
@@ -1598,7 +1631,7 @@
       "cwe_id": [
         79
       ],
-      "note": ""
+      "note": "Theme CSS is admin-authored, same as the application layout entry"
     },
     {
       "warning_type": "SQL Injection",
