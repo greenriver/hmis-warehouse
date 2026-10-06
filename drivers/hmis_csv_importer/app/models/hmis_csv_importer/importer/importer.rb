@@ -994,6 +994,8 @@ module HmisCsvImporter::Importer
 
     # Enrollment.csv is authoritative for the exit of each enrollment it contains,
     # but exits before ExportStartDate fall outside the involved scope, so passes 0-3 never see them.
+    # Reads raw staging: a staged enrollment that failed validation, or whose project isn't in
+    # Project.csv, still counts, because the source still reports it without an exit.
     def remove_exits_before_export_range
       klass = importable_files['Exit.csv']
       return unless klass

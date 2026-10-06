@@ -58,10 +58,9 @@ RSpec.describe 'HMIS CSV import of exits outside the export range', type: :model
       end
     end
 
-    # E-B is the control: it is not in the update file, so nothing in the import touches it.
-    # Every enrollment in the file is upserted by pass 1 with processed_as nil, so an in-file
-    # enrollment can't serve as the control.
-    it 'clears processed_as only on enrollments whose exit was removed before the range' do
+    # Pass 1 upserts every in-file enrollment with processed_as nil, so E-A can't isolate the
+    # new step's reset; E-B catches a reset that reaches enrollments outside the file.
+    it 'clears processed_as on enrollments in the file and leaves the rest alone' do
       processed = GrdaWarehouse::Hud::Enrollment.where(EnrollmentID: ['E-A', 'E-B']).pluck(:EnrollmentID, :processed_as).to_h
       expect(processed).to eq('E-A' => nil, 'E-B' => 'stale')
     end
