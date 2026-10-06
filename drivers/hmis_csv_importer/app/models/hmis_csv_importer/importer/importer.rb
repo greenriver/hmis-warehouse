@@ -1021,17 +1021,20 @@ module HmisCsvImporter::Importer
       klass = importable_files['Exit.csv']
       return unless klass
       return if custom_augmentation?(klass) || klass.prevent_import_deletions?
-      return unless export_record.ExportPeriodType.to_i == HudHelper.util.export_period_type('Reporting period', true)
+      return unless export_record.ExportPeriodType.to_i == HudHelper.util(importer_log.version).export_period_type('Reporting period', true)
 
       incoming_enrollment_ids = importable_files['Enrollment.csv'].
         where(importer_log_id: importer_log.id).
         select(:EnrollmentID)
-      # NOT IN matches nothing if the subquery holds a NULL
-      incoming_exit_ids = klass.where(importer_log_id: importer_log.id).where.not(ExitID: nil).select(:ExitID)
+      warehouse_exits = GrdaWarehouse::Hud::Exit.arel_table
+      incoming_exit = klass.
+        where(importer_log_id: importer_log.id).
+        where(klass.arel_table[:ExitID].eq(warehouse_exits[:ExitID])).
+        select(1)
       GrdaWarehouse::Hud::Exit.
         where(data_source_id: data_source.id, EnrollmentID: incoming_enrollment_ids).
-        where(GrdaWarehouse::Hud::Exit.arel_table[:ExitDate].lt(date_range.start)).
-        where.not(ExitID: incoming_exit_ids)
+        where(warehouse_exits[:ExitDate].lt(date_range.start)).
+        where(incoming_exit.arel.exists.not)
     end
 
     def involved_project_ids
