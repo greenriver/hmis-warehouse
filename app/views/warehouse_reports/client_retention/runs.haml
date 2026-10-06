@@ -1,0 +1,2 @@
+= render 'header'
+= render_paginated_list(scope: @runs, item_name: 'run', list_partial: 'runs_list', empty_message: 'No retention runs have completed yet')

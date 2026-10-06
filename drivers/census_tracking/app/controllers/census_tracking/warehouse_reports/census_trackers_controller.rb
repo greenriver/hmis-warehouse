@@ -33,6 +33,7 @@ module CensusTracking::WarehouseReports
       @project_name = GrdaWarehouse::Hud::Project.viewable_by(current_user, permission: :can_view_assigned_reports).find(@project_id)&.safe_project_name
       @clients = @report.clients_by_project(@project_id, @key).
         sort_by { |client| [client.project_name, client.last_name, client.first_name] }
+      current_user.policy_context.preload_client_dependencies(@clients.map(&:client_id))
     end
 
     private def filter

@@ -1,4 +1,5 @@
 - clients = @report.support_for(params)
+- current_user.policy_context.preload_client_dependencies(clients.map(&:id))
 %h1.mb-6= @report.support_title(params)
 .d-flex.mb-4
   %p Showing #{pluralize(clients.count, 'clients')}

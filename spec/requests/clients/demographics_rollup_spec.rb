@@ -120,6 +120,21 @@ RSpec.describe 'Client dashboard demographic table', type: :request do
       )
     end
 
+    it 'renders every visible source row when the configured columns need no name, SSN, or DOB and sources outnumber the preload miss threshold' do
+      store_columns(['veteran_status'])
+      extra = Array.new(preload_miss_client_count) do |i|
+        source = create(:grda_warehouse_hud_client, data_source_id: window_visible_data_source.id, FirstName: "Rollup#{i}", LastName: 'Coverage')
+        create(:grda_warehouse_hud_enrollment, data_source_id: window_visible_data_source.id, PersonalID: source.PersonalID, ProjectID: window_project.ProjectID, EntryDate: 1.month.ago.to_date)
+        GrdaWarehouse::WarehouseClient.create!(destination_id: window_destination_client.id, source_id: source.id, data_source_id: window_visible_data_source.id, id_in_source: source.PersonalID)
+        source
+      end
+
+      get_demographics
+      table = demographics_table
+
+      extra.each { |source| expect(source_row(table, source)).to be_present }
+    end
+
     # Sex is the one column absent from the defaults, so it exercises the opt-in path end to end.
     it 'renders the HUD sex label in both rows once sex is configured' do
       store_columns(['name', 'sex'])

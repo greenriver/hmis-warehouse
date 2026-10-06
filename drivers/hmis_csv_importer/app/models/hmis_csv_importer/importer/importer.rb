@@ -787,13 +787,17 @@ module HmisCsvImporter::Importer
           # Set-based UPDATE over the multi-join involved_warehouse_scope; the
           # planner picks a bad nested-loop plan for it, prevent it from doing so.
           GrdaWarehouseBase.disable_nestloop do
-            klass.mark_tree_as_dead(
-              data_source_id: data_source.id,
-              project_ids: involved_project_ids,
-              date_range: date_range,
-              pending_date_deleted: Date.current,
-              importer_log_id: @importer_log.id,
-            )
+            # Cross-data-source writers (e.g. force_full_service_history_rebuild)
+            # can deadlock with this long UPDATE; a retry re-runs every slice.
+            GrdaWarehouseBase.retry_on_deadlock("mark_tree_as_dead #{klass.name}") do
+              klass.mark_tree_as_dead(
+                data_source_id: data_source.id,
+                project_ids: involved_project_ids,
+                date_range: date_range,
+                pending_date_deleted: Date.current,
+                importer_log_id: @importer_log.id,
+              )
+            end
           end
         end
       end

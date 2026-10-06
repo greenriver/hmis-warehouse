@@ -127,6 +127,25 @@ class GrdaWarehouseBase < ActiveRecord::Base
     end
   end
 
+  # Retry a block that Postgres aborted as a deadlock victim. Only for idempotent,
+  # autocommitted writes. Inside an open transaction the block runs once with no
+  # retry, because a retry would hit the aborted transaction (PG::InFailedSqlTransaction).
+  def self.retry_on_deadlock(label, attempts: 5)
+    return yield if connection.transaction_open?
+
+    tries = 0
+    begin
+      yield
+    rescue ActiveRecord::Deadlocked => e
+      tries += 1
+      raise if tries >= attempts
+
+      Rails.logger.warn("#{label} deadlocked (attempt #{tries}/#{attempts}), retrying: #{e.message}")
+      sleep(rand(1.0..5.0))
+      retry
+    end
+  end
+
   MAX_PK = 2_147_483_648 # PK is a 4 byte signed INT (2 ** ((4 * 8) - 1))
 
   # Determine whether the given search term is possibly a Primary Key (it's numeric and less than 4 bytes)
