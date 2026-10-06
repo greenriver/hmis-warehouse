@@ -9,7 +9,7 @@ The server decides when the session ends. The modal only tries to predict that m
 | Arm | What ends the session | What drives the countdown |
 | --- | --- | --- |
 | Devise | `Devise.timeout_in` (30m) | Time since the last request, from `X-app-user-id` |
-| JWT | Keycloak idle timeout (30m), through Dex and oauth2-proxy | Forwarded token expiry, from the `app-session-remaining` `Server-Timing` entry |
+| JWT | The IdP's idle timeout (Keycloak in dev, 30m), through Dex and oauth2-proxy | Forwarded token expiry, from the `app-session-remaining` `Server-Timing` entry |
 
 On the JWT arm an idle session ends 25–30 minutes after the last request, and the warning appears 20–25 minutes after it. The window is fuzzy because oauth2-proxy refreshes the token only once the session cookie is at least 5 minutes old.
 
@@ -22,11 +22,11 @@ On the JWT arm an idle session ends 25–30 minutes after the last request, and 
 
 ## JWT arm
 
-The session is held by three layers. Each refresh restarts both the token's expiry and Keycloak's idle clock, so the token's expiry matches the real logout.
+The session is held by three layers. Each refresh restarts both the token's expiry and the IdP's idle clock, so the token's expiry matches the real logout.
 
 1. A request reaches oauth2-proxy with its session cookie.
 2. If the cookie is older than `cookie_refresh` (5m), oauth2-proxy refreshes through Dex.
-3. Dex does a `refresh_token` grant against Keycloak, which resets Keycloak's idle timer, and issues a new 30m token.
+3. Dex does a `refresh_token` grant against the IdP (Keycloak in dev), which resets the IdP's idle timer, and issues a new 30m token.
 4. oauth2-proxy forwards that token to Rails on the same request, as `X-Forwarded-Access-Token`.
 
 In the browser:
@@ -37,11 +37,11 @@ In the browser:
 - The expiry is measured from when the request started, not when the response arrived. The server reads the token early in the request, so a slow report page would otherwise push the expiry late by the action's run time.
 - The newest request wins, not the largest expiry. The key stores each value with its request's start time, and a write from an older request is dropped, such as a slow response or a background tab whose observer ran late. Every tab shares one oauth2-proxy cookie, so the newest request carries the current token. A failed refresh must be able to pull the expiry earlier.
 - The server sends seconds rather than a timestamp, so clock skew between browser and server doesn't matter.
-- "I'm still here" POSTs to `Idp::SessionsController#keepalive`, which returns `remaining_seconds`. If the result is still inside the 5-minute warning window, the refresh failed (usually because the Keycloak session is gone). A reload wouldn't help, because oauth2-proxy keeps serving the old token until it expires. So the modal says the session can't be extended and swaps "I'm still here" for a Close button. Closing it keeps the modal shut for the rest of the countdown so the user can save their work. At 0 the page clears as usual.
+- "I'm still here" POSTs to `Idp::SessionsController#keepalive`, which returns `remaining_seconds`. If the result is still inside the 5-minute warning window, the refresh failed (usually because the IdP session is gone). A reload wouldn't help, because oauth2-proxy keeps serving the old token until it expires. So the modal says the session can't be extended and swaps "I'm still here" for a Close button. Closing it keeps the modal shut for the rest of the countdown so the user can save their work. At 0 the page clears as usual.
 
 ## Settings that must stay consistent
 
-Values are from the dev stack. Check each Deployment's own config before relying on them.
+Values are from the dev stack. Each customer has its own Dex, backed by Keycloak or by an IdP the customer manages (e.g. Okta), and these values are set per customer. Check that customer's Dex and IdP config before relying on them.
 
 | Layer | Setting | Dev value | File |
 | --- | --- | --- | --- |
@@ -56,17 +56,18 @@ Values are from the dev stack. Check each Deployment's own config before relying
 
 Constraints:
 
-- `idTokens` ≤ the Keycloak idle timeout. Otherwise the countdown outlives the real session.
+- `idTokens` ≤ the IdP's idle timeout (Keycloak in dev). Otherwise the countdown outlives the real session.
 - `idTokens` > `cookie_refresh`. Otherwise a token can expire before oauth2-proxy will refresh it.
 - Warning window ≤ `idTokens` − `cookie_refresh` (5m ≤ 30m − 5m). Otherwise "I'm still here" can arrive before the cookie is old enough to refresh, and the keepalive fails.
 - Dex `absoluteLifetime` > `cookie_expire`. Otherwise the refresh token dies before the cookie does.
+- The IdP must reject a refresh once the session has been idle for the timeout (Keycloak `ssoSessionIdleTimeout`, or Okta's refresh-token idle expiry). Otherwise the modal clears the page at 0, but the next request refreshes and the user is signed back in.
 
 ## Known limits
 
 - In JWT, a page that polls via XHR/fetch can extend extend the lifetime up to the max (8h). Audit and removal of polling is planned.
-- Within Dex's 30s `reuseInterval`, a refresh reuses the last result and doesn't contact Keycloak.
-- `ssoSessionMaxLifespan` (8h) ends the session however active the user is, which is earlier than `cookie_expire` (12h).
-- The HMIS frontend keeps its own countdown in the `hmis-frontend` repo. Its idle behaviour, and whether it shares the warehouse's Keycloak session, are not documented here yet.
+- Within Dex's 30s `reuseInterval`, a refresh reuses the last result and doesn't contact the IdP.
+- The IdP's max session lifespan (Keycloak `ssoSessionMaxLifespan`, 8h in dev) ends the session however active the user is, which is earlier than `cookie_expire` (12h).
+- The HMIS frontend keeps its own countdown in the `hmis-frontend` repo. Its idle behaviour, and whether it shares the warehouse's IdP session, are not documented here yet.
 
 ## Key Files
 
