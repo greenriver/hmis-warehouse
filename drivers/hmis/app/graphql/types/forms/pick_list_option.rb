@@ -657,10 +657,13 @@ module Types
 
       # Include every custom assessment definition, regardless of applicability rules in the user's data source.
       # An assessment may have migrated-in legacy data even if it has no rules for future collection.
-      definitions = Hmis::Form::Definition.in_data_source(user.hmis_data_source_id).with_role(:CUSTOM_ASSESSMENT).published_or_retired
-      # { code: definition.identifier, label: definition.title }
-      custom_options = definitions.latest_versions.map { |d| { code: d.identifier, label: d.title } }.
-        uniq.sort_by { |opt| opt[:label] }
+      definitions = Hmis::Form::Definition.in_data_source(user.hmis_data_source_id).
+        with_role(:CUSTOM_ASSESSMENT).published_or_retired.exclude_definition_from_select
+      # Pick the latest published/retired version of each assessment
+      custom_options = definitions.group_by(&:identifier).values.
+        map { |versions| versions.max_by(&:version) }.
+        map { |d| { code: d.identifier, label: d.title } }.
+        sort_by { |opt| opt[:label] }
       hud_options = Hmis::Form::Definition::FORM_DATA_COLLECTION_STAGES.excluding(:CUSTOM_ASSESSMENT).keys.
         map { |k| { code: k.to_s, label: "HUD #{k.to_s.humanize} Assessment" } } # Match label text in the new assessment menu (with "HUD" prefix)
 

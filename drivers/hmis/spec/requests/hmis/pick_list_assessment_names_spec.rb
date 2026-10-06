@@ -66,6 +66,20 @@ RSpec.describe 'PickList ASSESSMENT_NAMES', type: :request do
     expect(fetch_options.select { |o| o['code'] == 'versioned' }).to eq([{ 'code' => 'versioned', 'label' => 'New Title' }])
   end
 
+  it 'lists an assessment with the published title when a newer draft version exists' do
+    create(:hmis_form_definition, data_source: ds1, role: :CUSTOM_ASSESSMENT, identifier: 'being_edited', title: 'Published Title', version: 1)
+    create(:hmis_form_definition, data_source: ds1, role: :CUSTOM_ASSESSMENT, identifier: 'being_edited', title: 'Draft Title', version: 2, status: Hmis::Form::Definition::DRAFT)
+
+    expect(fetch_options.select { |o| o['code'] == 'being_edited' }).to eq([{ 'code' => 'being_edited', 'label' => 'Published Title' }])
+  end
+
+  it 'is not affected by a higher version of the same identifier in another data source' do
+    create(:hmis_form_definition, data_source: ds1, role: :CUSTOM_ASSESSMENT, identifier: 'shared_id', title: 'DS1 Title', version: 1)
+    create(:hmis_form_definition, data_source: ds2, role: :CUSTOM_ASSESSMENT, identifier: 'shared_id', title: 'DS2 Title', version: 5)
+
+    expect(fetch_options.select { |o| o['code'] == 'shared_id' }).to eq([{ 'code' => 'shared_id', 'label' => 'DS1 Title' }])
+  end
+
   it 'always lists HUD assessment stages with HUD labels' do
     options = fetch_options
     expect(options).to include(
