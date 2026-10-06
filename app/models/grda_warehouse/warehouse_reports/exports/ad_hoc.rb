@@ -106,6 +106,7 @@ module GrdaWarehouse::WarehouseReports::Exports
         rows = []
         preload_policies
         client_scope.distinct.in_batches(of: 100) do |batch|
+          export_user&.policy_context&.preload_client_dependencies(batch.map(&:id))
           report_calculator = WarehouseReport::ExportEnrollmentCalculator.new(batch_scope: batch, filter: filter)
           project_ids_by_client = authorized_project_ids_by_client(batch)
           batch.find_each do |client|

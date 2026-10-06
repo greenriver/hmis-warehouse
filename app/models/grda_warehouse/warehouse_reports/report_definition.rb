@@ -115,7 +115,11 @@ module GrdaWarehouse::WarehouseReports
       cleanup_unused_reports
     end
 
+    # HUD reports long predate their definition rows (added in #9619), so a
+    # recent created_at doesn't mean the report is new.
     def new_report?
+      return false if report_group == HUD_REPORT_GROUP
+
       created_at > Date.current - 2.weeks
     end
 
@@ -506,6 +510,12 @@ module GrdaWarehouse::WarehouseReports
             url: 'audit_reports/user_login',
             name: 'User Login Report',
             description: 'Report most recent logins by users',
+            limitable: false,
+          },
+          {
+            url: 'warehouse_reports/client_retention',
+            name: 'Client Data Retention',
+            description: 'Nightly retention runs, clients marked inactive or unmarked, and clients whose retention window ends within 90 days',
             limitable: false,
           },
           {

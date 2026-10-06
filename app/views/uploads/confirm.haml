@@ -14,30 +14,33 @@
           The SourceID could not be read from this file here. It will still be compared once the
           import expands the file, and the import will fail if it does not match.
 
-    %table.table.table-striped
-      %tbody
-        %tr
-          %th Filename
-          %td= @upload.hmis_zip.filename
-        %tr
-          %th Expected SourceID (from the data source)
-          %td= @data_source.source_id.presence || '(none configured)'
-        %tr
-          %th Observed SourceID (from Export.csv)
-          %td= @export_source.source_id.presence || '(blank)'
-        %tr
-          %th SourceName (from Export.csv)
-          %td= @export_source.source_name.presence || '(blank)'
-        %tr
-          %th Export date range
-          %td
-            - if @export_source.export_start_date.present? || @export_source.export_end_date.present?
-              = [@export_source.export_start_date, @export_source.export_end_date].map { |d| d&.to_fs(:default) || '?' }.join(' to ')
-            - else
-              (unknown)
+    .table-responsive.mb-4
+      %table.table.table-striped
+        %tbody
+          %tr
+            %th Filename
+            %td= @upload.hmis_zip.filename
+          %tr
+            %th Expected SourceID (from the data source)
+            %td= @data_source.source_id.presence || '(none configured)'
+          %tr
+            %th Observed SourceID (from Export.csv)
+            %td= @export_source.source_id.presence || '(blank)'
+          %tr
+            %th SourceName (from Export.csv)
+            %td= @export_source.source_name.presence || '(blank)'
+          %tr
+            %th Export date range
+            %td
+              - if @export_source.export_start_date.present? || @export_source.export_end_date.present?
+                = [@export_source.export_start_date, @export_source.export_end_date].map { |d| d&.to_fs(:default) || '?' }.join(' to ')
+              - else
+                (unknown)
 
     = form_tag confirm_data_source_upload_path(@data_source, @upload) do
-      = hidden_field_tag 'grda_warehouse_upload[dry_run]', @dry_run ? '1' : '0'
+      .form-check.mb-4
+        = check_box_tag 'grda_warehouse_upload[dry_run]', '1', @dry_run, id: 'dry_run', class: 'form-check-input'
+        %label.form-check-label{ for: 'dry_run' } Pause for review before overwriting the existing warehouse data
       .mb-4
         %label{ for: 'short_name_confirmation' }
           Type
@@ -45,5 +48,5 @@
           to confirm you want to import this file into that data source
         = text_field_tag 'grda_warehouse_upload[short_name_confirmation]', nil, id: 'short_name_confirmation', class: 'form-control', autocomplete: 'off'
       .form-actions
+        = link_to 'Cancel', data_source_uploads_path(@data_source), class: 'btn btn-secondary mr-2'
         = submit_tag 'Confirm and Import', class: 'btn btn-primary'
-        = link_to 'Cancel', data_source_uploads_path(@data_source), class: 'btn btn-secondary'

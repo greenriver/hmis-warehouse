@@ -205,11 +205,57 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
       it 'still finds a restricted client by exact PersonalID' do
         expect(GrdaWarehouse::Hud::Client.text_search(restricted_source_client.PersonalID).to_a).to eq([restricted_destination_client])
       end
+    end
 
-      it 'excludes the caller-supplied restricted_source_ids instead of loading the restricted set' do
-        results = GrdaWarehouse::Hud::Client.text_search('Zzclient', restricted_source_ids: Set[unrestricted_source_client.id])
+    describe 'retention-inactive clients' do
+      let!(:warehouse_ds) { create(:destination_data_source) }
+      let!(:source_ds) { create(:source_data_source) }
+      let!(:inactive_source) { create(:grda_warehouse_hud_client, data_source: source_ds, FirstName: 'Zzaged', LastName: 'Zzout', SSN: '999887777', DOB: Date.new(1980, 5, 5)) }
+      let!(:inactive_destination) { create(:grda_warehouse_hud_client, data_source: warehouse_ds, FirstName: 'Zzaged', LastName: 'Zzout', SSN: '999887777', DOB: Date.new(1980, 5, 5)) }
+      let!(:active_source) { create(:grda_warehouse_hud_client, data_source: source_ds, FirstName: 'Zzcurrent', LastName: 'Zzout', SSN: '111223333', DOB: Date.new(1981, 6, 6)) }
+      let!(:active_destination) { create(:grda_warehouse_hud_client, data_source: warehouse_ds, FirstName: 'Zzcurrent', LastName: 'Zzout') }
+      let!(:user) { create(:acl_user) }
 
-        expect(results.to_a).to eq([restricted_destination_client])
+      before do
+        GrdaWarehouse::WarehouseClient.create!(destination_id: inactive_destination.id, source_id: inactive_source.id, data_source_id: source_ds.id, id_in_source: inactive_source.PersonalID)
+        GrdaWarehouse::WarehouseClient.create!(destination_id: active_destination.id, source_id: active_source.id, data_source_id: source_ds.id, id_in_source: active_source.PersonalID)
+        GrdaWarehouse::ClientRetentionMark.create!(client_id: inactive_source.id, marked_on: Date.current, last_activity_on: 10.years.ago.to_date, retention_years: 7)
+      end
+
+      # The report path: an allow-everything policy that only the hidden-client check can narrow.
+      def report_name_for(client, as_user: user)
+        policy = as_user.reporting_policy_for_project(project_id: nil, mode: :browse, client_id: client.id)
+        GrdaWarehouse::PiiProvider.new(client, policy: policy).full_name
+      end
+
+      it 'does not find an inactive client by name, but still finds an active one' do
+        expect(GrdaWarehouse::Hud::Client.text_search('Zzout').to_a).to eq([active_destination])
+      end
+
+      it 'does not find an inactive client by SSN' do
+        expect(GrdaWarehouse::Hud::Client.text_search('999-88-7777').to_a).to eq([])
+        expect(GrdaWarehouse::Hud::Client.text_search('111-22-3333').to_a).to eq([active_destination])
+      end
+
+      it 'still finds an inactive client by DOB and by exact PersonalID' do
+        expect(GrdaWarehouse::Hud::Client.text_search('05/05/1980').to_a).to eq([inactive_destination])
+        expect(GrdaWarehouse::Hud::Client.text_search(inactive_source.PersonalID).to_a).to eq([inactive_destination])
+      end
+
+      it 'excludes an inactive client from strict_search' do
+        criteria = { first_name: 'Zzaged', last_name: 'Zzout', ssn: '999887777', dob: nil }
+
+        expect(GrdaWarehouse::Hud::Client.strict_search(criteria, client_scope: GrdaWarehouse::Hud::Client).to_a).to eq([])
+      end
+
+      it 'redacts an inactive client under a policy that shows every other name, until the marks are cleared' do
+        expect(report_name_for(active_destination)).to eq('Zzcurrent Zzout')
+        expect(report_name_for(inactive_destination)).to eq(GrdaWarehouse::PiiProvider::NAME_REDACTED)
+        expect(report_name_for(inactive_source)).to eq(GrdaWarehouse::PiiProvider::NAME_REDACTED)
+
+        GrdaWarehouse::ClientRetentionMark.delete_all
+        # a fresh User instance, since lookups are memoized per policy context
+        expect(report_name_for(inactive_destination, as_user: User.find(user.id))).to eq('Zzaged Zzout')
       end
     end
 
@@ -566,6 +612,50 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
           starts = destination.length_of_episodes(start_date: start_date, end_date: end_date, residential_enrollments: residential, chronic_enrollments: ordered).map { |e| e[:start_date] }
           expect(starts).to eq([Date.new(2020, 1, 1), Date.new(2020, 6, 1)])
         end
+      end
+    end
+
+    describe 'episode counters over several stays' do
+      include_context 'enrollment rollup context'
+
+      let(:destination) { create :hud_client, data_source_id: warehouse_data_source.id, FirstName: 'Many', LastName: 'Stays' }
+      let(:source) { create_linked_source_client(destination, first_name: 'Many', last_name: 'Source') }
+      let(:start_date) { Date.new(2019, 1, 1) }
+      let(:end_date) { Date.new(2021, 1, 1) }
+
+      before do
+        create_enrollment(source, shelter_a, entry: '2020-01-01', exit_date: '2020-01-10')
+        create_enrollment(source, shelter_a, entry: '2020-03-01', exit_date: '2020-03-05')
+        create_enrollment(source, shelter_a, entry: '2020-07-01', exit_date: '2020-07-05')
+        rebuild_service_history!
+      end
+
+      # Counts ClientHistory::Calculator's service-row pluck. length_of_episodes also loads
+      # service_history_services through the association (SELECT *), which this skips.
+      def calculator_row_loads
+        queries = 0
+        counter = ->(*, payload) { queries += 1 if payload[:sql].include?('"service_history_services"."literally_homeless"') }
+        result = ActiveSupport::Notifications.subscribed(counter, 'sql.active_record') { yield }
+        [result, queries]
+      end
+
+      it 'homeless_episodes_between loads service rows once for all of the stays' do
+        episodes, queries = calculator_row_loads { destination.homeless_episodes_between(start_date: start_date, end_date: end_date) }
+
+        expect(episodes).to eq(2)
+        expect(queries).to eq(1)
+      end
+
+      it 'length_of_episodes loads service rows once for all of the stays' do
+        episodes, queries = calculator_row_loads { destination.length_of_episodes(start_date: start_date, end_date: end_date) }
+
+        expect(episodes).to eq(
+          [
+            { start_date: Date.new(2020, 1, 1), end_date: Date.new(2020, 3, 4), months: 3 },
+            { start_date: Date.new(2020, 7, 1), end_date: Date.new(2020, 7, 4), months: 1 },
+          ],
+        )
+        expect(queries).to eq(1)
       end
     end
 

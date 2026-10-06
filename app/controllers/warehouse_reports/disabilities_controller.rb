@@ -39,6 +39,7 @@ module WarehouseReports
 
     def show
       @clients = @report.data
+      current_user.policy_context.preload_client_dependencies(@clients.map { |client| client['id'] })
 
       respond_to do |format|
         format.html

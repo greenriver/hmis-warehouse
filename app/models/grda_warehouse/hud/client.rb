@@ -1429,20 +1429,6 @@ module GrdaWarehouse::Hud
       user.policy_context.client_restricted?(id)
     end
 
-    # All currently HMIS-restricted client ids (source and destination alike -- restriction
-    # applies to the whole warehouse identity, see RestrictedClientLoader).
-    def self.hmis_restricted_source_client_ids
-      GrdaWarehouse::AuthPolicies::ContextLoaders::RestrictedClientLoader.new.restricted_client_ids
-    end
-
-    # The subset of the given destination client ids that are HMIS-restricted.
-    def self.hmis_restricted_destination_client_ids(destination_client_ids)
-      return Set.new if destination_client_ids.blank?
-
-      loader = GrdaWarehouse::AuthPolicies::ContextLoaders::RestrictedClientLoader.new
-      destination_client_ids.select { |id| loader.restricted?(id) }.to_set
-    end
-
     def name
       # Deprecated
       # skip deprecations to avoid test failures. Suggest uncommenting when we are ready to implement pii globally
@@ -1848,13 +1834,11 @@ module GrdaWarehouse::Hud
     # @param client_scope [GrdaWarehouse::Hud::Client.source] source clients to search in
     # @param sorted [Boolean] order results by closest match to text
     # @param with_score [Boolean] add the match score as a #score attribute on results.
-    # @param restricted_source_ids [Set<Integer>] source client ids hidden from name/SSN matching;
-    #   pass a preloaded set when calling repeatedly, otherwise it is loaded per call
-    def self.text_search(text, client_scope: nil, sorted: false, with_score: false, restricted_source_ids: hmis_restricted_source_client_ids)
+    def self.text_search(text, client_scope: nil, sorted: false, with_score: false)
       # Get search results from client scope. Then return the unique destination client records that map to those matching source records
       relation = (client_scope || self) # rubocop:disable Style/RedundantParentheses
       # with resolve_for_join_query, results are client.scope.select(:client_id, :score) suitable for subquery
-      results = relation.searchable.text_searcher(text, sorted: sorted, resolve_for_join_query: true, exclude_ids_for_name_and_ssn: restricted_source_ids)
+      results = relation.searchable.text_searcher(text, sorted: sorted, resolve_for_join_query: true, name_and_ssn_filter: GrdaWarehouse::HiddenClients.not_hidden(arel_table[:id]))
       return relation.none if results.nil?
 
       grouped = GrdaWarehouse::WarehouseClient.
@@ -1931,8 +1915,7 @@ module GrdaWarehouse::Hud
         where(id: matching_ids).
         preload(:destination_client).
         map { |m| m.destination_client.id }
-      ids -= hmis_restricted_destination_client_ids(ids).to_a
-      where(id: ids)
+      where(id: ids).where(GrdaWarehouse::HiddenClients.not_hidden(arel_table[:id]))
     end
 
     def gender
@@ -2222,9 +2205,8 @@ module GrdaWarehouse::Hud
     def potential_matches
       @potential_matches ||= {}.tap do |m|
         scores_by_id = {}
-        restricted_source_ids = self.class.hmis_restricted_source_client_ids
         potential_match_search_queries.each do |query|
-          self.class.text_search(query, client_scope: self.class, sorted: true, with_score: true, restricted_source_ids: restricted_source_ids).where.not(id: id).each do |candidate|
+          self.class.text_search(query, client_scope: self.class, sorted: true, with_score: true).where.not(id: id).each do |candidate|
             score = candidate.score.to_f
             scores_by_id[candidate.id] = score if scores_by_id[candidate.id].nil? || score > scores_by_id[candidate.id]
           end
@@ -2784,10 +2766,9 @@ module GrdaWarehouse::Hud
       # chronic_enrollments doesn't count as a new episode.
       # It is equivalent to always count that first enrollment
       # and then ignore it for the calculation
+      calculator = ClientHistory::Calculator.new(client: self, enrollments: residential_enrollments)
       episode_count = 1
-      chronic_enrollments.drop(1).map do |enrollment|
-        new_episode?(residential_enrollments: residential_enrollments, enrollment: enrollment)
-      end.count(true) + episode_count
+      chronic_enrollments.drop(1).count { |enrollment| calculator.new_episode?(enrollment: enrollment) } + episode_count
     end
 
     def length_of_episodes start_date:, end_date:, residential_enrollments: nil, chronic_enrollments: nil
@@ -2803,11 +2784,12 @@ module GrdaWarehouse::Hud
       # an episode already under way rather than being asked about.
       chronic_enrollments = ClientHistory::Calculator.in_episode_order(chronic_enrollments)
 
+      calculator = ClientHistory::Calculator.new(client: self, enrollments: residential_enrollments)
       episodes = []
       initial_chronic_enrollment = chronic_enrollments.first
       current_start = initial_chronic_enrollment.first_date_in_program
       chronic_enrollments.drop(1).map do |enrollment|
-        if new_episode?(residential_enrollments: residential_enrollments, enrollment: enrollment) # rubocop:disable Style/Next
+        if calculator.new_episode?(enrollment: enrollment) # rubocop:disable Style/Next
           days_served = chronic_enrollments.
             select do |e|
               e.last_date_in_program.blank? ||
@@ -2879,11 +2861,6 @@ module GrdaWarehouse::Hud
     private def enrollment_view_for(user)
       @enrollment_views ||= {}
       @enrollment_views[user.id] ||= ClientHistory::EnrollmentView.new(user: user)
-    end
-
-    def new_episode?(residential_enrollments:, enrollment:)
-      ClientHistory::Calculator.new(client: self, enrollments: residential_enrollments).
-        new_episode?(enrollment: enrollment)
     end
 
     # Include extensions at the end so they can override default behavior

@@ -25,6 +25,7 @@ wb.add_worksheet(name: "Active #{GrdaWarehouse::WarehouseReports::Dashboard::Bas
 
   @report.enrollment_scope.preload(:client, :project, :enrollment).in_batches(of: 1_000).each do |batch|
     current_user.policy_context.preload_project_dependencies(batch.map { |e| e.project.id })
+    current_user.policy_context.preload_client_dependencies(batch.map(&:client_id))
     batch.each do |enrollment|
       client = enrollment.client
       project = enrollment.project

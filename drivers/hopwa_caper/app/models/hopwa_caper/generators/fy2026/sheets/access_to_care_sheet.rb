@@ -194,9 +194,7 @@ module HopwaCaper::Generators::Fy2026::Sheets
     def housing_subsidy_households_for_activity(activity_type)
       case activity_type
       when :tbra
-        HopwaCaper::Generators::Fy2026::EnrollmentFilters::ProjectFunderFilter.
-          tbra_hopwa(range: @report.report_range).
-          apply(@report.hopwa_caper_enrollments)
+        TbraSheet.relevant_enrollments(@report)
       when :strmu
         enrollments = HopwaCaper::Generators::Fy2026::EnrollmentFilters::ProjectFunderFilter.
           strmu_hopwa(range: @report.report_range).

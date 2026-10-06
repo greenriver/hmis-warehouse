@@ -20,6 +20,7 @@ module WarehouseReports
       client_ids += case_management_in_range.distinct.pluck(:client_id) if @filter.activity_type.empty? || @filter.activity_type.include?('case_managements')
       client_ids += follow_ups_in_range.distinct.pluck(:client_id) if @filter.activity_type.empty? || @filter.activity_type.include?('youth_follow_ups')
       client_ids += referrals_in_range.distinct.pluck(:client_id) if @filter.activity_type.empty? || @filter.activity_type.include?('youth_referrals')
+      current_user.policy_context.preload_client_dependencies(client_ids)
       @clients = GrdaWarehouse::Hud::Client.where(id: client_ids).
         preload(
           youth_intakes: [:user],

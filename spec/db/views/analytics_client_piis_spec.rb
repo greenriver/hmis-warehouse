@@ -108,4 +108,27 @@ RSpec.describe 'analytics.client_piis view' do
       'SSN' => client.SSN,
     )
   end
+
+  context 'with a retention mark on a source client' do
+    let(:destination_client) { create(:grda_warehouse_hud_client) }
+
+    before do
+      GrdaWarehouse::WarehouseClient.create!(destination_id: destination_client.id, source_id: client.id, data_source_id: client.data_source_id, id_in_source: client.id.to_s)
+      GrdaWarehouse::ClientRetentionMark.create!(client_id: client.id, marked_on: Date.current, last_activity_on: 10.years.ago.to_date, retention_years: 7)
+    end
+
+    it 'redacts the marked source' do
+      expect(pii_row_for(client)['FirstName']).to eq('Redacted')
+    end
+
+    it 'redacts the destination the source is linked to' do
+      expect(pii_row_for(destination_client)['FirstName']).to eq('Redacted')
+    end
+
+    it 'does not redact the destination once the link is soft-deleted' do
+      GrdaWarehouse::WarehouseClient.where(source_id: client.id).update_all(deleted_at: Time.current)
+
+      expect(pii_row_for(destination_client)['FirstName']).to eq(destination_client.FirstName)
+    end
+  end
 end
