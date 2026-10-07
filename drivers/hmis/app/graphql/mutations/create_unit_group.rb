@@ -24,7 +24,7 @@ module Mutations
       errors.add(:unit_type, :required) unless input.unit_type_id
       return { errors: errors.errors } if errors.any?
 
-      unit_type = project.possible_unit_types.find_by(id: input.unit_type_id)
+      unit_type = Hmis::UnitType.find_by(id: input.unit_type_id)
       errors.add(:unit_type, :invalid) unless unit_type
       return { errors: errors.errors } if errors.any?
 
