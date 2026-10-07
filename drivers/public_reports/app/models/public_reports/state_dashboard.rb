@@ -105,7 +105,6 @@ module PublicReports
 
     private def remove_from_s3
       bucket = s3_bucket
-      prefix = public_s3_directory
       sections.each do |section|
         prefix = File.join(public_s3_directory, version_slug.to_s, section.to_s)
         key = File.join(prefix, 'index.html')
@@ -270,7 +269,7 @@ module PublicReports
         )
       households = scope.heads_of_households.select(:client_id).distinct.count
       homeless_clients = scope.select(:client_id).distinct.count
-      unsheltered = scope.hud_project_type(4).select(:client_id).distinct.count
+      unsheltered = scope.homeless_unsheltered.select(:client_id).distinct.count
       counts = {
         'homeless_households' => households,
         'homeless_clients' => homeless_clients,

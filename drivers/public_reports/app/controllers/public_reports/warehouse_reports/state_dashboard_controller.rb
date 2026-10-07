@@ -36,10 +36,6 @@ module PublicReports::WarehouseReports
       render(layout: @report.raw_layout)
     end
 
-    def raw
-      render(layout: @report.raw_layout)
-    end
-
     private def path_to_report_index
       public_reports_warehouse_reports_state_dashboard_index_path
     end
