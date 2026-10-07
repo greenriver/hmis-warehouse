@@ -292,3 +292,5 @@ explicit `email_verified: false` blocks the email update.
 
 - [User migration (`rails keycloak:*`)](./keycloak-user-migration.md): seeding Keycloak from legacy
   Devise/warehouse accounts before a Deployment switches to JWT auth.
+- [Idle session timeout](../features/warehouse/idle-session-timeout.md): how the inactivity modal
+  tracks the session, and which timeout settings must stay consistent.
