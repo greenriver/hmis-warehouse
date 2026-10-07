@@ -36,7 +36,8 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
       expect(described_class.text_search('bob', user: user)).to contain_exactly(window_destination_client, both_destination_client)
     end
 
-    it 'returns nothing when nothing matches' do
+    it 'returns nothing when nothing matches, without building the searchable set' do
+      expect(described_class).not_to receive(:searchable_to)
       expect(described_class.text_search('Zzqx', user: user)).to be_empty
     end
 
