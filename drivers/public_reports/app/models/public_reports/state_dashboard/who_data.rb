@@ -39,11 +39,10 @@ class PublicReports::StateDashboard::WhoData
   end
 
   # counts_by_period: one raw-count array per iteration_dates entry, in labels order.
-  private def donut(title:, unit:, labels:, colors:, counts_by_period:, threshold_key:)
+  private def donut(title:, unit:, labels:, colors:, counts_by_period:, threshold_key:, totals_by_period: counts_by_period.map(&:sum))
     values = []
     totals = []
-    counts_by_period.each do |counts|
-      total = counts.sum
+    counts_by_period.zip(totals_by_period).each do |counts, total|
       totals << @report.published_total(total)
       values << @report.enforce_min_threshold(counts.dup, threshold_key)
     end
@@ -71,24 +70,32 @@ class PublicReports::StateDashboard::WhoData
     ]
   end
 
+  private def distinct_clients(scope)
+    scope.select(:client_id).distinct.count
+  end
+
   private def all_people_donut
+    scopes = @report.iteration_dates.map { |date| period_scope(date) }
     donut(
       title: 'All People',
       unit: 'People',
       labels: ['Sheltered', 'Unsheltered'],
       colors: [settings.color(0, :location_type), settings.color(1, :location_type)],
-      counts_by_period: @report.iteration_dates.map { |date| location_counts(period_scope(date)) },
+      counts_by_period: scopes.map { |scope| location_counts(scope) },
+      totals_by_period: scopes.map { |scope| distinct_clients(scope) },
       threshold_key: 'location',
     )
   end
 
   private def veterans_donut
+    scopes = @report.iteration_dates.map { |date| period_scope(date).veteran }
     donut(
       title: 'Veterans',
       unit: 'Veterans',
       labels: ['Sheltered', 'Unsheltered'],
       colors: [settings.color(0, :location_type), settings.color(1, :location_type)],
-      counts_by_period: @report.iteration_dates.map { |date| location_counts(period_scope(date).veteran) },
+      counts_by_period: scopes.map { |scope| location_counts(scope) },
+      totals_by_period: scopes.map { |scope| distinct_clients(scope) },
       threshold_key: 'location',
     )
   end

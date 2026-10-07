@@ -173,7 +173,7 @@ class PublicReports::StateDashboard::MapData
         start_date: start_date,
         end_date: end_date,
         service_scope: service_scope,
-      ).count
+      ).select(:client_id).distinct.count
     end
   end
 
@@ -187,15 +187,16 @@ class PublicReports::StateDashboard::MapData
         end_date: end_date,
         service_scope: service_scope,
       )
-      if geography.by_zip?
-        enrolled_scope.in_zip(zip_code: code).count
+      geography_scope = if geography.by_zip?
+        enrolled_scope.in_zip(zip_code: code)
       elsif geography.by_place?
-        enrolled_scope.in_place(place: code).count
+        enrolled_scope.in_place(place: code)
       elsif geography.by_county?
-        enrolled_scope.in_county(county: code).count
+        enrolled_scope.in_county(county: code)
       else
-        enrolled_scope.in_coc(coc_code: code).count
+        enrolled_scope.in_coc(coc_code: code)
       end
+      geography_scope.select(:client_id).distinct.count
     end
   end
 

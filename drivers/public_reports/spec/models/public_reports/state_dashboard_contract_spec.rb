@@ -34,14 +34,17 @@ RSpec.describe PublicReports::StateDashboard, type: :model do
   # resolvable through a WarehouseClient link to a separate "source" client
   # (see Hud::Client's race_white/race_am_ind_ak_native/etc scopes, which
   # join WarehouseClient.source) -- so each of these builds both.
-  def create_homeless_client_and_entry(gender:, race_field:, household_id:, project: self.project, age: 30)
+  def create_homeless_client(gender:, race_field:, age:)
     dest_client = create(:hud_client, data_source_id: destination_data_source.id, gender => 1, DOB: Date.parse('2025-10-15') - age.years)
     race_source_client = create(:hud_client, data_source_id: source_data_source.id, race_field => 1)
     create(:warehouse_client, destination_id: dest_client.id, source_id: race_source_client.id, data_source_id: source_data_source.id)
+    dest_client
+  end
 
+  def add_homeless_entry(client:, household_id:, project:, age:)
     she = create(
       :she_entry,
-      client: dest_client,
+      client: client,
       data_source_id: source_data_source.id,
       project_id: project.project_id,
       organization_id: project.organization_id,
@@ -55,13 +58,19 @@ RSpec.describe PublicReports::StateDashboard, type: :model do
       create(
         :service_history_service,
         service_history_enrollment_id: she.id,
-        client_id: dest_client.id,
+        client_id: client.id,
         record_type: 'service',
         date: date,
         project_type: project.project_type,
         age: age,
       )
     end
+  end
+
+  def create_homeless_client_and_entry(gender:, race_field:, household_id:, project: self.project, age: 30)
+    client = create_homeless_client(gender: gender, race_field: race_field, age: age)
+    add_homeless_entry(client: client, household_id: household_id, project: project, age: age)
+    client
   end
 
   # A handful of clients, spread across race/gender, all entered in the
@@ -146,6 +155,23 @@ RSpec.describe PublicReports::StateDashboard, type: :model do
     end
 
     expect(leaks).to eq([])
+  end
+
+  context 'when one client is served in both a shelter and an outreach project, with totals unsuppressed' do
+    before do
+      stub_const('PublicReports::StateDashboard::SUPPRESS_TOTALS_AT_OR_BELOW', 0)
+      allow_any_instance_of(PublicReports::StateDashboard::MapData).to receive(:fake_counts?).and_return(false)
+      client = create_homeless_client_and_entry(gender: :Man, race_field: :White, household_id: 'both-1')
+      add_homeless_entry(client: client, household_id: 'both-2', project: outreach_project, age: 30)
+    end
+
+    it 'counts that client once in the all-people donut total' do
+      expect(data['who']['donuts']['all-people']['totals'].last).to eq(6)
+    end
+
+    it 'counts that client once in the statewide map total' do
+      expect(data['map']['statewideTotals'].last.first).to eq(6)
+    end
   end
 
   context 'with a 24-year-old in an adult-only household and totals unsuppressed' do
