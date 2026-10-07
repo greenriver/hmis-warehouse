@@ -142,8 +142,10 @@ when a file is attached, `file_exists_and_not_too_large` (100 bytes to 4 MB), `n
 `GrdaWarehouse::Hud::Client`, `Vispdat::Base`, `Hud::Enrollment`, `DataSource`, and the
 revoking user; validation contexts `requires_effective_date`, `requires_expiration_date`, and
 `requires_expiration_and_effective_dates` (the controller picks one from the tag flags because
-Rails cannot pass two contexts); a rule that a `confidential` file needs either
-`data_source_id` or `enrollment_id`; and its own `file_exists_and_not_too_large` that raises
+Rails cannot pass two contexts); a rule that a confirmed, unrevoked consent form needs an
+`expiration_date` when the release duration is `Use Expiration Date`
+(`expiration_date_required_by_release_duration?`, "Expiration date is required"); a rule that a
+`confidential` file needs either `data_source_id` or `enrollment_id`; and its own `file_exists_and_not_too_large` that raises
 the limit to 12 MB.
 
 `Hmis::File` uses `Hmis::Hud::Client` and `Hmis::Hud::Enrollment`, `Hmis::User` for `user` and

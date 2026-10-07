@@ -117,9 +117,10 @@ target `destination_client_id`) with `coc_codes` = sorted unique `consented_coc_
 Revoked and implied-consent rows have no `starts_at` or `expires_at`; other rows get
 `starts_at = consent_form_signed_on` and `expires_at` from `roi_expiry_date` (signed date plus
 `Client.consent_validity_period`, `consent_expires_on`, or `nil` for `Indefinite`). A nil status
-deletes the row and calls `Client.invalidate_consent!`; those clients are then processed again
-and any resulting row is upserted. Under `Consent::Implied` the reset to `Implied Consent`
-produces a `partial` row in the same rebuild.
+deletes the row and calls `Client.invalidate_consent!`. Under `Consent::Implied` (checked with
+`Config.implied_consent?`) those clients are then processed again, and the reset to
+`Implied Consent` produces a `partial` row in the same rebuild; under `Consent::Default` the
+second pass is skipped.
 
 After the batches, `_perform` (not `rebuild_clients`) invalidates clients with an expired
 `partial`/`full` row (`expires_at` before today; a release is valid on its expiration date) and a
@@ -241,9 +242,9 @@ client's `roi_authorizations` dates.
   reads the newest consent file, so a rebuild before the file's `consent_revoked_at` is saved
   would reset the client to `Implied Consent`. The file's `after_commit` rebuilds once the
   revocation is saved.
-- `rebuild_batch` processes clients a second time after `invalidate_consent!`, because under
-  `Consent::Implied` invalidation writes `Implied Consent`, which needs a `partial` row. Dropping
-  that pass hides the client from ROI-only users until the next rebuild.
+- Under `Consent::Implied`, `rebuild_batch` processes clients a second time after
+  `invalidate_consent!`, because invalidation writes `Implied Consent`, which needs a `partial`
+  row. Dropping that pass hides the client from ROI-only users until the next rebuild.
 - `ClientRoiLoader` is memoized on the policy context for the request or job and keyed by
   destination client id. Before per-row policy checks in a list, call
   `user.policy_context.preload_client_dependencies(client_ids)`, which preloads the ROI loader

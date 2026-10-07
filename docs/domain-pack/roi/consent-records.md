@@ -129,7 +129,9 @@ Validity depends on `Config.get(:release_duration)`, one of `Indefinite`, `One Y
 `Indefinite` to `100.years`, and raises `Unknown Release Duration` for anything else, including
 `Use Expiration Date`. `consent_form_valid?` checks `consent_form_signed_on >= period.ago.to_date`
 for the year durations, `consent_expires_on >= Date.current` for `Use Expiration Date`, and only
-`release_valid?` for `Indefinite`. The date comparison matters: comparing the date column with
+`release_valid?` for `Indefinite`. Under `Use Expiration Date`, `ClientFile` refuses to save a
+confirmed, unrevoked consent form without an `expiration_date`, because the ROI rebuild clears
+consent for a release with no expiration date. The date comparison matters: comparing the date column with
 `period.ago` (a time) treats the expiration date as expired. `revoke_expired_consent` nulls
 `housing_release_status` and empties `consented_coc_codes` with `update_all` for clients strictly
 outside the window `consent_form_valid?` accepts, so a release is valid on its expiration date;
