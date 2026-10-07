@@ -31,7 +31,12 @@
   document.addEventListener("keydown", function (event) {
     if (event.key === "Escape") root.classList.add("tooltips-dismissed");
   });
-  ["focusin", "pointerout"].forEach(function (type) {
-    document.addEventListener(type, function () { root.classList.remove("tooltips-dismissed"); });
+  // Tooltips open on hover or focus of these elements; see public_report.css.
+  var TRIGGER = ".chart-point, .info-icon";
+  document.addEventListener("focusin", function () { root.classList.remove("tooltips-dismissed"); });
+  document.addEventListener("pointerout", function (event) {
+    var from = event.target.closest(TRIGGER);
+    var to = event.relatedTarget && event.relatedTarget.closest ? event.relatedTarget.closest(TRIGGER) : null;
+    if (from !== to) root.classList.remove("tooltips-dismissed");
   });
 })();
