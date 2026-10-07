@@ -157,6 +157,59 @@ RSpec.describe PublicReports::StateDashboard, type: :model do
     expect(leaks).to eq([])
   end
 
+  it 'publishes the summary tiles with small counts shown as "100 or fewer"' do
+    GrdaWarehouse::ServiceHistoryEnrollment.update_all(head_of_household: true)
+
+    expect(data['summary']['tiles'].map { |tile| tile['value'] }).to eq(['100 or fewer', '100 or fewer', '0%'])
+  end
+
+  it 'publishes one PIT value per PIT year, raising a small count to the 100 floor' do
+    expect(data['pit_chart']).to eq('labels' => ['2025'], 'series' => [{ 'label' => 'People served in ES, SO, SH, or TH', 'values' => [100] }])
+  end
+
+  context 'with a client who exited to a permanent destination during the year' do
+    before do
+      client = create_homeless_client(gender: :Man, race_field: :White, age: 30)
+      create(
+        :she_entry,
+        client: client,
+        data_source_id: source_data_source.id,
+        project_id: project.project_id,
+        organization_id: project.organization_id,
+        project_type: project.project_type,
+        date: Date.parse('2025-03-01'),
+        first_date_in_program: Date.parse('2025-03-01'),
+        last_date_in_program: Date.parse('2025-06-30'),
+        destination: HudHelper.util.permanent_destinations.first,
+        household_id: 'exited',
+      )
+    end
+
+    it 'counts the exit at the 100 floor and no first-time entries' do
+      expect(data['inflow_outflow']['series'].map { |series| series['values'] }).to eq([[0], [100]])
+    end
+  end
+
+  context 'when the report ends partway through its last PIT year' do
+    let(:report_start) { Date.parse('2024-02-01') }
+    let(:report_end) { Date.parse('2025-11-30') }
+
+    it 'stars the partial year and notes the data-through date' do
+      expect(data['pit_chart'].values_at('labels', 'note')).to eq([['2025*'], '2025 reflects data through Nov 30, 2025'])
+    end
+  end
+
+  describe 'date span validation' do
+    def report_for(start, finish)
+      described_class.new(user: user, filter: { filters: { start: Date.parse(start), end: Date.parse(finish), project_type_numbers: [1] } })
+    end
+
+    # filter_object moves the end date to the end of its month, so the boundary is a whole month.
+    it 'accepts a span of exactly twelve months and rejects eleven' do
+      expect([report_for('2025-01-01', '2025-12-31').valid?, report_for('2025-01-01', '2025-11-30').valid?]).to eq([true, false])
+    end
+  end
+
   context 'when one client is served in both a shelter and an outreach project, with totals unsuppressed' do
     before do
       stub_const('PublicReports::StateDashboard::SUPPRESS_TOTALS_AT_OR_BELOW', 0)

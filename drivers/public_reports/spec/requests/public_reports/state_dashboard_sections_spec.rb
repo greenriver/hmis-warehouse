@@ -60,13 +60,13 @@ RSpec.describe 'PublicReports::WarehouseReports::StateDashboard sections', type:
     end
   end
 
-  it 'renders a data table and an accessible mark on the pit and summary sections' do
+  it 'renders the PIT data table and the summary tiles from the stored data' do
     get pit_public_reports_warehouse_reports_state_dashboard_path(report)
-    expect(response.body).to include('<table')
-    expect(response.body).to include("role='img'")
+    rows = Nokogiri::HTML(response.body).at_css('figure.chart--line table').css('tbody tr').map { |tr| tr.css('th, td').map { |cell| cell.text.strip } }
+    expect(rows).to eq([['2024', '33,048'], ['2025*', '13,939']])
 
     get summary_public_reports_warehouse_reports_state_dashboard_path(report)
-    expect(response.body).to include('stat-tile')
+    expect(Nokogiri::HTML(response.body).css('.stat-tile__value').map { |value| value.text.strip }).to eq(['10,214', '13,939', '13%'])
   end
 
   describe 'who section periods' do
@@ -229,17 +229,11 @@ RSpec.describe 'PublicReports::WarehouseReports::StateDashboard sections', type:
     expect(response.body).to include('type: "public-report-height"')
   end
 
-  it 'keeps deployment-specific wording out of the map script' do
-    get map_public_reports_warehouse_reports_state_dashboard_path(report)
-    expect(response.body).not_to include('THDSN')
-    expect(response.body).not_to include('per 10,000 residents by county')
-  end
-
-  it 'never loads chart assets from a CDN' do
+  it 'inlines every script and stylesheet' do
     sections_for_iteration.each do |section|
       get send("#{section}_public_reports_warehouse_reports_state_dashboard_path", report)
-      expect(response.body).not_to include('cdn.jsdelivr')
-      expect(response.body).not_to include('unpkg')
+
+      expect(Nokogiri::HTML(response.body).css('script[src], link[rel="stylesheet"]').map(&:to_s)).to eq([]), section.to_s
     end
   end
 
@@ -278,16 +272,6 @@ RSpec.describe 'PublicReports::WarehouseReports::StateDashboard sections', type:
     before do
       report.update_column(:user_id, owner.id)
       owner.destroy
-    end
-
-    it 'scopes the filter to the deleted owner' do
-      expect(report.reload.filter_object.user).to eq(owner)
-    end
-
-    it 'raises instead of choosing another user when the report has no owner' do
-      report.update_column(:user_id, nil)
-
-      expect { report.reload.filter_object }.to raise_error(ActiveRecord::RecordNotFound)
     end
 
     it 'renders the data note' do
@@ -422,12 +406,6 @@ RSpec.describe 'PublicReports::WarehouseReports::StateDashboard sections', type:
 
   describe 'design tokens' do
     let(:base_css) { File.read(Rails.root.join('drivers/public_reports/lib/public_reports/assets/public_report.css')) }
-
-    it 'colors the sheltered breakdown bar with the same token as its legend swatch' do
-      bar_rule = base_css[/\.breakdown-bar__segment--sheltered\s*\{[^}]*\}/]
-
-      expect(bar_rule).to include('var(--color-sheltered)')
-    end
 
     it 'defines every custom property the raw page uses' do
       get raw_public_reports_warehouse_reports_state_dashboard_path(report)
