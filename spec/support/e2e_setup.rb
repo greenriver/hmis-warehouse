@@ -178,21 +178,21 @@ RSpec.shared_context 'SystemSpecHelper' do
   def with_user_impersonated(user_id)
     user = Hmis::User.find(user_id)
 
-    # Make a POST request to start impersonation using JavaScript fetch
-    page.execute_script(<<~JS)
+    # evaluate_async_script waits for the request to finish. execute_script does not await
+    # the returned promise, so the reload below could race the session change.
+    ok = page.evaluate_async_script(<<~JS)
+      const done = arguments[arguments.length - 1];
       const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
-      return fetch('/hmis/impersonations', {
+      fetch('/hmis/impersonations', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'X-CSRF-Token': csrfToken,
         },
         body: JSON.stringify({ user_id: #{user.id} })
-      }).then(async (r) => {
-        const body = await r.text();
-        return { ok: r.ok, status: r.status, body: body };
-      });
+      }).then(r => done(r.ok), () => done(false));
     JS
+    expect(ok).to be(true)
 
     visit current_path # reload the page
     page.driver.wait_for_network_idle
@@ -202,15 +202,16 @@ RSpec.shared_context 'SystemSpecHelper' do
       yield
     ensure
       # Stop impersonating by making a DELETE request
-      page.execute_script(<<~JS)
+      page.evaluate_async_script(<<~JS)
+        const done = arguments[arguments.length - 1];
         const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
-        return fetch('/hmis/impersonations', {
+        fetch('/hmis/impersonations', {
           method: 'DELETE',
           headers: {
             'Content-Type': 'application/json',
             'X-CSRF-Token': csrfToken,
           }
-        }).then(r => r.ok);
+        }).then(r => done(r.ok), () => done(false));
       JS
 
       visit current_path # reload the page

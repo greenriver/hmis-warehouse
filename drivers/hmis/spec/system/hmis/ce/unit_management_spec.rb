@@ -90,6 +90,7 @@ RSpec.feature 'CE Unit Management', type: :system do
     with_user_impersonated(provider.id) do
       visit "/projects/#{target_project.id}/units"
       click_link 'Manage Unit Group SROs'
+      expect(page).to have_content('Displaying 2 of 2 units')
       expect(page).not_to have_button('Add Units') # Can view, but not add units
 
       # Can mark units available

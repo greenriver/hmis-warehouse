@@ -67,8 +67,7 @@ RSpec.feature 'Viewing/editing legacy Service records on Enrollment', type: :sys
 
       it 'should allow editing legacy HUD Service' do
         # legacy service is present
-        table_row = find('tbody').find_all('tr').sole.text
-        expect(table_row).to include('Bed Night')
+        expect(find('tbody', text: 'Bed Night')).to have_css('tr', count: 1)
 
         # can't add new service
         assert_no_text 'Add Service'
@@ -99,8 +98,7 @@ RSpec.feature 'Viewing/editing legacy Service records on Enrollment', type: :sys
 
       it 'should allow viewing and editing HUD Service with specified form' do
         # legacy service is present
-        table_row = find('tbody').find_all('tr').sole.text
-        expect(table_row).to include('Bed Night')
+        expect(find('tbody', text: 'Bed Night')).to have_css('tr', count: 1)
 
         # can view and edit legacy service
         find('tbody').first('tr').trigger(:click)
@@ -134,8 +132,7 @@ RSpec.feature 'Viewing/editing legacy Service records on Enrollment', type: :sys
 
       it 'should allow viewing and editing Custom Service with specified form' do
         # legacy service is present
-        table_row = find('tbody').find_all('tr').sole.text
-        expect(table_row).to include('Flex Funds')
+        expect(find('tbody', text: 'Flex Funds')).to have_css('tr', count: 1)
 
         # can view and edit legacy service
         find('tbody').first('tr').trigger(:click)
