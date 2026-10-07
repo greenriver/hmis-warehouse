@@ -75,6 +75,7 @@ module GrdaWarehouse::WarehouseReports::Exports
       @rows_for_export ||= begin
         rows = []
         client_scope.distinct.in_batches(of: 100) do |batch|
+          export_user&.policy_context&.preload_client_dependencies(batch.map(&:id))
           report_calculator = WarehouseReport::ExportEnrollmentCalculator.new(batch_scope: batch, filter: filter)
           batch.find_each do |client|
             pii = GrdaWarehouse::PiiProvider.new(client, policy: export_user&.reporting_policy_for_client(client: client, mode: :download) || GrdaWarehouse::AuthPolicies::DenyPiiPolicy.instance)

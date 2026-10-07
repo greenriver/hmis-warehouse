@@ -23,20 +23,56 @@ class GrdaWarehouse::AuthPolicies::UserBaseContext
   end
 
   memoize def client_roi_loader
-    GrdaWarehouse::AuthPolicies::ContextLoaders::ClientRoiLoader.new(@user)
+    GrdaWarehouse::AuthPolicies::ContextLoaders::ClientRoiLoader.new(@user, miss_tracker: preload_miss_tracker)
   end
 
   memoize def restricted_client_loader
-    GrdaWarehouse::AuthPolicies::ContextLoaders::RestrictedClientLoader.new
+    GrdaWarehouse::AuthPolicies::ContextLoaders::RestrictedClientLoader.new(miss_tracker: preload_miss_tracker)
   end
 
   def client_restricted?(client_id)
-    return false unless client_id # keep first: see RestrictedClientLoader's laziness note
+    return false unless client_id # keep first: nil must never cost a query
 
     restricted_client_loader.restricted?(client_id)
   end
 
-  def restricted_clients_cache_token
-    restricted_client_loader.cache_token
+  # For callers that only need restriction redaction and have no other client-keyed lookups you can use preload_client_restrictions
+  # Use preload_client_dependencies if the caller will check other client-keyed lookups.
+  def preload_client_restrictions(client_ids)
+    restricted_client_loader.preload(client_ids)
+  end
+
+  # Warms every client-keyed lookup a client policy or PII check reads, for a list of clients.
+  # Takes source or destination ids and widens them to each whole warehouse identity (the
+  # destination and all of its sources): policies check source clients, while restriction and ROI
+  # checks are often made by destination id. Ids already preloaded on this context are skipped.
+  # @param client_ids [Enumerable<Integer, nil>]
+  def preload_client_dependencies(client_ids)
+    requested = client_ids.to_a.compact.uniq.reject { |id| preloaded_client_ids.include?(id) }
+    return if requested.empty?
+
+    links = GrdaWarehouse::HiddenClients.identity_links(requested)
+    ids = (requested + links.flatten).uniq
+    restricted_client_loader.preload(ids, identity_links: links)
+    client_roi_loader.preload(links.map(&:last).uniq)
+    preload_client_grants(ids)
+    preloaded_client_ids.merge(ids)
+  end
+
+  # For policies that resolve one client at a time. Free when a caller already preloaded the
+  # client's identity; otherwise preloads it and counts a :destination_clients miss.
+  def preload_client(client_id)
+    return if client_id.nil? || preloaded_client_ids.include?(client_id)
+
+    preload_miss_tracker.call(:destination_clients, client_id)
+    preload_client_dependencies([client_id])
+  end
+
+  memoize private def preloaded_client_ids
+    Set.new
+  end
+
+  memoize private def preload_miss_tracker
+    GrdaWarehouse::AuthPolicies::PreloadMissTracker.new
   end
 end

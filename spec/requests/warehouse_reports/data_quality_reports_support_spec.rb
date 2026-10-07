@@ -119,4 +119,24 @@ RSpec.describe 'DataQualityReportsController#support', type: :request do
       expect(open_row[1..4]).to eq([GrdaWarehouse::PiiProvider::NAME_REDACTED, GrdaWarehouse::PiiProvider::NAME_REDACTED, GrdaWarehouse::PiiProvider::REDACTED, GrdaWarehouse::PiiProvider::REDACTED])
     end
   end
+
+  context 'with more clients than the preload miss threshold' do
+    let(:extra_clients) do
+      Array.new(preload_miss_client_count) { |i| create(:grda_warehouse_hud_client, FirstName: "Preload#{i}", LastName: 'Coverage') }
+    end
+    let(:support_data) do
+      {
+        headers: ['Client ID', 'First Name', 'Last Name', 'DOB', 'SSN'],
+        counts: extra_clients.map { |c| [c.id, c.FirstName, c.LastName, Date.new(1990, 1, 1), '123-45-6789'] },
+        title: 'Test Support',
+      }
+    end
+
+    it 'lists every client in the HTML view' do
+      get support_project_data_quality_report_path(project, report, individual: true, method: 'test')
+
+      expect(response).to have_http_status(:ok)
+      extra_clients.each { |c| expect(response.body).to include(c.FirstName) }
+    end
+  end
 end

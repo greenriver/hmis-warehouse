@@ -22,6 +22,7 @@ module StartDateDq::WarehouseReports
           if params[:filter].present?
             data = @report.data
             @pagy, @enrollments = pagy(data, items: 50)
+            current_user.policy_context.preload_client_dependencies(@enrollments.map(&:client_id))
           end
         end
         format.xlsx do

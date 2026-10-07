@@ -112,6 +112,12 @@ Rails.application.routes.draw do
   end
   namespace :warehouse_reports do
     resources :client_lookups, only: [:index]
+    resources :client_retention, only: [:index] do
+      collection do
+        get :expired
+        get :runs
+      end
+    end
     resources :overlapping_coc_utilization, only: [:index] do
       collection do
         get :overlap
