@@ -155,7 +155,7 @@ RSpec.feature 'Data collection features', type: :system do
       click_link 'Case Notes'
       assert_current_path("/client/#{hoh.id}/enrollments/#{hoh_enrollment.id}/case-notes")
 
-      table_row = find('tbody', text: 'A legacy custom case note').find_all('tr').sole.text
+      table_row = find('tbody').find_all('tr').sole.text
       expect(table_row).to include('A legacy custom case note')
 
       assert_no_text 'Add Case Note'
