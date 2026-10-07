@@ -49,6 +49,22 @@ RSpec.describe 'Warehouse JWT wiring', type: :request do
       expect(JSON.parse(response.body)).to include('expiration_time', 'remaining_seconds')
     end
 
+    # The inactivity modal re-seeds its countdown from this Server-Timing entry on every response.
+    it 'reports the forwarded token\'s remaining seconds on every response' do
+      freeze_time do
+        sign_in(user) # the stubbed token expires 1 hour from now
+        get session_keepalive_path
+
+        expect(response.headers['Server-Timing']).to eq("app-session-remaining;desc=\"#{1.hour.to_i}\"")
+      end
+    end
+
+    it 'omits the remaining-seconds entry when there is no token' do
+      get root_path
+
+      expect(response.headers['Server-Timing'].to_s).not_to include('app-session-remaining')
+    end
+
     # A redirect here would go to a proxy that still has a session and come straight back with the
     # same token.
     describe 'a forwarded token the app refuses' do
