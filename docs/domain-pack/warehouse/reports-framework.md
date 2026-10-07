@@ -309,12 +309,14 @@ entry with `acl: 'public-read'`. `unpublish!` deletes the objects and clears the
 `PublicReports::Report.publication_types` lists the types that share a published slot:
 `PublicReports::StateDashboard` and the deprecated `PublicReports::StateLevelHomelessness`
 share one S3 directory, so publishing either unpublishes the other.
-`S3Toolset` supplies `ready_public_s3_bucket!` (creates the bucket and website configuration;
+`S3Toolset` supplies `ready_public_s3_bucket!` (creates whichever of the bucket and its website
+configuration is missing, so an existing bucket without a website gets one;
 when `AwsS3.local_endpoint?` is true it only ensures the bucket, since the local S3 has no
 website API), the bucket name (`S3_PUBLIC_BUCKET` when present, else `<CLIENT>-<env>-public`),
 the client (built by `AwsS3.new` with `S3_PUBLIC_ACCESS_KEY_ID`/`S3_PUBLIC_ACCESS_KEY_SECRET`,
-so it gets `AwsS3`'s region default, local-endpoint setup, and default credential chain when the
-keys are blank), and `S3_PUBLIC_URL` as the base for `generate_publish_url`.
+so it gets `AwsS3`'s region (`AWS_REGION`, then `AWS_DEFAULT_REGION`, then `us-east-1`),
+local-endpoint setup, and default credential chain when the keys are blank), and `S3_PUBLIC_URL`
+as the base for `generate_publish_url`.
 
 ### Archival
 

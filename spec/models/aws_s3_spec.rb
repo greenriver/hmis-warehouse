@@ -31,6 +31,28 @@ RSpec.describe AwsS3 do
     end
   end
 
+  describe 'region' do
+    def region_for(env)
+      stub_const('ENV', ENV.to_h.except('AWS_REGION', 'AWS_DEFAULT_REGION').merge(env))
+      AwsS3.new(bucket_name: 'test-bucket')
+      region = nil
+      expect(Aws::S3::Client).to have_received(:new) { |options| region = options[:region] }
+      region
+    end
+
+    it 'uses AWS_REGION over AWS_DEFAULT_REGION' do
+      expect(region_for('AWS_REGION' => 'us-east-2', 'AWS_DEFAULT_REGION' => 'us-west-2')).to eq('us-east-2')
+    end
+
+    it 'uses AWS_DEFAULT_REGION when AWS_REGION is blank' do
+      expect(region_for('AWS_REGION' => '', 'AWS_DEFAULT_REGION' => 'us-west-2')).to eq('us-west-2')
+    end
+
+    it 'falls back to us-east-1 when neither is set' do
+      expect(region_for({})).to eq('us-east-1')
+    end
+  end
+
   describe '#exists?' do
     it 'returns true if bucket exists' do
       allow(bucket).to receive(:exists?).and_return(true)

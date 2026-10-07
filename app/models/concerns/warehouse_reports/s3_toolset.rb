@@ -17,12 +17,8 @@ module WarehouseReports::S3Toolset
     bucket_there = bucket_exists?
     website_there = bucket_website_configured?
     return true if bucket_there && website_there
-
-    bucket_created = create_bucket! unless bucket_there
-    return false unless bucket_created
-
-    website_created = setup_bucket_website! unless website_there
-    return false unless website_created
+    return false unless bucket_there || create_bucket!
+    return false unless website_there || setup_bucket_website!
 
     # Check again to make sure it's all happy
     bucket_exists? && bucket_website_configured?

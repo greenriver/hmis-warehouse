@@ -47,7 +47,7 @@ class AwsS3
   )
     @bucket_name = bucket_name
 
-    region ||= ENV.fetch('AWS_REGION', 'us-east-1')
+    region ||= ENV['AWS_REGION'].presence || ENV['AWS_DEFAULT_REGION'].presence || 'us-east-1'
 
     client_options = {
       region: region,
