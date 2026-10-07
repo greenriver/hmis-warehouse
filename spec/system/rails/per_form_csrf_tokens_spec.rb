@@ -91,16 +91,61 @@ RSpec.feature 'Per-form CSRF tokens', type: :rails_system do
     let!(:role) { create :admin_role, can_edit_collections: true }
     let!(:target_collection) { create :collection }
 
-    it 'saves the natively submitted modal form' do
+    def bulk_entities_form_selector(collection)
+      "form[action='#{bulk_entities_admin_collection_path(collection, entities: :data_sources)}']"
+    end
+
+    def open_data_source_modal
       visit admin_collection_path(target_collection)
       find("a[href='#{entities_admin_collection_path(target_collection, entities: :data_sources)}']").click
+    end
+
+    def check_data_source_and_save
       within('.modal') do
         check("collection_data_sources_#{data_source.id}", allow_label_click: true)
         click_button 'Save'
       end
+    end
+
+    def save_data_source_in_modal
+      open_data_source_modal
+      check_data_source_and_save
       expect(page).to have_content("Collection #{target_collection.name} updated.")
       expect(page).not_to have_content('InvalidAuthenticityToken')
       expect(target_collection.reload.data_sources).to contain_exactly(data_source)
+    end
+
+    it 'saves the natively submitted modal form' do
+      save_data_source_in_modal
+    end
+
+    # The form action carries encoded ids, but IdProtector rewrites the request path
+    # to the decoded ids before the token is verified.
+    context 'with protected ids' do
+      before { stub_const('ProtectedId::PROTECT_IDS', true) }
+
+      it 'saves the natively submitted modal form' do
+        save_data_source_in_modal
+      end
+
+      # Accepting the submitted path must not accept a token minted for another
+      # collection's form.
+      it 'rejects a token minted for another collection' do
+        other_collection = create :collection
+        open_data_source_modal
+        other_html = page.evaluate_async_script(
+          'fetch(arguments[0]).then(r => r.text()).then(arguments[1])',
+          entities_admin_collection_path(other_collection, entities: :data_sources),
+        )
+        token = rendered_token(other_html, bulk_entities_form_selector(other_collection))
+        page.execute_script(
+          "document.querySelector(\"#{bulk_entities_form_selector(target_collection)} input[name=authenticity_token]\").value = arguments[0]",
+          token,
+        )
+        check_data_source_and_save
+        expect(page).to have_content('InvalidAuthenticityToken')
+        expect(target_collection.reload.data_sources).to be_empty
+      end
     end
   end
 
