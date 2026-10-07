@@ -1,7 +1,7 @@
 %section
   %h3 Appearance
   %p The following are all optional and will override the appearance of any public report. Font size and weight apply to body text.
-  = f.input :font_url, input_html: { value: @config.font_url, placeholder: PublicReports::Setting::THEME_DEFAULTS[:font_url] }
+  = f.input :font_url, hint: 'Must be a Google Fonts stylesheet URL starting with https://fonts.googleapis.com/', input_html: { value: @config.font_url, placeholder: PublicReports::Setting::THEME_DEFAULTS[:font_url] }
   = f.input :font_family_0, label: 'Font family', input_html: { value: @config.font_family_0, placeholder: PublicReports::Setting::THEME_DEFAULTS[:font_body] }
   = f.input :font_family_1, label: 'Heading font family'
   = f.input :font_size_0, label: 'Font size', input_html: { placeholder: PublicReports::Setting::THEME_DEFAULTS[:font_size] }

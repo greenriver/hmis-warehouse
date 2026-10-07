@@ -95,6 +95,17 @@ RSpec.describe PublicReports::Setting, type: :model do
       expect(setting.update(color_3: '#000;}x')).to be(false)
     end
 
+    it 'rejects a font stylesheet that is not on fonts.googleapis.com' do
+      setting = described_class.new(font_url: 'https://fonts.example.com/a.css')
+
+      expect(setting.valid?).to be(false)
+      expect(setting.errors[:font_url]).to eq(['is not a valid CSS value'])
+    end
+
+    it 'accepts a Google Fonts stylesheet URL' do
+      expect(described_class.new(font_url: 'https://fonts.googleapis.com/css2?family=Lato&display=swap').valid?).to be(true)
+    end
+
     it 'accepts hex colors and blank values' do
       expect(described_class.new(summary_color: '#abc', secondary_color: '', race_color_2: '#AABBCC').valid?).to be(true)
     end
@@ -107,10 +118,16 @@ RSpec.describe PublicReports::Setting, type: :model do
       ApplicationController.renderer.render(partial: 'layouts/public_reports/theme_css', assigns: { report: report })
     end
 
-    it 'renders the primary color, body font size and weight, and the font @import' do
+    it 'renders the theme tokens, the font stack and the full font @import unescaped' do
       html = render_theme(described_class.new(font_size_0: '18px'))
 
-      expect(html).to include('--color-primary: #14558f', '--font-size-body: 18px', '--font-weight-body: 400', '@import url("https://fonts.googleapis.com/css2?family=Noto+Sans')
+      expect(html).to include(
+        '--color-primary: #14558f',
+        '--font-size-body: 18px',
+        '--font-weight-body: 400',
+        '--font-body: "Noto Sans", "Helvetica Neue", Arial, sans-serif;',
+        '@import url("https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;600;700&display=swap");',
+      )
     end
 
     it 'never writes a closing style tag from a saved value' do
