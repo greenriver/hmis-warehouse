@@ -101,16 +101,17 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   #  2. The Client has NO enrollments AND the User can view clients at _any_ project
   #
   # NOTE: This could include clients that are enrolled at projects that the User can't necessarily see (e.g. they lack can_view_projects at that project).
-  scope :visible_to, ->(user) do
+  # @param client_ids [Array, ActiveRecord::Relation, nil] limit to these clients; nil means no limit
+  scope :visible_to, ->(user, client_ids: nil) do
     # Confirm that user has access to view clients *somewhere* in the current data source.
     # This is not a pure optimization; we need to confirm this before we return unenrolled clients.
     global_policy = user.policy_for(Hmis::Hud::Client, policy_type: :hmis_client)
     return none unless global_policy.can_view?
 
     project_ids = Hmis::Hud::Project.with_access(user, :can_view_clients).pluck(:id)
-    client_ids = union_sql_for_clients_in_projects_or_unenrolled(project_ids: project_ids, data_source_id: user.hmis_data_source_id)
+    union_sql = union_sql_for_clients_in_projects_or_unenrolled(project_ids: project_ids, data_source_id: user.hmis_data_source_id, client_ids: client_ids)
 
-    where(c_t[:id].in(client_ids))
+    where(c_t[:id].in(union_sql))
   end
 
   class << self
@@ -140,11 +141,13 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   #   1. Clients enrolled in any of the given projects
   #   2. Unenrolled clients belonging to the given data source
   # Callers must use `c_t[:id].in(result)` rather than `where(id: result)`
-  def self.union_sql_for_clients_in_projects_or_unenrolled(project_ids:, data_source_id:)
+  # client_ids is applied inside each branch; Postgres does not push an outer id filter into the union.
+  def self.union_sql_for_clients_in_projects_or_unenrolled(project_ids:, data_source_id:, client_ids: nil)
     scopes = [
       unenrolled.joins(:data_source).merge(GrdaWarehouse::DataSource.where(id: data_source_id)),
       joins(:projects).where(p_t[:id].in(project_ids)),
     ]
+    scopes = scopes.map { |s| s.where(id: client_ids) } unless client_ids.nil?
     sql = scopes.map { |s| s.select(c_t[:id].to_sql).to_sql }.join(' UNION ALL ')
     Arel.sql(sql)
   end
@@ -153,7 +156,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   # where the client is or was enrolled. They remain reachable by other means, such as a direct link,
   # with their PII redacted.
   # See docs/features/hmis/hmis-restricted-records.md
-  scope :searchable_to, ->(user) do
+  scope :searchable_to, ->(user, client_ids: nil) do
     permitted_project_ids = user.policy_context.project_ids_with_permissions(:can_view_restricted_clients, mode: :any)
     rr_t = Hmis::RestrictedRecord.arel_table
 
@@ -171,7 +174,20 @@ class Hmis::Hud::Client < Hmis::Hud::Base
       where(rr_t[:restrictable_id].eq(c_t[:id])).
       where(enrolled_where_permitted.exists.not)
 
-    visible_to(user).where(hidden.exists.not)
+    visible_to(user, client_ids: client_ids).where(hidden.exists.not)
+  end
+
+  # Above this many matches, visibility is checked with a subquery instead of an id list.
+  MAX_SEARCH_CANDIDATES = 20_000
+
+  # Clients searchable_to the user that match text. Visibility is checked against the matches only;
+  # building the user's whole searchable set takes seconds for users who can see most clients.
+  def self.searchable_to_matching(user, text)
+    matches = where(data_source_id: user.hmis_data_source_id).text_searcher(text, sorted: false)
+    candidate_ids = matches.limit(MAX_SEARCH_CANDIDATES + 1).pluck(:id)
+    return searchable_to(user).where(id: matches.select(:id)) if candidate_ids.size > MAX_SEARCH_CANDIDATES
+
+    searchable_to(user, client_ids: candidate_ids)
   end
 
   scope :matching_search_term, ->(text_search) do
@@ -284,13 +300,17 @@ class Hmis::Hud::Client < Hmis::Hud::Base
 
   def self.client_search(input:, user: nil, sorted: false)
     # Apply ID searches directly, as they can only ever return a single client
-    return searchable_to(user).where(id: input.id) if input.id.present?
-    return searchable_to(user).where(PersonalID: input.personal_id) if input.personal_id
+    return searchable_to(user, client_ids: [input.id]) if input.id.present?
+    return searchable_to(user, client_ids: where(data_source_id: user.hmis_data_source_id, PersonalID: input.personal_id).select(:id)) if input.personal_id
+
+    if input.text_search.present?
+      scope = Hmis::Hud::Client.where(id: searchable_to_matching(user, input.text_search).select(:id))
+      # early return to preserve sort order, avoids client.where(id: scope.select(:id))
+      return scope.text_searcher(input.text_search, sorted: sorted)
+    end
 
     # Build search scope
     scope = Hmis::Hud::Client.where(id: searchable_to(user).select(:id))
-    # early return to preserve sort order, avoids client.where(id: scope.select(:id))
-    return scope.text_searcher(input.text_search, sorted: sorted) if input.text_search.present?
 
     if input.first_name.present?
       query = c_t[:FirstName].matches("#{input.first_name}%")
