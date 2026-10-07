@@ -999,15 +999,11 @@ module HmisCsvImporter::Importer
       scope = exits_before_export_range_scope
       return unless scope
 
-      enrollment_ids = scope.pluck(:EnrollmentID)
-      return if enrollment_ids.empty?
+      removed = scope.count
+      return if removed.zero?
 
       batch_soft_delete(importable_files['Exit.csv'], scope)
-      note_processed('Exit.csv', enrollment_ids.size, 'removed')
-      # Rebuilds service history for the reopened enrollments in post-process
-      GrdaWarehouse::Hud::Enrollment.
-        where(data_source_id: data_source.id, EnrollmentID: enrollment_ids).
-        update_all(processed_as: nil)
+      note_processed('Exit.csv', removed, 'removed')
     end
 
     # Enrollment.csv is authoritative for the exit of each enrollment it contains,

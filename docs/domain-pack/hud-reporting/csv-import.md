@@ -208,8 +208,9 @@ A `NULL` warehouse `source_hash` never matches, which forces re-evaluation on th
   `source_hash` nulled).
 - `remove_exits_before_export_range` (once, not per file): soft-deletes warehouse exits dated
   before `ExportStartDate` whose enrollment is in staged `Enrollment.csv` and whose `ExitID` is
-  not in staged `Exit.csv`, then sets `processed_as = nil` on those enrollments. These exits
-  are outside the involved scope, so the passes above never reach them. Skipped unless
+  not in staged `Exit.csv`. These exits are outside the involved scope, so the passes above
+  never reach them. It does not touch `processed_as`: `add_new_data` already upserted those
+  enrollments with `processed_as = nil`, which queues the service history rebuild. Skipped unless
   `ExportPeriodType` is Reporting period, and for `prevent_import_deletions?` or augmentation
   `Exit` classes. The 2026 `Exit.involved_warehouse_scope` also stops at `ExportEndDate`, so a
   reporting-period import never deletes a later exit.

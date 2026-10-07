@@ -42,7 +42,7 @@ RSpec.describe 'HMIS CSV import of exits outside the export range', type: :model
       GrdaWarehouse::Hud::Enrollment.where(EnrollmentID: ['E-A', 'E-B']).update_all(processed_as: 'stale')
       # HUD keys match E-A and X-A, so only data_source_id keeps the import away from these rows
       @other_data_source = create(:source_data_source)
-      create(:hud_enrollment, data_source: @other_data_source, EnrollmentID: 'E-A', PersonalID: 'C-1', ProjectID: 'P-1', EntryDate: '2021-01-15', processed_as: 'stale')
+      create(:hud_enrollment, data_source: @other_data_source, EnrollmentID: 'E-A', PersonalID: 'C-1', ProjectID: 'P-1', EntryDate: '2021-01-15')
       create(:hud_exit, data_source: @other_data_source, EnrollmentID: 'E-A', ExitID: 'X-A', PersonalID: 'C-1', ExitDate: '2022-06-30')
       import(fixture_dir('exit_outside_range_update'))
     end
@@ -61,9 +61,8 @@ RSpec.describe 'HMIS CSV import of exits outside the export range', type: :model
       expect(imported_exits.pluck(:ExitID)).to contain_exactly('X-B', 'X-C', 'X-F', 'X-G2', 'X-H')
     end
 
-    it 'leaves exits and enrollments in another data source untouched' do
+    it 'leaves exits in another data source untouched' do
       expect(GrdaWarehouse::Hud::Exit.where(data_source: @other_data_source).pluck(:ExitID)).to eq(['X-A'])
-      expect(GrdaWarehouse::Hud::Enrollment.where(data_source: @other_data_source).pluck(:processed_as)).to eq(['stale'])
     end
 
     # These rows break the FY2026 CSV spec's reporting-period rules. The examples record
@@ -79,8 +78,8 @@ RSpec.describe 'HMIS CSV import of exits outside the export range', type: :model
       end
     end
 
-    # Pass 1 upserts every in-file enrollment with processed_as nil, so E-A can't isolate the
-    # new step's reset; E-B catches a reset that reaches enrollments outside the file.
+    # Pass 1's upsert of every in-file enrollment is the only thing that resets processed_as on
+    # E-A, whose exit the pre-range pass removes; without it the reopened stay keeps stale service history.
     it 'clears processed_as on enrollments in the file and leaves the rest alone' do
       processed = GrdaWarehouse::Hud::Enrollment.where.not(data_source: @other_data_source).
         where(EnrollmentID: ['E-A', 'E-B']).
