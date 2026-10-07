@@ -657,15 +657,18 @@ module Types
 
       # Include every custom assessment definition, regardless of applicability rules in the user's data source.
       # An assessment may have migrated-in legacy data even if it has no rules for future collection.
-      definitions = Hmis::Form::Definition.in_data_source(user.hmis_data_source_id).
-        with_role(:CUSTOM_ASSESSMENT).published_or_retired.exclude_definition_from_select
       # Pick the latest published/retired version of each assessment
-      custom_options = definitions.group_by(&:identifier).values.
-        map { |versions| versions.max_by(&:version) }.
-        map { |d| { code: d.identifier, label: d.title } }.
+      custom_options = Hmis::Form::Definition.in_data_source(user.hmis_data_source_id).
+        with_role(:CUSTOM_ASSESSMENT).published_or_retired.
+        pluck(:identifier, :title, :version).
+        group_by(&:first).values.
+        map { |rows| rows.max_by(&:last) }.
+        map { |identifier, title, _| { code: identifier, label: title } }.
         sort_by { |opt| opt[:label] }
-      hud_options = Hmis::Form::Definition::FORM_DATA_COLLECTION_STAGES.excluding(:CUSTOM_ASSESSMENT).keys.
-        map { |k| { code: k.to_s, label: "HUD #{k.to_s.humanize} Assessment" } } # Match label text in the new assessment menu (with "HUD" prefix)
+      # Match label text in the new assessment menu (with "HUD" prefix)
+      hud_options = Hmis::Form::Definition::FORM_DATA_COLLECTION_STAGES.excluding(:CUSTOM_ASSESSMENT).map do |role, stage|
+        { code: role.to_s, label: "HUD #{HudHelper.util.assessment_name_by_data_collection_stage[stage]}" }
+      end
 
       hud_options + custom_options
     end

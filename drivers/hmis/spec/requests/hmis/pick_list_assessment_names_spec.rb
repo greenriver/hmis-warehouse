@@ -93,7 +93,7 @@ RSpec.describe 'PickList ASSESSMENT_NAMES', type: :request do
       { 'code' => 'UPDATE', 'label' => 'HUD Update Assessment' },
       { 'code' => 'ANNUAL', 'label' => 'HUD Annual Assessment' },
       { 'code' => 'EXIT', 'label' => 'HUD Exit Assessment' },
-      { 'code' => 'POST_EXIT', 'label' => 'HUD Post exit Assessment' },
+      { 'code' => 'POST_EXIT', 'label' => 'HUD Post-Exit Assessment' },
     )
     expect(options.map { |o| o['code'] }).not_to include('CUSTOM_ASSESSMENT')
   end
