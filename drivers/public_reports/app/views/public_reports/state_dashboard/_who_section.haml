@@ -52,14 +52,19 @@
 
   - if include_breakdown
     - default_grouping_label = who['breakdownGroupings']['household_type']['label']
-    %h3.breakdown-heading= "#{default_grouping_label} breakdown"
+    %h3.breakdown-heading
+      %span{ data: { 'who-grouping-label' => true } }= default_grouping_label
+      breakdown
     %p.who-controls__period-note
       Showing data for
       %strong{ data: { 'who-current-period' => true } }= current_period_label
       \—
       %a{ href: '#who-period-select' }
         change time period
-        %span.visually-hidden= " for #{default_grouping_label} breakdown"
+        %span.visually-hidden
+          for
+          %span{ data: { 'who-grouping-label' => true } }= default_grouping_label
+          breakdown
     .who-controls
       %label.who-controls__field
         %span Choose grouping

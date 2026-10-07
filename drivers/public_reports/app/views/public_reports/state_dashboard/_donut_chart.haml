@@ -10,6 +10,7 @@
     %title= "#{donut['title']}: #{total}"
     %circle.donut-ring{ cx: PublicReports::StateDashboard::DonutChart::CX, cy: PublicReports::StateDashboard::DonutChart::CY, r: PublicReports::StateDashboard::DonutChart::R, fill: 'transparent', 'stroke-width' => PublicReports::StateDashboard::DonutChart::STROKE_WIDTH }
     - chart.arcs.each_with_index do |arc, i|
+      - next unless arc.value.to_f.positive?
       - if arc.divider
         %line.donut-divider{ data: { index: i }, x1: arc.divider[:x1], y1: arc.divider[:y1], x2: arc.divider[:x2], y2: arc.divider[:y2], 'aria-hidden' => 'true' }
       %g.chart-point{ data: { index: i } }

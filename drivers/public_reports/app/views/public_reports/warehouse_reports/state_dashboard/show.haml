@@ -10,4 +10,4 @@
 
   .well
     - src = polymorphic_path([section, :public_reports, :warehouse_reports, :state_dashboard], pp: :disabled)
-    %iframe{src: src, width: '100%', height: 400, frameBorder: 0}
+    %iframe{src: src, width: '100%', height: 400, frameBorder: 0, title: "#{@report.instance_title} — #{section.to_s.humanize} preview"}

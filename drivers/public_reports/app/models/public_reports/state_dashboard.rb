@@ -150,7 +150,7 @@ module PublicReports
       url = generate_publish_url_for(section)
       frame_id = "public-report-#{id}-#{section}"
       <<~HTML
-        <iframe id='#{frame_id}' width='100%' height='400' src='#{url}' frameborder='0' sandbox='allow-scripts'><a href='#{url}'>#{instance_title} -- #{section.to_s.humanize}</a></iframe>
+        <iframe id='#{frame_id}' title='#{ERB::Util.html_escape("#{instance_title} -- #{section.to_s.humanize}")}' width='100%' height='400' src='#{url}' frameborder='0' sandbox='allow-scripts'><a href='#{url}'>#{instance_title} -- #{section.to_s.humanize}</a></iframe>
         <script>window.addEventListener('message', function (e) { var f = document.getElementById('#{frame_id}'); if (f && e.source === f.contentWindow && e.data && e.data.type === 'public-report-height' && Number(e.data.height) > 0) f.style.height = Number(e.data.height) + 'px'; });</script>
       HTML
     end

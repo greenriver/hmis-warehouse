@@ -8,6 +8,7 @@
   .stacked-bar
     .stacked-bar__track
       - segments.each_with_index do |seg, i|
+        - next unless seg[:value].to_f.positive?
         - pct = PublicReports::StateDashboard::WhoCharts.js_number(seg[:value])
         - label_text = "#{seg[:label]}: #{pct}%"
         - inline_color = PublicReports::StateDashboard::WhoCharts.inline_label_color(seg[:value], seg[:color])

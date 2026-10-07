@@ -118,6 +118,39 @@ RSpec.describe 'PublicReports::WarehouseReports::StateDashboard sections', type:
     expect(labels).to contain_exactly('Persons Age 18 to 24', 'Persons over age 24', 'Fixture Gender Row', 'Fixture Race Row')
   end
 
+  it 'marks both places the breakdown heading names the grouping' do
+    get who_public_reports_warehouse_reports_state_dashboard_path(report)
+
+    expect(Nokogiri::HTML(response.body).css('[data-who-grouping-label]').map(&:text)).to eq(['Household Type', 'Household Type'])
+  end
+
+  context 'when a chart segment is 0%' do
+    before do
+      stored = JSON.parse(precalculated_data)
+      stored['who']['donuts']['all-people']['values'][1] = [100, 0]
+      stored['who']['donuts']['household-type']['values'][1] = [80, 20, 0]
+      report.update_column(:precalculated_data, stored.to_json)
+    end
+
+    it 'gives keyboard focus only to segments with a value, and keeps 0% rows in the data table' do
+      get who_public_reports_warehouse_reports_state_dashboard_path(report)
+      page = Nokogiri::HTML(response.body)
+      focusable = page.css('[data-who-period-pane="1"] [tabindex="0"][aria-label]').map { |el| el['aria-label'] }
+
+      expect(focusable).to include('All People, Sheltered: 100%', 'Adult Only: 80%')
+      expect(focusable.grep(/: 0%\z/)).to eq([])
+      expect(page.css('[data-who-period-pane="1"] .chart-data table').text).to include('Children-Only Households')
+    end
+  end
+
+  it 'titles each section preview iframe on the edit page' do
+    report.update_column(:completed_at, Time.current)
+    get edit_public_reports_warehouse_reports_state_dashboard_path(report)
+    titles = Nokogiri::HTML(response.body).css('iframe').map { |frame| frame['title'] }
+
+    expect(titles).to eq(report.sections.map { |section| "#{report.instance_title} — #{section.to_s.humanize} preview" })
+  end
+
   it 'shows a suppressed breakdown row as a redacted bar with no chronic percent' do
     get who_public_reports_warehouse_reports_state_dashboard_path(report)
     rows = Nokogiri::HTML(response.body).css('[data-who-period-pane]:not([hidden]) .breakdown-row')
@@ -187,6 +220,7 @@ RSpec.describe 'PublicReports::WarehouseReports::StateDashboard sections', type:
     snippet = Nokogiri::HTML.fragment(report.generate_embed_code_for(:pit))
     iframe = snippet.at_css('iframe')
     expect(iframe['src']).to eq(report.generate_publish_url_for(:pit))
+    expect(iframe['title']).to eq("#{report.instance_title} -- Pit")
     expect(snippet.at_css('script').text).to include("getElementById('#{iframe['id']}')")
     expect(snippet.at_css('script').text).to include("'public-report-height'")
     expect(report.generate_embed_code_for(:who)).not_to include("id='#{iframe['id']}'")

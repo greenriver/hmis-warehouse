@@ -25,6 +25,10 @@
       root.querySelectorAll(".breakdown-section").forEach(function (section) {
         section.classList.toggle("breakdown-section--hidden", section.getAttribute("data-grouping") !== groupingKey);
       });
+      var label = groupingSelect.options[groupingSelect.selectedIndex].text;
+      root.querySelectorAll("[data-who-grouping-label]").forEach(function (el) {
+        el.textContent = label;
+      });
     }
 
     if (periodSelect) periodSelect.addEventListener("change", updatePeriod);
