@@ -138,6 +138,29 @@ RSpec.describe PublicReports::StateDashboard, type: :model do
     expect(small_row).not_to be_nil
   end
 
+  it 'publishes no chronic percent for a row whose total is suppressed' do
+    leaks = data['who']['breakdown'].flat_map do |row_id, row|
+      row['totals'].each_index.filter_map do |i|
+        "#{row_id}[#{i}]=#{row['chronic'][i]}" if row['totals'][i].nil? && !row['chronic'][i].nil?
+      end
+    end
+
+    expect(leaks).to eq([])
+  end
+
+  context 'with a 24-year-old in an adult-only household and totals unsuppressed' do
+    before do
+      stub_const('PublicReports::StateDashboard::SUPPRESS_TOTALS_AT_OR_BELOW', 0)
+      create_homeless_client_and_entry(gender: :Man, race_field: :White, household_id: 'age-24', age: 24)
+    end
+
+    it 'counts the 24-year-old in the 18 to 24 row only' do
+      rows = data['who']['breakdown']
+
+      expect([rows['household_type__0__0']['totals'].last, rows['household_type__0__1']['totals'].last]).to eq([1, 5])
+    end
+  end
+
   it 'has no census equivalent for the "Other or Unknown" race bucket in the overall row' do
     expect(data['who']['race']['overall'].last).to be_nil
   end

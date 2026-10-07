@@ -118,6 +118,15 @@ RSpec.describe 'PublicReports::WarehouseReports::StateDashboard sections', type:
     expect(labels).to contain_exactly('Persons Age 18 to 24', 'Persons over age 24', 'Fixture Gender Row', 'Fixture Race Row')
   end
 
+  it 'shows a suppressed breakdown row as a redacted bar with no chronic percent' do
+    get who_public_reports_warehouse_reports_state_dashboard_path(report)
+    rows = Nokogiri::HTML(response.body).css('[data-who-period-pane]:not([hidden]) .breakdown-row')
+    row = rows.find { |r| r.at_css('.breakdown-row__label').text == 'Persons over age 24' }
+
+    expect(row.at_css('.breakdown-bar__segment--redacted')['aria-label']).to eq('Persons over age 24: sheltered/unsheltered breakdown unavailable for this group')
+    expect(row.at_css('[data-row-chronic-full]').text).to eq('Chronically Homeless: not reported')
+  end
+
   it 'links the summary heading to the glossary on summary and raw' do
     Translation.create!(key: 'Public Report Glossary', text: '**Sheltered**: staying in ES, SH, or TH.')
 

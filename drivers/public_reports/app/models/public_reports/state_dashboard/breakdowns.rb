@@ -147,7 +147,7 @@ class PublicReports::StateDashboard::Breakdowns
       combined_chronic_count = 0
       combined_total_count = 0
       setup.each_value do |client_scope|
-        combined_chronic_count += chronic_scope.where(client_id: scope.merge(client_scope).distinct.pluck(:client_id)).count
+        combined_chronic_count += chronic_scope.where(client_id: scope.merge(client_scope).select(:client_id)).select(:client_id).distinct.count
         combined_total_count += scope.merge(client_scope).distinct.select(:client_id).count
       end
     end
@@ -162,7 +162,7 @@ class PublicReports::StateDashboard::Breakdowns
         unsheltered: Array.new(num_periods),
       }
 
-      chronic_count = chronic_scope.where(client_id: scope.merge(client_scope).distinct.pluck(:client_id)).count
+      chronic_count = chronic_scope.where(client_id: scope.merge(client_scope).select(:client_id)).select(:client_id).distinct.count
       total_count = scope.merge(client_scope).distinct.select(:client_id).count
       sheltered_count = scope.homeless_sheltered.merge(client_scope).select(:client_id).distinct.count
       unsheltered_count = scope.homeless_unsheltered.merge(client_scope).select(:client_id).distinct.count
@@ -171,7 +171,7 @@ class PublicReports::StateDashboard::Breakdowns
 
       row_total = @report.published_total(total_count)
       rows[row_id][:totals][date_index] = row_total
-      rows[row_id][:chronic][date_index] = @report.enforce_min_threshold([chronic_count, combine_rows ? combined_total_count : total_count], 'chronic_percents')
+      rows[row_id][:chronic][date_index] = row_total && @report.enforce_min_threshold([chronic_count, combine_rows ? combined_total_count : total_count], 'chronic_percents')
 
       # A suppressed total would be recoverable as sheltered + unsheltered.
       if row_total.nil? || sheltered_count < PublicReports::StateDashboard::MIN_THRESHOLD || unsheltered_count < PublicReports::StateDashboard::MIN_THRESHOLD
@@ -190,7 +190,7 @@ class PublicReports::StateDashboard::Breakdowns
         heading: 'Persons in Households Without Children',
         rows: {
           'Persons Age 18 to 24' => GrdaWarehouse::ServiceHistoryEnrollment.joins(:service_history_services).merge(GrdaWarehouse::ServiceHistoryService.aged(18..24)),
-          'Persons over age 24' => GrdaWarehouse::ServiceHistoryEnrollment.joins(:service_history_services).merge(GrdaWarehouse::ServiceHistoryService.aged(24..105)),
+          'Persons over age 24' => GrdaWarehouse::ServiceHistoryEnrollment.joins(:service_history_services).merge(GrdaWarehouse::ServiceHistoryService.aged(25..104)),
           'Persons of unknown age' => GrdaWarehouse::ServiceHistoryEnrollment.joins(:service_history_services).merge(GrdaWarehouse::ServiceHistoryService.unknown_age),
         },
       },
@@ -199,7 +199,7 @@ class PublicReports::StateDashboard::Breakdowns
         rows: {
           'Children under 18' => GrdaWarehouse::ServiceHistoryEnrollment.joins(:service_history_services).merge(GrdaWarehouse::ServiceHistoryService.aged(0..17)),
           'Persons Age 18 to 24' => GrdaWarehouse::ServiceHistoryEnrollment.joins(:service_history_services).merge(GrdaWarehouse::ServiceHistoryService.aged(18..24)),
-          'Persons over age 24' => GrdaWarehouse::ServiceHistoryEnrollment.joins(:service_history_services).merge(GrdaWarehouse::ServiceHistoryService.aged(24..105)),
+          'Persons over age 24' => GrdaWarehouse::ServiceHistoryEnrollment.joins(:service_history_services).merge(GrdaWarehouse::ServiceHistoryService.aged(25..104)),
           'Persons of unknown age' => GrdaWarehouse::ServiceHistoryEnrollment.joins(:service_history_services).merge(GrdaWarehouse::ServiceHistoryService.unknown_age),
         },
       },
