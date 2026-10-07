@@ -46,11 +46,44 @@ RSpec.describe WarehouseReport::Outcomes::Base::Support, type: :model do
         expect(open_result).to eq('Open')
       end
 
+      it 'resolves retention marks once for the row set rather than once per display_value call' do
+        expect do
+          support.display_value(header: 'first_name', value: 'Restricted', project_id: nil, client_id: restricted_destination_client.id, user: user)
+          support.display_value(header: 'first_name', value: 'Open', project_id: nil, client_id: open_destination_client.id, user: user)
+        end.to make_database_queries(matching: /FROM "client_retention_marks"/, count: 1)
+      end
+
       it 'looks up destination clients once for the row set rather than once per display_value call' do
         support.display_value(header: 'first_name', value: 'Restricted', project_id: nil, client_id: restricted_destination_client.id, user: user)
 
         expect(GrdaWarehouse::Hud::Client).not_to receive(:where)
         support.display_value(header: 'first_name', value: 'Open', project_id: nil, client_id: open_destination_client.id, user: user)
+      end
+    end
+
+    context 'with more unrestricted clients than the preload miss threshold' do
+      let(:viewer) { create(:user) }
+      let(:source_ds) { create(:visible_data_source) }
+      let(:destinations) do
+        Array.new(preload_miss_client_count) do |i|
+          destination = create(:grda_warehouse_hud_client, FirstName: "Preload#{i}", LastName: 'Coverage')
+          source = create(:grda_warehouse_hud_client, data_source_id: source_ds.id, FirstName: "Preload#{i}", LastName: 'Coverage')
+          GrdaWarehouse::WarehouseClient.create!(destination_id: destination.id, source_id: source.id, id_in_source: source.PersonalID, data_source_id: source_ds.id)
+          destination
+        end
+      end
+      let(:support) { described_class.new(clients: [], rows: destinations.map { |d| [d.id] }, headers: ['First Name']) }
+
+      before do
+        viewer.legacy_roles << create(:role, can_view_clients: true, can_view_client_name: true)
+      end
+
+      it 'shows each client its own name when rows have no project' do
+        values = destinations.map do |destination|
+          support.display_value(header: 'First Name', value: destination.FirstName, project_id: nil, client_id: destination.id, user: viewer)
+        end
+
+        expect(values).to eq(destinations.map(&:FirstName))
       end
     end
   end

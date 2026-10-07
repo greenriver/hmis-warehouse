@@ -49,7 +49,7 @@ Where pagination happens depends on who owns it, and the preload call goes where
 
   A download/export format serving the full (unpaginated) list is a separate code path with its own preload over the full set it actually iterates — don't try to share one preload call between a paginated html view and an unpaginated xlsx export of the same action.
 
-Client restriction needs no preload of this kind. `client_restricted?` is backed by `RestrictedClientLoader`, which loads the whole restricted-client set once per request (memoized on `User#policy_context`) rather than per page — see [PII Redaction](features/warehouse/warehouse-auth-policies.md#pii-redaction). Just call `pii_provider`/`client_restricted?` per row; there's nothing to preload first.
+Client restriction is part of the same preload. HMIS restriction loads once per request, but retention marks are looked up per client, so a loop that calls `pii_provider`, `client_restricted?`, or `reporting_policy_for_project(client_id:)` needs `current_user.policy_context.preload_client_dependencies(ids)` first, like any other client policy check — see [PII Redaction](features/warehouse/warehouse-auth-policies.md#pii-redaction).
 
 ### View Helper methods
 
@@ -145,7 +145,7 @@ class ProjectsController < ApplicationController
 
 ### Authorization on a scope
 
-We should use `ArModel.viewable_by(user)`. Note there are variations of this scope in the code base but we should prefer `viewable_by` over visible_by or other variations.
+We should use `ArModel.viewable_by(user)`. Note there are variations of this scope in the code base (`visible_to`, `visible_by`, etc.) but `viewable_by` is the preferred name.
 
 ## Tracking PII
 
@@ -288,7 +288,7 @@ Do **not** add it on every type. Add it on records with sensitive fields (Client
 
 ```ruby
 # Types::HmisSchema::Client
-# Primary defense is applying the viewable_by / visible_to scope.
+# Primary defense is applying the viewable_by scope.
 def self.authorized?(object, ctx)
   super && ctx[:current_user].policy_for(object, policy_type: :hmis_client).can_view?
 end

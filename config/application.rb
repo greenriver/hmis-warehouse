@@ -192,9 +192,7 @@ module OpenPath
     # serve error pages from the Rails app itself
     # rather than using static error pages in public/.
     config.exceptions_app = routes
-
-    # FIXME: required to make forms in pjax modals work
-    config.action_controller.per_form_csrf_tokens = false
+    config.action_controller.per_form_csrf_tokens = true
 
     # Maintain Rails 7.0 behavior for specific settings
     config.active_record.before_committed_on_all_records = false # Keep due to uploader test issues

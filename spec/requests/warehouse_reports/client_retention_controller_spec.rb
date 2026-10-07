@@ -1,0 +1,143 @@
+###
+# Copyright Green River Data Group, Inc.
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
+# frozen_string_literal: true
+
+require 'rails_helper'
+
+RSpec.describe WarehouseReports::ClientRetentionController, type: :request do
+  include AccessControlSetup
+
+  let(:user) { create(:acl_user) }
+  let(:role) { create(:role, can_view_assigned_reports: true) }
+  let(:collection) { create(:collection) }
+  let!(:report_definition) { create(:client_retention_report) }
+
+  let!(:warehouse_ds) { create(:destination_data_source) }
+  let!(:source_ds) { create(:source_data_source) }
+  let!(:expiring_destination) { create(:grda_warehouse_hud_client, data_source: warehouse_ds, FirstName: 'Zzexpiring', LastName: 'Zzsoon') }
+  let!(:expiring_source) { create(:grda_warehouse_hud_client, data_source: source_ds, FirstName: 'Zzexpiring', LastName: 'Zzsoon') }
+  let!(:active_destination) { create(:grda_warehouse_hud_client, data_source: warehouse_ds) }
+  let!(:marked_destination) { create(:grda_warehouse_hud_client, data_source: warehouse_ds, FirstName: 'Zzmarked', LastName: 'Zzclient', DateUpdated: 10.years.ago) }
+  let!(:older_run) { GrdaWarehouse::ClientRetentionRun.create!(started_at: 2.days.ago, completed_at: 2.days.ago + 10.minutes, global_retention_years: 7, evaluated_count: 2, marked_count: 1) }
+  let!(:newer_run) { GrdaWarehouse::ClientRetentionRun.create!(started_at: 1.hour.ago, completed_at: 30.minutes.ago, global_retention_years: 7, evaluated_count: 2, marked_count: 0) }
+
+  def expiring_row(run, destination, source, expires_on:)
+    GrdaWarehouse::ClientRetentionExpiringClient.create!(
+      run: run,
+      destination_client_id: destination.id,
+      source_clients: [{ 'client_id' => source.id, 'data_source_id' => source.data_source_id, 'personal_id' => source.PersonalID }],
+      last_activity_on: expires_on - 7.years,
+      retention_years: 7,
+      basis: 'exited',
+      expires_on: expires_on,
+    )
+  end
+
+  before do
+    expiring_row(newer_run, expiring_destination, expiring_source, expires_on: 30.days.from_now.to_date)
+    # Left over from the older run: never shown, whichever tab is open.
+    expiring_row(older_run, active_destination, expiring_source, expires_on: 10.days.from_now.to_date)
+    GrdaWarehouse::ClientRetentionLogEntry.create!(run: older_run, action: 'marked', destination_client_id: marked_destination.id, source_clients: [{ 'client_id' => 999_001, 'data_source_id' => source_ds.id, 'personal_id' => 'P1' }], last_activity_on: 10.years.ago.to_date, retention_years: 7, created_at: 2.days.ago)
+    GrdaWarehouse::ClientRetentionLogEntry.create!(run: newer_run, action: 'unmarked', destination_client_id: active_destination.id, created_at: 30.minutes.ago)
+    GrdaWarehouse::Config.first_or_create.update!(client_retention_years: 7)
+    GrdaWarehouse::Config.invalidate_cache
+    setup_access_control(user, role, collection)
+    sign_in(user)
+  end
+
+  after { GrdaWarehouse::Config.invalidate_cache }
+
+  # Row order in a rendered table, by the position of each client's link.
+  def link_positions(body, *client_ids)
+    client_ids.map { |id| body.index(%(href="#{client_path(id)}")) }
+  end
+
+  context 'without the report assigned' do
+    it 'refuses every tab' do
+      [warehouse_reports_client_retention_index_path, expired_warehouse_reports_client_retention_index_path, runs_warehouse_reports_client_retention_index_path].each do |path|
+        get path
+
+        expect(response).to redirect_to(user.my_root_path)
+      end
+    end
+  end
+
+  context 'with the report assigned' do
+    before { collection.set_viewables(reports: [report_definition.id]) }
+
+    describe 'Records Expiring Soon' do
+      it 'lists the latest completed run\'s rows only, by id and never by name' do
+        get warehouse_reports_client_retention_index_path
+
+        expect(response).to have_http_status(:ok)
+        expect(response.body).to include(client_path(expiring_destination.id))
+        expect(response.body).to include(expiring_source.id.to_s)
+        expect(response.body).to include("As of the run completed #{newer_run.completed_at.to_fs(:db)}")
+        expect(response.body).not_to include(client_path(active_destination.id))
+        expect(response.body).not_to include('Zzexpiring')
+      end
+
+      it 'shows nothing from a run that has not completed' do
+        GrdaWarehouse::ClientRetentionRun.destroy_all
+        pending_run = GrdaWarehouse::ClientRetentionRun.create!(started_at: 1.minute.ago, global_retention_years: 7)
+        expiring_row(pending_run, expiring_destination, expiring_source, expires_on: 30.days.from_now.to_date)
+
+        get warehouse_reports_client_retention_index_path
+
+        expect(response.body).to include('No records are expiring soon')
+        expect(response.body).not_to include(client_path(expiring_destination.id))
+      end
+
+      it 'shows the disabled notice when retention is off' do
+        GrdaWarehouse::Config.first_or_create.update!(client_retention_years: nil)
+        GrdaWarehouse::Config.invalidate_cache
+
+        get warehouse_reports_client_retention_index_path
+
+        expect(response.body).to include('Client data retention is disabled')
+      end
+    end
+
+    describe 'Expired Records' do
+      it 'lists log entries newest first, by id and never by name' do
+        get expired_warehouse_reports_client_retention_index_path
+
+        expect(response).to have_http_status(:ok)
+        expect(response.body).to include('999001')
+        expect(response.body).not_to include('Zzmarked')
+        newer, older = link_positions(response.body, active_destination.id, marked_destination.id)
+        expect(newer).to be < older
+      end
+
+      it 'filters to one warehouse client' do
+        get expired_warehouse_reports_client_retention_index_path, params: { destination_client_id: marked_destination.id }
+
+        expect(response.body).to include(client_path(marked_destination.id))
+        expect(response.body).not_to include(client_path(active_destination.id))
+      end
+    end
+
+    describe 'Retention Run History' do
+      it 'shows a failed run as failed rather than in progress' do
+        GrdaWarehouse::ClientRetentionRun.create!(started_at: 10.minutes.ago, failed_at: 5.minutes.ago, global_retention_years: 7)
+
+        get runs_warehouse_reports_client_retention_index_path
+
+        expect(response.body).to include('Failed')
+        expect(response.body).not_to include('In progress')
+      end
+
+      it 'lists runs newest first with their counts' do
+        get runs_warehouse_reports_client_retention_index_path
+
+        expect(response).to have_http_status(:ok)
+        expect(response.body.index(newer_run.started_at.to_fs(:db))).to be < response.body.index(older_run.started_at.to_fs(:db))
+        expect(response.body).to include('7 years')
+      end
+    end
+  end
+end

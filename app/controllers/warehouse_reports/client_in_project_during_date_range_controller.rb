@@ -31,9 +31,12 @@ module WarehouseReports
       respond_to do |format|
         format.html do
           @pagy, @clients = pagy(@clients)
+          current_user.policy_context.preload_client_dependencies(@clients.map(&:id))
         end
         format.xlsx do
-          @clients
+          # Instantiates every row. The xlsx view iterates this same relation, so this adds no memory
+          # beyond what the view loads and avoids running the query twice.
+          current_user.policy_context.preload_client_dependencies(@clients.map(&:id))
         end
       end
     end

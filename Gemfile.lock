@@ -257,7 +257,7 @@ GEM
       msgpack (~> 1.2)
     bootstrap (5.3.5)
       popper_js (>= 2.11.8, < 3)
-    brakeman (8.0.6)
+    brakeman (8.1.0)
       racc
     browser (6.2.0)
     builder (3.3.0)
@@ -1047,6 +1047,9 @@ GEM
       anyway_config (>= 1.0, < 3)
       concurrent-ruby
       dry-initializer
+    yabeda-activejob (0.6.0)
+      rails (>= 6.1)
+      yabeda (~> 0.6)
     yabeda-prometheus (0.9.1)
       prometheus-client (>= 3.0, < 5.0)
       rack
@@ -1295,6 +1298,7 @@ DEPENDENCIES
   whenever
   with_advisory_lock
   x25519
+  yabeda-activejob
   yabeda-prometheus
   yabeda-puma-plugin
   yabeda-rails
@@ -1374,7 +1378,7 @@ CHECKSUMS
   bindex (0.8.1) sha256=7b1ecc9dc539ed8bccfc8cb4d2732046227b09d6f37582ff12e50a5047ceb17e
   bootsnap (1.18.6) sha256=0ae2393c1e911e38be0f24e9173e7be570c3650128251bf06240046f84a07d00
   bootstrap (5.3.5) sha256=d57c9b7a21eaf2182c32fe93d1c0eaa0e1ebe82c46676c5a1fd66dd3a6ac41f8
-  brakeman (8.0.6) sha256=759cc69341115e6c2dcd47b6fd8649a0b9bd540e3585ac8a0a94e31c66fee386
+  brakeman (8.1.0) sha256=cfa9e5214e4925842f4bc849a64f8a7e6c5d0425fe98eac8d7b7bc60fdc17e07
   browser (6.2.0) sha256=281d5295788825c9396427c292c2d2be0a5c91875c93c390fde6e5d61a5ace2d
   builder (3.3.0) sha256=497918d2f9dca528fdca4b88d84e4ef4387256d984b8154e9d5d3fe5a9c8835f
   bumbler (0.9.0) sha256=5fff255c01d4e6eb50a342a3cac7cf967a0fefd863349248d40ddd8c7785fd2a
@@ -1710,6 +1714,7 @@ CHECKSUMS
   x25519 (1.0.10) sha256=ec9c446a6c601b226410a8d3812bc3eed7daef837f8a20bb0b314b2a6cabaa12
   xpath (3.2.0) sha256=6dfda79d91bb3b949b947ecc5919f042ef2f399b904013eb3ef6d20dd3a4082e
   yabeda (0.14.0) sha256=bc517bf22d692ebd80a29fc9fd2246c257aaf92d10b2735a775e2419351a43bf
+  yabeda-activejob (0.6.0) sha256=459ac83334641da69c268761b3673dc4c532d52eef8e14079055a27f488e41d0
   yabeda-prometheus (0.9.1) sha256=b87d80cae8cffbeb527c25d288eafa8eed9c1fb56cf49616db5c8611768cd5fd
   yabeda-puma-plugin (0.8.0) sha256=91ec807106058551860260a638d1de21fbf22ce5c12847b08401840e68092c86
   yabeda-rails (0.10.0) sha256=0a85bd829961494f66241d20192368e5d042f836f91986a1eac02f8dcb04237c

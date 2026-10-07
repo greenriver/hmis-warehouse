@@ -38,14 +38,6 @@ case "$CONTAINER_VARIANT" in
     ;;
 esac
 
-if [ "$CONTAINER_VARIANT" = "dj" ]; then
-  if [ "${ENABLE_DJ_METRICS}" = "true" ]; then
-    echo "Starting metrics server"
-    # Not in cluster mode but with 5 threads
-    bundle exec puma --no-config -w 0 -t 1:5 /app/dj-metrics/config.ru &
-  fi
-fi
-
 # Then exec the container's main process (what's set as CMD in the Dockerfile).
 echo "calling: $@"
 exec bundle exec "$@"

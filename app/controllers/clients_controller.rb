@@ -25,7 +25,7 @@ class ClientsController < ApplicationController
   before_action :require_can_see_this_client_demographics!, except: [:new, :create, :simple, :appropriate, :assessment]
   before_action :require_can_edit_clients!, only: [:edit, :merge, :unmerge]
   before_action :require_can_create_clients!, only: [:new, :create]
-  before_action :set_client, only: [:show, :edit, :merge, :unmerge, :service_range, :rollup, :image, :chronic_days, :enrollment_details]
+  before_action :set_client, only: [:show, :edit, :merge, :unmerge, :service_range, :rollup, :image, :enrollment_details]
   before_action :set_search_client, only: [:simple, :appropriate]
   before_action :set_client_start_date, only: [:show, :edit, :rollup]
   before_action :set_potential_matches, only: [:edit]
@@ -70,6 +70,7 @@ class ClientsController < ApplicationController
       @existing_matches = client_source.where(id: existing_matches).
         joins(:warehouse_client_source).
         includes(:warehouse_client_source, :data_source)
+      current_user.policy_context.preload_client_dependencies(existing_matches)
       render action: :new
     elsif clean_params[:bypass_search].present? || existing_matches.empty?
       # Create a new source and destination client
@@ -115,6 +116,13 @@ class ClientsController < ApplicationController
 
   def edit
     @search_clients = client_source.text_search(params[:q], client_scope: client_source, sorted: true).where.not(id: @client.id).limit(50) if params[:q].present?
+    current_user.policy_context.preload_client_dependencies(
+      [@client.id] +
+      @potential_matches.values.flat_map { |clients| clients.pluck(:id) } +
+      Array(@search_clients&.pluck(:id)) +
+      @client.splits_from.pluck(:split_from) +
+      @client.splits_to.pluck(:split_into),
+    )
   end
 
   # display an assessment form in a modal
@@ -198,22 +206,6 @@ class ClientsController < ApplicationController
     respond_to do |format|
       format.json do
         render json: @range.map(&:to_s)
-      end
-    end
-  end
-
-  # This is only valid for Potentially chronic (not HUD Chronic)
-  def chronic_days
-    days = @client.
-      chronics.
-      # where(date: 1.year.ago.to_date..Date.current).
-      order(date: :asc).
-      map do |c|
-        [c[:date], c[:days_in_last_three_years]]
-      end.to_h
-    respond_to do |format|
-      format.json do
-        render json: days
       end
     end
   end

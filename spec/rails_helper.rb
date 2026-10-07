@@ -102,6 +102,7 @@ RSpec.configure do |config|
   config.include AccessControlSetup
   config.include HudReportAccess
   config.include HeaderKeyedRows
+  config.include PreloadCoverageHelpers
   config.include DelayedJobHelpers
 
   require_relative 'support/s3_utils'
@@ -173,7 +174,7 @@ RSpec.configure do |config|
 end
 
 VCR.configure do |config|
-  config.ignore_hosts('127.0.0.1', 'localhost', 'minio', 's3.dev.test')
+  config.ignore_hosts('127.0.0.1', 'localhost', 's3', 's3.dev.test')
 end
 
 def cleanup_test_environment

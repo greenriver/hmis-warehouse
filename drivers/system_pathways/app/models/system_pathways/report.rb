@@ -49,14 +49,6 @@ module SystemPathways
       complete
     end
 
-    def start
-      update(started_at: Time.current)
-    end
-
-    def complete
-      update(completed_at: Time.current)
-    end
-
     def self.untranslated_title
       'System Pathways'
     end

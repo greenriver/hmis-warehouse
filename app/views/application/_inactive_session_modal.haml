@@ -27,7 +27,10 @@
           %p.lead
             Are you still here? You will be signed out automatically in
             %strong{data: {'inactive-session-modal-target': 'timeRemaining'}}
+          %p.d-none{data: {'inactive-session-modal-target': 'renewFailed'}}
+            Your session can't be extended. Save your work before the time runs out, then sign in again.
           %p.text-right
-            %a.btn.btn-primary{href: session_keepalive_path, data: {action: "inactive-session-modal#handleRenewSession"}} I'm still here
+            %a.btn.btn-primary{href: session_keepalive_path, data: {'inactive-session-modal-target': 'renewButton', action: "inactive-session-modal#handleRenewSession"}} I'm still here
+            %button.btn.btn-primary.d-none{type: 'button', data: {'inactive-session-modal-target': 'dismissButton', action: "inactive-session-modal#dismissWarning"}} Close
             = link_to destroy_user_session_path, method: :delete, class: 'btn btn-outline-secondary' do
               Sign Out
