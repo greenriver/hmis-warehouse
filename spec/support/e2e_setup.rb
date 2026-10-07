@@ -45,6 +45,16 @@ RSpec.shared_context 'SystemSpecHelper' do
     assert_text user.full_name
   end
 
+  # Clicks the project's "Enrollments" nav link and waits for the page to finish loading.
+  # The link goes to /projects/:id/enrollments, which only redirects (replace) to .../enrollments/households.
+  # If the next click happens before that redirect has run, the redirect replaces the clicked link's navigation
+  # and we end up back on the Enrollments page. The household table's summary only renders once the redirect
+  # has happened and the page has loaded.
+  def go_to_project_enrollments
+    click_link 'Enrollments'
+    expect(page).to have_content(/Displaying \d+ of \d+ households?/)
+  end
+
   def sign_out
     find('#userMenuToggle').click
     # FIXME: sign out button needs a11y
@@ -179,20 +189,7 @@ RSpec.shared_context 'SystemSpecHelper' do
     user = Hmis::User.find(user_id)
 
     # Make a POST request to start impersonation using JavaScript fetch
-    page.execute_script(<<~JS)
-      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
-      return fetch('/hmis/impersonations', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRF-Token': csrfToken,
-        },
-        body: JSON.stringify({ user_id: #{user.id} })
-      }).then(async (r) => {
-        const body = await r.text();
-        return { ok: r.ok, status: r.status, body: body };
-      });
-    JS
+    impersonation_request('POST', body: { user_id: user.id })
 
     visit current_path # reload the page
     page.driver.wait_for_network_idle
@@ -202,20 +199,48 @@ RSpec.shared_context 'SystemSpecHelper' do
       yield
     ensure
       # Stop impersonating by making a DELETE request
-      page.execute_script(<<~JS)
-        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
-        return fetch('/hmis/impersonations', {
-          method: 'DELETE',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-Token': csrfToken,
-          }
-        }).then(r => r.ok);
-      JS
+      impersonation_request('DELETE')
 
       visit current_path # reload the page
-      expect(page).not_to have_content("Acting as #{user.full_name}")
+      # The user menu button only renders once the current user has loaded and is NOT impersonating.
+      # (Asserting that "Acting as" is absent would pass immediately on a page that hasn't loaded yet.)
+      expect(page).to have_css('#userMenuToggle')
     end
+  end
+
+  # Sends a request to the impersonation endpoint and waits for the response, so the session change
+  # has been applied before the caller reloads the page. (execute_script doesn't await promises, so a
+  # fire-and-forget fetch can be cancelled by the page reload before the session cookie is updated.)
+  #
+  # The frontend bootstraps from a cached copy of the current user in localStorage, and only fetches the
+  # user from the server if that cache is missing or stale. The app's own impersonate/stop-impersonating
+  # actions update that cache; this raw fetch doesn't, so we drop it to make the reload pick up the new
+  # session state from the server.
+  #
+  # Waits for the page's in-flight requests first: the session lives in Redis and each request that loaded
+  # it writes it back when it finishes, so a request that started before this one can finish after it and
+  # restore the old impersonation state.
+  def impersonation_request(method, body: nil)
+    page.driver.wait_for_network_idle
+    response = page.evaluate_async_script(<<~JS)
+      const done = arguments[arguments.length - 1];
+      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+      fetch('/hmis/impersonations', {
+        method: '#{method}',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': csrfToken,
+        },
+        #{body ? "body: JSON.stringify(#{body.to_json})," : ''}
+      }).then(
+        (r) => {
+          if (r.ok) localStorage.removeItem('_hmis_user_info');
+          done({ ok: r.ok, status: r.status });
+        },
+        (e) => done({ ok: false, error: String(e) }),
+      );
+    JS
+    expect(response).to include('ok' => true)
   end
 
   def with_hidden

@@ -39,7 +39,7 @@ RSpec.feature 'Enrollment/household management', type: :system do
       sign_in(hmis_user)
       click_link 'Projects'
       click_link p1.project_name
-      click_link 'Enrollments'
+      go_to_project_enrollments
     end
 
     def make_household(household_id: Hmis::Hud::Base.generate_uuid, enrollment_factory:)
@@ -207,7 +207,7 @@ RSpec.feature 'Enrollment/household management', type: :system do
       sign_in(hmis_user)
       click_link 'Projects'
       click_link p1.project_name
-      click_link 'Enrollments'
+      go_to_project_enrollments
     end
 
     it 'can enroll a household member' do
