@@ -256,7 +256,7 @@
   "app/services/hud_reports/restore_archived_report_data_service.rb": "f479b758a9d96dec95d2bf915903913d5c2fe4dc60850bae09f6e00435ca5f56",
   "app/services/seven_zip.rb": "a2dad0960974daedff7594f9e8b0fcb648c8c956bb8e06130668db6e126cbd92",
   "app/services/zip_cloak.rb": "c5c577156d91c4050d4d44bc6b83c5f7784a9085ec1288342a4132c79441c268",
-  "app/views/admin/configs/_roi.haml": "3b4f92050f2dc4115f2c0cfb479931e7ab340ffda9c222e8d8331c1b7e84d7e4",
+  "app/views/admin/configs/_roi.haml": "0022f6cabfdf61a2d5b47aabc7f5bd3e1ea9dec5f1719627d9de001bdf1a6a73",
   "app/views/clients/_consent_form_status_tags.haml": "5903440bc9489c850a909ff2d91fb859e659748839c491a8683319fe5097b82d",
   "config/application.rb": "8e20b15d2ac8f1a9d200d079c7a8803b0f71f05bdf9f5f782c483c1d88d49c65",
   "config/environments/development.rb": "bbbe518c370498965152a9d76995ef5a941a697775fb7ded2c529401f68e8bcc",

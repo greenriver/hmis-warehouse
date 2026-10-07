@@ -108,6 +108,8 @@ What an access-control user sees when their only route to a client is `can_searc
 
 A missing date only matters when the duration computes expiry from it: the signature date under `One Year` and `Two Years`, the expiration date under `Use Expiration Date`. `Indefinite` never expires.
 
+Changing the release duration to a dated one therefore clears consent, at the next nightly run, for every client whose release lacks the date the new duration needs. Changing the setting back does not restore it: the task reads only the client's consent columns. The consent files are kept, and re-confirming a client's consent file restores the release. The release duration field on the admin config page states this.
+
 ### `Consent::Implied`
 
 | Duration | Implied consent only | Full, signed, with expiration | Full, no signature date | Full, no expiration date | Full, expired |

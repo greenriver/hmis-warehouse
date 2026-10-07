@@ -203,6 +203,11 @@ overridden to the revoked string when `client.newest_consent_form.revoked?`.
   and `GenerateClientRoiAuthorizationsTask#roi_expiry_date`. Change them together.
 - `Hud::Client.consent_validity_period` raises for `Use Expiration Date`; call it only under the
   year durations, as `ExpiringConsentController#index` does.
+- Changing `release_duration` to a dated duration clears consent at the next nightly rebuild for
+  every client missing the date that duration needs (`GenerateClientRoiAuthorizationsTask`
+  `invalidate_consent!` on a nil `roi_status`). Changing it back does not restore it: nothing
+  re-derives client columns from confirmed files except `set_client_consent`, which runs when a
+  file is saved. The hint on `release_duration` in `_roi.haml` tells admins this.
 - `Hud::Client.release_duration` (class) re-reads config on every call; the instance method
   memoizes per object. Specs that flip the config mid-test must use fresh client instances.
 - `set_client_consent` writes with `update_columns` and `revoke_expired_consent` and
