@@ -238,8 +238,9 @@ RSpec.describe Hmis::Hud::Client, type: :model do
       expect(Hmis::Hud::Client.searchable_to_matching(user, 'Bob Ross')).to contain_exactly(client_at_p1, unenrolled_client)
     end
 
-    it 'returns the same clients when the matches exceed the candidate cap' do
+    it 'falls back to a subquery and returns the same clients when the matches exceed the candidate cap' do
       stub_const('Hmis::Hud::Client::MAX_SEARCH_CANDIDATES', 1)
+      expect(Hmis::Hud::Client).to receive(:searchable_to).with(user).and_call_original
       expect(Hmis::Hud::Client.searchable_to_matching(user, 'Bob Ross')).to contain_exactly(client_at_p1, unenrolled_client)
     end
 

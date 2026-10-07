@@ -301,7 +301,11 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   def self.client_search(input:, user: nil, sorted: false)
     # Apply ID searches directly, as they can only ever return a single client
     return searchable_to(user, client_ids: [input.id]) if input.id.present?
-    return searchable_to(user, client_ids: where(data_source_id: user.hmis_data_source_id, PersonalID: input.personal_id).select(:id)) if input.personal_id
+
+    if input.personal_id
+      personal_id_matches = where(data_source_id: user.hmis_data_source_id, PersonalID: input.personal_id).select(:id)
+      return searchable_to(user, client_ids: personal_id_matches)
+    end
 
     if input.text_search.present?
       scope = Hmis::Hud::Client.where(id: searchable_to_matching(user, input.text_search).select(:id))

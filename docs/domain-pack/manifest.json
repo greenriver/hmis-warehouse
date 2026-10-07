@@ -404,7 +404,7 @@
   "drivers/hmis/app/models/hmis/group_viewable_entity.rb": "334cc43a7014aff4eb4d7f39fc87947ed5f64d85bbeeb0b14fd8947ed21029df",
   "drivers/hmis/app/models/hmis/hud/assessment.rb": "aaa4bd3e6c96685d9becc173200e5800dce92b508e27a707d9e15ffb95097926",
   "drivers/hmis/app/models/hmis/hud/base.rb": "a408a972cfc14b5783a573d592380f96a3e8f712e7ed60d089438c8f97c6ed47",
-  "drivers/hmis/app/models/hmis/hud/client.rb": "5af30da611093539667b90910254fdf7dd65ffd7716f1d523295e662500e045d",
+  "drivers/hmis/app/models/hmis/hud/client.rb": "73fbad747d93b6d366ad9f4ae42b92ab6f62ed910ad77acc023d5bd8be9654aa",
   "drivers/hmis/app/models/hmis/hud/concerns/shared.rb": "735abf2be4b78a2557e91e83693038e1745fce03cef514c23f684e2fea3cb1cc",
   "drivers/hmis/app/models/hmis/hud/custom_assessment.rb": "8c3159865d22a9776cb367160995edb5ac94f07b8298fac57b5def6d8fe8f2d3",
   "drivers/hmis/app/models/hmis/hud/custom_case_note.rb": "3c41a4e24ba9cbdd33d4ebec93b0b7e0a2b7af3b661ef473fa0d1ecf4f29b891",
