@@ -67,6 +67,8 @@ module Types
     # User-friendly display name for item_type
     def record_name
       case object.item_type
+      when 'Hmis::RestrictedRecord'
+        'Record Restriction'
       when 'Hmis::Hud::Assessment'
         'CE Assessment'
       when 'Hmis::Hud::Event'
@@ -98,13 +100,66 @@ module Types
     end
 
     def graphql_type
+      # A restriction is reported as its restrictable's type, so the synthesized `restricted`
+      # change below resolves against a real schema field and renders as Yes/No rather than a raw
+      # boolean. Client is the only restrictable type today, and the only one whose schema has a
+      # `restricted` field, but reading it off the version keeps this honest as more are added.
+      # `record_id` deliberately still reports the restriction row, not the restrictable, so that
+      # it means the same thing here as it does for every other record type.
+      return graphql_type_for(restrictable_type) if restriction?
+
+      graphql_type_for(object.item_type)
+    end
+
+    private def graphql_type_for(item_type)
       # maybe there's a way to map these from codegen?
-      case object.item_type
+      case item_type
       when 'Hmis::Hud::Assessment'
         'CeAssessment'
       else
-        object.item_type.demodulize.gsub(/^Custom/, '')
+        item_type.demodulize.gsub(/^Custom/, '')
       end
+    end
+
+    # The restrictable type is only readable from the version payload. A destroy version can lose
+    # it if `object` was never written, so fall back to the one type that can be restricted today.
+    private def restrictable_type
+      item_attributes&.dig('restrictable_type') || Hmis::RestrictedRecord::CLIENT_RESTRICTABLE_TYPE
+    end
+
+    # A restriction row records no meaningful column change of its own: every column is a foreign
+    # key or a timestamp, and `deleted_at` is nil on both sides of the destroy. Restricting and
+    # unrestricting are reported as an update to the restrictable's `restricted` field instead, so
+    # the audit row shows the direction of the change rather than a bare "Create" or "Delete".
+    def event
+      return 'update' if restriction?
+
+      object.event
+    end
+
+    private def restriction?
+      object.item_type == 'Hmis::RestrictedRecord'
+    end
+
+    private def restriction_object_changes
+      # Restricting writes a create and unrestricting writes a destroy, so a destroy is the only
+      # version that means "no longer restricted".
+      #
+      # Versions written before RestrictedRecord.mark! stopped reusing rows can also be updates.
+      # Those come from the created_by re-stamp that followed the revive, so they exist only when
+      # a different user acted. Most were genuine restrictions, but mark! re-stamped created_by on
+      # an already-active row too, which restricted nothing; those render as a second restrict row
+      # on a client that was already restricted, and nothing on the version tells the two apart.
+      # See docs/features/hmis/hmis-restricted-records.md#audit-trail.
+      restricted = object.event != 'destroy'
+
+      {
+        'restricted' => {
+          'fieldName' => 'restricted',
+          'displayName' => 'Restricted',
+          'values' => [!restricted, restricted],
+        },
+      }
     end
 
     private def custom_assessment_title
@@ -151,6 +206,8 @@ module Types
     ].freeze
 
     def object_changes
+      return restriction_object_changes if restriction?
+
       result = object.object_changes
       return unless result.present?
 
