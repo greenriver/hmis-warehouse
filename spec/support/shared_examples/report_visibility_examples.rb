@@ -10,6 +10,7 @@ RSpec.shared_context 'report visibility users' do
   let(:report_attributes) { {} }
   let(:collection) { create(:collection) }
   let(:report_definition) { create(:touch_point_report, url: report_definition_url, name: 'Report visibility') }
+  # Report definitions are visible through can_view_assigned_reports, so the all-reports role needs it too.
   let(:all_reports_user) { user_with_role(can_view_all_reports: true, can_view_assigned_reports: true) }
   let(:own_reports_user) { user_with_role(can_view_assigned_reports: true, can_view_clients: true) }
 
@@ -22,12 +23,11 @@ RSpec.shared_context 'report visibility users' do
   let!(:others_report) { report_class.create!(user_id: all_reports_user.id, **report_attributes) }
   let!(:own_report) { report_class.create!(user_id: own_reports_user.id, **report_attributes) }
 
-  # Report definitions are visible through can_view_assigned_reports, so the all-reports role needs it too.
   # setup_access_control names the user group from the role name and collection, so
   # roles sharing a name would put every user in one group with all their permissions.
   def user_with_role(**permissions)
     user = create(:acl_user)
-    setup_access_control(user, create(:role, name: "role #{permissions.keys.join(' ')}", **permissions), collection)
+    setup_access_control(user, create(:role, name: "role #{permissions.inspect}", **permissions), collection)
     user
   end
 end

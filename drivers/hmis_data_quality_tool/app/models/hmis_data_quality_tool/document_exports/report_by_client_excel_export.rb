@@ -14,7 +14,7 @@ module HmisDataQualityTool::DocumentExports
     end
 
     protected def report
-      @report ||= report_class.visible_to(user).find_by(id: params['id'])
+      @report ||= report_class.where(report_name: report_class.untranslated_title).visible_to(user).find_by(id: params['id'])
     end
 
     protected def pivot_details

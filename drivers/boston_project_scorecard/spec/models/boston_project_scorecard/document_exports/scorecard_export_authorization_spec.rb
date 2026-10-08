@@ -31,7 +31,7 @@ RSpec.describe BostonProjectScorecard::DocumentExports::ScorecardExport, type: :
     expect(export_for(user, own_report.id).authorized?).to be(false)
   end
 
-  it 'refuses a user with the scorecard report assigned but no report permission' do
+  it 'refuses a user without a report permission' do
     expect(export_for(user_with_role(can_view_clients: true), own_report.id).authorized?).to be(false)
   end
 
