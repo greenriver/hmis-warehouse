@@ -31,4 +31,11 @@ RSpec.describe PublicReports::StateDashboard::DonutChart do
     arc = described_class.new([{ label: 'All', value: 100, color: '#14558F' }]).arcs.first
     expect([arc.divider, arc.dasharray]).to eq([nil, '100 0'])
   end
+
+  it 'anchors a tooltip at its start when the segment midpoint is in the first quarter' do
+    arcs = described_class.new([{ label: 'Sheltered', value: 10, color: '#14558F' }, { label: 'Unsheltered', value: 90, color: '#3E94CF' }]).arcs
+
+    expect(arcs.map { |a| a.tooltip[:anchor] }).to eq(['start', 'middle'])
+    expect(arcs.first.tooltip.values_at(:rect_x, :width, :text_x)).to eq(['27.08', '32.40', '43.28'])
+  end
 end

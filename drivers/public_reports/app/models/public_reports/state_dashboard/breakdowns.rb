@@ -265,11 +265,11 @@ class PublicReports::StateDashboard::Breakdowns
       order(shs_t[:date].asc).
       pluck(cl(she_t[:household_id], she_t[:enrollment_group_id]), shs_t[:age], shs_t[:client_id], she_t[:head_of_household]).
       each do |hh_id, age, client_id, hoh|
-        next if age.blank? || age.negative?
-
         key = [hh_id, client_id]
         households[hh_id] ||= { ages: [], hoh_client_id: nil }
-        households[hh_id][:ages] << age unless counted_ids.include?(key)
+        # An unknown (nil or negative) age keeps the household but records no age, so a household
+        # with only unknown ages has no child present and classifies as adult-only.
+        households[hh_id][:ages] << age if age.present? && !age.negative? && !counted_ids.include?(key)
         households[hh_id][:hoh_client_id] = client_id if hoh
         counted_ids << key
       end

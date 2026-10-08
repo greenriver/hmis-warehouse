@@ -43,4 +43,8 @@ RSpec.describe PublicReports::StateDashboard::WhoCharts do
   it 'appends the unit to a row label unless the label already ends with it' do
     expect([described_class.row_label('Sheltered', 'People'), described_class.row_label('Children-Only Households', 'Households')]).to eq(['Sheltered People', 'Children-Only Households'])
   end
+
+  it 'gives no inline label when the best text colour is under 4.5:1 on a valid hex' do
+    expect(described_class.inline_label_color(50, '#777777')).to be_nil
+  end
 end

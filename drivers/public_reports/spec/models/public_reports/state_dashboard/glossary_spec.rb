@@ -68,4 +68,30 @@ RSpec.describe PublicReports::StateDashboard::Glossary do
   it 'is blank when no glossary translation exists' do
     expect(described_class.from_translation).to be_blank
   end
+
+  it 'drops a javascript: link and keeps an https one' do
+    glossary = described_class.new("### Term\n[bad](javascript:alert(1)) and [good](https://example.org/)\n")
+    hrefs = Nokogiri::HTML.fragment(glossary.html).css('a').map { |a| a['href'] }
+    expect(hrefs).to eq(['https://example.org/'])
+  end
+
+  it 'escapes markup inside a substituted {{Translation}}' do
+    create(:translation, key: 'Glossary Note', text: '<b>bold</b>')
+    glossary = described_class.new("### Term\nSee {{Glossary Note}}.\n")
+    dd = Nokogiri::HTML.fragment(glossary.html).at_css('dd')
+    expect(dd.css('b')).to be_empty
+    expect(dd.text).to eq('See <b>bold</b>.')
+  end
+
+  it 'keeps markup inside a heading escaped in the term' do
+    glossary = described_class.new("### <b>Term</b>\nDef.\n")
+    dt = Nokogiri::HTML.fragment(glossary.html).at_css('dt')
+    expect(dt.css('b')).to be_empty
+    expect(dt.text).to eq('<b>Term</b>')
+  end
+
+  it 'reads the glossary from the translation row' do
+    create(:translation, key: described_class::TRANSLATION_KEY, text: "### Term\nDef.\n")
+    expect(described_class.from_translation.definition('Term')).to eq('Def.')
+  end
 end
