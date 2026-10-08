@@ -41,12 +41,6 @@ RSpec.describe 'PublicReports::WarehouseReports::StateDashboard sections', type:
   end
 
   before do
-    # GrdaWarehouse::Shape classes memoize their state-code lookup on the
-    # class object itself, so it survives another spec
-    # file's transaction rollback and can leak a stale (pre-fixture) empty
-    # result in here. Force a fresh lookup for this run.
-    GrdaWarehouse::Shape::Town.instance_variable_set(:@my_fips_state_codes, nil)
-
     state = GrdaWarehouse::Shape::State.create!(stusps: 'MA', geoid: '25')
     GrdaWarehouse::Shape::Town.create!(town: 'ABINGTON', statefp: state.geoid, geom: 'SRID=4326;MULTIPOLYGON(((-71.5 42.0, -71.4 42.0, -71.4 42.1, -71.5 42.1, -71.5 42.0)))')
     GrdaWarehouse::Shape::Town.create!(town: 'ACTON', statefp: state.geoid, geom: 'SRID=4326;MULTIPOLYGON(((-71.3 42.0, -71.2 42.0, -71.2 42.1, -71.3 42.1, -71.3 42.0)))')
@@ -117,6 +111,13 @@ RSpec.describe 'PublicReports::WarehouseReports::StateDashboard sections', type:
       blob = Nokogiri::HTML(response.body).at_css('script[data-town-map-data]').text
       expect(JSON.parse(blob)['towns'].first).to eq(hostile), section.to_s
     end
+  end
+
+  it 'labels each town-map table row with a row header naming the town' do
+    get map_public_reports_warehouse_reports_state_dashboard_path(report)
+    rows = Nokogiri::HTML(response.body).css('[data-town-map-tbody] tr')
+
+    expect(rows.map { |tr| tr.at_css('th[scope="row"]')&.text }).to match_array(JSON.parse(precalculated_data)['map']['towns'])
   end
 
   it 'fills a map path whose rate falls between band maxima with the next band up' do

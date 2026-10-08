@@ -16,7 +16,7 @@
           .breakdown-row
             .breakdown-row__label= label
             .breakdown-row__bar
-              .breakdown-bar{ data: { 'row-id' => row_id } }
+              .breakdown-bar
                 .breakdown-bar__track
                   - if redacted
                     .breakdown-bar__segment.breakdown-bar__segment--redacted{ style: 'flex-basis:100%', tabindex: 0, role: 'img', 'aria-label' => "#{label}: sheltered/unsheltered breakdown unavailable for this group" }
@@ -24,13 +24,13 @@
                     - total_su = sheltered_count + unsheltered_count
                     - sheltered_pct = total_su.positive? ? ((sheltered_count.to_f / total_su) * 100).round : 0
                     - unsheltered_pct = 100 - sheltered_pct
-                    .chart-point{ data: { segment: 'sheltered' }, style: "flex-basis:#{sheltered_pct}%" }
+                    .chart-point{ style: "flex-basis:#{sheltered_pct}%" }
                       .breakdown-bar__segment.breakdown-bar__segment--sheltered{ tabindex: 0, role: 'img', 'aria-label' => "#{label}, Sheltered: #{number_with_delimiter(sheltered_count)}" }
                       .chart-tooltip.chart-tooltip--html{ 'aria-hidden' => 'true' }= "Sheltered: #{number_with_delimiter(sheltered_count)}"
-                    .chart-point{ data: { segment: 'unsheltered' }, style: "flex-basis:#{unsheltered_pct}%" }
+                    .chart-point{ style: "flex-basis:#{unsheltered_pct}%" }
                       .breakdown-bar__segment.breakdown-bar__segment--unsheltered{ tabindex: 0, role: 'img', 'aria-label' => "#{label}, Unsheltered: #{number_with_delimiter(unsheltered_count)}" }
                       .chart-tooltip.chart-tooltip--html{ 'aria-hidden' => 'true' }= "Unsheltered: #{number_with_delimiter(unsheltered_count)}"
-            .breakdown-row__total{ data: { 'row-total' => row_id } }= PublicReports::StateDashboard::WhoCharts.format_total(total, 'People')
+            .breakdown-row__total= PublicReports::StateDashboard::WhoCharts.format_total(total, 'People')
             .breakdown-row__chronic
               %span.visually-hidden{ data: { 'row-chronic-full' => row_id } }= chronic_pct.nil? ? 'Chronically Homeless: not reported' : "#{chronic_pct}% Chronically Homeless"
               %span.breakdown-row__chronic-pct{ data: { 'row-chronic' => row_id }, 'aria-hidden' => 'true' }= chronic_pct.nil? ? '—' : "#{chronic_pct}%"

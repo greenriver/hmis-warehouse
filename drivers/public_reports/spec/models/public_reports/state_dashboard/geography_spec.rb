@@ -13,13 +13,6 @@ RSpec.describe PublicReports::StateDashboard::Geography, type: :model do
 
   let!(:state) { GrdaWarehouse::Shape::State.create!(stusps: 'MA', geoid: '25') }
 
-  before do
-    # GrdaWarehouse::Shape classes memoize their state-code lookup on the
-    # class object itself, so it survives an example's transaction rollback
-    # and can leak a stale (pre-fixture) empty result into a later example.
-    GrdaWarehouse::Shape::Town.instance_variable_set(:@my_fips_state_codes, nil)
-  end
-
   def create_town(name, west:)
     GrdaWarehouse::Shape::Town.create!(
       town: name,

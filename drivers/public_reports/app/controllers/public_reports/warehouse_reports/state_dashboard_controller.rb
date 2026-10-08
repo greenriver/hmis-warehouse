@@ -12,6 +12,8 @@ module PublicReports::WarehouseReports
     include ArelHelper
     include PublicReports::WarehouseReports::PublicReportsControllerConcern
 
+    before_action :ignore_mini_profiler, only: [:pit, :summary, :entering_exiting, :map, :who, :race]
+
     def pit
       render(layout: @report.raw_layout)
     end

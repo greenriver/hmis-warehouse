@@ -52,9 +52,9 @@
       %tbody{ data: { 'town-map-tbody' => true } }
         - map['towns'].each_index.sort_by { |i| -(rates[i] || -1) }.each do |i|
           %tr
-            %td= map['towns'][i]
+            %th{ scope: 'row' }= map['towns'][i]
             %td= format_rate.call(rates[i])
             %td= map['populations'][i].nil? ? 'Not reporting' : number_with_delimiter(map['populations'][i])
 
-  %script{ type: 'application/json', data: { 'town-map-data' => true } }= map.to_json.html_safe
+  %script{ type: 'application/json', data: { 'town-map-data' => true } }= json_escape(map.to_json).html_safe
   %script{ nonce: content_security_policy_nonce }= public_report_asset('town_map.js')

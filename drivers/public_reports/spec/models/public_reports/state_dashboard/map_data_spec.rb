@@ -102,12 +102,6 @@ RSpec.describe PublicReports::StateDashboard::MapData, type: :model do
       )
     end
 
-    before do
-      # GrdaWarehouse::Shape classes memoize their state-code lookup on the class object, so
-      # a stale (pre-fixture) empty result from another example would hide every town.
-      GrdaWarehouse::Shape::Town.instance_variable_set(:@my_fips_state_codes, nil)
-    end
-
     # Geography#population reads the town's census value, so every shape needs one.
     def create_town(name, west:, population:)
       GrdaWarehouse::Shape::Town.create!(

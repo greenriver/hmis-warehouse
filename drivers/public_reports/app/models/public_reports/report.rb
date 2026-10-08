@@ -135,7 +135,7 @@ module PublicReports
         # return percentages for each instead of raw counts
         (sheltered, unsheltered) = data
         total = sheltered + unsheltered
-        return [0, 0] if total.zero? || (total < 100 && data.any? { |m| m < 11 })
+        return [0, 0] if total.zero? || (total <= self.class::SUPPRESS_TOTALS_AT_OR_BELOW && data.any? { |m| m < 11 })
 
         sheltered = ((sheltered.to_f / total) * 100).round
         unsheltered = ((unsheltered.to_f / total) * 100).round
@@ -154,7 +154,7 @@ module PublicReports
       when 'donut', 'household_type'
         # return percentages for each instead of raw counts
         total = data.sum
-        return data.map { |_| 0 } if total.zero? || (total < 100 && data.any? { |m| m < 11 })
+        return data.map { |_| 0 } if total.zero? || (total <= self.class::SUPPRESS_TOTALS_AT_OR_BELOW && data.any? { |m| m < 11 })
 
         # convert counts to percents
         data.map! do |count|

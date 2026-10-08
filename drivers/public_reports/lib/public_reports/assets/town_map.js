@@ -8,6 +8,12 @@
     return node;
   }
 
+  function rowHeader(text) {
+    var node = el("th", text);
+    node.scope = "row";
+    return node;
+  }
+
   // Bands and the "not reporting" color are Rails-supplied (data.bands /
   // data.notReportingColor) rather than hard-coded, so they track the
   // report's own MapData#colors palette. A null max means "no upper bound".
@@ -91,7 +97,7 @@
         rows.map(function (row) {
           var tr = el("tr");
           tr.append(
-            el("td", row.name),
+            rowHeader(row.name),
             el("td", formatRate(row.rate) + (row.rate != null && isPercentage ? "%" : "")),
             el("td", formatNumber(row.population))
           );
