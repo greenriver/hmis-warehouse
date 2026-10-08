@@ -87,7 +87,8 @@ RSpec.describe Hmis::MarkClientAsDirtyBehavior do
         expect(dirty?(c3)).to be true
       end
 
-      # Member ages read the destination DOB, so propagation happens when ClientCleanup copies a source DOB change to it
+      # Any destination change ClientCleanup makes marks the client's open household members, e.g. a DOB change,
+      # which member ages read
       it 'marks household members dirty when ClientCleanup updates a member destination DOB' do
         c2.update!(dob: 5.years.ago.to_date)
         Hmis::Ce::ChangeMarker.mark_processed(Hmis::Ce::ChangeMarker.all)
@@ -110,11 +111,18 @@ RSpec.describe Hmis::MarkClientAsDirtyBehavior do
         expect(dirty?(c1)).to be true
       end
 
-      it 'does not mark household members dirty for unrelated enrollment or exit changes' do
+      it 'marks only the member for enrollment changes that do not affect the household' do
+        c2_enrollment.update!(date_of_engagement: Date.current)
+        expect(dirty?(c2)).to be true
+        expect(dirty?(c1)).to be false
+      end
+
+      it 'marks the exited member but not the old household for unrelated changes after the member exits' do
         exit = create :hmis_hud_exit, enrollment: c2_enrollment, client: c2, data_source: ds1
         Hmis::Ce::ChangeMarker.mark_processed(Hmis::Ce::ChangeMarker.all)
         c2_enrollment.update!(date_of_engagement: Date.current)
         exit.update!(counseling_received: 1)
+        expect(dirty?(c2)).to be true
         expect(dirty?(c1)).to be false
       end
     end

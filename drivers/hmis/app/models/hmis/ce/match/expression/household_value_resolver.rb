@@ -28,8 +28,8 @@ module Hmis::Ce::Match::Expression
       selected, members = households_for(client_ids)
 
       client_ids.index_with do |client_id|
-        # The selected household can lose its open members between the selector and member queries
-        # (concurrent exit/delete); treat that like no household
+        # nil when the client has no open in-scope household, or when the selected household lost its open
+        # members between the selector and member queries (concurrent exit/delete)
         ages = members[selected[client_id]]
         next nil unless ages
 
@@ -60,7 +60,7 @@ module Hmis::Ce::Match::Expression
 
     # @return [Hash{Array(Integer, String) => Array<Integer, nil>}] household => one age per open member enrollment
     def member_ages_by_household(households)
-      rows = HouseholdSelector.open_member_enrollments(households).
+      rows = Hmis::HouseholdMembership.open_enrollments(households).
         left_outer_joins(client: :warehouse_client_source).
         pluck(e_t[:data_source_id], e_t[:HouseholdID], wc_t[:destination_id])
 

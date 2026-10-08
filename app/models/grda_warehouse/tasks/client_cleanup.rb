@@ -697,7 +697,6 @@ module GrdaWarehouse::Tasks
           joins(source_clients: :data_source).
           preload(source_clients: :data_source)
         changed_batch = []
-        dob_changed_ids = []
         client_batch.each do |dest|
           source_clients = dest.source_clients.map do |sc|
             next nil unless sc.data_source.present? # Don't consider deleted data sources
@@ -725,7 +724,6 @@ module GrdaWarehouse::Tasks
           if dest.DOB != dest_attr[:DOB]
             Rails.logger.debug "Invalidating service history for #{dest.id}"
             dest.invalidate_service_history unless @dry_run
-            dob_changed_ids << dest.id
           end
           dest.assign_attributes(dest_attr)
           changed_batch << dest if dest.changed? && ! @dry_run
@@ -745,7 +743,7 @@ module GrdaWarehouse::Tasks
         end
 
         update_destination_clients(changed_batch)
-        post_process_clients(client_ids: changed_batch.map(&:id), dob_changed_ids: dob_changed_ids)
+        post_process_clients(client_ids: changed_batch.map(&:id))
         update_source_hashes(batch)
         changed_batch.each(&:clear_view_cache)
         processed += batch.count
@@ -1023,15 +1021,13 @@ module GrdaWarehouse::Tasks
     end
 
     # Marks given clients as dirty for future re-processing for CE
-    private def post_process_clients(client_ids:, dob_changed_ids:)
+    private def post_process_clients(client_ids:)
       return if @dry_run
+      return unless Hmis::Ce.configuration.enabled?
 
-      # household.*_member_age CE match fields read destination DOBs, so a DOB change also affects the client's
-      # open household members. If household fields come to depend on other demographics (e.g. a
-      # "household contains veteran" field), those changes must be propagated here too.
-      client_ids += Hmis::Ce::Match::Expression::HouseholdSelector.open_household_member_destination_ids(dob_changed_ids) if Hmis::Ce.configuration.enabled?
-
-      Hmis::Ce::ChangeMarker.upsert_or_bump_version('GrdaWarehouse::Hud::Client', trackable_ids: client_ids.uniq)
+      # household.* CE match fields read members' destination demographics (e.g. DOB for ages)
+      client_ids += Hmis::HouseholdMembership.household_member_destination_ids(client_ids)
+      Hmis::Ce::ChangeMarker.upsert_or_bump_version('GrdaWarehouse::Hud::Client', trackable_ids: client_ids)
     end
 
     private def client_age_at date
