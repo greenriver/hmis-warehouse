@@ -2,6 +2,8 @@
 
 The client dashboard is the page rendered at `/clients/:id` — the summary view a user sees for an individual client. Which sections appear is controlled by two independent settings: an **installation-level layout** (which visual "brand" of dashboard to use) and a **per-role detail level** (whether a given user sees the full dashboard or a reduced one).
 
+Whether a user can open a given client's dashboard at all, including through a release of information, is covered in [Client ROI and Consent](client-roi-and-consent.md).
+
 ## Two Independent Axes
 
 | Axis | Controlled by | Values |

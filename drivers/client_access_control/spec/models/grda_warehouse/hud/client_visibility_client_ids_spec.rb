@@ -76,6 +76,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
         consent_form_signed_on: 5.days.ago,
         consent_expires_on: Date.current + 1.year,
       )
+      GrdaWarehouse::Tasks::GenerateClientRoiAuthorizationsTask.rebuild_clients([window_destination_client.id])
     end
 
     it 'returns only the requested clients covered by a release' do

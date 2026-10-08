@@ -429,7 +429,7 @@ module GrdaWarehouse::Hud
       when 'One Year', 'Two Years'
         where(
           release_string_query.
-            and(arel_table[:consent_form_signed_on].gteq(consent_validity_period.ago)),
+            and(arel_table[:consent_form_signed_on].gteq(consent_validity_period.ago.to_date)),
         )
       when 'Use Expiration Date'
         where(
@@ -1093,7 +1093,7 @@ module GrdaWarehouse::Hud
 
     def consent_form_valid?
       if release_duration.in?(['One Year', 'Two Years'])
-        release_valid? && consent_form_signed_on.present? && consent_form_signed_on >= self.class.consent_validity_period.ago
+        release_valid? && consent_form_signed_on.present? && consent_form_signed_on >= self.class.consent_validity_period.ago.to_date
       elsif release_duration == 'Use Expiration Date'
         release_valid? && consent_expires_on.present? && consent_expires_on >= Date.current
       else

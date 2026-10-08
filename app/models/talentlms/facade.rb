@@ -322,7 +322,7 @@ module Talentlms
     # @param length [Integer] number of characters to generate
     # @return [String] randomly generated string of the requested length with at least on upper, lower, numeric, and symbol character
     def random_password(length = 16)
-      raise ArgumentError 'Length must be at least 8' if length < 8
+      raise ArgumentError, 'Length must be at least 8' if length < 8
 
       p = SecureRandom.urlsafe_base64(length - 4)
       lower_letter = ('a'..'z').to_a.sample
