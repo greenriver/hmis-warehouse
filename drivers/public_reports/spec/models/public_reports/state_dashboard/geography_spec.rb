@@ -68,6 +68,7 @@ RSpec.describe PublicReports::StateDashboard::Geography, type: :model do
   describe '#codes' do
     it 'excludes towns in a state the installation does not cover' do
       create_town('TESTVILLE', west: -71.5)
+      svg_before = described_class.new('place').svg
       other_state = GrdaWarehouse::Shape::State.create!(stusps: 'NH', geoid: '33')
       GrdaWarehouse::Shape::Town.create!(
         town: 'NASHUA',
@@ -76,7 +77,7 @@ RSpec.describe PublicReports::StateDashboard::Geography, type: :model do
       )
 
       expect(geography.codes).to eq(['TESTVILLE'])
-      expect(geography.svg[:paths].map { |_index, slug, _d| slug }).to eq(['testville'])
+      expect(geography.svg).to eq(svg_before)
     end
 
     it 'uses the CoC number as the code and "name (number)" as the display name' do
