@@ -268,10 +268,13 @@ class PublicReports::StateDashboard::Breakdowns
         key = [hh_id, client_id]
         households[hh_id] ||= { ages: [], hoh_client_id: nil }
         # An unknown (nil or negative) age keeps the household but records no age, so a household
-        # with only unknown ages has no child present and classifies as adult-only.
-        households[hh_id][:ages] << age if age.present? && !age.negative? && !counted_ids.include?(key)
+        # with only unknown ages has no child present and classifies as adult-only. The client is
+        # marked counted only once an age is recorded, so a later known age is still taken.
+        if age.present? && !age.negative? && !counted_ids.include?(key)
+          households[hh_id][:ages] << age
+          counted_ids << key
+        end
         households[hh_id][:hoh_client_id] = client_id if hoh
-        counted_ids << key
       end
     households
   end

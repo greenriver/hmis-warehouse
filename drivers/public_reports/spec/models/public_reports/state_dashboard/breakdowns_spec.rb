@@ -106,6 +106,14 @@ RSpec.describe PublicReports::StateDashboard::Breakdowns, type: :model do
       expect(breakdowns.adult_only_household_ids(period_start, period_end)).to eq('adult-and-unknown' => adult_with_unknown_hoh, 'all-unknown' => all_unknown_hoh)
       expect([breakdowns.adult_and_child_household_ids(period_start, period_end), breakdowns.child_only_household_ids(period_start, period_end)]).to eq([{}, {}])
     end
+
+    it 'records a later known age for a client whose earlier row had an unknown age' do
+      client = create(:hud_client, data_source_id: data_source.id)
+      hoh = create_member(household_id: 'unknown-then-child', age: nil, head_of_household: true, date: Date.parse('2025-10-10'), client: client)
+      create_member(household_id: 'unknown-then-child', age: 10, head_of_household: true, date: Date.parse('2025-10-20'), client: client)
+
+      expect(breakdowns.child_only_household_ids(period_start, period_end)).to eq('unknown-then-child' => hoh)
+    end
   end
 
   describe 'race rows' do
