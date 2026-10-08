@@ -48,8 +48,8 @@ RSpec.feature 'Hmis Form behavior', type: :system do
       assert_text '1 field was left empty'
       click_button 'Confirm'
       assert_text "#{c1.full_name} Assessments"
-      expect(all('tbody tr').count).to eq(1)
-      expect(all('tbody tr').first.text).to match(/A special assessment/)
+      expect(page).to have_css('tbody tr', count: 1)
+      expect(find('tbody tr')).to have_text(/A special assessment/)
     end
   end
 

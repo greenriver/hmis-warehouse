@@ -18,6 +18,7 @@ module WarehouseReports
           assessment_ids[form.destination_client.id] ||= form.id
         end
       @clients = client_scope.where(id: assessment_ids.keys)
+      current_user.policy_context.preload_client_dependencies(assessment_ids.keys)
       @assessments = GrdaWarehouse::HmisForm.covid_19_impact_assessments.
         where(id: assessment_ids.values).joins(:destination_client).
         select(

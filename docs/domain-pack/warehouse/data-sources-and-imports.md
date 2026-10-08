@@ -64,8 +64,9 @@ restated here. Consent arriving through ETO is in `roi/consent-from-external-sou
 
 - Admin UI: `DataSourcesController` (`app/controllers/data_sources_controller.rb`). Every
   action loads through `GrdaWarehouse::DataSource.viewable_by(current_user)`;
-  `data_source_params` and `new_data_source_params` list the editable columns, and `hmis` is
-  dropped from the update params once set. `destroy` enqueues `DeleteItemJob`.
+  `data_source_params` and `new_data_source_params` list the editable columns; `hmis` is
+  dropped from the update params once set, and `client_retention_years` unless
+  `client_retention_override_available?`. `destroy` enqueues `DeleteItemJob`.
 - HMIS gate: `HmisEnforcement.hmis_enabled?` (`app/models/hmis_enforcement.rb`) returns
   `ENV['ENABLE_HMIS_API'] == 'true'`. `HmisEnforcement.configured_hmis_hostnames` parses
   `HMIS_HOSTNAME`.
@@ -129,8 +130,11 @@ Each flag is a `data_sources` column; every reader named for it was confirmed in
 
 - `obey_consent` (default true). `GrdaWarehouse::AuthPolicies::SourceClientPolicy#roi_authorized?`
   returns false unless `client.data_source&.obey_consent?`, so an ROI never exposes a source
-  client from a data source with the flag off. `ClientAccessControl::EnrollmentArbiter#potentially_viewable_data_source_ids`
-  unions `DataSource.source.obeys_consent` with `viewable_by(user)`.
+  client from a data source with the flag off. On the access-control branch,
+  `ClientAccessControl::EnrollmentArbiter#enrollments_from_rois` keeps only source clients in
+  `DataSource.obeys_consent`, and `Client#show_demographics_to?` requires a source client in such
+  a data source. The legacy `EnrollmentArbiter#potentially_viewable_data_source_ids` unions
+  `DataSource.source.obeys_consent` with `viewable_by(user)`.
 - `visible_in_window` (default false). `Collection.maintain_system_groups` copies
   `visible_in_window.pluck(:id)` into the `:window_data_sources` system collection.
   `EnrollmentArbiter#project_ids` adds every project in `window_data_source_ids` unless
@@ -155,6 +159,13 @@ Each flag is a `data_sources` column; every reader named for it was confirmed in
   Manual HUD CSV uploads are still allowed.
 - `disable_imports` (default false). Removes the row from `importable`, so `importable?` and
   `importable_by?` return false and the upload UI hides.
+- `client_retention_years` (nil by default). A per-source override of the global
+  `GrdaWarehouse::Config` `client_retention_years`; `effective_client_retention_years` is nil
+  while the global setting is nil, else the override or the global value.
+  `client_retention_override_available?` is false for the destination data source and while
+  global retention is off. `GrdaWarehouse::ClientRetentionMark.rollup_activity` applies them, taking the longest
+  window among an identity's source data sources; see
+  `docs/features/warehouse/client-data-retention.md`.
 - `source_id`, `import_cleanups`, `import_aggregators`, `pre_process_hooks`. Read only by the
   HUD CSV loader and importer (`pre_process_hooks` by `HmisCsvImporter::Loader::HudKeyRemapper`
   and `UnlinkedRecordFilter`); see `hud-reporting/csv-import.md`.
@@ -286,7 +297,8 @@ Five conditions gate a data set on a destination client (`ClientDataSetsControll
    listed, after `source_visible_to` / `visible_to`.
 5. Each source client must pass `SourceClientPolicy#can_view_supplemental_data?`: ACL user,
    `can_view_supplemental_client_data` among `resource_permissions`, and `roi_authorized?`,
-   which needs `obey_consent` on the data source and an active ROI on the destination client.
+   which needs `obey_consent` on the data source and a
+   `ClientRoiAuthorization.visible_in_cocs` row for the destination client.
 
 Admin controllers require `can_manage_config` and `can_edit_data_sources` and load the data
 source through `viewable_by`.
@@ -313,7 +325,8 @@ the following night.
   `destination` `obeys_consent` `viewable_by` `hmis`
   `enabled_hmis_data_sources` `visible_in_window` `available_for_new_clients`,
   `destroy_dependents!` `hmis?` `hmis_live?` `importable_by?`,
-  `hmis_url_for` `enforce_op_hmis_defaults` `health_authoritative_id`.
+  `hmis_url_for` `enforce_op_hmis_defaults` `health_authoritative_id`,
+  `client_retention_override_available?` `effective_client_retention_years`.
 - `app/models/hmis_enforcement.rb`: `hmis_enabled?` `configured_hmis_hostnames`.
 - `app/controllers/data_sources_controller.rb`: `destroy` `data_source_params`.
 - `app/models/grda_warehouse/auth_policies/source_client_policy.rb`:

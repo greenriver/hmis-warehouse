@@ -35,6 +35,11 @@ RSpec.describe GrdaWarehouse::AuthPolicies::UserBaseContext do
       expect(context.client_restricted?(source_client.id)).to eq(true)
     end
 
+    it 'returns true once a source client has a retention mark, checking by destination id' do
+      GrdaWarehouse::ClientRetentionMark.create!(client_id: source_client.id, marked_on: Date.current, last_activity_on: 10.years.ago.to_date, retention_years: 7)
+      expect(context.client_restricted?(destination_client.id)).to eq(true)
+    end
+
     it 'returns false for a nil id' do
       expect(context.client_restricted?(nil)).to eq(false)
     end

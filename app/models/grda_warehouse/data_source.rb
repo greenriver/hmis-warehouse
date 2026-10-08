@@ -22,6 +22,8 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
 
   validates :name, presence: true
   validates :short_name, presence: true
+  # Same rule as GrdaWarehouse::Config#client_retention_years; nil defers to the global window.
+  validates :client_retention_years, numericality: { only_integer: true, greater_than: 0 }, allow_nil: true
 
   normalizes :hmis, with: lambda(&:presence) # normalize empty string/blank into nil
   validates :hmis, uniqueness: { allow_nil: true, conditions: -> { where(deleted_at: nil) } }
@@ -869,6 +871,22 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
       joins(:project).
       merge(project_scope).
       group(bucket)
+  end
+
+  # A per-source window only means something while global retention is on, and the
+  # warehouse (destination) data source has no source clients for a window to apply to.
+  def client_retention_override_available?
+    return false if source_type.nil? && !authoritative
+
+    GrdaWarehouse::Config.get(:client_retention_years).present?
+  end
+
+  # nil when retention is off.
+  def effective_client_retention_years
+    global = GrdaWarehouse::Config.get(:client_retention_years)
+    return nil if global.nil?
+
+    client_retention_years || global
   end
 
   # True when this data source is an Open Path HMIS installation

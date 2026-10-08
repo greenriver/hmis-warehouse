@@ -275,5 +275,11 @@ class ApplicationController < ActionController::Base
   before_action :set_app_user_header
   def set_app_user_header
     response.headers['X-app-user-id'] = current_user&.id
+    # Every response that can extend the IdP session moves the inactivity countdown, not just page loads.
+    # Sent as Server-Timing because the browser's Resource Timing API exposes it for every request type
+    # (fetch, XHR, iframes) without wrapping each client. Rails' ServerTiming middleware appends to it.
+    # Absent on the Devise arm, whose countdown rolls forward from X-app-user-id alone.
+    remaining_secs = inactive_session_countdown_values[:session_remaining_secs_value]
+    response.headers['Server-Timing'] = "app-session-remaining;desc=\"#{remaining_secs}\"" if remaining_secs
   end
 end

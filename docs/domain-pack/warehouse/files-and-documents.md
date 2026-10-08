@@ -142,8 +142,12 @@ when a file is attached, `file_exists_and_not_too_large` (100 bytes to 4 MB), `n
 `GrdaWarehouse::Hud::Client`, `Vispdat::Base`, `Hud::Enrollment`, `DataSource`, and the
 revoking user; validation contexts `requires_effective_date`, `requires_expiration_date`, and
 `requires_expiration_and_effective_dates` (the controller picks one from the tag flags because
-Rails cannot pass two contexts); a rule that a `confidential` file needs either
-`data_source_id` or `enrollment_id`; and its own `file_exists_and_not_too_large` that raises
+Rails cannot pass two contexts); a rule that a confirmed, unrevoked consent form needs an
+`expiration_date` when the release duration is `Use Expiration Date`
+(`expiration_date_required_by_release_duration?`, "Expiration date is required"), checked only on
+a save that creates the file or changes its confirmation, revocation, expiration date, or tags, so an
+existing undated form can still be soft-deleted; a rule that a
+`confidential` file needs either `data_source_id` or `enrollment_id`; and its own `file_exists_and_not_too_large` that raises
 the limit to 12 MB.
 
 `Hmis::File` uses `Hmis::Hud::Client` and `Hmis::Hud::Enrollment`, `Hmis::User` for `user` and
@@ -166,7 +170,8 @@ one row per selectable tag name, `belongs_to :tag` by `name`, and is ordered by 
 `weight`, `name`. Its columns drive behavior:
 
 - `consent_form`, `full_release`, `coc_available`: the file is a consent form; uploading or
-  confirming it writes consent onto the destination client. See `roi/consent-records.md` for
+  confirming it writes consent onto the destination client and rebuilds the client's
+  `ClientRoiAuthorization` row. See `roi/consent-records.md` for
   the full flow (`ClientFile#set_client_consent`, `consent_type`, `calculated_expiration_date`).
 - `verified_homeless_history`: the `ClientFile.verified_homeless_history` scope, used by
   `visible_by?` together with `GrdaWarehouse::Config` `verified_homeless_history_visible_to_all`
@@ -218,12 +223,15 @@ enrollment, by `data_source_id` of viewable projects. `index` exposes the ids as
 
 `editable_by?` (scope and instance method) allows all for `can_manage_client_files?` and own
 uploads for `can_manage_window_client_files?` or `can_see_own_file_uploads?`. `destroy` and
-`show_delete_modal` use `editable_scope`.
+`show_delete_modal` use `editable_scope`. It does not include `can_use_separated_consent?`, so
+that permission alone lets a user update their own releases (`update` loads through
+`visible_by?`) but not delete them.
 
 `create` strips `consent_form_confirmed` unless `can_confirm_housing_release?`, or sets it
 when the `auto_confirm_consent` config is on; `update` additionally allows
 `can_manage_client_files?` without the confirm flag and revokes consent through
-`invalidate_consent!` when `consent_revoked_at` is set on the active consent form.
+`invalidate_consent!` when `consent_revoked_at` is set on the active consent form, in one
+transaction with the file save so a file that fails validation leaves consent unchanged.
 
 ### Storage, soft delete, and purge
 
@@ -250,8 +258,9 @@ from enqueuing `ActiveStorage::PurgeJob`, and `soft_delete!` (an `update!(delete
 avoids `destroy` callbacks that would let `acts_as_taggable` hard-delete the taggings, which
 would make restore impossible. `Clients::FilesController#destroy` records `delete_reason`
 (0 Incomplete Form, 1 Incorrect Client, 2 Incorrectly Categorized, 99 Other) and
-`delete_detail` first, then calls `soft_delete!`, `invalidate_consent!` when the file was the
-active consent form, `clear_view_cache`, and `sync_cas_attributes_with_files`.
+`delete_detail` first, then calls `soft_delete!`, `invalidate_consent!` and
+`GenerateClientRoiAuthorizationsTask.rebuild_clients` when the file was the active consent form,
+`clear_view_cache`, and `sync_cas_attributes_with_files`.
 
 `PurgeSoftDeletedClientFilesJob` (`app/jobs/purge_soft_deleted_client_files_job.rb`) is the
 counterpart: under an advisory lock, wrapped in `instrument_as_maintenance_task(name: 'purge')`,
@@ -342,7 +351,7 @@ answers `regenerate?` true, otherwise saves a pending row and enqueues `Document
   `file_exists_and_not_too_large` to 12 MB. The 100-byte minimum rejects near-empty uploads.
 - `ClientFile#callbacks_skipped = true` disables `notify_users`, `adjust_consent_date`,
   `note_changes_in_consent`, and `set_client_consent`. Bulk writers that set it leave client
-  consent columns stale.
+  consent columns and the ROI row stale.
 - Taggings are stored with `taggable_type = 'GrdaWarehouse::File'`. Direct `Tagging` queries
   must filter on the base class name, not the subclass.
 - The consent, verified-homeless-history, and CE-certification scopes cache tagging ids for
@@ -353,7 +362,9 @@ answers `regenerate?` true, otherwise saves a pending row and enqueues `Document
   `confidential_visible_by` itself.
 - `Clients::FilesController#create` rescues `StandardError` and re-renders `new` with no flash,
   so a failed save shows only model errors; a raised exception elsewhere in the block is
-  swallowed. `destroy` rescues `Exception`. Both predate the no-bare-rescue convention.
+  swallowed. This predates the no-bare-rescue convention. `destroy` rescues only
+  `ActiveRecord::RecordInvalid` and `ActiveRecord::RecordNotSaved` from `soft_delete!`, flashes
+  an error, and redirects before touching the client's consent.
 - `PurgeSoftDeletedClientFilesJob` still runs (and completes its maintenance-task tracking)
   when `purge_soft_deleted_records/enabled` is unset outside staging, but does no purging.
   Soft-deleted files and their blobs otherwise persist indefinitely.

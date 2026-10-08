@@ -287,6 +287,14 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
       follow_redirect!
       expect(response.body).to include('Sorry you are not authorized to do that.')
     end
+
+    it 'redirects instead of erroring when no client page is visible' do
+      sign_in user
+      get appropriate_client_path(window_destination_client)
+      expect(response).to redirect_to(user.my_root_path)
+      follow_redirect!
+      expect(response.body).to include('Sorry you are not authorized to do that.')
+    end
   end
 
   describe 'logged in, and can use strict search' do

@@ -18,6 +18,7 @@ class GrdaWarehouse::AuthPolicies::DestinationClientPolicy < GrdaWarehouse::Auth
   ].each do |permission|
     method_name = :"#{permission}?"
     define_method(method_name) do
+      context.preload_client(client.id)
       client.source_clients.any? do |source_client|
         # Skip sources that are also destinations. This shouldn't be necessary but avoids SystemStackError on bad data
         next if source_client.destination?(strict: true)
@@ -38,7 +39,7 @@ class GrdaWarehouse::AuthPolicies::DestinationClientPolicy < GrdaWarehouse::Auth
 
   def validate_resource!(arg)
     ensure_arg_type!(arg, GrdaWarehouse::Hud::Client)
-    raise ArgumentError 'Must be a destination client' unless arg.destination?(strict: true)
+    raise ArgumentError, 'Must be a destination client' unless arg.destination?(strict: true)
   end
 
   def client

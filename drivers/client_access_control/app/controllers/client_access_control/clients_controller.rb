@@ -85,7 +85,7 @@ class ClientAccessControl::ClientsController < ApplicationController
     @query = search_params['q'].presence # populates form input
     if @query
       @search_performed = true
-      @clients = client_source.text_search(@query, client_scope: client_search_scope, sorted: sorted)
+      @clients = client_source.text_search(@query, user: current_user, sorted: sorted)
     else
       @clients = client_source.none
     end
@@ -131,6 +131,7 @@ class ClientAccessControl::ClientsController < ApplicationController
       preload(preloads)
 
     @pagy, @clients = pagy(@clients)
+    current_user.policy_context.preload_client_dependencies(@clients.map(&:id))
   end
 
   def show
@@ -152,13 +153,13 @@ class ClientAccessControl::ClientsController < ApplicationController
   # It can be expensive to calculate the appropriate link to show a user for a batch of clients
   # instead, just provide one where we can make that determination on a per-client basis
   def appropriate
-    redirect_to @client.appropriate_path_for?(current_user)
+    redirect_to(@client.appropriate_path_for?(current_user) || not_authorized!)
   end
 
   def from_source
     source_client = GrdaWarehouse::Hud::Client.source_visible_to(current_user).find(params[:id])
     @client = source_client.destination_client
-    redirect_to @client.appropriate_path_for?(current_user)
+    redirect_to(@client.appropriate_path_for?(current_user) || not_authorized!)
   end
 
   def image

@@ -29,6 +29,7 @@ module ProjectPassFail::WarehouseReports
       @project = @report.projects.find(params[:id].to_i)
       @clients = @project.clients.preload(:project, client: :destination_client)
       current_user.policy_context.preload_project_dependencies([@project.project&.id].compact)
+      current_user.policy_context.preload_client_dependencies(@clients.map(&:client_id))
       respond_to do |format|
         format.html {}
         format.xlsx do

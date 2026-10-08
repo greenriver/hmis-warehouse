@@ -429,7 +429,7 @@ module GrdaWarehouse::Hud
       when 'One Year', 'Two Years'
         where(
           release_string_query.
-            and(arel_table[:consent_form_signed_on].gteq(consent_validity_period.ago)),
+            and(arel_table[:consent_form_signed_on].gteq(consent_validity_period.ago.to_date)),
         )
       when 'Use Expiration Date'
         where(
@@ -1093,7 +1093,7 @@ module GrdaWarehouse::Hud
 
     def consent_form_valid?
       if release_duration.in?(['One Year', 'Two Years'])
-        release_valid? && consent_form_signed_on.present? && consent_form_signed_on >= self.class.consent_validity_period.ago
+        release_valid? && consent_form_signed_on.present? && consent_form_signed_on >= self.class.consent_validity_period.ago.to_date
       elsif release_duration == 'Use Expiration Date'
         release_valid? && consent_expires_on.present? && consent_expires_on >= Date.current
       else
@@ -1427,20 +1427,6 @@ module GrdaWarehouse::Hud
     # identity, is marked restricted in HMIS. Absolute: no warehouse permission overrides it.
     def pii_restricted?(user:)
       user.policy_context.client_restricted?(id)
-    end
-
-    # All currently HMIS-restricted client ids (source and destination alike -- restriction
-    # applies to the whole warehouse identity, see RestrictedClientLoader).
-    def self.hmis_restricted_source_client_ids
-      GrdaWarehouse::AuthPolicies::ContextLoaders::RestrictedClientLoader.new.restricted_client_ids
-    end
-
-    # The subset of the given destination client ids that are HMIS-restricted.
-    def self.hmis_restricted_destination_client_ids(destination_client_ids)
-      return Set.new if destination_client_ids.blank?
-
-      loader = GrdaWarehouse::AuthPolicies::ContextLoaders::RestrictedClientLoader.new
-      destination_client_ids.select { |id| loader.restricted?(id) }.to_set
     end
 
     def name
@@ -1846,16 +1832,17 @@ module GrdaWarehouse::Hud
     end
 
     # @param client_scope [GrdaWarehouse::Hud::Client.source] source clients to search in
+    # @param user [User] limit results to clients searchable_to this user
     # @param sorted [Boolean] order results by closest match to text
     # @param with_score [Boolean] add the match score as a #score attribute on results.
-    # @param restricted_source_ids [Set<Integer>] source client ids hidden from name/SSN matching;
-    #   pass a preloaded set when calling repeatedly, otherwise it is loaded per call
-    def self.text_search(text, client_scope: nil, sorted: false, with_score: false, restricted_source_ids: hmis_restricted_source_client_ids)
+    def self.text_search(text, client_scope: nil, user: nil, sorted: false, with_score: false)
       # Get search results from client scope. Then return the unique destination client records that map to those matching source records
       relation = (client_scope || self) # rubocop:disable Style/RedundantParentheses
       # with resolve_for_join_query, results are client.scope.select(:client_id, :score) suitable for subquery
-      results = relation.searchable.text_searcher(text, sorted: sorted, resolve_for_join_query: true, exclude_ids_for_name_and_ssn: restricted_source_ids)
+      results = relation.searchable.text_searcher(text, sorted: sorted, resolve_for_join_query: true, name_and_ssn_filter: GrdaWarehouse::HiddenClients.not_hidden(arel_table[:id]))
       return relation.none if results.nil?
+
+      results = results.where(id: searchable_ids_among(results, user)) if user
 
       grouped = GrdaWarehouse::WarehouseClient.
         # join warehouse client to results subquery
@@ -1869,6 +1856,21 @@ module GrdaWarehouse::Hud
       mapped = mapped.select(Arel.sql('"Client".*, dst_search_results.score AS score')) if with_score
       mapped = mapped.order(Arel.sql('dst_search_results.score DESC'), :id) if sorted
       mapped
+    end
+
+    # Above this many matches, visibility is checked with a subquery instead of an id list.
+    MAX_SEARCH_CANDIDATES = 20_000
+
+    # Checks visibility against the search's matches only. Building the user's whole searchable
+    # set takes seconds for users who can see most clients.
+    # @return [Array<Integer>, ActiveRecord::Relation] searchable ids, or a subquery above MAX_SEARCH_CANDIDATES
+    private_class_method def self.searchable_ids_among(results, user)
+      candidate_ids = unscoped.from(results, :candidates).limit(MAX_SEARCH_CANDIDATES + 1).pluck('candidates.client_id')
+      return searchable_to(user).select(:id) if candidate_ids.size > MAX_SEARCH_CANDIDATES
+      # searchable_to treats an empty client_ids as unrestricted
+      return [] if candidate_ids.empty?
+
+      searchable_to(user, client_ids: candidate_ids).pluck(:id)
     end
 
     # Must match 3 of four First Name, Last Name, SSN, DOB
@@ -1931,8 +1933,7 @@ module GrdaWarehouse::Hud
         where(id: matching_ids).
         preload(:destination_client).
         map { |m| m.destination_client.id }
-      ids -= hmis_restricted_destination_client_ids(ids).to_a
-      where(id: ids)
+      where(id: ids).where(GrdaWarehouse::HiddenClients.not_hidden(arel_table[:id]))
     end
 
     def gender
@@ -2222,9 +2223,8 @@ module GrdaWarehouse::Hud
     def potential_matches
       @potential_matches ||= {}.tap do |m|
         scores_by_id = {}
-        restricted_source_ids = self.class.hmis_restricted_source_client_ids
         potential_match_search_queries.each do |query|
-          self.class.text_search(query, client_scope: self.class, sorted: true, with_score: true, restricted_source_ids: restricted_source_ids).where.not(id: id).each do |candidate|
+          self.class.text_search(query, client_scope: self.class, sorted: true, with_score: true).where.not(id: id).each do |candidate|
             score = candidate.score.to_f
             scores_by_id[candidate.id] = score if scores_by_id[candidate.id].nil? || score > scores_by_id[candidate.id]
           end
@@ -2520,9 +2520,12 @@ module GrdaWarehouse::Hud
     def force_full_service_history_rebuild
       # If we're already forcing a rebuild, we don't need to clear things again
       self.class.with_advisory_lock([__method__, self.class.name, id].join('_'), timeout_seconds: 0) do
-        service_history_enrollments.where(record_type: [:entry, :exit, :service, :extrapolated]).delete_all
-        source_enrollments.update_all(processed_as: nil)
-        invalidate_service_history
+        # source_enrollments spans data sources, so this can deadlock with an import's mark_tree_as_dead
+        GrdaWarehouseBase.retry_on_deadlock("force_full_service_history_rebuild client #{id}") do
+          service_history_enrollments.where(record_type: [:entry, :exit, :service, :extrapolated]).delete_all
+          source_enrollments.update_all(processed_as: nil)
+          invalidate_service_history
+        end
       end
     end
 
