@@ -144,7 +144,9 @@ revoking user; validation contexts `requires_effective_date`, `requires_expirati
 `requires_expiration_and_effective_dates` (the controller picks one from the tag flags because
 Rails cannot pass two contexts); a rule that a confirmed, unrevoked consent form needs an
 `expiration_date` when the release duration is `Use Expiration Date`
-(`expiration_date_required_by_release_duration?`, "Expiration date is required"); a rule that a
+(`expiration_date_required_by_release_duration?`, "Expiration date is required"), checked only on
+a save that creates the file or changes its confirmation, revocation, expiration date, or tags, so an
+existing undated form can still be soft-deleted; a rule that a
 `confidential` file needs either `data_source_id` or `enrollment_id`; and its own `file_exists_and_not_too_large` that raises
 the limit to 12 MB.
 

@@ -558,5 +558,34 @@ RSpec.describe GrdaWarehouse::ClientFile, type: :model do
     it 'saves a confirmed non-consent file without an expiration date' do
       expect(consent_form(confirmed: true, tag: other_tag).save).to be true
     end
+
+    context 'with a confirmed consent form saved without an expiration date under Indefinite' do
+      let!(:file) do
+        GrdaWarehouse::Config.first.update!(release_duration: 'Indefinite')
+        GrdaWarehouse::Config.invalidate_cache
+        consent_form(confirmed: true).tap(&:save!)
+      end
+
+      before do
+        GrdaWarehouse::Config.first.update!(release_duration: 'Use Expiration Date')
+        GrdaWarehouse::Config.invalidate_cache
+      end
+
+      it 'records the delete reason and soft-deletes the file' do
+        expect(file.update(delete_reason: 1, delete_detail: 'Wrong client')).to be true
+        file.soft_delete!
+
+        deleted = GrdaWarehouse::ClientFile.with_deleted.find(file.id)
+        expect(deleted.deleted_at).to be_present
+        expect(deleted.delete_reason).to eq(1)
+      end
+
+      it 'requires an expiration date when the consent is un-revoked' do
+        file.update_columns(consent_revoked_at: Time.current)
+
+        expect(file.update(consent_revoked_at: nil)).to be false
+        expect(file.errors[:expiration_date]).to eq(['Expiration date is required'])
+      end
+    end
   end
 end

@@ -148,7 +148,7 @@
   "app/models/grda_warehouse/cas_availability.rb": "27d8c2bf5c9ca47741aebdbc5e3a1c9687a16259a430520296add31990c568ff",
   "app/models/grda_warehouse/cas_housed.rb": "e0bf598df8851e7330381bd59f57aad190b60fc19a15e3e5aa679a1fc5ae03dc",
   "app/models/grda_warehouse/cas_project_client_calculator/default.rb": "1b93a6e390122376e255f2f055b0956e2ce000ee1af4186e9935aa97bd4133de",
-  "app/models/grda_warehouse/client_file.rb": "92611fe5164bbafc47b379053fad76517ffbbf68d043db556d1776d83aa9e412",
+  "app/models/grda_warehouse/client_file.rb": "cf23fff1ec0b1f46a34aafb7f4c4904b0a7b127cfe2cb959fe7eeb538e1d7c27",
   "app/models/grda_warehouse/client_match.rb": "8756d10782378e2659fde18770d4ed33b292867905736d794b20465c9a3b5c55",
   "app/models/grda_warehouse/client_merge_history.rb": "f938c373991c041e481b32df932df9492b9da083bd2180a4849c632cf35a1810",
   "app/models/grda_warehouse/client_retention_mark.rb": "85b0463c3f44e473ccc0b31b8c4e87d3aeca12c63cea2c7b6ca94608a57e09bf",
