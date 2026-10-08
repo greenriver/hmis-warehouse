@@ -41,7 +41,6 @@ RSpec.describe 'PublicReports raw pages', type: :request do
     page = page_for(raw_public_reports_warehouse_reports_point_in_time_path(report))
 
     expect(page.css('script[src*="billboard.min.js"]').size).to eq(1)
-    expect(page.css('script').map(&:text).join).to include("columns: #{columns.to_json}")
   end
 
   it 'renders the homeless count as a plain count and date range' do

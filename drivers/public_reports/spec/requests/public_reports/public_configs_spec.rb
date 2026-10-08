@@ -39,10 +39,19 @@ RSpec.describe 'PublicReports::WarehouseReports::PublicConfigs', type: :request 
     expect(PublicReports::Setting.first.summary_color).to eq('#123456')
   end
 
-  it 'keeps the rejected font family in the form so it can be corrected' do
+  it 'keeps the rejected font family in the form so it can be corrected without saving it' do
     post public_reports_warehouse_reports_public_configs_path, params: { config: { font_family_0: 'Georgia;}' } }
 
     expect(Nokogiri::HTML(response.body).at_css('input[name="config[font_family_0]"]')['value']).to eq('Georgia;}')
+    expect(PublicReports::Setting.first.font_family_0).to be_nil
+  end
+
+  it 'saves a new theme color and shows it back in the form' do
+    post public_reports_warehouse_reports_public_configs_path, params: { config: { heading_color: '#abcdef' } }
+    get public_reports_warehouse_reports_public_configs_path
+
+    expect(PublicReports::Setting.first.heading_color).to eq('#abcdef')
+    expect(Nokogiri::HTML(response.body).at_css('input[name="config[heading_color]"]')['value']).to eq('#abcdef')
   end
 
   it 'shows the theme font defaults as placeholders without filling the font inputs' do
@@ -58,7 +67,7 @@ RSpec.describe 'PublicReports::WarehouseReports::PublicConfigs', type: :request 
     ).to eq([nil, PublicReports::Setting::THEME_DEFAULTS[:font_url], nil, PublicReports::Setting::THEME_DEFAULTS[:font_body]])
   end
 
-  it 'saves the per-population colors the pre-redesign reports use' do
+  it 'round-trips a per-population color, which css_values_are_safe does not validate' do
     post public_reports_warehouse_reports_public_configs_path, params: { config: { homeless_primary_color: '#112233' } }
     get public_reports_warehouse_reports_public_configs_path
 

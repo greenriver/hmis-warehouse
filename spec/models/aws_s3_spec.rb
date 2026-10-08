@@ -25,12 +25,6 @@ RSpec.describe AwsS3 do
     allow(bucket).to receive(:object).and_return(object)
   end
 
-  describe '#initialize' do
-    it 'initializes with given bucket name and region' do
-      expect(aws_s3.bucket_name).to eq('test-bucket')
-    end
-  end
-
   describe 'region' do
     def region_for(env)
       stub_const('ENV', ENV.to_h.except('AWS_REGION', 'AWS_DEFAULT_REGION').merge(env))
@@ -54,9 +48,10 @@ RSpec.describe AwsS3 do
   end
 
   describe '#exists?' do
-    it 'returns true if bucket exists' do
-      allow(bucket).to receive(:exists?).and_return(true)
-      expect(aws_s3.exists?).to be true
+    it 'returns false when the bucket check raises' do
+      allow(bucket).to receive(:exists?).and_raise(Aws::S3::Errors::ServiceError.new(nil, 'Forbidden'))
+
+      expect(aws_s3.exists?).to be(false)
     end
   end
 

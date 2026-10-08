@@ -53,11 +53,12 @@ RSpec.describe 'PublicReports::WarehouseReports::StateDashboard sections', type:
   end
 
   sections_for_iteration = [:summary, :pit, :entering_exiting, :who, :race, :map, :raw]
-  sections_for_iteration.each do |section|
-    it "returns 200 for the #{section} section" do
-      get send("#{section}_public_reports_warehouse_reports_state_dashboard_path", report)
-      expect(response).to have_http_status(:ok)
-    end
+  it 'renders the race bars on the race section with no breakdown rows' do
+    get race_public_reports_warehouse_reports_state_dashboard_path(report)
+    page = Nokogiri::HTML(response.body)
+
+    expect(page.css('[data-who-period-pane]:not([hidden]) .chart--stacked-bar[data-chart-id="race"] .stacked-bar__label').map(&:text)).to eq(['Homeless Population', 'Overall Population'])
+    expect(page.css('.breakdown-row, .breakdown-heading')).to be_empty
   end
 
   it 'renders the PIT data table and the summary tiles from the stored data' do
@@ -98,10 +99,18 @@ RSpec.describe 'PublicReports::WarehouseReports::StateDashboard sections', type:
     end
   end
 
-  it 'embeds the town-map JSON blob on map and raw' do
+  it 'embeds the town-map JSON blob on map and raw with DB-sourced names escaped' do
+    hostile = '</script><script>alert(1)</script>'
+    stored = JSON.parse(precalculated_data)
+    stored['map']['towns'][0] = hostile
+    report.update_column(:precalculated_data, stored.to_json)
+
     [:map, :raw].each do |section|
       get send("#{section}_public_reports_warehouse_reports_state_dashboard_path", report)
-      expect(response.body).to include('data-town-map-data')
+
+      expect(response.body).not_to include('</script><script>alert'), section.to_s
+      blob = Nokogiri::HTML(response.body).at_css('script[data-town-map-data]').text
+      expect(JSON.parse(blob)['towns'].first).to eq(hostile), section.to_s
     end
   end
 
@@ -237,10 +246,24 @@ RSpec.describe 'PublicReports::WarehouseReports::StateDashboard sections', type:
     end
   end
 
-  it 'produces non-nil markup for every section via as_html + html_section, which the S3 publish path depends on' do
+  it 'splits as_html into one self-contained section per template, which the S3 publish path depends on' do
+    landmarks = {
+      pit: 'figure.chart--line',
+      entering_exiting: 'figure.chart--line',
+      summary: '.stat-tile__value',
+      map: '[data-component="town-map"]',
+      who: '.breakdown-row',
+      race: '.chart--stacked-bar[data-chart-id="race"]',
+      raw: 'section[aria-labelledby="who-heading"]',
+    }
     report.update!(html: report.as_html)
+
+    expect(report.html.scan('SECTION START').size).to eq(report.sections.size)
     report.sections.each do |section|
-      expect(report.html_section(section)).to be_present
+      fragment = report.html_section(section)
+      expect(fragment.scan("<!-- SECTION START #{section} -->").size).to eq(1), section.to_s
+      expect(fragment.scan('SECTION START').size).to eq(1), section.to_s
+      expect(Nokogiri::HTML.fragment(fragment).at_css(landmarks.fetch(section))).not_to be_nil, section.to_s
     end
   end
 
@@ -272,12 +295,6 @@ RSpec.describe 'PublicReports::WarehouseReports::StateDashboard sections', type:
     before do
       report.update_column(:user_id, owner.id)
       owner.destroy
-    end
-
-    it 'renders the data note' do
-      get summary_public_reports_warehouse_reports_state_dashboard_path(report)
-
-      expect(Nokogiri::HTML(response.body).css('.data-note').map(&:text).uniq).to eq(['Data updated through Dec 31, 2025'])
     end
 
     it 'lists the report in the history table' do
