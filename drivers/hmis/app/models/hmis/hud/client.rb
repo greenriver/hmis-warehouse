@@ -182,12 +182,13 @@ class Hmis::Hud::Client < Hmis::Hud::Base
 
   # Clients searchable_to the user that match text. Visibility is checked against the matches only;
   # building the user's whole searchable set takes seconds for users who can see most clients.
-  def self.searchable_to_matching(user, text)
-    matches = where(data_source_id: user.hmis_data_source_id).text_searcher(text, sorted: false)
+  # @param sorted [Boolean] rank by search score, as text_searcher does
+  def self.searchable_to_matching(user, text, sorted: false)
+    matches = where(data_source_id: user.hmis_data_source_id).text_searcher(text, sorted: sorted)
     candidate_ids = matches.limit(MAX_SEARCH_CANDIDATES + 1).pluck(:id)
-    return searchable_to(user).where(id: matches.select(:id)) if candidate_ids.size > MAX_SEARCH_CANDIDATES
+    client_ids = candidate_ids.size > MAX_SEARCH_CANDIDATES ? matches.select(:id) : candidate_ids
 
-    searchable_to(user, client_ids: candidate_ids)
+    matches.where(id: searchable_to(user, client_ids: client_ids).select(:id))
   end
 
   scope :matching_search_term, ->(text_search) do
@@ -308,9 +309,8 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     end
 
     if input.text_search.present?
-      scope = Hmis::Hud::Client.where(id: searchable_to_matching(user, input.text_search).select(:id))
       # early return to preserve sort order, avoids client.where(id: scope.select(:id))
-      return scope.text_searcher(input.text_search, sorted: sorted)
+      return searchable_to_matching(user, input.text_search, sorted: sorted)
     end
 
     # Build search scope
