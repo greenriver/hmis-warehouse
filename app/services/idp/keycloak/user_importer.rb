@@ -25,6 +25,23 @@ module Idp
         hmis: 'hmis-users',
       }.freeze
 
+      # Devise expires accounts by date (expirable's last_activity_at window, or
+      # expired_at) without ever clearing `active`, but under JWT `active` is the
+      # only check. Persist the Devise answer so expired accounts stay inactive
+      # after the switch and fall out of migration_scope. Requires AUTH_METHOD=devise;
+      # under JWT, User.inactive is just `active: false` and this deactivates no one.
+      #
+      # @return [Integer] number of users deactivated
+      def self.deactivate_expired_users!
+        system_user_id = User.system_user.id
+        users = User.inactive.where(active: true).where.not(id: system_user_id).to_a
+        PaperTrail.request(whodunnit: system_user_id.to_s) do
+          # active + updated_at matches the "Account deactivated" edit-history summary
+          users.each { |user| user.paper_trail.update_columns(active: false, updated_at: Time.current) }
+        end
+        users.size
+      end
+
       # Users to migrate: confirmed, active, and not already linked to the connector.
       #
       # confirmed_at also gates out invited-but-not-accepted users: :invitable
