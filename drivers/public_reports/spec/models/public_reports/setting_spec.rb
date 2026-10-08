@@ -29,14 +29,38 @@ RSpec.describe PublicReports::Setting, type: :model do
       )
     end
 
-    it 'lets an override win only for that key, leaving the rest at their defaults' do
-      setting = described_class.new(secondary_color: '#000000')
+    it 'maps each theme column to its own token, including the heading font' do
+      setting = described_class.new(
+        font_url: 'https://fonts.googleapis.com/css2?family=Lato&display=swap',
+        font_family_0: 'Georgia, serif',
+        font_family_1: 'Lato, sans-serif',
+        font_size_0: '18px',
+        font_weight_0: '300',
+        summary_color: '#000001',
+        secondary_color: '#000002',
+        heading_color: '#000003',
+        text_color: '#000004',
+        border_color: '#000005',
+        surface_tint_color: '#000006',
+        focus_color: '#000007',
+        map_not_reporting_color: '#000008',
+      )
 
-      expect([setting.theme[:secondary], setting.theme[:primary]]).to eq(['#000000', '#14558f'])
-    end
-
-    it 'uses heading_color when it is set' do
-      expect(described_class.new(heading_color: '#003d79').theme[:heading]).to eq('#003d79')
+      expect(setting.theme).to eq(
+        font_url: 'https://fonts.googleapis.com/css2?family=Lato&display=swap',
+        font_body: 'Georgia, serif',
+        font_heading: 'Lato, sans-serif',
+        font_size: '18px',
+        font_weight: '300',
+        primary: '#000001',
+        secondary: '#000002',
+        heading: '#000003',
+        text: '#000004',
+        border: '#000005',
+        surface_tint: '#000006',
+        focus: '#000007',
+        not_reporting: '#000008',
+      )
     end
 
     it 'falls back the heading font to the body font when only the body font is set' do
@@ -46,7 +70,7 @@ RSpec.describe PublicReports::Setting, type: :model do
     it 'replaces values that could break out of CSS with the defaults' do
       setting = described_class.new(
         font_family_0: 'x}</style><script>alert(1)</script>',
-        font_url: 'https://fonts.example/a.css");}body{background:url("x',
+        font_url: 'https://fonts.googleapis.com/css2?x");}body{display:none}',
         summary_color: '#14558f;}</style><script>',
         font_size_0: '1rem;}',
         font_weight_0: '400}',
@@ -65,10 +89,6 @@ RSpec.describe PublicReports::Setting, type: :model do
       setting = described_class.new(location_type_color_0: '#003d79" onmouseover="alert(1)')
 
       expect(setting.color(0, :location_type)).to eq('#003d79')
-    end
-
-    it 'uses a saved body font size and weight' do
-      expect(described_class.new(font_size_0: '18px', font_weight_0: '300').theme.values_at(:font_size, :font_weight)).to eq(['18px', '300'])
     end
   end
 
@@ -100,6 +120,13 @@ RSpec.describe PublicReports::Setting, type: :model do
 
       expect(setting.valid?).to be(false)
       expect(setting.errors[:font_url]).to eq(['is not a valid CSS value'])
+    end
+
+    it 'rejects a Google Fonts URL that carries quotes or parentheses' do
+      setting = described_class.new(font_url: 'https://fonts.googleapis.com/css2?x");}body{display:none}')
+
+      expect(setting.valid?).to be(false)
+      expect(setting.errors.attribute_names).to contain_exactly(:font_url)
     end
 
     it 'accepts a Google Fonts stylesheet URL' do

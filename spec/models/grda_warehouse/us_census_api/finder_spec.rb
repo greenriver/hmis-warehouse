@@ -57,4 +57,50 @@ RSpec.describe GrdaWarehouse::UsCensusApi::Finder, type: :model do
   it 'rejects a year before 2009' do
     expect { finder(2008) }.to raise_error(RuntimeError, /valid year/)
   end
+
+  it 'rejects a year newer than the data once it is five years behind today' do
+    travel_to(Date.new(2031, 10, 2))
+
+    expect { finder(2026) }.to raise_error(RuntimeError, /valid year/)
+  end
+
+  it 'falls back to the latest data year while the request is under five years behind today' do
+    travel_to(Date.new(2031, 10, 2))
+
+    result = finder(2027).best_value
+
+    expect([result.year, result.val]).to eq([2024, 200])
+  end
+
+  it 'raises CannotFindData when one of the requested variables has no value' do
+    finder = described_class.new(geometry: county, year: 2023, internal_names: ['POP::TOTAL', 'POP::MISSING'])
+
+    expect { finder.best_value }.to raise_error(described_class::CannotFindData, /POP::MISSING/)
+  end
+
+  it 'sums the values of every requested variable' do
+    male = GrdaWarehouse::UsCensusApi::CensusVariable.create!(
+      year: 2023,
+      dataset: 'acs5',
+      name: 'B01001_002E',
+      label: 'Male',
+      concept: 'Sex by age',
+      census_group: 'B01001',
+      census_attributes: 'B01001_002EA',
+      internal_name: 'POP::MALE',
+      created_on: Date.current,
+    )
+    GrdaWarehouse::UsCensusApi::CensusValue.create!(
+      census_variable: male,
+      value: 40,
+      full_geoid: county.full_geoid,
+      census_level: 'COUNTY',
+      created_on: Date.current,
+    )
+    finder = described_class.new(geometry: county, year: 2023, internal_names: ['POP::TOTAL', 'POP::MALE'])
+
+    result = finder.best_value
+
+    expect([result.val, result.components.size]).to eq([140, 2])
+  end
 end
