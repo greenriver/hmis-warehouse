@@ -14,7 +14,7 @@ module DisabilitySummary::DocumentExports
     end
 
     protected def report
-      @report ||= report_class.find(params['id'])
+      @report ||= report_class.new(filter)
     end
 
     protected def view_assigns

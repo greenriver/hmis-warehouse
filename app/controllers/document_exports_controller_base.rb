@@ -81,6 +81,7 @@ class DocumentExportsControllerBase < ApplicationController
       'GrdaWarehouse::DocumentExports::HouseholdPerformanceExport',
       'GrdaWarehouse::DocumentExports::ProjectTypePerformanceExport',
       'CoreDemographicsReport::DocumentExports::CoreDemographicsExport',
+      'DisabilitySummary::DocumentExports::DisabilitySummaryExport',
       'CoreDemographicsReport::DocumentExports::CoreDemographicsExcelExport',
       'CoreDemographicsReport::DemographicSummary::DocumentExports::DemographicSummaryExport',
       'CoreDemographicsReport::DemographicSummary::DocumentExports::DemographicSummaryExcelExport',
