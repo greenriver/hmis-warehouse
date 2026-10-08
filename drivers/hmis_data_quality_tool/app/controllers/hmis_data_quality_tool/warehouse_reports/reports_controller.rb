@@ -144,7 +144,7 @@ module HmisDataQualityTool::WarehouseReports
     helper_method :details_params
 
     private def set_report
-      @report = report_class.find(params[:id].to_i)
+      @report = report_scope.find(params[:id].to_i)
     end
 
     private def set_pdf_export
